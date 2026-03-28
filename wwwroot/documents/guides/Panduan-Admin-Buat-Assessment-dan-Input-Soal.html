@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Panduan Buat Assessment &amp; Input Soal — Portal HC KPB</title>
+<style>
+  @page { size: A4; margin: 18mm 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.7; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+
+  .cover { text-align: center; padding: 50px 20px 36px; margin-bottom: 28px; border-bottom: 3px solid #0d6efd; }
+  .cover-icon { font-size: 44pt; margin-bottom: 10px; }
+  .cover h1 { color: #0d6efd; font-size: 22pt; margin-bottom: 6px; }
+  .cover .subtitle { color: #555; font-size: 11pt; }
+  .cover .version { color: #888; font-size: 9.5pt; margin-top: 14px; }
+
+  h2 { color: #0d6efd; font-size: 14pt; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0d6efd; padding-left: 12px; }
+  h3 { color: #2e7d32; font-size: 12pt; margin-top: 16px; margin-bottom: 8px; }
+  p { margin-bottom: 8px; }
+  ol, ul { padding-left: 24px; margin-bottom: 8px; }
+  li { margin-bottom: 4px; }
+
+  .flow { background: #f0f4ff; border: 1px solid #c5cae9; border-radius: 10px; padding: 18px 14px; margin: 14px 0; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; font-size: 10pt; }
+  .flow-box { background: #fff; border: 2px solid #0d6efd; border-radius: 8px; padding: 8px 14px; font-weight: 700; color: #0d6efd; text-align: center; min-width: 110px; }
+  .flow-arrow { color: #0d6efd; font-size: 16pt; font-weight: 700; }
+
+  .card { background: #f8f9fa; border-radius: 8px; padding: 14px 18px; margin: 10px 0; border-left: 4px solid #0d6efd; }
+  .card-green { border-left-color: #2e7d32; }
+  .card-orange { border-left-color: #e65100; }
+  .card-title { font-weight: 700; color: #0d6efd; margin-bottom: 6px; font-size: 11pt; }
+  .card-green .card-title { color: #2e7d32; }
+  .card-orange .card-title { color: #e65100; }
+
+  .screenshot { margin: 14px 0; text-align: center; }
+  .screenshot img { max-width: 100%; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .screenshot .caption { font-size: 9.5pt; color: #6c757d; margin-top: 6px; font-style: italic; }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 10pt; }
+  th { background: #0d6efd; color: #fff; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+
+  kbd { background: #eee; border: 1px solid #ccc; border-radius: 3px; padding: 1px 6px; font-size: 9.5pt; font-family: Consolas, monospace; }
+
+  .footer { margin-top: 30px; padding-top: 12px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+
+  .action-bar { position: fixed; top: 16px; right: 16px; z-index: 100; }
+  .action-bar button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 10pt; font-weight: 600; cursor: pointer; background: #0d6efd; color: #fff; }
+  .action-bar button:hover { background: #0b5ed7; }
+
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+    .action-bar { display: none; }
+    .screenshot img { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="action-bar">
+  <button onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-icon">&#128221;</div>
+  <h1>Panduan Buat Assessment &amp; Input Soal</h1>
+  <p class="subtitle">Portal HC KPB &mdash; Untuk Admin &amp; HC</p>
+  <p class="version">Versi 1.0 &bull; Maret 2026</p>
+</div>
+
+<!-- ALUR -->
+<h2>Alur Proses</h2>
+
+<div class="flow">
+  <div class="flow-box">1. Buat<br>Assessment</div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-box">2. Buat<br>Paket Soal</div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-box">3. Import<br>Soal</div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-box">4. Preview<br>&amp; Verifikasi</div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-box">5. Peserta<br>Mengerjakan</div>
+</div>
+
+<!-- BAGIAN A -->
+<h2>A. Buat Assessment Baru</h2>
+
+<p><strong>Navigasi:</strong> Kelola Data &rarr; Manage Assessment &amp; Training &rarr; klik tombol <strong>"Buat Assessment"</strong></p>
+
+<div class="screenshot">
+  <img src="screenshots/01-manage-assessment.png" alt="Halaman Manage Assessment & Training">
+  <div class="caption">Halaman Manage Assessment &amp; Training &mdash; klik tombol "Buat Assessment" di kanan atas</div>
+</div>
+
+<p>Anda akan masuk ke wizard <strong>4 langkah</strong>:</p>
+
+<h3>Langkah 1 &mdash; Kategori &amp; Judul</h3>
+<ol>
+  <li>Pilih <strong>Kategori</strong> dari dropdown (OJT, IHT, Training Licencor, OTS, Mandatory, Assessment Proton, dll)</li>
+  <li>Isi <strong>Judul Assessment</strong> (contoh: "Assessment OJT - Operator RFCC Batch 1")</li>
+  <li>Klik <strong>Selanjutnya</strong></li>
+</ol>
+
+<div class="screenshot">
+  <img src="screenshots/02b-create-step1-filled.png" alt="Langkah 1 - Kategori & Judul">
+  <div class="caption">Langkah 1: Pilih kategori dan isi judul assessment</div>
+</div>
+
+<div class="card-orange card">
+  <div class="card-title">&#9888; Khusus Assessment Proton</div>
+  Jika kategori = "Assessment Proton", muncul field tambahan <strong>Track</strong> (Operator/Panelman, Tahun 1/2/3). Pilih sesuai penugasan coachee.
+</div>
+
+<h3>Langkah 2 &mdash; Pilih Peserta</h3>
+<ol>
+  <li>Gunakan <strong>filter bagian</strong> (dropdown) untuk memfilter per unit kerja</li>
+  <li>Gunakan <strong>kolom pencarian</strong> untuk cari nama/email</li>
+  <li><strong>Centang</strong> karyawan yang akan menjadi peserta (minimal 1)</li>
+  <li>Gunakan tombol <strong>Select All / Deselect All</strong> jika perlu</li>
+  <li>Klik <strong>Selanjutnya</strong></li>
+</ol>
+
+<div class="screenshot">
+  <img src="screenshots/03-create-step2.png" alt="Langkah 2 - Pilih Peserta">
+  <div class="caption">Langkah 2: Daftar karyawan dengan checkbox, filter bagian, dan pencarian</div>
+</div>
+
+<h3>Langkah 3 &mdash; Settings</h3>
+
+<table>
+  <tr><th>Field</th><th>Keterangan</th></tr>
+  <tr><td>Tanggal &amp; Waktu Jadwal</td><td>Kapan assessment dilaksanakan</td></tr>
+  <tr><td>Durasi</td><td>Waktu pengerjaan (menit), maks 480 menit</td></tr>
+  <tr><td>Status</td><td><strong>Open</strong> = langsung tersedia, <strong>Upcoming</strong> = belum dibuka</td></tr>
+  <tr><td>Pass Percentage</td><td>Nilai minimum lulus (0&ndash;100%), otomatis terisi dari kategori</td></tr>
+  <tr><td>Security Token</td><td>Opsional. Aktifkan toggle &rarr; klik <strong>Generate</strong> untuk buat token 6 digit</td></tr>
+  <tr><td>Batas Waktu</td><td>Opsional. Tanggal terakhir bisa mengerjakan</td></tr>
+  <tr><td>Generate Certificate</td><td>Aktifkan agar peserta lulus bisa cetak sertifikat</td></tr>
+  <tr><td>Allow Answer Review</td><td>Aktifkan agar peserta bisa review jawaban setelah selesai</td></tr>
+</table>
+
+<div class="screenshot">
+  <img src="screenshots/04-create-step3.png" alt="Langkah 3 - Settings">
+  <div class="caption">Langkah 3: Pengaturan jadwal, durasi, status, token, dan sertifikat</div>
+</div>
+
+<h3>Langkah 4 &mdash; Konfirmasi &amp; Submit</h3>
+<ol>
+  <li>Review ringkasan: Kategori, Peserta, dan Settings</li>
+  <li>Klik <strong>"Edit"</strong> pada masing-masing card jika ada yang perlu diubah</li>
+  <li>Jika sudah benar, klik tombol hijau <strong>"Buat Assessment"</strong></li>
+  <li>Muncul modal sukses &rarr; klik <strong>"Manage Questions"</strong> untuk lanjut ke input soal</li>
+</ol>
+
+<div class="screenshot">
+  <img src="screenshots/05-create-step4.png" alt="Langkah 4 - Konfirmasi">
+  <div class="caption">Langkah 4: Review ringkasan dan klik "Buat Assessment"</div>
+</div>
+
+<!-- BAGIAN B -->
+<div class="page-break"></div>
+<h2>B. Buat Paket Soal</h2>
+
+<p>Setelah assessment dibuat, Anda perlu membuat <strong>paket soal</strong> sebelum peserta bisa mengerjakan.</p>
+
+<ol>
+  <li>Di halaman <strong>Manage Packages</strong>, masukkan nama paket (contoh: "Paket A")</li>
+  <li>Klik <strong>"Create Package"</strong></li>
+  <li>Ulangi jika ingin membuat lebih dari 1 paket (multi-package)</li>
+</ol>
+
+<div class="screenshot">
+  <img src="screenshots/06-manage-packages.png" alt="Manage Packages">
+  <div class="caption">Halaman Manage Packages &mdash; form tambah paket, daftar paket, dan distribusi Elemen Teknis</div>
+</div>
+
+<div class="card">
+  <div class="card-title">&#128161; Single vs Multi-Package</div>
+  <strong>Single Package</strong> = semua peserta dapat soal sama.<br>
+  <strong>Multi-Package</strong> = peserta di-assign ke paket berbeda (distribusi otomatis), cocok untuk mengurangi kecurangan.
+</div>
+
+<!-- BAGIAN C -->
+<h2>C. Import Soal</h2>
+
+<p>Klik tombol <strong>"Import Questions"</strong> pada paket yang ingin diisi soal.</p>
+
+<h3>Format Kolom Excel</h3>
+<table>
+  <tr><th>Question</th><th>Option A</th><th>Option B</th><th>Option C</th><th>Option D</th><th>Correct</th><th>Elemen Teknis</th></tr>
+  <tr><td>Teks soal</td><td>Jawaban A</td><td>Jawaban B</td><td>Jawaban C</td><td>Jawaban D</td><td>A/B/C/D</td><td>(opsional)</td></tr>
+</table>
+
+<div class="card-green card">
+  <div class="card-title">&#128196; Download Template</div>
+  Klik tombol <strong>"Download Template"</strong> di halaman import untuk mendapatkan file Excel dengan format yang benar.
+</div>
+
+<h3>Metode 1: Upload File Excel</h3>
+<ol>
+  <li>Pastikan tab <strong>"Upload Excel File"</strong> aktif</li>
+  <li>Klik <strong>Choose File</strong> &rarr; pilih file <strong>.xlsx</strong></li>
+  <li>Klik <strong>"Import from File"</strong></li>
+</ol>
+
+<div class="screenshot">
+  <img src="screenshots/07-import-questions.png" alt="Import Questions - Upload Excel">
+  <div class="caption">Tab Upload Excel File &mdash; pilih file .xlsx lalu klik "Import from File"</div>
+</div>
+
+<h3>Metode 2: Paste dari Excel</h3>
+<ol>
+  <li>Di Excel, blok baris-baris soal &rarr; <kbd>Ctrl</kbd>+<kbd>C</kbd></li>
+  <li>Klik tab <strong>"Paste from Excel"</strong></li>
+  <li>Klik di textarea &rarr; <kbd>Ctrl</kbd>+<kbd>V</kbd></li>
+  <li>Klik <strong>"Import from Paste"</strong></li>
+</ol>
+
+<div class="screenshot">
+  <img src="screenshots/08-import-paste.png" alt="Import Questions - Paste from Excel">
+  <div class="caption">Tab Paste from Excel &mdash; paste data dari Excel lalu klik "Import from Paste"</div>
+</div>
+
+<!-- BAGIAN D -->
+<h2>D. Preview &amp; Verifikasi Soal</h2>
+
+<p>Klik tombol <strong>"Preview"</strong> pada paket untuk melihat soal seperti yang dilihat peserta.</p>
+
+<p>Yang perlu dicek:</p>
+<ul>
+  <li>Teks soal tidak ada typo</li>
+  <li>Semua pilihan jawaban lengkap (A, B, C, D)</li>
+  <li>Jawaban bertanda <strong>"Correct"</strong> (hijau) memang benar</li>
+</ul>
+
+<div class="screenshot">
+  <img src="screenshots/09-preview-package.png" alt="Preview Package">
+  <div class="caption">Preview soal &mdash; jawaban benar ditandai hijau dengan badge "Correct"</div>
+</div>
+
+<div class="card">
+  <div class="card-title">&#128260; Soal Diacak Saat Ujian</div>
+  Preview menampilkan soal dalam urutan import. Saat ujian, soal akan <strong>diacak otomatis</strong> untuk setiap peserta.
+</div>
+
+<!-- TIPS -->
+<h2>Tips Penting</h2>
+
+<ul>
+  <li><strong>Siapkan file Excel soal sebelum</strong> membuat assessment agar proses lebih cepat</li>
+  <li>Untuk multi-package, pastikan <strong>jumlah soal tiap paket sama</strong></li>
+  <li>Isi kolom <strong>Elemen Teknis</strong> untuk analisis kompetensi per area yang lebih baik</li>
+  <li><strong>Selalu preview</strong> sebelum assessment dibuka &mdash; kesalahan jawaban benar langsung berdampak pada nilai</li>
+  <li>Gunakan status <strong>"Upcoming"</strong> untuk assessment yang belum waktunya dibuka</li>
+  <li>Token bisa di-<strong>Regenerate</strong> kapan saja dari menu Aksi di daftar assessment</li>
+  <li>Peserta tambahan bisa ditambah lewat halaman <strong>Edit Assessment</strong></li>
+</ul>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p><strong>Portal HC KPB</strong> &mdash; Panduan Buat Assessment &amp; Input Soal &bull; Versi 1.0 &bull; Maret 2026</p>
+</div>
+
+</body>
+</html>
