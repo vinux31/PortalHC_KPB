@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
-status: verifying
+status: executing
 stopped_at: Phase 274 context gathered
-last_updated: "2026-03-28T11:02:51.284Z"
+last_updated: "2026-03-28T11:06:34.422Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 11
-  completed_phases: 9
-  total_plans: 11
-  completed_plans: 11
+  completed_phases: 10
+  total_plans: 12
+  completed_plans: 12
   percent: 80
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 272 — block-submit-jika-belum-semua-soal-terisi
+**Current focus:** Phase 274 — warning-create-assessment-pre-test-tidak-bisa-create-certificate-hanya-post-test
 
 ## Current Position
 
-Phase: 273
+Phase: 275
 Plan: Not started
-Status: Phase complete — ready for verification
+Status: Executing Phase 274
 Last activity: 2026-03-28
 
 Progress: [████████░░] 80%

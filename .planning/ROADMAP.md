@@ -169,10 +169,10 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 273
-**Plans:** 0 plans
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 274 to break down)
+- [x] TBD (run /gsd:plan-phase 274 to break down) (completed 2026-03-28)
 
 ### Phase 275: Warning create assessment: pre test tidak bisa create certificate, hanya post test
 
