@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: verifying
-stopped_at: Phase 271-01 complete — awaiting human-verify checkpoint (Task 2)
-last_updated: "2026-03-28T06:26:15.932Z"
+stopped_at: Phase 272-01 complete — awaiting human-verify checkpoint (Task 2)
+last_updated: "2026-03-28T06:45:15.482Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 12
-  completed_phases: 8
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 9
+  total_plans: 11
+  completed_plans: 11
   percent: 80
 ---
 
@@ -21,11 +21,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 271 — fix-time-remaining-monitoring-terbaca-waktu-habis-padahal-peserta-sedang-mengerjakan
+**Current focus:** Phase 272 — block-submit-jika-belum-semua-soal-terisi
 
 ## Current Position
 
-Phase: 271 (fix-time-remaining-monitoring-terbaca-waktu-habis-padahal-peserta-sedang-mengerjakan) — EXECUTING
+Phase: 272 (block-submit-jika-belum-semua-soal-terisi) — EXECUTING
 Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-03-28
@@ -57,6 +57,8 @@ Progress: [████████░░] 80%
 - [Phase 269]: assessmentHubStartPromise SELALU resolve — error state via onclose handler, bukan .catch()
 - [Phase 269]: inert attribute diset langsung di HTML untuk block interaksi sebelum JS load
 - [Phase 271]: Server-authoritative timer: Math.Max(DB, wallClock) di StartExam + 3-step clamp di UpdateSessionProgress
+- [Phase 272]: Frontend disabled button (type=button) + backend guard: dual-layer protection mencegah submit ujian tidak lengkap
+- [Phase 272]: isAutoSubmit flag via hidden form field memungkinkan auto-submit timer expired tetap berjalan meskipun ada soal kosong
 
 ### Pending Todos
 
@@ -80,4 +82,4 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Phase 271-01 complete — awaiting human-verify checkpoint (Task 2)
+Stopped at: Phase 272-01 complete — awaiting human-verify checkpoint (Task 2)

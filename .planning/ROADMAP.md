@@ -159,10 +159,10 @@ Plans:
 **Goal:** Cegah submit ujian jika masih ada soal kosong — disable tombol di frontend, validasi di backend, exception untuk auto-submit saat waktu habis
 **Requirements**: BLOCK-01, BLOCK-02, BLOCK-03
 **Depends on:** Phase 271
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 272-01-PLAN.md — Frontend disable + backend guard + auto-submit exception
+- [x] 272-01-PLAN.md — Frontend disable + backend guard + auto-submit exception
 
 ### Phase 273: Fix jawaban tidak bisa disubmit saat waktu habis walaupun sudah terisi dan tersave
 
