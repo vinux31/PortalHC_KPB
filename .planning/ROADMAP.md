@@ -139,7 +139,57 @@ Plans:
 **Goal:** Sederhanakan modal resume exam (hapus info nomor soal) dan ubah redirect agar selalu ke halaman 1
 **Requirements**: RESUME-01, RESUME-02
 **Depends on:** Phase 269
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] 270-01-PLAN.md — Sederhanakan modal resume + redirect ke page 0
+
+### Phase 271: Fix timer ujian — monitoring salah baca, resume timer bertambah, dan logic timer lainnya
+
+**Goal:** Perbaiki semua bug terkait timer ujian: (1) monitoring terbaca waktu habis padahal peserta sedang mengerjakan, (2) resume exam timer malah bertambah (misal 25:30 → 25:35), (3) audit seluruh logic timer (start, resume, countdown, sinkronisasi server-client)
+**Requirements**: TIMER-01, TIMER-02
+**Depends on:** Phase 270
 **Plans:** 1 plan
 
 Plans:
-- [ ] 270-01-PLAN.md — Sederhanakan modal resume + redirect ke page 0
+- [ ] 271-01-PLAN.md — Server-authoritative timer: wall-clock cross-check + clamp validation
+
+### Phase 272: Block submit jika belum semua soal terisi
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 271
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 272 to break down)
+
+### Phase 273: Fix jawaban tidak bisa disubmit saat waktu habis walaupun sudah terisi dan tersave
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 272
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 273 to break down)
+
+### Phase 274: Hilangkan score di sertifikat pojok kanan bawah
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 273
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 274 to break down)
+
+### Phase 275: Warning create assessment: pre test tidak bisa create certificate, hanya post test
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 274
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 275 to break down)
