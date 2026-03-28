@@ -1,0 +1,78 @@
+[
+  {
+    "scenario": "Regan - Resilience Edge Cases",
+    "checks": [
+      {
+        "id": "SETUP-LOGIN",
+        "desc": "Login Regan (moch.widyadhana@pertamina.com)",
+        "pass": true
+      },
+      {
+        "id": "SETUP-EXAM",
+        "desc": "Berhasil masuk ujian",
+        "pass": true,
+        "detail": "URL: http://10.55.3.3/KPB-PortalHC/CMP/StartExam/10"
+      },
+      {
+        "id": "SETUP-STATE",
+        "desc": "networkStatusBadge dan timer tersedia",
+        "pass": true,
+        "detail": "badge=\"Tersimpan\", timer=\"59:54\""
+      },
+      {
+        "id": "EDGE-01-OFFLINE",
+        "desc": "Offline badge muncul saat koneksi putus",
+        "pass": true,
+        "detail": "badge=\"Offline\""
+      },
+      {
+        "id": "EDGE-01-QUEUE",
+        "desc": "pendingAnswers queue terisi saat offline",
+        "pass": true,
+        "detail": "pendingCount=1"
+      },
+      {
+        "id": "EDGE-01-FLUSH",
+        "desc": "Pending answers di-flush setelah koneksi pulih",
+        "pass": true,
+        "detail": "badge=\"Tersimpan\", pending=1"
+      },
+      {
+        "id": "EDGE-02",
+        "desc": "Resume modal muncul setelah tab close",
+        "pass": true,
+        "detail": "modalVisible=true, IS_RESUME=true, RESUME_PAGE=1"
+      },
+      {
+        "id": "EDGE-03",
+        "desc": "Timer lanjut dari sisa waktu (tidak reset ke penuh)",
+        "pass": true,
+        "detail": "before=\"59:31\"(3571s), after=\"59:27\"(3567s)"
+      },
+      {
+        "id": "EDGE-04",
+        "desc": "Jawaban masih tercentang setelah resume",
+        "pass": true,
+        "detail": "checkedCount=1 (before close: 1)"
+      },
+      {
+        "id": "EDGE-05",
+        "desc": "Progress counter akurat setelah resume (answered > 0)",
+        "pass": true,
+        "detail": "progress=\"1/15 answered\""
+      },
+      {
+        "id": "EDGE-06-ANSWERS",
+        "desc": "Browser refresh: jawaban tidak hilang",
+        "pass": true,
+        "detail": "before=1, after=1"
+      },
+      {
+        "id": "EDGE-06-TIMER",
+        "desc": "Browser refresh: timer lanjut (tidak reset ke durasi penuh)",
+        "pass": true,
+        "detail": "before=\"59:22\"(3562s), after=\"59:24\"(3564s)"
+      }
+    ]
+  }
+]
