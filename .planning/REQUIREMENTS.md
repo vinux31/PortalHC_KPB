@@ -40,12 +40,12 @@ Requirements for UAT Assessment OJT di Server Development.
 
 ### Resilience & Edge Cases
 
-- [ ] **EDGE-01**: Lost connection — warning/retry, jawaban tidak hilang
-- [ ] **EDGE-02**: Tab tertutup & resume — kembali ke halaman soal terakhir
-- [ ] **EDGE-03**: Resume — timer lanjut dari sisa waktu (tidak reset)
-- [ ] **EDGE-04**: Resume — jawaban yang sudah dipilih masih tercentang
-- [ ] **EDGE-05**: Resume — progress counter akurat, indikasi "lanjutkan"
-- [ ] **EDGE-06**: Browser refresh — jawaban, posisi, timer tetap benar
+- [x] **EDGE-01**: Lost connection — warning/retry, jawaban tidak hilang
+- [x] **EDGE-02**: Tab tertutup & resume — kembali ke halaman soal terakhir
+- [x] **EDGE-03**: Resume — timer lanjut dari sisa waktu (tidak reset)
+- [x] **EDGE-04**: Resume — jawaban yang sudah dipilih masih tercentang
+- [x] **EDGE-05**: Resume — progress counter akurat, indikasi "lanjutkan"
+- [x] **EDGE-06**: Browser refresh — jawaban, posisi, timer tetap benar
 - [ ] **EDGE-07**: Timer habis — behavior sesuai (auto-submit/block/pesan)
 
 ### Monitoring (Admin/HC)
@@ -87,12 +87,12 @@ Requirements for UAT Assessment OJT di Server Development.
 | RESULT-02 | Phase 266 | Pending |
 | RESULT-03 | Phase 266 | Pending |
 | CERT-01 | Phase 266 | Complete |
-| EDGE-01 | Phase 267 | Pending |
-| EDGE-02 | Phase 267 | Pending |
-| EDGE-03 | Phase 267 | Pending |
-| EDGE-04 | Phase 267 | Pending |
-| EDGE-05 | Phase 267 | Pending |
-| EDGE-06 | Phase 267 | Pending |
+| EDGE-01 | Phase 267 | Complete |
+| EDGE-02 | Phase 267 | Complete |
+| EDGE-03 | Phase 267 | Complete |
+| EDGE-04 | Phase 267 | Complete |
+| EDGE-05 | Phase 267 | Complete |
+| EDGE-06 | Phase 267 | Complete |
 | EDGE-07 | Phase 267 | Pending |
 | MON-01 | Phase 268 | Pending |
 | MON-02 | Phase 268 | Pending |
