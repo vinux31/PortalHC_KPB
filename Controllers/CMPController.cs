@@ -348,11 +348,27 @@ namespace HcPortal.Controllers
             if (session.Status == "Completed" || session.Status == "Abandoned")
                 return Json(new { success = false, error = "Session already closed" });
 
+            // Clamp elapsedSeconds dari client sebelum update (per server-authoritative timer logic)
+            int clampedElapsed = elapsedSeconds;
+
+            // Clamp 1: tidak boleh melebihi wall-clock elapsed sejak StartedAt
+            if (session.StartedAt.HasValue)
+            {
+                int wallClockElapsed = (int)(DateTime.UtcNow - session.StartedAt.Value).TotalSeconds;
+                clampedElapsed = Math.Min(clampedElapsed, wallClockElapsed);
+            }
+
+            // Clamp 2: tidak boleh mundur (monotonically increasing)
+            clampedElapsed = Math.Max(clampedElapsed, session.ElapsedSeconds);
+
+            // Clamp 3: tidak boleh melebihi durasi total
+            clampedElapsed = Math.Min(clampedElapsed, session.DurationMinutes * 60);
+
             // Atomic update of elapsed time and last active page
             var updated = await _context.AssessmentSessions
                 .Where(s => s.Id == sessionId)
                 .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => r.ElapsedSeconds, elapsedSeconds)
+                    .SetProperty(r => r.ElapsedSeconds, clampedElapsed)
                     .SetProperty(r => r.LastActivePage, currentPage)
                     .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
                 );
@@ -908,6 +924,18 @@ namespace HcPortal.Controllers
                 bool isResume = assessment.StartedAt != null;
                 int durationSeconds = assessment.DurationMinutes * 60;
                 int elapsedSec = assessment.ElapsedSeconds;
+
+                // Server-authoritative: cross-check DB elapsed dengan wall-clock elapsed sejak StartedAt
+                // Fix untuk bug "waktu habis mendadak" dan "timer bertambah saat resume"
+                if (!justStarted && assessment.StartedAt.HasValue)
+                {
+                    int wallClockElapsed = (int)(DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
+                    elapsedSec = Math.Max(elapsedSec, wallClockElapsed);
+                }
+
+                // Defensive clamp — tidak boleh melebihi durasi total
+                elapsedSec = Math.Min(elapsedSec, durationSeconds);
+
                 int remainingSeconds = durationSeconds - elapsedSec;
 
                 ViewBag.IsResume = isResume;
@@ -1211,7 +1239,7 @@ namespace HcPortal.Controllers
 
             // Retrieve pending answers from TempData
             var answersJson = TempData["PendingAnswers"] as string ?? "{}";
-            var answers = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, int>>(answersJson)
+            var tempDataAnswers = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, int>>(answersJson)
                           ?? new Dictionary<int, int>();
 
             // Preserve for the final submit form
@@ -1225,6 +1253,30 @@ namespace HcPortal.Controllers
                 long l => (int)l,
                 _ => (int?)null
             };
+
+            // Fallback: if assignmentId missing from TempData, look up from DB
+            if (!assignmentId.HasValue)
+            {
+                var dbAssignment = await _context.UserPackageAssignments
+                    .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+                assignmentId = dbAssignment?.Id;
+            }
+
+            // Merge TempData answers with DB-saved answers (PackageUserResponses).
+            // TempData contains only the final form submission; DB contains incrementally
+            // auto-saved answers. Merge ensures no answers are lost (TempData wins on conflict).
+            var dbAnswers = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == id)
+                .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId ?? 0);
+
+            // Start with DB answers, overlay TempData answers (TempData is more recent)
+            var answers = new Dictionary<int, int>(dbAnswers);
+            foreach (var kvp in tempDataAnswers)
+            {
+                answers[kvp.Key] = kvp.Value;
+            }
+            // Remove invalid entries (optionId 0 means unanswered)
+            answers = answers.Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             // Build summary items
             var summaryItems = new List<ExamSummaryItem>();
@@ -1250,7 +1302,7 @@ namespace HcPortal.Controllers
                 foreach (var qId in shuffledQIds)
                 {
                     if (!qLookup.TryGetValue(qId, out var q)) continue;
-                    int? selectedOptId = answers.TryGetValue(qId, out var v) ? v : (int?)null;
+                    int? selectedOptId = answers.TryGetValue(qId, out var v) && v > 0 ? v : (int?)null;
                     string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
                         ? opt.OptionText
                         : null;
@@ -1269,11 +1321,24 @@ namespace HcPortal.Controllers
 
             int unansweredCount = summaryItems.Count(s => !s.SelectedOptionId.HasValue);
 
+            // Also update TempData with merged answers for SubmitExam form
+            TempData["PendingAnswers"] = System.Text.Json.JsonSerializer.Serialize(answers);
+
+            // Check if timer has expired (no time left to go back)
+            bool timerExpired = false;
+            if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
+            {
+                var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
+                var allowed = assessment.DurationMinutes * 60;
+                timerExpired = elapsed >= allowed;
+            }
+
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.AssessmentId = id;
             ViewBag.AssignmentId = assignmentId;
             ViewBag.UnansweredCount = unansweredCount;
             ViewBag.Answers = answers; // passed to the hidden final-submit form
+            ViewBag.TimerExpired = timerExpired;
             return View(summaryItems);
         }
 
