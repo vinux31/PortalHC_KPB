@@ -4,13 +4,13 @@ milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: executing
 stopped_at: Phase 274 context gathered
-last_updated: "2026-03-28T11:45:34.914Z"
-last_activity: 2026-03-28 -- Phase 275 execution started
+last_updated: "2026-03-28T11:48:18.504Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 11
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 80
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 275 (warning-create-assessment-pre-test-tidak-bisa-create-certificate-hanya-post-test) — EXECUTING
-Plan: 1 of 1
+Phase: 275
+Plan: Not started
 Status: Executing Phase 275
-Last activity: 2026-03-28 -- Phase 275 execution started
+Last activity: 2026-03-28
 
 Progress: [████████░░] 80%
 
