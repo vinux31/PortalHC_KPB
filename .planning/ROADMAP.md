@@ -164,16 +164,6 @@ Plans:
 Plans:
 - [x] 272-01-PLAN.md — Frontend disable + backend guard + auto-submit exception
 
-### Phase 273: Fix jawaban tidak bisa disubmit saat waktu habis walaupun sudah terisi dan tersave
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 272
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 273 to break down)
-
 ### Phase 274: Hilangkan score di sertifikat pojok kanan bawah
 
 **Goal:** [To be planned]
