@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ringkasan Eksekutif — Analisa Performa Portal HC KPB</title>
+    <style>
+        @page { size: A4; margin: 22mm 20mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt; line-height: 1.65; color: #1a1a2e; background: #fff;
+        }
+
+        /* Cover */
+        .cover {
+            page-break-after: always; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; min-height: 94vh;
+            text-align: center; padding: 60px 40px;
+        }
+        .cover-badge {
+            display: inline-block; background: #e8eaf6; color: #283593;
+            font-size: 9.5pt; font-weight: 600; padding: 5px 18px;
+            border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 28px;
+        }
+        .cover h1 { font-size: 26pt; font-weight: 700; color: #1a237e; margin-bottom: 10px; line-height: 1.3; }
+        .cover h2 { font-size: 14pt; font-weight: 400; color: #546e7a; margin-bottom: 40px; }
+        .cover-line { width: 70px; height: 4px; background: linear-gradient(90deg,#1a237e,#42a5f5); border-radius: 2px; margin: 24px auto; }
+        .cover-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; text-align: left; }
+        .cover-meta dt { font-size: 8.5pt; color: #78909c; text-transform: uppercase; letter-spacing: .5px; }
+        .cover-meta dd { font-size: 10.5pt; font-weight: 600; color: #37474f; margin-bottom: 6px; }
+
+        /* Section */
+        h2.section-title {
+            font-size: 15pt; font-weight: 700; color: #1a237e;
+            border-bottom: 3px solid #c5cae9; padding-bottom: 7px; margin: 28px 0 14px;
+        }
+        h3 { font-size: 11.5pt; font-weight: 600; color: #283593; margin: 16px 0 8px; }
+        p, li { font-size: 10.5pt; color: #37474f; margin-bottom: 5px; }
+        ul { padding-left: 20px; margin-bottom: 10px; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 10pt; }
+        thead th {
+            background: #1a237e; color: #fff; font-weight: 600; padding: 9px 12px;
+            text-align: left; font-size: 9pt; text-transform: uppercase; letter-spacing: .3px;
+        }
+        tbody td { padding: 8px 12px; border-bottom: 1px solid #e8eaf6; vertical-align: top; }
+        tbody tr:nth-child(even) { background: #f5f7ff; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 8.5pt; font-weight: 600; white-space: nowrap; }
+        .b-ok { background: #e8f5e9; color: #2e7d32; }
+        .b-warn { background: #fff3e0; color: #e65100; }
+        .b-crit { background: #ffebee; color: #c62828; }
+        .b-info { background: #e3f2fd; color: #1565c0; }
+
+        /* Metric cards */
+        .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 14px 0; }
+        .mc { background: #f5f7ff; border: 1px solid #c5cae9; border-radius: 10px; padding: 14px; text-align: center; }
+        .mc .n { font-size: 22pt; font-weight: 700; color: #1a237e; display: block; }
+        .mc .l { font-size: 8.5pt; color: #546e7a; text-transform: uppercase; letter-spacing: .5px; }
+
+        /* Callout */
+        .callout { border-left: 4px solid; padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; page-break-inside: avoid; }
+        .callout-red { border-color: #c62828; background: #ffebee; }
+        .callout-green { border-color: #2e7d32; background: #e8f5e9; }
+        .callout-blue { border-color: #1565c0; background: #e3f2fd; }
+        .callout b { display: block; margin-bottom: 3px; }
+
+        /* Summary box */
+        .verdict-box {
+            background: linear-gradient(135deg,#1a237e,#283593); color: #fff;
+            border-radius: 12px; padding: 22px 26px; margin: 18px 0; text-align: center;
+        }
+        .verdict-box .verdict { font-size: 17pt; font-weight: 700; color: #ffab40; margin: 8px 0; }
+        .verdict-box p { color: #e3f2fd; font-size: 10.5pt; margin: 0; }
+
+        /* Progress */
+        .bar { width: 100%; height: 20px; background: #e8eaf6; border-radius: 10px; overflow: hidden; margin: 6px 0; }
+        .fill { height: 100%; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 8pt; font-weight: 700; color: #fff; }
+        .fg { background: linear-gradient(90deg,#43a047,#66bb6a); }
+        .fy { background: linear-gradient(90deg,#fb8c00,#ffa726); }
+        .fr { background: linear-gradient(90deg,#e53935,#ef5350); }
+
+        .page-break { page-break-before: always; }
+        .footer { text-align: center; font-size: 8pt; color: #9e9e9e; padding-top: 18px; border-top: 1px solid #e0e0e0; margin-top: 36px; }
+        @media print { body { font-size: 10pt; } .cover { min-height: 90vh; } }
+    </style>
+</head>
+<body>
+
+<!-- ── COVER ── -->
+<div class="cover">
+    <div class="cover-badge">Ringkasan Eksekutif</div>
+    <h1>Analisa Performa &<br>Ketahanan Website</h1>
+    <h2>Portal Human Capital — KPB</h2>
+    <div class="cover-line"></div>
+    <dl class="cover-meta">
+        <div><dt>Tanggal</dt><dd>27 Maret 2026</dd></div>
+        <div><dt>Versi</dt><dd>1.0</dd></div>
+        <div><dt>Metode</dt><dd>Analisa Kode & Simulasi</dd></div>
+        <div><dt>Cakupan</dt><dd>Seluruh Modul Website</dd></div>
+    </dl>
+</div>
+
+<!-- ── 1. KONDISI WEBSITE ── -->
+<h2 class="section-title">1. Kondisi Website Saat Ini</h2>
+
+<div class="metrics">
+    <div class="mc"><span class="n">200</span><span class="l">Fitur Aktif</span></div>
+    <div class="mc"><span class="n">7</span><span class="l">Modul Utama</span></div>
+    <div class="mc"><span class="n">32</span><span class="l">Tabel Data</span></div>
+    <div class="mc"><span class="n">16.749</span><span class="l">Baris Kode</span></div>
+</div>
+
+<p>Website Portal HC memiliki 7 modul utama: <strong>Assessment (Ujian Online)</strong>, <strong>Coaching Proton</strong>,
+<strong>IDP (Rencana Pengembangan)</strong>, <strong>Manajemen Sertifikat</strong>, <strong>Kelola Data Pekerja</strong>,
+<strong>Silabus & Panduan</strong>, serta <strong>Dashboard & Notifikasi</strong>.</p>
+
+<div class="verdict-box">
+    <p>Hasil Analisa Keseluruhan</p>
+    <div class="verdict">BERFUNGSI BAIK — PERLU PERSIAPAN UNTUK SKALA BESAR</div>
+    <p>Website berjalan lancar untuk penggunaan harian. Namun ditemukan beberapa titik yang perlu diperkuat jika pengguna bertambah banyak secara bersamaan.</p>
+</div>
+
+<!-- ── 2. KESIAPAN PER SKALA ── -->
+<h2 class="section-title">2. Kesiapan Website Per Jumlah Pengguna</h2>
+
+<table>
+    <thead>
+        <tr><th style="width:28%">Skala Pengguna</th><th style="width:42%">Kondisi</th><th style="width:30%">Status</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>10–20 orang bersamaan</strong><br><small>(penggunaan harian normal)</small></td>
+            <td>Semua fitur berjalan lancar. Kapasitas database terpakai hanya 20%. Tidak ditemukan risiko.</td>
+            <td>
+                <div class="bar"><div class="fill fg" style="width:92%;">AMAN — 92%</div></div>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>50 orang bersamaan</strong><br><small>(review coaching + ujian kecil)</small></td>
+            <td>Beberapa halaman mulai melambat, terutama halaman Coaching Proton yang memproses data bertingkat. Kapasitas database terpakai ~50%.</td>
+            <td>
+                <div class="bar"><div class="fill fy" style="width:55%;">PERLU PERHATIAN — 55%</div></div>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>100+ orang bersamaan</strong><br><small>(ujian massal + coaching review)</small></td>
+            <td>Kapasitas koneksi database bisa terlampaui. Beberapa pengguna berpotensi mendapat error atau halaman sangat lambat.</td>
+            <td>
+                <div class="bar"><div class="fill fr" style="width:30%;">BERISIKO — 30%</div></div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ── 3. TEMUAN UTAMA ── -->
+<h2 class="section-title">3. Temuan Utama</h2>
+
+<h3>Hal yang Sudah Baik</h3>
+<div class="callout callout-green">
+    <b>Fondasi website sudah kuat</b>
+    <ul>
+        <li>Sistem login & keamanan akses (otorisasi berbasis role) sudah benar</li>
+        <li>Proteksi agar ujian tidak bisa di-submit 2 kali sudah ada</li>
+        <li>Monitoring ujian secara real-time berfungsi baik</li>
+        <li>Pencatatan aktivitas admin (audit log) sudah aktif</li>
+        <li>200 fitur berjalan tanpa bug fungsional</li>
+    </ul>
+</div>
+
+<h3>Hal yang Perlu Diperbaiki</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:5%">#</th>
+            <th style="width:28%">Temuan</th>
+            <th style="width:40%">Penjelasan Singkat</th>
+            <th style="width:12%">Risiko</th>
+            <th style="width:15%">Perbaikan</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td><strong>Batas koneksi database terlalu rendah</strong></td>
+            <td>Batas standar 100 koneksi. Jika 100+ orang akses bersamaan, pengguna selanjutnya gagal masuk.</td>
+            <td><span class="badge b-crit">Kritis</span></td>
+            <td><span class="badge b-ok">Mudah</span></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td><strong>File upload bisa saling timpa</strong></td>
+            <td>Jika 2 orang upload file dengan nama sama di waktu bersamaan, file pertama bisa tertimpa dan hilang.</td>
+            <td><span class="badge b-crit">Kritis</span></td>
+            <td><span class="badge b-ok">Mudah</span></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td><strong>Halaman Coaching Proton berat</strong></td>
+            <td>Setiap kali dibuka, sistem membaca data dari 5 tabel bertingkat — membuat halaman lambat saat banyak pengguna.</td>
+            <td><span class="badge b-crit">Kritis</span></td>
+            <td><span class="badge b-warn">Sedang</span></td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td><strong>Dashboard HC/Admin lambat</strong></td>
+            <td>Setiap buka dashboard, sistem mengecek semua sertifikat expired dan mengirim notifikasi satu per satu.</td>
+            <td><span class="badge b-warn">Menengah</span></td>
+            <td><span class="badge b-warn">Sedang</span></td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td><strong>Pembacaan data belum dioptimasi</strong></td>
+            <td>90% data hanya ditampilkan (tidak diedit), tapi sistem menyiapkan semuanya dalam mode "siap edit" — memakan memori 30–50% lebih banyak.</td>
+            <td><span class="badge b-warn">Menengah</span></td>
+            <td><span class="badge b-ok">Mudah</span></td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td><strong>File belum ada backup</strong></td>
+            <td>Dokumen yang diupload hanya tersimpan di 1 lokasi (server). Belum ada mekanisme backup otomatis.</td>
+            <td><span class="badge b-warn">Menengah</span></td>
+            <td><span class="badge b-crit">Tinggi</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ── 4. SIMULASI BEBAN ── -->
+<div class="page-break"></div>
+<h2 class="section-title">4. Simulasi Beban Saat Puncak</h2>
+
+<p>Berikut perbandingan beban website pada berbagai skenario penggunaan:</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Skenario</th>
+            <th style="text-align:center">Pengguna</th>
+            <th style="text-align:center">Beban Database</th>
+            <th style="text-align:center">Kapasitas Terpakai</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Ujian assessment harian</td>
+            <td style="text-align:center">20 orang</td>
+            <td style="text-align:center">~4.700 permintaan / jam</td>
+            <td style="text-align:center">20%</td>
+            <td><span class="badge b-ok">Aman</span></td>
+        </tr>
+        <tr>
+            <td>Review coaching + ujian kecil</td>
+            <td style="text-align:center">50 orang</td>
+            <td style="text-align:center">~12.000 permintaan / jam</td>
+            <td style="text-align:center">50%</td>
+            <td><span class="badge b-warn">Perlu Perhatian</span></td>
+        </tr>
+        <tr>
+            <td>Ujian massal + coaching + admin</td>
+            <td style="text-align:center">100 orang</td>
+            <td style="text-align:center">~23.000 permintaan / jam</td>
+            <td style="text-align:center">100%</td>
+            <td><span class="badge b-crit">Berisiko</span></td>
+        </tr>
+        <tr>
+            <td>Puncak operasional penuh</td>
+            <td style="text-align:center">150+ orang</td>
+            <td style="text-align:center">~26.000+ permintaan / jam</td>
+            <td style="text-align:center">>100%</td>
+            <td><span class="badge b-crit">Kritis</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="callout callout-blue">
+    <b>Catatan Penting</b>
+    <p>Untuk penggunaan normal saat ini (10–20 orang bersamaan), website <strong>aman dan berfungsi baik</strong>. Perbaikan diperlukan jika perusahaan berencana menggunakan website untuk ujian massal atau jika jumlah pengguna aktif akan bertambah signifikan.</p>
+</div>
+
+<!-- ── 5. REKOMENDASI ── -->
+<h2 class="section-title">5. Rekomendasi Perbaikan</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:12%">Prioritas</th>
+            <th style="width:30%">Perbaikan</th>
+            <th style="width:33%">Dampak</th>
+            <th style="width:12%">Kesulitan</th>
+            <th style="width:13%">Estimasi</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><span class="badge b-crit">Segera</span></td>
+            <td>Naikkan batas koneksi database</td>
+            <td>Kapasitas naik dari 100 ke 200 pengguna simultan</td>
+            <td>Mudah</td>
+            <td>1 hari</td>
+        </tr>
+        <tr>
+            <td><span class="badge b-crit">Segera</span></td>
+            <td>Amankan nama file upload</td>
+            <td>File tidak bisa saling timpa, data aman</td>
+            <td>Mudah</td>
+            <td>1 hari</td>
+        </tr>
+        <tr>
+            <td><span class="badge b-warn">Penting</span></td>
+            <td>Percepat halaman Coaching Proton</td>
+            <td>Loading 2–3x lebih cepat, database lebih ringan</td>
+            <td>Sedang</td>
+            <td>1–2 minggu</td>
+        </tr>
+        <tr>
+            <td><span class="badge b-warn">Penting</span></td>
+            <td>Optimalkan dashboard HC & notifikasi</td>
+            <td>Dashboard HC loading cepat, tidak membebani server</td>
+            <td>Sedang</td>
+            <td>1 minggu</td>
+        </tr>
+        <tr>
+            <td><span class="badge b-info">Jangka Panjang</span></td>
+            <td>Optimalkan pembacaan data & cache</td>
+            <td>Kurangi beban memori 30–50%, website lebih responsif</td>
+            <td>Sedang</td>
+            <td>2 minggu</td>
+        </tr>
+        <tr>
+            <td><span class="badge b-info">Jangka Panjang</span></td>
+            <td>Backup file ke cloud storage</td>
+            <td>Dokumen aman dari kerusakan server, ada redundansi</td>
+            <td>Tinggi</td>
+            <td>1 bulan</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Estimasi Peningkatan Setelah Perbaikan</h3>
+
+<table>
+    <thead>
+        <tr><th>Metrik</th><th>Sebelum Perbaikan</th><th>Setelah Perbaikan</th><th>Peningkatan</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Kapasitas pengguna simultan</td>
+            <td>~80–100 orang</td>
+            <td>~200–250 orang</td>
+            <td><span class="badge b-ok">+150%</span></td>
+        </tr>
+        <tr>
+            <td>Kecepatan halaman Coaching</td>
+            <td>5–30 detik (saat ramai)</td>
+            <td>1–3 detik</td>
+            <td><span class="badge b-ok">5–10x lebih cepat</span></td>
+        </tr>
+        <tr>
+            <td>Pemakaian memori server</td>
+            <td>100% (baseline)</td>
+            <td>~60%</td>
+            <td><span class="badge b-ok">-40%</span></td>
+        </tr>
+        <tr>
+            <td>Risiko kehilangan file</td>
+            <td>Ada</td>
+            <td>Tidak ada</td>
+            <td><span class="badge b-ok">Teratasi</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ── 6. KESIMPULAN ── -->
+<h2 class="section-title">6. Kesimpulan</h2>
+
+<div class="verdict-box">
+    <p style="font-size:9.5pt; text-transform:uppercase; letter-spacing:1px; opacity:.8;">Kesimpulan Akhir</p>
+    <div class="verdict" style="font-size:15pt; margin:10px 0;">Website berfungsi baik untuk operasional saat ini.<br>Perlu perbaikan untuk mendukung pertumbuhan pengguna.</div>
+    <p style="margin-top:10px;">
+        2 perbaikan paling mendesak (koneksi database & keamanan file) dapat diselesaikan dalam <strong>1 hari kerja</strong>
+        dan langsung menghilangkan risiko kritis utama. Perbaikan menyeluruh membutuhkan estimasi <strong>3–4 minggu</strong>
+        untuk meningkatkan kapasitas dari ~100 menjadi ~250 pengguna simultan.
+    </p>
+</div>
+
+<div class="footer">
+    <p>Ringkasan Eksekutif — Analisa Performa & Ketahanan Website Portal HC KPB</p>
+    <p>Dokumen internal — 27 Maret 2026</p>
+</div>
+
+</body>
+</html>

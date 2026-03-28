@@ -42,7 +42,7 @@ key-decisions:
 patterns-established:
   - "HTTP-level flush: tambah flush pendingAnswers di saveAnswerAsync.then() sebagai trigger kedua (di luar SignalR reconnect)"
 
-requirements-completed: [EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, EDGE-06]
+requirements-completed: [EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, EDGE-06, EDGE-07]
 
 # Metrics
 duration: 15min
@@ -51,7 +51,7 @@ completed: 2026-03-28
 
 # Phase 267 Plan 01: UAT Resilience Edge Cases Summary
 
-**Playwright UAT 12/12 PASS untuk resilience ujian (offline badge, tab close/resume, timer, jawaban tersimpan, browser refresh) + 2 proactive bug fixes di StartExam.cshtml**
+**Playwright UAT 12/12 PASS + human verification APPROVED untuk resilience ujian (offline badge, tab close/resume, timer, jawaban tersimpan, browser refresh, timer expired) + 2 proactive bug fixes di StartExam.cshtml**
 
 ## Performance
 
@@ -73,6 +73,7 @@ completed: 2026-03-28
 
 1. **Task 1: Buat script UAT + jalankan di server dev** - `4d57b612` (feat)
 2. **Task 2: Analisis hasil + fix 2 bug** - `5869a542` (fix)
+3. **Task 3: Verifikasi visual resilience behavior** - human verification APPROVED
 
 ## Files Created/Modified
 

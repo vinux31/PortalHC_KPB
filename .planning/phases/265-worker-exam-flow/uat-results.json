@@ -1,0 +1,70 @@
+[
+  {
+    "scenario": "S1 - rino.prasetyo",
+    "checks": [
+      {
+        "id": "S1-LOGIN",
+        "desc": "Login berhasil",
+        "pass": true
+      },
+      {
+        "id": "EXAM-01",
+        "desc": "Assessment list tampil + assessment 7 ada",
+        "pass": false,
+        "detail": "cards=0 hasAssmt7=false"
+      },
+      {
+        "id": "EXAM-02a",
+        "desc": "Token modal muncul (IsTokenRequired=true)",
+        "pass": false,
+        "detail": "modals=0 visible=false"
+      },
+      {
+        "id": "EXAM-03",
+        "desc": "Soal ditampilkan (radio buttons)",
+        "pass": false,
+        "detail": "radioCount=0"
+      },
+      {
+        "id": "EXAM-04",
+        "desc": "Timer tampil dan berjalan",
+        "pass": false,
+        "detail": "t1=\"\" t2=\"\""
+      },
+      {
+        "id": "EXAM-07",
+        "desc": "Network badges #hubStatusBadge dan #networkStatusBadge",
+        "pass": false,
+        "detail": "hub=\"NOT FOUND\" net=\"NOT FOUND\""
+      },
+      {
+        "id": "EXAM-05",
+        "desc": "Auto-save",
+        "pass": false,
+        "detail": "No radios found"
+      }
+    ]
+  },
+  {
+    "scenario": "S2 - mohammad.arsyad",
+    "checks": [
+      {
+        "id": "S2-LOGIN",
+        "desc": "Login berhasil",
+        "pass": true
+      }
+    ],
+    "error": "page.goto: Timeout 60000ms exceeded."
+  },
+  {
+    "scenario": "S3 - moch.widyadhana",
+    "checks": [
+      {
+        "id": "S3-LOGIN",
+        "desc": "Login berhasil",
+        "pass": true
+      }
+    ],
+    "error": "page.goto: Timeout 60000ms exceeded."
+  }
+]

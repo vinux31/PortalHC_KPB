@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-03-28T02:18:26.002Z",
+  "baseUrl": "http://10.55.3.3/KPB-PortalHC",
+  "totalPass": 2,
+  "totalFail": 1,
+  "scenarios": [
+    {
+      "scenario": "EDGE-07 - Arsyad Timer Habis",
+      "checks": [
+        {
+          "id": "E7-LOGIN",
+          "desc": "Login Arsyad berhasil",
+          "pass": true
+        },
+        {
+          "id": "E7-REACH-EXAM",
+          "desc": "Berhasil masuk halaman ujian",
+          "pass": true,
+          "detail": "URL: http://10.55.3.3/KPB-PortalHC/Account/AccessDenied?ReturnUrl=%2FKPB-PortalHC%2FCMP%2FStartExam%2F10"
+        },
+        {
+          "id": "E7-TIMER-DISPLAY",
+          "desc": "Timer #examTimer tampil",
+          "pass": false,
+          "detail": "timer=\"NOT FOUND\" radios=0"
+        }
+      ],
+      "error": "page.evaluate: Target crashed ",
+      "stack": "page.evaluate: Target crashed \n    at scenarioArsyadTimerExpiry (C:\\Users\\Administrator\\Desktop\\PortalHC_KPB\\uat-267-timer-test.js:324:39)\n    at async main (C:\\Users\\Administrator\\Desktop\\PortalHC_KPB\\uat-267-timer-test.js:514:5)"
+    }
+  ]
+}
