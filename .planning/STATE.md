@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 
 - [v10.0]: Testing dilakukan di server development (http://10.55.3.3/KPB-PortalHC/), fix hanya di project lokal
 - [v10.0]: Dua akun test: admin@pertamina.com (Admin) dan rino.prasetyo@pertamina.com (Worker/Coachee)
+- [v10.0]: Verifikasi manual oleh user di browser (bukan Playwright otomatis) — user test, lapor temuan, Claude fix
 - [Phase 266-02]: Filter validAnswers value=0 di POST ExamSummary sebelum TempData serialize — solusi minimal tanpa ubah view atau model
 - [Phase 266-02]: CertificatePdf: catch exception dan redirect ke Results page daripada membiarkan HTTP 204
 - [Phase 267-01]: Worker Regan = moch.widyadhana@pertamina.com, assessment ID 10, semua 12 EDGE check PASS di server dev

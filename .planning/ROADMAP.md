@@ -22,6 +22,7 @@ See .planning/MILESTONES.md for full history.
 ### 🚧 v10.0 UAT Assessment OJT di Server Development
 
 **Milestone Goal:** Simulasi test end-to-end assessment kategori OJT di server development, temukan bug/issue, perbaiki di project lokal.
+**Verification approach:** Manual — user test langsung di browser server dev, lapor temuan, Claude fix bug di kode lokal.
 
 - [x] **Phase 264: Admin Setup Assessment OJT** - Admin buat assessment, upload soal, assign worker (completed 2026-03-27)
 - [x] **Phase 265: Worker Exam Flow** - Worker mulai ujian, jawab soal, navigasi halaman (completed 2026-03-27)
