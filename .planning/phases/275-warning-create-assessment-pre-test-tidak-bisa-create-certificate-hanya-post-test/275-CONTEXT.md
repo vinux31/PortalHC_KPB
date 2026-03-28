@@ -2,53 +2,39 @@
 phase: 275
 name: Warning create assessment — pre test tidak bisa create certificate, hanya post test
 created: 2026-03-28
-source: auto-discuss
+source: discuss
 ---
 
 # Phase 275 Context
 
 ## Phase Goal
-Menambahkan warning/validasi di form Create Assessment: jika assessment bertipe "Pre Test", maka sertifikat tidak bisa di-generate (GenerateCertificate harus disabled). Hanya assessment bertipe "Post Test" yang bisa generate sertifikat.
-
-## Current State
-- Model `AssessmentSession` sudah punya field `GenerateCertificate` (bool)
-- Form `CreateAssessment.cshtml` punya checkbox "Terbitkan Sertifikat" dengan toggle switch
-- **Tidak ada** konsep pre-test / post-test di model atau view saat ini
-- Kategori assessment dikelola via `AssessmentCategory` model (parent-child hierarchy)
+Tambahkan warning text dinamis di form Create Assessment: jika judul mengandung "pre test"/"pretest" dan checkbox "Terbitkan Sertifikat" dicentang, tampilkan warning bahwa pre-test biasanya tidak menerbitkan sertifikat.
 
 ## Decisions
 
-### 1. Konsep Pre-Test / Post-Test
-**Status:** Perlu input user
-**Gray area:** Bagaimana pre-test vs post-test dibedakan? Apakah ini:
-- (a) Field baru `AssessmentType` (enum: PreTest/PostTest) di `AssessmentSession`
-- (b) Berdasarkan sub-kategori yang sudah ada
-- (c) Berdasarkan nama/judul assessment
-- (d) Atau konsep lain?
+### 1. Deteksi Pre-Test: Berdasarkan Judul (Opsi C)
+**Decision:** Deteksi kata "pre test" / "pretest" di field judul assessment via JavaScript. Tidak ada field baru, tidak ada perubahan model/database. Murni frontend.
 
-**[auto] Selected:** Opsi (a) — field baru karena paling eksplisit dan reliable. Tapi ini butuh konfirmasi user karena menyangkut domain knowledge.
+### 2. Behavior: Warning Text Non-Blocking
+**Decision:** Warning muncul saat KEDUA kondisi terpenuhi:
+- Judul mengandung "pre test" atau "pretest" (case-insensitive)
+- Checkbox "Terbitkan Sertifikat" dicentang
 
-### 2. Behavior Warning
-**Decision:** Saat admin memilih tipe "Pre Test" di form Create Assessment:
-- Checkbox "Terbitkan Sertifikat" otomatis di-uncheck dan disabled
-- Tampilkan info text: "Pre Test tidak dapat menerbitkan sertifikat. Hanya Post Test yang bisa menerbitkan sertifikat."
-- Backend juga enforce: jika tipe PreTest, force GenerateCertificate = false
+Warning text kuning (alert-warning) di bawah checkbox:
+> ⚠️ "Judul mengandung 'Pre Test'. Pre Test biasanya tidak menerbitkan sertifikat."
+
+Admin tetap bisa override — warning tidak blocking, tidak disable checkbox.
 
 ### 3. Scope
-**Decision:** Hanya warning/validasi di form create. Tidak mengubah:
-- Flow ujian
-- Grading
-- Halaman results
-- Assessment yang sudah ada (backward compatible, default = PostTest atau null)
+**Decision:** Murni frontend JS di `CreateAssessment.cshtml`. Tidak mengubah:
+- Model / database / migration
+- Backend validation
+- Flow ujian, grading, results
+- Assessment yang sudah ada
 
 ## Reusable Assets
-- `Views/Admin/CreateAssessment.cshtml` — form wizard multi-step, JS validation sudah ada
-- `Controllers/AdminController.cs` — POST CreateAssessment action
-- `Models/AssessmentSession.cs` — model utama
-
-## Open Questions (for user)
-1. Apakah benar perlu field baru "Tipe Assessment" (Pre Test / Post Test)? Atau ini merujuk ke sesuatu yang sudah ada di sistem?
-2. Apakah assessment yang sudah ada perlu di-migrate ke tipe tertentu?
+- `Views/Admin/CreateAssessment.cshtml` — form wizard, field Title (id="Title"), checkbox GenerateCertificate
+- JS validation pattern sudah ada di file yang sama
 
 ## Deferred Ideas
 - None
