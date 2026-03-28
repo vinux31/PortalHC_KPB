@@ -80,7 +80,13 @@ Progress: [████████░░] 80%
 
 None yet.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
+
 ## Session Continuity
 
-Last activity: 2026-03-28
+Last activity: 2026-03-28 - Completed quick task 260328-kri: fix notif lanjutkan pengerjaan
 Stopped at: Completed 272-01-PLAN.md
