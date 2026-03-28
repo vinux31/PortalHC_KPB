@@ -1344,7 +1344,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers)
+        public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers, bool isAutoSubmit = false)
         {
             var assessment = await _context.AssessmentSessions
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -1364,6 +1364,24 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "This assessment has already been completed.";
                 return RedirectToAction("Assessment");
+            }
+
+            // ---- Block incomplete submission (Phase 272) ----
+            if (!isAutoSubmit)
+            {
+                var pkgAssign = await _context.UserPackageAssignments
+                    .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+                if (pkgAssign != null)
+                {
+                    int totalQuestions = pkgAssign.GetShuffledQuestionIds().Count;
+                    int answeredCount = answers.Count(a => a.Value > 0);
+                    if (totalQuestions > 0 && answeredCount < totalQuestions)
+                    {
+                        int unanswered = totalQuestions - answeredCount;
+                        TempData["Error"] = $"Masih ada {unanswered} soal yang belum dijawab. Jawab semua soal terlebih dahulu.";
+                        return RedirectToAction("ExamSummary", new { id });
+                    }
+                }
             }
 
             // ---- Server-side timer enforcement (LIFE-03) ----
