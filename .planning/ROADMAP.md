@@ -109,7 +109,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 268-01: TBD
+- [ ] 268-01: UAT monitoring dashboard — analisa kode, browser test dua bersamaan, batch fix bug
 
 ## Progress
 
