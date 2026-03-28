@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: verifying
-stopped_at: Phase 272-01 complete — awaiting human-verify checkpoint (Task 2)
-last_updated: "2026-03-28T06:45:15.482Z"
+stopped_at: Completed 272-01-PLAN.md
+last_updated: "2026-03-28T06:51:57.744Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 12
@@ -59,6 +59,7 @@ Progress: [████████░░] 80%
 - [Phase 271]: Server-authoritative timer: Math.Max(DB, wallClock) di StartExam + 3-step clamp di UpdateSessionProgress
 - [Phase 272]: Frontend disabled button (type=button) + backend guard: dual-layer protection mencegah submit ujian tidak lengkap
 - [Phase 272]: isAutoSubmit flag via hidden form field memungkinkan auto-submit timer expired tetap berjalan meskipun ada soal kosong
+- [Phase 272]: Frontend disable tombol Kumpulkan Ujian (type=button) saat ada soal kosong + backend guard dengan isAutoSubmit exception
 
 ### Pending Todos
 
@@ -82,4 +83,4 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Phase 272-01 complete — awaiting human-verify checkpoint (Task 2)
+Stopped at: Completed 272-01-PLAN.md
