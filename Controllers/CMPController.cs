@@ -921,7 +921,7 @@ namespace HcPortal.Controllers
                 };
 
                 // Resume state: set ViewBag flags for frontend
-                bool isResume = assessment.StartedAt != null;
+                bool isResume = !justStarted;
                 int durationSeconds = assessment.DurationMinutes * 60;
                 int elapsedSec = assessment.ElapsedSeconds;
 
