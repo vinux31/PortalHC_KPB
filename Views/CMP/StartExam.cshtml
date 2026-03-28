@@ -29,6 +29,19 @@
     </div>
 </div>
 
+<!-- Loading Overlay — tampil sampai SignalR hub ready -->
+<div id="examLoadingOverlay" role="status" aria-label="Mempersiapkan ujian">
+    <div class="text-center">
+        <div class="spinner-border text-light mb-3" style="width: 3rem; height: 3rem;"></div>
+        <div class="fs-5 fw-semibold mb-2">Mempersiapkan ujian...</div>
+        <div class="small opacity-75" id="overlayStatus">Menghubungkan ke server...</div>
+        <button id="overlayReloadBtn" class="btn btn-light btn-sm mt-3"
+                style="display:none" onclick="window.location.reload()">
+            Muat Ulang
+        </button>
+    </div>
+</div>
+
 <!-- Hidden form for abandon action -->
 <form id="abandonForm" asp-action="AbandonExam" method="post" style="display:none">
     @Html.AntiForgeryToken()
@@ -47,7 +60,7 @@
 }
 else
 {
-    <div class="container-fluid py-3">
+    <div class="container-fluid py-3" id="examContainer" inert>
         <div class="row">
             <!-- Main exam area -->
             <div class="col-lg-9">
@@ -915,6 +928,63 @@ else
         }
     });
 
+    // -------- Loading Overlay Logic (D-01 through D-07) --------
+    var examOverlay = document.getElementById('examLoadingOverlay');
+    var overlayStatusEl = document.getElementById('overlayStatus');
+    var examContainer = document.getElementById('examContainer');
+    var hubConnectedForOverlay = false;
+
+    function overlayFadeOut() {
+        if (overlayStatusEl) overlayStatusEl.textContent = 'Terhubung!';
+        setTimeout(function() {
+            if (examOverlay) {
+                examOverlay.classList.add('fade-out');
+                if (examContainer) examContainer.removeAttribute('inert');
+                setTimeout(function() {
+                    examOverlay.style.display = 'none';
+                }, 300);
+            }
+        }, 400);
+    }
+
+    function overlayShowError() {
+        var spinner = examOverlay ? examOverlay.querySelector('.spinner-border') : null;
+        if (spinner) spinner.style.display = 'none';
+        if (overlayStatusEl) overlayStatusEl.textContent = 'Koneksi gagal. Periksa jaringan Anda.';
+        var reloadBtn = document.getElementById('overlayReloadBtn');
+        if (reloadBtn) reloadBtn.style.display = 'inline-block';
+    }
+
+    // D-04: minimal 1 detik + hub ready
+    var minDelay = new Promise(function(resolve) { setTimeout(resolve, 1000); });
+
+    if (window.assessmentHubStartPromise) {
+        // assessmentHubStartPromise SELALU resolve (tidak pernah reject)
+        // Jadi gunakan .then() untuk cek state, dan onclose untuk error
+        Promise.all([window.assessmentHubStartPromise, minDelay])
+            .then(function() {
+                if (window.assessmentHub && window.assessmentHub.state === 'Connected') {
+                    hubConnectedForOverlay = true;
+                    overlayFadeOut();
+                }
+                // Jika state bukan Connected, onclose handler di bawah akan trigger error
+            });
+
+        // D-06: error state via onclose (karena promise tidak reject)
+        if (window.assessmentHub) {
+            window.assessmentHub.onclose(function() {
+                if (!hubConnectedForOverlay) {
+                    overlayShowError();
+                }
+            });
+        }
+    } else {
+        // Fallback: tidak ada promise (seharusnya tidak terjadi), hilangkan overlay setelah delay
+        minDelay.then(function() {
+            overlayFadeOut();
+        });
+    }
+
     // -------- Connection status badge --------
     var hubBadge = document.getElementById('hubStatusBadge');
     window.assessmentHub.onreconnecting(function() {
@@ -941,6 +1011,26 @@ else
 }
 
 <style>
+    #examLoadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #fff;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+    #examLoadingOverlay.fade-out {
+        opacity: 0;
+        pointer-events: none;
+    }
     #examHeader { z-index: 1020; }
     .option-selected {
         background-color: #cfe2ff !important;
