@@ -4,12 +4,12 @@ milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: executing
 stopped_at: Phase 274 context gathered
-last_updated: "2026-03-28T11:06:34.422Z"
-last_activity: 2026-03-28
+last_updated: "2026-03-28T11:45:34.914Z"
+last_activity: 2026-03-28 -- Phase 275 execution started
 progress:
   total_phases: 11
   completed_phases: 10
-  total_plans: 12
+  total_plans: 13
   completed_plans: 12
   percent: 80
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 274 — warning-create-assessment-pre-test-tidak-bisa-create-certificate-hanya-post-test
+**Current focus:** Phase 275 — warning-create-assessment-pre-test-tidak-bisa-create-certificate-hanya-post-test
 
 ## Current Position
 
-Phase: 275
-Plan: Not started
-Status: Executing Phase 274
-Last activity: 2026-03-28
+Phase: 275 (warning-create-assessment-pre-test-tidak-bisa-create-certificate-hanya-post-test) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 275
+Last activity: 2026-03-28 -- Phase 275 execution started
 
 Progress: [████████░░] 80%
 
