@@ -46,7 +46,7 @@ Requirements for UAT Assessment OJT di Server Development.
 - [x] **EDGE-04**: Resume — jawaban yang sudah dipilih masih tercentang
 - [x] **EDGE-05**: Resume — progress counter akurat, indikasi "lanjutkan"
 - [x] **EDGE-06**: Browser refresh — jawaban, posisi, timer tetap benar
-- [ ] **EDGE-07**: Timer habis — behavior sesuai (auto-submit/block/pesan)
+- [x] **EDGE-07**: Timer habis — behavior sesuai (auto-submit/block/pesan)
 
 ### Monitoring (Admin/HC)
 
@@ -93,7 +93,7 @@ Requirements for UAT Assessment OJT di Server Development.
 | EDGE-04 | Phase 267 | Complete |
 | EDGE-05 | Phase 267 | Complete |
 | EDGE-06 | Phase 267 | Complete |
-| EDGE-07 | Phase 267 | Pending |
+| EDGE-07 | Phase 267 | Complete |
 | MON-01 | Phase 268 | Pending |
 | MON-02 | Phase 268 | Pending |
 | MON-03 | Phase 268 | Pending |
