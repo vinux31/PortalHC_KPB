@@ -89,10 +89,11 @@ Plans:
   3. Setelah resume, timer lanjut dari sisa waktu (tidak reset) dan progress counter akurat
   4. Browser refresh tidak menghilangkan jawaban, posisi halaman, atau timer
   5. Saat timer habis, behavior sesuai konfigurasi (auto-submit/block/pesan)
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 267-01: TBD
+- [ ] 267-01: UAT resilience Regan — koneksi putus, tab close/resume, browser refresh (EDGE-01 sampai EDGE-06)
+- [ ] 267-02: UAT timer habis Arsyad — assessment 2 menit, timer expired natural (EDGE-07)
 
 ### Phase 268: Monitoring Dashboard
 **Goal**: Admin/HC dapat memantau progress ujian secara real-time dan melihat hasil setelah selesai
@@ -119,5 +120,5 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 | 264. Admin Setup Assessment OJT | 1/1 | Complete    | 2026-03-27 |
 | 265. Worker Exam Flow | 1/1 | Complete    | 2026-03-27 |
 | 266. Review, Submit & Hasil | 1/2 | In Progress|  |
-| 267. Resilience & Edge Cases | 0/0 | Not started | - |
+| 267. Resilience & Edge Cases | 0/2 | Not started | - |
 | 268. Monitoring Dashboard | 0/0 | Not started | - |
