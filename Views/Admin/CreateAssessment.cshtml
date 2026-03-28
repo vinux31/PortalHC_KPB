@@ -436,6 +436,10 @@
                                 <label class="form-check-label" for="GenerateCertificate">Aktifkan</label>
                             </div>
                             <div class="form-text text-muted">Peserta yang lulus dapat melihat dan mencetak sertifikat</div>
+                            <div id="preTestWarning" class="alert alert-warning py-2 px-3 mt-2 d-none" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                Judul mengandung "Pre Test". Pre Test biasanya tidak menerbitkan sertifikat.
+                            </div>
                         </div>
 
                         <!-- Allow Answer Review -->
@@ -1321,6 +1325,24 @@ function generateToken() {
             catSelect.dispatchEvent(new Event('change'));
         }
     });
+</script>
+<script>
+    function checkPreTestWarning() {
+        var title = document.getElementById('Title').value.toLowerCase();
+        var certChecked = document.getElementById('GenerateCertificate').checked;
+        var warning = document.getElementById('preTestWarning');
+        var isPreTest = title.includes('pre test') || title.includes('pretest') || title.includes('pre-test');
+
+        if (isPreTest && certChecked) {
+            warning.classList.remove('d-none');
+        } else {
+            warning.classList.add('d-none');
+        }
+    }
+
+    document.getElementById('Title').addEventListener('input', checkPreTestWarning);
+    document.getElementById('GenerateCertificate').addEventListener('change', checkPreTestWarning);
+    checkPreTestWarning();
 </script>
 }
 }
