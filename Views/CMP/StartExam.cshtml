@@ -190,7 +190,7 @@ else
                 </h5>
             </div>
             <div class="modal-body pt-2">
-                <p class="mb-0">Lanjutkan dari soal no. <strong id="resumePageNum">--</strong>?</p>
+                <p class="mb-0">Anda memiliki ujian yang belum selesai. Klik tombol di bawah untuk melanjutkan.</p>
             </div>
             <div class="modal-footer border-top-0">
                 <button type="button" class="btn btn-warning w-100 fw-semibold" id="resumeConfirmBtn">
@@ -791,21 +791,14 @@ else
         setTimeout(function() {
             document.getElementById('examForm').submit();
         }, 5000);
-    } else if (IS_RESUME && RESUME_PAGE > 0) {
-        // Show resume confirmation modal (worker left mid-exam on a non-first page)
-        // Use answered count + 1 for accurate resume position (falls back to page-based if no answers loaded)
-        var resumeFromNum = answeredQuestions.size > 0
-            ? answeredQuestions.size + 1
-            : RESUME_PAGE * QUESTIONS_PER_PAGE + 1;
-        document.getElementById('resumePageNum').innerText = resumeFromNum;
+    } else if (IS_RESUME) {
+        // Show resume confirmation modal (worker has an in-progress exam)
         const resumeModal = new bootstrap.Modal(document.getElementById('resumeConfirmModal'));
         resumeModal.show();
 
         document.getElementById('resumeConfirmBtn').addEventListener('click', function() {
             resumeModal.hide();
-            // Navigate to last active page
-            document.getElementById('page_0').style.display = 'none';
-            currentPage = RESUME_PAGE;
+            currentPage = 0;
             document.getElementById('page_' + currentPage).style.display = 'block';
             updatePanel();
             window.scrollTo(0, 0);
