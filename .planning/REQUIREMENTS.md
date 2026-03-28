@@ -50,10 +50,10 @@ Requirements for UAT Assessment OJT di Server Development.
 
 ### Monitoring (Admin/HC)
 
-- [ ] **MON-01**: Progress real-time (x/total soal terjawab)
-- [ ] **MON-02**: Status lifecycle (Open → InProgress → Completed)
-- [ ] **MON-03**: Timer/elapsed akurat dan sinkron dengan worker
-- [ ] **MON-04**: Result menampilkan skor & pass/fail setelah submit
+- [x] **MON-01**: Progress real-time (x/total soal terjawab)
+- [x] **MON-02**: Status lifecycle (Open → InProgress → Completed)
+- [x] **MON-03**: Timer/elapsed akurat dan sinkron dengan worker
+- [x] **MON-04**: Result menampilkan skor & pass/fail setelah submit
 
 ## Out of Scope
 
@@ -94,10 +94,10 @@ Requirements for UAT Assessment OJT di Server Development.
 | EDGE-05 | Phase 267 | Complete |
 | EDGE-06 | Phase 267 | Complete |
 | EDGE-07 | Phase 267 | Complete |
-| MON-01 | Phase 268 | Pending |
-| MON-02 | Phase 268 | Pending |
-| MON-03 | Phase 268 | Pending |
-| MON-04 | Phase 268 | Pending |
+| MON-01 | Phase 268 | Complete |
+| MON-02 | Phase 268 | Complete |
+| MON-03 | Phase 268 | Complete |
+| MON-04 | Phase 268 | Complete |
 
 **Coverage:**
 - v10.0 requirements: 30 total

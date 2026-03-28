@@ -28,7 +28,7 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 265: Worker Exam Flow** - Worker mulai ujian, jawab soal, navigasi halaman (completed 2026-03-27)
 - [x] **Phase 266: Review, Submit & Hasil** - Review jawaban, submit, grading, sertifikat
 - [x] **Phase 267: Resilience & Edge Cases** - Offline, resume, refresh, timeout behavior
-- [ ] **Phase 268: Monitoring Dashboard** - Admin/HC pantau progress real-time
+- [x] **Phase 268: Monitoring Dashboard** - Admin/HC pantau progress real-time (completed 2026-03-28)
 
 ## Phase Details
 
@@ -109,7 +109,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 268-01: UAT monitoring dashboard — analisa kode, browser test dua bersamaan, batch fix bug
+- [x] 268-01: UAT monitoring dashboard — analisa kode, browser test dua bersamaan, batch fix bug
 
 ## Progress
 
@@ -122,4 +122,4 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 | 265. Worker Exam Flow | 1/1 | Complete    | 2026-03-27 |
 | 266. Review, Submit & Hasil | 2/2 | Complete   | 2026-03-28 |
 | 267. Resilience & Edge Cases | 2/2 | Complete    | 2026-03-28 |
-| 268. Monitoring Dashboard | 0/0 | Not started | - |
+| 268. Monitoring Dashboard | 1/1 | Complete   | 2026-03-28 |
