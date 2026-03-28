@@ -180,30 +180,6 @@
             margin-top: 5px;
         }
 
-        .badge-score {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-            width: 100px;
-            height: 100px;
-            background: #1a4a8d;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            border: 4px solid #c49a00;
-        }
-        .badge-score span {
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-        .badge-score strong {
-            font-size: 28px;
-        }
-
         @@media print {
             .no-print { display: none; }
             body { background: white; -webkit-print-color-adjust: exact; }
@@ -295,13 +271,6 @@
             </div>
         </div>
 
-        @if(Model.Score.HasValue)
-        {
-            <div class="badge-score">
-                <span>Score</span>
-                <strong>@Model.Score%</strong>
-            </div>
-        }
     </div>
 
 </body>
