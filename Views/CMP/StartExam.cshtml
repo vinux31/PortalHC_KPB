@@ -491,6 +491,20 @@ else
             .then(function() {
                 showSaveIndicator(qId, 'saved');
                 updateNetworkBadge('saved');
+                // D-14 fix: koneksi HTTP pulih — flush pendingAnswers jika ada.
+                // flushPendingAnswers di onreconnected hanya terpanggil saat SignalR reconnect.
+                // Jika hanya HTTP yang sempat gagal (SignalR tetap connected), onreconnected
+                // tidak fired, sehingga kita flush di sini saat fetch pertama kembali berhasil.
+                if (pendingAnswers.length > 0) {
+                    var toFlush = pendingAnswers.slice();
+                    pendingAnswers = [];
+                    toFlush.forEach(function(pa) {
+                        // Skip jika ID ini adalah jawaban yang baru saja kita save (sudah berhasil)
+                        if (String(pa.qId) !== String(qId)) {
+                            saveAnswerAsync(pa.qId, pa.optId, 0);
+                        }
+                    });
+                }
             })
             .catch(function() {
                 inFlightSaves.delete(String(qId));
@@ -804,6 +818,19 @@ else
 
     // -------- Prevent accidental leave --------
     window.onbeforeunload = function() {
+        // D-14 fix: kirim session progress via sendBeacon saat tab ditutup/refresh.
+        // sendBeacon berjalan async dan tidak memblokir unload — guaranteed delivered
+        // meski tab ditutup. Ini memastikan ElapsedSeconds di DB tidak stale > 30 detik
+        // saat resume (sebelumnya hanya diupdate setiap 30 detik via setInterval).
+        var token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token && SESSION_ID && SESSION_PROGRESS_URL) {
+            var data = new URLSearchParams();
+            data.append('sessionId', SESSION_ID);
+            data.append('elapsedSeconds', elapsedSeconds);
+            data.append('currentPage', currentPage);
+            data.append('__RequestVerificationToken', token.value);
+            navigator.sendBeacon(SESSION_PROGRESS_URL, new Blob([data.toString()], { type: 'application/x-www-form-urlencoded' }));
+        }
         return 'Are you sure you want to leave? Your progress will be lost.';
     };
     document.getElementById('examForm').addEventListener('submit', function() {
