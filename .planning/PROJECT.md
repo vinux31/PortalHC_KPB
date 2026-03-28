@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (Phase 263 complete, 2026-03-27)
+## Current State (Phase 268 complete, 2026-03-28)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -20,8 +20,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.0–v8.6 shipped** — Assessment Integrity, Renewal Audit, Proton Audit, Filters, Alarm, UAT, Hardening (phases 223-252).
 **v9.1 shipped** — UAT Coaching Proton (Phase 257 only, 258-261 skipped).
 **Phase 262-263 shipped** — Sub-path deployment fixes (URLs + upload paths).
+**v10.0 shipped** — UAT Assessment OJT di Server Development (phases 264-268): admin setup, worker exam flow, review/submit hasil, resilience/edge cases, monitoring dashboard.
 
-**Current focus:** v10.0 UAT Assessment OJT di Server Development
+**Current focus:** v10.0 complete — ready for next milestone
 
 ## Current Milestone: v10.0 UAT Assessment OJT di Server Development
 
