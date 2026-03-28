@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: verifying
-stopped_at: Completed 268-01-PLAN.md — Phase 268 complete, v10.0 milestone complete
-last_updated: "2026-03-28T04:00:42.986Z"
+stopped_at: Completed 269-01-PLAN.md
+last_updated: "2026-03-28T05:05:58.178Z"
 last_activity: 2026-03-28
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 8
+  completed_plans: 8
   percent: 80
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 268 — monitoring-dashboard
+**Current focus:** Phase 269 — loading-overlay-saat-koneksi-signalr-belum-ready-di-startexam
 
 ## Current Position
 
-Phase: 268
-Plan: Not started
+Phase: 269 (loading-overlay-saat-koneksi-signalr-belum-ready-di-startexam) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-03-28
 
@@ -54,11 +54,18 @@ Progress: [████████░░] 80%
 - [Phase 267-02]: EDGE-07 PASS — timer habis, modal "Waktu habis" muncul, auto-submit berjalan benar, tanpa bug fix
 - [Phase 268]: MON-03: Kolom Time Remaining dihapus dari monitoring view per permintaan user UAT
 - [Phase 268]: Assessment di server dev menggunakan package mode — workerSubmitted selalu dikirim, MON-01/02/04 semua PASS
+- [Phase 269]: assessmentHubStartPromise SELALU resolve — error state via onclose handler, bukan .catch()
+- [Phase 269]: inert attribute diset langsung di HTML untuk block interaksi sebelum JS load
 
 ### Pending Todos
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser
 - Phase 247 approval chain UAT: 2 TODO (HC review + resubmit notification)
+
+### Roadmap Evolution
+
+- Phase 269 added: Loading overlay saat koneksi SignalR belum ready di StartExam
+- Phase 270 added: Perbaiki resume exam: notif lanjutkan mengerjakan dan redirect ke page 1
 
 ### Blockers/Concerns
 
@@ -67,4 +74,4 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Completed 268-01-PLAN.md — Phase 268 complete, v10.0 milestone complete
+Stopped at: Completed 269-01-PLAN.md
