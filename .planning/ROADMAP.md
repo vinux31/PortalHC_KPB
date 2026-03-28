@@ -136,10 +136,10 @@ Plans:
 
 ### Phase 270: Perbaiki resume exam: notif lanjutkan mengerjakan dan redirect ke page 1
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Sederhanakan modal resume exam (hapus info nomor soal) dan ubah redirect agar selalu ke halaman 1
+**Requirements**: RESUME-01, RESUME-02
 **Depends on:** Phase 269
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 270 to break down)
+- [ ] 270-01-PLAN.md — Sederhanakan modal resume + redirect ke page 0
