@@ -123,3 +123,23 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 | 266. Review, Submit & Hasil | 2/2 | Complete   | 2026-03-28 |
 | 267. Resilience & Edge Cases | 2/2 | Complete    | 2026-03-28 |
 | 268. Monitoring Dashboard | 1/1 | Complete    | 2026-03-28 |
+
+### Phase 269: Loading overlay saat koneksi SignalR belum ready di StartExam
+
+**Goal:** Menambahkan loading overlay di StartExam yang memblokir interaksi user selama SignalR hub belum connected, dengan error state jika gagal
+**Requirements**: OVL-01, OVL-02, OVL-03, OVL-04, OVL-05, OVL-06, OVL-07
+**Depends on:** Phase 268
+**Plans:** 1 plan
+
+Plans:
+- [ ] 269-01-PLAN.md — Loading overlay HTML, CSS, JavaScript di StartExam.cshtml
+
+### Phase 270: Perbaiki resume exam: notif lanjutkan mengerjakan dan redirect ke page 1
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 269
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 270 to break down)
