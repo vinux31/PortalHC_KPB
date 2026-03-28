@@ -194,7 +194,6 @@
                             <th>Score</th>
                             <th>Result</th>
                             <th>Completed At</th>
-                            <th>Time Remaining</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -202,7 +201,7 @@
                         @if (Model.Sessions.Count == 0)
                         {
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">No sessions found for this group.</td>
+                                <td colspan="7" class="text-center text-muted py-4">No sessions found for this group.</td>
                             </tr>
                         }
                         else
@@ -237,9 +236,7 @@
                                     resultClass = "text-muted";
                                 }
 
-                                <tr data-session-id="@session.Id"
-                                    data-started-at="@(session.UserStatus == "InProgress" ? session.StartedAt?.ToString("o") ?? "" : "")"
-                                    data-duration="@session.DurationMinutes">
+                                <tr data-session-id="@session.Id">
                                     <td class="fw-semibold">@session.UserFullName</td>
                                     <td class="text-center progress-cell">@(session.QuestionCount > 0 ? $"\u2014/{session.QuestionCount}" : "\u2014")</td>
                                     <td class="status-cell"><span class="badge @statusClass">@statusLabel</span></td>
@@ -257,7 +254,6 @@
                                     <td class="completedat-cell text-muted small">
                                         @(session.CompletedAt.HasValue ? session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "\u2014")
                                     </td>
-                                    <td class="timeremaining-cell text-muted">—</td>
                                     <td>
                                         @* Reshuffle -- package mode, Not started or Abandoned (always enabled) *@
                                         @if (Model.IsPackageMode && (session.UserStatus == "Not started" || session.UserStatus == "Abandoned"))
@@ -651,10 +647,6 @@
 
 <script>
 (function () {
-    // ---- State ----
-    var countdownMap = {}; // { sessionId: remainingSeconds | null }
-    var countdownTimer = null;
-
     // ---- Read page params from hidden fields ----
     var hTitle        = document.getElementById('hTitle').value;
     var hCategory     = document.getElementById('hCategory').value;
@@ -738,15 +730,6 @@
         return html;
     }
 
-    // ---- Format time remaining ----
-    function formatTime(secs) {
-        if (secs === null || secs === undefined) return '\u2014';
-        if (secs <= 0) return '00:00';
-        var m = Math.floor(secs / 60);
-        var s = secs % 60;
-        return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-    }
-
     // ---- Detect package mode from page (Reshuffle button presence) ----
     var isPackageMode = (document.getElementById('reshuffleForm') !== null);
 
@@ -756,7 +739,7 @@
         if (!tr) return;
 
         var tds = tr.querySelectorAll('td');
-        // Column order (0-indexed): Name=0, Progress=1, Status=2, Score=3, Result=4, CompletedAt=5, TimeRemaining=6, Actions=7
+        // Column order (0-indexed): Name=0, Progress=1, Status=2, Score=3, Result=4, CompletedAt=5, Actions=6
 
         // Progress (col 1)
         var total = session.totalQuestions || 0;
@@ -783,28 +766,8 @@
             tds[5].textContent = '\u2014';
         }
 
-        // Time Remaining (col 6) -- re-sync countdownMap from server snapshot
-        countdownMap[session.sessionId] = session.status === 'InProgress' ? session.remainingSeconds : null;
-        tds[6].textContent = formatTime(countdownMap[session.sessionId]);
-
-        // Actions (col 7)
-        tds[7].innerHTML = buildActionsHtml(session, isPackageMode);
-    }
-
-    // ---- Tick countdown every second ----
-    function tickCountdowns() {
-        Object.keys(countdownMap).forEach(function (idStr) {
-            var id = parseInt(idStr, 10);
-            var secs = countdownMap[id];
-            if (secs !== null && secs > 0) {
-                countdownMap[id] = secs - 1;
-                var tr = document.querySelector('tr[data-session-id="' + id + '"]');
-                if (tr) {
-                    var tds = tr.querySelectorAll('td');
-                    if (tds[6]) tds[6].textContent = formatTime(countdownMap[id]);
-                }
-            }
-        });
+        // Actions (col 6)
+        tds[6].innerHTML = buildActionsHtml(session, isPackageMode);
     }
 
     // ---- Update summary counts ----
@@ -827,9 +790,6 @@
         if (elNotStarted) elNotStarted.textContent = notStarted;
         if (elCancelled)  elCancelled.textContent  = cancelled;
     }
-
-    // ---- Start countdown interval ----
-    countdownTimer = setInterval(tickCountdowns, 1000);
 
     // ---- Akhiri Semua Modal: fetch counts on open ----
     var akhiriModal = document.getElementById('akhiriSemuaModal');
@@ -861,38 +821,6 @@
 })();
 </script>
 
-<script>
-// ---- Time Remaining countdown (computed from StartedAt + DurationMinutes on initial load) ----
-// This supplements the server-polling countdown for InProgress peserta visible at page load.
-function updateTimeRemaining() {
-    document.querySelectorAll('tr[data-started-at]').forEach(function(row) {
-        var startedAtStr = row.getAttribute('data-started-at');
-        var durationMin = parseInt(row.getAttribute('data-duration') || '0', 10);
-        if (!startedAtStr || durationMin === 0) return; // no timer for interview mode (duration=0)
-        var startedAt = new Date(startedAtStr);
-        if (isNaN(startedAt.getTime())) return;
-        var durationMs = durationMin * 60000;
-        var timeLeft = (startedAt.getTime() + durationMs) - Date.now();
-        var cell = row.querySelector('.timeremaining-cell');
-        if (!cell) return;
-        // Only update cells that don't already show server-provided countdownMap value
-        // (if countdownMap has initialised for this session, skip)
-        var sessionId = parseInt(row.getAttribute('data-session-id'), 10);
-        if (timeLeft <= 0) {
-            cell.textContent = 'Waktu Habis';
-            cell.className = 'timeremaining-cell text-danger fw-semibold';
-        } else {
-            var totalSecs = Math.floor(timeLeft / 1000);
-            var mins = Math.floor(totalSecs / 60);
-            var secs = totalSecs % 60;
-            cell.textContent = mins + 'm ' + secs + 's';
-            cell.className = 'timeremaining-cell text-warning fw-semibold';
-        }
-    });
-}
-setInterval(updateTimeRemaining, 1000);
-updateTimeRemaining(); // initial call on page load
-</script>
 
 @if (Model.IsTokenRequired)
 {
@@ -1181,7 +1109,6 @@ function eventLabel(eventType, detail) {
             result: data.result,
             progress: data.totalQuestions,
             totalQuestions: data.totalQuestions,
-            remainingSeconds: null,
             completedAt: new Date().toISOString()
         };
         // updateRow is defined in the IIFE; since it is inside an IIFE it is not directly accessible here.
