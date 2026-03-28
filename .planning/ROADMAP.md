@@ -149,10 +149,10 @@ Plans:
 **Goal:** Perbaiki semua bug terkait timer ujian: (1) monitoring terbaca waktu habis padahal peserta sedang mengerjakan, (2) resume exam timer malah bertambah (misal 25:30 → 25:35), (3) audit seluruh logic timer (start, resume, countdown, sinkronisasi server-client)
 **Requirements**: TIMER-01, TIMER-02
 **Depends on:** Phase 270
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 271-01-PLAN.md — Server-authoritative timer: wall-clock cross-check + clamp validation
+- [x] 271-01-PLAN.md — Server-authoritative timer: wall-clock cross-check + clamp validation
 
 ### Phase 272: Block submit jika belum semua soal terisi
 

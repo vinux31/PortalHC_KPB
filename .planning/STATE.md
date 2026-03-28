@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: verifying
-stopped_at: Phase 270 context gathered
-last_updated: "2026-03-28T05:26:14.202Z"
+stopped_at: Phase 271-01 complete — awaiting human-verify checkpoint (Task 2)
+last_updated: "2026-03-28T06:26:15.932Z"
 last_activity: 2026-03-28
 progress:
-  total_phases: 7
-  completed_phases: 6
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 12
+  completed_phases: 8
+  total_plans: 10
+  completed_plans: 10
   percent: 80
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 269 — loading-overlay-saat-koneksi-signalr-belum-ready-di-startexam
+**Current focus:** Phase 271 — fix-time-remaining-monitoring-terbaca-waktu-habis-padahal-peserta-sedang-mengerjakan
 
 ## Current Position
 
-Phase: 270
-Plan: Not started
+Phase: 271 (fix-time-remaining-monitoring-terbaca-waktu-habis-padahal-peserta-sedang-mengerjakan) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-03-28
 
@@ -56,6 +56,7 @@ Progress: [████████░░] 80%
 - [Phase 268]: Assessment di server dev menggunakan package mode — workerSubmitted selalu dikirim, MON-01/02/04 semua PASS
 - [Phase 269]: assessmentHubStartPromise SELALU resolve — error state via onclose handler, bukan .catch()
 - [Phase 269]: inert attribute diset langsung di HTML untuk block interaksi sebelum JS load
+- [Phase 271]: Server-authoritative timer: Math.Max(DB, wallClock) di StartExam + 3-step clamp di UpdateSessionProgress
 
 ### Pending Todos
 
@@ -66,6 +67,11 @@ Progress: [████████░░] 80%
 
 - Phase 269 added: Loading overlay saat koneksi SignalR belum ready di StartExam
 - Phase 270 added: Perbaiki resume exam: notif lanjutkan mengerjakan dan redirect ke page 1
+- Phase 271 updated: Fix timer ujian — monitoring salah baca, resume timer bertambah, dan logic timer lainnya
+- Phase 272 added: Block submit jika belum semua soal terisi
+- Phase 273 added: Fix jawaban tidak bisa disubmit saat waktu habis walaupun sudah terisi dan tersave
+- Phase 274 added: Hilangkan score di sertifikat pojok kanan bawah
+- Phase 275 added: Warning create assessment: pre test tidak bisa create certificate, hanya post test
 
 ### Blockers/Concerns
 
@@ -74,4 +80,4 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Phase 270 context gathered
+Stopped at: Phase 271-01 complete — awaiting human-verify checkpoint (Task 2)
