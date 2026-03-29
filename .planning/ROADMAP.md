@@ -90,11 +90,12 @@ Plans:
   3. Setelah resume, timer lanjut dari sisa waktu (tidak reset) dan progress counter akurat
   4. Browser refresh tidak menghilangkan jawaban, posisi halaman, atau timer
   5. Saat timer habis, behavior sesuai konfigurasi (auto-submit/block/pesan)
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
 - [x] 267-01: UAT resilience Regan — koneksi putus, tab close/resume, browser refresh (EDGE-01 sampai EDGE-06)
 - [x] 267-02: UAT timer habis — EDGE-07 PASS, modal + auto-submit berjalan benar
+- [ ] 267-03: Gap closure — fix timer display on resume + fix blocker submit incomplete saat timer expired
 
 ### Phase 268: Monitoring Dashboard
 **Goal**: Admin/HC dapat memantau progress ujian secara real-time dan melihat hasil setelah selesai
