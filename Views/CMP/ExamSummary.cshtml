@@ -80,7 +80,7 @@
     <!-- Final submit form -->
     <form asp-action="SubmitExam" method="post">
         <input type="hidden" name="id" value="@assessmentId" />
-        <input type="hidden" name="isAutoSubmit" value="false" id="autoSubmitFlag" />
+        <input type="hidden" name="isAutoSubmit" value="@(timerExpired ? "true" : "false")" id="autoSubmitFlag" />
         @foreach (var kvp in answers)
         {
             <input type="hidden" name="answers[@kvp.Key]" value="@kvp.Value" />

@@ -1367,7 +1367,16 @@ namespace HcPortal.Controllers
             }
 
             // ---- Block incomplete submission (Phase 272) ----
-            if (!isAutoSubmit)
+            // Allow incomplete if: (a) isAutoSubmit from client, OR (b) server timer expired
+            bool serverTimerExpired = false;
+            if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
+            {
+                var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
+                var allowed = assessment.DurationMinutes * 60;
+                serverTimerExpired = elapsed >= allowed;
+            }
+
+            if (!isAutoSubmit && !serverTimerExpired)
             {
                 var pkgAssign = await _context.UserPackageAssignments
                     .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
