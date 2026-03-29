@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: executing
-stopped_at: Phase 274 context gathered
-last_updated: "2026-03-28T11:48:18.504Z"
-last_activity: 2026-03-28
+stopped_at: Completed 267-03-PLAN.md
+last_updated: "2026-03-29T08:26:22.555Z"
+last_activity: 2026-03-29
 progress:
   total_phases: 11
   completed_phases: 11
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 14
+  completed_plans: 14
   percent: 80
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 275 — warning-create-assessment-pre-test-tidak-bisa-create-certificate-hanya-post-test
+**Current focus:** Phase 267 — resilience-edge-cases
 
 ## Current Position
 
-Phase: 275
-Plan: Not started
-Status: Executing Phase 275
-Last activity: 2026-03-28
+Phase: 267 (resilience-edge-cases) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-03-29
 
 Progress: [████████░░] 80%
 
@@ -60,6 +60,8 @@ Progress: [████████░░] 80%
 - [Phase 272]: Frontend disabled button (type=button) + backend guard: dual-layer protection mencegah submit ujian tidak lengkap
 - [Phase 272]: isAutoSubmit flag via hidden form field memungkinkan auto-submit timer expired tetap berjalan meskipun ada soal kosong
 - [Phase 272]: Frontend disable tombol Kumpulkan Ujian (type=button) saat ada soal kosong + backend guard dengan isAutoSubmit exception
+- [Phase 267-03]: visibilitychange listener memanggil updateTimer() saat tab resume — timer tidak di-pause by design (server-timed anti-cheat)
+- [Phase 267-03]: isAutoSubmit hidden field di ExamSummary mengikuti timerExpired server, bukan hardcoded false; SubmitExam controller cek serverTimerExpired sebagai fallback
 
 ### Pending Todos
 
@@ -85,8 +87,9 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
+| Phase 267 P03 | 10 | 2 tasks | 3 files |
 
 ## Session Continuity
 
 Last activity: 2026-03-28 - Completed quick task 260328-kri: fix notif lanjutkan pengerjaan
-Stopped at: Phase 274 context gathered
+Stopped at: Completed 267-03-PLAN.md

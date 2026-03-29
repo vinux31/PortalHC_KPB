@@ -95,7 +95,7 @@ Plans:
 Plans:
 - [x] 267-01: UAT resilience Regan — koneksi putus, tab close/resume, browser refresh (EDGE-01 sampai EDGE-06)
 - [x] 267-02: UAT timer habis — EDGE-07 PASS, modal + auto-submit berjalan benar
-- [ ] 267-03: Gap closure — fix timer display on resume + fix blocker submit incomplete saat timer expired
+- [x] 267-03: Gap closure — fix timer display on resume + fix blocker submit incomplete saat timer expired
 
 ### Phase 268: Monitoring Dashboard
 **Goal**: Admin/HC dapat memantau progress ujian secara real-time dan melihat hasil setelah selesai
@@ -122,7 +122,7 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 | 264. Admin Setup Assessment OJT | 1/1 | Complete    | 2026-03-27 |
 | 265. Worker Exam Flow | 1/1 | Complete    | 2026-03-27 |
 | 266. Review, Submit & Hasil | 2/2 | Complete   | 2026-03-28 |
-| 267. Resilience & Edge Cases | 2/2 | Complete    | 2026-03-28 |
+| 267. Resilience & Edge Cases | 3/3 | Complete   | 2026-03-29 |
 | 268. Monitoring Dashboard | 1/1 | Complete    | 2026-03-28 |
 
 ### Phase 269: Loading overlay saat koneksi SignalR belum ready di StartExam
@@ -130,7 +130,7 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 **Goal:** Menambahkan loading overlay di StartExam yang memblokir interaksi user selama SignalR hub belum connected, dengan error state jika gagal
 **Requirements**: OVL-01, OVL-02, OVL-03, OVL-04, OVL-05, OVL-06, OVL-07
 **Depends on:** Phase 268
-**Plans:** 1/1 plans complete
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 269-01-PLAN.md — Loading overlay HTML, CSS, JavaScript di StartExam.cshtml
