@@ -381,6 +381,25 @@ else
     var timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
 
+    // -------- Visibility change: re-anchor timer on tab resume --------
+    // Timer TIDAK di-pause saat tab hidden (by design — server-timed exam).
+    // Re-anchor memastikan display langsung akurat saat tab kembali aktif,
+    // karena browser throttle setInterval di background tabs.
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible' && !submitted) {
+            // Hitung berapa detik sudah berlalu sejak timer dimulai (wall clock)
+            var wallElapsed = Math.floor((Date.now() - timerStartWallClock) / 1000);
+            var remaining = Math.max(0, timerStartRemaining - wallElapsed);
+            if (remaining <= 0) {
+                // Timer sudah habis saat tab hidden — trigger time-up flow
+                updateTimer();
+            } else {
+                // Langsung update display (jangan tunggu interval tick berikutnya)
+                updateTimer();
+            }
+        }
+    });
+
     // -------- Answer tracking + incremental save --------
     const SAVE_ANSWER_URL = '@Url.Action("SaveAnswer", "CMP")';
     const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
