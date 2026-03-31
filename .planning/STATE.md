@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
 status: executing
-stopped_at: Completed 267-03-PLAN.md
-last_updated: "2026-03-29T08:28:45.937Z"
+stopped_at: Phase 276 context gathered
+last_updated: "2026-03-31T06:26:30.274Z"
 last_activity: 2026-03-29
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 11
   total_plans: 14
   completed_plans: 14
@@ -77,6 +77,7 @@ Progress: [████████░░] 80%
 - Phase 273 added: Fix jawaban tidak bisa disubmit saat waktu habis walaupun sudah terisi dan tersave
 - Phase 274 added: Hilangkan score di sertifikat pojok kanan bawah
 - Phase 275 added: Warning create assessment: pre test tidak bisa create certificate, hanya post test
+- Phase 276 added: Navigasi soal di StartExam - tampilkan seluruh nomor ujian dengan fitur klik langsung ke lokasi soal
 
 ### Blockers/Concerns
 
@@ -92,4 +93,4 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-03-28 - Completed quick task 260328-kri: fix notif lanjutkan pengerjaan
-Stopped at: Completed 267-03-PLAN.md
+Stopped at: Phase 276 context gathered
