@@ -8,7 +8,7 @@
 - ⏸️ **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (deferred)
 - ✅ **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (shipped 2026-03-25, partial)
 - ✅ **Phases 262-263** - Sub-path deployment fixes (shipped 2026-03-27)
-- 🚧 **v10.0 UAT Assessment OJT di Server Development** - Phases 264-268 (in progress)
+- 🚧 **v10.0 UAT Assessment OJT di Server Development** - Phases 264-276 (in progress)
 
 ## Phases
 
@@ -29,6 +29,13 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 266: Review, Submit & Hasil** - Review jawaban, submit, grading, sertifikat
 - [x] **Phase 267: Resilience & Edge Cases** - Offline, resume, refresh, timeout behavior
 - [x] **Phase 268: Monitoring Dashboard** - Admin/HC pantau progress real-time (completed 2026-03-28)
+- [x] **Phase 269: Loading overlay SignalR** - Loading overlay saat koneksi belum ready
+- [x] **Phase 270: Perbaiki resume exam** - Sederhanakan modal resume + redirect ke page 0
+- [x] **Phase 271: Fix timer ujian** - Server-authoritative timer dengan wall-clock cross-check
+- [x] **Phase 272: Block submit jika belum semua soal terisi** - Frontend disable + backend guard
+- [x] **Phase 274: Hilangkan score di sertifikat** - Remove skor dari sertifikat
+- [x] **Phase 275: Warning create assessment** - Pre test tidak bisa create certificate
+- [x] **Phase 276: Navigasi soal di StartExam** - Tampilkan seluruh nomor soal dengan fitur klik langsung ke lokasi (completed 2026-04-01)
 
 ## Phase Details
 
@@ -124,6 +131,13 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 | 266. Review, Submit & Hasil | 2/2 | Complete   | 2026-03-28 |
 | 267. Resilience & Edge Cases | 3/3 | Complete    | 2026-03-29 |
 | 268. Monitoring Dashboard | 1/1 | Complete    | 2026-03-28 |
+| 269. Loading overlay SignalR | 3/3 | Complete    | 2026-03-31 |
+| 270. Perbaiki resume exam | 1/1 | Complete    | 2026-03-31 |
+| 271. Fix timer ujian | 1/1 | Complete    | 2026-03-31 |
+| 272. Block submit belum terisi | 1/1 | Complete    | 2026-03-31 |
+| 274. Hilangkan score di sertifikat | 1/1 | Complete    | 2026-03-28 |
+| 275. Warning create assessment | 1/1 | Complete    | 2026-03-28 |
+| 276. Navigasi soal di StartExam | 1/1 | Complete    | 2026-04-01 |
 
 ### Phase 269: Loading overlay saat koneksi SignalR belum ready di StartExam
 
@@ -184,3 +198,13 @@ Plans:
 
 Plans:
 - [x] TBD (run /gsd:plan-phase 275 to break down) (completed 2026-03-28)
+
+### Phase 276: Navigasi soal di StartExam
+
+**Goal:** Menampilkan seluruh nomor soal (bukan hanya soal di halaman saat ini) dengan fitur klik untuk langsung loncat ke lokasi soal tertentu. Panel navigasi menampilkan semua nomor soal dari 1 sampai N dalam grid layout dengan indikator status jawaban.
+**Requirements**: TBD
+**Depends on:** Phase 275
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] 276-01-PLAN.md — Tampilkan seluruh nomor soal dengan fitur klik langsung ke lokasi soal
