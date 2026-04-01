@@ -49,7 +49,6 @@ See .planning/MILESTONES.md for full history.
 - [ ] **Phase 281: System Settings** - Admin dapat mengelola konfigurasi aplikasi dari UI dengan cache dan audit trail
 - [ ] **Phase 282: Maintenance Mode** - Admin dapat mengaktifkan mode pemeliharaan yang memblokir akses non-admin
 - [ ] **Phase 283: User Impersonation** - Admin dapat melihat aplikasi dari perspektif role/user lain secara read-only
-- [ ] **Phase 284: Backup & Restore** - Admin dapat backup dan restore database dengan safeguard berlapis
 
 ## Phase Details
 
@@ -99,35 +98,6 @@ Plans:
 - [ ] 283-01-PLAN.md — Backend: ImpersonationService, ImpersonationMiddleware, controller actions
 - [ ] 283-02-PLAN.md — UI: banner, navbar dropdown View As, autocomplete search, read-only JS
 **UI hint**: yes
-
-### Phase 284: Backup & Restore
-**Goal**: Admin dapat backup database secara manual, download file backup, dan restore dengan konfirmasi berlapis dan safety net otomatis
-**Depends on**: Phase 281, Phase 282
-**Requirements**: BKP-01, BKP-02, BKP-03, BKP-04, BKP-05, BKP-06, BKP-07, BKP-08
-**Success Criteria** (what must be TRUE):
-  1. Admin menekan "Backup Now" dan proses berjalan di background tanpa memblokir website, dengan progress indicator yang terlihat
-  2. Admin melihat daftar backup history (tanggal, ukuran, status) dan dapat download file backup ke komputer lokal
-  3. Admin memilih file backup untuk restore, melihat konfirmasi dampak, mengetik "RESTORE", dan sistem otomatis membuat backup sebelum restore dijalankan
-  4. Maintenance mode otomatis aktif selama proses restore berlangsung dan nonaktif setelah selesai
-  5. Backup lebih dari 30 hari otomatis terhapus sesuai retention policy
-**Plans**: 2 plans
-Plans:
-- [ ] 282-01-PLAN.md — Backend: model, migration, middleware
-- [ ] 282-02-PLAN.md — UI: controller actions, views, admin card, banner
-**UI hint**: yes
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 281 → 282 → 283 → 284
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 281. System Settings | 0/TBD | Not started | - |
-| 282. Maintenance Mode | 0/TBD | Not started | - |
-| 283. User Impersonation | 0/2 | Planned | - |
-| 284. Backup & Restore | 0/TBD | Not started | - |
-| 285. Dedicated Impersonation Page | 0/TBD | Not started | 283 |
 
 ### Phase 285: Dedicated Impersonation Page
 
