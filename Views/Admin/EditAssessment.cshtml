@@ -278,14 +278,28 @@
                                 <div class="form-text text-muted">Peserta yang lulus dapat melihat dan mencetak sertifikat</div>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="ExamWindowCloseDate" class="form-label fw-semibold">
+                                <label class="form-label fw-semibold">
                                     <i class="bi bi-calendar-x text-danger me-1"></i>
-                                    Tanggal Tutup Ujian (Opsional)
+                                    Tanggal Tutup Ujian <span class="text-danger">*</span>
                                 </label>
-                                <input asp-for="ExamWindowCloseDate" type="date" class="form-control" />
+                                <div class="d-flex gap-2 align-items-start">
+                                    <div class="flex-grow-1">
+                                        <input type="date" id="ewcdDateInput"
+                                               value="@Model.ExamWindowCloseDate?.ToString("yyyy-MM-dd")"
+                                               class="form-control" required />
+                                        <div class="form-text text-muted">Tanggal (WIB)</div>
+                                    </div>
+                                    <div style="width:130px">
+                                        <input type="time" id="ewcdTimeInput"
+                                               value="@(Model.ExamWindowCloseDate?.ToString("HH:mm") ?? "23:59")"
+                                               class="form-control" required />
+                                        <div class="form-text text-muted">Waktu (WIB)</div>
+                                    </div>
+                                </div>
+                                <input asp-for="ExamWindowCloseDate" type="hidden" id="ewcdHidden"
+                                       value="@Model.ExamWindowCloseDate?.ToString("yyyy-MM-ddTHH:mm:ss")" />
                                 <div class="form-text text-muted">
-                                    Jika diisi, peserta tidak dapat memulai ujian setelah tanggal ini.
-                                    Kosongkan jika tidak ada batas waktu.
+                                    Peserta tidak dapat memulai ujian setelah tanggal dan waktu ini.
                                 </div>
                             </div>
                         </div>
@@ -524,6 +538,14 @@
                     schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
                 }
 
+                // Combine ExamWindowCloseDate date + time
+                var ewcdDateInput = document.getElementById('ewcdDateInput');
+                var ewcdTimeInput = document.getElementById('ewcdTimeInput');
+                var ewcdHidden = document.getElementById('ewcdHidden');
+                if (ewcdDateInput && ewcdDateInput.value && ewcdTimeInput && ewcdHidden) {
+                    ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
+                }
+
                 if (!schedDateInput) return;
 
                 var newSchedule = schedDateInput.value;
@@ -571,6 +593,14 @@
                 var schedHidden   = document.getElementById('ScheduleHidden');
                 if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
                     schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                }
+
+                // Combine ExamWindowCloseDate date + time
+                var ewcdDateInput = document.getElementById('ewcdDateInput');
+                var ewcdTimeInput = document.getElementById('ewcdTimeInput');
+                var ewcdHidden = document.getElementById('ewcdHidden');
+                if (ewcdDateInput && ewcdDateInput.value && ewcdTimeInput && ewcdHidden) {
+                    ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
                 }
             });
         })();

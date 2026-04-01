@@ -1357,8 +1357,6 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("PassPercentage", "Pass Percentage must be between 0 and 100.");
             }
 
-            // ExamWindowCloseDate is optional — remove from ModelState to prevent accidental validation failure
-            ModelState.Remove("ExamWindowCloseDate");
             // ValidUntil: opsional di normal mode, wajib di renewal mode
             bool isRenewalModePost = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue || !string.IsNullOrEmpty(RenewalFkMap);
             ModelState.Remove("ValidUntil");
