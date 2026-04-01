@@ -102,9 +102,9 @@ Plans:
 ### Phase 285: Dedicated Impersonation Page
 
 **Goal:** Pindahkan kontrol impersonate dari dropdown profile ke halaman Admin tersendiri (`/Admin/Impersonate`) dengan UX yang lebih baik — search user lebih lega, card view-as-role, info panel, dan cleanup _Layout.cshtml
-**Requirements**: TBD
+**Requirements**: IMP-UI-01, IMP-UI-02, IMP-UI-03
 **Depends on:** Phase 283
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 285 to break down)
+- [ ] 285-01-PLAN.md — Halaman dedicated Impersonate + cleanup navbar dropdown
