@@ -48,8 +48,8 @@ Exceptions: Banner menggunakan `py-2` (8px vertical) untuk meminimalkan screen r
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 (regular) | 1.5 |
-| Label | 14px | 500 (medium) | 1.4 |
-| Heading | 20px | 600 (semibold) | 1.2 |
+| Label | 14px | 400 (regular) | 1.4 |
+| Heading | 20px | 700 (bold) | 1.2 |
 | Banner text | 14px | 700 (bold) | 1.4 |
 
 ---
