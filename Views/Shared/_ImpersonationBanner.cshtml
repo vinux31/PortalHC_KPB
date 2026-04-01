@@ -1,0 +1,16 @@
+@if (Context.Items["IsImpersonating"] is true)
+{
+    var targetName = Context.Items["ImpersonateTargetName"]?.ToString();
+    <div id="impersonation-banner" class="alert alert-danger text-center mb-0 py-2 px-3 d-flex align-items-center justify-content-center"
+         style="position: fixed; top: 0; left: 0; right: 0; z-index: 1040; border-radius: 0;">
+        <i class="bi bi-eye-fill me-2"></i>
+        <strong>Anda melihat sebagai @targetName</strong>
+        <form asp-action="StopImpersonation" asp-controller="Admin"
+              method="post" class="d-inline ms-3">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-sm btn-outline-light">
+                <i class="bi bi-arrow-return-left me-1"></i> Kembali ke Admin
+            </button>
+        </form>
+    </div>
+}
