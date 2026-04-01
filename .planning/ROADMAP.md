@@ -220,3 +220,23 @@ Plans:
 
 Plans:
 - [ ] 277-01-PLAN.md — Backend action + frontend tabel peserta dengan kolom status dan tombol hapus
+
+### Phase 278: Cari Bug, Block, Error, Miss di Website
+
+**Goal:** Scan kode area Assessment/Exam (CMPController) dan Admin/HC (AdminController), verifikasi temuan, dan hasilkan laporan terstruktur untuk user review dan prioritas fix
+**Requirements**: D-04, D-06, D-07, D-08, D-09, D-10, D-11
+**Depends on:** Phase 277
+**Plans:** 1 plan
+
+Plans:
+- [ ] 278-01-PLAN.md — Verifikasi temuan audit dan hasilkan FINDINGS report untuk user review
+
+### Phase 279: Tambah komponen waktu (jam:menit) pada tanggal tutup ujian (ExamWindowCloseDate)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 278
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 279 to break down)
