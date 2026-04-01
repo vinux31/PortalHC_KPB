@@ -63,7 +63,10 @@ See .planning/MILESTONES.md for full history.
   3. Admin mengubah setting, lalu di audit log terlihat record perubahan (siapa, kapan, nilai lama ke baru)
   4. Setting dengan tipe angka menolak input di luar range min/max; setting required menolak nilai kosong
   5. Setelah migrasi pertama, 10-15 setting default sudah terisi dan aplikasi berjalan normal menggunakan nilai dari database
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 282-01-PLAN.md — Backend: model, migration, middleware
+- [ ] 282-02-PLAN.md — UI: controller actions, views, admin card, banner
 **UI hint**: yes
 
 ### Phase 282: Maintenance Mode
@@ -75,7 +78,10 @@ See .planning/MILESTONES.md for full history.
   2. User biasa (non-admin/HC) yang mengakses halaman apapun diarahkan ke halaman maintenance dengan pesan kustom dan estimasi waktu selesai
   3. Admin dan HC tetap dapat mengakses semua halaman selama maintenance mode aktif
   4. User yang sedang login saat maintenance diaktifkan langsung diarahkan ke halaman maintenance pada request berikutnya
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 282-01-PLAN.md — Backend: model, migration, middleware
+- [ ] 282-02-PLAN.md — UI: controller actions, views, admin card, banner
 **UI hint**: yes
 
 ### Phase 283: User Impersonation
@@ -88,7 +94,10 @@ See .planning/MILESTONES.md for full history.
   3. Banner merah muncul di atas setiap halaman dengan info "Anda melihat sebagai [nama/role]" dan tombol "Kembali ke Admin" yang langsung mengembalikan session
   4. Semua aksi write (ubah password, hapus data, ubah role) diblokir saat impersonation aktif — user melihat pesan error jika mencoba
   5. Setiap impersonation tercatat di audit log (siapa, sebagai siapa, kapan mulai/selesai) dan otomatis berakhir setelah 30 menit
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 282-01-PLAN.md — Backend: model, migration, middleware
+- [ ] 282-02-PLAN.md — UI: controller actions, views, admin card, banner
 **UI hint**: yes
 
 ### Phase 284: Backup & Restore
@@ -101,7 +110,10 @@ See .planning/MILESTONES.md for full history.
   3. Admin memilih file backup untuk restore, melihat konfirmasi dampak, mengetik "RESTORE", dan sistem otomatis membuat backup sebelum restore dijalankan
   4. Maintenance mode otomatis aktif selama proses restore berlangsung dan nonaktif setelah selesai
   5. Backup lebih dari 30 hari otomatis terhapus sesuai retention policy
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 282-01-PLAN.md — Backend: model, migration, middleware
+- [ ] 282-02-PLAN.md — UI: controller actions, views, admin card, banner
 **UI hint**: yes
 
 ## Progress
