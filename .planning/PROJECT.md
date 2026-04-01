@@ -22,22 +22,20 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Phase 262-263 shipped** — Sub-path deployment fixes (URLs + upload paths).
 **v10.0 shipped** — UAT Assessment OJT di Server Development (phases 264-268): admin setup, worker exam flow, review/submit hasil, resilience/edge cases, monitoring dashboard.
 
-**Current focus:** v10.0 complete — ready for next milestone
+**Current focus:** v11.2 Admin Platform Enhancement
 
-## Current Milestone: v10.0 UAT Assessment OJT di Server Development
+## Current Milestone: v11.2 Admin Platform Enhancement
 
-**Goal:** Simulasi test end-to-end assessment kategori OJT di server development, temukan bug/issue, perbaiki di project lokal.
+**Goal:** Memperkaya fitur admin PortalHC KPB dengan 7 kapabilitas baru berstandar industri — impersonation, komunikasi, monitoring, konfigurasi, dan disaster recovery.
 
 **Target features:**
-- Login Admin & buat assessment OJT (form, validasi, assign worker)
-- Import/upload soal ke assessment
-- Login Worker & lihat daftar assessment, mulai ujian
-- Kerjakan ujian: timer, navigasi halaman, auto-save jawaban
-- Review & submit ujian, grading otomatis
-- Hasil ujian: skor, pass/fail, review jawaban, analisa Elemen Teknis
-- Sertifikat: preview & download PDF (jika lulus)
-- Edge cases: lost connection, tab tertutup & resume, browser refresh, timer habis
-- Monitoring assessment: progress, status, timer/elapsed, result real-time
+- User Impersonation / View As Role — admin melihat/troubleshoot dari perspektif user
+- Announcement / Broadcast — pengumuman terpusat ke seluruh atau sebagian user
+- In-App Notification — bell icon + notification center untuk event otomatis
+- Dashboard Statistik Admin — KPI overview (pekerja, assessment, sertifikat, coaching)
+- System Settings Page — konfigurasi sistem dari UI tanpa edit code
+- Maintenance Mode — toggle halaman maintenance saat update/deploy
+- Backup & Restore — database backup/restore dari admin panel
 
 ## Next Milestone Goals
 
