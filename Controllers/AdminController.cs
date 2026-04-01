@@ -29,6 +29,7 @@ namespace HcPortal.Controllers
         private readonly INotificationService _notificationService;
         private readonly IHubContext<AssessmentHub> _hubContext;
         private readonly IWorkerDataService _workerDataService;
+        private readonly ImpersonationService _impersonationService;
 
         public AdminController(
             ApplicationDbContext context,
@@ -40,7 +41,8 @@ namespace HcPortal.Controllers
             ILogger<AdminController> logger,
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
-            IWorkerDataService workerDataService)
+            IWorkerDataService workerDataService,
+            ImpersonationService impersonationService)
         {
             _context = context;
             _userManager = userManager;
@@ -52,6 +54,7 @@ namespace HcPortal.Controllers
             _notificationService = notificationService;
             _hubContext = hubContext;
             _workerDataService = workerDataService;
+            _impersonationService = impersonationService;
         }
 
         // GET /Admin/Index
@@ -8123,6 +8126,123 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction("ManageOrganization");
+        }
+
+        #endregion
+
+        #region Impersonation
+
+        /// <summary>
+        /// Start impersonation as a role or specific user.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StartImpersonation(string mode, string? targetRole, string? targetUserId)
+        {
+            if (mode != "role" && mode != "user")
+            {
+                TempData["ErrorMessage"] = "Mode impersonation tidak valid.";
+                return RedirectToAction("Index");
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return RedirectToAction("Index");
+
+            string description;
+
+            if (mode == "role")
+            {
+                if (string.IsNullOrEmpty(targetRole) || UserRoles.GetRoleLevel(targetRole) < 2)
+                {
+                    TempData["ErrorMessage"] = "Role target tidak valid. Tidak bisa impersonate Admin.";
+                    return RedirectToAction("Index");
+                }
+
+                _impersonationService.StartRole(targetRole);
+                description = $"Mulai impersonation sebagai role {targetRole}";
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(targetUserId))
+                {
+                    TempData["ErrorMessage"] = "User target harus dipilih.";
+                    return RedirectToAction("Index");
+                }
+
+                var targetUser = await _userManager.FindByIdAsync(targetUserId);
+                if (targetUser == null)
+                {
+                    TempData["ErrorMessage"] = "User tidak ditemukan.";
+                    return RedirectToAction("Index");
+                }
+
+                var targetRoles = await _userManager.GetRolesAsync(targetUser);
+                if (targetRoles.Contains("Admin"))
+                {
+                    TempData["ErrorMessage"] = "Tidak bisa impersonate admin lain.";
+                    return RedirectToAction("Index");
+                }
+
+                _impersonationService.StartUser(targetUserId, targetUser.FullName);
+                description = $"Mulai impersonation sebagai user {targetUser.FullName} ({targetUser.NIP})";
+            }
+
+            await _auditLog.LogAsync(currentUser.Id, currentUser.FullName, "ImpersonateStart", description);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        /// <summary>
+        /// Stop active impersonation session.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StopImpersonation()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return RedirectToAction("Index");
+
+            var displayName = _impersonationService.GetDisplayName() ?? "unknown";
+            var mode = _impersonationService.GetMode() ?? "unknown";
+
+            await _auditLog.LogAsync(currentUser.Id, currentUser.FullName, "ImpersonateEnd",
+                $"Mengakhiri impersonation ({mode}: {displayName})");
+
+            _impersonationService.Stop();
+
+            TempData["SuccessMessage"] = "Sesi impersonation berakhir.";
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Search non-admin users for impersonation target selection.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SearchUsersApi(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+                return Json(new List<object>());
+
+            var allUsers = await _userManager.Users
+                .Where(u => u.FullName.Contains(q) || (u.NIP != null && u.NIP.Contains(q)))
+                .Take(20)
+                .ToListAsync();
+
+            // Filter out admin users
+            var results = new List<object>();
+            foreach (var u in allUsers)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                if (roles.Contains("Admin")) continue;
+
+                results.Add(new { u.Id, u.FullName, u.NIP, u.SelectedView });
+                if (results.Count >= 10) break;
+            }
+
+            return Json(results);
         }
 
         #endregion
