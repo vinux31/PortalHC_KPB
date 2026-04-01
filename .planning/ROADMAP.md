@@ -47,8 +47,8 @@ See .planning/MILESTONES.md for full history.
 **Milestone Goal:** Memperkaya fitur admin PortalHC KPB dengan 4 kapabilitas baru — system settings, maintenance mode, user impersonation, dan backup/restore.
 
 - [ ] **Phase 281: System Settings** - Admin dapat mengelola konfigurasi aplikasi dari UI dengan cache dan audit trail
-- [ ] **Phase 282: Maintenance Mode** - Admin dapat mengaktifkan mode pemeliharaan yang memblokir akses non-admin
-- [ ] **Phase 283: User Impersonation** - Admin dapat melihat aplikasi dari perspektif role/user lain secara read-only
+- [x] **Phase 282: Maintenance Mode** - Admin dapat mengaktifkan mode pemeliharaan yang memblokir akses non-admin
+- [x] **Phase 283: User Impersonation** - Admin dapat melihat aplikasi dari perspektif role/user lain secara read-only
 
 ## Phase Details
 
