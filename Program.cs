@@ -50,6 +50,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // Audit log service
 builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 
+// Impersonation service — Phase 283
+builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
+builder.Services.AddHttpContextAccessor();
+
 // Notification Service — Phase 99
 builder.Services.AddScoped<HcPortal.Services.INotificationService, HcPortal.Services.NotificationService>();
 builder.Services.AddScoped<HcPortal.Services.IWorkerDataService, HcPortal.Services.WorkerDataService>();
@@ -189,6 +193,8 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<HcPortal.Middleware.MaintenanceModeMiddleware>();
+
+app.UseMiddleware<HcPortal.Middleware.ImpersonationMiddleware>();
 
 // 9. Routing Standar
 app.MapControllerRoute(

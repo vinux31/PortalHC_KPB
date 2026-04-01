@@ -29,6 +29,7 @@ namespace HcPortal.Controllers
         private readonly INotificationService _notificationService;
         private readonly IHubContext<AssessmentHub> _hubContext;
         private readonly IWorkerDataService _workerDataService;
+        private readonly ImpersonationService _impersonationService;
 
         public AdminController(
             ApplicationDbContext context,
@@ -40,7 +41,8 @@ namespace HcPortal.Controllers
             ILogger<AdminController> logger,
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
-            IWorkerDataService workerDataService)
+            IWorkerDataService workerDataService,
+            ImpersonationService impersonationService)
         {
             _context = context;
             _userManager = userManager;
@@ -52,6 +54,7 @@ namespace HcPortal.Controllers
             _notificationService = notificationService;
             _hubContext = hubContext;
             _workerDataService = workerDataService;
+            _impersonationService = impersonationService;
         }
 
         // GET /Admin/Index
@@ -1127,7 +1130,7 @@ namespace HcPortal.Controllers
             var model = new AssessmentSession
             {
                 AccessToken = GenerateSecureToken(),
-                Schedule = DateTime.UtcNow.AddHours(7).Date.AddDays(1),  // Default to tomorrow (WIB)
+                Schedule = DateTime.Today.AddDays(1),  // Default to tomorrow
                 PassPercentage = 70,
                 AllowAnswerReview = true
             };
@@ -1324,14 +1327,13 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("UserIds", "Cannot assign to more than 50 users at once. Please split into multiple batches.");
             }
 
-            // Validate schedule date (BUG-12 fix: use WIB for timezone consistency)
-            var nowWibDate = DateTime.UtcNow.AddHours(7).Date;
-            if (model.Schedule < nowWibDate)
+            // Validate schedule date
+            if (model.Schedule < DateTime.Today)
             {
                 ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
             }
 
-            if (model.Schedule > nowWibDate.AddYears(2))
+            if (model.Schedule > DateTime.Today.AddYears(2))
             {
                 ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
             }
@@ -1358,12 +1360,8 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("PassPercentage", "Pass Percentage must be between 0 and 100.");
             }
 
-            // Validate ExamWindowCloseDate >= Schedule
-            if (model.ExamWindowCloseDate.HasValue && model.ExamWindowCloseDate.Value < model.Schedule)
-            {
-                ModelState.AddModelError("ExamWindowCloseDate", "Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.");
-            }
-
+            // ExamWindowCloseDate is optional — remove from ModelState to prevent accidental validation failure
+            ModelState.Remove("ExamWindowCloseDate");
             // ValidUntil: opsional di normal mode, wajib di renewal mode
             bool isRenewalModePost = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue || !string.IsNullOrEmpty(RenewalFkMap);
             ModelState.Remove("ValidUntil");
@@ -1777,9 +1775,7 @@ namespace HcPortal.Controllers
                     Id = a.Id,
                     FullName = a.User!.FullName ?? "",
                     Email = a.User!.Email ?? "",
-                    Section = a.User!.Section ?? "",
-                    Status = a.Status,
-                    CanDelete = a.StartedAt == null && a.CompletedAt == null && a.Status != "Completed"
+                    Section = a.User!.Section ?? ""
                 })
                 .ToList();
 
@@ -1848,15 +1844,10 @@ namespace HcPortal.Controllers
             // Validate editable fields (mirrors CreateAssessment POST validation)
             var editErrors = new List<string>();
 
-            var nowWibEdit = DateTime.UtcNow.AddHours(7).Date;
-            // Only validate past-date if schedule actually changed
-            if (model.Schedule.Date != assessment.Schedule.Date && model.Schedule < nowWibEdit)
-                editErrors.Add("Tanggal jadwal tidak boleh di masa lampau.");
-
             if (string.IsNullOrWhiteSpace(model.Title))
                 editErrors.Add("Title is required.");
 
-            if (model.Schedule > DateTime.UtcNow.AddHours(7).Date.AddYears(2))
+            if (model.Schedule > DateTime.Today.AddYears(2))
                 editErrors.Add("Schedule date too far in future (maximum 2 years).");
 
             bool editIsProtonYear3 = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue && model.DurationMinutes == 0;
@@ -1870,9 +1861,6 @@ namespace HcPortal.Controllers
 
             if (model.PassPercentage < 0 || model.PassPercentage > 100)
                 editErrors.Add("Pass Percentage must be between 0 and 100.");
-
-            if (model.ExamWindowCloseDate.HasValue && model.ExamWindowCloseDate.Value < model.Schedule)
-                editErrors.Add("Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.");
 
             if (model.IsTokenRequired && string.IsNullOrWhiteSpace(model.AccessToken))
                 editErrors.Add("Access Token is required when token security is enabled.");
@@ -1905,8 +1893,6 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             // Update shared fields on ALL siblings (including the current session)
-            // BUG-03 fix: skip Status propagation for sessions that are InProgress/Completed/Abandoned
-            // BUG-06 fix: also propagate ValidUntil, ProtonTrackId, TahunKe
             var now = DateTime.UtcNow;
             foreach (var sibling in siblings)
             {
@@ -1914,11 +1900,7 @@ namespace HcPortal.Controllers
                 sibling.Category = model.Category;
                 sibling.Schedule = model.Schedule;
                 sibling.DurationMinutes = model.DurationMinutes;
-                // Only propagate Status to siblings that are NOT in a terminal/active state
-                if (sibling.Status != "InProgress" && sibling.Status != "Completed" && sibling.Status != "Abandoned")
-                {
-                    sibling.Status = model.Status;
-                }
+                sibling.Status = model.Status;
                 sibling.BannerColor = model.BannerColor;
                 sibling.IsTokenRequired = model.IsTokenRequired;
                 sibling.AccessToken = newToken;
@@ -1926,9 +1908,6 @@ namespace HcPortal.Controllers
                 sibling.AllowAnswerReview = model.AllowAnswerReview;
                 sibling.GenerateCertificate = model.GenerateCertificate;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
-                sibling.ValidUntil = model.ValidUntil;
-                sibling.ProtonTrackId = model.ProtonTrackId;
-                sibling.TahunKe = model.TahunKe;
                 sibling.UpdatedAt = now;
             }
 
@@ -2147,16 +2126,6 @@ namespace HcPortal.Controllers
 
                 // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
 
-                // BUG-07 fix: explicit cleanup of SessionElemenTeknisScores for consistency
-                var etScores = await _context.SessionElemenTeknisScores
-                    .Where(e => e.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (etScores.Any())
-                {
-                    _context.SessionElemenTeknisScores.RemoveRange(etScores);
-                    logger.LogInformation($"Deleting {etScores.Count} ET score records");
-                }
-
                 // Finally delete the assessment itself
                 _context.AssessmentSessions.Remove(assessment);
 
@@ -2188,130 +2157,6 @@ namespace HcPortal.Controllers
             {
                 logger.LogError(ex, "Error deleting assessment {Id}", id);
                 TempData["Error"] = "Gagal menghapus assessment. Silakan coba lagi.";
-                return RedirectToAction("ManageAssessment");
-            }
-        }
-
-        // --- DELETE ASSESSMENT PESERTA (single participant) ---
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteAssessmentPeserta(int sessionId, int returnToId)
-        {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
-
-            try
-            {
-                var session = await _context.AssessmentSessions
-                    .Include(a => a.User)
-                    .FirstOrDefaultAsync(a => a.Id == sessionId);
-
-                if (session == null)
-                {
-                    TempData["Error"] = "Session peserta tidak ditemukan.";
-                    return RedirectToAction("ManageAssessment");
-                }
-
-                var title = session.Title;
-                var category = session.Category;
-                var scheduleDate = session.Schedule.Date;
-                var userName = session.User?.FullName ?? "Unknown";
-
-                // Guard: cannot delete if exam already started or completed
-                if (session.StartedAt != null || session.CompletedAt != null || session.Status == "Completed")
-                {
-                    TempData["Error"] = "Tidak dapat menghapus peserta: ujian sudah dimulai atau selesai.";
-                    return RedirectToAction("EditAssessment", new { id = returnToId });
-                }
-
-                // Cascade delete (same order as DeleteAssessment)
-                // 1. PackageUserResponses
-                var pkgResponses = await _context.PackageUserResponses
-                    .Where(r => r.AssessmentSessionId == sessionId)
-                    .ToListAsync();
-                if (pkgResponses.Any())
-                    _context.PackageUserResponses.RemoveRange(pkgResponses);
-
-                // 2. AssessmentAttemptHistory
-                var attemptHistory = await _context.AssessmentAttemptHistory
-                    .Where(h => h.SessionId == sessionId)
-                    .ToListAsync();
-                if (attemptHistory.Any())
-                    _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
-
-                // 3. AssessmentPackages + nested Questions + Options
-                var packages = await _context.AssessmentPackages
-                    .Include(p => p.Questions).ThenInclude(q => q.Options)
-                    .Where(p => p.AssessmentSessionId == sessionId)
-                    .ToListAsync();
-                if (packages.Any())
-                {
-                    foreach (var pkg in packages)
-                    {
-                        foreach (var q in pkg.Questions)
-                            _context.PackageOptions.RemoveRange(q.Options);
-                        _context.PackageQuestions.RemoveRange(pkg.Questions);
-                    }
-                    _context.AssessmentPackages.RemoveRange(packages);
-                }
-
-                // 4. SessionElemenTeknisScores (same as DeleteAssessment)
-                var etScores = await _context.SessionElemenTeknisScores
-                    .Where(e => e.AssessmentSessionId == sessionId)
-                    .ToListAsync();
-                if (etScores.Any())
-                    _context.SessionElemenTeknisScores.RemoveRange(etScores);
-
-                // 5. Remove session
-                _context.AssessmentSessions.Remove(session);
-
-                // 6. Save
-                await _context.SaveChangesAsync();
-
-                // Audit log
-                try
-                {
-                    var deleteUser = await _userManager.GetUserAsync(User);
-                    var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
-                    await _auditLog.LogAsync(
-                        deleteUser?.Id ?? "",
-                        deleteActorName,
-                        "DeleteAssessmentPeserta",
-                        $"Deleted participant '{userName}' from assessment '{title}' [SessionID={sessionId}]",
-                        sessionId,
-                        "AssessmentSession");
-                }
-                catch (Exception auditEx)
-                {
-                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentPeserta {SessionId}", sessionId);
-                }
-
-                // Redirect logic based on remaining siblings
-                var remainingSiblings = await _context.AssessmentSessions
-                    .Where(a => a.Title == title && a.Category == category && a.Schedule.Date == scheduleDate)
-                    .ToListAsync();
-
-                if (!remainingSiblings.Any())
-                {
-                    TempData["Success"] = $"Peserta '{userName}' telah dihapus. Tidak ada peserta tersisa.";
-                    return RedirectToAction("ManageAssessment");
-                }
-
-                if (sessionId != returnToId)
-                {
-                    TempData["Success"] = $"Peserta '{userName}' berhasil dihapus.";
-                    return RedirectToAction("EditAssessment", new { id = returnToId });
-                }
-
-                // sessionId == returnToId, redirect to first sibling
-                var sibling = remainingSiblings.First();
-                TempData["Success"] = $"Peserta '{userName}' berhasil dihapus.";
-                return RedirectToAction("EditAssessment", new { id = sibling.Id });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error deleting assessment peserta {SessionId}", sessionId);
-                TempData["Error"] = "Gagal menghapus peserta. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
             }
         }
@@ -2665,13 +2510,6 @@ namespace HcPortal.Controllers
             .OrderBy(s => s.UserStatus)   // Not started before Completed
             .ThenBy(s => s.UserFullName)
             .ToList();
-
-            // BUG-16 fix: guard against empty sessions list
-            if (!sessions.Any())
-            {
-                TempData["Error"] = "Tidak ada sesi ditemukan untuk assessment ini.";
-                return RedirectToAction("ManageAssessment");
-            }
 
             var firstSession = sessions.First();
             var model = new MonitoringGroupViewModel
@@ -3102,50 +2940,24 @@ namespace HcPortal.Controllers
             int gradedCount = 0;
             int cancelledCount = 0;
 
-            // BUG-02 fix: use status-guarded ExecuteUpdateAsync per session to prevent race conditions
             foreach (var session in sessionsToEnd)
             {
                 bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
                 if (isInProgress)
                 {
                     await GradeFromSavedAnswers(session);
-
-                    // Detach tracked entity and use status-guarded write (same pattern as AkhiriUjian single)
-                    _context.Entry(session).State = EntityState.Detached;
-
-                    var rows = await _context.AssessmentSessions
-                        .Where(s => s.Id == session.Id
-                                 && s.StartedAt != null
-                                 && s.CompletedAt == null
-                                 && s.Score == null
-                                 && s.Status != "Completed"
-                                 && s.Status != "Cancelled"
-                                 && s.Status != "Abandoned")
-                        .ExecuteUpdateAsync(s => s
-                            .SetProperty(r => r.Status, "Completed")
-                            .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
-                            .SetProperty(r => r.Score, session.Score)
-                            .SetProperty(r => r.IsPassed, session.IsPassed)
-                            .SetProperty(r => r.Progress, 100)
-                        );
-
-                    if (rows > 0) gradedCount++;
+                    gradedCount++;
                 }
                 else
                 {
-                    // Open / not-started → Cancelled (use ExecuteUpdateAsync for consistency)
-                    _context.Entry(session).State = EntityState.Detached;
-
-                    var rows = await _context.AssessmentSessions
-                        .Where(s => s.Id == session.Id && s.Status == "Open")
-                        .ExecuteUpdateAsync(s => s
-                            .SetProperty(r => r.Status, "Cancelled")
-                            .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
-                        );
-
-                    if (rows > 0) cancelledCount++;
+                    // Open / not-started → Cancelled
+                    session.Status = "Cancelled";
+                    session.UpdatedAt = DateTime.UtcNow;
+                    cancelledCount++;
                 }
             }
+
+            await _context.SaveChangesAsync();
 
             // Phase 226 CLEN-04: Generate NomorSertifikat for passed sessions
             foreach (var s in sessionsToEnd.Where(s => s.GenerateCertificate && s.IsPassed == true && s.NomorSertifikat == null))
@@ -3260,35 +3072,28 @@ namespace HcPortal.Controllers
                 packageAssignment.IsCompleted = true;
 
                 // Persist ET scores per session — Phase 223
-                // BUG-01 fix: guard against duplicate ET scores (SubmitExam may have already written them)
-                bool etScoresExist = await _context.SessionElemenTeknisScores
-                    .AnyAsync(e => e.AssessmentSessionId == session.Id);
+                var etGroupsAdmin = packageQuestions
+                    .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
 
-                if (!etScoresExist)
+                foreach (var etGroup in etGroupsAdmin)
                 {
-                    var etGroupsAdmin = packageQuestions
-                        .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
-
-                    foreach (var etGroup in etGroupsAdmin)
+                    int etCorrect = 0;
+                    int etTotal = etGroup.Count();
+                    foreach (var q in etGroup)
                     {
-                        int etCorrect = 0;
-                        int etTotal = etGroup.Count();
-                        foreach (var q in etGroup)
+                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
                         {
-                            if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
-                            {
-                                var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
-                                if (sel != null && sel.IsCorrect) etCorrect++;
-                            }
+                            var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                            if (sel != null && sel.IsCorrect) etCorrect++;
                         }
-                        _context.SessionElemenTeknisScores.Add(new HcPortal.Models.SessionElemenTeknisScore
-                        {
-                            AssessmentSessionId = session.Id,
-                            ElemenTeknis = etGroup.Key,
-                            CorrectCount = etCorrect,
-                            QuestionCount = etTotal
-                        });
                     }
+                    _context.SessionElemenTeknisScores.Add(new HcPortal.Models.SessionElemenTeknisScore
+                    {
+                        AssessmentSessionId = session.Id,
+                        ElemenTeknis = etGroup.Key,
+                        CorrectCount = etCorrect,
+                        QuestionCount = etTotal
+                    });
                 }
             }
             // Legacy path removed (Phase 227 CLEN-02) — sessions without package assignment get score 0.
@@ -3364,7 +3169,7 @@ namespace HcPortal.Controllers
                     .GroupBy(x => x.AssessmentSessionId)
                     .ToDictionaryAsync(
                         g => g.Key,
-                        g => g.Sum(x => x.QuestionCount));
+                        g => g.First().QuestionCount);
             }
             // Build row data: one row per session, include all statuses
             var rows = sessions.Select(a =>
@@ -8325,67 +8130,119 @@ namespace HcPortal.Controllers
 
         #endregion
 
-        #region Maintenance Mode
+        #region Impersonation
 
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> Maintenance()
-        {
-            var maintenance = await _context.MaintenanceModes.FirstOrDefaultAsync();
-            if (maintenance == null)
-            {
-                maintenance = new MaintenanceMode { IsEnabled = false, Message = "", Scope = "All" };
-            }
-            return View(maintenance);
-        }
-
+        /// <summary>
+        /// Start impersonation as a role or specific user.
+        /// </summary>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> Maintenance(bool isEnabled, string message, DateTime? estimatedEndTime, string scope, string? selectedModules)
+        public async Task<IActionResult> StartImpersonation(string mode, string? targetRole, string? targetUserId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var maintenance = await _context.MaintenanceModes.FirstOrDefaultAsync();
-            bool isNew = maintenance == null;
-            if (isNew)
+            if (mode != "role" && mode != "user")
             {
-                maintenance = new MaintenanceMode();
-                _context.MaintenanceModes.Add(maintenance);
+                TempData["ErrorMessage"] = "Mode impersonation tidak valid.";
+                return RedirectToAction("Index");
             }
 
-            maintenance!.IsEnabled = isEnabled;
-            maintenance.Message = message ?? "";
-            maintenance.EstimatedEndTime = estimatedEndTime;
-            maintenance.Scope = scope == "Specific" && !string.IsNullOrEmpty(selectedModules) ? selectedModules : "All";
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return RedirectToAction("Index");
 
-            if (isEnabled)
+            string description;
+
+            if (mode == "role")
             {
-                maintenance.ActivatedByUserId = user.Id;
-                maintenance.ActivatedByName = user.FullName;
-                maintenance.ActivatedAt = DateTime.UtcNow;
-                maintenance.DeactivatedAt = null;
+                if (string.IsNullOrEmpty(targetRole) || UserRoles.GetRoleLevel(targetRole) < 2)
+                {
+                    TempData["ErrorMessage"] = "Role target tidak valid. Tidak bisa impersonate Admin.";
+                    return RedirectToAction("Index");
+                }
+
+                _impersonationService.StartRole(targetRole);
+                description = $"Mulai impersonation sebagai role {targetRole}";
             }
             else
             {
-                maintenance.DeactivatedAt = DateTime.UtcNow;
+                if (string.IsNullOrEmpty(targetUserId))
+                {
+                    TempData["ErrorMessage"] = "User target harus dipilih.";
+                    return RedirectToAction("Index");
+                }
+
+                var targetUser = await _userManager.FindByIdAsync(targetUserId);
+                if (targetUser == null)
+                {
+                    TempData["ErrorMessage"] = "User tidak ditemukan.";
+                    return RedirectToAction("Index");
+                }
+
+                var targetRoles = await _userManager.GetRolesAsync(targetUser);
+                if (targetRoles.Contains("Admin"))
+                {
+                    TempData["ErrorMessage"] = "Tidak bisa impersonate admin lain.";
+                    return RedirectToAction("Index");
+                }
+
+                _impersonationService.StartUser(targetUserId, targetUser.FullName);
+                description = $"Mulai impersonation sebagai user {targetUser.FullName} ({targetUser.NIP})";
             }
 
-            await _context.SaveChangesAsync();
+            await _auditLog.LogAsync(currentUser.Id, currentUser.FullName, "ImpersonateStart", description);
 
-            _cache.Remove("MaintenanceMode_State");
+            return RedirectToAction("Index", "Home");
+        }
 
-            await _auditLog.LogAsync(
-                user.Id, user.FullName,
-                isEnabled ? "MaintenanceEnabled" : "MaintenanceDisabled",
-                $"Maintenance mode {(isEnabled ? "diaktifkan" : "dinonaktifkan")} — Scope: {maintenance.Scope}",
-                maintenance.Id, "MaintenanceMode");
+        /// <summary>
+        /// Stop active impersonation session.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StopImpersonation()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return RedirectToAction("Index");
 
-            TempData["SuccessMessage"] = isEnabled
-                ? "Mode pemeliharaan berhasil diaktifkan."
-                : "Mode pemeliharaan berhasil dinonaktifkan.";
+            var displayName = _impersonationService.GetDisplayName() ?? "unknown";
+            var mode = _impersonationService.GetMode() ?? "unknown";
 
-            return RedirectToAction("Maintenance");
+            await _auditLog.LogAsync(currentUser.Id, currentUser.FullName, "ImpersonateEnd",
+                $"Mengakhiri impersonation ({mode}: {displayName})");
+
+            _impersonationService.Stop();
+
+            TempData["SuccessMessage"] = "Sesi impersonation berakhir.";
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Search non-admin users for impersonation target selection.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SearchUsersApi(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+                return Json(new List<object>());
+
+            var allUsers = await _userManager.Users
+                .Where(u => u.FullName.Contains(q) || (u.NIP != null && u.NIP.Contains(q)))
+                .Take(20)
+                .ToListAsync();
+
+            // Filter out admin users
+            var results = new List<object>();
+            foreach (var u in allUsers)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                if (roles.Contains("Admin")) continue;
+
+                results.Add(new { u.Id, u.FullName, u.NIP, u.SelectedView });
+                if (results.Count >= 10) break;
+            }
+
+            return Json(results);
         }
 
         #endregion
