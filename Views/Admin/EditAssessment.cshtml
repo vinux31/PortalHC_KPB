@@ -335,7 +335,7 @@
                         }
                         @if (assignedUsers != null && assignedCount > 0)
                         {
-                            <div style="max-height: 250px; overflow-y: auto;">
+                            <div style="max-height: 300px; overflow-y: auto;" class="table-responsive">
                                 <table class="table table-sm table-hover mb-2">
                                     <thead class="table-light">
                                         <tr>
@@ -343,6 +343,8 @@
                                             <th>Name</th>
                                             <th>Email</th>
                                             <th>Section</th>
+                                            <th>Status Assessment</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -355,6 +357,34 @@
                                                 <td>@au.FullName</td>
                                                 <td>@au.Email</td>
                                                 <td>@(string.IsNullOrEmpty((string)au.Section) ? "-" : au.Section)</td>
+                                                <td>
+                                                    @{
+                                                        string statusText = au.Status ?? "-";
+                                                        string badgeClass = statusText switch {
+                                                            "Open" => "bg-success",
+                                                            "Upcoming" => "bg-primary",
+                                                            "Completed" => "bg-secondary",
+                                                            _ => "bg-light text-dark"
+                                                        };
+                                                    }
+                                                    <span class="badge @badgeClass">@statusText</span>
+                                                </td>
+                                                <td>
+                                                    @if ((bool)au.CanDelete)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-peserta"
+                                                                data-session-id="@au.Id" data-name="@au.FullName">
+                                                            <i class="bi bi-trash"></i> Hapus
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled
+                                                                title="Tidak dapat dihapus: ujian sudah dimulai atau selesai">
+                                                            <i class="bi bi-trash"></i> Hapus
+                                                        </button>
+                                                    }
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -446,6 +476,12 @@
                     </button>
                 </div>
             </form>
+
+            <!-- Delete Peserta form (outside main form to avoid nesting) -->
+            <form id="deletePesertaForm" method="post" asp-action="DeleteAssessmentPeserta" style="display:none;">
+                <input type="hidden" name="sessionId" id="deletePesertaSessionId" />
+                <input type="hidden" name="returnToId" value="@Model.Id" />
+            </form>
         </div>
     </div>
 </div>
@@ -456,6 +492,17 @@
 
     <script>
         initFormLoading('editAssessmentForm', 'Menyimpan...');
+
+        // Delete peserta handler
+        document.querySelectorAll('.btn-delete-peserta').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var name = this.getAttribute('data-name');
+                if (confirm('Hapus peserta ' + name + ' dari assessment ini?')) {
+                    document.getElementById('deletePesertaSessionId').value = this.getAttribute('data-session-id');
+                    document.getElementById('deletePesertaForm').submit();
+                }
+            });
+        });
 
         // Schedule-change warning when packages are attached
         (function() {

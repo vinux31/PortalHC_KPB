@@ -1772,7 +1772,9 @@ namespace HcPortal.Controllers
                     Id = a.Id,
                     FullName = a.User!.FullName ?? "",
                     Email = a.User!.Email ?? "",
-                    Section = a.User!.Section ?? ""
+                    Section = a.User!.Section ?? "",
+                    Status = a.Status,
+                    CanDelete = a.StartedAt == null && a.CompletedAt == null && a.Status != "Completed"
                 })
                 .ToList();
 
@@ -2154,6 +2156,123 @@ namespace HcPortal.Controllers
             {
                 logger.LogError(ex, "Error deleting assessment {Id}", id);
                 TempData["Error"] = "Gagal menghapus assessment. Silakan coba lagi.";
+                return RedirectToAction("ManageAssessment");
+            }
+        }
+
+        // --- DELETE ASSESSMENT PESERTA (single participant) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssessmentPeserta(int sessionId, int returnToId)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+
+            try
+            {
+                var session = await _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .FirstOrDefaultAsync(a => a.Id == sessionId);
+
+                if (session == null)
+                {
+                    TempData["Error"] = "Session peserta tidak ditemukan.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
+                var title = session.Title;
+                var category = session.Category;
+                var scheduleDate = session.Schedule.Date;
+                var userName = session.User?.FullName ?? "Unknown";
+
+                // Guard: cannot delete if exam already started or completed
+                if (session.StartedAt != null || session.CompletedAt != null || session.Status == "Completed")
+                {
+                    TempData["Error"] = "Tidak dapat menghapus peserta: ujian sudah dimulai atau selesai.";
+                    return RedirectToAction("EditAssessment", new { id = returnToId });
+                }
+
+                // Cascade delete (same order as DeleteAssessment)
+                // 1. PackageUserResponses
+                var pkgResponses = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == sessionId)
+                    .ToListAsync();
+                if (pkgResponses.Any())
+                    _context.PackageUserResponses.RemoveRange(pkgResponses);
+
+                // 2. AssessmentAttemptHistory
+                var attemptHistory = await _context.AssessmentAttemptHistory
+                    .Where(h => h.SessionId == sessionId)
+                    .ToListAsync();
+                if (attemptHistory.Any())
+                    _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
+
+                // 3. AssessmentPackages + nested Questions + Options
+                var packages = await _context.AssessmentPackages
+                    .Include(p => p.Questions).ThenInclude(q => q.Options)
+                    .Where(p => p.AssessmentSessionId == sessionId)
+                    .ToListAsync();
+                if (packages.Any())
+                {
+                    foreach (var pkg in packages)
+                    {
+                        foreach (var q in pkg.Questions)
+                            _context.PackageOptions.RemoveRange(q.Options);
+                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                    }
+                    _context.AssessmentPackages.RemoveRange(packages);
+                }
+
+                // 4. Remove session
+                _context.AssessmentSessions.Remove(session);
+
+                // 5. Save
+                await _context.SaveChangesAsync();
+
+                // Audit log
+                try
+                {
+                    var deleteUser = await _userManager.GetUserAsync(User);
+                    var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
+                    await _auditLog.LogAsync(
+                        deleteUser?.Id ?? "",
+                        deleteActorName,
+                        "DeleteAssessmentPeserta",
+                        $"Deleted participant '{userName}' from assessment '{title}' [SessionID={sessionId}]",
+                        sessionId,
+                        "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentPeserta {SessionId}", sessionId);
+                }
+
+                // Redirect logic based on remaining siblings
+                var remainingSiblings = await _context.AssessmentSessions
+                    .Where(a => a.Title == title && a.Category == category && a.Schedule.Date == scheduleDate)
+                    .ToListAsync();
+
+                if (!remainingSiblings.Any())
+                {
+                    TempData["Success"] = $"Peserta '{userName}' telah dihapus. Tidak ada peserta tersisa.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
+                if (sessionId != returnToId)
+                {
+                    TempData["Success"] = $"Peserta '{userName}' berhasil dihapus.";
+                    return RedirectToAction("EditAssessment", new { id = returnToId });
+                }
+
+                // sessionId == returnToId, redirect to first sibling
+                var sibling = remainingSiblings.First();
+                TempData["Success"] = $"Peserta '{userName}' berhasil dihapus.";
+                return RedirectToAction("EditAssessment", new { id = sibling.Id });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error deleting assessment peserta {SessionId}", sessionId);
+                TempData["Error"] = "Gagal menghapus peserta. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
             }
         }
