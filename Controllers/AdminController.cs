@@ -8133,6 +8133,21 @@ namespace HcPortal.Controllers
         #region Impersonation
 
         /// <summary>
+        /// Dedicated impersonation page with role cards, search, and history.
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Impersonate()
+        {
+            var history = await _context.AuditLogs
+                .Where(a => a.ActionType == "ImpersonateStart" || a.ActionType == "ImpersonateEnd")
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(10)
+                .ToListAsync();
+
+            return View(history);
+        }
+
+        /// <summary>
         /// Start impersonation as a role or specific user.
         /// </summary>
         [HttpPost]
