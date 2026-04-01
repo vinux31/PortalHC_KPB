@@ -1892,6 +1892,8 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             // Update shared fields on ALL siblings (including the current session)
+            // BUG-03 fix: skip Status propagation for sessions that are InProgress/Completed/Abandoned
+            // BUG-06 fix: also propagate ValidUntil, ProtonTrackId, TahunKe
             var now = DateTime.UtcNow;
             foreach (var sibling in siblings)
             {
@@ -1899,7 +1901,11 @@ namespace HcPortal.Controllers
                 sibling.Category = model.Category;
                 sibling.Schedule = model.Schedule;
                 sibling.DurationMinutes = model.DurationMinutes;
-                sibling.Status = model.Status;
+                // Only propagate Status to siblings that are NOT in a terminal/active state
+                if (sibling.Status != "InProgress" && sibling.Status != "Completed" && sibling.Status != "Abandoned")
+                {
+                    sibling.Status = model.Status;
+                }
                 sibling.BannerColor = model.BannerColor;
                 sibling.IsTokenRequired = model.IsTokenRequired;
                 sibling.AccessToken = newToken;
@@ -1907,6 +1913,9 @@ namespace HcPortal.Controllers
                 sibling.AllowAnswerReview = model.AllowAnswerReview;
                 sibling.GenerateCertificate = model.GenerateCertificate;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
+                sibling.ValidUntil = model.ValidUntil;
+                sibling.ProtonTrackId = model.ProtonTrackId;
+                sibling.TahunKe = model.TahunKe;
                 sibling.UpdatedAt = now;
             }
 
@@ -3056,24 +3065,50 @@ namespace HcPortal.Controllers
             int gradedCount = 0;
             int cancelledCount = 0;
 
+            // BUG-02 fix: use status-guarded ExecuteUpdateAsync per session to prevent race conditions
             foreach (var session in sessionsToEnd)
             {
                 bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
                 if (isInProgress)
                 {
                     await GradeFromSavedAnswers(session);
-                    gradedCount++;
+
+                    // Detach tracked entity and use status-guarded write (same pattern as AkhiriUjian single)
+                    _context.Entry(session).State = EntityState.Detached;
+
+                    var rows = await _context.AssessmentSessions
+                        .Where(s => s.Id == session.Id
+                                 && s.StartedAt != null
+                                 && s.CompletedAt == null
+                                 && s.Score == null
+                                 && s.Status != "Completed"
+                                 && s.Status != "Cancelled"
+                                 && s.Status != "Abandoned")
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.Status, "Completed")
+                            .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                            .SetProperty(r => r.Score, session.Score)
+                            .SetProperty(r => r.IsPassed, session.IsPassed)
+                            .SetProperty(r => r.Progress, 100)
+                        );
+
+                    if (rows > 0) gradedCount++;
                 }
                 else
                 {
-                    // Open / not-started → Cancelled
-                    session.Status = "Cancelled";
-                    session.UpdatedAt = DateTime.UtcNow;
-                    cancelledCount++;
+                    // Open / not-started → Cancelled (use ExecuteUpdateAsync for consistency)
+                    _context.Entry(session).State = EntityState.Detached;
+
+                    var rows = await _context.AssessmentSessions
+                        .Where(s => s.Id == session.Id && s.Status == "Open")
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.Status, "Cancelled")
+                            .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
+                        );
+
+                    if (rows > 0) cancelledCount++;
                 }
             }
-
-            await _context.SaveChangesAsync();
 
             // Phase 226 CLEN-04: Generate NomorSertifikat for passed sessions
             foreach (var s in sessionsToEnd.Where(s => s.GenerateCertificate && s.IsPassed == true && s.NomorSertifikat == null))
@@ -3188,28 +3223,35 @@ namespace HcPortal.Controllers
                 packageAssignment.IsCompleted = true;
 
                 // Persist ET scores per session — Phase 223
-                var etGroupsAdmin = packageQuestions
-                    .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+                // BUG-01 fix: guard against duplicate ET scores (SubmitExam may have already written them)
+                bool etScoresExist = await _context.SessionElemenTeknisScores
+                    .AnyAsync(e => e.AssessmentSessionId == session.Id);
 
-                foreach (var etGroup in etGroupsAdmin)
+                if (!etScoresExist)
                 {
-                    int etCorrect = 0;
-                    int etTotal = etGroup.Count();
-                    foreach (var q in etGroup)
+                    var etGroupsAdmin = packageQuestions
+                        .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+
+                    foreach (var etGroup in etGroupsAdmin)
                     {
-                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                        int etCorrect = 0;
+                        int etTotal = etGroup.Count();
+                        foreach (var q in etGroup)
                         {
-                            var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
-                            if (sel != null && sel.IsCorrect) etCorrect++;
+                            if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                            {
+                                var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                                if (sel != null && sel.IsCorrect) etCorrect++;
+                            }
                         }
+                        _context.SessionElemenTeknisScores.Add(new HcPortal.Models.SessionElemenTeknisScore
+                        {
+                            AssessmentSessionId = session.Id,
+                            ElemenTeknis = etGroup.Key,
+                            CorrectCount = etCorrect,
+                            QuestionCount = etTotal
+                        });
                     }
-                    _context.SessionElemenTeknisScores.Add(new HcPortal.Models.SessionElemenTeknisScore
-                    {
-                        AssessmentSessionId = session.Id,
-                        ElemenTeknis = etGroup.Key,
-                        CorrectCount = etCorrect,
-                        QuestionCount = etTotal
-                    });
                 }
             }
             // Legacy path removed (Phase 227 CLEN-02) — sessions without package assignment get score 0.

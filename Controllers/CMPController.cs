@@ -1515,8 +1515,29 @@ namespace HcPortal.Controllers
                     return RedirectToAction("Results", new { id });
                 }
 
-                // Phase 227 CLEN-04: Generate NomorSertifikat only when passed
+                // BUG-10 fix: create TrainingRecord (same as GradeFromSavedAnswers in AdminController)
                 bool isPassed = finalPercentage >= assessment.PassPercentage;
+                var trJudul = $"Assessment: {assessment.Title}";
+                bool trExists = await _context.TrainingRecords.AnyAsync(t =>
+                    t.UserId == assessment.UserId &&
+                    t.Judul == trJudul &&
+                    t.Tanggal == assessment.Schedule);
+                if (!trExists)
+                {
+                    _context.TrainingRecords.Add(new TrainingRecord
+                    {
+                        UserId = assessment.UserId,
+                        Judul = trJudul,
+                        Kategori = assessment.Category ?? "Assessment",
+                        Tanggal = assessment.Schedule,
+                        TanggalSelesai = DateTime.UtcNow,
+                        Penyelenggara = "Internal",
+                        Status = isPassed ? "Passed" : "Failed"
+                    });
+                    await _context.SaveChangesAsync();
+                }
+
+                // Phase 227 CLEN-04: Generate NomorSertifikat only when passed
                 if (assessment.GenerateCertificate && isPassed)
                 {
                     var certNow = DateTime.Now;
