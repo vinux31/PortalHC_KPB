@@ -112,7 +112,7 @@ Saat banner aktif, navbar harus mendapat offset `top` agar tidak tertutup. Gunak
 | API endpoint | GET `/Admin/SearchUsersApi?q={query}` |
 | Result dropdown | Max 10 items, setiap item menampilkan: `FullName` (bold) + `NIP` (muted) + `SelectedView` (badge) |
 | Result item action | POST ke `/Admin/StartImpersonation` dengan `mode=user&targetUserId={id}` |
-| Empty result | Teks "Tidak ada hasil" (muted, italic) |
+| Empty result | Teks "Tidak ada user ditemukan — coba kata kunci atau NIP lain" (muted, italic) |
 | Loading state | Spinner kecil (`spinner-border spinner-border-sm`) di dalam input |
 
 ### 4. Disabled Submit Buttons (Read-Only Mode)
@@ -155,7 +155,7 @@ Saat banner aktif, navbar harus mendapat offset `top` agar tidak tertutup. Gunak
 | Banner text (role mode) | "Anda melihat sebagai **HC**" / "Anda melihat sebagai **User**" |
 | Banner text (user mode) | "Anda melihat sebagai **[Nama Lengkap User]**" |
 | Search placeholder | "Ketik nama atau NIP..." |
-| Search empty state | "Tidak ada hasil" |
+| Search empty state | "Tidak ada user ditemukan — coba kata kunci atau NIP lain" |
 | Search loading | (spinner only, no text) |
 | Read-only badge | "Mode Read-Only" |
 | AJAX blocked toast | "Aksi ini diblokir — Mode Read-Only aktif" |
@@ -186,7 +186,7 @@ Saat banner aktif, navbar harus mendapat offset `top` agar tidak tertutup. Gunak
 | Typing (< 2 char) | Input berisi teks, tidak ada dropdown |
 | Loading | Input berisi teks (>= 2 char), spinner di input |
 | Results | Dropdown muncul di bawah input, max 10 items |
-| No results | Dropdown dengan teks "Tidak ada hasil" |
+| No results | Dropdown dengan teks "Tidak ada user ditemukan — coba kata kunci atau NIP lain" |
 | Selected | Dropdown tutup, POST impersonation, redirect |
 
 ### Navigation Override
