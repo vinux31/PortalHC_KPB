@@ -97,40 +97,40 @@ Requirements untuk milestone v11.2. Setiap requirement maps ke roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETT-01 | TBD | Pending |
-| SETT-02 | TBD | Pending |
-| SETT-03 | TBD | Pending |
-| SETT-04 | TBD | Pending |
-| SETT-05 | TBD | Pending |
-| SETT-06 | TBD | Pending |
-| SETT-07 | TBD | Pending |
-| MAINT-01 | TBD | Pending |
-| MAINT-02 | TBD | Pending |
-| MAINT-03 | TBD | Pending |
-| MAINT-04 | TBD | Pending |
-| MAINT-05 | TBD | Pending |
-| IMP-01 | TBD | Pending |
-| IMP-02 | TBD | Pending |
-| IMP-03 | TBD | Pending |
-| IMP-04 | TBD | Pending |
-| IMP-05 | TBD | Pending |
-| IMP-06 | TBD | Pending |
-| IMP-07 | TBD | Pending |
-| IMP-08 | TBD | Pending |
-| BKP-01 | TBD | Pending |
-| BKP-02 | TBD | Pending |
-| BKP-03 | TBD | Pending |
-| BKP-04 | TBD | Pending |
-| BKP-05 | TBD | Pending |
-| BKP-06 | TBD | Pending |
-| BKP-07 | TBD | Pending |
-| BKP-08 | TBD | Pending |
+| SETT-01 | Phase 281 | Pending |
+| SETT-02 | Phase 281 | Pending |
+| SETT-03 | Phase 281 | Pending |
+| SETT-04 | Phase 281 | Pending |
+| SETT-05 | Phase 281 | Pending |
+| SETT-06 | Phase 281 | Pending |
+| SETT-07 | Phase 281 | Pending |
+| MAINT-01 | Phase 282 | Pending |
+| MAINT-02 | Phase 282 | Pending |
+| MAINT-03 | Phase 282 | Pending |
+| MAINT-04 | Phase 282 | Pending |
+| MAINT-05 | Phase 282 | Pending |
+| IMP-01 | Phase 283 | Pending |
+| IMP-02 | Phase 283 | Pending |
+| IMP-03 | Phase 283 | Pending |
+| IMP-04 | Phase 283 | Pending |
+| IMP-05 | Phase 283 | Pending |
+| IMP-06 | Phase 283 | Pending |
+| IMP-07 | Phase 283 | Pending |
+| IMP-08 | Phase 283 | Pending |
+| BKP-01 | Phase 284 | Pending |
+| BKP-02 | Phase 284 | Pending |
+| BKP-03 | Phase 284 | Pending |
+| BKP-04 | Phase 284 | Pending |
+| BKP-05 | Phase 284 | Pending |
+| BKP-06 | Phase 284 | Pending |
+| BKP-07 | Phase 284 | Pending |
+| BKP-08 | Phase 284 | Pending |
 
 **Coverage:**
 - v11.2 requirements: 28 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 28 ⚠️
+- Mapped to phases: 28/28
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after milestone v11.2 definition*
+*Last updated: 2026-04-01 after roadmap creation*
