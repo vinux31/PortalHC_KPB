@@ -1127,7 +1127,7 @@ namespace HcPortal.Controllers
             var model = new AssessmentSession
             {
                 AccessToken = GenerateSecureToken(),
-                Schedule = DateTime.Today.AddDays(1),  // Default to tomorrow
+                Schedule = DateTime.UtcNow.AddHours(7).Date.AddDays(1),  // Default to tomorrow (WIB)
                 PassPercentage = 70,
                 AllowAnswerReview = true
             };
@@ -1324,13 +1324,14 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("UserIds", "Cannot assign to more than 50 users at once. Please split into multiple batches.");
             }
 
-            // Validate schedule date (BUG-12 fix: use DateTime.Now.Date for timezone consistency)
-            if (model.Schedule < DateTime.Now.Date)
+            // Validate schedule date (BUG-12 fix: use WIB for timezone consistency)
+            var nowWibDate = DateTime.UtcNow.AddHours(7).Date;
+            if (model.Schedule < nowWibDate)
             {
                 ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
             }
 
-            if (model.Schedule > DateTime.Now.Date.AddYears(2))
+            if (model.Schedule > nowWibDate.AddYears(2))
             {
                 ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
             }
@@ -1844,7 +1845,7 @@ namespace HcPortal.Controllers
             if (string.IsNullOrWhiteSpace(model.Title))
                 editErrors.Add("Title is required.");
 
-            if (model.Schedule > DateTime.Today.AddYears(2))
+            if (model.Schedule > DateTime.UtcNow.AddHours(7).Date.AddYears(2))
                 editErrors.Add("Schedule date too far in future (maximum 2 years).");
 
             bool editIsProtonYear3 = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue && model.DurationMinutes == 0;

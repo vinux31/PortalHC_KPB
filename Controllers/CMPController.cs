@@ -767,7 +767,7 @@ namespace HcPortal.Controllers
             }
 
             // Enforce exam window close date (LIFE-02 / DATA-03)
-            if (assessment.ExamWindowCloseDate.HasValue && DateTime.UtcNow > assessment.ExamWindowCloseDate.Value)
+            if (assessment.ExamWindowCloseDate.HasValue && DateTime.UtcNow.AddHours(7) > assessment.ExamWindowCloseDate.Value)
             {
                 TempData["Error"] = "Ujian sudah ditutup. Waktu ujian telah berakhir.";
                 return RedirectToAction("Assessment");
@@ -2202,7 +2202,7 @@ namespace HcPortal.Controllers
             DateTime? periodeStart,
             DateTime? periodeEnd)
         {
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.AddHours(7).Date;
             periodeEnd ??= today;
             periodeStart ??= periodeEnd.Value.AddYears(-1);
 

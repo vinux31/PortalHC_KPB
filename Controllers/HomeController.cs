@@ -65,7 +65,7 @@ public class HomeController : Controller
     {
         try
         {
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.AddHours(7).Date;
 
             // Renewal chain resolution (same as GetCertAlertCountsAsync)
             var renewedByAsSessionIds = await _context.AssessmentSessions
@@ -151,7 +151,7 @@ public class HomeController : Controller
 
     private async Task<(int expiredCount, int akanExpiredCount)> GetCertAlertCountsAsync()
     {
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.AddHours(7).Date;
         var thirtyDaysFromNow = today.AddDays(30);
 
         // Renewal chain resolution: batch lookup (same pattern as AdminController.BuildRenewalRowsAsync)
@@ -264,8 +264,8 @@ public class HomeController : Controller
     {
         var events = new List<UpcomingEventViewModel>();
 
-        var today = DateTime.Today;
-        var tomorrow = DateTime.Today.AddDays(2).AddTicks(-1); // end of tomorrow
+        var today = DateTime.UtcNow.AddHours(7).Date;
+        var tomorrow = today.AddDays(2).AddTicks(-1); // end of tomorrow
 
         var upcomingCoachings = await _context.CoachingSessions
             .Where(c => c.CoacheeId == userId && c.Date >= today && c.Date <= tomorrow)
@@ -289,7 +289,7 @@ public class HomeController : Controller
         var pendingAssessments = await _context.AssessmentSessions
             .Where(a => a.UserId == userId &&
                    (a.Status == "Open" || a.Status == "Upcoming") &&
-                   (a.ExamWindowCloseDate == null || a.ExamWindowCloseDate > DateTime.Now) &&
+                   (a.ExamWindowCloseDate == null || a.ExamWindowCloseDate > DateTime.UtcNow.AddHours(7)) &&
                    a.Schedule >= today && a.Schedule <= tomorrow)
             .OrderBy(a => a.Schedule)
             .ToListAsync();
@@ -347,7 +347,7 @@ public class HomeController : Controller
 
     private string GetTimeBasedGreeting()
     {
-        var hour = DateTime.Now.Hour;
+        var hour = DateTime.UtcNow.AddHours(7).Hour;
         return hour < 12 ? "Selamat Pagi"
              : hour < 15 ? "Selamat Siang"
              : hour < 18 ? "Selamat Sore"
