@@ -240,9 +240,11 @@ namespace HcPortal.Controllers
             ViewBag.PageSize = pageSize;
 
             // ========== RIWAYAT UJIAN: completed assessment history for worker ==========
+            // BUG-14 fix: limit to 50 most recent to prevent loading excessive data
             var completedHistory = await _context.AssessmentSessions
                 .Where(a => a.UserId == userId && (a.Status == "Completed" || a.Status == "Abandoned"))
                 .OrderByDescending(a => a.CompletedAt ?? a.UpdatedAt)
+                .Take(50)
                 .Select(a => new
                 {
                     a.Id,
@@ -859,11 +861,9 @@ namespace HcPortal.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // For cross-package assignments, SavedQuestionCount = shuffledIds.Count at time of creation
-                // Compare against re-derived count: minimum question count across packages (safety fallback)
-                int currentQuestionCount = packages.Min(p => p.Questions.Count) == 0
-                    ? 0
-                    : (packages.Count == 1 ? packages[0].Questions.Count : packages.Min(p => p.Questions.Count));
+                // BUG-05 fix: compare against actual assigned question count from ShuffledQuestionIds,
+                // not packages.Min() which is wrong for cross-package assignments
+                int currentQuestionCount = assignment.GetShuffledQuestionIds().Count;
 
                 // Stale question set check: compare count at session start vs. now
                 // HC cannot normally edit questions once a session is active (existing guard), but this is a defensive safety net
@@ -1286,6 +1286,13 @@ namespace HcPortal.Controllers
                 ? await _context.UserPackageAssignments.FindAsync(assignmentId.Value)
                 : null;
 
+            // BUG-09 fix: redirect with message if assignment not found (e.g. direct URL access)
+            if (assignment == null)
+            {
+                TempData["Error"] = "Data ujian tidak ditemukan. Silakan mulai ujian dari halaman Assessment.";
+                return RedirectToAction("Assessment");
+            }
+
             if (assignment != null)
             {
                 // Cross-package: load questions by IDs from ShuffledQuestionIds
@@ -1616,9 +1623,10 @@ namespace HcPortal.Controllers
                     });
                     await db.SaveChangesAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Swallow all errors — logging must never block exam flow
+                    System.Diagnostics.Debug.WriteLine($"LogActivityAsync failed for session {sessionId}: {ex.Message}");
                 }
             });
         }
@@ -1783,15 +1791,7 @@ namespace HcPortal.Controllers
                                 .Height(PageSizes.A4.Landscape().Height * 0.65f)
                                 .Svg("<svg viewBox='0 0 400 350' xmlns='http://www.w3.org/2000/svg'><path d='M200 20L30 330H370L200 20ZM200 80L325 310H75L200 80Z' fill='#1a4a8d' opacity='0.05'/></svg>");
 
-                            // Score badge at bottom-right as circle (matches HTML .badge-score)
-                            if (assessment.Score.HasValue)
-                            {
-                                // Circle badge via SVG
-                                layers.Layer().AlignRight().AlignBottom()
-                                    .Padding(20)
-                                    .Width(80).Height(80)
-                                    .Svg($"<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='50' fill='#c49a00'/><circle cx='50' cy='50' r='46' fill='#1a4a8d'/><text x='50' y='38' text-anchor='middle' fill='white' font-family='Lato,sans-serif' font-size='12' font-weight='bold'>SCORE</text><text x='50' y='68' text-anchor='middle' fill='white' font-family='Lato,sans-serif' font-size='28' font-weight='bold'>{assessment.Score}%</text></svg>");
-                            }
+                            // BUG-11 fix: score badge removed from PDF (consistent with HTML Certificate view)
 
                             // Main content (vertically centered like HTML flexbox)
                             layers.PrimaryLayer()

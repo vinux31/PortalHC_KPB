@@ -1324,13 +1324,13 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("UserIds", "Cannot assign to more than 50 users at once. Please split into multiple batches.");
             }
 
-            // Validate schedule date
-            if (model.Schedule < DateTime.Today)
+            // Validate schedule date (BUG-12 fix: use DateTime.Now.Date for timezone consistency)
+            if (model.Schedule < DateTime.Now.Date)
             {
                 ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
             }
 
-            if (model.Schedule > DateTime.Today.AddYears(2))
+            if (model.Schedule > DateTime.Now.Date.AddYears(2))
             {
                 ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
             }
@@ -2134,6 +2134,16 @@ namespace HcPortal.Controllers
 
                 // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
 
+                // BUG-07 fix: explicit cleanup of SessionElemenTeknisScores for consistency
+                var etScores = await _context.SessionElemenTeknisScores
+                    .Where(e => e.AssessmentSessionId == id)
+                    .ToListAsync();
+                if (etScores.Any())
+                {
+                    _context.SessionElemenTeknisScores.RemoveRange(etScores);
+                    logger.LogInformation($"Deleting {etScores.Count} ET score records");
+                }
+
                 // Finally delete the assessment itself
                 _context.AssessmentSessions.Remove(assessment);
 
@@ -2635,6 +2645,13 @@ namespace HcPortal.Controllers
             .OrderBy(s => s.UserStatus)   // Not started before Completed
             .ThenBy(s => s.UserFullName)
             .ToList();
+
+            // BUG-16 fix: guard against empty sessions list
+            if (!sessions.Any())
+            {
+                TempData["Error"] = "Tidak ada sesi ditemukan untuk assessment ini.";
+                return RedirectToAction("ManageAssessment");
+            }
 
             var firstSession = sessions.First();
             var model = new MonitoringGroupViewModel
@@ -3327,7 +3344,7 @@ namespace HcPortal.Controllers
                     .GroupBy(x => x.AssessmentSessionId)
                     .ToDictionaryAsync(
                         g => g.Key,
-                        g => g.First().QuestionCount);
+                        g => g.Sum(x => x.QuestionCount));
             }
             // Build row data: one row per session, include all statuses
             var rows = sessions.Select(a =>
