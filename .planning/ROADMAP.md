@@ -8,7 +8,7 @@
 - ⏸️ **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (deferred)
 - ✅ **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (shipped 2026-03-25, partial)
 - ✅ **Phases 262-263** - Sub-path deployment fixes (shipped 2026-03-27)
-- 🚧 **v10.0 UAT Assessment OJT di Server Development** - Phases 264-276 (in progress)
+- 🚧 **v10.0 UAT Assessment OJT di Server Development** - Phases 264-277 (in progress)
 
 ## Phases
 
@@ -36,6 +36,7 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 274: Hilangkan score di sertifikat** - Remove skor dari sertifikat
 - [x] **Phase 275: Warning create assessment** - Pre test tidak bisa create certificate
 - [x] **Phase 276: Navigasi soal di StartExam** - Tampilkan seluruh nomor soal dengan fitur klik langsung ke lokasi (completed 2026-04-01)
+- [ ] **Phase 277: Delete Peserta Assessment di EditAssessment** - Hapus peserta assessment satu-per-satu dari halaman EditAssessment
 
 ## Phase Details
 
@@ -138,6 +139,7 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 | 274. Hilangkan score di sertifikat | 1/1 | Complete    | 2026-03-28 |
 | 275. Warning create assessment | 1/1 | Complete    | 2026-03-28 |
 | 276. Navigasi soal di StartExam | 1/1 | Complete    | 2026-04-01 |
+| 277. Delete Peserta Assessment | 0/1 | In Progress | — |
 
 ### Phase 269: Loading overlay saat koneksi SignalR belum ready di StartExam
 
@@ -208,3 +210,13 @@ Plans:
 
 Plans:
 - [x] 276-01-PLAN.md — Tampilkan seluruh nomor soal dengan fitur klik langsung ke lokasi soal
+
+### Phase 277: Delete Peserta Assessment di EditAssessment
+
+**Goal:** Menambahkan fitur hapus peserta assessment satu-per-satu dari halaman EditAssessment, dengan kolom status assessment, guard logic, dan redirect sesuai konteks
+**Requirements**: TBD
+**Depends on:** Phase 276
+**Plans:** 1 plan
+
+Plans:
+- [ ] 277-01-PLAN.md — Backend action + frontend tabel peserta dengan kolom status dan tombol hapus
