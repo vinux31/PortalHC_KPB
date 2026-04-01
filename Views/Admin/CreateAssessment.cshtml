@@ -395,14 +395,26 @@
                             </div>
                         </div>
 
-                        <!-- Col A: ExamWindowCloseDate -->
+                        <!-- Col A: ExamWindowCloseDate (date) -->
                         <div class="col-md-6">
-                            <label asp-for="ExamWindowCloseDate" class="form-label fw-bold">
-                                <i class="bi bi-calendar-x text-danger me-1"></i>Tanggal Tutup Ujian (Opsional)
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-x text-danger me-1"></i>Tanggal Tutup Ujian <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="ExamWindowCloseDate" type="date" class="form-control" />
-                            <div class="form-text text-muted">Kosongkan jika tidak ada batas waktu.</div>
+                            <input type="date" id="ewcdDateInput" class="form-control" required />
+                            <div class="invalid-feedback" id="ewcdDateError">Tanggal tutup ujian wajib diisi.</div>
                         </div>
+
+                        <!-- Col B: ExamWindowCloseDate (time) -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-clock text-danger me-1"></i>Waktu Tutup Ujian <span class="text-danger">*</span>
+                            </label>
+                            <input type="time" id="ewcdTimeInput" class="form-control" value="23:59" required />
+                            <div class="invalid-feedback" id="ewcdTimeError">Waktu tutup ujian wajib diisi.</div>
+                        </div>
+
+                        <!-- Hidden ExamWindowCloseDate combiner -->
+                        <input type="hidden" asp-for="ExamWindowCloseDate" id="ewcdHidden" />
 
                         <!-- Col B: ValidUntil -->
                         <div class="col-md-6">
@@ -522,6 +534,7 @@
                                 <dt class="col-sm-4">Status</dt><dd class="col-sm-8" id="summary-status"></dd>
                                 <dt class="col-sm-4">Token</dt><dd class="col-sm-8" id="summary-token"></dd>
                                 <dt class="col-sm-4">Pass Percentage</dt><dd class="col-sm-8" id="summary-pass"></dd>
+                                <dt class="col-sm-4">Tutup Ujian</dt><dd class="col-sm-8" id="summary-ewcd"></dd>
                                 <dt class="col-sm-4">Valid Until</dt><dd class="col-sm-8" id="summary-validuntil"></dd>
                             </dl>
                         </div>
@@ -782,6 +795,18 @@ function generateToken() {
                 if (status) status.classList.add('is-invalid');
                 valid = false;
             }
+
+            // ExamWindowCloseDate validation
+            var ewcdDate = document.getElementById('ewcdDateInput');
+            var ewcdTime = document.getElementById('ewcdTimeInput');
+            if (!ewcdDate || !ewcdDate.value) {
+                if (ewcdDate) ewcdDate.classList.add('is-invalid');
+                valid = false;
+            }
+            if (!ewcdTime || !ewcdTime.value) {
+                if (ewcdTime) ewcdTime.classList.add('is-invalid');
+                valid = false;
+            }
         }
 
         return valid;
@@ -880,6 +905,13 @@ function generateToken() {
         var passEl = document.getElementById('PassPercentage');
         var summPass = document.getElementById('summary-pass');
         if (summPass) summPass.textContent = (passEl && passEl.value) ? (passEl.value + '%') : '-';
+
+        var ewcdDateEl = document.getElementById('ewcdDateInput');
+        var ewcdTimeEl = document.getElementById('ewcdTimeInput');
+        var summEwcd = document.getElementById('summary-ewcd');
+        if (summEwcd) {
+            summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
+        }
 
         var validUntilEl = document.getElementById('ValidUntil');
         var summValidUntil = document.getElementById('summary-validuntil');
@@ -1137,6 +1169,14 @@ function generateToken() {
             var schedHidden = document.getElementById('schedHidden');
             if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
                 schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+            }
+
+            // Combine ExamWindowCloseDate date + time
+            var ewcdDateInput = document.getElementById('ewcdDateInput');
+            var ewcdTimeInput = document.getElementById('ewcdTimeInput');
+            var ewcdHidden = document.getElementById('ewcdHidden');
+            if (ewcdDateInput && ewcdDateInput.value && ewcdTimeInput && ewcdHidden) {
+                ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
             }
         }, true); // capture phase
     }
