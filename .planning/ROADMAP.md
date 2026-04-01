@@ -240,3 +240,13 @@ Plans:
 
 Plans:
 - [x] 279-01-PLAN.md — Date+time combiner di CreateAssessment, EditAssessment, hapus ModelState.Remove
+
+### Phase 280: Anti-copy protection pada halaman ujian StartExam
+
+**Goal:** Tambahkan anti-copy protection (CSS user-select:none + JS event blocking) pada area soal StartExam agar peserta tidak bisa copy teks soal/jawaban
+**Requirements**: ACOPY-01, ACOPY-02, ACOPY-03
+**Depends on:** Phase 279
+**Plans:** 1 plan
+
+Plans:
+- [ ] 280-01-PLAN.md — CSS anti-select + JS event blocking pada area soal StartExam
