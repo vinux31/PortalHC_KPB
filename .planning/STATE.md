@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: UAT Assessment OJT di Server Development
-status: executing
-stopped_at: Phase 276 context gathered
-last_updated: "2026-03-31T06:26:30.274Z"
-last_activity: 2026-03-29
+status: verifying
+stopped_at: Completed 279-01-PLAN.md
+last_updated: "2026-04-01T07:44:37.659Z"
+last_activity: 2026-04-01
 progress:
-  total_phases: 12
-  completed_phases: 11
-  total_plans: 14
-  completed_plans: 14
+  total_phases: 15
+  completed_phases: 12
+  total_plans: 17
+  completed_plans: 15
   percent: 80
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 267 — resilience-edge-cases
+**Current focus:** Phase 279 — tambah-komponen-waktu-jam-menit-pada-tanggal-tutup-ujian-examwindowclosedate
 
 ## Current Position
 
-Phase: 268
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-03-29
+Phase: 279 (tambah-komponen-waktu-jam-menit-pada-tanggal-tutup-ujian-examwindowclosedate) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-04-01
 
 Progress: [████████░░] 80%
 
@@ -62,6 +62,7 @@ Progress: [████████░░] 80%
 - [Phase 272]: Frontend disable tombol Kumpulkan Ujian (type=button) saat ada soal kosong + backend guard dengan isAutoSubmit exception
 - [Phase 267-03]: visibilitychange listener memanggil updateTimer() saat tab resume — timer tidak di-pause by design (server-timed anti-cheat)
 - [Phase 267-03]: isAutoSubmit hidden field di ExamSummary mengikuti timerExpired server, bukan hardcoded false; SubmitExam controller cek serverTimerExpired sebagai fallback
+- [Phase 279]: ExamWindowCloseDate berubah dari opsional jadi wajib, default waktu 23:59, ModelState.Remove dihapus
 
 ### Pending Todos
 
@@ -78,6 +79,8 @@ Progress: [████████░░] 80%
 - Phase 274 added: Hilangkan score di sertifikat pojok kanan bawah
 - Phase 275 added: Warning create assessment: pre test tidak bisa create certificate, hanya post test
 - Phase 276 added: Navigasi soal di StartExam - tampilkan seluruh nomor ujian dengan fitur klik langsung ke lokasi soal
+- Phase 278 added: cari bug,block,error,miss. di website ini.
+- Phase 279 added: Tambah komponen waktu (jam:menit) pada tanggal tutup ujian (ExamWindowCloseDate)
 
 ### Blockers/Concerns
 
@@ -89,8 +92,9 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
 | Phase 267 P03 | 10 | 2 tasks | 3 files |
+| Phase 279 P01 | 4m | 2 tasks | 3 files |
 
 ## Session Continuity
 
 Last activity: 2026-03-28 - Completed quick task 260328-kri: fix notif lanjutkan pengerjaan
-Stopped at: Phase 276 context gathered
+Stopped at: Completed 279-01-PLAN.md

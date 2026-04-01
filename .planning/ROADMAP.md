@@ -236,7 +236,7 @@ Plans:
 **Goal:** Tambahkan komponen waktu (jam:menit) pada ExamWindowCloseDate di CreateAssessment dan EditAssessment, ubah dari opsional menjadi wajib, mengikuti pola Schedule combiner
 **Requirements**: TBD
 **Depends on:** Phase 278
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 279-01-PLAN.md — Date+time combiner di CreateAssessment, EditAssessment, hapus ModelState.Remove
+- [x] 279-01-PLAN.md — Date+time combiner di CreateAssessment, EditAssessment, hapus ModelState.Remove
