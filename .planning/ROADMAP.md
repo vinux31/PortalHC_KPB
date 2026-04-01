@@ -96,8 +96,8 @@ Plans:
   5. Setiap impersonation tercatat di audit log (siapa, sebagai siapa, kapan mulai/selesai) dan otomatis berakhir setelah 30 menit
 **Plans**: 2 plans
 Plans:
-- [ ] 282-01-PLAN.md — Backend: model, migration, middleware
-- [ ] 282-02-PLAN.md — UI: controller actions, views, admin card, banner
+- [ ] 283-01-PLAN.md — Backend: ImpersonationService, ImpersonationMiddleware, controller actions
+- [ ] 283-02-PLAN.md — UI: banner, navbar dropdown View As, autocomplete search, read-only JS
 **UI hint**: yes
 
 ### Phase 284: Backup & Restore
@@ -125,5 +125,5 @@ Phases execute in numeric order: 281 → 282 → 283 → 284
 |-------|----------------|--------|-----------|
 | 281. System Settings | 0/TBD | Not started | - |
 | 282. Maintenance Mode | 0/TBD | Not started | - |
-| 283. User Impersonation | 0/TBD | Not started | - |
+| 283. User Impersonation | 0/2 | Planned | - |
 | 284. Backup & Restore | 0/TBD | Not started | - |
