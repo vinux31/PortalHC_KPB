@@ -1,0 +1,132 @@
+@model HcPortal.Models.MaintenanceMode
+@{
+    ViewData["Title"] = "Mode Pemeliharaan";
+    ViewData["ContainerClass"] = "container";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+        <li class="breadcrumb-item active">Mode Pemeliharaan</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center mb-4">
+    <h2 class="fw-bold text-dark mb-0">
+        <i class="bi bi-cone-striped me-2 text-warning"></i>Mode Pemeliharaan
+    </h2>
+    @if (Model.IsEnabled)
+    {
+        <span class="badge bg-success ms-3">Aktif</span>
+    }
+    else
+    {
+        <span class="badge bg-secondary ms-3">Nonaktif</span>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <form method="post" asp-action="Maintenance" asp-controller="Admin" id="maintenanceForm">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="isEnabled" id="isEnabled" value="true" @(Model.IsEnabled ? "checked" : "")>
+                    <label class="form-check-label fw-bold" for="isEnabled">Mode Pemeliharaan</label>
+                </div>
+                <small class="text-muted">Aktifkan untuk memblokir akses pengguna ke halaman yang dipilih.</small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Cakupan</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="scope" id="scopeAll" value="All" @(Model.Scope == "All" ? "checked" : "")>
+                    <label class="form-check-label" for="scopeAll">Seluruh Website</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="scope" id="scopeSpecific" value="Specific" @(Model.Scope != "All" ? "checked" : "")>
+                    <label class="form-check-label" for="scopeSpecific">Halaman Tertentu</label>
+                </div>
+            </div>
+
+            <div class="mb-4 ms-4" id="moduleChecklist" style="@(Model.Scope != "All" ? "" : "display:none;")">
+                <label class="form-label fw-bold">Pilih Halaman</label>
+                @{
+                    var activeModules = Model.Scope != "All" ? Model.Scope.Split(',', StringSplitOptions.RemoveEmptyEntries) : Array.Empty<string>();
+                    var modules = new Dictionary<string, string>
+                    {
+                        { "CMP", "Assessment (CMP)" },
+                        { "CDP", "Pengembangan Kompetensi (CDP)" },
+                        { "Proton", "Coaching Proton" },
+                        { "Admin", "Kelola Data" },
+                        { "Home", "Dashboard & Panduan" },
+                        { "Account", "Profil & Pengaturan" }
+                    };
+                }
+                @foreach (var m in modules)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input module-check" type="checkbox" value="@m.Key" id="mod_@m.Key" @(activeModules.Contains(m.Key) ? "checked" : "")>
+                        <label class="form-check-label" for="mod_@m.Key">@m.Value</label>
+                    </div>
+                }
+            </div>
+
+            <input type="hidden" name="selectedModules" id="selectedModules" value="">
+
+            <div class="mb-4">
+                <label for="message" class="form-label fw-bold">Pesan Pemeliharaan</label>
+                <textarea class="form-control" name="message" id="message" rows="3" placeholder="Masukkan pesan untuk ditampilkan kepada pengguna saat maintenance...">@Model.Message</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="estimatedEndTime" class="form-label fw-bold">Estimasi Selesai</label>
+                <input type="datetime-local" class="form-control" name="estimatedEndTime" id="estimatedEndTime"
+                       value="@(Model.EstimatedEndTime.HasValue ? Model.EstimatedEndTime.Value.ToString("yyyy-MM-ddTHH:mm") : "")">
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan Pengaturan</button>
+        </form>
+    </div>
+</div>
+
+@if (Model.IsEnabled && Model.ActivatedByName != null)
+{
+    <div class="mt-3 text-muted small">
+        <i class="bi bi-info-circle me-1"></i>
+        Diaktifkan oleh <strong>@Model.ActivatedByName</strong> pada @(Model.ActivatedAt.HasValue ? Model.ActivatedAt.Value.ToString("dd MMM yyyy HH:mm") : "-")
+    </div>
+}
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var scopeAll = document.getElementById('scopeAll');
+        var scopeSpecific = document.getElementById('scopeSpecific');
+        var checklist = document.getElementById('moduleChecklist');
+
+        function toggleChecklist() {
+            checklist.style.display = scopeSpecific.checked ? '' : 'none';
+        }
+        scopeAll.addEventListener('change', toggleChecklist);
+        scopeSpecific.addEventListener('change', toggleChecklist);
+
+        document.getElementById('maintenanceForm').addEventListener('submit', function () {
+            if (scopeSpecific.checked) {
+                var checked = document.querySelectorAll('.module-check:checked');
+                var values = Array.from(checked).map(function (cb) { return cb.value; });
+                document.getElementById('selectedModules').value = values.join(',');
+            }
+        });
+    });
+</script>
+}

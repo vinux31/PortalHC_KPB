@@ -8324,6 +8324,71 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        #region Maintenance Mode
+
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> Maintenance()
+        {
+            var maintenance = await _context.MaintenanceModes.FirstOrDefaultAsync();
+            if (maintenance == null)
+            {
+                maintenance = new MaintenanceMode { IsEnabled = false, Message = "", Scope = "All" };
+            }
+            return View(maintenance);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> Maintenance(bool isEnabled, string message, DateTime? estimatedEndTime, string scope, string? selectedModules)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var maintenance = await _context.MaintenanceModes.FirstOrDefaultAsync();
+            bool isNew = maintenance == null;
+            if (isNew)
+            {
+                maintenance = new MaintenanceMode();
+                _context.MaintenanceModes.Add(maintenance);
+            }
+
+            maintenance!.IsEnabled = isEnabled;
+            maintenance.Message = message ?? "";
+            maintenance.EstimatedEndTime = estimatedEndTime;
+            maintenance.Scope = scope == "Specific" && !string.IsNullOrEmpty(selectedModules) ? selectedModules : "All";
+
+            if (isEnabled)
+            {
+                maintenance.ActivatedByUserId = user.Id;
+                maintenance.ActivatedByName = user.FullName;
+                maintenance.ActivatedAt = DateTime.UtcNow;
+                maintenance.DeactivatedAt = null;
+            }
+            else
+            {
+                maintenance.DeactivatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            _cache.Remove("MaintenanceMode_State");
+
+            await _auditLog.LogAsync(
+                user.Id, user.FullName,
+                isEnabled ? "MaintenanceEnabled" : "MaintenanceDisabled",
+                $"Maintenance mode {(isEnabled ? "diaktifkan" : "dinonaktifkan")} — Scope: {maintenance.Scope}",
+                maintenance.Id, "MaintenanceMode");
+
+            TempData["SuccessMessage"] = isEnabled
+                ? "Mode pemeliharaan berhasil diaktifkan."
+                : "Mode pemeliharaan berhasil dinonaktifkan.";
+
+            return RedirectToAction("Maintenance");
+        }
+
+        #endregion
     }
 }
 

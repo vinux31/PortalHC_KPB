@@ -76,6 +76,9 @@ namespace HcPortal.Data
         // ET Scores per Session — Phase 223
         public DbSet<SessionElemenTeknisScore> SessionElemenTeknisScores { get; set; }
 
+        // Maintenance Mode — Phase 282
+        public DbSet<MaintenanceMode> MaintenanceModes { get; set; }
+
         // ========== Helper Methods untuk OrganizationUnit (Phase 221) ==========
 
         public async Task<List<string>> GetAllSectionsAsync()

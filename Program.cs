@@ -188,6 +188,7 @@ app.UseSession();
 // 8. PENTING: Authentication harus sebelum Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<HcPortal.Middleware.MaintenanceModeMiddleware>();
 
 // 9. Routing Standar
 app.MapControllerRoute(

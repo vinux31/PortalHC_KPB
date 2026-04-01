@@ -364,4 +364,15 @@ public class HomeController : Controller
             StatusCode = statusCode
         });
     }
+
+    [AllowAnonymous]
+    public async Task<IActionResult> Maintenance()
+    {
+        var maintenance = await _context.MaintenanceModes.FirstOrDefaultAsync();
+        if (maintenance == null || !maintenance.IsEnabled)
+        {
+            return RedirectToAction("Index");
+        }
+        return View(maintenance);
+    }
 }
