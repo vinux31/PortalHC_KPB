@@ -63,7 +63,7 @@ else
     <div class="container-fluid py-3" id="examContainer" inert>
         <div class="row">
             <!-- Main exam area -->
-            <div class="col-lg-9">
+            <div class="col-lg-9 exam-protected">
 
                 <!-- Hidden main answer form (stores all answers; submitted to ExamSummary) -->
                 <form id="examForm" asp-action="ExamSummary" method="post">
@@ -1073,6 +1073,26 @@ else
             // Hub failed to connect — badge stays at Connecting...
         });
     }
+    // Anti-copy protection (Phase 280)
+    (function() {
+        var area = document.querySelector('.exam-protected');
+        if (!area) return;
+
+        // Block clipboard & context menu events pada area soal (silent)
+        ['copy','cut','paste','contextmenu','selectstart','dragstart'].forEach(function(evt) {
+            area.addEventListener(evt, function(e) { e.preventDefault(); });
+        });
+
+        // Block keyboard shortcuts (Ctrl+C/A/U/S/P) secara global
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                var blocked = [67, 65, 85, 83, 80]; // C, A, U, S, P
+                if (blocked.indexOf(e.keyCode) !== -1) {
+                    e.preventDefault();
+                }
+            }
+        });
+    })();
 </script>
 }
 
@@ -1098,6 +1118,15 @@ else
         pointer-events: none;
     }
     #examHeader { z-index: 1020; }
+
+    /* Anti-copy protection - area soal saja (Phase 280) */
+    .exam-protected {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
     .option-selected {
         background-color: #cfe2ff !important;
         border-color: #9ec5fe !important;

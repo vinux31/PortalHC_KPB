@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisa Fitur Admin — PortalHC KPB</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-bg: #eff6ff;
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --warning: #d97706;
+            --warning-bg: #fffbeb;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --info: #0891b2;
+            --info-bg: #ecfeff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #3b82f6 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 12px; }
+        .hero p { font-size: 1.15rem; opacity: .85; max-width: 700px; margin: 0 auto; }
+        .hero .badge {
+            display: inline-block;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: .85rem;
+            margin-top: 16px;
+        }
+
+        /* ── Container ── */
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+        /* ── TOC ── */
+        .toc {
+            background: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+        .toc h2 { font-size: 1.3rem; margin-bottom: 16px; color: var(--primary); }
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 10px;
+        }
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--gray-700);
+            font-size: .95rem;
+            transition: background .15s;
+        }
+        .toc-item:hover { background: var(--primary-bg); color: var(--primary); }
+        .toc-num {
+            width: 28px; height: 28px;
+            background: var(--primary-bg);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .8rem; font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ── Feature Card ── */
+        .feature {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+        .feature-header {
+            padding: 28px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .feature-icon {
+            width: 52px; height: 52px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem;
+            flex-shrink: 0;
+        }
+        .feature-header h2 { font-size: 1.35rem; }
+        .feature-header .priority {
+            margin-left: auto;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: .78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .priority-high { background: var(--warning-bg); color: var(--warning); }
+        .priority-medium { background: var(--info-bg); color: var(--info); }
+        .priority-low { background: var(--gray-100); color: var(--gray-500); }
+
+        .feature-body { padding: 28px 32px; }
+
+        /* ── Section inside feature ── */
+        .section { margin-bottom: 28px; }
+        .section:last-child { margin-bottom: 0; }
+        .section-title {
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-500);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .section-title::before {
+            content: '';
+            width: 3px; height: 14px;
+            border-radius: 2px;
+            background: var(--primary-light);
+        }
+
+        .desc { color: var(--gray-700); font-size: .95rem; }
+
+        /* ── Lists ── */
+        .check-list, .x-list, .num-list {
+            list-style: none;
+            padding: 0;
+        }
+        .check-list li, .x-list li, .num-list li {
+            padding: 6px 0;
+            padding-left: 28px;
+            position: relative;
+            font-size: .93rem;
+            color: var(--gray-700);
+        }
+        .check-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 4px;
+            color: var(--success);
+            font-weight: 700;
+        }
+        .x-list li::before {
+            content: '✗';
+            position: absolute;
+            left: 4px;
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        /* ── Impact Grid ── */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .impact-card {
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+        }
+        .impact-card .label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 4px;
+        }
+        .impact-card .value { font-size: .9rem; color: var(--gray-700); }
+        .impact-positive { border-color: #bbf7d0; background: #f0fdf4; }
+        .impact-positive .label { color: var(--success); }
+        .impact-negative { border-color: #fecaca; background: #fef2f2; }
+        .impact-negative .label { color: var(--danger); }
+        .impact-neutral { border-color: #e0e7ff; background: #eef2ff; }
+        .impact-neutral .label { color: var(--primary); }
+
+        /* ── Use Cases ── */
+        .use-case {
+            background: var(--gray-50);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--primary-light);
+        }
+        .use-case strong { color: var(--gray-900); }
+        .use-case p { font-size: .9rem; color: var(--gray-700); margin-top: 4px; }
+
+        /* ── Reference ── */
+        .ref-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .ref-chip {
+            background: var(--gray-100);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: .82rem;
+            color: var(--gray-700);
+        }
+
+        /* ── Table ── */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+        }
+        .comparison-table th {
+            background: var(--primary-bg);
+            color: var(--primary);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .comparison-table tr:hover td { background: var(--gray-50); }
+
+        /* ── Summary ── */
+        .summary-card {
+            background: linear-gradient(135deg, #1e3a5f, #1e40af);
+            color: white;
+            border-radius: var(--radius);
+            padding: 36px;
+            margin-top: 40px;
+        }
+        .summary-card h2 { font-size: 1.4rem; margin-bottom: 20px; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 16px;
+        }
+        .summary-item {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 10px;
+            padding: 18px;
+        }
+        .summary-item h3 { font-size: 1rem; margin-bottom: 6px; }
+        .summary-item p { font-size: .85rem; opacity: .8; }
+
+        /* ── Complexity badge ── */
+        .complexity {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+        .complexity-low { background: #dcfce7; color: #166534; }
+        .complexity-medium { background: #fef9c3; color: #854d0e; }
+        .complexity-high { background: #fee2e2; color: #991b1b; }
+
+        /* ── Responsive ── */
+        @media (max-width: 700px) {
+            .hero { padding: 36px 20px; }
+            .hero h1 { font-size: 1.6rem; }
+            .feature-header { flex-wrap: wrap; }
+            .feature-header .priority { margin-left: 0; }
+            .feature-body { padding: 20px; }
+            .impact-grid { grid-template-columns: 1fr; }
+        }
+
+        @media print {
+            .hero { padding: 30px 20px; }
+            .feature { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════ HERO ════════════════ -->
+<div class="hero">
+    <h1>Analisa Fitur Admin</h1>
+    <p>Kajian mendalam 8 fitur admin yang direkomendasikan untuk PortalHC KPB — fungsi, dampak, manfaat, risiko, dan referensi industri</p>
+    <span class="badge">Dokumen Referensi Internal — April 2026</span>
+</div>
+
+<div class="container">
+
+<!-- ════════════════ TOC ════════════════ -->
+<div class="toc">
+    <h2>Daftar Fitur yang Dibahas</h2>
+    <div class="toc-grid">
+        <a href="#impersonation" class="toc-item"><span class="toc-num">1</span> User Impersonation</a>
+        <a href="#announcement" class="toc-item"><span class="toc-num">2</span> Announcement / Broadcast</a>
+        <a href="#notification" class="toc-item"><span class="toc-num">3</span> In-App Notification</a>
+        <a href="#softdelete" class="toc-item"><span class="toc-num">4</span> Soft Delete / Recycle Bin</a>
+        <a href="#dashboard" class="toc-item"><span class="toc-num">5</span> Dashboard Statistik Admin</a>
+        <a href="#settings" class="toc-item"><span class="toc-num">6</span> System Settings</a>
+        <a href="#maintenance" class="toc-item"><span class="toc-num">7</span> Maintenance Mode</a>
+        <a href="#backup" class="toc-item"><span class="toc-num">8</span> Backup &amp; Restore</a>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 1. USER IMPERSONATION                           -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="impersonation">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#eef2ff;color:#4f46e5;">👤</div>
+        <div>
+            <h2>User Impersonation / View As Role</h2>
+            <span class="complexity complexity-high">Kompleksitas Tinggi</span>
+        </div>
+        <span class="priority priority-high">Prioritas Sedang</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Kemampuan admin untuk <strong>"melihat" atau "masuk ke" akun user lain</strong> tanpa mengetahui password mereka.
+                Admin bisa melihat persis apa yang dilihat oleh user tersebut — halaman, data, menu, tombol — seolah-olah sedang login sebagai user itu.
+                Setelah selesai, admin kembali ke akun aslinya dengan satu klik.
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dua Pendekatan</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Aspek</th><th>View As Role (Ringan)</th><th>Full Impersonation (Lengkap)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Cara Kerja</td><td>Dropdown di navbar: "Lihat sebagai User" — preview tampilan role tertentu</td><td>Pilih user spesifik dari daftar, login sebagai user tersebut</td></tr>
+                    <tr><td>Mode</td><td>Read-only — tidak bisa melakukan aksi</td><td>Bisa melakukan aksi atas nama user (tergantung konfigurasi)</td></tr>
+                    <tr><td>Data yang Dilihat</td><td>Data generik/sample sesuai role</td><td>Data asli milik user yang dipilih</td></tr>
+                    <tr><td>Kompleksitas</td><td>Rendah — hanya switch role di session</td><td>Tinggi — perlu audit trail, security layer, session management</td></tr>
+                    <tr><td>Cocok Untuk</td><td>Verifikasi tampilan, testing UI per role</td><td>Troubleshooting masalah spesifik user, support ticket</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fungsi Utama</div>
+            <ul class="check-list">
+                <li>Troubleshoot masalah yang dilaporkan user tanpa perlu minta screenshot</li>
+                <li>Verifikasi bahwa permission dan tampilan benar untuk setiap role</li>
+                <li>Testing fitur baru dari perspektif user sebelum rilis</li>
+                <li>Support user yang kesulitan tanpa harus datang ke tempat mereka</li>
+                <li>Debug data-specific issues (contoh: "assessment saya tidak muncul")</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">Efisiensi Support</div>
+                    <div class="value">Waktu troubleshoot berkurang 60-80%. Tidak perlu bolak-balik tanya screenshot ke user.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Quality Assurance</div>
+                    <div class="value">Admin bisa langsung verifikasi tampilan setiap role setelah update fitur.</div>
+                </div>
+                <div class="impact-card impact-negative">
+                    <div class="label">Risiko Keamanan</div>
+                    <div class="value">Jika tidak diimplementasi dengan benar, bisa disalahgunakan. Wajib ada audit trail lengkap.</div>
+                </div>
+                <div class="impact-card impact-neutral">
+                    <div class="label">Effort Implementasi</div>
+                    <div class="value">View As Role: 2-3 hari. Full Impersonation: 1-2 minggu (termasuk security layer).</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Contoh Skenario di PortalHC</div>
+            <div class="use-case">
+                <strong>Skenario 1: User lapor "saya tidak bisa lihat assessment"</strong>
+                <p>Admin klik "Impersonate" di profil user → melihat halaman CMP persis seperti user → menemukan bahwa user belum di-assign ke assessment → kembali ke akun admin → assign user.</p>
+            </div>
+            <div class="use-case">
+                <strong>Skenario 2: Testing role HC setelah update fitur</strong>
+                <p>Admin pilih "View as HC" → cek semua menu muncul dengan benar → verifikasi data yang tampil sesuai → switch kembali ke Admin.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Best Practice &amp; Pengaman</div>
+            <ul class="check-list">
+                <li><strong>Banner peringatan</strong> — Banner kuning/merah menyala selama impersonation aktif</li>
+                <li><strong>Tombol "Kembali ke Admin"</strong> — Selalu visible, satu klik untuk kembali</li>
+                <li><strong>Auto-expire</strong> — Session impersonation otomatis berakhir setelah 30 menit</li>
+                <li><strong>Audit log</strong> — Setiap impersonation tercatat: siapa, kapan, user mana, durasi</li>
+                <li><strong>Blokir aksi sensitif</strong> — Tidak bisa ubah password, role, atau setting saat impersonate</li>
+                <li><strong>Tidak bisa impersonate role setara/lebih tinggi</strong> — Admin tidak bisa impersonate admin lain</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">HubSpot (30 min auto-expire)</span>
+                <span class="ref-chip">WordPress (View Admin As plugin)</span>
+                <span class="ref-chip">Google Ad Manager</span>
+                <span class="ref-chip">Salesforce</span>
+                <span class="ref-chip">Okta</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 2. ANNOUNCEMENT / BROADCAST                     -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="announcement">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#fef3c7;color:#d97706;">📢</div>
+        <div>
+            <h2>Announcement / Broadcast</h2>
+            <span class="complexity complexity-medium">Kompleksitas Sedang</span>
+        </div>
+        <span class="priority priority-high">Prioritas Tinggi</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Fitur bagi admin untuk <strong>mengirim pengumuman atau pesan broadcast</strong> ke seluruh user atau kelompok tertentu.
+                Pengumuman muncul sebagai banner di atas halaman, pop-up saat login, atau item di halaman khusus pengumuman.
+                Ini menjadi saluran komunikasi resmi dari admin ke semua pengguna sistem.
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fungsi Utama</div>
+            <ul class="check-list">
+                <li>Menginformasikan jadwal assessment mendatang ke seluruh peserta</li>
+                <li>Memberitahu perubahan kebijakan, prosedur, atau aturan baru</li>
+                <li>Mengingatkan deadline pengumpulan dokumen atau sertifikat</li>
+                <li>Mengumumkan maintenance terjadwal atau downtime</li>
+                <li>Broadcast informasi urgent (misalnya: perubahan jadwal ujian mendadak)</li>
+                <li>Targeting: kirim ke semua, per unit/bagian, per role, atau per individu</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Jenis Tampilan Pengumuman</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Tipe</th><th>Tampilan</th><th>Cocok Untuk</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Banner</strong></td><td>Pita di atas halaman (bisa di-dismiss)</td><td>Info penting tapi tidak mendesak (maintenance terjadwal)</td></tr>
+                    <tr><td><strong>Modal Pop-up</strong></td><td>Dialog muncul saat login/buka app</td><td>Pengumuman wajib baca (perubahan kebijakan)</td></tr>
+                    <tr><td><strong>Halaman Pengumuman</strong></td><td>Daftar pengumuman dengan read/unread</td><td>Arsip lengkap, referensi kembali</td></tr>
+                    <tr><td><strong>Toast/Alert</strong></td><td>Notifikasi kecil di sudut layar</td><td>Info ringan, tidak mengganggu workflow</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">Komunikasi Terpusat</div>
+                    <div class="value">Semua pengumuman di satu tempat. Tidak ada lagi "saya tidak tahu" karena info tercecer di WA group.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Tracking Terbaca</div>
+                    <div class="value">Admin bisa tahu siapa yang sudah dan belum membaca pengumuman. Bisa follow-up yang belum baca.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Mengurangi Beban HC</div>
+                    <div class="value">HC tidak perlu WA satu-satu ke pekerja. Cukup buat pengumuman, semua yang login pasti lihat.</div>
+                </div>
+                <div class="impact-card impact-neutral">
+                    <div class="label">Effort Implementasi</div>
+                    <div class="value">3-5 hari kerja: tabel announcements, CRUD admin, rendering di layout, read tracking.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Contoh Skenario di PortalHC</div>
+            <div class="use-case">
+                <strong>Skenario 1: Jadwal assessment</strong>
+                <p>Admin buat pengumuman: "Assessment Operator akan dilaksanakan 15-17 April 2026. Pastikan semua peserta sudah mempelajari KKJ masing-masing." → Target: Unit Alkylation + RFCC NHT → Muncul sebagai banner saat login.</p>
+            </div>
+            <div class="use-case">
+                <strong>Skenario 2: Perubahan kebijakan</strong>
+                <p>Admin buat pengumuman modal: "Mulai Mei 2026, semua sertifikat wajib di-upload dalam 7 hari setelah terbit." → Target: Semua user → Wajib klik "Saya mengerti" sebelum bisa lanjut.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fitur yang Direkomendasikan</div>
+            <ul class="check-list">
+                <li>Rich text editor (bold, italic, link) untuk isi pengumuman</li>
+                <li>Lampiran file (PDF, gambar)</li>
+                <li>Penjadwalan publish (tanggal mulai & berakhir)</li>
+                <li>Target audience: semua, per bagian/unit, per role</li>
+                <li>Prioritas: Normal, Penting, Urgent (beda warna/ikon)</li>
+                <li>Status read/unread per user + laporan pembaca</li>
+                <li>Pin pengumuman (tetap di atas)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">Asana (announcement-only channel)</span>
+                <span class="ref-chip">Microsoft Teams (org-wide notification)</span>
+                <span class="ref-chip">Moodle LMS (site announcements)</span>
+                <span class="ref-chip">Google Workspace (admin alerts)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 3. IN-APP NOTIFICATION                          -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="notification">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#fce7f3;color:#db2777;">🔔</div>
+        <div>
+            <h2>In-App Notification</h2>
+            <span class="complexity complexity-high">Kompleksitas Tinggi</span>
+        </div>
+        <span class="priority priority-high">Prioritas Tinggi</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Sistem notifikasi di dalam aplikasi — ikon <strong>lonceng (🔔) di navbar</strong> yang menampilkan daftar pemberitahuan real-time.
+                Setiap event penting di sistem otomatis menghasilkan notifikasi ke user terkait. User bisa melihat daftar notifikasi,
+                menandai sudah dibaca, dan klik untuk langsung menuju halaman terkait.
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fungsi Utama</div>
+            <ul class="check-list">
+                <li>Notifikasi otomatis saat di-assign ke assessment baru</li>
+                <li>Reminder saat ujian hampir dimulai atau deadline mendekat</li>
+                <li>Pemberitahuan saat deliverable coaching di-approve atau di-reject</li>
+                <li>Alert saat sertifikat mendekati masa expired</li>
+                <li>Notifikasi saat ada pengumuman baru dari admin</li>
+                <li>Info saat coach memberikan feedback di sesi coaching</li>
+                <li>Badge counter (angka merah) menunjukkan jumlah unread</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Perbedaan dengan Announcement</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Aspek</th><th>Announcement</th><th>In-App Notification</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Siapa yang buat</td><td>Admin/HC manual</td><td>Sistem otomatis</td></tr>
+                    <tr><td>Konten</td><td>Pengumuman panjang, rich text</td><td>Pesan pendek, 1-2 kalimat</td></tr>
+                    <tr><td>Sifat</td><td>Satu ke banyak (broadcast)</td><td>Personal ke masing-masing user</td></tr>
+                    <tr><td>Contoh</td><td>"Assessment batch April dijadwalkan..."</td><td>"Anda telah di-assign ke Assessment Operator #12"</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">User Engagement</div>
+                    <div class="value">User tidak perlu mengecek setiap halaman. Notifikasi membawa info ke mereka.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Tidak Ada yang Terlewat</div>
+                    <div class="value">Deadline, approval, assignment — semua event penting pasti ternotifikasi.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Mengurangi Ketergantungan WA</div>
+                    <div class="value">Saat ini banyak info disampaikan via WA/telepon. Notifikasi in-app mengurangi beban ini.</div>
+                </div>
+                <div class="impact-card impact-negative">
+                    <div class="label">Risiko: Notification Fatigue</div>
+                    <div class="value">Terlalu banyak notifikasi = user abaikan semua. Harus dikurasi: hanya event penting.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Event yang Harus Generate Notifikasi</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Event</th><th>Penerima</th><th>Contoh Pesan</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Di-assign ke assessment</td><td>Peserta</td><td>"Anda ditambahkan ke Assessment Operator Batch 3"</td></tr>
+                    <tr><td>Ujian akan dimulai (H-1)</td><td>Peserta</td><td>"Assessment Operator dimulai besok, 15 April 2026"</td></tr>
+                    <tr><td>Hasil ujian keluar</td><td>Peserta</td><td>"Hasil assessment Anda sudah tersedia"</td></tr>
+                    <tr><td>Deliverable di-approve</td><td>Coachee</td><td>"Deliverable X telah di-approve oleh coach"</td></tr>
+                    <tr><td>Deliverable di-reject</td><td>Coachee</td><td>"Deliverable X perlu perbaikan — lihat catatan"</td></tr>
+                    <tr><td>Sertifikat hampir expired</td><td>Pekerja + HC</td><td>"Sertifikat ABC akan expired dalam 30 hari"</td></tr>
+                    <tr><td>Pengumuman baru</td><td>Target audience</td><td>"Pengumuman baru dari Admin: [judul]"</td></tr>
+                    <tr><td>Coach mengirim feedback</td><td>Coachee</td><td>"Coach memberikan feedback pada sesi #5"</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Komponen Teknis</div>
+            <ul class="check-list">
+                <li>Tabel <code>Notifications</code> (UserId, Title, Message, Link, IsRead, CreatedAt)</li>
+                <li>Icon lonceng di navbar dengan badge counter (unread count)</li>
+                <li>Dropdown panel saat klik lonceng — daftar notifikasi terbaru</li>
+                <li>Halaman "Semua Notifikasi" dengan filter dan pagination</li>
+                <li>"Tandai semua sebagai dibaca" button</li>
+                <li>Optional: polling setiap 60 detik untuk cek notifikasi baru (atau SignalR untuk real-time)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">GitHub (bell icon + notification page)</span>
+                <span class="ref-chip">LinkedIn</span>
+                <span class="ref-chip">Asana</span>
+                <span class="ref-chip">Jira</span>
+                <span class="ref-chip">Moodle LMS</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 4. SOFT DELETE / RECYCLE BIN                     -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="softdelete">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#ecfdf5;color:#059669;">🗑️</div>
+        <div>
+            <h2>Soft Delete / Recycle Bin</h2>
+            <span class="complexity complexity-medium">Kompleksitas Sedang</span>
+        </div>
+        <span class="priority priority-medium">Prioritas Sedang</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Saat admin menghapus data (user, assessment, soal, dll), data <strong>tidak benar-benar dihapus dari database</strong>,
+                melainkan ditandai sebagai "dihapus" (soft delete). Data yang dihapus masuk ke <strong>Recycle Bin</strong> — halaman khusus
+                dimana admin bisa melihat semua item yang terhapus dan <strong>me-restore</strong> jika terhapus karena kesalahan.
+                Setelah 30 hari, data otomatis dihapus permanen (hard delete).
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fungsi Utama</div>
+            <ul class="check-list">
+                <li>Mencegah kehilangan data akibat kesalahan hapus (human error)</li>
+                <li>Menyediakan "jaring pengaman" untuk operasi destruktif</li>
+                <li>Admin bisa restore data tanpa perlu kontak developer/DBA</li>
+                <li>Recycle Bin sebagai staging area sebelum penghapusan permanen</li>
+                <li>Auto-purge setelah retention period (misal 30 hari)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Cara Kerja</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Tahap</th><th>Apa yang Terjadi</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1. Admin klik "Hapus"</td><td>Data ditandai <code>IsDeleted = true</code>, <code>DeletedAt = DateTime.Now</code>. Data hilang dari tampilan normal tapi masih ada di database.</td></tr>
+                    <tr><td>2. Masuk Recycle Bin</td><td>Data muncul di halaman Recycle Bin. Admin bisa lihat apa saja yang terhapus.</td></tr>
+                    <tr><td>3. Restore (opsional)</td><td>Admin klik "Restore" → data kembali aktif, <code>IsDeleted = false</code>.</td></tr>
+                    <tr><td>4. Auto-purge</td><td>Setelah 30 hari, background job menghapus permanen dari database.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">Keamanan Data</div>
+                    <div class="value">Tidak ada lagi insiden "data hilang karena tidak sengaja dihapus". Bisa selalu di-restore.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Kemandirian Admin</div>
+                    <div class="value">Admin bisa self-service restore tanpa menghubungi developer untuk restore dari backup.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Compliance</div>
+                    <div class="value">Mendukung data retention policy. Data terhapus tetap tersedia selama periode tertentu.</div>
+                </div>
+                <div class="impact-card impact-negative">
+                    <div class="label">Ukuran Database</div>
+                    <div class="value">Data yang di-soft delete masih menempati storage. Perlu auto-purge untuk menjaga ukuran DB.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Entitas yang Perlu Soft Delete di PortalHC</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Entitas</th><th>Alasan</th><th>Dampak Jika Hilang</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Assessment</td><td>Berisi soal, peserta, hasil — data kompleks</td><td><strong>Tinggi</strong> — kehilangan riwayat ujian</td></tr>
+                    <tr><td>Paket Soal</td><td>Soal bisa ratusan, butuh waktu lama dibuat</td><td><strong>Tinggi</strong> — harus import ulang</td></tr>
+                    <tr><td>Data Pekerja</td><td>Sudah ada Deactivate, tapi delete masih hard</td><td><strong>Sedang</strong> — kehilangan riwayat training</td></tr>
+                    <tr><td>Sertifikat</td><td>Dokumen resmi, tidak boleh hilang sembarangan</td><td><strong>Tinggi</strong> — bukti kompetensi hilang</td></tr>
+                    <tr><td>Rekam Pelatihan</td><td>Riwayat training penting untuk audit</td><td><strong>Sedang</strong> — kehilangan catatan pelatihan</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Implementasi Teknis</div>
+            <ul class="check-list">
+                <li>Tambah kolom <code>IsDeleted</code>, <code>DeletedAt</code>, <code>DeletedBy</code> di setiap entitas</li>
+                <li>Global query filter di EF Core: <code>.HasQueryFilter(e => !e.IsDeleted)</code></li>
+                <li>Halaman Recycle Bin: daftar item terhapus, grouped by tipe entitas</li>
+                <li>Tombol Restore dan Hapus Permanen per item</li>
+                <li>Background job (Hangfire/hosted service) untuk auto-purge 30 hari</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">WordPress (Trash — 30 hari)</span>
+                <span class="ref-chip">Google Drive (Sampah — 30 hari)</span>
+                <span class="ref-chip">Salesforce (Recycle Bin — 15 hari)</span>
+                <span class="ref-chip">SharePoint (Site Recycle Bin)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 5. DASHBOARD STATISTIK ADMIN                    -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="dashboard">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#ede9fe;color:#7c3aed;">📊</div>
+        <div>
+            <h2>Dashboard Statistik Admin</h2>
+            <span class="complexity complexity-medium">Kompleksitas Sedang</span>
+        </div>
+        <span class="priority priority-high">Prioritas Tinggi</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Halaman dashboard khusus admin yang menampilkan <strong>ringkasan statistik dan KPI</strong> seluruh sistem dalam satu tampilan.
+                Saat admin login, langsung terlihat overview: berapa pekerja aktif, assessment berjalan, sertifikat expiring,
+                progress coaching, dan metrik penting lainnya — tanpa harus membuka satu per satu halaman.
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">KPI &amp; Metrik yang Ditampilkan</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Kategori</th><th>Metrik</th><th>Visualisasi</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td rowspan="3"><strong>Pekerja</strong></td><td>Total pekerja aktif vs non-aktif</td><td>Angka besar + badge</td></tr>
+                    <tr><td>Distribusi per bagian/unit</td><td>Bar chart horizontal</td></tr>
+                    <tr><td>Distribusi per role</td><td>Donut chart</td></tr>
+                    <tr><td rowspan="3"><strong>Assessment</strong></td><td>Assessment aktif (sedang berjalan)</td><td>Angka + status badge</td></tr>
+                    <tr><td>Tingkat kelulusan bulan ini</td><td>Persentase + trend arrow</td></tr>
+                    <tr><td>Assessment terjadwal mendatang</td><td>Mini calendar / list</td></tr>
+                    <tr><td rowspan="2"><strong>Sertifikat</strong></td><td>Sertifikat yang akan expired (30/60/90 hari)</td><td>Alert card berwarna</td></tr>
+                    <tr><td>Total sertifikat aktif vs expired</td><td>Pie chart</td></tr>
+                    <tr><td rowspan="2"><strong>Coaching</strong></td><td>Progress coaching keseluruhan</td><td>Progress bar</td></tr>
+                    <tr><td>Bottleneck approval (pending &gt; 7 hari)</td><td>Alert list</td></tr>
+                    <tr><td rowspan="2"><strong>Sistem</strong></td><td>User login hari ini</td><td>Angka</td></tr>
+                    <tr><td>Aktivitas terbaru (audit log singkat)</td><td>Timeline</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">Visibilitas Instan</div>
+                    <div class="value">Admin langsung tahu kondisi terkini tanpa harus membuka 10 halaman berbeda.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Deteksi Masalah Dini</div>
+                    <div class="value">Sertifikat expiring, approval bottleneck, assessment gagal — langsung terlihat sebelum jadi masalah besar.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Data-Driven Decision</div>
+                    <div class="value">Manajemen bisa ambil keputusan berdasarkan data real, bukan estimasi.</div>
+                </div>
+                <div class="impact-card impact-neutral">
+                    <div class="label">Effort Implementasi</div>
+                    <div class="value">3-5 hari: query aggregation, chart library (Chart.js), card layout, caching.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Contoh Skenario di PortalHC</div>
+            <div class="use-case">
+                <strong>Skenario: Admin buka dashboard pagi hari</strong>
+                <p>Langsung terlihat: 3 sertifikat expired minggu ini (alert merah), 2 assessment berjalan, 15 approval coaching pending &gt;7 hari (bottleneck). Admin langsung tahu harus follow-up apa hari ini.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fitur yang Direkomendasikan</div>
+            <ul class="check-list">
+                <li>Filter periode: hari ini, minggu ini, bulan ini, custom range</li>
+                <li>Filter unit/bagian untuk fokus area tertentu</li>
+                <li>Quick action buttons: langsung jump ke halaman terkait dari dashboard</li>
+                <li>Auto-refresh setiap 5 menit</li>
+                <li>Export dashboard sebagai PDF (untuk laporan manajemen)</li>
+                <li>Widget yang bisa di-reorder (nice-to-have)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">Google Admin Console</span>
+                <span class="ref-chip">HubSpot Dashboard</span>
+                <span class="ref-chip">Moodle Site Admin</span>
+                <span class="ref-chip">WordPress Dashboard</span>
+                <span class="ref-chip">Metabase</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 6. SYSTEM SETTINGS                              -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="settings">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#f0fdf4;color:#16a34a;">⚙️</div>
+        <div>
+            <h2>System Settings Page</h2>
+            <span class="complexity complexity-medium">Kompleksitas Sedang</span>
+        </div>
+        <span class="priority priority-medium">Prioritas Sedang</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Halaman pengaturan terpusat dimana admin bisa mengubah <strong>konfigurasi sistem tanpa harus edit code atau config file</strong>.
+                Semua parameter yang sering berubah — nama aplikasi, logo, batas waktu, aturan password, dll —
+                bisa diubah dari UI oleh admin. Perubahan langsung berlaku tanpa restart atau deploy ulang.
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Kategori Pengaturan</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Kategori</th><th>Parameter</th><th>Contoh Nilai</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td rowspan="3"><strong>Umum</strong></td><td>Nama Aplikasi</td><td>"PortalHC KPB"</td></tr>
+                    <tr><td>Logo (upload gambar)</td><td>logo-kpb.png</td></tr>
+                    <tr><td>Zona Waktu</td><td>Asia/Jakarta (WIB)</td></tr>
+                    <tr><td rowspan="3"><strong>Assessment</strong></td><td>Default durasi ujian (menit)</td><td>60</td></tr>
+                    <tr><td>Passing score default (%)</td><td>70</td></tr>
+                    <tr><td>Maksimum percobaan ujian</td><td>3</td></tr>
+                    <tr><td rowspan="3"><strong>Sertifikat</strong></td><td>Masa berlaku default (bulan)</td><td>24</td></tr>
+                    <tr><td>Reminder sebelum expired (hari)</td><td>30, 60, 90</td></tr>
+                    <tr><td>Template sertifikat</td><td>Upload template PDF/Word</td></tr>
+                    <tr><td rowspan="3"><strong>Keamanan</strong></td><td>Password minimum length</td><td>8</td></tr>
+                    <tr><td>Session timeout (menit)</td><td>30</td></tr>
+                    <tr><td>Max login attempts</td><td>5</td></tr>
+                    <tr><td rowspan="2"><strong>Coaching</strong></td><td>Jumlah sesi minimum per periode</td><td>4</td></tr>
+                    <tr><td>Auto-reminder interval (hari)</td><td>14</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">Fleksibilitas</div>
+                    <div class="value">Admin bisa sesuaikan parameter tanpa harus request ke developer. Perubahan instant.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Mengurangi Deploy</div>
+                    <div class="value">Tidak perlu deploy ulang untuk ganti passing score atau durasi ujian. Hemat waktu IT.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Audit Trail</div>
+                    <div class="value">Setiap perubahan setting tercatat di log. Tahu siapa yang ubah apa, kapan.</div>
+                </div>
+                <div class="impact-card impact-negative">
+                    <div class="label">Risiko Misconfiguration</div>
+                    <div class="value">Setting yang salah bisa merusak alur kerja. Perlu validasi range, confirmation dialog, dan rollback.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Contoh Skenario di PortalHC</div>
+            <div class="use-case">
+                <strong>Skenario: Ubah passing score assessment</strong>
+                <p>Manajemen putuskan passing score naik dari 70% ke 75%. Admin buka Settings → Assessment → ubah Passing Score → Save. Semua assessment baru otomatis pakai 75%. Tidak perlu kontak developer.</p>
+            </div>
+            <div class="use-case">
+                <strong>Skenario: Ganti logo perusahaan</strong>
+                <p>Perusahaan rebranding. Admin buka Settings → Umum → Upload logo baru → Save. Logo di seluruh halaman langsung berubah.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Implementasi Teknis</div>
+            <ul class="check-list">
+                <li>Tabel <code>SystemSettings</code> (Key, Value, Category, DataType, Description)</li>
+                <li>Service <code>ISettingsService</code> dengan caching (MemoryCache/Redis)</li>
+                <li>UI: halaman tab per kategori, form input sesuai tipe data</li>
+                <li>Validasi: min/max, required, tipe data, confirmation sebelum save</li>
+                <li>Audit log: catat setiap perubahan setting</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">WordPress (Settings → General/Reading/Writing)</span>
+                <span class="ref-chip">Moodle (Site Administration)</span>
+                <span class="ref-chip">GitLab (Admin Area → Settings)</span>
+                <span class="ref-chip">Jira (System → General Config)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 7. MAINTENANCE MODE                             -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="maintenance">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#fff7ed;color:#ea580c;">🔧</div>
+        <div>
+            <h2>Maintenance Mode</h2>
+            <span class="complexity complexity-low">Kompleksitas Rendah</span>
+        </div>
+        <span class="priority priority-medium">Prioritas Sedang</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Kemampuan admin untuk <strong>menonaktifkan akses user ke website</strong> secara sementara selama proses pemeliharaan
+                (update database, deploy versi baru, migrasi data, dll). User yang mencoba akses akan melihat halaman
+                "Sedang Dalam Pemeliharaan" yang informatif, sementara admin tetap bisa login dan bekerja.
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fungsi Utama</div>
+            <ul class="check-list">
+                <li>Toggle on/off maintenance mode dari admin panel (satu klik)</li>
+                <li>Halaman maintenance kustom: pesan, estimasi waktu selesai, contact info</li>
+                <li>Admin & HC tetap bisa login selama maintenance (bypass)</li>
+                <li>Penjadwalan maintenance: set waktu mulai & selesai otomatis</li>
+                <li>Auto-disable maintenance mode saat waktu selesai tercapai</li>
+                <li>User yang sedang login saat maintenance diaktifkan: redirect ke halaman maintenance</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">Profesional</div>
+                    <div class="value">Daripada user melihat error 500 saat update, mereka lihat halaman informatif yang rapi.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Keamanan Update</div>
+                    <div class="value">Mencegah user mengakses data saat database sedang dalam proses migrasi (risiko data corrupt).</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Kontrol Admin</div>
+                    <div class="value">Admin bisa verifikasi update berhasil sebelum membuka akses ke semua user.</div>
+                </div>
+                <div class="impact-card impact-neutral">
+                    <div class="label">Effort Implementasi</div>
+                    <div class="value">1-2 hari saja: middleware check, halaman maintenance, toggle di settings.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Contoh Skenario di PortalHC</div>
+            <div class="use-case">
+                <strong>Skenario: Deploy versi baru</strong>
+                <p>Admin aktifkan maintenance mode → Deploy versi baru → Test cepat oleh admin → Maintenance mode off → User bisa akses lagi. Total downtime hanya yang benar-benar diperlukan.</p>
+            </div>
+            <div class="use-case">
+                <strong>Skenario: Maintenance terjadwal</strong>
+                <p>Admin jadwalkan maintenance Sabtu 22:00 - Minggu 02:00. Pengumuman otomatis muncul H-1. Saat waktunya tiba, sistem otomatis masuk maintenance mode. Pukul 02:00 otomatis kembali normal.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Tampilan Halaman Maintenance</div>
+            <ul class="check-list">
+                <li>Logo perusahaan</li>
+                <li>Pesan: "Sistem sedang dalam pemeliharaan"</li>
+                <li>Estimasi waktu selesai</li>
+                <li>Progress bar (opsional)</li>
+                <li>Contact person untuk keadaan darurat</li>
+                <li>Design yang profesional dan menenangkan</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Implementasi Teknis</div>
+            <ul class="check-list">
+                <li>Middleware ASP.NET Core: cek flag maintenance, bypass untuk role Admin/HC</li>
+                <li>Setting di database: <code>MaintenanceMode</code> (bool), <code>MaintenanceMessage</code>, <code>MaintenanceEndTime</code></li>
+                <li>Halaman static maintenance (tidak bergantung database — fallback)</li>
+                <li>Toggle di halaman System Settings</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">WordPress (maintenance-mode plugin)</span>
+                <span class="ref-chip">Laravel (php artisan down)</span>
+                <span class="ref-chip">Shopify (password-protected storefront)</span>
+                <span class="ref-chip">GitHub (status page)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 8. BACKUP & RESTORE                             -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" id="backup">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#ecfeff;color:#0891b2;">💾</div>
+        <div>
+            <h2>Backup &amp; Restore</h2>
+            <span class="complexity complexity-high">Kompleksitas Tinggi</span>
+        </div>
+        <span class="priority priority-medium">Prioritas Sedang</span>
+    </div>
+    <div class="feature-body">
+
+        <div class="section">
+            <div class="section-title">Apa Ini?</div>
+            <p class="desc">
+                Fitur bagi admin untuk <strong>membuat backup (cadangan) database dan file</strong> dari dalam admin panel,
+                serta me-restore ke titik tertentu jika terjadi masalah. Ini memberikan admin kontrol penuh atas
+                keamanan data tanpa harus bergantung pada developer atau DBA untuk operasi backup manual.
+            </p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Jenis Backup</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr><th>Jenis</th><th>Apa yang Di-backup</th><th>Ukuran</th><th>Waktu</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Database Full</strong></td><td>Seluruh database (tabel, data, stored procedure)</td><td>Besar</td><td>5-15 menit</td></tr>
+                    <tr><td><strong>Database Differential</strong></td><td>Hanya perubahan sejak full backup terakhir</td><td>Kecil</td><td>1-3 menit</td></tr>
+                    <tr><td><strong>File/Media</strong></td><td>Uploaded files (KKJ, CPDP, sertifikat, foto)</td><td>Variabel</td><td>Tergantung jumlah file</td></tr>
+                    <tr><td><strong>Full System</strong></td><td>Database + semua file upload</td><td>Besar</td><td>10-30 menit</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fungsi Utama</div>
+            <ul class="check-list">
+                <li><strong>Manual Backup</strong> — Admin klik "Backup Now" kapan saja, misal sebelum update besar</li>
+                <li><strong>Scheduled Backup</strong> — Otomatis backup harian/mingguan (cron job)</li>
+                <li><strong>Download Backup</strong> — Admin bisa download file backup ke komputer lokal</li>
+                <li><strong>Restore</strong> — Pilih backup point → restore database ke kondisi saat itu</li>
+                <li><strong>Retention Policy</strong> — Simpan 7 daily + 4 weekly + 3 monthly (rotasi otomatis)</li>
+                <li><strong>Backup History</strong> — Daftar semua backup: tanggal, ukuran, tipe, status</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dampak &amp; Manfaat</div>
+            <div class="impact-grid">
+                <div class="impact-card impact-positive">
+                    <div class="label">Disaster Recovery</div>
+                    <div class="value">Jika terjadi kerusakan data, bisa restore dalam hitungan menit — bukan jam atau hari.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Ketenangan Pikiran</div>
+                    <div class="value">Admin tahu data selalu aman karena backup rutin. Bisa berani lakukan perubahan besar.</div>
+                </div>
+                <div class="impact-card impact-positive">
+                    <div class="label">Compliance</div>
+                    <div class="value">Banyak standar keamanan (ISO 27001, dll) mewajibkan backup rutin + kemampuan restore.</div>
+                </div>
+                <div class="impact-card impact-negative">
+                    <div class="label">Storage Cost</div>
+                    <div class="value">Backup membutuhkan storage tambahan. Perlu retention policy agar tidak membengkak.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Contoh Skenario di PortalHC</div>
+            <div class="use-case">
+                <strong>Skenario 1: Sebelum migrasi data besar</strong>
+                <p>Admin mau import 500 data pekerja baru. Sebelumnya, klik "Backup Now". Jika import bermasalah, tinggal restore ke titik sebelum import.</p>
+            </div>
+            <div class="use-case">
+                <strong>Skenario 2: Data corrupt</strong>
+                <p>Bug di aplikasi menyebabkan data assessment ter-overwrite. Admin buka Backup Manager → pilih backup 1 jam lalu → Restore → data kembali normal.</p>
+            </div>
+            <div class="use-case">
+                <strong>Skenario 3: Audit reguler</strong>
+                <p>Setiap hari Senin pagi, admin cek Backup History → verifikasi backup otomatis berjalan → download backup mingguan untuk disimpan di drive eksternal.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Peringatan &amp; Risiko</div>
+            <ul class="x-list">
+                <li><strong>Restore = menimpa data saat ini.</strong> Data yang dibuat setelah backup point akan hilang. Perlu confirmation berlapis.</li>
+                <li><strong>Backup bisa gagal diam-diam.</strong> Perlu monitoring & alert jika scheduled backup gagal.</li>
+                <li><strong>File backup berisi semua data sensitif.</strong> Harus dienkripsi dan akses dibatasi.</li>
+                <li><strong>Restore di production server berisiko tinggi.</strong> Idealnya test restore di staging dulu.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Implementasi Teknis</div>
+            <ul class="check-list">
+                <li>SQL Server: <code>BACKUP DATABASE</code> / <code>RESTORE DATABASE</code> via SqlCommand</li>
+                <li>Simpan backup di folder terpisah (atau cloud storage: Azure Blob, S3)</li>
+                <li>Hosted Service / Hangfire untuk scheduled backup</li>
+                <li>Halaman admin: Backup Manager (list, create, download, restore, delete)</li>
+                <li>Email/notification jika backup gagal</li>
+                <li>Enkripsi file backup (AES-256)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Platform Referensi</div>
+            <div class="ref-chips">
+                <span class="ref-chip">WordPress (UpdraftPlus, BackWPup)</span>
+                <span class="ref-chip">cPanel (Backup Wizard)</span>
+                <span class="ref-chip">phpMyAdmin (Export/Import)</span>
+                <span class="ref-chip">Azure SQL (Automated Backups)</span>
+                <span class="ref-chip">AWS RDS (Snapshots)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SUMMARY                                         -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="summary-card">
+    <h2>Ringkasan Rekomendasi Implementasi</h2>
+    <div class="summary-grid">
+        <div class="summary-item">
+            <h3>🏆 Fase 1 — Quick Wins</h3>
+            <p><strong>Maintenance Mode</strong> (1-2 hari) + <strong>Dashboard Statistik</strong> (3-5 hari). Dampak tinggi, effort rendah.</p>
+        </div>
+        <div class="summary-item">
+            <h3>📢 Fase 2 — Komunikasi</h3>
+            <p><strong>Announcement</strong> (3-5 hari) + <strong>In-App Notification</strong> (5-7 hari). Mengubah cara komunikasi admin-user.</p>
+        </div>
+        <div class="summary-item">
+            <h3>🛡️ Fase 3 — Keamanan Data</h3>
+            <p><strong>Soft Delete</strong> (3-5 hari) + <strong>Backup &amp; Restore</strong> (5-7 hari). Jaring pengaman untuk semua data.</p>
+        </div>
+        <div class="summary-item">
+            <h3>⚙️ Fase 4 — Konfigurabilitas</h3>
+            <p><strong>System Settings</strong> (3-5 hari) + <strong>User Impersonation</strong> (5-10 hari). Admin self-service penuh.</p>
+        </div>
+    </div>
+    <p style="margin-top:24px;opacity:.8;font-size:.9rem;">
+        Total estimasi: <strong>24-46 hari kerja</strong> untuk ke-8 fitur. Bisa diimplementasi bertahap per fase.
+    </p>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- COMPARISON MATRIX                               -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="feature" style="margin-top: 32px;">
+    <div class="feature-header">
+        <div class="feature-icon" style="background:#f0f9ff;color:#0369a1;">📋</div>
+        <h2>Matriks Perbandingan Keseluruhan</h2>
+    </div>
+    <div class="feature-body">
+        <div style="overflow-x:auto;">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Fitur</th>
+                    <th>Kompleksitas</th>
+                    <th>Effort</th>
+                    <th>Dampak ke User</th>
+                    <th>Dampak ke Admin</th>
+                    <th>Risiko</th>
+                    <th>ROI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>User Impersonation</td>
+                    <td><span class="complexity complexity-high">Tinggi</span></td>
+                    <td>5-10 hari</td>
+                    <td>Rendah</td>
+                    <td><strong>Tinggi</strong></td>
+                    <td>Sedang (security)</td>
+                    <td>⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>Announcement</td>
+                    <td><span class="complexity complexity-medium">Sedang</span></td>
+                    <td>3-5 hari</td>
+                    <td><strong>Tinggi</strong></td>
+                    <td><strong>Tinggi</strong></td>
+                    <td>Rendah</td>
+                    <td>⭐⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>In-App Notification</td>
+                    <td><span class="complexity complexity-high">Tinggi</span></td>
+                    <td>5-7 hari</td>
+                    <td><strong>Tinggi</strong></td>
+                    <td>Sedang</td>
+                    <td>Rendah</td>
+                    <td>⭐⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>Soft Delete</td>
+                    <td><span class="complexity complexity-medium">Sedang</span></td>
+                    <td>3-5 hari</td>
+                    <td>Rendah</td>
+                    <td><strong>Tinggi</strong></td>
+                    <td>Rendah</td>
+                    <td>⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>Dashboard Statistik</td>
+                    <td><span class="complexity complexity-medium">Sedang</span></td>
+                    <td>3-5 hari</td>
+                    <td>Rendah</td>
+                    <td><strong>Tinggi</strong></td>
+                    <td>Rendah</td>
+                    <td>⭐⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>System Settings</td>
+                    <td><span class="complexity complexity-medium">Sedang</span></td>
+                    <td>3-5 hari</td>
+                    <td>Rendah</td>
+                    <td><strong>Tinggi</strong></td>
+                    <td>Sedang (misconfig)</td>
+                    <td>⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>Maintenance Mode</td>
+                    <td><span class="complexity complexity-low">Rendah</span></td>
+                    <td>1-2 hari</td>
+                    <td>Sedang</td>
+                    <td>Sedang</td>
+                    <td>Rendah</td>
+                    <td>⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>Backup & Restore</td>
+                    <td><span class="complexity complexity-high">Tinggi</span></td>
+                    <td>5-7 hari</td>
+                    <td>Rendah</td>
+                    <td><strong>Tinggi</strong></td>
+                    <td>Tinggi (restore)</td>
+                    <td>⭐⭐⭐⭐</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+</div><!-- /container -->
+
+<footer style="text-align:center;padding:32px;color:var(--gray-500);font-size:.85rem;border-top:1px solid var(--gray-200);margin-top:20px;">
+    Dokumen Analisa Fitur Admin — PortalHC KPB &nbsp;|&nbsp; April 2026
+</footer>
+
+</body>
+</html>

@@ -1,7 +1,10 @@
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @using HcPortal.Models
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
+@inject Microsoft.Extensions.Caching.Memory.IMemoryCache _maintenanceCache
+@inject HcPortal.Data.ApplicationDbContext _maintenanceDb
 @{
     var currentUser = await UserManager.GetUserAsync(User);
     var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
@@ -11,6 +14,19 @@
     var initials = nameParts.Length >= 2
         ? $"{nameParts[0][0]}{nameParts[1][0]}".ToUpper()
         : (fullName.Length >= 2 ? fullName.Substring(0, 2).ToUpper() : "?");
+
+    // Override display info saat impersonation aktif
+    var isImpersonatingEarly = Context.Items["IsImpersonating"] is true;
+    var displayName = isImpersonatingEarly
+        ? (Context.Items["ImpersonateTargetName"]?.ToString() ?? fullName)
+        : fullName;
+    var displayRole = isImpersonatingEarly
+        ? (Context.Items["ImpersonateTargetRole"]?.ToString() ?? Context.Items["ImpersonateMode"]?.ToString() ?? userRole)
+        : userRole;
+    var displayNameParts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var displayInitials = displayNameParts.Length >= 2
+        ? $"{displayNameParts[0][0]}{displayNameParts[1][0]}".ToUpper()
+        : (displayName.Length >= 2 ? displayName.Substring(0, 2).ToUpper() : "?");
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -40,28 +56,54 @@
 @{
     var isImpersonating = Context.Items["IsImpersonating"] is true;
     var effectiveRole = Context.Items["ImpersonateTargetRole"]?.ToString();
-    var showAdminMenu = effectiveRole == null && (User.IsInRole("Admin") || User.IsInRole("HC"));
+    var showAdminMenu = isImpersonating
+        ? (effectiveRole == "HC" || effectiveRole == "Admin")
+        : (User.IsInRole("Admin") || User.IsInRole("HC"));
 }
 <body class="bg-light @(isImpersonating ? "impersonating" : "")" data-impersonating="@(isImpersonating ? "true" : "false")">
 
     @await Html.PartialAsync("_ImpersonationBanner")
 
+    @{
+        HcPortal.Models.MaintenanceMode? _mState = null;
+        if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("HC")))
+        {
+            if (!_maintenanceCache.TryGetValue("MaintenanceMode_State", out object? _mObj))
+            {
+                _mState = await _maintenanceDb.MaintenanceModes.FirstOrDefaultAsync();
+            }
+            else
+            {
+                _mState = _mObj as HcPortal.Models.MaintenanceMode;
+            }
+        }
+    }
+    @if (_mState != null && _mState.IsEnabled && (User.IsInRole("Admin") || User.IsInRole("HC")))
+    {
+        <div class="bg-warning text-dark text-center py-2 small">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Mode Pemeliharaan Aktif</strong> — @(_mState.Scope == "All" ? "Seluruh Website" : "Halaman: " + _mState.Scope)
+            <a href="/Admin/Maintenance" class="btn btn-sm btn-outline-dark ms-2">Kelola</a>
+        </div>
+    }
+
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4 sticky-top">
             <div class="container-fluid px-4">
-
+                
                 <a class="navbar-brand fw-bold text-primary d-flex align-items-center" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-buildings-fill me-2 fs-4"></i> HC Portal
                 </a>
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" 
                         aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
+                
                 <div class="collapse navbar-collapse" id="mainNav">
-
+                    
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                        
 
 
                         <li class="nav-item">
@@ -96,21 +138,21 @@
                                 @await Component.InvokeAsync("NotificationBell")
                             </div>
                             <div class="text-end me-3 d-none d-lg-block">
-                                <div class="fw-bold text-dark small">@currentUser.FullName</div>
+                                <div class="fw-bold text-dark small">@displayName</div>
                                 <div class="d-flex align-items-center justify-content-end gap-1">
-                                    <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.65rem;">@userRole</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.65rem;">@displayRole</span>
                                 </div>
                             </div>
 
                             <div class="dropdown">
                                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                                    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold"
-                                         style="width: 38px; height: 38px;">@initials</div>
+                                    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" 
+                                         style="width: 38px; height: 38px;">@displayInitials</div>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width: 200px;">
                                     <li class="d-lg-none px-3 py-2 border-bottom">
-                                        <div class="fw-bold">@currentUser.FullName</div>
-                                        <div class="small text-muted">@userRole</div>
+                                        <div class="fw-bold">@displayName</div>
+                                        <div class="small text-muted">@displayRole</div>
                                     </li>
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person me-2"></i> My Profile</a></li>
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Settings"><i class="bi bi-gear me-2"></i> Settings</a></li>
@@ -259,7 +301,7 @@
                         }
                         resultsDiv.innerHTML = users.map(function(u) {
                             return '<button type="button" class="list-group-item list-group-item-action py-1 px-2" data-userid="' + u.id + '">'
-                                + '<strong>' + u.fullName + '</strong> <small class="text-muted">' + u.nip + '</small>'
+                                + '<strong>' + u.fullName + '</strong>' + (u.nip ? ' <small class="text-muted">' + u.nip + '</small>' : '')
                                 + ' <span class="badge bg-secondary">' + u.selectedView + '</span></button>';
                         }).join('');
                     });

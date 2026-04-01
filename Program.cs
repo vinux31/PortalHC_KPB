@@ -49,6 +49,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 // Audit log service
 builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
+builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 
 // Impersonation service — Phase 283
 builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
@@ -193,6 +194,7 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<HcPortal.Middleware.MaintenanceModeMiddleware>();
+app.UseMiddleware<HcPortal.Middleware.ImpersonationMiddleware>();
 
 app.UseMiddleware<HcPortal.Middleware.ImpersonationMiddleware>();
 
