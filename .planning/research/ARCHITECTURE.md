@@ -1,272 +1,235 @@
-# Architecture Patterns: Pre-deployment Audit & Finalization
+# Architecture: 7 Admin Features Integration
 
-**Domain:** ASP.NET Core MVC portal deployment ke IIS production
-**Researched:** 2026-03-25
-**Confidence:** HIGH (analisis langsung dari Program.cs, appsettings, csproj)
+**Project:** PortalHC KPB v11.2
+**Researched:** 2026-04-01
+**Confidence:** HIGH (semua pattern adalah standard ASP.NET Core, diverifikasi langsung dari codebase)
 
----
-
-## Arsitektur Saat Ini (Development)
+## Snapshot Arsitektur Saat Ini
 
 ```
-Browser -> Kestrel (localhost:5xxx) -> ASP.NET Core 8 MVC
-                                        |
-                                        +-- EF Core -> SQLite (HcPortal.db)
-                                        +-- Identity (local password auth)
-                                        +-- SignalR (AssessmentHub)
-                                        +-- ClosedXML, QuestPDF
+Program.cs Pipeline:
+  StaticFiles -> Routing -> Session -> Authentication -> Authorization -> MVC
+
+Controllers (7):
+  AccountController       — Auth, Profile
+  HomeController          — Dashboard, Guide
+  CMPController           — Assessment/Exam flow
+  CDPController           — IDP/Coaching
+  AdminController         — 8350 baris, ~95 actions, [Authorize] + per-action roles
+  ProtonDataController    — Silabus data
+  NotificationController  — Sudah ada (Phase 99), INotificationService
+
+Services (DI):
+  AuditLogService, INotificationService, IAuthService, IWorkerDataService
+
+Hubs:
+  AssessmentHub (SignalR)
+
+DB: SQL Server via EF Core, ApplicationDbContext
+Auth: ASP.NET Identity + cookie auth, 8 jam session
+Caching: AddMemoryCache() terdaftar tapi belum dipakai
+Session: DistributedMemoryCache + Session configured
 ```
 
-## Arsitektur Target (Production)
+## Peta Komponen: Baru vs Modifikasi
+
+### Komponen BARU
+
+| Komponen | Tipe | Fitur |
+|----------|------|-------|
+| `Middleware/MaintenanceModeMiddleware.cs` | Middleware | Maintenance Mode |
+| `Services/ISystemSettingsService.cs` | Interface | System Settings |
+| `Services/SystemSettingsService.cs` | Implementasi | System Settings |
+| `Services/IImpersonationService.cs` | Interface | Impersonation |
+| `Services/ImpersonationService.cs` | Implementasi | Impersonation |
+| `Services/IAnnouncementService.cs` | Interface | Announcement |
+| `Services/AnnouncementService.cs` | Implementasi | Announcement |
+| `Services/BackupService.cs` | Service | Backup & Restore |
+| `Models/Announcement.cs` | Entity | Announcement |
+| `Models/SystemSetting.cs` | Entity | System Settings |
+| `Views/Admin/Announcements.cshtml` | View | Announcement CRUD |
+| `Views/Admin/SystemSettings.cshtml` | View | Settings page |
+| `Views/Admin/MaintenanceMode.cshtml` | View | Maintenance toggle |
+| `Views/Admin/DashboardStatistik.cshtml` | View | Stats dashboard |
+| `Views/Admin/BackupRestore.cshtml` | View | Backup management |
+| `Views/Shared/_ImpersonationBanner.cshtml` | Partial | Indikator impersonation |
+| `Views/Shared/_AnnouncementBanner.cshtml` | Partial | Announcement aktif |
+| `Views/Shared/MaintenancePage.cshtml` | View | Halaman maintenance untuk non-admin |
+
+### Komponen yang DIMODIFIKASI
+
+| Komponen | Modifikasi | Fitur |
+|----------|-----------|-------|
+| `Program.cs` | Register service baru + middleware | Semua 7 |
+| `AdminController.cs` | Tambah ~30-40 action baru | Semua 7 (CRUD, toggle, stats) |
+| `Views/Shared/_Layout.cshtml` | Tambah banner impersonation + announcement | Impersonation, Announcement |
+| `ApplicationDbContext.cs` | Tambah DbSet entity baru | Announcement, SystemSetting |
+| `Data/SeedData.cs` | Seed default system settings | System Settings |
+| `Services/NotificationService.cs` | Tambah trigger method untuk event baru | In-App Notification |
+
+## Titik Integrasi Per Fitur
+
+### 1. System Settings (Key-Value Store)
+- **Entity baru:** `SystemSetting { Key, Value, Type, Description, Category }`
+- **Service:** Baca dari DB, cache di `IMemoryCache` (sudah terdaftar di DI)
+- **Integrasi:** Fitur lain MEMBACA settings (flag maintenance mode, announcement enabled, dll.)
+- **Dependensi:** TIDAK ADA — fondasi untuk fitur lain
+
+### 2. Maintenance Mode
+- **Middleware baru:** Disisipkan di pipeline SETELAH `UseSession`, SEBELUM `UseAuthentication`
+- **Membaca:** `SystemSettingsService` untuk cek flag maintenance
+- **Bypass:** Cek role Admin (perlu baca auth cookie lebih awal, atau simpan bypass token di session)
+- **Perubahan pipeline:** `app.UseMiddleware<MaintenanceModeMiddleware>()`
+- **Dependensi:** System Settings (membaca flag)
+
+### 3. Announcement
+- **Entity baru:** `Announcement { Title, Content, Type, StartDate, EndDate, IsActive, CreatedBy }`
+- **Rendering:** Partial di `_Layout.cshtml`, query announcement aktif via ViewComponent atau layout injection
+- **CRUD:** ~6 action di AdminController
+- **Dependensi:** TIDAK ADA (opsional membaca "announcement enabled" dari System Settings)
+
+### 4. Dashboard Statistik
+- **Read-only murni:** Query agregasi pada entity yang sudah ada (Users, Assessments, Exams, dll.)
+- **Tidak ada entity baru:** Hanya view + controller action yang return stats
+- **Dependensi:** TIDAK ADA
+
+### 5. User Impersonation
+- **Manipulasi claims:** Admin sign in sebagai target user dengan rebuild ClaimsPrincipal
+- **Session tracking:** Simpan `OriginalUserId` di session untuk enable "revert"
+- **Banner:** Partial view di `_Layout.cshtml` ditampilkan saat session punya flag impersonation
+- **Keamanan:** Hanya role Admin yang bisa initiate; audit log setiap start/end impersonation
+- **Dependensi:** AuditLogService (sudah ada), System Settings (opsional toggle enable/disable)
+
+### 6. In-App Notification (Enhancement)
+- **Sudah ada:** `NotificationController`, `INotificationService`, entity notification
+- **Enhancement:** Tambah event trigger di controller lain (assessment selesai, announcement baru, dll.)
+- **Dependensi:** Announcement (trigger saat announcement baru), Impersonation (suppress notif saat impersonating?)
+
+### 7. Backup & Restore
+- **SQL Server commands:** `BACKUP DATABASE` / `RESTORE DATABASE` via `ExecuteSqlRawAsync`
+- **File management:** Simpan .bak di path configurable dari System Settings
+- **Async:** Long-running — gunakan Task.Run dengan progress tracking via SignalR atau polling
+- **Dependensi:** System Settings (backup path, retention count)
+
+## Pipeline Middleware (Terupdate)
 
 ```
-Browser -> IIS (Reverse Proxy, HTTPS) -> Kestrel (in-process)
-              |                              |
-              +-- HTTPS termination          +-- EF Core -> SQL Server
-              +-- WebSocket enabled          +-- Identity + HybridAuthService -> AD (LDAP)
-              +-- Static file caching        +-- SignalR (WebSocket)
-              +-- Request filtering          +-- ClosedXML, QuestPDF (temp file access)
+StaticFiles
+  -> Routing
+    -> Session
+      -> MaintenanceModeMiddleware  <-- BARU (sebelum auth, setelah session)
+        -> Authentication
+          -> Authorization
+            -> MVC Endpoints + SignalR
 ```
 
----
+**Kenapa sebelum Authentication:** Halaman maintenance harus ditampilkan ke user yang belum login juga. Middleware cek session/cookie untuk bypass admin.
 
-## Integration Points: Apa yang Berubah untuk Production
-
-### 1. Database: SQLite -> SQL Server
-
-**Status:** Sudah disiapkan. `appsettings.Production.json` punya template SQL Server connection string. Package `Microsoft.EntityFrameworkCore.SqlServer` sudah di csproj.
-
-**Yang perlu dilakukan:**
-- Isi placeholder credential di `appsettings.Production.json` (atau lebih baik via environment variable)
-- Jalankan migration terhadap SQL Server: `dotnet ef database update`
-- Audit semua `ExecuteSqlRaw` / `FromSqlRaw` / `SqlQueryRaw` untuk SQLite-specific syntax
-- Program.cs line 129-135: PRAGMA WAL block sudah ada guard `ProviderName == Sqlite` -- aman, tapi bersihkan jika hanya target SQL Server
-
-**Risiko:** Raw SQL yang SQLite-specific. Ditemukan di Program.cs (PRAGMA -- sudah di-guard). Perlu scan seluruh codebase untuk raw SQL lain.
-
-### 2. Authentication: Local -> AD (LDAP)
-
-**Status:** Sudah disiapkan lengkap. Infrastruktur sudah ada:
-
-| File | Peran | Status |
-|------|-------|--------|
-| `Services/HybridAuthService.cs` | Router: AD first, local fallback untuk admin | Ready |
-| `Services/LdapAuthService.cs` | LDAP bind ke domain controller | Ready |
-| `Services/LocalAuthService.cs` | Identity password check (fallback) | Ready |
-| `Services/IAuthService.cs` | Interface abstraction | Ready |
-| Program.cs line 57-87 | Config toggle DI registration | Ready |
-
-**Yang perlu dilakukan:**
-- Set `Authentication:UseActiveDirectory = true` di production
-- Konfigurasi `LdapPath` sesuai domain controller production (saat ini: `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com`)
-- Pastikan IIS app pool identity punya network access ke domain controller
-- Test: admin@pertamina.com tetap bisa login via local fallback
-
-### 3. IIS Hosting Configuration
-
-**Yang perlu dibuat/dikonfigurasi:**
-
-| Item | Status | Detail |
-|------|--------|--------|
-| `web.config` | **Belum ada** | AspNetCoreModuleV2, WebSocket enable, environment var |
-| IIS App Pool | Belum | .NET CLR = No Managed Code, Pipeline = Integrated |
-| WebSocket protocol | Belum | Wajib untuk SignalR (`/hubs/assessment`) |
-| HTTPS binding | Belum | SSL certificate di IIS site |
-| `ASPNETCORE_ENVIRONMENT` | Belum | Set `Production` via IIS env var atau web.config |
-| ASP.NET Core Hosting Bundle | Belum | Install di server (.NET 8 runtime + IIS module) |
-
-**web.config yang dibutuhkan:**
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <location path="." inheritInChildApplications="false">
-    <system.webServer>
-      <handlers>
-        <add name="aspNetCore" path="*" verb="*"
-             modules="AspNetCoreModuleV2" resourceType="Unspecified" />
-      </handlers>
-      <aspNetCore processPath="dotnet" arguments=".\HcPortal.dll"
-                  stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout"
-                  hostingModel="InProcess">
-        <environmentVariables>
-          <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
-        </environmentVariables>
-      </aspNetCore>
-      <webSocket enabled="true" />
-    </system.webServer>
-  </location>
-</configuration>
-```
-
-### 4. SignalR di IIS
-
-Hub endpoint: `/hubs/assessment` (real-time exam monitoring).
-
-- **Wajib:** WebSocket protocol enabled di IIS site features
-- Tanpa WebSocket, SignalR fallback ke Long Polling -- jauh lebih lambat, bisa timeout saat assessment
-- Program.cs line 98-109 sudah handle 401 untuk hub endpoints (bukan redirect ke login) -- production-ready
-
-### 5. File Storage & Write Access
-
-**Lokasi file yang ditulis oleh app:**
-
-| Path | Digunakan Oleh | Akses Diperlukan |
-|------|----------------|------------------|
-| `/uploads/evidence/` | Evidence upload coachee | Write |
-| `/uploads/guidance/` | Panduan coaching HC | Write |
-| `wwwroot/` | Static files | Read (sudah ada) |
-| Temp directory | ClosedXML export, QuestPDF generate | Write |
-| `./logs/stdout` | IIS stdout logging | Write |
-
-App pool identity perlu write permission ke direktori-direktori di atas.
-
-### 6. Session & Caching
-
-**Current:** `DistributedMemoryCache` (in-process) + `MemoryCache`. Untuk single-server deployment ini **cukup**.
-
-Cookie config sudah production-appropriate:
-- 8 jam expiry dengan sliding expiration
-- HttpOnly = true
-- IsEssential = true
-
----
-
-## Component Boundaries
-
-| Component | Tanggung Jawab | Perubahan Production |
-|-----------|---------------|---------------------|
-| Program.cs | Bootstrap, DI, middleware | Auth toggle aktif, HTTPS redirect aktif, error handler aktif |
-| ApplicationDbContext | EF Core data access | Provider switch otomatis via connection string |
-| HybridAuthService | AD + local auth routing | **Diaktifkan** via config toggle |
-| LdapAuthService | LDAP bind authentication | Perlu network access ke DC |
-| AssessmentHub | Real-time exam monitoring | WebSocket harus enabled di IIS |
-| SeedData / SeedProtonData | Role & data seeding | **Harus diaudit** -- idempotency critical |
-| StaticFileOptions | PDF inline serving | Tetap sama |
-| Error handling middleware | Exception handler | `/Home/Error` aktif di non-Development |
-| HTTPS redirection | Force HTTPS | Aktif di non-Development |
-
----
-
-## Data Flow: Production Login
+## Data Flow: Interaksi Antar-Fitur
 
 ```
-1. Browser -> IIS (443/HTTPS)
-2. IIS -> Kestrel (in-process via AspNetCoreModuleV2)
-3. Cookie auth check -> /Account/Login jika belum auth
-4. Login POST -> AccountController -> HybridAuthService
-   4a. LdapAuthService.Authenticate(email, password) -> LDAP bind ke DC
-   4b. Sukses -> SignInManager.SignInAsync (Identity cookie)
-   4c. Gagal + admin@pertamina.com -> fallback LocalAuthService
-5. Subsequent requests -> cookie valid -> akses controller
-6. EF Core -> SQL Server (bukan SQLite)
-7. SignalR -> WebSocket via IIS
+System Settings --reads--> Maintenance Mode (flag)
+System Settings --reads--> Backup & Restore (path, retention)
+System Settings --reads--> Impersonation (enable/disable)
+
+Announcement --triggers--> Notification (event announcement baru)
+Impersonation --logs--> AuditLogService (sudah ada)
+Impersonation --flag--> _Layout.cshtml (banner)
+Announcement --renders--> _Layout.cshtml (banner)
 ```
 
----
+## Urutan Build yang Direkomendasikan
 
-## File Baru / Modifikasi yang Diperlukan
+### Phase 1: System Settings
+**Alasan:** Fondasi. Fitur lain bergantung pada pembacaan config. Tidak ada dependensi.
+- Entity baru + migration
+- Service dengan IMemoryCache
+- Halaman CRUD admin
+- Seed default values
 
-### Baru
+### Phase 2: Maintenance Mode
+**Alasan:** Perubahan middleware terkecil, validasi pattern modifikasi pipeline. Bergantung pada System Settings.
+- MaintenanceModeMiddleware
+- Perubahan pipeline Program.cs
+- Toggle admin (baca/tulis System Settings)
+- View halaman maintenance
 
-| File | Tujuan |
-|------|--------|
-| `web.config` | IIS hosting configuration |
+### Phase 3: Announcement
+**Alasan:** Independen, CRUD standar. Menguji pattern modifikasi layout yang juga dibutuhkan Impersonation.
+- Entity baru + migration
+- Service + action CRUD
+- Layout partial untuk rendering banner
+- Halaman manajemen admin
 
-### Modifikasi
+### Phase 4: Dashboard Statistik
+**Alasan:** Read-only, zero risk. Jeda yang baik antara fitur kompleks. Tidak ada entity baru.
+- Query agregasi
+- View stats dengan chart (Chart.js)
+- Halaman admin
 
-| File | Perubahan |
-|------|-----------|
-| `appsettings.Production.json` | Real connection string, `UseActiveDirectory: true` |
+### Phase 5: User Impersonation
+**Alasan:** Paling sensitif dari sisi keamanan. Build setelah pattern modifikasi layout terbukti (Phase 3). Perlu penanganan claims yang hati-hati.
+- Impersonation service (rebuild claims)
+- Session-based original user tracking
+- Layout banner partial
+- Action start/revert dengan audit logging
+- Testing menyeluruh
 
-### Audit (Tidak Diubah, Tapi Harus Diverifikasi)
+### Phase 6: In-App Notification Enhancement
+**Alasan:** Sudah ada. Enhancement menambah trigger dari fitur yang dibangun di phase 3+5. Harus setelah fitur-fitur tersebut ada.
+- Tambah event trigger di controller
+- Wire announcement-created -> notification
+- Pastikan bell icon + dropdown di layout
 
-| File | Yang Diverifikasi |
-|------|-------------------|
-| Program.cs | Auto-migrate behavior, seed idempotency |
-| Semua Controller/Service | Raw SQL compatibility SQL Server |
-| Migration files | SQLite-specific syntax |
-| SeedData.cs / SeedProtonData.cs | Idempotency -- jangan overwrite data production |
+### Phase 7: Backup & Restore
+**Alasan:** Risiko tertinggi (data destructive), paling terisolasi. Build terakhir supaya semua fitur lain sudah stabil. Perlu penanganan async yang hati-hati.
+- Backup service dengan SQL commands
+- File management (list, download, delete)
+- Restore dengan confirmation flow
+- Progress indication
 
----
-
-## Anti-Pola yang Harus Dihindari
-
-### 1. Credentials di Source Control
-**Masalah:** Password SQL Server atau LDAP di-commit ke git via appsettings.Production.json
-**Solusi:** Gunakan environment variables di IIS atau User Secrets. appsettings.Production.json hanya berisi template/placeholder.
-
-### 2. Auto-Migrate di Production Tanpa Kontrol
-**Masalah:** `context.Database.Migrate()` di Program.cs (line 124) otomatis apply migration saat startup. Jika migration gagal, app crash tanpa rollback.
-**Solusi:** Dua opsi: (a) jalankan migration manual sebelum deploy, atau (b) tambahkan config flag `"Database:AutoMigrate": false` untuk production. Rekomendasi: opsi (b) -- tetap auto-migrate di dev, manual di production.
-
-### 3. Seed Data Overwrite Production
-**Masalah:** `SeedData.InitializeAsync` dan `SeedProtonData.SeedAsync` dijalankan setiap startup. Jika tidak benar-benar idempotent, bisa reset/duplicate data.
-**Solusi:** Audit kedua file -- pastikan selalu check-before-insert. Pertimbangkan skip seed di production setelah initial deployment.
-
-### 4. Logging Sensitive Data
-**Masalah:** EF Core command logging (aktif di Development config) bisa log SQL dengan parameter berisi data sensitif.
-**Solusi:** Pastikan `Microsoft.EntityFrameworkCore.Database.Command` **tidak** di-set ke Information di production config (saat ini sudah benar -- hanya di Development.json).
-
----
-
-## Urutan Build yang Benar (Dependency Order)
+## Grafik Dependensi Build Order
 
 ```
-1. SQL COMPATIBILITY AUDIT
-   Scan semua raw SQL, migration files untuk SQLite-specific syntax
-   (prerequisite -- harus tahu apa yang perlu difix sebelum deploy)
-   |
-2. PRODUCTION CONFIG
-   web.config baru, appsettings.Production.json final (tanpa secret)
-   Environment variable setup documentation
-   |
-3. SEED DATA SAFETY
-   Audit SeedData.cs + SeedProtonData.cs idempotency
-   Tambah auto-migrate toggle jika perlu
-   |
-4. SECURITY & LOGGING
-   HTTPS enforcement, security headers
-   Production logging config (tanpa sensitive data)
-   Error page untuk production
-   |
-5. DEPLOYMENT CHECKLIST
-   IIS setup steps, hosting bundle install
-   SQL Server migration steps
-   AD connectivity test
-   SignalR WebSocket verification
-   File permission setup
+[1] System Settings
+ |-- -> [2] Maintenance Mode
+ |-- -> [7] Backup & Restore
+ '-- -> [5] Impersonation (opsional)
+
+[3] Announcement --> [6] Notification Enhancement
+[5] Impersonation --> [6] Notification Enhancement
+
+[4] Dashboard Statistik (independen, penempatan fleksibel)
 ```
 
-**Implikasi roadmap:**
-- Step 1-3 bisa dikerjakan tanpa server production (codebase audit)
-- Step 4-5 membutuhkan akses ke environment production/staging
-- Step 1 harus selesai sebelum migration ke SQL Server bisa dijalankan
+## Strategi AdminController
 
----
+AdminController sudah 8350 baris. Opsi:
 
-## Pertimbangan Skalabilitas
+**Rekomendasi: Tetap di AdminController dengan region grouping.** Project punya satu pattern admin controller yang established di 250+ phase. Extract ke controller terpisah menciptakan inkonsistensi routing (`/Admin/Settings` vs `/Settings/Index`). Gunakan `#region` block. Ini brownfield project — konsistensi lebih penting dari puritas.
 
-| Concern | Single Server (Target) | Multi-Server (Future) |
-|---------|----------------------|----------------------|
-| Session | In-memory cache (OK) | Redis / SQL distributed cache |
-| SignalR | In-process (OK) | Redis backplane |
-| File upload | Local disk (OK) | Shared storage |
-| Database | Single SQL Server (OK) | Read replicas |
-| Deployment | Manual xcopy/publish (OK) | CI/CD pipeline |
+**Jika tidak terkendali:** Extract `BackupController` sebagai `[Authorize(Roles = "Admin")]` karena backup adalah fitur paling terisolasi. Sisanya tetap di AdminController.
 
-Target saat ini adalah single-server IIS -- arsitektur yang ada sudah sesuai.
+## Anti-Pattern yang Harus Dihindari
 
----
+### 1. JANGAN gunakan IHostedService untuk backup
+Overkill untuk backup yang di-trigger admin. Gunakan async controller action dengan progress via SignalR atau polling.
+
+### 2. JANGAN simpan state impersonation hanya di claims
+Claims ada di auth cookie — jika cookie dicuri saat impersonation, attacker punya akses user yang di-impersonate. Simpan flag impersonation di server-side session; rebuild claims di setiap request via middleware.
+
+### 3. JANGAN query System Settings dari DB di setiap request
+Gunakan IMemoryCache dengan expiration 5 menit. Invalidate saat settings di-update.
+
+### 4. JANGAN taruh maintenance mode check di filter
+Filter berjalan setelah routing/authorization. Gunakan middleware untuk posisi pipeline yang benar.
+
+### 5. JANGAN restore database tanpa konfirmasi berlapis
+Backup restore bisa menghancurkan data. Minimal: konfirmasi dialog + ketik nama database + audit log.
 
 ## Sumber
 
-- Source code langsung: `Program.cs`, `appsettings.*.json`, `HcPortal.csproj`
-- Service files: `Services/HybridAuthService.cs`, `Services/LdapAuthService.cs`, `Services/LocalAuthService.cs`
-- ASP.NET Core 8 IIS hosting model: in-process via AspNetCoreModuleV2 (HIGH confidence)
-- SignalR WebSocket requirement di IIS (HIGH confidence)
-- Confidence: HIGH -- semua analisis dari kode aktual di repository
-
----
-
-*Architecture research untuk: v9.0 Pre-deployment Audit & Finalization*
-*Researched: 2026-03-25*
+- Analisis codebase langsung: `Program.cs`, `Controllers/`, `Services/`, `Hubs/`
+- Pattern ASP.NET Core middleware pipeline (HIGH confidence — pattern standar)
+- Pattern NotificationController/Service yang sudah ada (Phase 99)
+- Confidence: HIGH — semua analisis dari kode aktual di repository

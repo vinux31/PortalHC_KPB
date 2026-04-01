@@ -1,93 +1,292 @@
-# Feature Landscape: Pre-deployment Audit & Finalization
+# Feature Landscape: 7 Admin Features
 
-**Domain:** Pre-deployment readiness untuk ASP.NET Core MVC portal (intranet)
-**Researched:** 2026-03-25
-**Context:** Portal HC sudah 252+ phase shipped, v8.6 sudah hardening (XSS, null safety, validation). Fokus pada gap yang belum dicakup sebelum production.
+**Domain:** Enterprise HR/LMS Admin Platform Enhancement
+**Researched:** 2026-04-01
+**Project:** PortalHC KPB (ASP.NET Core MVC)
 
 ---
 
-## Table Stakes
+## 1. User Impersonation / View As Role
 
-Fitur/check yang WAJIB ada sebelum production. Tanpa ini = risiko downtime, data loss, atau security incident.
+### Table Stakes (wajib ada)
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Dropdown pilih role (Admin/HC/User) di navbar | Low | Ubah claim sementara, session-based |
+| Banner warna mencolok saat impersonating | Low | Partial view / layout injection |
+| Tombol "Kembali ke Admin" selalu visible | Low | Bagian dari banner |
+| Auto-expire (30 menit max) | Low | Session timeout |
+| Audit log setiap impersonation start/end | Med | Butuh tabel AuditLog atau extend yang ada |
+| Blokir aksi sensitif (ubah password, role, delete user) | Med | Middleware / action filter |
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Seed data cleanup | Data UAT (user dummy, soal contoh) masuk production = kebingungan user nyata | Low | Review `DbInitializer`/seed, conditional on `IsDevelopment()` |
-| Production appsettings | Connection string, AD config, logging level salah = app tidak jalan | Low | `appsettings.Production.json` terpisah dari Development |
-| Error handling & custom error pages | Stack trace terexpose = security risk + UX buruk | Low | `UseExceptionHandler`, custom 404/403/500 pages |
-| Logging level production | Debug logging di production = disk penuh, performance hit | Low | `Warning` untuk Microsoft.*, `Information` untuk app |
-| HTTPS enforcement | HTTP di intranet pun = credentials terexpose | Low | `UseHttpsRedirection()`, HSTS header |
-| Connection string security | Plain text sa/password di config = credential leak | Low | Windows Integrated Auth atau env variable |
-| Anti-forgery completeness | CSRF pada form POST tanpa token | Low | v8.6 sudah partial — verify ALL POST actions |
-| Session/cookie security | Cookie tanpa Secure/HttpOnly = session hijack | Low | `CookieSecurePolicy.Always`, `HttpOnly = true`, `SameSite` |
-| Authorization completeness audit | Missing `[Authorize]` pada satu action = data breach | Med | Scan semua controller/action, verify role requirements |
-| Database migration script | Schema mismatch di production = crash on startup | Med | SQL script dari dev schema, tested against clean DB |
-| Database backup strategy | Deploy gagal tanpa rollback = data loss | Low | Pre-deploy backup script + restore runbook |
-| IIS deployment configuration | Salah config app pool/web.config = 502 error | Med | Publish profile, app pool .NET Core, `web.config` transform |
-| File upload validation | Malicious upload = potential RCE | Med | Whitelist extensions, size limits, content-type check — audit existing |
-| Remove debug/dev middleware | Swagger, Developer Exception Page di production = info leak | Low | Guard with `IsDevelopment()` checks |
-| Pending tech debt closure | Bare catch at AdminController:1072, null-forgiving ops | Low | 5 items dari v4.3 known gaps |
+### Differentiator
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Impersonate user spesifik (bukan hanya role) | Med | Pilih user dari dropdown, login as mereka |
+| Read-only vs Read/Write mode | Med | Dua level impersonation |
 
-## Differentiators
+### Anti-Feature
+| Jangan Bangun | Alasan |
+|---------------|--------|
+| Impersonate tanpa audit trail | Security risk fatal |
+| Impersonate role setara/lebih tinggi | Admin tidak boleh impersonate Super Admin |
 
-Meningkatkan production readiness tapi bukan hard blocker.
+### Dependency
+- Existing: Role system (Admin, HC, User), `_Layout.cshtml`
+- Butuh: Action filter baru untuk blokir aksi sensitif
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Health check endpoint | `/health` untuk monitoring/alerting infra | Low | `MapHealthChecks` built-in ASP.NET Core |
-| Deployment runbook document | Tim infra bisa deploy tanpa developer | Low | Step-by-step: IIS setup, DB restore, AD config, verify |
-| Environment-specific feature flags | Disable UAT-only features/seed di production | Low | `IWebHostEnvironment.IsProduction()` guards |
-| Rate limiting pada login | Brute force prevention | Low | Simple IP-based throttle atau account lockout |
-| Response caching headers | Static assets tanpa cache = slow page loads | Low | Cache-Control headers untuk CSS/JS/images |
-| Database index review | Query lambat di production dengan data banyak | Med | Review query plan untuk endpoint yang sering diakses |
-| Graceful startup validation | App crash diam-diam jika DB unreachable | Low | Startup health check, meaningful error log |
+### Rekomendasi Scope PortalHC
+**View As Role saja** (bukan full user impersonation). Alasan: user base kecil (internal Pertamina), troubleshoot cukup dengan lihat tampilan per role. Full impersonation overkill untuk skala ini.
 
-## Anti-Features
+---
 
-Fitur yang JANGAN dibangun di milestone ini.
+## 2. Announcement / Broadcast
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Full CI/CD pipeline | Scope creep — ini finalisasi, bukan DevOps setup | Manual deployment runbook cukup untuk v1 |
-| Automated test suite | Bagus tapi bukan blocker; user sudah UAT manual 252+ phases | Defer ke post-deployment |
-| EF Core Migrations framework | Terlalu berisiko refactor migration menjelang deploy | Manual SQL script lebih aman dan predictable |
-| Docker/containerization | Target = IIS on-premise, Docker tidak relevan | IIS publish profile |
-| APM integration (App Insights) | Nice-to-have, bisa tambah post-deploy | File logging cukup untuk awal |
-| SSL certificate provisioning | Tanggung jawab infra/network team | Dokumentasikan requirement saja |
-| Load balancer setup | Single server untuk awal | Defer sampai ada kebutuhan scale |
-| Comprehensive penetration test | Membutuhkan external security team | Self-audit checklist cukup untuk intranet app |
+### Table Stakes
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| CRUD announcement (judul, isi, tanggal publish) | Low | AdminController + view + tabel DB |
+| Target audience (All / per Role / per Unit) | Med | Relasi many-to-many atau flag |
+| Tampil di dashboard/homepage setelah login | Low | Partial view di Home/Index |
+| Mark as read per user | Med | Tabel UserAnnouncementRead |
+| Announcement aktif/nonaktif (scheduling) | Low | Field StartDate + EndDate |
 
-## Feature Dependencies
+### Differentiator
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Rich text editor (bold, link, gambar) | Med | TinyMCE / Quill.js |
+| Pin announcement (sticky di atas) | Low | Field IsPinned |
+| Lampiran file (PDF, gambar) | Med | Upload file ke server |
+
+### Anti-Feature
+| Jangan Bangun | Alasan |
+|---------------|--------|
+| Email blast bersamaan | Spam risk, butuh SMTP config yang belum ada |
+| Komentar/reply di announcement | Bukan forum, keep it simple |
+
+### Dependency
+- Existing: Dashboard Home/Index, Role system
+- Butuh: Tabel Announcement, AnnouncementRead
+
+### Rekomendasi Scope PortalHC
+CRUD + target audience (All/Role) + tampil di dashboard + mark as read. Rich text editor opsional (textarea biasa cukup untuk v1).
+
+---
+
+## 3. In-App Notification (Bell Icon)
+
+### Table Stakes
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Bell icon di navbar dengan badge count unread | Med | Layout partial + AJAX polling |
+| Dropdown list notifikasi terbaru (5-10 item) | Med | Partial view + JS |
+| Mark as read (per item + mark all) | Low | Update DB flag |
+| Halaman "Semua Notifikasi" dengan pagination | Low | View + controller action |
+| Link langsung ke item terkait (klik notif -> halaman relevan) | Med | URL field di tabel Notification |
+
+### Differentiator
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Real-time push (SignalR) | High | Butuh SignalR hub, lebih kompleks |
+| Notification preferences per user | Med | Tabel UserNotificationSetting |
+| Grouped notifications ("3 assessment baru") | Med | Logic grouping di query |
+
+### Anti-Feature
+| Jangan Bangun | Alasan |
+|---------------|--------|
+| Push notification browser (Web Push API) | Overkill untuk internal portal |
+| Email notification untuk setiap event | Butuh SMTP, spam risk |
+
+### Dependency
+- Existing: `_Layout.cshtml` (navbar), semua controller yang trigger event
+- Butuh: Tabel Notification, NotificationRead, helper method `CreateNotification()`
+- **Harus setelah Announcement** (announcement bisa jadi sumber notifikasi)
+
+### Rekomendasi Scope PortalHC
+AJAX polling (bukan SignalR) setiap 60 detik. Notifikasi dari: announcement baru, assessment dibuka, hasil assessment keluar, coaching assignment. Bell icon + dropdown + halaman semua notifikasi.
+
+---
+
+## 4. Dashboard Statistik Admin (KPI)
+
+### Table Stakes
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Summary cards (total user, assessment aktif, dll) | Low | COUNT query + card UI |
+| Grafik assessment completion rate | Med | Chart.js / ApexCharts |
+| Tabel user aktif vs inaktif per unit | Low | GROUP BY query |
+| Filter by periode (bulan/tahun) | Med | Date picker + query filter |
+| Export dashboard ke Excel/PDF | Med | Reuse export pattern yang ada |
+
+### Differentiator
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Trend chart (line chart bulan ke bulan) | Med | Butuh data historis |
+| Coaching completion rate | Low | Query existing ProtonProgress |
+| Top performers / bottom performers | Med | Ranking dari score assessment |
+| Comparison antar unit | Med | Multi-series chart |
+
+### Anti-Feature
+| Jangan Bangun | Alasan |
+|---------------|--------|
+| Custom report builder (drag & drop) | Overkill, pakai Excel export saja |
+| Scheduled email report | Butuh background job + SMTP |
+
+### Dependency
+- Existing: CMP Analytics Dashboard (partial), assessment data, coaching data
+- Butuh: Chart library (Chart.js sudah umum di ASP.NET MVC)
+- **Independen** -- bisa dikerjakan kapan saja
+
+### Rekomendasi Scope PortalHC
+Summary cards + 2-3 chart (assessment completion, user per unit, coaching progress) + filter periode + export Excel. Extend AdminController atau buat dedicated DashboardController.
+
+---
+
+## 5. System Settings Page
+
+### Table Stakes
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Nama aplikasi (tampil di navbar/title) | Low | Tabel AppSetting key-value |
+| Logo upload | Low | File upload + simpan path |
+| Timezone setting | Low | Dropdown timezone |
+| Session timeout config | Low | Update config dari DB |
+| Default role untuk user baru | Low | Setting key |
+| Exam default settings (durasi, passing grade) | Low | Key-value pairs |
+
+### Differentiator
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Feature flags (toggle fitur on/off) | Med | Key-value boolean per fitur |
+| Password policy (min length, complexity) | Med | Validasi saat register/change password |
+| SMTP/Email configuration | High | Butuh email service integration |
+
+### Anti-Feature
+| Jangan Bangun | Alasan |
+|---------------|--------|
+| Multi-tenant settings | Single tenant, tidak perlu |
+| Theme customization (warna, font) | Overkill untuk internal portal |
+
+### Dependency
+- Existing: `appsettings.json` (hardcoded config saat ini)
+- Butuh: Tabel AppSetting (Key, Value, Category, Description), service `IAppSettingService`
+- **Harus sebelum Maintenance Mode** (maintenance mode = salah satu setting)
+
+### Rekomendasi Scope PortalHC
+Tabel AppSetting key-value + halaman grouped by category (General, Assessment, Security). Baca dari DB, cache di memory, invalidate saat update. Mulai dari 10-15 setting yang paling berguna.
+
+---
+
+## 6. Maintenance Mode
+
+### Table Stakes
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Toggle on/off dari admin panel | Low | AppSetting flag |
+| Custom message maintenance | Low | Textarea di settings |
+| Redirect semua non-admin ke halaman maintenance | Med | Middleware global |
+| Admin tetap bisa akses semua halaman | Low | Check role di middleware |
+| Estimasi waktu selesai (tampil ke user) | Low | Field datetime |
+
+### Differentiator
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Scheduled maintenance (auto on/off) | Med | Background job atau check datetime di middleware |
+| Whitelist IP tertentu | Med | IP check di middleware |
+| Partial maintenance (per modul: CMP, CDP) | High | Granular flag per area |
+
+### Anti-Feature
+| Jangan Bangun | Alasan |
+|---------------|--------|
+| Maintenance mode via config file deploy | Harus bisa toggle tanpa redeploy |
+| Auto-maintenance saat backup | Terlalu risky jika backup gagal |
+
+### Dependency
+- **Harus setelah System Settings** (maintenance = setting di AppSetting)
+- Existing: `_Layout.cshtml`, middleware pipeline di `Program.cs`
+- Butuh: `MaintenanceMiddleware`, halaman `Maintenance.cshtml`
+
+### Rekomendasi Scope PortalHC
+Toggle + custom message + estimated time + middleware redirect. Scheduled maintenance bisa di v2 jika perlu.
+
+---
+
+## 7. Backup & Restore
+
+### Table Stakes
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Manual backup trigger dari admin panel | High | Exec `pg_dump`/`sqlcmd` dari C# |
+| Download backup file (.bak/.sql) | Med | File response dari server |
+| List backup history (tanggal, ukuran, status) | Low | Tabel BackupHistory |
+| Restore dari file upload | High | Exec restore command, very risky |
+
+### Differentiator
+| Sub-Feature | Kompleksitas | Catatan |
+|-------------|-------------|---------|
+| Scheduled auto-backup (daily/weekly) | High | Background job (Hangfire/Quartz) |
+| Backup uploaded files (bukan hanya DB) | Med | Zip folder uploads |
+| Backup validation (checksum, test restore) | High | Complex |
+
+### Anti-Feature
+| Jangan Bangun | Alasan |
+|---------------|--------|
+| Restore tanpa konfirmasi | Bisa destroy production data |
+| Auto-restore | Terlalu berbahaya untuk otomatis |
+| Backup ke cloud storage (S3, Azure Blob) | Overkill, simpan lokal/download saja |
+
+### Dependency
+- Existing: Database (SQL Server)
+- Butuh: Akses shell command dari aplikasi, folder backup di server
+- **Paling kompleks, kerjakan terakhir**
+- **Dependency: Maintenance Mode** (idealnya aktifkan maintenance saat restore)
+
+### Rekomendasi Scope PortalHC
+**DB backup only** (manual trigger + download). Restore: upload file + konfirmasi dialog + maintenance mode otomatis aktif selama restore. Skip scheduled backup untuk v1.
+
+---
+
+## Ringkasan Kompleksitas & Urutan
+
+| # | Feature | Kompleksitas | Dependency | Urutan Rekomendasi |
+|---|---------|-------------|------------|-------------------|
+| 5 | System Settings | Low-Med | Tidak ada | 1 (fondasi) |
+| 2 | Announcement | Low-Med | Tidak ada | 2 |
+| 1 | Impersonation | Med | Role system | 3 |
+| 6 | Maintenance Mode | Low-Med | System Settings | 4 |
+| 4 | Dashboard Statistik | Med | Tidak ada | 5 |
+| 3 | In-App Notification | Med-High | Announcement | 6 |
+| 7 | Backup & Restore | High | Maintenance Mode | 7 (terakhir) |
+
+**Rationale urutan:**
+- System Settings dulu karena jadi fondasi (Maintenance Mode + setting lain bergantung padanya)
+- Announcement sebelum Notification karena announcement = sumber notifikasi
+- Impersonation independen tapi butuh careful testing
+- Backup & Restore terakhir karena paling kompleks dan paling risky
+
+## Feature Dependencies (Graph)
 
 ```
-appsettings.Production.json --> IIS deployment config (IIS butuh config benar)
-Seed data cleanup --> Database migration script (migration harus exclude seed UAT)
-Authorization audit --> Custom error pages (unauthorized harus redirect proper)
-Health check endpoint --> IIS deployment (health check perlu accessible)
-Tech debt closure --> Final integration check (pastikan fix tidak break fitur)
-Remove debug middleware --> appsettings.Production.json (environment detection)
+System Settings --> Maintenance Mode --> Backup & Restore
+Announcement --> In-App Notification
+Impersonation (independen)
+Dashboard Statistik (independen)
 ```
 
-## MVP Recommendation
+## MVP per Feature
 
-Prioritaskan (harus selesai sebelum deploy):
+| Feature | MVP (harus ada) | Bisa ditunda |
+|---------|-----------------|--------------|
+| System Settings | 10 key-value settings + UI | Feature flags, SMTP config |
+| Announcement | CRUD + target role + dashboard display | Rich text, file attachment |
+| Impersonation | View As Role + banner + audit | User-specific impersonation |
+| Maintenance Mode | Toggle + message + middleware | Scheduled, partial maintenance |
+| Dashboard Statistik | 4 summary cards + 2 charts + export | Trend charts, comparison |
+| In-App Notification | Bell + dropdown + mark read + AJAX poll | SignalR, preferences |
+| Backup & Restore | Manual backup + download + restore | Scheduled, file backup |
 
-1. **Seed data cleanup** — Risiko tertinggi: data dummy di production membingungkan user nyata
-2. **Production appsettings + connection string** — App tidak jalan tanpa config benar
-3. **Security hardening** — Error pages, HTTPS, cookie security, anti-forgery completeness
-4. **Authorization completeness audit** — Satu endpoint terbuka = data breach
-5. **Database migration script + backup strategy** — Rollback wajib ada
-6. **IIS deployment runbook** — Tim infra harus bisa deploy mandiri
-7. **Tech debt closure (v4.3)** — Bersihkan sebelum production freeze
+## Sumber
 
-Defer ke post-deployment:
-- **Health check endpoint**: Bisa ditambah kapan saja tanpa breaking change
-- **Rate limiting**: Intranet app, risiko brute force lebih rendah
-- **Database index review**: Optimasi setelah ada real usage pattern
-
-## Sources
-
-- ASP.NET Core deployment best practices (official docs) — HIGH confidence
-- v8.6 codebase audit scope (PROJECT.md) — existing hardening coverage
-- v4.3 known gaps (MEMORY.md) — outstanding tech debt items
-- Project v9.0 target features (PROJECT.md) — alignment dengan user goals
+- Riset sebelumnya: katalog 37 fitur dari Google, HubSpot, Salesforce, WordPress, Okta, Asana
+- Pattern umum enterprise LMS/HR: SAP SuccessFactors, Workday, Moodle LMS admin features
+- ASP.NET Core middleware pattern untuk maintenance mode
+- Confidence: MEDIUM-HIGH (berdasarkan riset sebelumnya + domain knowledge)

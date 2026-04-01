@@ -1,191 +1,204 @@
-# Domain Pitfalls — Pre-deployment Audit & Finalization
+# Domain Pitfalls — Admin Platform Enhancement (v11.2)
 
-**Domain:** ASP.NET Core MVC deployment ke production IIS dengan AD authentication dan SQL Server
-**Researched:** 2026-03-25
-**Confidence:** HIGH (berdasarkan inspeksi langsung Program.cs, appsettings*.json, SeedData.cs)
+**Domain:** 7 fitur admin baru untuk existing ASP.NET Core MVC HR portal
+**Researched:** 2026-04-01
+**Confidence:** HIGH (berdasarkan analisis codebase PortalHC + domain knowledge)
 
 ---
 
-## Critical Pitfalls
+## 1. User Impersonation
 
-Kesalahan yang menyebabkan app tidak jalan, data bocor, atau security bypass di production.
+### CRITICAL: Session Corruption (Multi-Tab)
+**Apa yang salah:** Admin impersonate user A, buka tab baru impersonate user B. Session state tercampur — admin melakukan aksi sebagai user yang salah.
+**Penyebab:** Impersonation state disimpan di session/cookie tanpa isolation per-tab.
+**Pencegahan:** Simpan impersonation state di claims (`OriginalUserId` + `ImpersonatedUserId`). Satu admin hanya boleh impersonate satu user pada satu waktu. Saat start impersonation baru, otomatis end yang lama.
+**Deteksi:** Test: buka 2 tab, impersonate 2 user berbeda, verifikasi identitas konsisten.
 
-### Pitfall 1: Active Directory Toggle Tidak Aktif di Production
+### CRITICAL: Privilege Escalation
+**Apa yang salah:** Admin impersonate HC user, lalu akses action yang seharusnya tidak bisa diakses saat impersonation (misalnya ubah data admin lain, atau akses AdminController).
+**Penyebab:** Impersonation memberi SEMUA permission target tanpa filter.
+**Pencegahan:** Mode impersonation = READ-ONLY. Disable semua POST/write action saat impersonation aktif. Jangan pernah izinkan impersonate user yang role >= role admin sendiri. Khusus PortalHC: pastikan `[Authorize(Roles = "Admin")]` actions tidak accessible saat impersonating non-Admin.
+**Deteksi:** Cek apakah `User.IsInRole("Admin")` masih return true saat impersonation — authorization chain bisa bocor.
 
-**What goes wrong:** `appsettings.Production.json` saat ini TIDAK mengandung `Authentication:UseActiveDirectory`. Base `appsettings.json` set `false`. Di production, app akan pakai `LocalAuthService` — siapapun bisa login dengan password Identity biasa, bukan credential AD Pertamina.
-**Why it happens:** `appsettings.Production.json` hanya override ConnectionStrings dan Logging, lupa override Authentication section.
-**Consequences:** Bypass Active Directory sepenuhnya. Login tanpa credential Pertamina. Celah keamanan kritis.
-**Prevention:** Tambahkan ke `appsettings.Production.json`:
-```json
-"Authentication": {
-  "UseActiveDirectory": true
-}
+### CRITICAL: Audit Trail Gap
+**Apa yang salah:** Aksi saat impersonation tercatat atas nama user target, bukan admin. Jika ada masalah, tidak bisa trace siapa yang sebenarnya melakukan aksi.
+**Penyebab:** Logging pakai `User.Identity.Name` tanpa cek impersonation state.
+**Pencegahan:** Setiap log entry catat `ActualUser` dan `ImpersonatedUser`. Buat helper `GetActualUserId()` yang selalu return admin asli. Log event start/stop impersonation.
+
+### MODERATE: Lupa End Impersonation
+**Apa yang salah:** Admin selesai troubleshoot tapi lupa klik "Stop Impersonation". Melakukan aksi admin sebagai user biasa.
+**Pencegahan:** Banner merah mencolok di seluruh halaman. Auto-expire setelah 30 menit. Tombol "Stop" selalu visible.
+
+---
+
+## 2. Announcement / Pengumuman
+
+### MODERATE: Notification Fatigue
+**Apa yang salah:** Admin kirim pengumuman terlalu sering, user abaikan semua termasuk yang penting.
+**Pencegahan:** Implementasi priority level (Info, Important, Urgent). Urgent hanya untuk Admin. Rate limiting opsional.
+
+### MODERATE: Targeting Over-Engineering
+**Apa yang salah:** Admin ingin kirim ke "user di unit X yang belum assessment" — targeting jadi kompleks, query lambat.
+**Pencegahan:** Mulai sederhana: target by Role dan/atau Unit saja. Tambah criteria nanti kalau benar-benar dibutuhkan. PortalHC punya ~3 role dan beberapa unit — ini sudah cukup.
+
+### MINOR: Rich Text XSS
+**Apa yang salah:** Admin masukkan HTML/script di konten pengumuman, dirender tanpa sanitasi.
+**Pencegahan:** Plain text + basic formatting saja (bold, italic). Atau gunakan `HtmlSanitizer` NuGet. Razor `@Html.Raw()` adalah red flag — hindari untuk user-generated content.
+
+---
+
+## 3. In-App Notification
+
+### CRITICAL: Polling Trap (Padahal SignalR Sudah Ada)
+**Apa yang salah:** Developer implementasi polling setiap 5 detik untuk cek notifikasi baru, padahal SignalR sudah ada di project. 200 concurrent user = 40 request/detik hanya untuk notifikasi.
+**Pencegahan:** GUNAKAN SignalR yang sudah ada. Push notification saat event terjadi. Jangan polling. Ini pitfall paling mudah dihindari karena infrastructure sudah ada.
+
+### MODERATE: Tabel Notification Membengkak
+**Apa yang salah:** 1 pengumuman ke 500 user = 500 row di tabel. Setahun = jutaan row, query melambat.
+**Pencegahan:** Pisahkan `Notifications` (master) dan `UserNotificationReads` (tracking siapa sudah baca). Untuk broadcast, simpan 1 record + track read status. Auto-delete notifikasi > 90 hari.
+
+### MODERATE: Notification Spam dari Cascading Events
+**Apa yang salah:** Admin update assessment → trigger notifikasi "assessment diupdate" + "jadwal berubah" + "silakan cek" ke user yang sama.
+**Pencegahan:** Satu aksi = maksimal satu notifikasi. Definisikan notification types sebagai enum, bukan ad-hoc strings.
+
+---
+
+## 4. Dashboard Statistik
+
+### CRITICAL: Slow Aggregation Queries
+**Apa yang salah:** Dashboard COUNT(*) dari tabel Assessment, ExamAttempt, Workers di setiap page load. Data besar = 10+ detik load time.
+**Penyebab:** Real-time aggregation tanpa caching. PortalHC saat ini TIDAK punya caching layer.
+**Pencegahan:** Gunakan `IMemoryCache` dengan 5-15 menit expiry. Ini pengenalan caching pertama ke project — lakukan dengan benar karena jadi pattern untuk fitur lain. Contoh:
+```csharp
+var stats = _cache.GetOrCreate("dashboard_stats", entry => {
+    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+    return ComputeStats();
+});
 ```
-**Detection:** Cek log startup — jika tidak ada log dari `LdapAuthService`/`HybridAuthService`, AD tidak aktif.
 
-### Pitfall 2: Connection String Placeholder di Production Config
+### CRITICAL: N+1 Query Pattern
+**Apa yang salah:** Dashboard "Assessment per Unit" — EF Core lazy load setiap unit, lalu assessment per unit. 10 unit = 11 queries minimum.
+**Penyebab:** Tidak pakai projection atau eager loading.
+**Pencegahan:** Tulis dashboard queries sebagai LINQ projection (`.Select()` ke DTO). Jangan load entity penuh. Total dashboard harus <= 5 SQL queries. Verifikasi dengan SQL Server Profiler atau EF Core logging.
 
-**What goes wrong:** `appsettings.Production.json` berisi literal `Server=YOUR_SQL_SERVER_NAME` dan `Password=YOUR_PASSWORD`.
-**Why it happens:** Template connection string belum diganti dengan credential asli.
-**Consequences:** App crash saat startup. Lebih buruk: jika placeholder kebetulan resolve, data masuk database yang salah.
-**Prevention:**
-1. JANGAN hardcode credential di file yang di-commit ke git.
-2. Gunakan environment variable di IIS: `ASPNETCORE_ConnectionStrings__DefaultConnection`.
-3. Atau buat `appsettings.Production.json` manual di server (tidak di-commit).
-**Detection:** Pre-deployment: test connection string bisa connect sebelum deploy.
+### MODERATE: Stale Data Confusion
+**Apa yang salah:** Dashboard angka berbeda dari detail page karena cache.
+**Pencegahan:** Tampilkan "Data per: [waktu]" di dashboard. Tombol refresh manual. User perlu tahu data di-cache.
 
-### Pitfall 3: ASPNETCORE_ENVIRONMENT Tidak Di-set di IIS
+---
 
-**What goes wrong:** IIS tidak otomatis set `ASPNETCORE_ENVIRONMENT`. Tanpa ini, ASP.NET Core default ke `Production` (correct), tapi jika ada yang set ke `Development` di server untuk debugging dan lupa revert — seed data UAT akan masuk production DB.
-**Why it happens:** Environment variable management di IIS bukan default workflow yang familiar.
-**Consequences:** Jika salah set ke Development: test users dengan weak passwords di-seed ke production DB, UAT assessment data masuk production.
-**Prevention:** Set eksplisit di `web.config`:
-```xml
-<aspNetCore processPath="dotnet" arguments=".\HcPortal.dll">
-  <environmentVariables>
-    <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
-  </environmentVariables>
-</aspNetCore>
+## 5. System Settings
+
+### CRITICAL: Cache Invalidation
+**Apa yang salah:** Admin ubah setting "Max Upload Size" dari 5MB ke 10MB. Setting masih di-cache sebagai 5MB.
+**Pencegahan:** Pattern: `SettingsService` yang baca dari cache, tapi invalidate on write. Setiap `UpdateSetting()` call `_cache.Remove("settings")`. Jangan pakai `IOptions<T>` (bound at startup) — pakai `IOptionsMonitor<T>` atau custom service.
+
+### CRITICAL: Misconfiguration Tanpa Validasi
+**Apa yang salah:** Admin set "Session Timeout" ke 0 atau "Max Workers per Unit" ke -1. Sistem crash.
+**Pencegahan:** Setiap setting: tipe data, min/max range, default value. Validasi server-side sebelum simpan. UI tampilkan "Default: X" dan range.
+
+### MODERATE: Settings Menjadi God Object
+**Apa yang salah:** Semua konfigurasi masuk satu tabel key-value. Seiring waktu, 100+ settings tanpa organisasi, admin bingung.
+**Pencegahan:** Grouping settings by category (General, Security, Notification, Maintenance). Batasi settings hanya untuk hal yang BENAR-BENAR perlu diubah runtime. Hal yang jarang berubah tetap di `appsettings.json`.
+
+---
+
+## 6. Maintenance Mode
+
+### CRITICAL: Admin Terkunci dari Sistem
+**Apa yang salah:** Admin aktifkan maintenance mode, session expire, tidak bisa login karena maintenance mode block SEMUA request.
+**Penyebab:** Middleware terlalu agresif tanpa exception.
+**Pencegahan:** Middleware HARUS whitelist: (1) `/Account/Login`, (2) semua request dari user dengan role Admin, (3) static files (`/lib/`, `/css/`, `/js/`), (4) `/Admin/MaintenanceMode` toggle endpoint. **TEST SKENARIO INI**: aktifkan maintenance → logout → login lagi sebagai admin.
+
+### CRITICAL: Middleware Ordering dengan Auth
+**Apa yang salah:** Maintenance middleware sebelum authentication = tidak bisa cek role admin. Setelah authentication = user sudah authenticated tapi tetap blocked.
+**Pencegahan:** Urutan yang benar di `Program.cs`:
 ```
-**Detection:** Verifikasi di startup log environment name. Tambahkan log line eksplisit di Program.cs.
+app.UseAuthentication();
+app.UseMaintenanceMode();  // Setelah auth, bisa cek User.IsInRole
+app.UseAuthorization();
+```
+Middleware cek: `if (context.User.IsInRole("Admin")) next()` else return maintenance page.
 
-### Pitfall 4: SeedProtonData Jalan di Semua Environment
-
-**What goes wrong:** `SeedProtonData.SeedAsync(context)` dipanggil di Program.cs line 125 TANPA environment check. Berbeda dengan `SeedData` yang sudah gate `IsDevelopment()` untuk test users dan UAT data. Jika SeedProtonData berisi data yang hanya relevan untuk testing, itu masuk production.
-**Why it happens:** SeedProtonData ditambahkan sebelum pattern environment-gated seeding established.
-**Consequences:** Tergantung isi SeedProtonData — jika berisi reference data (ProtonTracks master), ini DIBUTUHKAN di production. Jika berisi test data, itu contaminate production.
-**Prevention:** Audit isi `SeedProtonData.SeedAsync()`. Classify: reference data (always seed) vs test data (development only). Pastikan idempotent.
-**Detection:** Review setiap insert/upsert di SeedProtonData.
-
-### Pitfall 5: Database.Migrate() di Startup — Silent Failure
-
-**What goes wrong:** `context.Database.Migrate()` dijalankan setiap app start (line 124). Catch block di line 137-141 hanya LOG error lalu CONTINUE. App bisa berjalan dengan schema lama jika migration gagal.
-**Why it happens:** Error handling terlalu permissive — app tidak fail-fast pada migration error.
-**Consequences:** App running tapi query gagal karena missing column/table. Error muncul secara acak saat user hit fitur yang butuh schema baru.
-**Prevention:**
-1. Untuk production: jalankan migration terpisah via CLI sebelum deploy (`dotnet ef database update`).
-2. Atau: ubah catch block jadi `throw` agar app fail-fast jika migration gagal.
-3. Minimal: tambahkan health check endpoint yang verify schema version.
-**Detection:** Monitor startup log untuk migration errors. Tambahkan schema version check.
+### MODERATE: Maintenance Page Tanpa Styling
+**Apa yang salah:** Lupa whitelist static files. Halaman maintenance muncul tanpa CSS.
+**Pencegahan:** Maintenance page harus self-contained (inline CSS) ATAU whitelist semua static file paths.
 
 ---
 
-## Moderate Pitfalls
+## 7. Backup & Restore
 
-### Pitfall 6: Password Policy Terlalu Lemah untuk Admin Fallback
+### CRITICAL: Restore Menghancurkan Data Baru
+**Apa yang salah:** Admin restore backup 3 hari lalu. Data 3 hari terakhir hilang tanpa peringatan.
+**Pencegahan:** Sebelum restore: (1) tampilkan "Backup dari [tanggal]. Data setelah ini HILANG.", (2) hitung berapa record baru yang akan hilang, (3) wajib ketik "RESTORE" untuk konfirmasi, (4) AUTO-BACKUP sebelum restore.
 
-**What goes wrong:** Program.cs disable semua password complexity (RequireDigit=false, RequiredLength=6). Ini ada di code, bukan config — berlaku di semua environment. HybridAuthService fallback ke LocalAuthService untuk `admin@pertamina.com`.
-**Why it happens:** Development convenience yang tidak pernah di-harden untuk production.
-**Consequences:** Admin fallback account bisa punya password "123456". Jika AD down, fallback account jadi satu-satunya entry point — dengan password lemah.
-**Prevention:** Pastikan admin fallback password KUAT sebelum deploy. Pertimbangkan hardcode minimum length 12 untuk production, atau disable fallback entirely di production.
+### CRITICAL: Incomplete Backup
+**Apa yang salah:** Backup database saja, tidak termasuk uploaded files (sertifikat, evidence coaching, dokumen KKJ). Setelah restore, semua link file rusak.
+**Pencegahan:** Backup scope: (1) database, (2) uploaded files di wwwroot/uploads atau equivalent, (3) appsettings non-sensitive. Dokumentasikan apa yang termasuk dan tidak.
 
-### Pitfall 7: LDAP Path dan Credential Belum Divalidasi
+### CRITICAL: Blocking Operation
+**Apa yang salah:** Backup database besar = 10 menit. Website tidak accessible selama itu.
+**Penyebab:** Backup synchronous di request thread.
+**Pencegahan:** Background task (ini alasan utama setup background job infrastructure). Gunakan SQL `BACKUP ... WITH COPY_ONLY` agar tidak ganggu transaction log. Pertimbangkan aktifkan maintenance mode selama backup.
 
-**What goes wrong:** `appsettings.json` mengandung `LdapPath: "LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com"` — ini mungkin benar atau mungkin development placeholder. Jika salah, semua login gagal di production.
-**Why it happens:** LDAP path spesifik ke AD infrastructure Pertamina — tidak bisa divalidasi tanpa akses ke AD server.
-**Consequences:** 100% user tidak bisa login di production. App tampil normal tapi login selalu gagal.
-**Prevention:** Test LDAP connection dari production server sebelum deploy. Tambahkan health check endpoint yang test AD connectivity.
-**Detection:** Test login dengan satu AD account sebelum go-live.
-
-### Pitfall 8: Static Files dan Upload Folder Tidak Persistent
-
-**What goes wrong:** File uploads (coaching guidance, evidence) disimpan di disk. Saat re-deploy atau server rebuild, file hilang jika folder tidak di luar publish directory.
-**Why it happens:** Default ASP.NET Core serve static files dari `wwwroot`. Upload sering ke subfolder di `wwwroot`.
-**Consequences:** Semua uploaded evidence, guidance files, dan dokumen hilang setelah redeploy.
-**Prevention:** Pastikan upload folder ada di LUAR publish directory, atau gunakan shared storage/NAS. Tambahkan ke deployment checklist dan backup strategy.
-**Detection:** After deploy: verify uploaded files masih accessible.
-
-### Pitfall 9: HTTPS Configuration Missing
-
-**What goes wrong:** `UseHttpsRedirection()` aktif di production (line 151-153) tapi tidak ada Kestrel HTTPS config. Jika IIS tidak handle SSL termination, redirect loop terjadi.
-**Why it happens:** HTTPS setup tergantung infrastruktur (IIS binding, certificate) yang di luar codebase.
-**Consequences:** Redirect loop (HTTP -> HTTPS -> HTTP) atau mixed content warnings.
-**Prevention:** Pastikan IIS site binding punya HTTPS dengan valid certificate. Jika IIS handles SSL termination sebagai reverse proxy, tambahkan `ForwardedHeaders` middleware di Program.cs.
-
-### Pitfall 10: DistributedMemoryCache Tidak Survive App Restart
-
-**What goes wrong:** `AddDistributedMemoryCache()` in-process only. Session dan TempData hilang saat app pool recycle (IIS default: setiap 29 jam, atau setelah idle 20 menit).
-**Why it happens:** In-memory cache adalah default development config.
-**Consequences:** User kehilangan session di tengah assessment exam — jawaban hilang jika belum di-save ke DB. Bukan data loss tapi UX buruk.
-**Prevention:** Untuk single-instance (likely), ini acceptable tapi dokumentasikan bahwa IIS idle timeout harus disesuaikan. Pastikan assessment progress di-save ke DB secara incremental, bukan hanya saat final submit.
+### MODERATE: Background Job Infrastructure Belum Ada
+**Apa yang salah:** Backup, scheduled maintenance, notification cleanup — semua butuh background processing. Project belum punya.
+**Pencegahan:** Setup `IHostedService` atau `BackgroundService` sebagai foundation di fase awal. Semua fitur pakai infrastructure yang sama.
 
 ---
 
-## Minor Pitfalls
+## Integration Pitfalls (Lintas Fitur)
 
-### Pitfall 11: Logging Level Terlalu Verbose
+### CRITICAL: Tidak Ada Background Job Infrastructure
+**Dampak:** Notification cleanup, backup, scheduled maintenance, dashboard cache refresh — semua butuh background processing.
+**Pencegahan:** Setup `BackgroundService` / `IHostedService` di fase PERTAMA. Ini foundation untuk fitur lain. Tanpa ini, developer akan implementasi ad-hoc per fitur → inconsistent dan sulit maintain.
 
-**What goes wrong:** Production logging `Default: Information` — menghasilkan log sangat banyak termasuk setiap HTTP request.
-**Prevention:** Set production: `Default: Warning`, `Microsoft.AspNetCore: Warning`, `HcPortal: Information` (hanya app-specific logs verbose).
+### CRITICAL: Middleware Ordering di Program.cs
+**Dampak:** Maintenance mode + impersonation + existing auth = middleware pipeline makin kompleks. Urutan salah = security hole.
+**Pencegahan:** Dokumentasikan urutan middleware yang benar. Test setiap kombinasi state (impersonation + maintenance, dll).
 
-### Pitfall 12: AllowedHosts Wildcard
+### MODERATE: Feature Interaction
+**Dampak:** Admin sedang impersonate user → maintenance mode diaktifkan oleh admin lain → apa yang terjadi? Notification dikirim saat maintenance mode aktif → queue atau drop?
+**Pencegahan:** Definisikan behavior matrix untuk setiap kombinasi fitur. Minimal: maintenance mode + impersonation harus dihandle.
 
-**What goes wrong:** `"AllowedHosts": "*"` menerima request dari hostname apapun. Di intranet bisa acceptable, tapi host header injection possible.
-**Prevention:** Set ke hostname spesifik portal (e.g., `"portalhc.pertamina.com"`).
+### MODERATE: SignalR Hub Bloat
+**Dampak:** Notification + announcement + dashboard real-time semua lewat SignalR. Satu hub jadi bloated.
+**Pencegahan:** Minimal 2 hub: `NotificationHub` (user-facing) dan `AdminHub` (dashboard stats, maintenance status).
 
-### Pitfall 13: HcPortal.db di Repository
-
-**What goes wrong:** Git status menunjukkan `HcPortal.db` pernah tracked. SQLite dev database bisa bocor ke production deploy.
-**Prevention:** Pastikan `HcPortal.db` di `.gitignore`. Verify tidak ada di publish output.
-
-### Pitfall 14: SQLite WAL Pragma di Production Code Path
-
-**What goes wrong:** Program.cs line 129-135 — SQLite pragma. Sudah guarded by provider check, tidak berbahaya. Tapi noisy untuk code review.
-**Prevention:** Biarkan (guarded) atau bungkus dalam `IsDevelopment()`.
-
-### Pitfall 15: bin/Debug dan publish Folder di Repository
-
-**What goes wrong:** Glob menemukan `appsettings*.json` di `bin/Debug/`, `obj/testbuild/`, `publish/` — artinya build artifacts mungkin di-commit atau tidak di-.gitignore.
-**Prevention:** Pastikan `bin/`, `obj/`, `publish/` ada di `.gitignore`. Hapus dari tracking jika sudah committed.
+### MODERATE: Feature Toggle Tidak Ada
+**Dampak:** 7 fitur deploy bersamaan. Satu bermasalah = rollback semua.
+**Pencegahan:** System Settings (fitur #5) harus include feature toggles. Setiap fitur baru bisa di-enable/disable tanpa deploy ulang.
 
 ---
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Seed data cleanup | P4: SeedProtonData tanpa env guard | Audit setiap seed method, classify reference vs test |
-| Production config | P1, P2, P3: AD off, placeholder creds, env not set | Production config checklist with verification |
-| AD integration test | P7: LDAP path unvalidated | Test AD login dari production server |
-| Logging & error handling | P5, P11: Migration silent fail, verbose logs | Fail-fast migration, tune log levels |
-| IIS deployment | P3, P9: Env var, HTTPS | web.config template with all required settings |
-| Security hardening | P6, P12: Weak admin password, wildcard host | Harden admin account, restrict AllowedHosts |
-| File & storage | P8, P13, P15: Upload persistence, SQLite in repo, build artifacts | Backup strategy, .gitignore audit |
-| Session & state | P10: Memory cache not persistent | Tune IIS idle timeout, verify exam auto-save |
+| Phase/Fitur | Pitfall Utama | Severity | Mitigasi |
+|---|---|---|---|
+| **Foundation (harus pertama)** | Tidak ada background job infra | CRITICAL | Setup BackgroundService sebelum fitur lain |
+| **System Settings** | Cache invalidation + misconfiguration | CRITICAL | Validate on write, invalidate cache on update |
+| **Maintenance Mode** | Admin terkunci + middleware ordering | CRITICAL | Whitelist admin routes, test logout-login cycle |
+| **User Impersonation** | Session corruption + privilege escalation | CRITICAL | Claims-based, read-only mode, audit trail |
+| **Dashboard Statistik** | N+1 query + slow aggregation | CRITICAL | IMemoryCache, projection queries, max 5 SQL |
+| **Announcement** | XSS + notification fatigue | MODERATE | Sanitize, priority levels, simple targeting |
+| **In-App Notification** | Polling trap + tabel membengkak | MODERATE | Pakai SignalR yang sudah ada, efficient storage |
+| **Backup & Restore** | Data loss + blocking operation | CRITICAL | Background job, pre-restore warning, auto-backup |
 
----
+## Recommended Phase Ordering (Based on Pitfalls)
 
-## Pre-deployment Checklist (derived from pitfalls)
-
-**Config (MUST before deploy):**
-1. [ ] `appsettings.Production.json` has `UseActiveDirectory: true`
-2. [ ] Connection string valid (bukan placeholder), credentials not in git
-3. [ ] `ASPNETCORE_ENVIRONMENT=Production` in web.config or IIS env vars
-4. [ ] LDAP path validated by test login from production server
-5. [ ] AllowedHosts set ke hostname spesifik
-
-**Database (MUST before deploy):**
-6. [ ] SeedProtonData diaudit — only reference data runs in production
-7. [ ] Test user seeding skipped in production (OK — IsDevelopment guard exists)
-8. [ ] Database migration tested separately before deploy
-9. [ ] Migration failure = app should NOT start (fix catch block)
-
-**Infrastructure (MUST before deploy):**
-10. [ ] IIS HTTPS binding with valid certificate
-11. [ ] Upload folder persistent, outside publish dir, backed up
-12. [ ] IIS idle timeout configured appropriately
-13. [ ] Admin fallback password changed to strong password
-
-**Cleanup (SHOULD before deploy):**
-14. [ ] HcPortal.db not in publish output
-15. [ ] bin/, obj/, publish/ in .gitignore
-16. [ ] Logging level tuned for production
-17. [ ] web.config template finalized
+1. **System Settings + Background Job Foundation** — semua fitur lain butuh settings dan background processing
+2. **Maintenance Mode** — safety net sebelum fitur berisiko lain (backup)
+3. **Dashboard Statistik** — introduce caching pattern yang dipakai fitur lain
+4. **Announcement + In-App Notification** — saling terkait, bangun bersamaan
+5. **User Impersonation** — paling kompleks security-wise, butuh semua infrastructure sudah stabil
+6. **Backup & Restore** — paling berisiko, butuh maintenance mode + background job sudah jalan
 
 ---
 
 ## Sources
 
-- Inspeksi langsung: `Program.cs` (187 lines), `appsettings.json`, `appsettings.Production.json`, `appsettings.Development.json`, `Data/SeedData.cs`
-- HIGH confidence — semua pitfall berdasarkan actual code review terhadap codebase ini
-- ASP.NET Core IIS hosting model: training data knowledge (MEDIUM confidence untuk IIS-specific behavior)
+- Analisis langsung codebase PortalHC KPB (Program.cs, middleware pipeline, controller inventory)
+- ASP.NET Core middleware pipeline ordering (official docs)
+- EF Core performance: N+1 query patterns, projection best practices
+- OWASP session management guidelines untuk impersonation
+- SQL Server backup best practices (COPY_ONLY, RESTORE VERIFYONLY)

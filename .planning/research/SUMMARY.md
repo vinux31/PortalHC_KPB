@@ -1,176 +1,210 @@
-# Project Research Summary
+# Research Summary — v11.2 Admin Platform Enhancement
 
-**Project:** Pre-deployment Audit & Finalization — Portal HC KPB (v9.0)
-**Domain:** ASP.NET Core MVC intranet portal, production deployment ke IIS + SQL Server + AD
-**Researched:** 2026-03-25
-**Confidence:** HIGH
+**Synthesized:** 2026-04-01
+**Confidence Overall:** HIGH (semua riset berbasis codebase aktual + pattern standar ASP.NET Core)
 
-## Executive Summary
+---
 
-Portal HC KPB adalah intranet web app yang dibangun di atas ASP.NET Core 8 MVC dengan 252+ phase sudah shipped. Semua stack yang diperlukan untuk production sudah ada: IIS in-process hosting, SQL Server via EF Core, Active Directory via HybridAuthService, SignalR untuk assessment real-time, ClosedXML + QuestPDF untuk dokumen. Tidak ada package baru yang diperlukan — milestone ini sepenuhnya tentang konfigurasi, audit, dan hardening kode yang sudah ada.
+## 1. Executive Summary
 
-Pendekatan yang direkomendasikan adalah audit berbasis risiko secara bertahap: mulai dari SQL compatibility audit (prerequisite untuk semua langkah lain), kemudian production config, lalu security hardening, dan diakhiri dengan deployment checklist dan runbook. Pekerjaan dibagi dua jenis: (1) codebase audit yang bisa dikerjakan tanpa server production, dan (2) environment verification yang membutuhkan akses ke infrastruktur Pertamina.
+v11.2 menambah 7 fitur admin ke PortalHC KPB: System Settings, Maintenance Mode, Announcement, Dashboard Statistik, User Impersonation, In-App Notification Enhancement, dan Backup & Restore. Kabar baiknya: **zero package baru dibutuhkan** — semua bisa dibangun dengan stack existing (ASP.NET Core Identity, EF Core, IMemoryCache, Chart.js, SignalR). Keseluruhan memerlukan 5 tabel database baru dan sekitar 30-40 action baru di AdminController.
 
-Risiko terbesar milestone ini adalah konfigurasi yang salah, bukan bug kode: AD toggle yang lupa diaktifkan akan membuat siapapun bisa login tanpa credential Pertamina, connection string placeholder yang belum diganti akan membuat app crash saat startup, dan SeedProtonData tanpa environment guard bisa contaminate database production dengan data test. Semua risiko ini terdeteksi dari inspeksi kode langsung dan memiliki mitigasi spesifik yang bisa diselesaikan sebelum go-live.
+Risiko terbesar bukan teknis melainkan arsitektural: middleware ordering yang salah, privilege escalation saat impersonation, dan restore database tanpa safeguard yang cukup bisa merusak sistem atau data produksi. Semua risiko ini dapat dieliminasi dengan urutan build yang tepat — System Settings sebagai fondasi, disusul Maintenance Mode, lalu fitur-fitur lain sesuai dependency graph.
 
-## Key Findings
+---
 
-### Recommended Stack
+## 2. Stack Additions
 
-Stack sudah lengkap dan tidak perlu package baru. Server target (Windows Server + IIS 10+ + SQL Server 2016+) sudah sesuai dengan tech stack yang dipakai. Yang perlu disiapkan di sisi server adalah .NET 8.0 Hosting Bundle (bukan full SDK) agar AspNetCoreModuleV2 tersedia untuk IIS in-process hosting.
+**Kesimpulan: ZERO NuGet atau JS library baru.**
 
-**Core technologies (existing, tidak ada perubahan):**
-- ASP.NET Core 8 MVC (.NET LTS sampai Nov 2026): web framework — sudah production-ready, 252+ phases shipped
-- EF Core 8 + SQL Server: ORM + production DB — connection string template sudah ada, tinggal isi credential via env var
-- ASP.NET Core Identity + HybridAuthService: auth/authz dengan AD toggle — sudah built, tinggal aktifkan di production config
-- SignalR (built-in): real-time assessment hub — butuh WebSocket enabled di IIS, 401 handling sudah ada
-- IIS in-process (AspNetCoreModuleV2): hosting model — web.config perlu dibuat dengan environment variable dan WebSocket
+| Teknologi | Dipakai Untuk | Status |
+|-----------|---------------|--------|
+| ASP.NET Core Identity | Impersonation via claims manipulation | Sudah ada |
+| IMemoryCache | Dashboard stats caching, settings caching | Sudah terdaftar di DI, belum dipakai |
+| IHostedService / BackgroundService | Background backup, cleanup tasks | Built-in .NET 8, perlu di-setup |
+| Chart.js | Dashboard statistik | Sudah ada di AnalyticsDashboard.cshtml |
+| EF Core + SQL Server | 5 tabel baru + T-SQL BACKUP/RESTORE | Sudah ada |
+| SignalR | Notification push (sudah ada di AssessmentHub) | Sudah ada, perlu NotificationHub baru |
 
-**Perubahan konfigurasi kritis (bukan package baru):**
-- `appsettings.Production.json`: tambahkan `UseActiveDirectory: true`, isi connection string real via env var
-- `web.config`: tambahkan `ASPNETCORE_ENVIRONMENT=Production`, enable WebSocket
-- `Program.cs`: tambahkan HSTS, status code pages, security headers global
+**Yang TIDAK perlu ditambahkan:** Hangfire, MediatR, FluentValidation, Redis, Toastr, TinyMCE, Quartz.NET.
 
-### Expected Features
+**5 Tabel database baru (1 migration):**
 
-Milestone ini bukan feature development — ini audit dan hardening. "Fitur" yang dimaksud adalah production readiness items.
+| Tabel | Tujuan |
+|-------|--------|
+| `SystemSetting` | Key-value config store |
+| `Announcement` | Pengumuman + targeting per role |
+| `ImpersonationLog` | Audit trail impersonation |
+| `BackupHistory` | Log riwayat backup |
+| `Notification` | Sudah ada sejak Phase 99, perlu enhancement trigger |
 
-**Must have (table stakes — blocker sebelum deploy):**
-- Seed data cleanup — data UAT di production membingungkan user nyata
-- Production appsettings + AD toggle aktif — app tidak jalan atau security bypass tanpa ini
-- Security hardening (error pages, HTTPS, cookie security, anti-forgery completeness)
-- Authorization completeness audit — satu endpoint terbuka = data breach
-- Database migration script + backup strategy — rollback wajib ada sebelum deploy
-- IIS deployment runbook — tim infra harus bisa deploy mandiri
-- Tech debt closure v4.3 (5 item outstanding dari known gaps)
+**4 Service baru:**
 
-**Should have (tingkatkan production readiness, bukan blocker):**
-- Deployment runbook dokumen lengkap dengan step-by-step
-- Response caching headers untuk static assets
-- Graceful startup validation (meaningful error log jika DB unreachable)
+| Service | DI Lifetime |
+|---------|-------------|
+| `ISystemSettingService` | Singleton |
+| `IAnnouncementService` | Scoped |
+| `IImpersonationService` | Scoped |
+| `IBackupService` | Scoped |
 
-**Defer ke post-deployment:**
-- Health check endpoint — bisa ditambah kapan saja tanpa breaking change
-- Rate limiting — intranet, risiko brute force lebih rendah
-- Database index review — optimasi setelah ada real usage pattern
-- CI/CD pipeline, Docker, APM, load balancer
+---
 
-### Architecture Approach
+## 3. Feature Table Stakes
 
-Arsitektur sudah tepat untuk target deployment (single-server IIS, on-premise). Perubahan utama adalah switch dari development setup (Kestrel + SQLite + local auth) ke production setup (IIS in-process + SQL Server + AD LDAP). Semua komponen untuk switch ini sudah dibangun — tinggal konfigurasi dan verifikasi.
+| # | Fitur | MVP Wajib Ada | Tunda ke v2 |
+|---|-------|---------------|-------------|
+| 1 | System Settings | 10-15 key-value + grouped UI + cache + seed default | Feature flags, SMTP config |
+| 2 | Maintenance Mode | Toggle + custom message + middleware + whitelist admin | Scheduled, partial per-modul |
+| 3 | Announcement | CRUD + target All/Role + tampil di dashboard + mark as read | Rich text editor, file attachment |
+| 4 | Dashboard Statistik | 4 summary cards + 2 charts (completion, per unit) + filter periode | Trend charts, comparison antar unit |
+| 5 | User Impersonation | View As Role + banner merah + audit log + read-only mode | User-specific impersonation |
+| 6 | In-App Notification | Bell + dropdown + mark read + SignalR push | Notification preferences |
+| 7 | Backup & Restore | Manual backup + download + restore + konfirmasi berlapis | Scheduled backup, file backup |
 
-**Major components dan status production-readiness:**
-1. **HybridAuthService / LdapAuthService** — Built, perlu `UseActiveDirectory: true` di config dan LDAP path divalidasi dari server production
-2. **ApplicationDbContext + EF Core** — Dual-provider (SQLite dev / SQL Server prod) via connection string, perlu SQL compatibility audit untuk raw SQL SQLite-specific
-3. **SeedData + SeedProtonData** — SeedData sudah ada IsDevelopment guard; SeedProtonData BELUM ada guard, perlu audit classify reference vs test data
-4. **AssessmentHub (SignalR)** — Production-ready, 401 handling sudah ada, butuh WebSocket enabled di IIS
-5. **File storage (uploads/)** — Perlu dipastikan di luar publish directory agar tidak hilang saat redeploy
+**Anti-feature (jangan dibangun sama sekali):**
+- Email blast/SMTP integration (butuh infra terpisah)
+- Custom report builder drag-and-drop
+- Auto-restore database tanpa konfirmasi
+- Impersonation tanpa audit trail
 
-**Dependency order yang benar (dari ARCHITECTURE.md):**
-SQL compatibility audit → Production config → Seed data safety → Security & logging → Deployment checklist
+---
 
-### Critical Pitfalls
+## 4. Architecture Integration Points
 
-1. **AD toggle tidak aktif di production** — `appsettings.Production.json` tidak mengandung `Authentication:UseActiveDirectory`. Base config set `false`. Di production, siapapun bisa login tanpa credential Pertamina. Fix: tambahkan section Authentication ke production appsettings.
+**Komponen yang dimodifikasi:**
 
-2. **Connection string placeholder belum diganti** — Template berisi literal `Server=YOUR_SQL_SERVER_NAME`. App crash saat startup. Fix: gunakan environment variable di IIS, JANGAN hardcode credential di git.
+| Komponen | Modifikasi |
+|----------|-----------|
+| `Program.cs` | Register 4 service baru + MaintenanceModeMiddleware (urutan kritis) |
+| `AdminController.cs` | +30-40 action baru (sudah 8350 baris, gunakan `#region`) |
+| `Views/Shared/_Layout.cshtml` | +2 partial: `_ImpersonationBanner` + `_AnnouncementBanner` |
+| `ApplicationDbContext.cs` | +4 DbSet baru |
+| `Services/NotificationService.cs` | +event trigger untuk announcement baru dan assessment events |
 
-3. **SeedProtonData jalan di semua environment** — Tidak ada IsDevelopment guard. Jika berisi test data, akan contaminate production DB. Fix: audit isi, tambahkan guard jika perlu.
+**Middleware pipeline yang benar (urutan kritis):**
 
-4. **Database.Migrate() silent failure** — Catch block di Program.cs line 137-141 log error lalu continue. App bisa berjalan dengan schema lama, error acak saat user hit fitur baru. Fix: jalankan migration manual sebelum deploy ATAU ubah catch jadi fail-fast.
+```
+StaticFiles -> Routing -> Session -> Authentication
+  -> MaintenanceModeMiddleware  <-- BARU (setelah auth, sebelum authorization)
+  -> Authorization -> MVC
+```
 
-5. **Upload folder tidak persistent setelah redeploy** — File evidence dan guidance hilang jika folder ada di dalam publish directory. Fix: pastikan upload folder di luar publish dir, masukkan ke backup strategy.
+**Data flow antar fitur:**
 
-## Implications for Roadmap
+```
+System Settings --> Maintenance Mode (flag)
+System Settings --> Backup & Restore (path, retention)
+Announcement   --> Notification (event trigger)
+Impersonation  --> AuditLogService (sudah ada)
+Impersonation + Announcement --> _Layout.cshtml (banner display)
+```
 
-Berdasarkan dependency order dari ARCHITECTURE.md dan prioritas risiko dari PITFALLS.md, berikut struktur phase yang disarankan:
+**Catatan penting:** `NotificationController` + `INotificationService` sudah ada sejak Phase 99. Fitur Notification di v11.2 adalah **enhancement**, bukan build from scratch. Cukup tambah event trigger baru.
 
-### Phase 1: SQL Compatibility & Codebase Audit
+---
 
-**Rationale:** Prerequisite untuk semua langkah lain. Harus tahu raw SQL apa yang perlu difix sebelum bisa jalankan migration ke SQL Server. Bisa dikerjakan tanpa akses server production.
+## 5. Recommended Build Order
 
-**Delivers:** Daftar semua raw SQL (SQLite-specific vs SQL Server compatible), konfirmasi migration files bersih, audit SeedProtonData (classify reference vs test data), closure 5 tech debt items v4.3.
+### Phase 1 — System Settings + Background Job Foundation
+**Kenapa pertama:** Fondasi yang dibutuhkan hampir semua fitur lain. Settings service adalah prerequisite untuk Maintenance Mode dan Backup. BackgroundService adalah prerequisite untuk Backup dan cleanup tasks.
+- Deliverable: Tabel `SystemSetting` + CRUD UI + `ISystemSettingService` + `BackgroundService` base setup + seed default values
+- Pitfall: cache invalidation on write, validasi min/max setiap setting
 
-**Addresses:** Table stakes — migration script, seed data cleanup, tech debt closure
+### Phase 2 — Maintenance Mode
+**Kenapa kedua:** Safety net sebelum fitur berisiko (backup, impersonation). Dependency langsung pada System Settings.
+- Deliverable: `MaintenanceModeMiddleware` + toggle admin + halaman maintenance + whitelist admin routes
+- Pitfall: urutan middleware di Program.cs, test skenario admin terkunci (logout + login ulang saat maintenance)
 
-**Avoids:** Pitfall 3 (SeedProtonData tanpa guard), Pitfall 5 (silent migration failure), SQLite pragma cleanup
+### Phase 3 — Announcement
+**Kenapa ketiga:** Independen, low-risk, CRUD standar. Menguji pattern modifikasi `_Layout.cshtml` sebelum Impersonation yang lebih kompleks. Announcement juga menjadi sumber trigger Notification.
+- Deliverable: Tabel `Announcement` + CRUD admin + banner di layout + mark as read per user
 
-### Phase 2: Production Configuration
+### Phase 4 — Dashboard Statistik
+**Kenapa keempat:** Read-only, zero risk untuk data. Jeda yang baik sebelum fitur security-sensitive. Sekaligus memperkenalkan `IMemoryCache` pattern pertama kali ke project.
+- Deliverable: `/Admin/DashboardStatistik` dengan 4 KPI cards + 2 Chart.js chart + export Excel
+- Pitfall: IMemoryCache 10 menit expiry, max 5 SQL queries per page load, tampilkan "Data per: [waktu]"
 
-**Rationale:** Setelah tahu apa yang perlu difix di codebase, konfigurasi production bisa diselesaikan dengan lengkap dan benar. Phase ini menghasilkan semua file config yang siap deploy.
+### Phase 5 — User Impersonation
+**Kenapa kelima:** Paling sensitif dari sisi keamanan. Harus setelah layout partial pattern terbukti (Phase 3) dan semua infrastructure stabil.
+- Deliverable: View As Role + `_ImpersonationBanner` + audit log + read-only enforcement + auto-expire 30 menit
+- Pitfall: claims-based (bukan session-only), block semua write actions saat impersonating, privilege escalation check
 
-**Delivers:** `appsettings.Production.json` final (dengan AD toggle, tanpa credential), `web.config` dengan environment variable dan WebSocket, dokumentasi environment variable yang harus diset di IIS server.
+### Phase 6 — In-App Notification Enhancement
+**Kenapa keenam:** Infrastructure sudah ada sejak Phase 99. Enhancement menambah event trigger dari Phase 3 + 5. Gunakan SignalR yang sudah ada, bukan AJAX polling.
+- Deliverable: Event trigger baru (announcement created, assessment events) + pastikan bell icon konsisten di layout
 
-**Addresses:** Production appsettings, AD toggle aktif, ASPNETCORE_ENVIRONMENT, AllowedHosts spesifik
+### Phase 7 — Backup & Restore
+**Kenapa terakhir:** Paling berisiko (data destructive). Butuh Maintenance Mode aktif selama restore dan BackgroundService sudah jalan.
+- Deliverable: Manual backup async + download + restore dengan konfirmasi 3-step + auto-backup sebelum restore
+- Pitfall: backup HARUS async/background, sertakan uploaded files dalam scope backup, konfirmasi menampilkan jumlah record yang akan hilang
 
-**Avoids:** Pitfall 1 (AD off), Pitfall 2 (placeholder creds), Pitfall 3 (wrong environment), Pitfall 12 (AllowedHosts wildcard)
+---
 
-### Phase 3: Security Hardening
+## 6. Watch Out For
 
-**Rationale:** Setelah config benar, lakukan hardening keamanan di level kode. Tidak membutuhkan akses server production — murni perubahan kode.
+**CRITICAL:**
 
-**Delivers:** HSTS aktif di production block, custom error pages (404/403/500), status code pages, security headers global (X-Frame-Options, X-Content-Type-Options), cookie security audit (Secure/HttpOnly/SameSite), anti-forgery completeness check, authorization audit semua controller/action, admin fallback password policy diperketat, logging level production-appropriate.
+1. **Middleware ordering** (Phase 2): `UseAuthentication()` DULU, baru `MaintenanceModeMiddleware`, baru `UseAuthorization()`. Urutan terbalik = admin terkunci atau security hole.
 
-**Addresses:** HTTPS enforcement, error handling, cookie security, authorization completeness, file upload validation audit
+2. **Impersonation privilege escalation** (Phase 5): Saat impersonating, semua POST/write actions harus diblokir via action filter. `User.IsInRole("Admin")` bisa return true jika claims tidak di-rebuild dengan benar.
 
-**Avoids:** Pitfall 6 (weak admin password), Pitfall 9 (HTTPS config missing), Pitfall 11 (verbose logging)
+3. **Cache invalidation System Settings** (Phase 1): Setiap `UpdateSetting()` HARUS call `_cache.Remove()`. Jika tidak, perubahan setting tidak efektif sampai cache expire natural.
 
-### Phase 4: Deployment Runbook & Checklist
+4. **Dashboard N+1 query** (Phase 4): Gunakan LINQ `.Select()` projection ke DTO, bukan load entity penuh. Target: max 5 SQL queries per page load. Verifikasi dengan EF Core logging.
 
-**Rationale:** Phase terakhir sebelum go-live. Mengkonsolidasikan semua temuan dari phase sebelumnya menjadi dokumen operasional. Beberapa langkah membutuhkan akses ke server production (LDAP validation, IIS app pool setup).
+5. **Backup blocking operation** (Phase 7): Backup HARUS async via BackgroundService yang disiapkan di Phase 1. Backup synchronous di request thread = website tidak accessible selama proses berjalan.
 
-**Delivers:** Deployment runbook step-by-step (IIS setup, DB migration, AD config, file permissions), pre-deployment checklist 17 item, rollback procedure, post-deploy verification steps, upload folder persistence strategy dan backup runbook.
+6. **Restore tanpa safeguard** (Phase 7): Wajib: (a) tampilkan jumlah record baru yang akan hilang, (b) wajib ketik "RESTORE" untuk konfirmasi, (c) auto-backup sebelum restore dijalankan.
 
-**Addresses:** IIS deployment configuration, LDAP path validation, database backup strategy, file storage persistence
+**MODERATE:**
 
-**Avoids:** Pitfall 7 (LDAP unvalidated), Pitfall 8 (upload not persistent), Pitfall 10 (session memory cache awareness), Pitfall 13 (HcPortal.db in repo), Pitfall 15 (build artifacts in repo)
+7. **Notification tabel membengkak**: Pisahkan master notification record dari read-tracking per user. Auto-delete notifikasi lebih dari 90 hari.
 
-### Phase Ordering Rationale
+8. **Admin terkunci saat maintenance**: Whitelist minimal: `/Account/Login`, semua static files, semua request dari role Admin.
 
-- Phase 1 harus pertama karena SQL audit adalah prerequisite — tidak bisa finalisasi migration script tanpa tahu raw SQL apa yang ada di codebase
-- Phase 2 setelah Phase 1 karena production config bisa mencakup hasil temuan audit (misalnya disable auto-migrate jika migration berisiko)
-- Phase 3 setelah Phase 2 karena security hardening di Program.cs bergantung pada environment detection yang sudah dikonfigurasi benar
-- Phase 4 terakhir karena membutuhkan output dari semua phase sebelumnya untuk deployment runbook yang lengkap dan akurat
+9. **Announcement XSS**: Hindari `@Html.Raw()` untuk konten yang diinput admin tanpa sanitasi.
 
-### Research Flags
+10. **Feature interaction**: Definisikan behavior saat impersonation aktif lalu maintenance mode diaktifkan oleh admin lain secara bersamaan.
 
-Tidak ada phase yang perlu `/gsd:research-phase` — semua research sudah selesai dengan confidence HIGH. Semua pattern sudah well-documented dari inspeksi kode langsung dan official ASP.NET Core docs.
+---
 
-Phases dengan standard patterns (skip research-phase):
-- **Phase 1:** SQL Server migration patterns established, analisis dari kode langsung
-- **Phase 2:** IIS web.config dan appsettings patterns documented, template sudah ada di STACK.md dan ARCHITECTURE.md
-- **Phase 3:** ASP.NET Core security middleware patterns standard dan well-documented
-- **Phase 4:** Deployment runbook content sudah di-derive dari pitfall analysis
+## 7. Open Questions
+
+| Pertanyaan | Relevan Untuk | Prioritas |
+|------------|---------------|-----------|
+| View As Role cukup atau perlu impersonate user spesifik? | Phase 5 | MEDIUM — riset merekomendasikan View As Role saja untuk skala PortalHC |
+| Backup scope: apakah uploaded files (sertifikat, evidence) ikut di-backup? | Phase 7 | HIGH — jika tidak, restore akan merusak semua file links |
+| BackgroundService: satu hosted service dengan queue atau per-fitur? | Phase 1 | MEDIUM — satu service dengan queue lebih manageable |
+| Default settings apa saja yang perlu di-seed saat migration? | Phase 1 | MEDIUM — perlu finalisasi list sebelum coding dimulai |
+| Polling vs SignalR untuk notifikasi: STACK.md dan FEATURES.md tidak konsisten (30 detik vs 60 detik) | Phase 6 | LOW — gunakan SignalR push, polling interval jadi tidak relevan |
+
+---
 
 ## Confidence Assessment
 
-| Area | Confidence | Notes |
+| Area | Confidence | Basis |
 |------|------------|-------|
-| Stack | HIGH | Analisis langsung dari source code: Program.cs, csproj, appsettings. Semua fakta dikonfirmasi dari file aktual |
-| Features | HIGH | Derived dari codebase audit + ASP.NET Core official deployment docs + v4.3 known gaps registry |
-| Architecture | HIGH | Semua komponen ditemukan di code dengan line numbers (HybridAuthService, LdapAuthService, SeedData, Program.cs) |
-| Pitfalls | HIGH | Setiap pitfall dikonfirmasi dengan line number di source code aktual — bukan asumsi |
+| Stack | HIGH | Semua teknologi diverifikasi langsung di codebase, zero package baru |
+| Features | HIGH | Berdasarkan riset 37 fitur admin dari enterprise platform + domain knowledge |
+| Architecture | HIGH | Analisis langsung source code (Program.cs, AdminController, Services, Hubs) |
+| Pitfalls | HIGH | Kombinasi analisis codebase aktual + OWASP + EF Core best practices |
+| Build Order | HIGH | Konsensus dari 3 file riset independen menghasilkan urutan yang sama |
 
-**Overall confidence:** HIGH
-
-### Gaps to Address
-
-- **LDAP path validation**: Tidak bisa dikonfirmasi tanpa akses ke AD server Pertamina. Path `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` mungkin benar atau placeholder. Harus diverifikasi saat Phase 4 dengan test login dari server production.
-- **SQL Server version aktual**: EF Core 8 kompatibel dengan SQL Server 2016+, fitur tertentu butuh 2019+. Konfirmasi versi SQL Server di environment Pertamina saat Phase 4.
-- **IIS SSL certificate**: HTTPS binding di luar scope codebase — tanggung jawab tim infra Pertamina. Dokumentasikan requirement di runbook Phase 4.
-- **Upload folder path aktual**: Belum dikonfirmasi apakah `/uploads/evidence/` dan `/uploads/guidance/` sudah di luar publish directory. Perlu verifikasi saat Phase 1.
-
-## Sources
-
-### Primary (HIGH confidence)
-- Source code langsung: `Program.cs`, `HcPortal.csproj`, `appsettings.*.json`, `Services/HybridAuthService.cs`, `Services/LdapAuthService.cs`, `Data/SeedData.cs`
-- ASP.NET Core 8 IIS in-process hosting documentation
-- EF Core SQL Server provider patterns
-
-### Secondary (MEDIUM confidence)
-- IIS-specific behavior (app pool recycling, WebSocket) — training data knowledge, konfirmasi saat deployment
-- AD LDAP path format — berdasarkan pattern di codebase, perlu validasi saat Phase 4
+**Gap yang perlu diperhatikan:** Belum ada angka konkret untuk ukuran database saat ini (total records) — relevan untuk estimasi durasi backup dan kebutuhan caching di Dashboard.
 
 ---
-*Research completed: 2026-03-25*
-*Ready for roadmap: yes*
+
+## Sources Agregat
+
+- Codebase PortalHC KPB langsung: `Program.cs`, `AdminController.cs`, `Services/`, `Hubs/`, `Views/Shared/_Layout.cshtml`
+- ASP.NET Core Identity: claims-based impersonation (built-in framework capability)
+- ASP.NET Core middleware pipeline ordering (official docs)
+- EF Core: N+1 query patterns, projection best practices
+- SQL Server: T-SQL BACKUP/RESTORE syntax, COPY_ONLY flag
+- OWASP: session management guidelines untuk impersonation
+- Existing pattern: Phase 99 NotificationController/Service, AnalyticsDashboard.cshtml, ManageWorkers ImportWorkers
+
+---
+
+*Summary ditulis: 2026-04-01*
+*Untuk milestone: v11.2 Admin Platform Enhancement*

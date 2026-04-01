@@ -1,198 +1,206 @@
-# Stack Research
+# Technology Stack — v11.2 Admin Platform Enhancement
 
-**Domain:** Pre-deployment readiness — ASP.NET Core MVC intranet portal
-**Researched:** 2026-03-25
-**Confidence:** HIGH (analisis langsung source code + established deployment patterns)
+**Project:** PortalHC KPB
+**Researched:** 2026-04-01
+**Overall confidence:** HIGH (semua fitur bisa dibangun dengan stack existing)
 
-## Recommended Stack
+## Current Stack (Tidak Berubah)
 
-### Core Technologies (Sudah Ada - Tidak Perlu Diubah)
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| ASP.NET Core MVC | .NET 8.0 | Web framework |
+| EF Core + SQL Server | 8.0.0 | ORM + Database |
+| ASP.NET Core Identity | 8.0.0 | Auth & roles |
+| ClosedXML | 0.105.0 | Excel export/import |
+| QuestPDF | 2026.2.2 | PDF generation |
+| SignalR | built-in .NET 8 | Real-time (sudah di assessment monitoring) |
+| Chart.js | via CDN | Charts (sudah di AnalyticsDashboard) |
+| Bootstrap 5 + jQuery | via CDN | UI framework |
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| ASP.NET Core MVC | net8.0 | Web framework | LTS sampai Nov 2026, 252+ phases shipped |
-| EF Core + SqlServer | 8.0.0 | ORM + production DB | Connection string template sudah ada |
-| ASP.NET Core Identity | 8.0.0 | Auth/authz | Role-based auth lengkap (Admin/HC/SrSpv/SectionHead/Coach/Coachee) |
-| System.DirectoryServices | 10.0.0 | LDAP/AD authentication | HybridAuthService sudah built dengan toggle config |
-| SignalR | built-in 8.0 | Real-time assessment hub | AssessmentHub production-ready |
-| ClosedXML | 0.105.0 | Excel import/export | Fitur inti portal |
-| QuestPDF | 2026.2.2 | PDF generation | Community license, sudah aktif |
-| IIS in-process | AspNetCoreModuleV2 | Hosting | web.config sudah ada |
+## Kesimpulan Utama: ZERO Package Tambahan
 
-### Supporting Libraries
+Semua 7 fitur bisa dibangun dengan stack yang sudah ada. Tidak perlu install NuGet package atau JS library baru.
 
-Tidak perlu package baru. Semua kebutuhan deployment dapat dipenuhi dengan konfigurasi stack yang ada.
+| Fitur | NuGet Baru | JS Baru | Dibangun Dengan |
+|-------|-----------|---------|-----------------|
+| Impersonation | - | - | ASP.NET Core Identity (claims manipulation) |
+| Announcement | - | - | EF Core + _Layout.cshtml partial |
+| Notification | - | - | EF Core + jQuery AJAX + ViewComponent |
+| Dashboard KPI | - | - | Chart.js (existing) + IMemoryCache (built-in) |
+| System Settings | - | - | EF Core + IMemoryCache |
+| Maintenance Mode | - | - | Custom middleware |
+| Backup & Restore | - | - | SQL Server T-SQL BACKUP/RESTORE |
 
-### Server Requirements (Install di Server Target)
+## Detail Per Fitur
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| .NET 8.0 Hosting Bundle | Runtime + IIS module | Download dari dotnet.microsoft.com/download/dotnet/8.0 — BUKAN SDK, cukup Hosting Bundle |
-| IIS 10+ | Web server | Windows Server 2016+ dengan AspNetCoreModuleV2 (otomatis dari Hosting Bundle) |
-| SQL Server 2016+ | Production database | Sudah tersedia di environment Pertamina |
+### 1. User Impersonation / View As Role
 
-## Configuration Changes for Production
+**Teknologi:** ASP.NET Core Identity bawaan — `SignInManager.SignInAsync()` + custom claims.
 
-### 1. appsettings.Production.json — Perlu Diisi
+**Cara kerja:**
+- Admin klik "Impersonate" pada user target
+- Simpan `OriginalUserId` dan `OriginalUserName` sebagai additional claims
+- `SignInManager.SignInAsync(targetUser)` dengan claims tambahan
+- Middleware/ViewComponent cek claim `OriginalUserId` untuk tampilkan banner warning + tombol "Kembali ke Admin"
+- Tombol kembali: sign out, lalu sign in kembali sebagai admin original
+- Audit log setiap impersonation di tabel `ImpersonationLog`
 
-File sudah ada dengan template placeholder. Yang harus dikonfigurasi:
+**Tidak perlu library session management tambahan** — Identity claims sudah cukup.
 
-```json
+### 2. Announcement / Broadcast
+
+**Teknologi:** EF Core model + partial view di `_Layout.cshtml`.
+
+- Model `Announcement`: Title, Content HTML (sanitized), TargetRole (nullable = semua), StartDate, EndDate, IsActive, Priority
+- Query di `_Layout.cshtml` via ViewComponent — filter by IsActive, date range, dan role user
+- Tampilkan sebagai Bootstrap alert di atas content area
+- Admin CRUD via form biasa di AdminController
+- **SignalR TIDAK diperlukan** — announcement bukan real-time critical, cukup load saat page refresh
+
+### 3. In-App Notification (Bell Icon)
+
+**Teknologi:** EF Core + jQuery AJAX polling + Bootstrap dropdown.
+
+**Komponen:**
+- Model `Notification`: UserId, Title, Message, Type (enum), LinkUrl, IsRead, CreatedAt
+- ViewComponent `NotificationBell` di `_Layout.cshtml` navbar — render bell icon + unread count badge
+- AJAX endpoint `GET /Admin/NotificationCount` — return unread count (polling setiap 30 detik via `setInterval`)
+- AJAX endpoint `GET /Admin/NotificationList` — return partial view dengan 10 notifikasi terbaru
+- AJAX endpoint `POST /Admin/MarkNotificationRead/{id}`
+- Halaman penuh `/Admin/Notifications` untuk history
+
+**Keputusan: Polling 30 detik, BUKAN SignalR.**
+Alasan: Notification tidak butuh sub-second latency. SignalR sudah ada di codebase tapi menambah persistent WebSocket connection per user untuk bell icon adalah over-engineering. Polling 30 detik dengan `$.get()` sederhana dan efektif.
+
+### 4. Dashboard Statistik Admin (KPI Overview)
+
+**Teknologi:** Chart.js (sudah ada) + EF Core aggregate queries + IMemoryCache.
+
+**Komponen:**
+- Halaman `/Admin/Dashboard` dengan card-based layout (Bootstrap grid)
+- KPI cards: Total Users, Active Assessments, Completion Rate, Pending Approvals, dll
+- Chart.js charts: trend line (assessments per bulan), bar chart (per unit), pie (status distribution)
+- `IMemoryCache` untuk cache query hasil aggregate (expire 5 menit) — built-in .NET, tidak perlu package
+
+**Reuse pattern dari** `Views/CMP/AnalyticsDashboard.cshtml` yang sudah ada.
+
+### 5. System Settings Page
+
+**Teknologi:** EF Core + IMemoryCache + form biasa.
+
+**Komponen:**
+- Model `SystemSetting`: Key (PK), Value, ValueType (string/int/bool/json), Description, Category, UpdatedAt, UpdatedBy
+- Service `SystemSettingService` dengan get/set + auto-invalidate cache
+- Admin UI: grouped by category (General, Security, Notification, Maintenance)
+- Settings yang langsung berguna: site name, maintenance mode toggle, notification retention days, backup path
+
+**Pattern:** Key-value store di database, di-cache di memory, invalidate on write. Sederhana dan proven.
+
+### 6. Maintenance Mode
+
+**Teknologi:** Custom ASP.NET Core middleware.
+
+**Implementasi:**
+```csharp
+// MaintenanceModeMiddleware.cs
+public async Task InvokeAsync(HttpContext context)
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Warning",
-      "Microsoft.AspNetCore": "Warning",
-      "HcPortal": "Information"
+    var settings = context.RequestServices.GetRequiredService<ISystemSettingService>();
+    if (settings.GetBool("MaintenanceMode") && !context.User.IsInRole("Admin"))
+    {
+        context.Response.StatusCode = 503;
+        await context.Response.SendFileAsync("wwwroot/maintenance.html");
+        return;
     }
-  },
-  "AllowedHosts": "portalhc.pertamina.com",
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=NAMA_SERVER;Database=HcPortalDB;User Id=hcportal_app;Password=GANTI_VIA_ENV_VAR;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true;Connect Timeout=30"
-  },
-  "Authentication": {
-    "UseActiveDirectory": true,
-    "LdapPath": "LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com"
-  }
+    await _next(context);
 }
 ```
 
-**Perubahan dari template saat ini:**
-- `AllowedHosts`: ganti `*` ke hostname aktual
-- `Encrypt=True`: tambahkan untuk keamanan koneksi DB
-- `Connect Timeout=30`: tambahkan, default 15s terlalu pendek untuk cold start
-- `Logging` default: turunkan ke Warning, hanya HcPortal namespace yang Information
-- `Authentication.UseActiveDirectory`: set `true`
-
-### 2. web.config — Perlu Tuning
-
-Current state di publish output:
-```xml
-<aspNetCore processPath="dotnet" arguments=".\HcPortal.dll"
-            stdoutLogEnabled="false" stdoutLogFile=".\logs\stdout"
-            hostingModel="inprocess" />
+**Pipeline placement:**
+```
+app.UseAuthentication();
+app.UseMaintenanceModeMiddleware();  // <-- BARU: setelah auth, sebelum authorization
+app.UseAuthorization();
 ```
 
-**Yang perlu diubah:**
+- Toggle via System Settings page (fitur #5) — satu checkbox
+- Static HTML file `wwwroot/maintenance.html` — tidak butuh layout/razor
+- Admin tetap bisa akses semua halaman saat maintenance aktif
 
-| Setting | Current | Production | Why |
-|---------|---------|------------|-----|
-| `stdoutLogEnabled` | `false` | `true` saat deploy pertama | Troubleshoot startup failures, matikan setelah stabil |
-| Environment variable | tidak ada | `ASPNETCORE_ENVIRONMENT=Production` | Wajib agar error page aktif, dev middleware mati |
+### 7. Backup & Restore Database
 
-Tambahkan `<environmentVariables>` block:
-```xml
-<aspNetCore processPath="dotnet" arguments=".\HcPortal.dll"
-            stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout"
-            hostingModel="inprocess">
-  <environmentVariables>
-    <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
-  </environmentVariables>
-</aspNetCore>
+**Teknologi:** SQL Server T-SQL BACKUP/RESTORE via `ExecuteSqlRawAsync` + `IHostedService` bawaan .NET.
+
+**Backup:**
+```csharp
+await context.Database.ExecuteSqlRawAsync(
+    $"BACKUP DATABASE [{dbName}] TO DISK = N'{backupPath}' WITH FORMAT, COMPRESSION");
 ```
 
-### 3. Program.cs — Production Hardening
-
-Yang perlu ditambahkan (kode, bukan package):
-
-| Item | Status | Action |
-|------|--------|--------|
-| HSTS | Belum ada | Tambahkan `app.UseHsts()` di production block |
-| Status code pages | Belum ada | Tambahkan `app.UseStatusCodePagesWithReExecute("/Home/Error/{0}")` |
-| Security headers | Parsial (PDF saja) | Middleware global untuk X-Frame-Options, X-Content-Type-Options |
-| Password policy | Dev-mode (RequireDigit=false dll) | Perketat untuk production |
-
-### 4. IIS App Pool Configuration
-
-| Setting | Value | Why |
-|---------|-------|-----|
-| .NET CLR Version | "No Managed Code" | Wajib untuk in-process hosting |
-| Start Mode | AlwaysRunning | Hindari cold start delay |
-| Idle Timeout | 0 (disabled) | Jangan shutdown app saat idle |
-| Recycling | Regular time (default 1740 min) | OK, in-process akan graceful restart |
-
-### 5. Active Directory Verification
-
-Sudah built (`HybridAuthService`), yang perlu diverifikasi saat deploy:
-- LDAP path cocok dengan AD structure aktual
-- IIS server bisa akses domain controller (port 389 LDAP / 636 LDAPS)
-- App pool identity punya read permission ke AD OU
-- Fallback ke local auth untuk `admin@pertamina.com` tetap berfungsi
-
-### 6. Database Preparation
-
-- Buat database `HcPortalDB` di SQL Server target
-- Buat SQL login `hcportal_app` dengan role `db_owner` (untuk auto-migration)
-- `context.Database.Migrate()` di Program.cs akan apply semua migration saat startup pertama
-- Setelah stabil, bisa turunkan ke `db_datareader` + `db_datawriter`
-
-## Deployment Command
-
-```bash
-# Build
-dotnet publish -c Release -o ./publish
-
-# Buat folder logs manual (IIS tidak auto-create)
-mkdir ./publish/logs
-
-# Copy publish/ ke IIS site physical path
-# First request triggers: EF migration → seed data → app ready
+**Restore:**
+```csharp
+await context.Database.ExecuteSqlRawAsync(
+    $"ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; " +
+    $"RESTORE DATABASE [{dbName}] FROM DISK = N'{restorePath}'; " +
+    $"ALTER DATABASE [{dbName}] SET MULTI_USER");
 ```
 
-## What NOT to Use
+**Komponen:**
+- Model `BackupHistory`: Id, FileName, FilePath, SizeBytes, CreatedAt, CreatedBy, Status, DurationMs
+- Backup path configurable via System Settings
+- Download backup via `FileStreamResult`
+- List backup files dari tabel BackupHistory + verify file exists
+- Background execution via `IHostedService` untuk backup besar (queue pattern sederhana)
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| Serilog/NLog | Overkill untuk intranet tanpa log aggregation | Built-in logging + stdout file |
-| Health checks package | Tidak ada orchestrator/LB yang poll | Manual monitoring + Event Viewer |
-| Application Insights | Bukan Azure deployment | IIS logs + stdout |
-| Docker | Target IIS on-premises | Direct IIS publish |
-| Swagger/OpenAPI | MVC portal, bukan API | Tidak relevan |
-| Hangfire | Tidak ada background job requirement | Tidak perlu |
-| Rate limiting middleware | Intranet + throttling sudah ada di v8.6 | Existing implementation |
-| Kestrel standalone | Intranet butuh Windows Auth passthrough | IIS in-process |
-| Redis | Volume data kecil, single server | In-memory cache yang sudah ada |
-| Reverse proxy (nginx) | Windows Server + IIS environment | IIS native |
+**Catatan keamanan:** Hanya Admin role. SQL Server service account harus punya write permission ke backup folder.
 
-## Environment Variable untuk Sensitive Config
-
-Lebih aman daripada menyimpan di file:
+## Model Database Baru (5 Tabel, 1 Migration)
 
 ```
-# Set via IIS > Site > Configuration Editor > environmentVariables
-ConnectionStrings__DefaultConnection=Server=...;Database=...;Password=...
-Authentication__UseActiveDirectory=true
+SystemSetting      (Key PK, Value, ValueType, Description, Category, UpdatedAt, UpdatedBy)
+Announcement       (Id, Title, Content, TargetRole, Priority, StartDate, EndDate, IsActive, CreatedBy, CreatedAt)
+Notification       (Id, UserId FK→AspNetUsers, Title, Message, Type, LinkUrl, IsRead, CreatedAt)
+ImpersonationLog   (Id, AdminUserId FK, TargetUserId FK, StartedAt, EndedAt, Reason)
+BackupHistory      (Id, FileName, FilePath, SizeBytes, DurationMs, CreatedAt, CreatedBy, Status)
 ```
 
-## SQLite Cleanup
+## Yang TIDAK Perlu Ditambahkan
 
-`Program.cs` baris 129-135 ada SQLite WAL mode pragma. Kode ini harmless di production (conditional check `ProviderName == "Sqlite"`), tapi sebaiknya dihapus untuk kebersihan karena production pakai SQL Server.
+| Jangan Tambahkan | Alasan | Alternatif yang Sudah Ada |
+|------------------|--------|---------------------------|
+| **Hangfire** | Hanya backup butuh background job. `IHostedService` bawaan .NET cukup untuk satu task. Hangfire butuh 7+ tabel database sendiri + dashboard — overkill. | `IHostedService` / `BackgroundService` |
+| **MediatR** | CQRS pattern tidak diperlukan untuk CRUD settings sederhana. Tambah abstraction tanpa value. | Direct service injection |
+| **FluentValidation** | Model sederhana. Data Annotations (`[Required]`, `[MaxLength]`) sudah cukup. | Data Annotations |
+| **SignalR untuk notifications** | Polling 30 detik via jQuery cukup. Persistent WebSocket per user untuk bell icon = over-engineering. | `setInterval` + `$.get()` |
+| **Redis** | Single server deployment. Data volume kecil. | `IMemoryCache` (built-in) |
+| **Toast library (Toastr/Notyf)** | Bootstrap 5 Toast component sudah built-in dan sudah cukup. | Bootstrap Toast |
+| **Rich text editor (TinyMCE/CKEditor)** | Announcement content cukup pakai textarea + basic HTML. Jika nanti perlu, tambahkan di phase terpisah. | Textarea biasa |
+| **Quartz.NET** | Scheduled backup bisa pakai Windows Task Scheduler yang sudah ada di server. Tidak perlu in-app scheduler. | Windows Task Scheduler |
 
-## Alternatives Considered
+## Services Baru yang Perlu Dibuat
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| IIS in-process | Kestrel + reverse proxy | Jika deploy ke Linux, tapi tidak relevan di sini |
-| Built-in logging | Serilog + Seq | Jika nanti perlu centralized log aggregation |
-| SQL Server auth | Windows Integrated Auth ke DB | Jika app pool identity bisa diberi DB access langsung |
-| Environment variables | Azure Key Vault | Jika migrate ke cloud |
+| Service | Purpose | DI Registration |
+|---------|---------|-----------------|
+| `ISystemSettingService` | Get/set settings dengan caching | Singleton |
+| `INotificationService` | Create/read/mark-read notifications | Scoped |
+| `IImpersonationService` | Start/stop impersonation, audit log | Scoped |
+| `IBackupService` | Trigger backup/restore, list history | Scoped |
 
-## Version Compatibility
+## Middleware Baru
 
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| EF Core 8.0 | SQL Server 2016+ | Fitur terbaru butuh 2019+ tapi 2016 cukup |
-| .NET 8.0 Hosting Bundle | IIS 10 (Windows Server 2016+) | In-process hosting butuh AspNetCoreModuleV2 |
-| System.DirectoryServices 10.0.0 | .NET 8.0, Windows only | Sesuai target deployment |
-| QuestPDF 2026.2.2 | Community license gratis < $1M revenue | Internal tool = aman |
-| .NET 8.0 LTS | Support sampai November 2026 | Masih dalam support window |
+| Middleware | Purpose | Position in Pipeline |
+|------------|---------|---------------------|
+| `MaintenanceModeMiddleware` | Block non-admin saat maintenance | Setelah `UseAuthentication()`, sebelum `UseAuthorization()` |
+| `ImpersonationBannerMiddleware` (opsional) | Inject banner HTML saat impersonating | Atau cukup ViewComponent di _Layout |
 
 ## Sources
 
-- Source code: `Program.cs`, `HcPortal.csproj`, `appsettings.*.json`, `publish/web.config` (HIGH confidence)
-- ASP.NET Core 8.0 IIS hosting model documentation (HIGH confidence)
-- EF Core SQL Server provider patterns (HIGH confidence)
+- ASP.NET Core Identity: claims-based impersonation adalah pattern standar (HIGH confidence — built-in framework capability)
+- SQL Server BACKUP/RESTORE T-SQL: documented di Microsoft docs, dipakai luas (HIGH confidence)
+- IMemoryCache: built-in .NET 8, zero config (HIGH confidence)
+- IHostedService/BackgroundService: built-in .NET 8 untuk background tasks sederhana (HIGH confidence)
+- Existing codebase: SignalR di `AdminController.cs`/`AssessmentMonitoringDetail.cshtml`, Chart.js di `AnalyticsDashboard.cshtml` (HIGH confidence — verified in source)
 
 ---
-*Stack research untuk: Pre-deployment Audit & Finalization (v9.0)*
-*Researched: 2026-03-25*
+*Stack research untuk: v11.2 Admin Platform Enhancement*
+*Researched: 2026-04-01*
