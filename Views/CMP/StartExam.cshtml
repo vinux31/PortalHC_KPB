@@ -820,7 +820,9 @@ else
     function scrollToQuestion(questionId) {
         const qcard = document.getElementById('qcard_' + questionId);
         if (qcard) {
-            qcard.scrollIntoView({ behavior: 'auto', block: 'start' });
+            // Scroll dengan posisi lebih ke atas (top - 80px offset untuk header)
+            const y = qcard.getBoundingClientRect().top + window.pageYOffset - 80;
+            window.scrollTo({ top: y, behavior: 'auto' });
         }
     }
 
@@ -1106,7 +1108,7 @@ else
     /* Question Navigation Panel - Grid Layout */
     #panelNumbers {
         display: grid;
-        grid-template-columns: repeat(10, 1fr);
+        grid-template-columns: repeat(7, 1fr);
         gap: 6px;
         align-items: start;
     }
