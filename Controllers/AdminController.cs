@@ -2255,10 +2255,17 @@ namespace HcPortal.Controllers
                     _context.AssessmentPackages.RemoveRange(packages);
                 }
 
-                // 4. Remove session
+                // 4. SessionElemenTeknisScores (same as DeleteAssessment)
+                var etScores = await _context.SessionElemenTeknisScores
+                    .Where(e => e.AssessmentSessionId == sessionId)
+                    .ToListAsync();
+                if (etScores.Any())
+                    _context.SessionElemenTeknisScores.RemoveRange(etScores);
+
+                // 5. Remove session
                 _context.AssessmentSessions.Remove(session);
 
-                // 5. Save
+                // 6. Save
                 await _context.SaveChangesAsync();
 
                 // Audit log
