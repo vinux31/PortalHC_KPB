@@ -182,8 +182,11 @@
                             <label asp-for="Title" class="form-label fw-bold">
                                 Judul Assessment <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="Title" class="form-control" id="Title" placeholder="Masukkan judul assessment" maxlength="255" />
-                            <div class="invalid-feedback">Judul assessment wajib diisi.</div>
+                            <input asp-for="Title" class="form-control" id="Title" placeholder="Masukkan judul assessment" maxlength="255" oninput="document.getElementById('titleCounter').textContent=this.value.length+'/255'" />
+                            <div class="d-flex justify-content-between">
+                                <div class="invalid-feedback">Judul assessment wajib diisi.</div>
+                                <small class="text-muted" id="titleCounter">0/255</small>
+                            </div>
                         </div>
 
                         <!-- Proton Fields (conditional) -->
@@ -386,7 +389,7 @@
                             <div id="tokenSection" class="d-none">
                                 <label asp-for="AccessToken" class="form-label fw-bold">Access Token</label>
                                 <div class="input-group">
-                                    <input asp-for="AccessToken" class="form-control font-monospace" placeholder="Contoh: A1B2C3" maxlength="6" id="AccessToken" style="text-transform:uppercase;" />
+                                    <input asp-for="AccessToken" class="form-control font-monospace" placeholder="Contoh: A1B2C3" maxlength="6" id="AccessToken" pattern="[A-Za-z0-9]{6}" title="6 karakter alfanumerik" style="text-transform:uppercase;" />
                                     <button class="btn btn-outline-secondary" type="button" onclick="generateToken()">
                                         <i class="bi bi-shuffle"></i> Generate
                                     </button>

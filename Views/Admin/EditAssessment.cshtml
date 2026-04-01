@@ -122,8 +122,11 @@
                     <label asp-for="Title" class="form-label fw-semibold">
                         Judul Assessment <span class="text-danger">*</span>
                     </label>
-                    <input asp-for="Title" class="form-control" placeholder="cth: OJT Basic Operator Training" required />
-                    <span asp-validation-for="Title" class="text-danger"></span>
+                    <input asp-for="Title" class="form-control" placeholder="cth: OJT Basic Operator Training" required maxlength="255" oninput="document.getElementById('titleCounter').textContent=this.value.length+'/255'" />
+                    <div class="d-flex justify-content-between">
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                        <small class="text-muted" id="titleCounter">@(Model.Title?.Length ?? 0)/255</small>
+                    </div>
                 </div>
 
                 <!-- Category & Status -->
@@ -215,7 +218,7 @@
                                        class="form-control" required />
                                 <div class="form-text text-muted">Tanggal (WIB)</div>
                             </div>
-                            <div style="width:130px">
+                            <div class="flex-shrink-0" style="min-width:110px; max-width:140px">
                                 <input type="time" id="ScheduleTime"
                                        value="@Model.Schedule.ToString("HH:mm")"
                                        class="form-control" required />
@@ -289,7 +292,7 @@
                                                class="form-control" required />
                                         <div class="form-text text-muted">Tanggal (WIB)</div>
                                     </div>
-                                    <div style="width:130px">
+                                    <div class="flex-shrink-0" style="min-width:110px; max-width:140px">
                                         <input type="time" id="ewcdTimeInput"
                                                value="@(Model.ExamWindowCloseDate?.ToString("HH:mm") ?? "23:59")"
                                                class="form-control" required />
@@ -343,6 +346,7 @@
                             <div class="input-group">
                                 <input asp-for="AccessToken" class="form-control text-uppercase fw-bold"
                                        placeholder="cth: ABC123" maxlength="6"
+                                       pattern="[A-Za-z0-9]{6}" title="6 karakter alfanumerik"
                                        style="letter-spacing: 0.2em;" />
                                 <button type="button" class="btn btn-outline-secondary" onclick="generateRandomToken()">
                                     <i class="bi bi-arrow-clockwise"></i> Generate
