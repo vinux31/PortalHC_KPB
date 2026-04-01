@@ -160,7 +160,7 @@ else
             <div class="col-lg-3" id="questionPanelWrapper">
                 <div class="sticky-top" style="top: 70px;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <small class="text-muted fw-bold">Questions this page</small>
+                        <small class="text-muted fw-bold">Daftar Soal</small>
                         <button class="btn btn-sm btn-outline-secondary" id="togglePanelBtn"
                                 onclick="togglePanel()">
                             <i class="bi bi-layout-sidebar-reverse"></i>
@@ -336,6 +336,15 @@ else
             Model.Questions.Skip(p * questionsPerPage).Take(questionsPerPage)
                 .Select(q => q.QuestionId).ToList()
         ).ToList()
+    ));
+
+    // Flat data structure for all questions (for navigation panel)
+    const allQuestionsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.Questions.Select((q, index) => new {
+            questionId = q.QuestionId,
+            pageNumber = index / questionsPerPage,  // zero-based page index
+            displayNumber = q.DisplayNumber
+        }).ToList()
     ));
 
     // -------- Timer — wall clock anchor (D-07 drift fix) --------
@@ -677,7 +686,7 @@ else
     });
 
     // -------- Page switching --------
-    function changePage(newPage) {
+    function changePage(newPage, skipScroll) {
         if (newPage < 0 || newPage >= TOTAL_PAGES) return;
 
         // Check for pending saves
@@ -693,7 +702,7 @@ else
                 document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
                     b.disabled = false;
                 });
-                performPageSwitch(newPage);
+                performPageSwitch(newPage, skipScroll);
             }, SAVE_TIMEOUT_MS);
 
             var navPoll = setInterval(function() {
@@ -703,22 +712,25 @@ else
                     document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
                         b.disabled = false;
                     });
-                    performPageSwitch(newPage);
+                    performPageSwitch(newPage, skipScroll);
                 }
             }, 50);
             return;
         }
 
-        performPageSwitch(newPage);
+        performPageSwitch(newPage, skipScroll);
     }
 
-    function performPageSwitch(newPage) {
+    function performPageSwitch(newPage, skipScroll) {
         document.getElementById('page_' + currentPage).style.display = 'none';
         currentPage = newPage;
         document.getElementById('page_' + currentPage).style.display = 'block';
         updatePanel();
+        scrollPanelToCurrentPage();  // Auto-scroll panel to show first badge of current page
         saveSessionProgress();  // Save elapsed time + new page on every navigation
-        window.scrollTo(0, 0);
+        if (!skipScroll) {
+            window.scrollTo(0, 0);
+        }
         // Log page navigation event via SignalR (fire-and-forget, never blocks)
         try {
             if (window.assessmentHub && window.assessmentHub.state === 'Connected') {
@@ -772,22 +784,57 @@ else
     function updatePanel() {
         const container = document.getElementById('panelNumbers');
         container.innerHTML = '';
-        const ids = pageQuestionIds[currentPage] || [];
-        ids.forEach(function(qId) {
+
+        // Render all questions from allQuestionsData
+        allQuestionsData.forEach(function(q) {
             const btn = document.createElement('div');
-            const answered = answeredQuestions.has(String(qId));
+            const answered = answeredQuestions.has(String(q.questionId));
             btn.className = 'badge rounded-pill ' + (answered ? 'bg-success' : 'bg-secondary');
-            btn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:default;';
-            // Find display number: use Q number embedded in the card badge
-            const qcard = document.getElementById('qcard_' + qId);
-            let displayNum = qId;
-            if (qcard) {
-                const badge = qcard.querySelector('.badge.bg-primary');
-                if (badge) displayNum = badge.innerText.trim();
-            }
-            btn.innerText = displayNum;
+            btn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:pointer;';
+            btn.innerText = q.displayNumber;
+            // Store data for navigation
+            btn.dataset.questionId = q.questionId;
+            btn.dataset.pageNumber = q.pageNumber;
+            // Add click handler for navigation
+            btn.addEventListener('click', function() {
+                jumpToQuestion(q.questionId, q.pageNumber);
+            });
             container.appendChild(btn);
         });
+    }
+
+    function jumpToQuestion(questionId, targetPage) {
+        if (targetPage === currentPage) {
+            // Same page: scroll directly to question
+            scrollToQuestion(questionId);
+        } else {
+            // Different page: switch page first, then scroll
+            changePage(targetPage, true);  // Skip scroll, we'll scroll to question
+            // Wait for page switch to complete, then scroll
+            setTimeout(function() {
+                scrollToQuestion(questionId);
+            }, 100);
+        }
+    }
+
+    function scrollToQuestion(questionId) {
+        const qcard = document.getElementById('qcard_' + questionId);
+        if (qcard) {
+            // Scroll dengan posisi lebih ke atas (top - 80px offset untuk header)
+            const y = qcard.getBoundingClientRect().top + window.pageYOffset - 80;
+            window.scrollTo({ top: y, behavior: 'auto' });
+        }
+    }
+
+    function scrollPanelToCurrentPage() {
+        const panel = document.getElementById('questionPanel');
+        const firstBadgeOnPage = pageQuestionIds[currentPage] && pageQuestionIds[currentPage][0];
+        if (firstBadgeOnPage) {
+            const badge = panel.querySelector('[data-question-id="' + firstBadgeOnPage + '"]');
+            if (badge) {
+                badge.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'start' });
+            }
+        }
     }
 
     // -------- Init --------
@@ -795,6 +842,13 @@ else
     // Pre-populate saved answers before anything is shown (seamless, no flicker)
     // Also shows failure toast if IS_RESUME is true but no answers were loaded
     prePopulateAnswers();
+
+    // Mobile: collapse panel on fresh load (not resume)
+    if (!IS_RESUME && window.innerWidth <= 991) {
+        const panel = document.getElementById('questionPanel');
+        panel.style.display = 'none';
+        panelVisible = false;
+    }
 
     // Expired exam: show modal then auto-submit
     if (EXAM_EXPIRED) {
@@ -1050,7 +1104,39 @@ else
         color: #212529 !important;  /* keep text dark — Bootstrap .active overrides to white */
     }
     .option-selected .text-secondary { color: #0a58ca !important; }
+
+    /* Question Navigation Panel - Grid Layout */
+    #panelNumbers {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        align-items: start;
+        justify-items: center;
+    }
+
+    #panelNumbers .badge {
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        text-align: center;
+        min-width: 36px;
+        width: 36px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        padding: 0;
+    }
+
+    #panelNumbers .badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
     @@media (max-width: 991px) {
         #questionPanelWrapper { order: -1; margin-bottom: 1rem; }
+        #questionPanel {
+            max-height: 300px;
+            overflow-y: auto;
+        }
     }
 </style>
