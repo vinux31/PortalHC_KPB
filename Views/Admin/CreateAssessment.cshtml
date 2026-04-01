@@ -647,6 +647,15 @@
 <script>
 initFormLoading('createAssessmentForm', 'Menyimpan...');
 
+// Helper: reset submit button loading state when validation fails
+function resetCreateSubmitButton() {
+    var btn = document.querySelector('#createAssessmentForm button[type="submit"]');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Buat Assessment';
+    }
+}
+
 // ===== generateToken (global — used by inline onclick) =====
 function generateToken() {
     var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1061,12 +1070,13 @@ function generateToken() {
 
     function toggleTokenSection() {
         if (!tokenCheckbox || !tokenSection) return;
+        var accessToken = document.getElementById('AccessToken');
         if (tokenCheckbox.checked) {
             tokenSection.classList.remove('d-none');
+            if (accessToken) accessToken.required = true;
         } else {
             tokenSection.classList.add('d-none');
-            var accessToken = document.getElementById('AccessToken');
-            if (accessToken) accessToken.value = '';
+            if (accessToken) { accessToken.value = ''; accessToken.required = false; }
         }
     }
 
@@ -1153,7 +1163,7 @@ function generateToken() {
     // ---- Form submit: schedule combiner + Proton Tahun 3 duration ----
     var form = document.getElementById('createAssessmentForm');
     if (form) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
             // Proton Tahun 3: set DurationMinutes=0
             var catEl = document.getElementById('Category');
             if (catEl && catEl.value === 'Assessment Proton') {
@@ -1178,6 +1188,17 @@ function generateToken() {
             if (ewcdDateInput && ewcdDateInput.value && ewcdTimeInput && ewcdHidden) {
                 ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
             }
+
+            // Validate ExamWindowCloseDate >= Schedule
+            var schedVal = schedHidden ? schedHidden.value : '';
+            var ewcdVal = ewcdHidden ? ewcdHidden.value : '';
+            if (schedVal && ewcdVal && new Date(ewcdVal) < new Date(schedVal)) {
+                alert('Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.');
+                resetCreateSubmitButton();
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
         }, true); // capture phase
     }
 
@@ -1194,6 +1215,15 @@ function generateToken() {
     var passWrapper = document.getElementById('passPercentageWrapper');
 
     if (!protonTrackSelect) return;
+
+    // Event delegation: listen once on container, works for dynamically added checkboxes
+    if (protonCbContainer) {
+        protonCbContainer.addEventListener('change', function() {
+            var count = protonCbContainer.querySelectorAll('.user-checkbox:checked').length;
+            var badge = document.getElementById('selectedCountBadge');
+            if (badge) badge.textContent = count + ' terpilih';
+        });
+    }
 
     protonTrackSelect.addEventListener('change', function() {
         var trackId = parseInt(this.value) || 0;
@@ -1248,11 +1278,6 @@ function generateToken() {
                         protonCbContainer.appendChild(div);
                     });
                     protonCbContainer.classList.remove('d-none');
-                    protonCbContainer.addEventListener('change', function() {
-                        var count = protonCbContainer.querySelectorAll('.user-checkbox:checked').length;
-                        var badge = document.getElementById('selectedCountBadge');
-                        if (badge) badge.textContent = count + ' terpilih';
-                    });
                 }
             })
             .catch(function() {

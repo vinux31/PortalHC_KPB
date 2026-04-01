@@ -1358,6 +1358,12 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("PassPercentage", "Pass Percentage must be between 0 and 100.");
             }
 
+            // Validate ExamWindowCloseDate >= Schedule
+            if (model.ExamWindowCloseDate.HasValue && model.ExamWindowCloseDate.Value < model.Schedule)
+            {
+                ModelState.AddModelError("ExamWindowCloseDate", "Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.");
+            }
+
             // ValidUntil: opsional di normal mode, wajib di renewal mode
             bool isRenewalModePost = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue || !string.IsNullOrEmpty(RenewalFkMap);
             ModelState.Remove("ValidUntil");
@@ -1842,6 +1848,11 @@ namespace HcPortal.Controllers
             // Validate editable fields (mirrors CreateAssessment POST validation)
             var editErrors = new List<string>();
 
+            var nowWibEdit = DateTime.UtcNow.AddHours(7).Date;
+            // Only validate past-date if schedule actually changed
+            if (model.Schedule.Date != assessment.Schedule.Date && model.Schedule < nowWibEdit)
+                editErrors.Add("Tanggal jadwal tidak boleh di masa lampau.");
+
             if (string.IsNullOrWhiteSpace(model.Title))
                 editErrors.Add("Title is required.");
 
@@ -1859,6 +1870,9 @@ namespace HcPortal.Controllers
 
             if (model.PassPercentage < 0 || model.PassPercentage > 100)
                 editErrors.Add("Pass Percentage must be between 0 and 100.");
+
+            if (model.ExamWindowCloseDate.HasValue && model.ExamWindowCloseDate.Value < model.Schedule)
+                editErrors.Add("Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.");
 
             if (model.IsTokenRequired && string.IsNullOrWhiteSpace(model.AccessToken))
                 editErrors.Add("Access Token is required when token security is enabled.");
