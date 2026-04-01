@@ -233,10 +233,10 @@ Plans:
 
 ### Phase 279: Tambah komponen waktu (jam:menit) pada tanggal tutup ujian (ExamWindowCloseDate)
 
-**Goal:** [To be planned]
+**Goal:** Tambahkan komponen waktu (jam:menit) pada ExamWindowCloseDate di CreateAssessment dan EditAssessment, ubah dari opsional menjadi wajib, mengikuti pola Schedule combiner
 **Requirements**: TBD
 **Depends on:** Phase 278
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 279 to break down)
+- [ ] 279-01-PLAN.md — Date+time combiner di CreateAssessment, EditAssessment, hapus ModelState.Remove
