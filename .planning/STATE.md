@@ -7,7 +7,7 @@ stopped_at: Phase 283 UI-SPEC approved
 last_updated: "2026-04-01T13:40:52.596Z"
 last_activity: 2026-04-01 -- Phase 283 execution started
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 0
   total_plans: 4
   completed_plans: 0
@@ -49,6 +49,10 @@ Progress: [░░░░░░░░░░] 0%
 
 - Riset open question: default settings list perlu difinalisasi sebelum Phase 281 coding
 - Riset open question: backup scope — apakah uploaded files ikut di-backup
+
+### Roadmap Evolution
+
+- Phase 285 added: Dedicated Impersonation Page — pindahkan kontrol impersonate dari dropdown ke halaman Admin tersendiri
 
 ## Session Continuity
 

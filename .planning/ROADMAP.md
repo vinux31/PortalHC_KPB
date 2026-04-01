@@ -9,7 +9,7 @@
 - ✅ **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (shipped 2026-03-25, partial)
 - ✅ **Phases 262-263** - Sub-path deployment fixes (shipped 2026-03-27)
 - ✅ **v10.0 UAT Assessment OJT di Server Development** - Phases 264-280 (shipped)
-- 🚧 **v11.2 Admin Platform Enhancement** - Phases 281-284 (in progress)
+- 🚧 **v11.2 Admin Platform Enhancement** - Phases 281-285 (in progress)
 
 ## Phases
 
@@ -127,3 +127,14 @@ Phases execute in numeric order: 281 → 282 → 283 → 284
 | 282. Maintenance Mode | 0/TBD | Not started | - |
 | 283. User Impersonation | 0/2 | Planned | - |
 | 284. Backup & Restore | 0/TBD | Not started | - |
+| 285. Dedicated Impersonation Page | 0/TBD | Not started | 283 |
+
+### Phase 285: Dedicated Impersonation Page
+
+**Goal:** Pindahkan kontrol impersonate dari dropdown profile ke halaman Admin tersendiri (`/Admin/Impersonate`) dengan UX yang lebih baik — search user lebih lega, card view-as-role, info panel, dan cleanup _Layout.cshtml
+**Requirements**: TBD
+**Depends on:** Phase 283
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 285 to break down)
