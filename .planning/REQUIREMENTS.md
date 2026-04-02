@@ -1,136 +1,74 @@
-# Requirements: PortalHC KPB — v11.2 Admin Platform Enhancement
+# Requirements: PortalHC KPB — v12.0 Controller Refactoring
 
-**Defined:** 2026-04-01
+**Defined:** 2026-04-02
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v11.2 Requirements
+## v12.0 Requirements
 
-Requirements untuk milestone v11.2. Setiap requirement maps ke roadmap phases.
+Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero perubahan UI.
 
-### System Settings
+### Base Infrastructure
 
-- [ ] **SETT-01**: Admin dapat melihat halaman System Settings dengan pengaturan dikelompokkan per kategori (General, Assessment, Security, Coaching)
-- [ ] **SETT-02**: Admin dapat mengubah nilai setting dan perubahan langsung berlaku tanpa restart aplikasi
-- [ ] **SETT-03**: Sistem menyimpan setting di database (key-value) dengan in-memory cache yang otomatis di-invalidate saat update
-- [ ] **SETT-04**: Aplikasi menggunakan setting dari database (bukan hardcoded) untuk parameter yang dikonfigurasi (durasi ujian default, passing score, session timeout, dll)
-- [ ] **SETT-05**: Setiap perubahan setting tercatat di audit log (siapa, kapan, nilai lama → baru)
-- [ ] **SETT-06**: Setting memiliki validasi sesuai tipe data (min/max untuk angka, required untuk wajib, dropdown untuk enum)
-- [ ] **SETT-07**: Seed default values tersedia saat migrasi pertama (10-15 setting awal)
+- [ ] **BASE-01**: AdminBaseController dibuat dengan shared DI (DbContext, UserManager, SignInManager, ILogger) dan helper methods yang dipakai bersama
+- [ ] **BASE-02**: Semua controller baru mewarisi AdminBaseController dan bisa mengakses shared dependencies tanpa duplikasi constructor
 
-### Maintenance Mode
+### Assessment Admin
 
-- [ ] **MAINT-01**: Admin dapat mengaktifkan/menonaktifkan maintenance mode dari halaman System Settings
-- [ ] **MAINT-02**: Saat maintenance mode aktif, semua user non-admin diarahkan ke halaman maintenance yang informatif (pesan kustom + estimasi waktu selesai)
-- [ ] **MAINT-03**: Admin dan HC tetap dapat mengakses semua halaman selama maintenance mode aktif
-- [ ] **MAINT-04**: Halaman maintenance menampilkan logo, pesan kustom dari admin, dan estimasi waktu selesai
-- [ ] **MAINT-05**: User yang sedang login saat maintenance diaktifkan langsung diarahkan ke halaman maintenance pada request berikutnya
+- [ ] **ASMT-01**: AssessmentAdminController berisi semua action assessment (ManageAssessment, Create, Edit, Delete, Monitoring, Reshuffle, Package, ExportResults, UserHistory, ActivityLog, Categories)
+- [ ] **ASMT-02**: Semua URL assessment tetap sama (/Admin/ManageAssessment, /Admin/CreateAssessment, dll) via [Route] attribute
+- [ ] **ASMT-03**: Helper methods dan private methods terkait assessment ikut pindah ke AssessmentAdminController
 
-### User Impersonation
+### Worker Management
 
-- [ ] **IMP-01**: Admin dapat memilih role (HC/User) untuk "View As" dari dropdown di navbar — tampilan berubah sesuai role yang dipilih
-- [ ] **IMP-02**: Admin dapat memilih user spesifik untuk di-impersonate dari halaman ManageWorkers atau dropdown khusus
-- [ ] **IMP-03**: Saat impersonation aktif, banner warna mencolok muncul di atas halaman dengan info "Anda melihat sebagai [role/nama user]" dan tombol "Kembali ke Admin"
-- [ ] **IMP-04**: Impersonation otomatis berakhir setelah 30 menit (auto-expire)
-- [ ] **IMP-05**: Semua aksi write/destructive diblokir saat impersonation aktif (read-only mode) — ubah password, hapus data, ubah role tidak bisa dilakukan
-- [ ] **IMP-06**: Setiap impersonation tercatat di audit log: siapa yang impersonate, sebagai siapa, kapan mulai/selesai
-- [ ] **IMP-07**: Admin tidak dapat impersonate admin lain (hanya role HC dan User)
-- [ ] **IMP-08**: Klik "Kembali ke Admin" langsung mengembalikan ke session admin asli tanpa login ulang
+- [ ] **WKR-01**: WorkerController berisi semua action ManageWorkers (list, create, edit, delete, deactivate, reactivate, detail, import, export, download template)
+- [ ] **WKR-02**: Semua URL worker tetap sama (/Admin/ManageWorkers, /Admin/CreateWorker, dll) via [Route] attribute
 
-### Backup & Restore
+### Coach-Coachee Mapping
 
-- [ ] **BKP-01**: Admin dapat memicu backup database secara manual dari halaman admin (tombol "Backup Now")
-- [ ] **BKP-02**: Proses backup berjalan di background (async) — tidak memblokir website, dengan progress indicator
-- [ ] **BKP-03**: Admin dapat melihat daftar backup history (tanggal, ukuran file, status berhasil/gagal)
-- [ ] **BKP-04**: Admin dapat download file backup ke komputer lokal
-- [ ] **BKP-05**: Admin dapat restore database dari file backup yang dipilih, dengan konfirmasi berlapis (tampilkan dampak + ketik "RESTORE" untuk konfirmasi)
-- [ ] **BKP-06**: Sistem otomatis membuat backup sebelum menjalankan restore (safety net)
-- [ ] **BKP-07**: Maintenance mode otomatis aktif selama proses restore berlangsung
-- [ ] **BKP-08**: Backup history memiliki retention policy (auto-delete backup lebih dari 30 hari)
+- [ ] **CCM-01**: CoachMappingController berisi semua action coach-coachee (mapping list, assign, edit, delete, import, export, deactivate, reactivate, mark completed, get eligible coachees)
+- [ ] **CCM-02**: Semua URL mapping tetap sama (/Admin/CoachCoacheeMapping, dll) via [Route] attribute
 
-## Future Requirements (v12+)
+### Document Management
 
-### System Settings
-- **SETT-F01**: Feature flags (toggle fitur on/off dari admin panel)
-- **SETT-F02**: Password policy (min length, complexity, expiry)
-- **SETT-F03**: SMTP/Email configuration dari admin panel
+- [ ] **DOC-01**: DocumentAdminController berisi semua action KKJ (KkjMatrix, KkjUpload, KkjFileDownload, KkjFileDelete, KkjFileHistory, KkjBagianAdd, DeleteBagian) dan CPDP (CpdpFiles, CpdpUpload, CpdpFileDownload, CpdpFileArchive, CpdpFileHistory)
+- [ ] **DOC-02**: Semua URL dokumen tetap sama (/Admin/KkjMatrix, /Admin/CpdpFiles, dll) via [Route] attribute
 
-### Maintenance Mode
-- **MAINT-F01**: Scheduled maintenance (set waktu mulai & selesai otomatis)
-- **MAINT-F02**: Partial maintenance per modul (CMP saja, CDP saja)
+### Training Records
 
-### Dashboard Statistik Admin
-- **DASH-F01**: Dashboard KPI overview (pekerja, assessment, sertifikat, coaching)
-- **DASH-F02**: Trend chart, comparison antar unit, export
+- [ ] **TRN-01**: TrainingAdminController berisi semua action training (AddTraining, EditTraining, DeleteTraining, ImportTraining, DownloadImportTrainingTemplate)
+- [ ] **TRN-02**: Semua URL training tetap sama (/Admin/AddTraining, dll) via [Route] attribute
 
-### User Impersonation
-- **IMP-F01**: Read/Write mode terpisah (admin bisa melakukan aksi atas nama user)
+### Renewal Certificate
 
-### Backup & Restore
-- **BKP-F01**: Scheduled auto-backup (harian/mingguan)
-- **BKP-F02**: Backup uploaded files (sertifikat, evidence, KKJ, CPDP)
-- **BKP-F03**: Backup validation (checksum, test restore)
+- [ ] **RNW-01**: RenewalController berisi semua action renewal (RenewalCertificate, FilterRenewalCertificate, FilterRenewalCertificateGroup, CertificateHistory) dan helper methods terkait
+- [ ] **RNW-02**: Semua URL renewal tetap sama (/Admin/RenewalCertificate, dll) via [Route] attribute
 
-### Notification Enhancement
-- **NOTIF-F01**: Trigger tambahan: sertifikat expiring, maintenance announcement
+### Organization Management
 
-### Announcement / Broadcast
-- **ANN-F01**: CRUD announcement dengan target audience
-- **ANN-F02**: Banner di dashboard + mark as read
+- [ ] **ORG-01**: OrganizationController berisi semua action organization (ManageOrganization, Add, Edit, Toggle, Delete, Reorder)
+- [ ] **ORG-02**: Semua URL organization tetap sama (/Admin/ManageOrganization, dll) via [Route] attribute
+
+### Verification
+
+- [ ] **VER-01**: Semua URL yang ada sebelum refactoring tetap bisa diakses tanpa perubahan
+- [ ] **VER-02**: Authorization (role Admin, HC) tetap sama persis di setiap action
+- [ ] **VER-03**: Aplikasi build tanpa error dan semua halaman berfungsi normal
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Announcement / Broadcast | Di-drop oleh user — belum prioritas untuk milestone ini |
-| Dashboard Statistik Admin | Di-drop — user masih mempertimbangkan fungsinya, ditunda ke milestone berikutnya |
-| In-App Notification Enhancement | Sistem notifikasi sudah lengkap (Phase 99) — bell icon, dropdown, mark read, templates |
-| Soft Delete / Recycle Bin | Di-drop dari scope awal (8 → 7 fitur, lalu 7 → 5) |
-| Email blast / SMTP integration | Butuh infrastruktur email terpisah yang belum tersedia |
-| Custom report builder (drag & drop) | Over-engineering — export Excel sudah cukup |
-| Auto-restore database tanpa konfirmasi | Risiko data loss terlalu tinggi |
-| Impersonation tanpa audit trail | Security risk fatal |
-| Push notification browser (Web Push API) | Overkill untuk internal portal |
-| Multi-tenant settings | Single tenant, tidak relevan |
-| Theme customization | Overkill untuk internal portal |
+| Fitur baru | Milestone ini pure refactoring |
+| Perubahan UI | Tidak ada perubahan tampilan |
+| Service layer extraction | Refactoring lebih dalam — ditunda ke milestone berikutnya |
+| Pecah CMPController / CDPController | Fokus AdminController dulu yang paling besar |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETT-01 | Phase 281 | Pending |
-| SETT-02 | Phase 281 | Pending |
-| SETT-03 | Phase 281 | Pending |
-| SETT-04 | Phase 281 | Pending |
-| SETT-05 | Phase 281 | Pending |
-| SETT-06 | Phase 281 | Pending |
-| SETT-07 | Phase 281 | Pending |
-| MAINT-01 | Phase 282 | Pending |
-| MAINT-02 | Phase 282 | Pending |
-| MAINT-03 | Phase 282 | Pending |
-| MAINT-04 | Phase 282 | Pending |
-| MAINT-05 | Phase 282 | Pending |
-| IMP-01 | Phase 283 | Pending |
-| IMP-02 | Phase 283 | Pending |
-| IMP-03 | Phase 283 | Pending |
-| IMP-04 | Phase 283 | Pending |
-| IMP-05 | Phase 283 | Pending |
-| IMP-06 | Phase 283 | Pending |
-| IMP-07 | Phase 283 | Pending |
-| IMP-08 | Phase 283 | Pending |
-| BKP-01 | Phase 284 | Pending |
-| BKP-02 | Phase 284 | Pending |
-| BKP-03 | Phase 284 | Pending |
-| BKP-04 | Phase 284 | Pending |
-| BKP-05 | Phase 284 | Pending |
-| BKP-06 | Phase 284 | Pending |
-| BKP-07 | Phase 284 | Pending |
-| BKP-08 | Phase 284 | Pending |
-
-**Coverage:**
-- v11.2 requirements: 28 total
-- Mapped to phases: 28/28
-- Unmapped: 0
+| (populated by roadmapper) | | |
 
 ---
-*Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after roadmap creation*
+*Requirements defined: 2026-04-02*
+*Last updated: 2026-04-02 after initial definition*
