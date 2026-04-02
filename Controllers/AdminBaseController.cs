@@ -28,5 +28,14 @@ namespace HcPortal.Controllers
             _auditLog = auditLog;
             _env = env;
         }
+
+        protected static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "-";
+            var trimmed = raw.Trim();
+            if (rawToDisplayMap != null && rawToDisplayMap.TryGetValue(trimmed.ToUpperInvariant(), out var displayName))
+                return displayName;
+            return trimmed;
+        }
     }
 }
