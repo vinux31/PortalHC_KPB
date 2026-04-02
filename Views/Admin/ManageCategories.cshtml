@@ -31,8 +31,8 @@
                     <i class="bi bi-download me-1"></i>Export
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="@Url.Action("ExportCategoriesExcel", "Admin")"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a></li>
-                    <li><a class="dropdown-item" href="@Url.Action("ExportCategoriesPdf", "Admin")"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
+                    <li><a class="dropdown-item" href="@Url.Action("ExportCategoriesExcel", "AssessmentAdmin")"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a></li>
+                    <li><a class="dropdown-item" href="@Url.Action("ExportCategoriesPdf", "AssessmentAdmin")"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
                 </ul>
             </div>
             <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addCategoryForm">
@@ -64,7 +64,7 @@
                 <i class="bi bi-plus-circle me-2"></i>Tambah Kategori Baru
             </div>
             <div class="card-body">
-                <form method="post" action="@Url.Action("AddCategory", "Admin")">
+                <form method="post" action="@Url.Action("AddCategory", "AssessmentAdmin")">
                     @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-md-5">
@@ -137,7 +137,7 @@
                 <i class="bi bi-pencil-square me-2"></i>Edit Kategori: @editCategory.Name
             </div>
             <div class="card-body">
-                <form method="post" action="@Url.Action("EditCategory", "Admin", new { id = editCategory.Id })">
+                <form method="post" action="@Url.Action("EditCategory", "AssessmentAdmin", new { id = editCategory.Id })">
                     @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-md-5">
@@ -156,7 +156,7 @@
                             <button type="submit" class="btn btn-warning w-100">
                                 <i class="bi bi-save me-1"></i>Simpan
                             </button>
-                            <a href="@Url.Action("ManageCategories", "Admin")" class="btn btn-outline-secondary">
+                            <a href="@Url.Action("ManageCategories", "AssessmentAdmin")" class="btn btn-outline-secondary">
                                 <i class="bi bi-x"></i>
                             </a>
                         </div>
@@ -278,13 +278,13 @@
                                     </td>
                                     <td class="p-3 text-center">
                                         <div class="btn-group btn-group-sm">
-                                            <a href="@Url.Action("EditCategory", "Admin", new { id = parent.Id })"
+                                            <a href="@Url.Action("EditCategory", "AssessmentAdmin", new { id = parent.Id })"
                                                class="btn btn-outline-primary"
                                                aria-label="Edit kategori"
                                                title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
-                                            <form method="post" action="@Url.Action("ToggleCategoryActive", "Admin")" style="display:inline;">
+                                            <form method="post" action="@Url.Action("ToggleCategoryActive", "AssessmentAdmin")" style="display:inline;">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@parent.Id" />
                                                 <button type="submit" class="btn btn-sm btn-outline-warning" title="@(parent.IsActive ? "Nonaktifkan" : "Aktifkan")">
@@ -342,13 +342,13 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             <div class="btn-group btn-group-sm">
-                                                <a href="@Url.Action("EditCategory", "Admin", new { id = child.Id })"
+                                                <a href="@Url.Action("EditCategory", "AssessmentAdmin", new { id = child.Id })"
                                                    class="btn btn-outline-primary"
                                                    aria-label="Edit kategori"
                                                    title="Edit">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>
-                                                <form method="post" action="@Url.Action("ToggleCategoryActive", "Admin")" style="display:inline;">
+                                                <form method="post" action="@Url.Action("ToggleCategoryActive", "AssessmentAdmin")" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@child.Id" />
                                                     <button type="submit" class="btn btn-sm btn-outline-warning" title="@(child.IsActive ? "Nonaktifkan" : "Aktifkan")">
@@ -401,13 +401,13 @@
                                             </td>
                                             <td class="p-3 text-center">
                                                 <div class="btn-group btn-group-sm">
-                                                    <a href="@Url.Action("EditCategory", "Admin", new { id = gc.Id })"
+                                                    <a href="@Url.Action("EditCategory", "AssessmentAdmin", new { id = gc.Id })"
                                                        class="btn btn-outline-primary"
                                                        aria-label="Edit kategori"
                                                        title="Edit">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
-                                                    <form method="post" action="@Url.Action("ToggleCategoryActive", "Admin")" style="display:inline;">
+                                                    <form method="post" action="@Url.Action("ToggleCategoryActive", "AssessmentAdmin")" style="display:inline;">
                                                         @Html.AntiForgeryToken()
                                                         <input type="hidden" name="id" value="@gc.Id" />
                                                         <button type="submit" class="btn btn-sm btn-outline-warning" title="@(gc.IsActive ? "Nonaktifkan" : "Aktifkan")">
@@ -475,7 +475,7 @@
                 var name = button.getAttribute('data-name');
                 document.getElementById('deleteModalName').textContent = name;
                 document.getElementById('deleteModalId').value = id;
-                document.getElementById('deleteForm').action = '@Url.Action("DeleteCategory", "Admin")';
+                document.getElementById('deleteForm').action = '@Url.Action("DeleteCategory", "AssessmentAdmin")';
             });
         }
 
