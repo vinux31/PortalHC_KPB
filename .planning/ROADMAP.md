@@ -103,6 +103,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 292. Backend AJAX Endpoints | 1/1 | Complete   | 2026-04-02 |
-| 293. View Shell & Tree Rendering | 1/1 | Complete   | 2026-04-02 |
+| 293. View Shell & Tree Rendering | 1/1 | Complete    | 2026-04-02 |
 | 294. AJAX CRUD Lengkap | 0/? | Not started | - |
 | 295. Drag-drop Reorder | 0/? | Not started | - |
