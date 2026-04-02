@@ -66,7 +66,7 @@
                     <span> &mdash; @ViewBag.RenewalSourceUserName</span>
                 }
             </div>
-            <a href="@Url.Action("CreateAssessment", "Admin")" class="btn btn-sm btn-outline-secondary ms-3">
+            <a href="@Url.Action("CreateAssessment", "AssessmentAdmin")" class="btn btn-sm btn-outline-secondary ms-3">
                 Batalkan Renewal
             </a>
         </div>
@@ -99,7 +99,7 @@
     </nav>
 
     <!-- Single form wrapping all steps -->
-    <form asp-action="CreateAssessment" asp-controller="Admin" method="post" id="createAssessmentForm" novalidate>
+    <form asp-action="CreateAssessment" asp-controller="AssessmentAdmin" method="post" id="createAssessmentForm" novalidate>
         @Html.AntiForgeryToken()
         @if (ViewBag.RenewsSessionId != null)
         {
@@ -620,7 +620,7 @@
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="modal-create-another-btn">
                             <i class="bi bi-plus-circle me-1"></i> Create Another
                         </button>
-                        <a href="@Url.Action("ManageAssessment", "Admin")" class="btn btn-outline-secondary">
+                        <a href="@Url.Action("ManageAssessment", "AssessmentAdmin")" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left me-1"></i> Back to Manage Assessment &amp; Training
                         </a>
                     </div>

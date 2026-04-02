@@ -61,7 +61,7 @@
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
-            <li class="breadcrumb-item"><a href="@Url.Action("AssessmentMonitoring", "Admin")">Assessment Monitoring</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("AssessmentMonitoring", "AssessmentAdmin")">Assessment Monitoring</a></li>
             <li class="breadcrumb-item active">@Model.Title</li>
         </ol>
     </nav>
@@ -161,7 +161,7 @@
             </h5>
             <div class="d-flex gap-2 align-items-center">
                 <!-- Export Results: GET download, no antiforgery needed -->
-                <form asp-action="ExportAssessmentResults" asp-controller="Admin" method="get" class="d-inline">
+                <form asp-action="ExportAssessmentResults" asp-controller="AssessmentAdmin" method="get" class="d-inline">
                     <input type="hidden" name="title" value="@Model.Title" />
                     <input type="hidden" name="category" value="@Model.Category" />
                     <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
@@ -269,7 +269,7 @@
                                         @* Akhiri Ujian -- InProgress only *@
                                         @if (session.UserStatus == "InProgress")
                                         {
-                                            <form asp-action="AkhiriUjian" asp-controller="Admin" method="post" class="d-inline me-1"
+                                            <form asp-action="AkhiriUjian" asp-controller="AssessmentAdmin" method="post" class="d-inline me-1"
                                                   onsubmit="return confirm('Akhiri ujian untuk @(session.UserFullName)? Jawaban tersimpan akan dinilai otomatis.')">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@session.Id" />
@@ -281,7 +281,7 @@
                                         @* Reset -- all statuses except Cancelled *@
                                         @if (session.UserStatus != "Cancelled")
                                         {
-                                            <form asp-action="ResetAssessment" asp-controller="Admin" method="post" class="d-inline me-1"
+                                            <form asp-action="ResetAssessment" asp-controller="AssessmentAdmin" method="post" class="d-inline me-1"
                                                   onsubmit="return confirm('Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.')">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@session.Id" />
@@ -391,7 +391,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <form asp-action="AkhiriSemuaUjian" asp-controller="Admin" method="post" class="d-inline">
+                    <form asp-action="AkhiriSemuaUjian" asp-controller="AssessmentAdmin" method="post" class="d-inline">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="title" value="@Model.Title" />
                         <input type="hidden" name="category" value="@Model.Category" />
@@ -465,7 +465,7 @@
                             }
                         </div>
                         <div class="card-body">
-                            <form asp-action="SubmitInterviewResults" asp-controller="Admin" method="post" enctype="multipart/form-data">
+                            <form asp-action="SubmitInterviewResults" asp-controller="AssessmentAdmin" method="post" enctype="multipart/form-data">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="sessionId" value="@monSess.Id" />
                                 <input type="hidden" name="returnTitle" value="@Model.Title" />
@@ -564,7 +564,7 @@
         btn.disabled = true;
 
         $.ajax({
-            url: '@Url.Action("ReshufflePackage", "Admin")',
+            url: '@Url.Action("ReshufflePackage", "AssessmentAdmin")',
             type: 'POST',
             data: {
                 sessionId: sessionId,
@@ -601,7 +601,7 @@
         btn.disabled = true;
 
         $.ajax({
-            url: '@Url.Action("ReshuffleAll", "Admin")',
+            url: '@Url.Action("ReshuffleAll", "AssessmentAdmin")',
             type: 'POST',
             data: {
                 title: @Json.Serialize(Model.Title),
