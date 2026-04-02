@@ -1847,6 +1847,9 @@ namespace HcPortal.Controllers
             if (string.IsNullOrWhiteSpace(model.Title))
                 editErrors.Add("Title is required.");
 
+            if (model.Schedule < DateTime.Today)
+                editErrors.Add("Schedule date cannot be in the past.");
+
             if (model.Schedule > DateTime.Today.AddYears(2))
                 editErrors.Add("Schedule date too far in future (maximum 2 years).");
 
@@ -1907,6 +1910,7 @@ namespace HcPortal.Controllers
                 sibling.PassPercentage = model.PassPercentage;
                 sibling.AllowAnswerReview = model.AllowAnswerReview;
                 sibling.GenerateCertificate = model.GenerateCertificate;
+                sibling.ValidUntil = model.ValidUntil;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
                 sibling.UpdatedAt = now;
             }

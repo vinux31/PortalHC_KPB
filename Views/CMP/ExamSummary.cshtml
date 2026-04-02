@@ -79,6 +79,7 @@
 
     <!-- Final submit form -->
     <form asp-action="SubmitExam" method="post">
+        @Html.AntiForgeryToken()
         <input type="hidden" name="id" value="@assessmentId" />
         <input type="hidden" name="isAutoSubmit" value="@(timerExpired ? "true" : "false")" id="autoSubmitFlag" />
         @foreach (var kvp in answers)
