@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (Phase 288 complete, 2026-04-02)
+## Current State (Phase 289 complete, 2026-04-02)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -22,8 +22,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Phase 262-263 shipped** — Sub-path deployment fixes (URLs + upload paths).
 **v10.0 shipped** — UAT Assessment OJT di Server Development (phases 264-268): admin setup, worker exam flow, review/submit hasil, resilience/edge cases, monitoring dashboard.
 **v11.2 shipped** — Admin Platform Enhancement (phases 282-283): Maintenance Mode + User Impersonation.
+**v12.0 in progress** — Controller Refactoring: Phase 286-289 complete (AdminBaseController, AssessmentAdmin, Worker, CoachMapping, Organization, Document, Training, Renewal). AdminController dikurangi dari 8,514 → 108 baris.
 
-**Current focus:** v12.0 Controller Refactoring
+**Current focus:** v12.0 Controller Refactoring — Phase 290 (Verification & Cleanup)
 
 ## Current Milestone: v12.0 Controller Refactoring
 
