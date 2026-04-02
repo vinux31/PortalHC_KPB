@@ -65,7 +65,9 @@ Plans:
   3. Setiap node menampilkan badge Aktif (hijau) atau Nonaktif (merah/abu) yang sesuai dengan status database
   4. Tree mendukung kedalaman unlimited — rendering rekursif berjalan benar untuk node Level 0, 1, 2, dan seterusnya
   5. ManageOrganization.cshtml dikurangi dari ~520 baris menjadi ~130 baris dengan 3 loop Razor dihapus
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 293-01-PLAN.md — View shell + orgTree.js tree rendering + expand/collapse
 **UI hint**: yes
 
 ### Phase 294: AJAX CRUD Lengkap
@@ -78,7 +80,9 @@ Plans:
   3. Admin/HC dapat toggle aktif/nonaktif unit — status badge berubah instan tanpa reload
   4. Admin/HC dapat menghapus unit via modal konfirmasi — node hilang dari tree tanpa reload
   5. Setiap node memiliki action dropdown (Edit, Toggle, Hapus) menggantikan tombol inline; setiap operasi menampilkan toast notifikasi sukses/gagal
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 293-01-PLAN.md — View shell + orgTree.js tree rendering + expand/collapse
 **UI hint**: yes
 
 ### Phase 295: Drag-drop Reorder
@@ -89,7 +93,9 @@ Plans:
   1. Admin/HC dapat drag node ke posisi atas/bawah dalam sibling yang sama — urutan tersimpan ke database via `ReorderOrganizationUnit`
   2. Drag handle visual muncul pada hover node sehingga user tahu bahwa node bisa di-drag
   3. Drag lintas parent (reparent via drag) diblokir secara teknis — SortableJS dikonfigurasi `group: false` sehingga node tidak bisa pindah ke parent lain
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 293-01-PLAN.md — View shell + orgTree.js tree rendering + expand/collapse
 **UI hint**: yes
 
 ## Progress
