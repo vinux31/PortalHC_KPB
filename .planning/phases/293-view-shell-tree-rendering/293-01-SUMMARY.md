@@ -19,10 +19,12 @@ decisions:
   - orgTree.js event listeners wrapped in DOMContentLoaded guard to prevent errors on other pages
   - Controller still sends roots model (not removed) — ViewBag.PotentialParents still needed for forms
   - Default expand state: level < 2 (Level 0 + 1 expanded, Level 2+ collapsed)
+  - Endpoint URL adalah /Admin/GetOrganizationTree (bukan /Organization/) karena OrganizationController pakai [Route("Admin/[action]")] prefix
+requirements-completed: [TREE-01, TREE-02, TREE-03, TREE-04]
 metrics:
-  duration: "~15 minutes"
+  duration: "~30 minutes"
   completed: "2026-04-02"
-  tasks: 2
+  tasks: 3
   files: 2
 ---
 
@@ -36,6 +38,7 @@ metrics:
 |---|------|--------|-------|
 | 1 | Extend orgTree.js dengan fungsi tree rendering | d9d5af0b | wwwroot/js/orgTree.js |
 | 2 | Rewrite ManageOrganization.cshtml menjadi shell view | f1c4ab11 | Views/Admin/ManageOrganization.cshtml |
+| 3 | Verifikasi visual tree rendering di browser | (checkpoint:human-verify — approved) | — |
 
 ## What Was Built
 
@@ -62,7 +65,20 @@ metrics:
 
 ## Deviations from Plan
 
-None — plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] Perbaikan URL endpoint GetOrganizationTree**
+- **Found during:** Task 3 (verifikasi browser)
+- **Issue:** orgTree.js menggunakan `/Organization/GetOrganizationTree` namun OrganizationController didaftarkan dengan route prefix `/Admin/`, sehingga URL yang benar adalah `/Admin/GetOrganizationTree`
+- **Fix:** URL dikoreksi di orgTree.js — user menemukan dan memfix bug ini saat verifikasi browser
+- **Files modified:** wwwroot/js/orgTree.js
+- **Verification:** Tree berhasil load data di browser setelah fix
+- **Committed in:** `2e82d25f` fix(293-01)
+
+---
+
+**Total deviations:** 1 auto-fixed (1 bug — URL endpoint salah)
+**Impact on plan:** Bug fix wajib untuk fungsionalitas dasar. Tidak ada scope creep.
 
 ## Acceptance Criteria Check
 
@@ -105,7 +121,7 @@ None — plan executed exactly as written.
 
 ## Known Stubs
 
-None — tree rendering is fully wired to live endpoint `/Organization/GetOrganizationTree`.
+None — tree rendering fully wired to live endpoint `/Admin/GetOrganizationTree`.
 
 ## Self-Check: PASSED
 

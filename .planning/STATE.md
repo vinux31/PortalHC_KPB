@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v13.0
 milestone_name: Redesign Struktur Organisasi
-status: executing
-stopped_at: Phase 293 UI-SPEC approved
-last_updated: "2026-04-02T12:46:21.040Z"
-last_activity: 2026-04-02 -- Phase 293 execution started
+status: verifying
+stopped_at: Completed 293-01-PLAN.md
+last_updated: "2026-04-02T13:01:33.630Z"
+last_activity: 2026-04-02
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-04-02)
 
 Phase: 293 (view-shell-tree-rendering) — EXECUTING
 Plan: 1 of 1
-Status: Executing Phase 293
-Last activity: 2026-04-02 -- Phase 293 execution started
+Status: Phase complete — ready for verification
+Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 - [v12.0]: AdminController dipecah menjadi 8 controller per domain — OrganizationController sudah tersendiri
 - [v12.0]: Semua URL tetap sama via [Route] attribute, Views tetap di Views/Admin/
 - [Phase 292]: IsAjaxRequest() sebagai protected method di AdminBaseController; dual-response pattern sebelum setiap return statement
+- [Phase 293]: Endpoint URL GetOrganizationTree adalah /Admin/ prefix karena OrganizationController pakai [Route(Admin/[action])] attribute
 
 ### Pending Todos
 
@@ -68,9 +69,10 @@ Progress: [░░░░░░░░░░] 0%
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
 | 260402-l2d | Fix delete assessment 404 error — update asp-controller references dari Admin ke AssessmentAdmin di 9 view | 2026-04-02 | 5a16c0fb | [260402-l2d-fix-delete-assessment-404-error-on-manag](./quick/260402-l2d-fix-delete-assessment-404-error-on-manag/) |
 | Phase 292 P01 | 8min | 2 tasks | 3 files |
+| Phase 293-view-shell-tree-rendering P01 | 30 | 3 tasks | 2 files |
 
 ## Session Continuity
 
 Last activity: 2026-04-02 — Roadmap v13.0 dibuat
-Stopped at: Phase 293 UI-SPEC approved
-Resume file: .planning/phases/293-view-shell-tree-rendering/293-UI-SPEC.md
+Stopped at: Completed 293-01-PLAN.md
+Resume file: None
