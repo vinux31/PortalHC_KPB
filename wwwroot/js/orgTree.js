@@ -107,7 +107,7 @@ async function initTree() {
         </div>`;
 
     try {
-        const flat = await ajaxGet('/Organization/GetOrganizationTree');
+        const flat = await ajaxGet('/Admin/GetOrganizationTree');
         const roots = buildTree(flat);
         if (roots.length === 0) {
             container.innerHTML = `
