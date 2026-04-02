@@ -67,7 +67,7 @@
 @* Filter bar *@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
-        <form method="get" asp-action="AssessmentMonitoring" asp-controller="Admin">
+        <form method="get" asp-action="AssessmentMonitoring" asp-controller="AssessmentAdmin">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label small fw-semibold text-muted mb-1">Cari Assessment</label>
@@ -211,7 +211,7 @@ else
                         ? (int)((double)group.CompletedCount / group.TotalCount * 100)
                         : 0;
 
-                    string detailUrl = Url.Action("AssessmentMonitoringDetail", "Admin", new {
+                    string detailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
                         title = group.Title,
                         category = group.Category,
                         scheduleDate = group.Schedule.Date.ToString("yyyy-MM-dd")

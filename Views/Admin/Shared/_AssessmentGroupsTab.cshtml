@@ -12,7 +12,7 @@
 <!-- Search Form -->
 <div class="row mb-4">
     <div class="col-md-6">
-        <form method="get" asp-action="ManageAssessment" asp-controller="Admin">
+        <form method="get" asp-action="ManageAssessment" asp-controller="AssessmentAdmin">
             <input type="hidden" name="tab" value="assessment" />
             <div class="input-group">
                 <span class="input-group-text bg-white border-end-0">
@@ -23,7 +23,7 @@
                 <button class="btn btn-primary" type="submit">Cari</button>
                 @if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    <a asp-action="ManageAssessment" asp-controller="Admin" asp-route-tab="assessment"
+                    <a asp-action="ManageAssessment" asp-controller="AssessmentAdmin" asp-route-tab="assessment"
                        class="btn btn-outline-secondary" title="Hapus pencarian">
                         <i class="bi bi-x-lg"></i>
                     </a>
@@ -74,7 +74,7 @@
     @if (!string.IsNullOrEmpty(selectedAssessmentCategory) || !string.IsNullOrEmpty(selectedAssessmentStatus))
     {
         <div class="col-md-2">
-            <a asp-action="ManageAssessment" asp-controller="Admin" asp-route-tab="assessment"
+            <a asp-action="ManageAssessment" asp-controller="AssessmentAdmin" asp-route-tab="assessment"
                class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-x-lg me-1"></i>Reset Filter
             </a>
@@ -97,7 +97,7 @@
             {
                 <h5 class="text-muted">Tidak ada assessment ditemukan untuk "@searchTerm"</h5>
                 <p class="text-muted small">Coba sesuaikan kata kunci pencarian atau lihat semua assessment.</p>
-                <a asp-action="ManageAssessment" asp-controller="Admin" asp-route-tab="assessment"
+                <a asp-action="ManageAssessment" asp-controller="AssessmentAdmin" asp-route-tab="assessment"
                    class="btn btn-sm btn-outline-primary mt-2">
                     <i class="bi bi-arrow-left me-1"></i> Hapus Pencarian
                 </a>
@@ -106,7 +106,7 @@
             {
                 <h5 class="text-muted">Tidak ada assessment ditemukan</h5>
                 <p class="text-muted small">Buat assessment pertama untuk memulai.</p>
-                <a href="@Url.Action("CreateAssessment", "Admin")" class="btn btn-primary mt-3">
+                <a href="@Url.Action("CreateAssessment", "AssessmentAdmin")" class="btn btn-primary mt-3">
                     <i class="bi bi-plus-circle me-1"></i> Buat Assessment
                 </a>
             }
@@ -192,7 +192,7 @@ else
                                         {
                                             <li class="d-flex justify-content-between align-items-center">
                                                 <span><i class="bi bi-person me-1"></i>@u.UserFullName (@u.UserEmail)</span>
-                                                <a href="@Url.Action("UserAssessmentHistory", "Admin", new { userId = u.UserId })"
+                                                <a href="@Url.Action("UserAssessmentHistory", "AssessmentAdmin", new { userId = u.UserId })"
                                                    class="btn btn-link btn-sm p-0 text-muted" title="Riwayat Assessment">
                                                     <i class="bi bi-clock-history"></i>
                                                 </a>
@@ -209,24 +209,24 @@ else
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <a class="dropdown-item" href="@Url.Action("AssessmentMonitoringDetail", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
+                                            <a class="dropdown-item" href="@Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
                                                 <i class="bi bi-binoculars me-2"></i>Monitoring
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" asp-action="EditAssessment" asp-controller="Admin"
+                                            <a class="dropdown-item" asp-action="EditAssessment" asp-controller="AssessmentAdmin"
                                                asp-route-id="@group.RepresentativeId">
                                                 <i class="bi bi-pencil me-2"></i>Edit
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" asp-action="ManagePackages" asp-controller="Admin"
+                                            <a class="dropdown-item" asp-action="ManagePackages" asp-controller="AssessmentAdmin"
                                                asp-route-assessmentId="@group.RepresentativeId">
                                                 <i class="bi bi-collection me-2"></i>Manage Packages
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="@Url.Action("ExportAssessmentResults", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
+                                            <a class="dropdown-item" href="@Url.Action("ExportAssessmentResults", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
                                                 <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
                                             </a>
                                         </li>
@@ -241,7 +241,7 @@ else
                                         }
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form method="post" asp-controller="Admin" asp-action="DeleteAssessmentGroup" asp-route-id="@group.RepresentativeId">
+                                            <form method="post" asp-controller="AssessmentAdmin" asp-action="DeleteAssessmentGroup" asp-route-id="@group.RepresentativeId">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" class="dropdown-item text-danger"
                                                         onclick="return confirm('Hapus semua assessment dalam grup ini?')">

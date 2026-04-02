@@ -39,13 +39,13 @@
     </h2>
     <div class="d-flex gap-2" id="header-assessment-btns"
          style="@(activeTab != "assessment" ? "display:none" : "")">
-        <a href="@Url.Action("CreateAssessment", "Admin")" class="btn btn-primary">
+        <a href="@Url.Action("CreateAssessment", "AssessmentAdmin")" class="btn btn-primary">
             <i class="bi bi-plus-circle me-1"></i> Buat Assessment
         </a>
-        <a href="@Url.Action("AssessmentMonitoring", "Admin")" class="btn btn-outline-success">
+        <a href="@Url.Action("AssessmentMonitoring", "AssessmentAdmin")" class="btn btn-outline-success">
             <i class="bi bi-binoculars me-1"></i> Monitoring
         </a>
-        <a href="@Url.Action("AuditLog", "Admin")" class="btn btn-outline-secondary">
+        <a href="@Url.Action("AuditLog", "AssessmentAdmin")" class="btn btn-outline-secondary">
             <i class="bi bi-clock-history me-1"></i> Audit Log
         </a>
     </div>
