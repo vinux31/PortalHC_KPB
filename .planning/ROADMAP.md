@@ -116,7 +116,11 @@ Plans:
   1. Semua Url.Action("X", "Admin") yang merujuk action di domain controller sudah diubah ke controller name yang benar (Worker, AssessmentAdmin, Organization, DocumentAdmin, TrainingAdmin, CoachMapping, Renewal)
   2. Zero null href di semua 28 affected views — semua link dan form action menghasilkan URL valid
   3. Build sukses tanpa error
-**Plans**: 0 plans
+**Plans**: 3 plans
+Plans:
+- [ ] 291-01-PLAN.md — Fix Index hub + Worker + CoachMapping views
+- [ ] 291-02-PLAN.md — Fix Organization + Document views
+- [ ] 291-03-PLAN.md — Fix Assessment + Training views
 
 ## Progress
 
@@ -127,4 +131,4 @@ Plans:
 | 288. Worker, Coach & Organization | 2/2 | Complete    | 2026-04-02 |
 | 289. Document, Training & Renewal | 1/1 | Complete    | 2026-04-02 |
 | 290. Verification & Cleanup | 1/1 | Complete   | 2026-04-02 |
-| 291. Fix Url.Action References | 0/0 | Pending    | — |
+| 291. Fix Url.Action References | 0/3 | Pending    | — |
