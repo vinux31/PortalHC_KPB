@@ -50,7 +50,9 @@ See .planning/MILESTONES.md for full history.
   2. POST actions (Create, Edit, Toggle, Delete, Reorder) mengembalikan `{success, message}` JSON jika header `X-Requested-With: XMLHttpRequest` ada, tetap redirect jika bukan AJAX
   3. Semua AJAX POST sudah melewati CSRF dengan utility function terpusat `ajaxPost(url, data)` di orgTree.js
   4. Tidak ada regression pada alur PRG yang sudah ada — halaman tetap berfungsi normal jika JS dimatikan
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 292-01-PLAN.md — IsAjaxRequest helper + GetOrganizationTree + dual-response + orgTree.js utility
 **UI hint**: yes
 
 ### Phase 293: View Shell & Tree Rendering
@@ -94,7 +96,7 @@ See .planning/MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 292. Backend AJAX Endpoints | 0/? | Not started | - |
+| 292. Backend AJAX Endpoints | 0/1 | Not started | - |
 | 293. View Shell & Tree Rendering | 0/? | Not started | - |
 | 294. AJAX CRUD Lengkap | 0/? | Not started | - |
 | 295. Drag-drop Reorder | 0/? | Not started | - |
