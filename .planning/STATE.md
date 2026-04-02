@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v12.0
 milestone_name: Controller Refactoring
-status: executing
-stopped_at: Completed 288-02-PLAN.md
-last_updated: "2026-04-02T07:45:29.554Z"
+status: verifying
+stopped_at: Completed 289-01-PLAN.md
+last_updated: "2026-04-02T08:24:45.403Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 4
+  total_plans: 5
+  completed_plans: 5
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 288 — worker-coach-organization-controllers
+**Current focus:** Phase 289 — document-training-renewal-controllers
 
 ## Current Position
 
-Phase: 289
-Plan: Not started
-Status: Ready to execute
+Phase: 289 (document-training-renewal-controllers) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
 Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0%
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 - [v12.0]: AdminController dipecah menjadi 8 controller per domain
 - [v11.2]: Closed early untuk prioritas refactoring
 - [Phase 287]: MapKategori dipindahkan ke AdminBaseController sebagai protected static — shared utility untuk assessment dan renewal code
+- [Phase 289]: BuildRenewalRowsAsync dipindah ke AdminBaseController sebagai shared protected method
 
 ### Pending Todos
 
@@ -66,11 +67,12 @@ Progress: [░░░░░░░░░░] 0%
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
 | 260402-l2d | Fix delete assessment 404 error — update asp-controller references dari Admin ke AssessmentAdmin di 9 view | 2026-04-02 | 5a16c0fb | [260402-l2d-fix-delete-assessment-404-error-on-manag](./quick/260402-l2d-fix-delete-assessment-404-error-on-manag/) |
 | Phase 288 P02 | 3m | 2 tasks | 6 files |
+| Phase 289 P01 | 7m | 2 tasks | 5 files |
 
 ## Session Continuity
 
 Last activity: 2026-04-02 — Completed quick task 260402-l2d: Fix delete assessment 404 error
-Stopped at: Completed 288-02-PLAN.md
+Stopped at: Completed 289-01-PLAN.md
 Resume file: None
 
 Last activity: 2026-04-02 - Completed quick task 260402-l2d: fix delete assessment 404 error

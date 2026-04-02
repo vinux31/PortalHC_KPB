@@ -30,18 +30,18 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 ### Document Management
 
-- [ ] **DOC-01**: DocumentAdminController berisi semua action KKJ (KkjMatrix, KkjUpload, KkjFileDownload, KkjFileDelete, KkjFileHistory, KkjBagianAdd, DeleteBagian) dan CPDP (CpdpFiles, CpdpUpload, CpdpFileDownload, CpdpFileArchive, CpdpFileHistory)
-- [ ] **DOC-02**: Semua URL dokumen tetap sama (/Admin/KkjMatrix, /Admin/CpdpFiles, dll) via [Route] attribute
+- [x] **DOC-01**: DocumentAdminController berisi semua action KKJ (KkjMatrix, KkjUpload, KkjFileDownload, KkjFileDelete, KkjFileHistory, KkjBagianAdd, DeleteBagian) dan CPDP (CpdpFiles, CpdpUpload, CpdpFileDownload, CpdpFileArchive, CpdpFileHistory)
+- [x] **DOC-02**: Semua URL dokumen tetap sama (/Admin/KkjMatrix, /Admin/CpdpFiles, dll) via [Route] attribute
 
 ### Training Records
 
-- [ ] **TRN-01**: TrainingAdminController berisi semua action training (AddTraining, EditTraining, DeleteTraining, ImportTraining, DownloadImportTrainingTemplate)
-- [ ] **TRN-02**: Semua URL training tetap sama (/Admin/AddTraining, dll) via [Route] attribute
+- [x] **TRN-01**: TrainingAdminController berisi semua action training (AddTraining, EditTraining, DeleteTraining, ImportTraining, DownloadImportTrainingTemplate)
+- [x] **TRN-02**: Semua URL training tetap sama (/Admin/AddTraining, dll) via [Route] attribute
 
 ### Renewal Certificate
 
-- [ ] **RNW-01**: RenewalController berisi semua action renewal (RenewalCertificate, FilterRenewalCertificate, FilterRenewalCertificateGroup, CertificateHistory) dan helper methods terkait
-- [ ] **RNW-02**: Semua URL renewal tetap sama (/Admin/RenewalCertificate, dll) via [Route] attribute
+- [x] **RNW-01**: RenewalController berisi semua action renewal (RenewalCertificate, FilterRenewalCertificate, FilterRenewalCertificateGroup, CertificateHistory) dan helper methods terkait
+- [x] **RNW-02**: Semua URL renewal tetap sama (/Admin/RenewalCertificate, dll) via [Route] attribute
 
 ### Organization Management
 
@@ -78,12 +78,12 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 | CCM-02 | Phase 288 | Complete |
 | ORG-01 | Phase 288 | Complete |
 | ORG-02 | Phase 288 | Complete |
-| DOC-01 | Phase 289 | Pending |
-| DOC-02 | Phase 289 | Pending |
-| TRN-01 | Phase 289 | Pending |
-| TRN-02 | Phase 289 | Pending |
-| RNW-01 | Phase 289 | Pending |
-| RNW-02 | Phase 289 | Pending |
+| DOC-01 | Phase 289 | Complete |
+| DOC-02 | Phase 289 | Complete |
+| TRN-01 | Phase 289 | Complete |
+| TRN-02 | Phase 289 | Complete |
+| RNW-01 | Phase 289 | Complete |
+| RNW-02 | Phase 289 | Complete |
 | VER-01 | Phase 290 | Pending |
 | VER-02 | Phase 290 | Pending |
 | VER-03 | Phase 290 | Pending |
