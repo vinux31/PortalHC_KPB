@@ -51,7 +51,7 @@ See .planning/MILESTONES.md for full history.
   3. AdminController yang ada masih berfungsi normal setelah mewarisi AdminBaseController (zero regression)
 **Plans**: 1 plan
 Plans:
-- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
+- [x] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
 
 ### Phase 287: AssessmentAdminController
 **Goal**: Semua action assessment terisolasi di controller tersendiri dengan URL dan behavior yang identik dengan sebelumnya
@@ -61,10 +61,10 @@ Plans:
   1. AssessmentAdminController berisi semua action assessment (ManageAssessment, Create, Edit, Delete, Monitoring, Reshuffle, Package, ExportResults, UserHistory, ActivityLog, Categories) dan tidak ada lagi di AdminController
   2. Semua URL assessment (/Admin/ManageAssessment, /Admin/CreateAssessment, dll) tetap bisa diakses tanpa perubahan
   3. Private/helper methods terkait assessment (BuildCrossPackageAssignment, dsb) sudah ikut pindah dan tidak ada referensi broken
-  4. Authorization [Authorize(Roles = "Admin")] tetap sama di setiap action
+  4. Authorization [Authorize(Roles = "Admin, HC")] tetap sama di setiap action
 **Plans**: 1 plan
 Plans:
-- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
+- [ ] 287-01-PLAN.md — Ekstraksi assessment actions ke AssessmentAdminController
 
 ### Phase 288: Worker, Coach & Organization Controllers
 **Goal**: Tiga controller domain people-management (WorkerController, CoachMappingController, OrganizationController) terisolasi dengan URL dan behavior identik
@@ -77,7 +77,7 @@ Plans:
   4. Authorization [Authorize(Roles = "Admin, HC")] pada worker actions dan [Authorize(Roles = "Admin")] pada lainnya tetap sama persis
 **Plans**: 1 plan
 Plans:
-- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
+- [ ] 288-01-PLAN.md — Ekstraksi worker, coach, organization actions
 
 ### Phase 289: Document, Training & Renewal Controllers
 **Goal**: Tiga controller domain records-management (DocumentAdminController, TrainingAdminController, RenewalController) terisolasi dengan URL dan behavior identik
@@ -90,7 +90,7 @@ Plans:
   4. Authorization tetap sama persis di setiap action
 **Plans**: 1 plan
 Plans:
-- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
+- [ ] 289-01-PLAN.md — Ekstraksi document, training, renewal actions
 
 ### Phase 290: Verification & Cleanup
 **Goal**: Konfirmasi bahwa seluruh refactoring tidak mengubah behavior apapun — semua URL, authorization, dan fungsi tetap identik
@@ -103,14 +103,14 @@ Plans:
   4. AdminController asli sudah kosong atau hanya berisi action yang tidak termasuk domain manapun (Index hub, dll)
 **Plans**: 1 plan
 Plans:
-- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
+- [ ] 290-01-PLAN.md — Verifikasi dan cleanup
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 286. AdminBaseController | 0/? | Complete    | 2026-04-02 |
-| 287. AssessmentAdminController | 0/? | Not started | - |
+| 286. AdminBaseController | 1/1 | Complete    | 2026-04-02 |
+| 287. AssessmentAdminController | 0/1 | Not started | - |
 | 288. Worker, Coach & Organization | 0/? | Not started | - |
 | 289. Document, Training & Renewal | 0/? | Not started | - |
 | 290. Verification & Cleanup | 0/? | Not started | - |
