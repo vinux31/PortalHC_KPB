@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 267 — resilience-edge-cases
+**Current focus:** Phase 286 — AdminBaseController
 
 ## Current Position
 
-Phase: 268
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-03-29
+Phase: 286
+Plan: 01 completed
+Status: Executing
+Last activity: 2026-04-02
 
 Progress: [████████░░] 80%
 
@@ -62,6 +62,7 @@ Progress: [████████░░] 80%
 - [Phase 272]: Frontend disable tombol Kumpulkan Ujian (type=button) saat ada soal kosong + backend guard dengan isAutoSubmit exception
 - [Phase 267-03]: visibilitychange listener memanggil updateTimer() saat tab resume — timer tidak di-pause by design (server-timed anti-cheat)
 - [Phase 267-03]: isAutoSubmit hidden field di ExamSummary mengikuti timerExpired server, bukan hardcoded false; SubmitExam controller cek serverTimerExpired sebagai fallback
+- [Phase 286-01]: AdminBaseController sebagai abstract base class dengan 4 shared DI — fondasi pecah AdminController
 
 ### Pending Todos
 
@@ -92,5 +93,5 @@ None yet.
 
 ## Session Continuity
 
-Last activity: 2026-03-28 - Completed quick task 260328-kri: fix notif lanjutkan pengerjaan
-Stopped at: Phase 276 context gathered
+Last activity: 2026-04-02 - Completed 286-01 AdminBaseController plan
+Stopped at: Phase 286 plan 01 completed
