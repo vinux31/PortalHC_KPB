@@ -49,7 +49,9 @@ See .planning/MILESTONES.md for full history.
   1. AdminBaseController ada dengan constructor yang menerima DbContext, UserManager, SignInManager, dan ILogger sebagai shared DI
   2. Helper methods yang dipakai oleh lebih dari satu domain controller sudah dipindahkan ke base class dan bisa diakses oleh subclass
   3. AdminController yang ada masih berfungsi normal setelah mewarisi AdminBaseController (zero regression)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
 
 ### Phase 287: AssessmentAdminController
 **Goal**: Semua action assessment terisolasi di controller tersendiri dengan URL dan behavior yang identik dengan sebelumnya
@@ -60,7 +62,9 @@ See .planning/MILESTONES.md for full history.
   2. Semua URL assessment (/Admin/ManageAssessment, /Admin/CreateAssessment, dll) tetap bisa diakses tanpa perubahan
   3. Private/helper methods terkait assessment (BuildCrossPackageAssignment, dsb) sudah ikut pindah dan tidak ada referensi broken
   4. Authorization [Authorize(Roles = "Admin")] tetap sama di setiap action
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
 
 ### Phase 288: Worker, Coach & Organization Controllers
 **Goal**: Tiga controller domain people-management (WorkerController, CoachMappingController, OrganizationController) terisolasi dengan URL dan behavior identik
@@ -71,7 +75,9 @@ See .planning/MILESTONES.md for full history.
   2. CoachMappingController berisi semua action coach-coachee dan URL /Admin/CoachCoacheeMapping, dll tetap bisa diakses
   3. OrganizationController berisi semua action organization dan URL /Admin/ManageOrganization, dll tetap bisa diakses
   4. Authorization [Authorize(Roles = "Admin, HC")] pada worker actions dan [Authorize(Roles = "Admin")] pada lainnya tetap sama persis
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
 
 ### Phase 289: Document, Training & Renewal Controllers
 **Goal**: Tiga controller domain records-management (DocumentAdminController, TrainingAdminController, RenewalController) terisolasi dengan URL dan behavior identik
@@ -82,7 +88,9 @@ See .planning/MILESTONES.md for full history.
   2. TrainingAdminController berisi semua action training, URL /Admin/AddTraining, dll tetap bisa diakses
   3. RenewalController berisi semua action renewal, URL /Admin/RenewalCertificate, dll tetap bisa diakses
   4. Authorization tetap sama persis di setiap action
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
 
 ### Phase 290: Verification & Cleanup
 **Goal**: Konfirmasi bahwa seluruh refactoring tidak mengubah behavior apapun — semua URL, authorization, dan fungsi tetap identik
@@ -93,7 +101,9 @@ See .planning/MILESTONES.md for full history.
   2. Semua URL yang ada sebelum refactoring tetap bisa diakses dan menghasilkan response yang sama
   3. Authorization (role Admin, HC) pada setiap action tetap sama persis — diverifikasi via audit attribute
   4. AdminController asli sudah kosong atau hanya berisi action yang tidak termasuk domain manapun (Index hub, dll)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
 
 ## Progress
 
