@@ -168,7 +168,7 @@ function filterAssessmentRows() {
         var worker = row.getAttribute('data-worker') || '';
         var title = row.getAttribute('data-title') || '';
         var workerMatch = !workerFilter || worker.includes(workerFilter);
-        var titleMatch = !titleFilter || title.toLowerCase() === titleFilter;
+        var titleMatch = !titleFilter || title.toLowerCase().includes(titleFilter);
         row.style.display = (workerMatch && titleMatch) ? '' : 'none';
     });
 }

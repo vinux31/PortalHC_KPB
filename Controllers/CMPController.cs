@@ -304,7 +304,20 @@ namespace HcPortal.Controllers
                     PackageOptionId = optionId,
                     SubmittedAt = DateTime.UtcNow
                 });
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    // Race: concurrent request already inserted this response — retry as update
+                    _context.ChangeTracker.Clear();
+                    await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.PackageOptionId, optionId)
+                            .SetProperty(r => r.SubmittedAt, DateTime.UtcNow));
+                }
             }
 
             // SignalR push: notify HC monitor group of progress update (DB write above is always first)
@@ -770,6 +783,13 @@ namespace HcPortal.Controllers
             if (assessment.ExamWindowCloseDate.HasValue && DateTime.UtcNow.AddHours(7) > assessment.ExamWindowCloseDate.Value)
             {
                 TempData["Error"] = "Ujian sudah ditutup. Waktu ujian telah berakhir.";
+                return RedirectToAction("Assessment");
+            }
+
+            // Guard: DurationMinutes must be > 0 to avoid instant expiry
+            if (assessment.DurationMinutes <= 0)
+            {
+                TempData["Error"] = "Durasi ujian belum diatur. Hubungi HC.";
                 return RedirectToAction("Assessment");
             }
 
@@ -1784,8 +1804,7 @@ namespace HcPortal.Controllers
                 var svgContent = @"<svg viewBox='0 0 400 350' xmlns='http://www.w3.org/2000/svg'>
                     <path d='M200 20L30 330H370L200 20ZM200 80L325 310H75L200 80Z' fill='#1a4a8d' opacity='0.05'/>
                 </svg>";
-                var svgPath = Path.Combine(Path.GetTempPath(), "cert_watermark.svg");
-                System.IO.File.WriteAllText(svgPath, svgContent);
+                // SVG content used inline below — no temp file needed
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Failed to create certificate watermark SVG"); }
 

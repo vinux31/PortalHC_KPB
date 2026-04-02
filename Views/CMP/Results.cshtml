@@ -143,7 +143,7 @@
                                     <td class="text-center">@sc.Total</td>
                                     <td class="text-center">
                                         <span class="badge @(sc.Percentage >= Model.PassPercentage ? "bg-success" : "bg-danger")">
-                                            @sc.Percentage%
+                                            @sc.Percentage.ToString("F1")%
                                         </span>
                                     </td>
                                 </tr>

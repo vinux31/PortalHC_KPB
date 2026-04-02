@@ -1378,14 +1378,14 @@ namespace HcPortal.Controllers
             // Double renewal prevention (per D-10): check if source cert already renewed
             if (model.RenewsSessionId.HasValue)
             {
-                var srcAlreadyRenewed = await _context.AssessmentSessions.AnyAsync(a => a.RenewsSessionId == model.RenewsSessionId && a.IsPassed == true)
+                var srcAlreadyRenewed = await _context.AssessmentSessions.AnyAsync(a => a.RenewsSessionId == model.RenewsSessionId)
                     || await _context.TrainingRecords.AnyAsync(t => t.RenewsSessionId == model.RenewsSessionId);
                 if (srcAlreadyRenewed)
                     ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
             }
             if (model.RenewsTrainingId.HasValue)
             {
-                var srcAlreadyRenewed = await _context.AssessmentSessions.AnyAsync(a => a.RenewsTrainingId == model.RenewsTrainingId && a.IsPassed == true)
+                var srcAlreadyRenewed = await _context.AssessmentSessions.AnyAsync(a => a.RenewsTrainingId == model.RenewsTrainingId)
                     || await _context.TrainingRecords.AnyAsync(t => t.RenewsTrainingId == model.RenewsTrainingId);
                 if (srcAlreadyRenewed)
                     ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
@@ -3173,7 +3173,7 @@ namespace HcPortal.Controllers
                     .GroupBy(x => x.AssessmentSessionId)
                     .ToDictionaryAsync(
                         g => g.Key,
-                        g => g.First().QuestionCount);
+                        g => g.Sum(x => x.QuestionCount));
             }
             // Build row data: one row per session, include all statuses
             var rows = sessions.Select(a =>
@@ -3537,11 +3537,10 @@ namespace HcPortal.Controllers
                 else
                     userStatus = "Not started";
 
-                if (userStatus != "Not started")
+                if (userStatus != "Not started" && userStatus != "Abandoned")
                 {
                     string reason = userStatus == "InProgress" ? "sedang mengerjakan"
-                                  : userStatus == "Completed" ? "sudah selesai"
-                                  : "dibatalkan";
+                                  : "sudah selesai";
                     results.Add(new { name = userName, status = $"Dilewati — {reason}" });
                     continue;
                 }

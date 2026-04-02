@@ -187,7 +187,7 @@ namespace HcPortal.Data
                 // AssessmentSession: Proton exam fields (Phase 53)
                 entity.Property(a => a.ProtonTrackId).IsRequired(false);
                 entity.Property(a => a.TahunKe).HasMaxLength(20).IsRequired(false);
-                entity.Property(a => a.InterviewResultsJson).HasColumnType("TEXT").IsRequired(false);
+                entity.Property(a => a.InterviewResultsJson).HasColumnType("NVARCHAR(MAX)").IsRequired(false);
 
                 // Phase 192: Unique filtered index on NomorSertifikat (excludes nulls)
                 entity.HasIndex(a => a.NomorSertifikat)
