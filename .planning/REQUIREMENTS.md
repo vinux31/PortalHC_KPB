@@ -50,23 +50,23 @@ Requirements untuk milestone v13.0. Redesign halaman ManageOrganization dari tab
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TREE-01 | TBD | Pending |
-| TREE-02 | TBD | Pending |
-| TREE-03 | TBD | Pending |
-| TREE-04 | TBD | Pending |
-| CRUD-01 | TBD | Pending |
-| CRUD-02 | TBD | Pending |
-| CRUD-03 | TBD | Pending |
-| CRUD-04 | TBD | Pending |
-| CRUD-05 | TBD | Pending |
-| REORD-01 | TBD | Pending |
-| REORD-02 | TBD | Pending |
+| TREE-01 | Phase 292, 293 | Pending |
+| TREE-02 | Phase 293 | Pending |
+| TREE-03 | Phase 293 | Pending |
+| TREE-04 | Phase 292, 293 | Pending |
+| CRUD-01 | Phase 294 | Pending |
+| CRUD-02 | Phase 294 | Pending |
+| CRUD-03 | Phase 294 | Pending |
+| CRUD-04 | Phase 294 | Pending |
+| CRUD-05 | Phase 294 | Pending |
+| REORD-01 | Phase 295 | Pending |
+| REORD-02 | Phase 295 | Pending |
 
 **Coverage:**
 - v13.0 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-02 after milestone v13.0 initialization*
+*Last updated: 2026-04-02 — Traceability updated after roadmap creation*

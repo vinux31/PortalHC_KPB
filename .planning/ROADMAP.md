@@ -10,12 +10,13 @@
 - ✅ **Phases 262-263** - Sub-path deployment fixes (shipped 2026-03-27)
 - ✅ **v10.0 UAT Assessment OJT di Server Development** - Phases 264-280 (shipped)
 - ⏸️ **v11.2 Admin Platform Enhancement** - Phases 281-285 (paused — closed early)
-- 🚧 **v12.0 Controller Refactoring** - Phases 286-290 (in progress)
+- ✅ **v12.0 Controller Refactoring** - Phases 286-291 (shipped 2026-04-02)
+- 🚧 **v13.0 Redesign Struktur Organisasi** - Phases 292-295 (in progress)
 
 ## Phases
 
 <details>
-<summary>✅ Previous milestones (v1.0–v10.0, Phases 1-280) — SHIPPED</summary>
+<summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
 
 See .planning/MILESTONES.md for full history.
 
@@ -31,104 +32,69 @@ See .planning/MILESTONES.md for full history.
 
 </details>
 
-### 🚧 v12.0 Controller Refactoring
+### 🚧 v13.0 Redesign Struktur Organisasi
 
-- [x] **Phase 286: AdminBaseController** - Shared base controller dengan DI dan helper methods (completed 2026-04-02)
-- [x] **Phase 287: AssessmentAdminController** - Ekstraksi semua action assessment dari AdminController (completed 2026-04-02)
-- [x] **Phase 288: Worker, Coach & Organization Controllers** - Ekstraksi WorkerController, CoachMappingController, OrganizationController (completed 2026-04-02)
-- [x] **Phase 289: Document, Training & Renewal Controllers** - Ekstraksi DocumentAdminController, TrainingAdminController, RenewalController (completed 2026-04-02)
-- [x] **Phase 290: Verification & Cleanup** - Validasi semua URL, authorization, dan build bersih (completed 2026-04-02)
-- [x] **Phase 291: Fix Broken Url.Action View References** - Perbaiki 43 Url.Action("X", "Admin") yang broken di 28 views (gap closure) (completed 2026-04-02)
+- [ ] **Phase 292: Backend AJAX Endpoints** - GetOrganizationTree JSON + dual-response pada CRUD actions + CSRF utility
+- [ ] **Phase 293: View Shell & Tree Rendering** - Ganti 520-baris view dengan ~130-baris shell + recursive tree dari JSON
+- [ ] **Phase 294: AJAX CRUD Lengkap** - Modal add/edit, toggle, delete, action dropdown via orgTree.js tanpa page reload
+- [ ] **Phase 295: Drag-drop Reorder** - SortableJS reorder sibling-only, cross-parent diblokir
 
 ## Phase Details
 
-### Phase 286: AdminBaseController
-**Goal**: Fondasi shared base controller tersedia sehingga semua controller domain bisa mewarisi DI dan helper methods tanpa duplikasi
-**Depends on**: Nothing (first phase v12.0)
-**Requirements**: BASE-01, BASE-02
+### Phase 292: Backend AJAX Endpoints
+**Goal**: OrganizationController siap melayani AJAX — endpoint GetOrganizationTree baru tersedia dan semua CRUD action sudah dual-response (JSON jika AJAX, redirect jika form POST)
+**Depends on**: Nothing (first phase v13.0)
+**Requirements**: TREE-01, TREE-04
 **Success Criteria** (what must be TRUE):
-  1. AdminBaseController ada dengan constructor yang menerima DbContext, UserManager, SignInManager, dan ILogger sebagai shared DI
-  2. Helper methods yang dipakai oleh lebih dari satu domain controller sudah dipindahkan ke base class dan bisa diakses oleh subclass
-  3. AdminController yang ada masih berfungsi normal setelah mewarisi AdminBaseController (zero regression)
-**Plans**: 1 plan
-Plans:
-- [x] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
+  1. GET `/Organization/GetOrganizationTree` mengembalikan flat JSON array semua OrganizationUnit dengan field Id, Name, ParentId, Level, DisplayOrder, IsActive
+  2. POST actions (Create, Edit, Toggle, Delete, Reorder) mengembalikan `{success, message}` JSON jika header `X-Requested-With: XMLHttpRequest` ada, tetap redirect jika bukan AJAX
+  3. Semua AJAX POST sudah melewati CSRF dengan utility function terpusat `ajaxPost(url, data)` di orgTree.js
+  4. Tidak ada regression pada alur PRG yang sudah ada — halaman tetap berfungsi normal jika JS dimatikan
+**Plans**: TBD
+**UI hint**: yes
 
-### Phase 287: AssessmentAdminController
-**Goal**: Semua action assessment terisolasi di controller tersendiri dengan URL dan behavior yang identik dengan sebelumnya
-**Depends on**: Phase 286
-**Requirements**: ASMT-01, ASMT-02, ASMT-03
+### Phase 293: View Shell & Tree Rendering
+**Goal**: Halaman ManageOrganization ter-render sebagai tree view interaktif dari JSON — user dapat melihat hierarki dengan indentasi, expand/collapse per node dan semua sekaligus, serta badge status
+**Depends on**: Phase 292
+**Requirements**: TREE-01, TREE-02, TREE-03, TREE-04
 **Success Criteria** (what must be TRUE):
-  1. AssessmentAdminController berisi semua action assessment (ManageAssessment, Create, Edit, Delete, Monitoring, Reshuffle, Package, ExportResults, UserHistory, ActivityLog, Categories) dan tidak ada lagi di AdminController
-  2. Semua URL assessment (/Admin/ManageAssessment, /Admin/CreateAssessment, dll) tetap bisa diakses tanpa perubahan
-  3. Private/helper methods terkait assessment (BuildCrossPackageAssignment, dsb) sudah ikut pindah dan tidak ada referensi broken
-  4. Authorization [Authorize(Roles = "Admin, HC")] tetap sama di setiap action
-**Plans**: 1 plan
-Plans:
-- [x] 287-01-PLAN.md — Ekstraksi assessment actions ke AssessmentAdminController
+  1. Halaman ManageOrganization menampilkan tree view dengan indentasi visual per level (Bagian → Unit → Sub-unit)
+  2. User dapat expand/collapse node individual dengan klik panah, dan ada tombol Expand All / Collapse All
+  3. Setiap node menampilkan badge Aktif (hijau) atau Nonaktif (merah/abu) yang sesuai dengan status database
+  4. Tree mendukung kedalaman unlimited — rendering rekursif berjalan benar untuk node Level 0, 1, 2, dan seterusnya
+  5. ManageOrganization.cshtml dikurangi dari ~520 baris menjadi ~130 baris dengan 3 loop Razor dihapus
+**Plans**: TBD
+**UI hint**: yes
 
-### Phase 288: Worker, Coach & Organization Controllers
-**Goal**: Tiga controller domain people-management (WorkerController, CoachMappingController, OrganizationController) terisolasi dengan URL dan behavior identik
-**Depends on**: Phase 286
-**Requirements**: WKR-01, WKR-02, CCM-01, CCM-02, ORG-01, ORG-02
+### Phase 294: AJAX CRUD Lengkap
+**Goal**: Admin/HC dapat melakukan seluruh operasi CRUD pada struktur organisasi via modal tanpa page reload — Add, Edit, Toggle, Delete semuanya AJAX dengan feedback toast
+**Depends on**: Phase 293
+**Requirements**: CRUD-01, CRUD-02, CRUD-03, CRUD-04, CRUD-05
 **Success Criteria** (what must be TRUE):
-  1. WorkerController berisi semua action ManageWorkers dan URL /Admin/ManageWorkers, /Admin/CreateWorker, dll tetap bisa diakses
-  2. CoachMappingController berisi semua action coach-coachee dan URL /Admin/CoachCoacheeMapping, dll tetap bisa diakses
-  3. OrganizationController berisi semua action organization dan URL /Admin/ManageOrganization, dll tetap bisa diakses
-  4. Authorization [Authorize(Roles = "Admin, HC")] pada worker actions dan [Authorize(Roles = "Admin")] pada lainnya tetap sama persis
-**Plans**: 2 plans
-Plans:
-- [x] 288-01-PLAN.md — Ekstraksi WorkerController & CoachMappingController
-- [x] 288-02-PLAN.md — Ekstraksi OrganizationController & update view references
+  1. Admin/HC dapat menambah unit baru via modal — form terisi, submit, tree refresh tanpa reload halaman
+  2. Admin/HC dapat mengedit nama dan parent unit via modal — perubahan tersimpan dan tree diperbarui tanpa reload
+  3. Admin/HC dapat toggle aktif/nonaktif unit — status badge berubah instan tanpa reload
+  4. Admin/HC dapat menghapus unit via modal konfirmasi — node hilang dari tree tanpa reload
+  5. Setiap node memiliki action dropdown (Edit, Toggle, Hapus) menggantikan tombol inline; setiap operasi menampilkan toast notifikasi sukses/gagal
+**Plans**: TBD
+**UI hint**: yes
 
-### Phase 289: Document, Training & Renewal Controllers
-**Goal**: Tiga controller domain records-management (DocumentAdminController, TrainingAdminController, RenewalController) terisolasi dengan URL dan behavior identik
-**Depends on**: Phase 286
-**Requirements**: DOC-01, DOC-02, TRN-01, TRN-02, RNW-01, RNW-02
+### Phase 295: Drag-drop Reorder
+**Goal**: Admin/HC dapat mengubah urutan unit dalam sibling yang sama dengan drag-and-drop — cross-parent drag diblokir sepenuhnya
+**Depends on**: Phase 294
+**Requirements**: REORD-01, REORD-02
 **Success Criteria** (what must be TRUE):
-  1. DocumentAdminController berisi semua action KKJ dan CPDP, URL /Admin/KkjMatrix, /Admin/CpdpFiles, dll tetap bisa diakses
-  2. TrainingAdminController berisi semua action training, URL /Admin/AddTraining, dll tetap bisa diakses
-  3. RenewalController berisi semua action renewal, URL /Admin/RenewalCertificate, dll tetap bisa diakses
-  4. Authorization tetap sama persis di setiap action
-**Plans**: 1 plan
-Plans:
-- [x] 289-01-PLAN.md — Ekstraksi DocumentAdminController, TrainingAdminController, RenewalController + cleanup AdminController
-
-### Phase 290: Verification & Cleanup
-**Goal**: Konfirmasi bahwa seluruh refactoring tidak mengubah behavior apapun — semua URL, authorization, dan fungsi tetap identik
-**Depends on**: Phase 287, Phase 288, Phase 289
-**Requirements**: VER-01, VER-02, VER-03
-**Success Criteria** (what must be TRUE):
-  1. Aplikasi build tanpa error dan warning terkait refactoring
-  2. Semua URL yang ada sebelum refactoring tetap bisa diakses dan menghasilkan response yang sama
-  3. Authorization (role Admin, HC) pada setiap action tetap sama persis — diverifikasi via audit attribute
-  4. AdminController asli sudah kosong atau hanya berisi action yang tidak termasuk domain manapun (Index hub, dll)
-**Plans**: 1 plan
-Plans:
-- [x] 290-01-PLAN.md — Verifikasi dan cleanup
-
-### Phase 291: Fix Broken Url.Action View References
-**Goal**: Semua Url.Action() di Razor views menghasilkan URL yang benar setelah controller extraction — zero null href
-**Depends on**: Phase 286-290 (controllers already extracted)
-**Requirements**: VER-01 (re-opened)
-**Gap Closure**: Closes VIEW-REF-001 from v12.0 audit + 3 broken flows
-**Success Criteria** (what must be TRUE):
-  1. Semua Url.Action("X", "Admin") yang merujuk action di domain controller sudah diubah ke controller name yang benar (Worker, AssessmentAdmin, Organization, DocumentAdmin, TrainingAdmin, CoachMapping, Renewal)
-  2. Zero null href di semua 28 affected views — semua link dan form action menghasilkan URL valid
-  3. Build sukses tanpa error
-**Plans**: 3 plans
-Plans:
-- [x] 291-01-PLAN.md — Fix Index hub + Worker + CoachMapping views
-- [x] 291-02-PLAN.md — Fix Organization + Document views
-- [x] 291-03-PLAN.md — Fix Assessment + Training views
+  1. Admin/HC dapat drag node ke posisi atas/bawah dalam sibling yang sama — urutan tersimpan ke database via `ReorderOrganizationUnit`
+  2. Drag handle visual muncul pada hover node sehingga user tahu bahwa node bisa di-drag
+  3. Drag lintas parent (reparent via drag) diblokir secara teknis — SortableJS dikonfigurasi `group: false` sehingga node tidak bisa pindah ke parent lain
+**Plans**: TBD
+**UI hint**: yes
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 286. AdminBaseController | 1/1 | Complete    | 2026-04-02 |
-| 287. AssessmentAdminController | 1/1 | Complete    | 2026-04-02 |
-| 288. Worker, Coach & Organization | 2/2 | Complete    | 2026-04-02 |
-| 289. Document, Training & Renewal | 1/1 | Complete    | 2026-04-02 |
-| 290. Verification & Cleanup | 1/1 | Complete   | 2026-04-02 |
-| 291. Fix Url.Action References | 3/3 | Complete    | 2026-04-02 |
+| 292. Backend AJAX Endpoints | 0/? | Not started | - |
+| 293. View Shell & Tree Rendering | 0/? | Not started | - |
+| 294. AJAX CRUD Lengkap | 0/? | Not started | - |
+| 295. Drag-drop Reorder | 0/? | Not started | - |

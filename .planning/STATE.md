@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v13.0
 milestone_name: Redesign Struktur Organisasi
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-04-02"
 last_activity: 2026-04-02
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v13.0 Redesign Struktur Organisasi — Defining requirements
+**Current focus:** v13.0 Redesign Struktur Organisasi — Phase 292 ready to plan
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 292 of 295 (Backend AJAX Endpoints)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-02 — Milestone v13.0 started
+Status: Ready to plan
+Last activity: 2026-04-02 — Roadmap v13.0 dibuat, 4 fase (292-295), 11 requirements dipetakan
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -44,17 +44,12 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-- [v12.0]: Pure refactoring — zero fitur baru, zero perubahan UI
+- [v13.0]: Redesign UI murni — backend cascade logic tidak diubah, hanya presentation layer
+- [v13.0]: SortableJS 1.15.7 via CDN adalah satu-satunya library baru; semua tree view library lain abandoned atau butuh bundler
+- [v13.0]: Drag-drop hanya sibling-only (group: false) — cross-parent diblokir untuk melindungi cascade logic
+- [v13.0]: orgTree.js sebagai single JS file orchestrator; tidak ada SPA framework atau bundler
+- [v12.0]: AdminController dipecah menjadi 8 controller per domain — OrganizationController sudah tersendiri
 - [v12.0]: Semua URL tetap sama via [Route] attribute, Views tetap di Views/Admin/
-- [v12.0]: AdminController dipecah menjadi 8 controller per domain
-- [v11.2]: Closed early untuk prioritas refactoring
-- [Phase 287]: MapKategori dipindahkan ke AdminBaseController sebagai protected static — shared utility untuk assessment dan renewal code
-- [Phase 289]: BuildRenewalRowsAsync dipindah ke AdminBaseController sebagai shared protected method
-- [Phase 291]: WorkerDetail link diperbaiki ke Worker controller (bukan Admin/TrainingAdmin)
-
-### Roadmap Evolution
-
-- Milestone v13.0 started: Redesign Struktur Organisasi
 
 ### Pending Todos
 
@@ -63,7 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Blockers/Concerns
 
-- (none)
+- Keputusan eksplisit diperlukan sebelum Phase 293 deploy: apakah `GetSectionUnitsDictAsync` perlu support Level 2+? Saat ini hardcoded 2-level — unit Level 2+ tidak muncul di dropdown ManageWorkers secara diam-diam
 
 ### Quick Tasks Completed
 
@@ -74,6 +69,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last activity: 2026-04-02 — Milestone v13.0 started
-Stopped at: Defining requirements
+Last activity: 2026-04-02 — Roadmap v13.0 dibuat
+Stopped at: Roadmap created, ready to plan Phase 292
 Resume file: None
