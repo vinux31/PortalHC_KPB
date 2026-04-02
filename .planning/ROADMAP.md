@@ -38,7 +38,7 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 288: Worker, Coach & Organization Controllers** - Ekstraksi WorkerController, CoachMappingController, OrganizationController (completed 2026-04-02)
 - [x] **Phase 289: Document, Training & Renewal Controllers** - Ekstraksi DocumentAdminController, TrainingAdminController, RenewalController (completed 2026-04-02)
 - [x] **Phase 290: Verification & Cleanup** - Validasi semua URL, authorization, dan build bersih (completed 2026-04-02)
-- [ ] **Phase 291: Fix Broken Url.Action View References** - Perbaiki 43 Url.Action("X", "Admin") yang broken di 28 views (gap closure)
+- [x] **Phase 291: Fix Broken Url.Action View References** - Perbaiki 43 Url.Action("X", "Admin") yang broken di 28 views (gap closure) (completed 2026-04-02)
 
 ## Phase Details
 
@@ -118,9 +118,9 @@ Plans:
   3. Build sukses tanpa error
 **Plans**: 3 plans
 Plans:
-- [ ] 291-01-PLAN.md — Fix Index hub + Worker + CoachMapping views
+- [x] 291-01-PLAN.md — Fix Index hub + Worker + CoachMapping views
 - [x] 291-02-PLAN.md — Fix Organization + Document views
-- [ ] 291-03-PLAN.md — Fix Assessment + Training views
+- [x] 291-03-PLAN.md — Fix Assessment + Training views
 
 ## Progress
 
@@ -131,4 +131,4 @@ Plans:
 | 288. Worker, Coach & Organization | 2/2 | Complete    | 2026-04-02 |
 | 289. Document, Training & Renewal | 1/1 | Complete    | 2026-04-02 |
 | 290. Verification & Cleanup | 1/1 | Complete   | 2026-04-02 |
-| 291. Fix Url.Action References | 1/3 | In Progress|  |
+| 291. Fix Url.Action References | 3/3 | Complete   | 2026-04-02 |
