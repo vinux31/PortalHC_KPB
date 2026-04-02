@@ -96,7 +96,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 292. Backend AJAX Endpoints | 0/1 | Not started | - |
+| 292. Backend AJAX Endpoints | 1/1 | Planned | - |
 | 293. View Shell & Tree Rendering | 0/? | Not started | - |
 | 294. AJAX CRUD Lengkap | 0/? | Not started | - |
 | 295. Drag-drop Reorder | 0/? | Not started | - |
