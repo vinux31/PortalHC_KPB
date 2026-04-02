@@ -9,10 +9,10 @@ Requirements untuk milestone v13.0. Redesign halaman ManageOrganization dari tab
 
 ### Tree View & Rendering
 
-- [ ] **TREE-01**: Admin/HC dapat melihat struktur organisasi sebagai tree view dengan indentasi visual per level
+- [x] **TREE-01**: Admin/HC dapat melihat struktur organisasi sebagai tree view dengan indentasi visual per level
 - [ ] **TREE-02**: Admin/HC dapat expand/collapse node individual dan semua node sekaligus
 - [ ] **TREE-03**: Setiap node menampilkan badge status Aktif/Nonaktif
-- [ ] **TREE-04**: Tree view mendukung kedalaman unlimited (recursive rendering)
+- [x] **TREE-04**: Tree view mendukung kedalaman unlimited (recursive rendering)
 
 ### CRUD & Aksi
 
@@ -50,10 +50,10 @@ Requirements untuk milestone v13.0. Redesign halaman ManageOrganization dari tab
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TREE-01 | Phase 292, 293 | Pending |
+| TREE-01 | Phase 292, 293 | Complete |
 | TREE-02 | Phase 293 | Pending |
 | TREE-03 | Phase 293 | Pending |
-| TREE-04 | Phase 292, 293 | Pending |
+| TREE-04 | Phase 292, 293 | Complete |
 | CRUD-01 | Phase 294 | Pending |
 | CRUD-02 | Phase 294 | Pending |
 | CRUD-03 | Phase 294 | Pending |

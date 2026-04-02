@@ -34,7 +34,7 @@ See .planning/MILESTONES.md for full history.
 
 ### 🚧 v13.0 Redesign Struktur Organisasi
 
-- [ ] **Phase 292: Backend AJAX Endpoints** - GetOrganizationTree JSON + dual-response pada CRUD actions + CSRF utility
+- [x] **Phase 292: Backend AJAX Endpoints** - GetOrganizationTree JSON + dual-response pada CRUD actions + CSRF utility (completed 2026-04-02)
 - [ ] **Phase 293: View Shell & Tree Rendering** - Ganti 520-baris view dengan ~130-baris shell + recursive tree dari JSON
 - [ ] **Phase 294: AJAX CRUD Lengkap** - Modal add/edit, toggle, delete, action dropdown via orgTree.js tanpa page reload
 - [ ] **Phase 295: Drag-drop Reorder** - SortableJS reorder sibling-only, cross-parent diblokir
@@ -52,7 +52,7 @@ See .planning/MILESTONES.md for full history.
   4. Tidak ada regression pada alur PRG yang sudah ada — halaman tetap berfungsi normal jika JS dimatikan
 **Plans**: 1 plan
 Plans:
-- [ ] 292-01-PLAN.md — IsAjaxRequest helper + GetOrganizationTree + dual-response + orgTree.js utility
+- [x] 292-01-PLAN.md — IsAjaxRequest helper + GetOrganizationTree + dual-response + orgTree.js utility
 **UI hint**: yes
 
 ### Phase 293: View Shell & Tree Rendering
@@ -96,7 +96,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 292. Backend AJAX Endpoints | 1/1 | Planned | - |
+| 292. Backend AJAX Endpoints | 1/1 | Complete   | 2026-04-02 |
 | 293. View Shell & Tree Rendering | 0/? | Not started | - |
 | 294. AJAX CRUD Lengkap | 0/? | Not started | - |
 | 295. Drag-drop Reorder | 0/? | Not started | - |
