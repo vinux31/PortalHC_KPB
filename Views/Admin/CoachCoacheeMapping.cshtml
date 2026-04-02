@@ -52,7 +52,7 @@
         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importMappingModal">
             <i class="bi bi-file-earmark-arrow-up me-1"></i>Import Excel
         </button>
-        <a asp-controller="Admin" asp-action="CoachCoacheeMappingExport" class="btn btn-sm btn-outline-success">
+        <a asp-controller="CoachMapping" asp-action="CoachCoacheeMappingExport" class="btn btn-sm btn-outline-success">
             <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
         </a>
         <button class="btn btn-sm btn-primary" onclick="document.getElementById('assignModal').querySelector('[data-bs-dismiss]') && null" data-bs-toggle="modal" data-bs-target="#assignModal">
@@ -165,7 +165,7 @@
 }
 
 <!-- Filter Form -->
-<form method="get" asp-action="CoachCoacheeMapping" asp-controller="Admin" id="filterForm" class="mb-3">
+<form method="get" asp-action="CoachCoacheeMapping" asp-controller="CoachMapping" id="filterForm" class="mb-3">
     <input type="hidden" name="page" id="pageInput" value="1" />
     <div class="row g-2 align-items-end">
         <div class="col-md-3">
@@ -304,7 +304,7 @@ else
                                     </button>
                                     @if (!coachee.IsCompleted)
                                     {
-                                        <form method="post" asp-action="MarkMappingCompleted" asp-controller="Admin" class="d-inline">
+                                        <form method="post" asp-action="MarkMappingCompleted" asp-controller="CoachMapping" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="mappingId" value="@coachee.Id" />
                                             <button type="submit" class="btn btn-sm btn-outline-info"
@@ -955,7 +955,7 @@ else
                 <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2 text-primary"></i>Import Coach-Coachee Mapping</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-action="ImportCoachCoacheeMapping" asp-controller="Admin" method="post" enctype="multipart/form-data">
+            <form asp-action="ImportCoachCoacheeMapping" asp-controller="CoachMapping" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <div class="alert alert-info small mb-3">

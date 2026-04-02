@@ -157,7 +157,7 @@
             <!-- Step 2: Upload -->
             <p class="fw-semibold mb-2"><strong>Langkah 2 — Upload File yang Sudah Diisi</strong></p>
 
-            <form asp-action="ImportWorkers" asp-controller="Admin" method="post" enctype="multipart/form-data" id="importForm">
+            <form asp-action="ImportWorkers" asp-controller="Worker" method="post" enctype="multipart/form-data" id="importForm">
                 @Html.AntiForgeryToken()
 
                 <div class="upload-zone border-2 border-dashed rounded-3 p-5 text-center mb-3"

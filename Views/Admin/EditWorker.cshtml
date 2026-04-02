@@ -45,7 +45,7 @@
         </div>
     }
 
-    <form asp-action="EditWorker" asp-controller="Admin" method="post" id="editWorkerForm">
+    <form asp-action="EditWorker" asp-controller="Worker" method="post" id="editWorkerForm">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
 
