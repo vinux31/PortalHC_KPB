@@ -41,9 +41,9 @@ Declared values (multiples of 4, menggunakan Bootstrap utility classes):
 | 2xl | 48px | `py-5 my-2` | Major section breaks |
 
 Exceptions:
-- Tree indentation per level: 20px (fixed, non-scale) — agar hierarki terbaca jelas tanpa memakan terlalu banyak lebar
+- Tree indentation per level: 24px (fixed, non-scale) — agar hierarki terbaca jelas tanpa memakan terlalu banyak lebar
 - Node touch/click target minimum: 36px tinggi — cukup untuk desktop admin tool
-- Tree connector garis vertikal: posisi absolut 10px dari kiri node, lebar 1px
+- Tree connector garis vertikal: posisi absolut 12px dari kiri node, lebar 1px
 
 ---
 
@@ -56,7 +56,7 @@ Mengikuti skala yang sudah ada di proyek (Bootstrap defaults):
 | Body | 14px | 400 (regular) | 1.5 | Nama unit di dalam node |
 | Label | 12px | 400 (regular) | 1.4 | Badge status "Aktif"/"Nonaktif", breadcrumb |
 | Heading | 20px | 700 (bold) | 1.2 | `<h2>` judul halaman "Struktur Organisasi" |
-| Subheading | 16px | 600 (semibold) | 1.3 | Level-0 node (Bagian) label |
+| Subheading | 16px | 700 (bold) | 1.3 | Level-0 node (Bagian) label |
 
 ---
 
