@@ -37,7 +37,8 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 287: AssessmentAdminController** - Ekstraksi semua action assessment dari AdminController (completed 2026-04-02)
 - [x] **Phase 288: Worker, Coach & Organization Controllers** - Ekstraksi WorkerController, CoachMappingController, OrganizationController (completed 2026-04-02)
 - [x] **Phase 289: Document, Training & Renewal Controllers** - Ekstraksi DocumentAdminController, TrainingAdminController, RenewalController (completed 2026-04-02)
-- [ ] **Phase 290: Verification & Cleanup** - Validasi semua URL, authorization, dan build bersih
+- [x] **Phase 290: Verification & Cleanup** - Validasi semua URL, authorization, dan build bersih (completed 2026-04-02)
+- [ ] **Phase 291: Fix Broken Url.Action View References** - Perbaiki 43 Url.Action("X", "Admin") yang broken di 28 views (gap closure)
 
 ## Phase Details
 
@@ -104,7 +105,18 @@ Plans:
   4. AdminController asli sudah kosong atau hanya berisi action yang tidak termasuk domain manapun (Index hub, dll)
 **Plans**: 1 plan
 Plans:
-- [ ] 290-01-PLAN.md — Verifikasi dan cleanup
+- [x] 290-01-PLAN.md — Verifikasi dan cleanup
+
+### Phase 291: Fix Broken Url.Action View References
+**Goal**: Semua Url.Action() di Razor views menghasilkan URL yang benar setelah controller extraction — zero null href
+**Depends on**: Phase 286-290 (controllers already extracted)
+**Requirements**: VER-01 (re-opened)
+**Gap Closure**: Closes VIEW-REF-001 from v12.0 audit + 3 broken flows
+**Success Criteria** (what must be TRUE):
+  1. Semua Url.Action("X", "Admin") yang merujuk action di domain controller sudah diubah ke controller name yang benar (Worker, AssessmentAdmin, Organization, DocumentAdmin, TrainingAdmin, CoachMapping, Renewal)
+  2. Zero null href di semua 28 affected views — semua link dan form action menghasilkan URL valid
+  3. Build sukses tanpa error
+**Plans**: 0 plans
 
 ## Progress
 
@@ -114,4 +126,5 @@ Plans:
 | 287. AssessmentAdminController | 1/1 | Complete    | 2026-04-02 |
 | 288. Worker, Coach & Organization | 2/2 | Complete    | 2026-04-02 |
 | 289. Document, Training & Renewal | 1/1 | Complete    | 2026-04-02 |
-| 290. Verification & Cleanup | 0/1 | Not started | - |
+| 290. Verification & Cleanup | 1/1 | Complete   | 2026-04-02 |
+| 291. Fix Url.Action References | 0/0 | Pending    | — |

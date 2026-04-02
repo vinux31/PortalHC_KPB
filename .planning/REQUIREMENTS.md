@@ -84,7 +84,7 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 | TRN-02 | Phase 289 | Complete |
 | RNW-01 | Phase 289 | Complete |
 | RNW-02 | Phase 289 | Complete |
-| VER-01 | Phase 290 | Pending |
+| VER-01 | Phase 291 | Pending |
 | VER-02 | Phase 290 | Pending |
 | VER-03 | Phase 290 | Pending |
 
