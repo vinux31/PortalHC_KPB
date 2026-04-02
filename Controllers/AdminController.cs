@@ -1775,7 +1775,9 @@ namespace HcPortal.Controllers
                     Id = a.Id,
                     FullName = a.User!.FullName ?? "",
                     Email = a.User!.Email ?? "",
-                    Section = a.User!.Section ?? ""
+                    Section = a.User!.Section ?? "",
+                    Status = a.Status ?? "",
+                    CanDelete = a.StartedAt == null && a.CompletedAt == null
                 })
                 .ToList();
 
