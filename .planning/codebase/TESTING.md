@@ -5,82 +5,95 @@
 ## Test Framework
 
 **Runner:**
-- Playwright 1.58.2 (E2E browser tests)
+- Playwright v1.58.2 (E2E browser tests)
 - Config: `tests/playwright.config.ts`
-- No unit test framework (no xUnit/NUnit/MSTest project exists)
+- TypeScript 5.9.3
 
 **Assertion Library:**
-- Playwright's built-in `expect()` assertions
+- Playwright built-in `expect` API
 
 **Run Commands:**
 ```bash
 cd tests
 npx playwright test              # Run all tests
-npx playwright test --headed     # Run with visible browser
-npx playwright test --ui         # Interactive UI mode
+npx playwright test --headed     # Watch mode (visible browser)
+npx playwright test --ui         # Playwright UI mode
 npx playwright show-report       # View HTML report
 ```
 
+**No unit test framework.** There are no C#-side unit tests (no xUnit, NUnit, or MSTest). All testing is E2E via Playwright.
+
 ## Test File Organization
 
-**Location:**
-- All tests in `tests/e2e/` directory (separate from main .NET project)
-- Test helpers in `tests/helpers/`
-- Separate `tests/package.json` with its own Node.js dependencies
+**Location:** `tests/e2e/` (separate from source)
 
-**Naming:**
-- `{feature}.spec.ts` — `assessment.spec.ts`, `exam-taking.spec.ts`, `impersonation.spec.ts`
+**Naming:** `{feature}.spec.ts`
 
 **Structure:**
 ```
 tests/
 ├── e2e/
-│   ├── global.setup.ts           # Global setup (auth bootstrap)
-│   ├── assessment.spec.ts        # 277 lines - Assessment CRUD flows
-│   ├── exam-taking.spec.ts       # 1593 lines - Full exam lifecycle
-│   └── impersonation.spec.ts     # 320 lines - Impersonation feature
+│   ├── global.setup.ts          # Verify app is running
+│   ├── assessment.spec.ts       # Assessment CRUD flow (277 lines)
+│   ├── exam-taking.spec.ts      # Exam flow E2E (1593 lines)
+│   └── impersonation.spec.ts    # Impersonation feature (320 lines)
 ├── helpers/
-│   ├── accounts.ts               # Test account credentials (10 roles)
-│   ├── auth.ts                   # login()/logout() helpers
-│   └── utils.ts                  # uniqueTitle(), today(), autoConfirm()
+│   ├── accounts.ts              # Test account credentials
+│   ├── auth.ts                  # Login/logout helpers
+│   └── utils.ts                 # Date helpers, unique title generator, dialog handler
 ├── playwright.config.ts
 ├── package.json
 └── tsconfig.json
 ```
 
+## Test Configuration
+
+**Playwright config (`tests/playwright.config.ts`):**
+- `testDir: './e2e'`
+- `timeout: 60_000` (60 seconds per test)
+- `expect.timeout: 10_000` (10 seconds for assertions)
+- `fullyParallel: false` — tests run serially
+- `retries: 0` — no retries
+- Screenshots: `'on'` (always captured)
+- Trace: `'on-first-retry'`
+- Viewport: 1280x720
+- Base URL: `http://localhost:5277`
+
+**Projects:**
+1. `setup` — runs `global.setup.ts` first (verifies app is running)
+2. `chromium` — main test project, depends on setup
+
 ## Test Structure
 
 **Suite Organization:**
 ```typescript
-// Tests run serially within a describe block (shared state)
+import { test, expect } from '@playwright/test';
+import { login } from '../helpers/auth';
+import { uniqueTitle, today, autoConfirm } from '../helpers/utils';
+
+// Shared state across tests in file
+let assessmentTitle: string;
+
 test.describe.configure({ mode: 'serial' });
 
-// Organized by USE-CASE FLOWS, not pages or roles
-test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
-  let title: string;
-
-  test('A1 - HC creates assessment for coachee', async ({ page }) => {
+test.describe('Assessment - Admin Creates & Manages', () => {
+  test('1.1 - HC can navigate to Create Assessment page', async ({ page }) => {
     await login(page, 'hc');
-    // ... test steps
-  });
-
-  test('A2 - HC navigates to ManageQuestions', async ({ page }) => {
-    await login(page, 'hc');
-    // ... uses title from A1
+    await page.goto('/Admin/ManageAssessment');
+    await expect(page.locator('h2')).toContainText('Manage Assessment');
   });
 });
 ```
 
-**Key pattern: Serial flow tests with shared state.**
-Tests within a `describe` block share variables (e.g., `assessmentTitle`) and must run in order. Each test logs in fresh (no shared browser session).
-
-**Naming convention:**
-- Flow prefix + step number: `'1.1 - HC can navigate to Create Assessment page'`
-- Or letter prefix: `'A1 - HC creates assessment for coachee'`
+**Patterns:**
+- Tests organized by use-case flows (not by page or role)
+- Serial mode within `describe` blocks — tests share state via file-level variables
+- Each test logs in fresh (no persistent auth state between tests)
+- Numbered test names: `'1.1 - ...'`, `'1.2 - ...'` for flow ordering
 
 ## Test Helpers
 
-**Authentication — `tests/helpers/auth.ts`:**
+**Authentication (`tests/helpers/auth.ts`):**
 ```typescript
 export async function login(page: Page, account: AccountKey) {
   const { email, password } = accounts[account];
@@ -92,141 +105,110 @@ export async function login(page: Page, account: AccountKey) {
 }
 ```
 
-**Account keys (in `tests/helpers/accounts.ts`):**
-`admin`, `hc`, `coachee`, `coachee2`, `direktur`, `vp`, `manager`, `sectionHead`, `srSupervisor`, `coach`
+**Test Accounts (`tests/helpers/accounts.ts`):**
+- `admin` — Admin role
+- `hc` — HC role
+- `coachee` / `coachee2` — Coachee role
+- `direktur`, `vp`, `manager` — Management roles
+- `sectionHead`, `srSupervisor` — Supervisor roles
+- `coach` — Coach role
+- All use password `123456`
 
-**Utility helpers — `tests/helpers/utils.ts`:**
+**Utilities (`tests/helpers/utils.ts`):**
+- `uniqueTitle(prefix)` — generates `{prefix} {timestamp}` for test isolation
+- `today()` / `tomorrow()` — date formatters (YYYY-MM-DD)
+- `waitForNav(page, action)` — wait for navigation after click
+- `autoConfirm(page)` — accept browser `confirm()` dialog
+
+## Global Setup
+
+**`tests/e2e/global.setup.ts`:**
+- Verifies the app is running by navigating to `/Account/Login`
+- Checks response is OK and submit button is visible
+- Runs before all test projects
+
+## Mocking
+
+**No mocking framework.** Tests run against a live local application with real database. No API mocking or service stubs.
+
+## Coverage
+
+**Requirements:** None enforced. No coverage tooling configured.
+
+**Current coverage by feature:**
+- Assessment CRUD: covered (`tests/e2e/assessment.spec.ts`)
+- Exam-taking flow: covered (`tests/e2e/exam-taking.spec.ts`)
+- Impersonation: covered (`tests/e2e/impersonation.spec.ts`)
+- Other features (CDP, CMP, coaching, training, workers, notifications): **not covered by automated tests**
+
+## Test Types
+
+**Unit Tests:**
+- Not used. No C# test project exists.
+
+**Integration Tests:**
+- Not used.
+
+**E2E Tests:**
+- Playwright against live local app
+- Covers critical user flows end-to-end
+- Tests create real data (assessments, etc.) using unique titles for isolation
+
+## Common Patterns
+
+**Page Navigation:**
 ```typescript
-export function uniqueTitle(prefix = 'E2E Test'): string {
-  return `${prefix} ${Date.now()}`;           // Test isolation via unique names
-}
-
-export function today(): string {
-  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-}
-
-export function autoConfirm(page: Page) {
-  page.once('dialog', dialog => dialog.accept()); // Accept browser confirm()
-}
-```
-
-## Playwright Configuration
-
-**Key settings in `tests/playwright.config.ts`:**
-- `baseURL`: `http://localhost:5277` (local dev server)
-- `timeout`: 60 seconds per test
-- `expect.timeout`: 10 seconds for assertions
-- `fullyParallel`: false (tests are serial by design)
-- `retries`: 0 (no automatic retries)
-- `screenshot`: 'on' (always capture)
-- `trace`: 'on-first-retry'
-- `viewport`: 1280x720
-- Browser: Chromium only
-- Projects: `setup` (global.setup.ts) → `chromium`
-
-## Common Test Patterns
-
-**Page navigation + assertion:**
-```typescript
-await login(page, 'hc');
 await page.goto('/Admin/ManageAssessment');
 await expect(page.locator('h2')).toContainText('Manage Assessment');
 ```
 
-**Form filling:**
+**Form Filling:**
 ```typescript
 await page.fill('#Title', assessmentTitle);
 await page.selectOption('#Category', 'OJT');
 await page.fill('#ScheduleDate', today());
-await page.fill('#DurationMinutes', '30');
 await page.click('#submitBtn');
 ```
 
-**Waiting for success (modal or alert):**
+**Waiting for Results:**
 ```typescript
-await page.waitForTimeout(3_000);
-const successVisible = await page.locator('#successModal')
-  .evaluate(el => el.classList.contains('show')).catch(() => false);
-const alertVisible = await page.locator('.alert-success').isVisible().catch(() => false);
-expect(successVisible || alertVisible).toBeTruthy();
+await page.waitForLoadState('networkidle');
+await page.waitForTimeout(3_000); // used when networkidle is insufficient
 ```
 
-**Search and verify:**
+**Checkbox Interaction:**
+```typescript
+const checkbox = page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input');
+await checkbox.click({ force: true });
+```
+
+**Search Pattern:**
 ```typescript
 const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
 await searchInput.fill(term);
 await searchInput.press('Enter');
 await page.waitForLoadState('networkidle');
-await expect(page.locator('body')).toContainText(assessmentTitle);
 ```
 
-**Checkbox interaction (force click for custom styled checkboxes):**
-```typescript
-await page.locator('.user-check-item', { hasText: 'rino.prasetyo' })
-  .locator('input').click({ force: true });
-```
+## Ad-Hoc UAT Scripts
 
-**Error testing (dialog handling):**
-```typescript
-export function autoConfirm(page: Page) {
-  page.once('dialog', dialog => dialog.accept());
-}
-```
-
-## Ad-hoc UAT Scripts
-
-**Location:** Root directory — `uat-265-test.js`, `uat-266-test.js`, `uat-267-*.js`
-- One-off Playwright scripts for specific phase UAT
-- Not part of the formal test suite (not in `tests/e2e/`)
-- Used for manual verification during development
-- Pattern: Claude writes script -> user runs in browser context -> Claude fixes bugs
-
-## Coverage
-
-**Requirements:** None enforced — no coverage tool configured
-**Unit test coverage:** No unit tests exist
-**E2E coverage areas:**
-- Assessment creation, management, and monitoring
-- Exam lifecycle (create -> add questions -> take exam -> submit -> results -> certificate)
-- Impersonation feature
-
-## Test Types
-
-**Unit Tests:**
-- Not present. No xUnit/NUnit/MSTest project in the solution.
-
-**Integration Tests:**
-- Not present as a separate layer.
-
-**E2E Tests (Playwright):**
-- Primary testing strategy
-- 3 spec files, ~2190 total lines
-- Tests the full stack: browser -> ASP.NET Core -> SQL Server
-- Requires running local dev server at `http://localhost:5277`
-
-**Manual UAT:**
-- User preference: Claude analyzes code -> user verifies in browser -> Claude fixes bugs
-- UAT results tracked in planning docs with PASS/FAIL per test case
-- Some flows need pre-seeded data (e.g., Proton coaching requires mapped coach-coachee pairs)
-- Bug handling rules: low -> fix immediately, medium -> fix if simple, critical -> document first
+In addition to Playwright specs, there are ad-hoc JavaScript UAT scripts in the project root:
+- `uat-265-test.js`, `uat-266-test.js`, `uat-267-test.js`, etc.
+- These are one-off browser console scripts used during UAT phases
+- Not part of the automated test suite
 
 ## Adding New Tests
 
-**New E2E test file:**
+**New E2E spec:**
 1. Create `tests/e2e/{feature}.spec.ts`
-2. Import helpers: `import { login } from '../helpers/auth';` and `import { uniqueTitle, today } from '../helpers/utils';`
-3. Use `test.describe.configure({ mode: 'serial' });` for flow-based tests
-4. Name tests with flow prefix: `'F1 - Description'`
-5. Each test should `login()` fresh (no shared auth state between tests)
-6. Use `uniqueTitle()` for test data isolation
+2. Import from `../helpers/auth` and `../helpers/utils`
+3. Use `test.describe.configure({ mode: 'serial' })` for flow-based tests
+4. Name tests with numbered flow format: `'{N}.{step} - description'`
+5. Login at start of each test (no shared auth state)
 
 **New test account:**
-1. Add entry to `tests/helpers/accounts.ts` with email, password, role
-2. Ensure account exists in database seed data
-
-**New helper function:**
-1. Add to `tests/helpers/utils.ts` for generic utilities
-2. Create new helper file in `tests/helpers/` for feature-specific utilities
+- Add to `tests/helpers/accounts.ts`
+- Ensure account exists in `Data/SeedData.cs`
 
 ---
 

@@ -11,7 +11,7 @@
 - Interface: `Services/IAuthService.cs`
 - Config toggle: `Authentication:UseActiveDirectory` in `appsettings.json` (default: `false`)
 - LDAP path: `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com`
-- Attribute mapping: `mail` → Email, `displayName` → FullName, `employeeID` → NIP
+- Attribute mapping: `mail` -> Email, `displayName` -> FullName, `employeeID` -> NIP
 - Timeout: 5000ms
 
 **No other external APIs.** No HTTP clients, no REST/GraphQL integrations.
@@ -20,10 +20,10 @@
 
 **Databases:**
 - Development: SQLite (file `HcPortal.db`, WAL mode enabled at startup in `Program.cs`)
-  - Connection: `appsettings.json` → `ConnectionStrings:DefaultConnection`
+  - Connection: `appsettings.json` -> `ConnectionStrings:DefaultConnection`
   - Provider: `Microsoft.EntityFrameworkCore.Sqlite`
 - Production: SQL Server
-  - Connection: `appsettings.Production.json` → `ConnectionStrings:DefaultConnection`
+  - Connection: `appsettings.Production.json` -> `ConnectionStrings:DefaultConnection`
   - Provider: `Microsoft.EntityFrameworkCore.SqlServer`
 - ORM: Entity Framework Core 8.0
 - DbContext: `Data/ApplicationDbContext.cs`
@@ -107,7 +107,6 @@
 
 **Secrets location:**
 - `appsettings.Production.json` (connection string placeholder)
-- `.env` file present — contains environment configuration
 - No Azure Key Vault or user-secrets detected
 
 ---

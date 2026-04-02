@@ -5,165 +5,156 @@
 ## Naming Patterns
 
 **Files:**
-- Models: PascalCase matching class name — `AssessmentSession.cs`, `ApplicationUser.cs`
-- Controllers: `{Feature}Controller.cs` — `AdminController.cs`, `CMPController.cs`
-- Services: Interface `I{Name}Service.cs` + implementation `{Name}Service.cs` — `INotificationService.cs` / `NotificationService.cs`
-- Helpers: `{Name}Helper.cs` — `PaginationHelper.cs`, `ExcelExportHelper.cs`
-- Views: `Views/{Controller}/{Action}.cshtml`
-- ViewModels: suffix `ViewModel` — `DashboardHomeViewModel.cs`, `AssessmentMonitoringViewModel.cs`
+- Controllers: PascalCase with `Controller` suffix — `CDPController.cs`, `AdminBaseController.cs`
+- Models: PascalCase, one class per file — `ApplicationUser.cs`, `TrainingRecord.cs`
+- ViewModels: PascalCase with `ViewModel` suffix — `DashboardHomeViewModel.cs`, `ProfileViewModel.cs`
+- Views: PascalCase matching action name — `Views/Admin/CreateAssessment.cshtml`
+- Services: PascalCase with interface prefix `I` — `INotificationService.cs` / `NotificationService.cs`
+- Helpers: PascalCase with `Helper` suffix — `PaginationHelper.cs`, `ExcelExportHelper.cs`
 
-**Functions/Methods:**
-- PascalCase for all public methods (C# convention): `GetUnifiedRecords()`, `BuildRenewalRowsAsync()`
-- Async methods use `Async` suffix: `LogAsync()`, `SendAsync()`, `MarkAsReadAsync()`
-- Private helper methods: PascalCase — `GetTimeBasedGreeting()`, `GetCertAlertCountsAsync()`
+**Classes & Methods:**
+- PascalCase for all public members: `BuildRenewalRowsAsync()`, `GetAllWorkersHistory()`
+- Async methods use `Async` suffix: `BuildRenewalRowsAsync()`, `GetCertAlertCountsAsync()`
+- Private fields use `_camelCase`: `_context`, `_userManager`, `_logger`, `_cache`
+- Protected fields also use `_camelCase`: `_context`, `_userManager` in `AdminBaseController`
 
-**Variables:**
-- Private fields: underscore prefix `_context`, `_userManager`, `_logger`, `_notificationService`
-- Local variables: camelCase — `selectedBagianId`, `renewalRows`, `currentUser`
-
-**Types:**
-- Models: PascalCase nouns — `AssessmentSession`, `CoachingLog`, `AuditLog`
-- ViewModels: `{Feature}{Purpose}ViewModel` — `CDPDashboardViewModel`, `AnalyticsDashboardViewModel`
-- Enums: PascalCase — standard C# convention
+**Namespaces:**
+- Root: `HcPortal`
+- Sub-namespaces match folders: `HcPortal.Controllers`, `HcPortal.Models`, `HcPortal.Services`, `HcPortal.Data`, `HcPortal.Helpers`, `HcPortal.Hubs`, `HcPortal.Middleware`
 
 ## Code Style
 
 **Formatting:**
-- No `.editorconfig` or formatting tool configured
-- Indentation: 4 spaces (C# standard)
-- Braces: Allman style (opening brace on new line) for namespaces/classes; K&R for short blocks
-- String defaults: `string.Empty` for non-nullable string properties, `""` for inline defaults
+- No explicit formatter config (no .editorconfig detected)
+- 4-space indentation (C# default)
+- Opening brace on same line for namespace declarations using file-scoped syntax in some files (`namespace HcPortal.Controllers;`) and block-scoped in others (`namespace HcPortal.Controllers { }`)
+- Both styles coexist — newer files tend to use file-scoped namespaces
 
 **Linting:**
-- No dedicated linter configured (relies on compiler warnings)
+- No explicit linting config — relies on default Roslyn analyzers
 
 ## Import Organization
 
-**Order (observed in controllers):**
-1. `Microsoft.*` namespaces (ASP.NET Core, EF Core, Identity)
-2. Third-party libraries (`ClosedXML`, `QuestPDF`, `System.Text.Json`)
-3. Project namespaces (`HcPortal.Models`, `HcPortal.Data`, `HcPortal.Services`, `HcPortal.Helpers`)
+**Order:**
+1. `System.*` namespaces
+2. `Microsoft.*` namespaces (AspNetCore, EntityFrameworkCore, Extensions)
+3. Third-party packages (`ClosedXML`, `QuestPDF`)
+4. Project namespaces (`HcPortal.Models`, `HcPortal.Data`, `HcPortal.Services`, `HcPortal.Helpers`)
 
-**Path Aliases:**
-- No path aliases — uses standard C# namespace resolution
+**No path aliases** — standard C# `using` statements.
 
 ## Controller Patterns
 
-**Base class hierarchy:**
-- Admin controllers inherit from `AdminBaseController` (abstract) at `Controllers/AdminBaseController.cs`
-- `AdminBaseController` extends `Controller` with shared fields: `_context`, `_userManager`, `_auditLog`, `_env`
-- Other controllers (`CMPController`, `HomeController`, `AccountController`) extend `Controller` directly
-
-**Authorization pattern:**
-- Class-level `[Authorize]` on all controllers (require authentication by default)
-- Per-action `[Authorize(Roles = "Admin, HC")]` for role-restricted actions
-- `[AllowAnonymous]` on login/public endpoints
-- `ProtonDataController`: class-level `[Authorize(Roles="Admin,HC")]`
-
-**Routing pattern:**
-- Admin controllers use attribute routing: `[Route("Admin")]` + `[Route("Admin/[action]")]`
-- Other controllers use conventional routing (configured in `Program.cs`)
-- HTTP method attributes: `[HttpGet]`, `[HttpPost]` on specific actions
-
-**Dependency injection:**
+**Dependency Injection:**
 - Constructor injection for all dependencies
-- Store as private readonly fields with underscore prefix
-- Controllers can have many dependencies (CMPController has 11 constructor parameters)
+- Common dependencies: `ApplicationDbContext`, `UserManager<ApplicationUser>`, `ILogger<T>`, `AuditLogService`
+- Store as private/protected readonly fields
 
-**ViewData/ViewBag usage:**
-- `ViewData["Title"]` for page titles consistently
-- `ViewBag` for passing collections and flags to views — `ViewBag.Bagians`, `ViewBag.SelectedBagianId`
-- ViewModels used for complex data: `DashboardHomeViewModel`
+**Example (standard controller constructor):**
+```csharp
+public CDPController(
+    UserManager<ApplicationUser> userManager,
+    SignInManager<ApplicationUser> signInManager,
+    ApplicationDbContext context,
+    IWebHostEnvironment env,
+    INotificationService notificationService,
+    ILogger<CDPController> logger,
+    AuditLogService auditLog)
+{
+    _userManager = userManager;
+    _signInManager = signInManager;
+    _context = context;
+    _env = env;
+    _notificationService = notificationService;
+    _logger = logger;
+    _auditLog = auditLog;
+}
+```
+
+**Authorization:**
+- Class-level `[Authorize]` on all controllers
+- Action-level `[Authorize(Roles = "Admin, HC")]` for admin features
+- `[AllowAnonymous]` on login/access-denied actions
+- Admin controllers inherit from `AdminBaseController` which has `[Authorize]` + shared admin logic
+
+**Route Patterns:**
+- Admin controllers: `[Route("Admin")]` + `[Route("Admin/[action]")]`
+- Other controllers: default MVC routing (`{controller}/{action}/{id?}`)
+
+**Anti-forgery:** `[ValidateAntiForgeryToken]` on all POST actions.
+
+**User resolution pattern:**
+```csharp
+var user = await _userManager.GetUserAsync(User);
+if (user == null) return Challenge();
+```
+
+## Model Patterns
+
+**Entity Models:**
+- Inherit from `IdentityUser` for user model (`ApplicationUser`)
+- Use data annotations sparingly — most validation in controllers
+- XML doc comments (`/// <summary>`) on model properties
+- Default values set inline: `public bool IsActive { get; set; } = true;`
+- Navigation properties use `virtual` keyword: `public virtual ICollection<TrainingRecord> TrainingRecords { get; set; }`
+
+**ViewModels:**
+- Separate files, suffix `ViewModel`
+- Pure data containers (no methods)
 
 ## Service Patterns
 
 **Interface + Implementation:**
-- Services registered as scoped in `Program.cs`: `builder.Services.AddScoped<INotificationService, NotificationService>()`
-- `AuditLogService` is a concrete class (no interface) — registered directly
-- XML doc comments on interface methods (see `Services/INotificationService.cs`)
+- Define interface in `Services/I{Name}Service.cs`
+- Implement in `Services/{Name}Service.cs`
+- Register as scoped in `Program.cs`: `builder.Services.AddScoped<INotificationService, NotificationService>()`
 
-**Audit logging pattern:**
-```csharp
-await _auditLog.LogAsync(userId, userName, "ACTION_TYPE", "Description", targetId, "TargetType");
-```
+**Concrete services (no interface):**
+- `AuditLogService` — registered directly as scoped
 
-**Notification pattern:**
-```csharp
-await _notificationService.SendByTemplateAsync(userId, "TEMPLATE_TYPE", new Dictionary<string, object> { ... });
-```
-
-## Error Handling
-
-**Patterns:**
-- `try/catch` with `_logger.LogError()` in controllers
-- Return `Challenge()` when user is null (redirects to login)
-- Known tech debt: some bare `catch` blocks exist (see CONCERNS.md)
-
-## Comments
-
-**When to Comment:**
-- Indonesian comments for business logic explanations: `// Jika sudah login, redirect ke Home`
-- English comments for technical/structural notes: `// Foreign Key to User`
-- `#region` blocks used to organize large controllers: `#region KKJ File Management`
-- Phase references in comments: `// Phase 283`, `// Impersonation service — Phase 283`
-
-**XML Documentation:**
-- Used on service interfaces (`Services/INotificationService.cs`) with `<summary>`, `<param>`, `<returns>`
-- Used on model properties for domain explanation
-- Not consistently applied across all public APIs
-
-## Function Design
-
-**Size:** Controllers are large (AdminController: 4413 lines, CDPController: 4013 lines). Logic lives in controller actions rather than extracted services.
-
-**Parameters:** Action methods use query string params or form binding. Complex input uses ViewModels with `[Bind]` or model binding.
-
-**Return Values:** Controller actions return `Task<IActionResult>`. Services return domain objects or `Task<bool>`.
-
-## Model Design
-
-**Property defaults:**
-- Non-nullable strings default to `string.Empty` or `""`: `public string Title { get; set; } = "";`
-- Navigation properties nullable: `public ApplicationUser? User { get; set; }`
-- Numeric defaults explicit: `public int RoleLevel { get; set; } = 6;`
-- Data annotations for validation: `[Range(0, 100)]`, `[Display(Name = "...")]`
-
-**Naming in models:**
-- Foreign keys: `{Entity}Id` — `UserId`, `OrganizationUnitId`
-- Timestamps: `CreatedAt`, `CompletedAt`, `StartedAt`, `UploadedAt`
-- Boolean flags: `Is{Adjective}` or `{Verb}{Noun}` — `IsArchived`, `IsPassed`, `AllowAnswerReview`, `GenerateCertificate`
+**Error handling in services:**
+- Try-catch wrapped with logger fallback (per `NotificationService` pattern)
 
 ## View Patterns
 
-**Layout:**
-- Shared layout at `Views/Shared/_Layout.cshtml`
-- Partial views prefixed with underscore: `_CertificateHistoryModalContent.cshtml`, `_ImpersonationBanner.cshtml`
-- View components in `ViewComponents/` directory
+**Layout:** Single shared layout at `Views/Shared/_Layout.cshtml`
+- Bootstrap 5.3 + Bootstrap Icons + Font Awesome 6.5
+- Google Fonts (Inter)
+- jQuery + jQuery Validation (from `wwwroot/lib/`)
+- SignalR for real-time features
 
-**Razor conventions:**
-- `@if (User.IsInRole("Admin") || User.IsInRole("HC"))` for role-based UI
-- Bootstrap 5 classes used throughout: `card`, `shadow-sm`, `fw-bold`, `text-muted`
-- Bootstrap Icons (`bi-*`) for iconography
-- `@Url.Action("Action", "Controller")` for link generation
+**ViewBag usage:** Used for passing metadata (e.g., `ViewBag.RenewalCount`)
 
-## Helper Patterns
+**Partial views:** Shared partials in `Views/{Controller}/Shared/` directories
 
-**Static helpers in `Helpers/` directory:**
-- `PaginationHelper.cs`: static class with `Calculate()` method returning a `record`
-- `ExcelExportHelper.cs`: Excel generation utilities
-- `FileUploadHelper.cs`: File upload handling
-- `CertNumberHelper.cs`: Certificate number generation
+## Comments
 
-**Pattern:** Use `record` for immutable return types (e.g., `PaginationResult`)
+**Phase tracking comments:**
+- Large block comments referencing phase numbers: `// Phase 237-03: DTO for batch HC approval`
+- QA fix documentation inline: `// PHASE 87-02 DASHBOARD QA FIXES (resolved)`
 
-## Module Design
+**XML documentation:**
+- Used on models and services with `/// <summary>` blocks
+- Mixed language (English + Bahasa Indonesia) in comments
 
-**Exports:**
-- One class per file (standard C#)
-- Namespace matches folder: `HcPortal.Controllers`, `HcPortal.Models`, `HcPortal.Services`, `HcPortal.Helpers`
+## Helper Design
 
-**Barrel Files:**
-- Not applicable (C# uses namespace imports)
+**Static helpers:**
+- Pure static classes: `PaginationHelper.Calculate(totalCount, page, pageSize)`
+- Use `record` types for return values: `public record PaginationResult(...)`
+- Located in `Helpers/` directory
+
+## Database Access
+
+**Pattern:** Direct `ApplicationDbContext` usage in controllers (no repository pattern)
+- LINQ queries with `Include()` for eager loading
+- Async everywhere: `await _context.TrainingRecords.Where(...).ToListAsync()`
+- No Unit of Work abstraction — `_context.SaveChangesAsync()` called directly
+
+## Regions
+
+- `#region` / `#endregion` used in larger controllers to organize action groups
+- Example: `#region Maintenance Mode`
 
 ---
 

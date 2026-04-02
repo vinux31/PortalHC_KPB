@@ -19,7 +19,8 @@
 
 **Package Manager:**
 - NuGet (packages defined in `HcPortal.csproj`)
-- No lockfile
+- npm (dev only, `package.json` — Playwright 1.58.2 for browser tests)
+- No NuGet lockfile
 
 ## Frameworks
 
@@ -30,7 +31,7 @@
 - SignalR — Real-time WebSocket communication (`Hubs/AssessmentHub.cs`)
 
 **Testing:**
-- Not detected
+- Playwright 1.58.2 (npm dev dependency) — Browser automation
 
 **Build/Dev:**
 - `Microsoft.EntityFrameworkCore.Tools` 8.0.0 — EF migrations CLI
@@ -40,7 +41,7 @@
 
 **Critical (NuGet):**
 - `ClosedXML` 0.105.0 — Excel import/export (worker import templates)
-- `QuestPDF` 2026.2.2 — PDF generation (Community license, set in `Program.cs`)
+- `QuestPDF` 2026.2.2 — PDF generation (Community license, set in `Program.cs` line 8)
 - `System.DirectoryServices` 10.0.0 — LDAP/Active Directory authentication
 - `Microsoft.EntityFrameworkCore.Sqlite` 8.0.0 — SQLite provider (development)
 - `Microsoft.EntityFrameworkCore.SqlServer` 8.0.0 — SQL Server provider (production)
@@ -60,7 +61,6 @@
 - Environment variable override: `Authentication__UseActiveDirectory=true`
 
 **Build:**
-- Solution: `HcPortal.sln`
 - Project: `HcPortal.csproj`
 - Nullable: enabled
 - ImplicitUsings: enabled
@@ -69,8 +69,8 @@
 
 **Development:**
 - .NET 8 SDK
-- SQLite (embedded, file-based `HcPortal.db`)
-- No Docker or CI pipeline detected
+- Node.js (for Playwright tests only)
+- SQLite (embedded, file-based `HcPortal.db`, WAL mode enabled at startup)
 
 **Production:**
 - .NET 8 Runtime / IIS Hosting Bundle
