@@ -77,7 +77,7 @@ Plans:
   4. Authorization [Authorize(Roles = "Admin, HC")] pada worker actions dan [Authorize(Roles = "Admin")] pada lainnya tetap sama persis
 **Plans**: 2 plans
 Plans:
-- [ ] 288-01-PLAN.md — Ekstraksi WorkerController & CoachMappingController
+- [x] 288-01-PLAN.md — Ekstraksi WorkerController & CoachMappingController
 - [ ] 288-02-PLAN.md — Ekstraksi OrganizationController & update view references
 
 ### Phase 289: Document, Training & Renewal Controllers
@@ -112,6 +112,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 286. AdminBaseController | 1/1 | Complete    | 2026-04-02 |
 | 287. AssessmentAdminController | 1/1 | Complete    | 2026-04-02 |
-| 288. Worker, Coach & Organization | 0/2 | Not started | - |
+| 288. Worker, Coach & Organization | 1/2 | In Progress|  |
 | 289. Document, Training & Renewal | 0/? | Not started | - |
 | 290. Verification & Cleanup | 0/? | Not started | - |

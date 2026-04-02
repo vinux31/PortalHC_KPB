@@ -20,13 +20,13 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 ### Worker Management
 
-- [ ] **WKR-01**: WorkerController berisi semua action ManageWorkers (list, create, edit, delete, deactivate, reactivate, detail, import, export, download template)
-- [ ] **WKR-02**: Semua URL worker tetap sama (/Admin/ManageWorkers, /Admin/CreateWorker, dll) via [Route] attribute
+- [x] **WKR-01**: WorkerController berisi semua action ManageWorkers (list, create, edit, delete, deactivate, reactivate, detail, import, export, download template)
+- [x] **WKR-02**: Semua URL worker tetap sama (/Admin/ManageWorkers, /Admin/CreateWorker, dll) via [Route] attribute
 
 ### Coach-Coachee Mapping
 
-- [ ] **CCM-01**: CoachMappingController berisi semua action coach-coachee (mapping list, assign, edit, delete, import, export, deactivate, reactivate, mark completed, get eligible coachees)
-- [ ] **CCM-02**: Semua URL mapping tetap sama (/Admin/CoachCoacheeMapping, dll) via [Route] attribute
+- [x] **CCM-01**: CoachMappingController berisi semua action coach-coachee (mapping list, assign, edit, delete, import, export, deactivate, reactivate, mark completed, get eligible coachees)
+- [x] **CCM-02**: Semua URL mapping tetap sama (/Admin/CoachCoacheeMapping, dll) via [Route] attribute
 
 ### Document Management
 
@@ -72,10 +72,10 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 | ASMT-01 | Phase 287 | Complete |
 | ASMT-02 | Phase 287 | Complete |
 | ASMT-03 | Phase 287 | Complete |
-| WKR-01 | Phase 288 | Pending |
-| WKR-02 | Phase 288 | Pending |
-| CCM-01 | Phase 288 | Pending |
-| CCM-02 | Phase 288 | Pending |
+| WKR-01 | Phase 288 | Complete |
+| WKR-02 | Phase 288 | Complete |
+| CCM-01 | Phase 288 | Complete |
+| CCM-02 | Phase 288 | Complete |
 | ORG-01 | Phase 288 | Pending |
 | ORG-02 | Phase 288 | Pending |
 | DOC-01 | Phase 289 | Pending |
