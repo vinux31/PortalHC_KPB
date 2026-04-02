@@ -10,7 +10,7 @@
         <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
         <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
         <li class="breadcrumb-item">
-            <a href="@Url.Action("ManageAssessment", "Admin", new { tab = "training" })">Manage Assessment & Training</a>
+            <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = "training" })">Manage Assessment & Training</a>
         </li>
         <li class="breadcrumb-item active" aria-current="page">Edit Training</li>
     </ol>
@@ -30,7 +30,7 @@
     <div asp-validation-summary="All" class="alert alert-danger"></div>
 }
 
-<form asp-action="EditTraining" asp-controller="Admin" method="post" enctype="multipart/form-data">
+<form asp-action="EditTraining" asp-controller="TrainingAdmin" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
 
     <!-- Hidden fields -->
@@ -180,7 +180,7 @@
 
     <!-- Submit Buttons -->
     <div class="d-flex justify-content-end gap-2">
-        <a href="@Url.Action("ManageAssessment", "Admin", new { tab = "training" })" class="btn btn-outline-secondary">
+        <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = "training" })" class="btn btn-outline-secondary">
             <i class="bi bi-x-lg me-2"></i>Batal
         </a>
         <button type="submit" class="btn btn-primary">
