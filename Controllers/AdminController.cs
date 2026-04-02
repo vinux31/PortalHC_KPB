@@ -16,15 +16,12 @@ using QuestPDF.Helpers;
 
 namespace HcPortal.Controllers
 {
-    [Authorize]
-    public class AdminController : Controller
+    [Route("Admin")]
+    [Route("Admin/[action]")]
+    public class AdminController : AdminBaseController
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly AuditLogService _auditLog;
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _config;
-        private readonly IWebHostEnvironment _env;
         private readonly ILogger<AdminController> _logger;
         private readonly INotificationService _notificationService;
         private readonly IHubContext<AssessmentHub> _hubContext;
@@ -41,13 +38,10 @@ namespace HcPortal.Controllers
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
             IWorkerDataService workerDataService)
+            : base(context, userManager, auditLog, env)
         {
-            _context = context;
-            _userManager = userManager;
-            _auditLog = auditLog;
             _cache = cache;
             _config = config;
-            _env = env;
             _logger = logger;
             _notificationService = notificationService;
             _hubContext = hubContext;
