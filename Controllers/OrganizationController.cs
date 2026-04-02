@@ -54,6 +54,20 @@ namespace HcPortal.Controllers
             return View("ManageOrganization", roots);
         }
 
+        // GET /Admin/GetOrganizationTree
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetOrganizationTree()
+        {
+            var units = await _context.OrganizationUnits
+                .OrderBy(u => u.Level)
+                .ThenBy(u => u.DisplayOrder)
+                .ThenBy(u => u.Name)
+                .Select(u => new { u.Id, u.Name, u.ParentId, u.Level, u.DisplayOrder, u.IsActive })
+                .ToListAsync();
+            return Json(units);
+        }
+
         // POST /Admin/AddOrganizationUnit
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -62,6 +76,8 @@ namespace HcPortal.Controllers
         {
             if (string.IsNullOrWhiteSpace(name))
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Nama tidak boleh kosong." });
                 TempData["Error"] = "Nama tidak boleh kosong.";
                 TempData["ShowAddForm"] = true;
                 return RedirectToAction("ManageOrganization");
@@ -70,6 +86,8 @@ namespace HcPortal.Controllers
             bool duplicate = await _context.OrganizationUnits.AnyAsync(u => u.Name == name.Trim());
             if (duplicate)
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Nama unit sudah digunakan. Gunakan nama yang berbeda." });
                 TempData["Error"] = "Nama unit sudah digunakan. Gunakan nama yang berbeda.";
                 TempData["ShowAddForm"] = true;
                 return RedirectToAction("ManageOrganization");
@@ -98,6 +116,8 @@ namespace HcPortal.Controllers
             _context.OrganizationUnits.Add(unit);
             await _context.SaveChangesAsync();
 
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Unit berhasil ditambahkan." });
             TempData["Success"] = "Unit berhasil ditambahkan.";
             return RedirectToAction("ManageOrganization");
         }
@@ -109,13 +129,20 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> EditOrganizationUnit(int id, string name, int? parentId)
         {
             var unit = await _context.OrganizationUnits.FindAsync(id);
-            if (unit == null) return NotFound();
+            if (unit == null)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Unit tidak ditemukan." });
+                return NotFound();
+            }
 
             string oldName = unit.Name;
             int? oldParentId = unit.ParentId;
 
             if (string.IsNullOrWhiteSpace(name))
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Nama tidak boleh kosong." });
                 TempData["Error"] = "Nama tidak boleh kosong.";
                 return RedirectToAction("ManageOrganization", new { editId = id });
             }
@@ -123,6 +150,8 @@ namespace HcPortal.Controllers
             bool duplicate = await _context.OrganizationUnits.AnyAsync(u => u.Name == name.Trim() && u.Id != id);
             if (duplicate)
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Nama unit sudah digunakan. Gunakan nama yang berbeda." });
                 TempData["Error"] = "Nama unit sudah digunakan. Gunakan nama yang berbeda.";
                 return RedirectToAction("ManageOrganization", new { editId = id });
             }
@@ -131,6 +160,8 @@ namespace HcPortal.Controllers
             {
                 if (parentId.Value == id)
                 {
+                    if (IsAjaxRequest())
+                        return Json(new { success = false, message = "Tidak dapat memindahkan unit ke sub-unitnya sendiri (circular reference)." });
                     TempData["Error"] = "Tidak dapat memindahkan unit ke sub-unitnya sendiri (circular reference).";
                     return RedirectToAction("ManageOrganization", new { editId = id });
                 }
@@ -138,6 +169,8 @@ namespace HcPortal.Controllers
                 bool isDescendant = await IsDescendantAsync(id, parentId.Value);
                 if (isDescendant)
                 {
+                    if (IsAjaxRequest())
+                        return Json(new { success = false, message = "Tidak dapat memindahkan unit ke sub-unitnya sendiri (circular reference)." });
                     TempData["Error"] = "Tidak dapat memindahkan unit ke sub-unitnya sendiri (circular reference).";
                     return RedirectToAction("ManageOrganization", new { editId = id });
                 }
@@ -215,10 +248,12 @@ namespace HcPortal.Controllers
             unit.Name = name.Trim();
             await _context.SaveChangesAsync();
 
-            if (cascadedUsers > 0 || cascadedMappings > 0)
-                TempData["Success"] = $"Unit berhasil diperbarui. {cascadedUsers} user dan {cascadedMappings} mapping terupdate.";
-            else
-                TempData["Success"] = "Unit berhasil diperbarui.";
+            var msg = (cascadedUsers > 0 || cascadedMappings > 0)
+                ? $"Unit berhasil diperbarui. {cascadedUsers} user dan {cascadedMappings} mapping terupdate."
+                : "Unit berhasil diperbarui.";
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = msg });
+            TempData["Success"] = msg;
             return RedirectToAction("ManageOrganization");
         }
 
@@ -256,10 +291,17 @@ namespace HcPortal.Controllers
                 .Include(u => u.Children)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
-            if (unit == null) return NotFound();
+            if (unit == null)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Unit tidak ditemukan." });
+                return NotFound();
+            }
 
             if (unit.IsActive && unit.Children.Any(c => c.IsActive))
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Nonaktifkan semua unit di bawahnya terlebih dahulu." });
                 TempData["Error"] = "Nonaktifkan semua unit di bawahnya terlebih dahulu.";
                 return RedirectToAction("ManageOrganization");
             }
@@ -274,6 +316,8 @@ namespace HcPortal.Controllers
 
                 if (hasActiveUsers)
                 {
+                    if (IsAjaxRequest())
+                        return Json(new { success = false, message = "Tidak dapat menonaktifkan unit. Masih ada user aktif yang terdaftar di unit ini. Pindahkan semua user terlebih dahulu." });
                     TempData["Error"] = "Tidak dapat menonaktifkan unit. Masih ada user aktif yang terdaftar di unit ini. Pindahkan semua user terlebih dahulu.";
                     return RedirectToAction("ManageOrganization");
                 }
@@ -282,7 +326,10 @@ namespace HcPortal.Controllers
             unit.IsActive = !unit.IsActive;
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Status berhasil diubah menjadi {(unit.IsActive ? "Aktif" : "Nonaktif")}.";
+            var toggleMsg = $"Status berhasil diubah menjadi {(unit.IsActive ? "Aktif" : "Nonaktif")}.";
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = toggleMsg });
+            TempData["Success"] = toggleMsg;
             return RedirectToAction("ManageOrganization");
         }
 
@@ -298,16 +345,25 @@ namespace HcPortal.Controllers
                 .Include(u => u.CpdpFiles)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
-            if (unit == null) return NotFound();
+            if (unit == null)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Unit tidak ditemukan." });
+                return NotFound();
+            }
 
             if (unit.Children.Any(c => c.IsActive))
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Hapus atau nonaktifkan unit di bawahnya terlebih dahulu." });
                 TempData["Error"] = "Hapus atau nonaktifkan unit di bawahnya terlebih dahulu.";
                 return RedirectToAction("ManageOrganization");
             }
 
             if (unit.KkjFiles.Any() || unit.CpdpFiles.Any())
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Unit ini masih memiliki file KKJ/CPDP yang ter-assign. Hapus file terlebih dahulu." });
                 TempData["Error"] = "Unit ini masih memiliki file KKJ/CPDP yang ter-assign. Hapus file terlebih dahulu.";
                 return RedirectToAction("ManageOrganization");
             }
@@ -315,6 +371,8 @@ namespace HcPortal.Controllers
             bool hasUsers = await _context.Users.AnyAsync(u => u.Section == unit.Name || u.Unit == unit.Name);
             if (hasUsers)
             {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Unit ini masih memiliki pekerja yang ter-assign. Pindahkan pekerja terlebih dahulu." });
                 TempData["Error"] = "Unit ini masih memiliki pekerja yang ter-assign. Pindahkan pekerja terlebih dahulu.";
                 return RedirectToAction("ManageOrganization");
             }
@@ -322,6 +380,8 @@ namespace HcPortal.Controllers
             _context.OrganizationUnits.Remove(unit);
             await _context.SaveChangesAsync();
 
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Unit berhasil dihapus." });
             TempData["Success"] = "Unit berhasil dihapus.";
             return RedirectToAction("ManageOrganization");
         }
@@ -333,7 +393,12 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> ReorderOrganizationUnit(int id, string direction)
         {
             var unit = await _context.OrganizationUnits.FindAsync(id);
-            if (unit == null) return NotFound();
+            if (unit == null)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Unit tidak ditemukan." });
+                return NotFound();
+            }
 
             var siblings = await _context.OrganizationUnits
                 .Where(u => u.ParentId == unit.ParentId)
@@ -354,6 +419,8 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Urutan berhasil diubah." });
             return RedirectToAction("ManageOrganization");
         }
     }

@@ -30,6 +30,9 @@ namespace HcPortal.Controllers
             _env = env;
         }
 
+        protected bool IsAjaxRequest()
+            => Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         protected static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
         {
             if (string.IsNullOrWhiteSpace(raw)) return "-";
