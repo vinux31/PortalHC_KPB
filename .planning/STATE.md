@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v13.0
 milestone_name: Redesign Struktur Organisasi
-status: planning
-stopped_at: Completed 292-01-PLAN.md
-last_updated: "2026-04-02T12:14:31.179Z"
-last_activity: 2026-04-02 — Roadmap v13.0 dibuat, 4 fase (292-295), 11 requirements dipetakan
+status: executing
+stopped_at: Phase 293 UI-SPEC approved
+last_updated: "2026-04-02T12:46:21.040Z"
+last_activity: 2026-04-02 -- Phase 293 execution started
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 1
+  total_plans: 2
   completed_plans: 1
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v13.0 Redesign Struktur Organisasi — Phase 292 ready to plan
+**Current focus:** Phase 293 — view-shell-tree-rendering
 
 ## Current Position
 
-Phase: 292 of 295 (Backend AJAX Endpoints)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-04-02 — Roadmap v13.0 dibuat, 4 fase (292-295), 11 requirements dipetakan
+Phase: 293 (view-shell-tree-rendering) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 293
+Last activity: 2026-04-02 -- Phase 293 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -72,5 +72,5 @@ Progress: [░░░░░░░░░░] 0%
 ## Session Continuity
 
 Last activity: 2026-04-02 — Roadmap v13.0 dibuat
-Stopped at: Completed 292-01-PLAN.md
-Resume file: None
+Stopped at: Phase 293 UI-SPEC approved
+Resume file: .planning/phases/293-view-shell-tree-rendering/293-UI-SPEC.md
