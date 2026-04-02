@@ -67,8 +67,27 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| BASE-01 | Phase 286 | Pending |
+| BASE-02 | Phase 286 | Pending |
+| ASMT-01 | Phase 287 | Pending |
+| ASMT-02 | Phase 287 | Pending |
+| ASMT-03 | Phase 287 | Pending |
+| WKR-01 | Phase 288 | Pending |
+| WKR-02 | Phase 288 | Pending |
+| CCM-01 | Phase 288 | Pending |
+| CCM-02 | Phase 288 | Pending |
+| ORG-01 | Phase 288 | Pending |
+| ORG-02 | Phase 288 | Pending |
+| DOC-01 | Phase 289 | Pending |
+| DOC-02 | Phase 289 | Pending |
+| TRN-01 | Phase 289 | Pending |
+| TRN-02 | Phase 289 | Pending |
+| RNW-01 | Phase 289 | Pending |
+| RNW-02 | Phase 289 | Pending |
+| VER-01 | Phase 290 | Pending |
+| VER-02 | Phase 290 | Pending |
+| VER-03 | Phase 290 | Pending |
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-02 after initial definition*
+*Last updated: 2026-04-02 after roadmap creation*
