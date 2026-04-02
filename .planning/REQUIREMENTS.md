@@ -14,9 +14,9 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 ### Assessment Admin
 
-- [ ] **ASMT-01**: AssessmentAdminController berisi semua action assessment (ManageAssessment, Create, Edit, Delete, Monitoring, Reshuffle, Package, ExportResults, UserHistory, ActivityLog, Categories)
-- [ ] **ASMT-02**: Semua URL assessment tetap sama (/Admin/ManageAssessment, /Admin/CreateAssessment, dll) via [Route] attribute
-- [ ] **ASMT-03**: Helper methods dan private methods terkait assessment ikut pindah ke AssessmentAdminController
+- [x] **ASMT-01**: AssessmentAdminController berisi semua action assessment (ManageAssessment, Create, Edit, Delete, Monitoring, Reshuffle, Package, ExportResults, UserHistory, ActivityLog, Categories)
+- [x] **ASMT-02**: Semua URL assessment tetap sama (/Admin/ManageAssessment, /Admin/CreateAssessment, dll) via [Route] attribute
+- [x] **ASMT-03**: Helper methods dan private methods terkait assessment ikut pindah ke AssessmentAdminController
 
 ### Worker Management
 
@@ -69,9 +69,9 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 |-------------|-------|--------|
 | BASE-01 | Phase 286 | Pending |
 | BASE-02 | Phase 286 | Pending |
-| ASMT-01 | Phase 287 | Pending |
-| ASMT-02 | Phase 287 | Pending |
-| ASMT-03 | Phase 287 | Pending |
+| ASMT-01 | Phase 287 | Complete |
+| ASMT-02 | Phase 287 | Complete |
+| ASMT-03 | Phase 287 | Complete |
 | WKR-01 | Phase 288 | Pending |
 | WKR-02 | Phase 288 | Pending |
 | CCM-01 | Phase 288 | Pending |

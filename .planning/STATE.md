@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v12.0
 milestone_name: Controller Refactoring
-status: executing
-stopped_at: Ready to plan Phase 286 (AdminBaseController)
-last_updated: "2026-04-02T06:45:11.624Z"
-last_activity: 2026-04-02 -- Phase 287 execution started
+status: verifying
+stopped_at: Completed 287-01-PLAN.md
+last_updated: "2026-04-02T06:56:40.148Z"
+last_activity: 2026-04-02
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-04-02)
 
 Phase: 287 (assessmentadmincontroller) — EXECUTING
 Plan: 1 of 1
-Status: Executing Phase 287
-Last activity: 2026-04-02 -- Phase 287 execution started
+Status: Phase complete — ready for verification
+Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 - [v12.0]: Semua URL tetap sama via [Route] attribute, Views tetap di Views/Admin/
 - [v12.0]: AdminController dipecah menjadi 8 controller per domain
 - [v11.2]: Closed early untuk prioritas refactoring
+- [Phase 287]: MapKategori dipindahkan ke AdminBaseController sebagai protected static — shared utility untuk assessment dan renewal code
 
 ### Pending Todos
 
@@ -61,5 +62,5 @@ Progress: [░░░░░░░░░░] 0%
 ## Session Continuity
 
 Last activity: 2026-04-02 — Roadmap created for v12.0
-Stopped at: Ready to plan Phase 286 (AdminBaseController)
+Stopped at: Completed 287-01-PLAN.md
 Resume file: None
