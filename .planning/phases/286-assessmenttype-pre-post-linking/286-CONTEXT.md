@@ -24,8 +24,8 @@ Membuat AdminBaseController sebagai abstract base class yang akan diwarisi oleh 
 - **D-06:** Proton Progress Helpers ikut pindah ke CoachMappingController (Phase 288)
 
 ### Routing strategy
-- **D-07:** `[Route("Admin")]` dan `[Route("Admin/[action]")]` ditaruh di AdminBaseController — semua child controller otomatis mendapat prefix `/Admin/` tanpa perlu tulis attribute routing sendiri
-- **D-08:** `[Authorize]` class-level tetap di AdminBaseController — semua child otomatis authenticated
+- **D-07:** `[Route("Admin")]` dan `[Route("Admin/[action]")]` ditaruh di AdminBaseController. **Catatan teknis:** ASP.NET Core attribute routes TIDAK otomatis inherited oleh child class — setiap child controller HARUS menduplikasi `[Route]` attributes agar routing berfungsi. Base class tetap memiliki attributes sebagai dokumentasi intent, tapi child wajib tulis ulang.
+- **D-08:** `[Authorize]` class-level tetap di AdminBaseController — semua child otomatis authenticated (note: `[Authorize]` DOES get inherited by child classes, unlike `[Route]`)
 
 ### Claude's Discretion
 - Nama class: AdminBaseController vs AdminControllerBase (konvensi ASP.NET)

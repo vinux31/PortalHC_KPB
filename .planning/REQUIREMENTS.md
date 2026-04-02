@@ -9,7 +9,7 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 ### Base Infrastructure
 
-- [ ] **BASE-01**: AdminBaseController dibuat dengan shared DI (DbContext, UserManager, SignInManager, ILogger) dan helper methods yang dipakai bersama
+- [ ] **BASE-01**: AdminBaseController dibuat dengan shared DI (ApplicationDbContext, UserManager, AuditLogService, IWebHostEnvironment) — tanpa helper methods (hanya DI)
 - [ ] **BASE-02**: Semua controller baru mewarisi AdminBaseController dan bisa mengakses shared dependencies tanpa duplikasi constructor
 
 ### Assessment Admin
@@ -90,4 +90,4 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-02 after roadmap creation*
+*Last updated: 2026-04-02 after plan-phase revision (BASE-01 DI list aligned with CONTEXT.md D-01)*
