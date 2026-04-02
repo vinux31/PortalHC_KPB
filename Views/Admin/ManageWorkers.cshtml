@@ -25,25 +25,25 @@
             <p class="text-muted mb-0">Tambah, edit, dan hapus data pekerja / user dalam sistem</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            <a href="@Url.Action("CreateWorker", "Admin")" class="btn btn-primary" id="btnAddWorker">
+            <a href="@Url.Action("CreateWorker", "Worker")" class="btn btn-primary" id="btnAddWorker">
                 <i class="bi bi-person-plus-fill me-2"></i>Tambah Pekerja
             </a>
-            <a href="@Url.Action("ImportWorkers", "Admin")" class="btn btn-outline-success" id="btnImportWorkers">
+            <a href="@Url.Action("ImportWorkers", "Worker")" class="btn btn-outline-success" id="btnImportWorkers">
                 <i class="bi bi-file-earmark-arrow-up me-2"></i>Import Excel
             </a>
-            <a href="@Url.Action("ExportWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = showInactive })" class="btn btn-outline-info" id="btnExportWorkers">
+            <a href="@Url.Action("ExportWorkers", "Worker", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = showInactive })" class="btn btn-outline-info" id="btnExportWorkers">
                 <i class="bi bi-file-earmark-arrow-down me-2"></i>Export Excel
             </a>
             @if (showInactive)
             {
-                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = false })"
+                <a href="@Url.Action("ManageWorkers", "Worker", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = false })"
                    class="btn btn-outline-secondary" id="btnToggleInactive">
                     <i class="bi bi-eye-slash me-1"></i>Sembunyikan Inactive
                 </a>
             }
             else
             {
-                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = true })"
+                <a href="@Url.Action("ManageWorkers", "Worker", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = true })"
                    class="btn btn-outline-secondary" id="btnToggleInactive">
                     <i class="bi bi-eye me-1"></i>Tampilkan Inactive
                 </a>
@@ -126,7 +126,7 @@
     <!-- Filters -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <form method="get" action="@Url.Action("ManageWorkers", "Admin")" id="filterForm">
+            <form method="get" action="@Url.Action("ManageWorkers", "Worker")" id="filterForm">
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-2">
                         <label class="form-label fw-bold small">Bagian</label>
@@ -190,7 +190,7 @@
                         <div class="input-group input-group-sm">
                             <input type="text" class="form-control" name="search" placeholder="Cari nama, email, atau NIP..." value="@ViewBag.Search">
                             <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-                            <a href="@Url.Action("ManageWorkers", "Admin")" class="btn btn-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+                            <a href="@Url.Action("ManageWorkers", "Worker")" class="btn btn-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
                         </div>
                     </div>
                     <div class="col-12 col-md-2 text-end">
@@ -252,7 +252,7 @@
                                                  style="width: 36px; height: 36px; font-size: 0.8rem;">
                                                 @(user.FullName.Length > 0 ? user.FullName.Substring(0, 1).ToUpper() : "?")
                                             </div>
-                                            <a href="@Url.Action("WorkerDetail", "Admin", new { id = user.Id })" class="fw-semibold text-decoration-none text-dark hover-primary" title="Lihat detail akun">@user.FullName</a>
+                                            <a href="@Url.Action("WorkerDetail", "Worker", new { id = user.Id })" class="fw-semibold text-decoration-none text-dark hover-primary" title="Lihat detail akun">@user.FullName</a>
                                         </div>
                                     </td>
                                     <td class="p-3"><small class="text-muted">@user.Email</small></td>
@@ -271,7 +271,7 @@
                                             </a>
                                             @if (user.IsActive)
                                             {
-                                                <form id="deactivate-@user.Id" method="post" action="@Url.Action("DeactivateWorker", "Admin")" style="display:inline;">
+                                                <form id="deactivate-@user.Id" method="post" action="@Url.Action("DeactivateWorker", "Worker")" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
                                                     <button type="button" class="btn btn-sm btn-outline-warning" title="Nonaktifkan"
@@ -282,7 +282,7 @@
                                             }
                                             else
                                             {
-                                                <form id="reactivate-@user.Id" method="post" action="@Url.Action("ReactivateWorker", "Admin")" style="display:inline;">
+                                                <form id="reactivate-@user.Id" method="post" action="@Url.Action("ReactivateWorker", "Worker")" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
                                                     <button type="button" class="btn btn-sm btn-outline-success" title="Aktifkan Kembali"
@@ -290,7 +290,7 @@
                                                         <i class="bi bi-person-check"></i>
                                                     </button>
                                                 </form>
-                                                <form id="delete-@user.Id" method="post" action="@Url.Action("DeleteWorker", "Admin")" style="display:inline;">
+                                                <form id="delete-@user.Id" method="post" action="@Url.Action("DeleteWorker", "Worker")" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
                                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus Permanen"

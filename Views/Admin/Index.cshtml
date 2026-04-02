@@ -19,7 +19,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("ManageWorkers", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("ManageWorkers", "Worker")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -35,7 +35,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("ManageOrganization", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("ManageOrganization", "Organization")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -51,7 +51,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("KkjMatrix", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("KkjMatrix", "DocumentAdmin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -64,7 +64,7 @@
         </a>
     </div>
     <div class="col-md-4">
-        <a href="@Url.Action("CpdpFiles", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("CpdpFiles", "DocumentAdmin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -122,7 +122,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("CoachCoacheeMapping", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("CoachCoacheeMapping", "CoachMapping")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -164,7 +164,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("ManageAssessment", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("ManageAssessment", "AssessmentAdmin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -180,7 +180,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("AssessmentMonitoring", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("AssessmentMonitoring", "AssessmentAdmin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -196,7 +196,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("AuditLog", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("AuditLog", "AssessmentAdmin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -212,7 +212,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("ManageCategories", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("ManageCategories", "AssessmentAdmin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -228,7 +228,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("RenewalCertificate", "Admin")" class="text-decoration-none">
+        <a href="@Url.Action("RenewalCertificate", "Renewal")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
