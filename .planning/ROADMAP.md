@@ -49,7 +49,7 @@ See .planning/MILESTONES.md for full history.
   1. AdminBaseController ada dengan constructor yang menerima DbContext, UserManager, SignInManager, dan ILogger sebagai shared DI
   2. Helper methods yang dipakai oleh lebih dari satu domain controller sudah dipindahkan ke base class dan bisa diakses oleh subclass
   3. AdminController yang ada masih berfungsi normal setelah mewarisi AdminBaseController (zero regression)
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
 - [x] 286-01-PLAN.md — Buat AdminBaseController + ubah AdminController inherit base
 
@@ -62,7 +62,7 @@ Plans:
   2. Semua URL assessment (/Admin/ManageAssessment, /Admin/CreateAssessment, dll) tetap bisa diakses tanpa perubahan
   3. Private/helper methods terkait assessment (BuildCrossPackageAssignment, dsb) sudah ikut pindah dan tidak ada referensi broken
   4. Authorization [Authorize(Roles = "Admin, HC")] tetap sama di setiap action
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
 - [x] 287-01-PLAN.md — Ekstraksi assessment actions ke AssessmentAdminController
 
@@ -75,9 +75,10 @@ Plans:
   2. CoachMappingController berisi semua action coach-coachee dan URL /Admin/CoachCoacheeMapping, dll tetap bisa diakses
   3. OrganizationController berisi semua action organization dan URL /Admin/ManageOrganization, dll tetap bisa diakses
   4. Authorization [Authorize(Roles = "Admin, HC")] pada worker actions dan [Authorize(Roles = "Admin")] pada lainnya tetap sama persis
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 288-01-PLAN.md — Ekstraksi worker, coach, organization actions
+- [ ] 288-01-PLAN.md — Ekstraksi WorkerController & CoachMappingController
+- [ ] 288-02-PLAN.md — Ekstraksi OrganizationController & update view references
 
 ### Phase 289: Document, Training & Renewal Controllers
 **Goal**: Tiga controller domain records-management (DocumentAdminController, TrainingAdminController, RenewalController) terisolasi dengan URL dan behavior identik
@@ -88,7 +89,7 @@ Plans:
   2. TrainingAdminController berisi semua action training, URL /Admin/AddTraining, dll tetap bisa diakses
   3. RenewalController berisi semua action renewal, URL /Admin/RenewalCertificate, dll tetap bisa diakses
   4. Authorization tetap sama persis di setiap action
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
 - [ ] 289-01-PLAN.md — Ekstraksi document, training, renewal actions
 
@@ -101,7 +102,7 @@ Plans:
   2. Semua URL yang ada sebelum refactoring tetap bisa diakses dan menghasilkan response yang sama
   3. Authorization (role Admin, HC) pada setiap action tetap sama persis — diverifikasi via audit attribute
   4. AdminController asli sudah kosong atau hanya berisi action yang tidak termasuk domain manapun (Index hub, dll)
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
 - [ ] 290-01-PLAN.md — Verifikasi dan cleanup
 
@@ -111,6 +112,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 286. AdminBaseController | 1/1 | Complete    | 2026-04-02 |
 | 287. AssessmentAdminController | 1/1 | Complete    | 2026-04-02 |
-| 288. Worker, Coach & Organization | 0/? | Not started | - |
+| 288. Worker, Coach & Organization | 0/2 | Not started | - |
 | 289. Document, Training & Renewal | 0/? | Not started | - |
 | 290. Verification & Cleanup | 0/? | Not started | - |
