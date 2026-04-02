@@ -33,7 +33,7 @@ See .planning/MILESTONES.md for full history.
 
 ### 🚧 v12.0 Controller Refactoring
 
-- [ ] **Phase 286: AdminBaseController** - Shared base controller dengan DI dan helper methods
+- [x] **Phase 286: AdminBaseController** - Shared base controller dengan DI dan helper methods (completed 2026-04-02)
 - [ ] **Phase 287: AssessmentAdminController** - Ekstraksi semua action assessment dari AdminController
 - [ ] **Phase 288: Worker, Coach & Organization Controllers** - Ekstraksi WorkerController, CoachMappingController, OrganizationController
 - [ ] **Phase 289: Document, Training & Renewal Controllers** - Ekstraksi DocumentAdminController, TrainingAdminController, RenewalController
@@ -109,7 +109,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 286. AdminBaseController | 0/? | Not started | - |
+| 286. AdminBaseController | 0/? | Complete    | 2026-04-02 |
 | 287. AssessmentAdminController | 0/? | Not started | - |
 | 288. Worker, Coach & Organization | 0/? | Not started | - |
 | 289. Document, Training & Renewal | 0/? | Not started | - |

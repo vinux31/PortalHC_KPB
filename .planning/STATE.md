@@ -1,97 +1,65 @@
 ---
 gsd_state_version: 1.0
-milestone: v10.0
-milestone_name: UAT Assessment OJT di Server Development
+milestone: v12.0
+milestone_name: Controller Refactoring
 status: executing
-stopped_at: Phase 276 context gathered
-last_updated: "2026-03-31T06:26:30.274Z"
-last_activity: 2026-03-29
+stopped_at: Ready to plan Phase 286 (AdminBaseController)
+last_updated: "2026-04-02T06:30:38.169Z"
+last_activity: 2026-04-02
 progress:
-  total_phases: 12
-  completed_phases: 11
-  total_plans: 14
-  completed_plans: 14
-  percent: 80
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-27)
+See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 286 — AdminBaseController
+**Current focus:** Phase 286 — assessmenttype-pre-post-linking
 
 ## Current Position
 
-Phase: 286
-Plan: 01 completed
-Status: Executing
+Phase: 287
+Plan: Not started
+Status: Executing Phase 286
 Last activity: 2026-04-02
 
-Progress: [████████░░] 80%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
 - Total plans completed: 0
-- Average duration: —
+- Average duration: -
 - Total execution time: 0 hours
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v10.0]: Testing dilakukan di server development (http://10.55.3.3/KPB-PortalHC/), fix hanya di project lokal
-- [v10.0]: Dua akun test: admin@pertamina.com (Admin) dan rino.prasetyo@pertamina.com (Worker/Coachee)
-- [v10.0]: Verifikasi manual oleh user di browser (bukan Playwright otomatis) — user test, lapor temuan, Claude fix
-- [Phase 266-02]: Filter validAnswers value=0 di POST ExamSummary sebelum TempData serialize — solusi minimal tanpa ubah view atau model
-- [Phase 266-02]: CertificatePdf: catch exception dan redirect ke Results page daripada membiarkan HTTP 204
-- [Phase 267-01]: Worker Regan = moch.widyadhana@pertamina.com, assessment ID 10, semua 12 EDGE check PASS di server dev
-- [Phase 267-01]: pendingAnswers flush otomatis di saveAnswerAsync.then() + sendBeacon beforeunload — 2 bug fixes diterapkan di kode lokal
-- [Phase 267-02]: EDGE-07 PASS — timer habis, modal "Waktu habis" muncul, auto-submit berjalan benar, tanpa bug fix
-- [Phase 268]: MON-03: Kolom Time Remaining dihapus dari monitoring view per permintaan user UAT
-- [Phase 268]: Assessment di server dev menggunakan package mode — workerSubmitted selalu dikirim, MON-01/02/04 semua PASS
-- [Phase 269]: assessmentHubStartPromise SELALU resolve — error state via onclose handler, bukan .catch()
-- [Phase 269]: inert attribute diset langsung di HTML untuk block interaksi sebelum JS load
-- [Phase 271]: Server-authoritative timer: Math.Max(DB, wallClock) di StartExam + 3-step clamp di UpdateSessionProgress
-- [Phase 272]: Frontend disabled button (type=button) + backend guard: dual-layer protection mencegah submit ujian tidak lengkap
-- [Phase 272]: isAutoSubmit flag via hidden form field memungkinkan auto-submit timer expired tetap berjalan meskipun ada soal kosong
-- [Phase 272]: Frontend disable tombol Kumpulkan Ujian (type=button) saat ada soal kosong + backend guard dengan isAutoSubmit exception
-- [Phase 267-03]: visibilitychange listener memanggil updateTimer() saat tab resume — timer tidak di-pause by design (server-timed anti-cheat)
-- [Phase 267-03]: isAutoSubmit hidden field di ExamSummary mengikuti timerExpired server, bukan hardcoded false; SubmitExam controller cek serverTimerExpired sebagai fallback
-- [Phase 286-01]: AdminBaseController sebagai abstract base class dengan 4 shared DI — fondasi pecah AdminController
+- [v12.0]: Pure refactoring — zero fitur baru, zero perubahan UI
+- [v12.0]: Semua URL tetap sama via [Route] attribute, Views tetap di Views/Admin/
+- [v12.0]: AdminController dipecah menjadi 8 controller per domain
+- [v11.2]: Closed early untuk prioritas refactoring
 
 ### Pending Todos
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser
 - Phase 247 approval chain UAT: 2 TODO (HC review + resubmit notification)
 
-### Roadmap Evolution
-
-- Phase 269 added: Loading overlay saat koneksi SignalR belum ready di StartExam
-- Phase 270 added: Perbaiki resume exam: notif lanjutkan mengerjakan dan redirect ke page 1
-- Phase 271 updated: Fix timer ujian — monitoring salah baca, resume timer bertambah, dan logic timer lainnya
-- Phase 272 added: Block submit jika belum semua soal terisi
-- Phase 273 added: Fix jawaban tidak bisa disubmit saat waktu habis walaupun sudah terisi dan tersave
-- Phase 274 added: Hilangkan score di sertifikat pojok kanan bawah
-- Phase 275 added: Warning create assessment: pre test tidak bisa create certificate, hanya post test
-- Phase 276 added: Navigasi soal di StartExam - tampilkan seluruh nomor ujian dengan fitur klik langsung ke lokasi soal
-
 ### Blockers/Concerns
 
-None yet.
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
-| Phase 267 P03 | 10 | 2 tasks | 3 files |
+- (none)
 
 ## Session Continuity
 
-Last activity: 2026-04-02 - Completed 286-01 AdminBaseController plan
-Stopped at: Phase 286 plan 01 completed
+Last activity: 2026-04-02 — Roadmap created for v12.0
+Stopped at: Ready to plan Phase 286 (AdminBaseController)
+Resume file: None
