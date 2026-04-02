@@ -2069,6 +2069,94 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageAssessment");
         }
 
+        // --- DELETE ASSESSMENT PESERTA (single participant) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssessmentPeserta(int sessionId, int returnToId)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == sessionId);
+
+            if (session == null)
+            {
+                TempData["Error"] = "Sesi peserta tidak ditemukan.";
+                return RedirectToAction("EditAssessment", new { id = returnToId });
+            }
+
+            // Only allow deletion if exam not started
+            if (session.StartedAt != null || session.CompletedAt != null)
+            {
+                TempData["Error"] = "Tidak dapat menghapus peserta yang sudah memulai atau menyelesaikan ujian.";
+                return RedirectToAction("EditAssessment", new { id = returnToId });
+            }
+
+            // Don't allow deleting the last participant (the one being edited)
+            if (session.Id == returnToId)
+            {
+                // Count siblings
+                var siblingCount = await _context.AssessmentSessions
+                    .CountAsync(a => a.Title == session.Title
+                                  && a.Category == session.Category
+                                  && a.Schedule.Date == session.Schedule.Date);
+                if (siblingCount <= 1)
+                {
+                    TempData["Error"] = "Tidak dapat menghapus peserta terakhir. Gunakan hapus assessment untuk menghapus seluruhnya.";
+                    return RedirectToAction("EditAssessment", new { id = returnToId });
+                }
+            }
+
+            var userName = session.User?.FullName ?? "Unknown";
+
+            // Delete related data
+            var pkgResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId)
+                .ToListAsync();
+            if (pkgResponses.Any())
+                _context.PackageUserResponses.RemoveRange(pkgResponses);
+
+            var attemptHistory = await _context.AssessmentAttemptHistory
+                .Where(h => h.SessionId == sessionId)
+                .ToListAsync();
+            if (attemptHistory.Any())
+                _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
+
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions).ThenInclude(q => q.Options)
+                .Where(p => p.AssessmentSessionId == sessionId)
+                .ToListAsync();
+            if (packages.Any())
+            {
+                foreach (var pkg in packages)
+                {
+                    foreach (var q in pkg.Questions)
+                        _context.PackageOptions.RemoveRange(q.Options);
+                    _context.PackageQuestions.RemoveRange(pkg.Questions);
+                }
+                _context.AssessmentPackages.RemoveRange(packages);
+            }
+
+            _context.AssessmentSessions.Remove(session);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Peserta {userName} berhasil dihapus dari assessment.";
+
+            // If we deleted the session we were editing, redirect to a sibling
+            if (sessionId == returnToId)
+            {
+                var sibling = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(a => a.Title == session.Title
+                                           && a.Category == session.Category
+                                           && a.Schedule.Date == session.Schedule.Date);
+                if (sibling != null)
+                    return RedirectToAction("EditAssessment", new { id = sibling.Id });
+                return RedirectToAction("ManageAssessment");
+            }
+
+            return RedirectToAction("EditAssessment", new { id = returnToId });
+        }
+
         // --- DELETE ASSESSMENT ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
