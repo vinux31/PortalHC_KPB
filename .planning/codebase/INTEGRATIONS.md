@@ -1,126 +1,115 @@
 # External Integrations
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-02
 
 ## APIs & External Services
 
-**Not detected** - The application does not currently integrate with external APIs or third-party services.
+**Active Directory / LDAP:**
+- Purpose: Production user authentication against corporate AD
+- Implementation: `Services/LdapAuthService.cs` (via `System.DirectoryServices`)
+- Hybrid mode: `Services/HybridAuthService.cs` — AD for all users, local fallback for admin account
+- Interface: `Services/IAuthService.cs`
+- Config toggle: `Authentication:UseActiveDirectory` in `appsettings.json` (default: `false`)
+- LDAP path: `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com`
+- Attribute mapping: `mail` → Email, `displayName` → FullName, `employeeID` → NIP
+- Timeout: 5000ms
+
+**No other external APIs.** No HTTP clients, no REST/GraphQL integrations.
 
 ## Data Storage
 
 **Databases:**
-- SQL Server (Primary for production)
-  - Connection: `DefaultConnection` in appsettings
-  - Development instance: `localhost\SQLEXPRESS` with database `HcPortalDB_Dev`
-  - Production instance: Requires `YOUR_SQL_SERVER_NAME` with database `HcPortalDB`
-  - Client: Entity Framework Core 8.0 (`Microsoft.EntityFrameworkCore.SqlServer`)
-  - Authentication: Integrated Security (Windows auth) for dev, SQL user authentication for production
-
-- SQLite (Fallback/Local development)
-  - Connection: `HcPortal.db` file in project root
-  - Client: Entity Framework Core 8.0 (`Microsoft.EntityFrameworkCore.Sqlite`)
-  - Used as development fallback when SQL Server unavailable
+- Development: SQLite (file `HcPortal.db`, WAL mode enabled at startup in `Program.cs`)
+  - Connection: `appsettings.json` → `ConnectionStrings:DefaultConnection`
+  - Provider: `Microsoft.EntityFrameworkCore.Sqlite`
+- Production: SQL Server
+  - Connection: `appsettings.Production.json` → `ConnectionStrings:DefaultConnection`
+  - Provider: `Microsoft.EntityFrameworkCore.SqlServer`
+- ORM: Entity Framework Core 8.0
+- DbContext: `Data/ApplicationDbContext.cs`
+- Seed data: `Data/SeedData.cs`
+- Migrations: Auto-applied at startup (`context.Database.Migrate()` in `Program.cs`)
 
 **File Storage:**
-- Local filesystem only
-- No cloud storage integration detected
-- Certificate URLs stored as strings in `TrainingRecord.SertifikatUrl` (no actual file serving mechanism)
+- Local filesystem only (`wwwroot/`)
+- No cloud storage detected
 
 **Caching:**
-- Distributed Memory Cache (in-process)
-  - Configured via `builder.Services.AddDistributedMemoryCache()`
-  - Session storage uses distributed cache
+- In-memory distributed cache (`AddDistributedMemoryCache()`) — for session/TempData
+- In-memory cache (`AddMemoryCache()`)
+- No Redis or external cache
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Custom (ASP.NET Identity)
-  - Implementation: Built-in Identity system with cookie-based authentication
-  - User model: `ApplicationUser` extending IdentityUser
-  - Password requirements: Minimum 6 characters (relaxed for development)
-  - Email requirement: Unique email enforced (`options.User.RequireUniqueEmail = true`)
-  - Email confirmation: Not required
-  - Account confirmation: Not required
+- ASP.NET Core Identity with custom auth service abstraction
+- Local mode: `Services/LocalAuthService.cs` (Identity password hash)
+- AD mode: `Services/HybridAuthService.cs` wrapping `Services/LdapAuthService.cs`
+- Cookie auth: 8-hour sliding expiration (`Program.cs`)
+- Login: `/Account/Login`, Logout: `/Account/Logout`, AccessDenied: `/Account/AccessDenied`
+- Roles: Admin, HC, Manager, Coach, Coachee
 
-**Session Management:**
-- 30-minute idle timeout
-- 8-hour absolute session expiration
-- HttpOnly cookies (secure flag set)
-- Sliding expiration enabled
-- SameSite cookie settings: Default (Lax)
+**Impersonation:**
+- Service: `Services/ImpersonationService.cs`
+- Middleware: `Middleware/ImpersonationMiddleware.cs`
 
-**Authorization:**
-- Role-based access control (RBAC) with custom RoleLevel hierarchy (1-6)
-- Roles stored in AspNetCore Identity: `Admin`, `HC`, `Manager`, `Coach`, `Coachee`
-- Attributes: `[Authorize]` for controller-level protection
+## Real-Time Communication
+
+**SignalR:**
+- Hub: `Hubs/AssessmentHub.cs` mapped to `/hubs/assessment`
+- Client: `wwwroot/lib/signalr/` + `wwwroot/js/assessment-hub.js`
+- Purpose: Real-time assessment exam sessions
+- Auth: 401 returned for unauthenticated hub requests (not redirect)
+
+## PDF & Excel Generation
+
+**PDF:**
+- QuestPDF 2026.2.2 (Community license)
+
+**Excel:**
+- ClosedXML 0.105.0
+- Used for worker import templates and data export
+
+## Custom Middleware
+
+- `Middleware/MaintenanceModeMiddleware.cs` — Maintenance mode gate
+- `Middleware/ImpersonationMiddleware.cs` — Admin impersonation support
+
+## Custom Services
+
+- `Services/AuditLogService.cs` — Audit trail persisted to DB
+- `Services/NotificationService.cs` (implements `Services/INotificationService.cs`) — In-app notifications
+- `Services/WorkerDataService.cs` (implements `Services/IWorkerDataService.cs`) — Worker data access
 
 ## Monitoring & Observability
 
-**Error Handling:**
-- Custom error page at `/Home/Error` (in production only)
-- Exception logging via built-in `ILogger<T>`
-
-**Logs:**
-- Built-in ASP.NET Core logging
-- Configuration in appsettings files with LogLevel settings
-- Development: Information level logging, Microsoft.AspNetCore at Warning
-- Development (EF Core): `Microsoft.EntityFrameworkCore.Database.Command` logged at Information level
-
-**Error Tracking:**
-- Not detected - no third-party error tracking service
+**Error Tracking:** None (no Sentry, Application Insights)
+**Logs:** Built-in `ILogger<T>`, console/debug providers
+**Audit:** `Services/AuditLogService.cs` (DB-persisted)
 
 ## CI/CD & Deployment
 
-**Hosting:**
-- Windows Server with IIS (production target)
-- Self-hosted or on-premises deployment assumed (based on SQL Server auth patterns)
-
-**CI Pipeline:**
-- Not detected - No CI/CD configuration files found (no GitHub Actions, Azure Pipelines, etc.)
-
-## Environment Configuration
-
-**Required env vars:**
-- `ASPNETCORE_ENVIRONMENT` - Controls which appsettings file loads (Development, Production, etc.)
-
-**Connection Strings:**
-- `DefaultConnection` - Primary database connection string
-  - Dev format: `Server=localhost\SQLEXPRESS;Database=HcPortalDB_Dev;Integrated Security=True;TrustServerCertificate=True;MultipleActiveResultSets=true;Connect Timeout=30`
-  - Prod format: `Server=YOUR_SQL_SERVER_NAME;Database=HcPortalDB;User Id=hcportal_app;Password=YOUR_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true`
-
-**Secrets location:**
-- `.env` file present - contains environment configuration
-- **NEVER READ OR EXPOSE**: Connection string passwords and secrets stored in `appsettings.Production.json` or environment variables
-- Production: Secrets should be stored in Azure Key Vault or similar secure vault (not currently detected)
+**Hosting:** IIS (inferred from PathBase `/KPB-PortalHC`)
+**CI Pipeline:** None detected
+**Deployment:** Manual `dotnet publish`
 
 ## Webhooks & Callbacks
 
-**Incoming:**
-- Not detected
+**Incoming:** None
+**Outgoing:** None
 
-**Outgoing:**
-- Not detected
+## Environment Configuration
 
-## Database Migrations
+**Required env vars (production):**
+- `ASPNETCORE_ENVIRONMENT` — `Production`
+- `ConnectionStrings__DefaultConnection` — SQL Server connection
+- `Authentication__UseActiveDirectory` — `true` for AD auth
 
-**Migration Tool:**
-- Entity Framework Core Migrations (`Microsoft.EntityFrameworkCore.Tools`)
-- Migrations stored in: `Migrations/` directory
-- Latest migration: `20260212122951_RemoveAccessTokenUniqueConstraint.cs`
-- Migration execution: Automatic on application startup via `context.Database.Migrate()` in `Program.cs`
-
-## Data Seeding
-
-**Seed Data:**
-- Initial database seeding on startup
-- Seed classes: `SeedData` and `SeedMasterData` in `Data/` directory
-- Seeded entities:
-  - User roles (Admin, HC, Manager, Coach, Coachee)
-  - Sample users with different role levels
-  - KKJ Matrix data (master data table)
-  - CPDP Items (master data table)
-  - Sample training records
+**Secrets location:**
+- `appsettings.Production.json` (connection string placeholder)
+- `.env` file present — contains environment configuration
+- No Azure Key Vault or user-secrets detected
 
 ---
 
-*Integration audit: 2026-02-13*
+*Integration audit: 2026-04-02*

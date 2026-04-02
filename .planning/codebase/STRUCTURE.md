@@ -1,230 +1,207 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-02
 
 ## Directory Layout
 
 ```
-C:\Users\rinoa\Desktop\PortalHC_KPB\
-├── Controllers/              # MVC controllers handling HTTP requests
-├── Models/                   # Entity models, ViewModels, domain logic
-├── Views/                    # Razor templates organized by controller
-├── Data/                     # Entity Framework DbContext, migrations, seed data
-├── Properties/               # Project metadata and launch settings
-├── wwwroot/                  # Static files (CSS, JS, images, libraries)
-├── Migrations/               # EF Core migration files (database schema versions)
-├── Database/                 # Database documentation and setup guides
-├── .github/                  # GitHub configuration and CI/CD
-├── .planning/                # Planning documents (this structure)
-├── obj/                      # Compiler output (generated, not committed)
-├── bin/                      # Build output (generated, not committed)
-├── HcPortal.csproj          # Project file (targets net8.0)
-├── Program.cs                # Application startup and service configuration
-├── appsettings.json          # Configuration (connection strings, logging)
-├── appsettings.Development.json
-└── appsettings.Production.json
+PortalHC_KPB/
+├── Controllers/            # MVC controllers (9 files)
+├── Data/                   # EF Core DbContext + seed data
+├── Database/               # Database-related files
+├── Helpers/                # Utility classes (Excel, File, Pagination, CertNumber)
+├── Hubs/                   # SignalR hubs (AssessmentHub)
+├── Middleware/              # Custom middleware (Maintenance, Impersonation)
+├── Migrations/             # EF Core migration files
+├── Models/                 # Entity models + ViewModels (~57 files)
+│   └── Competency/         # Competency sub-models
+├── Properties/             # launchSettings.json
+├── Services/               # Business logic services (~12 files)
+├── ViewComponents/         # Razor ViewComponents (NotificationBell)
+├── Views/                  # Razor views organized by controller
+│   ├── Account/            # Login, Profile, Settings, AccessDenied
+│   ├── Admin/              # All admin CRUD views (~32 files)
+│   │   └── Shared/         # Admin partial views
+│   ├── CDP/                # CDP module views
+│   │   └── Shared/         # CDP partial views
+│   ├── CMP/                # CMP module views
+│   ├── Home/               # Dashboard, Guide
+│   ├── ProtonData/         # Proton data management views
+│   └── Shared/             # Layout, _ViewImports, _ViewStart, components
+│       └── Components/
+│           └── NotificationBell/
+├── wwwroot/                # Static files
+│   ├── css/                # site.css, assessment-hub.css, guide.css, home.css
+│   ├── js/                 # assessment-hub.js, shared-*.js utilities
+│   ├── lib/                # Vendor libs (Bootstrap, jQuery, SignalR)
+│   ├── images/             # Static images
+│   ├── fonts/              # Custom fonts
+│   ├── docs/               # Static documents
+│   ├── documents/          # Guides with screenshots
+│   ├── uploads/            # User-uploaded files
+│   │   ├── certificates/   # Certificate files
+│   │   └── guidance/       # Coaching guidance files
+│   └── test-data/          # Test data files
+├── tests/                  # E2E tests (Playwright)
+│   ├── e2e/                # Test specs
+│   └── helpers/            # Test helpers
+├── docs/                   # Project documentation
+├── .planning/              # GSD planning documents
+├── Program.cs              # Application entry point
+├── HcPortal.csproj         # Project file
+├── CLAUDE.md               # Claude instructions
+└── appsettings.json        # Configuration
 ```
 
 ## Directory Purposes
 
-**Controllers/**
-- Purpose: HTTP request handlers for each module/feature area
-- Contains: Classes inheriting from `Controller`
+**Controllers/:**
+- Purpose: All MVC controller classes
+- Contains: 9 `.cs` files (AccountController, AdminController, AdminBaseController, AssessmentAdminController, CDPController, CMPController, HomeController, NotificationController, ProtonDataController)
+- Key files: `AdminController.cs` (4413 lines, largest), `CDPController.cs` (4013 lines)
+
+**Models/:**
+- Purpose: EF Core entities AND view models (mixed together)
+- Contains: ~57 `.cs` files
+- Key files: `ApplicationUser.cs` (user entity), `AssessmentSession.cs`, `AssessmentPackage.cs`, `ProtonModels.cs` (226 lines, multiple entities), `KkjModels.cs`
+- Pattern: Entity models and ViewModels share the same directory; ViewModels have `ViewModel` suffix
+
+**Data/:**
+- Purpose: Database context and seeding
+- Key files: `ApplicationDbContext.cs` (600 lines), `SeedData.cs` (141 lines)
+
+**Services/:**
+- Purpose: Injectable business services
 - Key files:
-  - `AccountController.cs`: Authentication flows (login, logout, profile, settings)
-  - `HomeController.cs`: Dashboard, home page, recent activities, deadlines
-  - `CMPController.cs`: CMP module (KKJ matrix, CPDP mapping, assessments, exams)
-  - `CDPController.cs`: CDP module (IDP management, coaching, dashboard)
-  - `BPController.cs`: BP module (talent profiles, eligibility, point system)
+  - `IAuthService.cs` / `LocalAuthService.cs` / `LdapAuthService.cs` / `HybridAuthService.cs` -- Auth abstraction
+  - `INotificationService.cs` / `NotificationService.cs` -- Notification system
+  - `IWorkerDataService.cs` / `WorkerDataService.cs` -- Worker data queries
+  - `AuditLogService.cs` -- Audit trail
+  - `ImpersonationService.cs` -- Admin impersonation
 
-**Models/**
-- Purpose: Data entities, ViewModels, and domain logic
-- Contains: Classes representing database tables and view data structures
-- Key entity files:
-  - `ApplicationUser.cs`: Extended user with organizational properties (NIP, Section, RoleLevel)
-  - `AssessmentSession.cs`: Assessment/exam instance with metadata
-  - `AssessmentQuestion.cs`: Question and AssessmentOption (answer choices)
-  - `UserResponse.cs`: User's answer to a question in an assessment
-  - `IdpItem.cs`: Individual Development Plan item (competency development)
-  - `TrainingRecord.cs`: Training/certification record with expiry tracking
-  - `CoachingLog.cs`: Coaching session documentation
-  - `KkjModels.cs`: KkjMatrixItem (skill matrix) and CpdpItem (competency framework)
-- View model files:
-  - `DashboardHomeViewModel.cs`: Dashboard statistics, activities, deadlines
-  - `DashboardViewModel.cs`: IDP/assessment dashboard data
-- Support files:
-  - `UserRoles.cs`: Role constants and RBAC helper methods
-  - `ErrorViewModel.cs`: Error page display model
+**Helpers/:**
+- Purpose: Stateless utility functions
+- `CertNumberHelper.cs` -- Certificate number generation
+- `ExcelExportHelper.cs` -- ClosedXML export helpers
+- `FileUploadHelper.cs` -- File upload validation/saving
+- `PaginationHelper.cs` -- List pagination logic
 
-**Views/**
-- Purpose: Server-rendered HTML templates for user interface
-- Contains: `.cshtml` files (Razor syntax)
-- Organization: Subdirectories mirror Controller names
-  - `Account/`: Login, Profile, Settings views
-  - `Home/`: Index (dashboard), Privacy
-  - `CMP/`: KKJ matrix, mapping, assessment lobby, exam, create/edit assessment
-  - `CDP/`: IDP dashboard, coaching forms, progress tracking
-  - `BP/`: Talent profiles, eligibility validator, point system
-  - `Shared/`: Layout template (`_Layout.cshtml`), error pages, validation scripts
-
-**Data/**
-- Purpose: Entity Framework Core database context and data seeding
-- Contains:
-  - `ApplicationDbContext.cs`: DbContext with entity configurations, relationships, constraints
-  - `SeedData.cs`: Create roles and sample users during application startup
-  - `SeedMasterData.cs`: Populate KKJ matrix, CPDP items, sample training records
-
-**Properties/**
-- Purpose: Project metadata and runtime configuration
-- Contains:
-  - `launchSettings.json`: Debug launch profiles (IIS Express, direct app execution)
-
-**wwwroot/**
-- Purpose: Static files served directly without processing
-- Contains: CSS, JavaScript, images, third-party libraries
-- Subdirectories:
-  - `css/`: Application stylesheets
-  - `js/`: Client-side scripts
-  - `lib/`: Third-party libraries (jQuery, Bootstrap, jQuery validation)
-  - `images/`: Static images and icons
-
-**Migrations/**
-- Purpose: Database schema version history tracked as C# classes
-- Contains: Migration files (auto-generated by EF Core)
-- Key files:
-  - `20260206113657_InitialSqlServer.cs`: Initial schema creation
-  - `20260209010204_AddAllEntities.cs`: Add core entities
-  - `20260212110029_AssessmentSystemImprovements.cs`: Assessment refinements
-  - `ApplicationDbContextModelSnapshot.cs`: Current schema snapshot
-- Note: These are generated by EF Core commands; modifications should use migrations, not direct editing
-
-**Database/**
-- Purpose: Database setup and management documentation
-- Contains: Setup guides, connection instructions, troubleshooting
-
-**.github/**
-- Purpose: GitHub-specific configuration
-- Contains:
-  - `copilot-instructions.md`: AI assistant instructions
-
-**.planning/**
-- Purpose: GSD (Getting Stuff Done) planning documents
-- Contains:
-  - `config.json`: Planning configuration
-  - `codebase/`: Architecture, structure, conventions, testing, concerns documents (this directory)
-
-**obj/ and bin/**
-- Purpose: Build artifacts (auto-generated, not committed)
-- Note: Part of `.gitignore`
+**Views/Admin/:**
+- Purpose: All administration views (largest view directory)
+- Key files: `Index.cshtml` (admin hub), `ManageWorkers.cshtml`, `ManageAssessment.cshtml`, `ManagePackages.cshtml`, `CreateAssessment.cshtml`, `EditAssessment.cshtml`, `ImportWorkers.cshtml`
+- `Shared/` subfolder for admin partial views
 
 ## Key File Locations
 
 **Entry Points:**
-- `Program.cs`: Application startup, service registration, middleware configuration
-  - Configures MVC, DbContext, Identity, Session
-  - Runs migrations and seeds database
-  - Sets default route to `/Account/Login`
+- `Program.cs`: App startup, DI, middleware, routing
+- `Views/Shared/_Layout.cshtml`: Main HTML layout (navbar, sidebar)
 
 **Configuration:**
-- `appsettings.json`: Default configuration (connection string, logging)
-- `appsettings.Development.json`: Development-specific overrides
-- `appsettings.Production.json`: Production-specific overrides
-- `HcPortal.csproj`: .NET 8.0 target framework, EntityFrameworkCore packages
+- `appsettings.json`: Connection strings, auth config, path base
+- `HcPortal.csproj`: NuGet dependencies
+- `Properties/launchSettings.json`: Dev server ports
 
 **Core Logic:**
-- `Controllers/HomeController.cs`: Dashboard logic (filtering by role/view, aggregating statistics)
-- `Controllers/CMPController.cs`: Assessment management (create, list, start exam)
-- `Data/ApplicationDbContext.cs`: Database schema and relationship configuration
-- `Models/UserRoles.cs`: RBAC helper logic (role hierarchy, access checks)
+- `Controllers/AdminController.cs`: Worker management, KKJ, CPDP, training, renewals (4413 lines)
+- `Controllers/CDPController.cs`: Coaching Proton, IDP, deliverables (4013 lines)
+- `Controllers/CMPController.cs`: Assessment, exam, records (2402 lines)
+- `Controllers/AssessmentAdminController.cs`: Assessment package CRUD, monitoring (3791 lines)
 
-**Testing:**
-- Test files not detected in codebase
+**Database:**
+- `Data/ApplicationDbContext.cs`: All DbSets, helper methods
+- `Data/SeedData.cs`: Initial roles, users, org units
+- `Migrations/`: EF Core migration history
+
+**Static Assets:**
+- `wwwroot/js/assessment-hub.js`: SignalR exam client
+- `wwwroot/js/shared-*.js`: Reusable JS utilities (cascade, loading, toast, upload)
+- `wwwroot/css/site.css`: Main stylesheet
 
 ## Naming Conventions
 
 **Files:**
-- Controller files: `{FeatureName}Controller.cs` (e.g., `CMPController.cs`)
-- Model files: `{EntityName}.cs` (e.g., `AssessmentSession.cs`)
-- View files: `{ActionName}.cshtml` (e.g., `Index.cshtml`, `Login.cshtml`)
-- Migration files: `{Timestamp}_{MigrationName}.cs`
-- Migrations are timestamped for automatic ordering
+- Controllers: `{Name}Controller.cs` (PascalCase)
+- Models: `{EntityName}.cs` or `{Feature}ViewModel.cs` or `{Feature}Models.cs` (multiple entities in one file)
+- Views: `{ActionName}.cshtml` (PascalCase)
+- Partials: `_{Name}.cshtml` (underscore prefix)
+- Services: `I{Name}Service.cs` (interface) + `{Name}Service.cs` (implementation)
+- Helpers: `{Name}Helper.cs`
 
 **Directories:**
-- Controllers: Plural lowercase (`Controllers/`)
-- Models: Plural lowercase (`Models/`)
-- Views: Plural capitalized, mirror controller names (`Views/Account/`, `Views/CMP/`)
-- Static files: All lowercase in `wwwroot/`
-
-**C# Classes:**
-- Controllers: PascalCase with "Controller" suffix (e.g., `AccountController`)
-- Models: PascalCase (e.g., `ApplicationUser`, `AssessmentSession`)
-- Model properties: PascalCase (e.g., `UserId`, `FullName`)
-- Role constants: UPPERCASE (e.g., `Admin`, `Coachee`)
-- Methods: PascalCase (e.g., `GetRoleLevel()`, `HasFullAccess()`)
-
-**HTML/Razor:**
-- View files: PascalCase (e.g., `Login.cshtml`, `CreateAssessment.cshtml`)
-- CSS classes: kebab-case (e.g., `bg-primary`, `urgency-class`)
-- Form field names: match model properties (e.g., `@Html.TextBoxFor(m => m.Email)`)
+- Views organized by controller name (e.g., `Views/Admin/`, `Views/CMP/`)
+- `Shared/` subdirectories for partial views within a controller's view folder
 
 ## Where to Add New Code
 
-**New Feature/Module:**
-- Primary code: Create new Controller in `Controllers/{FeatureName}Controller.cs`
-- Models: Add entity/view models to `Models/` directory
-- Views: Create subdirectory `Views/{FeatureName}/` with action-named `.cshtml` files
-- Database: Add DbSet to `ApplicationDbContext.cs` if new entity type
-- Routing: Add route mapping in `Program.cs` (automatic via `MapControllerRoute`)
+**New Admin Feature:**
+- Controller action: Add to `Controllers/AdminController.cs` or `Controllers/AssessmentAdminController.cs`
+- View: `Views/Admin/{ActionName}.cshtml`
+- Link from admin hub: `Views/Admin/Index.cshtml`
 
-**New Entity Type:**
-- Model file: `Models/{EntityName}.cs` with properties and navigation properties
-- DbContext: Add `public DbSet<{EntityName}> {EntityNamePlural} { get; set; }` in `ApplicationDbContext.cs`
-- Relationships: Configure in `OnModelCreating()` method with `HasOne()`, `HasMany()`, `WithMany()`
-- Migration: Run `dotnet ef migrations add {MigrationName}` then `dotnet ef database update`
+**New CMP Feature (Assessment/Records):**
+- Controller: `Controllers/CMPController.cs`
+- View: `Views/CMP/{ActionName}.cshtml`
 
-**New View/Page:**
-- File: `Views/{ControllerName}/{ActionName}.cshtml`
-- Model directive: `@model {ViewModelType}` at top of file
-- Layout reference: `@{ ViewData["Title"] = "Page Title"; }` for page metadata
-- Shared components: Reference in `Views/Shared/_Layout.cshtml`
+**New CDP Feature (Coaching/Proton):**
+- Controller: `Controllers/CDPController.cs`
+- View: `Views/CDP/{ActionName}.cshtml`
 
-**New Role or Permission:**
-- Role string: Add constant to `Models/UserRoles.cs`
-- Role level: Add case in `GetRoleLevel()` switch statement
-- Seeding: Add role to `Data/SeedData.cs` for automatic creation on startup
-- Authorization: Check role/level in controller using `UserRoles` helper methods
+**New Entity/Model:**
+- Entity file: `Models/{EntityName}.cs`
+- DbSet: Add to `Data/ApplicationDbContext.cs`
+- Migration: Run `dotnet ef migrations add {Name}`
 
-**Utilities or Helpers:**
-- Shared functions: Add as static methods in `Models/UserRoles.cs` or create new helper class
-- Extension methods: Create new file in `Models/` directory
-- View helpers: Use Razor components (partial views) in `Views/Shared/`
+**New Service:**
+- Interface: `Services/I{Name}Service.cs`
+- Implementation: `Services/{Name}Service.cs`
+- Register in: `Program.cs` via `builder.Services.AddScoped<>()`
+
+**New Helper:**
+- File: `Helpers/{Name}Helper.cs`
+
+**New ViewComponent:**
+- File: `ViewComponents/{Name}ViewComponent.cs`
+- View: `Views/Shared/Components/{Name}/Default.cshtml`
+
+**New Middleware:**
+- File: `Middleware/{Name}Middleware.cs`
+- Register in: `Program.cs` via `app.UseMiddleware<>()`
+
+**New JavaScript:**
+- Shared utility: `wwwroot/js/shared-{name}.js`
+- Feature-specific: `wwwroot/js/{feature}.js`
+
+**New CSS:**
+- Feature-specific: `wwwroot/css/{feature}.css`
+- Global styles: Append to `wwwroot/css/site.css`
 
 ## Special Directories
 
-**Migrations/**
-- Purpose: Track database schema changes as code
-- Generated: Yes (auto-generated by EF Core CLI)
-- Committed: Yes (critical for reproducing schema in other environments)
-- Management: Only modify via `dotnet ef migrations add` command; never edit migration files directly
-- Safety: Each migration is a separate file with `Up()` and `Down()` methods for reversibility
+**Migrations/:**
+- Purpose: EF Core database migration files
+- Generated: Yes (via `dotnet ef migrations add`)
+- Committed: Yes
 
-**wwwroot/**
-- Purpose: Static asset delivery without server processing
-- Generated: No (manually added or from npm packages)
-- Committed: Yes (CSS, JS, library files)
-- Structure: Organized by file type (`css/`, `js/`, `lib/`, `images/`)
+**wwwroot/uploads/:**
+- Purpose: User-uploaded files (certificates, guidance docs)
+- Generated: Yes (at runtime)
+- Committed: Placeholder only (actual uploads gitignored)
 
-**obj/ and bin/**
-- Purpose: Compiler and build output
-- Generated: Yes (during build)
-- Committed: No (in `.gitignore`)
-- Purpose: Not source code; safe to delete and rebuild
+**wwwroot/lib/:**
+- Purpose: Client-side vendor libraries (Bootstrap 5, jQuery, SignalR)
+- Generated: No (manually managed)
+- Committed: Yes
 
-**Properties/**
-- Purpose: Project configuration metadata
-- Generated: Partially (auto-generated on first project creation)
-- Committed: Yes (launch settings are part of project)
+**tests/:**
+- Purpose: Playwright E2E tests
+- Contains: `e2e/` specs and `helpers/`
+
+**.planning/:**
+- Purpose: GSD planning and codebase analysis documents
+- Generated: By Claude agents
+- Committed: Yes
 
 ---
 
-*Structure analysis: 2026-02-13*
+*Structure analysis: 2026-04-02*

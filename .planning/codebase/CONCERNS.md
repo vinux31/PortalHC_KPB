@@ -1,233 +1,162 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-02
 
 ## Tech Debt
 
-**Hardcoded Age and Tenure Calculations:**
-- Issue: Age and Tenure are hardcoded placeholder values instead of calculated from actual data
-- Files: `Controllers/BPController.cs` (lines 96-97)
-- Impact: User profile displays incorrect talent information; no actual calculation from hire date or birthdate
-- Fix approach: Add BirthDate and HireDate fields to `Models/ApplicationUser.cs`, implement age/tenure calculation logic in `Controllers/BPController.cs`
+**God Controllers — Extremely Large Controller Files:**
+- Issue: Controllers have grown to thousands of lines, mixing business logic with HTTP concerns. `AdminController.cs` is 4413 lines, `CDPController.cs` is 4013 lines, `AssessmentAdminController.cs` is 3791 lines.
+- Files: `Controllers/AdminController.cs` (4413 lines), `Controllers/CDPController.cs` (4013 lines), `Controllers/AssessmentAdminController.cs` (3791 lines), `Controllers/CMPController.cs` (2402 lines), `Controllers/ProtonDataController.cs` (1607 lines)
+- Impact: High cognitive load; merge conflicts; difficult to unit test. A single controller handles dozens of unrelated actions (CRUD for multiple entities).
+- Fix approach: Extract business logic into service classes (e.g., `Services/AssessmentService.cs`, `Services/CertificationService.cs`). Controllers should only handle HTTP concerns (model binding, authorization, redirects). The existing `AdminBaseController.cs` and `Services/WorkerDataService.cs` patterns show the right direction.
 
-**Mock/Placeholder Data in CDP Module:**
-- Issue: Multiple mock data points prevent accurate dashboard reporting
-- Files: `Controllers/CDPController.cs` (lines 127, 131, 134, 139, 222-228)
-- Impact: Dashboard metrics for IDP Growth, Budget Usage, Chart Data, and Compliance are fake; managers cannot make decisions on real data
-- Fix approach: Implement actual data aggregation for `IdpGrowth`, budget calculations from training records, time-series data tracking, and unit-level compliance queries
+**Bare Catch Blocks in AssessmentAdminController:**
+- Issue: Three bare `catch` blocks (no exception type specified) used for transaction rollback-and-rethrow.
+- Files: `Controllers/AssessmentAdminController.cs` lines 1093, 1462, 3607
+- Impact: Low — these do `RollbackAsync()` then `throw`, so errors propagate. But bare catch captures non-CLS-compliant exceptions and obscures intent.
+- Fix approach: Replace `catch` with `catch (Exception)` for clarity. Extract the transaction-wrap-rollback pattern into a reusable helper.
 
-**Oversimplified View Models:**
-- Issue: ViewModels contain inline model definitions instead of separate files
-- Files: `Controllers/BPController.cs` (lines 165-227)
-- Impact: View models are duplicated across controllers, making maintenance difficult and increasing coupling
-- Fix approach: Move `TalentProfileViewModel`, `PerformanceRecord`, `CareerHistory`, `PointSystemViewModel`, `PointActivity`, `EligibilityViewModel`, `EligibilityCriteria` to `Models/ViewModels/` directory
+**Silent Catch Swallowing Exception Details:**
+- Issue: `CDPController.cs` line 1240 uses `catch (Exception)` without a variable, losing diagnostic information for file upload failures.
+- Files: `Controllers/CDPController.cs` line 1240
+- Impact: When file uploads fail, no exception details are logged — only a generic TempData error shown to user. Makes debugging production file issues impossible.
+- Fix approach: Change to `catch (Exception ex)` and add `_logger.LogError(ex, "File upload failed for progress {Id}", progressId)`.
 
-**Large Monolithic Controller:**
-- Issue: CMPController contains 1047 lines of mixed concerns
-- Files: `Controllers/CMPController.cs`
-- Impact: Single controller handles assessment management, KKJ mapping, CDP tracking, and multiple views making it difficult to test, maintain, and extend
-- Fix approach: Refactor into separate controllers: `AssessmentController`, `MappingController`, `TrainingController` with extracted business logic into service layer
+**Repetitive Audit Log Try-Catch Wrapping:**
+- Issue: 20+ audit log calls are individually wrapped in try-catch blocks across controllers, all following the same pattern: `try { auditLog... } catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed..."); }`.
+- Files: `Controllers/AdminController.cs` (lines 176, 248, 391, 516, 589, 1172, 1305, 1450, 1938, 2118, 2243, 2315, 2349, 2604), `Controllers/AssessmentAdminController.cs` (lines 1066, 1121, 2898, 2995, 3296, 3639)
+- Impact: Massive code duplication. Inconsistent handling if pattern is forgotten on new audit calls.
+- Fix approach: Make `Services/AuditLogService.cs` internally fault-tolerant — catch and log within the service itself so callers never need try-catch wrappers.
+
+**Heavy ViewBag/TempData Usage:**
+- Issue: Controllers pass data to views extensively via ViewBag and TempData (magic strings, no compile-time safety). Used across all controllers and 83 `.cshtml` view files.
+- Files: All controllers in `Controllers/`
+- Impact: Typos in ViewBag property names cause silent null values. No IntelliSense support for view data.
+- Fix approach: Low priority — migrate to strongly-typed ViewModels for complex data. Current pattern works but doesn't scale.
+
+**Null-Forgiving Operator (`null!`) in Models:**
+- Issue: 11 uses of `null!` across 6 model files, suppressing nullable reference warnings without runtime safety.
+- Files: `Models/UserPackageAssignment.cs` (2), `Models/SessionElemenTeknisScore.cs` (1), `Models/PackageUserResponse.cs` (2), `Models/KkjModels.cs` (2), `Models/DashboardHomeViewModel.cs` (1), `Models/AssessmentPackage.cs` (3)
+- Impact: Low — common EF Core navigation property pattern, but can cause `NullReferenceException` if assumptions are wrong.
+- Fix approach: Use `required` keyword (C# 11+) or initialize with default values where appropriate.
 
 ## Security Considerations
 
-**Hardcoded Development Passwords:**
-- Risk: All seed users use hardcoded password "123456" in production-ready code
-- Files: `Data/SeedData.cs` (lines 51, 64, 78, 91, 104, 117, 130, 143, 156)
-- Current mitigation: Database seeding only runs on startup; passwords are hashed by Identity framework
-- Recommendations:
-  - Move seed data to separate development-only data initializer
-  - Use environment-based password generation (e.g., `Environment.GetEnvironmentVariable("SEED_PASSWORD")`)
-  - Add warning comments indicating this is development-only
-  - Implement separate production seed script without test users
+**CSRF Protection — Complete:**
+- Risk: None. All 82 `[HttpPost]` actions across all controllers have matching `[ValidateAntiForgeryToken]` attributes (verified via count comparison).
+- Recommendations: None needed. Maintain this discipline for new endpoints.
 
-**Unrestricted User Access via workerId Parameter:**
-- Risk: Any authenticated user can request other user profiles via `workerId` parameter without validation of access permissions
-- Files: `Controllers/BPController.cs` (lines 28, 52-78, 86)
-- Current mitigation: SelectedView-based filtering provides some access control but not cryptographically enforced
-- Recommendations:
-  - Implement explicit permission check before fetching targetUser
-  - Validate user level and section membership before allowing profile view
-  - Log access attempts to sensitive profile data
-  - Use `[Authorize(Roles = "Admin,HC")]` attributes where appropriate
+**Authorization — Consistently Applied:**
+- Risk: Low. All controllers have class-level `[Authorize]` (via `AdminBaseController`, `AccountController`, `CDPController`, `CMPController`, `HomeController`, `NotificationController`) or class-level role-based `[Authorize(Roles = "Admin,HC")]` (`ProtonDataController`). Individual actions add further role restrictions where needed.
+- Files: `Controllers/AdminBaseController.cs` line 10, `Controllers/ProtonDataController.cs` line 79, `Controllers/CDPController.cs` line 30, `Controllers/CMPController.cs` line 23
+- Recommendations: Consider resource-level authorization (verifying users can only access their own data within their assigned units, not just role-based checks).
 
-**Token Storage Without Encryption:**
-- Risk: AccessToken for assessments stored in plaintext in database
-- Files: `Models/AssessmentSession.cs` (line 26), `Data/ApplicationDbContext.cs` (line 63)
-- Current mitigation: Token is 6-character alphanumeric, tokens can be shared (not unique after recent migration)
-- Recommendations:
-  - Consider encryption at rest for AccessToken field
-  - Implement rate limiting on token validation attempts
-  - Add expiration timestamps to tokens
-  - Consider one-time-use tokens instead of reusable ones
+**SQLite as Database Engine:**
+- Risk: SQLite has inherent concurrent write limitations. WAL mode is enabled (`Program.cs` line 138) which improves read concurrency but still single-writer.
+- Files: `appsettings.json` line 11 (`"Data Source=HcPortal.db"`), `Program.cs` lines 135-139
+- Recommendations: For production with 50+ concurrent users, migrate to PostgreSQL or SQL Server. EF Core makes this a provider + connection string swap.
 
-**Weak Token Length:**
-- Risk: 6-character token provides only ~30 bits of entropy (characters: ABCDEFGHJKLMNPQRSTUVWXYZ23456789 = 32 chars, 32^6 ≈ 10^9 combinations)
-- Files: `Controllers/CMPController.cs` (line 1030)
-- Current mitigation: Non-unique constraint allows sharing across users (reduces collision risk)
-- Recommendations:
-  - Increase token length to 12+ characters or use UUID
-  - Add per-assessment rate limiting (max 5 attempts per minute)
-  - Log failed token attempts
-  - Consider time-based token expiration
+**Raw SQL — Safe Usage:**
+- Risk: None. Two `ExecuteSqlRawAsync`/`SqlQueryRaw` calls exist but are hardcoded PRAGMA statements with no user input.
+- Files: `Program.cs` lines 138-139
+- Recommendations: None needed. All other data access uses EF Core parameterized queries.
 
-**Missing Input Validation:**
-- Risk: Assessment creation and updates don't validate Category, Duration, or other fields
-- Files: `Controllers/CMPController.cs` (lines 201-214)
-- Current mitigation: Entity Framework check constraints exist for Progress and DurationMinutes
-- Recommendations:
-  - Add server-side validation attributes to `AssessmentSession` model (e.g., `[Range(1, 480)]` for DurationMinutes)
-  - Validate Category against whitelist of allowed values
-  - Validate Schedule is not in the past before allowing creation
-
-**Insufficient Role-Based Access Control:**
-- Risk: Some controllers check roles as strings but don't prevent lateral movement between sections
-- Files: `Controllers/CMPController.cs` (line 92: `userRole != UserRoles.Admin && userRole != "HC"`)
-- Current mitigation: SelectedView filtering, RoleLevel hierarchy
-- Recommendations:
-  - Use `[Authorize(Roles = "Admin,HC")]` attributes consistently
-  - Validate section membership for Section Head view access
-  - Implement authorization handler for section-level filtering
-  - Add audit logging for cross-section access attempts
+**Seed Data Passwords:**
+- Risk: `Data/SeedData.cs` seeds development users with weak passwords. If seed runs in production, these accounts are exploitable.
+- Files: `Data/SeedData.cs` (141 lines)
+- Recommendations: Gate seed data behind environment check (`if (env.IsDevelopment())`). Use environment variables for production seed passwords.
 
 ## Performance Bottlenecks
 
-**N+1 Query Pattern in Home Dashboard:**
-- Problem: GetRecentActivities and GetUpcomingDeadlines make separate queries for each activity type
-- Files: `Controllers/HomeController.cs` (lines 143-277)
-- Cause: Multiple sequential database calls instead of single aggregated query
-- Improvement path:
-  - Consolidate queries: fetch all activities in one database hit with UNION
-  - Implement database view for dashboard aggregation
-  - Add query pagination to limit returned records
-  - Cache dashboard data for 5-minute intervals
+**High Volume of ToListAsync Without Pagination:**
+- Problem: 305 `ToListAsync()` calls across controllers. While most are filtered by Where clauses, no server-side pagination is visible for list views.
+- Files: `Controllers/AdminController.cs` (90 calls), `Controllers/CDPController.cs` (83 calls), `Controllers/AssessmentAdminController.cs` (64 calls), `Controllers/ProtonDataController.cs` (30 calls), `Controllers/CMPController.cs` (21 calls), `Controllers/HomeController.cs` (17 calls)
+- Cause: All matching records loaded into memory. For growing datasets (workers, assessments, coaching sessions), this becomes progressively slower.
+- Improvement path: Add Skip/Take pagination for list endpoints. Add `.AsNoTracking()` for read-only queries. Profile top-traffic endpoints first.
 
-**Unoptimized Filter Queries in Assessment Lobby:**
-- Problem: String-based search with `.ToLower().Contains()` on every search
-- Files: `Controllers/CMPController.cs` (lines 115-127)
-- Cause: LINQ to SQL converts to SQL LIKE with case-insensitive comparison, no indexing on searchable fields
-- Improvement path:
-  - Add database indexes on Title, Category, User.FullName columns
-  - Implement search tokenization or full-text search
-  - Cache category lists to avoid repeated queries
-  - Implement pagination with cursor-based approach for large datasets
-
-**Missing Database Indexes:**
-- Problem: Several queries filter on non-indexed columns (Section, Unit, Status)
-- Files: `Data/ApplicationDbContext.cs` (lines 60-62 have some indexes but missing others)
-- Cause: No composite indexes for common filter combinations
-- Improvement path:
-  - Add index on `Users(Section, Unit)` for section-level filtering
-  - Add index on `AssessmentSessions(Status, Schedule)` for dashboard queries
-  - Add index on `IdpItems(UserId, Status, DueDate)` for IDP tracking
-  - Monitor query plans with SQL Server Profiler
-
-**Synchronous Seeding on Startup:**
-- Problem: Database seeding blocks application startup (lines 58-77 in `Program.cs`)
-- Files: `Program.cs` (lines 58-77)
-- Cause: All migrations and seed operations run sequentially before server starts
-- Improvement path:
-  - Move seed operations to background task or admin endpoint
-  - Implement idempotent migrations to reduce startup time
-  - Add health check endpoints before serving requests
-  - Profile migration scripts for large data loads
+**SQLite Write Contention:**
+- Problem: SQLite allows only one concurrent writer. Multiple simultaneous POST requests (e.g., during assessment taking) queue behind each other.
+- Files: `appsettings.json`, `Program.cs`
+- Cause: SQLite architecture limitation, not code issue.
+- Improvement path: Migrate to PostgreSQL/SQL Server for production. Short-term: minimize transaction scope and duration.
 
 ## Fragile Areas
 
-**Role Level Boundary Conditions:**
-- Files: `Models/UserRoles.cs`, `Controllers/BPController.cs` (lines 65-68), `Controllers/CDPController.cs` (lines 46, 88-95)
-- Why fragile: Hard-coded role level numbers (1-6) used throughout for access control; no validation at boundaries
-- Safe modification: Always use `UserRoles.GetRoleLevel()` helper; add unit tests for each level transition; validate RoleLevel between 1-6 in ApplicationUser model
-- Test coverage: No unit tests found for role-based access control logic; manual testing only
+**Assessment Lifecycle (Create/Edit/Grade/Certify):**
+- Files: `Controllers/AssessmentAdminController.cs` (3791 lines), `Controllers/CMPController.cs` (exam flow), `Hubs/AssessmentHub.cs` (164 lines)
+- Why fragile: Multi-step workflows with nested transactions, package shuffling algorithms, certificate number generation with duplicate-key retry loops, and notification sending. CreateAssessment spans ~200 lines with nested try-catch-finally blocks.
+- Safe modification: Always test full lifecycle. The bare catch blocks at lines 1093, 1462, 3607 are transaction guards — do not remove the `throw` statements.
+- Test coverage: E2E specs exist in `tests/e2e/assessment.spec.ts` and `tests/e2e/exam-taking.spec.ts` but only in worktree branches, not main.
 
-**Database Relationship Cascade Behavior:**
-- Files: `Data/ApplicationDbContext.cs` (lines 42-93)
-- Why fragile: Mix of Cascade and Restrict delete behaviors; multiple migrations attempted to fix cascading issues (see recent migrations)
-- Safe modification: Document exact delete behavior for each relationship before modifying; add integration tests; use soft deletes for audit trail data
-- Test coverage: No integration tests for cascade deletions; DeleteAssessment function (line 238+) manually handles cascade order
+**Coaching Proton Approval Chain:**
+- Files: `Controllers/CDPController.cs` (lines 2380-3056 — role-gated approval actions)
+- Why fragile: Multi-role chain (Coach → Sr Supervisor → Section Head → HC) with state transitions. Each step has different `[Authorize(Roles = ...)]` attributes. Notification sending is wrapped in try-catch at each step.
+- Safe modification: Test all approval paths including rejection and resubmit. Per `project_247_approval_chain_uat.md`, HC review and resubmit notification are still pending verification.
+- Test coverage: Manual UAT only.
 
-**Assessment Session State Machine:**
-- Files: `Models/AssessmentSession.cs` (line 18: Status field)
-- Why fragile: Status field can be set to arbitrary strings ("Open", "Upcoming", "Completed") with no validation
-- Safe modification: Create enum for Status values (`public enum AssessmentStatus { Open, Upcoming, Completed }`); add check constraints in migrations; validate state transitions
-- Test coverage: No state transition validation tests; multiple controllers assume Status strings
-
-**User Access Control Logic:**
-- Files: `Controllers/BPController.cs` (lines 40-79), `Controllers/CDPController.cs` (lines 38-54)
-- Why fragile: Complex if-else chains checking SelectedView and RoleLevel; easy to accidentally grant access
-- Safe modification: Extract to authorization handler or policy-based access control; add comprehensive unit tests for each role/view combination; document access matrix
-- Test coverage: No unit tests; only manual testing mentioned in comments
+**Certificate Number Generation:**
+- Files: `Controllers/AssessmentAdminController.cs` (lines 1032, 2306, 2400), `Controllers/CMPController.cs` (line 1611)
+- Why fragile: Uses retry loop on `DbUpdateException` for duplicate key conflicts (`CertNumberHelper.IsDuplicateKeyException`). If retry logic fails after max attempts, the operation fails silently or throws.
+- Safe modification: Ensure `maxCertAttempts` is sufficient for concurrent certificate generation.
 
 ## Scaling Limits
 
-**Single-User Codebase Sessions:**
-- Current capacity: No visible limits on assessment sessions per user
-- Limit: If one user is assigned 1000+ assessments, dashboard queries will slow significantly
-- Scaling path: Implement pagination for assessment lists; add filtering by date range; consider sharding by user cohort
+**SQLite Database:**
+- Current capacity: Adequate for < 50 concurrent users.
+- Limit: Write contention at ~10+ concurrent writers. Performance degrades past a few GB database size.
+- Scaling path: Migrate to PostgreSQL or SQL Server (connection string + provider change in EF Core).
 
-**String-Based User IDs:**
-- Current capacity: User.Id is default Identity string (GUID), can store millions
-- Limit: String comparisons in queries are slower than integer IDs; string operations use more memory
-- Scaling path: Consider numeric UserId after analyzing query patterns; for now, ensure indexes are on string columns
+**In-Memory Distributed Cache:**
+- Current capacity: `AddDistributedMemoryCache()` in `Program.cs` — process-local only.
+- Limit: Cannot share cache across multiple server instances. Memory bound by server RAM.
+- Scaling path: Replace with Redis for multi-server deployment.
 
-**Session Memory Caching:**
-- Current capacity: `builder.Services.AddDistributedMemoryCache()` uses in-memory cache (line 12 in Program.cs)
-- Limit: In-memory cache limited by server RAM; will not work in multi-server deployments
-- Scaling path: Replace with distributed cache (Redis) before scaling horizontally; implement cache invalidation strategy
+**Single-Server Architecture:**
+- Current capacity: Single Kestrel/IIS instance with SQLite file database.
+- Limit: Cannot horizontally scale (SQLite file cannot be shared across servers).
+- Scaling path: After DB migration to PostgreSQL/SQL Server, standard load balancing becomes viable.
 
 ## Dependencies at Risk
 
-**Entity Framework Core 8.0.0 (Exact Version Pin):**
-- Risk: All EF Core packages pinned to exactly 8.0.0; no minor/patch version flexibility
-- Impact: Security patches in 8.0.1+ cannot be applied without modifying csproj
-- Migration plan: Update to 8.0.x minimum version constraint; test compatibility before upgrading to 9.0.0
-
-**SQLite vs SQL Server Mismatch:**
-- Risk: csproj includes both `Microsoft.EntityFrameworkCore.Sqlite` and `Microsoft.EntityFrameworkCore.SqlServer` but only SqlServer configured in Development
-- Impact: Production could accidentally use wrong provider; unnecessary dependency in development
-- Migration plan: Remove unused SQLite provider from production; if needed in future, separate dev/prod project files
+**No high-risk dependencies detected.** The project uses standard Microsoft ASP.NET Core stack plus:
+- ClosedXML — Excel import/export (actively maintained)
+- QuestPDF — PDF generation (actively maintained)
+- SignalR — Real-time hub for assessments (Microsoft-maintained)
 
 ## Missing Critical Features
 
-**No Audit Trail:**
-- Problem: No logging of who modified assessments, created IDP items, or changed user roles
-- Blocks: Cannot investigate data changes, cannot detect unauthorized modifications
-- Implementation needed: Add audit fields (ModifiedBy, ModifiedAt) to main entities; implement change tracking in service layer
+**No Automated Test Suite:**
+- Problem: Zero unit tests in the main project. E2E specs (`tests/e2e/assessment.spec.ts`, `tests/e2e/exam-taking.spec.ts`, `tests/e2e/impersonation.spec.ts`) exist only in `.claude/worktrees/` — not committed to main.
+- Blocks: All testing is manual UAT. Regressions can only be caught by human verification.
 
-**No Backup/Restore Mechanism:**
-- Problem: No documented backup strategy or restore procedures
-- Blocks: Data loss recovery; compliance with data protection requirements
-- Implementation needed: Document SQL Server backup strategy; add automated backup jobs; implement disaster recovery plan
+**No CI/CD Pipeline:**
+- Problem: No GitHub Actions, Azure Pipelines, or other CI configuration detected.
+- Blocks: No automated build verification, no automated test runs, no deployment automation.
 
-**No Email Notifications:**
-- Problem: Assessment assignments and IDP deadlines don't send reminders
-- Blocks: Users miss deadlines; no way to notify managers of pending items
-- Implementation needed: Add Email service integration; implement notification scheduler; add email templates for assessment/training notifications
-
-**No Audit Logs for Login/Access:**
-- Problem: No record of who accessed what data or when; failed login attempts not logged
-- Blocks: Cannot investigate security incidents; no compliance audit trail
-- Implementation needed: Add LoginAudit entity; log access to sensitive endpoints; integrate with security monitoring
+**No Centralized Logging/Monitoring:**
+- Problem: `ILogger` is used consistently (good) but no centralized aggregation (Sentry, Application Insights, ELK) or health check endpoints detected.
+- Blocks: Production debugging requires SSH/RDP to server to read log files.
 
 ## Test Coverage Gaps
 
-**No Unit Tests Found:**
-- What's not tested: All business logic in controllers, authentication flows, access control decisions, role-based filtering
-- Files: `Controllers/` directory has no `.Tests` folder or `.Test.cs` files
-- Risk: Changes to role logic, assessment status, or user access could break silently; no regression detection
-- Priority: High - Authorization logic is critical and currently untested
+**Zero Unit Tests:**
+- What's not tested: All business logic — assessment grading, certificate generation, approval chains, role-based filtering, package shuffling algorithms.
+- Files: `Controllers/`, `Services/`, `Helpers/`
+- Risk: Any refactoring or bug fix can introduce regressions undetected. The 4000+ line controllers have no automated safety net.
+- Priority: High — start with critical paths: assessment grading logic, certificate number generation, approval chain state transitions.
 
-**No Integration Tests:**
-- What's not tested: Database cascade deletes, assessment creation with multiple questions, user role transitions, dashboard query performance
-- Risk: Database schema changes could cause runtime errors; cascade delete behavior breaks unexpectedly (evidenced by migration history)
-- Priority: High - Multiple fragile areas require integration testing
+**E2E Tests Not Merged to Main:**
+- What's not tested: E2E specs exist only in worktree branches.
+- Files: `tests/e2e/assessment.spec.ts`, `tests/e2e/exam-taking.spec.ts`, `tests/e2e/impersonation.spec.ts` (worktrees only)
+- Risk: Tests drift from actual code as development continues on main.
+- Priority: Medium — merge to main and set up CI runner.
 
-**No End-to-End Tests:**
-- What's not tested: Complete assessment flow (create → assign → take → score), coach-coachee pairing, IDP progress tracking
-- Risk: UI changes don't propagate to backend; user workflows break across multiple pages
-- Priority: Medium - Core workflows should be tested E2E
+**No Security/Penetration Tests:**
+- What's not tested: Authorization bypass, role escalation, IDOR (accessing other users' data via ID manipulation), token brute-force.
+- Files: All controllers with user-specific data access.
+- Risk: Authorization logic is role-based but lacks resource-level checks in some areas.
+- Priority: Medium — add authorization integration tests for sensitive endpoints.
 
-**No Security Tests:**
-- What's not tested: Authorization bypass attempts, role elevation attacks, token collision, SQL injection (input validation)
-- Risk: Security vulnerabilities discovered in production instead of development
-- Priority: Critical - Authorization and data access are high-risk areas
+---
 
+*Concerns audit: 2026-04-02*

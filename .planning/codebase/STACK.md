@@ -1,100 +1,83 @@
 # Technology Stack
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-02
 
 ## Languages
 
 **Primary:**
-- C# 12 - Backend application code, controllers, models, data access
-- Razor (C# templating) - Server-side view rendering
-- HTML/CSS/JavaScript - Frontend UI
+- C# 12 — All server-side logic, controllers, models, services
+- Razor (`.cshtml`) — All views/templates
 
 **Secondary:**
-- PowerShell - Database setup scripts (`enable-sql-tcp.ps1`)
+- JavaScript (vanilla) — Client-side interactivity (`wwwroot/js/`)
+- CSS — Custom styles (`wwwroot/css/`)
 
 ## Runtime
 
 **Environment:**
-- .NET 8.0 (latest LTS)
-- Target Framework: `net8.0`
-
-**Web Server:**
-- ASP.NET Core 8.0 (built-in Kestrel server)
-- IIS Express for local development
+- .NET 8.0 LTS (target framework `net8.0`)
 
 **Package Manager:**
-- NuGet (implicit via .csproj)
-- No package-lock.json or similar - uses `.csproj` project file for dependency management
+- NuGet (packages defined in `HcPortal.csproj`)
+- No lockfile
 
 ## Frameworks
 
 **Core:**
-- ASP.NET Core MVC 8.0 - Web application framework with controllers, views, routing
-- Entity Framework Core 8.0 - ORM for database access and migrations
-- ASP.NET Identity 8.0 - Authentication, user management, role-based access control
-
-**Architecture Pattern:**
-- MVC (Model-View-Controller) with Razor templates for server-side rendering
-- No API endpoints currently (traditional form-based web application)
-- Session-based state management
+- ASP.NET Core MVC 8.0 — Controller-based web framework with Razor views
+- ASP.NET Core Identity 8.0 — Authentication & user/role management (`Microsoft.AspNetCore.Identity.EntityFrameworkCore` 8.0.0)
+- Entity Framework Core 8.0 — ORM with code-first migrations
+- SignalR — Real-time WebSocket communication (`Hubs/AssessmentHub.cs`)
 
 **Testing:**
 - Not detected
 
 **Build/Dev:**
-- .NET CLI (implicit, used by Visual Studio)
-- Entity Framework Core Tools 8.0 - Database migrations
+- `Microsoft.EntityFrameworkCore.Tools` 8.0.0 — EF migrations CLI
+- `Microsoft.EntityFrameworkCore.Design` 8.0.0 — EF design-time support
 
 ## Key Dependencies
 
-**Critical:**
-- `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 8.0.0 - User authentication and identity persistence
-- `Microsoft.EntityFrameworkCore.SqlServer` 8.0.0 - SQL Server database provider
-- `Microsoft.EntityFrameworkCore.Sqlite` 8.0.0 - SQLite database provider (fallback)
-- `Microsoft.EntityFrameworkCore.Tools` 8.0.0 - Migration tools and scaffolding
+**Critical (NuGet):**
+- `ClosedXML` 0.105.0 — Excel import/export (worker import templates)
+- `QuestPDF` 2026.2.2 — PDF generation (Community license, set in `Program.cs`)
+- `System.DirectoryServices` 10.0.0 — LDAP/Active Directory authentication
+- `Microsoft.EntityFrameworkCore.Sqlite` 8.0.0 — SQLite provider (development)
+- `Microsoft.EntityFrameworkCore.SqlServer` 8.0.0 — SQL Server provider (production)
 
-**Infrastructure:**
-- `Microsoft.EntityFrameworkCore.Design` 8.0.0 - Design-time EF Core utilities
-- Built-in ASP.NET Core middleware for authentication, authorization, static files, session management
+**Frontend (wwwroot/lib/):**
+- Bootstrap — UI framework
+- jQuery — DOM manipulation
+- jQuery Validation + Unobtrusive Validation — Client-side form validation
+- `@microsoft/signalr` — SignalR JS client
 
 ## Configuration
 
 **Environment:**
-- Three configuration profiles: Development, Production, and default
-- Configuration via `appsettings.json` and environment-specific overrides (`appsettings.Development.json`, `appsettings.Production.json`)
-- Environment detected via `ASPNETCORE_ENVIRONMENT` variable
+- `appsettings.json` — Base config (SQLite, LDAP settings, PathBase `/KPB-PortalHC`)
+- `appsettings.Development.json` — Dev overrides
+- `appsettings.Production.json` — SQL Server connection string
+- Environment variable override: `Authentication__UseActiveDirectory=true`
 
 **Build:**
-- Project file: `HcPortal.csproj`
-- PropertyGroup settings:
-  - TargetFramework: net8.0
-  - Nullable: enable (strict null checking)
-  - ImplicitUsings: enable (global using statements)
-
-**Development Port:**
-- Local development: `http://localhost:5277` (IIS Express)
-- No HTTPS in local development (disabled per comment in `Program.cs`)
+- Solution: `HcPortal.sln`
+- Project: `HcPortal.csproj`
+- Nullable: enabled
+- ImplicitUsings: enabled
 
 ## Platform Requirements
 
 **Development:**
-- Windows (project uses Windows authentication, SQL Server, IIS Express)
-- Visual Studio 2022 or VS Code with C# extensions
-- .NET 8.0 SDK
-- SQL Server Express or LocalDB for development
+- .NET 8 SDK
+- SQLite (embedded, file-based `HcPortal.db`)
+- No Docker or CI pipeline detected
 
 **Production:**
-- Windows Server with IIS
-- SQL Server 2019+ or compatible SQL Server instance
-- .NET 8.0 Runtime (or hosting bundle)
-- TrustServerCertificate setting indicates local/non-HTTPS SQL connections in dev
-
-**Database:**
-- Development: SQLite file (`HcPortal.db`) OR SQL Server (Development configuration uses LocalDB)
-- Production: SQL Server (specified in connection string placeholder)
-- Integrated Security authentication for development (Windows auth)
-- SQL Server authenticated user (`hcportal_app`) for production
+- .NET 8 Runtime / IIS Hosting Bundle
+- SQL Server
+- Active Directory / LDAP access
+- IIS with subpath `/KPB-PortalHC` (PathBase configured in `appsettings.json`)
 
 ---
 
-*Stack analysis: 2026-02-13*
+*Stack analysis: 2026-04-02*
