@@ -1,13 +1,19 @@
-@model List<HcPortal.Models.OrganizationUnit>
-
+@* Data diambil via AJAX — tidak perlu @model *@
 @{
     ViewData["Title"] = "Struktur Organisasi";
     var editUnit = ViewBag.EditUnit as HcPortal.Models.OrganizationUnit;
 }
 
 <style>
-    .collapse-icon { transition: transform 0.2s ease; }
-    tr[aria-expanded="true"] .collapse-icon { transform: rotate(90deg); }
+    .tree-children { border-left: 1px solid #dee2e6; margin-left: 12px; padding-left: 24px; list-style: none; }
+    .tree-node > .tree-children > .tree-node > .tree-row::before { content: ''; display: inline-block; width: 12px; border-top: 1px solid #dee2e6; vertical-align: middle; margin-right: 4px; }
+    .tree-chevron { transition: transform 200ms ease; color: #0d6efd; cursor: pointer; width: 16px; flex-shrink: 0; }
+    .tree-chevron.expanded { transform: rotate(90deg); }
+    .tree-chevron-placeholder { width: 16px; flex-shrink: 0; display: inline-block; }
+    .tree-row { padding: 6px 8px; border-radius: 4px; cursor: pointer; min-height: 36px; }
+    .tree-row:hover { background-color: #e9ecef; }
+    .tree-root { list-style: none; padding-left: 0; }
+    .badge-status { font-size: 0.75rem; }
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -28,9 +34,12 @@
             </h2>
             <p class="text-muted mb-0">Kelola hierarki Bagian dan Unit kerja</p>
         </div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addUnitForm">
-            <i class="bi bi-plus-circle me-2"></i>Tambah Unit
-        </button>
+        <div>
+            <button id="btn-expand-all" class="btn btn-outline-primary btn-sm me-2">Expand All</button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addUnitForm">
+                <i class="bi bi-plus-circle me-2"></i>Tambah Unit
+            </button>
+        </div>
     </div>
 
     <!-- Alerts -->
@@ -88,7 +97,7 @@
         </div>
     </div>
 
-    <!-- Form Edit (di atas tabel, jika editUnit ada) -->
+    <!-- Form Edit (di atas tree, jika editUnit ada) -->
     @if (editUnit != null)
     {
         <div class="card border-0 shadow-sm mb-4 border-warning">
@@ -142,335 +151,11 @@
         </div>
     }
 
-    <!-- Tabel Indented Collapsible -->
+    <!-- Tree container — JS mengisi ini -->
     <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="p-3 fw-bold text-muted small text-uppercase">Nama</th>
-                            <th class="p-3 text-center fw-bold text-muted small text-uppercase" style="width:100px;">Level</th>
-                            <th class="p-3 text-center fw-bold text-muted small text-uppercase" style="width:100px;">Status</th>
-                            <th class="p-3 text-center fw-bold text-muted small text-uppercase" style="width:180px;">Aksi</th>
-                        </tr>
-                    </thead>
-                    @if (!Model.Any())
-                    {
-                        <tbody>
-                            <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">
-                                    <i class="bi bi-diagram-3 d-block mb-2 fs-3"></i>
-                                    Belum ada data struktur organisasi.
-                                    <br /><small>Klik "Tambah Unit" untuk menambahkan.</small>
-                                </td>
-                            </tr>
-                        </tbody>
-                    }
-                    else
-                    {
-                        var rootList = Model.ToList();
-                        foreach (var root in rootList)
-                        {
-                            var rootIdx = rootList.IndexOf(root);
-                            var isRootFirst = rootIdx == 0;
-                            var isRootLast = rootIdx == rootList.Count - 1;
-                            var rootChildren = root.Children.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Name).ToList();
-
-                            <!-- Row Bagian (Level 0) — collapsible toggle -->
-                            <tbody>
-                                <tr data-bs-toggle="collapse" data-bs-target="#children-@root.Id"
-                                    aria-expanded="false" style="cursor:pointer;"
-                                    class="@(root.IsActive ? "" : "text-muted")">
-                                    <td class="p-3">
-                                        <i class="bi bi-chevron-right me-2 collapse-icon"></i>
-                                        <strong>@root.Name</strong>
-                                    </td>
-                                    <td class="text-center p-2"><span class="badge bg-primary">Bagian</span></td>
-                                    <td class="text-center p-2">
-                                        <span class="badge @(root.IsActive ? "bg-success" : "bg-secondary")">@(root.IsActive ? "Aktif" : "Nonaktif")</span>
-                                    </td>
-                                    <td class="text-center p-2" onclick="event.stopPropagation();">
-                                        <div class="btn-group btn-group-sm">
-                                            <!-- Reorder ↑ -->
-                                            @if (isRootFirst)
-                                            {
-                                                <button type="button" class="btn btn-outline-secondary" disabled
-                                                        aria-label="Naikan urutan @root.Name (tidak tersedia)">
-                                                    <i class="bi bi-arrow-up"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <form method="post" action="@Url.Action("ReorderOrganizationUnit", "Organization")" style="display:inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="id" value="@root.Id" />
-                                                    <input type="hidden" name="direction" value="up" />
-                                                    <button type="submit" class="btn btn-outline-secondary"
-                                                            aria-label="Naikan urutan @root.Name" title="Naikan urutan">
-                                                        <i class="bi bi-arrow-up"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                            <!-- Reorder ↓ -->
-                                            @if (isRootLast)
-                                            {
-                                                <button type="button" class="btn btn-outline-secondary" disabled
-                                                        aria-label="Turunkan urutan @root.Name (tidak tersedia)">
-                                                    <i class="bi bi-arrow-down"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <form method="post" action="@Url.Action("ReorderOrganizationUnit", "Organization")" style="display:inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="id" value="@root.Id" />
-                                                    <input type="hidden" name="direction" value="down" />
-                                                    <button type="submit" class="btn btn-outline-secondary"
-                                                            aria-label="Turunkan urutan @root.Name" title="Turunkan urutan">
-                                                        <i class="bi bi-arrow-down"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                            <!-- Edit -->
-                                            <a href="@Url.Action("ManageOrganization", "Organization", new { editId = root.Id })"
-                                               class="btn btn-outline-primary"
-                                               aria-label="Edit @root.Name" title="Edit">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </a>
-                                            <!-- Toggle -->
-                                            <form method="post" action="@Url.Action("ToggleOrganizationUnitActive", "Organization")" style="display:inline;">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@root.Id" />
-                                                <button type="submit"
-                                                        class="btn @(root.IsActive ? "btn-outline-warning" : "btn-outline-secondary")"
-                                                        aria-label="@(root.IsActive ? "Nonaktifkan" : "Aktifkan") @root.Name"
-                                                        title="@(root.IsActive ? "Nonaktifkan" : "Aktifkan")">
-                                                    <i class="bi @(root.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
-                                                </button>
-                                            </form>
-                                            <!-- Hapus -->
-                                            @if (root.Children.Any(c => c.IsActive))
-                                            {
-                                                <button type="button" class="btn btn-danger" disabled
-                                                        aria-label="Hapus @root.Name (tidak tersedia)"
-                                                        title="Nonaktifkan atau pindahkan isi sebelum menghapus">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button type="button" class="btn btn-danger"
-                                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                        data-id="@root.Id" data-name="@root.Name"
-                                                        aria-label="Hapus @root.Name secara permanen" title="Hapus permanen">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            }
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                            <!-- Children tbody (collapsible) -->
-                            <tbody class="collapse" id="children-@root.Id">
-                                @foreach (var child in rootChildren)
-                                {
-                                    var childIdx = rootChildren.IndexOf(child);
-                                    var isChildFirst = childIdx == 0;
-                                    var isChildLast = childIdx == rootChildren.Count - 1;
-                                    var grandchildren = child.Children.OrderBy(gc => gc.DisplayOrder).ThenBy(gc => gc.Name).ToList();
-
-                                    <tr class="@(child.IsActive ? "" : "text-muted")">
-                                        <td class="p-3 ps-4">
-                                            <i class="bi bi-arrow-return-right text-muted me-2 small"></i>@child.Name
-                                        </td>
-                                        <td class="text-center p-2"><span class="badge bg-info text-dark">Unit</span></td>
-                                        <td class="text-center p-2">
-                                            <span class="badge @(child.IsActive ? "bg-success" : "bg-secondary")">@(child.IsActive ? "Aktif" : "Nonaktif")</span>
-                                        </td>
-                                        <td class="text-center p-2">
-                                            <div class="btn-group btn-group-sm">
-                                                <!-- Reorder ↑ -->
-                                                @if (isChildFirst)
-                                                {
-                                                    <button type="button" class="btn btn-outline-secondary" disabled
-                                                            aria-label="Naikan urutan @child.Name (tidak tersedia)">
-                                                        <i class="bi bi-arrow-up"></i>
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <form method="post" action="@Url.Action("ReorderOrganizationUnit", "Organization")" style="display:inline;">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@child.Id" />
-                                                        <input type="hidden" name="direction" value="up" />
-                                                        <button type="submit" class="btn btn-outline-secondary"
-                                                                aria-label="Naikan urutan @child.Name" title="Naikan urutan">
-                                                            <i class="bi bi-arrow-up"></i>
-                                                        </button>
-                                                    </form>
-                                                }
-                                                <!-- Reorder ↓ -->
-                                                @if (isChildLast)
-                                                {
-                                                    <button type="button" class="btn btn-outline-secondary" disabled
-                                                            aria-label="Turunkan urutan @child.Name (tidak tersedia)">
-                                                        <i class="bi bi-arrow-down"></i>
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <form method="post" action="@Url.Action("ReorderOrganizationUnit", "Organization")" style="display:inline;">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@child.Id" />
-                                                        <input type="hidden" name="direction" value="down" />
-                                                        <button type="submit" class="btn btn-outline-secondary"
-                                                                aria-label="Turunkan urutan @child.Name" title="Turunkan urutan">
-                                                            <i class="bi bi-arrow-down"></i>
-                                                        </button>
-                                                    </form>
-                                                }
-                                                <!-- Edit -->
-                                                <a href="@Url.Action("ManageOrganization", "Organization", new { editId = child.Id })"
-                                                   class="btn btn-outline-primary"
-                                                   aria-label="Edit @child.Name" title="Edit">
-                                                    <i class="bi bi-pencil-square"></i>
-                                                </a>
-                                                <!-- Toggle -->
-                                                <form method="post" action="@Url.Action("ToggleOrganizationUnitActive", "Organization")" style="display:inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="id" value="@child.Id" />
-                                                    <button type="submit"
-                                                            class="btn @(child.IsActive ? "btn-outline-warning" : "btn-outline-secondary")"
-                                                            aria-label="@(child.IsActive ? "Nonaktifkan" : "Aktifkan") @child.Name"
-                                                            title="@(child.IsActive ? "Nonaktifkan" : "Aktifkan")">
-                                                        <i class="bi @(child.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
-                                                    </button>
-                                                </form>
-                                                <!-- Hapus -->
-                                                @if (child.Children.Any(c => c.IsActive))
-                                                {
-                                                    <button type="button" class="btn btn-danger" disabled
-                                                            aria-label="Hapus @child.Name (tidak tersedia)"
-                                                            title="Nonaktifkan atau pindahkan isi sebelum menghapus">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <button type="button" class="btn btn-danger"
-                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                            data-id="@child.Id" data-name="@child.Name"
-                                                            aria-label="Hapus @child.Name secara permanen" title="Hapus permanen">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    @* Grandchildren (Level 2) *@
-                                    @foreach (var gc in grandchildren)
-                                    {
-                                        var gcIdx = grandchildren.IndexOf(gc);
-                                        var isGcFirst = gcIdx == 0;
-                                        var isGcLast = gcIdx == grandchildren.Count - 1;
-
-                                        <tr class="@(gc.IsActive ? "" : "text-muted")">
-                                            <td class="p-3 ps-5">
-                                                <i class="bi bi-arrow-return-right text-muted me-2 small"></i>@gc.Name
-                                            </td>
-                                            <td class="text-center p-2"><span class="badge bg-info text-dark">Unit</span></td>
-                                            <td class="text-center p-2">
-                                                <span class="badge @(gc.IsActive ? "bg-success" : "bg-secondary")">@(gc.IsActive ? "Aktif" : "Nonaktif")</span>
-                                            </td>
-                                            <td class="text-center p-2">
-                                                <div class="btn-group btn-group-sm">
-                                                    <!-- Reorder ↑ -->
-                                                    @if (isGcFirst)
-                                                    {
-                                                        <button type="button" class="btn btn-outline-secondary" disabled
-                                                                aria-label="Naikan urutan @gc.Name (tidak tersedia)">
-                                                            <i class="bi bi-arrow-up"></i>
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <form method="post" action="@Url.Action("ReorderOrganizationUnit", "Organization")" style="display:inline;">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="id" value="@gc.Id" />
-                                                            <input type="hidden" name="direction" value="up" />
-                                                            <button type="submit" class="btn btn-outline-secondary"
-                                                                    aria-label="Naikan urutan @gc.Name" title="Naikan urutan">
-                                                                <i class="bi bi-arrow-up"></i>
-                                                            </button>
-                                                        </form>
-                                                    }
-                                                    <!-- Reorder ↓ -->
-                                                    @if (isGcLast)
-                                                    {
-                                                        <button type="button" class="btn btn-outline-secondary" disabled
-                                                                aria-label="Turunkan urutan @gc.Name (tidak tersedia)">
-                                                            <i class="bi bi-arrow-down"></i>
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <form method="post" action="@Url.Action("ReorderOrganizationUnit", "Organization")" style="display:inline;">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="id" value="@gc.Id" />
-                                                            <input type="hidden" name="direction" value="down" />
-                                                            <button type="submit" class="btn btn-outline-secondary"
-                                                                    aria-label="Turunkan urutan @gc.Name" title="Turunkan urutan">
-                                                                <i class="bi bi-arrow-down"></i>
-                                                            </button>
-                                                        </form>
-                                                    }
-                                                    <!-- Edit -->
-                                                    <a href="@Url.Action("ManageOrganization", "Organization", new { editId = gc.Id })"
-                                                       class="btn btn-outline-primary"
-                                                       aria-label="Edit @gc.Name" title="Edit">
-                                                        <i class="bi bi-pencil-square"></i>
-                                                    </a>
-                                                    <!-- Toggle -->
-                                                    <form method="post" action="@Url.Action("ToggleOrganizationUnitActive", "Organization")" style="display:inline;">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@gc.Id" />
-                                                        <button type="submit"
-                                                                class="btn @(gc.IsActive ? "btn-outline-warning" : "btn-outline-secondary")"
-                                                                aria-label="@(gc.IsActive ? "Nonaktifkan" : "Aktifkan") @gc.Name"
-                                                                title="@(gc.IsActive ? "Nonaktifkan" : "Aktifkan")">
-                                                            <i class="bi @(gc.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
-                                                        </button>
-                                                    </form>
-                                                    <!-- Hapus -->
-                                                    @if (gc.Children != null && gc.Children.Any(c => c.IsActive))
-                                                    {
-                                                        <button type="button" class="btn btn-danger" disabled
-                                                                aria-label="Hapus @gc.Name (tidak tersedia)"
-                                                                title="Nonaktifkan atau pindahkan isi sebelum menghapus">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <button type="button" class="btn btn-danger"
-                                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                                data-id="@gc.Id" data-name="@gc.Name"
-                                                                aria-label="Hapus @gc.Name secara permanen" title="Hapus permanen">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    }
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        }
-                    }
-                </table>
+        <div class="card-body">
+            <div id="org-tree-container">
+                <!-- populated by initTree() -->
             </div>
         </div>
     </div>
@@ -503,17 +188,17 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/orgTree.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Delete modal: set id dan name dari data attributes
-            var deleteModal = document.getElementById('deleteModal');
-            if (deleteModal) {
-                deleteModal.addEventListener('show.bs.modal', function (event) {
-                    var button = event.relatedTarget;
-                    document.getElementById('deleteModalId').value = button.getAttribute('data-id');
-                    document.getElementById('deleteModalName').textContent = button.getAttribute('data-name');
-                });
-            }
-        });
+        document.addEventListener('DOMContentLoaded', initTree);
+
+        var deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                document.getElementById('deleteModalId').value = button.getAttribute('data-id');
+                document.getElementById('deleteModalName').textContent = button.getAttribute('data-name');
+            });
+        }
     </script>
 }
