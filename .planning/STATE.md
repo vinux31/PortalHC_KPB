@@ -89,8 +89,9 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
 | Phase 267 P03 | 10 | 2 tasks | 3 files |
+| 260402-l2d | Fix delete assessment 404 error — update asp-controller references dari Admin ke AssessmentAdmin di 9 view | 2026-04-02 | 5a16c0fb | [260402-l2d-fix-delete-assessment-404-error-on-manag](./quick/260402-l2d-fix-delete-assessment-404-error-on-manag/) |
 
 ## Session Continuity
 
-Last activity: 2026-03-28 - Completed quick task 260328-kri: fix notif lanjutkan pengerjaan
-Stopped at: Phase 276 context gathered
+Last activity: 2026-04-02 - Completed quick task 260402-l2d: fix delete assessment 404 error
+Stopped at: Completed 260402-l2d quick task
