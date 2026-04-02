@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v12.0
-milestone_name: Controller Refactoring
-status: executing
-stopped_at: Completed 291-03-PLAN.md
-last_updated: "2026-04-02T11:03:06.454Z"
+milestone: v13.0
+milestone_name: Redesign Struktur Organisasi
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-04-02"
 last_activity: 2026-04-02
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 291 — fix-view-urlaction-references
+**Current focus:** v13.0 Redesign Struktur Organisasi — Defining requirements
 
 ## Current Position
 
-Phase: 291
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-02
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-02 — Milestone v13.0 started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,10 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 289]: BuildRenewalRowsAsync dipindah ke AdminBaseController sebagai shared protected method
 - [Phase 291]: WorkerDetail link diperbaiki ke Worker controller (bukan Admin/TrainingAdmin)
 
+### Roadmap Evolution
+
+- Milestone v13.0 started: Redesign Struktur Organisasi
+
 ### Pending Todos
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser
@@ -67,16 +71,9 @@ Progress: [░░░░░░░░░░] 0%
 |---|-------------|------|--------|-----------|
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
 | 260402-l2d | Fix delete assessment 404 error — update asp-controller references dari Admin ke AssessmentAdmin di 9 view | 2026-04-02 | 5a16c0fb | [260402-l2d-fix-delete-assessment-404-error-on-manag](./quick/260402-l2d-fix-delete-assessment-404-error-on-manag/) |
-| Phase 288 P02 | 3m | 2 tasks | 6 files |
-| Phase 289 P01 | 7m | 2 tasks | 5 files |
-| Phase 291 P03 | 8 | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last activity: 2026-04-02 — Completed quick task 260402-l2d: Fix delete assessment 404 error
-Stopped at: Completed 291-03-PLAN.md
+Last activity: 2026-04-02 — Milestone v13.0 started
+Stopped at: Defining requirements
 Resume file: None
-
-Last activity: 2026-04-02 - Completed quick task 260402-l2d: fix delete assessment 404 error
-Stopped at: Completed 260402-l2d quick task
->>>>>>> worktree-agent-aa4da692

@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (Phase 289 complete, 2026-04-02)
+## Current State (Phase 291 complete, 2026-04-02)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -22,24 +22,20 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Phase 262-263 shipped** — Sub-path deployment fixes (URLs + upload paths).
 **v10.0 shipped** — UAT Assessment OJT di Server Development (phases 264-268): admin setup, worker exam flow, review/submit hasil, resilience/edge cases, monitoring dashboard.
 **v11.2 shipped** — Admin Platform Enhancement (phases 282-283): Maintenance Mode + User Impersonation.
-**v12.0 in progress** — Controller Refactoring: Phase 286-289 complete (AdminBaseController, AssessmentAdmin, Worker, CoachMapping, Organization, Document, Training, Renewal). AdminController dikurangi dari 8,514 → 108 baris.
+**v12.0 shipped** — Controller Refactoring (phases 286-291): AdminController dipecah menjadi 8 controller per domain, AdminController dikurangi dari 8,514 → 108 baris.
 
-**Current focus:** v12.0 Controller Refactoring — Phase 290 (Verification & Cleanup)
+**Current focus:** v13.0 Redesign Struktur Organisasi
 
-## Current Milestone: v12.0 Controller Refactoring
+## Current Milestone: v13.0 Redesign Struktur Organisasi
 
-**Goal:** Memecah AdminController (8,514 baris, 103 actions) menjadi 8 controller kecil per domain untuk mengurangi error saat development.
+**Goal:** Redesign halaman ManageOrganization dari tabel flat menjadi tree view modern dengan UX yang lebih fleksibel dan intuitif.
 
 **Target features:**
-- AdminBaseController — shared DI + helper methods
-- AssessmentAdminController — Assessment CRUD + Categories + Monitoring + Reshuffle + Package + Helpers (~4,500 baris)
-- WorkerController — ManageWorkers + Import/Export (~860 baris)
-- CoachMappingController — Coach-Coachee Mapping + Export (~1,050 baris)
-- DocumentAdminController — KKJ + CPDP files (~540 baris)
-- TrainingAdminController — Training Records + Import (~130 baris)
-- RenewalController — Renewal Certificate + History (~500 baris)
-- OrganizationController — Organization CRUD (~330 baris)
-- AdminController tetap sebagai hub (Index + AuditLog + Impersonation ~240 baris)
+- Tree view visual (bukan tabel) dengan recursive rendering (unlimited depth)
+- Modal CRUD (tambah/edit unit tanpa page reload)
+- Drag-and-drop reorder (ganti tombol up/down)
+- Aksi ringkas (dropdown menu menggantikan 5 tombol inline)
+- Kode view dari ~520 baris repetitif → ~150 baris recursive partial
 
 ## Next Milestone Goals
 
