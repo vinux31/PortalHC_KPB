@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (Phase 268 complete, 2026-03-28)
+## Current State (Phase 286 complete, 2026-04-02)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -854,4 +854,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-27 after Phase 263 Fix database-stored upload paths for sub-path deployment*
+*Last updated: 2026-04-02 after Phase 286 AdminBaseController — extract shared DI + routing into abstract base class*
