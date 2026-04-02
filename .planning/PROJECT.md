@@ -21,21 +21,24 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v9.1 shipped** — UAT Coaching Proton (Phase 257 only, 258-261 skipped).
 **Phase 262-263 shipped** — Sub-path deployment fixes (URLs + upload paths).
 **v10.0 shipped** — UAT Assessment OJT di Server Development (phases 264-268): admin setup, worker exam flow, review/submit hasil, resilience/edge cases, monitoring dashboard.
+**v11.2 shipped** — Admin Platform Enhancement (phases 282-283): Maintenance Mode + User Impersonation.
 
-**Current focus:** v11.2 Admin Platform Enhancement
+**Current focus:** v12.0 Controller Refactoring
 
-## Current Milestone: v11.2 Admin Platform Enhancement
+## Current Milestone: v12.0 Controller Refactoring
 
-**Goal:** Memperkaya fitur admin PortalHC KPB dengan 7 kapabilitas baru berstandar industri — impersonation, komunikasi, monitoring, konfigurasi, dan disaster recovery.
+**Goal:** Memecah AdminController (8,514 baris, 103 actions) menjadi 8 controller kecil per domain untuk mengurangi error saat development.
 
 **Target features:**
-- User Impersonation / View As Role — admin melihat/troubleshoot dari perspektif user
-- Announcement / Broadcast — pengumuman terpusat ke seluruh atau sebagian user
-- In-App Notification — bell icon + notification center untuk event otomatis
-- Dashboard Statistik Admin — KPI overview (pekerja, assessment, sertifikat, coaching)
-- System Settings Page — konfigurasi sistem dari UI tanpa edit code
-- Maintenance Mode — toggle halaman maintenance saat update/deploy
-- Backup & Restore — database backup/restore dari admin panel
+- AdminBaseController — shared DI + helper methods
+- AssessmentAdminController — Assessment CRUD + Categories + Monitoring + Reshuffle + Package + Helpers (~4,500 baris)
+- WorkerController — ManageWorkers + Import/Export (~860 baris)
+- CoachMappingController — Coach-Coachee Mapping + Export (~1,050 baris)
+- DocumentAdminController — KKJ + CPDP files (~540 baris)
+- TrainingAdminController — Training Records + Import (~130 baris)
+- RenewalController — Renewal Certificate + History (~500 baris)
+- OrganizationController — Organization CRUD (~330 baris)
+- AdminController tetap sebagai hub (Index + AuditLog + Impersonation ~240 baris)
 
 ## Next Milestone Goals
 

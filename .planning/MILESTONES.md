@@ -1,5 +1,25 @@
 # Milestones
 
+## v11.2 Admin Platform Enhancement (Shipped: 2026-04-02)
+
+**Phases completed:** 2 of 4 phases (282-283), 4 plans
+**Timeline:** 2026-04-01 → 2026-04-02
+
+**Delivered:** Maintenance mode dan user impersonation untuk admin portal.
+
+**Key accomplishments:**
+
+1. Maintenance Mode — Admin dapat mengaktifkan maintenance mode dari System Settings, non-admin diarahkan ke halaman maintenance informatif, Admin/HC tetap bisa akses
+2. User Impersonation — Admin dapat melihat aplikasi sebagai role lain (HC/User) atau user spesifik, read-only mode, audit trail, auto-expire 30 menit
+
+**Known Gaps:**
+- Phase 281 (System Settings) belum dimulai — SETT-01..07 pending
+- Phase 285 (Dedicated Impersonation Page) sedang executing — IMP-UI-01..03 pending
+- Phase 284 (Backup & Restore) removed from milestone — BKP-01..08 deferred
+- Milestone closed early by user decision untuk prioritas refactoring
+
+---
+
 ## v9.1 UAT Coaching Proton End-to-End (Shipped: 2026-03-25)
 
 **Phases completed:** 1 of 5 phases (257), 2 plans

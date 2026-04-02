@@ -1,44 +1,41 @@
 ---
 gsd_state_version: 1.0
-milestone: v11.2
-milestone_name: Admin Platform Enhancement
-status: executing
-stopped_at: Phase 283 UI-SPEC approved
-last_updated: "2026-04-01T23:55:06.379Z"
-last_activity: 2026-04-01 -- Phase 285 execution started
+milestone: v12.0
+milestone_name: Controller Refactoring
+status: defining_requirements
+last_updated: "2026-04-02"
+last_activity: 2026-04-02 -- Milestone v12.0 started
 progress:
-  total_phases: 4
+  total_phases: 0
   completed_phases: 0
-  total_plans: 6
-  completed_plans: 1
-  percent: 50
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 285 — impersonation-page
+**Current focus:** Defining requirements for v12.0
 
 ## Current Position
 
-Phase: 285 (impersonation-page) — EXECUTING
-Plan: 1 of 1
-Status: Executing Phase 285
-Last activity: 2026-04-01 -- Phase 285 execution started
-
-Progress: [█████░░░░░] 50%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-02 — Milestone v12.0 started
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v11.2]: 4 fitur dipilih dari 7 kandidat (System Settings, Maintenance Mode, User Impersonation, Backup & Restore)
-- [v11.2]: Zero package baru — semua fitur dibangun dengan stack existing
-- [v11.2]: Build order: Settings → Maintenance → Impersonation → Backup (dependency graph)
+- [v12.0]: Pure refactoring — zero fitur baru, zero perubahan UI
+- [v12.0]: Semua URL tetap sama via [Route] attribute, Views tetap di Views/Admin/
+- [v12.0]: AdminController dipecah menjadi 8 controller per domain
 
 ### Pending Todos
 
@@ -47,14 +44,9 @@ Progress: [█████░░░░░] 50%
 
 ### Blockers/Concerns
 
-- Riset open question: default settings list perlu difinalisasi sebelum Phase 281 coding
-- ~~Riset open question: backup scope~~ — Phase 284 (Backup & Restore) removed from milestone
-
-### Roadmap Evolution
-
-- Phase 285 added: Dedicated Impersonation Page — pindahkan kontrol impersonate dari dropdown ke halaman Admin tersendiri
+- (none)
 
 ## Session Continuity
 
-Last activity: 2026-04-01 — Roadmap created for v11.2
-Stopped at: Phase 283 UI-SPEC approved
+Last activity: 2026-04-02 — Milestone v12.0 started
+Stopped at: Defining requirements
