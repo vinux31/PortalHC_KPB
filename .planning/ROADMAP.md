@@ -35,7 +35,7 @@ See .planning/MILESTONES.md for full history.
 
 - [x] **Phase 286: AdminBaseController** - Shared base controller dengan DI dan helper methods (completed 2026-04-02)
 - [x] **Phase 287: AssessmentAdminController** - Ekstraksi semua action assessment dari AdminController (completed 2026-04-02)
-- [ ] **Phase 288: Worker, Coach & Organization Controllers** - Ekstraksi WorkerController, CoachMappingController, OrganizationController
+- [x] **Phase 288: Worker, Coach & Organization Controllers** - Ekstraksi WorkerController, CoachMappingController, OrganizationController (completed 2026-04-02)
 - [ ] **Phase 289: Document, Training & Renewal Controllers** - Ekstraksi DocumentAdminController, TrainingAdminController, RenewalController
 - [ ] **Phase 290: Verification & Cleanup** - Validasi semua URL, authorization, dan build bersih
 
@@ -78,7 +78,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 288-01-PLAN.md — Ekstraksi WorkerController & CoachMappingController
-- [ ] 288-02-PLAN.md — Ekstraksi OrganizationController & update view references
+- [x] 288-02-PLAN.md — Ekstraksi OrganizationController & update view references
 
 ### Phase 289: Document, Training & Renewal Controllers
 **Goal**: Tiga controller domain records-management (DocumentAdminController, TrainingAdminController, RenewalController) terisolasi dengan URL dan behavior identik
@@ -112,6 +112,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 286. AdminBaseController | 1/1 | Complete    | 2026-04-02 |
 | 287. AssessmentAdminController | 1/1 | Complete    | 2026-04-02 |
-| 288. Worker, Coach & Organization | 1/2 | In Progress|  |
+| 288. Worker, Coach & Organization | 2/2 | Complete   | 2026-04-02 |
 | 289. Document, Training & Renewal | 0/? | Not started | - |
 | 290. Verification & Cleanup | 0/? | Not started | - |

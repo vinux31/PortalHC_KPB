@@ -45,8 +45,8 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 ### Organization Management
 
-- [ ] **ORG-01**: OrganizationController berisi semua action organization (ManageOrganization, Add, Edit, Toggle, Delete, Reorder)
-- [ ] **ORG-02**: Semua URL organization tetap sama (/Admin/ManageOrganization, dll) via [Route] attribute
+- [x] **ORG-01**: OrganizationController berisi semua action organization (ManageOrganization, Add, Edit, Toggle, Delete, Reorder)
+- [x] **ORG-02**: Semua URL organization tetap sama (/Admin/ManageOrganization, dll) via [Route] attribute
 
 ### Verification
 
@@ -76,8 +76,8 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 | WKR-02 | Phase 288 | Complete |
 | CCM-01 | Phase 288 | Complete |
 | CCM-02 | Phase 288 | Complete |
-| ORG-01 | Phase 288 | Pending |
-| ORG-02 | Phase 288 | Pending |
+| ORG-01 | Phase 288 | Complete |
+| ORG-02 | Phase 288 | Complete |
 | DOC-01 | Phase 289 | Pending |
 | DOC-02 | Phase 289 | Pending |
 | TRN-01 | Phase 289 | Pending |
