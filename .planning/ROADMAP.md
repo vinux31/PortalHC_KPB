@@ -119,7 +119,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [ ] 291-01-PLAN.md — Fix Index hub + Worker + CoachMapping views
-- [ ] 291-02-PLAN.md — Fix Organization + Document views
+- [x] 291-02-PLAN.md — Fix Organization + Document views
 - [ ] 291-03-PLAN.md — Fix Assessment + Training views
 
 ## Progress
@@ -131,4 +131,4 @@ Plans:
 | 288. Worker, Coach & Organization | 2/2 | Complete    | 2026-04-02 |
 | 289. Document, Training & Renewal | 1/1 | Complete    | 2026-04-02 |
 | 290. Verification & Cleanup | 1/1 | Complete   | 2026-04-02 |
-| 291. Fix Url.Action References | 0/3 | Pending    | — |
+| 291. Fix Url.Action References | 1/3 | In Progress|  |

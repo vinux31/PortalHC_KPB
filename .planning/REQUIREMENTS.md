@@ -50,7 +50,7 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 
 ### Verification
 
-- [ ] **VER-01**: Semua URL yang ada sebelum refactoring tetap bisa diakses tanpa perubahan
+- [x] **VER-01**: Semua URL yang ada sebelum refactoring tetap bisa diakses tanpa perubahan
 - [ ] **VER-02**: Authorization (role Admin, HC) tetap sama persis di setiap action
 - [ ] **VER-03**: Aplikasi build tanpa error dan semua halaman berfungsi normal
 
@@ -84,7 +84,7 @@ Requirements untuk milestone v12.0. Pure refactoring — zero fitur baru, zero p
 | TRN-02 | Phase 289 | Complete |
 | RNW-01 | Phase 289 | Complete |
 | RNW-02 | Phase 289 | Complete |
-| VER-01 | Phase 291 | Pending |
+| VER-01 | Phase 291 | Complete |
 | VER-02 | Phase 290 | Pending |
 | VER-03 | Phase 290 | Pending |
 

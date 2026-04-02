@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v12.0
 milestone_name: Controller Refactoring
-status: verifying
-stopped_at: Completed 289-01-PLAN.md
-last_updated: "2026-04-02T08:27:26.162Z"
+status: executing
+stopped_at: Completed 291-02-PLAN.md
+last_updated: "2026-04-02T10:58:52.171Z"
 last_activity: 2026-04-02
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 6
+  completed_phases: 5
+  total_plans: 9
+  completed_plans: 7
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 289 — document-training-renewal-controllers
+**Current focus:** Phase 291 — fix-view-urlaction-references
 
 ## Current Position
 
-Phase: 290
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 291 (fix-view-urlaction-references) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0%
@@ -72,7 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 ## Session Continuity
 
 Last activity: 2026-04-02 — Completed quick task 260402-l2d: Fix delete assessment 404 error
-Stopped at: Completed 289-01-PLAN.md
+Stopped at: Completed 291-02-PLAN.md
 Resume file: None
 
 Last activity: 2026-04-02 - Completed quick task 260402-l2d: fix delete assessment 404 error
