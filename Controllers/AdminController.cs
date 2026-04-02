@@ -8,6 +8,7 @@ using HcPortal.Services;
 using ClosedXML.Excel;
 using System.Globalization;
 using HcPortal.Helpers;
+using Microsoft.Extensions.Caching.Memory;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 
@@ -18,16 +19,19 @@ namespace HcPortal.Controllers
     public class AdminController : AdminBaseController
     {
         private readonly ILogger<AdminController> _logger;
+        private readonly IMemoryCache _cache;
 
         public AdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             AuditLogService auditLog,
             IWebHostEnvironment env,
-            ILogger<AdminController> logger)
+            ILogger<AdminController> logger,
+            IMemoryCache cache)
             : base(context, userManager, auditLog, env)
         {
             _logger = logger;
+            _cache = cache;
         }
 
         // GET /Admin/Index
@@ -1801,6 +1805,71 @@ namespace HcPortal.Controllers
             };
 
             return PartialView("Shared/_RenewalGroupTablePartial", group);
+        }
+
+        #endregion
+
+        #region Maintenance Mode
+
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> Maintenance()
+        {
+            var maintenance = await _context.MaintenanceModes.FirstOrDefaultAsync();
+            if (maintenance == null)
+            {
+                maintenance = new MaintenanceMode { IsEnabled = false, Message = "", Scope = "All" };
+            }
+            return View(maintenance);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> Maintenance(bool isEnabled, string message, DateTime? estimatedEndTime, string scope, string? selectedModules)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var maintenance = await _context.MaintenanceModes.FirstOrDefaultAsync();
+            bool isNew = maintenance == null;
+            if (isNew)
+            {
+                maintenance = new MaintenanceMode();
+                _context.MaintenanceModes.Add(maintenance);
+            }
+
+            maintenance!.IsEnabled = isEnabled;
+            maintenance.Message = message ?? "";
+            maintenance.EstimatedEndTime = estimatedEndTime;
+            maintenance.Scope = scope == "Specific" && !string.IsNullOrEmpty(selectedModules) ? selectedModules : "All";
+
+            if (isEnabled)
+            {
+                maintenance.ActivatedByUserId = user.Id;
+                maintenance.ActivatedByName = user.FullName;
+                maintenance.ActivatedAt = DateTime.UtcNow;
+                maintenance.DeactivatedAt = null;
+            }
+            else
+            {
+                maintenance.DeactivatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            _cache.Remove("MaintenanceMode_State");
+
+            await _auditLog.LogAsync(
+                user.Id, user.FullName,
+                isEnabled ? "MaintenanceEnabled" : "MaintenanceDisabled",
+                $"Maintenance mode {(isEnabled ? "diaktifkan" : "dinonaktifkan")} — Scope: {maintenance.Scope}",
+                maintenance.Id, "MaintenanceMode");
+
+            TempData["SuccessMessage"] = isEnabled
+                ? "Mode pemeliharaan berhasil diaktifkan."
+                : "Mode pemeliharaan berhasil dinonaktifkan.";
+
+            return RedirectToAction("Maintenance");
         }
 
         #endregion
