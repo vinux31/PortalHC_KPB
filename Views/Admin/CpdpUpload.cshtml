@@ -8,14 +8,14 @@
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
-            <li class="breadcrumb-item"><a href="@Url.Action("CpdpFiles", "Admin")">CPDP File Management</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("CpdpFiles", "DocumentAdmin")">CPDP File Management</a></li>
             <li class="breadcrumb-item active">Upload File</li>
         </ol>
     </nav>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold"><i class="bi bi-cloud-arrow-up me-2"></i>Upload File CPDP</h2>
-        <a href="@Url.Action("CpdpFiles", "Admin")" class="btn btn-outline-secondary">
+        <a href="@Url.Action("CpdpFiles", "DocumentAdmin")" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Kembali
         </a>
     </div>
@@ -30,7 +30,7 @@
 
     <div class="card border-0 shadow-sm">
         <div class="card-body">
-            <form asp-action="CpdpUpload" asp-controller="Admin" method="post" enctype="multipart/form-data" id="uploadForm">
+            <form asp-action="CpdpUpload" asp-controller="DocumentAdmin" method="post" enctype="multipart/form-data" id="uploadForm">
                 @Html.AntiForgeryToken()
 
                 @* Bagian selector *@
@@ -79,7 +79,7 @@
 
                 @* Action buttons *@
                 <div class="d-flex justify-content-end gap-2 mt-4">
-                    <a href="@Url.Action("CpdpFiles", "Admin")" class="btn btn-light">Batal</a>
+                    <a href="@Url.Action("CpdpFiles", "DocumentAdmin")" class="btn btn-light">Batal</a>
                     <button type="submit" class="btn btn-primary px-4" id="btnUpload" disabled>
                         <i class="bi bi-check2-all me-2"></i>Upload File
                     </button>

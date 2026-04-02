@@ -131,7 +131,7 @@
                                                     <td><small>@file.UploaderName</small></td>
                                                     <td class="text-center">
                                                         <div class="d-flex gap-1 justify-content-center">
-                                                            <a href="@Url.Action("KkjFileDownload", "Admin", new { id = file.Id })"
+                                                            <a href="@Url.Action("KkjFileDownload", "DocumentAdmin", new { id = file.Id })"
                                                                class="btn btn-sm btn-outline-primary"
                                                                title="Download">
                                                                 <i class="bi bi-download"></i>
@@ -151,11 +151,11 @@
                             }
 
                             <div class="d-flex gap-2">
-                                <a href="@Url.Action("KkjUpload", "Admin", new { bagianId = bagian.Id })"
+                                <a href="@Url.Action("KkjUpload", "DocumentAdmin", new { bagianId = bagian.Id })"
                                    class="btn btn-primary btn-sm">
                                     <i class="bi bi-cloud-arrow-up me-2"></i>Upload File
                                 </a>
-                                <a href="@Url.Action("KkjFileHistory", "Admin", new { bagianId = bagian.Id })"
+                                <a href="@Url.Action("KkjFileHistory", "DocumentAdmin", new { bagianId = bagian.Id })"
                                    class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-clock-history me-2"></i>Riwayat File
                                 </a>
@@ -263,7 +263,7 @@
             const data = await resp.json();
             if (data.success) {
                 // Reload and navigate to new bagian tab
-                window.location.href = `@Url.Action("KkjMatrix", "Admin")?bagian=${data.id}`;
+                window.location.href = `@Url.Action("KkjMatrix", "DocumentAdmin")?bagian=${data.id}`;
             } else {
                 showToast(data.message || 'Gagal menambah bagian.', 'danger');
             }

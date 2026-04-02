@@ -8,14 +8,14 @@
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
-            <li class="breadcrumb-item"><a href="@Url.Action("CpdpFiles", "Admin")">CPDP File Management</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("CpdpFiles", "DocumentAdmin")">CPDP File Management</a></li>
             <li class="breadcrumb-item active">Riwayat File CPDP — @bagian?.Name</li>
         </ol>
     </nav>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold"><i class="bi bi-clock-history me-2"></i>Riwayat File CPDP — @bagian?.Name</h2>
-        <a href="@Url.Action("CpdpFiles", "Admin", new { bagian = bagian?.Id })" class="btn btn-outline-secondary">
+        <a href="@Url.Action("CpdpFiles", "DocumentAdmin", new { bagian = bagian?.Id })" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Kembali
         </a>
     </div>
@@ -73,7 +73,7 @@
                                         <small>@file.UploaderName</small>
                                     </td>
                                     <td class="text-center pe-3">
-                                        <a href="@Url.Action("CpdpFileDownload", "Admin", new { id = file.Id })"
+                                        <a href="@Url.Action("CpdpFileDownload", "DocumentAdmin", new { id = file.Id })"
                                            class="btn btn-sm btn-outline-primary"
                                            title="Download file arsip">
                                             <i class="bi bi-download me-1"></i>Download
