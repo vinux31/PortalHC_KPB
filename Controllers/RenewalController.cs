@@ -305,7 +305,7 @@ namespace HcPortal.Controllers
                 || !string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(subCategory)
                 || !string.IsNullOrEmpty(status) || !string.IsNullOrEmpty(tipe);
 
-            return PartialView("~/Views/Shared/_RenewalGroupedPartial.cshtml", gvm);
+            return PartialView("~/Views/Admin/Shared/_RenewalGroupedPartial.cshtml", gvm);
         }
 
         [HttpGet]
@@ -353,7 +353,7 @@ namespace HcPortal.Controllers
                 AkanExpiredCount = groupRows.Count(r => r.Status == CertificateStatus.AkanExpired)
             };
 
-            return PartialView("~/Views/Shared/_RenewalGroupTablePartial.cshtml", group);
+            return PartialView("~/Views/Admin/Shared/_RenewalGroupTablePartial.cshtml", group);
         }
     }
 }
