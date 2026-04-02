@@ -858,7 +858,20 @@ namespace HcPortal.Controllers
                     // Record question count for stale-question detection on resume (RESUME-03 safety net)
                     assignment.SavedQuestionCount = shuffledIds.Count;
                     _context.UserPackageAssignments.Add(assignment);
-                    await _context.SaveChangesAsync();
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (DbUpdateException)
+                    {
+                        // Race condition: another request already created the assignment (double-click/duplicate tab)
+                        // Reload the existing assignment and continue
+                        _context.ChangeTracker.Clear();
+                        assignment = await _context.UserPackageAssignments
+                            .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+                        if (assignment == null)
+                            throw; // genuinely unexpected — rethrow
+                    }
                 }
 
                 // BUG-05 fix: compare against actual assigned question count from ShuffledQuestionIds,
@@ -1498,8 +1511,17 @@ namespace HcPortal.Controllers
                     });
                 }
 
-                // Save PackageUserResponses first (answer persistence is safe to run before status claim)
-                await _context.SaveChangesAsync();
+                // Save PackageUserResponses + ET scores first (answer persistence is safe to run before status claim)
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    // Race: AkhiriUjian already inserted ET scores for this session — safe to ignore
+                    // since AkhiriUjian grading produces the same scores from the same saved answers.
+                    _context.ChangeTracker.Clear();
+                }
 
                 // Status-guarded write: detach entity and use ExecuteUpdateAsync so that if AkhiriUjian
                 // already completed this session, we get rowsAffected==0 and skip silently.
