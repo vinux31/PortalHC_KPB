@@ -1,206 +1,234 @@
-# Technology Stack — v11.2 Admin Platform Enhancement
+# Stack Research
 
-**Project:** PortalHC KPB
-**Researched:** 2026-04-01
-**Overall confidence:** HIGH (semua fitur bisa dibangun dengan stack existing)
+**Domain:** Tree View + Drag-and-Drop + Modal CRUD — ManageOrganization Redesign
+**Researched:** 2026-04-02
+**Confidence:** HIGH (semua library dikonfirmasi dari npm/GitHub resmi)
 
-## Current Stack (Tidak Berubah)
+---
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| ASP.NET Core MVC | .NET 8.0 | Web framework |
-| EF Core + SQL Server | 8.0.0 | ORM + Database |
-| ASP.NET Core Identity | 8.0.0 | Auth & roles |
-| ClosedXML | 0.105.0 | Excel export/import |
-| QuestPDF | 2026.2.2 | PDF generation |
-| SignalR | built-in .NET 8 | Real-time (sudah di assessment monitoring) |
-| Chart.js | via CDN | Charts (sudah di AnalyticsDashboard) |
-| Bootstrap 5 + jQuery | via CDN | UI framework |
+## Konteks Stack yang Sudah Ada
 
-## Kesimpulan Utama: ZERO Package Tambahan
+Proyek ini TIDAK menggunakan SPA framework. Stack eksisting yang relevan:
 
-Semua 7 fitur bisa dibangun dengan stack yang sudah ada. Tidak perlu install NuGet package atau JS library baru.
+| Layer | Teknologi |
+|-------|-----------|
+| Backend | ASP.NET Core 8, C# |
+| View Engine | Razor Views (server-rendered) |
+| CSS Framework | Bootstrap 5.3 |
+| Icons | Bootstrap Icons |
+| JS (eksisting) | jQuery (sudah ada, di-load via CDN) |
+| JS (eksisting) | Vanilla `fetch` / jQuery AJAX |
+| Modal | Bootstrap 5 Modal (sudah dipakai di halaman lain) |
 
-| Fitur | NuGet Baru | JS Baru | Dibangun Dengan |
-|-------|-----------|---------|-----------------|
-| Impersonation | - | - | ASP.NET Core Identity (claims manipulation) |
-| Announcement | - | - | EF Core + _Layout.cshtml partial |
-| Notification | - | - | EF Core + jQuery AJAX + ViewComponent |
-| Dashboard KPI | - | - | Chart.js (existing) + IMemoryCache (built-in) |
-| System Settings | - | - | EF Core + IMemoryCache |
-| Maintenance Mode | - | - | Custom middleware |
-| Backup & Restore | - | - | SQL Server T-SQL BACKUP/RESTORE |
+**Constraint penting:** Tidak boleh menambahkan React, Vue, Angular, atau bundler baru (Webpack/Vite).
+Semua library baru harus bisa di-load via `<script>` tag langsung, tanpa build step.
 
-## Detail Per Fitur
+---
 
-### 1. User Impersonation / View As Role
+## Recommended Stack — Penambahan Baru
 
-**Teknologi:** ASP.NET Core Identity bawaan — `SignInManager.SignInAsync()` + custom claims.
+### Satu Library Baru: SortableJS
 
-**Cara kerja:**
-- Admin klik "Impersonate" pada user target
-- Simpan `OriginalUserId` dan `OriginalUserName` sebagai additional claims
-- `SignInManager.SignInAsync(targetUser)` dengan claims tambahan
-- Middleware/ViewComponent cek claim `OriginalUserId` untuk tampilkan banner warning + tombol "Kembali ke Admin"
-- Tombol kembali: sign out, lalu sign in kembali sebagai admin original
-- Audit log setiap impersonation di tabel `ImpersonationLog`
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| **SortableJS** | **1.15.7** | Drag-and-drop reorder node dalam level yang sama | Vanilla JS murni (tanpa jQuery), 2.7 juta downloads/minggu di npm, aktif dikembangkan (rilis 1.15.7 sekitar Feb 2026), Bootstrap-agnostic, tidak ada konflik dengan jQuery yang sudah ada, support nested group dengan konfigurasi `group` |
 
-**Tidak perlu library session management tambahan** — Identity claims sudah cukup.
+### Tidak Ada Library Tambahan untuk Tree View
 
-### 2. Announcement / Broadcast
+| Kebutuhan | Solusi | Alasan Tidak Butuh Library |
+|-----------|--------|---------------------------|
+| Tree view hierarkis | Bootstrap 5 Collapse + Razor recursive partial | Bootstrap Collapse sudah built-in dan sudah di-load. Recursive `@Html.Partial("_OrgNode", child)` di Razor cukup untuk render nested. Semua library tree view yang tersedia baik sudah abandoned maupun memerlukan bundler. |
+| Expand/collapse animasi | Bootstrap 5 Collapse native | `data-bs-toggle="collapse"` sudah punya animasi built-in |
+| Modal CRUD | Bootstrap 5 Modal (sudah ada) | Sudah dipakai di halaman lain di proyek ini |
+| AJAX requests | jQuery AJAX / fetch (sudah ada) | jQuery sudah di-load, tidak perlu Axios atau library lain |
+| Anti-forgery token | ASP.NET `@Html.AntiForgeryToken()` + header | Pattern standar yang sudah dipakai di controller lain |
 
-**Teknologi:** EF Core model + partial view di `_Layout.cshtml`.
+---
 
-- Model `Announcement`: Title, Content HTML (sanitized), TargetRole (nullable = semua), StartDate, EndDate, IsActive, Priority
-- Query di `_Layout.cshtml` via ViewComponent — filter by IsActive, date range, dan role user
-- Tampilkan sebagai Bootstrap alert di atas content area
-- Admin CRUD via form biasa di AdminController
-- **SignalR TIDAK diperlukan** — announcement bukan real-time critical, cukup load saat page refresh
+## Installation SortableJS
 
-### 3. In-App Notification (Bell Icon)
+SortableJS adalah satu-satunya library baru yang perlu ditambahkan.
 
-**Teknologi:** EF Core + jQuery AJAX polling + Bootstrap dropdown.
+**Opsi A — CDN (Recommended, konsisten dengan pola proyek):**
 
-**Komponen:**
-- Model `Notification`: UserId, Title, Message, Type (enum), LinkUrl, IsRead, CreatedAt
-- ViewComponent `NotificationBell` di `_Layout.cshtml` navbar — render bell icon + unread count badge
-- AJAX endpoint `GET /Admin/NotificationCount` — return unread count (polling setiap 30 detik via `setInterval`)
-- AJAX endpoint `GET /Admin/NotificationList` — return partial view dengan 10 notifikasi terbaru
-- AJAX endpoint `POST /Admin/MarkNotificationRead/{id}`
-- Halaman penuh `/Admin/Notifications` untuk history
+```html
+<!-- Taruh di bagian @section Scripts { } pada halaman ManageOrganization -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
+```
 
-**Keputusan: Polling 30 detik, BUKAN SignalR.**
-Alasan: Notification tidak butuh sub-second latency. SignalR sudah ada di codebase tapi menambah persistent WebSocket connection per user untuk bell icon adalah over-engineering. Polling 30 detik dengan `$.get()` sederhana dan efektif.
+**Opsi B — Lokal di wwwroot (untuk lingkungan tanpa internet):**
 
-### 4. Dashboard Statistik Admin (KPI Overview)
+```
+Download: https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js
+Simpan ke: wwwroot/lib/sortablejs/Sortable.min.js
+```
 
-**Teknologi:** Chart.js (sudah ada) + EF Core aggregate queries + IMemoryCache.
+Tidak ada `npm install` yang diperlukan — proyek tidak menggunakan bundler.
 
-**Komponen:**
-- Halaman `/Admin/Dashboard` dengan card-based layout (Bootstrap grid)
-- KPI cards: Total Users, Active Assessments, Completion Rate, Pending Approvals, dll
-- Chart.js charts: trend line (assessments per bulan), bar chart (per unit), pie (status distribution)
-- `IMemoryCache` untuk cache query hasil aggregate (expire 5 menit) — built-in .NET, tidak perlu package
+---
 
-**Reuse pattern dari** `Views/CMP/AnalyticsDashboard.cshtml` yang sudah ada.
+## Supporting Libraries (Tidak Perlu Ditambahkan)
 
-### 5. System Settings Page
+Semua kebutuhan lain sudah tersedia dari stack eksisting:
 
-**Teknologi:** EF Core + IMemoryCache + form biasa.
+| Kebutuhan | Library Eksisting | Cara Pakai |
+|-----------|-------------------|------------|
+| Tree node expand/collapse | Bootstrap 5 Collapse | `data-bs-toggle="collapse" data-bs-target="#children-{id}"` |
+| Modal Add/Edit/Delete | Bootstrap 5 Modal | `data-bs-toggle="modal" data-bs-target="#editModal"` |
+| AJAX POST untuk save | jQuery `$.ajax()` | Pattern sudah ada di seluruh proyek |
+| AJAX GET untuk load | `fetch()` atau `$.get()` | Pilih salah satu yang konsisten dengan halaman lain |
+| Form validation | Bootstrap form validation | `was-validated` class + HTML5 `required` attribute |
+| Loading state | Bootstrap spinner | `<div class="spinner-border">` |
 
-**Komponen:**
-- Model `SystemSetting`: Key (PK), Value, ValueType (string/int/bool/json), Description, Category, UpdatedAt, UpdatedBy
-- Service `SystemSettingService` dengan get/set + auto-invalidate cache
-- Admin UI: grouped by category (General, Security, Notification, Maintenance)
-- Settings yang langsung berguna: site name, maintenance mode toggle, notification retention days, backup path
+---
 
-**Pattern:** Key-value store di database, di-cache di memory, invalidate on write. Sederhana dan proven.
+## Alternatives Considered
 
-### 6. Maintenance Mode
+| Kebutuhan | Dipilih | Alternatif | Kenapa Alternatif Tidak Dipilih |
+|-----------|---------|------------|--------------------------------|
+| Tree view | Custom CSS + Bootstrap Collapse | **bstreeview** (chniter) | Last publish npm: 2020. Bootstrap 4 only. Tidak dimaintain. |
+| Tree view | Custom CSS + Bootstrap Collapse | **bs5treeview** (nhmvienna) | Deprecated resmi — maintainer sendiri pasang notice di README, rekomendasikan ganti ke quercus.js. Last update: Aug 2021. |
+| Tree view | Custom CSS + Bootstrap Collapse | **@jbtronics/bs-treeview** | No jQuery (bagus), Bootstrap 5 support (bagus), tapi memerlukan TypeScript + webpack/bundler. Tidak kompatibel dengan pola proyek ini. Version 1.0.6, last update Feb 2024. |
+| Tree view | Custom CSS + Bootstrap Collapse | **jsTree** | Desain era jQuery 1.x, CSS opinionated sulit di-override dengan Bootstrap 5, bundle ~200KB |
+| Drag-drop | SortableJS | **jQuery UI Sortable** | jQuery UI adalah library terpisah dari jQuery (harus load tambahan), berat, tidak aktif dikembangkan untuk kebutuhan modern |
+| Drag-drop | SortableJS | **HTML5 native drag API** | API sangat verbose, tidak ada animasi built-in, sulit handle edge cases (touch device, cross-browser) |
+| Drag-drop | SortableJS | **Dragula** | Tidak dimaintain sejak 2021, fitur lebih terbatas dari SortableJS |
+| Modal CRUD | Bootstrap 5 Modal | **SweetAlert2 / modal library lain** | Bootstrap Modal sudah ada dan sudah dipakai di proyek. Menambah library baru untuk fungsi yang sudah tersedia = overkill. |
 
-**Teknologi:** Custom ASP.NET Core middleware.
+---
 
-**Implementasi:**
+## What NOT to Use
+
+| Hindari | Alasan Spesifik | Gunakan Ini |
+|---------|-----------------|-------------|
+| **jquery.nestedSortable** | Bergantung jQuery UI (bukan jQuery biasa), tidak aktif dimaintain, sulit integrasi dengan Bootstrap 5 | SortableJS 1.15.7 |
+| **bstreeview / bs5treeview** | Kedua library ini abandoned. bs5treeview secara resmi deprecated di README oleh maintainernya sendiri | Custom CSS + Bootstrap Collapse |
+| **jsTree** | Bundle besar, CSS sulit dioverride dengan Bootstrap 5, gaya desain jQuery 1.x era | Custom Razor recursive partial |
+| **Dragula** | Tidak dimaintain aktif sejak 2021, kalah fitur dari SortableJS yang terus diperbarui | SortableJS 1.15.7 |
+| **React/Vue tree component** | Membawa SPA dependency ke server-rendered app. Bertentangan dengan arsitektur proyek. | Custom Razor recursive partial |
+
+---
+
+## Stack Patterns by Variant
+
+**Untuk tree node collapse/expand:**
+- Render hierarki dengan Razor recursive partial `_OrgNode.cshtml`
+- Setiap parent node punya `<ul id="children-{id}" class="collapse show">`
+- Toggle button pakai `data-bs-toggle="collapse"` — Bootstrap handles animasi
+- Tidak perlu JavaScript custom untuk expand/collapse
+
+**Untuk drag-and-drop (reorder dalam level yang sama, tidak boleh pindah parent):**
+- Inisialisasi SortableJS pada setiap `<ul class="org-children">` secara terpisah
+- Set `group: false` (atau `group: { name: 'org-{parentId}', pull: false, put: false }`) untuk prevent cross-parent drag
+- Event `onEnd` kirim PATCH request dengan urutan baru ke `OrganizationController`
+- Gunakan `animation: 150` untuk visual feedback yang smooth
+
+**Untuk modal CRUD (Add Child / Edit / Delete):**
+- Satu modal reusable dengan form fields yang bisa diisi via JavaScript
+- Tombol Add/Edit populate modal dengan data via `data-*` attributes atau AJAX partial load
+- Submit via `$.ajax()` dengan anti-forgery token di header
+- Setelah success: `location.reload()` atau replace hanya `#org-tree` section dengan innerHTML baru
+
+---
+
+## Version Compatibility
+
+| Package | Kompatibel Dengan | Notes |
+|---------|-------------------|-------|
+| SortableJS 1.15.7 | Bootstrap 5.3 | Tidak ada konflik. SortableJS hanya manipulasi DOM order, tidak menyentuh Bootstrap CSS |
+| SortableJS 1.15.7 | jQuery 3.x | Tidak ada konflik. SortableJS adalah vanilla JS, jQuery dan SortableJS berjalan independen |
+| Bootstrap 5.3 Collapse | jQuery 3.x | Bootstrap 5 tidak butuh jQuery. Keduanya coexist tanpa masalah |
+| SortableJS 1.15.7 | ASP.NET Core 8 anti-forgery | Anti-forgery dihandle di fetch/AJAX request header, SortableJS tidak menyentuh HTTP layer |
+
+---
+
+## Integration Points dengan Kode Eksisting
+
+### Anti-Forgery Token Pattern (sudah dipakai di controller lain)
+
+```javascript
+// Ambil token dari hidden input yang di-render Razor
+const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+fetch('/Organization/Reorder', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'RequestVerificationToken': token
+    },
+    body: JSON.stringify({ items: newOrder })
+});
+```
+
+### SortableJS Init — Same-Parent Only
+
+```javascript
+// Inisialisasi setiap UL yang berisi children
+document.querySelectorAll('.org-children').forEach(function(el) {
+    Sortable.create(el, {
+        animation: 150,
+        handle: '.drag-handle',    // Hanya bisa drag dari handle icon
+        group: false,              // Prevent cross-parent drag
+        onEnd: function(evt) {
+            const parentId = evt.from.dataset.parentId;
+            const ids = [...evt.from.querySelectorAll(':scope > li')]
+                            .map(li => li.dataset.id);
+            // Kirim ke server
+            postReorder(parentId, ids);
+        }
+    });
+});
+```
+
+### Razor Recursive Partial (`_OrgNode.cshtml`)
+
 ```csharp
-// MaintenanceModeMiddleware.cs
-public async Task InvokeAsync(HttpContext context)
-{
-    var settings = context.RequestServices.GetRequiredService<ISystemSettingService>();
-    if (settings.GetBool("MaintenanceMode") && !context.User.IsInRole("Admin"))
-    {
-        context.Response.StatusCode = 503;
-        await context.Response.SendFileAsync("wwwroot/maintenance.html");
-        return;
+@model OrgNodeViewModel
+<li class="list-group-item org-node" data-id="@Model.Id">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor:grab"></i>
+        @if (Model.Children.Any()) {
+            <button class="btn btn-sm btn-link p-0" data-bs-toggle="collapse"
+                    data-bs-target="#children-@Model.Id" aria-expanded="true">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        }
+        <span class="flex-grow-1">@Model.Name</span>
+        <button class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="modal" data-bs-target="#editModal"
+                data-id="@Model.Id" data-name="@Model.Name">
+            <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-success"
+                data-bs-toggle="modal" data-bs-target="#addChildModal"
+                data-parent-id="@Model.Id">
+            <i class="bi bi-plus"></i>
+        </button>
+    </div>
+    @if (Model.Children.Any()) {
+        <ul id="children-@Model.Id"
+            class="collapse show org-children list-group list-group-flush ms-3 mt-1"
+            data-parent-id="@Model.Id">
+            @foreach (var child in Model.Children) {
+                @Html.Partial("_OrgNode", child)
+            }
+        </ul>
     }
-    await _next(context);
-}
+</li>
 ```
 
-**Pipeline placement:**
-```
-app.UseAuthentication();
-app.UseMaintenanceModeMiddleware();  // <-- BARU: setelah auth, sebelum authorization
-app.UseAuthorization();
-```
-
-- Toggle via System Settings page (fitur #5) — satu checkbox
-- Static HTML file `wwwroot/maintenance.html` — tidak butuh layout/razor
-- Admin tetap bisa akses semua halaman saat maintenance aktif
-
-### 7. Backup & Restore Database
-
-**Teknologi:** SQL Server T-SQL BACKUP/RESTORE via `ExecuteSqlRawAsync` + `IHostedService` bawaan .NET.
-
-**Backup:**
-```csharp
-await context.Database.ExecuteSqlRawAsync(
-    $"BACKUP DATABASE [{dbName}] TO DISK = N'{backupPath}' WITH FORMAT, COMPRESSION");
-```
-
-**Restore:**
-```csharp
-await context.Database.ExecuteSqlRawAsync(
-    $"ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; " +
-    $"RESTORE DATABASE [{dbName}] FROM DISK = N'{restorePath}'; " +
-    $"ALTER DATABASE [{dbName}] SET MULTI_USER");
-```
-
-**Komponen:**
-- Model `BackupHistory`: Id, FileName, FilePath, SizeBytes, CreatedAt, CreatedBy, Status, DurationMs
-- Backup path configurable via System Settings
-- Download backup via `FileStreamResult`
-- List backup files dari tabel BackupHistory + verify file exists
-- Background execution via `IHostedService` untuk backup besar (queue pattern sederhana)
-
-**Catatan keamanan:** Hanya Admin role. SQL Server service account harus punya write permission ke backup folder.
-
-## Model Database Baru (5 Tabel, 1 Migration)
-
-```
-SystemSetting      (Key PK, Value, ValueType, Description, Category, UpdatedAt, UpdatedBy)
-Announcement       (Id, Title, Content, TargetRole, Priority, StartDate, EndDate, IsActive, CreatedBy, CreatedAt)
-Notification       (Id, UserId FK→AspNetUsers, Title, Message, Type, LinkUrl, IsRead, CreatedAt)
-ImpersonationLog   (Id, AdminUserId FK, TargetUserId FK, StartedAt, EndedAt, Reason)
-BackupHistory      (Id, FileName, FilePath, SizeBytes, DurationMs, CreatedAt, CreatedBy, Status)
-```
-
-## Yang TIDAK Perlu Ditambahkan
-
-| Jangan Tambahkan | Alasan | Alternatif yang Sudah Ada |
-|------------------|--------|---------------------------|
-| **Hangfire** | Hanya backup butuh background job. `IHostedService` bawaan .NET cukup untuk satu task. Hangfire butuh 7+ tabel database sendiri + dashboard — overkill. | `IHostedService` / `BackgroundService` |
-| **MediatR** | CQRS pattern tidak diperlukan untuk CRUD settings sederhana. Tambah abstraction tanpa value. | Direct service injection |
-| **FluentValidation** | Model sederhana. Data Annotations (`[Required]`, `[MaxLength]`) sudah cukup. | Data Annotations |
-| **SignalR untuk notifications** | Polling 30 detik via jQuery cukup. Persistent WebSocket per user untuk bell icon = over-engineering. | `setInterval` + `$.get()` |
-| **Redis** | Single server deployment. Data volume kecil. | `IMemoryCache` (built-in) |
-| **Toast library (Toastr/Notyf)** | Bootstrap 5 Toast component sudah built-in dan sudah cukup. | Bootstrap Toast |
-| **Rich text editor (TinyMCE/CKEditor)** | Announcement content cukup pakai textarea + basic HTML. Jika nanti perlu, tambahkan di phase terpisah. | Textarea biasa |
-| **Quartz.NET** | Scheduled backup bisa pakai Windows Task Scheduler yang sudah ada di server. Tidak perlu in-app scheduler. | Windows Task Scheduler |
-
-## Services Baru yang Perlu Dibuat
-
-| Service | Purpose | DI Registration |
-|---------|---------|-----------------|
-| `ISystemSettingService` | Get/set settings dengan caching | Singleton |
-| `INotificationService` | Create/read/mark-read notifications | Scoped |
-| `IImpersonationService` | Start/stop impersonation, audit log | Scoped |
-| `IBackupService` | Trigger backup/restore, list history | Scoped |
-
-## Middleware Baru
-
-| Middleware | Purpose | Position in Pipeline |
-|------------|---------|---------------------|
-| `MaintenanceModeMiddleware` | Block non-admin saat maintenance | Setelah `UseAuthentication()`, sebelum `UseAuthorization()` |
-| `ImpersonationBannerMiddleware` (opsional) | Inject banner HTML saat impersonating | Atau cukup ViewComponent di _Layout |
+---
 
 ## Sources
 
-- ASP.NET Core Identity: claims-based impersonation adalah pattern standar (HIGH confidence — built-in framework capability)
-- SQL Server BACKUP/RESTORE T-SQL: documented di Microsoft docs, dipakai luas (HIGH confidence)
-- IMemoryCache: built-in .NET 8, zero config (HIGH confidence)
-- IHostedService/BackgroundService: built-in .NET 8 untuk background tasks sederhana (HIGH confidence)
-- Existing codebase: SignalR di `AdminController.cs`/`AssessmentMonitoringDetail.cshtml`, Chart.js di `AnalyticsDashboard.cshtml` (HIGH confidence — verified in source)
+- [SortableJS npm](https://www.npmjs.com/package/sortablejs) — Version 1.15.7 dikonfirmasi, ~2.7M downloads/week, HIGH confidence
+- [SortableJS GitHub](https://github.com/SortableJS/Sortable) — Vanilla JS no framework required, 1,100+ commits, HIGH confidence
+- [bs5treeview GitHub deprecated notice](https://github.com/nhmvienna/bs5treeview) — Deprecation notice dikonfirmasi langsung di README, HIGH confidence
+- [@jbtronics/bs-treeview npm](https://www.npmjs.com/package/@jbtronics/bs-treeview) — Version 1.0.6 Feb 2024, requires bundler, HIGH confidence
+- [bstreeview npm](https://www.npmjs.com/package/bstreeview) — Version 1.2.0 last publish 2020 (Bootstrap 4 only), HIGH confidence
+- [Bootstrap 5 Collapse documentation](https://getbootstrap.com/docs/5.3/components/collapse/) — Native component, no extra library needed, HIGH confidence
+- [ASP.NET Core fetch + anti-forgery pattern](https://www.binaryintellect.net/articles/96b2cc91-73a8-480b-9785-fb6cbe7d9401.aspx) — MEDIUM confidence
 
 ---
-*Stack research untuk: v11.2 Admin Platform Enhancement*
-*Researched: 2026-04-01*
+*Stack research for: ManageOrganization redesign — Tree View + Drag-Drop + Modal CRUD*
+*Researched: 2026-04-02*

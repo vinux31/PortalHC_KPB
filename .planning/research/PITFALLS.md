@@ -1,204 +1,254 @@
-# Domain Pitfalls — Admin Platform Enhancement (v11.2)
+# Pitfalls Research
 
-**Domain:** 7 fitur admin baru untuk existing ASP.NET Core MVC HR portal
-**Researched:** 2026-04-01
-**Confidence:** HIGH (berdasarkan analisis codebase PortalHC + domain knowledge)
-
----
-
-## 1. User Impersonation
-
-### CRITICAL: Session Corruption (Multi-Tab)
-**Apa yang salah:** Admin impersonate user A, buka tab baru impersonate user B. Session state tercampur — admin melakukan aksi sebagai user yang salah.
-**Penyebab:** Impersonation state disimpan di session/cookie tanpa isolation per-tab.
-**Pencegahan:** Simpan impersonation state di claims (`OriginalUserId` + `ImpersonatedUserId`). Satu admin hanya boleh impersonate satu user pada satu waktu. Saat start impersonation baru, otomatis end yang lama.
-**Deteksi:** Test: buka 2 tab, impersonate 2 user berbeda, verifikasi identitas konsisten.
-
-### CRITICAL: Privilege Escalation
-**Apa yang salah:** Admin impersonate HC user, lalu akses action yang seharusnya tidak bisa diakses saat impersonation (misalnya ubah data admin lain, atau akses AdminController).
-**Penyebab:** Impersonation memberi SEMUA permission target tanpa filter.
-**Pencegahan:** Mode impersonation = READ-ONLY. Disable semua POST/write action saat impersonation aktif. Jangan pernah izinkan impersonate user yang role >= role admin sendiri. Khusus PortalHC: pastikan `[Authorize(Roles = "Admin")]` actions tidak accessible saat impersonating non-Admin.
-**Deteksi:** Cek apakah `User.IsInRole("Admin")` masih return true saat impersonation — authorization chain bisa bocor.
-
-### CRITICAL: Audit Trail Gap
-**Apa yang salah:** Aksi saat impersonation tercatat atas nama user target, bukan admin. Jika ada masalah, tidak bisa trace siapa yang sebenarnya melakukan aksi.
-**Penyebab:** Logging pakai `User.Identity.Name` tanpa cek impersonation state.
-**Pencegahan:** Setiap log entry catat `ActualUser` dan `ImpersonatedUser`. Buat helper `GetActualUserId()` yang selalu return admin asli. Log event start/stop impersonation.
-
-### MODERATE: Lupa End Impersonation
-**Apa yang salah:** Admin selesai troubleshoot tapi lupa klik "Stop Impersonation". Melakukan aksi admin sebagai user biasa.
-**Pencegahan:** Banner merah mencolok di seluruh halaman. Auto-expire setelah 30 menit. Tombol "Stop" selalu visible.
+**Domain:** Tree view + drag-drop + AJAX CRUD pada ManageOrganization (ASP.NET Core Razor + Bootstrap)
+**Researched:** 2026-04-02
+**Confidence:** HIGH (berbasis analisis kode aktual di codebase)
 
 ---
 
-## 2. Announcement / Pengumuman
+## Critical Pitfalls
 
-### MODERATE: Notification Fatigue
-**Apa yang salah:** Admin kirim pengumuman terlalu sering, user abaikan semua termasuk yang penting.
-**Pencegahan:** Implementasi priority level (Info, Important, Urgent). Urgent hanya untuk Admin. Rate limiting opsional.
+### Pitfall 1: Cascade Rename Rusak Saat Level Berubah Bersamaan
 
-### MODERATE: Targeting Over-Engineering
-**Apa yang salah:** Admin ingin kirim ke "user di unit X yang belum assessment" — targeting jadi kompleks, query lambat.
-**Pencegahan:** Mulai sederhana: target by Role dan/atau Unit saja. Tambah criteria nanti kalau benar-benar dibutuhkan. PortalHC punya ~3 role dan beberapa unit — ini sudah cukup.
+**What goes wrong:**
+`EditOrganizationUnit` melakukan cascade rename hanya berdasarkan `unit.Level` pada saat edit. Jika drag-drop mengubah `ParentId` (sehingga level berubah dari 0 ke 1 atau sebaliknya) sebelum rename dicek, logika cascade salah menentukan apakah harus update `User.Section` atau `User.Unit`. Contoh: unit yang semula Level 0 (Bagian) dipindahkan ke bawah node lain — levelnya berubah jadi 1 — tapi cascade rename masih pakai path Level 0 kalau urutan operasi salah.
 
-### MINOR: Rich Text XSS
-**Apa yang salah:** Admin masukkan HTML/script di konten pengumuman, dirender tanpa sanitasi.
-**Pencegahan:** Plain text + basic formatting saja (bold, italic). Atau gunakan `HtmlSanitizer` NuGet. Razor `@Html.Raw()` adalah red flag — hindari untuk user-generated content.
+**Why it happens:**
+Di `EditOrganizationUnit` (OrganizationController.cs baris 164), nama diubah setelah parent diubah. Tapi cascade rename membaca `unit.Level` yang sudah diupdate (baris 148: `unit.Level = newLevel`). Jika drag-drop AJAX menjadi endpoint terpisah yang mengubah parent dulu kemudian rename menyusul, ada window di mana level sudah berubah tapi denormalized fields belum diupdate.
 
----
+**How to avoid:**
+Endpoint AJAX drag-drop harus menggabungkan reparent + cascade dalam satu transaksi database. Jangan pisahkan "pindahkan parent" dan "cascade rename" menjadi dua AJAX call terpisah. Gunakan `IDbContextTransaction` eksplisit jika ada kemungkinan partial failure.
 
-## 3. In-App Notification
+**Warning signs:**
+- Ada endpoint AJAX terpisah untuk reorder/reparent yang tidak menyentuh cascade
+- `User.Section` dan `User.Unit` tidak match setelah drag-drop antar level
+- Unit yang awalnya Bagian (Level 0) menjadi sub-unit tanpa `User.Section` terupdate
 
-### CRITICAL: Polling Trap (Padahal SignalR Sudah Ada)
-**Apa yang salah:** Developer implementasi polling setiap 5 detik untuk cek notifikasi baru, padahal SignalR sudah ada di project. 200 concurrent user = 40 request/detik hanya untuk notifikasi.
-**Pencegahan:** GUNAKAN SignalR yang sudah ada. Push notification saat event terjadi. Jangan polling. Ini pitfall paling mudah dihindari karena infrastructure sudah ada.
-
-### MODERATE: Tabel Notification Membengkak
-**Apa yang salah:** 1 pengumuman ke 500 user = 500 row di tabel. Setahun = jutaan row, query melambat.
-**Pencegahan:** Pisahkan `Notifications` (master) dan `UserNotificationReads` (tracking siapa sudah baca). Untuk broadcast, simpan 1 record + track read status. Auto-delete notifikasi > 90 hari.
-
-### MODERATE: Notification Spam dari Cascading Events
-**Apa yang salah:** Admin update assessment → trigger notifikasi "assessment diupdate" + "jadwal berubah" + "silakan cek" ke user yang sama.
-**Pencegahan:** Satu aksi = maksimal satu notifikasi. Definisikan notification types sebagai enum, bukan ad-hoc strings.
+**Phase to address:**
+Phase implementasi drag-drop AJAX — harus menyertakan cascade dalam payload yang sama, bukan sebagai afterthought.
 
 ---
 
-## 4. Dashboard Statistik
+### Pitfall 2: CSRF Token Hilang Saat AJAX Menggantikan Form POST
 
-### CRITICAL: Slow Aggregation Queries
-**Apa yang salah:** Dashboard COUNT(*) dari tabel Assessment, ExamAttempt, Workers di setiap page load. Data besar = 10+ detik load time.
-**Penyebab:** Real-time aggregation tanpa caching. PortalHC saat ini TIDAK punya caching layer.
-**Pencegahan:** Gunakan `IMemoryCache` dengan 5-15 menit expiry. Ini pengenalan caching pertama ke project — lakukan dengan benar karena jadi pattern untuk fitur lain. Contoh:
-```csharp
-var stats = _cache.GetOrCreate("dashboard_stats", entry => {
-    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-    return ComputeStats();
-});
+**What goes wrong:**
+View saat ini menggunakan `<form method="post">` dengan `@Html.AntiForgeryToken()` di setiap tombol. Jika diganti AJAX (`fetch`/jQuery), developer sering lupa menyertakan antiforgery token di header request, sehingga semua endpoint POST mengembalikan 400.
+
+**Why it happens:**
+Saat PRG (Post-Redirect-Get), Razor otomatis inject token ke form. Saat beralih ke `fetch()`, token harus diambil manual dari cookie atau meta tag dan disertakan sebagai header `RequestVerificationToken`. Developer yang tidak familiar ASP.NET Core sering melewatkan ini.
+
+**How to avoid:**
+Tambahkan meta tag di layout: `<meta name="__RequestVerificationToken" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />`. Di semua `fetch()` call, sertakan header:
+```js
+headers: { 'RequestVerificationToken': document.querySelector('meta[name="__RequestVerificationToken"]').content }
 ```
+Semua endpoint yang ada sudah memiliki `[ValidateAntiForgeryToken]` — jangan hapus atribut ini.
 
-### CRITICAL: N+1 Query Pattern
-**Apa yang salah:** Dashboard "Assessment per Unit" — EF Core lazy load setiap unit, lalu assessment per unit. 10 unit = 11 queries minimum.
-**Penyebab:** Tidak pakai projection atau eager loading.
-**Pencegahan:** Tulis dashboard queries sebagai LINQ projection (`.Select()` ke DTO). Jangan load entity penuh. Total dashboard harus <= 5 SQL queries. Verifikasi dengan SQL Server Profiler atau EF Core logging.
+**Warning signs:**
+- Console browser menunjukkan 400 Bad Request saat AJAX POST
+- Developer menghapus `[ValidateAntiForgeryToken]` sebagai "solusi cepat"
+- Hanya GET endpoint yang berhasil, semua POST gagal
 
-### MODERATE: Stale Data Confusion
-**Apa yang salah:** Dashboard angka berbeda dari detail page karena cache.
-**Pencegahan:** Tampilkan "Data per: [waktu]" di dashboard. Tombol refresh manual. User perlu tahu data di-cache.
-
----
-
-## 5. System Settings
-
-### CRITICAL: Cache Invalidation
-**Apa yang salah:** Admin ubah setting "Max Upload Size" dari 5MB ke 10MB. Setting masih di-cache sebagai 5MB.
-**Pencegahan:** Pattern: `SettingsService` yang baca dari cache, tapi invalidate on write. Setiap `UpdateSetting()` call `_cache.Remove("settings")`. Jangan pakai `IOptions<T>` (bound at startup) — pakai `IOptionsMonitor<T>` atau custom service.
-
-### CRITICAL: Misconfiguration Tanpa Validasi
-**Apa yang salah:** Admin set "Session Timeout" ke 0 atau "Max Workers per Unit" ke -1. Sistem crash.
-**Pencegahan:** Setiap setting: tipe data, min/max range, default value. Validasi server-side sebelum simpan. UI tampilkan "Default: X" dan range.
-
-### MODERATE: Settings Menjadi God Object
-**Apa yang salah:** Semua konfigurasi masuk satu tabel key-value. Seiring waktu, 100+ settings tanpa organisasi, admin bingung.
-**Pencegahan:** Grouping settings by category (General, Security, Notification, Maintenance). Batasi settings hanya untuk hal yang BENAR-BENAR perlu diubah runtime. Hal yang jarang berubah tetap di `appsettings.json`.
+**Phase to address:**
+Phase pertama yang memperkenalkan AJAX — buat utility function terpusat untuk fetch dengan CSRF token, bukan copy-paste per tombol.
 
 ---
 
-## 6. Maintenance Mode
+### Pitfall 3: DisplayOrder Korup Setelah Drag-Drop Antar Parent
 
-### CRITICAL: Admin Terkunci dari Sistem
-**Apa yang salah:** Admin aktifkan maintenance mode, session expire, tidak bisa login karena maintenance mode block SEMUA request.
-**Penyebab:** Middleware terlalu agresif tanpa exception.
-**Pencegahan:** Middleware HARUS whitelist: (1) `/Account/Login`, (2) semua request dari user dengan role Admin, (3) static files (`/lib/`, `/css/`, `/js/`), (4) `/Admin/MaintenanceMode` toggle endpoint. **TEST SKENARIO INI**: aktifkan maintenance → logout → login lagi sebagai admin.
+**What goes wrong:**
+`ReorderOrganizationUnit` saat ini hanya swap DisplayOrder antar sibling (OrganizationController.cs baris 344-354). Jika drag-drop memindahkan node ke parent baru pada posisi tertentu, DisplayOrder di parent lama dan baru harus di-recompute. Jika hanya `ParentId` yang diupdate tanpa normalisasi ulang DisplayOrder di parent baru, node bisa memiliki DisplayOrder yang sama dengan sibling lain atau urutan yang tidak terduga.
 
-### CRITICAL: Middleware Ordering dengan Auth
-**Apa yang salah:** Maintenance middleware sebelum authentication = tidak bisa cek role admin. Setelah authentication = user sudah authenticated tapi tetap blocked.
-**Pencegahan:** Urutan yang benar di `Program.cs`:
-```
-app.UseAuthentication();
-app.UseMaintenanceMode();  // Setelah auth, bisa cek User.IsInRole
-app.UseAuthorization();
-```
-Middleware cek: `if (context.User.IsInRole("Admin")) next()` else return maintenance page.
+**Why it happens:**
+Sistem saat ini mengasumsikan reorder hanya terjadi dalam satu parent (sibling swap). Drag-drop lintas parent adalah use case baru yang tidak ditangani oleh logika reorder yang ada.
 
-### MODERATE: Maintenance Page Tanpa Styling
-**Apa yang salah:** Lupa whitelist static files. Halaman maintenance muncul tanpa CSS.
-**Pencegahan:** Maintenance page harus self-contained (inline CSS) ATAU whitelist semua static file paths.
+**How to avoid:**
+Endpoint drag-drop harus melakukan dua operasi atomik:
+1. Update `ParentId` dan `Level` pada node yang dipindahkan
+2. Recompute `DisplayOrder` seluruh sibling di parent lama (normalkan agar tidak ada gap) dan sisipkan node di posisi target di parent baru dengan menggeser DisplayOrder sibling yang ada
 
----
+Gunakan satu `SaveChangesAsync()` setelah semua perubahan, bukan pemanggilan terpisah.
 
-## 7. Backup & Restore
+**Warning signs:**
+- Setelah drag-drop, urutan node tidak sesuai dengan yang di-drop
+- Dua node dalam parent yang sama memiliki DisplayOrder yang sama
+- Refresh halaman menampilkan urutan yang berbeda dari yang terlihat setelah drag
 
-### CRITICAL: Restore Menghancurkan Data Baru
-**Apa yang salah:** Admin restore backup 3 hari lalu. Data 3 hari terakhir hilang tanpa peringatan.
-**Pencegahan:** Sebelum restore: (1) tampilkan "Backup dari [tanggal]. Data setelah ini HILANG.", (2) hitung berapa record baru yang akan hilang, (3) wajib ketik "RESTORE" untuk konfirmasi, (4) AUTO-BACKUP sebelum restore.
-
-### CRITICAL: Incomplete Backup
-**Apa yang salah:** Backup database saja, tidak termasuk uploaded files (sertifikat, evidence coaching, dokumen KKJ). Setelah restore, semua link file rusak.
-**Pencegahan:** Backup scope: (1) database, (2) uploaded files di wwwroot/uploads atau equivalent, (3) appsettings non-sensitive. Dokumentasikan apa yang termasuk dan tidak.
-
-### CRITICAL: Blocking Operation
-**Apa yang salah:** Backup database besar = 10 menit. Website tidak accessible selama itu.
-**Penyebab:** Backup synchronous di request thread.
-**Pencegahan:** Background task (ini alasan utama setup background job infrastructure). Gunakan SQL `BACKUP ... WITH COPY_ONLY` agar tidak ganggu transaction log. Pertimbangkan aktifkan maintenance mode selama backup.
-
-### MODERATE: Background Job Infrastructure Belum Ada
-**Apa yang salah:** Backup, scheduled maintenance, notification cleanup — semua butuh background processing. Project belum punya.
-**Pencegahan:** Setup `IHostedService` atau `BackgroundService` sebagai foundation di fase awal. Semua fitur pakai infrastructure yang sama.
+**Phase to address:**
+Phase implementasi drag-drop — tulis endpoint `MoveOrganizationUnit` baru yang menggantikan `ReorderOrganizationUnit` lama, jangan modifikasi endpoint reorder yang ada.
 
 ---
 
-## Integration Pitfalls (Lintas Fitur)
+### Pitfall 4: GetSectionUnitsDictAsync Hanya Membaca 2 Level — Rusak Jika Struktur 3+ Level
 
-### CRITICAL: Tidak Ada Background Job Infrastructure
-**Dampak:** Notification cleanup, backup, scheduled maintenance, dashboard cache refresh — semua butuh background processing.
-**Pencegahan:** Setup `BackgroundService` / `IHostedService` di fase PERTAMA. Ini foundation untuk fitur lain. Tanpa ini, developer akan implementasi ad-hoc per fitur → inconsistent dan sulit maintain.
+**What goes wrong:**
+`GetSectionUnitsDictAsync` di `ApplicationDbContext.cs` (baris 105-113) hanya membaca Level 0 (Bagian) dan direct children-nya. Jika drag-drop memungkinkan pembuatan struktur 3+ level, fungsi ini tidak akan mengembalikan unit yang ada di Level 2+. Semua 7 controller yang memanggil fungsi ini (WorkerController, CoachMappingController, CMPController, ProtonDataController, CDPController, dll.) akan menampilkan dropdown yang tidak lengkap.
 
-### CRITICAL: Middleware Ordering di Program.cs
-**Dampak:** Maintenance mode + impersonation + existing auth = middleware pipeline makin kompleks. Urutan salah = security hole.
-**Pencegahan:** Dokumentasikan urutan middleware yang benar. Test setiap kombinasi state (impersonation + maintenance, dll).
+**Why it happens:**
+Fungsi ini ditulis saat struktur hanya 2 level (Bagian > Unit). Asumsi ini di-hardcode dengan `u.ParentId != null && bagianIds.Contains(u.ParentId!.Value)`. Penambahan level baru di UI tidak otomatis mengubah fungsi ini.
 
-### MODERATE: Feature Interaction
-**Dampak:** Admin sedang impersonate user → maintenance mode diaktifkan oleh admin lain → apa yang terjadi? Notification dikirim saat maintenance mode aktif → queue atau drop?
-**Pencegahan:** Definisikan behavior matrix untuk setiap kombinasi fitur. Minimal: maintenance mode + impersonation harus dihandle.
+**How to avoid:**
+Sebelum mengaktifkan struktur 3+ level di UI, update `GetSectionUnitsDictAsync` untuk menggunakan recursive query atau CTE. Atau, buat konvensi eksplisit bahwa tree view mendukung unlimited depth di tampilan admin, tapi `GetSectionUnitsDictAsync` tetap hanya expose Level 0-1 untuk dropdown pekerja (dokumentasikan limitasi ini secara eksplisit).
 
-### MODERATE: SignalR Hub Bloat
-**Dampak:** Notification + announcement + dashboard real-time semua lewat SignalR. Satu hub jadi bloated.
-**Pencegahan:** Minimal 2 hub: `NotificationHub` (user-facing) dan `AdminHub` (dashboard stats, maintenance status).
+**Warning signs:**
+- Unit Level 2+ yang dibuat via drag-drop tidak muncul di dropdown "Section/Unit" saat ManageWorkers
+- `CoachMappingController` tidak menampilkan unit baru di filter
+- Tidak ada error — hanya data yang "hilang" secara diam-diam
 
-### MODERATE: Feature Toggle Tidak Ada
-**Dampak:** 7 fitur deploy bersamaan. Satu bermasalah = rollback semua.
-**Pencegahan:** System Settings (fitur #5) harus include feature toggles. Setiap fitur baru bisa di-enable/disable tanpa deploy ulang.
+**Phase to address:**
+Phase desain tree view — putuskan dulu apakah struktur 3+ level akan didukung end-to-end atau hanya di tampilan admin. Dokumentasikan keputusan ini sebelum implementasi.
 
 ---
 
-## Phase-Specific Warnings
+### Pitfall 5: UpdateChildrenLevelsAsync Melakukan N+1 Query
 
-| Phase/Fitur | Pitfall Utama | Severity | Mitigasi |
-|---|---|---|---|
-| **Foundation (harus pertama)** | Tidak ada background job infra | CRITICAL | Setup BackgroundService sebelum fitur lain |
-| **System Settings** | Cache invalidation + misconfiguration | CRITICAL | Validate on write, invalidate cache on update |
-| **Maintenance Mode** | Admin terkunci + middleware ordering | CRITICAL | Whitelist admin routes, test logout-login cycle |
-| **User Impersonation** | Session corruption + privilege escalation | CRITICAL | Claims-based, read-only mode, audit trail |
-| **Dashboard Statistik** | N+1 query + slow aggregation | CRITICAL | IMemoryCache, projection queries, max 5 SQL |
-| **Announcement** | XSS + notification fatigue | MODERATE | Sanitize, priority levels, simple targeting |
-| **In-App Notification** | Polling trap + tabel membengkak | MODERATE | Pakai SignalR yang sudah ada, efficient storage |
-| **Backup & Restore** | Data loss + blocking operation | CRITICAL | Background job, pre-restore warning, auto-backup |
+**What goes wrong:**
+`UpdateChildrenLevelsAsync` (OrganizationController.cs baris 236-247) melakukan `FindAsync` rekursif per child. Untuk tree dengan 20 node, ini menghasilkan 20 roundtrip database terpisah. Saat drag-drop sering digunakan, ini bisa menyebabkan latensi yang terasa di UI.
 
-## Recommended Phase Ordering (Based on Pitfalls)
+**Why it happens:**
+Implementasi rekursif yang natural untuk update level, tapi tanpa batch loading. Tidak terasa saat data kecil (< 10 unit), tapi menjadi bottleneck saat data berkembang.
 
-1. **System Settings + Background Job Foundation** — semua fitur lain butuh settings dan background processing
-2. **Maintenance Mode** — safety net sebelum fitur berisiko lain (backup)
-3. **Dashboard Statistik** — introduce caching pattern yang dipakai fitur lain
-4. **Announcement + In-App Notification** — saling terkait, bangun bersamaan
-5. **User Impersonation** — paling kompleks security-wise, butuh semua infrastructure sudah stabil
-6. **Backup & Restore** — paling berisiko, butuh maintenance mode + background job sudah jalan
+**How to avoid:**
+Ganti dengan load seluruh subtree sekali (`_context.OrganizationUnits.Where(u => /* all descendants */).ToListAsync()`) kemudian update level di memory sebelum satu `SaveChangesAsync()`. Atau gunakan CTE recursive di SQL.
+
+**Warning signs:**
+- EF Core SQL profiling menunjukkan puluhan query kecil saat satu operasi reparent
+- Operasi drag-drop terasa lambat (> 500ms) meski data sedikit
+
+**Phase to address:**
+Phase implementasi drag-drop AJAX — refactor `UpdateChildrenLevelsAsync` sebelum mengekspos operasi reparent di UI yang bisa sering dipanggil.
+
+---
+
+### Pitfall 6: TempData Tidak Berfungsi Setelah AJAX (Tidak Ada Redirect)
+
+**What goes wrong:**
+Semua endpoint saat ini menggunakan `TempData["Success"]` / `TempData["Error"]` yang ditampilkan oleh Razor view setelah redirect. Saat beralih ke AJAX, tidak ada redirect — sehingga TempData tidak pernah ditampilkan ke user. Operasi CRUD tampak "berhasil tanpa feedback" dari sudut pandang user.
+
+**Why it happens:**
+PRG pattern mengandalkan redirect sebagai mekanisme untuk membawa TempData ke render berikutnya. AJAX menghilangkan redirect ini. Developer kadang membiarkan TempData di server dan tidak menambahkan feedback di client, menghasilkan UX yang membingungkan.
+
+**How to avoid:**
+Endpoint AJAX harus mengembalikan JSON dengan `{ success: true, message: "..." }`. Client-side JavaScript menampilkan toast/alert berdasarkan response ini. Jangan campurkan dua pattern: jika endpoint sudah return JSON, hapus `TempData["Success"]` dari logika tersebut.
+
+**Warning signs:**
+- AJAX request berhasil (200) tapi tidak ada feedback visual
+- TempData masih ada di endpoint tapi tidak pernah ditampilkan
+- User mengklik tombol berulang kali karena tidak yakin berhasil atau tidak
+
+**Phase to address:**
+Phase implementasi AJAX — buat komponen toast JavaScript sebelum mengkonversi endpoint pertama.
+
+---
+
+## Technical Debt Patterns
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Reuse `ReorderOrganizationUnit` untuk drag-drop lintas parent | Tidak perlu endpoint baru | DisplayOrder korup | Never — buat endpoint `MoveOrganizationUnit` baru |
+| Hapus `[ValidateAntiForgeryToken]` untuk AJAX | Fix 400 error cepat | Seluruh halaman rentan CSRF | Never |
+| Biarkan `GetSectionUnitsDictAsync` 2-level saja | Tidak perlu refactor | Data silently missing di 7 controller jika 3+ level dipakai | Acceptable HANYA jika keputusan eksplisit: tree UI dibatasi 2 level |
+| Inline CSRF token per fetch call | Lebih sederhana | Copy-paste bug, mudah terlewat | Hanya di prototype; buat util function sebelum fase UAT |
+| Tidak validasi circular reference di AJAX endpoint | Implementasi cepat | Data corrupt (node jadi ancestor dirinya sendiri) | Never |
+
+---
+
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| SortableJS / drag-drop library | Langsung update DOM tanpa konfirmasi server sukses | Optimistic UI: update DOM dulu, rollback jika AJAX gagal |
+| Bootstrap Collapse + dynamic tree | Collapse state hilang setelah re-render HTML dari AJAX | Simpan expand/collapse state di `data-*` attribute atau localStorage sebelum re-render |
+| `[ValidateAntiForgeryToken]` + fetch | 400 error karena header missing | Set `RequestVerificationToken` header di semua fetch calls via utility function terpusat |
+| EF Core `FindAsync` dalam loop rekursif | N+1 query, tidak terasa saat dev | Load bulk dengan `.Where()` dan proses di memory |
+| `TempData` + AJAX response | TempData tidak muncul karena tidak ada redirect | Kembalikan pesan sukses/error dalam JSON response, tampilkan via JavaScript toast |
+
+---
+
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Load seluruh tree di setiap page load dengan 3-level Include | Lambat saat ratusan unit | Lazy load children via AJAX expand | > 50 node total |
+| N+1 di `UpdateChildrenLevelsAsync` | Operasi reparent lambat | Batch load subtree sekali | > 10 children dalam subtree |
+| Re-render seluruh tabel setelah setiap AJAX | Flicker, collapse state hilang | Update hanya node yang berubah via targeted DOM manipulation | Setiap operasi AJAX |
+| `Include().ThenInclude().ThenInclude()` hardcoded kedalaman | Level 4+ tidak ter-load | Gunakan recursive CTE atau tambah level include sesuai kebutuhan | Jika struktur > 3 level |
+
+---
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Hapus `[ValidateAntiForgeryToken]` untuk AJAX | CSRF attack pada endpoint CRUD | Sertakan token via header, jangan hapus atribut |
+| Endpoint drag-drop tanpa validasi circular reference | Node bisa menjadi ancestor dirinya sendiri, data corrupt | Jalankan `IsDescendantAsync` di endpoint AJAX reparent |
+| Return full entity di AJAX response | Expose field internal yang tidak diperlukan | Return DTO minimal (id, name, level, parentId, displayOrder) |
+| Tidak validasi `parentId` di AJAX endpoint | User bisa assign parent ke node yang tidak ada | Validasi `parentId` ada di database sebelum update |
+
+---
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Collapse semua tree setelah setiap aksi CRUD | User harus expand ulang setiap kali edit | Pertahankan collapse state; expand node yang baru diedit |
+| Tidak ada feedback saat drag-drop berhasil/gagal | User tidak tahu apakah operasi sukses | Tampilkan toast singkat setelah AJAX sukses/gagal |
+| Tombol reorder up/down tetap setelah drag-drop aktif | Redundant dengan drag-drop; membingungkan | Hapus tombol up/down setelah drag-drop aktif, atau sembunyikan |
+| Edit form muncul di atas tabel (PRG pattern saat ini) | Scroll jump, form jauh dari node yang diedit | Pindahkan edit ke inline form atau modal yang dekat dengan node |
+| Tidak ada indikasi visual saat drag sedang terjadi | User tidak tahu drop target valid atau tidak | Gunakan CSS drop-target highlight dari library drag-drop |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Cascade rename:** Verifikasi `User.Section` dan `User.Unit` terupdate — cek di database setelah rename unit, bukan hanya di UI
+- [ ] **Cascade reparent:** Verifikasi `User.Section` berubah saat unit Level 1 dipindahkan ke Bagian berbeda — ada potensi bug di OrganizationController.cs baris 189 yang hanya update Section untuk user di unit langsung, tidak untuk grandchildren
+- [ ] **Circular reference:** Test drag node induk ke salah satu descendant-nya — harus ditolak dengan pesan jelas
+- [ ] **Delete dengan FK:** Test hapus unit yang masih punya KkjFile/CpdpFile — harus ditolak (sudah ada di delete logic tapi perlu diverifikasi di AJAX flow)
+- [ ] **CSRF di semua AJAX endpoint:** Test dengan browser dev tools — verifikasi header `RequestVerificationToken` ada di setiap POST
+- [ ] **GetSectionUnitsDictAsync:** Cek apakah unit baru yang dibuat via drag-drop muncul di dropdown ManageWorkers
+- [ ] **DisplayOrder setelah drag lintas parent:** Verifikasi tidak ada duplicate DisplayOrder dalam satu parent
+- [ ] **Bootstrap Collapse state:** Setelah AJAX edit, tree expand/collapse state harus dipertahankan
+- [ ] **TempData tidak muncul:** Verifikasi setiap operasi AJAX menampilkan feedback ke user
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| DisplayOrder korup | MEDIUM | Query manual: `UPDATE OrganizationUnits SET DisplayOrder = ROW_NUMBER() OVER (PARTITION BY ParentId ORDER BY Name)` |
+| User.Section/Unit tidak sinkron | HIGH | Audit query users mana yang Section/Unit tidak match OrganizationUnit aktif; buat migration script untuk re-sinkronisasi |
+| Circular reference di database | HIGH | Hapus manual via `UPDATE OrganizationUnits SET ParentId = NULL WHERE Id = X`; pastikan validasi di endpoint sebelum deploy |
+| CSRF vulnerability terekspos | MEDIUM | Tambahkan antiforgery token ke semua fetch calls; tidak perlu perubahan data |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Cascade rename rusak saat level berubah | Phase desain endpoint AJAX reparent | Test: rename unit yang baru saja di-drag ke level berbeda — cek User.Section/Unit di DB |
+| CSRF token hilang di AJAX | Phase pertama AJAX (sebelum implementasi fitur apapun) | Test: semua POST AJAX mengembalikan 200, bukan 400 |
+| DisplayOrder korup lintas parent | Phase implementasi drag-drop | Test: drag node ke parent berbeda, query DB untuk cek tidak ada duplicate DisplayOrder |
+| GetSectionUnitsDictAsync 2-level hardcoded | Phase desain (keputusan arsitektur sebelum implementasi) | Test: unit Level 2 muncul/tidak di dropdown ManageWorkers |
+| N+1 di UpdateChildrenLevelsAsync | Phase implementasi drag-drop | Profiling: reparent node dengan 5+ children harus < 5 query |
+| Bootstrap Collapse state hilang | Phase implementasi AJAX re-render | Test: edit unit, verifikasi tree state sama sebelum dan sesudah |
+| Circular reference di AJAX endpoint | Phase implementasi drag-drop | Test: drag parent ke salah satu descendant — harus ditolak |
+| TempData tidak berfungsi setelah AJAX | Phase pertama AJAX | Test: setiap operasi CUD menampilkan feedback visual |
 
 ---
 
 ## Sources
 
-- Analisis langsung codebase PortalHC KPB (Program.cs, middleware pipeline, controller inventory)
-- ASP.NET Core middleware pipeline ordering (official docs)
-- EF Core performance: N+1 query patterns, projection best practices
-- OWASP session management guidelines untuk impersonation
-- SQL Server backup best practices (COPY_ONLY, RESTORE VERIFYONLY)
+- Analisis langsung `Controllers/OrganizationController.cs` — kode cascade rename, reparent, reorder (HIGH confidence)
+- Analisis langsung `Models/OrganizationUnit.cs` — struktur model dengan FK ke KkjFile/CpdpFile (HIGH confidence)
+- Analisis langsung `Views/Admin/ManageOrganization.cshtml` — PRG pattern, multiple forms per row (HIGH confidence)
+- Analisis langsung `Data/ApplicationDbContext.cs` baris 105-113 — `GetSectionUnitsDictAsync` 2-level hardcoded (HIGH confidence)
+- Grep hasil: 7 file controller memanggil `GetSectionUnitsDictAsync` (HIGH confidence)
+- ASP.NET Core antiforgery token dengan fetch API — domain knowledge (HIGH confidence)
+- SortableJS drag-drop + Bootstrap Collapse interaction patterns — domain knowledge (MEDIUM confidence)
+
+---
+*Pitfalls research for: ManageOrganization Tree View + Drag-Drop + AJAX CRUD*
+*Researched: 2026-04-02*

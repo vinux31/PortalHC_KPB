@@ -1,292 +1,177 @@
-# Feature Landscape: 7 Admin Features
+# Feature Research
 
-**Domain:** Enterprise HR/LMS Admin Platform Enhancement
-**Researched:** 2026-04-01
-**Project:** PortalHC KPB (ASP.NET Core MVC)
+**Domain:** Organization Tree Management UI (Admin Panel)
+**Researched:** 2026-04-02
+**Confidence:** HIGH (multiple design system sources: Adobe Commerce, PatternFly/Red Hat, Retool, Carbon)
 
----
+## Konteks Proyek
 
-## 1. User Impersonation / View As Role
+Ini adalah **redesign**, bukan greenfield. Fitur backend sudah ada di OrganizationController:
+- CRUD (Add, Edit, Delete, Toggle active/inactive OrganizationUnit)
+- Reorder (up/down dalam siblings)
+- Hierarki 3 level (Bagian → Unit → Sub-unit)
+- Cascade rename/reparent ke User.Section/Unit dan CoachCoacheeMapping
+- Constraint: tidak bisa hapus unit dengan active children/users/files
 
-### Table Stakes (wajib ada)
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Dropdown pilih role (Admin/HC/User) di navbar | Low | Ubah claim sementara, session-based |
-| Banner warna mencolok saat impersonating | Low | Partial view / layout injection |
-| Tombol "Kembali ke Admin" selalu visible | Low | Bagian dari banner |
-| Auto-expire (30 menit max) | Low | Session timeout |
-| Audit log setiap impersonation start/end | Med | Butuh tabel AuditLog atau extend yang ada |
-| Blokir aksi sensitif (ubah password, role, delete user) | Med | Middleware / action filter |
-
-### Differentiator
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Impersonate user spesifik (bukan hanya role) | Med | Pilih user dari dropdown, login as mereka |
-| Read-only vs Read/Write mode | Med | Dua level impersonation |
-
-### Anti-Feature
-| Jangan Bangun | Alasan |
-|---------------|--------|
-| Impersonate tanpa audit trail | Security risk fatal |
-| Impersonate role setara/lebih tinggi | Admin tidak boleh impersonate Super Admin |
-
-### Dependency
-- Existing: Role system (Admin, HC, User), `_Layout.cshtml`
-- Butuh: Action filter baru untuk blokir aksi sensitif
-
-### Rekomendasi Scope PortalHC
-**View As Role saja** (bukan full user impersonation). Alasan: user base kecil (internal Pertamina), troubleshoot cukup dengan lihat tampilan per role. Full impersonation overkill untuk skala ini.
+Fokus penelitian: **pola UI/UX untuk menampilkan dan mengelola tree tersebut di halaman admin.**
 
 ---
 
-## 2. Announcement / Broadcast
+## Feature Landscape
 
-### Table Stakes
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| CRUD announcement (judul, isi, tanggal publish) | Low | AdminController + view + tabel DB |
-| Target audience (All / per Role / per Unit) | Med | Relasi many-to-many atau flag |
-| Tampil di dashboard/homepage setelah login | Low | Partial view di Home/Index |
-| Mark as read per user | Med | Tabel UserAnnouncementRead |
-| Announcement aktif/nonaktif (scheduling) | Low | Field StartDate + EndDate |
+### Table Stakes (Pengguna Mengharapkan Ini Ada)
 
-### Differentiator
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Rich text editor (bold, link, gambar) | Med | TinyMCE / Quill.js |
-| Pin announcement (sticky di atas) | Low | Field IsPinned |
-| Lampiran file (PDF, gambar) | Med | Upload file ke server |
+Fitur yang dianggap sudah seharusnya ada. Tidak ada kredit jika ada, tapi terasa cacat jika tidak ada.
 
-### Anti-Feature
-| Jangan Bangun | Alasan |
-|---------------|--------|
-| Email blast bersamaan | Spam risk, butuh SMTP config yang belum ada |
-| Komentar/reply di announcement | Bukan forum, keep it simple |
+| Fitur | Mengapa Diharapkan | Kompleksitas | Catatan |
+|-------|--------------------|--------------|---------|
+| Expand/collapse node | Standar universal semua tree UI (VSCode, Windows Explorer, macOS Finder) | LOW | Toggle per node; chevron/arrow di sebelah kiri label; state per-session |
+| Visual indentasi hierarki | Menunjukkan parent-child secara visual tanpa membaca label | LOW | Indentasi per level; garis penghubung (guides) menguatkan hierarki |
+| Inline action menu per node | Standar enterprise tree (Adobe Commerce, PatternFly) — edit dan delete ada di mana datanya | LOW | "..." button atau hover actions: Edit, Delete, Toggle; muncul on-hover, max 1 style action per tree |
+| Tombol Add di level yang tepat | Admin harus bisa tambah child tanpa keluar halaman | LOW | "Tambah Unit" di bawah Bagian, "Tambah Sub-unit" di bawah Unit; tombol kecil + ikon "+" |
+| Indikator status aktif/nonaktif | Admin harus bisa lihat status sekilas tanpa klik | LOW | Badge atau warna muted/grey untuk yang nonaktif; jangan sembunyikan info ini |
+| Disable destructive actions saat tidak valid | Standar untuk semua CRUD dengan constraint | LOW | "Delete" disabled + tooltip penjelasan jika ada children aktif/users/files. Backend sudah ada constraint-nya, tinggal refleksikan ke UI |
+| Expand All / Collapse All | Standar untuk tree dengan lebih dari 2 level | LOW | Tombol global di header area; toggle antara keduanya |
 
-### Dependency
-- Existing: Dashboard Home/Index, Role system
-- Butuh: Tabel Announcement, AnnouncementRead
+### Differentiators (Keunggulan yang Menambah Nilai)
 
-### Rekomendasi Scope PortalHC
-CRUD + target audience (All/Role) + tampil di dashboard + mark as read. Rich text editor opsional (textarea biasa cukup untuk v1).
+Fitur yang tidak wajib tapi memberikan nilai nyata untuk admin HC.
 
----
+| Fitur | Proposisi Nilai | Kompleksitas | Catatan |
+|-------|-----------------|--------------|---------|
+| Badge jumlah pekerja per unit | Admin HC langsung lihat distribusi pekerja tanpa navigasi ke halaman lain | LOW | COUNT query user per OrganizationUnit; sangat berguna untuk HC |
+| Badge jumlah children per node | Admin tahu ada berapa unit/sub-unit tanpa expand | LOW | Data sudah tersedia dari relasi; "(3)" di sebelah nama Bagian |
+| Inline rename langsung di node | Rename sederhana tanpa buka modal — lebih cepat untuk perubahan kecil | MEDIUM | Double-click label → input field; Enter save, Escape cancel; wire ke existing Edit action via AJAX |
+| Konfirmasi delete dengan penjelasan dampak | "Unit ini memiliki 3 pekerja aktif" — lebih informatif dari dialog browser default | MEDIUM | Modal konfirmasi dengan detail: jumlah children, pekerja, file; berbeda dari alert box generik |
+| Highlight visual node yang baru dibuat/diedit | Admin tahu persis mana yang baru berubah setelah operasi | LOW | Flash/highlight sementara (2-3 detik) pada node setelah add/edit berhasil |
 
-## 3. In-App Notification (Bell Icon)
+### Anti-Features (Sering Diminta, Tapi Bermasalah)
 
-### Table Stakes
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Bell icon di navbar dengan badge count unread | Med | Layout partial + AJAX polling |
-| Dropdown list notifikasi terbaru (5-10 item) | Med | Partial view + JS |
-| Mark as read (per item + mark all) | Low | Update DB flag |
-| Halaman "Semua Notifikasi" dengan pagination | Low | View + controller action |
-| Link langsung ke item terkait (klik notif -> halaman relevan) | Med | URL field di tabel Notification |
-
-### Differentiator
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Real-time push (SignalR) | High | Butuh SignalR hub, lebih kompleks |
-| Notification preferences per user | Med | Tabel UserNotificationSetting |
-| Grouped notifications ("3 assessment baru") | Med | Logic grouping di query |
-
-### Anti-Feature
-| Jangan Bangun | Alasan |
-|---------------|--------|
-| Push notification browser (Web Push API) | Overkill untuk internal portal |
-| Email notification untuk setiap event | Butuh SMTP, spam risk |
-
-### Dependency
-- Existing: `_Layout.cshtml` (navbar), semua controller yang trigger event
-- Butuh: Tabel Notification, NotificationRead, helper method `CreateNotification()`
-- **Harus setelah Announcement** (announcement bisa jadi sumber notifikasi)
-
-### Rekomendasi Scope PortalHC
-AJAX polling (bukan SignalR) setiap 60 detik. Notifikasi dari: announcement baru, assessment dibuka, hasil assessment keluar, coaching assignment. Bell icon + dropdown + halaman semua notifikasi.
+| Fitur | Mengapa Diminta | Mengapa Bermasalah | Alternatif |
+|-------|-----------------|--------------------|------------|
+| Drag-and-drop reorder/reparent | Terlihat modern dan intuitif | (1) Reparent men-cascade ke User.Section/Unit dan CoachCoacheeMapping — risiko data rusak tinggi. (2) Fat-finger di tree kecil mudah terjadi. (3) Tidak ada undo. (4) Adobe Commerce sendiri menyebut drag "opsional" dan "mutually exclusive dengan checkbox". | Pertahankan tombol up/down yang sudah ada, tapi tampilkan inline di node (bukan di tabel). Lebih deliberate, lebih aman untuk data organisasi production |
+| Org chart visual box-and-line diagram | Terlihat profesional dan sesuai "struktur organisasi" | Tidak practical untuk CRUD — susah klik target kecil, tidak scale untuk list panjang, butuh layout engine kompleks (d3.js/Mermaid) | Tree list view (file explorer style) adalah standar untuk management UI; org chart hanya cocok untuk read-only view/presentasi |
+| Multi-select bulk delete | Tampak efisien | Sangat berbahaya — satu klik bisa hapus banyak unit dengan cascade effect ke ratusan user dan mapping. Tidak ada undo. Org structure jarang butuh bulk delete | Single delete dengan konfirmasi dan penjelasan dampak; jika perlu bulk, tambahkan confirmation step yang eksplisit |
+| Inline add form yang expand di dalam tree | Tidak perlu modal, lebih contextual | Form add unit butuh beberapa field (nama, parent, status) — inline form dalam tree menjadi sesak, susah scroll, dan mati gaya di mobile | Modal/dialog untuk add; inline hanya untuk rename field tunggal |
 
 ---
 
-## 4. Dashboard Statistik Admin (KPI)
-
-### Table Stakes
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Summary cards (total user, assessment aktif, dll) | Low | COUNT query + card UI |
-| Grafik assessment completion rate | Med | Chart.js / ApexCharts |
-| Tabel user aktif vs inaktif per unit | Low | GROUP BY query |
-| Filter by periode (bulan/tahun) | Med | Date picker + query filter |
-| Export dashboard ke Excel/PDF | Med | Reuse export pattern yang ada |
-
-### Differentiator
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Trend chart (line chart bulan ke bulan) | Med | Butuh data historis |
-| Coaching completion rate | Low | Query existing ProtonProgress |
-| Top performers / bottom performers | Med | Ranking dari score assessment |
-| Comparison antar unit | Med | Multi-series chart |
-
-### Anti-Feature
-| Jangan Bangun | Alasan |
-|---------------|--------|
-| Custom report builder (drag & drop) | Overkill, pakai Excel export saja |
-| Scheduled email report | Butuh background job + SMTP |
-
-### Dependency
-- Existing: CMP Analytics Dashboard (partial), assessment data, coaching data
-- Butuh: Chart library (Chart.js sudah umum di ASP.NET MVC)
-- **Independen** -- bisa dikerjakan kapan saja
-
-### Rekomendasi Scope PortalHC
-Summary cards + 2-3 chart (assessment completion, user per unit, coaching progress) + filter periode + export Excel. Extend AdminController atau buat dedicated DashboardController.
-
----
-
-## 5. System Settings Page
-
-### Table Stakes
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Nama aplikasi (tampil di navbar/title) | Low | Tabel AppSetting key-value |
-| Logo upload | Low | File upload + simpan path |
-| Timezone setting | Low | Dropdown timezone |
-| Session timeout config | Low | Update config dari DB |
-| Default role untuk user baru | Low | Setting key |
-| Exam default settings (durasi, passing grade) | Low | Key-value pairs |
-
-### Differentiator
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Feature flags (toggle fitur on/off) | Med | Key-value boolean per fitur |
-| Password policy (min length, complexity) | Med | Validasi saat register/change password |
-| SMTP/Email configuration | High | Butuh email service integration |
-
-### Anti-Feature
-| Jangan Bangun | Alasan |
-|---------------|--------|
-| Multi-tenant settings | Single tenant, tidak perlu |
-| Theme customization (warna, font) | Overkill untuk internal portal |
-
-### Dependency
-- Existing: `appsettings.json` (hardcoded config saat ini)
-- Butuh: Tabel AppSetting (Key, Value, Category, Description), service `IAppSettingService`
-- **Harus sebelum Maintenance Mode** (maintenance mode = salah satu setting)
-
-### Rekomendasi Scope PortalHC
-Tabel AppSetting key-value + halaman grouped by category (General, Assessment, Security). Baca dari DB, cache di memory, invalidate saat update. Mulai dari 10-15 setting yang paling berguna.
-
----
-
-## 6. Maintenance Mode
-
-### Table Stakes
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Toggle on/off dari admin panel | Low | AppSetting flag |
-| Custom message maintenance | Low | Textarea di settings |
-| Redirect semua non-admin ke halaman maintenance | Med | Middleware global |
-| Admin tetap bisa akses semua halaman | Low | Check role di middleware |
-| Estimasi waktu selesai (tampil ke user) | Low | Field datetime |
-
-### Differentiator
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Scheduled maintenance (auto on/off) | Med | Background job atau check datetime di middleware |
-| Whitelist IP tertentu | Med | IP check di middleware |
-| Partial maintenance (per modul: CMP, CDP) | High | Granular flag per area |
-
-### Anti-Feature
-| Jangan Bangun | Alasan |
-|---------------|--------|
-| Maintenance mode via config file deploy | Harus bisa toggle tanpa redeploy |
-| Auto-maintenance saat backup | Terlalu risky jika backup gagal |
-
-### Dependency
-- **Harus setelah System Settings** (maintenance = setting di AppSetting)
-- Existing: `_Layout.cshtml`, middleware pipeline di `Program.cs`
-- Butuh: `MaintenanceMiddleware`, halaman `Maintenance.cshtml`
-
-### Rekomendasi Scope PortalHC
-Toggle + custom message + estimated time + middleware redirect. Scheduled maintenance bisa di v2 jika perlu.
-
----
-
-## 7. Backup & Restore
-
-### Table Stakes
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Manual backup trigger dari admin panel | High | Exec `pg_dump`/`sqlcmd` dari C# |
-| Download backup file (.bak/.sql) | Med | File response dari server |
-| List backup history (tanggal, ukuran, status) | Low | Tabel BackupHistory |
-| Restore dari file upload | High | Exec restore command, very risky |
-
-### Differentiator
-| Sub-Feature | Kompleksitas | Catatan |
-|-------------|-------------|---------|
-| Scheduled auto-backup (daily/weekly) | High | Background job (Hangfire/Quartz) |
-| Backup uploaded files (bukan hanya DB) | Med | Zip folder uploads |
-| Backup validation (checksum, test restore) | High | Complex |
-
-### Anti-Feature
-| Jangan Bangun | Alasan |
-|---------------|--------|
-| Restore tanpa konfirmasi | Bisa destroy production data |
-| Auto-restore | Terlalu berbahaya untuk otomatis |
-| Backup ke cloud storage (S3, Azure Blob) | Overkill, simpan lokal/download saja |
-
-### Dependency
-- Existing: Database (SQL Server)
-- Butuh: Akses shell command dari aplikasi, folder backup di server
-- **Paling kompleks, kerjakan terakhir**
-- **Dependency: Maintenance Mode** (idealnya aktifkan maintenance saat restore)
-
-### Rekomendasi Scope PortalHC
-**DB backup only** (manual trigger + download). Restore: upload file + konfirmasi dialog + maintenance mode otomatis aktif selama restore. Skip scheduled backup untuk v1.
-
----
-
-## Ringkasan Kompleksitas & Urutan
-
-| # | Feature | Kompleksitas | Dependency | Urutan Rekomendasi |
-|---|---------|-------------|------------|-------------------|
-| 5 | System Settings | Low-Med | Tidak ada | 1 (fondasi) |
-| 2 | Announcement | Low-Med | Tidak ada | 2 |
-| 1 | Impersonation | Med | Role system | 3 |
-| 6 | Maintenance Mode | Low-Med | System Settings | 4 |
-| 4 | Dashboard Statistik | Med | Tidak ada | 5 |
-| 3 | In-App Notification | Med-High | Announcement | 6 |
-| 7 | Backup & Restore | High | Maintenance Mode | 7 (terakhir) |
-
-**Rationale urutan:**
-- System Settings dulu karena jadi fondasi (Maintenance Mode + setting lain bergantung padanya)
-- Announcement sebelum Notification karena announcement = sumber notifikasi
-- Impersonation independen tapi butuh careful testing
-- Backup & Restore terakhir karena paling kompleks dan paling risky
-
-## Feature Dependencies (Graph)
+## Feature Dependencies
 
 ```
-System Settings --> Maintenance Mode --> Backup & Restore
-Announcement --> In-App Notification
-Impersonation (independen)
-Dashboard Statistik (independen)
+[Tree visual dengan expand/collapse]
+    └──requires──> [Data hierarkis diload dengan parent-child relationship dalam satu response]
+
+[Inline rename]
+    └──requires──> [Tree expand/collapse sudah stabil]
+    └──requires──> [Existing Edit action di OrganizationController — SUDAH ADA]
+    └──uses──AJAX──> [Edit action]
+
+[Badge jumlah pekerja per unit]
+    └──requires──> [COUNT query ApplicationUser per OrganizationUnitId]
+    └──enhances──> [Badge jumlah children] (tampil bersama)
+
+[Konfirmasi delete dengan detail dampak]
+    └──requires──> [Query jumlah children aktif + users + files sebelum modal muncul]
+    └──enhances──> [Disable destructive actions + tooltip]
+
+[Highlight node setelah operasi]
+    └──requires──> [AJAX-based add/edit/delete — tidak full page refresh]
+
+[Search/filter dalam tree]
+    └──requires──> [Tree sudah ter-render dengan benar]
+    └──conflicts──> [Collapse All] (saat search aktif, collapse all tidak boleh collapse hasil)
 ```
 
-## MVP per Feature
+### Dependency Notes
 
-| Feature | MVP (harus ada) | Bisa ditunda |
-|---------|-----------------|--------------|
-| System Settings | 10 key-value settings + UI | Feature flags, SMTP config |
-| Announcement | CRUD + target role + dashboard display | Rich text, file attachment |
-| Impersonation | View As Role + banner + audit | User-specific impersonation |
-| Maintenance Mode | Toggle + message + middleware | Scheduled, partial maintenance |
-| Dashboard Statistik | 4 summary cards + 2 charts + export | Trend charts, comparison |
-| In-App Notification | Bell + dropdown + mark read + AJAX poll | SignalR, preferences |
-| Backup & Restore | Manual backup + download + restore | Scheduled, file backup |
+- **Inline rename requires AJAX**: Jika add/edit masih pakai full page refresh, inline rename tidak bisa. Perlu partial AJAX untuk edit action.
+- **Drag-and-drop conflicts dengan up/down buttons**: Jika keduanya ada, pengguna bingung mana yang canonical. Pilih satu — rekomendasi: tetap up/down (sudah ada) tapi tampilkan sebagai arrow button di node, bukan di tabel.
+- **Semua differentiators butuh tree foundation dulu** — jangan bangun badge atau inline rename sebelum tree expand/collapse stabil.
 
-## Sumber
+---
 
-- Riset sebelumnya: katalog 37 fitur dari Google, HubSpot, Salesforce, WordPress, Okta, Asana
-- Pattern umum enterprise LMS/HR: SAP SuccessFactors, Workday, Moodle LMS admin features
-- ASP.NET Core middleware pattern untuk maintenance mode
-- Confidence: MEDIUM-HIGH (berdasarkan riset sebelumnya + domain knowledge)
+## MVP Definition
+
+### Launch With — Redesign v1
+
+Ini redesign bukan greenfield. MVP = semua fungsi yang sudah ada, ditampilkan dalam tree view modern.
+
+- [ ] Tree view dengan expand/collapse — foundation dari seluruh redesign
+- [ ] Visual indentasi hierarki dengan guides/connectors
+- [ ] Action menu per node (Edit, Delete, Toggle) — menggantikan tombol di baris tabel
+- [ ] Tombol Add per level yang tepat (contextual di bawah parent node)
+- [ ] Badge status aktif/nonaktif per node
+- [ ] Disable + tooltip untuk destructive actions yang invalid
+- [ ] Expand All / Collapse All
+- [ ] Tombol up/down reorder tetap ada, tapi sebagai arrow icon di node (bukan kolom tabel)
+
+### Add After Validation — v1.x
+
+- [ ] Badge jumlah pekerja per unit — trigger: admin merasa perlu lihat distribusi lebih cepat
+- [ ] Badge jumlah children — trigger: tree besar, admin perlu orientasi cepat
+- [ ] Konfirmasi delete dengan detail dampak — trigger: admin sering confused mengapa delete gagal
+- [ ] Inline rename — trigger: admin sering rename dan merasa modal lambat
+
+### Future Consideration — v2+
+
+- [ ] Search/filter dalam tree — defer: org hanya 3 level, kemungkinan tidak banyak node (< 50)
+- [ ] Highlight node setelah operasi — defer: nice polish, bukan blocker
+- [ ] Read-only org chart view untuk presentasi — defer: beda audience (manajemen), beda halaman
+
+---
+
+## Feature Prioritization Matrix
+
+| Fitur | User Value | Implementation Cost | Priority |
+|-------|------------|---------------------|----------|
+| Tree expand/collapse | HIGH | LOW | P1 |
+| Visual indentasi + guides | HIGH | LOW | P1 |
+| Action menu per node | HIGH | LOW | P1 |
+| Tombol Add per level | HIGH | LOW | P1 |
+| Badge status aktif/nonaktif | HIGH | LOW | P1 |
+| Disable actions + tooltip | HIGH | LOW | P1 |
+| Expand All / Collapse All | MEDIUM | LOW | P1 |
+| Arrow up/down reorder di node | HIGH | LOW | P1 |
+| Badge jumlah pekerja per unit | HIGH | LOW | P2 |
+| Badge jumlah children | MEDIUM | LOW | P2 |
+| Konfirmasi delete dengan detail dampak | HIGH | MEDIUM | P2 |
+| Inline rename | MEDIUM | MEDIUM | P2 |
+| Search/filter dalam tree | LOW | MEDIUM | P3 |
+| Highlight node setelah operasi | LOW | MEDIUM | P3 |
+| Read-only org chart diagram | LOW | HIGH | P3 |
+
+**Priority key:**
+- P1: Harus ada untuk launch redesign — semua adalah pemetaan fitur yang sudah ada ke UI baru
+- P2: Tambahkan setelah P1 stabil dan divalidasi
+- P3: Iterasi berikutnya, tidak mendesak
+
+---
+
+## Referensi Pola dari Design System Terkemuka
+
+| Pola | Adobe Commerce Admin | PatternFly (Red Hat) | Carbon (IBM) | Retool |
+|------|---------------------|---------------------|--------------|--------|
+| Expand/collapse | Ya, arrow kiri | Ya, arrow kiri | Ya | Ya |
+| Action menu per node | Ya, di hover | Ya, hover actions max 1 type | Ya | Ya |
+| Inline rename | Tidak (modal) | Via separate inline edit component | Tidak | Ya |
+| Drag-and-drop | Ya (opsional, mutually exclusive checkbox) | Disebutkan sebagai opsional | Tidak standar | Opsional |
+| Badge children count | Tidak | Ya (badges opsional) | Tidak | Ya |
+| Expand All/Collapse All | Ya | Tidak disebutkan secara eksplisit | Disebutkan | Tidak |
+| Max recommended depth | 2 level | Tidak ada batas formal | Tidak ada | Tidak ada |
+
+**Catatan kedalaman:** PortalHC butuh 3 level (Bagian → Unit → Sub-unit). Design system merekomendasikan max 2 sebagai guideline, bukan hard limit. Dengan visual hierarchy yang jelas (indentasi + guides), 3 level masih sangat manageable.
+
+---
+
+## Sources
+
+- [Adobe Commerce Admin - Tree Pattern](https://developer.adobe.com/commerce/admin-developer/pattern-library/displaying-data/tree) — HIGH confidence
+- [PatternFly Tree View Design Guidelines](https://www.patternfly.org/components/tree-view/design-guidelines/) — HIGH confidence
+- [Carbon Design System - Tree View](https://carbondesignsystem.com/components/tree-view/usage/) — HIGH confidence
+- [Retool - Designing a UI for Tree Data](https://retool.com/blog/designing-a-ui-for-tree-data) — MEDIUM confidence
+- [Interaction Design for Trees - Hagan Rivers](https://medium.com/@hagan.rivers/interaction-design-for-trees-5e915b408ed2) — MEDIUM confidence
+
+---
+*Feature research for: Organization Tree Management UI — PortalHC KPB ManageOrganization Redesign*
+*Researched: 2026-04-02*
