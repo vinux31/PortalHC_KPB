@@ -2946,12 +2946,63 @@ namespace HcPortal.Controllers
             int gradedCount = 0;
             int cancelledCount = 0;
 
+            // Batch-load all data needed for grading to avoid N+1 queries
+            var sessionIds = sessionsToEnd.Select(s => s.Id).ToList();
+            var inProgressIds = sessionsToEnd
+                .Where(s => s.StartedAt != null && s.CompletedAt == null && s.Score == null)
+                .Select(s => s.Id).ToList();
+
+            Dictionary<int, UserPackageAssignment> assignmentMap = new();
+            Dictionary<int, List<PackageQuestion>> questionMap = new();
+            Dictionary<int, Dictionary<int, int?>> responseMap = new();
+
+            if (inProgressIds.Any())
+            {
+                // Single query: all assignments for in-progress sessions
+                var assignments = await _context.UserPackageAssignments
+                    .Where(a => inProgressIds.Contains(a.AssessmentSessionId))
+                    .ToListAsync();
+                assignmentMap = assignments.ToDictionary(a => a.AssessmentSessionId);
+
+                // Collect all question IDs across all assignments
+                var allQuestionIds = assignments
+                    .SelectMany(a => a.GetShuffledQuestionIds())
+                    .Distinct()
+                    .ToList();
+
+                // Single query: all questions with options
+                var allQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => allQuestionIds.Contains(q.Id))
+                    .ToListAsync();
+                var questionLookup = allQuestions.ToDictionary(q => q.Id);
+
+                // Build per-session question lists
+                foreach (var a in assignments)
+                {
+                    questionMap[a.AssessmentSessionId] = a.GetShuffledQuestionIds()
+                        .Where(id => questionLookup.ContainsKey(id))
+                        .Select(id => questionLookup[id])
+                        .ToList();
+                }
+
+                // Single query: all responses for in-progress sessions
+                var allResponses = await _context.PackageUserResponses
+                    .Where(r => inProgressIds.Contains(r.AssessmentSessionId))
+                    .ToListAsync();
+                responseMap = allResponses
+                    .GroupBy(r => r.AssessmentSessionId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.ToDictionary(r => r.PackageQuestionId, r => r.PackageOptionId));
+            }
+
             foreach (var session in sessionsToEnd)
             {
-                bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
+                bool isInProgress = inProgressIds.Contains(session.Id);
                 if (isInProgress)
                 {
-                    await GradeFromSavedAnswers(session);
+                    await GradeFromSavedAnswersBatch(session, assignmentMap, questionMap, responseMap);
                     gradedCount++;
                 }
                 else
@@ -3103,6 +3154,99 @@ namespace HcPortal.Controllers
                 }
             }
             // Legacy path removed (Phase 227 CLEN-02) — sessions without package assignment get score 0.
+
+            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+            session.Score = finalPercentage;
+            session.Status = "Completed";
+            session.Progress = 100;
+            session.IsPassed = finalPercentage >= session.PassPercentage;
+            session.CompletedAt = DateTime.UtcNow;
+            session.UpdatedAt = DateTime.UtcNow;
+
+            // TrainingRecord creation (duplicate guard: same as SubmitExam)
+            var judul = $"Assessment: {session.Title}";
+            bool trainingRecordExists = await _context.TrainingRecords.AnyAsync(t =>
+                t.UserId == session.UserId &&
+                t.Judul == judul &&
+                t.Tanggal == session.Schedule);
+            if (!trainingRecordExists)
+            {
+                _context.TrainingRecords.Add(new TrainingRecord
+                {
+                    UserId = session.UserId,
+                    Judul = judul,
+                    Kategori = session.Category ?? "Assessment",
+                    Tanggal = session.Schedule,
+                    TanggalSelesai = session.CompletedAt,
+                    Penyelenggara = "Internal",
+                    Status = session.IsPassed == true ? "Passed" : "Failed"
+                });
+            }
+
+            // Group completion notification
+            await _workerDataService.NotifyIfGroupCompleted(session);
+        }
+
+        /// <summary>
+        /// Batch variant of GradeFromSavedAnswers — uses pre-loaded data to avoid N+1 queries.
+        /// Called by AkhiriSemuaUjian. Same grading logic as GradeFromSavedAnswers.
+        /// </summary>
+        private async Task GradeFromSavedAnswersBatch(
+            AssessmentSession session,
+            Dictionary<int, UserPackageAssignment> assignmentMap,
+            Dictionary<int, List<PackageQuestion>> questionMap,
+            Dictionary<int, Dictionary<int, int?>> responseMap)
+        {
+            int totalScore = 0;
+            int maxScore = 0;
+
+            if (assignmentMap.TryGetValue(session.Id, out var packageAssignment))
+            {
+                var packageQuestions = questionMap.GetValueOrDefault(session.Id) ?? new List<PackageQuestion>();
+                var responses = responseMap.GetValueOrDefault(session.Id) ?? new Dictionary<int, int?>();
+                var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+                var questionLookup = packageQuestions.ToDictionary(q => q.Id);
+
+                foreach (var qId in shuffledIds)
+                {
+                    if (!questionLookup.TryGetValue(qId, out var q)) continue;
+                    maxScore += q.ScoreValue;
+                    if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                    {
+                        var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                        if (selectedOption != null && selectedOption.IsCorrect)
+                            totalScore += q.ScoreValue;
+                    }
+                }
+
+                packageAssignment.IsCompleted = true;
+
+                // Persist ET scores per session — Phase 223
+                var etGroupsAdmin = packageQuestions
+                    .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+
+                foreach (var etGroup in etGroupsAdmin)
+                {
+                    int etCorrect = 0;
+                    int etTotal = etGroup.Count();
+                    foreach (var q in etGroup)
+                    {
+                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                        {
+                            var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                            if (sel != null && sel.IsCorrect) etCorrect++;
+                        }
+                    }
+                    _context.SessionElemenTeknisScores.Add(new HcPortal.Models.SessionElemenTeknisScore
+                    {
+                        AssessmentSessionId = session.Id,
+                        ElemenTeknis = etGroup.Key,
+                        CorrectCount = etCorrect,
+                        QuestionCount = etTotal
+                    });
+                }
+            }
 
             int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
@@ -3685,55 +3829,45 @@ namespace HcPortal.Controllers
                 }
             }
 
-            // Phase 2 — Fill remaining quota with balanced package distribution
+            // Phase 2 — Fill remaining quota with balanced ET distribution (round-robin per-ET)
+            // Synced with CMPController.BuildCrossPackageAssignment for consistent behavior
             int remaining = K - selectedIds.Count;
             if (remaining > 0)
             {
-                int N = packages.Count;
-                var orderedByPackage = packages
-                    .Select(p => p.Questions.OrderBy(q => q.Order)
-                        .Where(q => !selectedIds.Contains(q.Id))
-                        .ToList())
-                    .ToList();
+                int M = etGroups.Count;
+                int basePerET = remaining / M;
+                int extraCount = remaining % M;
+                var extraETs = etGroups.OrderBy(_ => rng.Next()).Take(extraCount).ToHashSet();
 
-                // Build slot list for remaining slots using balanced distribution
-                int baseCount = remaining / N;
-                int remainder = remaining % N;
-                var remainderIndices = Enumerable.Range(0, N)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder)
-                    .ToHashSet();
-
-                var slots = new List<int>();
-                for (int i = 0; i < N; i++)
+                foreach (var et in etGroups)
                 {
-                    int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots.Add(i);
-                }
-                Shuffle(slots, rng);
-
-                var pkgCounter = new int[N];
-                var pkgAvailable = orderedByPackage.Select(q => q.Count).ToArray();
-
-                foreach (int pkgIdx in slots)
-                {
-                    // Find a package with available unselected questions
-                    int targetPkg = pkgIdx;
-                    if (pkgCounter[targetPkg] >= pkgAvailable[targetPkg])
+                    int quota = basePerET + (extraETs.Contains(et) ? 1 : 0);
+                    var etCandidates = allQuestions
+                        .Where(x => x.Question.ElemenTeknis == et && !selectedIds.Contains(x.Question.Id))
+                        .Select(x => x.Question.Id)
+                        .ToList();
+                    Shuffle(etCandidates, rng);
+                    int toTake = Math.Min(quota, etCandidates.Count);
+                    foreach (var id in etCandidates.Take(toTake))
                     {
-                        // Redistribute: find any package with remaining questions
-                        targetPkg = -1;
-                        for (int i = 0; i < N; i++)
-                        {
-                            if (pkgCounter[i] < pkgAvailable[i]) { targetPkg = i; break; }
-                        }
-                        if (targetPkg == -1) break; // All packages exhausted
+                        selectedIds.Add(id);
+                        selectedList.Add(id);
                     }
-                    var q = orderedByPackage[targetPkg][pkgCounter[targetPkg]];
-                    pkgCounter[targetPkg]++;
-                    selectedIds.Add(q.Id);
-                    selectedList.Add(q.Id);
+                }
+
+                // Fallback: jika masih kurang (ET kehabisan soal), ambil dari NULL-ET atau sisa soal manapun
+                if (selectedIds.Count < K)
+                {
+                    var fallbackCandidates = allQuestions
+                        .Where(x => !selectedIds.Contains(x.Question.Id))
+                        .Select(x => x.Question.Id)
+                        .ToList();
+                    Shuffle(fallbackCandidates, rng);
+                    foreach (var id in fallbackCandidates.Take(K - selectedIds.Count))
+                    {
+                        selectedIds.Add(id);
+                        selectedList.Add(id);
+                    }
                 }
             }
 
