@@ -1,7 +1,6 @@
 @* Data diambil via AJAX — tidak perlu @model *@
 @{
     ViewData["Title"] = "Struktur Organisasi";
-    var editUnit = ViewBag.EditUnit as HcPortal.Models.OrganizationUnit;
 }
 
 <style>
@@ -14,6 +13,8 @@
     .tree-row:hover { background-color: #e9ecef; }
     .tree-root { list-style: none; padding-left: 0; }
     .badge-status { font-size: 0.75rem; }
+    .action-dropdown .btn { opacity: 0; transition: opacity 150ms; }
+    .tree-row:hover .action-dropdown .btn { opacity: 1; }
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -36,130 +37,55 @@
         </div>
         <div>
             <button id="btn-expand-all" class="btn btn-outline-primary btn-sm me-2">Expand All</button>
-            <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addUnitForm">
+            <button type="button" class="btn btn-primary" onclick="openAddModal()">
                 <i class="bi bi-plus-circle me-2"></i>Tambah Unit
             </button>
         </div>
     </div>
 
-    <!-- Alerts -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    <!-- Form Tambah (Collapse) -->
-    <div class="collapse @(TempData["ShowAddForm"] != null ? "show" : "") mb-4" id="addUnitForm">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-primary text-white fw-bold">
-                <i class="bi bi-plus-circle me-2"></i>Tambah Unit Baru
-            </div>
-            <div class="card-body">
-                <form method="post" action="@Url.Action("AddOrganizationUnit", "Organization")">
-                    @Html.AntiForgeryToken()
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Nama <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control" placeholder="Nama unit" required maxlength="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Induk</label>
-                            <select name="parentId" class="form-select">
-                                <option value="">— Tidak ada (root) —</option>
-                                @if (ViewBag.PotentialParents != null)
-                                {
-                                    foreach (var item in (IEnumerable<HcPortal.Models.OrganizationUnit>)ViewBag.PotentialParents)
-                                    {
-                                        var indent = new string('\u00A0', item.Level * 4);
-                                        <option value="@item.Id">@indent@item.Name</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-plus-circle me-1"></i>Tambah Unit
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Form Edit (di atas tree, jika editUnit ada) -->
-    @if (editUnit != null)
-    {
-        <div class="card border-0 shadow-sm mb-4 border-warning">
-            <div class="card-header bg-warning text-dark fw-bold">
-                <i class="bi bi-pencil-square me-2"></i>Edit Unit
-            </div>
-            <div class="card-body">
-                <form method="post" action="@Url.Action("EditOrganizationUnit", "Organization")">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@editUnit.Id" />
-                    <div class="row g-3">
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold">Nama <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control" value="@editUnit.Name" required maxlength="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Induk</label>
-                            <select name="parentId" class="form-select">
-                                <option value="">— Tidak ada (root) —</option>
-                                @if (ViewBag.PotentialParents != null)
-                                {
-                                    foreach (var item in (IEnumerable<HcPortal.Models.OrganizationUnit>)ViewBag.PotentialParents)
-                                    {
-                                        if (item.Id == editUnit.Id) continue;
-                                        var indent = new string('\u00A0', item.Level * 4);
-                                        if (editUnit.ParentId.HasValue && editUnit.ParentId.Value == item.Id)
-                                        {
-                                            <option value="@item.Id" selected>@indent@item.Name</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@item.Id">@indent@item.Name</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end gap-2">
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-save me-1"></i>Simpan Perubahan
-                            </button>
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <a href="@Url.Action("ManageOrganization", "Organization")" class="btn btn-outline-secondary">
-                                <i class="bi bi-x"></i> Batal
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    }
-
     <!-- Tree container — JS mengisi ini -->
     <div class="card border-0 shadow-sm">
         <div class="card-body">
+            @Html.AntiForgeryToken()
             <div id="org-tree-container">
                 <!-- populated by initTree() -->
             </div>
         </div>
     </div>
 
+</div>
+
+<!-- Modal Tambah/Edit Unit -->
+<div class="modal fade" id="unitModal" tabindex="-1" aria-labelledby="unitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="unitModalLabel">Tambah Unit</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="unitModalId" value="" />
+                <div class="mb-3">
+                    <label for="unitModalName" class="form-label fw-bold">Nama <span class="text-danger">*</span></label>
+                    <input type="text" id="unitModalName" class="form-control" placeholder="Nama unit" required maxlength="100" />
+                    <div class="invalid-feedback">Nama tidak boleh kosong.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="unitModalParent" class="form-label fw-bold">Induk</label>
+                    <select id="unitModalParent" class="form-select">
+                        <option value="">— Tidak ada (root) —</option>
+                    </select>
+                </div>
+                <div id="unitModalWarning" class="alert alert-warning d-none small"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="unitModalSubmit" onclick="submitUnitModal()">
+                    <i class="bi bi-save me-1"></i>Simpan
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal Hapus Permanen -->
@@ -172,33 +98,23 @@
             </div>
             <div class="modal-body">
                 Apakah Anda yakin ingin menghapus <strong id="deleteModalName"></strong> secara permanen? Tindakan ini tidak dapat dibatalkan.
+                <div id="deleteModalWarning" class="alert alert-warning d-none small mt-2"></div>
             </div>
             <div class="modal-footer">
+                <input type="hidden" id="deleteModalId" />
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <form id="deleteForm" method="post" action="@Url.Action("DeleteOrganizationUnit", "Organization")">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" id="deleteModalId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i>Hapus Permanen
-                    </button>
-                </form>
+                <button type="button" class="btn btn-danger" onclick="submitDelete()">
+                    <i class="bi bi-trash me-1"></i>Hapus Permanen
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="~/js/shared-toast.js"></script>
     <script src="~/js/orgTree.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', initTree);
-
-        var deleteModal = document.getElementById('deleteModal');
-        if (deleteModal) {
-            deleteModal.addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
-                document.getElementById('deleteModalId').value = button.getAttribute('data-id');
-                document.getElementById('deleteModalName').textContent = button.getAttribute('data-name');
-            });
-        }
     </script>
 }
