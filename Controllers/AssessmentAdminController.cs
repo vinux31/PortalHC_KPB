@@ -196,6 +196,7 @@ namespace HcPortal.Controllers
                     .Select(r => r.Title)
                     .Where(t => !string.IsNullOrEmpty(t))
                     .Distinct().OrderBy(t => t).ToList();
+                ViewBag.TrainingSections = await _context.GetAllSectionsAsync();
             }
 
             return View();

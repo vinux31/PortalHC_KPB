@@ -205,6 +205,12 @@ namespace HcPortal.Controllers
                     var affectedMappings = await _context.CoachCoacheeMappings.Where(m => m.AssignmentSection == oldName).ToListAsync();
                     foreach (var m in affectedMappings) m.AssignmentSection = name.Trim();
                     cascadedMappings += affectedMappings.Count;
+
+                    var affectedKompetensi = await _context.ProtonKompetensiList.Where(k => k.Bagian == oldName).ToListAsync();
+                    foreach (var k in affectedKompetensi) k.Bagian = name.Trim();
+
+                    var affectedGuidance = await _context.CoachingGuidanceFiles.Where(g => g.Bagian == oldName).ToListAsync();
+                    foreach (var g in affectedGuidance) g.Bagian = name.Trim();
                 }
                 else
                 {
@@ -215,6 +221,12 @@ namespace HcPortal.Controllers
                     var affectedMappings = await _context.CoachCoacheeMappings.Where(m => m.AssignmentUnit == oldName).ToListAsync();
                     foreach (var m in affectedMappings) m.AssignmentUnit = name.Trim();
                     cascadedMappings += affectedMappings.Count;
+
+                    var affectedKompetensi = await _context.ProtonKompetensiList.Where(k => k.Unit == oldName).ToListAsync();
+                    foreach (var k in affectedKompetensi) k.Unit = name.Trim();
+
+                    var affectedGuidance = await _context.CoachingGuidanceFiles.Where(g => g.Unit == oldName).ToListAsync();
+                    foreach (var g in affectedGuidance) g.Unit = name.Trim();
                 }
             }
 
@@ -242,6 +254,12 @@ namespace HcPortal.Controllers
                     var reparentMappings = await _context.CoachCoacheeMappings.Where(m => m.AssignmentUnit == oldName).ToListAsync();
                     foreach (var m in reparentMappings) m.AssignmentSection = newSectionName;
                     cascadedMappings += reparentMappings.Count;
+
+                    var reparentKompetensi = await _context.ProtonKompetensiList.Where(k => k.Unit == oldName).ToListAsync();
+                    foreach (var k in reparentKompetensi) k.Bagian = newSectionName;
+
+                    var reparentGuidance = await _context.CoachingGuidanceFiles.Where(g => g.Unit == oldName).ToListAsync();
+                    foreach (var g in reparentGuidance) g.Bagian = newSectionName;
                 }
             }
 
@@ -374,6 +392,19 @@ namespace HcPortal.Controllers
                 if (IsAjaxRequest())
                     return Json(new { success = false, message = "Unit ini masih memiliki pekerja yang ter-assign. Pindahkan pekerja terlebih dahulu." });
                 TempData["Error"] = "Unit ini masih memiliki pekerja yang ter-assign. Pindahkan pekerja terlebih dahulu.";
+                return RedirectToAction("ManageOrganization");
+            }
+
+            bool hasProtonData = unit.Level == 0
+                ? await _context.ProtonKompetensiList.AnyAsync(k => k.Bagian == unit.Name)
+                    || await _context.CoachingGuidanceFiles.AnyAsync(g => g.Bagian == unit.Name)
+                : await _context.ProtonKompetensiList.AnyAsync(k => k.Unit == unit.Name)
+                    || await _context.CoachingGuidanceFiles.AnyAsync(g => g.Unit == unit.Name);
+            if (hasProtonData)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Unit ini masih memiliki data Proton (Silabus/Guidance) yang ter-assign. Pindahkan data terlebih dahulu." });
+                TempData["Error"] = "Unit ini masih memiliki data Proton (Silabus/Guidance) yang ter-assign. Pindahkan data terlebih dahulu.";
                 return RedirectToAction("ManageOrganization");
             }
 

@@ -35,7 +35,7 @@
                     <select class="form-select form-select-sm" name="section" id="filterSection"
                             onchange="document.getElementById('filterUnit').value=''; this.form.submit()">
                         <option value="">Semua Bagian</option>
-                        @{ var sects = new[] { "GAST", "RFCC", "NGP", "DHT / HMU" }; }
+                        @{ var sects = ViewBag.TrainingSections as List<string> ?? new List<string>(); }
                         @foreach (var s in sects)
                         {
                             if (selectedSection == s)
