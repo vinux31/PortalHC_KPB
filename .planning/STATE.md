@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v13.0
 milestone_name: Redesign Struktur Organisasi
-status: verifying
+status: executing
 stopped_at: Completed 294-01-PLAN.md
-last_updated: "2026-04-03T00:00:00.000Z"
-last_activity: 2026-04-03
+last_updated: "2026-04-03T02:58:38.722Z"
+last_activity: 2026-04-03 -- Phase 295 execution started
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 294 — ajax-crud-lengkap
+**Current focus:** Phase 295 — drag-drop-reorder
 
 ## Current Position
 
-Phase: 294
-Plan: 294-01 complete
-Status: Phase complete — ready for verification
-Last activity: 2026-04-02
+Phase: 295 (drag-drop-reorder) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 295
+Last activity: 2026-04-03 -- Phase 295 execution started
 
 Progress: [░░░░░░░░░░] 0%
 

@@ -37,7 +37,7 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 292: Backend AJAX Endpoints** - GetOrganizationTree JSON + dual-response pada CRUD actions + CSRF utility (completed 2026-04-02)
 - [x] **Phase 293: View Shell & Tree Rendering** - Ganti 520-baris view dengan ~130-baris shell + recursive tree dari JSON (completed 2026-04-02)
 - [x] **Phase 294: AJAX CRUD Lengkap** - Modal add/edit, toggle, delete, action dropdown via orgTree.js tanpa page reload (completed 2026-04-03)
-- [ ] **Phase 295: Drag-drop Reorder** - SortableJS reorder sibling-only, cross-parent diblokir
+- [x] **Phase 295: Drag-drop Reorder** - SortableJS reorder sibling-only, cross-parent diblokir (completed 2026-04-03)
 
 ## Phase Details
 
@@ -105,4 +105,4 @@ Plans:
 | 292. Backend AJAX Endpoints | 1/1 | Complete   | 2026-04-02 |
 | 293. View Shell & Tree Rendering | 1/1 | Complete    | 2026-04-02 |
 | 294. AJAX CRUD Lengkap | 1/1 | Complete | 2026-04-03 |
-| 295. Drag-drop Reorder | 0/? | Not started | - |
+| 295. Drag-drop Reorder | 1/1 | Complete   | 2026-04-03 |
