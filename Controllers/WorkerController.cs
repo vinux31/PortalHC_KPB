@@ -823,6 +823,11 @@ namespace HcPortal.Controllers
             {
                 using var fileStream = excelFile.OpenReadStream();
                 using var workbook = new XLWorkbook(fileStream);
+                if (!workbook.Worksheets.Any())
+                {
+                    TempData["Error"] = "File Excel tidak memiliki worksheet.";
+                    return View();
+                }
                 var ws = workbook.Worksheets.First();
 
                 var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();

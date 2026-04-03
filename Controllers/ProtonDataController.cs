@@ -879,6 +879,11 @@ namespace HcPortal.Controllers
                 stream.Position = 0;
 
                 using var workbook = new XLWorkbook(stream);
+                if (!workbook.Worksheets.Any())
+                {
+                    TempData["Error"] = "File Excel tidak memiliki worksheet.";
+                    return RedirectToAction(nameof(ImportSilabus));
+                }
                 var ws = workbook.Worksheets.First();
                 var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
 

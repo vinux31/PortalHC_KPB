@@ -2586,7 +2586,7 @@ namespace HcPortal.Controllers
                     .GroupBy(x => x.AssessmentSessionId)
                     .ToDictionaryAsync(
                         g => g.Key,
-                        g => g.First().QuestionCount);
+                        g => g.Sum(x => x.QuestionCount));
             }
             // Build row data: one row per session, include all statuses
             var rows = sessions.Select(a =>
@@ -3437,6 +3437,11 @@ namespace HcPortal.Controllers
                 {
                     using var stream = excelFile.OpenReadStream();
                     using var workbook = new XLWorkbook(stream);
+                    if (!workbook.Worksheets.Any())
+                    {
+                        errors.Add("File Excel tidak memiliki worksheet.");
+                        return Json(new { success = false, errors });
+                    }
                     var ws = workbook.Worksheets.First();
                     int rowNum = 1;
                     foreach (var row in ws.RowsUsed().Skip(1))

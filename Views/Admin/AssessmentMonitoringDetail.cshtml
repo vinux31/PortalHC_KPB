@@ -300,8 +300,9 @@
                                         }
                                         @* Activity Log button -- always shown, enabled if session has started *@
                                         <button type="button"
-                                                class="btn btn-outline-secondary btn-sm ms-1"
-                                                onclick="showActivityLog(@session.Id, @Json.Serialize(session.UserFullName))"
+                                                class="btn btn-outline-secondary btn-sm ms-1 btn-activity-log"
+                                                data-session-id="@session.Id"
+                                                data-worker-name="@session.UserFullName"
                                                 title="Lihat activity log">
                                             <i class="bi bi-clock-history"></i>
                                         </button>
@@ -721,10 +722,11 @@
         // Worker name from DOM (col 0 of the row)
         var wn = '';
         var trRow = document.querySelector('tr[data-session-id="' + session.sessionId + '"]');
-        if (trRow) { wn = trRow.querySelectorAll('td')[0].textContent.trim().replace(/'/g, "\\'"); }
+        if (trRow) { wn = trRow.querySelectorAll('td')[0].textContent.trim(); }
         html += '<button type="button"'
-            + ' class="btn btn-outline-secondary btn-sm ms-1"'
-            + ' onclick="showActivityLog(' + session.sessionId + ', \'' + wn + '\')"'
+            + ' class="btn btn-outline-secondary btn-sm ms-1 btn-activity-log"'
+            + ' data-session-id="' + session.sessionId + '"'
+            + ' data-worker-name="' + wn.replace(/"/g, '&quot;') + '"'
             + ' title="Lihat activity log"><i class="bi bi-clock-history"></i></button>';
 
         return html;
@@ -790,6 +792,16 @@
         if (elNotStarted) elNotStarted.textContent = notStarted;
         if (elCancelled)  elCancelled.textContent  = cancelled;
     }
+
+    // ---- Delegate click for activity log buttons (avoids inline onclick / XSS) ----
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-activity-log');
+        if (btn) {
+            var sid = parseInt(btn.getAttribute('data-session-id'), 10);
+            var wname = btn.getAttribute('data-worker-name') || '';
+            showActivityLog(sid, wname);
+        }
+    });
 
     // ---- Akhiri Semua Modal: fetch counts on open ----
     var akhiriModal = document.getElementById('akhiriSemuaModal');

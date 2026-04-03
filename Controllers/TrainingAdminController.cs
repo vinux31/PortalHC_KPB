@@ -630,6 +630,11 @@ namespace HcPortal.Controllers
             {
                 using var fileStream = excelFile.OpenReadStream();
                 using var workbook = new XLWorkbook(fileStream);
+                if (!workbook.Worksheets.Any())
+                {
+                    TempData["Error"] = "File Excel tidak memiliki worksheet.";
+                    return RedirectToAction(nameof(ImportTraining));
+                }
                 var ws = workbook.Worksheets.First();
 
                 foreach (var row in ws.RowsUsed().Skip(1))
