@@ -423,5 +423,46 @@ namespace HcPortal.Controllers
                 return Json(new { success = true, message = "Urutan berhasil diubah." });
             return RedirectToAction("ManageOrganization");
         }
+
+        // POST /Admin/ReorderBatch
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReorderBatch(int? parentId, string orderedIds)
+        {
+            if (string.IsNullOrWhiteSpace(orderedIds))
+                return Json(new { success = false, message = "Data urutan tidak valid." });
+
+            var ids = orderedIds.Split(',')
+                .Where(s => int.TryParse(s.Trim(), out _))
+                .Select(s => int.Parse(s.Trim()))
+                .ToArray();
+
+            if (ids.Length == 0)
+                return Json(new { success = false, message = "Data urutan tidak valid." });
+
+            var siblings = await _context.OrganizationUnits
+                .Where(u => u.ParentId == parentId)
+                .OrderBy(u => u.DisplayOrder)
+                .ToListAsync();
+
+            if (ids.Length != siblings.Count)
+                return Json(new { success = false, message = "Jumlah item tidak sesuai." });
+
+            var siblingMap = siblings.ToDictionary(u => u.Id);
+            foreach (var id in ids)
+            {
+                if (!siblingMap.ContainsKey(id))
+                    return Json(new { success = false, message = "ID tidak valid atau bukan sibling yang sama." });
+            }
+
+            for (int i = 0; i < ids.Length; i++)
+            {
+                siblingMap[ids[i]].DisplayOrder = i + 1;
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Urutan berhasil diubah." });
+        }
     }
 }

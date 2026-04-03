@@ -15,6 +15,11 @@
     .badge-status { font-size: 0.75rem; }
     .action-dropdown .btn { opacity: 0; transition: opacity 150ms; }
     .tree-row:hover .action-dropdown .btn { opacity: 1; }
+    .drag-handle { opacity: 0; cursor: grab; transition: opacity 150ms; color: #6c757d; width: 16px; flex-shrink: 0; }
+    .tree-row:hover .drag-handle { opacity: 0.5; }
+    .drag-handle:hover { opacity: 1 !important; }
+    .sortable-ghost { opacity: 0.4; }
+    .sortable-chosen { background-color: #e3f2fd; border-radius: 4px; }
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -112,6 +117,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
     <script src="~/js/shared-toast.js"></script>
     <script src="~/js/orgTree.js"></script>
     <script>

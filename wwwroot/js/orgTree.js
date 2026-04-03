@@ -118,6 +118,7 @@ function renderNode(node, level) {
     return `
         <li class="tree-node" data-expanded="${isExpanded}" data-id="${node.id}">
             <div class="tree-row d-flex align-items-center gap-2" ${dimmed}>
+                <i class="bi bi-grip-vertical drag-handle"></i>
                 ${chevron}
                 <i class="bi ${icon}"></i>
                 <span class="tree-label">${escapeHtml(node.name)}</span>
@@ -168,6 +169,7 @@ async function initTree() {
         const html = `<ul class="tree-root list-unstyled mb-0">${roots.map(r => renderNode(r, 0)).join('')}</ul>`;
         container.innerHTML = html;
         updateExpandAllButton();
+        initSortable();
     } catch (err) {
         container.innerHTML = `
             <div class="alert alert-danger">
@@ -175,6 +177,42 @@ async function initTree() {
                 Gagal memuat struktur organisasi. Periksa koneksi dan muat ulang halaman.
             </div>`;
     }
+}
+
+function initSortable() {
+    if (typeof Sortable === 'undefined') return;
+    document.querySelectorAll('.tree-children, .tree-root').forEach(function(ul) {
+        Sortable.create(ul, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            group: false,
+            onEnd: function(evt) {
+                if (evt.oldIndex === evt.newIndex) return;
+                var container = evt.from;
+                var parentNode = container.closest('.tree-node');
+                var parentId = parentNode ? parentNode.dataset.id : '';
+                var orderedIds = Array.from(container.children)
+                    .map(function(li) { return li.dataset.id; })
+                    .filter(function(id) { return id; })
+                    .join(',');
+                ajaxPost('/Admin/ReorderBatch', { parentId: parentId, orderedIds: orderedIds })
+                    .then(function(res) {
+                        if (res.success) {
+                            showToast(res.message, 'success');
+                        } else {
+                            showToast(res.message, 'danger');
+                            initTree();
+                        }
+                    })
+                    .catch(function() {
+                        showToast('Gagal mengubah urutan.', 'danger');
+                        initTree();
+                    });
+            }
+        });
+    });
 }
 
 // Modal helpers
