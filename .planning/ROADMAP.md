@@ -105,4 +105,4 @@ Plans:
 | 292. Backend AJAX Endpoints | 1/1 | Complete   | 2026-04-02 |
 | 293. View Shell & Tree Rendering | 1/1 | Complete    | 2026-04-02 |
 | 294. AJAX CRUD Lengkap | 1/1 | Complete | 2026-04-03 |
-| 295. Drag-drop Reorder | 1/1 | Complete   | 2026-04-03 |
+| 295. Drag-drop Reorder | 1/1 | Complete    | 2026-04-03 |
