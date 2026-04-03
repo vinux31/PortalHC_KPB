@@ -727,8 +727,9 @@ namespace HcPortal.Controllers
         // GET /Admin/ImportWorkers
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public IActionResult ImportWorkers()
+        public async Task<IActionResult> ImportWorkers()
         {
+            ViewBag.AllSections = await _context.GetAllSectionsAsync();
             return View();
         }
 
