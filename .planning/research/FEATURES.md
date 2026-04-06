@@ -1,177 +1,237 @@
-# Feature Research
+# Feature Landscape
 
-**Domain:** Organization Tree Management UI (Admin Panel)
-**Researched:** 2026-04-02
-**Confidence:** HIGH (multiple design system sources: Adobe Commerce, PatternFly/Red Hat, Retool, Carbon)
-
-## Konteks Proyek
-
-Ini adalah **redesign**, bukan greenfield. Fitur backend sudah ada di OrganizationController:
-- CRUD (Add, Edit, Delete, Toggle active/inactive OrganizationUnit)
-- Reorder (up/down dalam siblings)
-- Hierarki 3 level (Bagian → Unit → Sub-unit)
-- Cascade rename/reparent ke User.Section/Unit dan CoachCoacheeMapping
-- Constraint: tidak bisa hapus unit dengan active children/users/files
-
-Fokus penelitian: **pola UI/UX untuk menampilkan dan mengelola tree tersebut di halaman admin.**
+**Domain:** Online Assessment Platform Enhancement — Corporate HR (Pertamina PortalHC KPB)
+**Researched:** 2026-04-06
+**Milestone:** v14.0 Assessment Enhancement
+**Overall Confidence:** HIGH (multi-source: W3C official, UW Assessment, BMC Medical Education, Baymard Institute)
 
 ---
 
-## Feature Landscape
+## Existing Baseline (Sudah Ada — Jangan Duplikasi)
 
-### Table Stakes (Pengguna Mengharapkan Ini Ada)
+Fitur berikut SUDAH SHIPPED dan menjadi fondasi v14.0:
 
-Fitur yang dianggap sudah seharusnya ada. Tidak ada kredit jika ada, tapi terasa cacat jika tidak ada.
+- Multiple choice 4 opsi, shuffle soal/opsi, auto-grade
+- Server-enforced timer + 2-menit grace period
+- SignalR real-time monitoring
+- Anti-copy protection (copy/paste/context menu block)
+- Token-based exam access
+- Certificate generation (KPB/{SEQ}/{MONTH}/{YEAR})
+- Renewal chain (session-to-session FK)
+- Activity logging (page_nav, reconnect, disconnect)
+- Analytics dashboard (fail rate, trend, ET heatmap, expiring certs)
+- Attempt history & reset
+- Interview mode (Proton Tahun 3, manual scoring)
 
-| Fitur | Mengapa Diharapkan | Kompleksitas | Catatan |
-|-------|--------------------|--------------|---------|
-| Expand/collapse node | Standar universal semua tree UI (VSCode, Windows Explorer, macOS Finder) | LOW | Toggle per node; chevron/arrow di sebelah kiri label; state per-session |
-| Visual indentasi hierarki | Menunjukkan parent-child secara visual tanpa membaca label | LOW | Indentasi per level; garis penghubung (guides) menguatkan hierarki |
-| Inline action menu per node | Standar enterprise tree (Adobe Commerce, PatternFly) — edit dan delete ada di mana datanya | LOW | "..." button atau hover actions: Edit, Delete, Toggle; muncul on-hover, max 1 style action per tree |
-| Tombol Add di level yang tepat | Admin harus bisa tambah child tanpa keluar halaman | LOW | "Tambah Unit" di bawah Bagian, "Tambah Sub-unit" di bawah Unit; tombol kecil + ikon "+" |
-| Indikator status aktif/nonaktif | Admin harus bisa lihat status sekilas tanpa klik | LOW | Badge atau warna muted/grey untuk yang nonaktif; jangan sembunyikan info ini |
-| Disable destructive actions saat tidak valid | Standar untuk semua CRUD dengan constraint | LOW | "Delete" disabled + tooltip penjelasan jika ada children aktif/users/files. Backend sudah ada constraint-nya, tinggal refleksikan ke UI |
-| Expand All / Collapse All | Standar untuk tree dengan lebih dari 2 level | LOW | Tombol global di header area; toggle antara keduanya |
+---
 
-### Differentiators (Keunggulan yang Menambah Nilai)
+## Table Stakes
 
-Fitur yang tidak wajib tapi memberikan nilai nyata untuk admin HC.
+Fitur yang WAJIB ada. Tanpa ini, platform tidak layak disebut "enhanced assessment platform."
 
-| Fitur | Proposisi Nilai | Kompleksitas | Catatan |
-|-------|-----------------|--------------|---------|
-| Badge jumlah pekerja per unit | Admin HC langsung lihat distribusi pekerja tanpa navigasi ke halaman lain | LOW | COUNT query user per OrganizationUnit; sangat berguna untuk HC |
-| Badge jumlah children per node | Admin tahu ada berapa unit/sub-unit tanpa expand | LOW | Data sudah tersedia dari relasi; "(3)" di sebelah nama Bagian |
-| Inline rename langsung di node | Rename sederhana tanpa buka modal — lebih cepat untuk perubahan kecil | MEDIUM | Double-click label → input field; Enter save, Escape cancel; wire ke existing Edit action via AJAX |
-| Konfirmasi delete dengan penjelasan dampak | "Unit ini memiliki 3 pekerja aktif" — lebih informatif dari dialog browser default | MEDIUM | Modal konfirmasi dengan detail: jumlah children, pekerja, file; berbeda dari alert box generik |
-| Highlight visual node yang baru dibuat/diedit | Admin tahu persis mana yang baru berubah setelah operasi | LOW | Flash/highlight sementara (2-3 detik) pada node setelah add/edit berhasil |
+| Fitur | Mengapa Wajib | Kompleksitas | Ketergantungan pada Existing |
+|-------|---------------|--------------|------------------------------|
+| **Tipe Soal: True/False** | Standar minimum semua LMS (Blackboard, Canvas, Moodle). Memungkinkan test recall cepat dan populer untuk compliance check. Peserta punya 50% chance menebak — perlu dikombinasikan dengan soal lain. | Rendah | Auto-grade engine existing bisa dipakai langsung; tambah QuestionType enum + TF renderer di exam view |
+| **Tipe Soal: Multiple Answer** | Diperlukan untuk soal "pilih semua yang benar" — tidak bisa digantikan MCQ biasa. Standar untuk K3 dan compliance test yang punya multiple correct answer. | Sedang | Scoring logic harus diubah. **Wajib putuskan scoring policy (all-or-nothing vs partial credit) sebelum coding** karena mempengaruhi semua kalkulasi skor |
+| **Tipe Soal: Essay** | Diperlukan untuk assessment kompetensi yang butuh argumentasi, bukan hanya recall. Mirip pola Interview mode yang sudah ada — manual grading oleh HC. | Sedang | Reuse pola manual grading dari Interview mode; butuh notifikasi ke HC jika ada essay pending review |
+| **Tipe Soal: Fill in the Blank** | Assessment teknis KPB (Oil & Gas) sering butuh recall presisi: nama prosedur, kode regulasi, istilah teknis. Berbeda dari MCQ karena menguji recall, bukan recognition. | Sedang | Auto-grade dengan exact match + case-insensitive. Butuh answer variations table untuk mendukung sinonim dan variasi ejaan yang valid |
+| **Pre-Post Test Linking** | Gain score analysis adalah standar industri untuk membuktikan efektivitas pelatihan. Tanpa ini, HC tidak bisa tunjukkan ROI training ke manajemen Pertamina. Setiap peserta butuh unique identifier yang otomatis menghubungkan Pre dan Post — tidak boleh manual matching. | Tinggi | LinkedGroupId FK baru di AssessmentSession; wizard create assessment butuh langkah tambahan pilih tipe; schedule Post-Test terpisah |
+| **Gain Score Display (Pre vs Post)** | Tanpa ini Pre-Post Test hanya 2 exam biasa yang tidak terhubung. Side-by-side comparison adalah output utama yang ditunggu HC untuk laporan ke manajemen. | Sedang | **Tergantung Pre-Post Test Linking selesai dahulu.** Sertifikat hanya dari Post-Test (sudah diputuskan di PROJECT.md) |
+| **Responsive/Mobile Layout Exam** | Pekerja lapangan KPB banyak yang akses via HP Android. Jika exam tidak bisa dipakai di mobile, adoption akan sangat rendah. Studi menunjukkan 5x lebih mungkin meninggalkan site jika tidak mobile-friendly (Baymard Institute). | Sedang | Pure frontend refactor — tidak mengubah logic backend. Perlu test di Android Chrome minimum |
 
-### Anti-Features (Sering Diminta, Tapi Bermasalah)
+---
 
-| Fitur | Mengapa Diminta | Mengapa Bermasalah | Alternatif |
-|-------|-----------------|--------------------|------------|
-| Drag-and-drop reorder/reparent | Terlihat modern dan intuitif | (1) Reparent men-cascade ke User.Section/Unit dan CoachCoacheeMapping — risiko data rusak tinggi. (2) Fat-finger di tree kecil mudah terjadi. (3) Tidak ada undo. (4) Adobe Commerce sendiri menyebut drag "opsional" dan "mutually exclusive dengan checkbox". | Pertahankan tombol up/down yang sudah ada, tapi tampilkan inline di node (bukan di tabel). Lebih deliberate, lebih aman untuk data organisasi production |
-| Org chart visual box-and-line diagram | Terlihat profesional dan sesuai "struktur organisasi" | Tidak practical untuk CRUD — susah klik target kecil, tidak scale untuk list panjang, butuh layout engine kompleks (d3.js/Mermaid) | Tree list view (file explorer style) adalah standar untuk management UI; org chart hanya cocok untuk read-only view/presentasi |
-| Multi-select bulk delete | Tampak efisien | Sangat berbahaya — satu klik bisa hapus banyak unit dengan cascade effect ke ratusan user dan mapping. Tidak ada undo. Org structure jarang butuh bulk delete | Single delete dengan konfirmasi dan penjelasan dampak; jika perlu bulk, tambahkan confirmation step yang eksplisit |
-| Inline add form yang expand di dalam tree | Tidak perlu modal, lebih contextual | Form add unit butuh beberapa field (nama, parent, status) — inline form dalam tree menjadi sesak, susah scroll, dan mati gaya di mobile | Modal/dialog untuk add; inline hanya untuk rename field tunggal |
+## Differentiators
+
+Fitur yang MEMBEDAKAN platform ini dari sekadar "LMS biasa." Tidak expected, tapi tingkatkan nilai signifikan untuk HC dan manajemen.
+
+| Fitur | Nilai Proposisi | Kompleksitas | Catatan |
+|-------|----------------|--------------|---------|
+| **Item Analysis: Difficulty Index** | HC bisa identifikasi soal terlalu mudah (p > 0.85) atau terlalu sulit (p < 0.25) dan revisi bank soal. Formula standar: p = (jumlah peserta menjawab benar) / (total peserta). Ini yang dilakukan Blackboard/Canvas secara otomatis. | Sedang | Hitung per soal saat exam session ditutup; simpan di tabel ItemStatistics baru. Valid dari n=1, tapi semakin akurat dengan data lebih banyak |
+| **Item Analysis: Discrimination Index** | Identifikasi soal yang tidak membedakan peserta yang menguasai materi vs yang tidak. Formula Kelley: D = (% benar upper 27%) - (% benar lower 27%). Nilai D < 0.20 = soal perlu direvisi. | Tinggi | Butuh minimal 30 responden per soal untuk valid secara psikometrik. Tampilkan "Data belum cukup (n < 30)" jika kurang. Proses batch setelah session ditutup |
+| **Time-per-Question Analytics** | Identifikasi soal yang memakan waktu tidak proporsional — indikasi ambiguitas, terlalu panjang, atau terlalu sulit. Data ini juga bisa deteksi soal yang di-skip dan dikerjakan terakhir. | Sedang | Data timestamp per soal sudah ada di activity log. Butuh aggregation query baru per QuestionId lintas session |
+| **Comparative Report Pre vs Post** | Laporan kelompok: berapa persen peserta yang improve, flat, atau decline antara Pre dan Post. Sangat dibutuhkan untuk laporan efektivitas pelatihan ke manajemen Pertamina. | Sedang | Tergantung Pre-Post Test Linking selesai. Output: tabel dan chart distribusi gain score |
+| **Font Size Control (Aksesibilitas)** | Pekerja senior (40+) sering kesulitan baca teks kecil di layar, terutama di HP. Feature sederhana tapi berdampak tinggi untuk populasi pekerja KPB. | Rendah | CSS custom property (--font-size-base) + localStorage untuk persist preference. Opsi: Kecil/Normal/Besar |
+| **Skip-to-Content Link (WCAG Level A)** | Compliance dasar WCAG 2.1. Berguna untuk keyboard user yang tidak ingin tab melalui seluruh navigation bar. Satu link tersembunyi yang visible saat di-focus. | Rendah | 1 anchor link di awal halaman. Dampak minimal, compliance penting. Wajib untuk Level A |
+| **Screen Reader Timer Announcement** | Timer countdown diumumkan via ARIA live region di interval tertentu (mis: setiap 5 menit, lalu setiap menit saat < 5 menit tersisa). Diperlukan untuk pengguna low-vision. | Rendah | `aria-live="polite"` + interval announcement JavaScript. WCAG 2.2.1 mewajibkan user diberi warning sebelum waktu habis |
+| **Extra Time Accommodation** | Pekerja penyandang disabilitas butuh waktu tambahan. Mengikuti WCAG 2.2.1 dan Undang-Undang No. 8 Tahun 2016 tentang Penyandang Disabilitas. | Sedang | Tambah field ExtraTimeMinutes di AssessmentParticipant; HC set per-peserta saat setup assessment. Override timer calculation di server |
+
+---
+
+## Anti-Features
+
+Fitur yang SENGAJA TIDAK dibangun untuk v14.0 — beserta alasannya.
+
+| Anti-Feature | Mengapa Dihindari | Yang Dilakukan Sebagai Gantinya |
+|--------------|-------------------|---------------------------------|
+| **Webcam Proctoring** | Infrastruktur berat (storage video), butuh bandwidth tinggi, privacy concern di lingkungan kerja, dan platform sudah punya anti-copy protection yang memadai (Phase 280). Over-engineering untuk konteks internal corporate. | Anti-copy yang ada dipertahankan; tidak ditambah |
+| **AI Auto-Grading Essay** | Akurasi tidak bisa diandalkan untuk penilaian kompetensi teknis Oil & Gas. HC perlu kontrol penuh atas grading narasi teknis yang domain-specific. | Manual grading oleh HC dengan workflow notifikasi |
+| **Adaptive/Branching Questions (IRT)** | Implementasi Item Response Theory sangat kompleks. ROI tidak sebanding untuk jumlah pengguna saat ini. Butuh statistician khusus untuk kalibrasi model. | Item analysis statis (CTT — Classical Test Theory) cukup untuk kebutuhan KPB |
+| **Gamification (Badges, Leaderboard)** | Kontraproduktif untuk assessment serius (K3, safety compliance). Peserta fokus ke skor relatif, bukan ke pemahaman materi. | Certificate generation yang sudah ada sudah cukup sebagai reward formal |
+| **Multi-Language Support** | Semua pengguna adalah pegawai Pertamina yang berbahasa Indonesia. Investasi i18n tidak ada ROI untuk platform internal. | Tetap Bahasa Indonesia |
+| **Full WCAG 2.1 AA Audit** | Cakupan terlalu luas untuk satu milestone (meliputi semua halaman, semua komponen, semua role). Perlu resource aksesibilitas khusus. | Implementasi WCAG quick wins yang paling relevan untuk exam flow (skip-link, keyboard nav, screen reader timer, font size) |
+| **Social/Peer Learning** | Tidak relevan untuk konteks competency assessment korporat. Distraksi dari fokus pengukuran kompetensi individual. | Tetap fokus pada individual assessment dan HC reporting |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Tree visual dengan expand/collapse]
-    └──requires──> [Data hierarkis diload dengan parent-child relationship dalam satu response]
+Tipe Soal: True/False
+  └── Tidak ada dependensi baru
+  └── Pakai auto-grade engine yang ada
+  └── Tambah QuestionType.TrueFalse enum value
 
-[Inline rename]
-    └──requires──> [Tree expand/collapse sudah stabil]
-    └──requires──> [Existing Edit action di OrganizationController — SUDAH ADA]
-    └──uses──AJAX──> [Edit action]
+Tipe Soal: Multiple Answer
+  └── [KEPUTUSAN WAJIB] Scoring policy: all-or-nothing vs partial credit
+      └── Mempengaruhi ExamSubmit score calculation
+      └── Mempengaruhi tampilan score breakdown ke worker
+  └── UI: checkbox (bukan radio button) untuk opsi jawaban
 
-[Badge jumlah pekerja per unit]
-    └──requires──> [COUNT query ApplicationUser per OrganizationUnitId]
-    └──enhances──> [Badge jumlah children] (tampil bersama)
+Tipe Soal: Essay
+  └── Manual grading workflow
+      └── Notifikasi ke HC saat essay pending review (reuse notification system)
+      └── HC grading UI: input skor + komentar per essay
+      └── Worker view hasil: tampil setelah HC submit grade
+  └── Essay tidak termasuk dalam auto-grade total skor
+      └── Final score = (skor auto-grade + skor essay manual) / total bobot
 
-[Konfirmasi delete dengan detail dampak]
-    └──requires──> [Query jumlah children aktif + users + files sebelum modal muncul]
-    └──enhances──> [Disable destructive actions + tooltip]
+Tipe Soal: Fill in the Blank
+  └── AnswerVariation table baru (QuestionId, AcceptableAnswer, CaseSensitive)
+  └── Case-insensitive comparison (default)
+  └── Auto-grade: exact match dari AnswerVariation list
 
-[Highlight node setelah operasi]
-    └──requires──> [AJAX-based add/edit/delete — tidak full page refresh]
+Pre-Post Test Linking
+  └── LinkedGroupId kolom baru di AssessmentSession
+  └── AssessmentType enum (Standard, PrePostTest, Interview)
+  └── Assessment creation wizard: tambah step pilih tipe + link Pre ke Post
+  └── Post-Test scheduling terpisah dari Pre-Test
+  └── Cascade reset: reset Pre → reset Post (wajib data integrity check)
+  └── Nilai Pre dan Post independen (sudah diputuskan PROJECT.md)
+      └── Sertifikat hanya dari Post-Test
+          └── Gain Score Display
+              └── Side-by-side comparison view (worker: 2 card linked)
+              └── Comparative Report kelompok (HC/admin)
 
-[Search/filter dalam tree]
-    └──requires──> [Tree sudah ter-render dengan benar]
-    └──conflicts──> [Collapse All] (saat search aktif, collapse all tidak boleh collapse hasil)
+Item Analysis (Difficulty Index)
+  └── ItemStatistics table baru (QuestionId, SessionId, CorrectCount, TotalCount, PValue)
+  └── Dihitung saat exam session ditutup (background task / trigger)
+  └── Tampil di admin question management
+
+Item Analysis (Discrimination Index)
+  └── Bergantung pada ItemStatistics (Difficulty Index) selesai
+  └── Butuh n >= 30 responden per soal untuk valid
+  └── Upper/Lower 27% calculation (Kelley, 1939)
+  └── Tampilkan warning jika data belum cukup
+
+Time-per-Question Analytics
+  └── Data sudah ada di activity log (timestamps per question navigation)
+  └── Butuh aggregation view/query baru
+
+Comparative Report Pre vs Post
+  └── Bergantung pada Pre-Post Test Linking selesai
+
+Mobile Optimization
+  └── Pure frontend — tidak ada dependensi logic backend
+  └── Test: Android Chrome, iOS Safari
+  └── Perlu refactor exam template CSS/HTML
+
+WCAG: Skip-to-Content
+  └── Independent — 1 HTML anchor element
+
+WCAG: Keyboard Navigation Exam
+  └── Refactor exam HTML menggunakan semantic elements (button, label, input)
+  └── Pastikan tab order logis
+
+WCAG: Screen Reader Timer
+  └── Bergantung pada timer component
+  └── Tambah aria-live region + JavaScript interval
+
+WCAG: Font Size Control
+  └── Independent — CSS variable + localStorage
+
+WCAG: Extra Time Accommodation
+  └── Bergantung pada session model
+  └── Tambah field ExtraTimeMinutes di AssessmentParticipant
+  └── Override timer calculation di server
 ```
 
-### Dependency Notes
+---
 
-- **Inline rename requires AJAX**: Jika add/edit masih pakai full page refresh, inline rename tidak bisa. Perlu partial AJAX untuk edit action.
-- **Drag-and-drop conflicts dengan up/down buttons**: Jika keduanya ada, pengguna bingung mana yang canonical. Pilih satu — rekomendasi: tetap up/down (sudah ada) tapi tampilkan sebagai arrow button di node, bukan di tabel.
-- **Semua differentiators butuh tree foundation dulu** — jangan bangun badge atau inline rename sebelum tree expand/collapse stabil.
+## MVP Recommendation untuk v14.0
+
+### Fase 1 — Foundation Question Types + Pre-Post
+*Harus selesai dulu — semua fitur lain bergantung pada ini*
+
+1. **Assessment Type enum** (Standard/PrePostTest/Interview) — prerequisite Pre-Post
+2. **Tipe Soal: True/False** — kompleksitas rendah, langsung value
+3. **Tipe Soal: Multiple Answer** — selesaikan scoring policy decision dulu
+4. **Pre-Post Test Linking + Gain Score Display** — feature paling ditunggu HC
+
+### Fase 2 — Essay, Fill in the Blank, Mobile
+*Setelah Fase 1 stable*
+
+5. **Tipe Soal: Essay** dengan manual grading workflow
+6. **Tipe Soal: Fill in the Blank** dengan answer variations
+7. **Mobile Responsive Exam Layout** — adoption blocker untuk pekerja lapangan
+
+### Fase 3 — Reporting + Accessibility
+*Nilai tambah dan compliance*
+
+8. **Item Analysis (Difficulty + Discrimination Index)**
+9. **Font Size Control + Skip-to-Content** (WCAG quick wins)
+10. **Screen Reader Timer + Extra Time Accommodation**
+11. **Comparative Report Pre vs Post**
+12. **Time-per-Question Analytics**
+
+### Defer (Bukan v14.0)
+- Full WCAG 2.1 AA audit lintas halaman
+- Advanced psychometric (IRT, Cronbach's alpha) — butuh statistician
+- AI essay grading
 
 ---
 
-## MVP Definition
+## Catatan Keputusan Penting
 
-### Launch With — Redesign v1
+### [KEPUTUSAN WAJIB] Multiple Answer: Scoring Policy
+Harus diputuskan SEBELUM coding Multiple Answer:
 
-Ini redesign bukan greenfield. MVP = semua fungsi yang sudah ada, ditampilkan dalam tree view modern.
+- **All-or-Nothing:** Nilai hanya jika semua opsi benar dipilih dan tidak ada yang salah. Lebih mudah dijelaskan ke peserta. Lebih tegas untuk compliance assessment.
+- **Partial Credit:** Nilai proporsional. Lebih adil tapi kompleksitas penjelasan skor meningkat.
 
-- [ ] Tree view dengan expand/collapse — foundation dari seluruh redesign
-- [ ] Visual indentasi hierarki dengan guides/connectors
-- [ ] Action menu per node (Edit, Delete, Toggle) — menggantikan tombol di baris tabel
-- [ ] Tombol Add per level yang tepat (contextual di bawah parent node)
-- [ ] Badge status aktif/nonaktif per node
-- [ ] Disable + tooltip untuk destructive actions yang invalid
-- [ ] Expand All / Collapse All
-- [ ] Tombol up/down reorder tetap ada, tapi sebagai arrow icon di node (bukan kolom tabel)
+**Rekomendasi untuk KPB: All-or-Nothing** — konsisten dengan konteks compliance K3 dan safety assessment di industri minyak dan gas.
 
-### Add After Validation — v1.x
+### Item Analysis: Minimum Responden
+- Difficulty Index (p-value): valid dari n=1, semakin akurat dengan lebih banyak data
+- Discrimination Index: **tidak valid jika n < 30** (standar psikometrik)
+- Platform harus tampilkan "Data belum cukup (butuh min. 30 responden)" jika n < 30
+- Gunakan Upper/Lower 27% (bukan 25% atau 33%) sesuai standar Kelley
 
-- [ ] Badge jumlah pekerja per unit — trigger: admin merasa perlu lihat distribusi lebih cepat
-- [ ] Badge jumlah children — trigger: tree besar, admin perlu orientasi cepat
-- [ ] Konfirmasi delete dengan detail dampak — trigger: admin sering confused mengapa delete gagal
-- [ ] Inline rename — trigger: admin sering rename dan merasa modal lambat
+### Pre-Post Test: Cascade Reset
+Jika HC reset Pre-Test, Post-Test HARUS ikut direset. Business rule ini mempengaruhi data integrity. Implementasi sebagai application-level guard (bukan hanya DB cascade) agar ada audit trail reset.
 
-### Future Consideration — v2+
-
-- [ ] Search/filter dalam tree — defer: org hanya 3 level, kemungkinan tidak banyak node (< 50)
-- [ ] Highlight node setelah operasi — defer: nice polish, bukan blocker
-- [ ] Read-only org chart view untuk presentasi — defer: beda audience (manajemen), beda halaman
-
----
-
-## Feature Prioritization Matrix
-
-| Fitur | User Value | Implementation Cost | Priority |
-|-------|------------|---------------------|----------|
-| Tree expand/collapse | HIGH | LOW | P1 |
-| Visual indentasi + guides | HIGH | LOW | P1 |
-| Action menu per node | HIGH | LOW | P1 |
-| Tombol Add per level | HIGH | LOW | P1 |
-| Badge status aktif/nonaktif | HIGH | LOW | P1 |
-| Disable actions + tooltip | HIGH | LOW | P1 |
-| Expand All / Collapse All | MEDIUM | LOW | P1 |
-| Arrow up/down reorder di node | HIGH | LOW | P1 |
-| Badge jumlah pekerja per unit | HIGH | LOW | P2 |
-| Badge jumlah children | MEDIUM | LOW | P2 |
-| Konfirmasi delete dengan detail dampak | HIGH | MEDIUM | P2 |
-| Inline rename | MEDIUM | MEDIUM | P2 |
-| Search/filter dalam tree | LOW | MEDIUM | P3 |
-| Highlight node setelah operasi | LOW | MEDIUM | P3 |
-| Read-only org chart diagram | LOW | HIGH | P3 |
-
-**Priority key:**
-- P1: Harus ada untuk launch redesign — semua adalah pemetaan fitur yang sudah ada ke UI baru
-- P2: Tambahkan setelah P1 stabil dan divalidasi
-- P3: Iterasi berikutnya, tidak mendesak
-
----
-
-## Referensi Pola dari Design System Terkemuka
-
-| Pola | Adobe Commerce Admin | PatternFly (Red Hat) | Carbon (IBM) | Retool |
-|------|---------------------|---------------------|--------------|--------|
-| Expand/collapse | Ya, arrow kiri | Ya, arrow kiri | Ya | Ya |
-| Action menu per node | Ya, di hover | Ya, hover actions max 1 type | Ya | Ya |
-| Inline rename | Tidak (modal) | Via separate inline edit component | Tidak | Ya |
-| Drag-and-drop | Ya (opsional, mutually exclusive checkbox) | Disebutkan sebagai opsional | Tidak standar | Opsional |
-| Badge children count | Tidak | Ya (badges opsional) | Tidak | Ya |
-| Expand All/Collapse All | Ya | Tidak disebutkan secara eksplisit | Disebutkan | Tidak |
-| Max recommended depth | 2 level | Tidak ada batas formal | Tidak ada | Tidak ada |
-
-**Catatan kedalaman:** PortalHC butuh 3 level (Bagian → Unit → Sub-unit). Design system merekomendasikan max 2 sebagai guideline, bukan hard limit. Dengan visual hierarchy yang jelas (indentasi + guides), 3 level masih sangat manageable.
+### Essay: Skor Final Komposit
+Ketika exam mengandung campuran soal auto-grade dan essay:
+- Auto-grade diproses langsung saat submit
+- Essay pending sampai HC grading
+- Final score = (auto-grade score + essay score) / total bobot exam
+- Status exam: "Menunggu Penilaian Essay" sampai HC submit grade
 
 ---
 
 ## Sources
 
-- [Adobe Commerce Admin - Tree Pattern](https://developer.adobe.com/commerce/admin-developer/pattern-library/displaying-data/tree) — HIGH confidence
-- [PatternFly Tree View Design Guidelines](https://www.patternfly.org/components/tree-view/design-guidelines/) — HIGH confidence
-- [Carbon Design System - Tree View](https://carbondesignsystem.com/components/tree-view/usage/) — HIGH confidence
-- [Retool - Designing a UI for Tree Data](https://retool.com/blog/designing-a-ui-for-tree-data) — MEDIUM confidence
-- [Interaction Design for Trees - Hagan Rivers](https://medium.com/@hagan.rivers/interaction-design-for-trees-5e915b408ed2) — MEDIUM confidence
+- [University of Washington: Understanding Item Analyses](https://www.washington.edu/assessment/scanning-scoring/scoring/reports/item-analysis/) — HIGH confidence
+- [BMC Medical Education: Item Analysis and Distractor Efficiency (2024)](https://link.springer.com/article/10.1186/s12909-024-05433-y) — HIGH confidence
+- [WCAG 2.1 Official Standard — W3C](https://www.w3.org/TR/WCAG21/) — HIGH confidence
+- [TestParty: WCAG 2.1.1 Keyboard Guide 2025](https://testparty.ai/blog/wcag-2-1-1-keyboard-2025-guide) — MEDIUM confidence
+- [Baymard Institute: Mobile UX Trends 2025](https://baymard.com/blog/mobile-ux-ecommerce) — HIGH confidence
+- [ScoreApp: 12 Ways to Make Quiz Mobile-Friendly](https://www.scoreapp.com/mobile-friendly-quiz/) — MEDIUM confidence
+- [ERIC: Brief Guide to Pre-Post Assessments (SD DOE)](https://files.eric.ed.gov/fulltext/ED604574.pdf) — HIGH confidence
+- [SpeedExam: Fill in the Blanks Question Types](https://www.speedexam.net/blog/what-is-fill-in-the-blanks-question-types-and-example/) — MEDIUM confidence
+- [NIU Blackboard: Online Assessment Question Types](https://www.niu.edu/blackboard/assess/tests-and-quizzes/question-types.shtml) — HIGH confidence
+- [University of Waterloo: Exam Questions Types and Characteristics](https://uwaterloo.ca/centre-for-teaching-excellence/catalogs/tip-sheets/exam-questions-types-characteristics-and-suggestions) — HIGH confidence
 
 ---
-*Feature research for: Organization Tree Management UI — PortalHC KPB ManageOrganization Redesign*
-*Researched: 2026-04-02*
+*Feature research for: v14.0 Assessment Enhancement — PortalHC KPB*
+*Researched: 2026-04-06*

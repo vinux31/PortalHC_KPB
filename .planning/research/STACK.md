@@ -1,234 +1,344 @@
-# Stack Research
+# Technology Stack
 
-**Domain:** Tree View + Drag-and-Drop + Modal CRUD — ManageOrganization Redesign
-**Researched:** 2026-04-02
-**Confidence:** HIGH (semua library dikonfirmasi dari npm/GitHub resmi)
-
----
-
-## Konteks Stack yang Sudah Ada
-
-Proyek ini TIDAK menggunakan SPA framework. Stack eksisting yang relevan:
-
-| Layer | Teknologi |
-|-------|-----------|
-| Backend | ASP.NET Core 8, C# |
-| View Engine | Razor Views (server-rendered) |
-| CSS Framework | Bootstrap 5.3 |
-| Icons | Bootstrap Icons |
-| JS (eksisting) | jQuery (sudah ada, di-load via CDN) |
-| JS (eksisting) | Vanilla `fetch` / jQuery AJAX |
-| Modal | Bootstrap 5 Modal (sudah dipakai di halaman lain) |
-
-**Constraint penting:** Tidak boleh menambahkan React, Vue, Angular, atau bundler baru (Webpack/Vite).
-Semua library baru harus bisa di-load via `<script>` tag langsung, tanpa build step.
+**Project:** Portal HC KPB — v14.0 Assessment Enhancement
+**Researched:** 2026-04-06
+**Scope:** Penambahan library untuk fitur baru assessment. Tidak mencakup stack yang sudah ada dan tervalidasi.
 
 ---
 
-## Recommended Stack — Penambahan Baru
+## Stack yang SUDAH ADA (Tidak Diubah)
 
-### Satu Library Baru: SortableJS
+Stack berikut sudah berjalan di production dan tidak perlu diteliti ulang:
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| **SortableJS** | **1.15.7** | Drag-and-drop reorder node dalam level yang sama | Vanilla JS murni (tanpa jQuery), 2.7 juta downloads/minggu di npm, aktif dikembangkan (rilis 1.15.7 sekitar Feb 2026), Bootstrap-agnostic, tidak ada konflik dengan jQuery yang sudah ada, support nested group dengan konfigurasi `group` |
-
-### Tidak Ada Library Tambahan untuk Tree View
-
-| Kebutuhan | Solusi | Alasan Tidak Butuh Library |
-|-----------|--------|---------------------------|
-| Tree view hierarkis | Bootstrap 5 Collapse + Razor recursive partial | Bootstrap Collapse sudah built-in dan sudah di-load. Recursive `@Html.Partial("_OrgNode", child)` di Razor cukup untuk render nested. Semua library tree view yang tersedia baik sudah abandoned maupun memerlukan bundler. |
-| Expand/collapse animasi | Bootstrap 5 Collapse native | `data-bs-toggle="collapse"` sudah punya animasi built-in |
-| Modal CRUD | Bootstrap 5 Modal (sudah ada) | Sudah dipakai di halaman lain di proyek ini |
-| AJAX requests | jQuery AJAX / fetch (sudah ada) | jQuery sudah di-load, tidak perlu Axios atau library lain |
-| Anti-forgery token | ASP.NET `@Html.AntiForgeryToken()` + header | Pattern standar yang sudah dipakai di controller lain |
+| Technology | Version | Status |
+|------------|---------|--------|
+| ASP.NET Core MVC + Razor | — | Aktif |
+| Entity Framework Core + SQL Server | — | Aktif |
+| SignalR | — | Aktif |
+| Bootstrap 5.3 + Bootstrap Icons | — | Aktif |
+| Chart.js 4 | — | Aktif |
+| jQuery 3.7.1 | — | Aktif |
+| ClosedXML | — | Aktif |
+| QuestPDF | — | Aktif |
+| SortableJS | — | Aktif |
 
 ---
 
-## Installation SortableJS
+## Penambahan Stack untuk Fitur Baru
 
-SortableJS adalah satu-satunya library baru yang perlu ditambahkan.
+### 1. Rich Text Editor — Essay Question
 
-**Opsi A — CDN (Recommended, konsisten dengan pola proyek):**
+**Rekomendasi: Quill.js 2.0.3**
 
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| Quill.js | 2.0.3 | Editor teks kaya untuk soal dan jawaban essay | Gratis (BSD-3-Clause), mobile-optimized, ringan, TypeScript rewrite April 2024 |
+
+**Mengapa Quill, bukan TinyMCE:**
+- TinyMCE mengunci banyak fitur penting (markdown, mentions, advanced typography) di balik paywall berbayar. Tidak cocok untuk portal internal Pertamina.
+- Quill 2.0 sepenuhnya gratis, ditulis ulang dalam TypeScript, mendukung ESM, performa lebih ringan (memory usage lebih rendah dari TinyMCE dan CKEditor 5).
+- Mobile-first: antarmuka responsif dan touch-friendly secara native — penting untuk aksesibilitas mobile di v14.0.
+- Integrasi Razor Views sederhana: hidden field untuk model binding, ambil konten saat form submit.
+- 3.3 juta downloads/minggu di npm; digunakan Slack, LinkedIn, Figma.
+
+**CDN (tidak perlu npm/bundler):**
 ```html
-<!-- Taruh di bagian @section Scripts { } pada halaman ManageOrganization -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
+<!-- CSS: taruh di <head> atau @section Styles -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+
+<!-- JS: taruh di @section Scripts, sebelum inisialisasi -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 ```
 
-**Opsi B — Lokal di wwwroot (untuk lingkungan tanpa internet):**
+**Pola integrasi Razor (model binding via hidden field):**
+```html
+<!-- Di view, dalam <form> -->
+<div id="quill-editor-essay"></div>
+<input type="hidden" asp-for="EssayContent" id="hiddenEssayContent" />
 
+<script>
+  const quill = new Quill('#quill-editor-essay', {
+    theme: 'snow',
+    modules: { toolbar: ['bold', 'italic', 'underline', { 'list': 'ordered' }] }
+  });
+
+  // Populate jika edit (bukan baru)
+  @if (Model.EssayContent != null) {
+    <text>quill.setContents(JSON.parse('@Html.Raw(Model.EssayContent)'));</text>
+  }
+
+  // Simpan ke hidden field saat submit
+  document.querySelector('form').addEventListener('submit', () => {
+    document.getElementById('hiddenEssayContent').value =
+      quill.getSemanticHTML();
+  });
+</script>
 ```
-Download: https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js
-Simpan ke: wwwroot/lib/sortablejs/Sortable.min.js
+
+**Confidence: HIGH** — Diverifikasi dari Quill official docs + npm (v2.0.3 stable, April 2024).
+
+---
+
+### 2. Mobile Touch Navigation — Exam UI
+
+**Rekomendasi: CSS Scroll Snap (Native Browser API, Zero Dependency)**
+
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| CSS Scroll Snap | Native | Navigasi soal dengan swipe kiri/kanan pada mobile | GPU-accelerated, didukung semua browser modern, zero download |
+
+**Mengapa tidak memakai library touch/swipe:**
+- **Hammer.js tidak dimaintain.** Issue #1273 di GitHub repo resmi secara eksplisit mempertanyakan apakah project ini sudah mati. Tidak ada commit signifikan sejak >6 tahun. Hindari untuk project baru.
+- **CSS Scroll Snap adalah API native browser** yang di-handle oleh compositor thread (GPU-accelerated). Lebih smooth dari implementasi JavaScript pada mobile.
+- Didukung penuh di semua browser modern termasuk Safari iOS — tanpa polyfill.
+- Zero weight, zero maintenance risk, zero bundle impact.
+- Cukup untuk use case navigasi soal (swipe antar pertanyaan). Tombol Prev/Next tetap pakai `scrollIntoView()` via jQuery.
+
+**Pola implementasi exam UI:**
+```css
+/* Container soal — scroll horizontal dengan snap */
+.exam-question-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch; /* iOS Safari */
+  scrollbar-width: none;             /* Sembunyikan scrollbar desktop */
+}
+.exam-question-track::-webkit-scrollbar { display: none; }
+
+/* Setiap slide pertanyaan */
+.exam-question-slide {
+  min-width: 100%;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always; /* Cegah skip soal */
+}
 ```
-
-Tidak ada `npm install` yang diperlukan — proyek tidak menggunakan bundler.
-
----
-
-## Supporting Libraries (Tidak Perlu Ditambahkan)
-
-Semua kebutuhan lain sudah tersedia dari stack eksisting:
-
-| Kebutuhan | Library Eksisting | Cara Pakai |
-|-----------|-------------------|------------|
-| Tree node expand/collapse | Bootstrap 5 Collapse | `data-bs-toggle="collapse" data-bs-target="#children-{id}"` |
-| Modal Add/Edit/Delete | Bootstrap 5 Modal | `data-bs-toggle="modal" data-bs-target="#editModal"` |
-| AJAX POST untuk save | jQuery `$.ajax()` | Pattern sudah ada di seluruh proyek |
-| AJAX GET untuk load | `fetch()` atau `$.get()` | Pilih salah satu yang konsisten dengan halaman lain |
-| Form validation | Bootstrap form validation | `was-validated` class + HTML5 `required` attribute |
-| Loading state | Bootstrap spinner | `<div class="spinner-border">` |
-
----
-
-## Alternatives Considered
-
-| Kebutuhan | Dipilih | Alternatif | Kenapa Alternatif Tidak Dipilih |
-|-----------|---------|------------|--------------------------------|
-| Tree view | Custom CSS + Bootstrap Collapse | **bstreeview** (chniter) | Last publish npm: 2020. Bootstrap 4 only. Tidak dimaintain. |
-| Tree view | Custom CSS + Bootstrap Collapse | **bs5treeview** (nhmvienna) | Deprecated resmi — maintainer sendiri pasang notice di README, rekomendasikan ganti ke quercus.js. Last update: Aug 2021. |
-| Tree view | Custom CSS + Bootstrap Collapse | **@jbtronics/bs-treeview** | No jQuery (bagus), Bootstrap 5 support (bagus), tapi memerlukan TypeScript + webpack/bundler. Tidak kompatibel dengan pola proyek ini. Version 1.0.6, last update Feb 2024. |
-| Tree view | Custom CSS + Bootstrap Collapse | **jsTree** | Desain era jQuery 1.x, CSS opinionated sulit di-override dengan Bootstrap 5, bundle ~200KB |
-| Drag-drop | SortableJS | **jQuery UI Sortable** | jQuery UI adalah library terpisah dari jQuery (harus load tambahan), berat, tidak aktif dikembangkan untuk kebutuhan modern |
-| Drag-drop | SortableJS | **HTML5 native drag API** | API sangat verbose, tidak ada animasi built-in, sulit handle edge cases (touch device, cross-browser) |
-| Drag-drop | SortableJS | **Dragula** | Tidak dimaintain sejak 2021, fitur lebih terbatas dari SortableJS |
-| Modal CRUD | Bootstrap 5 Modal | **SweetAlert2 / modal library lain** | Bootstrap Modal sudah ada dan sudah dipakai di proyek. Menambah library baru untuk fungsi yang sudah tersedia = overkill. |
-
----
-
-## What NOT to Use
-
-| Hindari | Alasan Spesifik | Gunakan Ini |
-|---------|-----------------|-------------|
-| **jquery.nestedSortable** | Bergantung jQuery UI (bukan jQuery biasa), tidak aktif dimaintain, sulit integrasi dengan Bootstrap 5 | SortableJS 1.15.7 |
-| **bstreeview / bs5treeview** | Kedua library ini abandoned. bs5treeview secara resmi deprecated di README oleh maintainernya sendiri | Custom CSS + Bootstrap Collapse |
-| **jsTree** | Bundle besar, CSS sulit dioverride dengan Bootstrap 5, gaya desain jQuery 1.x era | Custom Razor recursive partial |
-| **Dragula** | Tidak dimaintain aktif sejak 2021, kalah fitur dari SortableJS yang terus diperbarui | SortableJS 1.15.7 |
-| **React/Vue tree component** | Membawa SPA dependency ke server-rendered app. Bertentangan dengan arsitektur proyek. | Custom Razor recursive partial |
-
----
-
-## Stack Patterns by Variant
-
-**Untuk tree node collapse/expand:**
-- Render hierarki dengan Razor recursive partial `_OrgNode.cshtml`
-- Setiap parent node punya `<ul id="children-{id}" class="collapse show">`
-- Toggle button pakai `data-bs-toggle="collapse"` — Bootstrap handles animasi
-- Tidak perlu JavaScript custom untuk expand/collapse
-
-**Untuk drag-and-drop (reorder dalam level yang sama, tidak boleh pindah parent):**
-- Inisialisasi SortableJS pada setiap `<ul class="org-children">` secara terpisah
-- Set `group: false` (atau `group: { name: 'org-{parentId}', pull: false, put: false }`) untuk prevent cross-parent drag
-- Event `onEnd` kirim PATCH request dengan urutan baru ke `OrganizationController`
-- Gunakan `animation: 150` untuk visual feedback yang smooth
-
-**Untuk modal CRUD (Add Child / Edit / Delete):**
-- Satu modal reusable dengan form fields yang bisa diisi via JavaScript
-- Tombol Add/Edit populate modal dengan data via `data-*` attributes atau AJAX partial load
-- Submit via `$.ajax()` dengan anti-forgery token di header
-- Setelah success: `location.reload()` atau replace hanya `#org-tree` section dengan innerHTML baru
-
----
-
-## Version Compatibility
-
-| Package | Kompatibel Dengan | Notes |
-|---------|-------------------|-------|
-| SortableJS 1.15.7 | Bootstrap 5.3 | Tidak ada konflik. SortableJS hanya manipulasi DOM order, tidak menyentuh Bootstrap CSS |
-| SortableJS 1.15.7 | jQuery 3.x | Tidak ada konflik. SortableJS adalah vanilla JS, jQuery dan SortableJS berjalan independen |
-| Bootstrap 5.3 Collapse | jQuery 3.x | Bootstrap 5 tidak butuh jQuery. Keduanya coexist tanpa masalah |
-| SortableJS 1.15.7 | ASP.NET Core 8 anti-forgery | Anti-forgery dihandle di fetch/AJAX request header, SortableJS tidak menyentuh HTTP layer |
-
----
-
-## Integration Points dengan Kode Eksisting
-
-### Anti-Forgery Token Pattern (sudah dipakai di controller lain)
 
 ```javascript
-// Ambil token dari hidden input yang di-render Razor
-const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
-fetch('/Organization/Reorder', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'RequestVerificationToken': token
-    },
-    body: JSON.stringify({ items: newOrder })
-});
+// Navigasi Prev/Next (jQuery, tidak butuh library baru)
+function goToQuestion(index) {
+  const slide = document.querySelectorAll('.exam-question-slide')[index];
+  slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+}
 ```
 
-### SortableJS Init — Same-Parent Only
+**Confidence: HIGH** — MDN Web Docs + web.dev mengkonfirmasi dukungan universal.
 
+---
+
+### 3. Visualisasi Gain Score — Advanced Reporting
+
+**Rekomendasi: chartjs-plugin-annotation 3.1.0**
+
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| chartjs-plugin-annotation | 3.1.0 | Anotasi garis referensi dan label threshold pada chart | Extends Chart.js 4 yang sudah ada; tidak perlu library chart baru |
+
+**Mengapa plugin ini, bukan library chart baru:**
+- Chart.js 4 (sudah terpasang) mendukung radar chart secara native — tipe chart yang ideal untuk visualisasi perbandingan Pre/Post/Gain Score per kompetensi.
+- Plugin annotation menambahkan: garis horizontal target score, label nilai rata-rata, highlight area gain — semua di atas chart yang sudah ada.
+- Tidak memerlukan library charting baru sama sekali. Cukup load satu plugin tambahan.
+- Compatible dengan Chart.js >= 4.0.0 (diverifikasi dari npm docs).
+- v3.1.0 dirilis Oktober 2024, didukung oleh Chart.js team sendiri.
+
+**CDN:**
+```html
+<!-- Taruh setelah script Chart.js 4 yang sudah ada -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+```
+
+**Pola visualisasi Pre/Post/Gain Score (Radar Chart):**
 ```javascript
-// Inisialisasi setiap UL yang berisi children
-document.querySelectorAll('.org-children').forEach(function(el) {
-    Sortable.create(el, {
-        animation: 150,
-        handle: '.drag-handle',    // Hanya bisa drag dari handle icon
-        group: false,              // Prevent cross-parent drag
-        onEnd: function(evt) {
-            const parentId = evt.from.dataset.parentId;
-            const ids = [...evt.from.querySelectorAll(':scope > li')]
-                            .map(li => li.dataset.id);
-            // Kirim ke server
-            postReorder(parentId, ids);
+// Register plugin (diperlukan sekali)
+Chart.register(ChartAnnotation);
+
+new Chart(ctx, {
+  type: 'radar',
+  data: {
+    labels: ['Kompetensi A', 'Kompetensi B', 'Kompetensi C'],
+    datasets: [
+      {
+        label: 'Pre-Test',
+        data: [60, 55, 70],
+        borderColor: '#dc3545',
+        backgroundColor: 'rgba(220,53,69,0.1)'
+      },
+      {
+        label: 'Post-Test',
+        data: [80, 75, 85],
+        borderColor: '#0d6efd',
+        backgroundColor: 'rgba(13,110,253,0.1)'
+      },
+      {
+        label: 'Gain Score',
+        data: [20, 20, 15],
+        borderColor: '#198754',
+        borderDash: [5, 5],    // Garis putus-putus untuk gain
+        backgroundColor: 'rgba(25,135,84,0.05)'
+      }
+    ]
+  },
+  options: {
+    scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } },
+    plugins: {
+      annotation: {
+        annotations: {
+          passingLine: {
+            type: 'line',
+            yMin: 70, yMax: 70,
+            borderColor: 'orange',
+            borderWidth: 2,
+            label: { content: 'Batas Lulus 70', display: true }
+          }
         }
-    });
+      }
+    }
+  }
 });
 ```
 
-### Razor Recursive Partial (`_OrgNode.cshtml`)
+**Untuk Item Analysis (Bar Chart + annotation):**
+```javascript
+// Annotation: garis rata-rata di atas bar chart
+plugins: {
+  annotation: {
+    annotations: {
+      avgLine: {
+        type: 'line',
+        yMin: avgScore, yMax: avgScore,
+        borderColor: 'red',
+        borderWidth: 1,
+        label: { content: `Rata-rata: ${avgScore}%`, display: true, position: 'end' }
+      }
+    }
+  }
+}
+```
+
+**Confidence: HIGH** — Diverifikasi dari npm (v3.1.0, Oktober 2024) + official Chart.js annotation docs.
+
+---
+
+### 4. Accessibility Testing — Development & QA Only
+
+**Rekomendasi: axe DevTools Browser Extension (non-code) + Deque.AxeCore.Playwright (optional automated)**
+
+| Technology | Version | Purpose | Scope |
+|------------|---------|---------|-------|
+| axe DevTools (browser extension) | Latest | Manual WCAG audit selama development | Dev machine only |
+| Deque.AxeCore.Playwright | 4.11.1 | Automated accessibility regression test | Test project only, bukan runtime |
+
+**Pendekatan bertahap:**
+
+**Fase awal (segera, tanpa code):**
+Install browser extension axe DevTools (gratis, dari Deque) di Chrome/Edge developer. Jalankan audit manual pada halaman exam UI yang baru. Hasilnya tersedia langsung di DevTools panel.
+
+**Fase lanjut (jika dibutuhkan automated regression):**
+```xml
+<!-- Hanya di test project, bukan di PortalHC_KPB.csproj -->
+<PackageReference Include="Deque.AxeCore.Playwright" Version="4.11.1" />
+<PackageReference Include="Microsoft.Playwright" Version="1.*" />
+```
 
 ```csharp
-@model OrgNodeViewModel
-<li class="list-group-item org-node" data-id="@Model.Id">
-    <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor:grab"></i>
-        @if (Model.Children.Any()) {
-            <button class="btn btn-sm btn-link p-0" data-bs-toggle="collapse"
-                    data-bs-target="#children-@Model.Id" aria-expanded="true">
-                <i class="bi bi-chevron-down"></i>
-            </button>
-        }
-        <span class="flex-grow-1">@Model.Name</span>
-        <button class="btn btn-sm btn-outline-primary"
-                data-bs-toggle="modal" data-bs-target="#editModal"
-                data-id="@Model.Id" data-name="@Model.Name">
-            <i class="bi bi-pencil"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-success"
-                data-bs-toggle="modal" data-bs-target="#addChildModal"
-                data-parent-id="@Model.Id">
-            <i class="bi bi-plus"></i>
-        </button>
-    </div>
-    @if (Model.Children.Any()) {
-        <ul id="children-@Model.Id"
-            class="collapse show org-children list-group list-group-flush ms-3 mt-1"
-            data-parent-id="@Model.Id">
-            @foreach (var child in Model.Children) {
-                @Html.Partial("_OrgNode", child)
-            }
-        </ul>
-    }
-</li>
+// Contoh test accessibility pada halaman exam
+[Test]
+public async Task ExamPage_ShouldPassWCAG21AA()
+{
+    await Page.GotoAsync("/Assessment/TakeExam/123");
+    var results = await Page.RunAxe();
+    Assert.That(results.Violations, Is.Empty,
+        "WCAG violations ditemukan: " + string.Join(", ",
+            results.Violations.Select(v => v.Description)));
+}
 ```
+
+**Mengapa axe-core:**
+- Standard industri — digunakan oleh Google, Microsoft
+- Zero false positives (by design)
+- Mendukung WCAG 2.0, 2.1, 2.2 level A/AA/AAA + Section 508
+- v4.11.1 NuGet (November 2025) — aktif dimaintain
+
+**Confidence: HIGH** — Diverifikasi dari NuGet Gallery (November 2025).
+
+---
+
+## Alternatif yang Dipertimbangkan
+
+| Kategori | Direkomendasikan | Alternatif | Mengapa Tidak |
+|----------|-----------------|------------|---------------|
+| Rich Text Editor | Quill 2.0.3 | TinyMCE | Fitur penting di balik paywall; lebih berat; mobile experience inferior |
+| Rich Text Editor | Quill 2.0.3 | CKEditor 5 | License lebih kompleks; lebih berat dari Quill |
+| Touch/Swipe | CSS Scroll Snap (native) | Hammer.js 2.0.8 | Tidak dimaintain >6 tahun; issue aktif tanpa response dari maintainer |
+| Touch/Swipe | CSS Scroll Snap (native) | Interact.js | Overkill untuk navigasi soal; dirancang untuk drag-drop interaktif |
+| Touch/Swipe | CSS Scroll Snap (native) | ZingTouch | Dependency tambahan tanpa manfaat nyata vs. CSS native |
+| Chart Annotation | chartjs-plugin-annotation 3.1.0 | Library chart baru (Recharts, ApexCharts) | Chart.js 4 sudah ada; tidak perlu dependency baru sama sekali |
+| Accessibility | axe DevTools extension | Pa11y | Ekosistem lebih kecil; kurang mature; tidak zero-false-positive |
+
+---
+
+## Ringkasan Penambahan (Runtime)
+
+Hanya **2 CDN script baru** yang perlu ditambahkan ke halaman:
+
+```html
+<!-- 1. Quill 2.0.3 — lazy load HANYA di halaman yang ada soal essay -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+<!-- 2. chartjs-plugin-annotation 3.1.0 — lazy load HANYA di halaman reporting -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+```
+
+**CSS Scroll Snap:** tidak ada download, murni CSS.
+**Axe-core:** hanya di test project, tidak masuk production bundle.
+
+**Total tambahan weight:** ~400KB (Quill snow theme + JS) + ~30KB (annotation plugin) = ~430KB, dimuat secara conditional per halaman.
+
+---
+
+## What NOT to Add
+
+| Hindari | Alasan |
+|---------|--------|
+| Hammer.js | Tidak dimaintain >6 tahun. Issue bertumpuk tanpa response. |
+| TinyMCE (paid tier) | Paywall untuk fitur standar. Tidak sesuai untuk portal internal. |
+| Library chart baru (ApexCharts, Recharts) | Chart.js 4 sudah ada dan sudah terintegrasikan. Tambah plugin saja. |
+| React/Vue component library | Bertentangan dengan arsitektur Razor Views tanpa bundler. |
+| Bootstrap Table plugin | Bootstrap 5 sudah cukup. Table sorting cukup dengan JavaScript sederhana. |
+| ARIA library (aria-query, aria-utils) | Overkill. ARIA attribute ditulis langsung di HTML Razor. |
+
+---
+
+## Version Compatibility Matrix
+
+| Library Baru | Chart.js 4 | Bootstrap 5.3 | jQuery 3.7.1 | ASP.NET Core |
+|-------------|-----------|---------------|--------------|--------------|
+| Quill 2.0.3 | Tidak berkaitan | Tidak ada konflik | Tidak ada konflik (vanilla JS) | Integrasi via hidden field standar |
+| chartjs-plugin-annotation 3.1.0 | Compatible (requires >= 4.0.0) | Tidak berkaitan | Tidak berkaitan | Tidak ada konflik |
+| CSS Scroll Snap | Tidak berkaitan | Tidak ada konflik | Tidak ada konflik | Tidak ada konflik |
+| Deque.AxeCore.Playwright 4.11.1 | Tidak berkaitan | Tidak berkaitan | Tidak berkaitan | .NET 8 compatible |
 
 ---
 
 ## Sources
 
-- [SortableJS npm](https://www.npmjs.com/package/sortablejs) — Version 1.15.7 dikonfirmasi, ~2.7M downloads/week, HIGH confidence
-- [SortableJS GitHub](https://github.com/SortableJS/Sortable) — Vanilla JS no framework required, 1,100+ commits, HIGH confidence
-- [bs5treeview GitHub deprecated notice](https://github.com/nhmvienna/bs5treeview) — Deprecation notice dikonfirmasi langsung di README, HIGH confidence
-- [@jbtronics/bs-treeview npm](https://www.npmjs.com/package/@jbtronics/bs-treeview) — Version 1.0.6 Feb 2024, requires bundler, HIGH confidence
-- [bstreeview npm](https://www.npmjs.com/package/bstreeview) — Version 1.2.0 last publish 2020 (Bootstrap 4 only), HIGH confidence
-- [Bootstrap 5 Collapse documentation](https://getbootstrap.com/docs/5.3/components/collapse/) — Native component, no extra library needed, HIGH confidence
-- [ASP.NET Core fetch + anti-forgery pattern](https://www.binaryintellect.net/articles/96b2cc91-73a8-480b-9785-fb6cbe7d9401.aspx) — MEDIUM confidence
+- [Quill 2.0 Official Docs](https://quilljs.com/) — HIGH confidence
+- [Quill 2.0 Release Announcement — Slab Blog](https://slab.com/blog/announcing-quill-2-0/) — HIGH confidence
+- [Quill npm (v2.0.3)](https://www.npmjs.com/package/quill) — HIGH confidence
+- [TinyMCE vs Quill comparison](https://www.tiny.cloud/tinymce-vs-quill/) — MEDIUM confidence (vendor comparison, bias TinyMCE)
+- [Which rich text editor in 2025 — Liveblocks](https://liveblocks.io/blog/which-rich-text-editor-framework-should-you-choose-in-2025) — MEDIUM confidence
+- [chartjs-plugin-annotation npm (v3.1.0)](https://www.npmjs.com/package/chartjs-plugin-annotation) — HIGH confidence
+- [chartjs-plugin-annotation Official Docs](https://www.chartjs.org/chartjs-plugin-annotation/latest/) — HIGH confidence
+- [Hammer.js abandonment issue #1273](https://github.com/hammerjs/hammer.js/issues/1273) — HIGH confidence
+- [CSS Scroll Snap — web.dev](https://web.dev/css-scroll-snap/) — HIGH confidence
+- [CSS Scroll Snap — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type) — HIGH confidence
+- [Deque.AxeCore.Playwright NuGet (v4.11.1)](https://www.nuget.org/packages/Deque.AxeCore.Playwright) — HIGH confidence
+- [axe-core-nuget GitHub](https://github.com/dequelabs/axe-core-nuget) — HIGH confidence
+- [Chart.js Radar Chart Docs](https://www.chartjs.org/docs/latest/charts/radar.html) — HIGH confidence
 
 ---
-*Stack research for: ManageOrganization redesign — Tree View + Drag-Drop + Modal CRUD*
-*Researched: 2026-04-02*
+
+*Stack research for: v14.0 Assessment Enhancement — Assessment Types, Question Types, Mobile Exam, Advanced Reporting, Accessibility*
+*Researched: 2026-04-06*
