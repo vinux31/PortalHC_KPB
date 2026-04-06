@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v13.0
-milestone_name: Redesign Struktur Organisasi
-status: completed
-stopped_at: Milestone v13.0 completed
-last_updated: "2026-04-06T02:00:00.000Z"
+milestone: v14.0
+milestone_name: Assessment Enhancement
+status: defining_requirements
+stopped_at: Defining requirements
+last_updated: "2026-04-06T03:00:00.000Z"
 last_activity: 2026-04-06
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,23 +21,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning next milestone
+**Current focus:** v14.0 Assessment Enhancement
 
 ## Current Position
 
-Milestone v13.0 completed and archived.
-Last activity: 2026-04-06
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-06 — Milestone v14.0 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v13.0]: Redesign UI murni — backend cascade logic tidak diubah, hanya presentation layer
-- [v13.0]: SortableJS 1.15.7 via CDN adalah satu-satunya library baru
-- [v13.0]: Drag-drop hanya sibling-only (group: false) — cross-parent diblokir
-- [v13.0]: orgTree.js sebagai single JS file orchestrator; tidak ada SPA framework
+- [v14.0]: Anti-cheating sudah cukup (copy-paste block Phase 280) — tidak ditambah
+- [v14.0]: Pre-Post Test menggunakan 2 session terpisah linked via LinkedGroupId
+- [v14.0]: Monitoring Pre-Post: 1 entry grup, expand Pre & Post
+- [v14.0]: Paket soal Pre & Post bisa beda, checkbox "Gunakan soal yang sama"
+- [v14.0]: Reset Pre → Post ikut reset (cascade)
+- [v14.0]: Nilai Pre & Post independen, sertifikat hanya dari Post-Test
+- [v14.0]: Renewal bebas pilih tipe (Standard atau PrePostTest)
 
 ### Pending Todos
 
@@ -54,10 +59,10 @@ Progress: [██████████] 100%
 |---|-------------|------|--------|-----------|
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
 | 260402-l2d | Fix delete assessment 404 error — update asp-controller references dari Admin ke AssessmentAdmin di 9 view | 2026-04-02 | 5a16c0fb | [260402-l2d-fix-delete-assessment-404-error-on-manag](./quick/260402-l2d-fix-delete-assessment-404-error-on-manag/) |
-| 260406-dkv | Persist auto-transition Upcoming→Open di semua assessment views | 2026-04-06 | 08ed4d6b | [260406-dkv-check-assessment-open-upcoming-status-tr](./quick/260406-dkv-check-assessment-open-upcoming-status-tr/) |
+| 260406-dkv | Persist auto-transition Upcoming->Open di semua assessment views | 2026-04-06 | 08ed4d6b | [260406-dkv-check-assessment-open-upcoming-status-tr](./quick/260406-dkv-check-assessment-open-upcoming-status-tr/) |
 
 ## Session Continuity
 
-Last activity: 2026-04-06 - Completed quick task 260406-dkv: Persist auto-transition Upcoming→Open
-Stopped at: Milestone completion
+Last activity: 2026-04-06 — Milestone v14.0 started, defining requirements
+Stopped at: Requirements definition
 Resume file: None

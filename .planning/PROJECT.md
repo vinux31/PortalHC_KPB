@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v13.0 shipped, 2026-04-06)
+## Current State (v14.0 in progress, 2026-04-06)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -25,9 +25,33 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v12.0 shipped** — Controller Refactoring (phases 286-291): AdminController dipecah menjadi 8 controller per domain, AdminController dikurangi dari 8,514 → 108 baris.
 **v13.0 shipped** — Redesign Struktur Organisasi (phases 292-295): tree view interaktif, AJAX CRUD modal, drag-drop reorder.
 
-**Current focus:** Planning next milestone
+**Current focus:** v14.0 Assessment Enhancement
 
-## Next Milestone Goals
+## Current Milestone: v14.0 Assessment Enhancement
+
+**Goal:** Tingkatkan sistem assessment dengan tipe assessment baru (Pre-Post Test), variasi tipe soal, optimasi mobile, reporting lanjutan, dan aksesibilitas.
+
+**Target features:**
+- Tipe Assessment & Pre-Post Test — HC pilih tipe saat create (Standard/PrePostTest/Interview), Pre & Post linked via 2 session terpisah, side-by-side comparison + gain score
+- Tipe Soal — True/False, Multiple Answer, Essay (manual grading HC), Fill in the Blank
+- Mobile Optimization — Touch-friendly exam UI, swipe navigation, bottom nav bar, responsive exam layout
+- Reporting Lanjutan — Item analysis (difficulty/discrimination index), time-per-question, comparative report, Pre-Post gain score report
+- Accessibility — Skip-to-content, keyboard navigation soal, screen reader timer, font size control, extra time accommodation
+
+**Key decisions:**
+- Anti-cheating sudah cukup (copy-paste block Phase 280) — tidak ditambah
+- Pre-Post Test: 2 session terpisah linked via LinkedGroupId (Opsi A)
+- Monitoring: 1 entry grup, expand Pre & Post (Opsi B)
+- Paket soal Pre & Post bisa beda, checkbox "Gunakan soal yang sama"
+- Post-Test bisa dimulai setelah Pre-Test selesai (ada jadwal Post terpisah)
+- Reset Pre → Post ikut reset (cascade)
+- Nilai Pre & Post independen
+- Sertifikat hanya dari Post-Test
+- Renewal bebas pilih tipe (Standard atau PrePostTest)
+- Worker view: 2 card terpisah tapi linked
+- Results: side-by-side comparison Pre vs Post + gain score
+
+## Future Milestone Goals
 
 - Competency gap heatmap (worker x kompetensi matrix)
 - Scheduling integration / calendar untuk coaching sessions
