@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v14.0
-milestone_name: Assessment Enhancement
+milestone: v13.0
+milestone_name: Redesign Struktur Organisasi
 status: executing
 stopped_at: Phase 296 context gathered
-last_updated: "2026-04-06T07:50:37.527Z"
-last_activity: 2026-04-06 -- Phase 296 planning complete
+last_updated: "2026-04-06T07:34:53.500Z"
+last_activity: 2026-04-03
 progress:
-  total_phases: 5
+  total_phases: 4
   completed_phases: 4
-  total_plans: 7
+  total_plans: 4
   completed_plans: 4
-  percent: 57
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-04-02)
 
 Phase: 295
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-06 -- Phase 296 planning complete
+Status: Executing Phase 295
+Last activity: 2026-04-03
 
 Progress: [░░░░░░░░░░] 0%
 

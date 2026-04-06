@@ -1,0 +1,237 @@
+using HcPortal.Data;
+using HcPortal.Helpers;
+using HcPortal.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace HcPortal.Services
+{
+    /// <summary>
+    /// Centralized grading service for package-based assessments.
+    /// Extracted from AssessmentAdminController.GradeFromSavedAnswers() and CMPController.SubmitExam()
+    /// to eliminate duplication (Phase 296 D-01, D-02).
+    ///
+    /// SCOPE: Package-based assessments only. Does NOT handle Proton Tahun 3 interview (D-03).
+    /// Does NOT handle SignalR push or cache invalidation — those remain in controllers.
+    /// </summary>
+    public class GradingService
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IWorkerDataService _workerDataService;
+        private readonly ILogger<GradingService> _logger;
+
+        public GradingService(
+            ApplicationDbContext context,
+            IWorkerDataService workerDataService,
+            ILogger<GradingService> logger)
+        {
+            _context = context;
+            _workerDataService = workerDataService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Grade a completed package-based assessment session and persist all results.
+        ///
+        /// Handles (per D-02):
+        /// 1. Hitung skor dari PackageUserResponses yang sudah tersimpan di DB
+        /// 2. Hitung SessionElemenTeknisScores per group elemen teknis
+        /// 3. Update session (race-condition-safe via ExecuteUpdateAsync + status guard)
+        /// 4. Update PackageAssignment.IsCompleted
+        /// 5. Buat TrainingRecord (dengan duplicate guard)
+        /// 6. Generate NomorSertifikat jika session.GenerateCertificate && isPassed (retry 3x)
+        /// 7. Kirim notifikasi grup completion
+        ///
+        /// PENTING: Method ini selalu grade dari DB (bukan dari form POST) — per RESEARCH.md anti-pattern.
+        /// PENTING: Method ini tidak memanggil SignalR push atau _cache.Remove — biarkan di controller.
+        /// </summary>
+        /// <param name="session">AssessmentSession yang akan di-grade. Harus sudah ada di DB.</param>
+        /// <returns>True jika session berhasil di-grade. False jika race condition terjadi (session sudah Completed).</returns>
+        public async Task<bool> GradeAndCompleteAsync(AssessmentSession session)
+        {
+            // ---- 1. Load PackageAssignment dan hitung skor ----
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == session.Id);
+
+            if (packageAssignment == null)
+            {
+                _logger.LogWarning(
+                    "GradingService: session {SessionId} tidak punya PackageAssignment — tidak bisa di-grade.",
+                    session.Id);
+                return false;
+            }
+
+            var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+
+            var packageQuestions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => shuffledIds.Contains(q.Id))
+                .ToListAsync();
+            var questionLookup = packageQuestions.ToDictionary(q => q.Id);
+
+            var responses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == session.Id)
+                .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
+
+            int totalScore = 0;
+            int maxScore = 0;
+
+            foreach (var qId in shuffledIds)
+            {
+                if (!questionLookup.TryGetValue(qId, out var q)) continue;
+
+                maxScore += q.ScoreValue;
+
+                // Switch-case per QuestionType (D-08): hanya MultipleChoice diimplementasi di Phase 296.
+                // MA + Essay diimplementasi di Phase 298.
+                switch (q.QuestionType ?? "MultipleChoice")
+                {
+                    case "MultipleChoice":
+                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                        {
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += q.ScoreValue;
+                        }
+                        break;
+
+                    case "MultipleAnswer":
+                        throw new NotImplementedException(
+                            "MultipleAnswer grading akan diimplementasi di Phase 298.");
+
+                    case "Essay":
+                        throw new NotImplementedException(
+                            "Essay grading akan diimplementasi di Phase 298.");
+
+                    default:
+                        _logger.LogWarning(
+                            "GradingService: QuestionType tidak dikenal '{QuestionType}' untuk question {QuestionId} — dilewati.",
+                            q.QuestionType, q.Id);
+                        break;
+                }
+            }
+
+            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+            bool isPassed = finalPercentage >= session.PassPercentage;
+
+            // ---- 2. Hitung SessionElemenTeknisScores ----
+            var etGroups = packageQuestions
+                .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+
+            foreach (var etGroup in etGroups)
+            {
+                int etCorrect = 0;
+                int etTotal = etGroup.Count();
+                foreach (var q in etGroup)
+                {
+                    if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                    {
+                        var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                        if (sel != null && sel.IsCorrect) etCorrect++;
+                    }
+                }
+                _context.SessionElemenTeknisScores.Add(new SessionElemenTeknisScore
+                {
+                    AssessmentSessionId = session.Id,
+                    ElemenTeknis = etGroup.Key,
+                    CorrectCount = etCorrect,
+                    QuestionCount = etTotal
+                });
+            }
+
+            // ---- 3. Update session (race-condition-safe) ----
+            // SaveChanges dulu untuk ET scores (per CMPController pattern — answer persistence sebelum status claim)
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Race: AkhiriUjian sudah insert ET scores untuk session ini — aman diabaikan.
+                // Kedua pihak menghasilkan skor yang sama dari jawaban yang sama.
+                _context.ChangeTracker.Clear();
+            }
+
+            // ExecuteUpdateAsync dengan WHERE Status != "Completed" sebagai status guard (D-04)
+            var rowsAffected = await _context.AssessmentSessions
+                .Where(s => s.Id == session.Id && s.Status != "Completed")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Score, finalPercentage)
+                    .SetProperty(r => r.Status, "Completed")
+                    .SetProperty(r => r.Progress, 100)
+                    .SetProperty(r => r.IsPassed, isPassed)
+                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                );
+
+            if (rowsAffected == 0)
+            {
+                // Race condition: session sudah di-complete oleh request lain
+                _logger.LogWarning(
+                    "GradingService: race condition untuk session {SessionId} — session sudah Completed, skip.",
+                    session.Id);
+                return false;
+            }
+
+            // ---- 4. Update PackageAssignment.IsCompleted ----
+            await _context.UserPackageAssignments
+                .Where(a => a.AssessmentSessionId == session.Id)
+                .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
+
+            // ---- 5. Buat TrainingRecord (dengan duplicate guard) ----
+            var judul = $"Assessment: {session.Title}";
+            bool trainingRecordExists = await _context.TrainingRecords.AnyAsync(t =>
+                t.UserId == session.UserId &&
+                t.Judul == judul &&
+                t.Tanggal == session.Schedule);
+
+            if (!trainingRecordExists)
+            {
+                _context.TrainingRecords.Add(new TrainingRecord
+                {
+                    UserId = session.UserId,
+                    Judul = judul,
+                    Kategori = session.Category ?? "Assessment",
+                    Tanggal = session.Schedule,
+                    TanggalSelesai = DateTime.UtcNow,
+                    Penyelenggara = "Internal",
+                    Status = isPassed ? "Passed" : "Failed"
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            // ---- 6. Generate NomorSertifikat (jika applicable) ----
+            // Kondisi: session.GenerateCertificate && isPassed (T-296-03: retry 3x + WHERE NomorSertifikat == null)
+            if (session.GenerateCertificate && isPassed)
+            {
+                var certNow = DateTime.Now;
+                int certYear = certNow.Year;
+                int certAttempts = 0;
+                const int maxCertAttempts = 3;
+                bool certSaved = false;
+
+                while (!certSaved && certAttempts < maxCertAttempts)
+                {
+                    certAttempts++;
+                    try
+                    {
+                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                        await _context.AssessmentSessions
+                            .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
+                            .ExecuteUpdateAsync(s => s
+                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
+                            );
+                        certSaved = true;
+                    }
+                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
+                    {
+                        // Retry dengan sequence baru (T-296-03)
+                    }
+                }
+            }
+
+            // ---- 7. Notifikasi grup completion ----
+            await _workerDataService.NotifyIfGroupCompleted(session);
+
+            return true;
+        }
+    }
+}

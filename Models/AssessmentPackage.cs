@@ -40,6 +40,13 @@ namespace HcPortal.Models
 
         public int ScoreValue { get; set; } = 10;
 
+        /// <summary>
+        /// Tipe soal: "MultipleChoice" (default), "MultipleAnswer", atau "Essay".
+        /// Null berarti "MultipleChoice" (backward compatible untuk data lama sebelum Phase 296).
+        /// Per D-06: disimpan sebagai string konsisten dengan pattern Status field.
+        /// </summary>
+        public string? QuestionType { get; set; }
+
         /// <summary>Optional elemen teknis tag for analysis grouping (e.g. "Pengetahuan Proses").</summary>
         public string? ElemenTeknis { get; set; }
 
