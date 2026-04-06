@@ -10,48 +10,23 @@ namespace HcPortal.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "TextAnswer",
-                table: "PackageUserResponses",
-                type: "nvarchar(max)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "QuestionType",
-                table: "PackageQuestions",
-                type: "nvarchar(max)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "AssessmentPhase",
-                table: "AssessmentSessions",
-                type: "nvarchar(max)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "AssessmentType",
-                table: "AssessmentSessions",
-                type: "nvarchar(max)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "HasManualGrading",
-                table: "AssessmentSessions",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-
-            migrationBuilder.AddColumn<int>(
-                name: "LinkedGroupId",
-                table: "AssessmentSessions",
-                type: "int",
-                nullable: true);
-
-            migrationBuilder.AddColumn<int>(
-                name: "LinkedSessionId",
-                table: "AssessmentSessions",
-                type: "int",
-                nullable: true);
+            // Use raw SQL with IF NOT EXISTS to handle pre-existing columns
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='PackageUserResponses' AND COLUMN_NAME='TextAnswer')
+                    ALTER TABLE [PackageUserResponses] ADD [TextAnswer] nvarchar(max) NULL;
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='PackageQuestions' AND COLUMN_NAME='QuestionType')
+                    ALTER TABLE [PackageQuestions] ADD [QuestionType] nvarchar(max) NULL;
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='AssessmentSessions' AND COLUMN_NAME='AssessmentPhase')
+                    ALTER TABLE [AssessmentSessions] ADD [AssessmentPhase] nvarchar(max) NULL;
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='AssessmentSessions' AND COLUMN_NAME='AssessmentType')
+                    ALTER TABLE [AssessmentSessions] ADD [AssessmentType] nvarchar(max) NULL;
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='AssessmentSessions' AND COLUMN_NAME='HasManualGrading')
+                    ALTER TABLE [AssessmentSessions] ADD [HasManualGrading] bit NOT NULL DEFAULT 0;
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='AssessmentSessions' AND COLUMN_NAME='LinkedGroupId')
+                    ALTER TABLE [AssessmentSessions] ADD [LinkedGroupId] int NULL;
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='AssessmentSessions' AND COLUMN_NAME='LinkedSessionId')
+                    ALTER TABLE [AssessmentSessions] ADD [LinkedSessionId] int NULL;
+            ");
         }
 
         /// <inheritdoc />
