@@ -51,6 +51,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 
+// Grading service — Phase 296 D-01: concrete class + DI (sama seperti AuditLogService)
+builder.Services.AddScoped<HcPortal.Services.GradingService>();
+
 // Impersonation service — Phase 283
 builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 builder.Services.AddHttpContextAccessor();
