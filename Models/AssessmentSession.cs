@@ -122,5 +122,35 @@ namespace HcPortal.Models
         public int? RenewsTrainingId { get; set; }
 
         // Legacy navigation properties (AssessmentQuestion, UserResponse) removed in Phase 227 (CLEN-02).
+
+        // ===== v14.0 Assessment Enhancement columns =====
+        /// <summary>
+        /// Tipe assessment: 'PreTest', 'PostTest', null = tidak ditentukan (backward compat).
+        /// Digunakan untuk linking pre-post test pair dan grading logic.
+        /// </summary>
+        public string? AssessmentType { get; set; }
+
+        /// <summary>
+        /// Fase assessment dalam siklus: 'Phase1', 'Phase2', dll. Null = tidak ada fase.
+        /// </summary>
+        public string? AssessmentPhase { get; set; }
+
+        /// <summary>
+        /// FK ke grup assessment (jika session ini bagian dari grup ujian terkait).
+        /// Null = session berdiri sendiri, tidak terhubung ke grup.
+        /// </summary>
+        public int? LinkedGroupId { get; set; }
+
+        /// <summary>
+        /// FK ke AssessmentSession lain yang terhubung (misal: PreTest terhubung ke PostTest-nya).
+        /// ON DELETE SET NULL — jika session pasangan dihapus, FK jadi NULL.
+        /// </summary>
+        public int? LinkedSessionId { get; set; }
+
+        /// <summary>
+        /// True jika session ini memiliki soal Essay yang butuh grading manual oleh HC.
+        /// Default false — hanya true jika ada soal Essay dalam package.
+        /// </summary>
+        public bool HasManualGrading { get; set; } = false;
     }
 }
