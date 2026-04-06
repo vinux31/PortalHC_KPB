@@ -225,13 +225,20 @@ namespace HcPortal.Controllers
                 .Take(paging.Take)
                 .ToListAsync();
 
-            // Auto-transition display: show Upcoming as Open when scheduled date+time has arrived in WIB (display-only, no SaveChangesAsync)
+            // Auto-transition: persist Upcoming → Open when scheduled date+time has arrived in WIB
             var nowWib = DateTime.UtcNow.AddHours(7);
+            var transitioned = false;
             foreach (var exam in exams)
             {
                 if (exam.Status == "Upcoming" && exam.Schedule <= nowWib)
+                {
                     exam.Status = "Open";
+                    exam.UpdatedAt = DateTime.UtcNow;
+                    transitioned = true;
+                }
             }
+            if (transitioned)
+                await _context.SaveChangesAsync();
 
             // Pagination info for view
             ViewBag.CurrentPage = paging.CurrentPage;

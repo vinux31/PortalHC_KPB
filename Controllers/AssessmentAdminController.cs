@@ -51,6 +51,28 @@ namespace HcPortal.Controllers
         protected new ViewResult View(string viewName) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml");
         protected new ViewResult View(string viewName, object? model) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml", model);
 
+        /// <summary>
+        /// Bulk-persist Upcoming → Open transition for all assessment sessions whose Schedule has passed (WIB).
+        /// Runs a single UPDATE query — no-op if nothing to transition.
+        /// </summary>
+        private async Task AutoTransitionUpcomingSessions()
+        {
+            var nowWib = DateTime.UtcNow.AddHours(7);
+            var stale = await _context.AssessmentSessions
+                .Where(a => a.Status == "Upcoming" && a.Schedule <= nowWib)
+                .ToListAsync();
+
+            if (stale.Count > 0)
+            {
+                foreach (var s in stale)
+                {
+                    s.Status = "Open";
+                    s.UpdatedAt = DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+
         // GET /Admin/ManageAssessment
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
@@ -58,6 +80,9 @@ namespace HcPortal.Controllers
             string? tab = null, string? section = null, string? unit = null,
             string? category = null, string? statusFilter = null, string? isFiltered = null)
         {
+            // Persist Upcoming → Open for sessions whose schedule has passed
+            await AutoTransitionUpcomingSessions();
+
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
             var managementQuery = _context.AssessmentSessions
@@ -1762,6 +1787,9 @@ namespace HcPortal.Controllers
             string? status,
             string? category)
         {
+            // Persist Upcoming → Open for sessions whose schedule has passed
+            await AutoTransitionUpcomingSessions();
+
             // 7-day window — same as ManageAssessment
             // 90-review: 7-day window is intentional for monitoring view; Abandoned sessions with no ExamWindowCloseDate
             // fall back to Schedule for the window check and naturally age out after 7 days (expected behavior).
@@ -1859,6 +1887,9 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate)
         {
+            // Persist Upcoming → Open for sessions whose schedule has passed
+            await AutoTransitionUpcomingSessions();
+
             var sessions = await _context.AssessmentSessions
                 .Include(a => a.User)
                 .Where(a => a.Title == title
