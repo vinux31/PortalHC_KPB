@@ -239,16 +239,23 @@ function populateParentDropdown(excludeId) {
     const excludeIds = excludeId ? getDescendantIds(excludeId) : new Set();
     if (excludeId) excludeIds.add(excludeId);
 
-    _flatUnits
-        .filter(u => u.isActive && !excludeIds.has(u.id))
-        .sort((a, b) => a.level - b.level || a.displayOrder - b.displayOrder)
-        .forEach(u => {
-            const indent = '\u00A0'.repeat(u.level * 4);
+    const allowed = _flatUnits.filter(u => u.isActive && !excludeIds.has(u.id));
+    const roots = buildTree(JSON.parse(JSON.stringify(allowed)));
+
+    function appendOptions(nodes, depth) {
+        nodes.sort((a, b) => a.displayOrder - b.displayOrder || a.name.localeCompare(b.name));
+        nodes.forEach(u => {
+            const indent = '\u00A0'.repeat(depth * 4);
             const opt = document.createElement('option');
             opt.value = u.id;
             opt.textContent = indent + u.name;
             select.appendChild(opt);
+            if (u.children && u.children.length > 0) {
+                appendOptions(u.children, depth + 1);
+            }
         });
+    }
+    appendOptions(roots, 0);
 }
 
 // CRUD modal functions

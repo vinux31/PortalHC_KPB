@@ -255,11 +255,19 @@ namespace HcPortal.Controllers
             ViewBag.AllUsers = allUsers;
 
             // Potential parents for Parent Category dropdown (depth 0 or 1 only)
-            var potentialParents = await _context.AssessmentCategories
+            // Sort hierarchically: root first, then its children, then next root, etc.
+            var allPotentialParents = await _context.AssessmentCategories
                 .Include(c => c.Parent)
                 .Where(c => c.ParentId == null || (c.Parent != null && c.Parent.ParentId == null))
-                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
                 .ToListAsync();
+            var potentialParents = allPotentialParents
+                .Where(c => c.ParentId == null)
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .SelectMany(root => new[] { root }.Concat(
+                    allPotentialParents
+                        .Where(ch => ch.ParentId == root.Id)
+                        .OrderBy(ch => ch.SortOrder).ThenBy(ch => ch.Name)))
+                .ToList();
             ViewBag.PotentialParents = potentialParents;
         }
 
