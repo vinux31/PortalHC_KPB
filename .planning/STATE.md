@@ -54,9 +54,10 @@ Progress: [██████████] 100%
 |---|-------------|------|--------|-----------|
 | 260328-kri | Fix notif lanjutkan pengerjaan muncul pada assessment baru padahal worker baru pertama kali masuk | 2026-03-28 | ec71fcc2 | [260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa](./quick/260328-kri-fix-notif-lanjutkan-pengerjaan-muncul-pa/) |
 | 260402-l2d | Fix delete assessment 404 error — update asp-controller references dari Admin ke AssessmentAdmin di 9 view | 2026-04-02 | 5a16c0fb | [260402-l2d-fix-delete-assessment-404-error-on-manag](./quick/260402-l2d-fix-delete-assessment-404-error-on-manag/) |
+| 260406-dkv | Persist auto-transition Upcoming→Open di semua assessment views | 2026-04-06 | 08ed4d6b | [260406-dkv-check-assessment-open-upcoming-status-tr](./quick/260406-dkv-check-assessment-open-upcoming-status-tr/) |
 
 ## Session Continuity
 
-Last activity: 2026-04-06 — Milestone v13.0 completed and archived
+Last activity: 2026-04-06 - Completed quick task 260406-dkv: Persist auto-transition Upcoming→Open
 Stopped at: Milestone completion
 Resume file: None
