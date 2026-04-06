@@ -25,6 +25,7 @@ namespace HcPortal.Controllers
         private readonly INotificationService _notificationService;
         private readonly IHubContext<AssessmentHub> _hubContext;
         private readonly IWorkerDataService _workerDataService;
+        private readonly GradingService _gradingService;
 
         public AssessmentAdminController(
             ApplicationDbContext context,
@@ -35,7 +36,8 @@ namespace HcPortal.Controllers
             ILogger<AssessmentAdminController> logger,
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
-            IWorkerDataService workerDataService)
+            IWorkerDataService workerDataService,
+            GradingService gradingService)
             : base(context, userManager, auditLog, env)
         {
             _cache = cache;
@@ -43,6 +45,7 @@ namespace HcPortal.Controllers
             _notificationService = notificationService;
             _hubContext = hubContext;
             _workerDataService = workerDataService;
+            _gradingService = gradingService;
         }
 
         // Override View resolution to use Views/Admin/ folder (controller name is AssessmentAdmin, but views stay in Admin/)
@@ -2249,66 +2252,18 @@ namespace HcPortal.Controllers
                 });
             }
 
-            await GradeFromSavedAnswers(session);
+            // GradingService: grade dari DB, handle race-condition, TrainingRecord, NomorSertifikat, notifikasi grup
+            bool graded = await _gradingService.GradeAndCompleteAsync(session);
 
-            // Status-guarded write: detach the tracked entity and use ExecuteUpdateAsync with a WHERE guard
-            // so that if SubmitExam or another AkhiriUjian already completed this session, we skip silently.
-            _context.Entry(session).State = EntityState.Detached;
-
-            var rowsAffected = await _context.AssessmentSessions
-                .Where(s => s.Id == id
-                         && s.StartedAt != null
-                         && s.CompletedAt == null
-                         && s.Score == null
-                         && s.Status != "Cancelled"
-                         && s.Status != "Abandoned"
-                         && s.Status != "Completed")
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => r.Status, "Completed")
-                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
-                    .SetProperty(r => r.Score, session.Score)
-                    .SetProperty(r => r.IsPassed, session.IsPassed)
-                    .SetProperty(r => r.Progress, 100)
-                );
-
-            if (rowsAffected == 0)
+            if (!graded)
             {
-                // Race: another request already completed or cancelled this session — silent skip
+                // Race: session sudah di-complete oleh SubmitExam atau AkhiriUjian lain — silent skip
                 TempData["Info"] = "Sesi sudah selesai atau dibatalkan.";
                 return RedirectToAction("AssessmentMonitoringDetail", new {
                     title = session.Title,
                     category = session.Category,
                     scheduleDate = session.Schedule.Date.ToString("yyyy-MM-dd")
                 });
-            }
-
-            // Phase 226 CLEN-04: Generate NomorSertifikat when passed (same pattern as CMPController.SubmitExam)
-            if (session.GenerateCertificate && session.IsPassed == true)
-            {
-                var certNow = DateTime.Now;
-                int certYear = certNow.Year;
-                int certAttempts = 0;
-                const int maxCertAttempts = 3;
-                bool certSaved = false;
-
-                while (!certSaved && certAttempts < maxCertAttempts)
-                {
-                    certAttempts++;
-                    try
-                    {
-                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                        await _context.AssessmentSessions
-                            .Where(s => s.Id == id && s.NomorSertifikat == null)
-                            .ExecuteUpdateAsync(s => s
-                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
-                            );
-                        certSaved = true;
-                    }
-                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                    {
-                        // Retry with fresh sequence
-                    }
-                }
             }
 
             _cache.Remove($"exam-status-{id}");
@@ -2357,52 +2312,27 @@ namespace HcPortal.Controllers
             int gradedCount = 0;
             int cancelledCount = 0;
 
-            foreach (var session in sessionsToEnd)
+            // Cancelled sessions: update status via EF change tracking + SaveChanges
+            var cancelledSessions = sessionsToEnd
+                .Where(s => !(s.StartedAt != null && s.CompletedAt == null && s.Score == null))
+                .ToList();
+            foreach (var session in cancelledSessions)
             {
-                bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
-                if (isInProgress)
-                {
-                    await GradeFromSavedAnswers(session);
-                    gradedCount++;
-                }
-                else
-                {
-                    // Open / not-started → Cancelled
-                    session.Status = "Cancelled";
-                    session.UpdatedAt = DateTime.UtcNow;
-                    cancelledCount++;
-                }
+                session.Status = "Cancelled";
+                session.UpdatedAt = DateTime.UtcNow;
+                cancelledCount++;
             }
+            if (cancelledSessions.Any())
+                await _context.SaveChangesAsync();
 
-            await _context.SaveChangesAsync();
-
-            // Phase 226 CLEN-04: Generate NomorSertifikat for passed sessions
-            foreach (var s in sessionsToEnd.Where(s => s.GenerateCertificate && s.IsPassed == true && s.NomorSertifikat == null))
+            // InProgress sessions: grade via GradingService (handles race-condition, cert, TrainingRecord, notifikasi)
+            var inProgressSessions = sessionsToEnd
+                .Where(s => s.StartedAt != null && s.CompletedAt == null && s.Score == null)
+                .ToList();
+            foreach (var session in inProgressSessions)
             {
-                var certNow = DateTime.Now;
-                int certYear = certNow.Year;
-                int certAttempts = 0;
-                const int maxCertAttempts = 3;
-                bool certSaved = false;
-
-                while (!certSaved && certAttempts < maxCertAttempts)
-                {
-                    certAttempts++;
-                    try
-                    {
-                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                        await _context.AssessmentSessions
-                            .Where(x => x.Id == s.Id && x.NomorSertifikat == null)
-                            .ExecuteUpdateAsync(x => x
-                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
-                            );
-                        certSaved = true;
-                    }
-                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                    {
-                        // Retry with fresh sequence
-                    }
-                }
+                await _gradingService.GradeAndCompleteAsync(session);
+                gradedCount++;
             }
 
             // Invalidate cache for all affected sessions
@@ -2443,109 +2373,6 @@ namespace HcPortal.Controllers
             int notStartedCount = sessions.Count(s => s.StartedAt == null);
 
             return Json(new { inProgressCount, notStartedCount });
-        }
-
-        /// <summary>
-        /// Auto-grade a single InProgress session from its saved answers.
-        /// Handles both package and legacy paths. Creates TrainingRecord (with duplicate guard)
-        /// and fires group completion notification. Does NOT call SaveChangesAsync — caller handles it.
-        /// </summary>
-        private async Task GradeFromSavedAnswers(AssessmentSession session)
-        {
-            // Detect package mode
-            var packageAssignment = await _context.UserPackageAssignments
-                .FirstOrDefaultAsync(a => a.AssessmentSessionId == session.Id);
-
-            int totalScore = 0;
-            int maxScore = 0;
-
-            if (packageAssignment != null)
-            {
-                // ---- PACKAGE PATH ----
-                var shuffledIds = packageAssignment.GetShuffledQuestionIds();
-
-                var packageQuestions = await _context.PackageQuestions
-                    .Include(q => q.Options)
-                    .Where(q => shuffledIds.Contains(q.Id))
-                    .ToListAsync();
-                var questionLookup = packageQuestions.ToDictionary(q => q.Id);
-
-                var responses = await _context.PackageUserResponses
-                    .Where(r => r.AssessmentSessionId == session.Id)
-                    .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
-
-                foreach (var qId in shuffledIds)
-                {
-                    if (!questionLookup.TryGetValue(qId, out var q)) continue;
-                    maxScore += q.ScoreValue;
-                    if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
-                    {
-                        var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
-                        if (selectedOption != null && selectedOption.IsCorrect)
-                            totalScore += q.ScoreValue;
-                    }
-                }
-
-                packageAssignment.IsCompleted = true;
-
-                // Persist ET scores per session — Phase 223
-                var etGroupsAdmin = packageQuestions
-                    .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
-
-                foreach (var etGroup in etGroupsAdmin)
-                {
-                    int etCorrect = 0;
-                    int etTotal = etGroup.Count();
-                    foreach (var q in etGroup)
-                    {
-                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
-                        {
-                            var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
-                            if (sel != null && sel.IsCorrect) etCorrect++;
-                        }
-                    }
-                    _context.SessionElemenTeknisScores.Add(new HcPortal.Models.SessionElemenTeknisScore
-                    {
-                        AssessmentSessionId = session.Id,
-                        ElemenTeknis = etGroup.Key,
-                        CorrectCount = etCorrect,
-                        QuestionCount = etTotal
-                    });
-                }
-            }
-            // Legacy path removed (Phase 227 CLEN-02) — sessions without package assignment get score 0.
-
-            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-
-            session.Score = finalPercentage;
-            session.Status = "Completed";
-            session.Progress = 100;
-            session.IsPassed = finalPercentage >= session.PassPercentage;
-            session.CompletedAt = DateTime.UtcNow;
-            session.UpdatedAt = DateTime.UtcNow;
-
-            // TrainingRecord creation (duplicate guard: same as SubmitExam)
-            var judul = $"Assessment: {session.Title}";
-            bool trainingRecordExists = await _context.TrainingRecords.AnyAsync(t =>
-                t.UserId == session.UserId &&
-                t.Judul == judul &&
-                t.Tanggal == session.Schedule);
-            if (!trainingRecordExists)
-            {
-                _context.TrainingRecords.Add(new TrainingRecord
-                {
-                    UserId = session.UserId,
-                    Judul = judul,
-                    Kategori = session.Category ?? "Assessment",
-                    Tanggal = session.Schedule,
-                    TanggalSelesai = session.CompletedAt,
-                    Penyelenggara = "Internal",
-                    Status = session.IsPassed == true ? "Passed" : "Failed"
-                });
-            }
-
-            // Group completion notification
-            await _workerDataService.NotifyIfGroupCompleted(session);
         }
 
         // --- EXPORT ASSESSMENT RESULTS ---
