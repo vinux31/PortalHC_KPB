@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v14.0
 milestone_name: Assessment Enhancement
-status: defining_requirements
-stopped_at: Defining requirements
+status: roadmap_ready
+stopped_at: Roadmap created, ready to plan Phase 296
 last_updated: "2026-04-06T03:00:00.000Z"
 last_activity: 2026-04-06
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,16 +21,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v14.0 Assessment Enhancement
+**Current focus:** v14.0 Assessment Enhancement — Phase 296 (Data Foundation + GradingService Extraction)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 296 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-06 — Milestone v14.0 started
+Status: Roadmap ready, awaiting phase planning
+Last activity: 2026-04-06 — Roadmap v14.0 created (7 phases, 52 requirements)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░] 0% (0/7 phases)
+
+## v14.0 Phase Map
+
+| Phase | Name | Requirements | Depends on |
+|-------|------|--------------|------------|
+| 296 | Data Foundation + GradingService Extraction | FOUND-01..09 (9) | — |
+| 297 | Admin Pre-Post Test | PPT-01..11 (11) | 296 |
+| 298 | Question Types | QTYPE-01..13 (13) | 296 |
+| 299 | Worker Pre-Post Test + Comparison | WKPPT-01..07 (7) | 297 |
+| 300 | Mobile Optimization | MOB-01..06 (6) | 298 |
+| 301 | Advanced Reporting | RPT-01..07 (7) | 297, 298 |
+| 302 | Accessibility WCAG Quick Wins | A11Y-01..06 (6) | 298, 300 |
 
 ## Accumulated Context
 
@@ -43,11 +55,17 @@ Progress: [░░░░░░░░░░] 0%
 - [v14.0]: Reset Pre → Post ikut reset (cascade)
 - [v14.0]: Nilai Pre & Post independen, sertifikat hanya dari Post-Test
 - [v14.0]: Renewal bebas pilih tipe (Standard atau PrePostTest)
+- [v14.0]: Multiple Answer scoring = All-or-Nothing (konsisten konteks compliance K3)
+- [v14.0]: GradingService diekstrak sebagai class dalam proyek yang sama (bukan microservice)
+- [v14.0]: Mobile navigation menggunakan CSS Scroll Snap native — tanpa Hammer.js
 
 ### Pending Todos
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser
 - Phase 247 approval chain UAT: 2 TODO (HC review + resubmit notification)
+- [v14.0 research gap]: Essay max character limit belum diputuskan — perlu keputusan saat Phase 298 planning (nvarchar(max) vs nvarchar(2000))
+- [v14.0 research gap]: Item Analysis n-threshold UX — rekomendasi tampilkan warning "Data belum cukup (butuh min. 30 responden)"
+- [v14.0 research gap]: Pre-Post Renewal behavior — apakah buat 2 sesi baru otomatis? Perlu keputusan saat Phase 297 planning
 
 ### Blockers/Concerns
 
@@ -63,6 +81,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last activity: 2026-04-06 — Milestone v14.0 started, defining requirements
-Stopped at: Requirements definition
+Last activity: 2026-04-06 — Roadmap v14.0 created (7 phases, 52 requirements, 100% coverage)
+Stopped at: Roadmap ready — next step: `/gsd-plan-phase 296`
 Resume file: None

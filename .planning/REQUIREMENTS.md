@@ -113,71 +113,71 @@ Requirements for Assessment Enhancement milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | TBD | Pending |
-| FOUND-02 | TBD | Pending |
-| FOUND-03 | TBD | Pending |
-| FOUND-04 | TBD | Pending |
-| FOUND-05 | TBD | Pending |
-| FOUND-06 | TBD | Pending |
-| FOUND-07 | TBD | Pending |
-| FOUND-08 | TBD | Pending |
-| FOUND-09 | TBD | Pending |
-| PPT-01 | TBD | Pending |
-| PPT-02 | TBD | Pending |
-| PPT-03 | TBD | Pending |
-| PPT-04 | TBD | Pending |
-| PPT-05 | TBD | Pending |
-| PPT-06 | TBD | Pending |
-| PPT-07 | TBD | Pending |
-| PPT-08 | TBD | Pending |
-| PPT-09 | TBD | Pending |
-| PPT-10 | TBD | Pending |
-| PPT-11 | TBD | Pending |
-| WKPPT-01 | TBD | Pending |
-| WKPPT-02 | TBD | Pending |
-| WKPPT-03 | TBD | Pending |
-| WKPPT-04 | TBD | Pending |
-| WKPPT-05 | TBD | Pending |
-| WKPPT-06 | TBD | Pending |
-| WKPPT-07 | TBD | Pending |
-| QTYPE-01 | TBD | Pending |
-| QTYPE-02 | TBD | Pending |
-| QTYPE-03 | TBD | Pending |
-| QTYPE-04 | TBD | Pending |
-| QTYPE-05 | TBD | Pending |
-| QTYPE-06 | TBD | Pending |
-| QTYPE-07 | TBD | Pending |
-| QTYPE-08 | TBD | Pending |
-| QTYPE-09 | TBD | Pending |
-| QTYPE-10 | TBD | Pending |
-| QTYPE-11 | TBD | Pending |
-| QTYPE-12 | TBD | Pending |
-| QTYPE-13 | TBD | Pending |
-| MOB-01 | TBD | Pending |
-| MOB-02 | TBD | Pending |
-| MOB-03 | TBD | Pending |
-| MOB-04 | TBD | Pending |
-| MOB-05 | TBD | Pending |
-| MOB-06 | TBD | Pending |
-| RPT-01 | TBD | Pending |
-| RPT-02 | TBD | Pending |
-| RPT-03 | TBD | Pending |
-| RPT-04 | TBD | Pending |
-| RPT-05 | TBD | Pending |
-| RPT-06 | TBD | Pending |
-| RPT-07 | TBD | Pending |
-| A11Y-01 | TBD | Pending |
-| A11Y-02 | TBD | Pending |
-| A11Y-03 | TBD | Pending |
-| A11Y-04 | TBD | Pending |
-| A11Y-05 | TBD | Pending |
-| A11Y-06 | TBD | Pending |
+| FOUND-01 | Phase 296 | Pending |
+| FOUND-02 | Phase 296 | Pending |
+| FOUND-03 | Phase 296 | Pending |
+| FOUND-04 | Phase 296 | Pending |
+| FOUND-05 | Phase 296 | Pending |
+| FOUND-06 | Phase 296 | Pending |
+| FOUND-07 | Phase 296 | Pending |
+| FOUND-08 | Phase 296 | Pending |
+| FOUND-09 | Phase 296 | Pending |
+| PPT-01 | Phase 297 | Pending |
+| PPT-02 | Phase 297 | Pending |
+| PPT-03 | Phase 297 | Pending |
+| PPT-04 | Phase 297 | Pending |
+| PPT-05 | Phase 297 | Pending |
+| PPT-06 | Phase 297 | Pending |
+| PPT-07 | Phase 297 | Pending |
+| PPT-08 | Phase 297 | Pending |
+| PPT-09 | Phase 297 | Pending |
+| PPT-10 | Phase 297 | Pending |
+| PPT-11 | Phase 297 | Pending |
+| WKPPT-01 | Phase 299 | Pending |
+| WKPPT-02 | Phase 299 | Pending |
+| WKPPT-03 | Phase 299 | Pending |
+| WKPPT-04 | Phase 299 | Pending |
+| WKPPT-05 | Phase 299 | Pending |
+| WKPPT-06 | Phase 299 | Pending |
+| WKPPT-07 | Phase 299 | Pending |
+| QTYPE-01 | Phase 298 | Pending |
+| QTYPE-02 | Phase 298 | Pending |
+| QTYPE-03 | Phase 298 | Pending |
+| QTYPE-04 | Phase 298 | Pending |
+| QTYPE-05 | Phase 298 | Pending |
+| QTYPE-06 | Phase 298 | Pending |
+| QTYPE-07 | Phase 298 | Pending |
+| QTYPE-08 | Phase 298 | Pending |
+| QTYPE-09 | Phase 298 | Pending |
+| QTYPE-10 | Phase 298 | Pending |
+| QTYPE-11 | Phase 298 | Pending |
+| QTYPE-12 | Phase 298 | Pending |
+| QTYPE-13 | Phase 298 | Pending |
+| MOB-01 | Phase 300 | Pending |
+| MOB-02 | Phase 300 | Pending |
+| MOB-03 | Phase 300 | Pending |
+| MOB-04 | Phase 300 | Pending |
+| MOB-05 | Phase 300 | Pending |
+| MOB-06 | Phase 300 | Pending |
+| RPT-01 | Phase 301 | Pending |
+| RPT-02 | Phase 301 | Pending |
+| RPT-03 | Phase 301 | Pending |
+| RPT-04 | Phase 301 | Pending |
+| RPT-05 | Phase 301 | Pending |
+| RPT-06 | Phase 301 | Pending |
+| RPT-07 | Phase 301 | Pending |
+| A11Y-01 | Phase 302 | Pending |
+| A11Y-02 | Phase 302 | Pending |
+| A11Y-03 | Phase 302 | Pending |
+| A11Y-04 | Phase 302 | Pending |
+| A11Y-05 | Phase 302 | Pending |
+| A11Y-06 | Phase 302 | Pending |
 
 **Coverage:**
 - v14.0 requirements: 52 total
-- Mapped to phases: 0
-- Unmapped: 52
+- Mapped to phases: 52
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-06*
-*Last updated: 2026-04-06 after initial definition*
+*Last updated: 2026-04-06 — traceability filled after roadmap creation*
