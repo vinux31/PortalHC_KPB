@@ -21,5 +21,11 @@ namespace HcPortal.Models
         public virtual PackageOption? PackageOption { get; set; }
 
         public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// Jawaban teks untuk soal Essay. Null untuk soal MultipleChoice dan MultipleAnswer.
+        /// Diisi saat worker submit jawaban Essay. Belum dinilai sampai HC melakukan manual grading.
+        /// </summary>
+        public string? TextAnswer { get; set; }
     }
 }

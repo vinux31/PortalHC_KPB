@@ -11,8 +11,7 @@
 - ✅ **v10.0 UAT Assessment OJT di Server Development** - Phases 264-280 (shipped)
 - ⏸️ **v11.2 Admin Platform Enhancement** - Phases 281-285 (paused — closed early)
 - ✅ **v12.0 Controller Refactoring** - Phases 286-291 (shipped 2026-04-02)
-- ✅ **v13.0 Redesign Struktur Organisasi** - Phases 292-295 (shipped 2026-04-03)
-- 🚧 **v14.0 Assessment Enhancement** - Phase 296+ (in progress)
+- 🚧 **v13.0 Redesign Struktur Organisasi** - Phases 292-295 (in progress)
 
 ## Phases
 
@@ -33,11 +32,7 @@ See .planning/MILESTONES.md for full history.
 
 </details>
 
-### 🚧 v14.0 Assessment Enhancement
-
-- [ ] **Phase 296: Data Foundation + GradingService Extraction** - Migrasi DB backward-compatible + ekstraksi GradingService terpusat dari duplikasi di AssessmentAdminController dan CMPController
-
-### ✅ v13.0 Redesign Struktur Organisasi
+### 🚧 v13.0 Redesign Struktur Organisasi
 
 - [x] **Phase 292: Backend AJAX Endpoints** - GetOrganizationTree JSON + dual-response pada CRUD actions + CSRF utility (completed 2026-04-02)
 - [x] **Phase 293: View Shell & Tree Rendering** - Ganti 520-baris view dengan ~130-baris shell + recursive tree dari JSON (completed 2026-04-02)
@@ -102,25 +97,6 @@ Plans:
 Plans:
 - [ ] 293-01-PLAN.md — View shell + orgTree.js tree rendering + expand/collapse
 **UI hint**: yes
-
-### Phase 296: Data Foundation + GradingService Extraction
-**Goal**: Fondasi teknis untuk v14.0 — migrasi DB backward-compatible (kolom baru nullable/default) dan ekstraksi GradingService sebagai komponen terpusat yang menggantikan logika grading duplikat di AssessmentAdminController dan CMPController
-**Depends on**: Nothing (first phase v14.0)
-**Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-04, FOUND-05, FOUND-06, FOUND-07, FOUND-08, FOUND-09
-**Success Criteria** (what must be TRUE):
-  1. GradingService terdaftar di DI container dan bisa di-inject ke controller
-  2. GradingService.GradeAndCompleteAsync() menghitung skor, update session, buat TrainingRecord, generate NomorSertifikat (jika applicable), dan kirim notifikasi grup
-  3. AssessmentAdminController.AkhiriUjian() dan AkhiriSemuaUjian() menggunakan GradingService, bukan GradeFromSavedAnswers() private method
-  4. CMPController.SubmitExam() menggunakan GradingService, bukan inline grading logic
-  5. Migration menambahkan kolom AssessmentType, AssessmentPhase, LinkedGroupId, LinkedSessionId, HasManualGrading ke AssessmentSession; QuestionType ke PackageQuestion; TextAnswer ke PackageUserResponse
-  6. Semua kolom baru nullable atau punya default value — tidak ada breaking change
-  7. GradingService punya switch-case per QuestionType; hanya MultipleChoice diimplementasi, MultipleAnswer dan Essay throw NotImplementedException
-**Plans**: 3 plans
-Plans:
-- [ ] 296-01-PLAN.md — Model entity updates + EF Core migration (7 kolom baru)
-- [ ] 296-02-PLAN.md — GradingService concrete class + DI registration
-- [ ] 296-03-PLAN.md — Wire controllers ke GradingService, hapus duplikasi
-**UI hint**: no
 
 ## Progress
 
