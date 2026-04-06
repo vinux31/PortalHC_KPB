@@ -35,6 +35,7 @@ namespace HcPortal.Controllers
         private readonly IHubContext<AssessmentHub> _hubContext;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IWorkerDataService _workerDataService;
+        private readonly GradingService _gradingService;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -48,7 +49,8 @@ namespace HcPortal.Controllers
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
             IServiceScopeFactory scopeFactory,
-            IWorkerDataService workerDataService)
+            IWorkerDataService workerDataService,
+            GradingService gradingService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -62,6 +64,7 @@ namespace HcPortal.Controllers
             _hubContext = hubContext;
             _scopeFactory = scopeFactory;
             _workerDataService = workerDataService;
+            _gradingService = gradingService;
         }
 
         public IActionResult Index()
@@ -1502,117 +1505,21 @@ namespace HcPortal.Controllers
                     }
                 }
 
+                // Hitung finalPercentage dari form POST untuk SignalR push (sebelum SaveChanges)
                 int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
-                // Competency auto-update removed in Phase 90 (KKJ tables dropped)
+                // Persist PackageUserResponses (upserted answers) — harus sebelum GradingService.GradeAndCompleteAsync
+                // karena GradingService grade dari DB, bukan dari form POST (RESEARCH.md anti-pattern)
+                await _context.SaveChangesAsync();
 
-                // Persist ET scores per session (Phase 223)
-                var etGroups = packageQuestions
-                    .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+                // GradingService: grade dari DB, handle race-condition, ET scores, TrainingRecord, NomorSertifikat, notifikasi
+                bool graded = await _gradingService.GradeAndCompleteAsync(assessment);
 
-                foreach (var etGroup in etGroups)
-                {
-                    int etCorrect = 0;
-                    int etTotal = etGroup.Count();
-                    foreach (var q in etGroup)
-                    {
-                        if (answers.ContainsKey(q.Id))
-                        {
-                            var sel = q.Options.FirstOrDefault(o => o.Id == answers[q.Id]);
-                            if (sel != null && sel.IsCorrect) etCorrect++;
-                        }
-                    }
-                    _context.SessionElemenTeknisScores.Add(new SessionElemenTeknisScore
-                    {
-                        AssessmentSessionId = id,
-                        ElemenTeknis = etGroup.Key,
-                        CorrectCount = etCorrect,
-                        QuestionCount = etTotal
-                    });
-                }
-
-                // Save PackageUserResponses + ET scores first (answer persistence is safe to run before status claim)
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException)
-                {
-                    // Race: AkhiriUjian already inserted ET scores for this session — safe to ignore
-                    // since AkhiriUjian grading produces the same scores from the same saved answers.
-                    _context.ChangeTracker.Clear();
-                }
-
-                // Status-guarded write: detach entity and use ExecuteUpdateAsync so that if AkhiriUjian
-                // already completed this session, we get rowsAffected==0 and skip silently.
-                _context.Entry(assessment).State = EntityState.Detached;
-
-                var rowsAffected = await _context.AssessmentSessions
-                    .Where(s => s.Id == id && s.Status != "Completed")
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(r => r.Score, finalPercentage)
-                        .SetProperty(r => r.Status, "Completed")
-                        .SetProperty(r => r.Progress, 100)
-                        .SetProperty(r => r.IsPassed, finalPercentage >= assessment.PassPercentage)
-                        .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
-                    );
-
-                if (rowsAffected == 0)
+                if (!graded)
                 {
                     // Race: AkhiriUjian already completed this session — inform user and redirect to results
                     TempData["Info"] = "Ujian Anda sudah diakhiri oleh pengawas.";
                     return RedirectToAction("Results", new { id });
-                }
-
-                // BUG-10 fix: create TrainingRecord (same as GradeFromSavedAnswers in AdminController)
-                bool isPassed = finalPercentage >= assessment.PassPercentage;
-                var trJudul = $"Assessment: {assessment.Title}";
-                bool trExists = await _context.TrainingRecords.AnyAsync(t =>
-                    t.UserId == assessment.UserId &&
-                    t.Judul == trJudul &&
-                    t.Tanggal == assessment.Schedule);
-                if (!trExists)
-                {
-                    _context.TrainingRecords.Add(new TrainingRecord
-                    {
-                        UserId = assessment.UserId,
-                        Judul = trJudul,
-                        Kategori = assessment.Category ?? "Assessment",
-                        Tanggal = assessment.Schedule,
-                        TanggalSelesai = DateTime.UtcNow,
-                        Penyelenggara = "Internal",
-                        Status = isPassed ? "Passed" : "Failed"
-                    });
-                    await _context.SaveChangesAsync();
-                }
-
-                // Phase 227 CLEN-04: Generate NomorSertifikat only when passed
-                if (assessment.GenerateCertificate && isPassed)
-                {
-                    var certNow = DateTime.Now;
-                    int certYear = certNow.Year;
-                    int certAttempts = 0;
-                    const int maxCertAttempts = 3;
-                    bool certSaved = false;
-
-                    while (!certSaved && certAttempts < maxCertAttempts)
-                    {
-                        certAttempts++;
-                        try
-                        {
-                            var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                            await _context.AssessmentSessions
-                                .Where(s => s.Id == id && s.NomorSertifikat == null)
-                                .ExecuteUpdateAsync(s => s
-                                    .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
-                                );
-                            certSaved = true;
-                        }
-                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                        {
-                            // Retry with fresh sequence
-                        }
-                    }
                 }
 
                 // SignalR push: notify HC monitor group that worker submitted (package path)
@@ -1623,14 +1530,6 @@ namespace HcPortal.Controllers
                     await _hubContext.Clients.Group($"monitor-{submitBatchKey}").SendAsync("workerSubmitted",
                         new { sessionId = id, workerName = user.FullName, score = finalPercentage, result, status = "Completed", totalQuestions = totalQuestionsSubmit });
                 }
-
-                // Update assignment completion separately
-                await _context.UserPackageAssignments
-                    .Where(a => a.AssessmentSessionId == id)
-                    .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
-
-                // ASMT-02: Check group completion and notify HC/Admin
-                await _workerDataService.NotifyIfGroupCompleted(assessment);
 
                 // Activity log: record exam submission (fire-and-forget)
                 LogActivityAsync(id, "submitted");
