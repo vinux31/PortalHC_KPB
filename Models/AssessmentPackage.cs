@@ -50,12 +50,6 @@ namespace HcPortal.Models
         /// <summary>Optional elemen teknis tag for analysis grouping (e.g. "Pengetahuan Proses").</summary>
         public string? ElemenTeknis { get; set; }
 
-        /// <summary>
-        /// Tipe soal: 'MultipleChoice', 'MultipleAnswer', 'Essay'. Null = MultipleChoice (backward compat).
-        /// Disimpan sebagai string per D-06. Grading logic di GradingService switch-case per nilai ini.
-        /// </summary>
-        public string? QuestionType { get; set; }
-
         // Navigation
         public virtual ICollection<PackageOption> Options { get; set; } = new List<PackageOption>();
     }
