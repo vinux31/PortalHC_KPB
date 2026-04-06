@@ -649,44 +649,6 @@
 
 ---
 
-## Milestone: v13.0 — Redesign Struktur Organisasi
-
-**Shipped:** 2026-04-06
-**Phases:** 4 (292-295) | **Plans:** 4
-
-### What Was Built
-- Backend AJAX endpoints dengan dual-response pattern (JSON if AJAX, redirect if form POST)
-- Tree view interaktif recursive rendering unlimited depth, expand/collapse, badge status
-- AJAX CRUD lengkap via modal tanpa page reload, kebab action dropdown
-- Drag-drop reorder sibling-only dengan SortableJS, cross-parent blocked
-
-### What Worked
-- **Single JS file orchestrator**: orgTree.js sebagai satu-satunya file JS — tanpa bundler, tanpa SPA framework, mudah dimaintain
-- **Dual-response backward compat**: IsAjaxRequest() pattern mempertahankan form POST fallback
-- **Sequential phase chain**: 292→293→294→295 setiap fase build di atas sebelumnya, zero rework
-- **2-day execution**: 4 phases selesai dalam 2 hari — UI redesign milestone sangat efisien
-
-### What Was Inefficient
-- **Missing VERIFICATIONs**: Phase 292 dan 294 tidak punya VERIFICATION.md — hanya terdeteksi saat milestone audit
-- **REQUIREMENTS.md checkbox stale**: 7 dari 11 requirements tidak dicentang meski sudah diimplementasi
-
-### Patterns Established
-- **ajaxPost/ajaxGet CSRF utility**: Reusable untuk halaman lain yang butuh AJAX POST dengan CSRF
-- **IsAjaxRequest() dual-response**: Pattern di controller untuk support AJAX + non-JS fallback
-- **Tree view dari JSON**: Flat JSON → buildTree() → renderNode() recursive — lebih maintainable dari Razor loops
-
-### Key Lessons
-1. Tree view dari JSON + recursive JS rendering jauh lebih maintainable dari server-side Razor loops (~520 → ~204 baris)
-2. SortableJS `group:false` cukup untuk block cross-parent — tidak perlu custom drag validation logic
-3. Selalu buat VERIFICATION.md segera setelah phase execution — jangan tunggu milestone audit
-
-### Cost Observations
-- Model mix: opus (audit), sonnet (integration checker, executor)
-- Sessions: ~2 sessions across 2 days
-- Notable: 4 phases, 4 plans — smallest feature-building milestone yang paling berdampak visual
-
----
-
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -722,6 +684,5 @@
 | v7.12 | 4 | 7 | 1 | 7 |
 | v8.2 | 6 | 16 | 2 | 8 |
 | v8.6 | 5 | 7 | 1 | 7 |
-| v13.0 | 4 | 4 | 2 | 2 |
 
-**Running total:** 126 phases, ~279 plans, 37 days
+**Running total:** 122 phases, ~275 plans, 35 days

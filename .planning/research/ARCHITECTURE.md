@@ -1,426 +1,488 @@
-# Architecture Patterns — v14.0 Assessment Enhancement
+# Architecture Research
 
-**Domain:** ASP.NET Core MVC — CMP Assessment System Enhancement
-**Researched:** 2026-04-06
-**Confidence:** HIGH (kode sumber langsung dibaca)
-
----
-
-## Arsitektur Saat Ini (Baseline)
-
-### Komponen Utama
-
-| Komponen | File | Tanggung Jawab |
-|----------|------|----------------|
-| `AssessmentAdminController` | Controllers/AssessmentAdminController.cs (~3700 baris) | Admin CRUD session, package, monitoring, bulk actions, reset, export |
-| `CMPController` | Controllers/CMPController.cs | Worker exam flow: Assessment list, VerifyToken, StartExam, SaveAnswer, SubmitExam, Results, Certificate |
-| `AssessmentHub` | Hubs/AssessmentHub.cs | SignalR: JoinBatch, LogPageNav, OnConnected/Disconnected |
-| `AssessmentSession` | Models/AssessmentSession.cs | Record per-user per-ujian; Status (Open/Upcoming/InProgress/Completed); Score, IsPassed, ElapsedSeconds, LastActivePage |
-| `AssessmentPackage` | Models/AssessmentPackage.cs | Kumpulan soal dalam satu paket; FK ke AssessmentSession |
-| `PackageQuestion` | Models/AssessmentPackage.cs | Soal individual; Order, ScoreValue, ElemenTeknis |
-| `PackageOption` | Models/AssessmentPackage.cs | Pilihan jawaban; IsCorrect flag |
-| `UserPackageAssignment` | Models/UserPackageAssignment.cs | Per-user shuffle (JSON ShuffledQuestionIds, ShuffledOptionIdsPerQuestion); IsCompleted |
-| `PackageUserResponse` | Models/PackageUserResponse.cs | Jawaban tersimpan per soal; SessionId + QuestionId + OptionId |
-| `SessionElemenTeknisScore` | Models/SessionElemenTeknisScore.cs | Breakdown skor per elemen teknis |
-| `ExamActivityLog` | Models/ExamActivityLog.cs | Audit trail: started, page_nav, disconnected, reconnected, submitted |
-
-### Data Flow Exam (Saat Ini)
-
-```
-HC CreateAssessment
-  → AssessmentSession (per pekerja, per jadwal)
-  → AssessmentPackage (soal-soal)
-  → UserPackageAssignment (shuffle per-user, di-generate saat StartExam)
-
-Worker flow:
-  GET Assessment list → VerifyToken → StartExam
-    → UserPackageAssignment.GetShuffledQuestionIds()
-    → Render soal (1 per halaman, paginator)
-    ← SaveAnswer (AJAX, upsert PackageUserResponse)
-    ← UpdateSessionProgress (AJAX, ElapsedSeconds, LastActivePage)
-    → ExamSummary (review jawaban)
-    → SubmitExam
-      → hitung Score dari PackageUserResponse vs PackageOption.IsCorrect
-      → tulis SessionElemenTeknisScore
-      → set Status = "Completed", IsPassed, Score
-      → log ExamActivityLog "submitted"
-    → Results (tampil skor, review, ET breakdown)
-    → Certificate (jika GenerateCertificate + IsPassed)
-
-SignalR (real-time):
-  Worker JS → Hub.LogPageNav(sessionId, page) → ExamActivityLog
-  OnConnect → log "reconnected", OnDisconnect → log "disconnected"
-  HC monitor → JoinMonitor(batchKey) → menerima push events
-```
+**Domain:** ASP.NET Core MVC — Tree-view CRUD dengan AJAX + Bootstrap Modal + Drag-drop Reorder
+**Researched:** 2026-04-02
+**Confidence:** HIGH (berdasarkan analisis langsung kode existing + pola Bootstrap/Vanilla JS yang sudah ada di proyek)
 
 ---
 
-## Fitur Baru dan Titik Integrasi
+## Kondisi Existing (Baseline)
 
-### 1. Assessment Type System (Standard / PrePostTest / Interview)
+### Masalah Struktural Saat Ini
 
-**Model yang DIMODIFIKASI:**
-
-`AssessmentSession` — tambah kolom baru:
-```csharp
-// Tipe assessment
-public string AssessmentType { get; set; } = "Standard"; // "Standard" | "PrePostTest" | "Interview"
-
-// Pre-Post linking
-public Guid? LinkedGroupId { get; set; }        // GUID sama antara Pre dan Post
-public int? LinkedSessionId { get; set; }        // FK silang Pre ↔ Post
-public string? AssessmentPhase { get; set; }     // "Pre" | "Post" | null
+```
+ManageOrganization.cshtml (520 baris)
+├── 3x copy-paste identik: root loop / child loop / grandchild loop
+├── Tiap aksi = full-page POST redirect (PRG pattern)
+├── Edit mode = redirect ke ?editId=N, form muncul di atas tabel
+├── Reorder = POST per klik (2 klik per geser 1 posisi)
+└── Level hardcoded ke 3 level: root (Bagian) / child (Unit) / grandchild (Unit)
 ```
 
-**Controller yang DIMODIFIKASI — `AssessmentAdminController`:**
+### Arsitektur Existing yang Dipertahankan
 
-- `CreateAssessment GET/POST`: tambah dropdown `AssessmentType`, logic buat 2 session jika PrePostTest (satu Pre, satu Post, share LinkedGroupId, set LinkedSessionId silang)
-- `EditAssessment`: batasi edit untuk PrePostTest (phase tidak bisa diubah setelah dibuat)
-- `ResetAssessment`: jika session adalah Pre dalam PrePostTest, cascade reset Post juga (query via LinkedSessionId)
-- `DeleteAssessment`: cascade ke pasangan via LinkedGroupId
-- `AssessmentMonitoring`: grup tampilan Pre+Post jadi satu baris expand (filter via LinkedGroupId)
-- `AssessmentMonitoringDetail`: tampil Pre dan Post side-by-side
-
-**Controller yang DIMODIFIKASI — `CMPController`:**
-
-- `Assessment` list view: tampil 2 card terpisah untuk Pre dan Post, dengan badge "Pre-Test" / "Post-Test", indikasi status Pre sebelum Post bisa dimulai
-- `StartExam`: validasi urutan — Post tidak bisa dimulai sebelum Pre "Completed"
-- `Results`: jika session adalah bagian PrePostTest, tampil link "Lihat Comparison Pre vs Post"
-- `PrePostComparison` (BARU): action baru, query Pre + Post via LinkedGroupId, tampil side-by-side skor + gain score
-
-**Tidak ada perubahan pada:**
-- `UserPackageAssignment` — shuffle tetap per-session
-- `PackageUserResponse` — jawaban tetap per-session
-- `AssessmentHub` — SignalR tetap per-session, batchKey tidak berubah
-- `ExamActivityLog` — tetap per-session
+| Komponen | Status | Catatan |
+|----------|--------|---------|
+| `OrganizationController.cs` | DIPERTAHANKAN dan DIPERLUAS | Tambah AJAX endpoints, logika cascade tidak berubah |
+| `OrganizationUnit` model | TIDAK BERUBAH | Id, Name, ParentId, Level, DisplayOrder, IsActive |
+| Cascade rename logic | DIPERTAHANKAN | Tetap di `EditOrganizationUnit` POST |
+| Cascade reparent logic | DIPERTAHANKAN | Update `ApplicationUser.Section` saat parent berubah |
+| Circular reference check | DIPERTAHANKAN | `IsDescendantAsync` tidak berubah |
+| `[ValidateAntiForgeryToken]` | DIPERTAHANKAN | AJAX harus kirim header `RequestVerificationToken` |
+| `[Authorize(Roles = "Admin, HC")]` | TIDAK BERUBAH | Semua endpoint sama |
 
 ---
 
-### 2. Question Types (True/False, Multiple Answer, Essay, Fill in the Blank)
+## Target Architecture
 
-**Model yang DIMODIFIKASI:**
+### System Overview
 
-`PackageQuestion` — tambah:
-```csharp
-public string QuestionType { get; set; } = "MultipleChoice";
-// "MultipleChoice" | "TrueFalse" | "MultipleAnswer" | "Essay" | "FillInTheBlank"
+```
++------------------------------------------------------------------+
+|                   Browser (ManageOrganization)                    |
++------------------------------------------------------------------+
+|  +-----------------+  +----------------------+  +-----------+    |
+|  | Tree View       |  | Bootstrap Modal      |  | SortableJS|    |
+|  | (table rows     |  | Add / Edit           |  | Drag-drop |    |
+|  | + indent)       |  | (satu modal          |  | reorder   |    |
+|  |                 |  |  dual-mode)          |  |           |    |
+|  +--------+--------+  +-----------+----------+  +-----+-----+    |
+|           |                       |                   |          |
+|           +------- orgTree.js (orchestrator) ---------+          |
+|                    - state lokal (treeData[])                    |
+|                    - AJAX fetch wrapper + CSRF header            |
+|                    - DOM re-render setelah tiap aksi             |
++------------------------------------------------------------------+
+|                    HTTP (fetch + CSRF header)                     |
++------------------------------------------------------------------+
+|               OrganizationController (ASP.NET Core)              |
+|  +-------------------+  +-----------------+  +----------------+  |
+|  | GET               |  | POST (existing) |  | POST (baru)    |  |
+|  | ManageOrganization|  | Add/Edit/Toggle |  | GetOrgTree     |  |
+|  | GetOrgTree (JSON) |  | Delete          |  | ReorderBulk    |  |
+|  +--------+----------+  +--------+--------+  +-------+--------+  |
+|           +---------------------|-------------------+            |
++------------------------------------------------------------------+
+|                    ApplicationDbContext (EF Core)                 |
+|  OrganizationUnits --> Users (denorm) + CoachCoacheeMappings     |
++------------------------------------------------------------------+
 ```
 
-`PackageUserResponse` — tambah:
-```csharp
-public string? TextAnswer { get; set; }  // untuk Essay dan FillInTheBlank
-// PackageOptionId tetap ada untuk MultipleChoice, TrueFalse, MultipleAnswer
-// MultipleAnswer: satu baris per opsi yang dipilih (multiple rows per question)
-```
+### Component Responsibilities
 
-**Controller yang DIMODIFIKASI — `AssessmentAdminController`:**
-
-- `ImportPackageQuestions`: parse kolom `QuestionType` dari template Excel; validasi opsi sesuai tipe
-- `ManagePackages` / `PreviewPackage`: render UI soal sesuai tipe
-- Tambah action `GradeEssay(sessionId, questionId, score)` — HC input nilai manual untuk Essay
-- `ExportAssessmentResults`: sertakan TextAnswer dalam export
-
-**Controller yang DIMODIFIKASI — `CMPController`:**
-
-- `StartExam` view: render soal berbeda per QuestionType (checkbox untuk MultipleAnswer, radio TrueFalse, textarea Essay, text input Fill)
-- `SaveAnswer` (AJAX): bedakan antara OptionId-based vs TextAnswer-based; untuk MultipleAnswer perlu bulk upsert
-- `SubmitExam`: scoring logic per tipe:
-  - `MultipleChoice`: tetap via PackageOption.IsCorrect
-  - `TrueFalse`: via PackageOption.IsCorrect (hanya 2 opsi)
-  - `MultipleAnswer`: semua opsi dipilih harus cocok (exact match semua yang IsCorrect)
-  - `Essay`: skor awal 0, tunggu HC grading via `GradeEssay`
-  - `FillInTheBlank`: compare TextAnswer dengan jawaban kunci (case-insensitive, trim)
-- `Results` view: tampil jawaban teks untuk Essay/Fill
-
-**Perhatian desain SaveAnswer untuk MultipleAnswer:**
-
-Saat ini `SaveAnswer` melakukan upsert tunggal (SessionId + QuestionId). Untuk MultipleAnswer, satu pertanyaan bisa punya N respons. Pilihan terbaik: endpoint terpisah `SaveMultipleAnswer(sessionId, questionId, int[] optionIds)` yang DELETE lama + INSERT baru dalam satu transaksi.
-
-**Integrasi dengan `UserPackageAssignment`:**
-
-`ShuffledOptionIdsPerQuestion` tetap relevan untuk TrueFalse dan MultipleAnswer (opsi tetap diacak). Untuk Essay/FillInTheBlank, shuffle opsi tidak ada — field JSON bisa diisi `[]` untuk soal tipe tersebut.
+| Komponen | Tanggung Jawab | Implementasi |
+|----------|----------------|--------------|
+| `ManageOrganization.cshtml` | Shell halaman: breadcrumb, alert, container div, modal markup, script include | Dikurangi dari 520 menjadi ~120 baris |
+| `orgTree.js` | State management tree, fetch AJAX, re-render DOM, modal, SortableJS init | File baru di `wwwroot/js/` |
+| Bootstrap Modal (satu, dual-mode) | Form Add dan Edit berbagi satu modal, mode diset via JS | Tidak perlu dua modal terpisah |
+| `GetOrganizationTree` endpoint | Return flat JSON array untuk JS render tree | Endpoint baru di OrganizationController |
+| `AddOrganizationUnit` (AJAX) | Validasi + simpan + return JSON `{success, message, unit}` | Modifikasi existing, tambah JSON path |
+| `EditOrganizationUnit` (AJAX) | Validasi + cascade + simpan + return JSON | Cascade logic TIDAK BERUBAH |
+| `ToggleOrganizationUnitActive` (AJAX) | Toggle + return JSON `{success, isActive}` | Tambah JSON response path |
+| `DeleteOrganizationUnit` (AJAX) | Delete + return JSON `{success, message}` | Tambah JSON response path |
+| `ReorderOrganizationUnit` (bulk) | Terima array `[{id, displayOrder}]`, batch update | Ganti logika up/down dengan bulk reorder |
 
 ---
 
-### 3. Mobile Optimization (Exam UI)
+## Pola Arsitektur yang Direkomendasikan
 
-**Tidak ada perubahan model atau controller.**
+### Pola 1: Dual-Response Controller (AJAX + PRG Fallback)
 
-Semua perubahan di Views dan CSS/JS:
+**Apa:** Controller POST cek `Request.Headers["X-Requested-With"]`, kembalikan JSON jika AJAX,
+redirect jika bukan.
 
-- `Views/CMP/StartExam.cshtml`: refactor layout — bottom navigation bar (prev/next), touch-friendly button sizing, swipe gesture JS
-- `wwwroot/css/exam.css` (baru atau modifikasi site.css): media queries untuk viewport mobile, `.exam-option` touch target min 44x44px
-- `wwwroot/js/exam-mobile.js` (baru): swipe detection (vanilla touch events), bottom nav logic
-- Timer display: pindahkan ke sticky header yang tidak tertutup keyboard virtual
-- Pagination sudah ada di `StartExam` — tidak perlu perubahan server-side
-
-**Integrasi dengan SignalR:**
-
-`AssessmentHub.LogPageNav` dipanggil dari JS — tidak berubah. Swipe navigation hanya memicu page nav yang sama.
-
----
-
-### 4. Advanced Reporting
-
-**Tidak memerlukan tabel baru** — semua data sudah ada:
-- `PackageUserResponse` — jawaban per soal per user
-- `PackageQuestion.ElemenTeknis` — tag soal
-- `AssessmentSession.ElapsedSeconds + ExamActivityLog(page_nav)` — data waktu
-- `SessionElemenTeknisScore` — breakdown per ET sudah terhitung
-- `AssessmentSession.LinkedGroupId` — Pre-Post linking
-
-**ViewModel BARU yang dibutuhkan:**
+**Kenapa dipilih:** Tidak perlu endpoint terpisah. Route existing tetap bekerja jika JS dimatikan.
 
 ```csharp
-// Item Analysis per soal
-public class ItemAnalysisReport
+// Di OrganizationController
+private bool IsAjaxRequest() =>
+    Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
+[HttpPost]
+[Authorize(Roles = "Admin, HC")]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> AddOrganizationUnit(string name, int? parentId)
 {
-    public int QuestionId { get; set; }
-    public string QuestionText { get; set; }
-    public string? ElemenTeknis { get; set; }
-    public int AttemptCount { get; set; }
-    public int CorrectCount { get; set; }
-    public double DifficultyIndex { get; set; }   // p = CorrectCount/AttemptCount
-    public double DiscriminationIndex { get; set; } // D = (top27% correct - bottom27% correct) / (0.27 * N)
-}
+    // ... validasi dan simpan tetap sama ...
 
-// Pre-Post Gain Score
-public class PrePostGainScoreRow
-{
-    public string UserId { get; set; }
-    public string UserName { get; set; }
-    public int PreScore { get; set; }
-    public int PostScore { get; set; }
-    public int GainScore { get; set; }
-    public double GainPercentage { get; set; }
+    if (IsAjaxRequest())
+        return Json(new {
+            success = true,
+            message = "Unit berhasil ditambahkan.",
+            unit = new { unit.Id, unit.Name, unit.ParentId, unit.Level, unit.DisplayOrder, unit.IsActive }
+        });
+
+    TempData["Success"] = "Unit berhasil ditambahkan.";
+    return RedirectToAction("ManageOrganization");
 }
 ```
 
-**Controller yang DIMODIFIKASI — `AssessmentAdminController`:**
+### Pola 2: Flat JSON Tree dengan Client-side Rendering
 
-- Tambah `ItemAnalysisReport(string title, string category, DateTime scheduleDate)` — query PackageUserResponse + join PackageOption, hitung difficulty dan discrimination index
-- Tambah `PrePostGainReport(Guid linkedGroupId)` — query dua sesi via LinkedGroupId, side-by-side + gain
-- Tambah `ExportItemAnalysis(...)` — Excel via ClosedXML (pola sama ExportAssessmentResults)
+**Apa:** GET endpoint kembalikan array flat. JS merender tree secara rekursif.
 
----
+**Kenapa dipilih:** Data flat mudah dimanipulasi di JS (insert, delete, reorder) tanpa re-fetch setelah
+setiap operasi. Server tidak perlu tahu tentang tree structure untuk rendering.
 
-### 5. Accessibility (WCAG)
+```javascript
+// orgTree.js
+function renderTree(units) {
+    const roots = units
+        .filter(u => !u.parentId)
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+    const tbody = document.getElementById('orgTreeBody');
+    tbody.innerHTML = '';
+    roots.forEach(root => renderNode(root, units, tbody, 0));
+}
 
-**Tidak ada perubahan model atau controller**, kecuali satu kolom baru:
-
-`AssessmentSession.ExtraTimeMinutes` (nullable int) — HC set saat create/edit, countdown JS menggunakan `DurationMinutes + ExtraTimeMinutes`.
-
-Semua perubahan lain di Views:
-
-- `Views/CMP/StartExam.cshtml`: tambah `aria-label`, `role="radio"`, `aria-checked`, skip-to-content link, keyboard navigation soal (arrow keys di JS)
-- `Views/Shared/_Layout.cshtml`: pastikan focus management pada state transisi
-- Timer: tambah `aria-live="polite"` region untuk screen reader
-- Font size control: JavaScript toggle class di `<body>`, persisten ke localStorage
-
----
-
-## Komponen Baru vs Komponen Dimodifikasi
-
-### Komponen BARU (belum ada)
-
-| Komponen | Tipe | Keterangan |
-|----------|------|------------|
-| `AssessmentSession.AssessmentType` | Kolom DB | "Standard" / "PrePostTest" / "Interview" |
-| `AssessmentSession.LinkedGroupId` | Kolom DB | GUID penghubung Pre-Post |
-| `AssessmentSession.LinkedSessionId` | Kolom DB | FK Pre ↔ Post |
-| `AssessmentSession.AssessmentPhase` | Kolom DB | "Pre" / "Post" / null |
-| `AssessmentSession.ExtraTimeMinutes` | Kolom DB | Akomodasi aksesibilitas |
-| `PackageQuestion.QuestionType` | Kolom DB | Enum tipe soal sebagai string |
-| `PackageUserResponse.TextAnswer` | Kolom DB | Jawaban teks Essay/Fill |
-| `CMPController.PrePostComparison` | Action | Side-by-side comparison + gain score worker |
-| `AssessmentAdminController.GradeEssay` | Action | HC grading manual Essay |
-| `AssessmentAdminController.ItemAnalysisReport` | Action | Laporan item analysis |
-| `AssessmentAdminController.PrePostGainReport` | Action | Laporan gain score |
-| `AssessmentAdminController.ExportItemAnalysis` | Action | Export Excel item analysis |
-| `ItemAnalysisReport` ViewModel | ViewModel | Difficulty + discrimination index |
-| `PrePostGainScoreRow` ViewModel | ViewModel | Pre score, Post score, gain |
-| `Views/CMP/PrePostComparison.cshtml` | View | Halaman comparison worker |
-| `Views/Admin/ItemAnalysisReport.cshtml` | View | Halaman item analysis admin |
-| `Views/Admin/PrePostGainReport.cshtml` | View | Halaman gain score admin |
-| `wwwroot/js/exam-mobile.js` | JS | Swipe + bottom nav mobile |
-| `SaveMultipleAnswer` AJAX endpoint | Action | Bulk save untuk MultipleAnswer |
-
-### Komponen DIMODIFIKASI (sudah ada, perlu update)
-
-| Komponen | Perubahan | Dampak |
-|----------|-----------|--------|
-| `AssessmentSession` | +5 kolom baru | Migration EF Core, semua nullable — backward-compatible |
-| `PackageQuestion` | +QuestionType | Migration EF Core, default "MultipleChoice" — backward-compatible |
-| `PackageUserResponse` | +TextAnswer | Migration EF Core, nullable — backward-compatible |
-| `AssessmentAdminController.CreateAssessment` | +AssessmentType logic, Pre-Post creation | ~100 baris tambahan |
-| `AssessmentAdminController.ResetAssessment` | +cascade ke Post session | ~20 baris tambahan |
-| `AssessmentAdminController.AssessmentMonitoring` | +grouping Pre-Post | Query + view perlu redesign |
-| `AssessmentAdminController.ImportPackageQuestions` | +parsing QuestionType | Template Excel berubah |
-| `CMPController.Assessment` | +badge Pre/Post, status gating | View update |
-| `CMPController.StartExam` | +render per QuestionType, +validasi urutan Pre-Post | ~150 baris, view refactor besar |
-| `CMPController.SaveAnswer` | +routing ke TextAnswer vs OptionId | Logic fork |
-| `CMPController.SubmitExam` | +scoring per QuestionType | Logic cabang per tipe |
-| `CMPController.Results` | +link ke PrePostComparison, +Essay pending info | View update minor |
-| `Views/CMP/StartExam.cshtml` | Mobile layout, accessibility, tipe soal baru | Refactor besar |
-| Template Excel import soal | +kolom QuestionType | Download template baru |
-
----
-
-## Urutan Build yang Disarankan
-
-Berdasarkan dependensi — fitur di bawah tidak bisa dibuat sebelum fitur di atas selesai.
-
-### Fase 1 — Data Foundation (Tanpa Breaking Changes)
-**Tujuan:** Semua migrasi DB selesai dulu; tidak ada logika baru.
-
-1. Tambah kolom ke `AssessmentSession`: `AssessmentType`, `LinkedGroupId`, `LinkedSessionId`, `AssessmentPhase`, `ExtraTimeMinutes`
-2. Tambah `QuestionType` ke `PackageQuestion` (default "MultipleChoice")
-3. Tambah `TextAnswer` ke `PackageUserResponse`
-4. Buat EF Core migration tunggal; verifikasi semua default backward-compatible
-5. Verifikasi sistem existing masih berjalan normal (zero regression test)
-
-**Dependensi:** Tidak ada. Mulai di sini.
-
----
-
-### Fase 2 — Assessment Type + Pre-Post Test (Admin Side)
-**Tujuan:** HC bisa membuat dan mengelola assessment PrePostTest.
-
-1. Update `CreateAssessment` form — tambah dropdown `AssessmentType`
-2. Implement logika create PrePostTest: buat 2 `AssessmentSession` record, generate `LinkedGroupId`, set `LinkedSessionId` silang
-3. Update `EditAssessment` — batasi edit phase untuk PrePostTest
-4. Update `ResetAssessment` — cascade reset ke pasangan via `LinkedSessionId`
-5. Update `AssessmentMonitoring` — grup Pre+Post jadi 1 baris expandable
-6. Update `DeleteAssessment` — cascade ke pasangan
-
-**Dependensi:** Fase 1. Bisa paralel dengan Fase 3.
-
----
-
-### Fase 3 — Question Types (Admin + Worker)
-**Tujuan:** HC bisa buat soal tipe baru; worker bisa mengerjakan tipe baru.
-
-1. Update template Excel import soal — tambah kolom `QuestionType`
-2. Update `ImportPackageQuestions` — parse dan validasi `QuestionType`
-3. Update `PreviewPackage` — render UI per tipe soal
-4. Update `StartExam` view — render berbeda per QuestionType
-5. Update `SaveAnswer` / tambah `SaveMultipleAnswer` (dengan transaksi)
-6. Update `SubmitExam` — scoring per QuestionType
-7. Tambah `GradeEssay` action
-
-**Dependensi:** Fase 1. Bisa paralel dengan Fase 2.
-
----
-
-### Fase 4 — Worker Flow Pre-Post + Comparison
-**Tujuan:** Worker bisa mengerjakan Pre-Post dan melihat comparison.
-
-1. Update `CMPController.Assessment` list — 2 card dengan badge dan status gating
-2. Update `CMPController.StartExam` — validasi urutan (Post hanya setelah Pre Completed)
-3. Buat `CMPController.PrePostComparison` action + view
-4. Update `CMPController.Results` — tambah link ke PrePostComparison
-
-**Dependensi:** Fase 2.
-
----
-
-### Fase 5 — Mobile Optimization
-**Tujuan:** Exam UI optimal di mobile.
-
-1. Refactor `Views/CMP/StartExam.cshtml` layout — bottom navigation bar
-2. Buat `wwwroot/js/exam-mobile.js` — swipe detection, bottom nav logic
-3. Tambah/update CSS mobile — media queries, touch targets min 44px
-4. Test di mobile viewport
-
-**Dependensi:** Fase 3 selesai (StartExam view sudah stabil setelah Fase 3 agar tidak conflict besar).
-
----
-
-### Fase 6 — Advanced Reporting
-**Tujuan:** HC mendapatkan laporan item analysis dan Pre-Post gain score.
-
-1. Buat ViewModel `ItemAnalysisReport`, `PrePostGainScoreRow`
-2. Implement `ItemAnalysisReport` action — hitung difficulty index dan discrimination index
-3. Implement `PrePostGainReport` action — query via `LinkedGroupId`, hitung gain score
-4. Buat views untuk kedua laporan
-5. Tambah export Excel
-
-**Dependensi:** Fase 2 (untuk PrePostGainReport), Fase 3 (untuk ItemAnalysis data tersedia).
-
----
-
-### Fase 7 — Accessibility
-**Tujuan:** Exam UI memenuhi WCAG 2.1 AA dasar.
-
-1. Tambah skip-to-content link di `StartExam.cshtml`
-2. Update ARIA attributes di soal radio/checkbox
-3. Tambah `aria-live` region untuk timer
-4. Implement keyboard navigation soal (arrow keys via JS)
-5. Font size control — JS toggle + localStorage
-6. Implement `ExtraTimeMinutes` — update countdown JS
-
-**Dependensi:** Fase 3 dan Fase 5 (StartExam view sudah final). Aksesibilitas adalah polesan terakhir.
-
----
-
-## Diagram Dependensi Antar Fase
-
-```
-Fase 1 (Migration DB)
-  ├── Fase 2 (Admin PrePostTest)
-  │     └── Fase 4 (Worker PrePostTest)
-  │           └── Fase 6 (Reporting) ← juga bergantung Fase 3
-  └── Fase 3 (Question Types)
-        ├── Fase 5 (Mobile)
-        ├── Fase 6 (Reporting)
-        └── Fase 7 (Accessibility) ← setelah Fase 3 dan 5
+function renderNode(unit, allUnits, container, depth) {
+    container.appendChild(buildRow(unit, depth));
+    allUnits
+        .filter(u => u.parentId === unit.id)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .forEach(child => renderNode(child, allUnits, container, depth + 1));
+}
 ```
 
-Fase 2 dan 3 bisa dikerjakan paralel (area kode berbeda). Fase 4, 5, 6, 7 harus menunggu prasyaratnya.
+### Pola 3: Single Bootstrap Modal, Dual Mode
+
+**Apa:** Satu modal `#orgModal`. Tombol "Tambah" set mode=add dan clear form.
+Tombol "Edit" set mode=edit dan isi form dari data unit.
+
+**Kenapa dipilih:** View lebih ringkas. Tidak ada library form tambahan. Bootstrap sudah ada di proyek.
+
+```javascript
+function openAddModal(parentId = null) {
+    document.getElementById('modalTitle').textContent = 'Tambah Unit Baru';
+    document.getElementById('orgForm').reset();
+    document.getElementById('orgId').value = '';
+    document.getElementById('parentIdSelect').value = parentId ?? '';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('orgModal')).show();
+}
+
+function openEditModal(unit) {
+    document.getElementById('modalTitle').textContent = 'Edit Unit: ' + unit.name;
+    document.getElementById('orgId').value = unit.id;
+    document.getElementById('nameInput').value = unit.name;
+    document.getElementById('parentIdSelect').value = unit.parentId ?? '';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('orgModal')).show();
+}
+```
+
+### Pola 4: SortableJS untuk Drag-drop Reorder
+
+**Apa:** SortableJS (Vanilla JS, ~50KB) pada tbody. Drop event trigger POST ke `ReorderOrganizationUnit`
+dengan payload array `[{id, displayOrder}]`.
+
+**Kenapa SortableJS:** Proyek tidak menggunakan jQuery. SortableJS adalah Vanilla JS murni,
+mendukung table rows, ringan, dan mature (npm weekly 3M+ downloads).
+
+**Batasan penting:** Drag-drop HANYA reorder dalam siblings yang sama (parent sama). Cross-parent
+drag diblokir (`group: false`). Pindah parent harus lewat modal Edit karena ada cascade logic di
+backend.
+
+```javascript
+// Init setelah render tree
+Sortable.create(document.getElementById('orgTreeBody'), {
+    handle: '.drag-handle',
+    animation: 150,
+    filter: '.no-drag',       // baris yang tidak boleh di-drag
+    onEnd: function(evt) {
+        const newOrder = collectSiblingOrders(evt.item);
+        saveReorder(newOrder);
+    }
+});
+```
+
+**Catatan:** SortableJS tidak mengenal parent-child relationship di flat table. JS harus
+menentukan siblings secara manual dari `data-parent-id` attribute pada setiap row.
 
 ---
 
-## Anti-Pattern yang Harus Dihindari
+## Data Flow
 
-### Anti-Pattern 1: Tipe Soal sebagai Tabel Master Terpisah
-**Apa yang salah:** Membuat tabel `QuestionType` dengan FK dari `PackageQuestion`.
-**Sebaiknya:** Enum sebagai string column — 5 tipe sudah diketahui dan stabil.
+### Flow: Load Halaman
 
-### Anti-Pattern 2: Satu AssessmentSession untuk Pre+Post
-**Apa yang salah:** Menyimpan Pre dan Post dalam satu session dengan flag.
-**Kenapa buruk:** Scoring engine, certificate logic, SignalR batchKey, ExamActivityLog semuanya berbasis SessionId tunggal — refactor masif.
-**Sudah diputuskan:** 2 session terpisah linked via `LinkedGroupId` — keputusan yang benar.
+```
+Browser GET /Admin/ManageOrganization
+    |
+    v
+OrganizationController.ManageOrganization() --> Kembalikan HTML shell kosong
+    |
+    v
+Browser load orgTree.js
+    --> fetch GET /Admin/GetOrganizationTree
+    --> Terima flat JSON array
+    --> renderTree() membangun DOM tabel
+```
 
-### Anti-Pattern 3: Auto-grade Essay di SubmitExam
-**Apa yang salah:** Mencoba menghitung skor Essay otomatis di `SubmitExam`.
-**Sebaiknya:** Essay skor = 0 saat submit, `IsPassed` = null sampai HC menyelesaikan grading via `GradeEssay`.
+### Flow: Add Unit (AJAX)
 
-### Anti-Pattern 4: Logika Comparison di Action Results
-**Apa yang salah:** Menumpuk Pre-Post comparison langsung di `Results` action yang sudah ~200 baris.
-**Sebaiknya:** Action terpisah `PrePostComparison` dengan ViewModel tersendiri.
+```
+User klik "Tambah Unit"
+    --> openAddModal()
+    --> Bootstrap Modal tampil
 
-### Anti-Pattern 5: SaveMultipleAnswer Tanpa Transaksi
-**Apa yang salah:** DELETE jawaban lama + INSERT baru tanpa transaksi database.
-**Akibat:** Jika INSERT gagal setelah DELETE, jawaban hilang permanen.
-**Sebaiknya:** Bungkus dalam `using var transaction = await _context.Database.BeginTransactionAsync()`.
+User submit form
+    --> orgTree.js tangkap submit event, cegah default
+    --> fetch POST /Admin/AddOrganizationUnit
+        Header X-Requested-With: XMLHttpRequest
+        Header RequestVerificationToken: [dari input hidden]
+        Body: name=..., parentId=...
+    |
+    v
+OrganizationController.AddOrganizationUnit()
+    --> Validasi (nama kosong, duplikat)
+    --> Simpan ke DB
+    --> return Json({success, message, unit})
+    |
+    v
+orgTree.js terima response
+    --> Jika success: push ke treeData[], re-render, tutup modal, tampilkan toast
+    --> Jika error: tampilkan pesan di dalam modal (tidak tutup modal)
+```
+
+### Flow: Edit + Cascade
+
+```
+User klik Edit button di row
+    --> openEditModal(unit) --> Modal tampil dengan data ter-prefill
+
+User submit form
+    --> fetch POST /Admin/EditOrganizationUnit
+    |
+    v
+Controller:
+    --> Validasi (duplikat, circular reference)
+    --> Jika nama berubah: cascade update ApplicationUser.Section/Unit
+    --> Jika parent berubah: cascade update ApplicationUser.Section
+    --> Cascade update CoachCoacheeMappings
+    --> Simpan
+    --> return Json({success, message, cascadedUsers, cascadedMappings})
+    |
+    v
+orgTree.js:
+    --> Update unit di treeData[]
+    --> re-render tree
+    --> Tampilkan toast dengan info cascade jika ada
+```
+
+### Flow: Drag-drop Reorder
+
+```
+User drag row ke posisi baru
+    |
+    v
+SortableJS onEnd event
+    --> collectSiblingOrders(): ambil semua rows dengan parentId sama
+        --> susun berdasarkan posisi DOM saat ini
+        --> buat array [{id, displayOrder: newIndex}]
+    --> fetch POST /Admin/ReorderOrganizationUnit
+        Body: JSON array (application/json, bukan form)
+    |
+    v
+Controller ReorderOrganizationUnit (dimodifikasi):
+    --> Terima List<ReorderItem> dari JSON body
+    --> Batch update DisplayOrder
+    --> return Json({success})
+    |
+    v
+orgTree.js:
+    --> Update displayOrder di treeData[] (DOM sudah benar dari SortableJS)
+```
+
+### CSRF Token untuk AJAX
+
+```javascript
+// Satu token yang diambil dari Razor hidden input
+const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+async function ajaxPost(url, formData) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'RequestVerificationToken': token
+        },
+        body: new URLSearchParams(formData)
+    });
+    return response.json();
+}
+```
 
 ---
 
-## Pertimbangan Teknis Tambahan
+## Komponen: Baru vs Dimodifikasi vs Tidak Berubah
 
-| Concern | Detail |
-|---------|--------|
-| Index DB untuk LinkedGroupId | Tambah index pada `AssessmentSession.LinkedGroupId` — dipakai di query Monitoring dan GainReport |
-| TextAnswer column type | Pastikan tidak ada `MaxLength` terlalu pendek di Essay — gunakan minimal 2000 karakter atau `nvarchar(max)` |
-| Item Analysis performa | Query bisa berat untuk batch besar (1000+ responses) — ok untuk batch normal KPB; monitor jika skala bertambah |
-| Template Excel import soal | Kolom baru `QuestionType` harus backward-compatible dengan template lama — beri default "MultipleChoice" jika kolom kosong |
-| IsPassed untuk Essay | Session dengan soal Essay murni: `IsPassed` null sampai semua Essay di-grade; campuran MC+Essay: hitung skor MC dulu, Essay menyusul |
+### Komponen BARU
+
+| File | Deskripsi | Estimasi |
+|------|-----------|----------|
+| `wwwroot/js/orgTree.js` | State management, AJAX, render, modal, SortableJS init | ~250 baris |
+| `OrganizationController.GetOrganizationTree` | GET, return JSON flat array semua OrganizationUnit | ~10 baris |
+
+### Komponen DIMODIFIKASI
+
+| File | Perubahan | Ukuran Perubahan |
+|------|-----------|-----------------|
+| `Views/Admin/ManageOrganization.cshtml` | Hapus 3 Razor loop. Tambah modal markup + div#orgTreeBody + script tags | 520 -> ~130 baris |
+| `OrganizationController.AddOrganizationUnit` | Tambah `IsAjaxRequest()` check, return JSON path | +10 baris |
+| `OrganizationController.EditOrganizationUnit` | Tambah JSON response path. Cascade logic TIDAK BERUBAH | +5 baris |
+| `OrganizationController.ToggleOrganizationUnitActive` | Tambah JSON response path | +5 baris |
+| `OrganizationController.DeleteOrganizationUnit` | Tambah JSON response path | +5 baris |
+| `OrganizationController.ReorderOrganizationUnit` | Ganti up/down swap dengan bulk array update | Rewrite (~20 baris) |
+
+### Komponen TIDAK BERUBAH
+
+| Komponen | Alasan |
+|----------|--------|
+| `OrganizationUnit` model | Tidak perlu field tambahan |
+| Cascade rename logic (baris 163-186) | Tetap di server, tidak diekspos ke JS |
+| Cascade reparent logic (baris 189-213) | Tetap di server |
+| `IsDescendantAsync` | Tetap di server |
+| `UpdateChildrenLevelsAsync` | Tetap di server |
+| Semua 7 controller yang consume org data | Membaca `ApplicationUser.Section/Unit` (string), bukan FK |
+| Semua 19 views yang menampilkan org data | Menggunakan string dari ApplicationUser, bukan join ke OrganizationUnits |
+
+---
+
+## Integration Points
+
+### 7 Controller yang Mengonsumsi Data Organisasi
+
+| Controller | Cara Konsumsi | Dampak Redesign |
+|------------|---------------|-----------------|
+| `WorkerController` | Dropdown Section/Unit saat Create/Edit worker | Tidak berubah |
+| `CoachMappingController` | Filter dan assign berdasarkan Section/Unit | Tidak berubah |
+| `AssessmentAdminController` | Filter peserta assessment per unit | Tidak berubah |
+| `DocumentAdminController` | FK ke `OrganizationUnit.Id` di KKJ/CPDP | Tidak berubah |
+| `CMPController` | Display Section/Unit di profil user | Tidak berubah |
+| `CDPController` | Coaching assignment per unit | Tidak berubah |
+| `RenewalController` | Filter renewal per unit | Tidak berubah |
+
+**Kesimpulan penting:** Redesign halaman ManageOrganization adalah perubahan terisolasi sepenuhnya.
+Data organisasi disimpan sebagai denormalized string di `ApplicationUser.Section/Unit`, bukan sebagai
+FK ke OrganizationUnit. Tidak ada downstream impact ke controller atau view manapun.
+
+### 19 Views yang Menampilkan Org Data
+
+Semua 19 views menggunakan `ApplicationUser.Section` dan `ApplicationUser.Unit` (string).
+Cascade logic di backend memastikan string ini tetap sinkron saat unit di-rename atau di-reparent.
+Redesign tidak mengubah views ini sama sekali.
+
+---
+
+## Urutan Build yang Direkomendasikan
+
+Berdasarkan dependency antar komponen:
+
+```
+Phase A: Backend AJAX endpoints (tidak breaking, bisa deploy kapan saja)
+  1. Tambah GetOrganizationTree (GET, JSON endpoint baru)
+  2. Modifikasi POST actions: AddOrganizationUnit, EditOrganizationUnit,
+     ToggleOrganizationUnitActive, DeleteOrganizationUnit -> dual response
+  3. Overhaul ReorderOrganizationUnit -> terima bulk JSON array
+
+Phase B: View shell + modal (bergantung pada Phase A)
+  4. Sederhanakan ManageOrganization.cshtml: hapus 3 Razor loop
+  5. Tambah modal markup (satu modal dual-mode: Add/Edit)
+  6. Tambah container div#orgTreeBody dan hidden CSRF token
+  7. Tambah script tag untuk orgTree.js dan SortableJS (CDN)
+
+Phase C: orgTree.js - core (bergantung pada Phase A dan B)
+  8. Fetch GetOrganizationTree + renderTree (tanpa aksi)
+  9. Modal Add + modal Edit dengan AJAX submit
+  10. Toggle aktif/nonaktif via AJAX
+  11. Delete via AJAX (dengan konfirmasi modal)
+
+Phase D: Drag-drop reorder (bergantung pada Phase C)
+  12. SortableJS init pada tbody dengan handle .drag-handle
+  13. collectSiblingOrders() function
+  14. saveReorder() AJAX call ke ReorderOrganizationUnit
+```
+
+**Rationale urutan:**
+- Phase A selesai dulu agar Phase C bisa di-test secara independen di browser developer tools
+- Phase B memisahkan markup dari JS agar review lebih mudah
+- Phase D terakhir karena paling kompleks, tidak blocking feature CRUD
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Drag-drop Cross-Parent
+
+**Yang dilakukan:** Izinkan drag node antar parent berbeda via SortableJS `group` config.
+
+**Kenapa salah:** `EditOrganizationUnit` memiliki cascade logic kompleks (rename Section, reparent
+users, update CoachCoacheeMappings) yang harus dieksekusi saat parent berubah. Drag-drop
+cross-parent bypass semua ini, membuat data denormalized di `ApplicationUser` jadi stale.
+
+**Lakukan ini:** Cross-parent move hanya via modal Edit. Drag-drop hanya reorder dalam siblings
+yang memiliki `parentId` sama. Konfigurasi SortableJS dengan `group: false`.
+
+### Anti-Pattern 2: Re-fetch Tree Setelah Setiap Operasi
+
+**Yang dilakukan:** Setelah setiap AJAX call berhasil, fetch ulang `GetOrganizationTree` dan
+re-render seluruh tree dari server.
+
+**Kenapa salah:** Lambat, UX terasa blink atau flicker. Untuk tree kecil (organisasi Pertamina
+~50-100 unit) ini overkill dan menambah latency yang tidak perlu.
+
+**Lakukan ini:** Mutasi `treeData` array lokal langsung setelah response sukses, re-render dari
+state lokal. Re-fetch hanya saat terjadi error tak terduga atau pertama kali load halaman.
+
+### Anti-Pattern 3: Render Tree Rekursif di Razor Server-side
+
+**Yang dilakukan:** Buat Razor helper atau partial view rekursif untuk render tree.
+
+**Kenapa salah:** Razor partial rekursif di ASP.NET Core tidak native (perlu workaround dengan
+`@await Html.PartialAsync`). Tetap menghasilkan full-page render, menghilangkan benefit AJAX.
+Juga mempertahankan masalah 520 baris copy-paste.
+
+**Lakukan ini:** Server hanya kembalikan flat JSON array. Rekursi sepenuhnya di `renderNode()` JS.
+
+### Anti-Pattern 4: Tiga Modal Terpisah per Level
+
+**Yang dilakukan:** Buat modal Add-Root, modal Add-Child, modal Add-Grandchild terpisah.
+
+**Kenapa salah:** Triple duplication kembali, persis masalah yang sama dengan view existing.
+Tiga modal membutuhkan tiga set event listener dan tiga kali markup.
+
+**Lakukan ini:** Satu modal dengan dropdown "Induk". Level dihitung otomatis dari parent yang
+dipilih. Dropdown diisi dari `treeData` saat modal dibuka.
+
+### Anti-Pattern 5: Inline Script di Cshtml
+
+**Yang dilakukan:** Taruh semua JS langsung di `@section Scripts` dalam ManageOrganization.cshtml.
+
+**Kenapa salah:** JS 250+ baris inline sulit di-debug, tidak bisa di-cache browser secara terpisah,
+dan tidak bisa di-test dengan isolasi.
+
+**Lakukan ini:** Semua JS di `wwwroot/js/orgTree.js`. View hanya punya script tag untuk load file
+tersebut. Pendekatan ini konsisten dengan pattern proyek (lihat file JS lain di `wwwroot/js/`).
+
+---
+
+## Scaling Considerations
+
+| Skala Unit | Pendekatan |
+|------------|------------|
+| < 100 unit (kondisi saat ini Pertamina KPB) | Client-side render dari flat array sangat cukup. Tidak perlu virtual scroll. |
+| 100-500 unit | Tetap aman. renderTree masih O(n). SortableJS bisa handle ratusan rows. |
+| > 500 unit | Perlu pertimbangan lazy-load per node atau pagination per Bagian. Di luar scope v13.0. |
 
 ---
 
 ## Sources
 
-- Kode sumber dibaca langsung: `AssessmentSession.cs`, `AssessmentPackage.cs`, `PackageUserResponse.cs`, `UserPackageAssignment.cs`, `AssessmentResultsViewModel.cs`, `ExamActivityLog.cs`, `SessionElemenTeknisScore.cs`, `AssessmentHub.cs`
-- Action signatures dari: `AssessmentAdminController.cs`, `CMPController.cs` (grep langsung)
-- Keputusan desain dari: `.planning/PROJECT.md` (v14.0 milestone section)
-- Confidence: HIGH — semua temuan berdasarkan kode aktual
+- Analisis langsung: `Controllers/OrganizationController.cs` (360 baris, 2026-04-02)
+- Analisis langsung: `Views/Admin/ManageOrganization.cshtml` (520 baris, 2026-04-02)
+- Analisis langsung: `Models/OrganizationUnit.cs`
+- Grep audit: 11 controllers + 19 views yang mengonsumsi org data
+- SortableJS: https://github.com/SortableJS/Sortable — Vanilla JS, no jQuery, weekly 3M+ npm downloads
+- ASP.NET Core CSRF + AJAX: `RequestVerificationToken` header pattern (standard, HIGH confidence)
+
+---
+*Architecture research for: ManageOrganization Tree View Redesign (v13.0)*
+*Researched: 2026-04-02*

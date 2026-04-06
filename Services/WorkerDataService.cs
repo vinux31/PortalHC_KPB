@@ -198,8 +198,8 @@ namespace HcPortal.Services
             var assessmentSessionLookup = assessmentSessionsByUser
                 .GroupBy(a => a.UserId)
                 .ToDictionary(g => g.Key, g => g.ToList());
-            var completedAssessmentCountLookup = assessmentSessionsByUser
-                .Where(a => a.Status == "Completed")
+            var passedAssessmentLookup = assessmentSessionsByUser
+                .Where(a => a.IsPassed == true)
                 .GroupBy(a => a.UserId)
                 .ToDictionary(g => g.Key, g => g.Count());
 
@@ -244,8 +244,8 @@ namespace HcPortal.Services
                 }
 
                 int completedAssessments = hasDateFilter
-                    ? assessmentSessions.Count(a => a.Status == "Completed")
-                    : (completedAssessmentCountLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0);
+                    ? assessmentSessions.Count(a => a.IsPassed == true)
+                    : (passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0);
 
                 var totalTrainings = trainingRecords.Count;
                 var completedTrainings = trainingRecords.Count(tr =>

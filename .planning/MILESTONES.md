@@ -1,28 +1,5 @@
 # Milestones
 
-## v13.0 Redesign Struktur Organisasi (Shipped: 2026-04-06)
-
-**Phases completed:** 4 phases (292-295), 4 plans, 6 tasks
-**Timeline:** 2026-04-02 → 2026-04-03 (2 days)
-**Code changes:** 4 files changed, +572 / -468 lines
-
-**Delivered:** Redesign halaman ManageOrganization dari tabel flat menjadi tree view interaktif modern — AJAX endpoints, recursive tree rendering, modal CRUD tanpa page reload, dan drag-drop reorder.
-
-**Key accomplishments:**
-
-1. Backend AJAX Endpoints — `GetOrganizationTree` JSON flat array + dual-response (JSON/redirect) pada semua 5 CRUD actions + `IsAjaxRequest()` helper + `ajaxPost/ajaxGet` CSRF utility terpusat di orgTree.js
-2. Tree View Interaktif — ManageOrganization.cshtml dikurangi dari ~520 baris ke ~204 baris, 3 Razor loops dihapus, recursive rendering unlimited depth dengan expand/collapse per-node dan global, badge status Aktif/Nonaktif
-3. AJAX CRUD Lengkap — Add, Edit, Toggle, Delete unit via modal tanpa page reload, kebab action dropdown per node, toast notifikasi, parent dropdown exclude descendants untuk prevent circular reference
-4. Drag-drop Reorder — SortableJS 1.15.7 sibling-only reorder dengan `group:false`, drag handle on hover, `ReorderBatch` batch endpoint, rollback on error
-
-**Tech Debt (minor, non-blocking):**
-
-- Dead code: `ReorderOrganizationUnit` endpoint (replaced by `ReorderBatch`)
-- Wasted query: `ManageOrganization()` action queries DB for model that view no longer uses
-- Missing VERIFICATION.md for Phase 292 and 294
-
----
-
 ## v11.2 Admin Platform Enhancement (Shipped: 2026-04-02)
 
 **Phases completed:** 2 of 4 phases (282-283), 4 plans
@@ -36,7 +13,6 @@
 2. User Impersonation — Admin dapat melihat aplikasi sebagai role lain (HC/User) atau user spesifik, read-only mode, audit trail, auto-expire 30 menit
 
 **Known Gaps:**
-
 - Phase 281 (System Settings) belum dimulai — SETT-01..07 pending
 - Phase 285 (Dedicated Impersonation Page) sedang executing — IMP-UI-01..03 pending
 - Phase 284 (Backup & Restore) removed from milestone — BKP-01..08 deferred
@@ -57,7 +33,6 @@
 2. Bug fix: progression warning `prevProgressCount > 0` check — coachee tanpa progress Tahun 1 tidak lagi bisa di-assign Tahun 2 tanpa warning
 
 **Known Gaps:**
-
 - Phase 258-261 skipped (SIL-01..06, EVI-01..05, APR-01..07, DSH-01..06 not executed)
 - Milestone closed early by user decision
 
