@@ -70,9 +70,10 @@ Progress: [░░░░░░░░░░] 0%
 | 260402-l2d | Fix delete assessment 404 error — update asp-controller references dari Admin ke AssessmentAdmin di 9 view | 2026-04-02 | 5a16c0fb | [260402-l2d-fix-delete-assessment-404-error-on-manag](./quick/260402-l2d-fix-delete-assessment-404-error-on-manag/) |
 | Phase 292 P01 | 8min | 2 tasks | 3 files |
 | Phase 293-view-shell-tree-rendering P01 | 30 | 3 tasks | 2 files |
+| 260406-l2i | Pindahkan menu Certification Management dari CDP/Index ke CMP/Index sebelum dashboard analitik | 2026-04-06 | pending | [260406-l2i-pindahkan-menu-certification-management-](./quick/260406-l2i-pindahkan-menu-certification-management-/) |
 
 ## Session Continuity
 
-Last activity: 2026-04-03 — Phase 294 AJAX CRUD complete
+Last activity: 2026-04-06 - Completed quick task 260406-l2i: Pindahkan Certification Management ke CMP
 Stopped at: Completed 294-01-PLAN.md
 Resume file: None
