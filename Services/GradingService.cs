@@ -95,12 +95,18 @@ namespace HcPortal.Services
                         break;
 
                     case "MultipleAnswer":
-                        throw new NotImplementedException(
-                            "MultipleAnswer grading akan diimplementasi di Phase 298.");
+                        // Phase 298: belum diimplementasi — skip dengan skor 0, log warning
+                        _logger.LogWarning(
+                            "GradingService: MultipleAnswer grading belum diimplementasi untuk question {QuestionId} — skor 0, akan di-grade di Phase 298.",
+                            q.Id);
+                        break;
 
                     case "Essay":
-                        throw new NotImplementedException(
-                            "Essay grading akan diimplementasi di Phase 298.");
+                        // Phase 298: belum diimplementasi — skip dengan skor 0, perlu manual grading
+                        _logger.LogWarning(
+                            "GradingService: Essay grading belum diimplementasi untuk question {QuestionId} — skor 0, akan di-grade di Phase 298.",
+                            q.Id);
+                        break;
 
                     default:
                         _logger.LogWarning(

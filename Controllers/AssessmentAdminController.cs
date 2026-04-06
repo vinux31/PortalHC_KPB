@@ -2331,8 +2331,17 @@ namespace HcPortal.Controllers
                 .ToList();
             foreach (var session in inProgressSessions)
             {
-                await _gradingService.GradeAndCompleteAsync(session);
-                gradedCount++;
+                try
+                {
+                    await _gradingService.GradeAndCompleteAsync(session);
+                    gradedCount++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "AkhiriSemuaUjian: gagal grade session {SessionId} untuk user {UserId} — lanjut ke session berikutnya.",
+                        session.Id, session.UserId);
+                }
             }
 
             // Invalidate cache for all affected sessions
