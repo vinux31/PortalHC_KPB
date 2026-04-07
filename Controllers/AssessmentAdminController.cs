@@ -3821,12 +3821,17 @@ namespace HcPortal.Controllers
         // GET /Admin/DownloadQuestionTemplate
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public IActionResult DownloadQuestionTemplate()
+        public IActionResult DownloadQuestionTemplate(string type = "MC")
         {
+            // Normalize type — whitelist only
+            var validTypes = new[] { "MC", "MA", "Essay", "Universal" };
+            if (!validTypes.Contains(type)) type = "MC";
+
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Question Import");
 
-            var headers = new[] { "Question", "Option A", "Option B", "Option C", "Option D", "Correct", "Elemen Teknis" };
+            // 9-column header (same for all variants)
+            var headers = new[] { "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Jawaban Benar", "Elemen Teknis", "QuestionType", "Rubrik" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -3835,34 +3840,57 @@ namespace HcPortal.Controllers
                 ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
             }
 
-            // Example row (italic, gray)
-            var example = new[]
+            int nextRow = 2;
+
+            void AddExampleRow(int row, string[] values)
             {
-                "Apa fungsi utama unit RFCC dalam proses pengolahan minyak?",
-                "Memecah molekul berat menjadi fraksi ringan",
-                "Memurnikan air limbah industri",
-                "Menghasilkan energi listrik dari gas alam",
-                "Mengolah bahan baku batubara menjadi coke",
-                "A",
-                "Elemen Teknis x.x"
-            };
-            for (int i = 0; i < example.Length; i++)
+                for (int i = 0; i < values.Length; i++)
+                {
+                    ws.Cell(row, i + 1).Value = values[i];
+                    ws.Cell(row, i + 1).Style.Font.Italic = true;
+                    ws.Cell(row, i + 1).Style.Font.FontColor = XLColor.Gray;
+                }
+            }
+
+            // Example rows per type
+            var mcExample  = new[] { "Contoh soal MC?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A", "K3 Dasar", "MultipleChoice", "" };
+            var maExample  = new[] { "Contoh soal MA?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A,C", "K3 Dasar", "MultipleAnswer", "" };
+            var essayExample = new[] { "Contoh soal Essay?", "", "", "", "", "", "K3 Dasar", "Essay", "Rubrik: Jawaban harus mencakup..." };
+
+            if (type == "MC")
             {
-                ws.Cell(2, i + 1).Value = example[i];
-                ws.Cell(2, i + 1).Style.Font.Italic = true;
-                ws.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray;
+                AddExampleRow(nextRow++, mcExample);
+            }
+            else if (type == "MA")
+            {
+                AddExampleRow(nextRow++, maExample);
+            }
+            else if (type == "Essay")
+            {
+                AddExampleRow(nextRow++, essayExample);
+            }
+            else // Universal
+            {
+                AddExampleRow(nextRow++, mcExample);
+                AddExampleRow(nextRow++, maExample);
+                AddExampleRow(nextRow++, essayExample);
             }
 
             // Instruction rows
-            ws.Cell(3, 1).Value = "Kolom Correct: isi dengan huruf A, B, C, atau D (tidak peka huruf besar/kecil)";
-            ws.Cell(3, 1).Style.Font.Italic = true;
-            ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+            void AddInstruction(int row, string text)
+            {
+                ws.Cell(row, 1).Value = text;
+                ws.Cell(row, 1).Style.Font.Italic = true;
+                ws.Cell(row, 1).Style.Font.FontColor = XLColor.DarkRed;
+            }
 
-            ws.Cell(4, 1).Value = "Kolom Elemen Teknis: opsional, isi nama elemen teknis. Kosongkan jika tidak ada.";
-            ws.Cell(4, 1).Style.Font.Italic = true;
-            ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
+            AddInstruction(nextRow++, "QuestionType: MultipleChoice (default jika kosong), MultipleAnswer, atau Essay");
+            AddInstruction(nextRow++, "Jawaban Benar MA: isi huruf dipisah koma, contoh: A,C atau A,B,D");
+            AddInstruction(nextRow++, "Essay: Opsi A-D dan Jawaban Benar dikosongkan. Rubrik wajib diisi");
+            AddInstruction(nextRow++, "Kolom Elemen Teknis: opsional, isi nama elemen teknis. Kosongkan jika tidak ada.");
 
-            return ExcelExportHelper.ToFileResult(workbook, "question_import_template.xlsx", this);
+            var fileName = $"Template_Soal_{type}.xlsx";
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
         [HttpGet]
@@ -3924,12 +3952,22 @@ namespace HcPortal.Controllers
             }).ToHashSet();
             var seenInBatch = new HashSet<string>();
 
-            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? ElemenTeknis)> rows;
+            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? ElemenTeknis, string QuestionType, string? Rubrik)> rows;
             var errors = new List<string>();
+
+            var validQuestionTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
+
+            string NormalizeQuestionType(string raw)
+            {
+                var t = raw?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(t)) return "MultipleChoice"; // D-12 backward compat
+                if (!validQuestionTypes.Contains(t)) return "MultipleChoice";
+                return t;
+            }
 
             if (excelFile != null && excelFile.Length > 0)
             {
-                rows = new List<(string, string, string, string, string, string, string?)>();
+                rows = new List<(string, string, string, string, string, string, string?, string, string?)>();
                 try
                 {
                     using var stream = excelFile.OpenReadStream();
@@ -3952,7 +3990,10 @@ namespace HcPortal.Controllers
                         var cor = (row.Cell(6).GetString() ?? "").Trim().ToUpper();
                         var cell7 = (row.Cell(7).GetString() ?? "").Trim();
                         string? subComp = string.IsNullOrWhiteSpace(cell7) ? null : cell7;
-                        rows.Add((q, a, b, c, d, cor, subComp));
+                        var questionType = NormalizeQuestionType(row.Cell(8).GetString() ?? "");
+                        var rubrik = row.Cell(9).GetString()?.Trim();
+                        if (string.IsNullOrWhiteSpace(rubrik)) rubrik = null;
+                        rows.Add((q, a, b, c, d, cor, subComp, questionType, rubrik));
                     }
                 }
                 catch (Exception ex)
@@ -3964,7 +4005,7 @@ namespace HcPortal.Controllers
             }
             else if (!string.IsNullOrWhiteSpace(pasteText))
             {
-                rows = new List<(string, string, string, string, string, string, string?)>();
+                rows = new List<(string, string, string, string, string, string, string?, string, string?)>();
                 var lines = pasteText.Split('\n')
                     .Select(l => l.TrimEnd('\r'))
                     .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -3988,10 +4029,13 @@ namespace HcPortal.Controllers
                     }
                     string? subComp = cells.Length >= 7 ? cells[6].Trim() : null;
                     if (string.IsNullOrWhiteSpace(subComp)) subComp = null;
+                    var questionType = NormalizeQuestionType(cells.Length >= 8 ? cells[7] : "");
+                    string? rubrik = cells.Length >= 9 ? cells[8].Trim() : null;
+                    if (string.IsNullOrWhiteSpace(rubrik)) rubrik = null;
                     rows.Add((
                         cells[0].Trim(), cells[1].Trim(), cells[2].Trim(),
                         cells[3].Trim(), cells[4].Trim(), cells[5].Trim().ToUpper(),
-                        subComp
+                        subComp, questionType, rubrik
                     ));
                 }
             }
@@ -4023,12 +4067,13 @@ namespace HcPortal.Controllers
                 {
                     var validRowCount = rows.Count(r =>
                     {
-                        var (rq, ra, rb, rc, rd, rcor, _) = r;
+                        var (rq, ra, rb, rc, rd, rcor, _, rqtype, _) = r;
+                        if (string.IsNullOrWhiteSpace(rq)) return false;
+                        if (rqtype == "Essay") return true; // Essay: hanya butuh teks soal
                         var normalizedCor = ExtractPackageCorrectLetter(rcor);
-                        return !string.IsNullOrWhiteSpace(rq) &&
-                               !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
+                        return !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
                                !string.IsNullOrWhiteSpace(rc) && !string.IsNullOrWhiteSpace(rd) &&
-                               new[] { "A", "B", "C", "D" }.Contains(normalizedCor);
+                               (new[] { "A", "B", "C", "D" }.Contains(normalizedCor) || rcor.Contains(','));
                     });
 
                     var referencePackage = siblingPackagesWithQuestions.First();
@@ -4049,25 +4094,56 @@ namespace HcPortal.Controllers
             var newQuestions = new List<PackageQuestion>();
             for (int i = 0; i < rows.Count; i++)
             {
-                var (q, a, b, c, d, cor, rawSubComp) = rows[i];
-                var normalizedCor = ExtractPackageCorrectLetter(cor);
+                var (q, a, b, c, d, cor, rawSubComp, questionType, rubrik) = rows[i];
+
                 if (string.IsNullOrWhiteSpace(q))
                 {
                     errors.Add($"Row {i + 1}: Question text is empty. Skipped.");
                     continue;
                 }
-                if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b) ||
-                    string.IsNullOrWhiteSpace(c) || string.IsNullOrWhiteSpace(d))
+
+                // Essay: skip opsi/jawaban validation, only need question text
+                if (questionType != "Essay")
                 {
-                    errors.Add($"Row {i + 1}: One or more options are empty. Skipped.");
-                    continue;
-                }
-                if (!new[] { "A", "B", "C", "D" }.Contains(normalizedCor))
-                {
-                    errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
-                    continue;
+                    if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b) ||
+                        string.IsNullOrWhiteSpace(c) || string.IsNullOrWhiteSpace(d))
+                    {
+                        errors.Add($"Row {i + 1}: One or more options are empty. Skipped.");
+                        continue;
+                    }
                 }
 
+                // Parse correct answers — support multi for MA (T-298-05: hanya huruf A-D)
+                List<string> correctLetters;
+                if (questionType == "MultipleAnswer")
+                {
+                    correctLetters = cor.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().ToUpper())
+                        .Where(s => new[] { "A", "B", "C", "D" }.Contains(s))
+                        .Distinct()
+                        .ToList();
+                    if (correctLetters.Count == 0)
+                    {
+                        errors.Add($"Row {i + 1}: MA soal harus memiliki minimal 1 jawaban benar valid (A-D). Skipped.");
+                        continue;
+                    }
+                }
+                else if (questionType == "Essay")
+                {
+                    correctLetters = new List<string>(); // Essay tidak butuh jawaban benar
+                }
+                else // MultipleChoice
+                {
+                    var normalizedCor = ExtractPackageCorrectLetter(cor);
+                    if (!new[] { "A", "B", "C", "D" }.Contains(normalizedCor))
+                    {
+                        errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
+                        continue;
+                    }
+                    correctLetters = new List<string> { normalizedCor };
+                }
+
+                // Dedup fingerprint (essay uses empty options)
                 var fp = MakePackageFingerprint(q, a, b, c, d);
                 if (existingFingerprints.Contains(fp) || seenInBatch.Contains(fp))
                 {
@@ -4076,23 +4152,34 @@ namespace HcPortal.Controllers
                 }
                 seenInBatch.Add(fp);
 
-                int correctIndex = normalizedCor == "A" ? 0 : normalizedCor == "B" ? 1 : normalizedCor == "C" ? 2 : 3;
                 var newQ = new PackageQuestion
                 {
                     AssessmentPackageId = packageId,
                     QuestionText = q,
+                    QuestionType = questionType,
+                    Rubrik = questionType == "Essay" ? rubrik : null,
+                    MaxCharacters = 2000,
                     Order = order++,
                     ScoreValue = 10,
                     ElemenTeknis = NormalizeElemenTeknis(rawSubComp),
-                    // Add options directly to the navigation collection (EF resolves FK after save)
-                    Options = new List<PackageOption>
-                    {
-                        new PackageOption { OptionText = a, IsCorrect = (0 == correctIndex) },
-                        new PackageOption { OptionText = b, IsCorrect = (1 == correctIndex) },
-                        new PackageOption { OptionText = c, IsCorrect = (2 == correctIndex) },
-                        new PackageOption { OptionText = d, IsCorrect = (3 == correctIndex) }
-                    }
                 };
+
+                // Build options (skip for Essay per D-04)
+                if (questionType != "Essay")
+                {
+                    var optionTexts = new[] { a, b, c, d };
+                    var optionLetters = new[] { "A", "B", "C", "D" };
+                    newQ.Options = optionTexts.Select((optText, idx) => new PackageOption
+                    {
+                        OptionText = optText,
+                        IsCorrect = correctLetters.Contains(optionLetters[idx])
+                    }).ToList();
+                }
+                else
+                {
+                    newQ.Options = new List<PackageOption>();
+                }
+
                 newQuestions.Add(newQ);
                 added++;
             }
