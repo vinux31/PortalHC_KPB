@@ -177,7 +177,10 @@ Plans:
   3. Setelah Pre-Test Completed dan jadwal Post-Test tiba, pekerja dapat memulai Post-Test secara normal
   4. Setelah Post-Test selesai, pekerja dapat mengakses halaman perbandingan Pre vs Post yang menampilkan skor per elemen secara side-by-side
   5. Gain score ditampilkan dengan formula (PostScore - PreScore) / (100 - PreScore) x 100; kasus PreScore = 100 menampilkan Gain = 100
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
+- [ ] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
 **UI hint**: yes
 
 ### Phase 300: Mobile Optimization
