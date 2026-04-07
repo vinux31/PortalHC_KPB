@@ -98,8 +98,8 @@ Requirements untuk milestone v14.0. Data foundation dan GradingService extractio
 - [ ] **RPT-02**: Discrimination index (Kelley upper/lower 27%) dengan warning < 30 responden
 - [ ] **RPT-03**: Distractor analysis — persentase per opsi per soal
 - [ ] **RPT-04**: Pre-Post Gain Score Report per pekerja dan per elemen kompetensi
-- [ ] **RPT-05**: Export Item Analysis dan Gain Score Report ke Excel
-- [ ] **RPT-06**: Analytics Dashboard panel tren gain score
+- [x] **RPT-05**: Export Item Analysis dan Gain Score Report ke Excel
+- [x] **RPT-06**: Analytics Dashboard panel tren gain score
 - [ ] **RPT-07**: Perbandingan antar kelompok (group comparison)
 
 ### Accessibility WCAG Quick Wins (Phase 302)
@@ -196,8 +196,8 @@ Requirements untuk milestone v14.0. Data foundation dan GradingService extractio
 | RPT-02 | Phase 301 | Pending |
 | RPT-03 | Phase 301 | Pending |
 | RPT-04 | Phase 301 | Pending |
-| RPT-05 | Phase 301 | Pending |
-| RPT-06 | Phase 301 | Pending |
+| RPT-05 | Phase 301 | Complete |
+| RPT-06 | Phase 301 | Complete |
 | RPT-07 | Phase 301 | Pending |
 | A11Y-01 | Phase 302 | Pending |
 | A11Y-02 | Phase 302 | Pending |
