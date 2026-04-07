@@ -68,9 +68,9 @@ namespace HcPortal.Services
                 .ToListAsync();
             var questionLookup = packageQuestions.ToDictionary(q => q.Id);
 
-            var responses = await _context.PackageUserResponses
+            var allResponses = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == session.Id)
-                .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
+                .ToListAsync();
 
             int totalScore = 0;
             int maxScore = 0;
@@ -86,26 +86,34 @@ namespace HcPortal.Services
                 switch (q.QuestionType ?? "MultipleChoice")
                 {
                     case "MultipleChoice":
-                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                        var mcResponse = allResponses
+                            .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                        if (mcResponse != null)
                         {
-                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == mcResponse.PackageOptionId!.Value);
                             if (selectedOption != null && selectedOption.IsCorrect)
                                 totalScore += q.ScoreValue;
                         }
                         break;
 
                     case "MultipleAnswer":
-                        // Phase 298: belum diimplementasi — skip dengan skor 0, log warning
-                        _logger.LogWarning(
-                            "GradingService: MultipleAnswer grading belum diimplementasi untuk question {QuestionId} — skor 0, akan di-grade di Phase 298.",
-                            q.Id);
+                        var selectedOptionIds = allResponses
+                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                            .Select(r => r.PackageOptionId!.Value)
+                            .ToHashSet();
+                        var correctOptionIds = q.Options
+                            .Where(o => o.IsCorrect)
+                            .Select(o => o.Id)
+                            .ToHashSet();
+                        // All-or-nothing: harus pilih semua correct dan tidak ada incorrect
+                        if (selectedOptionIds.SetEquals(correctOptionIds))
+                            totalScore += q.ScoreValue;
                         break;
 
                     case "Essay":
-                        // Phase 298: belum diimplementasi — skip dengan skor 0, perlu manual grading
-                        _logger.LogWarning(
-                            "GradingService: Essay grading belum diimplementasi untuk question {QuestionId} — skor 0, akan di-grade di Phase 298.",
-                            q.Id);
+                        // Essay: skor 0 sementara — akan di-grade manual oleh HC
+                        // EssayScore di PackageUserResponse belum diisi di tahap ini
+                        // maxScore tetap include q.ScoreValue (denominator total)
                         break;
 
                     default:
@@ -129,10 +137,30 @@ namespace HcPortal.Services
                 int etTotal = etGroup.Count();
                 foreach (var q in etGroup)
                 {
-                    if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                    switch (q.QuestionType ?? "MultipleChoice")
                     {
-                        var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
-                        if (sel != null && sel.IsCorrect) etCorrect++;
+                        case "MultipleChoice":
+                            var etMcResponse = allResponses
+                                .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                            if (etMcResponse != null)
+                            {
+                                var sel = q.Options.FirstOrDefault(o => o.Id == etMcResponse.PackageOptionId!.Value);
+                                if (sel != null && sel.IsCorrect) etCorrect++;
+                            }
+                            break;
+
+                        case "MultipleAnswer":
+                            var maSelected = allResponses
+                                .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                                .Select(r => r.PackageOptionId!.Value)
+                                .ToHashSet();
+                            var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                            if (maSelected.SetEquals(maCorrect)) etCorrect++;
+                            break;
+
+                        case "Essay":
+                            // Essay: skip ET scoring (manual grading)
+                            break;
                     }
                 }
                 _context.SessionElemenTeknisScores.Add(new SessionElemenTeknisScore
