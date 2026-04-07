@@ -46,7 +46,7 @@ See .planning/MILESTONES.md for full history.
 ### 🚧 v14.0 Assessment Enhancement (Phases 296-302)
 
 - [x] **Phase 296: Data Foundation + GradingService Extraction** - Migrasi DB backward-compatible dan ekstraksi GradingService sebagai fondasi semua fase berikutnya (completed 2026-04-06)
-- [ ] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test
+- [x] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test (completed 2026-04-07)
 - [ ] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi
 - [ ] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score
 - [ ] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan
@@ -140,10 +140,10 @@ Plans:
   6. Sertifikat dan Training Record hanya digenerate dari hasil Post-Test, bukan Pre-Test
 **Plans**: 4 plans
 Plans:
-- [ ] 297-01-PLAN.md — ViewModel extension + CreateAssessment backend + view
-- [ ] 297-02-PLAN.md — Monitoring grouping + expandable view + ManageAssessment badge
-- [ ] 297-03-PLAN.md — EditAssessment tab Pre/Post + ManagePackages Copy
-- [ ] 297-04-PLAN.md — DeletePrePostGroup + ResetAssessment guard + Renewal
+- [x] 297-01-PLAN.md — ViewModel extension + CreateAssessment backend + view
+- [x] 297-02-PLAN.md — Monitoring grouping + expandable view + ManageAssessment badge
+- [x] 297-03-PLAN.md — EditAssessment tab Pre/Post + ManagePackages Copy
+- [x] 297-04-PLAN.md — DeletePrePostGroup + ResetAssessment guard + Renewal
 **UI hint**: yes
 
 ### Phase 298: Question Types
@@ -226,7 +226,7 @@ Plans:
 | 294. AJAX CRUD Lengkap | 1/1 | Complete | 2026-04-03 |
 | 295. Drag-drop Reorder | 1/1 | Complete | 2026-04-03 |
 | 296. Data Foundation + GradingService Extraction | 3/3 | Complete | 2026-04-06 |
-| 297. Admin Pre-Post Test | 0/4 | Planning complete | - |
+| 297. Admin Pre-Post Test | 4/4 | Complete   | 2026-04-07 |
 | 298. Question Types | 0/? | Not started | - |
 | 299. Worker Pre-Post Test + Comparison | 0/? | Not started | - |
 | 300. Mobile Optimization | 0/? | Not started | - |
