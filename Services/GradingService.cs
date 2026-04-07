@@ -68,9 +68,9 @@ namespace HcPortal.Services
                 .ToListAsync();
             var questionLookup = packageQuestions.ToDictionary(q => q.Id);
 
-            var allResponses = await _context.PackageUserResponses
+            var responses = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == session.Id)
-                .ToListAsync();
+                .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
 
             int totalScore = 0;
             int maxScore = 0;
@@ -86,34 +86,26 @@ namespace HcPortal.Services
                 switch (q.QuestionType ?? "MultipleChoice")
                 {
                     case "MultipleChoice":
-                        var mcResponse = allResponses
-                            .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
-                        if (mcResponse != null)
+                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
                         {
-                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == mcResponse.PackageOptionId!.Value);
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
                             if (selectedOption != null && selectedOption.IsCorrect)
                                 totalScore += q.ScoreValue;
                         }
                         break;
 
                     case "MultipleAnswer":
-                        var selectedOptionIds = allResponses
-                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
-                            .Select(r => r.PackageOptionId!.Value)
-                            .ToHashSet();
-                        var correctOptionIds = q.Options
-                            .Where(o => o.IsCorrect)
-                            .Select(o => o.Id)
-                            .ToHashSet();
-                        // All-or-nothing: harus pilih semua correct dan tidak ada incorrect
-                        if (selectedOptionIds.SetEquals(correctOptionIds))
-                            totalScore += q.ScoreValue;
+                        // Phase 298: belum diimplementasi — skip dengan skor 0, log warning
+                        _logger.LogWarning(
+                            "GradingService: MultipleAnswer grading belum diimplementasi untuk question {QuestionId} — skor 0, akan di-grade di Phase 298.",
+                            q.Id);
                         break;
 
                     case "Essay":
-                        // Essay: skor 0 sementara — akan di-grade manual oleh HC
-                        // EssayScore di PackageUserResponse belum diisi di tahap ini
-                        // maxScore tetap include q.ScoreValue (denominator total)
+                        // Phase 298: belum diimplementasi — skip dengan skor 0, perlu manual grading
+                        _logger.LogWarning(
+                            "GradingService: Essay grading belum diimplementasi untuk question {QuestionId} — skor 0, akan di-grade di Phase 298.",
+                            q.Id);
                         break;
 
                     default:
@@ -126,7 +118,6 @@ namespace HcPortal.Services
 
             int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
             bool isPassed = finalPercentage >= session.PassPercentage;
-            bool hasEssay = packageQuestions.Any(q => (q.QuestionType ?? "MultipleChoice") == "Essay");
 
             // ---- 2. Hitung SessionElemenTeknisScores ----
             var etGroups = packageQuestions
@@ -138,30 +129,10 @@ namespace HcPortal.Services
                 int etTotal = etGroup.Count();
                 foreach (var q in etGroup)
                 {
-                    switch (q.QuestionType ?? "MultipleChoice")
+                    if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
                     {
-                        case "MultipleChoice":
-                            var etMcResponse = allResponses
-                                .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
-                            if (etMcResponse != null)
-                            {
-                                var sel = q.Options.FirstOrDefault(o => o.Id == etMcResponse.PackageOptionId!.Value);
-                                if (sel != null && sel.IsCorrect) etCorrect++;
-                            }
-                            break;
-
-                        case "MultipleAnswer":
-                            var maSelected = allResponses
-                                .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
-                                .Select(r => r.PackageOptionId!.Value)
-                                .ToHashSet();
-                            var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
-                            if (maSelected.SetEquals(maCorrect)) etCorrect++;
-                            break;
-
-                        case "Essay":
-                            // Essay: skip ET scoring (manual grading)
-                            break;
+                        var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                        if (sel != null && sel.IsCorrect) etCorrect++;
                     }
                 }
                 _context.SessionElemenTeknisScores.Add(new SessionElemenTeknisScore
@@ -186,47 +157,6 @@ namespace HcPortal.Services
                 _context.ChangeTracker.Clear();
             }
 
-            // ---- 3a. Essay flow: status "Menunggu Penilaian", tidak generate sertifikat/TrainingRecord ----
-            if (hasEssay)
-            {
-                // Interim score = hanya dari MC + MA (Essay skor 0)
-                int interimPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-
-                var essayRowsAffected = await _context.AssessmentSessions
-                    .Where(s => s.Id == session.Id && s.Status != "Completed" && s.Status != "Menunggu Penilaian")
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(r => r.Score, interimPercentage)
-                        .SetProperty(r => r.Status, "Menunggu Penilaian")
-                        .SetProperty(r => r.HasManualGrading, true)
-                        .SetProperty(r => r.IsPassed, (bool?)null)
-                        .SetProperty(r => r.Progress, 100)
-                        .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
-                    );
-
-                if (essayRowsAffected == 0)
-                {
-                    _logger.LogWarning(
-                        "GradingService: race condition session {SessionId} — sudah Completed/Menunggu Penilaian.",
-                        session.Id);
-                    return false;
-                }
-
-                // Update PackageAssignment.IsCompleted (ujian selesai, hanya grading pending)
-                await _context.UserPackageAssignments
-                    .Where(a => a.AssessmentSessionId == session.Id)
-                    .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
-
-                // TIDAK generate TrainingRecord dan sertifikat (D-18)
-                // TIDAK kirim notifikasi grup completion
-
-                _logger.LogInformation(
-                    "GradingService: session {SessionId} status Menunggu Penilaian — {EssayCount} soal Essay perlu dinilai HC.",
-                    session.Id, packageQuestions.Count(q => (q.QuestionType ?? "MultipleChoice") == "Essay"));
-
-                return true;
-            }
-
-            // ---- 3b. Non-essay flow: status "Completed" (existing logic) ----
             // ExecuteUpdateAsync dengan WHERE Status != "Completed" sebagai status guard (D-04)
             var rowsAffected = await _context.AssessmentSessions
                 .Where(s => s.Id == session.Id && s.Status != "Completed")

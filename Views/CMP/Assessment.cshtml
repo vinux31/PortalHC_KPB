@@ -103,178 +103,7 @@
         }
         else
         {
-            @* === Pre-Post Card Pairs (D-01, D-02, D-03, D-04, D-05, D-06) === *@
-            @if (ViewBag.PairedGroups != null)
-            {
-                foreach (var pair in ViewBag.PairedGroups)
-                {
-                    var pre = pair.Pre;
-                    var post = pair.Post;
-
-                    bool preCompleted = ((string)pre.Status) == "Completed";
-                    bool preExpired = !preCompleted
-                        && pre.ExamWindowCloseDate != null
-                        && ((DateTime)pre.ExamWindowCloseDate) < DateTime.UtcNow.AddHours(7);
-                    bool postBlocked = !preCompleted;
-                    bool postBlockedByExpiry = preExpired;
-
-                    string pairStatus = post != null ? (((string)post.Status)?.ToLower() ?? "upcoming") : "upcoming";
-
-                    <div class="col-12 assessment-card" data-status="@pairStatus" role="group" aria-label="Pre-Post Test: @pre.Title">
-                        <div class="row g-3 align-items-stretch">
-
-                            @* Pre-Test Card (D-01, D-02, D-03) *@
-                            <div class="col-12 col-md-5">
-                                <div class="card h-100 border-0 shadow-sm assessment-card-item border-start border-4 border-primary" style="border-radius: 12px;">
-                                    <div class="card-body d-flex flex-column p-4">
-                                        <div class="mb-3">
-                                            <span class="badge @(pre.Category switch { "OJT" => "bg-primary", "IHT" => "bg-success", "Training Licencor" => "bg-danger", "OTS" => "bg-warning text-dark", "Mandatory HSSE Training" => "bg-info", "Proton" => "bg-purple", "Assessment Proton" => "bg-purple", _ => "bg-secondary" })">@pre.Category</span>
-                                            <span class="badge bg-info text-dark ms-1">Pre-Test</span>
-                                        </div>
-                                        <h5 class="card-title fw-bold mb-3">@pre.Title</h5>
-                                        <div class="assessment-meta mb-3">
-                                            <div class="meta-item">
-                                                <i class="bi bi-calendar3"></i>
-                                                @if (((string)pre.Status) == "Upcoming")
-                                                {
-                                                    <span>Opens @((pre.Schedule as DateTime?)?.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))), @((pre.Schedule as DateTime?)?.ToString("HH:mm")) WIB</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>@((pre.Schedule as DateTime?)?.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")))</span>
-                                                }
-                                            </div>
-                                            <div class="meta-item">
-                                                <i class="bi bi-clock"></i>
-                                                <span>
-                                                    @{
-                                                        int preHours = (int)pre.DurationMinutes / 60;
-                                                        int preMinutes = (int)pre.DurationMinutes % 60;
-                                                        var preDurationText = preHours > 0
-                                                            ? (preMinutes > 0 ? $"{preHours}h {preMinutes}m" : $"{preHours} hour{(preHours > 1 ? "s" : "")}")
-                                                            : $"{preMinutes} minute{(preMinutes > 1 ? "s" : "")}";
-                                                    }
-                                                    @preDurationText
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="mt-auto">
-                                            @if (((string)pre.Status) == "Completed")
-                                            {
-                                                <span class="badge bg-success w-100 py-2">Selesai</span>
-                                            }
-                                            else if (((string)pre.Status) == "InProgress")
-                                            {
-                                                <button class="btn btn-warning w-100 btn-start-standard" data-id="@pre.Id">
-                                                    <i class="bi bi-play-circle-fill me-1"></i>Lanjutkan Pre-Test <i class="bi bi-arrow-right ms-1"></i>
-                                                </button>
-                                            }
-                                            else if (((string)pre.Status) == "Open")
-                                            {
-                                                <button class="btn btn-primary w-100 btn-start-standard" data-id="@pre.Id">
-                                                    Mulai Pre-Test <i class="bi bi-arrow-right ms-1"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-outline-secondary w-100" disabled>
-                                                    Opens @((pre.ExamWindowOpenDate as DateTime?)?.ToString("dd MMM yyyy, HH:mm", CultureInfo.GetCultureInfo("id-ID"))) WIB
-                                                </button>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            @* Arrow Connector (D-03) with ARIA *@
-                            <div class="col-12 col-md-2 d-flex align-items-center justify-content-center" aria-label="Pre-Test menuju Post-Test" role="img">
-                                <i class="bi bi-arrow-right-circle-fill text-primary fs-4 d-none d-md-flex" aria-hidden="true"></i>
-                                <i class="bi bi-arrow-down-circle-fill text-primary fs-4 d-flex d-md-none" aria-hidden="true"></i>
-                            </div>
-
-                            @* Post-Test Card (D-04, D-05, D-06) *@
-                            <div class="col-12 col-md-5">
-                                @if (post != null)
-                                {
-                                    <div class="card h-100 border-0 shadow-sm assessment-card-item border-start border-4 border-primary @(postBlocked ? "opacity-50" : "")" style="border-radius: 12px;">
-                                        <div class="card-body d-flex flex-column p-4">
-                                            <div class="mb-3">
-                                                <span class="badge @(post.Category switch { "OJT" => "bg-primary", "IHT" => "bg-success", "Training Licencor" => "bg-danger", "OTS" => "bg-warning text-dark", "Mandatory HSSE Training" => "bg-info", "Proton" => "bg-purple", "Assessment Proton" => "bg-purple", _ => "bg-secondary" })">@post.Category</span>
-                                                <span class="badge bg-primary ms-1">Post-Test</span>
-                                            </div>
-                                            <h5 class="card-title fw-bold mb-3">@post.Title</h5>
-                                            <div class="assessment-meta mb-3">
-                                                <div class="meta-item">
-                                                    <i class="bi bi-calendar3"></i>
-                                                    @if (((string)post.Status) == "Upcoming")
-                                                    {
-                                                        <span>Opens @((post.Schedule as DateTime?)?.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))), @((post.Schedule as DateTime?)?.ToString("HH:mm")) WIB</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span>@((post.Schedule as DateTime?)?.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")))</span>
-                                                    }
-                                                </div>
-                                                <div class="meta-item">
-                                                    <i class="bi bi-clock"></i>
-                                                    <span>
-                                                        @{
-                                                            int postHours = (int)post.DurationMinutes / 60;
-                                                            int postMinutes = (int)post.DurationMinutes % 60;
-                                                            var postDurationText = postHours > 0
-                                                                ? (postMinutes > 0 ? $"{postHours}h {postMinutes}m" : $"{postHours} hour{(postHours > 1 ? "s" : "")}")
-                                                                : $"{postMinutes} minute{(postMinutes > 1 ? "s" : "")}";
-                                                        }
-                                                        @postDurationText
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="mt-auto">
-                                                @if (postBlockedByExpiry)
-                                                {
-                                                    <span class="badge bg-danger w-100 py-2">Pre-Test tidak diselesaikan</span>
-                                                }
-                                                else if (postBlocked)
-                                                {
-                                                    <button class="btn btn-secondary w-100" disabled>
-                                                        Selesaikan Pre-Test terlebih dahulu
-                                                    </button>
-                                                }
-                                                else if (((string)post.Status) == "Completed")
-                                                {
-                                                    <span class="badge bg-success w-100 py-2">Selesai</span>
-                                                }
-                                                else if (((string)post.Status) == "InProgress")
-                                                {
-                                                    <button class="btn btn-warning w-100 btn-start-standard" data-id="@post.Id">
-                                                        <i class="bi bi-play-circle-fill me-1"></i>Lanjutkan Post-Test <i class="bi bi-arrow-right ms-1"></i>
-                                                    </button>
-                                                }
-                                                else if (((string)post.Status) == "Upcoming" || (post.ExamWindowOpenDate != null && ((DateTime)post.ExamWindowOpenDate) > DateTime.UtcNow.AddHours(7)))
-                                                {
-                                                    <button class="btn btn-outline-secondary w-100" disabled>
-                                                        Opens @((post.ExamWindowOpenDate as DateTime?)?.ToString("dd MMM yyyy, HH:mm", CultureInfo.GetCultureInfo("id-ID"))) WIB
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <button class="btn btn-primary w-100 btn-start-standard" data-id="@post.Id">
-                                                        Mulai Post-Test <i class="bi bi-arrow-right ms-1"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-
-                        </div>
-                    </div>
-                }
-            }
-
-            @* === Standalone Cards (non-paired) === *@
-            @foreach (var item in (ViewBag.StandaloneExams as IEnumerable<HcPortal.Models.AssessmentSession> ?? Model))
+            @foreach (var item in Model)
             {
                 var defaultBadgeClass = item.Category switch
                 {
@@ -497,20 +326,7 @@
                             @foreach (var item in completedHistory)
                             {
                                 <tr>
-                                    <td class="fw-semibold">
-                                        @if (!string.IsNullOrEmpty((string)item.AssessmentType))
-                                        {
-                                            if ((string)item.AssessmentType == "PreTest")
-                                            {
-                                                <span class="badge bg-info text-dark me-1">Pre-Test</span>
-                                            }
-                                            else if ((string)item.AssessmentType == "PostTest")
-                                            {
-                                                <span class="badge bg-primary me-1">Post-Test</span>
-                                            }
-                                        }
-                                        @item.Title
-                                    </td>
+                                    <td class="fw-semibold">@item.Title</td>
                                     <td><span class="badge bg-secondary">@item.Category</span></td>
                                     <td>@(item.CompletedAt != null ? ((DateTime)item.CompletedAt).ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "\u2014")</td>
                                     <td>@(item.Score != null ? item.Score + "%" : "\u2014")</td>
@@ -680,13 +496,6 @@
     /* Hide cards smoothly */
     .assessment-card.hidden {
         display: none;
-    }
-
-    /* Pre-Post pair card responsive fix */
-    @@media (max-width: 767.98px) {
-        .assessment-card .row.g-3 > [role="img"] {
-            padding: 0.25rem 0;
-        }
     }
 
     /* Responsive */
