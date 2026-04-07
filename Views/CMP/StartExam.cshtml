@@ -1441,4 +1441,67 @@ else
     @@media (max-width: 991.98px) {
         #examContainer { padding-bottom: 72px; }
     }
+
+    /* Mobile touch targets (D-04, MOB-01) — hanya di < 768px per D-05 */
+    @@media (max-width: 767.98px) {
+        .list-group-item {
+            min-height: 48px;
+            padding: 12px 16px;
+        }
+        .form-check-input {
+            transform: scale(1.4) !important;
+        }
+        .card-body {
+            padding: 16px;
+        }
+        #mobileFooter .btn {
+            min-height: 48px;
+        }
+    }
+
+    /* Header compact mobile (D-08, D-09) */
+    @@media (max-width: 767.98px) {
+        #examHeader h6 {
+            max-width: calc(100vw - 160px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #examHeader .small.text-muted {
+            display: none !important;
+        }
+        #hubStatusBadge {
+            display: none !important;
+        }
+        #answeredProgress {
+            display: none !important;
+        }
+    }
+
+    /* Offcanvas drawer grid layout */
+    #drawerNumbers {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        align-items: start;
+        justify-items: center;
+    }
+
+    /* Landscape mode: sidebar kembali tampil (D-13, D-14) */
+    @@media (orientation: landscape) and (max-width: 991.98px) {
+        #questionPanelWrapper {
+            display: block !important;
+            flex: 0 0 200px;
+            width: 200px;
+            max-width: 200px;
+        }
+        #questionPanel {
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+        /* Sembunyikan offcanvas trigger di landscape karena sidebar sudah tampil */
+        #mobileFooter [data-bs-target="#questionNavDrawer"] {
+            display: none !important;
+        }
+    }
 </style>
