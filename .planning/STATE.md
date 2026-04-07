@@ -1,36 +1,48 @@
 ---
 gsd_state_version: 1.0
-milestone: v13.0
-milestone_name: Redesign Struktur Organisasi
-status: executing
-stopped_at: Completed 296-03-PLAN.md
-last_updated: "2026-04-06T08:11:22.885Z"
-last_activity: 2026-04-03
+milestone: v14.0
+milestone_name: Assessment Enhancement
+status: roadmap_ready
+stopped_at: Roadmap restored, ready to plan Phase 297
+last_updated: "2026-04-07T00:00:00.000Z"
+last_activity: 2026-04-07
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 7
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+  percent: 14
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-02)
+See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 295 — drag-drop-reorder
+**Current focus:** v14.0 Assessment Enhancement — Phase 297 (Admin Pre-Post Test)
 
 ## Current Position
 
-Phase: 295
-Plan: Not started
-Status: Executing Phase 295
-Last activity: 2026-04-03
+Phase: 297 (not started)
+Plan: —
+Status: Roadmap ready, awaiting phase planning
+Last activity: 2026-04-07 — Restored v14.0 roadmap (7 phases, 52 requirements)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 14% (1/7 phases)
+
+## v14.0 Phase Map
+
+| Phase | Name | Requirements | Depends on |
+|-------|------|--------------|------------|
+| 296 | Data Foundation + GradingService Extraction | FOUND-01..09 (9) | — |
+| 297 | Admin Pre-Post Test | PPT-01..11 (11) | 296 |
+| 298 | Question Types | QTYPE-01..13 (13) | 296 |
+| 299 | Worker Pre-Post Test + Comparison | WKPPT-01..07 (7) | 297 |
+| 300 | Mobile Optimization | MOB-01..06 (6) | 298 |
+| 301 | Advanced Reporting | RPT-01..07 (7) | 297, 298 |
+| 302 | Accessibility WCAG Quick Wins | A11Y-01..06 (6) | 298, 300 |
 
 ## Performance Metrics
 
@@ -58,6 +70,9 @@ Progress: [░░░░░░░░░░] 0%
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser
 - Phase 247 approval chain UAT: 2 TODO (HC review + resubmit notification)
+- [v14.0 research gap]: Essay max character limit belum diputuskan — perlu keputusan saat Phase 298 planning (nvarchar(max) vs nvarchar(2000))
+- [v14.0 research gap]: Item Analysis n-threshold UX — rekomendasi tampilkan warning "Data belum cukup (butuh min. 30 responden)"
+- [v14.0 research gap]: Pre-Post Renewal behavior — apakah buat 2 sesi baru otomatis? Perlu keputusan saat Phase 297 planning
 
 ### Blockers/Concerns
 
@@ -76,6 +91,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last activity: 2026-04-06 - Completed quick task 260406-l2i: Pindahkan Certification Management ke CMP
-Stopped at: Completed 296-03-PLAN.md
+Last activity: 2026-04-07 — Restored v14.0 roadmap (7 phases, 52 requirements). Phase 296 complete.
+Stopped at: Roadmap ready — next step: `/gsd-discuss-phase 297` or `/gsd-plan-phase 297`
 Resume file: None
