@@ -236,6 +236,72 @@ namespace HcPortal.Controllers
                     exam.Status = "Open";
             }
 
+            // === Pre-Post pair grouping (per D-01) ===
+
+            // Step 1: Kelompokkan sessions dari exams menjadi pair dan standalone
+            var prePairs = exams
+                .Where(e => !string.IsNullOrEmpty(e.AssessmentType) && e.AssessmentType == "PreTest" && e.LinkedGroupId.HasValue)
+                .ToList();
+
+            var postPairs = exams
+                .Where(e => !string.IsNullOrEmpty(e.AssessmentType) && e.AssessmentType == "PostTest" && e.LinkedGroupId.HasValue)
+                .ToList();
+
+            // Gunakan List<dynamic> agar bisa Add() nanti (anonymous type immutable)
+            var pairedGroups = new List<dynamic>();
+
+            foreach (var pre in prePairs)
+            {
+                var post = postPairs.FirstOrDefault(p => p.LinkedGroupId == pre.LinkedGroupId);
+                pairedGroups.Add(new { Pre = (dynamic)pre, Post = (dynamic)post });
+            }
+
+            // Track IDs yang sudah masuk pair
+            var pairedIds = new HashSet<int>(
+                pairedGroups.SelectMany(pg => {
+                    var ids = new List<int> { (int)pg.Pre.Id };
+                    if (pg.Post != null) ids.Add((int)pg.Post.Id);
+                    return ids;
+                })
+            );
+
+            // Step 2: Query Completed Pre sessions yang punya Post di exams
+            // SATU query untuk semua — bukan per-pair (review fix: avoid N+1)
+            var postGroupIds = postPairs
+                .Where(p => p.LinkedGroupId.HasValue)
+                .Select(p => p.LinkedGroupId.Value)
+                .Except(prePairs.Where(p => p.LinkedGroupId.HasValue).Select(p => p.LinkedGroupId.Value))
+                .ToList();
+
+            if (postGroupIds.Any())
+            {
+                var completedPreSessions = await _context.AssessmentSessions
+                    .Where(s => s.AssessmentType == "PreTest"
+                        && s.LinkedGroupId.HasValue
+                        && postGroupIds.Contains(s.LinkedGroupId.Value)
+                        && s.Status == "Completed")
+                    .ToListAsync();
+
+                foreach (var completedPre in completedPreSessions)
+                {
+                    var matchingPost = postPairs.FirstOrDefault(p => p.LinkedGroupId == completedPre.LinkedGroupId);
+                    if (matchingPost != null)
+                    {
+                        pairedGroups.Add(new { Pre = (dynamic)completedPre, Post = (dynamic)matchingPost });
+                        pairedIds.Add(completedPre.Id);
+                        pairedIds.Add(matchingPost.Id);
+                    }
+                }
+            }
+
+            // Step 3: Standalone = semua yang tidak masuk pair
+            var standaloneExams = exams
+                .Where(e => !pairedIds.Contains(e.Id))
+                .ToList();
+
+            ViewBag.PairedGroups = pairedGroups;
+            ViewBag.StandaloneExams = standaloneExams;
+
             // Pagination info for view
             ViewBag.CurrentPage = paging.CurrentPage;
             ViewBag.TotalPages = paging.TotalPages;
@@ -2185,6 +2251,76 @@ namespace HcPortal.Controllers
             }
 
             // Competency gains section removed in Phase 90 (KKJ tables dropped)
+
+            // === Pre-Post comparison section (per D-11, D-12, D-13, D-14) ===
+            ViewBag.HasComparisonSection = false;
+            ViewBag.GainScorePending = false;
+            ViewBag.ComparisonData = null;
+
+            if (!string.IsNullOrEmpty(assessment.AssessmentType)
+                && assessment.AssessmentType == "PostTest"
+                && assessment.LinkedSessionId.HasValue)
+            {
+                var preSessionId = assessment.LinkedSessionId.Value;
+
+                // Security: validasi Pre session exists DAN milik user yang sama (T-299-01 IDOR prevention)
+                var preSession = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(s => s.Id == preSessionId);
+
+                // Null-check preSession (review fix: LinkedSessionId bisa menunjuk ke session yang sudah dihapus)
+                if (preSession != null && preSession.UserId == assessment.UserId)
+                {
+                    // D-17: Essay pending check
+                    bool gainPending = assessment.HasManualGrading && assessment.IsPassed == null;
+
+                    // Query ET scores untuk kedua session dalam 2 query (bukan N+1)
+                    var preEtScores = await _context.SessionElemenTeknisScores
+                        .Where(s => s.AssessmentSessionId == preSessionId)
+                        .ToListAsync();
+
+                    var postEtScores = await _context.SessionElemenTeknisScores
+                        .Where(s => s.AssessmentSessionId == assessment.Id)
+                        .ToListAsync();
+
+                    // Pitfall 1: Jika Pre tidak punya ET scores, jangan tampilkan tabel misleading
+                    if (preEtScores.Any() && postEtScores.Any())
+                    {
+                        var comparisonRows = postEtScores
+                            .Select(post => {
+                                var pre = preEtScores.FirstOrDefault(p => p.ElemenTeknis == post.ElemenTeknis);
+                                double preScore = pre != null && pre.QuestionCount > 0
+                                    ? Math.Round((double)pre.CorrectCount / pre.QuestionCount * 100, 1) : 0;
+                                double postScore = post.QuestionCount > 0
+                                    ? Math.Round((double)post.CorrectCount / post.QuestionCount * 100, 1) : 0;
+
+                                // Gain score formula (D-16): (Post - Pre) / (100 - Pre) * 100
+                                // Edge case D-16: PreScore >= 100 -> Gain = 100 (avoid DivisionByZero)
+                                // Edge case D-17: Essay pending -> null
+                                // Note: PreScore = 0 -> formula yields postScore (intended behavior)
+                                double? gainScore = null;
+                                if (!gainPending)
+                                {
+                                    gainScore = preScore >= 100
+                                        ? 100
+                                        : Math.Round((postScore - preScore) / (100 - preScore) * 100, 1);
+                                }
+
+                                return new {
+                                    ElemenTeknis = post.ElemenTeknis,
+                                    PreScore = preScore,
+                                    PostScore = postScore,
+                                    GainScore = gainScore
+                                };
+                            })
+                            .OrderBy(r => r.ElemenTeknis)
+                            .ToList();
+
+                        ViewBag.ComparisonData = comparisonRows;
+                        ViewBag.GainScorePending = gainPending;
+                        ViewBag.HasComparisonSection = comparisonRows.Any();
+                    }
+                }
+            }
 
             return View(viewModel);
         }
