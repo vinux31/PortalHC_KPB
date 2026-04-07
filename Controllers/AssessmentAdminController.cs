@@ -53,6 +53,7 @@ namespace HcPortal.Controllers
         protected new ViewResult View(object? model) => base.View("~/Views/Admin/" + ControllerContext.ActionDescriptor.ActionName + ".cshtml", model);
         protected new ViewResult View(string viewName) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml");
         protected new ViewResult View(string viewName, object? model) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml", model);
+        protected new PartialViewResult PartialView(string viewName, object? model) => base.PartialView(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml", model);
 
         // GET /Admin/ManageAssessment
         [HttpGet]
@@ -101,45 +102,62 @@ namespace HcPortal.Controllers
                     a.PassPercentage,
                     a.AllowAnswerReview,
                     a.CreatedAt,
+                    a.AssessmentType,
+                    a.LinkedGroupId,
                     UserFullName = a.User != null ? a.User.FullName : "Unknown",
                     UserEmail = a.User != null ? a.User.Email : "",
                     UserId = a.User != null ? a.User.Id : ""
                 })
                 .ToListAsync();
 
-            // Group by (Title, Category, Schedule.Date) — identical to CMPController manage branch
-            var grouped = allSessions
-                .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
-                .Select(g =>
-                {
-                    var rep = g.OrderBy(a => a.CreatedAt).First();
-                    // Compute GroupStatus from session statuses
+            var mgPrePostSessions = allSessions.Where(a => a.LinkedGroupId != null).ToList();
+            var mgStandardSessions = allSessions.Where(a => a.LinkedGroupId == null).ToList();
+
+            // Pre-Post: group by LinkedGroupId
+            var prePostGrouped = mgPrePostSessions
+                .GroupBy(a => a.LinkedGroupId)
+                .Select(g => {
+                    var rep = g.Where(a => a.AssessmentType == "PreTest").OrderBy(a => a.CreatedAt).FirstOrDefault() ?? g.OrderBy(a => a.CreatedAt).First();
                     string groupStatus;
-                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
-                        groupStatus = "Open";
-                    else if (g.Any(a => a.Status == "Upcoming"))
-                        groupStatus = "Upcoming";
-                    else
-                        groupStatus = "Closed";
-                    return new
-                    {
-                        rep.Title,
-                        rep.Category,
-                        rep.Schedule,
-                        rep.ExamWindowCloseDate,
-                        rep.DurationMinutes,
-                        rep.Status,
-                        rep.IsTokenRequired,
-                        rep.AccessToken,
-                        rep.PassPercentage,
-                        rep.AllowAnswerReview,
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress")) groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming")) groupStatus = "Upcoming";
+                    else groupStatus = "Closed";
+                    return new {
+                        rep.Title, rep.Category, rep.Schedule, rep.ExamWindowCloseDate, rep.DurationMinutes,
+                        rep.Status, rep.IsTokenRequired, rep.AccessToken, rep.PassPercentage, rep.AllowAnswerReview,
                         RepresentativeId = rep.Id,
-                        Users = g.Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList(),
+                        Users = g.Where(a => a.AssessmentType == "PreTest").Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList<dynamic>(),
+                        AllIds = g.Select(a => a.Id).ToList(),
+                        UserCount = g.Where(a => a.AssessmentType == "PreTest").Count(),
+                        GroupStatus = groupStatus,
+                        IsPrePostGroup = true,
+                        LinkedGroupId = g.Key
+                    };
+                }).ToList<dynamic>();
+
+            // Standard: existing logic
+            var standardGrouped = mgStandardSessions
+                .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
+                .Select(g => {
+                    var rep = g.OrderBy(a => a.CreatedAt).First();
+                    string groupStatus;
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress")) groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming")) groupStatus = "Upcoming";
+                    else groupStatus = "Closed";
+                    return new {
+                        rep.Title, rep.Category, rep.Schedule, rep.ExamWindowCloseDate, rep.DurationMinutes,
+                        rep.Status, rep.IsTokenRequired, rep.AccessToken, rep.PassPercentage, rep.AllowAnswerReview,
+                        RepresentativeId = rep.Id,
+                        Users = g.Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList<dynamic>(),
                         AllIds = g.Select(a => a.Id).ToList(),
                         UserCount = g.Count(),
-                        GroupStatus = groupStatus
+                        GroupStatus = groupStatus,
+                        IsPrePostGroup = false,
+                        LinkedGroupId = (int?)null
                     };
-                })
+                }).ToList<dynamic>();
+
+            var grouped = prePostGrouped.Concat(standardGrouped)
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
@@ -700,6 +718,7 @@ namespace HcPortal.Controllers
             }
 
             ViewBag.IsRenewalMode = isRenewalMode;
+            ViewBag.AssessmentTypeInput = "";
 
             return View(model);
         }
@@ -708,7 +727,13 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAssessment(AssessmentSession model, List<string> UserIds, string? RenewalFkMap = null, string? RenewalFkMapType = null)
+        public async Task<IActionResult> CreateAssessment(
+            AssessmentSession model, List<string> UserIds,
+            string? RenewalFkMap = null, string? RenewalFkMapType = null,
+            string? AssessmentTypeInput = null,
+            DateTime? PreSchedule = null, int? PreDurationMinutes = null, DateTime? PreExamWindowCloseDate = null,
+            DateTime? PostSchedule = null, int? PostDurationMinutes = null, DateTime? PostExamWindowCloseDate = null,
+            bool SamePackage = false)
         {
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
@@ -747,30 +772,39 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("UserIds", "Cannot assign to more than 50 users at once. Please split into multiple batches.");
             }
 
-            // Validate schedule date
-            if (model.Schedule < DateTime.Today)
-            {
-                ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
-            }
+            // Early Pre-Post mode determination (needed before standard field validation)
+            bool isPrePostMode = AssessmentTypeInput == "PrePostTest";
 
-            if (model.Schedule > DateTime.Today.AddYears(2))
+            // Validate schedule date (skip for Pre-Post — uses PreSchedule/PostSchedule instead)
+            if (!isPrePostMode)
             {
-                ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
-            }
-
-            // Validate duration (skip for Assessment Proton Tahun 3 — interview only, no online exam)
-            bool isProtonYear3Check = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue;
-            // We'll resolve TahunKe after ModelState check below; for now use DurationMinutes=0 sentinel
-            if (!isProtonYear3Check || model.DurationMinutes != 0)
-            {
-                if (model.DurationMinutes <= 0)
+                if (model.Schedule < DateTime.Today)
                 {
-                    ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
+                    ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
                 }
 
-                if (model.DurationMinutes > 480)
+                if (model.Schedule > DateTime.Today.AddYears(2))
                 {
-                    ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+                    ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
+                }
+            }
+
+            // Validate duration (skip for Pre-Post and Assessment Proton Tahun 3)
+            if (!isPrePostMode)
+            {
+                bool isProtonYear3Check = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue;
+                // We'll resolve TahunKe after ModelState check below; for now use DurationMinutes=0 sentinel
+                if (!isProtonYear3Check || model.DurationMinutes != 0)
+                {
+                    if (model.DurationMinutes <= 0)
+                    {
+                        ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
+                    }
+
+                    if (model.DurationMinutes > 480)
+                    {
+                        ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+                    }
                 }
             }
 
@@ -820,6 +854,41 @@ namespace HcPortal.Controllers
             }
             // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
             ModelState.Remove("NomorSertifikat");
+
+            // T-297-01: Validate AssessmentTypeInput hanya "Standard" atau "PrePostTest"
+            if (!string.IsNullOrEmpty(AssessmentTypeInput) && AssessmentTypeInput != "Standard" && AssessmentTypeInput != "PrePostTest")
+            {
+                ModelState.AddModelError("AssessmentTypeInput", "Tipe assessment tidak valid.");
+            }
+
+            // isPrePostMode already determined above (before Schedule/Duration validation)
+
+            if (isPrePostMode)
+            {
+                // Validasi field Pre wajib
+                if (!PreSchedule.HasValue)
+                    ModelState.AddModelError("PreSchedule", "Jadwal Pre-Test wajib diisi.");
+                if (!PreDurationMinutes.HasValue || PreDurationMinutes <= 0)
+                    ModelState.AddModelError("PreDurationMinutes", "Durasi Pre-Test harus lebih dari 0.");
+                if (PreDurationMinutes > 480)
+                    ModelState.AddModelError("PreDurationMinutes", "Durasi Pre-Test tidak boleh lebih dari 480 menit.");
+
+                // Validasi field Post wajib
+                if (!PostSchedule.HasValue)
+                    ModelState.AddModelError("PostSchedule", "Jadwal Post-Test wajib diisi.");
+                if (!PostDurationMinutes.HasValue || PostDurationMinutes <= 0)
+                    ModelState.AddModelError("PostDurationMinutes", "Durasi Post-Test harus lebih dari 0.");
+                if (PostDurationMinutes > 480)
+                    ModelState.AddModelError("PostDurationMinutes", "Durasi Post-Test tidak boleh lebih dari 480 menit.");
+
+                // D-06: Schedule Post harus setelah Pre (T-297-02)
+                if (PreSchedule.HasValue && PostSchedule.HasValue && PostSchedule <= PreSchedule)
+                    ModelState.AddModelError("PostSchedule", "Jadwal Post-Test harus setelah jadwal Pre-Test.");
+
+                // Override model fields agar validasi standar Schedule/Duration tidak gagal
+                if (PreSchedule.HasValue) model.Schedule = PreSchedule.Value;
+                if (PreDurationMinutes.HasValue) model.DurationMinutes = PreDurationMinutes.Value;
+            }
 
             // Validate model
             if (!ModelState.IsValid)
@@ -971,6 +1040,100 @@ namespace HcPortal.Controllers
                         _logger.LogWarning(ex, "Failed to deserialize RenewalFkMap");
                     }
                 }
+
+                // Pre-Post Test mode: buat 2 session per user (Pre + Post) secara transaksional
+                if (isPrePostMode)
+                {
+                    // FASE 1: Buat Pre sessions
+                    var preSessions = new List<AssessmentSession>();
+                    foreach (var userId in UserIds)
+                    {
+                        var preSession = new AssessmentSession
+                        {
+                            Title = model.Title,
+                            Category = model.Category,
+                            Schedule = PreSchedule!.Value,
+                            DurationMinutes = PreDurationMinutes!.Value,
+                            ExamWindowCloseDate = PreExamWindowCloseDate,
+                            Status = "Upcoming",
+                            PassPercentage = model.PassPercentage,
+                            AllowAnswerReview = model.AllowAnswerReview,
+                            IsTokenRequired = model.IsTokenRequired,
+                            AccessToken = model.AccessToken,
+                            GenerateCertificate = false,  // D-20: Pre TIDAK generate sertifikat
+                            ValidUntil = null,
+                            UserId = userId,
+                            AssessmentType = "PreTest",
+                            CreatedBy = currentUser?.Id,
+                            BannerColor = model.BannerColor
+                        };
+                        preSessions.Add(preSession);
+                    }
+
+                    using var pptTransaction = await _context.Database.BeginTransactionAsync();
+                    try
+                    {
+                        _context.AssessmentSessions.AddRange(preSessions);
+                        await _context.SaveChangesAsync(); // Pre sessions get Ids
+
+                        int linkedGroupId = preSessions[0].Id;
+
+                        // FASE 2: Buat Post sessions
+                        var postSessions = new List<AssessmentSession>();
+                        for (int i = 0; i < UserIds.Count; i++)
+                        {
+                            var postSession = new AssessmentSession
+                            {
+                                Title = model.Title,
+                                Category = model.Category,
+                                Schedule = PostSchedule!.Value,
+                                DurationMinutes = PostDurationMinutes!.Value,
+                                ExamWindowCloseDate = PostExamWindowCloseDate,
+                                Status = "Upcoming",
+                                PassPercentage = model.PassPercentage,
+                                AllowAnswerReview = model.AllowAnswerReview,
+                                IsTokenRequired = model.IsTokenRequired,
+                                AccessToken = model.AccessToken,
+                                GenerateCertificate = model.GenerateCertificate, // D-21: pilihan HC
+                                ValidUntil = model.ValidUntil,
+                                UserId = UserIds[i],
+                                AssessmentType = "PostTest",
+                                LinkedGroupId = linkedGroupId,
+                                CreatedBy = currentUser?.Id,
+                                BannerColor = model.BannerColor,
+                                RenewsSessionId = model.RenewsSessionId, // D-24: renewal FK hanya di Post
+                                RenewsTrainingId = model.RenewsTrainingId
+                            };
+                            postSessions.Add(postSession);
+                        }
+
+                        _context.AssessmentSessions.AddRange(postSessions);
+                        await _context.SaveChangesAsync(); // Post sessions get Ids
+
+                        // FASE 3: Cross-link LinkedSessionId dan set LinkedGroupId pada Pre
+                        for (int i = 0; i < preSessions.Count; i++)
+                        {
+                            preSessions[i].LinkedGroupId = linkedGroupId;
+                            preSessions[i].LinkedSessionId = postSessions[i].Id;
+                            postSessions[i].LinkedSessionId = preSessions[i].Id;
+                        }
+                        await _context.SaveChangesAsync();
+                        await pptTransaction.CommitAsync();
+
+                        TempData["Success"] = $"Assessment Pre-Post Test '{model.Title}' berhasil dibuat untuk {UserIds.Count} peserta ({preSessions.Count + postSessions.Count} sesi).";
+                        return RedirectToAction("ManageAssessment");
+                    }
+                    catch (Exception ex)
+                    {
+                        await pptTransaction.RollbackAsync();
+                        _logger.LogError(ex, "Error creating Pre-Post Test assessment");
+                        TempData["Error"] = "Gagal membuat assessment Pre-Post Test. Silakan coba lagi.";
+                        await SetCategoriesViewBag();
+                        await SetTrainingCategoryViewBag();
+                        return View(model);
+                    }
+                }
+                // else: flow standard existing continues below...
 
                 // Create all sessions in memory first
                 var sessions = new List<AssessmentSession>();
@@ -1173,34 +1336,89 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageAssessment");
             }
 
-            // Query sibling sessions: same Title + Category + Schedule.Date (includes the current session)
-            var siblings = await _context.AssessmentSessions
-                .Include(a => a.User)
-                .Where(a => a.Title == assessment.Title
-                         && a.Category == assessment.Category
-                         && a.Schedule.Date == assessment.Schedule.Date)
-                .ToListAsync();
+            // Detect Pre-Post group
+            bool isPrePost = assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest";
 
-            var siblingUserIds = siblings
-                .Where(a => a.User != null)
-                .Select(a => a.UserId)
-                .Distinct()
-                .ToList();
+            if (isPrePost && assessment.LinkedGroupId.HasValue)
+            {
+                // Load semua sessions dalam grup Pre-Post
+                var groupSessions = await _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
+                    .ToListAsync();
 
-            // Build assigned users list for display (read-only)
-            ViewBag.AssignedUsers = siblings
-                .Where(a => a.User != null)
-                .Select(a => new
-                {
-                    Id = a.Id,
-                    FullName = a.User!.FullName ?? "",
-                    Email = a.User!.Email ?? "",
-                    Section = a.User!.Section ?? ""
-                })
-                .ToList();
+                var preSessions = groupSessions.Where(a => a.AssessmentType == "PreTest").ToList();
+                var postSessions = groupSessions.Where(a => a.AssessmentType == "PostTest").ToList();
 
-            // Store assigned user IDs so the picker can exclude them
-            ViewBag.AssignedUserIds = siblingUserIds;
+                ViewBag.IsPrePostGroup = true;
+                ViewBag.PreSession = preSessions.FirstOrDefault();
+                ViewBag.PostSession = postSessions.FirstOrDefault();
+                ViewBag.PreSessionIds = preSessions.Select(s => s.Id).ToList();
+                ViewBag.PostSessionIds = postSessions.Select(s => s.Id).ToList();
+
+                // Override siblings: semua users dalam grup (Pre sessions saja untuk avoid duplicates)
+                var groupUserIds = preSessions.Where(a => a.User != null).Select(a => a.UserId).Distinct().ToList();
+                ViewBag.AssignedUsers = preSessions.Where(a => a.User != null)
+                    .Select(a => new
+                    {
+                        Id = a.Id,
+                        FullName = a.User!.FullName ?? "",
+                        Email = a.User!.Email ?? "",
+                        Section = a.User!.Section ?? "",
+                        Status = a.Status ?? "-",
+                        CanDelete = a.Status != "InProgress" && a.Status != "Completed"
+                    }).ToList<dynamic>();
+                ViewBag.AssignedUserIds = groupUserIds;
+
+                // Package count per phase
+                var preIds = preSessions.Select(s => s.Id).ToList();
+                var postIds = postSessions.Select(s => s.Id).ToList();
+                ViewBag.PrePackageCount = await _context.AssessmentPackages.CountAsync(p => preIds.Contains(p.AssessmentSessionId));
+                ViewBag.PostPackageCount = await _context.AssessmentPackages.CountAsync(p => postIds.Contains(p.AssessmentSessionId));
+
+                // PackageCount for schedule-change warning (total)
+                ViewBag.PackageCount = (int)ViewBag.PrePackageCount + (int)ViewBag.PostPackageCount;
+            }
+            else
+            {
+                ViewBag.IsPrePostGroup = false;
+
+                // Query sibling sessions: same Title + Category + Schedule.Date (includes the current session)
+                var siblings = await _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .Where(a => a.Title == assessment.Title
+                             && a.Category == assessment.Category
+                             && a.Schedule.Date == assessment.Schedule.Date)
+                    .ToListAsync();
+
+                var siblingUserIds = siblings
+                    .Where(a => a.User != null)
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .ToList();
+
+                // Build assigned users list for display (read-only)
+                ViewBag.AssignedUsers = siblings
+                    .Where(a => a.User != null)
+                    .Select(a => new
+                    {
+                        Id = a.Id,
+                        FullName = a.User!.FullName ?? "",
+                        Email = a.User!.Email ?? "",
+                        Section = a.User!.Section ?? "",
+                        Status = a.Status ?? "-",
+                        CanDelete = false
+                    }).ToList<dynamic>();
+
+                // Store assigned user IDs so the picker can exclude them
+                ViewBag.AssignedUserIds = siblingUserIds;
+
+                // Count packages attached to this assessment's sibling group (for schedule-change warning)
+                var siblingIds = siblings.Select(s => s.Id).ToList();
+                var packageCount = await _context.AssessmentPackages
+                    .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+                ViewBag.PackageCount = packageCount;
+            }
 
             // Get list of all users for the picker
             var users = await _context.Users
@@ -1211,12 +1429,6 @@ namespace HcPortal.Controllers
 
             ViewBag.Users = users;
             ViewBag.Sections = await _context.GetAllSectionsAsync();
-
-            // Count packages attached to this assessment's sibling group (for schedule-change warning)
-            var siblingIds = siblings.Select(s => s.Id).ToList();
-            var packageCount = await _context.AssessmentPackages
-                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
-            ViewBag.PackageCount = packageCount;
             ViewBag.OriginalSchedule = assessment.Schedule.ToString("yyyy-MM-dd");
             ViewBag.Categories = await _context.AssessmentCategories
                 .Where(c => c.IsActive)
@@ -1238,7 +1450,10 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds)
+        public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds,
+            DateTime? PreSchedule, int? PreDurationMinutes, DateTime? PreExamWindowCloseDate,
+            DateTime? PostSchedule, int? PostDurationMinutes, DateTime? PostExamWindowCloseDate,
+            List<string>? UserIds)
         {
             var assessment = await _context.AssessmentSessions.FindAsync(id);
             if (assessment == null)
@@ -1246,6 +1461,177 @@ namespace HcPortal.Controllers
                 TempData["Error"] = "Assessment not found.";
                 return RedirectToAction("ManageAssessment");
             }
+
+            // --- Pre-Post branch: handle Pre-Post group edit separately ---
+            if ((assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest")
+                && assessment.LinkedGroupId.HasValue)
+            {
+                // Validate PostSchedule > PreSchedule (T-297-07)
+                if (PreSchedule.HasValue && PostSchedule.HasValue && PostSchedule.Value <= PreSchedule.Value)
+                {
+                    TempData["Error"] = "Jadwal Post-Test harus setelah jadwal Pre-Test.";
+                    return RedirectToAction("EditAssessment", new { id });
+                }
+
+                var allGroupSessions = await _context.AssessmentSessions
+                    .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
+                    .ToListAsync();
+
+                var preGroup = allGroupSessions.Where(a => a.AssessmentType == "PreTest").ToList();
+                var postGroup = allGroupSessions.Where(a => a.AssessmentType == "PostTest").ToList();
+
+                // Update shared fields pada semua sessions
+                foreach (var s in allGroupSessions)
+                {
+                    s.Title = model.Title;
+                    s.Category = model.Category;
+                    s.PassPercentage = model.PassPercentage;
+                    s.AllowAnswerReview = model.AllowAnswerReview;
+                    s.IsTokenRequired = model.IsTokenRequired;
+                    s.AccessToken = model.IsTokenRequired ? (model.AccessToken ?? s.AccessToken ?? "") : "";
+                    s.UpdatedAt = DateTime.UtcNow;
+                }
+
+                // Update per-phase fields
+                if (PreSchedule.HasValue)
+                {
+                    foreach (var s in preGroup)
+                    {
+                        s.Schedule = PreSchedule.Value;
+                        if (PreDurationMinutes.HasValue) s.DurationMinutes = PreDurationMinutes.Value;
+                        s.ExamWindowCloseDate = PreExamWindowCloseDate;
+                    }
+                }
+                if (PostSchedule.HasValue)
+                {
+                    foreach (var s in postGroup)
+                    {
+                        s.Schedule = PostSchedule.Value;
+                        if (PostDurationMinutes.HasValue) s.DurationMinutes = PostDurationMinutes.Value;
+                        s.ExamWindowCloseDate = PostExamWindowCloseDate;
+                        s.GenerateCertificate = model.GenerateCertificate;
+                        s.ValidUntil = model.ValidUntil;
+                    }
+                }
+
+                // D-31: Tambah peserta baru = buat Pre+Post session
+                if (UserIds != null && UserIds.Any())
+                {
+                    var existingUserIds = preGroup.Select(s => s.UserId).ToHashSet();
+                    var newUserIds = UserIds.Where(u => !existingUserIds.Contains(u)).ToList();
+
+                    // D-32: Hapus peserta — hapus kedua session Pre+Post untuk user yang dihapus
+                    var removedUserIds = existingUserIds.Where(u => !UserIds.Contains(u)).ToList();
+                    foreach (var removedUserId in removedUserIds)
+                    {
+                        var userPreSession = preGroup.FirstOrDefault(s => s.UserId == removedUserId);
+                        var userPostSession = postGroup.FirstOrDefault(s => s.UserId == removedUserId);
+
+                        // D-32 validasi: tidak bisa hapus jika Pre atau Post sudah InProgress/Completed (T-297-08)
+                        if (userPreSession != null && (userPreSession.Status == "InProgress" || userPreSession.Status == "Completed"))
+                        {
+                            TempData["Error"] = $"Tidak dapat menghapus peserta — sesi Pre-Test sudah {userPreSession.Status}.";
+                            continue;
+                        }
+                        if (userPostSession != null && (userPostSession.Status == "InProgress" || userPostSession.Status == "Completed"))
+                        {
+                            TempData["Error"] = $"Tidak dapat menghapus peserta — sesi Post-Test sudah {userPostSession.Status}.";
+                            continue;
+                        }
+
+                        var sessionsToRemove = new List<AssessmentSession>();
+                        if (userPreSession != null) sessionsToRemove.Add(userPreSession);
+                        if (userPostSession != null) sessionsToRemove.Add(userPostSession);
+
+                        var sessionIdsToRemove = sessionsToRemove.Select(s => s.Id).ToList();
+
+                        // Cascade delete data terkait
+                        var responses = await _context.PackageUserResponses
+                            .Where(r => sessionIdsToRemove.Contains(r.AssessmentSessionId))
+                            .ToListAsync();
+                        if (responses.Any()) _context.PackageUserResponses.RemoveRange(responses);
+
+                        var attempts = await _context.AssessmentAttemptHistory
+                            .Where(h => sessionIdsToRemove.Contains(h.SessionId))
+                            .ToListAsync();
+                        if (attempts.Any()) _context.AssessmentAttemptHistory.RemoveRange(attempts);
+
+                        var packages = await _context.AssessmentPackages
+                            .Include(p => p.Questions).ThenInclude(q => q.Options)
+                            .Where(p => sessionIdsToRemove.Contains(p.AssessmentSessionId))
+                            .ToListAsync();
+                        foreach (var pkg in packages)
+                        {
+                            foreach (var q in pkg.Questions)
+                                _context.PackageOptions.RemoveRange(q.Options);
+                            _context.PackageQuestions.RemoveRange(pkg.Questions);
+                        }
+                        if (packages.Any()) _context.AssessmentPackages.RemoveRange(packages);
+
+                        _context.AssessmentSessions.RemoveRange(sessionsToRemove);
+                    }
+
+                    // Tambah peserta baru
+                    foreach (var newUserId in newUserIds)
+                    {
+                        var repPre = preGroup.First();
+                        var repPost = postGroup.First();
+                        var linkedGroupId = assessment.LinkedGroupId!.Value;
+
+                        var currentUser = await _userManager.GetUserAsync(User);
+                        var newPre = new AssessmentSession
+                        {
+                            Title = model.Title,
+                            Category = model.Category,
+                            Schedule = PreSchedule ?? repPre.Schedule,
+                            DurationMinutes = PreDurationMinutes ?? repPre.DurationMinutes,
+                            ExamWindowCloseDate = PreExamWindowCloseDate ?? repPre.ExamWindowCloseDate,
+                            Status = "Upcoming",
+                            PassPercentage = model.PassPercentage,
+                            AllowAnswerReview = model.AllowAnswerReview,
+                            IsTokenRequired = model.IsTokenRequired,
+                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            GenerateCertificate = false,
+                            UserId = newUserId,
+                            AssessmentType = "PreTest",
+                            LinkedGroupId = linkedGroupId,
+                            CreatedBy = currentUser?.Id,
+                            BannerColor = repPre.BannerColor
+                        };
+                        var newPost = new AssessmentSession
+                        {
+                            Title = model.Title,
+                            Category = model.Category,
+                            Schedule = PostSchedule ?? repPost.Schedule,
+                            DurationMinutes = PostDurationMinutes ?? repPost.DurationMinutes,
+                            ExamWindowCloseDate = PostExamWindowCloseDate ?? repPost.ExamWindowCloseDate,
+                            Status = "Upcoming",
+                            PassPercentage = model.PassPercentage,
+                            AllowAnswerReview = model.AllowAnswerReview,
+                            IsTokenRequired = model.IsTokenRequired,
+                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            GenerateCertificate = model.GenerateCertificate,
+                            ValidUntil = model.ValidUntil,
+                            UserId = newUserId,
+                            AssessmentType = "PostTest",
+                            LinkedGroupId = linkedGroupId,
+                            CreatedBy = currentUser?.Id,
+                            BannerColor = repPost.BannerColor
+                        };
+
+                        _context.AssessmentSessions.AddRange(newPre, newPost);
+                        await _context.SaveChangesAsync();
+
+                        newPre.LinkedSessionId = newPost.Id;
+                        newPost.LinkedSessionId = newPre.Id;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Assessment Pre-Post Test berhasil diperbarui.";
+                return RedirectToAction("ManageAssessment");
+            }
+            // --- End Pre-Post branch ---
 
             // Prevent editing completed assessments (optional - you can remove this if needed)
             if (assessment.Status == "Completed")
@@ -1506,6 +1892,13 @@ namespace HcPortal.Controllers
                 var assessmentTitle = assessment.Title;
                 logger.LogInformation($"Attempting to delete assessment {id}: {assessmentTitle}");
 
+                // D-19: Block delete individual jika bagian Pre-Post group
+                if (assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest")
+                {
+                    TempData["Error"] = "Sesi ini bagian dari grup Pre-Post Test. Gunakan 'Hapus Grup' untuk menghapus keduanya.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
                 // Delete PackageUserResponses (Restrict FK — must be removed before session)
                 var pkgResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
@@ -1686,6 +2079,97 @@ namespace HcPortal.Controllers
             }
         }
 
+        // --- DELETE PRE-POST GROUP (D-18, D-19) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePrePostGroup(int linkedGroupId)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+
+            try
+            {
+                // Find semua sessions dalam Pre-Post group
+                var groupSessions = await _context.AssessmentSessions
+                    .Where(a => a.LinkedGroupId == linkedGroupId)
+                    .ToListAsync();
+
+                if (!groupSessions.Any())
+                {
+                    TempData["Error"] = "Grup Pre-Post Test tidak ditemukan.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
+                var groupTitle = groupSessions.First().Title;
+                var groupIds = groupSessions.Select(s => s.Id).ToList();
+
+                logger.LogInformation($"DeletePrePostGroup: deleting {groupSessions.Count} sessions for '{groupTitle}' (LinkedGroupId={linkedGroupId})");
+
+                // Cascade delete — ikuti pola DeleteAssessmentGroup:
+                // 1. PackageUserResponses
+                var allPkgResponses = await _context.PackageUserResponses
+                    .Where(r => groupIds.Contains(r.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPkgResponses.Any())
+                    _context.PackageUserResponses.RemoveRange(allPkgResponses);
+
+                // 2. AssessmentAttemptHistory
+                var allAttemptHistory = await _context.AssessmentAttemptHistory
+                    .Where(h => groupIds.Contains(h.SessionId))
+                    .ToListAsync();
+                if (allAttemptHistory.Any())
+                    _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
+
+                // 3. Packages + Questions + Options
+                var allPackages = await _context.AssessmentPackages
+                    .Include(p => p.Questions).ThenInclude(q => q.Options)
+                    .Where(p => groupIds.Contains(p.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPackages.Any())
+                {
+                    foreach (var pkg in allPackages)
+                    {
+                        foreach (var q in pkg.Questions)
+                            _context.PackageOptions.RemoveRange(q.Options);
+                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                    }
+                    _context.AssessmentPackages.RemoveRange(allPackages);
+                }
+
+                // 4. Sessions
+                _context.AssessmentSessions.RemoveRange(groupSessions);
+
+                await _context.SaveChangesAsync();
+
+                // Audit log
+                try
+                {
+                    var dpgUser = await _userManager.GetUserAsync(User);
+                    var dpgActorName = string.IsNullOrWhiteSpace(dpgUser?.NIP) ? (dpgUser?.FullName ?? "Unknown") : $"{dpgUser.NIP} - {dpgUser.FullName}";
+                    await _auditLog.LogAsync(
+                        dpgUser?.Id ?? "",
+                        dpgActorName,
+                        "DeletePrePostGroup",
+                        $"Deleted Pre-Post group '{groupTitle}' — {groupSessions.Count} session(s) (LinkedGroupId={linkedGroupId})",
+                        linkedGroupId,
+                        "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    logger.LogWarning(auditEx, "Audit log write failed for DeletePrePostGroup {LinkedGroupId}", linkedGroupId);
+                }
+
+                TempData["Success"] = $"Grup Pre-Post Test '{groupTitle}' dan semua {groupSessions.Count} sesi berhasil dihapus.";
+                return RedirectToAction("ManageAssessment");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "DeletePrePostGroup error for LinkedGroupId {LinkedGroupId}", linkedGroupId);
+                TempData["Error"] = "Gagal menghapus grup Pre-Post Test. Silakan coba lagi.";
+                return RedirectToAction("ManageAssessment");
+            }
+        }
+
         // --- REGENERATE TOKEN ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -1798,19 +2282,102 @@ namespace HcPortal.Controllers
                     a.IsTokenRequired,
                     a.AccessToken,
                     a.CreatedAt,
+                    a.AssessmentType,
+                    a.LinkedGroupId,
+                    a.DurationMinutes,
                     IsCompleted = a.CompletedAt != null,
                     IsPassed = a.IsPassed ?? false,
-                    IsStarted = a.StartedAt != null
+                    IsStarted = a.StartedAt != null,
+                    IsMenungguPenilaian = a.Status == "Menunggu Penilaian",
+                    a.HasManualGrading
                 })
                 .ToListAsync();
 
-            // Group by (Title, Category, Schedule.Date)
-            var grouped = allSessions
+            // Pisahkan Pre-Post dari Standard (D-33)
+            var prePostSessions = allSessions.Where(a => a.LinkedGroupId != null).ToList();
+            var standardSessions = allSessions.Where(a => a.LinkedGroupId == null).ToList();
+
+            // Group Pre-Post by LinkedGroupId
+            var prePostGroups = prePostSessions
+                .GroupBy(a => a.LinkedGroupId)
+                .Select(g =>
+                {
+                    var preSubs = g.Where(a => a.AssessmentType == "PreTest").ToList();
+                    var postSubs = g.Where(a => a.AssessmentType == "PostTest").ToList();
+                    var rep = preSubs.OrderBy(a => a.CreatedAt).FirstOrDefault() ?? g.OrderBy(a => a.CreatedAt).First();
+
+                    // D-29: status derived
+                    string groupStatus;
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
+                        groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming"))
+                        groupStatus = "Upcoming";
+                    else
+                        groupStatus = "Closed";
+
+                    // Helper untuk sub-row status
+                    string SubRowStatus(IEnumerable<dynamic> subs)
+                    {
+                        if (subs.Any(a => (string)a.Status == "Open" || (string)a.Status == "InProgress")) return "Open";
+                        if (subs.Any(a => (string)a.Status == "Upcoming")) return "Upcoming";
+                        return "Closed";
+                    }
+
+                    return new MonitoringGroupViewModel
+                    {
+                        RepresentativeId = rep.Id,
+                        Title = rep.Title,
+                        Category = rep.Category,
+                        Schedule = rep.Schedule,
+                        GroupStatus = groupStatus,
+                        // D-11: stat gabungan dari Post
+                        TotalCount = postSubs.Count > 0 ? postSubs.Count : preSubs.Count,
+                        CompletedCount = postSubs.Count(a => a.IsCompleted),
+                        PassedCount = postSubs.Count(a => a.IsPassed),
+                        PendingCount = postSubs.Count(a => !a.IsCompleted && !a.IsStarted),
+                        InProgressCount = postSubs.Count(a => a.IsStarted && !a.IsCompleted),
+                        CancelledCount = g.Count(a => a.Status == "Cancelled"),
+                        IsTokenRequired = rep.IsTokenRequired,
+                        AccessToken = rep.AccessToken ?? "",
+                        IsPrePostGroup = true,
+                        LinkedGroupId = g.Key,
+                        PreSubRow = preSubs.Any() ? new MonitoringSubRowViewModel
+                        {
+                            RepresentativeId = preSubs.OrderBy(a => a.CreatedAt).First().Id,
+                            Phase = "PreTest",
+                            Schedule = preSubs.First().Schedule,
+                            DurationMinutes = preSubs.First().DurationMinutes,
+                            TotalCount = preSubs.Count,
+                            CompletedCount = preSubs.Count(a => a.IsCompleted),
+                            PassedCount = preSubs.Count(a => a.IsPassed),
+                            PendingCount = preSubs.Count(a => !a.IsCompleted && !a.IsStarted),
+                            InProgressCount = preSubs.Count(a => a.IsStarted && !a.IsCompleted),
+                            CancelledCount = preSubs.Count(a => a.Status == "Cancelled"),
+                            GroupStatus = SubRowStatus(preSubs.Cast<dynamic>())
+                        } : null,
+                        PostSubRow = postSubs.Any() ? new MonitoringSubRowViewModel
+                        {
+                            RepresentativeId = postSubs.OrderBy(a => a.CreatedAt).First().Id,
+                            Phase = "PostTest",
+                            Schedule = postSubs.First().Schedule,
+                            DurationMinutes = postSubs.First().DurationMinutes,
+                            TotalCount = postSubs.Count,
+                            CompletedCount = postSubs.Count(a => a.IsCompleted),
+                            PassedCount = postSubs.Count(a => a.IsPassed),
+                            PendingCount = postSubs.Count(a => !a.IsCompleted && !a.IsStarted),
+                            InProgressCount = postSubs.Count(a => a.IsStarted && !a.IsCompleted),
+                            CancelledCount = postSubs.Count(a => a.Status == "Cancelled"),
+                            GroupStatus = SubRowStatus(postSubs.Cast<dynamic>())
+                        } : null
+                    };
+                }).ToList();
+
+            // Group Standard by (Title, Category, Schedule.Date) — existing logic
+            var standardGroups = standardSessions
                 .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
                 .Select(g =>
                 {
                     var rep = g.OrderBy(a => a.CreatedAt).First();
-                    // Compute GroupStatus from session statuses
                     string groupStatus;
                     if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
                         groupStatus = "Open";
@@ -1831,9 +2398,13 @@ namespace HcPortal.Controllers
                         PassedCount = g.Count(a => a.IsPassed),
                         PendingCount = g.Count(a => !a.IsCompleted && !a.IsStarted),
                         IsTokenRequired = rep.IsTokenRequired,
-                        AccessToken = rep.AccessToken ?? ""
+                        AccessToken = rep.AccessToken ?? "",
+                        MenungguPenilaianCount = g.Count(a => a.IsMenungguPenilaian)
                     };
-                })
+                }).ToList();
+
+            // Gabungkan dan sort
+            var grouped = prePostGroups.Concat(standardGroups)
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
@@ -1881,6 +2452,26 @@ namespace HcPortal.Controllers
                 .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
             var isPackageMode = packageCount > 0;
 
+            // Essay grading: build pending count map per session (Phase 298-05)
+            // Only relevant for sessions with HasManualGrading == true
+            Dictionary<int, int> essayPendingCountMap = new();
+            var manualGradingSessionIds = sessions
+                .Where(s => s.HasManualGrading)
+                .Select(s => s.Id)
+                .ToList();
+            if (manualGradingSessionIds.Any())
+            {
+                var essayPendingRaw = await _context.PackageUserResponses
+                    .Where(r => manualGradingSessionIds.Contains(r.AssessmentSessionId) && r.EssayScore == null)
+                    .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
+                        r => r.PackageQuestionId, q => q.Id, (r, q) => r.AssessmentSessionId)
+                    .GroupBy(sid => sid)
+                    .Select(g => new { SessionId = g.Key, Count = g.Count() })
+                    .ToListAsync();
+                foreach (var item in essayPendingRaw)
+                    essayPendingCountMap[item.SessionId] = item.Count;
+            }
+
             // Build question count map per session
             Dictionary<int, int> questionCountMap = new();
             if (isPackageMode)
@@ -1924,7 +2515,9 @@ namespace HcPortal.Controllers
                     CompletedAt  = a.CompletedAt,
                     StartedAt    = a.StartedAt,
                     QuestionCount = questionCountMap.TryGetValue(a.Id, out var qc) ? qc : 0,
-                    DurationMinutes = a.DurationMinutes
+                    DurationMinutes = a.DurationMinutes,
+                    HasManualGrading = a.HasManualGrading,
+                    EssayPendingCount = essayPendingCountMap.TryGetValue(a.Id, out var ep) ? ep : 0
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
@@ -1974,7 +2567,203 @@ namespace HcPortal.Controllers
 
             ViewBag.AssessmentBatchKey = $"{title}|{category}|{scheduleDate.Date:yyyy-MM-dd}";
 
+            // Essay grading items per session (Phase 298-05)
+            // Build map: sessionId -> List<EssayGradingItemViewModel>
+            var essayGradingMap = new Dictionary<int, List<EssayGradingItemViewModel>>();
+            var manualGradingSessions = model.Sessions.Where(s => s.HasManualGrading).ToList();
+            if (manualGradingSessions.Any())
+            {
+                foreach (var sess in manualGradingSessions)
+                {
+                    var assignment = await _context.UserPackageAssignments
+                        .FirstOrDefaultAsync(a => a.AssessmentSessionId == sess.Id);
+                    if (assignment == null) continue;
+
+                    var shuffled = assignment.GetShuffledQuestionIds();
+                    var essayQs = await _context.PackageQuestions
+                        .Where(q => shuffled.Contains(q.Id) && q.QuestionType == "Essay")
+                        .ToListAsync();
+
+                    var essayRespMap = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == sess.Id &&
+                               essayQs.Select(q => q.Id).Contains(r.PackageQuestionId))
+                        .ToDictionaryAsync(r => r.PackageQuestionId);
+
+                    var items = essayQs.Select((q, idx) => new EssayGradingItemViewModel
+                    {
+                        QuestionId    = q.Id,
+                        DisplayNumber = idx + 1,
+                        QuestionText  = q.QuestionText ?? "",
+                        Rubrik        = q.Rubrik,
+                        TextAnswer    = essayRespMap.TryGetValue(q.Id, out var resp) ? resp.TextAnswer : null,
+                        EssayScore    = essayRespMap.TryGetValue(q.Id, out var resp2) ? resp2.EssayScore : null,
+                        ScoreValue    = q.ScoreValue
+                    }).ToList();
+
+                    essayGradingMap[sess.Id] = items;
+                }
+            }
+            ViewBag.EssayGradingMap = essayGradingMap;
+
             return View(model);
+        }
+
+        // --- SUBMIT ESSAY SCORE (Phase 298-05, D-15/D-16) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitEssayScore(int sessionId, int questionId, int score)
+        {
+            // 1. Load response
+            var response = await _context.PackageUserResponses
+                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+            if (response == null)
+                return Json(new { success = false, message = "Jawaban tidak ditemukan" });
+
+            // 2. Load question untuk validasi ScoreValue
+            var question = await _context.PackageQuestions.FindAsync(questionId);
+            if (question == null)
+                return Json(new { success = false, message = "Soal tidak ditemukan" });
+
+            // 3. Validasi skor range (T-298-13)
+            if (score < 0 || score > question.ScoreValue)
+                return Json(new { success = false, message = $"Skor harus antara 0 dan {question.ScoreValue}" });
+
+            // 4. Save EssayScore
+            response.EssayScore = score;
+            await _context.SaveChangesAsync();
+
+            // 5. Cek berapa Essay masih pending
+            var pendingCount = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId)
+                .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
+                    r => r.PackageQuestionId, q => q.Id, (r, q) => r)
+                .CountAsync(r => r.EssayScore == null);
+
+            return Json(new { success = true, pendingCount, allGraded = pendingCount == 0 });
+        }
+
+        // --- FINALIZE ESSAY GRADING (Phase 298-05, D-17/D-18) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinalizeEssayGrading(int sessionId)
+        {
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null || session.Status != "Menunggu Penilaian")
+                return Json(new { success = false, message = "Session tidak dalam status Menunggu Penilaian" });
+
+            // 1. Cek semua Essay sudah dinilai (T-298-14)
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+            if (packageAssignment == null)
+                return Json(new { success = false, message = "Assignment tidak ditemukan" });
+
+            var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+
+            var essayQuestions = await _context.PackageQuestions
+                .Where(q => shuffledIds.Contains(q.Id) && q.QuestionType == "Essay")
+                .ToListAsync();
+
+            var essayResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId &&
+                       essayQuestions.Select(q => q.Id).Contains(r.PackageQuestionId))
+                .ToListAsync();
+
+            if (essayResponses.Any(r => r.EssayScore == null))
+                return Json(new { success = false, message = "Masih ada Essay yang belum dinilai" });
+
+            // 2. Recalculate total score (MC + MA auto + Essay manual)
+            var allQuestions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => shuffledIds.Contains(q.Id))
+                .ToListAsync();
+            var allResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId)
+                .ToListAsync();
+
+            int totalScore = 0;
+            int maxScore = 0;
+            foreach (var q in allQuestions)
+            {
+                maxScore += q.ScoreValue;
+                switch (q.QuestionType ?? "MultipleChoice")
+                {
+                    case "MultipleChoice":
+                        var mcResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                        if (mcResp != null)
+                        {
+                            var opt = q.Options.FirstOrDefault(o => o.Id == mcResp.PackageOptionId!.Value);
+                            if (opt != null && opt.IsCorrect) totalScore += q.ScoreValue;
+                        }
+                        break;
+                    case "MultipleAnswer":
+                        var maSelected = allResponses
+                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                            .Select(r => r.PackageOptionId!.Value).ToHashSet();
+                        var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        if (maSelected.SetEquals(maCorrect)) totalScore += q.ScoreValue;
+                        break;
+                    case "Essay":
+                        var essayResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id);
+                        if (essayResp?.EssayScore.HasValue == true) totalScore += essayResp.EssayScore.Value;
+                        break;
+                }
+            }
+
+            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+            bool isPassed = finalPercentage >= session.PassPercentage;
+
+            // 3. Update session: Completed + final score + IsPassed (T-298-16 replay guard via WHERE clause)
+            await _context.AssessmentSessions
+                .Where(s => s.Id == sessionId && s.Status == "Menunggu Penilaian")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Score, finalPercentage)
+                    .SetProperty(r => r.Status, "Completed")
+                    .SetProperty(r => r.IsPassed, isPassed)
+                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow));
+
+            // 4. Generate TrainingRecord (duplicate guard — same as GradingService)
+            var judul = $"Assessment: {session.Title}";
+            bool trExists = await _context.TrainingRecords.AnyAsync(t =>
+                t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule);
+            if (!trExists)
+            {
+                _context.TrainingRecords.Add(new TrainingRecord
+                {
+                    UserId = session.UserId,
+                    Judul = judul,
+                    Kategori = session.Category ?? "Assessment",
+                    Tanggal = session.Schedule,
+                    TanggalSelesai = DateTime.UtcNow,
+                    Penyelenggara = "Internal",
+                    Status = isPassed ? "Passed" : "Failed"
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            // 5. Generate sertifikat jika applicable (same pattern as GradingService)
+            if (session.GenerateCertificate && isPassed)
+            {
+                var certNow = DateTime.Now;
+                int certYear = certNow.Year;
+                try
+                {
+                    var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == sessionId && s.NomorSertifikat == null)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
+                }
+                catch (DbUpdateException) { /* race-condition: cert number sudah diambil thread lain — skip */ }
+            }
+
+            // 6. Reload session untuk NotifyIfGroupCompleted
+            var updatedSession = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (updatedSession != null)
+                await _workerDataService.NotifyIfGroupCompleted(updatedSession);
+
+            return Json(new { success = true, score = finalPercentage, isPassed });
         }
 
         // --- SUBMIT INTERVIEW RESULTS (Assessment Proton Tahun 3) ---
@@ -2126,6 +2915,23 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (assessment == null) return NotFound();
+
+            // D-17: Block reset Pre jika Post sudah Completed
+            if (assessment.AssessmentType == "PreTest" && assessment.LinkedSessionId.HasValue)
+            {
+                var linkedPost = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(a => a.Id == assessment.LinkedSessionId);
+
+                if (linkedPost != null && linkedPost.Status == "Completed")
+                {
+                    TempData["Error"] = "Post-Test sudah selesai. Reset Post-Test terlebih dahulu sebelum mereset Pre-Test.";
+                    return RedirectToAction("AssessmentMonitoringDetail", new {
+                        title = assessment.Title,
+                        category = assessment.Category,
+                        scheduleDate = assessment.Schedule.Date.ToString("yyyy-MM-dd")
+                    });
+                }
+            }
 
             // Reset is valid for any active status (Open, InProgress, Completed, Abandoned) — Cancelled is final and NOT resettable
             if (assessment.Status != "Open" && assessment.Status != "InProgress" && assessment.Status != "Completed" && assessment.Status != "Abandoned")
@@ -3047,7 +3853,84 @@ namespace HcPortal.Controllers
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.AssessmentId = assessmentId;
 
+            // Detect Post session for CopyPackagesFromPre button
+            bool isPostSession = assessment.AssessmentType == "PostTest";
+            ViewBag.IsPostSession = isPostSession;
+            if (isPostSession && assessment.LinkedSessionId.HasValue)
+            {
+                ViewBag.PreSessionId = assessment.LinkedSessionId.Value;
+            }
+
             return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CopyPackagesFromPre(int postSessionId)
+        {
+            var postSession = await _context.AssessmentSessions.FindAsync(postSessionId);
+            if (postSession == null || postSession.AssessmentType != "PostTest" || !postSession.LinkedSessionId.HasValue)
+            {
+                TempData["Error"] = "Sesi Post-Test tidak valid.";
+                return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
+            }
+
+            int preSessionId = postSession.LinkedSessionId.Value;
+
+            // Hapus paket Post yang ada
+            var existingPostPkgs = await _context.AssessmentPackages
+                .Include(p => p.Questions).ThenInclude(q => q.Options)
+                .Where(p => p.AssessmentSessionId == postSessionId)
+                .ToListAsync();
+
+            foreach (var pkg in existingPostPkgs)
+            {
+                foreach (var q in pkg.Questions)
+                    _context.PackageOptions.RemoveRange(q.Options);
+                _context.PackageQuestions.RemoveRange(pkg.Questions);
+            }
+            _context.AssessmentPackages.RemoveRange(existingPostPkgs);
+
+            // Deep clone Pre packages ke Post
+            var prePkgs = await _context.AssessmentPackages
+                .Include(p => p.Questions).ThenInclude(q => q.Options)
+                .Where(p => p.AssessmentSessionId == preSessionId)
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            foreach (var prePkg in prePkgs)
+            {
+                var newPkg = new AssessmentPackage
+                {
+                    AssessmentSessionId = postSessionId,
+                    PackageName = prePkg.PackageName,
+                    PackageNumber = prePkg.PackageNumber
+                };
+                foreach (var q in prePkg.Questions)
+                {
+                    var newQ = new PackageQuestion
+                    {
+                        QuestionText = q.QuestionText,
+                        Order = q.Order,
+                        ScoreValue = q.ScoreValue,
+                        QuestionType = q.QuestionType,
+                        ElemenTeknis = q.ElemenTeknis,
+                        Options = q.Options.Select(o => new PackageOption
+                        {
+                            OptionText = o.OptionText,
+                            IsCorrect = o.IsCorrect
+                        }).ToList()
+                    };
+                    newPkg.Questions.Add(newQ);
+                }
+                _context.AssessmentPackages.Add(newPkg);
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Berhasil menyalin {prePkgs.Count} paket soal dari Pre-Test.";
+            return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
         }
 
         [HttpPost]
@@ -3160,12 +4043,17 @@ namespace HcPortal.Controllers
         // GET /Admin/DownloadQuestionTemplate
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public IActionResult DownloadQuestionTemplate()
+        public IActionResult DownloadQuestionTemplate(string type = "MC")
         {
+            // Normalize type — whitelist only
+            var validTypes = new[] { "MC", "MA", "Essay", "Universal" };
+            if (!validTypes.Contains(type)) type = "MC";
+
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Question Import");
 
-            var headers = new[] { "Question", "Option A", "Option B", "Option C", "Option D", "Correct", "Elemen Teknis" };
+            // 9-column header (same for all variants)
+            var headers = new[] { "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Jawaban Benar", "Elemen Teknis", "QuestionType", "Rubrik" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -3174,34 +4062,57 @@ namespace HcPortal.Controllers
                 ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
             }
 
-            // Example row (italic, gray)
-            var example = new[]
+            int nextRow = 2;
+
+            void AddExampleRow(int row, string[] values)
             {
-                "Apa fungsi utama unit RFCC dalam proses pengolahan minyak?",
-                "Memecah molekul berat menjadi fraksi ringan",
-                "Memurnikan air limbah industri",
-                "Menghasilkan energi listrik dari gas alam",
-                "Mengolah bahan baku batubara menjadi coke",
-                "A",
-                "Elemen Teknis x.x"
-            };
-            for (int i = 0; i < example.Length; i++)
+                for (int i = 0; i < values.Length; i++)
+                {
+                    ws.Cell(row, i + 1).Value = values[i];
+                    ws.Cell(row, i + 1).Style.Font.Italic = true;
+                    ws.Cell(row, i + 1).Style.Font.FontColor = XLColor.Gray;
+                }
+            }
+
+            // Example rows per type
+            var mcExample  = new[] { "Contoh soal MC?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A", "K3 Dasar", "MultipleChoice", "" };
+            var maExample  = new[] { "Contoh soal MA?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A,C", "K3 Dasar", "MultipleAnswer", "" };
+            var essayExample = new[] { "Contoh soal Essay?", "", "", "", "", "", "K3 Dasar", "Essay", "Rubrik: Jawaban harus mencakup..." };
+
+            if (type == "MC")
             {
-                ws.Cell(2, i + 1).Value = example[i];
-                ws.Cell(2, i + 1).Style.Font.Italic = true;
-                ws.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray;
+                AddExampleRow(nextRow++, mcExample);
+            }
+            else if (type == "MA")
+            {
+                AddExampleRow(nextRow++, maExample);
+            }
+            else if (type == "Essay")
+            {
+                AddExampleRow(nextRow++, essayExample);
+            }
+            else // Universal
+            {
+                AddExampleRow(nextRow++, mcExample);
+                AddExampleRow(nextRow++, maExample);
+                AddExampleRow(nextRow++, essayExample);
             }
 
             // Instruction rows
-            ws.Cell(3, 1).Value = "Kolom Correct: isi dengan huruf A, B, C, atau D (tidak peka huruf besar/kecil)";
-            ws.Cell(3, 1).Style.Font.Italic = true;
-            ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+            void AddInstruction(int row, string text)
+            {
+                ws.Cell(row, 1).Value = text;
+                ws.Cell(row, 1).Style.Font.Italic = true;
+                ws.Cell(row, 1).Style.Font.FontColor = XLColor.DarkRed;
+            }
 
-            ws.Cell(4, 1).Value = "Kolom Elemen Teknis: opsional, isi nama elemen teknis. Kosongkan jika tidak ada.";
-            ws.Cell(4, 1).Style.Font.Italic = true;
-            ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
+            AddInstruction(nextRow++, "QuestionType: MultipleChoice (default jika kosong), MultipleAnswer, atau Essay");
+            AddInstruction(nextRow++, "Jawaban Benar MA: isi huruf dipisah koma, contoh: A,C atau A,B,D");
+            AddInstruction(nextRow++, "Essay: Opsi A-D dan Jawaban Benar dikosongkan. Rubrik wajib diisi");
+            AddInstruction(nextRow++, "Kolom Elemen Teknis: opsional, isi nama elemen teknis. Kosongkan jika tidak ada.");
 
-            return ExcelExportHelper.ToFileResult(workbook, "question_import_template.xlsx", this);
+            var fileName = $"Template_Soal_{type}.xlsx";
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
         [HttpGet]
@@ -3263,12 +4174,22 @@ namespace HcPortal.Controllers
             }).ToHashSet();
             var seenInBatch = new HashSet<string>();
 
-            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? ElemenTeknis)> rows;
+            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? ElemenTeknis, string QuestionType, string? Rubrik)> rows;
             var errors = new List<string>();
+
+            var validQuestionTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
+
+            string NormalizeQuestionType(string raw)
+            {
+                var t = raw?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(t)) return "MultipleChoice"; // D-12 backward compat
+                if (!validQuestionTypes.Contains(t)) return "MultipleChoice";
+                return t;
+            }
 
             if (excelFile != null && excelFile.Length > 0)
             {
-                rows = new List<(string, string, string, string, string, string, string?)>();
+                rows = new List<(string, string, string, string, string, string, string?, string, string?)>();
                 try
                 {
                     using var stream = excelFile.OpenReadStream();
@@ -3291,7 +4212,10 @@ namespace HcPortal.Controllers
                         var cor = (row.Cell(6).GetString() ?? "").Trim().ToUpper();
                         var cell7 = (row.Cell(7).GetString() ?? "").Trim();
                         string? subComp = string.IsNullOrWhiteSpace(cell7) ? null : cell7;
-                        rows.Add((q, a, b, c, d, cor, subComp));
+                        var questionType = NormalizeQuestionType(row.Cell(8).GetString() ?? "");
+                        var rubrik = row.Cell(9).GetString()?.Trim();
+                        if (string.IsNullOrWhiteSpace(rubrik)) rubrik = null;
+                        rows.Add((q, a, b, c, d, cor, subComp, questionType, rubrik));
                     }
                 }
                 catch (Exception ex)
@@ -3303,7 +4227,7 @@ namespace HcPortal.Controllers
             }
             else if (!string.IsNullOrWhiteSpace(pasteText))
             {
-                rows = new List<(string, string, string, string, string, string, string?)>();
+                rows = new List<(string, string, string, string, string, string, string?, string, string?)>();
                 var lines = pasteText.Split('\n')
                     .Select(l => l.TrimEnd('\r'))
                     .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -3327,10 +4251,13 @@ namespace HcPortal.Controllers
                     }
                     string? subComp = cells.Length >= 7 ? cells[6].Trim() : null;
                     if (string.IsNullOrWhiteSpace(subComp)) subComp = null;
+                    var questionType = NormalizeQuestionType(cells.Length >= 8 ? cells[7] : "");
+                    string? rubrik = cells.Length >= 9 ? cells[8].Trim() : null;
+                    if (string.IsNullOrWhiteSpace(rubrik)) rubrik = null;
                     rows.Add((
                         cells[0].Trim(), cells[1].Trim(), cells[2].Trim(),
                         cells[3].Trim(), cells[4].Trim(), cells[5].Trim().ToUpper(),
-                        subComp
+                        subComp, questionType, rubrik
                     ));
                 }
             }
@@ -3362,12 +4289,13 @@ namespace HcPortal.Controllers
                 {
                     var validRowCount = rows.Count(r =>
                     {
-                        var (rq, ra, rb, rc, rd, rcor, _) = r;
+                        var (rq, ra, rb, rc, rd, rcor, _, rqtype, _) = r;
+                        if (string.IsNullOrWhiteSpace(rq)) return false;
+                        if (rqtype == "Essay") return true; // Essay: hanya butuh teks soal
                         var normalizedCor = ExtractPackageCorrectLetter(rcor);
-                        return !string.IsNullOrWhiteSpace(rq) &&
-                               !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
+                        return !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
                                !string.IsNullOrWhiteSpace(rc) && !string.IsNullOrWhiteSpace(rd) &&
-                               new[] { "A", "B", "C", "D" }.Contains(normalizedCor);
+                               (new[] { "A", "B", "C", "D" }.Contains(normalizedCor) || rcor.Contains(','));
                     });
 
                     var referencePackage = siblingPackagesWithQuestions.First();
@@ -3388,25 +4316,56 @@ namespace HcPortal.Controllers
             var newQuestions = new List<PackageQuestion>();
             for (int i = 0; i < rows.Count; i++)
             {
-                var (q, a, b, c, d, cor, rawSubComp) = rows[i];
-                var normalizedCor = ExtractPackageCorrectLetter(cor);
+                var (q, a, b, c, d, cor, rawSubComp, questionType, rubrik) = rows[i];
+
                 if (string.IsNullOrWhiteSpace(q))
                 {
                     errors.Add($"Row {i + 1}: Question text is empty. Skipped.");
                     continue;
                 }
-                if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b) ||
-                    string.IsNullOrWhiteSpace(c) || string.IsNullOrWhiteSpace(d))
+
+                // Essay: skip opsi/jawaban validation, only need question text
+                if (questionType != "Essay")
                 {
-                    errors.Add($"Row {i + 1}: One or more options are empty. Skipped.");
-                    continue;
-                }
-                if (!new[] { "A", "B", "C", "D" }.Contains(normalizedCor))
-                {
-                    errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
-                    continue;
+                    if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b) ||
+                        string.IsNullOrWhiteSpace(c) || string.IsNullOrWhiteSpace(d))
+                    {
+                        errors.Add($"Row {i + 1}: One or more options are empty. Skipped.");
+                        continue;
+                    }
                 }
 
+                // Parse correct answers — support multi for MA (T-298-05: hanya huruf A-D)
+                List<string> correctLetters;
+                if (questionType == "MultipleAnswer")
+                {
+                    correctLetters = cor.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().ToUpper())
+                        .Where(s => new[] { "A", "B", "C", "D" }.Contains(s))
+                        .Distinct()
+                        .ToList();
+                    if (correctLetters.Count == 0)
+                    {
+                        errors.Add($"Row {i + 1}: MA soal harus memiliki minimal 1 jawaban benar valid (A-D). Skipped.");
+                        continue;
+                    }
+                }
+                else if (questionType == "Essay")
+                {
+                    correctLetters = new List<string>(); // Essay tidak butuh jawaban benar
+                }
+                else // MultipleChoice
+                {
+                    var normalizedCor = ExtractPackageCorrectLetter(cor);
+                    if (!new[] { "A", "B", "C", "D" }.Contains(normalizedCor))
+                    {
+                        errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
+                        continue;
+                    }
+                    correctLetters = new List<string> { normalizedCor };
+                }
+
+                // Dedup fingerprint (essay uses empty options)
                 var fp = MakePackageFingerprint(q, a, b, c, d);
                 if (existingFingerprints.Contains(fp) || seenInBatch.Contains(fp))
                 {
@@ -3415,23 +4374,34 @@ namespace HcPortal.Controllers
                 }
                 seenInBatch.Add(fp);
 
-                int correctIndex = normalizedCor == "A" ? 0 : normalizedCor == "B" ? 1 : normalizedCor == "C" ? 2 : 3;
                 var newQ = new PackageQuestion
                 {
                     AssessmentPackageId = packageId,
                     QuestionText = q,
+                    QuestionType = questionType,
+                    Rubrik = questionType == "Essay" ? rubrik : null,
+                    MaxCharacters = 2000,
                     Order = order++,
                     ScoreValue = 10,
                     ElemenTeknis = NormalizeElemenTeknis(rawSubComp),
-                    // Add options directly to the navigation collection (EF resolves FK after save)
-                    Options = new List<PackageOption>
-                    {
-                        new PackageOption { OptionText = a, IsCorrect = (0 == correctIndex) },
-                        new PackageOption { OptionText = b, IsCorrect = (1 == correctIndex) },
-                        new PackageOption { OptionText = c, IsCorrect = (2 == correctIndex) },
-                        new PackageOption { OptionText = d, IsCorrect = (3 == correctIndex) }
-                    }
                 };
+
+                // Build options (skip for Essay per D-04)
+                if (questionType != "Essay")
+                {
+                    var optionTexts = new[] { a, b, c, d };
+                    var optionLetters = new[] { "A", "B", "C", "D" };
+                    newQ.Options = optionTexts.Select((optText, idx) => new PackageOption
+                    {
+                        OptionText = optText,
+                        IsCorrect = correctLetters.Contains(optionLetters[idx])
+                    }).ToList();
+                }
+                else
+                {
+                    newQ.Options = new List<PackageOption>();
+                }
+
                 newQuestions.Add(newQ);
                 added++;
             }
@@ -3557,6 +4527,276 @@ namespace HcPortal.Controllers
 
         private static string MakePackageFingerprint(string q, string a, string b, string c, string d)
             => string.Join("|||", new[] { q, a, b, c, d }.Select(NormalizePackageText));
+
+        #endregion
+
+        #region Question Management per Package (Phase 298)
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ManagePackageQuestions(int packageId)
+        {
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions.OrderBy(q => q.Order))
+                    .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
+            var assessment = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (assessment == null) return NotFound();
+
+            ViewBag.PackageId = packageId;
+            ViewBag.PackageName = pkg.PackageName;
+            ViewBag.AssessmentId = pkg.AssessmentSessionId;
+            ViewBag.AssessmentTitle = assessment.Title;
+            ViewBag.Questions = pkg.Questions.OrderBy(q => q.Order).ToList();
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateQuestion(
+            int packageId,
+            string questionText,
+            string questionType,
+            int scoreValue,
+            string? elemenTeknis,
+            string? rubrik,
+            int maxCharacters,
+            string? optionA, string? optionB, string? optionC, string? optionD,
+            bool correctA, bool correctB, bool correctC, bool correctD)
+        {
+            // Validate QuestionType whitelist (T-298-01)
+            var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
+            if (!validTypes.Contains(questionType))
+            {
+                TempData["Error"] = "Tipe soal tidak valid.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
+            // Server-side: MC/MA force ScoreValue=10 (T-298-03)
+            if (questionType != "Essay") scoreValue = 10;
+            if (scoreValue <= 0) scoreValue = 10;
+
+            // Validate per type (D-07)
+            var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
+            if (questionType == "MultipleChoice" && correctCount != 1)
+            {
+                TempData["Error"] = "Pilihan Ganda hanya boleh memiliki 1 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "MultipleAnswer" && correctCount < 2)
+            {
+                TempData["Error"] = "Multiple Answer membutuhkan minimal 2 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
+            {
+                TempData["Error"] = "Rubrik wajib diisi untuk soal Essay.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            int nextOrder = pkg.Questions.Any() ? pkg.Questions.Max(q => q.Order) + 1 : 1;
+
+            var newQ = new PackageQuestion
+            {
+                AssessmentPackageId = packageId,
+                QuestionText = questionText.Trim(),
+                QuestionType = questionType,
+                ScoreValue = scoreValue,
+                Order = nextOrder,
+                ElemenTeknis = string.IsNullOrWhiteSpace(elemenTeknis) ? null : elemenTeknis.Trim(),
+                Rubrik = questionType == "Essay" ? rubrik?.Trim() : null,
+                MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000
+            };
+
+            if (questionType != "Essay")
+            {
+                var options = new[]
+                {
+                    (optionA, correctA),
+                    (optionB, correctB),
+                    (optionC, correctC),
+                    (optionD, correctD)
+                };
+                foreach (var (text, isCorrect) in options)
+                {
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        newQ.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                    }
+                }
+            }
+
+            _context.PackageQuestions.Add(newQ);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Soal berhasil ditambahkan.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditQuestion(int questionId)
+        {
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Include(q => q.AssessmentPackage)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            // AJAX: return JSON for inline form population
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new
+                {
+                    id = q.Id,
+                    order = q.Order,
+                    questionText = q.QuestionText,
+                    questionType = q.QuestionType ?? "MultipleChoice",
+                    scoreValue = q.ScoreValue,
+                    elemenTeknis = q.ElemenTeknis,
+                    rubrik = q.Rubrik,
+                    maxCharacters = q.MaxCharacters,
+                    options = q.Options.OrderBy(o => o.Id).Select(o => new
+                    {
+                        optionText = o.OptionText,
+                        isCorrect = o.IsCorrect
+                    }).ToList()
+                });
+            }
+
+            ViewBag.PackageId = q.AssessmentPackageId;
+            ViewBag.AssessmentId = q.AssessmentPackage.AssessmentSessionId;
+            return RedirectToAction("ManagePackageQuestions", new { packageId = q.AssessmentPackageId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditQuestion(
+            int questionId,
+            int packageId,
+            string questionText,
+            string questionType,
+            int scoreValue,
+            string? elemenTeknis,
+            string? rubrik,
+            int maxCharacters,
+            string? optionA, string? optionB, string? optionC, string? optionD,
+            bool correctA, bool correctB, bool correctC, bool correctD)
+        {
+            // Validate QuestionType whitelist (T-298-01)
+            var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
+            if (!validTypes.Contains(questionType))
+            {
+                TempData["Error"] = "Tipe soal tidak valid.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            // Server-side: MC/MA force ScoreValue=10 (T-298-03)
+            if (questionType != "Essay") scoreValue = 10;
+            if (scoreValue <= 0) scoreValue = 10;
+
+            // Validate per type (D-07)
+            var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
+            if (questionType == "MultipleChoice" && correctCount != 1)
+            {
+                TempData["Error"] = "Pilihan Ganda hanya boleh memiliki 1 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "MultipleAnswer" && correctCount < 2)
+            {
+                TempData["Error"] = "Multiple Answer membutuhkan minimal 2 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
+            {
+                TempData["Error"] = "Rubrik wajib diisi untuk soal Essay.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            q.QuestionText = questionText.Trim();
+            q.QuestionType = questionType;
+            q.ScoreValue = scoreValue;
+            q.ElemenTeknis = string.IsNullOrWhiteSpace(elemenTeknis) ? null : elemenTeknis.Trim();
+            q.Rubrik = questionType == "Essay" ? rubrik?.Trim() : null;
+            q.MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000;
+
+            // Replace options
+            _context.PackageOptions.RemoveRange(q.Options);
+            q.Options.Clear();
+
+            if (questionType != "Essay")
+            {
+                var options = new[]
+                {
+                    (optionA, correctA),
+                    (optionB, correctB),
+                    (optionC, correctC),
+                    (optionD, correctD)
+                };
+                foreach (var (text, isCorrect) in options)
+                {
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        q.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Soal berhasil diperbarui.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteQuestion(int questionId, int packageId)
+        {
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            // Remove any responses for this question
+            var responses = await _context.PackageUserResponses
+                .Where(r => r.PackageQuestionId == questionId)
+                .ToListAsync();
+            if (responses.Any()) _context.PackageUserResponses.RemoveRange(responses);
+
+            _context.PackageOptions.RemoveRange(q.Options);
+            _context.PackageQuestions.Remove(q);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Soal berhasil dihapus.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> PreviewQuestion(int questionId)
+        {
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            return PartialView("_PreviewQuestion", q);
+        }
 
         #endregion
 

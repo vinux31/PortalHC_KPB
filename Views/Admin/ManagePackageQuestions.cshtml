@@ -1,0 +1,402 @@
+@using HcPortal.Models
+@{
+    ViewData["Title"] = "Manage Questions";
+    int packageId = (int)ViewBag.PackageId;
+    int assessmentId = (int)ViewBag.AssessmentId;
+    var questions = ViewBag.Questions as List<PackageQuestion> ?? new List<PackageQuestion>();
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Manage Questions</h1>
+            <p class="text-muted mb-0">Package: <strong>@ViewBag.PackageName</strong> &mdash; @ViewBag.AssessmentTitle</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="ImportPackageQuestions" asp-controller="AssessmentAdmin" asp-route-packageId="@packageId"
+               class="btn btn-outline-success btn-sm">
+                <i class="bi bi-upload me-1"></i>Import Excel
+            </a>
+            <a asp-action="ManagePackages" asp-controller="AssessmentAdmin" asp-route-assessmentId="@assessmentId"
+               class="btn btn-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke Packages
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="row g-4">
+        <!-- Left: Daftar soal -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Daftar Soal (@questions.Count soal)</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (!questions.Any())
+                    {
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            Belum ada soal. Tambahkan soal menggunakan form di samping atau import dari Excel.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:40px">#</th>
+                                        <th>Teks Soal</th>
+                                        <th style="width:110px">Tipe</th>
+                                        <th style="width:60px">Skor</th>
+                                        <th style="width:110px">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var q in questions)
+                                    {
+                                        var qtype = q.QuestionType ?? "MultipleChoice";
+                                        var badgeClass = qtype == "MultipleAnswer" ? "bg-primary" : (qtype == "Essay" ? "bg-info text-dark" : "bg-secondary");
+                                        var badgeLabel = qtype == "MultipleAnswer" ? "Multi Jawaban" : (qtype == "Essay" ? "Essay" : "Pilihan Ganda");
+                                        <tr>
+                                            <td class="text-muted">@q.Order</td>
+                                            <td>
+                                                <span class="d-inline-block text-truncate" style="max-width:260px" title="@q.QuestionText">
+                                                    @q.QuestionText
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @badgeClass small">@badgeLabel</span>
+                                            </td>
+                                            <td class="text-center">@q.ScoreValue</td>
+                                            <td>
+                                                <div class="d-flex gap-1">
+                                                    <button type="button"
+                                                            class="btn btn-outline-secondary btn-sm py-0 px-1"
+                                                            onclick="loadPreview(@q.Id)"
+                                                            title="Preview">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-outline-primary btn-sm py-0 px-1"
+                                                            onclick="loadEditForm(@q.Id)"
+                                                            title="Edit">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <form asp-action="DeleteQuestion" asp-controller="AssessmentAdmin" method="post" class="d-inline"
+                                                          onsubmit="return confirm('Hapus soal ini?')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="questionId" value="@q.Id" />
+                                                        <input type="hidden" name="packageId" value="@packageId" />
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Hapus">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Form create/edit soal -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm" id="questionFormCard">
+                <div class="card-header bg-light">
+                    <span class="fw-semibold" id="formTitle">Tambah Soal Baru</span>
+                </div>
+                <div class="card-body">
+                    <form id="questionForm" asp-action="CreateQuestion" asp-controller="AssessmentAdmin" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="packageId" value="@packageId" />
+                        <input type="hidden" id="editQuestionId" name="questionId" value="" />
+
+                        <!-- QuestionType dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Tipe Soal</label>
+                            <select class="form-select form-select-sm" id="QuestionType" name="questionType">
+                                <option value="MultipleChoice">Pilihan Ganda (MC)</option>
+                                <option value="MultipleAnswer">Multiple Answer (MA)</option>
+                                <option value="Essay">Essay</option>
+                            </select>
+                        </div>
+
+                        <!-- Teks soal -->
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Teks Soal <span class="text-danger">*</span></label>
+                            <textarea class="form-control form-control-sm" id="questionText" name="questionText"
+                                      rows="3" required placeholder="Tuliskan pertanyaan..."></textarea>
+                        </div>
+
+                        <!-- Opsi A-D (MC/MA) -->
+                        <div id="optionsSection" class="mb-3">
+                            <label class="form-label fw-medium small">Opsi Jawaban</label>
+                            <div id="maLabel" class="alert alert-info py-1 px-2 small mb-2" style="display:none">
+                                <i class="bi bi-info-circle me-1"></i>Centang semua opsi yang benar (minimal 2).
+                            </div>
+                            @foreach (var (letter, name) in new[] { ("A","optionA"), ("B","optionB"), ("C","optionC"), ("D","optionD") })
+                            {
+                                var correctName = "correct" + char.ToUpper(name[^1]);
+                                <div class="input-group input-group-sm mb-2">
+                                    <div class="input-group-text" style="width:36px">
+                                        <input class="form-check-input mt-0 correct-input" type="radio"
+                                               name="@correctName" id="correct_@letter" value="true"
+                                               aria-label="Opsi @letter benar" />
+                                    </div>
+                                    <span class="input-group-text fw-bold">@letter</span>
+                                    <input type="text" class="form-control" name="@name"
+                                           id="option_@letter" placeholder="Opsi @letter" />
+                                </div>
+                            }
+                            <div class="form-text">Klik radio/checkbox di kiri untuk tandai jawaban benar.</div>
+                        </div>
+
+                        <!-- Rubrik / Essay section -->
+                        <div id="rubrikSection" style="display:none" class="mb-3">
+                            <label class="form-label fw-medium small">Rubrik / Kunci Jawaban <span class="text-danger">*</span></label>
+                            <textarea class="form-control form-control-sm" name="rubrik" id="rubrik"
+                                      rows="3" placeholder="Tulis rubrik penilaian atau kunci jawaban essay..."></textarea>
+                            <div class="mt-2">
+                                <label class="form-label fw-medium small">Batas Karakter Jawaban</label>
+                                <input type="number" name="maxCharacters" id="maxCharacters"
+                                       class="form-control form-control-sm" value="2000"
+                                       min="100" max="10000" style="max-width:120px" />
+                                <div class="form-text">Default: 2000 karakter</div>
+                            </div>
+                        </div>
+
+                        <!-- ScoreValue -->
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Nilai Soal (ScoreValue)</label>
+                            <input type="number" name="scoreValue" id="scoreValue"
+                                   class="form-control form-control-sm" value="10"
+                                   min="1" max="100" style="max-width:80px" disabled />
+                            <div class="form-text" id="scoreHelp">MC/MA: nilai tetap 10. Essay: bisa diubah.</div>
+                        </div>
+
+                        <!-- Elemen Teknis (opsional) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Elemen Teknis <span class="text-muted">(opsional)</span></label>
+                            <input type="text" name="elemenTeknis" id="elemenTeknis"
+                                   class="form-control form-control-sm" placeholder="e.g. Pengetahuan Proses" />
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
+                                <i class="bi bi-plus-circle me-1"></i>Tambah Soal
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="cancelEditBtn"
+                                    style="display:none" onclick="resetForm()">
+                                Batal Edit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="bi bi-eye me-2"></i>Preview Soal
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="previewModalBody">
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="ms-2">Memuat preview...</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Warning Modal -->
+<div class="modal fade" id="editTypeWarningModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Peringatan Ubah Tipe Soal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Mengubah tipe soal akan menghapus jawaban peserta yang ada untuk soal ini. Lanjutkan?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning btn-sm" id="confirmTypeChange">Ya, Lanjutkan</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var originalType = null;
+    var pendingType = null;
+    var editTypeWarningModal = null;
+
+    // Initialize Bootstrap modals
+    document.addEventListener('DOMContentLoaded', function () {
+        editTypeWarningModal = new bootstrap.Modal(document.getElementById('editTypeWarningModal'));
+
+        document.getElementById('confirmTypeChange').addEventListener('click', function () {
+            document.getElementById('QuestionType').value = pendingType;
+            applyQTypeSwitch(pendingType);
+            editTypeWarningModal.hide();
+        });
+    });
+
+    // QuestionType change handler
+    document.getElementById('QuestionType').addEventListener('change', function () {
+        var newType = this.value;
+        var isEditMode = document.getElementById('editQuestionId').value !== '';
+
+        // Warn if editing an existing question and type changes
+        if (isEditMode && originalType && originalType !== newType) {
+            pendingType = newType;
+            this.value = originalType; // revert visually until confirmed
+            editTypeWarningModal.show();
+            return;
+        }
+
+        applyQTypeSwitch(newType);
+    });
+
+    function applyQTypeSwitch(qtype) {
+        var optionsSection = document.getElementById('optionsSection');
+        var rubrikSection = document.getElementById('rubrikSection');
+        var scoreInput = document.getElementById('scoreValue');
+        var maLabel = document.getElementById('maLabel');
+
+        optionsSection.style.display = (qtype === 'Essay') ? 'none' : '';
+        rubrikSection.style.display = (qtype === 'Essay') ? '' : 'none';
+        scoreInput.disabled = (qtype !== 'Essay');
+        if (qtype !== 'Essay') scoreInput.value = 10;
+        maLabel.style.display = (qtype === 'MultipleAnswer') ? '' : 'none';
+
+        // Switch radio <-> checkbox for correct answer inputs
+        document.querySelectorAll('.correct-input').forEach(function (inp) {
+            inp.type = (qtype === 'MultipleAnswer') ? 'checkbox' : 'radio';
+            if (qtype !== 'MultipleAnswer') inp.checked = false;
+        });
+
+        // Update score help text
+        var scoreHelp = document.getElementById('scoreHelp');
+        scoreHelp.textContent = (qtype === 'Essay') ? 'Essay: atur nilai sesuai bobot soal.' : 'MC/MA: nilai tetap 10.';
+    }
+
+    // Load preview via AJAX
+    window.loadPreview = function (questionId) {
+        var modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        document.getElementById('previewModalBody').innerHTML =
+            '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div><span class="ms-2">Memuat preview...</span></div>';
+        modal.show();
+
+        fetch('/Admin/PreviewQuestion?questionId=' + questionId, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (r) { return r.text(); })
+        .then(function (html) { document.getElementById('previewModalBody').innerHTML = html; })
+        .catch(function () { document.getElementById('previewModalBody').innerHTML = '<div class="alert alert-danger">Gagal memuat preview.</div>'; });
+    };
+
+    // Load edit form
+    window.loadEditForm = function (questionId) {
+        fetch('/Admin/EditQuestion?questionId=' + questionId, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            populateEditForm(data);
+        })
+        .catch(function () {
+            // Fallback: redirect to edit page
+            window.location.href = '/Admin/EditQuestion?questionId=' + questionId;
+        });
+    };
+
+    function populateEditForm(data) {
+        var form = document.getElementById('questionForm');
+        form.action = '/Admin/EditQuestion';
+
+        document.getElementById('formTitle').textContent = 'Edit Soal #' + data.order;
+        document.getElementById('editQuestionId').value = data.id;
+        document.getElementById('questionText').value = data.questionText || '';
+        document.getElementById('elemenTeknis').value = data.elemenTeknis || '';
+        document.getElementById('rubrik').value = data.rubrik || '';
+        document.getElementById('maxCharacters').value = data.maxCharacters || 2000;
+        document.getElementById('scoreValue').value = data.scoreValue || 10;
+
+        var qtype = data.questionType || 'MultipleChoice';
+        document.getElementById('QuestionType').value = qtype;
+        originalType = qtype;
+        applyQTypeSwitch(qtype);
+
+        // Populate options
+        var optLetters = ['A', 'B', 'C', 'D'];
+        var optFields = ['optionA', 'optionB', 'optionC', 'optionD'];
+        var correctFields = ['correctA', 'correctB', 'correctC', 'correctD'];
+
+        if (data.options && data.options.length) {
+            data.options.forEach(function (opt, i) {
+                if (i < 4) {
+                    var textEl = document.getElementById('option_' + optLetters[i]);
+                    var correctEl = document.getElementById('correct_' + optLetters[i]);
+                    if (textEl) textEl.value = opt.optionText || '';
+                    if (correctEl) correctEl.checked = opt.isCorrect === true;
+                }
+            });
+        }
+
+        document.getElementById('submitBtn').innerHTML = '<i class="bi bi-save me-1"></i>Simpan Perubahan';
+        document.getElementById('cancelEditBtn').style.display = '';
+
+        // Scroll to form
+        document.getElementById('questionFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    window.resetForm = function () {
+        var form = document.getElementById('questionForm');
+        form.action = '/Admin/CreateQuestion';
+        form.reset();
+
+        document.getElementById('formTitle').textContent = 'Tambah Soal Baru';
+        document.getElementById('editQuestionId').value = '';
+        originalType = null;
+
+        applyQTypeSwitch('MultipleChoice');
+        document.getElementById('QuestionType').value = 'MultipleChoice';
+        document.getElementById('scoreValue').value = 10;
+
+        document.getElementById('submitBtn').innerHTML = '<i class="bi bi-plus-circle me-1"></i>Tambah Soal';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+    };
+}());
+</script>
+}

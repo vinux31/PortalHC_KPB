@@ -110,6 +110,71 @@
         </div>
     }
 
+    @* === Section Perbandingan Pre-Post Test (D-11, D-13, D-14) === *@
+    @if (ViewBag.HasComparisonSection == true)
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-bar-chart-line me-2" aria-hidden="true"></i> Perbandingan Pre-Post Test
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0" aria-label="Perbandingan skor Pre-Test dan Post-Test per elemen kompetensi">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Elemen Kompetensi</th>
+                                <th class="text-center" style="width: 150px;">Skor Pre</th>
+                                <th class="text-center" style="width: 150px;">Skor Post</th>
+                                <th class="text-center" style="width: 150px;">Gain Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in ViewBag.ComparisonData)
+                            {
+                                <tr>
+                                    <td>@row.ElemenTeknis</td>
+                                    <td class="text-center">@($"{row.PreScore:0.#}%")</td>
+                                    <td class="text-center">@($"{row.PostScore:0.#}%")</td>
+                                    <td class="text-center">
+                                        @{
+                                            var gain = (double?)row.GainScore;
+                                            string gainText, gainClass;
+                                            if (gain == null)
+                                            {
+                                                gainText = "\u2014";
+                                                gainClass = "text-secondary";
+                                            }
+                                            else if (gain > 0)
+                                            {
+                                                gainText = $"+{gain:0.#}%";
+                                                gainClass = "text-success";
+                                            }
+                                            else if (gain < 0)
+                                            {
+                                                gainText = $"{gain:0.#}%";
+                                                gainClass = "text-danger";
+                                            }
+                                            else
+                                            {
+                                                gainText = "0%";
+                                                gainClass = "text-secondary";
+                                            }
+                                        }
+                                        <span class="fw-bold @gainClass">@gainText</span>
+                                        @if (gain == null && ViewBag.GainScorePending == true)
+                                        {
+                                            <small class="d-block text-muted">Menunggu penilaian Essay</small>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
     <!-- Analisis Elemen Teknis -->
     @if (Model.ElemenTeknisScores != null && Model.ElemenTeknisScores.Any())
     {

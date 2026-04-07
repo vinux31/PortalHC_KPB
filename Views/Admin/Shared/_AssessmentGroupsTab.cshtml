@@ -165,7 +165,13 @@ else
 
                         <tr>
                             <td>@(rowNum++)</td>
-                            <td class="fw-semibold">@group.Title</td>
+                            <td class="fw-semibold">
+                                @group.Title
+                                @if ((bool)group.IsPrePostGroup)
+                                {
+                                    <span class="badge bg-primary rounded-pill ms-2"><i class="bi bi-arrow-left-right"></i> Pre-Post Test</span>
+                                }
+                            </td>
                             <td><span class="badge @categoryBadge">@group.Category</span></td>
                             <td>@(((DateTime)group.Schedule).ToString("dd MMM yyyy HH:mm"))</td>
                             <td>@group.DurationMinutes menit</td>
@@ -240,15 +246,32 @@ else
                                         </li>
                                         }
                                         <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form method="post" asp-controller="AssessmentAdmin" asp-action="DeleteAssessmentGroup" asp-route-id="@group.RepresentativeId">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="dropdown-item text-danger"
-                                                        onclick="return confirm('Hapus semua assessment dalam grup ini?')">
-                                                    <i class="bi bi-trash me-2"></i>Hapus Grup
-                                                </button>
-                                            </form>
-                                        </li>
+                                        @if ((bool)group.IsPrePostGroup)
+                                        {
+                                            <!-- D-19: delete hanya per-grup untuk Pre-Post -->
+                                            <li>
+                                                <form method="post" asp-controller="AssessmentAdmin" asp-action="DeletePrePostGroup">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="linkedGroupId" value="@group.LinkedGroupId" />
+                                                    <button type="submit" class="dropdown-item text-danger"
+                                                            onclick="return confirm('Tindakan ini akan menghapus kedua sesi (Pre dan Post), semua paket soal, jawaban peserta, dan assignment secara permanen. Lanjutkan?')">
+                                                        <i class="bi bi-trash3 me-2"></i>Hapus Grup Pre-Post
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <form method="post" asp-controller="AssessmentAdmin" asp-action="DeleteAssessmentGroup" asp-route-id="@group.RepresentativeId">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="dropdown-item text-danger"
+                                                            onclick="return confirm('Hapus semua assessment dalam grup ini?')">
+                                                        <i class="bi bi-trash me-2"></i>Hapus Grup
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
                                     </ul>
                                 </div>
                             </td>

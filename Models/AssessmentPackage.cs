@@ -50,6 +50,12 @@ namespace HcPortal.Models
         /// <summary>Optional elemen teknis tag for analysis grouping (e.g. "Pengetahuan Proses").</summary>
         public string? ElemenTeknis { get; set; }
 
+        /// <summary>Rubrik/kunci jawaban untuk soal Essay. Referensi HC saat grading manual. Null untuk MC/MA.</summary>
+        public string? Rubrik { get; set; }
+
+        /// <summary>Batas karakter jawaban Essay per soal. Default 2000. Diabaikan untuk MC/MA.</summary>
+        public int MaxCharacters { get; set; } = 2000;
+
         // Navigation
         public virtual ICollection<PackageOption> Options { get; set; } = new List<PackageOption>();
     }
