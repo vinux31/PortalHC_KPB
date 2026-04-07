@@ -1324,34 +1324,89 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageAssessment");
             }
 
-            // Query sibling sessions: same Title + Category + Schedule.Date (includes the current session)
-            var siblings = await _context.AssessmentSessions
-                .Include(a => a.User)
-                .Where(a => a.Title == assessment.Title
-                         && a.Category == assessment.Category
-                         && a.Schedule.Date == assessment.Schedule.Date)
-                .ToListAsync();
+            // Detect Pre-Post group
+            bool isPrePost = assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest";
 
-            var siblingUserIds = siblings
-                .Where(a => a.User != null)
-                .Select(a => a.UserId)
-                .Distinct()
-                .ToList();
+            if (isPrePost && assessment.LinkedGroupId.HasValue)
+            {
+                // Load semua sessions dalam grup Pre-Post
+                var groupSessions = await _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
+                    .ToListAsync();
 
-            // Build assigned users list for display (read-only)
-            ViewBag.AssignedUsers = siblings
-                .Where(a => a.User != null)
-                .Select(a => new
-                {
-                    Id = a.Id,
-                    FullName = a.User!.FullName ?? "",
-                    Email = a.User!.Email ?? "",
-                    Section = a.User!.Section ?? ""
-                })
-                .ToList();
+                var preSessions = groupSessions.Where(a => a.AssessmentType == "PreTest").ToList();
+                var postSessions = groupSessions.Where(a => a.AssessmentType == "PostTest").ToList();
 
-            // Store assigned user IDs so the picker can exclude them
-            ViewBag.AssignedUserIds = siblingUserIds;
+                ViewBag.IsPrePostGroup = true;
+                ViewBag.PreSession = preSessions.FirstOrDefault();
+                ViewBag.PostSession = postSessions.FirstOrDefault();
+                ViewBag.PreSessionIds = preSessions.Select(s => s.Id).ToList();
+                ViewBag.PostSessionIds = postSessions.Select(s => s.Id).ToList();
+
+                // Override siblings: semua users dalam grup (Pre sessions saja untuk avoid duplicates)
+                var groupUserIds = preSessions.Where(a => a.User != null).Select(a => a.UserId).Distinct().ToList();
+                ViewBag.AssignedUsers = preSessions.Where(a => a.User != null)
+                    .Select(a => new
+                    {
+                        Id = a.Id,
+                        FullName = a.User!.FullName ?? "",
+                        Email = a.User!.Email ?? "",
+                        Section = a.User!.Section ?? "",
+                        Status = a.Status ?? "-",
+                        CanDelete = a.Status != "InProgress" && a.Status != "Completed"
+                    }).ToList<dynamic>();
+                ViewBag.AssignedUserIds = groupUserIds;
+
+                // Package count per phase
+                var preIds = preSessions.Select(s => s.Id).ToList();
+                var postIds = postSessions.Select(s => s.Id).ToList();
+                ViewBag.PrePackageCount = await _context.AssessmentPackages.CountAsync(p => preIds.Contains(p.AssessmentSessionId));
+                ViewBag.PostPackageCount = await _context.AssessmentPackages.CountAsync(p => postIds.Contains(p.AssessmentSessionId));
+
+                // PackageCount for schedule-change warning (total)
+                ViewBag.PackageCount = (int)ViewBag.PrePackageCount + (int)ViewBag.PostPackageCount;
+            }
+            else
+            {
+                ViewBag.IsPrePostGroup = false;
+
+                // Query sibling sessions: same Title + Category + Schedule.Date (includes the current session)
+                var siblings = await _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .Where(a => a.Title == assessment.Title
+                             && a.Category == assessment.Category
+                             && a.Schedule.Date == assessment.Schedule.Date)
+                    .ToListAsync();
+
+                var siblingUserIds = siblings
+                    .Where(a => a.User != null)
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .ToList();
+
+                // Build assigned users list for display (read-only)
+                ViewBag.AssignedUsers = siblings
+                    .Where(a => a.User != null)
+                    .Select(a => new
+                    {
+                        Id = a.Id,
+                        FullName = a.User!.FullName ?? "",
+                        Email = a.User!.Email ?? "",
+                        Section = a.User!.Section ?? "",
+                        Status = a.Status ?? "-",
+                        CanDelete = false
+                    }).ToList<dynamic>();
+
+                // Store assigned user IDs so the picker can exclude them
+                ViewBag.AssignedUserIds = siblingUserIds;
+
+                // Count packages attached to this assessment's sibling group (for schedule-change warning)
+                var siblingIds = siblings.Select(s => s.Id).ToList();
+                var packageCount = await _context.AssessmentPackages
+                    .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+                ViewBag.PackageCount = packageCount;
+            }
 
             // Get list of all users for the picker
             var users = await _context.Users
@@ -1362,12 +1417,6 @@ namespace HcPortal.Controllers
 
             ViewBag.Users = users;
             ViewBag.Sections = await _context.GetAllSectionsAsync();
-
-            // Count packages attached to this assessment's sibling group (for schedule-change warning)
-            var siblingIds = siblings.Select(s => s.Id).ToList();
-            var packageCount = await _context.AssessmentPackages
-                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
-            ViewBag.PackageCount = packageCount;
             ViewBag.OriginalSchedule = assessment.Schedule.ToString("yyyy-MM-dd");
             ViewBag.Categories = await _context.AssessmentCategories
                 .Where(c => c.IsActive)
@@ -1389,7 +1438,10 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds)
+        public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds,
+            DateTime? PreSchedule, int? PreDurationMinutes, DateTime? PreExamWindowCloseDate,
+            DateTime? PostSchedule, int? PostDurationMinutes, DateTime? PostExamWindowCloseDate,
+            List<string>? UserIds)
         {
             var assessment = await _context.AssessmentSessions.FindAsync(id);
             if (assessment == null)
@@ -1397,6 +1449,177 @@ namespace HcPortal.Controllers
                 TempData["Error"] = "Assessment not found.";
                 return RedirectToAction("ManageAssessment");
             }
+
+            // --- Pre-Post branch: handle Pre-Post group edit separately ---
+            if ((assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest")
+                && assessment.LinkedGroupId.HasValue)
+            {
+                // Validate PostSchedule > PreSchedule (T-297-07)
+                if (PreSchedule.HasValue && PostSchedule.HasValue && PostSchedule.Value <= PreSchedule.Value)
+                {
+                    TempData["Error"] = "Jadwal Post-Test harus setelah jadwal Pre-Test.";
+                    return RedirectToAction("EditAssessment", new { id });
+                }
+
+                var allGroupSessions = await _context.AssessmentSessions
+                    .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
+                    .ToListAsync();
+
+                var preGroup = allGroupSessions.Where(a => a.AssessmentType == "PreTest").ToList();
+                var postGroup = allGroupSessions.Where(a => a.AssessmentType == "PostTest").ToList();
+
+                // Update shared fields pada semua sessions
+                foreach (var s in allGroupSessions)
+                {
+                    s.Title = model.Title;
+                    s.Category = model.Category;
+                    s.PassPercentage = model.PassPercentage;
+                    s.AllowAnswerReview = model.AllowAnswerReview;
+                    s.IsTokenRequired = model.IsTokenRequired;
+                    s.AccessToken = model.IsTokenRequired ? (model.AccessToken ?? s.AccessToken ?? "") : "";
+                    s.UpdatedAt = DateTime.UtcNow;
+                }
+
+                // Update per-phase fields
+                if (PreSchedule.HasValue)
+                {
+                    foreach (var s in preGroup)
+                    {
+                        s.Schedule = PreSchedule.Value;
+                        if (PreDurationMinutes.HasValue) s.DurationMinutes = PreDurationMinutes.Value;
+                        s.ExamWindowCloseDate = PreExamWindowCloseDate;
+                    }
+                }
+                if (PostSchedule.HasValue)
+                {
+                    foreach (var s in postGroup)
+                    {
+                        s.Schedule = PostSchedule.Value;
+                        if (PostDurationMinutes.HasValue) s.DurationMinutes = PostDurationMinutes.Value;
+                        s.ExamWindowCloseDate = PostExamWindowCloseDate;
+                        s.GenerateCertificate = model.GenerateCertificate;
+                        s.ValidUntil = model.ValidUntil;
+                    }
+                }
+
+                // D-31: Tambah peserta baru = buat Pre+Post session
+                if (UserIds != null && UserIds.Any())
+                {
+                    var existingUserIds = preGroup.Select(s => s.UserId).ToHashSet();
+                    var newUserIds = UserIds.Where(u => !existingUserIds.Contains(u)).ToList();
+
+                    // D-32: Hapus peserta — hapus kedua session Pre+Post untuk user yang dihapus
+                    var removedUserIds = existingUserIds.Where(u => !UserIds.Contains(u)).ToList();
+                    foreach (var removedUserId in removedUserIds)
+                    {
+                        var userPreSession = preGroup.FirstOrDefault(s => s.UserId == removedUserId);
+                        var userPostSession = postGroup.FirstOrDefault(s => s.UserId == removedUserId);
+
+                        // D-32 validasi: tidak bisa hapus jika Pre atau Post sudah InProgress/Completed (T-297-08)
+                        if (userPreSession != null && (userPreSession.Status == "InProgress" || userPreSession.Status == "Completed"))
+                        {
+                            TempData["Error"] = $"Tidak dapat menghapus peserta — sesi Pre-Test sudah {userPreSession.Status}.";
+                            continue;
+                        }
+                        if (userPostSession != null && (userPostSession.Status == "InProgress" || userPostSession.Status == "Completed"))
+                        {
+                            TempData["Error"] = $"Tidak dapat menghapus peserta — sesi Post-Test sudah {userPostSession.Status}.";
+                            continue;
+                        }
+
+                        var sessionsToRemove = new List<AssessmentSession>();
+                        if (userPreSession != null) sessionsToRemove.Add(userPreSession);
+                        if (userPostSession != null) sessionsToRemove.Add(userPostSession);
+
+                        var sessionIdsToRemove = sessionsToRemove.Select(s => s.Id).ToList();
+
+                        // Cascade delete data terkait
+                        var responses = await _context.PackageUserResponses
+                            .Where(r => sessionIdsToRemove.Contains(r.AssessmentSessionId))
+                            .ToListAsync();
+                        if (responses.Any()) _context.PackageUserResponses.RemoveRange(responses);
+
+                        var attempts = await _context.AssessmentAttemptHistory
+                            .Where(h => sessionIdsToRemove.Contains(h.SessionId))
+                            .ToListAsync();
+                        if (attempts.Any()) _context.AssessmentAttemptHistory.RemoveRange(attempts);
+
+                        var packages = await _context.AssessmentPackages
+                            .Include(p => p.Questions).ThenInclude(q => q.Options)
+                            .Where(p => sessionIdsToRemove.Contains(p.AssessmentSessionId))
+                            .ToListAsync();
+                        foreach (var pkg in packages)
+                        {
+                            foreach (var q in pkg.Questions)
+                                _context.PackageOptions.RemoveRange(q.Options);
+                            _context.PackageQuestions.RemoveRange(pkg.Questions);
+                        }
+                        if (packages.Any()) _context.AssessmentPackages.RemoveRange(packages);
+
+                        _context.AssessmentSessions.RemoveRange(sessionsToRemove);
+                    }
+
+                    // Tambah peserta baru
+                    foreach (var newUserId in newUserIds)
+                    {
+                        var repPre = preGroup.First();
+                        var repPost = postGroup.First();
+                        var linkedGroupId = assessment.LinkedGroupId!.Value;
+
+                        var currentUser = await _userManager.GetUserAsync(User);
+                        var newPre = new AssessmentSession
+                        {
+                            Title = model.Title,
+                            Category = model.Category,
+                            Schedule = PreSchedule ?? repPre.Schedule,
+                            DurationMinutes = PreDurationMinutes ?? repPre.DurationMinutes,
+                            ExamWindowCloseDate = PreExamWindowCloseDate ?? repPre.ExamWindowCloseDate,
+                            Status = "Upcoming",
+                            PassPercentage = model.PassPercentage,
+                            AllowAnswerReview = model.AllowAnswerReview,
+                            IsTokenRequired = model.IsTokenRequired,
+                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            GenerateCertificate = false,
+                            UserId = newUserId,
+                            AssessmentType = "PreTest",
+                            LinkedGroupId = linkedGroupId,
+                            CreatedBy = currentUser?.Id,
+                            BannerColor = repPre.BannerColor
+                        };
+                        var newPost = new AssessmentSession
+                        {
+                            Title = model.Title,
+                            Category = model.Category,
+                            Schedule = PostSchedule ?? repPost.Schedule,
+                            DurationMinutes = PostDurationMinutes ?? repPost.DurationMinutes,
+                            ExamWindowCloseDate = PostExamWindowCloseDate ?? repPost.ExamWindowCloseDate,
+                            Status = "Upcoming",
+                            PassPercentage = model.PassPercentage,
+                            AllowAnswerReview = model.AllowAnswerReview,
+                            IsTokenRequired = model.IsTokenRequired,
+                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            GenerateCertificate = model.GenerateCertificate,
+                            ValidUntil = model.ValidUntil,
+                            UserId = newUserId,
+                            AssessmentType = "PostTest",
+                            LinkedGroupId = linkedGroupId,
+                            CreatedBy = currentUser?.Id,
+                            BannerColor = repPost.BannerColor
+                        };
+
+                        _context.AssessmentSessions.AddRange(newPre, newPost);
+                        await _context.SaveChangesAsync();
+
+                        newPre.LinkedSessionId = newPost.Id;
+                        newPost.LinkedSessionId = newPre.Id;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Assessment Pre-Post Test berhasil diperbarui.";
+                return RedirectToAction("ManageAssessment");
+            }
+            // --- End Pre-Post branch ---
 
             // Prevent editing completed assessments (optional - you can remove this if needed)
             if (assessment.Status == "Completed")
@@ -3282,7 +3505,84 @@ namespace HcPortal.Controllers
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.AssessmentId = assessmentId;
 
+            // Detect Post session for CopyPackagesFromPre button
+            bool isPostSession = assessment.AssessmentType == "PostTest";
+            ViewBag.IsPostSession = isPostSession;
+            if (isPostSession && assessment.LinkedSessionId.HasValue)
+            {
+                ViewBag.PreSessionId = assessment.LinkedSessionId.Value;
+            }
+
             return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CopyPackagesFromPre(int postSessionId)
+        {
+            var postSession = await _context.AssessmentSessions.FindAsync(postSessionId);
+            if (postSession == null || postSession.AssessmentType != "PostTest" || !postSession.LinkedSessionId.HasValue)
+            {
+                TempData["Error"] = "Sesi Post-Test tidak valid.";
+                return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
+            }
+
+            int preSessionId = postSession.LinkedSessionId.Value;
+
+            // Hapus paket Post yang ada
+            var existingPostPkgs = await _context.AssessmentPackages
+                .Include(p => p.Questions).ThenInclude(q => q.Options)
+                .Where(p => p.AssessmentSessionId == postSessionId)
+                .ToListAsync();
+
+            foreach (var pkg in existingPostPkgs)
+            {
+                foreach (var q in pkg.Questions)
+                    _context.PackageOptions.RemoveRange(q.Options);
+                _context.PackageQuestions.RemoveRange(pkg.Questions);
+            }
+            _context.AssessmentPackages.RemoveRange(existingPostPkgs);
+
+            // Deep clone Pre packages ke Post
+            var prePkgs = await _context.AssessmentPackages
+                .Include(p => p.Questions).ThenInclude(q => q.Options)
+                .Where(p => p.AssessmentSessionId == preSessionId)
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            foreach (var prePkg in prePkgs)
+            {
+                var newPkg = new AssessmentPackage
+                {
+                    AssessmentSessionId = postSessionId,
+                    PackageName = prePkg.PackageName,
+                    PackageNumber = prePkg.PackageNumber
+                };
+                foreach (var q in prePkg.Questions)
+                {
+                    var newQ = new PackageQuestion
+                    {
+                        QuestionText = q.QuestionText,
+                        Order = q.Order,
+                        ScoreValue = q.ScoreValue,
+                        QuestionType = q.QuestionType,
+                        ElemenTeknis = q.ElemenTeknis,
+                        Options = q.Options.Select(o => new PackageOption
+                        {
+                            OptionText = o.OptionText,
+                            IsCorrect = o.IsCorrect
+                        }).ToList()
+                    };
+                    newPkg.Questions.Add(newQ);
+                }
+                _context.AssessmentPackages.Add(newPkg);
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Berhasil menyalin {prePkgs.Count} paket soal dari Pre-Test.";
+            return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
         }
 
         [HttpPost]
