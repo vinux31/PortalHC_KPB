@@ -2847,5 +2847,191 @@ namespace HcPortal.Controllers
             });
         }
 
+        // ============================================================
+        // GET /CMP/ExportItemAnalysisExcel — export Item Analysis ke .xlsx (RPT-05, D-09, D-10)
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportItemAnalysisExcel(int assessmentGroupId)
+        {
+            var sessions = await _context.AssessmentSessions
+                .Where(s => s.LinkedGroupId == assessmentGroupId
+                            && s.AssessmentType == "PreTest"
+                            && s.Status == "Completed"
+                            && s.Score.HasValue)
+                .Select(s => new { s.Id, s.Score })
+                .ToListAsync();
+
+            int totalResponden = sessions.Count;
+            var sessionIds = sessions.Select(s => s.Id).ToList();
+            var responses = await _context.PackageUserResponses
+                .Include(r => r.PackageQuestion)
+                    .ThenInclude(q => q.Options)
+                .Include(r => r.PackageOption)
+                .Where(r => sessionIds.Contains(r.AssessmentSessionId))
+                .ToListAsync();
+
+            var sessionScores = sessions
+                .Select(s => (SessionId: s.Id, TotalScore: (int)(s.Score ?? 0)))
+                .ToList();
+
+            using var wb = new XLWorkbook();
+
+            // Sheet 1: Item Analysis
+            var headers1 = new[] { "No", "Soal", "P-Value", "Interpretasi", "D-Index", "N Responden" };
+            var ws1 = ExcelExportHelper.CreateSheet(wb, "Item Analysis", headers1);
+            ws1.SheetView.FreezeRows(1);
+            ws1.Range(1, 1, 1, headers1.Length).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#0d6efd"));
+            ws1.Range(1, 1, 1, headers1.Length).Style.Font.SetFontColor(XLColor.White);
+
+            int row1 = 2;
+            int qNum = 0;
+            var questionGroups = responses.GroupBy(r => r.PackageQuestionId).ToList();
+            foreach (var group in questionGroups)
+            {
+                qNum++;
+                var question = group.First().PackageQuestion;
+                if (question == null) continue;
+
+                int correctCount = group.Count(r => r.PackageOption != null && r.PackageOption.IsCorrect);
+                double pValue = totalResponden > 0 ? (double)correctCount / totalResponden : 0;
+                var correctSessionIds = group.Where(r => r.PackageOption != null && r.PackageOption.IsCorrect).Select(r => r.AssessmentSessionId).ToList();
+                double? dIndex = CalculateKelleyDiscrimination(sessionScores, correctSessionIds);
+
+                string interpretasi = pValue > 0.70 ? "Mudah" : pValue >= 0.30 ? "Sedang" : "Sulit";
+
+                ws1.Cell(row1, 1).Value = qNum;
+                ws1.Cell(row1, 2).Value = question.QuestionText ?? "";
+                ws1.Cell(row1, 3).Value = Math.Round(pValue, 3);
+                ws1.Cell(row1, 4).Value = interpretasi;
+                ws1.Cell(row1, 5).Value = dIndex.HasValue ? Math.Round(dIndex.Value, 3) : 0;
+                ws1.Cell(row1, 6).Value = totalResponden;
+                row1++;
+            }
+
+            // Sheet 2: Distractor Analysis
+            var headers2 = new[] { "No Soal", "Opsi", "Jawaban Benar", "Jumlah Pemilih", "Persentase" };
+            var ws2 = ExcelExportHelper.CreateSheet(wb, "Distractor Analysis", headers2);
+            ws2.SheetView.FreezeRows(1);
+            ws2.Range(1, 1, 1, headers2.Length).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#0d6efd"));
+            ws2.Range(1, 1, 1, headers2.Length).Style.Font.SetFontColor(XLColor.White);
+
+            int row2 = 2;
+            qNum = 0;
+            foreach (var group in questionGroups)
+            {
+                qNum++;
+                var question = group.First().PackageQuestion;
+                if (question == null) continue;
+                var questionType = question.QuestionType ?? "MultipleChoice";
+                if (questionType != "MultipleChoice" && questionType != "TrueFalse") continue;
+
+                var options = question.Options?.ToList() ?? new List<PackageOption>();
+                foreach (var opt in options)
+                {
+                    int optCount = group.Count(r => r.PackageOptionId == opt.Id);
+                    ws2.Cell(row2, 1).Value = qNum;
+                    ws2.Cell(row2, 2).Value = opt.OptionText ?? "";
+                    ws2.Cell(row2, 3).Value = opt.IsCorrect ? "Ya" : "Tidak";
+                    ws2.Cell(row2, 4).Value = optCount;
+                    ws2.Cell(row2, 5).Value = totalResponden > 0 ? Math.Round((double)optCount / totalResponden * 100, 1) : 0;
+                    if (opt.IsCorrect)
+                        ws2.Range(row2, 1, row2, 5).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#d1e7dd"));
+                    row2++;
+                }
+            }
+
+            return ExcelExportHelper.ToFileResult(wb,
+                $"ItemAnalysis_{assessmentGroupId}_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
+        // ============================================================
+        // GET /CMP/ExportGainScoreExcel — export Gain Score ke .xlsx (RPT-05, D-09, D-10)
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportGainScoreExcel(int assessmentGroupId)
+        {
+            var preSessions = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .Where(s => s.LinkedGroupId == assessmentGroupId
+                            && s.AssessmentType == "PreTest"
+                            && s.Status == "Completed"
+                            && s.Score.HasValue)
+                .ToListAsync();
+
+            var postSessionDict = await _context.AssessmentSessions
+                .Where(s => s.LinkedGroupId == assessmentGroupId
+                            && s.AssessmentType == "PostTest"
+                            && s.Status == "Completed"
+                            && s.Score.HasValue)
+                .ToDictionaryAsync(s => s.UserId, s => s);
+
+            using var wb = new XLWorkbook();
+
+            // Sheet 1: Per Pekerja
+            var headers1 = new[] { "Nama Pekerja", "NIP", "Bagian", "Pre Score", "Post Score", "Gain Score" };
+            var ws1 = ExcelExportHelper.CreateSheet(wb, "Per Pekerja", headers1);
+            ws1.SheetView.FreezeRows(1);
+            ws1.Range(1, 1, 1, headers1.Length).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#0d6efd"));
+            ws1.Range(1, 1, 1, headers1.Length).Style.Font.SetFontColor(XLColor.White);
+
+            int row1 = 2;
+            foreach (var pre in preSessions)
+            {
+                if (!postSessionDict.TryGetValue(pre.UserId, out var post)) continue;
+                double preScore = pre.Score ?? 0;
+                double postScore = post.Score ?? 0;
+                double gainScore = preScore >= 100 ? 100 : (100 - preScore) == 0 ? 0 : Math.Round((postScore - preScore) / (100 - preScore) * 100, 1);
+
+                ws1.Cell(row1, 1).Value = pre.User?.FullName ?? pre.User?.UserName ?? "";
+                ws1.Cell(row1, 2).Value = pre.User?.NIP ?? "";
+                ws1.Cell(row1, 3).Value = pre.User?.Section ?? "";
+                ws1.Cell(row1, 4).Value = Math.Round(preScore, 1);
+                ws1.Cell(row1, 5).Value = Math.Round(postScore, 1);
+                ws1.Cell(row1, 6).Value = gainScore;
+                row1++;
+            }
+
+            // Sheet 2: Per Elemen Kompetensi
+            var preSessionIds = preSessions.Select(s => s.Id).ToList();
+            var postSessionIds = postSessionDict.Values.Select(s => s.Id).ToList();
+
+            var preEt = await _context.SessionElemenTeknisScores
+                .Where(e => preSessionIds.Contains(e.AssessmentSessionId))
+                .ToListAsync();
+            var postEt = await _context.SessionElemenTeknisScores
+                .Where(e => postSessionIds.Contains(e.AssessmentSessionId))
+                .ToListAsync();
+
+            var preEtAvg = preEt.GroupBy(e => e.ElemenTeknis)
+                .ToDictionary(g => g.Key, g => g.Average(e => e.QuestionCount > 0 ? (double)e.CorrectCount * 100.0 / e.QuestionCount : 0));
+            var postEtAvg = postEt.GroupBy(e => e.ElemenTeknis)
+                .ToDictionary(g => g.Key, g => g.Average(e => e.QuestionCount > 0 ? (double)e.CorrectCount * 100.0 / e.QuestionCount : 0));
+
+            var headers2 = new[] { "Elemen Kompetensi", "Avg Pre", "Avg Post", "Avg Gain" };
+            var ws2 = ExcelExportHelper.CreateSheet(wb, "Per Elemen Kompetensi", headers2);
+            ws2.SheetView.FreezeRows(1);
+            ws2.Range(1, 1, 1, headers2.Length).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#0d6efd"));
+            ws2.Range(1, 1, 1, headers2.Length).Style.Font.SetFontColor(XLColor.White);
+
+            int row2 = 2;
+            foreach (var et in preEtAvg.Keys.Union(postEtAvg.Keys).OrderBy(k => k))
+            {
+                double avgPre = preEtAvg.GetValueOrDefault(et, 0);
+                double avgPost = postEtAvg.GetValueOrDefault(et, 0);
+                double avgGain = avgPre >= 100 ? 100 : (100 - avgPre) == 0 ? 0 : Math.Round((avgPost - avgPre) / (100 - avgPre) * 100, 1);
+
+                ws2.Cell(row2, 1).Value = et;
+                ws2.Cell(row2, 2).Value = Math.Round(avgPre, 1);
+                ws2.Cell(row2, 3).Value = Math.Round(avgPost, 1);
+                ws2.Cell(row2, 4).Value = avgGain;
+                row2++;
+            }
+
+            return ExcelExportHelper.ToFileResult(wb,
+                $"GainScore_{assessmentGroupId}_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
     }
 }
