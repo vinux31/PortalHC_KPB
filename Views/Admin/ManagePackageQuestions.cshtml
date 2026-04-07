@@ -318,7 +318,7 @@
             '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div><span class="ms-2">Memuat preview...</span></div>';
         modal.show();
 
-        fetch('/AssessmentAdmin/PreviewQuestion?questionId=' + questionId, {
+        fetch('/Admin/PreviewQuestion?questionId=' + questionId, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(function (r) { return r.text(); })
@@ -328,7 +328,7 @@
 
     // Load edit form
     window.loadEditForm = function (questionId) {
-        fetch('/AssessmentAdmin/EditQuestion?questionId=' + questionId, {
+        fetch('/Admin/EditQuestion?questionId=' + questionId, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(function (r) { return r.json(); })
@@ -337,13 +337,13 @@
         })
         .catch(function () {
             // Fallback: redirect to edit page
-            window.location.href = '/AssessmentAdmin/EditQuestion?questionId=' + questionId;
+            window.location.href = '/Admin/EditQuestion?questionId=' + questionId;
         });
     };
 
     function populateEditForm(data) {
         var form = document.getElementById('questionForm');
-        form.action = '/AssessmentAdmin/EditQuestion';
+        form.action = '/Admin/EditQuestion';
 
         document.getElementById('formTitle').textContent = 'Edit Soal #' + data.order;
         document.getElementById('editQuestionId').value = data.id;
@@ -383,7 +383,7 @@
 
     window.resetForm = function () {
         var form = document.getElementById('questionForm');
-        form.action = '/AssessmentAdmin/CreateQuestion';
+        form.action = '/Admin/CreateQuestion';
         form.reset();
 
         document.getElementById('formTitle').textContent = 'Tambah Soal Baru';

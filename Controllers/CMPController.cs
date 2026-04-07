@@ -1507,8 +1507,19 @@ namespace HcPortal.Controllers
                     .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
                 if (pkgAssign != null)
                 {
-                    int totalQuestions = pkgAssign.GetShuffledQuestionIds().Count;
-                    int answeredCount = answers.Count(a => a.Value > 0);
+                    var shuffledQIds = pkgAssign.GetShuffledQuestionIds();
+                    int totalQuestions = shuffledQIds.Count;
+                    // Count from form answers (MC) + DB responses for Essay/MA not in form
+                    int formAnswered = answers.Count(a => a.Value > 0);
+                    var dbResponses = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == id && shuffledQIds.Contains(r.PackageQuestionId))
+                        .Select(r => r.PackageQuestionId)
+                        .Distinct()
+                        .ToListAsync();
+                    // Merge: questions answered in form OR in DB
+                    var allAnsweredQIds = new HashSet<int>(answers.Where(a => a.Value > 0).Select(a => a.Key));
+                    foreach (var qId in dbResponses) allAnsweredQIds.Add(qId);
+                    int answeredCount = allAnsweredQIds.Count;
                     if (totalQuestions > 0 && answeredCount < totalQuestions)
                     {
                         int unanswered = totalQuestions - answeredCount;
@@ -1552,39 +1563,59 @@ namespace HcPortal.Controllers
                     questionLookupById.TryGetValue(qId, out var qq) ? qq.ScoreValue : 0);
 
                 // Batch-load all existing responses to avoid N+1 queries in the grading loop
-                var existingResponses = await _context.PackageUserResponses
+                // Use GroupBy to handle MA questions which have multiple rows per question
+                var allExistingResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
-                    .ToDictionaryAsync(r => r.PackageQuestionId);
+                    .ToListAsync();
+                var existingResponses = allExistingResponses
+                    .GroupBy(r => r.PackageQuestionId)
+                    .ToDictionary(g => g.Key, g => g.First());
 
                 foreach (var qId in shuffledIds)
                 {
                     if (!questionLookupById.TryGetValue(qId, out var q)) continue;
-                    int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
+                    var qtype = q.QuestionType ?? "MultipleChoice";
 
-                    if (selectedOptId.HasValue)
+                    // MC scoring from form answers
+                    if (qtype == "MultipleChoice")
                     {
-                        var selectedOption = q.Options.FirstOrDefault(o => o.Id == selectedOptId.Value);
-                        if (selectedOption != null && selectedOption.IsCorrect)
+                        int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
+                        if (selectedOptId.HasValue)
+                        {
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == selectedOptId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += q.ScoreValue;
+                        }
+
+                        // Upsert MC answer only
+                        if (existingResponses.TryGetValue(q.Id, out var existingResponse))
+                        {
+                            existingResponse.PackageOptionId = selectedOptId;
+                            existingResponse.SubmittedAt = DateTime.UtcNow;
+                        }
+                        else if (selectedOptId.HasValue)
+                        {
+                            _context.PackageUserResponses.Add(new PackageUserResponse
+                            {
+                                AssessmentSessionId = id,
+                                PackageQuestionId = q.Id,
+                                PackageOptionId = selectedOptId,
+                                SubmittedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+                    else if (qtype == "MultipleAnswer")
+                    {
+                        // MA: score from DB responses (already saved via SignalR)
+                        var maResponses = allExistingResponses
+                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                            .Select(r => r.PackageOptionId!.Value)
+                            .ToHashSet();
+                        var correctOptIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        if (maResponses.SetEquals(correctOptIds))
                             totalScore += q.ScoreValue;
                     }
-
-                    // Persist answer for package-based answer review (upsert: SaveAnswer may have already
-                    // written a record incrementally; update it rather than inserting a duplicate)
-                    if (existingResponses.TryGetValue(q.Id, out var existingResponse))
-                    {
-                        existingResponse.PackageOptionId = selectedOptId;
-                        existingResponse.SubmittedAt = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        _context.PackageUserResponses.Add(new PackageUserResponse
-                        {
-                            AssessmentSessionId = id,
-                            PackageQuestionId = q.Id,
-                            PackageOptionId = selectedOptId,
-                            SubmittedAt = DateTime.UtcNow
-                        });
-                    }
+                    // Essay: scored manually by HC (EssayScore), skip here
                 }
 
                 // Hitung finalPercentage dari form POST untuk SignalR push (sebelum SaveChanges)
