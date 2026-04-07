@@ -243,7 +243,7 @@ Plans:
 | 298. Question Types | 5/5 | Complete   | 2026-04-07 |
 | 299. Worker Pre-Post Test + Comparison | 2/2 | Complete    | 2026-04-07 |
 | 300. Mobile Optimization | 0/? | Not started | - |
-| 301. Advanced Reporting | 3/3 | Complete   | 2026-04-07 |
+| 301. Advanced Reporting | 3/3 | Complete    | 2026-04-07 |
 | 302. Accessibility WCAG Quick Wins | 0/? | Not started | - |
 
 ---
