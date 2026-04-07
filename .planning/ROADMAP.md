@@ -48,7 +48,7 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 296: Data Foundation + GradingService Extraction** - Migrasi DB backward-compatible dan ekstraksi GradingService sebagai fondasi semua fase berikutnya (completed 2026-04-06)
 - [x] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test (completed 2026-04-07)
 - [x] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi (completed 2026-04-07)
-- [ ] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score
+- [x] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score (completed 2026-04-07)
 - [ ] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan
 - [ ] **Phase 301: Advanced Reporting** - HC dapat melihat item analysis, gain score report, dan export ke Excel
 - [ ] **Phase 302: Accessibility WCAG Quick Wins** - Fitur aksesibilitas dasar diterapkan pada halaman ujian
@@ -179,8 +179,8 @@ Plans:
   5. Gain score ditampilkan dengan formula (PostScore - PreScore) / (100 - PreScore) x 100; kasus PreScore = 100 menampilkan Gain = 100
 **Plans**: 2 plans
 Plans:
-- [ ] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
-- [ ] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
+- [x] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
+- [x] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
 **UI hint**: yes
 
 ### Phase 300: Mobile Optimization
@@ -237,7 +237,7 @@ Plans:
 | 296. Data Foundation + GradingService Extraction | 3/3 | Complete | 2026-04-06 |
 | 297. Admin Pre-Post Test | 4/4 | Complete   | 2026-04-07 |
 | 298. Question Types | 5/5 | Complete   | 2026-04-07 |
-| 299. Worker Pre-Post Test + Comparison | 0/? | Not started | - |
+| 299. Worker Pre-Post Test + Comparison | 2/2 | Complete    | 2026-04-07 |
 | 300. Mobile Optimization | 0/? | Not started | - |
 | 301. Advanced Reporting | 0/? | Not started | - |
 | 302. Accessibility WCAG Quick Wins | 0/? | Not started | - |
