@@ -322,7 +322,8 @@ namespace HcPortal.Controllers
                     a.CompletedAt,
                     a.Score,
                     a.IsPassed,
-                    a.Status
+                    a.Status,
+                    a.AssessmentType
                 })
                 .ToListAsync();
 
