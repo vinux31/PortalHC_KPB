@@ -54,38 +54,13 @@
                                 </span>
                             </td>
                             <td>
-                                @if (item.QuestionType == "MultipleAnswer")
+                                @if (item.IsAnswered)
                                 {
-                                    @if (item.SelectedOptionTexts.Any())
-                                    {
-                                        <span class="text-success">Jawaban: @string.Join(", ", item.SelectedOptionTexts)</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-danger fw-bold">Belum dijawab</span>
-                                    }
-                                }
-                                else if (item.QuestionType == "Essay")
-                                {
-                                    @if (!string.IsNullOrWhiteSpace(item.TextAnswer))
-                                    {
-                                        <span class="text-success">@(item.TextAnswer.Length > 50 ? item.TextAnswer.Substring(0, 50) + "..." : item.TextAnswer)</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-danger fw-bold">Belum dijawab</span>
-                                    }
+                                    <span class="text-success">@item.SelectedOptionText</span>
                                 }
                                 else
                                 {
-                                    @if (item.IsAnswered)
-                                    {
-                                        <span class="text-success">@item.SelectedOptionText</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted fst-italic">Belum dijawab</span>
-                                    }
+                                    <span class="text-muted fst-italic">Belum dijawab</span>
                                 }
                             </td>
                         </tr>
