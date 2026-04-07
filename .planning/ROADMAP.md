@@ -49,7 +49,7 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test (completed 2026-04-07)
 - [x] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi (completed 2026-04-07)
 - [ ] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score
-- [ ] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan
+- [x] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan (completed 2026-04-07)
 - [ ] **Phase 301: Advanced Reporting** - HC dapat melihat item analysis, gain score report, dan export ke Excel
 - [ ] **Phase 302: Accessibility WCAG Quick Wins** - Fitur aksesibilitas dasar diterapkan pada halaman ujian
 
@@ -189,14 +189,14 @@ Plans:
 **Requirements**: MOB-01, MOB-02, MOB-03, MOB-04, MOB-05, MOB-06
 **Success Criteria** (what must be TRUE):
   1. Semua tombol dan opsi jawaban di halaman ujian mobile memiliki area sentuh minimal 48x48dp — tidak ada elemen yang sulit ditekan di layar kecil
-  2. Pekerja dapat menggeser layar ke kiri/kanan (swipe) untuk berpindah antar halaman soal di perangkat mobile
+  2. Pekerja dapat berpindah antar halaman soal via tombol Prev/Next di sticky footer (D-10: swipe dihapus demi kompatibilitas anti-copy Phase 280)
   3. Tombol Previous, Next, dan Submit selalu terlihat di bagian bawah layar saat scroll, dan panel navigasi soal muncul sebagai offcanvas drawer di mobile (bukan sidebar tetap)
   4. Timer ujian tetap terlihat di header mobile meskipun pengguna scroll ke bawah
   5. Fitur anti-copy yang sudah ada (Phase 280) tetap berfungsi benar bersama touch/swipe events tanpa saling konflik
 **Plans**: 2 plans
 Plans:
-- [ ] 300-01-PLAN.md — Offcanvas drawer + sticky footer + page size mobile
-- [ ] 300-02-PLAN.md — CSS responsive touch targets + header compact + landscape mode
+- [x] 300-01-PLAN.md — Offcanvas drawer + sticky footer + page size mobile
+- [x] 300-02-PLAN.md — CSS responsive touch targets + header compact + landscape mode
 **UI hint**: yes
 
 ### Phase 301: Advanced Reporting
@@ -241,7 +241,7 @@ Plans:
 | 297. Admin Pre-Post Test | 4/4 | Complete   | 2026-04-07 |
 | 298. Question Types | 5/5 | Complete   | 2026-04-07 |
 | 299. Worker Pre-Post Test + Comparison | 0/? | Not started | - |
-| 300. Mobile Optimization | 0/? | Not started | - |
+| 300. Mobile Optimization | 2/2 | Complete   | 2026-04-07 |
 | 301. Advanced Reporting | 0/? | Not started | - |
 | 302. Accessibility WCAG Quick Wins | 0/? | Not started | - |
 
