@@ -21,16 +21,33 @@
 
     <!-- Format reference card -->
     <div class="card border-info mb-4">
-        <div class="card-body py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <strong class="text-info">Required column format:</strong>
-                <code class="ms-2">Question | Option A | Option B | Option C | Option D | Correct | Elemen Teknis (opsional)</code>
-                <span class="ms-2 text-muted">— "Correct" must be A, B, C, or D (case insensitive)</span>
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                <div>
+                    <strong class="text-info">Format kolom (9 kolom):</strong>
+                    <code class="ms-2">Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Jawaban Benar | Elemen Teknis | QuestionType | Rubrik</code>
+                </div>
             </div>
-            <a asp-action="DownloadQuestionTemplate" asp-controller="AssessmentAdmin"
-               class="btn btn-sm btn-outline-success">
-                <i class="bi bi-file-earmark-arrow-down me-1"></i>Download Template
-            </a>
+            <ul class="mb-2 small text-muted">
+                <li><strong>QuestionType:</strong> <code>MultipleChoice</code> (default jika kosong), <code>MultipleAnswer</code>, atau <code>Essay</code></li>
+                <li><strong>MA — Jawaban Benar:</strong> huruf dipisah koma, contoh: <code>A,C</code> atau <code>A,B,D</code></li>
+                <li><strong>Essay:</strong> Opsi A-D dan Jawaban Benar dikosongkan. Kolom Rubrik wajib diisi.</li>
+                <li>File lama tanpa kolom QuestionType akan diimpor sebagai MultipleChoice secara otomatis.</li>
+            </ul>
+            <div class="btn-group flex-wrap gap-1">
+                <a href="@Url.Action("DownloadQuestionTemplate", "AssessmentAdmin", new { type = "MC" })" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-download me-1"></i>Template MC
+                </a>
+                <a href="@Url.Action("DownloadQuestionTemplate", "AssessmentAdmin", new { type = "MA" })" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-download me-1"></i>Template MA
+                </a>
+                <a href="@Url.Action("DownloadQuestionTemplate", "AssessmentAdmin", new { type = "Essay" })" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-download me-1"></i>Template Essay
+                </a>
+                <a href="@Url.Action("DownloadQuestionTemplate", "AssessmentAdmin", new { type = "Universal" })" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-download me-1"></i>Template Universal
+                </a>
+            </div>
         </div>
     </div>
 

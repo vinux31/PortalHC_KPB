@@ -1116,6 +1116,9 @@ namespace HcPortal.Migrations
                     b.Property<string>("ElemenTeknis")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("MaxCharacters")
+                        .HasColumnType("int");
+
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
@@ -1124,6 +1127,9 @@ namespace HcPortal.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QuestionType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Rubrik")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ScoreValue")
@@ -1149,6 +1155,9 @@ namespace HcPortal.Migrations
                     b.Property<int>("AssessmentSessionId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("EssayScore")
+                        .HasColumnType("int");
+
                     b.Property<int?>("PackageOptionId")
                         .HasColumnType("int");
 
@@ -1167,8 +1176,7 @@ namespace HcPortal.Migrations
 
                     b.HasIndex("PackageQuestionId");
 
-                    b.HasIndex("AssessmentSessionId", "PackageQuestionId")
-                        .IsUnique();
+                    b.HasIndex("AssessmentSessionId", "PackageQuestionId");
 
                     b.ToTable("PackageUserResponses");
                 });

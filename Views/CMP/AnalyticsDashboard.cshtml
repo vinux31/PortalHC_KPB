@@ -31,7 +31,7 @@
     </nav>
     <div class="row mb-4">
         <div class="col">
-            <h4 class="fw-bold mb-1"><i class="bi bi-graph-up me-2"></i>Analytics Dashboard</h4>
+            <h4 class="fw-semibold mb-1"><i class="bi bi-graph-up me-2"></i>Analytics Dashboard</h4>
             <p class="text-muted">Visualisasi data assessment dan sertifikat</p>
         </div>
     </div>
@@ -80,6 +80,12 @@
                     <label for="filterEnd" class="form-label form-label-sm mb-1">s/d</label>
                     <input type="date" id="filterEnd" class="form-control form-control-sm">
                 </div>
+                <div class="col-md-3" id="filterAssessmentGroup" style="display:none;">
+                    <label class="form-label form-label-sm mb-1">Pilih Assessment</label>
+                    <select class="form-select form-select-sm" id="filterAssessment">
+                        <option value="">— Pilih assessment —</option>
+                    </select>
+                </div>
             </div>
             <div class="row mt-3">
                 <div class="col">
@@ -94,103 +100,260 @@
         </div>
     </div>
 
-    <!-- 4 Panel Grid -->
-    <div id="analytics-panels-container" class="row g-4">
+    <!-- Nav Tabs -->
+    <ul class="nav nav-tabs mb-3" id="analyticsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="tab-failrate" data-bs-toggle="tab" href="#tabFailRate" role="tab">Fail Rate</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="tab-trend" data-bs-toggle="tab" href="#tabTrend" role="tab">Trend</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="tab-et" data-bs-toggle="tab" href="#tabEtBreakdown" role="tab">Skor Elemen Teknis</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="tab-expiring" data-bs-toggle="tab" href="#tabExpiring" role="tab">Sertifikat Expired</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="tab-itemanalysis" data-bs-toggle="tab" href="#tabItemAnalysis" role="tab">Item Analysis</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="tab-gainscore" data-bs-toggle="tab" href="#tabGainScore" role="tab">Gain Score Report</a>
+        </li>
+    </ul>
 
-        <!-- Panel 1: Fail Rate Assessment -->
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0 pb-0">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-bar-chart-fill text-danger fs-4 me-2"></i>
-                        <div>
-                            <h6 class="mb-0 fw-semibold">Fail Rate Assessment</h6>
-                            <small class="text-muted">Per section dan kategori</small>
+    <div class="tab-content" id="analyticsTabContent">
+
+        <!-- Tab 1: Fail Rate Assessment -->
+        <div class="tab-pane fade show active" id="tabFailRate" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-bar-chart-fill text-danger fs-4 me-2"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Fail Rate Assessment</h6>
+                                    <small class="text-muted">Per section dan kategori</small>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <canvas id="failRateChart" role="img" aria-label="Grafik fail rate assessment"></canvas>
-                    <div id="failRateEmpty" class="text-center text-muted py-5" style="display:none;">
-                        <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
-                        Belum ada data<br>
-                        <small>Tidak ada data assessment untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
+                        <div class="card-body">
+                            <canvas id="failRateChart" role="img" aria-label="Grafik fail rate assessment"></canvas>
+                            <div id="failRateEmpty" class="text-center text-muted py-5" style="display:none;">
+                                <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
+                                Belum ada data<br>
+                                <small>Tidak ada data assessment untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Panel 2: Trend Assessment -->
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0 pb-0">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
-                        <div>
-                            <h6 class="mb-0 fw-semibold">Trend Assessment</h6>
-                            <small class="text-muted">Pass / Fail per bulan</small>
+        <!-- Tab 2: Trend Assessment -->
+        <div class="tab-pane fade" id="tabTrend" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Trend Assessment</h6>
+                                    <small class="text-muted">Pass / Fail per bulan</small>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <canvas id="trendChart" role="img" aria-label="Grafik trend assessment pass fail per bulan"></canvas>
-                    <div id="trendEmpty" class="text-center text-muted py-5" style="display:none;">
-                        <i class="bi bi-graph-up fs-1 d-block mb-2"></i>
-                        Belum ada data<br>
-                        <small>Tidak ada data trend untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
+                        <div class="card-body">
+                            <canvas id="trendChart" role="img" aria-label="Grafik trend assessment pass fail per bulan"></canvas>
+                            <div id="trendEmpty" class="text-center text-muted py-5" style="display:none;">
+                                <i class="bi bi-graph-up fs-1 d-block mb-2"></i>
+                                Belum ada data<br>
+                                <small>Tidak ada data trend untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Panel 3: Skor Elemen Teknis -->
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0 pb-0">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-grid-3x3-gap-fill text-warning fs-4 me-2"></i>
-                        <div>
-                            <h6 class="mb-0 fw-semibold">Skor Elemen Teknis</h6>
-                            <small class="text-muted">Rata-rata skor per kategori assessment</small>
+        <!-- Tab 3: Skor Elemen Teknis -->
+        <div class="tab-pane fade" id="tabEtBreakdown" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-grid-3x3-gap-fill text-warning fs-4 me-2"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Skor Elemen Teknis</h6>
+                                    <small class="text-muted">Rata-rata skor per kategori assessment</small>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div id="etTableContainer" class="table-responsive"></div>
-                    <div id="etEmpty" class="text-center text-muted py-5" style="display:none;">
-                        <i class="bi bi-grid-3x3-gap fs-1 d-block mb-2"></i>
-                        Belum ada data<br>
-                        <small>Tidak ada data skor elemen teknis untuk filter yang dipilih.</small>
-                    </div>
-                    <small class="text-muted d-block mt-2">Data hanya tersedia untuk assessment dengan paket soal</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Panel 4: Sertifikat Akan Expired -->
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0 pb-0">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-shield-exclamation text-danger fs-4 me-2"></i>
-                        <div>
-                            <h6 class="mb-0 fw-semibold">Sertifikat Akan Expired</h6>
-                            <small class="text-muted">Dalam 30 hari ke depan</small>
+                        <div class="card-body">
+                            <div id="etTableContainer" class="table-responsive"></div>
+                            <div id="etEmpty" class="text-center text-muted py-5" style="display:none;">
+                                <i class="bi bi-grid-3x3-gap fs-1 d-block mb-2"></i>
+                                Belum ada data<br>
+                                <small>Tidak ada data skor elemen teknis untuk filter yang dipilih.</small>
+                            </div>
+                            <small class="text-muted d-block mt-2">Data hanya tersedia untuk assessment dengan paket soal</small>
                         </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div id="expiringTableContainer" class="table-responsive"></div>
-                    <div id="expiringEmpty" class="text-center text-muted py-5" style="display:none;">
-                        <i class="bi bi-shield-check fs-1 d-block mb-2"></i>
-                        Tidak ada sertifikat yang akan expired<br>
-                        <small>Tidak ada sertifikat yang akan expired dalam 30 hari ke depan.</small>
                     </div>
                 </div>
             </div>
         </div>
 
-    </div><!-- /#analytics-panels-container -->
+        <!-- Tab 4: Sertifikat Akan Expired -->
+        <div class="tab-pane fade" id="tabExpiring" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-shield-exclamation text-danger fs-4 me-2"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Sertifikat Akan Expired</h6>
+                                    <small class="text-muted">Dalam 30 hari ke depan</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="expiringTableContainer" class="table-responsive"></div>
+                            <div id="expiringEmpty" class="text-center text-muted py-5" style="display:none;">
+                                <i class="bi bi-shield-check fs-1 d-block mb-2"></i>
+                                Tidak ada sertifikat yang akan expired<br>
+                                <small>Tidak ada sertifikat yang akan expired dalam 30 hari ke depan.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Item Analysis -->
+        <div class="tab-pane fade" id="tabItemAnalysis" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="fw-semibold mb-0">Item Analysis</h6>
+                    <button class="btn btn-outline-success btn-sm" onclick="exportItemAnalysis()">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Export Item Analysis
+                    </button>
+                </div>
+                <div class="card-body" id="itemAnalysisContainer">
+                    <div class="text-center text-muted py-5" id="itemAnalysisEmpty">
+                        <h6>Pilih assessment terlebih dahulu</h6>
+                        <p>Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.</p>
+                    </div>
+                    <div id="itemAnalysisContent" style="display:none;">
+                        <div class="mb-2" id="itemAnalysisWarning" style="display:none;">
+                            <span class="badge bg-warning text-dark">Data belum cukup (N&lt;30)</span>
+                            <small class="text-muted ms-2">Nilai discrimination index mungkin tidak reliabel.</small>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="itemAnalysisTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Soal</th>
+                                        <th>Tingkat Kesulitan (p-value)</th>
+                                        <th>Kategori</th>
+                                        <th>Indeks Diskriminasi</th>
+                                        <th>N Responden</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <!-- Distractor detail per soal — rendered dynamically below table -->
+                        <div id="distractorDetails"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 6: Gain Score Report -->
+        <div class="tab-pane fade" id="tabGainScore" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        <h6 class="fw-semibold mb-0">Gain Score Report</h6>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="gainView" id="gainViewWorker" checked autocomplete="off">
+                            <label class="btn btn-outline-primary" for="gainViewWorker" onclick="toggleGainView('worker')">Per Pekerja</label>
+                            <input type="radio" class="btn-check" name="gainView" id="gainViewElemen" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="gainViewElemen" onclick="toggleGainView('elemen')">Per Elemen Kompetensi</label>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-success btn-sm" onclick="exportGainScore()">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Export Gain Score
+                    </button>
+                </div>
+                <div class="card-body" id="gainScoreContainer">
+                    <div class="text-center text-muted py-5" id="gainScoreEmpty">
+                        <h6>Pilih assessment terlebih dahulu</h6>
+                        <p>Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.</p>
+                    </div>
+                    <div id="gainScoreContent" style="display:none;">
+                        <!-- Per Pekerja table -->
+                        <div id="gainWorkerView">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nama Pekerja</th>
+                                            <th>NIP</th>
+                                            <th>Pre Score</th>
+                                            <th>Post Score</th>
+                                            <th class="fw-semibold">Gain Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gainWorkerBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Per Elemen Kompetensi table -->
+                        <div id="gainElemenView" style="display:none;">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Elemen Kompetensi</th>
+                                            <th>Avg Pre</th>
+                                            <th>Avg Post</th>
+                                            <th class="fw-semibold">Avg Gain</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gainElemenBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Group Comparison -->
+                        <div class="mt-4">
+                            <h6 class="fw-semibold">Perbandingan Antar Kelompok (Bagian)</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Bagian</th>
+                                            <th>Jumlah Pekerja</th>
+                                            <th>Avg Pre Score</th>
+                                            <th>Avg Post Score</th>
+                                            <th class="fw-semibold">Avg Gain Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="groupComparisonBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.tab-content -->
 </div><!-- /.container-fluid -->
 
 @section Scripts {
@@ -199,9 +362,10 @@
     var failRateChart = null;
     var trendChart = null;
     var analyticsAbort = null;
+    var _gainScoreData = null;
 
     // ============================================================
-    // refreshAnalytics — fetch data and render all 4 panels
+    // refreshAnalytics — fetch data and render panels 1-4
     // ============================================================
     function refreshAnalytics() {
         var bagian      = document.getElementById('filterBagian').value;
@@ -219,10 +383,6 @@
         if (periodeStart) params.set('periodeStart', periodeStart);
         if (periodeEnd)   params.set('periodeEnd', periodeEnd);
 
-        var container = document.getElementById('analytics-panels-container');
-        container.classList.add('dashboard-loading');
-        container.setAttribute('aria-busy', 'true');
-
         if (analyticsAbort) analyticsAbort.abort();
         analyticsAbort = new AbortController();
 
@@ -233,16 +393,58 @@
                 renderTrend(data.trend);
                 renderEtTable(data.etBreakdown);
                 renderExpiringTable(data.expiringSoon);
-                container.classList.remove('dashboard-loading');
-                container.setAttribute('aria-busy', 'false');
             })
             .catch(function (e) {
                 if (e.name !== 'AbortError') {
                     console.error('Analytics fetch error:', e);
-                    container.classList.remove('dashboard-loading');
-                    container.setAttribute('aria-busy', 'false');
                 }
             });
+    }
+
+    // ============================================================
+    // refreshActiveTab — fetch data for analysis tabs if active
+    // ============================================================
+    function refreshActiveTab() {
+        var activeLink = document.querySelector('#analyticsTabs .nav-link.active');
+        if (!activeLink) return;
+        var activeHref = activeLink.getAttribute('href');
+        var assessmentGroupId = document.getElementById('filterAssessment').value;
+
+        if (activeHref === '#tabItemAnalysis') {
+            if (!assessmentGroupId) {
+                document.getElementById('itemAnalysisEmpty').style.display = '';
+                document.getElementById('itemAnalysisEmpty').querySelector('h6').textContent = 'Pilih assessment terlebih dahulu';
+                document.getElementById('itemAnalysisEmpty').querySelector('p').textContent = 'Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.';
+                document.getElementById('itemAnalysisContent').style.display = 'none';
+                return;
+            }
+            fetch(appUrl('/CMP/GetItemAnalysisData?assessmentGroupId=' + assessmentGroupId))
+                .then(function (r) { return r.json(); })
+                .then(renderItemAnalysis)
+                .catch(function () {
+                    document.getElementById('itemAnalysisContent').style.display = 'none';
+                    document.getElementById('itemAnalysisEmpty').style.display = '';
+                    document.getElementById('itemAnalysisEmpty').querySelector('h6').textContent = 'Gagal memuat data';
+                    document.getElementById('itemAnalysisEmpty').querySelector('p').textContent = 'Gagal memuat data. Periksa koneksi dan coba lagi, atau hubungi administrator.';
+                });
+        } else if (activeHref === '#tabGainScore') {
+            if (!assessmentGroupId) {
+                document.getElementById('gainScoreEmpty').style.display = '';
+                document.getElementById('gainScoreEmpty').querySelector('h6').textContent = 'Pilih assessment terlebih dahulu';
+                document.getElementById('gainScoreEmpty').querySelector('p').textContent = 'Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.';
+                document.getElementById('gainScoreContent').style.display = 'none';
+                return;
+            }
+            fetch(appUrl('/CMP/GetGainScoreData?assessmentGroupId=' + assessmentGroupId))
+                .then(function (r) { return r.json(); })
+                .then(renderGainScore)
+                .catch(function () {
+                    document.getElementById('gainScoreContent').style.display = 'none';
+                    document.getElementById('gainScoreEmpty').style.display = '';
+                    document.getElementById('gainScoreEmpty').querySelector('h6').textContent = 'Gagal memuat data';
+                    document.getElementById('gainScoreEmpty').querySelector('p').textContent = 'Gagal memuat data. Periksa koneksi dan coba lagi, atau hubungi administrator.';
+                });
+        }
     }
 
     // ============================================================
@@ -424,12 +626,178 @@
     }
 
     // ============================================================
+    // renderItemAnalysis — tabel soal dengan p-value dan distractor
+    // ============================================================
+    function renderItemAnalysis(data) {
+        if (!data || !data.items || data.items.length === 0) {
+            document.getElementById('itemAnalysisEmpty').style.display = '';
+            document.getElementById('itemAnalysisEmpty').querySelector('h6').textContent = 'Belum ada data soal';
+            document.getElementById('itemAnalysisEmpty').querySelector('p').textContent = 'Assessment yang dipilih tidak memiliki soal atau belum ada peserta yang mengerjakan.';
+            document.getElementById('itemAnalysisContent').style.display = 'none';
+            return;
+        }
+        document.getElementById('itemAnalysisEmpty').style.display = 'none';
+        document.getElementById('itemAnalysisContent').style.display = '';
+
+        // Warning N<30 (D-04)
+        document.getElementById('itemAnalysisWarning').style.display = data.isLowN ? '' : 'none';
+
+        var tbody = document.querySelector('#itemAnalysisTable tbody');
+        tbody.innerHTML = '';
+        var distractorHtml = '';
+
+        data.items.forEach(function (item) {
+            // P-value badge color
+            var pBadge = '';
+            if (item.difficultyIndex > 0.70) pBadge = '<span class="badge bg-success">Mudah</span>';
+            else if (item.difficultyIndex >= 0.30) pBadge = '<span class="badge bg-warning text-dark">Sedang</span>';
+            else pBadge = '<span class="badge bg-danger">Sulit</span>';
+
+            // Discrimination index with gray-out if N<30 (D-04)
+            var dVal = item.discriminationIndex !== null && item.discriminationIndex !== undefined ? item.discriminationIndex.toFixed(3) : '—';
+            var dClass = item.isLowN ? 'text-muted' : '';
+            var dWarning = item.isLowN ? ' <span class="badge bg-warning text-dark" style="font-size:0.7rem;">Data belum cukup (N&lt;30)</span>' : '';
+
+            tbody.innerHTML += '<tr data-q="' + item.questionNumber + '" style="cursor:pointer;" onclick="toggleDistractor(' + item.questionNumber + ')">' +
+                '<td>' + item.questionNumber + '</td>' +
+                '<td>' + escapeHtml(item.questionText.substring(0, 80)) + (item.questionText.length > 80 ? '...' : '') + '</td>' +
+                '<td>' + item.difficultyIndex.toFixed(3) + '</td>' +
+                '<td>' + pBadge + '</td>' +
+                '<td class="' + dClass + '">' + dVal + dWarning + '</td>' +
+                '<td>' + item.totalResponden + '</td>' +
+                '</tr>';
+
+            // Distractor analysis (D-05, RPT-03) — collapsible per soal
+            if (item.distractors && item.distractors.length > 0) {
+                distractorHtml += '<div id="distractor-' + item.questionNumber + '" class="mb-3" style="display:none;">' +
+                    '<h6 class="fw-semibold">Soal ' + item.questionNumber + ' — Distractor Analysis</h6>' +
+                    '<table class="table table-sm table-bordered">' +
+                    '<thead><tr><th>Opsi</th><th>Jumlah Pemilih</th><th>Persentase</th><th>Keterangan</th></tr></thead><tbody>';
+                item.distractors.forEach(function (d) {
+                    var rowClass = d.isCorrect ? 'table-success' : '';
+                    var keterangan = d.isCorrect ? '<span class="badge bg-success">Jawaban Benar</span>' : '';
+                    distractorHtml += '<tr class="' + rowClass + '"><td>' + escapeHtml(d.optionText) + '</td><td>' + d.count + '</td><td>' + d.percent + '%</td><td>' + keterangan + '</td></tr>';
+                });
+                distractorHtml += '</tbody></table></div>';
+            }
+        });
+
+        document.getElementById('distractorDetails').innerHTML = distractorHtml;
+    }
+
+    function toggleDistractor(qNum) {
+        var el = document.getElementById('distractor-' + qNum);
+        if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+    }
+
+    // ============================================================
+    // renderGainScore — tabel per pekerja, per elemen, group comparison
+    // ============================================================
+    function renderGainScore(data) {
+        _gainScoreData = data;
+        if (!data || (!data.perWorker.length && !data.perElemen.length)) {
+            document.getElementById('gainScoreEmpty').style.display = '';
+            document.getElementById('gainScoreEmpty').querySelector('h6').textContent = 'Belum ada data gain score';
+            document.getElementById('gainScoreEmpty').querySelector('p').textContent = 'Belum ada peserta yang menyelesaikan Pre-Test dan Post-Test untuk assessment ini.';
+            document.getElementById('gainScoreContent').style.display = 'none';
+            return;
+        }
+        document.getElementById('gainScoreEmpty').style.display = 'none';
+        document.getElementById('gainScoreContent').style.display = '';
+
+        // Per Worker
+        var wBody = document.getElementById('gainWorkerBody');
+        wBody.innerHTML = '';
+        data.perWorker.forEach(function (w) {
+            wBody.innerHTML += '<tr><td>' + escapeHtml(w.namaPekerja) + '</td><td>' + escapeHtml(w.nip) + '</td><td>' + w.preScore + '</td><td>' + w.postScore + '</td><td class="fw-semibold">' + w.gainScore + '</td></tr>';
+        });
+
+        // Per Elemen
+        var eBody = document.getElementById('gainElemenBody');
+        eBody.innerHTML = '';
+        data.perElemen.forEach(function (e) {
+            eBody.innerHTML += '<tr><td>' + escapeHtml(e.elemenTeknis) + '</td><td>' + e.avgPre + '</td><td>' + e.avgPost + '</td><td class="fw-semibold">' + e.avgGain + '</td></tr>';
+        });
+
+        // Group Comparison (RPT-07)
+        var gBody = document.getElementById('groupComparisonBody');
+        gBody.innerHTML = '';
+        data.groupComparison.forEach(function (g) {
+            gBody.innerHTML += '<tr><td>' + escapeHtml(g.groupName) + '</td><td>' + g.workerCount + '</td><td>' + g.avgPreScore + '</td><td>' + g.avgPostScore + '</td><td class="fw-semibold">' + g.avgGainScore + '</td></tr>';
+        });
+    }
+
+    function toggleGainView(view) {
+        document.getElementById('gainWorkerView').style.display = view === 'worker' ? '' : 'none';
+        document.getElementById('gainElemenView').style.display = view === 'elemen' ? '' : 'none';
+    }
+
+    // ============================================================
+    // loadAssessmentList — populate dropdown assessment
+    // ============================================================
+    function loadAssessmentList() {
+        var bagian = document.getElementById('filterBagian').value;
+        var unit = document.getElementById('filterUnit') ? document.getElementById('filterUnit').value : '';
+        fetch(appUrl('/CMP/GetPrePostAssessmentList?bagian=' + encodeURIComponent(bagian) + '&unit=' + encodeURIComponent(unit)))
+            .then(function (r) { return r.json(); })
+            .then(function (list) {
+                var sel = document.getElementById('filterAssessment');
+                sel.innerHTML = '<option value="">— Pilih assessment —</option>';
+                if (!list || list.length === 0) {
+                    sel.innerHTML += '<option value="" disabled>Tidak ada assessment Pre-Post Test untuk filter ini</option>';
+                    return;
+                }
+                list.forEach(function (item) {
+                    sel.innerHTML += '<option value="' + item.linkedGroupId + '">' + escapeHtml(item.title) + ' (' + item.totalWorker + ' pekerja)</option>';
+                });
+            })
+            .catch(function () {
+                console.warn('Gagal memuat daftar assessment');
+            });
+    }
+
+    // ============================================================
     // escapeHtml helper
     // ============================================================
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
+
+    // ============================================================
+    // Export functions
+    // ============================================================
+    function exportItemAnalysis() {
+        var assessmentGroupId = document.getElementById('filterAssessment').value;
+        if (!assessmentGroupId) { alert('Pilih assessment terlebih dahulu.'); return; }
+        window.location.href = appUrl('/CMP/ExportItemAnalysis?assessmentGroupId=' + assessmentGroupId);
+    }
+
+    function exportGainScore() {
+        var assessmentGroupId = document.getElementById('filterAssessment').value;
+        if (!assessmentGroupId) { alert('Pilih assessment terlebih dahulu.'); return; }
+        window.location.href = appUrl('/CMP/ExportGainScore?assessmentGroupId=' + assessmentGroupId);
+    }
+
+    // ============================================================
+    // Tab show/hide filterAssessmentGroup + reload data
+    // ============================================================
+    document.getElementById('analyticsTabs').addEventListener('shown.bs.tab', function (e) {
+        var href = e.target.getAttribute('href');
+        var isAnalysisTab = href === '#tabItemAnalysis' || href === '#tabGainScore';
+        document.getElementById('filterAssessmentGroup').style.display = isAnalysisTab ? '' : 'none';
+
+        // If Gain Score not available (no assessment), show "tidak tersedia" empty state
+        if (href === '#tabGainScore' && !document.getElementById('filterAssessment').value) {
+            var empty = document.getElementById('gainScoreEmpty');
+            empty.style.display = '';
+            empty.querySelector('h6').textContent = 'Gain Score tidak tersedia';
+            empty.querySelector('p').textContent = 'Laporan ini hanya tersedia untuk assessment bertipe Pre-Post Test.';
+            document.getElementById('gainScoreContent').style.display = 'none';
+        }
+    });
 
     // ============================================================
     // Cascade dropdown: Bagian → Unit
@@ -440,18 +808,27 @@
         unitEl.innerHTML = '<option value="">Semua Unit</option>';
         if (!val) {
             unitEl.disabled = true;
-            return;
-        }
-        fetch(appUrl('/CMP/GetAnalyticsCascadeUnits?bagian=' + encodeURIComponent(val)))
-            .then(function (r) { return r.json(); })
-            .then(function (units) {
-                units.forEach(function (u) {
-                    var opt = document.createElement('option');
-                    opt.value = u; opt.textContent = u;
-                    unitEl.appendChild(opt);
+        } else {
+            fetch(appUrl('/CMP/GetAnalyticsCascadeUnits?bagian=' + encodeURIComponent(val)))
+                .then(function (r) { return r.json(); })
+                .then(function (units) {
+                    units.forEach(function (u) {
+                        var opt = document.createElement('option');
+                        opt.value = u; opt.textContent = u;
+                        unitEl.appendChild(opt);
+                    });
+                    unitEl.disabled = false;
                 });
-                unitEl.disabled = false;
-            });
+        }
+
+        // Reload assessment list if analysis tab active
+        var activeLink = document.querySelector('#analyticsTabs .nav-link.active');
+        if (activeLink) {
+            var href = activeLink.getAttribute('href');
+            if (href === '#tabItemAnalysis' || href === '#tabGainScore') {
+                loadAssessmentList();
+            }
+        }
     });
 
     // ============================================================
@@ -481,7 +858,15 @@
     // Button handlers
     // ============================================================
     document.getElementById('btnApply').addEventListener('click', function () {
-        refreshAnalytics();
+        var activeLink = document.querySelector('#analyticsTabs .nav-link.active');
+        var activeHref = activeLink ? activeLink.getAttribute('href') : '';
+        var isAnalysisTab = activeHref === '#tabItemAnalysis' || activeHref === '#tabGainScore';
+
+        if (isAnalysisTab) {
+            refreshActiveTab();
+        } else {
+            refreshAnalytics();
+        }
     });
 
     document.getElementById('btnReset').addEventListener('click', function () {
@@ -494,6 +879,8 @@
         var subEl = document.getElementById('filterSubKategori');
         subEl.innerHTML = '<option value="">Semua SubKategori</option>';
         subEl.disabled = true;
+
+        document.getElementById('filterAssessment').innerHTML = '<option value="">— Pilih assessment —</option>';
 
         // Reset dates to defaults
         var today = new Date();

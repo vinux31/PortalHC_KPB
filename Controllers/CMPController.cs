@@ -236,6 +236,72 @@ namespace HcPortal.Controllers
                     exam.Status = "Open";
             }
 
+            // === Pre-Post pair grouping (per D-01) ===
+
+            // Step 1: Kelompokkan sessions dari exams menjadi pair dan standalone
+            var prePairs = exams
+                .Where(e => !string.IsNullOrEmpty(e.AssessmentType) && e.AssessmentType == "PreTest" && e.LinkedGroupId.HasValue)
+                .ToList();
+
+            var postPairs = exams
+                .Where(e => !string.IsNullOrEmpty(e.AssessmentType) && e.AssessmentType == "PostTest" && e.LinkedGroupId.HasValue)
+                .ToList();
+
+            // Gunakan List<dynamic> agar bisa Add() nanti (anonymous type immutable)
+            var pairedGroups = new List<dynamic>();
+
+            foreach (var pre in prePairs)
+            {
+                var post = postPairs.FirstOrDefault(p => p.LinkedGroupId == pre.LinkedGroupId);
+                pairedGroups.Add(new { Pre = (dynamic)pre, Post = (dynamic)post });
+            }
+
+            // Track IDs yang sudah masuk pair
+            var pairedIds = new HashSet<int>(
+                pairedGroups.SelectMany(pg => {
+                    var ids = new List<int> { (int)pg.Pre.Id };
+                    if (pg.Post != null) ids.Add((int)pg.Post.Id);
+                    return ids;
+                })
+            );
+
+            // Step 2: Query Completed Pre sessions yang punya Post di exams
+            // SATU query untuk semua — bukan per-pair (review fix: avoid N+1)
+            var postGroupIds = postPairs
+                .Where(p => p.LinkedGroupId.HasValue)
+                .Select(p => p.LinkedGroupId.Value)
+                .Except(prePairs.Where(p => p.LinkedGroupId.HasValue).Select(p => p.LinkedGroupId.Value))
+                .ToList();
+
+            if (postGroupIds.Any())
+            {
+                var completedPreSessions = await _context.AssessmentSessions
+                    .Where(s => s.AssessmentType == "PreTest"
+                        && s.LinkedGroupId.HasValue
+                        && postGroupIds.Contains(s.LinkedGroupId.Value)
+                        && s.Status == "Completed")
+                    .ToListAsync();
+
+                foreach (var completedPre in completedPreSessions)
+                {
+                    var matchingPost = postPairs.FirstOrDefault(p => p.LinkedGroupId == completedPre.LinkedGroupId);
+                    if (matchingPost != null)
+                    {
+                        pairedGroups.Add(new { Pre = (dynamic)completedPre, Post = (dynamic)matchingPost });
+                        pairedIds.Add(completedPre.Id);
+                        pairedIds.Add(matchingPost.Id);
+                    }
+                }
+            }
+
+            // Step 3: Standalone = semua yang tidak masuk pair
+            var standaloneExams = exams
+                .Where(e => !pairedIds.Contains(e.Id))
+                .ToList();
+
+            ViewBag.PairedGroups = pairedGroups;
+            ViewBag.StandaloneExams = standaloneExams;
+
             // Pagination info for view
             ViewBag.CurrentPage = paging.CurrentPage;
             ViewBag.TotalPages = paging.TotalPages;
@@ -256,7 +322,8 @@ namespace HcPortal.Controllers
                     a.CompletedAt,
                     a.Score,
                     a.IsPassed,
-                    a.Status
+                    a.Status,
+                    a.AssessmentType
                 })
                 .ToListAsync();
 
@@ -942,7 +1009,9 @@ namespace HcPortal.Controllers
                         QuestionId = q.Id,
                         QuestionText = q.QuestionText,
                         DisplayNumber = displayNum++,
-                        Options = opts
+                        Options = opts,
+                        QuestionType = q.QuestionType ?? "MultipleChoice",
+                        MaxCharacters = q.MaxCharacters > 0 ? q.MaxCharacters : 2000
                     });
                 }
 
@@ -983,14 +1052,35 @@ namespace HcPortal.Controllers
                 // Load previously saved answers for pre-population (package path)
                 if (isResume)
                 {
-                    var savedAnswers = await _context.PackageUserResponses
+                    var allSaved = await _context.PackageUserResponses
                         .Where(r => r.AssessmentSessionId == id)
-                        .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId ?? 0);
+                        .ToListAsync();
+
+                    // MC: questionId -> optionId (single)
+                    var savedAnswers = allSaved
+                        .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0 && r.TextAnswer == null)
+                        .GroupBy(r => r.PackageQuestionId)
+                        .ToDictionary(g => g.Key, g => g.First().PackageOptionId ?? 0);
                     ViewBag.SavedAnswers = System.Text.Json.JsonSerializer.Serialize(savedAnswers);
+
+                    // MA: questionId -> comma-separated optionIds
+                    var savedMultiAnswers = allSaved
+                        .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0)
+                        .GroupBy(r => r.PackageQuestionId)
+                        .ToDictionary(g => g.Key, g => string.Join(",", g.Select(r => r.PackageOptionId)));
+                    ViewBag.SavedMultiAnswers = System.Text.Json.JsonSerializer.Serialize(savedMultiAnswers);
+
+                    // Essay: questionId -> text
+                    var savedTextAnswers = allSaved
+                        .Where(r => r.TextAnswer != null)
+                        .ToDictionary(r => r.PackageQuestionId, r => r.TextAnswer ?? "");
+                    ViewBag.SavedTextAnswers = System.Text.Json.JsonSerializer.Serialize(savedTextAnswers);
                 }
                 else
                 {
                     ViewBag.SavedAnswers = "{}";
+                    ViewBag.SavedMultiAnswers = "{}";
+                    ViewBag.SavedTextAnswers = "{}";
                 }
 
                 // Parse option shuffle for view rendering (from existing assignment)
@@ -1301,9 +1391,15 @@ namespace HcPortal.Controllers
             // Merge TempData answers with DB-saved answers (PackageUserResponses).
             // TempData contains only the final form submission; DB contains incrementally
             // auto-saved answers. Merge ensures no answers are lost (TempData wins on conflict).
-            var dbAnswers = await _context.PackageUserResponses
+            var allDbResponses = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == id)
-                .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId ?? 0);
+                .ToListAsync();
+
+            // MC/MA option-based answers: questionId -> optionId (first row, for backward compat)
+            var dbAnswers = allDbResponses
+                .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0)
+                .GroupBy(r => r.PackageQuestionId)
+                .ToDictionary(g => g.Key, g => g.First().PackageOptionId ?? 0);
 
             // Start with DB answers, overlay TempData answers (TempData is more recent)
             var answers = new Dictionary<int, int>(dbAnswers);
@@ -1313,6 +1409,17 @@ namespace HcPortal.Controllers
             }
             // Remove invalid entries (optionId 0 means unanswered)
             answers = answers.Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            // MA: questionId -> list of optionIds from DB (all rows)
+            var dbMultiAnswers = allDbResponses
+                .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0)
+                .GroupBy(r => r.PackageQuestionId)
+                .ToDictionary(g => g.Key, g => g.Select(r => r.PackageOptionId!.Value).ToList());
+
+            // Essay: questionId -> text answer from DB
+            var dbTextAnswers = allDbResponses
+                .Where(r => r.TextAnswer != null)
+                .ToDictionary(r => r.PackageQuestionId, r => r.TextAnswer ?? "");
 
             // Build summary items
             var summaryItems = new List<ExamSummaryItem>();
@@ -1345,24 +1452,66 @@ namespace HcPortal.Controllers
                 foreach (var qId in shuffledQIds)
                 {
                     if (!qLookup.TryGetValue(qId, out var q)) continue;
-                    int? selectedOptId = answers.TryGetValue(qId, out var v) && v > 0 ? v : (int?)null;
-                    string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
-                        ? opt.OptionText
-                        : null;
+                    var qtype = q.QuestionType ?? "MultipleChoice";
 
-                    summaryItems.Add(new ExamSummaryItem
+                    if (qtype == "Essay")
                     {
-                        DisplayNumber = num++,
-                        QuestionId = qId,
-                        QuestionText = q.QuestionText,
-                        SelectedOptionId = selectedOptId,
-                        SelectedOptionText = selectedText
-                    });
+                        var textAnswer = dbTextAnswers.TryGetValue(qId, out var ta) ? ta : null;
+                        summaryItems.Add(new ExamSummaryItem
+                        {
+                            DisplayNumber = num++,
+                            QuestionId = qId,
+                            QuestionText = q.QuestionText,
+                            QuestionType = qtype,
+                            TextAnswer = textAnswer
+                        });
+                    }
+                    else if (qtype == "MultipleAnswer")
+                    {
+                        var selectedOptIds = dbMultiAnswers.TryGetValue(qId, out var oids) ? oids : new List<int>();
+                        // Konversi optionId ke huruf berdasarkan urutan options
+                        var orderedOptions = q.Options.OrderBy(o => o.Id).ToList();
+                        string[] letters = { "A", "B", "C", "D", "E", "F", "G", "H" };
+                        var selectedTexts = selectedOptIds
+                            .Select(oid => {
+                                var idx = orderedOptions.FindIndex(o => o.Id == oid);
+                                return idx >= 0 && idx < letters.Length ? letters[idx] : oid.ToString();
+                            })
+                            .OrderBy(l => l)
+                            .ToList();
+
+                        summaryItems.Add(new ExamSummaryItem
+                        {
+                            DisplayNumber = num++,
+                            QuestionId = qId,
+                            QuestionText = q.QuestionText,
+                            QuestionType = qtype,
+                            SelectedOptionTexts = selectedTexts
+                        });
+                    }
+                    else
+                    {
+                        // MC (default)
+                        int? selectedOptId = answers.TryGetValue(qId, out var v) && v > 0 ? v : (int?)null;
+                        string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
+                            ? opt.OptionText
+                            : null;
+
+                        summaryItems.Add(new ExamSummaryItem
+                        {
+                            DisplayNumber = num++,
+                            QuestionId = qId,
+                            QuestionText = q.QuestionText,
+                            QuestionType = qtype,
+                            SelectedOptionId = selectedOptId,
+                            SelectedOptionText = selectedText
+                        });
+                    }
                 }
             }
             // Legacy path removed (Phase 227 CLEN-02).
 
-            int unansweredCount = summaryItems.Count(s => !s.SelectedOptionId.HasValue);
+            int unansweredCount = summaryItems.Count(s => !s.IsAnswered);
 
             // Also update TempData with merged answers for SubmitExam form
             TempData["PendingAnswers"] = System.Text.Json.JsonSerializer.Serialize(answers);
@@ -1425,8 +1574,19 @@ namespace HcPortal.Controllers
                     .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
                 if (pkgAssign != null)
                 {
-                    int totalQuestions = pkgAssign.GetShuffledQuestionIds().Count;
-                    int answeredCount = answers.Count(a => a.Value > 0);
+                    var shuffledQIds = pkgAssign.GetShuffledQuestionIds();
+                    int totalQuestions = shuffledQIds.Count;
+                    // Count from form answers (MC) + DB responses for Essay/MA not in form
+                    int formAnswered = answers.Count(a => a.Value > 0);
+                    var dbResponses = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == id && shuffledQIds.Contains(r.PackageQuestionId))
+                        .Select(r => r.PackageQuestionId)
+                        .Distinct()
+                        .ToListAsync();
+                    // Merge: questions answered in form OR in DB
+                    var allAnsweredQIds = new HashSet<int>(answers.Where(a => a.Value > 0).Select(a => a.Key));
+                    foreach (var qId in dbResponses) allAnsweredQIds.Add(qId);
+                    int answeredCount = allAnsweredQIds.Count;
                     if (totalQuestions > 0 && answeredCount < totalQuestions)
                     {
                         int unanswered = totalQuestions - answeredCount;
@@ -1470,39 +1630,59 @@ namespace HcPortal.Controllers
                     questionLookupById.TryGetValue(qId, out var qq) ? qq.ScoreValue : 0);
 
                 // Batch-load all existing responses to avoid N+1 queries in the grading loop
-                var existingResponses = await _context.PackageUserResponses
+                // Use GroupBy to handle MA questions which have multiple rows per question
+                var allExistingResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
-                    .ToDictionaryAsync(r => r.PackageQuestionId);
+                    .ToListAsync();
+                var existingResponses = allExistingResponses
+                    .GroupBy(r => r.PackageQuestionId)
+                    .ToDictionary(g => g.Key, g => g.First());
 
                 foreach (var qId in shuffledIds)
                 {
                     if (!questionLookupById.TryGetValue(qId, out var q)) continue;
-                    int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
+                    var qtype = q.QuestionType ?? "MultipleChoice";
 
-                    if (selectedOptId.HasValue)
+                    // MC scoring from form answers
+                    if (qtype == "MultipleChoice")
                     {
-                        var selectedOption = q.Options.FirstOrDefault(o => o.Id == selectedOptId.Value);
-                        if (selectedOption != null && selectedOption.IsCorrect)
+                        int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
+                        if (selectedOptId.HasValue)
+                        {
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == selectedOptId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += q.ScoreValue;
+                        }
+
+                        // Upsert MC answer only
+                        if (existingResponses.TryGetValue(q.Id, out var existingResponse))
+                        {
+                            existingResponse.PackageOptionId = selectedOptId;
+                            existingResponse.SubmittedAt = DateTime.UtcNow;
+                        }
+                        else if (selectedOptId.HasValue)
+                        {
+                            _context.PackageUserResponses.Add(new PackageUserResponse
+                            {
+                                AssessmentSessionId = id,
+                                PackageQuestionId = q.Id,
+                                PackageOptionId = selectedOptId,
+                                SubmittedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+                    else if (qtype == "MultipleAnswer")
+                    {
+                        // MA: score from DB responses (already saved via SignalR)
+                        var maResponses = allExistingResponses
+                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                            .Select(r => r.PackageOptionId!.Value)
+                            .ToHashSet();
+                        var correctOptIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        if (maResponses.SetEquals(correctOptIds))
                             totalScore += q.ScoreValue;
                     }
-
-                    // Persist answer for package-based answer review (upsert: SaveAnswer may have already
-                    // written a record incrementally; update it rather than inserting a duplicate)
-                    if (existingResponses.TryGetValue(q.Id, out var existingResponse))
-                    {
-                        existingResponse.PackageOptionId = selectedOptId;
-                        existingResponse.SubmittedAt = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        _context.PackageUserResponses.Add(new PackageUserResponse
-                        {
-                            AssessmentSessionId = id,
-                            PackageQuestionId = q.Id,
-                            PackageOptionId = selectedOptId,
-                            SubmittedAt = DateTime.UtcNow
-                        });
-                    }
+                    // Essay: scored manually by HC (EssayScore), skip here
                 }
 
                 // Hitung finalPercentage dari form POST untuk SignalR push (sebelum SaveChanges)
@@ -2073,6 +2253,76 @@ namespace HcPortal.Controllers
 
             // Competency gains section removed in Phase 90 (KKJ tables dropped)
 
+            // === Pre-Post comparison section (per D-11, D-12, D-13, D-14) ===
+            ViewBag.HasComparisonSection = false;
+            ViewBag.GainScorePending = false;
+            ViewBag.ComparisonData = null;
+
+            if (!string.IsNullOrEmpty(assessment.AssessmentType)
+                && assessment.AssessmentType == "PostTest"
+                && assessment.LinkedSessionId.HasValue)
+            {
+                var preSessionId = assessment.LinkedSessionId.Value;
+
+                // Security: validasi Pre session exists DAN milik user yang sama (T-299-01 IDOR prevention)
+                var preSession = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(s => s.Id == preSessionId);
+
+                // Null-check preSession (review fix: LinkedSessionId bisa menunjuk ke session yang sudah dihapus)
+                if (preSession != null && preSession.UserId == assessment.UserId)
+                {
+                    // D-17: Essay pending check
+                    bool gainPending = assessment.HasManualGrading && assessment.IsPassed == null;
+
+                    // Query ET scores untuk kedua session dalam 2 query (bukan N+1)
+                    var preEtScores = await _context.SessionElemenTeknisScores
+                        .Where(s => s.AssessmentSessionId == preSessionId)
+                        .ToListAsync();
+
+                    var postEtScores = await _context.SessionElemenTeknisScores
+                        .Where(s => s.AssessmentSessionId == assessment.Id)
+                        .ToListAsync();
+
+                    // Pitfall 1: Jika Pre tidak punya ET scores, jangan tampilkan tabel misleading
+                    if (preEtScores.Any() && postEtScores.Any())
+                    {
+                        var comparisonRows = postEtScores
+                            .Select(post => {
+                                var pre = preEtScores.FirstOrDefault(p => p.ElemenTeknis == post.ElemenTeknis);
+                                double preScore = pre != null && pre.QuestionCount > 0
+                                    ? Math.Round((double)pre.CorrectCount / pre.QuestionCount * 100, 1) : 0;
+                                double postScore = post.QuestionCount > 0
+                                    ? Math.Round((double)post.CorrectCount / post.QuestionCount * 100, 1) : 0;
+
+                                // Gain score formula (D-16): (Post - Pre) / (100 - Pre) * 100
+                                // Edge case D-16: PreScore >= 100 -> Gain = 100 (avoid DivisionByZero)
+                                // Edge case D-17: Essay pending -> null
+                                // Note: PreScore = 0 -> formula yields postScore (intended behavior)
+                                double? gainScore = null;
+                                if (!gainPending)
+                                {
+                                    gainScore = preScore >= 100
+                                        ? 100
+                                        : Math.Round((postScore - preScore) / (100 - preScore) * 100, 1);
+                                }
+
+                                return new {
+                                    ElemenTeknis = post.ElemenTeknis,
+                                    PreScore = preScore,
+                                    PostScore = postScore,
+                                    GainScore = gainScore
+                                };
+                            })
+                            .OrderBy(r => r.ElemenTeknis)
+                            .ToList();
+
+                        ViewBag.ComparisonData = comparisonRows;
+                        ViewBag.GainScorePending = gainPending;
+                        ViewBag.HasComparisonSection = comparisonRows.Any();
+                    }
+                }
+            }
+
             return View(viewModel);
         }
 
@@ -2269,12 +2519,67 @@ namespace HcPortal.Controllers
                 .OrderBy(e => e.TanggalExpired)
                 .ToList();
 
+            // Gain Score Trend — rata-rata gain score per bulan untuk assessment PrePostTest (D-11, D-12, RPT-06)
+            var prePostPostSessions = await _context.AssessmentSessions
+                .Where(s => s.AssessmentType == "PostTest"
+                            && s.Status == "Completed"
+                            && s.Score.HasValue
+                            && s.LinkedSessionId.HasValue
+                            && s.CompletedAt.HasValue
+                            && s.CompletedAt >= periodeStart
+                            && s.CompletedAt <= periodeEnd)
+                .Select(s => new { s.UserId, PostScore = s.Score!.Value, s.LinkedSessionId, PostCompleted = s.CompletedAt!.Value })
+                .ToListAsync();
+
+            if (!string.IsNullOrEmpty(bagian))
+            {
+                var bagianUserIds = await _context.Users
+                    .Where(u => u.Section == bagian)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+                prePostPostSessions = prePostPostSessions.Where(p => bagianUserIds.Contains(p.UserId)).ToList();
+            }
+            if (!string.IsNullOrEmpty(unit))
+            {
+                var unitUserIds = await _context.Users
+                    .Where(u => u.Unit == unit)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+                prePostPostSessions = prePostPostSessions.Where(p => unitUserIds.Contains(p.UserId)).ToList();
+            }
+
+            var preSessionIdsForTrend = prePostPostSessions.Select(p => p.LinkedSessionId!.Value).Distinct().ToList();
+            var preScoreDict = await _context.AssessmentSessions
+                .Where(s => preSessionIdsForTrend.Contains(s.Id) && s.Score.HasValue)
+                .ToDictionaryAsync(s => s.Id, s => s.Score!.Value);
+
+            var gainScoreTrend = prePostPostSessions
+                .Where(p => preScoreDict.ContainsKey(p.LinkedSessionId!.Value))
+                .Select(p =>
+                {
+                    double pre = preScoreDict[p.LinkedSessionId!.Value];
+                    double post = p.PostScore;
+                    double gain = pre >= 100 ? 100 : (100 - pre) == 0 ? 0 : (post - pre) / (100 - pre) * 100;
+                    return new { p.PostCompleted.Year, p.PostCompleted.Month, Gain = gain };
+                })
+                .GroupBy(x => new { x.Year, x.Month })
+                .Select(g => new GainScoreTrendItem
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    AvgGainScore = Math.Round(g.Average(x => x.Gain), 1),
+                    SampleCount = g.Count()
+                })
+                .OrderBy(t => t.Year).ThenBy(t => t.Month)
+                .ToList();
+
             return Json(new AnalyticsDataResult
             {
                 FailRate = failRate,
                 Trend = trend,
                 EtBreakdown = etBreakdown,
-                ExpiringSoon = expiringSoon
+                ExpiringSoon = expiringSoon,
+                GainScoreTrend = gainScoreTrend
             });
         }
 
@@ -2295,6 +2600,251 @@ namespace HcPortal.Controllers
                 .Select(c => c.Name)
                 .ToListAsync();
             return Json(subCategories);
+        }
+
+        // ============================================================
+        // GET /CMP/GetPrePostAssessmentList — daftar assessment PrePostTest untuk dropdown
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetPrePostAssessmentList(string? bagian, string? unit)
+        {
+            var query = _context.AssessmentSessions
+                .Include(s => s.User)
+                .Where(s => s.AssessmentType == "PreTest"
+                            && s.LinkedGroupId.HasValue);
+
+            if (!string.IsNullOrEmpty(bagian))
+                query = query.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                query = query.Where(s => s.User!.Unit == unit);
+
+            var list = await query
+                .GroupBy(s => new { s.LinkedGroupId, s.Title })
+                .Select(g => new PrePostAssessmentListItem
+                {
+                    LinkedGroupId = g.Key.LinkedGroupId!.Value,
+                    Title = g.Key.Title,
+                    TotalWorker = g.Select(s => s.UserId).Distinct().Count()
+                })
+                .ToListAsync();
+
+            return Json(list);
+        }
+
+        // ============================================================
+        // GET /CMP/GetItemAnalysisData — item analysis per soal (p-value, D-index, distractor)
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetItemAnalysisData(int assessmentGroupId)
+        {
+            // Ambil semua sesi PreTest completed dalam group ini
+            var sessions = await _context.AssessmentSessions
+                .Where(s => s.LinkedGroupId == assessmentGroupId
+                            && s.AssessmentType == "PreTest"
+                            && s.Status == "Completed"
+                            && s.Score.HasValue)
+                .Select(s => new { s.Id, s.Score })
+                .ToListAsync();
+
+            int totalResponden = sessions.Count;
+
+            // Ambil semua responses untuk sesi-sesi ini, beserta navigation properties
+            var sessionIds = sessions.Select(s => s.Id).ToList();
+            var responses = await _context.PackageUserResponses
+                .Include(r => r.PackageQuestion)
+                    .ThenInclude(q => q.Options)
+                .Include(r => r.PackageOption)
+                .Where(r => sessionIds.Contains(r.AssessmentSessionId))
+                .ToListAsync();
+
+            // Session scores untuk Kelley discrimination index
+            var sessionScores = sessions
+                .Select(s => (SessionId: s.Id, TotalScore: (int)(s.Score ?? 0)))
+                .ToList();
+
+            var items = new List<ItemAnalysisRow>();
+            int qNum = 0;
+            foreach (var group in responses.GroupBy(r => r.PackageQuestionId).ToList())
+            {
+                qNum++;
+                var firstResponse = group.First();
+                var question = firstResponse.PackageQuestion;
+                if (question == null) continue;
+
+                var questionType = question.QuestionType ?? "MultipleChoice";
+
+                // Difficulty Index (p-value): jumlah benar / total (RPT-01)
+                // Jawaban benar = PackageOption yang dipilih memiliki IsCorrect == true
+                int correctCount = group.Count(r => r.PackageOption != null && r.PackageOption.IsCorrect);
+                double pValue = totalResponden > 0 ? (double)correctCount / totalResponden : 0;
+
+                // Discrimination Index — Kelley upper/lower 27% (RPT-02)
+                var correctSessionIds = group
+                    .Where(r => r.PackageOption != null && r.PackageOption.IsCorrect)
+                    .Select(r => r.AssessmentSessionId)
+                    .ToList();
+                double? dIndex = CalculateKelleyDiscrimination(sessionScores, correctSessionIds);
+
+                // Distractor analysis (RPT-03) — hanya untuk MC/TF
+                var distractors = new List<DistractorRow>();
+                if (questionType == "MultipleChoice" || questionType == "TrueFalse")
+                {
+                    var options = question.Options?.ToList() ?? new List<PackageOption>();
+                    foreach (var opt in options)
+                    {
+                        int optCount = group.Count(r => r.PackageOptionId == opt.Id);
+                        distractors.Add(new DistractorRow
+                        {
+                            OptionText = opt.OptionText ?? "",
+                            IsCorrect = opt.IsCorrect,
+                            Count = optCount,
+                            Percent = totalResponden > 0 ? Math.Round((double)optCount / totalResponden * 100, 1) : 0
+                        });
+                    }
+                }
+
+                items.Add(new ItemAnalysisRow
+                {
+                    QuestionNumber = qNum,
+                    QuestionText = question.QuestionText ?? "",
+                    QuestionType = questionType,
+                    DifficultyIndex = Math.Round(pValue, 3),
+                    DiscriminationIndex = dIndex.HasValue ? Math.Round(dIndex.Value, 3) : null,
+                    TotalResponden = totalResponden,
+                    IsLowN = totalResponden < 30,
+                    Distractors = distractors
+                });
+            }
+
+            return Json(new ItemAnalysisResult
+            {
+                TotalResponden = totalResponden,
+                IsLowN = totalResponden < 30,
+                Items = items
+            });
+        }
+
+        /// <summary>
+        /// Kelley discrimination index: (upper 27% correct rate) - (lower 27% correct rate)
+        /// </summary>
+        private static double? CalculateKelleyDiscrimination(
+            List<(int SessionId, int TotalScore)> sessionScores,
+            List<int> correctSessionIds)
+        {
+            int n = sessionScores.Count;
+            if (n == 0) return null;
+
+            int groupSize = (int)Math.Ceiling(n * 0.27);
+            if (groupSize == 0) return null;
+
+            var sorted = sessionScores.OrderByDescending(s => s.TotalScore).ToList();
+            var upperIds = sorted.Take(groupSize).Select(s => s.SessionId).ToHashSet();
+            var lowerIds = sorted.TakeLast(groupSize).Select(s => s.SessionId).ToHashSet();
+
+            var correctSet = new HashSet<int>(correctSessionIds);
+            double upperCorrect = upperIds.Count(id => correctSet.Contains(id));
+            double lowerCorrect = lowerIds.Count(id => correctSet.Contains(id));
+
+            return (upperCorrect / groupSize) - (lowerCorrect / groupSize);
+        }
+
+        // ============================================================
+        // GET /CMP/GetGainScoreData — gain score per pekerja, per elemen, group comparison
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetGainScoreData(int assessmentGroupId)
+        {
+            // Per Pekerja — pair Pre dan Post by UserId (D-07 view 1, RPT-04)
+            var preSessions = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .Where(s => s.LinkedGroupId == assessmentGroupId
+                            && s.AssessmentType == "PreTest"
+                            && s.Status == "Completed"
+                            && s.Score.HasValue)
+                .ToListAsync();
+
+            var postSessionDict = await _context.AssessmentSessions
+                .Where(s => s.LinkedGroupId == assessmentGroupId
+                            && s.AssessmentType == "PostTest"
+                            && s.Status == "Completed"
+                            && s.Score.HasValue)
+                .ToDictionaryAsync(s => s.UserId, s => s);
+
+            var perWorker = new List<GainScorePerWorker>();
+            foreach (var pre in preSessions)
+            {
+                if (!postSessionDict.TryGetValue(pre.UserId, out var post)) continue;
+                double preScore = pre.Score ?? 0;
+                double postScore = post.Score ?? 0;
+                // Gain score formula: (Post - Pre) / (100 - Pre) * 100
+                // PreScore = 100 → Gain = 100 (WKPPT-06)
+                double gainScore = preScore >= 100 ? 100 : (100 - preScore) == 0 ? 0 : Math.Round((postScore - preScore) / (100 - preScore) * 100, 1);
+
+                perWorker.Add(new GainScorePerWorker
+                {
+                    NamaPekerja = pre.User?.FullName ?? pre.User?.UserName ?? "",
+                    NIP = pre.User?.NIP ?? "",
+                    Section = pre.User?.Section ?? "Tidak Diketahui",
+                    PreScore = Math.Round(preScore, 1),
+                    PostScore = Math.Round(postScore, 1),
+                    GainScore = gainScore
+                });
+            }
+
+            // Per Elemen Kompetensi — dari SessionElemenTeknisScores (D-07 view 2, RPT-04)
+            var preSessionIds = preSessions.Select(s => s.Id).ToList();
+            var postSessionIds = postSessionDict.Values.Select(s => s.Id).ToList();
+
+            var preEt = await _context.SessionElemenTeknisScores
+                .Where(e => preSessionIds.Contains(e.AssessmentSessionId))
+                .ToListAsync();
+            var postEt = await _context.SessionElemenTeknisScores
+                .Where(e => postSessionIds.Contains(e.AssessmentSessionId))
+                .ToListAsync();
+
+            var preEtAvg = preEt.GroupBy(e => e.ElemenTeknis)
+                .ToDictionary(g => g.Key, g => g.Average(e => e.QuestionCount > 0 ? (double)e.CorrectCount * 100.0 / e.QuestionCount : 0));
+            var postEtAvg = postEt.GroupBy(e => e.ElemenTeknis)
+                .ToDictionary(g => g.Key, g => g.Average(e => e.QuestionCount > 0 ? (double)e.CorrectCount * 100.0 / e.QuestionCount : 0));
+
+            var allEt = preEtAvg.Keys.Union(postEtAvg.Keys).OrderBy(k => k);
+            var perElemen = allEt.Select(et =>
+            {
+                double avgPre = preEtAvg.GetValueOrDefault(et, 0);
+                double avgPost = postEtAvg.GetValueOrDefault(et, 0);
+                double avgGain = avgPre >= 100 ? 100 : (100 - avgPre) == 0 ? 0 : Math.Round((avgPost - avgPre) / (100 - avgPre) * 100, 1);
+                return new GainScorePerElemen
+                {
+                    ElemenTeknis = et,
+                    AvgPre = Math.Round(avgPre, 1),
+                    AvgPost = Math.Round(avgPost, 1),
+                    AvgGain = avgGain
+                };
+            }).ToList();
+
+            // Group Comparison — per Bagian (RPT-07)
+            var groupComparison = perWorker
+                .GroupBy(g => g.Section)
+                .Select(grp => new GroupComparisonItem
+                {
+                    GroupName = grp.Key,
+                    WorkerCount = grp.Count(),
+                    AvgPreScore = Math.Round(grp.Average(g => g.PreScore), 1),
+                    AvgPostScore = Math.Round(grp.Average(g => g.PostScore), 1),
+                    AvgGainScore = Math.Round(grp.Average(g => g.GainScore), 1)
+                })
+                .OrderByDescending(g => g.AvgGainScore)
+                .ToList();
+
+            return Json(new GainScoreResult
+            {
+                PerWorker = perWorker,
+                PerElemen = perElemen,
+                GroupComparison = groupComparison
+            });
         }
 
     }

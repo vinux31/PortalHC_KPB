@@ -5,6 +5,11 @@
     ViewData["ContainerClass"] = "container-fluid";
     var packageCount = (int)(ViewBag.PackageCount ?? 0);
     var originalSchedule = (string)(ViewBag.OriginalSchedule ?? "");
+    bool isPrePostGroup = ViewBag.IsPrePostGroup == true;
+    var preSession = ViewBag.PreSession as HcPortal.Models.AssessmentSession;
+    var postSession = ViewBag.PostSession as HcPortal.Models.AssessmentSession;
+    int prePackageCount = (int)(ViewBag.PrePackageCount ?? 0);
+    int postPackageCount = (int)(ViewBag.PostPackageCount ?? 0);
     // Status options
     var statuses = new List<SelectListItem>
     {
@@ -205,6 +210,142 @@
                     </div>
                 </div>
 
+                @if (isPrePostGroup)
+                {
+                    <!-- Pre-Post Tab Layout: per-phase schedule fields -->
+                    <ul class="nav nav-tabs mb-3" id="prePostTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-pre-btn" data-bs-toggle="tab" data-bs-target="#tab-pre" type="button" role="tab">
+                                Pre-Test <span class="badge bg-secondary ms-1">@prePackageCount paket</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-post-btn" data-bs-toggle="tab" data-bs-target="#tab-post" type="button" role="tab">
+                                Post-Test <span class="badge bg-secondary ms-1">@postPackageCount paket</span>
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content mb-3" id="prePostTabContent">
+                        <!-- Tab Pre-Test -->
+                        <div class="tab-pane fade show active" id="tab-pre" role="tabpanel">
+                            <div class="card border-0 bg-light p-3">
+                                <h6 class="fw-semibold mb-3 text-primary">Jadwal Pre-Test</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Tanggal &amp; Waktu Pre-Test</label>
+                                        <div class="d-flex gap-2 align-items-start">
+                                            <div class="flex-grow-1">
+                                                <input type="date" id="PreScheduleDate"
+                                                       value="@(preSession?.Schedule.ToString("yyyy-MM-dd") ?? "")"
+                                                       class="form-control" />
+                                                <div class="form-text text-muted">Tanggal (WIB)</div>
+                                            </div>
+                                            <div class="flex-shrink-0" style="min-width:110px; max-width:140px">
+                                                <input type="time" id="PreScheduleTime"
+                                                       value="@(preSession?.Schedule.ToString("HH:mm") ?? "08:00")"
+                                                       class="form-control" />
+                                                <div class="form-text text-muted">Waktu (WIB)</div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="PreSchedule" id="PreScheduleHidden"
+                                               value="@(preSession?.Schedule.ToString("yyyy-MM-ddTHH:mm:ss") ?? "")" />
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label fw-semibold">Durasi Pre (menit)</label>
+                                        <input type="number" name="PreDurationMinutes" class="form-control"
+                                               value="@(preSession?.DurationMinutes ?? 60)" min="1" max="480" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Tanggal Tutup Ujian Pre-Test</label>
+                                        <div class="d-flex gap-2 align-items-start">
+                                            <div class="flex-grow-1">
+                                                <input type="date" id="PreEwcdDate"
+                                                       value="@(preSession?.ExamWindowCloseDate?.ToString("yyyy-MM-dd") ?? "")"
+                                                       class="form-control" />
+                                            </div>
+                                            <div class="flex-shrink-0" style="min-width:110px; max-width:140px">
+                                                <input type="time" id="PreEwcdTime"
+                                                       value="@(preSession?.ExamWindowCloseDate?.ToString("HH:mm") ?? "23:59")"
+                                                       class="form-control" />
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="PreExamWindowCloseDate" id="PreEwcdHidden"
+                                               value="@(preSession?.ExamWindowCloseDate?.ToString("yyyy-MM-ddTHH:mm:ss") ?? "")" />
+                                    </div>
+                                </div>
+                                @if (preSession != null)
+                                {
+                                    <div>
+                                        <a href="@Url.Action("ManagePackages", "AssessmentAdmin", new { assessmentId = preSession.Id })"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-box me-1"></i> Kelola Paket Pre-Test (@prePackageCount paket)
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <!-- Tab Post-Test -->
+                        <div class="tab-pane fade" id="tab-post" role="tabpanel">
+                            <div class="card border-0 bg-light p-3">
+                                <h6 class="fw-semibold mb-3 text-success">Jadwal Post-Test</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Tanggal &amp; Waktu Post-Test</label>
+                                        <div class="d-flex gap-2 align-items-start">
+                                            <div class="flex-grow-1">
+                                                <input type="date" id="PostScheduleDate"
+                                                       value="@(postSession?.Schedule.ToString("yyyy-MM-dd") ?? "")"
+                                                       class="form-control" />
+                                                <div class="form-text text-muted">Tanggal (WIB)</div>
+                                            </div>
+                                            <div class="flex-shrink-0" style="min-width:110px; max-width:140px">
+                                                <input type="time" id="PostScheduleTime"
+                                                       value="@(postSession?.Schedule.ToString("HH:mm") ?? "08:00")"
+                                                       class="form-control" />
+                                                <div class="form-text text-muted">Waktu (WIB)</div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="PostSchedule" id="PostScheduleHidden"
+                                               value="@(postSession?.Schedule.ToString("yyyy-MM-ddTHH:mm:ss") ?? "")" />
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label fw-semibold">Durasi Post (menit)</label>
+                                        <input type="number" name="PostDurationMinutes" class="form-control"
+                                               value="@(postSession?.DurationMinutes ?? 60)" min="1" max="480" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Tanggal Tutup Ujian Post-Test</label>
+                                        <div class="d-flex gap-2 align-items-start">
+                                            <div class="flex-grow-1">
+                                                <input type="date" id="PostEwcdDate"
+                                                       value="@(postSession?.ExamWindowCloseDate?.ToString("yyyy-MM-dd") ?? "")"
+                                                       class="form-control" />
+                                            </div>
+                                            <div class="flex-shrink-0" style="min-width:110px; max-width:140px">
+                                                <input type="time" id="PostEwcdTime"
+                                                       value="@(postSession?.ExamWindowCloseDate?.ToString("HH:mm") ?? "23:59")"
+                                                       class="form-control" />
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="PostExamWindowCloseDate" id="PostEwcdHidden"
+                                               value="@(postSession?.ExamWindowCloseDate?.ToString("yyyy-MM-ddTHH:mm:ss") ?? "")" />
+                                    </div>
+                                </div>
+                                @if (postSession != null)
+                                {
+                                    <div>
+                                        <a href="@Url.Action("ManagePackages", "AssessmentAdmin", new { assessmentId = postSession.Id })"
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-box me-1"></i> Kelola Paket Post-Test (@postPackageCount paket)
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
                 <!-- Schedule & Duration -->
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -237,6 +378,7 @@
                         <span asp-validation-for="DurationMinutes" class="text-danger"></span>
                     </div>
                 </div>
+                }
 
                 <!-- Assessment Settings Section -->
                 <div class="card border-info mb-4">
@@ -438,11 +580,16 @@
                 <!-- Add More Users (Multi-Select Picker) -->
                 <div class="card border-warning mb-4">
                     <div class="card-header bg-warning text-dark">
-                        <h6 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Tambah Peserta</h6>
+                        <h6 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>@(isPrePostGroup ? "Kelola Peserta Pre-Post" : "Tambah Peserta")</h6>
                     </div>
                     <div class="card-body">
                         @{
                             var assignedUserIds = ViewBag.AssignedUserIds as List<string> ?? new List<string>();
+                        }
+
+                        @if (isPrePostGroup)
+                        {
+                            <p class="text-muted small mb-2">Centang peserta yang ingin disertakan. Hapus centang untuk menghapus peserta dari grup Pre-Post.</p>
                         }
 
                         <!-- Section Filter + Search + Controls -->
@@ -475,13 +622,15 @@
                             {
                                 @foreach (var user in ViewBag.Users)
                                 {
-                                    // Skip users already assigned
-                                    if (assignedUserIds.Contains((string)user.Id))
-                                    {
-                                        continue;
-                                    }
+                                    bool alreadyAssigned = assignedUserIds.Contains((string)user.Id);
+                                    // For standard flow: skip already assigned users
+                                    if (!isPrePostGroup && alreadyAssigned) { continue; }
+
+                                    string fieldName = isPrePostGroup ? "UserIds" : "NewUserIds";
+                                    bool isChecked = isPrePostGroup && alreadyAssigned;
+
                                     <div class="form-check new-user-check-item mb-1" data-name="@user.FullName" data-email="@user.Email" data-section="@user.Section">
-                                        <input class="form-check-input new-user-checkbox" type="checkbox" name="NewUserIds" value="@user.Id" id="newuser_@user.Id" />
+                                        <input class="form-check-input new-user-checkbox" type="checkbox" name="@fieldName" value="@user.Id" id="newuser_@user.Id" @(isChecked ? "checked" : "") />
                                         <label class="form-check-label" for="newuser_@user.Id">
                                             <strong>@user.FullName</strong>
                                             @if (!string.IsNullOrEmpty((string)user.Email))
@@ -498,7 +647,7 @@
                             }
                         </div>
 
-                        <small class="text-muted mt-2 d-block">Pilih peserta untuk ditambahkan. Peserta yang sudah ditugaskan tidak ditampilkan.</small>
+                        <small class="text-muted mt-2 d-block">@(isPrePostGroup ? "Peserta yang tercentang akan disimpan. Peserta baru akan mendapat sesi Pre+Post otomatis." : "Pilih peserta untuk ditambahkan. Peserta yang sudah ditugaskan tidak ditampilkan.")</small>
                     </div>
                 </div>
 
@@ -554,51 +703,93 @@
         (function() {
             var packageCount = @packageCount;
             var originalSchedule = '@originalSchedule';
+            var isPrePost = @(isPrePostGroup ? "true" : "false");
 
             var form = document.getElementById('editAssessmentForm');
             if (!form) return;
 
             form.addEventListener('submit', function(e) {
-                var schedDateInput = document.getElementById('ScheduleDate');
-                var schedTimeInput = document.getElementById('ScheduleTime');
-                var schedHidden   = document.getElementById('ScheduleHidden');
-
-                // Always combine ScheduleDate + ScheduleTime into Schedule hidden field
-                if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
-                    schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
-                }
-
-                // Always combine ExamWindowCloseDate date + time
-                var ewcdDateInput = document.getElementById('ewcdDateInput');
-                var ewcdTimeInput = document.getElementById('ewcdTimeInput');
-                var ewcdHidden = document.getElementById('ewcdHidden');
-                if (ewcdDateInput && ewcdDateInput.value && ewcdTimeInput && ewcdHidden) {
-                    ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
-                }
-
-                // Validate ExamWindowCloseDate >= Schedule
-                var schedVal = schedHidden ? schedHidden.value : '';
-                var ewcdVal = ewcdHidden ? ewcdHidden.value : '';
-                if (schedVal && ewcdVal && new Date(ewcdVal) < new Date(schedVal)) {
-                    alert('Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.');
-                    resetSubmitButton();
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-
-                // Schedule-change warning only when packages are attached
-                if (packageCount > 0 && schedDateInput) {
-                    var newSchedule = schedDateInput.value;
-                    if (newSchedule !== originalSchedule) {
-                        var msg = 'PERINGATAN: Assessment ini memiliki ' + packageCount + ' paket ujian yang terkait. ' +
-                                  'Mengubah tanggal jadwal dapat mempengaruhi penugasan paket peserta.\n\n' +
-                                  'Lanjutkan simpan perubahan?';
-                        if (!confirm(msg)) {
+                if (isPrePost) {
+                    // Combine Pre schedule fields
+                    var preDate = document.getElementById('PreScheduleDate');
+                    var preTime = document.getElementById('PreScheduleTime');
+                    var preHidden = document.getElementById('PreScheduleHidden');
+                    if (preDate && preDate.value && preTime && preHidden) {
+                        preHidden.value = preDate.value + 'T' + (preTime.value || '08:00') + ':00';
+                    }
+                    // Combine Pre EWCD fields
+                    var preEwcdDate = document.getElementById('PreEwcdDate');
+                    var preEwcdTime = document.getElementById('PreEwcdTime');
+                    var preEwcdHidden = document.getElementById('PreEwcdHidden');
+                    if (preEwcdDate && preEwcdDate.value && preEwcdTime && preEwcdHidden) {
+                        preEwcdHidden.value = preEwcdDate.value + 'T' + (preEwcdTime.value || '23:59') + ':00';
+                    }
+                    // Combine Post schedule fields
+                    var postDate = document.getElementById('PostScheduleDate');
+                    var postTime = document.getElementById('PostScheduleTime');
+                    var postHidden = document.getElementById('PostScheduleHidden');
+                    if (postDate && postDate.value && postTime && postHidden) {
+                        postHidden.value = postDate.value + 'T' + (postTime.value || '08:00') + ':00';
+                    }
+                    // Combine Post EWCD fields
+                    var postEwcdDate = document.getElementById('PostEwcdDate');
+                    var postEwcdTime = document.getElementById('PostEwcdTime');
+                    var postEwcdHidden = document.getElementById('PostEwcdHidden');
+                    if (postEwcdDate && postEwcdDate.value && postEwcdTime && postEwcdHidden) {
+                        postEwcdHidden.value = postEwcdDate.value + 'T' + (postEwcdTime.value || '23:59') + ':00';
+                    }
+                    // Validate PostSchedule > PreSchedule
+                    if (preHidden && preHidden.value && postHidden && postHidden.value) {
+                        if (new Date(postHidden.value) <= new Date(preHidden.value)) {
+                            alert('Jadwal Post-Test harus setelah jadwal Pre-Test.');
                             resetSubmitButton();
                             e.preventDefault();
                             e.stopPropagation();
                             return false;
+                        }
+                    }
+                } else {
+                    var schedDateInput = document.getElementById('ScheduleDate');
+                    var schedTimeInput = document.getElementById('ScheduleTime');
+                    var schedHidden   = document.getElementById('ScheduleHidden');
+
+                    // Always combine ScheduleDate + ScheduleTime into Schedule hidden field
+                    if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
+                        schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                    }
+
+                    // Always combine ExamWindowCloseDate date + time
+                    var ewcdDateInput = document.getElementById('ewcdDateInput');
+                    var ewcdTimeInput = document.getElementById('ewcdTimeInput');
+                    var ewcdHidden = document.getElementById('ewcdHidden');
+                    if (ewcdDateInput && ewcdDateInput.value && ewcdTimeInput && ewcdHidden) {
+                        ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
+                    }
+
+                    // Validate ExamWindowCloseDate >= Schedule
+                    var schedVal = schedHidden ? schedHidden.value : '';
+                    var ewcdVal = ewcdHidden ? ewcdHidden.value : '';
+                    if (schedVal && ewcdVal && new Date(ewcdVal) < new Date(schedVal)) {
+                        alert('Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.');
+                        resetSubmitButton();
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+
+                    // Schedule-change warning only when packages are attached
+                    if (packageCount > 0 && schedDateInput) {
+                        var newSchedule = schedDateInput.value;
+                        if (newSchedule !== originalSchedule) {
+                            var msg = 'PERINGATAN: Assessment ini memiliki ' + packageCount + ' paket ujian yang terkait. ' +
+                                      'Mengubah tanggal jadwal dapat mempengaruhi penugasan paket peserta.\n\n' +
+                                      'Lanjutkan simpan perubahan?';
+                            if (!confirm(msg)) {
+                                resetSubmitButton();
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            }
                         }
                     }
                 }
