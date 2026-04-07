@@ -4869,5 +4869,38 @@ namespace HcPortal.Controllers
 
         #endregion
 
+        #region Extra Time (Phase 302)
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddExtraTime(int assessmentId, int minutes)
+        {
+            if (minutes < 5 || minutes > 120 || minutes % 5 != 0)
+                return Json(new { success = false, message = "Waktu harus antara 5-120 menit, kelipatan 5." });
+
+            // Cari semua session aktif (InProgress) dengan AssessmentId ini
+            var sessions = await _context.AssessmentSessions
+                .Where(s => s.Id == assessmentId && s.Status == "InProgress")
+                .ToListAsync();
+
+            if (!sessions.Any())
+                return Json(new { success = false, message = "Tidak ada peserta aktif." });
+
+            foreach (var session in sessions)
+            {
+                session.ExtraTimeMinutes = (session.ExtraTimeMinutes ?? 0) + minutes;
+            }
+            await _context.SaveChangesAsync();
+
+            // Broadcast ke semua peserta aktif via SignalR menggunakan batchKey (AccessToken)
+            var batchKey = sessions.First().AccessToken;
+            await _hubContext.Clients.Group($"batch-{batchKey}")
+                .SendAsync("ExtraTimeAdded", minutes * 60);
+
+            return Json(new { success = true, message = $"Waktu ujian berhasil ditambahkan. Peserta mendapat {minutes} menit tambahan." });
+        }
+
+        #endregion
+
     }
 }

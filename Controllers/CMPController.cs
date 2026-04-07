@@ -1027,7 +1027,7 @@ namespace HcPortal.Controllers
 
                 // Resume state: set ViewBag flags for frontend
                 bool isResume = !justStarted;
-                int durationSeconds = assessment.DurationMinutes * 60;
+                int durationSeconds = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
                 int elapsedSec = assessment.ElapsedSeconds;
 
                 // Server-authoritative: cross-check DB elapsed dengan wall-clock elapsed sejak StartedAt
@@ -1528,7 +1528,7 @@ namespace HcPortal.Controllers
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
                 var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
-                var allowed = assessment.DurationMinutes * 60;
+                var allowed = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
                 timerExpired = elapsed >= allowed;
             }
 
@@ -1571,7 +1571,7 @@ namespace HcPortal.Controllers
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
                 var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
-                var allowed = assessment.DurationMinutes * 60;
+                var allowed = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
                 serverTimerExpired = elapsed >= allowed;
             }
 
@@ -1609,7 +1609,7 @@ namespace HcPortal.Controllers
             if (assessment.StartedAt.HasValue)
             {
                 var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
-                int allowedMinutes = assessment.DurationMinutes + 2; // 2-minute grace
+                int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0) + 2; // 2-minute grace
                 if (elapsed.TotalMinutes > allowedMinutes)
                 {
                     TempData["Error"] = "Waktu ujian Anda telah habis. Pengiriman jawaban tidak dapat diproses.";

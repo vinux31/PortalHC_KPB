@@ -152,5 +152,13 @@ namespace HcPortal.Models
         /// Default false — hanya true jika ada soal Essay dalam package.
         /// </summary>
         public bool HasManualGrading { get; set; } = false;
+
+        // ===== Phase 302: Extra Time Accessibility =====
+        /// <summary>
+        /// Akumulasi extra time (menit) yang ditambahkan HC untuk sesi ini.
+        /// Null = tidak ada extra time. Nilai ini ditambahkan ke DurationMinutes
+        /// saat menghitung timer server-side dan pada update timer real-time via SignalR.
+        /// </summary>
+        public int? ExtraTimeMinutes { get; set; }
     }
 }
