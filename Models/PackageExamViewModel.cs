@@ -54,6 +54,24 @@ namespace HcPortal.Models
         public string QuestionText { get; set; } = "";
         public int? SelectedOptionId { get; set; }
         public string? SelectedOptionText { get; set; }
-        public bool IsAnswered => SelectedOptionId.HasValue;
+
+        /// <summary>
+        /// Tipe soal: "MultipleChoice", "MultipleAnswer", atau "Essay".
+        /// Null/blank dianggap MultipleChoice (backward compatible).
+        /// </summary>
+        public string? QuestionType { get; set; }
+
+        /// <summary>Daftar teks opsi yang dipilih untuk soal MultipleAnswer (e.g. ["A", "C"]).</summary>
+        public List<string> SelectedOptionTexts { get; set; } = new();
+
+        /// <summary>Jawaban teks untuk soal Essay.</summary>
+        public string? TextAnswer { get; set; }
+
+        public bool IsAnswered =>
+            (QuestionType == "Essay")
+                ? !string.IsNullOrWhiteSpace(TextAnswer)
+                : (QuestionType == "MultipleAnswer")
+                    ? SelectedOptionTexts.Any()
+                    : SelectedOptionId.HasValue;
     }
 }
