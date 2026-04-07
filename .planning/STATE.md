@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v14.0
 milestone_name: Assessment Enhancement
 status: planning
-stopped_at: Phase 298 context gathered
-last_updated: "2026-04-07T02:13:07.241Z"
+stopped_at: Phase 298 UI-SPEC approved
+last_updated: "2026-04-07T02:19:38.871Z"
 last_activity: 2026-04-07 — Restored v14.0 roadmap (7 phases, 52 requirements)
 progress:
   total_phases: 4
@@ -92,5 +92,5 @@ Progress: [█░░░░░░░░░] 14% (1/7 phases)
 ## Session Continuity
 
 Last activity: 2026-04-07 — Restored v14.0 roadmap (7 phases, 52 requirements). Phase 296 complete.
-Stopped at: Phase 298 context gathered
-Resume file: .planning/phases/298-question-types/298-CONTEXT.md
+Stopped at: Phase 298 UI-SPEC approved
+Resume file: .planning/phases/298-question-types/298-UI-SPEC.md
