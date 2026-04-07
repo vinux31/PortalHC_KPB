@@ -771,30 +771,39 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("UserIds", "Cannot assign to more than 50 users at once. Please split into multiple batches.");
             }
 
-            // Validate schedule date
-            if (model.Schedule < DateTime.Today)
-            {
-                ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
-            }
+            // Early Pre-Post mode determination (needed before standard field validation)
+            bool isPrePostMode = AssessmentTypeInput == "PrePostTest";
 
-            if (model.Schedule > DateTime.Today.AddYears(2))
+            // Validate schedule date (skip for Pre-Post — uses PreSchedule/PostSchedule instead)
+            if (!isPrePostMode)
             {
-                ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
-            }
-
-            // Validate duration (skip for Assessment Proton Tahun 3 — interview only, no online exam)
-            bool isProtonYear3Check = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue;
-            // We'll resolve TahunKe after ModelState check below; for now use DurationMinutes=0 sentinel
-            if (!isProtonYear3Check || model.DurationMinutes != 0)
-            {
-                if (model.DurationMinutes <= 0)
+                if (model.Schedule < DateTime.Today)
                 {
-                    ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
+                    ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
                 }
 
-                if (model.DurationMinutes > 480)
+                if (model.Schedule > DateTime.Today.AddYears(2))
                 {
-                    ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+                    ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
+                }
+            }
+
+            // Validate duration (skip for Pre-Post and Assessment Proton Tahun 3)
+            if (!isPrePostMode)
+            {
+                bool isProtonYear3Check = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue;
+                // We'll resolve TahunKe after ModelState check below; for now use DurationMinutes=0 sentinel
+                if (!isProtonYear3Check || model.DurationMinutes != 0)
+                {
+                    if (model.DurationMinutes <= 0)
+                    {
+                        ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
+                    }
+
+                    if (model.DurationMinutes > 480)
+                    {
+                        ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+                    }
                 }
             }
 
@@ -851,7 +860,7 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("AssessmentTypeInput", "Tipe assessment tidak valid.");
             }
 
-            bool isPrePostMode = AssessmentTypeInput == "PrePostTest";
+            // isPrePostMode already determined above (before Schedule/Duration validation)
 
             if (isPrePostMode)
             {

@@ -855,43 +855,97 @@ function generateToken() {
         }
 
         if (n === 3) {
-            var schedDate = document.getElementById('schedDateInput');
-            var schedTime = document.getElementById('schedTimeInput');
-            var duration = document.getElementById('DurationMinutes');
-            var status = document.getElementById('Status');
-            var durWrapper = document.getElementById('durationFieldWrapper');
+            var typeSelect = document.getElementById('assessmentTypeInput');
+            var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
 
-            if (!schedDate || !schedDate.value) {
-                if (schedDate) schedDate.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!schedTime || !schedTime.value) {
-                if (schedTime) schedTime.classList.add('is-invalid');
-                valid = false;
-            }
-            // Skip duration for Tahun 3
-            var isDurHidden = durWrapper && durWrapper.classList.contains('d-none');
-            if (!isDurHidden) {
-                if (!duration || !duration.value || parseInt(duration.value) <= 0) {
-                    if (duration) duration.classList.add('is-invalid');
+            if (isPrePost) {
+                // Validate Pre-Post jadwal fields
+                var preSchedule = document.getElementById('preSchedule');
+                var preDuration = document.getElementById('preDurationMinutes');
+                var preEwcd = document.getElementById('preExamWindowCloseDate');
+                var postSchedule = document.getElementById('postSchedule');
+                var postDuration = document.getElementById('postDurationMinutes');
+                var postEwcd = document.getElementById('postExamWindowCloseDate');
+
+                if (!preSchedule || !preSchedule.value) {
+                    if (preSchedule) preSchedule.classList.add('is-invalid');
                     valid = false;
                 }
-            }
-            if (!status || !status.value) {
-                if (status) status.classList.add('is-invalid');
-                valid = false;
-            }
+                if (!preDuration || !preDuration.value || parseInt(preDuration.value) <= 0) {
+                    if (preDuration) preDuration.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!preEwcd || !preEwcd.value) {
+                    if (preEwcd) preEwcd.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!postSchedule || !postSchedule.value) {
+                    if (postSchedule) postSchedule.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!postDuration || !postDuration.value || parseInt(postDuration.value) <= 0) {
+                    if (postDuration) postDuration.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!postEwcd || !postEwcd.value) {
+                    if (postEwcd) postEwcd.classList.add('is-invalid');
+                    valid = false;
+                }
 
-            // ExamWindowCloseDate validation
-            var ewcdDate = document.getElementById('ewcdDateInput');
-            var ewcdTime = document.getElementById('ewcdTimeInput');
-            if (!ewcdDate || !ewcdDate.value) {
-                if (ewcdDate) ewcdDate.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!ewcdTime || !ewcdTime.value) {
-                if (ewcdTime) ewcdTime.classList.add('is-invalid');
-                valid = false;
+                // D-06: PostSchedule must be after PreSchedule
+                if (preSchedule && preSchedule.value && postSchedule && postSchedule.value) {
+                    if (postSchedule.value <= preSchedule.value) {
+                        postSchedule.classList.add('is-invalid');
+                        valid = false;
+                    }
+                }
+
+                // Status still required
+                var status = document.getElementById('Status');
+                if (!status || !status.value) {
+                    if (status) status.classList.add('is-invalid');
+                    valid = false;
+                }
+            } else {
+                // Standard jadwal validation
+                var schedDate = document.getElementById('schedDateInput');
+                var schedTime = document.getElementById('schedTimeInput');
+                var duration = document.getElementById('DurationMinutes');
+                var status = document.getElementById('Status');
+                var durWrapper = document.getElementById('durationFieldWrapper');
+
+                if (!schedDate || !schedDate.value) {
+                    if (schedDate) schedDate.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!schedTime || !schedTime.value) {
+                    if (schedTime) schedTime.classList.add('is-invalid');
+                    valid = false;
+                }
+                // Skip duration for Tahun 3
+                var isDurHidden = durWrapper && durWrapper.classList.contains('d-none');
+                if (!isDurHidden) {
+                    if (!duration || !duration.value || parseInt(duration.value) <= 0) {
+                        if (duration) duration.classList.add('is-invalid');
+                        valid = false;
+                    }
+                }
+                if (!status || !status.value) {
+                    if (status) status.classList.add('is-invalid');
+                    valid = false;
+                }
+
+                // ExamWindowCloseDate validation
+                var ewcdDate = document.getElementById('ewcdDateInput');
+                var ewcdTime = document.getElementById('ewcdTimeInput');
+                if (!ewcdDate || !ewcdDate.value) {
+                    if (ewcdDate) ewcdDate.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!ewcdTime || !ewcdTime.value) {
+                    if (ewcdTime) ewcdTime.classList.add('is-invalid');
+                    valid = false;
+                }
             }
         }
 
@@ -962,16 +1016,46 @@ function generateToken() {
         }
 
         // Settings
-        var schedDate = document.getElementById('schedDateInput');
-        var schedTime = document.getElementById('schedTimeInput');
-        var schedVal = (schedDate && schedDate.value) ? schedDate.value : '';
-        var timeVal = (schedTime && schedTime.value) ? schedTime.value : '08:00';
-        var summSchedule = document.getElementById('summary-schedule');
-        if (summSchedule) summSchedule.textContent = schedVal ? (schedVal + ' ' + timeVal + ' WIB') : '-';
+        var typeSelect = document.getElementById('assessmentTypeInput');
+        var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
 
-        var durEl = document.getElementById('DurationMinutes');
+        var summSchedule = document.getElementById('summary-schedule');
         var summDur = document.getElementById('summary-duration');
-        if (summDur) summDur.textContent = (durEl && durEl.value) ? (durEl.value + ' menit') : '-';
+        var summEwcd = document.getElementById('summary-ewcd');
+
+        if (isPrePost) {
+            var preSched = document.getElementById('preSchedule');
+            var postSched = document.getElementById('postSchedule');
+            var preDur = document.getElementById('preDurationMinutes');
+            var postDur = document.getElementById('postDurationMinutes');
+            var preEwcd = document.getElementById('preExamWindowCloseDate');
+            var postEwcd = document.getElementById('postExamWindowCloseDate');
+
+            if (summSchedule) summSchedule.textContent =
+                'Pre: ' + (preSched && preSched.value ? preSched.value.replace('T', ' ') : '-') +
+                ' | Post: ' + (postSched && postSched.value ? postSched.value.replace('T', ' ') : '-');
+            if (summDur) summDur.textContent =
+                'Pre: ' + (preDur && preDur.value ? preDur.value + ' menit' : '-') +
+                ' | Post: ' + (postDur && postDur.value ? postDur.value + ' menit' : '-');
+            if (summEwcd) summEwcd.textContent =
+                'Pre: ' + (preEwcd && preEwcd.value ? preEwcd.value.replace('T', ' ') : '-') +
+                ' | Post: ' + (postEwcd && postEwcd.value ? postEwcd.value.replace('T', ' ') : '-');
+        } else {
+            var schedDate = document.getElementById('schedDateInput');
+            var schedTime = document.getElementById('schedTimeInput');
+            var schedVal = (schedDate && schedDate.value) ? schedDate.value : '';
+            var timeVal = (schedTime && schedTime.value) ? schedTime.value : '08:00';
+            if (summSchedule) summSchedule.textContent = schedVal ? (schedVal + ' ' + timeVal + ' WIB') : '-';
+
+            var durEl = document.getElementById('DurationMinutes');
+            if (summDur) summDur.textContent = (durEl && durEl.value) ? (durEl.value + ' menit') : '-';
+
+            var ewcdDateEl = document.getElementById('ewcdDateInput');
+            var ewcdTimeEl = document.getElementById('ewcdTimeInput');
+            if (summEwcd) {
+                summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
+            }
+        }
 
         var statusEl = document.getElementById('Status');
         var summStatus = document.getElementById('summary-status');
@@ -991,13 +1075,6 @@ function generateToken() {
         var passEl = document.getElementById('PassPercentage');
         var summPass = document.getElementById('summary-pass');
         if (summPass) summPass.textContent = (passEl && passEl.value) ? (passEl.value + '%') : '-';
-
-        var ewcdDateEl = document.getElementById('ewcdDateInput');
-        var ewcdTimeEl = document.getElementById('ewcdTimeInput');
-        var summEwcd = document.getElementById('summary-ewcd');
-        if (summEwcd) {
-            summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
-        }
 
         var validUntilEl = document.getElementById('ValidUntil');
         var summValidUntil = document.getElementById('summary-validuntil');
@@ -1266,15 +1343,19 @@ function generateToken() {
                 ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
             }
 
-            // Validate ExamWindowCloseDate >= Schedule
-            var schedVal = schedHidden ? schedHidden.value : '';
-            var ewcdVal = ewcdHidden ? ewcdHidden.value : '';
-            if (schedVal && ewcdVal && new Date(ewcdVal) < new Date(schedVal)) {
-                alert('Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.');
-                resetCreateSubmitButton();
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
+            // Validate ExamWindowCloseDate >= Schedule (skip for Pre-Post — has per-phase EWCD)
+            var typeSelect = document.getElementById('assessmentTypeInput');
+            var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
+            if (!isPrePost) {
+                var schedVal = schedHidden ? schedHidden.value : '';
+                var ewcdVal = ewcdHidden ? ewcdHidden.value : '';
+                if (schedVal && ewcdVal && new Date(ewcdVal) < new Date(schedVal)) {
+                    alert('Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.');
+                    resetCreateSubmitButton();
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
             }
         }, true); // capture phase
     }
