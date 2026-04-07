@@ -226,7 +226,7 @@ Plans:
 | 295. Drag-drop Reorder | 1/1 | Complete | 2026-04-03 |
 | 296. Data Foundation + GradingService Extraction | 3/3 | Complete | 2026-04-06 |
 | 297. Admin Pre-Post Test | 0/? | Not started | - |
-| 298. Question Types | 0/? | Not started | - |
+| 298. Question Types | 0/5 | Planning | - |
 | 299. Worker Pre-Post Test + Comparison | 0/? | Not started | - |
 | 300. Mobile Optimization | 0/? | Not started | - |
 | 301. Advanced Reporting | 0/? | Not started | - |
