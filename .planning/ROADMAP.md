@@ -46,8 +46,8 @@ See .planning/MILESTONES.md for full history.
 ### 🚧 v14.0 Assessment Enhancement (Phases 296-302)
 
 - [x] **Phase 296: Data Foundation + GradingService Extraction** - Migrasi DB backward-compatible dan ekstraksi GradingService sebagai fondasi semua fase berikutnya (completed 2026-04-06)
-- [x] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test (completed 2026-04-07)
-- [x] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi (completed 2026-04-07)
+- [x] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test (completed 2026-04-07)
+- [x] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi (completed 2026-04-07)
 - [x] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score (completed 2026-04-07)
 - [x] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan (completed 2026-04-07)
 - [x] **Phase 301: Advanced Reporting** - HC dapat melihat item analysis, gain score report, dan export ke Excel (completed 2026-04-07)
@@ -218,17 +218,21 @@ Plans:
 **UI hint**: yes
 
 ### Phase 302: Accessibility WCAG Quick Wins
-**Goal**: Halaman ujian dapat digunakan dengan keyboard dan screen reader, dan peserta dengan kebutuhan khusus mendapat akomodasi waktu tambahan
+**Goal**: Halaman ujian dapat digunakan dengan keyboard dan peserta dengan kebutuhan khusus mendapat akomodasi waktu tambahan
 **Depends on**: Phase 298, Phase 300
 **Requirements**: A11Y-01, A11Y-02, A11Y-03, A11Y-04, A11Y-05, A11Y-06
 **Success Criteria** (what must be TRUE):
-  1. Link "Lewati ke konten utama" muncul dan dapat difokus via Tab di bagian atas setiap halaman — klik langsung memindahkan fokus ke area konten utama
+  1. Link "Lewati ke konten utama" muncul dan dapat difokus via Tab di bagian atas halaman StartExam — klik langsung memindahkan fokus ke area konten utama
   2. Semua soal dan opsi jawaban di halaman ujian dapat dinavigasi menggunakan keyboard saja (arrow keys untuk opsi, Tab untuk berpindah soal/navigasi)
-  3. Timer ujian mengumumkan melalui screen reader (aria-live) ketika sisa waktu kurang dari 5 menit — tidak menginterupsi pembacaan setiap detik
-  4. Kontrol ukuran font (A+/A-) tersedia di halaman ujian dan preferensi disimpan via localStorage sehingga persisten antar sesi
-  5. HC dapat menetapkan waktu tambahan (ExtraTimeMinutes) per sesi untuk peserta dengan kebutuhan khusus, dan sistem menambahkannya ke durasi ujian pekerja tersebut
+  3. ~~Timer ujian mengumumkan melalui screen reader (aria-live)~~ — DROPPED (D-18)
+  4. ~~Kontrol ukuran font (A+/A-)~~ — DROPPED (D-19)
+  5. HC dapat menetapkan waktu tambahan (ExtraTimeMinutes) per assessment untuk peserta dengan kebutuhan khusus, dan sistem menambahkannya ke durasi ujian real-time via SignalR
   6. Fokus keyboard otomatis berpindah ke soal pertama saat pekerja berpindah ke halaman soal baru
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 302-01-PLAN.md — Skip link + keyboard navigation + auto-focus (A11Y-01, A11Y-02, A11Y-06)
+- [ ] 302-02-PLAN.md — Extra time full stack: DB + controller + SignalR + modal (A11Y-05)
+**Note**: A11Y-03 (screen reader) dan A11Y-04 (font size) DROPPED per D-18/D-19
 **UI hint**: yes
 
 ---
@@ -247,7 +251,7 @@ Plans:
 | 299. Worker Pre-Post Test + Comparison | 2/2 | Complete    | 2026-04-07 |
 | 300. Mobile Optimization | 2/2 | Complete    | 2026-04-07 |
 | 301. Advanced Reporting | 3/3 | Complete    | 2026-04-07 |
-| 302. Accessibility WCAG Quick Wins | 0/? | Not started | - |
+| 302. Accessibility WCAG Quick Wins | 0/2 | Planning complete | - |
 
 ---
 
