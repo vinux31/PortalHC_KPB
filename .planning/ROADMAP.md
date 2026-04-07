@@ -207,7 +207,11 @@ Plans:
   4. HC dapat melihat Pre-Post Gain Score Report untuk assessment PrePostTest per pekerja dan per elemen kompetensi dengan gain score konsisten
   5. HC dapat mengekspor Item Analysis dan Gain Score Report ke file Excel yang terstruktur
   6. Analytics Dashboard menampilkan panel baru untuk tren gain score dari assessment PrePostTest
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 301-01-PLAN.md — Models + backend endpoints (Item Analysis, Gain Score, Assessment List)
+- [ ] 301-02-PLAN.md — View: tab Item Analysis + tab Gain Score Report + dropdown assessment
+- [ ] 301-03-PLAN.md — Excel export endpoints + Gain Score Trend chart
 **UI hint**: yes
 
 ### Phase 302: Accessibility WCAG Quick Wins
