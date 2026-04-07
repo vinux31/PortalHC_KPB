@@ -18,6 +18,10 @@ namespace HcPortal.Models
         public string AccessToken { get; set; } = "";
         public List<MonitoringSessionViewModel> Sessions { get; set; } = new();
 
+        // Essay grading badge support (Phase 298-05)
+        public int MenungguPenilaianCount { get; set; }
+        public int EssayPendingTotal { get; set; }
+
         // Pre-Post Test support (Phase 297)
         public bool IsPrePostGroup { get; set; } = false;
         public int? LinkedGroupId { get; set; }

@@ -207,6 +207,9 @@ else
                         _          => "bg-secondary"
                     };
 
+                    // Badge Menunggu Penilaian: dari aggregate di controller (Phase 298-05)
+                    int menungguCount = group.MenungguPenilaianCount;
+
                     int progressPct = group.TotalCount > 0
                         ? (int)((double)group.CompletedCount / group.TotalCount * 100)
                         : 0;
@@ -239,6 +242,11 @@ else
                         </td>
                         <td>
                             <span class="badge @statusBadgeClass">@group.GroupStatus</span>
+                            @if (menungguCount > 0)
+                            {
+                                <span class="badge bg-warning text-dark ms-1">Menunggu Penilaian</span>
+                                <small class="text-muted d-block">@menungguCount peserta belum dinilai</small>
+                            }
                         </td>
                         <td class="text-nowrap">@group.Schedule.ToString("dd MMM yyyy")</td>
                         <td class="text-center">@group.TotalCount</td>

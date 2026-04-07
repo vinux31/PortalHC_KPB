@@ -2286,7 +2286,9 @@ namespace HcPortal.Controllers
                     a.DurationMinutes,
                     IsCompleted = a.CompletedAt != null,
                     IsPassed = a.IsPassed ?? false,
-                    IsStarted = a.StartedAt != null
+                    IsStarted = a.StartedAt != null,
+                    IsMenungguPenilaian = a.Status == "Menunggu Penilaian",
+                    a.HasManualGrading
                 })
                 .ToListAsync();
 
@@ -2395,7 +2397,8 @@ namespace HcPortal.Controllers
                         PassedCount = g.Count(a => a.IsPassed),
                         PendingCount = g.Count(a => !a.IsCompleted && !a.IsStarted),
                         IsTokenRequired = rep.IsTokenRequired,
-                        AccessToken = rep.AccessToken ?? ""
+                        AccessToken = rep.AccessToken ?? "",
+                        MenungguPenilaianCount = g.Count(a => a.IsMenungguPenilaian)
                     };
                 }).ToList();
 
