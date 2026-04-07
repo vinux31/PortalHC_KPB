@@ -234,6 +234,29 @@ else
     </div>
 }
 
+<!-- Mobile Sticky Footer (D-07) — hidden di desktop via d-lg-none -->
+<div id="mobileFooter" class="d-lg-none">
+    <div class="d-flex justify-content-between align-items-center gap-2">
+        <button type="button" class="btn btn-outline-secondary flex-fill"
+                id="mobilePrevBtn" onclick="changePage(currentPage - 1)">
+            <i class="bi bi-chevron-left me-1"></i><span class="d-none d-sm-inline">Sebelumnya</span>
+        </button>
+        <button type="button" class="btn btn-outline-primary"
+                data-bs-toggle="offcanvas" data-bs-target="#questionNavDrawer"
+                aria-label="Buka navigasi soal">
+            <i class="bi bi-list"></i>
+        </button>
+        <button type="button" class="btn btn-primary flex-fill"
+                id="mobileNextBtn" onclick="changePage(currentPage + 1)">
+            <span class="d-none d-sm-inline">Berikutnya</span><i class="bi bi-chevron-right ms-1"></i>
+        </button>
+        <button type="button" class="btn btn-success fw-bold flex-fill d-none"
+                id="mobileSubmitBtn" onclick="document.getElementById('examForm').submit()">
+            <i class="bi bi-clipboard-check me-1"></i>Submit
+        </button>
+    </div>
+</div>
+
 <!-- Mobile Question Navigation Drawer (D-01, D-02) -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="questionNavDrawer" aria-labelledby="questionNavDrawerLabel" data-bs-backdrop="true">
     <div class="offcanvas-header">
@@ -893,14 +916,14 @@ else
         // Check for pending saves
         if (Object.keys(pendingSaves).length > 0 || inFlightSaves.size > 0) {
             // Disable nav buttons while waiting
-            document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+            document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
                 b.disabled = true;
             });
 
             var navTimeout = setTimeout(function() {
                 // 5s timeout: give up waiting, navigate anyway
                 clearInterval(navPoll);
-                document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+                document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
                     b.disabled = false;
                 });
                 performPageSwitch(newPage, skipScroll);
@@ -910,7 +933,7 @@ else
                 if (Object.keys(pendingSaves).length === 0 && inFlightSaves.size === 0) {
                     clearInterval(navPoll);
                     clearTimeout(navTimeout);
-                    document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+                    document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
                         b.disabled = false;
                     });
                     performPageSwitch(newPage, skipScroll);
@@ -927,6 +950,7 @@ else
         currentPage = newPage;
         document.getElementById('page_' + currentPage).style.display = 'block';
         updatePanel();
+        updateMobileNavButtons();
         scrollPanelToCurrentPage();  // Auto-scroll panel to show first badge of current page
         saveSessionProgress();  // Save elapsed time + new page on every navigation
         if (!skipScroll) {
@@ -1024,6 +1048,23 @@ else
         }
     }
 
+    function updateMobileNavButtons() {
+        var prevBtn = document.getElementById('mobilePrevBtn');
+        var nextBtn = document.getElementById('mobileNextBtn');
+        var submitBtn = document.getElementById('mobileSubmitBtn');
+        if (!prevBtn) return;
+
+        prevBtn.disabled = (currentPage === 0);
+
+        var isLastPage = (currentPage === TOTAL_PAGES - 1);
+        if (nextBtn) {
+            nextBtn.classList.toggle('d-none', isLastPage);
+        }
+        if (submitBtn) {
+            submitBtn.classList.toggle('d-none', !isLastPage);
+        }
+    }
+
     function jumpToQuestion(questionId, targetPage) {
         if (targetPage === currentPage) {
             // Same page: scroll directly to question
@@ -1070,6 +1111,8 @@ else
         panel.style.display = 'none';
         panelVisible = false;
     }
+
+    updateMobileNavButtons();
 
     // Expired exam: show modal then auto-submit
     if (EXAM_EXPIRED) {
@@ -1383,4 +1426,19 @@ else
     }
 
     /* Mobile: sidebar hidden via d-none d-lg-block class — CSS override removed */
+
+    /* Mobile Sticky Footer (D-07) */
+    #mobileFooter {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        padding: 8px 16px;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.12);
+        z-index: 1019;
+    }
+    @@media (max-width: 991.98px) {
+        #examContainer { padding-bottom: 72px; }
+    }
 </style>

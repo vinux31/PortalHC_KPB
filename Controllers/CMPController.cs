@@ -1040,6 +1040,13 @@ namespace HcPortal.Controllers
 
             ViewBag.AssessmentBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
 
+            // Mobile page size (D-15): 5 questions per page on mobile devices
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            if (userAgent.Contains("Mobile") || userAgent.Contains("Android") || userAgent.Contains("iPhone"))
+            {
+                ViewBag.QuestionsPerPage = 5;
+            }
+
             return View(vm);
         }
 
