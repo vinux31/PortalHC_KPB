@@ -101,45 +101,62 @@ namespace HcPortal.Controllers
                     a.PassPercentage,
                     a.AllowAnswerReview,
                     a.CreatedAt,
+                    a.AssessmentType,
+                    a.LinkedGroupId,
                     UserFullName = a.User != null ? a.User.FullName : "Unknown",
                     UserEmail = a.User != null ? a.User.Email : "",
                     UserId = a.User != null ? a.User.Id : ""
                 })
                 .ToListAsync();
 
-            // Group by (Title, Category, Schedule.Date) — identical to CMPController manage branch
-            var grouped = allSessions
-                .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
-                .Select(g =>
-                {
-                    var rep = g.OrderBy(a => a.CreatedAt).First();
-                    // Compute GroupStatus from session statuses
+            var mgPrePostSessions = allSessions.Where(a => a.LinkedGroupId != null).ToList();
+            var mgStandardSessions = allSessions.Where(a => a.LinkedGroupId == null).ToList();
+
+            // Pre-Post: group by LinkedGroupId
+            var prePostGrouped = mgPrePostSessions
+                .GroupBy(a => a.LinkedGroupId)
+                .Select(g => {
+                    var rep = g.Where(a => a.AssessmentType == "PreTest").OrderBy(a => a.CreatedAt).FirstOrDefault() ?? g.OrderBy(a => a.CreatedAt).First();
                     string groupStatus;
-                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
-                        groupStatus = "Open";
-                    else if (g.Any(a => a.Status == "Upcoming"))
-                        groupStatus = "Upcoming";
-                    else
-                        groupStatus = "Closed";
-                    return new
-                    {
-                        rep.Title,
-                        rep.Category,
-                        rep.Schedule,
-                        rep.ExamWindowCloseDate,
-                        rep.DurationMinutes,
-                        rep.Status,
-                        rep.IsTokenRequired,
-                        rep.AccessToken,
-                        rep.PassPercentage,
-                        rep.AllowAnswerReview,
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress")) groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming")) groupStatus = "Upcoming";
+                    else groupStatus = "Closed";
+                    return new {
+                        rep.Title, rep.Category, rep.Schedule, rep.ExamWindowCloseDate, rep.DurationMinutes,
+                        rep.Status, rep.IsTokenRequired, rep.AccessToken, rep.PassPercentage, rep.AllowAnswerReview,
                         RepresentativeId = rep.Id,
-                        Users = g.Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList(),
+                        Users = g.Where(a => a.AssessmentType == "PreTest").Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList<dynamic>(),
+                        AllIds = g.Select(a => a.Id).ToList(),
+                        UserCount = g.Where(a => a.AssessmentType == "PreTest").Count(),
+                        GroupStatus = groupStatus,
+                        IsPrePostGroup = true,
+                        LinkedGroupId = g.Key
+                    };
+                }).ToList<dynamic>();
+
+            // Standard: existing logic
+            var standardGrouped = mgStandardSessions
+                .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
+                .Select(g => {
+                    var rep = g.OrderBy(a => a.CreatedAt).First();
+                    string groupStatus;
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress")) groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming")) groupStatus = "Upcoming";
+                    else groupStatus = "Closed";
+                    return new {
+                        rep.Title, rep.Category, rep.Schedule, rep.ExamWindowCloseDate, rep.DurationMinutes,
+                        rep.Status, rep.IsTokenRequired, rep.AccessToken, rep.PassPercentage, rep.AllowAnswerReview,
+                        RepresentativeId = rep.Id,
+                        Users = g.Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList<dynamic>(),
                         AllIds = g.Select(a => a.Id).ToList(),
                         UserCount = g.Count(),
-                        GroupStatus = groupStatus
+                        GroupStatus = groupStatus,
+                        IsPrePostGroup = false,
+                        LinkedGroupId = (int?)null
                     };
-                })
+                }).ToList<dynamic>();
+
+            var grouped = prePostGrouped.Concat(standardGrouped)
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
