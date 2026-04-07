@@ -112,10 +112,6 @@ Plans:
 - [ ] 293-01-PLAN.md — View shell + orgTree.js tree rendering + expand/collapse
 **UI hint**: yes
 
----
-
-## Phase Details (v14.0)
-
 ### Phase 296: Data Foundation + GradingService Extraction
 **Goal**: Fondasi teknis tersedia — migrasi DB selesai tanpa breaking change dan GradingService terekstrak sebagai komponen terpusat
 **Depends on**: Nothing (phase pertama milestone ini)
@@ -142,7 +138,12 @@ Plans:
   4. HC mereset Pre-Test dan reset tersebut otomatis men-cascade ke Post-Test yang terhubung
   5. HC menghapus grup Pre-Post dan kedua sesi (Pre + Post) terhapus bersama tanpa orphan record
   6. Sertifikat dan Training Record hanya digenerate dari hasil Post-Test, bukan Pre-Test
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 297-01-PLAN.md — ViewModel extension + CreateAssessment backend + view
+- [ ] 297-02-PLAN.md — Monitoring grouping + expandable view + ManageAssessment badge
+- [ ] 297-03-PLAN.md — EditAssessment tab Pre/Post + ManagePackages Copy
+- [ ] 297-04-PLAN.md — DeletePrePostGroup + ResetAssessment guard + Renewal
 **UI hint**: yes
 
 ### Phase 298: Question Types
@@ -225,7 +226,7 @@ Plans:
 | 294. AJAX CRUD Lengkap | 1/1 | Complete | 2026-04-03 |
 | 295. Drag-drop Reorder | 1/1 | Complete | 2026-04-03 |
 | 296. Data Foundation + GradingService Extraction | 3/3 | Complete | 2026-04-06 |
-| 297. Admin Pre-Post Test | 0/? | Not started | - |
+| 297. Admin Pre-Post Test | 0/4 | Planning complete | - |
 | 298. Question Types | 0/? | Not started | - |
 | 299. Worker Pre-Post Test + Comparison | 0/? | Not started | - |
 | 300. Mobile Optimization | 0/? | Not started | - |
