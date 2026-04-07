@@ -50,7 +50,7 @@ Requirements untuk milestone v14.0. Data foundation dan GradingService extractio
 - [ ] **PPT-03**: HC dapat mencentang "Gunakan paket soal yang sama" untuk copy paket Pre ke Post
 - [ ] **PPT-04**: HC dapat memilih paket soal berbeda untuk Pre dan Post secara independen
 - [ ] **PPT-05**: AssessmentMonitoring menampilkan grup Pre-Post Test sebagai satu entri expandable
-- [ ] **PPT-06**: Reset Pre-Test otomatis cascade ke Post-Test yang terhubung
+- [ ] **PPT-06**: Reset Pre-Test TIDAK cascade ke Post-Test; reset Pre diblokir jika Post sudah Completed (per D-16, D-17 dari CONTEXT.md)
 - [ ] **PPT-07**: Hapus grup Pre-Post menghapus kedua sesi tanpa orphan record
 - [ ] **PPT-08**: Sertifikat hanya digenerate dari hasil Post-Test
 - [ ] **PPT-09**: Training Record hanya dari Post-Test
@@ -209,8 +209,8 @@ Requirements untuk milestone v14.0. Data foundation dan GradingService extractio
 **Coverage:**
 - v13.0 requirements: 11 total, mapped: 11
 - v14.0 requirements: 52 total, mapped: 52 (9 complete, 43 pending)
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-07 — Restored v14.0 full traceability (52 requirements, phases 296-302)*
+*Last updated: 2026-04-07 — PPT-06 revised to match D-16/D-17 user decisions (no cascade, block if Post Completed)*
