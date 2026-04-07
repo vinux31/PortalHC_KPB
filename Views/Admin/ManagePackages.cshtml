@@ -26,6 +26,30 @@
         <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     }
 
+    @if (ViewBag.IsPostSession == true)
+    {
+        <div class="mb-3">
+            <div id="copyPreConfirm" class="d-none">
+                <div class="alert alert-warning d-flex align-items-center gap-2">
+                    <span>Ini akan menimpa semua paket soal Post-Test yang ada. Lanjutkan?</span>
+                    <form method="post" asp-action="CopyPackagesFromPre" asp-controller="AssessmentAdmin" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="postSessionId" value="@ViewBag.AssessmentId" />
+                        <button type="submit" class="btn btn-sm btn-warning">Konfirmasi</button>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            onclick="document.getElementById('copyPreConfirm').classList.add('d-none'); document.getElementById('copyPreBtn').classList.remove('d-none');">
+                        Batal
+                    </button>
+                </div>
+            </div>
+            <button type="button" id="copyPreBtn" class="btn btn-outline-info"
+                    onclick="this.classList.add('d-none'); document.getElementById('copyPreConfirm').classList.remove('d-none');">
+                <i class="bi bi-clipboard"></i> Copy dari Pre-Test
+            </button>
+        </div>
+    }
+
     @{
         // Compute summary data for the panel
         bool hasMismatch = false;
