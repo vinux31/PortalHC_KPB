@@ -189,6 +189,16 @@
                             </div>
                         </div>
 
+                        <!-- Assessment Type (Standard / Pre-Post Test) -->
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Tipe Assessment</label>
+                            <select name="AssessmentTypeInput" id="assessmentTypeInput" class="form-select">
+                                <option value="Standard" selected>Standard</option>
+                                <option value="PrePostTest">Pre-Post Test</option>
+                            </select>
+                            <div class="form-text text-muted">Pilih <strong>Pre-Post Test</strong> untuk membuat sepasang ujian awal &amp; akhir secara bersamaan.</div>
+                        </div>
+
                         <!-- Proton Fields (conditional) -->
                         <div class="col-12 d-none" id="protonFieldsSection">
                             <div class="card border-warning">
@@ -329,32 +339,96 @@
                     <h5 class="fw-bold mb-4"><i class="bi bi-gear me-2 text-primary"></i>Langkah 3: Settings</h5>
 
                     <div class="row g-3">
-                        <!-- Col A: Schedule Date -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Tanggal Jadwal <span class="text-danger">*</span></label>
-                            <input type="date" id="schedDateInput" name="ScheduleDate" class="form-control" />
-                            <div class="invalid-feedback" id="schedDateError">Tanggal jadwal wajib diisi.</div>
+                        <!-- Standard Jadwal Section (disembunyikan saat Pre-Post dipilih) -->
+                        <div id="standard-jadwal-section" class="col-12">
+                            <div class="row g-3">
+                                <!-- Col A: Schedule Date -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Tanggal Jadwal <span class="text-danger">*</span></label>
+                                    <input type="date" id="schedDateInput" name="ScheduleDate" class="form-control" />
+                                    <div class="invalid-feedback" id="schedDateError">Tanggal jadwal wajib diisi.</div>
+                                </div>
+
+                                <!-- Col B: Schedule Time -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Waktu Jadwal <span class="text-danger">*</span></label>
+                                    <input type="time" id="schedTimeInput" name="ScheduleTime" class="form-control" value="08:00" />
+                                    <div class="invalid-feedback" id="schedTimeError">Waktu jadwal wajib diisi.</div>
+                                </div>
+
+                                <!-- Col A: Duration -->
+                                <div class="col-md-6" id="durationFieldWrapper">
+                                    <label asp-for="DurationMinutes" class="form-label fw-bold">
+                                        Durasi (Menit) <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="DurationMinutes" type="number" class="form-control" min="1" max="480" />
+                                    <div class="form-text text-muted">1–480 menit (maks 8 jam)</div>
+                                    <div class="invalid-feedback">Durasi (menit) wajib diisi.</div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Col B: Schedule Time -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Waktu Jadwal <span class="text-danger">*</span></label>
-                            <input type="time" id="schedTimeInput" name="ScheduleTime" class="form-control" value="08:00" />
-                            <div class="invalid-feedback" id="schedTimeError">Waktu jadwal wajib diisi.</div>
-                        </div>
-
-                        <!-- Hidden schedule combiner -->
+                        <!-- Hidden schedule combiner (always present) -->
                         <input type="hidden" asp-for="Schedule" id="schedHidden" />
 
-                        <!-- Col A: Duration -->
-                        <div class="col-md-6" id="durationFieldWrapper">
-                            <label asp-for="DurationMinutes" class="form-label fw-bold">
-                                Durasi (Menit) <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="DurationMinutes" type="number" class="form-control" min="1" max="480" />
-                            <div class="form-text text-muted">1–480 menit (maks 8 jam)</div>
-                            <div class="invalid-feedback">Durasi (menit) wajib diisi.</div>
+                        <!-- Pre-Post Test Jadwal Section -->
+                        <div id="ppt-jadwal-section" class="col-12 collapse">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light fw-semibold">
+                                    <i class="bi bi-clock"></i> Jadwal Pre-Test
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold text-muted">Tanggal &amp; Waktu</label>
+                                            <input type="datetime-local" name="PreSchedule" id="preSchedule" class="form-control" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold text-muted">Durasi (menit)</label>
+                                            <input type="number" name="PreDurationMinutes" id="preDurationMinutes" class="form-control" min="1" max="480" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold text-muted">Batas Waktu Pengerjaan</label>
+                                            <input type="datetime-local" name="PreExamWindowCloseDate" id="preExamWindowCloseDate" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-header bg-light fw-semibold">
+                                    <i class="bi bi-clock-history"></i> Jadwal Post-Test
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold text-muted">Tanggal &amp; Waktu</label>
+                                            <input type="datetime-local" name="PostSchedule" id="postSchedule" class="form-control" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold text-muted">Durasi (menit)</label>
+                                            <input type="number" name="PostDurationMinutes" id="postDurationMinutes" class="form-control" min="1" max="480" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold text-muted">Batas Waktu Pengerjaan</label>
+                                            <input type="datetime-local" name="PostExamWindowCloseDate" id="postExamWindowCloseDate" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="SamePackage" value="true" id="samePackageCheck" class="form-check-input" />
+                                            <label class="form-check-label" for="samePackageCheck">Gunakan paket soal yang sama untuk Pre dan Post</label>
+                                        </div>
+                                        <div id="samePackageBadge" class="mt-2 d-none">
+                                            <span class="badge bg-info"><i class="bi bi-info-circle"></i> Paket soal disamakan dengan Pre-Test</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- placeholder for old duration field position (now inside standard-jadwal-section) -->
+                        <div class="col-md-6" id="durationFieldWrapperPlaceholder" style="display:none;"></div>
 
                         <!-- Col B: Status -->
                         <div class="col-md-6">
@@ -781,43 +855,97 @@ function generateToken() {
         }
 
         if (n === 3) {
-            var schedDate = document.getElementById('schedDateInput');
-            var schedTime = document.getElementById('schedTimeInput');
-            var duration = document.getElementById('DurationMinutes');
-            var status = document.getElementById('Status');
-            var durWrapper = document.getElementById('durationFieldWrapper');
+            var typeSelect = document.getElementById('assessmentTypeInput');
+            var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
 
-            if (!schedDate || !schedDate.value) {
-                if (schedDate) schedDate.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!schedTime || !schedTime.value) {
-                if (schedTime) schedTime.classList.add('is-invalid');
-                valid = false;
-            }
-            // Skip duration for Tahun 3
-            var isDurHidden = durWrapper && durWrapper.classList.contains('d-none');
-            if (!isDurHidden) {
-                if (!duration || !duration.value || parseInt(duration.value) <= 0) {
-                    if (duration) duration.classList.add('is-invalid');
+            if (isPrePost) {
+                // Validate Pre-Post jadwal fields
+                var preSchedule = document.getElementById('preSchedule');
+                var preDuration = document.getElementById('preDurationMinutes');
+                var preEwcd = document.getElementById('preExamWindowCloseDate');
+                var postSchedule = document.getElementById('postSchedule');
+                var postDuration = document.getElementById('postDurationMinutes');
+                var postEwcd = document.getElementById('postExamWindowCloseDate');
+
+                if (!preSchedule || !preSchedule.value) {
+                    if (preSchedule) preSchedule.classList.add('is-invalid');
                     valid = false;
                 }
-            }
-            if (!status || !status.value) {
-                if (status) status.classList.add('is-invalid');
-                valid = false;
-            }
+                if (!preDuration || !preDuration.value || parseInt(preDuration.value) <= 0) {
+                    if (preDuration) preDuration.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!preEwcd || !preEwcd.value) {
+                    if (preEwcd) preEwcd.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!postSchedule || !postSchedule.value) {
+                    if (postSchedule) postSchedule.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!postDuration || !postDuration.value || parseInt(postDuration.value) <= 0) {
+                    if (postDuration) postDuration.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!postEwcd || !postEwcd.value) {
+                    if (postEwcd) postEwcd.classList.add('is-invalid');
+                    valid = false;
+                }
 
-            // ExamWindowCloseDate validation
-            var ewcdDate = document.getElementById('ewcdDateInput');
-            var ewcdTime = document.getElementById('ewcdTimeInput');
-            if (!ewcdDate || !ewcdDate.value) {
-                if (ewcdDate) ewcdDate.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!ewcdTime || !ewcdTime.value) {
-                if (ewcdTime) ewcdTime.classList.add('is-invalid');
-                valid = false;
+                // D-06: PostSchedule must be after PreSchedule
+                if (preSchedule && preSchedule.value && postSchedule && postSchedule.value) {
+                    if (postSchedule.value <= preSchedule.value) {
+                        postSchedule.classList.add('is-invalid');
+                        valid = false;
+                    }
+                }
+
+                // Status still required
+                var status = document.getElementById('Status');
+                if (!status || !status.value) {
+                    if (status) status.classList.add('is-invalid');
+                    valid = false;
+                }
+            } else {
+                // Standard jadwal validation
+                var schedDate = document.getElementById('schedDateInput');
+                var schedTime = document.getElementById('schedTimeInput');
+                var duration = document.getElementById('DurationMinutes');
+                var status = document.getElementById('Status');
+                var durWrapper = document.getElementById('durationFieldWrapper');
+
+                if (!schedDate || !schedDate.value) {
+                    if (schedDate) schedDate.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!schedTime || !schedTime.value) {
+                    if (schedTime) schedTime.classList.add('is-invalid');
+                    valid = false;
+                }
+                // Skip duration for Tahun 3
+                var isDurHidden = durWrapper && durWrapper.classList.contains('d-none');
+                if (!isDurHidden) {
+                    if (!duration || !duration.value || parseInt(duration.value) <= 0) {
+                        if (duration) duration.classList.add('is-invalid');
+                        valid = false;
+                    }
+                }
+                if (!status || !status.value) {
+                    if (status) status.classList.add('is-invalid');
+                    valid = false;
+                }
+
+                // ExamWindowCloseDate validation
+                var ewcdDate = document.getElementById('ewcdDateInput');
+                var ewcdTime = document.getElementById('ewcdTimeInput');
+                if (!ewcdDate || !ewcdDate.value) {
+                    if (ewcdDate) ewcdDate.classList.add('is-invalid');
+                    valid = false;
+                }
+                if (!ewcdTime || !ewcdTime.value) {
+                    if (ewcdTime) ewcdTime.classList.add('is-invalid');
+                    valid = false;
+                }
             }
         }
 
@@ -888,16 +1016,46 @@ function generateToken() {
         }
 
         // Settings
-        var schedDate = document.getElementById('schedDateInput');
-        var schedTime = document.getElementById('schedTimeInput');
-        var schedVal = (schedDate && schedDate.value) ? schedDate.value : '';
-        var timeVal = (schedTime && schedTime.value) ? schedTime.value : '08:00';
-        var summSchedule = document.getElementById('summary-schedule');
-        if (summSchedule) summSchedule.textContent = schedVal ? (schedVal + ' ' + timeVal + ' WIB') : '-';
+        var typeSelect = document.getElementById('assessmentTypeInput');
+        var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
 
-        var durEl = document.getElementById('DurationMinutes');
+        var summSchedule = document.getElementById('summary-schedule');
         var summDur = document.getElementById('summary-duration');
-        if (summDur) summDur.textContent = (durEl && durEl.value) ? (durEl.value + ' menit') : '-';
+        var summEwcd = document.getElementById('summary-ewcd');
+
+        if (isPrePost) {
+            var preSched = document.getElementById('preSchedule');
+            var postSched = document.getElementById('postSchedule');
+            var preDur = document.getElementById('preDurationMinutes');
+            var postDur = document.getElementById('postDurationMinutes');
+            var preEwcd = document.getElementById('preExamWindowCloseDate');
+            var postEwcd = document.getElementById('postExamWindowCloseDate');
+
+            if (summSchedule) summSchedule.textContent =
+                'Pre: ' + (preSched && preSched.value ? preSched.value.replace('T', ' ') : '-') +
+                ' | Post: ' + (postSched && postSched.value ? postSched.value.replace('T', ' ') : '-');
+            if (summDur) summDur.textContent =
+                'Pre: ' + (preDur && preDur.value ? preDur.value + ' menit' : '-') +
+                ' | Post: ' + (postDur && postDur.value ? postDur.value + ' menit' : '-');
+            if (summEwcd) summEwcd.textContent =
+                'Pre: ' + (preEwcd && preEwcd.value ? preEwcd.value.replace('T', ' ') : '-') +
+                ' | Post: ' + (postEwcd && postEwcd.value ? postEwcd.value.replace('T', ' ') : '-');
+        } else {
+            var schedDate = document.getElementById('schedDateInput');
+            var schedTime = document.getElementById('schedTimeInput');
+            var schedVal = (schedDate && schedDate.value) ? schedDate.value : '';
+            var timeVal = (schedTime && schedTime.value) ? schedTime.value : '08:00';
+            if (summSchedule) summSchedule.textContent = schedVal ? (schedVal + ' ' + timeVal + ' WIB') : '-';
+
+            var durEl = document.getElementById('DurationMinutes');
+            if (summDur) summDur.textContent = (durEl && durEl.value) ? (durEl.value + ' menit') : '-';
+
+            var ewcdDateEl = document.getElementById('ewcdDateInput');
+            var ewcdTimeEl = document.getElementById('ewcdTimeInput');
+            if (summEwcd) {
+                summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
+            }
+        }
 
         var statusEl = document.getElementById('Status');
         var summStatus = document.getElementById('summary-status');
@@ -917,13 +1075,6 @@ function generateToken() {
         var passEl = document.getElementById('PassPercentage');
         var summPass = document.getElementById('summary-pass');
         if (summPass) summPass.textContent = (passEl && passEl.value) ? (passEl.value + '%') : '-';
-
-        var ewcdDateEl = document.getElementById('ewcdDateInput');
-        var ewcdTimeEl = document.getElementById('ewcdTimeInput');
-        var summEwcd = document.getElementById('summary-ewcd');
-        if (summEwcd) {
-            summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
-        }
 
         var validUntilEl = document.getElementById('ValidUntil');
         var summValidUntil = document.getElementById('summary-validuntil');
@@ -1192,15 +1343,19 @@ function generateToken() {
                 ewcdHidden.value = ewcdDateInput.value + 'T' + (ewcdTimeInput.value || '23:59') + ':00';
             }
 
-            // Validate ExamWindowCloseDate >= Schedule
-            var schedVal = schedHidden ? schedHidden.value : '';
-            var ewcdVal = ewcdHidden ? ewcdHidden.value : '';
-            if (schedVal && ewcdVal && new Date(ewcdVal) < new Date(schedVal)) {
-                alert('Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.');
-                resetCreateSubmitButton();
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
+            // Validate ExamWindowCloseDate >= Schedule (skip for Pre-Post — has per-phase EWCD)
+            var typeSelect = document.getElementById('assessmentTypeInput');
+            var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
+            if (!isPrePost) {
+                var schedVal = schedHidden ? schedHidden.value : '';
+                var ewcdVal = ewcdHidden ? ewcdHidden.value : '';
+                if (schedVal && ewcdVal && new Date(ewcdVal) < new Date(schedVal)) {
+                    alert('Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.');
+                    resetCreateSubmitButton();
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
             }
         }, true); // capture phase
     }
@@ -1412,5 +1567,43 @@ function generateToken() {
     document.getElementById('Title').addEventListener('input', checkPreTestWarning);
     document.getElementById('GenerateCertificate').addEventListener('change', checkPreTestWarning);
     checkPreTestWarning();
+</script>
+<script>
+// Pre-Post Test mode toggle — Phase 297
+document.addEventListener('DOMContentLoaded', function() {
+    var typeSelect = document.getElementById('assessmentTypeInput');
+    var pptSection = document.getElementById('ppt-jadwal-section');
+    var stdSection = document.getElementById('standard-jadwal-section');
+    var preScheduleInput = document.getElementById('preSchedule');
+    var postScheduleInput = document.getElementById('postSchedule');
+    var samePackageCheck = document.getElementById('samePackageCheck');
+    var samePackageBadge = document.getElementById('samePackageBadge');
+
+    if (!typeSelect) return;
+
+    typeSelect.addEventListener('change', function() {
+        if (this.value === 'PrePostTest') {
+            pptSection.classList.add('show');
+            if (stdSection) stdSection.classList.add('d-none');
+        } else {
+            pptSection.classList.remove('show');
+            if (stdSection) stdSection.classList.remove('d-none');
+        }
+    });
+
+    // D-06: min date pada Post = value Pre
+    if (preScheduleInput) {
+        preScheduleInput.addEventListener('change', function() {
+            if (postScheduleInput) postScheduleInput.min = this.value;
+        });
+    }
+
+    // D-09: checkbox paket soal sama
+    if (samePackageCheck) {
+        samePackageCheck.addEventListener('change', function() {
+            if (samePackageBadge) samePackageBadge.classList.toggle('d-none', !this.checked);
+        });
+    }
+});
 </script>
 }

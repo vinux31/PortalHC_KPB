@@ -224,6 +224,15 @@ else
                             {
                                 <div class="text-muted small">@group.Category</div>
                             }
+                            @if (group.IsPrePostGroup)
+                            {
+                                <span class="badge bg-primary"><i class="bi bi-arrow-left-right"></i> Pre-Post</span>
+                                <button type="button" class="btn btn-sm btn-link text-primary p-0 ms-2 ppt-expand-btn"
+                                        data-bs-toggle="collapse" data-bs-target="#ppt-sub-@group.RepresentativeId"
+                                        aria-label="Lihat detail Pre dan Post">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            }
                         </td>
                         <td>
                             <span class="badge @catBadgeClass">@group.Category</span>
@@ -248,34 +257,98 @@ else
                             </div>
                         </td>
                         <td class="text-end">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                        type="button"
-                                        data-bs-toggle="dropdown"
-                                        aria-expanded="false">
-                                    Aksi
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="@detailUrl">
-                                            <i class="bi bi-eye me-1"></i>View Detail
-                                        </a>
-                                    </li>
-                                    @if (group.IsTokenRequired)
-                                    {
-                                        <li><hr class="dropdown-divider"></li>
+                            @if (!group.IsPrePostGroup)
+                            {
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                            type="button"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                        Aksi
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <button type="button"
-                                                    class="dropdown-item text-warning btn-regenerate-token"
-                                                    data-id="@group.RepresentativeId">
-                                                <i class="bi bi-arrow-repeat me-1"></i>Regenerate Token
-                                            </button>
+                                            <a class="dropdown-item" href="@detailUrl">
+                                                <i class="bi bi-eye me-1"></i>View Detail
+                                            </a>
                                         </li>
-                                    }
-                                </ul>
-                            </div>
+                                        @if (group.IsTokenRequired)
+                                        {
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button type="button"
+                                                        class="dropdown-item text-warning btn-regenerate-token"
+                                                        data-id="@group.RepresentativeId">
+                                                    <i class="bi bi-arrow-repeat me-1"></i>Regenerate Token
+                                                </button>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
                         </td>
                     </tr>
+                    @if (group.IsPrePostGroup)
+                    {
+                        <tr id="ppt-sub-@group.RepresentativeId" class="collapse">
+                            <td colspan="9" class="p-0">
+                                <table class="table table-sm mb-0">
+                                    @if (group.PreSubRow != null)
+                                    {
+                                        var preDetailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
+                                            title = group.Title,
+                                            category = group.Category,
+                                            scheduleDate = group.PreSubRow.Schedule.Date.ToString("yyyy-MM-dd")
+                                        }) ?? "#";
+                                        <tr class="bg-light">
+                                            <td style="padding-left: 24px; width: 40%;">
+                                                <span class="badge bg-info">Pre-Test</span>
+                                                @group.PreSubRow.Schedule.ToString("dd MMM yyyy HH:mm")
+                                                — @group.PreSubRow.DurationMinutes menit
+                                            </td>
+                                            <td>@group.PreSubRow.CompletedCount / @group.PreSubRow.TotalCount selesai</td>
+                                            <td>
+                                                <span class="badge @(group.PreSubRow.GroupStatus == "Open" ? "bg-success" : group.PreSubRow.GroupStatus == "Upcoming" ? "bg-info text-dark" : "bg-secondary")">
+                                                    @group.PreSubRow.GroupStatus
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="@preDetailUrl" class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye me-1"></i>Detail Pre
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (group.PostSubRow != null)
+                                    {
+                                        var postDetailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
+                                            title = group.Title,
+                                            category = group.Category,
+                                            scheduleDate = group.PostSubRow.Schedule.Date.ToString("yyyy-MM-dd")
+                                        }) ?? "#";
+                                        <tr class="bg-light">
+                                            <td style="padding-left: 24px; width: 40%;">
+                                                <span class="badge bg-secondary">Post-Test</span>
+                                                @group.PostSubRow.Schedule.ToString("dd MMM yyyy HH:mm")
+                                                — @group.PostSubRow.DurationMinutes menit
+                                            </td>
+                                            <td>@group.PostSubRow.CompletedCount / @group.PostSubRow.TotalCount selesai</td>
+                                            <td>
+                                                <span class="badge @(group.PostSubRow.GroupStatus == "Open" ? "bg-success" : group.PostSubRow.GroupStatus == "Upcoming" ? "bg-info text-dark" : "bg-secondary")">
+                                                    @group.PostSubRow.GroupStatus
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="@postDetailUrl" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="bi bi-eye me-1"></i>Detail Post
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </table>
+                            </td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>
@@ -284,6 +357,19 @@ else
 
 @section Scripts {
     <script>
+        // Pre-Post expand/collapse chevron toggle
+        document.querySelectorAll('.ppt-expand-btn').forEach(function (btn) {
+            var target = document.querySelector(btn.dataset.bsTarget);
+            if (target) {
+                target.addEventListener('show.bs.collapse', function () {
+                    btn.querySelector('i').classList.replace('bi-chevron-down', 'bi-chevron-up');
+                });
+                target.addEventListener('hide.bs.collapse', function () {
+                    btn.querySelector('i').classList.replace('bi-chevron-up', 'bi-chevron-down');
+                });
+            }
+        });
+
         document.querySelectorAll('.btn-regenerate-token').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var id = this.getAttribute('data-id');
