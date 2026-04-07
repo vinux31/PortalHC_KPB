@@ -193,7 +193,10 @@ Plans:
   3. Tombol Previous, Next, dan Submit selalu terlihat di bagian bawah layar saat scroll, dan panel navigasi soal muncul sebagai offcanvas drawer di mobile (bukan sidebar tetap)
   4. Timer ujian tetap terlihat di header mobile meskipun pengguna scroll ke bawah
   5. Fitur anti-copy yang sudah ada (Phase 280) tetap berfungsi benar bersama touch/swipe events tanpa saling konflik
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 300-01-PLAN.md — Offcanvas drawer + sticky footer + page size mobile
+- [ ] 300-02-PLAN.md — CSS responsive touch targets + header compact + landscape mode
 **UI hint**: yes
 
 ### Phase 301: Advanced Reporting
