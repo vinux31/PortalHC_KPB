@@ -4221,6 +4221,276 @@ namespace HcPortal.Controllers
 
         #endregion
 
+        #region Question Management per Package (Phase 298)
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ManagePackageQuestions(int packageId)
+        {
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions.OrderBy(q => q.Order))
+                    .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
+            var assessment = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (assessment == null) return NotFound();
+
+            ViewBag.PackageId = packageId;
+            ViewBag.PackageName = pkg.PackageName;
+            ViewBag.AssessmentId = pkg.AssessmentSessionId;
+            ViewBag.AssessmentTitle = assessment.Title;
+            ViewBag.Questions = pkg.Questions.OrderBy(q => q.Order).ToList();
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateQuestion(
+            int packageId,
+            string questionText,
+            string questionType,
+            int scoreValue,
+            string? elemenTeknis,
+            string? rubrik,
+            int maxCharacters,
+            string? optionA, string? optionB, string? optionC, string? optionD,
+            bool correctA, bool correctB, bool correctC, bool correctD)
+        {
+            // Validate QuestionType whitelist (T-298-01)
+            var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
+            if (!validTypes.Contains(questionType))
+            {
+                TempData["Error"] = "Tipe soal tidak valid.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
+            // Server-side: MC/MA force ScoreValue=10 (T-298-03)
+            if (questionType != "Essay") scoreValue = 10;
+            if (scoreValue <= 0) scoreValue = 10;
+
+            // Validate per type (D-07)
+            var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
+            if (questionType == "MultipleChoice" && correctCount != 1)
+            {
+                TempData["Error"] = "Pilihan Ganda hanya boleh memiliki 1 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "MultipleAnswer" && correctCount < 2)
+            {
+                TempData["Error"] = "Multiple Answer membutuhkan minimal 2 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
+            {
+                TempData["Error"] = "Rubrik wajib diisi untuk soal Essay.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            int nextOrder = pkg.Questions.Any() ? pkg.Questions.Max(q => q.Order) + 1 : 1;
+
+            var newQ = new PackageQuestion
+            {
+                AssessmentPackageId = packageId,
+                QuestionText = questionText.Trim(),
+                QuestionType = questionType,
+                ScoreValue = scoreValue,
+                Order = nextOrder,
+                ElemenTeknis = string.IsNullOrWhiteSpace(elemenTeknis) ? null : elemenTeknis.Trim(),
+                Rubrik = questionType == "Essay" ? rubrik?.Trim() : null,
+                MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000
+            };
+
+            if (questionType != "Essay")
+            {
+                var options = new[]
+                {
+                    (optionA, correctA),
+                    (optionB, correctB),
+                    (optionC, correctC),
+                    (optionD, correctD)
+                };
+                foreach (var (text, isCorrect) in options)
+                {
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        newQ.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                    }
+                }
+            }
+
+            _context.PackageQuestions.Add(newQ);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Soal berhasil ditambahkan.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditQuestion(int questionId)
+        {
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Include(q => q.AssessmentPackage)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            // AJAX: return JSON for inline form population
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new
+                {
+                    id = q.Id,
+                    order = q.Order,
+                    questionText = q.QuestionText,
+                    questionType = q.QuestionType ?? "MultipleChoice",
+                    scoreValue = q.ScoreValue,
+                    elemenTeknis = q.ElemenTeknis,
+                    rubrik = q.Rubrik,
+                    maxCharacters = q.MaxCharacters,
+                    options = q.Options.OrderBy(o => o.Id).Select(o => new
+                    {
+                        optionText = o.OptionText,
+                        isCorrect = o.IsCorrect
+                    }).ToList()
+                });
+            }
+
+            ViewBag.PackageId = q.AssessmentPackageId;
+            ViewBag.AssessmentId = q.AssessmentPackage.AssessmentSessionId;
+            return RedirectToAction("ManagePackageQuestions", new { packageId = q.AssessmentPackageId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditQuestion(
+            int questionId,
+            int packageId,
+            string questionText,
+            string questionType,
+            int scoreValue,
+            string? elemenTeknis,
+            string? rubrik,
+            int maxCharacters,
+            string? optionA, string? optionB, string? optionC, string? optionD,
+            bool correctA, bool correctB, bool correctC, bool correctD)
+        {
+            // Validate QuestionType whitelist (T-298-01)
+            var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
+            if (!validTypes.Contains(questionType))
+            {
+                TempData["Error"] = "Tipe soal tidak valid.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            // Server-side: MC/MA force ScoreValue=10 (T-298-03)
+            if (questionType != "Essay") scoreValue = 10;
+            if (scoreValue <= 0) scoreValue = 10;
+
+            // Validate per type (D-07)
+            var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
+            if (questionType == "MultipleChoice" && correctCount != 1)
+            {
+                TempData["Error"] = "Pilihan Ganda hanya boleh memiliki 1 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "MultipleAnswer" && correctCount < 2)
+            {
+                TempData["Error"] = "Multiple Answer membutuhkan minimal 2 jawaban benar.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
+            {
+                TempData["Error"] = "Rubrik wajib diisi untuk soal Essay.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            q.QuestionText = questionText.Trim();
+            q.QuestionType = questionType;
+            q.ScoreValue = scoreValue;
+            q.ElemenTeknis = string.IsNullOrWhiteSpace(elemenTeknis) ? null : elemenTeknis.Trim();
+            q.Rubrik = questionType == "Essay" ? rubrik?.Trim() : null;
+            q.MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000;
+
+            // Replace options
+            _context.PackageOptions.RemoveRange(q.Options);
+            q.Options.Clear();
+
+            if (questionType != "Essay")
+            {
+                var options = new[]
+                {
+                    (optionA, correctA),
+                    (optionB, correctB),
+                    (optionC, correctC),
+                    (optionD, correctD)
+                };
+                foreach (var (text, isCorrect) in options)
+                {
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        q.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Soal berhasil diperbarui.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteQuestion(int questionId, int packageId)
+        {
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            // Remove any responses for this question
+            var responses = await _context.PackageUserResponses
+                .Where(r => r.PackageQuestionId == questionId)
+                .ToListAsync();
+            if (responses.Any()) _context.PackageUserResponses.RemoveRange(responses);
+
+            _context.PackageOptions.RemoveRange(q.Options);
+            _context.PackageQuestions.Remove(q);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Soal berhasil dihapus.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> PreviewQuestion(int questionId)
+        {
+            var q = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+            if (q == null) return NotFound();
+
+            return PartialView("_PreviewQuestion", q);
+        }
+
+        #endregion
+
         #region Activity Log (Phase 166)
 
         /// <summary>

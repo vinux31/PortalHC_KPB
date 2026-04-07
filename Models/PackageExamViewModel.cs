@@ -28,6 +28,16 @@ namespace HcPortal.Models
         public string QuestionText { get; set; } = "";
         public int DisplayNumber { get; set; }      // 1-based, user-facing number (reflects shuffled position)
         public List<ExamOptionItem> Options { get; set; } = new();
+
+        /// <summary>
+        /// Tipe soal: "MultipleChoice" (default), "MultipleAnswer", atau "Essay".
+        /// Null/blank dianggap MultipleChoice (backward compatible).
+        /// Digunakan plan 03 untuk render UI worker per tipe (radio/checkbox/textarea).
+        /// </summary>
+        public string QuestionType { get; set; } = "MultipleChoice";
+
+        /// <summary>Batas karakter untuk soal Essay. Default 2000.</summary>
+        public int MaxCharacters { get; set; } = 2000;
     }
 
     public class ExamOptionItem
