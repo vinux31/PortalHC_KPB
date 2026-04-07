@@ -17,31 +17,6 @@ namespace HcPortal.Models
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
         public List<MonitoringSessionViewModel> Sessions { get; set; } = new();
-
-        // Essay grading badge support (Phase 298-05)
-        public int MenungguPenilaianCount { get; set; }
-        public int EssayPendingTotal { get; set; }
-
-        // Pre-Post Test support (Phase 297)
-        public bool IsPrePostGroup { get; set; } = false;
-        public int? LinkedGroupId { get; set; }
-        public MonitoringSubRowViewModel? PreSubRow { get; set; }
-        public MonitoringSubRowViewModel? PostSubRow { get; set; }
-    }
-
-    public class MonitoringSubRowViewModel
-    {
-        public int RepresentativeId { get; set; }
-        public string Phase { get; set; } = "";  // "PreTest" atau "PostTest"
-        public DateTime Schedule { get; set; }
-        public int DurationMinutes { get; set; }
-        public int TotalCount { get; set; }
-        public int CompletedCount { get; set; }
-        public int PassedCount { get; set; }
-        public int PendingCount { get; set; }
-        public int InProgressCount { get; set; }
-        public int CancelledCount { get; set; }
-        public string GroupStatus { get; set; } = "";
     }
 
     public class MonitoringSessionViewModel
@@ -56,23 +31,5 @@ namespace HcPortal.Models
         public DateTime? StartedAt { get; set; }
         public int QuestionCount { get; set; }             // number of questions assigned to this session
         public int DurationMinutes { get; set; }            // exam duration from AssessmentSession (0 = no timer / interview mode)
-
-        // Essay grading support (Phase 298-05)
-        public bool HasManualGrading { get; set; }
-        public int EssayPendingCount { get; set; }
-    }
-
-    /// <summary>
-    /// ViewModel for a single Essay question in the grading UI (Phase 298-05)
-    /// </summary>
-    public class EssayGradingItemViewModel
-    {
-        public int QuestionId { get; set; }
-        public int DisplayNumber { get; set; }
-        public string QuestionText { get; set; } = "";
-        public string? Rubrik { get; set; }
-        public string? TextAnswer { get; set; }
-        public int? EssayScore { get; set; }
-        public int ScoreValue { get; set; }
     }
 }
