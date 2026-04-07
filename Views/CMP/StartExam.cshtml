@@ -2,7 +2,8 @@
 
 @{
     ViewData["Title"] = "Exam In Progress";
-    const int questionsPerPage = 10;
+    int questionsPerPage = 10;  // Default desktop; mobile override via ViewBag
+    if (ViewBag.QuestionsPerPage != null) { questionsPerPage = (int)ViewBag.QuestionsPerPage; }
     int totalPages = (int)Math.Ceiling((double)Model.TotalQuestions / questionsPerPage);
 }
 
@@ -183,7 +184,7 @@ else
                             }
 
                             <!-- Page navigation -->
-                            <div class="d-flex justify-content-between mt-3 mb-4">
+                            <div class="d-none d-lg-flex justify-content-between mt-3 mb-4">
                                 <button type="button" class="btn btn-outline-secondary"
                                         onclick="changePage(@(page - 1))"
                                         @(page == 0 ? "disabled" : "")>
@@ -211,7 +212,7 @@ else
             </div>
 
             <!-- Question Number Panel (collapsible sidebar) -->
-            <div class="col-lg-3" id="questionPanelWrapper">
+            <div class="col-lg-3 d-none d-lg-block" id="questionPanelWrapper">
                 <div class="sticky-top" style="top: 70px;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <small class="text-muted fw-bold">Daftar Soal</small>
@@ -232,6 +233,19 @@ else
         </div>
     </div>
 }
+
+<!-- Mobile Question Navigation Drawer (D-01, D-02) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="questionNavDrawer" aria-labelledby="questionNavDrawerLabel" data-bs-backdrop="true">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="questionNavDrawerLabel">Navigasi Soal</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div id="drawerNumbers" class="d-flex flex-wrap gap-2">
+            <!-- Diisi oleh JS — sync dari updatePanel() -->
+        </div>
+    </div>
+</div>
 
 <!-- Resume confirmation modal (shown on load for in-progress sessions) -->
 <div class="modal fade" id="resumeConfirmModal" tabindex="-1"
@@ -988,6 +1002,26 @@ else
             });
             container.appendChild(btn);
         });
+
+        // Sync ke mobile drawer (D-02)
+        var drawerNumbers = document.getElementById('drawerNumbers');
+        if (drawerNumbers) {
+            drawerNumbers.innerHTML = '';
+            allQuestionsData.forEach(function(q) {
+                var dbtn = document.createElement('div');
+                var answered = answeredQuestions.has(String(q.questionId));
+                dbtn.className = 'badge rounded-pill ' + (answered ? 'bg-success' : 'bg-secondary');
+                dbtn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:pointer; min-width:36px; width:36px; height:32px; display:flex; align-items:center; justify-content:center;';
+                dbtn.innerText = q.displayNumber;
+                dbtn.addEventListener('click', function() {
+                    var drawerEl = document.getElementById('questionNavDrawer');
+                    var drawer = bootstrap.Offcanvas.getInstance(drawerEl);
+                    if (drawer) drawer.hide();
+                    jumpToQuestion(q.questionId, q.pageNumber);
+                });
+                drawerNumbers.appendChild(dbtn);
+            });
+        }
     }
 
     function jumpToQuestion(questionId, targetPage) {
@@ -1348,11 +1382,5 @@ else
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    @@media (max-width: 991px) {
-        #questionPanelWrapper { order: -1; margin-bottom: 1rem; }
-        #questionPanel {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-    }
+    /* Mobile: sidebar hidden via d-none d-lg-block class — CSS override removed */
 </style>
