@@ -172,6 +172,13 @@
                                 Belum ada data<br>
                                 <small>Tidak ada data trend untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
                             </div>
+                            <div class="mt-4">
+                                <h6 class="fw-semibold">Rata-rata Gain Score per Bulan</h6>
+                                <canvas id="gainScoreTrendChart" height="200"></canvas>
+                                <div class="text-center text-muted py-3" id="gainTrendEmpty" style="display:none;">
+                                    <small>Belum ada data gain score untuk periode ini.</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -391,6 +398,7 @@
             .then(function (data) {
                 renderFailRate(data.failRate);
                 renderTrend(data.trend);
+                renderGainScoreTrend(data.gainScoreTrend);
                 renderEtTable(data.etBreakdown);
                 renderExpiringTable(data.expiringSoon);
             })
@@ -544,6 +552,68 @@
                 },
                 scales: {
                     y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // renderGainScoreTrend — line chart rata-rata gain score per bulan (RPT-06)
+    // ============================================================
+    function renderGainScoreTrend(gainScoreTrend) {
+        var canvas = document.getElementById('gainScoreTrendChart');
+        var emptyMsg = document.getElementById('gainTrendEmpty');
+
+        if (window._gainTrendChart) {
+            window._gainTrendChart.destroy();
+        }
+
+        if (!gainScoreTrend || gainScoreTrend.length === 0) {
+            canvas.style.display = 'none';
+            emptyMsg.style.display = '';
+            return;
+        }
+        canvas.style.display = '';
+        emptyMsg.style.display = 'none';
+
+        var labels = gainScoreTrend.map(function(d) { return d.label; });
+        var values = gainScoreTrend.map(function(d) { return d.avgGainScore; });
+        var counts = gainScoreTrend.map(function(d) { return d.sampleCount; });
+
+        window._gainTrendChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Avg Gain Score (%)',
+                    data: values,
+                    borderColor: '#6f42c1',
+                    backgroundColor: 'rgba(111,66,193,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(ctx) {
+                                return 'Sample: ' + counts[ctx.dataIndex] + ' pasangan';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Avg Gain Score (%)' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Bulan' }
+                    }
                 }
             }
         });
@@ -772,13 +842,13 @@
     function exportItemAnalysis() {
         var assessmentGroupId = document.getElementById('filterAssessment').value;
         if (!assessmentGroupId) { alert('Pilih assessment terlebih dahulu.'); return; }
-        window.location.href = appUrl('/CMP/ExportItemAnalysis?assessmentGroupId=' + assessmentGroupId);
+        window.location.href = appUrl('/CMP/ExportItemAnalysisExcel?assessmentGroupId=' + assessmentGroupId);
     }
 
     function exportGainScore() {
         var assessmentGroupId = document.getElementById('filterAssessment').value;
         if (!assessmentGroupId) { alert('Pilih assessment terlebih dahulu.'); return; }
-        window.location.href = appUrl('/CMP/ExportGainScore?assessmentGroupId=' + assessmentGroupId);
+        window.location.href = appUrl('/CMP/ExportGainScoreExcel?assessmentGroupId=' + assessmentGroupId);
     }
 
     // ============================================================
