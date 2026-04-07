@@ -2448,6 +2448,26 @@ namespace HcPortal.Controllers
                 .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
             var isPackageMode = packageCount > 0;
 
+            // Essay grading: build pending count map per session (Phase 298-05)
+            // Only relevant for sessions with HasManualGrading == true
+            Dictionary<int, int> essayPendingCountMap = new();
+            var manualGradingSessionIds = sessions
+                .Where(s => s.HasManualGrading)
+                .Select(s => s.Id)
+                .ToList();
+            if (manualGradingSessionIds.Any())
+            {
+                var essayPendingRaw = await _context.PackageUserResponses
+                    .Where(r => manualGradingSessionIds.Contains(r.AssessmentSessionId) && r.EssayScore == null)
+                    .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
+                        r => r.PackageQuestionId, q => q.Id, (r, q) => r.AssessmentSessionId)
+                    .GroupBy(sid => sid)
+                    .Select(g => new { SessionId = g.Key, Count = g.Count() })
+                    .ToListAsync();
+                foreach (var item in essayPendingRaw)
+                    essayPendingCountMap[item.SessionId] = item.Count;
+            }
+
             // Build question count map per session
             Dictionary<int, int> questionCountMap = new();
             if (isPackageMode)
@@ -2491,7 +2511,9 @@ namespace HcPortal.Controllers
                     CompletedAt  = a.CompletedAt,
                     StartedAt    = a.StartedAt,
                     QuestionCount = questionCountMap.TryGetValue(a.Id, out var qc) ? qc : 0,
-                    DurationMinutes = a.DurationMinutes
+                    DurationMinutes = a.DurationMinutes,
+                    HasManualGrading = a.HasManualGrading,
+                    EssayPendingCount = essayPendingCountMap.TryGetValue(a.Id, out var ep) ? ep : 0
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
@@ -2541,7 +2563,203 @@ namespace HcPortal.Controllers
 
             ViewBag.AssessmentBatchKey = $"{title}|{category}|{scheduleDate.Date:yyyy-MM-dd}";
 
+            // Essay grading items per session (Phase 298-05)
+            // Build map: sessionId -> List<EssayGradingItemViewModel>
+            var essayGradingMap = new Dictionary<int, List<EssayGradingItemViewModel>>();
+            var manualGradingSessions = model.Sessions.Where(s => s.HasManualGrading).ToList();
+            if (manualGradingSessions.Any())
+            {
+                foreach (var sess in manualGradingSessions)
+                {
+                    var assignment = await _context.UserPackageAssignments
+                        .FirstOrDefaultAsync(a => a.AssessmentSessionId == sess.Id);
+                    if (assignment == null) continue;
+
+                    var shuffled = assignment.GetShuffledQuestionIds();
+                    var essayQs = await _context.PackageQuestions
+                        .Where(q => shuffled.Contains(q.Id) && q.QuestionType == "Essay")
+                        .ToListAsync();
+
+                    var essayRespMap = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == sess.Id &&
+                               essayQs.Select(q => q.Id).Contains(r.PackageQuestionId))
+                        .ToDictionaryAsync(r => r.PackageQuestionId);
+
+                    var items = essayQs.Select((q, idx) => new EssayGradingItemViewModel
+                    {
+                        QuestionId    = q.Id,
+                        DisplayNumber = idx + 1,
+                        QuestionText  = q.QuestionText ?? "",
+                        Rubrik        = q.Rubrik,
+                        TextAnswer    = essayRespMap.TryGetValue(q.Id, out var resp) ? resp.TextAnswer : null,
+                        EssayScore    = essayRespMap.TryGetValue(q.Id, out var resp2) ? resp2.EssayScore : null,
+                        ScoreValue    = q.ScoreValue
+                    }).ToList();
+
+                    essayGradingMap[sess.Id] = items;
+                }
+            }
+            ViewBag.EssayGradingMap = essayGradingMap;
+
             return View(model);
+        }
+
+        // --- SUBMIT ESSAY SCORE (Phase 298-05, D-15/D-16) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitEssayScore(int sessionId, int questionId, int score)
+        {
+            // 1. Load response
+            var response = await _context.PackageUserResponses
+                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+            if (response == null)
+                return Json(new { success = false, message = "Jawaban tidak ditemukan" });
+
+            // 2. Load question untuk validasi ScoreValue
+            var question = await _context.PackageQuestions.FindAsync(questionId);
+            if (question == null)
+                return Json(new { success = false, message = "Soal tidak ditemukan" });
+
+            // 3. Validasi skor range (T-298-13)
+            if (score < 0 || score > question.ScoreValue)
+                return Json(new { success = false, message = $"Skor harus antara 0 dan {question.ScoreValue}" });
+
+            // 4. Save EssayScore
+            response.EssayScore = score;
+            await _context.SaveChangesAsync();
+
+            // 5. Cek berapa Essay masih pending
+            var pendingCount = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId)
+                .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
+                    r => r.PackageQuestionId, q => q.Id, (r, q) => r)
+                .CountAsync(r => r.EssayScore == null);
+
+            return Json(new { success = true, pendingCount, allGraded = pendingCount == 0 });
+        }
+
+        // --- FINALIZE ESSAY GRADING (Phase 298-05, D-17/D-18) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinalizeEssayGrading(int sessionId)
+        {
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null || session.Status != "Menunggu Penilaian")
+                return Json(new { success = false, message = "Session tidak dalam status Menunggu Penilaian" });
+
+            // 1. Cek semua Essay sudah dinilai (T-298-14)
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+            if (packageAssignment == null)
+                return Json(new { success = false, message = "Assignment tidak ditemukan" });
+
+            var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+
+            var essayQuestions = await _context.PackageQuestions
+                .Where(q => shuffledIds.Contains(q.Id) && q.QuestionType == "Essay")
+                .ToListAsync();
+
+            var essayResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId &&
+                       essayQuestions.Select(q => q.Id).Contains(r.PackageQuestionId))
+                .ToListAsync();
+
+            if (essayResponses.Any(r => r.EssayScore == null))
+                return Json(new { success = false, message = "Masih ada Essay yang belum dinilai" });
+
+            // 2. Recalculate total score (MC + MA auto + Essay manual)
+            var allQuestions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => shuffledIds.Contains(q.Id))
+                .ToListAsync();
+            var allResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId)
+                .ToListAsync();
+
+            int totalScore = 0;
+            int maxScore = 0;
+            foreach (var q in allQuestions)
+            {
+                maxScore += q.ScoreValue;
+                switch (q.QuestionType ?? "MultipleChoice")
+                {
+                    case "MultipleChoice":
+                        var mcResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                        if (mcResp != null)
+                        {
+                            var opt = q.Options.FirstOrDefault(o => o.Id == mcResp.PackageOptionId!.Value);
+                            if (opt != null && opt.IsCorrect) totalScore += q.ScoreValue;
+                        }
+                        break;
+                    case "MultipleAnswer":
+                        var maSelected = allResponses
+                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                            .Select(r => r.PackageOptionId!.Value).ToHashSet();
+                        var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        if (maSelected.SetEquals(maCorrect)) totalScore += q.ScoreValue;
+                        break;
+                    case "Essay":
+                        var essayResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id);
+                        if (essayResp?.EssayScore.HasValue == true) totalScore += essayResp.EssayScore.Value;
+                        break;
+                }
+            }
+
+            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+            bool isPassed = finalPercentage >= session.PassPercentage;
+
+            // 3. Update session: Completed + final score + IsPassed (T-298-16 replay guard via WHERE clause)
+            await _context.AssessmentSessions
+                .Where(s => s.Id == sessionId && s.Status == "Menunggu Penilaian")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Score, finalPercentage)
+                    .SetProperty(r => r.Status, "Completed")
+                    .SetProperty(r => r.IsPassed, isPassed)
+                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow));
+
+            // 4. Generate TrainingRecord (duplicate guard — same as GradingService)
+            var judul = $"Assessment: {session.Title}";
+            bool trExists = await _context.TrainingRecords.AnyAsync(t =>
+                t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule);
+            if (!trExists)
+            {
+                _context.TrainingRecords.Add(new TrainingRecord
+                {
+                    UserId = session.UserId,
+                    Judul = judul,
+                    Kategori = session.Category ?? "Assessment",
+                    Tanggal = session.Schedule,
+                    TanggalSelesai = DateTime.UtcNow,
+                    Penyelenggara = "Internal",
+                    Status = isPassed ? "Passed" : "Failed"
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            // 5. Generate sertifikat jika applicable (same pattern as GradingService)
+            if (session.GenerateCertificate && isPassed)
+            {
+                var certNow = DateTime.Now;
+                int certYear = certNow.Year;
+                try
+                {
+                    var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == sessionId && s.NomorSertifikat == null)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
+                }
+                catch (DbUpdateException) { /* race-condition: cert number sudah diambil thread lain — skip */ }
+            }
+
+            // 6. Reload session untuk NotifyIfGroupCompleted
+            var updatedSession = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (updatedSession != null)
+                await _workerDataService.NotifyIfGroupCompleted(updatedSession);
+
+            return Json(new { success = true, score = finalPercentage, isPassed });
         }
 
         // --- SUBMIT INTERVIEW RESULTS (Assessment Proton Tahun 3) ---

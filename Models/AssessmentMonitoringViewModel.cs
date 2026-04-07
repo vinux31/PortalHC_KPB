@@ -52,5 +52,23 @@ namespace HcPortal.Models
         public DateTime? StartedAt { get; set; }
         public int QuestionCount { get; set; }             // number of questions assigned to this session
         public int DurationMinutes { get; set; }            // exam duration from AssessmentSession (0 = no timer / interview mode)
+
+        // Essay grading support (Phase 298-05)
+        public bool HasManualGrading { get; set; }
+        public int EssayPendingCount { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel for a single Essay question in the grading UI (Phase 298-05)
+    /// </summary>
+    public class EssayGradingItemViewModel
+    {
+        public int QuestionId { get; set; }
+        public int DisplayNumber { get; set; }
+        public string QuestionText { get; set; } = "";
+        public string? Rubrik { get; set; }
+        public string? TextAnswer { get; set; }
+        public int? EssayScore { get; set; }
+        public int ScoreValue { get; set; }
     }
 }
