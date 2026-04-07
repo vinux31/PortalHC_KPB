@@ -1244,6 +1244,14 @@ else
         window.location.href = '@Url.Action("Assessment", "CMP")';
     });
 
+    // ExtraTimeAdded: HC menambah waktu ujian — update wall-clock anchor agar timer bertambah real-time
+    window.assessmentHub.on('ExtraTimeAdded', function(additionalSeconds) {
+        // Update anchor: geser timerStartRemaining ke depan sebesar additionalSeconds
+        // tanpa mengubah timerStartWallClock, sehingga sisa waktu bertambah secara instan
+        timerStartRemaining = timerStartRemaining - Math.floor((Date.now() - timerStartWallClock) / 1000) + additionalSeconds;
+        timerStartWallClock = Date.now();
+    });
+
     // D-14: Auto-retry pending answers saat SignalR reconnect
     window.assessmentHub.onreconnected(function() {
         updateNetworkBadge('saved');  // Koneksi pulih — reset badge

@@ -4878,9 +4878,16 @@ namespace HcPortal.Controllers
             if (minutes < 5 || minutes > 120 || minutes % 5 != 0)
                 return Json(new { success = false, message = "Waktu harus antara 5-120 menit, kelipatan 5." });
 
-            // Cari semua session aktif (InProgress) dengan AssessmentId ini
+            // Cari representative session dulu untuk mendapat AccessToken batch
+            var repSession = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(s => s.Id == assessmentId);
+            if (repSession == null)
+                return Json(new { success = false, message = "Assessment tidak ditemukan." });
+
+            // Cari semua session InProgress dalam batch yang sama (share AccessToken)
+            var batchKey = repSession.AccessToken;
             var sessions = await _context.AssessmentSessions
-                .Where(s => s.Id == assessmentId && s.Status == "InProgress")
+                .Where(s => s.AccessToken == batchKey && s.Status == "InProgress")
                 .ToListAsync();
 
             if (!sessions.Any())
@@ -4893,7 +4900,6 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             // Broadcast ke semua peserta aktif via SignalR menggunakan batchKey (AccessToken)
-            var batchKey = sessions.First().AccessToken;
             await _hubContext.Clients.Group($"batch-{batchKey}")
                 .SendAsync("ExtraTimeAdded", minutes * 60);
 

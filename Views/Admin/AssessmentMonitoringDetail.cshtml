@@ -113,6 +113,13 @@
                                 title="Regenerate token">
                             <i class="bi bi-arrow-repeat me-1"></i>Regenerate Token
                         </button>
+                        <button type="button"
+                                class="btn btn-warning btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#extraTimeModal"
+                                title="Tambah waktu ujian untuk semua peserta aktif">
+                            <i class="bi bi-clock-history me-1"></i>Tambah Waktu
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1334,5 +1341,79 @@ function eventLabel(eventType, detail) {
             }
         });
     });
+
+    // -------- Extra Time Modal (Phase 302) --------
+    function addExtraTime() {
+        var minutes = parseInt(document.getElementById('extraTimeSelect').value, 10);
+        var assessmentId = @Model.RepresentativeId;
+        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        var btn = document.getElementById('btnConfirmExtraTime');
+        btn.disabled = true;
+        btn.textContent = 'Menambahkan...';
+
+        fetch(appUrl('/Admin/AddExtraTime'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'assessmentId=' + assessmentId + '&minutes=' + minutes + '&__RequestVerificationToken=' + encodeURIComponent(token)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            bootstrap.Modal.getInstance(document.getElementById('extraTimeModal')).hide();
+            btn.disabled = false;
+            btn.textContent = 'Tambah Waktu';
+            var alertClass = data.success ? 'alert-success' : 'alert-danger';
+            var iconClass = data.success ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show mb-3" role="alert">'
+                + '<i class="bi ' + iconClass + ' me-2"></i>' + data.message
+                + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            var alertContainer = document.querySelector('.container-fluid');
+            alertContainer.insertAdjacentHTML('afterbegin', alertHtml);
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.textContent = 'Tambah Waktu';
+            bootstrap.Modal.getInstance(document.getElementById('extraTimeModal')).hide();
+            alert('Gagal menambah waktu. Silakan coba lagi.');
+        });
+    }
 </script>
+
+<!-- Extra Time Modal (Phase 302) -->
+<div class="modal fade" id="extraTimeModal" tabindex="-1" aria-labelledby="extraTimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="extraTimeModalLabel">
+                    <i class="bi bi-clock-history me-2 text-warning"></i>Tambah Waktu Ujian
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Waktu tambahan akan diberikan ke semua peserta yang sedang mengerjakan ujian ini.</p>
+                <label for="extraTimeSelect" class="form-label fw-semibold">Tambah waktu (menit)</label>
+                <select id="extraTimeSelect" class="form-select">
+                    <option value="5">5 menit</option>
+                    <option value="10">10 menit</option>
+                    <option value="15" selected>15 menit</option>
+                    <option value="20">20 menit</option>
+                    <option value="25">25 menit</option>
+                    <option value="30">30 menit</option>
+                    <option value="45">45 menit</option>
+                    <option value="60">60 menit</option>
+                    <option value="90">90 menit</option>
+                    <option value="120">120 menit</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmExtraTime" onclick="addExtraTime()">
+                    <i class="bi bi-clock-history me-1"></i>Tambah Waktu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 }
