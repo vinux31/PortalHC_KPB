@@ -47,7 +47,7 @@ See .planning/MILESTONES.md for full history.
 
 - [x] **Phase 296: Data Foundation + GradingService Extraction** - Migrasi DB backward-compatible dan ekstraksi GradingService sebagai fondasi semua fase berikutnya (completed 2026-04-06)
 - [x] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test (completed 2026-04-07)
-- [ ] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi
+- [x] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi (completed 2026-04-07)
 - [ ] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score
 - [ ] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan
 - [ ] **Phase 301: Advanced Reporting** - HC dapat melihat item analysis, gain score report, dan export ke Excel
@@ -160,11 +160,11 @@ Plans:
   7. Fill in the Blank di-grade otomatis dengan exact match case-insensitive terhadap jawaban benar yang telah didefinisikan HC
 **Plans**: 5 plans
 Plans:
-- [ ] 298-01-PLAN.md — True/False question type admin + exam UI + grading
-- [ ] 298-02-PLAN.md — Multiple Answer question type admin + exam UI + grading
-- [ ] 298-03-PLAN.md — Essay question type admin + exam UI + manual grading
-- [ ] 298-04-PLAN.md — Fill in the Blank question type admin + exam UI + grading
-- [ ] 298-05-PLAN.md — Excel import support for new question types
+- [x] 298-01-PLAN.md — True/False question type admin + exam UI + grading
+- [x] 298-02-PLAN.md — Multiple Answer question type admin + exam UI + grading
+- [x] 298-03-PLAN.md — Essay question type admin + exam UI + manual grading
+- [x] 298-04-PLAN.md — Fill in the Blank question type admin + exam UI + grading
+- [x] 298-05-PLAN.md — Excel import support for new question types
 **UI hint**: yes
 
 ### Phase 299: Worker Pre-Post Test + Comparison
@@ -233,7 +233,7 @@ Plans:
 | 295. Drag-drop Reorder | 1/1 | Complete | 2026-04-03 |
 | 296. Data Foundation + GradingService Extraction | 3/3 | Complete | 2026-04-06 |
 | 297. Admin Pre-Post Test | 4/4 | Complete   | 2026-04-07 |
-| 298. Question Types | 0/5 | Planning | - |
+| 298. Question Types | 5/5 | Complete   | 2026-04-07 |
 | 299. Worker Pre-Post Test + Comparison | 0/? | Not started | - |
 | 300. Mobile Optimization | 0/? | Not started | - |
 | 301. Advanced Reporting | 0/? | Not started | - |
