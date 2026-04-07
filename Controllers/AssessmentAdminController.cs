@@ -1932,19 +1932,100 @@ namespace HcPortal.Controllers
                     a.IsTokenRequired,
                     a.AccessToken,
                     a.CreatedAt,
+                    a.AssessmentType,
+                    a.LinkedGroupId,
+                    a.DurationMinutes,
                     IsCompleted = a.CompletedAt != null,
                     IsPassed = a.IsPassed ?? false,
                     IsStarted = a.StartedAt != null
                 })
                 .ToListAsync();
 
-            // Group by (Title, Category, Schedule.Date)
-            var grouped = allSessions
+            // Pisahkan Pre-Post dari Standard (D-33)
+            var prePostSessions = allSessions.Where(a => a.LinkedGroupId != null).ToList();
+            var standardSessions = allSessions.Where(a => a.LinkedGroupId == null).ToList();
+
+            // Group Pre-Post by LinkedGroupId
+            var prePostGroups = prePostSessions
+                .GroupBy(a => a.LinkedGroupId)
+                .Select(g =>
+                {
+                    var preSubs = g.Where(a => a.AssessmentType == "PreTest").ToList();
+                    var postSubs = g.Where(a => a.AssessmentType == "PostTest").ToList();
+                    var rep = preSubs.OrderBy(a => a.CreatedAt).FirstOrDefault() ?? g.OrderBy(a => a.CreatedAt).First();
+
+                    // D-29: status derived
+                    string groupStatus;
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
+                        groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming"))
+                        groupStatus = "Upcoming";
+                    else
+                        groupStatus = "Closed";
+
+                    // Helper untuk sub-row status
+                    string SubRowStatus(IEnumerable<dynamic> subs)
+                    {
+                        if (subs.Any(a => (string)a.Status == "Open" || (string)a.Status == "InProgress")) return "Open";
+                        if (subs.Any(a => (string)a.Status == "Upcoming")) return "Upcoming";
+                        return "Closed";
+                    }
+
+                    return new MonitoringGroupViewModel
+                    {
+                        RepresentativeId = rep.Id,
+                        Title = rep.Title,
+                        Category = rep.Category,
+                        Schedule = rep.Schedule,
+                        GroupStatus = groupStatus,
+                        // D-11: stat gabungan dari Post
+                        TotalCount = postSubs.Count > 0 ? postSubs.Count : preSubs.Count,
+                        CompletedCount = postSubs.Count(a => a.IsCompleted),
+                        PassedCount = postSubs.Count(a => a.IsPassed),
+                        PendingCount = postSubs.Count(a => !a.IsCompleted && !a.IsStarted),
+                        InProgressCount = postSubs.Count(a => a.IsStarted && !a.IsCompleted),
+                        CancelledCount = g.Count(a => a.Status == "Cancelled"),
+                        IsTokenRequired = rep.IsTokenRequired,
+                        AccessToken = rep.AccessToken ?? "",
+                        IsPrePostGroup = true,
+                        LinkedGroupId = g.Key,
+                        PreSubRow = preSubs.Any() ? new MonitoringSubRowViewModel
+                        {
+                            RepresentativeId = preSubs.OrderBy(a => a.CreatedAt).First().Id,
+                            Phase = "PreTest",
+                            Schedule = preSubs.First().Schedule,
+                            DurationMinutes = preSubs.First().DurationMinutes,
+                            TotalCount = preSubs.Count,
+                            CompletedCount = preSubs.Count(a => a.IsCompleted),
+                            PassedCount = preSubs.Count(a => a.IsPassed),
+                            PendingCount = preSubs.Count(a => !a.IsCompleted && !a.IsStarted),
+                            InProgressCount = preSubs.Count(a => a.IsStarted && !a.IsCompleted),
+                            CancelledCount = preSubs.Count(a => a.Status == "Cancelled"),
+                            GroupStatus = SubRowStatus(preSubs.Cast<dynamic>())
+                        } : null,
+                        PostSubRow = postSubs.Any() ? new MonitoringSubRowViewModel
+                        {
+                            RepresentativeId = postSubs.OrderBy(a => a.CreatedAt).First().Id,
+                            Phase = "PostTest",
+                            Schedule = postSubs.First().Schedule,
+                            DurationMinutes = postSubs.First().DurationMinutes,
+                            TotalCount = postSubs.Count,
+                            CompletedCount = postSubs.Count(a => a.IsCompleted),
+                            PassedCount = postSubs.Count(a => a.IsPassed),
+                            PendingCount = postSubs.Count(a => !a.IsCompleted && !a.IsStarted),
+                            InProgressCount = postSubs.Count(a => a.IsStarted && !a.IsCompleted),
+                            CancelledCount = postSubs.Count(a => a.Status == "Cancelled"),
+                            GroupStatus = SubRowStatus(postSubs.Cast<dynamic>())
+                        } : null
+                    };
+                }).ToList();
+
+            // Group Standard by (Title, Category, Schedule.Date) — existing logic
+            var standardGroups = standardSessions
                 .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
                 .Select(g =>
                 {
                     var rep = g.OrderBy(a => a.CreatedAt).First();
-                    // Compute GroupStatus from session statuses
                     string groupStatus;
                     if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
                         groupStatus = "Open";
@@ -1967,7 +2048,10 @@ namespace HcPortal.Controllers
                         IsTokenRequired = rep.IsTokenRequired,
                         AccessToken = rep.AccessToken ?? ""
                     };
-                })
+                }).ToList();
+
+            // Gabungkan dan sort
+            var grouped = prePostGroups.Concat(standardGroups)
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
