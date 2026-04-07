@@ -126,6 +126,7 @@ namespace HcPortal.Services
 
             int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
             bool isPassed = finalPercentage >= session.PassPercentage;
+            bool hasEssay = packageQuestions.Any(q => (q.QuestionType ?? "MultipleChoice") == "Essay");
 
             // ---- 2. Hitung SessionElemenTeknisScores ----
             var etGroups = packageQuestions
@@ -185,6 +186,47 @@ namespace HcPortal.Services
                 _context.ChangeTracker.Clear();
             }
 
+            // ---- 3a. Essay flow: status "Menunggu Penilaian", tidak generate sertifikat/TrainingRecord ----
+            if (hasEssay)
+            {
+                // Interim score = hanya dari MC + MA (Essay skor 0)
+                int interimPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+                var essayRowsAffected = await _context.AssessmentSessions
+                    .Where(s => s.Id == session.Id && s.Status != "Completed" && s.Status != "Menunggu Penilaian")
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(r => r.Score, interimPercentage)
+                        .SetProperty(r => r.Status, "Menunggu Penilaian")
+                        .SetProperty(r => r.HasManualGrading, true)
+                        .SetProperty(r => r.IsPassed, (bool?)null)
+                        .SetProperty(r => r.Progress, 100)
+                        .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                    );
+
+                if (essayRowsAffected == 0)
+                {
+                    _logger.LogWarning(
+                        "GradingService: race condition session {SessionId} — sudah Completed/Menunggu Penilaian.",
+                        session.Id);
+                    return false;
+                }
+
+                // Update PackageAssignment.IsCompleted (ujian selesai, hanya grading pending)
+                await _context.UserPackageAssignments
+                    .Where(a => a.AssessmentSessionId == session.Id)
+                    .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
+
+                // TIDAK generate TrainingRecord dan sertifikat (D-18)
+                // TIDAK kirim notifikasi grup completion
+
+                _logger.LogInformation(
+                    "GradingService: session {SessionId} status Menunggu Penilaian — {EssayCount} soal Essay perlu dinilai HC.",
+                    session.Id, packageQuestions.Count(q => (q.QuestionType ?? "MultipleChoice") == "Essay"));
+
+                return true;
+            }
+
+            // ---- 3b. Non-essay flow: status "Completed" (existing logic) ----
             // ExecuteUpdateAsync dengan WHERE Status != "Completed" sebagai status guard (D-04)
             var rowsAffected = await _context.AssessmentSessions
                 .Where(s => s.Id == session.Id && s.Status != "Completed")
