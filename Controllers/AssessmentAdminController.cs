@@ -700,6 +700,7 @@ namespace HcPortal.Controllers
             }
 
             ViewBag.IsRenewalMode = isRenewalMode;
+            ViewBag.AssessmentTypeInput = "";
 
             return View(model);
         }
@@ -708,7 +709,13 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAssessment(AssessmentSession model, List<string> UserIds, string? RenewalFkMap = null, string? RenewalFkMapType = null)
+        public async Task<IActionResult> CreateAssessment(
+            AssessmentSession model, List<string> UserIds,
+            string? RenewalFkMap = null, string? RenewalFkMapType = null,
+            string? AssessmentTypeInput = null,
+            DateTime? PreSchedule = null, int? PreDurationMinutes = null, DateTime? PreExamWindowCloseDate = null,
+            DateTime? PostSchedule = null, int? PostDurationMinutes = null, DateTime? PostExamWindowCloseDate = null,
+            bool SamePackage = false)
         {
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
@@ -820,6 +827,41 @@ namespace HcPortal.Controllers
             }
             // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
             ModelState.Remove("NomorSertifikat");
+
+            // T-297-01: Validate AssessmentTypeInput hanya "Standard" atau "PrePostTest"
+            if (!string.IsNullOrEmpty(AssessmentTypeInput) && AssessmentTypeInput != "Standard" && AssessmentTypeInput != "PrePostTest")
+            {
+                ModelState.AddModelError("AssessmentTypeInput", "Tipe assessment tidak valid.");
+            }
+
+            bool isPrePostMode = AssessmentTypeInput == "PrePostTest";
+
+            if (isPrePostMode)
+            {
+                // Validasi field Pre wajib
+                if (!PreSchedule.HasValue)
+                    ModelState.AddModelError("PreSchedule", "Jadwal Pre-Test wajib diisi.");
+                if (!PreDurationMinutes.HasValue || PreDurationMinutes <= 0)
+                    ModelState.AddModelError("PreDurationMinutes", "Durasi Pre-Test harus lebih dari 0.");
+                if (PreDurationMinutes > 480)
+                    ModelState.AddModelError("PreDurationMinutes", "Durasi Pre-Test tidak boleh lebih dari 480 menit.");
+
+                // Validasi field Post wajib
+                if (!PostSchedule.HasValue)
+                    ModelState.AddModelError("PostSchedule", "Jadwal Post-Test wajib diisi.");
+                if (!PostDurationMinutes.HasValue || PostDurationMinutes <= 0)
+                    ModelState.AddModelError("PostDurationMinutes", "Durasi Post-Test harus lebih dari 0.");
+                if (PostDurationMinutes > 480)
+                    ModelState.AddModelError("PostDurationMinutes", "Durasi Post-Test tidak boleh lebih dari 480 menit.");
+
+                // D-06: Schedule Post harus setelah Pre (T-297-02)
+                if (PreSchedule.HasValue && PostSchedule.HasValue && PostSchedule <= PreSchedule)
+                    ModelState.AddModelError("PostSchedule", "Jadwal Post-Test harus setelah jadwal Pre-Test.");
+
+                // Override model fields agar validasi standar Schedule/Duration tidak gagal
+                if (PreSchedule.HasValue) model.Schedule = PreSchedule.Value;
+                if (PreDurationMinutes.HasValue) model.DurationMinutes = PreDurationMinutes.Value;
+            }
 
             // Validate model
             if (!ModelState.IsValid)
@@ -971,6 +1013,98 @@ namespace HcPortal.Controllers
                         _logger.LogWarning(ex, "Failed to deserialize RenewalFkMap");
                     }
                 }
+
+                // Pre-Post Test mode: buat 2 session per user (Pre + Post) secara transaksional
+                if (isPrePostMode)
+                {
+                    // FASE 1: Buat Pre sessions
+                    var preSessions = new List<AssessmentSession>();
+                    foreach (var userId in UserIds)
+                    {
+                        var preSession = new AssessmentSession
+                        {
+                            Title = model.Title,
+                            Category = model.Category,
+                            Schedule = PreSchedule!.Value,
+                            DurationMinutes = PreDurationMinutes!.Value,
+                            ExamWindowCloseDate = PreExamWindowCloseDate,
+                            Status = "Upcoming",
+                            PassPercentage = model.PassPercentage,
+                            AllowAnswerReview = model.AllowAnswerReview,
+                            IsTokenRequired = model.IsTokenRequired,
+                            AccessToken = model.AccessToken,
+                            GenerateCertificate = false,  // D-20: Pre TIDAK generate sertifikat
+                            ValidUntil = null,
+                            UserId = userId,
+                            AssessmentType = "PreTest",
+                            CreatedBy = currentUser?.Id,
+                            BannerColor = model.BannerColor
+                        };
+                        preSessions.Add(preSession);
+                    }
+
+                    using var pptTransaction = await _context.Database.BeginTransactionAsync();
+                    try
+                    {
+                        _context.AssessmentSessions.AddRange(preSessions);
+                        await _context.SaveChangesAsync(); // Pre sessions get Ids
+
+                        int linkedGroupId = preSessions[0].Id;
+
+                        // FASE 2: Buat Post sessions
+                        var postSessions = new List<AssessmentSession>();
+                        for (int i = 0; i < UserIds.Count; i++)
+                        {
+                            var postSession = new AssessmentSession
+                            {
+                                Title = model.Title,
+                                Category = model.Category,
+                                Schedule = PostSchedule!.Value,
+                                DurationMinutes = PostDurationMinutes!.Value,
+                                ExamWindowCloseDate = PostExamWindowCloseDate,
+                                Status = "Upcoming",
+                                PassPercentage = model.PassPercentage,
+                                AllowAnswerReview = model.AllowAnswerReview,
+                                IsTokenRequired = model.IsTokenRequired,
+                                AccessToken = model.AccessToken,
+                                GenerateCertificate = model.GenerateCertificate, // D-21: pilihan HC
+                                ValidUntil = model.ValidUntil,
+                                UserId = UserIds[i],
+                                AssessmentType = "PostTest",
+                                LinkedGroupId = linkedGroupId,
+                                CreatedBy = currentUser?.Id,
+                                BannerColor = model.BannerColor
+                            };
+                            postSessions.Add(postSession);
+                        }
+
+                        _context.AssessmentSessions.AddRange(postSessions);
+                        await _context.SaveChangesAsync(); // Post sessions get Ids
+
+                        // FASE 3: Cross-link LinkedSessionId dan set LinkedGroupId pada Pre
+                        for (int i = 0; i < preSessions.Count; i++)
+                        {
+                            preSessions[i].LinkedGroupId = linkedGroupId;
+                            preSessions[i].LinkedSessionId = postSessions[i].Id;
+                            postSessions[i].LinkedSessionId = preSessions[i].Id;
+                        }
+                        await _context.SaveChangesAsync();
+                        await pptTransaction.CommitAsync();
+
+                        TempData["Success"] = $"Assessment Pre-Post Test '{model.Title}' berhasil dibuat untuk {UserIds.Count} peserta ({preSessions.Count + postSessions.Count} sesi).";
+                        return RedirectToAction("ManageAssessment");
+                    }
+                    catch (Exception ex)
+                    {
+                        await pptTransaction.RollbackAsync();
+                        _logger.LogError(ex, "Error creating Pre-Post Test assessment");
+                        TempData["Error"] = "Gagal membuat assessment Pre-Post Test. Silakan coba lagi.";
+                        await SetCategoriesViewBag();
+                        await SetTrainingCategoryViewBag();
+                        return View(model);
+                    }
+                }
+                // else: flow standard existing continues below...
 
                 // Create all sessions in memory first
                 var sessions = new List<AssessmentSession>();
