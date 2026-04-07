@@ -86,7 +86,7 @@ Requirements untuk milestone v14.0. Data foundation dan GradingService extractio
 ### Mobile Optimization (Phase 300)
 
 - [ ] **MOB-01**: Area sentuh minimal 48x48dp untuk tombol dan opsi jawaban
-- [ ] **MOB-02**: Swipe kiri/kanan untuk navigasi antar halaman soal
+- [x] **MOB-02**: ~~Swipe kiri/kanan~~ Navigasi antar halaman soal via Prev/Next buttons (D-10: swipe dihapus demi kompatibilitas anti-copy Phase 280)
 - [ ] **MOB-03**: Sticky footer (Previous, Next, Submit) + offcanvas drawer navigasi soal
 - [ ] **MOB-04**: Timer tetap terlihat di header mobile saat scroll
 - [ ] **MOB-05**: Anti-copy (Phase 280) tetap berfungsi dengan touch/swipe events
@@ -187,7 +187,7 @@ Requirements untuk milestone v14.0. Data foundation dan GradingService extractio
 | WKPPT-06 | Phase 299 | Pending |
 | WKPPT-07 | Phase 299 | Pending |
 | MOB-01 | Phase 300 | Pending |
-| MOB-02 | Phase 300 | Pending |
+| MOB-02 | Phase 300 | Revised (D-10: Prev/Next buttons replace swipe) |
 | MOB-03 | Phase 300 | Pending |
 | MOB-04 | Phase 300 | Pending |
 | MOB-05 | Phase 300 | Pending |

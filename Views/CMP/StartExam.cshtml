@@ -2,7 +2,8 @@
 
 @{
     ViewData["Title"] = "Exam In Progress";
-    const int questionsPerPage = 10;
+    int questionsPerPage = 10;  // Default desktop; mobile override via ViewBag
+    if (ViewBag.QuestionsPerPage != null) { questionsPerPage = (int)ViewBag.QuestionsPerPage; }
     int totalPages = (int)Math.Ceiling((double)Model.TotalQuestions / questionsPerPage);
 }
 
@@ -183,7 +184,7 @@ else
                             }
 
                             <!-- Page navigation -->
-                            <div class="d-flex justify-content-between mt-3 mb-4">
+                            <div class="d-none d-lg-flex justify-content-between mt-3 mb-4">
                                 <button type="button" class="btn btn-outline-secondary"
                                         onclick="changePage(@(page - 1))"
                                         @(page == 0 ? "disabled" : "")>
@@ -211,7 +212,7 @@ else
             </div>
 
             <!-- Question Number Panel (collapsible sidebar) -->
-            <div class="col-lg-3" id="questionPanelWrapper">
+            <div class="col-lg-3 d-none d-lg-block" id="questionPanelWrapper">
                 <div class="sticky-top" style="top: 70px;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <small class="text-muted fw-bold">Daftar Soal</small>
@@ -232,6 +233,42 @@ else
         </div>
     </div>
 }
+
+<!-- Mobile Sticky Footer (D-07) — hidden di desktop via d-lg-none -->
+<div id="mobileFooter" class="d-lg-none">
+    <div class="d-flex justify-content-between align-items-center gap-2">
+        <button type="button" class="btn btn-outline-secondary flex-fill"
+                id="mobilePrevBtn" onclick="changePage(currentPage - 1)">
+            <i class="bi bi-chevron-left me-1"></i><span class="d-none d-sm-inline">Sebelumnya</span>
+        </button>
+        <button type="button" class="btn btn-outline-primary"
+                data-bs-toggle="offcanvas" data-bs-target="#questionNavDrawer"
+                aria-label="Buka navigasi soal">
+            <i class="bi bi-list"></i>
+        </button>
+        <button type="button" class="btn btn-primary flex-fill"
+                id="mobileNextBtn" onclick="changePage(currentPage + 1)">
+            <span class="d-none d-sm-inline">Berikutnya</span><i class="bi bi-chevron-right ms-1"></i>
+        </button>
+        <button type="button" class="btn btn-success fw-bold flex-fill d-none"
+                id="mobileSubmitBtn" onclick="document.getElementById('examForm').submit()">
+            <i class="bi bi-clipboard-check me-1"></i>Submit
+        </button>
+    </div>
+</div>
+
+<!-- Mobile Question Navigation Drawer (D-01, D-02) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="questionNavDrawer" aria-labelledby="questionNavDrawerLabel" data-bs-backdrop="true">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="questionNavDrawerLabel">Navigasi Soal</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div id="drawerNumbers" class="d-flex flex-wrap gap-2">
+            <!-- Diisi oleh JS — sync dari updatePanel() -->
+        </div>
+    </div>
+</div>
 
 <!-- Resume confirmation modal (shown on load for in-progress sessions) -->
 <div class="modal fade" id="resumeConfirmModal" tabindex="-1"
@@ -879,14 +916,14 @@ else
         // Check for pending saves
         if (Object.keys(pendingSaves).length > 0 || inFlightSaves.size > 0) {
             // Disable nav buttons while waiting
-            document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+            document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
                 b.disabled = true;
             });
 
             var navTimeout = setTimeout(function() {
                 // 5s timeout: give up waiting, navigate anyway
                 clearInterval(navPoll);
-                document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+                document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
                     b.disabled = false;
                 });
                 performPageSwitch(newPage, skipScroll);
@@ -896,7 +933,7 @@ else
                 if (Object.keys(pendingSaves).length === 0 && inFlightSaves.size === 0) {
                     clearInterval(navPoll);
                     clearTimeout(navTimeout);
-                    document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+                    document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
                         b.disabled = false;
                     });
                     performPageSwitch(newPage, skipScroll);
@@ -913,6 +950,7 @@ else
         currentPage = newPage;
         document.getElementById('page_' + currentPage).style.display = 'block';
         updatePanel();
+        updateMobileNavButtons();
         scrollPanelToCurrentPage();  // Auto-scroll panel to show first badge of current page
         saveSessionProgress();  // Save elapsed time + new page on every navigation
         if (!skipScroll) {
@@ -988,6 +1026,43 @@ else
             });
             container.appendChild(btn);
         });
+
+        // Sync ke mobile drawer (D-02)
+        var drawerNumbers = document.getElementById('drawerNumbers');
+        if (drawerNumbers) {
+            drawerNumbers.innerHTML = '';
+            allQuestionsData.forEach(function(q) {
+                var dbtn = document.createElement('div');
+                var answered = answeredQuestions.has(String(q.questionId));
+                dbtn.className = 'badge rounded-pill ' + (answered ? 'bg-success' : 'bg-secondary');
+                dbtn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:pointer; min-width:36px; width:36px; height:32px; display:flex; align-items:center; justify-content:center;';
+                dbtn.innerText = q.displayNumber;
+                dbtn.addEventListener('click', function() {
+                    var drawerEl = document.getElementById('questionNavDrawer');
+                    var drawer = bootstrap.Offcanvas.getInstance(drawerEl);
+                    if (drawer) drawer.hide();
+                    jumpToQuestion(q.questionId, q.pageNumber);
+                });
+                drawerNumbers.appendChild(dbtn);
+            });
+        }
+    }
+
+    function updateMobileNavButtons() {
+        var prevBtn = document.getElementById('mobilePrevBtn');
+        var nextBtn = document.getElementById('mobileNextBtn');
+        var submitBtn = document.getElementById('mobileSubmitBtn');
+        if (!prevBtn) return;
+
+        prevBtn.disabled = (currentPage === 0);
+
+        var isLastPage = (currentPage === TOTAL_PAGES - 1);
+        if (nextBtn) {
+            nextBtn.classList.toggle('d-none', isLastPage);
+        }
+        if (submitBtn) {
+            submitBtn.classList.toggle('d-none', !isLastPage);
+        }
     }
 
     function jumpToQuestion(questionId, targetPage) {
@@ -1036,6 +1111,8 @@ else
         panel.style.display = 'none';
         panelVisible = false;
     }
+
+    updateMobileNavButtons();
 
     // Expired exam: show modal then auto-submit
     if (EXAM_EXPIRED) {
@@ -1348,11 +1425,83 @@ else
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    @@media (max-width: 991px) {
-        #questionPanelWrapper { order: -1; margin-bottom: 1rem; }
+    /* Mobile: sidebar hidden via d-none d-lg-block class — CSS override removed */
+
+    /* Mobile Sticky Footer (D-07) */
+    #mobileFooter {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        padding: 8px 16px;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.12);
+        z-index: 1019;
+    }
+    @@media (max-width: 991.98px) {
+        #examContainer { padding-bottom: 72px; }
+    }
+
+    /* Mobile touch targets (D-04, MOB-01) — hanya di < 768px per D-05 */
+    @@media (max-width: 767.98px) {
+        .list-group-item {
+            min-height: 48px;
+            padding: 12px 16px;
+        }
+        .form-check-input {
+            transform: scale(1.4) !important;
+        }
+        .card-body {
+            padding: 16px;
+        }
+        #mobileFooter .btn {
+            min-height: 48px;
+        }
+    }
+
+    /* Header compact mobile (D-08, D-09) */
+    @@media (max-width: 767.98px) {
+        #examHeader h6 {
+            max-width: calc(100vw - 160px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #examHeader .small.text-muted {
+            display: none !important;
+        }
+        #hubStatusBadge {
+            display: none !important;
+        }
+        #answeredProgress {
+            display: none !important;
+        }
+    }
+
+    /* Offcanvas drawer grid layout */
+    #drawerNumbers {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        align-items: start;
+        justify-items: center;
+    }
+
+    /* Landscape mode: sidebar kembali tampil (D-13, D-14) */
+    @@media (orientation: landscape) and (max-width: 991.98px) {
+        #questionPanelWrapper {
+            display: block !important;
+            flex: 0 0 200px;
+            width: 200px;
+            max-width: 200px;
+        }
         #questionPanel {
-            max-height: 300px;
+            max-height: calc(100vh - 140px);
             overflow-y: auto;
+        }
+        /* Sembunyikan offcanvas trigger di landscape karena sidebar sudah tampil */
+        #mobileFooter [data-bs-target="#questionNavDrawer"] {
+            display: none !important;
         }
     }
 </style>
