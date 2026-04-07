@@ -27,5 +27,8 @@ namespace HcPortal.Models
         /// Diisi saat worker submit jawaban Essay. Belum dinilai sampai HC melakukan manual grading.
         /// </summary>
         public string? TextAnswer { get; set; }
+
+        /// <summary>Skor manual HC per soal Essay (0 s/d ScoreValue). Null = belum dinilai.</summary>
+        public int? EssayScore { get; set; }
     }
 }

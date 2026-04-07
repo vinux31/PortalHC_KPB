@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v14.0
 milestone_name: Assessment Enhancement
 status: executing
-stopped_at: Phase 299 plans reviewed by OpenCode, ready for execute or replan with --reviews
-last_updated: "2026-04-07T07:52:35.160Z"
-last_activity: 2026-04-07 -- Phase 299 execution started
+stopped_at: Phase 298 ready to execute
+last_updated: "2026-04-07T06:41:59.454Z"
+last_activity: 2026-04-07 -- Phase 298 execution started
 progress:
   total_phases: 11
-  completed_phases: 6
-  total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_phases: 7
+  total_plans: 16
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 299 — worker-pre-post-test-comparison
+**Current focus:** Phase 298 — question-types
 
 ## Current Position
 
-Phase: 299 (worker-pre-post-test-comparison) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 299
-Last activity: 2026-04-07 -- Phase 299 execution started
+Phase: 298 (question-types) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 298
+Last activity: 2026-04-07 -- Phase 298 execution started
 
-Progress: [█░░░░░░░░░] 14% (1/7 phases)
+Progress: [████░░░░░░] 29% (2/7 phases)
 
 ## v14.0 Phase Map
 
@@ -48,7 +48,7 @@ Progress: [█░░░░░░░░░] 14% (1/7 phases)
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 7
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -91,6 +91,6 @@ Progress: [█░░░░░░░░░] 14% (1/7 phases)
 
 ## Session Continuity
 
-Last activity: 2026-04-07 — Restored v14.0 roadmap (7 phases, 52 requirements). Phase 296 complete.
-Stopped at: Phase 299 plans reviewed by OpenCode, ready for execute or replan with --reviews
-Resume file: .planning/phases/299-worker-pre-post-test-comparison/299-REVIEWS.md
+Last activity: 2026-04-07 — Phase 298 execution complete (5/5 plans). Awaiting human verification checkpoint.
+Stopped at: Phase 298 all plans executed — checkpoint verification pending
+Resume: `/gsd:execute-phase 298` untuk lanjut verification setelah manual testing

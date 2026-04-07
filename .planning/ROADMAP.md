@@ -47,7 +47,7 @@ See .planning/MILESTONES.md for full history.
 
 - [x] **Phase 296: Data Foundation + GradingService Extraction** - Migrasi DB backward-compatible dan ekstraksi GradingService sebagai fondasi semua fase berikutnya (completed 2026-04-06)
 - [x] **Phase 297: Admin Pre-Post Test** - HC dapat membuat, mengelola, dan memonitor assessment tipe Pre-Post Test (completed 2026-04-07)
-- [ ] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi
+- [x] **Phase 298: Question Types** - HC dapat membuat 4 tipe soal baru; sistem auto/manual grading per tipe berfungsi (completed 2026-04-07)
 - [ ] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score
 - [ ] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan
 - [ ] **Phase 301: Advanced Reporting** - HC dapat melihat item analysis, gain score report, dan export ke Excel
@@ -158,10 +158,13 @@ Plans:
   5. Soal Essay tidak ter-grading otomatis â€” status assessment menjadi "Menunggu Penilaian" dan IsPassed tetap null sampai HC menilai semua soal Essay
   6. HC dapat menginput skor per soal Essay dari halaman AssessmentMonitoringDetail, dan sistem menghitung ulang skor total serta menentukan IsPassed setelah semua Essay dinilai
   7. Fill in the Blank di-grade otomatis dengan exact match case-insensitive terhadap jawaban benar yang telah didefinisikan HC
-**Plans**: 2 plans
+**Plans**: 5 plans
 Plans:
-- [ ] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
-- [ ] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
+- [x] 298-01-PLAN.md â€” True/False question type admin + exam UI + grading
+- [x] 298-02-PLAN.md â€” Multiple Answer question type admin + exam UI + grading
+- [x] 298-03-PLAN.md â€” Essay question type admin + exam UI + manual grading
+- [x] 298-04-PLAN.md â€” Fill in the Blank question type admin + exam UI + grading
+- [x] 298-05-PLAN.md â€” Excel import support for new question types
 **UI hint**: yes
 
 ### Phase 299: Worker Pre-Post Test + Comparison
@@ -174,10 +177,7 @@ Plans:
   3. Setelah Pre-Test Completed dan jadwal Post-Test tiba, pekerja dapat memulai Post-Test secara normal
   4. Setelah Post-Test selesai, pekerja dapat mengakses halaman perbandingan Pre vs Post yang menampilkan skor per elemen secara side-by-side
   5. Gain score ditampilkan dengan formula (PostScore - PreScore) / (100 - PreScore) x 100; kasus PreScore = 100 menampilkan Gain = 100
-**Plans**: 2 plans
-Plans:
-- [ ] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
-- [ ] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 300: Mobile Optimization
@@ -190,10 +190,7 @@ Plans:
   3. Tombol Previous, Next, dan Submit selalu terlihat di bagian bawah layar saat scroll, dan panel navigasi soal muncul sebagai offcanvas drawer di mobile (bukan sidebar tetap)
   4. Timer ujian tetap terlihat di header mobile meskipun pengguna scroll ke bawah
   5. Fitur anti-copy yang sudah ada (Phase 280) tetap berfungsi benar bersama touch/swipe events tanpa saling konflik
-**Plans**: 2 plans
-Plans:
-- [ ] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
-- [ ] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 301: Advanced Reporting
@@ -207,10 +204,7 @@ Plans:
   4. HC dapat melihat Pre-Post Gain Score Report untuk assessment PrePostTest per pekerja dan per elemen kompetensi dengan gain score konsisten
   5. HC dapat mengekspor Item Analysis dan Gain Score Report ke file Excel yang terstruktur
   6. Analytics Dashboard menampilkan panel baru untuk tren gain score dari assessment PrePostTest
-**Plans**: 2 plans
-Plans:
-- [ ] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
-- [ ] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 302: Accessibility WCAG Quick Wins
@@ -224,10 +218,7 @@ Plans:
   4. Kontrol ukuran font (A+/A-) tersedia di halaman ujian dan preferensi disimpan via localStorage sehingga persisten antar sesi
   5. HC dapat menetapkan waktu tambahan (ExtraTimeMinutes) per sesi untuk peserta dengan kebutuhan khusus, dan sistem menambahkannya ke durasi ujian pekerja tersebut
   6. Fokus keyboard otomatis berpindah ke soal pertama saat pekerja berpindah ke halaman soal baru
-**Plans**: 2 plans
-Plans:
-- [ ] 299-01-PLAN.md — Controller extension: Assessment() pair grouping + Results() comparison data
-- [ ] 299-02-PLAN.md — View rendering: Pre-Post card pair + Riwayat badge + Results comparison section
+**Plans**: TBD
 **UI hint**: yes
 
 ---
@@ -242,7 +233,7 @@ Plans:
 | 295. Drag-drop Reorder | 1/1 | Complete | 2026-04-03 |
 | 296. Data Foundation + GradingService Extraction | 3/3 | Complete | 2026-04-06 |
 | 297. Admin Pre-Post Test | 4/4 | Complete   | 2026-04-07 |
-| 298. Question Types | 0/? | Not started | - |
+| 298. Question Types | 5/5 | Complete   | 2026-04-07 |
 | 299. Worker Pre-Post Test + Comparison | 0/? | Not started | - |
 | 300. Mobile Optimization | 0/? | Not started | - |
 | 301. Advanced Reporting | 0/? | Not started | - |

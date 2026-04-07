@@ -126,6 +126,130 @@ namespace HcPortal.Hubs
             return base.OnConnectedAsync();
         }
 
+        /// <summary>
+        /// Menyimpan jawaban teks untuk soal Essay.
+        /// T-298-07: validasi sessionId milik user yang terautentikasi.
+        /// T-298-09: truncate TextAnswer ke MaxCharacters server-side.
+        /// </summary>
+        public async Task SaveTextAnswer(int sessionId, int questionId, string textAnswer)
+        {
+            var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId)) return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            // T-298-07: Validasi session milik user ini dan masih InProgress
+            var session = await db.AssessmentSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.Status == "InProgress");
+            if (session == null)
+            {
+                _logger.LogWarning("SaveTextAnswer: unauthorized or invalid session {SessionId} for user {UserId}", sessionId, userId);
+                return;
+            }
+
+            // T-298-09: Ambil MaxCharacters dari soal untuk truncate server-side
+            var question = await db.PackageQuestions
+                .Where(q => q.Id == questionId)
+                .Select(q => new { q.MaxCharacters })
+                .FirstOrDefaultAsync();
+
+            int maxChars = question?.MaxCharacters > 0 ? question.MaxCharacters : 2000;
+            if (textAnswer != null && textAnswer.Length > maxChars)
+                textAnswer = textAnswer.Substring(0, maxChars);
+
+            // Upsert PackageUserResponse: cari existing by sessionId+questionId
+            var existing = await db.PackageUserResponses
+                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+
+            if (existing != null)
+            {
+                existing.TextAnswer = textAnswer;
+                existing.PackageOptionId = null;
+            }
+            else
+            {
+                db.PackageUserResponses.Add(new PackageUserResponse
+                {
+                    AssessmentSessionId = sessionId,
+                    PackageQuestionId = questionId,
+                    PackageOptionId = null,
+                    TextAnswer = textAnswer
+                });
+            }
+
+            await db.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Menyimpan jawaban multi-pilihan untuk soal MultipleAnswer.
+        /// T-298-08: validasi optionIds milik soal tersebut, validasi session timer belum expired.
+        /// </summary>
+        public async Task SaveMultipleAnswer(int sessionId, int questionId, string optionIds)
+        {
+            var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId)) return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            // T-298-07 + T-298-08: Validasi session milik user ini, masih InProgress
+            var session = await db.AssessmentSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.Status == "InProgress");
+            if (session == null)
+            {
+                _logger.LogWarning("SaveMultipleAnswer: unauthorized or invalid session {SessionId} for user {UserId}", sessionId, userId);
+                return;
+            }
+
+            // T-298-08: Validasi timer belum expired (server-side check)
+            if (session.StartedAt.HasValue && session.DurationMinutes > 0)
+            {
+                var elapsed = (DateTime.UtcNow - session.StartedAt.Value).TotalSeconds;
+                if (elapsed > session.DurationMinutes * 60)
+                {
+                    _logger.LogWarning("SaveMultipleAnswer: timer expired for session {SessionId}", sessionId);
+                    return;
+                }
+            }
+
+            // Parse optionIds dari comma-separated string
+            var selectedOptionIds = new List<int>();
+            if (!string.IsNullOrWhiteSpace(optionIds))
+            {
+                foreach (var part in optionIds.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (int.TryParse(part.Trim(), out var oid))
+                        selectedOptionIds.Add(oid);
+                }
+            }
+
+            // T-298-08: Validasi optionIds benar-benar milik questionId ini
+            var validOptionIds = await db.PackageOptions
+                .Where(o => o.PackageQuestionId == questionId && selectedOptionIds.Contains(o.Id))
+                .Select(o => o.Id)
+                .ToListAsync();
+
+            // Hapus semua respons existing untuk soal ini
+            var existingResponses = db.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+            db.PackageUserResponses.RemoveRange(existingResponses);
+
+            // Insert baru per optionId yang valid
+            foreach (var oid in validOptionIds)
+            {
+                db.PackageUserResponses.Add(new PackageUserResponse
+                {
+                    AssessmentSessionId = sessionId,
+                    PackageQuestionId = questionId,
+                    PackageOptionId = oid,
+                    TextAnswer = null
+                });
+            }
+
+            await db.SaveChangesAsync();
+        }
+
         public override Task OnDisconnectedAsync(Exception? exception)
         {
             var userId = Context.UserIdentifier;

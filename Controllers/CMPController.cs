@@ -942,7 +942,9 @@ namespace HcPortal.Controllers
                         QuestionId = q.Id,
                         QuestionText = q.QuestionText,
                         DisplayNumber = displayNum++,
-                        Options = opts
+                        Options = opts,
+                        QuestionType = q.QuestionType ?? "MultipleChoice",
+                        MaxCharacters = q.MaxCharacters > 0 ? q.MaxCharacters : 2000
                     });
                 }
 
@@ -983,14 +985,35 @@ namespace HcPortal.Controllers
                 // Load previously saved answers for pre-population (package path)
                 if (isResume)
                 {
-                    var savedAnswers = await _context.PackageUserResponses
+                    var allSaved = await _context.PackageUserResponses
                         .Where(r => r.AssessmentSessionId == id)
-                        .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId ?? 0);
+                        .ToListAsync();
+
+                    // MC: questionId -> optionId (single)
+                    var savedAnswers = allSaved
+                        .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0 && r.TextAnswer == null)
+                        .GroupBy(r => r.PackageQuestionId)
+                        .ToDictionary(g => g.Key, g => g.First().PackageOptionId ?? 0);
                     ViewBag.SavedAnswers = System.Text.Json.JsonSerializer.Serialize(savedAnswers);
+
+                    // MA: questionId -> comma-separated optionIds
+                    var savedMultiAnswers = allSaved
+                        .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0)
+                        .GroupBy(r => r.PackageQuestionId)
+                        .ToDictionary(g => g.Key, g => string.Join(",", g.Select(r => r.PackageOptionId)));
+                    ViewBag.SavedMultiAnswers = System.Text.Json.JsonSerializer.Serialize(savedMultiAnswers);
+
+                    // Essay: questionId -> text
+                    var savedTextAnswers = allSaved
+                        .Where(r => r.TextAnswer != null)
+                        .ToDictionary(r => r.PackageQuestionId, r => r.TextAnswer ?? "");
+                    ViewBag.SavedTextAnswers = System.Text.Json.JsonSerializer.Serialize(savedTextAnswers);
                 }
                 else
                 {
                     ViewBag.SavedAnswers = "{}";
+                    ViewBag.SavedMultiAnswers = "{}";
+                    ViewBag.SavedTextAnswers = "{}";
                 }
 
                 // Parse option shuffle for view rendering (from existing assignment)
@@ -1301,9 +1324,15 @@ namespace HcPortal.Controllers
             // Merge TempData answers with DB-saved answers (PackageUserResponses).
             // TempData contains only the final form submission; DB contains incrementally
             // auto-saved answers. Merge ensures no answers are lost (TempData wins on conflict).
-            var dbAnswers = await _context.PackageUserResponses
+            var allDbResponses = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == id)
-                .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId ?? 0);
+                .ToListAsync();
+
+            // MC/MA option-based answers: questionId -> optionId (first row, for backward compat)
+            var dbAnswers = allDbResponses
+                .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0)
+                .GroupBy(r => r.PackageQuestionId)
+                .ToDictionary(g => g.Key, g => g.First().PackageOptionId ?? 0);
 
             // Start with DB answers, overlay TempData answers (TempData is more recent)
             var answers = new Dictionary<int, int>(dbAnswers);
@@ -1313,6 +1342,17 @@ namespace HcPortal.Controllers
             }
             // Remove invalid entries (optionId 0 means unanswered)
             answers = answers.Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            // MA: questionId -> list of optionIds from DB (all rows)
+            var dbMultiAnswers = allDbResponses
+                .Where(r => r.PackageOptionId.HasValue && r.PackageOptionId > 0)
+                .GroupBy(r => r.PackageQuestionId)
+                .ToDictionary(g => g.Key, g => g.Select(r => r.PackageOptionId!.Value).ToList());
+
+            // Essay: questionId -> text answer from DB
+            var dbTextAnswers = allDbResponses
+                .Where(r => r.TextAnswer != null)
+                .ToDictionary(r => r.PackageQuestionId, r => r.TextAnswer ?? "");
 
             // Build summary items
             var summaryItems = new List<ExamSummaryItem>();
@@ -1345,24 +1385,66 @@ namespace HcPortal.Controllers
                 foreach (var qId in shuffledQIds)
                 {
                     if (!qLookup.TryGetValue(qId, out var q)) continue;
-                    int? selectedOptId = answers.TryGetValue(qId, out var v) && v > 0 ? v : (int?)null;
-                    string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
-                        ? opt.OptionText
-                        : null;
+                    var qtype = q.QuestionType ?? "MultipleChoice";
 
-                    summaryItems.Add(new ExamSummaryItem
+                    if (qtype == "Essay")
                     {
-                        DisplayNumber = num++,
-                        QuestionId = qId,
-                        QuestionText = q.QuestionText,
-                        SelectedOptionId = selectedOptId,
-                        SelectedOptionText = selectedText
-                    });
+                        var textAnswer = dbTextAnswers.TryGetValue(qId, out var ta) ? ta : null;
+                        summaryItems.Add(new ExamSummaryItem
+                        {
+                            DisplayNumber = num++,
+                            QuestionId = qId,
+                            QuestionText = q.QuestionText,
+                            QuestionType = qtype,
+                            TextAnswer = textAnswer
+                        });
+                    }
+                    else if (qtype == "MultipleAnswer")
+                    {
+                        var selectedOptIds = dbMultiAnswers.TryGetValue(qId, out var oids) ? oids : new List<int>();
+                        // Konversi optionId ke huruf berdasarkan urutan options
+                        var orderedOptions = q.Options.OrderBy(o => o.Id).ToList();
+                        string[] letters = { "A", "B", "C", "D", "E", "F", "G", "H" };
+                        var selectedTexts = selectedOptIds
+                            .Select(oid => {
+                                var idx = orderedOptions.FindIndex(o => o.Id == oid);
+                                return idx >= 0 && idx < letters.Length ? letters[idx] : oid.ToString();
+                            })
+                            .OrderBy(l => l)
+                            .ToList();
+
+                        summaryItems.Add(new ExamSummaryItem
+                        {
+                            DisplayNumber = num++,
+                            QuestionId = qId,
+                            QuestionText = q.QuestionText,
+                            QuestionType = qtype,
+                            SelectedOptionTexts = selectedTexts
+                        });
+                    }
+                    else
+                    {
+                        // MC (default)
+                        int? selectedOptId = answers.TryGetValue(qId, out var v) && v > 0 ? v : (int?)null;
+                        string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
+                            ? opt.OptionText
+                            : null;
+
+                        summaryItems.Add(new ExamSummaryItem
+                        {
+                            DisplayNumber = num++,
+                            QuestionId = qId,
+                            QuestionText = q.QuestionText,
+                            QuestionType = qtype,
+                            SelectedOptionId = selectedOptId,
+                            SelectedOptionText = selectedText
+                        });
+                    }
                 }
             }
             // Legacy path removed (Phase 227 CLEN-02).
 
-            int unansweredCount = summaryItems.Count(s => !s.SelectedOptionId.HasValue);
+            int unansweredCount = summaryItems.Count(s => !s.IsAnswered);
 
             // Also update TempData with merged answers for SubmitExam form
             TempData["PendingAnswers"] = System.Text.Json.JsonSerializer.Serialize(answers);
@@ -1425,8 +1507,19 @@ namespace HcPortal.Controllers
                     .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
                 if (pkgAssign != null)
                 {
-                    int totalQuestions = pkgAssign.GetShuffledQuestionIds().Count;
-                    int answeredCount = answers.Count(a => a.Value > 0);
+                    var shuffledQIds = pkgAssign.GetShuffledQuestionIds();
+                    int totalQuestions = shuffledQIds.Count;
+                    // Count from form answers (MC) + DB responses for Essay/MA not in form
+                    int formAnswered = answers.Count(a => a.Value > 0);
+                    var dbResponses = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == id && shuffledQIds.Contains(r.PackageQuestionId))
+                        .Select(r => r.PackageQuestionId)
+                        .Distinct()
+                        .ToListAsync();
+                    // Merge: questions answered in form OR in DB
+                    var allAnsweredQIds = new HashSet<int>(answers.Where(a => a.Value > 0).Select(a => a.Key));
+                    foreach (var qId in dbResponses) allAnsweredQIds.Add(qId);
+                    int answeredCount = allAnsweredQIds.Count;
                     if (totalQuestions > 0 && answeredCount < totalQuestions)
                     {
                         int unanswered = totalQuestions - answeredCount;
@@ -1470,39 +1563,59 @@ namespace HcPortal.Controllers
                     questionLookupById.TryGetValue(qId, out var qq) ? qq.ScoreValue : 0);
 
                 // Batch-load all existing responses to avoid N+1 queries in the grading loop
-                var existingResponses = await _context.PackageUserResponses
+                // Use GroupBy to handle MA questions which have multiple rows per question
+                var allExistingResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
-                    .ToDictionaryAsync(r => r.PackageQuestionId);
+                    .ToListAsync();
+                var existingResponses = allExistingResponses
+                    .GroupBy(r => r.PackageQuestionId)
+                    .ToDictionary(g => g.Key, g => g.First());
 
                 foreach (var qId in shuffledIds)
                 {
                     if (!questionLookupById.TryGetValue(qId, out var q)) continue;
-                    int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
+                    var qtype = q.QuestionType ?? "MultipleChoice";
 
-                    if (selectedOptId.HasValue)
+                    // MC scoring from form answers
+                    if (qtype == "MultipleChoice")
                     {
-                        var selectedOption = q.Options.FirstOrDefault(o => o.Id == selectedOptId.Value);
-                        if (selectedOption != null && selectedOption.IsCorrect)
+                        int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
+                        if (selectedOptId.HasValue)
+                        {
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == selectedOptId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += q.ScoreValue;
+                        }
+
+                        // Upsert MC answer only
+                        if (existingResponses.TryGetValue(q.Id, out var existingResponse))
+                        {
+                            existingResponse.PackageOptionId = selectedOptId;
+                            existingResponse.SubmittedAt = DateTime.UtcNow;
+                        }
+                        else if (selectedOptId.HasValue)
+                        {
+                            _context.PackageUserResponses.Add(new PackageUserResponse
+                            {
+                                AssessmentSessionId = id,
+                                PackageQuestionId = q.Id,
+                                PackageOptionId = selectedOptId,
+                                SubmittedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+                    else if (qtype == "MultipleAnswer")
+                    {
+                        // MA: score from DB responses (already saved via SignalR)
+                        var maResponses = allExistingResponses
+                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                            .Select(r => r.PackageOptionId!.Value)
+                            .ToHashSet();
+                        var correctOptIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        if (maResponses.SetEquals(correctOptIds))
                             totalScore += q.ScoreValue;
                     }
-
-                    // Persist answer for package-based answer review (upsert: SaveAnswer may have already
-                    // written a record incrementally; update it rather than inserting a duplicate)
-                    if (existingResponses.TryGetValue(q.Id, out var existingResponse))
-                    {
-                        existingResponse.PackageOptionId = selectedOptId;
-                        existingResponse.SubmittedAt = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        _context.PackageUserResponses.Add(new PackageUserResponse
-                        {
-                            AssessmentSessionId = id,
-                            PackageQuestionId = q.Id,
-                            PackageOptionId = selectedOptId,
-                            SubmittedAt = DateTime.UtcNow
-                        });
-                    }
+                    // Essay: scored manually by HC (EssayScore), skip here
                 }
 
                 // Hitung finalPercentage dari form POST untuk SignalR push (sebelum SaveChanges)

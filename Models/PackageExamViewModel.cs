@@ -28,6 +28,16 @@ namespace HcPortal.Models
         public string QuestionText { get; set; } = "";
         public int DisplayNumber { get; set; }      // 1-based, user-facing number (reflects shuffled position)
         public List<ExamOptionItem> Options { get; set; } = new();
+
+        /// <summary>
+        /// Tipe soal: "MultipleChoice" (default), "MultipleAnswer", atau "Essay".
+        /// Null/blank dianggap MultipleChoice (backward compatible).
+        /// Digunakan plan 03 untuk render UI worker per tipe (radio/checkbox/textarea).
+        /// </summary>
+        public string QuestionType { get; set; } = "MultipleChoice";
+
+        /// <summary>Batas karakter untuk soal Essay. Default 2000.</summary>
+        public int MaxCharacters { get; set; } = 2000;
     }
 
     public class ExamOptionItem
@@ -44,6 +54,24 @@ namespace HcPortal.Models
         public string QuestionText { get; set; } = "";
         public int? SelectedOptionId { get; set; }
         public string? SelectedOptionText { get; set; }
-        public bool IsAnswered => SelectedOptionId.HasValue;
+
+        /// <summary>
+        /// Tipe soal: "MultipleChoice", "MultipleAnswer", atau "Essay".
+        /// Null/blank dianggap MultipleChoice (backward compatible).
+        /// </summary>
+        public string? QuestionType { get; set; }
+
+        /// <summary>Daftar teks opsi yang dipilih untuk soal MultipleAnswer (e.g. ["A", "C"]).</summary>
+        public List<string> SelectedOptionTexts { get; set; } = new();
+
+        /// <summary>Jawaban teks untuk soal Essay.</summary>
+        public string? TextAnswer { get; set; }
+
+        public bool IsAnswered =>
+            (QuestionType == "Essay")
+                ? !string.IsNullOrWhiteSpace(TextAnswer)
+                : (QuestionType == "MultipleAnswer")
+                    ? SelectedOptionTexts.Any()
+                    : SelectedOptionId.HasValue;
     }
 }
