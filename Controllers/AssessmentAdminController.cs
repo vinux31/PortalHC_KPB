@@ -1090,7 +1090,9 @@ namespace HcPortal.Controllers
                                 AssessmentType = "PostTest",
                                 LinkedGroupId = linkedGroupId,
                                 CreatedBy = currentUser?.Id,
-                                BannerColor = model.BannerColor
+                                BannerColor = model.BannerColor,
+                                RenewsSessionId = model.RenewsSessionId, // D-24: renewal FK hanya di Post
+                                RenewsTrainingId = model.RenewsTrainingId
                             };
                             postSessions.Add(postSession);
                         }
@@ -1880,6 +1882,13 @@ namespace HcPortal.Controllers
                 var assessmentTitle = assessment.Title;
                 logger.LogInformation($"Attempting to delete assessment {id}: {assessmentTitle}");
 
+                // D-19: Block delete individual jika bagian Pre-Post group
+                if (assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest")
+                {
+                    TempData["Error"] = "Sesi ini bagian dari grup Pre-Post Test. Gunakan 'Hapus Grup' untuk menghapus keduanya.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
                 // Delete PackageUserResponses (Restrict FK — must be removed before session)
                 var pkgResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
@@ -2056,6 +2065,97 @@ namespace HcPortal.Controllers
             {
                 logger.LogError(ex, "DeleteAssessmentGroup error for representative {Id}", id);
                 TempData["Error"] = "Gagal menghapus grup assessment. Silakan coba lagi.";
+                return RedirectToAction("ManageAssessment");
+            }
+        }
+
+        // --- DELETE PRE-POST GROUP (D-18, D-19) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePrePostGroup(int linkedGroupId)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+
+            try
+            {
+                // Find semua sessions dalam Pre-Post group
+                var groupSessions = await _context.AssessmentSessions
+                    .Where(a => a.LinkedGroupId == linkedGroupId)
+                    .ToListAsync();
+
+                if (!groupSessions.Any())
+                {
+                    TempData["Error"] = "Grup Pre-Post Test tidak ditemukan.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
+                var groupTitle = groupSessions.First().Title;
+                var groupIds = groupSessions.Select(s => s.Id).ToList();
+
+                logger.LogInformation($"DeletePrePostGroup: deleting {groupSessions.Count} sessions for '{groupTitle}' (LinkedGroupId={linkedGroupId})");
+
+                // Cascade delete — ikuti pola DeleteAssessmentGroup:
+                // 1. PackageUserResponses
+                var allPkgResponses = await _context.PackageUserResponses
+                    .Where(r => groupIds.Contains(r.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPkgResponses.Any())
+                    _context.PackageUserResponses.RemoveRange(allPkgResponses);
+
+                // 2. AssessmentAttemptHistory
+                var allAttemptHistory = await _context.AssessmentAttemptHistory
+                    .Where(h => groupIds.Contains(h.SessionId))
+                    .ToListAsync();
+                if (allAttemptHistory.Any())
+                    _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
+
+                // 3. Packages + Questions + Options
+                var allPackages = await _context.AssessmentPackages
+                    .Include(p => p.Questions).ThenInclude(q => q.Options)
+                    .Where(p => groupIds.Contains(p.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPackages.Any())
+                {
+                    foreach (var pkg in allPackages)
+                    {
+                        foreach (var q in pkg.Questions)
+                            _context.PackageOptions.RemoveRange(q.Options);
+                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                    }
+                    _context.AssessmentPackages.RemoveRange(allPackages);
+                }
+
+                // 4. Sessions
+                _context.AssessmentSessions.RemoveRange(groupSessions);
+
+                await _context.SaveChangesAsync();
+
+                // Audit log
+                try
+                {
+                    var dpgUser = await _userManager.GetUserAsync(User);
+                    var dpgActorName = string.IsNullOrWhiteSpace(dpgUser?.NIP) ? (dpgUser?.FullName ?? "Unknown") : $"{dpgUser.NIP} - {dpgUser.FullName}";
+                    await _auditLog.LogAsync(
+                        dpgUser?.Id ?? "",
+                        dpgActorName,
+                        "DeletePrePostGroup",
+                        $"Deleted Pre-Post group '{groupTitle}' — {groupSessions.Count} session(s) (LinkedGroupId={linkedGroupId})",
+                        linkedGroupId,
+                        "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    logger.LogWarning(auditEx, "Audit log write failed for DeletePrePostGroup {LinkedGroupId}", linkedGroupId);
+                }
+
+                TempData["Success"] = $"Grup Pre-Post Test '{groupTitle}' dan semua {groupSessions.Count} sesi berhasil dihapus.";
+                return RedirectToAction("ManageAssessment");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "DeletePrePostGroup error for LinkedGroupId {LinkedGroupId}", linkedGroupId);
+                TempData["Error"] = "Gagal menghapus grup Pre-Post Test. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
             }
         }
@@ -2584,6 +2684,23 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (assessment == null) return NotFound();
+
+            // D-17: Block reset Pre jika Post sudah Completed
+            if (assessment.AssessmentType == "PreTest" && assessment.LinkedSessionId.HasValue)
+            {
+                var linkedPost = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(a => a.Id == assessment.LinkedSessionId);
+
+                if (linkedPost != null && linkedPost.Status == "Completed")
+                {
+                    TempData["Error"] = "Post-Test sudah selesai. Reset Post-Test terlebih dahulu sebelum mereset Pre-Test.";
+                    return RedirectToAction("AssessmentMonitoringDetail", new {
+                        title = assessment.Title,
+                        category = assessment.Category,
+                        scheduleDate = assessment.Schedule.Date.ToString("yyyy-MM-dd")
+                    });
+                }
+            }
 
             // Reset is valid for any active status (Open, InProgress, Completed, Abandoned) — Cancelled is final and NOT resettable
             if (assessment.Status != "Open" && assessment.Status != "InProgress" && assessment.Status != "Completed" && assessment.Status != "Abandoned")
