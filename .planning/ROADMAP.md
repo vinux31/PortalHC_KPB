@@ -51,7 +51,7 @@ See .planning/MILESTONES.md for full history.
 - [x] **Phase 299: Worker Pre-Post Test + Comparison** - Pekerja dapat mengerjakan Pre-Post Test dan melihat perbandingan gain score (completed 2026-04-07)
 - [x] **Phase 300: Mobile Optimization** - Exam UI optimal di perangkat mobile untuk pekerja lapangan (completed 2026-04-07)
 - [x] **Phase 301: Advanced Reporting** - HC dapat melihat item analysis, gain score report, dan export ke Excel (completed 2026-04-07)
-- [ ] **Phase 302: Accessibility WCAG Quick Wins** - Fitur aksesibilitas dasar diterapkan pada halaman ujian
+- [x] **Phase 302: Accessibility WCAG Quick Wins** - Fitur aksesibilitas dasar diterapkan pada halaman ujian (completed 2026-04-07)
 
 ## Phase Details
 
@@ -230,8 +230,8 @@ Plans:
   6. Fokus keyboard otomatis berpindah ke soal pertama saat pekerja berpindah ke halaman soal baru
 **Plans**: 2 plans
 Plans:
-- [ ] 302-01-PLAN.md — Skip link + keyboard navigation + auto-focus (A11Y-01, A11Y-02, A11Y-06)
-- [ ] 302-02-PLAN.md — Extra time full stack: DB + controller + SignalR + modal (A11Y-05)
+- [x] 302-01-PLAN.md — Skip link + keyboard navigation + auto-focus (A11Y-01, A11Y-02, A11Y-06)
+- [x] 302-02-PLAN.md — Extra time full stack: DB + controller + SignalR + modal (A11Y-05)
 **Note**: A11Y-03 (screen reader) dan A11Y-04 (font size) DROPPED per D-18/D-19
 **UI hint**: yes
 
@@ -251,7 +251,7 @@ Plans:
 | 299. Worker Pre-Post Test + Comparison | 2/2 | Complete    | 2026-04-07 |
 | 300. Mobile Optimization | 2/2 | Complete    | 2026-04-07 |
 | 301. Advanced Reporting | 3/3 | Complete    | 2026-04-07 |
-| 302. Accessibility WCAG Quick Wins | 0/2 | Planning complete | - |
+| 302. Accessibility WCAG Quick Wins | 2/2 | Complete    | 2026-04-07 |
 
 ---
 
