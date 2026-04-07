@@ -18,3 +18,29 @@
 .border-dashed {
     border-style: dashed !important;
 }
+
+/* Phase 302: Accessibility */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 8px;
+    z-index: 9999;
+    padding: 8px 16px;
+    background: #0d6efd;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.skip-link:focus-visible {
+    left: 8px;
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Focus outline for exam elements */
+.exam-protected :focus-visible {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
