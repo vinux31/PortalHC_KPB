@@ -17,6 +17,27 @@ namespace HcPortal.Models
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
         public List<MonitoringSessionViewModel> Sessions { get; set; } = new();
+
+        // Pre-Post Test support (Phase 297)
+        public bool IsPrePostGroup { get; set; } = false;
+        public int? LinkedGroupId { get; set; }
+        public MonitoringSubRowViewModel? PreSubRow { get; set; }
+        public MonitoringSubRowViewModel? PostSubRow { get; set; }
+    }
+
+    public class MonitoringSubRowViewModel
+    {
+        public int RepresentativeId { get; set; }
+        public string Phase { get; set; } = "";  // "PreTest" atau "PostTest"
+        public DateTime Schedule { get; set; }
+        public int DurationMinutes { get; set; }
+        public int TotalCount { get; set; }
+        public int CompletedCount { get; set; }
+        public int PassedCount { get; set; }
+        public int PendingCount { get; set; }
+        public int InProgressCount { get; set; }
+        public int CancelledCount { get; set; }
+        public string GroupStatus { get; set; } = "";
     }
 
     public class MonitoringSessionViewModel
