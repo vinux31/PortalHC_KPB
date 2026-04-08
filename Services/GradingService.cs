@@ -253,13 +253,15 @@ namespace HcPortal.Services
                 .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
 
             // ---- 5. Buat TrainingRecord (dengan duplicate guard) ----
+            // PPT SC6 (ISS-03 fix): TrainingRecord HANYA dari Post-Test, bukan Pre-Test.
+            // Sertifikat sudah guarded via session.GenerateCertificate=false saat Pre-Test create.
             var judul = $"Assessment: {session.Title}";
             bool trainingRecordExists = await _context.TrainingRecords.AnyAsync(t =>
                 t.UserId == session.UserId &&
                 t.Judul == judul &&
                 t.Tanggal == session.Schedule);
 
-            if (!trainingRecordExists)
+            if (!trainingRecordExists && session.AssessmentType != "PreTest")
             {
                 _context.TrainingRecords.Add(new TrainingRecord
                 {

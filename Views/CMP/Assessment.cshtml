@@ -171,14 +171,23 @@
                                             }
                                             else if (((string)pre.Status) == "Open")
                                             {
-                                                <button class="btn btn-primary w-100 btn-start-standard" data-id="@pre.Id">
-                                                    Mulai Pre-Test <i class="bi bi-arrow-right ms-1"></i>
-                                                </button>
+                                                if ((bool)pre.IsTokenRequired)
+                                                {
+                                                    <button class="btn btn-primary w-100 btn-start-token" data-id="@pre.Id" data-title="@pre.Title" data-category="@pre.Category">
+                                                        <i class="bi bi-shield-lock me-1"></i>Mulai Pre-Test <i class="bi bi-arrow-right ms-1"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-primary w-100 btn-start-standard" data-id="@pre.Id" data-title="@pre.Title">
+                                                        Mulai Pre-Test <i class="bi bi-arrow-right ms-1"></i>
+                                                    </button>
+                                                }
                                             }
                                             else
                                             {
                                                 <button class="btn btn-outline-secondary w-100" disabled>
-                                                    Opens @((pre.ExamWindowOpenDate as DateTime?)?.ToString("dd MMM yyyy, HH:mm", CultureInfo.GetCultureInfo("id-ID"))) WIB
+                                                    Opens @((pre.Schedule as DateTime?)?.ToString("dd MMM yyyy, HH:mm", CultureInfo.GetCultureInfo("id-ID"))) WIB
                                                 </button>
                                             }
                                         </div>
@@ -250,17 +259,26 @@
                                                         <i class="bi bi-play-circle-fill me-1"></i>Lanjutkan Post-Test <i class="bi bi-arrow-right ms-1"></i>
                                                     </button>
                                                 }
-                                                else if (((string)post.Status) == "Upcoming" || (post.ExamWindowOpenDate != null && ((DateTime)post.ExamWindowOpenDate) > DateTime.UtcNow.AddHours(7)))
+                                                else if (((string)post.Status) == "Upcoming" || (post.Schedule != null && ((DateTime)post.Schedule) > DateTime.UtcNow.AddHours(7)))
                                                 {
                                                     <button class="btn btn-outline-secondary w-100" disabled>
-                                                        Opens @((post.ExamWindowOpenDate as DateTime?)?.ToString("dd MMM yyyy, HH:mm", CultureInfo.GetCultureInfo("id-ID"))) WIB
+                                                        Opens @((post.Schedule as DateTime?)?.ToString("dd MMM yyyy, HH:mm", CultureInfo.GetCultureInfo("id-ID"))) WIB
                                                     </button>
                                                 }
                                                 else
                                                 {
-                                                    <button class="btn btn-primary w-100 btn-start-standard" data-id="@post.Id">
-                                                        Mulai Post-Test <i class="bi bi-arrow-right ms-1"></i>
-                                                    </button>
+                                                    if ((bool)post.IsTokenRequired)
+                                                    {
+                                                        <button class="btn btn-primary w-100 btn-start-token" data-id="@post.Id" data-title="@post.Title" data-category="@post.Category">
+                                                            <i class="bi bi-shield-lock me-1"></i>Mulai Post-Test <i class="bi bi-arrow-right ms-1"></i>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button class="btn btn-primary w-100 btn-start-standard" data-id="@post.Id" data-title="@post.Title">
+                                                            Mulai Post-Test <i class="bi bi-arrow-right ms-1"></i>
+                                                        </button>
+                                                    }
                                                 }
                                             </div>
                                         </div>
