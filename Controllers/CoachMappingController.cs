@@ -634,78 +634,115 @@ namespace HcPortal.Controllers
                     return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
             }
 
-            mapping.CoachId = req.CoachId;
-            if (req.StartDate.HasValue)
-                mapping.StartDate = req.StartDate.Value;
+            // CRIT-02 fix: wrap ALL mutations (mapping fields, ProtonTrack rebuild, Phase 129
+            // unit-change rebuild, audit log) in ONE transaction. Disk file deletes are deferred
+            // until after CommitAsync so a rollback never leaves DB rows pointing at missing files.
+            var foldersToDelete = new List<string>();
+            int deletedCount = 0, createdCount = 0;
+            string? oldUnit;
+            string? newUnit;
+            bool unitChanged;
 
-            // Phase 129: Detect AssignmentUnit change for progress rebuild
-            var oldUnit = mapping.AssignmentUnit;
-            mapping.AssignmentSection = req.AssignmentSection?.Trim();
-            mapping.AssignmentUnit = req.AssignmentUnit?.Trim();
-            var newUnit = mapping.AssignmentUnit;
-            bool unitChanged = (oldUnit?.Trim() ?? "") != (newUnit?.Trim() ?? "");
-
-            // ProtonTrack side-effect
-            if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
             {
-                var existingTracks = await _context.ProtonTrackAssignments
-                    .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
-                    .ToListAsync();
-                foreach (var t in existingTracks)
+                mapping.CoachId = req.CoachId;
+                if (req.StartDate.HasValue)
+                    mapping.StartDate = req.StartDate.Value;
+
+                // Phase 129: Detect AssignmentUnit change for progress rebuild
+                oldUnit = mapping.AssignmentUnit;
+                mapping.AssignmentSection = req.AssignmentSection?.Trim();
+                mapping.AssignmentUnit = req.AssignmentUnit?.Trim();
+                newUnit = mapping.AssignmentUnit;
+                unitChanged = (oldUnit?.Trim() ?? "") != (newUnit?.Trim() ?? "");
+
+                // ProtonTrack side-effect
+                if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
                 {
-                    t.IsActive = false;
-                    await CleanupProgressForAssignment(t.Id);
+                    var existingTracks = await _context.ProtonTrackAssignments
+                        .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                        .ToListAsync();
+                    foreach (var t in existingTracks)
+                    {
+                        t.IsActive = false;
+                        foldersToDelete.AddRange(await CleanupProgressForAssignment(t.Id));
+                    }
+
+                    var newAssignment = new ProtonTrackAssignment
+                    {
+                        CoacheeId = mapping.CoacheeId,
+                        AssignedById = actor.Id,
+                        ProtonTrackId = req.ProtonTrackId.Value,
+                        IsActive = true,
+                        AssignedAt = DateTime.UtcNow
+                    };
+                    _context.ProtonTrackAssignments.Add(newAssignment);
+                    await _context.SaveChangesAsync(); // flush to get assignment ID (still inside tx)
+
+                    var editWarnings = await AutoCreateProgressForAssignment(newAssignment.Id, newAssignment.ProtonTrackId, mapping.CoacheeId);
+                    if (editWarnings.Any())
+                        TempData["Warning"] = string.Join("\n", editWarnings);
                 }
 
-                var newAssignment = new ProtonTrackAssignment
-                {
-                    CoacheeId = mapping.CoacheeId,
-                    AssignedById = actor.Id,
-                    ProtonTrackId = req.ProtonTrackId.Value,
-                    IsActive = true,
-                    AssignedAt = DateTime.UtcNow
-                };
-                _context.ProtonTrackAssignments.Add(newAssignment);
-                await _context.SaveChangesAsync(); // flush to get assignment ID
+                await _context.SaveChangesAsync();
 
-                var editWarnings = await AutoCreateProgressForAssignment(newAssignment.Id, newAssignment.ProtonTrackId, mapping.CoacheeId);
-                if (editWarnings.Any())
-                    TempData["Warning"] = string.Join("\n", editWarnings);
+                // Phase 129: If unit changed and ProtonTrack wasn't already rebuilt, rebuild progress for new unit
+                if (unitChanged && !(req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0))
+                {
+                    var activeAssignments = await _context.ProtonTrackAssignments
+                        .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                        .ToListAsync();
+
+                    foreach (var a in activeAssignments)
+                    {
+                        // Count existing progress before cleanup
+                        deletedCount += await _context.ProtonDeliverableProgresses
+                            .CountAsync(p => p.ProtonTrackAssignmentId == a.Id);
+                        foldersToDelete.AddRange(await CleanupProgressForAssignment(a.Id));
+                    }
+                    await _context.SaveChangesAsync(); // flush deletes before recreate
+
+                    foreach (var a in activeAssignments)
+                    {
+                        var warnings = await AutoCreateProgressForAssignment(a.Id, a.ProtonTrackId, mapping.CoacheeId);
+                        createdCount += await _context.ProtonDeliverableProgresses
+                            .CountAsync(p => p.ProtonTrackAssignmentId == a.Id);
+                        if (warnings.Any())
+                            TempData["Warning"] = string.Join("\n", warnings);
+                    }
+
+                    TempData["Info"] = $"Unit berubah dari '{oldUnit}' ke '{newUnit}' → {deletedCount} progress dihapus, {createdCount} progress baru dibuat untuk unit {newUnit}";
+                }
+
+                // AuditLogService uses the same scoped ApplicationDbContext, so it must be
+                // called inside the transaction so it commits atomically with the mapping change.
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Edit",
+                    $"Edited coach-coachee mapping #{mapping.Id}", targetId: mapping.Id, targetType: "CoachCoacheeMapping");
+
+                await tx.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "CoachCoacheeMappingEdit failed for mapping {MappingId}; rolled back", req.MappingId);
+                return Json(new { success = false, message = $"Gagal menyimpan perubahan: {ex.Message}" });
             }
 
-            await _context.SaveChangesAsync();
-
-            // Phase 129: If unit changed and ProtonTrack wasn't already rebuilt, rebuild progress for new unit
-            if (unitChanged && !(req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0))
+            // Post-commit: now that the DB change is durable, delete evidence folders on disk.
+            // Failures here must not fail the request — log and continue.
+            foreach (var folder in foldersToDelete)
             {
-                var activeAssignments = await _context.ProtonTrackAssignments
-                    .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
-                    .ToListAsync();
-
-                int deletedCount = 0, createdCount = 0;
-                foreach (var a in activeAssignments)
+                try
                 {
-                    // Count existing progress before cleanup
-                    deletedCount += await _context.ProtonDeliverableProgresses
-                        .CountAsync(p => p.ProtonTrackAssignmentId == a.Id);
-                    await CleanupProgressForAssignment(a.Id);
+                    if (Directory.Exists(folder))
+                        Directory.Delete(folder, recursive: true);
                 }
-                await _context.SaveChangesAsync(); // flush deletes before recreate
-
-                foreach (var a in activeAssignments)
+                catch (Exception ex)
                 {
-                    var warnings = await AutoCreateProgressForAssignment(a.Id, a.ProtonTrackId, mapping.CoacheeId);
-                    createdCount += await _context.ProtonDeliverableProgresses
-                        .CountAsync(p => p.ProtonTrackAssignmentId == a.Id);
-                    if (warnings.Any())
-                        TempData["Warning"] = string.Join("\n", warnings);
+                    _logger.LogWarning(ex, "Failed to delete evidence folder {Folder} after mapping edit commit", folder);
                 }
-
-                TempData["Info"] = $"Unit berubah dari '{oldUnit}' ke '{newUnit}' → {deletedCount} progress dihapus, {createdCount} progress baru dibuat untuk unit {newUnit}";
             }
-
-            await _auditLog.LogAsync(actor.Id, actor.FullName, "Edit",
-                $"Edited coach-coachee mapping #{mapping.Id}", targetId: mapping.Id, targetType: "CoachCoacheeMapping");
 
             // COACH-02: Notify both coach and coachee about mapping edit
             try
@@ -1312,14 +1349,23 @@ namespace HcPortal.Controllers
             return warnings;
         }
 
-        private async Task CleanupProgressForAssignment(int assignmentId)
+        /// <summary>
+        /// CRIT-02 fix: deletes DB rows (sessions, histories, progresses) for an assignment
+        /// and RETURNS the list of evidence folder paths that should be deleted on disk
+        /// AFTER the surrounding transaction commits successfully. The caller is responsible
+        /// for performing the actual <see cref="Directory.Delete(string, bool)"/> post-commit,
+        /// so a rollback never leaves DB rows pointing at missing files.
+        /// </summary>
+        private async Task<List<string>> CleanupProgressForAssignment(int assignmentId)
         {
+            var foldersToDelete = new List<string>();
+
             var progressIds = await _context.ProtonDeliverableProgresses
                 .Where(p => p.ProtonTrackAssignmentId == assignmentId)
                 .Select(p => p.Id)
                 .ToListAsync();
 
-            if (!progressIds.Any()) return;
+            if (!progressIds.Any()) return foldersToDelete;
 
             var histories = await _context.DeliverableStatusHistories
                 .Where(h => progressIds.Contains(h.ProtonDeliverableProgressId))
@@ -1335,6 +1381,13 @@ namespace HcPortal.Controllers
                 .Where(p => p.ProtonTrackAssignmentId == assignmentId)
                 .ToListAsync();
             _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+
+            foreach (var pid in progressIds)
+            {
+                foldersToDelete.Add(Path.Combine(_env.WebRootPath, "uploads", "evidence", pid.ToString()));
+            }
+
+            return foldersToDelete;
         }
 
         #endregion
