@@ -2157,9 +2157,11 @@ namespace HcPortal.Controllers
             if (progresses.Any(p => p.Status != "Pending" && p.Status != "Rejected"))
                 return Json(new { success = false, message = "Hanya deliverable berstatus Pending atau Rejected yang dapat disubmit." });
 
-            // Handle optional file upload
-            string? evidencePath = null;
+            // Handle optional file upload — CRIT-01 fix: store one physical copy per progressId
+            // so that lifecycle of each file is bound to its own progress folder.
+            byte[]? evidenceBytes = null;
             string? evidenceFileName = null;
+            string? evidenceSafeFileName = null;
             if (evidenceFile != null && evidenceFile.Length > 0)
             {
                 var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
@@ -2169,17 +2171,14 @@ namespace HcPortal.Controllers
                 if (evidenceFile.Length > 10 * 1024 * 1024)
                     return Json(new { success = false, message = "Ukuran file melebihi 10MB." });
 
-                int firstProgressId = progressIds.First();
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-                var safeFileName = $"{timestamp}_{Path.GetFileName(evidenceFile.FileName)}";
-                var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "evidence", firstProgressId.ToString());
-                Directory.CreateDirectory(uploadFolder);
-                var filePath = Path.Combine(uploadFolder, safeFileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                // Buffer once into memory; we'll write one physical file per progress below.
+                using (var ms = new MemoryStream())
                 {
-                    await evidenceFile.CopyToAsync(stream);
+                    await evidenceFile.CopyToAsync(ms);
+                    evidenceBytes = ms.ToArray();
                 }
-                evidencePath = $"/uploads/evidence/{firstProgressId}/{safeFileName}";
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+                evidenceSafeFileName = $"{timestamp}_{Path.GetFileName(evidenceFile.FileName)}";
                 evidenceFileName = evidenceFile.FileName;
             }
 
@@ -2206,10 +2205,16 @@ namespace HcPortal.Controllers
                 progress.ShApprovedById = null;
                 progress.ShApprovedAt = null;
 
-                // Apply file upload if provided; otherwise keep existing EvidencePath
-                if (evidencePath != null)
+                // Apply file upload if provided; otherwise keep existing EvidencePath.
+                // CRIT-01 fix: write one physical file per progress folder so each row
+                // owns its evidence file lifecycle independently.
+                if (evidenceBytes != null && evidenceSafeFileName != null)
                 {
-                    progress.EvidencePath = evidencePath;
+                    var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "evidence", progress.Id.ToString());
+                    Directory.CreateDirectory(uploadFolder);
+                    var filePath = Path.Combine(uploadFolder, evidenceSafeFileName);
+                    await System.IO.File.WriteAllBytesAsync(filePath, evidenceBytes);
+                    progress.EvidencePath = $"/uploads/evidence/{progress.Id}/{evidenceSafeFileName}";
                     progress.EvidenceFileName = evidenceFileName;
                 }
 
@@ -2299,7 +2304,7 @@ namespace HcPortal.Controllers
                 success = true,
                 message = $"{submittedIds.Count} deliverable berhasil disubmit",
                 submittedIds,
-                hasEvidence = evidencePath != null
+                hasEvidence = evidenceBytes != null
             });
         }
 
