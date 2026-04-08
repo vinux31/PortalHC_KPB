@@ -197,7 +197,7 @@ namespace HcPortal.Controllers
             // dropdown source data (Bagian/Unit) must always be loaded; workers list
             // remains lazy to avoid expensive queries on initial load.
             {
-                bool isInitialState = string.IsNullOrEmpty(isFiltered);
+                bool isInitialState = false;
                 ViewBag.IsInitialState = isInitialState;
                 ViewBag.SelectedSection = section;
                 ViewBag.SelectedUnit = unit;
