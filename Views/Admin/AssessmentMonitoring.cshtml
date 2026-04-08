@@ -214,11 +214,24 @@ else
                         ? (int)((double)group.CompletedCount / group.TotalCount * 100)
                         : 0;
 
-                    string detailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
-                        title = group.Title,
-                        category = group.Category,
-                        scheduleDate = group.Schedule.Date.ToString("yyyy-MM-dd")
-                    }) ?? "#";
+                    string detailUrl;
+                    if (group.IsPrePostGroup)
+                    {
+                        detailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
+                            title = group.Title,
+                            category = group.Category,
+                            scheduleDate = (group.PreSubRow?.Schedule ?? group.Schedule).Date.ToString("yyyy-MM-dd"),
+                            assessmentType = "PreTest"
+                        }) ?? "#";
+                    }
+                    else
+                    {
+                        detailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
+                            title = group.Title,
+                            category = group.Category,
+                            scheduleDate = group.Schedule.Date.ToString("yyyy-MM-dd")
+                        }) ?? "#";
+                    }
 
                     <tr>
                         <td>
@@ -306,7 +319,8 @@ else
                                         var preDetailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
                                             title = group.Title,
                                             category = group.Category,
-                                            scheduleDate = group.PreSubRow.Schedule.Date.ToString("yyyy-MM-dd")
+                                            scheduleDate = group.PreSubRow.Schedule.Date.ToString("yyyy-MM-dd"),
+                                            assessmentType = "PreTest"
                                         }) ?? "#";
                                         <tr class="bg-light">
                                             <td style="padding-left: 24px; width: 40%;">
@@ -332,7 +346,8 @@ else
                                         var postDetailUrl = Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new {
                                             title = group.Title,
                                             category = group.Category,
-                                            scheduleDate = group.PostSubRow.Schedule.Date.ToString("yyyy-MM-dd")
+                                            scheduleDate = group.PostSubRow.Schedule.Date.ToString("yyyy-MM-dd"),
+                                            assessmentType = "PostTest"
                                         }) ?? "#";
                                         <tr class="bg-light">
                                             <td style="padding-left: 24px; width: 40%;">

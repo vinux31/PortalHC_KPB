@@ -76,15 +76,13 @@
                     <select class="form-select form-select-sm" name="unit" id="filterUnit"
                             onchange="this.form.submit()">
                         <option value="">Semua Unit</option>
-                        @foreach (var unitVal in workers.Select(w => w.Unit).Distinct().OrderBy(u => u))
+                        @{ var trainingUnits = ViewBag.TrainingUnits as List<string> ?? new List<string>(); }
+                        @foreach (var unitVal in trainingUnits)
                         {
-                            if (!string.IsNullOrEmpty(unitVal))
-                            {
-                                if (selectedUnit == unitVal)
-                                { <option value="@unitVal" selected="selected">@unitVal</option> }
-                                else
-                                { <option value="@unitVal">@unitVal</option> }
-                            }
+                            if (selectedUnit == unitVal)
+                            { <option value="@unitVal" selected="selected">@unitVal</option> }
+                            else
+                            { <option value="@unitVal">@unitVal</option> }
                         }
                     </select>
                 </div>

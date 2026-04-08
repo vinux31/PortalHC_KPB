@@ -193,8 +193,9 @@ namespace HcPortal.Controllers
             var activeTab = tab switch { "training" => "training", "history" => "history", _ => "assessment" };
             ViewBag.ActiveTab = activeTab;
 
-            // Training tab data (lazy — only fetch when tab=training or tab=history)
-            if (activeTab == "training" || activeTab == "history")
+            // Training tab data — partial is always rendered (hidden tab pane), so
+            // dropdown source data (Bagian/Unit) must always be loaded; workers list
+            // remains lazy to avoid expensive queries on initial load.
             {
                 bool isInitialState = string.IsNullOrEmpty(isFiltered);
                 ViewBag.IsInitialState = isInitialState;
@@ -218,6 +219,9 @@ namespace HcPortal.Controllers
                     .Where(t => !string.IsNullOrEmpty(t))
                     .Distinct().OrderBy(t => t).ToList();
                 ViewBag.TrainingSections = await _context.GetAllSectionsAsync();
+                ViewBag.TrainingUnits = !string.IsNullOrEmpty(section)
+                    ? await _context.GetUnitsForSectionAsync(section)
+                    : new List<string>();
             }
 
             return View();
@@ -2432,14 +2436,19 @@ namespace HcPortal.Controllers
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate, string? assessmentType = null)
         {
-            var sessions = await _context.AssessmentSessions
+            var query = _context.AssessmentSessions
                 .Include(a => a.User)
                 .Where(a => a.Title == title
                          && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date)
-                .ToListAsync();
+                         && a.Schedule.Date == scheduleDate.Date);
+
+            if (!string.IsNullOrEmpty(assessmentType))
+                query = query.Where(a => a.AssessmentType == assessmentType);
+
+            var sessions = await query.ToListAsync();
+            ViewBag.AssessmentType = assessmentType;
 
             if (!sessions.Any())
             {
