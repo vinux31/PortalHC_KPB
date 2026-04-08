@@ -1159,6 +1159,7 @@ namespace HcPortal.Controllers
                         NomorSertifikat = null, // Phase 227 CLEN-04: generated in SubmitExam when IsPassed=true
                         Progress = 0,
                         UserId = userId,
+                        AssessmentType = "Standard", // ISS-04 fix: DB column NOT NULL, must set explicit value (EF tidak memakai DB default)
                         CreatedBy = currentUser?.Id,
                         RenewsSessionId = fkMap != null && isSessionMap && fkMap.TryGetValue(userId, out int sessionFk) ? sessionFk : model.RenewsSessionId,
                         RenewsTrainingId = fkMap != null && !isSessionMap && fkMap.TryGetValue(userId, out int trainingFk) ? trainingFk : model.RenewsTrainingId
@@ -4878,16 +4879,25 @@ namespace HcPortal.Controllers
             if (minutes < 5 || minutes > 120 || minutes % 5 != 0)
                 return Json(new { success = false, message = "Waktu harus antara 5-120 menit, kelipatan 5." });
 
-            // Cari representative session dulu untuk mendapat AccessToken batch
+            // Cari representative session dulu untuk mendapat identifier batch (title|category|date)
             var repSession = await _context.AssessmentSessions
                 .FirstOrDefaultAsync(s => s.Id == assessmentId);
             if (repSession == null)
                 return Json(new { success = false, message = "Assessment tidak ditemukan." });
 
-            // Cari semua session InProgress dalam batch yang sama (share AccessToken)
-            var batchKey = repSession.AccessToken;
+            // FIX ISS-08: scope batch via (Title, Category, Schedule.Date) — sama dengan
+            // format SignalR batchKey di CMPController:1108 ("{Title}|{Category}|{Date:yyyy-MM-dd}").
+            // Sebelumnya kode ini pakai AccessToken sebagai kunci — gagal untuk sesi legacy
+            // (AccessToken=NULL) DAN tidak pernah match SignalR group Worker.
+            var repTitle = repSession.Title;
+            var repCategory = repSession.Category;
+            var repDate = repSession.Schedule.Date;
+
             var sessions = await _context.AssessmentSessions
-                .Where(s => s.AccessToken == batchKey && s.Status == "InProgress")
+                .Where(s => s.Title == repTitle
+                         && s.Category == repCategory
+                         && s.Schedule.Date == repDate
+                         && s.Status == "InProgress")
                 .ToListAsync();
 
             if (!sessions.Any())
@@ -4899,7 +4909,9 @@ namespace HcPortal.Controllers
             }
             await _context.SaveChangesAsync();
 
-            // Broadcast ke semua peserta aktif via SignalR menggunakan batchKey (AccessToken)
+            // Broadcast ke semua peserta aktif via SignalR menggunakan composite batchKey
+            // yang match dengan format di StartExam.cshtml + CMPController.
+            var batchKey = $"{repTitle}|{repCategory}|{repDate:yyyy-MM-dd}";
             await _hubContext.Clients.Group($"batch-{batchKey}")
                 .SendAsync("ExtraTimeAdded", minutes * 60);
 
