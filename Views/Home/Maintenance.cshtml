@@ -18,15 +18,9 @@
         <div class="mb-3"><i class="bi bi-tools text-primary" style="font-size:48px;"></i></div>
         <h1 class="fw-bold" style="font-size:1.75rem;">Sedang Dalam Pemeliharaan</h1>
         <p class="text-muted mt-3">@Model.Message</p>
-        @if (Model.ScheduledStartTime.HasValue && Model.ScheduledEndTime.HasValue)
+        @if (Model.EstimatedEndTime.HasValue)
         {
-            <div class="mt-2">
-                <span class="badge bg-info text-dark"><i class="bi bi-calendar-range"></i> Dimulai: @Model.ScheduledStartTime.Value.ToString("dd MMM yyyy HH:mm") — Selesai: @Model.ScheduledEndTime.Value.ToString("dd MMM yyyy HH:mm")</span>
-            </div>
-        }
-        else if (Model.ScheduledEndTime.HasValue)
-        {
-            <span class="badge bg-info text-dark"><i class="bi bi-clock"></i> Estimasi selesai: @Model.ScheduledEndTime.Value.ToString("dd MMM yyyy HH:mm")</span>
+            <span class="badge bg-info text-dark"><i class="bi bi-clock"></i> Estimasi selesai: @Model.EstimatedEndTime.Value.ToString("dd MMM yyyy HH:mm")</span>
         }
         @if (Model.Scope != "All")
         {

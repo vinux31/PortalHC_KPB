@@ -57,7 +57,7 @@ namespace HcPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> Maintenance(bool isEnabled, string message, DateTime? scheduledStartTime, DateTime? scheduledEndTime, string scope, string? selectedModules)
+        public async Task<IActionResult> Maintenance(bool isEnabled, string message, DateTime? estimatedEndTime, string scope, string? selectedModules)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -73,17 +73,9 @@ namespace HcPortal.Controllers
             var normalizedScope = MaintenanceScopeCatalog.NormalizeSelectedKeys(selectedModules);
             var isSpecificScope = string.Equals(scope, "Specific", StringComparison.OrdinalIgnoreCase);
 
-            // Validasi: start harus sebelum end
-            if (scheduledStartTime.HasValue && scheduledEndTime.HasValue && scheduledStartTime >= scheduledEndTime)
-            {
-                ModelState.AddModelError("scheduledEndTime", "Tanggal selesai harus setelah tanggal dimulai.");
-                return View(maintenance!);
-            }
-
             maintenance!.IsEnabled = isEnabled;
             maintenance.Message = message ?? "";
-            maintenance.ScheduledStartTime = scheduledStartTime;
-            maintenance.ScheduledEndTime = scheduledEndTime;
+            maintenance.EstimatedEndTime = estimatedEndTime;
             maintenance.Scope = isSpecificScope ? normalizedScope : "All";
 
             if (isSpecificScope && string.IsNullOrWhiteSpace(normalizedScope))
@@ -104,25 +96,19 @@ namespace HcPortal.Controllers
                 maintenance.DeactivatedAt = DateTime.UtcNow;
             }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-                _cache.Remove("MaintenanceMode_State");
-                await _auditLog.LogAsync(
-                    user.Id, user.FullName,
-                    isEnabled ? "MaintenanceEnabled" : "MaintenanceDisabled",
-                    $"Maintenance mode {(isEnabled ? "diaktifkan" : "dinonaktifkan")} — Scope: {MaintenanceScopeCatalog.GetSummary(maintenance.Scope)}",
-                    maintenance.Id, "MaintenanceMode");
-                TempData["SuccessMessage"] = isEnabled
-                    ? "Mode pemeliharaan berhasil diaktifkan."
-                    : "Mode pemeliharaan berhasil dinonaktifkan.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Maintenance mode save failed");
-                TempData["ErrorMessage"] = "Gagal menyimpan pengaturan maintenance. Silakan coba lagi.";
-                return View(maintenance);
-            }
+            await _context.SaveChangesAsync();
+
+            _cache.Remove("MaintenanceMode_State");
+
+            await _auditLog.LogAsync(
+                user.Id, user.FullName,
+                isEnabled ? "MaintenanceEnabled" : "MaintenanceDisabled",
+                $"Maintenance mode {(isEnabled ? "diaktifkan" : "dinonaktifkan")} — Scope: {MaintenanceScopeCatalog.GetSummary(maintenance.Scope)}",
+                maintenance.Id, "MaintenanceMode");
+
+            TempData["SuccessMessage"] = isEnabled
+                ? "Mode pemeliharaan berhasil diaktifkan."
+                : "Mode pemeliharaan berhasil dinonaktifkan.";
 
             return RedirectToAction("Maintenance");
         }

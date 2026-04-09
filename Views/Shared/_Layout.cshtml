@@ -79,34 +79,13 @@
             }
         }
     }
-    @if (_mState != null && (User.IsInRole("Admin") || User.IsInRole("HC")))
+    @if (_mState != null && _mState.IsEnabled && (User.IsInRole("Admin") || User.IsInRole("HC")))
     {
-        var now = DateTime.UtcNow;
-        var hasSchedule = _mState.ScheduledStartTime.HasValue && _mState.ScheduledEndTime.HasValue;
-        var isScheduledActive = hasSchedule && now >= _mState.ScheduledStartTime!.Value && now < _mState.ScheduledEndTime!.Value;
-        var isEffectivelyActive = _mState.IsEnabled || isScheduledActive;
-        var isPending = hasSchedule && now < _mState.ScheduledStartTime!.Value;
-
-        if (isEffectivelyActive)
-        {
-            <div class="bg-warning text-dark text-center py-2 small">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <strong>Mode Pemeliharaan Aktif</strong> — @MaintenanceScopeCatalog.GetSummary(_mState.Scope)
-                @if (_mState.ScheduledEndTime.HasValue)
-                {
-                    <span class="ms-2">Selesai: @_mState.ScheduledEndTime.Value.ToString("dd MMM yyyy HH:mm")</span>
-                }
-                <a href="/Admin/Maintenance" class="btn btn-sm btn-outline-dark ms-2">Kelola</a>
-            </div>
-        }
-        else if (isPending)
-        {
-            <div class="bg-info text-dark text-center py-2 small">
-                <i class="bi bi-calendar-check"></i>
-                <strong>Jadwal Maintenance</strong> — @_mState.ScheduledStartTime!.Value.ToString("dd MMM yyyy HH:mm") s/d @_mState.ScheduledEndTime!.Value.ToString("dd MMM yyyy HH:mm")
-                <a href="/Admin/Maintenance" class="btn btn-sm btn-outline-dark ms-2">Kelola</a>
-            </div>
-        }
+        <div class="bg-warning text-dark text-center py-2 small">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Mode Pemeliharaan Aktif</strong> — @MaintenanceScopeCatalog.GetSummary(_mState.Scope)
+            <a href="/Admin/Maintenance" class="btn btn-sm btn-outline-dark ms-2">Kelola</a>
+        </div>
     }
 
     <header>
