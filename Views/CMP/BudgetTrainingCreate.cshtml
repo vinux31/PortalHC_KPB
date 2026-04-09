@@ -1,0 +1,239 @@
+@{
+    ViewData["Title"] = "Tambah Budget Training & Assessment";
+}
+
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-3">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "CMP")">CMP</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("BudgetTraining", "CMP")">Budget Training</a></li>
+            <li class="breadcrumb-item active">Tambah</li>
+        </ol>
+    </nav>
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Budget Item</h2>
+        <p class="text-muted">Buat item anggaran pelatihan atau asesmen baru</p>
+    </div>
+
+    <form method="post" asp-action="BudgetTrainingCreate">
+        @Html.AntiForgeryToken()
+
+        <!-- Card 1: Informasi Umum -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-1"></i>Informasi Umum</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Type <span class="text-danger">*</span></label>
+                        <select name="Type" class="form-select" required>
+                            <option value="Training">Training</option>
+                            <option value="Assessment">Assessment</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tahun Anggaran <span class="text-danger">*</span></label>
+                        <input type="number" name="TahunAnggaran" class="form-control" value="@DateTime.Now.Year" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Judul <span class="text-danger">*</span></label>
+                        <input type="text" name="Judul" class="form-control" required maxlength="200" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Kategori & Peserta -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-people me-1"></i>Kategori & Peserta</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Kategori</label>
+                        <select id="createKategoriSelect" name="Kategori" class="form-select">
+                            <option value="">-- Pilih Kategori --</option>
+                            @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+                            {
+                                <option value="@cat.Name">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Sub Kategori</label>
+                        <select id="createSubKategoriSelect" name="SubKategori" class="form-select" disabled>
+                            <option value="">-- Pilih Sub Kategori --</option>
+                            @foreach (var sub in (IEnumerable<dynamic>)ViewBag.SubKategoriOptions)
+                            {
+                                <option value="@sub.Name" data-parent-id="@sub.ParentId">@sub.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Jumlah Peserta <span class="text-danger">*</span></label>
+                        <input type="number" name="JumlahPeserta" id="createPeserta" class="form-control" min="0" required oninput="updateCreateCalc()" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Anggaran & Vendor -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-cash-stack me-1"></i>Anggaran & Vendor</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="createBiayaMode" id="createModePerOrang" value="perorang" checked>
+                            <label class="btn btn-outline-primary" for="createModePerOrang">Biaya per Orang</label>
+                            <input type="radio" class="btn-check" name="createBiayaMode" id="createModeTotal" value="total">
+                            <label class="btn btn-outline-primary" for="createModeTotal">Biaya Total</label>
+                        </div>
+                    </div>
+                    <input type="hidden" name="BiayaPerOrang" id="createBiayaHidden" value="0" />
+                    <!-- Mode Per Orang -->
+                    <div class="col-md-6 create-mode-perorang">
+                        <label class="form-label">Biaya per Orang <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" id="createBiaya" class="form-control" min="0" step="1000" oninput="updateCreateCalc()" />
+                        </div>
+                    </div>
+                    <!-- Mode Total -->
+                    <div class="col-md-6 create-mode-total" style="display:none">
+                        <label class="form-label">Biaya Total <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" id="createBiayaTotal" class="form-control" min="0" step="1000" oninput="updateCreateCalc()" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Realisasi Biaya</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" name="RealisasiBiaya" class="form-control" min="0" step="1000" value="0" />
+                        </div>
+                    </div>
+                    <!-- Preview: Estimasi Total (mode perorang) -->
+                    <div class="col-12 create-mode-perorang">
+                        <label class="form-label">Estimasi Total</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="text" id="createEstimasi" class="form-control bg-light" readonly disabled placeholder="Otomatis: Peserta x Biaya per Orang" />
+                        </div>
+                    </div>
+                    <!-- Preview: Biaya per Orang (mode total) -->
+                    <div class="col-12 create-mode-total" style="display:none">
+                        <label class="form-label">Biaya per Orang (kalkulasi)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="text" id="createBiayaPreview" class="form-control bg-light" readonly disabled placeholder="Otomatis: Total / Peserta" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vendor</label>
+                        <input type="text" name="Vendor" class="form-control" maxlength="200" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Catatan</label>
+                        <textarea name="Catatan" class="form-control" rows="2" maxlength="500"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("BudgetTraining", "CMP")" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Batal</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+(function() {
+    // === Cascade Kategori → SubKategori ===
+    var kategoriMap = {};
+    @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+    {
+        @:kategoriMap["@cat.Name"] = @cat.Id;
+    }
+
+    var kategoriSelect = document.getElementById('createKategoriSelect');
+    var subKategoriSelect = document.getElementById('createSubKategoriSelect');
+
+    kategoriSelect.addEventListener('change', function() {
+        var selectedName = this.value;
+        var parentId = kategoriMap[selectedName];
+        var options = subKategoriSelect.querySelectorAll('option[data-parent-id]');
+
+        options.forEach(function(opt) {
+            opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
+        });
+
+        subKategoriSelect.value = '';
+        subKategoriSelect.disabled = !selectedName;
+    });
+
+    // === Toggle Mode Logic ===
+    function toggleMode(mode) {
+        document.querySelectorAll('.create-mode-perorang').forEach(function(el) {
+            el.style.display = mode === 'perorang' ? '' : 'none';
+        });
+        document.querySelectorAll('.create-mode-total').forEach(function(el) {
+            el.style.display = mode === 'total' ? '' : 'none';
+        });
+    }
+
+    document.querySelectorAll('input[name="createBiayaMode"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            toggleMode(this.value);
+            updateCreateCalc();
+        });
+    });
+
+    function getMode() {
+        return document.querySelector('input[name="createBiayaMode"]:checked').value;
+    }
+
+    function formatRupiah(val) {
+        if (!val || isNaN(val)) return '';
+        return Number(val).toLocaleString('id-ID');
+    }
+
+    window.updateCreateCalc = function() {
+        var p = parseInt(document.getElementById('createPeserta').value) || 0;
+        var mode = getMode();
+        if (mode === 'perorang') {
+            var b = parseInt(document.getElementById('createBiaya').value) || 0;
+            document.getElementById('createEstimasi').value = (p * b) > 0 ? formatRupiah(p * b) : '';
+            document.getElementById('createBiayaHidden').value = b;
+        } else {
+            var total = parseInt(document.getElementById('createBiayaTotal').value) || 0;
+            var perOrang = p > 0 ? Math.round(total / p) : 0;
+            document.getElementById('createBiayaPreview').value = perOrang > 0 ? formatRupiah(perOrang) : '';
+            document.getElementById('createBiayaHidden').value = perOrang;
+        }
+    };
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        var hidden = parseInt(document.getElementById('createBiayaHidden').value) || 0;
+        if (hidden <= 0) {
+            e.preventDefault();
+            var mode = getMode();
+            var target = mode === 'perorang' ? document.getElementById('createBiaya') : document.getElementById('createBiayaTotal');
+            target.focus();
+            alert('Silakan isi ' + (mode === 'perorang' ? 'Biaya per Orang' : 'Biaya Total'));
+        }
+    });
+})();
+</script>
+}

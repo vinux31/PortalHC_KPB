@@ -1,0 +1,571 @@
+@model HcPortal.Models.BudgetTrainingViewModel
+@{
+    ViewData["Title"] = "Budget Training & Assessment";
+}
+
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-3">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "CMP")">CMP</a></li>
+            <li class="breadcrumb-item active">Budget Training</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-wallet2 me-2"></i>Budget Training & Assessment</h2>
+            <p class="text-muted mb-0">Kelola anggaran pelatihan dan asesmen</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="budgetTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="data-tab" data-bs-toggle="tab" data-bs-target="#tab-data" type="button" role="tab" aria-controls="tab-data" aria-selected="true">
+                <i class="bi bi-table me-1"></i>Data Budget
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ringkasan-tab" data-bs-toggle="tab" data-bs-target="#tab-ringkasan" type="button" role="tab" aria-controls="tab-ringkasan" aria-selected="false">
+                <i class="bi bi-bar-chart me-1"></i>Ringkasan
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="budgetTabContent">
+        <!-- Tab Data Budget -->
+        <div class="tab-pane fade show active" id="tab-data" role="tabpanel" aria-labelledby="data-tab">
+            <!-- Filters + Action Buttons -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="get" class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+                        <div class="d-flex gap-2 align-items-end flex-wrap">
+                            <div>
+                                <label class="form-label small mb-1">Tahun</label>
+                                <select name="tahun" class="form-select form-select-sm">
+                                    <option value="">Semua</option>
+                                    @foreach (var t in Model.AvailableTahun)
+                                    {
+                                        <option value="@t" selected="@(Model.FilterTahun == t)">@t</option>
+                                    }
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Type</label>
+                                <select name="type" class="form-select form-select-sm">
+                                    <option value="">Semua</option>
+                                    <option value="Training" selected="@(Model.FilterType == "Training")">Training</option>
+                                    <option value="Assessment" selected="@(Model.FilterType == "Assessment")">Assessment</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Cari</label>
+                                <input type="text" name="search" value="@Model.Search" class="form-control form-control-sm" placeholder="Judul / Vendor..." />
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel me-1"></i>Filter</button>
+                                <a href="@Url.Action("BudgetTraining")" class="btn btn-sm btn-outline-secondary">Reset</a>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="@Url.Action("BudgetTrainingExport", "CMP", new { tahun = Model.FilterTahun })" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-download me-1"></i>Export
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                                <i class="bi bi-upload me-1"></i>Import
+                            </button>
+                            <a href="@Url.Action("BudgetTrainingCreate", "CMP")" class="btn btn-sm btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>Tambah
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>No</th>
+                                <th>Type</th>
+                                <th>Judul</th>
+                                <th>Kategori</th>
+                                <th class="text-end">Anggaran</th>
+                                <th class="text-end">Realisasi</th>
+                                <th class="text-center" style="min-width:120px">% Serapan</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Items.Any())
+                            {
+                                <tr><td colspan="8" class="text-center text-muted py-4">Belum ada data budget.</td></tr>
+                            }
+                            @{ var no = (Model.CurrentPage - 1) * Model.PageSize; }
+                            @foreach (var item in Model.Items)
+                            {
+                                no++;
+                                var pct = item.EstimasiBiayaTotal > 0 ? (int)(item.RealisasiBiaya / item.EstimasiBiayaTotal * 100) : 0;
+                                var pctColor = pct >= 80 ? "bg-success" : pct >= 50 ? "bg-warning" : "bg-info";
+                                <tr>
+                                    <td>@no</td>
+                                    <td><span class="badge @(item.Type == "Training" ? "bg-info" : "bg-purple") bg-opacity-75">@item.Type</span></td>
+                                    <td>@item.Judul</td>
+                                    <td class="small">@(item.Kategori ?? "-")</td>
+                                    <td class="text-end fw-semibold">@item.EstimasiBiayaTotal.ToString("#,0")</td>
+                                    <td class="text-end">@item.RealisasiBiaya.ToString("#,0")</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height:6px">
+                                                <div class="progress-bar @pctColor" style="width:@(Math.Min(pct, 100))%"></div>
+                                            </div>
+                                            <span class="small text-muted" style="min-width:36px">@pct%</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
+                                                onclick="openEditModal(@item.Id, '@item.Type', '@Html.Raw(item.Judul.Replace("'", "\\'"))', '@Html.Raw(item.Kategori?.Replace("'", "\\'") ?? "")', '@Html.Raw(item.SubKategori?.Replace("'", "\\'") ?? "")', @item.TahunAnggaran, @item.JumlahPeserta, '@item.BiayaPerOrang', '@item.RealisasiBiaya', '@Html.Raw(item.Vendor?.Replace("'", "\\'") ?? "")', '@Html.Raw(item.Catatan?.Replace("'", "\\'") ?? "")')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form method="post" asp-action="BudgetTrainingDelete" class="d-inline" onsubmit="return confirm('Hapus item ini?')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="card-footer bg-transparent">
+                        <nav>
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("BudgetTraining", new { tahun = Model.FilterTahun, type = Model.FilterType, kategori = Model.FilterKategori, search = Model.Search, page = i })">@i</a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Tab Ringkasan -->
+        <div class="tab-pane fade" id="tab-ringkasan" role="tabpanel" aria-labelledby="ringkasan-tab">
+            <!-- Summary Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-muted small">Total Item</div>
+                            <div class="fs-3 fw-bold">@Model.TotalItems</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-muted small">Total Rencana</div>
+                            <div class="fs-5 fw-bold text-primary">Rp @Model.TotalRencana.ToString("#,0")</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-muted small">Total Realisasi</div>
+                            <div class="fs-5 fw-bold text-success">Rp @Model.TotalRealisasi.ToString("#,0")</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    @{
+                        var penyerapan = Model.TotalRencana > 0 ? (int)(Model.TotalRealisasi / Model.TotalRencana * 100) : 0;
+                    }
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-muted small">Penyerapan</div>
+                            <div class="fs-5 fw-bold @(penyerapan >= 80 ? "text-success" : penyerapan >= 50 ? "text-warning" : "text-danger")">@penyerapan%</div>
+                            <div class="progress mt-2" style="height:6px">
+                                <div class="progress-bar @(penyerapan >= 80 ? "bg-success" : penyerapan >= 50 ? "bg-warning" : "bg-danger")" style="width:@(Math.Min(penyerapan, 100))%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            @if (Model.ChartData.Any())
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Budget vs Realisasi per Kategori</h6>
+                        <canvas id="budgetChart" height="80"></canvas>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="post" asp-action="BudgetTrainingEdit">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" id="editId" />
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Budget Item</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Section: Informasi Umum -->
+                    <h6 class="text-muted fw-semibold mb-2 pb-1 border-bottom"><i class="bi bi-info-circle me-1"></i>Informasi Umum</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Type <span class="text-danger">*</span></label>
+                            <select name="Type" id="editType" class="form-select" required>
+                                <option value="Training">Training</option>
+                                <option value="Assessment">Assessment</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tahun Anggaran <span class="text-danger">*</span></label>
+                            <input type="number" name="TahunAnggaran" id="editTahun" class="form-control" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Judul <span class="text-danger">*</span></label>
+                            <input type="text" name="Judul" id="editJudul" class="form-control" required maxlength="200" />
+                        </div>
+                    </div>
+
+                    <!-- Section: Kategori & Peserta -->
+                    <h6 class="text-muted fw-semibold mb-2 pb-1 border-bottom"><i class="bi bi-people me-1"></i>Kategori & Peserta</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Kategori</label>
+                            <select name="Kategori" id="editKategori" class="form-select">
+                                <option value="">-- Pilih Kategori --</option>
+                                @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+                                {
+                                    <option value="@cat.Name">@cat.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Sub Kategori</label>
+                            <select name="SubKategori" id="editSubKategori" class="form-select" disabled>
+                                <option value="">-- Pilih Sub Kategori --</option>
+                                @foreach (var sub in (IEnumerable<dynamic>)ViewBag.SubKategoriOptions)
+                                {
+                                    <option value="@sub.Name" data-parent-id="@sub.ParentId">@sub.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Jumlah Peserta <span class="text-danger">*</span></label>
+                            <input type="number" name="JumlahPeserta" id="editPeserta" class="form-control" min="0" required oninput="updateEditCalc()" />
+                        </div>
+                    </div>
+
+                    <!-- Section: Anggaran & Vendor -->
+                    <h6 class="text-muted fw-semibold mb-2 pb-1 border-bottom"><i class="bi bi-cash-stack me-1"></i>Anggaran & Vendor</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="editBiayaMode" id="editModePerOrang" value="perorang" checked>
+                                <label class="btn btn-outline-primary" for="editModePerOrang">Biaya per Orang</label>
+                                <input type="radio" class="btn-check" name="editBiayaMode" id="editModeTotal" value="total">
+                                <label class="btn btn-outline-primary" for="editModeTotal">Biaya Total</label>
+                            </div>
+                        </div>
+                        <input type="hidden" name="BiayaPerOrang" id="editBiayaHidden" value="0" />
+                        <!-- Mode Per Orang -->
+                        <div class="col-md-6 edit-mode-perorang">
+                            <label class="form-label">Biaya per Orang <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" id="editBiaya" class="form-control" min="0" step="1000" oninput="updateEditCalc()" />
+                            </div>
+                        </div>
+                        <!-- Mode Total -->
+                        <div class="col-md-6 edit-mode-total" style="display:none">
+                            <label class="form-label">Biaya Total <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" id="editBiayaTotal" class="form-control" min="0" step="1000" oninput="updateEditCalc()" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Realisasi Biaya</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" name="RealisasiBiaya" id="editRealisasi" class="form-control" min="0" step="1000" />
+                            </div>
+                        </div>
+                        <!-- Preview: Estimasi Total (mode perorang) -->
+                        <div class="col-12 edit-mode-perorang">
+                            <label class="form-label">Estimasi Total</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" id="editEstimasi" class="form-control bg-light" readonly disabled placeholder="Otomatis: Peserta x Biaya per Orang" />
+                            </div>
+                        </div>
+                        <!-- Preview: Biaya per Orang (mode total) -->
+                        <div class="col-12 edit-mode-total" style="display:none">
+                            <label class="form-label">Biaya per Orang (kalkulasi)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" id="editBiayaPreview" class="form-control bg-light" readonly disabled placeholder="Otomatis: Total / Peserta" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vendor</label>
+                            <input type="text" name="Vendor" id="editVendor" class="form-control" maxlength="200" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Catatan</label>
+                            <textarea name="Catatan" id="editCatatan" class="form-control" rows="2" maxlength="500"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan Perubahan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="BudgetTrainingImport" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Import Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tahun Anggaran <span class="text-danger">*</span></label>
+                        <input type="number" name="tahunAnggaran" class="form-control" value="@DateTime.Now.Year" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File Excel (.xlsx) <span class="text-danger">*</span></label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx" required />
+                    </div>
+                    <div class="alert alert-info small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>Format kolom: No, Type, Judul, Kategori, Sub Kategori, Tahun, Jml Peserta, Biaya/Orang, Estimasi Total, Realisasi, Vendor, Catatan.
+                        <br />Gunakan <strong>Export Excel</strong> sebagai template.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Import</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+    function formatRupiah(val) {
+        if (!val || isNaN(val)) return '';
+        return Number(val).toLocaleString('id-ID');
+    }
+
+    // === Toggle Mode Logic ===
+    function toggleMode(prefix, mode) {
+        document.querySelectorAll('.' + prefix + '-mode-perorang').forEach(function(el) {
+            el.style.display = mode === 'perorang' ? '' : 'none';
+        });
+        document.querySelectorAll('.' + prefix + '-mode-total').forEach(function(el) {
+            el.style.display = mode === 'total' ? '' : 'none';
+        });
+    }
+
+    // Edit modal mode toggle
+    document.querySelectorAll('input[name="editBiayaMode"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            toggleMode('edit', this.value);
+            updateEditCalc();
+        });
+    });
+
+    function getEditMode() {
+        return document.querySelector('input[name="editBiayaMode"]:checked').value;
+    }
+
+    function updateEditCalc() {
+        var p = parseInt(document.getElementById('editPeserta').value) || 0;
+        var mode = getEditMode();
+        if (mode === 'perorang') {
+            var b = parseInt(document.getElementById('editBiaya').value) || 0;
+            document.getElementById('editEstimasi').value = (p * b) > 0 ? formatRupiah(p * b) : '';
+            document.getElementById('editBiayaHidden').value = b;
+        } else {
+            var total = parseInt(document.getElementById('editBiayaTotal').value) || 0;
+            var perOrang = p > 0 ? Math.round(total / p) : 0;
+            document.getElementById('editBiayaPreview').value = perOrang > 0 ? formatRupiah(perOrang) : '';
+            document.getElementById('editBiayaHidden').value = perOrang;
+        }
+    }
+
+    // === Edit Modal Cascade Kategori → SubKategori ===
+    var editKategoriMap = {};
+    @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+    {
+        @:editKategoriMap["@cat.Name"] = @cat.Id;
+    }
+
+    var editKategoriSelect = document.getElementById('editKategori');
+    var editSubKategoriSelect = document.getElementById('editSubKategori');
+
+    editKategoriSelect.addEventListener('change', function() {
+        var selectedName = this.value;
+        var parentId = editKategoriMap[selectedName];
+        var options = editSubKategoriSelect.querySelectorAll('option[data-parent-id]');
+
+        options.forEach(function(opt) {
+            opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
+        });
+
+        editSubKategoriSelect.value = '';
+        editSubKategoriSelect.disabled = !selectedName;
+    });
+
+    function openEditModal(id, type, judul, kategori, subKategori, tahun, peserta, biaya, realisasi, vendor, catatan) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editType').value = type;
+        document.getElementById('editJudul').value = judul;
+        document.getElementById('editTahun').value = tahun;
+        document.getElementById('editPeserta').value = peserta;
+        document.getElementById('editBiaya').value = biaya;
+        document.getElementById('editRealisasi').value = realisasi;
+        document.getElementById('editVendor').value = vendor;
+        document.getElementById('editCatatan').value = catatan;
+
+        // Set kategori dropdown & trigger cascade
+        editKategoriSelect.value = kategori;
+        var parentId = editKategoriMap[kategori];
+        var subOptions = editSubKategoriSelect.querySelectorAll('option[data-parent-id]');
+        subOptions.forEach(function(opt) {
+            opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
+        });
+        editSubKategoriSelect.disabled = !kategori;
+        editSubKategoriSelect.value = subKategori;
+
+        // Reset ke mode Per Orang & hitung estimasi
+        document.getElementById('editModePerOrang').checked = true;
+        toggleMode('edit', 'perorang');
+        var totalComputed = (parseInt(peserta) || 0) * (parseInt(biaya) || 0);
+        document.getElementById('editBiayaTotal').value = totalComputed > 0 ? totalComputed : '';
+        document.getElementById('editBiayaHidden').value = biaya;
+        updateEditCalc();
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    // Lazy init chart on tab shown
+    var chartInitialized = false;
+    document.getElementById('ringkasan-tab').addEventListener('shown.bs.tab', function () {
+        if (chartInitialized) return;
+        chartInitialized = true;
+        @if (Model.ChartData.Any())
+        {
+            <text>
+        new Chart(document.getElementById('budgetChart'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Kategori))),
+                datasets: [
+                    {
+                        label: 'Rencana',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Rencana))),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    },
+                    {
+                        label: 'Realisasi',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Realisasi))),
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: v => 'Rp ' + v.toLocaleString('id-ID') }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: { label: ctx => ctx.dataset.label + ': Rp ' + ctx.raw.toLocaleString('id-ID') }
+                    }
+                }
+            }
+        });
+            </text>
+        }
+    });
+
+    // Form validation: pastikan biaya terisi sebelum submit
+    document.querySelector('#editModal form').addEventListener('submit', function(e) {
+        var hidden = parseInt(document.getElementById('editBiayaHidden').value) || 0;
+        if (hidden <= 0) {
+            e.preventDefault();
+            var mode = getEditMode();
+            var target = mode === 'perorang' ? document.getElementById('editBiaya') : document.getElementById('editBiayaTotal');
+            target.focus();
+            alert('Silakan isi ' + (mode === 'perorang' ? 'Biaya per Orang' : 'Biaya Total'));
+        }
+    });
+
+    // Hash routing for tab persistence
+    (function () {
+        var hash = window.location.hash;
+        if (hash === '#ringkasan') {
+            var tab = new bootstrap.Tab(document.getElementById('ringkasan-tab'));
+            tab.show();
+        }
+        document.querySelectorAll('#budgetTabs button[data-bs-toggle="tab"]').forEach(function (btn) {
+            btn.addEventListener('shown.bs.tab', function (e) {
+                if (e.target.id === 'ringkasan-tab') {
+                    history.replaceState(null, null, '#ringkasan');
+                } else {
+                    history.replaceState(null, null, window.location.pathname + window.location.search);
+                }
+            });
+        });
+    })();
+</script>
+}
+
+<style>
+    .bg-purple { background-color: #6f42c1; }
+</style>
