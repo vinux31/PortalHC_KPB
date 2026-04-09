@@ -261,21 +261,22 @@ public async Task<IActionResult> FilterCertificationManagementDetail(
     if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
         filtered = filtered.Where(r => r.Status == st).ToList();
 
-    var vm = new SertifikatDetailViewModel
+    var pageSize = 20;
+    var paging = PaginationHelper.Calculate(filtered.Count, page, pageSize);
+
+    var vm = new CertificationManagementViewModel
     {
-        Judul = judul,
+        Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList(),
         TotalCount = filtered.Count,
         AktifCount = filtered.Count(r => r.Status == CertificateStatus.Aktif),
         AkanExpiredCount = filtered.Count(r => r.Status == CertificateStatus.AkanExpired),
         ExpiredCount = filtered.Count(r => r.Status == CertificateStatus.Expired),
         PermanentCount = filtered.Count(r => r.Status == CertificateStatus.Permanent),
+        CurrentPage = paging.CurrentPage,
+        TotalPages = paging.TotalPages,
+        PageSize = pageSize,
         RoleLevel = roleLevel
     };
-
-    var paging = PaginationHelper.Calculate(filtered.Count, page, vm.PageSize);
-    vm.Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList();
-    vm.CurrentPage = paging.CurrentPage;
-    vm.TotalPages = paging.TotalPages;
 
     return PartialView("Shared/_CertificationManagementTablePartial", vm);
 }
