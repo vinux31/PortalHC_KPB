@@ -1,0 +1,90 @@
+@model HcPortal.Models.SertifikatGroupViewModel
+
+<div id="cert-table-content"
+     data-total="@Model.TotalCount"
+     data-mandatory="@Model.MandatoryCount"
+     data-non-mandatory="@Model.NonMandatoryCount"
+     data-ojt="@Model.OjtCount"
+     data-iht="@Model.IhtCount">
+
+    <div class="card-body p-0">
+    <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">No</th>
+                    <th>Nama Sertifikat</th>
+                    <th>Kategori</th>
+                    <th>Sub Kategori</th>
+                    <th class="text-center">Jumlah Worker</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Groups.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Belum ada data sertifikat</td>
+                    </tr>
+                }
+                else
+                {
+                    @for (int i = 0; i < Model.Groups.Count; i++)
+                    {
+                        var g = Model.Groups[i];
+                        var nomor = (Model.CurrentPage - 1) * Model.PageSize + i + 1;
+                        <tr>
+                            <td class="ps-3">@nomor</td>
+                            <td>@g.Judul</td>
+                            <td>@(g.Kategori ?? "-")</td>
+                            <td>@(g.SubKategori ?? "-")</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary rounded-pill">@g.JumlahWorker</span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("CertificationManagementDetail", "CMP", new { judul = g.Judul })"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>Detail
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4" aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                    <a href="#" class="page-link" data-page="@(Model.CurrentPage - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a href="#" class="page-link" data-page="@i">@i</a>
+                    </li>
+                }
+                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                    <a href="#" class="page-link" data-page="@(Model.CurrentPage + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+
+    @if (Model.TotalCount > 0)
+    {
+        var from = (Model.CurrentPage - 1) * Model.PageSize + 1;
+        var to = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalCount);
+        <p class="text-center text-muted small mt-2">
+            Menampilkan @from - @to dari @Model.TotalCount sertifikat
+        </p>
+    }
+</div>

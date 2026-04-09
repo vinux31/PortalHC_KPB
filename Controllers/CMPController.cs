@@ -3098,85 +3098,118 @@ namespace HcPortal.Controllers
         {
             var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
 
-            // Sort: Kategori → SubKategori → Status
-            allRows = allRows
-                .OrderBy(r => r.Kategori ?? "")
-                .ThenBy(r => r.SubKategori ?? "")
-                .ThenBy(r => r.Status)
-                .ToList();
+            var groups = BuildSertifikatGroups(allRows);
 
-            // Summary counts dari FULL dataset (sebelum pagination)
-            var vm = new CertificationManagementViewModel
-            {
-                TotalCount = allRows.Count,
-                AktifCount = allRows.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired && !r.IsRenewed),
-                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired && !r.IsRenewed),
-                PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
-            };
-            vm.RoleLevel = roleLevel;
+            var vm = BuildGroupViewModel(groups, roleLevel);
 
-            // Pagination
-            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
-            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
+            var paging = PaginationHelper.Calculate(groups.Count, page, vm.PageSize);
+            vm.Groups = groups.Skip(paging.Skip).Take(paging.Take).ToList();
             vm.CurrentPage = paging.CurrentPage;
             vm.TotalPages = paging.TotalPages;
 
-            var sectionUnitsDictPlanIdp = await _context.GetSectionUnitsDictAsync();
-            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictPlanIdp);
-            ViewBag.AllBagian = sectionUnitsDictPlanIdp.Keys.ToList();
             ViewBag.AllCategories = await _context.AssessmentCategories
                 .Where(c => c.ParentId == null && c.IsActive)
                 .OrderBy(c => c.SortOrder)
                 .Select(c => c.Name)
                 .ToListAsync();
-            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User.Section;
+
             return View(vm);
         }
 
         [HttpGet]
         public async Task<IActionResult> FilterCertificationManagement(
-            string? bagian = null,
-            string? unit = null,
-            string? status = null,
             string? category = null,
             string? subCategory = null,
+            string? search = null,
             int page = 1)
         {
             var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
 
-            // Apply filters in-memory (status is derived, not a DB column)
-            if (!string.IsNullOrEmpty(bagian))
-                allRows = allRows.Where(r => r.Bagian == bagian).ToList();
-            if (!string.IsNullOrEmpty(unit))
-                allRows = allRows.Where(r => r.Unit == unit).ToList();
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
-                allRows = allRows.Where(r => r.Status == st).ToList();
-            if (!string.IsNullOrEmpty(category))
-                allRows = allRows.Where(r => r.Kategori == category).ToList();
-            if (!string.IsNullOrEmpty(subCategory))
-                allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
+            var groups = BuildSertifikatGroups(allRows);
 
-            allRows = allRows
-                .OrderBy(r => r.Kategori ?? "")
-                .ThenBy(r => r.SubKategori ?? "")
-                .ThenBy(r => r.Status)
-                .ToList();
+            if (!string.IsNullOrEmpty(category))
+                groups = groups.Where(g => g.Kategori == category).ToList();
+            if (!string.IsNullOrEmpty(subCategory))
+                groups = groups.Where(g => g.SubKategori == subCategory).ToList();
+            if (!string.IsNullOrEmpty(search))
+                groups = groups.Where(g => g.Judul.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var vm = BuildGroupViewModel(groups, roleLevel);
+
+            var paging = PaginationHelper.Calculate(groups.Count, page, vm.PageSize);
+            vm.Groups = groups.Skip(paging.Skip).Take(paging.Take).ToList();
+            vm.CurrentPage = paging.CurrentPage;
+            vm.TotalPages = paging.TotalPages;
+
+            return PartialView("Shared/_SertifikatGroupTablePartial", vm);
+        }
+
+        public async Task<IActionResult> CertificationManagementDetail(string judul, int page = 1)
+        {
+            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
+            var filtered = allRows.Where(r => r.Judul == judul).ToList();
+
+            var first = filtered.FirstOrDefault();
+            var vm = new SertifikatDetailViewModel
+            {
+                Judul = judul,
+                Kategori = first?.Kategori,
+                SubKategori = first?.SubKategori,
+                TotalCount = filtered.Count,
+                AktifCount = filtered.Count(r => r.Status == CertificateStatus.Aktif),
+                AkanExpiredCount = filtered.Count(r => r.Status == CertificateStatus.AkanExpired),
+                ExpiredCount = filtered.Count(r => r.Status == CertificateStatus.Expired),
+                PermanentCount = filtered.Count(r => r.Status == CertificateStatus.Permanent),
+                RoleLevel = roleLevel
+            };
+
+            var paging = PaginationHelper.Calculate(filtered.Count, page, vm.PageSize);
+            vm.Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList();
+            vm.CurrentPage = paging.CurrentPage;
+            vm.TotalPages = paging.TotalPages;
+
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
+            ViewBag.AllBagian = sectionUnitsDict.Keys.ToList();
+            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User.Section;
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FilterCertificationManagementDetail(
+            string judul,
+            string? bagian = null,
+            string? unit = null,
+            string? status = null,
+            int page = 1)
+        {
+            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
+            var filtered = allRows.Where(r => r.Judul == judul).ToList();
+
+            if (!string.IsNullOrEmpty(bagian))
+                filtered = filtered.Where(r => r.Bagian == bagian).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                filtered = filtered.Where(r => r.Unit == unit).ToList();
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
+                filtered = filtered.Where(r => r.Status == st).ToList();
+
+            var pageSize = 20;
+            var paging = PaginationHelper.Calculate(filtered.Count, page, pageSize);
 
             var vm = new CertificationManagementViewModel
             {
-                TotalCount = allRows.Count,
-                AktifCount = allRows.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired && !r.IsRenewed),
-                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired && !r.IsRenewed),
-                PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
+                Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList(),
+                TotalCount = filtered.Count,
+                AktifCount = filtered.Count(r => r.Status == CertificateStatus.Aktif),
+                AkanExpiredCount = filtered.Count(r => r.Status == CertificateStatus.AkanExpired),
+                ExpiredCount = filtered.Count(r => r.Status == CertificateStatus.Expired),
+                PermanentCount = filtered.Count(r => r.Status == CertificateStatus.Permanent),
+                CurrentPage = paging.CurrentPage,
+                TotalPages = paging.TotalPages,
+                PageSize = pageSize,
+                RoleLevel = roleLevel
             };
-            vm.RoleLevel = roleLevel;
-
-            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
-            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
 
             return PartialView("Shared/_CertificationManagementTablePartial", vm);
         }
@@ -3184,59 +3217,114 @@ namespace HcPortal.Controllers
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ExportSertifikatExcel(
-            string? bagian = null,
-            string? unit = null,
-            string? status = null,
             string? category = null,
-            string? subCategory = null)
+            string? subCategory = null,
+            string? search = null)
         {
             var (allRows, _) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
 
-            // Filter logic
-            if (!string.IsNullOrEmpty(bagian))
-                allRows = allRows.Where(r => r.Bagian == bagian).ToList();
-            if (!string.IsNullOrEmpty(unit))
-                allRows = allRows.Where(r => r.Unit == unit).ToList();
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
-                allRows = allRows.Where(r => r.Status == st).ToList();
+            var groups = BuildSertifikatGroups(allRows);
+
             if (!string.IsNullOrEmpty(category))
-                allRows = allRows.Where(r => r.Kategori == category).ToList();
+                groups = groups.Where(g => g.Kategori == category).ToList();
             if (!string.IsNullOrEmpty(subCategory))
-                allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
-            allRows = allRows
-                .OrderBy(r => r.Kategori ?? "")
-                .ThenBy(r => r.SubKategori ?? "")
-                .ThenBy(r => r.Status)
-                .ToList();
+                groups = groups.Where(g => g.SubKategori == subCategory).ToList();
+            if (!string.IsNullOrEmpty(search))
+                groups = groups.Where(g => g.Judul.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
 
             using var workbook = new XLWorkbook();
             var ws = ExcelExportHelper.CreateSheet(workbook, "Sertifikat", new[]
             {
-                "No", "Nama", "Bagian", "Unit", "Judul", "Kategori", "Sub Kategori",
-                "Nomor Sertifikat", "Tgl Terbit", "Valid Until", "Tipe", "Status", "Sertifikat URL"
+                "No", "Nama Sertifikat", "Kategori", "Sub Kategori", "Jumlah Worker"
             });
 
-            for (int i = 0; i < allRows.Count; i++)
+            for (int i = 0; i < groups.Count; i++)
             {
-                var r = allRows[i];
+                var g = groups[i];
+                var row = i + 2;
+                ws.Cell(row, 1).Value = i + 1;
+                ws.Cell(row, 2).Value = g.Judul;
+                ws.Cell(row, 3).Value = g.Kategori ?? "";
+                ws.Cell(row, 4).Value = g.SubKategori ?? "";
+                ws.Cell(row, 5).Value = g.JumlahWorker;
+            }
+
+            var fileName = $"Sertifikat_Grouped_{DateTime.Now:yyyy-MM-dd}.xlsx";
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportSertifikatDetailExcel(
+            string judul,
+            string? bagian = null,
+            string? unit = null,
+            string? status = null)
+        {
+            var (allRows, _) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
+            var filtered = allRows.Where(r => r.Judul == judul).ToList();
+
+            if (!string.IsNullOrEmpty(bagian))
+                filtered = filtered.Where(r => r.Bagian == bagian).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                filtered = filtered.Where(r => r.Unit == unit).ToList();
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var stx))
+                filtered = filtered.Where(r => r.Status == stx).ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Detail", new[]
+            {
+                "No", "Nama Worker", "Bagian", "Unit", "Tipe", "Status",
+                "Valid Until", "Nomor Sertifikat", "Sertifikat URL"
+            });
+
+            for (int i = 0; i < filtered.Count; i++)
+            {
+                var r = filtered[i];
                 var row = i + 2;
                 ws.Cell(row, 1).Value = i + 1;
                 ws.Cell(row, 2).Value = r.NamaWorker;
                 ws.Cell(row, 3).Value = r.Bagian ?? "";
                 ws.Cell(row, 4).Value = r.Unit ?? "";
-                ws.Cell(row, 5).Value = r.Judul;
-                ws.Cell(row, 6).Value = r.Kategori ?? "";
-                ws.Cell(row, 7).Value = r.SubKategori ?? "";
+                ws.Cell(row, 5).Value = r.RecordType.ToString();
+                ws.Cell(row, 6).Value = r.Status.ToString();
+                ws.Cell(row, 7).Value = r.ValidUntil?.ToString("dd MMM yyyy") ?? "";
                 ws.Cell(row, 8).Value = r.NomorSertifikat ?? "";
-                ws.Cell(row, 9).Value = r.TanggalTerbit?.ToString("dd MMM yyyy") ?? "";
-                ws.Cell(row, 10).Value = r.ValidUntil?.ToString("dd MMM yyyy") ?? "";
-                ws.Cell(row, 11).Value = r.RecordType.ToString();
-                ws.Cell(row, 12).Value = r.Status.ToString();
-                ws.Cell(row, 13).Value = r.SertifikatUrl ?? "";
+                ws.Cell(row, 9).Value = r.SertifikatUrl ?? "";
             }
 
-            var fileName = $"Sertifikat_Export_{DateTime.Now:yyyy-MM-dd}.xlsx";
+            var safeJudul = string.Join("_", judul.Split(Path.GetInvalidFileNameChars()));
+            var fileName = $"Sertifikat_{safeJudul}_{DateTime.Now:yyyy-MM-dd}.xlsx";
             return ExcelExportHelper.ToFileResult(workbook, fileName, this);
+        }
+
+        private static List<SertifikatGroupRow> BuildSertifikatGroups(List<SertifikatRow> allRows)
+        {
+            return allRows
+                .GroupBy(r => r.Judul)
+                .Select(g => new SertifikatGroupRow
+                {
+                    Judul = g.Key,
+                    Kategori = g.First().Kategori,
+                    SubKategori = g.First().SubKategori,
+                    JumlahWorker = g.Select(r => r.WorkerId).Distinct().Count()
+                })
+                .OrderBy(g => g.Judul)
+                .ToList();
+        }
+
+        private static SertifikatGroupViewModel BuildGroupViewModel(List<SertifikatGroupRow> groups, int roleLevel)
+        {
+            return new SertifikatGroupViewModel
+            {
+                TotalCount = groups.Count,
+                MandatoryCount = groups.Count(g => string.Equals(g.Kategori, "Mandatory HSSE Training", StringComparison.OrdinalIgnoreCase)
+                                                 || string.Equals(g.Kategori, "MANDATORY", StringComparison.OrdinalIgnoreCase)),
+                NonMandatoryCount = groups.Count(g => string.Equals(g.Kategori, "NON MANDATORY", StringComparison.OrdinalIgnoreCase)),
+                OjtCount = groups.Count(g => string.Equals(g.Kategori, "OJT", StringComparison.OrdinalIgnoreCase)),
+                IhtCount = groups.Count(g => string.Equals(g.Kategori, "IHT", StringComparison.OrdinalIgnoreCase)),
+                RoleLevel = roleLevel
+            };
         }
 
         private static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
