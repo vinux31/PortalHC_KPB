@@ -1,6 +1,6 @@
 @using HcPortal.Models
 @{
-    ViewData["Title"] = "Plan IDP";
+    ViewData["Title"] = "Individual Development Plan";
     var allTracks = ViewBag.AllTracks as List<HcPortal.Models.ProtonTrack> ?? new List<HcPortal.Models.ProtonTrack>();
     var selectedBagian = ViewBag.Bagian as string ?? "";
     var selectedUnit = ViewBag.Unit as string ?? "";
@@ -20,14 +20,14 @@
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-action="Index" asp-controller="CDP">CDP</a></li>
-        <li class="breadcrumb-item active">Plan IDP</li>
+        <li class="breadcrumb-item active">Individual Development Plan</li>
     </ol>
 </nav>
 
 <div class="d-flex align-items-start mb-4">
     <div>
         <h2 class="fw-bold text-dark mb-1">
-            <i class="bi bi-list-check me-2 text-primary"></i>Plan IDP
+            <i class="bi bi-list-check me-2 text-primary"></i>Individual Development Plan
         </h2>
         <p class="text-muted">Silabus dan dokumen coaching guidance Proton.</p>
     </div>

@@ -366,6 +366,9 @@ namespace HcPortal.Controllers
                 return RedirectToAction(nameof(CoachCoacheeMapping));
             }
 
+            // HIGH-04: track berapa ProtonTrackAssignment yang ikut direaktivasi (untuk audit log)
+            var reactivatedAssignmentCount = 0;
+
             // D-13: Wrap insert phase dalam transaction untuk atomicity
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -373,6 +376,29 @@ namespace HcPortal.Controllers
                 if (newMappings.Any())
                     await _context.CoachCoacheeMappings.AddRangeAsync(newMappings);
                 // reactivated mappings sudah di-track oleh EF (IsActive diubah di-memory)
+
+                // HIGH-04: Untuk setiap mapping yang direaktivasi, reaktivasi juga ProtonTrackAssignment
+                // terakhir milik coachee itu (jika ada dan inactive). Tidak membuat assignment baru —
+                // hanya reuse state lama agar CoachingProton view kembali memunculkan coachee.
+                if (reactivatedMappings.Any())
+                {
+                    var reactCoacheeIds = reactivatedMappings.Select(m => m.CoacheeId).Distinct().ToList();
+                    var lastAssignments = await _context.ProtonTrackAssignments
+                        .Where(a => reactCoacheeIds.Contains(a.CoacheeId))
+                        .GroupBy(a => a.CoacheeId)
+                        .Select(g => g.OrderByDescending(a => a.Id).First())
+                        .ToListAsync();
+                    foreach (var asg in lastAssignments)
+                    {
+                        if (!asg.IsActive)
+                        {
+                            asg.IsActive = true;
+                            asg.DeactivatedAt = null;
+                            reactivatedAssignmentCount++;
+                        }
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
@@ -395,7 +421,7 @@ namespace HcPortal.Controllers
                 ActorUserId = actor?.Id ?? "system",
                 ActorName = actor?.FullName ?? "system",
                 ActionType = "ImportCoachCoacheeMapping",
-                Description = $"Import {successCount} mapping baru, {reactivatedCount} diaktifkan kembali, {skipCount} dilewati, {errorCount} error",
+                Description = $"Import {successCount} mapping baru, {reactivatedCount} diaktifkan kembali ({reactivatedAssignmentCount} ProtonTrackAssignment ikut direaktivasi), {skipCount} dilewati, {errorCount} error",
                 TargetType = "CoachCoacheeMapping",
                 CreatedAt = DateTime.UtcNow
             });
@@ -512,6 +538,9 @@ namespace HcPortal.Controllers
                 AssignmentUnit = req.AssignmentUnit!.Trim()
             }).ToList();
 
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
             _context.CoachCoacheeMappings.AddRange(newMappings);
 
             // ProtonTrack side-effect
@@ -570,6 +599,15 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CoachCoacheeMappingAssign failed (CoachId={CoachId}, Coachees={Count})",
+                    req.CoachId, req.CoacheeIds?.Count ?? 0);
+                await tx.RollbackAsync();
+                return Json(new { success = false, message = "Gagal menyimpan assignment. Operasi dibatalkan." });
+            }
 
             var count = newMappings.Count;
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Assign",

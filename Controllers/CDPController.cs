@@ -1259,17 +1259,19 @@ namespace HcPortal.Controllers
             progress.Status = "Submitted";
             progress.SubmittedAt = DateTime.UtcNow;
 
-            // Reset approval chain for fresh review cycle (match SubmitEvidenceWithCoaching pattern)
-            progress.SrSpvApprovalStatus = "Pending";
-            progress.SrSpvApprovedById = null;
-            progress.SrSpvApprovedAt = null;
-            progress.ShApprovalStatus = "Pending";
-            progress.ShApprovedById = null;
-            progress.ShApprovedAt = null;
+            // CRIT-03/MED-06 fix: Reset approval chain HANYA jika real resubmit (status sebelumnya Rejected).
+            // Menghindari silent overwrite approval SrSpv yg masuk di tab lain saat status masih Pending.
             if (wasRejected)
             {
+                progress.SrSpvApprovalStatus = "Pending";
+                progress.SrSpvApprovedById = null;
+                progress.SrSpvApprovedAt = null;
+                progress.ShApprovalStatus = "Pending";
+                progress.ShApprovedById = null;
+                progress.ShApprovedAt = null;
                 progress.RejectedAt = null;
                 progress.RejectionReason = null;
+                RecordStatusHistory(progress.Id, "Approval Reset", user.Id, user.FullName, "Coach");
             }
 
             // D-16: Record status history before saving
@@ -2146,6 +2148,13 @@ namespace HcPortal.Controllers
 
             // Validate all belong to coach's coachees
             var coacheeIds = progresses.Select(p => p.CoacheeId).Distinct().ToList();
+
+            // HIGH-05 fix: reject bulk submit yang mencampur progress dari beberapa coachee.
+            // Satu CoachingSession = satu coachee; catatan coach/kesimpulan/result tidak
+            // boleh di-attach ke coachee berbeda.
+            if (coacheeIds.Count > 1)
+                return Json(new { success = false, message = "Bulk submit hanya bisa untuk satu coachee per request." });
+
             var validCoacheeIds = await _context.CoachCoacheeMappings
                 .Where(m => m.CoachId == user.Id && coacheeIds.Contains(m.CoacheeId) && m.IsActive)
                 .Select(m => m.CoacheeId)
@@ -2177,8 +2186,10 @@ namespace HcPortal.Controllers
                     await evidenceFile.CopyToAsync(ms);
                     evidenceBytes = ms.ToArray();
                 }
+                // HIGH-01 fix: short GUID cegah collision saat dua upload hit ms yang sama.
                 var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-                evidenceSafeFileName = $"{timestamp}_{Path.GetFileName(evidenceFile.FileName)}";
+                var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
+                evidenceSafeFileName = $"{timestamp}_{uniqueId}_{Path.GetFileName(evidenceFile.FileName)}";
                 evidenceFileName = evidenceFile.FileName;
             }
 
@@ -2197,13 +2208,18 @@ namespace HcPortal.Controllers
 
                 progress.Status = "Submitted";
                 progress.SubmittedAt = now;
-                // Reset approval columns for fresh review cycle
-                progress.SrSpvApprovalStatus = "Pending";
-                progress.SrSpvApprovedById = null;
-                progress.SrSpvApprovedAt = null;
-                progress.ShApprovalStatus = "Pending";
-                progress.ShApprovedById = null;
-                progress.ShApprovedAt = null;
+                // CRIT-03 fix: Reset approval columns HANYA jika real resubmit (status sebelumnya Rejected).
+                // Kalau status Pending, approval yg mungkin sudah masuk dari SrSpv tidak di-overwrite diam-diam.
+                if (isResubmit)
+                {
+                    progress.SrSpvApprovalStatus = "Pending";
+                    progress.SrSpvApprovedById = null;
+                    progress.SrSpvApprovedAt = null;
+                    progress.ShApprovalStatus = "Pending";
+                    progress.ShApprovedById = null;
+                    progress.ShApprovedAt = null;
+                    RecordStatusHistory(progress.Id, "Approval Reset", user.Id, user.FullName, "Coach");
+                }
 
                 // Apply file upload if provided; otherwise keep existing EvidencePath.
                 // CRIT-01 fix: write one physical file per progress folder so each row
@@ -2366,17 +2382,118 @@ namespace HcPortal.Controllers
             {
                 _context.ActionItems.RemoveRange(session.ActionItems);
                 _context.CoachingSessions.Remove(session);
+
+                // HIGH-06 fix: jika ini session terakhir utk progress, cleanup file fisik + revert status.
+                string cleanupNote = "";
+                if (progressId.HasValue)
+                {
+                    bool hasOtherSessions = await _context.CoachingSessions
+                        .AnyAsync(s => s.ProtonDeliverableProgressId == progressId.Value && s.Id != id);
+                    if (!hasOtherSessions)
+                    {
+                        var progress = await _context.ProtonDeliverableProgresses
+                            .FirstOrDefaultAsync(p => p.Id == progressId.Value);
+                        if (progress != null && progress.Status != "Approved")
+                        {
+                            var pathsToDelete = new List<string>();
+                            if (!string.IsNullOrEmpty(progress.EvidencePath))
+                                pathsToDelete.Add(progress.EvidencePath);
+                            if (!string.IsNullOrEmpty(progress.EvidencePathHistory))
+                            {
+                                try
+                                {
+                                    var history = System.Text.Json.JsonSerializer
+                                        .Deserialize<List<string>>(progress.EvidencePathHistory) ?? new List<string>();
+                                    pathsToDelete.AddRange(history);
+                                }
+                                catch (Exception jex)
+                                {
+                                    _logger.LogWarning(jex, "Failed to parse EvidencePathHistory for progress {Pid}", progress.Id);
+                                }
+                            }
+
+                            foreach (var relUrl in pathsToDelete)
+                            {
+                                try
+                                {
+                                    var physical = Path.Combine(_env.WebRootPath,
+                                        relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                                    if (System.IO.File.Exists(physical))
+                                        System.IO.File.Delete(physical);
+                                }
+                                catch (IOException iox)
+                                {
+                                    _logger.LogWarning(iox, "Failed to delete evidence file {Path}", relUrl);
+                                }
+                            }
+
+                            progress.EvidencePath = null;
+                            progress.EvidenceFileName = null;
+                            progress.EvidencePathHistory = null;
+                            progress.SubmittedAt = null;
+                            progress.Status = "Pending";
+                            progress.SrSpvApprovalStatus = "Pending";
+                            progress.SrSpvApprovedById = null;
+                            progress.SrSpvApprovedAt = null;
+                            progress.ShApprovalStatus = "Pending";
+                            progress.ShApprovedById = null;
+                            progress.ShApprovedAt = null;
+                            progress.RejectedAt = null;
+                            progress.RejectionReason = null;
+                            RecordStatusHistory(progress.Id, "Reverted to Pending", user.Id, user.FullName ?? "", "Coach");
+                            cleanupNote = $" Progress {progress.Id} reverted to Pending, {pathsToDelete.Count} file(s) cleaned.";
+                        }
+                        else if (progress != null && progress.Status == "Approved")
+                        {
+                            cleanupNote = $" Progress {progress.Id} sudah Approved — state & file dipertahankan.";
+                        }
+                    }
+                    else
+                    {
+                        cleanupNote = " Sibling sessions masih ada — progress state dipertahankan.";
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 var actorName = string.IsNullOrWhiteSpace(user.NIP)
                     ? (user.FullName ?? "Unknown")
                     : $"{user.NIP} - {user.FullName}";
                 await _auditLog.LogAsync(user.Id, actorName, "DeleteCoachingSession",
-                    $"Session ID={id} dihapus.", id, "CoachingSession");
+                    $"Session ID={id} dihapus.{cleanupNote}", id, "CoachingSession");
                 await tx.CommitAsync();
             }
             catch (Exception ex) { _logger.LogError(ex, "Failed to delete coaching session ID={Id}", id); await tx.RollbackAsync(); throw; }
             TempData["Success"] = "Sesi coaching berhasil dihapus.";
             return RedirectToAction("Deliverable", new { id = progressId });
+        }
+
+        // HIGH-07: Shared scope guard untuk ExportProgressExcel/Pdf.
+        // Full access (Admin/HC/level<=3) → allow.
+        // Coach → allow jika punya CoachCoacheeMapping aktif ke coachee.
+        // Section-scoped (level=4: SectionHead/SrSpv) → allow jika ada mapping aktif untuk coachee
+        //   dengan AssignmentSection == user.Section (bukan mengacu ke section pribadi coachee,
+        //   sesuai perilaku konsisten dengan CoachingProton scoping).
+        private async Task<bool> CanExportCoacheeProgressAsync(ApplicationUser user, string coacheeId)
+        {
+            if (UserRoles.HasFullAccess(user.RoleLevel)) return true;
+
+            // Coach path
+            if (user.RoleLevel == 5)
+            {
+                return await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == coacheeId && m.IsActive);
+            }
+
+            // Section-scoped path (SectionHead / Sr Supervisor)
+            if (UserRoles.HasSectionAccess(user.RoleLevel))
+            {
+                if (string.IsNullOrEmpty(user.Section)) return false;
+                return await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoacheeId == coacheeId && m.IsActive
+                                && m.AssignmentSection == user.Section);
+            }
+
+            return false;
         }
 
         // ===== Phase 65-03: Export endpoints =====
@@ -2392,13 +2509,9 @@ namespace HcPortal.Controllers
             var coacheeUser = await _context.Users.FindAsync(coacheeId);
             if (coacheeUser == null) return NotFound();
 
-            // Scope validation: section-scoped roles can only export their own section
-            // Full access roles (Admin, HC, management level 3) bypass; SectionHead is level 4 (section-scoped)
-            if (!UserRoles.HasFullAccess(user.RoleLevel))
-            {
-                if (coacheeUser.Section != user.Section)
-                    return Forbid();
-            }
+            // HIGH-07: Scope validation berbasis mapping (bukan section coachee).
+            if (!await CanExportCoacheeProgressAsync(user, coacheeId))
+                return Forbid();
 
             // Load deliverable progress for this specific coachee
             var progresses = await _context.ProtonDeliverableProgresses
@@ -2448,7 +2561,7 @@ namespace HcPortal.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Sr Supervisor, Section Head, HC, Admin")]
+        [Authorize(Roles = "Coach, Sr Supervisor, Section Head, HC, Admin")]
         public async Task<IActionResult> ExportProgressPdf(string coacheeId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -2458,13 +2571,9 @@ namespace HcPortal.Controllers
             var coacheeUser = await _context.Users.FindAsync(coacheeId);
             if (coacheeUser == null) return NotFound();
 
-            // Scope validation: section-scoped roles can only export their own section
-            // Full access roles (Admin, HC, management level 3) bypass; SectionHead is level 4 (section-scoped)
-            if (!UserRoles.HasFullAccess(user.RoleLevel))
-            {
-                if (coacheeUser.Section != user.Section)
-                    return Forbid();
-            }
+            // HIGH-07: Scope validation berbasis mapping (bukan section coachee).
+            if (!await CanExportCoacheeProgressAsync(user, coacheeId))
+                return Forbid();
 
             // Load deliverable progress for this specific coachee
             var progresses = await _context.ProtonDeliverableProgresses

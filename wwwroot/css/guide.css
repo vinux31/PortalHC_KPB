@@ -126,6 +126,19 @@
     vertical-align: middle;
 }
 
+/* Di dalam hero (background gradient ungu), paksa badge pakai varian putih
+   supaya kontras — default #667eea blend dengan background hero */
+.guide-hero .guide-role-badge {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(4px);
+}
+
+.guide-hero .guide-role-badge strong {
+    color: #ffffff;
+}
+
 /* ============================================
    Search Bar
    ============================================ */

@@ -7,6 +7,8 @@
 
 ---
 
+> **Fix progress 2026-04-09:** CRIT-01, CRIT-02, CRIT-03, MED-06, dan HIGH-03 sudah ditutup. Catatan: fix CRIT-03 bersifat minimal (gated reset + audit log, **tanpa RowVersion**) sehingga masih ada residual race kecil untuk skenario spesifik "coach resubmit progress yg baru saja di-Reject bersamaan dengan reviewer yg sedang approve entry stale" — full optimistic locking via RowVersion adalah follow-up optional.
+
 ## Executive Summary
 
 - **Total findings: 21** — Critical: 3, High: 7, Medium: 8, Low: 3
@@ -20,6 +22,7 @@
 ## Findings
 
 ### [CRIT-01] Shared EvidencePath antar progress di bulk submit
+- **Status:** ✅ FIXED 2026-04-09 (buffer file sekali ke memory, tulis satu file per progress folder — lihat `Controllers/CDPController.cs:2169-2235`)
 - **Severity:** Critical
 - **Category:** Logic / Data Integrity
 - **File:** `Controllers/CDPController.cs:2172-2214`
@@ -65,6 +68,7 @@
 ---
 
 ### [CRIT-03] Silent approval reset (lost update) saat resubmit
+- **Status:** ✅ FIXED 2026-04-09 (minimal — gated reset + history log, no RowVersion)
 - **Severity:** Critical
 - **Category:** Concurrency / Data Integrity
 - **File:** `Controllers/CDPController.cs:2199-2207`
@@ -90,6 +94,7 @@
 ---
 
 ### [HIGH-01] Race condition file overwrite (timestamp collision)
+- **Status:** ✅ FIXED 2026-04-09 (timestamp ms + short GUID di FileUploadHelper dan inline SubmitEvidenceWithCoaching)
 - **Severity:** High
 - **Category:** Concurrency
 - **File:** `Controllers/CDPController.cs:2173-2178`
@@ -101,6 +106,7 @@
 ---
 
 ### [HIGH-02] CoachCoacheeMappingAssign tidak transactional
+- **Status:** ✅ FIXED 2026-04-09 (CoachCoacheeMappingAssign kini dibungkus BeginTransactionAsync — partial failure rollback atomic)
 - **Severity:** High
 - **Category:** Logic / Data Integrity
 - **File:** `Controllers/CoachMappingController.cs:515-572`
@@ -110,6 +116,7 @@
 ---
 
 ### [HIGH-03] Phase 129 unit-change rebuild tidak transactional
+- **Status:** ✅ FIXED (ditutup oleh CRIT-02 — transaction wrap di CoachCoacheeMappingEdit)
 - **Severity:** High
 - **Category:** Logic / Data Integrity
 - **File:** `Controllers/CoachMappingController.cs:678-705`
@@ -121,6 +128,7 @@
 ---
 
 ### [HIGH-04] Reactivasi mapping via Excel Import tidak reactivate ProtonTrackAssignment
+- **Status:** ✅ FIXED 2026-04-09 (ImportCoachCoacheeMapping kini ikut mereaktivasi last ProtonTrackAssignment per coachee di dalam transaction)
 - **Severity:** High
 - **Category:** Logic
 - **File:** `Controllers/CoachMappingController.cs:330-345`
@@ -132,6 +140,7 @@
 ---
 
 ### [HIGH-05] Bulk submit lintas coachee sharing evidencePath
+- **Status:** ✅ FIXED 2026-04-09 (server-side guard coacheeIds.Count > 1)
 - **Severity:** High
 - **Category:** Logic
 - **File:** `Controllers/CDPController.cs:2148-2184`
@@ -146,10 +155,12 @@
 - **File:** `Controllers/CDPController.cs:2346-2375`
 - **Description:** Menghapus session + ActionItems, tetapi `ProtonDeliverableProgress.Status` tetap `Submitted/Approved` dan `EvidencePath` tetap menunjuk ke file. Jika ini satu-satunya sesi → progress kehilangan konteks coaching tetapi tetap tampak "sudah upload". File fisik juga tidak dihapus → leak storage.
 - **Recommendation:** Hapus juga file via `System.IO.File.Delete(...)`, dan jika ini sesi terakhir untuk progress, set status kembali ke `Pending` + reset approval kolom (dengan log).
+- **Status:** ✅ FIXED 2026-04-09 (DeleteCoachingSession sekarang cleanup file fisik + revert progress state saat session terakhir, skip jika Approved)
 
 ---
 
 ### [HIGH-07] ExportProgressExcel/Pdf — N+1 & scoping tidak konsisten dengan AssignmentSection
+- **Status:** ✅ FIXED 2026-04-09 (Coach ditambahkan ke Authorize PDF; scope check direfactor ke helper CanExportCoacheeProgressAsync — Coach pakai mapping aktif, SectionScoped pakai AssignmentSection mapping)
 - **Severity:** High
 - **Category:** Security / Performance
 - **File:** `Controllers/CDPController.cs:2381-2443`, `2447-2542`
@@ -207,6 +218,7 @@
 ---
 
 ### [MED-06] ApprovalStatus reset bahkan saat status Pending (bukan resubmit)
+- **Status:** ✅ FIXED 2026-04-09 (ditutup oleh fix CRIT-03)
 - **Severity:** Medium
 - **Category:** Logic
 - **File:** `Controllers/CDPController.cs:2199-2207`
