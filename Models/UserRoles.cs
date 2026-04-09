@@ -27,6 +27,11 @@ namespace HcPortal.Models
         // Level 6 - Operational
         public const string Coachee = "Coachee";
 
+        // LOW-01 fix: Authorize role combo constants — menghilangkan hardcoded string di [Authorize]
+        // sehingga typo "Sr Supervisor" vs "SrSpv" terdeteksi saat compile.
+        public const string RolesCoachAndAbove = Coach + ", " + SrSupervisor + ", " + SectionHead + ", " + HC + ", " + Admin;
+        public const string RolesReviewerAndAbove = SrSupervisor + ", " + SectionHead + ", " + HC + ", " + Admin;
+
         /// <summary>
         /// Get all roles as list
         /// </summary>

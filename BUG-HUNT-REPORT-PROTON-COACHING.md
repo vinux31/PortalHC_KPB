@@ -253,6 +253,7 @@
 ---
 
 ### [LOW-01] Naming inconsistency `Sr Supervisor` vs `SrSpv`
+- **Status:** ✅ FIXED 2026-04-09 (role combo constants `UserRoles.RolesCoachAndAbove` & `RolesReviewerAndAbove`; [Authorize] di CDPController sekarang pakai const, typo terdeteksi compile-time)
 - **Severity:** Low
 - **Category:** Maintainability
 - **File:** `Controllers/CDPController.cs:2380, 2446`

@@ -2546,7 +2546,7 @@ namespace HcPortal.Controllers
         // ===== Phase 65-03: Export endpoints =====
 
         [HttpGet]
-        [Authorize(Roles = "Coach, Sr Supervisor, Section Head, HC, Admin")]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> ExportProgressExcel(string coacheeId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -2608,7 +2608,7 @@ namespace HcPortal.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Coach, Sr Supervisor, Section Head, HC, Admin")]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> ExportProgressPdf(string coacheeId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -3214,7 +3214,7 @@ namespace HcPortal.Controllers
 
         // GET /CDP/ExportHistoriProton
         [HttpGet]
-        [Authorize(Roles = "Sr Supervisor, Section Head, HC, Admin")]
+        [Authorize(Roles = UserRoles.RolesReviewerAndAbove)]
         public async Task<IActionResult> ExportHistoriProton(
             string? search, string? section, string? unit, string? jalur, string? status)
         {
@@ -3986,7 +3986,7 @@ namespace HcPortal.Controllers
 
         // GET /CDP/ExportCoachingTracking
         [HttpGet]
-        [Authorize(Roles = "Coach, Sr Supervisor, Section Head, HC, Admin")]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> ExportCoachingTracking(
             string? coacheeId, string? bagian, string? unit, string? trackType, string? tahun)
         {
