@@ -3091,6 +3091,32 @@ namespace HcPortal.Controllers
         }
 
         // ============================================================
+        // Cascade helpers for CertificationManagement filters
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> GetCascadeOptions(string? section)
+        {
+            var units = string.IsNullOrEmpty(section) ? new List<string>() : await _context.GetUnitsForSectionAsync(section);
+            return Json(new { units });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSubCategories(string? category)
+        {
+            if (string.IsNullOrEmpty(category))
+                return Json(new List<string>());
+
+            var subCategories = await _context.AssessmentCategories
+                .Where(c => c.ParentId != null && c.Parent!.Name == category && c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .Select(c => c.Name)
+                .ToListAsync();
+
+            return Json(subCategories);
+        }
+
+        // ============================================================
         // CertificationManagement — dipindah dari CDPController
         // ============================================================
 
