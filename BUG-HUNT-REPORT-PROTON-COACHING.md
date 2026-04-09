@@ -182,6 +182,7 @@
 ---
 
 ### [MED-02] Acuan & CatatanCoach tanpa max length
+- **Status:** ✅ FIXED 2026-04-09 (validasi panjang server-side di SubmitEvidenceWithCoaching & EditCoachingSession: CatatanCoach ≤ 4000, Acuan ≤ 2000, Kesimpulan/Result ≤ 100)
 - **Severity:** Medium
 - **Category:** UX / DoS
 - **File:** `Models/CoachingSession.cs:12-18`
@@ -191,6 +192,7 @@
 ---
 
 ### [MED-03] `Date` parameter CoachingSession tanpa bound
+- **Status:** ✅ FIXED 2026-04-09 (date dibatasi `today.AddYears(-2) ≤ date ≤ today.AddDays(1)` di SubmitEvidenceWithCoaching)
 - **Severity:** Medium
 - **Category:** UX / Validasi
 - **File:** `Controllers/CDPController.cs:2102, 2221`
@@ -255,6 +257,7 @@
 ---
 
 ### [LOW-02] ExportProgressPdf tidak mengizinkan Coach
+- **Status:** ✅ FIXED 2026-04-09 (ditutup oleh fix HIGH-07 — Coach ditambahkan ke Authorize list ExportProgressPdf)
 - **Severity:** Low
 - **Category:** UX
 - **File:** `Controllers/CDPController.cs:2446`

@@ -2166,6 +2166,23 @@ namespace HcPortal.Controllers
             if (progresses.Any(p => p.Status != "Pending" && p.Status != "Rejected"))
                 return Json(new { success = false, message = "Hanya deliverable berstatus Pending atau Rejected yang dapat disubmit." });
 
+            // MED-03 fix: bound Date agar tidak bisa masa depan jauh / masa lalu absurd.
+            var today = DateTime.Today;
+            if (date.Date > today.AddDays(1) || date.Date < today.AddYears(-2))
+                return Json(new { success = false, message = "Tanggal coaching tidak valid (maksimal H+1 dari hari ini, minimal 2 tahun ke belakang)." });
+
+            // MED-02 fix: batasi panjang input free-text untuk cegah DB bloat & export lambat.
+            const int MaxCatatan = 4000;
+            const int MaxAcuan = 2000;
+            const int MaxShort = 100;
+            if ((catatanCoach?.Length ?? 0) > MaxCatatan)
+                return Json(new { success = false, message = $"Catatan Coach melebihi {MaxCatatan} karakter." });
+            if ((kesimpulan?.Length ?? 0) > MaxShort || (result?.Length ?? 0) > MaxShort)
+                return Json(new { success = false, message = $"Kesimpulan/Result melebihi {MaxShort} karakter." });
+            if ((acuanPedoman?.Length ?? 0) > MaxAcuan || (acuanTko?.Length ?? 0) > MaxAcuan ||
+                (acuanBestPractice?.Length ?? 0) > MaxAcuan || (acuanDokumen?.Length ?? 0) > MaxAcuan)
+                return Json(new { success = false, message = $"Field Acuan melebihi {MaxAcuan} karakter." });
+
             // Handle optional file upload — CRIT-01 fix: store one physical copy per progressId
             // so that lifecycle of each file is bound to its own progress folder.
             byte[]? evidenceBytes = null;
@@ -2350,6 +2367,12 @@ namespace HcPortal.Controllers
             if (session == null) return NotFound();
             bool isHcOrAdmin = User.IsInRole("HC") || User.IsInRole("Admin");
             if (!isHcOrAdmin && session.CoachId != user.Id) return Forbid();
+            // MED-02 fix: batasi panjang input free-text
+            if ((catatanCoach?.Length ?? 0) > 4000 || (kesimpulan?.Length ?? 0) > 100 || (result?.Length ?? 0) > 100)
+            {
+                TempData["Error"] = "Input melebihi batas panjang (Catatan 4000, Kesimpulan/Result 100).";
+                return RedirectToAction("Deliverable", new { id = session.ProtonDeliverableProgressId });
+            }
             session.CatatanCoach = catatanCoach;
             session.Kesimpulan = kesimpulan;
             session.Result = result;
