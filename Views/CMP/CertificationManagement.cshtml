@@ -1,0 +1,394 @@
+@model HcPortal.Models.CertificationManagementViewModel
+@{
+    ViewData["Title"] = "Certification Management";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index" asp-controller="CMP">CMP</a></li>
+            <li class="breadcrumb-item active">Certification Management</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-patch-check me-2 text-success"></i>Certification Management
+            </h2>
+            <p class="text-muted mb-0">Daftar semua sertifikat pelatihan dan asesmen pekerja</p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+            {
+                <a id="btn-export" href="#" class="btn btn-outline-success" onclick="exportExcel(event)">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                </a>
+            }
+            <a asp-controller="CMP" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke CMP
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards — hanya untuk L1-4 -->
+    @if (Model.RoleLevel <= 4)
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-total" class="fs-2 fw-bold text-primary">@Model.TotalCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-award me-1"></i>Total Sertifikat
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-aktif" class="fs-2 fw-bold text-success">@Model.AktifCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-check-circle me-1"></i>Aktif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-akan-expired" class="fs-2 fw-bold text-warning">@Model.AkanExpiredCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Akan Expired
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-expired" class="fs-2 fw-bold text-danger">@Model.ExpiredCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-x-circle me-1"></i>Expired
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Filter Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Bagian</label>
+                    <select id="filter-bagian" class="form-select form-select-sm" @(Model.RoleLevel >= 4 ? "disabled" : "")>
+                        @if (Model.RoleLevel == 4)
+                        {
+                            <option value="@ViewBag.UserBagian" selected>@ViewBag.UserBagian</option>
+                        }
+                        else if (Model.RoleLevel <= 3)
+                        {
+                            <option value="">Semua Bagian</option>
+                            @foreach (var s in (List<string>)ViewBag.AllBagian)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                        else
+                        {
+                            <option value="">Semua Bagian</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Unit</label>
+                    <select id="filter-unit" class="form-select form-select-sm" @(Model.RoleLevel >= 5 ? "disabled" : "") disabled>
+                        <option value="">Semua Unit</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Status</label>
+                    <select id="filter-status" class="form-select form-select-sm">
+                        <option value="">Semua Status</option>
+                        <option value="Aktif">Aktif</option>
+                        <option value="AkanExpired">Akan Expired</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Permanent">Permanent</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Kategori</label>
+                    <select id="filter-category" class="form-select form-select-sm">
+                        <option value="">Semua Kategori</option>
+                        @foreach (var cat in (List<string>)ViewBag.AllCategories)
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Sub Kategori</label>
+                    <select id="filter-subcategory" class="form-select form-select-sm" disabled>
+                        <option value="">Semua Sub Kategori</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button id="btn-reset" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="toggle-renewed" role="switch">
+                        <label class="form-check-label small" for="toggle-renewed">Tampilkan Riwayat Renewal</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div id="cert-table-container" class="card border-0 shadow-sm">
+        @await Html.PartialAsync("Shared/_CertificationManagementTablePartial", Model)
+    </div>
+
+</div>
+
+<!-- Certificate History Modal -->
+<div class="modal fade" id="certificateHistoryModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historyModalLabel">
+                    <i class="bi bi-clock-history me-2"></i>Riwayat Sertifikat — <span id="history-modal-worker-name"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body" id="history-modal-body" style="max-height: 70vh; overflow-y: auto;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-loading { opacity: 0.5; pointer-events: none; position: relative; }
+    .dashboard-loading::after {
+        content: '';
+        position: absolute; top: 50%; left: 50%;
+        width: 2rem; height: 2rem;
+        margin: -1rem 0 0 -1rem;
+        border: 3px solid var(--bs-border-color); border-top-color: var(--bs-primary);
+        border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function () {
+    var bagianEl = document.getElementById('filter-bagian');
+    var unitEl = document.getElementById('filter-unit');
+    var statusEl = document.getElementById('filter-status');
+    var categoryEl = document.getElementById('filter-category');
+    var subCategoryEl = document.getElementById('filter-subcategory');
+    var resetBtn = document.getElementById('btn-reset');
+    var container = document.getElementById('cert-table-container');
+    var certAbort = null;
+    var roleLevel = @Model.RoleLevel;
+    var toggleRenewed = document.getElementById('toggle-renewed');
+
+    function applyRenewedToggle() {
+        if (!toggleRenewed) return;
+        var checked = toggleRenewed.checked;
+        container.querySelectorAll('.renewed-row').forEach(function(row) {
+            row.style.display = checked ? '' : 'none';
+            row.style.opacity = checked ? '0.5' : '';
+        });
+    }
+
+    toggleRenewed.addEventListener('change', applyRenewedToggle);
+
+    // Cascade: Bagian -> Unit
+    bagianEl.addEventListener('change', function () {
+        var section = bagianEl.value;
+        unitEl.innerHTML = '<option value="">Semua Unit</option>';
+        if (!section) {
+            unitEl.disabled = true;
+            refreshTable();
+            return;
+        }
+        fetch(appUrl('/CMP/GetCascadeOptions?section=' + encodeURIComponent(section)))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.units.forEach(function (u) {
+                    var opt = document.createElement('option');
+                    opt.value = u;
+                    opt.textContent = u;
+                    unitEl.appendChild(opt);
+                });
+                unitEl.disabled = false;
+                refreshTable();
+            });
+    });
+
+    // Cascade: Category -> Sub-Category
+    categoryEl.addEventListener('change', function () {
+        var cat = categoryEl.value;
+        subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
+        subCategoryEl.disabled = true;
+        if (!cat) { refreshTable(); return; }
+        fetch(appUrl('/CMP/GetSubCategories?category=' + encodeURIComponent(cat)))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.forEach(function (sc) {
+                    var opt = document.createElement('option');
+                    opt.value = sc; opt.textContent = sc;
+                    subCategoryEl.appendChild(opt);
+                });
+                if (data.length > 0) subCategoryEl.disabled = false;
+                refreshTable();
+            });
+    });
+    subCategoryEl.addEventListener('change', refreshTable);
+
+    // Filter change events
+    unitEl.addEventListener('change', refreshTable);
+    statusEl.addEventListener('change', refreshTable);
+
+    // Reset
+    resetBtn.addEventListener('click', function () {
+        if (roleLevel <= 3) {
+            bagianEl.value = '';
+            unitEl.innerHTML = '<option value="">Semua Unit</option>';
+            unitEl.disabled = true;
+        }
+        // L4: keep bagian pre-filled, reset unit selection only
+        if (roleLevel === 4) {
+            unitEl.value = '';
+        }
+        statusEl.value = '';
+        categoryEl.value = '';
+        subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
+        subCategoryEl.disabled = true;
+        toggleRenewed.checked = false;
+        refreshTable();
+    });
+
+    function refreshTable(page) {
+        if (typeof page !== 'number') page = 1;
+        container.classList.add('dashboard-loading');
+
+        var params = new URLSearchParams();
+        params.set('page', page.toString());
+        if (bagianEl.value) params.set('bagian', bagianEl.value);
+        if (unitEl.value) params.set('unit', unitEl.value);
+        if (statusEl.value) params.set('status', statusEl.value);
+        if (categoryEl.value) params.set('category', categoryEl.value);
+        if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
+
+        if (certAbort) certAbort.abort();
+        certAbort = new AbortController();
+
+        fetch(appUrl('/CMP/FilterCertificationManagement?' + params), { signal: certAbort.signal })
+            .then(function (resp) { return resp.text(); })
+            .then(function (html) {
+                container.innerHTML = html;
+                wirePagination();
+                updateSummaryCards();
+                applyRenewedToggle();
+                container.classList.remove('dashboard-loading');
+            })
+            .catch(function (e) {
+                if (e.name !== 'AbortError') {
+                    console.error(e);
+                    container.classList.remove('dashboard-loading');
+                }
+            });
+    }
+
+    function wirePagination() {
+        container.querySelectorAll('a[data-page]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var p = parseInt(this.dataset.page);
+                if (p >= 1) refreshTable(p);
+            });
+        });
+    }
+
+    function updateSummaryCards() {
+        var content = container.querySelector('#cert-table-content');
+        if (!content) return;
+        var el;
+        el = document.getElementById('count-total');
+        if (el) el.textContent = content.dataset.total;
+        el = document.getElementById('count-aktif');
+        if (el) el.textContent = content.dataset.aktif;
+        el = document.getElementById('count-akan-expired');
+        if (el) el.textContent = content.dataset.akanExpired;
+        el = document.getElementById('count-expired');
+        if (el) el.textContent = content.dataset.expired;
+    }
+
+    // Wire pagination on initial load too
+    wirePagination();
+
+    // Certificate History Modal
+    function openHistoryModal(workerId, workerName, mode) {
+        var modalBody = document.getElementById('history-modal-body');
+        document.getElementById('history-modal-worker-name').textContent = workerName;
+        modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Memuat...</span></div><p class="mt-2 text-muted">Memuat riwayat sertifikat...</p></div>';
+        var modal = new bootstrap.Modal(document.getElementById('certificateHistoryModal'));
+        modal.show();
+        fetch(appUrl('/Admin/CertificateHistory?workerId=' + encodeURIComponent(workerId) + '&mode=' + mode))
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(function(html) { modalBody.innerHTML = html; })
+            .catch(function(e) {
+                modalBody.innerHTML = '<div class="alert alert-danger mx-3 mt-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>Gagal memuat riwayat sertifikat. Periksa koneksi lalu coba lagi.</div>';
+            });
+    }
+    window.openHistoryModal = openHistoryModal;
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-history');
+        if (!btn) return;
+        e.preventDefault();
+        openHistoryModal(btn.dataset.workerId, btn.dataset.workerName, btn.dataset.mode || 'readonly');
+    });
+
+    // L4: auto-load units karena Bagian sudah pre-filled
+    if (roleLevel === 4 && bagianEl.value) {
+        fetch(appUrl('/CMP/GetCascadeOptions?section=' + encodeURIComponent(bagianEl.value)))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.units.forEach(function (u) {
+                    var opt = document.createElement('option');
+                    opt.value = u; opt.textContent = u;
+                    unitEl.appendChild(opt);
+                });
+                unitEl.disabled = false;
+            });
+    }
+
+    // L5/L6: pastikan Bagian dan Unit tetap disabled
+    if (roleLevel >= 5) {
+        bagianEl.disabled = true;
+        unitEl.disabled = true;
+    }
+
+    function exportExcel(e) {
+        e.preventDefault();
+        var params = new URLSearchParams();
+        if (bagianEl.value) params.set('bagian', bagianEl.value);
+        if (unitEl.value) params.set('unit', unitEl.value);
+        if (statusEl.value) params.set('status', statusEl.value);
+        if (categoryEl.value) params.set('category', categoryEl.value);
+        if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
+        window.location.href = appUrl('/CMP/ExportSertifikatExcel?' + params.toString());
+    }
+    window.exportExcel = exportExcel;
+})();
+</script>
