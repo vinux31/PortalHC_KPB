@@ -2316,14 +2316,15 @@ namespace HcPortal.Controllers
                         .Select(p => p.ProtonDeliverable?.NamaDeliverable ?? $"#{p.Id}")
                         .ToList();
 
-                    var mapping = await _context.CoachCoacheeMappings
-                        .FirstOrDefaultAsync(m => m.CoacheeId == cid && m.IsActive);
-                    if (mapping == null) continue;
-
-                    var reviewerIds = await _context.Users
-                        .Where(u => u.IsActive && u.Section == mapping.AssignmentSection && u.RoleLevel == 4)
-                        .Select(u => u.Id)
-                        .ToListAsync();
+                    // MED-05 consistency: single LINQ Join (sama seperti NotifyReviewersAsync)
+                    var reviewerIds = await (
+                        from m in _context.CoachCoacheeMappings
+                        where m.CoacheeId == cid && m.IsActive
+                        join u in _context.Users on m.AssignmentSection equals u.Section
+                        where u.IsActive && u.RoleLevel == 4
+                        select u.Id
+                    ).Distinct().ToListAsync();
+                    if (reviewerIds.Count == 0) continue;
 
                     foreach (var reviewerId in reviewerIds)
                     {
@@ -2423,6 +2424,17 @@ namespace HcPortal.Controllers
             if (session == null) return NotFound();
             bool isHcOrAdmin = User.IsInRole("HC") || User.IsInRole("Admin");
             if (!isHcOrAdmin && session.CoachId != user.Id) return Forbid();
+            // MED-08 consistency: same active mapping guard as EditCoachingSession
+            if (!isHcOrAdmin)
+            {
+                bool stillMapped = await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == session.CoacheeId && m.IsActive);
+                if (!stillMapped)
+                {
+                    TempData["Error"] = "Mapping Anda dengan coachee ini sudah tidak aktif — hapus session tidak diizinkan. Hubungi HC.";
+                    return RedirectToAction("Deliverable", new { id = session.ProtonDeliverableProgressId });
+                }
+            }
             var progressId = session.ProtonDeliverableProgressId;
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
