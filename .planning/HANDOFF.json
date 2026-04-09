@@ -1,25 +1,38 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-07T08:42:36.501Z",
-  "phase": "301",
-  "phase_name": "advanced-reporting",
-  "phase_dir": ".planning/phases/301-advanced-reporting",
-  "plan": null,
-  "task": null,
+  "timestamp": "2026-04-09T07:43:00.408Z",
+  "phase": "204",
+  "phase_name": "cdp-certification-management-enhancement",
+  "phase_dir": ".planning/phases/204-cdp-certification-management-enhancement",
+  "plan": 1,
+  "task": 0,
   "total_tasks": 0,
   "status": "paused",
-  "completed_tasks": [],
-  "remaining_tasks": [],
+  "workflow": "gsd-ui-review",
+  "completed_tasks": [
+    {"id": 1, "name": "Initialize GSD workflow", "status": "done"},
+    {"id": 2, "name": "Start dotnet app on localhost:5277", "status": "done"},
+    {"id": 3, "name": "Navigate Playwright to login page", "status": "done"},
+    {"id": 4, "name": "Fill login credentials", "status": "done"}
+  ],
+  "remaining_tasks": [
+    {"id": 5, "name": "Click MASUK and login", "status": "not_started"},
+    {"id": 6, "name": "Navigate to /CDP/CertificationManagement", "status": "not_started"},
+    {"id": 7, "name": "Take screenshots and snapshots", "status": "not_started"},
+    {"id": 8, "name": "Spawn gsd-ui-auditor agent", "status": "not_started"},
+    {"id": 9, "name": "Display score summary and commit", "status": "not_started"}
+  ],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "UI-SPEC approved with 6/6 dimensions passed", "rationale": "Typography reduced to 2 weights (400/600), focal points added for both main screens", "phase": "301"},
-    {"decision": "Research completed with HIGH confidence", "rationale": "All libraries existing, 4 new endpoints needed, tab conversion required for AnalyticsDashboard", "phase": "301"}
+    {"decision": "Login as HC user (meylisa.tjiang@pertamina.com)", "rationale": "HC role has access to CertificationManagement page", "phase": "204"}
   ],
   "uncommitted_files": [
-    ".planning/phases/301-advanced-reporting/301-RESEARCH.md",
-    ".planning/STATE.md"
+    "Controllers/CMPController.cs",
+    "Migrations/ApplicationDbContextModelSnapshot.cs",
+    "Models/MaintenanceMode.cs",
+    "Models/UserRoles.cs"
   ],
-  "next_action": "Commit RESEARCH.md, run validation strategy (step 5.5), then spawn gsd-planner for Phase 301",
-  "context_notes": "Mid plan-phase workflow. UI-SPEC done and committed. Research just completed. Next steps: validation strategy creation, security threat model gate, then spawn planner. Phase req IDs: RPT-01 through RPT-07."
+  "next_action": "Jalankan ulang /gsd-ui-review http://localhost:5277/CDP/CertificationManagement",
+  "context_notes": "UI review workflow sedang berjalan. Playwright sudah di login page dengan credentials terisi. Tinggal klik login, navigasi, screenshot, lalu spawn auditor."
 }
