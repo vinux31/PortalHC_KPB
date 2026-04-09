@@ -65,7 +65,29 @@ namespace HcPortal.Middleware
 
             // 6. Check maintenance state (cached 5 min)
             var maintenance = await GetCachedState(cache, db);
-            if (maintenance == null || !maintenance.IsEnabled)
+            if (maintenance == null)
+            {
+                await _next(context);
+                return;
+            }
+
+            // Determine effective enabled state based on schedule
+            var now = DateTime.UtcNow;
+            bool effectivelyEnabled = maintenance.IsEnabled;
+
+            if (maintenance.ScheduledStartTime.HasValue && maintenance.ScheduledEndTime.HasValue)
+            {
+                // Full schedule: auto-activate during window
+                effectivelyEnabled = now >= maintenance.ScheduledStartTime.Value && now < maintenance.ScheduledEndTime.Value;
+            }
+            else if (maintenance.ScheduledEndTime.HasValue && maintenance.IsEnabled)
+            {
+                // Only end time: auto-deactivate after end
+                if (now >= maintenance.ScheduledEndTime.Value)
+                    effectivelyEnabled = false;
+            }
+
+            if (!effectivelyEnabled)
             {
                 await _next(context);
                 return;
