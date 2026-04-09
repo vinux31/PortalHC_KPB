@@ -1,37 +1,25 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-09T09:16:19.437Z",
-  "phase": "none",
-  "phase_name": "ad-hoc-profile-settings-impersonate",
-  "phase_dir": "",
-  "plan": 0,
-  "task": 2,
-  "total_tasks": 3,
+  "timestamp": "2026-04-07T08:42:36.501Z",
+  "phase": "301",
+  "phase_name": "advanced-reporting",
+  "phase_dir": ".planning/phases/301-advanced-reporting",
+  "plan": null,
+  "task": null,
+  "total_tasks": 0,
   "status": "paused",
-  "completed_tasks": [
-    {"id": 1, "name": "Tambah RoleLevel dan Preview P-Sign ke Profile page", "status": "done", "commit": "uncommitted"},
-    {"id": 2, "name": "Hapus bagian Ubah Password dari Settings page", "status": "done", "commit": "uncommitted"}
-  ],
-  "remaining_tasks": [
-    {"id": 3, "name": "Implementasi 3 controller actions untuk fitur Impersonate (StartImpersonation, StopImpersonation, SearchUsersApi)", "status": "not_started"}
-  ],
+  "completed_tasks": [],
+  "remaining_tasks": [],
   "blockers": [],
-  "human_actions_pending": [
-    {"action": "Restart app (HcPortal.exe locked) untuk verifikasi visual", "context": "dotnet build gagal copy exe karena app sedang jalan", "blocking": false}
-  ],
+  "human_actions_pending": [],
   "decisions": [
-    {"decision": "Tambah RoleLevel dengan label deskriptif (Level 1-6)", "rationale": "Lebih informatif daripada angka saja", "phase": "ad-hoc"},
-    {"decision": "Reuse partial _PSign di Profile page", "rationale": "Konsisten dengan Settings page", "phase": "ad-hoc"},
-    {"decision": "Hapus ChangePasswordViewModel sepenuhnya", "rationale": "User tidak membutuhkan fitur ubah password", "phase": "ad-hoc"},
-    {"decision": "Hapus @inject IConfiguration dari Settings.cshtml", "rationale": "Hanya dipakai untuk cek UseActiveDirectory terkait password", "phase": "ad-hoc"}
+    {"decision": "UI-SPEC approved with 6/6 dimensions passed", "rationale": "Typography reduced to 2 weights (400/600), focal points added for both main screens", "phase": "301"},
+    {"decision": "Research completed with HIGH confidence", "rationale": "All libraries existing, 4 new endpoints needed, tab conversion required for AnalyticsDashboard", "phase": "301"}
   ],
   "uncommitted_files": [
-    "Controllers/AccountController.cs",
-    "Models/ProfileViewModel.cs",
-    "Models/SettingsViewModel.cs",
-    "Views/Account/Profile.cshtml",
-    "Views/Account/Settings.cshtml"
+    ".planning/phases/301-advanced-reporting/301-RESEARCH.md",
+    ".planning/STATE.md"
   ],
-  "next_action": "Commit perubahan Profile & Settings, lalu implementasi 3 action methods di AdminController untuk fitur Impersonate",
-  "context_notes": "Sesi ini: (1) Profile page ditambah RoleLevel + Preview P-Sign, (2) Settings page dihapus section Ubah Password + ChangePasswordViewModel + ChangePassword action. (3) Investigasi fitur Impersonate — infrastructure 85% selesai, tinggal 3 controller actions di AdminController."
+  "next_action": "Commit RESEARCH.md, run validation strategy (step 5.5), then spawn gsd-planner for Phase 301",
+  "context_notes": "Mid plan-phase workflow. UI-SPEC done and committed. Research just completed. Next steps: validation strategy creation, security threat model gate, then spawn planner. Phase req IDs: RPT-01 through RPT-07."
 }

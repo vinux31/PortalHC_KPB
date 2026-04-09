@@ -32,9 +32,6 @@ namespace HcPortal.Models
         public const string RolesCoachAndAbove = Coach + ", " + SrSupervisor + ", " + SectionHead + ", " + HC + ", " + Admin;
         public const string RolesReviewerAndAbove = SrSupervisor + ", " + SectionHead + ", " + HC + ", " + Admin;
 
-        // CMP Analytics: L1-L4 (Admin, HC, Management, Section)
-        public const string RolesAnalytics = Admin + ", " + HC + ", " + Direktur + ", " + VP + ", " + Manager + ", " + SectionHead + ", " + SrSupervisor;
-
         /// <summary>
         /// Get all roles as list
         /// </summary>

@@ -10,8 +10,7 @@ namespace HcPortal.Models
         [Required]
         public string Message { get; set; } = "";
 
-        public DateTime? ScheduledStartTime { get; set; }
-        public DateTime? ScheduledEndTime { get; set; }
+        public DateTime? EstimatedEndTime { get; set; }
 
         // "All" atau comma-separated module keys: "CMP,CDP,Proton,Admin,Home,Account"
         public string Scope { get; set; } = "All";

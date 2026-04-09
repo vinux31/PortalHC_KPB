@@ -979,18 +979,15 @@ namespace HcPortal.Migrations
                     b.Property<DateTime?>("DeactivatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("EstimatedEndTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("bit");
 
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ScheduledEndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ScheduledStartTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Scope")
                         .IsRequired()

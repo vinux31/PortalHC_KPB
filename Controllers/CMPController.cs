@@ -473,8 +473,8 @@ namespace HcPortal.Controllers
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
-            // Phase 104: Get worker list for Team View tab (L1-L5: Admin, HC, Management, Section, Coach)
-            if (roleLevel <= 5)
+            // Phase 104: Get worker list for Team View tab (only for users level 1-4)
+            if (roleLevel <= 4)
             {
                 // Scope enforcement: Level 4 (SectionHead, SrSupervisor) locked to their own section
                 string? sectionFilter = null;
@@ -484,17 +484,6 @@ namespace HcPortal.Controllers
                 }
 
                 var workerList = await _workerDataService.GetWorkersInSection(sectionFilter);
-
-                // Level 5 (Coach): filter hanya coachee yang di-mapping
-                if (roleLevel == 5)
-                {
-                    var coacheeIds = await _context.CoachCoacheeMappings
-                        .Where(m => m.CoachId == user.Id && m.IsActive)
-                        .Select(m => m.CoacheeId)
-                        .ToListAsync();
-                    workerList = workerList.Where(w => coacheeIds.Contains(w.WorkerId)).ToList();
-                }
-
                 ViewData["WorkerList"] = workerList;
 
                 // Phase 217: Set category data for Team View partial
@@ -529,15 +518,8 @@ namespace HcPortal.Controllers
             // Own records: always allowed
             if (workerId != user.Id)
             {
-                // Level 6 (Coachee): cannot view other workers
-                if (roleLevel >= 6) return Forbid();
-                // Level 5 (Coach): hanya bisa lihat coachee yang di-mapping
-                if (roleLevel == 5)
-                {
-                    var isCoachee = await _context.CoachCoacheeMappings
-                        .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == workerId && m.IsActive);
-                    if (!isCoachee) return Forbid();
-                }
+                // Level 5-6 (Coach, Coachee): cannot view other workers
+                if (roleLevel >= 5) return Forbid();
                 // Level 4 (SectionHead, SrSupervisor): section-scoped
                 if (roleLevel == 4)
                 {
@@ -647,7 +629,7 @@ namespace HcPortal.Controllers
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
 
-            if (roleLevel >= 6) return Forbid();
+            if (roleLevel >= 5) return Forbid();
 
             // Scope enforcement: Level 4 locked to their own section
             string? sectionFilter = section;
@@ -663,17 +645,6 @@ namespace HcPortal.Controllers
 
             // Get filtered worker IDs from GetWorkersInSection (with date range)
             var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, null, search, statusFilter, from, to);
-
-            // Level 5 (Coach): filter hanya coachee yang di-mapping
-            if (roleLevel == 5)
-            {
-                var coacheeIds = await _context.CoachCoacheeMappings
-                    .Where(m => m.CoachId == user.Id && m.IsActive)
-                    .Select(m => m.CoacheeId)
-                    .ToListAsync();
-                filteredWorkers = filteredWorkers.Where(w => coacheeIds.Contains(w.WorkerId)).ToList();
-            }
-
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
@@ -711,7 +682,7 @@ namespace HcPortal.Controllers
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
 
-            if (roleLevel >= 6) return Forbid();
+            if (roleLevel >= 5) return Forbid();
 
             // Scope enforcement: Level 4 locked to their own section
             string? sectionFilter = section;
@@ -727,17 +698,6 @@ namespace HcPortal.Controllers
 
             // Get filtered worker IDs from GetWorkersInSection (with date range)
             var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to);
-
-            // Level 5 (Coach): filter hanya coachee yang di-mapping
-            if (roleLevel == 5)
-            {
-                var coacheeIds = await _context.CoachCoacheeMappings
-                    .Where(m => m.CoachId == user.Id && m.IsActive)
-                    .Select(m => m.CoacheeId)
-                    .ToListAsync();
-                filteredWorkers = filteredWorkers.Where(w => coacheeIds.Contains(w.WorkerId)).ToList();
-            }
-
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
@@ -773,7 +733,7 @@ namespace HcPortal.Controllers
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
-            if (roleLevel >= 6) return Forbid();
+            if (roleLevel >= 5) return Forbid();
 
             // L4 section lock — enforce server-side
             string? sectionFilter = (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
@@ -784,16 +744,6 @@ namespace HcPortal.Controllers
 
             var workerList = await _workerDataService.GetWorkersInSection(
                 sectionFilter, unit, category, null, statusFilter, from, to);
-
-            // Level 5 (Coach): filter hanya coachee yang di-mapping
-            if (roleLevel == 5)
-            {
-                var coacheeIds = await _context.CoachCoacheeMappings
-                    .Where(m => m.CoachId == user.Id && m.IsActive)
-                    .Select(m => m.CoacheeId)
-                    .ToListAsync();
-                workerList = workerList.Where(w => coacheeIds.Contains(w.WorkerId)).ToList();
-            }
 
             return PartialView("_RecordsTeamBody", workerList);
         }
@@ -2424,7 +2374,7 @@ namespace HcPortal.Controllers
         // ============================================================
 
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> AnalyticsDashboard()
         {
             var vm = new AnalyticsDashboardViewModel
@@ -2440,7 +2390,7 @@ namespace HcPortal.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> GetAnalyticsData(
             string? bagian,
             string? unit,
@@ -2641,14 +2591,14 @@ namespace HcPortal.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> GetAnalyticsCascadeUnits(string bagian)
         {
             return Json(await _context.GetUnitsForSectionAsync(bagian));
         }
 
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> GetAnalyticsCascadeSubKategori(string kategori)
         {
             var subCategories = await _context.AssessmentCategories
@@ -2663,7 +2613,7 @@ namespace HcPortal.Controllers
         // GET /CMP/GetPrePostAssessmentList — daftar assessment PrePostTest untuk dropdown
         // ============================================================
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> GetPrePostAssessmentList(string? bagian, string? unit)
         {
             var query = _context.AssessmentSessions
@@ -2693,7 +2643,7 @@ namespace HcPortal.Controllers
         // GET /CMP/GetItemAnalysisData — item analysis per soal (p-value, D-index, distractor)
         // ============================================================
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> GetItemAnalysisData(int assessmentGroupId)
         {
             // Ambil semua sesi PreTest completed dalam group ini
@@ -2811,7 +2761,7 @@ namespace HcPortal.Controllers
         // GET /CMP/GetGainScoreData — gain score per pekerja, per elemen, group comparison
         // ============================================================
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> GetGainScoreData(int assessmentGroupId)
         {
             // Per Pekerja — pair Pre dan Post by UserId (D-07 view 1, RPT-04)
@@ -2908,7 +2858,7 @@ namespace HcPortal.Controllers
         // GET /CMP/ExportItemAnalysisExcel — export Item Analysis ke .xlsx (RPT-05, D-09, D-10)
         // ============================================================
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ExportItemAnalysisExcel(int assessmentGroupId)
         {
             var sessions = await _context.AssessmentSessions
@@ -3006,7 +2956,7 @@ namespace HcPortal.Controllers
         // GET /CMP/ExportGainScoreExcel — export Gain Score ke .xlsx (RPT-05, D-09, D-10)
         // ============================================================
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesAnalytics)]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ExportGainScoreExcel(int assessmentGroupId)
         {
             var preSessions = await _context.AssessmentSessions
@@ -3088,475 +3038,6 @@ namespace HcPortal.Controllers
 
             return ExcelExportHelper.ToFileResult(wb,
                 $"GainScore_{assessmentGroupId}_{DateTime.Now:yyyyMMdd}.xlsx", this);
-        }
-
-        // ============================================================
-        // Cascade helpers for CertificationManagement filters
-        // ============================================================
-
-        [HttpGet]
-        public async Task<IActionResult> GetCascadeOptions(string? section)
-        {
-            var units = string.IsNullOrEmpty(section) ? new List<string>() : await _context.GetUnitsForSectionAsync(section);
-            return Json(new { units });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetSubCategories(string? category)
-        {
-            if (string.IsNullOrEmpty(category))
-                return Json(new List<string>());
-
-            var subCategories = await _context.AssessmentCategories
-                .Where(c => c.ParentId != null && c.Parent!.Name == category && c.IsActive)
-                .OrderBy(c => c.SortOrder)
-                .Select(c => c.Name)
-                .ToListAsync();
-
-            return Json(subCategories);
-        }
-
-        // ============================================================
-        // CertificationManagement — dipindah dari CDPController
-        // ============================================================
-
-        public async Task<IActionResult> CertificationManagement(int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-
-            var groups = BuildSertifikatGroups(allRows);
-
-            var vm = BuildGroupViewModel(groups, roleLevel);
-
-            var paging = PaginationHelper.Calculate(groups.Count, page, vm.PageSize);
-            vm.Groups = groups.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
-
-            ViewBag.AllCategories = await _context.AssessmentCategories
-                .Where(c => c.ParentId == null && c.IsActive)
-                .OrderBy(c => c.SortOrder)
-                .Select(c => c.Name)
-                .ToListAsync();
-
-            return View(vm);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> FilterCertificationManagement(
-            string? category = null,
-            string? subCategory = null,
-            string? search = null,
-            int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-
-            var groups = BuildSertifikatGroups(allRows);
-
-            if (!string.IsNullOrEmpty(category))
-                groups = groups.Where(g => g.Kategori == category).ToList();
-            if (!string.IsNullOrEmpty(subCategory))
-                groups = groups.Where(g => g.SubKategori == subCategory).ToList();
-            if (!string.IsNullOrEmpty(search))
-                groups = groups.Where(g => g.Judul.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            var vm = BuildGroupViewModel(groups, roleLevel);
-
-            var paging = PaginationHelper.Calculate(groups.Count, page, vm.PageSize);
-            vm.Groups = groups.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
-
-            return PartialView("Shared/_SertifikatGroupTablePartial", vm);
-        }
-
-        public async Task<IActionResult> CertificationManagementDetail(string judul, int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-            var filtered = allRows.Where(r => r.Judul == judul).ToList();
-
-            var first = filtered.FirstOrDefault();
-            var vm = new SertifikatDetailViewModel
-            {
-                Judul = judul,
-                Kategori = first?.Kategori,
-                SubKategori = first?.SubKategori,
-                TotalCount = filtered.Count,
-                AktifCount = filtered.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = filtered.Count(r => r.Status == CertificateStatus.AkanExpired),
-                ExpiredCount = filtered.Count(r => r.Status == CertificateStatus.Expired),
-                PermanentCount = filtered.Count(r => r.Status == CertificateStatus.Permanent),
-                RoleLevel = roleLevel
-            };
-
-            var paging = PaginationHelper.Calculate(filtered.Count, page, vm.PageSize);
-            vm.Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
-
-            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
-            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
-            ViewBag.AllBagian = sectionUnitsDict.Keys.ToList();
-            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User.Section;
-
-            return View(vm);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> FilterCertificationManagementDetail(
-            string judul,
-            string? bagian = null,
-            string? unit = null,
-            string? status = null,
-            int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-            var filtered = allRows.Where(r => r.Judul == judul).ToList();
-
-            if (!string.IsNullOrEmpty(bagian))
-                filtered = filtered.Where(r => r.Bagian == bagian).ToList();
-            if (!string.IsNullOrEmpty(unit))
-                filtered = filtered.Where(r => r.Unit == unit).ToList();
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
-                filtered = filtered.Where(r => r.Status == st).ToList();
-
-            var pageSize = 20;
-            var paging = PaginationHelper.Calculate(filtered.Count, page, pageSize);
-
-            var vm = new CertificationManagementViewModel
-            {
-                Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList(),
-                TotalCount = filtered.Count,
-                AktifCount = filtered.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = filtered.Count(r => r.Status == CertificateStatus.AkanExpired),
-                ExpiredCount = filtered.Count(r => r.Status == CertificateStatus.Expired),
-                PermanentCount = filtered.Count(r => r.Status == CertificateStatus.Permanent),
-                CurrentPage = paging.CurrentPage,
-                TotalPages = paging.TotalPages,
-                PageSize = pageSize,
-                RoleLevel = roleLevel
-            };
-
-            return PartialView("Shared/_CertificationManagementTablePartial", vm);
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ExportSertifikatExcel(
-            string? category = null,
-            string? subCategory = null,
-            string? search = null)
-        {
-            var (allRows, _) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-
-            var groups = BuildSertifikatGroups(allRows);
-
-            if (!string.IsNullOrEmpty(category))
-                groups = groups.Where(g => g.Kategori == category).ToList();
-            if (!string.IsNullOrEmpty(subCategory))
-                groups = groups.Where(g => g.SubKategori == subCategory).ToList();
-            if (!string.IsNullOrEmpty(search))
-                groups = groups.Where(g => g.Judul.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            using var workbook = new XLWorkbook();
-            var ws = ExcelExportHelper.CreateSheet(workbook, "Sertifikat", new[]
-            {
-                "No", "Nama Sertifikat", "Kategori", "Sub Kategori", "Jumlah Worker"
-            });
-
-            for (int i = 0; i < groups.Count; i++)
-            {
-                var g = groups[i];
-                var row = i + 2;
-                ws.Cell(row, 1).Value = i + 1;
-                ws.Cell(row, 2).Value = g.Judul;
-                ws.Cell(row, 3).Value = g.Kategori ?? "";
-                ws.Cell(row, 4).Value = g.SubKategori ?? "";
-                ws.Cell(row, 5).Value = g.JumlahWorker;
-            }
-
-            var fileName = $"Sertifikat_Grouped_{DateTime.Now:yyyy-MM-dd}.xlsx";
-            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ExportSertifikatDetailExcel(
-            string judul,
-            string? bagian = null,
-            string? unit = null,
-            string? status = null)
-        {
-            var (allRows, _) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-            var filtered = allRows.Where(r => r.Judul == judul).ToList();
-
-            if (!string.IsNullOrEmpty(bagian))
-                filtered = filtered.Where(r => r.Bagian == bagian).ToList();
-            if (!string.IsNullOrEmpty(unit))
-                filtered = filtered.Where(r => r.Unit == unit).ToList();
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var stx))
-                filtered = filtered.Where(r => r.Status == stx).ToList();
-
-            using var workbook = new XLWorkbook();
-            var ws = ExcelExportHelper.CreateSheet(workbook, "Detail", new[]
-            {
-                "No", "Nama Worker", "Bagian", "Unit", "Tipe", "Status",
-                "Valid Until", "Nomor Sertifikat", "Sertifikat URL"
-            });
-
-            for (int i = 0; i < filtered.Count; i++)
-            {
-                var r = filtered[i];
-                var row = i + 2;
-                ws.Cell(row, 1).Value = i + 1;
-                ws.Cell(row, 2).Value = r.NamaWorker;
-                ws.Cell(row, 3).Value = r.Bagian ?? "";
-                ws.Cell(row, 4).Value = r.Unit ?? "";
-                ws.Cell(row, 5).Value = r.RecordType.ToString();
-                ws.Cell(row, 6).Value = r.Status.ToString();
-                ws.Cell(row, 7).Value = r.ValidUntil?.ToString("dd MMM yyyy") ?? "";
-                ws.Cell(row, 8).Value = r.NomorSertifikat ?? "";
-                ws.Cell(row, 9).Value = r.SertifikatUrl ?? "";
-            }
-
-            var safeJudul = string.Join("_", judul.Split(Path.GetInvalidFileNameChars()));
-            var fileName = $"Sertifikat_{safeJudul}_{DateTime.Now:yyyy-MM-dd}.xlsx";
-            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
-        }
-
-        private static List<SertifikatGroupRow> BuildSertifikatGroups(List<SertifikatRow> allRows)
-        {
-            return allRows
-                .GroupBy(r => r.Judul)
-                .Select(g => new SertifikatGroupRow
-                {
-                    Judul = g.Key,
-                    Kategori = g.First().Kategori,
-                    SubKategori = g.First().SubKategori,
-                    JumlahWorker = g.Select(r => r.WorkerId).Distinct().Count()
-                })
-                .OrderBy(g => g.Judul)
-                .ToList();
-        }
-
-        private static SertifikatGroupViewModel BuildGroupViewModel(List<SertifikatGroupRow> groups, int roleLevel)
-        {
-            return new SertifikatGroupViewModel
-            {
-                TotalCount = groups.Count,
-                MandatoryCount = groups.Count(g => string.Equals(g.Kategori, "Mandatory HSSE Training", StringComparison.OrdinalIgnoreCase)
-                                                 || string.Equals(g.Kategori, "MANDATORY", StringComparison.OrdinalIgnoreCase)),
-                NonMandatoryCount = groups.Count(g => string.Equals(g.Kategori, "NON MANDATORY", StringComparison.OrdinalIgnoreCase)),
-                OjtCount = groups.Count(g => string.Equals(g.Kategori, "OJT", StringComparison.OrdinalIgnoreCase)),
-                IhtCount = groups.Count(g => string.Equals(g.Kategori, "IHT", StringComparison.OrdinalIgnoreCase)),
-                RoleLevel = roleLevel
-            };
-        }
-
-        private static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
-        {
-            if (string.IsNullOrWhiteSpace(raw)) return "-";
-            var trimmed = raw.Trim();
-            if (rawToDisplayMap != null && rawToDisplayMap.TryGetValue(trimmed.ToUpperInvariant(), out var displayName))
-                return displayName;
-            return trimmed;
-        }
-
-        private async Task<(List<SertifikatRow> rows, int roleLevel)> BuildSertifikatRowsAsync(bool l5OwnDataOnly = false)
-        {
-            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
-
-            // Build scoped user ID list based on role level
-            List<string>? scopedUserIds;
-            if (UserRoles.HasFullAccess(roleLevel))
-            {
-                // L1-3: full access — no filter
-                scopedUserIds = null;
-            }
-            else if (UserRoles.HasSectionAccess(roleLevel))
-            {
-                // L4: see own section only
-                scopedUserIds = await _context.Users
-                    .Where(u => u.IsActive && u.Section == user.Section)
-                    .Select(u => u.Id)
-                    .ToListAsync();
-            }
-            else if (roleLevel == 5)
-            {
-                if (l5OwnDataOnly)
-                {
-                    scopedUserIds = new List<string> { user.Id };
-                }
-                else
-                {
-                    // L5: coach sees mapped coachees + own data
-                    var coacheeIds = await _context.CoachCoacheeMappings
-                        .Where(m => m.CoachId == user.Id && m.IsActive)
-                        .Select(m => m.CoacheeId)
-                        .ToListAsync();
-                    coacheeIds.Add(user.Id);
-                    scopedUserIds = coacheeIds;
-                }
-            }
-            else
-            {
-                // L6: own data only
-                scopedUserIds = new List<string> { user.Id };
-            }
-
-            // Query TrainingRecords with certificate
-            var trQuery = _context.TrainingRecords
-                .Include(t => t.User)
-                .Where(t => t.SertifikatUrl != null);
-            if (scopedUserIds != null)
-                trQuery = trQuery.Where(t => scopedUserIds.Contains(t.UserId));
-
-            var trainingAnon = await trQuery
-                .Select(t => new
-                {
-                    t.Id,
-                    UserId = t.User != null ? t.User.Id : "",
-                    NamaWorker = t.User != null ? t.User.FullName : "",
-                    Bagian = t.User != null ? t.User.Section : null,
-                    Unit = t.User != null ? t.User.Unit : null,
-                    Judul = t.Judul ?? "",
-                    t.Kategori,
-                    t.NomorSertifikat,
-                    TanggalTerbit = (DateTime?)t.Tanggal,
-                    t.ValidUntil,
-                    t.CertificateType,
-                    t.SertifikatUrl
-                })
-                .ToListAsync();
-
-            // ===== Renewal chain resolution: batch lookup =====
-            var renewedByAsSessionIds = await _context.AssessmentSessions
-                .Where(a => a.RenewsSessionId.HasValue && a.IsPassed == true)
-                .Select(a => a.RenewsSessionId!.Value)
-                .Distinct()
-                .ToListAsync();
-
-            var renewedByTrSessionIds = await _context.TrainingRecords
-                .Where(t => t.RenewsSessionId.HasValue)
-                .Select(t => t.RenewsSessionId!.Value)
-                .Distinct()
-                .ToListAsync();
-
-            var renewedByAsTrainingIds = await _context.AssessmentSessions
-                .Where(a => a.RenewsTrainingId.HasValue && a.IsPassed == true)
-                .Select(a => a.RenewsTrainingId!.Value)
-                .Distinct()
-                .ToListAsync();
-
-            var renewedByTrTrainingIds = await _context.TrainingRecords
-                .Where(t => t.RenewsTrainingId.HasValue)
-                .Select(t => t.RenewsTrainingId!.Value)
-                .Distinct()
-                .ToListAsync();
-
-            var renewedAssessmentSessionIds = new HashSet<int>(renewedByAsSessionIds);
-            renewedAssessmentSessionIds.UnionWith(renewedByTrSessionIds);
-
-            var renewedTrainingRecordIds = new HashSet<int>(renewedByAsTrainingIds);
-            renewedTrainingRecordIds.UnionWith(renewedByTrTrainingIds);
-
-            // Build rawToDisplayMap for MapKategori
-            var allCatsForMap = await _context.AssessmentCategories
-                .Where(c => c.IsActive && c.ParentId == null)
-                .Select(c => new { c.Name })
-                .ToListAsync();
-            var rawToDisplayMap = allCatsForMap
-                .GroupBy(c => c.Name.ToUpperInvariant())
-                .ToDictionary(g => g.Key, g => g.First().Name);
-            if (!rawToDisplayMap.ContainsKey("MANDATORY"))
-                rawToDisplayMap["MANDATORY"] = "Mandatory HSSE Training";
-            if (!rawToDisplayMap.ContainsKey("PROTON"))
-                rawToDisplayMap["PROTON"] = "Assessment Proton";
-
-            var trainingRows = trainingAnon.Select(t => new SertifikatRow
-            {
-                SourceId = t.Id,
-                RecordType = RecordType.Training,
-                WorkerId = t.UserId,
-                NamaWorker = t.NamaWorker,
-                Bagian = t.Bagian,
-                Unit = t.Unit,
-                Judul = t.Judul,
-                Kategori = MapKategori(t.Kategori, rawToDisplayMap),
-                SubKategori = null,
-                NomorSertifikat = t.NomorSertifikat,
-                TanggalTerbit = t.TanggalTerbit,
-                ValidUntil = t.ValidUntil,
-                Status = SertifikatRow.DeriveCertificateStatus(t.ValidUntil, t.CertificateType),
-                SertifikatUrl = t.SertifikatUrl,
-                IsRenewed = renewedTrainingRecordIds.Contains(t.Id)
-            }).ToList();
-
-            // Query AssessmentSessions with certificate
-            var asQuery = _context.AssessmentSessions
-                .Include(a => a.User)
-                .Where(a => a.GenerateCertificate && a.IsPassed == true);
-            if (scopedUserIds != null)
-                asQuery = asQuery.Where(a => scopedUserIds.Contains(a.UserId));
-
-            var allCategories = await _context.AssessmentCategories
-                .Where(c => c.IsActive)
-                .Select(c => new { c.Id, c.Name, c.ParentId })
-                .ToListAsync();
-            var categoryById = allCategories.ToDictionary(c => c.Id);
-            var categoryNameLookup = allCategories
-                .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
-                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
-
-            var assessmentAnon = await asQuery
-                .Select(a => new
-                {
-                    a.Id,
-                    a.UserId,
-                    NamaWorker = a.User != null ? a.User.FullName : "",
-                    Bagian = a.User != null ? a.User.Section : null,
-                    Unit = a.User != null ? a.User.Unit : null,
-                    a.Title,
-                    a.Category,
-                    a.NomorSertifikat,
-                    a.CompletedAt,
-                    a.ValidUntil
-                })
-                .ToListAsync();
-
-            var assessmentRows = assessmentAnon.Select(a =>
-            {
-                string kategori = a.Category;
-                string? subKategori = null;
-                if (categoryNameLookup.TryGetValue(a.Category, out var parentName))
-                {
-                    kategori = parentName;
-                    subKategori = a.Category;
-                }
-                return new SertifikatRow
-                {
-                    SourceId = a.Id,
-                    RecordType = RecordType.Assessment,
-                    WorkerId = a.UserId,
-                    NamaWorker = a.NamaWorker,
-                    Bagian = a.Bagian,
-                    Unit = a.Unit,
-                    Judul = a.Title,
-                    Kategori = kategori,
-                    SubKategori = subKategori,
-                    NomorSertifikat = a.NomorSertifikat,
-                    TanggalTerbit = a.CompletedAt,
-                    ValidUntil = a.ValidUntil,
-                    Status = SertifikatRow.DeriveCertificateStatus(a.ValidUntil, null),
-                    SertifikatUrl = null,
-                    IsRenewed = renewedAssessmentSessionIds.Contains(a.Id)
-                };
-            }).ToList();
-
-            var rows = new List<SertifikatRow>(trainingRows.Count + assessmentRows.Count);
-            rows.AddRange(trainingRows);
-            rows.AddRange(assessmentRows);
-            return (rows, roleLevel);
         }
 
     }

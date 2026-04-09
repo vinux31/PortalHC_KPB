@@ -3,18 +3,12 @@
 }
 
 <div class="container-fluid py-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb mb-3">
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">CMP</li>
-        </ol>
-    </nav>
     <div class="row mb-4">
         <div class="col">
             <h2 class="mb-1">
                 <i class="bi bi-mortarboard me-2"></i>Competency Management Platform
             </h2>
-            <p class="text-muted">Kelola kompetensi, asesmen, dan rencana pengembangan</p>
+            <p class="text-muted">Kelola kompetensi, assessment, dan rencana pengembangan</p>
         </div>
     </div>
 
@@ -28,8 +22,8 @@
                             <i class="bi bi-file-earmark-richtext fs-3"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0">Dokumen KKJ/IDP</h5>
-                            <small class="text-muted fw-semibold">Kerangka Kompetensi</small>
+                            <h5 class="mb-0">Dokumen KKJ & Alignment KKJ/IDP</h5>
+                            <small class="text-muted">Kerangka Kompetensi</small>
                         </div>
                     </div>
                     <p class="text-muted mb-3">Dokumen kebutuhan kompetensi jabatan dan keselarasan KKJ & IDP</p>
@@ -50,7 +44,7 @@
                         </div>
                         <div>
                             <h5 class="mb-0">Assessment Saya</h5>
-                            <small class="text-muted fw-semibold">Ujian & Evaluasi</small>
+                            <small class="text-muted">Ujian & Evaluasi</small>
                         </div>
                     </div>
                     <p class="text-muted mb-3">Ikuti assessment, lihat hasil, dan pantau riwayat evaluasi Anda</p>
@@ -71,11 +65,11 @@
                         </div>
                         <div>
                             <h5 class="mb-0">Riwayat Pelatihan</h5>
-                            <small class="text-muted fw-semibold">Pengembangan Kapabilitas</small>
+                            <small class="text-muted">Pengembangan Kapabilitas</small>
                         </div>
                     </div>
                     <p class="text-muted mb-3">Lihat dan kelola riwayat pelatihan serta pengembangan kapabilitas</p>
-                    <a href="@Url.Action("Records", "CMP")" class="btn btn-warning w-100">
+                    <a href="@Url.Action("Records", "CMP")" class="btn btn-secondary w-100">
                         <i class="bi bi-arrow-right-circle me-2"></i>Lihat Riwayat
                     </a>
                 </div>
@@ -86,12 +80,9 @@
     <!-- Analytics Dashboard (HC/Admin only) -->
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
-    <hr class="my-3" />
-    <div class="mb-3">
-        <span class="badge bg-dark bg-opacity-75"><i class="bi bi-shield-lock me-1"></i>Admin & HC</span>
-    </div>
-    <div class="row g-4 justify-content-center">
-        <div class="col-12 col-md-6 col-lg-6">
+    <hr class="my-5" />
+    <div class="row g-4">
+        <div class="col-12 col-md-6 col-lg-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
@@ -100,30 +91,30 @@
                         </div>
                         <div>
                             <h5 class="mb-0">Manajemen Sertifikasi</h5>
-                            <small class="text-muted fw-semibold">Kelola Sertifikat</small>
+                            <small class="text-muted">Kelola Sertifikat</small>
                         </div>
                     </div>
                     <p class="text-muted mb-3">Lihat dan kelola semua sertifikat pelatihan dan asesmen pekerja</p>
-                    <a href="@Url.Action("CertificationManagement", "CMP")" class="btn btn-success w-100">
+                    <a href="@Url.Action("CertificationManagement", "CDP")" class="btn btn-success w-100">
                         <i class="bi bi-arrow-right-circle me-2"></i>Kelola Sertifikat
                     </a>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-6 col-lg-6">
+        <div class="col-12 col-md-6 col-lg-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="icon-box bg-dark bg-opacity-10 text-dark rounded-3 p-3 me-3">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
                             <i class="bi bi-graph-up fs-3"></i>
                         </div>
                         <div>
                             <h5 class="mb-0">Dasbor Analitik</h5>
-                            <small class="text-muted fw-semibold">Assessment & Sertifikat</small>
+                            <small class="text-muted">Assessment & Sertifikat</small>
                         </div>
                     </div>
                     <p class="text-muted mb-3">Visualisasi fail rate, trend assessment, skor ET, dan sertifikat akan expired</p>
-                    <a href="@Url.Action("AnalyticsDashboard", "CMP")" class="btn btn-dark w-100">
+                    <a href="@Url.Action("AnalyticsDashboard", "CMP")" class="btn btn-primary w-100">
                         <i class="bi bi-arrow-right-circle me-2"></i>Lihat Analytics
                     </a>
                 </div>
