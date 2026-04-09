@@ -2279,6 +2279,9 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             // COACH-04: Notify section reviewers (one per unique coachee)
+            // MED-04 fix: track kegagalan notifikasi dan expose ke response agar UI bisa
+            // surface warning; sebelumnya gagal notifikasi silent di log warning.
+            bool notificationFailed = false;
             try
             {
                 var uniqueCoacheeIds = progresses.Select(p => p.CoacheeId).Distinct().ToList();
@@ -2331,14 +2334,19 @@ namespace HcPortal.Controllers
                     }
                 }
             }
-            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
+            catch (Exception ex)
+            {
+                notificationFailed = true;
+                _logger.LogWarning(ex, "Notification send failed");
+            }
 
             return Json(new
             {
                 success = true,
                 message = $"{submittedIds.Count} deliverable berhasil disubmit",
                 submittedIds,
-                hasEvidence = evidenceBytes != null
+                hasEvidence = evidenceBytes != null,
+                notificationFailed
             });
         }
 

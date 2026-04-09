@@ -173,6 +173,7 @@
 ---
 
 ### [MED-01] ImportCoachCoacheeMapping silent skip duplicate NIP
+- **Status:** ✅ FIXED 2026-04-09 (deteksi NIP duplikat di Users → `TempData["ImportWarnings"]` non-blocking)
 - **Severity:** Medium
 - **Category:** UX / Data Integrity
 - **File:** `Controllers/CoachMappingController.cs:220-226`
@@ -202,6 +203,7 @@
 ---
 
 ### [MED-04] Notification dispatch silent catch
+- **Status:** ✅ FIXED 2026-04-09 (SubmitEvidenceWithCoaching expose `notificationFailed` boolean di JSON response; UI bisa surface warning toast)
 - **Severity:** Medium
 - **Category:** UX / Observability
 - **File:** `Controllers/CDPController.cs:2295`, `Controllers/CoachMappingController.cs:594`
@@ -268,6 +270,7 @@
 ---
 
 ### [LOW-03] XSS — perlu verifikasi view (Razor auto-encode oke, cek `@Html.Raw`)
+- **Status:** ✅ CLEAR 2026-04-09 (audit `@Html.Raw` di Views/CDP & Views/Admin — semua usage adalah output helper server-side atau JSON serializer, tidak ada pass-through user-input seperti `CatatanCoach`/`Acuan*`)
 - **Severity:** Low (perlu konfirmasi view-side)
 - **Category:** Security
 - **File:** `Views/CDP/CoachingProton.cshtml`, `Views/CDP/EditCoachingSession.cshtml`

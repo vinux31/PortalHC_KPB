@@ -217,11 +217,19 @@ namespace HcPortal.Controllers
                 return RedirectToAction(nameof(CoachCoacheeMapping));
             }
 
-            // Load users keyed by NIP (handle duplicate NIPs by taking first)
-            var usersByNip = (await _context.Users
+            // Load users keyed by NIP.
+            // MED-01 fix: deteksi NIP duplikat di tabel Users dan surface warning ke admin,
+            // sebelumnya GroupBy.First() silent memilih satu user secara non-deterministik.
+            var allUsers = await _context.Users
                 .Where(u => u.NIP != null)
                 .Select(u => new { u.Id, u.NIP, u.Section, u.Unit })
-                .ToListAsync())
+                .ToListAsync();
+            var duplicateNips = allUsers
+                .GroupBy(u => u.NIP!)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+            var usersByNip = allUsers
                 .GroupBy(u => u.NIP!)
                 .ToDictionary(g => g.Key, g => g.First());
 
@@ -428,6 +436,11 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["ImportResults"] = System.Text.Json.JsonSerializer.Serialize(results);
+            // MED-01 fix: laporkan NIP duplikat di tabel Users ke admin (non-blocking warning).
+            if (duplicateNips.Any())
+            {
+                TempData["ImportWarnings"] = $"Terdeteksi NIP duplikat di tabel Users: {string.Join(", ", duplicateNips)}. Mapping untuk NIP ini dipasang ke user pertama secara non-deterministik — harap bersihkan duplikat di master Users.";
+            }
             return RedirectToAction(nameof(CoachCoacheeMapping));
         }
 
