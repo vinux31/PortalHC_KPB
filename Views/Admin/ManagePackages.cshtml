@@ -199,6 +199,10 @@
                                             <small class="text-muted">@pkg.Questions.Count questions</small>
                                         </div>
                                         <div class="d-flex gap-2">
+                                            <a asp-action="ManagePackageQuestions" asp-route-packageId="@pkg.Id"
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-list-check me-1"></i>Kelola Soal
+                                            </a>
                                             <a asp-action="ImportPackageQuestions" asp-route-packageId="@pkg.Id"
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-upload me-1"></i>Import Questions

@@ -14,5 +14,7 @@ namespace HcPortal.Models
         public string? Section { get; set; }
         public string? Unit { get; set; }
         public string? Role { get; set; }
+        public int RoleLevel { get; set; }
+        public PSignViewModel? PSign { get; set; }
     }
 }

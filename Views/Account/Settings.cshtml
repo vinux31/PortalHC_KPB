@@ -1,7 +1,5 @@
-@inject IConfiguration _config
 @model HcPortal.Models.SettingsViewModel
 @{
-    var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
     ViewData["Title"] = "Pengaturan Akun";
 }
 
@@ -135,92 +133,6 @@
             @await Html.PartialAsync("_PSign", Model.PSign)
         }
 
-        <hr class="my-4">
-
-        @* --- SECTION 2: Ubah Password --- *@
-
-        @if (!useAD)
-        {
-            @if (TempData["PasswordSuccess"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["PasswordSuccess"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["PasswordError"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-                    <i class="bi bi-x-circle-fill me-2"></i>@TempData["PasswordError"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            <p class="text-uppercase fw-bold small text-muted mb-3">Ubah Password</p>
-
-            <form asp-action="ChangePassword" method="post" id="changePasswordForm">
-                @Html.AntiForgeryToken()
-
-                <div class="row mb-3">
-                    <div class="col-sm-4">
-                        <label asp-for="ChangePassword.CurrentPassword" class="col-form-label text-muted small fw-medium">Password Lama</label>
-                    </div>
-                    <div class="col-sm-8">
-                        <input asp-for="ChangePassword.CurrentPassword" class="form-control" type="password" autocomplete="current-password" />
-                        <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger small"></span>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4">
-                        <label asp-for="ChangePassword.NewPassword" class="col-form-label text-muted small fw-medium">Password Baru</label>
-                    </div>
-                    <div class="col-sm-8">
-                        <input asp-for="ChangePassword.NewPassword" class="form-control" type="password" autocomplete="new-password" />
-                        <span asp-validation-for="ChangePassword.NewPassword" class="text-danger small"></span>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4">
-                        <label asp-for="ChangePassword.ConfirmNewPassword" class="col-form-label text-muted small fw-medium">Konfirmasi Password Baru</label>
-                    </div>
-                    <div class="col-sm-8">
-                        <input asp-for="ChangePassword.ConfirmNewPassword" class="form-control" type="password" autocomplete="new-password" />
-                        <span asp-validation-for="ChangePassword.ConfirmNewPassword" class="text-danger small"></span>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary mt-2" onclick="return confirm('Yakin ubah password?')">Ubah Password</button>
-            </form>
-        }
-        else
-        {
-            @if (TempData["PasswordSuccess"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["PasswordSuccess"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["PasswordError"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-                    <i class="bi bi-x-circle-fill me-2"></i>@TempData["PasswordError"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-key-fill me-2"></i>Ubah Password</h5>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info mb-0">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        Password dikelola oleh Active Directory. Hubungi admin IT untuk mengubah password Anda.
-                    </div>
-                </div>
-            </div>
-        }
 
         @section Scripts {
             @await Html.PartialAsync("_ValidationScriptsPartial")

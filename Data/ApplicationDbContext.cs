@@ -79,6 +79,9 @@ namespace HcPortal.Data
         // Maintenance Mode — Phase 282
         public DbSet<MaintenanceMode> MaintenanceModes { get; set; }
 
+        // Budget Training/Assessment
+        public DbSet<BudgetItem> BudgetItems { get; set; }
+
         // ========== Helper Methods untuk OrganizationUnit (Phase 221) ==========
 
         public async Task<List<string>> GetAllSectionsAsync()

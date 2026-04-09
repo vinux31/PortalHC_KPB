@@ -491,6 +491,70 @@ namespace HcPortal.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("HcPortal.Models.BudgetItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BiayaPerOrang")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Catatan")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("EstimasiBiayaTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Judul")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("JumlahPeserta")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Kategori")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("RealisasiBiaya")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SubKategori")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("TahunAnggaran")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Vendor")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BudgetItems");
+                });
+
             modelBuilder.Entity("HcPortal.Models.CoachCoacheeMapping", b =>
                 {
                     b.Property<int>("Id")

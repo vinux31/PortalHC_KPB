@@ -6,13 +6,37 @@
     color: white !important;
 }
 
+/* ===== Avatar Classes ===== */
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    font-size: 2rem;
+}
+
+.navbar-avatar {
+    width: 38px;
+    height: 38px;
+}
+
+/* ===== Profile Card ===== */
+.profile-card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+/* ===== Role Badge ===== */
+.badge-role-tiny {
+    font-size: 0.65rem;
+}
+
 /* ===== Upload Zone ===== */
 .upload-zone:hover,
 .upload-zone.drag-over,
 #uploadZone:hover,
 #uploadZone.drag-over {
-    border-color: #2563eb !important;
-    background-color: #eff6ff;
+    border-color: var(--bs-primary) !important;
+    background-color: var(--bs-primary-bg-subtle, #eff6ff);
 }
 
 .border-dashed {

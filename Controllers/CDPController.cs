@@ -786,6 +786,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesReviewerAndAbove)]
         public async Task<IActionResult> ApproveDeliverable(int progressId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -945,6 +946,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesReviewerAndAbove)]
         public async Task<IActionResult> RejectDeliverable(int progressId, string rejectionReason)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -1111,6 +1113,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "HC, Admin")]
         public async Task<IActionResult> HCReviewDeliverable(int progressId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -1175,6 +1178,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> UploadEvidence(int progressId, IFormFile? evidenceFile)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -1903,6 +1907,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesReviewerAndAbove)]
         public async Task<IActionResult> ApproveFromProgress(int progressId, string? comment)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -1981,6 +1986,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesReviewerAndAbove)]
         public async Task<IActionResult> RejectFromProgress(int progressId, string rejectionReason)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -2058,6 +2064,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "HC, Admin")]
         public async Task<IActionResult> HCReviewFromProgress(int progressId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -2103,6 +2110,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> SubmitEvidenceWithCoaching(
             [FromForm] string progressIdsJson,
             [FromForm] DateTime date,
@@ -2357,6 +2365,7 @@ namespace HcPortal.Controllers
         // ===== Phase 236 COMP-02: Edit/Delete coaching session per D-07 =====
 
         [HttpGet]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> EditCoachingSession(int id)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -2372,6 +2381,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> EditCoachingSession(int id, string catatanCoach, string kesimpulan, string result)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -2414,6 +2424,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
         public async Task<IActionResult> DeleteCoachingSession(int id)
         {
             var user = await _userManager.GetUserAsync(User);

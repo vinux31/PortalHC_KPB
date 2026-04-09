@@ -2,11 +2,16 @@
    Homepage Styling
    ============================================ */
 
+:root {
+    --hero-gradient-start: #667eea;
+    --hero-gradient-end: #764ba2;
+}
+
 /* ============================================
    Hero Section
    ============================================ */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end) 100%);
     border-radius: 24px;
     padding: 3rem 2.5rem;
     color: white;
@@ -36,14 +41,12 @@
 }
 
 .hero-greeting {
-    font-size: 2.5rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .hero-subtitle {
-    font-size: 1.1rem;
     opacity: 0.95;
     font-weight: 400;
 }
@@ -71,6 +74,11 @@
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
 }
 
+.menu-card:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
 /* ============================================
    Upcoming Events Card
    ============================================ */
@@ -84,7 +92,7 @@
 
 .event-item-card {
     transition: all 0.2s ease;
-    background: #fff;
+    background: var(--bs-white, #fff);
 }
 
 .event-item-card:hover {
@@ -118,6 +126,7 @@
 }
 
 .progress-item .progress {
+    height: 8px;
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.05);
 }
@@ -133,10 +142,6 @@
 @media (max-width: 768px) {
     .hero-section {
         padding: 2rem 1.5rem;
-    }
-
-    .hero-greeting {
-        font-size: 1.75rem;
     }
 
     .upcoming-events-card {

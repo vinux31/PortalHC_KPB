@@ -156,7 +156,14 @@ namespace HcPortal.Controllers
                 Directorate = user.Directorate,
                 Section = user.Section,
                 Unit = user.Unit,
-                Role = roles.FirstOrDefault() ?? "No Role"
+                Role = roles.FirstOrDefault() ?? "No Role",
+                RoleLevel = user.RoleLevel,
+                PSign = new PSignViewModel
+                {
+                    FullName = user.FullName,
+                    Position = user.Position,
+                    Unit = user.Unit
+                }
             };
 
             return View(model);
@@ -181,7 +188,6 @@ namespace HcPortal.Controllers
                     Position = user.Position,
                     PhoneNumber = user.PhoneNumber
                 },
-                ChangePassword = new ChangePasswordViewModel(),
                 NIP = user.NIP,
                 Email = user.Email,
                 Role = roles.FirstOrDefault() ?? "—",
@@ -233,54 +239,6 @@ namespace HcPortal.Controllers
             return RedirectToAction("Settings");
         }
 
-        // 5b. Change Password POST
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword([Bind(Prefix = "ChangePassword")] ChangePasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                TempData["PasswordError"] = "Periksa kembali isian password.";
-                return RedirectToAction("Settings");
-            }
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
-            if (result.Succeeded)
-            {
-                await _signInManager.RefreshSignInAsync(user);
-                TempData["PasswordSuccess"] = "Password berhasil diubah.";
-            }
-            else
-            {
-                var error = result.Errors.FirstOrDefault();
-                if (error != null)
-                {
-                    TempData["PasswordError"] = error.Code switch
-                    {
-                        "PasswordMismatch" => "Password lama salah.",
-                        "PasswordTooShort" => "Password baru minimal 6 karakter.",
-                        "PasswordRequiresUniqueChars" => "Password baru harus memiliki minimal 1 karakter unik.",
-                        "PasswordRequiresNonAlphanumeric" => "Password baru harus memiliki minimal 1 karakter khusus.",
-                        "PasswordRequiresDigit" => "Password baru harus memiliki minimal 1 angka.",
-                        "PasswordRequiresLower" => "Password baru harus memiliki minimal 1 huruf kecil.",
-                        "PasswordRequiresUpper" => "Password baru harus memiliki minimal 1 huruf besar.",
-                        _ => "Terjadi kesalahan saat mengubah password. Coba lagi."
-                    };
-                }
-                else
-                {
-                    TempData["PasswordError"] = "Terjadi kesalahan saat mengubah password. Coba lagi.";
-                }
-            }
-
-            return RedirectToAction("Settings");
-        }
 
         // 6. Access Denied Page
         [AllowAnonymous]

@@ -9,92 +9,130 @@
         : (fullName.Length >= 2 ? fullName.Substring(0, 2).ToUpper() : "?");
 }
 
+@* Breadcrumb *@
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Beranda</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Profil Saya</li>
+    </ol>
+</nav>
+
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-7">
+        <div class="card profile-card">
+            <div class="card-body p-4">
 
-        @* Profile Header *@
-        <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
-            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold flex-shrink-0 me-4"
-                 style="width: 90px; height: 90px; font-size: 2rem;">@initials</div>
-            <div>
-                <h3 class="fw-bold mb-1">
-                    @if (!string.IsNullOrEmpty(Model.FullName)) { @Model.FullName } else { <span class="text-muted">—</span> }
-                </h3>
-                <p class="text-muted mb-0 small">
-                    @if (!string.IsNullOrEmpty(Model.Position)) { @Model.Position } else { <span class="fst-italic">Jabatan belum diatur</span> }
-                </p>
-            </div>
-        </div>
+                @* Profile Header *@
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold flex-shrink-0 me-4 profile-avatar">@initials</div>
+                    <div>
+                        <h3 class="fw-bold mb-1">
+                            @if (!string.IsNullOrEmpty(Model.FullName)) { @Model.FullName } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                        </h3>
+                        <p class="text-muted mb-0 small">
+                            @if (!string.IsNullOrEmpty(Model.Position)) { @Model.Position } else { <span class="fst-italic">Jabatan belum diatur</span> }
+                        </p>
+                    </div>
+                </div>
 
-        @* Section: Identitas *@
-        <p class="text-uppercase fw-bold small text-muted mb-3">Identitas</p>
+                @* Section: Identitas *@
+                <p class="text-uppercase fw-bold small text-muted mb-3"><i class="bi bi-person me-1"></i> Identitas</p>
 
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Nama Lengkap</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.FullName)) { @Model.FullName } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">NIP</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.NIP)) { @Model.NIP } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Email</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.Email)) { @Model.Email } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Telepon</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.PhoneNumber)) { @Model.PhoneNumber } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Nama Lengkap</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.FullName)) { @Model.FullName } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">NIP</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.NIP)) { @Model.NIP } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Email</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Email)) { @Model.Email } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Telepon</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.PhoneNumber)) { @Model.PhoneNumber } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
 
-        <hr class="my-4">
+                <hr class="my-4">
 
-        @* Section: Organisasi *@
-        <p class="text-uppercase fw-bold small text-muted mb-3">Organisasi</p>
+                @* Section: Organisasi *@
+                <p class="text-uppercase fw-bold small text-muted mb-3"><i class="bi bi-building me-1"></i> Organisasi</p>
 
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Direktorat</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.Directorate)) { @Model.Directorate } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Bagian</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.Section)) { @Model.Section } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Unit</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.Unit)) { @Model.Unit } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Jabatan</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(Model.Position)) { @Model.Position } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-4 text-muted small fw-medium">Role</div>
-            <div class="col-sm-8">
-                @if (!string.IsNullOrEmpty(userRole) && userRole != "No Role") { @userRole } else { <span class="text-muted">—</span> }
-            </div>
-        </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Direktorat</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Directorate)) { @Model.Directorate } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Bagian</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Section)) { @Model.Section } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Unit</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Unit)) { @Model.Unit } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Jabatan</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Position)) { @Model.Position } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Role</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(userRole) && userRole != "No Role") { @userRole } else { <span class="text-muted fst-italic">Belum diisi</span> }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-medium">Role Level</div>
+                    <div class="col-sm-8">
+                        @switch (Model.RoleLevel)
+                        {
+                            case 1: @:Level 1 — Admin
+                                break;
+                            case 2: @:Level 2 — HC
+                                break;
+                            case 3: @:Level 3 — Direktur / VP / Manager
+                                break;
+                            case 4: @:Level 4 — Section Head / Sr Supervisor
+                                break;
+                            case 5: @:Level 5 — Coach
+                                break;
+                            default: @:Level 6 — Coachee
+                                break;
+                        }
+                    </div>
+                </div>
 
-        <div class="d-flex justify-content-end mt-4">
-            <a asp-controller="Account" asp-action="Settings" class="btn btn-outline-secondary">
-                <i class="bi bi-gear me-1"></i> Pengaturan
-            </a>
-        </div>
+                @if (Model.PSign != null)
+                {
+                    <hr class="my-4">
+                    <p class="text-uppercase fw-bold small text-muted mb-3"><i class="bi bi-pen me-1"></i> Preview P-Sign</p>
+                    @await Html.PartialAsync("_PSign", Model.PSign)
+                }
 
+                <div class="d-flex justify-content-end mt-4">
+                    <a asp-controller="Account" asp-action="Settings" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear me-1"></i> Pengaturan
+                    </a>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
