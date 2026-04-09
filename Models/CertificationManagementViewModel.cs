@@ -112,6 +112,49 @@ public class RenewalGroup
     public int PageSize { get; set; } = 10;
 }
 
+// ============================================================
+// Grouped sertifikat per judul (for CMP grouped view)
+// ============================================================
+
+public class SertifikatGroupRow
+{
+    public string Judul { get; set; } = "";
+    public string? Kategori { get; set; }
+    public string? SubKategori { get; set; }
+    public int JumlahWorker { get; set; }
+}
+
+public class SertifikatGroupViewModel
+{
+    public List<SertifikatGroupRow> Groups { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int MandatoryCount { get; set; }
+    public int NonMandatoryCount { get; set; }
+    public int OjtCount { get; set; }
+    public int IhtCount { get; set; }
+    public int CurrentPage { get; set; } = 1;
+    public int TotalPages { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
+    public int RoleLevel { get; set; } = 1;
+}
+
+public class SertifikatDetailViewModel
+{
+    public string Judul { get; set; } = "";
+    public string? Kategori { get; set; }
+    public string? SubKategori { get; set; }
+    public List<SertifikatRow> Rows { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int AktifCount { get; set; }
+    public int AkanExpiredCount { get; set; }
+    public int ExpiredCount { get; set; }
+    public int PermanentCount { get; set; }
+    public int CurrentPage { get; set; } = 1;
+    public int TotalPages { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
+    public int RoleLevel { get; set; } = 1;
+}
+
 public class RenewalGroupViewModel
 {
     public List<RenewalGroup> Groups { get; set; } = new();

@@ -10,7 +10,6 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace HcPortal.Controllers
 {
-    [Route("Admin")]
     [Route("Admin/[action]")]
     public class AdminController : AdminBaseController
     {
@@ -30,7 +29,8 @@ namespace HcPortal.Controllers
             _cache = cache;
         }
 
-        // GET /Admin/Index
+        // GET /Admin or /Admin/Index
+        [Route("~/Admin")]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> Index()
         {

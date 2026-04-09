@@ -9,7 +9,6 @@ using HcPortal.Helpers;
 
 namespace HcPortal.Controllers
 {
-    [Route("Admin")]
     [Route("Admin/[action]")]
     public class RenewalController : AdminBaseController
     {

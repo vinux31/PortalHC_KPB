@@ -24,9 +24,9 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-person-lines-fill fs-5 text-primary"></i>
-                        <span class="fw-bold">Manajemen Pekerja</span>
+                        <span class="fw-bold">Worker Management</span>
                     </div>
-                    <small class="text-muted">Tambah, edit, hapus, dan kelola data pekerja sistem</small>
+                    <small class="text-muted">Tambah, edit, hapus, dan kelola data pekerja — termasuk import/export Excel</small>
                 </div>
             </div>
         </a>
@@ -40,9 +40,9 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-diagram-3 fs-5 text-primary"></i>
-                        <span class="fw-bold">Struktur Organisasi</span>
+                        <span class="fw-bold">Organization Structure</span>
                     </div>
-                    <small class="text-muted">Kelola hierarki Bagian dan Unit kerja</small>
+                    <small class="text-muted">Kelola hierarki Bagian dan Unit kerja dengan tampilan tree</small>
                 </div>
             </div>
         </a>
@@ -58,7 +58,7 @@
                         <i class="bi bi-table fs-5 text-primary"></i>
                         <span class="fw-bold">Kebutuhan Kompetensi Jabatan</span>
                     </div>
-                    <small class="text-muted">Upload dan kelola dokumen Kebutuhan Kompetensi Jabatan (PDF/Excel) per bagian</small>
+                    <small class="text-muted">Upload dan kelola dokumen KKJ (PDF/Excel) per bagian</small>
                 </div>
             </div>
         </a>
@@ -77,38 +77,6 @@
         </a>
     </div>
     }
-    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
-    {
-    <div class="col-md-4">
-        <a href="@Url.Action("Index", "ProtonData")" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-book fs-5 text-primary"></i>
-                        <span class="fw-bold">Silabus &amp; Coaching Guidance</span>
-                    </div>
-                    <small class="text-muted">Kelola silabus Proton dan file coaching guidance</small>
-                </div>
-            </div>
-        </a>
-    </div>
-    }
-    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
-    {
-    <div class="col-md-4">
-        <a href="@Url.Action("Maintenance", "Admin")" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-cone-striped fs-5 text-warning"></i>
-                        <span class="fw-bold">Mode Pemeliharaan</span>
-                    </div>
-                    <small class="text-muted">Aktifkan mode maintenance untuk seluruh atau sebagian halaman</small>
-                </div>
-            </div>
-        </a>
-    </div>
-    }
 </div>
 
 <hr class="my-4">
@@ -122,6 +90,22 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
+        <a href="@Url.Action("Index", "ProtonData")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-book fs-5 text-primary"></i>
+                        <span class="fw-bold">Silabus &amp; Coaching Guidance</span>
+                    </div>
+                    <small class="text-muted">Kelola silabus Proton dan file coaching guidance per track</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
         <a href="@Url.Action("CoachCoacheeMapping", "CoachMapping")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
@@ -129,7 +113,7 @@
                         <i class="bi bi-people fs-5 text-primary"></i>
                         <span class="fw-bold">Coach-Coachee Mapping</span>
                     </div>
-                    <small class="text-muted">Atur assignment coach ke coachee</small>
+                    <small class="text-muted">Atur assignment coach ke coachee per unit dan bagian</small>
                 </div>
             </div>
         </a>
@@ -145,7 +129,7 @@
                         <i class="bi bi-pencil-square fs-5 text-primary"></i>
                         <span class="fw-bold">Deliverable Progress Override</span>
                     </div>
-                    <small class="text-muted">Override status progress deliverable</small>
+                    <small class="text-muted">Override status progress deliverable pekerja secara manual</small>
                 </div>
             </div>
         </a>
@@ -171,7 +155,7 @@
                         <i class="bi bi-sliders fs-5 text-primary"></i>
                         <span class="fw-bold">Manage Assessment &amp; Training</span>
                     </div>
-                    <small class="text-muted">Kelola assessment dan training record pekerja (buat, edit, hapus, monitoring)</small>
+                    <small class="text-muted">Buat, edit, hapus, dan kelola assessment serta training record pekerja</small>
                 </div>
             </div>
         </a>
@@ -187,7 +171,7 @@
                         <i class="bi bi-binoculars fs-5 text-success"></i>
                         <span class="fw-bold">Assessment Monitoring</span>
                     </div>
-                    <small class="text-muted">Pantau progress assessment real-time — lihat status grup, peserta, dan regenerate token</small>
+                    <small class="text-muted">Pantau progress assessment real-time — lihat status grup dan peserta</small>
                 </div>
             </div>
         </a>
@@ -217,9 +201,9 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-tags fs-5 text-primary"></i>
-                        <span class="fw-bold">Kategori Assessment</span>
+                        <span class="fw-bold">Assessment Categories</span>
                     </div>
-                    <small class="text-muted">Kelola kategori assessment dan nilai lulus default</small>
+                    <small class="text-muted">Kelola kategori assessment dan nilai lulus default per kategori</small>
                 </div>
             </div>
         </a>
@@ -233,13 +217,39 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-arrow-repeat fs-5 text-warning"></i>
-                        <span class="fw-bold">Renewal Sertifikat</span>
+                        <span class="fw-bold">Certificate Renewal</span>
                         @if (ViewBag.RenewalCount != null && (int)ViewBag.RenewalCount > 0)
                         {
                             <span class="badge bg-warning text-dark ms-auto">@ViewBag.RenewalCount</span>
                         }
                     </div>
                     <small class="text-muted">Kelola sertifikat expired dan akan expired yang perlu di-renew</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
+</div>
+
+<hr class="my-4">
+
+@* Section D: System *@
+<div class="d-flex align-items-center mb-3">
+    <span class="badge bg-secondary me-2">D</span>
+    <h5 class="fw-bold text-secondary mb-0">System</h5>
+</div>
+<div class="row g-3 mb-2">
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
+        <a href="@Url.Action("Maintenance", "Admin")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-cone-striped fs-5 text-warning"></i>
+                        <span class="fw-bold">Maintenance Mode</span>
+                    </div>
+                    <small class="text-muted">Aktifkan mode maintenance untuk seluruh atau sebagian halaman</small>
                 </div>
             </div>
         </a>

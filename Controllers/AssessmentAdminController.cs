@@ -16,7 +16,6 @@ using QuestPDF.Helpers;
 
 namespace HcPortal.Controllers
 {
-    [Route("Admin")]
     [Route("Admin/[action]")]
     public class AssessmentAdminController : AdminBaseController
     {

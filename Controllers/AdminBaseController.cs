@@ -9,7 +9,6 @@ using HcPortal.Services;
 namespace HcPortal.Controllers
 {
     [Authorize]
-    [Route("Admin")]
     [Route("Admin/[action]")]
     public abstract class AdminBaseController : Controller
     {

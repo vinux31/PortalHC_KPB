@@ -8,7 +8,6 @@ using HcPortal.Services;
 
 namespace HcPortal.Controllers
 {
-    [Route("Admin")]
     [Route("Admin/[action]")]
     public class OrganizationController : AdminBaseController
     {
