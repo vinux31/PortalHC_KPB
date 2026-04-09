@@ -233,6 +233,7 @@
 ---
 
 ### [MED-07] CoachingProton level 6 — tidak mempertimbangkan mapping tidak aktif
+- **Status:** ✅ FIXED 2026-04-09 (ViewBag.NoActiveAssignment + banner informatif di CoachingProton.cshtml empty state no_coachees)
 - **Severity:** Medium
 - **Category:** Security / UX
 - **File:** `Controllers/CDPController.cs:1453-1457`
@@ -242,6 +243,7 @@
 ---
 
 ### [MED-08] EditCoachingSession — ownership berbasis CoachId historis
+- **Status:** ✅ FIXED 2026-04-09 (Coach hanya boleh edit bila mapping ke coachee masih aktif; HC/Admin bypass; TempData Error jika mapping tidak aktif)
 - **Severity:** Medium
 - **Category:** Security / Logic
 - **File:** `Controllers/CDPController.cs:2308-2344`

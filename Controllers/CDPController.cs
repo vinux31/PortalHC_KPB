@@ -1458,6 +1458,9 @@ namespace HcPortal.Controllers
                 var hasAssignment = await _context.ProtonTrackAssignments
                     .AnyAsync(a => a.IsActive && a.CoacheeId == user.Id);
                 scopedCoacheeIds = hasAssignment ? new List<string> { user.Id } : new List<string>();
+                // MED-07 fix: surface flag supaya view bisa tampilkan banner informatif
+                // ketimbang empty state ambigu ("Belum ada assignment Proton aktif").
+                ViewBag.NoActiveAssignment = !hasAssignment;
             }
 
             // --- STEP 2: Apply Bagian filter (HC/Admin + Direktur/VP/Manager) ---
@@ -2376,6 +2379,18 @@ namespace HcPortal.Controllers
             if (session == null) return NotFound();
             bool isHcOrAdmin = User.IsInRole("HC") || User.IsInRole("Admin");
             if (!isHcOrAdmin && session.CoachId != user.Id) return Forbid();
+            // MED-08 fix: Coach hanya boleh edit session lama jika mapping ke coachee
+            // masih aktif. HC/Admin bypass (pengelolaan riwayat tetap di tangan HC).
+            if (!isHcOrAdmin)
+            {
+                bool stillMapped = await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == session.CoacheeId && m.IsActive);
+                if (!stillMapped)
+                {
+                    TempData["Error"] = "Mapping Anda dengan coachee ini sudah tidak aktif — edit session tidak diizinkan. Hubungi HC untuk perubahan riwayat.";
+                    return RedirectToAction("Deliverable", new { id = session.ProtonDeliverableProgressId });
+                }
+            }
             // MED-02 fix: batasi panjang input free-text
             if ((catatanCoach?.Length ?? 0) > 4000 || (kesimpulan?.Length ?? 0) > 100 || (result?.Length ?? 0) > 100)
             {
