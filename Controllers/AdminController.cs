@@ -57,7 +57,7 @@ namespace HcPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> Maintenance(bool isEnabled, string message, DateTime? estimatedEndTime, string scope, string? selectedModules)
+        public async Task<IActionResult> Maintenance(bool isEnabled, string message, DateTime? scheduledEndTime, string scope, string? selectedModules)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -75,7 +75,7 @@ namespace HcPortal.Controllers
 
             maintenance!.IsEnabled = isEnabled;
             maintenance.Message = message ?? "";
-            maintenance.EstimatedEndTime = estimatedEndTime;
+            maintenance.ScheduledEndTime = scheduledEndTime;
             maintenance.Scope = isSpecificScope ? normalizedScope : "All";
 
             if (isSpecificScope && string.IsNullOrWhiteSpace(normalizedScope))

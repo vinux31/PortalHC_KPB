@@ -156,9 +156,9 @@
             </div>
 
             <div class="mb-4">
-                <label for="estimatedEndTime" class="form-label fw-bold">Estimasi Selesai</label>
-                <input type="datetime-local" class="form-control" name="estimatedEndTime" id="estimatedEndTime"
-                       value="@(Model.EstimatedEndTime.HasValue ? Model.EstimatedEndTime.Value.ToString("yyyy-MM-ddTHH:mm") : "")">
+                <label for="scheduledEndTime" class="form-label fw-bold">Estimasi Selesai</label>
+                <input type="datetime-local" class="form-control" name="scheduledEndTime" id="scheduledEndTime"
+                       value="@(Model.ScheduledEndTime.HasValue ? Model.ScheduledEndTime.Value.ToString("yyyy-MM-ddTHH:mm") : "")">
             </div>
 
             <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan Pengaturan</button>
