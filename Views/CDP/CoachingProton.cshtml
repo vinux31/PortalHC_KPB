@@ -1548,6 +1548,11 @@ if (btnSubmitEvidence) {
 
                 showToast(data.message, 'success');
 
+                // MED-04: surface warning jika notifikasi reviewer gagal terkirim
+                if (data.notificationFailed) {
+                    showToast('Notifikasi ke reviewer gagal terkirim — silakan info manual.', 'warning');
+                }
+
                 // Update each submitted row in-place
                 (data.submittedIds || []).forEach(id => {
                     // Update Evidence column
