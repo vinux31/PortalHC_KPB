@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
 using HcPortal.Data;
+using HcPortal.Helpers;
 using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -69,10 +70,19 @@ namespace HcPortal.Controllers
                 _context.MaintenanceModes.Add(maintenance);
             }
 
+            var normalizedScope = MaintenanceScopeCatalog.NormalizeSelectedKeys(selectedModules);
+            var isSpecificScope = string.Equals(scope, "Specific", StringComparison.OrdinalIgnoreCase);
+
             maintenance!.IsEnabled = isEnabled;
             maintenance.Message = message ?? "";
             maintenance.EstimatedEndTime = estimatedEndTime;
-            maintenance.Scope = scope == "Specific" && !string.IsNullOrEmpty(selectedModules) ? selectedModules : "All";
+            maintenance.Scope = isSpecificScope ? normalizedScope : "All";
+
+            if (isSpecificScope && string.IsNullOrWhiteSpace(normalizedScope))
+            {
+                ModelState.AddModelError("selectedModules", "Pilih minimal satu halaman jika menggunakan cakupan halaman tertentu.");
+                return View(maintenance);
+            }
 
             if (isEnabled)
             {
@@ -93,7 +103,7 @@ namespace HcPortal.Controllers
             await _auditLog.LogAsync(
                 user.Id, user.FullName,
                 isEnabled ? "MaintenanceEnabled" : "MaintenanceDisabled",
-                $"Maintenance mode {(isEnabled ? "diaktifkan" : "dinonaktifkan")} — Scope: {maintenance.Scope}",
+                $"Maintenance mode {(isEnabled ? "diaktifkan" : "dinonaktifkan")} — Scope: {MaintenanceScopeCatalog.GetSummary(maintenance.Scope)}",
                 maintenance.Id, "MaintenanceMode");
 
             TempData["SuccessMessage"] = isEnabled

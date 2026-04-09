@@ -2,7 +2,45 @@
 @{
     ViewData["Title"] = "Mode Pemeliharaan";
     ViewData["ContainerClass"] = "container";
+    var scopeGroups = HcPortal.Helpers.MaintenanceScopeCatalog.GetGroups();
+    var activeKeys = HcPortal.Helpers.MaintenanceScopeCatalog.GetSelectedKeySet(Model.Scope);
+    var selectedCount = activeKeys.Count;
 }
+
+<style>
+    .maintenance-scope-panel {
+        border: 1px solid #e9ecef;
+        border-radius: 1rem;
+        background: #f8fafc;
+        padding: 1rem;
+    }
+
+    .maintenance-scope-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .maintenance-scope-groups {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .maintenance-scope-group {
+        border: 1px solid #e5e7eb;
+        border-radius: .9rem;
+        background: #fff;
+        padding: 1rem;
+    }
+
+    .maintenance-scope-group.hidden-by-filter,
+    .maintenance-scope-item.hidden-by-filter {
+        display: none !important;
+    }
+</style>
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -29,6 +67,15 @@
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        @Html.ValidationSummary(false, "", new { @class = "mb-0" })
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
@@ -60,25 +107,45 @@
 
             <div class="mb-4 ms-4" id="moduleChecklist" style="@(Model.Scope != "All" ? "" : "display:none;")">
                 <label class="form-label fw-bold">Pilih Halaman</label>
-                @{
-                    var activeModules = Model.Scope != "All" ? Model.Scope.Split(',', StringSplitOptions.RemoveEmptyEntries) : Array.Empty<string>();
-                    var modules = new Dictionary<string, string>
-                    {
-                        { "CMP", "Assessment (CMP)" },
-                        { "CDP", "Pengembangan Kompetensi (CDP)" },
-                        { "Proton", "Coaching Proton" },
-                        { "Admin", "Kelola Data" },
-                        { "Home", "Dashboard & Panduan" },
-                        { "Account", "Profil & Pengaturan" }
-                    };
-                }
-                @foreach (var m in modules)
-                {
-                    <div class="form-check">
-                        <input class="form-check-input module-check" type="checkbox" value="@m.Key" id="mod_@m.Key" @(activeModules.Contains(m.Key) ? "checked" : "")>
-                        <label class="form-check-label" for="mod_@m.Key">@m.Value</label>
+                <p class="text-muted small mb-3">Pilih halaman utama yang ingin ditutup. Semua halaman turunan di area yang sama akan ikut terdampak.</p>
+
+                <div class="maintenance-scope-panel">
+                    <div class="maintenance-scope-toolbar">
+                        <div class="flex-grow-1" style="min-width:240px;">
+                            <input type="search" class="form-control" id="scopeSearch" placeholder="Cari halaman..." aria-label="Cari halaman maintenance">
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllScopes">Pilih semua</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAllScopes">Kosongkan</button>
+                        </div>
                     </div>
-                }
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small">Admin dan HC tetap bisa mengakses halaman yang di-maintenance.</span>
+                        <span class="badge text-bg-light" id="selectedScopeSummary">@selectedCount halaman dipilih</span>
+                    </div>
+
+                    <div class="maintenance-scope-groups" id="scopeGroups">
+                        @foreach (var group in scopeGroups)
+                        {
+                            <div class="maintenance-scope-group" data-group-label="@group.Label.ToLowerInvariant()">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input scope-group-toggle" type="checkbox" id="group_@group.Key" data-group-key="@group.Key">
+                                    <label class="form-check-label fw-semibold" for="group_@group.Key">@group.Label</label>
+                                </div>
+                                <div class="ps-3">
+                                    @foreach (var option in group.Options)
+                                    {
+                                        <div class="form-check maintenance-scope-item mb-2" data-label="@option.Label.ToLowerInvariant()" data-group-key="@group.Key">
+                                            <input class="form-check-input scope-item-check" type="checkbox" value="@option.Key" id="scope_@option.Key" @(activeKeys.Contains(option.Key) ? "checked" : "")>
+                                            <label class="form-check-label" for="scope_@option.Key">@option.Label</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
 
             <input type="hidden" name="selectedModules" id="selectedModules" value="">
@@ -113,20 +180,116 @@
         var scopeAll = document.getElementById('scopeAll');
         var scopeSpecific = document.getElementById('scopeSpecific');
         var checklist = document.getElementById('moduleChecklist');
+        var searchInput = document.getElementById('scopeSearch');
+        var selectedModules = document.getElementById('selectedModules');
+        var summary = document.getElementById('selectedScopeSummary');
+        var itemChecks = Array.from(document.querySelectorAll('.scope-item-check'));
+        var groupChecks = Array.from(document.querySelectorAll('.scope-group-toggle'));
+        var groups = Array.from(document.querySelectorAll('.maintenance-scope-group'));
 
         function toggleChecklist() {
             checklist.style.display = scopeSpecific.checked ? '' : 'none';
         }
+
+        function getCheckedItems() {
+            return itemChecks.filter(function (cb) { return cb.checked; });
+        }
+
+        function syncHiddenInput() {
+            selectedModules.value = getCheckedItems().map(function (cb) { return cb.value; }).join(',');
+        }
+
+        function updateSummary() {
+            summary.textContent = getCheckedItems().length + ' halaman dipilih';
+        }
+
+        function updateGroupState(groupKey) {
+            var groupItems = itemChecks.filter(function (cb) {
+                return cb.closest('.maintenance-scope-item').dataset.groupKey === groupKey;
+            });
+            var checkedCount = groupItems.filter(function (cb) { return cb.checked; }).length;
+            var groupCheck = document.querySelector('.scope-group-toggle[data-group-key="' + groupKey + '"]');
+            if (!groupCheck) return;
+
+            groupCheck.checked = checkedCount > 0 && checkedCount === groupItems.length;
+            groupCheck.indeterminate = checkedCount > 0 && checkedCount < groupItems.length;
+        }
+
+        function updateAllGroups() {
+            groupChecks.forEach(function (groupCheck) {
+                updateGroupState(groupCheck.dataset.groupKey);
+            });
+            syncHiddenInput();
+            updateSummary();
+        }
+
+        function applyFilter() {
+            var query = (searchInput.value || '').toLowerCase().trim();
+            groups.forEach(function (group) {
+                var groupLabel = group.dataset.groupLabel || '';
+                var visibleChildren = 0;
+                group.querySelectorAll('.maintenance-scope-item').forEach(function (item) {
+                    var label = item.dataset.label || '';
+                    var matched = !query || label.indexOf(query) !== -1 || groupLabel.indexOf(query) !== -1;
+                    item.classList.toggle('hidden-by-filter', !matched);
+                    if (matched) visibleChildren += 1;
+                });
+                group.classList.toggle('hidden-by-filter', visibleChildren === 0);
+            });
+        }
+
         scopeAll.addEventListener('change', toggleChecklist);
         scopeSpecific.addEventListener('change', toggleChecklist);
 
-        document.getElementById('maintenanceForm').addEventListener('submit', function () {
-            if (scopeSpecific.checked) {
-                var checked = document.querySelectorAll('.module-check:checked');
-                var values = Array.from(checked).map(function (cb) { return cb.value; });
-                document.getElementById('selectedModules').value = values.join(',');
+        itemChecks.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                updateGroupState(checkbox.closest('.maintenance-scope-item').dataset.groupKey);
+                syncHiddenInput();
+                updateSummary();
+            });
+        });
+
+        groupChecks.forEach(function (groupCheck) {
+            groupCheck.addEventListener('change', function () {
+                var groupKey = groupCheck.dataset.groupKey;
+                itemChecks.forEach(function (itemCheck) {
+                    if (itemCheck.closest('.maintenance-scope-item').dataset.groupKey === groupKey) {
+                        itemCheck.checked = groupCheck.checked;
+                    }
+                });
+                updateAllGroups();
+            });
+        });
+
+        document.getElementById('selectAllScopes').addEventListener('click', function () {
+            itemChecks.forEach(function (checkbox) { checkbox.checked = true; });
+            updateAllGroups();
+        });
+
+        document.getElementById('clearAllScopes').addEventListener('click', function () {
+            itemChecks.forEach(function (checkbox) { checkbox.checked = false; });
+            updateAllGroups();
+        });
+
+        searchInput.addEventListener('input', applyFilter);
+
+        document.getElementById('maintenanceForm').addEventListener('submit', function (event) {
+            syncHiddenInput();
+
+            if (scopeSpecific.checked && getCheckedItems().length === 0) {
+                event.preventDefault();
+                alert('Pilih minimal satu halaman jika menggunakan cakupan halaman tertentu.');
+                return;
+            }
+
+            if (!scopeSpecific.checked) {
+                selectedModules.value = '';
             }
         });
+
+        updateAllGroups();
+        applyFilter();
+        toggleChecklist();
     });
 </script>
 }

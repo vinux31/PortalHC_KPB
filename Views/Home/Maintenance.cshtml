@@ -1,6 +1,7 @@
 @model HcPortal.Models.MaintenanceMode
 @{
     Layout = null;
+    var scopedLabels = HcPortal.Helpers.MaintenanceScopeCatalog.GetLabels(Model.Scope);
 }
 <!DOCTYPE html>
 <html lang="id">
@@ -26,9 +27,9 @@
             <div class="mt-4">
                 <p class="text-muted small">Halaman berikut sedang dalam pemeliharaan:</p>
                 <ul class="list-unstyled">
-                    @foreach (var m in Model.Scope.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    @foreach (var label in scopedLabels)
                     {
-                        <li>@(m switch { "CMP" => "Assessment (CMP)", "CDP" => "Pengembangan Kompetensi (CDP)", "Proton" => "Coaching Proton", "Admin" => "Kelola Data", "Home" => "Dashboard & Panduan", "Account" => "Profil & Pengaturan", _ => m })</li>
+                        <li>@label</li>
                     }
                 </ul>
             </div>

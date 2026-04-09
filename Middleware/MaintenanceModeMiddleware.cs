@@ -1,4 +1,5 @@
 using HcPortal.Data;
+using HcPortal.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -73,11 +74,11 @@ namespace HcPortal.Middleware
             // 7. Check partial scope
             if (maintenance.Scope != "All")
             {
-                var module = GetModuleFromPath(path);
-                var modules = maintenance.Scope.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                if (!modules.Contains(module, StringComparer.OrdinalIgnoreCase))
+                var scopeKey = MaintenanceScopeCatalog.ResolveScopeKey(context.GetRouteData().Values);
+                var selectedKeys = MaintenanceScopeCatalog.GetSelectedKeySet(maintenance.Scope);
+                if (scopeKey == null || !selectedKeys.Contains(scopeKey))
                 {
-                    await _next(context); // Module ini tidak di-maintenance
+                    await _next(context);
                     return;
                 }
             }
@@ -107,24 +108,6 @@ namespace HcPortal.Middleware
                 }
             }
             return state;
-        }
-
-        private static string GetModuleFromPath(PathString path)
-        {
-            var segments = path.Value?.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            if (segments == null || segments.Length == 0) return "Home";
-
-            return segments[0] switch
-            {
-                "CMP" => "CMP",
-                "CDP" => "CDP",
-                "ProtonData" => "Proton",
-                "Admin" => "Admin",
-                "Home" => "Home",
-                "Account" => "Account",
-                "Notification" => "Notification",
-                _ => "Home"
-            };
         }
     }
 }
