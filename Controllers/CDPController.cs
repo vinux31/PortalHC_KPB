@@ -1053,15 +1053,16 @@ namespace HcPortal.Controllers
         {
             try
             {
-                var mapping = await _context.CoachCoacheeMappings
-                    .FirstOrDefaultAsync(m => m.CoacheeId == coacheeId && m.IsActive);
-                if (mapping == null) return;
+                // MED-05 fix: satu query join mapping → reviewers (sebelumnya 2 round-trip).
+                var reviewers = await (
+                    from m in _context.CoachCoacheeMappings
+                    where m.CoacheeId == coacheeId && m.IsActive
+                    join u in _context.Users on m.AssignmentSection equals u.Section
+                    where u.IsActive && u.RoleLevel == 4
+                    select u.Id
+                ).Distinct().ToListAsync();
 
-                var section = mapping.AssignmentSection;
-                var reviewers = await _context.Users
-                    .Where(u => u.IsActive && u.Section == section && u.RoleLevel == 4)
-                    .Select(u => u.Id)
-                    .ToListAsync();
+                if (reviewers.Count == 0) return;
 
                 foreach (var reviewerId in reviewers)
                 {

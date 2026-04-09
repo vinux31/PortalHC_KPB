@@ -211,6 +211,7 @@
 ---
 
 ### [MED-05] N+1 query di NotifyReviewers loop
+- **Status:** ✅ FIXED 2026-04-09 (NotifyReviewersAsync merge mapping+user ke satu LINQ Join query; HIGH-05 fix juga mengurangi outer loop ke 1 coachee per request)
 - **Severity:** Medium
 - **Category:** Performance
 - **File:** `Controllers/CDPController.cs:2245-2293`
