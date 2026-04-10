@@ -152,6 +152,13 @@ namespace HcPortal.Controllers
             ViewBag.ProtonTracks = await _context.ProtonTracks
                 .OrderBy(t => t.Urutan).ToListAsync();
 
+            // D-14: Auto-suggest data — beban aktif per coach untuk suggest di assign modal
+            var coachWorkloads = mappings
+                .Where(m => m.IsActive && !m.IsCompleted)
+                .GroupBy(m => m.CoachId)
+                .ToDictionary(g => g.Key, g => g.Count());
+            ViewBag.CoachWorkloads = coachWorkloads;
+
             return View();
         }
 

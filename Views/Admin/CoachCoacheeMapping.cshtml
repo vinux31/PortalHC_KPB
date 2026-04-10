@@ -385,13 +385,14 @@ else
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Coach <span class="text-danger">*</span></label>
-                    <select id="assignCoachSelect" class="form-select">
+                    <select id="assignCoachSelect" class="form-select" onchange="updateCoachSuggestHint()">
                         <option value="">— Pilih Coach —</option>
                         @foreach (var coach in eligibleCoaches)
                         {
-                            <option value="@coach.Id">@coach.FullName @(string.IsNullOrEmpty((string)coach.Section) ? "" : $"({coach.Section})")</option>
+                            <option value="@coach.Id" data-section="@coach.Section">@coach.FullName @(string.IsNullOrEmpty((string)coach.Section) ? "" : $"({coach.Section})")</option>
                         }
                     </select>
+                    <div id="coachSuggestHint" class="form-text text-success" style="display:none;"></div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Filter Seksi Coachee</label>
@@ -603,6 +604,45 @@ else
 <script>
     // ========== Section-Unit cascade data ==========
     var sectionUnitsMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(sectionUnits));
+
+    // ========== Auto-suggest coach workload data (D-14) ==========
+    var coachWorkloads = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CoachWorkloads ?? new Dictionary<string, int>()));
+
+    function updateCoachSuggestHint() {
+        var hint = document.getElementById('coachSuggestHint');
+        if (!hint) return;
+
+        var coachSelect = document.getElementById('assignCoachSelect');
+        var selectedOption = coachSelect ? coachSelect.options[coachSelect.selectedIndex] : null;
+        var selectedSection = selectedOption ? selectedOption.getAttribute('data-section') : '';
+
+        if (!selectedSection) { hint.style.display = 'none'; return; }
+
+        // Find coach with lowest workload in same section
+        var allOptions = coachSelect ? Array.from(coachSelect.options) : [];
+        var coachesInSection = allOptions.filter(function(opt) {
+            return opt.value && opt.getAttribute('data-section') === selectedSection;
+        });
+
+        if (coachesInSection.length === 0) { hint.style.display = 'none'; return; }
+
+        var best = null;
+        var bestCount = Infinity;
+        coachesInSection.forEach(function(opt) {
+            var count = coachWorkloads[opt.value] || 0;
+            if (count < bestCount) {
+                bestCount = count;
+                best = opt;
+            }
+        });
+
+        if (best) {
+            hint.textContent = 'Rekomendasi: ' + best.text.replace(/\s*\(.*?\)\s*$/, '').trim() + ' (' + bestCount + ' coachee aktif \u2014 beban terendah di section ini)';
+            hint.style.display = '';
+        } else {
+            hint.style.display = 'none';
+        }
+    }
 
     function filterAssignmentUnits(prefix) {
         var sectionVal = document.getElementById(prefix + 'AssignmentSection').value;
