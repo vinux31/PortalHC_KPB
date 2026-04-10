@@ -1451,8 +1451,8 @@ namespace HcPortal.Controllers
 
         #region Coach Workload
 
-        private record CoachWorkloadRow(string CoachId, string CoachName, string CoachSection, int CoacheeCount, string Status);
-        private record ReassignSuggestion(int MappingId, string CoacheeName, string CoacheeSection, string FromCoachName, string ToCoachId, string ToCoachName);
+        internal record CoachWorkloadRow(string CoachId, string CoachName, string CoachSection, int CoacheeCount, string Status);
+        internal record ReassignSuggestion(int MappingId, string CoacheeName, string CoacheeSection, string FromCoachName, string ToCoachId, string ToCoachName);
 
         private async Task<(List<CoachWorkloadRow> Rows, CoachWorkloadThreshold Threshold, int TotalCoachees, List<string> Sections)> GetWorkloadDataAsync(string? section)
         {

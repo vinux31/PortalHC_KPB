@@ -279,8 +279,8 @@ else
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     <script>
-        var workloadData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.WorkloadRows));
-        var thresholdData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Threshold));
+        var workloadData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.WorkloadRows, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        var thresholdData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Threshold, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
 
         // Bar Chart
         (function () {
