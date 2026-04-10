@@ -10,6 +10,10 @@ namespace HcPortal.Models
         public string? FilterKategori { get; set; }
         public string? Search { get; set; }
 
+        // Sort
+        public string SortBy { get; set; } = "";
+        public string SortDir { get; set; } = "asc";
+
         // Summary
         public decimal TotalRencana { get; set; }
         public decimal TotalRealisasi { get; set; }
@@ -18,6 +22,8 @@ namespace HcPortal.Models
 
         // Chart data
         public List<BudgetChartData> ChartData { get; set; } = new();
+        public List<BudgetChartData> ChartByType { get; set; } = new();
+        public List<BudgetTopItem> TopItems { get; set; } = new();
 
         // Dropdown options
         public List<int> AvailableTahun { get; set; } = new();
@@ -27,6 +33,7 @@ namespace HcPortal.Models
         public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; }
         public int PageSize { get; set; } = 20;
+        public List<int> PageSizeOptions { get; set; } = new() { 20, 50, 100 };
     }
 
     public class BudgetChartData
@@ -36,4 +43,9 @@ namespace HcPortal.Models
         public decimal Realisasi { get; set; }
     }
 
+    public class BudgetTopItem
+    {
+        public string Judul { get; set; } = "";
+        public decimal Anggaran { get; set; }
+    }
 }

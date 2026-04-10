@@ -3517,9 +3517,10 @@ namespace HcPortal.Controllers
 
         [Authorize(Roles = "Admin,HC")]
         public async Task<IActionResult> BudgetTraining(
-            int? tahun, string? type, string? kategori, string? search, int page = 1)
+            int? tahun, string? type, string? kategori, string? search,
+            string? sortBy, string? sortDir, int page = 1, int pageSize = 20)
         {
-            const int pageSize = 20;
+            if (pageSize is not 20 and not 50 and not 100) pageSize = 20;
             var query = _context.BudgetItems.AsQueryable();
 
             if (tahun.HasValue) query = query.Where(b => b.TahunAnggaran == tahun.Value);
@@ -3529,12 +3530,28 @@ namespace HcPortal.Controllers
                 query = query.Where(b => b.Judul.Contains(search) || (b.Vendor != null && b.Vendor.Contains(search)));
 
             var totalItems = await query.CountAsync();
-            var items = await query.OrderByDescending(b => b.CreatedAt)
-                .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            // Chart data
-            var chartData = await _context.BudgetItems
-                .Where(b => !tahun.HasValue || b.TahunAnggaran == tahun.Value)
+            // Sorting
+            var dir = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase) ? "desc" : "asc";
+            IOrderedQueryable<BudgetItem> ordered = sortBy?.ToLower() switch
+            {
+                "judul" => dir == "asc" ? query.OrderBy(b => b.Judul) : query.OrderByDescending(b => b.Judul),
+                "kategori" => dir == "asc" ? query.OrderBy(b => b.Kategori) : query.OrderByDescending(b => b.Kategori),
+                "anggaran" => dir == "asc" ? query.OrderBy(b => b.EstimasiBiayaTotal) : query.OrderByDescending(b => b.EstimasiBiayaTotal),
+                "realisasi" => dir == "asc" ? query.OrderBy(b => b.RealisasiBiaya) : query.OrderByDescending(b => b.RealisasiBiaya),
+                "serapan" => dir == "asc"
+                    ? query.OrderBy(b => b.EstimasiBiayaTotal == 0 ? 0 : b.RealisasiBiaya / b.EstimasiBiayaTotal)
+                    : query.OrderByDescending(b => b.EstimasiBiayaTotal == 0 ? 0 : b.RealisasiBiaya / b.EstimasiBiayaTotal),
+                _ => query.OrderByDescending(b => b.CreatedAt)
+            };
+
+            var items = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            // Chart data — by kategori
+            var baseChartQuery = _context.BudgetItems.AsQueryable();
+            if (tahun.HasValue) baseChartQuery = baseChartQuery.Where(b => b.TahunAnggaran == tahun.Value);
+
+            var chartData = await baseChartQuery
                 .GroupBy(b => b.Kategori ?? "Lainnya")
                 .Select(g => new BudgetChartData
                 {
@@ -3542,6 +3559,23 @@ namespace HcPortal.Controllers
                     Rencana = g.Sum(x => x.EstimasiBiayaTotal),
                     Realisasi = g.Sum(x => x.RealisasiBiaya)
                 }).ToListAsync();
+
+            // Chart data — by type (Training vs Assessment)
+            var chartByType = await baseChartQuery
+                .GroupBy(b => b.Type)
+                .Select(g => new BudgetChartData
+                {
+                    Kategori = g.Key,
+                    Rencana = g.Sum(x => x.EstimasiBiayaTotal),
+                    Realisasi = g.Sum(x => x.RealisasiBiaya)
+                }).ToListAsync();
+
+            // Top 10 items by anggaran
+            var topItems = await baseChartQuery
+                .OrderByDescending(b => b.EstimasiBiayaTotal)
+                .Take(10)
+                .Select(b => new BudgetTopItem { Judul = b.Judul, Anggaran = b.EstimasiBiayaTotal })
+                .ToListAsync();
 
             // Summary from full filtered query (not paged)
             var summaryQuery = _context.BudgetItems.AsQueryable();
@@ -3556,10 +3590,14 @@ namespace HcPortal.Controllers
                 FilterType = type,
                 FilterKategori = kategori,
                 Search = search,
+                SortBy = sortBy ?? "",
+                SortDir = dir,
                 TotalRencana = totalRencana,
                 TotalRealisasi = totalRealisasi,
                 TotalItems = totalItems,
                 ChartData = chartData,
+                ChartByType = chartByType,
+                TopItems = topItems,
                 CurrentPage = page,
                 TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
                 PageSize = pageSize,
@@ -3694,7 +3732,65 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 11).Value = b.Vendor ?? "";
                 ws.Cell(i + 2, 12).Value = b.Catatan ?? "";
             }
+
+            // Format currency columns (Biaya/Orang, Estimasi Total, Realisasi)
+            ws.Column(8).Style.NumberFormat.Format = "#,##0";
+            ws.Column(9).Style.NumberFormat.Format = "#,##0";
+            ws.Column(10).Style.NumberFormat.Format = "#,##0";
+
+            // Auto-filter on header row
+            ws.RangeUsed().SetAutoFilter();
             ws.Columns().AdjustToContents();
+
+            // Sheet 2: Ringkasan
+            var ws2 = workbook.Worksheets.Add("Ringkasan");
+            var summaryHeaders = new[] { "Kategori", "Total Rencana", "Total Realisasi", "Selisih" };
+            for (int i = 0; i < summaryHeaders.Length; i++)
+            {
+                ws2.Cell(1, i + 1).Value = summaryHeaders[i];
+                ws2.Cell(1, i + 1).Style.Font.Bold = true;
+                ws2.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.LightSteelBlue;
+            }
+
+            // Per Kategori
+            var grouped = items.GroupBy(b => b.Kategori ?? "Lainnya").OrderBy(g => g.Key).ToList();
+            int row = 2;
+            foreach (var g in grouped)
+            {
+                ws2.Cell(row, 1).Value = g.Key;
+                ws2.Cell(row, 2).Value = (double)g.Sum(x => x.EstimasiBiayaTotal);
+                ws2.Cell(row, 3).Value = (double)g.Sum(x => x.RealisasiBiaya);
+                ws2.Cell(row, 4).Value = (double)(g.Sum(x => x.EstimasiBiayaTotal) - g.Sum(x => x.RealisasiBiaya));
+                row++;
+            }
+
+            // Per Type
+            row++;
+            ws2.Cell(row, 1).Value = "Per Type";
+            ws2.Cell(row, 1).Style.Font.Bold = true;
+            row++;
+            foreach (var g in items.GroupBy(b => b.Type))
+            {
+                ws2.Cell(row, 1).Value = g.Key;
+                ws2.Cell(row, 2).Value = (double)g.Sum(x => x.EstimasiBiayaTotal);
+                ws2.Cell(row, 3).Value = (double)g.Sum(x => x.RealisasiBiaya);
+                ws2.Cell(row, 4).Value = (double)(g.Sum(x => x.EstimasiBiayaTotal) - g.Sum(x => x.RealisasiBiaya));
+                row++;
+            }
+
+            // Grand Total
+            row++;
+            ws2.Cell(row, 1).Value = "GRAND TOTAL";
+            ws2.Cell(row, 1).Style.Font.Bold = true;
+            ws2.Cell(row, 2).Value = (double)items.Sum(x => x.EstimasiBiayaTotal);
+            ws2.Cell(row, 3).Value = (double)items.Sum(x => x.RealisasiBiaya);
+            ws2.Cell(row, 4).Value = (double)(items.Sum(x => x.EstimasiBiayaTotal) - items.Sum(x => x.RealisasiBiaya));
+            ws2.Row(row).Style.Font.Bold = true;
+
+            ws2.Column(2).Style.NumberFormat.Format = "#,##0";
+            ws2.Column(3).Style.NumberFormat.Format = "#,##0";
+            ws2.Column(4).Style.NumberFormat.Format = "#,##0";
+            ws2.Columns().AdjustToContents();
 
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
@@ -3753,6 +3849,58 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
             TempData["Success"] = $"{imported} item berhasil diimport.";
             return RedirectToAction("BudgetTraining", new { tahun = tahunAnggaran });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BudgetTrainingQuickUpdate(int id, decimal realisasi)
+        {
+            var item = await _context.BudgetItems.FindAsync(id);
+            if (item == null) return NotFound();
+
+            item.RealisasiBiaya = realisasi;
+            item.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, realisasi = item.RealisasiBiaya });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BudgetTrainingBulkDelete([FromBody] int[] ids)
+        {
+            if (ids == null || ids.Length == 0) return BadRequest();
+
+            var items = await _context.BudgetItems.Where(b => ids.Contains(b.Id)).ToListAsync();
+            _context.BudgetItems.RemoveRange(items);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, deleted = items.Count });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BudgetTrainingBulkUpdateRealisasi([FromBody] Dictionary<string, decimal> updates)
+        {
+            if (updates == null || updates.Count == 0) return BadRequest();
+
+            var ids = updates.Keys.Select(k => int.Parse(k)).ToArray();
+            var items = await _context.BudgetItems.Where(b => ids.Contains(b.Id)).ToListAsync();
+
+            foreach (var item in items)
+            {
+                if (updates.TryGetValue(item.Id.ToString(), out var val))
+                {
+                    item.RealisasiBiaya = val;
+                    item.UpdatedAt = DateTime.Now;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, updated = items.Count });
         }
 
     }

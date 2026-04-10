@@ -1,6 +1,21 @@
 @model HcPortal.Models.BudgetTrainingViewModel
 @{
     ViewData["Title"] = "Budget Training & Assessment";
+    // Helper for sort links
+    string SortUrl(string field)
+    {
+        var newDir = (Model.SortBy == field && Model.SortDir == "asc") ? "desc" : "asc";
+        return Url.Action("BudgetTraining", new { tahun = Model.FilterTahun, type = Model.FilterType, kategori = Model.FilterKategori, search = Model.Search, sortBy = field, sortDir = newDir, pageSize = Model.PageSize });
+    }
+    string SortIcon(string field)
+    {
+        if (Model.SortBy != field) return "bi-arrow-down-up text-muted opacity-50";
+        return Model.SortDir == "asc" ? "bi-arrow-up" : "bi-arrow-down";
+    }
+    string PageUrl(int pg)
+    {
+        return Url.Action("BudgetTraining", new { tahun = Model.FilterTahun, type = Model.FilterType, kategori = Model.FilterKategori, search = Model.Search, sortBy = Model.SortBy, sortDir = Model.SortDir, page = pg, pageSize = Model.PageSize });
+    }
 }
 
 <div class="container-fluid py-4">
@@ -69,6 +84,16 @@
                                 </select>
                             </div>
                             <div>
+                                <label class="form-label small mb-1">Kategori</label>
+                                <select name="kategori" class="form-select form-select-sm">
+                                    <option value="">Semua</option>
+                                    @foreach (var k in Model.AvailableKategori)
+                                    {
+                                        <option value="@k" selected="@(Model.FilterKategori == k)">@k</option>
+                                    }
+                                </select>
+                            </div>
+                            <div>
                                 <label class="form-label small mb-1">Cari</label>
                                 <input type="text" name="search" value="@Model.Search" class="form-control form-control-sm" placeholder="Judul / Vendor..." />
                             </div>
@@ -92,77 +117,131 @@
                 </div>
             </div>
 
+            <!-- Bulk Action Bar (hidden by default) -->
+            <div id="bulkBar" class="card border-0 shadow-sm mb-3 d-none">
+                <div class="card-body py-2 d-flex align-items-center gap-3">
+                    <span class="fw-semibold"><span id="bulkCount">0</span> item dipilih</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDeleteSelected()"><i class="bi bi-trash me-1"></i>Hapus Terpilih</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openBulkUpdateModal()"><i class="bi bi-pencil-square me-1"></i>Update Realisasi Terpilih</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">Batal</button>
+                </div>
+            </div>
+
             <!-- Table -->
             <div class="card border-0 shadow-sm">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
+                                <th style="width:36px"><input type="checkbox" class="form-check-input" id="selectAll" title="Pilih Semua" /></th>
                                 <th>No</th>
                                 <th>Type</th>
-                                <th>Judul</th>
-                                <th>Kategori</th>
-                                <th class="text-end">Anggaran</th>
-                                <th class="text-end">Realisasi</th>
-                                <th class="text-center" style="min-width:120px">% Serapan</th>
+                                <th><a href="@SortUrl("judul")" class="text-decoration-none text-dark">Judul <i class="bi @SortIcon("judul") small"></i></a></th>
+                                <th><a href="@SortUrl("kategori")" class="text-decoration-none text-dark">Kategori <i class="bi @SortIcon("kategori") small"></i></a></th>
+                                <th class="text-end"><a href="@SortUrl("anggaran")" class="text-decoration-none text-dark">Anggaran <i class="bi @SortIcon("anggaran") small"></i></a></th>
+                                <th class="text-end"><a href="@SortUrl("realisasi")" class="text-decoration-none text-dark">Realisasi <i class="bi @SortIcon("realisasi") small"></i></a></th>
+                                <th class="text-center" style="min-width:120px"><a href="@SortUrl("serapan")" class="text-decoration-none text-dark">% Serapan <i class="bi @SortIcon("serapan") small"></i></a></th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (!Model.Items.Any())
                             {
-                                <tr><td colspan="8" class="text-center text-muted py-4">Belum ada data budget.</td></tr>
+                                <tr><td colspan="9" class="text-center text-muted py-4">Belum ada data budget.</td></tr>
                             }
                             @{ var no = (Model.CurrentPage - 1) * Model.PageSize; }
                             @foreach (var item in Model.Items)
                             {
                                 no++;
                                 var pct = item.EstimasiBiayaTotal > 0 ? (int)(item.RealisasiBiaya / item.EstimasiBiayaTotal * 100) : 0;
-                                var pctColor = pct >= 80 ? "bg-success" : pct >= 50 ? "bg-warning" : "bg-info";
-                                <tr>
+                                var pctColor = pct > 100 ? "bg-danger" : pct >= 80 ? "bg-success" : pct >= 50 ? "bg-warning" : "bg-info";
+                                var rowClass = pct > 100 ? "table-danger" : "";
+                                <tr class="@rowClass" data-anggaran="@item.EstimasiBiayaTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                    <td><input type="checkbox" class="form-check-input row-check" value="@item.Id" /></td>
                                     <td>@no</td>
                                     <td><span class="badge @(item.Type == "Training" ? "bg-info" : "bg-purple") bg-opacity-75">@item.Type</span></td>
                                     <td>@item.Judul</td>
                                     <td class="small">@(item.Kategori ?? "-")</td>
                                     <td class="text-end fw-semibold">@item.EstimasiBiayaTotal.ToString("#,0")</td>
-                                    <td class="text-end">@item.RealisasiBiaya.ToString("#,0")</td>
+                                    <td class="text-end realisasi-cell" data-id="@item.Id" data-value="@item.RealisasiBiaya.ToString(System.Globalization.CultureInfo.InvariantCulture)" role="button" title="Klik untuk edit">@item.RealisasiBiaya.ToString("#,0")</td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="progress flex-grow-1" style="height:6px">
                                                 <div class="progress-bar @pctColor" style="width:@(Math.Min(pct, 100))%"></div>
                                             </div>
-                                            <span class="small text-muted" style="min-width:36px">@pct%</span>
+                                            <span class="small @(pct > 100 ? "text-danger fw-bold" : "text-muted")" style="min-width:36px">@pct%</span>
+                                            @if (pct > 100)
+                                            {
+                                                <i class="bi bi-exclamation-triangle-fill text-danger small" title="Over Budget!"></i>
+                                            }
                                         </div>
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
-                                                onclick="openEditModal(@item.Id, '@item.Type', '@Html.Raw(item.Judul.Replace("'", "\\'"))', '@Html.Raw(item.Kategori?.Replace("'", "\\'") ?? "")', '@Html.Raw(item.SubKategori?.Replace("'", "\\'") ?? "")', @item.TahunAnggaran, @item.JumlahPeserta, '@item.BiayaPerOrang', '@item.RealisasiBiaya', '@Html.Raw(item.Vendor?.Replace("'", "\\'") ?? "")', '@Html.Raw(item.Catatan?.Replace("'", "\\'") ?? "")')">
+                                        <button class="btn btn-sm btn-outline-primary me-1 btn-edit-item" title="Edit"
+                                                data-id="@item.Id"
+                                                data-type="@item.Type"
+                                                data-judul="@Html.Encode(item.Judul)"
+                                                data-kategori="@Html.Encode(item.Kategori ?? "")"
+                                                data-subkategori="@Html.Encode(item.SubKategori ?? "")"
+                                                data-tahun="@item.TahunAnggaran"
+                                                data-peserta="@item.JumlahPeserta"
+                                                data-biaya="@item.BiayaPerOrang.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                data-realisasi="@item.RealisasiBiaya.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                data-vendor="@Html.Encode(item.Vendor ?? "")"
+                                                data-catatan="@Html.Encode(item.Catatan ?? "")">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <form method="post" asp-action="BudgetTrainingDelete" class="d-inline" onsubmit="return confirm('Hapus item ini?')">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></button>
-                                        </form>
+                                        <button class="btn btn-sm btn-outline-danger btn-delete-item" title="Hapus"
+                                                data-id="@item.Id" data-judul="@Html.Encode(item.Judul)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
-                @if (Model.TotalPages > 1)
+                @if (Model.TotalPages >= 1)
                 {
-                    <div class="card-footer bg-transparent">
-                        <nav>
-                            <ul class="pagination pagination-sm justify-content-center mb-0">
-                                @for (int i = 1; i <= Model.TotalPages; i++)
+                    <div class="card-footer bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2 small text-muted">
+                            @{
+                                var startItem = Model.TotalItems > 0 ? (Model.CurrentPage - 1) * Model.PageSize + 1 : 0;
+                                var endItem = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems);
+                            }
+                            <span>Menampilkan @startItem–@endItem dari @Model.TotalItems item</span>
+                            <select id="pageSizeSelect" class="form-select form-select-sm" style="width:auto">
+                                @foreach (var ps in Model.PageSizeOptions)
                                 {
-                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                        <a class="page-link" href="@Url.Action("BudgetTraining", new { tahun = Model.FilterTahun, type = Model.FilterType, kategori = Model.FilterKategori, search = Model.Search, page = i })">@i</a>
-                                    </li>
+                                    <option value="@ps" selected="@(Model.PageSize == ps)">@ps / halaman</option>
                                 }
-                            </ul>
-                        </nav>
+                            </select>
+                        </div>
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0">
+                                    @{
+                                        var pages = new List<int>();
+                                        for (int i = 1; i <= Model.TotalPages; i++)
+                                        {
+                                            if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 1 && i <= Model.CurrentPage + 1))
+                                                pages.Add(i);
+                                        }
+                                    }
+                                    @for (int idx = 0; idx < pages.Count; idx++)
+                                    {
+                                        if (idx > 0 && pages[idx] - pages[idx - 1] > 1)
+                                        {
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                                        }
+                                        <li class="page-item @(pages[idx] == Model.CurrentPage ? "active" : "")">
+                                            <a class="page-link" href="@PageUrl(pages[idx])">@pages[idx]</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
                     </div>
                 }
             </div>
@@ -170,9 +249,9 @@
 
         <!-- Tab Ringkasan -->
         <div class="tab-pane fade" id="tab-ringkasan" role="tabpanel" aria-labelledby="ringkasan-tab">
-            <!-- Summary Cards -->
+            <!-- Summary Cards — 5 cards -->
             <div class="row g-3 mb-4">
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <div class="text-muted small">Total Item</div>
@@ -180,7 +259,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <div class="text-muted small">Total Rencana</div>
@@ -188,7 +267,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <div class="text-muted small">Total Realisasi</div>
@@ -196,7 +275,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-muted small">Sisa Anggaran</div>
+                            <div class="fs-5 fw-bold @(Model.Variance >= 0 ? "text-success" : "text-danger")">Rp @Model.Variance.ToString("#,0")</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg">
                     @{
                         var penyerapan = Model.TotalRencana > 0 ? (int)(Model.TotalRealisasi / Model.TotalRencana * 100) : 0;
                     }
@@ -212,17 +299,37 @@
                 </div>
             </div>
 
-            <!-- Chart -->
+            <!-- Charts -->
             @if (Model.ChartData.Any())
             {
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">Budget vs Realisasi per Kategori</h6>
-                        <canvas id="budgetChart" height="80"></canvas>
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3">Budget vs Realisasi per Kategori</h6>
+                                <canvas id="budgetChart" height="80"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3">Distribusi per Type</h6>
+                                <canvas id="typeChart" height="160"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                @if (Model.TopItems.Any())
+                {
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">Top 10 Item Anggaran Terbesar</h6>
+                            <canvas id="topChart" height="60"></canvas>
+                        </div>
+                    </div>
+                }
             }
-
         </div>
     </div>
 </div>
@@ -239,7 +346,6 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Section: Informasi Umum -->
                     <h6 class="text-muted fw-semibold mb-2 pb-1 border-bottom"><i class="bi bi-info-circle me-1"></i>Informasi Umum</h6>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -258,8 +364,6 @@
                             <input type="text" name="Judul" id="editJudul" class="form-control" required maxlength="200" />
                         </div>
                     </div>
-
-                    <!-- Section: Kategori & Peserta -->
                     <h6 class="text-muted fw-semibold mb-2 pb-1 border-bottom"><i class="bi bi-people me-1"></i>Kategori & Peserta</h6>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -287,8 +391,6 @@
                             <input type="number" name="JumlahPeserta" id="editPeserta" class="form-control" min="0" required oninput="updateEditCalc()" />
                         </div>
                     </div>
-
-                    <!-- Section: Anggaran & Vendor -->
                     <h6 class="text-muted fw-semibold mb-2 pb-1 border-bottom"><i class="bi bi-cash-stack me-1"></i>Anggaran & Vendor</h6>
                     <div class="row g-3">
                         <div class="col-12">
@@ -300,7 +402,6 @@
                             </div>
                         </div>
                         <input type="hidden" name="BiayaPerOrang" id="editBiayaHidden" value="0" />
-                        <!-- Mode Per Orang -->
                         <div class="col-md-6 edit-mode-perorang">
                             <label class="form-label">Biaya per Orang <span class="text-danger">*</span></label>
                             <div class="input-group">
@@ -308,7 +409,6 @@
                                 <input type="number" id="editBiaya" class="form-control" min="0" step="1000" oninput="updateEditCalc()" />
                             </div>
                         </div>
-                        <!-- Mode Total -->
                         <div class="col-md-6 edit-mode-total" style="display:none">
                             <label class="form-label">Biaya Total <span class="text-danger">*</span></label>
                             <div class="input-group">
@@ -323,7 +423,6 @@
                                 <input type="number" name="RealisasiBiaya" id="editRealisasi" class="form-control" min="0" step="1000" />
                             </div>
                         </div>
-                        <!-- Preview: Estimasi Total (mode perorang) -->
                         <div class="col-12 edit-mode-perorang">
                             <label class="form-label">Estimasi Total</label>
                             <div class="input-group">
@@ -331,7 +430,6 @@
                                 <input type="text" id="editEstimasi" class="form-control bg-light" readonly disabled placeholder="Otomatis: Peserta x Biaya per Orang" />
                             </div>
                         </div>
-                        <!-- Preview: Biaya per Orang (mode total) -->
                         <div class="col-12 edit-mode-total" style="display:none">
                             <label class="form-label">Biaya per Orang (kalkulasi)</label>
                             <div class="input-group">
@@ -355,6 +453,51 @@
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Yakin ingin menghapus item:<br/><strong id="deleteItemName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <form method="post" asp-action="BudgetTrainingDelete" id="deleteForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteId" />
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Update Realisasi Modal -->
+<div class="modal fade" id="bulkUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Bulk Update Realisasi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm">
+                    <thead><tr><th>Judul</th><th class="text-end" style="width:180px">Realisasi</th></tr></thead>
+                    <tbody id="bulkUpdateBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitBulkUpdate()"><i class="bi bi-save me-1"></i>Simpan</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -394,6 +537,8 @@
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
+    var antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
     function formatRupiah(val) {
         if (!val || isNaN(val)) return '';
         return Number(val).toLocaleString('id-ID');
@@ -409,7 +554,6 @@
         });
     }
 
-    // Edit modal mode toggle
     document.querySelectorAll('input[name="editBiayaMode"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
             toggleMode('edit', this.value);
@@ -436,7 +580,7 @@
         }
     }
 
-    // === Edit Modal Cascade Kategori → SubKategori ===
+    // === Edit Modal — via data-* attributes (event delegation) ===
     var editKategoriMap = {};
     @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
     {
@@ -450,91 +594,208 @@
         var selectedName = this.value;
         var parentId = editKategoriMap[selectedName];
         var options = editSubKategoriSelect.querySelectorAll('option[data-parent-id]');
-
         options.forEach(function(opt) {
             opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
         });
-
         editSubKategoriSelect.value = '';
         editSubKategoriSelect.disabled = !selectedName;
     });
 
-    function openEditModal(id, type, judul, kategori, subKategori, tahun, peserta, biaya, realisasi, vendor, catatan) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editType').value = type;
-        document.getElementById('editJudul').value = judul;
-        document.getElementById('editTahun').value = tahun;
-        document.getElementById('editPeserta').value = peserta;
-        document.getElementById('editBiaya').value = biaya;
-        document.getElementById('editRealisasi').value = realisasi;
-        document.getElementById('editVendor').value = vendor;
-        document.getElementById('editCatatan').value = catatan;
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-edit-item');
+        if (!btn) return;
+        var d = btn.dataset;
+        document.getElementById('editId').value = d.id;
+        document.getElementById('editType').value = d.type;
+        document.getElementById('editJudul').value = d.judul;
+        document.getElementById('editTahun').value = d.tahun;
+        document.getElementById('editPeserta').value = d.peserta;
+        document.getElementById('editBiaya').value = d.biaya;
+        document.getElementById('editRealisasi').value = d.realisasi;
+        document.getElementById('editVendor').value = d.vendor;
+        document.getElementById('editCatatan').value = d.catatan;
 
-        // Set kategori dropdown & trigger cascade
-        editKategoriSelect.value = kategori;
-        var parentId = editKategoriMap[kategori];
-        var subOptions = editSubKategoriSelect.querySelectorAll('option[data-parent-id]');
-        subOptions.forEach(function(opt) {
+        editKategoriSelect.value = d.kategori;
+        var parentId = editKategoriMap[d.kategori];
+        editSubKategoriSelect.querySelectorAll('option[data-parent-id]').forEach(function(opt) {
             opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
         });
-        editSubKategoriSelect.disabled = !kategori;
-        editSubKategoriSelect.value = subKategori;
+        editSubKategoriSelect.disabled = !d.kategori;
+        editSubKategoriSelect.value = d.subkategori;
 
-        // Reset ke mode Per Orang & hitung estimasi
         document.getElementById('editModePerOrang').checked = true;
         toggleMode('edit', 'perorang');
-        var totalComputed = (parseInt(peserta) || 0) * (parseInt(biaya) || 0);
+        var totalComputed = (parseInt(d.peserta) || 0) * (parseInt(d.biaya) || 0);
         document.getElementById('editBiayaTotal').value = totalComputed > 0 ? totalComputed : '';
-        document.getElementById('editBiayaHidden').value = biaya;
+        document.getElementById('editBiayaHidden').value = d.biaya;
         updateEditCalc();
         new bootstrap.Modal(document.getElementById('editModal')).show();
-    }
-
-    // Lazy init chart on tab shown
-    var chartInitialized = false;
-    document.getElementById('ringkasan-tab').addEventListener('shown.bs.tab', function () {
-        if (chartInitialized) return;
-        chartInitialized = true;
-        @if (Model.ChartData.Any())
-        {
-            <text>
-        new Chart(document.getElementById('budgetChart'), {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Kategori))),
-                datasets: [
-                    {
-                        label: 'Rencana',
-                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Rencana))),
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
-                    },
-                    {
-                        label: 'Realisasi',
-                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Realisasi))),
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: v => 'Rp ' + v.toLocaleString('id-ID') }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: { label: ctx => ctx.dataset.label + ': Rp ' + ctx.raw.toLocaleString('id-ID') }
-                    }
-                }
-            }
-        });
-            </text>
-        }
     });
 
-    // Form validation: pastikan biaya terisi sebelum submit
+    // === Delete Modal — via data-* attributes ===
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-delete-item');
+        if (!btn) return;
+        document.getElementById('deleteId').value = btn.dataset.id;
+        document.getElementById('deleteItemName').textContent = btn.dataset.judul;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    });
+
+    // === Inline Edit Realisasi ===
+    document.addEventListener('click', function(e) {
+        var cell = e.target.closest('.realisasi-cell');
+        if (!cell || cell.querySelector('input')) return;
+        var currentVal = cell.dataset.value;
+        var id = cell.dataset.id;
+        var origText = cell.textContent;
+        cell.innerHTML = '<input type="number" class="form-control form-control-sm text-end" value="' + currentVal + '" min="0" step="1000" style="width:120px;display:inline-block" />';
+        var input = cell.querySelector('input');
+        input.focus();
+        input.select();
+
+        function save() {
+            var newVal = input.value;
+            if (newVal === currentVal) { cell.textContent = origText; return; }
+            fetch('@Url.Action("BudgetTrainingQuickUpdate")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': antiForgeryToken },
+                body: 'id=' + id + '&realisasi=' + newVal
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.success) {
+                    cell.dataset.value = newVal;
+                    cell.textContent = Number(newVal).toLocaleString('id-ID');
+
+                    // Update row styling
+                    var tr = cell.closest('tr');
+                    var anggaran = parseFloat(tr.dataset.anggaran) || 0;
+                    var pct = anggaran > 0 ? Math.round(Number(newVal) / anggaran * 100) : 0;
+
+                    // Row class
+                    if (pct > 100) { tr.classList.add('table-danger'); } else { tr.classList.remove('table-danger'); }
+
+                    // Progress bar
+                    var bar = tr.querySelector('.progress-bar');
+                    if (bar) {
+                        bar.style.width = Math.min(pct, 100) + '%';
+                        bar.className = 'progress-bar ' + (pct > 100 ? 'bg-danger' : pct >= 80 ? 'bg-success' : pct >= 50 ? 'bg-warning' : 'bg-info');
+                    }
+
+                    // Pct text
+                    var pctSpan = tr.querySelector('.progress').parentElement.querySelector('span');
+                    if (pctSpan) {
+                        pctSpan.textContent = pct + '%';
+                        pctSpan.className = 'small ' + (pct > 100 ? 'text-danger fw-bold' : 'text-muted');
+                    }
+
+                    // Warning icon
+                    var container = tr.querySelector('.d-flex.align-items-center.gap-2');
+                    var icon = container.querySelector('.bi-exclamation-triangle-fill');
+                    if (pct > 100) {
+                        if (!icon) {
+                            var i = document.createElement('i');
+                            i.className = 'bi bi-exclamation-triangle-fill text-danger small';
+                            i.title = 'Over Budget!';
+                            container.appendChild(i);
+                        }
+                    } else if (icon) {
+                        icon.remove();
+                    }
+
+                    // Update edit button data-realisasi
+                    var editBtn = tr.querySelector('.btn-edit-item');
+                    if (editBtn) { editBtn.dataset.realisasi = newVal; }
+                } else {
+                    cell.textContent = origText;
+                }
+            }).catch(function() { cell.textContent = origText; });
+        }
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', function(ev) {
+            if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+            if (ev.key === 'Escape') { cell.textContent = origText; }
+        });
+    });
+
+    // === Checkbox / Bulk Selection ===
+    var selectAllBox = document.getElementById('selectAll');
+    selectAllBox.addEventListener('change', function() {
+        document.querySelectorAll('.row-check').forEach(function(cb) { cb.checked = selectAllBox.checked; });
+        updateBulkBar();
+    });
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('row-check')) updateBulkBar();
+    });
+
+    function getSelectedIds() {
+        return Array.from(document.querySelectorAll('.row-check:checked')).map(function(cb) { return parseInt(cb.value); });
+    }
+
+    function updateBulkBar() {
+        var count = getSelectedIds().length;
+        document.getElementById('bulkCount').textContent = count;
+        document.getElementById('bulkBar').classList.toggle('d-none', count === 0);
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.row-check').forEach(function(cb) { cb.checked = false; });
+        selectAllBox.checked = false;
+        updateBulkBar();
+    }
+
+    function bulkDeleteSelected() {
+        var ids = getSelectedIds();
+        if (!ids.length) return;
+        if (!confirm('Hapus ' + ids.length + ' item yang dipilih?')) return;
+        fetch('@Url.Action("BudgetTrainingBulkDelete")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': antiForgeryToken },
+            body: JSON.stringify(ids)
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) location.reload();
+        });
+    }
+
+    function openBulkUpdateModal() {
+        var ids = getSelectedIds();
+        if (!ids.length) return;
+        var tbody = document.getElementById('bulkUpdateBody');
+        tbody.innerHTML = '';
+        ids.forEach(function(id) {
+            var row = document.querySelector('.row-check[value="' + id + '"]').closest('tr');
+            var judul = row.children[3].textContent;
+            var realisasi = row.querySelector('.realisasi-cell').dataset.value;
+            tbody.innerHTML += '<tr><td>' + judul + '</td><td><input type="number" class="form-control form-control-sm text-end bulk-real-input" data-id="' + id + '" value="' + realisasi + '" min="0" step="1000" /></td></tr>';
+        });
+        new bootstrap.Modal(document.getElementById('bulkUpdateModal')).show();
+    }
+
+    function submitBulkUpdate() {
+        var updates = {};
+        document.querySelectorAll('.bulk-real-input').forEach(function(input) {
+            updates[input.dataset.id] = parseFloat(input.value) || 0;
+        });
+        fetch('@Url.Action("BudgetTrainingBulkUpdateRealisasi")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': antiForgeryToken },
+            body: JSON.stringify(updates)
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) location.reload();
+        });
+    }
+
+    // === Page Size Selector ===
+    var pageSizeEl = document.getElementById('pageSizeSelect');
+    if (pageSizeEl) {
+        pageSizeEl.addEventListener('change', function() {
+            var url = new URL(window.location);
+            url.searchParams.set('pageSize', this.value);
+            url.searchParams.set('page', '1');
+            window.location = url;
+        });
+    }
+
+    // === Form validation ===
     document.querySelector('#editModal form').addEventListener('submit', function(e) {
         var hidden = parseInt(document.getElementById('editBiayaHidden').value) || 0;
         if (hidden <= 0) {
@@ -543,6 +804,69 @@
             var target = mode === 'perorang' ? document.getElementById('editBiaya') : document.getElementById('editBiayaTotal');
             target.focus();
             alert('Silakan isi ' + (mode === 'perorang' ? 'Biaya per Orang' : 'Biaya Total'));
+        }
+    });
+
+    // === Charts — Lazy init on tab shown ===
+    var chartInitialized = false;
+    document.getElementById('ringkasan-tab').addEventListener('shown.bs.tab', function () {
+        if (chartInitialized) return;
+        chartInitialized = true;
+        @if (Model.ChartData.Any())
+        {
+            <text>
+        // Bar chart — Budget vs Realisasi per Kategori
+        new Chart(document.getElementById('budgetChart'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Kategori))),
+                datasets: [
+                    { label: 'Rencana', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Rencana))), backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+                    { label: 'Realisasi', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData.Select(c => c.Realisasi))), backgroundColor: 'rgba(75, 192, 192, 0.7)' }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, ticks: { callback: v => 'Rp ' + v.toLocaleString('id-ID') } } },
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': Rp ' + ctx.raw.toLocaleString('id-ID') } } }
+            }
+        });
+
+        // Doughnut chart — distribusi per Type
+        new Chart(document.getElementById('typeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartByType.Select(c => c.Kategori))),
+                datasets: [{
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartByType.Select(c => c.Rencana))),
+                    backgroundColor: ['rgba(13, 202, 240, 0.7)', 'rgba(111, 66, 193, 0.7)']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.label + ': Rp ' + ctx.raw.toLocaleString('id-ID') } } }
+            }
+        });
+            </text>
+        }
+        @if (Model.TopItems.Any())
+        {
+            <text>
+        // Horizontal bar — Top 10
+        new Chart(document.getElementById('topChart'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopItems.Select(t => t.Judul))),
+                datasets: [{ label: 'Anggaran', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopItems.Select(t => t.Anggaran))), backgroundColor: 'rgba(255, 159, 64, 0.7)' }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: { x: { beginAtZero: true, ticks: { callback: v => 'Rp ' + v.toLocaleString('id-ID') } } },
+                plugins: { tooltip: { callbacks: { label: ctx => 'Rp ' + ctx.raw.toLocaleString('id-ID') } } }
+            }
+        });
+            </text>
         }
     });
 
@@ -568,4 +892,6 @@
 
 <style>
     .bg-purple { background-color: #6f42c1; }
+    .realisasi-cell { cursor: pointer; }
+    .realisasi-cell:hover { background-color: rgba(var(--bs-primary-rgb), 0.08); }
 </style>
