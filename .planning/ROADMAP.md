@@ -192,7 +192,7 @@ Plans:
 | 301. Advanced Reporting | 3/3 | Complete    | 2026-04-07 |
 | 302. Accessibility WCAG Quick Wins | 2/2 | Complete    | 2026-04-07 |
 
-### Phase 303: Rasio Coach-Coachee dan balanced mapping**Goal:** HC dan Admin dapat melihat distribusi beban coach-coachee, threshold configurable, saran reassign otomatis dengan approval, dan auto-suggest coach saat assign baru**Requirements**: TBD**Depends on:** Phase 302**Plans:** 2 plansPlans:- [ ] 303-01-PLAN.md — Entity + migration + controller backend (5 actions)- [ ] 303-02-PLAN.md — View CoachWorkload + menu CMP + auto-suggest assign**UI hint**: yes
+### Phase 303: Rasio Coach-Coachee dan balanced mapping**Goal:** HC dan Admin dapat melihat distribusi beban coach-coachee, threshold configurable, saran reassign otomatis dengan approval, dan auto-suggest coach saat assign baru**Requirements**: TBD**Depends on:** Phase 302**Plans:** 2/2 plans complete
 ---
 
 *Roadmap updated: 2026-04-07*
