@@ -54,12 +54,11 @@ Mengikuti Bootstrap 5 defaults yang sudah diterapkan di seluruh proyek (source: 
 
 | Role | Size | Weight | Line Height | Usage di fase ini |
 |------|------|--------|-------------|-------------------|
-| Body | 14px | 400 (normal) | 1.5 | Tabel baris, deskripsi saran reassign, label filter |
-| Label | 12px | 600 (semibold) | 1.4 | Badge status (Overloaded/Normal/Underutilized), kolom header tabel, caption summary card |
+| Body | 14px | 400 (normal) | 1.5 | Tabel baris, deskripsi saran reassign, label filter, badge status, kolom header tabel, caption summary card |
 | Heading | 20px | 700 (bold) | 1.2 | Judul page (`<h2>`) — "Coach Workload" |
 | Display | 28px | 700 (bold) | 1.1 | Angka besar di summary cards (Total Coach, Total Coachee, dll) |
 
-Catatan: Bootstrap `fw-bold` = 700, `fw-semibold` = 600, `fw-normal` = 400. Gunakan class ini, bukan nilai pixel custom.
+Catatan: Bootstrap `fw-bold` = 700, `fw-normal` = 400. Gunakan class ini, bukan nilai pixel custom. Weight 600 (semibold) tidak digunakan di fase ini — badge dan kolom header tabel menggunakan 400 (normal) dengan ukuran 12px.
 
 ---
 
@@ -71,14 +70,14 @@ Mengikuti Bootstrap 5 semantic colors yang sudah ada di proyek. Hex di bawah ada
 |------|---------------|-------|
 | Dominant (60%) | `#ffffff` / `bg-white`, `bg-body` | Background halaman, surface kartu, tabel baris genap |
 | Secondary (30%) | `#f8f9fa` / `bg-light` | Card summary header, tabel header, sidebar nav, filter bar background |
-| Accent (10%) | `#0d6efd` / `text-primary`, `btn-primary` | Tombol "Approve" di saran reassign, link aktif, indikator fokus keyboard |
+| Accent (10%) | `#0d6efd` / `text-primary`, `btn-primary` | Tombol "Setujui Saran" di saran reassign, link aktif, indikator fokus keyboard |
 | Status: Normal | `#198754` / `text-success`, `bg-success` | Bar chart coach dengan beban normal (di bawah threshold) |
 | Status: Warning | `#ffc107` / `text-warning`, `bg-warning` | Bar chart coach mendekati batas (80–99% threshold) |
 | Status: Overloaded | `#dc3545` / `text-danger`, `bg-danger` | Bar chart coach melebihi threshold, badge "Overloaded" |
 | Destructive | `#dc3545` / `btn-danger` | Tidak ada destructive action di fase ini — hanya digunakan untuk status Overloaded |
 
 Accent (`#0d6efd`) reserved for:
-- Tombol "Approve" per saran reassign
+- Tombol "Setujui Saran" per saran reassign
 - Tombol "Set Threshold" (membuka modal)
 - Tombol "Export Excel"
 - Link breadcrumb aktif
@@ -108,8 +107,8 @@ Threshold color logic (source: CONTEXT.md D-04):
 5. **Filter Bar** — dropdown Section + tombol Filter + tombol Reset (pola sama dengan CoachCoacheeMapping)
 6. **Bar Chart Horizontal** — Canvas Chart.js, tinggi adaptif (min 200px, max 500px sesuai jumlah coach), legenda warna threshold di bawah chart
 7. **Tabel Detail Per Coach** — kolom: Nama Coach | Section | Jumlah Coachee | Status badge | (kosong jika HC)
-8. **Section "Saran Penyeimbangan"** — judul section `<h5>`, list card per saran, tiap card: dari coach A → ke coach B + nama coachee + tombol Approve (btn-primary btn-sm) + tombol Skip (btn-outline-secondary btn-sm)
-9. **Modal "Set Threshold"** — hanya tampil untuk Admin; input number min=1, label "Batas Maksimum Coachee per Coach", tombol Simpan
+8. **Section "Saran Penyeimbangan"** — judul section `<h5>`, list card per saran, tiap card: dari coach A → ke coach B + nama coachee + tombol Setujui Saran (btn-primary btn-sm) + tombol Lewati Saran (btn-outline-secondary btn-sm)
+9. **Modal "Set Threshold"** — hanya tampil untuk Admin; input number min=1, label "Batas Maksimum Coachee per Coach", tombol Simpan Threshold
 
 ### Chart Implementation
 
@@ -129,8 +128,8 @@ Threshold color logic (source: CONTEXT.md D-04):
 | Page subtitle | "Distribusi beban coach-coachee dan rekomendasi penyeimbangan" |
 | Primary CTA (Export) | "Export Excel" |
 | Primary CTA (Threshold) | "Set Threshold" |
-| Primary CTA (Saran) | "Approve" |
-| Secondary CTA (Saran) | "Skip" |
+| Primary CTA (Saran) | "Setujui Saran" |
+| Secondary CTA (Saran) | "Lewati Saran" |
 | Summary card: Total Coach | "Coach Aktif" |
 | Summary card: Total Coachee | "Coachee Aktif" |
 | Summary card: Avg Ratio | "Rata-rata Rasio" |
@@ -142,12 +141,12 @@ Threshold color logic (source: CONTEXT.md D-04):
 | Modal threshold title | "Set Batas Beban Coach" |
 | Modal threshold label | "Batas maksimum coachee per coach" |
 | Modal threshold helper | "Coach dengan jumlah coachee melebihi batas ini akan ditandai sebagai Overloaded." |
-| Modal threshold CTA | "Simpan" |
+| Modal threshold CTA | "Simpan Threshold" |
 | HC read-only notice | "Anda melihat data sebagai HC. Hanya Admin yang dapat mengubah threshold atau menyetujui saran." |
 | Badge: normal | "Normal" (bg-success) |
 | Badge: warning | "Mendekati Batas" (bg-warning text-dark) |
 | Badge: overloaded | "Overloaded" (bg-danger) |
-| Confirmation (Approve) | Modal atau inline confirm: "Setujui perpindahan [Nama Coachee] dari [Coach Asal] ke [Coach Tujuan]?" — tombol "Ya, Setujui" (btn-primary) + "Batal" (btn-secondary) |
+| Confirmation (Approve) | Modal atau inline confirm: "Setujui perpindahan [Nama Coachee] dari [Coach Asal] ke [Coach Tujuan]?" — tombol "Ya, Setujui" (btn-primary) + "Jangan Setujui" (btn-secondary) |
 | Destructive confirmation | Tidak ada destructive action di fase ini |
 
 ---
@@ -159,21 +158,21 @@ Threshold color logic (source: CONTEXT.md D-04):
 | Elemen | Admin | HC |
 |--------|-------|----|
 | Tombol "Set Threshold" | Tampil | Disembunyikan (`d-none`) |
-| Tombol "Approve" per saran | Tampil | Disembunyikan |
-| Tombol "Skip" per saran | Tampil | Disembunyikan |
+| Tombol "Setujui Saran" per saran | Tampil | Disembunyikan |
+| Tombol "Lewati Saran" per saran | Tampil | Disembunyikan |
 | HC read-only notice | Tidak tampil | Tampil (alert info) |
 | Section "Saran Penyeimbangan" | Tampil lengkap | Tampil tanpa tombol aksi |
 
 ### State transitions
 
-- **Approve saran**: POST AJAX → saran hilang dari list → flash success → counter summary card diperbarui
-- **Skip saran**: POST AJAX → saran hilang dari list (tidak dieksekusi) → tidak ada flash
+- **Setujui Saran**: POST AJAX → saran hilang dari list → flash success → counter summary card diperbarui
+- **Lewati Saran**: POST AJAX → saran hilang dari list (tidak dieksekusi) → tidak ada flash
 - **Set Threshold**: Modal submit → POST AJAX → modal tutup → chart re-render dengan warna baru → flash success
 - **Filter section**: Form submit biasa (GET request) — bukan AJAX
 
 ### Loading states
 
-- Tombol Approve: disabled + spinner `<span class="spinner-border spinner-border-sm">` selama request
+- Tombol Setujui Saran: disabled + spinner `<span class="spinner-border spinner-border-sm">` selama request
 - Tombol Export: disabled + teks "Mengunduh..." selama fetch
 
 ### Auto-suggest di halaman mapping (D-14)
