@@ -157,22 +157,43 @@ else
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover table-striped">
                     <thead class="table-light">
                         <tr>
                             <th>Nama Coach</th>
                             <th>Section</th>
                             <th>Jumlah Coachee</th>
+                            <th>Daftar Coachee</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @{ int rowIdx = 0; }
                         @foreach (var row in workloadRows)
                         {
                             <tr>
                                 <td>@row.CoachName</td>
                                 <td>@row.CoachSection</td>
                                 <td>@row.CoacheeCount</td>
+                                <td>
+                                    @if (row.CoacheeCount > 0)
+                                    {
+                                        <button class="btn btn-sm btn-outline-secondary py-0 px-1" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#coachee-@rowIdx"
+                                                aria-expanded="false">
+                                            &#9654; Lihat
+                                        </button>
+                                        <div class="collapse mt-1" id="coachee-@rowIdx">
+                                            <small class="text-muted">
+                                                @String.Join(", ", (IEnumerable<string>)row.CoacheeNames)
+                                            </small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
                                 <td>
                                     @{
                                         string status = row.Status;
@@ -186,6 +207,7 @@ else
                                     <span class="badge @badgeClass">@badgeLabel</span>
                                 </td>
                             </tr>
+                            rowIdx++;
                         }
                     </tbody>
                 </table>
@@ -195,7 +217,7 @@ else
 }
 
 @* Saran Penyeimbangan *@
-<h5 class="mb-3">Saran Penyeimbangan</h5>
+<h5 class="mb-2">Saran Penyeimbangan</h5>
 @if (!reassignSuggestions.Any())
 {
     <div class="alert alert-success">
@@ -287,6 +309,8 @@ else
             var canvas = document.getElementById('workloadChart');
             if (!canvas || !workloadData || workloadData.length === 0) return;
 
+            canvas.style.height = Math.max(150, workloadData.length * 50) + 'px';
+
             var labels = workloadData.map(function (r) { return r.coachName; });
             var counts = workloadData.map(function (r) { return r.coacheeCount; });
             var colors = workloadData.map(function (r) {
@@ -310,6 +334,7 @@ else
                     indexAxis: 'y',
                     animation: { duration: 300 },
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -327,7 +352,8 @@ else
                     scales: {
                         x: {
                             beginAtZero: true,
-                            ticks: { stepSize: 1 }
+                            ticks: { stepSize: 1 },
+                            title: { display: true, text: 'Jumlah Coachee' }
                         }
                     }
                 }

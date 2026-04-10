@@ -1451,7 +1451,7 @@ namespace HcPortal.Controllers
 
         #region Coach Workload
 
-        internal record CoachWorkloadRow(string CoachId, string CoachName, string CoachSection, int CoacheeCount, string Status);
+        internal record CoachWorkloadRow(string CoachId, string CoachName, string CoachSection, int CoacheeCount, string Status, List<string> CoacheeNames);
         internal record ReassignSuggestion(int MappingId, string CoacheeName, string CoacheeSection, string FromCoachName, string ToCoachId, string ToCoachName);
 
         private async Task<(List<CoachWorkloadRow> Rows, CoachWorkloadThreshold Threshold, int TotalCoachees, List<string> Sections)> GetWorkloadDataAsync(string? section)
@@ -1472,12 +1472,13 @@ namespace HcPortal.Controllers
             var activeCoachIds = coachRoleUsers.Where(u => u.IsActive).Select(u => u.Id).ToHashSet();
 
             var mappingsByCoach = activeMappings.GroupBy(m => m.CoachId)
-                .ToDictionary(g => g.Key, g => g.Count());
+                .ToDictionary(g => g.Key, g => g.ToList());
 
             var rows = new List<CoachWorkloadRow>();
             foreach (var coachId in activeCoachIds)
             {
-                var count = mappingsByCoach.GetValueOrDefault(coachId, 0);
+                var coacheeMappings = mappingsByCoach.GetValueOrDefault(coachId, new List<CoachCoacheeMapping>());
+                var count = coacheeMappings.Count;
                 var user = userDict.GetValueOrDefault(coachId);
                 if (user == null || !user.IsActive) continue;
 
@@ -1485,7 +1486,11 @@ namespace HcPortal.Controllers
                     : count >= threshold.WarningThreshold ? "Warning"
                     : "OK";
 
-                rows.Add(new CoachWorkloadRow(coachId, user.FullName ?? coachId, user.Section ?? "", count, status));
+                var coacheeNames = coacheeMappings
+                    .Select(m => userDict.GetValueOrDefault(m.CoacheeId)?.FullName ?? m.CoacheeId)
+                    .OrderBy(n => n).ToList();
+
+                rows.Add(new CoachWorkloadRow(coachId, user.FullName ?? coachId, user.Section ?? "", count, status, coacheeNames));
             }
 
             if (!string.IsNullOrEmpty(section))
