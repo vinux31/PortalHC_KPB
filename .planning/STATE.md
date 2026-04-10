@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v14.0
 milestone_name: Assessment Enhancement
 status: executing
-stopped_at: Phase 302 UI-SPEC approved
-last_updated: "2026-04-07T11:34:37.826Z"
+stopped_at: Phase 303 context gathered
+last_updated: "2026-04-10T01:22:29.008Z"
 last_activity: 2026-04-07
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 7
   total_plans: 21
   completed_plans: 21
@@ -54,6 +54,10 @@ Progress: [██████████] 100% (7/7 phases)
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 303 added: Rasio Coach-Coachee dan balanced mapping
+
 ### Decisions
 
 - [v13.0]: Redesign UI murni — backend cascade logic tidak diubah, hanya presentation layer
@@ -95,5 +99,5 @@ Progress: [██████████] 100% (7/7 phases)
 ## Session Continuity
 
 Last activity: 2026-04-09 - Completed quick task 260409-s71: Hapus breadcrumb dari CMP/Index
-Stopped at: Phase 302 UI-SPEC approved
+Stopped at: Phase 303 context gathered
 Resume: `/gsd:execute-phase 298` untuk lanjut verification setelah manual testing
