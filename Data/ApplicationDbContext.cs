@@ -82,6 +82,9 @@ namespace HcPortal.Data
         // Budget Training/Assessment
         public DbSet<BudgetItem> BudgetItems { get; set; }
 
+        // Coach Workload Threshold — Phase 303
+        public DbSet<CoachWorkloadThreshold> CoachWorkloadThresholds { get; set; }
+
         // ========== Helper Methods untuk OrganizationUnit (Phase 221) ==========
 
         public async Task<List<string>> GetAllSectionsAsync()
