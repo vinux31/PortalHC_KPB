@@ -192,6 +192,16 @@ Plans:
 | 301. Advanced Reporting | 3/3 | Complete    | 2026-04-07 |
 | 302. Accessibility WCAG Quick Wins | 2/2 | Complete    | 2026-04-07 |
 
+### Phase 303: Rasio Coach-Coachee dan balanced mapping
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 302
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 303 to break down)
+
 ---
 
 *Roadmap updated: 2026-04-07*

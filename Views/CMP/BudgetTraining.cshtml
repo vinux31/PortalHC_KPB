@@ -106,9 +106,9 @@
                             <a href="@Url.Action("BudgetTrainingExport", "CMP", new { tahun = Model.FilterTahun })" class="btn btn-sm btn-outline-success">
                                 <i class="bi bi-download me-1"></i>Export
                             </a>
-                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <a href="@Url.Action("BudgetTrainingImport", "CMP")" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-upload me-1"></i>Import
-                            </button>
+                            </a>
                             <a href="@Url.Action("BudgetTrainingCreate", "CMP")" class="btn btn-sm btn-primary">
                                 <i class="bi bi-plus-lg me-1"></i>Tambah
                             </a>
@@ -501,38 +501,6 @@
     </div>
 </div>
 
-<!-- Import Modal -->
-<div class="modal fade" id="importModal" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="post" asp-action="BudgetTrainingImport" enctype="multipart/form-data">
-            @Html.AntiForgeryToken()
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Import Excel</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Tahun Anggaran <span class="text-danger">*</span></label>
-                        <input type="number" name="tahunAnggaran" class="form-control" value="@DateTime.Now.Year" required />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">File Excel (.xlsx) <span class="text-danger">*</span></label>
-                        <input type="file" name="file" class="form-control" accept=".xlsx" required />
-                    </div>
-                    <div class="alert alert-info small mb-0">
-                        <i class="bi bi-info-circle me-1"></i>Format kolom: No, Type, Judul, Kategori, Sub Kategori, Tahun, Jml Peserta, Biaya/Orang, Estimasi Total, Realisasi, Vendor, Catatan.
-                        <br />Gunakan <strong>Export Excel</strong> sebagai template.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Import</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
@@ -707,7 +675,7 @@
                 } else {
                     cell.textContent = origText;
                 }
-            }).catch(function() { cell.textContent = origText; });
+            }).catch(function() { cell.textContent = origText; alert('Gagal menyimpan. Coba lagi.'); });
         }
 
         input.addEventListener('blur', save);
@@ -753,7 +721,8 @@
             body: JSON.stringify(ids)
         }).then(function(r) { return r.json(); }).then(function(data) {
             if (data.success) location.reload();
-        });
+            else alert(data.message || 'Gagal menghapus');
+        }).catch(function() { alert('Terjadi kesalahan jaringan'); });
     }
 
     function openBulkUpdateModal() {
@@ -765,7 +734,14 @@
             var row = document.querySelector('.row-check[value="' + id + '"]').closest('tr');
             var judul = row.children[3].textContent;
             var realisasi = row.querySelector('.realisasi-cell').dataset.value;
-            tbody.innerHTML += '<tr><td>' + judul + '</td><td><input type="number" class="form-control form-control-sm text-end bulk-real-input" data-id="' + id + '" value="' + realisasi + '" min="0" step="1000" /></td></tr>';
+            var tr2 = document.createElement('tr');
+            var tdJudul = document.createElement('td');
+            tdJudul.textContent = judul;
+            var tdInput = document.createElement('td');
+            tdInput.innerHTML = '<input type="number" class="form-control form-control-sm text-end bulk-real-input" data-id="' + id + '" value="' + realisasi + '" min="0" step="1000" />';
+            tr2.appendChild(tdJudul);
+            tr2.appendChild(tdInput);
+            tbody.appendChild(tr2);
         });
         new bootstrap.Modal(document.getElementById('bulkUpdateModal')).show();
     }
@@ -781,7 +757,8 @@
             body: JSON.stringify(updates)
         }).then(function(r) { return r.json(); }).then(function(data) {
             if (data.success) location.reload();
-        });
+            else alert(data.message || 'Gagal memperbarui');
+        }).catch(function() { alert('Terjadi kesalahan jaringan'); });
     }
 
     // === Page Size Selector ===

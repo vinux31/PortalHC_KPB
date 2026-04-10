@@ -3547,11 +3547,8 @@ namespace HcPortal.Controllers
 
             var items = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            // Chart data — by kategori
-            var baseChartQuery = _context.BudgetItems.AsQueryable();
-            if (tahun.HasValue) baseChartQuery = baseChartQuery.Where(b => b.TahunAnggaran == tahun.Value);
-
-            var chartData = await baseChartQuery
+            // Chart data — by kategori (uses same filtered query as table)
+            var chartData = await query
                 .GroupBy(b => b.Kategori ?? "Lainnya")
                 .Select(g => new BudgetChartData
                 {
@@ -3561,7 +3558,7 @@ namespace HcPortal.Controllers
                 }).ToListAsync();
 
             // Chart data — by type (Training vs Assessment)
-            var chartByType = await baseChartQuery
+            var chartByType = await query
                 .GroupBy(b => b.Type)
                 .Select(g => new BudgetChartData
                 {
@@ -3571,7 +3568,7 @@ namespace HcPortal.Controllers
                 }).ToListAsync();
 
             // Top 10 items by anggaran
-            var topItems = await baseChartQuery
+            var topItems = await query
                 .OrderByDescending(b => b.EstimasiBiayaTotal)
                 .Take(10)
                 .Select(b => new BudgetTopItem { Judul = b.Judul, Anggaran = b.EstimasiBiayaTotal })
@@ -3796,6 +3793,64 @@ namespace HcPortal.Controllers
                 $"BudgetTraining_{tahun?.ToString() ?? "All"}_{DateTime.Now:yyyyMMdd}.xlsx");
         }
 
+        [Authorize(Roles = "Admin,HC")]
+        public IActionResult BudgetTrainingImport()
+        {
+            return View("BudgetTrainingImport", (List<BudgetTrainingImportResult>?)null);
+        }
+
+        [Authorize(Roles = "Admin,HC")]
+        public IActionResult DownloadBudgetTrainingTemplate()
+        {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Template");
+
+            var headers = new[] { "No", "Type", "Judul", "Kategori", "Sub Kategori", "Tahun", "Jml Peserta", "Biaya/Orang", "Estimasi Total", "Realisasi", "Vendor", "Catatan" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                var cell = ws.Cell(1, i + 1);
+                cell.Value = headers[i];
+                cell.Style.Font.Bold = true;
+                cell.Style.Font.FontColor = XLColor.White;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#16A34A");
+            }
+
+            // Sample row 1
+            ws.Cell(2, 1).Value = 1;
+            ws.Cell(2, 2).Value = "Training";
+            ws.Cell(2, 3).Value = "Leadership Development";
+            ws.Cell(2, 4).Value = "IHT";
+            ws.Cell(2, 5).Value = "-";
+            ws.Cell(2, 6).Value = DateTime.Now.Year;
+            ws.Cell(2, 7).Value = 30;
+            ws.Cell(2, 8).Value = 5000000;
+            ws.Cell(2, 9).Value = 150000000;
+            ws.Cell(2, 10).Value = 0;
+            ws.Cell(2, 11).Value = "PT Training Co";
+            ws.Cell(2, 12).Value = "-";
+
+            // Sample row 2
+            ws.Cell(3, 1).Value = 2;
+            ws.Cell(3, 2).Value = "Assessment";
+            ws.Cell(3, 3).Value = "Safety Competency Test";
+            ws.Cell(3, 4).Value = "MANDATORY";
+            ws.Cell(3, 5).Value = "Safety";
+            ws.Cell(3, 6).Value = DateTime.Now.Year;
+            ws.Cell(3, 7).Value = 50;
+            ws.Cell(3, 8).Value = 2000000;
+            ws.Cell(3, 9).Value = 100000000;
+            ws.Cell(3, 10).Value = 0;
+            ws.Cell(3, 11).Value = "-";
+            ws.Cell(3, 12).Value = "Batch 1";
+
+            ws.Columns().AdjustToContents();
+
+            using var ms = new MemoryStream();
+            workbook.SaveAs(ms);
+            return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "Template_BudgetTraining.xlsx");
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin,HC")]
         [ValidateAntiForgeryToken]
@@ -3804,49 +3859,70 @@ namespace HcPortal.Controllers
             if (file == null || file.Length == 0)
             {
                 TempData["Error"] = "File tidak valid.";
-                return RedirectToAction("BudgetTraining");
+                return View("BudgetTrainingImport", (List<BudgetTrainingImportResult>?)null);
             }
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            var results = new List<BudgetTrainingImportResult>();
+
             using var stream = file.OpenReadStream();
             using var workbook = new XLWorkbook(stream);
             var ws = workbook.Worksheet(1);
             var rows = ws.RowsUsed().Skip(1); // skip header
-            int imported = 0;
+            int rowNum = 1;
 
             foreach (var row in rows)
             {
-                var judul = row.Cell(3).GetString().Trim();
-                if (string.IsNullOrEmpty(judul)) continue;
+                rowNum++;
+                var judul = row.Cell(3).GetString()?.Trim() ?? "";
 
-                var peserta = row.Cell(7).TryGetValue(out int p) ? p : 0;
-                var biayaPerOrang = row.Cell(8).TryGetValue(out decimal bpo) ? bpo : 0;
-
-                var item = new BudgetItem
+                if (string.IsNullOrEmpty(judul))
                 {
-                    Type = row.Cell(2).GetString().Trim() is "Assessment" ? "Assessment" : "Training",
-                    Judul = judul,
-                    Kategori = string.IsNullOrWhiteSpace(row.Cell(4).GetString()) ? null : row.Cell(4).GetString().Trim(),
-                    SubKategori = string.IsNullOrWhiteSpace(row.Cell(5).GetString()) ? null : row.Cell(5).GetString().Trim(),
-                    TahunAnggaran = tahunAnggaran,
-                    JumlahPeserta = peserta,
-                    BiayaPerOrang = biayaPerOrang,
-                    EstimasiBiayaTotal = peserta * biayaPerOrang,
-                    RealisasiBiaya = row.Cell(10).TryGetValue(out decimal r) ? r : 0,
-                    Vendor = string.IsNullOrWhiteSpace(row.Cell(11).GetString()) ? null : row.Cell(11).GetString().Trim(),
-                    Catatan = string.IsNullOrWhiteSpace(row.Cell(12).GetString()) ? null : row.Cell(12).GetString().Trim(),
-                    CreatedByUserId = user.Id,
-                    CreatedAt = DateTime.Now
-                };
-                _context.BudgetItems.Add(item);
-                imported++;
+                    results.Add(new BudgetTrainingImportResult { Row = rowNum, Judul = "(kosong)", Status = "Skip", Message = "Judul kosong — baris dilewati" });
+                    continue;
+                }
+
+                try
+                {
+                    var peserta = row.Cell(7).TryGetValue(out int p) ? p : 0;
+                    var biayaPerOrang = row.Cell(8).TryGetValue(out decimal bpo) ? bpo : 0;
+
+                    var typeVal = row.Cell(2).GetString()?.Trim() ?? "";
+                    var kategoriVal = row.Cell(4).GetString()?.Trim() ?? "";
+                    var subKategoriVal = row.Cell(5).GetString()?.Trim() ?? "";
+                    var vendorVal = row.Cell(11).GetString()?.Trim() ?? "";
+                    var catatanVal = row.Cell(12).GetString()?.Trim() ?? "";
+
+                    var item = new BudgetItem
+                    {
+                        Type = typeVal == "Assessment" ? "Assessment" : "Training",
+                        Judul = judul,
+                        Kategori = string.IsNullOrWhiteSpace(kategoriVal) ? null : kategoriVal,
+                        SubKategori = string.IsNullOrWhiteSpace(subKategoriVal) ? null : subKategoriVal,
+                        TahunAnggaran = tahunAnggaran,
+                        JumlahPeserta = peserta,
+                        BiayaPerOrang = biayaPerOrang,
+                        EstimasiBiayaTotal = peserta * biayaPerOrang,
+                        RealisasiBiaya = row.Cell(10).TryGetValue(out decimal r) ? r : 0,
+                        Vendor = string.IsNullOrWhiteSpace(vendorVal) ? null : vendorVal,
+                        Catatan = string.IsNullOrWhiteSpace(catatanVal) ? null : catatanVal,
+                        CreatedByUserId = user.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.BudgetItems.Add(item);
+                    await _context.SaveChangesAsync();
+
+                    results.Add(new BudgetTrainingImportResult { Row = rowNum, Judul = judul, Status = "Success", Message = "Berhasil diimport" });
+                }
+                catch (Exception ex)
+                {
+                    results.Add(new BudgetTrainingImportResult { Row = rowNum, Judul = judul, Status = "Error", Message = ex.Message });
+                }
             }
 
-            await _context.SaveChangesAsync();
-            TempData["Success"] = $"{imported} item berhasil diimport.";
-            return RedirectToAction("BudgetTraining", new { tahun = tahunAnggaran });
+            return View("BudgetTrainingImport", results);
         }
 
         [HttpPost]
@@ -3854,6 +3930,8 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BudgetTrainingQuickUpdate(int id, decimal realisasi)
         {
+            if (realisasi < 0) return Json(new { success = false, message = "Nilai tidak boleh negatif" });
+
             var item = await _context.BudgetItems.FindAsync(id);
             if (item == null) return NotFound();
 

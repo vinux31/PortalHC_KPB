@@ -1,0 +1,210 @@
+@model List<HcPortal.Models.BudgetTrainingImportResult>
+@{
+    ViewData["Title"] = "Import Budget Training dari Excel";
+    var successCount = Model?.Count(r => r.Status == "Success") ?? 0;
+    var errorCount = Model?.Count(r => r.Status == "Error") ?? 0;
+    var skipCount = Model?.Count(r => r.Status == "Skip") ?? 0;
+    var hasResults = Model != null && Model.Count > 0;
+}
+
+<div class="container py-4" style="max-width: 860px;">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "CMP")">CMP</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("BudgetTraining", "CMP")">Budget Training</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Import</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-file-earmark-arrow-up me-2 text-success"></i>Import Budget Training dari Excel
+            </h2>
+            <p class="text-muted mb-0">Tambah banyak item budget training/assessment sekaligus dengan upload file Excel</p>
+        </div>
+        <a href="@Url.Action("BudgetTraining", "CMP")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Kembali
+        </a>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Results Summary (shown after upload) -->
+    @if (hasResults)
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-2 fw-bold text-success">@successCount</div>
+                    <div class="small text-muted">Berhasil Dibuat</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-2 fw-bold text-warning">@skipCount</div>
+                    <div class="small text-muted">Dilewati</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-2 fw-bold text-danger">@errorCount</div>
+                    <div class="small text-muted">Error / Gagal</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header border-0">
+                <h6 class="mb-0 fw-bold">Hasil Import — @Model.Count baris diproses</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="sticky-top bg-white">
+                            <tr>
+                                <th class="p-3">Baris</th>
+                                <th class="p-3">Judul</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model)
+                            {
+                                var rowClass = r.Status switch
+                                {
+                                    "Success" => "table-success",
+                                    "Error" => "table-danger",
+                                    "Skip" => "table-warning",
+                                    _ => ""
+                                };
+                                var statusBadge = r.Status switch
+                                {
+                                    "Success" => "<span class=\"badge bg-success\"><i class=\"bi bi-check-lg me-1\"></i>Berhasil</span>",
+                                    "Error" => "<span class=\"badge bg-danger\"><i class=\"bi bi-x-lg me-1\"></i>Error</span>",
+                                    "Skip" => "<span class=\"badge bg-warning text-dark\"><i class=\"bi bi-skip-forward me-1\"></i>Skip</span>",
+                                    _ => "<span class=\"badge bg-secondary\">?</span>"
+                                };
+                                <tr class="@rowClass">
+                                    <td class="p-3 fw-semibold">@r.Row</td>
+                                    <td class="p-3">@r.Judul</td>
+                                    <td class="p-3 text-center">@Html.Raw(statusBadge)</td>
+                                    <td class="p-3"><small>@r.Message</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Upload Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary bg-opacity-10 border-0">
+            <h6 class="mb-0 fw-bold text-primary">
+                <i class="bi bi-upload me-2"></i>Upload File Excel
+            </h6>
+        </div>
+        <div class="card-body">
+
+            <!-- Step 1: Download Template -->
+            <div class="alert alert-info d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
+                <div>
+                    <strong>Langkah 1 — Download Template</strong><br />
+                    <span class="small">Download template Excel, isi data budget training sesuai format, lalu upload kembali.</span>
+                </div>
+                <a href="@Url.Action("DownloadBudgetTrainingTemplate", "CMP")" class="btn btn-success btn-sm ms-auto flex-shrink-0" id="btnDownloadTemplate">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Download Template
+                </a>
+            </div>
+
+            <!-- Step 2: Upload -->
+            <p class="fw-semibold mb-2"><strong>Langkah 2 — Upload File yang Sudah Diisi</strong></p>
+
+            <form asp-action="BudgetTrainingImport" asp-controller="CMP" method="post" enctype="multipart/form-data" id="importForm">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label">Tahun Anggaran <span class="text-danger">*</span></label>
+                    <input type="number" name="tahunAnggaran" class="form-control" value="@DateTime.Now.Year" required min="2020" max="2099" style="max-width: 200px;" />
+                </div>
+
+                <div class="upload-zone border-2 border-dashed rounded-3 p-5 text-center mb-3"
+                     id="uploadZone"
+                     style="border-color: #d1d5db; cursor: pointer; transition: all 0.2s;"
+                     onclick="document.getElementById('excelFileInput').click()">
+                    <i class="bi bi-cloud-arrow-up fs-1 text-muted mb-3 d-block"></i>
+                    <p class="fw-semibold mb-1" id="dropText">Klik atau drag &amp; drop file Excel di sini</p>
+                    <p class="small text-muted mb-0">Format yang didukung: .xlsx</p>
+                </div>
+
+                <input type="file" name="file" id="excelFileInput" accept=".xlsx" class="d-none" />
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <a href="@Url.Action("BudgetTraining", "CMP")" class="btn btn-light">Batal</a>
+                    <button type="submit" class="btn btn-primary px-4" id="btnImport" disabled>
+                        <i class="bi bi-check2-all me-2"></i>Proses Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Format Notes -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-0">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Format Kolom Template</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="px-3">Kolom</th>
+                            <th class="px-3">Keterangan</th>
+                            <th class="px-3">Wajib?</th>
+                            <th class="px-3">Contoh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="px-3">No</td><td class="px-3">Nomor urut (diabaikan)</td><td class="px-3"><span class="badge bg-secondary">Tidak</span></td><td class="px-3">1</td></tr>
+                        <tr><td class="px-3">Type</td><td class="px-3">Training atau Assessment</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Training</td></tr>
+                        <tr><td class="px-3">Judul</td><td class="px-3">Nama training/assessment</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Leadership Development</td></tr>
+                        <tr><td class="px-3">Kategori</td><td class="px-3">Kategori budget</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">IHT</td></tr>
+                        <tr><td class="px-3">Sub Kategori</td><td class="px-3">Sub kategori</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">-</td></tr>
+                        <tr><td class="px-3">Tahun</td><td class="px-3">Diabaikan (pakai input tahun)</td><td class="px-3"><span class="badge bg-secondary">Tidak</span></td><td class="px-3">2026</td></tr>
+                        <tr><td class="px-3">Jml Peserta</td><td class="px-3">Jumlah peserta</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">30</td></tr>
+                        <tr><td class="px-3">Biaya/Orang</td><td class="px-3">Biaya per orang (angka)</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">5000000</td></tr>
+                        <tr><td class="px-3">Estimasi Total</td><td class="px-3">Diabaikan (dihitung otomatis)</td><td class="px-3"><span class="badge bg-secondary">Tidak</span></td><td class="px-3">-</td></tr>
+                        <tr><td class="px-3">Realisasi</td><td class="px-3">Realisasi biaya</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">0</td></tr>
+                        <tr><td class="px-3">Vendor</td><td class="px-3">Nama vendor</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">PT Training Co</td></tr>
+                        <tr><td class="px-3">Catatan</td><td class="px-3">Catatan tambahan</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="~/js/shared-upload.js"></script>
+<script src="~/js/shared-loading.js"></script>
+<script>
+    initUploadZone({ zoneId: 'uploadZone', inputId: 'excelFileInput', textId: 'dropText', buttonId: 'btnImport', accept: ['.xlsx'] });
+    initFormLoading('importForm', 'Memproses import...');
+</script>
