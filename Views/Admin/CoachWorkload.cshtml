@@ -1,0 +1,466 @@
+@{
+    ViewData["Title"] = "Coach Workload";
+    ViewData["ContainerClass"] = "container-fluid px-4";
+
+    var workloadRows = ViewBag.WorkloadRows as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var sections = ViewBag.Sections as List<string> ?? new List<string>();
+    var sectionFilter = ViewBag.SectionFilter as string ?? "";
+    var reassignSuggestions = ViewBag.ReassignSuggestions as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var threshold = ViewBag.Threshold;
+    int totalCoaches = (int)(ViewBag.TotalActiveCoaches ?? 0);
+    int totalCoachees = (int)(ViewBag.TotalActiveCoachees ?? 0);
+    double avgRatio = (double)(ViewBag.AvgRatio ?? 0.0);
+    int overloadedCount = (int)(ViewBag.OverloadedCount ?? 0);
+}
+
+@Html.AntiForgeryToken()
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "CMP")">CMP</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Coach Workload</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Coach Workload</h2>
+        <small class="text-muted">Distribusi beban coach-coachee dan rekomendasi penyeimbangan</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("ExportCoachWorkload", "CoachMapping", new { section = ViewBag.SectionFilter })"
+           class="btn btn-outline-primary">
+            <i class="bi bi-download me-1"></i>Export Excel
+        </a>
+        @if (User.IsInRole("Admin"))
+        {
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#thresholdModal">
+                <i class="bi bi-gear me-1"></i>Set Threshold
+            </button>
+        }
+    </div>
+</div>
+
+@* TempData alerts *@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* HC read-only notice *@
+@if (User.IsInRole("HC") && !User.IsInRole("Admin"))
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>Anda melihat data sebagai HC. Hanya Admin yang dapat mengubah threshold atau menyetujui saran.
+    </div>
+}
+
+@* Summary Cards *@
+<div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="fs-2 fw-bold text-primary">@totalCoaches</div>
+                <div class="text-muted small">Coach Aktif</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="fs-2 fw-bold text-primary">@totalCoachees</div>
+                <div class="text-muted small">Coachee Aktif</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="fs-2 fw-bold text-primary">@avgRatio.ToString("F1")</div>
+                <div class="text-muted small">Rata-rata Rasio</div>
+                <div class="text-muted" style="font-size:11px;">coachee/coach</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="fs-2 fw-bold @(overloadedCount > 0 ? "text-danger" : "text-success")">
+                    @overloadedCount
+                    @if (overloadedCount > 0)
+                    {
+                        <span class="badge bg-danger ms-1" style="font-size:12px;">!</span>
+                    }
+                </div>
+                <div class="text-muted small">Coach Overloaded</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Filter Bar *@
+<form method="get" class="d-flex gap-2 mb-4">
+    <select name="section" class="form-select" style="max-width: 300px;">
+        <option value="">Semua Section</option>
+        @foreach (var s in sections)
+        {
+            @if (sectionFilter == s)
+            {
+                <option value="@s" selected>@s</option>
+            }
+            else
+            {
+                <option value="@s">@s</option>
+            }
+        }
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="@Url.Action("CoachWorkload")" class="btn btn-outline-secondary">Reset</a>
+</form>
+
+@if (!workloadRows.Any() && string.IsNullOrEmpty(sectionFilter))
+{
+    @* Empty State *@
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
+            <h5>Belum ada data mapping</h5>
+            <p class="text-muted">Belum ada coach-coachee mapping aktif. Buat mapping terlebih dahulu di halaman Coach-Coachee Mapping.</p>
+            <a href="@Url.Action("CoachCoacheeMapping", "CoachMapping")" class="btn btn-primary">
+                <i class="bi bi-arrow-right-circle me-2"></i>Buka Coach-Coachee Mapping
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    @* Bar Chart Horizontal *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <canvas id="workloadChart" style="min-height: 200px; max-height: 500px;"></canvas>
+        </div>
+    </div>
+
+    @* Tabel Detail *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nama Coach</th>
+                            <th>Section</th>
+                            <th>Jumlah Coachee</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in workloadRows)
+                        {
+                            <tr>
+                                <td>@row.CoachName</td>
+                                <td>@row.CoachSection</td>
+                                <td>@row.CoacheeCount</td>
+                                <td>
+                                    @{
+                                        string status = row.Status;
+                                        string badgeClass = status == "OK" ? "bg-success"
+                                            : status == "Warning" ? "bg-warning text-dark"
+                                            : "bg-danger";
+                                        string badgeLabel = status == "OK" ? "Normal"
+                                            : status == "Warning" ? "Mendekati Batas"
+                                            : "Overloaded";
+                                    }
+                                    <span class="badge @badgeClass">@badgeLabel</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@* Saran Penyeimbangan *@
+<h5 class="mb-3">Saran Penyeimbangan</h5>
+@if (!reassignSuggestions.Any())
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>Tidak ada saran penyeimbangan saat ini. Semua coach memiliki beban yang seimbang.
+    </div>
+}
+else
+{
+    foreach (var sug in reassignSuggestions)
+    {
+        <div class="card shadow-sm mb-3 suggestion-card" id="sug-@sug.MappingId">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>@sug.CoacheeName</strong>
+                        <span class="text-muted small ms-2">(@sug.CoacheeSection)</span>
+                        <div class="text-muted small mt-1">
+                            Dari <span class="fw-bold text-danger">@sug.FromCoachName</span>
+                            &rarr; ke <span class="fw-bold text-success">@sug.ToCoachName</span>
+                        </div>
+                    </div>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-sm approve-btn"
+                                    data-mapping-id="@sug.MappingId"
+                                    data-new-coach-id="@sug.ToCoachId"
+                                    data-coachee-name="@sug.CoacheeName"
+                                    data-from-coach="@sug.FromCoachName"
+                                    data-to-coach="@sug.ToCoachName">
+                                <i class="bi bi-check-circle me-1"></i>Setujui Saran
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm skip-btn"
+                                    data-mapping-id="@sug.MappingId">
+                                <i class="bi bi-x-circle me-1"></i>Lewati Saran
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@* Modal Set Threshold *@
+@if (User.IsInRole("Admin"))
+{
+    <div class="modal fade" id="thresholdModal" tabindex="-1" aria-labelledby="thresholdModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="thresholdModalLabel">Set Batas Beban Coach</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Batas maksimum coachee per coach</label>
+                        <input type="number" class="form-control" id="maxCoachees" min="1"
+                               value="@((int)((dynamic)ViewBag.Threshold).MaxCoacheesPerCoach)">
+                        <div class="form-text">Coach dengan jumlah coachee melebihi batas ini akan ditandai sebagai Overloaded.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Batas warning</label>
+                        <input type="number" class="form-control" id="warningThreshold" min="1"
+                               value="@((int)((dynamic)ViewBag.Threshold).WarningThreshold)">
+                        <div class="form-text">Coach dengan jumlah coachee di antara batas warning dan batas maksimum akan ditandai sebagai Mendekati Batas.</div>
+                    </div>
+                    <div id="thresholdError" class="alert alert-danger d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="saveThreshold">
+                        <i class="bi bi-check-lg me-1"></i>Simpan Threshold
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script>
+        var workloadData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.WorkloadRows));
+        var thresholdData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Threshold));
+
+        // Bar Chart
+        (function () {
+            var canvas = document.getElementById('workloadChart');
+            if (!canvas || !workloadData || workloadData.length === 0) return;
+
+            var labels = workloadData.map(function (r) { return r.coachName; });
+            var counts = workloadData.map(function (r) { return r.coacheeCount; });
+            var colors = workloadData.map(function (r) {
+                if (r.status === 'OK') return '#198754';
+                if (r.status === 'Warning') return '#ffc107';
+                return '#dc3545';
+            });
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Coachee',
+                        data: counts,
+                        backgroundColor: colors,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    animation: { duration: 300 },
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    var row = workloadData[ctx.dataIndex];
+                                    var statusLabel = row.status === 'OK' ? 'Normal'
+                                        : row.status === 'Warning' ? 'Mendekati Batas'
+                                        : 'Overloaded';
+                                    return row.coachName + ': ' + row.coacheeCount + ' coachee (' + statusLabel + ')';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        })();
+
+        // AJAX helper
+        function getAntiForgeryToken() {
+            var input = document.querySelector('input[name="__RequestVerificationToken"]');
+            return input ? input.value : '';
+        }
+
+        // Approve saran
+        document.querySelectorAll('.approve-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var mappingId = btn.dataset.mappingId;
+                var newCoachId = btn.dataset.newCoachId;
+                var coacheeName = btn.dataset.coacheeName;
+                var fromCoach = btn.dataset.fromCoach;
+                var toCoach = btn.dataset.toCoach;
+
+                if (!confirm('Setujui perpindahan ' + coacheeName + ' dari ' + fromCoach + ' ke ' + toCoach + '?')) return;
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Memproses...';
+
+                var skipBtn = btn.closest('.suggestion-card').querySelector('.skip-btn');
+                if (skipBtn) skipBtn.disabled = true;
+
+                fetch('/Admin/ApproveReassignSuggestion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': getAntiForgeryToken()
+                    },
+                    body: 'mappingId=' + encodeURIComponent(mappingId) + '&newCoachId=' + encodeURIComponent(newCoachId)
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        var card = document.getElementById('sug-' + mappingId);
+                        if (card) card.remove();
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Setujui Saran';
+                        if (skipBtn) skipBtn.disabled = false;
+                    }
+                })
+                .catch(function () {
+                    alert('Gagal memuat data. Coba muat ulang halaman.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Setujui Saran';
+                    if (skipBtn) skipBtn.disabled = false;
+                });
+            });
+        });
+
+        // Skip saran
+        document.querySelectorAll('.skip-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var mappingId = btn.dataset.mappingId;
+
+                btn.disabled = true;
+                var approveBtn = btn.closest('.suggestion-card').querySelector('.approve-btn');
+                if (approveBtn) approveBtn.disabled = true;
+
+                fetch('/Admin/SkipReassignSuggestion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': getAntiForgeryToken()
+                    },
+                    body: 'mappingId=' + encodeURIComponent(mappingId)
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    var card = document.getElementById('sug-' + mappingId);
+                    if (card) card.remove();
+                })
+                .catch(function () {
+                    btn.disabled = false;
+                    if (approveBtn) approveBtn.disabled = false;
+                });
+            });
+        });
+
+        // Set Threshold modal
+        var saveThresholdBtn = document.getElementById('saveThreshold');
+        if (saveThresholdBtn) {
+            saveThresholdBtn.addEventListener('click', function () {
+                var maxCoachees = parseInt(document.getElementById('maxCoachees').value);
+                var warningThreshold = parseInt(document.getElementById('warningThreshold').value);
+                var errorDiv = document.getElementById('thresholdError');
+
+                if (isNaN(maxCoachees) || isNaN(warningThreshold) || maxCoachees < 1 || warningThreshold < 1 || warningThreshold > maxCoachees) {
+                    errorDiv.textContent = 'Nilai tidak valid. Batas warning harus lebih kecil dari atau sama dengan batas maksimum.';
+                    errorDiv.classList.remove('d-none');
+                    return;
+                }
+                errorDiv.classList.add('d-none');
+
+                saveThresholdBtn.disabled = true;
+                saveThresholdBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+
+                fetch('/Admin/SetWorkloadThreshold', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': getAntiForgeryToken()
+                    },
+                    body: 'maxCoachees=' + encodeURIComponent(maxCoachees) + '&warningThreshold=' + encodeURIComponent(warningThreshold)
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('thresholdModal'));
+                        if (modal) modal.hide();
+                        window.location.reload();
+                    } else {
+                        errorDiv.textContent = data.message || 'Gagal menyimpan threshold.';
+                        errorDiv.classList.remove('d-none');
+                        saveThresholdBtn.disabled = false;
+                        saveThresholdBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Simpan Threshold';
+                    }
+                })
+                .catch(function () {
+                    errorDiv.textContent = 'Gagal memuat data. Coba muat ulang halaman.';
+                    errorDiv.classList.remove('d-none');
+                    saveThresholdBtn.disabled = false;
+                    saveThresholdBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Simpan Threshold';
+                });
+            });
+        }
+    </script>
+}
