@@ -148,13 +148,22 @@ else
 {
     @* Bar Chart Horizontal *@
     <div class="card shadow-sm mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-bar-chart me-2"></i>Grafik Beban Coach</div>
         <div class="card-body">
-            <canvas id="workloadChart" style="min-height: 200px; max-height: 500px;"></canvas>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <canvas id="workloadChart" style="min-height: 150px;"></canvas>
+            </div>
+            <div class="d-flex gap-4 mt-3 flex-wrap" style="font-size: 0.85rem;">
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#198754;margin-right:6px;vertical-align:middle;"></span>Normal</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffc107;margin-right:6px;vertical-align:middle;"></span>Mendekati Batas</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc3545;margin-right:6px;vertical-align:middle;"></span>Overloaded</span>
+            </div>
         </div>
     </div>
 
     @* Tabel Detail *@
     <div class="card shadow-sm mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-table me-2"></i>Detail Beban Coach</div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover table-striped">
@@ -181,7 +190,7 @@ else
                                         <button class="btn btn-sm btn-outline-secondary py-0 px-1" type="button"
                                                 data-bs-toggle="collapse" data-bs-target="#coachee-@rowIdx"
                                                 aria-expanded="false">
-                                            &#9654; Lihat
+                                            <i class="bi bi-chevron-right expand-chevron" style="transition:transform 0.2s;display:inline-block;"></i> Lihat
                                         </button>
                                         <div class="collapse mt-1" id="coachee-@rowIdx">
                                             <small class="text-muted">
@@ -309,7 +318,7 @@ else
             var canvas = document.getElementById('workloadChart');
             if (!canvas || !workloadData || workloadData.length === 0) return;
 
-            canvas.style.height = Math.max(150, workloadData.length * 50) + 'px';
+            canvas.style.height = Math.max(150, workloadData.length * 30) + 'px';
 
             var labels = workloadData.map(function (r) { return r.coachName; });
             var counts = workloadData.map(function (r) { return r.coacheeCount; });
@@ -327,7 +336,8 @@ else
                         label: 'Jumlah Coachee',
                         data: counts,
                         backgroundColor: colors,
-                        borderRadius: 4
+                        borderRadius: 4,
+                        barThickness: 18
                     }]
                 },
                 options: {
@@ -395,7 +405,7 @@ else
                 .then(function (data) {
                     if (data.success) {
                         var card = document.getElementById('sug-' + mappingId);
-                        if (card) card.remove();
+                        if (card) fadeOutCard(card);
                     } else {
                         alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
                         btn.disabled = false;
@@ -432,7 +442,7 @@ else
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     var card = document.getElementById('sug-' + mappingId);
-                    if (card) card.remove();
+                    if (card) fadeOutCard(card);
                 })
                 .catch(function () {
                     btn.disabled = false;
@@ -440,6 +450,29 @@ else
                 });
             });
         });
+
+        // Chevron rotation on collapse
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
+            var targetId = btn.getAttribute('data-bs-target');
+            var target = document.querySelector(targetId);
+            if (!target) return;
+            target.addEventListener('show.bs.collapse', function () {
+                var chevron = btn.querySelector('.expand-chevron');
+                if (chevron) chevron.style.transform = 'rotate(90deg)';
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                var chevron = btn.querySelector('.expand-chevron');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            });
+        });
+
+        // Fade-out helper for suggestion cards
+        function fadeOutCard(cardEl) {
+            cardEl.style.transition = 'opacity 0.3s, transform 0.3s';
+            cardEl.style.opacity = '0';
+            cardEl.style.transform = 'translateX(20px)';
+            setTimeout(function () { cardEl.remove(); }, 300);
+        }
 
         // Set Threshold modal
         var saveThresholdBtn = document.getElementById('saveThreshold');
