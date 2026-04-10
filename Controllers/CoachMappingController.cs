@@ -1441,6 +1441,221 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        #region Coach Workload
+
+        private record CoachWorkloadRow(string CoachId, string CoachName, string CoachSection, int CoacheeCount, string Status);
+        private record ReassignSuggestion(int MappingId, string CoacheeName, string CoacheeSection, string FromCoachName, string ToCoachId, string ToCoachName);
+
+        private async Task<(List<CoachWorkloadRow> Rows, CoachWorkloadThreshold Threshold, int TotalCoachees, List<string> Sections)> GetWorkloadDataAsync(string? section)
+        {
+            var threshold = await _context.CoachWorkloadThresholds.FirstOrDefaultAsync()
+                ?? new CoachWorkloadThreshold { MaxCoacheesPerCoach = 5, WarningThreshold = 4 };
+
+            var allUsers = await _context.Users
+                .Select(u => new { u.Id, u.FullName, u.Section, u.IsActive })
+                .ToListAsync();
+            var userDict = allUsers.ToDictionary(u => u.Id);
+
+            var activeMappings = await _context.CoachCoacheeMappings
+                .Where(m => m.IsActive && !m.IsCompleted)
+                .ToListAsync();
+
+            var coachRoleUsers = await _userManager.GetUsersInRoleAsync("Coach");
+            var activeCoachIds = coachRoleUsers.Where(u => u.IsActive).Select(u => u.Id).ToHashSet();
+
+            var mappingsByCoach = activeMappings.GroupBy(m => m.CoachId)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var rows = new List<CoachWorkloadRow>();
+            foreach (var coachId in activeCoachIds)
+            {
+                var count = mappingsByCoach.GetValueOrDefault(coachId, 0);
+                var user = userDict.GetValueOrDefault(coachId);
+                if (user == null || !user.IsActive) continue;
+
+                var status = count >= threshold.MaxCoacheesPerCoach ? "Overloaded"
+                    : count >= threshold.WarningThreshold ? "Warning"
+                    : "OK";
+
+                rows.Add(new CoachWorkloadRow(coachId, user.FullName ?? coachId, user.Section ?? "", count, status));
+            }
+
+            if (!string.IsNullOrEmpty(section))
+                rows = rows.Where(r => r.CoachSection == section).ToList();
+
+            rows = rows.OrderByDescending(r => r.CoacheeCount).ToList();
+
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            var sections = sectionUnitsDict.Keys.ToList();
+
+            var totalCoachees = rows.Sum(r => r.CoacheeCount);
+
+            return (rows, threshold, totalCoachees, sections);
+        }
+
+        private List<ReassignSuggestion> GenerateReassignSuggestions(
+            List<CoachWorkloadRow> rows, List<CoachCoacheeMapping> activeMappings,
+            Dictionary<string, (string FullName, string Section)> userDict, CoachWorkloadThreshold threshold)
+        {
+            var suggestions = new List<ReassignSuggestion>();
+            var overloaded = rows.Where(r => r.CoacheeCount > threshold.MaxCoacheesPerCoach).ToList();
+            var underloaded = rows.Where(r => r.CoacheeCount < threshold.MaxCoacheesPerCoach)
+                .OrderBy(r => r.CoacheeCount).ToList();
+
+            if (!underloaded.Any()) return suggestions;
+
+            foreach (var coach in overloaded)
+            {
+                var coacheeMappings = activeMappings
+                    .Where(m => m.CoachId == coach.CoachId)
+                    .ToList();
+
+                foreach (var mapping in coacheeMappings)
+                {
+                    if (suggestions.Count >= 20) return suggestions;
+
+                    var coacheeInfo = userDict.GetValueOrDefault(mapping.CoacheeId);
+                    var coacheeName = coacheeInfo.FullName ?? mapping.CoacheeId;
+                    var coacheeSection = coacheeInfo.Section ?? "";
+
+                    // Prefer same-section target
+                    var target = underloaded.FirstOrDefault(r => r.CoachSection == coacheeSection)
+                        ?? underloaded.FirstOrDefault();
+
+                    if (target == null) break;
+
+                    suggestions.Add(new ReassignSuggestion(
+                        mapping.Id, coacheeName, coacheeSection,
+                        coach.CoachName, target.CoachId, target.CoachName));
+                }
+            }
+
+            return suggestions;
+        }
+
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CoachWorkload(string? section)
+        {
+            var (rows, threshold, totalCoachees, sections) = await GetWorkloadDataAsync(section);
+
+            var activeMappings = await _context.CoachCoacheeMappings
+                .Where(m => m.IsActive && !m.IsCompleted)
+                .ToListAsync();
+
+            var allUsers = await _context.Users
+                .Select(u => new { u.Id, u.FullName, u.Section })
+                .ToListAsync();
+            var userDict = allUsers.ToDictionary(u => u.Id, u => (FullName: u.FullName ?? u.Id, Section: u.Section ?? ""));
+
+            ViewBag.TotalActiveCoaches = rows.Count;
+            ViewBag.TotalActiveCoachees = totalCoachees;
+            ViewBag.AvgRatio = rows.Count > 0 ? Math.Round((double)totalCoachees / rows.Count, 1) : 0.0;
+            ViewBag.OverloadedCount = rows.Count(r => r.Status == "Overloaded");
+            ViewBag.Threshold = threshold;
+            ViewBag.WorkloadRows = rows;
+            ViewBag.Sections = sections;
+            ViewBag.SectionFilter = section;
+            ViewBag.ReassignSuggestions = GenerateReassignSuggestions(rows, activeMappings, userDict, threshold);
+
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetWorkloadThreshold(int maxCoachees, int warningThreshold)
+        {
+            if (maxCoachees < 1 || warningThreshold < 1 || warningThreshold > maxCoachees)
+                return Json(new { success = false, message = "Nilai threshold tidak valid." });
+
+            var user = await _userManager.GetUserAsync(User);
+            var row = await _context.CoachWorkloadThresholds.FirstOrDefaultAsync();
+            if (row == null)
+            {
+                row = new CoachWorkloadThreshold();
+                _context.CoachWorkloadThresholds.Add(row);
+            }
+
+            row.MaxCoacheesPerCoach = maxCoachees;
+            row.WarningThreshold = warningThreshold;
+            row.UpdatedAt = DateTime.UtcNow;
+            row.UpdatedById = user?.Id ?? "system";
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                ActorUserId = user?.Id ?? "system",
+                ActorName = user?.FullName ?? "system",
+                ActionType = "SetWorkloadThreshold",
+                Description = $"Set threshold: Max={maxCoachees}, Warning={warningThreshold}",
+                TargetType = "CoachWorkloadThreshold",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveReassignSuggestion(int mappingId, string newCoachId)
+        {
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(mappingId);
+            if (mapping == null) return NotFound();
+            if (!mapping.IsActive || mapping.IsCompleted)
+                return Json(new { success = false, message = "Mapping sudah tidak aktif atau sudah selesai." });
+
+            var oldCoachId = mapping.CoachId;
+            mapping.CoachId = newCoachId;
+
+            var user = await _userManager.GetUserAsync(User);
+            _context.AuditLogs.Add(new AuditLog
+            {
+                ActorUserId = user?.Id ?? "system",
+                ActorName = user?.FullName ?? "system",
+                ActionType = "ApproveReassignSuggestion",
+                Description = $"Reassign mapping {mappingId} from coach {oldCoachId} to {newCoachId}",
+                TargetType = "CoachCoacheeMapping",
+                TargetId = mappingId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SkipReassignSuggestion(int mappingId)
+        {
+            return Json(new { success = true });
+        }
+
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportCoachWorkload(string? section)
+        {
+            var (rows, threshold, totalCoachees, sections) = await GetWorkloadDataAsync(section);
+
+            using var workbook = new XLWorkbook();
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Coach Workload",
+                new[] { "Nama Coach", "Section", "Jumlah Coachee", "Status" });
+
+            int rowNum = 2;
+            foreach (var r in rows)
+            {
+                ws.Cell(rowNum, 1).Value = r.CoachName;
+                ws.Cell(rowNum, 2).Value = r.CoachSection;
+                ws.Cell(rowNum, 3).Value = r.CoacheeCount;
+                ws.Cell(rowNum, 4).Value = r.Status;
+                rowNum++;
+            }
+
+            return ExcelExportHelper.ToFileResult(workbook, "coach_workload.xlsx", this);
+        }
+
+        #endregion
     }
 }
 
