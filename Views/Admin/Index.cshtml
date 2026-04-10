@@ -122,6 +122,22 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
+        <a href="@Url.Action("CoachWorkload", "CoachMapping")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-bar-chart-line fs-5 text-primary"></i>
+                        <span class="fw-bold">Coach Workload</span>
+                    </div>
+                    <small class="text-muted">Pantau beban coach, rasio coachee, dan saran penyeimbangan</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
         <a href="@Url.Action("Override", "ProtonData")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
