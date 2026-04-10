@@ -1,25 +1,22 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-07T08:42:36.501Z",
-  "phase": "301",
-  "phase_name": "advanced-reporting",
-  "phase_dir": ".planning/phases/301-advanced-reporting",
-  "plan": null,
-  "task": null,
-  "total_tasks": 0,
+  "timestamp": "2026-04-10T01:51:41.998Z",
+  "phase": "303",
+  "phase_name": "303-rasio-coach-coachee-dan-balanced-mapping",
+  "phase_dir": ".planning/phases/303-rasio-coach-coachee-dan-balanced-mapping",
+  "plan": 1,
+  "task": 1,
+  "total_tasks": 2,
   "status": "paused",
   "completed_tasks": [],
-  "remaining_tasks": [],
+  "remaining_tasks": [
+    {"id": 1, "name": "Entity CoachWorkloadThreshold + Migration + DbSet", "status": "not_started"},
+    {"id": 2, "name": "Controller actions", "status": "not_started"}
+  ],
   "blockers": [],
   "human_actions_pending": [],
-  "decisions": [
-    {"decision": "UI-SPEC approved with 6/6 dimensions passed", "rationale": "Typography reduced to 2 weights (400/600), focal points added for both main screens", "phase": "301"},
-    {"decision": "Research completed with HIGH confidence", "rationale": "All libraries existing, 4 new endpoints needed, tab conversion required for AnalyticsDashboard", "phase": "301"}
-  ],
-  "uncommitted_files": [
-    ".planning/phases/301-advanced-reporting/301-RESEARCH.md",
-    ".planning/STATE.md"
-  ],
-  "next_action": "Commit RESEARCH.md, run validation strategy (step 5.5), then spawn gsd-planner for Phase 301",
-  "context_notes": "Mid plan-phase workflow. UI-SPEC done and committed. Research just completed. Next steps: validation strategy creation, security threat model gate, then spawn planner. Phase req IDs: RPT-01 through RPT-07."
+  "decisions": [],
+  "uncommitted_files": [".planning/STATE.md"],
+  "next_action": "Execute Plan 303-01 Task 1: Create Models/CoachWorkloadThreshold.cs, add DbSet, run migration",
+  "context_notes": "Read all reference files. No code changes made yet."
 }
