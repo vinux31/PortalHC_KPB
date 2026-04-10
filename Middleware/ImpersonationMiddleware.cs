@@ -71,7 +71,7 @@ namespace HcPortal.Middleware
             if (method == "GET" || method == "HEAD")
             {
                 // Set context items and continue
-                SetContextItems(context, impersonationService);
+                await SetContextItems(context, impersonationService);
                 await _next(context);
                 return;
             }
@@ -104,11 +104,11 @@ namespace HcPortal.Middleware
             }
 
             // Whitelisted write — allow
-            SetContextItems(context, impersonationService);
+            await SetContextItems(context, impersonationService);
             await _next(context);
         }
 
-        private static void SetContextItems(HttpContext context, ImpersonationService service)
+        private static async Task SetContextItems(HttpContext context, ImpersonationService service)
         {
             context.Items["IsImpersonating"] = true;
             context.Items["ImpersonateMode"] = service.GetMode();
@@ -132,10 +132,10 @@ namespace HcPortal.Middleware
                 if (targetUserId != null)
                 {
                     var userManager = context.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
-                    var targetUser = userManager.FindByIdAsync(targetUserId).GetAwaiter().GetResult();
+                    var targetUser = await userManager.FindByIdAsync(targetUserId);
                     if (targetUser != null)
                     {
-                        var roles = userManager.GetRolesAsync(targetUser).GetAwaiter().GetResult();
+                        var roles = await userManager.GetRolesAsync(targetUser);
                         var primaryRole = roles.FirstOrDefault() ?? "Coachee";
                         context.Items["ImpersonateTargetRole"] = primaryRole;
                         context.Items["ImpersonateTargetRoleLevel"] = UserRoles.GetRoleLevel(primaryRole);

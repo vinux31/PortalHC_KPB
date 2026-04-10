@@ -88,6 +88,7 @@ namespace HcPortal.Controllers
 
             // Load all bagians (top-level OrganizationUnits) ordered by DisplayOrder
             var allBagians = await _context.OrganizationUnits
+                .AsNoTracking()
                 .Where(u => u.ParentId == null)
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
@@ -109,6 +110,7 @@ namespace HcPortal.Controllers
 
             // Load KKJ files (non-archived) grouped by BagianId
             var kkjFiles = await _context.KkjFiles
+                .AsNoTracking()
                 .Where(f => !f.IsArchived)
                 .OrderByDescending(f => f.UploadedAt)
                 .ToListAsync();
@@ -118,6 +120,7 @@ namespace HcPortal.Controllers
 
             // Load CPDP files (non-archived) grouped by OrganizationUnitId
             var cpdpFiles = await _context.CpdpFiles
+                .AsNoTracking()
                 .Where(f => !f.IsArchived)
                 .OrderBy(f => f.UploadedAt)
                 .ToListAsync();
@@ -137,6 +140,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> KkjFileDownload(int id)
         {
             var kkjFile = await _context.KkjFiles
+                .AsNoTracking()
                 .Include(f => f.OrganizationUnit)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
@@ -163,6 +167,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> CpdpFileDownload(int id)
         {
             var cpdpFile = await _context.CpdpFiles
+                .AsNoTracking()
                 .Include(f => f.OrganizationUnit)
                 .FirstOrDefaultAsync(f => f.Id == id);
 

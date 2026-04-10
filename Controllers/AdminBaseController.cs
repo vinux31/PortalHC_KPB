@@ -45,6 +45,7 @@ namespace HcPortal.Controllers
         {
             // Query TrainingRecords with certificate (no role scoping — Admin/HC full access)
             var trainingAnon = await _context.TrainingRecords
+                .AsNoTracking()
                 .Include(t => t.User)
                 .Where(t => t.SertifikatUrl != null)
                 .Select(t => new
@@ -66,24 +67,28 @@ namespace HcPortal.Controllers
 
             // ===== Renewal chain resolution: batch lookup =====
             var renewedByAsSessionIds = await _context.AssessmentSessions
+                .AsNoTracking()
                 .Where(a => a.RenewsSessionId.HasValue && a.IsPassed == true)
                 .Select(a => a.RenewsSessionId!.Value)
                 .Distinct()
                 .ToListAsync();
 
             var renewedByTrSessionIds = await _context.TrainingRecords
+                .AsNoTracking()
                 .Where(t => t.RenewsSessionId.HasValue)
                 .Select(t => t.RenewsSessionId!.Value)
                 .Distinct()
                 .ToListAsync();
 
             var renewedByAsTrainingIds = await _context.AssessmentSessions
+                .AsNoTracking()
                 .Where(a => a.RenewsTrainingId.HasValue && a.IsPassed == true)
                 .Select(a => a.RenewsTrainingId!.Value)
                 .Distinct()
                 .ToListAsync();
 
             var renewedByTrTrainingIds = await _context.TrainingRecords
+                .AsNoTracking()
                 .Where(t => t.RenewsTrainingId.HasValue)
                 .Select(t => t.RenewsTrainingId!.Value)
                 .Distinct()
@@ -97,6 +102,7 @@ namespace HcPortal.Controllers
 
             // Build rawToDisplayMap from AssessmentCategories for MapKategori DB lookup
             var allCategories = await _context.AssessmentCategories
+                .AsNoTracking()
                 .Where(c => c.IsActive)
                 .Select(c => new { c.Id, c.Name, c.ParentId })
                 .ToListAsync();
@@ -136,6 +142,7 @@ namespace HcPortal.Controllers
                 .ToDictionary(g => g.Key, g => categoryById[g.First().ParentId!.Value].Name);
 
             var assessmentAnon = await _context.AssessmentSessions
+                .AsNoTracking()
                 .Include(a => a.User)
                 .Where(a => a.GenerateCertificate && a.IsPassed == true)
                 .Select(a => new

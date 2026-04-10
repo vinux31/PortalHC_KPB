@@ -69,12 +69,14 @@ namespace HcPortal.Controllers
             if (isCoachee)
             {
                 var assignment = await _context.ProtonTrackAssignments
+                    .AsNoTracking()
                     .Where(a => a.CoacheeId == user.Id && a.IsActive)
                     .FirstOrDefaultAsync();
 
                 if (assignment != null)
                 {
                     var firstKomp = await _context.ProtonKompetensiList
+                        .AsNoTracking()
                         .Where(k => k.ProtonTrackId == assignment.ProtonTrackId && k.IsActive)
                         .FirstOrDefaultAsync();
                     if (firstKomp != null)
@@ -110,13 +112,14 @@ namespace HcPortal.Controllers
             ViewBag.CoacheeBagian = coacheeBagian ?? "";
 
             // Load all tracks for dropdowns
-            var allTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+            var allTracks = await _context.ProtonTracks.AsNoTracking().OrderBy(t => t.Urutan).ToListAsync();
 
             // Build silabus rows as JSON (only if all 3 filters are set)
             var silabusRows = new List<object>();
             if (!string.IsNullOrEmpty(bagian) && !string.IsNullOrEmpty(unit) && trackId.HasValue)
             {
                 var kompetensiList = await _context.ProtonKompetensiList
+                    .AsNoTracking()
                     .Include(k => k.SubKompetensiList)
                         .ThenInclude(s => s.Deliverables)
                     .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && k.IsActive)
@@ -147,6 +150,7 @@ namespace HcPortal.Controllers
             // Build coaching guidance grouped hierarchy (Bagian > Unit > TrackType > TahunKe)
             // Coachee: limited to their own Bagian only
             var guidanceQuery = _context.CoachingGuidanceFiles
+                .AsNoTracking()
                 .Include(f => f.ProtonTrack)
                 .AsQueryable();
             if (isCoachee && coacheeBagian != null)
@@ -157,6 +161,7 @@ namespace HcPortal.Controllers
             {
                 // D-20: Coach hanya melihat guidance untuk Bagian coachee yang di-map ke mereka
                 var coachMappedBagianList = await _context.CoachCoacheeMappings
+                    .AsNoTracking()
                     .Where(m => m.CoachId == user.Id && m.IsActive)
                     .Join(_context.ProtonTrackAssignments.Where(a => a.IsActive),
                           m => m.CoacheeId,
@@ -231,7 +236,7 @@ namespace HcPortal.Controllers
         // Open to any authenticated user (coachees, coaches, HC, Admin, etc.)
         public async Task<IActionResult> GuidanceDownload(int id)
         {
-            var record = await _context.CoachingGuidanceFiles.FindAsync(id);
+            var record = await _context.CoachingGuidanceFiles.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
             if (record == null) return NotFound();
 
             var physicalPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));

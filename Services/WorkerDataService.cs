@@ -29,11 +29,13 @@ namespace HcPortal.Services
         {
             // Query 1: Completed assessments only
             var assessments = await _context.AssessmentSessions
+                .AsNoTracking()
                 .Where(a => a.UserId == userId && a.Status == "Completed")
                 .ToListAsync();
 
             // Query 2: All training records
             var trainings = await _context.TrainingRecords
+                .AsNoTracking()
                 .Where(t => t.UserId == userId)
                 .ToListAsync();
 
@@ -86,6 +88,7 @@ namespace HcPortal.Services
 
             // Batch count archived attempts per user+title to avoid N+1
             var archivedCounts = await _context.AssessmentAttemptHistory
+                .AsNoTracking()
                 .GroupBy(h => new { h.UserId, h.Title })
                 .Select(g => new { g.Key.UserId, g.Key.Title, Count = g.Count() })
                 .ToListAsync();
@@ -95,6 +98,7 @@ namespace HcPortal.Services
 
             // Query 1: Archived attempts (AttemptNumber already stored)
             var archivedAttempts = await _context.AssessmentAttemptHistory
+                .AsNoTracking()
                 .Include(h => h.User)
                 .ToListAsync();
 
@@ -115,6 +119,7 @@ namespace HcPortal.Services
 
             // Query 2: Current completed sessions (Attempt # = archived count for that user+title + 1)
             var currentCompleted = await _context.AssessmentSessions
+                .AsNoTracking()
                 .Include(a => a.User)
                 .Where(a => a.Status == "Completed")
                 .ToListAsync();
@@ -145,6 +150,7 @@ namespace HcPortal.Services
 
             // --- Training history ---
             var trainings = await _context.TrainingRecords
+                .AsNoTracking()
                 .Include(t => t.User)
                 .ToListAsync();
 
@@ -188,11 +194,12 @@ namespace HcPortal.Services
                 );
             }
 
-            var users = await usersQuery.ToListAsync();
+            var users = await usersQuery.AsNoTracking().ToListAsync();
 
             var userIds = users.Select(u => u.Id).ToList();
             // Phase 215: batch load all AssessmentSessions for category filter
             var assessmentSessionsByUser = await _context.AssessmentSessions
+                .AsNoTracking()
                 .Where(a => userIds.Contains(a.UserId))
                 .ToListAsync();
             var assessmentSessionLookup = assessmentSessionsByUser
@@ -307,6 +314,7 @@ namespace HcPortal.Services
         public async Task NotifyIfGroupCompleted(AssessmentSession completedSession)
         {
             var allSiblings = await _context.AssessmentSessions
+                .AsNoTracking()
                 .Where(s => s.Title == completedSession.Title &&
                             s.Category == completedSession.Category &&
                             s.Schedule.Date == completedSession.Schedule.Date)

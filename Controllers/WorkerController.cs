@@ -91,13 +91,17 @@ namespace HcPortal.Controllers
 
             var users = await query.OrderBy(u => u.FullName).ToListAsync();
 
-            // Get roles for each user
-            var userRolesDict = new Dictionary<string, string>();
+            // Get roles for all users in single query (avoid N+1)
+            var userRolesDict = (await _context.UserRoles
+                .Join(_context.Roles, ur => ur.RoleId, r => r.Id,
+                      (ur, r) => new { ur.UserId, r.Name })
+                .ToListAsync())
+                .GroupBy(x => x.UserId)
+                .ToDictionary(g => g.Key, g => g.First().Name ?? "No Role");
+            // Fill missing users
             foreach (var u in users)
-            {
-                var roles = await _userManager.GetRolesAsync(u);
-                userRolesDict[u.Id] = roles.FirstOrDefault() ?? "No Role";
-            }
+                if (!userRolesDict.ContainsKey(u.Id))
+                    userRolesDict[u.Id] = "No Role";
             ViewBag.UserRoles = userRolesDict;
 
             // Stats
