@@ -1274,7 +1274,7 @@ namespace HcPortal.Controllers
             catch (Exception ex)
             {
                 // Log error
-                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
                 logger.LogError(ex, "Error creating assessment sessions");
 
                 // Audit log for failed creation attempt
@@ -1752,7 +1752,7 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
                 logger.LogError(ex, "Error updating assessment");
                 TempData["Error"] = "Gagal memperbarui assessment. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
@@ -1761,7 +1761,7 @@ namespace HcPortal.Controllers
             // ===== BULK ASSIGN: create new sessions for selected users =====
             if (NewUserIds != null && NewUserIds.Count > 0)
             {
-                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
                 try
                 {
                     // Re-load the saved assessment to get current field values
@@ -1864,7 +1864,7 @@ namespace HcPortal.Controllers
                 }
                 catch (Exception ex)
                 {
-                    var logger2 = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+                    var logger2 = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
                     logger2.LogError(ex, "Error bulk-assigning users to assessment {Id}", id);
                     TempData["Error"] = "Assessment berhasil diperbarui, tetapi gagal menambahkan user. Silakan coba lagi.";
                 }
@@ -1879,7 +1879,7 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAssessment(int id)
         {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
 
             try
             {
@@ -1984,7 +1984,7 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAssessmentGroup(int id)
         {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
 
             try
             {
@@ -2089,7 +2089,7 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePrePostGroup(int linkedGroupId)
         {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
 
             try
             {
@@ -2222,7 +2222,7 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
                 logger.LogError(ex, "Error regenerating token");
                 return Json(new { success = false, message = "Gagal regenerate token. Silakan coba lagi." });
             }

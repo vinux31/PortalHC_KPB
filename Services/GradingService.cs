@@ -263,17 +263,25 @@ namespace HcPortal.Services
 
             if (!trainingRecordExists && session.AssessmentType != "PreTest")
             {
-                _context.TrainingRecords.Add(new TrainingRecord
+                try
                 {
-                    UserId = session.UserId,
-                    Judul = judul,
-                    Kategori = session.Category ?? "Assessment",
-                    Tanggal = session.Schedule,
-                    TanggalSelesai = DateTime.UtcNow,
-                    Penyelenggara = "Internal",
-                    Status = isPassed ? "Passed" : "Failed"
-                });
-                await _context.SaveChangesAsync();
+                    _context.TrainingRecords.Add(new TrainingRecord
+                    {
+                        UserId = session.UserId,
+                        Judul = judul,
+                        Kategori = session.Category ?? "Assessment",
+                        Tanggal = session.Schedule,
+                        TanggalSelesai = DateTime.UtcNow,
+                        Penyelenggara = "Internal",
+                        Status = isPassed ? "Passed" : "Failed"
+                    });
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    _logger.LogWarning("Duplicate TrainingRecord detected for UserId={UserId}, Judul={Judul}, Tanggal={Tanggal}. Skipping insert.",
+                        session.UserId, judul, session.Schedule);
+                }
             }
 
             // ---- 6. Generate NomorSertifikat (jika applicable) ----
@@ -303,6 +311,12 @@ namespace HcPortal.Services
                     {
                         // Retry dengan sequence baru (T-296-03)
                     }
+                }
+
+                if (!certSaved)
+                {
+                    _logger.LogError("Failed to generate certificate number for SessionId={SessionId} after {MaxAttempts} attempts due to repeated collisions.",
+                        session.Id, maxCertAttempts);
                 }
             }
 

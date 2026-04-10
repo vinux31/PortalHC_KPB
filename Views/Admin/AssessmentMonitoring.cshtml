@@ -411,6 +411,9 @@ else
                     } else {
                         alert('Error: ' + data.message);
                     }
+                })
+                .catch(function (err) {
+                    alert('Gagal regenerate token. Periksa koneksi jaringan.');
                 });
             });
         });
