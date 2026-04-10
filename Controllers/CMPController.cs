@@ -3577,11 +3577,9 @@ namespace HcPortal.Controllers
                 .Select(b => new BudgetTopItem { Judul = b.Judul, Anggaran = b.EstimasiBiayaTotal })
                 .ToListAsync();
 
-            // Summary from full filtered query (not paged)
-            var summaryQuery = _context.BudgetItems.AsQueryable();
-            if (tahun.HasValue) summaryQuery = summaryQuery.Where(b => b.TahunAnggaran == tahun.Value);
-            var totalRencana = await summaryQuery.SumAsync(b => b.EstimasiBiayaTotal);
-            var totalRealisasi = await summaryQuery.SumAsync(b => b.RealisasiBiaya);
+            // Summary from full filtered query (not paged) — uses same filters as table
+            var totalRencana = await query.SumAsync(b => b.EstimasiBiayaTotal);
+            var totalRealisasi = await query.SumAsync(b => b.RealisasiBiaya);
 
             var vm = new BudgetTrainingViewModel
             {
