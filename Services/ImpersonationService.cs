@@ -93,5 +93,45 @@ namespace HcPortal.Services
         {
             return Session.GetString(ImpersonationKeys.TargetUserId);
         }
+
+        /// <summary>
+        /// Returns the effective role level during impersonation, or null if not impersonating.
+        /// </summary>
+        public int? GetEffectiveRoleLevel()
+        {
+            if (!IsImpersonating() || IsExpired()) return null;
+
+            var mode = GetMode();
+            if (mode == "role")
+            {
+                var role = GetTargetRole();
+                return role != null ? HcPortal.Models.UserRoles.GetRoleLevel(role) : null;
+            }
+            // mode == "user": role level is stored in HttpContext.Items by middleware
+            var ctx = _httpContextAccessor.HttpContext;
+            if (ctx?.Items["ImpersonateTargetRoleLevel"] is int level)
+                return level;
+            // fallback: resolve from target role name
+            var targetRole = ctx?.Items["ImpersonateTargetRole"]?.ToString();
+            return targetRole != null ? HcPortal.Models.UserRoles.GetRoleLevel(targetRole) : null;
+        }
+
+        /// <summary>
+        /// Returns the effective SelectedView during impersonation, or null if not impersonating.
+        /// </summary>
+        public string? GetEffectiveSelectedView()
+        {
+            if (!IsImpersonating() || IsExpired()) return null;
+
+            var mode = GetMode();
+            if (mode == "role")
+            {
+                var role = GetTargetRole();
+                return role != null ? HcPortal.Models.UserRoles.GetDefaultView(role) : null;
+            }
+            // mode == "user": resolve from context items
+            var ctx = _httpContextAccessor.HttpContext;
+            return ctx?.Items["ImpersonateTargetSelectedView"]?.ToString();
+        }
     }
 }

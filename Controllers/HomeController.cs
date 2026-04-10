@@ -18,15 +18,18 @@ public class HomeController : Controller
     private readonly INotificationService _notificationService;
     private readonly ILogger<HomeController> _logger;
     private readonly IMemoryCache _cache;
+    private readonly ImpersonationService _impersonationService;
 
     public HomeController(UserManager<ApplicationUser> userManager, ApplicationDbContext context,
-        INotificationService notificationService, ILogger<HomeController> logger, IMemoryCache cache)
+        INotificationService notificationService, ILogger<HomeController> logger, IMemoryCache cache,
+        ImpersonationService impersonationService)
     {
         _userManager = userManager;
         _context = context;
         _notificationService = notificationService;
         _logger = logger;
         _cache = cache;
+        _impersonationService = impersonationService;
     }
 
     public async Task<IActionResult> Index()
@@ -45,7 +48,13 @@ public class HomeController : Controller
             Progress = progress
         };
 
-        if (User.IsInRole("HC") || User.IsInRole("Admin"))
+        // Respect impersonation: use effective role level if impersonating
+        var effectiveLevel = _impersonationService.GetEffectiveRoleLevel();
+        var isHcOrAdmin = effectiveLevel.HasValue
+            ? effectiveLevel.Value <= 2  // Level 1=Admin, 2=HC
+            : (User.IsInRole("HC") || User.IsInRole("Admin"));
+
+        if (isHcOrAdmin)
         {
             var (expiredCount, akanExpiredCount) = await GetCertAlertCountsAsync();
             viewModel.ExpiredCount = expiredCount;

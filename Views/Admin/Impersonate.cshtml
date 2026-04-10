@@ -20,7 +20,7 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="mode" value="role" />
             <input type="hidden" name="targetRole" value="HC" />
-            <div class="card border-primary" role="button" onclick="this.closest('form').submit();" style="cursor:pointer;">
+            <div class="card border-primary" role="button" onclick="if(confirm('Mulai impersonation sebagai HC?')) this.closest('form').submit();" style="cursor:pointer;">
                 <div class="card-body d-flex align-items-center">
                     <i class="bi bi-person-badge fs-2 text-primary me-3"></i>
                     <div>
@@ -37,7 +37,7 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="mode" value="role" />
             <input type="hidden" name="targetRole" value="User" />
-            <div class="card border-success" role="button" onclick="this.closest('form').submit();" style="cursor:pointer;">
+            <div class="card border-success" role="button" onclick="if(confirm('Mulai impersonation sebagai User?')) this.closest('form').submit();" style="cursor:pointer;">
                 <div class="card-body d-flex align-items-center">
                     <i class="bi bi-person fs-2 text-success me-3"></i>
                     <div>
@@ -125,6 +125,11 @@
 @section Scripts {
 <script>
 (function() {
+    function esc(s) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(s || ''));
+        return d.innerHTML;
+    }
     var searchInput = document.getElementById('imp-search');
     if (!searchInput) return;
     var resultsDiv = document.getElementById('imp-results');
@@ -143,9 +148,9 @@
                         return;
                     }
                     resultsDiv.innerHTML = users.map(function(u) {
-                        return '<button type="button" class="list-group-item list-group-item-action py-2 px-3" data-userid="' + u.id + '">'
-                            + '<strong>' + u.fullName + '</strong>' + (u.nip ? ' <small class="text-muted">' + u.nip + '</small>' : '')
-                            + ' <span class="badge bg-secondary">' + u.selectedView + '</span></button>';
+                        return '<button type="button" class="list-group-item list-group-item-action py-2 px-3" data-userid="' + esc(u.id) + '">'
+                            + '<strong>' + esc(u.fullName) + '</strong>' + (u.nip ? ' <small class="text-muted">' + esc(u.nip) + '</small>' : '')
+                            + ' <span class="badge bg-secondary">' + esc(u.selectedView) + '</span></button>';
                     }).join('');
                 });
         }, 300);
@@ -154,6 +159,7 @@
     resultsDiv.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-userid]');
         if (!btn) return;
+        if (!confirm('Impersonate user ' + btn.textContent.trim() + '?')) return;
         var form = document.createElement('form');
         form.method = 'POST';
         form.action = appUrl('/Admin/StartImpersonation');

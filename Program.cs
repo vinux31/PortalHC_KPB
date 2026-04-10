@@ -49,7 +49,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 // Audit log service
 builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
-builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 
 // Grading service — Phase 296 D-01: concrete class + DI (sama seperti AuditLogService)
 builder.Services.AddScoped<HcPortal.Services.GradingService>();
@@ -197,8 +196,6 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<HcPortal.Middleware.MaintenanceModeMiddleware>();
-app.UseMiddleware<HcPortal.Middleware.ImpersonationMiddleware>();
-
 app.UseMiddleware<HcPortal.Middleware.ImpersonationMiddleware>();
 
 // 9. Routing Standar

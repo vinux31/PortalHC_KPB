@@ -1,4 +1,6 @@
 using HcPortal.Services;
+using HcPortal.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace HcPortal.Middleware
@@ -111,7 +113,36 @@ namespace HcPortal.Middleware
             context.Items["IsImpersonating"] = true;
             context.Items["ImpersonateMode"] = service.GetMode();
             context.Items["ImpersonateTargetName"] = service.GetDisplayName();
-            context.Items["ImpersonateTargetRole"] = service.GetTargetRole();
+
+            var mode = service.GetMode();
+            if (mode == "role")
+            {
+                var role = service.GetTargetRole();
+                context.Items["ImpersonateTargetRole"] = role;
+                if (role != null)
+                {
+                    context.Items["ImpersonateTargetRoleLevel"] = UserRoles.GetRoleLevel(role);
+                    context.Items["ImpersonateTargetSelectedView"] = UserRoles.GetDefaultView(role);
+                }
+            }
+            else if (mode == "user")
+            {
+                // Resolve target user's role info
+                var targetUserId = service.GetTargetUserId();
+                if (targetUserId != null)
+                {
+                    var userManager = context.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                    var targetUser = userManager.FindByIdAsync(targetUserId).GetAwaiter().GetResult();
+                    if (targetUser != null)
+                    {
+                        var roles = userManager.GetRolesAsync(targetUser).GetAwaiter().GetResult();
+                        var primaryRole = roles.FirstOrDefault() ?? "Coachee";
+                        context.Items["ImpersonateTargetRole"] = primaryRole;
+                        context.Items["ImpersonateTargetRoleLevel"] = UserRoles.GetRoleLevel(primaryRole);
+                        context.Items["ImpersonateTargetSelectedView"] = targetUser.SelectedView;
+                    }
+                }
+            }
         }
     }
 }

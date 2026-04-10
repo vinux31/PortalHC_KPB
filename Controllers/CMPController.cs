@@ -36,6 +36,7 @@ namespace HcPortal.Controllers
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IWorkerDataService _workerDataService;
         private readonly GradingService _gradingService;
+        private readonly ImpersonationService _impersonationService;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -50,7 +51,8 @@ namespace HcPortal.Controllers
             IHubContext<AssessmentHub> hubContext,
             IServiceScopeFactory scopeFactory,
             IWorkerDataService workerDataService,
-            GradingService gradingService)
+            GradingService gradingService,
+            ImpersonationService impersonationService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -65,6 +67,7 @@ namespace HcPortal.Controllers
             _scopeFactory = scopeFactory;
             _workerDataService = workerDataService;
             _gradingService = gradingService;
+            _impersonationService = impersonationService;
         }
 
         public IActionResult Index()
@@ -80,7 +83,8 @@ namespace HcPortal.Controllers
             ViewData["Title"] = "Dokumen KKJ & Alignment KKJ/IDP";
 
             var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
-            var userLevel = currentUser?.RoleLevel ?? 6;
+            // Respect impersonation: override role level if impersonating
+            var userLevel = _impersonationService.GetEffectiveRoleLevel() ?? currentUser?.RoleLevel ?? 6;
 
             // Load all bagians (top-level OrganizationUnits) ordered by DisplayOrder
             var allBagians = await _context.OrganizationUnits
