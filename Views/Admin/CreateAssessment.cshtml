@@ -199,7 +199,10 @@
                                 <option value="Standard" selected>Standard</option>
                                 <option value="PrePostTest">Pre-Post Test</option>
                             </select>
-                            <div class="form-text text-muted">Pilih <strong>Pre-Post Test</strong> untuk membuat sepasang ujian awal &amp; akhir secara bersamaan.</div>
+                            <div id="assessment-type-description" class="form-text text-muted mt-1">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span id="assessment-type-desc-text">Assessment standar dengan satu sesi ujian. Peserta mengerjakan soal satu kali dan langsung mendapat hasil.</span>
+                            </div>
                         </div>
 
                         <!-- Proton Fields (conditional) -->
@@ -1641,6 +1644,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Trigger on page load jika nilai sudah terisi (mis. validation re-render)
         updateCategoryDescription(categorySelect.value);
+    }
+})();
+
+// Deskripsi tipe assessment
+(function () {
+    var typeDescriptions = {
+        'Standard': 'Assessment standar dengan satu sesi ujian. Peserta mengerjakan soal satu kali dan langsung mendapat hasil.',
+        'PrePostTest': 'Pre-Post Test \u2014 membuat dua sesi ujian sekaligus (Pre-Test & Post-Test). Digunakan untuk mengukur peningkatan kompetensi peserta sebelum dan sesudah pelatihan.'
+    };
+
+    var descText = document.getElementById('assessment-type-desc-text');
+    var typeSelect = document.getElementById('assessmentTypeInput');
+    if (typeSelect && descText) {
+        typeSelect.addEventListener('change', function () {
+            descText.textContent = typeDescriptions[this.value] || '';
+        });
     }
 })();
 </script>
