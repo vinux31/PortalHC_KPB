@@ -97,7 +97,7 @@
   <h1>Panduan Lengkap Assessment</h1>
   <p class="subtitle">Competency Management Program (CMP) &mdash; Portal HC KPB</p>
   <p class="subtitle">Panduan langkah demi langkah mengerjakan ujian kompetensi</p>
-  <p class="version">Versi 1.1 &bull; Maret 2026 &bull; Untuk Semua Pengguna</p>
+  <p class="version">Versi 1.2 &bull; April 2026 &bull; Untuk Semua Pengguna</p>
 </div>
 
 <!-- ============================================================ -->
@@ -144,6 +144,16 @@
   <tr><td><span class="badge badge-gray">Mandatory HSSE Training</span></td><td>Pelatihan keselamatan, kesehatan, dan lingkungan yang wajib diikuti</td></tr>
   <tr><td><span class="badge badge-purple">Assessment Proton</span></td><td>Ujian terkait program Coaching Proton</td></tr>
 </table>
+
+<div class="info">
+  <div class="info-title">Tipe Assessment: Pre-Post</div>
+  Beberapa assessment dapat dikonfigurasi sebagai <strong>Pre-Post Assessment</strong>. Dalam mode ini, peserta mengerjakan ujian dua kali:
+  <ul>
+    <li><strong>Pre-Test</strong> &mdash; Ujian sebelum mengikuti pelatihan, untuk mengukur baseline pengetahuan.</li>
+    <li><strong>Post-Test</strong> &mdash; Ujian setelah pelatihan selesai, untuk mengukur peningkatan kompetensi.</li>
+  </ul>
+  Sistem akan menghitung <strong>Gain Score</strong> secara otomatis sebagai selisih antara skor Post-Test dan Pre-Test.
+</div>
 
 <!-- ============================================================ -->
 <!-- ALUR -->
@@ -470,6 +480,13 @@
     <ul>
       <li>Jika diaktifkan oleh Admin, Anda dapat melihat <strong>tabel detail</strong>: nomor soal, pertanyaan, jawaban Anda, jawaban yang benar, dan status (benar/salah).</li>
     </ul>
+
+    <h3 style="margin-top:10px; margin-left:0;">Gain Score (Pre-Post Assessment)</h3>
+    <ul>
+      <li>Jika assessment bertipe <strong>Pre-Post</strong>, halaman hasil akan menampilkan perbandingan skor Pre-Test vs Post-Test.</li>
+      <li><strong>Gain Score</strong> dihitung otomatis: selisih antara skor Post-Test dan Pre-Test.</li>
+      <li>Gain Score positif menunjukkan <strong>peningkatan kompetensi</strong> setelah pelatihan.</li>
+    </ul>
   </div>
 </div>
 
@@ -531,7 +548,13 @@
 
 <div class="warn">
   <div class="warn-title">Masa Berlaku Sertifikat</div>
-  Beberapa sertifikat memiliki <strong>masa berlaku</strong> yang ditentukan Admin. Sistem akan mengirim <strong>notifikasi otomatis</strong> saat sertifikat Anda akan kadaluarsa dalam 30 hari. Sertifikat yang sudah kadaluarsa perlu di-renew melalui assessment ulang yang dijadwalkan oleh HC.
+  Beberapa sertifikat memiliki <strong>masa berlaku</strong> yang ditentukan Admin. Perhatikan hal berikut:
+  <ul>
+    <li>Sistem akan mengirim <strong>notifikasi otomatis 30 hari sebelum</strong> sertifikat Anda kadaluarsa.</li>
+    <li>Notifikasi muncul di ikon lonceng dan Dashboard sebagai <strong>Certification Alert</strong>.</li>
+    <li>Sertifikat yang sudah kadaluarsa perlu di-renew melalui <strong>Renewal Assessment</strong> yang dijadwalkan oleh HC.</li>
+    <li>Status sertifikat: <span class="badge badge-green">Active</span> (masih berlaku), <span class="badge badge-orange">Expiring Soon</span> (30 hari lagi), <span class="badge badge-red">Expired</span> (sudah kadaluarsa).</li>
+  </ul>
 </div>
 
 <!-- ============================================================ -->
@@ -555,6 +578,16 @@
     <li><strong>Jangan menutup browser</strong> secara sengaja saat ujian berlangsung &mdash; timer tetap berjalan.</li>
     <li><strong>Jangan menekan tombol Back</strong> di browser &mdash; gunakan navigasi soal yang disediakan.</li>
     <li><strong>Jangan menunggu hingga detik terakhir</strong> untuk submit &mdash; sisakan waktu untuk review.</li>
+  </ul>
+</div>
+
+<div class="info">
+  <div class="info-title">Shuffle Questions (Pengacakan Soal)</div>
+  Pada beberapa assessment, Admin mengaktifkan fitur <strong>Shuffle Questions</strong>. Ini berarti:
+  <ul>
+    <li>Urutan soal <strong>berbeda untuk setiap peserta</strong>.</li>
+    <li>Jangan membandingkan nomor soal dengan peserta lain &mdash; soal yang sama bisa muncul di nomor berbeda.</li>
+    <li>Fokus pada memahami dan menjawab setiap soal, bukan menghafal urutan.</li>
   </ul>
 </div>
 
@@ -617,11 +650,38 @@
   </div>
 </div>
 
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Apa itu Pre-Post Assessment?</span>
+  </div>
+  <div class="step-body">
+    Pre-Post Assessment adalah ujian yang dikerjakan <strong>dua kali</strong>: sebelum pelatihan (Pre-Test) dan setelah pelatihan (Post-Test). Sistem menghitung <strong>Gain Score</strong> untuk mengukur peningkatan kompetensi Anda setelah mengikuti pelatihan.
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Bagaimana jika sertifikat saya kadaluarsa?</span>
+  </div>
+  <div class="step-body">
+    Anda akan mendapat <strong>notifikasi otomatis 30 hari</strong> sebelum sertifikat kadaluarsa. Setelah kadaluarsa, hubungi HC untuk dijadwalkan <strong>Renewal Assessment</strong>. Sertifikat baru akan diterbitkan jika Anda lulus assessment ulang.
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Apakah urutan soal sama untuk semua peserta?</span>
+  </div>
+  <div class="step-body">
+    <strong>Tidak selalu</strong>. Admin dapat mengaktifkan fitur <strong>Shuffle Questions</strong> yang mengacak urutan soal untuk setiap peserta. Ini bertujuan untuk menjaga integritas ujian.
+  </div>
+</div>
+
 <!-- ============================================================ -->
 <!-- FOOTER -->
 <!-- ============================================================ -->
 <div class="footer">
-  Portal HC KPB &mdash; Panduan Lengkap Assessment &bull; Versi 1.1 &bull; Maret 2026<br>
+  Portal HC KPB &mdash; Panduan Lengkap Assessment &bull; Versi 1.2 &bull; April 2026<br>
   Dokumen ini dibuat untuk keperluan internal. Hubungi tim HC jika ada pertanyaan.
 </div>
 

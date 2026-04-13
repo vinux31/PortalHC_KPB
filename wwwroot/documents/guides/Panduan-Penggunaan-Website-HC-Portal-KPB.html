@@ -138,7 +138,7 @@
   <p class="subtitle">Human Capital Portal &mdash; Kilang Pertamina Balikpapan</p>
   <p class="subtitle">Panduan lengkap untuk seluruh fitur dan modul sistem</p>
   <div class="audience">Untuk Admin, HC &amp; IT</div>
-  <p class="version">Versi 1.0 &bull; Maret 2026</p>
+  <p class="version">Versi 1.1 &bull; April 2026</p>
 </div>
 
 <!-- ============================================================ -->
@@ -161,6 +161,8 @@
         <li><a href="#bab4b">4.2 Assessment (Ujian Kompetensi)</a></li>
         <li><a href="#bab4c">4.3 Assessment Records &amp; Laporan</a></li>
         <li><a href="#bab4d">4.4 Analytics Dashboard</a></li>
+        <li><a href="#bab4e">4.5 Budget Training</a></li>
+        <li><a href="#bab4f">4.6 Sertifikasi Management</a></li>
       </ul>
     </li>
     <li><a href="#bab5">CDP &mdash; Continuous Development Program</a>
@@ -170,6 +172,9 @@
         <li><a href="#bab5c">5.3 Deliverable &amp; Evidence</a></li>
         <li><a href="#bab5d">5.4 Certification Management</a></li>
         <li><a href="#bab5e">5.5 CDP Dashboard &amp; Laporan</a></li>
+        <li><a href="#bab5f">5.6 Coach Workload</a></li>
+        <li><a href="#bab5g">5.7 Proton History</a></li>
+        <li><a href="#bab5h">5.8 Coaching Transcript Export</a></li>
       </ul>
     </li>
     <li><a href="#bab6">Kelola Data &mdash; Administrasi Sistem</a>
@@ -183,6 +188,7 @@
         <li><a href="#bab6g">6.7 Training Records</a></li>
         <li><a href="#bab6h">6.8 Renewal Certificate</a></li>
         <li><a href="#bab6i">6.9 Audit Log</a></li>
+        <li><a href="#bab6j">6.10 Maintenance Mode</a></li>
       </ul>
     </li>
     <li><a href="#bab7">Proton Data &mdash; Silabus &amp; Kompetensi</a>
@@ -1079,12 +1085,97 @@ Deliverable (Level 3) &mdash; contoh: "Laporan Observasi Proses"</div>
 <h3 id="bab4d">4.4 Analytics Dashboard</h3>
 <p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>CMP &rarr; Analytics</strong></p>
 
-<p>Dashboard analitik menampilkan statistik dan grafik terkait assessment:</p>
+<p>Dashboard analitik v2 menampilkan statistik dan grafik komprehensif terkait assessment:</p>
+
+<h4>Fail Rate per Bagian &amp; Kategori</h4>
 <ul>
-  <li>Jumlah assessment yang telah dilaksanakan</li>
-  <li>Tingkat kelulusan per kategori/unit</li>
-  <li>Grafik tren assessment dari waktu ke waktu</li>
-  <li>Filter berdasarkan bagian, unit, kategori, dan sub-kategori</li>
+  <li>Persentase kegagalan assessment dikelompokkan per bagian dan kategori</li>
+  <li>Visualisasi dalam bentuk bar chart horizontal</li>
+</ul>
+
+<h4>Trend Assessment</h4>
+<ul>
+  <li>Grafik tren jumlah peserta lulus vs gagal per bulan</li>
+  <li>Analisis pola musiman dan efektivitas pelatihan dari waktu ke waktu</li>
+</ul>
+
+<h4>Elemen Teknis Breakdown</h4>
+<ul>
+  <li>Rata-rata (avg), minimum (min), dan maksimum (max) scoring per elemen teknis</li>
+  <li>Identifikasi area kompetensi yang memerlukan perhatian khusus</li>
+</ul>
+
+<h4>Gain Score Analysis</h4>
+<ul>
+  <li>Perbandingan skor Pre-Test vs Post-Test untuk assessment bertipe Pre-Post</li>
+  <li>Mengukur efektivitas pelatihan berdasarkan peningkatan kompetensi peserta</li>
+</ul>
+
+<h4>Item Analysis</h4>
+<ul>
+  <li><strong>Difficulty Index</strong> &mdash; Tingkat kesulitan setiap soal</li>
+  <li><strong>Discrimination Index</strong> &mdash; Kemampuan soal membedakan peserta berkompeten dan tidak</li>
+  <li><strong>Distractors Analysis</strong> &mdash; Efektivitas pilihan jawaban pengecoh</li>
+</ul>
+
+<h4>Export &amp; Filter</h4>
+<ul>
+  <li>Export seluruh data analytics ke <strong>Excel</strong></li>
+  <li>Multi-level filtering: bagian, unit, kategori, sub-kategori</li>
+  <li>Drill-down dari level summary ke detail per pekerja</li>
+</ul>
+
+<!-- 4.5 Budget Training -->
+<h3 id="bab4e">4.5 Budget Training</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>CMP &rarr; Budget Training</strong></p>
+
+<p>Halaman pengelolaan anggaran pelatihan per bagian, unit, dan kategori.</p>
+
+<h4>Summary Cards</h4>
+<ul>
+  <li>Total anggaran yang direncanakan</li>
+  <li>Total realisasi yang sudah terpakai</li>
+  <li>Persentase penyerapan anggaran</li>
+  <li>Filter berdasarkan tahun, bagian, unit, dan kategori pelatihan</li>
+</ul>
+
+<h4>Inline Edit Realisasi</h4>
+<p>Klik langsung pada cell <strong>Realisasi</strong> di tabel untuk mengubah nilai tanpa membuka form terpisah. Perubahan akan otomatis tersimpan.</p>
+
+<h4>Bulk Operations</h4>
+<ul>
+  <li><strong>Bulk Delete</strong> &mdash; Pilih beberapa baris, lalu klik tombol hapus untuk menghapus sekaligus</li>
+  <li><strong>Bulk Update</strong> &mdash; Pilih beberapa baris dan update data secara bersamaan</li>
+</ul>
+
+<h4>Import &amp; Export</h4>
+<ul>
+  <li><strong>Import dari Excel</strong> &mdash; Upload data anggaran pelatihan dari file Excel menggunakan template yang disediakan</li>
+  <li><strong>Export ke Excel</strong> &mdash; Unduh seluruh data anggaran ke format Excel</li>
+</ul>
+
+<h4>Chart Anggaran vs Realisasi</h4>
+<p>Grafik visual perbandingan anggaran yang direncanakan vs realisasi per kategori pelatihan. Membantu mengidentifikasi gap penyerapan anggaran.</p>
+
+<!-- 4.6 Sertifikasi Management -->
+<h3 id="bab4f">4.6 Sertifikasi Management</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>CMP &rarr; Sertifikasi</strong></p>
+
+<p>Halaman pengelolaan sertifikat kompetensi pekerja secara terpusat.</p>
+
+<h4>Fitur Utama</h4>
+<ul>
+  <li><strong>Grouped View</strong> &mdash; Sertifikat ditampilkan dalam grup berdasarkan jenis sertifikasi</li>
+  <li><strong>Filter &amp; Search</strong> &mdash; Cari berdasarkan nama pekerja, jenis sertifikat, bagian, unit, atau status</li>
+  <li><strong>Detail Worker</strong> &mdash; Klik nama pekerja untuk melihat seluruh sertifikat yang dimiliki</li>
+</ul>
+
+<h4>Masa Berlaku &amp; Notifikasi</h4>
+<ul>
+  <li>Setiap sertifikat menampilkan <strong>tanggal berlaku</strong> dan <strong>tanggal kadaluarsa</strong></li>
+  <li>Status: <span class="badge badge-green">Active</span>, <span class="badge badge-orange">Expiring Soon</span> (30 hari), <span class="badge badge-red">Expired</span></li>
+  <li>Sistem mengirim <strong>notifikasi otomatis</strong> 30 hari sebelum sertifikat kadaluarsa</li>
+  <li>Sertifikat expired memerlukan <strong>Renewal Assessment</strong> untuk diperpanjang</li>
 </ul>
 
 
@@ -1283,6 +1374,64 @@ Coach review deliverable + coaching session
     <td>XLSX</td>
   </tr>
 </table>
+
+<!-- 5.6 Coach Workload -->
+<h3 id="bab5f">5.6 Coach Workload</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>CDP &rarr; Coach Workload</strong></p>
+
+<p>Halaman analisis dan monitoring beban kerja coach dalam program Coaching Proton.</p>
+
+<h4>Summary Cards</h4>
+<ul>
+  <li>Total coachees aktif</li>
+  <li>Jumlah coach aktif</li>
+  <li>Status distribusi: <span class="badge badge-green">Balanced</span>, <span class="badge badge-orange">Overloaded</span>, <span class="badge badge-red">Underloaded</span></li>
+</ul>
+
+<h4>Threshold Configuration</h4>
+<p>Admin dapat mengatur <strong>batas minimum dan maksimum</strong> jumlah coachee per coach. Coach yang melebihi batas akan ditandai sebagai overloaded.</p>
+
+<h4>Interactive Chart</h4>
+<p>Grafik distribusi beban kerja per coach dengan <strong>color coding</strong> berdasarkan status threshold. Klik bar chart untuk melihat detail coachee pada coach tersebut.</p>
+
+<h4>Rebalancing Suggestions</h4>
+<p>Sistem memberikan <strong>rekomendasi otomatis</strong> untuk memindahkan coachee dari coach yang overloaded ke coach yang underloaded. Admin dapat meninjau dan mengeksekusi saran tersebut.</p>
+
+<h4>Export Report</h4>
+<p>Unduh laporan workload coach ke format <strong>Excel</strong> untuk analisis lebih lanjut.</p>
+
+<!-- 5.7 Proton History -->
+<h3 id="bab5g">5.7 Proton History</h3>
+<p><span class="role-tag role-all">Semua</span> Diakses via <strong>CDP &rarr; Histori Proton</strong></p>
+
+<p>Riwayat lengkap sesi coaching per worker dalam format timeline.</p>
+
+<h4>Timeline View</h4>
+<ul>
+  <li>Tampilan kronologis seluruh sesi coaching yang telah dilakukan</li>
+  <li>Setiap entry menampilkan tanggal, deliverable, catatan coaching, dan keputusan (approve/reject)</li>
+  <li>Klik entry untuk melihat detail lengkap termasuk evidence yang disubmit</li>
+</ul>
+
+<h4>Export Histori</h4>
+<p>Unduh seluruh riwayat coaching per worker ke format <strong>Excel</strong> untuk dokumentasi dan pelaporan.</p>
+
+<!-- 5.8 Coaching Transcript Export -->
+<h3 id="bab5h">5.8 Coaching Transcript Export</h3>
+<p><span class="role-tag role-coach">Coach</span> <span class="role-tag role-hc">HC</span> <span class="role-tag role-admin">Admin</span></p>
+
+<p>Fitur export transkrip sesi coaching untuk keperluan dokumentasi dan audit.</p>
+
+<h4>Format Export</h4>
+<ul>
+  <li><strong>Export PDF</strong> &mdash; Transkrip coaching dalam format PDF yang siap cetak, termasuk catatan sesi, evidence, dan keputusan</li>
+  <li><strong>Export Excel</strong> &mdash; Data sesi coaching dalam format tabel Excel untuk analisis lebih lanjut</li>
+</ul>
+
+<div class="info">
+  <div class="info-title">Catatan</div>
+  Export transkrip mencakup seluruh sesi coaching pada deliverable yang dipilih, termasuk histori revisi jika deliverable pernah di-reject dan di-submit ulang.
+</div>
 
 
 <!-- ============================================================ -->
@@ -1618,6 +1767,30 @@ Coach review deliverable + coaching session
   <li>Klik <strong>Export Excel</strong> untuk mengunduh log</li>
 </ul>
 
+<!-- 6.10 Maintenance Mode -->
+<h3 id="bab6j">6.10 Maintenance Mode</h3>
+<p><span class="role-tag role-admin">Admin</span> Diakses via <strong>Kelola Data &rarr; Maintenance Mode</strong></p>
+
+<p>Fitur untuk mengaktifkan mode maintenance pada modul tertentu saat diperlukan pemeliharaan sistem.</p>
+
+<h4>Enable/Disable per Modul</h4>
+<ul>
+  <li>Toggle maintenance mode untuk setiap modul secara independen (CMP, CDP, Kelola Data, dll)</li>
+  <li>Modul dalam maintenance akan menampilkan halaman khusus kepada pengguna non-admin</li>
+  <li>Admin tetap dapat mengakses modul meskipun dalam mode maintenance</li>
+</ul>
+
+<h4>Custom Message</h4>
+<p>Atur pesan informatif yang ditampilkan kepada pengguna saat modul dalam maintenance. Contoh: <em>"Modul CMP sedang dalam pemeliharaan untuk update sistem. Silakan coba lagi nanti."</em></p>
+
+<h4>Estimated End Time</h4>
+<p>Tentukan perkiraan waktu selesai maintenance agar pengguna mengetahui kapan modul akan kembali tersedia.</p>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Aktifkan maintenance mode hanya saat benar-benar diperlukan. Pastikan untuk menonaktifkan kembali setelah pemeliharaan selesai.
+</div>
+
 
 <!-- ============================================================ -->
 <!-- BAB 7: PROTON DATA -->
@@ -1917,7 +2090,7 @@ Coach review deliverable + coaching session
 <!-- FOOTER -->
 <!-- ============================================================ -->
 <div class="footer">
-  <p><strong>Panduan Penggunaan Website HC Portal KPB</strong> &mdash; Versi 1.0 &bull; Maret 2026</p>
+  <p><strong>Panduan Penggunaan Website HC Portal KPB</strong> &mdash; Versi 1.1 &bull; April 2026</p>
   <p>Human Capital &mdash; Kilang Pertamina Balikpapan</p>
 </div>
 
