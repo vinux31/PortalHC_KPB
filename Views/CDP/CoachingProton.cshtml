@@ -68,14 +68,14 @@
 
 <div class="container-fluid py-4">
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-3">
+    <nav aria-label="breadcrumb" class="mb-2">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-action="Index" asp-controller="CDP">CDP</a></li>
             <li class="breadcrumb-item active">Coaching Proton</li>
         </ol>
     </nav>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
             <h2><i class="bi bi-graph-up me-2"></i>Coaching Proton</h2>
             <p class="text-muted mb-0">Monitor deliverable progress and approval status</p>
@@ -86,8 +86,11 @@
     </div>
 
     @* Filter bar — GET form, auto-submits on dropdown change *@
+    <div class="card shadow-sm mb-3" style="border:1px solid #e0e0e0;">
+    <div class="card-body py-2 px-3">
+    <small class="text-muted fw-semibold text-uppercase d-block mb-2" style="font-size:0.7rem;letter-spacing:0.5px;">Filter</small>
     <form method="get" asp-action="CoachingProton" asp-controller="CDP" id="filterForm"
-          class="d-flex flex-wrap gap-2 align-items-center mb-3">
+          class="d-flex flex-wrap gap-2 align-items-center">
 
         @* Bagian dropdown — HC/Admin (Level 1-2) and Direktur/VP/Manager (Level 3) *@
         @if (userLevel <= 3)
@@ -214,6 +217,27 @@
         </button>
     </form>
 
+    @* Phase 238: 3 export baru — HC/Admin only (moved into filter card) *@
+    @if (User.IsInRole("HC") || User.IsInRole("Admin"))
+    {
+        <hr class="my-2">
+        <span class="text-muted small me-2">Laporan:</span>
+        <a href="@Url.Action("ExportBottleneckReport", "CDP")"
+           class="btn btn-sm btn-outline-warning me-1">
+            <i class="bi bi-file-earmark-excel me-1"></i>Bottleneck Report
+        </a>
+        <a href="@Url.Action("ExportCoachingTracking", "CDP")"
+           class="btn btn-sm btn-outline-warning me-1">
+            <i class="bi bi-file-earmark-excel me-1"></i>Coaching Tracking
+        </a>
+        <a href="@Url.Action("ExportWorkloadSummary", "CDP")"
+           class="btn btn-sm btn-outline-warning">
+            <i class="bi bi-file-earmark-excel me-1"></i>Workload Summary
+        </a>
+    }
+    </div>
+    </div>
+
     @* Loading spinner overlay — shown on filter/page navigation, hidden on DOMContentLoaded *@
     <div id="loadingSpinner" class="d-none"
          style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:none;">
@@ -237,9 +261,9 @@
     @* Summary stat cards *@
     <div class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-primary) !important;">
                 <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">Progress</h6>
+                    <h6 class="text-muted mb-1"><i class="bi bi-graph-up me-1"></i>Progress</h6>
                     <h3 class="mb-0 text-primary">@progressPercent%</h3>
                     <div class="progress mt-2" style="height: 6px;">
                         <div class="progress-bar" role="progressbar" style="width: @progressPercent%"></div>
@@ -248,17 +272,17 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-warning) !important;">
                 <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">Pending Actions</h6>
+                    <h6 class="text-muted mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Pending Actions</h6>
                     <h3 class="mb-0 text-warning">@pendingActions</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-info) !important;">
                 <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">Pending Approvals</h6>
+                    <h6 class="text-muted mb-1"><i class="bi bi-hourglass-split me-1"></i>Pending Approvals</h6>
                     <h3 class="mb-0 text-info">@pendingApprovals</h3>
                 </div>
             </div>
@@ -304,26 +328,6 @@
             <a href="@Url.Action("ExportProgressPdf", "CDP", new { coacheeId = selectedCoacheeId })"
                class="btn btn-sm btn-outline-success">
                 <i class="bi bi-file-earmark-pdf"></i> Export PDF
-            </a>
-        </div>
-    }
-
-    @* Phase 238: 3 export baru — HC/Admin only *@
-    @if (User.IsInRole("HC") || User.IsInRole("Admin"))
-    {
-        <div class="mb-3">
-            <span class="text-muted small me-2">Laporan:</span>
-            <a href="@Url.Action("ExportBottleneckReport", "CDP")"
-               class="btn btn-sm btn-outline-warning me-1">
-                <i class="bi bi-file-earmark-excel me-1"></i>Bottleneck Report
-            </a>
-            <a href="@Url.Action("ExportCoachingTracking", "CDP")"
-               class="btn btn-sm btn-outline-warning me-1">
-                <i class="bi bi-file-earmark-excel me-1"></i>Coaching Tracking
-            </a>
-            <a href="@Url.Action("ExportWorkloadSummary", "CDP")"
-               class="btn btn-sm btn-outline-warning">
-                <i class="bi bi-file-earmark-excel me-1"></i>Workload Summary
             </a>
         </div>
     }
@@ -411,7 +415,7 @@
         }
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="progressTable">
-                <thead class="table-light">
+                <thead style="background-color: #e8f0fe; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
                     <tr>
                         @if (isHC)
                         {
@@ -500,7 +504,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-secondary">Belum Upload</span>
+                                                    <span class="badge bg-light text-dark border">Belum Upload</span>
                                                 }
                                             </td>
                                             @* SrSpv approval column *@
@@ -636,7 +640,7 @@
                                             }
                                             else
                                             {
-                                                <span class="badge bg-secondary">Belum Upload</span>
+                                                <span class="badge bg-light text-dark border">Belum Upload</span>
                                             }
                                         </td>
                                         @* SrSpv approval column *@
@@ -850,7 +854,7 @@
                     {
                         <div class="table-responsive">
                             <table class="table table-sm table-hover mb-0">
-                                <thead class="table-light">
+                                <thead style="background-color: #e8f0fe; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
                                     <tr>
                                         <th>Coachee</th>
                                         <th>Kompetensi</th>
@@ -1560,7 +1564,7 @@ if (btnSubmitEvidence) {
                     if (evidenceCell) {
                         evidenceCell.innerHTML = data.hasEvidence
                             ? '<span class="badge bg-success fw-bold border border-success">Sudah Upload</span>'
-                            : '<span class="badge bg-secondary">Belum Upload</span>';
+                            : '<span class="badge bg-light text-dark border">Belum Upload</span>';
                     }
                     // Update Status in SrSpv / SH cells — reset to Pending badge
                     const srspvCell = document.getElementById(`srspv-${id}`);
