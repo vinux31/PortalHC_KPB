@@ -601,6 +601,7 @@
                         <div class="card-body">
                             <p class="mb-1"><strong>Kategori:</strong> <span id="summary-category"></span></p>
                             <p class="mb-0"><strong>Judul:</strong> <span id="summary-title"></span></p>
+                            <p class="mb-0"><strong>Tipe:</strong> <span id="summary-type"></span></p>
                         </div>
                     </div>
 
@@ -629,15 +630,54 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">Jadwal</dt><dd class="col-sm-8" id="summary-schedule"></dd>
-                                <dt class="col-sm-4">Durasi</dt><dd class="col-sm-8" id="summary-duration"></dd>
-                                <dt class="col-sm-4">Status</dt><dd class="col-sm-8" id="summary-status"></dd>
-                                <dt class="col-sm-4">Token</dt><dd class="col-sm-8" id="summary-token"></dd>
-                                <dt class="col-sm-4">Pass Percentage</dt><dd class="col-sm-8" id="summary-pass"></dd>
-                                <dt class="col-sm-4">Tutup Ujian</dt><dd class="col-sm-8" id="summary-ewcd"></dd>
-                                <dt class="col-sm-4">Valid Until</dt><dd class="col-sm-8" id="summary-validuntil"></dd>
-                            </dl>
+                            <!-- Standard mode summary -->
+                            <div id="summary-standard-settings">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Jadwal</dt><dd class="col-sm-8" id="summary-schedule"></dd>
+                                    <dt class="col-sm-4">Durasi</dt><dd class="col-sm-8" id="summary-duration"></dd>
+                                    <dt class="col-sm-4">Status</dt><dd class="col-sm-8" id="summary-status"></dd>
+                                    <dt class="col-sm-4">Tutup Ujian</dt><dd class="col-sm-8" id="summary-ewcd"></dd>
+                                    <dt class="col-sm-4">Token</dt><dd class="col-sm-8" id="summary-token"></dd>
+                                    <dt class="col-sm-4">Pass Percentage</dt><dd class="col-sm-8" id="summary-pass"></dd>
+                                    <dt class="col-sm-4">Valid Until</dt><dd class="col-sm-8" id="summary-validuntil"></dd>
+                                </dl>
+                            </div>
+                            <!-- Pre-Post mode summary -->
+                            <div id="summary-ppt-settings" class="d-none">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="card border-primary">
+                                            <div class="card-header bg-primary bg-opacity-10 py-2">
+                                                <strong><i class="bi bi-clock me-1"></i>Pre-Test</strong>
+                                            </div>
+                                            <div class="card-body py-2">
+                                                <small><strong>Jadwal:</strong> <span id="summary-pre-schedule"></span></small><br/>
+                                                <small><strong>Durasi:</strong> <span id="summary-pre-duration"></span></small><br/>
+                                                <small><strong>Batas Waktu:</strong> <span id="summary-pre-ewcd"></span></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-header bg-success bg-opacity-10 py-2">
+                                                <strong><i class="bi bi-clock-history me-1"></i>Post-Test</strong>
+                                            </div>
+                                            <div class="card-body py-2">
+                                                <small><strong>Jadwal:</strong> <span id="summary-post-schedule"></span></small><br/>
+                                                <small><strong>Durasi:</strong> <span id="summary-post-duration"></span></small><br/>
+                                                <small><strong>Batas Waktu:</strong> <span id="summary-post-ewcd"></span></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Status</dt><dd class="col-sm-8">Upcoming</dd>
+                                    <dt class="col-sm-4">Token</dt><dd class="col-sm-8" id="summary-ppt-token"></dd>
+                                    <dt class="col-sm-4">Pass Percentage</dt><dd class="col-sm-8" id="summary-ppt-pass"></dd>
+                                    <dt class="col-sm-4">Paket Soal Sama</dt><dd class="col-sm-8" id="summary-ppt-samepackage"></dd>
+                                    <dt class="col-sm-4">Valid Until</dt><dd class="col-sm-8" id="summary-ppt-validuntil"></dd>
+                                </dl>
+                            </div>
                         </div>
                     </div>
 
@@ -1042,15 +1082,26 @@ function generateToken() {
             if (extraEl) extraEl.classList.add('d-none');
         }
 
-        // Settings
+        // Tipe badge
         var typeSelect = document.getElementById('assessmentTypeInput');
         var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
+        var summType = document.getElementById('summary-type');
+        if (summType) {
+            if (isPrePost) {
+                summType.innerHTML = '<span class="badge bg-info">Pre-Post Test</span>';
+            } else {
+                summType.innerHTML = '<span class="badge bg-secondary">Standard</span>';
+            }
+        }
 
-        var summSchedule = document.getElementById('summary-schedule');
-        var summDur = document.getElementById('summary-duration');
-        var summEwcd = document.getElementById('summary-ewcd');
+        // Settings
+        var stdSettings = document.getElementById('summary-standard-settings');
+        var pptSettings = document.getElementById('summary-ppt-settings');
 
         if (isPrePost) {
+            if (stdSettings) stdSettings.classList.add('d-none');
+            if (pptSettings) pptSettings.classList.remove('d-none');
+
             var preSched = document.getElementById('preSchedule');
             var postSched = document.getElementById('postSchedule');
             var preDur = document.getElementById('preDurationMinutes');
@@ -1058,55 +1109,73 @@ function generateToken() {
             var preEwcd = document.getElementById('preExamWindowCloseDate');
             var postEwcd = document.getElementById('postExamWindowCloseDate');
 
-            if (summSchedule) summSchedule.textContent =
-                'Pre: ' + (preSched && preSched.value ? preSched.value.replace('T', ' ') : '-') +
-                ' | Post: ' + (postSched && postSched.value ? postSched.value.replace('T', ' ') : '-');
-            if (summDur) summDur.textContent =
-                'Pre: ' + (preDur && preDur.value ? preDur.value + ' menit' : '-') +
-                ' | Post: ' + (postDur && postDur.value ? postDur.value + ' menit' : '-');
-            if (summEwcd) summEwcd.textContent =
-                'Pre: ' + (preEwcd && preEwcd.value ? preEwcd.value.replace('T', ' ') : '-') +
-                ' | Post: ' + (postEwcd && postEwcd.value ? postEwcd.value.replace('T', ' ') : '-');
+            var el;
+            el = document.getElementById('summary-pre-schedule');
+            if (el) el.textContent = preSched && preSched.value ? preSched.value.replace('T', ' ') : '-';
+            el = document.getElementById('summary-pre-duration');
+            if (el) el.textContent = preDur && preDur.value ? preDur.value + ' menit' : '-';
+            el = document.getElementById('summary-pre-ewcd');
+            if (el) el.textContent = preEwcd && preEwcd.value ? preEwcd.value.replace('T', ' ') : '-';
+            el = document.getElementById('summary-post-schedule');
+            if (el) el.textContent = postSched && postSched.value ? postSched.value.replace('T', ' ') : '-';
+            el = document.getElementById('summary-post-duration');
+            if (el) el.textContent = postDur && postDur.value ? postDur.value + ' menit' : '-';
+            el = document.getElementById('summary-post-ewcd');
+            if (el) el.textContent = postEwcd && postEwcd.value ? postEwcd.value.replace('T', ' ') : '-';
+
+            var tokenEl = document.getElementById('IsTokenRequired');
+            var accessTokenEl = document.getElementById('AccessToken');
+            el = document.getElementById('summary-ppt-token');
+            if (el) el.textContent = (tokenEl && tokenEl.checked) ? 'Ya — ' + (accessTokenEl ? accessTokenEl.value : '') : 'Tidak';
+
+            var passEl = document.getElementById('PassPercentage');
+            el = document.getElementById('summary-ppt-pass');
+            if (el) el.textContent = (passEl && passEl.value) ? passEl.value + '%' : '-';
+
+            var samePackageEl = document.getElementById('samePackageCheck');
+            el = document.getElementById('summary-ppt-samepackage');
+            if (el) el.textContent = (samePackageEl && samePackageEl.checked) ? 'Ya' : 'Tidak';
+
+            var validUntilEl = document.getElementById('ValidUntil');
+            el = document.getElementById('summary-ppt-validuntil');
+            if (el) el.textContent = (validUntilEl && validUntilEl.value) ? validUntilEl.value : 'Tidak ada';
         } else {
+            if (stdSettings) stdSettings.classList.remove('d-none');
+            if (pptSettings) pptSettings.classList.add('d-none');
+
+            // Standard mode — existing logic
             var schedDate = document.getElementById('schedDateInput');
             var schedTime = document.getElementById('schedTimeInput');
+            var summSchedule = document.getElementById('summary-schedule');
             var schedVal = (schedDate && schedDate.value) ? schedDate.value : '';
             var timeVal = (schedTime && schedTime.value) ? schedTime.value : '08:00';
             if (summSchedule) summSchedule.textContent = schedVal ? (schedVal + ' ' + timeVal + ' WIB') : '-';
 
             var durEl = document.getElementById('DurationMinutes');
+            var summDur = document.getElementById('summary-duration');
             if (summDur) summDur.textContent = (durEl && durEl.value) ? (durEl.value + ' menit') : '-';
+
+            var statusEl = document.getElementById('Status');
+            var summStatus = document.getElementById('summary-status');
+            if (summStatus) summStatus.textContent = statusEl ? statusEl.value : '-';
 
             var ewcdDateEl = document.getElementById('ewcdDateInput');
             var ewcdTimeEl = document.getElementById('ewcdTimeInput');
-            if (summEwcd) {
-                summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
-            }
-        }
+            var summEwcd = document.getElementById('summary-ewcd');
+            if (summEwcd) summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
 
-        var statusEl = document.getElementById('Status');
-        var summStatus = document.getElementById('summary-status');
-        if (summStatus) summStatus.textContent = statusEl ? statusEl.value : '-';
+            var tokenEl = document.getElementById('IsTokenRequired');
+            var accessTokenEl = document.getElementById('AccessToken');
+            var summToken = document.getElementById('summary-token');
+            if (summToken) summToken.textContent = (tokenEl && tokenEl.checked) ? 'Ya — ' + (accessTokenEl ? accessTokenEl.value : '') : 'Tidak';
 
-        var tokenEl = document.getElementById('IsTokenRequired');
-        var accessTokenEl = document.getElementById('AccessToken');
-        var summToken = document.getElementById('summary-token');
-        if (summToken) {
-            if (tokenEl && tokenEl.checked) {
-                summToken.textContent = 'Ya — ' + (accessTokenEl ? accessTokenEl.value : '');
-            } else {
-                summToken.textContent = 'Tidak';
-            }
-        }
+            var passEl = document.getElementById('PassPercentage');
+            var summPass = document.getElementById('summary-pass');
+            if (summPass) summPass.textContent = (passEl && passEl.value) ? (passEl.value + '%') : '-';
 
-        var passEl = document.getElementById('PassPercentage');
-        var summPass = document.getElementById('summary-pass');
-        if (summPass) summPass.textContent = (passEl && passEl.value) ? (passEl.value + '%') : '-';
-
-        var validUntilEl = document.getElementById('ValidUntil');
-        var summValidUntil = document.getElementById('summary-validuntil');
-        if (summValidUntil) {
-            summValidUntil.textContent = (validUntilEl && validUntilEl.value) ? validUntilEl.value : 'Tidak ada';
+            var validUntilEl = document.getElementById('ValidUntil');
+            var summValidUntil = document.getElementById('summary-validuntil');
+            if (summValidUntil) summValidUntil.textContent = (validUntilEl && validUntilEl.value) ? validUntilEl.value : 'Tidak ada';
         }
     }
 
