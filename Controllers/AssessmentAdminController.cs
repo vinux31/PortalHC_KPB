@@ -1123,8 +1123,40 @@ namespace HcPortal.Controllers
                         await _context.SaveChangesAsync();
                         await pptTransaction.CommitAsync();
 
-                        TempData["Success"] = $"Assessment Pre-Post Test '{model.Title}' berhasil dibuat untuk {UserIds.Count} peserta ({preSessions.Count + postSessions.Count} sesi).";
-                        return RedirectToAction("ManageAssessment");
+                        TempData["SuccessMessage"] = $"Assessment Pre-Post Test '{model.Title}' berhasil dibuat untuk {UserIds.Count} peserta ({preSessions.Count + postSessions.Count} sesi).";
+
+                        var pptCreatedSessions = new List<object>();
+                        for (int i = 0; i < preSessions.Count; i++)
+                        {
+                            var assignedUser = userDictionary[UserIds[i]];
+                            pptCreatedSessions.Add(new
+                            {
+                                PreId = preSessions[i].Id,
+                                PostId = postSessions[i].Id,
+                                UserId = UserIds[i],
+                                UserName = assignedUser.FullName ?? UserIds[i],
+                                UserEmail = assignedUser.Email ?? ""
+                            });
+                        }
+
+                        TempData["CreatedAssessment"] = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            Count = UserIds.Count,
+                            Title = model.Title,
+                            Category = model.Category,
+                            IsPrePostTest = true,
+                            PreSchedule = PreSchedule!.Value.ToString("dd MMMM yyyy HH:mm"),
+                            PostSchedule = PostSchedule!.Value.ToString("dd MMMM yyyy HH:mm"),
+                            PreDurationMinutes = PreDurationMinutes!.Value,
+                            PostDurationMinutes = PostDurationMinutes!.Value,
+                            Status = "Upcoming",
+                            IsTokenRequired = model.IsTokenRequired,
+                            AccessToken = model.AccessToken,
+                            SamePackage = SamePackage,
+                            Sessions = pptCreatedSessions
+                        });
+
+                        return RedirectToAction("CreateAssessment");
                     }
                     catch (Exception ex)
                     {
@@ -1313,6 +1345,7 @@ namespace HcPortal.Controllers
                 Count = createdSessions.Count,
                 Title = model.Title,
                 Category = model.Category,
+                IsPrePostTest = false,
                 Schedule = model.Schedule.ToString("dd MMMM yyyy"),
                 DurationMinutes = model.DurationMinutes,
                 Status = model.Status,
