@@ -26,7 +26,24 @@
         <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     }
 
-    @if (ViewBag.IsPostSession == true)
+    @if (ViewBag.IsSamePackageLocked == true)
+    {
+        <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+            <i class="bi bi-lock-fill me-2 fs-5"></i>
+            <div>
+                <strong>Paket soal disinkronkan dari Pre-Test.</strong>
+                Perubahan soal hanya bisa dilakukan di sesi Pre-Test. Paket di halaman ini otomatis terupdate.
+                @if (ViewBag.PreSessionId != null)
+                {
+                    <a asp-action="ManagePackages" asp-route-assessmentId="@ViewBag.PreSessionId" class="alert-link ms-2">
+                        <i class="bi bi-arrow-right me-1"></i>Buka Pre-Test
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    @if (ViewBag.IsPostSession == true && ViewBag.IsSamePackageLocked != true)
     {
         <div class="mb-3">
             <div id="copyPreConfirm" class="d-none">
@@ -150,28 +167,31 @@
 
     <div class="row">
         <!-- Create Package Form -->
-        <div class="col-md-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">Add New Package</h6>
-                </div>
-                <div class="card-body">
-                    <form asp-action="CreatePackage" method="post">
-                        <input type="hidden" name="assessmentId" value="@assessmentId" />
-                        <div class="mb-3">
-                            <label class="form-label">Package Name</label>
-                            <input type="text" name="packageName" class="form-control" placeholder="e.g., Paket A" required />
-                            <div class="form-text">Use "Paket A", "Paket B", "Paket C"</div>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-2"></i>Create Package
-                            </button>
-                        </div>
-                    </form>
+        @if (ViewBag.IsSamePackageLocked != true)
+        {
+            <div class="col-md-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Add New Package</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="CreatePackage" method="post">
+                            <input type="hidden" name="assessmentId" value="@assessmentId" />
+                            <div class="mb-3">
+                                <label class="form-label">Package Name</label>
+                                <input type="text" name="packageName" class="form-control" placeholder="e.g., Paket A" required />
+                                <div class="form-text">Use "Paket A", "Paket B", "Paket C"</div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Create Package
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
+        }
 
         <!-- Package List -->
         <div class="col-md-8">
@@ -214,15 +234,18 @@
                                             @{
                                                 var aCount = assignmentCounts.ContainsKey(pkg.Id) ? assignmentCounts[pkg.Id] : 0;
                                             }
-                                            <form asp-action="DeletePackage" method="post"
-                                                  data-pkg-name="@pkg.PackageName"
-                                                  data-assign-count="@aCount"
-                                                  onsubmit="return confirmDeletePackage(this);">
-                                                <input type="hidden" name="packageId" value="@pkg.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
+                                            @if (ViewBag.IsSamePackageLocked != true)
+                                            {
+                                                <form asp-action="DeletePackage" method="post"
+                                                      data-pkg-name="@pkg.PackageName"
+                                                      data-assign-count="@aCount"
+                                                      onsubmit="return confirmDeletePackage(this);">
+                                                    <input type="hidden" name="packageId" value="@pkg.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            }
                                         </div>
                                     </div>
                                 </div>
