@@ -147,6 +147,28 @@ namespace HcPortal.Models
     }
 
     // ============================================================
+    // Summary aggregates untuk Analytics Dashboard cards
+    // ============================================================
+    public class AnalyticsSummaryResult
+    {
+        public int TotalSessions { get; set; }
+        public double PassRate { get; set; }
+        public int ExpiringCount { get; set; }
+        public double AvgGainScore { get; set; }
+    }
+
+    // ============================================================
+    // Drill-down detail per Bagian + Kategori
+    // ============================================================
+    public class DrillDownItem
+    {
+        public string NamaPekerja { get; set; } = "";
+        public double Skor { get; set; }
+        public DateTime TanggalAssessment { get; set; }
+        public string Status { get; set; } = "";
+    }
+
+    // ============================================================
     // Gain Score Trend per bulan (D-11, D-12, RPT-06)
     // ============================================================
     public class GainScoreTrendItem

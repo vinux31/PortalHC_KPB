@@ -1,5 +1,6 @@
 // Organization Tree — JS utilities
 // Phase 292: AJAX utility | Phase 293: tree rendering | Phase 294: AJAX CRUD + kebab dropdown
+// v2: Portal-consistent redesign with color-coded icons, dashed connectors, stats bar
 
 let _flatUnits = [];
 let _expandedIds = new Set();
@@ -73,20 +74,65 @@ function setDefaultExpandState() {
     });
 }
 
+// Stats bar
+
+function renderStats(flatList) {
+    const bar = document.getElementById('org-stats-bar');
+    if (!bar) return;
+    const roots = flatList.filter(u => u.parentId === null).length;
+    const total = flatList.length;
+    const active = flatList.filter(u => u.isActive).length;
+    bar.innerHTML = `
+        <div class="org-stat">
+            <div class="org-stat-icon blue"><i class="bi bi-building"></i></div>
+            <div>
+                <div class="org-stat-value">${roots}</div>
+                <div class="org-stat-label">Bagian</div>
+            </div>
+        </div>
+        <div class="org-stat">
+            <div class="org-stat-icon purple"><i class="bi bi-diagram-3"></i></div>
+            <div>
+                <div class="org-stat-value">${total}</div>
+                <div class="org-stat-label">Total Unit</div>
+            </div>
+        </div>
+        <div class="org-stat">
+            <div class="org-stat-icon green"><i class="bi bi-check-circle"></i></div>
+            <div>
+                <div class="org-stat-value">${active}</div>
+                <div class="org-stat-label">Aktif</div>
+            </div>
+        </div>`;
+}
+
 // Tree rendering
+
+function countChildren(node) {
+    if (!node.children) return 0;
+    let count = node.children.length;
+    node.children.forEach(c => { count += countChildren(c); });
+    return count;
+}
 
 function renderNode(node, level) {
     const hasChildren = node.children && node.children.length > 0;
     const dimmed = !node.isActive ? 'style="opacity:0.5"' : '';
 
-    const icon = level === 0 ? 'bi-building' : level === 1 ? 'bi-diagram-3' : 'bi-dot';
+    const iconClass = level === 0 ? 'bi-building' : level === 1 ? 'bi-diagram-3' : 'bi-gear';
+    const levelClass = level <= 2 ? `level-${level}` : 'level-2';
+
     const badge = node.isActive
-        ? '<span class="badge rounded-pill bg-success badge-status">Aktif</span>'
-        : '<span class="badge rounded-pill bg-danger badge-status">Nonaktif</span>';
+        ? '<span class="badge rounded-pill bg-success" style="font-size:0.72rem;">Aktif</span>'
+        : '<span class="badge rounded-pill bg-danger" style="font-size:0.72rem;">Nonaktif</span>';
 
     const chevron = hasChildren
-        ? `<i class="bi bi-chevron-right tree-chevron${_expandedIds.has(node.id) ? ' expanded' : ''}"></i>`
+        ? `<div class="tree-chevron${_expandedIds.has(node.id) ? ' expanded' : ''}"><i class="bi bi-chevron-right"></i></div>`
         : '<span class="tree-chevron-placeholder"></span>';
+
+    const childCount = hasChildren
+        ? `<span class="org-child-count">${node.children.length} unit</span>`
+        : '';
 
     const toggleLabel = node.isActive ? 'Nonaktifkan' : 'Aktifkan';
     const toggleIcon = node.isActive ? 'bi-toggle-off' : 'bi-toggle-on';
@@ -118,10 +164,12 @@ function renderNode(node, level) {
     return `
         <li class="tree-node" data-expanded="${isExpanded}" data-id="${node.id}">
             <div class="tree-row d-flex align-items-center gap-2" ${dimmed}>
+                <div class="org-row-glow"></div>
                 <i class="bi bi-grip-vertical drag-handle"></i>
                 ${chevron}
-                <i class="bi ${icon}"></i>
+                <div class="org-node-icon ${levelClass}"><i class="bi ${iconClass}"></i></div>
                 <span class="tree-label">${escapeHtml(node.name)}</span>
+                ${childCount}
                 ${badge}
                 ${dropdown}
             </div>
@@ -134,7 +182,9 @@ function updateExpandAllButton() {
     if (!btn) return;
     const nodes = document.querySelectorAll('.tree-node');
     const hasCollapsed = Array.from(nodes).some(n => n.dataset.expanded === 'false' && n.querySelector('.tree-children'));
-    btn.textContent = hasCollapsed ? 'Expand All' : 'Collapse All';
+    btn.innerHTML = hasCollapsed
+        ? '<i class="bi bi-arrows-expand me-1"></i>Expand All'
+        : '<i class="bi bi-arrows-collapse me-1"></i>Collapse All';
 }
 
 // Init / refresh tree
@@ -156,6 +206,7 @@ async function initTree() {
         const flat = await ajaxGet('/Admin/GetOrganizationTree');
         _flatUnits = flat;
         if (!isRefresh) setDefaultExpandState();
+        renderStats(flat);
         const roots = buildTree(flat);
         if (roots.length === 0) {
             container.innerHTML = `
@@ -359,10 +410,34 @@ document.addEventListener('DOMContentLoaded', function () {
         const node = row.closest('.tree-node');
         const children = node.querySelector('.tree-children');
         if (!children) return;
+
         const isExpanded = node.dataset.expanded === 'true';
-        children.style.display = isExpanded ? 'none' : '';
+        const chevron = row.querySelector('.tree-chevron');
+
+        if (isExpanded) {
+            children.style.maxHeight = children.scrollHeight + 'px';
+            requestAnimationFrame(function () {
+                children.style.maxHeight = '0';
+                children.style.opacity = '0';
+            });
+            setTimeout(function () {
+                children.style.display = 'none';
+                children.style.maxHeight = '';
+                children.style.opacity = '';
+            }, 300);
+        } else {
+            children.style.display = '';
+            children.style.maxHeight = '0';
+            children.style.opacity = '0';
+            requestAnimationFrame(function () {
+                children.style.maxHeight = children.scrollHeight + 'px';
+                children.style.opacity = '1';
+            });
+            setTimeout(function () { children.style.maxHeight = ''; }, 300);
+        }
+
         node.dataset.expanded = isExpanded ? 'false' : 'true';
-        row.querySelector('.tree-chevron')?.classList.toggle('expanded', !isExpanded);
+        if (chevron) chevron.classList.toggle('expanded', !isExpanded);
         updateExpandAllButton();
     });
 
@@ -376,11 +451,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 const children = node.querySelector('.tree-children');
                 if (!children) return;
                 const expand = hasCollapsed;
-                children.style.display = expand ? '' : 'none';
+                if (expand) {
+                    children.style.display = '';
+                    children.style.maxHeight = '';
+                    children.style.opacity = '';
+                } else {
+                    children.style.display = 'none';
+                }
                 node.dataset.expanded = expand ? 'true' : 'false';
-                node.querySelector('.tree-row .tree-chevron')?.classList.toggle('expanded', expand);
+                var chevron = node.querySelector('.tree-row .tree-chevron');
+                if (chevron) chevron.classList.toggle('expanded', expand);
             });
-            this.textContent = hasCollapsed ? 'Collapse All' : 'Expand All';
+            updateExpandAllButton();
         });
     }
 });

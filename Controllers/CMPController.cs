@@ -2619,6 +2619,484 @@ namespace HcPortal.Controllers
         }
 
         // ============================================================
+        // Analytics Dashboard v2 — Summary, FailRate, Trend, ET Breakdown, Expiring, DrillDown, Export
+        // ============================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetAnalyticsSummary(
+            string? bagian, string? unit, string? kategori, string? subKategori,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var baseQuery = _context.AssessmentSessions
+                .AsNoTracking()
+                .Where(s => s.IsPassed.HasValue
+                    && s.CompletedAt.HasValue
+                    && s.CompletedAt >= periodeStart
+                    && s.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                baseQuery = baseQuery.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                baseQuery = baseQuery.Where(s => s.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                baseQuery = baseQuery.Where(s => s.Category == kategori);
+
+            var totalSessions = await baseQuery.CountAsync();
+            var passedCount = await baseQuery.CountAsync(s => s.IsPassed == true);
+            var passRate = totalSessions > 0 ? Math.Round((double)passedCount / totalSessions * 100, 1) : 0;
+
+            // Expiring certificates count (30 days)
+            var thirtyDays = today.AddDays(30);
+            var expiringTraining = _context.TrainingRecords.AsNoTracking()
+                .Where(t => t.Status == "Valid" && t.ValidUntil.HasValue && t.ValidUntil >= today && t.ValidUntil <= thirtyDays);
+            var expiringSession = _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.IsPassed == true && s.GenerateCertificate && s.ValidUntil.HasValue && s.ValidUntil >= today && s.ValidUntil <= thirtyDays);
+
+            if (!string.IsNullOrEmpty(bagian))
+            {
+                expiringTraining = expiringTraining.Where(t => t.User!.Section == bagian);
+                expiringSession = expiringSession.Where(s => s.User!.Section == bagian);
+            }
+            if (!string.IsNullOrEmpty(unit))
+            {
+                expiringTraining = expiringTraining.Where(t => t.User!.Unit == unit);
+                expiringSession = expiringSession.Where(s => s.User!.Unit == unit);
+            }
+
+            var expiringCount = await expiringTraining.CountAsync() + await expiringSession.CountAsync();
+
+            // Avg gain score
+            var postSessions = await _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.AssessmentType == "PostTest" && s.Status == "Completed"
+                    && s.Score.HasValue && s.LinkedSessionId.HasValue
+                    && s.CompletedAt.HasValue && s.CompletedAt >= periodeStart && s.CompletedAt <= periodeEnd)
+                .Select(s => new { s.UserId, PostScore = s.Score!.Value, s.LinkedSessionId })
+                .ToListAsync();
+
+            if (!string.IsNullOrEmpty(bagian))
+            {
+                var userIds = await _context.Users.AsNoTracking().Where(u => u.Section == bagian).Select(u => u.Id).ToListAsync();
+                postSessions = postSessions.Where(p => userIds.Contains(p.UserId)).ToList();
+            }
+
+            double avgGainScore = 0;
+            if (postSessions.Any())
+            {
+                var preIds = postSessions.Select(p => p.LinkedSessionId!.Value).Distinct().ToList();
+                var preScores = await _context.AssessmentSessions.AsNoTracking()
+                    .Where(s => preIds.Contains(s.Id) && s.Score.HasValue)
+                    .ToDictionaryAsync(s => s.Id, s => s.Score!.Value);
+
+                var gains = postSessions
+                    .Where(p => preScores.ContainsKey(p.LinkedSessionId!.Value))
+                    .Select(p => {
+                        double pre = preScores[p.LinkedSessionId!.Value];
+                        double post = p.PostScore;
+                        return pre >= 100 ? 100 : (100 - pre) == 0 ? 0 : (post - pre) / (100 - pre) * 100;
+                    }).ToList();
+
+                avgGainScore = gains.Any() ? Math.Round(gains.Average(), 1) : 0;
+            }
+
+            return Json(new { totalSessions, passRate, expiringCount, avgGainScore });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetFailRateData(
+            string? bagian, string? unit, string? kategori, string? subKategori,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var baseQuery = _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.IsPassed.HasValue && s.CompletedAt.HasValue
+                    && s.CompletedAt >= periodeStart && s.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                baseQuery = baseQuery.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                baseQuery = baseQuery.Where(s => s.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                baseQuery = baseQuery.Where(s => s.Category == kategori);
+
+            var failRate = await baseQuery
+                .GroupBy(s => new { Section = s.User!.Section ?? "Tidak Diketahui", s.Category })
+                .Select(g => new FailRateItem
+                {
+                    Section = g.Key.Section,
+                    Category = g.Key.Category,
+                    Total = g.Count(),
+                    Failed = g.Count(s => s.IsPassed == false)
+                })
+                .ToListAsync();
+
+            return Json(failRate);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetTrendData(
+            string? bagian, string? unit, string? kategori, string? subKategori,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var baseQuery = _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.IsPassed.HasValue && s.CompletedAt.HasValue
+                    && s.CompletedAt >= periodeStart && s.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                baseQuery = baseQuery.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                baseQuery = baseQuery.Where(s => s.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                baseQuery = baseQuery.Where(s => s.Category == kategori);
+
+            var trend = await baseQuery
+                .GroupBy(s => new { s.CompletedAt!.Value.Year, s.CompletedAt!.Value.Month })
+                .Select(g => new TrendItem
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Passed = g.Count(s => s.IsPassed == true),
+                    Failed = g.Count(s => s.IsPassed == false)
+                })
+                .OrderBy(t => t.Year).ThenBy(t => t.Month)
+                .ToListAsync();
+
+            // Gain score trend
+            var postSessions = await _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.AssessmentType == "PostTest" && s.Status == "Completed"
+                    && s.Score.HasValue && s.LinkedSessionId.HasValue
+                    && s.CompletedAt.HasValue && s.CompletedAt >= periodeStart && s.CompletedAt <= periodeEnd)
+                .Select(s => new { s.UserId, PostScore = s.Score!.Value, s.LinkedSessionId, PostCompleted = s.CompletedAt!.Value })
+                .ToListAsync();
+
+            if (!string.IsNullOrEmpty(bagian))
+            {
+                var userIds = await _context.Users.AsNoTracking().Where(u => u.Section == bagian).Select(u => u.Id).ToListAsync();
+                postSessions = postSessions.Where(p => userIds.Contains(p.UserId)).ToList();
+            }
+            if (!string.IsNullOrEmpty(unit))
+            {
+                var userIds = await _context.Users.AsNoTracking().Where(u => u.Unit == unit).Select(u => u.Id).ToListAsync();
+                postSessions = postSessions.Where(p => userIds.Contains(p.UserId)).ToList();
+            }
+
+            var preIds = postSessions.Select(p => p.LinkedSessionId!.Value).Distinct().ToList();
+            var preScores = await _context.AssessmentSessions.AsNoTracking()
+                .Where(s => preIds.Contains(s.Id) && s.Score.HasValue)
+                .ToDictionaryAsync(s => s.Id, s => s.Score!.Value);
+
+            var gainScoreTrend = postSessions
+                .Where(p => preScores.ContainsKey(p.LinkedSessionId!.Value))
+                .Select(p => {
+                    double pre = preScores[p.LinkedSessionId!.Value];
+                    double post = p.PostScore;
+                    double gain = pre >= 100 ? 100 : (100 - pre) == 0 ? 0 : (post - pre) / (100 - pre) * 100;
+                    return new { p.PostCompleted.Year, p.PostCompleted.Month, Gain = gain };
+                })
+                .GroupBy(x => new { x.Year, x.Month })
+                .Select(g => new GainScoreTrendItem
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    AvgGainScore = Math.Round(g.Average(x => x.Gain), 1),
+                    SampleCount = g.Count()
+                })
+                .OrderBy(t => t.Year).ThenBy(t => t.Month)
+                .ToList();
+
+            return Json(new { trend, gainScoreTrend });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetEtBreakdownData(
+            string? bagian, string? unit, string? kategori, string? subKategori,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var etBaseQuery = _context.SessionElemenTeknisScores.AsNoTracking()
+                .Include(e => e.AssessmentSession)
+                    .ThenInclude(s => s.User)
+                .Where(e => e.QuestionCount > 0
+                    && e.AssessmentSession.CompletedAt.HasValue
+                    && e.AssessmentSession.CompletedAt >= periodeStart
+                    && e.AssessmentSession.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.Category == kategori);
+
+            var etBreakdown = await etBaseQuery
+                .GroupBy(e => new { e.ElemenTeknis, e.AssessmentSession.Category })
+                .Select(g => new EtBreakdownItem
+                {
+                    ElemenTeknis = g.Key.ElemenTeknis,
+                    Category = g.Key.Category,
+                    AvgPct = g.Average(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    MinPct = g.Min(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    MaxPct = g.Max(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    SampleCount = g.Count()
+                })
+                .ToListAsync();
+
+            return Json(etBreakdown);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetExpiringSoonData(
+            string? bagian, string? unit, int days = 30)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            var futureDate = today.AddDays(days);
+
+            var trainingExpiring = _context.TrainingRecords.AsNoTracking()
+                .Include(t => t.User)
+                .Where(t => t.Status == "Valid" && t.ValidUntil.HasValue
+                    && t.ValidUntil >= today && t.ValidUntil <= futureDate);
+
+            if (!string.IsNullOrEmpty(bagian))
+                trainingExpiring = trainingExpiring.Where(t => t.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                trainingExpiring = trainingExpiring.Where(t => t.User!.Unit == unit);
+
+            var trainingItems = await trainingExpiring
+                .Select(t => new {
+                    namaPekerja = t.User!.FullName ?? t.User.UserName ?? "",
+                    namaSertifikat = t.Judul ?? "",
+                    tanggalExpired = t.ValidUntil!.Value,
+                    sectionUnit = (t.User!.Section ?? "") + (t.User.Unit != null ? " / " + t.User.Unit : "")
+                })
+                .ToListAsync();
+
+            var sessionExpiring = _context.AssessmentSessions.AsNoTracking()
+                .Include(s => s.User)
+                .Where(s => s.IsPassed == true && s.GenerateCertificate
+                    && s.ValidUntil.HasValue && s.ValidUntil >= today && s.ValidUntil <= futureDate);
+
+            if (!string.IsNullOrEmpty(bagian))
+                sessionExpiring = sessionExpiring.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                sessionExpiring = sessionExpiring.Where(s => s.User!.Unit == unit);
+
+            var sessionItems = await sessionExpiring
+                .Select(s => new {
+                    namaPekerja = s.User!.FullName ?? s.User.UserName ?? "",
+                    namaSertifikat = s.Title,
+                    tanggalExpired = s.ValidUntil!.Value,
+                    sectionUnit = (s.User!.Section ?? "") + (s.User.Unit != null ? " / " + s.User.Unit : "")
+                })
+                .ToListAsync();
+
+            var result = trainingItems.Concat(sessionItems)
+                .OrderBy(e => e.tanggalExpired)
+                .ToList();
+
+            return Json(result);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetFailRateDrillDown(
+            string section, string category,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var items = await _context.AssessmentSessions.AsNoTracking()
+                .Include(s => s.User)
+                .Where(s => s.IsPassed.HasValue && s.CompletedAt.HasValue
+                    && s.CompletedAt >= periodeStart && s.CompletedAt <= periodeEnd
+                    && s.User!.Section == section && s.Category == category)
+                .OrderByDescending(s => s.CompletedAt)
+                .Select(s => new
+                {
+                    namaPekerja = s.User!.FullName ?? s.User.UserName ?? "",
+                    skor = s.Score ?? 0,
+                    tanggalAssessment = s.CompletedAt!.Value,
+                    status = s.IsPassed == true ? "Lulus" : "Gagal"
+                })
+                .ToListAsync();
+
+            return Json(items);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportFailRateExcel(
+            string? bagian, string? unit, string? kategori, string? subKategori,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var baseQuery = _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.IsPassed.HasValue && s.CompletedAt.HasValue
+                    && s.CompletedAt >= periodeStart && s.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                baseQuery = baseQuery.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                baseQuery = baseQuery.Where(s => s.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                baseQuery = baseQuery.Where(s => s.Category == kategori);
+
+            var failRate = await baseQuery
+                .GroupBy(s => new { Section = s.User!.Section ?? "Tidak Diketahui", s.Category })
+                .Select(g => new { Section = g.Key.Section, Category = g.Key.Category, Total = g.Count(), Failed = g.Count(s => s.IsPassed == false) })
+                .ToListAsync();
+
+            using var wb = new XLWorkbook();
+            var headers = new[] { "Bagian", "Kategori", "Total Sesi", "Gagal", "Fail Rate (%)" };
+            var ws = ExcelExportHelper.CreateSheet(wb, "Fail Rate", headers);
+            ws.SheetView.FreezeRows(1);
+            ws.Range(1, 1, 1, headers.Length).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#dc3545"));
+            ws.Range(1, 1, 1, headers.Length).Style.Font.SetFontColor(XLColor.White);
+
+            int row = 2;
+            foreach (var item in failRate)
+            {
+                double rate = item.Total > 0 ? Math.Round((double)item.Failed / item.Total * 100, 1) : 0;
+                ws.Cell(row, 1).Value = item.Section;
+                ws.Cell(row, 2).Value = item.Category;
+                ws.Cell(row, 3).Value = item.Total;
+                ws.Cell(row, 4).Value = item.Failed;
+                ws.Cell(row, 5).Value = rate;
+                row++;
+            }
+
+            return ExcelExportHelper.ToFileResult(wb, $"FailRate_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportTrendExcel(
+            string? bagian, string? unit, string? kategori, string? subKategori,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var baseQuery = _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.IsPassed.HasValue && s.CompletedAt.HasValue
+                    && s.CompletedAt >= periodeStart && s.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                baseQuery = baseQuery.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                baseQuery = baseQuery.Where(s => s.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                baseQuery = baseQuery.Where(s => s.Category == kategori);
+
+            var trend = await baseQuery
+                .GroupBy(s => new { s.CompletedAt!.Value.Year, s.CompletedAt!.Value.Month })
+                .Select(g => new { Year = g.Key.Year, Month = g.Key.Month, Passed = g.Count(s => s.IsPassed == true), Failed = g.Count(s => s.IsPassed == false) })
+                .OrderBy(t => t.Year).ThenBy(t => t.Month)
+                .ToListAsync();
+
+            using var wb = new XLWorkbook();
+            var headers = new[] { "Bulan", "Lulus", "Gagal", "Total" };
+            var ws = ExcelExportHelper.CreateSheet(wb, "Trend Assessment", headers);
+            ws.SheetView.FreezeRows(1);
+            ws.Range(1, 1, 1, headers.Length).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#0d6efd"));
+            ws.Range(1, 1, 1, headers.Length).Style.Font.SetFontColor(XLColor.White);
+
+            int row = 2;
+            foreach (var item in trend)
+            {
+                ws.Cell(row, 1).Value = $"{item.Year}-{item.Month:D2}";
+                ws.Cell(row, 2).Value = item.Passed;
+                ws.Cell(row, 3).Value = item.Failed;
+                ws.Cell(row, 4).Value = item.Passed + item.Failed;
+                row++;
+            }
+
+            return ExcelExportHelper.ToFileResult(wb, $"TrendAssessment_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportEtBreakdownExcel(
+            string? bagian, string? unit, string? kategori, string? subKategori,
+            DateTime? periodeStart, DateTime? periodeEnd)
+        {
+            var today = DateTime.UtcNow.AddHours(7).Date;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            var etBaseQuery = _context.SessionElemenTeknisScores.AsNoTracking()
+                .Include(e => e.AssessmentSession)
+                    .ThenInclude(s => s.User)
+                .Where(e => e.QuestionCount > 0
+                    && e.AssessmentSession.CompletedAt.HasValue
+                    && e.AssessmentSession.CompletedAt >= periodeStart
+                    && e.AssessmentSession.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.Category == kategori);
+
+            var data = await etBaseQuery
+                .GroupBy(e => new { e.ElemenTeknis, e.AssessmentSession.Category })
+                .Select(g => new {
+                    ElemenTeknis = g.Key.ElemenTeknis,
+                    Category = g.Key.Category,
+                    AvgPct = g.Average(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    MinPct = g.Min(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    MaxPct = g.Max(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    SampleCount = g.Count()
+                })
+                .ToListAsync();
+
+            using var wb = new XLWorkbook();
+            var headers = new[] { "Elemen Teknis", "Kategori", "Rata-rata (%)", "Min (%)", "Max (%)", "Jumlah Sesi" };
+            var ws = ExcelExportHelper.CreateSheet(wb, "Skor Elemen Teknis", headers);
+            ws.SheetView.FreezeRows(1);
+            ws.Range(1, 1, 1, headers.Length).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#ffc107"));
+            ws.Range(1, 1, 1, headers.Length).Style.Font.SetFontColor(XLColor.Black);
+
+            int row = 2;
+            foreach (var item in data)
+            {
+                ws.Cell(row, 1).Value = item.ElemenTeknis;
+                ws.Cell(row, 2).Value = item.Category;
+                ws.Cell(row, 3).Value = Math.Round(item.AvgPct, 1);
+                ws.Cell(row, 4).Value = Math.Round(item.MinPct, 1);
+                ws.Cell(row, 5).Value = Math.Round(item.MaxPct, 1);
+                ws.Cell(row, 6).Value = item.SampleCount;
+                row++;
+            }
+
+            return ExcelExportHelper.ToFileResult(wb, $"SkorElemenTeknis_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
+        // ============================================================
         // GET /CMP/GetPrePostAssessmentList — daftar assessment PrePostTest untuk dropdown
         // ============================================================
         [HttpGet]

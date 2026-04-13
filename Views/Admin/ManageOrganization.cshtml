@@ -4,22 +4,76 @@
 }
 
 <style>
-    .tree-children { border-left: 1px solid #dee2e6; margin-left: 12px; padding-left: 24px; list-style: none; }
-    .tree-node > .tree-children > .tree-node > .tree-row::before { content: ''; display: inline-block; width: 12px; border-top: 1px solid #dee2e6; vertical-align: middle; margin-right: 4px; }
-    .tree-chevron { transition: transform 200ms ease; color: #0d6efd; cursor: pointer; width: 16px; flex-shrink: 0; }
-    .tree-chevron.expanded { transform: rotate(90deg); }
-    .tree-chevron-placeholder { width: 16px; flex-shrink: 0; display: inline-block; }
-    .tree-row { padding: 6px 8px; border-radius: 4px; cursor: pointer; min-height: 36px; }
-    .tree-row:hover { background-color: #e9ecef; }
+    /* ── Org Tree v2 — Portal-consistent ── */
+    .org-stats { display: flex; gap: 16px; margin-bottom: 24px; }
+    .org-stat { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: #fff; border: none; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex: 1; }
+    .org-stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+    .org-stat-icon.blue { background: rgba(13,110,253,0.1); color: #0d6efd; }
+    .org-stat-icon.purple { background: rgba(102,126,234,0.1); color: #667eea; }
+    .org-stat-icon.green { background: rgba(25,135,84,0.1); color: #198754; }
+    .org-stat-value { font-weight: 700; font-size: 1.35rem; color: #212529; line-height: 1.2; }
+    .org-stat-label { font-size: 0.8rem; color: #6c757d; }
+
+    /* Tree structure */
+    .tree-children { list-style: none; padding-left: 28px; margin-left: 16px; border-left: 2px dashed #667eea; }
+    .tree-children > .tree-node::before { content: ''; position: absolute; left: -28px; top: 22px; width: 24px; height: 0; border-top: 2px dashed #667eea; }
+    .tree-node { position: relative; }
+    .tree-chevron { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s ease; color: #0d6efd; font-size: 0.75rem; flex-shrink: 0; cursor: pointer; background: rgba(13,110,253,0.06); }
+    .tree-chevron:hover { background: rgba(13,110,253,0.12); }
+    .tree-chevron.expanded { transform: none; }
+    .tree-chevron.expanded i { transform: rotate(90deg); }
+    .tree-chevron i { transition: transform 0.25s ease; display: block; }
+    .tree-chevron-placeholder { width: 24px; flex-shrink: 0; display: inline-block; }
+    .tree-row { padding: 10px 14px; border-radius: 0.5rem; cursor: pointer; min-height: 36px; position: relative; margin: 3px 0; transition: all 0.15s ease; }
+    .tree-row:hover { background-color: #f8f9fa; }
+    .tree-row:hover .org-row-glow { opacity: 1; }
     .tree-root { list-style: none; padding-left: 0; }
-    .badge-status { font-size: 0.75rem; }
+
+    /* Glow bar on hover */
+    .org-row-glow { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #667eea, #764ba2); border-radius: 3px 0 0 3px; opacity: 0; transition: opacity 0.15s ease; }
+
+    /* Node icons — color-coded per level */
+    .org-node-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+    .org-node-icon.level-0 { background: rgba(13,110,253,0.1); color: #0d6efd; }
+    .org-node-icon.level-1 { background: rgba(102,126,234,0.1); color: #667eea; }
+    .org-node-icon.level-2 { background: rgba(13,202,240,0.1); color: #0dcaf0; }
+
+    /* Node label */
+    .tree-label { font-weight: 600; font-size: 0.88rem; color: #212529; }
+
+    /* Child count badge */
+    .org-child-count { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: rgba(255,193,7,0.1); color: #b45309; }
+
+    /* Kebab / actions */
     .action-dropdown .btn { opacity: 0; transition: opacity 150ms; }
     .tree-row:hover .action-dropdown .btn { opacity: 1; }
     .drag-handle { opacity: 0; cursor: grab; transition: opacity 150ms; color: #6c757d; width: 16px; flex-shrink: 0; }
     .tree-row:hover .drag-handle { opacity: 0.5; }
     .drag-handle:hover { opacity: 1 !important; }
     .sortable-ghost { opacity: 0.4; }
-    .sortable-chosen { background-color: #e3f2fd; border-radius: 4px; }
+    .sortable-chosen { background-color: #e3f2fd; border-radius: 0.5rem; }
+
+    /* Staggered fade-in animation */
+    @@keyframes orgFadeSlideIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .tree-root > .tree-node { animation: orgFadeSlideIn 0.4s ease forwards; opacity: 0; }
+    .tree-root > .tree-node:nth-child(1) { animation-delay: 0.05s; }
+    .tree-root > .tree-node:nth-child(2) { animation-delay: 0.12s; }
+    .tree-root > .tree-node:nth-child(3) { animation-delay: 0.19s; }
+    .tree-root > .tree-node:nth-child(4) { animation-delay: 0.26s; }
+    .tree-root > .tree-node:nth-child(5) { animation-delay: 0.33s; }
+
+    /* Smooth expand/collapse */
+    .tree-children { overflow: hidden; transition: max-height 0.3s ease, opacity 0.25s ease; }
+
+    @@media (max-width: 768px) {
+        .org-stats { flex-wrap: wrap; }
+        .org-stat { flex: 1; min-width: 140px; }
+        .tree-children { padding-left: 18px; margin-left: 10px; }
+        .tree-label { font-size: 0.82rem; }
+    }
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -40,16 +94,32 @@
             </h2>
             <p class="text-muted mb-0">Kelola hierarki Bagian dan Unit kerja</p>
         </div>
-        <div>
-            <button id="btn-expand-all" class="btn btn-outline-primary btn-sm me-2">Expand All</button>
+        <div class="d-flex gap-2">
+            <button id="btn-expand-all" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrows-expand me-1"></i>Expand All
+            </button>
             <button type="button" class="btn btn-primary" onclick="openAddModal()">
-                <i class="bi bi-plus-circle me-2"></i>Tambah Unit
+                <i class="bi bi-plus-circle me-1"></i>Tambah Unit
             </button>
         </div>
     </div>
 
-    <!-- Tree container — JS mengisi ini -->
+    <!-- Stats bar -->
+    <div class="org-stats" id="org-stats-bar">
+        <!-- populated by JS after data loads -->
+    </div>
+
+    <!-- Tree container -->
     <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="rounded-circle bg-success d-inline-block" style="width:8px;height:8px;"></span>
+                <span class="fw-semibold" style="font-size:0.9rem;">Hierarki Organisasi</span>
+            </div>
+            <span class="text-muted" style="font-size:0.75rem;">
+                <i class="bi bi-grip-vertical"></i> Drag untuk reorder
+            </span>
+        </div>
         <div class="card-body">
             @Html.AntiForgeryToken()
             <div id="org-tree-container">
@@ -119,7 +189,7 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
     <script src="~/js/shared-toast.js"></script>
-    <script src="~/js/orgTree.js"></script>
+    <script src="~/js/orgTree.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', initTree);
     </script>

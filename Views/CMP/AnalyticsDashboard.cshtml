@@ -15,11 +15,44 @@
         z-index: 10;
     }
     @@keyframes spin { to { transform: rotate(360deg); } }
-    .heatmap-high { background-color: rgba(40,167,69,0.20); }
-    .heatmap-mid  { background-color: rgba(255,193,7,0.20); }
-    .heatmap-low  { background-color: rgba(220,53,69,0.20); }
+    .heatmap-high { background-color: rgba(40,167,69,0.35); }
+    .heatmap-mid  { background-color: rgba(255,193,7,0.30); }
+    .heatmap-low  { background-color: rgba(220,53,69,0.30); }
     canvas { min-height: 280px; }
+    select:disabled { opacity: 0.6; cursor: not-allowed; }
+    .summary-card { transition: transform 0.15s; }
+    .summary-card:hover { transform: translateY(-2px); }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; height: 1.5rem; }
+    @@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .sort-header { cursor: pointer; user-select: none; }
+    .sort-header:hover { background-color: rgba(0,0,0,0.05); }
+    .sort-header::after { content: ' \2195'; opacity: 0.3; font-size: 0.8em; }
+    .sort-header.asc::after { content: ' \2191'; opacity: 0.8; }
+    .sort-header.desc::after { content: ' \2193'; opacity: 0.8; }
+    .insight-card { border-left: 3px solid #0d6efd; background: #f8f9fa; }
+    .legend-item { display: inline-flex; align-items: center; gap: 4px; margin-right: 12px; font-size: 0.8rem; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
 </style>
+
+<!-- Config element for JS URLs -->
+<div id="analyticsConfig" class="d-none"
+    data-summary-url="@Url.Action("GetAnalyticsSummary", "CMP")"
+    data-fail-rate-url="@Url.Action("GetFailRateData", "CMP")"
+    data-trend-url="@Url.Action("GetTrendData", "CMP")"
+    data-et-breakdown-url="@Url.Action("GetEtBreakdownData", "CMP")"
+    data-expiring-soon-url="@Url.Action("GetExpiringSoonData", "CMP")"
+    data-drill-down-url="@Url.Action("GetFailRateDrillDown", "CMP")"
+    data-export-fail-rate-url="@Url.Action("ExportFailRateExcel", "CMP")"
+    data-export-trend-url="@Url.Action("ExportTrendExcel", "CMP")"
+    data-export-et-breakdown-url="@Url.Action("ExportEtBreakdownExcel", "CMP")"
+    data-cascade-units-url="@Url.Action("GetAnalyticsCascadeUnits", "CMP")"
+    data-cascade-sub-kategori-url="@Url.Action("GetAnalyticsCascadeSubKategori", "CMP")"
+    data-assessment-list-url="@Url.Action("GetPrePostAssessmentList", "CMP")"
+    data-item-analysis-url="@Url.Action("GetItemAnalysisData", "CMP")"
+    data-gain-score-url="@Url.Action("GetGainScoreData", "CMP")"
+    data-export-item-analysis-url="@Url.Action("ExportItemAnalysisExcel", "CMP")"
+    data-export-gain-score-url="@Url.Action("ExportGainScoreExcel", "CMP")">
+</div>
 
 <div class="container-fluid py-4">
     <nav aria-label="breadcrumb" class="mb-3">
@@ -39,62 +72,126 @@
     <!-- Filter Bar -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                    <label for="filterBagian" class="form-label form-label-sm mb-1">Bagian</label>
-                    <select id="filterBagian" class="form-select form-select-sm">
-                        <option value="">Semua Bagian</option>
-                        @foreach (var s in Model.Sections)
-                        {
-                            <option value="@s">@s</option>
-                        }
-                    </select>
+            <!-- Mobile filter toggle -->
+            <div class="d-md-none mb-2">
+                <button class="btn btn-outline-secondary btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapseBody">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+            </div>
+            <div class="collapse show d-md-block" id="filterCollapseBody">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="filterBagian" class="form-label form-label-sm mb-1">Bagian</label>
+                        <select id="filterBagian" class="form-select form-select-sm">
+                            <option value="">Semua Bagian</option>
+                            @foreach (var s in Model.Sections)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="filterUnit" class="form-label form-label-sm mb-1">Unit</label>
+                        <select id="filterUnit" class="form-select form-select-sm" disabled>
+                            <option value="">Semua Unit</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="filterKategori" class="form-label form-label-sm mb-1">Kategori</label>
+                        <select id="filterKategori" class="form-select form-select-sm">
+                            <option value="">Semua Kategori</option>
+                            @foreach (var c in Model.Categories)
+                            {
+                                <option value="@c">@c</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="filterSubKategori" class="form-label form-label-sm mb-1">SubKategori</label>
+                        <select id="filterSubKategori" class="form-select form-select-sm" disabled>
+                            <option value="">Semua SubKategori</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="filterStart" class="form-label form-label-sm mb-1">Dari</label>
+                        <input type="date" id="filterStart" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="filterEnd" class="form-label form-label-sm mb-1">s/d</label>
+                        <input type="date" id="filterEnd" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-3" id="filterAssessmentGroup" style="display:none;">
+                        <label class="form-label form-label-sm mb-1">Pilih Assessment</label>
+                        <select class="form-select form-select-sm" id="filterAssessment">
+                            <option value="">— Pilih assessment —</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                    <label for="filterUnit" class="form-label form-label-sm mb-1">Unit</label>
-                    <select id="filterUnit" class="form-select form-select-sm" disabled>
-                        <option value="">Semua Unit</option>
-                    </select>
-                </div>
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                    <label for="filterKategori" class="form-label form-label-sm mb-1">Kategori</label>
-                    <select id="filterKategori" class="form-select form-select-sm">
-                        <option value="">Semua Kategori</option>
-                        @foreach (var c in Model.Categories)
-                        {
-                            <option value="@c">@c</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                    <label for="filterSubKategori" class="form-label form-label-sm mb-1">SubKategori</label>
-                    <select id="filterSubKategori" class="form-select form-select-sm" disabled>
-                        <option value="">Semua SubKategori</option>
-                    </select>
-                </div>
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                    <label for="filterStart" class="form-label form-label-sm mb-1">Dari</label>
-                    <input type="date" id="filterStart" class="form-control form-control-sm">
-                </div>
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                    <label for="filterEnd" class="form-label form-label-sm mb-1">s/d</label>
-                    <input type="date" id="filterEnd" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-3" id="filterAssessmentGroup" style="display:none;">
-                    <label class="form-label form-label-sm mb-1">Pilih Assessment</label>
-                    <select class="form-select form-select-sm" id="filterAssessment">
-                        <option value="">— Pilih assessment —</option>
-                    </select>
+                <div class="row mt-3">
+                    <div class="col">
+                        <button id="btnApply" class="btn btn-primary btn-sm me-2">
+                            <i class="bi bi-funnel me-1"></i>Terapkan Filter
+                        </button>
+                        <button id="btnReset" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="row mt-3">
-                <div class="col">
-                    <button id="btnApply" class="btn btn-primary btn-sm me-2">
-                        <i class="bi bi-funnel me-1"></i>Terapkan Filter
-                    </button>
-                    <button id="btnReset" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                    </button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4" id="summaryCards">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm summary-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-clipboard-data text-primary"></i>
+                        </div>
+                        <small class="text-muted">Total Sesi</small>
+                    </div>
+                    <h3 class="mb-0 fw-bold" id="summaryTotalSessions"><div class="skeleton" style="width:60px;">&nbsp;</div></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm summary-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                        </div>
+                        <small class="text-muted">Pass Rate</small>
+                    </div>
+                    <h3 class="mb-0 fw-bold" id="summaryPassRate"><div class="skeleton" style="width:60px;">&nbsp;</div></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm summary-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-shield-exclamation text-danger"></i>
+                        </div>
+                        <small class="text-muted">Sertifikat Expired</small>
+                    </div>
+                    <h3 class="mb-0 fw-bold" id="summaryExpiring"><div class="skeleton" style="width:60px;">&nbsp;</div></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm summary-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-arrow-up-right text-info"></i>
+                        </div>
+                        <small class="text-muted">Avg Gain Score</small>
+                    </div>
+                    <h3 class="mb-0 fw-bold" id="summaryAvgGain"><div class="skeleton" style="width:60px;">&nbsp;</div></h3>
                 </div>
             </div>
         </div>
@@ -130,12 +227,17 @@
                 <div class="col-12">
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-transparent border-bottom-0 pb-0">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-bar-chart-fill text-danger fs-4 me-2"></i>
-                                <div>
-                                    <h6 class="mb-0 fw-semibold">Fail Rate Assessment</h6>
-                                    <small class="text-muted">Per section dan kategori</small>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-bar-chart-fill text-danger fs-4 me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Fail Rate Assessment</h6>
+                                        <small class="text-muted">Per section dan kategori — klik bar untuk detail</small>
+                                    </div>
                                 </div>
+                                <button class="btn btn-outline-success btn-sm" onclick="exportFailRate()">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                                </button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -144,6 +246,21 @@
                                 <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
                                 Belum ada data<br>
                                 <small>Tidak ada data assessment untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
+                            </div>
+                            <!-- Color legend -->
+                            <div id="failRateLegend" class="mt-2 text-center" style="display:none;">
+                                <span class="legend-item"><span class="legend-dot" style="background:#28a745;"></span> &lt;30% (Baik)</span>
+                                <span class="legend-item"><span class="legend-dot" style="background:#ffc107;"></span> 30-60% (Perlu Perhatian)</span>
+                                <span class="legend-item"><span class="legend-dot" style="background:#dc3545;"></span> &gt;60% (Kritis)</span>
+                            </div>
+                            <!-- Insight panel -->
+                            <div id="failRateInsight" class="mt-3" style="display:none;">
+                                <div class="card insight-card border-0">
+                                    <div class="card-body py-2 px-3">
+                                        <small class="text-muted">Ringkasan</small>
+                                        <div id="failRateInsightText" class="small fw-semibold"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -157,12 +274,17 @@
                 <div class="col-12">
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-transparent border-bottom-0 pb-0">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
-                                <div>
-                                    <h6 class="mb-0 fw-semibold">Trend Assessment</h6>
-                                    <small class="text-muted">Pass / Fail per bulan</small>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Trend Assessment</h6>
+                                        <small class="text-muted">Pass / Fail per bulan</small>
+                                    </div>
                                 </div>
+                                <button class="btn btn-outline-success btn-sm" onclick="exportTrend()">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                                </button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -172,8 +294,40 @@
                                 Belum ada data<br>
                                 <small>Tidak ada data trend untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
                             </div>
+                            <!-- Trend insight -->
+                            <div id="trendInsight" class="row g-3 mt-3" style="display:none;">
+                                <div class="col-md-4">
+                                    <div class="card insight-card border-0">
+                                        <div class="card-body py-2 px-3 text-center">
+                                            <small class="text-muted">Bulan Terbaik</small>
+                                            <div id="trendBestMonth" class="fw-bold text-success">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card insight-card border-0" style="border-left-color:#dc3545!important;">
+                                        <div class="card-body py-2 px-3 text-center">
+                                            <small class="text-muted">Bulan Terburuk</small>
+                                            <div id="trendWorstMonth" class="fw-bold text-danger">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card insight-card border-0" style="border-left-color:#6f42c1!important;">
+                                        <div class="card-body py-2 px-3 text-center">
+                                            <small class="text-muted">Trend</small>
+                                            <div id="trendDirection" class="fw-bold">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="mt-4">
                                 <h6 class="fw-semibold">Rata-rata Gain Score per Bulan</h6>
+                                <div id="gainScoreSinglePoint" style="display:none;" class="text-center py-4">
+                                    <small class="text-muted d-block">Gain Score</small>
+                                    <span class="display-4 fw-bold text-primary" id="gainScoreSingleValue">-</span>
+                                    <small class="text-muted d-block" id="gainScoreSingleLabel">-</small>
+                                </div>
                                 <canvas id="gainScoreTrendChart" height="200"></canvas>
                                 <div class="text-center text-muted py-3" id="gainTrendEmpty" style="display:none;">
                                     <small>Belum ada data gain score untuk periode ini.</small>
@@ -191,20 +345,57 @@
                 <div class="col-12">
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-transparent border-bottom-0 pb-0">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-grid-3x3-gap-fill text-warning fs-4 me-2"></i>
-                                <div>
-                                    <h6 class="mb-0 fw-semibold">Skor Elemen Teknis</h6>
-                                    <small class="text-muted">Rata-rata skor per kategori assessment</small>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-grid-3x3-gap-fill text-warning fs-4 me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Skor Elemen Teknis</h6>
+                                        <small class="text-muted">Rata-rata skor per kategori assessment</small>
+                                    </div>
                                 </div>
+                                <button class="btn btn-outline-success btn-sm" onclick="exportEtBreakdown()">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                                </button>
                             </div>
                         </div>
                         <div class="card-body">
+                            <!-- ET Insight cards -->
+                            <div id="etInsight" class="row g-3 mb-3" style="display:none;">
+                                <div class="col-md-4">
+                                    <div class="card insight-card border-0">
+                                        <div class="card-body py-2 px-3 text-center">
+                                            <small class="text-muted">Elemen Terkuat</small>
+                                            <div id="etBestElement" class="fw-bold text-success small">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card insight-card border-0" style="border-left-color:#dc3545!important;">
+                                        <div class="card-body py-2 px-3 text-center">
+                                            <small class="text-muted">Elemen Terlemah</small>
+                                            <div id="etWorstElement" class="fw-bold text-danger small">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card insight-card border-0" style="border-left-color:#ffc107!important;">
+                                        <div class="card-body py-2 px-3 text-center">
+                                            <small class="text-muted">Ringkasan</small>
+                                            <div id="etSummaryText" class="fw-bold small">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="etTableContainer" class="table-responsive"></div>
                             <div id="etEmpty" class="text-center text-muted py-5" style="display:none;">
                                 <i class="bi bi-grid-3x3-gap fs-1 d-block mb-2"></i>
                                 Belum ada data<br>
                                 <small>Tidak ada data skor elemen teknis untuk filter yang dipilih.</small>
+                            </div>
+                            <div id="etLegend" class="mt-2" style="display:none;">
+                                <span class="legend-item"><span class="legend-dot" style="background:rgba(40,167,69,0.35);"></span> &ge;80% (Baik)</span>
+                                <span class="legend-item"><span class="legend-dot" style="background:rgba(255,193,7,0.30);"></span> 60-79% (Cukup)</span>
+                                <span class="legend-item"><span class="legend-dot" style="background:rgba(220,53,69,0.30);"></span> &lt;60% (Kurang)</span>
                             </div>
                             <small class="text-muted d-block mt-2">Data hanya tersedia untuk assessment dengan paket soal</small>
                         </div>
@@ -219,20 +410,28 @@
                 <div class="col-12">
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-transparent border-bottom-0 pb-0">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-shield-exclamation text-danger fs-4 me-2"></i>
-                                <div>
-                                    <h6 class="mb-0 fw-semibold">Sertifikat Akan Expired</h6>
-                                    <small class="text-muted">Dalam 30 hari ke depan</small>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-shield-exclamation text-danger fs-4 me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Sertifikat Akan Expired</h6>
+                                        <small class="text-muted">Dalam beberapa hari ke depan</small>
+                                    </div>
                                 </div>
+                                <select id="expiringThreshold" class="form-select form-select-sm" style="width:auto;">
+                                    <option value="30">30 hari</option>
+                                    <option value="60">60 hari</option>
+                                    <option value="90">90 hari</option>
+                                </select>
                             </div>
                         </div>
                         <div class="card-body">
+                            <div id="expiringAlert" style="display:none;"></div>
                             <div id="expiringTableContainer" class="table-responsive"></div>
                             <div id="expiringEmpty" class="text-center text-muted py-5" style="display:none;">
-                                <i class="bi bi-shield-check fs-1 d-block mb-2"></i>
-                                Tidak ada sertifikat yang akan expired<br>
-                                <small>Tidak ada sertifikat yang akan expired dalam 30 hari ke depan.</small>
+                                <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
+                                <h6 class="text-success">Semua sertifikat masih berlaku</h6>
+                                <small>Tidak ada sertifikat yang akan expired dalam periode yang dipilih.</small>
                             </div>
                         </div>
                     </div>
@@ -251,9 +450,12 @@
                 </div>
                 <div class="card-body" id="itemAnalysisContainer">
                     <div class="text-center text-muted py-5" id="itemAnalysisEmpty">
+                        <i class="bi bi-hand-index fs-1 d-block mb-2 text-primary"></i>
                         <h6>Pilih assessment terlebih dahulu</h6>
-                        <p>Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.</p>
+                        <p><i class="bi bi-arrow-up"></i> Gunakan dropdown <strong>"Pilih Assessment"</strong> di atas, lalu klik <strong>Terapkan Filter</strong>.</p>
                     </div>
+                    <!-- Insight summary -->
+                    <div id="itemAnalysisInsight" class="alert alert-info py-2 small" style="display:none;"></div>
                     <div id="itemAnalysisContent" style="display:none;">
                         <div class="mb-2" id="itemAnalysisWarning" style="display:none;">
                             <span class="badge bg-warning text-dark">Data belum cukup (N&lt;30)</span>
@@ -274,7 +476,6 @@
                                 <tbody></tbody>
                             </table>
                         </div>
-                        <!-- Distractor detail per soal — rendered dynamically below table -->
                         <div id="distractorDetails"></div>
                     </div>
                 </div>
@@ -300,11 +501,13 @@
                 </div>
                 <div class="card-body" id="gainScoreContainer">
                     <div class="text-center text-muted py-5" id="gainScoreEmpty">
+                        <i class="bi bi-hand-index fs-1 d-block mb-2 text-primary"></i>
                         <h6>Pilih assessment terlebih dahulu</h6>
-                        <p>Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.</p>
+                        <p><i class="bi bi-arrow-up"></i> Gunakan dropdown <strong>"Pilih Assessment"</strong> di atas, lalu klik <strong>Terapkan Filter</strong>.</p>
                     </div>
+                    <!-- Insight summary -->
+                    <div id="gainScoreInsight" class="alert alert-info py-2 small" style="display:none;"></div>
                     <div id="gainScoreContent" style="display:none;">
-                        <!-- Per Pekerja table -->
                         <div id="gainWorkerView">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover">
@@ -321,7 +524,6 @@
                                 </table>
                             </div>
                         </div>
-                        <!-- Per Elemen Kompetensi table -->
                         <div id="gainElemenView" style="display:none;">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover">
@@ -337,7 +539,6 @@
                                 </table>
                             </div>
                         </div>
-                        <!-- Group Comparison -->
                         <div class="mt-4">
                             <h6 class="fw-semibold">Perbandingan Antar Kelompok (Bagian)</h6>
                             <div class="table-responsive">
@@ -363,613 +564,26 @@
     </div><!-- /.tab-content -->
 </div><!-- /.container-fluid -->
 
+<!-- Drill-down Modal -->
+<div class="modal fade" id="drillDownModal" tabindex="-1" aria-labelledby="drillDownModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-semibold" id="drillDownModalLabel">Detail Assessment</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <div id="drillDownBody">
+                    <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-<script>
-    var failRateChart = null;
-    var trendChart = null;
-    var analyticsAbort = null;
-    var _gainScoreData = null;
-
-    // ============================================================
-    // refreshAnalytics — fetch data and render panels 1-4
-    // ============================================================
-    function refreshAnalytics() {
-        var bagian      = document.getElementById('filterBagian').value;
-        var unit        = document.getElementById('filterUnit').value;
-        var kategori    = document.getElementById('filterKategori').value;
-        var subKategori = document.getElementById('filterSubKategori').value;
-        var periodeStart = document.getElementById('filterStart').value;
-        var periodeEnd   = document.getElementById('filterEnd').value;
-
-        var params = new URLSearchParams();
-        if (bagian)       params.set('bagian', bagian);
-        if (unit)         params.set('unit', unit);
-        if (kategori)     params.set('kategori', kategori);
-        if (subKategori)  params.set('subKategori', subKategori);
-        if (periodeStart) params.set('periodeStart', periodeStart);
-        if (periodeEnd)   params.set('periodeEnd', periodeEnd);
-
-        if (analyticsAbort) analyticsAbort.abort();
-        analyticsAbort = new AbortController();
-
-        fetch(appUrl('/CMP/GetAnalyticsData?' + params.toString()), { signal: analyticsAbort.signal })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                renderFailRate(data.failRate);
-                renderTrend(data.trend);
-                renderGainScoreTrend(data.gainScoreTrend);
-                renderEtTable(data.etBreakdown);
-                renderExpiringTable(data.expiringSoon);
-            })
-            .catch(function (e) {
-                if (e.name !== 'AbortError') {
-                    console.error('Analytics fetch error:', e);
-                }
-            });
-    }
-
-    // ============================================================
-    // refreshActiveTab — fetch data for analysis tabs if active
-    // ============================================================
-    function refreshActiveTab() {
-        var activeLink = document.querySelector('#analyticsTabs .nav-link.active');
-        if (!activeLink) return;
-        var activeHref = activeLink.getAttribute('href');
-        var assessmentGroupId = document.getElementById('filterAssessment').value;
-
-        if (activeHref === '#tabItemAnalysis') {
-            if (!assessmentGroupId) {
-                document.getElementById('itemAnalysisEmpty').style.display = '';
-                document.getElementById('itemAnalysisEmpty').querySelector('h6').textContent = 'Pilih assessment terlebih dahulu';
-                document.getElementById('itemAnalysisEmpty').querySelector('p').textContent = 'Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.';
-                document.getElementById('itemAnalysisContent').style.display = 'none';
-                return;
-            }
-            fetch(appUrl('/CMP/GetItemAnalysisData?assessmentGroupId=' + assessmentGroupId))
-                .then(function (r) { return r.json(); })
-                .then(renderItemAnalysis)
-                .catch(function () {
-                    document.getElementById('itemAnalysisContent').style.display = 'none';
-                    document.getElementById('itemAnalysisEmpty').style.display = '';
-                    document.getElementById('itemAnalysisEmpty').querySelector('h6').textContent = 'Gagal memuat data';
-                    document.getElementById('itemAnalysisEmpty').querySelector('p').textContent = 'Gagal memuat data. Periksa koneksi dan coba lagi, atau hubungi administrator.';
-                });
-        } else if (activeHref === '#tabGainScore') {
-            if (!assessmentGroupId) {
-                document.getElementById('gainScoreEmpty').style.display = '';
-                document.getElementById('gainScoreEmpty').querySelector('h6').textContent = 'Pilih assessment terlebih dahulu';
-                document.getElementById('gainScoreEmpty').querySelector('p').textContent = 'Gunakan dropdown di atas untuk memilih assessment, lalu klik Terapkan Filter.';
-                document.getElementById('gainScoreContent').style.display = 'none';
-                return;
-            }
-            fetch(appUrl('/CMP/GetGainScoreData?assessmentGroupId=' + assessmentGroupId))
-                .then(function (r) { return r.json(); })
-                .then(renderGainScore)
-                .catch(function () {
-                    document.getElementById('gainScoreContent').style.display = 'none';
-                    document.getElementById('gainScoreEmpty').style.display = '';
-                    document.getElementById('gainScoreEmpty').querySelector('h6').textContent = 'Gagal memuat data';
-                    document.getElementById('gainScoreEmpty').querySelector('p').textContent = 'Gagal memuat data. Periksa koneksi dan coba lagi, atau hubungi administrator.';
-                });
-        }
-    }
-
-    // ============================================================
-    // renderFailRate — bar chart fail rate
-    // ============================================================
-    function renderFailRate(data) {
-        var canvas = document.getElementById('failRateChart');
-        var emptyEl = document.getElementById('failRateEmpty');
-
-        if (!data || data.length === 0) {
-            canvas.style.display = 'none';
-            emptyEl.style.display = '';
-            return;
-        }
-        canvas.style.display = '';
-        emptyEl.style.display = 'none';
-
-        if (failRateChart) failRateChart.destroy();
-
-        var labels = data.map(function (d) { return d.section + ' - ' + d.category; });
-        var values = data.map(function (d) { return d.failRatePercent; });
-
-        failRateChart = new Chart(canvas, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Fail Rate (%)',
-                    data: values,
-                    backgroundColor: 'rgba(220,53,69,0.75)'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function (v) { return v + '%'; }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // ============================================================
-    // renderTrend — line chart trend pass/fail per bulan
-    // ============================================================
-    function renderTrend(data) {
-        var canvas = document.getElementById('trendChart');
-        var emptyEl = document.getElementById('trendEmpty');
-
-        if (!data || data.length === 0) {
-            canvas.style.display = 'none';
-            emptyEl.style.display = '';
-            return;
-        }
-        canvas.style.display = '';
-        emptyEl.style.display = 'none';
-
-        if (trendChart) trendChart.destroy();
-
-        var labels = data.map(function (d) { return d.label; });
-
-        trendChart = new Chart(canvas, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Pass',
-                        data: data.map(function (d) { return d.passed; }),
-                        borderColor: '#198754',
-                        backgroundColor: 'rgba(25,135,84,0.1)',
-                        fill: false,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'Fail',
-                        data: data.map(function (d) { return d.failed; }),
-                        borderColor: '#dc3545',
-                        backgroundColor: 'rgba(220,53,69,0.1)',
-                        fill: false,
-                        tension: 0.3
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    }
-
-    // ============================================================
-    // renderGainScoreTrend — line chart rata-rata gain score per bulan (RPT-06)
-    // ============================================================
-    function renderGainScoreTrend(gainScoreTrend) {
-        var canvas = document.getElementById('gainScoreTrendChart');
-        var emptyMsg = document.getElementById('gainTrendEmpty');
-
-        if (window._gainTrendChart) {
-            window._gainTrendChart.destroy();
-        }
-
-        if (!gainScoreTrend || gainScoreTrend.length === 0) {
-            canvas.style.display = 'none';
-            emptyMsg.style.display = '';
-            return;
-        }
-        canvas.style.display = '';
-        emptyMsg.style.display = 'none';
-
-        var labels = gainScoreTrend.map(function(d) { return d.label; });
-        var values = gainScoreTrend.map(function(d) { return d.avgGainScore; });
-        var counts = gainScoreTrend.map(function(d) { return d.sampleCount; });
-
-        window._gainTrendChart = new Chart(canvas.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Avg Gain Score (%)',
-                    data: values,
-                    borderColor: '#6f42c1',
-                    backgroundColor: 'rgba(111,66,193,0.1)',
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            afterLabel: function(ctx) {
-                                return 'Sample: ' + counts[ctx.dataIndex] + ' pasangan';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Avg Gain Score (%)' }
-                    },
-                    x: {
-                        title: { display: true, text: 'Bulan' }
-                    }
-                }
-            }
-        });
-    }
-
-    // ============================================================
-    // renderEtTable — heatmap tabel skor elemen teknis
-    // ============================================================
-    function renderEtTable(data) {
-        var container = document.getElementById('etTableContainer');
-        var emptyEl = document.getElementById('etEmpty');
-
-        if (!data || data.length === 0) {
-            container.innerHTML = '';
-            emptyEl.style.display = '';
-            return;
-        }
-        emptyEl.style.display = 'none';
-
-        var rows = data.map(function (d) {
-            var heatClass = d.avgPct >= 80 ? 'heatmap-high' : (d.avgPct >= 60 ? 'heatmap-mid' : 'heatmap-low');
-            return '<tr>' +
-                '<td>' + escapeHtml(d.elemenTeknis) + '</td>' +
-                '<td>' + escapeHtml(d.category) + '</td>' +
-                '<td class="' + heatClass + '">' + d.avgPct.toFixed(1) + '%</td>' +
-                '<td>' + d.minPct.toFixed(1) + '%</td>' +
-                '<td>' + d.maxPct.toFixed(1) + '%</td>' +
-                '<td>' + d.sampleCount + '</td>' +
-                '</tr>';
-        }).join('');
-
-        container.innerHTML =
-            '<table class="table table-sm table-hover">' +
-                '<thead><tr>' +
-                    '<th scope="col">Elemen Teknis</th>' +
-                    '<th scope="col">Kategori</th>' +
-                    '<th scope="col">Rata-rata</th>' +
-                    '<th scope="col">Min</th>' +
-                    '<th scope="col">Max</th>' +
-                    '<th scope="col">Sesi</th>' +
-                '</tr></thead>' +
-                '<tbody>' + rows + '</tbody>' +
-            '</table>';
-    }
-
-    // ============================================================
-    // renderExpiringTable — tabel sertifikat akan expired
-    // ============================================================
-    function renderExpiringTable(data) {
-        var container = document.getElementById('expiringTableContainer');
-        var emptyEl = document.getElementById('expiringEmpty');
-
-        if (!data || data.length === 0) {
-            container.innerHTML = '';
-            emptyEl.style.display = '';
-            return;
-        }
-        emptyEl.style.display = 'none';
-
-        var rows = data.map(function (d) {
-            var tgl = new Date(d.tanggalExpired).toLocaleDateString('id-ID');
-            return '<tr>' +
-                '<td>' + escapeHtml(d.namaPekerja) + '</td>' +
-                '<td>' + escapeHtml(d.namaSertifikat) + '</td>' +
-                '<td>' + tgl + '</td>' +
-                '<td>' + escapeHtml(d.sectionUnit) + '</td>' +
-                '</tr>';
-        }).join('');
-
-        container.innerHTML =
-            '<table class="table table-sm table-hover">' +
-                '<thead><tr>' +
-                    '<th scope="col">Nama Pekerja</th>' +
-                    '<th scope="col">Sertifikat</th>' +
-                    '<th scope="col">Tgl Expired</th>' +
-                    '<th scope="col">Bagian / Unit</th>' +
-                '</tr></thead>' +
-                '<tbody>' + rows + '</tbody>' +
-            '</table>';
-    }
-
-    // ============================================================
-    // renderItemAnalysis — tabel soal dengan p-value dan distractor
-    // ============================================================
-    function renderItemAnalysis(data) {
-        if (!data || !data.items || data.items.length === 0) {
-            document.getElementById('itemAnalysisEmpty').style.display = '';
-            document.getElementById('itemAnalysisEmpty').querySelector('h6').textContent = 'Belum ada data soal';
-            document.getElementById('itemAnalysisEmpty').querySelector('p').textContent = 'Assessment yang dipilih tidak memiliki soal atau belum ada peserta yang mengerjakan.';
-            document.getElementById('itemAnalysisContent').style.display = 'none';
-            return;
-        }
-        document.getElementById('itemAnalysisEmpty').style.display = 'none';
-        document.getElementById('itemAnalysisContent').style.display = '';
-
-        // Warning N<30 (D-04)
-        document.getElementById('itemAnalysisWarning').style.display = data.isLowN ? '' : 'none';
-
-        var tbody = document.querySelector('#itemAnalysisTable tbody');
-        tbody.innerHTML = '';
-        var distractorHtml = '';
-
-        data.items.forEach(function (item) {
-            // P-value badge color
-            var pBadge = '';
-            if (item.difficultyIndex > 0.70) pBadge = '<span class="badge bg-success">Mudah</span>';
-            else if (item.difficultyIndex >= 0.30) pBadge = '<span class="badge bg-warning text-dark">Sedang</span>';
-            else pBadge = '<span class="badge bg-danger">Sulit</span>';
-
-            // Discrimination index with gray-out if N<30 (D-04)
-            var dVal = item.discriminationIndex !== null && item.discriminationIndex !== undefined ? item.discriminationIndex.toFixed(3) : '—';
-            var dClass = item.isLowN ? 'text-muted' : '';
-            var dWarning = item.isLowN ? ' <span class="badge bg-warning text-dark" style="font-size:0.7rem;">Data belum cukup (N&lt;30)</span>' : '';
-
-            tbody.innerHTML += '<tr data-q="' + item.questionNumber + '" style="cursor:pointer;" onclick="toggleDistractor(' + item.questionNumber + ')">' +
-                '<td>' + item.questionNumber + '</td>' +
-                '<td>' + escapeHtml(item.questionText.substring(0, 80)) + (item.questionText.length > 80 ? '...' : '') + '</td>' +
-                '<td>' + item.difficultyIndex.toFixed(3) + '</td>' +
-                '<td>' + pBadge + '</td>' +
-                '<td class="' + dClass + '">' + dVal + dWarning + '</td>' +
-                '<td>' + item.totalResponden + '</td>' +
-                '</tr>';
-
-            // Distractor analysis (D-05, RPT-03) — collapsible per soal
-            if (item.distractors && item.distractors.length > 0) {
-                distractorHtml += '<div id="distractor-' + item.questionNumber + '" class="mb-3" style="display:none;">' +
-                    '<h6 class="fw-semibold">Soal ' + item.questionNumber + ' — Distractor Analysis</h6>' +
-                    '<table class="table table-sm table-bordered">' +
-                    '<thead><tr><th>Opsi</th><th>Jumlah Pemilih</th><th>Persentase</th><th>Keterangan</th></tr></thead><tbody>';
-                item.distractors.forEach(function (d) {
-                    var rowClass = d.isCorrect ? 'table-success' : '';
-                    var keterangan = d.isCorrect ? '<span class="badge bg-success">Jawaban Benar</span>' : '';
-                    distractorHtml += '<tr class="' + rowClass + '"><td>' + escapeHtml(d.optionText) + '</td><td>' + d.count + '</td><td>' + d.percent + '%</td><td>' + keterangan + '</td></tr>';
-                });
-                distractorHtml += '</tbody></table></div>';
-            }
-        });
-
-        document.getElementById('distractorDetails').innerHTML = distractorHtml;
-    }
-
-    function toggleDistractor(qNum) {
-        var el = document.getElementById('distractor-' + qNum);
-        if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
-    }
-
-    // ============================================================
-    // renderGainScore — tabel per pekerja, per elemen, group comparison
-    // ============================================================
-    function renderGainScore(data) {
-        _gainScoreData = data;
-        if (!data || (!data.perWorker.length && !data.perElemen.length)) {
-            document.getElementById('gainScoreEmpty').style.display = '';
-            document.getElementById('gainScoreEmpty').querySelector('h6').textContent = 'Belum ada data gain score';
-            document.getElementById('gainScoreEmpty').querySelector('p').textContent = 'Belum ada peserta yang menyelesaikan Pre-Test dan Post-Test untuk assessment ini.';
-            document.getElementById('gainScoreContent').style.display = 'none';
-            return;
-        }
-        document.getElementById('gainScoreEmpty').style.display = 'none';
-        document.getElementById('gainScoreContent').style.display = '';
-
-        // Per Worker
-        var wBody = document.getElementById('gainWorkerBody');
-        wBody.innerHTML = '';
-        data.perWorker.forEach(function (w) {
-            wBody.innerHTML += '<tr><td>' + escapeHtml(w.namaPekerja) + '</td><td>' + escapeHtml(w.nip) + '</td><td>' + w.preScore + '</td><td>' + w.postScore + '</td><td class="fw-semibold">' + w.gainScore + '</td></tr>';
-        });
-
-        // Per Elemen
-        var eBody = document.getElementById('gainElemenBody');
-        eBody.innerHTML = '';
-        data.perElemen.forEach(function (e) {
-            eBody.innerHTML += '<tr><td>' + escapeHtml(e.elemenTeknis) + '</td><td>' + e.avgPre + '</td><td>' + e.avgPost + '</td><td class="fw-semibold">' + e.avgGain + '</td></tr>';
-        });
-
-        // Group Comparison (RPT-07)
-        var gBody = document.getElementById('groupComparisonBody');
-        gBody.innerHTML = '';
-        data.groupComparison.forEach(function (g) {
-            gBody.innerHTML += '<tr><td>' + escapeHtml(g.groupName) + '</td><td>' + g.workerCount + '</td><td>' + g.avgPreScore + '</td><td>' + g.avgPostScore + '</td><td class="fw-semibold">' + g.avgGainScore + '</td></tr>';
-        });
-    }
-
-    function toggleGainView(view) {
-        document.getElementById('gainWorkerView').style.display = view === 'worker' ? '' : 'none';
-        document.getElementById('gainElemenView').style.display = view === 'elemen' ? '' : 'none';
-    }
-
-    // ============================================================
-    // loadAssessmentList — populate dropdown assessment
-    // ============================================================
-    function loadAssessmentList() {
-        var bagian = document.getElementById('filterBagian').value;
-        var unit = document.getElementById('filterUnit') ? document.getElementById('filterUnit').value : '';
-        fetch(appUrl('/CMP/GetPrePostAssessmentList?bagian=' + encodeURIComponent(bagian) + '&unit=' + encodeURIComponent(unit)))
-            .then(function (r) { return r.json(); })
-            .then(function (list) {
-                var sel = document.getElementById('filterAssessment');
-                sel.innerHTML = '<option value="">— Pilih assessment —</option>';
-                if (!list || list.length === 0) {
-                    sel.innerHTML += '<option value="" disabled>Tidak ada assessment Pre-Post Test untuk filter ini</option>';
-                    return;
-                }
-                list.forEach(function (item) {
-                    sel.innerHTML += '<option value="' + item.linkedGroupId + '">' + escapeHtml(item.title) + ' (' + item.totalWorker + ' pekerja)</option>';
-                });
-            })
-            .catch(function () {
-                console.warn('Gagal memuat daftar assessment');
-            });
-    }
-
-    // ============================================================
-    // escapeHtml helper
-    // ============================================================
-    function escapeHtml(str) {
-        if (!str) return '';
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    // ============================================================
-    // Export functions
-    // ============================================================
-    function exportItemAnalysis() {
-        var assessmentGroupId = document.getElementById('filterAssessment').value;
-        if (!assessmentGroupId) { alert('Pilih assessment terlebih dahulu.'); return; }
-        window.location.href = appUrl('/CMP/ExportItemAnalysisExcel?assessmentGroupId=' + assessmentGroupId);
-    }
-
-    function exportGainScore() {
-        var assessmentGroupId = document.getElementById('filterAssessment').value;
-        if (!assessmentGroupId) { alert('Pilih assessment terlebih dahulu.'); return; }
-        window.location.href = appUrl('/CMP/ExportGainScoreExcel?assessmentGroupId=' + assessmentGroupId);
-    }
-
-    // ============================================================
-    // Tab show/hide filterAssessmentGroup + reload data
-    // ============================================================
-    document.getElementById('analyticsTabs').addEventListener('shown.bs.tab', function (e) {
-        var href = e.target.getAttribute('href');
-        var isAnalysisTab = href === '#tabItemAnalysis' || href === '#tabGainScore';
-        document.getElementById('filterAssessmentGroup').style.display = isAnalysisTab ? '' : 'none';
-
-        // If Gain Score not available (no assessment), show "tidak tersedia" empty state
-        if (href === '#tabGainScore' && !document.getElementById('filterAssessment').value) {
-            var empty = document.getElementById('gainScoreEmpty');
-            empty.style.display = '';
-            empty.querySelector('h6').textContent = 'Gain Score tidak tersedia';
-            empty.querySelector('p').textContent = 'Laporan ini hanya tersedia untuk assessment bertipe Pre-Post Test.';
-            document.getElementById('gainScoreContent').style.display = 'none';
-        }
-    });
-
-    // ============================================================
-    // Cascade dropdown: Bagian → Unit
-    // ============================================================
-    document.getElementById('filterBagian').addEventListener('change', function () {
-        var val = this.value;
-        var unitEl = document.getElementById('filterUnit');
-        unitEl.innerHTML = '<option value="">Semua Unit</option>';
-        if (!val) {
-            unitEl.disabled = true;
-        } else {
-            fetch(appUrl('/CMP/GetAnalyticsCascadeUnits?bagian=' + encodeURIComponent(val)))
-                .then(function (r) { return r.json(); })
-                .then(function (units) {
-                    units.forEach(function (u) {
-                        var opt = document.createElement('option');
-                        opt.value = u; opt.textContent = u;
-                        unitEl.appendChild(opt);
-                    });
-                    unitEl.disabled = false;
-                });
-        }
-
-        // Reload assessment list if analysis tab active
-        var activeLink = document.querySelector('#analyticsTabs .nav-link.active');
-        if (activeLink) {
-            var href = activeLink.getAttribute('href');
-            if (href === '#tabItemAnalysis' || href === '#tabGainScore') {
-                loadAssessmentList();
-            }
-        }
-    });
-
-    // ============================================================
-    // Cascade dropdown: Kategori → SubKategori
-    // ============================================================
-    document.getElementById('filterKategori').addEventListener('change', function () {
-        var val = this.value;
-        var subEl = document.getElementById('filterSubKategori');
-        subEl.innerHTML = '<option value="">Semua SubKategori</option>';
-        if (!val) {
-            subEl.disabled = true;
-            return;
-        }
-        fetch(appUrl('/CMP/GetAnalyticsCascadeSubKategori?kategori=' + encodeURIComponent(val)))
-            .then(function (r) { return r.json(); })
-            .then(function (subs) {
-                subs.forEach(function (s) {
-                    var opt = document.createElement('option');
-                    opt.value = s; opt.textContent = s;
-                    subEl.appendChild(opt);
-                });
-                subEl.disabled = false;
-            });
-    });
-
-    // ============================================================
-    // Button handlers
-    // ============================================================
-    document.getElementById('btnApply').addEventListener('click', function () {
-        var activeLink = document.querySelector('#analyticsTabs .nav-link.active');
-        var activeHref = activeLink ? activeLink.getAttribute('href') : '';
-        var isAnalysisTab = activeHref === '#tabItemAnalysis' || activeHref === '#tabGainScore';
-
-        if (isAnalysisTab) {
-            refreshActiveTab();
-        } else {
-            refreshAnalytics();
-        }
-    });
-
-    document.getElementById('btnReset').addEventListener('click', function () {
-        document.getElementById('filterBagian').value = '';
-        var unitEl = document.getElementById('filterUnit');
-        unitEl.innerHTML = '<option value="">Semua Unit</option>';
-        unitEl.disabled = true;
-
-        document.getElementById('filterKategori').value = '';
-        var subEl = document.getElementById('filterSubKategori');
-        subEl.innerHTML = '<option value="">Semua SubKategori</option>';
-        subEl.disabled = true;
-
-        document.getElementById('filterAssessment').innerHTML = '<option value="">— Pilih assessment —</option>';
-
-        // Reset dates to defaults
-        var today = new Date();
-        var oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-        document.getElementById('filterStart').value = oneYearAgo.toISOString().slice(0, 10);
-        document.getElementById('filterEnd').value = today.toISOString().slice(0, 10);
-
-        refreshAnalytics();
-    });
-
-    // ============================================================
-    // DOMContentLoaded — set default dates, initial load
-    // ============================================================
-    document.addEventListener('DOMContentLoaded', function () {
-        var today = new Date();
-        var oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-        document.getElementById('filterStart').value = oneYearAgo.toISOString().slice(0, 10);
-        document.getElementById('filterEnd').value = today.toISOString().slice(0, 10);
-        refreshAnalytics();
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+<script src="~/js/analyticsDashboard.js"></script>
 }
