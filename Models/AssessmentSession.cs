@@ -153,6 +153,13 @@ namespace HcPortal.Models
         /// </summary>
         public bool HasManualGrading { get; set; } = false;
 
+        /// <summary>
+        /// True jika Post-Test ini menggunakan paket soal yang sama dengan Pre-Test linked-nya.
+        /// Hanya relevan untuk session dengan AssessmentType == "PostTest".
+        /// Saat true, ManagePackages di-lock dan package otomatis disalin dari Pre-Test.
+        /// </summary>
+        public bool SamePackage { get; set; } = false;
+
         // ===== Phase 302: Extra Time Accessibility =====
         /// <summary>
         /// Akumulasi extra time (menit) yang ditambahkan HC untuk sesi ini.
