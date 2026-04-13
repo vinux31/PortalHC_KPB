@@ -3921,23 +3921,18 @@ namespace HcPortal.Controllers
                 ViewBag.PreSessionId = assessment.LinkedSessionId.Value;
             }
 
+            // SamePackage lock: jika Post-Test dengan SamePackage=true, lock editing
+            ViewBag.IsSamePackageLocked = isPostSession && assessment.SamePackage;
+
             return View();
         }
 
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CopyPackagesFromPre(int postSessionId)
+        /// <summary>
+        /// Deep-clones all packages+questions+options from Pre-Test session to Post-Test session.
+        /// Deletes existing Post packages first.
+        /// </summary>
+        private async Task SyncPackagesToPost(int preSessionId, int postSessionId)
         {
-            var postSession = await _context.AssessmentSessions.FindAsync(postSessionId);
-            if (postSession == null || postSession.AssessmentType != "PostTest" || !postSession.LinkedSessionId.HasValue)
-            {
-                TempData["Error"] = "Sesi Post-Test tidak valid.";
-                return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
-            }
-
-            int preSessionId = postSession.LinkedSessionId.Value;
-
             // Hapus paket Post yang ada
             var existingPostPkgs = await _context.AssessmentPackages
                 .Include(p => p.Questions).ThenInclude(q => q.Options)
@@ -3976,6 +3971,8 @@ namespace HcPortal.Controllers
                         ScoreValue = q.ScoreValue,
                         QuestionType = q.QuestionType,
                         ElemenTeknis = q.ElemenTeknis,
+                        Rubrik = q.Rubrik,
+                        MaxCharacters = q.MaxCharacters,
                         Options = q.Options.Select(o => new PackageOption
                         {
                             OptionText = o.OptionText,
@@ -3988,8 +3985,25 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+        }
 
-            TempData["Success"] = $"Berhasil menyalin {prePkgs.Count} paket soal dari Pre-Test.";
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CopyPackagesFromPre(int postSessionId)
+        {
+            var postSession = await _context.AssessmentSessions.FindAsync(postSessionId);
+            if (postSession == null || postSession.AssessmentType != "PostTest" || !postSession.LinkedSessionId.HasValue)
+            {
+                TempData["Error"] = "Sesi Post-Test tidak valid.";
+                return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
+            }
+
+            int preSessionId = postSession.LinkedSessionId.Value;
+            await SyncPackagesToPost(preSessionId, postSessionId);
+
+            var preCount = await _context.AssessmentPackages.CountAsync(p => p.AssessmentSessionId == preSessionId);
+            TempData["Success"] = $"Berhasil menyalin {preCount} paket soal dari Pre-Test.";
             return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
         }
 
@@ -4020,6 +4034,17 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = $"Package '{packageName}' created.";
+
+            // Auto-sync: jika ini Pre-Test session dan ada Post-Test dengan SamePackage=true
+            if (assessment.AssessmentType == "PreTest" && assessment.LinkedSessionId.HasValue)
+            {
+                var postSession = await _context.AssessmentSessions.FindAsync(assessment.LinkedSessionId.Value);
+                if (postSession != null && postSession.SamePackage)
+                {
+                    await SyncPackagesToPost(assessment.Id, postSession.Id);
+                }
+            }
+
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
 
@@ -4076,6 +4101,18 @@ namespace HcPortal.Controllers
             catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeletePackage (packageId={Id})", packageId); }
 
             TempData["Success"] = $"Package '{pkg.PackageName}' deleted.";
+
+            // Auto-sync: jika ini Pre-Test session, sync ke Post jika SamePackage=true
+            var deletedFromSession = await _context.AssessmentSessions.FindAsync(assessmentId);
+            if (deletedFromSession?.AssessmentType == "PreTest" && deletedFromSession.LinkedSessionId.HasValue)
+            {
+                var postSession = await _context.AssessmentSessions.FindAsync(deletedFromSession.LinkedSessionId.Value);
+                if (postSession != null && postSession.SamePackage)
+                {
+                    await SyncPackagesToPost(deletedFromSession.Id, postSession.Id);
+                }
+            }
+
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
 
@@ -4698,6 +4735,22 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Soal berhasil ditambahkan.";
+
+            // Auto-sync to Post if SamePackage=true
+            var parentPkgCQ = await _context.AssessmentPackages.FindAsync(packageId);
+            if (parentPkgCQ != null)
+            {
+                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgCQ.AssessmentSessionId);
+                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
+                {
+                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
+                    if (linkedPost != null && linkedPost.SamePackage)
+                    {
+                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
+                    }
+                }
+            }
+
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
 
@@ -4819,6 +4872,22 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Soal berhasil diperbarui.";
+
+            // Auto-sync to Post if SamePackage=true
+            var parentPkgEQ = await _context.AssessmentPackages.FindAsync(packageId);
+            if (parentPkgEQ != null)
+            {
+                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgEQ.AssessmentSessionId);
+                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
+                {
+                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
+                    if (linkedPost != null && linkedPost.SamePackage)
+                    {
+                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
+                    }
+                }
+            }
+
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
 
@@ -4843,6 +4912,22 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Soal berhasil dihapus.";
+
+            // Auto-sync to Post if SamePackage=true
+            var parentPkgDQ = await _context.AssessmentPackages.FindAsync(packageId);
+            if (parentPkgDQ != null)
+            {
+                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgDQ.AssessmentSessionId);
+                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
+                {
+                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
+                    if (linkedPost != null && linkedPost.SamePackage)
+                    {
+                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
+                    }
+                }
+            }
+
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
 
