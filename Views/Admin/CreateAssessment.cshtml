@@ -924,11 +924,14 @@ function generateToken() {
                     }
                 }
 
-                // Status still required
-                var status = document.getElementById('Status');
-                if (!status || !status.value) {
-                    if (status) status.classList.add('is-invalid');
-                    valid = false;
+                // Status required only if visible
+                var statusWrapper = document.getElementById('statusFieldWrapper');
+                if (!statusWrapper || !statusWrapper.classList.contains('d-none')) {
+                    var status = document.getElementById('Status');
+                    if (!status || !status.value) {
+                        if (status) status.classList.add('is-invalid');
+                        valid = false;
+                    }
                 }
             } else {
                 // Standard jadwal validation
@@ -1221,6 +1224,20 @@ function generateToken() {
             var isProton = this.value === 'Assessment Proton';
             applyProtonMode(isProton);
 
+            // Poin 11: Proton tidak support Pre-Post Test
+            var typeSelect = document.getElementById('assessmentTypeInput');
+            if (typeSelect) {
+                if (isProton) {
+                    typeSelect.value = 'Standard';
+                    typeSelect.disabled = true;
+                    typeSelect.title = 'Assessment Proton hanya mendukung tipe Standard';
+                    typeSelect.dispatchEvent(new Event('change'));
+                } else {
+                    typeSelect.disabled = false;
+                    typeSelect.title = '';
+                }
+            }
+
             // Update PassPercentage default from data-pass-percentage
             var selected = this.options[this.selectedIndex];
             var defaultPct = selected ? parseInt(selected.getAttribute('data-pass-percentage') || '0') : 0;
@@ -1232,6 +1249,12 @@ function generateToken() {
         // On load, apply if already selected
         if (categorySelect.value === 'Assessment Proton') {
             applyProtonMode(true);
+        }
+
+        // Init: disable type select if Proton already selected
+        if (categorySelect && categorySelect.value === 'Assessment Proton') {
+            var ts = document.getElementById('assessmentTypeInput');
+            if (ts) { ts.value = 'Standard'; ts.disabled = true; ts.title = 'Assessment Proton hanya mendukung tipe Standard'; }
         }
     }
 
@@ -1606,12 +1629,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!typeSelect) return;
 
     typeSelect.addEventListener('change', function() {
+        var statusWrapper = document.getElementById('statusFieldWrapper');
+        var certNote = document.getElementById('prePostCertNote');
+
         if (this.value === 'PrePostTest') {
             pptSection.classList.add('show');
             if (stdSection) stdSection.classList.add('d-none');
+            // Hide Status dropdown (Pre-Post always Upcoming)
+            if (statusWrapper) statusWrapper.classList.add('d-none');
+            // Show cert note
+            if (certNote) certNote.classList.remove('d-none');
         } else {
             pptSection.classList.remove('show');
             if (stdSection) stdSection.classList.remove('d-none');
+            if (statusWrapper) statusWrapper.classList.remove('d-none');
+            if (certNote) certNote.classList.add('d-none');
         }
     });
 
