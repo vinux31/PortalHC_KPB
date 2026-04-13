@@ -1723,6 +1723,22 @@ function generateToken() {
             var sf = document.getElementById('sectionFilter');
             if (sf) sf.value = '';
             document.querySelectorAll('#userCheckboxContainer .user-check-item').forEach(function(item) { item.style.display = ''; });
+
+            // Poin 10: reset assessment type to Standard
+            var typeSelect = document.getElementById('assessmentTypeInput');
+            if (typeSelect) {
+                typeSelect.value = 'Standard';
+                typeSelect.disabled = false;
+                typeSelect.title = '';
+                typeSelect.dispatchEvent(new Event('change'));
+            }
+
+            // Reset category
+            var catSelect = document.getElementById('Category');
+            if (catSelect) {
+                catSelect.value = '';
+                catSelect.dispatchEvent(new Event('change'));
+            }
         });
     } catch(e) {
         console.error('Error parsing created assessment data:', e);
