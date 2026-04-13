@@ -115,7 +115,7 @@
   <div class="cover-icon">&#128247;</div>
   <h1>Screenshot Guide</h1>
   <p class="subtitle">HC Portal KPB — Panduan Visual Lengkap Setiap Halaman</p>
-  <p class="version">Versi 2.1 &mdash; April 2026</p>
+  <p class="version">Versi 2.0 &mdash; Maret 2026</p>
   <div class="audience">Semua Pengguna</div>
   <div style="margin-top: 20px; font-size: 9.5pt; color: #888;">
     <span class="badge badge-blue">Semua</span>
@@ -142,13 +142,13 @@
     <li>
       <a href="#sec-cmp">CMP — Competency Management Portal</a>
       <ul class="toc-sub">
-        <li>Hub, Dokumen KKJ, Assessment, Ujian, Hasil, Sertifikat, Records, Analytics, Budget Training, Sertifikasi Management</li>
+        <li>Hub, Dokumen KKJ, Assessment, Ujian, Hasil, Sertifikat, Records, Analytics</li>
       </ul>
     </li>
     <li>
       <a href="#sec-cdp">CDP — Career Development Portal</a>
       <ul class="toc-sub">
-        <li>Hub, Plan IDP, Coaching Proton, Edit Sesi, Histori, Dashboard, Deliverable, Sertifikasi, Coach Workload, Proton History</li>
+        <li>Hub, Plan IDP, Coaching Proton, Edit Sesi, Histori, Dashboard, Deliverable, Sertifikasi</li>
       </ul>
     </li>
     <li>
@@ -161,7 +161,6 @@
         <li>4E. Training (Tambah, Edit, Import)</li>
         <li>4F. KKJ Files &amp; CPDP Files</li>
         <li>4G. Organisasi, Mapping, Sertifikat, Audit Log</li>
-        <li>4H. Maintenance Mode</li>
       </ul>
     </li>
     <li>
@@ -485,39 +484,10 @@
 <div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
 <h3>Isi Halaman</h3>
 <ol class="steps">
-  <li><strong>Fail Rate per Bagian &amp; Kategori</strong> — Persentase kegagalan assessment per bagian dan kategori.</li>
-  <li><strong>Trend Assessment</strong> — Grafik tren lulus/gagal per bulan untuk analisis waktu.</li>
-  <li><strong>Elemen Teknis Breakdown</strong> — Analisis avg/min/max scoring per elemen teknis.</li>
-  <li><strong>Gain Score Analysis</strong> — Perbandingan skor Pre-Test vs Post-Test untuk assessment Pre-Post.</li>
-  <li><strong>Item Analysis</strong> — Difficulty Index, Discrimination Index, dan analisis Distractors per soal.</li>
-  <li><strong>Multi-level Filtering</strong> — Filter bertingkat: bagian, unit, kategori, sub-kategori dengan drill-down.</li>
-  <li><strong>Export Excel</strong> — Unduh seluruh data analytics ke format Excel.</li>
-</ol>
-
-<!-- 2.12 Budget Training -->
-<h3>2.12 Budget Training</h3>
-<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
-<p>Halaman pengelolaan anggaran pelatihan per bagian dan unit kerja. Diakses via <strong>CMP &rarr; Budget Training</strong>.</p>
-<ol class="steps">
-  <li><strong>Summary Cards</strong> — Total anggaran, realisasi, dan persentase penyerapan.</li>
-  <li><strong>Filter</strong> — Saring data berdasarkan tahun, bagian, unit, dan kategori pelatihan.</li>
-  <li><strong>Inline Edit</strong> — Klik cell realisasi untuk langsung mengubah nilai tanpa membuka form.</li>
-  <li><strong>Bulk Operations</strong> — Pilih beberapa baris lalu gunakan bulk delete atau bulk update.</li>
-  <li><strong>Import Excel</strong> — Upload data anggaran dari file Excel.</li>
-  <li><strong>Export Excel</strong> — Unduh data anggaran ke file Excel.</li>
-  <li><strong>Chart</strong> — Grafik perbandingan anggaran vs realisasi per kategori.</li>
-</ol>
-
-<!-- 2.13 Sertifikasi Management -->
-<h3>2.13 Sertifikasi Management</h3>
-<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
-<p>Halaman manajemen sertifikat kompetensi pekerja. Diakses via <strong>CMP &rarr; Sertifikasi</strong>.</p>
-<ol class="steps">
-  <li><strong>Grouped View</strong> — Daftar sertifikat dikelompokkan per jenis sertifikasi.</li>
-  <li><strong>Filter &amp; Search</strong> — Cari berdasarkan nama pekerja, jenis sertifikat, atau status.</li>
-  <li><strong>Detail Worker</strong> — Klik nama pekerja untuk melihat semua sertifikat yang dimiliki.</li>
-  <li><strong>Masa Berlaku</strong> — Status sertifikat: Active, Expiring Soon (30 hari), Expired.</li>
-  <li><strong>Notifikasi Expired</strong> — Sistem otomatis mengirim notifikasi 30 hari sebelum kadaluarsa.</li>
+  <li><strong>Grafik completion rate</strong> — Persentase assessment yang sudah diselesaikan per unit.</li>
+  <li><strong>Pass rate</strong> — Tingkat kelulusan per kategori dan unit kerja.</li>
+  <li><strong>Filter</strong> — Saring data berdasarkan bagian, unit, dan kategori assessment.</li>
+  <li><strong>Tabel detail</strong> — Data tabular yang mendukung sorting dan export.</li>
 </ol>
 
 <!-- ================================================================== -->
@@ -681,29 +651,6 @@
   <li>Lihat daftar <strong>sertifikasi</strong> beserta status (Pending, Approved, Rejected).</li>
   <li>Klik detail untuk melihat <strong>alur approval</strong> dan catatan.</li>
   <li>(Admin/HC) Gunakan tombol <strong>Export</strong> untuk mengunduh data sertifikasi.</li>
-</ol>
-
-<!-- Coach Workload -->
-<h3>3.X Coach Workload</h3>
-<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
-<p>Halaman analisis beban kerja coach. Diakses via <strong>CDP &rarr; Dashboard &rarr; Coach Workload</strong>.</p>
-<ol class="steps">
-  <li><strong>Summary Cards</strong> — Total coachees, jumlah coach, status balanced/overloaded/underloaded.</li>
-  <li><strong>Threshold Configuration</strong> — Atur batas minimum dan maksimum coachee per coach.</li>
-  <li><strong>Interactive Chart</strong> — Grafik distribusi beban kerja per coach dengan color coding.</li>
-  <li><strong>Rebalancing Suggestions</strong> — Rekomendasi perpindahan coachee untuk menyeimbangkan beban.</li>
-  <li><strong>Export Report</strong> — Unduh laporan workload ke Excel.</li>
-</ol>
-
-<!-- Proton History Timeline -->
-<h3>3.X Proton History (Timeline)</h3>
-<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
-<p>Timeline riwayat coaching per worker. Diakses via <strong>CDP &rarr; Histori Proton</strong>.</p>
-<ol class="steps">
-  <li><strong>Timeline View</strong> — Tampilan kronologis sesi coaching per pekerja.</li>
-  <li><strong>Detail Sesi</strong> — Klik sesi untuk melihat catatan coaching, evidence, dan keputusan.</li>
-  <li><strong>Export Histori</strong> — Unduh riwayat coaching ke file Excel.</li>
-  <li><strong>Coaching Transcript Export</strong> — Export sesi coaching ke PDF atau Excel.</li>
 </ol>
 
 <!-- ================================================================== -->
@@ -1201,17 +1148,6 @@
   <li>Klik <strong>Detail</strong> pada baris tertentu untuk melihat informasi lengkap aksi tersebut.</li>
 </ol>
 
-<!-- Maintenance Mode -->
-<h3>4.X Maintenance Mode</h3>
-<div class="role-bar"><span class="badge badge-orange">Admin</span></div>
-<p>Halaman konfigurasi mode maintenance per modul. Diakses via <strong>Kelola Data &rarr; Maintenance Mode</strong>.</p>
-<ol class="steps">
-  <li><strong>Enable/Disable</strong> — Toggle maintenance mode per modul (CMP, CDP, dll).</li>
-  <li><strong>Custom Message</strong> — Atur pesan yang ditampilkan ke pengguna saat modul dalam maintenance.</li>
-  <li><strong>Estimated End Time</strong> — Tentukan perkiraan waktu selesai maintenance.</li>
-  <li>Pengguna non-admin akan melihat halaman maintenance saat mengakses modul yang sedang dalam maintenance.</li>
-</ol>
-
 <!-- ================================================================== -->
 <!-- SECTION 5: PROTON DATA -->
 <!-- ================================================================== -->
@@ -1327,7 +1263,7 @@
 <!-- FOOTER -->
 <!-- ============================================================ -->
 <div class="footer">
-  HC Portal KPB &mdash; Screenshot Guide v2.1 &mdash; April 2026<br>
+  HC Portal KPB &mdash; Screenshot Guide v2.0 &mdash; Maret 2026<br>
   Total: 50+ halaman &bull; 6 modul &bull; 5 role pengguna
 </div>
 

@@ -175,6 +175,9 @@
                             </select>
                             <div class="invalid-feedback">Pilih kategori assessment.</div>
                             <span asp-validation-for="Category" class="text-danger small"></span>
+                            <div id="category-description" class="mt-2" style="display:none;">
+                                <small class="text-muted"><i class="bi bi-info-circle me-1"></i><span id="category-description-text"></span></small>
+                            </div>
                         </div>
 
                         <!-- Title -->
@@ -1605,5 +1608,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Deskripsi kategori assessment
+(function () {
+    var categoryDescriptions = {
+        'OJT': 'On the Job Training \u2014 pelatihan langsung di tempat kerja untuk meningkatkan keterampilan operasional.',
+        'IHT': 'In House Training \u2014 pelatihan internal yang diselenggarakan di lingkungan perusahaan.',
+        'Training Licencor': 'Pelatihan yang diselenggarakan oleh pemberi lisensi (licensor) untuk memenuhi standar teknologi berlisensi.',
+        'OTS': 'Operator Training Simulator \u2014 pelatihan menggunakan simulator untuk operator kilang.',
+        'Assessment Proton': 'Assessment terkait program Proton (Program Transformasi Operasional & Bisnis).',
+        'Mandatory HSSE Training': 'Pelatihan wajib Health, Safety, Security & Environment yang harus dipenuhi seluruh pekerja.',
+        'Gas Tester': 'Sertifikasi kemampuan pengujian gas untuk keselamatan area kerja kilang.'
+    };
+
+    function updateCategoryDescription(value) {
+        var descDiv = document.getElementById('category-description');
+        var descText = document.getElementById('category-description-text');
+        if (!descDiv || !descText) return;
+        if (value && categoryDescriptions[value]) {
+            descText.textContent = categoryDescriptions[value];
+            descDiv.style.display = '';
+        } else {
+            descDiv.style.display = 'none';
+            descText.textContent = '';
+        }
+    }
+
+    var categorySelect = document.getElementById('Category');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function () {
+            updateCategoryDescription(this.value);
+        });
+        // Trigger on page load jika nilai sudah terisi (mis. validation re-render)
+        updateCategoryDescription(categorySelect.value);
+    }
+})();
 </script>
 }
