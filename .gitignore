@@ -501,7 +501,6 @@ test.txt
 # Temp/debug artifacts
 *.png
 !wwwroot/**/*.png
-!report-screenshots/**/*.png
 *.db
 *.db-shm
 *.db-wal
@@ -509,5 +508,10 @@ test.txt
 
 # Cookie/session test files
 cookie_*
+cookies.txt
 .aspnet_cookies
 null
+
+# Utility scripts (SQL fix, etc.)
+*.ps1
+*.bat
