@@ -339,6 +339,24 @@ else if (module == "admin")
                     </div>
                 </div>
             </div>
+
+            <!-- CDP 8: Historik Proton & Export -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading8">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse8">
+                        Cara Melihat Historik Proton & Export Laporan
+                    </button>
+                </h2>
+                <div id="cdpCollapse8" class="accordion-collapse collapse" data-bs-parent="">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Lihat Historik Proton</strong><span>Di halaman CDP, klik <b>Historik Proton</b> untuk melihat riwayat coaching per periode. Data ditampilkan berdasarkan periode Proton yang telah berjalan.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Export Laporan</strong><span>Gunakan tombol <b>Export Excel</b> atau <b>Export PDF</b> untuk mengunduh laporan progress coaching dan deliverable.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Laporan Admin/HC</strong><span>Untuk Admin dan HC: akses <b>Bottleneck Report</b> untuk melihat deliverable yang terhambat dan <b>Workload Summary</b> untuk memantau beban kerja coach.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         }
         else if (module == "account")
         {
@@ -633,39 +651,19 @@ else if (module == "admin")
                 </div>
             </div>
 
-            <!-- Admin Panel 13: Manage Positions -->
-            <div class="guide-list-item accordion-item">
-                <h2 class="accordion-header" id="admHeading10">
-                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse10">
-                        Cara Kelola Positions (Jabatan)
-                    </button>
-                </h2>
-                <div id="admCollapse10" class="accordion-collapse collapse" data-bs-parent="">
-                    <div class="accordion-body guide-list-body">
-                        <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Positions</strong><span>Pilih <b>Admin Panel → Kelola Positions</b> untuk mengelola daftar jabatan di organisasi.</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Tambah Jabatan Baru</strong><span>Klik <b>Tambah Position</b>, masukkan nama jabatan, kode, level/jenjang, dan deskripsi tanggung jawab.</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Mapping KKJ ke Position</strong><span>Assign KKJ (Kebutuhan Kompetensi Jabatan) yang sesuai untuk setiap jabatan agar sistem dapat merekomendasikan assessment dan training.</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Set Level Jabatan</strong><span>Tentukan jenjang karier (Staff, Supervisor, Manager, dll) untuk mengatur hak akses dan kategori development path.</span></div></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Panel 14: Manage Notifications -->
+            <!-- Admin Panel 13: Sistem Notifikasi -->
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="admHeading11">
                     <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse11">
-                        Cara Kelola Notifications
+                        Memahami Sistem Notifikasi
                     </button>
                 </h2>
                 <div id="admCollapse11" class="accordion-collapse collapse" data-bs-parent="">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Notifications</strong><span>Pilih <b>Admin Panel → Kelola Notifications</b> untuk membuat pengumuman sistem.</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buat Notification Baru</strong><span>Klik <b>Buat Notification</b>, masukkan judul, pesan, dan tipe notifikasi (Info, Warning, Urgent).</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Target Audience</strong><span>Pilih target notifikasi: All Users, specific Role (Admin/HC/Coachee), atau specific Unit kerja.</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Schedule Notifications</strong><span>Atur tanggal aktif dan kedaluwarsa. Notifikasi akan otomatis muncul di dashboard user sesuai periode yang ditentukan.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Notifikasi Otomatis</strong><span>Sistem mengirim notifikasi secara otomatis untuk event penting: <b>Assessment Assigned</b> (saat Anda ditugaskan assessment baru), <b>Evidence Submitted</b> (saat coachee submit evidence), <b>Evidence Approved/Rejected</b> (saat reviewer memproses evidence).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Coaching Notifications</strong><span>Notifikasi juga dikirim untuk event coaching: <b>Coaching Session Completed</b>, <b>Deliverable Status Changed</b>, dan <b>Approval Chain Updated</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Cek Notifikasi</strong><span>Semua notifikasi muncul di <b>ikon lonceng (bell icon)</b> di navbar kanan atas. Klik untuk melihat daftar notifikasi terbaru dan klik item untuk navigasi langsung ke halaman terkait.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -675,16 +673,15 @@ else if (module == "admin")
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="admHeading12">
                     <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse12">
-                        System Settings & Configuration
+                        Maintenance Mode & Impersonate User
                     </button>
                 </h2>
                 <div id="admCollapse12" class="accordion-collapse collapse" data-bs-parent="">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka System Settings</strong><span>Pilih <b>Admin Panel → System Settings</b> untuk mengakses konfigurasi global portal.</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Configure Assessment Defaults</strong><span>Set durasi default assessment, passing grade standar, dan jumlah maksimal percobaan (retake).</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Manage System Parameters</strong><span>Atur parameter sistem seperti maksimal upload size, format file yang diizinkan, dan timeout session.</span></div></li>
-                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Global Portal Settings</strong><span>Konfigurasi nama organisasi, logo, email admin sistem, dan pengaturan email notifications.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Aktifkan Maintenance Mode</strong><span>Buka <b>Admin Panel → Maintenance Mode</b> untuk mengaktifkan mode pemeliharaan. Pilih scope: <b>All</b> (seluruh sistem) atau modul tertentu (CMP, CDP, dll).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Impersonate User</strong><span>Buka <b>Admin Panel → Impersonate</b> untuk login sebagai user lain. Fitur ini berguna untuk debugging dan testing — Anda dapat melihat tampilan sistem dari sudut pandang user tertentu tanpa mengetahui password mereka.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Kembali ke Akun Asli</strong><span>Setelah selesai impersonate, klik banner kuning di bagian atas halaman atau klik <b>Stop Impersonating</b> untuk kembali ke akun Admin Anda.</span></div></li>
                         </ul>
                     </div>
                 </div>

@@ -9,14 +9,14 @@
     // Guide counts: accordion items + PDF tutorial card per module per role
     // CMP: 3 accordion items (all users) + 1 Admin/HC accordion + 1 PDF tutorial card
     int cmpCount = isAdminOrHc ? 5 : 4;
-    // CDP: 2 accordion items (all users) + 2 Admin/HC accordions + 1 PDF tutorial card
-    int cdpCount = isAdminOrHc ? 5 : 3;
+    // CDP: 3 accordion items (all users) + 2 Admin/HC accordions + 1 PDF tutorial card
+    int cdpCount = isAdminOrHc ? 6 : 4;
     // Account: 4 accordion items, no PDF tutorial
     int accountCount = 4;
     // Kelola Data: 3 accordion items (Admin/HC only)
     int dataCount = 3;
-    // Admin Panel: 12 accordion items + 1 AD tutorial card
-    int adminCount = 13;
+    // Admin Panel: 11 accordion items + 1 AD tutorial card
+    int adminCount = 12;
     // Note: FAQ counts are dynamic (Admin & Kelola Data has 9 items for Admin/HC)
 }
 
@@ -264,7 +264,17 @@
                 <i class="bi bi-chevron-down faq-chevron"></i>
             </button>
             <div id="faq8b" class="collapse faq-answer">
-                Tersedia 6 kategori assessment: <strong>Assessment OJ</strong> (On the Job), <strong>IHT</strong> (In House Training), <strong>Licencor</strong> (Training Licencor/Sertifikasi), <strong>OTS</strong> (On The Spot), <strong>Mandatory HSSE Training</strong>, dan <strong>Assessment Proton</strong> (terkait program Coaching Proton).
+                Tersedia 6 kategori assessment: <strong>Assessment OJ</strong> (On the Job), <strong>IHT</strong> (In House Training), <strong>Licencor</strong> (Training Licencor/Sertifikasi), <strong>OTS</strong> (On The Spot), <strong>Mandatory HSSE Training</strong>, dan <strong>Assessment Proton</strong> (terkait program Coaching Proton). Selain itu, tersedia juga tipe <strong>Pre-Post Test</strong> untuk mengukur peningkatan kompetensi sebelum dan sesudah program pelatihan.
+            </div>
+        </div>
+
+        <div class="faq-item searchable-faq" data-keywords="pre-post test pretest posttest gain score peningkatan kompetensi">
+            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq8d" aria-expanded="false">
+                Apa itu assessment Pre-Post Test?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div id="faq8d" class="collapse faq-answer">
+                Pre-Post Test adalah tipe assessment khusus untuk mengukur <strong>peningkatan kompetensi</strong> sebelum dan sesudah program pelatihan. Peserta mengerjakan <strong>Pre-Test</strong> sebelum pelatihan dan <strong>Post-Test</strong> setelah pelatihan, dengan jadwal yang ditentukan oleh Admin. Hasil kedua test dibandingkan untuk mengukur <strong>Gain Score</strong> (selisih peningkatan nilai).
             </div>
         </div>
 
@@ -274,7 +284,7 @@
                 <i class="bi bi-chevron-down faq-chevron"></i>
             </button>
             <div id="faq8c" class="collapse faq-answer">
-                Ya, beberapa sertifikat memiliki <strong>masa berlaku</strong> yang ditentukan Admin. Sistem akan mengirim <strong>notifikasi otomatis</strong> saat sertifikat Anda akan kadaluarsa dalam 30 hari. Sertifikat yang sudah kadaluarsa perlu di-renew melalui assessment ulang yang dijadwalkan oleh HC.
+                Ya, beberapa sertifikat memiliki <strong>masa berlaku</strong> yang ditentukan Admin. Sertifikat yang mendekati masa kadaluarsa akan ditandai dengan status <strong>Akan Expired</strong> di halaman <strong>Analytics Dashboard</strong> (CMP) dan <strong>Renewal Management</strong> (Admin Panel). Periksa secara berkala dan hubungi HC untuk proses renewal assessment.
             </div>
         </div>
     </div>
@@ -365,7 +375,14 @@
                 <i class="bi bi-chevron-down faq-chevron"></i>
             </button>
             <div id="faq16" class="collapse faq-answer">
-                Role Anda ditampilkan di <strong>navbar kanan atas</strong>, di bawah nama Anda (contoh: badge "HC", "Admin", "Coachee"). Role juga ditampilkan di halaman ini pada bagian Hero di atas.
+                Sistem HC Portal memiliki <strong>10 role</strong> dengan 6 level akses:<br><br>
+                <strong>Level 1 — Admin</strong>: Akses penuh ke seluruh fitur dan konfigurasi sistem<br>
+                <strong>Level 2 — HC</strong>: Akses penuh untuk pengelolaan SDM dan coaching<br>
+                <strong>Level 3 — Direktur, VP, Manager</strong>: Akses manajemen untuk monitoring seluruh section/unit<br>
+                <strong>Level 4 — Section Head, Sr Supervisor</strong>: Akses monitoring pada level section masing-masing serta review deliverable<br>
+                <strong>Level 5 — Coach, Supervisor</strong>: Akses coaching dan pengelolaan coachee yang di-assign<br>
+                <strong>Level 6 — Coachee</strong>: Akses untuk mengerjakan assessment, melihat silabus, dan mengelola deliverable pribadi<br><br>
+                Role Anda ditampilkan di <strong>navbar kanan atas</strong> sebagai badge di bawah nama Anda.
             </div>
         </div>
 
