@@ -817,8 +817,19 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("PassPercentage", "Pass Percentage must be between 0 and 100.");
             }
 
-            // ExamWindowCloseDate is optional — remove from ModelState to prevent accidental validation failure
-            ModelState.Remove("ExamWindowCloseDate");
+            // ExamWindowCloseDate validation
+            ModelState.Remove("ExamWindowCloseDate"); // Remove model binding error first
+            if (!isPrePostMode)
+            {
+                if (!model.ExamWindowCloseDate.HasValue)
+                {
+                    ModelState.AddModelError("ExamWindowCloseDate", "Tanggal tutup ujian wajib diisi.");
+                }
+                else if (model.ExamWindowCloseDate < model.Schedule)
+                {
+                    ModelState.AddModelError("ExamWindowCloseDate", "Tanggal tutup ujian tidak boleh sebelum tanggal jadwal.");
+                }
+            }
             // ValidUntil: opsional di normal mode, wajib di renewal mode
             bool isRenewalModePost = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue || !string.IsNullOrEmpty(RenewalFkMap);
             ModelState.Remove("ValidUntil");
@@ -887,6 +898,12 @@ namespace HcPortal.Controllers
                 // D-06: Schedule Post harus setelah Pre (T-297-02)
                 if (PreSchedule.HasValue && PostSchedule.HasValue && PostSchedule <= PreSchedule)
                     ModelState.AddModelError("PostSchedule", "Jadwal Post-Test harus setelah jadwal Pre-Test.");
+
+                // EWCD wajib untuk Pre-Post
+                if (!PreExamWindowCloseDate.HasValue)
+                    ModelState.AddModelError("PreExamWindowCloseDate", "Batas waktu pengerjaan Pre-Test wajib diisi.");
+                if (!PostExamWindowCloseDate.HasValue)
+                    ModelState.AddModelError("PostExamWindowCloseDate", "Batas waktu pengerjaan Post-Test wajib diisi.");
 
                 // Override model fields agar validasi standar Schedule/Duration tidak gagal
                 if (PreSchedule.HasValue) model.Schedule = PreSchedule.Value;
@@ -1105,7 +1122,8 @@ namespace HcPortal.Controllers
                                 CreatedBy = currentUser?.Id,
                                 BannerColor = model.BannerColor,
                                 RenewsSessionId = model.RenewsSessionId, // D-24: renewal FK hanya di Post
-                                RenewsTrainingId = model.RenewsTrainingId
+                                RenewsTrainingId = model.RenewsTrainingId,
+                                SamePackage = SamePackage
                             };
                             postSessions.Add(postSession);
                         }
