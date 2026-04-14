@@ -27,7 +27,14 @@ namespace HcPortal.Models
         public static class FileValidation
         {
             public const long MaxCertificateFileSizeBytes = 10 * 1024 * 1024; // 10MB
-            public static readonly string[] AllowedCertificateExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+
+            /// <summary>
+            /// Allowed certificate file extensions. Case-insensitive lookup.
+            /// </summary>
+            public static readonly HashSet<string> AllowedCertificateExtensions = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ".pdf", ".jpg", ".jpeg", ".png"
+            };
         }
     }
 }
