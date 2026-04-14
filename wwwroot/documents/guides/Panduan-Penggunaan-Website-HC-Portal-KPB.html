@@ -138,7 +138,7 @@
   <p class="subtitle">Human Capital Portal &mdash; Kilang Pertamina Balikpapan</p>
   <p class="subtitle">Panduan lengkap untuk seluruh fitur dan modul sistem</p>
   <div class="audience">Untuk Admin, HC &amp; IT</div>
-  <p class="version">Versi 1.0 &bull; Maret 2026</p>
+  <p class="version">Versi 2.0 &bull; April 2026</p>
 </div>
 
 <!-- ============================================================ -->
@@ -149,7 +149,7 @@
   <ol>
     <li><a href="#bab1">Pendahuluan &amp; Struktur Role</a>
       <ul class="toc-sub">
-        <li><a href="#bab1d">1.4 Flow Process Assessment (CMP)</a> &mdash; Assessment OJT vs Assessment Proton (Tahun 1, 2, 3)</li>
+        <li><a href="#bab1d">1.4 Flow Process Assessment (CMP)</a> &mdash; 6 Kategori, Tipe Standard &amp; Pre-Post Test, Assessment Proton</li>
         <li><a href="#bab1e">1.5 Flow Process Coaching Proton (CDP)</a> &mdash; Perbedaan Tahun 1, 2, 3</li>
       </ul>
     </li>
@@ -161,6 +161,7 @@
         <li><a href="#bab4b">4.2 Assessment (Ujian Kompetensi)</a></li>
         <li><a href="#bab4c">4.3 Assessment Records &amp; Laporan</a></li>
         <li><a href="#bab4d">4.4 Analytics Dashboard</a></li>
+        <li><a href="#bab4e">4.5 Budget Training</a></li>
       </ul>
     </li>
     <li><a href="#bab5">CDP &mdash; Continuous Development Program</a>
@@ -183,6 +184,9 @@
         <li><a href="#bab6g">6.7 Training Records</a></li>
         <li><a href="#bab6h">6.8 Renewal Certificate</a></li>
         <li><a href="#bab6i">6.9 Audit Log</a></li>
+        <li><a href="#bab6j">6.10 Coach Workload</a></li>
+        <li><a href="#bab6k">6.11 Maintenance Mode</a></li>
+        <li><a href="#bab6l">6.12 Impersonation</a></li>
       </ul>
     </li>
     <li><a href="#bab7">Proton Data &mdash; Silabus &amp; Kompetensi</a>
@@ -286,12 +290,101 @@
   </tr>
 </table>
 
-<p>Di pojok kanan atas terdapat menu pengguna: <strong>My Profile</strong>, <strong>Settings</strong>, dan <strong>Logout</strong>.</p>
+<p>Di pojok kanan atas terdapat: ikon <strong>lonceng notifikasi</strong> (dengan badge angka untuk notifikasi belum dibaca), serta menu pengguna: <strong>My Profile</strong>, <strong>Settings</strong>, dan <strong>Logout</strong>.</p>
 
 <!-- 1.4 Flow Process Assessment (CMP) -->
 <h3 id="bab1d">1.4 Flow Process Assessment (CMP)</h3>
-<p>Sistem assessment di HC Portal memiliki <strong>dua jenis</strong> yang berbeda:</p>
 
+<h4>Kategori Assessment</h4>
+<p>Sistem assessment di HC Portal memiliki <strong>6 kategori</strong>:</p>
+
+<table>
+  <tr>
+    <th>Kategori</th>
+    <th>Deskripsi</th>
+  </tr>
+  <tr>
+    <td><span class="badge badge-blue">Assessment OJ</span></td>
+    <td>Assessment On the Job &mdash; ujian kompetensi berbasis unit kerja (Alkylation, RFCC NHT, dll)</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-green">IHT</span></td>
+    <td>In House Training &mdash; assessment terkait pelatihan internal perusahaan</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-orange">Licencor</span></td>
+    <td>Training Licencor / Sertifikasi &mdash; assessment terkait lisensi dan sertifikasi eksternal</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-gray">OTS</span></td>
+    <td>On The Spot &mdash; assessment yang dilakukan langsung di lapangan</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-red">Mandatory HSSE Training</span></td>
+    <td>Assessment wajib terkait Health, Safety, Security &amp; Environment</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-purple">Assessment Proton</span></td>
+    <td>Assessment terkait program Coaching Proton (per track: Panelman / Operator, Tahun 1-3)</td>
+  </tr>
+</table>
+
+<h4>Tipe Assessment</h4>
+<p>Selain kategori, setiap assessment juga memiliki <strong>tipe</strong> yang menentukan alur pelaksanaan:</p>
+
+<table>
+  <tr>
+    <th>Tipe</th>
+    <th>Deskripsi</th>
+    <th>Alur</th>
+  </tr>
+  <tr>
+    <td><span class="badge badge-blue">Standard</span></td>
+    <td>Assessment standar dengan satu sesi ujian</td>
+    <td>Peserta mengerjakan soal satu kali dan langsung mendapat hasil</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-purple">Pre-Post Test</span></td>
+    <td>Assessment untuk mengukur peningkatan kompetensi sebelum dan sesudah pelatihan</td>
+    <td>Peserta mengerjakan <strong>Pre-Test</strong> sebelum pelatihan, lalu <strong>Post-Test</strong> setelah pelatihan. Sistem menghitung <strong>Gain Score</strong> (selisih peningkatan nilai)</td>
+  </tr>
+</table>
+
+<div class="info">
+  <div class="info-title">Tentang Pre-Post Test &amp; Gain Score</div>
+  <ul>
+    <li>Pre-Test dan Post-Test di-link secara otomatis dalam satu grup</li>
+    <li>Admin dapat memilih agar Post-Test menggunakan <strong>paket soal yang sama</strong> dengan Pre-Test</li>
+    <li>Jadwal Pre-Test dan Post-Test diatur terpisah (tanggal &amp; waktu berbeda)</li>
+    <li><strong>Gain Score</strong> = Skor Post-Test &minus; Skor Pre-Test, menunjukkan efektivitas pelatihan</li>
+    <li>Hasil Gain Score dapat dilihat di halaman <strong>Analytics Dashboard</strong></li>
+  </ul>
+</div>
+
+<h4>Jenis Soal</h4>
+<p>Assessment mendukung dua jenis soal:</p>
+<table>
+  <tr>
+    <th>Jenis Soal</th>
+    <th>Penilaian</th>
+    <th>Keterangan</th>
+  </tr>
+  <tr>
+    <td><strong>Pilihan Ganda</strong></td>
+    <td>Otomatis oleh sistem</td>
+    <td>Jawaban langsung dikoreksi berdasarkan kunci jawaban</td>
+  </tr>
+  <tr>
+    <td><strong>Essay</strong></td>
+    <td>Manual oleh HC (Manual Grading)</td>
+    <td>HC menilai jawaban essay menggunakan <strong>rubrik scoring</strong>. Assessment berstatus &ldquo;Pending Grading&rdquo; sampai semua essay dinilai.</td>
+  </tr>
+</table>
+
+<h4>Fitur Extra Time (Aksesibilitas)</h4>
+<p>Admin/HC dapat menambahkan <strong>extra time</strong> (waktu tambahan) untuk peserta tertentu selama ujian berlangsung. Fitur ini berguna untuk peserta yang memerlukan akomodasi waktu khusus.</p>
+
+<h4>Ringkasan Kombinasi Assessment</h4>
 <table>
   <tr>
     <th>Jenis</th>
@@ -300,14 +393,14 @@
     <th>Penilaian</th>
   </tr>
   <tr>
-    <td><span class="badge badge-blue">Assessment OJT</span></td>
-    <td>Assessment OJT (per unit, misal: Alkylation, RFCC NHT)</td>
-    <td>Ujian online (pilihan ganda, berdurasi, timer otomatis)</td>
-    <td>Otomatis oleh sistem berdasarkan passing grade</td>
+    <td><span class="badge badge-blue">Assessment OJ / IHT / Licencor / OTS / HSSE</span></td>
+    <td>Per unit atau per program pelatihan</td>
+    <td>Ujian online (pilihan ganda &amp; essay, berdurasi, timer otomatis)</td>
+    <td>Otomatis (PG) + Manual (Essay) berdasarkan passing grade</td>
   </tr>
   <tr>
     <td><span class="badge badge-purple">Assessment Proton</span></td>
-    <td>Assessment Proton (per track: Panelman / Operator)</td>
+    <td>Per track: Panelman / Operator</td>
     <td>Tahun 1 &amp; 2: Ujian online. Tahun 3: Interview offline</td>
     <td>Tahun 1 &amp; 2: Otomatis. Tahun 3: Manual oleh HC</td>
   </tr>
@@ -535,6 +628,9 @@
     <li>Assessment yang sudah selesai dapat di-<strong>reset</strong> oleh Admin untuk memungkinkan peserta mengulang</li>
     <li>Seluruh aktivitas ujian tercatat di <strong>Audit Log</strong></li>
     <li>Assessment Proton Tahun 3 <strong>tidak memerlukan</strong> paket soal maupun durasi &mdash; seluruh penilaian dilakukan melalui interview</li>
+    <li>Assessment bertipe <strong>Pre-Post Test</strong> otomatis membuat dua sesi (Pre-Test &amp; Post-Test) yang saling terhubung</li>
+    <li>Jika assessment mengandung soal <strong>Essay</strong>, status akan &ldquo;Pending Grading&rdquo; hingga HC menyelesaikan penilaian manual</li>
+    <li>Admin/HC dapat menambahkan <strong>Extra Time</strong> untuk peserta tertentu selama ujian berlangsung</li>
   </ul>
 </div>
 
@@ -1087,6 +1183,62 @@ Deliverable (Level 3) &mdash; contoh: "Laporan Observasi Proses"</div>
   <li>Filter berdasarkan bagian, unit, kategori, dan sub-kategori</li>
 </ul>
 
+<h4>Gain Score Analytics (Pre-Post Test)</h4>
+<p>Untuk assessment bertipe <strong>Pre-Post Test</strong>, dashboard menyediakan analitik tambahan:</p>
+<ul>
+  <li><strong>Gain Score per Pekerja</strong> &mdash; Selisih nilai Post-Test dikurangi Pre-Test untuk setiap peserta</li>
+  <li><strong>Gain Score per Elemen</strong> &mdash; Analisis peningkatan per elemen/topik soal</li>
+  <li><strong>Tren Gain Score</strong> &mdash; Grafik tren peningkatan kompetensi dari waktu ke waktu</li>
+  <li><strong>Daftar Assessment Pre-Post</strong> &mdash; List seluruh assessment Pre-Post Test yang telah dilaksanakan beserta rata-rata gain score</li>
+</ul>
+
+<!-- 4.5 Budget Training -->
+<h3 id="bab4e">4.5 Budget Training</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>CMP &rarr; Budget Training</strong></p>
+
+<p>Modul Budget Training memungkinkan pengelolaan anggaran pelatihan secara terintegrasi.</p>
+
+<h4>Fitur Utama</h4>
+<ul>
+  <li><strong>Dashboard Budget</strong> &mdash; Menampilkan ringkasan anggaran rencana vs realisasi per kategori dan tahun</li>
+  <li><strong>Variance Analysis</strong> &mdash; Perbandingan otomatis antara rencana dan realisasi anggaran</li>
+  <li><strong>Filter &amp; Sort</strong> &mdash; Filter berdasarkan kategori, tahun, dan status budget</li>
+  <li><strong>Pagination</strong> &mdash; Navigasi data yang banyak</li>
+</ul>
+
+<h4>Mengelola Budget</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buat Budget Baru</span>
+  </div>
+  <div class="step-body">Klik <strong>Create</strong> untuk membuat item budget baru. Isi kategori, nama pelatihan, tahun, dan nominal rencana.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Update Realisasi</span>
+  </div>
+  <div class="step-body">Gunakan fitur <strong>Quick Update</strong> untuk memperbarui nominal realisasi secara cepat, atau edit detail lengkap via tombol Edit.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Import / Export</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li><strong>Import:</strong> Upload data budget dari file Excel menggunakan template yang disediakan</li>
+      <li><strong>Export:</strong> Unduh seluruh data budget ke format Excel</li>
+    </ul>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Tips</div>
+  Gunakan fitur <strong>Bulk Delete</strong> dan <strong>Bulk Update</strong> untuk mengelola banyak item budget sekaligus. Download template terlebih dahulu via tombol <strong>Download Template</strong> sebelum melakukan import.
+</div>
+
 
 <!-- ============================================================ -->
 <!-- BAB 5: CDP -->
@@ -1387,11 +1539,12 @@ Coach review deliverable + coaching session
   </div>
   <div class="step-body">
     <ul>
-      <li>Nama assessment, kategori, sub-kategori</li>
+      <li>Nama assessment, kategori (6 pilihan: Assessment OJ, IHT, Licencor, OTS, Mandatory HSSE Training, Assessment Proton), sub-kategori</li>
+      <li><strong>Tipe Assessment:</strong> Pilih <strong>Standard</strong> (satu sesi ujian) atau <strong>Pre-Post Test</strong> (dua sesi: Pre-Test &amp; Post-Test untuk mengukur Gain Score)</li>
       <li>Bagian dan unit target</li>
       <li>Durasi ujian (dalam menit)</li>
       <li>Passing grade (nilai minimum lulus)</li>
-      <li>Tanggal pelaksanaan</li>
+      <li>Tanggal pelaksanaan (untuk Pre-Post Test: jadwal Pre-Test dan Post-Test diatur terpisah)</li>
     </ul>
   </div>
 </div>
@@ -1458,15 +1611,18 @@ Coach review deliverable + coaching session
   <li><strong>Reset Assessment:</strong> Reset sesi assessment pekerja agar bisa mengulang</li>
   <li><strong>Submit Interview Results:</strong> Catat hasil interview (jika assessment memiliki komponen interview)</li>
   <li><strong>Export Assessment Results:</strong> Unduh hasil assessment ke Excel</li>
+  <li><strong>Manual Grading (Essay):</strong> Jika assessment mengandung soal essay, HC dapat menilai jawaban essay menggunakan rubrik scoring. Klik <strong>Grade Essay</strong> pada sesi peserta, isi skor per rubrik, lalu <strong>Finalize Grading</strong> untuk menyelesaikan penilaian.</li>
+  <li><strong>Extra Time:</strong> Tambahkan waktu ekstra untuk peserta tertentu selama ujian berlangsung via tombol <strong>Add Extra Time</strong> di halaman Monitoring Detail.</li>
+  <li><strong>Copy Packages (Pre-Post):</strong> Untuk assessment Pre-Post Test, salin paket soal dari Pre-Test ke Post-Test agar peserta mengerjakan soal yang sama.</li>
 </ul>
 
 <!-- 6.3 Manajemen Kategori -->
 <h3 id="bab6c">6.3 Manajemen Kategori</h3>
 <p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Manajemen Kategori</strong></p>
 
-<p>Mengelola kategori assessment yang digunakan untuk mengklasifikasikan jenis ujian.</p>
+<p>Mengelola kategori assessment yang digunakan untuk mengklasifikasikan jenis ujian. Saat ini tersedia 6 kategori utama: <strong>Assessment OJ</strong>, <strong>IHT</strong>, <strong>Licencor</strong>, <strong>OTS</strong>, <strong>Mandatory HSSE Training</strong>, dan <strong>Assessment Proton</strong>. Setiap kategori dapat memiliki sub-kategori.</p>
 <ul>
-  <li><strong>Tambah Kategori:</strong> Buat kategori baru (contoh: Safety, Process, Mechanical)</li>
+  <li><strong>Tambah Kategori:</strong> Buat kategori atau sub-kategori baru</li>
   <li><strong>Edit Kategori:</strong> Ubah nama atau detail kategori</li>
   <li><strong>Toggle Aktif/Nonaktif:</strong> Kategori yang dinonaktifkan tidak muncul di pilihan assessment baru</li>
   <li><strong>Hapus Kategori:</strong> Hanya bisa menghapus kategori yang tidak digunakan</li>
@@ -1619,6 +1775,117 @@ Coach review deliverable + coaching session
 </ul>
 
 
+<!-- 6.10 Coach Workload -->
+<h3 id="bab6j">6.10 Coach Workload</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Coach Workload</strong></p>
+
+<p>Fitur ini memungkinkan monitoring beban kerja coach dalam program Coaching Proton.</p>
+
+<h4>Fitur Utama</h4>
+<ul>
+  <li><strong>Dashboard Workload</strong> &mdash; Menampilkan jumlah coachee yang ditangani setiap coach</li>
+  <li><strong>Threshold Warning</strong> &mdash; Sistem memberikan peringatan jika beban kerja coach melebihi batas yang ditentukan</li>
+  <li><strong>Set Threshold</strong> &mdash; Admin dapat mengatur batas maksimal jumlah coachee per coach</li>
+  <li><strong>Reassignment Suggestion</strong> &mdash; Sistem menyarankan reassignment jika ada coach yang kelebihan beban, dan Admin dapat menyetujui atau menolak saran tersebut</li>
+  <li><strong>Export</strong> &mdash; Unduh ringkasan workload seluruh coach ke Excel</li>
+</ul>
+
+<div class="info">
+  <div class="info-title">Tips</div>
+  Periksa halaman Coach Workload secara berkala untuk memastikan distribusi beban kerja coaching merata. Gunakan fitur reassignment suggestion untuk membantu penyeimbangan.
+</div>
+
+<!-- 6.11 Maintenance Mode -->
+<h3 id="bab6k">6.11 Maintenance Mode</h3>
+<p><span class="role-tag role-admin">Admin</span> Diakses via <strong>Kelola Data &rarr; Maintenance</strong></p>
+
+<p>Fitur ini memungkinkan Admin mengaktifkan mode pemeliharaan sistem saat diperlukan maintenance atau update.</p>
+
+<h4>Cara Menggunakan</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka halaman Maintenance</span>
+  </div>
+  <div class="step-body">Navigasi ke <strong>Kelola Data &rarr; Maintenance</strong>.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Aktifkan Maintenance Mode</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li><strong>Scope:</strong> Pilih <strong>All</strong> (seluruh sistem) atau <strong>Specific</strong> (modul tertentu saja)</li>
+      <li><strong>Pesan:</strong> Isi pesan yang akan ditampilkan kepada pengguna</li>
+      <li><strong>Estimasi Selesai:</strong> Atur perkiraan waktu selesai maintenance</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Nonaktifkan</span>
+  </div>
+  <div class="step-body">Setelah maintenance selesai, klik <strong>Disable Maintenance</strong> untuk mengembalikan akses normal.</div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Saat maintenance mode aktif, pengguna biasa tidak dapat mengakses modul yang sedang dalam pemeliharaan. Hanya Admin yang tetap dapat mengakses sistem secara penuh.
+</div>
+
+<!-- 6.12 Impersonation -->
+<h3 id="bab6l">6.12 Impersonation</h3>
+<p><span class="role-tag role-admin">Admin</span> Diakses via <strong>Kelola Data &rarr; Impersonate</strong></p>
+
+<p>Fitur impersonation memungkinkan Admin melihat sistem dari perspektif pengguna lain untuk keperluan troubleshooting atau verifikasi tampilan.</p>
+
+<h4>Mode Impersonation</h4>
+<table>
+  <tr>
+    <th>Mode</th>
+    <th>Deskripsi</th>
+  </tr>
+  <tr>
+    <td><strong>By Role</strong></td>
+    <td>Melihat sistem sebagai role tertentu (misal: sebagai Coach atau Pekerja biasa)</td>
+  </tr>
+  <tr>
+    <td><strong>By User</strong></td>
+    <td>Melihat sistem sebagai pengguna spesifik tertentu</td>
+  </tr>
+</table>
+
+<h4>Cara Menggunakan</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Pilih mode &amp; target</span>
+  </div>
+  <div class="step-body">Pilih mode impersonation (By Role atau By User), lalu pilih target role/user.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Mulai Impersonation</span>
+  </div>
+  <div class="step-body">Klik <strong>Start Impersonation</strong>. Sistem akan menampilkan tampilan sesuai perspektif target. Mode ini bersifat <strong>read-only</strong> &mdash; Admin tidak dapat melakukan perubahan data saat impersonation aktif.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Hentikan Impersonation</span>
+  </div>
+  <div class="step-body">Klik <strong>Stop Impersonation</strong> untuk kembali ke akun Admin normal.</div>
+</div>
+
+<div class="info">
+  <div class="info-title">Informasi</div>
+  Setiap sesi impersonation tercatat di <strong>Audit Log</strong> untuk keperluan keamanan dan akuntabilitas.
+</div>
+
+
 <!-- ============================================================ -->
 <!-- BAB 7: PROTON DATA -->
 <!-- ============================================================ -->
@@ -1756,10 +2023,28 @@ Coach review deliverable + coaching session
   <li>Activity log per sesi</li>
 </ul>
 
-<h3>8.3 Akhiri Ujian</h3>
+<h3>8.3 Extra Time</h3>
+<p>Selama ujian berlangsung, Admin/HC dapat menambahkan waktu ekstra untuk peserta tertentu:</p>
+<ul>
+  <li>Klik peserta pada halaman Monitoring Detail</li>
+  <li>Klik <strong>Add Extra Time</strong>, masukkan jumlah menit tambahan</li>
+  <li>Timer peserta akan otomatis diperpanjang</li>
+</ul>
+
+<h3>8.4 Akhiri Ujian</h3>
 <ul>
   <li><strong>Akhiri Ujian (per individu):</strong> Menghentikan ujian satu peserta secara manual</li>
   <li><strong>Akhiri Semua Ujian:</strong> Menghentikan seluruh ujian yang sedang berlangsung untuk satu assessment</li>
+</ul>
+
+<h3>8.5 Activity Log Detail</h3>
+<p>Setiap sesi ujian memiliki <strong>Activity Log</strong> yang mencatat seluruh aktivitas peserta secara detail, termasuk:</p>
+<ul>
+  <li>Waktu mulai dan selesai ujian</li>
+  <li>Perpindahan halaman soal</li>
+  <li>Perubahan jawaban</li>
+  <li>Penambahan extra time (jika ada)</li>
+  <li>Event submit atau abandon</li>
 </ul>
 
 <div class="warn">
@@ -1917,7 +2202,7 @@ Coach review deliverable + coaching session
 <!-- FOOTER -->
 <!-- ============================================================ -->
 <div class="footer">
-  <p><strong>Panduan Penggunaan Website HC Portal KPB</strong> &mdash; Versi 1.0 &bull; Maret 2026</p>
+  <p><strong>Panduan Penggunaan Website HC Portal KPB</strong> &mdash; Versi 2.0 &bull; April 2026</p>
   <p>Human Capital &mdash; Kilang Pertamina Balikpapan</p>
 </div>
 
