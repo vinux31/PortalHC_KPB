@@ -52,6 +52,19 @@ namespace HcPortal.Controllers
                 .ToListAsync();
         }
 
+        private async Task PopulateWorkersViewBag()
+        {
+            var workers = await _context.Users
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, u.FullName, u.NIP })
+                .ToListAsync();
+            ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = w.Id,
+                Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
+            }).ToList();
+        }
+
         // GET /Admin/AddTraining
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
@@ -541,15 +554,7 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> AddManualAssessment()
         {
-            var workers = await _context.Users
-                .OrderBy(u => u.FullName)
-                .Select(u => new { u.Id, u.FullName, u.NIP })
-                .ToListAsync();
-            ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-            {
-                Value = w.Id,
-                Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
-            }).ToList();
+            await PopulateWorkersViewBag();
             await SetTrainingCategoryViewBag();
             return View(new CreateManualAssessmentViewModel());
         }
@@ -569,32 +574,25 @@ namespace HcPortal.Controllers
             // Per-worker file validation
             if (hasWorkerCerts)
             {
-                var allowedExts = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
                 foreach (var wc in model.WorkerCerts!)
                 {
                     if (wc.CertificateFile != null && wc.CertificateFile.Length > 0)
                     {
-                        var wcExt = Path.GetExtension(wc.CertificateFile.FileName).ToLowerInvariant();
-                        if (!allowedExts.Contains(wcExt))
-                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} harus berformat PDF, JPG, atau PNG.");
-                        if (wc.CertificateFile.Length > 10 * 1024 * 1024)
-                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} melebihi batas 10MB.");
+                        var (isValid, error) = FileUploadHelper.ValidateCertificateFile(wc.CertificateFile);
+                        if (!isValid)
+                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId}: {error}");
                     }
                 }
             }
 
             if (!ModelState.IsValid)
             {
-                var workersList = await _context.Users.OrderBy(u => u.FullName)
-                    .Select(u => new { u.Id, u.FullName, u.NIP }).ToListAsync();
-                ViewBag.Workers = workersList.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Value = w.Id,
-                    Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
-                }).ToList();
+                await PopulateWorkersViewBag();
                 await SetTrainingCategoryViewBag();
                 return View(model);
             }
+
+            var currentUserId = (await _userManager.GetUserAsync(User))?.Id;
 
             foreach (var wc in model.WorkerCerts!)
             {
@@ -619,12 +617,12 @@ namespace HcPortal.Controllers
                     Kota = model.Kota,
                     SubKategori = model.SubKategori,
                     CertificateType = model.CertificateType,
-                    AssessmentType = "Manual",
-                    Status = "Completed",
+                    AssessmentType = AssessmentConstants.AssessmentType.Manual,
+                    Status = AssessmentConstants.AssessmentStatus.Completed,
                     IsManualEntry = true,
                     GenerateCertificate = true,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = (await _userManager.GetUserAsync(User))?.Id
+                    CreatedBy = currentUserId
                 };
                 _context.AssessmentSessions.Add(session);
             }
@@ -680,16 +678,10 @@ namespace HcPortal.Controllers
         {
             if (model.CertificateFile != null && model.CertificateFile.Length > 0)
             {
-                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(ext))
+                var (isValid, error) = FileUploadHelper.ValidateCertificateFile(model.CertificateFile);
+                if (!isValid)
                 {
-                    TempData["Error"] = "Hanya file PDF, JPG, dan PNG yang diperbolehkan.";
-                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
-                }
-                if (model.CertificateFile.Length > 10 * 1024 * 1024)
-                {
-                    TempData["Error"] = "Ukuran file maksimal 10MB.";
+                    TempData["Error"] = error;
                     return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
                 }
             }
@@ -706,11 +698,7 @@ namespace HcPortal.Controllers
 
             if (model.CertificateFile != null && model.CertificateFile.Length > 0)
             {
-                if (!string.IsNullOrEmpty(session.ManualSertifikatUrl))
-                {
-                    var oldPath = Path.Combine(_env.WebRootPath, session.ManualSertifikatUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
-                }
+                FileUploadHelper.DeleteFile(_env.WebRootPath, session.ManualSertifikatUrl);
                 var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
                 if (uploadedUrl != null) session.ManualSertifikatUrl = uploadedUrl;
             }
@@ -750,11 +738,7 @@ namespace HcPortal.Controllers
             var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == id && s.IsManualEntry);
             if (session == null) return NotFound();
 
-            if (!string.IsNullOrEmpty(session.ManualSertifikatUrl))
-            {
-                var path = Path.Combine(_env.WebRootPath, session.ManualSertifikatUrl.TrimStart('/'));
-                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
-            }
+            FileUploadHelper.DeleteFile(_env.WebRootPath, session.ManualSertifikatUrl);
 
             var actor = await _userManager.GetUserAsync(User);
             _context.AssessmentSessions.Remove(session);
@@ -968,6 +952,7 @@ namespace HcPortal.Controllers
                                 IsPassed = isPassed,
                                 CompletedAt = parsedDate,
                                 Schedule = parsedDate,
+                                DurationMinutes = 60,
                                 ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? vu : null,
                                 SubKategori = string.IsNullOrWhiteSpace(subKategori) ? null : subKategori,
                                 Penyelenggara = string.IsNullOrWhiteSpace(penyelenggara) ? null : penyelenggara,
@@ -977,7 +962,16 @@ namespace HcPortal.Controllers
                                 Status = "Completed",
                                 IsManualEntry = true,
                                 GenerateCertificate = true,
-                                CreatedAt = DateTime.UtcNow
+                                CreatedAt = DateTime.UtcNow,
+                                Progress = 0,
+                                BannerColor = "bg-primary",
+                                AllowAnswerReview = true,
+                                ElapsedSeconds = 0,
+                                IsTokenRequired = false,
+                                AccessToken = "",
+                                HasManualGrading = false,
+                                SamePackage = false,
+                                AssessmentType = ""
                             };
                             _context.AssessmentSessions.Add(session);
                             await _context.SaveChangesAsync();
@@ -987,7 +981,8 @@ namespace HcPortal.Controllers
                         catch (Exception ex)
                         {
                             result.Status = "Error";
-                            result.Message = $"Gagal menyimpan: {ex.Message}";
+                            var innerEx = ex.InnerException?.Message ?? "";
+                            result.Message = $"Gagal menyimpan: {ex.Message}. Inner: {innerEx}";
                         }
                         results.Add(result);
                     }
