@@ -72,6 +72,10 @@
   .screenshot img { max-width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
   .screenshot .caption { font-size: 9pt; color: #888; margin-top: 6px; font-style: italic; }
 
+  /* Text colors for inline status */
+  .success-text { color: #2e7d32; font-weight: 600; }
+  .error-text { color: #c62828; font-weight: 600; }
+
   /* Footer */
   .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
 
@@ -105,7 +109,7 @@
   <h1>Release Notes<br>HC Portal KPB</h1>
   <p class="subtitle">Human Capital Portal &mdash; Kilang Pertamina Balikpapan</p>
   <p class="subtitle">Ringkasan fitur dan pembaruan terbaru</p>
-  <div class="audience">9 Fitur &amp; Pembaruan Baru</div>
+  <div class="audience">12 Fitur &amp; Pembaruan Baru</div>
   <p class="version">April 2026</p>
 </div>
 
@@ -124,6 +128,9 @@
     <li><a href="#fitur7">Item Analysis &amp; Gain Score Report</a> <span class="badge badge-blue">Analytics</span></li>
     <li><a href="#fitur8">Coach Workload</a> <span class="badge badge-green">Coaching</span></li>
     <li><a href="#fitur9">Budget Training</a> <span class="badge badge-green">Training</span></li>
+    <li><a href="#fitur10">Assessment Manual (Add/Edit)</a> <span class="badge badge-purple">Admin Tool</span></li>
+    <li><a href="#fitur11">Import Training/Assessment dari Excel</a> <span class="badge badge-orange">Operasional</span></li>
+    <li><a href="#fitur12">Perbaikan Pre-Post Test di CreateAssessment</a> <span class="badge badge-green">UX</span></li>
   </ol>
 </div>
 
@@ -531,6 +538,191 @@
 
 <div class="screenshot"><img src="screenshots/rn-budget-training.png" alt="Tab Data Budget"><div class="caption">Tab Data Budget — tabel item budget dengan filter, sorting, dan tombol Export/Import/Tambah</div></div>
 <div class="screenshot"><img src="screenshots/rn-budget-ringkasan.png" alt="Tab Ringkasan Budget"><div class="caption">Tab Ringkasan — summary cards, chart Budget vs Realisasi per Kategori, Distribusi per Type, dan Top 10 Item</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 10: Assessment Manual -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur10">10. Assessment Manual (Add/Edit)</h2>
+<div class="feature-header">
+  <span class="badge badge-purple">Admin Tool</span>
+  <span class="role-tag role-admin">Admin</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Form untuk mencatat hasil <strong>assessment offline/eksternal</strong> yang tidak dilakukan melalui sistem online. Berguna untuk menangkan hasil ujian tertulis, sertifikasi eksternal, atau assessment lapangan.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Mencatat assessment eksternal (ujian tertulis, sertifikasi, assessment lapangan)</li>
+  <li>Input hasil untuk beberapa pekerja sekaligus (maksimal 20 pekerja per form)</li>
+  <li>Upload sertifikat per pekerja sebagai bukti kelengkapan (opsional)</li>
+  <li>Data otomatis tercatat di profil pekerja dan tersedia di laporan analytics</li>
+</ul>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <ol>
+    <li>Buka menu <strong>Admin &rarr; Assessment &rarr; Tambah Assessment Manual</strong></li>
+    <li>Isi data assessment:
+      <ul>
+        <li><strong>Judul Assessment:</strong> Nama kegiatan assessment</li>
+        <li><strong>Tanggal:</strong> Tanggal pelaksanaan assessment</li>
+        <li><strong>Tipe:</strong> Pilih tipe (Ujian Tertulis, Sertifikasi, Assessment Lapangan, dll.)</li>
+        <li><strong>Nilai Maksimum:</strong> Skala penilaian (default: 100)</li>
+      </ul>
+    </li>
+    <li>Tambahkan peserta (maksimal 20 orang):
+      <ul>
+        <li>Cari pekerja berdasarkan NIP atau Nama</li>
+        <li>Input nilai per pekerja</li>
+        <li>Upload sertifikat/bukti (opsional)</li>
+      </ul>
+    </li>
+    <li>Klik <strong>Simpan</strong> &mdash; data otomatis tercatat di sistem</li>
+  </ol>
+</div>
+
+<div class="info">
+  <div class="info-title">Catatan</div>
+  Assessment manual akan muncul di profil pekerja bersama assessment online lainnya. Di laporan analytics, data manual ditandai dengan badge "Manual" untuk membedakan dari assessment online.
+</div>
+
+<div class="screenshot-placeholder">
+  <strong>Screenshot</strong><br>
+  Halaman Create Assessment Manual
+</div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 11: Import Training/Assessment -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur11">11. Import Training/Assessment dari Excel</h2>
+<div class="feature-header">
+  <span class="badge badge-orange">Operasional</span>
+  <span class="role-tag role-admin">Admin</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Halaman import khusus untuk menambah banyak <strong>training/assessment record</strong> sekaligus melalui upload file Excel. Solusi untuk input massal data dengan validasi yang aman.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Input massal data training/assessment tanpa entry satu per satu</li>
+  <li>Template Excel terstruktur dengan panduan kolom yang jelas</li>
+  <li>Validasi data otomatis dengan error reporting yang detail</li>
+  <li>Hasil import ditampilkan dengan status (Success/Skip/Error) per baris</li>
+</ul>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <ol>
+    <li>Buka menu <strong>Admin &rarr; Import Training</strong></li>
+    <li>Download template Excel terlebih dahulu sebagai referensi</li>
+    <li>Isi data training/assessment di Excel sesuai format kolom:
+      <ul>
+        <li><strong>NIP:</strong> Nomor Induk Pegawai (wajib, harus terdaftar)</li>
+        <li><strong>Judul:</strong> Nama training/assessment (wajib)</li>
+        <li><strong>Tipe:</strong> Training atau Assessment (wajib)</li>
+        <li><strong>Tanggal:</strong> Format DD/MM/YYYY (wajib)</li>
+        <li><strong>Nilai:</strong> Skor 0-100 (opsional)</li>
+        <li><strong>Keterangan:</strong> Catatan tambahan (opsional)</li>
+      </ul>
+    </li>
+    <li>Upload file Excel yang sudah diisi</li>
+    <li>Sistem memvalidasi dan menampilkan hasil import:
+      <ul>
+        <li><strong class="success-text">Success:</strong> Data berhasil ditambahkan</li>
+        <li><strong>Skip:</strong> Data sudah ada, dilewati</li>
+        <li><strong class="error-text">Error:</strong> Data tidak valid, ditampilkan alasan errornya</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Validasi</div>
+  Pastikan NIP yang diinput sudah terdaftar di sistem. NIP yang tidak ditemukan akan menyebabkan baris tersebut gagal diimport.
+</div>
+
+<div class="screenshot"><img src="screenshots/31-admin-importtraining.png" alt="Halaman Import Training"><div class="caption">Halaman Import Training — upload template Excel dan lihat hasil import dengan status per baris</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 12: Perbaikan CreateAssessment Pre-Post Test -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur12">12. Perbaikan Pre-Post Test di CreateAssessment</h2>
+<div class="feature-header">
+  <span class="badge badge-green">UX</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Sederet perbaikan UX pada form <strong>CreateAssessment</strong> khusus untuk pengalaman pembuatan assessment tipe Pre-Post Test yang lebih baik dan efisien.</p>
+
+<h3>Perbaikan yang Dilakukan</h3>
+<div class="feature-card">
+  <table>
+    <tr><th>#</th><th>Perbaikan</th><th>Manfaat</th></tr>
+    <tr>
+      <td>1</td>
+      <td>Success modal menampilkan info Pre &amp; Post session</td>
+      <td>HC langsung melihat kedua session yang dibuat</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Badge tipe assessment dan mini-cards Pre-Post di summary</td>
+      <td>Identifikasi cepat tipe assessment di daftar</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Hide Status/EWCD yang tidak relevan untuk Pre-Post</td>
+      <td>Form lebih bersih, tidak menampilkan field yang tidak perlu</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Reorganize Step 3 menjadi 4 grup yang lebih logical</td>
+      <td>Layout lebih intuitive: Package, Soal, Setting Pre, Setting Post</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Fitur <strong>SamePackage</strong> untuk auto-sync package Pre&arr;Post</td>
+      <td>Tidak perlu memilih package dua kali</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Reset form otomatis setelah "Create Another"</td>
+      <td>Workflow input batch lebih cepat</td>
+    </tr>
+  </table>
+</div>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <p><strong>Membuat Pre-Post Test:</strong></p>
+  <ol>
+    <li>Pilih tipe <strong>Pre-Post Test</strong> pada dropdown Tipe Assessment</li>
+    <li>Form akan menyesuaikan tampilan khusus untuk Pre-Post</li>
+    <li>Di Step 3 (Package &amp; Soal):
+      <ul>
+        <li>Pilih package untuk Pre-Test</li>
+        <li>Aktifkan <strong>Gunakan Package yang Sama</strong> jika Post-Test menggunakan soal yang sama</li>
+        <li>Jika berbeda, pilih package terpisah untuk Post-Test</li>
+      </ul>
+    </li>
+    <li>Konfigurasi setting Pre dan Post secara terpisah (durasi, tanggal, dll.)</li>
+    <li>Setelah submit, success modal menampilkan ringkasan kedua session</li>
+  </ol>
+</div>
+
+<div class="success">
+  <div class="success-title">Evaluasi UX</div>
+  Perbaikan ini berdasarkan feedback HC yang sering membuat assessment Pre-Post Test. Form sebelumnya dianggap kurang intuitive karena tidak jelas membedakan setting Pre dan Post.
+</div>
+
+<div class="screenshot"><img src="screenshots/27-admin-createassessment.png" alt="Form Create Assessment dengan Pre-Post Test"><div class="caption">Form Create Assessment — tipe Pre-Post Test dengan pengelompokan field yang lebih logical</div></div>
 
 
 <!-- ============================================================ -->
