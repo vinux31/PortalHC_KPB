@@ -9,8 +9,12 @@ export async function uploadAndProcessImport(page: Page, filePath: string) {
   await page.setInputFiles('#excelFileInput', filePath);
   await page.click('#btnImport');
 
-  // Wait for loading to complete
-  await page.waitForSelector('text=Memproses import...', { state: 'hidden', timeout: 30000 });
+  // Wait for loading to complete with better error handling
+  try {
+    await page.waitForSelector('text=Memproses import...', { state: 'hidden', timeout: 30000 });
+  } catch (error) {
+    throw new Error('Import processing timeout - server may not be responding');
+  }
 
   // Wait for results to appear
   await page.waitForSelector('.card:has-text("Berhasil Dibuat")', { timeout: 5000 });
@@ -29,6 +33,10 @@ export async function verifyImportSummary(page: Page, success: number, error: nu
 
 /**
  * Verify training muncul di ManageAssessment list
+ *
+ * WARNING: This function navigates away from the current page!
+ * Ensure you're done with the current page before calling this.
+ *
  * @param page - Playwright Page object
  * @param trainingTitle - Judul training yang dicari
  */
@@ -36,7 +44,7 @@ export async function verifyTrainingInList(page: Page, trainingTitle: string) {
   await page.goto('/Admin/ManageAssessment?tab=training');
   await page.waitForLoadState('networkidle');
 
-  const searchInput = page.locator('input[placeholder*="Cari"]').first();
+  const searchInput = page.locator('input[placeholder*="Cari berdasarkan judul,"]').first();
   await searchInput.fill(trainingTitle);
   await searchInput.press('Enter');
   await page.waitForLoadState('networkidle');
@@ -46,6 +54,10 @@ export async function verifyTrainingInList(page: Page, trainingTitle: string) {
 
 /**
  * Verify assessment muncul di ManageAssessment list
+ *
+ * WARNING: This function navigates away from the current page!
+ * Ensure you're done with the current page before calling this.
+ *
  * @param page - Playwright Page object
  * @param assessmentTitle - Judul assessment yang dicari
  */
@@ -53,7 +65,7 @@ export async function verifyAssessmentInList(page: Page, assessmentTitle: string
   await page.goto('/Admin/ManageAssessment?tab=assessment');
   await page.waitForLoadState('networkidle');
 
-  const searchInput = page.locator('input[placeholder*="Cari"]').first();
+  const searchInput = page.locator('input[placeholder*="Cari berdasarkan judul,"]').first();
   await searchInput.fill(assessmentTitle);
   await searchInput.press('Enter');
   await page.waitForLoadState('networkidle');
