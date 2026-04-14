@@ -1,0 +1,466 @@
+@model HcPortal.Models.CreateManualAssessmentViewModel
+
+@{
+    ViewData["Title"] = "Tambah Assessment Manual";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.css">
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+        <li class="breadcrumb-item">
+            <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = "training" })">Manage Assessment & Training</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Tambah Assessment Manual</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">
+        <i class="bi bi-plus-circle me-2 text-info"></i>Tambah Assessment Manual
+    </h2>
+    <p class="text-muted mb-0">Input hasil assessment offline atau eksternal yang dilakukan di luar sistem HC Portal</p>
+</div>
+
+<!-- Info Banner -->
+<div class="alert alert-info border-0 d-flex align-items-start gap-3 mb-4">
+    <i class="bi bi-info-circle-fill fs-5 mt-1 flex-shrink-0"></i>
+    <div class="small">
+        <strong>Petunjuk Pengisian</strong><br>
+        Form ini digunakan untuk mencatat hasil assessment yang <strong>tidak dilakukan melalui sistem online</strong> (misal: ujian tertulis, assessment lapangan, sertifikasi eksternal).
+        Data yang diinput akan otomatis tercatat di profil pekerja dan dihitung dalam statistik kompetensi.
+        <br><span class="text-muted">Untuk assessment online, gunakan menu <strong>Buat Assessment</strong> di tab Assessment Groups.</span>
+    </div>
+</div>
+
+<!-- Validation Summary -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+}
+
+<form asp-action="AddManualAssessment" asp-controller="TrainingAdmin" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <!-- CARD 1: Data Pekerja -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-people me-2 text-primary"></i>Peserta Assessment</h5>
+        </div>
+        <div class="card-body">
+            <label class="form-label fw-bold">
+                Pilih Pekerja <span class="text-danger">*</span>
+                <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Pilih satu atau beberapa pekerja yang mengikuti assessment ini. Maksimal 20 pekerja per submission. Semua pekerja akan mendapat record assessment yang sama."></i>
+            </label>
+            <select id="WorkerSelect" multiple>
+                @foreach (var w in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Workers)
+                {
+                    <option value="@w.Value">@w.Text</option>
+                }
+            </select>
+            <div class="form-text"><i class="bi bi-lightbulb me-1"></i>Ketik nama atau NIP untuk mencari. Bisa pilih beberapa pekerja sekaligus (maks 20).</div>
+        </div>
+    </div>
+
+    <!-- CARD 2: Informasi Assessment -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-check me-2 text-info"></i>Informasi Assessment</h5>
+        </div>
+        <div class="card-body">
+            <!-- Row 1: Judul + Kategori -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-7">
+                    <label asp-for="Title" class="form-label fw-bold">
+                        Judul Assessment <span class="text-danger">*</span>
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Nama lengkap assessment. Contoh: 'Assessment K3 Dasar Q1 2026', 'Sertifikasi Operator Crane Level 2'"></i>
+                    </label>
+                    <input asp-for="Title" class="form-control" placeholder="Contoh: Assessment K3 Dasar Q1 2026" />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="Category" class="form-label fw-bold">
+                        Kategori <span class="text-danger">*</span>
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Pilih kategori assessment sesuai jenis kompetensinya. Kategori ini akan digunakan untuk filter dan pelaporan."></i>
+                    </label>
+                    <select id="kategoriSelect" asp-for="Category" class="form-select" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+                        {
+                            <option value="@cat.Name">@cat.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Category" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Row 2: Penyelenggara + Kota -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Penyelenggara" class="form-label fw-bold">
+                        Penyelenggara
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Institusi atau vendor yang menyelenggarakan assessment. Contoh: LSP Migas, BNSP, PT Safety Indonesia."></i>
+                    </label>
+                    <input asp-for="Penyelenggara" class="form-control" placeholder="Contoh: LSP Migas, BNSP" />
+                    <div class="form-text">Opsional. Nama lembaga penyelenggara assessment.</div>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Kota" class="form-label fw-bold">
+                        Kota
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Kota tempat assessment dilaksanakan. Contoh: Jakarta, Balikpapan, Cilacap."></i>
+                    </label>
+                    <input asp-for="Kota" class="form-control" placeholder="Contoh: Balikpapan" />
+                    <div class="form-text">Opsional. Lokasi pelaksanaan assessment.</div>
+                </div>
+            </div>
+
+            <!-- Row 3: Sub-Kategori -->
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label asp-for="SubKategori" class="form-label fw-bold">
+                        Sub-Kategori
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Spesifikasi lebih detail dari kategori. Pilih kategori terlebih dahulu untuk melihat pilihan sub-kategori."></i>
+                    </label>
+                    <select id="subKategoriSelect" asp-for="SubKategori" class="form-select" disabled>
+                        <option value="">-- Pilih Sub Kategori --</option>
+                        @foreach (var sub in (IEnumerable<dynamic>)ViewBag.SubKategoriOptions)
+                        {
+                            <option value="@sub.Name" data-parent-id="@sub.ParentId">@sub.Name</option>
+                        }
+                    </select>
+                    <div class="form-text">Opsional. Pilih kategori dulu untuk melihat opsi sub-kategori.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD 3: Hasil & Tanggal -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2 text-success"></i>Hasil & Tanggal</h5>
+        </div>
+        <div class="card-body">
+            <!-- Row 1: Score, Batas Lulus, Status, Ringkasan -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label asp-for="Score" class="form-label fw-bold">
+                        Score
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Nilai yang diperoleh peserta (0-100). Kosongkan jika assessment tidak menggunakan sistem penilaian angka."></i>
+                    </label>
+                    <div class="input-group">
+                        <input asp-for="Score" type="number" min="0" max="100" class="form-control" placeholder="0–100" />
+                        <span class="input-group-text text-muted">/100</span>
+                    </div>
+                    <span asp-validation-for="Score" class="text-danger small"></span>
+                    <div class="form-text">Opsional. Kosongkan jika tidak ada.</div>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="PassPercentage" class="form-label fw-bold">
+                        Batas Lulus (%)
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Persentase minimum untuk dinyatakan lulus. Nilai default 70% sesuai standar KPB. Ubah sesuai ketentuan assessment jika berbeda."></i>
+                    </label>
+                    <div class="input-group">
+                        <input asp-for="PassPercentage" type="number" min="0" max="100" class="form-control" />
+                        <span class="input-group-text text-muted">%</span>
+                    </div>
+                    <div class="form-text">Default: 70%</div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold d-block">
+                        Status Kelulusan
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Tentukan apakah peserta dinyatakan lulus atau tidak. Status ini akan mempengaruhi statistik kompetensi pekerja."></i>
+                    </label>
+                    <div class="form-check form-switch mt-2">
+                        <input asp-for="IsPassed" class="form-check-input" type="checkbox" role="switch" id="isPassedSwitch" checked />
+                        <label class="form-check-label fw-semibold" for="isPassedSwitch" id="passedLabel">
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Lulus</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold d-block">Ringkasan</label>
+                    <div id="scorePreview" class="border rounded p-2 text-center bg-light small">
+                        <span class="text-muted">Isi score untuk preview</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Tanggal Pelaksanaan + Berlaku Sampai -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="CompletedAt" class="form-label fw-bold">
+                        Tanggal Pelaksanaan <span class="text-danger">*</span>
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Tanggal assessment dilaksanakan atau tanggal peserta menyelesaikan ujian."></i>
+                    </label>
+                    <input asp-for="CompletedAt" type="date" class="form-control" />
+                    <span asp-validation-for="CompletedAt" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ValidUntil" class="form-label fw-bold">
+                        Berlaku Sampai
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Tanggal kedaluwarsa sertifikat/kompetensi. Kosongkan jika bersifat permanen atau tidak ada masa berlaku. Sistem akan memberi notifikasi mendekati tanggal kedaluwarsa."></i>
+                    </label>
+                    <input asp-for="ValidUntil" type="date" class="form-control" />
+                    <div class="form-text">Opsional. Kosongkan jika sertifikat berlaku permanen.</div>
+                </div>
+            </div>
+
+            <!-- Row 3: Tipe Sertifikat (durasi) -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="CertificateType" class="form-label fw-bold">
+                        Tipe Sertifikat
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Durasi masa berlaku sertifikat. Permanent = berlaku selamanya, Annual = perpanjang tiap tahun, 3-Year = perpanjang tiap 3 tahun."></i>
+                    </label>
+                    <select asp-for="CertificateType" class="form-select">
+                        <option value="">-- Pilih Tipe --</option>
+                        <option value="Permanent">Permanent</option>
+                        <option value="Annual">Annual</option>
+                        <option value="3-Year">3-Year</option>
+                    </select>
+                    <div class="form-text">Opsional. Durasi masa berlaku sertifikat.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD 3: Data Sertifikat per Pekerja -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-award me-2 text-warning"></i>Sertifikat
+                <span id="workerCountBadge" class="badge bg-primary ms-2" style="display:none;"></span>
+                <i class="bi bi-question-circle text-muted ms-1 fs-6 fw-normal" data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Upload file sertifikat dan masukkan nomor sertifikat untuk setiap pekerja. File bersifat opsional — bisa dilengkapi nanti melalui menu Edit."></i>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div id="workerCertsContainer">
+                <div class="text-center py-4 text-muted" id="emptyWorkerMsg">
+                    <i class="bi bi-person-plus fs-3 d-block mb-2 opacity-50"></i>
+                    <p class="mb-1 fst-italic">Belum ada pekerja dipilih.</p>
+                    <small>Pilih pekerja pada bagian <strong>Peserta Assessment</strong> di atas, maka form sertifikat per pekerja akan muncul di sini.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+            <i class="bi bi-shield-check me-1"></i>Data akan tersimpan sebagai <strong>Assessment Manual</strong> dan tercatat di profil pekerja.
+        </small>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = "training" })" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg me-2"></i>Batal
+            </a>
+            <button type="submit" id="btnSimpanAssessment" class="btn btn-info text-white" disabled>
+                <i class="bi bi-check-lg me-2"></i>Simpan Assessment
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2/dist/js/tom-select.complete.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(el) { return new bootstrap.Tooltip(el); });
+
+    // TomSelect multi-worker
+    var workerSelect = new TomSelect('#WorkerSelect', {
+        maxItems: 20,
+        plugins: ['remove_button'],
+        placeholder: 'Ketik nama atau NIP untuk mencari...',
+        onItemAdd: function(value) {
+            var option = this.options[value];
+            addWorkerRow(value, option.text);
+            updateWorkerCount();
+            updateSubmitButton();
+        },
+        onItemRemove: function(value) {
+            removeWorkerRow(value);
+            reindexWorkerRows();
+            updateWorkerCount();
+            updateSubmitButton();
+        }
+    });
+
+    var submitBtn = document.getElementById('btnSimpanAssessment');
+    if (submitBtn) submitBtn.disabled = true;
+
+    function addWorkerRow(userId, userName) {
+        var container = document.getElementById('workerCertsContainer');
+        var emptyMsg = document.getElementById('emptyWorkerMsg');
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        var index = container.querySelectorAll('.worker-cert-card').length;
+        var row = document.createElement('div');
+        row.className = 'card border mb-2 worker-cert-card';
+        row.dataset.userId = userId;
+        row.innerHTML =
+            '<div class="card-body py-3">' +
+                '<div class="d-flex align-items-center mb-2">' +
+                    '<div class="rounded-circle bg-info text-white me-2 d-flex align-items-center justify-content-center fw-bold" ' +
+                         'style="width:32px;height:32px;font-size:0.8rem;flex-shrink:0;">' +
+                        escapeHtml(userName.charAt(0).toUpperCase()) +
+                    '</div>' +
+                    '<span class="fw-bold">' + escapeHtml(userName) + '</span>' +
+                '</div>' +
+                '<input type="hidden" name="WorkerCerts[' + index + '].UserId" value="' + userId + '" />' +
+                '<div class="row g-3">' +
+                    '<div class="col-md-6">' +
+                        '<label class="form-label small fw-semibold"><i class="bi bi-file-earmark-pdf me-1"></i>File Sertifikat</label>' +
+                        '<input type="file" name="WorkerCerts[' + index + '].CertificateFile" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" />' +
+                        '<div class="form-text">PDF, JPG, PNG. Maks 10MB. Opsional — bisa upload nanti.</div>' +
+                    '</div>' +
+                    '<div class="col-md-6">' +
+                        '<label class="form-label small fw-semibold"><i class="bi bi-hash me-1"></i>Nomor Sertifikat</label>' +
+                        '<input type="text" name="WorkerCerts[' + index + '].NomorSertifikat" class="form-control form-control-sm" placeholder="Contoh: CERT-2026-001" />' +
+                        '<div class="form-text">Opsional. Nomor unik dari lembaga penyelenggara.</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        container.appendChild(row);
+    }
+
+    function removeWorkerRow(userId) {
+        var container = document.getElementById('workerCertsContainer');
+        var card = container.querySelector('.worker-cert-card[data-user-id="' + userId + '"]');
+        if (card) card.remove();
+        var remaining = container.querySelectorAll('.worker-cert-card');
+        if (remaining.length === 0) {
+            var emptyMsg = document.getElementById('emptyWorkerMsg');
+            if (emptyMsg) emptyMsg.style.display = '';
+        }
+    }
+
+    function reindexWorkerRows() {
+        var container = document.getElementById('workerCertsContainer');
+        var cards = container.querySelectorAll('.worker-cert-card');
+        cards.forEach(function(card, i) {
+            var hidden = card.querySelector('input[type="hidden"]');
+            if (hidden) hidden.name = 'WorkerCerts[' + i + '].UserId';
+            var fileInput = card.querySelector('input[type="file"]');
+            if (fileInput) fileInput.name = 'WorkerCerts[' + i + '].CertificateFile';
+            var textInput = card.querySelector('input[type="text"]');
+            if (textInput) textInput.name = 'WorkerCerts[' + i + '].NomorSertifikat';
+        });
+    }
+
+    function updateWorkerCount() {
+        var badge = document.getElementById('workerCountBadge');
+        var count = document.querySelectorAll('.worker-cert-card').length;
+        if (count > 0) {
+            badge.textContent = count + ' pekerja';
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function updateSubmitButton() {
+        var submitBtn = document.getElementById('btnSimpanAssessment');
+        var count = document.querySelectorAll('.worker-cert-card').length;
+        if (submitBtn) submitBtn.disabled = (count === 0);
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+    // Passed/Failed toggle label
+    var passSwitch = document.getElementById('isPassedSwitch');
+    var passLabel = document.getElementById('passedLabel');
+    function updatePassedLabel() {
+        if (passSwitch.checked) {
+            passLabel.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Lulus</span>';
+        } else {
+            passLabel.innerHTML = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Tidak Lulus</span>';
+        }
+        updateScorePreview();
+    }
+    passSwitch.addEventListener('change', updatePassedLabel);
+
+    // Score preview
+    var scoreInput = document.getElementById('Score');
+    var passPercentInput = document.getElementById('PassPercentage');
+    function updateScorePreview() {
+        var preview = document.getElementById('scorePreview');
+        var score = scoreInput.value;
+        var passPct = passPercentInput.value || 70;
+        var passed = passSwitch.checked;
+
+        if (!score) {
+            preview.innerHTML = '<span class="text-muted">Isi score untuk preview</span>';
+            return;
+        }
+        var s = parseInt(score);
+        var badgeClass = passed ? 'bg-success' : 'bg-danger';
+        var statusText = passed ? 'Lulus' : 'Tidak Lulus';
+        preview.innerHTML =
+            '<div class="fw-bold fs-5 ' + (passed ? 'text-success' : 'text-danger') + '">' + s + '</div>' +
+            '<span class="badge ' + badgeClass + ' mt-1">' + statusText + '</span>' +
+            '<div class="text-muted mt-1" style="font-size:0.75rem;">Batas: ' + passPct + '%</div>';
+    }
+    scoreInput.addEventListener('input', updateScorePreview);
+    passPercentInput.addEventListener('input', updateScorePreview);
+
+    // Submit loading state
+    var form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            var btn = form.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+            }
+        });
+    }
+    // Sub-Kategori filter based on Kategori
+    var kategoriMap = {};
+    @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+    {
+        @:kategoriMap["@cat.Name"] = @cat.Id;
+    }
+
+    var kategoriSelect = document.getElementById('kategoriSelect');
+    var subKategoriSelect = document.getElementById('subKategoriSelect');
+
+    kategoriSelect.addEventListener('change', function() {
+        var selectedName = this.value;
+        var parentId = kategoriMap[selectedName];
+        var options = subKategoriSelect.querySelectorAll('option[data-parent-id]');
+
+        options.forEach(function(opt) {
+            opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
+        });
+
+        subKategoriSelect.value = '';
+        subKategoriSelect.disabled = !selectedName;
+    });
+});
+</script>

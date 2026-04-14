@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Release Notes — HC Portal KPB</title>
+<style>
+  @page { size: A4; margin: 18mm 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.7; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 80px 20px 50px; margin-bottom: 30px; border-bottom: 3px solid #1565c0; }
+  .cover-icon { font-size: 56pt; margin-bottom: 16px; }
+  .cover h1 { color: #1565c0; font-size: 26pt; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .cover .subtitle { color: #555; font-size: 12pt; margin-bottom: 4px; }
+  .cover .version { color: #888; font-size: 9.5pt; margin-top: 20px; }
+  .cover .audience { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 6px 18px; border-radius: 20px; font-size: 10pt; font-weight: 600; margin-top: 12px; }
+
+  /* TOC */
+  .toc { background: #f8f9fa; border-radius: 8px; padding: 24px 28px; margin-bottom: 28px; }
+  .toc h2 { color: #1565c0; font-size: 14pt; margin-bottom: 14px; border: none; padding: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 5px; font-size: 10.5pt; }
+  .toc a { color: #1565c0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Sections */
+  h2 { color: #1565c0; font-size: 14pt; margin-top: 34px; margin-bottom: 12px; border-left: 4px solid #1565c0; padding-left: 12px; }
+  h3 { color: #2e7d32; font-size: 12pt; margin-top: 20px; margin-bottom: 8px; }
+  p { margin-bottom: 8px; }
+  ul, ol { padding-left: 24px; margin-bottom: 8px; }
+  li { margin-bottom: 4px; }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+
+  /* Role tag */
+  .role-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 8.5pt; font-weight: 700; margin-right: 4px; }
+  .role-admin { background: #c62828; color: #fff; }
+  .role-hc { background: #1565c0; color: #fff; }
+  .role-all { background: #2e7d32; color: #fff; }
+
+  /* Callout boxes */
+  .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .info-title { font-weight: 700; color: #1565c0; margin-bottom: 4px; }
+  .warn { background: #fff3e0; border-left: 4px solid #e65100; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .warn-title { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .success { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .success-title { font-weight: 700; color: #2e7d32; margin-bottom: 4px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10pt; }
+  th { background: #1565c0; color: #fff; padding: 10px 14px; text-align: left; }
+  td { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+
+  /* Feature card */
+  .feature-card { background: #f5f7fa; border-radius: 8px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #1565c0; }
+  .feature-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .feature-header h3 { margin: 0; flex: 1; }
+
+  /* Screenshot placeholder */
+  .screenshot-placeholder { border: 2px dashed #bdbdbd; border-radius: 8px; padding: 40px 20px; text-align: center; color: #9e9e9e; font-size: 10pt; margin: 14px 0; background: #fafafa; }
+
+  /* Screenshot image */
+  .screenshot { margin: 14px 0; text-align: center; }
+  .screenshot img { max-width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .screenshot .caption { font-size: 9pt; color: #888; margin-top: 6px; font-style: italic; }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+
+  /* Action buttons */
+  .action-bar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
+  .action-bar button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 10pt; font-weight: 600; cursor: pointer; }
+  .btn-print { background: #1565c0; color: #fff; }
+  .btn-print:hover { background: #0d47a1; }
+
+  /* Print */
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+    .feature-card, .info, .warn, .success { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="action-bar no-print">
+  <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- COVER -->
+<!-- ============================================================ -->
+<div class="cover">
+  <div class="cover-icon">&#128640;</div>
+  <h1>Release Notes<br>HC Portal KPB</h1>
+  <p class="subtitle">Human Capital Portal &mdash; Kilang Pertamina Balikpapan</p>
+  <p class="subtitle">Ringkasan fitur dan pembaruan terbaru</p>
+  <div class="audience">9 Fitur &amp; Pembaruan Baru</div>
+  <p class="version">April 2026</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- DAFTAR ISI -->
+<!-- ============================================================ -->
+<div class="toc">
+  <h2>Daftar Isi</h2>
+  <ol>
+    <li><a href="#fitur1">Anti-Copy Protection</a> <span class="badge badge-red">Security</span></li>
+    <li><a href="#fitur2">Maintenance Mode</a> <span class="badge badge-orange">Operasional</span></li>
+    <li><a href="#fitur3">User Impersonation</a> <span class="badge badge-purple">Admin Tool</span></li>
+    <li><a href="#fitur4">Tipe Assessment Pre-Post Test</a> <span class="badge badge-blue">Assessment</span></li>
+    <li><a href="#fitur5">Tipe Soal MC / MA / Essay</a> <span class="badge badge-blue">Assessment</span></li>
+    <li><a href="#fitur6">Mobile Optimization Exam</a> <span class="badge badge-green">UX</span></li>
+    <li><a href="#fitur7">Item Analysis &amp; Gain Score Report</a> <span class="badge badge-blue">Analytics</span></li>
+    <li><a href="#fitur8">Coach Workload</a> <span class="badge badge-green">Coaching</span></li>
+    <li><a href="#fitur9">Budget Training</a> <span class="badge badge-green">Training</span></li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<!-- FITUR 1: Anti-Copy Protection -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur1">1. Anti-Copy Protection</h2>
+<div class="feature-header">
+  <span class="badge badge-red">Security</span>
+  <span class="role-tag role-all">Semua Peserta Ujian</span>
+</div>
+
+<p>Fitur perlindungan konten soal ujian dari aktivitas <strong>copy-paste</strong>. Selama ujian berlangsung, peserta tidak dapat menyalin teks soal maupun opsi jawaban.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Mencegah kebocoran soal melalui copy-paste</li>
+  <li>Menjaga integritas dan kerahasiaan bank soal</li>
+  <li>Tidak mengganggu pengalaman mengerjakan ujian &mdash; perlindungan bersifat <em>silent</em></li>
+</ul>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <p>Perlindungan diterapkan secara otomatis pada area soal dan opsi jawaban saat ujian dimulai:</p>
+  <ul>
+    <li><strong>Keyboard shortcut diblokir:</strong> Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S, Ctrl+P</li>
+    <li><strong>Aksi clipboard dinonaktifkan:</strong> Copy, Cut, Paste, klik kanan, drag &amp; drop</li>
+    <li><strong>Seleksi teks dinonaktifkan</strong> pada area soal (CSS <code>user-select: none</code>)</li>
+    <li>Tombol navigasi, input jawaban, dan kontrol lainnya <strong>tetap berfungsi normal</strong></li>
+  </ul>
+</div>
+
+<div class="info">
+  <div class="info-title">Catatan</div>
+  Perlindungan hanya aktif pada area soal &amp; opsi jawaban. Area lain seperti tombol navigasi dan input jawaban essay tetap dapat digunakan secara normal.
+</div>
+
+
+
+<!-- ============================================================ -->
+<!-- FITUR 2: Maintenance Mode -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur2">2. Maintenance Mode</h2>
+<div class="feature-header">
+  <span class="badge badge-orange">Operasional</span>
+  <span class="role-tag role-admin">Admin</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Mode pemeliharaan sistem yang memungkinkan Admin menonaktifkan akses pengguna sementara &mdash; baik untuk keseluruhan sistem maupun modul tertentu.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Melakukan update atau migrasi data tanpa gangguan dari pengguna</li>
+  <li>Menampilkan pesan informatif kepada pengguna tentang estimasi waktu selesai</li>
+  <li>Dapat ditargetkan ke modul spesifik (CMP, CDP, Proton, dll.) tanpa mematikan seluruh sistem</li>
+</ul>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <ol>
+    <li>Admin membuka menu <strong>Admin &rarr; Maintenance</strong></li>
+    <li>Aktifkan maintenance dengan mengisi:
+      <ul>
+        <li><strong>Pesan:</strong> Informasi yang ditampilkan ke pengguna</li>
+        <li><strong>Estimasi Selesai:</strong> Waktu perkiraan maintenance berakhir</li>
+        <li><strong>Scope:</strong> Pilih "Semua" atau modul tertentu (CMP, CDP, Proton, Admin, Home)</li>
+      </ul>
+    </li>
+    <li>Klik <strong>Aktifkan</strong> &mdash; pengguna biasa akan melihat halaman maintenance</li>
+    <li>Admin &amp; HC tetap dapat mengakses sistem selama maintenance aktif</li>
+  </ol>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Hanya role <strong>Admin</strong> yang dapat mengaktifkan/menonaktifkan maintenance mode. Role HC dapat mengakses sistem saat maintenance aktif, tetapi tidak dapat mengubah konfigurasi maintenance.
+</div>
+
+<div class="screenshot"><img src="screenshots/rn-maintenance.png" alt="Halaman konfigurasi Maintenance Mode"><div class="caption">Halaman konfigurasi Maintenance Mode — pilih cakupan, pesan, dan estimasi selesai</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 3: User Impersonation -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur3">3. User Impersonation</h2>
+<div class="feature-header">
+  <span class="badge badge-purple">Admin Tool</span>
+  <span class="role-tag role-admin">Admin</span>
+</div>
+
+<p>Fitur yang memungkinkan Admin untuk <strong>melihat sistem dari sudut pandang pengguna lain</strong> tanpa perlu mengetahui password mereka. Berguna untuk troubleshooting masalah yang dilaporkan pengguna.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Troubleshooting lebih cepat &mdash; lihat persis apa yang dilihat pengguna</li>
+  <li>Aman: mode <strong>read-only</strong>, tidak bisa mengubah data atas nama pengguna lain</li>
+  <li>Auto-expire setelah 30 menit untuk keamanan</li>
+</ul>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <p>Terdapat <strong>dua mode</strong> impersonation:</p>
+  <table>
+    <tr><th>Mode</th><th>Keterangan</th><th>Kegunaan</th></tr>
+    <tr>
+      <td><strong>Simulasi Role</strong></td>
+      <td>Melihat sistem sebagai role tertentu (HC, Coach, dll.)</td>
+      <td>Verifikasi tampilan menu &amp; akses per role</td>
+    </tr>
+    <tr>
+      <td><strong>Simulasi User</strong></td>
+      <td>Melihat sistem sebagai user spesifik</td>
+      <td>Troubleshoot masalah user tertentu</td>
+    </tr>
+  </table>
+  <ol>
+    <li>Buka menu <strong>Admin &rarr; Impersonate</strong></li>
+    <li>Pilih mode: <em>Simulasi Role</em> atau <em>Simulasi User</em></li>
+    <li>Banner kuning muncul di atas halaman menandakan mode aktif</li>
+    <li>Klik <strong>Stop Impersonation</strong> di banner untuk kembali ke akun Admin</li>
+  </ol>
+</div>
+
+<div class="info">
+  <div class="info-title">Keamanan</div>
+  Selama impersonation, semua aksi tulis (POST/PUT/DELETE) diblokir secara otomatis. Admin hanya dapat melihat data, tidak dapat mengubah apapun atas nama pengguna lain.
+</div>
+
+<div class="screenshot"><img src="screenshots/rn-impersonate.png" alt="Halaman Impersonation"><div class="caption">Halaman Impersonate — pilih mode View As HC, View As User, atau cari user spesifik</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 4: Pre-Post Test -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur4">4. Tipe Assessment Pre-Post Test</h2>
+<div class="feature-header">
+  <span class="badge badge-blue">Assessment</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Tipe assessment baru yang mengukur efektivitas training dengan membandingkan hasil <strong>Pre-Test</strong> (sebelum training) dan <strong>Post-Test</strong> (sesudah training) secara otomatis.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Mengukur dampak training secara kuantitatif</li>
+  <li>Sistem otomatis membuat dua sesi ujian (Pre &amp; Post) dari satu kali setup</li>
+  <li>Terintegrasi dengan laporan <strong>Gain Score</strong> untuk analisis peningkatan per peserta</li>
+</ul>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <ol>
+    <li>Buat assessment baru, pilih tipe <strong>Pre-Post Test</strong></li>
+    <li>Sistem otomatis membuat dua session:
+      <ul>
+        <li><strong>Pre-Test</strong> &mdash; diberikan sebelum training dimulai</li>
+        <li><strong>Post-Test</strong> &mdash; diberikan setelah training selesai</li>
+      </ul>
+    </li>
+    <li>Soal yang digunakan sama untuk kedua sesi</li>
+    <li>Hasil perbandingan dapat dilihat di menu <strong>Analytics &rarr; Gain Score</strong></li>
+  </ol>
+</div>
+
+<div class="success">
+  <div class="success-title">Terintegrasi</div>
+  Data Pre-Post Test secara otomatis tersedia di laporan Gain Score (Fitur 7), menampilkan peningkatan skor per peserta dan per elemen teknis.
+</div>
+
+<div class="screenshot"><img src="screenshots/rn-create-assessment.png" alt="Form Buat Assessment dengan pilihan tipe Pre-Post Test"><div class="caption">Form Buat Assessment — dropdown Tipe Assessment dengan pilihan Standard dan Pre-Post Test</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 5: Tipe Soal MC/MA/Essay -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur5">5. Tipe Soal MC / MA / Essay</h2>
+<div class="feature-header">
+  <span class="badge badge-blue">Assessment</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Dukungan tiga tipe soal dalam assessment untuk fleksibilitas evaluasi yang lebih lengkap.</p>
+
+<h3>Tipe Soal</h3>
+<table>
+  <tr><th>Tipe</th><th>Keterangan</th><th>Penilaian</th></tr>
+  <tr>
+    <td><strong>Multiple Choice (MC)</strong></td>
+    <td>Pilihan ganda, satu jawaban benar. Peserta memilih dengan radio button.</td>
+    <td>Otomatis</td>
+  </tr>
+  <tr>
+    <td><strong>Multiple Answer (MA)</strong></td>
+    <td>Pilihan ganda, lebih dari satu jawaban benar. Label "Pilih semua yang benar" ditampilkan.</td>
+    <td>Otomatis</td>
+  </tr>
+  <tr>
+    <td><strong>Essay</strong></td>
+    <td>Jawaban uraian bebas dengan batas karakter (default 2000). Dilengkapi rubrik penilaian.</td>
+    <td>Manual oleh HC</td>
+  </tr>
+</table>
+
+<h3>Cara Kerja</h3>
+<div class="feature-card">
+  <ul>
+    <li>Saat membuat soal di package, pilih <strong>Tipe Soal</strong> (MC/MA/Essay)</li>
+    <li>Untuk soal Essay, isi <strong>Rubrik Penilaian</strong> sebagai panduan scoring</li>
+    <li>Peserta melihat badge tipe soal saat mengerjakan ujian</li>
+    <li>Soal MC &amp; MA dinilai otomatis; soal Essay perlu penilaian manual oleh HC</li>
+    <li>Character counter real-time ditampilkan untuk soal Essay</li>
+  </ul>
+</div>
+
+<div class="info">
+  <div class="info-title">Info</div>
+  Assessment yang mengandung soal Essay akan menampilkan indikator <strong>Essay Pending</strong> pada dashboard HC sampai semua jawaban essay dinilai.
+</div>
+
+<div class="screenshot"><img src="screenshots/rn-package-questions.png" alt="Manage Questions — daftar soal dan form tambah soal dengan pilihan tipe MC/MA/Essay"><div class="caption">Halaman Manage Questions — daftar soal dengan badge tipe, dan form Tambah Soal dengan dropdown Pilihan Ganda (MC) / Multiple Answer (MA) / Essay</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 6: Mobile Optimization Exam -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur6">6. Mobile Optimization Exam</h2>
+<div class="feature-header">
+  <span class="badge badge-green">UX</span>
+  <span class="role-tag role-all">Semua Peserta Ujian</span>
+</div>
+
+<p>Halaman ujian kini dioptimasi untuk perangkat mobile sehingga peserta dapat mengerjakan ujian dengan nyaman melalui smartphone.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Peserta dapat mengerjakan ujian kapan saja, di mana saja melalui HP</li>
+  <li>Navigasi soal mudah dijangkau dengan satu tangan (bottom navigation)</li>
+  <li>Layout responsif &mdash; otomatis menyesuaikan ukuran layar</li>
+</ul>
+
+<h3>Fitur Mobile</h3>
+<div class="feature-card">
+  <ul>
+    <li><strong>Sticky Footer Navigation:</strong> Tombol Previous, Next, Navigator, dan Submit selalu terlihat di bawah layar</li>
+    <li><strong>Question Navigator Drawer:</strong> Panel geser untuk navigasi ke soal tertentu (offcanvas)</li>
+    <li><strong>Responsive Layout:</strong> Sidebar navigasi soal otomatis tersembunyi di layar kecil, digantikan drawer</li>
+    <li><strong>Adaptive Content:</strong> Jumlah soal per halaman disesuaikan untuk mobile</li>
+    <li><strong>Touch-Friendly:</strong> Tombol dan area klik diperbesar untuk kemudahan sentuh</li>
+  </ul>
+</div>
+
+
+
+<!-- ============================================================ -->
+<!-- FITUR 7: Item Analysis & Gain Score -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur7">7. Item Analysis &amp; Gain Score Report</h2>
+<div class="feature-header">
+  <span class="badge badge-blue">Analytics</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Laporan analitik untuk mengevaluasi <strong>kualitas soal</strong> (Item Analysis) dan <strong>efektivitas training</strong> (Gain Score) secara mendalam.</p>
+
+<h3>Item Analysis</h3>
+<div class="feature-card">
+  <p>Menganalisis setiap butir soal berdasarkan respons peserta:</p>
+  <table>
+    <tr><th>Metrik</th><th>Keterangan</th></tr>
+    <tr>
+      <td><strong>Difficulty Index</strong></td>
+      <td>Tingkat kesulitan soal (0.0 &ndash; 1.0). Nilai tinggi = soal mudah.</td>
+    </tr>
+    <tr>
+      <td><strong>Discrimination Index</strong></td>
+      <td>Kemampuan soal membedakan peserta pandai dan kurang pandai (Kelley D-index).</td>
+    </tr>
+    <tr>
+      <td><strong>Distractor Analysis</strong></td>
+      <td>Distribusi pilihan jawaban &mdash; berapa persen memilih opsi A, B, C, D.</td>
+    </tr>
+  </table>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Peringatan Low-N</div>
+  Jika jumlah responden kurang dari 30 orang, sistem menampilkan peringatan <strong>Low-N</strong>. Hasil analisis dengan responden sedikit mungkin kurang reliabel.
+</div>
+
+<h3>Gain Score</h3>
+<div class="feature-card">
+  <p>Mengukur peningkatan skor dari Pre-Test ke Post-Test. Tersedia dalam dua tampilan:</p>
+  <ul>
+    <li><strong>Per Peserta:</strong> Nama, NIP, Section, Skor Pre, Skor Post, Gain Score</li>
+    <li><strong>Per Elemen Teknis:</strong> Rata-rata skor Pre, Post, dan Gain per elemen</li>
+    <li><strong>Per Grup:</strong> Perbandingan rata-rata antar grup/kelas training</li>
+  </ul>
+</div>
+
+<div class="screenshot"><img src="screenshots/rn-item-analysis.png" alt="Tab Item Analysis di Analytics Dashboard"><div class="caption">Tab Item Analysis — pilih assessment untuk melihat Difficulty Index, Discrimination Index, dan Distractor Analysis</div></div>
+<div class="screenshot"><img src="screenshots/rn-gain-score.png" alt="Tab Gain Score Report di Analytics Dashboard"><div class="caption">Tab Gain Score Report — toggle Per Pekerja / Per Elemen Kompetensi dengan opsi Export</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 8: Coach Workload -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur8">8. Coach Workload</h2>
+<div class="feature-header">
+  <span class="badge badge-green">Coaching</span>
+  <span class="role-tag role-admin">Admin</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Dashboard untuk memantau dan mengelola <strong>beban kerja coach</strong> sehingga distribusi coachee merata dan tidak ada coach yang kelebihan beban.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Visibilitas langsung terhadap jumlah coachee per coach</li>
+  <li>Peringatan otomatis untuk coach yang mendekati atau melampaui batas kapasitas</li>
+  <li>Rekomendasi penyeimbangan workload otomatis</li>
+</ul>
+
+<h3>Fitur Utama</h3>
+<div class="feature-card">
+  <table>
+    <tr><th>Komponen</th><th>Keterangan</th></tr>
+    <tr>
+      <td><strong>Dashboard Metrics</strong></td>
+      <td>Total Coach Aktif, Total Coachee, Rasio Rata-rata, Jumlah Overloaded</td>
+    </tr>
+    <tr>
+      <td><strong>Threshold Setting</strong></td>
+      <td>Batas maksimum coachee per coach (default: 5) dan batas warning (default: 4)</td>
+    </tr>
+    <tr>
+      <td><strong>Reassignment</strong></td>
+      <td>Saran otomatis untuk redistribusi coachee dari coach overloaded</td>
+    </tr>
+    <tr>
+      <td><strong>Filter &amp; Export</strong></td>
+      <td>Filter by section, export ke Excel</td>
+    </tr>
+  </table>
+</div>
+
+<div class="info">
+  <div class="info-title">Hak Akses</div>
+  HC dapat melihat dashboard workload. Hanya <strong>Admin</strong> yang dapat mengubah threshold setting.
+</div>
+
+<div class="screenshot"><img src="screenshots/rn-coach-workload.png" alt="Dashboard Coach Workload"><div class="caption">Dashboard Coach Workload — metric cards, grafik beban, tabel detail, dan saran penyeimbangan</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FITUR 9: Budget Training -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h2 id="fitur9">9. Budget Training</h2>
+<div class="feature-header">
+  <span class="badge badge-green">Training</span>
+  <span class="role-tag role-hc">HC</span>
+</div>
+
+<p>Modul pengelolaan anggaran training yang mencakup pencatatan <strong>rencana</strong> dan <strong>realisasi</strong> budget, lengkap dengan visualisasi dan perbandingan.</p>
+
+<h3>Manfaat</h3>
+<ul>
+  <li>Tracking budget rencana vs realisasi dalam satu tampilan</li>
+  <li>Visualisasi chart untuk distribusi budget per kategori dan tipe</li>
+  <li>Import data budget dari file CSV/Excel</li>
+</ul>
+
+<h3>Fitur Utama</h3>
+<div class="feature-card">
+  <p><strong>Dua Tab Utama:</strong></p>
+  <ul>
+    <li><strong>Data Budget:</strong> Tabel daftar item budget dengan filter (tahun, tipe, kategori, pencarian). Mendukung create, import, dan export.</li>
+    <li><strong>Ringkasan:</strong> Summary metrics (Total Rencana, Total Realisasi, Variance) dan chart visualisasi:
+      <ul>
+        <li>Chart perbandingan Rencana vs Realisasi per kategori</li>
+        <li>Chart distribusi budget per tipe</li>
+        <li>Top spending items</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<div class="feature-card">
+  <p><strong>Aksi yang tersedia:</strong></p>
+  <ul>
+    <li><strong>Create:</strong> Tambah item budget satu per satu</li>
+    <li><strong>Import:</strong> Upload file CSV atau Excel untuk input massal</li>
+    <li><strong>Export:</strong> Download data budget ke Excel</li>
+  </ul>
+</div>
+
+<div class="screenshot"><img src="screenshots/rn-budget-training.png" alt="Tab Data Budget"><div class="caption">Tab Data Budget — tabel item budget dengan filter, sorting, dan tombol Export/Import/Tambah</div></div>
+<div class="screenshot"><img src="screenshots/rn-budget-ringkasan.png" alt="Tab Ringkasan Budget"><div class="caption">Tab Ringkasan — summary cards, chart Budget vs Realisasi per Kategori, Distribusi per Type, dan Top 10 Item</div></div>
+
+
+<!-- ============================================================ -->
+<!-- FOOTER -->
+<!-- ============================================================ -->
+<div class="footer">
+  <p><strong>HC Portal KPB</strong> &mdash; Human Capital Portal, Kilang Pertamina Balikpapan</p>
+  <p>Kontak: Tim IT KPB &bull; Release Notes April 2026</p>
+</div>
+
+</body>
+</html>

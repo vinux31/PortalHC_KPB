@@ -10,13 +10,16 @@
 
 <!-- Tab Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h5 class="fw-bold mb-0">Training Records</h5>
+    <h5 class="fw-bold mb-0">Input Records</h5>
     <div class="d-flex gap-2">
         <a href="@Url.Action("ImportTraining", "TrainingAdmin")" class="btn btn-outline-primary">
             <i class="bi bi-file-earmark-arrow-up me-2"></i>Import Excel
         </a>
         <a href="@Url.Action("AddTraining", "TrainingAdmin")" class="btn btn-primary">
             <i class="bi bi-plus-lg me-2"></i>Tambah Training
+        </a>
+        <a href="@Url.Action("AddManualAssessment", "TrainingAdmin")" class="btn btn-info text-white">
+            <i class="bi bi-plus-lg me-2"></i>Tambah Assessment Manual
         </a>
     </div>
 </div>
@@ -208,19 +211,30 @@ else
                         <tr class="collapse" id="@workerCollapseId">
                             <td colspan="7" class="p-0">
                                 <div class="p-3 bg-light border-top border-bottom">
-                                    @if (worker.TrainingRecords == null || !worker.TrainingRecords.Any())
+                                    @{
+                                        var trainingRows = (worker.TrainingRecords ?? new List<HcPortal.Models.TrainingRecord>())
+                                            .Select(r => new { Type = "Training", Date = r.Tanggal, Title = r.Judul, Detail = r.Penyelenggara ?? "\u2014", Status = r.Status ?? "", ValidUntil = r.ValidUntil, Id = r.Id, Score = (int?)null, IsPassed = (bool?)(r.Status == "Passed" || r.Status == "Valid") });
+                                        var assessmentRows = (worker.AssessmentSessions ?? new List<HcPortal.Models.AssessmentSession>())
+                                            .Where(a => a.IsManualEntry)
+                                            .Select(a => new { Type = "Assessment", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = a.Score.HasValue ? $"{a.Score} - {(a.IsPassed == true ? "Lulus" : "Tidak Lulus")}" : "\u2014", Status = a.IsPassed == true ? "Passed" : (a.IsPassed == false ? "Failed" : ""), ValidUntil = a.ValidUntil, Id = a.Id, Score = a.Score, IsPassed = a.IsPassed });
+                                        var allRows = trainingRows.Concat(assessmentRows).OrderByDescending(r => r.Date).ToList();
+                                    }
+                                    @if (allRows.Count == 0)
                                     {
                                         <div class="text-center py-3 text-muted">
-                                            <i class="bi bi-inbox me-2"></i>Belum ada training record manual untuk pekerja ini.
+                                            <i class="bi bi-inbox me-2"></i>Belum ada record manual untuk pekerja ini.
                                             <a href="@Url.Action("AddTraining", "TrainingAdmin")" class="btn btn-sm btn-primary ms-3">
-                                                <i class="bi bi-plus-lg me-1"></i>Tambah
+                                                <i class="bi bi-plus-lg me-1"></i>Tambah Training
+                                            </a>
+                                            <a href="@Url.Action("AddManualAssessment", "TrainingAdmin")" class="btn btn-sm btn-info text-white ms-1">
+                                                <i class="bi bi-plus-lg me-1"></i>Tambah Assessment
                                             </a>
                                         </div>
                                     }
                                     else
                                     {
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <small class="fw-bold text-muted">Training Records — @worker.WorkerName</small>
+                                            <small class="fw-bold text-muted">Input Records — @worker.WorkerName</small>
                                             <a href="@Url.Action("WorkerDetail", "Worker", new { id = worker.WorkerId })"
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-person-lines-fill me-1"></i>Lihat Detail
@@ -233,23 +247,32 @@ else
                                                         <th>Tanggal</th>
                                                         <th>Tipe</th>
                                                         <th>Judul</th>
-                                                        <th>Penyelenggara</th>
+                                                        <th>Detail</th>
                                                         <th>Status</th>
                                                         <th>Berlaku Sampai</th>
                                                         <th>Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach (var record in worker.TrainingRecords)
+                                                    @foreach (var row in allRows)
                                                     {
                                                         <tr>
-                                                            <td class="small">@record.Tanggal.ToString("dd MMM yyyy")</td>
-                                                            <td><span class="badge bg-success">Training Manual</span></td>
-                                                            <td class="fw-semibold small">@record.Judul</td>
-                                                            <td class="small text-muted">@(record.Penyelenggara ?? "\u2014")</td>
+                                                            <td class="small">@row.Date.ToString("dd MMM yyyy")</td>
+                                                            <td>
+                                                                @if (row.Type == "Training")
+                                                                {
+                                                                    <span class="badge bg-success">Training Manual</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge bg-info text-white">Assessment Manual</span>
+                                                                }
+                                                            </td>
+                                                            <td class="fw-semibold small">@row.Title</td>
+                                                            <td class="small text-muted">@row.Detail</td>
                                                             <td>
                                                                 @{
-                                                                    var statusClass = record.Status switch
+                                                                    var statusClass = row.Status switch
                                                                     {
                                                                         "Passed" => "bg-success",
                                                                         "Valid" => "bg-primary",
@@ -258,25 +281,43 @@ else
                                                                         _ => "bg-secondary"
                                                                     };
                                                                 }
-                                                                <span class="badge @statusClass">@record.Status</span>
+                                                                <span class="badge @statusClass">@(string.IsNullOrEmpty(row.Status) ? "\u2014" : row.Status)</span>
                                                             </td>
                                                             <td class="small">
-                                                                @(record.ValidUntil.HasValue ? record.ValidUntil.Value.ToString("dd MMM yyyy") : "\u2014")
+                                                                @(row.ValidUntil.HasValue ? row.ValidUntil.Value.ToString("dd MMM yyyy") : "\u2014")
                                                             </td>
                                                             <td>
                                                                 <div class="d-flex gap-1">
-                                                                    <a href="@Url.Action("EditTraining", "TrainingAdmin", new { id = record.Id })"
-                                                                       class="btn btn-sm btn-outline-primary" title="Edit">
-                                                                        <i class="bi bi-pencil"></i>
-                                                                    </a>
-                                                                    <form method="post" action="@Url.Action("DeleteTraining", "TrainingAdmin")" class="d-inline">
-                                                                        @Html.AntiForgeryToken()
-                                                                        <input type="hidden" name="id" value="@record.Id" />
-                                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                                                onclick="return confirm('Hapus training record ini?')">
-                                                                            <i class="bi bi-trash"></i>
-                                                                        </button>
-                                                                    </form>
+                                                                    @if (row.Type == "Training")
+                                                                    {
+                                                                        <a href="@Url.Action("EditTraining", "TrainingAdmin", new { id = row.Id })"
+                                                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                                                            <i class="bi bi-pencil"></i>
+                                                                        </a>
+                                                                        <form method="post" action="@Url.Action("DeleteTraining", "TrainingAdmin")" class="d-inline">
+                                                                            @Html.AntiForgeryToken()
+                                                                            <input type="hidden" name="id" value="@row.Id" />
+                                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                                                                    onclick="return confirm('Hapus training record ini?')">
+                                                                                <i class="bi bi-trash"></i>
+                                                                            </button>
+                                                                        </form>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <a href="@Url.Action("EditManualAssessment", "TrainingAdmin", new { id = row.Id })"
+                                                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                                                            <i class="bi bi-pencil"></i>
+                                                                        </a>
+                                                                        <form method="post" action="@Url.Action("DeleteManualAssessment", "TrainingAdmin")" class="d-inline">
+                                                                            @Html.AntiForgeryToken()
+                                                                            <input type="hidden" name="id" value="@row.Id" />
+                                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                                                                    onclick="return confirm('Hapus assessment record ini?')">
+                                                                                <i class="bi bi-trash"></i>
+                                                                            </button>
+                                                                        </form>
+                                                                    }
                                                                 </div>
                                                             </td>
                                                         </tr>

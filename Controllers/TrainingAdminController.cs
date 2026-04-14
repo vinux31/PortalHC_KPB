@@ -534,6 +534,240 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
         }
 
+        // --- MANUAL ASSESSMENT ---
+
+        // GET /Admin/AddManualAssessment
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AddManualAssessment()
+        {
+            var workers = await _context.Users
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, u.FullName, u.NIP })
+                .ToListAsync();
+            ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = w.Id,
+                Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
+            }).ToList();
+            await SetTrainingCategoryViewBag();
+            return View(new CreateManualAssessmentViewModel());
+        }
+
+        // POST /Admin/AddManualAssessment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AddManualAssessment(CreateManualAssessmentViewModel model)
+        {
+            bool hasWorkerCerts = model.WorkerCerts != null && model.WorkerCerts.Count > 0;
+            if (!hasWorkerCerts)
+                ModelState.AddModelError("", "Pilih minimal 1 pekerja.");
+            if (hasWorkerCerts && model.WorkerCerts!.Count > 20)
+                ModelState.AddModelError("", "Maksimal 20 pekerja per submission.");
+
+            // Per-worker file validation
+            if (hasWorkerCerts)
+            {
+                var allowedExts = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                foreach (var wc in model.WorkerCerts!)
+                {
+                    if (wc.CertificateFile != null && wc.CertificateFile.Length > 0)
+                    {
+                        var wcExt = Path.GetExtension(wc.CertificateFile.FileName).ToLowerInvariant();
+                        if (!allowedExts.Contains(wcExt))
+                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} harus berformat PDF, JPG, atau PNG.");
+                        if (wc.CertificateFile.Length > 10 * 1024 * 1024)
+                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} melebihi batas 10MB.");
+                    }
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var workersList = await _context.Users.OrderBy(u => u.FullName)
+                    .Select(u => new { u.Id, u.FullName, u.NIP }).ToListAsync();
+                ViewBag.Workers = workersList.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = w.Id,
+                    Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
+                }).ToList();
+                await SetTrainingCategoryViewBag();
+                return View(model);
+            }
+
+            foreach (var wc in model.WorkerCerts!)
+            {
+                string? certUrl = null;
+                if (wc.CertificateFile != null && wc.CertificateFile.Length > 0)
+                    certUrl = await FileUploadHelper.SaveFileAsync(wc.CertificateFile, _env.WebRootPath, "uploads/certificates");
+
+                var session = new AssessmentSession
+                {
+                    UserId = wc.UserId,
+                    Title = model.Title,
+                    Category = model.Category,
+                    Score = model.Score,
+                    PassPercentage = model.PassPercentage,
+                    IsPassed = model.IsPassed,
+                    CompletedAt = model.CompletedAt,
+                    Schedule = model.CompletedAt,
+                    ValidUntil = model.ValidUntil,
+                    NomorSertifikat = wc.NomorSertifikat,
+                    ManualSertifikatUrl = certUrl,
+                    Penyelenggara = model.Penyelenggara,
+                    Kota = model.Kota,
+                    SubKategori = model.SubKategori,
+                    CertificateType = model.CertificateType,
+                    AssessmentType = "Manual",
+                    Status = "Completed",
+                    IsManualEntry = true,
+                    GenerateCertificate = true,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = (await _userManager.GetUserAsync(User))?.Id
+                };
+                _context.AssessmentSessions.Add(session);
+            }
+            await _context.SaveChangesAsync();
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor != null)
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Create",
+                    $"Assessment manual ditambahkan: {model.Title} untuk {model.WorkerCerts!.Count} pekerja", 0, "AssessmentSession");
+
+            TempData["Success"] = $"Berhasil membuat {model.WorkerCerts!.Count} assessment manual.";
+            return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+        }
+
+        // GET /Admin/EditManualAssessment/{id}
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditManualAssessment(int id)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == id && s.IsManualEntry);
+            if (session == null) return NotFound();
+
+            var model = new EditManualAssessmentViewModel
+            {
+                Id = session.Id,
+                WorkerId = session.UserId,
+                WorkerName = session.User?.FullName ?? "",
+                Title = session.Title,
+                Category = session.Category,
+                Score = session.Score,
+                PassPercentage = session.PassPercentage,
+                IsPassed = session.IsPassed == true,
+                CompletedAt = session.CompletedAt ?? session.Schedule,
+                ValidUntil = session.ValidUntil,
+                NomorSertifikat = session.NomorSertifikat,
+                Penyelenggara = session.Penyelenggara,
+                Kota = session.Kota,
+                SubKategori = session.SubKategori,
+                CertificateType = session.CertificateType,
+                ExistingSertifikatUrl = session.ManualSertifikatUrl
+            };
+            await SetTrainingCategoryViewBag();
+            return View(model);
+        }
+
+        // POST /Admin/EditManualAssessment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditManualAssessment(EditManualAssessmentViewModel model)
+        {
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                {
+                    TempData["Error"] = "Hanya file PDF, JPG, dan PNG yang diperbolehkan.";
+                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+                }
+                if (model.CertificateFile.Length > 10 * 1024 * 1024)
+                {
+                    TempData["Error"] = "Ukuran file maksimal 10MB.";
+                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Data tidak valid.";
+                TempData["Error"] = firstError;
+                return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+            }
+
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == model.Id && s.IsManualEntry);
+            if (session == null) return NotFound();
+
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                if (!string.IsNullOrEmpty(session.ManualSertifikatUrl))
+                {
+                    var oldPath = Path.Combine(_env.WebRootPath, session.ManualSertifikatUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                }
+                var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
+                if (uploadedUrl != null) session.ManualSertifikatUrl = uploadedUrl;
+            }
+
+            session.Title = model.Title;
+            session.Category = model.Category;
+            session.Score = model.Score;
+            session.PassPercentage = model.PassPercentage;
+            session.IsPassed = model.IsPassed;
+            session.CompletedAt = model.CompletedAt;
+            session.Schedule = model.CompletedAt;
+            session.ValidUntil = model.ValidUntil;
+            session.NomorSertifikat = model.NomorSertifikat;
+            session.Penyelenggara = model.Penyelenggara;
+            session.Kota = model.Kota;
+            session.SubKategori = model.SubKategori;
+            session.CertificateType = model.CertificateType;
+            session.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor != null)
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Update",
+                    $"Assessment manual diperbarui: {model.Title}", model.Id, "AssessmentSession");
+
+            TempData["Success"] = "Assessment manual berhasil diperbarui.";
+            return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+        }
+
+        // POST /Admin/DeleteManualAssessment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> DeleteManualAssessment(int id)
+        {
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == id && s.IsManualEntry);
+            if (session == null) return NotFound();
+
+            if (!string.IsNullOrEmpty(session.ManualSertifikatUrl))
+            {
+                var path = Path.Combine(_env.WebRootPath, session.ManualSertifikatUrl.TrimStart('/'));
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+            }
+
+            var actor = await _userManager.GetUserAsync(User);
+            _context.AssessmentSessions.Remove(session);
+            await _context.SaveChangesAsync();
+
+            if (actor != null)
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
+                    $"Assessment manual dihapus: {session.Title}", session.Id, "AssessmentSession");
+
+            TempData["Success"] = "Assessment manual berhasil dihapus.";
+            return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+        }
+
         // --- IMPORT TRAINING ---
 
         // GET /Admin/DownloadImportTrainingTemplate
@@ -588,6 +822,58 @@ namespace HcPortal.Controllers
             return ExcelExportHelper.ToFileResult(workbook, "training_import_template.xlsx", this);
         }
 
+        // GET /Admin/DownloadImportAssessmentTemplate
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult DownloadImportAssessmentTemplate()
+        {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Import Assessment");
+
+            var headers = new[] {
+                "NIP", "Judul", "Kategori", "SubKategori (opsional)",
+                "Score (0-100, opsional)", "Lulus (Ya/Tidak)", "Tanggal (YYYY-MM-DD)",
+                "Penyelenggara (opsional)", "Kota (opsional)",
+                "ValidUntil (YYYY-MM-DD, opsional)", "NomorSertifikat (opsional)",
+                "CertificateType (opsional)"
+            };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#0EA5E9");
+                ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
+            }
+
+            // Example row
+            ws.Cell(2, 1).Value = "123456";
+            ws.Cell(2, 2).Value = "Assessment K3 Dasar";
+            ws.Cell(2, 3).Value = "MANDATORY";
+            ws.Cell(2, 4).Value = "K3 Umum";
+            ws.Cell(2, 5).Value = "85";
+            ws.Cell(2, 6).Value = "Ya";
+            ws.Cell(2, 7).Value = "2024-03-15";
+            ws.Cell(2, 8).Value = "PT Safety Indonesia";
+            ws.Cell(2, 9).Value = "Balikpapan";
+            ws.Cell(2, 10).Value = "2027-03-15";
+            ws.Cell(2, 11).Value = "CERT-A001";
+            ws.Cell(2, 12).Value = "Kompetensi";
+            for (int i = 1; i <= 12; i++)
+            {
+                ws.Cell(2, i).Style.Font.Italic = true;
+                ws.Cell(2, i).Style.Font.FontColor = XLColor.Gray;
+            }
+
+            ws.Cell(3, 1).Value = "Kolom Lulus: Ya / Tidak";
+            ws.Cell(3, 3).Value = "Kolom CertificateType: Kompetensi / Profesi / Pelatihan";
+            ws.Cell(3, 3).Style.Font.Italic = true;
+            ws.Cell(3, 3).Style.Font.FontColor = XLColor.DarkRed;
+            ws.Cell(3, 1).Style.Font.Italic = true;
+            ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+
+            return ExcelExportHelper.ToFileResult(workbook, "assessment_import_template.xlsx", this);
+        }
+
         // GET /Admin/ImportTraining
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
@@ -600,7 +886,7 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ImportTraining(IFormFile? excelFile)
+        public async Task<IActionResult> ImportTraining(IFormFile? excelFile, string? recordType)
         {
             if (excelFile == null || excelFile.Length == 0)
             {
@@ -635,9 +921,79 @@ namespace HcPortal.Controllers
                     return RedirectToAction(nameof(ImportTraining));
                 }
                 var ws = workbook.Worksheets.First();
+                bool isAssessmentImport = string.Equals(recordType, "Assessment", StringComparison.OrdinalIgnoreCase);
 
                 foreach (var row in ws.RowsUsed().Skip(1))
                 {
+                    if (isAssessmentImport)
+                    {
+                        // Assessment columns: NIP, Judul, Kategori, SubKategori, Score, Lulus, Tanggal, Penyelenggara, Kota, ValidUntil, NomorSertifikat, CertificateType
+                        var nip             = row.Cell(1).GetString().Trim();
+                        var judul           = row.Cell(2).GetString().Trim();
+                        var kategori        = row.Cell(3).GetString().Trim();
+                        var subKategori     = row.Cell(4).GetString().Trim();
+                        var scoreStr        = row.Cell(5).GetString().Trim();
+                        var lulusStr        = row.Cell(6).GetString().Trim();
+                        var tanggalStr      = row.Cell(7).GetString().Trim();
+                        var penyelenggara   = row.Cell(8).GetString().Trim();
+                        var kota            = row.Cell(9).GetString().Trim();
+                        var validUntilStr   = row.Cell(10).GetString().Trim();
+                        var nomorSertifikat = row.Cell(11).GetString().Trim();
+                        var certificateType = row.Cell(12).GetString().Trim();
+
+                        if (string.IsNullOrWhiteSpace(nip) && string.IsNullOrWhiteSpace(judul)) continue;
+
+                        var result = new HcPortal.Models.ImportTrainingResult { NIP = nip, Judul = judul };
+
+                        if (string.IsNullOrWhiteSpace(nip)) { result.Status = "Error"; result.Message = "NIP tidak boleh kosong"; results.Add(result); continue; }
+                        if (string.IsNullOrWhiteSpace(judul)) { result.Status = "Error"; result.Message = "Judul tidak boleh kosong"; results.Add(result); continue; }
+                        if (string.IsNullOrWhiteSpace(tanggalStr) || !DateTime.TryParse(tanggalStr, out var parsedDate))
+                        { result.Status = "Error"; result.Message = "Format Tanggal tidak valid (YYYY-MM-DD)"; results.Add(result); continue; }
+
+                        var targetUser = await _context.Users.FirstOrDefaultAsync(u => u.NIP == nip);
+                        if (targetUser == null) { result.Status = "Error"; result.Message = $"NIP '{nip}' tidak ditemukan dalam sistem"; results.Add(result); continue; }
+
+                        bool isPassed = lulusStr.Equals("Ya", StringComparison.OrdinalIgnoreCase);
+                        int? score = int.TryParse(scoreStr, out var s) ? s : null;
+
+                        try
+                        {
+                            var session = new AssessmentSession
+                            {
+                                UserId = targetUser.Id,
+                                Title = judul,
+                                Category = kategori,
+                                Score = score,
+                                PassPercentage = 70,
+                                IsPassed = isPassed,
+                                CompletedAt = parsedDate,
+                                Schedule = parsedDate,
+                                ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? vu : null,
+                                SubKategori = string.IsNullOrWhiteSpace(subKategori) ? null : subKategori,
+                                Penyelenggara = string.IsNullOrWhiteSpace(penyelenggara) ? null : penyelenggara,
+                                Kota = string.IsNullOrWhiteSpace(kota) ? null : kota,
+                                NomorSertifikat = string.IsNullOrWhiteSpace(nomorSertifikat) ? null : nomorSertifikat,
+                                CertificateType = string.IsNullOrWhiteSpace(certificateType) ? null : certificateType,
+                                Status = "Completed",
+                                IsManualEntry = true,
+                                GenerateCertificate = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            _context.AssessmentSessions.Add(session);
+                            await _context.SaveChangesAsync();
+                            result.Status = "Success";
+                            result.Message = $"Assessment record berhasil dibuat untuk {targetUser.FullName}";
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Status = "Error";
+                            result.Message = $"Gagal menyimpan: {ex.Message}";
+                        }
+                        results.Add(result);
+                    }
+                    else
+                    {
+                    // Training columns (original)
                     var nip             = row.Cell(1).GetString().Trim();
                     var judul           = row.Cell(2).GetString().Trim();
                     var kategori        = row.Cell(3).GetString().Trim();
@@ -718,6 +1074,7 @@ namespace HcPortal.Controllers
                     }
 
                     results.Add(result);
+                    } // end else (training)
                 }
             }
             catch (Exception ex)

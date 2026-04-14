@@ -1,0 +1,213 @@
+@model HcPortal.Models.EditManualAssessmentViewModel
+
+@{
+    ViewData["Title"] = "Edit Assessment Manual";
+}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+        <li class="breadcrumb-item">
+            <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = "training" })">Manage Assessment & Training</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Edit Assessment Manual</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">
+        <i class="bi bi-pencil me-2 text-info"></i>Edit Assessment Manual
+    </h2>
+    <p class="text-muted">Pekerja: <strong>@Model.WorkerName</strong></p>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+}
+
+<form asp-action="EditManualAssessment" asp-controller="TrainingAdmin" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="WorkerId" type="hidden" />
+    <input asp-for="WorkerName" type="hidden" />
+    <input asp-for="ExistingSertifikatUrl" type="hidden" />
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-check me-2"></i>Data Assessment</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Title" class="form-label fw-bold">Judul Assessment <span class="text-danger">*</span></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Category" class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                    <select id="kategoriSelect" asp-for="Category" class="form-select" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+                        {
+                            <option value="@cat.Name">@cat.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Category" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-7">
+                    <label asp-for="Penyelenggara" class="form-label fw-bold">
+                        Penyelenggara
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Institusi atau vendor penyelenggara assessment."></i>
+                    </label>
+                    <input asp-for="Penyelenggara" class="form-control" placeholder="Contoh: LSP Migas, BNSP" />
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="Kota" class="form-label fw-bold">
+                        Kota
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Kota tempat assessment dilaksanakan."></i>
+                    </label>
+                    <input asp-for="Kota" class="form-control" placeholder="Contoh: Balikpapan" />
+                </div>
+                <div class="col-md-7">
+                    <label asp-for="SubKategori" class="form-label fw-bold">
+                        Sub-Kategori
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Detail spesifik dari kategori assessment."></i>
+                    </label>
+                    <select id="subKategoriSelect" asp-for="SubKategori" class="form-select">
+                        <option value="">-- Pilih Sub Kategori --</option>
+                        @foreach (var sub in (IEnumerable<dynamic>)ViewBag.SubKategoriOptions)
+                        {
+                            <option value="@sub.Name" data-parent-id="@sub.ParentId">@sub.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="CertificateType" class="form-label fw-bold">
+                        Tipe Sertifikat
+                        <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Klasifikasi sertifikat dari lembaga penyelenggara."></i>
+                    </label>
+                    <select asp-for="CertificateType" class="form-select">
+                        <option value="">-- Pilih Tipe --</option>
+                        <option value="Permanent">Permanent</option>
+                        <option value="Annual">Annual</option>
+                        <option value="3-Year">3-Year</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Score" class="form-label fw-bold">Score</label>
+                    <input asp-for="Score" type="number" min="0" max="100" class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="PassPercentage" class="form-label fw-bold">Pass Percentage (%)</label>
+                    <input asp-for="PassPercentage" type="number" min="0" max="100" class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold d-block">Lulus</label>
+                    <div class="form-check form-switch mt-2">
+                        <input asp-for="IsPassed" class="form-check-input" type="checkbox" role="switch" />
+                        <label asp-for="IsPassed" class="form-check-label">Ya, Lulus</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CompletedAt" class="form-label fw-bold">Tanggal Selesai <span class="text-danger">*</span></label>
+                    <input asp-for="CompletedAt" type="date" class="form-control" />
+                    <span asp-validation-for="CompletedAt" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai</label>
+                    <input asp-for="ValidUntil" type="date" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Data Sertifikat</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="NomorSertifikat" class="form-label fw-bold">Nomor Sertifikat</label>
+                    <input asp-for="NomorSertifikat" class="form-control" placeholder="Masukkan nomor sertifikat" />
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CertificateFile" class="form-label fw-bold">File Sertifikat Baru</label>
+                    <input asp-for="CertificateFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                    <div class="form-text">PDF, JPG, atau PNG. Maksimal 10MB. Kosongkan jika tidak ingin mengganti.</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ExistingSertifikatUrl))
+                {
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Sertifikat Saat Ini</label>
+                        <div>
+                            <a href="@Model.ExistingSertifikatUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-earmark-text me-1"></i>Lihat Sertifikat
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = "training" })" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-2"></i>Batal
+        </a>
+        <button type="submit" class="btn btn-info text-white">
+            <i class="bi bi-check-lg me-2"></i>Simpan Perubahan
+        </button>
+    </div>
+</form>
+
+<script>
+(function() {
+    var kategoriMap = {};
+    @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+    {
+        @:kategoriMap["@cat.Name"] = @cat.Id;
+    }
+
+    var kategoriSelect = document.getElementById('kategoriSelect');
+    var subKategoriSelect = document.getElementById('subKategoriSelect');
+
+    function filterSubKategori() {
+        var selectedName = kategoriSelect.value;
+        var parentId = kategoriMap[selectedName];
+        var options = subKategoriSelect.querySelectorAll('option[data-parent-id]');
+
+        options.forEach(function(opt) {
+            opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
+        });
+
+        subKategoriSelect.disabled = !selectedName;
+    }
+
+    kategoriSelect.addEventListener('change', function() {
+        filterSubKategori();
+        subKategoriSelect.value = '';
+    });
+
+    // On load: filter to show matching sub-categories for existing value
+    filterSubKategori();
+})();
+</script>

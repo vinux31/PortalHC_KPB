@@ -1,7 +1,7 @@
 {
   "milestone_version": "v14.0",
   "milestone_name": "Assessment Enhancement",
-  "model_profile": "budget",
+  "model_profile": "balanced",
   "commit_docs": true,
   "search_gitignored": false,
   "branching_strategy": "none",

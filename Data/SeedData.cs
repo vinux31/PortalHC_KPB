@@ -22,13 +22,7 @@ namespace HcPortal.Data
             // 2. Create bootstrap admin account (all environments — needed for first login)
             await CreateAdminUserAsync(userManager);
 
-            // 3. Create test users (Development only)
-            if (environment.IsDevelopment())
-            {
-                await CreateTestUsersAsync(userManager);
-            }
-
-            // 4. Seed OrganizationUnits (safety net for fresh deployment)
+            // 3. Seed OrganizationUnits (safety net for fresh deployment)
             await SeedOrganizationUnitsAsync(context);
         }
 
@@ -59,35 +53,6 @@ namespace HcPortal.Data
             {
                 await userManager.AddToRoleAsync(admin, UserRoles.Admin);
                 Console.WriteLine($"Bootstrap admin '{adminEmail}' created. GANTI PASSWORD SEGERA via Settings.");
-            }
-        }
-
-        /// <summary>
-        /// Test users for development/UAT only. Not created in Production.
-        /// </summary>
-        private static async Task CreateTestUsersAsync(UserManager<ApplicationUser> userManager)
-        {
-            var testUsers = new (ApplicationUser User, string Password, string Role)[]
-            {
-                (new ApplicationUser { UserName = "meylisa.tjiang@pertamina.com", Email = "meylisa.tjiang@pertamina.com", EmailConfirmed = true, FullName = "Meylisa", Position = "HC Staff", RoleLevel = 2, SelectedView = UserRoles.GetDefaultView(UserRoles.HC) }, "123456", UserRoles.HC),
-                (new ApplicationUser { UserName = "direktur@pertamina.com", Email = "direktur@pertamina.com", EmailConfirmed = true, FullName = "Budi Hartono", Position = "Direktur Operasi", RoleLevel = 3, SelectedView = UserRoles.GetDefaultView(UserRoles.Direktur) }, "123456", UserRoles.Direktur),
-                (new ApplicationUser { UserName = "vp@pertamina.com", Email = "vp@pertamina.com", EmailConfirmed = true, FullName = "Siti Nurhaliza", Position = "VP Refinery", RoleLevel = 3, SelectedView = UserRoles.GetDefaultView(UserRoles.VP) }, "123456", UserRoles.VP),
-                (new ApplicationUser { UserName = "manager@pertamina.com", Email = "manager@pertamina.com", EmailConfirmed = true, FullName = "Ahmad Yani", Position = "Manager Process", RoleLevel = 3, SelectedView = UserRoles.GetDefaultView(UserRoles.Manager) }, "123456", UserRoles.Manager),
-                (new ApplicationUser { UserName = "taufik.hartopo@pertamina.com", Email = "taufik.hartopo@pertamina.com", EmailConfirmed = true, FullName = "Taufik Basuki", Position = "Section Head", Section = "GAST", RoleLevel = 4, SelectedView = UserRoles.GetDefaultView(UserRoles.SectionHead) }, "123456", UserRoles.SectionHead),
-                (new ApplicationUser { UserName = "choirul.anam@pertamina.com", Email = "choirul.anam@pertamina.com", EmailConfirmed = true, FullName = "Choirul Anam", Position = "Sr Supervisor", Section = "GAST", Unit = "Alkylation Unit (065)", RoleLevel = 4, SelectedView = UserRoles.GetDefaultView(UserRoles.SrSupervisor) }, "123456", UserRoles.SrSupervisor),
-                (new ApplicationUser { UserName = "rustam.nugroho@pertamina.com", Email = "rustam.nugroho@pertamina.com", EmailConfirmed = true, FullName = "Rustam Santiko", Position = "Shift Supervisor", Section = "GAST", Unit = "Alkylation Unit (065)", RoleLevel = 5, SelectedView = UserRoles.GetDefaultView(UserRoles.Coach) }, "123456", UserRoles.Coach),
-                (new ApplicationUser { UserName = "rino.prasetyo@pertamina.com", Email = "rino.prasetyo@pertamina.com", EmailConfirmed = true, FullName = "Rino", Position = "Operator", Section = "GAST", Unit = "Alkylation Unit (065)", RoleLevel = 6, SelectedView = UserRoles.GetDefaultView(UserRoles.Coachee) }, "123456", UserRoles.Coachee),
-                (new ApplicationUser { UserName = "iwan3@pertamina.com", Email = "iwan3@pertamina.com", EmailConfirmed = true, FullName = "Iwan", Position = "Operator", Section = "GAST", Unit = "Alkylation Unit (065)", RoleLevel = 6, SelectedView = UserRoles.GetDefaultView(UserRoles.Coachee) }, "123456", UserRoles.Coachee),
-            };
-
-            foreach (var (user, password, role) in testUsers)
-            {
-                if (await userManager.FindByEmailAsync(user.Email!) != null)
-                    continue;
-
-                var result = await userManager.CreateAsync(user, password);
-                if (result.Succeeded)
-                    await userManager.AddToRoleAsync(user, role);
             }
         }
 

@@ -58,7 +58,7 @@
                 <div class="col-md-12">
                     @if (ViewBag.IsRenewalMode == true)
                     {
-                        <label asp-for="UserId" class="form-label fw-bold">Pekerja <span class="text-danger">*</span></label>
+                        <label asp-for="UserId" class="form-label fw-bold">Pekerja <span class="text-danger">*</span> <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Pilih satu atau beberapa pekerja yang mengikuti pelatihan ini (maks 20)"></i></label>
                         <select asp-for="UserId" asp-items="@(ViewBag.Workers as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)" class="form-select">
                             <option value="">-- Pilih Pekerja --</option>
                         </select>
@@ -66,7 +66,7 @@
                     }
                     else
                     {
-                        <label class="form-label fw-bold">Pekerja <span class="text-danger">*</span></label>
+                        <label class="form-label fw-bold">Pekerja <span class="text-danger">*</span> <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Pilih satu atau beberapa pekerja yang mengikuti pelatihan ini (maks 20)"></i></label>
                         <select id="WorkerSelect" multiple>
                             @foreach (var w in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Workers)
                             {
@@ -85,29 +85,21 @@
         </div>
         <div class="card-body">
             <div class="row g-3">
-                <!-- Nama Pelatihan -->
+                <!-- Baris 1: Nama Pelatihan | Penyelenggara -->
                 <div class="col-md-6">
-                    <label asp-for="Judul" class="form-label fw-bold">Nama Pelatihan <span class="text-danger">*</span></label>
+                    <label asp-for="Judul" class="form-label fw-bold">Nama Pelatihan <span class="text-danger">*</span> <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Nama lengkap pelatihan/kursus yang diikuti pekerja"></i></label>
                     <input asp-for="Judul" class="form-control" placeholder="Masukkan nama pelatihan" />
                     <span asp-validation-for="Judul" class="text-danger small"></span>
                 </div>
-
-                <!-- Penyelenggara -->
                 <div class="col-md-6">
-                    <label asp-for="Penyelenggara" class="form-label fw-bold">Penyelenggara <span class="text-danger">*</span></label>
+                    <label asp-for="Penyelenggara" class="form-label fw-bold">Penyelenggara <span class="text-danger">*</span> <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Lembaga/institusi yang menyelenggarakan pelatihan"></i></label>
                     <input asp-for="Penyelenggara" class="form-control" placeholder="Masukkan penyelenggara" />
                     <span asp-validation-for="Penyelenggara" class="text-danger small"></span>
                 </div>
 
-                <!-- Kota -->
+                <!-- Baris 2: Kategori | Sub Kategori -->
                 <div class="col-md-6">
-                    <label asp-for="Kota" class="form-label fw-bold">Kota</label>
-                    <input asp-for="Kota" class="form-control" placeholder="Masukkan kota pelatihan" />
-                </div>
-
-                <!-- Kategori -->
-                <div class="col-md-6">
-                    <label asp-for="Kategori" class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                    <label asp-for="Kategori" class="form-label fw-bold">Kategori <span class="text-danger">*</span> <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Kategori kompetensi sesuai klasifikasi HC (contoh: HSE, Technical, Leadership)"></i></label>
                     <select id="kategoriSelect" asp-for="Kategori" class="form-select" required>
                         <option value="">-- Pilih Kategori --</option>
                         @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
@@ -117,10 +109,8 @@
                     </select>
                     <span asp-validation-for="Kategori" class="text-danger small"></span>
                 </div>
-
-                <!-- Sub Kategori -->
                 <div class="col-md-6">
-                    <label asp-for="SubKategori" class="form-label">Sub Kategori (opsional)</label>
+                    <label asp-for="SubKategori" class="form-label">Sub Kategori (opsional) <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Sub-klasifikasi dari kategori utama. Otomatis tersedia setelah memilih kategori"></i></label>
                     <select id="subKategoriSelect" asp-for="SubKategori" class="form-select" disabled>
                         <option value="">-- Pilih Sub Kategori --</option>
                         @foreach (var sub in (IEnumerable<dynamic>)ViewBag.SubKategoriOptions)
@@ -128,30 +118,16 @@
                             <option value="@sub.Name" data-parent-id="@sub.ParentId">@sub.Name</option>
                         }
                     </select>
+                    <div class="form-text">Pilih kategori terlebih dahulu</div>
                 </div>
 
-                <!-- Tanggal -->
+                <!-- Baris 3: Kota | Status -->
                 <div class="col-md-6">
-                    <label asp-for="Tanggal" class="form-label fw-bold">Tanggal <span class="text-danger">*</span></label>
-                    <input asp-for="Tanggal" type="date" class="form-control" />
-                    <span asp-validation-for="Tanggal" class="text-danger small"></span>
+                    <label asp-for="Kota" class="form-label fw-bold">Kota <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Kota tempat pelatihan dilaksanakan"></i></label>
+                    <input asp-for="Kota" class="form-control" placeholder="Masukkan kota pelatihan" />
                 </div>
-
-                <!-- TanggalMulai -->
                 <div class="col-md-6">
-                    <label asp-for="TanggalMulai" class="form-label fw-bold">Tanggal Mulai</label>
-                    <input asp-for="TanggalMulai" type="date" class="form-control" />
-                </div>
-
-                <!-- TanggalSelesai -->
-                <div class="col-md-6">
-                    <label asp-for="TanggalSelesai" class="form-label fw-bold">Tanggal Selesai</label>
-                    <input asp-for="TanggalSelesai" type="date" class="form-control" />
-                </div>
-
-                <!-- Status -->
-                <div class="col-md-6">
-                    <label asp-for="Status" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                    <label asp-for="Status" class="form-label fw-bold">Status <span class="text-danger">*</span> <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Passed = lulus, Valid = sertifikat masih berlaku, Expired = sudah kedaluwarsa, Failed = tidak lulus"></i></label>
                     <select asp-for="Status" class="form-select">
                         <option value="Passed">Passed</option>
                         <option value="Valid">Valid</option>
@@ -159,6 +135,26 @@
                         <option value="Failed">Failed</option>
                     </select>
                     <span asp-validation-for="Status" class="text-danger small"></span>
+                </div>
+
+                <!-- Baris 4: Tanggal -->
+                <div class="col-md-6">
+                    <label asp-for="Tanggal" class="form-label fw-bold">Tanggal <span class="text-danger">*</span> <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Tanggal pelatihan (jika hanya 1 hari) atau tanggal sertifikat diterbitkan"></i></label>
+                    <input asp-for="Tanggal" type="date" class="form-control" />
+                    <span asp-validation-for="Tanggal" class="text-danger small"></span>
+                    <div class="form-text">Jika pelatihan hanya 1 hari, cukup isi field ini saja</div>
+                </div>
+
+                <!-- Baris 5: Tanggal Mulai | Tanggal Selesai -->
+                <div class="col-md-6">
+                    <label asp-for="TanggalMulai" class="form-label fw-bold">Tanggal Mulai <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Isi jika pelatihan berlangsung lebih dari 1 hari"></i></label>
+                    <input asp-for="TanggalMulai" type="date" class="form-control" />
+                    <div class="form-text">Opsional — isi jika pelatihan lebih dari 1 hari</div>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TanggalSelesai" class="form-label fw-bold">Tanggal Selesai <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Isi jika pelatihan berlangsung lebih dari 1 hari"></i></label>
+                    <input asp-for="TanggalSelesai" type="date" class="form-control" />
+                    <div class="form-text">Opsional — isi jika pelatihan lebih dari 1 hari</div>
                 </div>
             </div>
         </div>
@@ -187,7 +183,7 @@
 
                 <!-- Tipe Sertifikat (shared) -->
                 <div class="col-md-6">
-                    <label asp-for="CertificateType" class="form-label fw-bold">Tipe Sertifikat</label>
+                    <label asp-for="CertificateType" class="form-label fw-bold">Tipe Sertifikat <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Permanent = tidak ada masa berlaku, Annual = berlaku 1 tahun, 3-Year = berlaku 3 tahun"></i></label>
                     <select asp-for="CertificateType" class="form-select">
                         <option value="">-- Pilih Tipe --</option>
                         <option value="Permanent">Permanent</option>
@@ -198,7 +194,7 @@
 
                 <!-- Berlaku Sampai (shared) -->
                 <div class="col-md-6">
-                    <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai</label>
+                    <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Tanggal kedaluwarsa sertifikat. Wajib diisi jika tipe bukan Permanent"></i></label>
                     <input asp-for="ValidUntil" type="date" class="form-control" />
                 </div>
 
@@ -206,7 +202,7 @@
                 {
                     <!-- Certificate File (renewal mode - shared) -->
                     <div class="col-md-6">
-                        <label asp-for="CertificateFile" class="form-label fw-bold">File Sertifikat</label>
+                        <label asp-for="CertificateFile" class="form-label fw-bold">File Sertifikat <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Upload scan sertifikat dalam format PDF, JPG, atau PNG (maks 10MB)"></i></label>
                         <input asp-for="CertificateFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
                         <div class="form-text">PDF, JPG, atau PNG. Maksimal 10MB.</div>
                         <span asp-validation-for="CertificateFile" class="text-danger small"></span>
@@ -392,6 +388,13 @@
         subKategoriSelect.disabled = !selectedName;
     });
 })();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(el) { new bootstrap.Tooltip(el); });
+});
 </script>
 
 @if (ViewBag.SelectedUserId != null)

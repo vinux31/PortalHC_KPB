@@ -123,6 +123,29 @@ namespace HcPortal.Models
 
         // Legacy navigation properties (AssessmentQuestion, UserResponse) removed in Phase 227 (CLEN-02).
 
+        // ===== Manual Entry fields =====
+        /// <summary>
+        /// True jika session ini di-input manual oleh HC (bukan online assessment).
+        /// </summary>
+        public bool IsManualEntry { get; set; } = false;
+
+        /// <summary>
+        /// URL file sertifikat yang di-upload untuk assessment manual.
+        /// </summary>
+        public string? ManualSertifikatUrl { get; set; }
+
+        /// <summary>Penyelenggara assessment manual (institusi/vendor).</summary>
+        public string? Penyelenggara { get; set; }
+
+        /// <summary>Kota tempat assessment dilaksanakan.</summary>
+        public string? Kota { get; set; }
+
+        /// <summary>Sub-kategori assessment (misal: Welding Inspector, K3 Umum).</summary>
+        public string? SubKategori { get; set; }
+
+        /// <summary>Tipe sertifikat: Kompetensi, Profesi, Pelatihan, dll.</summary>
+        public string? CertificateType { get; set; }
+
         // ===== v14.0 Assessment Enhancement columns =====
         /// <summary>
         /// Tipe assessment: 'PreTest', 'PostTest', null = tidak ditentukan (backward compat).

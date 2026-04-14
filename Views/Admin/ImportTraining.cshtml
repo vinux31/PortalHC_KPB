@@ -120,23 +120,44 @@
         </div>
         <div class="card-body">
 
-            <!-- Step 1: Download Template -->
+            <!-- Step 1: Pilih Tipe Record -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Tipe Record</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="recordTypeSelector" id="typeTraining" value="Training" checked onchange="toggleRecordType()">
+                        <label class="form-check-label" for="typeTraining">Training</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="recordTypeSelector" id="typeAssessment" value="Assessment" onchange="toggleRecordType()">
+                        <label class="form-check-label" for="typeAssessment">Assessment</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Download Template -->
             <div class="alert alert-info d-flex align-items-center gap-3 mb-4">
                 <i class="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
                 <div>
-                    <strong>Langkah 1 — Download Template</strong><br />
-                    <span class="small">Download template Excel, isi data training sesuai format, lalu upload kembali.</span>
+                    <strong>Langkah 2 — Download Template</strong><br />
+                    <span class="small" id="templateHint">Download template Excel, isi data training sesuai format, lalu upload kembali.</span>
                 </div>
-                <a href="@Url.Action("DownloadImportTrainingTemplate", "TrainingAdmin")" class="btn btn-success btn-sm ms-auto flex-shrink-0" id="btnDownloadTemplate">
-                    <i class="bi bi-file-earmark-excel me-1"></i>Download Template
-                </a>
+                <div class="d-flex flex-column gap-1 ms-auto flex-shrink-0">
+                    <a href="@Url.Action("DownloadImportTrainingTemplate", "TrainingAdmin")" class="btn btn-success btn-sm" id="btnDownloadTemplate">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Template Training
+                    </a>
+                    <a href="@Url.Action("DownloadImportAssessmentTemplate", "TrainingAdmin")" class="btn btn-info btn-sm text-white" id="btnDownloadAssessmentTemplate" style="display:none;">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Template Assessment
+                    </a>
+                </div>
             </div>
 
-            <!-- Step 2: Upload -->
-            <p class="fw-semibold mb-2"><strong>Langkah 2 — Upload File yang Sudah Diisi</strong></p>
+            <!-- Step 3: Upload -->
+            <p class="fw-semibold mb-2"><strong>Langkah 3 — Upload File yang Sudah Diisi</strong></p>
 
             <form asp-action="ImportTraining" asp-controller="TrainingAdmin" method="post" enctype="multipart/form-data" id="importForm">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="recordType" id="recordTypeInput" value="Training" />
 
                 <div class="upload-zone border-2 border-dashed rounded-3 p-5 text-center mb-3"
                      id="uploadZone"
@@ -159,10 +180,10 @@
         </div>
     </div>
 
-    <!-- Format Notes -->
-    <div class="card border-0 shadow-sm">
+    <!-- Format Notes: Training -->
+    <div class="card border-0 shadow-sm" id="formatTraining">
         <div class="card-header border-0">
-            <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Format Kolom Template</h6>
+            <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Format Kolom Template — Training</h6>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -194,6 +215,41 @@
         </div>
     </div>
 
+    <!-- Format Notes: Assessment -->
+    <div class="card border-0 shadow-sm" id="formatAssessment" style="display:none;">
+        <div class="card-header border-0">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Format Kolom Template — Assessment</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="px-3">Kolom</th>
+                            <th class="px-3">Keterangan</th>
+                            <th class="px-3">Wajib?</th>
+                            <th class="px-3">Contoh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="px-3">NIP</td><td class="px-3">Nomor induk pegawai (harus terdaftar)</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">123456</td></tr>
+                        <tr><td class="px-3">Judul</td><td class="px-3">Judul assessment</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Assessment K3</td></tr>
+                        <tr><td class="px-3">Kategori</td><td class="px-3">Nama kategori</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">MANDATORY</td></tr>
+                        <tr><td class="px-3">SubKategori</td><td class="px-3">Sub-kategori assessment</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">K3 Umum</td></tr>
+                        <tr><td class="px-3">Score</td><td class="px-3">Nilai 0–100</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">85</td></tr>
+                        <tr><td class="px-3">Lulus</td><td class="px-3">Ya / Tidak</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Ya</td></tr>
+                        <tr><td class="px-3">Tanggal</td><td class="px-3">Tanggal selesai, YYYY-MM-DD</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">2024-03-15</td></tr>
+                        <tr><td class="px-3">Penyelenggara</td><td class="px-3">Nama penyelenggara</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">PT Safety Indonesia</td></tr>
+                        <tr><td class="px-3">Kota</td><td class="px-3">Kota pelaksanaan</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Balikpapan</td></tr>
+                        <tr><td class="px-3">ValidUntil</td><td class="px-3">Berlaku sampai, YYYY-MM-DD</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">2027-03-15</td></tr>
+                        <tr><td class="px-3">NomorSertifikat</td><td class="px-3">Nomor sertifikat</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">CERT-A001</td></tr>
+                        <tr><td class="px-3">CertificateType</td><td class="px-3">Kompetensi / Profesi / Pelatihan</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Kompetensi</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script src="~/js/shared-upload.js"></script>
@@ -201,4 +257,16 @@
 <script>
     initUploadZone({ zoneId: 'uploadZone', inputId: 'excelFileInput', textId: 'dropText', buttonId: 'btnImport', accept: ['.xlsx'] });
     initFormLoading('importForm', 'Memproses import...');
+
+    function toggleRecordType() {
+        var isAssessment = document.getElementById('typeAssessment').checked;
+        document.getElementById('recordTypeInput').value = isAssessment ? 'Assessment' : 'Training';
+        document.getElementById('btnDownloadTemplate').style.display = isAssessment ? 'none' : '';
+        document.getElementById('btnDownloadAssessmentTemplate').style.display = isAssessment ? '' : 'none';
+        document.getElementById('formatTraining').style.display = isAssessment ? 'none' : '';
+        document.getElementById('formatAssessment').style.display = isAssessment ? '' : 'none';
+        document.getElementById('templateHint').textContent = isAssessment
+            ? 'Download template Excel assessment, isi data sesuai format, lalu upload kembali.'
+            : 'Download template Excel, isi data training sesuai format, lalu upload kembali.';
+    }
 </script>

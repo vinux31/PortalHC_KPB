@@ -4,6 +4,7 @@ using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HcPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414011511_AddManualEntryToAssessmentSession")]
+    partial class AddManualEntryToAssessmentSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -314,9 +317,6 @@ namespace HcPortal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CertificateType")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
@@ -349,17 +349,11 @@ namespace HcPortal.Migrations
                     b.Property<string>("InterviewResultsJson")
                         .HasColumnType("NVARCHAR(MAX)");
 
-                    b.Property<bool>("IsManualEntry")
-                        .HasColumnType("bit");
-
                     b.Property<bool?>("IsPassed")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsTokenRequired")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Kota")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("LastActivePage")
                         .HasColumnType("int");
@@ -370,9 +364,6 @@ namespace HcPortal.Migrations
                     b.Property<int?>("LinkedSessionId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ManualSertifikatUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("NomorSertifikat")
                         .HasColumnType("nvarchar(450)");
 
@@ -380,9 +371,6 @@ namespace HcPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(70);
-
-                    b.Property<string>("Penyelenggara")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Progress")
                         .HasColumnType("int");
@@ -411,9 +399,6 @@ namespace HcPortal.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("SubKategori")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TahunKe")
                         .HasMaxLength(20)
