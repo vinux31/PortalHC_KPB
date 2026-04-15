@@ -515,3 +515,4 @@ null
 # Utility scripts (SQL fix, etc.)
 *.ps1
 *.bat
+TempDbCheck/
