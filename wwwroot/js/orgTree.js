@@ -203,7 +203,7 @@ async function initTree() {
         </div>`;
 
     try {
-        const flat = await ajaxGet('/Admin/GetOrganizationTree');
+        const flat = await ajaxGet('GetOrganizationTree');
         _flatUnits = flat;
         if (!isRefresh) setDefaultExpandState();
         renderStats(flat);
@@ -248,7 +248,7 @@ function initSortable() {
                     .map(function(li) { return li.dataset.id; })
                     .filter(function(id) { return id; })
                     .join(',');
-                ajaxPost('/Admin/ReorderBatch', { parentId: parentId, orderedIds: orderedIds })
+                ajaxPost('ReorderBatch', { parentId: parentId, orderedIds: orderedIds })
                     .then(function(res) {
                         if (res.success) {
                             showToast(res.message, 'success');
@@ -343,7 +343,7 @@ async function submitUnitModal() {
     }
 
     const isEdit = id !== '';
-    const url = isEdit ? '/Admin/EditOrganizationUnit' : '/Admin/AddOrganizationUnit';
+    const url = isEdit ? 'EditOrganizationUnit' : 'AddOrganizationUnit';
     const data = isEdit
         ? { id: id, name: name, parentId: parentId }
         : { name: name, parentId: parentId };
@@ -362,7 +362,7 @@ async function submitUnitModal() {
 
 async function doToggle(id) {
     try {
-        const result = await ajaxPost('/Admin/ToggleOrganizationUnitActive', { id: id });
+        const result = await ajaxPost('ToggleOrganizationUnitActive', { id: id });
         showToast(result.message, result.success ? 'success' : 'danger');
         if (result.success) await initTree();
     } catch (err) {
@@ -388,7 +388,7 @@ function openDeleteModal(id, name, childCount) {
 async function submitDelete() {
     const id = document.getElementById('deleteModalId').value;
     try {
-        const result = await ajaxPost('/Admin/DeleteOrganizationUnit', { id: id });
+        const result = await ajaxPost('DeleteOrganizationUnit', { id: id });
         bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
         showToast(result.message, result.success ? 'success' : 'danger');
         if (result.success) await initTree();

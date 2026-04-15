@@ -393,7 +393,7 @@ else
                 var skipBtn = btn.closest('.suggestion-card').querySelector('.skip-btn');
                 if (skipBtn) skipBtn.disabled = true;
 
-                fetch('/Admin/ApproveReassignSuggestion', {
+                fetch((window.basePath || '') + '/Admin/ApproveReassignSuggestion', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -431,7 +431,7 @@ else
                 var approveBtn = btn.closest('.suggestion-card').querySelector('.approve-btn');
                 if (approveBtn) approveBtn.disabled = true;
 
-                fetch('/Admin/SkipReassignSuggestion', {
+                fetch((window.basePath || '') + '/Admin/SkipReassignSuggestion', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -492,7 +492,7 @@ else
                 saveThresholdBtn.disabled = true;
                 saveThresholdBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
 
-                fetch('/Admin/SetWorkloadThreshold', {
+                fetch((window.basePath || '') + '/Admin/SetWorkloadThreshold', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
