@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Panduan Audit Manual - Fitur Assessment | Portal HC KPB</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #222;
+    line-height: 1.6;
+    background: #fff;
+    font-size: 11pt;
+    padding: 30px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    color: #c8102e;
+    font-size: 22pt;
+    border-bottom: 2px solid #c8102e;
+    padding-bottom: 8px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    color: #666;
+    font-size: 11pt;
+    margin-bottom: 25px;
+  }
+
+  h2 {
+    color: #003f7f;
+    font-size: 15pt;
+    margin: 28px 0 10px 0;
+    border-left: 4px solid #c8102e;
+    padding-left: 10px;
+  }
+
+  h3 {
+    color: #c8102e;
+    font-size: 12.5pt;
+    margin: 18px 0 8px 0;
+  }
+
+  h4 {
+    color: #003f7f;
+    font-size: 11.5pt;
+    margin: 14px 0 6px 0;
+  }
+
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 12px 22px; }
+  li { margin: 3px 0; }
+
+  code {
+    background: #f4f4f4;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 10pt;
+    color: #c8102e;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+    font-size: 10.5pt;
+  }
+
+  th {
+    background: #003f7f;
+    color: #fff;
+    padding: 8px 10px;
+    text-align: left;
+  }
+
+  td {
+    border: 1px solid #ddd;
+    padding: 7px 10px;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: #f8f9fa; }
+
+  .note {
+    background: #fff8e1;
+    border-left: 4px solid #f5a623;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10.5pt;
+  }
+
+  .danger {
+    background: #fdecea;
+    border-left: 4px solid #dc3545;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10.5pt;
+  }
+
+  .info {
+    background: #e7f3ff;
+    border-left: 4px solid #003f7f;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10.5pt;
+  }
+
+  .step {
+    background: #f8f9fa;
+    border: 1px solid #e5e5e5;
+    border-left: 4px solid #003f7f;
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 3px;
+  }
+
+  .step-num {
+    display: inline-block;
+    background: #c8102e;
+    color: #fff;
+    font-weight: bold;
+    padding: 2px 10px;
+    border-radius: 3px;
+    margin-right: 8px;
+    font-size: 10pt;
+  }
+
+  .expected {
+    background: #e8f5e9;
+    border-left: 3px solid #28a745;
+    padding: 6px 10px;
+    margin-top: 6px;
+    font-size: 10pt;
+  }
+
+  .expected strong { color: #28a745; }
+
+  .result-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    font-size: 10pt;
+  }
+
+  .result-row .cell {
+    flex: 1;
+    background: #fff;
+    border: 1px dashed #aaa;
+    padding: 6px 10px;
+    min-height: 32px;
+  }
+
+  .result-row .cell strong { color: #003f7f; }
+
+  .btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #c8102e;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    font-size: 10pt;
+    font-weight: bold;
+    border-radius: 3px;
+    cursor: pointer;
+    z-index: 100;
+  }
+
+  .btn:hover { background: #8b0000; }
+
+  .flow-box {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    padding: 12px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+    white-space: pre;
+    margin: 10px 0;
+    border-radius: 3px;
+  }
+
+  .sql-box {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #333;
+    padding: 14px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: 9.5pt;
+    white-space: pre;
+    margin: 10px 0;
+    border-radius: 3px;
+    overflow-x: auto;
+  }
+
+  .sql-box .kw { color: #569cd6; font-weight: bold; }
+  .sql-box .str { color: #ce9178; }
+  .sql-box .cmt { color: #6a9955; font-style: italic; }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 9pt;
+    font-weight: bold;
+    color: #fff;
+  }
+
+  .tag-online { background: #003f7f; }
+  .tag-prepost { background: #c8102e; }
+  .tag-manual { background: #28a745; }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-size: 9pt;
+    color: #888;
+  }
+
+  .signature {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-around;
+    font-size: 10pt;
+  }
+
+  .signature div {
+    text-align: center;
+    width: 250px;
+  }
+
+  .signature .sig-line {
+    border-bottom: 1px solid #333;
+    height: 55px;
+    margin-bottom: 5px;
+  }
+
+  @media print {
+    .btn { display: none; }
+    body { padding: 0; font-size: 10.5pt; max-width: 100%; }
+    h2 { page-break-after: avoid; page-break-before: auto; }
+    .step, .note, .danger, .info, table, .flow-box, .sql-box { page-break-inside: avoid; }
+    .sql-box { background: #f4f4f4; color: #222; }
+    .sql-box .kw { color: #0033b3; }
+    .sql-box .str { color: #067d17; }
+    .sql-box .cmt { color: #888; }
+    @page { margin: 1.5cm 2cm; size: A4; }
+  }
+</style>
+</head>
+<body>
+
+<button class="btn" onclick="window.print()">Export PDF</button>
+
+<h1>Panduan Audit Manual — Fitur Assessment</h1>
+<div class="subtitle">Portal HC KPB &middot; Environment: Web Dev (AD=true) &middot; 17 April 2026</div>
+
+<!-- ============ BAGIAN 1: PANDUAN SINGKAT ============ -->
+<h2>1. Panduan Singkat untuk Auditor</h2>
+
+<h3>1.1 Tujuan Audit</h3>
+<p>Melakukan audit manual fitur Assessment di Portal HC KPB — mencakup alur <strong>Create → Ujian → Sertifikat</strong> untuk 3 tipe assessment: <strong>Online</strong>, <strong>Pre-Post Test</strong>, dan <strong>Manual Entry</strong>.</p>
+
+<h3>1.2 Environment &amp; Akun</h3>
+<table>
+  <tr><th style="width:25%">Item</th><th>Detail</th></tr>
+  <tr><td>Environment</td><td>Web Dev — <code>http://10.55.3.3/KPB-PortalHC/</code></td></tr>
+  <tr><td>Mode Autentikasi</td><td><strong>Active Directory (AD) = true</strong> — login pakai akun AD Pertamina</td></tr>
+  <tr><td>Database</td><td>SQL Server — <code>HcPortalDB_Dev</code> (untuk cleanup oleh IT)</td></tr>
+  <tr><td>Akun Admin/HC</td><td><code>admin@pertamina.com</code> (hybrid — bisa login via local fallback)</td></tr>
+  <tr><td>Akun Worker Test</td>
+    <td>
+      <strong>2 akun AD asli</strong> (dapatkan password dari PIC):<br>
+      • <code>rino.prasetyo@pertamina.com</code><br>
+      • <code>mohammad.arsyad@pertamina.com</code>
+    </td>
+  </tr>
+  <tr><td>Browser</td><td>Chrome / Edge terbaru + mode Incognito (untuk multi-role login)</td></tr>
+</table>
+
+<h3>1.3 Aturan Main (WAJIB DIPATUHI)</h3>
+<div class="danger">
+  <strong>⚠️ PENTING — Jangan Ganggu Data Asli</strong>
+  <ol>
+    <li>Semua assessment test <strong>WAJIB</strong> pakai prefix <code>[TEST]</code> di judul</li>
+    <li><strong>JANGAN</strong> klik Edit/Delete pada assessment/worker yang TIDAK ada prefix <code>[TEST]</code></li>
+    <li><strong>JANGAN</strong> hapus akun worker <code>rino.prasetyo</code> dan <code>mohammad.arsyad</code> — itu akun AD asli</li>
+    <li>Auditor <strong>tidak diperbolehkan</strong> memodifikasi kode. Hanya test via UI + tulis report.</li>
+    <li>Kalau ragu atau terjadi error mencurigakan — <strong>STOP</strong> dan konfirmasi ke PIC IT.</li>
+    <li>Cleanup data assessment test akan dilakukan oleh <strong>tim IT via DB manual</strong> (Bagian 6).</li>
+  </ol>
+</div>
+
+<h3>1.4 Cara Login</h3>
+<ol>
+  <li>Buka browser → akses <code>http://10.55.3.3/KPB-PortalHC/</code></li>
+  <li>Login pakai email + password AD masing-masing akun</li>
+  <li>Admin/HC → masuk via <code>admin@pertamina.com</code></li>
+  <li>Worker → masuk via akun AD (rino / mohammad)</li>
+</ol>
+
+<h3>1.5 Flow Audit Secara Keseluruhan</h3>
+<div class="flow-box">Step 0  → Verifikasi 2 akun worker sudah bisa login
+Flow A  → Online Assessment (single, semua tipe soal) — pakai Rino
+Flow B  → Pre-Post Test (dengan gain score) — pakai Mohammad
+Flow C  → Manual Entry (assessment offline) — pakai kedua akun
+Step 6  → Serahkan daftar cleanup ke tim IT (DB manual)
+Step 7  → Summary Report (rekap Pass/Fail)</div>
+
+<!-- ============ BAGIAN 2: SETUP ============ -->
+<h2>2. Verifikasi Akun Worker (Step 0)</h2>
+
+<p>Karena environment pakai <strong>AD=true</strong>, auditor <strong>tidak perlu create worker baru</strong>. Cukup verifikasi 2 akun AD berikut sudah bisa login sebagai worker:</p>
+
+<div class="step">
+  <p><span class="step-num">Step 1</span>Login browser Incognito sebagai <code>rino.prasetyo@pertamina.com</code> (pakai password AD)</p>
+  <div class="expected"><strong>Expected:</strong> Berhasil login, masuk ke dashboard worker (CMP)</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">Step 2</span>Login browser Incognito lain sebagai <code>mohammad.arsyad@pertamina.com</code></p>
+  <div class="expected"><strong>Expected:</strong> Berhasil login, masuk ke dashboard worker</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">Step 3</span>Login Admin sebagai <code>admin@pertamina.com</code> → verifikasi kedua akun muncul di <strong>ManageWorkers</strong></p>
+  <div class="expected"><strong>Expected:</strong> Rino &amp; Mohammad terdaftar di list worker dengan role Coachee (atau sesuai AD)</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Catatan:</strong> Password worker dikelola oleh AD Pertamina — tidak bisa direset via Portal HC. Kalau lupa password, reset via portal AD perusahaan.
+</div>
+
+<!-- ============ FLOW A: ONLINE ASSESSMENT ============ -->
+<h2>3. Flow A — Online Assessment <span class="tag tag-online">ONLINE</span></h2>
+
+<p><strong>Tujuan:</strong> Test alur assessment online dengan 3 tipe soal (MC + MA + Essay).</p>
+<p><strong>Worker terlibat:</strong> Rino Prasetyo</p>
+
+<h3>3.1 HC Create Online Assessment</h3>
+
+<div class="step">
+  <p><span class="step-num">A.1</span>Login <code>admin@pertamina.com</code> → <strong>Admin → ManageAssessment</strong> → klik <strong>Create Assessment</strong></p>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.2</span>Isi form:</p>
+  <ul>
+    <li>Judul: <code>[TEST] Online Assessment Audit</code></li>
+    <li>Tipe: <strong>Online</strong></li>
+    <li>Kategori: pilih kategori aktif (mis. MANDATORY HSSE)</li>
+    <li>Tanggal &amp; Jam: hari ini (1 jam ke depan)</li>
+    <li>Durasi: <strong>60 menit</strong></li>
+    <li>Pass Percentage: <strong>70%</strong></li>
+    <li>Flag: centang <strong>AllowAnswerReview</strong> &amp; <strong>GenerateCertificate</strong></li>
+    <li>Peserta: pilih <strong>Rino Prasetyo</strong></li>
+  </ul>
+  <div class="expected"><strong>Expected:</strong> Assessment tersimpan, status <em>Upcoming</em></div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.3</span>Buka assessment → tab <strong>Packages</strong> → <strong>Add Package</strong> (Paket A)</p>
+  <div class="expected"><strong>Expected:</strong> Paket A tercipta</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.4</span>Tambah <strong>3 soal</strong> ke Paket A:</p>
+  <table>
+    <tr><th>No</th><th>Tipe</th><th>Pertanyaan</th><th>Opsi / Rubrik</th><th>Score</th></tr>
+    <tr><td>1</td><td>Multiple Choice</td><td>"Warna bendera Indonesia?"</td><td>A. Merah-Putih (✓), B. Hijau, C. Biru, D. Kuning</td><td>30</td></tr>
+    <tr><td>2</td><td>Multiple Answer</td><td>"Pilih alat safety"</td><td>A. Helm (✓), B. Sarung tangan (✓), C. Sepatu (✓), D. Kaos</td><td>30</td></tr>
+    <tr><td>3</td><td>Essay</td><td>"Jelaskan prosedur keadaan darurat"</td><td>Rubrik: evakuasi, titik kumpul, laporan</td><td>40</td></tr>
+  </table>
+  <div class="expected"><strong>Expected:</strong> 3 soal tersimpan, total ScoreValue = 100</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>3.2 Worker Kerjakan Ujian</h3>
+
+<div class="step">
+  <p><span class="step-num">A.5</span>Browser Incognito → Login sebagai <code>rino.prasetyo@pertamina.com</code></p>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.6</span>Masuk CMP/Assessment → klik <code>[TEST] Online Assessment Audit</code> → Start</p>
+  <div class="expected"><strong>Expected:</strong> Timer countdown muncul (60 menit), soal pertama tampil</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.7</span>Jawab 3 soal:</p>
+  <ul>
+    <li>Soal 1 (MC): pilih "Merah-Putih"</li>
+    <li>Soal 2 (MA): centang Helm + Sarung tangan + Sepatu</li>
+    <li>Soal 3 (Essay): ketik jawaban ~200 karakter sesuai rubrik</li>
+  </ul>
+  <div class="expected"><strong>Expected:</strong> Jawaban tersimpan, bisa navigate Prev/Next</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.8</span>Klik <strong>Submit</strong> → konfirmasi</p>
+  <div class="expected"><strong>Expected:</strong> Status jadi <em>Completed</em>, skor MC+MA terhitung, Essay "Menunggu Penilaian"</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>3.3 HC Grade Essay &amp; Finalize</h3>
+
+<div class="step">
+  <p><span class="step-num">A.9</span>Login Admin → <strong>AssessmentMonitoring</strong> → buka detail <code>[TEST] Online Assessment Audit</code></p>
+  <div class="expected"><strong>Expected:</strong> Badge "Pending Essay Grading: 1"</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.10</span>Klik soal Essay → input skor <strong>30 dari 40</strong> → <strong>Simpan Skor</strong></p>
+  <div class="expected"><strong>Expected:</strong> Skor tersimpan, badge pending berkurang</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.11</span>Klik <strong>Finalize Essay Grading</strong></p>
+  <div class="expected"><strong>Expected:</strong> Total = 30+30+30 = <strong>90</strong>. IsPassed = true</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>3.4 Verifikasi Sertifikat &amp; Review</h3>
+
+<div class="step">
+  <p><span class="step-num">A.12</span>Verify Nomor Sertifikat auto-generated</p>
+  <div class="expected"><strong>Expected:</strong> Format <code>KPB/NNN/IV/2026</code>. Bisa download/view</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan (no sertifikat):</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">A.13</span>Login Rino → halaman hasil → <strong>Review Answers</strong></p>
+  <div class="expected"><strong>Expected:</strong> Worker lihat soal + jawaban + jawaban benar (MC/MA) + skor Essay</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<!-- ============ FLOW B: PRE-POST TEST ============ -->
+<h2>4. Flow B — Pre-Post Test <span class="tag tag-prepost">PRE-POST</span></h2>
+
+<p><strong>Tujuan:</strong> Test Pre-Post Test pair + Gain Score.</p>
+<p><strong>Worker terlibat:</strong> Mohammad Arsyad</p>
+
+<h3>4.1 HC Create Pre-Post Pair</h3>
+
+<div class="step">
+  <p><span class="step-num">B.1</span>Di <strong>Create Assessment</strong>, isi:</p>
+  <ul>
+    <li>Judul: <code>[TEST] Pre-Post Training Audit</code></li>
+    <li>Tipe: <strong>Pre-Post Test</strong></li>
+    <li>Durasi: 30 menit</li>
+    <li>SamePackage: <strong>centang (true)</strong></li>
+    <li>Peserta: <strong>Mohammad Arsyad</strong></li>
+  </ul>
+  <div class="expected"><strong>Expected:</strong> 2 sesi muncul: PreTest + PostTest dengan LinkedGroupId sama</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">B.2</span>Buka PreTest → tambah 1 paket + 2 soal MC (masing-masing 50 poin)</p>
+  <div class="expected"><strong>Expected:</strong> Paket auto-copy ke PostTest (SamePackage=true). Edit PostTest di-lock.</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>4.2 Worker Kerjakan Pre &amp; Post</h3>
+
+<div class="step">
+  <p><span class="step-num">B.3</span>Login <strong>Mohammad</strong> → PreTest → jawab <strong>1 benar, 1 salah</strong> → Submit</p>
+  <div class="expected"><strong>Expected:</strong> Skor PreTest = <strong>50</strong>. Status Completed</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<div class="step">
+  <p><span class="step-num">B.4</span>Mohammad → PostTest → jawab <strong>2 benar semua</strong> → Submit</p>
+  <div class="expected"><strong>Expected:</strong> Skor PostTest = <strong>100</strong></div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>4.3 Verifikasi Gain Score</h3>
+
+<div class="step">
+  <p><span class="step-num">B.5</span>Login HC → <strong>Gain Score Report</strong> / Analytics</p>
+  <div class="expected"><strong>Expected:</strong> Pre=50, Post=100, Gain = <strong>+50</strong></div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<!-- ============ FLOW C: MANUAL ENTRY ============ -->
+<h2>5. Flow C — Manual Entry <span class="tag tag-manual">MANUAL</span></h2>
+
+<p><strong>Tujuan:</strong> Test entry assessment offline + upload sertifikat.</p>
+<p><strong>Worker terlibat:</strong> Rino (single), Rino + Mohammad (batch)</p>
+
+<div class="info">
+  <strong>Catatan:</strong> Flow Manual <strong>tidak ada tahap worker ujian</strong>. HC input data + upload sertifikat → selesai.
+</div>
+
+<h3>5.1 Add Manual — Single Worker</h3>
+
+<div class="step">
+  <p><span class="step-num">C.1</span>Login HC → <strong>Admin → AddManualAssessment</strong></p>
+</div>
+
+<div class="step">
+  <p><span class="step-num">C.2</span>Isi form:</p>
+  <ul>
+    <li>Pilih: <strong>Rino Prasetyo</strong></li>
+    <li>Judul: <code>[TEST] Manual Sertifikasi K3</code></li>
+    <li>Kategori: pilih kategori aktif</li>
+    <li>Tanggal Selesai: hari ini</li>
+    <li>Score: 85, IsPassed: true</li>
+    <li>Penyelenggara: <code>[TEST] Vendor Pelatihan</code></li>
+    <li>Upload sertifikat: file PDF &lt;10MB (dummy)</li>
+  </ul>
+  <div class="expected"><strong>Expected:</strong> Record muncul di ManageAssessment tab <em>training</em>, IsManualEntry=true, file tersimpan</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>5.2 Edit Manual</h3>
+
+<div class="step">
+  <p><span class="step-num">C.3</span>Klik Edit pada record Rino → ubah Score <strong>85 → 90</strong> → upload file sertifikat baru</p>
+  <div class="expected"><strong>Expected:</strong> Skor updated, file lama dihapus, file baru tersimpan</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>5.3 Test Validasi File Upload</h3>
+
+<div class="step">
+  <p><span class="step-num">C.4</span>Coba upload file tidak valid:</p>
+  <ul>
+    <li><code>.exe</code> / <code>.docx</code> → harus reject</li>
+    <li>PDF ukuran &gt;10MB → harus reject</li>
+  </ul>
+  <div class="result-row">
+    <div class="cell"><strong>Reject .exe:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Reject &gt;10MB:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+  </div>
+  <div class="result-row">
+    <div class="cell" style="flex:2"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<h3>5.4 Add Manual — Batch (2 Worker)</h3>
+
+<div class="step">
+  <p><span class="step-num">C.5</span><strong>AddManualAssessment</strong> → pilih <strong>Rino + Mohammad</strong> sekaligus</p>
+</div>
+
+<div class="step">
+  <p><span class="step-num">C.6</span>Isi data umum:</p>
+  <ul>
+    <li>Judul: <code>[TEST] Batch Training</code></li>
+    <li>Tanggal: hari ini, Score: 80</li>
+  </ul>
+  <p>Per-worker: upload sertifikat berbeda (bisa file PDF sama).</p>
+  <div class="expected"><strong>Expected:</strong> 2 record tercipta, satu per worker dengan file masing-masing</div>
+  <div class="result-row">
+    <div class="cell"><strong>Hasil:</strong> ☐ Pass &nbsp; ☐ Fail</div>
+    <div class="cell"><strong>Catatan:</strong></div>
+  </div>
+</div>
+
+<!-- ============ BAGIAN 6: CLEANUP DB ============ -->
+<h2>6. Cleanup Data Test — Oleh Tim IT (DB Manual)</h2>
+
+<div class="danger">
+  <strong>⚠️ PENTING:</strong> Karena pakai akun AD asli (Rino &amp; Mohammad), auditor <strong>TIDAK BOLEH</strong> hapus akun worker via UI. Cleanup assessment test harus dilakukan <strong>manual di database</strong> oleh tim IT.
+</div>
+
+<h3>6.1 Informasi Database</h3>
+<table>
+  <tr><th>Item</th><th>Detail</th></tr>
+  <tr><td>DBMS</td><td>SQL Server</td></tr>
+  <tr><td>Server (Dev)</td><td><code>localhost\SQLEXPRESS</code> (pada server <code>10.55.3.3</code>)</td></tr>
+  <tr><td>Database</td><td><code>HcPortalDB_Dev</code></td></tr>
+  <tr><td>Filter data test</td><td>Semua record assessment dengan judul ber-prefix <code>[TEST]</code></td></tr>
+</table>
+
+<h3>6.2 Tabel yang Terlibat (Urutan Delete Penting — Hormati FK)</h3>
+
+<table>
+  <tr><th>Urutan</th><th>Tabel</th><th>Keterangan</th></tr>
+  <tr><td>1</td><td><code>PackageUserResponses</code></td><td>Jawaban worker (MC, MA, Essay)</td></tr>
+  <tr><td>2</td><td><code>UserPackageAssignments</code></td><td>Mapping worker ↔ paket</td></tr>
+  <tr><td>3</td><td><code>ExamActivityLogs</code></td><td>Log aktivitas ujian (jika ada)</td></tr>
+  <tr><td>4</td><td><code>SessionElemenTeknisScores</code></td><td>Skor per elemen teknis</td></tr>
+  <tr><td>5</td><td><code>AssessmentAttemptHistory</code></td><td>Archive renewal (jika ada)</td></tr>
+  <tr><td>6</td><td><code>PackageOptions</code></td><td>Opsi jawaban soal</td></tr>
+  <tr><td>7</td><td><code>PackageQuestions</code></td><td>Soal</td></tr>
+  <tr><td>8</td><td><code>AssessmentPackages</code></td><td>Paket soal</td></tr>
+  <tr><td>9</td><td><code>AssessmentSessions</code></td><td>Record assessment utama</td></tr>
+  <tr><td>10</td><td><code>AuditLogs</code> (opsional)</td><td>Log audit terkait (filter ActionType=CreateAssessment/Manual)</td></tr>
+</table>
+
+<div class="note">
+  <strong>File Fisik:</strong> Untuk Flow C (Manual Entry), file sertifikat tersimpan di folder <code>/uploads/certificates/</code> di server. IT juga perlu hapus file fisik tersebut setelah delete row DB. Nama file bisa dilihat di kolom <code>ManualSertifikatUrl</code> tabel <code>AssessmentSessions</code>.
+</div>
+
+<h3>6.3 Script SQL Cleanup (Reference untuk Tim IT)</h3>
+
+<p>Script berikut menghapus semua assessment dengan judul ber-prefix <code>[TEST]</code> beserta data terkait. <strong>Wajib backup DB dulu sebelum run.</strong></p>
+
+<div class="sql-box"><span class="cmt">-- =====================================================</span>
+<span class="cmt">-- CLEANUP DATA TEST ASSESSMENT — PortalHC KPB (Dev)</span>
+<span class="cmt">-- Database: HcPortalDB_Dev</span>
+<span class="cmt">-- Filter  : AssessmentSession.Title LIKE '[TEST]%'</span>
+<span class="cmt">-- Tanggal : diisi sebelum eksekusi</span>
+<span class="cmt">-- =====================================================</span>
+
+<span class="kw">USE</span> HcPortalDB_Dev;
+<span class="kw">GO</span>
+
+<span class="cmt">-- 1. Ambil daftar AssessmentSessionId yang akan dihapus</span>
+<span class="kw">DECLARE</span> @TestSessionIds <span class="kw">TABLE</span> (Id <span class="kw">INT</span>);
+
+<span class="kw">INSERT INTO</span> @TestSessionIds (Id)
+<span class="kw">SELECT</span> Id <span class="kw">FROM</span> AssessmentSessions
+<span class="kw">WHERE</span> Title <span class="kw">LIKE</span> <span class="str">'[TEST]%'</span>;
+
+<span class="cmt">-- Preview (jalankan dulu untuk verify):</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> AssessmentSessions <span class="kw">WHERE</span> Id <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="kw">BEGIN TRANSACTION</span>;
+
+<span class="cmt">-- 2. Hapus jawaban worker</span>
+<span class="kw">DELETE FROM</span> PackageUserResponses
+<span class="kw">WHERE</span> AssessmentSessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 3. Hapus assignment worker-paket</span>
+<span class="kw">DELETE FROM</span> UserPackageAssignments
+<span class="kw">WHERE</span> AssessmentSessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 4. Hapus log aktivitas exam (jika tabel ada)</span>
+<span class="kw">DELETE FROM</span> ExamActivityLogs
+<span class="kw">WHERE</span> SessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 5. Hapus skor per elemen teknis</span>
+<span class="kw">DELETE FROM</span> SessionElemenTeknisScores
+<span class="kw">WHERE</span> AssessmentSessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 6. Hapus attempt history</span>
+<span class="kw">DELETE FROM</span> AssessmentAttemptHistory
+<span class="kw">WHERE</span> SessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 7. Hapus opsi soal (via Question → Package → Session)</span>
+<span class="kw">DELETE</span> po <span class="kw">FROM</span> PackageOptions po
+<span class="kw">INNER JOIN</span> PackageQuestions pq <span class="kw">ON</span> po.PackageQuestionId = pq.Id
+<span class="kw">INNER JOIN</span> AssessmentPackages ap <span class="kw">ON</span> pq.AssessmentPackageId = ap.Id
+<span class="kw">WHERE</span> ap.AssessmentSessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 8. Hapus soal</span>
+<span class="kw">DELETE</span> pq <span class="kw">FROM</span> PackageQuestions pq
+<span class="kw">INNER JOIN</span> AssessmentPackages ap <span class="kw">ON</span> pq.AssessmentPackageId = ap.Id
+<span class="kw">WHERE</span> ap.AssessmentSessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 9. Hapus paket</span>
+<span class="kw">DELETE FROM</span> AssessmentPackages
+<span class="kw">WHERE</span> AssessmentSessionId <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 10. Terakhir — hapus AssessmentSession</span>
+<span class="kw">DELETE FROM</span> AssessmentSessions
+<span class="kw">WHERE</span> Id <span class="kw">IN</span> (<span class="kw">SELECT</span> Id <span class="kw">FROM</span> @TestSessionIds);
+
+<span class="cmt">-- 11. (Opsional) Bersihkan audit log terkait</span>
+<span class="cmt">-- DELETE FROM AuditLogs WHERE Description LIKE '%[TEST]%';</span>
+
+<span class="cmt">-- Verify — harus return 0 row</span>
+<span class="kw">SELECT COUNT</span>(*) <span class="kw">AS</span> SisaTestAssessment
+<span class="kw">FROM</span> AssessmentSessions
+<span class="kw">WHERE</span> Title <span class="kw">LIKE</span> <span class="str">'[TEST]%'</span>;
+
+<span class="cmt">-- Jika verify OK:</span>
+<span class="kw">COMMIT TRANSACTION</span>;
+<span class="cmt">-- Kalau ada masalah: ROLLBACK TRANSACTION;</span></div>
+
+<h3>6.4 Checklist Serah Terima ke Tim IT</h3>
+
+<div class="step">
+  <p>Auditor serahkan dokumen berikut ke IT untuk cleanup:</p>
+  <ul>
+    <li>☐ Tanggal audit selesai: <strong>_______________</strong></li>
+    <li>☐ Daftar judul assessment test yang dibuat (copy dari UI ManageAssessment filter <code>[TEST]</code>)</li>
+    <li>☐ Daftar worker yang terlibat: Rino Prasetyo, Mohammad Arsyad</li>
+    <li>☐ Konfirmasi: <strong>tidak ada assessment asli yang ter-prefix <code>[TEST]</code></strong></li>
+    <li>☐ Catatan: ada file sertifikat fisik yang perlu dihapus di <code>/uploads/certificates/</code>? ☐ Ya ☐ Tidak</li>
+  </ul>
+  <div class="result-row">
+    <div class="cell"><strong>IT yang menerima:</strong></div>
+    <div class="cell"><strong>Tanggal cleanup:</strong></div>
+  </div>
+</div>
+
+<!-- ============ BAGIAN 7: SUMMARY ============ -->
+<h2>7. Summary Report</h2>
+
+<table>
+  <tr>
+    <th style="width:8%">No</th>
+    <th style="width:32%">Area Test</th>
+    <th style="width:15%">Total Step</th>
+    <th style="width:15%">Pass</th>
+    <th style="width:15%">Fail</th>
+    <th style="width:15%">% Pass</th>
+  </tr>
+  <tr><td>1</td><td>Setup (Step 0)</td><td>3</td><td></td><td></td><td></td></tr>
+  <tr><td>2</td><td>Flow A — Online Assessment</td><td>13</td><td></td><td></td><td></td></tr>
+  <tr><td>3</td><td>Flow B — Pre-Post Test</td><td>5</td><td></td><td></td><td></td></tr>
+  <tr><td>4</td><td>Flow C — Manual Entry</td><td>6</td><td></td><td></td><td></td></tr>
+  <tr style="background:#ffe082;"><td colspan="2"><strong>TOTAL</strong></td><td><strong>27</strong></td><td></td><td></td><td></td></tr>
+</table>
+
+<h3>7.1 Temuan Bug / Issue</h3>
+
+<table>
+  <tr>
+    <th style="width:8%">No</th>
+    <th style="width:20%">Flow / Step</th>
+    <th style="width:35%">Deskripsi Bug</th>
+    <th style="width:12%">Severity</th>
+    <th style="width:25%">Screenshot / Evidence</th>
+  </tr>
+  <tr><td>1</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>2</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>3</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>4</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>5</td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<p style="font-size:10pt;color:#666;"><em>Severity: Critical (blocking) / High (major functional) / Medium (minor) / Low (cosmetic)</em></p>
+
+<h3>7.2 Kesimpulan Audit</h3>
+
+<div class="step" style="min-height:100px;">
+  <p><strong>Kesimpulan &amp; Rekomendasi:</strong></p>
+  <p style="margin-top:10px;">_____________________________________________________________</p>
+  <p style="margin-top:10px;">_____________________________________________________________</p>
+  <p style="margin-top:10px;">_____________________________________________________________</p>
+</div>
+
+<div class="signature">
+  <div>
+    <div class="sig-line"></div>
+    <strong>Auditor</strong><br>
+    Nama: ________________<br>
+    Tanggal: ________________
+  </div>
+  <div>
+    <div class="sig-line"></div>
+    <strong>Verified by PIC IT</strong><br>
+    Nama: ________________<br>
+    Tanggal: ________________
+  </div>
+</div>
+
+<footer>
+  Portal HC KPB &middot; Panduan Audit Manual Fitur Assessment &middot; v1.1 &middot; 17 April 2026
+</footer>
+
+</body>
+</html>
