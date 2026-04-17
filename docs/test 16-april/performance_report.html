@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Report — PortalHC KPB</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; font-size: 14px; color: #1a1a2e; background: #f4f6fb; }
+
+  /* ── PDF Export Button ── */
+  .export-bar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 10px 40px;
+                display: flex; align-items: center; gap: 12px; }
+  .export-bar button {
+    background: #0f3460; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: background .15s;
+  }
+  .export-bar button:hover { background: #16213e; }
+  .export-bar span { font-size: 12px; color: #94a3b8; }
+
+  /* ── Print / PDF styles ── */
+  @media print {
+    @page { size: A4; margin: 14mm 12mm 14mm 12mm; }
+
+    .export-bar { display: none !important; }
+    footer { display: none !important; }
+
+    body { background: #fff !important; font-size: 11px; color: #000; }
+
+    .header {
+      background: #0f3460 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      color: #fff !important;
+      padding: 16px 20px;
+    }
+    .header h1 { font-size: 16px; }
+    .header p  { font-size: 11px; }
+    .meta span {
+      background: rgba(255,255,255,.18) !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-size: 10px;
+    }
+
+    .container { max-width: 100%; padding: 12px 0; }
+
+    .section {
+      box-shadow: none !important;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      padding: 14px;
+      break-inside: avoid;
+    }
+
+    h2 { font-size: 12px; margin-bottom: 8px; padding-bottom: 4px; color: #0f3460 !important;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h3 { font-size: 11px; }
+
+    /* Cards */
+    .cards { gap: 8px; margin-bottom: 14px; }
+    .card  { border-radius: 6px; padding: 10px 14px; break-inside: avoid; }
+    .card .num { font-size: 24px; }
+    .card .lbl { font-size: 10px; }
+    .card.critical { background: #dc2626 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card.high     { background: #ea580c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card.medium   { background: #ca8a04 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card.ok       { background: #16a34a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Alert boxes */
+    .alert { padding: 8px 10px; margin-bottom: 8px; font-size: 11px; }
+    .alert.catastrophic { background: #fff1f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .alert.warning      { background: #fefce8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .alert.success      { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Tables */
+    table { font-size: 10px; }
+    th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+         padding: 5px 7px; font-size: 9px; }
+    td { padding: 5px 7px; }
+
+    /* Badges */
+    .badge { font-size: 9px; padding: 1px 5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge.critical { background: #fee2e2 !important; color: #b91c1c !important; }
+    .badge.high     { background: #ffedd5 !important; color: #c2410c !important; }
+    .badge.medium   { background: #fef9c3 !important; color: #854d0e !important; }
+    .badge.low      { background: #dbeafe !important; color: #1d4ed8 !important; }
+    .badge.ok       { background: #dcfce7 !important; color: #166534 !important; }
+    .badge.info     { background: #e0e7ff !important; color: #3730a3 !important; }
+
+    .tag { font-size: 10px; }
+    .prio-num { background: #0f3460 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Page breaks */
+    .section:nth-child(3) { break-before: page; }
+  }
+
+  .header { background: linear-gradient(135deg, #0f3460, #16213e); color: #fff; padding: 32px 40px; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+  .header p { margin-top: 6px; opacity: .75; font-size: 13px; }
+  .meta { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+  .meta span { background: rgba(255,255,255,.12); padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+  h2 { font-size: 15px; font-weight: 700; color: #0f3460; margin-bottom: 14px; padding-bottom: 6px;
+       border-bottom: 2px solid #e2e8f0; letter-spacing: .3px; }
+  h3 { font-size: 13px; font-weight: 600; color: #334155; margin: 16px 0 8px; }
+
+  .section { background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 24px;
+             box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+
+  /* Summary cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .card { border-radius: 10px; padding: 18px 20px; color: #fff; }
+  .card.critical { background: linear-gradient(135deg, #dc2626, #991b1b); }
+  .card.high     { background: linear-gradient(135deg, #ea580c, #c2410c); }
+  .card.medium   { background: linear-gradient(135deg, #ca8a04, #92400e); }
+  .card.ok       { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .card .num  { font-size: 32px; font-weight: 800; line-height: 1; }
+  .card .lbl  { font-size: 12px; opacity: .85; margin-top: 4px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f1f5f9; color: #475569; font-weight: 600; text-align: left;
+       padding: 8px 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+  td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.critical { background: #fee2e2; color: #b91c1c; }
+  .badge.high     { background: #ffedd5; color: #c2410c; }
+  .badge.medium   { background: #fef9c3; color: #854d0e; }
+  .badge.low      { background: #dbeafe; color: #1d4ed8; }
+  .badge.ok       { background: #dcfce7; color: #166534; }
+  .badge.info     { background: #e0e7ff; color: #3730a3; }
+
+  .metric { font-weight: 700; }
+  .red    { color: #dc2626; }
+  .yellow { color: #ca8a04; }
+  .green  { color: #16a34a; }
+
+  .alert { border-left: 4px solid; padding: 12px 14px; border-radius: 0 8px 8px 0; margin-bottom: 14px; font-size: 13px; }
+  .alert.catastrophic { border-color: #dc2626; background: #fff1f2; }
+  .alert.warning      { border-color: #ca8a04; background: #fefce8; }
+  .alert.success      { border-color: #16a34a; background: #f0fdf4; }
+  .alert strong { display: block; margin-bottom: 4px; }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .compare-col h3 { color: #0f3460; }
+
+  .prio-num { display: inline-flex; align-items: center; justify-content: center;
+              width: 22px; height: 22px; background: #0f3460; color: #fff;
+              border-radius: 50%; font-size: 11px; font-weight: 700; margin-right: 6px; flex-shrink: 0; }
+
+  .tag { display: inline-block; background: #e2e8f0; color: #475569; padding: 1px 6px;
+         border-radius: 4px; font-size: 11px; font-family: monospace; }
+
+  footer { text-align: center; color: #94a3b8; font-size: 12px; padding: 24px 0 40px; }
+</style>
+</head>
+<body>
+
+<div class="export-bar">
+  <button onclick="window.print()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
+    </svg>
+    Export PDF
+  </button>
+  <span>Gunakan browser: File &rarr; Print &rarr; Save as PDF &nbsp;&mdash;&nbsp; atau tekan <kbd style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:4px;padding:1px 5px;font-size:11px;color:#334155">Ctrl+P</kbd></span>
+</div>
+
+<div class="header">
+  <h1>Performance Report — PortalHC KPB</h1>
+  <p>Static Analysis + Runtime Validation (Localhost & Dev Server)</p>
+  <div class="meta">
+    <span>Analisis: 16 April 2026</span>
+    <span>Runtime Test: 17 April 2026</span>
+    <span>Env: Localhost + Dev (http://10.55.3.3/KPB-PortalHC)</span>
+    <span>Dataset Dev: 530 users · 4,789 history rows</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Summary Cards -->
+  <div class="cards">
+    <div class="card critical">
+      <div class="num">4</div>
+      <div class="lbl">Issue Critical</div>
+    </div>
+    <div class="card high">
+      <div class="num">5</div>
+      <div class="lbl">Issue High</div>
+    </div>
+    <div class="card medium">
+      <div class="num">7</div>
+      <div class="lbl">Issue Medium</div>
+    </div>
+    <div class="card ok">
+      <div class="num">17</div>
+      <div class="lbl">Total Prioritas Fix</div>
+    </div>
+  </div>
+
+  <!-- Critical Findings -->
+  <div class="section">
+    <h2>Temuan Kritis Runtime</h2>
+
+    <div class="alert catastrophic">
+      <strong>CATASTROPHIC — ManageAssessment di Dev Server</strong>
+      HTML 7.96 MB uncompressed (vs local 297 KB = 27×) &middot;
+      DOMContentLoaded >60 detik timeout &middot; 4,789 rows pre-rendered (C-04 + H-05 + M-01 combined)
+    </div>
+
+    <div class="alert catastrophic">
+      <strong>CRITICAL — ManageWorker di Dev Server</strong>
+      DOMContentLoaded 25.6 detik untuk 530 users &middot; HTML 1.94 MB uncompressed &middot;
+      H-06 bug terkonfirmasi: filter 48 user tapi stats card tetap tampil "Total User: 530"
+    </div>
+
+    <div class="alert catastrophic">
+      <strong>CRITICAL — GetOrganizationTree Concurrency Serialization</strong>
+      Local 2 paralel: wall 12 ms &nbsp;|&nbsp; Dev 2 paralel: wall <span class="red">662 ms</span> (55× lebih lambat).
+      Session B 3× lebih lambat dari A — indikasi lock contention di DB.
+    </div>
+
+    <div class="alert success">
+      <strong>OK — _tabCache Analytics Dashboard</strong>
+      Bekerja sempurna di local dan dev. Tab revisit = 0 request baru. Cache invalidate saat filter change. F5 reset total.
+    </div>
+
+    <div class="alert success">
+      <strong>OK — Client-Side Pagination (ManageWorker)</strong>
+      Page-switch 32 ms di 530 users — jauh di bawah threshold 300 ms. Bottleneck sebenarnya adalah initial DOM render (dicover C-03 + M-01).
+    </div>
+  </div>
+
+  <!-- All Issues Table -->
+  <div class="section">
+    <h2>Daftar Semua Issue</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Severity</th>
+          <th>Deskripsi</th>
+          <th>File</th>
+          <th>Runtime Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag">C-01</span></td>
+          <td><span class="badge critical">Critical</span></td>
+          <td>Blocking <code>.ToList()</code> pada async method <code>GetCascadeOptions</code></td>
+          <td><code>CDPController.cs:316-317</code></td>
+          <td>Static only (belum di-trigger runtime)</td>
+        </tr>
+        <tr>
+          <td><span class="tag">C-02</span></td>
+          <td><span class="badge critical">Critical</span></td>
+          <td>4× <code>CountAsync()</code> terpisah untuk stats card ManageWorker</td>
+          <td><code>WorkerController.cs:108-111</code></td>
+          <td class="red metric">Terkonfirmasi: 25.6s DOMContent di 530 users</td>
+        </tr>
+        <tr>
+          <td><span class="tag">C-03</span></td>
+          <td><span class="badge critical">Critical</span></td>
+          <td>Fetch semua users tanpa batas + no AsNoTracking()</td>
+          <td><code>WorkerController.cs:92, 95-100</code></td>
+          <td class="red metric">Terkonfirmasi: HTML 1.94 MB, 530 rows, 25.6s load</td>
+        </tr>
+        <tr>
+          <td><span class="tag">C-04</span></td>
+          <td><span class="badge critical">Critical++</span></td>
+          <td>GetAllWorkersHistory() fetch 3 tabel penuh tanpa filter (full scan)</td>
+          <td><code>WorkerDataService.cs:85-172</code></td>
+          <td class="red metric">Terkonfirmasi: 7.96 MB HTML, >60s timeout di dev</td>
+        </tr>
+        <tr>
+          <td><span class="tag">H-03</span></td>
+          <td><span class="badge high">High</span></td>
+          <td>Unbounded query tanpa pagination di AssessmentMonitoring (7-day window)</td>
+          <td><code>AssessmentAdminController.cs:2312-2349</code></td>
+          <td>Menunggu dataset assessment di dev</td>
+        </tr>
+        <tr>
+          <td><span class="tag">H-04</span></td>
+          <td><span class="badge high">High</span></td>
+          <td>N+1 loop queries essay grading — 3N DB round-trips per load</td>
+          <td><code>AssessmentAdminController.cs:2633-2665</code></td>
+          <td><span class="yellow metric">747ms TTFB untuk 1 essay, 3 peserta</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag">H-05</span></td>
+          <td><span class="badge high">High</span></td>
+          <td>Grouping sessions di memory setelah full fetch (ManageAssessment)</td>
+          <td><code>AssessmentAdminController.cs:112-157</code></td>
+          <td class="red metric">Terkonfirmasi: kontribusi ke 7.96 MB + 745ms cold load local</td>
+        </tr>
+        <tr>
+          <td><span class="tag">H-06</span></td>
+          <td><span class="badge high">High</span></td>
+          <td>Stats card abaikan filter aktif — selalu hitung semua users</td>
+          <td><code>WorkerController.cs:108-111</code></td>
+          <td class="red metric">Bug terkonfirmasi di 2 scale (12 & 530 users)</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-01</span></td>
+          <td><span class="badge high">High ↑</span></td>
+          <td>No HTTP compression (Gzip/Brotli) — respons tidak dikompres</td>
+          <td><code>Program.cs</code></td>
+          <td class="red metric">7.96 MB + 1.94 MB uncompressed — user-blocker</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-02</span></td>
+          <td><span class="badge medium">Medium</span></td>
+          <td>ImpersonationMiddleware query UserManager tanpa caching per request</td>
+          <td><code>ImpersonationMiddleware.cs:134-142</code></td>
+          <td>Static only</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-03</span></td>
+          <td><span class="badge medium">Medium-High ↑</span></td>
+          <td>GetOrganizationTree tanpa IMemoryCache — full DB scan tiap request</td>
+          <td><code>OrganizationController.cs:56-68</code></td>
+          <td class="red metric">Dev: 662ms wall (concurrency) vs local 12ms (55×)</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-04</span></td>
+          <td><span class="badge medium">Medium</span></td>
+          <td>Missing AsNoTracking() di ManageAssessment initial query</td>
+          <td><code>AssessmentAdminController.cs:66-68</code></td>
+          <td>Static only</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-05</span></td>
+          <td><span class="badge medium">Medium</span></td>
+          <td>Missing AsNoTracking() di AssessmentMonitoring & GetAkhiriSemuaCounts</td>
+          <td><code>AssessmentAdminController.cs:2312, 3240</code></td>
+          <td>Static only</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-06</span></td>
+          <td><span class="badge medium">Medium</span></td>
+          <td>GetActivityLog = 4 query DB terpisah per AJAX call (Query 4 redundan)</td>
+          <td><code>AssessmentAdminController.cs:4958-4988</code></td>
+          <td>25ms mean local (8 calls). Validasi scale menunggu dataset</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-08</span></td>
+          <td><span class="badge low">Low ↓</span></td>
+          <td>Client-side pagination DOM — lag potensial saat 5K+ users</td>
+          <td><code>ManageWorkers.cshtml:433-482</code></td>
+          <td class="green">Ternyata OK: 32ms page-switch di 530 users. Downgrade severity.</td>
+        </tr>
+        <tr>
+          <td><span class="tag">M-09</span></td>
+          <td><span class="badge medium">Medium</span></td>
+          <td>Dropdown kategori tanpa date filter — full table scan + inkonsistensi UX</td>
+          <td><code>AssessmentAdminController.cs:172-176</code></td>
+          <td>Static only</td>
+        </tr>
+        <tr>
+          <td><span class="tag">L-01</span></td>
+          <td><span class="badge low">Low</span></td>
+          <td>AssessmentHub fire-and-forget DB write tanpa retry — log bisa hilang</td>
+          <td><code>AssessmentHub.cs:71-91, 99-125, 259-285</code></td>
+          <td>Static only</td>
+        </tr>
+        <tr>
+          <td><span class="tag">L-02</span></td>
+          <td><span class="badge low">Low</span></td>
+          <td>Include(p => p.Questions) penuh padahal hanya untuk .Count</td>
+          <td><code>AssessmentAdminController.cs:2541-2551</code></td>
+          <td>Static only</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- API Response Times Comparison -->
+  <div class="section">
+    <h2>API Response Times — Local vs Dev Server</h2>
+
+    <h3>Analytics Dashboard Endpoints</h3>
+    <table>
+      <thead>
+        <tr><th>Endpoint</th><th>Local TTFB</th><th>Dev Total</th><th>Rasio</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>GetAnalyticsSummary</td><td>289 ms</td><td>181 ms</td><td>Dataset kosong</td><td><span class="badge ok">OK</span></td></tr>
+        <tr><td>GetFailRateData</td><td>234 ms</td><td>194 ms</td><td>Dataset kosong</td><td><span class="badge ok">OK</span></td></tr>
+        <tr><td>GetTrendData</td><td>62 ms</td><td>169 ms</td><td class="yellow metric">2.6×</td><td><span class="badge ok">OK</span></td></tr>
+        <tr><td>GetEtBreakdownData</td><td>44 ms</td><td>301 ms</td><td class="yellow metric">6×</td><td><span class="badge ok">OK</span></td></tr>
+        <tr><td>GetExpiringSoonData</td><td>50 ms</td><td>378 ms</td><td class="yellow metric">7×</td><td><span class="badge ok">OK</span></td></tr>
+        <tr><td>GetFailRateData (filter)</td><td>24 ms</td><td>220 ms</td><td class="red metric">9×</td><td><span class="badge ok">OK</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:20px">Halaman Utama — Perbandingan Critical</h3>
+    <table>
+      <thead>
+        <tr><th>Halaman / Metrik</th><th>Localhost</th><th>Dev Server</th><th>Rasio</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ManageAssessment — TTFB cold</td>
+          <td class="yellow metric">745 ms</td>
+          <td>~412 ms</td>
+          <td>—</td>
+          <td><span class="badge medium">Kuning</span></td>
+        </tr>
+        <tr>
+          <td>ManageAssessment — Total load</td>
+          <td>856 ms</td>
+          <td class="red metric">&gt;60 detik (timeout)</td>
+          <td class="red metric">∞</td>
+          <td><span class="badge critical">Catastrophic</span></td>
+        </tr>
+        <tr>
+          <td>ManageAssessment — Transfer size</td>
+          <td>297 KB</td>
+          <td class="red metric">7.96 MB</td>
+          <td class="red metric">27×</td>
+          <td><span class="badge critical">Catastrophic</span></td>
+        </tr>
+        <tr>
+          <td>ManageWorker — DOMContentLoaded</td>
+          <td>334 ms</td>
+          <td class="red metric">25,586 ms</td>
+          <td class="red metric">76×</td>
+          <td><span class="badge critical">Critical</span></td>
+        </tr>
+        <tr>
+          <td>ManageWorker — HTML size</td>
+          <td>77 KB</td>
+          <td class="red metric">1.94 MB</td>
+          <td class="red metric">25×</td>
+          <td><span class="badge critical">Critical</span></td>
+        </tr>
+        <tr>
+          <td>ManageWorker — Pagination page-switch</td>
+          <td>N/A (12 users)</td>
+          <td class="green metric">32 ms</td>
+          <td>—</td>
+          <td><span class="badge ok">OK</span></td>
+        </tr>
+        <tr>
+          <td>AssessmentMonitoringDetail (1 essay)</td>
+          <td class="yellow metric">747 ms TTFB</td>
+          <td>Dataset kosong</td>
+          <td>—</td>
+          <td><span class="badge high">High</span></td>
+        </tr>
+        <tr>
+          <td>GetOrganizationTree — Warm mean</td>
+          <td>9 ms</td>
+          <td class="yellow metric">196 ms</td>
+          <td class="red metric">22×</td>
+          <td><span class="badge medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td>GetOrganizationTree — Concurrency 2 session</td>
+          <td>12 ms</td>
+          <td class="red metric">662 ms</td>
+          <td class="red metric">55×</td>
+          <td><span class="badge high">Lock Contention</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- _tabCache Verification -->
+  <div class="section">
+    <h2>_tabCache Analytics — Verifikasi Perilaku Cache</h2>
+    <table>
+      <thead>
+        <tr><th>Skenario</th><th>Request Kumulatif</th><th>Delta</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Cold load (open page)</td><td>2</td><td>+2 (Summary + FailRate)</td><td><span class="badge ok">Hanya default tab</span></td></tr>
+        <tr><td>Tab Trend (first visit)</td><td>3</td><td>+1</td><td><span class="badge ok">Lazy load</span></td></tr>
+        <tr><td>Tab Skor Elemen Teknis</td><td>4</td><td>+1</td><td><span class="badge ok">Lazy load</span></td></tr>
+        <tr><td>Tab Sertifikat Expired</td><td>5</td><td>+1</td><td><span class="badge ok">Lazy load</span></td></tr>
+        <tr><td>Tab Fail Rate (revisit)</td><td>6</td><td class="green metric">0</td><td><span class="badge ok">Cache hit</span></td></tr>
+        <tr><td>Filter Bagian=RFCC + Apply</td><td>9</td><td>+3 (Cascade + Summary + FailRate)</td><td><span class="badge ok">Cache invalidate</span></td></tr>
+        <tr><td>Tab Trend (setelah filter)</td><td>10</td><td>+1 (Trend filtered)</td><td><span class="badge ok">Per-tab lazy re-fetch</span></td></tr>
+        <tr><td>F5 reload</td><td>2 (reset)</td><td>—</td><td><span class="badge ok">Cache reset total</span></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px; color:#16a34a; font-size:13px; font-weight:600;">
+      ✓ _tabCache bekerja persis sesuai desain di local dan dev. Tidak ada perubahan diperlukan.
+    </p>
+  </div>
+
+  <!-- Priority Fix Recommendations -->
+  <div class="section">
+    <h2>Rekomendasi Prioritas Fix (Post-Runtime)</h2>
+    <table>
+      <thead>
+        <tr><th>Prio</th><th>ID</th><th>Fix</th><th>Impact Estimate</th><th>Kompleksitas</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="prio-num">1</span></td>
+          <td><span class="tag">M-01</span></td>
+          <td>Enable ResponseCompression (Brotli/Gzip) di <code>Program.cs</code></td>
+          <td class="green metric">-80% transfer size semua halaman — single biggest ROI</td>
+          <td><span class="badge ok">Rendah (5-10 baris)</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">2</span></td>
+          <td><span class="tag">C-04</span></td>
+          <td>Tambah filter UserId + date range di <code>GetAllWorkersHistory()</code></td>
+          <td>ManageAssessment 7.96 MB → ~500 KB</td>
+          <td><span class="badge medium">Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">3</span></td>
+          <td><span class="tag">C-03</span></td>
+          <td>Server-side pagination ManageWorker (Skip/Take di IQueryable)</td>
+          <td>HTML 1.94 MB → ~50 KB per page</td>
+          <td><span class="badge medium">Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">4</span></td>
+          <td><span class="tag">H-06</span></td>
+          <td>Gunakan <code>query</code> terfilter untuk stats count di <code>WorkerController.cs:108-111</code></td>
+          <td>Bug fix UX — stats card sesuai filter aktif</td>
+          <td><span class="badge ok">Rendah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">5</span></td>
+          <td><span class="tag">C-02</span></td>
+          <td>Single query aggregate stats (GroupBy + Case) menggantikan 4× CountAsync</td>
+          <td>-75% DB round-trip stats</td>
+          <td><span class="badge medium">Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">6</span></td>
+          <td><span class="tag">H-05</span></td>
+          <td>Push grouping ManageAssessment ke SQL (EF GroupBy)</td>
+          <td>Kurangi CPU in-memory grouping + memory allocation</td>
+          <td><span class="badge medium">Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">7</span></td>
+          <td><span class="tag">M-03</span></td>
+          <td>IMemoryCache GetOrganizationTree TTL 10 menit + invalidate di write</td>
+          <td>Dev 196ms → ~5ms cache hit; fix concurrency serialization</td>
+          <td><span class="badge ok">Rendah-Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">8</span></td>
+          <td><span class="tag">C-01</span></td>
+          <td><code>.ToListAsync()</code> + <code>Task.WhenAll</code> di GetCascadeOptions</td>
+          <td>Thread pool freedom</td>
+          <td><span class="badge ok">Rendah (2-3 baris)</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">9</span></td>
+          <td><span class="tag">M-02</span></td>
+          <td>IMemoryCache ImpersonationMiddleware target user info TTL 5 menit</td>
+          <td>2 DB query/request → ~0 (cache hit)</td>
+          <td><span class="badge medium">Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">10</span></td>
+          <td><span class="tag">M-04+M-05</span></td>
+          <td>Tambah <code>.AsNoTracking()</code> di 3 lokasi read-only</td>
+          <td>Kurangi memory overhead EF tracking</td>
+          <td><span class="badge ok">Rendah (1 baris/lokasi)</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">11</span></td>
+          <td><span class="tag">M-06</span></td>
+          <td>Hilangkan Query 4 (Max) di GetActivityLog, reuse events list</td>
+          <td>-25% round-trip per AJAX call</td>
+          <td><span class="badge ok">Rendah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">12</span></td>
+          <td><span class="tag">L-02</span></td>
+          <td>Replace Include(p => p.Questions) dengan scalar COUNT() di SQL</td>
+          <td>Kurangi bandwidth DB → App</td>
+          <td><span class="badge ok">Rendah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">13</span></td>
+          <td><span class="tag">M-09</span></td>
+          <td>Tambah filter 7-day ke dropdown kategori ManageAssessment</td>
+          <td>Fix UX inconsistency + hindari full table scan</td>
+          <td><span class="badge ok">Rendah (1 baris)</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">14</span></td>
+          <td><span class="tag">H-04</span></td>
+          <td>Batch load 3 query essay grading di luar foreach loop</td>
+          <td>150 RT → 7 RT (validasi setelah dataset terisi)</td>
+          <td><span class="badge medium">Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">15</span></td>
+          <td><span class="tag">H-03</span></td>
+          <td>Pagination + AsNoTracking AssessmentMonitoring</td>
+          <td>Kurangi memory saat >100 session aktif per minggu</td>
+          <td><span class="badge medium">Menengah</span></td>
+        </tr>
+        <tr>
+          <td><span class="prio-num">16</span></td>
+          <td><span class="tag">L-01</span></td>
+          <td>Retry policy Polly untuk AssessmentHub fire-forget (opsional)</td>
+          <td>Cegah kehilangan data audit log saat transient error DB</td>
+          <td><span class="badge medium">Menengah (opsional)</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Status -->
+  <div class="section">
+    <h2>Status Analisis</h2>
+    <table>
+      <thead>
+        <tr><th>Step</th><th>Status</th><th>Output</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Step 1A–1D — Static Analysis</td>
+          <td><span class="badge ok">Selesai</span></td>
+          <td>PERFORMANCE_REPORT.md, DATABASE_ANALYSIS.md</td>
+        </tr>
+        <tr>
+          <td>Step 2A — Runtime Localhost</td>
+          <td><span class="badge ok">Selesai</span></td>
+          <td>API_RESPONSE_TIMES.md</td>
+        </tr>
+        <tr>
+          <td>Step 2B — Runtime Dev Server</td>
+          <td><span class="badge ok">Selesai + HAR + Screenshots</span></td>
+          <td>har/dev/, screenshots/dev/</td>
+        </tr>
+        <tr>
+          <td>Step 3 — Database Runtime (EF logging)</td>
+          <td><span class="badge info">Skipped</span></td>
+          <td>Static + runtime cukup untuk prioritas fix</td>
+        </tr>
+        <tr>
+          <td>Validasi H-03 / H-04 / M-06</td>
+          <td><span class="badge medium">Menunggu Dataset</span></td>
+          <td>Dataset assessment dev server belum terisi</td>
+        </tr>
+        <tr>
+          <td>Implementasi Fix (Prio 1–17)</td>
+          <td><span class="badge high">Pending</span></td>
+          <td>Rekomendasi tersedia, siap implementasi</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  PortalHC KPB &mdash; Performance Report &mdash; Generated 17 April 2026
+</footer>
+
+</body>
+</html>
