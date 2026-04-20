@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Preview — Slide Roadmap Progress Program</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* Slide container (16:9) */
+  .slide {
+    width: 100%;
+    max-width: 1280px;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 46, 109, 0.15);
+    padding: 50px 70px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Decorative corner */
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(237, 28, 36, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .slide::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    left: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(0, 150, 64, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  /* Header */
+  .slide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .slide-title {
+    font-size: 32pt;
+    font-weight: 800;
+    color: #002e6d;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  .slide-title .accent {
+    color: #ed1c24;
+  }
+
+  .slide-subtitle {
+    font-size: 11pt;
+    color: #64748b;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  .slide-badge {
+    background: #002e6d;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 9.5pt;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  /* Content layout */
+  .content {
+    display: grid;
+    grid-template-columns: 1fr auto 1.4fr;
+    gap: 30px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Left: Progress cards */
+  .progress-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .section-label {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #002e6d;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #002e6d;
+  }
+
+  .progress-item {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 46, 109, 0.08);
+    border-left: 4px solid #009640;
+    transition: transform 0.3s;
+  }
+
+  .progress-item:hover {
+    transform: translateX(4px);
+  }
+
+  .progress-item.mid { border-left-color: #f59e0b; }
+
+  .progress-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .progress-label {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .progress-value {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #009640;
+  }
+
+  .progress-item.mid .progress-value { color: #f59e0b; }
+
+  .progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #009640 0%, #00b04f 100%);
+    border-radius: 4px;
+    transform-origin: left;
+    animation: fillBar 1.5s ease-out forwards;
+  }
+
+  .progress-item.mid .progress-fill {
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+  }
+
+  @keyframes fillBar {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  /* Middle arrow */
+  .big-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #002e6d;
+    font-size: 40pt;
+    font-weight: 900;
+    animation: slideRight 2s ease-in-out infinite;
+  }
+
+  @keyframes slideRight {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(8px); }
+  }
+
+  /* Right: Flow horizontal */
+  .flow-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .flow-stages {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .stage {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 46, 109, 0.08);
+    border: 2px solid transparent;
+    position: relative;
+    transition: all 0.3s;
+  }
+
+  .stage-inprogress {
+    border-color: #3b82f6;
+    background: linear-gradient(180deg, #eff6ff 0%, #fff 100%);
+  }
+
+  .stage-current {
+    border-color: #ed1c24;
+    background: linear-gradient(180deg, #fef2f2 0%, #fff 100%);
+    box-shadow: 0 8px 24px rgba(237, 28, 36, 0.25);
+    transform: scale(1.08);
+    animation: pulseCurrent 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseCurrent {
+    0%, 100% { box-shadow: 0 8px 24px rgba(237, 28, 36, 0.25); }
+    50% { box-shadow: 0 8px 32px rgba(237, 28, 36, 0.5); }
+  }
+
+  .stage-upcoming {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    opacity: 0.75;
+  }
+
+  .stage-icon {
+    font-size: 22pt;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .stage-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .stage-current .stage-title { color: #ed1c24; }
+  .stage-inprogress .stage-title { color: #3b82f6; }
+  .stage-upcoming .stage-title { color: #64748b; }
+
+  .stage-percent {
+    font-size: 16pt;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .stage-current .stage-percent { color: #ed1c24; }
+  .stage-inprogress .stage-percent { color: #3b82f6; }
+  .stage-upcoming .stage-percent { color: #94a3b8; }
+
+  .stage-status {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    display: inline-block;
+  }
+
+  .stage-inprogress .stage-status { background: #dbeafe; color: #1d4ed8; }
+  .stage-current .stage-status { background: #ed1c24; color: #fff; }
+  .stage-upcoming .stage-status { background: #e2e8f0; color: #64748b; }
+
+  .current-marker {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ed1c24;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 8pt;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(237, 28, 36, 0.4);
+    animation: bounce 1.5s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-4px); }
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 20pt;
+    font-weight: 900;
+    padding: 0 2px;
+  }
+
+  /* Footer note */
+  .slide-footnote {
+    position: absolute;
+    bottom: 20px;
+    left: 70px;
+    right: 70px;
+    font-size: 8pt;
+    color: #94a3b8;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 10px;
+  }
+
+  .slide-footnote strong { color: #002e6d; }
+
+  /* Controls banner */
+  .controls {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: #002e6d;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 10pt;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  🎬 Preview v1 (angka updated) — <strong>refresh browser untuk lihat animasi ulang</strong>
+</div>
+
+<div class="slide">
+
+  <!-- Header -->
+  <div class="slide-header">
+    <div>
+      <h1 class="slide-title">
+        Progress <span class="accent">Penyiapan</span> Program
+      </h1>
+      <p class="slide-subtitle">Status Implementasi HC Portal KPB per April 2026</p>
+    </div>
+    <div class="slide-badge">SLIDE 13 / 15</div>
+  </div>
+
+  <!-- Content: 3 columns grid -->
+  <div class="content">
+
+    <!-- LEFT: Progress cards -->
+    <div class="progress-section">
+      <div class="section-label">Persiapan Materi</div>
+
+      <div class="progress-item">
+        <div class="progress-item-head">
+          <span class="progress-label">Silabus</span>
+          <span class="progress-value">100%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+      </div>
+
+      <div class="progress-item">
+        <div class="progress-item-head">
+          <span class="progress-label">Coaching Guidance</span>
+          <span class="progress-value">100%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+      </div>
+
+      <div class="progress-item mid">
+        <div class="progress-item-head">
+          <span class="progress-label">Pedoman (STK)</span>
+          <span class="progress-value">50%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width: 50%;"></div></div>
+      </div>
+
+      <div class="progress-item">
+        <div class="progress-item-head">
+          <span class="progress-label">Pembuatan Assessment</span>
+          <span class="progress-value">100%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+      </div>
+    </div>
+
+    <!-- MIDDLE: Arrow -->
+    <div class="big-arrow">➤</div>
+
+    <!-- RIGHT: Flow horizontal -->
+    <div class="flow-section">
+      <div class="section-label">Tahapan Implementasi</div>
+
+      <div class="flow-stages">
+
+        <div class="stage stage-inprogress">
+          <span class="stage-icon">⚙️</span>
+          <div class="stage-title">Pembuatan Aplikasi</div>
+          <div class="stage-percent">90%</div>
+          <span class="stage-status">In Progress</span>
+        </div>
+
+        <div class="flow-arrow">▸</div>
+
+        <div class="stage stage-current">
+          <span class="current-marker">📍 KITA DI SINI</span>
+          <span class="stage-icon">📢</span>
+          <div class="stage-title">Sosialisasi</div>
+          <div class="stage-percent">0%</div>
+          <span class="stage-status">Starting Now</span>
+        </div>
+
+        <div class="flow-arrow">▸</div>
+
+        <div class="stage stage-upcoming">
+          <span class="stage-icon">🎉</span>
+          <div class="stage-title">Grand Launching</div>
+          <div class="stage-percent">0%</div>
+          <span class="stage-status">Upcoming</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footnote -->
+  <div class="slide-footnote">
+    <strong>*)</strong> Progress dihitung per April 2026
+  </div>
+
+</div>
+
+</body>
+</html>

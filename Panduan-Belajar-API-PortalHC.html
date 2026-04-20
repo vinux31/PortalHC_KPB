@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panduan Belajar API – PortalHC KPB</title>
+<style>
+  :root {
+    --bg: #f8f9fa; --sidebar: #1e293b; --sidebar-text: #cbd5e1;
+    --sidebar-active: #3b82f6; --card: #ffffff; --text: #1e293b;
+    --text-muted: #64748b; --border: #e2e8f0; --accent: #3b82f6;
+    --accent2: #10b981; --accent3: #f59e0b; --accent4: #ef4444;
+    --code-bg: #1e293b; --code-text: #e2e8f0;
+    --get: #10b981; --post: #3b82f6; --put: #f59e0b; --delete: #ef4444;
+  }
+  .dark {
+    --bg: #0f172a; --card: #1e293b; --text: #e2e8f0;
+    --text-muted: #94a3b8; --border: #334155;
+    --code-bg: #0f172a; --code-text: #e2e8f0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; transition:background .3s,color .3s; }
+
+  /* SIDEBAR */
+  #sidebar { width:280px; min-height:100vh; background:var(--sidebar); position:fixed; top:0; left:0; overflow-y:auto; z-index:100; transition:transform .3s; }
+  #sidebar-header { padding:24px 20px 16px; border-bottom:1px solid #334155; }
+  #sidebar-header h2 { color:#fff; font-size:16px; font-weight:700; }
+  #sidebar-header p { color:#94a3b8; font-size:12px; margin-top:4px; }
+  #sidebar nav { padding:12px 0; }
+  #sidebar nav a { display:flex; align-items:center; gap:10px; padding:10px 20px; color:var(--sidebar-text); text-decoration:none; font-size:13.5px; transition:all .2s; border-left:3px solid transparent; }
+  #sidebar nav a:hover { background:#334155; color:#fff; }
+  #sidebar nav a.active { background:#1d4ed8; color:#fff; border-left-color:#60a5fa; }
+  #sidebar nav a .num { background:#334155; color:#94a3b8; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+  #sidebar nav a.active .num { background:#2563eb; color:#fff; }
+  #sidebar-footer { padding:16px 20px; border-top:1px solid #334155; }
+  #sidebar-footer p { color:#475569; font-size:11px; }
+
+  /* MAIN */
+  #main { margin-left:280px; flex:1; padding:40px; max-width:900px; }
+  @media(max-width:768px){ #sidebar{transform:translateX(-100%);} #main{margin-left:0;padding:20px;} }
+
+  /* TOP BAR */
+  #topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; }
+  #topbar h1 { font-size:22px; font-weight:700; }
+  #dark-toggle { background:var(--card); border:1px solid var(--border); color:var(--text); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:13px; transition:all .2s; }
+  #dark-toggle:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* SECTIONS */
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* CARDS */
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:20px; }
+  .card h2 { font-size:20px; font-weight:700; margin-bottom:8px; }
+  .card h3 { font-size:16px; font-weight:600; margin:20px 0 8px; color:var(--accent); }
+  .card p { color:var(--text-muted); line-height:1.7; margin-bottom:12px; }
+  .card ul, .card ol { margin-left:20px; color:var(--text-muted); line-height:1.9; }
+  .card li strong { color:var(--text); }
+
+  /* BADGE */
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+  .badge-get { background:#d1fae5; color:#065f46; }
+  .badge-post { background:#dbeafe; color:#1e40af; }
+  .badge-put { background:#fef3c7; color:#92400e; }
+  .badge-delete { background:#fee2e2; color:#991b1b; }
+  .badge-ws { background:#ede9fe; color:#5b21b6; }
+  .badge-blue { background:#dbeafe; color:#1e40af; }
+  .badge-green { background:#d1fae5; color:#065f46; }
+  .badge-yellow { background:#fef3c7; color:#92400e; }
+  .badge-red { background:#fee2e2; color:#991b1b; }
+  .badge-purple { background:#ede9fe; color:#5b21b6; }
+
+  /* HIGHLIGHT BOX */
+  .highlight { background:linear-gradient(135deg,#eff6ff,#dbeafe); border:1px solid #93c5fd; border-radius:10px; padding:16px 20px; margin:16px 0; }
+  .highlight.green { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border-color:#86efac; }
+  .highlight.yellow { background:linear-gradient(135deg,#fffbeb,#fef3c7); border-color:#fcd34d; }
+  .highlight.red { background:linear-gradient(135deg,#fff1f2,#fee2e2); border-color:#fca5a5; }
+  .highlight.purple { background:linear-gradient(135deg,#faf5ff,#ede9fe); border-color:#c4b5fd; }
+  .dark .highlight { background:linear-gradient(135deg,#1e3a5f,#1e3a8a); border-color:#3b82f6; }
+  .dark .highlight.green { background:linear-gradient(135deg,#14532d,#166534); border-color:#22c55e; }
+  .dark .highlight.yellow { background:linear-gradient(135deg,#451a03,#78350f); border-color:#f59e0b; }
+  .highlight p { color:var(--text); margin:0; font-size:14px; line-height:1.6; }
+  .highlight strong { color:var(--accent); }
+  .dark .highlight strong { color:#93c5fd; }
+
+  /* CODE BLOCK */
+  pre { background:var(--code-bg); color:var(--code-text); border-radius:10px; padding:20px; overflow-x:auto; font-size:13px; line-height:1.6; margin:12px 0; font-family:'Cascadia Code','Consolas','Courier New',monospace; }
+  code { font-family:'Cascadia Code','Consolas','Courier New',monospace; }
+  .inline-code { background:var(--code-bg); color:#93c5fd; padding:2px 7px; border-radius:4px; font-size:12px; font-family:'Cascadia Code','Consolas',monospace; }
+  .comment { color:#6b7280; }
+  .keyword { color:#93c5fd; }
+  .string { color:#86efac; }
+  .func { color:#fde68a; }
+  .type { color:#c4b5fd; }
+  .num-lit { color:#fdba74; }
+  .tag { color:#f9a8d4; }
+  .attr { color:#fde68a; }
+
+  /* TABLE */
+  .table-wrap { overflow-x:auto; margin:12px 0; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:var(--sidebar); color:#e2e8f0; padding:10px 14px; text-align:left; font-weight:600; }
+  td { padding:10px 14px; border-bottom:1px solid var(--border); color:var(--text-muted); vertical-align:top; line-height:1.5; }
+  tr:hover td { background:var(--bg); }
+  .dark tr:hover td { background:#334155; }
+
+  /* ANIMATION BOX */
+  .anim-box { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; margin:16px 0; }
+  .anim-box h4 { font-size:14px; font-weight:600; color:var(--text-muted); margin-bottom:20px; text-align:center; }
+  .flow { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+  .flow-node { background:var(--bg); border:2px solid var(--border); border-radius:10px; padding:12px 18px; text-align:center; min-width:100px; }
+  .flow-node.blue { border-color:var(--accent); background:#eff6ff; }
+  .flow-node.green { border-color:var(--accent2); background:#f0fdf4; }
+  .flow-node.yellow { border-color:var(--accent3); background:#fffbeb; }
+  .dark .flow-node.blue { background:#1e3a5f; }
+  .dark .flow-node.green { background:#14532d; }
+  .dark .flow-node.yellow { background:#451a03; }
+  .flow-node .icon { font-size:24px; display:block; margin-bottom:4px; }
+  .flow-node .label { font-size:12px; font-weight:600; color:var(--text); }
+  .flow-node .sub { font-size:10px; color:var(--text-muted); margin-top:2px; }
+  .flow-arrow { font-size:20px; color:var(--accent); font-weight:700; }
+
+  /* STEP BOX */
+  .steps { counter-reset:step; }
+  .step { display:flex; gap:16px; margin-bottom:16px; align-items:flex-start; }
+  .step-num { counter-increment:step; background:var(--accent); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; margin-top:2px; }
+  .step-content h4 { font-size:14px; font-weight:600; margin-bottom:4px; }
+  .step-content p { font-size:13px; color:var(--text-muted); margin:0; line-height:1.6; }
+
+  /* MODULE GRID */
+  .module-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin:12px 0; }
+  .module-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .module-card .icon { font-size:20px; margin-bottom:8px; }
+  .module-card h4 { font-size:13px; font-weight:600; margin-bottom:4px; }
+  .module-card p { font-size:11px; color:var(--text-muted); line-height:1.5; margin:0; }
+
+  /* PROGRESS */
+  .progress-item { margin-bottom:16px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+  .progress-bar { height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:4px; transition:width 1s ease; }
+
+  /* ROADMAP */
+  .roadmap { position:relative; padding-left:32px; }
+  .roadmap::before { content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:var(--border); }
+  .roadmap-item { position:relative; margin-bottom:24px; }
+  .roadmap-item::before { content:''; position:absolute; left:-26px; top:6px; width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+  .roadmap-item.done::before { background:var(--accent2); }
+  .roadmap-item.partial::before { background:var(--accent3); }
+  .roadmap-item h4 { font-size:14px; font-weight:600; margin-bottom:4px; }
+  .roadmap-item p { font-size:13px; color:var(--text-muted); margin:0; line-height:1.5; }
+  .roadmap-item .tag-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+
+  /* SECTION HEADER */
+  .sec-header { display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+  .sec-icon { font-size:32px; }
+  .sec-header h1 { font-size:24px; font-weight:700; }
+  .sec-header p { color:var(--text-muted); font-size:14px; margin-top:2px; }
+
+  /* TABS */
+  .tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:2px solid var(--border); }
+  .tab { padding:8px 16px; font-size:13px; font-weight:500; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  /* ALERT */
+  .alert { border-radius:8px; padding:12px 16px; margin:12px 0; font-size:13px; line-height:1.6; }
+  .alert-info { background:#eff6ff; border:1px solid #93c5fd; color:#1e40af; }
+  .alert-success { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
+  .alert-warn { background:#fffbeb; border:1px solid #fcd34d; color:#92400e; }
+  .dark .alert-info { background:#1e3a5f; color:#93c5fd; }
+  .dark .alert-success { background:#14532d; color:#86efac; }
+  .dark .alert-warn { background:#451a03; color:#fcd34d; }
+
+  /* COMPARE */
+  .compare { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+  @media(max-width:600px){ .compare{grid-template-columns:1fr;} }
+  .compare-card { border-radius:10px; padding:16px; border:2px solid var(--border); }
+  .compare-card.left { border-color:#93c5fd; background:#eff6ff; }
+  .compare-card.right { border-color:#86efac; background:#f0fdf4; }
+  .dark .compare-card.left { background:#1e3a5f; }
+  .dark .compare-card.right { background:#14532d; }
+  .compare-card h4 { font-size:14px; font-weight:700; margin-bottom:8px; }
+  .compare-card ul { margin-left:16px; font-size:12px; color:var(--text-muted); line-height:1.8; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h2>📚 Panduan API</h2>
+    <p>PortalHC KPB – PT Pertamina</p>
+  </div>
+  <nav>
+    <a href="#" onclick="showSection('s1')" class="active" id="nav-s1"><span class="num">1</span> Apa itu API?</a>
+    <a href="#" onclick="showSection('s2')" id="nav-s2"><span class="num">2</span> Cara Kerja API</a>
+    <a href="#" onclick="showSection('s3')" id="nav-s3"><span class="num">3</span> Jenis-jenis API</a>
+    <a href="#" onclick="showSection('s4')" id="nav-s4"><span class="num">4</span> API yang Sudah Ada</a>
+    <a href="#" onclick="showSection('s5')" id="nav-s5"><span class="num">5</span> Potensi API per Modul</a>
+    <a href="#" onclick="showSection('s6')" id="nav-s6"><span class="num">6</span> Tabel Transaksi Lengkap</a>
+    <a href="#" onclick="showSection('s7')" id="nav-s7"><span class="num">7</span> Contoh Kode</a>
+    <a href="#" onclick="showSection('s8')" id="nav-s8"><span class="num">8</span> Langkah Selanjutnya</a>
+  </nav>
+  <div id="sidebar-footer">
+    <p>Dibuat khusus untuk PortalHC KPB</p>
+    <p style="margin-top:4px">Versi 1.0 – April 2026</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <h1 id="page-title">Bab 1 — Apa itu API?</h1>
+    <button id="dark-toggle" onclick="toggleDark()">🌙 Mode Gelap</button>
+  </div>
+
+  <!-- =================== BAB 1 =================== -->
+  <div class="section active" id="s1">
+    <div class="sec-header">
+      <span class="sec-icon">🤔</span>
+      <div>
+        <h1>Apa itu API?</h1>
+        <p>Konsep dasar yang wajib dipahami sebelum masuk ke teknis</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Definisi Sederhana</h2>
+      <p><strong>API</strong> singkatan dari <strong>Application Programming Interface</strong>.</p>
+      <p>Dalam bahasa sehari-hari: <strong>API adalah "jembatan" atau "penghubung" antara dua sistem komputer agar bisa saling berbicara dan bertukar data.</strong></p>
+      <div class="highlight">
+        <p>🎯 <strong>Intinya:</strong> API memungkinkan satu aplikasi meminta data atau perintah ke aplikasi lain, tanpa perlu tahu "isi dapur" di dalamnya. Yang penting: minta → dapat jawaban.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🍽️ Analogi: Pelayan Restoran</h2>
+      <p>Cara paling mudah memahami API adalah dengan analogi restoran:</p>
+
+      <div class="anim-box">
+        <h4>Alur di Restoran = Alur di API</h4>
+        <div class="flow">
+          <div class="flow-node blue">
+            <span class="icon">🧑</span>
+            <div class="label">KAMU</div>
+            <div class="sub">Pelanggan / Client</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node yellow">
+            <span class="icon">🛎️</span>
+            <div class="label">PELAYAN</div>
+            <div class="sub">API</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node green">
+            <span class="icon">👨‍🍳</span>
+            <div class="label">DAPUR</div>
+            <div class="sub">Server / Database</div>
+          </div>
+        </div>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted)">
+          Kamu → pesan ke pelayan → pelayan sampaikan ke dapur → dapur masak → pelayan bawa kembali ke kamu
+        </p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Di Restoran</th><th>Di Dunia API</th></tr></thead>
+          <tbody>
+            <tr><td>Kamu (pelanggan)</td><td>Aplikasi yang butuh data (Client/Frontend)</td></tr>
+            <tr><td>Pelayan</td><td>API — perantara yang menerima & menyampaikan permintaan</td></tr>
+            <tr><td>Dapur</td><td>Server & Database — tempat data disimpan dan diproses</td></tr>
+            <tr><td>Menu</td><td>Dokumentasi API — daftar apa saja yang bisa diminta</td></tr>
+            <tr><td>Pesanan</td><td>Request — permintaan data yang dikirim</td></tr>
+            <tr><td>Makanan yang datang</td><td>Response — data yang dikembalikan</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📱 Contoh API di Kehidupan Nyata</h2>
+      <p>Tanpa sadar, kamu sudah pakai API setiap hari:</p>
+      <ul>
+        <li><strong>Google Maps di Gojek</strong> — Gojek "minta" data peta dari Google Maps via API</li>
+        <li><strong>Login dengan Google</strong> — Website minta Google konfirmasi identitas via API</li>
+        <li><strong>Cuaca di HP</strong> — Aplikasi cuaca minta data dari server cuaca via API</li>
+        <li><strong>Transfer bank via aplikasi</strong> — Aplikasi Anda minta server bank proses transfer via API</li>
+        <li><strong>WhatsApp Web</strong> — Browser Anda minta pesan dari server WhatsApp via API</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Kenapa API Itu Penting?</h2>
+      <div class="compare">
+        <div class="compare-card left">
+          <h4>🚫 Tanpa API</h4>
+          <ul>
+            <li>Setiap aksi perlu reload halaman</li>
+            <li>Tidak bisa terintegrasi sistem lain</li>
+            <li>Tidak bisa dibuat aplikasi mobile</li>
+            <li>Data tidak bisa diakses dari luar</li>
+            <li>Sulit dibuat dashboard eksternal</li>
+          </ul>
+        </div>
+        <div class="compare-card right">
+          <h4>✅ Dengan API</h4>
+          <ul>
+            <li>Data real-time tanpa reload</li>
+            <li>Integrasi ke SAP, Power BI, dll</li>
+            <li>Bisa dibuat aplikasi mobile</li>
+            <li>Data bisa diakses aman dari luar</li>
+            <li>Dashboard langsung dari data live</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== BAB 2 =================== -->
+  <div class="section" id="s2">
+    <div class="sec-header">
+      <span class="sec-icon">⚙️</span>
+      <div>
+        <h1>Cara Kerja API</h1>
+        <p>Memahami alur request dan response secara detail</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Alur Lengkap API</h2>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Client mengirim REQUEST</h4><p>Browser atau aplikasi mengirim permintaan ke URL tertentu. Contoh: "Kasih saya data pegawai dengan ID 123"</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Server menerima request</h4><p>Server membaca permintaan, mengecek autentikasi (apakah user punya izin?), lalu meneruskan ke logika bisnis.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Server memproses data</h4><p>Server mengambil data dari database, memproses kalau perlu, lalu menyiapkan jawaban dalam format JSON.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Server mengirim RESPONSE</h4><p>Server mengirim balik data beserta kode status (200 = sukses, 404 = tidak ditemukan, 403 = tidak punya akses, dsb).</p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><h4>Client menerima & menampilkan</h4><p>Browser/aplikasi menerima data JSON, lalu menampilkannya ke layar tanpa perlu reload halaman.</p></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4 Jenis Aksi (HTTP Methods)</h2>
+      <p>Setiap permintaan API punya "jenis aksi" yang menunjukkan apa yang ingin dilakukan:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Artinya</th><th>Analogi</th><th>Contoh di PortalHC</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-get">GET</span></td><td>Ambil data</td><td>Lihat menu restoran</td><td>Tampilkan daftar pegawai</td></tr>
+            <tr><td><span class="badge badge-post">POST</span></td><td>Kirim/buat data baru</td><td>Pesan makanan</td><td>Buat assessment baru</td></tr>
+            <tr><td><span class="badge badge-put">PUT</span></td><td>Update/ubah data</td><td>Ubah pesanan</td><td>Edit profil pegawai</td></tr>
+            <tr><td><span class="badge badge-delete">DELETE</span></td><td>Hapus data</td><td>Batalkan pesanan</td><td>Hapus sesi coaching</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Format Data: JSON</h2>
+      <p>API mengirim dan menerima data dalam format <strong>JSON</strong> (JavaScript Object Notation). JSON itu seperti "bahasa universal" antar sistem. Mudah dibaca manusia dan mesin.</p>
+      <p><strong>Contoh data pegawai dalam format JSON:</strong></p>
+<pre><span class="comment">// Contoh RESPONSE dari API: data seorang pegawai</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"data"</span>: {
+    <span class="string">"id"</span>: <span class="string">"USR-001"</span>,
+    <span class="string">"nip"</span>: <span class="string">"123456"</span>,
+    <span class="string">"namaLengkap"</span>: <span class="string">"Budi Santoso"</span>,
+    <span class="string">"jabatan"</span>: <span class="string">"Engineer"</span>,
+    <span class="string">"bagian"</span>: <span class="string">"Operasi"</span>,
+    <span class="string">"roleLevel"</span>: <span class="num-lit">6</span>,
+    <span class="string">"isActive"</span>: <span class="keyword">true</span>
+  }
+}</pre>
+
+      <p><strong>Kode Status HTTP yang Sering Muncul:</strong></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kode</th><th>Arti</th><th>Contoh Situasi</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-green">200 OK</span></td><td>Berhasil</td><td>Data pegawai berhasil diambil</td></tr>
+            <tr><td><span class="badge badge-green">201 Created</span></td><td>Data baru berhasil dibuat</td><td>Assessment berhasil dibuat</td></tr>
+            <tr><td><span class="badge badge-yellow">400 Bad Request</span></td><td>Permintaan tidak valid</td><td>Format data yang dikirim salah</td></tr>
+            <tr><td><span class="badge badge-red">401 Unauthorized</span></td><td>Belum login</td><td>Akses API tanpa token login</td></tr>
+            <tr><td><span class="badge badge-red">403 Forbidden</span></td><td>Tidak punya izin</td><td>Level 6 coba akses data admin</td></tr>
+            <tr><td><span class="badge badge-red">404 Not Found</span></td><td>Data tidak ada</td><td>ID pegawai tidak ditemukan</td></tr>
+            <tr><td><span class="badge badge-red">500 Server Error</span></td><td>Error di server</td><td>Bug di kode backend</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Anatomi URL API</h2>
+      <p>Setiap endpoint API punya URL dengan struktur tertentu:</p>
+<pre><span class="comment">https://portalhc.pertamina.com/api/pegawai/123</span>
+<span class="comment">│─────────────────────────────│────────│───│</span>
+<span class="comment">│         Base URL             │ Modul  │ ID│</span>
+
+<span class="comment">Contoh endpoint PortalHC KPB:</span>
+GET    /api/pegawai              <span class="comment">→ ambil semua pegawai</span>
+GET    /api/pegawai/123          <span class="comment">→ ambil pegawai ID 123</span>
+POST   /api/assessment           <span class="comment">→ buat assessment baru</span>
+PUT    /api/assessment/456       <span class="comment">→ update assessment ID 456</span>
+DELETE /api/coaching/789         <span class="comment">→ hapus sesi coaching ID 789</span></pre>
+    </div>
+  </div>
+
+  <!-- =================== BAB 3 =================== -->
+  <div class="section" id="s3">
+    <div class="sec-header">
+      <span class="sec-icon">🗂️</span>
+      <div>
+        <h1>Jenis-jenis API</h1>
+        <p>Tiga jenis yang relevan untuk PortalHC KPB</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. REST API — Yang Paling Umum</h2>
+      <p><strong>REST</strong> (Representational State Transfer) adalah jenis API yang paling banyak digunakan di dunia web. Prinsipnya sederhana: gunakan URL + HTTP Method untuk semua operasi data.</p>
+      <div class="highlight green">
+        <p>✅ <strong>Ini yang akan kita tambahkan ke PortalHC KPB.</strong> REST API cocok untuk semua fitur: ambil data pegawai, buat assessment, update training, dll.</p>
+      </div>
+      <p><strong>Karakteristik REST API:</strong></p>
+      <ul>
+        <li>URL mewakili "sumber daya" (resource) — misal <span class="inline-code">/api/pegawai</span></li>
+        <li>HTTP Method menentukan aksi (GET/POST/PUT/DELETE)</li>
+        <li>Data dikirim/diterima dalam format JSON</li>
+        <li>Stateless — setiap request berdiri sendiri, tidak bergantung request sebelumnya</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>2. WebSocket (SignalR) — Sudah Ada!</h2>
+      <p><strong>WebSocket</strong> adalah koneksi dua arah yang <em>terus-menerus terbuka</em> antara client dan server. Cocok untuk fitur real-time seperti chat, notifikasi langsung, atau monitoring live.</p>
+      <div class="highlight yellow">
+        <p>⭐ <strong>PortalHC KPB sudah menggunakan ini!</strong> Fitur monitoring ujian assessment menggunakan <strong>SignalR</strong> (implementasi WebSocket di ASP.NET). Peserta ujian mengirim jawaban real-time, dan HC bisa monitor secara live.</p>
+      </div>
+      <p><strong>Perbedaan WebSocket vs REST:</strong></p>
+      <div class="compare">
+        <div class="compare-card left">
+          <h4>REST API</h4>
+          <ul>
+            <li>Client minta → Server jawab → selesai</li>
+            <li>Koneksi tidak permanen</li>
+            <li>Cocok untuk CRUD biasa</li>
+            <li>Semua modul PortalHC (selain assessment)</li>
+          </ul>
+        </div>
+        <div class="compare-card right">
+          <h4>WebSocket / SignalR</h4>
+          <ul>
+            <li>Koneksi terus terbuka dua arah</li>
+            <li>Server bisa kirim data kapan saja</li>
+            <li>Cocok untuk real-time</li>
+            <li>Assessment monitoring PortalHC ✅</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Internal API (Controller Action)</h2>
+      <p>Sebenarnya di PortalHC KPB saat ini sudah ada beberapa action yang <strong>mengembalikan data JSON</strong> — ini disebut internal API atau "quasi-API". Belum terstruktur sebagai REST API penuh, tapi sudah setengah jalan.</p>
+      <div class="highlight">
+        <p>📌 <strong>Contoh yang sudah ada:</strong> <span class="inline-code">SearchUsersApi</span>, <span class="inline-code">UnreadCount</span>, <span class="inline-code">GetOrganizationTree</span>, <span class="inline-code">RegenerateToken</span>, dan beberapa lainnya sudah mengembalikan JSON.</p>
+      </div>
+      <p>Ini artinya tim developer sudah paham konsepnya — tinggal memperluas dan memformalkannya sebagai REST API yang terstruktur.</p>
+    </div>
+
+    <div class="card">
+      <h2>Mana yang Relevan untuk PortalHC KPB?</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Jenis API</th><th>Status</th><th>Digunakan untuk</th></tr></thead>
+          <tbody>
+            <tr><td>REST API</td><td><span class="badge badge-yellow">Perlu Ditambah</span></td><td>Semua 13 modul (pegawai, assessment, training, dll)</td></tr>
+            <tr><td>SignalR (WebSocket)</td><td><span class="badge badge-green">Sudah Ada ✅</span></td><td>Assessment real-time monitoring</td></tr>
+            <tr><td>Internal JSON Action</td><td><span class="badge badge-green">Sebagian Ada ✅</span></td><td>Search user, notif count, org tree</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== BAB 4 =================== -->
+  <div class="section" id="s4">
+    <div class="sec-header">
+      <span class="sec-icon">🔍</span>
+      <div>
+        <h1>API yang Sudah Ada</h1>
+        <p>Endpoint JSON yang sudah berjalan di PortalHC KPB hari ini</p>
+      </div>
+    </div>
+
+    <div class="alert alert-success">
+      ✅ <strong>Kabar baik:</strong> PortalHC KPB sudah memiliki beberapa endpoint API yang berjalan! Ini membuktikan arsitektur sistem sudah siap untuk dikembangkan lebih lanjut.
+    </div>
+
+    <div class="card">
+      <h2>Endpoint JSON yang Sudah Ada</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Endpoint / Action</th><th>Method</th><th>Fungsi</th><th>Digunakan oleh</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="inline-code">AdminController.SearchUsersApi</span></td>
+              <td><span class="badge badge-get">GET</span></td>
+              <td>Cari daftar user (autocomplete) — mengembalikan list JSON user</td>
+              <td>Form impersonasi admin</td>
+            </tr>
+            <tr>
+              <td><span class="inline-code">NotificationController.UnreadCount</span></td>
+              <td><span class="badge badge-get">GET</span></td>
+              <td>Ambil jumlah notifikasi belum dibaca — untuk badge angka di navbar</td>
+              <td>Navbar semua halaman</td>
+            </tr>
+            <tr>
+              <td><span class="inline-code">OrganizationController.GetOrganizationTree</span></td>
+              <td><span class="badge badge-get">GET</span></td>
+              <td>Ambil struktur organisasi dalam format JSON (hierarchy)</td>
+              <td>Halaman manajemen organisasi</td>
+            </tr>
+            <tr>
+              <td><span class="inline-code">AssessmentAdmin.RegenerateToken</span></td>
+              <td><span class="badge badge-post">POST</span></td>
+              <td>Buat ulang access token assessment — kembalikan <span class="inline-code">{success, token}</span></td>
+              <td>Halaman manajemen assessment</td>
+            </tr>
+            <tr>
+              <td><span class="inline-code">AssessmentAdmin.GradeEssay</span></td>
+              <td><span class="badge badge-post">POST</span></td>
+              <td>Simpan nilai essay — kembalikan <span class="inline-code">{success, pendingCount, allGraded}</span></td>
+              <td>Halaman penilaian essay</td>
+            </tr>
+            <tr>
+              <td><span class="inline-code">AssessmentAdmin.SubmitFinalGrade</span></td>
+              <td><span class="badge badge-post">POST</span></td>
+              <td>Finalisasi nilai — kembalikan <span class="inline-code">{success, score, isPassed}</span></td>
+              <td>Halaman penilaian akhir</td>
+            </tr>
+            <tr>
+              <td><span class="inline-code">CoachMapping.GetEligibleCoachees</span></td>
+              <td><span class="badge badge-get">GET</span></td>
+              <td>Ambil daftar coachee yang bisa dipasangkan ke coach</td>
+              <td>Form mapping coach-coachee</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔌 SignalR Hub — Real-Time Assessment</h2>
+      <p>Ini adalah API WebSocket yang sudah berjalan di <span class="inline-code">/hubs/assessment</span>. Digunakan saat peserta mengerjakan ujian.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method SignalR</th><th>Arah</th><th>Fungsi</th></tr></thead>
+          <tbody>
+            <tr><td><span class="inline-code">JoinBatch(batchKey)</span></td><td><span class="badge badge-blue">Client → Server</span></td><td>Peserta masuk ruang ujian virtual</td></tr>
+            <tr><td><span class="inline-code">SaveTextAnswer(...)</span></td><td><span class="badge badge-blue">Client → Server</span></td><td>Kirim jawaban essay secara real-time</td></tr>
+            <tr><td><span class="inline-code">SaveMultipleAnswer(...)</span></td><td><span class="badge badge-blue">Client → Server</span></td><td>Kirim jawaban pilihan ganda secara real-time</td></tr>
+            <tr><td><span class="inline-code">LogPageNav(...)</span></td><td><span class="badge badge-blue">Client → Server</span></td><td>Catat perpindahan halaman soal</td></tr>
+            <tr><td><span class="inline-code">JoinMonitor(batchKey)</span></td><td><span class="badge badge-blue">Client → Server</span></td><td>HC/Admin masuk mode monitoring ujian live</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Pola Respons JSON yang Digunakan</h2>
+      <p>Tim developer sudah menggunakan pola respons JSON yang konsisten. Ini bagus karena mudah diperluas:</p>
+<pre><span class="comment">// Pola standar yang sudah dipakai di PortalHC KPB:</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,        <span class="comment">// apakah berhasil?</span>
+  <span class="string">"message"</span>: <span class="string">"Berhasil disimpan"</span>,  <span class="comment">// pesan untuk user</span>
+  <span class="string">"data"</span>: { ... }       <span class="comment">// data yang diminta (opsional)</span>
+}
+
+<span class="comment">// Jika gagal:</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"message"</span>: <span class="string">"Token tidak valid"</span>
+}</pre>
+    </div>
+  </div>
+
+  <!-- =================== BAB 5 =================== -->
+  <div class="section" id="s5">
+    <div class="sec-header">
+      <span class="sec-icon">🗺️</span>
+      <div>
+        <h1>Potensi API per Modul</h1>
+        <p>13 modul PortalHC KPB dan manfaat API di masing-masingnya</p>
+      </div>
+    </div>
+
+    <div class="alert alert-info">
+      💡 Di bawah ini adalah analisis setiap modul PortalHC KPB: apa saja yang bisa dilakukan dengan API, dan integrasi apa yang bisa dibuka.
+    </div>
+
+    <div class="card">
+      <h3>1. 🔐 Authentication (Login/Logout)</h3>
+      <p><strong>Kondisi saat ini:</strong> Login hanya bisa lewat form browser (tidak bisa dari aplikasi lain).</p>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Aplikasi mobile bisa login dengan email/password → dapat token (JWT)</li>
+        <li>Sistem lain bisa autentikasi ke PortalHC secara programatik</li>
+        <li>Single Sign-On (SSO) dengan sistem Pertamina lainnya</li>
+      </ul>
+      <div class="highlight">
+        <p>🎯 <strong>Use case nyata:</strong> Buat aplikasi mobile PortalHC — pegawai login dari HP, dapat notifikasi jadwal coaching, lihat progress CDP.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>2. 👥 Pegawai (Worker Management)</h3>
+      <p><strong>Kondisi saat ini:</strong> Data pegawai hanya bisa diakses lewat halaman web.</p>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Power BI bisa pull data pegawai untuk dashboard visualisasi</li>
+        <li>Sinkronisasi otomatis dari sistem HR Pertamina (SAP, myHR, dsb)</li>
+        <li>Import/export data massal via sistem lain tanpa buka browser</li>
+        <li>Cek status aktif pegawai dari sistem lain</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>3. 📝 Assessment (Ujian Kompetensi)</h3>
+      <p><strong>Kondisi saat ini:</strong> Sudah punya beberapa endpoint JSON + SignalR real-time.</p>
+      <p><strong>Dengan API REST penuh:</strong></p>
+      <ul>
+        <li>Jadwal assessment bisa diakses dari kalender eksternal (Google Calendar, Outlook)</li>
+        <li>Notifikasi otomatis ke WhatsApp/Teams saat assessment dijadwalkan</li>
+        <li>Hasil nilai bisa langsung masuk ke sistem pelaporan manajemen</li>
+        <li>Sertifikat bisa diunduh via API tanpa buka PortalHC</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>4. 🌱 CDP / Proton Track</h3>
+      <p><strong>Kondisi saat ini:</strong> Progress hanya bisa dilihat di PortalHC web.</p>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Dashboard progress CDP bisa tampil di Power BI untuk manajemen</li>
+        <li>Sinkronisasi deliverable dengan sistem Proton pusat Pertamina</li>
+        <li>Notifikasi otomatis ke coachee saat deliverable disetujui/ditolak</li>
+        <li>Laporan progress CDP per bagian untuk rapat manajemen</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>5. 📊 CMP (Competency Management Program)</h3>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Data KKJ bisa diakses sistem lain untuk analisis gap kompetensi</li>
+        <li>Laporan alignment kompetensi masuk otomatis ke sistem pelaporan</li>
+        <li>Integrasi dengan LMS (Learning Management System) eksternal</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>6. 🤝 Coaching & Coach Mapping</h3>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Jadwal coaching tampil di kalender Teams/Outlook otomatis</li>
+        <li>Coach bisa update log sesi dari HP (via mobile app)</li>
+        <li>Alert workload coach dikirim ke HC jika mendekati batas</li>
+        <li>Dashboard coaching per bagian untuk laporan manajemen</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>7. 🎓 Training Records</h3>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Data training bisa disinkronkan dari sistem pelatihan eksternal</li>
+        <li>Laporan training masuk otomatis ke Power BI/Excel manajemen</li>
+        <li>Alert otomatis ke HC jika sertifikat hampir expired</li>
+        <li>Integrasi dengan sistem SAP HR Training</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>8. 🏢 Organisasi (Bagian/Unit)</h3>
+      <p><strong>Kondisi saat ini:</strong> Sudah ada <span class="inline-code">GetOrganizationTree</span> yang mengembalikan JSON.</p>
+      <p><strong>Dengan API penuh:</strong></p>
+      <ul>
+        <li>Struktur org bisa ditarik sistem HR lain secara otomatis</li>
+        <li>Sinkronisasi perubahan struktur org dari sistem induk Pertamina</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>9. 📄 Dokumen (KKJ, CPDP)</h3>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Dokumen KKJ bisa diakses dari sistem manajemen dokumen lain</li>
+        <li>Upload dokumen bisa dari aplikasi eksternal</li>
+        <li>Notifikasi otomatis saat dokumen baru diupload</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>10. 🔔 Notifikasi</h3>
+      <p><strong>Kondisi saat ini:</strong> Sudah ada <span class="inline-code">UnreadCount</span> sebagai API.</p>
+      <p><strong>Dengan API penuh:</strong></p>
+      <ul>
+        <li>Notifikasi PortalHC bisa diteruskan ke WhatsApp, Teams, atau email</li>
+        <li>Sistem lain bisa kirim notifikasi ke pengguna PortalHC</li>
+        <li>Dashboard notifikasi di mobile app</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>11. 🏆 Sertifikat & Renewal</h3>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Verifikasi sertifikat dari sistem eksternal (QR Code scan → API cek validitas)</li>
+        <li>Laporan sertifikat expired masuk ke email HC otomatis</li>
+        <li>Data sertifikat masuk sistem Pertamina pusat</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>12. ⚙️ Admin & Sistem</h3>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Maintenance mode bisa diaktifkan dari sistem monitoring eksternal</li>
+        <li>Audit log bisa diintegrasikan ke SIEM (Security Information & Event Management)</li>
+        <li>Health check endpoint untuk monitoring uptime sistem</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>13. 📚 Proton Data (Kurikulum)</h3>
+      <p><strong>Dengan API:</strong></p>
+      <ul>
+        <li>Data kurikulum bisa disinkronkan dari sistem Proton pusat Pertamina</li>
+        <li>Update deliverable/silabus secara massal via import API</li>
+        <li>Laporan coverage kurikulum untuk manajemen</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- =================== BAB 6 =================== -->
+  <div class="section" id="s6">
+    <div class="sec-header">
+      <span class="sec-icon">📋</span>
+      <div>
+        <h1>Tabel Transaksi Lengkap</h1>
+        <p>Semua operasi API yang bisa dibuat untuk PortalHC KPB</p>
+      </div>
+    </div>
+
+    <div class="alert alert-info">
+      💡 Tabel ini menunjukkan: Aksi pengguna → Endpoint API → Data yang dikirim → Data yang diterima
+    </div>
+
+    <div class="card">
+      <h3>🔐 Autentikasi</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aksi</th><th>Method</th><th>Endpoint</th><th>Data Kirim</th><th>Data Terima</th></tr></thead>
+          <tbody>
+            <tr><td>Login</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/auth/login</span></td><td>email, password</td><td>token, namaUser, roleLevel</td></tr>
+            <tr><td>Logout</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/auth/logout</span></td><td>token</td><td>success</td></tr>
+            <tr><td>Cek status login</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/auth/me</span></td><td>–</td><td>id, nama, jabatan, roleLevel</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>👥 Pegawai</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aksi</th><th>Method</th><th>Endpoint</th><th>Data Kirim</th><th>Data Terima</th></tr></thead>
+          <tbody>
+            <tr><td>Daftar semua pegawai</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/pegawai</span></td><td>filter: bagian, unit, role</td><td>list pegawai</td></tr>
+            <tr><td>Detail 1 pegawai</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/pegawai/{id}</span></td><td>–</td><td>data lengkap pegawai</td></tr>
+            <tr><td>Tambah pegawai</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/pegawai</span></td><td>nama, nip, email, jabatan, bagian</td><td>pegawai baru + id</td></tr>
+            <tr><td>Update pegawai</td><td><span class="badge badge-put">PUT</span></td><td><span class="inline-code">/api/pegawai/{id}</span></td><td>field yang diubah</td><td>data terbaru</td></tr>
+            <tr><td>Nonaktifkan pegawai</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/pegawai/{id}/deactivate</span></td><td>alasan</td><td>success</td></tr>
+            <tr><td>Cari pegawai</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/pegawai/search?q=budi</span></td><td>q (kata kunci)</td><td>list hasil pencarian</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📝 Assessment</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aksi</th><th>Method</th><th>Endpoint</th><th>Data Kirim</th><th>Data Terima</th></tr></thead>
+          <tbody>
+            <tr><td>Daftar assessment</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/assessment</span></td><td>filter: status, tanggal</td><td>list assessment</td></tr>
+            <tr><td>Detail assessment</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/assessment/{id}</span></td><td>–</td><td>judul, jadwal, peserta, skor</td></tr>
+            <tr><td>Buat assessment</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/assessment</span></td><td>judul, jadwal, durasi, paket soal</td><td>assessment baru + id</td></tr>
+            <tr><td>Hasil nilai peserta</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/assessment/{id}/hasil</span></td><td>–</td><td>list peserta + skor + lulus/tidak</td></tr>
+            <tr><td>Sertifikat peserta</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/assessment/{id}/sertifikat</span></td><td>–</td><td>URL/file sertifikat</td></tr>
+            <tr><td>Verifikasi sertifikat</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/sertifikat/verify/{kode}</span></td><td>–</td><td>valid/tidak, nama, tanggal, kompetensi</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🌱 CDP / Proton Track</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aksi</th><th>Method</th><th>Endpoint</th><th>Data Kirim</th><th>Data Terima</th></tr></thead>
+          <tbody>
+            <tr><td>Progress CDP pegawai</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/cdp/{userId}/progress</span></td><td>–</td><td>list kompetensi + % progress</td></tr>
+            <tr><td>Daftar deliverable</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/cdp/{userId}/deliverable</span></td><td>–</td><td>list deliverable + status</td></tr>
+            <tr><td>Approve deliverable</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/cdp/deliverable/{id}/approve</span></td><td>catatan HC</td><td>success, status baru</td></tr>
+            <tr><td>Reject deliverable</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/cdp/deliverable/{id}/reject</span></td><td>alasan penolakan</td><td>success, status baru</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🤝 Coaching</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aksi</th><th>Method</th><th>Endpoint</th><th>Data Kirim</th><th>Data Terima</th></tr></thead>
+          <tbody>
+            <tr><td>Daftar pasangan coach-coachee</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/coaching/mapping</span></td><td>filter: bagian</td><td>list pasangan aktif</td></tr>
+            <tr><td>Sesi coaching aktif</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/coaching/sesi</span></td><td>filter: coach, coachee</td><td>list sesi + status</td></tr>
+            <tr><td>Tambah log coaching</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/coaching/sesi/{id}/log</span></td><td>tanggal, catatan, output</td><td>log tersimpan</td></tr>
+            <tr><td>Workload coach</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/coaching/workload</span></td><td>–</td><td>per coach: jumlah coachee vs batas</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎓 Training</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aksi</th><th>Method</th><th>Endpoint</th><th>Data Kirim</th><th>Data Terima</th></tr></thead>
+          <tbody>
+            <tr><td>Daftar training pegawai</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/training/{userId}</span></td><td>–</td><td>list training + sertifikat</td></tr>
+            <tr><td>Tambah training manual</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/training</span></td><td>judul, tanggal, kategori, URL sertifikat</td><td>training tersimpan</td></tr>
+            <tr><td>Sertifikat yang akan expired</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/training/expired-soon</span></td><td>hari_kedepan (misal 30)</td><td>list sertifikat hampir expired</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🔔 Notifikasi</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aksi</th><th>Method</th><th>Endpoint</th><th>Data Kirim</th><th>Data Terima</th></tr></thead>
+          <tbody>
+            <tr><td>Daftar notifikasi user</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/notifikasi</span></td><td>–</td><td>list notif + status baca</td></tr>
+            <tr><td>Jumlah belum dibaca</td><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/notifikasi/unread-count</span></td><td>–</td><td>count angka</td></tr>
+            <tr><td>Tandai sudah dibaca</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/notifikasi/{id}/read</span></td><td>–</td><td>success</td></tr>
+            <tr><td>Dismiss notifikasi</td><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/notifikasi/{id}/dismiss</span></td><td>–</td><td>success</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== BAB 7 =================== -->
+  <div class="section" id="s7">
+    <div class="sec-header">
+      <span class="sec-icon">💻</span>
+      <div>
+        <h1>Contoh Kode</h1>
+        <p>Bagaimana API terlihat dalam kode nyata — JavaScript dan C#</p>
+      </div>
+    </div>
+
+    <div class="alert alert-warn">
+      ⚠️ <strong>Catatan:</strong> Kode di bawah adalah contoh ilustratif. Anda tidak perlu hapal — cukup pahami alurnya. Developer yang akan implementasi.
+    </div>
+
+    <div class="tabs" id="tabs1">
+      <div class="tab active" onclick="switchTab('tabs1','frontend')">🌐 Frontend (JavaScript)</div>
+      <div class="tab" onclick="switchTab('tabs1','backend')">⚙️ Backend (C# ASP.NET)</div>
+      <div class="tab" onclick="switchTab('tabs1','signalr')">🔌 SignalR (Sudah Ada)</div>
+    </div>
+
+    <div class="tab-content active" id="tabs1-frontend">
+      <div class="card">
+        <h3>Ambil Data Pegawai (GET)</h3>
+        <p>Kode JavaScript untuk mengambil daftar pegawai dari API:</p>
+<pre><span class="comment">// Cara meminta data dari API (GET request)</span>
+<span class="keyword">async function</span> <span class="func">ambilDaftarPegawai</span>() {
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="func">fetch</span>(<span class="string">'/api/pegawai'</span>, {
+    method: <span class="string">'GET'</span>,
+    headers: {
+      <span class="string">'Authorization'</span>: <span class="string">'Bearer '</span> + userToken,
+      <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>
+    }
+  });
+
+  <span class="keyword">const</span> hasil = <span class="keyword">await</span> response.<span class="func">json</span>();
+
+  <span class="keyword">if</span> (hasil.success) {
+    <span class="comment">// tampilkan data ke tabel HTML</span>
+    tampilkanTabel(hasil.data);
+  } <span class="keyword">else</span> {
+    <span class="func">alert</span>(<span class="string">'Gagal: '</span> + hasil.message);
+  }
+}</pre>
+      </div>
+
+      <div class="card">
+        <h3>Buat Assessment Baru (POST)</h3>
+<pre><span class="comment">// Cara mengirim data baru ke API (POST request)</span>
+<span class="keyword">async function</span> <span class="func">buatAssessment</span>(dataAssessment) {
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="func">fetch</span>(<span class="string">'/api/assessment'</span>, {
+    method: <span class="string">'POST'</span>,
+    headers: {
+      <span class="string">'Authorization'</span>: <span class="string">'Bearer '</span> + userToken,
+      <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>
+    },
+    <span class="comment">// data yang dikirim (dalam format JSON)</span>
+    body: <span class="type">JSON</span>.<span class="func">stringify</span>({
+      judul: <span class="string">'Ujian Kompetensi Q2 2026'</span>,
+      jadwal: <span class="string">'2026-05-15T09:00:00'</span>,
+      durasi: <span class="num-lit">90</span>,
+      paketSoalId: <span class="num-lit">5</span>
+    })
+  });
+
+  <span class="keyword">const</span> hasil = <span class="keyword">await</span> response.<span class="func">json</span>();
+  <span class="func">console</span>.<span class="func">log</span>(<span class="string">'Assessment baru dibuat, ID:'</span>, hasil.data.id);
+}</pre>
+      </div>
+
+      <div class="card">
+        <h3>Approve Deliverable CDP (POST)</h3>
+<pre><span class="comment">// HC approve deliverable seorang coachee</span>
+<span class="keyword">async function</span> <span class="func">approveDeliverable</span>(deliverableId) {
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="func">fetch</span>(<span class="string">`/api/cdp/deliverable/${deliverableId}/approve`</span>, {
+    method: <span class="string">'POST'</span>,
+    headers: {
+      <span class="string">'Authorization'</span>: <span class="string">'Bearer '</span> + userToken,
+      <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>
+    },
+    body: <span class="type">JSON</span>.<span class="func">stringify</span>({
+      catatan: <span class="string">'Deliverable sudah sesuai target, disetujui.'</span>
+    })
+  });
+
+  <span class="keyword">const</span> hasil = <span class="keyword">await</span> response.<span class="func">json</span>();
+  <span class="comment">// hasil: { success: true, statusBaru: "Approved" }</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tabs1-backend">
+      <div class="card">
+        <h3>API Controller di C# (ASP.NET Core)</h3>
+        <p>Begini cara membuat endpoint API di PortalHC KPB menggunakan C#:</p>
+<pre><span class="comment">// File: Controllers/Api/PegawaiApiController.cs</span>
+
+[<span class="type">ApiController</span>]
+[<span class="type">Route</span>(<span class="string">"api/pegawai"</span>)]
+[<span class="type">Authorize</span>]  <span class="comment">// harus login untuk akses</span>
+<span class="keyword">public class</span> <span class="type">PegawaiApiController</span> : <span class="type">ControllerBase</span>
+{
+    <span class="keyword">private readonly</span> <span class="type">ApplicationDbContext</span> _db;
+
+    <span class="keyword">public</span> <span class="func">PegawaiApiController</span>(<span class="type">ApplicationDbContext</span> db)
+    {
+        _db = db;
+    }
+
+    <span class="comment">// GET /api/pegawai — ambil semua pegawai aktif</span>
+    [<span class="type">HttpGet</span>]
+    <span class="keyword">public async</span> <span class="type">Task</span>&lt;<span class="type">IActionResult</span>&gt; <span class="func">GetAll</span>()
+    {
+        <span class="keyword">var</span> pegawai = <span class="keyword">await</span> _db.Users
+            .<span class="func">Where</span>(u => u.IsActive)
+            .<span class="func">Select</span>(u => <span class="keyword">new</span> {
+                u.Id,
+                u.FullName,
+                u.NIP,
+                u.Position,
+                u.Section,
+                u.RoleLevel
+            })
+            .<span class="func">ToListAsync</span>();
+
+        <span class="keyword">return</span> <span class="func">Ok</span>(<span class="keyword">new</span> { success = <span class="keyword">true</span>, data = pegawai });
+    }
+
+    <span class="comment">// GET /api/pegawai/{id} — detail 1 pegawai</span>
+    [<span class="type">HttpGet</span>(<span class="string">"{id}"</span>)]
+    <span class="keyword">public async</span> <span class="type">Task</span>&lt;<span class="type">IActionResult</span>&gt; <span class="func">GetById</span>(<span class="type">string</span> id)
+    {
+        <span class="keyword">var</span> pegawai = <span class="keyword">await</span> _db.Users.<span class="func">FindAsync</span>(id);
+        <span class="keyword">if</span> (pegawai == <span class="keyword">null</span>)
+            <span class="keyword">return</span> <span class="func">NotFound</span>(<span class="keyword">new</span> { success = <span class="keyword">false</span>, message = <span class="string">"Pegawai tidak ditemukan"</span> });
+
+        <span class="keyword">return</span> <span class="func">Ok</span>(<span class="keyword">new</span> { success = <span class="keyword">true</span>, data = pegawai });
+    }
+}</pre>
+      </div>
+
+      <div class="card">
+        <h3>Perbedaan MVC Controller vs API Controller</h3>
+        <div class="compare">
+          <div class="compare-card left">
+            <h4>MVC Controller (yang sudah ada)</h4>
+            <ul>
+              <li>Return: View (halaman HTML)</li>
+              <li>Atribut: <span class="inline-code">[Controller]</span></li>
+              <li>Base class: <span class="inline-code">Controller</span></li>
+              <li>Dipakai browser biasa</li>
+              <li>Contoh: <span class="inline-code">WorkerController</span></li>
+            </ul>
+          </div>
+          <div class="compare-card right">
+            <h4>API Controller (yang akan ditambah)</h4>
+            <ul>
+              <li>Return: JSON data</li>
+              <li>Atribut: <span class="inline-code">[ApiController]</span></li>
+              <li>Base class: <span class="inline-code">ControllerBase</span></li>
+              <li>Dipakai aplikasi/sistem lain</li>
+              <li>Contoh: <span class="inline-code">PegawaiApiController</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="highlight green">
+          <p>✅ <strong>Keduanya bisa hidup berdampingan!</strong> Tidak perlu menghapus MVC controller yang sudah ada. Cukup tambah folder <span class="inline-code">Controllers/Api/</span> yang baru.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tabs1-signalr">
+      <div class="card">
+        <h3>SignalR — Sudah Berjalan di Assessment</h3>
+        <p>Ini adalah kode yang <strong>sudah ada dan berjalan</strong> di PortalHC KPB untuk fitur monitoring ujian real-time:</p>
+<pre><span class="comment">// File: Hubs/AssessmentHub.cs (sudah ada!)</span>
+
+<span class="keyword">public class</span> <span class="type">AssessmentHub</span> : <span class="type">Hub</span>
+{
+    <span class="comment">// Peserta bergabung ke "ruang ujian" virtual</span>
+    <span class="keyword">public async</span> <span class="type">Task</span> <span class="func">JoinBatch</span>(<span class="type">string</span> batchKey)
+    {
+        <span class="keyword">await</span> Groups.<span class="func">AddToGroupAsync</span>(Context.ConnectionId, batchKey);
+    }
+
+    <span class="comment">// Peserta mengirim jawaban essay — tersimpan real-time</span>
+    <span class="keyword">public async</span> <span class="type">Task</span> <span class="func">SaveTextAnswer</span>(<span class="type">int</span> sessionId, <span class="type">int</span> questionId, <span class="type">string</span> textAnswer)
+    {
+        <span class="comment">// validasi + simpan ke database</span>
+        <span class="comment">// server cek: apakah timer masih aktif?</span>
+        <span class="comment">// server cek: apakah ini sesi milik user ini?</span>
+    }
+
+    <span class="comment">// HC/Admin join sebagai pengawas ujian</span>
+    <span class="keyword">public async</span> <span class="type">Task</span> <span class="func">JoinMonitor</span>(<span class="type">string</span> batchKey)
+    {
+        <span class="comment">// hanya HC/Admin yang boleh join sebagai monitor</span>
+        <span class="keyword">await</span> Groups.<span class="func">AddToGroupAsync</span>(Context.ConnectionId, <span class="string">"monitor_"</span> + batchKey);
+    }
+}</pre>
+        <div class="highlight">
+          <p>🎯 <strong>Ini yang terjadi saat peserta mengerjakan ujian:</strong> Setiap jawaban yang ditulis langsung terkirim ke server tanpa klik tombol "simpan". Server menyimpan dan HC bisa melihat progresnya secara live.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =================== BAB 8 =================== -->
+  <div class="section" id="s8">
+    <div class="sec-header">
+      <span class="sec-icon">🗺️</span>
+      <div>
+        <h1>Langkah Selanjutnya</h1>
+        <p>Roadmap praktis implementasi API untuk PortalHC KPB</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Kondisi Saat Ini vs Target</h2>
+      <div class="progress-item">
+        <div class="progress-label"><span>Endpoint JSON yang sudah ada</span><span>30%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:30%;background:#3b82f6"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span>REST API terstruktur (ApiController)</span><span>0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#10b981"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span>Autentikasi API (JWT Token)</span><span>0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#f59e0b"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span>Dokumentasi API (Swagger)</span><span>0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#ef4444"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span>Integrasi sistem luar (Power BI, dll)</span><span>0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#8b5cf6"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Roadmap Implementasi (Bertahap)</h2>
+      <div class="roadmap">
+        <div class="roadmap-item done">
+          <h4>✅ Tahap 0 — Sudah Selesai (Kondisi Hari Ini)</h4>
+          <p>SignalR berjalan untuk assessment real-time. Beberapa endpoint JSON sudah ada (SearchUsersApi, UnreadCount, GetOrganizationTree). Pola respons JSON sudah konsisten.</p>
+          <div class="tag-row">
+            <span class="badge badge-green">Sudah Ada</span>
+          </div>
+        </div>
+
+        <div class="roadmap-item partial">
+          <h4>🔧 Tahap 1 — Fondasi API (1-2 minggu)</h4>
+          <p>Tambahkan struktur ApiController. Setup autentikasi JWT (token-based). Buat endpoint dasar: pegawai dan notifikasi. Aktifkan Swagger untuk dokumentasi otomatis.</p>
+          <div class="tag-row">
+            <span class="badge badge-yellow">Prioritas Tinggi</span>
+            <span class="badge badge-blue">Developer: 2 minggu</span>
+          </div>
+        </div>
+
+        <div class="roadmap-item">
+          <h4>📝 Tahap 2 — API Assessment & Training (2-3 minggu)</h4>
+          <p>REST API untuk assessment (jadwal, hasil, sertifikat). API training records. API renewal sertifikat. Endpoint verifikasi sertifikat via QR code.</p>
+          <div class="tag-row">
+            <span class="badge badge-purple">Integrasi Tinggi</span>
+          </div>
+        </div>
+
+        <div class="roadmap-item">
+          <h4>🌱 Tahap 3 — API CDP & Coaching (2-3 minggu)</h4>
+          <p>REST API untuk Proton Track, deliverable, approval. API coaching session dan log. API workload coach. Notifikasi ke sistem luar saat ada event CDP.</p>
+          <div class="tag-row">
+            <span class="badge badge-blue">High Value</span>
+          </div>
+        </div>
+
+        <div class="roadmap-item">
+          <h4>🔗 Tahap 4 — Integrasi Eksternal (1 bulan)</h4>
+          <p>Koneksi Power BI ke API PortalHC untuk dashboard manajemen. Sinkronisasi data dengan sistem HR Pertamina (SAP/myHR). Notifikasi ke Microsoft Teams saat event penting.</p>
+          <div class="tag-row">
+            <span class="badge badge-green">Dampak Besar</span>
+          </div>
+        </div>
+
+        <div class="roadmap-item">
+          <h4>📱 Tahap 5 — Aplikasi Mobile (2-3 bulan)</h4>
+          <p>Dengan API yang sudah lengkap di Tahap 1-4, bisa dibangun aplikasi mobile PortalHC. Pegawai akses notifikasi, jadwal, progress CDP dari HP.</p>
+          <div class="tag-row">
+            <span class="badge badge-purple">Jangka Panjang</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🛡️ Keamanan API yang Harus Diperhatikan</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspek Keamanan</th><th>Penjelasan</th><th>Implementasi di PortalHC</th></tr></thead>
+          <tbody>
+            <tr><td>Autentikasi</td><td>Hanya user yang sudah login boleh akses API</td><td>JWT Token atau session cookie yang sudah ada</td></tr>
+            <tr><td>Otorisasi</td><td>Role Level 6 tidak boleh akses data admin</td><td>Cek RoleLevel di setiap endpoint (sudah ada pola ini)</td></tr>
+            <tr><td>Rate Limiting</td><td>Batasi jumlah request per menit agar tidak disalahgunakan</td><td>Tambahkan middleware rate limiter</td></tr>
+            <tr><td>HTTPS Only</td><td>Semua komunikasi harus terenkripsi</td><td>Sudah diaktifkan di server Pertamina</td></tr>
+            <tr><td>Input Validation</td><td>Validasi semua data yang masuk untuk cegah SQL Injection</td><td>Entity Framework sudah parameterized query</td></tr>
+            <tr><td>Audit Log</td><td>Catat semua aksi penting via API</td><td>Gunakan AuditLogService yang sudah ada</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📖 Istilah API yang Wajib Anda Tahu</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Istilah</th><th>Arti Sederhana</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Endpoint</strong></td><td>URL spesifik tempat API bisa diakses. Contoh: <span class="inline-code">/api/pegawai</span></td></tr>
+            <tr><td><strong>Request</strong></td><td>Permintaan yang dikirim ke API</td></tr>
+            <tr><td><strong>Response</strong></td><td>Jawaban yang dikirim balik oleh API</td></tr>
+            <tr><td><strong>JSON</strong></td><td>Format data yang dipakai API — seperti teks terstruktur</td></tr>
+            <tr><td><strong>Token / JWT</strong></td><td>"Kartu tanda masuk" digital untuk akses API setelah login</td></tr>
+            <tr><td><strong>REST</strong></td><td>Standar desain API yang paling umum digunakan</td></tr>
+            <tr><td><strong>Swagger</strong></td><td>Alat untuk membuat dokumentasi API otomatis — bisa dicoba langsung di browser</td></tr>
+            <tr><td><strong>WebSocket / SignalR</strong></td><td>Jenis koneksi untuk data real-time (sudah ada di assessment)</td></tr>
+            <tr><td><strong>CRUD</strong></td><td>Create, Read, Update, Delete — 4 operasi dasar data</td></tr>
+            <tr><td><strong>Header</strong></td><td>Informasi tambahan yang dikirim bersama request (contoh: token autentikasi)</td></tr>
+            <tr><td><strong>Status Code</strong></td><td>Kode angka dalam response yang menunjukkan hasil (200=sukses, 404=tidak ada, dll)</td></tr>
+            <tr><td><strong>Payload / Body</strong></td><td>Data utama yang dikirim dalam request POST/PUT</td></tr>
+            <tr><td><strong>Authentication</strong></td><td>Verifikasi "siapa kamu?" — login</td></tr>
+            <tr><td><strong>Authorization</strong></td><td>Verifikasi "boleh kamu akses ini?" — cek role/izin</td></tr>
+            <tr><td><strong>Rate Limiting</strong></td><td>Pembatasan jumlah request dalam waktu tertentu agar API tidak dibanjiri</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Ringkasan: Nilai Bisnis API untuk PortalHC KPB</h2>
+      <div class="module-grid">
+        <div class="module-card">
+          <div class="icon">📊</div>
+          <h4>Dashboard Power BI</h4>
+          <p>Data assessment, training, CDP bisa tampil live di Power BI untuk manajemen</p>
+        </div>
+        <div class="module-card">
+          <div class="icon">🔗</div>
+          <h4>Integrasi SAP / HR</h4>
+          <p>Sinkronisasi data pegawai otomatis dari sistem HR induk Pertamina</p>
+        </div>
+        <div class="module-card">
+          <div class="icon">📱</div>
+          <h4>Aplikasi Mobile</h4>
+          <p>Akses notifikasi, jadwal, dan progress CDP dari smartphone</p>
+        </div>
+        <div class="module-card">
+          <div class="icon">🔔</div>
+          <h4>Notifikasi Teams</h4>
+          <p>Alert otomatis ke Microsoft Teams saat ada jadwal baru atau approval</p>
+        </div>
+        <div class="module-card">
+          <div class="icon">✅</div>
+          <h4>Verifikasi Sertifikat</h4>
+          <p>Pihak luar bisa verifikasi keaslian sertifikat kompetensi via QR code</p>
+        </div>
+        <div class="module-card">
+          <div class="icon">⚡</div>
+          <h4>Otomatisasi</h4>
+          <p>Proses manual seperti import data bisa diotomasi via API terjadwal</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- end main -->
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#sidebar nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  const titles = {
+    s1:'Bab 1 — Apa itu API?',
+    s2:'Bab 2 — Cara Kerja API',
+    s3:'Bab 3 — Jenis-jenis API',
+    s4:'Bab 4 — API yang Sudah Ada',
+    s5:'Bab 5 — Potensi API per Modul',
+    s6:'Bab 6 — Tabel Transaksi Lengkap',
+    s7:'Bab 7 — Contoh Kode',
+    s8:'Bab 8 — Langkah Selanjutnya'
+  };
+  document.getElementById('page-title').textContent = titles[id];
+  window.scrollTo(0,0);
+  return false;
+}
+
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  const btn = document.getElementById('dark-toggle');
+  btn.textContent = document.body.classList.contains('dark') ? '☀️ Mode Terang' : '🌙 Mode Gelap';
+}
+
+function switchTab(groupId, tabId) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll(`[id^="${groupId}-"]`).forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(groupId + '-' + tabId).classList.add('active');
+}
+</script>
+</body>
+</html>
