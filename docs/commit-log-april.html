@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Commit Log — PortalHC KPB (April)</title>
+    <style>
+        @page { margin: 1.5cm; size: A4 landscape; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 1100px; margin: 30px auto; color: #222; line-height: 1.5; font-size: 12px; }
+        h1 { text-align: center; font-size: 20px; border-bottom: 3px solid #1a56db; padding-bottom: 8px; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 12px; }
+        .summary-box { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .stat { text-align: center; background: #f0f4ff; border-radius: 6px; padding: 10px 20px; }
+        .stat-num { font-size: 22px; font-weight: bold; color: #1a56db; }
+        .stat-label { font-size: 11px; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #1a56db; color: white; padding: 7px 8px; text-align: left; font-size: 11px; position: sticky; top: 0; }
+        td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; font-size: 11px; vertical-align: top; }
+        tr.day-header td { background: #f0f4ff; font-weight: bold; font-size: 12px; border-top: 2px solid #1a56db; }
+        .hash { font-family: 'Consolas', monospace; color: #7c3aed; font-size: 11px; }
+        .commit-msg { max-width: 420px; }
+        .manfaat { max-width: 280px; color: #374151; }
+        .total-badge { background: #1a56db; color: white; border-radius: 10px; padding: 1px 8px; font-size: 10px; font-weight: bold; }
+        .footer { text-align: center; color: #999; font-size: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 8px; }
+        @media print {
+            body { margin: 0; max-width: 100%; }
+            tr.day-header { break-before: avoid; }
+            tr { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Commit Log — PortalHC KPB</h1>
+<p class="subtitle">HC Portal Human Capital Development &mdash; Periode 1 April &ndash; 20 April 2026</p>
+
+<div class="summary-box">
+    <div class="stat"><div class="stat-num">450</div><div class="stat-label">Total Commits</div></div>
+    <div class="stat"><div class="stat-num">20</div><div class="stat-label">Hari Kerja</div></div>
+    <div class="stat"><div class="stat-num">~22</div><div class="stat-label">Rata-rata / Hari</div></div>
+    <div class="stat"><div class="stat-num">v9.x – v10.x</div><div class="stat-label">Milestone</div></div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:100px">Tanggal & Jam</th>
+            <th style="width:65px">Hash</th>
+            <th>3 Commit Terakhir</th>
+            <th style="width:280px">Manfaat</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <!-- 01 Apr -->
+        <tr class="day-header"><td colspan="4">Rabu, 01 April 2026</td></tr>
+        <tr>
+            <td>16:42</td>
+            <td class="hash">882f78f0</td>
+            <td class="commit-msg">docs(phase-285): add context decisions for dedicated impersonation page</td>
+            <td class="manfaat">Keputusan konteks halaman impersonation terdedikasi</td>
+        </tr>
+        <tr>
+            <td>17:58</td>
+            <td class="hash">24ce7670</td>
+            <td class="commit-msg">docs(phase-285): research dedicated impersonation page</td>
+            <td class="manfaat">Riset pendekatan halaman impersonation</td>
+        </tr>
+        <tr>
+            <td>19:07</td>
+            <td class="hash">b0d13ccf</td>
+            <td class="commit-msg">docs(285): create phase plan</td>
+            <td class="manfaat">Perencanaan phase impersonation siap dieksekusi</td>
+        </tr>
+
+        <!-- 02 Apr -->
+        <tr class="day-header"><td colspan="4">Kamis, 02 April 2026</td></tr>
+        <tr>
+            <td>16:12</td>
+            <td class="hash">b527975b</td>
+            <td class="commit-msg">docs(293-01): complete view shell tree rendering plan</td>
+            <td class="manfaat">Perencanaan render tree shell view selesai</td>
+        </tr>
+        <tr>
+            <td>17:46</td>
+            <td class="hash">e05b8db6</td>
+            <td class="commit-msg">docs(phase-293): complete phase execution</td>
+            <td class="manfaat">Phase 293 selesai dieksekusi</td>
+        </tr>
+        <tr>
+            <td>18:53</td>
+            <td class="hash">43e66f81</td>
+            <td class="commit-msg">chore: commit pending changes — config, UAT, docs, preview</td>
+            <td class="manfaat">Commit file-file tertunda: config, UAT, docs</td>
+        </tr>
+
+        <!-- 03 Apr -->
+        <tr class="day-header"><td colspan="4">Jumat, 03 April 2026</td></tr>
+        <tr>
+            <td>15:24</td>
+            <td class="hash">f0e4a283</td>
+            <td class="commit-msg">fix: cascade rename/delete org unit ke ProtonKompetensi, CoachingGuidanceFile + hapus hardcoded sections</td>
+            <td class="manfaat">Cascade rename/delete unit organisasi ke data terkait</td>
+        </tr>
+        <tr>
+            <td>17:31</td>
+            <td class="hash">9f0cec7c</td>
+            <td class="commit-msg">fix: hapus hardcoded unitsByBagian di CoachingProton + dinamis teks bagian di ImportWorkers</td>
+            <td class="manfaat">Data unit kini dinamis, bukan hardcoded</td>
+        </tr>
+        <tr>
+            <td>19:02</td>
+            <td class="hash">e1f6d070</td>
+            <td class="commit-msg">fix: perbaiki bug aggregasi export, XSS monitoring, dan validasi worksheet Excel</td>
+            <td class="manfaat">Fix bug export, cegah XSS, validasi Excel</td>
+        </tr>
+
+        <!-- 04 Apr -->
+        <tr class="day-header"><td colspan="4">Sabtu, 04 April 2026</td></tr>
+        <tr>
+            <td>16:18</td>
+            <td class="hash">a3c9e1b7</td>
+            <td class="commit-msg">docs(287): capture phase context — audit konsistensi data Assessment</td>
+            <td class="manfaat">Konteks phase audit konsistensi data Assessment</td>
+        </tr>
+        <tr>
+            <td>17:49</td>
+            <td class="hash">d7f21c58</td>
+            <td class="commit-msg">docs(287-01): complete plan for Assessment data consistency audit</td>
+            <td class="manfaat">Perencanaan audit konsistensi data Assessment</td>
+        </tr>
+        <tr>
+            <td>18:56</td>
+            <td class="hash">f94e6a2d</td>
+            <td class="commit-msg">chore: update .gitignore — exclude audit reports dan local dumps</td>
+            <td class="manfaat">Blokir file laporan audit & dump lokal dari tracking</td>
+        </tr>
+
+        <!-- 05 Apr -->
+        <tr class="day-header"><td colspan="4">Minggu, 05 April 2026</td></tr>
+        <tr>
+            <td>15:37</td>
+            <td class="hash">1b8d4f90</td>
+            <td class="commit-msg">fix(assessment): perbaiki query AsNoTracking pada AssessmentController</td>
+            <td class="manfaat">Optimasi query baca-only di AssessmentController</td>
+        </tr>
+        <tr>
+            <td>17:23</td>
+            <td class="hash">5ce7019a</td>
+            <td class="commit-msg">refactor: ekstrak AssessmentQueryService dari controller untuk reuse</td>
+            <td class="manfaat">Refactor logic query Assessment ke service layer</td>
+        </tr>
+        <tr>
+            <td>18:41</td>
+            <td class="hash">8f2a3b14</td>
+            <td class="commit-msg">test(assessment): tambah unit test untuk AssessmentQueryService</td>
+            <td class="manfaat">Coverage test service baru Assessment</td>
+        </tr>
+
+        <!-- 06 Apr -->
+        <tr class="day-header"><td colspan="4">Senin, 06 April 2026</td></tr>
+        <tr>
+            <td>16:40</td>
+            <td class="hash">3a6b0047</td>
+            <td class="commit-msg">docs(phase-296): add security threat verification</td>
+            <td class="manfaat">Verifikasi ancaman keamanan phase 296</td>
+        </tr>
+        <tr>
+            <td>17:35</td>
+            <td class="hash">dea12357</td>
+            <td class="commit-msg">docs(phase-296): add/update validation strategy</td>
+            <td class="manfaat">Strategi validasi phase 296 diperbarui</td>
+        </tr>
+        <tr>
+            <td>19:12</td>
+            <td class="hash">5c97b0ed</td>
+            <td class="commit-msg">fix(296): replace NotImplementedException with graceful skip for MA/Essay grading</td>
+            <td class="manfaat">Grading MA/Essay tidak crash, skip elegan</td>
+        </tr>
+
+        <!-- 07 Apr -->
+        <tr class="day-header"><td colspan="4">Selasa, 07 April 2026</td></tr>
+        <tr>
+            <td>16:25</td>
+            <td class="hash">f408175a</td>
+            <td class="commit-msg">docs(302-02): complete extra time accessibility plan</td>
+            <td class="manfaat">Perencanaan aksesibilitas extra time selesai</td>
+        </tr>
+        <tr>
+            <td>17:48</td>
+            <td class="hash">5b057b7e</td>
+            <td class="commit-msg">test(302): persist human verification items as UAT</td>
+            <td class="manfaat">Item verifikasi manual disimpan sebagai UAT</td>
+        </tr>
+        <tr>
+            <td>19:06</td>
+            <td class="hash">e7961ebc</td>
+            <td class="commit-msg">docs(phase-302): complete phase execution</td>
+            <td class="manfaat">Phase 302 selesai dieksekusi</td>
+        </tr>
+
+        <!-- 08 Apr -->
+        <tr class="day-header"><td colspan="4">Rabu, 08 April 2026</td></tr>
+        <tr>
+            <td>16:33</td>
+            <td class="hash">d7f2f86f</td>
+            <td class="commit-msg">fix(CRIT-02): atomic mapping edit + deferred evidence file cleanup</td>
+            <td class="manfaat">Edit mapping atomic & cleanup file evidence tertunda</td>
+        </tr>
+        <tr>
+            <td>17:54</td>
+            <td class="hash">137a41d3</td>
+            <td class="commit-msg">docs(proton-coaching): bug hunt report dan smoke test plan CRIT-02</td>
+            <td class="manfaat">Laporan bug hunt & smoke test CRIT-02</td>
+        </tr>
+        <tr>
+            <td>18:49</td>
+            <td class="hash">dde994f9</td>
+            <td class="commit-msg">fix(manage-assessment): dropdown Bagian & Unit kosong di tab Training</td>
+            <td class="manfaat">Fix dropdown Bagian & Unit yang kosong</td>
+        </tr>
+
+        <!-- 09 Apr -->
+        <tr class="day-header"><td colspan="4">Kamis, 09 April 2026</td></tr>
+        <tr>
+            <td>16:14</td>
+            <td class="hash">08d9eaf2</td>
+            <td class="commit-msg">docs(quick-260409-s71): Hapus breadcrumb dari CMP/Index</td>
+            <td class="manfaat">Cleanup breadcrumb halaman CMP/Index</td>
+        </tr>
+        <tr>
+            <td>17:42</td>
+            <td class="hash">f7450ad9</td>
+            <td class="commit-msg">fix: perbaikan routing Admin controller dan update UI Admin/Index</td>
+            <td class="manfaat">Fix routing Admin & update UI halaman admin</td>
+        </tr>
+        <tr>
+            <td>19:08</td>
+            <td class="hash">586d22d2</td>
+            <td class="commit-msg">wip: fitur Budget Training — model, migrations, views, dan UI review</td>
+            <td class="manfaat">Mulai fitur Budget Training lengkap dengan UI review</td>
+        </tr>
+
+        <!-- 10 Apr -->
+        <tr class="day-header"><td colspan="4">Jumat, 10 April 2026</td></tr>
+        <tr>
+            <td>15:07</td>
+            <td class="hash">36c924c6</td>
+            <td class="commit-msg">chore: hapus file test UAT yang sudah tidak dipakai</td>
+            <td class="manfaat">Cleanup file test UAT tidak terpakai</td>
+        </tr>
+        <tr>
+            <td>17:28</td>
+            <td class="hash">ec5ef643</td>
+            <td class="commit-msg">perf: AsNoTracking pada query read-only, fix N+1 di WorkerController, fix blocking async di ImpersonationMiddleware</td>
+            <td class="manfaat">Peningkatan performa: AsNoTracking, fix N+1, async</td>
+        </tr>
+        <tr>
+            <td>18:54</td>
+            <td class="hash">abfa01ee</td>
+            <td class="commit-msg">docs: tambah UI review Coaching Proton</td>
+            <td class="manfaat">Dokumentasi UI review Coaching Proton</td>
+        </tr>
+
+        <!-- 11 Apr -->
+        <tr class="day-header"><td colspan="4">Sabtu, 11 April 2026</td></tr>
+        <tr>
+            <td>16:09</td>
+            <td class="hash">2d6b84f1</td>
+            <td class="commit-msg">docs(305): capture phase context — refactor CoachingProton filter UX</td>
+            <td class="manfaat">Konteks phase refactor UX filter Coaching Proton</td>
+        </tr>
+        <tr>
+            <td>17:36</td>
+            <td class="hash">9a1e5c07</td>
+            <td class="commit-msg">docs(305-01): create plan for unified filter component</td>
+            <td class="manfaat">Perencanaan komponen filter terunifikasi</td>
+        </tr>
+        <tr>
+            <td>18:59</td>
+            <td class="hash">c7b3d29e</td>
+            <td class="commit-msg">feat(305): scaffold PartialView _FilterPanel for CoachingProton</td>
+            <td class="manfaat">Scaffold PartialView filter Coaching Proton</td>
+        </tr>
+
+        <!-- 12 Apr -->
+        <tr class="day-header"><td colspan="4">Minggu, 12 April 2026</td></tr>
+        <tr>
+            <td>15:51</td>
+            <td class="hash">4e8af062</td>
+            <td class="commit-msg">feat(305-01): implementasi _FilterPanel dengan state preservation</td>
+            <td class="manfaat">Filter panel simpan state antar navigasi</td>
+        </tr>
+        <tr>
+            <td>17:19</td>
+            <td class="hash">6b92d4ac</td>
+            <td class="commit-msg">fix(305): preserve query string saat clear filter individual</td>
+            <td class="manfaat">Query string tetap saat clear satu filter</td>
+        </tr>
+        <tr>
+            <td>18:47</td>
+            <td class="hash">1f70e5b8</td>
+            <td class="commit-msg">docs(phase-305): complete phase execution — CoachingProton filter verified</td>
+            <td class="manfaat">Filter Coaching Proton selesai & terverifikasi</td>
+        </tr>
+
+        <!-- 13 Apr -->
+        <tr class="day-header"><td colspan="4">Senin, 13 April 2026</td></tr>
+        <tr>
+            <td>15:23</td>
+            <td class="hash">9f227b2c</td>
+            <td class="commit-msg">docs: add implementation plan for CreateAssessment 12-point fixes</td>
+            <td class="manfaat">Perencanaan 12 perbaikan CreateAssessment</td>
+        </tr>
+        <tr>
+            <td>17:41</td>
+            <td class="hash">b270ff74</td>
+            <td class="commit-msg">style: redesign parsial Coaching Proton — filter card, stat icons, table header, badge</td>
+            <td class="manfaat">Redesign parsial tampilan Coaching Proton</td>
+        </tr>
+        <tr>
+            <td>19:03</td>
+            <td class="hash">bc84d276</td>
+            <td class="commit-msg">fix: perbaiki informasi halaman Panduan (Guide & GuideDetail)</td>
+            <td class="manfaat">Fix informasi halaman Panduan & GuideDetail</td>
+        </tr>
+
+        <!-- 14 Apr -->
+        <tr class="day-header"><td colspan="4">Selasa, 14 April 2026</td></tr>
+        <tr>
+            <td>16:17</td>
+            <td class="hash">af520254</td>
+            <td class="commit-msg">feat: tambah AssessmentConstants & perbaiki FileUploadHelper</td>
+            <td class="manfaat">Centralisasi konstanta Assessment & helper upload</td>
+        </tr>
+        <tr>
+            <td>17:52</td>
+            <td class="hash">4bdf189a</td>
+            <td class="commit-msg">refactor: perbaiki FileUploadHelper gunakan AssessmentConstants</td>
+            <td class="manfaat">Refactor FileUploadHelper pakai konstanta terpusat</td>
+        </tr>
+        <tr>
+            <td>19:15</td>
+            <td class="hash">5c4e593e</td>
+            <td class="commit-msg">docs: update Release Notes dengan fitur Assessment Manual & Import</td>
+            <td class="manfaat">Release notes diperbarui: Assessment Manual & Import</td>
+        </tr>
+
+        <!-- 15 Apr -->
+        <tr class="day-header"><td colspan="4">Rabu, 15 April 2026</td></tr>
+        <tr>
+            <td>16:28</td>
+            <td class="hash">381b36cd</td>
+            <td class="commit-msg">fix: perbaiki URL path absolut agar sesuai dengan base path /KPB-PortalHC/</td>
+            <td class="manfaat">Fix URL path sesuai base path aplikasi</td>
+        </tr>
+        <tr>
+            <td>17:44</td>
+            <td class="hash">d77bd62a</td>
+            <td class="commit-msg">chore: tambah TempDbCheck/ ke .gitignore</td>
+            <td class="manfaat">Blokir folder TempDbCheck dari tracking git</td>
+        </tr>
+        <tr>
+            <td>18:51</td>
+            <td class="hash">e8b45c2a</td>
+            <td class="commit-msg">fix(navigation): normalisasi link absolut di _Layout dan navbar partial</td>
+            <td class="manfaat">Link navbar konsisten pakai base path aplikasi</td>
+        </tr>
+
+        <!-- 16 Apr -->
+        <tr class="day-header"><td colspan="4">Kamis, 16 April 2026</td></tr>
+        <tr>
+            <td>15:46</td>
+            <td class="hash">37c9b1e4</td>
+            <td class="commit-msg">docs(310): capture phase context — analisis performa endpoint dashboard</td>
+            <td class="manfaat">Konteks analisis performa endpoint dashboard</td>
+        </tr>
+        <tr>
+            <td>17:22</td>
+            <td class="hash">ba5f18d3</td>
+            <td class="commit-msg">perf(dashboard): cache hasil agregasi statistik selama 5 menit</td>
+            <td class="manfaat">Dashboard lebih cepat via cache agregasi</td>
+        </tr>
+        <tr>
+            <td>19:09</td>
+            <td class="hash">4d7e2fa8</td>
+            <td class="commit-msg">perf(dashboard): batasi query top-N dengan paging & projection</td>
+            <td class="manfaat">Query dashboard diperkecil dengan paging & projection</td>
+        </tr>
+
+        <!-- 17 Apr -->
+        <tr class="day-header"><td colspan="4">Jumat, 17 April 2026</td></tr>
+        <tr>
+            <td>16:13</td>
+            <td class="hash">4ff2a372</td>
+            <td class="commit-msg">docs: tambah laporan analisis performa PortalHC KPB (Step 1 + Step 2)</td>
+            <td class="manfaat">Laporan analisis performa Step 1 & 2</td>
+        </tr>
+        <tr>
+            <td>17:38</td>
+            <td class="hash">14ea90a4</td>
+            <td class="commit-msg">docs: tambah performance_report.html (versi HTML dari laporan performa)</td>
+            <td class="manfaat">Laporan performa versi HTML siap dibaca</td>
+        </tr>
+        <tr>
+            <td>18:57</td>
+            <td class="hash">c23f86a9</td>
+            <td class="commit-msg">docs(performance): tambah ringkasan eksekutif dan rekomendasi prioritas</td>
+            <td class="manfaat">Ringkasan eksekutif & prioritas tindak lanjut</td>
+        </tr>
+
+        <!-- 18 Apr -->
+        <tr class="day-header"><td colspan="4">Sabtu, 18 April 2026</td></tr>
+        <tr>
+            <td>15:34</td>
+            <td class="hash">6a19b7e0</td>
+            <td class="commit-msg">perf(worker): tambah index composite pada WorkerHistory (WorkerId, CreatedAt)</td>
+            <td class="manfaat">Query riwayat worker jauh lebih cepat</td>
+        </tr>
+        <tr>
+            <td>17:11</td>
+            <td class="hash">e5d73c64</td>
+            <td class="commit-msg">perf(training): ganti SELECT * dengan projection di TrainingList</td>
+            <td class="manfaat">Payload TrainingList lebih ramping</td>
+        </tr>
+        <tr>
+            <td>19:04</td>
+            <td class="hash">9bc2f150</td>
+            <td class="commit-msg">chore: migration AddWorkerHistoryIndex + seed data development</td>
+            <td class="manfaat">Migrasi index siap dipasang ke staging</td>
+        </tr>
+
+        <!-- 19 Apr -->
+        <tr class="day-header"><td colspan="4">Minggu, 19 April 2026</td></tr>
+        <tr>
+            <td>16:02</td>
+            <td class="hash">7d84a35b</td>
+            <td class="commit-msg">docs(312): capture phase context — materi sosialisasi PortalHC</td>
+            <td class="manfaat">Konteks penyusunan materi sosialisasi</td>
+        </tr>
+        <tr>
+            <td>17:29</td>
+            <td class="hash">af6b012e</td>
+            <td class="commit-msg">docs(312-01): outline materi sosialisasi per modul (Assessment, Training, Coaching)</td>
+            <td class="manfaat">Outline materi sosialisasi per modul utama</td>
+        </tr>
+        <tr>
+            <td>18:43</td>
+            <td class="hash">c91eb478</td>
+            <td class="commit-msg">docs(312-01): tambah draft slide pembuka & alur demo end-to-end</td>
+            <td class="manfaat">Draft slide pembuka & skenario demo</td>
+        </tr>
+
+        <!-- 20 Apr -->
+        <tr class="day-header"><td colspan="4">Senin, 20 April 2026</td></tr>
+        <tr>
+            <td>15:58</td>
+            <td class="hash">b2f4e71c</td>
+            <td class="commit-msg">docs(api-guide): kerangka panduan belajar REST API PortalHC</td>
+            <td class="manfaat">Kerangka dokumentasi panduan belajar API</td>
+        </tr>
+        <tr>
+            <td>17:16</td>
+            <td class="hash">7e14ad4c</td>
+            <td class="commit-msg">docs: tambah file panduan belajar API dan materi sosialisasi PortalHC KPB</td>
+            <td class="manfaat">Panduan belajar API & materi sosialisasi</td>
+        </tr>
+        <tr>
+            <td>19:00</td>
+            <td class="hash">5a30d9c2</td>
+            <td class="commit-msg">docs(api-guide): lengkapi contoh request/response dan kode sampel</td>
+            <td class="manfaat">Contoh request/response lengkap untuk panduan API</td>
+        </tr>
+
+    </tbody>
+</table>
+
+<div class="footer">
+    PortalHC KPB — Commit Log April &mdash; Terakhir diperbarui: 20 April 2026 &mdash; Halaman ini bisa di-print sebagai PDF (Ctrl+P &rarr; Save as PDF, orientasi Landscape)
+</div>
+
+</body>
+</html>

@@ -202,10 +202,13 @@
     <a href="#" onclick="showSection('s6')" id="nav-s6"><span class="num">6</span> Tabel Transaksi Lengkap</a>
     <a href="#" onclick="showSection('s7')" id="nav-s7"><span class="num">7</span> Contoh Kode</a>
     <a href="#" onclick="showSection('s8')" id="nav-s8"><span class="num">8</span> Langkah Selanjutnya</a>
+    <a href="#" onclick="showSection('s9')" id="nav-s9"><span class="num">9</span> API Key: Konsumen vs Penyedia</a>
+    <a href="#" onclick="showSection('s10')" id="nav-s10"><span class="num">10</span> Generate & Rotate API Key</a>
+    <a href="#" onclick="showSection('s11')" id="nav-s11"><span class="num">11</span> Integrasi Assessment Eksternal</a>
   </nav>
   <div id="sidebar-footer">
     <p>Dibuat khusus untuk PortalHC KPB</p>
-    <p style="margin-top:4px">Versi 1.0 – April 2026</p>
+    <p style="margin-top:4px">Versi 1.1 – April 2026</p>
   </div>
 </div>
 
@@ -1243,6 +1246,721 @@ DELETE /api/coaching/789         <span class="comment">→ hapus sesi coaching I
 
   </div>
 
+  <!-- =================== BAB 9 =================== -->
+  <div class="section" id="s9">
+    <div class="sec-header">
+      <span class="sec-icon">🔑</span>
+      <div>
+        <h1>API Key: Konsumen vs Penyedia</h1>
+        <p>Memahami "kartu identitas digital" yang wajib dipakai saat integrasi antar sistem</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Apa itu API Key?</h2>
+      <p><strong>API Key</strong> adalah <em>"kartu identitas + tiket masuk"</em> yang dikasih sebuah website ke kamu, supaya kamu boleh memanggil API mereka.</p>
+      <div class="highlight">
+        <p>🎯 <strong>Analogi:</strong> Bayangin kamu mau masuk gym. Kamu daftar dulu, dapat <strong>kartu member dengan barcode unik</strong>. Setiap kali masuk, kamu tap kartu itu. Satpam tau: "Oh, ini Rino, member aktif, boleh masuk." Kalau kartu hilang/dicuri, orang lain bisa masuk pakai identitas kamu. API Key persis seperti kartu itu — string panjang acak.</p>
+      </div>
+      <p><strong>Contoh bentuk API Key:</strong></p>
+<pre>CONTOH_KEY_a7Bx9KpQmZ3nR8vT2wY6jL4dF1hG5cV</pre>
+    </div>
+
+    <div class="card">
+      <h2>Kenapa Website Kasih API Key?</h2>
+      <p>Server mereka butuh tau <strong>siapa yang manggil API</strong>, untuk:</p>
+      <ul>
+        <li><strong>Authentication</strong> — "Kamu siapa? Terdaftar nggak?"</li>
+        <li><strong>Authorization</strong> — "Kamu boleh akses fitur apa aja?"</li>
+        <li><strong>Rate limiting</strong> — "Kamu udah panggil 1000x hari ini, stop dulu."</li>
+        <li><strong>Billing</strong> — "Pakai 50rb request bulan ini, tagihan sekian."</li>
+        <li><strong>Audit log</strong> — "Jam 10:00, API Key ini panggil endpoint X."</li>
+      </ul>
+      <p>Tanpa API Key, server tidak bisa bedain kamu vs hacker vs user lain.</p>
+    </div>
+
+    <div class="card">
+      <h2>Cara Pakai API Key</h2>
+      <p>API Key <strong>dikirim bareng setiap request</strong> ke API mereka, biasanya di <strong>HTTP Header</strong> (bagian tak terlihat dari request, <em>bukan</em> di URL).</p>
+      <p>Contoh — memanggil API cuaca:</p>
+<pre><span class="comment">GET https://api.cuaca.com/v1/jakarta</span>
+<span class="attr">Header</span>:
+  <span class="attr">Authorization</span>: <span class="string">Bearer CONTOH_KEY_a7Bx9KpQmZ3nR8vT2wY6jL4dF1hG5cV</span></pre>
+      <p>Server cuaca cek: "Key valid → balas data." Kalau key salah → balas <span class="inline-code">401 Unauthorized</span>.</p>
+      <div class="alert alert-warn">
+        ⚠️ <strong>Jangan taruh API Key di URL query string</strong> (misal <span class="inline-code">?key=xxx</span>). URL tercatat di log server, history browser, bahkan kadang terindex Google. Selalu di Header.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Dua Sisi API Key — Konsumen vs Penyedia</h2>
+      <p>Ini yang sering bikin bingung. API Key ada di <strong>dua sisi</strong>:</p>
+      <div class="compare">
+        <div class="compare-card left">
+          <h4>📥 Kamu = Konsumen</h4>
+          <ul>
+            <li>Kamu daftar di website mereka → dapat API Key</li>
+            <li>Simpan key di server kamu (bukan di browser!)</li>
+            <li>Setiap call ke API mereka, attach key itu</li>
+            <li><strong>Contoh:</strong> pakai SendGrid untuk email, Fonnte untuk WA, Midtrans untuk bayar</li>
+          </ul>
+        </div>
+        <div class="compare-card right">
+          <h4>📤 Kamu = Penyedia</h4>
+          <ul>
+            <li>Kamu yang generate API Key dan kasih ke partner</li>
+            <li>Simpan key (hash) di database kamu</li>
+            <li>Verifikasi setiap request yang pakai key itu</li>
+            <li><strong>Contoh:</strong> website teman kirim nilai ujian ke PortalHC</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight green">
+        <p>💡 <strong>Di kasus integrasi PortalHC ↔ website teman, keduanya terjadi:</strong> Teman kasih API Key ke kamu (supaya kamu bisa trigger "mulai ujian" di sistemnya). Kamu kasih API Key ke teman (supaya dia bisa kirim nilai balik ke kamu). <strong>Dua API Key berbeda.</strong></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🛡️ Aturan Emas API Key</h2>
+      <ol>
+        <li><strong>JANGAN taruh API Key di frontend</strong> (JavaScript, HTML). Browser = publik. Semua orang bisa lihat via F12.</li>
+        <li><strong>Simpan di server-side saja</strong> — <span class="inline-code">appsettings.json</span>, environment variable, atau secret manager.</li>
+        <li><strong>Jangan commit ke Git</strong> — tambahkan ke <span class="inline-code">.gitignore</span>. Bot bakal nemu dalam hitungan menit kalau bocor ke GitHub.</li>
+        <li><strong>Bisa di-rotate</strong> — kalau bocor, generate baru, yang lama di-revoke.</li>
+        <li><strong>Satu key, satu tujuan</strong> — beda service beda key, biar gampang dimatiin kalau ada masalah.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>API Key vs Cara Autentikasi Lain</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cara</th><th>Cara Kerja</th><th>Kapan Dipakai</th></tr></thead>
+          <tbody>
+            <tr><td><strong>API Key</strong></td><td>String statis, dikirim di header</td><td>Simple, server-to-server</td></tr>
+            <tr><td><strong>JWT Token</strong></td><td>Token sementara (punya expiry), hasil login</td><td>User-based access</td></tr>
+            <tr><td><strong>OAuth 2.0</strong></td><td>User kasih izin tanpa kasih password ("Login with Google")</td><td>Akses data atas nama user</td></tr>
+            <tr><td><strong>HMAC Signature</strong></td><td>Setiap request ditandatangani pakai secret + isi request</td><td>High-security (bank, payment)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight">
+        <p>📌 <strong>API Key = paling sederhana.</strong> Cocok untuk mulai. Kalau nanti butuh lebih aman (mis. webhook nilai ujian yang tidak boleh bisa dipalsukan), baru upgrade ke <strong>API Key + HMAC Signature</strong> (kombinasi, bukan ganti).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💻 Ilustrasi Konkret — PortalHC Kirim Notif WA via Fonnte</h2>
+      <p>Skenario: kamu daftar di <span class="inline-code">fonnte.com</span>, login → dapat API Key: <span class="inline-code">J8xK2mP9qR4nL7vT3wY6jA1dF5hG</span>. Klik Copy. Lalu?</p>
+
+      <h3>Langkah 1 — Simpan di <span class="inline-code">appsettings.json</span> (BUKAN hardcode)</h3>
+<pre>{
+  <span class="string">"Fonnte"</span>: {
+    <span class="string">"ApiKey"</span>: <span class="string">"J8xK2mP9qR4nL7vT3wY6jA1dF5hG"</span>,
+    <span class="string">"BaseUrl"</span>: <span class="string">"https://api.fonnte.com"</span>
+  }
+}</pre>
+      <div class="alert alert-warn">
+        ⚠️ Pastikan file yang berisi secret <strong>tidak ikut ke Git</strong>. Polanya: <span class="inline-code">appsettings.json</span> (template, di-commit) + <span class="inline-code">appsettings.Production.json</span> (berisi secret asli, di-ignore).
+      </div>
+
+      <h3>Langkah 2 — Panggil API dari C# (kamu = konsumen)</h3>
+<pre><span class="keyword">public class</span> <span class="type">WhatsAppService</span>
+{
+    <span class="keyword">private readonly</span> <span class="type">HttpClient</span> _http;
+    <span class="keyword">private readonly</span> <span class="type">IConfiguration</span> _config;
+
+    <span class="keyword">public</span> <span class="func">WhatsAppService</span>(<span class="type">HttpClient</span> http, <span class="type">IConfiguration</span> config)
+    {
+        _http = http;
+        _config = config;
+    }
+
+    <span class="keyword">public async</span> <span class="type">Task</span> <span class="func">KirimNotif</span>(<span class="type">string</span> nomorHp, <span class="type">string</span> pesan)
+    {
+        <span class="keyword">var</span> apiKey = _config[<span class="string">"Fonnte:ApiKey"</span>];
+        <span class="keyword">var</span> url = _config[<span class="string">"Fonnte:BaseUrl"</span>] + <span class="string">"/send"</span>;
+
+        <span class="keyword">var</span> request = <span class="keyword">new</span> <span class="type">HttpRequestMessage</span>(<span class="type">HttpMethod</span>.Post, url);
+        request.Headers.<span class="func">Add</span>(<span class="string">"Authorization"</span>, apiKey);  <span class="comment">// ← di sinilah key dipakai</span>
+
+        request.Content = <span class="keyword">new</span> <span class="type">FormUrlEncodedContent</span>(<span class="keyword">new</span>[]
+        {
+            <span class="keyword">new</span> <span class="type">KeyValuePair</span>&lt;<span class="type">string</span>, <span class="type">string</span>&gt;(<span class="string">"target"</span>, nomorHp),
+            <span class="keyword">new</span> <span class="type">KeyValuePair</span>&lt;<span class="type">string</span>, <span class="type">string</span>&gt;(<span class="string">"message"</span>, pesan)
+        });
+
+        <span class="keyword">var</span> response = <span class="keyword">await</span> _http.<span class="func">SendAsync</span>(request);
+        response.<span class="func">EnsureSuccessStatusCode</span>();
+    }
+}</pre>
+
+      <h3>Yang Terjadi di Balik Layar</h3>
+<pre><span class="comment">POST /send HTTP/1.1</span>
+<span class="attr">Host</span>: api.fonnte.com
+<span class="attr">Authorization</span>: <span class="string">J8xK2mP9qR4nL7vT3wY6jA1dF5hG</span>    <span class="comment">← API Key disisipkan di sini</span>
+<span class="attr">Content-Type</span>: application/x-www-form-urlencoded
+
+target=081234567890&message=Ujian+Anda+siap+dimulai</pre>
+      <p>Server Fonnte terima → cek key valid → kirim WA → balas:</p>
+<pre>{<span class="string">"status"</span>: <span class="keyword">true</span>, <span class="string">"detail"</span>: <span class="string">"success"</span>, <span class="string">"id"</span>: [<span class="string">"abc123"</span>]}</pre>
+      <p>Kalau key salah/dihapus, balasannya:</p>
+<pre>{<span class="string">"status"</span>: <span class="keyword">false</span>, <span class="string">"reason"</span>: <span class="string">"token invalid"</span>}</pre>
+    </div>
+  </div>
+
+  <!-- =================== BAB 10 =================== -->
+  <div class="section" id="s10">
+    <div class="sec-header">
+      <span class="sec-icon">🔄</span>
+      <div>
+        <h1>Generate & Rotate API Key</h1>
+        <p>Cara bikin, simpan aman, dan ganti API Key berkala tanpa downtime</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Cara Generate API Key</h2>
+      <p><strong>Prinsip:</strong></p>
+      <ul>
+        <li><strong>Harus random cryptographic</strong> — bukan <span class="inline-code">Guid.NewGuid()</span> (bisa ditebak polanya), bukan <span class="inline-code">Random</span> (pseudo-random, bisa diprediksi).</li>
+        <li><strong>Cukup panjang</strong> — minimal 32 byte acak = 256 bit entropy.</li>
+        <li><strong>URL-safe</strong> — pakai Base64Url atau hex.</li>
+        <li><strong>Kasih prefix</strong> — biar gampang dikenali saat debug. Stripe pakai <span class="inline-code">sk_live_</span>, <span class="inline-code">sk_test_</span>.</li>
+      </ul>
+
+      <h3>Kode C# untuk Generate</h3>
+<pre><span class="keyword">using</span> <span class="type">System.Security.Cryptography</span>;
+
+<span class="keyword">public static class</span> <span class="type">ApiKeyGenerator</span>
+{
+    <span class="keyword">public static</span> <span class="type">string</span> <span class="func">Generate</span>(<span class="type">string</span> prefix = <span class="string">"phc_live"</span>)
+    {
+        <span class="comment">// 32 byte random = 256 bit, sangat cukup</span>
+        <span class="keyword">var</span> bytes = <span class="type">RandomNumberGenerator</span>.<span class="func">GetBytes</span>(<span class="num-lit">32</span>);
+
+        <span class="comment">// Base64Url: tidak ada karakter '+', '/', '=' yang problematic di URL</span>
+        <span class="keyword">var</span> token = <span class="type">Convert</span>.<span class="func">ToBase64String</span>(bytes)
+            .<span class="func">Replace</span>(<span class="string">"+"</span>, <span class="string">"-"</span>)
+            .<span class="func">Replace</span>(<span class="string">"/"</span>, <span class="string">"_"</span>)
+            .<span class="func">TrimEnd</span>(<span class="string">'='</span>);
+
+        <span class="keyword">return</span> $<span class="string">"{prefix}_{token}"</span>;
+    }
+}</pre>
+      <p>Contoh hasil:</p>
+<pre>phc_live_J8xK2mP9qR4nL7vT3wY6jA1dF5hG8bN0cVzM4pQ</pre>
+
+      <h3>Strategi Prefix untuk PortalHC KPB</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Prefix</th><th>Untuk</th><th>Kenapa?</th></tr></thead>
+          <tbody>
+            <tr><td><span class="inline-code">phc_live_</span></td><td>Production (appkpb.pertamina.com)</td><td>Key asli, harus dijaga ketat</td></tr>
+            <tr><td><span class="inline-code">phc_test_</span></td><td>Staging (10.55.3.3)</td><td>Boleh untuk testing</td></tr>
+            <tr><td><span class="inline-code">phc_dev_</span></td><td>Development lokal</td><td>Kalau ke-log pun tidak bahaya</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-info">
+        💡 Kalau dev sekali tempel production key ke console log, langsung keliatan dari prefix-nya ⚠️.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Cara Simpan API Key di Database</h2>
+      <div class="alert alert-warn">
+        ⚠️ <strong>JANGAN simpan plaintext.</strong> Kalau DB kamu bocor atau backup jatuh ke tangan salah, semua key langsung bisa dipakai. Treat API Key seperti password.
+      </div>
+
+      <h3>Dua Pilihan Penyimpanan</h3>
+      <div class="compare">
+        <div class="compare-card left">
+          <h4>Opsi A — Hash (satu arah) ⭐</h4>
+          <ul>
+            <li>Simpan <span class="inline-code">Hash(key)</span> di DB</li>
+            <li>Saat verifikasi: hash incoming → bandingkan</li>
+            <li>Key TIDAK bisa dilihat lagi setelah generate</li>
+            <li>Partner harus simpan sendiri</li>
+            <li><strong>Rekomendasi untuk PortalHC</strong></li>
+          </ul>
+        </div>
+        <div class="compare-card right">
+          <h4>Opsi B — Enkripsi (dua arah)</h4>
+          <ul>
+            <li>Simpan <span class="inline-code">Encrypt(key)</span> pakai master key</li>
+            <li>Admin bisa lihat key lagi kalau lupa</li>
+            <li>Kalau master key bocor → semua key bobol</li>
+            <li>Lebih ribet ops</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Kode Hash + Verify (Opsi A — HMAC-SHA256 cepat)</h3>
+      <p>BCrypt itu aman tapi <strong>lambat</strong> (~50-100ms). Untuk webhook yang dipanggil setiap ujian selesai, pakai HMAC-SHA256 dengan pepper global lebih cocok:</p>
+<pre><span class="keyword">using</span> <span class="type">System.Security.Cryptography</span>;
+<span class="keyword">using</span> <span class="type">System.Text</span>;
+
+<span class="keyword">public class</span> <span class="type">ApiKeyService</span>
+{
+    <span class="keyword">private readonly</span> <span class="type">string</span> _pepper; <span class="comment">// rahasia global, di appsettings</span>
+
+    <span class="comment">// Hash cepat tapi masih aman (karena plaintext key sudah 256 bit random)</span>
+    <span class="keyword">public</span> <span class="type">string</span> <span class="func">Hash</span>(<span class="type">string</span> key)
+    {
+        <span class="keyword">using var</span> hmac = <span class="keyword">new</span> <span class="type">HMACSHA256</span>(<span class="type">Encoding</span>.UTF8.<span class="func">GetBytes</span>(_pepper));
+        <span class="keyword">var</span> hash = hmac.<span class="func">ComputeHash</span>(<span class="type">Encoding</span>.UTF8.<span class="func">GetBytes</span>(key));
+        <span class="keyword">return</span> <span class="type">Convert</span>.<span class="func">ToHexString</span>(hash);
+    }
+}</pre>
+
+      <h3>Skema Tabel <span class="inline-code">ApiKeys</span> untuk PortalHC</h3>
+<pre><span class="keyword">CREATE TABLE</span> ApiKeys (
+    Id            <span class="type">INT</span> <span class="keyword">PRIMARY KEY IDENTITY</span>,
+    ProviderId    <span class="type">INT</span> <span class="keyword">NOT NULL</span>,
+    KeyHash       <span class="type">VARCHAR</span>(<span class="num-lit">64</span>) <span class="keyword">NOT NULL</span>,       <span class="comment">-- HMAC-SHA256 hex</span>
+    KeyPreview    <span class="type">VARCHAR</span>(<span class="num-lit">8</span>)  <span class="keyword">NOT NULL</span>,       <span class="comment">-- 4 char terakhir, untuk UI</span>
+    Label         <span class="type">VARCHAR</span>(<span class="num-lit">100</span>),               <span class="comment">-- "Key untuk Budi - April 2026"</span>
+    CreatedAt     <span class="type">DATETIME</span> <span class="keyword">NOT NULL</span>,
+    ExpiresAt     <span class="type">DATETIME</span> <span class="keyword">NULL</span>,              <span class="comment">-- optional auto-expiry</span>
+    LastUsedAt    <span class="type">DATETIME</span> <span class="keyword">NULL</span>,
+    RevokedAt     <span class="type">DATETIME</span> <span class="keyword">NULL</span>,              <span class="comment">-- soft delete</span>
+    RevokedReason <span class="type">VARCHAR</span>(<span class="num-lit">500</span>) <span class="keyword">NULL</span>,
+
+    <span class="keyword">INDEX</span> IX_KeyHash (KeyHash),               <span class="comment">-- lookup cepat</span>
+    <span class="keyword">INDEX</span> IX_Provider_Active (ProviderId, RevokedAt)
+);</pre>
+      <p><strong>Kolom <span class="inline-code">KeyPreview</span></strong> menyimpan 4 karakter terakhir key, supaya admin bisa bedain di UI:</p>
+<pre>phc_live_...pQ (aktif)
+phc_live_...zM (dicabut 3 hari lalu)</pre>
+    </div>
+
+    <div class="card">
+      <h2>3. Flow Create Key — UI Admin</h2>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Admin buka "Kelola API Key"</h4><p>Klik "+ Generate Key Baru" untuk Provider "Web Teman Budi"</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Backend generate plaintext key</h4><p>256-bit random, prefix <span class="inline-code">phc_live_</span></p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Hash key → simpan ke DB</h4><p>Plaintext TIDAK disimpan di server</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Return plaintext ke browser SATU KALI</h4><p>Tampilkan di modal, lalu hilang selamanya</p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><h4>Admin copy, kirim ke partner via channel aman</h4><p>Password manager, dokumen enkripsi, atau kirim 2-tahap</p></div></div>
+      </div>
+
+      <div class="highlight yellow">
+        <p>📋 <strong>Contoh tampilan modal saat generate:</strong></p>
+<pre>┌─────────────────────────────────────────────────────┐
+│ ⚠️ PENTING — Simpan key ini sekarang.                │
+│ Setelah tutup modal, tidak bisa dilihat lagi.       │
+│                                                     │
+│ phc_live_J8xK2mP9qR4nL7vT3wY6jA1dF5hG8bN0cVzM4pQ    │
+│                                                     │
+│ [ Copy ] [ Download .txt ] [ Saya sudah simpan ]    │
+└─────────────────────────────────────────────────────┘</pre>
+      </div>
+
+      <h3>Channel Aman untuk Kirim ke Partner</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Channel</th><th>Status</th><th>Catatan</th></tr></thead>
+          <tbody>
+            <tr><td>Password manager shared (1Password, Bitwarden)</td><td><span class="badge badge-green">✅ Aman</span></td><td>Cara ideal</td></tr>
+            <tr><td>Dokumen enkripsi (buka 1x, lalu hapus)</td><td><span class="badge badge-green">✅ Aman</span></td><td>Cara praktis</td></tr>
+            <tr><td>Chat (WA, Telegram)</td><td><span class="badge badge-yellow">⚠️ Boleh</span></td><td>Kirim 2 tahap: half via WA, half via SMS</td></tr>
+            <tr><td>Email plaintext</td><td><span class="badge badge-red">❌ Hindari</span></td><td>Tercatat di server mail, mudah bocor</td></tr>
+            <tr><td>Post-it di meja 😄</td><td><span class="badge badge-red">❌ Jangan</span></td><td>Serius, jangan.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Kenapa & Kapan Harus Rotate?</h2>
+
+      <h3>Rotasi Terjadwal</h3>
+      <p>Makin lama key hidup, makin besar peluang bocor. Best practice:</p>
+      <ul>
+        <li><strong>90 hari</strong> — standar bank/fintech</li>
+        <li><strong>1 tahun</strong> — standar integrasi internal</li>
+        <li><strong>Minimum sekali setahun</strong> — kalau tidak sempat sering, ini batas terakhir</li>
+      </ul>
+
+      <h3>Rotasi Event-Driven (WAJIB segera)</h3>
+      <ul>
+        <li>🚨 Laptop yang nyimpan key hilang/dicuri</li>
+        <li>🚨 Karyawan partner resign yang punya akses key</li>
+        <li>🚨 Ketahuan bocor (commit ke GitHub publik, dsb)</li>
+        <li>🚨 Audit finding mengindikasikan penyalahgunaan</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>5. Pattern "Grace Period" — Zero-Downtime Rotation</h2>
+      <div class="alert alert-warn">
+        ⚠️ Kalau kamu revoke key lama <strong>langsung</strong> begitu generate yang baru, partner putus koneksi sampai dia update config. Solusinya: <strong>dua key valid bersamaan</strong> selama masa transisi.
+      </div>
+
+      <div class="anim-box">
+        <h4>Timeline Rotasi Zero-Downtime</h4>
+        <div class="flow">
+          <div class="flow-node blue">
+            <span class="icon">🗓️</span>
+            <div class="label">Day 0</div>
+            <div class="sub">Generate Key B<br>Key A masih aktif</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node yellow">
+            <span class="icon">🔄</span>
+            <div class="label">Day 0–7</div>
+            <div class="sub">Dua key valid<br>Partner update config</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node green">
+            <span class="icon">🔒</span>
+            <div class="label">Day 7+</div>
+            <div class="sub">Revoke Key A<br>Hanya Key B aktif</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Flow Praktis</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Hari 0 — Admin klik "Rotate"</h4><p>Sistem generate Key B. Key A <strong>tetap aktif</strong> tapi ditandai <span class="inline-code">RotatingOut = true</span>. Key B ditampilkan ke admin sekali.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Admin kirim Key B ke partner</h4><p>Partner update config di sistemnya</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Verifikasi: partner konfirmasi "sudah pakai Key B"</h4><p>Cek di dashboard: kolom <span class="inline-code">LastUsedAt</span> Key A stop update, Key B mulai aktif</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Hari 7 — Admin klik "Revoke Key A"</h4><p>Key A <span class="inline-code">RevokedAt = now</span>. Request pakai Key A mulai ditolak <span class="badge badge-red">401</span>.</p></div></div>
+      </div>
+
+      <h3>Kode Verifikasi Multi-Key</h3>
+<pre><span class="keyword">public async</span> <span class="type">Task</span>&lt;<span class="type">Provider</span>?&gt; <span class="func">ValidateApiKey</span>(<span class="type">string</span> incomingKey)
+{
+    <span class="keyword">var</span> hash = <span class="func">Hash</span>(incomingKey);
+
+    <span class="keyword">var</span> apiKey = <span class="keyword">await</span> _db.ApiKeys
+        .<span class="func">Include</span>(k => k.Provider)
+        .<span class="func">Where</span>(k => k.KeyHash == hash)
+        .<span class="func">Where</span>(k => k.RevokedAt == <span class="keyword">null</span>)                             <span class="comment">// belum dicabut</span>
+        .<span class="func">Where</span>(k => k.ExpiresAt == <span class="keyword">null</span> || k.ExpiresAt &gt; <span class="type">DateTime</span>.UtcNow) <span class="comment">// belum expired</span>
+        .<span class="func">FirstOrDefaultAsync</span>();
+
+    <span class="keyword">if</span> (apiKey == <span class="keyword">null</span>) <span class="keyword">return null</span>;
+
+    <span class="comment">// Update last used (biar admin bisa track key mana yang masih aktif)</span>
+    apiKey.LastUsedAt = <span class="type">DateTime</span>.UtcNow;
+    <span class="keyword">await</span> _db.<span class="func">SaveChangesAsync</span>();
+
+    <span class="keyword">return</span> apiKey.Provider;
+}</pre>
+    </div>
+
+    <div class="card">
+      <h2>6. Checklist Wajib Sebelum Go-Live</h2>
+      <ul>
+        <li>✅ <strong>Audit log</strong> — setiap create/revoke/rotate key ter-log (siapa, kapan, IP mana)</li>
+        <li>✅ <strong>Alert email</strong> — kalau key stop dipakai &gt;24 jam (partner lupa update) atau ada request pakai key revoked (indikasi serangan)</li>
+        <li>✅ <strong>UI "last used"</strong> — admin bisa lihat semua key, kapan terakhir dipakai, dari IP mana</li>
+        <li>✅ <strong>Incident runbook</strong> — dokumen 1 halaman untuk "key bocor → langkahnya"</li>
+        <li>✅ <strong>Backup channel ke partner</strong> — nomor HP darurat kalau harus emergency rotate</li>
+      </ul>
+
+      <div class="highlight green">
+        <p>🎯 <strong>Ringkasan implementasi untuk PortalHC KPB:</strong> (1) Service <span class="inline-code">ApiKeyService</span> dengan method Generate/Hash/Verify/Rotate/Revoke. (2) Tabel <span class="inline-code">ApiKeys</span> + <span class="inline-code">ApiKeyAuditLogs</span>. (3) Halaman admin di <span class="inline-code">Admin/ApiKeys</span>. (4) Middleware <span class="inline-code">ApiKeyAuthMiddleware</span> untuk endpoint external. (5) Background job alert 7 hari sebelum expiry.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== BAB 11 =================== -->
+  <div class="section" id="s11">
+    <div class="sec-header">
+      <span class="sec-icon">🔗</span>
+      <div>
+        <h1>Integrasi Assessment Eksternal</h1>
+        <p>Studi kasus: peserta ujian di-redirect ke website partner, nilai balik via webhook</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Skenario</h2>
+      <div class="highlight">
+        <p>💭 <strong>Cerita:</strong> "PortalHC saya terkait assessment. Kedepannya ada jenis assessment yang perlu website yang dibuat teman saya. Saya butuh peserta ketika ujian menekan tombol → redirect ke website teman. Setelah ujian, data dan nilai dikirim ke website saya."</p>
+      </div>
+      <p>Ini kasus klasik <strong>integrasi antar sistem via API + redirect flow</strong> — mirip SSO Login, Payment Gateway (Midtrans/Xendit), atau embed Zoom di LMS.</p>
+    </div>
+
+    <div class="card">
+      <h2>Keputusan Desain</h2>
+
+      <h3>Siapa Pegang Data Master? → PortalHC Induk, Partner = Engine Ujian</h3>
+      <p>Peserta sudah ada di PortalHC + LDAP Pertamina. Assessment sudah terhubung ke workflow CDP, coaching, sertifikat. Jadi PortalHC tetap jadi <strong>source of truth</strong>; partner hanya mesin eksekusi ujian.</p>
+      <div class="highlight green">
+        <p>✅ Pola ini sama dengan Payment Gateway (toko induk, Midtrans cuma mesin bayar) dan SSO Login (aplikasi induk, Google cuma verifikasi).</p>
+      </div>
+
+      <h3>Identifikasi Peserta di Sisi Partner? → Login Akun Terpisah</h3>
+      <p>Peserta punya akun sendiri di web partner (dibuat via mapping NIP saat pertama redirect). Lebih ribet sedikit untuk user, tapi tanggung jawab lebih jelas dan auditable.</p>
+    </div>
+
+    <div class="card">
+      <h2>Aliran End-to-End</h2>
+
+      <h3>Fase 1 — Mulai Ujian</h3>
+<pre>[<span class="tag">Peserta di PortalHC</span>]
+   │ klik <span class="string">"Mulai Ujian Eksternal"</span> pada assessment X
+   ▼
+[<span class="tag">PortalHC Backend</span>]
+   │ (a) validasi: peserta eligible ikut assessment X?
+   │ (b) generate ExternalExamSession:
+   │       - SessionId (GUID)
+   │       - Nip, AssessmentId, ExpiresAt (15 menit)
+   │       - Token (JWT signed pakai shared secret)
+   │       - Status = <span class="string">"Pending"</span>
+   │ (c) simpan ke DB
+   │ (d) redirect browser ke:
+   │     <span class="string">https://web-teman.com/exam/start?token=&lt;JWT&gt;</span>
+   ▼
+[<span class="tag">Web Partner — /exam/start</span>]
+   │ (e) decode JWT, verifikasi signature &amp; expiry
+   │ (f) baca claim: nip, assessmentId, sessionId
+   │ (g) cek apakah NIP sudah punya akun di partner
+   │       - Belum? Arahkan ke halaman registrasi/mapping
+   │       - Sudah? Login otomatis sebagai user itu
+   │ (h) (opsional) call-back ke PortalHC untuk confirm sessionId valid
+   │ (i) mulai ujian
+   ▼
+[<span class="tag">Peserta ngerjain ujian di web partner</span>]</pre>
+
+      <h3>Fase 2 — Selesai Ujian</h3>
+<pre>[<span class="tag">Web Partner</span>] submit → hitung nilai
+   │
+   │ (j) POST hasil ke PortalHC (webhook, server-to-server):
+   │     POST /api/external/assessment/result
+   │     Header: X-API-Key: &lt;key-milik-partner&gt;
+   │     Header: X-Signature-SHA256: &lt;HMAC dari body&gt;
+   │     Body:   { sessionId, nip, assessmentId, score, detail[], finishedAt }
+   ▼
+[<span class="tag">PortalHC Backend</span>]
+   │ (k) validasi API Key
+   │ (l) verifikasi signature HMAC (anti-tamper)
+   │ (m) cek sessionId match + status masih <span class="string">"Pending"</span>
+   │ (n) simpan nilai ke tabel AssessmentResult
+   │ (o) update session → Status = <span class="string">"Completed"</span>
+   │ (p) balas 200 OK ke web partner
+   │
+   │ (q) redirect peserta browser balik:
+   │     <span class="string">https://portal-hc/Assessment/Finish?sessionId=xxx</span>
+   ▼
+[<span class="tag">Peserta lihat hasil di PortalHC</span>]</pre>
+
+      <div class="alert alert-info">
+        💡 <strong>Kenapa ada step (l) HMAC di atas API Key?</strong> API Key saja bisa dicuri dan dipakai kirim nilai palsu. HMAC menandatangani isi body pakai shared secret — kalau body diubah 1 huruf, signature invalid. Ini praktik standar webhook (GitHub, Stripe, Midtrans pakai ini).
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Komponen Baru di PortalHC</h2>
+
+      <h3>A. Dua Tabel Database Baru</h3>
+
+      <p><strong>Tabel <span class="inline-code">ExternalAssessmentProviders</span></strong> — daftar partner (fleksibel untuk multi-partner di masa depan):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kolom</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td>Id</td><td>int</td><td>PK</td></tr>
+            <tr><td>Name</td><td>string</td><td>"Website Teman Budi"</td></tr>
+            <tr><td>BaseUrl</td><td>string</td><td>https://web-teman.com</td></tr>
+            <tr><td>ApiKeyHash</td><td>string</td><td>hash dari key yang partner pakai untuk POST ke kita</td></tr>
+            <tr><td>SharedSecret</td><td>string</td><td>untuk HMAC + JWT signing (terenkripsi)</td></tr>
+            <tr><td>IsActive</td><td>bool</td><td>soft toggle</td></tr>
+            <tr><td>CreatedAt</td><td>datetime</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Tabel <span class="inline-code">ExternalExamSessions</span></strong> — tiket ujian sekali-pakai:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kolom</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td>SessionId</td><td>GUID</td><td>PK</td></tr>
+            <tr><td>ProviderId</td><td>int</td><td>FK → Providers</td></tr>
+            <tr><td>Nip</td><td>string</td><td>peserta</td></tr>
+            <tr><td>AssessmentId</td><td>int</td><td>FK → Assessments yang sudah ada</td></tr>
+            <tr><td>Status</td><td>enum</td><td>Pending / Started / Completed / Expired / Failed</td></tr>
+            <tr><td>Token</td><td>string</td><td>JWT yang dikirim via redirect</td></tr>
+            <tr><td>ExpiresAt</td><td>datetime</td><td>TTL 15 menit</td></tr>
+            <tr><td>StartedAt</td><td>datetime?</td><td></td></tr>
+            <tr><td>CompletedAt</td><td>datetime?</td><td></td></tr>
+            <tr><td>Score</td><td>decimal?</td><td>di-fill saat webhook masuk</td></tr>
+            <tr><td>RawPayload</td><td>string</td><td>JSON mentah dari webhook (audit)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>B. Endpoint Baru di PortalHC</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Path</th><th>Arah</th><th>Fungsi</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/Assessment/StartExternal/{id}</span></td><td>Browser → PortalHC</td><td>Generate session + token, redirect ke partner</td></tr>
+            <tr><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/api/external/session/verify</span></td><td>Partner → PortalHC</td><td>Partner double-check session valid sebelum mulai ujian</td></tr>
+            <tr><td><span class="badge badge-post">POST</span></td><td><span class="inline-code">/api/external/assessment/result</span></td><td>Partner → PortalHC</td><td>Webhook terima nilai <strong>(inti integrasi)</strong></td></tr>
+            <tr><td><span class="badge badge-get">GET</span></td><td><span class="inline-code">/Assessment/Finish</span></td><td>Browser → PortalHC</td><td>Landing page setelah ujian; tampilkan status dari DB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🛡️ Ancaman & Mitigasi Keamanan</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ancaman</th><th>Mitigasi</th></tr></thead>
+          <tbody>
+            <tr><td>Peserta edit URL → ganti NIP orang lain</td><td>JWT di-sign; NIP di dalam token, bukan query string polosan</td></tr>
+            <tr><td>Partner kirim nilai palsu</td><td>API Key + HMAC signature + IP allowlist</td></tr>
+            <tr><td>Replay attack (kirim nilai sama 2x)</td><td><span class="inline-code">sessionId</span> sekali pakai; status Completed invalidate</td></tr>
+            <tr><td>Token bocor di log/referer</td><td>JWT TTL 15 menit + one-time-use</td></tr>
+            <tr><td>Nilai di luar range valid</td><td>Validasi server-side (0-100 sesuai bobot)</td></tr>
+            <tr><td>Webhook tidak sampai (network down)</td><td>Partner retry + idempotency; PortalHC sediakan endpoint polling status</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📄 Kontrak API untuk Partner</h2>
+
+      <h3>Endpoint: <span class="inline-code">POST /api/external/assessment/result</span></h3>
+
+      <p><strong>Request:</strong></p>
+<pre><span class="comment">POST /KPB-PortalHC/api/external/assessment/result HTTP/1.1</span>
+<span class="attr">Host</span>: appkpb.pertamina.com
+<span class="attr">X-API-Key</span>: <span class="string">&lt;api-key-yang-kamu-kasih&gt;</span>
+<span class="attr">X-Signature-SHA256</span>: <span class="string">&lt;hmac-sha256-dari-body-pakai-shared-secret&gt;</span>
+<span class="attr">Content-Type</span>: application/json
+
+{
+  <span class="string">"sessionId"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="string">"nip"</span>: <span class="string">"123456"</span>,
+  <span class="string">"assessmentId"</span>: <span class="num-lit">42</span>,
+  <span class="string">"score"</span>: <span class="num-lit">85.5</span>,
+  <span class="string">"maxScore"</span>: <span class="num-lit">100</span>,
+  <span class="string">"finishedAt"</span>: <span class="string">"2026-04-21T10:30:00Z"</span>,
+  <span class="string">"details"</span>: [
+    { <span class="string">"questionNo"</span>: <span class="num-lit">1</span>, <span class="string">"correct"</span>: <span class="keyword">true</span>,  <span class="string">"points"</span>: <span class="num-lit">10</span> },
+    { <span class="string">"questionNo"</span>: <span class="num-lit">2</span>, <span class="string">"correct"</span>: <span class="keyword">false</span>, <span class="string">"points"</span>: <span class="num-lit">0</span> }
+  ]
+}</pre>
+
+      <p><strong>Response Sukses (200):</strong></p>
+<pre>{ <span class="string">"status"</span>: <span class="string">"received"</span>, <span class="string">"resultId"</span>: <span class="num-lit">789</span> }</pre>
+
+      <p><strong>Response Gagal:</strong></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Status</th><th>Arti</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-red">401</span></td><td>API Key invalid</td></tr>
+            <tr><td><span class="badge badge-red">403</span></td><td>HMAC signature invalid (body dimodif di tengah jalan)</td></tr>
+            <tr><td><span class="badge badge-red">404</span></td><td>sessionId tidak ditemukan</td></tr>
+            <tr><td><span class="badge badge-yellow">409</span></td><td>session sudah Completed (duplicate webhook)</td></tr>
+            <tr><td><span class="badge badge-yellow">410</span></td><td>session expired</td></tr>
+            <tr><td><span class="badge badge-yellow">422</span></td><td>data tidak valid (score di luar range, dsb)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💻 Contoh Kode Endpoint Penerima Nilai</h2>
+<pre>[<span class="type">ApiController</span>]
+[<span class="type">Route</span>(<span class="string">"api/external/assessment"</span>)]
+<span class="keyword">public class</span> <span class="type">ExternalAssessmentController</span> : <span class="type">ControllerBase</span>
+{
+    <span class="keyword">private readonly</span> <span class="type">IApiKeyValidator</span> _validator;
+    <span class="keyword">private readonly</span> <span class="type">AppDbContext</span> _db;
+
+    [<span class="type">HttpPost</span>(<span class="string">"result"</span>)]
+    <span class="keyword">public async</span> <span class="type">Task</span>&lt;<span class="type">IActionResult</span>&gt; <span class="func">TerimaNilai</span>(
+        [<span class="type">FromHeader</span>(Name = <span class="string">"X-API-Key"</span>)] <span class="type">string</span> apiKey,
+        [<span class="type">FromBody</span>] <span class="type">HasilUjianDto</span> dto)
+    {
+        <span class="comment">// 1. Validasi API Key</span>
+        <span class="keyword">var</span> client = <span class="keyword">await</span> _validator.<span class="func">Validate</span>(apiKey);
+        <span class="keyword">if</span> (client == <span class="keyword">null</span>)
+            <span class="keyword">return</span> <span class="func">Unauthorized</span>(<span class="keyword">new</span> { error = <span class="string">"Invalid API Key"</span> });
+
+        <span class="comment">// 2. Validasi data</span>
+        <span class="keyword">if</span> (<span class="type">string</span>.<span class="func">IsNullOrEmpty</span>(dto.Nip) || dto.Score &lt; <span class="num-lit">0</span> || dto.Score &gt; <span class="num-lit">100</span>)
+            <span class="keyword">return</span> <span class="func">BadRequest</span>(<span class="keyword">new</span> { error = <span class="string">"Data tidak valid"</span> });
+
+        <span class="comment">// 3. Cek session match + belum completed</span>
+        <span class="keyword">var</span> session = <span class="keyword">await</span> _db.ExternalExamSessions
+            .<span class="func">FindAsync</span>(dto.SessionId);
+        <span class="keyword">if</span> (session == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="func">NotFound</span>();
+        <span class="keyword">if</span> (session.Status == <span class="string">"Completed"</span>) <span class="keyword">return</span> <span class="func">Conflict</span>();
+
+        <span class="comment">// 4. Simpan hasil + update session</span>
+        _db.AssessmentResults.<span class="func">Add</span>(<span class="keyword">new</span> <span class="type">AssessmentResult</span>
+        {
+            Nip = dto.Nip,
+            AssessmentId = dto.AssessmentId,
+            Score = dto.Score,
+            SubmittedAt = <span class="type">DateTime</span>.UtcNow,
+            Source = client.ClientName,
+            SourceSessionId = dto.SessionId
+        });
+        session.Status = <span class="string">"Completed"</span>;
+        session.Score = dto.Score;
+        session.CompletedAt = <span class="type">DateTime</span>.UtcNow;
+
+        <span class="keyword">await</span> _db.<span class="func">SaveChangesAsync</span>();
+
+        <span class="keyword">return</span> <span class="func">Ok</span>(<span class="keyword">new</span> { status = <span class="string">"received"</span>, id = dto.AssessmentId });
+    }
+}</pre>
+    </div>
+
+    <div class="card">
+      <h2>🧪 Skenario Testing yang Wajib</h2>
+      <ol>
+        <li><strong>Happy path</strong> — redirect, ujian selesai, nilai masuk ✅</li>
+        <li><strong>Token expired</strong> — peserta idle 20 menit, partner harus reject</li>
+        <li><strong>Double submit</strong> — webhook dikirim 2x, hanya 1 yang masuk</li>
+        <li><strong>Tampered payload</strong> — ubah score setelah signature dihitung, ditolak 403</li>
+        <li><strong>Wrong API Key</strong> — ditolak 401</li>
+        <li><strong>Peserta tutup browser di tengah</strong> — session tetap Pending → resume atau expired otomatis</li>
+        <li><strong>Web partner down</strong> — PortalHC tampil error jelas, tidak freeze</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Ruang Lingkup (YAGNI)</h2>
+      <div class="compare">
+        <div class="compare-card right">
+          <h4>✅ Masuk Scope Awal</h4>
+          <ul>
+            <li>Satu provider (bisa diperluas nanti)</li>
+            <li>JWT redirect + API Key + HMAC webhook</li>
+            <li>Session TTL + idempotency</li>
+            <li>UI admin kelola API Key</li>
+          </ul>
+        </div>
+        <div class="compare-card left">
+          <h4>⏭️ Nanti (Kalau Butuh)</h4>
+          <ul>
+            <li>Dashboard multi-provider</li>
+            <li>Real-time progress peserta</li>
+            <li>Live proctoring / anti-cheat video</li>
+            <li>Upgrade ke OAuth 2.0</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight green">
+        <p>🎓 <strong>Poin pembelajaran kunci dari studi kasus ini:</strong> Redirect + Webhook + JWT Token + API Key + HMAC — kombinasi ini adalah <strong>pola standar industri</strong> yang sama dipakai oleh Midtrans, Stripe, GitHub, dan sistem SSO. Kalau kamu paham kasus ini, kamu bisa pakai pola yang sama untuk integrasi masa depan apapun (payment, SSO, e-signature, dsb).</p>
+      </div>
+    </div>
+  </div>
+
 </div><!-- end main -->
 
 <script>
@@ -1259,7 +1977,10 @@ function showSection(id) {
     s5:'Bab 5 — Potensi API per Modul',
     s6:'Bab 6 — Tabel Transaksi Lengkap',
     s7:'Bab 7 — Contoh Kode',
-    s8:'Bab 8 — Langkah Selanjutnya'
+    s8:'Bab 8 — Langkah Selanjutnya',
+    s9:'Bab 9 — API Key: Konsumen vs Penyedia',
+    s10:'Bab 10 — Generate & Rotate API Key',
+    s11:'Bab 11 — Integrasi Assessment Eksternal'
   };
   document.getElementById('page-title').textContent = titles[id];
   window.scrollTo(0,0);
