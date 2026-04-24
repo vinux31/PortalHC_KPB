@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (Phase 299 complete, 2026-04-07)
+## Current State (v14.0 shipped, 2026-04-24)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -23,22 +23,20 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v10.0 shipped** — UAT Assessment OJT di Server Development (phases 264-268): admin setup, worker exam flow, review/submit hasil, resilience/edge cases, monitoring dashboard.
 **v11.2 shipped** — Admin Platform Enhancement (phases 282-283): Maintenance Mode + User Impersonation.
 **v12.0 shipped** — Controller Refactoring (phases 286-291): AdminController dipecah menjadi 8 controller per domain, AdminController dikurangi dari 8,514 → 108 baris.
+**v13.0 shipped** — Redesign Struktur Organisasi (phases 292-295): tree view recursive, AJAX CRUD via modal, drag-drop reorder SortableJS sibling-only.
+**v14.0 shipped** — Assessment Enhancement (phases 296-303): Pre-Post Test end-to-end, 4 tipe soal baru (TF/MA/Essay/FiB), mobile exam UI, item analysis + gain score reporting, WCAG quick wins, Coach Workload dashboard.
 
-**Current focus:** v13.0 Redesign Struktur Organisasi
+**Current focus:** Planning v15.0 (milestone berikutnya belum ditetapkan)
 
-## Current Milestone: v13.0 Redesign Struktur Organisasi
+## Next Milestone Candidates (v15.0+)
 
-**Goal:** Redesign halaman ManageOrganization dari tabel flat menjadi tree view modern dengan UX yang lebih fleksibel dan intuitif.
+**Kandidat prioritas tinggi:**
+- **Performance Deep Check** — rencana detail di `.planning/research/performance/deep-wobbling-taco.md`
+- **Batch tutup pending UAT** — Phase 235 (5 items), Phase 247 (2 TODO), Phase 303 (12-langkah Coach Workload) via `/gsd-audit-uat`
+- **Reaktivasi v11.2 paused** — Phase 281 (System Settings) + Phase 285 (Dedicated Impersonation Page)
+- **Resolve research gaps v14.0** — Pre-Post Renewal behavior (Phase 297), essay char limit (Phase 298 — nvarchar(max) vs 2000)
 
-**Target features:**
-- Tree view visual (bukan tabel) dengan recursive rendering (unlimited depth)
-- Modal CRUD (tambah/edit unit tanpa page reload)
-- Drag-and-drop reorder (ganti tombol up/down)
-- Aksi ringkas (dropdown menu menggantikan 5 tombol inline)
-- Kode view dari ~520 baris repetitif → ~150 baris recursive partial
-
-## Next Milestone Goals
-
+**Kandidat eksplorasi:**
 - Competency gap heatmap (worker x kompetensi matrix)
 - Scheduling integration / calendar untuk coaching sessions
 - AI-generated coaching session summaries
@@ -56,6 +54,42 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v14.0 - Assessment Enhancement (2026-04-24)
+
+**Delivered:** Sistem assessment berkembang dari Multiple Choice saja menjadi platform evaluasi kompetensi end-to-end — Pre-Post Test dengan gain score, 4 tipe soal baru (True/False, Multiple Answer, Essay, Fill-in-the-Blank), mobile-optimized exam UI, item analysis + discrimination index reporting, WCAG accessibility quick wins, dan Coach Workload dashboard dengan saran reassign.
+
+**What Shipped:**
+1. **Data Foundation + GradingService** — Migrasi DB backward-compatible, GradingService sebagai single source of truth untuk semua grading path
+2. **Admin Pre-Post Test** — Create/edit/monitor Pre-Post Test, paket soal Pre/Post terpisah, delete cascade, reset cascade, sertifikat hanya dari Post
+3. **Question Types (TF/MA/Essay/FiB)** — Form admin per tipe, Excel import multi-tipe, worker UI sesuai tipe, grading all-or-nothing MA, exact-match FiB, Essay manual grading
+4. **Worker Pre-Post + Comparison** — Card pair dengan guard, perbandingan side-by-side, gain score formula `(Post-Pre)/(100-Pre)×100`
+5. **Mobile Optimization** — Offcanvas drawer, sticky footer, touch target ≥48dp, kompatibel anti-copy Phase 280
+6. **Advanced Reporting** — Item analysis (p-value), discrimination Kelley 27%, distractor analysis, Excel export, Gain Score Trend chart
+7. **WCAG Quick Wins** — Skip link, keyboard navigation, auto-focus, ExtraTimeMinutes via SignalR
+8. **Coach Workload Dashboard (Phase 303)** — Chart.js horizontal bar, threshold coloring, saran reassign approve/skip, auto-suggest coach beban terendah
+
+**Metrics:** 8 phases (296-303), 23 plans, 35 tasks, 218 files changed, +51,734 / -1,456 lines, 206 commits
+
+**Known Gaps:** Phase 303 UAT 12-langkah Coach Workload deferred (kode shipped, verifikasi formal tertunda). Pending UAT items di Phase 235, 247. Research gaps Pre-Post Renewal behavior & essay char limit tertunda ke v15.0.
+
+---
+
+### ✅ v13.0 - Redesign Struktur Organisasi (2026-04-06)
+
+**Delivered:** ManageOrganization dari tabel flat menjadi tree view recursive dengan AJAX CRUD via modal dan drag-drop reorder sibling-only menggunakan SortableJS.
+
+**What Shipped:**
+1. **Backend AJAX Endpoints** — GetOrganizationTree JSON + dual-response pattern pada CRUD actions + CSRF utility
+2. **View Shell & Tree Rendering** — 520-baris view → ~130-baris shell + recursive tree dari JSON
+3. **AJAX CRUD Lengkap** — Modal add/edit, toggle active, delete, action dropdown via orgTree.js tanpa page reload
+4. **Drag-drop Reorder** — SortableJS 1.15.7 via CDN, sibling-only (cross-parent diblokir untuk melindungi cascade logic)
+
+**Metrics:** 4 phases (292-295), 4 plans
+
+**Key Decisions:** orgTree.js sebagai single JS orchestrator (tidak pakai SPA framework/bundler); Drag-drop hanya sibling-only via `group:false`.
+
+---
 
 ### ✅ v8.3 - Date Range Filter Team View Records (2026-03-23)
 
@@ -851,4 +885,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-04-07 after Phase 299 Worker Pre-Post Test Comparison — Pre-Post pair grouping di Assessment, comparison gain score di Results*
+*Last updated: 2026-04-24 after v14.0 Assessment Enhancement milestone close — Pre-Post Test, 4 tipe soal, mobile exam, item analysis + gain score reporting, WCAG quick wins, Coach Workload dashboard*

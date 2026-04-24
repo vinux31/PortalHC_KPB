@@ -4,6 +4,53 @@
 
 ---
 
+## Milestone: v14.0 — Assessment Enhancement
+
+**Shipped:** 2026-04-24
+**Phases:** 8 (296-303) | **Plans:** 23 | **Tasks:** 35 | **Commits:** 206
+
+### What Was Built
+- **Data Foundation + GradingService** — Migrasi DB backward-compatible (QuestionType, AssessmentType, AssessmentPhase, LinkedGroupId, LinkedSessionId, HasManualGrading); GradingService single source of truth; `GradeFromSavedAnswers` dihapus
+- **Admin Pre-Post Test** — Create/Edit/Monitor dengan paket Pre/Post terpisah atau same-package copy, delete group cascade, reset Pre→Post cascade, sertifikat hanya dari Post
+- **4 Question Types baru** — True/False, Multiple Answer (all-or-nothing), Essay (manual grading), Fill-in-the-Blank (exact match case-insensitive); Excel import multi-tipe; worker UI sesuai tipe
+- **Worker Pre-Post + Comparison** — Card pair dengan guard Post-disabled sampai Pre completed, comparison side-by-side, gain score `(Post-Pre)/(100-Pre)×100` dengan edge-case Pre=100
+- **Mobile Optimization** — Offcanvas drawer navigasi soal, sticky footer Prev/Next/Submit, touch target ≥48dp, kompatibel dengan anti-copy Phase 280 (swipe dihapus per D-10)
+- **Advanced Reporting** — Item analysis (p-value difficulty), discrimination Kelley 27% dengan warning n<30, distractor analysis, Gain Score Report per pekerja/elemen, Excel export (ClosedXML), Gain Score Trend chart
+- **WCAG Quick Wins** — Skip link, keyboard navigation (arrow keys opsi, Tab antar soal), auto-focus soal pertama, ExtraTimeMinutes per assessment via SignalR real-time
+- **Coach Workload Dashboard (Phase 303)** — Halaman dengan Chart.js horizontal bar threshold coloring, 4 summary cards, tabel detail, saran reassign approve/skip AJAX, modal Set Threshold, auto-suggest coach beban terendah di assign modal
+
+### What Worked
+- **Foundation-first pattern**: Phase 296 (data model + service extraction) sebagai landasan — 7 phase selanjutnya tidak perlu rework migrasi atau grading logic
+- **Single source of truth refactor**: Menghapus `GradeFromSavedAnswers` dan memusatkan ke GradingService menghilangkan bug divergence antar grading path (SubmitExam, AkhiriUjian, AkhiriSemuaUjian) — prinsip "extract service before expanding features"
+- **Backward-compatible migration**: Semua kolom nullable + default value "MultipleChoice" pada `QuestionType` → data lama auto-upgrade tanpa backfill script
+- **UI-spec-driven phases**: Phase 297-302 & 303 semua dengan UI-SPEC sebelum planning — mengurangi rework view/razor
+- **Mobile compat Phase 280 preserved**: Phase 300 respect keputusan anti-copy → swipe dihapus (D-10) daripada break fitur anti-cheat
+
+### What Was Inefficient
+- **Phase 303 UAT checkpoint terlupa**: Code shipped 2026-04-10, tapi human verification 12 langkah belum diapprove formal sampai milestone close. 2 minggu berjalan tanpa reminder — tooling perlu auto-surface paused checkpoints saat dormant >7 hari
+- **Research gaps dibiarkan ke planning**: Essay char limit, Renewal behavior, Item Analysis n-threshold UX masuk `research gap` di STATE.md tapi tidak pernah diresolve sebelum implementation → implementation ambil default tanpa traceability ke keputusan eksplisit
+- **Quick tasks mengalir paralel**: 8 quick tasks + side features (AddManualAssessment, Import Training E2E, performance analysis, sosialisasi docs) dijalankan sambil v14.0 berlangsung → membuat timeline v14.0 tampak 2 minggu+ padahal implementasi inti 4 hari
+- **HANDOFF.json jadi stale**: HANDOFF masih `status: paused` untuk Phase 303 meskipun STATE.md menunjukkan `progress: 100%` — ada inkonsistensi state yang tidak auto-resolve
+
+### Patterns Established
+- **"Paused at checkpoint" harus diacknowledge atau ditutup eksplisit sebelum milestone close** — defer ke MILESTONES.md Known Gaps dengan explicit rationale
+- **Foundation phase = phase 1 dari milestone berorientasi fitur** — migrasi DB + service extraction dulu, fitur belakangan
+- **Multi-type discriminator column dengan default "primary type"** — pola backward-compatible untuk menambah varian entity tanpa breaking existing rows
+- **Chart.js v4 horizontal bar via `indexAxis:'y'`** — bukan v2 `horizontalBar` (deprecated) — pattern untuk visualisasi workload/distribution di seluruh codebase
+
+### Key Lessons
+- Checkpoint tugas manual (human-verify) **harus** punya expiry atau reminder — 2 minggu dormant = risk bug production yang tidak ter-UAT
+- Research gap di STATE.md `### Pending Todos` memerlukan **due date eksplisit** terkait phase — kalau tidak akan tertimbun saat planning berpindah
+- Sertifikat/training record hanya dari Post-Test (bukan Pre) — pattern "secondary phase adalah source of truth untuk downstream artifact" penting untuk fitur multi-phase assessment di masa depan
+- `data-*` attribute untuk auto-suggest UI menghindari AJAX round-trip — pertimbangkan untuk fitur "smart defaults" lain
+
+### Cost Observations
+- 206 commits dalam periode 18 hari kalendar (4 hari inti implementasi + 14 hari polish/iterasi)
+- 218 files changed, +51,734 / -1,456 LOC — milestone terbesar sejak v2.5 (+12,297 LOC)
+- Notable: Rasio +35 insertion per 1 deletion — tipikal feature-build milestone (bukan refactor); bandingkan v7.6 refactor dengan rasio ~2.7 insertion per deletion
+
+---
+
 ## Milestone: v8.2 — Proton Coaching Ecosystem Audit
 
 **Shipped:** 2026-03-23

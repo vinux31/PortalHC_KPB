@@ -1,5 +1,44 @@
 # Milestones
 
+## v14.0 Assessment Enhancement (Shipped: 2026-04-24)
+
+**Phases completed:** 8 phases (296-303), 23 plans, 35 tasks
+**Files modified:** 218 | **Insertions:** 51,734 | **Deletions:** 1,456
+**Timeline:** 2026-04-06 → 2026-04-10 (implementasi inti) + iterasi polish s/d 2026-04-24
+**Git range:** `c506cb13` → `3fa4049f` (206 commits)
+
+**Delivered:** Sistem assessment berkembang penuh dari hanya Multiple Choice menjadi platform evaluasi kompetensi end-to-end — mendukung Pre-Post Test dengan gain score, 4 tipe soal baru (TF/MA/Essay/FiB) dengan grading otomatis dan manual, UI ujian responsif mobile, reporting statistik (item analysis + discrimination), akomodasi aksesibilitas (keyboard nav + extra time), dan monitoring beban coach-coachee dengan saran reassign.
+
+**Key accomplishments:**
+
+1. **Data Foundation + GradingService Extraction (Phase 296)** — Migrasi DB backward-compatible (QuestionType, AssessmentType, AssessmentPhase, LinkedGroupId, LinkedSessionId, HasManualGrading) dan GradingService sebagai single source of truth untuk semua grading path (SubmitExam, AkhiriUjian, AkhiriSemuaUjian). GradeFromSavedAnswers dihapus.
+2. **Admin Pre-Post Test (Phase 297)** — HC dapat membuat assessment Pre-Post Test dengan jadwal & paket soal Pre/Post terpisah, copy paket same-package, monitoring grup expandable, delete group cascade, reset Pre→Post cascade, sertifikat hanya dari Post.
+3. **Question Types (Phase 298)** — 4 tipe soal baru (True/False, Multiple Answer, Essay, Fill-in-the-Blank) dengan admin form, Excel import multi-tipe, worker UI sesuai tipe (radio/checkbox/textarea/text input), grading all-or-nothing MA, exact-match FiB, Essay manual grading via AssessmentMonitoringDetail.
+4. **Worker Pre-Post + Comparison (Phase 299)** — Card pair Pre/Post dengan guard Post-disabled sebelum Pre completed, halaman perbandingan side-by-side, gain score `(Post-Pre)/(100-Pre)×100` dengan edge-case Pre=100.
+5. **Mobile Optimization (Phase 300)** — Offcanvas drawer navigasi soal, sticky footer Prev/Next/Submit, touch target ≥48dp, timer tetap visible saat scroll, landscape mode, kompatibel dengan anti-copy Phase 280 (swipe dihapus per D-10).
+6. **Advanced Reporting (Phase 301)** — Item Analysis per soal (p-value difficulty), discrimination index Kelley 27% upper/lower dengan warning n<30, distractor analysis, Gain Score Report per pekerja/elemen, Excel export (ClosedXML), Gain Score Trend chart.
+7. **Accessibility WCAG Quick Wins (Phase 302)** — Skip link, keyboard navigation (arrow keys opsi, Tab antar soal), auto-focus soal pertama, ExtraTimeMinutes per assessment via SignalR real-time. A11Y-03 (screen reader) & A11Y-04 (font size) di-drop per D-18/D-19.
+8. **Rasio Coach-Coachee + Balanced Mapping (Phase 303)** — Halaman Coach Workload dengan Chart.js horizontal bar (threshold coloring), 4 summary cards, tabel detail, saran reassign approve/skip AJAX, Set Threshold modal, auto-suggest coach beban terendah di assign modal, entity CoachWorkloadThreshold + 5 controller actions.
+
+**Known Gaps / Deferred Items:**
+
+- Phase 303 UAT 12-langkah Coach Workload — kode di-commit, human verification formal belum diapprove (paused 2026-04-10). Diacknowledge pada milestone close 2026-04-24.
+- Phase 235 pending UAT: 5 items butuh human verification via browser
+- Phase 247 approval chain UAT: 2 TODO (HC review + resubmit notification)
+- Research gap Phase 297 Pre-Post Renewal behavior — keputusan teknis tertunda
+- Research gap Phase 298 essay max character limit — belum diputuskan (nvarchar(max) vs 2000)
+- Keputusan Phase 293 `GetSectionUnitsDictAsync` Level 2+ — masih hardcoded 2-level
+
+**Key Decisions:**
+
+- GradeFromSavedAnswers dihapus — GradingService satu-satunya source of truth
+- Chart.js v4 dengan `indexAxis:'y'` untuk horizontal bar (bukan v2 horizontalBar)
+- Auto-suggest coach via `data-section` attribute, tanpa server round-trip
+- `coachWorkloads` dictionary di-serialize ke JS saat page load — tidak butuh AJAX endpoint terpisah
+- Export endpoints re-query database independen (tidak share state dengan API endpoints) — Phase 301
+
+---
+
 ## v11.2 Admin Platform Enhancement (Shipped: 2026-04-02)
 
 **Phases completed:** 2 of 4 phases (282-283), 4 plans
@@ -13,6 +52,7 @@
 2. User Impersonation — Admin dapat melihat aplikasi sebagai role lain (HC/User) atau user spesifik, read-only mode, audit trail, auto-expire 30 menit
 
 **Known Gaps:**
+
 - Phase 281 (System Settings) belum dimulai — SETT-01..07 pending
 - Phase 285 (Dedicated Impersonation Page) sedang executing — IMP-UI-01..03 pending
 - Phase 284 (Backup & Restore) removed from milestone — BKP-01..08 deferred
@@ -33,6 +73,7 @@
 2. Bug fix: progression warning `prevProgressCount > 0` check — coachee tanpa progress Tahun 1 tidak lagi bisa di-assign Tahun 2 tanpa warning
 
 **Known Gaps:**
+
 - Phase 258-261 skipped (SIL-01..06, EVI-01..05, APR-01..07, DSH-01..06 not executed)
 - Milestone closed early by user decision
 
