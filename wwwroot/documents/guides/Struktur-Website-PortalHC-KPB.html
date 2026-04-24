@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Struktur Website Portal HC KPB</title>
+<style>
+  @page { size: A4; margin: 15mm 18mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    color: #1a1a1a;
+    line-height: 1.7;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 16mm 20mm;
+    font-size: 11pt;
+    background: #fff;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    text-align: center;
+    padding: 44px 20px 32px;
+    margin-bottom: 32px;
+    border-bottom: 3px solid #006400;
+  }
+  .cover-badge {
+    display: inline-block;
+    background: #006400;
+    color: #fff;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .cover h1 {
+    color: #006400;
+    font-size: 24pt;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .cover .tagline {
+    color: #555;
+    font-size: 12pt;
+    margin-bottom: 6px;
+  }
+  .cover .meta {
+    color: #999;
+    font-size: 9pt;
+    margin-top: 16px;
+  }
+
+  /* ── Headings ── */
+  h2 {
+    color: #006400;
+    font-size: 16pt;
+    margin: 28px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #006400;
+  }
+  h3 {
+    color: #004d00;
+    font-size: 13pt;
+    margin: 20px 0 10px;
+  }
+  h4 {
+    color: #333;
+    font-size: 11.5pt;
+    margin: 14px 0 6px;
+  }
+
+  p { margin-bottom: 10px; text-align: justify; }
+
+  /* ── Intro box ── */
+  .intro {
+    background: #f4f9f4;
+    border-left: 4px solid #006400;
+    padding: 14px 18px;
+    margin: 16px 0 24px;
+    border-radius: 4px;
+  }
+  .intro p { margin: 0; }
+
+  /* ── Grid folder/module ── */
+  .module-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 14px 0;
+  }
+  .module {
+    border: 1px solid #dfe6df;
+    border-radius: 6px;
+    padding: 12px 16px;
+    background: #fafcfa;
+  }
+  .module .title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .module .name {
+    font-weight: 700;
+    color: #006400;
+    font-size: 11.5pt;
+  }
+  .module .tag {
+    font-size: 8pt;
+    background: #006400;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .module .tag.gray { background: #6c757d; }
+  .module .tag.blue { background: #0a58ca; }
+  .module .tag.orange { background: #d97706; }
+  .module .desc {
+    color: #333;
+    font-size: 10.5pt;
+    margin-bottom: 6px;
+  }
+  .module ul {
+    margin: 4px 0 0 18px;
+    color: #444;
+    font-size: 10pt;
+  }
+  .module ul li { margin-bottom: 2px; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px;
+    font-size: 10pt;
+  }
+  th, td {
+    border: 1px solid #d4dbd4;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #006400;
+    color: #fff;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td { background: #f7faf7; }
+
+  /* ── Tree diagram ── */
+  .tree {
+    background: #fdfdfd;
+    border: 1px solid #e0e6e0;
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    color: #222;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 10px 0 18px;
+  }
+  .tree .folder { color: #006400; font-weight: 700; }
+  .tree .file { color: #444; }
+  .tree .comment { color: #888; font-style: italic; }
+
+  /* ── Role badges ── */
+  .role {
+    display: inline-block;
+    font-size: 9pt;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #e8f0e8;
+    color: #006400;
+    margin: 2px 3px;
+    font-weight: 600;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 40px;
+    padding-top: 14px;
+    border-top: 2px solid #006400;
+    text-align: center;
+    color: #666;
+    font-size: 9pt;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 0; }
+    h2 { page-break-after: avoid; }
+    .module, .tree, table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-badge">Dokumentasi Teknis</div>
+  <h1>Struktur Website Portal HC KPB</h1>
+  <div class="tagline">Arsitektur Aplikasi Human Capital Pertamina Kilang Balikpapan</div>
+  <div class="meta">Versi 1.0 &middot; April 2026 &middot; Platform: ASP.NET Core MVC (.NET)</div>
+</div>
+
+<!-- ─────────────── INTRO ─────────────── -->
+<h2>1. Gambaran Umum</h2>
+<div class="intro">
+  <p><strong>Portal HC KPB</strong> adalah aplikasi web terpusat untuk mengelola proses <strong>Human Capital</strong> di Pertamina Kilang Balikpapan — mencakup pengelolaan kompetensi pekerja (<strong>CMP</strong>), pengembangan karier (<strong>CDP</strong>), assessment online, coaching PROTON, sertifikasi, training budget, hingga administrasi organisasi. Aplikasi dibangun dengan pola <em>Model-View-Controller (MVC)</em> di atas .NET, menggunakan Entity Framework Core untuk akses data, SignalR untuk komunikasi real-time, dan autentikasi hybrid (LDAP Active Directory + lokal).</p>
+</div>
+
+<!-- ─────────────── 2. ARSITEKTUR ─────────────── -->
+<h2>2. Arsitektur High-Level</h2>
+<p>Aplikasi mengikuti struktur standar ASP.NET Core MVC dengan pemisahan tanggung jawab yang jelas antar lapisan:</p>
+
+<div class="tree">
+<span class="folder">PortalHC_KPB/</span>
+├── <span class="folder">Controllers/</span>       <span class="comment">// Endpoint HTTP — menerima request, orkestrasi logika</span>
+├── <span class="folder">Models/</span>            <span class="comment">// Entitas database & ViewModel untuk halaman</span>
+├── <span class="folder">Views/</span>             <span class="comment">// Template UI (.cshtml) — HTML + Razor syntax</span>
+├── <span class="folder">Services/</span>          <span class="comment">// Business logic terpisah (auth, grading, notifikasi, dsb.)</span>
+├── <span class="folder">Data/</span>              <span class="comment">// DbContext (EF Core) + seed data awal</span>
+├── <span class="folder">Hubs/</span>              <span class="comment">// SignalR hub — real-time event assessment</span>
+├── <span class="folder">Middleware/</span>        <span class="comment">// Pipeline custom (maintenance mode, impersonation)</span>
+├── <span class="folder">Helpers/</span>           <span class="comment">// Utility & extension methods</span>
+├── <span class="folder">Migrations/</span>        <span class="comment">// Script perubahan skema database (EF Core)</span>
+├── <span class="folder">ViewComponents/</span>    <span class="comment">// Komponen UI reusable (badge, banner, widget)</span>
+├── <span class="folder">wwwroot/</span>           <span class="comment">// Asset statis: CSS, JS, gambar, dokumen panduan</span>
+├── <span class="file">Program.cs</span>         <span class="comment">// Entry point — konfigurasi service & middleware</span>
+├── <span class="file">appsettings.json</span>   <span class="comment">// Konfigurasi: connection string, LDAP, dsb.</span>
+└── <span class="file">HcPortal.csproj</span>    <span class="comment">// Definisi project & dependency</span>
+</div>
+
+<!-- ─────────────── 3. CONTROLLERS ─────────────── -->
+<h2>3. Controllers (14 Controller)</h2>
+<p>Controller adalah "pintu masuk" setiap request HTTP. Setiap controller menangani satu domain fungsional. Total terdapat <strong>264 action endpoint</strong> tersebar di 14 controller:</p>
+
+<div class="module-grid">
+
+  <div class="module">
+    <div class="title"><span class="name">HomeController</span><span class="tag">Core</span></div>
+    <div class="desc">Halaman beranda, dashboard role-based, guide panduan, dan mode maintenance.</div>
+    <ul>
+      <li><strong>Index</strong> — dashboard sambutan + event mendatang + progress belajar</li>
+      <li><strong>Guide / GuideDetail</strong> — hub dokumen panduan</li>
+      <li>Menampilkan alert sertifikat expired untuk HC/Admin</li>
+    </ul>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">AccountController</span><span class="tag blue">Auth</span></div>
+    <div class="desc">Login, logout, ganti password, dan profil pengguna. Mendukung autentikasi LDAP + lokal.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">AdminController</span><span class="tag orange">Admin</span></div>
+    <div class="desc">Kontrol operasional inti admin: dashboard admin, maintenance mode, halaman manajemen terpusat.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">AssessmentAdminController</span><span class="tag orange">Admin</span></div>
+    <div class="desc">CRUD lengkap modul assessment: kategori, paket soal, import soal Excel, preview, monitoring peserta realtime, manual assessment, dan penugasan peserta.</div>
+    <ul>
+      <li>48 action endpoint — controller paling besar</li>
+      <li>Import soal format Essay / Multiple Answer / Mix</li>
+    </ul>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">CMPController</span><span class="tag">Competency</span></div>
+    <div class="desc"><em>Competency Management Program</em> — pusat aktivitas pekerja terkait kompetensi.</div>
+    <ul>
+      <li><strong>Assessment / StartExam / ExamSummary</strong> — ujian online</li>
+      <li><strong>Records / RecordsTeam / RecordsWorkerDetail</strong> — rekam jejak training</li>
+      <li><strong>Certificate</strong> — daftar &amp; unduh sertifikat</li>
+      <li><strong>BudgetTraining</strong> — perencanaan anggaran training</li>
+      <li><strong>DokumenKkj</strong> — dokumen Kamus Kompetensi Jabatan</li>
+      <li><strong>AnalyticsDashboard</strong> — visualisasi performa</li>
+    </ul>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">CDPController</span><span class="tag">Career</span></div>
+    <div class="desc"><em>Career Development Program</em> — pengembangan karier individu.</div>
+    <ul>
+      <li><strong>PlanIdp</strong> — Individual Development Plan</li>
+      <li><strong>CoachingProton</strong> — sesi coaching berbasis framework PROTON</li>
+      <li><strong>HistoriProton / HistoriProtonDetail</strong> — arsip coaching</li>
+      <li><strong>CertificationManagement</strong> — kelola sertifikasi personal</li>
+      <li><strong>Deliverable</strong> — target &amp; output pengembangan</li>
+    </ul>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">WorkerController</span><span class="tag orange">Admin</span></div>
+    <div class="desc">Kelola data pekerja: tambah manual, import Excel massal, edit, lihat detail, serta riwayat assessment per pekerja.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">OrganizationController</span><span class="tag orange">Admin</span></div>
+    <div class="desc">Struktur organisasi hirarkis (direktorat → fungsi → seksi) berbentuk pohon, dengan visualisasi interaktif.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">CoachMappingController</span><span class="tag">Coaching</span></div>
+    <div class="desc">Pemetaan Coach &harr; Coachee, monitor workload coach, dan threshold beban maksimal.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">ProtonDataController</span><span class="tag">Data</span></div>
+    <div class="desc">Kelola data master PROTON: import silabus dari Excel, override manual untuk kasus khusus.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">TrainingAdminController</span><span class="tag orange">Admin</span></div>
+    <div class="desc">Kelola data training korporat: CRUD manual, import dari Excel, edit record, dan arsip.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">DocumentAdminController</span><span class="tag orange">Admin</span></div>
+    <div class="desc">Upload &amp; kelola dokumen CPDP dan KKJ (matriks kompetensi), beserta history versi.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">RenewalController</span><span class="tag">Sertifikat</span></div>
+    <div class="desc">Proses renewal/perpanjangan sertifikat kompetensi yang akan atau sudah expired.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">NotificationController</span><span class="tag gray">System</span></div>
+    <div class="desc">Daftar notifikasi user, tandai sudah dibaca, dan polling notifikasi baru.</div>
+  </div>
+
+</div>
+
+<!-- ─────────────── 4. MODELS ─────────────── -->
+<h2>4. Models — Entitas Data & ViewModel</h2>
+<p>Folder <strong>Models/</strong> berisi dua jenis objek utama:</p>
+
+<table>
+  <thead>
+    <tr><th style="width:28%">Kategori</th><th>Definisi &amp; Contoh</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Entitas Database</strong></td>
+      <td>Representasi tabel yang tersimpan di SQL Server. Contoh: <code>ApplicationUser</code>, <code>AssessmentSession</code>, <code>AssessmentPackage</code>, <code>CoachingSession</code>, <code>TrainingRecord</code>, <code>OrganizationUnit</code>, <code>CareerCandidate</code>, <code>AuditLog</code>, <code>Notification</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>ViewModel</strong></td>
+      <td>Objek khusus untuk kebutuhan tampilan halaman (bukan tabel). Contoh: <code>DashboardHomeViewModel</code>, <code>CDPDashboardViewModel</code>, <code>AnalyticsDashboardViewModel</code>, <code>AssessmentResultsViewModel</code>, <code>HistoriProtonDetailViewModel</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Model Pendukung</strong></td>
+      <td><code>UserRoles</code> — hirarki role; <code>AssessmentConstants</code> — konstanta (passing grade, durasi); <code>MaintenanceMode</code> — state global; <code>TrackingModels</code> — audit aksi pengguna; folder <code>Competency/</code> untuk detail kompetensi.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ─────────────── 5. VIEWS ─────────────── -->
+<h2>5. Views — Halaman UI</h2>
+<p>Setiap controller memiliki folder Views masing-masing berisi file <code>.cshtml</code> (Razor). Total tersedia puluhan halaman dikelompokkan sebagai berikut:</p>
+
+<table>
+  <thead>
+    <tr><th style="width:18%">Folder</th><th>Halaman Utama</th><th style="width:22%">Peruntukan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Views/Home</strong></td>
+      <td>Index (dashboard), Guide, GuideDetail, Maintenance</td>
+      <td><span class="role">Semua User</span></td>
+    </tr>
+    <tr>
+      <td><strong>Views/Account</strong></td>
+      <td>Login, ChangePassword, Profile</td>
+      <td><span class="role">Public + Login</span></td>
+    </tr>
+    <tr>
+      <td><strong>Views/CMP</strong></td>
+      <td>Assessment, StartExam, ExamSummary, Results, Records, RecordsTeam, RecordsWorkerDetail, Certificate, BudgetTraining, AnalyticsDashboard, DokumenKkj</td>
+      <td><span class="role">Worker</span> <span class="role">Atasan</span> <span class="role">HC</span></td>
+    </tr>
+    <tr>
+      <td><strong>Views/CDP</strong></td>
+      <td>Dashboard, PlanIdp, CoachingProton, HistoriProton, CertificationManagement, Deliverable</td>
+      <td><span class="role">Worker</span> <span class="role">Coach</span></td>
+    </tr>
+    <tr>
+      <td><strong>Views/Admin</strong></td>
+      <td>ManageWorkers, ManageOrganization, ManagePackages, ManageAssessment, CoachCoacheeMapping, CoachWorkload, AuditLog, Impersonate, Maintenance, KkjUpload/Matrix, CpdpUpload, RenewalCertificate, AssessmentMonitoring, dll.</td>
+      <td><span class="role">Admin</span> <span class="role">HC</span></td>
+    </tr>
+    <tr>
+      <td><strong>Views/ProtonData</strong></td>
+      <td>Index, ImportSilabus, Override</td>
+      <td><span class="role">Admin</span></td>
+    </tr>
+    <tr>
+      <td><strong>Views/Shared</strong></td>
+      <td><code>_Layout.cshtml</code> (template master), <code>_ImpersonationBanner</code>, <code>_CertificateHistoryModalContent</code>, <code>Error.cshtml</code>, folder <code>Components/</code></td>
+      <td>Dipakai lintas halaman</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ─────────────── 6. SERVICES ─────────────── -->
+<h2>6. Services — Lapisan Logika Bisnis</h2>
+<p>Folder <strong>Services/</strong> memisahkan logika kompleks dari controller agar dapat dipakai ulang dan lebih mudah diuji:</p>
+
+<div class="module-grid">
+  <div class="module">
+    <div class="title"><span class="name">Autentikasi</span><span class="tag blue">Auth</span></div>
+    <div class="desc"><code>IAuthService</code>, <code>HybridAuthService</code>, <code>LdapAuthService</code>, <code>LocalAuthService</code>, <code>AuthenticationConfig</code>, <code>AuthResult</code>.</div>
+    <ul>
+      <li>Login utama mencoba LDAP (Active Directory KPB); jika gagal, fallback ke akun lokal</li>
+      <li>Konfigurasi LDAP ada di <code>appsettings.json</code></li>
+    </ul>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">GradingService</span><span class="tag">Assessment</span></div>
+    <div class="desc">Menghitung skor ujian otomatis: Multiple Choice, Multiple Answer, Essay. Menentukan pass/fail berdasarkan passing grade.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">NotificationService</span><span class="tag gray">System</span></div>
+    <div class="desc">Membuat &amp; mengirim notifikasi (sertifikat expired, jadwal assessment, coaching baru). Digabung dengan SignalR untuk realtime.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">WorkerDataService</span><span class="tag">Data</span></div>
+    <div class="desc">Query terpusat data pekerja: filter cascading organisasi, status training, riwayat sertifikat.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">AuditLogService</span><span class="tag gray">System</span></div>
+    <div class="desc">Mencatat setiap aksi sensitif (edit data, login, impersonate, hapus) untuk jejak audit dan compliance.</div>
+  </div>
+
+  <div class="module">
+    <div class="title"><span class="name">ImpersonationService</span><span class="tag orange">Admin</span></div>
+    <div class="desc">Fitur "bertindak sebagai user lain" — Admin dapat troubleshoot tampilan user tertentu tanpa perlu password, dengan banner peringatan aktif.</div>
+  </div>
+</div>
+
+<!-- ─────────────── 7. INFRASTRUKTUR ─────────────── -->
+<h2>7. Infrastruktur Pendukung</h2>
+
+<h3>7.1 Data Layer</h3>
+<p><code>Data/ApplicationDbContext.cs</code> adalah jembatan antara kode C# dan database SQL Server via Entity Framework Core. Berisi <code>DbSet&lt;T&gt;</code> untuk semua entitas. File <code>SeedData.cs</code> mengisi data awal (role, admin default, kategori, dsb.) saat aplikasi pertama kali dijalankan.</p>
+
+<h3>7.2 Middleware</h3>
+<ul>
+  <li><strong>MaintenanceModeMiddleware</strong> — bila mode maintenance aktif, seluruh request non-Admin dialihkan ke halaman <em>"sedang dalam perbaikan"</em>.</li>
+  <li><strong>ImpersonationMiddleware</strong> — memastikan session impersonation terdeteksi di setiap request dan menampilkan banner.</li>
+</ul>
+
+<h3>7.3 Hubs (SignalR)</h3>
+<p><code>Hubs/AssessmentHub.cs</code> menyediakan komunikasi dua arah realtime untuk monitoring ujian: admin dapat melihat peserta yang online, progress, waktu tersisa, dan kejadian suspicious (keluar fullscreen, switch tab) tanpa refresh halaman.</p>
+
+<h3>7.4 wwwroot — Asset Publik</h3>
+<div class="tree">
+<span class="folder">wwwroot/</span>
+├── <span class="folder">css/</span>         <span class="comment">// site.css, home.css, assessment-hub.css, guide.css</span>
+├── <span class="folder">js/</span>          <span class="comment">// analyticsDashboard, orgTree, shared-cascade, shared-upload, shared-toast, shared-loading, assessment-hub</span>
+├── <span class="folder">lib/</span>         <span class="comment">// Library pihak ketiga (Bootstrap, jQuery, Chart.js, dsb.)</span>
+├── <span class="folder">images/</span>      <span class="comment">// Logo, icon, ilustrasi</span>
+├── <span class="folder">fonts/</span>       <span class="comment">// Web font</span>
+├── <span class="folder">documents/</span>   <span class="comment">// PDF resmi &amp; guides HTML (panduan user, release notes)</span>
+├── <span class="folder">uploads/</span>    <span class="comment">// File user-upload: sertifikat, dokumen KKJ, CPDP, Silabus</span>
+└── <span class="folder">docs/</span>        <span class="comment">// Dokumentasi internal pengembang</span>
+</div>
+
+<!-- ─────────────── 8. ROLE ─────────────── -->
+<h2>8. Hirarki Role &amp; Otorisasi</h2>
+<p>Akses halaman diatur berlapis berdasarkan role pengguna (disimpan di <code>Models/UserRoles.cs</code>). Urutan level (1 = tertinggi):</p>
+
+<table>
+  <thead>
+    <tr><th style="width:10%">Level</th><th style="width:20%">Role</th><th>Ringkasan Kewenangan</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Admin</strong></td><td>Akses penuh: konfigurasi sistem, maintenance, user/role, impersonate, audit log.</td></tr>
+    <tr><td>2</td><td><strong>HC</strong></td><td>Human Capital: kelola pekerja, training, sertifikat, notifikasi korporat, analytics.</td></tr>
+    <tr><td>3</td><td><strong>Coach</strong></td><td>Menjalankan coaching PROTON, lihat coachee, input sesi &amp; deliverable.</td></tr>
+    <tr><td>4</td><td><strong>Atasan</strong></td><td>Lihat data tim, approve IDP, monitor progress bawahan.</td></tr>
+    <tr><td>5</td><td><strong>Worker</strong></td><td>Ikut assessment, isi IDP, lihat sertifikat pribadi, ikut coaching.</td></tr>
+  </tbody>
+</table>
+
+<!-- ─────────────── 9. ALUR ─────────────── -->
+<h2>9. Alur Request — Bagaimana Halaman Muncul</h2>
+<ol style="margin-left:22px;margin-bottom:16px;">
+  <li>User membuka URL → request masuk ke <strong>Program.cs</strong> (konfigurasi pipeline).</li>
+  <li>Middleware dijalankan berurutan: Authentication → MaintenanceMode → Impersonation.</li>
+  <li>Routing mengarahkan ke <strong>Controller</strong> + Action sesuai URL (mis. <code>/CMP/Records</code> → <code>CMPController.Records()</code>).</li>
+  <li>Controller memanggil <strong>Service</strong> untuk logika bisnis &amp; <strong>DbContext</strong> untuk data.</li>
+  <li>Data dikemas ke <strong>ViewModel</strong>, lalu dikirim ke <strong>View</strong> (.cshtml) untuk dirender jadi HTML.</li>
+  <li>Browser menerima HTML final + asset dari <strong>wwwroot</strong>; event real-time berjalan via <strong>SignalR Hub</strong> bila dibutuhkan.</li>
+</ol>
+
+<!-- ─────────────── 10. RINGKASAN ─────────────── -->
+<h2>10. Ringkasan Modul Bisnis</h2>
+<table>
+  <thead>
+    <tr><th style="width:18%">Modul</th><th>Tujuan Bisnis</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>CMP</strong></td><td>Memastikan setiap pekerja memiliki kompetensi sesuai jabatan via assessment berkala, training budget, dan sertifikasi terdokumentasi.</td></tr>
+    <tr><td><strong>CDP</strong></td><td>Mengembangkan karier pekerja melalui IDP terstruktur dan coaching PROTON yang terarsip.</td></tr>
+    <tr><td><strong>PROTON</strong></td><td>Framework coaching berbasis elemen teknis dengan scoring per sesi, riwayat lengkap, dan override admin.</td></tr>
+    <tr><td><strong>Assessment Online</strong></td><td>Ujian digital dengan monitoring realtime, anti-cheating (fullscreen, tab-switch detection), grading otomatis.</td></tr>
+    <tr><td><strong>Renewal &amp; Sertifikat</strong></td><td>Mengelola siklus hidup sertifikat: alert expired, proses renewal, arsip history.</td></tr>
+    <tr><td><strong>Admin &amp; Audit</strong></td><td>Kontrol operasional: user, organisasi, soal, dokumen KKJ/CPDP, log audit, impersonation.</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  <strong>Portal HC KPB</strong> &middot; PT Pertamina (Persero) Kilang Balikpapan<br>
+  Dokumen ini dibuat untuk menjelaskan struktur teknis aplikasi kepada tim internal &middot; April 2026
+</div>
+
+</body>
+</html>

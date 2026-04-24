@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penjelasan Halaman &amp; Fitur — Portal HC KPB</title>
+<style>
+  @page { size: A4; margin: 15mm 18mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    color: #1a1a1a;
+    line-height: 1.7;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 16mm 20mm;
+    font-size: 11pt;
+    background: #fff;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    text-align: center;
+    padding: 44px 20px 32px;
+    margin-bottom: 32px;
+    border-bottom: 3px solid #006400;
+  }
+  .cover-badge {
+    display: inline-block;
+    background: #006400;
+    color: #fff;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .cover h1 {
+    color: #006400;
+    font-size: 23pt;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .cover .tagline {
+    color: #555;
+    font-size: 12pt;
+    margin-bottom: 6px;
+  }
+  .cover .meta {
+    color: #999;
+    font-size: 9pt;
+    margin-top: 16px;
+  }
+
+  h2 {
+    color: #006400;
+    font-size: 16pt;
+    margin: 32px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #006400;
+  }
+  h3 {
+    color: #004d00;
+    font-size: 13pt;
+    margin: 22px 0 8px;
+  }
+
+  p { margin-bottom: 10px; text-align: justify; }
+
+  .intro {
+    background: #f4f9f4;
+    border-left: 4px solid #006400;
+    padding: 14px 18px;
+    margin: 14px 0 22px;
+    border-radius: 4px;
+  }
+  .intro p { margin: 0; }
+
+  /* ── TOC ── */
+  .toc {
+    background: #fafcfa;
+    border: 1px solid #dfe6df;
+    border-radius: 6px;
+    padding: 16px 22px;
+    margin: 18px 0 28px;
+  }
+  .toc h3 {
+    margin-top: 0;
+    color: #006400;
+    font-size: 12pt;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #dfe6df;
+    margin-bottom: 10px;
+  }
+  .toc ol { margin-left: 22px; }
+  .toc ol li { margin-bottom: 4px; font-size: 10.5pt; }
+  .toc a { color: #006400; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .sub {
+    margin-left: 18px;
+    color: #555;
+    font-size: 9.5pt;
+    list-style-type: none;
+    padding-left: 12px;
+    border-left: 2px solid #e0e8e0;
+    margin-top: 4px;
+    margin-bottom: 6px;
+  }
+  .toc .sub li { margin-bottom: 2px; }
+
+  /* ── Feature card ── */
+  .feature {
+    border: 1px solid #dfe6df;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fdfefd;
+    page-break-inside: avoid;
+  }
+  .feature .fhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #e0e8e0;
+  }
+  .feature .fname {
+    font-weight: 700;
+    color: #006400;
+    font-size: 12pt;
+  }
+  .feature .fpath {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+    color: #888;
+    background: #f2f6f2;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .feature .fdesc {
+    font-size: 10.5pt;
+    color: #222;
+    margin-bottom: 8px;
+    text-align: justify;
+  }
+  .feature .flabel {
+    font-size: 9.5pt;
+    color: #004d00;
+    font-weight: 600;
+    margin-top: 6px;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .feature ul {
+    margin: 0 0 6px 20px;
+    font-size: 10pt;
+    color: #333;
+  }
+  .feature ul li { margin-bottom: 2px; }
+
+  .role {
+    display: inline-block;
+    font-size: 9pt;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #e8f0e8;
+    color: #006400;
+    margin: 2px 3px 2px 0;
+    font-weight: 600;
+  }
+  .role.all { background: #006400; color: #fff; }
+  .role.admin { background: #d97706; color: #fff; }
+  .role.hc { background: #0a58ca; color: #fff; }
+
+  .footer {
+    margin-top: 50px;
+    padding-top: 14px;
+    border-top: 2px solid #006400;
+    text-align: center;
+    color: #666;
+    font-size: 9pt;
+  }
+
+  @media print {
+    body { padding: 0; }
+    h2, h3 { page-break-after: avoid; }
+    .feature { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-badge">Manual Pengguna</div>
+  <h1>Penjelasan Halaman &amp; Fitur</h1>
+  <div class="tagline">Panduan Fungsi Setiap Halaman di Portal HC KPB</div>
+  <div class="meta">Versi 1.0 &middot; April 2026 &middot; Untuk Pengguna Umum</div>
+</div>
+
+<!-- ─────────── PENGANTAR ─────────── -->
+<div class="intro">
+  <p>Dokumen ini menjelaskan <strong>setiap halaman utama</strong> di Portal HC KPB — apa fungsinya, apa yang bisa Anda lakukan di sana, dan siapa saja yang boleh mengaksesnya. Dokumen ditulis untuk pengguna umum (bukan developer), disusun per modul bisnis agar mudah dinavigasi.</p>
+</div>
+
+<!-- ─────────── TOC ─────────── -->
+<div class="toc">
+  <h3>Daftar Isi</h3>
+  <ol>
+    <li><a href="#m1">Home &amp; Akun</a>
+      <ul class="sub">
+        <li>Login &middot; Dashboard &middot; Profile &middot; Ganti Password &middot; Guide &middot; Maintenance</li>
+      </ul>
+    </li>
+    <li><a href="#m2">Modul CMP — Competency Management</a>
+      <ul class="sub">
+        <li>Dashboard CMP &middot; Assessment &middot; Mulai Ujian &middot; Ringkasan Ujian &middot; Hasil &middot; Records &middot; Records Tim &middot; Detail Records Pekerja &middot; Sertifikat &middot; Budget Training (+ Create &amp; Import) &middot; Dokumen KKJ &middot; Analytics Dashboard</li>
+      </ul>
+    </li>
+    <li><a href="#m3">Modul CDP — Career Development</a>
+      <ul class="sub">
+        <li>Index CDP &middot; Dashboard CDP &middot; Plan IDP &middot; Coaching PROTON &middot; Edit Coaching &middot; Histori PROTON &middot; Detail Histori PROTON &middot; Certification Management &middot; Deliverable</li>
+      </ul>
+    </li>
+    <li><a href="#m4">Modul Admin — Pengelolaan Sistem</a>
+      <ul class="sub">
+        <li>Dashboard Admin &middot; Kelola Pekerja &middot; Organisasi &middot; Kategori &middot; Paket Soal &middot; Assessment &middot; Training &middot; Dokumen KKJ &amp; CPDP &middot; Renewal Sertifikat &middot; Coach Mapping &middot; Coach Workload &middot; Monitoring Assessment &middot; Riwayat Assessment User &middot; Impersonate &middot; Audit Log &middot; Maintenance</li>
+      </ul>
+    </li>
+    <li><a href="#m5">Modul PROTON Data</a>
+      <ul class="sub">
+        <li>Data PROTON &middot; Import Silabus &middot; Override</li>
+      </ul>
+    </li>
+    <li><a href="#m6">Ringkasan Akses per Role</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 1. HOME & AKUN ═══════════ -->
+<h2 id="m1">1. Home &amp; Akun</h2>
+<p>Modul dasar yang menjadi pintu masuk dan pusat orientasi pengguna di Portal HC KPB.</p>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Halaman Login</span><span class="fpath">/Account/Login</span></div>
+  <div class="fdesc">Pintu masuk aplikasi. Pengguna memasukkan NIK/username dan password. Sistem mencoba verifikasi ke <strong>Active Directory (LDAP) Pertamina</strong> dulu; jika gagal, fallback ke akun lokal.</div>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Dashboard Beranda</span><span class="fpath">/Home/Index</span></div>
+  <div class="fdesc">Halaman pertama setelah login. Menampilkan salam berdasarkan waktu, event/jadwal mendatang (assessment, coaching), dan progress belajar pribadi. Untuk HC/Admin, muncul alert jumlah sertifikat yang expired atau mendekati expired.</div>
+  <div class="flabel">Fitur utama</div>
+  <ul>
+    <li>Kartu event mendatang (assessment, coaching scheduled)</li>
+    <li>Progress personal (training diambil, assessment lulus)</li>
+    <li>Banner alert sertifikat (khusus HC/Admin)</li>
+    <li>Shortcut menu berdasarkan role</li>
+  </ul>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Profil Pengguna</span><span class="fpath">/Account/Profile</span></div>
+  <div class="fdesc">Menampilkan data diri pengguna (NIK, nama, jabatan, bagian/seksi, role). Pengguna dapat melihat informasinya sendiri; data master tidak dapat diubah langsung di sini (harus lewat HC/Admin).</div>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Ganti Password</span><span class="fpath">/Account/ChangePassword</span></div>
+  <div class="fdesc">Mengubah password lokal. Khusus akun LDAP (AD Pertamina), password diubah melalui sistem IT korporat, bukan di sini.</div>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Guide — Pusat Panduan</span><span class="fpath">/Home/Guide</span></div>
+  <div class="fdesc">Kumpulan dokumen panduan penggunaan Portal HC KPB: manual per fitur, screenshot guide, release notes, penjelasan PROTON, hingga dokumen ini. Setiap dokumen dapat dibuka pada sub-halaman <em>GuideDetail</em>.</div>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Halaman Maintenance</span><span class="fpath">/Home/Maintenance</span></div>
+  <div class="fdesc">Halaman yang muncul bila Admin mengaktifkan mode pemeliharaan. Semua pengguna non-Admin dialihkan ke sini sehingga mereka tahu sistem sedang diperbaiki.</div>
+  <div class="flabel">Akses</div><span class="role all">Tampil otomatis saat maintenance aktif</span>
+</div>
+
+<!-- ═══════════ 2. CMP ═══════════ -->
+<h2 id="m2">2. Modul CMP — Competency Management</h2>
+<p>Modul inti untuk mengelola <strong>kompetensi pekerja</strong>: ujian online, rekam jejak training &amp; sertifikat, anggaran training, serta analitik performa.</p>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Dashboard CMP</span><span class="fpath">/CMP/Index</span></div>
+  <div class="fdesc">Halaman pusat modul CMP. Menampilkan menu utama: Assessment, Records, Sertifikat, Budget Training, Dokumen KKJ, Analytics. Menjadi titik awal semua aktivitas kompetensi.</div>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Assessment — Daftar Ujian Tersedia</span><span class="fpath">/CMP/Assessment</span></div>
+  <div class="fdesc">Menampilkan daftar paket soal (ujian) yang ditugaskan kepada pengguna atau yang terbuka untuk diikuti. Setiap paket menampilkan nama, kategori, durasi, passing grade, serta status (belum dikerjakan / sedang berjalan / selesai).</div>
+  <div class="flabel">Fitur utama</div>
+  <ul>
+    <li>Filter berdasarkan kategori &amp; status</li>
+    <li>Tombol mulai / lanjutkan ujian</li>
+    <li>Indikator batas waktu &amp; sisa percobaan</li>
+  </ul>
+  <div class="flabel">Akses</div><span class="role">Worker</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Mulai Ujian</span><span class="fpath">/CMP/StartExam</span></div>
+  <div class="fdesc">Halaman pengerjaan ujian. Soal ditampilkan satu per satu atau per page, dengan timer berjalan. Mendukung tipe soal Pilihan Ganda, Multiple Answer, dan Essay. Sistem mencatat aktivitas mencurigakan (keluar fullscreen, pindah tab) ke log.</div>
+  <div class="flabel">Fitur utama</div>
+  <ul>
+    <li>Timer hitung mundur + auto-submit saat habis</li>
+    <li>Deteksi anti-cheating: fullscreen enforcement, tab-switch detection</li>
+    <li>Navigasi antar-soal + tanda soal diragukan</li>
+    <li>Auto-save jawaban berkala</li>
+  </ul>
+  <div class="flabel">Akses</div><span class="role">Worker</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Ringkasan Ujian</span><span class="fpath">/CMP/ExamSummary</span></div>
+  <div class="fdesc">Tampil setelah ujian selesai. Menunjukkan ringkasan: jumlah soal dijawab, waktu terpakai, skor sementara (untuk soal objektif), serta status menunggu koreksi (untuk soal essay).</div>
+  <div class="flabel">Akses</div><span class="role">Worker</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Hasil Ujian</span><span class="fpath">/CMP/Results</span></div>
+  <div class="fdesc">Detail hasil ujian peserta setelah grading selesai. Menampilkan skor final, status lulus/tidak lulus, pembahasan per soal (bila diizinkan), dan opsi cetak sertifikat jika lulus.</div>
+  <div class="flabel">Akses</div><span class="role">Worker</span> <span class="role">Atasan</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Records — Riwayat Training &amp; Assessment</span><span class="fpath">/CMP/Records</span></div>
+  <div class="fdesc">Arsip lengkap pribadi: semua training yang pernah diambil, assessment yang pernah diikuti, sertifikat, dan statusnya. Data digabung dari input HC &amp; import Excel.</div>
+  <div class="flabel">Akses</div><span class="role">Worker</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Records Tim</span><span class="fpath">/CMP/RecordsTeam</span></div>
+  <div class="fdesc">Versi records untuk Atasan/HC — menampilkan daftar bawahan langsung atau seluruh pekerja dalam bagiannya, dengan ringkasan status kompetensi masing-masing.</div>
+  <div class="flabel">Fitur utama</div>
+  <ul>
+    <li>Filter cascading: Bagian → Seksi → Pekerja</li>
+    <li>Indikator warna: sudah/belum training, sertifikat aktif/expired</li>
+    <li>Link ke detail per pekerja</li>
+  </ul>
+  <div class="flabel">Akses</div><span class="role">Atasan</span> <span class="role hc">HC</span> <span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Detail Records Pekerja</span><span class="fpath">/CMP/RecordsWorkerDetail</span></div>
+  <div class="fdesc">Tampilan mendalam satu pekerja: profil, daftar training diikuti, hasil assessment, sertifikat aktif, dan timeline riwayat kompetensi.</div>
+  <div class="flabel">Akses</div><span class="role">Atasan</span> <span class="role hc">HC</span> <span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Sertifikat</span><span class="fpath">/CMP/Certificate</span></div>
+  <div class="fdesc">Daftar sertifikat kompetensi pengguna — baik yang lahir dari assessment di portal maupun yang di-upload manual oleh HC. Dapat diunduh dalam format PDF.</div>
+  <div class="flabel">Fitur utama</div>
+  <ul>
+    <li>Unduh sertifikat PDF</li>
+    <li>Indikator status: aktif / akan expired / expired</li>
+    <li>Riwayat versi &amp; renewal</li>
+  </ul>
+  <div class="flabel">Akses</div><span class="role">Worker</span> <span class="role">Atasan</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Budget Training</span><span class="fpath">/CMP/BudgetTraining</span></div>
+  <div class="fdesc">Perencanaan anggaran training tahunan. Menampilkan daftar item training direncanakan beserta estimasi biaya, peserta, dan status approval.</div>
+  <div class="flabel">Akses</div><span class="role hc">HC</span> <span class="role">Atasan</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Budget Training — Tambah Manual</span><span class="fpath">/CMP/BudgetTrainingCreate</span></div>
+  <div class="fdesc">Form untuk menambah satu item budget training secara manual: judul training, kategori, biaya, peserta target, periode pelaksanaan.</div>
+  <div class="flabel">Akses</div><span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Budget Training — Import Excel</span><span class="fpath">/CMP/BudgetTrainingImport</span></div>
+  <div class="fdesc">Upload file Excel untuk menambahkan banyak item budget training sekaligus. Sistem memvalidasi format dan menampilkan laporan baris sukses/gagal sebelum dicommit.</div>
+  <div class="flabel">Akses</div><span class="role hc">HC</span> <span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Dokumen KKJ &amp; Alignment</span><span class="fpath">/CMP/DokumenKkj</span></div>
+  <div class="fdesc">Repository <strong>Kamus Kompetensi Jabatan</strong> — berisi daftar kompetensi yang dipersyaratkan tiap jabatan di KPB. Halaman ini juga menampilkan tab <em>Alignment KKJ/IDP</em> untuk melihat kecocokan antara kompetensi yang dimiliki pekerja dengan yang dipersyaratkan jabatannya.</div>
+  <div class="flabel">Akses</div><span class="role">Semua Pengguna</span> <span style="font-size:9pt;color:#666">(L1-L4 lihat semua bagian, L5-L6 hanya bagian sendiri)</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Analytics Dashboard</span><span class="fpath">/CMP/AnalyticsDashboard</span></div>
+  <div class="fdesc">Dashboard visualisasi performa kompetensi organisasi: jumlah training per periode, tingkat kelulusan assessment, distribusi sertifikat, dan tren per bagian/seksi dalam bentuk grafik.</div>
+  <div class="flabel">Akses</div><span class="role hc">HC</span> <span class="role admin">Admin</span>
+</div>
+
+<!-- ═══════════ 3. CDP ═══════════ -->
+<h2 id="m3">3. Modul CDP — Career Development</h2>
+<p>Modul pengembangan <strong>karier individu</strong> melalui Individual Development Plan (IDP), coaching berbasis framework PROTON, dan manajemen sertifikasi personal.</p>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Index CDP</span><span class="fpath">/CDP/Index</span></div>
+  <div class="fdesc">Landing page modul CDP. Menampilkan menu: Dashboard, Plan IDP, Coaching PROTON, Certification, Deliverable.</div>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Dashboard CDP</span><span class="fpath">/CDP/Dashboard</span></div>
+  <div class="fdesc">Ringkasan pengembangan karier pengguna: progress IDP, sesi coaching terjadwal, sertifikasi aktif, dan deliverable yang perlu diselesaikan.</div>
+  <div class="flabel">Akses</div><span class="role all">Semua Pengguna</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Plan IDP — Individual Development Plan</span><span class="fpath">/CDP/PlanIdp</span></div>
+  <div class="fdesc">Form penyusunan rencana pengembangan diri pekerja untuk periode tertentu. Pekerja menentukan area pengembangan, action plan, dan target waktu; atasan melakukan review/approval.</div>
+  <div class="flabel">Fitur utama</div>
+  <ul>
+    <li>Daftar item IDP (competency gap, action plan, timeline)</li>
+    <li>Workflow submit → review atasan → approved</li>
+    <li>Matrix IDP berbasis KKJ jabatan</li>
+  </ul>
+  <div class="flabel">Akses</div><span class="role">Worker</span> <span class="role">Atasan</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Coaching PROTON</span><span class="fpath">/CDP/CoachingProton</span></div>
+  <div class="fdesc">Halaman pelaksanaan sesi coaching berbasis framework <strong>PROTON</strong>. Coach dan coachee mengisi catatan sesi, elemen teknis yang dievaluasi, skor per elemen, serta komitmen tindak lanjut.</div>
+  <div class="flabel">Akses</div><span class="role">Coach</span> <span class="role">Worker</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Edit Coaching Session</span><span class="fpath">/CDP/EditCoachingSession</span></div>
+  <div class="fdesc">Form untuk mengedit sesi coaching yang sudah dibuat (mengoreksi catatan, skor elemen teknis, tanggal) sebelum diarsipkan.</div>
+  <div class="flabel">Akses</div><span class="role">Coach</span> <span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Histori PROTON</span><span class="fpath">/CDP/HistoriProton</span></div>
+  <div class="fdesc">Arsip seluruh sesi coaching PROTON yang pernah dilakukan pengguna. Ditampilkan dalam bentuk daftar kronologis dengan filter periode &amp; coach.</div>
+  <div class="flabel">Akses</div><span class="role">Worker</span> <span class="role">Coach</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Detail Histori PROTON</span><span class="fpath">/CDP/HistoriProtonDetail</span></div>
+  <div class="fdesc">Tampilan mendalam satu sesi coaching: skor per elemen teknis, catatan coach, komitmen, dan lampiran bila ada.</div>
+  <div class="flabel">Akses</div><span class="role">Worker</span> <span class="role">Coach</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Certification Management</span><span class="fpath">/CDP/CertificationManagement</span></div>
+  <div class="fdesc">Pengelolaan sertifikasi personal pengguna — upload bukti sertifikat dari training eksternal, set masa berlaku, dan monitoring kapan perlu renewal.</div>
+  <div class="flabel">Akses</div><span class="role">Worker</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Deliverable</span><span class="fpath">/CDP/Deliverable</span></div>
+  <div class="fdesc">Daftar output/target pengembangan yang harus diselesaikan pekerja sebagai bagian dari IDP atau coaching. Menampilkan status: belum mulai, sedang dikerjakan, selesai.</div>
+  <div class="flabel">Akses</div><span class="role">Worker</span> <span class="role">Coach</span> <span class="role">Atasan</span>
+</div>
+
+<!-- ═══════════ 4. ADMIN ═══════════ -->
+<h2 id="m4">4. Modul Admin — Pengelolaan Sistem</h2>
+<p>Kumpulan halaman untuk <strong>HC dan Admin</strong> mengelola data master, konten, dan konfigurasi sistem.</p>
+
+<h3>4.1 Dashboard &amp; Manajemen Pekerja</h3>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Dashboard Admin</span><span class="fpath">/Admin/Index</span></div>
+  <div class="fdesc">Halaman utama admin. Menampilkan ringkasan jumlah pekerja, assessment aktif, sertifikat expired, dan shortcut ke semua modul administrasi.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Kelola Pekerja</span><span class="fpath">/Admin/ManageWorkers</span></div>
+  <div class="fdesc">Daftar lengkap semua pekerja KPB. Dapat melakukan search, filter per bagian/seksi, serta navigasi ke form tambah / edit / detail / import.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Tambah Pekerja</span><span class="fpath">/Admin/CreateWorker</span></div>
+  <div class="fdesc">Form untuk mendaftarkan pekerja baru secara manual: NIK, nama, jabatan, bagian/seksi, role, dan status aktif.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Edit Pekerja</span><span class="fpath">/Admin/EditWorker</span></div>
+  <div class="fdesc">Mengubah data pekerja yang sudah ada — termasuk memindahkan bagian/seksi, mengubah role, atau menonaktifkan akun.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Detail Pekerja</span><span class="fpath">/Admin/WorkerDetail</span></div>
+  <div class="fdesc">Profil lengkap satu pekerja dari sisi admin: data diri, training, assessment, sertifikat, log aktivitas, penugasan paket soal.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Import Pekerja</span><span class="fpath">/Admin/ImportWorkers</span></div>
+  <div class="fdesc">Upload data pekerja massal melalui file Excel. Sistem memvalidasi, menampilkan baris sukses/gagal/warning, dan meng-commit setelah dikonfirmasi.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Kelola Organisasi</span><span class="fpath">/Admin/ManageOrganization</span></div>
+  <div class="fdesc">Mengelola struktur organisasi hirarkis berbentuk pohon (Bagian → Seksi → Sub-seksi). Dapat menambah, edit, pindah, dan menonaktifkan unit organisasi. Ada visualisasi org-tree interaktif.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<h3>4.2 Kategori &amp; Paket Soal</h3>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Kelola Kategori</span><span class="fpath">/Admin/ManageCategories</span></div>
+  <div class="fdesc">CRUD kategori assessment (mis. Safety, Process Engineering, HSE). Kategori digunakan untuk mengelompokkan paket soal.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Kelola Paket Soal</span><span class="fpath">/Admin/ManagePackages</span></div>
+  <div class="fdesc">Daftar paket soal yang tersedia. Setiap paket memiliki kategori, durasi, passing grade, jumlah soal, dan daftar peserta yang ditugaskan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Kelola Soal per Paket</span><span class="fpath">/Admin/ManagePackageQuestions</span></div>
+  <div class="fdesc">Menambah/edit/hapus soal dalam satu paket. Mendukung tipe Multiple Choice, Multiple Answer, dan Essay. Soal dapat dilengkapi gambar pendukung.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Import Soal dari Excel</span><span class="fpath">/Admin/ImportPackageQuestions</span></div>
+  <div class="fdesc">Upload soal massal melalui template Excel (format berbeda untuk MC, Multiple Answer, Essay, dan Mix). Validasi dilakukan otomatis sebelum commit.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Preview Paket Soal</span><span class="fpath">/Admin/PreviewPackage</span></div>
+  <div class="fdesc">Mensimulasikan tampilan paket soal seperti yang akan dilihat peserta — untuk QA sebelum paket ditugaskan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<h3>4.3 Assessment</h3>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Kelola Assessment</span><span class="fpath">/Admin/ManageAssessment</span></div>
+  <div class="fdesc">Daftar assessment aktif dan terjadwal. Dari sini admin membuat assessment baru, mengedit, atau menonaktifkan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Buat Assessment</span><span class="fpath">/Admin/CreateAssessment</span></div>
+  <div class="fdesc">Form pembuatan assessment baru berbasis paket soal. Admin menentukan peserta, periode pelaksanaan, batas percobaan, dan parameter anti-cheating.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Edit Assessment</span><span class="fpath">/Admin/EditAssessment</span></div>
+  <div class="fdesc">Mengubah parameter assessment yang sudah dibuat (periode, peserta, dsb.) — dengan catatan tidak bisa mengubah paket setelah ada peserta yang mengerjakan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Assessment Manual</span><span class="fpath">/Admin/AddManualAssessment &middot; /EditManualAssessment</span></div>
+  <div class="fdesc">Mencatat hasil assessment yang dilakukan secara offline (mis. ujian lapangan) ke dalam sistem. HC memasukkan skor dan status lulus secara manual.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Monitoring Assessment (Realtime)</span><span class="fpath">/Admin/AssessmentMonitoring</span></div>
+  <div class="fdesc">Dashboard realtime untuk memantau peserta yang sedang mengerjakan ujian: siapa online, progress, waktu tersisa, dan flag suspicious activity. Menggunakan SignalR sehingga update tanpa reload.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Detail Monitoring Assessment</span><span class="fpath">/Admin/AssessmentMonitoringDetail</span></div>
+  <div class="fdesc">Tampilan fokus satu peserta saat sedang ujian: progress per soal, timeline aktivitas, log anti-cheating (keluar fullscreen, switch tab).</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Riwayat Assessment User</span><span class="fpath">/Admin/UserAssessmentHistory</span></div>
+  <div class="fdesc">Seluruh riwayat percobaan ujian satu pengguna — termasuk yang gagal, timeout, atau dibatalkan. Berguna untuk troubleshooting keluhan peserta.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<h3>4.4 Training &amp; Sertifikat</h3>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Tambah Training Manual</span><span class="fpath">/Admin/AddTraining</span></div>
+  <div class="fdesc">Input data training yang sudah dilakukan pekerja secara satu-per-satu (mis. training dari vendor eksternal).</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Edit Training</span><span class="fpath">/Admin/EditTraining</span></div>
+  <div class="fdesc">Mengoreksi data training yang sudah tercatat (perubahan tanggal, penyelenggara, peserta).</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Import Training</span><span class="fpath">/Admin/ImportTraining</span></div>
+  <div class="fdesc">Import rekam training massal dari Excel — terutama saat migrasi data dari sistem lama atau upload rekap tahunan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Renewal Sertifikat</span><span class="fpath">/Admin/RenewalCertificate</span></div>
+  <div class="fdesc">Mengelola perpanjangan sertifikat yang akan atau sudah expired. Admin dapat menautkan sertifikat lama ke yang baru sebagai chain renewal sehingga riwayat terjaga.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<h3>4.5 Dokumen KKJ &amp; CPDP</h3>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Upload KKJ</span><span class="fpath">/Admin/KkjUpload</span></div>
+  <div class="fdesc">Mengunggah dokumen Kamus Kompetensi Jabatan (KKJ) — Excel/PDF — yang memuat daftar kompetensi dipersyaratkan untuk tiap jabatan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Matrix KKJ</span><span class="fpath">/Admin/KkjMatrix</span></div>
+  <div class="fdesc">Matrix visual antara jabatan × kompetensi. Memudahkan review alignment &amp; gap analysis.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">History KKJ</span><span class="fpath">/Admin/KkjFileHistory</span></div>
+  <div class="fdesc">Riwayat versi file KKJ yang pernah diunggah, lengkap dengan tanggal upload dan pengunggah. Bisa dipakai untuk audit.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Upload CPDP</span><span class="fpath">/Admin/CpdpUpload</span></div>
+  <div class="fdesc">Unggah dokumen Competency &amp; Professional Development Profile pekerja — biasanya hasil assessment eksternal atau profil korporat.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Daftar &amp; History CPDP</span><span class="fpath">/Admin/CpdpFiles &middot; /CpdpFileHistory</span></div>
+  <div class="fdesc">Browse dokumen CPDP yang sudah diunggah + riwayat revisi tiap file.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<h3>4.6 Coaching (Admin)</h3>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Coach &harr; Coachee Mapping</span><span class="fpath">/Admin/CoachCoacheeMapping</span></div>
+  <div class="fdesc">Memetakan siapa yang menjadi coach bagi siapa. Mendukung import Excel untuk rollout massal, dengan validasi bahwa coach memiliki level/role sesuai.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Coach Workload</span><span class="fpath">/Admin/CoachWorkload</span></div>
+  <div class="fdesc">Monitoring beban tiap coach — berapa coachee yang di-handle, berapa sesi per bulan — dengan indikator threshold overload agar distribusi lebih adil.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span> <span class="role hc">HC</span>
+</div>
+
+<h3>4.7 Sistem &amp; Audit</h3>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Impersonate User</span><span class="fpath">/Admin/Impersonate</span></div>
+  <div class="fdesc">Fitur Admin untuk "bertindak seolah user lain" tanpa perlu password-nya — berguna saat troubleshoot keluhan atau validasi tampilan role tertentu. Banner peringatan muncul selama impersonation aktif, dan semua aksi tercatat di audit log.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Audit Log</span><span class="fpath">/Admin/AuditLog</span></div>
+  <div class="fdesc">Log semua aksi sensitif: login berhasil/gagal, perubahan data master, hapus data, impersonate, perubahan konfigurasi. Dapat di-filter per pengguna, per jenis aksi, per tanggal.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Maintenance Mode</span><span class="fpath">/Admin/Maintenance</span></div>
+  <div class="fdesc">Mengaktifkan mode pemeliharaan sistem — selama aktif, semua user non-Admin dialihkan ke halaman "sedang maintenance". Admin juga dapat mengatur pesan khusus untuk ditampilkan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<!-- ═══════════ 5. PROTON DATA ═══════════ -->
+<h2 id="m5">5. Modul PROTON Data</h2>
+<p>Halaman khusus untuk mengelola <strong>data master framework PROTON</strong> — silabus elemen teknis yang menjadi basis coaching di modul CDP.</p>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Data PROTON</span><span class="fpath">/ProtonData/Index</span></div>
+  <div class="fdesc">Browse &amp; manage data silabus PROTON: elemen teknis per jabatan/kompetensi, level, deskripsi, dan indikator penilaian.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Import Silabus PROTON</span><span class="fpath">/ProtonData/ImportSilabus</span></div>
+  <div class="fdesc">Upload silabus elemen teknis massal via Excel. Validasi otomatis terhadap struktur dan referensi jabatan.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<div class="feature">
+  <div class="fhead"><span class="fname">Override PROTON</span><span class="fpath">/ProtonData/Override</span></div>
+  <div class="fdesc">Mengubah assignment silabus secara manual untuk kasus khusus — mis. pekerja yang jabatannya tidak standar atau butuh penyesuaian elemen.</div>
+  <div class="flabel">Akses</div><span class="role admin">Admin</span>
+</div>
+
+<!-- ═══════════ 6. RINGKASAN ROLE ═══════════ -->
+<h2 id="m6">6. Ringkasan Akses per Role</h2>
+<p>Matriks singkat modul yang dapat diakses tiap role:</p>
+
+<table style="width:100%;border-collapse:collapse;font-size:10pt;margin-top:12px;">
+  <thead>
+    <tr style="background:#006400;color:#fff;">
+      <th style="padding:8px 10px;border:1px solid #d4dbd4;text-align:left;">Modul / Halaman</th>
+      <th style="padding:8px 10px;border:1px solid #d4dbd4;">Worker</th>
+      <th style="padding:8px 10px;border:1px solid #d4dbd4;">Atasan</th>
+      <th style="padding:8px 10px;border:1px solid #d4dbd4;">Coach</th>
+      <th style="padding:8px 10px;border:1px solid #d4dbd4;">HC</th>
+      <th style="padding:8px 10px;border:1px solid #d4dbd4;">Admin</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="padding:6px 10px;border:1px solid #d4dbd4;">Home, Profil, Guide</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr style="background:#f7faf7;"><td style="padding:6px 10px;border:1px solid #d4dbd4;">CMP - Assessment &amp; Records pribadi</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr><td style="padding:6px 10px;border:1px solid #d4dbd4;">CMP - Records Tim &amp; Detail</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr style="background:#f7faf7;"><td style="padding:6px 10px;border:1px solid #d4dbd4;">CMP - Budget Training &amp; Analytics</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr><td style="padding:6px 10px;border:1px solid #d4dbd4;">CDP - IDP &amp; Deliverable</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓ <span style="font-size:8pt;color:#666">(review)</span></td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr style="background:#f7faf7;"><td style="padding:6px 10px;border:1px solid #d4dbd4;">CDP - Coaching PROTON (sebagai coach)</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr><td style="padding:6px 10px;border:1px solid #d4dbd4;">Admin - Kelola Data Master</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr style="background:#f7faf7;"><td style="padding:6px 10px;border:1px solid #d4dbd4;">Admin - Sistem (Audit, Maintenance, Impersonate, Organisasi)</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+    <tr><td style="padding:6px 10px;border:1px solid #d4dbd4;">PROTON Data</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">—</td><td style="text-align:center;border:1px solid #d4dbd4;">✓</td></tr>
+  </tbody>
+</table>
+
+<p style="margin-top:14px;font-size:10pt;color:#555;"><em>Catatan: matriks di atas menunjukkan akses tipikal. Admin dengan fitur <strong>Impersonate</strong> dapat melihat tampilan role manapun untuk kebutuhan troubleshooting.</em></p>
+
+<div class="footer">
+  <strong>Portal HC KPB</strong> &middot; PT Pertamina (Persero) Kilang Balikpapan<br>
+  Manual Pengguna — Penjelasan Halaman &amp; Fitur &middot; April 2026
+</div>
+
+</body>
+</html>

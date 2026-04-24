@@ -1,0 +1,188 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8">
+<title>Struktur Peran & Akses — HC Prime</title>
+
+<style>
+ body { font-family: 'Arial', sans-serif; max-width: 1100px; margin: 24px auto; padding: 0 24px; color: #222; line-height: 1.55; }
+ h1 { border-bottom: 3px solid #0d6efd; padding-bottom: 6px; color: #0d6efd; margin-top: 40px; }
+ h2 { border-left: 5px solid #0d6efd; padding-left: 12px; margin-top: 32px; color: #0a3a72; }
+ h3 { color: #333; margin-top: 22px; }
+ .note { background: #fff8e1; border-left: 4px solid #f9a825; padding: 10px 14px; margin: 12px 0; font-size: 0.93em; }
+ .label-warn { background: #fee; border-left: 4px solid #c62828; padding: 10px 14px; margin: 12px 0; font-size: 0.93em; }
+ .label-warn .chip { background: #c62828; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; margin-right: 8px; }
+ .step { margin: 4px 0 4px 20px; }
+ .role { display: inline-block; background: #0d6efd; color: white; padding: 1px 8px; border-radius: 3px; font-size: 0.82em; font-weight: bold; margin-right: 6px; }
+ .role.HC { background: #f9a825; color: #000; }
+ .role.COACH { background: #2e7d32; }
+ .role.COACHEE { background: #6a1b9a; }
+ .role.ATASAN { background: #00838f; }
+ .role.USER { background: #455a64; }
+ .role.SEMUA { background: #222; }
+ img { max-width: 960px; width: 100%; border: 1px solid #ddd; border-radius: 6px; margin: 10px 0 20px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+ .metric { margin: 4px 0 4px 20px; }
+ hr.pagebreak { border: none; border-top: 2px dashed #ccc; margin: 40px 0; }
+ .doc-header { background: #f4f6f8; border: 1px solid #ddd; padding: 14px; border-radius: 6px; font-size: 0.92em; margin-bottom: 24px; }
+ .doc-header table { width: 100%; border-collapse: collapse; }
+ .doc-header td { padding: 4px 8px; font-size: 0.9em; }
+ .doc-header td:first-child { font-weight: bold; width: 25%; }
+
+ /* Struktur role & akses */
+ .struktur-section { background: #fafbfc; border: 1px solid #e0e4eb; border-radius: 8px; padding: 20px 24px; margin: 24px 0; }
+ .struktur-section h2 { margin-top: 0; }
+ table.role-table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 0.92em; }
+ table.role-table th, table.role-table td { border: 1px solid #d0d7de; padding: 7px 10px; text-align: left; vertical-align: top; }
+ table.role-table th { background: #eef2f7; font-weight: 600; color: #1a365d; }
+ table.role-table tbody tr:nth-child(even) { background: #f8fafc; }
+ .lvl-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78em; font-weight: 700; color: white; min-width: 24px; text-align: center; }
+ .lvl-1 { background: #c62828; }
+ .lvl-2 { background: #ef6c00; }
+ .lvl-3 { background: #2e7d32; }
+ .lvl-4 { background: #00838f; }
+ .lvl-5 { background: #1565c0; }
+ .lvl-6 { background: #6a1b9a; }
+ .view-pill { display: inline-block; padding: 1px 8px; border-radius: 3px; font-size: 0.78em; font-weight: 700; color: white; }
+ .view-Admin { background: #c62828; }
+ .view-HC { background: #f9a825; color: #000; }
+ .view-Atasan { background: #00838f; }
+ .view-Coach { background: #2e7d32; }
+ .view-Coachee { background: #6a1b9a; }
+ .access-yes { color: #1b5e20; font-weight: 700; text-align: center; }
+ .access-read { color: #1565c0; font-weight: 600; text-align: center; }
+ .access-no { color: #bbb; text-align: center; }
+</style>
+
+</head><body>
+
+    <div class="doc-header">
+      <table>
+        <tr><td>Dokumen</td><td>Struktur Peran &amp; Akses Website HC Prime</td></tr>
+        <tr><td>Konteks</td><td>Referensi pendukung Draft TKI — PT Kilang Pertamina Balikpapan</td></tr>
+        <tr><td>Status</td><td>Standalone preview</td></tr>
+      </table>
+    </div>
+        
+
+<div class="struktur-section">
+<h2 style="margin-top:0">Struktur Peran & Akses Website HC Prime</h2>
+<p style="font-size:0.93em;color:#555;margin-top:0">
+  Referensi kontekstual sebelum masuk ke prosedur BAB X. Website HC Prime menggunakan <b>RBAC</b>
+  (Role-Based Access Control) dengan 10 role yang dikelompokkan ke dalam 6 level hierarki.
+  Setiap role memiliki lingkup akses dan <em>default view</em> berbeda.
+</p>
+
+<h3>1. Hierarki Role (Level 1–6)</h3>
+<table class="role-table">
+  <thead>
+    <tr><th style="width:60px">Level</th><th style="width:150px">Role</th><th>Kelompok</th><th>Lingkup Akses</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><span class="lvl-pill lvl-1">1</span></td><td><b>Admin</b></td><td>System Administrator</td><td>Full access — seluruh fitur sistem, maintenance, audit, impersonation. <i>Back-up teknis.</i></td></tr>
+    <tr><td><span class="lvl-pill lvl-2">2</span></td><td><b>HC</b></td><td>Human Capital</td><td>Full access — seluruh fitur CMP, CDP, Kelola Data. <i>Pengelola operasional utama.</i></td></tr>
+    <tr><td><span class="lvl-pill lvl-3">3</span></td><td>Direktur</td><td rowspan="3">Management</td><td rowspan="3">Full access (read-weighted) — dashboard, seluruh tim; tidak mengelola data master.</td></tr>
+    <tr><td><span class="lvl-pill lvl-3">3</span></td><td>VP</td></tr>
+    <tr><td><span class="lvl-pill lvl-3">3</span></td><td>Manager</td></tr>
+    <tr><td><span class="lvl-pill lvl-4">4</span></td><td>Section Head</td><td rowspan="2">Section Supervisory</td><td rowspan="2">Akses tingkat seksi — IDP & deliverable seluruh coachee dalam satu seksi, approval tingkat bagian.</td></tr>
+    <tr><td><span class="lvl-pill lvl-4">4</span></td><td>Sr Supervisor</td></tr>
+    <tr><td><span class="lvl-pill lvl-5">5</span></td><td><b>Coach</b></td><td rowspan="2">Coaching</td><td>Akses ke coachee yang di-map. Upload evidence, input sesi PROTON, lihat IDP coachee.</td></tr>
+    <tr><td><span class="lvl-pill lvl-5">5</span></td><td>Supervisor</td><td>Akses view sama dengan Coach, tanpa coachee mapping.</td></tr>
+    <tr><td><span class="lvl-pill lvl-6">6</span></td><td><b>Coachee</b></td><td>Operational</td><td>Akses ke data sendiri — IDP, assessment, records, sertifikat, histori coaching personal.</td></tr>
+  </tbody>
+</table>
+
+<h3>2. Default View per Role</h3>
+<p style="font-size:0.92em;color:#555;margin-top:0">
+  Website memilih tampilan default berbeda untuk setiap role saat login. Ini menentukan widget dan menu yang paling menonjol di halaman Beranda.
+</p>
+<table class="role-table">
+  <thead>
+    <tr><th style="width:200px">Role</th><th style="width:140px">Default View</th><th>Karakteristik Tampilan</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Admin</td><td><span class="view-pill view-Admin">Admin</span></td><td>Dashboard sistem, alert sertifikat expired, akses Kelola Data.</td></tr>
+    <tr><td>HC</td><td><span class="view-pill view-HC">HC</span></td><td>Analytics dashboard, Kelola Data, ringkasan status pekerja lintas bagian.</td></tr>
+    <tr><td>Direktur / VP / Manager / Section Head / Sr Supervisor</td><td><span class="view-pill view-Atasan">Atasan</span></td><td>Team view, progress bawahan, ringkasan assessment/coaching seksi.</td></tr>
+    <tr><td>Coach / Supervisor</td><td><span class="view-pill view-Coach">Coach</span></td><td>Daftar coachee yang di-map, pending approval deliverable, histori coaching.</td></tr>
+    <tr><td>Coachee (+ semua role lain)</td><td><span class="view-pill view-Coachee">Coachee</span></td><td>IDP pribadi, assessment ditugaskan, progress personal, sertifikat pribadi.</td></tr>
+  </tbody>
+</table>
+
+<h3>3. Pemetaan Position (Jabatan) ↔ Role Default</h3>
+<p style="font-size:0.92em;color:#555;margin-top:0">
+  Position adalah nama jabatan struktural di PT KPB. Saat HC menambahkan pekerja baru, field <b>Role</b> dipilih terpisah dari <b>Position</b>. Tabel berikut adalah rekomendasi mapping default yang umum dipakai.
+</p>
+<table class="role-table">
+  <thead>
+    <tr><th>Position / Jabatan</th><th style="width:160px">Role Default</th><th>Contoh Fungsi</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Direktur Operasi</td><td><span class="lvl-pill lvl-3">Direktur</span></td><td>Pimpinan Direktorat</td></tr>
+    <tr><td>VP Refinery / VP HC & Corp. Services</td><td><span class="lvl-pill lvl-3">VP</span></td><td>Pimpinan Fungsi Level VP</td></tr>
+    <tr><td>Manager Process / Manager HC</td><td><span class="lvl-pill lvl-3">Manager</span></td><td>Manager Fungsi</td></tr>
+    <tr><td>Section Head (GAST, NGP, RFCC, DHT & HMU, Utilities II)</td><td><span class="lvl-pill lvl-4">Section Head</span></td><td>Kepala Seksi</td></tr>
+    <tr><td>Sr Supervisor / Senior Supervisor Shift</td><td><span class="lvl-pill lvl-4">Sr Supervisor</span></td><td>Atasan langsung Shift Supervisor</td></tr>
+    <tr><td>Shift Supervisor</td><td><span class="lvl-pill lvl-5">Coach</span> / <span class="lvl-pill lvl-5">Supervisor</span></td><td>Atasan langsung Operator/Panelman; bila di-map sebagai pembina coachee → Coach</td></tr>
+    <tr><td>Panelman (Control Room Operator)</td><td><span class="lvl-pill lvl-6">Coachee</span></td><td>Operator DCS/HMI</td></tr>
+    <tr><td>Operator (Field Operator)</td><td><span class="lvl-pill lvl-6">Coachee</span></td><td>Field operator per unit</td></tr>
+    <tr><td>HC Staff (Jr./Sr. Analyst, Business Partner)</td><td><span class="lvl-pill lvl-2">HC</span></td><td>Pengelola platform kompetensi</td></tr>
+    <tr><td>System Administrator (IT)</td><td><span class="lvl-pill lvl-1">Admin</span></td><td>Back-up teknis sistem</td></tr>
+  </tbody>
+</table>
+
+<h3>4. Matriks Akses per Halaman</h3>
+<p style="font-size:0.92em;color:#555;margin-top:0">
+  ✅ = akses penuh (baca &amp; tulis) &nbsp;·&nbsp; 👁 = read-only (data sendiri/bawahan) &nbsp;·&nbsp; — = tidak punya akses
+</p>
+<table class="role-table">
+  <thead>
+    <tr>
+      <th style="text-align:left">Halaman / Fitur</th>
+      <th style="width:60px"><span class="view-pill view-Admin">Admin</span></th>
+      <th style="width:60px"><span class="view-pill view-HC">HC</span></th>
+      <th style="width:70px"><span class="view-pill view-Atasan">Atasan</span></th>
+      <th style="width:70px"><span class="view-pill view-Coach">Coach</span></th>
+      <th style="width:80px"><span class="view-pill view-Coachee">Coachee</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="6" style="background:#eef2f7;font-weight:700;color:#0d6efd">AKSES &amp; BERANDA</td></tr>
+    <tr><td>Login / Beranda / Profil</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td></tr>
+
+    <tr><td colspan="6" style="background:#eef2f7;font-weight:700;color:#0d6efd">MODUL CMP — Competency Management</td></tr>
+    <tr><td>Dokumen KKJ — lihat</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td></tr>
+    <tr><td>Ikut Assessment Online</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td></tr>
+    <tr><td>Records (rekam jejak pribadi)</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td></tr>
+    <tr><td>Records Team (rekam jejak tim)</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-read">👁</td><td class="access-read">👁</td><td class="access-no">—</td></tr>
+    <tr><td>Certification Management</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-read">👁</td><td class="access-read">👁</td><td class="access-read">👁</td></tr>
+    <tr><td>Analytics Dashboard</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Budget Training</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+
+    <tr><td colspan="6" style="background:#eef2f7;font-weight:700;color:#0d6efd">MODUL CDP — Career Development</td></tr>
+    <tr><td>Plan IDP — lihat silabus</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-read">👁</td><td class="access-read">👁</td><td class="access-read">👁</td></tr>
+    <tr><td>Coaching PROTON — input sesi &amp; upload evidence</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td></tr>
+    <tr><td>Deliverable — approve / reject</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Deliverable — HC Review final</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Histori PROTON</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-read">👁</td><td class="access-read">👁</td><td class="access-read">👁</td></tr>
+
+    <tr><td colspan="6" style="background:#eef2f7;font-weight:700;color:#0d6efd">MODUL HC — Pengelolaan Data</td></tr>
+    <tr><td>Worker Management (CRUD + Import)</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Organization Structure</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Coach-Coachee Mapping &amp; Workload</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Kategori &amp; Paket Assessment</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Assessment Monitoring (real-time)</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Upload Dokumen KKJ / CPDP</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>PROTON Data (silabus &amp; guidance)</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Renewal Certificate</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+
+    <tr><td colspan="6" style="background:#eef2f7;font-weight:700;color:#0d6efd">SISTEM &amp; MONITORING (non-TKI)</td></tr>
+    <tr><td>Notifikasi</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-yes">✅</td></tr>
+    <tr><td>Audit Log</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Maintenance Mode</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+    <tr><td>Impersonation</td><td class="access-yes">✅</td><td class="access-yes">✅</td><td class="access-no">—</td><td class="access-no">—</td><td class="access-no">—</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size:0.85em;color:#666;font-style:italic;margin-top:8px">
+  <b>Catatan:</b> Matriks ini hasil ekstraksi dari atribut <code>[Authorize(Roles=...)]</code> pada controller (<code>UserRoles.RolesCoachAndAbove</code>, <code>UserRoles.RolesReviewerAndAbove</code>) dan aturan <em>row-level scoping</em> (Coach hanya lihat coachee yang di-map; Atasan hanya lihat bawahan dalam seksi yang sama).
+</p>
+</div>
+
+</body></html>
