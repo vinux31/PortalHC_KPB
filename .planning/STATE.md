@@ -10,7 +10,7 @@ progress:
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
-  percent: 100
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -20,18 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 304 — UI Label Polish (Login + WIB)
+**Current focus:** Phase 305 — Question Type Naming Clarity (LBL-01)
 
 ## Current Position
 
-Phase: 304
-Plan: Not started
-Status: Executing Phase 304
+Phase: 305
+Plan: Not started (context gathered)
+Status: Phase 305 context gathered — ready for /gsd-plan-phase
 Last activity: 2026-04-28
+Resume file: .planning/phases/305-question-type-naming-clarity/305-CONTEXT.md
 
 ## Next Action
 
-Jalankan `/clear` lalu `/gsd-execute-phase 304` untuk eksekusi plans.
+Jalankan `/clear` lalu `/gsd-plan-phase 305` untuk membuat PLAN.md.
 
 ## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
 
