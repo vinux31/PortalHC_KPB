@@ -4844,9 +4844,12 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
 
-            // Server-side: MC/MA force ScoreValue=10 (T-298-03)
-            if (questionType != "Essay") scoreValue = 10;
-            if (scoreValue <= 0) scoreValue = 10;
+            // Range validation 1-100 (D-12, D-13) - replaces force-override removed per D-14 (Phase 306)
+            if (scoreValue < 1 || scoreValue > 100)
+            {
+                TempData["Error"] = "Nilai soal harus antara 1 dan 100.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             // Validate per type (D-07)
             var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
@@ -4865,6 +4868,9 @@ namespace HcPortal.Controllers
                 TempData["Error"] = "Rubrik wajib diisi untuk soal Essay.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
+
+            // Capture old score for audit log delta detection (D-10)
+            var oldScore = q.ScoreValue;
 
             q.QuestionText = questionText.Trim();
             q.QuestionType = questionType;
@@ -4896,6 +4902,35 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Audit log: score change with affected sessions count (D-10)
+            if (scoreValue != oldScore)
+            {
+                var affectedSessionsCount = await _context.PackageUserResponses
+                    .Where(r => r.PackageQuestionId == questionId)
+                    .Select(r => r.AssessmentSessionId)
+                    .Distinct()
+                    .CountAsync();
+
+                try
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                        ? (currentUser?.FullName ?? "Unknown")
+                        : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(
+                        currentUser?.Id ?? "",
+                        actorName,
+                        "EditQuestion-ScoreChange",
+                        $"Question #{q.Id} (Order {q.Order}, Package #{packageId}) ScoreValue: {oldScore} → {scoreValue} ({affectedSessionsCount} sessions affected)",
+                        q.Id,
+                        "PackageQuestion");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "Audit logging failed during EditQuestion-ScoreChange for Question {Id}", q.Id);
+                }
+            }
 
             TempData["Success"] = "Soal berhasil diperbarui.";
 
