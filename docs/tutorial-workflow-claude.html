@@ -131,7 +131,29 @@ verification-before-completion  →  verifikasi sebelum claim selesai</div>
     <li>Skill diaktifkan otomatis oleh Claude lewat <code>Skill</code> tool, atau ketik nama skill di prompt</li>
 </ul>
 
-<!-- STEP 4 -->
+<h2><span class="step-num">4</span>Verifikasi via Playwright MCP (localhost)</h2>
+
+<p>Claude Code yang Anda pakai sudah punya plugin <strong>Playwright MCP</strong> terpasang. Claude bisa membuka browser otomatis ke <code>localhost</code>, klik UI, mengambil screenshot, dan membaca console error untuk verifikasi end-to-end.</p>
+
+<h3>Prasyarat</h3>
+<ul class="checklist">
+    <li>Plugin Playwright MCP aktif di Claude Code (tool <code>mcp__plugin_playwright_playwright__*</code> tersedia)</li>
+    <li>Dev server jalan: <code>dotnet run</code> di terminal terpisah</li>
+    <li>Aplikasi accessible di <code>https://localhost:5001</code> (Kestrel default)</li>
+    <li>Akun test sudah disiapkan (HC, Worker, Admin sesuai kebutuhan)</li>
+</ul>
+
+<h3>Contoh Prompt</h3>
+<p>Ganti placeholder <code>&lt;...&gt;</code> dengan kredensial test Anda:</p>
+
+<div class="command-box">Pakai Playwright, buka https://localhost:5001, login sebagai HC
+(email: &lt;email-test&gt;, password: &lt;password-test&gt;),
+buat assessment baru, assign 1 worker, dan ambil screenshot tiap step.
+Laporkan kalau ada error di console.</div>
+
+<div class="note"><strong>Catatan:</strong> Dev server harus sudah jalan dulu. Kalau belum, suruh Claude jalankan <code>dotnet run</code> di background bash sebelum verifikasi (Claude punya tool background process).</div>
+
+<!-- STEP 5 -->
 
 </body>
 </html>
