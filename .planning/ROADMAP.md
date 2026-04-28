@@ -81,7 +81,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     - [x] 304-01-PLAN.md — Eye-icon toggle password Login (AUTH-01)
     - [x] 304-02-PLAN.md — Label '(WIB)' Step 3 wizard + suffix ' WIB' Step 4 summary CreateAssessment (WIZ-02, WIZ-03)
 
-- [x] **Phase 305: Question Type Naming Clarity** — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tetap) (completed 2026-04-28)
+- [x] **Phase 305: Question Type Naming Clarity** — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tetap)
+ (completed 2026-04-28)
   - **REQ:** LBL-01
   - **Success Criteria:**
     1. Form admin `ManagePackageQuestions.cshtml` dropdown menampilkan "Single Choice (1 jawaban benar)" + "Multiple Answers (≥2 jawaban benar)" (wording final per CONTEXT.md D-01 — Moodle/Canvas LMS standard)
@@ -105,6 +106,9 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     4. Server-side validation: range 1–100 tetap di-enforce (Range attribute atau ModelState)
     5. AuditLog entry saat score diubah pada soal yang sudah punya session associated (warning + log, bukan block)
   - **Risk:** Medium | **Effort:** M
+  - **Plans:** 2 plans
+    - [ ] 306-01-PLAN.md — Server-side: range validation, hapus force-override, audit log EditQuestion-ScoreChange + CreateQuestion-CustomScore + JSON GET extend affectedSessions (QSCR-01)
+    - [ ] 306-02-PLAN.md — View: header total points, scoreValue input enabled, modal Peringatan Ubah Skor + JS submit handler + populateEditForm extension + manual UAT 10-step (QSCR-01)
 
 - [ ] **Phase 307: Selected Participants Inline View** — Real-time list peserta di Step 2
   - **REQ:** WIZ-01
