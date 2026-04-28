@@ -84,12 +84,15 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 - [ ] **Phase 305: Question Type Naming Clarity** — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tetap)
   - **REQ:** LBL-01
   - **Success Criteria:**
-    1. Form admin `ManagePackageQuestions.cshtml` dropdown menampilkan "Pilihan Tunggal (1 jawaban benar)" + "Pilihan Jamak (≥2 jawaban benar)"
-    2. Preview `_PreviewQuestion.cshtml` badge label sesuai
-    3. Worker exam `StartExam.cshtml` + summary `ExamSummary.cshtml` menampilkan label baru
-    4. Documentation cross-cutting: PDF panduan + FAQ + screenshot training updated; E2E Playwright tests di `tests/e2e/` digrep & di-update untuk label baru; Excel import template (jika asumsi label) dicek
-    5. DB query verifikasi: enum/string `MultipleChoice` & `MultipleAnswer` di tabel `PackageQuestions` tidak berubah
+    1. Form admin `ManagePackageQuestions.cshtml` dropdown menampilkan "Single Choice (1 jawaban benar)" + "Multiple Answers (≥2 jawaban benar)" (wording final per CONTEXT.md D-01 — Moodle/Canvas LMS standard)
+    2. Preview `_PreviewQuestion.cshtml` badge label sesuai ("Single Choice" / "Multiple Answers" / "Essay")
+    3. Worker exam `StartExam.cshtml` (asimetris→simetris D-09 D-16: badge MC ditambah) + summary `ExamSummary.cshtml` (SCOPE EXTENSION D-10: badge tipe baru di kolom Pertanyaan) menampilkan label baru
+    4. Documentation cross-cutting: 8 file HTML/MD/PY di `wwwroot/documents/` + `docs/` di-update context-aware (D-13). PDF panduan + screenshot training di-flag deferred manual user task (D-14). E2E Playwright tests di `tests/e2e/` ZERO match label tipe (D-15 verified, no edit needed). Excel import template binary tetap pakai enum value internal (D-18 backward compat).
+    5. DB query verifikasi: `SELECT DISTINCT QuestionType FROM PackageQuestions` returns hanya `MultipleChoice`/`MultipleAnswer`/`Essay` (D-17 D-20)
   - **Risk:** Low (UI), Medium (docs cross-cutting) | **Effort:** S
+  - **Plans:** 2 plans
+    - [ ] 305-01-PLAN.md — Helper class `QuestionTypeLabels` + 5 view edits + controller flash error (LBL-01)
+    - [ ] 305-02-PLAN.md — 8 dokumentasi context-aware sed-replace + DB query verifikasi enum lock + grep audit final (LBL-01)
 
 #### Wave 2 — UI Behavior (file conflict di CreateAssessment.cshtml — sequential)
 
