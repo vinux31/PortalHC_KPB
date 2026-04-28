@@ -81,7 +81,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     - [x] 304-01-PLAN.md — Eye-icon toggle password Login (AUTH-01)
     - [x] 304-02-PLAN.md — Label '(WIB)' Step 3 wizard + suffix ' WIB' Step 4 summary CreateAssessment (WIZ-02, WIZ-03)
 
-- [ ] **Phase 305: Question Type Naming Clarity** — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tetap)
+- [x] **Phase 305: Question Type Naming Clarity** — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tetap) (completed 2026-04-28)
   - **REQ:** LBL-01
   - **Success Criteria:**
     1. Form admin `ManagePackageQuestions.cshtml` dropdown menampilkan "Single Choice (1 jawaban benar)" + "Multiple Answers (≥2 jawaban benar)" (wording final per CONTEXT.md D-01 — Moodle/Canvas LMS standard)
@@ -92,7 +92,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
   - **Risk:** Low (UI), Medium (docs cross-cutting) | **Effort:** S
   - **Plans:** 2 plans
     - [x] 305-01-PLAN.md — Helper class `QuestionTypeLabels` + 5 view edits + controller flash error (LBL-01)
-    - [ ] 305-02-PLAN.md — 8 dokumentasi context-aware sed-replace + DB query verifikasi enum lock + grep audit final (LBL-01)
+    - [x] 305-02-PLAN.md — 8 dokumentasi context-aware sed-replace + DB query verifikasi enum lock + grep audit final (LBL-01)
 
 #### Wave 2 — UI Behavior (file conflict di CreateAssessment.cshtml — sequential)
 
