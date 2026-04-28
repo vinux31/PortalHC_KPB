@@ -4685,12 +4685,12 @@ namespace HcPortal.Controllers
             var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
             if (questionType == "MultipleChoice" && correctCount != 1)
             {
-                TempData["Error"] = "Pilihan Ganda hanya boleh memiliki 1 jawaban benar.";
+                TempData["Error"] = $"{QuestionTypeLabels.Short("MultipleChoice")} hanya boleh memiliki 1 jawaban benar.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
             if (questionType == "MultipleAnswer" && correctCount < 2)
             {
-                TempData["Error"] = "Multiple Answer membutuhkan minimal 2 jawaban benar.";
+                TempData["Error"] = $"{QuestionTypeLabels.Short("MultipleAnswer")} membutuhkan minimal 2 jawaban benar.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
             if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
@@ -4826,12 +4826,12 @@ namespace HcPortal.Controllers
             var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
             if (questionType == "MultipleChoice" && correctCount != 1)
             {
-                TempData["Error"] = "Pilihan Ganda hanya boleh memiliki 1 jawaban benar.";
+                TempData["Error"] = $"{QuestionTypeLabels.Short("MultipleChoice")} hanya boleh memiliki 1 jawaban benar.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
             if (questionType == "MultipleAnswer" && correctCount < 2)
             {
-                TempData["Error"] = "Multiple Answer membutuhkan minimal 2 jawaban benar.";
+                TempData["Error"] = $"{QuestionTypeLabels.Short("MultipleAnswer")} membutuhkan minimal 2 jawaban benar.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
             if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
