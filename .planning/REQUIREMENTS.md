@@ -18,7 +18,7 @@ Requirements untuk milestone v15.0 (audit fixes). Setiap REQ memetakan 1 temuan 
 
 ### Question Type Labels
 
-- [ ] **LBL-01**: User-facing label untuk tipe soal MultipleChoice dan MultipleAnswer dirubah agar tidak rancu — "Pilihan Tunggal (1 jawaban benar)" dan "Pilihan Jamak (≥2 jawaban benar)" — di form admin (`ManagePackageQuestions.cshtml`), preview (`_PreviewQuestion.cshtml`), exam (`StartExam.cshtml`), dan summary (`ExamSummary.cshtml`). Internal enum/string DB **tidak** diubah. *(maps Temuan 7)*
+- [x] **LBL-01**: User-facing label untuk tipe soal MultipleChoice dan MultipleAnswer dirubah agar tidak rancu — "Pilihan Tunggal (1 jawaban benar)" dan "Pilihan Jamak (≥2 jawaban benar)" — di form admin (`ManagePackageQuestions.cshtml`), preview (`_PreviewQuestion.cshtml`), exam (`StartExam.cshtml`), dan summary (`ExamSummary.cshtml`). Internal enum/string DB **tidak** diubah. *(maps Temuan 7)*
 
 ### Create Assessment Wizard
 
@@ -78,7 +78,7 @@ Mapping requirement ke phase (filled by roadmap 2026-04-28). Phase numbering mel
 | AUTH-01 | Phase 304 (UI Label Polish) | Pending |
 | WIZ-02 | Phase 304 (UI Label Polish) | Pending |
 | WIZ-03 | Phase 304 (UI Label Polish) | Pending |
-| LBL-01 | Phase 305 (Question Type Naming Clarity) | Pending |
+| LBL-01 | Phase 305 (Question Type Naming Clarity) | Complete |
 | QSCR-01 | Phase 306 (Score Editable per Question Type) | Pending |
 | WIZ-01 | Phase 307 (Selected Participants Inline View) | Pending |
 | WIZ-04 | Phase 308 (PrePost Wizard Validation Fix) | Pending |

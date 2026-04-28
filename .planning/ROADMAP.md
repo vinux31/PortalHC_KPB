@@ -91,7 +91,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     5. DB query verifikasi: `SELECT DISTINCT QuestionType FROM PackageQuestions` returns hanya `MultipleChoice`/`MultipleAnswer`/`Essay` (D-17 D-20)
   - **Risk:** Low (UI), Medium (docs cross-cutting) | **Effort:** S
   - **Plans:** 2 plans
-    - [ ] 305-01-PLAN.md — Helper class `QuestionTypeLabels` + 5 view edits + controller flash error (LBL-01)
+    - [x] 305-01-PLAN.md — Helper class `QuestionTypeLabels` + 5 view edits + controller flash error (LBL-01)
     - [ ] 305-02-PLAN.md — 8 dokumentasi context-aware sed-replace + DB query verifikasi enum lock + grep audit final (LBL-01)
 
 #### Wave 2 — UI Behavior (file conflict di CreateAssessment.cshtml — sequential)
