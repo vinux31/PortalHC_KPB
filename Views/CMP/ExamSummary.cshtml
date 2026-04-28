@@ -48,7 +48,8 @@
                         <tr class="@(item.IsAnswered ? "" : "table-warning")">
                             <td class="fw-bold">@item.DisplayNumber</td>
                             <td>
-                                <span class="text-truncate d-inline-block" style="max-width: 420px;"
+                                <span class="badge @QuestionTypeLabels.BadgeClass(item.QuestionType) small me-2">@QuestionTypeLabels.Short(item.QuestionType)</span>
+                                <span class="text-truncate d-inline-block" style="max-width: 380px;"
                                       title="@item.QuestionText">
                                     @item.QuestionText
                                 </span>
