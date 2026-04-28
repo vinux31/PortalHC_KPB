@@ -210,5 +210,22 @@
 
     </div>
 
+    <script>
+        (function () {
+            var btn = document.getElementById('togglePwd');
+            var input = document.getElementById('inputPassword');
+            var icon = document.getElementById('togglePwdIcon');
+            if (!btn || !input || !icon) return;
+            btn.addEventListener('click', function () {
+                var isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                icon.classList.toggle('bi-eye', !isHidden);
+                icon.classList.toggle('bi-eye-slash', isHidden);
+                btn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+                btn.setAttribute('aria-label', isHidden ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+            });
+        })();
+    </script>
+
 </body>
 </html>
