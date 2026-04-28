@@ -60,8 +60,8 @@
 - d. `[USER]` Baca instruksi dan ketentuan, lalu klik **"Setuju & Mulai"**. `[SCREENSHOT: modal instruksi]`
 - e. `[USER]` Kerjakan soal satu per satu. Timer berjalan di pojok kanan atas. `[SCREENSHOT: halaman StartExam]`
 - f. `[USER]` Tipe soal:
-  - 1) Pilihan ganda (single answer)
-  - 2) Multiple answer (centang beberapa jawaban)
+  - 1) Single Choice (single answer)
+  - 2) Multiple Answers (centang beberapa jawaban)
   - 3) Essay (isi text area)
   - 4) Mix (kombinasi)
 - g. `[USER]` Gunakan tombol **"Sebelumnya" / "Selanjutnya"** untuk navigasi antar soal.
@@ -192,7 +192,7 @@
 
 #### 4.3 Import Soal via Excel
 - a. `[HC]` Masuk ke detail paket → klik **"Import Soal Excel"**. `[SCREENSHOT: ImportPackageQuestions]`
-- b. `[HC]` Download template sesuai tipe: Essay / Multiple Answer / Mix (lihat Lampiran I).
+- b. `[HC]` Download template sesuai tipe: Essay / Multiple Answers / Mix (lihat Lampiran I).
 - c. `[HC]` Isi template, upload, preview, konfirmasi.
 - d. `[HC]` Klik **"Preview Paket"** untuk melihat preview akhir sebelum di-assign. `[SCREENSHOT: PreviewPackage]`
 
@@ -317,7 +317,7 @@
 
 # XIV. LAMPIRAN (Usulan)
 
-- **Lampiran I** — Template Excel Import Soal (Essay / Multiple Answer / Mix)
+- **Lampiran I** — Template Excel Import Soal (Essay / Multiple Answers / Mix)
 - **Lampiran II** — Template Excel Import Worker
 - **Lampiran III** — Template Excel Import Training
 - **Lampiran IV** — Template Excel Import Silabus PROTON
