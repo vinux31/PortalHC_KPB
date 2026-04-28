@@ -26,9 +26,31 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v13.0 shipped** — Redesign Struktur Organisasi (phases 292-295): tree view recursive, AJAX CRUD via modal, drag-drop reorder SortableJS sibling-only.
 **v14.0 shipped** — Assessment Enhancement (phases 296-303): Pre-Post Test end-to-end, 4 tipe soal baru (TF/MA/Essay/FiB), mobile exam UI, item analysis + gain score reporting, WCAG quick wins, Coach Workload dashboard.
 
-**Current focus:** Planning v15.0 (milestone berikutnya belum ditetapkan)
+**Current focus:** v15.0 Audit Findings 27 April 2026 — tindak lanjut 11 temuan audit (login UX, create soal/package/assessment, performa ManageAssessment, penilaian Essay & sertifikasi, worker certificate view).
 
-## Next Milestone Candidates (v15.0+)
+## Current Milestone: v15.0 Audit Findings 27 April 2026
+
+**Goal:** Tindak lanjut 11 temuan audit pada flow assessment & login PortalHC_KPB — bug-fix + UX enhancements + 1 perf improvement, tanpa migrasi DB.
+
+**Target features (11 temuan):**
+- T1 — Login: show password toggle
+- T2 — Create Soal: score MC/MA/Essay editable
+- T3 — ManageAssessment: optimasi performa response time
+- T4 — Create Assessment Step 2: tampilkan list peserta yang sudah dipilih
+- T5 — Create Assessment Step 3: label timezone "(WIB)" di setiap input waktu
+- T6 — Create Assessment Step 4 rangkuman: WIB konsisten di "jam tutup"
+- T7 — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tidak diubah)
+- T8 — [DITUNDA] Preview Essay: jawaban tidak muncul (butuh konfirmasi user: Rubrik vs field baru)
+- T9 — Mix MC/MA/Essay: idempotency `FinalizeEssayGrading` + UI sembunyikan tombol create sertifikasi pasca-completed
+- T10 — Worker lihat sertifikat assessment: 500 error fix (defensif try-catch + null-safe view)
+- T11 — PrePost-test: bug "Status field is required" yang reset wizard ke Step 1
+
+**Key context:**
+- Plan teknis full: `C:\Users\Administrator\.claude\plans\berikut-temuan-audit-tanggal-fizzy-lampson.md`
+- Keputusan user: T7 hanya rename label UI; T8 ditunda menunggu user verifikasi save/load Rubrik
+- Phase numbering melanjutkan dari Phase 303 (terakhir di v14.0)
+
+## Backlog Lainnya (deferred ke milestone berikutnya)
 
 **Kandidat prioritas tinggi:**
 - **Performance Deep Check** — rencana detail di `.planning/research/performance/deep-wobbling-taco.md`

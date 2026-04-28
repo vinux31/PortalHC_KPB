@@ -1,32 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v14.0
-milestone_name: Assessment Enhancement
-status: shipped
-shipped_at: 2026-04-24
-last_updated: "2026-04-24T10:07:00.000Z"
-last_activity: 2026-04-24
+milestone: v15.0
+milestone_name: Audit Findings 27 April 2026
+status: planning
+last_updated: "2026-04-28T00:00:00.000Z"
+last_activity: 2026-04-28
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-24)
+See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning v15.0 — milestone berikutnya belum ditetapkan
+**Current focus:** v15.0 Audit Findings 27 April 2026 — tindak lanjut 11 temuan audit (login UX, create soal/package/assessment, performa ManageAssessment, penilaian Essay & sertifikasi, worker certificate view).
 
 ## Current Position
 
-Milestone aktif: tidak ada (v14.0 shipped 2026-04-24)
-Status: Ready for next milestone via `/gsd-new-milestone`
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-28 — Milestone v15.0 started
 
 ## Deferred Items
 
