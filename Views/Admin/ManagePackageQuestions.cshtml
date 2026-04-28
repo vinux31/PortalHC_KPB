@@ -281,17 +281,56 @@
     var originalType = null;
     var pendingType = null;
     var editTypeWarningModal = null;
+    var editScoreWarningModal = null;
+    var scoreChangeBypassed = false;
 
     // Initialize Bootstrap modals
     document.addEventListener('DOMContentLoaded', function () {
         editTypeWarningModal = new bootstrap.Modal(document.getElementById('editTypeWarningModal'));
+        editScoreWarningModal = new bootstrap.Modal(document.getElementById('editScoreWarningModal'));
 
         document.getElementById('confirmTypeChange').addEventListener('click', function () {
             document.getElementById('QuestionType').value = pendingType;
             applyQTypeSwitch(pendingType);
             editTypeWarningModal.hide();
         });
+
+        // Phase 306 (D-06/D-09): Score change confirmation flow
+        document.getElementById('questionForm').addEventListener('submit', function (event) {
+            if (scoreChangeBypassed) { scoreChangeBypassed = false; return; }
+
+            var editIdEl = document.getElementById('editQuestionId');
+            var isEditMode = editIdEl && editIdEl.value !== '';
+            if (!isEditMode) return;
+
+            var scoreInput = document.getElementById('scoreValue');
+            var form = document.getElementById('questionForm');
+            var originalScore = parseInt(scoreInput.dataset.originalScore, 10);
+            var newScore = parseInt(scoreInput.value, 10);
+            var affectedN = parseInt(form.dataset.affectedSessions, 10) || 0;
+            var qOrder = form.dataset.questionOrder || '';
+
+            if (!isNaN(originalScore) && newScore !== originalScore && affectedN > 0) {
+                event.preventDefault();
+                populateScoreWarningModal(qOrder, originalScore, newScore, affectedN);
+                editScoreWarningModal.show();
+            }
+        });
+
+        document.getElementById('confirmScoreChange').addEventListener('click', function () {
+            editScoreWarningModal.hide();
+            scoreChangeBypassed = true;
+            document.getElementById('questionForm').submit();
+        });
     });
+
+    // Phase 306 (D-07): populate modal body copy with order/old/new/affectedN tokens
+    function populateScoreWarningModal(order, oldScore, newScore, affectedN) {
+        document.getElementById('editScoreWarningModalBody').innerHTML =
+            'Skor soal #' + order + ' akan diubah dari <strong>' + oldScore + '</strong> menjadi <strong>' +
+            newScore + '</strong>. <strong>' + affectedN + ' peserta</strong> sudah menjawab — ' +
+            'persentase mereka akan dihitung ulang otomatis. Lanjutkan?';
+    }
 
     // QuestionType change handler
     document.getElementById('QuestionType').addEventListener('change', function () {
@@ -312,13 +351,11 @@
     function applyQTypeSwitch(qtype) {
         var optionsSection = document.getElementById('optionsSection');
         var rubrikSection = document.getElementById('rubrikSection');
-        var scoreInput = document.getElementById('scoreValue');
         var maLabel = document.getElementById('maLabel');
 
         optionsSection.style.display = (qtype === 'Essay') ? 'none' : '';
         rubrikSection.style.display = (qtype === 'Essay') ? '' : 'none';
-        scoreInput.disabled = (qtype !== 'Essay');
-        if (qtype !== 'Essay') scoreInput.value = 10;
+        // scoreInput.disabled & scoreInput.value=10 lines removed (Phase 306, D-02/D-03/D-04) — input selalu enabled, value user-entered di-preserve
         maLabel.style.display = (qtype === 'MultipleAnswer') ? '' : 'none';
 
         // Switch radio <-> checkbox for correct answer inputs
@@ -326,10 +363,7 @@
             inp.type = (qtype === 'MultipleAnswer') ? 'checkbox' : 'radio';
             if (qtype !== 'MultipleAnswer') inp.checked = false;
         });
-
-        // Update score help text
-        var scoreHelp = document.getElementById('scoreHelp');
-        scoreHelp.textContent = (qtype === 'Essay') ? 'Essay: atur nilai sesuai bobot soal.' : 'MC/MA: nilai tetap 10.';
+        // scoreHelp.textContent dynamic update removed (Phase 306, D-05) — static "Range 1–100" dari Razor
     }
 
     // Load preview via AJAX
@@ -373,6 +407,10 @@
         document.getElementById('rubrik').value = data.rubrik || '';
         document.getElementById('maxCharacters').value = data.maxCharacters || 2000;
         document.getElementById('scoreValue').value = data.scoreValue || 10;
+        // Phase 306 (D-09): inject data attributes for score-change modal trigger
+        document.getElementById('scoreValue').dataset.originalScore = data.scoreValue || 10;
+        document.getElementById('questionForm').dataset.affectedSessions = data.affectedSessions || 0;
+        document.getElementById('questionForm').dataset.questionOrder = data.order || '';
 
         var qtype = data.questionType || 'MultipleChoice';
         document.getElementById('QuestionType').value = qtype;
