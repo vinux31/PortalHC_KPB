@@ -3,15 +3,13 @@
 
 @{
     var qtype = Model.QuestionType ?? "MultipleChoice";
-    var badgeClass = qtype == "MultipleAnswer" ? "bg-primary" : (qtype == "Essay" ? "bg-info text-dark" : "bg-secondary");
-    var badgeLabel = qtype == "MultipleAnswer" ? "Multi Jawaban" : (qtype == "Essay" ? "Essay" : "Pilihan Ganda");
 }
 
 <div class="card border-0">
     <div class="card-body p-0">
         <!-- Badge tipe soal -->
         <div class="mb-3">
-            <span class="badge @badgeClass me-2">@badgeLabel</span>
+            <span class="badge @QuestionTypeLabels.BadgeClass(qtype) me-2">@QuestionTypeLabels.Short(qtype)</span>
             <span class="text-muted small">Preview tampilan pekerja</span>
         </div>
 
