@@ -184,7 +184,34 @@ git push origin main</div>
     </ul>
 </div>
 
-<!-- STEP 6 -->
+<h2><span class="step-num">6</span>Handoff ke IT</h2>
+
+<p>Setelah commit ter-push ke GitHub, kirim info berikut ke IT supaya mereka bisa pull dan upload ke server developer.</p>
+
+<h3>Info yang Dikirim ke IT</h3>
+<table>
+    <tr><th style="width:30%">Item</th><th>Penjelasan</th></tr>
+    <tr><td>Branch / commit hash</td><td>Hash commit terakhir yang siap deploy &mdash; <code>git rev-parse HEAD</code></td></tr>
+    <tr><td>Migrasi DB baru</td><td>Daftar file migrasi di <code>Migrations/</code> yang belum ada di server, atau "tidak ada"</td></tr>
+    <tr><td>Perubahan <code>appsettings</code></td><td>Apakah ada key baru di <code>appsettings.json</code> yang perlu diisi di <code>appsettings.Production.json</code></td></tr>
+    <tr><td>File / folder baru</td><td>Folder upload, folder static, dll yang perlu permission write</td></tr>
+    <tr><td>UAT yang sudah dilakukan</td><td>Daftar flow yang sudah diverifikasi (Login, Assessment, Coaching, dll)</td></tr>
+    <tr><td>Catatan khusus</td><td>Bug bekas, cleanup data yang perlu dijalankan, dll</td></tr>
+</table>
+
+<h3>Langkah IT (ringkas)</h3>
+<ul class="checklist">
+    <li>Pull dari GitHub: <code>git pull origin main</code></li>
+    <li>Jalankan migrasi (kalau ada migrasi baru): <code>dotnet ef database update</code></li>
+    <li>Build &amp; publish: <code>dotnet publish -c Release -o ./publish</code></li>
+    <li>Copy isi <code>publish/</code> ke server, jalankan <code>dotnet HcPortal.dll</code></li>
+</ul>
+
+<div class="info"><strong>Untuk checklist deploy lengkap</strong> (server config, security check, post-deploy verification), lihat <code>docs/checklist-deploy.html</code>. Dokumen ini hanya menjelaskan alur sampai handoff ke IT, bukan langkah teknis IT-nya.</div>
+
+<div class="footer">
+    Dokumen ini dibuat 28 April 2026 &mdash; PortalHC KPB | Untuk konteks proyek lihat <code>.planning/PROJECT.md</code> dan <code>.planning/MILESTONES.md</code>
+</div>
 
 </body>
 </html>
