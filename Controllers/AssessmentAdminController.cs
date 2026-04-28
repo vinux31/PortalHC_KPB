@@ -4677,9 +4677,12 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
 
-            // Server-side: MC/MA force ScoreValue=10 (T-298-03)
-            if (questionType != "Essay") scoreValue = 10;
-            if (scoreValue <= 0) scoreValue = 10;
+            // Range validation 1-100 (D-12, D-13) - replaces force-override removed per D-14 (Phase 306)
+            if (scoreValue < 1 || scoreValue > 100)
+            {
+                TempData["Error"] = "Nilai soal harus antara 1 dan 100.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             // Validate per type (D-07)
             var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
@@ -4733,6 +4736,29 @@ namespace HcPortal.Controllers
 
             _context.PackageQuestions.Add(newQ);
             await _context.SaveChangesAsync();
+
+            // Audit log: non-default score creation (D-11, CD-05)
+            if (scoreValue != 10)
+            {
+                try
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                        ? (currentUser?.FullName ?? "Unknown")
+                        : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(
+                        currentUser?.Id ?? "",
+                        actorName,
+                        "CreateQuestion-CustomScore",
+                        $"CreateQuestion: Question added with custom ScoreValue={scoreValue} (default 10) for Package #{packageId}",
+                        newQ.Id,
+                        "PackageQuestion");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "Audit logging failed during CreateQuestion-CustomScore for Package {PackageId}", packageId);
+                }
+            }
 
             TempData["Success"] = "Soal berhasil ditambahkan.";
 
