@@ -107,7 +107,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     5. AuditLog entry saat score diubah pada soal yang sudah punya session associated (warning + log, bukan block)
   - **Risk:** Medium | **Effort:** M
   - **Plans:** 2 plans
-    - [ ] 306-01-PLAN.md — Server-side: range validation, hapus force-override, audit log EditQuestion-ScoreChange + CreateQuestion-CustomScore + JSON GET extend affectedSessions (QSCR-01)
+    - [x] 306-01-PLAN.md — Server-side: range validation, hapus force-override, audit log EditQuestion-ScoreChange + CreateQuestion-CustomScore + JSON GET extend affectedSessions (QSCR-01)
     - [ ] 306-02-PLAN.md — View: header total points, scoreValue input enabled, modal Peringatan Ubah Skor + JS submit handler + populateEditForm extension + manual UAT 10-step (QSCR-01)
 
 - [ ] **Phase 307: Selected Participants Inline View** — Real-time list peserta di Step 2

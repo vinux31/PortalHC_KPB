@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
-status: verifying
-last_updated: "2026-04-28T08:02:31.970Z"
+status: executing
+last_updated: "2026-04-28T10:19:44.245Z"
 last_activity: 2026-04-28
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State: Portal HC KPB
@@ -20,19 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 305 — question-type-naming-clarity
+**Current focus:** Phase 306 — score-editable-per-question-type
 
 ## Current Position
 
-Phase: 305
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-28
-Resume file: None
+Phase: 306 (score-editable-per-question-type) — EXECUTING
+Plan: 2 of 2
+Status: Plan 01 complete — Plan 02 ready to execute
+Last activity: 2026-04-28 -- Phase 306 Plan 01 complete (server-side validation + audit log)
+Resume file: .planning/phases/306-score-editable-per-question-type/306-02-PLAN.md
 
 ## Next Action
 
-Jalankan `/clear` lalu `/gsd-plan-phase 305` untuk membuat PLAN.md.
+Jalankan `/gsd-execute-phase 306` untuk eksekusi Plan 02 (View + Modal + UAT) — JSON GET sudah expose `affectedSessions` field, siap dikonsumsi client-side `populateEditForm`.
 
 ## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
 
@@ -81,6 +81,10 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - [v13.0]: SortableJS 1.15.7 via CDN; drag-drop sibling-only (group: false); orgTree.js single JS orchestrator
 - [v12.0]: AdminController dipecah menjadi 8 controller per domain; URL tetap via [Route] attribute
 - [Phase 292]: IsAjaxRequest() sebagai protected method di AdminBaseController; dual-response pattern
+- [v15.0 / Phase 306 / Plan 01]: Replace force-override `scoreValue=10` MC/MA dengan inline range check 1-100 server-side (D-12, D-13, D-14) — defense in depth, tahan DevTools bypass
+- [v15.0 / Phase 306 / Plan 01]: AuditLog `EditQuestion-ScoreChange` dengan format `oldScore → newScore (N sessions affected)` literal arrow U+2192, dibungkus try/catch dengan _logger.LogWarning fallback (D-10, T-306-02 mitigation)
+- [v15.0 / Phase 306 / Plan 01]: AuditLog `CreateQuestion-CustomScore` saat scoreValue != 10 (D-11, CD-05) — informational audit untuk non-default score
+- [v15.0 / Phase 306 / Plan 01]: EditQuestion AJAX GET extends JSON dengan `affectedSessions` field (Distinct().CountAsync() per AssessmentSessionId) untuk Plan 02 modal trigger (D-09)
 
 ### Open Blockers/Concerns
 
