@@ -153,7 +153,38 @@ Laporkan kalau ada error di console.</div>
 
 <div class="note"><strong>Catatan:</strong> Dev server harus sudah jalan dulu. Kalau belum, suruh Claude jalankan <code>dotnet run</code> di background bash sebelum verifikasi (Claude punya tool background process).</div>
 
-<!-- STEP 5 -->
+<h2><span class="step-num">5</span>Commit &amp; Push</h2>
+
+<h3>Konvensi Prefix Commit</h3>
+<p>Berdasarkan pola git log proyek ini:</p>
+
+<table>
+    <tr><th style="width:25%">Prefix</th><th>Kapan dipakai</th></tr>
+    <tr><td><code>feat:</code></td><td>Fitur baru</td></tr>
+    <tr><td><code>fix:</code></td><td>Bug fix</td></tr>
+    <tr><td><code>chore:</code></td><td>Maintenance, cleanup, config</td></tr>
+    <tr><td><code>docs:</code></td><td>Dokumentasi</td></tr>
+    <tr><td><code>refactor:</code></td><td>Restrukturisasi tanpa ubah behavior</td></tr>
+    <tr><td><code>test:</code></td><td>Penambahan atau perubahan test</td></tr>
+</table>
+
+<h3>Alur Perintah</h3>
+<div class="command-box">git status              # cek file yang berubah
+git add -p              # review per-hunk (interaktif)
+git commit -m "fix: &lt;deskripsi singkat&gt;"
+git push origin main</div>
+
+<p>Claude bisa bantu draft commit message &mdash; minta: <em>"tolong buatkan commit message untuk perubahan ini"</em>.</p>
+
+<div class="danger"><strong>Jangan commit:</strong>
+    <ul>
+        <li>File <code>.env</code>, <code>appsettings.Development.json</code> dengan secret</li>
+        <li>File database <code>HcPortal.db</code> development</li>
+        <li>File besar binary (&gt;10 MB) &mdash; pakai <code>.gitignore</code></li>
+    </ul>
+</div>
+
+<!-- STEP 6 -->
 
 </body>
 </html>
