@@ -39,7 +39,7 @@
         <div class="col-lg-7">
             <div class="card shadow-sm">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold">Daftar Soal (@questions.Count soal)</span>
+                    <span class="fw-semibold">Daftar Soal (@questions.Count soal • Total @questions.Sum(q => q.ScoreValue) poin)</span>
                 </div>
                 <div class="card-body p-0">
                     @if (!questions.Any())
@@ -183,8 +183,9 @@
                             <label class="form-label fw-medium small">Nilai Soal (ScoreValue)</label>
                             <input type="number" name="scoreValue" id="scoreValue"
                                    class="form-control form-control-sm" value="10"
-                                   min="1" max="100" style="max-width:80px" disabled />
-                            <div class="form-text" id="scoreHelp">MC/MA: nilai tetap 10. Essay: bisa diubah.</div>
+                                   min="1" max="100" step="1" required style="max-width:80px"
+                                   data-original-score="10" data-affected-sessions="0" />
+                            <div class="form-text" id="scoreHelp">Range 1–100</div>
                         </div>
 
                         <!-- Elemen Teknis (opsional) -->
@@ -246,6 +247,28 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-warning btn-sm" id="confirmTypeChange">Ya, Lanjutkan</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Score Change Warning Modal (Phase 306, D-06 D-07 D-08 / CD-02) -->
+<div class="modal fade" id="editScoreWarningModal" tabindex="-1"
+     aria-labelledby="editScoreWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="editScoreWarningModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Peringatan Ubah Skor
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body" id="editScoreWarningModalBody">
+                <!-- populated by JS: populateScoreWarningModal() -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning btn-sm" id="confirmScoreChange">Ya, Lanjutkan</button>
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
             </div>
         </div>
