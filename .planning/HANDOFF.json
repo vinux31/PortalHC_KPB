@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-28T11:00:22.791Z",
+  "phase": "306",
+  "phase_name": "score-editable-per-question-type",
+  "phase_dir": ".planning/phases/306-score-editable-per-question-type",
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "phase_complete",
+  "completed_tasks": [
+    {"id": "306-01-T1", "name": "CreateQuestion server-side validation + audit non-default score", "status": "done", "commit": "3949fe92"},
+    {"id": "306-01-T2", "name": "EditQuestion server-side validation + audit score change", "status": "done", "commit": "31670ce7"},
+    {"id": "306-01-T3", "name": "EditQuestion AJAX GET extends JSON with affectedSessions", "status": "done", "commit": "0f878aaa"},
+    {"id": "306-01-META", "name": "Plan 01 metadata", "status": "done", "commit": "d520f6ca"},
+    {"id": "306-02-T1", "name": "View edits — header total, score input enabled, modal warning", "status": "done", "commit": "66e2c4dc"},
+    {"id": "306-02-T2", "name": "JS submit handler for score-change modal + applyQTypeSwitch cleanup", "status": "done", "commit": "3a8cb48e"},
+    {"id": "306-02-T3-UAT", "name": "Manual UAT 10-step via MCP Playwright (10/10 PASS)", "status": "done", "commit": "1f9a2bcc"},
+    {"id": "306-REVIEW", "name": "Code review — 0 critical / 2 warning / 4 info", "status": "done", "commit": "cf016e60"},
+    {"id": "306-VERIFY", "name": "Phase verification — 15/15 must-haves PASSED", "status": "done", "commit": "958c3b5a"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [
+    {"action": "Review pre-existing bug AssessmentAdminController.cs:4891 — option-replacement strategy causes FK violation when MC/MA question has linked PackageUserResponses", "context": "Discovered during UAT Step 9 (Q650). Out-of-scope Phase 306 (plan explicitly forbid touching options replace logic). Documented in 306-02-SUMMARY.md. Candidate gap-closure phase or v16.0 milestone item.", "blocking": false},
+    {"action": "Decide milestone v15.0 closure path", "context": "Phase 306 was last phase in milestone (is_last_phase=true). Options: (1) /gsd-audit-milestone — audit completion, (2) /gsd-complete-milestone — archive v15.0 and start v16.0, (3) /gsd-add-phase — add gap-closure phase for option-replacement bug to current milestone before close.", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Plan 02 Task 3 UAT executed via MCP Playwright instead of pure manual user testing", "rationale": "User requested Playwright MCP automation. All 10 UAT steps + audit log verification + DB queries done programmatically. Result: 10/10 PASS.", "phase": "306"},
+    {"decision": "Step 9 modal flow tested via Q652 (Essay) instead of Q650 (MC) for full E2E save", "rationale": "Q650 hit pre-existing FK violation bug at PackageOptions.RemoveRange. Q652 (Essay, 0 PackageOptions) bypasses bug, demonstrates full modal→confirm→save→audit flow.", "phase": "306"},
+    {"decision": "Pre-existing FK bug NOT fixed in Phase 306", "rationale": "Plan 02 Task 2 STEP 5 explicitly instructed 'DO NOT touch options replace, SaveChangesAsync. Minimal-change.' Phase 306 was scoped to score validation + audit only.", "phase": "306"}
+  ],
+  "uncommitted_files": [
+    ".planning/config.json",
+    "docs/tutorial-workflow-claude.html"
+  ],
+  "next_action": "Choose milestone v15.0 closure path: (1) audit-milestone, (2) complete-milestone, or (3) add gap-closure phase for option-replacement bug. Uncommitted files in repo are unrelated to Phase 306 (existed before this session).",
+  "context_notes": "Phase 306 fully shipped: REQ QSCR-01 satisfied, Audit Temuan 2 closed. 5/5 ROADMAP success criteria verified live in browser. Pre-existing bug in EditQuestion option-replacement is documented and out-of-scope. Build clean (0 errors, 92 warnings baseline preserved). Test data created during UAT: Package 33 has new Q712 (MC, score=40 after edit), Package 54 Q652 score 25→35. AuditLogs has 3 new rows for traceability."
+}
