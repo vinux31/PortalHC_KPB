@@ -77,6 +77,9 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     4. PrePost summary di blok 1117–1130 juga menampilkan "WIB" jika menampilkan datetime
     5. Tidak ada regresi pada flow login (local + AD) atau wizard create assessment
   - **Risk:** Low | **Effort:** S
+  - **Plans:** 2 plans
+    - [ ] 304-01-PLAN.md — Eye-icon toggle password Login (AUTH-01)
+    - [ ] 304-02-PLAN.md — Label '(WIB)' Step 3 wizard + suffix ' WIB' Step 4 summary CreateAssessment (WIZ-02, WIZ-03)
 
 - [ ] **Phase 305: Question Type Naming Clarity** — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tetap)
   - **REQ:** LBL-01
