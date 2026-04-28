@@ -97,7 +97,41 @@
 
 <div class="info"><strong>Kalau ragu:</strong> mulai dari Superpower. Kalau ternyata scope membesar di tengah jalan, bisa di-promote ke GSD pakai <code>/gsd-import</code>.</div>
 
-<!-- STEP 3 -->
+<h2><span class="step-num">3</span>Flow GSD vs Superpower</h2>
+
+<h3>Flow <span class="badge badge-gsd">GSD</span> &mdash; untuk task kompleks</h3>
+
+<div class="flow-diagram">/gsd-discuss-phase   →  kumpulkan konteks, tanya jawab
+        ↓ checkpoint: review jawaban
+/gsd-plan-phase      →  buat PLAN.md
+        ↓ checkpoint: review plan
+/gsd-execute-phase   →  eksekusi (atomic commits)
+        ↓
+/gsd-verify-work     →  UAT &amp; verifikasi goal</div>
+
+<ul>
+    <li>Artefak disimpan di <code>.planning/phases/&lt;NN-nama-phase&gt;/</code></li>
+    <li><strong>Checkpoint</strong> = Claude berhenti minta konfirmasi sebelum lanjut ke step berikutnya</li>
+    <li>Untuk task lebih cepat tapi tetap GSD, pakai <code>/gsd-quick</code> (skip optional agents)</li>
+</ul>
+
+<h3>Flow <span class="badge badge-sp">Superpower</span> &mdash; untuk task ringan</h3>
+
+<div class="flow-diagram">brainstorming                   →  gali tujuan &amp; desain
+        ↓ design approval
+writing-plans                   →  tulis plan implementasi
+        ↓ plan review
+executing-plans                 →  eksekusi step-by-step
+        ↓
+verification-before-completion  →  verifikasi sebelum claim selesai</div>
+
+<ul>
+    <li>Spec disimpan di <code>docs/superpowers/specs/YYYY-MM-DD-&lt;topik&gt;-design.md</code></li>
+    <li>Plan disimpan di <code>docs/superpowers/plans/</code></li>
+    <li>Skill diaktifkan otomatis oleh Claude lewat <code>Skill</code> tool, atau ketik nama skill di prompt</li>
+</ul>
+
+<!-- STEP 4 -->
 
 </body>
 </html>
