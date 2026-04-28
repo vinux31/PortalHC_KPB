@@ -73,7 +73,7 @@ Rename **user-facing label** untuk tipe soal `MultipleChoice` (MC) dan `Multiple
   - Controller C#: `QuestionTypeLabels.Short("MultipleChoice")` untuk flash error
   - Dropdown options: hard-code lewat `@QuestionTypeLabels.Long("MultipleChoice")` interpolated value (atau static text — keduanya valid; planner pilih)
 - **D-05:** Default fallback (kasus null/unknown qtype) = "Single Choice" / `"bg-secondary"` (mirroring existing pattern `qtype ?? "MultipleChoice"`).
-- **D-06:** Helper diletakkan di `Models/QuestionTypeLabels.cs` (bukan `Helpers/` atau `Utilities/`) karena semantically domain-related ke `PackageQuestion` model. Namespace: `HcPortal.Models` (sesuai `using HcPortal.Models` di view existing).
+- **D-06:** Helper diletakkan di `Models/QuestionTypeLabels.cs` (bukan `Helpers/` atau `Utilities/`) karena semantically domain-related ke property `QuestionType` di `AssessmentPackage`/`PackageExamViewModel`/`AnalyticsDashboardViewModel`. Namespace: `HcPortal.Models` (mengikuti pattern `Models/AssessmentCategory.cs` & `Models/AssessmentConstants.cs`). **Verified:** `Views/_ViewImports.cshtml` sudah `@using HcPortal.Models` global — semua view langsung dapat akses helper tanpa per-file `@using`.
 
 ### LBL-01: View File Updates
 
@@ -168,6 +168,8 @@ Rename **user-facing label** untuk tipe soal `MultipleChoice` (MC) dan `Multiple
 
 ### NEW File (helper)
 - `Models/QuestionTypeLabels.cs` — D-03 spec, namespace `HcPortal.Models`
+  - **Pattern reference:** `Models/AssessmentConstants.cs` (existing static-style file di Models/) untuk style guidance
+  - **Property `QuestionType` referenced di:** `Models/AssessmentPackage.cs` line 48 (nullable string), `Models/PackageExamViewModel.cs` line 37 (default `"MultipleChoice"`) + line 62 (nullable), `Models/AnalyticsDashboardViewModel.cs` line 86 (default `"MultipleChoice"`)
 
 ### Documentation Files (target update)
 - `wwwroot/documents/TKI/Draft-BAB-X-INSTRUKSI-KERJA.html` — 2 occurrences
@@ -182,7 +184,8 @@ Rename **user-facing label** untuk tipe soal `MultipleChoice` (MC) dan `Multiple
 
 ### Pattern Reference
 - `Phase 304 D-09, D-15` (`.planning/phases/304-ui-label-polish-login-wib/304-CONTEXT.md`) — pattern minimal-change inline. **Phase 305 PARTIAL deviasi:** extract helper class karena 6 touch points (Phase 304 hanya 2). Justified deviasi.
-- `Models/PackageQuestion.cs` (jika ada) — model existing dengan property `QuestionType` (string). Helper `QuestionTypeLabels` semantically related.
+- `Models/AssessmentPackage.cs` line 48 — model existing dengan property `QuestionType` (string?). Helper `QuestionTypeLabels` semantically related.
+- `Models/AssessmentConstants.cs` — file existing di `Models/` dengan style "static configuration" — pattern reference untuk struktur `QuestionTypeLabels.cs`
 
 ### Convention References
 - `.planning/codebase/STACK.md` — ASP.NET Core MVC, Razor view, EF Core, Bootstrap 5.3
@@ -206,15 +209,15 @@ Rename **user-facing label** untuk tipe soal `MultipleChoice` (MC) dan `Multiple
 ### Reusable Assets
 
 - **Bootstrap 5.3 badge pattern** sudah dipakai di 3 view (`ManagePackageQuestions`, `_PreviewQuestion`, `StartExam`). Pattern: `<span class="badge {color-class}">{label}</span>`. Reuse persis lewat helper `BadgeClass()` + `Short()`.
-- **Razor `@using HcPortal.Models`** sudah dipakai di `_PreviewQuestion.cshtml` (line 1). View lain perlu add `@using HcPortal.Models` jika belum (atau via `_ViewImports.cshtml`).
+- **Razor `@using HcPortal.Models`** sudah **GLOBAL** via `Views/_ViewImports.cshtml` line 2 (verified). Semua view di `Views/Admin/` & `Views/CMP/` langsung dapat akses `QuestionTypeLabels` tanpa per-file `@using`. Tidak perlu modifikasi `_ViewImports.cshtml`.
 - **C# switch expression** sudah idiomatic di codebase (verified di Phase 12.0 controller refactor). Helper `QuestionTypeLabels` aman pakai pattern ini.
 - **TempData["Error"]** flash pattern sudah dipakai di 16 lokasi `AssessmentAdminController.cs`. Existing pattern: `TempData["Error"] = "..."`. Helper integration trivial.
 
 ### Established Patterns
 
 - **3-place duplikasi badge logic** (Manage + Preview + StartExam) — existing tech debt. Phase 305 tepat untuk consolidate.
-- **Enum string value** (`"MultipleChoice"` dll) bukan C# enum type — PackageQuestion.QuestionType adalah string. Helper menggunakan `string` parameter, switch expression match string literals.
-- **View `_ViewImports.cshtml`** kemungkinan sudah `@using HcPortal.Models` global. Verifikasi: `cat Views/_ViewImports.cshtml` saat planning.
+- **Enum string value** (`"MultipleChoice"` dll) bukan C# enum type — `QuestionType` property adalah `string?` (nullable) di `AssessmentPackage.cs` line 48 + `PackageExamViewModel.cs` line 37/62 + `AnalyticsDashboardViewModel.cs` line 86. Helper menggunakan `string` parameter, switch expression match string literals.
+- **View `_ViewImports.cshtml`** — confirmed: `@using HcPortal.Models` global (line 2). Helper langsung accessible di view.
 - **Hybrid bahasa di error msg** — pattern existing tidak pure Indo (e.g., "TempData", "ViewBag", parameter names campur). Hybrid label OK.
 
 ### Integration Points
