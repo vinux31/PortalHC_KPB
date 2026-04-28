@@ -1,15 +1,15 @@
 ---
-status: partial
+status: resolved
 phase: 305-question-type-naming-clarity
-source: [305-01-SUMMARY.md, Playwright smoke test 2026-04-28]
+source: [305-01-SUMMARY.md, Playwright smoke test 2026-04-28 (initial + retest 08:00 UTC)]
 started: 2026-04-28T07:18:00Z
-updated: 2026-04-28T07:26:20Z
-runner: Playwright MCP (admin@pertamina.com session)
+updated: 2026-04-28T08:01:00Z
+runner: Playwright MCP (admin@pertamina.com session — admin role bypass owner check di StartExam controller)
 ---
 
 ## Current Test
 
-Test 6 & 7 (worker StartExam + ExamSummary) — BLOCKED: external Pertamina auth server unreachable from local env. Tidak bisa login worker. Code verified via execute-plan grep+build (commits e0953340 + b1f58ef1), tapi visual badge rendering belum diuji live.
+ALL 10 tests resolved. Test 6 & 7 di-retest via admin route (`CMPController.StartExam:824` membolehkan Admin/HC bypass owner check) menggunakan AssessmentSession Id=63 (Open) dan Id=65 (Completed) dari ojt v1.9 / packageId=29.
 
 ## Tests
 
@@ -48,36 +48,28 @@ evidence: alerts=["Error: Multiple Answers membutuhkan minimal 2 jawaban benar."
 
 ### 6. Worker StartExam: 3 badge simetris MC/MA/Essay
 expected: SEMUA 3 tipe punya badge tipe (sebelum 305: MC tidak punya badge — fix D-09/D-16)
-result: blocked
-reason: external Pertamina auth server unreachable dari env local — login worker rino.prasetyo@pertamina.com return error "Tidak dapat menghubungi server autentikasi". Admin auth bekerja (kemungkinan local fallback), worker auth perlu reachable network Pertamina/VPN.
-human_action_required: |
-  Saat user terhubung ke jaringan Pertamina (LAN/VPN):
-  1. Login http://localhost:5277/ sebagai rino.prasetyo@pertamina.com / 123456
-  2. Navigate ke assessment yang sudah di-assign (cek /CMP/Assessment list)
-  3. Buka StartExam page (klik exam yang Open)
-  4. Buka DevTools console, run:
-     `Array.from(document.querySelectorAll('.badge,span[class*="bg-"]')).filter(b=>/Single Choice|Multiple Answers|Essay/.test(b.textContent)).map(b=>({text:b.textContent.trim(),classes:b.className}))`
-  5. Konfirmasi:
-     - hasSingleChoice=true (badge "Single Choice" muncul untuk soal MC)
-     - hasMultipleAnswers=true
-     - hasEssay=true
-     - Tidak ada residual "Pilihan Ganda"/"Multi Jawaban"
-code_verified_indirectly: |
-  Source view Views/CMP/StartExam.cshtml (commit e0953340) sudah menggunakan @QuestionTypeLabels.Long(q.QuestionType) + @QuestionTypeLabels.BadgeClass(q.QuestionType) untuk SEMUA 3 tipe. Build .NET 0 errors. Grep verifikasi: tidak ada string "Pilihan Ganda"/"Multi Jawaban" di view ini.
+result: passed
+evidence: |
+  Playwright (admin@pertamina.com session, /CMP/StartExam/63 — ojt v1.9 packageId=29):
+  - Soal 1 MC: badge text "Single Choice", class "badge bg-secondary ms-1 small"
+  - Soal 2 Essay: badge text "Essay", class "badge bg-info text-dark ms-1 small"
+  - Soal 3 MA: badge text "Multiple Answers", class "badge bg-primary ms-1 small"
+  - hasSingleChoice=true, hasMultipleAnswers=true, hasEssay=true (D-09/D-16 simetrisasi VERIFIED — MC sebelumnya tanpa badge sekarang muncul)
+  - hasOldLabel=false (no "Pilihan Ganda"/"Multi Jawaban")
+note: |
+  Initially BLOCKED — login worker rino.prasetyo@pertamina.com gagal karena auth server Pertamina external unreachable. Re-tested via admin route: CMPController.StartExam line 824 (`if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC")) return Forbid();`) membolehkan Admin/HC bypass owner check, sehingga admin@pertamina.com bisa render StartExam view sama persis dengan worker rendering.
 
 ### 7. Worker ExamSummary: badge tipe di kolom Pertanyaan
 expected: kolom "Pertanyaan" tabel review memiliki badge tipe sebelum text soal (scope extension D-10)
-result: blocked
-reason: same — worker auth unreachable
-human_action_required: |
-  Saat akses tersedia:
-  1. Login worker
-  2. Selesaikan exam dummy → ke /CMP/ExamSummary/{resultId}
-  3. DevTools console, run:
-     `Array.from(document.querySelectorAll('table tr')).slice(1).map(r=>{const c=r.querySelectorAll('td');const t=Array.from(c).find(c=>c.querySelector('.badge'));return t?{hasBadge:true,badgeText:t.querySelector('.badge').textContent.trim()}:null}).filter(Boolean)`
-  4. Konfirmasi setiap row punya hasBadge=true dengan badgeText ∈ {"Single Choice","Multiple Answers","Essay"}
-code_verified_indirectly: |
-  Source view Views/CMP/ExamSummary.cshtml (commit b1f58ef1) sudah menambahkan @QuestionTypeLabels.Long+BadgeClass di kolom Pertanyaan sebelum @item.QuestionText. Build .NET 0 errors.
+result: passed
+evidence: |
+  Playwright (admin@pertamina.com session, /CMP/ExamSummary/65 — completed session ojt v1.9):
+  - Row 1 Essay: hasBadge=true, badgeText="Essay", class="badge bg-info text-dark small me-2"
+  - Row 2 MC: hasBadge=true, badgeText="Single Choice", class="badge bg-secondary small me-2"
+  - Row 3 MA: hasBadge=true, badgeText="Multiple Answers", class="badge bg-primary small me-2"
+  - allRowsHaveBadge=true (3/3)
+  - hasOldLabel=false
+note: same — admin role bypass owner check di ExamSummary controller juga aktif
 
 ### 8. Import button: 4 template dengan label baru
 expected: button "Template Single Choice", "Template Multiple Answers", "Template Essay", "Template Universal"
@@ -128,18 +120,19 @@ evidence: |
 ## Summary
 
 total: 10
-passed: 8
+passed: 10
 issues: 0
 pending: 0
 skipped: 0
-blocked: 2
+blocked: 0
 
 ## Gaps
 
-(none — no fix-required gaps; 2 blocked items pending external auth network access)
+(none — semua 10 test passed)
 
 ## Notes
 
 - Cleanup: 2 attempt POST /Admin/CreateQuestion gagal validation (Test 4 MC=2 benar, Test 5 MA=1 benar) → DB clean (tidak ada residual record).
-- Console errors: hanya 1 noise (WebSocket aspnetcore-browser-refresh ERR_CERT_AUTHORITY_INVALID — dev hot reload, tidak terkait kode 305).
+- Console errors: hanya noise WebSocket aspnetcore-browser-refresh ERR_CERT_AUTHORITY_INVALID (dev hot reload, tidak terkait kode 305) + 1 SignalR connection error saat navigate keluar StartExam (expected karena page unload).
 - Network: tidak ada request 5xx/4xx baru terkait label tipe soal.
+- Test 6 & 7 retest insight: Admin role di env local mempunyai bypass owner check di CMPController.StartExam line 824 dan ExamSummary, jadi admin bisa preview UI worker tanpa butuh login worker yang external auth.

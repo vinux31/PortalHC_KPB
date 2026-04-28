@@ -1,30 +1,33 @@
 ---
 phase: 305-question-type-naming-clarity
 verified: 2026-04-28T08:00:00Z
-status: human_needed
-score: 13/15 must-haves verified (2 awaiting human action — code verified indirectly)
+re_verified: 2026-04-28T08:02:00Z
+status: passed
+score: 15/15 must-haves verified (all 10 Playwright smoke tests passed including worker StartExam + ExamSummary via admin role bypass)
 overrides_applied: 0
-re_verification: null
+re_verification: "Test 6 + Test 7 retest via admin route — CMPController.StartExam:824 admin role bypass owner check"
 gaps: []
 deferred:
   - truth: "PDF panduan + screenshot training material di-update label baru"
     addressed_in: "Post-deployment manual user task (D-14)"
     evidence: "305-CONTEXT.md D-14 + 305-02-SUMMARY.md Deferred Items: PDF binary tidak ter-edit via code, screenshot tidak ter-track Git — explicitly deferred ke user post-deployment, bukan gap phase 305"
-human_verification:
+human_verification: []
+human_verification_resolved:
   - test: "Worker StartExam: badge simetris untuk SEMUA 3 tipe (MC + MA + Essay)"
-    expected: "Setiap soal di /CMP/StartExam menampilkan badge dengan label baru (Single Choice / Multiple Answers / Essay) — sebelum 305 hanya MA + Essay yang punya badge (D-09 D-16 simetrisasi)"
-    why_human: "Login worker rino.prasetyo@pertamina.com requires Pertamina LAN/VPN auth server reachable. Local env tidak bisa reach external auth (Test 6 305-HUMAN-UAT.md BLOCKED). Code verified static via grep+commit e0953340 — runtime visual rendering belum diuji."
+    expected: "Setiap soal di /CMP/StartExam menampilkan badge dengan label baru — sebelum 305 hanya MA + Essay yang punya badge"
+    result: "PASSED — Playwright /CMP/StartExam/63 admin session: hasSingleChoice=true, hasMultipleAnswers=true, hasEssay=true; 3/3 badges with correct helper classes (bg-secondary/bg-primary/bg-info text-dark); zero residual label lama. D-09/D-16 simetrisasi VERIFIED runtime."
   - test: "Worker ExamSummary: badge tipe baru di kolom Pertanyaan"
-    expected: "Setiap row di /CMP/ExamSummary/{resultId} kolom Pertanyaan menampilkan badge (Single Choice / Multiple Answers / Essay) sebelum text soal — SCOPE EXTENSION D-10"
-    why_human: "Same — worker auth network unreachable (Test 7 305-HUMAN-UAT.md BLOCKED). Source view ExamSummary.cshtml line 51 verified pakai @QuestionTypeLabels.BadgeClass+Short, build .NET 0 compile errors."
+    expected: "Setiap row di /CMP/ExamSummary/{resultId} kolom Pertanyaan menampilkan badge sebelum text soal — D-10 scope extension"
+    result: "PASSED — Playwright /CMP/ExamSummary/65 admin session: 3/3 rows have badge in kolom Pertanyaan; allRowsHaveBadge=true; badgeTexts=[Essay, Single Choice, Multiple Answers]; classes match helper output."
 ---
 
 # Phase 305: Question Type Naming Clarity — Verification Report
 
 **Phase Goal:** User-facing label untuk tipe soal MultipleChoice dan MultipleAnswer dirubah agar tidak rancu, di form admin, preview, exam, dan summary. Internal enum/string DB TIDAK diubah (D-17 schema lock).
 **Verified:** 2026-04-28T08:00:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Re-verified:** 2026-04-28T08:02:00Z (Test 6 & 7 retested via admin route — admin role bypass owner check di CMPController)
+**Status:** passed
+**Re-verification:** Yes — initial status human_needed → passed setelah retest worker pages via admin session
 
 ## Note on Wording Deviation
 
