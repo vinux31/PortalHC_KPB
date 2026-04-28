@@ -1,177 +1,227 @@
 # Feature Research
 
-**Domain:** Organization Tree Management UI (Admin Panel)
-**Researched:** 2026-04-02
-**Confidence:** HIGH (multiple design system sources: Adobe Commerce, PatternFly/Red Hat, Retool, Carbon)
+**Domain:** Audit-fix milestone — UX, perf, dan defensive fixes pada flow assessment HR portal
+**Researched:** 2026-04-28
+**Confidence:** HIGH untuk T1, T2, T4–T7, T9–T11 (pola industri sangat mapan); MEDIUM untuk T3 (kontekstual, butuh baseline measurement)
 
-## Konteks Proyek
+## Industry Pattern per Temuan
 
-Ini adalah **redesign**, bukan greenfield. Fitur backend sudah ada di OrganizationController:
-- CRUD (Add, Edit, Delete, Toggle active/inactive OrganizationUnit)
-- Reorder (up/down dalam siblings)
-- Hierarki 3 level (Bagian → Unit → Sub-unit)
-- Cascade rename/reparent ke User.Section/Unit dan CoachCoacheeMapping
-- Constraint: tidak bisa hapus unit dengan active children/users/files
+### T1 — Show Password Toggle
 
-Fokus penelitian: **pola UI/UX untuk menampilkan dan mengelola tree tersebut di halaman admin.**
+**Sumber referensi:** Material Design 3, Apple HIG, NIST 800-63B (modern password guidance), WAI-ARIA Authoring Practices "Toggle button".
 
----
+**Table stakes (industri standard):**
+- Eye icon (terbuka/tertutup) di kanan input field, dalam input-group
+- `aria-label` dinamis ("Show password" / "Hide password")
+- Keyboard accessible (Tab + Space/Enter trigger)
+- Tidak men-submit form
 
-## Feature Landscape
+**Differentiators (nice-to-have, skip untuk audit fix):**
+- Auto-revert ke masked setelah X detik visibility (security)
+- Unmask hanya saat tombol di-press (PreventEventDefault on mouseup)
+- Capslock indicator
+- Strength meter
 
-### Table Stakes (Pengguna Mengharapkan Ini Ada)
-
-Fitur yang dianggap sudah seharusnya ada. Tidak ada kredit jika ada, tapi terasa cacat jika tidak ada.
-
-| Fitur | Mengapa Diharapkan | Kompleksitas | Catatan |
-|-------|--------------------|--------------|---------|
-| Expand/collapse node | Standar universal semua tree UI (VSCode, Windows Explorer, macOS Finder) | LOW | Toggle per node; chevron/arrow di sebelah kiri label; state per-session |
-| Visual indentasi hierarki | Menunjukkan parent-child secara visual tanpa membaca label | LOW | Indentasi per level; garis penghubung (guides) menguatkan hierarki |
-| Inline action menu per node | Standar enterprise tree (Adobe Commerce, PatternFly) — edit dan delete ada di mana datanya | LOW | "..." button atau hover actions: Edit, Delete, Toggle; muncul on-hover, max 1 style action per tree |
-| Tombol Add di level yang tepat | Admin harus bisa tambah child tanpa keluar halaman | LOW | "Tambah Unit" di bawah Bagian, "Tambah Sub-unit" di bawah Unit; tombol kecil + ikon "+" |
-| Indikator status aktif/nonaktif | Admin harus bisa lihat status sekilas tanpa klik | LOW | Badge atau warna muted/grey untuk yang nonaktif; jangan sembunyikan info ini |
-| Disable destructive actions saat tidak valid | Standar untuk semua CRUD dengan constraint | LOW | "Delete" disabled + tooltip penjelasan jika ada children aktif/users/files. Backend sudah ada constraint-nya, tinggal refleksikan ke UI |
-| Expand All / Collapse All | Standar untuk tree dengan lebih dari 2 level | LOW | Tombol global di header area; toggle antara keduanya |
-
-### Differentiators (Keunggulan yang Menambah Nilai)
-
-Fitur yang tidak wajib tapi memberikan nilai nyata untuk admin HC.
-
-| Fitur | Proposisi Nilai | Kompleksitas | Catatan |
-|-------|-----------------|--------------|---------|
-| Badge jumlah pekerja per unit | Admin HC langsung lihat distribusi pekerja tanpa navigasi ke halaman lain | LOW | COUNT query user per OrganizationUnit; sangat berguna untuk HC |
-| Badge jumlah children per node | Admin tahu ada berapa unit/sub-unit tanpa expand | LOW | Data sudah tersedia dari relasi; "(3)" di sebelah nama Bagian |
-| Inline rename langsung di node | Rename sederhana tanpa buka modal — lebih cepat untuk perubahan kecil | MEDIUM | Double-click label → input field; Enter save, Escape cancel; wire ke existing Edit action via AJAX |
-| Konfirmasi delete dengan penjelasan dampak | "Unit ini memiliki 3 pekerja aktif" — lebih informatif dari dialog browser default | MEDIUM | Modal konfirmasi dengan detail: jumlah children, pekerja, file; berbeda dari alert box generik |
-| Highlight visual node yang baru dibuat/diedit | Admin tahu persis mana yang baru berubah setelah operasi | LOW | Flash/highlight sementara (2-3 detik) pada node setelah add/edit berhasil |
-
-### Anti-Features (Sering Diminta, Tapi Bermasalah)
-
-| Fitur | Mengapa Diminta | Mengapa Bermasalah | Alternatif |
-|-------|-----------------|--------------------|------------|
-| Drag-and-drop reorder/reparent | Terlihat modern dan intuitif | (1) Reparent men-cascade ke User.Section/Unit dan CoachCoacheeMapping — risiko data rusak tinggi. (2) Fat-finger di tree kecil mudah terjadi. (3) Tidak ada undo. (4) Adobe Commerce sendiri menyebut drag "opsional" dan "mutually exclusive dengan checkbox". | Pertahankan tombol up/down yang sudah ada, tapi tampilkan inline di node (bukan di tabel). Lebih deliberate, lebih aman untuk data organisasi production |
-| Org chart visual box-and-line diagram | Terlihat profesional dan sesuai "struktur organisasi" | Tidak practical untuk CRUD — susah klik target kecil, tidak scale untuk list panjang, butuh layout engine kompleks (d3.js/Mermaid) | Tree list view (file explorer style) adalah standar untuk management UI; org chart hanya cocok untuk read-only view/presentasi |
-| Multi-select bulk delete | Tampak efisien | Sangat berbahaya — satu klik bisa hapus banyak unit dengan cascade effect ke ratusan user dan mapping. Tidak ada undo. Org structure jarang butuh bulk delete | Single delete dengan konfirmasi dan penjelasan dampak; jika perlu bulk, tambahkan confirmation step yang eksplisit |
-| Inline add form yang expand di dalam tree | Tidak perlu modal, lebih contextual | Form add unit butuh beberapa field (nama, parent, status) — inline form dalam tree menjadi sesak, susah scroll, dan mati gaya di mobile | Modal/dialog untuk add; inline hanya untuk rename field tunggal |
+**Complexity:** LOW (~10 LOC inline script + 1 button)
 
 ---
 
-## Feature Dependencies
+### T2 — Score Editable per Question Type
 
-```
-[Tree visual dengan expand/collapse]
-    └──requires──> [Data hierarkis diload dengan parent-child relationship dalam satu response]
+**Sumber referensi:** Moodle Quiz module, Canvas Quizzes, Google Forms.
 
-[Inline rename]
-    └──requires──> [Tree expand/collapse sudah stabil]
-    └──requires──> [Existing Edit action di OrganizationController — SUDAH ADA]
-    └──uses──AJAX──> [Edit action]
+**Discovery dari arsitektur:** Server-side `AssessmentAdminController.CreateQuestion` baris 4681 dan `EditQuestion` baris 4822 secara eksplisit memaksa `scoreValue = 10` untuk MC/MA. **Fix view-only TIDAK CUKUP** — server-side wajib di-relax menjadi clamp 1–100.
 
-[Badge jumlah pekerja per unit]
-    └──requires──> [COUNT query ApplicationUser per OrganizationUnitId]
-    └──enhances──> [Badge jumlah children] (tampil bersama)
+**Table stakes:**
+- Editable di semua tipe soal (MC/MA/Essay) dengan range 1–100
+- Per-question score override
+- Total package score display (sum of all question scores)
 
-[Konfirmasi delete dengan detail dampak]
-    └──requires──> [Query jumlah children aktif + users + files sebelum modal muncul]
-    └──enhances──> [Disable destructive actions + tooltip]
+**Differentiators:**
+- Bobot relatif (% dari total) opsional
+- Bulk-set score untuk semua soal sekaligus
+- Per-option partial credit (untuk MA all-or-nothing toleransi)
 
-[Highlight node setelah operasi]
-    └──requires──> [AJAX-based add/edit/delete — tidak full page refresh]
+**Anti-pattern (yang harus DIHILANGKAN):**
+- Fixed score per question type — bukan pola industri (Moodle/Canvas semua editable)
 
-[Search/filter dalam tree]
-    └──requires──> [Tree sudah ter-render dengan benar]
-    └──conflicts──> [Collapse All] (saat search aktif, collapse all tidak boleh collapse hasil)
-```
-
-### Dependency Notes
-
-- **Inline rename requires AJAX**: Jika add/edit masih pakai full page refresh, inline rename tidak bisa. Perlu partial AJAX untuk edit action.
-- **Drag-and-drop conflicts dengan up/down buttons**: Jika keduanya ada, pengguna bingung mana yang canonical. Pilih satu — rekomendasi: tetap up/down (sudah ada) tapi tampilkan sebagai arrow button di node, bukan di tabel.
-- **Semua differentiators butuh tree foundation dulu** — jangan bangun badge atau inline rename sebelum tree expand/collapse stabil.
+**Complexity:** LOW-MEDIUM (view + 2 server-side endpoints)
 
 ---
 
-## MVP Definition
+### T3 — Performance Optimization Heavy Admin Page
 
-### Launch With — Redesign v1
+**Sumber referensi:** EF Core 8 Best Practices (Microsoft Learn), DataTables.js server-side processing, Stack Overflow "ASP.NET Core slow query" patterns.
 
-Ini redesign bukan greenfield. MVP = semua fungsi yang sudah ada, ditampilkan dalam tree view modern.
+**Table stakes:**
+- `AsNoTracking()` pada read-only path
+- Composite index pada filter columns (Schedule, ExamWindowCloseDate, LinkedGroupId)
+- Server-side pagination di DB level (SKIP/TAKE)
+- Projection ke DTO/anonymous type (bukan full entity)
+- Cache untuk dropdown reference data
 
-- [ ] Tree view dengan expand/collapse — foundation dari seluruh redesign
-- [ ] Visual indentasi hierarki dengan guides/connectors
-- [ ] Action menu per node (Edit, Delete, Toggle) — menggantikan tombol di baris tabel
-- [ ] Tombol Add per level yang tepat (contextual di bawah parent node)
-- [ ] Badge status aktif/nonaktif per node
-- [ ] Disable + tooltip untuk destructive actions yang invalid
-- [ ] Expand All / Collapse All
-- [ ] Tombol up/down reorder tetap ada, tapi sebagai arrow icon di node (bukan kolom tabel)
+**Differentiators:**
+- Server-side DataTable.js (sortable + searchable + paginated by AJAX)
+- Virtual scrolling untuk list panjang
+- Real-time progress indicators
 
-### Add After Validation — v1.x
+**Complexity:** MEDIUM (perlu measurement baseline + EF migration untuk index)
 
-- [ ] Badge jumlah pekerja per unit — trigger: admin merasa perlu lihat distribusi lebih cepat
-- [ ] Badge jumlah children — trigger: tree besar, admin perlu orientasi cepat
-- [ ] Konfirmasi delete dengan detail dampak — trigger: admin sering confused mengapa delete gagal
-- [ ] Inline rename — trigger: admin sering rename dan merasa modal lambat
-
-### Future Consideration — v2+
-
-- [ ] Search/filter dalam tree — defer: org hanya 3 level, kemungkinan tidak banyak node (< 50)
-- [ ] Highlight node setelah operasi — defer: nice polish, bukan blocker
-- [ ] Read-only org chart view untuk presentasi — defer: beda audience (manajemen), beda halaman
+**Dependencies:** Existing `PaginationHelper` static class.
 
 ---
 
-## Feature Prioritization Matrix
+### T4 — Selected Items Inline Display (Peserta)
 
-| Fitur | User Value | Implementation Cost | Priority |
-|-------|------------|---------------------|----------|
-| Tree expand/collapse | HIGH | LOW | P1 |
-| Visual indentasi + guides | HIGH | LOW | P1 |
-| Action menu per node | HIGH | LOW | P1 |
-| Tombol Add per level | HIGH | LOW | P1 |
-| Badge status aktif/nonaktif | HIGH | LOW | P1 |
-| Disable actions + tooltip | HIGH | LOW | P1 |
-| Expand All / Collapse All | MEDIUM | LOW | P1 |
-| Arrow up/down reorder di node | HIGH | LOW | P1 |
-| Badge jumlah pekerja per unit | HIGH | LOW | P2 |
-| Badge jumlah children | MEDIUM | LOW | P2 |
-| Konfirmasi delete dengan detail dampak | HIGH | MEDIUM | P2 |
-| Inline rename | MEDIUM | MEDIUM | P2 |
-| Search/filter dalam tree | LOW | MEDIUM | P3 |
-| Highlight node setelah operasi | LOW | MEDIUM | P3 |
-| Read-only org chart diagram | LOW | HIGH | P3 |
+**Sumber referensi:** Material Chips, Ant Design Tags, Bootstrap Select2.
 
-**Priority key:**
-- P1: Harus ada untuk launch redesign — semua adalah pemetaan fitur yang sudah ada ke UI baru
-- P2: Tambahkan setelah P1 stabil dan divalidasi
-- P3: Iterasi berikutnya, tidak mendesak
+**Table stakes:**
+- Live count badge (`X peserta dipilih`)
+- Real-time list update saat checkbox toggle
+- Truncated display dengan expand button (5 nama + "...dan N lainnya")
+- DRY: extract function untuk reuse Step 2 + Step 4
+
+**Differentiators:**
+- Removable chips per peserta
+- Filter peserta yang sudah dipilih
+- Sticky panel saat scroll list
+
+**Complexity:** LOW (extract function + 1 panel markup)
 
 ---
 
-## Referensi Pola dari Design System Terkemuka
+### T5 / T6 — Timezone Labeling Consistency
 
-| Pola | Adobe Commerce Admin | PatternFly (Red Hat) | Carbon (IBM) | Retool |
-|------|---------------------|---------------------|--------------|--------|
-| Expand/collapse | Ya, arrow kiri | Ya, arrow kiri | Ya | Ya |
-| Action menu per node | Ya, di hover | Ya, hover actions max 1 type | Ya | Ya |
-| Inline rename | Tidak (modal) | Via separate inline edit component | Tidak | Ya |
-| Drag-and-drop | Ya (opsional, mutually exclusive checkbox) | Disebutkan sebagai opsional | Tidak standar | Opsional |
-| Badge children count | Tidak | Ya (badges opsional) | Tidak | Ya |
-| Expand All/Collapse All | Ya | Tidak disebutkan secara eksplisit | Disebutkan | Tidak |
-| Max recommended depth | 2 level | Tidak ada batas formal | Tidak ada | Tidak ada |
+**Sumber referensi:** Aplikasi Indonesia multi-region (BCA, Tokopedia, Garuda) yang konsisten label "(WIB)" pada semua input waktu.
 
-**Catatan kedalaman:** PortalHC butuh 3 level (Bagian → Unit → Sub-unit). Design system merekomendasikan max 2 sebagai guideline, bukan hard limit. Dengan visual hierarchy yang jelas (indentasi + guides), 3 level masih sangat manageable.
+**Table stakes:**
+- Label `(WIB)` eksplisit di setiap input waktu
+- Konsistensi di summary/rangkuman (jam mulai DAN jam tutup)
+- Tooltip/helper text jika perlu klarifikasi tambahan
+
+**Differentiators (out of scope):**
+- Multi-timezone display (WIB/WITA/WIT) dengan auto-detect lokasi user
+- DST handling
+- UTC offset display
+
+**Complexity:** LOW (label string saja, ~6 lokasi label + 1 JS template)
 
 ---
+
+### T7 — MC vs MA Naming Clarity
+
+**Sumber referensi:** Moodle "Multiple Choice (Single answer)" vs "Multiple Choice (Multiple answers)", Canvas "Multiple Choice" vs "Multiple Answers", AKM Kemendikbud Indonesia.
+
+**Table stakes:**
+- Label explicit "1 jawaban benar" vs "≥ 2 jawaban benar"
+- Konsisten di semua user-facing text (form input, preview, exam, results)
+- Internal enum/string DB **tidak diubah** (backward-compat)
+
+**Differentiators:**
+- Helper text/tooltip dengan contoh
+- Icon visual berbeda (radio vs checkbox)
+
+**Complexity:** LOW (4 view files dengan label change saja)
+
+**Cross-cutting concern:** Documentation, training material, dan E2E tests perlu update bersamaan agar tidak drift.
+
+---
+
+### T8 — DEFERRED (klarifikasi user)
+
+Skip riset detail sampai user konfirmasi Jalur A (label fix) atau Jalur B (field baru).
+
+---
+
+### T9 — Idempotent State Transition (Finalize Grading)
+
+**Sumber referensi:** Stripe Idempotency Keys pattern, Moodle quiz state machine, REST API idempotent operations (HTTP RFC 9110).
+
+**Discovery dari arsitektur:** Replay guard sudah ada via `ExecuteUpdateAsync` dengan `WHERE Status == "Menunggu Penilaian"` (baris 2778–2784, komentar T-298-16). Fix hanya butuh ganti pesan error baris 2713 menjadi success/no-op message ramah jika status sudah Completed.
+
+**Table stakes:**
+- Guard check WHERE clause (sudah ada)
+- Friendly UI message saat status sudah final (bukan error)
+- Sembunyikan tombol action yang tidak relevan jika status terminal
+- Idempotent log/notification (NotifyIfGroupCompleted dengan dedupe)
+
+**Differentiators:**
+- Idempotency key dari client (Stripe-style)
+- State machine visualization untuk admin
+
+**Complexity:** LOW-MEDIUM (1 message change + UI button hide condition + audit log dedupe)
+
+---
+
+### T10 — Defensive Error Handling Certificate Generation
+
+**Sumber referensi:** OWASP defensive coding guide, Microsoft Learn structured logging, Polly resilience.
+
+**Table stakes:**
+- Try-catch per-action dengan structured logging (`_logger.LogError(ex, "Context", id)`)
+- Specific exception catches (DbException, FormatException, NullReferenceException)
+- Null-safe accessor di view (`Model.User?.FullName ?? "..."`)
+- Friendly user-facing message via TempData + redirect (mirror `CertificatePdf` pattern baris 2078–2083)
+
+**Differentiators:**
+- Telemetry / Application Insights integration
+- Retry with backoff untuk transient errors
+
+**Complexity:** LOW (mirror existing pattern dari sibling action)
+
+**Anti-pattern:** Generic `catch (Exception)` tanpa logging — hides root cause.
+
+---
+
+### T11 — Multi-Step Form Validation dengan Hidden Required Field
+
+**Sumber referensi:** ASP.NET Core unobtrusive validation docs, Bootstrap wizard patterns, Ant Design Form, Formik conditional fields.
+
+**Table stakes:**
+- JS handler set value programmatically saat field disembunyikan (`element.value = 'Upcoming'`)
+- Server-side `ModelState.Remove("Status")` jika mode-specific (defensive backup)
+- Re-parse jQuery validate setelah dynamic show/hide
+- Test matrix: switching mode (Standard ↔ PrePost) tidak meninggalkan stale validation state
+
+**Differentiators:**
+- FluentValidation rule conditional
+- Dedicated ViewModel per mode dengan IValidatableObject
+
+**Complexity:** MEDIUM (perlu test 4 kombinasi: Standard, S→PP→S, PP, PP→S→PP)
+
+**Pattern existing yang diikuti:** `ModelState.Remove()` sudah dipakai 5+ kali di POST `CreateAssessment` (baris 742, 756, 821, 835, 870).
+
+## Phase Batching Recommendation (untuk Roadmapper)
+
+| Wave | Ukuran | Temuan | Karakteristik |
+|------|--------|--------|---------------|
+| 1 | UI label only | T1, T5, T6, T7 | Low risk, label strings + 1 inline script |
+| 2 | UI behavior | T2, T4, T11 | Medium, view + 1-2 controller method |
+| 3 | Defensive + state | T9, T10 | High care, butuh integration test + post-deploy log analysis |
+| 4 | Performance | T3 | Measure-first, baseline → patch → re-measure |
+| 5 | Deferred | T8 | Tracked di STATE.md dengan due date |
+
+## Cross-Cutting Backlog (Future Milestones)
+
+Patterns yang muncul dari riset, layak dijadikan milestone tersendiri di v16.0+:
+
+1. **Accessibility audit menyeluruh** — lanjutan T1, T4 ke seluruh form portal
+2. **Idempotency pattern** — terapkan ke Reset/ForceClose actions yang serupa
+3. **Defensive programming pattern** — semua complex read-actions (renewal chain, certificate, exam result)
+4. **Multi-step validation review** — seluruh wizard di portal (CreateAssessment, AddTraining, ProtonAssessment)
 
 ## Sources
 
-- [Adobe Commerce Admin - Tree Pattern](https://developer.adobe.com/commerce/admin-developer/pattern-library/displaying-data/tree) — HIGH confidence
-- [PatternFly Tree View Design Guidelines](https://www.patternfly.org/components/tree-view/design-guidelines/) — HIGH confidence
-- [Carbon Design System - Tree View](https://carbondesignsystem.com/components/tree-view/usage/) — HIGH confidence
-- [Retool - Designing a UI for Tree Data](https://retool.com/blog/designing-a-ui-for-tree-data) — MEDIUM confidence
-- [Interaction Design for Trees - Hagan Rivers](https://medium.com/@hagan.rivers/interaction-design-for-trees-5e915b408ed2) — MEDIUM confidence
+- Material Design 3 — text-field component spec
+- WAI-ARIA Authoring Practices 1.2 — Toggle button pattern
+- NIST 800-63B — Digital Identity Guidelines (password rules)
+- Moodle Quiz module documentation
+- Canvas LMS Quiz API documentation
+- AKM Kemendikbud — pola pelabelan tipe soal Indonesia
+- Microsoft Learn — EF Core 8 best practices
+- Stripe API documentation — Idempotency Keys pattern
+- ASP.NET Core docs — unobtrusive client-side validation
 
 ---
-*Feature research for: Organization Tree Management UI — PortalHC KPB ManageOrganization Redesign*
-*Researched: 2026-04-02*
+*Feature research for: v15.0 Audit Findings 27 April 2026*
+*Researched: 2026-04-28*

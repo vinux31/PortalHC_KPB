@@ -1,254 +1,197 @@
 # Pitfalls Research
 
-**Domain:** Tree view + drag-drop + AJAX CRUD pada ManageOrganization (ASP.NET Core Razor + Bootstrap)
-**Researched:** 2026-04-02
-**Confidence:** HIGH (berbasis analisis kode aktual di codebase)
+**Domain:** v15.0 Audit Findings 27 April 2026 — pitfalls saat patching live HR portal
+**Researched:** 2026-04-28
+**Confidence:** HIGH (berbasis plan teknis 11 temuan konkret + retrospective v14.0 + Playwright E2E inventory)
+
+## Critical Pitfalls per Temuan
+
+### T1 — Show Password Toggle
+
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| Password plaintext bocor di shared device (admin lupa toggle off) | Auto-revert ke masked setelah 10s atau pada `blur` event | Tab-switch / window focus loss test |
+| Screen reader announce password karakter saat unmasked | `aria-live="off"` di input wrapper saat unmasked + `aria-label` toggle button | NVDA mute test |
+| Browser autofill conflict / saved-password override | Set `autocomplete="current-password"` eksplisit | Test pada Chrome/Edge dengan saved password |
+| Toggle accidentally submit form | `type="button"` (bukan default `submit`) di toggle button | E2E test: klik toggle tidak men-trigger login attempt |
+
+**Wave:** 1 (low risk)
 
 ---
 
-## Critical Pitfalls
+### T2 — Score Editable per Question Type
 
-### Pitfall 1: Cascade Rename Rusak Saat Level Berubah Bersamaan
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| Retroactive grade change pada soal yang sudah completed/graded → invalidasi hasil historis | Warning modal "session sudah digunakan: X kali" + AuditLog entry sebelum save | DB query: count session yang refer question, log before/after |
+| Score < 1 atau > 100 di-bypass karena server-side override sudah dihapus | Server-side range validation `Range(1, 100)` di model atau ModelState | Boundary test: 0, -1, 101, 999 |
+| Total package score break grading formula (mis. PassPercentage relatif ke max score) | Display total package score di UI + warning jika berubah signifikan | Manual: edit score, verify Pass % calculation di Result |
+| Excel import lama yang asumsi score=10 hardcoded | Update template Excel + import validation (warn, jangan reject) | Test import Excel dengan score variatif |
 
-**What goes wrong:**
-`EditOrganizationUnit` melakukan cascade rename hanya berdasarkan `unit.Level` pada saat edit. Jika drag-drop mengubah `ParentId` (sehingga level berubah dari 0 ke 1 atau sebaliknya) sebelum rename dicek, logika cascade salah menentukan apakah harus update `User.Section` atau `User.Unit`. Contoh: unit yang semula Level 0 (Bagian) dipindahkan ke bawah node lain — levelnya berubah jadi 1 — tapi cascade rename masih pakai path Level 0 kalau urutan operasi salah.
-
-**Why it happens:**
-Di `EditOrganizationUnit` (OrganizationController.cs baris 164), nama diubah setelah parent diubah. Tapi cascade rename membaca `unit.Level` yang sudah diupdate (baris 148: `unit.Level = newLevel`). Jika drag-drop AJAX menjadi endpoint terpisah yang mengubah parent dulu kemudian rename menyusul, ada window di mana level sudah berubah tapi denormalized fields belum diupdate.
-
-**How to avoid:**
-Endpoint AJAX drag-drop harus menggabungkan reparent + cascade dalam satu transaksi database. Jangan pisahkan "pindahkan parent" dan "cascade rename" menjadi dua AJAX call terpisah. Gunakan `IDbContextTransaction` eksplisit jika ada kemungkinan partial failure.
-
-**Warning signs:**
-- Ada endpoint AJAX terpisah untuk reorder/reparent yang tidak menyentuh cascade
-- `User.Section` dan `User.Unit` tidak match setelah drag-drop antar level
-- Unit yang awalnya Bagian (Level 0) menjadi sub-unit tanpa `User.Section` terupdate
-
-**Phase to address:**
-Phase implementasi drag-drop AJAX — harus menyertakan cascade dalam payload yang sama, bukan sebagai afterthought.
+**Wave:** 2 (medium)
 
 ---
 
-### Pitfall 2: CSRF Token Hilang Saat AJAX Menggantikan Form POST
+### T3 — Performance Optimization
 
-**What goes wrong:**
-View saat ini menggunakan `<form method="post">` dengan `@Html.AntiForgeryToken()` di setiap tombol. Jika diganti AJAX (`fetch`/jQuery), developer sering lupa menyertakan antiforgery token di header request, sehingga semua endpoint POST mengembalikan 400.
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| `AsNoTracking()` bocor ke shared method yang punya write path | Per-method scope (jangan di context-level), explicit `AsNoTracking()` di action read-only saja | Verify Reset/ForceClose tetap save changes correctly |
+| Drop `Include(a => a.User)` jadi client-eval N+1 (EF translate ke separate query per-row) | Verify generated SQL = single JOIN, bukan multiple queries | EF Core logging assert "1 query, ≥1 JOIN" |
+| Pre-mature optimization tanpa baseline | Measure dulu (SQL profiler / Stopwatch), patch, measure ulang | Target: 30%+ improvement p95 response time |
+| DB index migration break existing migration chain | Test migration apply + rollback di staging dulu | `dotnet ef migrations script` review sebelum apply |
+| `IMemoryCache` invalidation lupa saat HC create category baru | TTL 5 menit OK untuk dropdown; OR explicit `cache.Remove()` di POST CreateCategory | Manual: tambah category, verify muncul max 5 menit |
 
-**Why it happens:**
-Saat PRG (Post-Redirect-Get), Razor otomatis inject token ke form. Saat beralih ke `fetch()`, token harus diambil manual dari cookie atau meta tag dan disertakan sebagai header `RequestVerificationToken`. Developer yang tidak familiar ASP.NET Core sering melewatkan ini.
-
-**How to avoid:**
-Tambahkan meta tag di layout: `<meta name="__RequestVerificationToken" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />`. Di semua `fetch()` call, sertakan header:
-```js
-headers: { 'RequestVerificationToken': document.querySelector('meta[name="__RequestVerificationToken"]').content }
-```
-Semua endpoint yang ada sudah memiliki `[ValidateAntiForgeryToken]` — jangan hapus atribut ini.
-
-**Warning signs:**
-- Console browser menunjukkan 400 Bad Request saat AJAX POST
-- Developer menghapus `[ValidateAntiForgeryToken]` sebagai "solusi cepat"
-- Hanya GET endpoint yang berhasil, semua POST gagal
-
-**Phase to address:**
-Phase pertama yang memperkenalkan AJAX — buat utility function terpusat untuk fetch dengan CSRF token, bukan copy-paste per tombol.
+**Wave:** 5 (perf, last)
 
 ---
 
-### Pitfall 3: DisplayOrder Korup Setelah Drag-Drop Antar Parent
+### T4 — Selected List Inline (Peserta)
 
-**What goes wrong:**
-`ReorderOrganizationUnit` saat ini hanya swap DisplayOrder antar sibling (OrganizationController.cs baris 344-354). Jika drag-drop memindahkan node ke parent baru pada posisi tertentu, DisplayOrder di parent lama dan baru harus di-recompute. Jika hanya `ParentId` yang diupdate tanpa normalisasi ulang DisplayOrder di parent baru, node bisa memiliki DisplayOrder yang sama dengan sibling lain atau urutan yang tidak terduga.
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| O(n²) saat 50+ workers (re-render seluruh list per change event) | DocumentFragment + debounce 100ms + diff-based update | Performance test: 50+ workers, render < 200ms |
+| Double event listener cumulative (tambah `.on('change')` tanpa `.off()`) | Idempotent `.off().on()` atau use `addEventListener` once | Test: re-init step 2 tidak duplicate listener |
+| Step 4 summary diverge dari Step 2 inline list | Single `renderSelectedParticipants(targetEl, checkboxes)` reuse di kedua tempat | E2E: pilih 7 peserta, verify Step 2 list = Step 4 summary |
 
-**Why it happens:**
-Sistem saat ini mengasumsikan reorder hanya terjadi dalam satu parent (sibling swap). Drag-drop lintas parent adalah use case baru yang tidak ditangani oleh logika reorder yang ada.
-
-**How to avoid:**
-Endpoint drag-drop harus melakukan dua operasi atomik:
-1. Update `ParentId` dan `Level` pada node yang dipindahkan
-2. Recompute `DisplayOrder` seluruh sibling di parent lama (normalkan agar tidak ada gap) dan sisipkan node di posisi target di parent baru dengan menggeser DisplayOrder sibling yang ada
-
-Gunakan satu `SaveChangesAsync()` setelah semua perubahan, bukan pemanggilan terpisah.
-
-**Warning signs:**
-- Setelah drag-drop, urutan node tidak sesuai dengan yang di-drop
-- Dua node dalam parent yang sama memiliki DisplayOrder yang sama
-- Refresh halaman menampilkan urutan yang berbeda dari yang terlihat setelah drag
-
-**Phase to address:**
-Phase implementasi drag-drop — tulis endpoint `MoveOrganizationUnit` baru yang menggantikan `ReorderOrganizationUnit` lama, jangan modifikasi endpoint reorder yang ada.
+**Wave:** 2 (medium)
 
 ---
 
-### Pitfall 4: GetSectionUnitsDictAsync Hanya Membaca 2 Level — Rusak Jika Struktur 3+ Level
+### T5 / T6 — WIB Labels
 
-**What goes wrong:**
-`GetSectionUnitsDictAsync` di `ApplicationDbContext.cs` (baris 105-113) hanya membaca Level 0 (Bagian) dan direct children-nya. Jika drag-drop memungkinkan pembuatan struktur 3+ level, fungsi ini tidak akan mengembalikan unit yang ada di Level 2+. Semua 7 controller yang memanggil fungsi ini (WorkerController, CoachMappingController, CMPController, ProtonDataController, CDPController, dll.) akan menampilkan dropdown yang tidak lengkap.
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| Misleading bila portal deploy ke region lain (KPB Sorong = WIT) | Label saja, dengan TODO komentar untuk multi-tz future | Grep label coverage 100% |
+| Server time zone vs label inkonsistensi (server UTC, label WIB) | Verifikasi `TimeZoneInfo` config + storage convention | Manual: schedule jam 14:00 WIB, verify display 14:00 (bukan 07:00 UTC) |
 
-**Why it happens:**
-Fungsi ini ditulis saat struktur hanya 2 level (Bagian > Unit). Asumsi ini di-hardcode dengan `u.ParentId != null && bagianIds.Contains(u.ParentId!.Value)`. Penambahan level baru di UI tidak otomatis mengubah fungsi ini.
-
-**How to avoid:**
-Sebelum mengaktifkan struktur 3+ level di UI, update `GetSectionUnitsDictAsync` untuk menggunakan recursive query atau CTE. Atau, buat konvensi eksplisit bahwa tree view mendukung unlimited depth di tampilan admin, tapi `GetSectionUnitsDictAsync` tetap hanya expose Level 0-1 untuk dropdown pekerja (dokumentasikan limitasi ini secara eksplisit).
-
-**Warning signs:**
-- Unit Level 2+ yang dibuat via drag-drop tidak muncul di dropdown "Section/Unit" saat ManageWorkers
-- `CoachMappingController` tidak menampilkan unit baru di filter
-- Tidak ada error — hanya data yang "hilang" secara diam-diam
-
-**Phase to address:**
-Phase desain tree view — putuskan dulu apakah struktur 3+ level akan didukung end-to-end atau hanya di tampilan admin. Dokumentasikan keputusan ini sebelum implementasi.
+**Wave:** 1 (UI)
 
 ---
 
-### Pitfall 5: UpdateChildrenLevelsAsync Melakukan N+1 Query
+### T7 — Rename Label MC/MA
 
-**What goes wrong:**
-`UpdateChildrenLevelsAsync` (OrganizationController.cs baris 236-247) melakukan `FindAsync` rekursif per child. Untuk tree dengan 20 node, ini menghasilkan 20 roundtrip database terpisah. Saat drag-drop sering digunakan, ini bisa menyebabkan latensi yang terasa di UI.
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| HC confused, docs/training drift dengan label baru | Email blast + banner notif + update PDF panduan | Manual review training material |
+| Excel import template asumption ("MC" / "MA" string keys) | Audit grep di `Services/ExcelImport*.cs`, `Controllers/AssessmentAdminController.cs` ImportPackageQuestions | DB: verify enum unchanged setelah import |
+| GuideDetail / FAQ pages screenshot/text outdated | Audit `Views/Home/GuideDetail.cshtml` dan FAQ untuk MC/MA references | E2E: visit guide page, verify label baru |
+| E2E Playwright test break karena hardcode label | Update test bersamaan dengan view change (single commit) | Run full Playwright suite |
 
-**Why it happens:**
-Implementasi rekursif yang natural untuk update level, tapi tanpa batch loading. Tidak terasa saat data kecil (< 10 unit), tapi menjadi bottleneck saat data berkembang.
-
-**How to avoid:**
-Ganti dengan load seluruh subtree sekali (`_context.OrganizationUnits.Where(u => /* all descendants */).ToListAsync()`) kemudian update level di memory sebelum satu `SaveChangesAsync()`. Atau gunakan CTE recursive di SQL.
-
-**Warning signs:**
-- EF Core SQL profiling menunjukkan puluhan query kecil saat satu operasi reparent
-- Operasi drag-drop terasa lambat (> 500ms) meski data sedikit
-
-**Phase to address:**
-Phase implementasi drag-drop AJAX — refactor `UpdateChildrenLevelsAsync` sebelum mengekspos operasi reparent di UI yang bisa sering dipanggil.
+**Wave:** 1 (UI + docs cross-cutting)
 
 ---
 
-### Pitfall 6: TempData Tidak Berfungsi Setelah AJAX (Tidak Ada Redirect)
+### T8 — DEFERRED
 
-**What goes wrong:**
-Semua endpoint saat ini menggunakan `TempData["Success"]` / `TempData["Error"]` yang ditampilkan oleh Razor view setelah redirect. Saat beralih ke AJAX, tidak ada redirect — sehingga TempData tidak pernah ditampilkan ke user. Operasi CRUD tampak "berhasil tanpa feedback" dari sudut pandang user.
-
-**Why it happens:**
-PRG pattern mengandalkan redirect sebagai mekanisme untuk membawa TempData ke render berikutnya. AJAX menghilangkan redirect ini. Developer kadang membiarkan TempData di server dan tidak menambahkan feedback di client, menghasilkan UX yang membingungkan.
-
-**How to avoid:**
-Endpoint AJAX harus mengembalikan JSON dengan `{ success: true, message: "..." }`. Client-side JavaScript menampilkan toast/alert berdasarkan response ini. Jangan campurkan dua pattern: jika endpoint sudah return JSON, hapus `TempData["Success"]` dari logika tersebut.
-
-**Warning signs:**
-- AJAX request berhasil (200) tapi tidak ada feedback visual
-- TempData masih ada di endpoint tapi tidak pernah ditampilkan
-- User mengklik tombol berulang kali karena tidak yakin berhasil atau tidak
-
-**Phase to address:**
-Phase implementasi AJAX — buat komponen toast JavaScript sebelum mengkonversi endpoint pertama.
+| Pitfall | Mitigation |
+|---------|-----------|
+| Tertimbun seperti research gap v14.0 (essay char limit) | Due date eksplisit di STATE.md + Jalur A (label fix) sebagai fallback minimal |
 
 ---
 
-## Technical Debt Patterns
+### T9 — Idempotent Finalize Essay Grading
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Reuse `ReorderOrganizationUnit` untuk drag-drop lintas parent | Tidak perlu endpoint baru | DisplayOrder korup | Never — buat endpoint `MoveOrganizationUnit` baru |
-| Hapus `[ValidateAntiForgeryToken]` untuk AJAX | Fix 400 error cepat | Seluruh halaman rentan CSRF | Never |
-| Biarkan `GetSectionUnitsDictAsync` 2-level saja | Tidak perlu refactor | Data silently missing di 7 controller jika 3+ level dipakai | Acceptable HANYA jika keputusan eksplisit: tree UI dibatasi 2 level |
-| Inline CSRF token per fetch call | Lebih sederhana | Copy-paste bug, mudah terlewat | Hanya di prototype; buat util function sebelum fase UAT |
-| Tidak validasi circular reference di AJAX endpoint | Implementasi cepat | Data corrupt (node jadi ancestor dirinya sendiri) | Never |
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| Race condition concurrent click (HC double-click "Selesaikan") | `ExecuteUpdateAsync` atomic CAS dengan WHERE clause sudah ada | `Task.WhenAll` parallel integration test |
+| `NotifyIfGroupCompleted` dipanggil 2x → notif duplicate ke worker | `NotificationSentAt` guard atau dedupe via NotificationKey | Notif log: distinct entries per session |
+| AuditLog spam karena retry | Log di success/failure terminal saja, bukan setiap call | DB: count AuditLog entries per session, expect ≤2 |
+| UI tombol "Create Sertifikasi" muncul lagi setelah refresh meskipun sudah Completed | Hide condition `Status == "Completed" && NomorSertifikat != null` | Manual: finalize, refresh, verify tombol tidak ada |
 
----
-
-## Integration Gotchas
-
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| SortableJS / drag-drop library | Langsung update DOM tanpa konfirmasi server sukses | Optimistic UI: update DOM dulu, rollback jika AJAX gagal |
-| Bootstrap Collapse + dynamic tree | Collapse state hilang setelah re-render HTML dari AJAX | Simpan expand/collapse state di `data-*` attribute atau localStorage sebelum re-render |
-| `[ValidateAntiForgeryToken]` + fetch | 400 error karena header missing | Set `RequestVerificationToken` header di semua fetch calls via utility function terpusat |
-| EF Core `FindAsync` dalam loop rekursif | N+1 query, tidak terasa saat dev | Load bulk dengan `.Where()` dan proses di memory |
-| `TempData` + AJAX response | TempData tidak muncul karena tidak ada redirect | Kembalikan pesan sukses/error dalam JSON response, tampilkan via JavaScript toast |
+**Wave:** 4 (high care)
 
 ---
 
-## Performance Traps
+### T10 — Certificate 500 Error
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Load seluruh tree di setiap page load dengan 3-level Include | Lambat saat ratusan unit | Lazy load children via AJAX expand | > 50 node total |
-| N+1 di `UpdateChildrenLevelsAsync` | Operasi reparent lambat | Batch load subtree sekali | > 10 children dalam subtree |
-| Re-render seluruh tabel setelah setiap AJAX | Flicker, collapse state hilang | Update hanya node yang berubah via targeted DOM manipulation | Setiap operasi AJAX |
-| `Include().ThenInclude().ThenInclude()` hardcoded kedalaman | Level 4+ tidak ter-load | Gunakan recursive CTE atau tambah level include sesuai kebutuhan | Jika struktur > 3 level |
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| Generic `catch (Exception)` hides root cause forever | Specific catches (DbException, FormatException, NRE) + structured logging | Edge case inputs: User=null, Category=null, exotic Category string |
+| Defensive null check menutupi data corruption (mis. UserId orphan) | Log warning saat null detected, bukan silent fallback | `_logger.LogWarning` saat assessment.User == null setelah Include |
+| Try-catch terlalu broad menutupi NotFound 404 → user lihat 500 | Letakkan try-catch hanya di area yang berpotensi exception (helper call), biarkan return NotFound() di luar try | Test: invalid id → 404 (bukan 500 nor redirect to error) |
+| Log destination tidak dikonfigurasi production | Cek `appsettings.Production.json` log sink (file/EventLog/Seq) | Manual: trigger error, verify log accessible |
 
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Hapus `[ValidateAntiForgeryToken]` untuk AJAX | CSRF attack pada endpoint CRUD | Sertakan token via header, jangan hapus atribut |
-| Endpoint drag-drop tanpa validasi circular reference | Node bisa menjadi ancestor dirinya sendiri, data corrupt | Jalankan `IsDescendantAsync` di endpoint AJAX reparent |
-| Return full entity di AJAX response | Expose field internal yang tidak diperlukan | Return DTO minimal (id, name, level, parentId, displayOrder) |
-| Tidak validasi `parentId` di AJAX endpoint | User bisa assign parent ke node yang tidak ada | Validasi `parentId` ada di database sebelum update |
+**Wave:** 3 (defensif + investigasi)
 
 ---
 
-## UX Pitfalls
+### T11 — PrePost Status Validation
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Collapse semua tree setelah setiap aksi CRUD | User harus expand ulang setiap kali edit | Pertahankan collapse state; expand node yang baru diedit |
-| Tidak ada feedback saat drag-drop berhasil/gagal | User tidak tahu apakah operasi sukses | Tampilkan toast singkat setelah AJAX sukses/gagal |
-| Tombol reorder up/down tetap setelah drag-drop aktif | Redundant dengan drag-drop; membingungkan | Hapus tombol up/down setelah drag-drop aktif, atau sembunyikan |
-| Edit form muncul di atas tabel (PRG pattern saat ini) | Scroll jump, form jauh dari node yang diedit | Pindahkan edit ke inline form atau modal yang dekat dengan node |
-| Tidak ada indikasi visual saat drag sedang terjadi | User tidak tahu drop target valid atau tidak | Gunakan CSS drop-target highlight dari library drag-drop |
+| Pitfall | Mitigation | Test |
+|---------|-----------|------|
+| Logic disable Status bocor ke Standard mode → regression bug yang sama | `setStatusFieldVisibility(mode)` idempotent function, panggil di kedua arah | Test matrix 4 kombinasi: Standard, S→PP→S, PP, PP→S→PP |
+| jQuery validate cache stale validator setelah dynamic show/hide | Re-parse `$(form).removeData('validator').removeData('unobtrusiveValidation')` lalu re-init | E2E: switch mode 3x, submit, verify tidak gagal |
+| Server-side `ModelState.Remove` lupa untuk PrePost → tetap fail | Conditional `if (isPrePostMode) ModelState.Remove("Status")` di POST | Server unit test: POST PrePost tanpa Status → success |
+| Test wizard return-to-step-1 behavior tidak ter-cover E2E | Tambah Playwright test untuk PrePost flow | `tests/e2e/assessment.spec.ts` baru atau augment |
 
----
+**Wave:** 2 (medium)
 
-## "Looks Done But Isn't" Checklist
+## Integration Pitfalls (Cross-Milestone)
 
-- [ ] **Cascade rename:** Verifikasi `User.Section` dan `User.Unit` terupdate — cek di database setelah rename unit, bukan hanya di UI
-- [ ] **Cascade reparent:** Verifikasi `User.Section` berubah saat unit Level 1 dipindahkan ke Bagian berbeda — ada potensi bug di OrganizationController.cs baris 189 yang hanya update Section untuk user di unit langsung, tidak untuk grandchildren
-- [ ] **Circular reference:** Test drag node induk ke salah satu descendant-nya — harus ditolak dengan pesan jelas
-- [ ] **Delete dengan FK:** Test hapus unit yang masih punya KkjFile/CpdpFile — harus ditolak (sudah ada di delete logic tapi perlu diverifikasi di AJAX flow)
-- [ ] **CSRF di semua AJAX endpoint:** Test dengan browser dev tools — verifikasi header `RequestVerificationToken` ada di setiap POST
-- [ ] **GetSectionUnitsDictAsync:** Cek apakah unit baru yang dibuat via drag-drop muncul di dropdown ManageWorkers
-- [ ] **DisplayOrder setelah drag lintas parent:** Verifikasi tidak ada duplicate DisplayOrder dalam satu parent
-- [ ] **Bootstrap Collapse state:** Setelah AJAX edit, tree expand/collapse state harus dipertahankan
-- [ ] **TempData tidak muncul:** Verifikasi setiap operasi AJAX menampilkan feedback ke user
+### UAT Pending dari Milestone Sebelumnya
 
----
+| Source | Item | Risk untuk v15.0 |
+|--------|------|------------------|
+| Phase 235 (v8.2) | 5 items pending UAT setup audit | Medium — bisa overlap dengan T2, T4 (CreateQuestion/CreateAssessment area) |
+| Phase 247 (v8.6) | 2 TODO HC review + resubmit notification | High — overlap dengan T9 NotifyIfGroupCompleted |
+| Phase 303 (v14.0) | UAT 12-langkah Coach Workload dormant | Low — area Coach Workload tidak tersentuh v15.0 |
 
-## Recovery Strategies
+**Mitigasi:** Sebelum patch T9, audit Phase 247 status untuk pastikan notification flow tidak break.
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| DisplayOrder korup | MEDIUM | Query manual: `UPDATE OrganizationUnits SET DisplayOrder = ROW_NUMBER() OVER (PARTITION BY ParentId ORDER BY Name)` |
-| User.Section/Unit tidak sinkron | HIGH | Audit query users mana yang Section/Unit tidak match OrganizationUnit aktif; buat migration script untuk re-sinkronisasi |
-| Circular reference di database | HIGH | Hapus manual via `UPDATE OrganizationUnits SET ParentId = NULL WHERE Id = X`; pastikan validasi di endpoint sebelum deploy |
-| CSRF vulnerability terekspos | MEDIUM | Tambahkan antiforgery token ke semua fetch calls; tidak perlu perubahan data |
+### Known Pattern dari RETROSPECTIVE.md
 
----
+- HANDOFF stale (v14.0) — pastikan v15.0 update HANDOFF eksplisit per phase
+- Research gap dibiarkan tanpa due date — terapkan ke T8 dengan due date
+
+### E2E Playwright Tests Berisiko Break
+
+| Test File | Temuan Berisiko | Mitigasi |
+|-----------|-----------------|----------|
+| `tests/e2e/assessment.spec.ts` | T2 (score field locator), T4 (peserta list), T7 (label hardcoded?), T11 (Status field flow) | Update test bersamaan dengan patch (single commit) |
+| `tests/e2e/exam-taking.spec.ts` | T3 (timeout perf), T9 (finalize flow), T10 (certificate redirect), T7 (label exam) | Update test |
+| `tests/e2e/impersonation.spec.ts` | Tidak overlap langsung | — |
+
+**Action:** Sebelum T7, grep `"Multiple Choice\|Multiple Answer\|MC\|MA"` di `tests/e2e/`.
 
 ## Pitfall-to-Phase Mapping
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Cascade rename rusak saat level berubah | Phase desain endpoint AJAX reparent | Test: rename unit yang baru saja di-drag ke level berbeda — cek User.Section/Unit di DB |
-| CSRF token hilang di AJAX | Phase pertama AJAX (sebelum implementasi fitur apapun) | Test: semua POST AJAX mengembalikan 200, bukan 400 |
-| DisplayOrder korup lintas parent | Phase implementasi drag-drop | Test: drag node ke parent berbeda, query DB untuk cek tidak ada duplicate DisplayOrder |
-| GetSectionUnitsDictAsync 2-level hardcoded | Phase desain (keputusan arsitektur sebelum implementasi) | Test: unit Level 2 muncul/tidak di dropdown ManageWorkers |
-| N+1 di UpdateChildrenLevelsAsync | Phase implementasi drag-drop | Profiling: reparent node dengan 5+ children harus < 5 query |
-| Bootstrap Collapse state hilang | Phase implementasi AJAX re-render | Test: edit unit, verifikasi tree state sama sebelum dan sesudah |
-| Circular reference di AJAX endpoint | Phase implementasi drag-drop | Test: drag parent ke salah satu descendant — harus ditolak |
-| TempData tidak berfungsi setelah AJAX | Phase pertama AJAX | Test: setiap operasi CUD menampilkan feedback visual |
+Phase numbering melanjutkan dari 303:
 
----
+| Wave | Phase Suggestion | Temuan | Karakteristik |
+|------|------------------|--------|---------------|
+| 1 (UI low-risk) | 304 | T1 + T5 + T6 | Inline JS + label string changes |
+| 1 (UI + docs) | 305 | T7 | Label rename + audit docs/tests |
+| 2 (medium) | 306, 307, 308 | T2, T4, T11 | View+controller, file conflicts di CreateAssessment.cshtml — serialize |
+| 3 (defensif) | 309 | T10 | Try-catch + structured log + post-deploy investigate |
+| 3 (state machine) | 310 | T9 | Idempotent message + UI button hide |
+| 4 (perf) | 311 | T3 | Measure-first, EF migration |
+| Tracked only | — | T8 | STATE.md, due date + Jalur A fallback |
+
+## Looks-Done-But-Isn't Checklist
+
+Sebelum claim phase done, verifikasi:
+
+- [ ] T1: Toggle button `type="button"` (bukan submit)
+- [ ] T2: Server-side `scoreValue = 10` override sudah dihapus
+- [ ] T3: SQL profiler measurement before/after didokumentasikan
+- [ ] T4: 50+ peserta render < 200ms verified
+- [ ] T5/T6: Grep coverage 100% — semua label time punya "(WIB)"
+- [ ] T7: E2E Playwright tests passing dengan label baru
+- [ ] T9: NotifyIfGroupCompleted tidak duplicate (cek log)
+- [ ] T10: Specific exception catches + structured log fields
+- [ ] T11: Test matrix 4 kombinasi mode switching pass
+- [ ] Documentation update (panduan PDF, FAQ) untuk T7
 
 ## Sources
 
-- Analisis langsung `Controllers/OrganizationController.cs` — kode cascade rename, reparent, reorder (HIGH confidence)
-- Analisis langsung `Models/OrganizationUnit.cs` — struktur model dengan FK ke KkjFile/CpdpFile (HIGH confidence)
-- Analisis langsung `Views/Admin/ManageOrganization.cshtml` — PRG pattern, multiple forms per row (HIGH confidence)
-- Analisis langsung `Data/ApplicationDbContext.cs` baris 105-113 — `GetSectionUnitsDictAsync` 2-level hardcoded (HIGH confidence)
-- Grep hasil: 7 file controller memanggil `GetSectionUnitsDictAsync` (HIGH confidence)
-- ASP.NET Core antiforgery token dengan fetch API — domain knowledge (HIGH confidence)
-- SortableJS drag-drop + Bootstrap Collapse interaction patterns — domain knowledge (MEDIUM confidence)
+- Plan teknis: `C:\Users\Administrator\.claude\plans\berikut-temuan-audit-tanggal-fizzy-lampson.md`
+- `.planning/RETROSPECTIVE.md` — pattern stale HANDOFF, research gap due date
+- `.planning/MILESTONES.md` v8.2/v8.6/v14.0 entries — UAT pending inventory
+- `tests/e2e/*.spec.ts` — Playwright test inventory
+- OWASP defensive coding guide
+- Microsoft Learn — EF Core 8 best practices
 
 ---
-*Pitfalls research for: ManageOrganization Tree View + Drag-Drop + AJAX CRUD*
-*Researched: 2026-04-02*
+*Pitfalls research for: v15.0 Audit Findings 27 April 2026*
+*Researched: 2026-04-28*

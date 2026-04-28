@@ -1,488 +1,97 @@
 # Architecture Research
 
-**Domain:** ASP.NET Core MVC — Tree-view CRUD dengan AJAX + Bootstrap Modal + Drag-drop Reorder
-**Researched:** 2026-04-02
-**Confidence:** HIGH (berdasarkan analisis langsung kode existing + pola Bootstrap/Vanilla JS yang sudah ada di proyek)
-
----
-
-## Kondisi Existing (Baseline)
-
-### Masalah Struktural Saat Ini
-
-```
-ManageOrganization.cshtml (520 baris)
-├── 3x copy-paste identik: root loop / child loop / grandchild loop
-├── Tiap aksi = full-page POST redirect (PRG pattern)
-├── Edit mode = redirect ke ?editId=N, form muncul di atas tabel
-├── Reorder = POST per klik (2 klik per geser 1 posisi)
-└── Level hardcoded ke 3 level: root (Bagian) / child (Unit) / grandchild (Unit)
-```
-
-### Arsitektur Existing yang Dipertahankan
-
-| Komponen | Status | Catatan |
-|----------|--------|---------|
-| `OrganizationController.cs` | DIPERTAHANKAN dan DIPERLUAS | Tambah AJAX endpoints, logika cascade tidak berubah |
-| `OrganizationUnit` model | TIDAK BERUBAH | Id, Name, ParentId, Level, DisplayOrder, IsActive |
-| Cascade rename logic | DIPERTAHANKAN | Tetap di `EditOrganizationUnit` POST |
-| Cascade reparent logic | DIPERTAHANKAN | Update `ApplicationUser.Section` saat parent berubah |
-| Circular reference check | DIPERTAHANKAN | `IsDescendantAsync` tidak berubah |
-| `[ValidateAntiForgeryToken]` | DIPERTAHANKAN | AJAX harus kirim header `RequestVerificationToken` |
-| `[Authorize(Roles = "Admin, HC")]` | TIDAK BERUBAH | Semua endpoint sama |
-
----
-
-## Target Architecture
-
-### System Overview
-
-```
-+------------------------------------------------------------------+
-|                   Browser (ManageOrganization)                    |
-+------------------------------------------------------------------+
-|  +-----------------+  +----------------------+  +-----------+    |
-|  | Tree View       |  | Bootstrap Modal      |  | SortableJS|    |
-|  | (table rows     |  | Add / Edit           |  | Drag-drop |    |
-|  | + indent)       |  | (satu modal          |  | reorder   |    |
-|  |                 |  |  dual-mode)          |  |           |    |
-|  +--------+--------+  +-----------+----------+  +-----+-----+    |
-|           |                       |                   |          |
-|           +------- orgTree.js (orchestrator) ---------+          |
-|                    - state lokal (treeData[])                    |
-|                    - AJAX fetch wrapper + CSRF header            |
-|                    - DOM re-render setelah tiap aksi             |
-+------------------------------------------------------------------+
-|                    HTTP (fetch + CSRF header)                     |
-+------------------------------------------------------------------+
-|               OrganizationController (ASP.NET Core)              |
-|  +-------------------+  +-----------------+  +----------------+  |
-|  | GET               |  | POST (existing) |  | POST (baru)    |  |
-|  | ManageOrganization|  | Add/Edit/Toggle |  | GetOrgTree     |  |
-|  | GetOrgTree (JSON) |  | Delete          |  | ReorderBulk    |  |
-|  +--------+----------+  +--------+--------+  +-------+--------+  |
-|           +---------------------|-------------------+            |
-+------------------------------------------------------------------+
-|                    ApplicationDbContext (EF Core)                 |
-|  OrganizationUnits --> Users (denorm) + CoachCoacheeMappings     |
-+------------------------------------------------------------------+
-```
-
-### Component Responsibilities
-
-| Komponen | Tanggung Jawab | Implementasi |
-|----------|----------------|--------------|
-| `ManageOrganization.cshtml` | Shell halaman: breadcrumb, alert, container div, modal markup, script include | Dikurangi dari 520 menjadi ~120 baris |
-| `orgTree.js` | State management tree, fetch AJAX, re-render DOM, modal, SortableJS init | File baru di `wwwroot/js/` |
-| Bootstrap Modal (satu, dual-mode) | Form Add dan Edit berbagi satu modal, mode diset via JS | Tidak perlu dua modal terpisah |
-| `GetOrganizationTree` endpoint | Return flat JSON array untuk JS render tree | Endpoint baru di OrganizationController |
-| `AddOrganizationUnit` (AJAX) | Validasi + simpan + return JSON `{success, message, unit}` | Modifikasi existing, tambah JSON path |
-| `EditOrganizationUnit` (AJAX) | Validasi + cascade + simpan + return JSON | Cascade logic TIDAK BERUBAH |
-| `ToggleOrganizationUnitActive` (AJAX) | Toggle + return JSON `{success, isActive}` | Tambah JSON response path |
-| `DeleteOrganizationUnit` (AJAX) | Delete + return JSON `{success, message}` | Tambah JSON response path |
-| `ReorderOrganizationUnit` (bulk) | Terima array `[{id, displayOrder}]`, batch update | Ganti logika up/down dengan bulk reorder |
-
----
-
-## Pola Arsitektur yang Direkomendasikan
-
-### Pola 1: Dual-Response Controller (AJAX + PRG Fallback)
-
-**Apa:** Controller POST cek `Request.Headers["X-Requested-With"]`, kembalikan JSON jika AJAX,
-redirect jika bukan.
-
-**Kenapa dipilih:** Tidak perlu endpoint terpisah. Route existing tetap bekerja jika JS dimatikan.
-
-```csharp
-// Di OrganizationController
-private bool IsAjaxRequest() =>
-    Request.Headers["X-Requested-With"] == "XMLHttpRequest";
-
-[HttpPost]
-[Authorize(Roles = "Admin, HC")]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> AddOrganizationUnit(string name, int? parentId)
-{
-    // ... validasi dan simpan tetap sama ...
-
-    if (IsAjaxRequest())
-        return Json(new {
-            success = true,
-            message = "Unit berhasil ditambahkan.",
-            unit = new { unit.Id, unit.Name, unit.ParentId, unit.Level, unit.DisplayOrder, unit.IsActive }
-        });
-
-    TempData["Success"] = "Unit berhasil ditambahkan.";
-    return RedirectToAction("ManageOrganization");
-}
-```
-
-### Pola 2: Flat JSON Tree dengan Client-side Rendering
-
-**Apa:** GET endpoint kembalikan array flat. JS merender tree secara rekursif.
-
-**Kenapa dipilih:** Data flat mudah dimanipulasi di JS (insert, delete, reorder) tanpa re-fetch setelah
-setiap operasi. Server tidak perlu tahu tentang tree structure untuk rendering.
-
-```javascript
-// orgTree.js
-function renderTree(units) {
-    const roots = units
-        .filter(u => !u.parentId)
-        .sort((a, b) => a.displayOrder - b.displayOrder);
-    const tbody = document.getElementById('orgTreeBody');
-    tbody.innerHTML = '';
-    roots.forEach(root => renderNode(root, units, tbody, 0));
-}
-
-function renderNode(unit, allUnits, container, depth) {
-    container.appendChild(buildRow(unit, depth));
-    allUnits
-        .filter(u => u.parentId === unit.id)
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .forEach(child => renderNode(child, allUnits, container, depth + 1));
-}
-```
-
-### Pola 3: Single Bootstrap Modal, Dual Mode
-
-**Apa:** Satu modal `#orgModal`. Tombol "Tambah" set mode=add dan clear form.
-Tombol "Edit" set mode=edit dan isi form dari data unit.
-
-**Kenapa dipilih:** View lebih ringkas. Tidak ada library form tambahan. Bootstrap sudah ada di proyek.
-
-```javascript
-function openAddModal(parentId = null) {
-    document.getElementById('modalTitle').textContent = 'Tambah Unit Baru';
-    document.getElementById('orgForm').reset();
-    document.getElementById('orgId').value = '';
-    document.getElementById('parentIdSelect').value = parentId ?? '';
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('orgModal')).show();
-}
-
-function openEditModal(unit) {
-    document.getElementById('modalTitle').textContent = 'Edit Unit: ' + unit.name;
-    document.getElementById('orgId').value = unit.id;
-    document.getElementById('nameInput').value = unit.name;
-    document.getElementById('parentIdSelect').value = unit.parentId ?? '';
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('orgModal')).show();
-}
-```
-
-### Pola 4: SortableJS untuk Drag-drop Reorder
-
-**Apa:** SortableJS (Vanilla JS, ~50KB) pada tbody. Drop event trigger POST ke `ReorderOrganizationUnit`
-dengan payload array `[{id, displayOrder}]`.
-
-**Kenapa SortableJS:** Proyek tidak menggunakan jQuery. SortableJS adalah Vanilla JS murni,
-mendukung table rows, ringan, dan mature (npm weekly 3M+ downloads).
-
-**Batasan penting:** Drag-drop HANYA reorder dalam siblings yang sama (parent sama). Cross-parent
-drag diblokir (`group: false`). Pindah parent harus lewat modal Edit karena ada cascade logic di
-backend.
-
-```javascript
-// Init setelah render tree
-Sortable.create(document.getElementById('orgTreeBody'), {
-    handle: '.drag-handle',
-    animation: 150,
-    filter: '.no-drag',       // baris yang tidak boleh di-drag
-    onEnd: function(evt) {
-        const newOrder = collectSiblingOrders(evt.item);
-        saveReorder(newOrder);
-    }
-});
-```
-
-**Catatan:** SortableJS tidak mengenal parent-child relationship di flat table. JS harus
-menentukan siblings secara manual dari `data-parent-id` attribute pada setiap row.
-
----
-
-## Data Flow
-
-### Flow: Load Halaman
-
-```
-Browser GET /Admin/ManageOrganization
-    |
-    v
-OrganizationController.ManageOrganization() --> Kembalikan HTML shell kosong
-    |
-    v
-Browser load orgTree.js
-    --> fetch GET /Admin/GetOrganizationTree
-    --> Terima flat JSON array
-    --> renderTree() membangun DOM tabel
-```
-
-### Flow: Add Unit (AJAX)
-
-```
-User klik "Tambah Unit"
-    --> openAddModal()
-    --> Bootstrap Modal tampil
-
-User submit form
-    --> orgTree.js tangkap submit event, cegah default
-    --> fetch POST /Admin/AddOrganizationUnit
-        Header X-Requested-With: XMLHttpRequest
-        Header RequestVerificationToken: [dari input hidden]
-        Body: name=..., parentId=...
-    |
-    v
-OrganizationController.AddOrganizationUnit()
-    --> Validasi (nama kosong, duplikat)
-    --> Simpan ke DB
-    --> return Json({success, message, unit})
-    |
-    v
-orgTree.js terima response
-    --> Jika success: push ke treeData[], re-render, tutup modal, tampilkan toast
-    --> Jika error: tampilkan pesan di dalam modal (tidak tutup modal)
-```
-
-### Flow: Edit + Cascade
-
-```
-User klik Edit button di row
-    --> openEditModal(unit) --> Modal tampil dengan data ter-prefill
-
-User submit form
-    --> fetch POST /Admin/EditOrganizationUnit
-    |
-    v
-Controller:
-    --> Validasi (duplikat, circular reference)
-    --> Jika nama berubah: cascade update ApplicationUser.Section/Unit
-    --> Jika parent berubah: cascade update ApplicationUser.Section
-    --> Cascade update CoachCoacheeMappings
-    --> Simpan
-    --> return Json({success, message, cascadedUsers, cascadedMappings})
-    |
-    v
-orgTree.js:
-    --> Update unit di treeData[]
-    --> re-render tree
-    --> Tampilkan toast dengan info cascade jika ada
-```
-
-### Flow: Drag-drop Reorder
-
-```
-User drag row ke posisi baru
-    |
-    v
-SortableJS onEnd event
-    --> collectSiblingOrders(): ambil semua rows dengan parentId sama
-        --> susun berdasarkan posisi DOM saat ini
-        --> buat array [{id, displayOrder: newIndex}]
-    --> fetch POST /Admin/ReorderOrganizationUnit
-        Body: JSON array (application/json, bukan form)
-    |
-    v
-Controller ReorderOrganizationUnit (dimodifikasi):
-    --> Terima List<ReorderItem> dari JSON body
-    --> Batch update DisplayOrder
-    --> return Json({success})
-    |
-    v
-orgTree.js:
-    --> Update displayOrder di treeData[] (DOM sudah benar dari SortableJS)
-```
-
-### CSRF Token untuk AJAX
-
-```javascript
-// Satu token yang diambil dari Razor hidden input
-const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
-async function ajaxPost(url, formData) {
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'RequestVerificationToken': token
-        },
-        body: new URLSearchParams(formData)
-    });
-    return response.json();
-}
-```
-
----
-
-## Komponen: Baru vs Dimodifikasi vs Tidak Berubah
-
-### Komponen BARU
-
-| File | Deskripsi | Estimasi |
-|------|-----------|----------|
-| `wwwroot/js/orgTree.js` | State management, AJAX, render, modal, SortableJS init | ~250 baris |
-| `OrganizationController.GetOrganizationTree` | GET, return JSON flat array semua OrganizationUnit | ~10 baris |
-
-### Komponen DIMODIFIKASI
-
-| File | Perubahan | Ukuran Perubahan |
-|------|-----------|-----------------|
-| `Views/Admin/ManageOrganization.cshtml` | Hapus 3 Razor loop. Tambah modal markup + div#orgTreeBody + script tags | 520 -> ~130 baris |
-| `OrganizationController.AddOrganizationUnit` | Tambah `IsAjaxRequest()` check, return JSON path | +10 baris |
-| `OrganizationController.EditOrganizationUnit` | Tambah JSON response path. Cascade logic TIDAK BERUBAH | +5 baris |
-| `OrganizationController.ToggleOrganizationUnitActive` | Tambah JSON response path | +5 baris |
-| `OrganizationController.DeleteOrganizationUnit` | Tambah JSON response path | +5 baris |
-| `OrganizationController.ReorderOrganizationUnit` | Ganti up/down swap dengan bulk array update | Rewrite (~20 baris) |
-
-### Komponen TIDAK BERUBAH
-
-| Komponen | Alasan |
-|----------|--------|
-| `OrganizationUnit` model | Tidak perlu field tambahan |
-| Cascade rename logic (baris 163-186) | Tetap di server, tidak diekspos ke JS |
-| Cascade reparent logic (baris 189-213) | Tetap di server |
-| `IsDescendantAsync` | Tetap di server |
-| `UpdateChildrenLevelsAsync` | Tetap di server |
-| Semua 7 controller yang consume org data | Membaca `ApplicationUser.Section/Unit` (string), bukan FK |
-| Semua 19 views yang menampilkan org data | Menggunakan string dari ApplicationUser, bukan join ke OrganizationUnits |
-
----
-
-## Integration Points
-
-### 7 Controller yang Mengonsumsi Data Organisasi
-
-| Controller | Cara Konsumsi | Dampak Redesign |
-|------------|---------------|-----------------|
-| `WorkerController` | Dropdown Section/Unit saat Create/Edit worker | Tidak berubah |
-| `CoachMappingController` | Filter dan assign berdasarkan Section/Unit | Tidak berubah |
-| `AssessmentAdminController` | Filter peserta assessment per unit | Tidak berubah |
-| `DocumentAdminController` | FK ke `OrganizationUnit.Id` di KKJ/CPDP | Tidak berubah |
-| `CMPController` | Display Section/Unit di profil user | Tidak berubah |
-| `CDPController` | Coaching assignment per unit | Tidak berubah |
-| `RenewalController` | Filter renewal per unit | Tidak berubah |
-
-**Kesimpulan penting:** Redesign halaman ManageOrganization adalah perubahan terisolasi sepenuhnya.
-Data organisasi disimpan sebagai denormalized string di `ApplicationUser.Section/Unit`, bukan sebagai
-FK ke OrganizationUnit. Tidak ada downstream impact ke controller atau view manapun.
-
-### 19 Views yang Menampilkan Org Data
-
-Semua 19 views menggunakan `ApplicationUser.Section` dan `ApplicationUser.Unit` (string).
-Cascade logic di backend memastikan string ini tetap sinkron saat unit di-rename atau di-reparent.
-Redesign tidak mengubah views ini sama sekali.
-
----
-
-## Urutan Build yang Direkomendasikan
-
-Berdasarkan dependency antar komponen:
-
-```
-Phase A: Backend AJAX endpoints (tidak breaking, bisa deploy kapan saja)
-  1. Tambah GetOrganizationTree (GET, JSON endpoint baru)
-  2. Modifikasi POST actions: AddOrganizationUnit, EditOrganizationUnit,
-     ToggleOrganizationUnitActive, DeleteOrganizationUnit -> dual response
-  3. Overhaul ReorderOrganizationUnit -> terima bulk JSON array
-
-Phase B: View shell + modal (bergantung pada Phase A)
-  4. Sederhanakan ManageOrganization.cshtml: hapus 3 Razor loop
-  5. Tambah modal markup (satu modal dual-mode: Add/Edit)
-  6. Tambah container div#orgTreeBody dan hidden CSRF token
-  7. Tambah script tag untuk orgTree.js dan SortableJS (CDN)
-
-Phase C: orgTree.js - core (bergantung pada Phase A dan B)
-  8. Fetch GetOrganizationTree + renderTree (tanpa aksi)
-  9. Modal Add + modal Edit dengan AJAX submit
-  10. Toggle aktif/nonaktif via AJAX
-  11. Delete via AJAX (dengan konfirmasi modal)
-
-Phase D: Drag-drop reorder (bergantung pada Phase C)
-  12. SortableJS init pada tbody dengan handle .drag-handle
-  13. collectSiblingOrders() function
-  14. saveReorder() AJAX call ke ReorderOrganizationUnit
-```
-
-**Rationale urutan:**
-- Phase A selesai dulu agar Phase C bisa di-test secara independen di browser developer tools
-- Phase B memisahkan markup dari JS agar review lebih mudah
-- Phase D terakhir karena paling kompleks, tidak blocking feature CRUD
-
----
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Drag-drop Cross-Parent
-
-**Yang dilakukan:** Izinkan drag node antar parent berbeda via SortableJS `group` config.
-
-**Kenapa salah:** `EditOrganizationUnit` memiliki cascade logic kompleks (rename Section, reparent
-users, update CoachCoacheeMappings) yang harus dieksekusi saat parent berubah. Drag-drop
-cross-parent bypass semua ini, membuat data denormalized di `ApplicationUser` jadi stale.
-
-**Lakukan ini:** Cross-parent move hanya via modal Edit. Drag-drop hanya reorder dalam siblings
-yang memiliki `parentId` sama. Konfigurasi SortableJS dengan `group: false`.
-
-### Anti-Pattern 2: Re-fetch Tree Setelah Setiap Operasi
-
-**Yang dilakukan:** Setelah setiap AJAX call berhasil, fetch ulang `GetOrganizationTree` dan
-re-render seluruh tree dari server.
-
-**Kenapa salah:** Lambat, UX terasa blink atau flicker. Untuk tree kecil (organisasi Pertamina
-~50-100 unit) ini overkill dan menambah latency yang tidak perlu.
-
-**Lakukan ini:** Mutasi `treeData` array lokal langsung setelah response sukses, re-render dari
-state lokal. Re-fetch hanya saat terjadi error tak terduga atau pertama kali load halaman.
-
-### Anti-Pattern 3: Render Tree Rekursif di Razor Server-side
-
-**Yang dilakukan:** Buat Razor helper atau partial view rekursif untuk render tree.
-
-**Kenapa salah:** Razor partial rekursif di ASP.NET Core tidak native (perlu workaround dengan
-`@await Html.PartialAsync`). Tetap menghasilkan full-page render, menghilangkan benefit AJAX.
-Juga mempertahankan masalah 520 baris copy-paste.
-
-**Lakukan ini:** Server hanya kembalikan flat JSON array. Rekursi sepenuhnya di `renderNode()` JS.
-
-### Anti-Pattern 4: Tiga Modal Terpisah per Level
-
-**Yang dilakukan:** Buat modal Add-Root, modal Add-Child, modal Add-Grandchild terpisah.
-
-**Kenapa salah:** Triple duplication kembali, persis masalah yang sama dengan view existing.
-Tiga modal membutuhkan tiga set event listener dan tiga kali markup.
-
-**Lakukan ini:** Satu modal dengan dropdown "Induk". Level dihitung otomatis dari parent yang
-dipilih. Dropdown diisi dari `treeData` saat modal dibuka.
-
-### Anti-Pattern 5: Inline Script di Cshtml
-
-**Yang dilakukan:** Taruh semua JS langsung di `@section Scripts` dalam ManageOrganization.cshtml.
-
-**Kenapa salah:** JS 250+ baris inline sulit di-debug, tidak bisa di-cache browser secara terpisah,
-dan tidak bisa di-test dengan isolasi.
-
-**Lakukan ini:** Semua JS di `wwwroot/js/orgTree.js`. View hanya punya script tag untuk load file
-tersebut. Pendekatan ini konsisten dengan pattern proyek (lihat file JS lain di `wwwroot/js/`).
-
----
-
-## Scaling Considerations
-
-| Skala Unit | Pendekatan |
-|------------|------------|
-| < 100 unit (kondisi saat ini Pertamina KPB) | Client-side render dari flat array sangat cukup. Tidak perlu virtual scroll. |
-| 100-500 unit | Tetap aman. renderTree masih O(n). SortableJS bisa handle ratusan rows. |
-| > 500 unit | Perlu pertimbangan lazy-load per node atau pagination per Bagian. Di luar scope v13.0. |
-
----
+**Domain:** v15.0 Audit Findings 27 April 2026 — integrasi 11 fix ke arsitektur ASP.NET Core 8 MVC PortalHC_KPB
+**Researched:** 2026-04-28
+**Confidence:** HIGH (semua integration point diverifikasi via pembacaan kode aktual)
+
+## Key Findings (Executive)
+
+1. **Tidak ada satu pun temuan yang justified service extraction.** Semua patch tetap di location existing (action method, view, atau helper inline). YAGNI menang clear.
+2. **T2 butuh server-side change selain view:** `AssessmentAdminController.CreateQuestion` baris **4681** dan `EditQuestion` baris **4822** memaksa `scoreValue = 10` untuk MC/MA via `if (questionType != "Essay") scoreValue = 10;` (komentar T-298-03). Fix view-only TIDAK CUKUP.
+3. **Cross-cutting impact = ZERO.** Tidak ada perubahan pada `AdminBaseController`, `IAuthService`, `IWorkerDataService`, `GradingService`, `PaginationHelper`, `_Layout.cshtml`, atau `wwwroot/js/site.js`. Audit fix isolated.
+4. **T9 idempotency partial sudah ada:** Baris 2778–2784 sudah pakai `ExecuteUpdateAsync` dengan WHERE clause `Status == "Menunggu Penilaian"` sebagai replay guard (komentar T-298-16). Fix hanya butuh ganti pesan baris 2713 menjadi success-message ramah.
+5. **Pattern existing untuk T11 sudah mature:** `ModelState.Remove()` dipakai 5+ kali di POST `CreateAssessment` (baris 742, 756, 821, 835, 870). T11 hanya menambah satu entry mengikuti pola yang sama.
+
+## Integration Points per Temuan
+
+| # | File | Method/Lokasi | Layer | Service new? |
+|---|---|---|---|---|
+| T1 | `Views/Account/Login.cshtml` | baris 177–183 + inline script di akhir view | View only | No |
+| T2 | `Views/Admin/ManagePackageQuestions.cshtml` + `Controllers/AssessmentAdminController.cs` | view 188/299/300/311 + controller **4681** (CreateQuestion), **4822** (EditQuestion) | View+Controller | No |
+| T3 | `Controllers/AssessmentAdminController.cs` | `ManageAssessment` (57–188) inline patch + opsional EF migration untuk index | Controller+DB | No (extract ditolak) |
+| T4 | `Views/Admin/CreateAssessment.cshtml` | extract `renderSelectedParticipants(targetEl, checkboxes)` dari `populateSummary` (1062–1095) inline | View only | No |
+| T5 | `Views/Admin/CreateAssessment.cshtml` | label baris 362, 383, 404, 412, 425, 432 | View only | No |
+| T6 | `Views/Admin/CreateAssessment.cshtml` | baris 1177 + opsional 1117–1130 (PrePost summary) | View only | No |
+| T7 | 4 view files (`ManagePackageQuestions.cshtml`, `_PreviewQuestion.cshtml`, `StartExam.cshtml`, `ExamSummary.cshtml`) | label only — string internal `"MultipleChoice"`/`"MultipleAnswer"` **tidak diubah** | View only | No |
+| T9 | `Controllers/AssessmentAdminController.cs` (2710–2827) + view tombol "Create Sertifikasi" di CDP | baris 2713 message + UI button hide condition | Controller+View | No (`EssayGradingService` ditolak) |
+| T10 | `Controllers/CMPController.cs` (1771–1838) + `Views/CMP/Certificate.cshtml` | try-catch per-action (mirror `CertificatePdf` pattern baris 2078–2083) | Controller+View | No (global filter ditolak) |
+| T11 | `Views/Admin/CreateAssessment.cshtml` (1790–1807) + `Controllers/AssessmentAdminController.cs` (~778) | JS handler set value + `ModelState.Remove("Status")` jika `isPrePostMode` | View+Controller | No (FluentValidation ditolak) |
+
+## Build Order (Dependency-Aware, 6 Waves)
+
+1. **Wave 1 (parallel-safe, label only):** T1, T5, T6, T7 — minimal risk
+2. **Wave 2 (view+controller logic, file conflict di `CreateAssessment.cshtml` — wajib serialize after Wave 1):** T2, T4, T11
+3. **Wave 3 (defensive, post-deploy log analysis):** T10
+4. **Wave 4 (state machine):** T9
+5. **Wave 5 (perf, last karena perlu measurement):** T3
+6. **Wave 6 (deferred):** T8
+
+**T9 vs T3 ordering:** T9 tidak functionally depend pada T3 (independen secara semantik); plan rekomendasi T3 di akhir adalah benar untuk **risk ordering**, bukan dependency.
+
+**File conflict warning:** T4, T5, T6, T11 semua menyentuh `CreateAssessment.cshtml`. Wajib serialize dalam 1 worktree branch dengan careful merge order.
+
+## Components Baru — DITOLAK (dengan justifikasi)
+
+| Component | Untuk Temuan | Verdict | Alasan |
+|-----------|--------------|---------|--------|
+| `AssessmentManagementQueryService` | T3 | ❌ Tolak | Single caller, ViewBag-coupled. Inline patch ke action method cukup. |
+| `EssayGradingService` | T9 | ❌ Tolak | Fix 1 baris message + 1 UI condition. Mirror pattern existing `GradingService` tidak justified untuk delta kecil. |
+| Global Exception Filter | T10 | ❌ Tolak | Pola try-catch per-action sudah established di `CertificatePdf`. Konsistensi > new abstraction. |
+| FluentValidation / IValidatableObject | T11 | ❌ Tolak | `ModelState.Remove` pattern sudah mature (5+ usage). Add 1 entry konsisten. |
+| Site-wide JS file | T1, T4 | ❌ Tolak | Single-page/single-view scope. Inline `<script>` sesuai pola existing (Login, CreateAssessment, ManagePackageQuestions). |
+| Helper `GetQuestionTypeDisplayName` di base controller | T7 | ❌ Tolak | 3 mapping × 4 view = 12 string changes. Manageable inline. |
+| Timezone-aware service | T5, T6 | ❌ Tolak | Single timezone, label-only. Multi-tz out-of-scope. |
+
+## Pattern Existing yang Diikuti
+
+- **AJAX Dual-Response:** `AdminBaseController.IsAjaxRequest()` — T9 sudah pakai pattern ini di FinalizeEssayGrading
+- **Defensive ModelState.Remove:** POST `CreateAssessment` baris 742/756/821/835/870 → T11 menambah 1 entry
+- **Try-Catch per Sensitive Action:** `CertificatePdf` baris 2078–2083 → T10 mirror persis
+- **ExecuteUpdateAsync Replay Guard:** `FinalizeEssayGrading` baris 2778–2784 → T9 manfaatkan existing guard, hanya ubah message
+- **AsNoTracking Read-Only:** `AdminBaseController.BuildRenewalRowsAsync` → T3 apply ke ManageAssessment
+- **Inline Script di View:** existing di CreateAssessment, ManagePackageQuestions, Login → T1, T4 ikut
+
+## Phase Structure Implications
+
+**Phase struktur disarankan:** 1 phase per Wave (5 phase) atau lebih granular per temuan (10 phase). Karena kebanyakan T pure-view dan low-risk, batching Wave 1 menjadi 1 phase (4 temuan label) akan efisien.
+
+**Phase yang butuh deeper research:**
+- T3 (perlu measurement baseline dengan SQL trace)
+- T9 (perlu integration test setup atau session reproduksi log)
+- T10 (perlu akses log produksi setelah deploy)
+
+**Phase tanpa research extra:**
+- T1, T2, T4, T5, T6, T7, T11 — straightforward implementation per plan
+
+## Open Questions
+
+1. **T7 final label naming** — perlu konfirmasi auditor sebelum touch 4 view files (user sudah pilih: rename label UI saja, label final sebelum commit).
+2. **T8 scope** — Jalur A (label fix) vs Jalur B (field baru). Jika Jalur B, defer ke v16.0 karena bertentangan dengan goal "tanpa migrasi DB".
+3. **T3 EF migration index** — perlu cek migrasi terbaru apakah index `IX_AssessmentSessions_Schedule_ExamWindowCloseDate` dan `IX_LinkedGroupId` sudah ada.
+4. **T9 UI tombol "Create Sertifikasi"** — perlu locate exact view/partial yang merender tombol untuk hide-condition `Status == "Completed" && NomorSertifikat != null`.
+5. **T10 root cause aktual** — defensive patch dulu, monitor `_logger.LogError` di production untuk diagnose root cause definitif.
 
 ## Sources
 
-- Analisis langsung: `Controllers/OrganizationController.cs` (360 baris, 2026-04-02)
-- Analisis langsung: `Views/Admin/ManageOrganization.cshtml` (520 baris, 2026-04-02)
-- Analisis langsung: `Models/OrganizationUnit.cs`
-- Grep audit: 11 controllers + 19 views yang mengonsumsi org data
-- SortableJS: https://github.com/SortableJS/Sortable — Vanilla JS, no jQuery, weekly 3M+ npm downloads
-- ASP.NET Core CSRF + AJAX: `RequestVerificationToken` header pattern (standard, HIGH confidence)
+- `Controllers/AssessmentAdminController.cs` — verified ManageAssessment (57–188), CreateAssessment (730–940), CreateQuestion (4681), EditQuestion (4822), FinalizeEssayGrading (2710–2827)
+- `Controllers/CMPController.cs` — verified Certificate (1771–1811), ResolveCategorySignatory (1813–1838), CertificatePdf pattern (1841–2084 with try-catch baris 2078–2083)
+- `Controllers/AdminBaseController.cs` — verified `IsAjaxRequest()` pattern, `BuildRenewalRowsAsync` AsNoTracking pattern
+- `Views/Admin/ManagePackageQuestions.cshtml` — verified score field 188, JS 291–312
+- `Views/Admin/CreateAssessment.cshtml` — verified Step 2 user list 280–321, Step 3 time fields 357–434, Step 3 Status field 460–469, Step 4 summary 1155–1190, JS validation 925–1031, type select handler 1790–1807
+- `Views/Account/Login.cshtml` — verified password input 177–183
+- `Views/Admin/_PreviewQuestion.cshtml` — verified MC/MA/Essay rendering
+- `Models/AssessmentSession.cs` — verified Status field type, no [Required] attribute
 
 ---
-*Architecture research for: ManageOrganization Tree View Redesign (v13.0)*
-*Researched: 2026-04-02*
+*Architecture research for: v15.0 Audit Findings 27 April 2026*
+*Researched: 2026-04-28*
