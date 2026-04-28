@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: executing
-last_updated: "2026-04-28T10:19:44.245Z"
+last_updated: "2026-04-28T11:42:00.000Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -24,15 +24,15 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 ## Current Position
 
-Phase: 306 (score-editable-per-question-type) — EXECUTING
-Plan: 2 of 2
-Status: Plan 01 complete — Plan 02 ready to execute
-Last activity: 2026-04-28 -- Phase 306 Plan 01 complete (server-side validation + audit log)
-Resume file: .planning/phases/306-score-editable-per-question-type/306-02-PLAN.md
+Phase: 306 (score-editable-per-question-type) — COMPLETE
+Plan: 2 of 2 — DONE (Plan 01 + Plan 02 fully shipped)
+Status: Phase 306 closed — REQ QSCR-01 shipped, Audit Temuan 2 closed, UAT 10/10 PASS
+Last activity: 2026-04-28 -- Phase 306 Plan 02 complete (view + modal + UAT 10-step PASS via MCP Playwright)
+Resume file: (ready for next phase)
 
 ## Next Action
 
-Jalankan `/gsd-execute-phase 306` untuk eksekusi Plan 02 (View + Modal + UAT) — JSON GET sudah expose `affectedSessions` field, siap dikonsumsi client-side `populateEditForm`.
+Phase 306 closed. Jalankan `/gsd-execute-phase 307` untuk Wave 2 berikutnya (Selected Participants Inline View — REQ WIZ-01) atau review backlog v15.0 untuk re-prioritization. Optional: track pre-existing EditQuestion option-replacement bug (FK_PackageUserResponses_PackageOptions_PackageOptionId) yang ditemukan saat UAT — out of scope Phase 306 tapi rekomendasi gap-closure phase atau v16.0.
 
 ## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
 
@@ -85,6 +85,10 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - [v15.0 / Phase 306 / Plan 01]: AuditLog `EditQuestion-ScoreChange` dengan format `oldScore → newScore (N sessions affected)` literal arrow U+2192, dibungkus try/catch dengan _logger.LogWarning fallback (D-10, T-306-02 mitigation)
 - [v15.0 / Phase 306 / Plan 01]: AuditLog `CreateQuestion-CustomScore` saat scoreValue != 10 (D-11, CD-05) — informational audit untuk non-default score
 - [v15.0 / Phase 306 / Plan 01]: EditQuestion AJAX GET extends JSON dengan `affectedSessions` field (Distinct().CountAsync() per AssessmentSessionId) untuk Plan 02 modal trigger (D-09)
+- [v15.0 / Phase 306 / Plan 02]: Score input default-enabled untuk semua tipe MC/MA/Essay; JS dynamic disabled/reset/help-text logic dihapus — single source of truth = Razor static `Range 1–100` (D-03, D-04, D-05)
+- [v15.0 / Phase 306 / Plan 02]: Modal `editScoreWarningModal` trigger condition = editMode AND scoreChange AND affectedSessions > 0 (informational only); confirm button class `btn-warning btn-sm` per CD-D-08 UI-SPEC override (D-06, D-08, D-09, CD-02)
+- [v15.0 / Phase 306 / Plan 02]: Header daftar soal format `(N soal • Total X poin)` dengan bullet U+2022; computed via `@questions.Sum(q => q.ScoreValue)` (D-17, CD-03)
+- [v15.0 / Phase 306 / Plan 02]: D-19 verified via UAT — Stored AssessmentSessions.Score di Completed sessions TIDAK auto-recalculate setelah admin edit; Score di-persist saat SubmitExam, modal warning informasional only
 
 ### Open Blockers/Concerns
 
@@ -92,5 +96,5 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ## Session Continuity
 
-Last activity: 2026-04-24 — Closed milestone v14.0 Assessment Enhancement (8 phases, 23 plans shipped)
-Next action: Jalankan `/gsd-new-milestone` untuk memulai v15.0 (kandidat: Performance Deep Check, batch UAT closeout, atau reaktivasi v11.2)
+Last activity: 2026-04-28 — Closed Phase 306 (Plan 01 server-side + Plan 02 view + UAT 10/10 PASS via MCP Playwright). REQ QSCR-01 shipped. Audit Temuan 2 (score editability per question type) closed.
+Next action: Jalankan `/gsd-execute-phase 307` untuk Wave 2 lanjutan (Selected Participants Inline View — REQ WIZ-01).

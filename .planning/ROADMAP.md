@@ -97,7 +97,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 
 #### Wave 2 — UI Behavior (file conflict di CreateAssessment.cshtml — sequential)
 
-- [ ] **Phase 306: Score Editable per Question Type** — Skor 1–100 untuk MC/MA/Essay
+- [x] **Phase 306: Score Editable per Question Type** — Skor 1–100 untuk MC/MA/Essay (completed 2026-04-28)
   - **REQ:** QSCR-01
   - **Success Criteria:**
     1. Input `scoreValue` di `ManagePackageQuestions.cshtml` baris 188 tidak `disabled` default
@@ -108,7 +108,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
   - **Risk:** Medium | **Effort:** M
   - **Plans:** 2 plans
     - [x] 306-01-PLAN.md — Server-side: range validation, hapus force-override, audit log EditQuestion-ScoreChange + CreateQuestion-CustomScore + JSON GET extend affectedSessions (QSCR-01)
-    - [ ] 306-02-PLAN.md — View: header total points, scoreValue input enabled, modal Peringatan Ubah Skor + JS submit handler + populateEditForm extension + manual UAT 10-step (QSCR-01)
+    - [x] 306-02-PLAN.md — View: header total points, scoreValue input enabled, modal Peringatan Ubah Skor + JS submit handler + populateEditForm extension + manual UAT 10-step (QSCR-01)
 
 - [ ] **Phase 307: Selected Participants Inline View** — Real-time list peserta di Step 2
   - **REQ:** WIZ-01
@@ -191,7 +191,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 | WIZ-02 | 304 | Pending |
 | WIZ-03 | 304 | Pending |
 | LBL-01 | 305 | Pending |
-| QSCR-01 | 306 | Pending |
+| QSCR-01 | 306 | ✅ Complete |
 | WIZ-01 | 307 | Pending |
 | WIZ-04 | 308 | Pending |
 | WCRT-01 | 309 | Pending |
