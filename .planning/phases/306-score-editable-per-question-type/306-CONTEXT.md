@@ -28,7 +28,7 @@ Memungkinkan Admin/HC untuk menyimpan skor 1–100 untuk soal MultipleChoice, Mu
 ### AuditLog UX & gating (untuk EditQuestion saat session associated)
 - **D-06:** Saat user submit EditQuestion AND `newScoreValue != oldScoreValue` AND ada `PackageUserResponses` rows untuk soal tersebut → tampilkan **modal warning + confirm** sebelum POST.
 - **D-07:** Modal text: *"Skor soal #{Order} akan diubah dari **{old}** menjadi **{new}**. **{N} peserta** sudah menjawab — persentase mereka akan dihitung ulang otomatis. Lanjutkan?"*
-- **D-08:** Modal buttons: "Ya, Lanjutkan" (btn-primary) + "Batal" (btn-secondary). Konsisten dengan modal pattern existing di ManagePackageQuestions (Peringatan Ubah Tipe Soal di line ~e156).
+- **D-08:** Modal buttons: "Ya, Lanjutkan" (btn-primary) + "Batal" (btn-secondary). Konsisten dengan modal pattern existing di ManagePackageQuestions (Peringatan Ubah Tipe Soal di **line 237-253**, button class existing `btn-warning` — CD-02 delegasi pemilihan class final ke implementer).
 - **D-09:** Implementation: server pass `data-original-score` + `data-affected-sessions` attribute ke form Edit. Client-side: form submit handler check delta + count, trigger modal jika condition met.
 - **D-10:** Audit log entry MANDATORY di server-side EditQuestion (line ~4822) saat scoreValue change: `await _auditLog.LogAsync(currentUser.Id, actorName, "EditQuestion-ScoreChange", $"Question #{q.Id} (Order {q.Order}, Package #{packageId}) ScoreValue: {oldScore} → {scoreValue} ({affectedSessionsCount} sessions affected)");`. Pakai pattern existing yang sudah established (line 326, 378, 1292, 1794, dll).
 - **D-11:** Audit log entry juga dibuat untuk CreateQuestion non-default score (mis. admin set score=15 saat create) — tapi WITHOUT modal (no existing session to recalculate). Format: `"CreateQuestion: Question added with custom ScoreValue={scoreValue} (default 10) for Package #{packageId}"`.
@@ -43,14 +43,14 @@ Memungkinkan Admin/HC untuk menyimpan skor 1–100 untuk soal MultipleChoice, Mu
       return RedirectToAction("ManagePackageQuestions", new { packageId });
   }
   ```
-- **D-14:** **HAPUS** baris existing line 4682-4683 dan 4823-4824:
+- **D-14:** **HAPUS** baris existing line 4681-4682 (CreateQuestion) dan 4822-4823 (EditQuestion):
   - `if (questionType != "Essay") scoreValue = 10;` → REMOVE (over-restrictive — phase 306 hapus)
   - `if (scoreValue <= 0) scoreValue = 10;` → REMOVE (over-permissive — silently coerce invalid input ke default tanpa user awareness; ganti dengan range check yang reject)
 - **D-15:** Error message konsisten Bahasa Indonesia, format flash error pakai TempData["Error"] (sama dengan validation error existing untuk correctCount + Essay rubrik).
 
 ### Existing data + Total possible score impact
 - **D-16:** **NO backfill DB.** Existing 50 MC + 8 MA dengan ScoreValue=10 dibiarkan as-is (sudah explicit, bukan NULL — verified via sqlcmd query). Admin bisa edit per-soal sesuai kebutuhan.
-- **D-17:** **Tampilkan "Total Points" di header list** ManagePackageQuestions.cshtml line 49 (existing `Daftar Soal (3 soal)` → `Daftar Soal (3 soal • Total {X} poin)`). Computed inline dari `Model.Questions.Sum(q => q.ScoreValue)`.
+- **D-17:** **Tampilkan "Total Points" di header list** ManagePackageQuestions.cshtml **line 42** (existing `<span class="fw-semibold">Daftar Soal (@questions.Count soal)</span>` → `<span class="fw-semibold">Daftar Soal (@questions.Count soal • Total @questions.Sum(q => q.ScoreValue) poin)</span>`). Computed inline dari `questions.Sum(q => q.ScoreValue)` (variabel local `questions` sudah ada di view scope).
 - **D-18:** **No formula change.** Scoring formula `finalPercentage = (totalScore / maxScore) * 100` di `CMPController.cs:1705` sudah robust untuk varied score. Tidak perlu adjustment di SubmitExam atau ExamSummary atau CertificatePdf.
 - **D-19:** **No retroactive rescore.** Saat admin edit score soal yang sudah punya completed sessions, **percentage di stored di AssessmentSessions.Score** TIDAK auto-recalculate (per architecture existing — Score di-persist saat SubmitExam). Modal warning di D-07 menjelaskan dampak hanya untuk session **future** yang akan menjawab soal ini, plus session yang sedang InProgress (belum SubmitExam) — Completed sessions retain their stored Score.
 
