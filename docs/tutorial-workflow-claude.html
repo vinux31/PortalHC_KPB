@@ -70,7 +70,34 @@
     <li>Skenario reproduksi step-by-step untuk laporan bug</li>
 </ul>
 
-<!-- STEP 2 -->
+<h2><span class="step-num">2</span>Tentukan Kompleksitas</h2>
+
+<p>Kriteria sederhana untuk pilih mode:</p>
+
+<table>
+    <tr>
+        <th style="width:50%">Pakai <span class="badge badge-gsd">GSD</span> kalau&hellip;</th>
+        <th style="width:50%">Pakai <span class="badge badge-sp">Superpower</span> kalau&hellip;</th>
+    </tr>
+    <tr>
+        <td>
+            &bull; Menyentuh &ge;3 file<br>
+            &bull; Ada migrasi DB<br>
+            &bull; Lintas role atau lintas halaman<br>
+            &bull; Butuh perencanaan multi-step / multi-phase
+        </td>
+        <td>
+            &bull; Ubah 1&ndash;2 file<br>
+            &bull; Tweak UI satu halaman<br>
+            &bull; Bug fix terlokalisasi<br>
+            &bull; Estimasi &lt;30 menit
+        </td>
+    </tr>
+</table>
+
+<div class="info"><strong>Kalau ragu:</strong> mulai dari Superpower. Kalau ternyata scope membesar di tengah jalan, bisa di-promote ke GSD pakai <code>/gsd-import</code>.</div>
+
+<!-- STEP 3 -->
 
 </body>
 </html>
