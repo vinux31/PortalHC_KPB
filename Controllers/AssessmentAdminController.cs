@@ -4793,6 +4793,13 @@ namespace HcPortal.Controllers
             // AJAX: return JSON for inline form population
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
+                // Compute affected sessions count for client-side modal trigger (D-09)
+                var affectedSessions = await _context.PackageUserResponses
+                    .Where(r => r.PackageQuestionId == q.Id)
+                    .Select(r => r.AssessmentSessionId)
+                    .Distinct()
+                    .CountAsync();
+
                 return Json(new
                 {
                     id = q.Id,
@@ -4800,6 +4807,7 @@ namespace HcPortal.Controllers
                     questionText = q.QuestionText,
                     questionType = q.QuestionType ?? "MultipleChoice",
                     scoreValue = q.ScoreValue,
+                    affectedSessions = affectedSessions,   // NEW field (D-09)
                     elemenTeknis = q.ElemenTeknis,
                     rubrik = q.Rubrik,
                     maxCharacters = q.MaxCharacters,
