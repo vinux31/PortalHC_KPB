@@ -1,12 +1,22 @@
 ---
 phase: 306
 slug: score-editable-per-question-type
-status: draft
+status: approved
 shadcn_initialized: false
 preset: not-applicable
 created: 2026-04-28
+reviewed_at: 2026-04-28
 stack: aspnet-core-mvc-8 + bootstrap-5.3 + vanilla-js
 language: id-ID
+verification:
+  dimensions_passed: 4
+  dimensions_flagged: 2
+  flags:
+    - dim: 2-visuals
+      issue: focal point primary screen tidak dideklarasikan eksplisit (non-blocking — modifikasi view existing, bukan halaman baru)
+    - dim: 4-typography
+      issue: fw-semibold (600) dipertahankan dari existing header line 42; UI-SPEC mendeklarasikan 2 weights baru (400, 500), weight 600 inherited
+  blockers: 0
 ---
 
 # Phase 306 — UI Design Contract
