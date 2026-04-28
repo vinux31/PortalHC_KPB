@@ -1131,17 +1131,17 @@ function generateToken() {
 
             var el;
             el = document.getElementById('summary-pre-schedule');
-            if (el) el.textContent = preSched && preSched.value ? preSched.value.replace('T', ' ') : '-';
+            if (el) el.textContent = preSched && preSched.value ? preSched.value.replace('T', ' ') + ' WIB' : '-';
             el = document.getElementById('summary-pre-duration');
             if (el) el.textContent = preDur && preDur.value ? preDur.value + ' menit' : '-';
             el = document.getElementById('summary-pre-ewcd');
-            if (el) el.textContent = preEwcd && preEwcd.value ? preEwcd.value.replace('T', ' ') : '-';
+            if (el) el.textContent = preEwcd && preEwcd.value ? preEwcd.value.replace('T', ' ') + ' WIB' : '-';
             el = document.getElementById('summary-post-schedule');
-            if (el) el.textContent = postSched && postSched.value ? postSched.value.replace('T', ' ') : '-';
+            if (el) el.textContent = postSched && postSched.value ? postSched.value.replace('T', ' ') + ' WIB' : '-';
             el = document.getElementById('summary-post-duration');
             if (el) el.textContent = postDur && postDur.value ? postDur.value + ' menit' : '-';
             el = document.getElementById('summary-post-ewcd');
-            if (el) el.textContent = postEwcd && postEwcd.value ? postEwcd.value.replace('T', ' ') : '-';
+            if (el) el.textContent = postEwcd && postEwcd.value ? postEwcd.value.replace('T', ' ') + ' WIB' : '-';
 
             var tokenEl = document.getElementById('IsTokenRequired');
             var accessTokenEl = document.getElementById('AccessToken');
@@ -1182,7 +1182,7 @@ function generateToken() {
             var ewcdDateEl = document.getElementById('ewcdDateInput');
             var ewcdTimeEl = document.getElementById('ewcdTimeInput');
             var summEwcd = document.getElementById('summary-ewcd');
-            if (summEwcd) summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59')) : '-';
+            if (summEwcd) summEwcd.textContent = (ewcdDateEl && ewcdDateEl.value) ? (ewcdDateEl.value + ' ' + (ewcdTimeEl ? ewcdTimeEl.value : '23:59') + ' WIB') : '-';
 
             var tokenEl = document.getElementById('IsTokenRequired');
             var accessTokenEl = document.getElementById('AccessToken');
