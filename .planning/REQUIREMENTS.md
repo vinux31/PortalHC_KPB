@@ -71,27 +71,28 @@ Explicit exclusions untuk milestone v15.0:
 
 ## Traceability
 
-Mapping requirement ke phase (akan diisi roadmapper). Phase numbering melanjutkan dari Phase 303 (terakhir di v14.0).
+Mapping requirement ke phase (filled by roadmap 2026-04-28). Phase numbering melanjutkan dari Phase 303 (terakhir di v14.0).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | TBD | Pending |
-| QSCR-01 | TBD | Pending |
-| LBL-01 | TBD | Pending |
-| WIZ-01 | TBD | Pending |
-| WIZ-02 | TBD | Pending |
-| WIZ-03 | TBD | Pending |
-| WIZ-04 | TBD | Pending |
-| PERF-01 | TBD | Pending |
-| ESCG-01 | TBD | Pending |
-| WCRT-01 | TBD | Pending |
-| EPRV-01 | DEFERRED | Pending klarifikasi user |
+| AUTH-01 | Phase 304 (UI Label Polish) | Pending |
+| WIZ-02 | Phase 304 (UI Label Polish) | Pending |
+| WIZ-03 | Phase 304 (UI Label Polish) | Pending |
+| LBL-01 | Phase 305 (Question Type Naming Clarity) | Pending |
+| QSCR-01 | Phase 306 (Score Editable per Question Type) | Pending |
+| WIZ-01 | Phase 307 (Selected Participants Inline View) | Pending |
+| WIZ-04 | Phase 308 (PrePost Wizard Validation Fix) | Pending |
+| WCRT-01 | Phase 309 (Worker Certificate Defensive Fix) | Pending |
+| ESCG-01 | Phase 310 (Essay Finalize Idempotency) | Pending |
+| PERF-01 | Phase 311 (ManageAssessment Performance) | Pending |
+| EPRV-01 | DEFERRED (due 2026-05-12) | Pending klarifikasi user |
 
 **Coverage:**
 - v15.0 requirements: 11 total (10 active + 1 deferred)
-- Active mapped to phases: 0/10 (akan diupdate setelah roadmap)
-- Deferred (tracked, not phase-mapped yet): 1 (EPRV-01)
+- Active mapped to phases: **10/10 ✓** (Phase 304-311)
+- Deferred (tracked, not phase-mapped): 1 (EPRV-01, due 2026-05-12)
 - Coverage 11 temuan audit: **11/11 (100%)**
+- Orphans: 0 | Duplicates: 0
 
 ---
 *Requirements defined: 2026-04-28*

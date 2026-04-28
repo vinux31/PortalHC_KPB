@@ -24,27 +24,49 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started — Phase 304 next (UI Label Polish: AUTH-01, WIZ-02, WIZ-03)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-28 — Milestone v15.0 started
+Status: Roadmap defined, ready to start Phase 304
+Last activity: 2026-04-28 — Milestone v15.0 roadmap created (8 phase 304-311)
+
+## Next Action
+
+Jalankan `/gsd-discuss-phase 304` (gather context dulu) atau `/gsd-plan-phase 304` (langsung plan) untuk mulai eksekusi.
+
+## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
+
+| Phase | Goal | REQ | Wave |
+|-------|------|-----|------|
+| 304 | UI Label Polish (Login + WIB) | AUTH-01, WIZ-02, WIZ-03 | 1 (Low risk) |
+| 305 | Question Type Naming Clarity | LBL-01 | 1 (Low+docs) |
+| 306 | Score Editable per Question Type | QSCR-01 | 2 (Medium) |
+| 307 | Selected Participants Inline View | WIZ-01 | 2 (Low) |
+| 308 | PrePost Wizard Validation Fix | WIZ-04 | 2 (Medium) |
+| 309 | Worker Certificate Defensive Fix | WCRT-01 | 3 (Med-High, parallel w/310) |
+| 310 | Essay Finalize Idempotency | ESCG-01 | 3 (Med-High, parallel w/309) |
+| 311 | ManageAssessment Performance | PERF-01 | 4 (Med, measurement-driven) |
 
 ## Deferred Items
 
-Items acknowledged dan deferred pada milestone close 2026-04-24:
+### v15.0 Deferred (current milestone)
+
+| REQ | Item | Status | Due |
+|-----|------|--------|-----|
+| EPRV-01 | Preview Essay rubrik/jawaban — Jalur A (label) vs Jalur B (field baru) | menunggu user verifikasi save/load Rubrik | 2026-05-12 |
+
+### Carry-over dari v14.0 close (2026-04-24)
 
 | Category | Item | Status | Source |
 |----------|------|--------|--------|
 | UAT | Phase 303 Plan 02 Task 3 — Coach Workload 12-langkah human verification | paused-at-checkpoint | HANDOFF.json (2026-04-10) |
 | UAT | Phase 235 — 5 items butuh human verification via browser | pending | STATE.md (prior) |
-| UAT | Phase 247 approval chain — 2 TODO (HC review + resubmit notification) | pending | STATE.md (prior) |
+| UAT | Phase 247 approval chain — 2 TODO (HC review + resubmit notification) | pending — overlap risk dengan Phase 310 (T9 NotifyIfGroupCompleted) | STATE.md (prior) |
 | Research gap | Phase 297 Pre-Post Renewal behavior — keputusan 2 sesi baru otomatis | undecided | v14.0 planning |
 | Research gap | Phase 298 essay max character limit — nvarchar(max) vs nvarchar(2000) | undecided | v14.0 planning |
-| Research gap | Phase 301 Item Analysis n-threshold UX — warning "Data belum cukup min. 30 responden" | implemented (verified) | — |
 | Blocker | Phase 293 `GetSectionUnitsDictAsync` Level 2+ support | undecided | v13.0 carry-over |
 | v11.2 paused | Phase 281 (System Settings) + Phase 285 (Dedicated Impersonation Page) | paused | MILESTONES.md v11.2 |
 
-Total: 7 active deferred items (lihat MILESTONES.md v14.0 entry untuk detail).
+Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked items.
 
 ## Accumulated Context
 
