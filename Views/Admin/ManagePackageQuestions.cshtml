@@ -66,8 +66,6 @@
                                     @foreach (var q in questions)
                                     {
                                         var qtype = q.QuestionType ?? "MultipleChoice";
-                                        var badgeClass = qtype == "MultipleAnswer" ? "bg-primary" : (qtype == "Essay" ? "bg-info text-dark" : "bg-secondary");
-                                        var badgeLabel = qtype == "MultipleAnswer" ? "Multi Jawaban" : (qtype == "Essay" ? "Essay" : "Pilihan Ganda");
                                         <tr>
                                             <td class="text-muted">@q.Order</td>
                                             <td>
@@ -76,7 +74,7 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge @badgeClass small">@badgeLabel</span>
+                                                <span class="badge @QuestionTypeLabels.BadgeClass(qtype) small">@QuestionTypeLabels.Short(qtype)</span>
                                             </td>
                                             <td class="text-center">@q.ScoreValue</td>
                                             <td>
@@ -130,8 +128,8 @@
                         <div class="mb-3">
                             <label class="form-label fw-medium small">Tipe Soal</label>
                             <select class="form-select form-select-sm" id="QuestionType" name="questionType">
-                                <option value="MultipleChoice">Pilihan Ganda (MC)</option>
-                                <option value="MultipleAnswer">Multiple Answer (MA)</option>
+                                <option value="MultipleChoice">Single Choice (1 jawaban benar)</option>
+                                <option value="MultipleAnswer">Multiple Answers (≥2 jawaban benar)</option>
                                 <option value="Essay">Essay</option>
                             </select>
                         </div>
