@@ -6,6 +6,7 @@ using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 // PositionTargetHelper removed in Phase 90 (KKJ tables dropped)
+using System.Data.Common;
 using System.Text.Json;
 using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
@@ -1771,43 +1772,70 @@ namespace HcPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> Certificate(int id)
         {
-            var assessment = await _context.AssessmentSessions
-                .Include(a => a.User)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (assessment == null) return NotFound();
-
-            // Security: Owner, Admin, HC
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge(); // Force login if session expired
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-            bool isAuthorized = assessment.UserId == user.Id || 
-                              userRoles.Contains("Admin") || 
-                              userRoles.Contains("HC");
-
-            if (!isAuthorized) return Forbid();
-
-            // Only generate if Completed
-            if (assessment.Status != "Completed")
+            try
             {
-                TempData["Error"] = "Assessment not completed yet.";
-                return RedirectToAction("Assessment");
+                var assessment = await _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .FirstOrDefaultAsync(a => a.Id == id);
+
+                if (assessment == null) return NotFound();
+
+                // Security: Owner, Admin, HC
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Challenge(); // Force login if session expired
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+                bool isAuthorized = assessment.UserId == user.Id ||
+                                  userRoles.Contains("Admin") ||
+                                  userRoles.Contains("HC");
+
+                if (!isAuthorized) return Forbid();
+
+                // Only generate if Completed
+                if (assessment.Status != "Completed")
+                {
+                    TempData["Error"] = "Assessment not completed yet.";
+                    return RedirectToAction("Assessment");
+                }
+
+                // Guard: certificate generation disabled for this assessment
+                if (!assessment.GenerateCertificate)
+                    return NotFound();
+
+                // Guard: certificate only available for passed assessments
+                if (assessment.IsPassed != true)
+                {
+                    TempData["Error"] = "Certificate is only available for passed assessments.";
+                    return RedirectToAction("Results", new { id });
+                }
+
+                ViewBag.PSign = await ResolveCategorySignatory(assessment.Category);
+                return View(assessment);
             }
-
-            // Guard: certificate generation disabled for this assessment
-            if (!assessment.GenerateCertificate)
-                return NotFound();
-
-            // Guard: certificate only available for passed assessments
-            if (assessment.IsPassed != true)
+            catch (DbException ex)
             {
-                TempData["Error"] = "Certificate is only available for passed assessments.";
+                _logger.LogError(ex, "Certificate view failed for session {Id}", id);
+                TempData["Error"] = "Gagal memuat sertifikat. Silakan coba lagi.";
                 return RedirectToAction("Results", new { id });
             }
-
-            ViewBag.PSign = await ResolveCategorySignatory(assessment.Category);
-            return View(assessment);
+            catch (FormatException ex)
+            {
+                _logger.LogError(ex, "Certificate view failed for session {Id}", id);
+                TempData["Error"] = "Gagal memuat sertifikat. Silakan coba lagi.";
+                return RedirectToAction("Results", new { id });
+            }
+            catch (NullReferenceException ex)
+            {
+                _logger.LogError(ex, "Certificate view failed for session {Id}", id);
+                TempData["Error"] = "Gagal memuat sertifikat. Silakan coba lagi.";
+                return RedirectToAction("Results", new { id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Certificate view failed for session {Id}", id);
+                TempData["Error"] = "Gagal memuat sertifikat. Silakan coba lagi.";
+                return RedirectToAction("Results", new { id });
+            }
         }
 
         private async Task<PSignViewModel> ResolveCategorySignatory(string? categoryName)
@@ -1815,26 +1843,34 @@ namespace HcPortal.Controllers
             var fallback = new PSignViewModel { Position = "HC Manager", FullName = "" };
             if (string.IsNullOrWhiteSpace(categoryName)) return fallback;
 
-            var category = await _context.AssessmentCategories
-                .Include(c => c.Signatory)
-                .Include(c => c.Parent).ThenInclude(p => p!.Signatory)
-                .FirstOrDefaultAsync(c => c.Name == categoryName);
+            try
+            {
+                var category = await _context.AssessmentCategories
+                    .Include(c => c.Signatory)
+                    .Include(c => c.Parent).ThenInclude(p => p!.Signatory)
+                    .FirstOrDefaultAsync(c => c.Name == categoryName);
 
-            if (category?.Signatory != null)
-                return new PSignViewModel
-                {
-                    FullName = category.Signatory.FullName ?? "",
-                    Position = category.Signatory.Position ?? "HC Manager"
-                };
+                if (category?.Signatory != null)
+                    return new PSignViewModel
+                    {
+                        FullName = category.Signatory.FullName ?? "",
+                        Position = category.Signatory.Position ?? "HC Manager"
+                    };
 
-            if (category?.Parent?.Signatory != null)
-                return new PSignViewModel
-                {
-                    FullName = category.Parent.Signatory.FullName ?? "",
-                    Position = category.Parent.Signatory.Position ?? "HC Manager"
-                };
+                if (category?.Parent?.Signatory != null)
+                    return new PSignViewModel
+                    {
+                        FullName = category.Parent.Signatory.FullName ?? "",
+                        Position = category.Parent.Signatory.Position ?? "HC Manager"
+                    };
 
-            return fallback;
+                return fallback;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "ResolveCategorySignatory failed for category {Category}", categoryName);
+                return fallback;
+            }
         }
 
         [HttpGet]
