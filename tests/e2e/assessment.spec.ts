@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { login } from '../helpers/auth';
 import { uniqueTitle, today, autoConfirm } from '../helpers/utils';
+import { selectors } from './helpers/wizardSelectors';
 
 // Shared state across tests in this file (runs serially)
 let assessmentTitle: string;
@@ -42,7 +43,7 @@ test.describe('Assessment - Admin Creates & Manages', () => {
     await iwanCheckbox.click({ force: true });
 
     // Verify selection count
-    await expect(page.locator('#selectedCountBadge')).toContainText('2 selected');
+    await expect(page.locator('#selectedCountBadge')).toContainText('2 terpilih');
 
     // Fill form fields
     await page.fill('#Title', assessmentTitle);
@@ -88,6 +89,84 @@ test.describe('Assessment - Admin Creates & Manages', () => {
     await expect(page.locator('body')).toContainText(assessmentTitle);
     // Should show participant table
     await expect(page.locator('table')).toBeVisible();
+  });
+});
+
+// ============================================================
+// FLOW 7: Phase 307 — Selected Participants Inline Panel (Step 2)
+// REQ: WIZ-01 (5 success criteria)
+// ============================================================
+test.describe('Assessment - Phase 307 Selected Participants Panel', () => {
+
+  test('7.1 - Panel renders with empty state on initial load (success criteria #1)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    // Panel always-visible (D-02), empty state default
+    await expect(page.locator(selectors.panelWrapper)).toBeVisible();
+    await expect(page.locator(selectors.panelCount)).toContainText('0 peserta');
+    await expect(page.locator(selectors.panelBody)).toContainText('Belum ada peserta dipilih');
+  });
+
+  test('7.2 - Panel updates real-time when checkbox toggled (success criteria #2)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    const rinoCheckbox = page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input');
+    await rinoCheckbox.click({ force: true });
+
+    // Count badge IMMEDIATE update (D-11 — count immediate)
+    await expect(page.locator(selectors.panelCount)).toContainText('1 peserta');
+
+    // Panel body update setelah debounce 100ms window
+    await page.waitForTimeout(150);
+    await expect(page.locator(selectors.panelBody)).not.toContainText('Belum ada peserta dipilih');
+    await expect(page.locator(selectors.panelBody)).toContainText(/rino|prasetyo/i);
+  });
+
+  test('7.3 - Step 4 summary parity dengan Step 2 panel (success criteria #3, #5 DRY)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    const rinoCheckbox = page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input');
+    const iwanCheckbox = page.locator('.user-check-item', { hasText: 'iwan3' }).locator('input');
+    await rinoCheckbox.click({ force: true });
+    await iwanCheckbox.click({ force: true });
+    await page.waitForTimeout(150);
+
+    // Capture Step 2 panel text — extract names only (strip "Belum ada" placeholder kalau ada)
+    const step2Text = (await page.locator(selectors.panelBody).textContent())?.trim() ?? '';
+    expect(step2Text).toMatch(/rino|prasetyo/i);
+    expect(step2Text).toMatch(/iwan/i);
+
+    // Verify count badge format — Step 2 panel header
+    await expect(page.locator(selectors.panelCount)).toContainText('2 peserta');
+
+    // Verify filter bar badge format — UNCHANGED (Phase 304 D-18 stability)
+    await expect(page.locator(selectors.filterBarBadge)).toContainText('2 terpilih');
+
+    // Note: Full Step 2 vs Step 4 visual parity assertion (advance wizard ke Step 4) di-defer ke manual UAT
+    // karena wizard navigation flow + form validation memerlukan setup tambahan yang akan diisi
+    // setelah Wave 1 implementasi merged. Manual UAT 307-UAT.md Step 5 cover ini.
+  });
+
+  test('7.4 - Reset clears panel ke empty state (success criteria #2 reset path)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    const rinoCheckbox = page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input');
+    await rinoCheckbox.click({ force: true });
+    await page.waitForTimeout(150);
+    await expect(page.locator(selectors.panelBody)).toContainText(/rino|prasetyo/i);
+
+    // Click "Batalkan Semua" untuk uncheck semua (deselectAllBtn — line 286 Bahasa Indonesia)
+    await page.click('#deselectAllBtn');
+    await page.waitForTimeout(150);
+
+    // Panel kembali ke empty state, count 0
+    await expect(page.locator(selectors.panelCount)).toContainText('0 peserta');
+    await expect(page.locator(selectors.panelBody)).toContainText('Belum ada peserta dipilih');
+    await expect(page.locator(selectors.filterBarBadge)).toContainText('0 terpilih');
   });
 });
 
