@@ -68,6 +68,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 
 #### Wave 1 — UI Label & Polish (parallel-safe label changes)
 
+#### Phase 304: UI Label Polish (Login + WIB)
+
 - [x] **Phase 304: UI Label Polish (Login + WIB)** — Eye-icon toggle login + label "(WIB)" di Step 3 wizard + suffix "WIB" di Step 4 summary (completed 2026-04-28)
   - **REQ:** AUTH-01, WIZ-02, WIZ-03
   - **Success Criteria:**
@@ -80,6 +82,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
   - **Plans:** 2 plans
     - [x] 304-01-PLAN.md — Eye-icon toggle password Login (AUTH-01)
     - [x] 304-02-PLAN.md — Label '(WIB)' Step 3 wizard + suffix ' WIB' Step 4 summary CreateAssessment (WIZ-02, WIZ-03)
+
+#### Phase 305: Question Type Naming Clarity
 
 - [x] **Phase 305: Question Type Naming Clarity** — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tetap)
  (completed 2026-04-28)
@@ -97,6 +101,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 
 #### Wave 2 — UI Behavior (file conflict di CreateAssessment.cshtml — sequential)
 
+#### Phase 306: Score Editable per Question Type
+
 - [x] **Phase 306: Score Editable per Question Type** — Skor 1–100 untuk MC/MA/Essay (completed 2026-04-28)
   - **REQ:** QSCR-01
   - **Success Criteria:**
@@ -110,6 +116,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     - [x] 306-01-PLAN.md — Server-side: range validation, hapus force-override, audit log EditQuestion-ScoreChange + CreateQuestion-CustomScore + JSON GET extend affectedSessions (QSCR-01)
     - [x] 306-02-PLAN.md — View: header total points, scoreValue input enabled, modal Peringatan Ubah Skor + JS submit handler + populateEditForm extension + manual UAT 10-step (QSCR-01)
 
+#### Phase 307: Selected Participants Inline View
+
 - [x] **Phase 307: Selected Participants Inline View** — Real-time list peserta di Step 2 (COMPLETE 2026-04-29)
   - **REQ:** WIZ-01
   - **Success Criteria:**
@@ -122,6 +130,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
   - **Plans:** 2 plans
     - [x] 307-01-PLAN.md — Wave 0 test infrastructure: selectors helper + Phase 307 E2E describe block + opportunistic rot fix line 45 + manual UAT 5-step (WIZ-01)
     - [x] 307-02-PLAN.md — Wave 1 implementasi: panel markup Step 2 + Step 4 markup consolidation + helper renderSelectedParticipants top-level + hoist updateSelectedCount + populateSummary refactor + Proton IIFE replace + AJAX hydrate + reset handler edit (WIZ-01) — UAT PASSED 2026-04-29
+
+#### Phase 308: PrePost Wizard Validation Fix
 
 - [x] **Phase 308: PrePost Wizard Validation Fix** — Status field tidak reset wizard (completed 2026-04-29)
   - **REQ:** WIZ-04
@@ -137,6 +147,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     - [x] 308-02-PLAN.md — Wave 1 implementasi: JS value assignment D-01/D-02 di handler line 1872-1889 + server ModelState.Remove(Status) D-04 antara line 779-782 + checkpoint manual UAT (WIZ-04). RESEARCH-corrected: form ID #createAssessmentForm, jQuery validate re-parse N/A (Pitfall 2)
 
 #### Wave 3 — Defensive + State Machine (no file conflict, parallel-eligible)
+
+#### Phase 309: Worker Certificate Defensive Fix + Submitted Status Handling
 
 - [ ] **Phase 309: Worker Certificate Defensive Fix + Submitted Status Handling** — Try-catch + structured log + null-safe + status `Menunggu Penilaian` valid
   - **REQ:** WCRT-01, **SUB-01** (bundled 2026-04-29)
@@ -158,6 +170,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     - 309-01-PLAN.md — WCRT-01 defensive (try-catch, null-safe, fallback signatory)
     - 309-02-PLAN.md — SUB-01 helper + 3 lokasi update + Info branch
 
+#### Phase 310: Essay Finalize Idempotency
+
 - [ ] **Phase 310: Essay Finalize Idempotency** — Friendly no-op + UI hide + dedupe notif
   - **REQ:** ESCG-01
   - **Success Criteria:**
@@ -167,9 +181,11 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     4. AuditLog entries: distinct (tidak spam) per session — gunakan WHERE clause guard
     5. Integration test: scenario `Task.WhenAll` parallel finalize → tidak corrupt state
   - **Risk:** Medium-High | **Effort:** M
-  - **Parallel-eligible:** dengan Phase 309
+  - **Sequential after Phase 309** (per user decision 2026-04-29 saat discuss-phase 310 — tunggu `AssessmentConstants.AssessmentStatus.PendingGrading` constant dari Phase 309 D-04 merged dulu untuk hindari coordination complexity)
 
 #### Wave 4 — Performance (measurement-driven, last)
+
+#### Phase 311: ManageAssessment Performance
 
 - [ ] **Phase 311: ManageAssessment Performance** — AsNoTracking + DB index + cache
   - **REQ:** PERF-01
@@ -187,6 +203,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 
 Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-expand dengan REQ SUB-01 (bundled). Tiga phase baru di Wave 5 ini independen di file level dan parallel-eligible.
 
+#### Phase 312: Admin Full-Delete Assessment Room
+
 - [ ] **Phase 312: Admin Full-Delete Assessment Room** — Role tier guard (Admin override status guard, HC blocked dari Completed/with-response) + UI conditional render
   - **REQ:** DEL-01
   - **Success Criteria:**
@@ -201,6 +219,8 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
     - 312-01-PLAN.md — Backend role guard + audit log extension
     - 312-02-PLAN.md — Frontend conditional render + smoke test
 
+#### Phase 313: Block Manual Submit Saat Waktu Habis
+
 - [ ] **Phase 313: Block Manual Submit Saat Waktu Habis** — Modify LIFE-03 jadi 2-tier (manual reject tanpa grace, auto reject setelah grace)
   - **REQ:** TMR-01
   - **Success Criteria:**
@@ -214,6 +234,8 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
   - **Risk:** Medium-High | **Effort:** M-L
   - **Plans:** 1 plan
     - 313-01-PLAN.md — Modify LIFE-03 + frontend disable + 3-type verification + 6 E2E test
+
+#### Phase 314: Fix Regenerate Token untuk Status Upcoming
 
 - [ ] **Phase 314: Fix Regenerate Token untuk Status Upcoming** — Investigative bug fix (repro → root cause → patch minimal)
   - **REQ:** TKN-01
