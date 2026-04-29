@@ -119,6 +119,9 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     4. Performance: 50+ peserta render < 200ms (DocumentFragment + debounce 100ms)
     5. Step 2 list = Step 4 summary list (no divergence)
   - **Risk:** Low | **Effort:** S
+  - **Plans:** 2 plans
+    - [ ] 307-01-PLAN.md — Wave 0 test infrastructure: selectors helper + Phase 307 E2E describe block + opportunistic rot fix line 45 + manual UAT 5-step (WIZ-01)
+    - [ ] 307-02-PLAN.md — Wave 1 implementasi: panel markup Step 2 + Step 4 markup consolidation + helper renderSelectedParticipants top-level + hoist updateSelectedCount + populateSummary refactor + Proton IIFE replace + AJAX hydrate + reset handler edit (WIZ-01)
 
 - [ ] **Phase 308: PrePost Wizard Validation Fix** — Status field tidak reset wizard
   - **REQ:** WIZ-04
