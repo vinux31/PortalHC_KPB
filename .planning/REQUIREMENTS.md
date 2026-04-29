@@ -102,19 +102,23 @@ Mapping requirement ke phase (filled by roadmap 2026-04-28). Phase numbering mel
 | QSCR-01 | Phase 306 (Score Editable per Question Type) | Pending |
 | WIZ-01 | Phase 307 (Selected Participants Inline View) | In Progress (Wave 0 scaffold complete, Wave 1 pending) |
 | WIZ-04 | Phase 308 (PrePost Wizard Validation Fix) | Pending |
-| WCRT-01 | Phase 309 (Worker Certificate Defensive Fix) | Pending |
+| WCRT-01 | Phase 309 (Worker Certificate Defensive Fix + Submitted Status Handling) | Pending |
 | ESCG-01 | Phase 310 (Essay Finalize Idempotency) | Pending |
 | PERF-01 | Phase 311 (ManageAssessment Performance) | Pending |
 | EPRV-01 | DEFERRED (due 2026-05-12) | Pending klarifikasi user |
+| DEL-01 | Phase 312 (Admin Full-Delete Assessment Room) | Pending |
+| TMR-01 | Phase 313 (Block Manual Submit Saat Waktu Habis) | Pending |
+| SUB-01 | Phase 309 (bundled — Submitted Status Handling) | Pending |
+| TKN-01 | Phase 314 (Fix Regenerate Token Upcoming) | Pending |
 
 **Coverage:**
-- v15.0 requirements: 11 total (10 active + 1 deferred)
-- Active mapped to phases: **10/10 ✓** (Phase 304-311)
+- v15.0 requirements: 15 total (14 active + 1 deferred) — 11 dari audit 27 April + 4 dari audit 29 April
+- Active mapped to phases: **14/14 ✓** (Phase 304-314)
 - Deferred (tracked, not phase-mapped): 1 (EPRV-01, due 2026-05-12)
-- Coverage 11 temuan audit: **11/11 (100%)**
+- Coverage 15 temuan audit: **15/15 (100%)**
 - Orphans: 0 | Duplicates: 0
 
 ---
 *Requirements defined: 2026-04-28*
-*Source audit: 27 April 2026*
-*Last updated: 2026-04-28 (initial creation v15.0)*
+*Source audit: 27 April 2026 (T1–T11) + 29 April 2026 (Wave 5: T1–T4)*
+*Last updated: 2026-04-29 (Wave 5 added — DEL-01, TMR-01, SUB-01, TKN-01)*
