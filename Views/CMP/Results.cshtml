@@ -31,9 +31,18 @@
         </div>
     </div>
 
+    @* Phase 309 SUB-01: Pending grading banner *@
+    @if (Model.IsPendingGrading)
+    {
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>Hasil sementara</strong> &mdash; Essay menunggu penilaian HC. Skor &amp; sertifikat akan diperbarui setelah penilaian selesai.
+        </div>
+    }
+
     <!-- Results Summary Card -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header @(Model.IsPassed ? "bg-success" : "bg-danger") text-white">
+        <div class="card-header @(Model.IsPendingGrading ? "bg-secondary" : (Model.IsPassed ? "bg-success" : "bg-danger")) text-white">
             <h4 class="mb-0">@Model.Title</h4>
         </div>
         <div class="card-body">
@@ -55,7 +64,13 @@
                 <div class="col-md-4">
                     <div class="text-center p-4 border rounded">
                         <h6 class="text-muted mb-2">Status</h6>
-                        @if (Model.IsPassed)
+                        @if (Model.IsPendingGrading)
+                        {
+                            <span class="badge text-bg-secondary fs-5 py-2 px-3">
+                                <i class="bi bi-hourglass-split me-1"></i>MENUNGGU PENILAIAN
+                            </span>
+                        }
+                        else if (Model.IsPassed)
                         {
                             <span class="badge text-bg-success fs-5 py-2 px-3">
                                 <i class="bi bi-check-circle-fill me-1"></i>LULUS
@@ -90,7 +105,14 @@
     </div>
 
     <!-- Pesan Motivasi + NomorSertifikat -->
-    @if (Model.IsPassed)
+    @if (Model.IsPendingGrading)
+    {
+        <div class="alert alert-info mb-4 d-flex align-items-center">
+            <i class="bi bi-hourglass-split me-2 fs-5"></i>
+            <span>Skor di atas adalah <strong>nilai sementara</strong> dari soal Pilihan Tunggal &amp; Pilihan Jamak. Skor final &amp; sertifikat tersedia setelah penilaian Essay selesai.</span>
+        </div>
+    }
+    else if (Model.IsPassed)
     {
         <div class="alert alert-success mb-4">
             <i class="bi bi-check-circle-fill me-2"></i><strong>Selamat!</strong> Anda lulus assessment ini.
@@ -307,7 +329,13 @@
                                     <h6 class="mb-2"><strong>Soal @question.QuestionNumber:</strong> @question.QuestionText</h6>
                                 </div>
                                 <div>
-                                    @if (question.IsCorrect)
+                                    @if (question.IsEssayPending)
+                                    {
+                                        <span class="badge text-bg-secondary">
+                                            <i class="bi bi-hourglass-split me-1"></i>Menunggu Penilaian
+                                        </span>
+                                    }
+                                    else if (question.IsCorrect)
                                     {
                                         <span class="badge text-bg-success">
                                             <i class="bi bi-check-circle-fill me-1"></i>Benar
@@ -372,7 +400,7 @@
 
     <!-- Action Buttons -->
     <div class="d-flex gap-2 mb-4">
-        @if (Model.IsPassed && Model.GenerateCertificate)
+        @if (!Model.IsPendingGrading && Model.IsPassed && Model.GenerateCertificate)
         {
             <a asp-action="Certificate" asp-route-id="@Model.AssessmentId" class="btn btn-primary" target="_blank">
                 <i class="bi bi-award me-1"></i>Lihat Sertifikat
