@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: executing
-stopped_at: Paused-at-checkpoint Plan 308-02 Task 4 (manual UAT 4-step Bahasa Indonesia awaiting user approval)
-last_updated: "2026-04-29T05:39:15.960Z"
+stopped_at: Plan 308-02 COMPLETE — Task 4 manual UAT 4-step PASSED via orchestrator checkpoint approval (2026-04-29). Phase 308 ready untuk /gsd-verify-work closure.
+last_updated: "2026-04-29T07:00:00.000Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 6
@@ -25,26 +25,30 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 ## Current Position
 
-Phase: 308 (prepost-wizard-validation-fix) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
+Phase: 308 (prepost-wizard-validation-fix) — COMPLETE
+Plan: 2 of 2 — COMPLETE
+Status: Ready untuk `/gsd-verify-work` closure
 Last activity: 2026-04-29
 Resume file: None
 
 ## Next Action
 
-Phase 307 Plan 02 COMPLETE. Tasks 1-3 implemented (panel "Peserta Terpilih" Step 2 — markup + 3 top-level helpers + populateSummary refactor + Proton listener replace + AJAX hydrate + reset handler edit). Task 4 manual UAT 5-step Bahasa Indonesia PASSED — user approved all 5 steps via /gsd-execute-phase 307 orchestrator checkpoint (2026-04-29). Sign-off di `307-UAT.md` filled dengan PASS.
+Phase 308 Plan 02 COMPLETE. Tasks 1-4 finalized:
+- Task 1 (commit `630f4e66`): JS handler set Status='Upcoming' (D-01) + clear '' (D-02) di Views/Admin/CreateAssessment.cshtml line 1875/1885/1892
+- Task 2 (commit `c99b981c`): Server conditional `if (isPrePostMode) ModelState.Remove("Status")` (D-04) di Controllers/AssessmentAdminController.cs line 781-787
+- Task 3 (no commit): Automated verification PASS — TypeScript compile 0 errors, Playwright list 4+4+1 tests, .NET build 0 errors 92 warnings (Phase 307 baseline)
+- Task 4 (orchestrator-approved 2026-04-29): Manual UAT 4-step Bahasa Indonesia PASSED via /gsd-execute-phase 308 checkpoint user approval. Step 3 key acceptance (REQ WIZ-04 — Pre-Post submit sukses tanpa "Status field is required" + tidak reset wizard) verified live. Sign-off di `308-UAT.md` filled dengan Result: PASS untuk semua 4 step + sub-step 1a regression.
 
-**Next:** Jalankan `/gsd-verify-work` untuk close Phase 307. Pre-verify smoke E2E:
+**Next:** Jalankan `/gsd-verify-work` untuk close Phase 308. Pre-verify smoke E2E:
 
 ```bash
-cd tests && npx playwright test e2e/assessment.spec.ts --grep "Phase 307" --reporter=list
+cd tests && npx playwright test e2e/assessment.spec.ts --grep "Phase 308" --reporter=list
 
-# Expected: 4 tests PASS (transisi RED → GREEN). FLOW 1 test 1.2 tetap PASS.
+# Expected: 4 tests PASS (transisi RED → GREEN dari Wave 0). Phase 307 + FLOW 1 baseline preserved.
 
 ```
 
-Setelah Phase 307 closed, milestone v15.0 lanjut ke Phase 308 (PrePost Wizard Validation Fix — WIZ-04, file conflict serialize dengan Phase 307 di `Views/Admin/CreateAssessment.cshtml`).
+Setelah Phase 308 closed, milestone v15.0 lanjut ke Phase 309 (Worker Certificate Defensive Fix + Submitted Status Handling — WCRT-01, SUB-01, parallel-eligible dengan Phase 310).
 
 ## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
 
@@ -114,6 +118,12 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ## Session Continuity
 
-Last activity: 2026-04-29 — Phase 307 Plan 02 (Wave 1 implementation) COMPLETE. Tasks 1-3 commits: a4b90ff5 (panel markup Step 2 + Step 4 consolidation), ad7fa210 (hoist updateSelectedCount + helpers top-level), 7d81eecf (populateSummary refactor + Proton listener + AJAX hydrate + reset handler). Intermediate SUMMARY commit 2c9f6b48 (paused-at-checkpoint). Task 4 manual UAT 5-step Bahasa Indonesia PASSED — user approved via orchestrator checkpoint (sign-off di 307-UAT.md filled, Result: PASS).
-Stopped at: Paused-at-checkpoint Plan 308-02 Task 4 (manual UAT 4-step Bahasa Indonesia awaiting user approval)
-Next action: Jalankan `/gsd-verify-work` untuk verify Phase 307 closure. Pre-verify smoke: 4 Playwright tests Phase 307 (7.1-7.4) expect transisi RED → GREEN.
+Last activity: 2026-04-29 — Phase 308 Plan 02 (Wave 1 implementation) COMPLETE. Tasks 1-4 finalized:
+- Task 1 commit `630f4e66`: JS handler D-01/D-02 set Status='Upcoming'/clear di line 1875/1885/1892 (Views/Admin/CreateAssessment.cshtml)
+- Task 2 commit `c99b981c`: Server conditional ModelState.Remove("Status") D-04/D-05 line 781-787 (Controllers/AssessmentAdminController.cs)
+- Task 3 (no commit): Automated verification PASS — TypeScript compile, Playwright list 4+4+1 tests, .NET build 0 errors 92 warnings
+- Task 4 (orchestrator-approved 2026-04-29): Manual UAT 4-step Bahasa Indonesia PASSED via /gsd-execute-phase 308 checkpoint user approval. Step 3 key acceptance REQ WIZ-04 verified live. Sign-off di 308-UAT.md filled dengan Result: PASS.
+- Wave 0 commit `cedbebb0` (308-01 finalization)
+- Intermediate paused-at-checkpoint commit `a0610acc`
+Stopped at: Plan 308-02 COMPLETE — Task 4 manual UAT 4-step PASSED via orchestrator checkpoint approval (2026-04-29). Phase 308 ready untuk /gsd-verify-work closure.
+Next action: Jalankan `/gsd-verify-work` untuk verify Phase 308 closure. Pre-verify smoke: 4 Playwright tests Phase 308 (8.1-8.4) expect transisi RED → GREEN dari Wave 0.

@@ -123,7 +123,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     - [x] 307-01-PLAN.md — Wave 0 test infrastructure: selectors helper + Phase 307 E2E describe block + opportunistic rot fix line 45 + manual UAT 5-step (WIZ-01)
     - [x] 307-02-PLAN.md — Wave 1 implementasi: panel markup Step 2 + Step 4 markup consolidation + helper renderSelectedParticipants top-level + hoist updateSelectedCount + populateSummary refactor + Proton IIFE replace + AJAX hydrate + reset handler edit (WIZ-01) — UAT PASSED 2026-04-29
 
-- [ ] **Phase 308: PrePost Wizard Validation Fix** — Status field tidak reset wizard
+- [x] **Phase 308: PrePost Wizard Validation Fix** — Status field tidak reset wizard (completed 2026-04-29)
   - **REQ:** WIZ-04
   - **Success Criteria:**
     1. JS handler baris 1790–1807 saat `value === 'PrePostTest'` set `document.getElementById('Status').value = 'Upcoming'`
@@ -134,7 +134,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
   - **Risk:** Medium | **Effort:** M
   - **Plans:** 2 plans
     - [x] 308-01-PLAN.md — Wave 0 test infrastructure: extend wizardSelectors.ts dengan 5 selector baru + FLOW 8 describe block (4 tests 8.1-8.4) + 308-UAT.md 4-step Bahasa Indonesia (WIZ-04)
-    - [ ] 308-02-PLAN.md — Wave 1 implementasi: JS value assignment D-01/D-02 di handler line 1872-1889 + server ModelState.Remove(Status) D-04 antara line 779-782 + checkpoint manual UAT (WIZ-04). RESEARCH-corrected: form ID #createAssessmentForm, jQuery validate re-parse N/A (Pitfall 2)
+    - [x] 308-02-PLAN.md — Wave 1 implementasi: JS value assignment D-01/D-02 di handler line 1872-1889 + server ModelState.Remove(Status) D-04 antara line 779-782 + checkpoint manual UAT (WIZ-04). RESEARCH-corrected: form ID #createAssessmentForm, jQuery validate re-parse N/A (Pitfall 2)
 
 #### Wave 3 — Defensive + State Machine (no file conflict, parallel-eligible)
 
