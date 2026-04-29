@@ -177,7 +177,7 @@ test.describe('Assessment - Phase 307 Selected Participants Panel', () => {
 // ============================================================
 test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
 
-  test('8.1 - Standard saja submit sukses (regression guard success criteria #5)', async ({ page }) => {
+  test('8.1 - Standard mode Status field interactable + value persistence (regression guard success criteria #5 — wave 0 partial)', async ({ page }) => {
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
