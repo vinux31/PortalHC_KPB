@@ -1,4 +1,4 @@
-# Phase 308: PrePost Wizard Validation Fix - Research
+﻿# Phase 308: PrePost Wizard Validation Fix - Research
 
 **Researched:** 2026-04-29
 **Domain:** ASP.NET Core MVC wizard validation (server `ModelState` + client custom JS validation)
@@ -677,22 +677,25 @@ Direktif dari `./CLAUDE.md`:
 
 **Penilaian risiko keseluruhan:** Semua assumption verified atau LOW-risk. Tidak ada `[ASSUMED]` claim yang block implementation. Plan-phase bisa proceed dengan confidence HIGH.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Apakah retain D-07/D-08/D-09 jQuery re-parse code (Pilihan B) atau skip total (Pilihan A)?**
    - What we know: jQuery validate plugin TIDAK loaded di form ini (Pitfall 2 verified). Re-parse call akan no-op meskipun guard pass — tidak ada validator data yang di-clear.
    - What's unclear: Apakah ada future plan menambah `_ValidationScriptsPartial` untuk form ini, sehingga re-parse code menjadi forward-compatible scaffold?
    - Recommendation: **Pilihan A SKIP total** untuk Wave 1. Document di code comment `// Phase 308 note: jQuery validate plugin not loaded di form ini; visibility guard di validateStep line 996-1004 handle equivalent. Re-parse intentionally omitted.` Plan-phase finalize keputusan.
+   - **RESOLVED:** Pilihan A SKIP total. Rasional: _ValidationScriptsPartial 0 matches verified di CreateAssessment.cshtml (jquery.validate plugin TIDAK loaded); existing custom validateStep line 996-1004 sudah handle hidden Status correctly via visibility guard if (statusWrapper && !statusWrapper.classList.contains('d-none')). Plans 308-01 dan 308-02 dokumentasi via <context> rationale + acceptance criteria task 1 enforces 0 matches \$\.validator\.unobtrusive dan removeData('validator'). ROADMAP success criteria #3 marked N/A di plan 308-02 success_criteria checklist.
 
 2. **CD-02 comment wording untuk `ModelState.Remove("Status")` — Indonesia atau English?**
    - What we know: Existing comment di line 755 (`// Token is NOT required - remove from validation and clear value`) English. Existing comment di line 821 (`// Remove model binding error first`) English. Server code comments di file ini predominantly English.
    - What's unclear: Project CLAUDE.md "Always respond in Bahasa Indonesia" applies to user-facing text; code comments di server traditionally English.
    - Recommendation: English untuk consistency dengan existing pattern: `// Status field hidden in PrePost mode — JS sets default 'Upcoming' on type-switch`. UAT.md tetap Bahasa Indonesia.
+   - **RESOLVED:** English untuk code comments — match existing pattern line 755 (// Token is NOT required - remove from validation and clear value). Comment final di plan 308-02 Task 2: // Phase 308 D-04: Status field hidden in PrePost mode — JS sets default 'Upcoming', server skips [Required] validation. Bahasa Indonesia hanya untuk UAT.md script + test names (per CLAUDE.md C-01) — verified di plan 308-01 Task 3 (UAT 4-step Bahasa Indonesia) dan Task 2 (test names 'Standard saja', 'Switch S→PP→S', dst).
 
 3. **Apakah Wave 0 split ke 2 plans (308-01 + 308-02) seperti Phase 307, atau single plan (308-01)?**
    - What we know: Phase 307 split: 01 (Wave 0 scaffold), 02 (Wave 1 implementation). Phase 304 split: 01 + 02 by REQ. Phase 305 + 306 split similarly.
    - What's unclear: Phase 308 effort lebih kecil (4-line server insert + 2-line client edits + UAT scaffold). Mungkin single plan cukup.
    - Recommendation: **Mirror Phase 307 pattern — split 308-01 (Wave 0) + 308-02 (Wave 1)** untuk RED→GREEN cycle hygiene. Consistent precedent.
+   - **RESOLVED:** 2-plan split — 308-01-PLAN.md (Wave 0 test scaffold: 4 selector additions + 4 E2E tests + UAT.md) + 308-02-PLAN.md (Wave 1 implementation: JS edit + server edit + verification + manual UAT checkpoint). Mirror Phase 307 precedent untuk RED→GREEN cycle hygiene. Plan structure: Wave 0 = autonomous true (3 tasks); Wave 1 = autonomous false (4 tasks termasuk 1 checkpoint blocking gate).
 
 ## Sources
 
