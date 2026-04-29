@@ -18,6 +18,7 @@ namespace HcPortal.Models
         public List<CompetencyGainItem>? CompetencyGains { get; set; }
         public List<ElemenTeknisScore>? ElemenTeknisScores { get; set; }
         public string? NomorSertifikat { get; set; }
+        public bool IsPendingGrading { get; set; } = false; // Phase 309 SUB-01 — true saat assessment.Status == PendingGrading
     }
 
     public class QuestionReviewItem
@@ -28,6 +29,7 @@ namespace HcPortal.Models
         public string CorrectAnswer { get; set; } = "";
         public bool IsCorrect { get; set; }
         public List<OptionReviewItem> Options { get; set; } = new List<OptionReviewItem>();
+        public bool IsEssayPending { get; set; } = false; // Phase 309 OQ#3 D-08 — true saat status PendingGrading dan QuestionType Essay (label "Menunggu Penilaian" di view)
     }
 
     public class OptionReviewItem
