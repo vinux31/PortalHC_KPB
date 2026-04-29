@@ -778,6 +778,12 @@ namespace HcPortal.Controllers
             // Early Pre-Post mode determination (needed before standard field validation)
             bool isPrePostMode = AssessmentTypeInput == "PrePostTest";
 
+            // Phase 308 D-04: Status field hidden in PrePost mode — JS sets default 'Upcoming', server skips [Required] validation
+            if (isPrePostMode)
+            {
+                ModelState.Remove("Status");
+            }
+
             // Validate schedule date (skip for Pre-Post — uses PreSchedule/PostSchedule instead)
             if (!isPrePostMode)
             {
