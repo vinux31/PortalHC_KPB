@@ -133,7 +133,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 
 #### Phase 308: PrePost Wizard Validation Fix
 
-- [x] **Phase 308: PrePost Wizard Validation Fix** — Status field tidak reset wizard (completed 2026-04-29)
+- [x] **Phase 308: PrePost Wizard Validation Fix** — Status field tidak reset wizard
+ (completed 2026-04-29)
   - **REQ:** WIZ-04
   - **Success Criteria:**
     1. JS handler baris 1790–1807 saat `value === 'PrePostTest'` set `document.getElementById('Status').value = 'Upcoming'`
@@ -166,9 +167,10 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     11. *(SUB-01)* Worker submit assessment ber-essay tidak menerima popup merah `Error: Assessment not completed yet.` di alur manapun
   - **Risk:** Medium-High | **Effort:** M
   - **Parallel-eligible:** dengan Phase 310
-  - **Plans:** 2 plans
+  - **Plans:** 3 plans (iter-1 revision: Plan 309-03 split per scope_sanity)
     - 309-01-PLAN.md — WCRT-01 defensive (try-catch, null-safe, fallback signatory)
-    - 309-02-PLAN.md — SUB-01 helper + 3 lokasi update + Info branch
+    - 309-02-PLAN.md — SUB-01 helper + 3 lokasi update + Info branch + Essay items dengan IsEssayPending flag (D-08)
+    - 309-03-PLAN.md — GradingService PendingGrading constant refactor (opportunistic SUB-01 OQ#2 — split iter-1; depends_on=[309-02])
 
 #### Phase 310: Essay Finalize Idempotency
 
