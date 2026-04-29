@@ -36,7 +36,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - T1 — Login: show password toggle
 - T2 — Create Soal: score MC/MA/Essay editable
 - T3 — ManageAssessment: optimasi performa response time
-- T4 — Create Assessment Step 2: tampilkan list peserta yang sudah dipilih
+- T4 — Create Assessment Step 2: tampilkan list peserta yang sudah dipilih ✅ **Complete (Phase 307, 2026-04-29)**
 - T5 — Create Assessment Step 3: label timezone "(WIB)" di setiap input waktu
 - T6 — Create Assessment Step 4 rangkuman: WIB konsisten di "jam tutup"
 - T7 — Rename label MC/MA agar tidak rancu (UI saja, enum/DB tidak diubah)
