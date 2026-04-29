@@ -1791,11 +1791,18 @@ namespace HcPortal.Controllers
 
                 if (!isAuthorized) return Forbid();
 
-                // Only generate if Completed
-                if (assessment.Status != "Completed")
+                // SUB-01 D-06: normalize submitted status (Completed OR PendingGrading)
+                if (!AssessmentConstants.IsAssessmentSubmitted(assessment.Status))
                 {
-                    TempData["Error"] = "Assessment not completed yet.";
+                    TempData["Error"] = "Assessment belum selesai.";
                     return RedirectToAction("Assessment");
+                }
+
+                // SUB-01 D-07: PendingGrading branch — HARUS sebelum check GenerateCertificate dan IsPassed (Pitfall 3)
+                if (assessment.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
+                {
+                    TempData["Info"] = "Sertifikat akan tersedia setelah penilaian essay selesai.";
+                    return RedirectToAction("Results", new { id });
                 }
 
                 // Guard: certificate generation disabled for this assessment
@@ -1891,10 +1898,18 @@ namespace HcPortal.Controllers
                                 userRoles.Contains("HC");
             if (!isAuthorized) return Forbid();
 
-            if (assessment.Status != "Completed")
+            // SUB-01 D-06: normalize submitted status (Completed OR PendingGrading)
+            if (!AssessmentConstants.IsAssessmentSubmitted(assessment.Status))
             {
-                TempData["Error"] = "Assessment not completed yet.";
+                TempData["Error"] = "Assessment belum selesai.";
                 return RedirectToAction("Assessment");
+            }
+
+            // SUB-01 D-07: PendingGrading branch — HARUS sebelum check GenerateCertificate dan IsPassed (Pitfall 3)
+            if (assessment.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
+            {
+                TempData["Info"] = "Sertifikat akan tersedia setelah penilaian essay selesai.";
+                return RedirectToAction("Results", new { id });
             }
 
             if (!assessment.GenerateCertificate) return NotFound();
@@ -2137,10 +2152,10 @@ namespace HcPortal.Controllers
                                 userRoles.Contains("HC");
             if (!isAuthorized) return Forbid();
 
-            // Must be completed
-            if (assessment.Status != "Completed")
+            // SUB-01 D-06: normalize submitted status (Completed OR PendingGrading)
+            if (!AssessmentConstants.IsAssessmentSubmitted(assessment.Status))
             {
-                TempData["Error"] = "Assessment not completed yet.";
+                TempData["Error"] = "Assessment belum selesai.";
                 return RedirectToAction("Assessment");
             }
 
@@ -2208,7 +2223,11 @@ namespace HcPortal.Controllers
                                 OptionText = o.OptionText,
                                 IsCorrect = o.IsCorrect,
                                 IsSelected = userResponse?.PackageOptionId == o.Id
-                            }).ToList()
+                            }).ToList(),
+                            // SUB-01 OQ#3 D-08: Essay items TETAP tampil di review — flag true saat status PendingGrading + QuestionType Essay
+                            // (View Razor render label "Menunggu Penilaian" alih-alih correct/incorrect; CONTEXT D-08 lock)
+                            IsEssayPending = (assessment.Status == AssessmentConstants.AssessmentStatus.PendingGrading
+                                             && (question.QuestionType ?? "MultipleChoice") == "Essay")
                         });
                     }
                 }
@@ -2277,7 +2296,9 @@ namespace HcPortal.Controllers
                     CorrectAnswers = correctCount,
                     QuestionReviews = questionReviews,
                     ElemenTeknisScores = elemenTeknisScores,
-                    NomorSertifikat = assessment.NomorSertifikat
+                    NomorSertifikat = assessment.NomorSertifikat,
+                    // SUB-01 D-08: pending mode flag — true saat assessment.Status == PendingGrading
+                    IsPendingGrading = (assessment.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
                 };
             }
             else
@@ -2299,7 +2320,9 @@ namespace HcPortal.Controllers
                     CorrectAnswers = 0,
                     QuestionReviews = null,
                     ElemenTeknisScores = null,
-                    NomorSertifikat = assessment.NomorSertifikat
+                    NomorSertifikat = assessment.NomorSertifikat,
+                    // SUB-01 D-08: pending mode flag — true saat assessment.Status == PendingGrading
+                    IsPendingGrading = (assessment.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
                 };
             }
 
