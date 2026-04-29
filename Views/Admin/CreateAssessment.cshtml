@@ -1058,58 +1058,21 @@ function generateToken() {
         if (summCat) summCat.textContent = catEl ? (catEl.options[catEl.selectedIndex] ? catEl.options[catEl.selectedIndex].text : '') : '';
         if (summTitle) summTitle.textContent = titleEl ? titleEl.value : '';
 
-        // Peserta
+        // Peserta — Phase 307: delegate ke renderSelectedParticipants helper (D-15 DRY)
         var isProton = catEl && catEl.value === 'Assessment Proton';
-        var checkboxes;
-        if (isProton) {
-            checkboxes = Array.from(document.querySelectorAll('#protonUserCheckboxContainer .user-checkbox:checked'));
-        } else {
-            checkboxes = Array.from(document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked'));
-        }
+        var checkboxes = isProton
+            ? Array.from(document.querySelectorAll('#protonUserCheckboxContainer .user-checkbox:checked'))
+            : Array.from(document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked'));
 
-        var names = checkboxes.map(function(cb) {
-            var label = document.querySelector('label[for="' + cb.id + '"]');
-            if (label) {
-                var strong = label.querySelector('strong');
-                return strong ? strong.textContent : label.textContent.trim();
+        renderSelectedParticipants(
+            document.getElementById('summary-peserta-list-container'),
+            checkboxes,
+            {
+                countBadgeEl: document.getElementById('summary-peserta-count'),
+                emptyText: 'Belum ada peserta dipilih',
+                maxInline: 5
             }
-            return cb.value;
-        });
-
-        var countBadge = document.getElementById('summary-peserta-count');
-        if (countBadge) countBadge.textContent = names.length + ' peserta';
-
-        var listEl = document.getElementById('summary-peserta-list');
-        var expandBtn = document.getElementById('summary-peserta-expand');
-        var extraEl = document.getElementById('summary-peserta-extra');
-
-        if (listEl) {
-            var first5 = names.slice(0, 5);
-            listEl.textContent = first5.join(', ');
-        }
-
-        if (names.length > 5) {
-            var remaining = names.slice(5);
-            if (expandBtn) {
-                expandBtn.classList.remove('d-none');
-                expandBtn.textContent = '...dan ' + remaining.length + ' lainnya';
-                expandBtn.onclick = function() {
-                    if (extraEl) {
-                        if (extraEl.classList.contains('d-none')) {
-                            extraEl.textContent = ', ' + remaining.join(', ');
-                            extraEl.classList.remove('d-none');
-                            expandBtn.textContent = 'Sembunyikan';
-                        } else {
-                            extraEl.classList.add('d-none');
-                            expandBtn.textContent = '...dan ' + remaining.length + ' lainnya';
-                        }
-                    }
-                };
-            }
-        } else {
-            if (expandBtn) expandBtn.classList.add('d-none');
-            if (extraEl) extraEl.classList.add('d-none');
-        }
+        );
 
         // Tipe badge
         var typeSelect = document.getElementById('assessmentTypeInput');
@@ -1623,12 +1586,9 @@ function updateSelectedCount() {
     if (!protonTrackSelect) return;
 
     // Event delegation: listen once on container, works for dynamically added checkboxes
+    // Phase 307 D-18: delegate ke top-level updateSelectedCount (eliminates duplikasi count logic)
     if (protonCbContainer) {
-        protonCbContainer.addEventListener('change', function() {
-            var count = protonCbContainer.querySelectorAll('.user-checkbox:checked').length;
-            var badge = document.getElementById('selectedCountBadge');
-            if (badge) badge.textContent = count + ' terpilih';
-        });
+        protonCbContainer.addEventListener('change', updateSelectedCount);
     }
 
     protonTrackSelect.addEventListener('change', function() {
@@ -1684,6 +1644,8 @@ function updateSelectedCount() {
                         protonCbContainer.appendChild(div);
                     });
                     protonCbContainer.classList.remove('d-none');
+                    // Phase 307 (Pitfall 3): hydrate panel setelah inject — checkbox baru tidak fire change event sendiri
+                    updateSelectedCount();
                 }
             })
             .catch(function() {
@@ -1836,8 +1798,8 @@ function updateSelectedCount() {
             var tokenSec = document.getElementById('tokenSection');
             if (tokenSec) tokenSec.classList.add('d-none');
             document.querySelectorAll('.user-checkbox').forEach(function(cb) { cb.checked = false; });
-            var badge = document.getElementById('selectedCountBadge');
-            if (badge) badge.textContent = '0 terpilih';
+            // Phase 307 D-17 (Pitfall 2): single call refresh badge filter bar + panel count + panel body
+            updateSelectedCount();
             var si = document.getElementById('userSearchInput');
             if (si) si.value = '';
             var sf = document.getElementById('sectionFilter');
