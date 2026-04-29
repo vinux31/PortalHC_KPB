@@ -43,7 +43,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - T8 — [DITUNDA] Preview Essay: jawaban tidak muncul (butuh konfirmasi user: Rubrik vs field baru)
 - T9 — Mix MC/MA/Essay: idempotency `FinalizeEssayGrading` + UI sembunyikan tombol create sertifikasi pasca-completed
 - T10 — Worker lihat sertifikat assessment: 500 error fix (defensif try-catch + null-safe view)
-- T11 — PrePost-test: bug "Status field is required" yang reset wizard ke Step 1
+- T11 — PrePost-test: bug "Status field is required" yang reset wizard ke Step 1 ✅ **Complete (Phase 308, 2026-04-29)**
 
 **Key context:**
 - Plan teknis full: `C:\Users\Administrator\.claude\plans\berikut-temuan-audit-tanggal-fizzy-lampson.md`
