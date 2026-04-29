@@ -16,4 +16,12 @@ export const selectors = {
   filterBarBadge: '#selectedCountBadge',
   userContainer: '#userCheckboxContainer',
   protonContainer: '#protonUserCheckboxContainer',
+
+  // Phase 308 — PrePost Wizard Validation Fix (D-13 selectors per CONTEXT)
+  // Form ID correction per RESEARCH: '#createAssessmentForm' (BUKAN '#createForm' yang ada di CONTEXT.md)
+  createForm: '#createAssessmentForm',
+  assessmentTypeInput: '#assessmentTypeInput',
+  statusFieldWrapper: '#statusFieldWrapper',
+  statusSelect: '#Status',
+  submitBtn: '#createAssessmentForm button[type="submit"]',
 } as const;
