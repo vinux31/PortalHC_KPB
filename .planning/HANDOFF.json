@@ -1,39 +1,46 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-28T11:00:22.791Z",
-  "phase": "306",
-  "phase_name": "score-editable-per-question-type",
-  "phase_dir": ".planning/phases/306-score-editable-per-question-type",
-  "plan": null,
-  "task": null,
-  "total_tasks": null,
-  "status": "phase_complete",
+  "timestamp": "2026-04-29T08:03:25.794Z",
+  "phase": "309",
+  "phase_name": "worker-cert-defensive-submitted-status",
+  "phase_dir": ".planning/phases/309-worker-cert-defensive-submitted-status",
+  "plan": 3,
+  "task": 1,
+  "total_tasks": 1,
+  "status": "paused",
+  "wave_strategy": "Wave 2 dipaksa SEQUENTIAL (override parallelization=true) — user pilih Opsi 1 saat orchestrator detect dependency tersembunyi (309-03 refactor GradingService.cs ke konstanta yang di-introduce 309-02 Task 1). Plan 309-03 BARU bisa run setelah 309-02 merged ke main dan konstanta accessible.",
   "completed_tasks": [
-    {"id": "306-01-T1", "name": "CreateQuestion server-side validation + audit non-default score", "status": "done", "commit": "3949fe92"},
-    {"id": "306-01-T2", "name": "EditQuestion server-side validation + audit score change", "status": "done", "commit": "31670ce7"},
-    {"id": "306-01-T3", "name": "EditQuestion AJAX GET extends JSON with affectedSessions", "status": "done", "commit": "0f878aaa"},
-    {"id": "306-01-META", "name": "Plan 01 metadata", "status": "done", "commit": "d520f6ca"},
-    {"id": "306-02-T1", "name": "View edits — header total, score input enabled, modal warning", "status": "done", "commit": "66e2c4dc"},
-    {"id": "306-02-T2", "name": "JS submit handler for score-change modal + applyQTypeSwitch cleanup", "status": "done", "commit": "3a8cb48e"},
-    {"id": "306-02-T3-UAT", "name": "Manual UAT 10-step via MCP Playwright (10/10 PASS)", "status": "done", "commit": "1f9a2bcc"},
-    {"id": "306-REVIEW", "name": "Code review — 0 critical / 2 warning / 4 info", "status": "done", "commit": "cf016e60"},
-    {"id": "306-VERIFY", "name": "Phase verification — 15/15 must-haves PASSED", "status": "done", "commit": "958c3b5a"}
+    {"id": "309-01", "name": "Defensive Certificate hardening (try-catch berlapis, signatory fallback, null-safe view)", "status": "done", "wave": 1, "commits": ["09013322", "dd98559b", "89606964", "32690097", "d0b64566"], "uat": "3-step UAT PASS via Playwright + DB simulation (User=null via code mock, Category=null via ResolveCategorySignatory(null) call-site mock)"},
+    {"id": "309-02", "name": "Semantic state machine 'Menunggu Penilaian' submitted status (helper, ViewModel, controller swap, Layout TempData Info, Results pending mode, Essay D-08 label)", "status": "done", "wave": 2, "commits": ["08d76a3b", "535f4be4", "5da42e6c", "c5fe9f4f", "3e3dc935", "d709ebf4", "0581b1ba"], "uat": "6-step UAT PASS via Playwright + DB UPDATE Status='Menunggu Penilaian' simulation. Catatan: D-08 (Essay items label) tidak ter-exercise visual karena Session 75 tidak punya soal Essay; implementasi code-side complete (IsEssayPending flag projection + Results.cshtml label rendering)."}
   ],
-  "remaining_tasks": [],
+  "remaining_tasks": [
+    {"id": "309-03", "name": "Opportunistic refactor GradingService.cs L196 + L199 dari literal 'Menunggu Penilaian' ke AssessmentConstants.AssessmentStatus.PendingGrading", "status": "not_started", "wave": 2, "autonomous": true, "expected_base_commit": "0581b1ba5e2cb1803a6236d33e06fb285ff10921", "files": ["Services/GradingService.cs"], "dependency_satisfied": "Plan 309-02 commit 08d76a3b sudah introduce konstanta `public const string PendingGrading = \"Menunggu Penilaian\"` di Models/AssessmentConstants.cs line 18 — accessible untuk import via `using HcPortal.Models;`"}
+  ],
+  "post_plan_steps": [
+    "code_review_gate (gsd-code-review)",
+    "regression_gate (run prior phases' tests)",
+    "schema_drift_gate (gsd-tools verify schema-drift)",
+    "verify_phase_goal (gsd-verifier — VERIFICATION.md)",
+    "update_roadmap (phase complete, advance STATE)",
+    "update_project_md (evolve PROJECT.md)",
+    "offer_next (manual mode — present discuss/plan/execute next phase options)"
+  ],
   "blockers": [],
-  "human_actions_pending": [
-    {"action": "Review pre-existing bug AssessmentAdminController.cs:4891 — option-replacement strategy causes FK violation when MC/MA question has linked PackageUserResponses", "context": "Discovered during UAT Step 9 (Q650). Out-of-scope Phase 306 (plan explicitly forbid touching options replace logic). Documented in 306-02-SUMMARY.md. Candidate gap-closure phase or v16.0 milestone item.", "blocking": false},
-    {"action": "Decide milestone v15.0 closure path", "context": "Phase 306 was last phase in milestone (is_last_phase=true). Options: (1) /gsd-audit-milestone — audit completion, (2) /gsd-complete-milestone — archive v15.0 and start v16.0, (3) /gsd-add-phase — add gap-closure phase for option-replacement bug to current milestone before close.", "blocking": false}
-  ],
+  "human_actions_pending": [],
   "decisions": [
-    {"decision": "Plan 02 Task 3 UAT executed via MCP Playwright instead of pure manual user testing", "rationale": "User requested Playwright MCP automation. All 10 UAT steps + audit log verification + DB queries done programmatically. Result: 10/10 PASS.", "phase": "306"},
-    {"decision": "Step 9 modal flow tested via Q652 (Essay) instead of Q650 (MC) for full E2E save", "rationale": "Q650 hit pre-existing FK violation bug at PackageOptions.RemoveRange. Q652 (Essay, 0 PackageOptions) bypasses bug, demonstrates full modal→confirm→save→audit flow.", "phase": "306"},
-    {"decision": "Pre-existing FK bug NOT fixed in Phase 306", "rationale": "Plan 02 Task 2 STEP 5 explicitly instructed 'DO NOT touch options replace, SaveChangesAsync. Minimal-change.' Phase 306 was scoped to score validation + audit only.", "phase": "306"}
+    {"decision": "Wave 2 dijalankan SEQUENTIAL (309-02 dulu, lalu 309-03)", "rationale": "files_modified tidak overlap (309-02: Controllers/Models/Views, 309-03: Services) tapi ada DEPENDENSI KODE: 309-03 me-refactor literal ke konstanta yang di-introduce 309-02. Jika dijalankan paralel di worktree terpisah, 309-03 fail compile. User pilih Opsi 1 saat orchestrator surfacing dependency.", "phase": "309"},
+    {"decision": "UAT Plan 309-01 Step 2 (User=null) pakai Opsi B (code-side mock)", "rationale": "DB schema FK constraint blocks UserId=NULL atau UserId ke GUID non-existent. Temporary `assessment.User = null;` line ditambah di controller, rebuild, test, revert.", "phase": "309"},
+    {"decision": "UAT Plan 309-02 pakai DB UPDATE Status='Menunggu Penilaian' simulation, BUKAN actual essay submission flow", "rationale": "Actual flow akan butuh create session ber-essay + worker submit + GradingService trigger. DB UPDATE simulasi mencapai tujuan: verify pending UI rendering dan redirect logic. Step 5 (HC finalize) juga via UPDATE balik Status=Completed.", "phase": "309"},
+    {"decision": "appsettings.json UseActiveDirectory di-toggle false selama UAT", "rationale": "User instruksi: 'rubah dulu AD nya ke false. baru bisa menggunakan password 123456'. Perubahan TIDAK di-commit (working tree only) dan di-revert setelah masing-masing UAT selesai.", "phase": "309"},
+    {"decision": "D-08 visual verification (Essay items label 'Menunggu Penilaian' di Results) tidak ter-exercise di UAT", "rationale": "Session 75 hanya punya soal Pilihan Tunggal/Jamak, tidak ada soal Essay. Implementasi code-side complete (IsEssayPending flag + label rendering). Visual verification deferred — bisa dilakukan saat ada session ber-essay di production atau via verifikasi terpisah.", "phase": "309"}
   ],
   "uncommitted_files": [
-    ".planning/config.json",
-    "docs/tutorial-workflow-claude.html"
+    ".planning/config.json (M — unrelated, sudah ada sebelum sesi)",
+    "docs/tutorial-workflow-claude.html (M — unrelated)",
+    "tests/playwright-report/index.html (M — unrelated)",
+    ".planning/phases/307-selected-participants-inline-view/307-PATTERNS.md (?? untracked — unrelated, dari sesi sebelumnya)",
+    ".planning/phases/309-worker-cert-defensive-submitted-status/309-01-PLAN.md (?? untracked — Plan 309-01 file yang dipakai executor; plan files belum di-commit di session start)"
   ],
-  "next_action": "Choose milestone v15.0 closure path: (1) audit-milestone, (2) complete-milestone, or (3) add gap-closure phase for option-replacement bug. Uncommitted files in repo are unrelated to Phase 306 (existed before this session).",
-  "context_notes": "Phase 306 fully shipped: REQ QSCR-01 satisfied, Audit Temuan 2 closed. 5/5 ROADMAP success criteria verified live in browser. Pre-existing bug in EditQuestion option-replacement is documented and out-of-scope. Build clean (0 errors, 92 warnings baseline preserved). Test data created during UAT: Package 33 has new Q712 (MC, score=40 after edit), Package 54 Q652 score 25→35. AuditLogs has 3 new rows for traceability."
+  "next_action": "Spawn gsd-executor agent untuk Plan 309-03 (autonomous: true, single task, expected_base=0581b1ba). Setelah merge & tracking, lanjut phase-level: code_review_gate → regression_gate → schema_drift_gate → verify_phase_goal → update_roadmap → update_project_md → offer_next.",
+  "context_notes": "Phase 309 = audit-driven defensive hardening + semantic state machine elaboration. WCRT-01 (worker certificate exotic data) di-handle Plan 309-01. SUB-01 (essay submitted status) di-handle Plan 309-02. Plan 309-03 = opportunistic cleanup yang men-decouple GradingService dari magic string. UAT Plan 309-01 dan 309-02 sudah PASS via Playwright. App tidak running saat ini. DB Session 75 sudah dikembalikan ke state asli (Status=Completed, IsPassed=true, UserId=4a624dbc-3241-4207-92d7-d1d5784c7137). appsettings.json sudah di-revert (UseActiveDirectory=true). Semua temp UAT mocks (assessment.User=null, ResolveCategorySignatory(null)) sudah di-revert. Worktree direktori `.claude/worktrees/agent-af489757b14a00c52` masih ada (Windows OneDrive lock — permission denied saat git worktree remove), tapi worktree branch sudah dihapus, jadi tidak block Plan 309-03 worktree spawn baru."
 }
