@@ -171,6 +171,104 @@ test.describe('Assessment - Phase 307 Selected Participants Panel', () => {
 });
 
 // ============================================================
+// FLOW 8: Phase 308 — PrePost Wizard Validation Fix
+// REQ: WIZ-04 (5 success criteria, 4-combination test matrix per D-10)
+// Test scaffold WAVE 0 — RED state expected sebelum Wave 1 implementation merged
+// ============================================================
+test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
+
+  test('8.1 - Standard saja submit sukses (regression guard success criteria #5)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    // Standard mode default — Status field visible (NOT d-none)
+    await expect(page.locator(selectors.statusFieldWrapper)).toBeVisible();
+    await expect(page.locator(selectors.statusFieldWrapper)).not.toHaveClass(/d-none/);
+
+    // Pilih 1 user
+    const rinoCheckbox = page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input');
+    await rinoCheckbox.click({ force: true });
+
+    // Fill Step 1: Title + Category + assessmentType (default Standard)
+    await page.fill('#Title', uniqueTitle('Phase 308 Standard'));
+    await page.selectOption('#Category', 'OJT');
+
+    // Fill Status (Standard mode WAJIB pilih — D-11 regression guard)
+    await page.selectOption(selectors.statusSelect, 'Open');
+
+    // Verify Status value ke-set
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('Open');
+
+    // NOTE: Test SCAFFOLD wave 0 — full wizard navigation (Step 2/3/4 + submit) di-defer ke Wave 1
+    // expect partial verification: Status field interactable + value persistence
+  });
+
+  test('8.2 - Switch S→PP→S Status field clear (mode-switch state cleanup D-02)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    // Initial: Standard mode → fill Status
+    await expect(page.locator(selectors.statusFieldWrapper)).toBeVisible();
+    await page.selectOption(selectors.statusSelect, 'Open');
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('Open');
+
+    // Switch ke PrePost — D-01 expected: Status auto-set 'Upcoming', wrapper hidden
+    await page.selectOption(selectors.assessmentTypeInput, 'PrePostTest');
+    await expect(page.locator(selectors.statusFieldWrapper)).toHaveClass(/d-none/);
+    // D-01 verification: Status value programmatically set ke 'Upcoming' meskipun field hidden
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('Upcoming');
+
+    // Switch back ke Standard — D-02 expected: Status value clear (''), wrapper visible
+    await page.selectOption(selectors.assessmentTypeInput, 'Standard');
+    await expect(page.locator(selectors.statusFieldWrapper)).not.toHaveClass(/d-none/);
+    // D-02 verification: Status value cleared, force user re-pick
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('');
+  });
+
+  test('8.3 - PP saja Status auto-set Upcoming + wrapper hidden (D-01 main path success criteria #1)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    // Switch ke PrePostTest dari default Standard
+    await page.selectOption(selectors.assessmentTypeInput, 'PrePostTest');
+
+    // D-01: Status value auto-set 'Upcoming' meskipun field hidden
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('Upcoming');
+
+    // statusFieldWrapper hidden (existing handler behavior — D-03)
+    await expect(page.locator(selectors.statusFieldWrapper)).toHaveClass(/d-none/);
+
+    // Form ID verification: createForm selector resolves ke #createAssessmentForm (RESEARCH Pitfall 1)
+    await expect(page.locator(selectors.createForm)).toBeVisible();
+
+    // NOTE: Full submit flow (fill PreSchedule + PostSchedule + durations + EWCD + submit) di-defer ke manual UAT Step 3
+    // E2E scaffold wave 0 fokus ke Status value assertion (D-01) + wrapper visibility (D-03)
+    // Server-side ModelState.Remove (D-04) verified via successful submit di manual UAT
+  });
+
+  test('8.4 - Switch PP→S→PP Status auto-set Upcoming kembali (idempotency D-01 re-fire)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/CreateAssessment');
+
+    // Pertama: switch ke PrePost
+    await page.selectOption(selectors.assessmentTypeInput, 'PrePostTest');
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('Upcoming');
+    await expect(page.locator(selectors.statusFieldWrapper)).toHaveClass(/d-none/);
+
+    // Kedua: switch back Standard — Status clear, wrapper visible
+    await page.selectOption(selectors.assessmentTypeInput, 'Standard');
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('');
+    await expect(page.locator(selectors.statusFieldWrapper)).not.toHaveClass(/d-none/);
+
+    // Ketiga: switch lagi ke PrePost — D-01 re-fire idempotently
+    await page.selectOption(selectors.assessmentTypeInput, 'PrePostTest');
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('Upcoming');
+    await expect(page.locator(selectors.statusFieldWrapper)).toHaveClass(/d-none/);
+  });
+
+});
+
+// ============================================================
 // FLOW 2: Worker sees and starts assessment
 // ============================================================
 test.describe('Assessment - Worker Views Assessment', () => {
