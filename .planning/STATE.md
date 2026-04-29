@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: Phase 306 closed — REQ QSCR-01 shipped, Audit Temuan 2 closed, UAT 10/10 PASS
-last_updated: "2026-04-28T10:59:36.678Z"
+last_updated: "2026-04-29T00:34:00.617Z"
 last_activity: 2026-04-28
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
   total_plans: 6
   completed_plans: 6
@@ -28,7 +28,7 @@ Phase: 306
 Plan: Not started
 Status: Phase 306 closed — REQ QSCR-01 shipped, Audit Temuan 2 closed, UAT 10/10 PASS
 Last activity: 2026-04-28
-Resume file: (ready for next phase)
+Resume file: .planning/phases/307-selected-participants-inline-view/307-CONTEXT.md
 
 ## Next Action
 
