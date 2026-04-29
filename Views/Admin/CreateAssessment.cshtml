@@ -308,6 +308,17 @@
                         }
                     </div>
 
+                    <!-- Phase 307 — Panel "Peserta Terpilih" inline (D-01, D-02, D-13, CD-01, CD-05, CD-07) -->
+                    <div class="border rounded p-3 mt-3" id="selected-participants-panel-wrapper">
+                        <div class="d-flex align-items-center mb-2">
+                            <strong><i class="bi bi-people-fill me-1 text-primary"></i>Peserta Terpilih</strong>
+                            <span class="badge bg-primary ms-2" id="selected-participants-count">0 peserta</span>
+                        </div>
+                        <div id="selected-participants-panel" role="status" aria-live="polite" aria-atomic="false">
+                            <span class="text-muted fst-italic">Belum ada peserta dipilih</span>
+                        </div>
+                    </div>
+
                     <!-- Proton eligible section -->
                     <div id="protonEligibleSection" class="d-none">
                         <div class="alert alert-info py-2 px-3 mb-2" id="protonEligibleStatus">
@@ -622,10 +633,8 @@
                                 <i class="bi bi-pencil me-1"></i>Edit
                             </button>
                         </div>
-                        <div class="card-body">
-                            <span id="summary-peserta-list"></span>
-                            <button type="button" id="summary-peserta-expand" class="btn btn-link btn-sm p-0 d-none ms-1"></button>
-                            <span id="summary-peserta-extra" class="d-none"></span>
+                        <div class="card-body" id="summary-peserta-list-container">
+                            <!-- Phase 307 — populateSummary helper render target (D-13, A1 Option A) -->
                         </div>
                     </div>
 
