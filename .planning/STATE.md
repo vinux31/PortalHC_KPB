@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: executing
-stopped_at: Phase 308 context gathered (auto mode)
-last_updated: "2026-04-29T02:55:01.793Z"
-last_activity: 2026-04-29 -- Phase 308 planning complete
+stopped_at: Completed 308-01-PLAN.md (Wave 0 test scaffold finalized)
+last_updated: "2026-04-29T05:33:11.402Z"
+last_activity: 2026-04-29
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State: Portal HC KPB
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 307 — selected-participants-inline-view
+**Current focus:** Phase 308 — prepost-wizard-validation-fix
 
 ## Current Position
 
-Phase: 309
-Plan: Not started
+Phase: 308 (prepost-wizard-validation-fix) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-04-29 -- Phase 308 planning complete
-Resume file: .planning/phases/308-prepost-wizard-validation-fix/308-CONTEXT.md
+Last activity: 2026-04-29
+Resume file: None
 
 ## Next Action
 
@@ -115,5 +115,5 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 ## Session Continuity
 
 Last activity: 2026-04-29 — Phase 307 Plan 02 (Wave 1 implementation) COMPLETE. Tasks 1-3 commits: a4b90ff5 (panel markup Step 2 + Step 4 consolidation), ad7fa210 (hoist updateSelectedCount + helpers top-level), 7d81eecf (populateSummary refactor + Proton listener + AJAX hydrate + reset handler). Intermediate SUMMARY commit 2c9f6b48 (paused-at-checkpoint). Task 4 manual UAT 5-step Bahasa Indonesia PASSED — user approved via orchestrator checkpoint (sign-off di 307-UAT.md filled, Result: PASS).
-Stopped at: Phase 308 context gathered (auto mode)
+Stopped at: Completed 308-01-PLAN.md (Wave 0 test scaffold finalized)
 Next action: Jalankan `/gsd-verify-work` untuk verify Phase 307 closure. Pre-verify smoke: 4 Playwright tests Phase 307 (7.1-7.4) expect transisi RED → GREEN.
