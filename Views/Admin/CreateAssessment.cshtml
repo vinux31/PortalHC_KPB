@@ -1441,20 +1441,6 @@ function generateToken() {
         updateSelectedCount();
     });
 
-    // ---- Selected count badge ----
-    function updateSelectedCount() {
-        var catEl = document.getElementById('Category');
-        var isProton = catEl && catEl.value === 'Assessment Proton';
-        var count;
-        if (isProton) {
-            count = document.querySelectorAll('#protonUserCheckboxContainer .user-checkbox:checked').length;
-        } else {
-            count = document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked').length;
-        }
-        var badge = document.getElementById('selectedCountBadge');
-        if (badge) badge.textContent = count + ' terpilih';
-    }
-
     var userContainer = document.getElementById('userCheckboxContainer');
     if (userContainer) userContainer.addEventListener('change', updateSelectedCount);
     updateSelectedCount();
@@ -1508,6 +1494,123 @@ function generateToken() {
     // ---- Init ----
     goToStep(1);
 })();
+
+// ============================================================
+// Phase 307 — Top-level helpers (cross-IIFE accessibility per CD-06)
+// ============================================================
+// renderSelectedParticipants: shared helper untuk Step 2 panel + Step 4 summary
+// scheduleRenderSelectedPanel: debounce 100ms wrapper (D-19)
+// updateSelectedCount: HOISTED dari main IIFE — accessible dari Proton IIFE (D-18)
+// ============================================================
+
+function renderSelectedParticipants(targetEl, checkboxes, opts) {
+    opts = opts || {};
+    var maxInline = opts.maxInline || 5;
+    var emptyText = opts.emptyText || 'Belum ada peserta dipilih';
+
+    // Extract names — mirror existing populateSummary line 1061-1068 logic 1:1 (D-15)
+    var names = (checkboxes || []).map(function(cb) {
+        var label = document.querySelector('label[for="' + cb.id + '"]');
+        if (label) {
+            var strong = label.querySelector('strong');
+            return strong ? strong.textContent : label.textContent.trim();
+        }
+        return cb.value;
+    });
+
+    // DocumentFragment build (D-19 + Guide.cshtml:739 precedent)
+    var frag = document.createDocumentFragment();
+
+    if (names.length === 0) {
+        var empty = document.createElement('span');
+        empty.className = 'text-muted fst-italic';
+        empty.textContent = emptyText;
+        frag.appendChild(empty);
+    } else {
+        var first = names.slice(0, maxInline);
+        var listSpan = document.createElement('span');
+        listSpan.textContent = first.join(', ');
+        frag.appendChild(listSpan);
+
+        if (names.length > maxInline) {
+            var remaining = names.slice(maxInline);
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-link btn-sm p-0 ms-1';
+            btn.textContent = '...dan ' + remaining.length + ' lainnya';
+
+            var extra = document.createElement('span');
+            extra.className = 'd-none';
+
+            // onclick property assignment (mirror line 1087, no listener leak — Pitfall 5)
+            btn.onclick = function() {
+                if (extra.classList.contains('d-none')) {
+                    extra.textContent = ', ' + remaining.join(', ');
+                    extra.classList.remove('d-none');
+                    btn.textContent = 'Sembunyikan';
+                } else {
+                    extra.classList.add('d-none');
+                    btn.textContent = '...dan ' + remaining.length + ' lainnya';
+                }
+            };
+
+            frag.appendChild(btn);
+            frag.appendChild(extra);
+        }
+    }
+
+    // replaceChildren atomic (with defensive fallback per A3 — IE11/legacy)
+    if (targetEl) {
+        if (typeof targetEl.replaceChildren === 'function') {
+            targetEl.replaceChildren(frag);
+        } else {
+            targetEl.innerHTML = '';
+            targetEl.appendChild(frag);
+        }
+    }
+
+    // Optional badge update (D-07) — Step 4 caller pakai opts.countBadgeEl
+    if (opts.countBadgeEl) {
+        opts.countBadgeEl.textContent = names.length + ' peserta';
+    }
+}
+
+// Phase 307 — Module-scope debounce timer (D-11, D-19, CD-04 setTimeout)
+var __selectedParticipantsRenderTimer = null;
+function scheduleRenderSelectedPanel(targetEl, checkboxes, opts) {
+    if (__selectedParticipantsRenderTimer) clearTimeout(__selectedParticipantsRenderTimer);
+    __selectedParticipantsRenderTimer = setTimeout(function() {
+        renderSelectedParticipants(targetEl, checkboxes, opts);
+        __selectedParticipantsRenderTimer = null;
+    }, 100);
+}
+
+// Phase 307 — HOISTED dari main IIFE (line 1436-1447 di-DELETE) — D-17 + D-18 + CD-06
+// Single source of truth: count badge filter bar (immediate) + panel count (immediate) + panel body (debounced)
+function updateSelectedCount() {
+    var catEl = document.getElementById('Category');
+    var isProton = catEl && catEl.value === 'Assessment Proton';
+
+    // Query checkboxes dari container aktif (mirror existing isProton branching)
+    var sel = isProton
+        ? '#protonUserCheckboxContainer .user-checkbox:checked'
+        : '#userCheckboxContainer .user-checkbox:checked';
+    var checkboxes = Array.from(document.querySelectorAll(sel));
+
+    // 1. Count badge filter bar — IMMEDIATE (cheap textContent assignment) (D-11)
+    var badge = document.getElementById('selectedCountBadge');
+    if (badge) badge.textContent = checkboxes.length + ' terpilih';
+
+    // 2. Panel header count badge — IMMEDIATE (D-07: Step 2 update count terpisah dari panel render)
+    var panelCount = document.getElementById('selected-participants-count');
+    if (panelCount) panelCount.textContent = checkboxes.length + ' peserta';
+
+    // 3. Panel body render — DEBOUNCED 100ms (D-11, D-19) — Phase 307 EXTEND
+    var panel = document.getElementById('selected-participants-panel');
+    if (panel) scheduleRenderSelectedPanel(panel, checkboxes, {
+        emptyText: 'Belum ada peserta dipilih'
+    });
+}
 
 // ===== Proton Track AJAX =====
 (function() {
