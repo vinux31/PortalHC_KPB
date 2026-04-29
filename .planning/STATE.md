@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: verifying
-stopped_at: Phase 309 context gathered
-last_updated: "2026-04-29T01:59:15.829Z"
+stopped_at: Phase 308 context gathered (auto mode)
+last_updated: "2026-04-29T02:09:48.797Z"
 last_activity: 2026-04-29
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 4
   total_plans: 8
   completed_plans: 8
@@ -29,7 +29,7 @@ Phase: 309
 Plan: Not started
 Status: Phase 307 complete — siap untuk `/gsd-verify-work`
 Last activity: 2026-04-29
-Resume file: .planning/phases/309-worker-cert-defensive-submitted-status/309-CONTEXT.md
+Resume file: .planning/phases/308-prepost-wizard-validation-fix/308-CONTEXT.md
 
 ## Next Action
 
@@ -115,5 +115,5 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 ## Session Continuity
 
 Last activity: 2026-04-29 — Phase 307 Plan 02 (Wave 1 implementation) COMPLETE. Tasks 1-3 commits: a4b90ff5 (panel markup Step 2 + Step 4 consolidation), ad7fa210 (hoist updateSelectedCount + helpers top-level), 7d81eecf (populateSummary refactor + Proton listener + AJAX hydrate + reset handler). Intermediate SUMMARY commit 2c9f6b48 (paused-at-checkpoint). Task 4 manual UAT 5-step Bahasa Indonesia PASSED — user approved via orchestrator checkpoint (sign-off di 307-UAT.md filled, Result: PASS).
-Stopped at: Phase 309 context gathered
+Stopped at: Phase 308 context gathered (auto mode)
 Next action: Jalankan `/gsd-verify-work` untuk verify Phase 307 closure. Pre-verify smoke: 4 Playwright tests Phase 307 (7.1-7.4) expect transisi RED → GREEN.
