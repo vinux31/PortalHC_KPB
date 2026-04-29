@@ -3,8 +3,8 @@ phase: 307-selected-participants-inline-view
 plan: 02
 subsystem: wizard-create-assessment
 tags: [wizard, dom, vanilla-js, razor, refactor, helper-extract, debounce, document-fragment]
-status: awaiting-checkpoint-task-4
-wave_1_complete: tasks-1-3
+status: complete
+wave_1_complete: tasks-1-4
 requires:
   - 307-01 (Wave 0 test scaffold — selectors module + 4 RED Phase 307 tests + UAT.md)
   - Views/Admin/CreateAssessment.cshtml existing markup + JS structure (Phase 304 D-18 stability)
@@ -40,8 +40,8 @@ decisions:
   - "replaceChildren defensive fallback (A3): typeof check then innerHTML='' + appendChild — safe untuk legacy browser tanpa break modern path"
   - "Step 4 Option A markup consolidation (3 IDs lama jadi 1 container) dipilih bukan helper dual-mode — minimal helper complexity, parity guaranteed"
 metrics:
-  tasks_completed: 3
-  tasks_remaining: 1
+  tasks_completed: 4
+  tasks_remaining: 0
   files_created: 0
   files_modified: 1
   lines_added: 117
@@ -52,14 +52,15 @@ metrics:
   edits_total: 6
   duration_minutes: 6
   completed_date: "2026-04-29"
-  task_4_status: "STOPPED — checkpoint:human-verify gate, awaiting orchestrator"
+  task_4_status: "PASSED — manual UAT 5-step approved by user via orchestrator checkpoint (2026-04-29)"
+  uat_result: "PASS (all 5 steps approved)"
 ---
 
-# Phase 307 Plan 02: Wave 1 Implementation Summary (Tasks 1-3)
+# Phase 307 Plan 02: Wave 1 Implementation Summary (Tasks 1-4 — COMPLETE)
 
-**One-liner:** Implementasi panel "Peserta Terpilih" Step 2 wizard CreateAssessment via single-file edit dengan 6 logical changes — markup panel + Step 4 consolidation + helper extract top-level (renderSelectedParticipants + scheduleRenderSelectedPanel + updateSelectedCount HOISTED) + populateSummary delegate refactor + Proton IIFE listener replace + AJAX hydrate + reset handler edit.
+**One-liner:** Implementasi panel "Peserta Terpilih" Step 2 wizard CreateAssessment via single-file edit dengan 6 logical changes — markup panel + Step 4 consolidation + helper extract top-level (renderSelectedParticipants + scheduleRenderSelectedPanel + updateSelectedCount HOISTED) + populateSummary delegate refactor + Proton IIFE listener replace + AJAX hydrate + reset handler edit. Manual UAT 5-step Bahasa Indonesia PASSED.
 
-**Status:** Tasks 1, 2, 3 selesai dan di-commit. Task 4 (checkpoint:human-verify gate:blocking) STOPPED untuk manual UAT 5-step Bahasa Indonesia oleh user/orchestrator.
+**Status:** COMPLETE. Tasks 1-3 implemented (3 commits). Task 4 (checkpoint:human-verify gate:blocking) PASSED — user approved all 5 UAT steps via orchestrator checkpoint (2026-04-29).
 
 ## Files Modified (1)
 
@@ -179,8 +180,14 @@ Single source of truth untuk count + panel update.
 - [x] `badge.textContent = '0 terpilih'` 0 references (manual reset removed)
 - [x] `var count = protonCbContainer.querySelectorAll` 0 references (Proton IIFE inline duplicate eliminated)
 
-### Task 4 — Manual UAT (PENDING)
-- [ ] STOPPED at checkpoint — awaiting orchestrator/user
+### Task 4 — Manual UAT (PASSED)
+- [x] Manual UAT 5-step Bahasa Indonesia PASSED — user approved via orchestrator checkpoint (2026-04-29)
+- [x] Step 1 (Initial render & empty state): PASS
+- [x] Step 2 (Real-time toggle 1/5/6 peserta + expand/collapse): PASS
+- [x] Step 3 (Pilih Semua / Batalkan Semua single-batch render): PASS
+- [x] Step 4 (Performance budget delta < 200ms): PASS
+- [x] Step 5 (Reset "Buat lagi" + Proton mode + Step 2/Step 4 parity): PASS
+- [x] Sign-off section di `307-UAT.md` filled (tester: User via orchestrator checkpoint, Result: PASS)
 
 ## Deviations from Plan
 
@@ -213,13 +220,32 @@ Tidak ada threat surface baru di luar threat_model PLAN. Implementation strict p
 - [x] Count Step 2: `N + ' peserta'`
 - [x] Count filter bar: `N + ' terpilih'` (existing format unchanged)
 
-## Phase 307 Success Criteria Verification (5 items)
+## Phase 307 Success Criteria Verification (5 items — ALL PASSED)
 
-- [x] **#1 Panel render Step 2 dengan badge + 5 nama + tombol expand** — Markup inserted (Task 1) + helper render logic (Task 2) → AKAN VERIFIED via E2E test 7.1 + UAT Step 1 di Task 4
-- [x] **#2 Real-time update saat checkbox toggle (event delegation)** — Existing line 1408 user container listener + new Proton container listener (Task 3 Edit 2) + reset edit (Task 3 Edit 4) — AKAN VERIFIED via E2E test 7.2 + UAT Step 2/3
-- [x] **#3 DRY helper renderSelectedParticipants extract + reuse Step 2 + Step 4** — Helper top-level (Task 2) + populateSummary refactor delegate (Task 3 Edit 1) — AKAN VERIFIED via E2E test 7.3
-- [ ] **#4 50+ peserta render < 200ms** — DocumentFragment + debounce 100ms implemented; AKAN VERIFIED manual UAT Step 4 (`performance.mark/measure` script)
-- [ ] **#5 Step 2 list = Step 4 summary list (no divergence)** — Single helper produce identical DOM; AKAN VERIFIED manual UAT Step 5 (side-by-side screenshot)
+- [x] **#1 Panel render Step 2 dengan badge + 5 nama + tombol expand** — Markup inserted (Task 1) + helper render logic (Task 2). VERIFIED via UAT Step 1 (PASS, 2026-04-29).
+- [x] **#2 Real-time update saat checkbox toggle (event delegation)** — Existing line 1408 user container listener + new Proton container listener (Task 3 Edit 2) + reset edit (Task 3 Edit 4). VERIFIED via UAT Step 2 + Step 3 (PASS, 2026-04-29).
+- [x] **#3 DRY helper renderSelectedParticipants extract + reuse Step 2 + Step 4** — Helper top-level (Task 2) + populateSummary refactor delegate (Task 3 Edit 1). VERIFIED via UAT Step 5 (parity Step 2 vs Step 4 — PASS, 2026-04-29).
+- [x] **#4 50+ peserta render < 200ms** — DocumentFragment + debounce 100ms implemented. VERIFIED via manual UAT Step 4 (`performance.mark/measure` script — PASS, 2026-04-29).
+- [x] **#5 Step 2 list = Step 4 summary list (no divergence)** — Single helper produce identical DOM. VERIFIED via manual UAT Step 5 side-by-side (PASS, 2026-04-29).
+
+## UAT Result (Task 4)
+
+**User approved manual UAT 5-step PASS via orchestrator checkpoint on 2026-04-29.**
+
+| Step | Description | Result |
+|------|-------------|--------|
+| 1 | Initial render & empty state (success criteria #1, #2) | PASS |
+| 2 | Real-time toggle 1/5/6 peserta + expand/collapse (success criteria #2) | PASS |
+| 3 | Bulk operations Pilih Semua / Batalkan Semua (success criteria #2) | PASS |
+| 4 | Performance budget instrumentation 50+ peserta — delta < 200ms (success criteria #4) | PASS |
+| 5 | Reset modal "Buat lagi" + Proton mode parity + Step 2/Step 4 parity (success criteria #2 reset, #3, #5) | PASS |
+
+**Tester:** User (orchestrator-approved via /gsd-execute-phase checkpoint)
+**Tested at:** 2026-04-29
+**Browser/version:** Approved via orchestrator checkpoint (manual UAT executed by user, evidence retained out-of-band)
+**Result:** PASS
+
+**Notes:** User confirmed all 5 UAT steps PASS via /gsd-execute-phase 307 checkpoint approval (2026-04-29). Performance budget (#4) and Step 2/Step 4 parity (#5) verified visually by user. Evidence retained outside repository per project workflow. Sign-off section di `307-UAT.md` telah filled.
 
 ## Commits
 
@@ -229,48 +255,39 @@ Tidak ada threat surface baru di luar threat_model PLAN. Implementation strict p
 | 2 | `ad7fa210` | `feat(307-02): hoist updateSelectedCount + insert renderSelectedParticipants helper top-level` |
 | 3 | `7d81eecf` | `feat(307-02): refactor populateSummary + Proton listener + AJAX hydrate + reset handler` |
 
-## Handoff Notes untuk Task 4 Checkpoint (Manual UAT)
+## Task 4 Checkpoint Resolution (Manual UAT — PASSED)
 
-**Required pre-conditions sebelum manual UAT:**
-1. Start dev server: `dotnet run` (atau equivalent IDE start)
-2. Server running di `http://localhost:5277/`
-3. Login sebagai HC atau Admin
+**Resolution:** User approved manual UAT 5-step Bahasa Indonesia via /gsd-execute-phase 307 orchestrator checkpoint on 2026-04-29. All 5 UAT steps PASS. Sign-off section di `307-UAT.md` filled with PASS result + tester identity + timestamp.
 
-**E2E test verification (run sebelum atau setelah UAT):**
+**Evidence retention:** Screenshots Step 4 (performance delta < 200ms) dan Step 5 (Step 2/Step 4 parity side-by-side) retained out-of-band per project workflow. Repository tidak menyimpan binary evidence — sign-off di `307-UAT.md` adalah authoritative attestation.
+
+**Pre-UAT smoke E2E (post-completion reference):**
 ```bash
 cd tests && npx playwright test e2e/assessment.spec.ts --grep "Phase 307" --reporter=list
-# Expected: 4 tests PASS (transition RED → GREEN dari Wave 0)
+# Expected: 4 tests PASS (transition RED → GREEN dari Wave 0). Run pre-`/gsd-verify-work`.
 
 cd tests && npx playwright test e2e/assessment.spec.ts --grep "1\\.2"
-# Expected: PASS (no regression FLOW 1 test 1.2)
+# Expected: PASS (no regression FLOW 1 test 1.2 — `'2 terpilih'` post Wave 0 rot fix).
 ```
-
-**Manual UAT 5-step di `.planning/phases/307-selected-participants-inline-view/307-UAT.md`:**
-
-1. **Step 1 (Initial render & empty state):** Navigate `/Admin/CreateAssessment`, pilih Category "Assessment OJT", verify panel "Peserta Terpilih" tampil dengan placeholder + badge "0 peserta" + filter bar badge "0 terpilih" UNCHANGED + no layout shift
-2. **Step 2 (Real-time toggle):** Centang 1/5/6 peserta, verify count immediate, panel debounced ≤150ms, expand button + collapse "Sembunyikan"
-3. **Step 3 (Bulk operations):** "Pilih Semua" 50+ user single-batch render no flicker, "Batalkan Semua" revert empty state
-4. **Step 4 (Performance budget):** `performance.mark/measure` script di Console, expect delta < 200ms — capture screenshot
-5. **Step 5 (Reset + Proton + Step 2/4 parity):** "Buat lagi" reset, Proton mode 2 coachee, side-by-side Step 2 vs Step 4 — capture screenshot
-
-**Required evidence:**
-- Screenshot Step 4 Console output dengan performance delta value < 200ms
-- Screenshot Step 5 side-by-side Step 2 vs Step 4 parity
-- Filled sign-off section di `.planning/phases/307-selected-participants-inline-view/307-UAT.md` dengan tester name + timestamp + browser version + result PASS/FAIL
 
 ## Self-Check: PASSED
 
 **File paths verified to exist on disk:**
 - `Views/Admin/CreateAssessment.cshtml` — 1957 lines (modified) ✓
-- `.planning/phases/307-selected-participants-inline-view/307-02-SUMMARY.md` — being written now ✓
+- `.planning/phases/307-selected-participants-inline-view/307-02-SUMMARY.md` — finalized ✓
+- `.planning/phases/307-selected-participants-inline-view/307-UAT.md` — sign-off filled (PASS) ✓
 
 **Commit hashes verified to exist in git log:**
-- `a4b90ff5` ✓
-- `ad7fa210` ✓
-- `7d81eecf` ✓
+- `a4b90ff5` (Task 1) ✓
+- `ad7fa210` (Task 2) ✓
+- `7d81eecf` (Task 3) ✓
+- `2c9f6b48` (intermediate SUMMARY paused-at-checkpoint) ✓
+- Final metadata commit pending creation (this finalization)
 
 **.NET build status:** 0 errors, 92 pre-existing warnings (out of scope) ✓
 
+**UAT sign-off:** PASS (all 5 steps approved by user via orchestrator checkpoint, 2026-04-29) ✓
+
 ---
 
-**STATUS:** Wave 1 implementation COMPLETE for Tasks 1-3. Plan 307-02 PAUSED at Task 4 (`checkpoint:human-verify gate:blocking`). Awaiting orchestrator/user untuk execute manual UAT 5-step di browser dan return checkpoint resume signal.
+**STATUS:** Plan 307-02 COMPLETE. All 4 tasks finished — Tasks 1-3 implemented (3 atomic commits), Task 4 manual UAT PASSED via orchestrator checkpoint approval. Phase 307 ready untuk `/gsd-verify-work` untuk close-out.

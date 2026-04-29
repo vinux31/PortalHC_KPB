@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
-status: paused-at-checkpoint
-last_updated: "2026-04-29T01:42:00.000Z"
-last_activity: 2026-04-29 -- Phase 307 Plan 02 Wave 1 Tasks 1-3 complete; paused at Task 4 checkpoint:human-verify (manual UAT 5-step)
+status: phase-307-complete
+last_updated: "2026-04-29T02:15:00.000Z"
+last_activity: 2026-04-29 -- Phase 307 Plan 02 COMPLETE; Tasks 1-3 implemented + Task 4 manual UAT PASSED via orchestrator checkpoint
 progress:
   total_phases: 4
   completed_phases: 4
@@ -24,21 +24,23 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 ## Current Position
 
-Phase: 307 (selected-participants-inline-view) — PAUSED AT CHECKPOINT
-Plan: 2 of 2 (Wave 1 Tasks 1-3 complete, Task 4 checkpoint:human-verify pending)
-Status: Awaiting manual UAT 5-step Bahasa Indonesia
-Last activity: 2026-04-29 -- Phase 307 Plan 02 Tasks 1-3 implemented (3 commits a4b90ff5, ad7fa210, 7d81eecf); paused at Task 4
+Phase: 307 (selected-participants-inline-view) — COMPLETE
+Plan: 2 of 2 (Wave 1 Tasks 1-4 complete; Task 4 manual UAT PASSED via orchestrator checkpoint)
+Status: Phase 307 complete — siap untuk `/gsd-verify-work`
+Last activity: 2026-04-29 -- Phase 307 Plan 02 finalized; Tasks 1-3 (3 commits a4b90ff5, ad7fa210, 7d81eecf) + intermediate SUMMARY (2c9f6b48) + Task 4 UAT PASS approved by user
 Resume file: .planning/phases/307-selected-participants-inline-view/307-02-SUMMARY.md
 
 ## Next Action
 
-Phase 307 Plan 02 Tasks 1-3 selesai (panel "Peserta Terpilih" Step 2 implemented — markup + 3 top-level helpers + populateSummary refactor + Proton listener replace + AJAX hydrate + reset handler edit). 3 commits atomic, 0 build errors, all grep-based acceptance criteria pass.
+Phase 307 Plan 02 COMPLETE. Tasks 1-3 implemented (panel "Peserta Terpilih" Step 2 — markup + 3 top-level helpers + populateSummary refactor + Proton listener replace + AJAX hydrate + reset handler edit). Task 4 manual UAT 5-step Bahasa Indonesia PASSED — user approved all 5 steps via /gsd-execute-phase 307 orchestrator checkpoint (2026-04-29). Sign-off di `307-UAT.md` filled dengan PASS.
 
-**Task 4 PENDING — checkpoint:human-verify gate:blocking:** User/orchestrator perlu jalankan manual UAT 5-step Bahasa Indonesia di `.planning/phases/307-selected-participants-inline-view/307-UAT.md` dengan dev server running di `localhost:5277`. Required evidence: performance delta < 200ms screenshot (Step 4) + Step 2/Step 4 side-by-side parity screenshot (Step 5) + filled sign-off section di UAT.md.
+**Next:** Jalankan `/gsd-verify-work` untuk close Phase 307. Pre-verify smoke E2E:
+```bash
+cd tests && npx playwright test e2e/assessment.spec.ts --grep "Phase 307" --reporter=list
+# Expected: 4 tests PASS (transisi RED → GREEN). FLOW 1 test 1.2 tetap PASS.
+```
 
-**Pre-UAT smoke E2E:** `cd tests && npx playwright test e2e/assessment.spec.ts --grep "Phase 307" --reporter=list` — 4 tests Phase 307 sebelumnya RED, expect transisi ke GREEN. FLOW 1 test 1.2 (`'2 terpilih'` post Wave 0 rot fix) tetap PASS.
-
-Setelah UAT PASS, lanjut ke `/gsd-verify-work` untuk close Phase 307.
+Setelah Phase 307 closed, milestone v15.0 lanjut ke Phase 308 (PrePost Wizard Validation Fix — WIZ-04, file conflict serialize dengan Phase 307 di `Views/Admin/CreateAssessment.cshtml`).
 
 ## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
 
@@ -108,5 +110,6 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ## Session Continuity
 
-Last activity: 2026-04-29 — Phase 307 Plan 01 (Wave 0 test scaffold) complete. 3 commits (37c4bb90 selector helper, a3bdd04f assessment.spec.ts extension + rot fix, e88879ce manual UAT 5-step). 4 new Playwright tests (7.1-7.4) ready RED state untuk Wave 1 GREEN cycle.
-Next action: Jalankan `/gsd-execute-phase 307` Plan 02 (Wave 1 implementasi actual panel "Peserta Terpilih" — markup, helper render function, reset handler edit, Proton mode switch).
+Last activity: 2026-04-29 — Phase 307 Plan 02 (Wave 1 implementation) COMPLETE. Tasks 1-3 commits: a4b90ff5 (panel markup Step 2 + Step 4 consolidation), ad7fa210 (hoist updateSelectedCount + helpers top-level), 7d81eecf (populateSummary refactor + Proton listener + AJAX hydrate + reset handler). Intermediate SUMMARY commit 2c9f6b48 (paused-at-checkpoint). Task 4 manual UAT 5-step Bahasa Indonesia PASSED — user approved via orchestrator checkpoint (sign-off di 307-UAT.md filled, Result: PASS).
+Stopped at: Plan 307-02 finalized, awaiting `/gsd-verify-work` untuk close Phase 307.
+Next action: Jalankan `/gsd-verify-work` untuk verify Phase 307 closure. Pre-verify smoke: 4 Playwright tests Phase 307 (7.1-7.4) expect transisi RED → GREEN.
