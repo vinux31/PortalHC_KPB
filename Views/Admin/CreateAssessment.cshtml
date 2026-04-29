@@ -1872,6 +1872,7 @@ document.addEventListener('DOMContentLoaded', function() {
     typeSelect.addEventListener('change', function() {
         var statusWrapper = document.getElementById('statusFieldWrapper');
         var certNote = document.getElementById('prePostCertNote');
+        var statusEl = document.getElementById('Status');
 
         if (this.value === 'PrePostTest') {
             pptSection.classList.add('show');
@@ -1880,11 +1881,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (statusWrapper) statusWrapper.classList.add('d-none');
             // Show cert note
             if (certNote) certNote.classList.remove('d-none');
+            // Phase 308 D-01: auto-set Status='Upcoming' (matches server hardcode at line 1078/1112/1170)
+            if (statusEl) statusEl.value = 'Upcoming';
         } else {
             pptSection.classList.remove('show');
             if (stdSection) stdSection.classList.remove('d-none');
             if (statusWrapper) statusWrapper.classList.remove('d-none');
             if (certNote) certNote.classList.add('d-none');
+            // Phase 308 D-02: clear Status value — force user re-pick after switch back to Standard
+            if (statusEl) statusEl.value = '';
         }
     });
 
