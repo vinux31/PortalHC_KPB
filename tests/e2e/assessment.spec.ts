@@ -177,10 +177,13 @@ test.describe('Assessment - Phase 307 Selected Participants Panel', () => {
 // ============================================================
 test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
 
-  test('8.1 - Standard mode Status field interactable + value persistence (regression guard success criteria #5 — wave 0 partial)', async ({ page }) => {
+  // Phase 308 IN-03: explicit fresh-page-per-test reset, hilangkan duplicated login+goto
+  test.beforeEach(async ({ page }) => {
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
+  });
 
+  test('8.1 - Standard mode Status field interactable + value persistence (regression guard success criteria #5 — wave 0 partial)', async ({ page }) => {
     // Standard mode default — Status field visible (NOT d-none)
     await expect(page.locator(selectors.statusFieldWrapper)).toBeVisible();
     await expect(page.locator(selectors.statusFieldWrapper)).not.toHaveClass(/d-none/);
@@ -204,9 +207,6 @@ test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
   });
 
   test('8.2 - Switch S→PP→S Status field clear (mode-switch state cleanup D-02)', async ({ page }) => {
-    await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
     // Initial: Standard mode → fill Status
     await expect(page.locator(selectors.statusFieldWrapper)).toBeVisible();
     await page.selectOption(selectors.statusSelect, 'Open');
@@ -226,9 +226,6 @@ test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
   });
 
   test('8.3 - PP saja Status auto-set Upcoming + wrapper hidden (D-01 main path success criteria #1)', async ({ page }) => {
-    await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
     // Switch ke PrePostTest dari default Standard
     await page.selectOption(selectors.assessmentTypeInput, 'PrePostTest');
 
@@ -247,9 +244,6 @@ test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
   });
 
   test('8.4 - Switch PP→S→PP Status auto-set Upcoming kembali (idempotency D-01 re-fire)', async ({ page }) => {
-    await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
     // Pertama: switch ke PrePost
     await page.selectOption(selectors.assessmentTypeInput, 'PrePostTest');
     await expect(page.locator(selectors.statusSelect)).toHaveValue('Upcoming');
