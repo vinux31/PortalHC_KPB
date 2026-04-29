@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
-status: executing
-last_updated: "2026-04-29T01:29:13.922Z"
-last_activity: 2026-04-29 -- Phase 307 Plan 01 Wave 0 complete (test scaffold)
+status: paused-at-checkpoint
+last_updated: "2026-04-29T01:42:00.000Z"
+last_activity: 2026-04-29 -- Phase 307 Plan 02 Wave 1 Tasks 1-3 complete; paused at Task 4 checkpoint:human-verify (manual UAT 5-step)
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -24,15 +24,21 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 ## Current Position
 
-Phase: 307 (selected-participants-inline-view) — EXECUTING
-Plan: 2 of 2
-Status: Wave 0 complete, Wave 1 ready to execute
-Last activity: 2026-04-29 -- Phase 307 Plan 01 Wave 0 complete (test scaffold)
-Resume file: .planning/phases/307-selected-participants-inline-view/307-01-SUMMARY.md
+Phase: 307 (selected-participants-inline-view) — PAUSED AT CHECKPOINT
+Plan: 2 of 2 (Wave 1 Tasks 1-3 complete, Task 4 checkpoint:human-verify pending)
+Status: Awaiting manual UAT 5-step Bahasa Indonesia
+Last activity: 2026-04-29 -- Phase 307 Plan 02 Tasks 1-3 implemented (3 commits a4b90ff5, ad7fa210, 7d81eecf); paused at Task 4
+Resume file: .planning/phases/307-selected-participants-inline-view/307-02-SUMMARY.md
 
 ## Next Action
 
-Phase 307 Plan 01 (Wave 0 test scaffold) selesai — selectors module + 4 Phase 307 E2E tests + 5-step manual UAT script siap. Opportunistic rot fix line 45 'selected' → 'terpilih' applied. Lanjutkan dengan `/gsd-execute-phase 307` Plan 02 (Wave 1) untuk implementasi panel "Peserta Terpilih" Step 2 actual — markup + helper function + reset handler. Setelah Wave 1 merged, jalankan smoke test `npx playwright test e2e/assessment.spec.ts --grep 'Phase 307'` untuk RED→GREEN cycle, lalu manual UAT 5-step.
+Phase 307 Plan 02 Tasks 1-3 selesai (panel "Peserta Terpilih" Step 2 implemented — markup + 3 top-level helpers + populateSummary refactor + Proton listener replace + AJAX hydrate + reset handler edit). 3 commits atomic, 0 build errors, all grep-based acceptance criteria pass.
+
+**Task 4 PENDING — checkpoint:human-verify gate:blocking:** User/orchestrator perlu jalankan manual UAT 5-step Bahasa Indonesia di `.planning/phases/307-selected-participants-inline-view/307-UAT.md` dengan dev server running di `localhost:5277`. Required evidence: performance delta < 200ms screenshot (Step 4) + Step 2/Step 4 side-by-side parity screenshot (Step 5) + filled sign-off section di UAT.md.
+
+**Pre-UAT smoke E2E:** `cd tests && npx playwright test e2e/assessment.spec.ts --grep "Phase 307" --reporter=list` — 4 tests Phase 307 sebelumnya RED, expect transisi ke GREEN. FLOW 1 test 1.2 (`'2 terpilih'` post Wave 0 rot fix) tetap PASS.
+
+Setelah UAT PASS, lanjut ke `/gsd-verify-work` untuk close Phase 307.
 
 ## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
 
@@ -43,9 +49,12 @@ Phase 307 Plan 01 (Wave 0 test scaffold) selesai — selectors module + 4 Phase 
 | 306 | Score Editable per Question Type | QSCR-01 | 2 (Medium) |
 | 307 | Selected Participants Inline View | WIZ-01 | 2 (Low) |
 | 308 | PrePost Wizard Validation Fix | WIZ-04 | 2 (Medium) |
-| 309 | Worker Certificate Defensive Fix | WCRT-01 | 3 (Med-High, parallel w/310) |
+| 309 | Worker Certificate Defensive Fix + Submitted Status Handling | WCRT-01, SUB-01 | 3 (Med-High, parallel w/310) |
 | 310 | Essay Finalize Idempotency | ESCG-01 | 3 (Med-High, parallel w/309) |
 | 311 | ManageAssessment Performance | PERF-01 | 4 (Med, measurement-driven) |
+| 312 | Admin Full-Delete Assessment Room | DEL-01 | 5 (Med, parallel-eligible) |
+| 313 | Block Manual Submit Saat Waktu Habis | TMR-01 | 5 (Med-High, parallel-eligible) |
+| 314 | Fix Regenerate Token Upcoming | TKN-01 | 5 (Low-Med, investigative) |
 
 ## Deferred Items
 
