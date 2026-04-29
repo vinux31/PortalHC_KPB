@@ -1843,26 +1843,34 @@ namespace HcPortal.Controllers
             var fallback = new PSignViewModel { Position = "HC Manager", FullName = "" };
             if (string.IsNullOrWhiteSpace(categoryName)) return fallback;
 
-            var category = await _context.AssessmentCategories
-                .Include(c => c.Signatory)
-                .Include(c => c.Parent).ThenInclude(p => p!.Signatory)
-                .FirstOrDefaultAsync(c => c.Name == categoryName);
+            try
+            {
+                var category = await _context.AssessmentCategories
+                    .Include(c => c.Signatory)
+                    .Include(c => c.Parent).ThenInclude(p => p!.Signatory)
+                    .FirstOrDefaultAsync(c => c.Name == categoryName);
 
-            if (category?.Signatory != null)
-                return new PSignViewModel
-                {
-                    FullName = category.Signatory.FullName ?? "",
-                    Position = category.Signatory.Position ?? "HC Manager"
-                };
+                if (category?.Signatory != null)
+                    return new PSignViewModel
+                    {
+                        FullName = category.Signatory.FullName ?? "",
+                        Position = category.Signatory.Position ?? "HC Manager"
+                    };
 
-            if (category?.Parent?.Signatory != null)
-                return new PSignViewModel
-                {
-                    FullName = category.Parent.Signatory.FullName ?? "",
-                    Position = category.Parent.Signatory.Position ?? "HC Manager"
-                };
+                if (category?.Parent?.Signatory != null)
+                    return new PSignViewModel
+                    {
+                        FullName = category.Parent.Signatory.FullName ?? "",
+                        Position = category.Parent.Signatory.Position ?? "HC Manager"
+                    };
 
-            return fallback;
+                return fallback;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "ResolveCategorySignatory failed for category {Category}", categoryName);
+                return fallback;
+            }
         }
 
         [HttpGet]

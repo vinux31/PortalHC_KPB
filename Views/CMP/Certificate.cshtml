@@ -224,7 +224,7 @@
             <div class="header-title">Certificate of Completion</div>
             <div class="subtitle">This verifies that</div>
 
-            <div class="recipient-name">@Model.User?.FullName</div>
+            <div class="recipient-name">@(Model.User?.FullName ?? "(Nama tidak tersedia)")</div>
 
             @if (!string.IsNullOrEmpty(Model.User?.NIP))
             {
