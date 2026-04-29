@@ -1881,7 +1881,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (statusWrapper) statusWrapper.classList.add('d-none');
             // Show cert note
             if (certNote) certNote.classList.remove('d-none');
-            // Phase 308 D-01: auto-set Status='Upcoming' (matches server hardcode at line 1078/1112/1170)
+            // Phase 308 D-01: auto-set Status='Upcoming' (matches server hardcoded PrePost session creation paths)
             if (statusEl) statusEl.value = 'Upcoming';
         } else {
             pptSection.classList.remove('show');
