@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
-status: Phase 306 closed — REQ QSCR-01 shipped, Audit Temuan 2 closed, UAT 10/10 PASS
-last_updated: "2026-04-29T00:34:00.617Z"
-last_activity: 2026-04-28
+status: executing
+last_updated: "2026-04-29T01:29:13.922Z"
+last_activity: 2026-04-29 -- Phase 307 Plan 01 Wave 0 complete (test scaffold)
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_plans: 8
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State: Portal HC KPB
@@ -20,19 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 306 — score-editable-per-question-type
+**Current focus:** Phase 307 — selected-participants-inline-view
 
 ## Current Position
 
-Phase: 306
-Plan: Not started
-Status: Phase 306 closed — REQ QSCR-01 shipped, Audit Temuan 2 closed, UAT 10/10 PASS
-Last activity: 2026-04-28
-Resume file: .planning/phases/307-selected-participants-inline-view/307-CONTEXT.md
+Phase: 307 (selected-participants-inline-view) — EXECUTING
+Plan: 2 of 2
+Status: Wave 0 complete, Wave 1 ready to execute
+Last activity: 2026-04-29 -- Phase 307 Plan 01 Wave 0 complete (test scaffold)
+Resume file: .planning/phases/307-selected-participants-inline-view/307-01-SUMMARY.md
 
 ## Next Action
 
-Phase 306 closed. Jalankan `/gsd-execute-phase 307` untuk Wave 2 berikutnya (Selected Participants Inline View — REQ WIZ-01) atau review backlog v15.0 untuk re-prioritization. Optional: track pre-existing EditQuestion option-replacement bug (FK_PackageUserResponses_PackageOptions_PackageOptionId) yang ditemukan saat UAT — out of scope Phase 306 tapi rekomendasi gap-closure phase atau v16.0.
+Phase 307 Plan 01 (Wave 0 test scaffold) selesai — selectors module + 4 Phase 307 E2E tests + 5-step manual UAT script siap. Opportunistic rot fix line 45 'selected' → 'terpilih' applied. Lanjutkan dengan `/gsd-execute-phase 307` Plan 02 (Wave 1) untuk implementasi panel "Peserta Terpilih" Step 2 actual — markup + helper function + reset handler. Setelah Wave 1 merged, jalankan smoke test `npx playwright test e2e/assessment.spec.ts --grep 'Phase 307'` untuk RED→GREEN cycle, lalu manual UAT 5-step.
 
 ## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
 
@@ -89,6 +89,9 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - [v15.0 / Phase 306 / Plan 02]: Modal `editScoreWarningModal` trigger condition = editMode AND scoreChange AND affectedSessions > 0 (informational only); confirm button class `btn-warning btn-sm` per CD-D-08 UI-SPEC override (D-06, D-08, D-09, CD-02)
 - [v15.0 / Phase 306 / Plan 02]: Header daftar soal format `(N soal • Total X poin)` dengan bullet U+2022; computed via `@questions.Sum(q => q.ScoreValue)` (D-17, CD-03)
 - [v15.0 / Phase 306 / Plan 02]: D-19 verified via UAT — Stored AssessmentSessions.Score di Completed sessions TIDAK auto-recalculate setelah admin edit; Score di-persist saat SubmitExam, modal warning informasional only
+- [v15.0 / Phase 307 / Plan 01]: Selectors helper module placed di `tests/e2e/helpers/wizardSelectors.ts` (NEW folder), bukan `tests/helpers/`, untuk separation e2e-specific selectors vs shared utilities (login/utils/accounts)
+- [v15.0 / Phase 307 / Plan 01]: Performance budget #4 + Step 2/Step 4 visual parity di-defer ke manual UAT karena E2E flaky di CI runner — Step 4 punya `performance.mark/measure` script copy-paste-able ke Console
+- [v15.0 / Phase 307 / Plan 01]: Opportunistic rot fix line 45 (`'2 selected'` → `'2 terpilih'`) applied di Wave 0 — match production text Bahasa Indonesia di `CreateAssessment.cshtml` line 289 default `'0 terpilih'` dan `updateSelectedCount` line 1446 format `count + ' terpilih'`
 
 ### Open Blockers/Concerns
 
@@ -96,5 +99,5 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ## Session Continuity
 
-Last activity: 2026-04-28 — Closed Phase 306 (Plan 01 server-side + Plan 02 view + UAT 10/10 PASS via MCP Playwright). REQ QSCR-01 shipped. Audit Temuan 2 (score editability per question type) closed.
-Next action: Jalankan `/gsd-execute-phase 307` untuk Wave 2 lanjutan (Selected Participants Inline View — REQ WIZ-01).
+Last activity: 2026-04-29 — Phase 307 Plan 01 (Wave 0 test scaffold) complete. 3 commits (37c4bb90 selector helper, a3bdd04f assessment.spec.ts extension + rot fix, e88879ce manual UAT 5-step). 4 new Playwright tests (7.1-7.4) ready RED state untuk Wave 1 GREEN cycle.
+Next action: Jalankan `/gsd-execute-phase 307` Plan 02 (Wave 1 implementasi actual panel "Peserta Terpilih" — markup, helper render function, reset handler edit, Proton mode switch).

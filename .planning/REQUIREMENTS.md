@@ -42,6 +42,26 @@ Requirements untuk milestone v15.0 (audit fixes). Setiap REQ memetakan 1 temuan 
 
 - [ ] **WCRT-01**: Worker yang sudah lulus assessment dengan `GenerateCertificate=true` dapat membuka halaman sertifikat (`/CMP/Certificate/{id}`) tanpa redirect ke 500. Defensif: try-catch di `Certificate` action mirror pattern `CertificatePdf` (baris 2078–2083), structured `_logger.LogError`, null-safe accessor di `Certificate.cshtml` (`Model.User?.FullName ?? "..."`), specific exception catches (DbException, FormatException, NRE). *(maps Temuan 10)*
 
+## Audit Findings 29 April 2026 (Wave 5 — added 2026-04-29)
+
+Empat temuan audit lapangan tambahan yang dilaporkan operator pada 29 April 2026, ditambahkan ke milestone v15.0 sebagai Wave 5.
+
+### Admin Authorization
+
+- [ ] **DEL-01**: Akun **Admin** dapat melakukan full-delete assessment room termasuk yang berstatus `Completed` dan/atau yang sudah ada response peserta. Role **HC** dilarang menghapus assessment Completed atau yang sudah punya response peserta. Implementasi: role tier guard di body method `DeleteAssessment()` & `DeleteAssessmentGroup()` (Authorize attribute existing sudah `Admin, HC`); UI tombol Hapus di `ManageAssessment.cshtml` di-render conditional sesuai role. AuditLog entry sertakan Status & ResponseCount. *(maps Audit-29Apr T1)*
+
+### Exam Integrity
+
+- [ ] **TMR-01**: Server **menolak submit manual** worker pada assessment ber-timer (Online, PreTest, PostTest) saat `elapsed > DurationMinutes + ExtraTimeMinutes`; hanya jalur **auto-submit** (`isAutoSubmit=true`) yang sah setelah waktu habis, dengan grace 2 menit untuk network latency. Implementasi: modify LIFE-03 enforcement di `CMPController.SubmitExam()` (line ~1618–1631) jadi 2-tier branching (manual reject tanpa grace; auto reject setelah grace). Frontend `StartExam.cshtml` disable tombol Submit saat countdown=0. Tipe `Manual` exclude. *(maps Audit-29Apr T2)*
+
+### Submitted Status Handling
+
+- [ ] **SUB-01**: Status `"Menunggu Penilaian"` (assessment ber-essay yang di-set oleh `GradingService` line 189–227) diperlakukan sebagai status submit yang sah di endpoint `Results()`, `Certificate()`, dan `CertificatePdf()` (`CMPController.cs` line 1792, 1858, 2105). Helper baru `IsAssessmentSubmitted(string status)` di `AssessmentConstants.cs` returns true untuk Completed dan Menunggu Penilaian. Untuk Certificate/CertificatePdf: branch khusus `Menunggu Penilaian` tampilkan TempData Info (bukan Error) dengan pesan ramah. *(maps Audit-29Apr T3, bundled ke Phase 309)*
+
+### Token Regeneration Bug
+
+- [ ] **TKN-01**: `AssessmentAdminController.RegenerateToken()` (line 2232–2280) berhasil meregenerasi token untuk assessment status `Upcoming` dengan `IsTokenRequired=true` dan **0 worker yang sudah masuk ujian**. Investigative: repro bug → identify root cause (hipotesis: NRE pada `Schedule.Date`, AuditLog FK, concurrency, atau frontend response handler) → patch minimal → frontend propagasi error message detail (bukan generik). *(maps Audit-29Apr T4)*
+
 ## Deferred Requirements (menunggu klarifikasi)
 
 - [ ] **EPRV-01**: [DEFERRED] Admin dapat melihat kunci jawaban/rubrik Essay yang ter-load benar saat preview package soal. *(maps Temuan 8)*
@@ -80,7 +100,7 @@ Mapping requirement ke phase (filled by roadmap 2026-04-28). Phase numbering mel
 | WIZ-03 | Phase 304 (UI Label Polish) | Pending |
 | LBL-01 | Phase 305 (Question Type Naming Clarity) | Complete |
 | QSCR-01 | Phase 306 (Score Editable per Question Type) | Pending |
-| WIZ-01 | Phase 307 (Selected Participants Inline View) | Pending |
+| WIZ-01 | Phase 307 (Selected Participants Inline View) | In Progress (Wave 0 scaffold complete, Wave 1 pending) |
 | WIZ-04 | Phase 308 (PrePost Wizard Validation Fix) | Pending |
 | WCRT-01 | Phase 309 (Worker Certificate Defensive Fix) | Pending |
 | ESCG-01 | Phase 310 (Essay Finalize Idempotency) | Pending |
