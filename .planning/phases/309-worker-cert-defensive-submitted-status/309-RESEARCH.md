@@ -851,27 +851,33 @@ else
 
 **Catatan:** Sebagian besar claim di research ini di-tag `[VERIFIED]` atau `[CITED]` karena tool Read/Grep dijalankan terhadap file repo aktual. Hanya A1 yang punya minor uncertainty (apakah `using` directive perlu ditambah — verifiable saat plan-time).
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **Resolved:** 2026-04-29 (Plan 309-02 iter-1 revision). Semua 4 Open Question telah diputuskan dan di-implement di Plan 309-02. Section ini di-preserve sebagai forensic record decisi.
 
 1. **ViewBag vs ViewModel field untuk `IsPendingGrading`?**
    - What we know: existing Results action sudah pakai ViewBag pattern (line 2273-2275 untuk PrePost comparison data). ViewModel field lebih typesafe.
    - What's unclear: tim project lebih prefer mana? CONTEXT D-08 explicit "discretion".
    - Recommendation: Tambah `bool IsPendingGrading` ke `AssessmentResultsViewModel.cs` — non-breaking, eksplisit, future-proof. Jika ViewBag lebih konsisten dengan pattern existing PrePost, planner pilih ViewBag (less change).
+   - **RESOLVED:** ViewModel field `bool IsPendingGrading` di `AssessmentResultsViewModel.cs` (default false). Reasoning: typesafe (compile-time check), eksplisit di ViewModel contract, non-breaking (default false maintain semantik existing). Plan 309-02 Task 2 Step 1 implements. Implementer note: jika future Phase butuh distinguish source (Status string vs explicit bool), field ini sudah tersedia tanpa breaking change.
 
 2. **Apakah refactor literal `"Menunggu Penilaian"` di `GradingService.cs` line 196, 199 ke constant?**
    - What we know: literal di 2 lokasi (Where clause + SetProperty). CONTEXT explicit deferred — planner discretion.
    - What's unclear: planner judgement — include opportunistic atau defer.
    - Recommendation: **Include** karena 1 file extra dengan diff minimal — eliminate typo risk future, dan PendingGrading constant baru di-introduce → konsisten kalau langsung di-pakai semua call site internal.
+   - **RESOLVED:** Include sebagai opportunistic refactor — namun setelah iter-1 revision (scope_sanity warning), refactor di-SPLIT ke **Plan 309-03 Wave 2 sequential** (depends_on=[309-02]) alih-alih bundled di Plan 309-02. Reasoning: Plan 309-02 dengan 6 task melebihi warning threshold; split ke plan dedicated lebih clean tematik (GradingService = grading flow, bukan certificate flow). Plan 309-03 punya 1 task auto + 1 manual UAT optional.
 
 3. **Optional: tambah `_logger.LogInformation` di branch PendingGrading untuk forensics?**
    - What we know: CONTEXT D-10 explicit "decision: omit, log noise".
    - What's unclear: jika monitoring later butuh data, perlu re-add.
    - Recommendation: **Omit** sesuai CONTEXT lock. Future monitoring bisa di-toggle via config jika diperlukan.
+   - **RESOLVED:** OMIT per CONTEXT D-10 lock (log noise). Future monitoring opsional via config flag jika audit team request post-deploy. Tidak ada `_logger.LogInformation` di Certificate/CertificatePdf PendingGrading branch.
 
 4. **Apakah Essay items di question review (line 302-364 Results.cshtml) butuh label "Menunggu Penilaian"?**
    - What we know: CONTEXT D-08 mention "Essay questions tetap tampil di review section dengan label '**Menunggu Penilaian**' tanpa nilai (MC/MA tetap show correct/incorrect)".
    - What's unclear: `QuestionReviewItem` ViewModel saat ini punya `IsCorrect` (bool) — tidak ada flag "essay pending". Question review loop di Results.cshtml butuh extension.
    - Recommendation: Plan 309-02 task tambah field `bool IsEssayPending` ke `QuestionReviewItem` ATAU controller skip Essay items dari `questionReviews` saat pending. Planner pilih.
+   - **RESOLVED (iter-1 revision):** Essay items **TETAP tampil** di `questionReviews` list dengan field BARU `bool IsEssayPending` di `QuestionReviewItem` ViewModel (default false). Controller set `IsEssayPending = (assessment.Status == AssessmentConstants.AssessmentStatus.PendingGrading && q.QuestionType == "Essay")` di projection loop. View Razor render badge "Menunggu Penilaian" (text-bg-secondary + icon hourglass) untuk items dengan flag true; MC/MA dan post-finalize Essay items tetap render correct/incorrect normal. **Reasoning:** CONTEXT D-08 LOCKED explicit "Essay questions TETAP tampil di review section dengan label Menunggu Penilaian tanpa nilai (MC/MA tetap show correct/incorrect)" — option B (controller skip) BERTENTANGAN dengan D-08 dan REVERTED di iter-1 revision. Plan 309-02 Task 2 Step 4 + Task 4 Change F implement.
 
 ## Environment Availability
 
