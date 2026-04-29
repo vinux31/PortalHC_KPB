@@ -15,6 +15,7 @@ namespace HcPortal.Models
             public const string Open = "Open";
             public const string Upcoming = "Upcoming";
             public const string Completed = "Completed";
+            public const string PendingGrading = "Menunggu Penilaian"; // Phase 309 D-04 — set by GradingService L199 untuk session ber-essay
         }
 
         public static class CertificateType
@@ -36,5 +37,10 @@ namespace HcPortal.Models
                 ".pdf", ".jpg", ".jpeg", ".png"
             };
         }
+
+        // Phase 309 D-05 — top-level helper untuk normalisasi status semantik "submitted"
+        // Returns true untuk Completed (selesai dinilai) ATAU PendingGrading (essay belum dinilai HC)
+        public static bool IsAssessmentSubmitted(string? status) =>
+            status == AssessmentStatus.Completed || status == AssessmentStatus.PendingGrading;
     }
 }
