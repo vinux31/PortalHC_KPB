@@ -1,10 +1,12 @@
 ---
 phase: 309-worker-cert-defensive-submitted-status
 verified: 2026-05-01T00:00:00Z
-status: human_needed
-score: 11/11 must-haves verified (automated)
+human_uat_completed: 2026-05-01T13:50:00Z
+status: passed
+score: 11/11 must-haves verified (8 automated + 3 human-UAT confirmed via 309-HUMAN-UAT.md, see also 309-WALKTHROUGH.md)
 overrides_applied: 0
 re_verification: null
+human_uat_summary: 7 passed, 0 issues, 2 skipped (Test 7 User=null deferred — already validated via Plan 309-01 Opsi B code-side mock; Test 9 production log monitoring deferred to ops post-deploy per SC #7)
 human_verification:
   - test: "Worker submit assessment ber-essay → DB Status='Menunggu Penilaian'"
     expected: "Setelah worker submit, query AssessmentSessions row: Status='Menunggu Penilaian', IsPassed=NULL, HasManualGrading=1, Progress=100, Score=interim_pct dari MC+MA"

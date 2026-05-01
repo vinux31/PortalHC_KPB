@@ -40,7 +40,7 @@ Requirements untuk milestone v15.0 (audit fixes). Setiap REQ memetakan 1 temuan 
 
 ### Worker Certificate View
 
-- [ ] **WCRT-01**: Worker yang sudah lulus assessment dengan `GenerateCertificate=true` dapat membuka halaman sertifikat (`/CMP/Certificate/{id}`) tanpa redirect ke 500. Defensif: try-catch di `Certificate` action mirror pattern `CertificatePdf` (baris 2078–2083), structured `_logger.LogError`, null-safe accessor di `Certificate.cshtml` (`Model.User?.FullName ?? "..."`), specific exception catches (DbException, FormatException, NRE). *(maps Temuan 10)*
+- [x] **WCRT-01**: Worker yang sudah lulus assessment dengan `GenerateCertificate=true` dapat membuka halaman sertifikat (`/CMP/Certificate/{id}`) tanpa redirect ke 500. Defensif: try-catch di `Certificate` action mirror pattern `CertificatePdf` (baris 2078–2083), structured `_logger.LogError`, null-safe accessor di `Certificate.cshtml` (`Model.User?.FullName ?? "..."`), specific exception catches (DbException, FormatException, NRE). *(maps Temuan 10)*
 
 ## Audit Findings 29 April 2026 (Wave 5 — added 2026-04-29)
 
@@ -56,7 +56,7 @@ Empat temuan audit lapangan tambahan yang dilaporkan operator pada 29 April 2026
 
 ### Submitted Status Handling
 
-- [ ] **SUB-01**: Status `"Menunggu Penilaian"` (assessment ber-essay yang di-set oleh `GradingService` line 189–227) diperlakukan sebagai status submit yang sah di endpoint `Results()`, `Certificate()`, dan `CertificatePdf()` (`CMPController.cs` line 1792, 1858, 2105). Helper baru `IsAssessmentSubmitted(string status)` di `AssessmentConstants.cs` returns true untuk Completed dan Menunggu Penilaian. Untuk Certificate/CertificatePdf: branch khusus `Menunggu Penilaian` tampilkan TempData Info (bukan Error) dengan pesan ramah. *(maps Audit-29Apr T3, bundled ke Phase 309)*
+- [x] **SUB-01**: Status `"Menunggu Penilaian"` (assessment ber-essay yang di-set oleh `GradingService` line 189–227) diperlakukan sebagai status submit yang sah di endpoint `Results()`, `Certificate()`, dan `CertificatePdf()` (`CMPController.cs` line 1792, 1858, 2105). Helper baru `IsAssessmentSubmitted(string status)` di `AssessmentConstants.cs` returns true untuk Completed dan Menunggu Penilaian. Untuk Certificate/CertificatePdf: branch khusus `Menunggu Penilaian` tampilkan TempData Info (bukan Error) dengan pesan ramah. *(maps Audit-29Apr T3, bundled ke Phase 309)*
 
 ### Token Regeneration Bug
 
@@ -102,13 +102,13 @@ Mapping requirement ke phase (filled by roadmap 2026-04-28). Phase numbering mel
 | QSCR-01 | Phase 306 (Score Editable per Question Type) | Pending |
 | WIZ-01 | Phase 307 (Selected Participants Inline View) | In Progress (Wave 0 scaffold complete, Wave 1 pending) |
 | WIZ-04 | Phase 308 (PrePost Wizard Validation Fix) | Pending |
-| WCRT-01 | Phase 309 (Worker Certificate Defensive Fix + Submitted Status Handling) | Pending |
+| WCRT-01 | Phase 309 (Worker Certificate Defensive Fix + Submitted Status Handling) | Complete (2026-05-01) |
 | ESCG-01 | Phase 310 (Essay Finalize Idempotency) | Pending |
 | PERF-01 | Phase 311 (ManageAssessment Performance) | Pending |
 | EPRV-01 | DEFERRED (due 2026-05-12) | Pending klarifikasi user |
 | DEL-01 | Phase 312 (Admin Full-Delete Assessment Room) | Pending |
 | TMR-01 | Phase 313 (Block Manual Submit Saat Waktu Habis) | Pending |
-| SUB-01 | Phase 309 (bundled — Submitted Status Handling) | Pending |
+| SUB-01 | Phase 309 (bundled — Submitted Status Handling) | Complete (2026-05-01) |
 | TKN-01 | Phase 314 (Fix Regenerate Token Upcoming) | Pending |
 
 **Coverage:**
@@ -121,4 +121,4 @@ Mapping requirement ke phase (filled by roadmap 2026-04-28). Phase numbering mel
 ---
 *Requirements defined: 2026-04-28*
 *Source audit: 27 April 2026 (T1–T11) + 29 April 2026 (Wave 5: T1–T4)*
-*Last updated: 2026-04-29 (Wave 5 added — DEL-01, TMR-01, SUB-01, TKN-01)*
+*Last updated: 2026-05-01 (Phase 309 complete — WCRT-01 + SUB-01 marked complete)*
