@@ -193,10 +193,10 @@ namespace HcPortal.Services
                 int interimPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
                 var essayRowsAffected = await _context.AssessmentSessions
-                    .Where(s => s.Id == session.Id && s.Status != "Completed" && s.Status != "Menunggu Penilaian")
+                    .Where(s => s.Id == session.Id && s.Status != AssessmentConstants.AssessmentStatus.Completed && s.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(r => r.Score, interimPercentage)
-                        .SetProperty(r => r.Status, "Menunggu Penilaian")
+                        .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.PendingGrading)
                         .SetProperty(r => r.HasManualGrading, true)
                         .SetProperty(r => r.IsPassed, (bool?)null)
                         .SetProperty(r => r.Progress, 100)
