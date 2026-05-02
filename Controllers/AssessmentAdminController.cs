@@ -2712,15 +2712,48 @@ namespace HcPortal.Controllers
             return Json(new { success = true, pendingCount, allGraded = pendingCount == 0 });
         }
 
-        // --- FINALIZE ESSAY GRADING (Phase 298-05, D-17/D-18) ---
+        // --- FINALIZE ESSAY GRADING (Phase 298-05, D-17/D-18; Phase 310 D-03/D-04/D-06/D-07 idempotency) ---
+        /// <summary>
+        /// Action "FinalizeEssayGrading" — finalize Essay assessment session secara idempotent.
+        /// Phase 310 D-06/D-07: capture rowsAffected dari ExecuteUpdateAsync, gate audit/cert/notif side-effects
+        /// dengan rowsAffected > 0. D-03: friendly no-op response saat Status=Completed (alreadyFinalized:true).
+        /// D-04: pesan spesifik per status non-PendingGrading (Open/InProgress/Cancelled).
+        /// </summary>
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FinalizeEssayGrading(int sessionId)
         {
             var session = await _context.AssessmentSessions.FindAsync(sessionId);
-            if (session == null || session.Status != "Menunggu Penilaian")
-                return Json(new { success = false, message = "Session tidak dalam status Menunggu Penilaian" });
+            if (session == null)
+                return Json(new { success = false, message = "Session tidak ditemukan." });
+
+            // D-03 LOCKED — friendly no-op kalau sudah Completed (alreadyFinalized response)
+            if (session.Status == AssessmentConstants.AssessmentStatus.Completed)
+            {
+                return Json(new
+                {
+                    success = true,
+                    alreadyFinalized = true,
+                    message = $"Penilaian sudah diselesaikan sebelumnya pada {session.CompletedAt:dd MMM yyyy HH:mm} WIB",
+                    score = session.Score,
+                    isPassed = session.IsPassed,
+                    nomorSertifikat = session.NomorSertifikat
+                });
+            }
+
+            // D-04 LOCKED — pesan spesifik per status non-PendingGrading (Bahasa Indonesia, copy literal dari CONTEXT.md D-04)
+            if (session.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
+            {
+                var statusMsg = session.Status switch
+                {
+                    AssessmentConstants.AssessmentStatus.Open => "Belum bisa di-finalize. Peserta belum mulai mengerjakan ujian.",
+                    "InProgress" => "Belum bisa di-finalize. Peserta sedang mengerjakan ujian.",
+                    "Cancelled"  => "Tidak bisa di-finalize. Session sudah dibatalkan.",
+                    _            => $"Tidak bisa di-finalize. Status saat ini: {session.Status}."
+                };
+                return Json(new { success = false, message = statusMsg });
+            }
 
             // 1. Cek semua Essay sudah dinilai (T-298-14)
             var packageAssignment = await _context.UserPackageAssignments
@@ -2784,13 +2817,35 @@ namespace HcPortal.Controllers
             bool isPassed = finalPercentage >= session.PassPercentage;
 
             // 3. Update session: Completed + final score + IsPassed (T-298-16 replay guard via WHERE clause)
-            await _context.AssessmentSessions
-                .Where(s => s.Id == sessionId && s.Status == "Menunggu Penilaian")
+            // D-06 / D-07 — capture rowsAffected, gate semua side-effect (audit + cert + notif)
+            var rowsAffected = await _context.AssessmentSessions
+                .Where(s => s.Id == sessionId && s.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(r => r.Score, finalPercentage)
-                    .SetProperty(r => r.Status, "Completed")
+                    .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.Completed)
                     .SetProperty(r => r.IsPassed, isPassed)
                     .SetProperty(r => r.CompletedAt, DateTime.UtcNow));
+
+            if (rowsAffected == 0)
+            {
+                // Race lost — thread lain sudah finalize duluan. Read current state, return friendly no-op.
+                var current = await _context.AssessmentSessions.AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+                _logger.LogInformation(
+                    "FinalizeEssayGrading: race condition session {SessionId} — skip side-effects (already finalized).",
+                    sessionId);
+
+                return Json(new
+                {
+                    success = true,
+                    alreadyFinalized = true,
+                    message = $"Penilaian sudah diselesaikan sebelumnya pada {current?.CompletedAt:dd MMM yyyy HH:mm} WIB",
+                    score = current?.Score,
+                    isPassed = current?.IsPassed,
+                    nomorSertifikat = current?.NomorSertifikat
+                });
+            }
 
             // 4. Generate TrainingRecord (duplicate guard — same as GradingService)
             var judul = $"Assessment: {session.Title}";
@@ -2827,12 +2882,39 @@ namespace HcPortal.Controllers
                 catch (DbUpdateException) { /* race-condition: cert number sudah diambil thread lain — skip */ }
             }
 
+            // 5b. Audit log (Phase 310 D-07) — gated by rowsAffected > 0 (di-skip otomatis kalau race lost karena early return di atas)
+            var currentUser = await _userManager.GetUserAsync(User);
+            var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                ? (currentUser?.FullName ?? "Unknown")
+                : $"{currentUser.NIP} - {currentUser.FullName}";
+            try
+            {
+                await _auditLog.LogAsync(
+                    currentUser?.Id ?? "",
+                    actorName,
+                    "FinalizeEssayGrading",
+                    $"Session {sessionId} ({session.Title}) finalized: score={finalPercentage}%, isPassed={isPassed}",
+                    sessionId,
+                    "AssessmentSession");
+            }
+            catch (Exception ex)
+            {
+                // Audit failure tidak boleh break primary flow (precedent Phase 306 D-10)
+                _logger.LogWarning(ex, "FinalizeEssayGrading: audit log failed for session {SessionId}", sessionId);
+            }
+
             // 6. Reload session untuk NotifyIfGroupCompleted
             var updatedSession = await _context.AssessmentSessions.FindAsync(sessionId);
             if (updatedSession != null)
                 await _workerDataService.NotifyIfGroupCompleted(updatedSession);
 
-            return Json(new { success = true, score = finalPercentage, isPassed });
+            return Json(new
+            {
+                success = true,
+                score = finalPercentage,
+                isPassed,
+                nomorSertifikat = updatedSession?.NomorSertifikat
+            });
         }
 
         // --- SUBMIT INTERVIEW RESULTS (Assessment Proton Tahun 3) ---
