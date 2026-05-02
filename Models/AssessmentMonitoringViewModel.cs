@@ -60,6 +60,10 @@ namespace HcPortal.Models
         // Essay grading support (Phase 298-05)
         public bool HasManualGrading { get; set; }
         public int EssayPendingCount { get; set; }
+
+        // Phase 310 D-02 — gate button finalize berdasarkan Status assessment session
+        public string Status { get; set; } = "";               // mirror AssessmentSession.Status (raw value, BUKAN UserStatus yang sudah remap ke "Not started"/"InProgress"/"Completed"/"Dibatalkan")
+        public string? NomorSertifikat { get; set; }           // mirror AssessmentSession.NomorSertifikat (nullable)
     }
 
     /// <summary>

@@ -2583,7 +2583,10 @@ namespace HcPortal.Controllers
                     QuestionCount = questionCountMap.TryGetValue(a.Id, out var qc) ? qc : 0,
                     DurationMinutes = a.DurationMinutes,
                     HasManualGrading = a.HasManualGrading,
-                    EssayPendingCount = essayPendingCountMap.TryGetValue(a.Id, out var ep) ? ep : 0
+                    EssayPendingCount = essayPendingCountMap.TryGetValue(a.Id, out var ep) ? ep : 0,
+                    // Phase 310 D-02 — append untuk button gate
+                    Status          = a.Status ?? "",
+                    NomorSertifikat = a.NomorSertifikat
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
