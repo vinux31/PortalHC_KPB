@@ -1,10 +1,12 @@
 ---
 phase: 310
 slug: essay-finalize-idempotency
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-01
+reviewed_at: 2026-05-02
+reviewed_by: gsd-ui-checker
 ---
 
 # Phase 310 — UI Design Contract
