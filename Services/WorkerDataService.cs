@@ -330,6 +330,24 @@ namespace HcPortal.Services
 
             foreach (var recipientId in recipientIds)
             {
+                // Phase 310 D-05 — dedup via UserNotifications.AnyAsync sebelum SendAsync
+                // Schema: UserNotifications TIDAK punya SourceTitle/SourceDate, jadi pakai
+                // Type + Title exact + Message.Contains(sessionTitle) + CreatedAt time-window guard
+                bool alreadySent = await _context.UserNotifications.AnyAsync(n =>
+                    n.UserId == recipientId
+                    && n.Type == "ASMT_ALL_COMPLETED"
+                    && n.Title == "Assessment Selesai"
+                    && n.Message.Contains(completedSession.Title)
+                    && n.CreatedAt >= completedSession.Schedule.Date);
+
+                if (alreadySent)
+                {
+                    _logger.LogInformation(
+                        "NotifyIfGroupCompleted: skip recipient {RecipientId} — sudah ada notif untuk session \"{Title}\"",
+                        recipientId, completedSession.Title);
+                    continue;
+                }
+
                 try
                 {
                     await _notificationService.SendAsync(
