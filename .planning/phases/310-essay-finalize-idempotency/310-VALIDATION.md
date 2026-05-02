@@ -2,14 +2,30 @@
 phase: 310
 slug: essay-finalize-idempotency
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-01
 ---
 
 # Phase 310 — Validation Strategy
 
 > Per-phase validation contract for feedback sampling during execution.
+
+---
+
+## Wave 0 Strategy (Absorbed)
+
+Phase 310 scope tidak warrant separate Wave 0 plan (4 file modify total).
+Wave 0 deliverables (Playwright FLOW 9 scaffold + 310-UAT.md draft) di-bundle
+ke Plan 02 Task 2 dengan `test.skip` fallback saat fixture absent. Sampling
+latency dikompensasi via per-task `<automated>` grep assertions (lihat
+Plan 01 verify blocks setelah Fix #4) yang sample behavior literals langsung
+di file modified — bukan hanya compile gate.
+
+**Justification:** Bootstrap Wave 0 plan terpisah akan tambah ~10% context
+overhead untuk 0 nyata payoff (Playwright scaffold + UAT draft fits dalam
+Plan 02 Task 2 budget tanpa context strain). Per-task grep assertions
+cover behavior sampling gap yang biasanya filled by Wave 0 test scaffold.
 
 ---
 
@@ -45,12 +61,12 @@ created: 2026-05-01
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 310-01-01 | 01 | 1 | ESCG-01 | T-310-01 | API return alreadyFinalized: true saat Status=Completed (no error) | grep | `grep -c 'alreadyFinalized' Controllers/AssessmentAdminController.cs` returns ≥ 1 | ❌ W0 | ⬜ pending |
-| 310-01-02 | 01 | 1 | ESCG-01 | T-310-02 | UI button disabled saat Status=Completed | grep | `grep -E 'disabled.*Status.*Completed' Views/Admin/AssessmentMonitoringDetail.cshtml` returns ≥ 1 | ❌ W0 | ⬜ pending |
-| 310-01-03 | 01 | 1 | ESCG-01 | T-310-03 | NotifyIfGroupCompleted dedup via UserNotifications.AnyAsync | grep | `grep -F 'AnyAsync(n => n.Type == "ASMT_ALL_COMPLETED"' Services/WorkerDataService.cs` returns ≥ 1 | ❌ W0 | ⬜ pending |
-| 310-01-04 | 01 | 1 | ESCG-01 | T-310-04 | Audit log gated rowsAffected > 0 | grep | `grep -F '_auditLog.LogAsync' Controllers/AssessmentAdminController.cs` post line 2790 | ❌ W0 | ⬜ pending |
-| 310-02-01 | 02 | 2 | ESCG-01 | T-310-05 | Playwright spec: alreadyFinalized branch UI test | playwright | `npx playwright test --grep "Phase 310 alreadyFinalized"` exit 0 | ❌ W0 | ⬜ pending |
-| 310-02-02 | 02 | 2 | ESCG-01 | T-310-06 | Manual concurrent UAT documented | manual | UAT.md filled with concurrent test result + SQL verify queries | ❌ W0 | ⬜ pending |
+| 310-01-01 | 01 | 1 | ESCG-01 | T-310-01 | API return alreadyFinalized: true saat Status=Completed (no error) | grep | `grep -c 'alreadyFinalized' Controllers/AssessmentAdminController.cs` returns ≥ 1 | ✅ W0-bundled | ⬜ pending |
+| 310-01-02 | 01 | 1 | ESCG-01 | T-310-02 | UI button disabled saat Status=Completed | grep | `grep -E 'disabled.*Status.*Completed' Views/Admin/AssessmentMonitoringDetail.cshtml` returns ≥ 1 | ✅ W0-bundled | ⬜ pending |
+| 310-01-03 | 01 | 1 | ESCG-01 | T-310-03 | NotifyIfGroupCompleted dedup via UserNotifications.AnyAsync | grep | `grep -F 'AnyAsync(n => n.Type == "ASMT_ALL_COMPLETED"' Services/WorkerDataService.cs` returns ≥ 1 | ✅ W0-bundled | ⬜ pending |
+| 310-01-04 | 01 | 1 | ESCG-01 | T-310-04 | Audit log gated rowsAffected > 0 | grep | `grep -F '_auditLog.LogAsync' Controllers/AssessmentAdminController.cs` post line 2790 | ✅ W0-bundled | ⬜ pending |
+| 310-02-01 | 02 | 2 | ESCG-01 | T-310-05 | Playwright spec: alreadyFinalized branch UI test | playwright | `npx playwright test --grep "Phase 310 alreadyFinalized"` exit 0 | ✅ W0-bundled | ⬜ pending |
+| 310-02-02 | 02 | 2 | ESCG-01 | T-310-06 | Manual concurrent UAT documented | manual | UAT.md filled with concurrent test result + SQL verify queries | ✅ W0-bundled | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

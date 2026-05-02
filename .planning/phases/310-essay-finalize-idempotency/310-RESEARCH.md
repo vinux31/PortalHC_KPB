@@ -706,27 +706,31 @@ alertContainer.insertAdjacentHTML('afterbegin', alertHtml);
 | A6 | `[ASSUMED]` `_logger` field tersedia di AssessmentAdminController (sudah injected) | Example 1 logging | Build error kalau bukan; verify saat planning — controller umumnya punya ILogger via DI |
 | A7 | `[ASSUMED]` Bahasa Indonesia diterapkan ke audit Description string (bukan hanya UI) | Project Constraints | AuditLog.Description format mismatch policy; rekomendasi: tetap English untuk machine-readable + structured logging convention, BI hanya untuk user-facing |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **NotificationSentAt fallback feasibility**
    - What we know: UserNotifications schema TIDAK punya field SourceTitle/SourceDate (`[VERIFIED: Models/UserNotification.cs L11-73]`). Pattern 2 pakai `Message.Contains(title)` viable tapi LIKE substring.
    - What's unclear: Apakah false-positive dedup acceptable (rare collision Title prefix-match)?
    - Recommendation: Pakai dual filter `Type == "ASMT_ALL_COMPLETED" && Message.Contains(title) && CreatedAt >= session.Schedule.Date` untuk reduce false-positive. Kalau planning verify masih risiko collision, escalate ke fallback NotificationSentAt column migration (tapi ini break "no schema migration" scope — surface ke user).
+   - **RESOLVED:** Pakai dual filter Title exact (`Title == "Assessment Selesai"`) + `Message.Contains(completedSession.Title)` + `CreatedAt >= completedSession.Schedule.Date` time-window guard (PATTERNS.md section 2). Tidak perlu schema migration — UserNotifications fields existing cukup.
 
 2. **`MonitoringSessionViewModel` extension untuk NomorSertifikat?**
    - What we know: ViewModel tidak punya field; Razor conditional D-02 perlu data ini.
    - What's unclear: Apakah extend ViewModel acceptable scope, atau gate purely by Status==Completed?
    - Recommendation: Gate purely by Status==Completed (simpler, cukup untuk SC #2 acceptance). Status=Completed always = sudah finalized regardless of NomorSertifikat.
+   - **RESOLVED:** Extend `MonitoringSessionViewModel` dengan field `Status` (raw AssessmentSession.Status) + `NomorSertifikat` (nullable string), populate via mapper di `AssessmentAdminController` (Plan 01 Task 1 Edit A). Honor CONTEXT.md D-02 locked dual-criterion gate (`Status==Completed && NomorSertifikat!=null`) — bukan single-criterion.
 
 3. **Integration test (SC #5) — pakai infrastructure apa?**
    - What we know: Tidak ada xUnit/NUnit/MSTest project di repo. Hanya Playwright TypeScript E2E `[VERIFIED: tests/playwright.config.ts]`.
    - What's unclear: Apakah Phase 310 introduce .NET test project baru, atau pakai Playwright concurrent test, atau manual UAT?
    - Recommendation: Lihat **Validation Architecture** section. Phase 310 SC #5 disarankan **manual UAT concurrent click + DB query verify** (precedent Phase 308 manual UAT) plus **Playwright sequential test** (klik tombol 2x sequential, verify response field `alreadyFinalized` muncul, no error toast).
+   - **RESOLVED:** Playwright sequential 3 tests di FLOW 9 (`assessment.spec.ts` test 9.1–9.3 — disabled state, alreadyFinalized branch, D-04 status Open) untuk SC #1 + SC #2 auto E2E; manual UAT Step 5 di `310-UAT.md` untuk SC #5 parallel concurrent dual-tab + 4 SQL verify queries (TrainingRecord, NomorSertifikat, AuditLog, UserNotifications). VALIDATION.md sign-off contract.
 
 4. **Audit Description language — BI atau English?**
    - What we know: Existing audit entries pakai English (`"Added assessment category 'Safety OJT'"`, `"Regenerated access token for..."`)
    - What's unclear: CLAUDE.md "Bahasa Indonesia mandatory" — apakah berlaku ke audit log internal?
    - Recommendation: Tetap English untuk audit Description (consistent convention, machine-friendly forensic). BI hanya untuk user-facing render. Validate dengan user kalau ragu.
+   - **RESOLVED:** Audit `Description` tetap English (konsisten dengan AddCategory canonical L322-328 + Phase 309 audit convention — machine-readable forensic). User-facing strings (toast D-03 alert-info, tooltip D-02, alert-danger D-04) WAJIB Bahasa Indonesia per CLAUDE.md. `actionType="FinalizeEssayGrading"` (English machine identifier).
 
 ## Environment Availability
 
