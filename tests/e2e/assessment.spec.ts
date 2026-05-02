@@ -263,6 +263,135 @@ test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
 });
 
 // ============================================================
+// FLOW 9: Phase 310 — Essay Finalize Idempotency
+// REQ: ESCG-01 (5 success criteria)
+// SC #1 alreadyFinalized branch + SC #2 disabled state — auto E2E
+// SC #3 (notif dedup) + SC #4 (audit dedup) + SC #5 (parallel finalize) — manual UAT (RESEARCH finding #3, no .NET integration test project)
+// ============================================================
+test.describe('Assessment - Phase 310 Essay Finalize Idempotency', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await login(page, 'hc');
+  });
+
+  test('9.1 - SC #2: Tombol Selesaikan Penilaian disabled + tooltip wrapper saat session Status=Completed', async ({ page }) => {
+    // PRECONDITION: Seed data — session ber-essay yang sudah Completed (manual seed atau pakai fixture existing)
+    // Test ini scaffold WAVE — assertion target struktur DOM, bukan flow create-finalize end-to-end
+    // Untuk Wave 1 fill: developer pilih sessionId Completed dari dev DB, navigate ke detail page
+
+    // PLACEHOLDER target session ID — Wave 1 fill dengan actual seeded ID
+    const completedSessionTitle = 'Phase 310 Completed Fixture';
+
+    // Navigate ke ManageAssessment, find seeded session, klik detail
+    await page.goto('/Admin/ManageAssessment');
+    const groupRow = page.locator('tr', { hasText: completedSessionTitle }).first();
+
+    // Test akan SKIP otomatis kalau seed belum ada (RED state pre-fixture)
+    if (await groupRow.count() === 0) {
+      test.skip(true, 'Seed session "Phase 310 Completed Fixture" not found — Wave 1 manual seed required');
+    }
+
+    // Click ke detail
+    await groupRow.locator('a[href*="AssessmentMonitoringDetail"]').first().click();
+    await page.waitForLoadState('networkidle');
+
+    // Assertion D-02: tombol .btn-finalize-grading wrapped dalam <span> dengan tooltip
+    const finalizeBtn = page.locator('.btn-finalize-grading').first();
+    await expect(finalizeBtn).toBeDisabled();
+
+    const tooltipWrapper = page.locator('span[data-bs-toggle="tooltip"]').filter({ has: finalizeBtn });
+    await expect(tooltipWrapper).toBeVisible();
+
+    // Tooltip text contains "Sudah selesai pada"
+    const tooltipTitle = await tooltipWrapper.getAttribute('title');
+    expect(tooltipTitle).toContain('Sudah selesai pada');
+    expect(tooltipTitle).toContain('WIB');
+  });
+
+  test('9.2 - SC #1: Klik Finalize 2x → response ke-2 alreadyFinalized:true render alert-info biru (NOT alert-danger)', async ({ page }) => {
+    // PRECONDITION: Session dengan Status=PendingGrading (essay sudah di-grade semua, belum di-finalize)
+    // Test ini scaffold — Wave 1 fill dengan seeded sessionId yang ready untuk finalize
+
+    const pendingSessionTitle = 'Phase 310 PendingGrading Fixture';
+    await page.goto('/Admin/ManageAssessment');
+    const groupRow = page.locator('tr', { hasText: pendingSessionTitle }).first();
+
+    if (await groupRow.count() === 0) {
+      test.skip(true, 'Seed session "Phase 310 PendingGrading Fixture" not found — Wave 1 manual seed required');
+    }
+
+    await groupRow.locator('a[href*="AssessmentMonitoringDetail"]').first().click();
+    await page.waitForLoadState('networkidle');
+
+    // Klik 1x — confirm dialog accept
+    page.on('dialog', dialog => dialog.accept());
+
+    const finalizeBtn = page.locator('.btn-finalize-grading').first();
+    await finalizeBtn.click();
+
+    // Wait reload — first click sukses normal
+    await page.waitForLoadState('networkidle');
+
+    // Sekarang button gated (Status=Completed) — tapi ini test 2x klik via fetch JS langsung
+    // Re-trigger via JS fetch (bypass UI gate untuk simulate concurrent dual-tab)
+    const response = await page.evaluate(async () => {
+      const token = (document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement).value;
+      const sessionId = parseInt((document.querySelector('.btn-finalize-grading') as HTMLElement)?.dataset?.sessionId || '0');
+      const res = await fetch('/Admin/FinalizeEssayGrading', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'sessionId=' + sessionId + '&__RequestVerificationToken=' + encodeURIComponent(token)
+      });
+      return await res.json();
+    });
+
+    // Assertion D-03: response ke-2 = success + alreadyFinalized:true + message contain "sudah diselesaikan"
+    expect(response.success).toBe(true);
+    expect(response.alreadyFinalized).toBe(true);
+    expect(response.message).toContain('Penilaian sudah diselesaikan sebelumnya pada');
+    expect(response.message).toContain('WIB');
+  });
+
+  test('9.3 - SC #1 alt: Klik Finalize pada session Open → error toast spesifik (D-04 BI literal)', async ({ page }) => {
+    // PRECONDITION: Session Status=Open (belum mulai mengerjakan)
+    const openSessionTitle = 'Phase 310 Open Fixture';
+    await page.goto('/Admin/ManageAssessment');
+    const groupRow = page.locator('tr', { hasText: openSessionTitle }).first();
+
+    if (await groupRow.count() === 0) {
+      test.skip(true, 'Seed session "Phase 310 Open Fixture" not found — Wave 1 manual seed required');
+    }
+
+    await groupRow.locator('a[href*="AssessmentMonitoringDetail"]').first().click();
+    await page.waitForLoadState('networkidle');
+
+    // Trigger via JS fetch (UI mungkin sudah hide button via existing EssayPendingCount guard)
+    const response = await page.evaluate(async () => {
+      const token = (document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement).value;
+      // Find sessionId dari data-session-id atau URL
+      const sessionId = parseInt(window.location.pathname.split('/').pop() || '0');
+      const res = await fetch('/Admin/FinalizeEssayGrading', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'sessionId=' + sessionId + '&__RequestVerificationToken=' + encodeURIComponent(token)
+      });
+      return await res.json();
+    });
+
+    // Assertion D-04: response BI literal "Belum bisa di-finalize. Peserta belum mulai mengerjakan ujian."
+    expect(response.success).toBe(false);
+    expect(response.message).toContain('Belum bisa di-finalize');
+  });
+
+});
+
+// ============================================================
 // FLOW 2: Worker sees and starts assessment
 // ============================================================
 test.describe('Assessment - Worker Views Assessment', () => {
