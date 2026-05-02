@@ -413,9 +413,32 @@
                         }
                         <div id="finalizeSection_@session.Id"
                              style="display: @(session.EssayPendingCount == 0 ? "block" : "none")">
-                            <button class="btn btn-success btn-finalize-grading" data-session-id="@session.Id">
-                                <i class="bi bi-check-circle me-1"></i>Selesaikan Penilaian
-                            </button>
+                            @{
+                                // Phase 310 D-02 — gate by Status==Completed && NomorSertifikat!=null (LOCKED CONTEXT.md D-02 dual-criterion)
+                                var isFinalized = session.Status == AssessmentConstants.AssessmentStatus.Completed
+                                                  && !string.IsNullOrEmpty(session.NomorSertifikat);
+                                var tooltipText = session.CompletedAt.HasValue
+                                    ? $"Sudah selesai pada {session.CompletedAt.Value:dd MMM yyyy HH:mm} WIB"
+                                    : "Penilaian sudah diselesaikan";
+                            }
+                            @if (isFinalized)
+                            {
+                                // Pitfall #6 mitigation — wrap disabled button dalam <span> agar tooltip tetap fire mouseenter
+                                <span data-bs-toggle="tooltip" title="@tooltipText" style="display:inline-block;">
+                                    <button class="btn btn-success btn-finalize-grading"
+                                            data-session-id="@session.Id"
+                                            disabled
+                                            style="pointer-events: none;">
+                                        <i class="bi bi-check-circle me-1"></i>Selesaikan Penilaian
+                                    </button>
+                                </span>
+                            }
+                            else
+                            {
+                                <button class="btn btn-success btn-finalize-grading" data-session-id="@session.Id">
+                                    <i class="bi bi-check-circle me-1"></i>Selesaikan Penilaian
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -1279,6 +1302,27 @@ function eventLabel(eventType, detail) {
 
 @* ===== ESSAY GRADING AJAX HANDLERS (Phase 298-05) ===== *@
 <script>
+    // Phase 310 — extracted dari existing Phase 302 inline alert pattern (L1383-1389)
+    // Render alert dismissible di top of .container-fluid dengan auto-dismiss
+    function showAlert(type, icon, message) {
+        var html = '<div class="alert alert-' + type + ' alert-dismissible fade show mb-3" role="alert">'
+            + '<i class="bi ' + icon + ' me-2"></i>' + message
+            + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+            + '</div>';
+        var container = document.querySelector('.container-fluid');
+        container.insertAdjacentHTML('afterbegin', html);
+
+        // Auto-dismiss: 5s untuk info/success, 7s untuk danger (UI-SPEC contract)
+        var dismissMs = type === 'danger' ? 7000 : 5000;
+        setTimeout(function() {
+            var alertEl = container.querySelector('.alert.alert-' + type);
+            if (alertEl) {
+                var closeBtn = alertEl.querySelector('.btn-close');
+                if (closeBtn) closeBtn.click();
+            }
+        }, dismissMs);
+    }
+
     // Simpan Skor per soal Essay
     document.querySelectorAll('.btn-save-essay-score').forEach(function(btn) {
         btn.addEventListener('click', async function() {
@@ -1345,10 +1389,20 @@ function eventLabel(eventType, detail) {
                     body: 'sessionId=' + sessionId + '&__RequestVerificationToken=' + encodeURIComponent(token)
                 });
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && data.alreadyFinalized) {
+                    // Phase 310 D-03 — friendly no-op, render alert-info biru, JANGAN reload (state sudah final)
+                    var msg = data.message;
+                    if (data.nomorSertifikat) {
+                        msg += ' Nomor sertifikat: ' + data.nomorSertifikat + '.';
+                    }
+                    showAlert('info', 'bi-info-circle-fill', '<strong>Info:</strong> ' + msg);
+                    this.disabled = true;   // tetap disabled — sudah final
+                } else if (data.success) {
+                    // Path normal: finalize sukses pertama kali → reload untuk refresh state
                     location.reload();
                 } else {
-                    alert(data.message);
+                    // Phase 310 D-04 — error spesifik per status (Open/InProgress/Cancelled), inline alert BUKAN browser native alert()
+                    showAlert('danger', 'bi-x-circle-fill', '<strong>Error:</strong> ' + data.message);
                     this.disabled = false;
                 }
             } catch (err) {
@@ -1395,6 +1449,13 @@ function eventLabel(eventType, detail) {
             alert('Gagal menambah waktu. Silakan coba lagi.');
         });
     }
+
+    // Phase 310 D-02 — Bootstrap tooltip activation untuk button disabled state
+    // Canonical pattern dari Views/Admin/AddTraining.cshtml L394-397
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function(el) { new bootstrap.Tooltip(el); });
+    });
 </script>
 
 <!-- Extra Time Modal (Phase 302) -->
