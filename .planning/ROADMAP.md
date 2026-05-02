@@ -185,8 +185,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     5. Integration test: scenario `Task.WhenAll` parallel finalize → tidak corrupt state
   - **Risk:** Medium-High | **Effort:** M
   - **Sequential after Phase 309** (per user decision 2026-04-29 saat discuss-phase 310 — tunggu `AssessmentConstants.AssessmentStatus.PendingGrading` constant dari Phase 309 D-04 merged dulu untuk hindari coordination complexity)
-  - **Plans:** 2 plans
-    - [ ] 310-01-PLAN.md — Backend idempotency: FinalizeEssayGrading capture rowsAffected + D-03/D-04 BI branching + NotifyIfGroupCompleted dedup + AuditLog gated + ViewModel extend (ESCG-01)
+  - **Plans:** 1/2 plans executed
+    - [x] 310-01-PLAN.md — Backend idempotency: FinalizeEssayGrading capture rowsAffected + D-03/D-04 BI branching + NotifyIfGroupCompleted dedup + AuditLog gated + ViewModel extend (ESCG-01)
     - [ ] 310-02-PLAN.md — Frontend UI gate D-02 + JS handler D-03/D-04 + showAlert helper + Playwright FLOW 9 scaffold + 310-UAT.md draft + manual UAT 6-step (ESCG-01)
 
 #### Wave 4 — Performance (measurement-driven, last)
