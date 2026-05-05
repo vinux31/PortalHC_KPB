@@ -877,27 +877,31 @@ Field names: lowercase + underscore for Indonesian/English consistency. Follows 
 | **Performance** | **PRIMARY** | D-11 + D-12 + D-16 measurement protocol. Acceptance ≥30% p95 improvement. |
 | **Validation Coverage** | Yes (this section) | All 7 SCs from ROADMAP mapped to verification step in plan |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **EF SQL diff capture method (D-10) — config vs code-based**
    - **What we know:** Two viable approaches: (a) `appsettings.Development.json` log level config (no code change, scope to dev env), (b) inline `_context.Database.LogTo(...)` di `OnConfiguring` (code change, must remove post-verify).
    - **What's unclear:** Which approach planner prefers. Both work.
    - **Recommendation:** Use `appsettings.Development.json` log level toggle — zero code change, easily revertable. Document the JSON snippet di plan task action.
+   - **RESOLVED:** Approach (a) `appsettings.Development.json` log level toggle dipilih. Verifikasi via PATTERNS.md menemukan `appsettings.Development.json:6` SUDAH punya `Microsoft.EntityFrameworkCore.Database.Command: Information` — config sudah aktif, plan TIDAK perlu edit appsettings, cukup tail log selama execute. Plan 02 Task 5 + 311-UAT.md Step 4 mengandalkan flag yang sudah ada.
 
 2. **Snapshot Dev DB before baseline measurement (Pitfall 9)**
    - **What we know:** Reproducibility requires consistent dataset between baseline + post-patch runs.
    - **What's unclear:** Whether project workflow already has dev DB snapshot/restore tooling, or if manual file copy needed.
    - **Recommendation:** Planner add explicit task "snapshot dev DB before baseline" with command (e.g., SQL Server BACKUP DATABASE). If not available, document in pre-baseline section: "Halt other DB writes during measurement window."
+   - **RESOLVED:** SQL Server `BACKUP DATABASE` via `sqlcmd` ke path `C:\temp\HcPortalDB_Dev_311_baseline.bak`. Plan 01 Task 2 (baseline scaffold) include backup command, Plan 02 Task 5 (post-patch measurement) include restore-or-verify step. Hasil: dataset identik antara baseline + post-patch runs.
 
 3. **Per-segment Stopwatch implementation: inline vs helper**
    - **What we know:** D-16 requires 5 segment timings (T1..T5). Inline: 5x `Stopwatch.StartNew/Stop` blocks (verbose but explicit). Helper: extract `await TimeSegment(name, async () => ...)` wrapper.
    - **What's unclear:** Code style preference.
    - **Recommendation:** **Inline** for Phase 311 — D-13 specifies stopwatch logging permanent (NOT removed post-validation), so verbosity acceptable. Helper extraction is YAGNI for single-use case. Future phases that benefit from generalized timing can extract.
+   - **RESOLVED:** Inline implementation dipilih. Plan 01 Task 1 berisi 5 inline Stopwatch blocks (swT1..swT5) wrapping action body L66-110, L210, L212, L220-223, L172-176 dengan `_logger.LogInformation("ManageAssessment perf breakdown: T1={T1}ms ... total={Total}ms tab={Tab}", ...)` single-call. PATTERNS.md Pattern A reference logging convention sudah established.
 
 4. **Migration apply timing (Pitfall 9 + D-12)**
    - **What we know:** Migration apply changes DB schema → query plan changes → baseline must be measured BEFORE migration apply (current state = no new indexes), post-patch AFTER migration apply.
    - **What's unclear:** Sequence enforcement.
    - **Recommendation:** Plan structure: Wave 0 (baseline breakdown D-16, no migration applied), STOP for Skenario A/B/C decision. Wave 1 (apply migration + AsNoTracking + Include removal + cache). Wave 2 (post-patch measurement).
+   - **RESOLVED:** Wave structure enforced di plan via `depends_on: [311-01]` di 311-02 frontmatter. Wave 0 (Plan 01) instrumentation only — NO migration applied. STOP gate Skenario A/B/C decision di Plan 01 Task 3 (`autonomous: false`). Wave 1 (Plan 02 Task 1+2) apply migration + AsNoTracking + Include removal + cache hanya kalau Skenario A approved. Wave 2 (Plan 02 Task 5) post-patch measurement re-uses Stopwatch instrumentation dari Wave 0 untuk apple-to-apple comparison.
 
 ## Environment Availability
 
