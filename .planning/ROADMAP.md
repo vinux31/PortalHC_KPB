@@ -175,7 +175,8 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 
 #### Phase 310: Essay Finalize Idempotency
 
-- [x] **Phase 310: Essay Finalize Idempotency** — Friendly no-op + UI hide + dedupe notif (completed 2026-05-05)
+- [x] **Phase 310: Essay Finalize Idempotency** — Friendly no-op + UI hide + dedupe notif
+ (completed 2026-05-05)
   - **REQ:** ESCG-01
   - **Success Criteria:**
     1. `AssessmentAdminController.FinalizeEssayGrading` baris 2713: ganti pesan "session tidak dalam status..." menjadi explisit, jika `Status == "Completed"` return success/no-op message ramah
@@ -204,6 +205,9 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     6. Post-patch measurement: response time p95 ≤ baseline × 0.7 (≥30% improvement)
     7. Smoke test tab Assessment, Training, History — grouping & paging hasil identik dengan sebelum patch
   - **Risk:** Medium | **Effort:** M-L
+  - **Plans:** 2 plans (measurement-driven gate Wave 0 → patches Wave 1+2)
+    - 311-01-PLAN.md — Wave 0 baseline: per-segment Stopwatch instrumentation (T1..T5) + 5x cold runs + Skenario A/B/C decision gate (D-11, D-13, D-16) — autonomous: false (human checkpoint)
+    - 311-02-PLAN.md — Wave 1+2 patches: AddManageAssessmentPerfIndexes migration + AsNoTracking + Include removal + Categories cache + 3x invalidation + post-patch measurement + 4-step UAT (D-01..D-09, ROADMAP SC #2-7) — autonomous: false (UAT human checkpoint)
 
 #### Wave 5 — Audit Findings 29 April 2026 (parallel-safe, post-Wave 4)
 
