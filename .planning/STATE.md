@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: executing
-stopped_at: Phase 310 UI-SPEC approved
-last_updated: "2026-05-02T07:00:35.068Z"
+stopped_at: Phase 311 context gathered (auto pass)
+last_updated: "2026-05-05T03:10:38.074Z"
 last_activity: 2026-05-02 -- Phase 310 execution started
 progress:
   total_phases: 11
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -29,7 +29,7 @@ Phase: 310 (essay-finalize-idempotency) — EXECUTING
 Plan: 1 of 2
 Status: Executing Phase 310
 Last activity: 2026-05-02 -- Phase 310 execution started
-Resume file: .planning/phases/310-essay-finalize-idempotency/310-UI-SPEC.md
+Resume file: .planning/phases/311-manageassessment-performance/311-CONTEXT.md
 
 ## Next Action
 
@@ -128,5 +128,5 @@ Last activity: 2026-04-29 — Phase 308 Plan 02 (Wave 1 implementation) COMPLETE
 - Wave 0 commit `cedbebb0` (308-01 finalization)
 - Intermediate paused-at-checkpoint commit `a0610acc`
 
-Stopped at: Phase 310 UI-SPEC approved
+Stopped at: Phase 311 context gathered (auto pass)
 Next action: Jalankan `/gsd-verify-work` untuk verify Phase 308 closure. Pre-verify smoke: 4 Playwright tests Phase 308 (8.1-8.4) expect transisi RED → GREEN dari Wave 0.
