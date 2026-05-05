@@ -333,12 +333,15 @@ namespace HcPortal.Services
                 // Phase 310 D-05 — dedup via UserNotifications.AnyAsync sebelum SendAsync
                 // Schema: UserNotifications TIDAK punya SourceTitle/SourceDate, jadi pakai
                 // Type + Title exact + Message.Contains(sessionTitle) + CreatedAt time-window guard
+                // Phase 310 WR-03 — pakai UTC-bounded window (-2 hari) untuk hindari timezone mismatch
+                // dan tidak ada upper bound False-Positive (Schedule.Date bisa local-time, CreatedAt UTC)
+                var windowStart = DateTime.UtcNow.AddDays(-2);
                 bool alreadySent = await _context.UserNotifications.AnyAsync(n =>
                     n.UserId == recipientId
                     && n.Type == "ASMT_ALL_COMPLETED"
                     && n.Title == "Assessment Selesai"
                     && n.Message.Contains(completedSession.Title)
-                    && n.CreatedAt >= completedSession.Schedule.Date);
+                    && n.CreatedAt >= windowStart);
 
                 if (alreadySent)
                 {
