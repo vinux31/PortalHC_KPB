@@ -61,8 +61,14 @@ namespace HcPortal.Controllers
             string? tab = null, string? section = null, string? unit = null,
             string? category = null, string? statusFilter = null, string? isFiltered = null)
         {
+            // Phase 311 Wave 0: per-segment Stopwatch instrumentation (D-11, D-13, D-16)
+            var swTotal = System.Diagnostics.Stopwatch.StartNew();
+            long t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
+
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
+            // T1: Assessment query chain (filter + projection + grouping + statusFilter)
+            var swT1 = System.Diagnostics.Stopwatch.StartNew();
             var managementQuery = _context.AssessmentSessions
                 .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
                 .AsQueryable();
@@ -167,13 +173,18 @@ namespace HcPortal.Controllers
             else if (statusFilter == "Open" || statusFilter == "Upcoming" || statusFilter == "Closed")
                 grouped = grouped.Where(g => g.GroupStatus == statusFilter).ToList();
             // statusFilter == "All" → no filter applied
+            swT1.Stop();
+            t1 = swT1.ElapsedMilliseconds;
 
-            // Fetch distinct categories for dropdown
+            // T5: Distinct Categories query (target cache di Wave 1)
+            var swT5 = System.Diagnostics.Stopwatch.StartNew();
             ViewBag.Categories = await _context.AssessmentSessions
                 .Select(a => a.Category)
                 .Distinct()
                 .OrderBy(c => c)
                 .ToListAsync();
+            swT5.Stop();
+            t5 = swT5.ElapsedMilliseconds;
             ViewBag.SelectedCategory = category ?? "";
             ViewBag.SelectedStatus = statusFilter ?? "";
 
@@ -205,11 +216,24 @@ namespace HcPortal.Controllers
 
                 List<WorkerTrainingStatus> workers;
                 if (isInitialState)
+                {
                     workers = new List<WorkerTrainingStatus>();
+                }
                 else
+                {
+                    // T2: GetWorkersInSection (out-of-scope per D-14, measured for D-16 decision)
+                    var swT2 = System.Diagnostics.Stopwatch.StartNew();
                     workers = await _workerDataService.GetWorkersInSection(section, unit, category, search, statusFilter);
+                    swT2.Stop();
+                    t2 = swT2.ElapsedMilliseconds;
+                }
 
+                // T3: GetAllWorkersHistory (out-of-scope per D-14, measured for D-16 decision)
+                var swT3 = System.Diagnostics.Stopwatch.StartNew();
                 var (assessmentHistory, trainingHistory) = await _workerDataService.GetAllWorkersHistory();
+                swT3.Stop();
+                t3 = swT3.ElapsedMilliseconds;
+
                 ViewBag.Workers = workers;
                 ViewBag.AssessmentHistory = assessmentHistory;
                 ViewBag.TrainingHistory = trainingHistory;
@@ -217,11 +241,22 @@ namespace HcPortal.Controllers
                     .Select(r => r.Title)
                     .Where(t => !string.IsNullOrEmpty(t))
                     .Distinct().OrderBy(t => t).ToList();
+
+                // T4: Sections + Units (out-of-scope per D-14, measured for D-16 decision)
+                var swT4 = System.Diagnostics.Stopwatch.StartNew();
                 ViewBag.TrainingSections = await _context.GetAllSectionsAsync();
                 ViewBag.TrainingUnits = !string.IsNullOrEmpty(section)
                     ? await _context.GetUnitsForSectionAsync(section)
                     : new List<string>();
+                swT4.Stop();
+                t4 = swT4.ElapsedMilliseconds;
             }
+
+            swTotal.Stop();
+            _logger.LogInformation(
+                "ManageAssessment perf breakdown: t1={T1}ms t2={T2}ms t3={T3}ms t4={T4}ms t5={T5}ms total={Total}ms tab={Tab} search_present={SearchPresent} page={Page}",
+                t1, t2, t3, t4, t5, swTotal.ElapsedMilliseconds, activeTab,
+                !string.IsNullOrEmpty(search), page);
 
             return View();
         }
