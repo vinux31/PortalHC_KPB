@@ -2731,11 +2731,15 @@ namespace HcPortal.Controllers
             // D-03 LOCKED — friendly no-op kalau sudah Completed (alreadyFinalized response)
             if (session.Status == AssessmentConstants.AssessmentStatus.Completed)
             {
+                // Phase 310 WR-01 — guard CompletedAt null agar tidak render "pada  WIB" double-space
+                var completedAtText = session.CompletedAt.HasValue
+                    ? $" pada {session.CompletedAt.Value:dd MMM yyyy HH:mm} WIB"
+                    : "";
                 return Json(new
                 {
                     success = true,
                     alreadyFinalized = true,
-                    message = $"Penilaian sudah diselesaikan sebelumnya pada {session.CompletedAt:dd MMM yyyy HH:mm} WIB",
+                    message = $"Penilaian sudah diselesaikan sebelumnya{completedAtText}",
                     score = session.Score,
                     isPassed = session.IsPassed,
                     nomorSertifikat = session.NomorSertifikat
@@ -2836,11 +2840,15 @@ namespace HcPortal.Controllers
                     "FinalizeEssayGrading: race condition session {SessionId} — skip side-effects (already finalized).",
                     sessionId);
 
+                // Phase 310 WR-01 — guard CompletedAt null agar tidak render "pada  WIB" double-space
+                var raceCompletedAtText = current?.CompletedAt.HasValue == true
+                    ? $" pada {current.CompletedAt.Value:dd MMM yyyy HH:mm} WIB"
+                    : "";
                 return Json(new
                 {
                     success = true,
                     alreadyFinalized = true,
-                    message = $"Penilaian sudah diselesaikan sebelumnya pada {current?.CompletedAt:dd MMM yyyy HH:mm} WIB",
+                    message = $"Penilaian sudah diselesaikan sebelumnya{raceCompletedAtText}",
                     score = current?.Score,
                     isPassed = current?.IsPassed,
                     nomorSertifikat = current?.NomorSertifikat
