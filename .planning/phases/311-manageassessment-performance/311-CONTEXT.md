@@ -1,8 +1,8 @@
 # Phase 311: ManageAssessment Performance - Context
 
-**Gathered:** 2026-05-05
+**Gathered:** 2026-05-05 (auto-pass), revised 2026-05-05 (interactive update via /gsd-discuss-phase)
 **Status:** Ready for planning
-**Mode:** auto (autonomous decision pass — system auto mode active, no interactive Q&A)
+**Mode:** auto-pass + 2 interactive overrides (D-03 revised, D-16 added)
 
 <domain>
 ## Phase Boundary
@@ -36,7 +36,7 @@ Optimize backend query performance untuk endpoint `GET /Admin/ManageAssessment` 
 
 - **D-02:** TTL = 5 menit absolute expiration via `MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) }`. Pure time-based eviction, no sliding/LRU. Rationale: ROADMAP SC #5 explicit, Categories rarely change (CRUD operations not in this controller's hot path), 5-min staleness fully acceptable user-side.
 
-- **D-03:** No explicit cache invalidation pada Category CRUD operations. Strategy = TTL drift only. Rationale: simpler implementation; if admin add/edit/delete category, dropdown shows new value within ≤5 min. Trade-off accepted (consistent with caching philosophy: prefer simpler invalidation when staleness window is acceptable). Future enhancement noted in deferred ideas.
+- **D-03 (REVISED via interactive discuss 2026-05-05):** **Explicit cache invalidation** pada Category CRUD operations. Tambah `_cache.Remove("assessment_categories_distinct")` di action `CreateCategory`/`UpdateCategory`/`DeleteCategory` (di `AssessmentAdminController.cs`). Rationale: ROADMAP SC #5 dipenuhi (TTL 5 menit tetap berlaku untuk safety net), tetapi UX optimal — admin yang baru add/edit/delete kategori langsung lihat dropdown fresh tanpa wait 5 menit. Cost: ~3 baris kode. Risk lupa invalidate di action baru = rendah karena CRUD kategori co-located dan jarang di-extend. Detail implementasi (cache key sebagai const, helper method) di-decide planner.
 
 - **D-04:** Cache miss path queries via `.AsNoTracking()` (read-only fetch into `IMemoryCache`):
   ```csharp
@@ -90,6 +90,27 @@ Optimize backend query performance untuk endpoint `GET /Admin/ManageAssessment` 
   - Grouping output struktur sama (count rows, pagination headers)
   - Paging totalPages identical untuk same dataset
 
+### Pre-Execute Diagnostic (added via interactive discuss 2026-05-05)
+
+- **D-16:** **Baseline breakdown per-query** WAJIB di-capture SEBELUM apply patch apapun, bukan hanya total Stopwatch (D-11). Rationale: investigasi user menemukan controller `ManageAssessment` (L60-227) selalu fetch data Training/History queries (`GetWorkersInSection` L210, `GetAllWorkersHistory` L212, `GetAllSectionsAsync` L220, `GetUnitsForSectionAsync` L222) walaupun user buka tab Assessment — komentar L195-197 eksplisit. Tanpa breakdown per-query, kita tidak tahu siapa bottleneck dominan: optimasi Assessment query saja (auto-pass D-14 scope) bisa gagal capai 30% kalau Training/History yang dominan.
+
+  Breakdown segments yang harus diukur:
+  - **T1** = Assessment query chain L66-110 (sessions fetch + projection + groupings)
+  - **T2** = `GetWorkersInSection` L210
+  - **T3** = `GetAllWorkersHistory` L212
+  - **T4** = `GetAllSectionsAsync` + `GetUnitsForSectionAsync` L220-223
+  - **T5** = Distinct Categories L172-176
+  - **Total** = T1+T2+T3+T4+T5
+
+  Implementasi: bungkus tiap segment dengan `Stopwatch` instance terpisah, log via `_logger.LogInformation("ManageAssessment perf breakdown: T1={T1}ms T2={T2}ms T3={T3}ms T4={T4}ms T5={T5}ms total={Total}ms tab={Tab}", ...)`. Run pre-patch 5x cold (skip first as JIT warmup), record median per segment.
+
+  Decision gate setelah baseline breakdown:
+  - **Skenario A:** T1 dominan (>60% total) → scope auto-pass D-14 valid, jalan sesuai rencana (patch hanya Assessment query + Categories cache + indexes).
+  - **Skenario B:** T2/T3 dominan (>50% total combined) → STOP planning, balik ke user dengan data konkret untuk decide: (a) expand scope ke `.AsNoTracking()` pada Training/History queries di Phase 311 (revisi D-14), atau (b) defer ke phase baru lazy-load architecture. Rollback strategy juga di-decide saat ini dengan informasi nyata.
+  - **Skenario C:** Mixed (T1 ~ T2/T3) → user decide explicit dengan breakdown numbers di tangan.
+
+  D-16 ini menggantikan kebutuhan pre-commit rollback strategy decision — measurement-driven approach: data dulu, scope decision belakangan.
+
 ### Claude's Discretion
 
 - **Migration timestamp generation:** Auto-generated via `dotnet ef migrations add` — no override.
@@ -100,6 +121,12 @@ Optimize backend query performance untuk endpoint `GET /Admin/ManageAssessment` 
 ### Folded Todos
 
 None — `realtime-assessment.md` todo (created 2026-03-09) is unrelated to perf optimization.
+
+### Open Questions (deferred — answered post-baseline-breakdown D-16)
+
+- **Failure mode & rollback strategy** kalau post-patch tidak capai ≥30% improvement: di-decide setelah D-16 baseline breakdown menunjukkan Skenario A/B/C. Discuss-phase awal mencoba pre-commit Opsi 1 (iterative tambah composite/computed column), tapi user redirect ke measurement-driven decision — keputusan rollback berbeda kalau Training/History bottleneck (perlu expand scope, bukan iterative tweak Assessment query).
+- **Scope expansion ke Training/History queries** (revisi D-14): defer. Kalau D-16 menunjukkan Skenario B atau C, user decide explicit antara (a) expand `.AsNoTracking()` di sini, atau (b) bikin phase baru lazy-load.
+- **Lazy-load tab non-aktif** (fetch only active tab via `?tab=` param check): defer ke phase masa depan. Architecture change, scope-creep risk untuk Phase 311.
 
 </decisions>
 
@@ -181,7 +208,8 @@ None — `realtime-assessment.md` todo (created 2026-03-09) is unrelated to perf
 - **Composite index `IX_AssessmentSessions_Schedule_ExamWindowCloseDate`** — defer to optional optimization phase if D-05's two single-column indexes don't yield sufficient improvement. Add via separate migration.
 - **Persisted computed column `EffectiveDate = COALESCE(ExamWindowCloseDate, Schedule)` + index** — alternative to fix COALESCE seek issue. Defer (schema migration overhead, breaks backward compat with raw SQL queries elsewhere).
 - **Categories cache invalidation on Category CRUD** — TTL drift acceptable for now. If user reports stale dropdowns become annoying, add explicit cache key bump via `_cache.Remove("assessment_categories_distinct")` di `CreateCategory/UpdateCategory/DeleteCategory` actions. Track as future improvement.
-- **Training/History tab perf optimization** — `GetWorkersInSection` (L210) dan `GetAllWorkersHistory` (L212) potentially slow on large worker datasets. Out of scope Phase 311. Could be Phase 315 or backlog item.
+- **Training/History tab perf optimization** — `GetWorkersInSection` (L210) dan `GetAllWorkersHistory` (L212) potentially slow on large worker datasets. **Default out-of-scope Phase 311**, namun D-16 baseline breakdown bisa surface ke scope kalau Skenario B/C terjadi (user decide saat itu).
+- **Lazy-load tab non-aktif** — controller saat ini selalu fetch data ketiga tab dalam 1 request (Training/History queries jalan walau user buka tab Assessment, lihat komentar L195-197). Refactor ke lazy-load via AJAX partial reload per tab = phase masa depan (bukan Phase 311). Architectural change beyond "AsNoTracking + index" scope.
 - **MiniProfiler integration** — comprehensive request profiling tool. Defer untuk future observability phase.
 - **Application Insights / OpenTelemetry** — production-grade APM. Out of scope, separate infra phase.
 
@@ -195,4 +223,5 @@ None — `realtime-assessment.md` todo (created 2026-03-09) is unrelated to perf
 
 *Phase: 311-manageassessment-performance*
 *Context gathered: 2026-05-05 (autonomous pass — auto mode active)*
-*Auto-mode log: All 15 decisions selected via codebase analysis + ROADMAP literal interpretation. No interactive Q&A.*
+*Revised: 2026-05-05 (interactive discuss-phase — D-03 explicit invalidation, D-16 baseline breakdown added)*
+*Auto-mode log: 15 decisions auto-selected; 1 revised (D-03) and 1 added (D-16) via user-driven discussion.*
