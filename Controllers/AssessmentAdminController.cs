@@ -2747,10 +2747,10 @@ namespace HcPortal.Controllers
             {
                 var statusMsg = session.Status switch
                 {
-                    AssessmentConstants.AssessmentStatus.Open => "Belum bisa di-finalize. Peserta belum mulai mengerjakan ujian.",
-                    "InProgress" => "Belum bisa di-finalize. Peserta sedang mengerjakan ujian.",
-                    "Cancelled"  => "Tidak bisa di-finalize. Session sudah dibatalkan.",
-                    _            => $"Tidak bisa di-finalize. Status saat ini: {session.Status}."
+                    AssessmentConstants.AssessmentStatus.Open        => "Belum bisa di-finalize. Peserta belum mulai mengerjakan ujian.",
+                    AssessmentConstants.AssessmentStatus.InProgress  => "Belum bisa di-finalize. Peserta sedang mengerjakan ujian.",
+                    AssessmentConstants.AssessmentStatus.Cancelled   => "Tidak bisa di-finalize. Session sudah dibatalkan.",
+                    _                                                => $"Tidak bisa di-finalize. Status saat ini: {session.Status}."
                 };
                 return Json(new { success = false, message = statusMsg });
             }

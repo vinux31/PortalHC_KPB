@@ -16,6 +16,8 @@ namespace HcPortal.Models
             public const string Upcoming = "Upcoming";
             public const string Completed = "Completed";
             public const string PendingGrading = "Menunggu Penilaian"; // Phase 309 D-04 — set by GradingService L199 untuk session ber-essay
+            public const string InProgress = "InProgress"; // Phase 310 WR-04 — peserta sedang mengerjakan ujian
+            public const string Cancelled = "Cancelled";   // Phase 310 WR-04 — session dibatalkan
         }
 
         public static class CertificateType
