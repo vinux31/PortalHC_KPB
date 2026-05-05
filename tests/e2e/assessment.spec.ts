@@ -327,9 +327,13 @@ test.describe('Assessment - Phase 310 Essay Finalize Idempotency', () => {
     page.on('dialog', dialog => dialog.accept());
 
     const finalizeBtn = page.locator('.btn-finalize-grading').first();
-    await finalizeBtn.click();
 
-    // Wait reload — first click sukses normal
+    // Phase 310 WR-02 — explicit await reload via Promise.all untuk hindari race
+    // antara networkidle dan reload navigation
+    await Promise.all([
+      page.waitForResponse(res => res.url().includes('/Admin/FinalizeEssayGrading') && res.status() === 200),
+      finalizeBtn.click()
+    ]);
     await page.waitForLoadState('networkidle');
 
     // Sekarang button gated (Status=Completed) — tapi ini test 2x klik via fetch JS langsung
@@ -349,10 +353,11 @@ test.describe('Assessment - Phase 310 Essay Finalize Idempotency', () => {
     });
 
     // Assertion D-03: response ke-2 = success + alreadyFinalized:true + message contain "sudah diselesaikan"
+    // Phase 310 WR-02 — relax assertion: kalau CompletedAt null, controller WR-01 fix tidak emit "pada"
     expect(response.success).toBe(true);
     expect(response.alreadyFinalized).toBe(true);
-    expect(response.message).toContain('Penilaian sudah diselesaikan sebelumnya pada');
-    expect(response.message).toContain('WIB');
+    expect(response.message).toContain('Penilaian sudah diselesaikan sebelumnya');
+    expect(response.message).toMatch(/(WIB|sebelumnya$)/);
   });
 
   test('9.3 - SC #1 alt: Klik Finalize pada session Open → error toast spesifik (D-04 BI literal)', async ({ page }) => {
