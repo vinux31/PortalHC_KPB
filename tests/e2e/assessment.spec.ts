@@ -580,3 +580,167 @@ test.describe('Assessment - Training Records', () => {
     await expect(page.locator('body')).toContainText('Manage Assessment');
   });
 });
+
+// ============================================================
+// FLOW 12: Phase 312 — Admin Full-Delete Role Guard
+// REQ: DEL-01 (6 success criteria)
+// 12.0 — GetDeleteImpact JSON helper test (smoke endpoint)
+// 12.1 — Admin + Open + 0 response → DELETE OK
+// 12.2 — Admin + Completed → button TAMPIL untuk Admin (override)
+// 12.3 — HC + Open + 0 response → modal flow 2-step + DELETE OK
+// 12.4 — HC + Completed → button HIDE (UI conditional render D-01)
+// 12.5 — HC + Open + has-response → modal opens, submit BLOCKED + audit blocked entry
+// 12.6 — HC + PrePost + Completed → button HIDE atau backend reject (D-04 extra)
+// ============================================================
+test.describe('Assessment - Phase 312 Admin Full-Delete Role Guard', () => {
+
+  test('12.0 - GetDeleteImpact returns valid JSON shape for type=group (admin login)', async ({ page }) => {
+    await login(page, 'admin');
+    // Pakai existing seed assessment ID — fallback skip kalau tidak ada
+    await page.goto('/Admin/ManageAssessment');
+    const button = page.locator('button[data-delete-id]').first();
+    if (await button.count() === 0) {
+      test.skip(true, 'No assessment with delete button found — seed required');
+    }
+    const id = await button.getAttribute('data-delete-id');
+    const type = await button.getAttribute('data-delete-type');
+    test.skip(!id || !type, 'data-delete-id / data-delete-type not present');
+
+    const response = await page.request.get(`/Admin/GetDeleteImpact?type=${type}&id=${id}`);
+    expect(response.status()).toBe(200);
+    const data = await response.json();
+    expect(data).toHaveProperty('status');
+    expect(data).toHaveProperty('responseCount');
+    expect(data).toHaveProperty('certCount');
+    expect(data).toHaveProperty('packageCount');
+    expect(data).toHaveProperty('attemptCount');
+    expect(data).toHaveProperty('sessionCount');
+  });
+
+  test('12.1 - Admin + Open + 0 response → button TAMPIL + modal flow + DELETE OK', async ({ page }) => {
+    await login(page, 'admin');
+    await page.goto('/Admin/ManageAssessment');
+
+    // Cari row Open status (assume seed exists)
+    const openRow = page.locator('tr:has-text("Open")').first();
+    if (await openRow.count() === 0) test.skip(true, 'Tidak ada row Open seed');
+
+    // Klik action dropdown
+    const dropdown = openRow.locator('.dropdown-toggle').first();
+    await dropdown.click();
+
+    // Klik delete button (modal trigger) — scoped ke row tersebut
+    const delBtn = openRow.locator('button.dropdown-item.text-danger[data-bs-target="#deleteAssessmentModal"]').first();
+    if (await delBtn.count() === 0) test.skip(true, 'Delete button tidak ada di row Open (kemungkinan no seed)');
+    await expect(delBtn).toBeVisible();
+    await delBtn.click();
+
+    // Modal opens — Step 1 visible
+    const modal = page.locator('#deleteAssessmentModal');
+    await expect(modal).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('#dam-content')).toBeVisible({ timeout: 5_000 });
+
+    // Lanjutkan → Step 2
+    await page.locator('#dam-next-btn').click();
+    await expect(page.locator('#dam-step-2')).toBeVisible();
+    await expect(page.locator('#deleteAssessmentModal .alert.alert-danger')).toContainText('Tindakan ini tidak dapat dibatalkan');
+
+    // Submit Hapus Permanen
+    await page.locator('#dam-submit-btn').click();
+    await page.waitForURL('**/ManageAssessment**', { timeout: 10_000 });
+    // Optional success flash check (skip if not present — backend may use different copy)
+    const successAlert = page.locator('.alert-success');
+    if (await successAlert.count() > 0) {
+      await expect(successAlert.first()).toContainText(/berhasil dihapus/i);
+    }
+  });
+
+  test('12.2 - Admin + Completed → button TAMPIL untuk Admin (override regardless Status)', async ({ page }) => {
+    await login(page, 'admin');
+    await page.goto('/Admin/ManageAssessment');
+
+    const completedRow = page.locator('tr:has-text("Completed")').first();
+    if (await completedRow.count() === 0) test.skip(true, 'Tidak ada row Completed seed — buat dulu via AkhiriUjian');
+
+    const dropdown = completedRow.locator('.dropdown-toggle').first();
+    await dropdown.click();
+
+    // Admin override → button HARUS tampil
+    const delBtn = completedRow.locator('button.dropdown-item.text-danger[data-bs-target="#deleteAssessmentModal"]');
+    await expect(delBtn.first()).toBeVisible();
+  });
+
+  test('12.3 - HC + Open + 0 response → modal flow 2-step', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageAssessment');
+
+    const openRow = page.locator('tr:has-text("Open")').first();
+    if (await openRow.count() === 0) test.skip(true, 'Tidak ada row Open seed');
+
+    const dropdown = openRow.locator('.dropdown-toggle').first();
+    await dropdown.click();
+    const delBtn = openRow.locator('button.dropdown-item.text-danger[data-bs-target="#deleteAssessmentModal"]').first();
+    if (await delBtn.count() === 0) test.skip(true, 'Delete button tidak tampil untuk HC + Open (cek seed)');
+    await expect(delBtn).toBeVisible();
+    await delBtn.click();
+
+    await expect(page.locator('#deleteAssessmentModal')).toBeVisible();
+    await expect(page.locator('#dam-content')).toBeVisible({ timeout: 5_000 });
+    await page.locator('#dam-next-btn').click();
+    await expect(page.locator('#dam-step-2')).toBeVisible();
+    // Tutup modal — avoid double-delete dengan test 12.1
+    await page.locator('#deleteAssessmentModal button.btn-close').click();
+  });
+
+  test('12.4 - HC + Completed → button HIDE (D-01 conditional render)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageAssessment');
+
+    const completedRow = page.locator('tr:has-text("Completed")').first();
+    if (await completedRow.count() === 0) test.skip(true, 'Tidak ada row Completed seed');
+
+    const dropdown = completedRow.locator('.dropdown-toggle').first();
+    await dropdown.click();
+
+    // HC + Completed → button TIDAK ada di dropdown row tersebut
+    const delBtn = completedRow.locator('button.dropdown-item.text-danger[data-bs-target="#deleteAssessmentModal"]');
+    await expect(delBtn).toHaveCount(0);
+  });
+
+  test('12.5 - HC + Open + has-response → modal opens, submit BLOCKED + flash error', async ({ page }) => {
+    // Pre-condition: assessment Open dengan responseCount > 0 (seed manual atau via API)
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageAssessment');
+
+    // Asumsi: ada seed row Open dengan responseCount>0 — title fixture
+    const targetRow = page.locator('tr', { hasText: 'Phase 312 HC Block Fixture' }).first();
+    if (await targetRow.count() === 0) test.skip(true, 'Seed "Phase 312 HC Block Fixture" tidak ditemukan — Wave 1 manual seed required');
+
+    const dropdown = targetRow.locator('.dropdown-toggle').first();
+    await dropdown.click();
+    const delBtn = targetRow.locator('button.dropdown-item.text-danger[data-bs-target="#deleteAssessmentModal"]').first();
+    await delBtn.click();
+
+    await expect(page.locator('#deleteAssessmentModal')).toBeVisible();
+    await page.locator('#dam-next-btn').click();  // wait for content load + Lanjutkan enabled
+    await page.locator('#dam-submit-btn').click();
+    await page.waitForURL('**/ManageAssessment**', { timeout: 10_000 });
+
+    // Backend reject → TempData Error
+    await expect(page.locator('.alert-danger')).toContainText(/tidak memiliki izin/i);
+  });
+
+  test('12.6 - HC + PrePost + Completed → button HIDE (D-04 extra scope)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageAssessment');
+
+    const prePostCompletedRow = page.locator('tr', { hasText: 'Phase 312 PrePost Completed' }).first();
+    if (await prePostCompletedRow.count() === 0) test.skip(true, 'Seed PrePost+Completed tidak ditemukan');
+
+    const dropdown = prePostCompletedRow.locator('.dropdown-toggle').first();
+    await dropdown.click();
+
+    const delPrePostBtn = prePostCompletedRow.locator('button.dropdown-item.text-danger[data-delete-type="prepost"]');
+    await expect(delPrePostBtn).toHaveCount(0);  // HIDE per D-01
+  });
+});
