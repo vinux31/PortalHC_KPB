@@ -621,10 +621,19 @@ test.describe('Assessment - Phase 312 Admin Full-Delete Role Guard', () => {
     await login(page, 'admin');
     await page.goto('/Admin/ManageAssessment');
 
-    // Cari row Open status — scope ke badge spesifik untuk hindari false-match
-    // (e.g., "OpenAI" di Title atau Category)
-    const openRow = page.locator('tr', { has: page.locator('span.badge.bg-success', { hasText: /^Open$/ }) }).first();
-    if (await openRow.count() === 0) test.skip(true, 'Tidak ada row Open seed');
+    // PHASE 312 WR-04: pakai dedicated fixture title agar tidak hapus seed yang
+    // dipakai oleh test 12.2-12.6 (mode serial). Mirror pattern test 12.5/12.6.
+    // Kalau fixture tidak ada, test di-skip — TIDAK fallback ke "first Open row"
+    // yang bisa hapus seed share.
+    const fixtureTitle = 'Phase 312 Admin Delete Fixture';
+    await searchAssessment(page, fixtureTitle);
+
+    const openRow = page.locator('tr', { hasText: fixtureTitle })
+      .filter({ has: page.locator('span.badge.bg-success', { hasText: /^Open$/ }) })
+      .first();
+    if (await openRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 1 manual seed required (Open status, 0 response)`);
+    }
 
     // Klik action dropdown
     const dropdown = openRow.locator('.dropdown-toggle').first();
@@ -632,7 +641,7 @@ test.describe('Assessment - Phase 312 Admin Full-Delete Role Guard', () => {
 
     // Klik delete button (modal trigger) — scoped ke row tersebut
     const delBtn = openRow.locator('button.dropdown-item.text-danger[data-bs-target="#deleteAssessmentModal"]').first();
-    if (await delBtn.count() === 0) test.skip(true, 'Delete button tidak ada di row Open (kemungkinan no seed)');
+    if (await delBtn.count() === 0) test.skip(true, 'Delete button tidak ada di row fixture (kemungkinan Status berubah)');
     await expect(delBtn).toBeVisible();
     await delBtn.click();
 
