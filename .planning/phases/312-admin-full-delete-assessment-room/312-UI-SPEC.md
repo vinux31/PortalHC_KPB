@@ -1,10 +1,11 @@
 ---
 phase: 312
 slug: admin-full-delete-assessment-room
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-07
+reviewed_at: 2026-05-07
 ---
 
 # Phase 312 — UI Design Contract
