@@ -423,14 +423,25 @@ document.body.addEventListener('htmx:sendError', function(evt) {
         renderHtmxError(target);
     }
 });
-// Retry button delegation
+// Phase 311 Plan 04 gap closure (BUG-5A): Retry button delegation.
+// Pakai htmx.ajax('GET', url, {target, swap}) direct supaya bypass trigger
+// dispatcher (handler lama trigger 'load' tidak match wrapper hx-trigger
+// 'shown.bs.tab' → no-op). Direct ajax call paling robust dan preserve
+// filter values via hx-include semantics (htmx.ajax otomatis include form
+// data sesuai hx-include attribute pada wrapper).
 document.body.addEventListener('click', function(evt) {
     var btn = evt.target.closest('[data-htmx-retry]');
     if (!btn) return;
     var wrapper = btn.closest('.htmx-tab-wrapper');
-    if (wrapper && window.htmx) {
-        htmx.trigger(wrapper, 'load');
-    }
+    if (!wrapper || !window.htmx) return;
+    var url = wrapper.getAttribute('hx-get');
+    if (!url) return;
+    // Show skeleton selama refetch in-flight (UX feedback).
+    wrapper.innerHTML = '<div aria-busy="true" aria-label="Memuat ulang data" class="placeholder-glow"><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div></div>';
+    // Direct AJAX call: bypass trigger dispatcher, target = wrapper, innerHTML swap.
+    // hx-include="#filter-form" pada wrapper sudah declarative — htmx.ajax
+    // honor hx-include attribute saat element argument disediakan (3rd arg).
+    htmx.ajax('GET', url, { target: wrapper, swap: 'innerHTML', source: wrapper });
 });
 
 // Regenerate Token handler — preserved dari versi lama
