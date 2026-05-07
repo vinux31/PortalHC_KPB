@@ -4,6 +4,14 @@
 
     var activeTab = ViewBag.ActiveTab as string ?? "assessment";
     var searchTerm = ViewBag.SearchTerm as string;
+    var assessmentCategories = ViewBag.Categories as List<string> ?? new List<string>();
+    var selectedCategory = ViewBag.SelectedCategory as string ?? "";
+    var selectedStatus = ViewBag.SelectedStatus as string ?? "";
+
+    // Phase 311 Plan 02: HTMX endpoint URLs (PathBase auto-resolved via @Url.Action).
+    var urlAssessment = Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin");
+    var urlTraining = Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin");
+    var urlHistory = Url.Action("ManageAssessmentTab_History", "AssessmentAdmin");
 }
 
 @Html.AntiForgeryToken()
@@ -73,24 +81,233 @@
     </li>
 </ul>
 
-<div class="tab-content pt-4" id="manageAssessmentTabsContent">
+<!-- ============================================================ -->
+<!-- Phase 311 Plan 02: Shared filter form di shell level         -->
+<!-- (HTMX hx-include="#filter-form" target tab pane aktif).      -->
+<!-- ============================================================ -->
+<form id="filter-form" method="get" action="@Url.Action("ManageAssessment", "AssessmentAdmin")"
+      class="row g-2 align-items-end my-3"
+      onsubmit="return false;">
 
-    <!-- ===== TAB 1: ASSESSMENT GROUPS ===== -->
-    <div class="tab-pane fade" id="pane-assessment" role="tabpanel" aria-labelledby="tab-assessment">
-        <partial name="~/Views/Admin/Shared/_AssessmentGroupsTab.cshtml" />
+    <input type="hidden" name="tab" value="@activeTab" id="filter-tab" />
+    <input type="hidden" name="page" value="1" id="filter-page" />
+    <input type="hidden" name="pageSize" value="20" />
+
+    <!-- Search input (D-03 debounce 500ms input) -->
+    <div class="col-md-4">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-0" name="search"
+                   id="filter-search"
+                   placeholder="Cari berdasarkan judul, kategori, nama, atau NIP..."
+                   value="@searchTerm"
+                   hx-get="@urlAssessment"
+                   hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
+                   hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
+                   hx-swap="innerHTML"
+                   hx-include="#filter-form"
+                   hx-sync="this:replace" />
+            <button class="btn btn-primary" type="button"
+                    hx-get="@urlAssessment"
+                    hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
+                    hx-swap="innerHTML"
+                    hx-include="#filter-form"
+                    hx-sync="closest form:replace">Cari</button>
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <button type="button" class="btn btn-outline-secondary" title="Hapus pencarian"
+                        onclick="document.getElementById('filter-search').value=''; htmx.trigger('#filter-search','input')">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Category dropdown (D-03 instant change) -->
+    <div class="col-md-3">
+        <select id="filter-category" name="category" class="form-select form-select-sm"
+                hx-get="@urlAssessment"
+                hx-trigger="change"
+                hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
+                hx-swap="innerHTML"
+                hx-include="#filter-form"
+                hx-sync="this:replace">
+            <option value="">Semua Kategori</option>
+            @foreach (var cat in assessmentCategories)
+            {
+                if (selectedCategory == cat)
+                { <option value="@cat" selected="selected">@cat</option> }
+                else
+                { <option value="@cat">@cat</option> }
+            }
+        </select>
+    </div>
+
+    <!-- Status dropdown (D-03 instant change) -->
+    <div class="col-md-3">
+        <select id="filter-status" name="statusFilter" class="form-select form-select-sm"
+                hx-get="@urlAssessment"
+                hx-trigger="change"
+                hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
+                hx-swap="innerHTML"
+                hx-include="#filter-form"
+                hx-sync="this:replace">
+            @if (string.IsNullOrEmpty(selectedStatus))
+            { <option value="" selected="selected">Aktif (Open/Upcoming)</option> }
+            else
+            { <option value="">Aktif (Open/Upcoming)</option> }
+            @if (selectedStatus == "Open")
+            { <option value="Open" selected="selected">Open</option> }
+            else
+            { <option value="Open">Open</option> }
+            @if (selectedStatus == "Upcoming")
+            { <option value="Upcoming" selected="selected">Upcoming</option> }
+            else
+            { <option value="Upcoming">Upcoming</option> }
+            @if (selectedStatus == "Closed")
+            { <option value="Closed" selected="selected">Closed</option> }
+            else
+            { <option value="Closed">Closed</option> }
+            @if (selectedStatus == "All")
+            { <option value="All" selected="selected">Semua Status</option> }
+            else
+            { <option value="All">Semua Status</option> }
+        </select>
+    </div>
+
+    <!-- Reset filter -->
+    @if (!string.IsNullOrEmpty(selectedCategory) || !string.IsNullOrEmpty(selectedStatus) || !string.IsNullOrEmpty(searchTerm))
+    {
+        <div class="col-md-2">
+            <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = activeTab })"
+               class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-x-lg me-1"></i>Reset Filter
+            </a>
+        </div>
+    }
+</form>
+
+<!-- Tab content -->
+<div class="tab-content pt-2" id="manageAssessmentTabsContent">
+
+    <!-- ===== TAB 1: ASSESSMENT GROUPS (active tab — hx-trigger=load) ===== -->
+    <div class="tab-pane fade @(activeTab == "assessment" ? "show active" : "")"
+         id="pane-assessment" role="tabpanel" aria-labelledby="tab-assessment">
+        <div class="htmx-tab-wrapper"
+             hx-get="@urlAssessment"
+             hx-trigger="@(activeTab == "assessment" ? "load" : "shown.bs.tab from:#tab-assessment once")"
+             hx-target="this"
+             hx-swap="innerHTML"
+             hx-include="#filter-form"
+             hx-sync="this:replace"
+             data-tab-name="assessment">
+            <!-- Skeleton Assessment (UI-SPEC §1a) -->
+            <div aria-busy="true" aria-label="Memuat data assessment" class="placeholder-glow">
+                <div class="mb-3"><span class="placeholder col-2" style="height:24px"></span></div>
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <div class="d-flex gap-2 mb-2 align-items-center" style="height:48px">
+                                <span class="placeholder col-1"></span>
+                                <span class="placeholder col-3"></span>
+                                <span class="placeholder col-2"></span>
+                                <span class="placeholder col-2"></span>
+                                <span class="placeholder col-1"></span>
+                                <span class="placeholder col-1"></span>
+                                <span class="placeholder col-2"></span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ===== TAB 2: TRAINING RECORDS ===== -->
-    <div class="tab-pane fade" id="pane-training" role="tabpanel" aria-labelledby="tab-training">
-        <partial name="~/Views/Admin/Shared/_TrainingRecordsTab.cshtml" />
+    <div class="tab-pane fade @(activeTab == "training" ? "show active" : "")"
+         id="pane-training" role="tabpanel" aria-labelledby="tab-training">
+        <div class="htmx-tab-wrapper"
+             hx-get="@urlTraining"
+             hx-trigger="@(activeTab == "training" ? "load" : "shown.bs.tab from:#tab-training once")"
+             hx-target="this"
+             hx-swap="innerHTML"
+             hx-include="#filter-form"
+             hx-sync="this:replace"
+             data-tab-name="training">
+            <!-- Skeleton Training (UI-SPEC §1b) -->
+            <div aria-busy="true" aria-label="Memuat data training" class="placeholder-glow">
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="placeholder col-2" style="height:24px"></span>
+                    <div class="d-flex gap-2">
+                        <span class="placeholder" style="width:140px;height:38px"></span>
+                        <span class="placeholder" style="width:140px;height:38px"></span>
+                    </div>
+                </div>
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            @for (int i = 0; i < 4; i++)
+                            {
+                                <div class="col-md-2"><span class="placeholder col-12" style="height:31px"></span></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                @for (int i = 0; i < 5; i++)
+                {
+                    <div class="d-flex gap-2 mb-2" style="height:48px">
+                        <span class="placeholder col-3"></span>
+                        <span class="placeholder col-2"></span>
+                        <span class="placeholder col-2"></span>
+                        <span class="placeholder col-2"></span>
+                        <span class="placeholder col-1"></span>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
     <!-- ===== TAB 3: HISTORY ===== -->
-    <div class="tab-pane fade" id="pane-history" role="tabpanel" aria-labelledby="tab-history">
-        <partial name="~/Views/Admin/Shared/_HistoryTab.cshtml" />
+    <div class="tab-pane fade @(activeTab == "history" ? "show active" : "")"
+         id="pane-history" role="tabpanel" aria-labelledby="tab-history">
+        <div class="htmx-tab-wrapper"
+             hx-get="@urlHistory"
+             hx-trigger="@(activeTab == "history" ? "load" : "shown.bs.tab from:#tab-history once")"
+             hx-target="this"
+             hx-swap="innerHTML"
+             hx-include="#filter-form"
+             hx-sync="this:replace"
+             data-tab-name="history">
+            <!-- Skeleton History (UI-SPEC §1c) -->
+            <div aria-busy="true" aria-label="Memuat riwayat" class="placeholder-glow">
+                <div class="d-flex gap-3 mb-3 border-bottom pb-2">
+                    <span class="placeholder col-2" style="height:32px"></span>
+                    <span class="placeholder col-2" style="height:32px"></span>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4"><span class="placeholder col-12" style="height:31px"></span></div>
+                    <div class="col-md-4"><span class="placeholder col-12" style="height:31px"></span></div>
+                </div>
+                @for (int i = 0; i < 4; i++)
+                {
+                    <div class="d-flex gap-2 mb-2" style="height:40px">
+                        <span class="placeholder col-3"></span>
+                        <span class="placeholder col-3"></span>
+                        <span class="placeholder col-2"></span>
+                        <span class="placeholder col-2"></span>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
 </div>
+
+<!-- Phase 311 Plan 02: HTMX 2.0.x vendored locally (D-02) -->
+<script src="~/lib/htmx/htmx.min.js" defer></script>
 
 @section Scripts {
 <script>
@@ -118,24 +335,107 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     headerAssessmentBtns.style.display = 'none';
                 }
+                // Phase 311 Plan 02: update hidden tab name di filter form supaya
+                // filter trigger fetch tab yang aktif sekarang.
+                var newTab = target.replace('#pane-','');
+                var hiddenTab = document.getElementById('filter-tab');
+                if (hiddenTab) hiddenTab.value = newTab;
+
+                // Update hx-get filter input + dropdowns ke endpoint tab aktif (D-05 mendukung
+                // filter affects active tab, cross-tab invalidation di-handle di bawah).
+                var endpointMap = {
+                    'assessment': '@urlAssessment',
+                    'training': '@urlTraining',
+                    'history': '@urlHistory'
+                };
+                var endpoint = endpointMap[newTab];
+                if (endpoint) {
+                    document.querySelectorAll('#filter-form [hx-get]').forEach(function(el){
+                        el.setAttribute('hx-get', endpoint);
+                        el.setAttribute('hx-target', '#pane-' + newTab + ' > div.htmx-tab-wrapper');
+                    });
+                    // Re-process attributes karena htmx tidak observe atribut runtime change
+                    if (window.htmx) htmx.process(document.getElementById('filter-form'));
+                }
             });
         });
     }
 });
 
-// Regenerate Token handler
-document.querySelectorAll('.btn-regenerate-token').forEach(btn => {
-    btn.addEventListener('click', async function() {
-        const id = this.dataset.id;
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+// Phase 311 Plan 02: Cross-tab cache invalidation (D-05).
+// Saat filter form fetch sukses pada tab aktif, reset tab non-aktif "loaded" flag
+// supaya next activation lazy-fetch ulang dengan filter terbaru.
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+    var target = evt.detail.target;
+    if (!target || !target.classList || !target.classList.contains('htmx-tab-wrapper')) return;
+
+    // Saat afterSwap di tab aktif (hasil filter fetch), reset wrapper tab lain
+    // ke skeleton state + restore hx-trigger 'shown.bs.tab once' supaya next click fetch ulang.
+    var activeTabName = target.getAttribute('data-tab-name');
+    document.querySelectorAll('.htmx-tab-wrapper').forEach(function(wrapper){
+        var tabName = wrapper.getAttribute('data-tab-name');
+        if (tabName === activeTabName) return;
+        // Reset wrapper konten ke skeleton placeholder (re-render via clone dari template kalau ada,
+        // atau strip innerHTML supaya next 'shown.bs.tab' fetch fire). Trigger 'load' lagi acceptable
+        // karena tab non-aktif tidak visible sampai user click.
+        wrapper.innerHTML = '<div aria-busy="true" aria-label="Memuat data" class="placeholder-glow"><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div></div>';
+        // Reset 'once' flag dengan reprocess
+        wrapper.setAttribute('hx-trigger', 'shown.bs.tab from:#tab-' + tabName + ' once');
+        if (window.htmx) htmx.process(wrapper);
+    });
+});
+
+// Phase 311 Plan 02: Error template (UI-SPEC §2).
+// Saat partial endpoint return 4xx/5xx atau network fail, swap target dengan error template + retry button.
+function renderHtmxError(targetEl) {
+    targetEl.innerHTML = '<div role="alert" class="alert alert-danger d-flex align-items-start gap-2 my-3">' +
+        '<i class="bi bi-exclamation-triangle-fill flex-shrink-0" style="font-size:1.25rem"></i>' +
+        '<div class="flex-grow-1">' +
+        '<div class="fw-semibold mb-1">Gagal memuat data</div>' +
+        '<div class="small mb-2">Periksa koneksi jaringan Anda lalu coba lagi. Jika masalah berlanjut, hubungi administrator.</div>' +
+        '<button type="button" class="btn btn-sm btn-outline-danger" data-htmx-retry>' +
+        '<i class="bi bi-arrow-clockwise me-1"></i>Coba Lagi' +
+        '</button>' +
+        '</div>' +
+        '</div>';
+}
+document.body.addEventListener('htmx:responseError', function(evt) {
+    var target = evt.detail.target || evt.target;
+    if (target && target.classList && target.classList.contains('htmx-tab-wrapper')) {
+        renderHtmxError(target);
+    }
+});
+document.body.addEventListener('htmx:sendError', function(evt) {
+    var target = evt.detail.target || evt.target;
+    if (target && target.classList && target.classList.contains('htmx-tab-wrapper')) {
+        renderHtmxError(target);
+    }
+});
+// Retry button delegation
+document.body.addEventListener('click', function(evt) {
+    var btn = evt.target.closest('[data-htmx-retry]');
+    if (!btn) return;
+    var wrapper = btn.closest('.htmx-tab-wrapper');
+    if (wrapper && window.htmx) {
+        htmx.trigger(wrapper, 'load');
+    }
+});
+
+// Regenerate Token handler — preserved dari versi lama
+document.body.addEventListener('click', function(evt) {
+    var btn = evt.target.closest('.btn-regenerate-token');
+    if (!btn) return;
+    (async function() {
+        var id = btn.dataset.id;
+        var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
             || document.querySelector('[name="__RequestVerificationToken"]')?.value;
         try {
-            const res = await fetch(appUrl(`/Admin/RegenerateToken/${id}`), {
+            var res = await fetch(appUrl('/Admin/RegenerateToken/' + id), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: '__RequestVerificationToken=' + encodeURIComponent(token)
             });
-            const data = await res.json();
+            var data = await res.json();
             if (data.success) {
                 alert('Token baru: ' + data.token);
             } else {
@@ -144,22 +444,10 @@ document.querySelectorAll('.btn-regenerate-token').forEach(btn => {
         } catch (e) {
             alert('Gagal regenerate token.');
         }
-    });
+    })();
 });
 
-// Assessment Groups tab: Category + Status filter (server-side redirect)
-function applyAssessmentFilters() {
-    var category = document.getElementById('categoryFilter')?.value || '';
-    var status = document.getElementById('statusFilter')?.value || '';
-    var search = '@searchTerm' || '';
-    var url = appUrl('/Admin/ManageAssessment?tab=assessment');
-    if (category) url += '&category=' + encodeURIComponent(category);
-    if (status) url += '&statusFilter=' + encodeURIComponent(status);
-    if (search) url += '&search=' + encodeURIComponent(search);
-    window.location.href = url;
-}
-
-// History tab: Riwayat Assessment client-side filter
+// History tab: Riwayat Assessment client-side filter (preserved dari versi lama)
 function filterAssessmentRows() {
     var workerFilter = document.getElementById('assessmentWorkerFilter')?.value.toLowerCase() || '';
     var titleFilter = document.getElementById('assessmentTitleFilter')?.value.toLowerCase() || '';
