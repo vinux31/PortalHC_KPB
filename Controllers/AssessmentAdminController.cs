@@ -61,14 +61,58 @@ namespace HcPortal.Controllers
             string? tab = null, string? section = null, string? unit = null,
             string? category = null, string? statusFilter = null, string? isFiltered = null)
         {
-            // Phase 311 Wave 0: per-segment Stopwatch instrumentation (D-11, D-13, D-16)
-            var swTotal = System.Diagnostics.Stopwatch.StartNew();
-            long t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
+            // Phase 311 Plan 02: shell-only refactor (D-01..D-10).
+            // Per D-10 backward compat: action signature + Categories ViewBag dipertahankan.
+            // Data fetch per tab dipindah ke 3 partial actions (lazy load via HTMX).
 
+            var swShell = System.Diagnostics.Stopwatch.StartNew();
+
+            // Tab routing — default to "assessment" (preserved dari logika lama)
+            var activeTab = tab switch { "training" => "training", "history" => "history", _ => "assessment" };
+            ViewBag.ActiveTab = activeTab;
+
+            // Filter values yang HARUS preserved untuk pre-populate filter form di shell view
+            ViewBag.SearchTerm = search;
+            ViewBag.SelectedCategory = category ?? "";
+            ViewBag.SelectedStatus = statusFilter ?? "";
+            ViewBag.SelectedSection = section;
+            ViewBag.SelectedUnit = unit;
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+
+            // Categories dropdown — dibutuhkan di shell untuk filter form. Plan 03 akan wrap dengan IMemoryCache.GetOrCreateAsync.
+            // Plan 02 add .AsNoTracking() (zero-cost change, read-only path — independent dari Plan 03 cache wrapping).
+            ViewBag.Categories = await _context.AssessmentSessions
+                .AsNoTracking()
+                .Select(a => a.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            swShell.Stop();
+            _logger.LogInformation(
+                "ManageAssessment perf [tab=shell]: elapsed={Ms}ms search_present={SearchPresent} page={Page}",
+                swShell.ElapsedMilliseconds, !string.IsNullOrEmpty(search), page);
+
+            return View();
+        }
+
+        // =====================================================================
+        // Phase 311 Plan 02: Partial actions untuk HTMX lazy load (D-01..D-10).
+        // Setiap partial action mirror parameter signature shell + return PartialView.
+        // ResponseCache NoStore (D-06) — browser tidak cache, HTMX manage tab cache JS-side.
+        // Stopwatch per-action (D-09 — preserve a4ce556e telemetry pattern).
+        // =====================================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ManageAssessmentTab_Assessment(string? search, int page = 1, int pageSize = 20,
+            string? category = null, string? statusFilter = null)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
-            // T1: Assessment query chain (filter + projection + grouping + statusFilter)
-            var swT1 = System.Diagnostics.Stopwatch.StartNew();
             var managementQuery = _context.AssessmentSessions
                 .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
                 .AsQueryable();
@@ -86,7 +130,6 @@ namespace HcPortal.Controllers
                 );
             }
 
-            // Category filter — applied before DB fetch for efficiency
             if (!string.IsNullOrEmpty(category))
                 managementQuery = managementQuery.Where(a => a.Category == category);
 
@@ -95,20 +138,9 @@ namespace HcPortal.Controllers
                 .OrderByDescending(a => a.Schedule)
                 .Select(a => new
                 {
-                    a.Id,
-                    a.Title,
-                    a.Category,
-                    a.Schedule,
-                    a.ExamWindowCloseDate,
-                    a.DurationMinutes,
-                    a.Status,
-                    a.IsTokenRequired,
-                    a.AccessToken,
-                    a.PassPercentage,
-                    a.AllowAnswerReview,
-                    a.CreatedAt,
-                    a.AssessmentType,
-                    a.LinkedGroupId,
+                    a.Id, a.Title, a.Category, a.Schedule, a.ExamWindowCloseDate, a.DurationMinutes,
+                    a.Status, a.IsTokenRequired, a.AccessToken, a.PassPercentage, a.AllowAnswerReview,
+                    a.CreatedAt, a.AssessmentType, a.LinkedGroupId,
                     UserFullName = a.User != null ? a.User.FullName : "Unknown",
                     UserEmail = a.User != null ? a.User.Email : "",
                     UserId = a.User != null ? a.User.Id : ""
@@ -118,7 +150,6 @@ namespace HcPortal.Controllers
             var mgPrePostSessions = allSessions.Where(a => a.LinkedGroupId != null).ToList();
             var mgStandardSessions = allSessions.Where(a => a.LinkedGroupId == null).ToList();
 
-            // Pre-Post: group by LinkedGroupId
             var prePostGrouped = mgPrePostSessions
                 .GroupBy(a => a.LinkedGroupId)
                 .Select(g => {
@@ -140,7 +171,6 @@ namespace HcPortal.Controllers
                     };
                 }).ToList<dynamic>();
 
-            // Standard: existing logic
             var standardGrouped = mgStandardSessions
                 .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
                 .Select(g => {
@@ -166,99 +196,101 @@ namespace HcPortal.Controllers
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
-            // Status filter — applied AFTER grouping (GroupStatus computed from sessions)
-            // Default: show Open + Upcoming only (exclude Closed) unless statusFilter param is provided
             if (string.IsNullOrEmpty(statusFilter))
                 grouped = grouped.Where(g => g.GroupStatus != "Closed").ToList();
             else if (statusFilter == "Open" || statusFilter == "Upcoming" || statusFilter == "Closed")
                 grouped = grouped.Where(g => g.GroupStatus == statusFilter).ToList();
-            // statusFilter == "All" → no filter applied
-            swT1.Stop();
-            t1 = swT1.ElapsedMilliseconds;
-
-            // T5: Distinct Categories query (target cache di Wave 1)
-            var swT5 = System.Diagnostics.Stopwatch.StartNew();
-            ViewBag.Categories = await _context.AssessmentSessions
-                .Select(a => a.Category)
-                .Distinct()
-                .OrderBy(c => c)
-                .ToListAsync();
-            swT5.Stop();
-            t5 = swT5.ElapsedMilliseconds;
-            ViewBag.SelectedCategory = category ?? "";
-            ViewBag.SelectedStatus = statusFilter ?? "";
 
             var paging = PaginationHelper.Calculate(grouped.Count, page, pageSize);
 
-            ViewBag.ManagementData = grouped
-                .Skip(paging.Skip)
-                .Take(paging.Take)
-                .ToList();
+            ViewBag.ManagementData = grouped.Skip(paging.Skip).Take(paging.Take).ToList();
             ViewBag.CurrentPage = paging.CurrentPage;
             ViewBag.TotalPages = paging.TotalPages;
             ViewBag.TotalCount = paging.TotalCount;
             ViewBag.SearchTerm = search;
+            ViewBag.SelectedCategory = category ?? "";
+            ViewBag.SelectedStatus = statusFilter ?? "";
 
-            // Tab routing — default to "assessment"
-            var activeTab = tab switch { "training" => "training", "history" => "history", _ => "assessment" };
-            ViewBag.ActiveTab = activeTab;
+            // Categories juga dibutuhkan oleh partial view (filter dropdown render). Plan 03 wrap dengan GetOrCreateAsync.
+            // Plan 02 add .AsNoTracking() (zero-cost change, read-only path — independent dari Plan 03 cache wrapping).
+            ViewBag.Categories = await _context.AssessmentSessions
+                .AsNoTracking()
+                .Select(a => a.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
 
-            // Training tab data — partial is always rendered (hidden tab pane), so
-            // dropdown source data (Bagian/Unit) must always be loaded; workers list
-            // remains lazy to avoid expensive queries on initial load.
-            {
-                bool isInitialState = false;
-                ViewBag.IsInitialState = isInitialState;
-                ViewBag.SelectedSection = section;
-                ViewBag.SelectedUnit = unit;
-                ViewBag.SelectedCategory = category;
-                ViewBag.SelectedStatus = statusFilter;
-
-                List<WorkerTrainingStatus> workers;
-                if (isInitialState)
-                {
-                    workers = new List<WorkerTrainingStatus>();
-                }
-                else
-                {
-                    // T2: GetWorkersInSection (out-of-scope per D-14, measured for D-16 decision)
-                    var swT2 = System.Diagnostics.Stopwatch.StartNew();
-                    workers = await _workerDataService.GetWorkersInSection(section, unit, category, search, statusFilter);
-                    swT2.Stop();
-                    t2 = swT2.ElapsedMilliseconds;
-                }
-
-                // T3: GetAllWorkersHistory (out-of-scope per D-14, measured for D-16 decision)
-                var swT3 = System.Diagnostics.Stopwatch.StartNew();
-                var (assessmentHistory, trainingHistory) = await _workerDataService.GetAllWorkersHistory();
-                swT3.Stop();
-                t3 = swT3.ElapsedMilliseconds;
-
-                ViewBag.Workers = workers;
-                ViewBag.AssessmentHistory = assessmentHistory;
-                ViewBag.TrainingHistory = trainingHistory;
-                ViewBag.AssessmentTitles = assessmentHistory
-                    .Select(r => r.Title)
-                    .Where(t => !string.IsNullOrEmpty(t))
-                    .Distinct().OrderBy(t => t).ToList();
-
-                // T4: Sections + Units (out-of-scope per D-14, measured for D-16 decision)
-                var swT4 = System.Diagnostics.Stopwatch.StartNew();
-                ViewBag.TrainingSections = await _context.GetAllSectionsAsync();
-                ViewBag.TrainingUnits = !string.IsNullOrEmpty(section)
-                    ? await _context.GetUnitsForSectionAsync(section)
-                    : new List<string>();
-                swT4.Stop();
-                t4 = swT4.ElapsedMilliseconds;
-            }
-
-            swTotal.Stop();
+            sw.Stop();
             _logger.LogInformation(
-                "ManageAssessment perf breakdown: t1={T1}ms t2={T2}ms t3={T3}ms t4={T4}ms t5={T5}ms total={Total}ms tab={Tab} search_present={SearchPresent} page={Page}",
-                t1, t2, t3, t4, t5, swTotal.ElapsedMilliseconds, activeTab,
-                !string.IsNullOrEmpty(search), page);
+                "ManageAssessment perf [tab=assessment]: elapsed={Ms}ms search_present={SearchPresent} page={Page}",
+                sw.ElapsedMilliseconds, !string.IsNullOrEmpty(search), page);
 
-            return View();
+            return PartialView("Shared/_AssessmentGroupsTab", null);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ManageAssessmentTab_Training(string? search, int page = 1, int pageSize = 20,
+            string? section = null, string? unit = null, string? category = null, string? statusFilter = null,
+            string? isFiltered = null)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            bool isInitialState = false;
+            ViewBag.IsInitialState = isInitialState;
+            ViewBag.SelectedSection = section;
+            ViewBag.SelectedUnit = unit;
+            ViewBag.SelectedCategory = category;
+            ViewBag.SelectedStatus = statusFilter;
+            ViewBag.SearchTerm = search;
+
+            List<WorkerTrainingStatus> workers;
+            if (isInitialState)
+                workers = new List<WorkerTrainingStatus>();
+            else
+                workers = await _workerDataService.GetWorkersInSection(section, unit, category, search, statusFilter);
+
+            ViewBag.Workers = workers;
+
+            // T4 (Sections + Units) — required untuk dropdown filter render
+            ViewBag.TrainingSections = await _context.GetAllSectionsAsync();
+            ViewBag.TrainingUnits = !string.IsNullOrEmpty(section)
+                ? await _context.GetUnitsForSectionAsync(section)
+                : new List<string>();
+
+            sw.Stop();
+            _logger.LogInformation(
+                "ManageAssessment perf [tab=training]: elapsed={Ms}ms search_present={SearchPresent} page={Page}",
+                sw.ElapsedMilliseconds, !string.IsNullOrEmpty(search), page);
+
+            return PartialView("Shared/_TrainingRecordsTab", null);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ManageAssessmentTab_History(string? search, int page = 1, int pageSize = 20,
+            string? statusFilter = null)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            var (assessmentHistory, trainingHistory) = await _workerDataService.GetAllWorkersHistory();
+
+            ViewBag.AssessmentHistory = assessmentHistory;
+            ViewBag.TrainingHistory = trainingHistory;
+            ViewBag.AssessmentTitles = assessmentHistory
+                .Select(r => r.Title)
+                .Where(t => !string.IsNullOrEmpty(t))
+                .Distinct().OrderBy(t => t).ToList();
+            ViewBag.SearchTerm = search;
+
+            sw.Stop();
+            _logger.LogInformation(
+                "ManageAssessment perf [tab=history]: elapsed={Ms}ms search_present={SearchPresent} page={Page}",
+                sw.ElapsedMilliseconds, !string.IsNullOrEmpty(search), page);
+
+            return PartialView("Shared/_HistoryTab", null);
         }
 
         // --- CATEGORY MANAGEMENT ---
