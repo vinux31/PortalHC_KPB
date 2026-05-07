@@ -207,11 +207,11 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     7. Backward compat: filter form, pagination, ViewBag contract preserved
     8. (Plan 03 opportunistic) AsNoTracking + IX_AssessmentSessions_LinkedGroupId + IX_AssessmentSessions_ExamWindowCloseDate + IMemoryCache TTL 5min Categories cache + 3x invalidation di Add/Edit/DeleteCategory
   - **Risk:** Medium | **Effort:** M-L
-  - **Plans:** 4 plans (Plan 01 DONE; Plan 02 paused-at-checkpoint UAT; Plan 03 backend opportunistic; Plan 04 gap closure UAT 4 sub-bugs)
+  - **Plans:** 3/4 plans executed
     - [x] 311-01-PLAN.md — Wave 0 baseline: per-segment Stopwatch instrumentation (T1..T5) — DONE commit a4ce556e (preserved as ongoing telemetry)
-    - [ ] 311-02-PLAN.md — Wave 1 HTMX lazy load: REQUIREMENTS update + vendor HTMX 2.0.x + shell action refactor + 3 partial actions + shell view HTMX attrs + skeleton + filter form + error template + manual UAT 5-step BI (D-01..D-10) — paused-at-checkpoint pending Plan 04 gap closure
+    - [x] 311-02-PLAN.md — Wave 1 HTMX lazy load: REQUIREMENTS update + vendor HTMX 2.0.x + shell action refactor + 3 partial actions + shell view HTMX attrs + skeleton + filter form + error template + manual UAT 5-step BI (D-01..D-10) — paused-at-checkpoint pending Plan 04 gap closure
     - [ ] 311-03-PLAN.md — Wave 2 backend opportunistic: 2 indexes migration + AsNoTracking + Include removal + Categories cache + 3 invalidation hooks (D-04..D-07)
-    - [ ] 311-04-PLAN.md — Wave 3 GAP CLOSURE: BUG-1 hide legacy filter rows via CSS (D-10 preserve) + BUG-2A invalidation filter-form-only + BUG-2B drop once on restore + BUG-5A retry htmx.ajax direct (PERF-01)
+    - [x] 311-04-PLAN.md — Wave 3 GAP CLOSURE: BUG-1 hide legacy filter rows via CSS (D-10 preserve) + BUG-2A invalidation filter-form-only + BUG-2B drop once on restore + BUG-5A retry htmx.ajax direct (PERF-01)
 
 #### Wave 5 — Audit Findings 29 April 2026 (parallel-safe, post-Wave 4)
 
