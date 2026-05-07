@@ -3434,6 +3434,113 @@ namespace HcPortal.Controllers
             return Json(new { inProgressCount, notStartedCount });
         }
 
+        // --- PHASE 312: GET DELETE IMPACT (AJAX impact preview untuk modal delete) ---
+        // D-02 modal step 1 fetch — Authorize Admin/HC sesuai T-312-04 (HC accept disclosure of aggregated counts)
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetDeleteImpact(int id, string type)
+        {
+            if (string.IsNullOrEmpty(type) || (type != "single" && type != "group" && type != "prepost"))
+                return BadRequest(new { error = "Invalid type. Must be 'single', 'group', or 'prepost'." });
+
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+
+            try
+            {
+                List<AssessmentSession> sessions;
+
+                if (type == "single")
+                {
+                    var sess = await _context.AssessmentSessions
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(a => a.Id == id);
+                    if (sess == null) return NotFound(new { error = "Assessment not found." });
+                    sessions = new List<AssessmentSession> { sess };
+                }
+                else if (type == "group")
+                {
+                    // Load representative + siblings by Title+Category+Schedule.Date (existing pattern dari DeleteAssessmentGroup)
+                    var rep = await _context.AssessmentSessions
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(a => a.Id == id);
+                    if (rep == null) return NotFound(new { error = "Group representative not found." });
+                    var repScheduleDate = rep.Schedule.Date;
+                    sessions = await _context.AssessmentSessions
+                        .AsNoTracking()
+                        .Where(a => a.Title == rep.Title && a.Category == rep.Category && a.Schedule.Date == repScheduleDate)
+                        .ToListAsync();
+                }
+                else // prepost
+                {
+                    sessions = await _context.AssessmentSessions
+                        .AsNoTracking()
+                        .Where(a => a.LinkedGroupId == id)
+                        .ToListAsync();
+                    if (sessions.Count == 0) return NotFound(new { error = "PrePost group not found." });
+                }
+
+                var sessionIds = sessions.Select(s => s.Id).ToList();
+                int responseCount = await _context.PackageUserResponses
+                    .AsNoTracking()
+                    .CountAsync(r => sessionIds.Contains(r.AssessmentSessionId));
+                // NOTE: AssessmentAttemptHistory FK column adalah `SessionId`, bukan `AssessmentSessionId`
+                // (Models/AssessmentAttemptHistory.cs:9 — consistent dengan cascade pattern di line 2060, 2167, 2264)
+                int attemptCount = await _context.AssessmentAttemptHistory
+                    .AsNoTracking()
+                    .CountAsync(h => sessionIds.Contains(h.SessionId));
+                int packageCount = await _context.AssessmentPackages
+                    .AsNoTracking()
+                    .CountAsync(p => sessionIds.Contains(p.AssessmentSessionId));
+                // Cert proxy: NomorSertifikat populated (Models/AssessmentSession.cs:72 — Phase 192 cert number field)
+                int certCount = sessions.Count(s => !string.IsNullOrEmpty(s.NomorSertifikat));
+
+                string statusSummary;
+                object? prePostBreakdown = null;
+                if (type == "prepost")
+                {
+                    // Per Q3 RESOLVED — per-session breakdown (field: AssessmentType per Models/AssessmentSession.cs:154)
+                    var pre = sessions.FirstOrDefault(s => s.AssessmentType == "PreTest");
+                    var post = sessions.FirstOrDefault(s => s.AssessmentType == "PostTest");
+                    int preResp = pre != null
+                        ? await _context.PackageUserResponses.AsNoTracking().CountAsync(r => r.AssessmentSessionId == pre.Id)
+                        : 0;
+                    int postResp = post != null
+                        ? await _context.PackageUserResponses.AsNoTracking().CountAsync(r => r.AssessmentSessionId == post.Id)
+                        : 0;
+                    statusSummary = $"PreTest:{pre?.Status ?? "-"},PostTest:{post?.Status ?? "-"}";
+                    prePostBreakdown = new
+                    {
+                        pre = new { status = pre?.Status ?? "-", responseCount = preResp },
+                        post = new { status = post?.Status ?? "-", responseCount = postResp }
+                    };
+                }
+                else if (sessions.Count == 1)
+                {
+                    statusSummary = sessions[0].Status;
+                }
+                else
+                {
+                    statusSummary = string.Join(" / ", sessions.GroupBy(s => s.Status).Select(g => $"{g.Count()} {g.Key}"));
+                }
+
+                return Json(new
+                {
+                    status = statusSummary,
+                    responseCount,
+                    certCount,
+                    packageCount,
+                    attemptCount,
+                    sessionCount = sessions.Count,
+                    prePostBreakdown
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetDeleteImpact failed for type={Type} id={Id}", type, id);
+                return StatusCode(500, new { error = "Gagal mengambil data dampak penghapusan." });
+            }
+        }
+
         // --- EXPORT ASSESSMENT RESULTS ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
@@ -5316,6 +5423,77 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        // ============================================================
+        // PHASE 312: Role-tier guard helper untuk 3 delete methods
+        // (DEL-01, T-312-01 PRIMARY mitigation, D-04 scope = Admin override + HC reject)
+        // ============================================================
+        private async Task<IActionResult?> EnsureCanDeleteAsync(
+            string actionPrefix,                       // "DeleteAssessment" | "DeleteAssessmentGroup" | "DeletePrePostGroup"
+            int targetId,
+            string entityType,                         // "AssessmentSession"
+            IList<AssessmentSession> sessions)
+        {
+            // Admin override: lewati semua cek (D-04 Admin tier)
+            if (User.IsInRole("Admin")) return null;
+
+            // HC tier: cek Status==Completed atau ada response peserta
+            var sessionIds = sessions.Select(s => s.Id).ToList();
+            int responseCount = await _context.PackageUserResponses
+                .CountAsync(r => sessionIds.Contains(r.AssessmentSessionId));
+            bool anyCompleted = sessions.Any(s => s.Status == "Completed");
+
+            if (anyCompleted || responseCount > 0)
+            {
+                // AuditLog blocked entry (D-03)
+                try
+                {
+                    var blockUser = await _userManager.GetUserAsync(User);
+                    var blockActor = string.IsNullOrWhiteSpace(blockUser?.NIP)
+                        ? (blockUser?.FullName ?? "Unknown")
+                        : $"{blockUser.NIP} - {blockUser.FullName}";
+
+                    // Per UI-SPEC line 170-172: format description per action type
+                    string statusSummary;
+                    if (sessions.Count == 1)
+                    {
+                        statusSummary = sessions[0].Status;
+                    }
+                    else if (actionPrefix == "DeletePrePostGroup")
+                    {
+                        // Per Q3 RESOLVED — explicit per-session "PreTest:X,PostTest:Y"
+                        // Field: AssessmentSession.AssessmentType (Models/AssessmentSession.cs:154)
+                        var pre = sessions.FirstOrDefault(s => s.AssessmentType == "PreTest");
+                        var post = sessions.FirstOrDefault(s => s.AssessmentType == "PostTest");
+                        statusSummary = $"PreTest:{pre?.Status ?? "?"},PostTest:{post?.Status ?? "?"}";
+                    }
+                    else
+                    {
+                        // Group: aggregate distinct status counts
+                        statusSummary = string.Join("/", sessions.GroupBy(s => s.Status)
+                            .Select(g => $"{g.Count()} {g.Key}"));
+                    }
+
+                    await _auditLog.LogAsync(
+                        blockUser?.Id ?? "",
+                        blockActor,
+                        $"{actionPrefix}Blocked",
+                        $"HC role blocked from {actionPrefix} [TargetId={targetId}]: Status={statusSummary}, ResponseCount={responseCount}",
+                        targetId,
+                        entityType);
+                }
+                catch (Exception auditEx)
+                {
+                    var blockLogger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+                    blockLogger.LogWarning(auditEx, "Audit log write failed for {Action}Blocked TargetId={TargetId}", actionPrefix, targetId);
+                }
+
+                TempData["Error"] = "Anda tidak memiliki izin untuk menghapus assessment yang sudah Completed atau memiliki jawaban peserta.";
+                return RedirectToAction("ManageAssessment");
+            }
+
+            return null;  // pass — caller lanjut cascade
+        }
 
     }
 }
