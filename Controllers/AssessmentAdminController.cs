@@ -2045,18 +2045,40 @@ namespace HcPortal.Controllers
                     return RedirectToAction("ManageAssessment");
                 }
 
+                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction agar TOCTOU race
+                // (peserta concurrent POST jawaban antara guard-check dan cascade) dapat ditangani
+                // dengan re-check responseCount dalam transaction, lalu rollback bersih jika race terjadi.
+                using var tx = await _context.Database.BeginTransactionAsync();
+
                 // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
                 var blockResult = await EnsureCanDeleteAsync(
                     "DeleteAssessment",
                     id,
                     "AssessmentSession",
                     new List<AssessmentSession> { assessment });
-                if (blockResult != null) return blockResult;
+                if (blockResult != null)
+                {
+                    await tx.RollbackAsync();
+                    return blockResult;
+                }
 
                 // PHASE 312: capture pre-delete snapshot SEBELUM cascade (assessment.Status hilang post-SaveChanges)
                 string preDeleteStatus = assessment.Status;
                 int preDeleteResponseCount = await _context.PackageUserResponses
                     .CountAsync(r => r.AssessmentSessionId == id);
+
+                // PHASE 312 WR-01: re-check responseCount untuk HC tier — kalau berubah dari 0
+                // antara guard dan sini, abort dengan error spesifik (peserta baru menyimpan jawaban).
+                // Admin override tetap bisa lanjut (D-04: Admin tier menerima konsekuensi).
+                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
+                {
+                    logger.LogWarning(
+                        "DeleteAssessment race detected: responseCount changed to {Count} for Id={Id} between guard and cascade",
+                        preDeleteResponseCount, id);
+                    await tx.RollbackAsync();
+                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
+                    return RedirectToAction("ManageAssessment");
+                }
 
                 // Delete PackageUserResponses (Restrict FK — must be removed before session)
                 var pkgResponses = await _context.PackageUserResponses
@@ -2102,6 +2124,7 @@ namespace HcPortal.Controllers
                 _context.AssessmentSessions.Remove(assessment);
 
                 await _context.SaveChangesAsync();
+                await tx.CommitAsync();
 
                 // Audit log
                 try
@@ -2168,19 +2191,37 @@ namespace HcPortal.Controllers
 
                 var siblingIds = siblings.Select(s => s.Id).ToList();
 
+                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
+                using var tx = await _context.Database.BeginTransactionAsync();
+
                 // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
                 var blockResult = await EnsureCanDeleteAsync(
                     "DeleteAssessmentGroup",
                     id,
                     "AssessmentSession",
                     siblings);
-                if (blockResult != null) return blockResult;
+                if (blockResult != null)
+                {
+                    await tx.RollbackAsync();
+                    return blockResult;
+                }
 
                 // PHASE 312: capture pre-delete aggregated snapshot SEBELUM cascade
                 string preDeleteStatus = string.Join(" / ", siblings.GroupBy(s => s.Status).Select(g => $"{g.Count()} {g.Key}"));
                 int preDeleteResponseCount = await _context.PackageUserResponses
                     .CountAsync(r => siblingIds.Contains(r.AssessmentSessionId));
                 int preDeleteSessionCount = siblings.Count;
+
+                // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
+                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
+                {
+                    logger.LogWarning(
+                        "DeleteAssessmentGroup race detected: responseCount changed to {Count} for RepId={Id} between guard and cascade",
+                        preDeleteResponseCount, id);
+                    await tx.RollbackAsync();
+                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
+                    return RedirectToAction("ManageAssessment");
+                }
 
                 // Delete PackageUserResponses for all siblings (Restrict FK — must be removed before sessions)
                 var allPkgResponses = await _context.PackageUserResponses
@@ -2221,6 +2262,7 @@ namespace HcPortal.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                await tx.CommitAsync();
 
                 // Audit log
                 try
@@ -2278,13 +2320,20 @@ namespace HcPortal.Controllers
 
                 logger.LogInformation($"DeletePrePostGroup: deleting {groupSessions.Count} sessions for '{groupTitle}' (LinkedGroupId={linkedGroupId})");
 
+                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
+                using var tx = await _context.Database.BeginTransactionAsync();
+
                 // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
                 var blockResult = await EnsureCanDeleteAsync(
                     "DeletePrePostGroup",
                     linkedGroupId,
                     "AssessmentSession",
                     groupSessions);
-                if (blockResult != null) return blockResult;
+                if (blockResult != null)
+                {
+                    await tx.RollbackAsync();
+                    return blockResult;
+                }
 
                 // PHASE 312: capture per-session breakdown SEBELUM cascade (Q3 RESOLVED)
                 // Field: AssessmentType per Models/AssessmentSession.cs:154 (values "PreTest" | "PostTest" | null)
@@ -2293,6 +2342,17 @@ namespace HcPortal.Controllers
                 string preDeleteStatus = $"PreTest:{preSession?.Status ?? "-"},PostTest:{postSession?.Status ?? "-"}";
                 int preDeleteResponseCount = await _context.PackageUserResponses
                     .CountAsync(r => groupIds.Contains(r.AssessmentSessionId));
+
+                // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
+                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
+                {
+                    logger.LogWarning(
+                        "DeletePrePostGroup race detected: responseCount changed to {Count} for LinkedGroupId={Id} between guard and cascade",
+                        preDeleteResponseCount, linkedGroupId);
+                    await tx.RollbackAsync();
+                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
+                    return RedirectToAction("ManageAssessment");
+                }
 
                 // Cascade delete — ikuti pola DeleteAssessmentGroup:
                 // 1. PackageUserResponses
@@ -2329,6 +2389,7 @@ namespace HcPortal.Controllers
                 _context.AssessmentSessions.RemoveRange(groupSessions);
 
                 await _context.SaveChangesAsync();
+                await tx.CommitAsync();
 
                 // Audit log
                 try
