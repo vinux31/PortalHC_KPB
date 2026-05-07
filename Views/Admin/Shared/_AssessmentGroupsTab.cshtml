@@ -245,32 +245,41 @@ else
                                             </button>
                                         </li>
                                         }
-                                        <li><hr class="dropdown-divider"></li>
-                                        @if ((bool)group.IsPrePostGroup)
+                                        @{
+                                            // PHASE 312 D-01 + Q1 opsi B: UI hide pakai Status only.
+                                            // ResponseCount cek di backend (defense-in-depth via EnsureCanDeleteAsync).
+                                            bool isAdmin = User.IsInRole("Admin");
+                                            string groupStatus = (string)group.Status;
+                                            bool canHcDelete = groupStatus != "Completed";
+                                        }
+                                        @if (isAdmin || canHcDelete)
                                         {
-                                            <!-- D-19: delete hanya per-grup untuk Pre-Post -->
-                                            <li>
-                                                <form method="post" asp-controller="AssessmentAdmin" asp-action="DeletePrePostGroup">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="linkedGroupId" value="@group.LinkedGroupId" />
-                                                    <button type="submit" class="dropdown-item text-danger"
-                                                            onclick="return confirm('Tindakan ini akan menghapus kedua sesi (Pre dan Post), semua paket soal, jawaban peserta, dan assignment secara permanen. Lanjutkan?')">
+                                            <li><hr class="dropdown-divider"></li>
+                                            if ((bool)group.IsPrePostGroup)
+                                            {
+                                                <!-- D-19: delete hanya per-grup untuk Pre-Post; Phase 312: modal trigger -->
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-danger"
+                                                            data-bs-toggle="modal" data-bs-target="#deleteAssessmentModal"
+                                                            data-delete-type="prepost"
+                                                            data-delete-id="@group.LinkedGroupId"
+                                                            data-delete-title="@group.Title">
                                                         <i class="bi bi-trash3 me-2"></i>Hapus Grup Pre-Post
                                                     </button>
-                                                </form>
-                                            </li>
-                                        }
-                                        else
-                                        {
-                                            <li>
-                                                <form method="post" asp-controller="AssessmentAdmin" asp-action="DeleteAssessmentGroup" asp-route-id="@group.RepresentativeId">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="dropdown-item text-danger"
-                                                            onclick="return confirm('Hapus semua assessment dalam grup ini?')">
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-danger"
+                                                            data-bs-toggle="modal" data-bs-target="#deleteAssessmentModal"
+                                                            data-delete-type="group"
+                                                            data-delete-id="@group.RepresentativeId"
+                                                            data-delete-title="@group.Title">
                                                         <i class="bi bi-trash me-2"></i>Hapus Grup
                                                     </button>
-                                                </form>
-                                            </li>
+                                                </li>
+                                            }
                                         }
                                     </ul>
                                 </div>
@@ -331,3 +340,236 @@ else
         </nav>
     }
 }
+
+<!-- PHASE 312: Shared delete modal — 2-step impact preview + final confirm (D-02, UI-SPEC) -->
+<div class="modal fade" id="deleteAssessmentModal" tabindex="-1"
+     aria-labelledby="deleteAssessmentModalLabel" aria-hidden="true" role="alertdialog">
+    <div class="modal-dialog modal-dialog-scrollable" id="dam-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-semibold" id="deleteAssessmentModalLabel">
+                    <i class="bi bi-trash3 me-2"></i><span id="dam-title">Hapus Assessment</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Step 1: Impact preview panel -->
+                <div id="dam-step-1">
+                    <div id="dam-loading" class="text-center py-3" role="status" aria-live="polite">
+                        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                        Memuat dampak penghapusan...
+                    </div>
+                    <div id="dam-content" style="display:none;" aria-live="polite">
+                        <p class="fw-semibold mb-2">Dampak penghapusan:</p>
+                        <ul class="mb-2">
+                            <li>Status saat ini: <strong id="dam-status">-</strong></li>
+                            <li><strong id="dam-response-count">0</strong> peserta dengan jawaban tersimpan</li>
+                            <li><strong id="dam-cert-count">0</strong> sertifikat akan terhapus</li>
+                            <li><strong id="dam-package-count">0</strong> paket soal (beserta soal &amp; opsi)</li>
+                            <li><strong id="dam-attempt-count">0</strong> riwayat percobaan ujian</li>
+                        </ul>
+                        <div id="dam-prepost-breakdown" style="display:none;" class="mt-3">
+                            <p class="fw-semibold mt-3 mb-2">Rincian per sesi:</p>
+                            <ul class="mb-0">
+                                <li>Pre-Test — Status: <span id="dam-pre-status">-</span>, <span id="dam-pre-resp">0</span> jawaban</li>
+                                <li>Post-Test — Status: <span id="dam-post-status">-</span>, <span id="dam-post-resp">0</span> jawaban</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Final confirm panel -->
+                <div id="dam-step-2" style="display:none;">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        <strong>Tindakan ini tidak dapat dibatalkan.</strong>
+                    </div>
+                    <p class="mb-2">Anda akan menghapus permanen:</p>
+                    <ul class="mb-2">
+                        <li id="dam-cascade-1">Sesi assessment beserta semua paket soal, soal, dan opsi</li>
+                        <li>Semua jawaban peserta yang sudah tersimpan</li>
+                        <li>Riwayat percobaan ujian peserta</li>
+                        <li>Penugasan paket soal ke peserta</li>
+                    </ul>
+                    <p class="text-muted small mb-0">Lanjutkan?</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <!-- Footer 1: Batal + Lanjutkan -->
+                <div id="dam-footer-1" class="d-flex justify-content-end gap-2 w-100">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="dam-next-btn" disabled>
+                        Lanjutkan<i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+                <!-- Footer 2: Kembali + Hapus Permanen (form submit) -->
+                <div id="dam-footer-2" class="d-flex justify-content-end gap-2 w-100" style="display:none;">
+                    <button type="button" class="btn btn-secondary" id="dam-back-btn">
+                        <i class="bi bi-arrow-left me-1"></i>Kembali
+                    </button>
+                    <form id="dam-submit-form" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" id="dam-form-id" disabled />
+                        <input type="hidden" name="linkedGroupId" id="dam-form-linkedid" disabled />
+                        <button type="submit" class="btn btn-danger" id="dam-submit-btn">
+                            <i class="bi bi-trash3 me-1"></i>Hapus Permanen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    // PHASE 312 Q2 RESOLVED: handler attached via event delegation di document.body (stable across DOM mutations).
+    // Idempotent flag mencegah double-bind. htmx:afterSwap listener defensive check (handler di document.body
+    // tidak perlu re-bind — survive partial swap natural).
+    if (window.__dam312Attached) {
+        return;
+    }
+    window.__dam312Attached = true;
+
+    var appUrl = function (path) {
+        var base = (document.querySelector('base')?.getAttribute('href') || '/').replace(/\/$/, '');
+        return base + path;
+    };
+
+    // Reset modal state ke Step 1 + loading
+    function resetModal() {
+        document.getElementById('dam-step-1').style.display = '';
+        document.getElementById('dam-step-2').style.display = 'none';
+        document.getElementById('dam-footer-1').style.display = '';
+        document.getElementById('dam-footer-2').style.display = 'none';
+        document.getElementById('dam-loading').style.display = '';
+        document.getElementById('dam-loading').innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Memuat dampak penghapusan...';
+        document.getElementById('dam-content').style.display = 'none';
+        document.getElementById('dam-prepost-breakdown').style.display = 'none';
+        document.getElementById('dam-next-btn').disabled = true;
+        document.getElementById('dam-dialog').classList.remove('modal-lg');
+    }
+
+    // show.bs.modal: read data-* attributes, fetch impact, populate Step 1
+    document.body.addEventListener('show.bs.modal', function (event) {
+        var modalEl = event.target;
+        if (!modalEl || modalEl.id !== 'deleteAssessmentModal') return;
+
+        var trigger = event.relatedTarget;
+        if (!trigger) return;
+
+        var type = trigger.dataset.deleteType;       // "single" | "group" | "prepost"
+        var id   = trigger.dataset.deleteId;
+        var title = trigger.dataset.deleteTitle || '';
+
+        resetModal();
+
+        // Set title per type (per UI-SPEC line 106-110)
+        var titleMap = {
+            'single':  'Hapus Assessment: ' + title,
+            'group':   'Hapus Grup Assessment: ' + title,
+            'prepost': 'Hapus Grup Pre-Post Test: ' + title
+        };
+        document.getElementById('dam-title').textContent = titleMap[type] || ('Hapus: ' + title);
+
+        // Cascade item 1 per type (per UI-SPEC line 134-136)
+        var cascadeMap = {
+            'single':  'Sesi assessment beserta semua paket soal, soal, dan opsi',
+            'group':   'Semua sesi assessment dalam grup beserta paket soal, soal, dan opsi',
+            'prepost': 'Kedua sesi (Pre-Test dan Post-Test) beserta paket soal, soal, dan opsi'
+        };
+        document.getElementById('dam-cascade-1').textContent = cascadeMap[type] || cascadeMap['single'];
+
+        // Form action + hidden field setup
+        var form = document.getElementById('dam-submit-form');
+        var formId = document.getElementById('dam-form-id');
+        var formLinkedId = document.getElementById('dam-form-linkedid');
+        formId.disabled = true;
+        formLinkedId.disabled = true;
+
+        if (type === 'single') {
+            form.action = appUrl('/Admin/DeleteAssessment');
+            formId.value = id;
+            formId.disabled = false;
+        } else if (type === 'group') {
+            form.action = appUrl('/Admin/DeleteAssessmentGroup');
+            formId.value = id;
+            formId.disabled = false;
+        } else if (type === 'prepost') {
+            form.action = appUrl('/Admin/DeletePrePostGroup');
+            formLinkedId.value = id;
+            formLinkedId.disabled = false;
+            document.getElementById('dam-dialog').classList.add('modal-lg');
+        }
+
+        // Fetch impact
+        var url = appUrl('/Admin/GetDeleteImpact')
+            + '?type=' + encodeURIComponent(type)
+            + '&id=' + encodeURIComponent(id);
+
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function (data) {
+                document.getElementById('dam-status').textContent = data.status || '-';
+                document.getElementById('dam-response-count').textContent = data.responseCount || 0;
+                document.getElementById('dam-cert-count').textContent = data.certCount || 0;
+                document.getElementById('dam-package-count').textContent = data.packageCount || 0;
+                document.getElementById('dam-attempt-count').textContent = data.attemptCount || 0;
+
+                if (type === 'prepost' && data.prePostBreakdown) {
+                    document.getElementById('dam-pre-status').textContent = data.prePostBreakdown.pre.status || '-';
+                    document.getElementById('dam-pre-resp').textContent = data.prePostBreakdown.pre.responseCount || 0;
+                    document.getElementById('dam-post-status').textContent = data.prePostBreakdown.post.status || '-';
+                    document.getElementById('dam-post-resp').textContent = data.prePostBreakdown.post.responseCount || 0;
+                    document.getElementById('dam-prepost-breakdown').style.display = '';
+                }
+
+                document.getElementById('dam-loading').style.display = 'none';
+                document.getElementById('dam-content').style.display = '';
+                document.getElementById('dam-next-btn').disabled = false;
+            })
+            .catch(function (err) {
+                document.getElementById('dam-loading').innerHTML =
+                    '<span class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>Gagal memuat data dampak. Tutup dan coba lagi.</span>';
+                // Lanjutkan tetap disabled
+            });
+    });
+
+    // Step navigation: Lanjutkan → Step 2, Kembali → Step 1
+    document.body.addEventListener('click', function (event) {
+        var t = event.target.closest('#dam-next-btn');
+        if (t && !t.disabled) {
+            document.getElementById('dam-step-1').style.display = 'none';
+            document.getElementById('dam-step-2').style.display = '';
+            document.getElementById('dam-footer-1').style.display = 'none';
+            document.getElementById('dam-footer-2').style.display = '';
+            document.getElementById('dam-back-btn').focus();
+            return;
+        }
+        var b = event.target.closest('#dam-back-btn');
+        if (b) {
+            document.getElementById('dam-step-1').style.display = '';
+            document.getElementById('dam-step-2').style.display = 'none';
+            document.getElementById('dam-footer-1').style.display = '';
+            document.getElementById('dam-footer-2').style.display = 'none';
+            document.getElementById('dam-next-btn').focus();
+            return;
+        }
+    });
+
+    // PHASE 312 Q2 RESOLVED: htmx:afterSwap defensive check.
+    // Handler di document.body adalah event-delegated (stable). Listener ini hanya warn kalau
+    // modal element hilang setelah swap (modal markup di partial bottom — should persist).
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        if (!document.getElementById('deleteAssessmentModal')) {
+            console.warn('[Phase 312] deleteAssessmentModal hilang setelah htmx:afterSwap — verifikasi partial render');
+        }
+        // No re-bind needed: handlers di document.body (event delegation) survive DOM mutations.
+    });
+})();
+</script>
