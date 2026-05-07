@@ -2045,6 +2045,19 @@ namespace HcPortal.Controllers
                     return RedirectToAction("ManageAssessment");
                 }
 
+                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
+                var blockResult = await EnsureCanDeleteAsync(
+                    "DeleteAssessment",
+                    id,
+                    "AssessmentSession",
+                    new List<AssessmentSession> { assessment });
+                if (blockResult != null) return blockResult;
+
+                // PHASE 312: capture pre-delete snapshot SEBELUM cascade (assessment.Status hilang post-SaveChanges)
+                string preDeleteStatus = assessment.Status;
+                int preDeleteResponseCount = await _context.PackageUserResponses
+                    .CountAsync(r => r.AssessmentSessionId == id);
+
                 // Delete PackageUserResponses (Restrict FK — must be removed before session)
                 var pkgResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
@@ -2099,7 +2112,7 @@ namespace HcPortal.Controllers
                         deleteUser?.Id ?? "",
                         deleteActorName,
                         "DeleteAssessment",
-                        $"Deleted assessment '{assessmentTitle}' [ID={id}]",
+                        $"Deleted assessment '{assessmentTitle}' [ID={id}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount}",
                         id,
                         "AssessmentSession");
                 }
@@ -2155,6 +2168,20 @@ namespace HcPortal.Controllers
 
                 var siblingIds = siblings.Select(s => s.Id).ToList();
 
+                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
+                var blockResult = await EnsureCanDeleteAsync(
+                    "DeleteAssessmentGroup",
+                    id,
+                    "AssessmentSession",
+                    siblings);
+                if (blockResult != null) return blockResult;
+
+                // PHASE 312: capture pre-delete aggregated snapshot SEBELUM cascade
+                string preDeleteStatus = string.Join(" / ", siblings.GroupBy(s => s.Status).Select(g => $"{g.Count()} {g.Key}"));
+                int preDeleteResponseCount = await _context.PackageUserResponses
+                    .CountAsync(r => siblingIds.Contains(r.AssessmentSessionId));
+                int preDeleteSessionCount = siblings.Count;
+
                 // Delete PackageUserResponses for all siblings (Restrict FK — must be removed before sessions)
                 var allPkgResponses = await _context.PackageUserResponses
                     .Where(r => siblingIds.Contains(r.AssessmentSessionId))
@@ -2204,7 +2231,7 @@ namespace HcPortal.Controllers
                         dgUser?.Id ?? "",
                         dgActorName,
                         "DeleteAssessmentGroup",
-                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) — {siblings.Count} session(s)",
+                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) [RepId={id}] SessionCount={preDeleteSessionCount} Status={preDeleteStatus} ResponseCount={preDeleteResponseCount}",
                         id,
                         "AssessmentSession");
                 }
@@ -2251,6 +2278,22 @@ namespace HcPortal.Controllers
 
                 logger.LogInformation($"DeletePrePostGroup: deleting {groupSessions.Count} sessions for '{groupTitle}' (LinkedGroupId={linkedGroupId})");
 
+                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
+                var blockResult = await EnsureCanDeleteAsync(
+                    "DeletePrePostGroup",
+                    linkedGroupId,
+                    "AssessmentSession",
+                    groupSessions);
+                if (blockResult != null) return blockResult;
+
+                // PHASE 312: capture per-session breakdown SEBELUM cascade (Q3 RESOLVED)
+                // Field: AssessmentType per Models/AssessmentSession.cs:154 (values "PreTest" | "PostTest" | null)
+                var preSession = groupSessions.FirstOrDefault(s => s.AssessmentType == "PreTest");
+                var postSession = groupSessions.FirstOrDefault(s => s.AssessmentType == "PostTest");
+                string preDeleteStatus = $"PreTest:{preSession?.Status ?? "-"},PostTest:{postSession?.Status ?? "-"}";
+                int preDeleteResponseCount = await _context.PackageUserResponses
+                    .CountAsync(r => groupIds.Contains(r.AssessmentSessionId));
+
                 // Cascade delete — ikuti pola DeleteAssessmentGroup:
                 // 1. PackageUserResponses
                 var allPkgResponses = await _context.PackageUserResponses
@@ -2296,7 +2339,7 @@ namespace HcPortal.Controllers
                         dpgUser?.Id ?? "",
                         dpgActorName,
                         "DeletePrePostGroup",
-                        $"Deleted Pre-Post group '{groupTitle}' — {groupSessions.Count} session(s) (LinkedGroupId={linkedGroupId})",
+                        $"Deleted Pre-Post group '{groupTitle}' [LinkedGroupId={linkedGroupId}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount}",
                         linkedGroupId,
                         "AssessmentSession");
                 }
