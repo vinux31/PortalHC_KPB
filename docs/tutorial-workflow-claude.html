@@ -49,7 +49,43 @@
     <li><span class="badge badge-sp">Superpower</span> &mdash; untuk task ringan yang bisa selesai cepat (<code>brainstorming</code> &rarr; <code>writing-plans</code> &rarr; <code>executing-plans</code>)</li>
 </ul>
 
-<p>Pilih mode yang tepat di awal supaya tidak ada overhead yang tidak perlu. Total ada 6 step dari awal sampai handoff ke IT.</p>
+<p>Pilih mode yang tepat di awal supaya tidak ada overhead yang tidak perlu. Step 0 hanya dijalankan sekali (setup plugin), lalu Step 1&ndash;6 berulang per siklus dari trigger sampai handoff ke IT.</p>
+
+<h2><span class="step-num">0</span>Setup Plugin Claude Code (sekali per mesin)</h2>
+
+<p>Plugin Claude Code di-install lewat command <code>/plugin install &lt;nama&gt;</code> di dalam Claude Code, atau lewat menu <code>/plugin marketplace</code>. Untuk proyek PortalHC_KPB ada <strong>3 plugin wajib</strong> dan beberapa opsional.</p>
+
+<h3>0a. Plugin Wajib</h3>
+<table>
+    <tr><th style="width:28%">Plugin</th><th>Marketplace</th><th>Fungsi</th></tr>
+    <tr><td><code>superpowers</code></td><td><code>claude-plugins-official</code></td><td>Skill <code>brainstorming</code>, <code>writing-plans</code>, <code>executing-plans</code>, <code>systematic-debugging</code>, <code>test-driven-development</code> &mdash; fondasi flow Superpower</td></tr>
+    <tr><td><code>frontend-design</code></td><td><code>claude-plugins-official</code></td><td>Bantuan kualitas desain UI &mdash; penting karena proyek banyak <code>.cshtml</code></td></tr>
+    <tr><td><code>playwright</code></td><td><code>claude-plugins-official</code></td><td>Browser automation untuk verifikasi E2E ke <code>localhost:5001</code></td></tr>
+</table>
+
+<h3>0b. Tooling Tambahan (di luar plugin Claude)</h3>
+<table>
+    <tr><th style="width:28%">Tool</th><th>Cara install</th><th>Fungsi</th></tr>
+    <tr><td><strong>GSD</strong> (Get Shit Done)</td><td>Install manual ke <code>~/.claude/get-shit-done/</code> sesuai instruksi repo upstream &mdash; BUKAN dari marketplace plugin</td><td>Skill <code>/gsd-*</code> &mdash; flow project / milestone / phase</td></tr>
+    <tr><td><strong>.NET SDK 8+</strong></td><td><code>winget install Microsoft.DotNet.SDK.8</code></td><td>Build &amp; run proyek (<code>dotnet run</code>)</td></tr>
+    <tr><td><strong>GitHub CLI</strong> (<code>gh</code>)</td><td><code>winget install GitHub.cli</code> lalu <code>gh auth login</code></td><td>Buat &amp; review PR via terminal (kalau pakai PR flow di Step 5)</td></tr>
+</table>
+
+<h3>0c. Plugin Opsional</h3>
+<ul>
+    <li><code>claude-hud</code> &mdash; statusline visual (token, model, branch)</li>
+    <li><code>claude-code-warp</code> &mdash; integrasi terminal Warp</li>
+    <li><code>zai-coding-plugins</code> &mdash; tooling tambahan z.ai</li>
+</ul>
+
+<h3>0d. Verifikasi Setup</h3>
+<ul class="checklist">
+    <li>Ketik <code>/plugin</code> di Claude Code &rarr; lihat plugin aktif (minimal 3 wajib di atas)</li>
+    <li>Ketik <code>/gsd-progress</code> &rarr; kalau command muncul &amp; jalan, GSD sudah aktif</li>
+    <li>Buka folder proyek di Claude Code &rarr; cek file <code>.planning/PROJECT.md</code> dan <code>.planning/STATE.md</code> ada</li>
+</ul>
+
+<div class="info"><strong>Catatan untuk repo PortalHC_KPB:</strong> proyek ini sudah punya konfigurasi GSD aktif (folder <code>.planning/</code> sudah ter-init). Rekan tinggal install plugin + GSD &mdash; <strong>tidak perlu</strong> jalankan <code>/gsd-new-project</code> ulang.</div>
 
 <h2><span class="step-num">1</span>Trigger: Audit Findings atau Fitur Baru</h2>
 
@@ -101,6 +137,31 @@
 
 <h3>Flow <span class="badge badge-gsd">GSD</span> &mdash; untuk task kompleks</h3>
 
+<p><strong>Hierarki GSD:</strong> proyek (sekali) &rarr; milestone (per siklus) &rarr; phase (per fitur / temuan audit) &rarr; plan (sub-langkah dalam phase).</p>
+
+<div class="flow-diagram">PROJECT  (sekali, sudah ada di PortalHC_KPB)
+  └─ MILESTONE  (siklus baru per audit / batch fitur)
+       └─ PHASE  (1 fitur atau 1 temuan audit)
+            └─ PLAN  (sub-langkah dalam phase)</div>
+
+<p>Untuk PortalHC_KPB, level <strong>PROJECT</strong> sudah ter-init (file <code>.planning/PROJECT.md</code>). Rekan kerja di level <strong>milestone</strong> &amp; <strong>phase</strong>.</p>
+
+<h4>3a. Inisialisasi milestone (per siklus baru)</h4>
+
+<p>Pakai saat ada batch temuan audit baru atau batch fitur baru. Contoh: ketika temuan audit 27 April 2026 keluar, dibuat milestone "v15.0 Audit Findings 27 April 2026" lewat:</p>
+
+<div class="command-box">/gsd-new-milestone</div>
+
+<p>Claude akan tanya nama milestone &amp; daftar requirement (REQ-ID + deskripsi), lalu generate / update:</p>
+<ul>
+    <li><code>.planning/REQUIREMENTS.md</code> &mdash; daftar REQ baru</li>
+    <li><code>.planning/ROADMAP.md</code> &mdash; section milestone aktif + daftar phase</li>
+    <li><code>.planning/STATE.md</code> &mdash; current milestone pointer</li>
+</ul>
+<p>Folder <code>.planning/phases/&lt;NN-nama-phase&gt;/</code> baru lahir di Step 3b saat <code>/gsd-discuss-phase</code> dijalankan.</p>
+
+<h4>3b. Per phase (loop tiap fitur / temuan)</h4>
+
 <div class="flow-diagram">/gsd-discuss-phase   →  kumpulkan konteks, tanya jawab
         ↓ checkpoint: review jawaban
 /gsd-plan-phase      →  buat PLAN.md
@@ -110,10 +171,26 @@
 /gsd-verify-work     →  UAT &amp; verifikasi goal</div>
 
 <ul>
-    <li>Artefak disimpan di <code>.planning/phases/&lt;NN-nama-phase&gt;/</code></li>
+    <li>Artefak per phase di <code>.planning/phases/&lt;NN-nama-phase&gt;/</code> (CONTEXT.md, PLAN.md, SUMMARY.md, VERIFICATION.md)</li>
     <li><strong>Checkpoint</strong> = Claude berhenti minta konfirmasi sebelum lanjut ke step berikutnya</li>
-    <li>Untuk task lebih cepat tapi tetap GSD, pakai <code>/gsd-quick</code> (skip optional agents)</li>
+    <li>Untuk task lebih cepat tapi tetap GSD: <code>/gsd-quick</code> (skip optional agents seperti research / pattern-mapper)</li>
 </ul>
+
+<h4>3c. Navigasi &amp; manajemen sehari-hari</h4>
+
+<table>
+    <tr><th style="width:34%">Command</th><th>Kapan dipakai</th></tr>
+    <tr><td><code>/gsd-progress</code></td><td>Lihat posisi sekarang &mdash; phase mana aktif, langkah berikut apa</td></tr>
+    <tr><td><code>/gsd-manager</code></td><td>Dashboard semua phase milestone aktif (status D/P/E, dispatch paralel)</td></tr>
+    <tr><td><code>/gsd-resume-work</code></td><td>Resume kerjaan setelah <code>/clear</code> atau ganti session</td></tr>
+    <tr><td><code>/gsd-add-phase</code></td><td>Tambah phase baru di akhir milestone aktif</td></tr>
+    <tr><td><code>/gsd-insert-phase</code></td><td>Sisipkan phase urgent di tengah (dapat nomor desimal, mis. 305.1)</td></tr>
+    <tr><td><code>/gsd-add-todo</code></td><td>Capture ide / task ke <code>.planning/todos/</code> tanpa interrupt flow</td></tr>
+    <tr><td><code>/gsd-complete-milestone</code></td><td>Tutup milestone &mdash; archive ke <code>.planning/milestones/v{X}-ROADMAP.md</code></td></tr>
+    <tr><td><code>/gsd-help</code></td><td>Daftar lengkap command GSD</td></tr>
+</table>
+
+<div class="info"><strong>Tip:</strong> mulai sesi kerja harian dengan <code>/gsd-progress</code> &mdash; Claude akan tahu konteks milestone &amp; phase aktif tanpa Anda perlu jelaskan ulang.</div>
 
 <h3>Flow <span class="badge badge-sp">Superpower</span> &mdash; untuk task ringan</h3>
 
