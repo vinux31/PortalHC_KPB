@@ -621,8 +621,9 @@ test.describe('Assessment - Phase 312 Admin Full-Delete Role Guard', () => {
     await login(page, 'admin');
     await page.goto('/Admin/ManageAssessment');
 
-    // Cari row Open status (assume seed exists)
-    const openRow = page.locator('tr:has-text("Open")').first();
+    // Cari row Open status — scope ke badge spesifik untuk hindari false-match
+    // (e.g., "OpenAI" di Title atau Category)
+    const openRow = page.locator('tr', { has: page.locator('span.badge.bg-success', { hasText: /^Open$/ }) }).first();
     if (await openRow.count() === 0) test.skip(true, 'Tidak ada row Open seed');
 
     // Klik action dropdown
@@ -659,7 +660,8 @@ test.describe('Assessment - Phase 312 Admin Full-Delete Role Guard', () => {
     await login(page, 'admin');
     await page.goto('/Admin/ManageAssessment');
 
-    const completedRow = page.locator('tr:has-text("Completed")').first();
+    // Scope selector ke status badge agar tidak match Title/Category
+    const completedRow = page.locator('tr', { has: page.locator('span.badge.bg-secondary', { hasText: /^Completed$/ }) }).first();
     if (await completedRow.count() === 0) test.skip(true, 'Tidak ada row Completed seed — buat dulu via AkhiriUjian');
 
     const dropdown = completedRow.locator('.dropdown-toggle').first();
@@ -674,7 +676,7 @@ test.describe('Assessment - Phase 312 Admin Full-Delete Role Guard', () => {
     await login(page, 'hc');
     await page.goto('/Admin/ManageAssessment');
 
-    const openRow = page.locator('tr:has-text("Open")').first();
+    const openRow = page.locator('tr', { has: page.locator('span.badge.bg-success', { hasText: /^Open$/ }) }).first();
     if (await openRow.count() === 0) test.skip(true, 'Tidak ada row Open seed');
 
     const dropdown = openRow.locator('.dropdown-toggle').first();
@@ -696,7 +698,7 @@ test.describe('Assessment - Phase 312 Admin Full-Delete Role Guard', () => {
     await login(page, 'hc');
     await page.goto('/Admin/ManageAssessment');
 
-    const completedRow = page.locator('tr:has-text("Completed")').first();
+    const completedRow = page.locator('tr', { has: page.locator('span.badge.bg-secondary', { hasText: /^Completed$/ }) }).first();
     if (await completedRow.count() === 0) test.skip(true, 'Tidak ada row Completed seed');
 
     const dropdown = completedRow.locator('.dropdown-toggle').first();
