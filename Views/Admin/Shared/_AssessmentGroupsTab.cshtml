@@ -342,8 +342,13 @@ else
 }
 
 <!-- PHASE 312: Shared delete modal — 2-step impact preview + final confirm (D-02, UI-SPEC) -->
+<!-- PHASE 312 WR-02: URL di-render server-side via @@Url.Action agar path-prefix Dev (/KPB-PortalHC) ter-resolve correctly -->
 <div class="modal fade" id="deleteAssessmentModal" tabindex="-1"
-     aria-labelledby="deleteAssessmentModalLabel" aria-hidden="true" role="alertdialog">
+     aria-labelledby="deleteAssessmentModalLabel" aria-hidden="true" role="alertdialog"
+     data-action-single="@Url.Action("DeleteAssessment", "AssessmentAdmin")"
+     data-action-group="@Url.Action("DeleteAssessmentGroup", "AssessmentAdmin")"
+     data-action-prepost="@Url.Action("DeletePrePostGroup", "AssessmentAdmin")"
+     data-impact-url="@Url.Action("GetDeleteImpact", "AssessmentAdmin")">
     <div class="modal-dialog modal-dialog-scrollable" id="dam-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -433,10 +438,9 @@ else
     }
     window.__dam312Attached = true;
 
-    var appUrl = function (path) {
-        var base = (document.querySelector('base')?.getAttribute('href') || '/').replace(/\/$/, '');
-        return base + path;
-    };
+    // PHASE 312 WR-02: URL di-inject via data-* attribute pada modal element
+    // (di-render server-side dengan @@Url.Action) — path-prefix-aware untuk Dev (/KPB-PortalHC).
+    // Tidak perlu base href atau JS path concatenation.
 
     // Reset modal state ke Step 1 + loading
     function resetModal() {
@@ -489,23 +493,29 @@ else
         formId.disabled = true;
         formLinkedId.disabled = true;
 
+        // PHASE 312 WR-02: read pre-rendered URLs dari data-* attribute pada modal element
+        var actionSingle  = modalEl.dataset.actionSingle;
+        var actionGroup   = modalEl.dataset.actionGroup;
+        var actionPrepost = modalEl.dataset.actionPrepost;
+        var impactUrl     = modalEl.dataset.impactUrl;
+
         if (type === 'single') {
-            form.action = appUrl('/Admin/DeleteAssessment');
+            form.action = actionSingle;
             formId.value = id;
             formId.disabled = false;
         } else if (type === 'group') {
-            form.action = appUrl('/Admin/DeleteAssessmentGroup');
+            form.action = actionGroup;
             formId.value = id;
             formId.disabled = false;
         } else if (type === 'prepost') {
-            form.action = appUrl('/Admin/DeletePrePostGroup');
+            form.action = actionPrepost;
             formLinkedId.value = id;
             formLinkedId.disabled = false;
             document.getElementById('dam-dialog').classList.add('modal-lg');
         }
 
-        // Fetch impact
-        var url = appUrl('/Admin/GetDeleteImpact')
+        // Fetch impact (URL pre-rendered server-side via @@Url.Action)
+        var url = impactUrl
             + '?type=' + encodeURIComponent(type)
             + '&id=' + encodeURIComponent(id);
 
