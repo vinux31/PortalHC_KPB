@@ -20,6 +20,8 @@ namespace HcPortal.Controllers
     public class AssessmentAdminController : AdminBaseController
     {
         private readonly IMemoryCache _cache;
+        // Phase 311 Plan 03: cache key untuk distinct Categories list (D-04)
+        private const string CategoriesCacheKey = "assessment_categories_distinct";
         private readonly ILogger<AssessmentAdminController> _logger;
         private readonly INotificationService _notificationService;
         private readonly IHubContext<AssessmentHub> _hubContext;
@@ -80,14 +82,19 @@ namespace HcPortal.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
 
-            // Categories dropdown — dibutuhkan di shell untuk filter form. Plan 03 akan wrap dengan IMemoryCache.GetOrCreateAsync.
-            // Plan 02 add .AsNoTracking() (zero-cost change, read-only path — independent dari Plan 03 cache wrapping).
-            ViewBag.Categories = await _context.AssessmentSessions
-                .AsNoTracking()
-                .Select(a => a.Category)
-                .Distinct()
-                .OrderBy(c => c)
-                .ToListAsync();
+            // Categories dropdown — dibutuhkan di shell untuk filter form.
+            // Phase 311 Plan 03 (D-04): wrap dengan IMemoryCache.GetOrCreateAsync TTL 5 menit absolute expiration.
+            // Cache invalidation di Add/Edit/DeleteCategory setelah SaveChangesAsync.
+            ViewBag.Categories = await _cache.GetOrCreateAsync(CategoriesCacheKey, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                return await _context.AssessmentSessions
+                    .AsNoTracking()
+                    .Select(a => a.Category)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToListAsync();
+            });
 
             swShell.Stop();
             _logger.LogInformation(
@@ -113,7 +120,9 @@ namespace HcPortal.Controllers
             var sw = System.Diagnostics.Stopwatch.StartNew();
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
+            // Phase 311 Plan 03: AsNoTracking di chain start read-only partial action (PATTERNS Cross-cutting Pattern 2)
             var managementQuery = _context.AssessmentSessions
+                .AsNoTracking()
                 .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
                 .AsQueryable();
 
@@ -133,8 +142,9 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(category))
                 managementQuery = managementQuery.Where(a => a.Category == category);
 
+            // Phase 311 Plan 03: redundant Include navigation dihapus.
+            // Projection sudah punya null guard a.User != null, EF Core 8 auto-emit LEFT JOIN AspNetUsers dari projection.
             var allSessions = await managementQuery
-                .Include(a => a.User)
                 .OrderByDescending(a => a.Schedule)
                 .Select(a => new
                 {
@@ -211,14 +221,19 @@ namespace HcPortal.Controllers
             ViewBag.SelectedCategory = category ?? "";
             ViewBag.SelectedStatus = statusFilter ?? "";
 
-            // Categories juga dibutuhkan oleh partial view (filter dropdown render). Plan 03 wrap dengan GetOrCreateAsync.
-            // Plan 02 add .AsNoTracking() (zero-cost change, read-only path — independent dari Plan 03 cache wrapping).
-            ViewBag.Categories = await _context.AssessmentSessions
-                .AsNoTracking()
-                .Select(a => a.Category)
-                .Distinct()
-                .OrderBy(c => c)
-                .ToListAsync();
+            // Categories juga dibutuhkan oleh partial view (filter dropdown render).
+            // Phase 311 Plan 03 (D-04): wrap dengan IMemoryCache.GetOrCreateAsync TTL 5 menit absolute expiration.
+            // Cache invalidation di Add/Edit/DeleteCategory setelah SaveChangesAsync.
+            ViewBag.Categories = await _cache.GetOrCreateAsync(CategoriesCacheKey, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                return await _context.AssessmentSessions
+                    .AsNoTracking()
+                    .Select(a => a.Category)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToListAsync();
+            });
 
             sw.Stop();
             _logger.LogInformation(
@@ -385,6 +400,7 @@ namespace HcPortal.Controllers
             };
             _context.AssessmentCategories.Add(category);
             await _context.SaveChangesAsync();
+            _cache.Remove(CategoriesCacheKey);  // Phase 311 Plan 03 (D-04 invalidation)
 
             var currentUser = await _userManager.GetUserAsync(User);
             var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
@@ -437,6 +453,7 @@ namespace HcPortal.Controllers
             category.ParentId = parentId;
             category.SignatoryUserId = string.IsNullOrWhiteSpace(signatoryUserId) ? null : signatoryUserId;
             await _context.SaveChangesAsync();
+            _cache.Remove(CategoriesCacheKey);  // Phase 311 Plan 03 (D-04 invalidation)
 
             var currentUser = await _userManager.GetUserAsync(User);
             var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
@@ -466,6 +483,7 @@ namespace HcPortal.Controllers
 
             _context.AssessmentCategories.Remove(category);
             await _context.SaveChangesAsync();
+            _cache.Remove(CategoriesCacheKey);  // Phase 311 Plan 03 (D-04 invalidation)
 
             var currentUser = await _userManager.GetUserAsync(User);
             var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
