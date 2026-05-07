@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: executing
-stopped_at: Phase 311 context revised via interactive discuss (D-03 explicit invalidation, D-16 baseline breakdown)
-last_updated: "2026-05-05T05:57:06.595Z"
-last_activity: 2026-05-05 -- Phase 311 planning complete
+stopped_at: Phase 311 context revised (HTMX direction, D-01..D-10)
+last_updated: "2026-05-07T01:44:59.293Z"
+last_activity: 2026-05-05 -- Phase 311 execution started
 progress:
   total_phases: 11
   completed_phases: 7
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 310 — essay-finalize-idempotency
+**Current focus:** Phase 311 — manageassessment-performance
 
 ## Current Position
 
-Phase: 310 (essay-finalize-idempotency) — EXECUTING
+Phase: 311 (manageassessment-performance) — EXECUTING
 Plan: 1 of 2
-Status: Ready to execute
-Last activity: 2026-05-05 -- Phase 311 planning complete
+Status: Executing Phase 311
+Last activity: 2026-05-05 -- Phase 311 execution started
 Resume file: .planning/phases/311-manageassessment-performance/311-CONTEXT.md
 
 ## Next Action
@@ -128,5 +128,5 @@ Last activity: 2026-04-29 — Phase 308 Plan 02 (Wave 1 implementation) COMPLETE
 - Wave 0 commit `cedbebb0` (308-01 finalization)
 - Intermediate paused-at-checkpoint commit `a0610acc`
 
-Stopped at: Phase 311 context revised via interactive discuss (D-03 explicit invalidation, D-16 baseline breakdown)
+Stopped at: Phase 311 context revised (HTMX direction, D-01..D-10)
 Next action: Jalankan `/gsd-verify-work` untuk verify Phase 308 closure. Pre-verify smoke: 4 Playwright tests Phase 308 (8.1-8.4) expect transisi RED → GREEN dari Wave 0.
