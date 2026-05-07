@@ -1,7 +1,7 @@
 {
   "milestone_version": "v15.0",
   "milestone_name": "Audit Findings 27 April 2026",
-  "model_profile": "balanced",
+  "model_profile": "quality",
   "commit_docs": true,
   "search_gitignored": false,
   "branching_strategy": "none",
@@ -15,6 +15,10 @@
     "nyquist_validation": true,
     "ui_phase": true,
     "ui_safety_gate": true,
+    "ai_integration_phase": true,
+    "skip_discuss": true,
+    "research_before_questions": true,
+    "use_worktrees": true,
     "_auto_chain_active": false
   },
   "git": {
