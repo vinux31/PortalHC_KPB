@@ -219,7 +219,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
 
 #### Phase 312: Admin Full-Delete Assessment Room
 
-- [ ] **Phase 312: Admin Full-Delete Assessment Room** — Role tier guard (Admin override status guard, HC blocked dari Completed/with-response) + UI conditional render
+- [x] **Phase 312: Admin Full-Delete Assessment Room** — Role tier guard (Admin override status guard, HC blocked dari Completed/with-response) + UI conditional render (completed 2026-05-07)
   - **REQ:** DEL-01
   - **Depends on:** 311
   - **Success Criteria:**
@@ -230,7 +230,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
     5. Cascade delete tetap utuh (PackageUserResponses, AssessmentAttemptHistory, AssessmentPackages, UserPackageAssignments)
     6. Smoke test 5 skenario: Admin+Open OK, Admin+Completed OK, HC+Open(no-response) OK, HC+Completed BLOCK, HC+Open(with-response) BLOCK
   - **Risk:** Medium | **Effort:** M
-  - **Plans:** 1/2 plans executed
+  - **Plans:** 2/2 plans complete
     - 312-01-PLAN.md — Backend role guard + audit log extension
     - 312-02-PLAN.md — Frontend conditional render + smoke test
 
