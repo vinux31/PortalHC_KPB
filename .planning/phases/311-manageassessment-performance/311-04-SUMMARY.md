@@ -35,21 +35,23 @@ decisions:
   - "BUG-2B strategy: drop `once` modifier dari restored hx-trigger (Option 2 dari UAT.md). Wrapper akan re-fire setiap shown.bs.tab event sampai content swap — idempotent post-invalidation, no htmx.cleanup needed"
   - "BUG-5A strategy: htmx.ajax direct call (Option 1 dari UAT.md) — bypass trigger dispatcher. Skeleton ditampilkan dulu sebelum ajax untuk UX feedback"
 metrics:
-  tasks_completed: 4
+  tasks_completed: 5
   tasks_total: 5
-  duration_minutes: ~20
+  duration_minutes: ~30
   files_modified: 2
   files_created: 0
   build_errors: 0
   build_warnings: 92
   warnings_baseline: 92
-status: paused-at-checkpoint
-checkpoint_type: human-verify
+status: complete
+uat_local_status: passed
+uat_local_date: "2026-05-07"
+uat_local_method: "Playwright MCP automated browser flow"
 ---
 
 # Phase 311 Plan 04: HTMX Gap Closure Summary
 
-**Status:** PAUSED at Task 5 (checkpoint:human-verify) — 4/5 tasks complete, blocking pada manual UAT lokal Test 1/2/5 retry.
+**Status:** COMPLETE — 5/5 tasks done, UAT lokal Playwright PASS (Test 1/2/3/4/5).
 
 ## One-liner
 
@@ -63,7 +65,25 @@ Tutup 4 sub-bug dari UAT Plan 02 Wave 1 (BUG-1 filter duplikasi, BUG-2A invalida
 | 2 | Scope cross-tab invalidation ke filter-form (BUG-2A) + drop once (2B) | DONE   | `bbf88fa8` | Provenance check + dropped once suffix |
 | 3 | Replace retry handler dengan htmx.ajax direct (BUG-5A)                | DONE   | `b5fb6354` | Skeleton + bypass trigger dispatcher   |
 | 4 | Build verification + smoke load gate                                  | DONE   | (no edit)  | Build 0 errors, 92 warnings, CSS balanced |
-| 5 | Re-UAT manual lokal — Test 1, Test 2, Test 5 retry                    | **PAUSED** | —      | checkpoint:human-verify, blocking      |
+| 5 | Re-UAT manual lokal — Test 1, Test 2, Test 5 retry                    | DONE   | —          | UAT Playwright lokal PASS (lihat section UAT Result) |
+
+## UAT Result (2026-05-07, Playwright MCP)
+
+UAT lokal dilakukan automated via Playwright MCP terhadap dev server worktree (port 5300, `dotnet run` dari `.claude/worktrees/agent-a4c68c3dce84abdae`). Login `admin@pertamina.com`. Hasil 5 step:
+
+| Step | Verifikasi | Hasil | Bukti |
+| ---- | ---------- | ----- | ----- |
+| 1 | BUG-1 filter dup hidden 3 tab | PASS | DOM eval: `visibleFormsCount=1` (`#filter-form` shell), partial filter rows 0/2 visible Assessment, 0/2 visible Training (incl `.card.bg-light` 0/1), 0/3 visible History |
+| 2 | BUG-2A invalidation + BUG-2B once | PASS | Network log: 1 req per first-click tab, 2nd click Input Records → 0 req baru (cached). Filter `test` → debounce 1.5s → req `Tab_Training?search=test`. Klik Assessment → `Tab_Assessment?search=test`, klik History → `Tab_History?search=test` (cross-tab invalidation). Tidak ada skeleton stuck |
+| 3 | BUG-5A retry button | PASS | XHR monkey-patched force-fail → klik Input Records → error template "Gagal memuat data" + tombol "Coba Lagi" muncul (htmx:sendError fired). Unpatch + klik Coba Lagi → fresh request 200 OK → tabel real swap |
+| 4 | Race condition smoke | PASS | Rapid 4× tab clicks dalam ~250ms (training/history/assessment/training) → settled di pane-training, 0 visible skeleton, network log dedup hanya 3 req unik |
+| 5 | Server log D-09 instrumentation | PASS | Server console: `ManageAssessment perf [tab=shell\|assessment\|training\|history]: elapsed=22-129ms search_present=True/False page=1` per partial endpoint |
+
+**Catatan non-blocking:**
+- Tab History "Riwayat Assessment" subtab nampak menampilkan full 33 rows tanpa filter `search=test` — kemungkinan controller `_History` partial tidak apply search ke subtab Riwayat. Di luar scope Plan 04 (UI gap closure); flag untuk follow-up backend (Plan 03 atau backlog) bila perlu filter behavior konsisten.
+- 2 console errors expected (`htmx:afterRequest` + `htmx:sendError`) saat Step 3 force-fail — ini dari htmx fire error event normal, bukan bug.
+
+**Build gate:** Worktree dev server start berhasil dari port 5300 (port 5277 main occupied), 0 errors, 92 warnings (Phase 309 baseline preserved).
 
 ## Implementation Details
 
