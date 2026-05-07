@@ -362,25 +362,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Phase 311 Plan 02: Cross-tab cache invalidation (D-05).
-// Saat filter form fetch sukses pada tab aktif, reset tab non-aktif "loaded" flag
-// supaya next activation lazy-fetch ulang dengan filter terbaru.
+// Phase 311 Plan 04 gap closure (BUG-2A): Cross-tab cache invalidation (D-05).
+// Listener fire HANYA saat swap berasal dari filter form change/input —
+// BUKAN saat normal lazy-load tab activation swap. Dipakai elt provenance
+// check via htmx:afterSwap event detail.requestConfig.elt: kalau elt
+// closest ke #filter-form, swap = filter-driven; selain itu skip.
+// BUG-2B fix: restored hx-trigger DROP `once` modifier — wrapper akan
+// re-fire setiap shown.bs.tab event sampai content swap (saat user filter
+// ulang, invalidation fire lagi). Sederhana, no htmx.cleanup needed.
 document.body.addEventListener('htmx:afterSwap', function(evt) {
     var target = evt.detail.target;
     if (!target || !target.classList || !target.classList.contains('htmx-tab-wrapper')) return;
 
-    // Saat afterSwap di tab aktif (hasil filter fetch), reset wrapper tab lain
-    // ke skeleton state + restore hx-trigger 'shown.bs.tab once' supaya next click fetch ulang.
+    // Provenance check: hanya invalidate saat trigger elt berada di dalam #filter-form.
+    // evt.detail.requestConfig.elt = element yang trigger HTMX request.
+    // Tab activation swap (hx-trigger="load" atau "shown.bs.tab") punya elt = wrapper itu sendiri,
+    // BUKAN element di dalam #filter-form. Filter-driven swap punya elt = input/select di filter-form.
+    var triggerElt = evt.detail.requestConfig && evt.detail.requestConfig.elt;
+    if (!triggerElt || !triggerElt.closest || !triggerElt.closest('#filter-form')) {
+        return; // Skip: bukan filter-driven swap (normal tab activation atau retry)
+    }
+
     var activeTabName = target.getAttribute('data-tab-name');
     document.querySelectorAll('.htmx-tab-wrapper').forEach(function(wrapper){
         var tabName = wrapper.getAttribute('data-tab-name');
         if (tabName === activeTabName) return;
-        // Reset wrapper konten ke skeleton placeholder (re-render via clone dari template kalau ada,
-        // atau strip innerHTML supaya next 'shown.bs.tab' fetch fire). Trigger 'load' lagi acceptable
-        // karena tab non-aktif tidak visible sampai user click.
+        // Reset ke skeleton placeholder + restore hx-trigger TANPA `once` (BUG-2B fix Option 2).
+        // Tanpa `once`, wrapper akan re-fire setiap shown.bs.tab event — acceptable karena
+        // selama wrapper sudah swap content sekali, fire kedua akan re-fetch dengan filter terbaru
+        // (idempotent + intentional behavior post-invalidation).
         wrapper.innerHTML = '<div aria-busy="true" aria-label="Memuat data" class="placeholder-glow"><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div></div>';
-        // Reset 'once' flag dengan reprocess
-        wrapper.setAttribute('hx-trigger', 'shown.bs.tab from:#tab-' + tabName + ' once');
+        wrapper.setAttribute('hx-trigger', 'shown.bs.tab from:#tab-' + tabName);
         if (window.htmx) htmx.process(wrapper);
     });
 });
