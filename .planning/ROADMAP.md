@@ -230,7 +230,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
     5. Cascade delete tetap utuh (PackageUserResponses, AssessmentAttemptHistory, AssessmentPackages, UserPackageAssignments)
     6. Smoke test 5 skenario: Admin+Open OK, Admin+Completed OK, HC+Open(no-response) OK, HC+Completed BLOCK, HC+Open(with-response) BLOCK
   - **Risk:** Medium | **Effort:** M
-  - **Plans:** 2 plans
+  - **Plans:** 1/2 plans executed
     - 312-01-PLAN.md — Backend role guard + audit log extension
     - 312-02-PLAN.md — Frontend conditional render + smoke test
 
