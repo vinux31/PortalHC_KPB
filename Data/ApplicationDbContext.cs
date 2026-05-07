@@ -180,6 +180,10 @@ namespace HcPortal.Data
                 entity.HasIndex(a => a.Schedule);
                 entity.HasIndex(a => a.AccessToken); // Removed .IsUnique() to allow shared tokens
 
+                // Phase 311 Plan 03: ManageAssessment perf indexes (D-05, D-06)
+                entity.HasIndex(a => a.ExamWindowCloseDate);
+                entity.HasIndex(a => a.LinkedGroupId);
+
                 // Check constraints for data integrity
                 entity.HasCheckConstraint("CK_AssessmentSession_Progress", "[Progress] >= 0 AND [Progress] <= 100");
                 entity.HasCheckConstraint("CK_AssessmentSession_DurationMinutes", "[DurationMinutes] >= 0");
