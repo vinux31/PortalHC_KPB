@@ -32,7 +32,7 @@ Requirements untuk milestone v15.0 (audit fixes). Setiap REQ memetakan 1 temuan 
 
 ### ManageAssessment Performance
 
-- [ ] **PERF-01**: Halaman `/Admin/ManageAssessment` memuat ≥30% lebih cepat dari baseline pada dataset produksi (target p95 ≤ baseline × 0.7). Strategi: `AsNoTracking()` di chain query baris 66, hapus redundant `.Include(a => a.User)` baris 88, tambah DB index `IX_AssessmentSessions_Schedule_ExamWindowCloseDate` & `IX_LinkedGroupId` jika belum ada, `IMemoryCache` (TTL 5 menit) untuk distinct Categories. *(maps Temuan 3)*
+- [ ] **PERF-01**: Halaman `/Admin/ManageAssessment` memuat lebih cepat di wifi kantor (yang dimediasi proxy Pertamina) dengan target end-to-end ≤40 detik (≥50% reduction dari baseline ~1.4 menit). Strategi: HTMX lazy load architecture — refactor `ManageAssessment` action menjadi shell-only (no data fetch kecuali cached Categories) + 3 partial actions (`ManageAssessmentTab_Assessment`, `_Training`, `_History`) yang return PartialView per tab. Shell view `Views/Admin/ManageAssessment.cshtml` pakai HTMX attributes (vendored `wwwroot/lib/htmx/htmx.min.js` v2.0.x, ~14 KB) untuk lazy fetch per tab. Plus opportunistic backend wins di Plan 03 (AsNoTracking + IX_AssessmentSessions_LinkedGroupId + IX_AssessmentSessions_ExamWindowCloseDate + IMemoryCache TTL 5min untuk distinct Categories). Acceptance: initial response document <14 KB, end-to-end load wifi kantor ≤40 detik, tab switching ≤2 detik post-initial, smoke test parity (kolom, row count, ordering identik pre/post per tab), TTFB ≤500ms (no regression backend), filter+pagination+ViewBag contract preserved. Source: `.planning/phases/311-manageassessment-performance/311-DESIGN.md` (approved 2026-05-07). *(maps Temuan 3)*
 
 ### Essay Scoring & Certification
 
