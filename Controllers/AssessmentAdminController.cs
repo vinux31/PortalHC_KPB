@@ -5477,6 +5477,18 @@ namespace HcPortal.Controllers
             string entityType,                         // "AssessmentSession"
             IList<AssessmentSession> sessions)
         {
+            // PHASE 312 WR-05: self-defend kalau caller lupa load atau race delete-by-other-admin
+            // Caller bug — fail loud via log + redirect dengan error generik (jangan silent pass)
+            if (sessions == null || sessions.Count == 0)
+            {
+                var emptyLogger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+                emptyLogger.LogWarning(
+                    "EnsureCanDeleteAsync called with empty sessions for {Action} TargetId={TargetId} — caller bug or race condition",
+                    actionPrefix, targetId);
+                TempData["Error"] = "Data assessment tidak ditemukan atau sudah dihapus. Silakan refresh halaman.";
+                return RedirectToAction("ManageAssessment");
+            }
+
             // Admin override: lewati semua cek (D-04 Admin tier)
             if (User.IsInRole("Admin")) return null;
 
