@@ -3,193 +3,160 @@
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
-**Date:** 2026-05-05 (auto-pass) + 2026-05-05 (interactive update)
+**Date:** 2026-05-07
 **Phase:** 311-manageassessment-performance
-**Mode:** auto-pass (initial) + interactive update via /gsd-discuss-phase
-**Areas analyzed (auto-pass):** Cache Strategy, Database Indexes, Query Optimization, Measurement Methodology, Scope Boundaries
-**Areas re-discussed (interactive):** Cache TTL & invalidation, Failure mode (redirected to baseline-breakdown approach)
+**Mode:** interactive discuss-phase --revise (supersedes initial discussion 2026-05-05)
+**Areas discussed:** Trigger semantics, Filter form behavior, Tab cache invalidation strategy, Fate of old backend patches
+
+**Pre-discussion context:**
+- Phase 311 reframed via brainstorm 2026-05-07 from backend query optimization to HTMX lazy-load architecture
+- See `311-DESIGN.md` (approved 2026-05-07) for full design rationale
+- Old discussion log entries (2026-05-05) for D-01..D-16 superseded; preserved in git history (commits `fd2bcf15`, `44b11e66`)
 
 ---
 
-# PART 1 — Auto-Pass Log (2026-05-05)
+## Trigger Semantics
 
-## Cache Strategy (Categories distinct dropdown)
+### Q1: Inactive tab (Training/History) trigger mechanism
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Static key + TTL only | Single global key, 5min absolute expiration, no explicit invalidation | ✓ (later REVISED) |
-| Versioned key | Key bumped on Categories CRUD, instant invalidation precision | |
-| Sliding TTL | Reset window on each access, longer effective TTL during burst | |
+| Bootstrap event (Recommended) | hx-trigger='shown.bs.tab from:closest button.nav-link once' — listens to Bootstrap 5 native event setelah tab visually aktif | ✓ |
+| HTMX click selector | hx-trigger='click from:#tab-training-button once' — langsung listen click pada button | |
+| You decide | Claude pilih (rekomendasi: Bootstrap event) | |
 
-**Auto choice rationale:** Categories rarely change, 5-min staleness acceptable per ROADMAP SC #5 explicit. Simplest implementation = lowest defect risk.
-**⚠ Later revised in Part 2** — explicit invalidation chosen.
+**User's choice:** Bootstrap event (Recommended)
+**Notes:** Respect Bootstrap tab lifecycle — fire AFTER animation done dan DOM ready, hindari swap di tengah transisi.
 
----
-
-## Database Indexes (composite vs single-column)
+### Q2: HTMX version untuk vendoring lokal
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Two single-column indexes (ExamWindowCloseDate + LinkedGroupId) | Optimizer chooses, minimal migration | ✓ |
-| Composite IX_Schedule_ExamWindowCloseDate per ROADMAP literal | Single composite per ROADMAP SC #4 wording | (deferred) |
-| Persisted computed column EffectiveDate + index | Solves COALESCE seek issue | (deferred) |
+| HTMX 2.0.x (Recommended) | Latest stable 2026, drops IE11 support, smaller bundle, modern API | ✓ |
+| HTMX 1.9.x | Still supported, IE11 compatible, slightly larger bundle | |
+| You decide | Claude pilih (rekomendasi: 2.0.x latest stable) | |
 
-**Auto choice rationale:** COALESCE in WHERE clause prevents perfect seek even with composite. Optimizer-friendly approach with two single-column indexes (Schedule already exists). Composite kept as deferred optimization if measurement post-patch shows residual bottleneck.
+**User's choice:** HTMX 2.0.x (Recommended)
+**Notes:** Admin user di kantor pakai Chrome/Edge modern → drop IE11 acceptable.
 
 ---
 
-## Query Optimization (AsNoTracking + Include removal)
+## Filter Form Behavior
+
+### Q3: Filter form (search/category/status) — live filter atau submit button?
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| AsNoTracking on managementQuery + remove redundant Include | Two-step minimal change per ROADMAP SC #2-3 literal | ✓ |
-| Compile query (`EF.CompileQuery`) | Pre-compiled LINQ for hot path | (deferred) |
-| Raw SQL via `FromSqlRaw` | Maximum control, lose EF translation safety | (rejected — backward-compat risk) |
+| Live filter dengan debounce (Recommended) | Search box debounce 500ms, dropdown category/status instant fetch saat change | ✓ |
+| Explicit submit button | User isi semua filter, klik tombol 'Cari'. Tidak ada live filter | |
+| Hybrid | Dropdown instant, search box pakai submit button atau Enter | |
+| You decide | Claude pilih (rekomendasi: Live filter dengan debounce 500ms) | |
 
-**Auto choice rationale:** ROADMAP explicit. Compile query is overkill for single hot endpoint and adds complexity; raw SQL breaks portability.
+**User's choice:** Live filter dengan debounce (Recommended)
+**Notes:** UX modern, payload kecil (~30-50KB) acceptable lewat proxy lambat.
 
----
-
-## Measurement Methodology
-
-| Option | Description | Selected |
-|--------|-------------|----------|
-| Stopwatch in action body | Lightweight, captures full request scope, no infra dep | ✓ |
-| MiniProfiler integration | Comprehensive request profiling | (deferred) |
-| SQL Profiler / EF Core LogTo | DB-level only, less context | |
-| Application Insights / OpenTelemetry | Production APM, broader scope | (out of scope) |
-
-**Auto choice rationale:** ROADMAP SC #1 mentions "Stopwatch atau SQL profiler". Stopwatch wins on simplicity + production-deployable + log-friendly format.
-
----
-
-## Scope Boundaries (Training/History tabs)
+### Q4: Pagination behavior
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Optimize ONLY Assessment tab query | Strict ROADMAP scope, smoke test parity for other tabs | ✓ (later QUALIFIED by D-16) |
-| Extend optimization ke Training/History tabs | More improvement, scope creep | (deferred — but resurfaced in Part 2) |
+| AJAX via HTMX (Recommended) | Klik 'Next page' → hx-trigger fire pada link → swap konten tab dengan page baru | ✓ |
+| Full page reload | Klik 'Next page' → navigate ke /Admin/ManageAssessment?page=2 → full reload | |
+| You decide | Claude pilih (rekomendasi: AJAX via HTMX) | |
 
-**Auto choice rationale:** ROADMAP SC #7 require smoke test parity, NOT performance parity. Training/History optimization tracked as Phase 315+ candidate.
+**User's choice:** AJAX via HTMX (Recommended)
+**Notes:** Konsisten dengan pattern HTMX di tab lain.
 
 ---
 
-## Cache Invalidation Strategy (auto-pass duplicate of Cache Strategy above)
+## Tab Cache Invalidation Strategy
+
+### Q5: Saat filter berubah, apa yang terjadi ke tab non-aktif yang sudah di-load?
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Pure TTL (5 min absolute) | Simplest, accept ≤5min staleness | ✓ (later REVISED) |
-| TTL + explicit invalidation on Category CRUD | Precise invalidation, more touch points | (deferred — later REPROMOTED) |
-| Sliding expiration with periodic refresh | Hybrid approach | |
+| Invalidate semua tab (Recommended) | Filter change → fetch ulang tab aktif + clear data tab lain (skeleton lagi). Saat user buka tab lain, fetch ulang dengan filter baru | ✓ |
+| Hanya invalidate tab aktif | Filter change → fetch ulang tab aktif saja. Tab non-aktif keep data lama (stale) | |
+| Tidak invalidate apapun + tombol Refresh per tab | Filter change → fetch tab aktif. Tab non-aktif keep stale, user explicit klik 'Refresh' | |
+| You decide | Claude pilih (rekomendasi: Invalidate semua tab) | |
 
-**Auto choice rationale:** Category CRUD operations not in this controller's hot path; user-side ≤5min staleness acceptable. Explicit invalidation noted as future enhancement if user reports stale dropdowns.
-**⚠ Later revised in Part 2** — Option 2 explicit invalidation chosen.
+**User's choice:** Invalidate semua tab (Recommended)
+**Notes:** Data konsisten, no stale state. Cost: 1 round trip extra saat user pindah tab post-filter (acceptable, 30-50 KB partial).
 
----
-
-## Migration Strategy
+### Q6: HTTP cache headers untuk partial endpoint response
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Single migration with both indexes (D-05 + D-06) | Atomic deploy, easy rollback | ✓ |
-| Two separate migrations (one per index) | Fine-grained rollback | |
+| no-store (Recommended) | 'Cache-Control: no-store' — browser tidak cache response | ✓ |
+| private, max-age=60 | Browser boleh cache response 60 detik | |
+| You decide | Claude pilih (rekomendasi: no-store — hindari double-cache complexity) | |
 
-**Auto choice rationale:** Both indexes target same table (`AssessmentSessions`), same migration window. Atomic = simpler ops.
-
----
-
-# PART 2 — Interactive Update (2026-05-05)
-
-## Areas Selection
-
-| Option | Description | Selected for discuss |
-|---|---|---|
-| Cache TTL & invalidation | D-02/D-03 trade-off: stale dropdown vs explicit invalidation | ✓ (Claude pick) |
-| Index investment depth | Composite vs single-column vs computed column | (kept as auto-pass) |
-| Measurement methodology | Stopwatch vs external profiler, run count, p95 vs p99 | (kept as auto-pass) |
-| Failure mode & rollback | What if post-patch <30%? | ✓ (Claude pick → redirected) |
-
-**User's response:** "yang perlu discuss" (free-text) — deferred selection to Claude.
-**Claude pick:** Cache TTL & invalidation + Failure mode/rollback — highest user-impact areas.
+**User's choice:** no-store (Recommended)
+**Notes:** HTMX manage tab cache di JS-side, tidak butuh HTTP cache. Hindari complexity dual-layer.
 
 ---
 
-## Cache TTL & invalidation (interactive revisit)
+## Fate of Old D-01..D-10 Backend Patches
+
+### Q7: Old backend patches (AsNoTracking + IX_LinkedGroupId + IX_ExamWindowCloseDate + Categories MemoryCache 5min)
 
 | Option | Description | Selected |
-|---|---|---|
-| Keep 5-min TTL drift | Auto-pass default. Stale dropdown ≤5min after CRUD. Simple. | |
-| 5-min TTL + explicit invalidation | Add `_cache.Remove("assessment_categories_distinct")` di Category CRUD. Best UX + ROADMAP-compliant. | ✓ |
-| Shorter TTL 1-2 min, no invalidation | Reduce staleness window without invalidation logic. | |
-| No cache (drop D-01..D-04) | Skip cache. Violates ROADMAP SC #5. | |
+|--------|-------------|----------|
+| Plan 03 opportunistic same-phase (Recommended) | Keep di Phase 311, jadikan Plan 03 yang dijalankan PARALEL/SETELAH Plan 02 HTMX | ✓ |
+| Defer ke phase terpisah | Drop dari Phase 311 entirely. Bikin phase baru saat ada kapasitas | |
+| Drop entirely | Tidak relevan lagi (backend bukan bottleneck). Update REQUIREMENTS.md PERF-01 | |
+| You decide | Claude pilih (rekomendasi: Plan 03 opportunistic same-phase) | |
 
-**User's response:** "analisa, dan sesuai suggest kamu" (free-text) — deferred to Claude analysis.
-**Claude analysis & decision:** Option 2. Rationale: ROADMAP SC #5 require IMemoryCache 5 menit TTL → hanya Option 1/2 yang spec-compliant. Option 2 adds 3 lines code in 3 actions → minimal cost, fix immediate-staleness UX issue. Risk lupa invalidate di action baru = rendah karena CRUD kategori co-located dan jarang di-extend.
-**Lock:** D-03 revised — explicit invalidation pattern (`_cache.Remove(...)` di `CreateCategory`/`UpdateCategory`/`DeleteCategory`).
+**User's choice:** Plan 03 opportunistic same-phase (Recommended)
+**Notes:** Low-cost (~50 baris kode + 1 migration), small wins backend (10-20% per partial action), resilience untuk scaling future. Tidak block Plan 02.
 
----
-
-## Failure mode & rollback strategy → REDIRECTED to baseline-breakdown approach
+### Q8: REQUIREMENTS.md PERF-01 acceptance criteria
 
 | Option | Description | Selected |
-|---|---|---|
-| Iterative: tambah composite/computed column | Phase 311 PASS sebagian, add follow-up commit, re-measure | (initial Claude rec, later superseded) |
-| Accept lower threshold | Document partial improvement, close phase. | |
-| Revert migration + kode, defer phase baru | Hard rollback, plan Phase 311.1. | |
-| Defer keputusan ke saat itu | No pre-commitment. | |
+|--------|-------------|----------|
+| Update PERF-01 dengan strategy & criteria baru (Recommended) | Edit REQUIREMENTS.md: ganti '≥30% reduction backend' jadi acceptance HTMX (≤40s wifi kantor, <14KB initial doc, ≤2s tab switch) | ✓ |
+| Keep PERF-01 as-is + note di SUMMARY.md | REQUIREMENTS.md not touched. Phase 311 SUMMARY.md jelaskan deviation | |
+| You decide | Claude pilih (rekomendasi: Update PERF-01 di Plan 02 awal) | |
 
-**User's response sequence:**
-
-1. **First reply:** "maksutnya apa ini, jelaskan dengan simple" — meminta penjelasan dalam bahasa awam.
-
-2. **Claude reframe** ke bahasa simple, rekomendasi Opsi 1.
-
-3. **User redirect** dengan pertanyaan teknis: *"di dalam page manage assessment kan ada beberapa tab juga. apakah tab lainnya juga mempengaruhi lebih cepat load?"*
-
-4. **Claude investigate** `AssessmentAdminController.cs:60-227`. Temukan: controller selalu fetch data ketiga tab dalam 1 request walaupun user buka tab Assessment (komentar L195-197 eksplisit). Implikasi: kalau Training/History query lambat, optimasi Assessment query saja gak akan capai 30% improvement.
-
-5. **Claude present** 3 sub-options: A (lazy-load), B (AsNoTracking di Training/History), C (stay auto-pass D-14). Suggest measure-first approach.
-
-6. **User:** "oke untuk sekarang kita fokus apa sebaiknya:, jangan langsung masukkan semua" — minta narrow focus, jangan over-scope.
-
-7. **Claude propose:** tambah D-16 saja (pre-execute baseline breakdown per-query), defer everything else (D-14 reframe, lazy-load idea, rollback strategy) ke setelah breakdown data tersedia.
-
-8. **User:** "lanjut" — approve narrow focus.
-
-**Lock:**
-- D-16 added — pre-execute baseline breakdown per-query (T1..T5 segments) WAJIB sebelum apply patch. Decision gate: 3 skenario (A/B/C).
-- Failure mode/rollback strategy explicitly **deferred** sampai D-16 data tersedia (measurement-driven).
-- D-14 reframe explicitly **deferred** sampai D-16 menunjukkan Skenario A vs B/C.
+**User's choice:** Update PERF-01 dengan strategy & criteria baru (Recommended)
+**Notes:** Requirements jadi truth-source. Update di Plan 02 sebagai task awal.
 
 ---
 
-## Claude's Discretion (carried from auto-pass, untouched)
+## Done?
 
-- Migration timestamp generation (auto via `dotnet ef migrations add`)
-- Stopwatch logging field naming convention (planner verifies by grep existing controller)
-- EF Core SQL diff capture method (planner picks cleanest approach)
-- Cache key namespace literal vs helper class (literal sufficient for single use case)
+### Q9: Ready untuk write CONTEXT.md, atau explore more gray areas?
 
----
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Ready untuk context (Recommended) | Decisions sudah cukup untuk planner. Hal-hal kecil jadi Claude's Discretion | ✓ |
+| Explore more gray areas | Identify 2-3 area tambahan untuk discuss | |
 
-## Deferred Ideas (combined auto-pass + interactive)
-
-- Composite index `IX_Schedule_ExamWindowCloseDate` (optional post-measurement)
-- Persisted computed column `EffectiveDate` (alternative COALESCE fix)
-- Training/History tab perf optimization (default deferred; can resurface via D-16 Skenario B/C)
-- **Failure mode & rollback strategy** — deferred to post-D-16 (different decisions per Skenario A/B/C)
-- **Lazy-load tab non-aktif** (`?tab=` param + AJAX partial reload) — phase masa depan, architectural change
-- MiniProfiler integration
-- Application Insights / OpenTelemetry APM
+**User's choice:** Ready untuk context (Recommended)
 
 ---
 
-## Lessons / Patterns
+## Claude's Discretion (areas user did not pin down)
 
-- **User redirect dari pre-commitment → measurement-driven decision** adalah pola yang lebih sound untuk perf optimization phase. Auto-pass cenderung pre-commit ke scope awal; user judgment menambah investigation step yang bikin scope decision data-driven.
-- **Narrow-focus discipline** — user explicit minta jangan over-include semua sub-decisions. Prinsip ini consistent dengan instruksi sistem "no half-finished implementations" dan harus di-honor downstream (planner jangan pre-emptive expand scope D-14 tanpa data D-16).
-- **Bahasa awam request** — user prefer penjelasan plain-Bahasa untuk decision questions. Translate technical jargon (rollback, p95, threshold) ke bahasa sederhana sebelum minta keputusan.
+- **HTMX swap mode**: `innerHTML` (default) vs `outerHTML`. Default: `innerHTML`.
+- **Skeleton style**: Bootstrap 5 `.placeholder-glow` + `.placeholder` classes (sudah ada di project) atau custom CSS. Default: Bootstrap classes.
+- **Error template**: Simple alert + retry button. Style by Claude.
+- **Partial action method naming**: `ManageAssessmentTab_Assessment`, `_Training`, `_History` (PascalCase, underscore separator) sesuai konvensi controller existing.
+- **Migration timestamp** (Plan 03): auto-generated by `dotnet ef migrations add AddManageAssessmentPerfIndexes`.
+- **Active tab `hx-trigger`**: `hx-trigger="load"` (immediate) atau `hx-trigger="load delay:50ms"`. Default: `load`.
+- **Race condition**: HTMX `hx-sync="this:replace"` untuk auto-cancel previous in-flight saat tab switching cepat.
 
 ---
 
-*Generated: 2026-05-05 — auto-pass + interactive update via /gsd-discuss-phase*
+## Deferred Ideas (not in current phase scope)
+
+- Composite index `IX_AssessmentSessions_Schedule_ExamWindowCloseDate` — defer kalau Plan 03 single-column indexes belum cukup
+- Persisted computed column `EffectiveDate = COALESCE(ExamWindowCloseDate, Schedule)` — schema migration overhead
+- Frontend service worker / advanced caching — overkill
+- WebSocket / real-time updates — different concern
+- Lazy-load pattern reuse di halaman lain (ManageWorkers, Coach Workload, etc.) — defer ke milestone berikutnya
+- MiniProfiler / Application Insights / OpenTelemetry — separate observability phase
+- Client-side filtering — contradicts payload-reduction goal
+
+## Reviewed Todos (not folded)
+
+- `realtime-assessment.md` (2026-03-09, score 0.6) — concept real-time assessment monitoring. Different concern, tidak relevan untuk Phase 311. Stays di todos backlog.

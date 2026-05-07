@@ -1,165 +1,162 @@
 # Phase 311: ManageAssessment Performance - Context
 
-**Gathered:** 2026-05-05 (auto-pass), revised 2026-05-05 (interactive update via /gsd-discuss-phase)
-**Status:** Ready for planning
-**Mode:** auto-pass + 2 interactive overrides (D-03 revised, D-16 added)
+**Gathered:** 2026-05-05 (initial), revised 2026-05-07 (post-baseline brainstorm)
+**Status:** Ready for planning (replan required — direction reframed)
+**Mode:** interactive discuss — 4 gray areas selected, all answered
+
+---
+
+## ⚠ Direction reframed (2026-05-07)
+
+Original Phase 311 direction (backend query optimization: AsNoTracking + 2 indexes + Categories cache, target ≥30% backend p95 reduction) **superseded by brainstorm session 2026-05-07** based on baseline measurement evidence.
+
+**Reframe rationale:**
+- Per-segment Stopwatch baseline (commit `a4ce556e`) menunjukkan backend cepat: TTFB 281ms di server `10.55.3.3`, total 11-27ms warm di Dev DB. Backend bukan bottleneck.
+- User confirmation 3 datapoint network: wifi lain instan, hotspot HP <10s, wifi kantor >1 menit. Server, code, DB sama → bottleneck di network path proxy Pertamina.
+- Chrome DevTools wifi kantor: TTFB 281ms (cepat), content download 1.6 menit (40 byte/sec throughput) untuk 3.4 KB document — proxy throttle/inspection.
+- Strategi yang bekerja: minimize HTML payload yang lewat proxy via lazy-load per tab.
+
+**Approved direction:** HTMX lazy-load architecture (Opsi 2 dari 6 yang dievaluasi). See `311-DESIGN.md` (approved 2026-05-07).
+
+**Old decisions D-01..D-16 (initial 2026-05-05):** mostly SUPERSEDED. Preserved di git history (commits `fd2bcf15`, `44b11e66`). Stopwatch instrumentation D-11/D-13 (commit `a4ce556e`) **preserved** — dipindah ke per-action.
+
+---
 
 <domain>
 ## Phase Boundary
 
-Optimize backend query performance untuk endpoint `GET /Admin/ManageAssessment` (action di `Controllers/AssessmentAdminController.cs:60-227`) sehingga response time p95 ≤ baseline × 0.7 (≥30% improvement) pada dataset produksi.
+Refactor `Controllers/AssessmentAdminController.cs` action `ManageAssessment` (L60-262) menjadi shell + 3 partial endpoints, plus refactor 3 Razor partials (`Views/Admin/Shared/_AssessmentGroupsTab.cshtml`, `_TrainingRecordsTab.cshtml`, `_HistoryTab.cshtml`) ke pattern HTMX lazy-load. Vendor HTMX 2.0.x latest stable di `wwwroot/lib/htmx/`. Plus opportunistic backend wins (AsNoTracking + 2 indexes + Categories cache) sebagai Plan 03.
+
+**Acceptance criteria:**
+- Initial response document: <14 KB (TCP first roundtrip)
+- End-to-end load wifi kantor: ≤40 detik (dari baseline ~1.4 menit) — ≥50% reduction
+- Tab switching latency post-initial: ≤2 detik di wifi kantor
+- Smoke test parity: visual struktur identik per tab (kolom, row count, ordering)
+- No regression backend: TTFB ≤500ms
+- Backward compat: filter (search/category/status), pagination behavior preserved
+- ViewBag contract preserved untuk partial endpoints
 
 **In-scope:**
-- Assessment tab query chain L66-110 (sessions fetch + projection)
-- Distinct Categories query L172 (dropdown source)
-- DB indexes pada `AssessmentSessions.ExamWindowCloseDate` dan `LinkedGroupId` jika belum ada
-- Baseline + post-patch measurement methodology
-- Smoke test parity: grouping & paging hasil identik dengan pre-patch
+- Refactor `ManageAssessment` action → shell-only (no data fetch except cached Categories untuk dropdown)
+- Create 3 partial actions: `ManageAssessmentTab_Assessment`, `_Training`, `_History` → return `PartialView`
+- Refactor `Views/Admin/ManageAssessment.cshtml` → HTMX attributes + skeleton placeholders
+- Vendor HTMX 2.0.x ke `wwwroot/lib/htmx/`
+- Filter form HTMX trigger setup (debounce 500ms search, instant dropdowns)
+- AJAX pagination via HTMX
+- Error handling template (alert + retry)
+- Plan 03 opportunistic backend (AsNoTracking + IX_LinkedGroupId + IX_ExamWindowCloseDate + IMemoryCache Categories TTL 5min)
+- Update REQUIREMENTS.md §PERF-01 dengan strategy + criteria baru
+- Stopwatch instrumentation moved to per-action context (preserve `a4ce556e` pattern)
+- Smoke test parity manual UAT per tab
 
 **Out-of-scope (boundary anchors):**
-- Training tab data fetch L206-224 (`GetWorkersInSection`, `GetAllWorkersHistory`) — bisa lambat, tapi ROADMAP SC #7 hanya require smoke test parity, bukan optimization
-- History tab queries — same as above
-- Pagination algorithm changes (existing `PaginationHelper.Calculate` preserved)
-- Search/filter algorithm changes (only AsNoTracking + index, not query rewrites)
-- View rendering performance (Razor view L226 not touched)
-- Frontend caching / SignalR push refresh — separate phase scope
-- New capabilities (e.g., infinite scroll, server-side rendering changes) — belong in other phases
+- Network/proxy investigation (escalate paralel ke IT, bukan code domain)
+- Service worker / advanced frontend caching
+- WebSocket / real-time updates
+- SSR streaming / SPA migration
+- Composite indexes / persisted computed columns
+- Unrelated refactor di controller atau view
 
 </domain>
 
 <decisions>
-## Implementation Decisions
+## Implementation Decisions (revised 2026-05-07)
 
-### Cache Strategy (Categories distinct dropdown)
+### Trigger Semantics
 
-- **D-01:** Cache key static `"assessment_categories_distinct"` (single global key, no per-user/per-tenant variant). Rationale: Categories list is project-wide constant, identical untuk semua admin/HC users; per-user differentiation tidak applicable.
+- **D-01:** Inactive tab (Training/History) trigger via Bootstrap 5 native event integrasi: `hx-trigger='shown.bs.tab from:closest button.nav-link once'`. Listens to Bootstrap event setelah tab visually aktif (animation done, DOM ready) — respect Bootstrap tab lifecycle. Active tab pakai `hx-trigger="load"` (auto-fire saat shell render).
 
-- **D-02:** TTL = 5 menit absolute expiration via `MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) }`. Pure time-based eviction, no sliding/LRU. Rationale: ROADMAP SC #5 explicit, Categories rarely change (CRUD operations not in this controller's hot path), 5-min staleness fully acceptable user-side.
+- **D-02:** HTMX 2.0.x latest stable. Vendor lokal di `wwwroot/lib/htmx/htmx.min.js` (~14 KB minified). Bukan CDN — proxy Pertamina mungkin block/lambat external CDN. Drop IE11 support acceptable karena admin user pakai Chrome/Edge modern.
 
-- **D-03 (REVISED via interactive discuss 2026-05-05):** **Explicit cache invalidation** pada Category CRUD operations. Tambah `_cache.Remove("assessment_categories_distinct")` di action `CreateCategory`/`UpdateCategory`/`DeleteCategory` (di `AssessmentAdminController.cs`). Rationale: ROADMAP SC #5 dipenuhi (TTL 5 menit tetap berlaku untuk safety net), tetapi UX optimal — admin yang baru add/edit/delete kategori langsung lihat dropdown fresh tanpa wait 5 menit. Cost: ~3 baris kode. Risk lupa invalidate di action baru = rendah karena CRUD kategori co-located dan jarang di-extend. Detail implementasi (cache key sebagai const, helper method) di-decide planner.
+### Filter Form Behavior
 
-- **D-04:** Cache miss path queries via `.AsNoTracking()` (read-only fetch into `IMemoryCache`):
-  ```csharp
-  ViewBag.Categories = await _cache.GetOrCreateAsync("assessment_categories_distinct", async entry => {
-      entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
-      return await _context.AssessmentSessions
-          .AsNoTracking()
-          .Select(a => a.Category)
-          .Distinct()
-          .OrderBy(c => c)
-          .ToListAsync();
-  });
-  ```
+- **D-03:** Live filter dengan debounce. Search box: `hx-trigger='input changed delay:500ms'` (debounce 500ms). Dropdown category & status: `hx-trigger='change'` (instant fire). HTMX `hx-target` = pane tab aktif, `hx-include="#filter-form"` (semua filter values dikirim). Filter trigger affects only active tab fetch (lihat D-05 cache invalidation).
 
-### Database Indexes
+- **D-04:** Pagination via AJAX HTMX. Pagination links di partial render dengan `hx-get` atribut → swap pane tab aktif dengan page baru. No full page reload. Konsisten dengan pattern HTMX di tab lain.
 
-- **D-05:** Add index `IX_AssessmentSessions_ExamWindowCloseDate` (single-column) — `Schedule` already indexed (`Data/ApplicationDbContext.cs:180` `entity.HasIndex(a => a.Schedule)`). Composite `IX_AssessmentSessions_Schedule_ExamWindowCloseDate` per ROADMAP SC #4 *literal* dapat di-add SEBAGAI tambahan, namun query L67 `(a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo` mengandung COALESCE yang menghalangi perfect index seek pada composite — optimizer akan tetap melakukan scan bahkan dengan composite. Rationale: rely on query optimizer untuk choose best plan dari dua single-column indexes. **Defer composite ke optional optimization** kalau measurement post-patch menunjukkan masih ada bottleneck.
+### Tab Cache Invalidation Strategy
 
-- **D-06:** Add index `IX_AssessmentSessions_LinkedGroupId` (single-column) — currently belum ada (verified via grep `Data/ApplicationDbContext.cs`). Used by `GroupBy(a => a.LinkedGroupId)` di L117. Rationale: ROADMAP SC #4 explicit + `LinkedGroupId` is FK-like nullable column heavily used in pre-post grouping path.
+- **D-05:** Filter change → invalidate semua tab. Implementation: filter form change trigger fire pada tab aktif (re-fetch dengan filter baru), DAN trigger JS untuk reset `data-loaded="true"` flag pada tab non-aktif (atau strip cached HTML). Saat user pindah ke tab non-aktif setelah filter, lazy-fetch ulang dengan filter baru. Pro: data konsisten, no stale state. Cost: 1 round trip extra saat user pindah tab post-filter (acceptable karena partial size kecil 30-50 KB).
 
-- **D-07:** Migration name: `20260506000000_AddManageAssessmentPerfIndexes` (exact timestamp resolved at execution time). Single migration containing both indexes (D-05, D-06). Rationale: atomic deploy, easy rollback. Generated via `dotnet ef migrations add AddManageAssessmentPerfIndexes`.
+- **D-06:** Partial endpoint HTTP response: `Cache-Control: no-store`. Implementasi: tambah `[ResponseCache(NoStore = true)]` attribute pada 3 partial actions, ATAU set di middleware. Browser tidak cache → tidak ada stale data dari browser cache. HTMX manage tab cache di JS-side, tidak butuh HTTP cache.
 
-### Query Optimization
+### Plan Scope: Old Backend Patches Fate
 
-- **D-08:** Apply `.AsNoTracking()` pada `managementQuery` chain start (L66) — single insertion sebelum `.Where(...)`. Rationale: full read-only path (controller hanya project ke anonymous type at L91-110, no entity tracking needed). EF Core change tracking disabled = ~10-20% memory + CPU saving on result hydration.
+- **D-07:** Plan 03 opportunistic same-phase. Keep AsNoTracking + IX_LinkedGroupId + IX_ExamWindowCloseDate + Categories MemoryCache (TTL 5min) sebagai Plan 03 di Phase 311 yang dijalankan PARALEL/SETELAH Plan 02 HTMX. Justifikasi: low-cost (~50 baris kode + 1 migration), small wins backend (10-20% per partial action), resilience untuk scaling future. Tidak block Plan 02. PERF-01 traceable.
 
-- **D-09:** Remove `.Include(a => a.User)` L88. Projection L106-108 (`a.User != null ? a.User.FullName : "Unknown"` etc.) sudah reference nav property — EF Core auto-translate ke SQL `LEFT JOIN` tanpa Include. Rationale: explicit Include dengan projection adalah anti-pattern (EF generates redundant entity materialization yang lalu di-discard). Verified via existing pattern di Phase 296+ refactors.
+- **D-08:** Update `REQUIREMENTS.md` §PERF-01 sebagai task awal di Plan 02. Edit:
+  - Acceptance: ganti "p95 ≥30% reduction backend" → "≤40 detik di wifi kantor (≥50% reduction dari baseline 1.4 min), <14 KB initial doc, ≤2s tab switch"
+  - Strategy: ganti "AsNoTracking + indexes + IMemoryCache" → "HTMX lazy load per tab + 3 partial endpoints + Plan 03 opportunistic backend (AsNoTracking + 2 indexes + Categories cache)"
+  - Source: reference `311-DESIGN.md` (approved 2026-05-07)
 
-- **D-10:** Verify projection masih emit `LEFT JOIN AspNetUsers` post-removal — capture EF Core generated SQL via logger pre/post + diff. Required acceptance criterion (manual verify selama execute, NOT new automated test).
+### Preserved from Prior Phase 311 Work
 
-### Measurement Methodology
+- **D-09 (preserved from old D-11/D-13):** Stopwatch instrumentation per-action. Pattern dari commit `a4ce556e` (sekarang single-action 5 Stopwatch) di-pindah ke per-action context: 1 Stopwatch per partial action (`ManageAssessmentTab_Assessment` measure T1, `_Training` measure T2+T4, `_History` measure T3). Logger format diadaptasi: `"ManageAssessment perf [tab={Tab}]: elapsed={Ms}ms search_present={SearchPresent} page={Page}"`. Permanent (NOT removed post-validation).
 
-- **D-11:** Baseline = `Stopwatch` di action body (`ManageAssessment`), wrap dari L64 (start) sampai `return View()` L226 (stop). Log via `_logger.LogInformation("ManageAssessment perf: tab={Tab} elapsed={Ms}ms", tab, sw.ElapsedMilliseconds)`. Rationale: lightweight (microsecond overhead), captures full request scope (DB + grouping + pagination + ViewBag), no external infra dependency, production-deployable.
+- **D-10 (preserved project principle):** Backward compat. ViewBag/contract harus preserved untuk partial endpoints — Razor partials existing (`_AssessmentGroupsTab.cshtml`, `_TrainingRecordsTab.cshtml`, `_HistoryTab.cshtml`) di-render via partial action endpoint dengan ViewBag shape sama persis dengan rendering inline lama. Smoke test parity manual UAT verifikasi.
 
-- **D-12:** Baseline run protocol:
-  1. Run pre-patch 5x dengan filter cold (no search), `tab=assessment`, page=1, pageSize=20
-  2. Record p50/p95 dari log entries (skip first run as JIT warmup)
-  3. Apply patch (D-04..D-09)
-  4. Run post-patch 5x identical filter
-  5. Compute improvement: `(baseline_p95 - postpatch_p95) / baseline_p95 ≥ 0.30`
-  6. Document di SUMMARY.md hasil pre/post numbers + improvement %
+### Claude's Discretion (planner pilih)
 
-- **D-13:** Stopwatch logging permanent (NOT removed post-validation) — biaya negligible, value untuk ongoing perf monitoring di production.
-
-### Scope Boundaries
-
-- **D-14:** Patch hanya `ManageAssessment` action L60-227. JANGAN touch `GetWorkersInSection` (Services/WorkerDataService.cs), `GetAllWorkersHistory`, atau Training/History tab queries. Rationale: ROADMAP SC #7 require smoke test parity untuk Training/History tabs (grouping & paging identical), tidak require optimization.
-
-- **D-15:** Smoke test methodology untuk SC #7: navigate ke `/Admin/ManageAssessment` pre + post patch dengan kombinasi (tab=assessment, tab=training, tab=history), verify:
-  - Page load tidak error (200 OK)
-  - Grouping output struktur sama (count rows, pagination headers)
-  - Paging totalPages identical untuk same dataset
-
-### Pre-Execute Diagnostic (added via interactive discuss 2026-05-05)
-
-- **D-16:** **Baseline breakdown per-query** WAJIB di-capture SEBELUM apply patch apapun, bukan hanya total Stopwatch (D-11). Rationale: investigasi user menemukan controller `ManageAssessment` (L60-227) selalu fetch data Training/History queries (`GetWorkersInSection` L210, `GetAllWorkersHistory` L212, `GetAllSectionsAsync` L220, `GetUnitsForSectionAsync` L222) walaupun user buka tab Assessment — komentar L195-197 eksplisit. Tanpa breakdown per-query, kita tidak tahu siapa bottleneck dominan: optimasi Assessment query saja (auto-pass D-14 scope) bisa gagal capai 30% kalau Training/History yang dominan.
-
-  Breakdown segments yang harus diukur:
-  - **T1** = Assessment query chain L66-110 (sessions fetch + projection + groupings)
-  - **T2** = `GetWorkersInSection` L210
-  - **T3** = `GetAllWorkersHistory` L212
-  - **T4** = `GetAllSectionsAsync` + `GetUnitsForSectionAsync` L220-223
-  - **T5** = Distinct Categories L172-176
-  - **Total** = T1+T2+T3+T4+T5
-
-  Implementasi: bungkus tiap segment dengan `Stopwatch` instance terpisah, log via `_logger.LogInformation("ManageAssessment perf breakdown: T1={T1}ms T2={T2}ms T3={T3}ms T4={T4}ms T5={T5}ms total={Total}ms tab={Tab}", ...)`. Run pre-patch 5x cold (skip first as JIT warmup), record median per segment.
-
-  Decision gate setelah baseline breakdown:
-  - **Skenario A:** T1 dominan (>60% total) → scope auto-pass D-14 valid, jalan sesuai rencana (patch hanya Assessment query + Categories cache + indexes).
-  - **Skenario B:** T2/T3 dominan (>50% total combined) → STOP planning, balik ke user dengan data konkret untuk decide: (a) expand scope ke `.AsNoTracking()` pada Training/History queries di Phase 311 (revisi D-14), atau (b) defer ke phase baru lazy-load architecture. Rollback strategy juga di-decide saat ini dengan informasi nyata.
-  - **Skenario C:** Mixed (T1 ~ T2/T3) → user decide explicit dengan breakdown numbers di tangan.
-
-  D-16 ini menggantikan kebutuhan pre-commit rollback strategy decision — measurement-driven approach: data dulu, scope decision belakangan.
-
-### Claude's Discretion
-
-- **Migration timestamp generation:** Auto-generated via `dotnet ef migrations add` — no override.
-- **Stopwatch logging format:** structured logging fields (tab, elapsed_ms, search_term_present, page) — exact field names di-finalize saat planning.
-- **EF Core SQL diff capture method:** preferred via `_context.Database.SetCommandTimeout` + `LogTo` callback OR `EFCoreLogger` middleware — planner decides cleanest approach.
-- **Cache key namespace:** `"assessment_categories_distinct"` literal (no shared cache helper extraction) — sufficient untuk single-use case Phase 311.
+- **HTMX swap mode**: `hx-swap="innerHTML"` (default, tukar konten dalam div) atau `outerHTML`. Default: `innerHTML`.
+- **Skeleton style**: Bootstrap 5 `.placeholder-glow` + `.placeholder` classes (sudah ada di project). Atau custom CSS.
+- **Error template**: Simple `<div class="alert alert-danger">...<button onclick="htmx.trigger(...)">Coba lagi</button></div>`. Style by Claude.
+- **Partial action method naming**: `ManageAssessmentTab_Assessment`, `_Training`, `_History` (PascalCase, underscore separator) sesuai konvensi controller existing.
+- **Migration timestamp**: auto-generated by `dotnet ef migrations add AddManageAssessmentPerfIndexes` (Plan 03).
+- **Active tab `hx-trigger`**: `hx-trigger="load"` (immediate after HTMX init) atau `hx-trigger="load delay:50ms"` (after first paint). Default: `load`.
+- **Race condition handling**: HTMX `hx-sync="this:replace"` untuk auto-cancel previous in-flight saat user cepat klik antar tab.
 
 ### Folded Todos
 
-None — `realtime-assessment.md` todo (created 2026-03-09) is unrelated to perf optimization.
-
-### Open Questions (deferred — answered post-baseline-breakdown D-16)
-
-- **Failure mode & rollback strategy** kalau post-patch tidak capai ≥30% improvement: di-decide setelah D-16 baseline breakdown menunjukkan Skenario A/B/C. Discuss-phase awal mencoba pre-commit Opsi 1 (iterative tambah composite/computed column), tapi user redirect ke measurement-driven decision — keputusan rollback berbeda kalau Training/History bottleneck (perlu expand scope, bukan iterative tweak Assessment query).
-- **Scope expansion ke Training/History queries** (revisi D-14): defer. Kalau D-16 menunjukkan Skenario B atau C, user decide explicit antara (a) expand `.AsNoTracking()` di sini, atau (b) bikin phase baru lazy-load.
-- **Lazy-load tab non-aktif** (fetch only active tab via `?tab=` param check): defer ke phase masa depan. Architecture change, scope-creep risk untuk Phase 311.
+None — `realtime-assessment.md` (matched score 0.6) tidak relevan ke perf optimization (different concern: real-time monitoring assessment rooms).
 
 </decisions>
 
 <canonical_refs>
 ## Canonical References
 
-**Downstream agents MUST read these before planning or implementing.**
+**Downstream agents (researcher, planner, executor) MUST read these before acting.**
 
 ### Project Roots & Conventions
 
-- `.planning/REQUIREMENTS.md` §PERF-01 — Acceptance criteria authoritative source (≥30% p95 improvement, strategi explicit)
-- `.planning/ROADMAP.md` §"Phase 311: ManageAssessment Performance" — 7 SC + Risk/Effort tags
-- `.planning/PROJECT.md` — Project principles (e.g., backward compatibility, observability convention)
+- `.planning/REQUIREMENTS.md` §PERF-01 — Acceptance criteria authoritative source (akan di-update di Plan 02 task awal per D-08)
+- `.planning/ROADMAP.md` §"Phase 311: ManageAssessment Performance" — 7 SC + Risk/Effort tags (mostly superseded; planner reconcile)
+- `.planning/PROJECT.md` — Project principles (backward compatibility, response language Bahasa Indonesia)
+
+### Phase 311 Internal Refs
+
+- `.planning/phases/311-manageassessment-performance/311-DESIGN.md` — **APPROVED design doc 2026-05-07** (source of truth direction)
+- `.planning/phases/311-manageassessment-performance/311-RESEARCH.md` — research lama; sebagian still relevan untuk Plan 03 (Pitfall 6/7/9 backend)
+- `.planning/phases/311-manageassessment-performance/311-PATTERNS.md` — pattern map lama (mostly superseded; planner re-derive)
+- `.planning/phases/311-manageassessment-performance/311-DISCUSSION-LOG.md` — full Q&A audit trail discuss session
 
 ### Source Files (Modify Targets)
 
-- `Controllers/AssessmentAdminController.cs:60-227` — `ManageAssessment` action target
-- `Data/ApplicationDbContext.cs:170-200` — `AssessmentSessions` entity config (existing indexes)
-- `Program.cs:17` — `builder.Services.AddMemoryCache()` (already registered, no add)
+- `Controllers/AssessmentAdminController.cs:60-262` — `ManageAssessment` action refactor target (split jadi shell + 3 partial actions)
+- `Views/Admin/ManageAssessment.cshtml` (176 lines) — shell view refactor (HTMX attrs + skeleton)
+- `Views/Admin/Shared/_AssessmentGroupsTab.cshtml` (333 lines) — di-render via partial action `ManageAssessmentTab_Assessment`
+- `Views/Admin/Shared/_TrainingRecordsTab.cshtml` (337 lines) — di-render via partial action `ManageAssessmentTab_Training`
+- `Views/Admin/Shared/_HistoryTab.cshtml` (148 lines) — di-render via partial action `ManageAssessmentTab_History`
+- `wwwroot/lib/` — vendor target untuk HTMX 2.0.x
 
-### Migration Reference
+### Plan 03 Backend Targets
 
-- `Migrations/ApplicationDbContextModelSnapshot.cs:440-460` — current `AssessmentSessions` index snapshot
-- Existing single-column index pattern di `Data/ApplicationDbContext.cs:178-181` — analog untuk new indexes (D-05, D-06)
+- `Data/ApplicationDbContext.cs:170-200` — AssessmentSessions entity config (existing indexes pattern)
+- `Migrations/ApplicationDbContextModelSnapshot.cs:440-460` — current snapshot (Plan 03 add IX_LinkedGroupId + IX_ExamWindowCloseDate)
+- `Program.cs:17` — `AddMemoryCache()` already registered (no add)
 
-### EF Core Pattern References
+### External Specs / Best Practices (research-cited 2026-05-07)
 
-- Phase 296 SUMMARY (`.planning/phases/296-data-foundation-grading-service/296-SUMMARY.md` if exists) — `.AsNoTracking()` precedent on read-only projection paths
-- `docs/test 16-april/DATABASE_ANALYSIS.md:1417` — existing analysis confirming `HasIndex(Schedule)` already exists (informs D-05 decision)
+- HTMX docs — `https://htmx.org/docs/` (trigger syntax, swap modes, hx-include semantics)
+- HTMX lazy load pattern — `https://htmx.org/examples/lazy-load/`
+- Cloudflare TCP 14 KB rule — `https://www.cloudflare.com/learning/performance/speed-up-a-website/`
+- Mike's Razor Pages + Bootstrap lazy load — `https://www.mikesdotnetting.com/article/350/razor-pages-and-bootstrap-lazy-loading-tabs`
+- MDN deferred vs lazy — `https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Lazy_loading`
 
-### Logging Convention
+### EF Core / Bootstrap Patterns (existing project conventions)
 
-- Existing `_logger.LogInformation` calls in same controller untuk consistency reference (struktur logging field names)
+- Phase 296+ refactors — `.AsNoTracking()` precedent on read-only projection paths
+- `Data/ApplicationDbContext.cs:178-181` — single-column `HasIndex` convention (analog untuk D-07 Plan 03 indexes)
+- Bootstrap 5 placeholder classes — already loaded di project (`bootstrap-icons.css` confirmed di Network tab screenshot 2026-05-07)
 
 </canonical_refs>
 
@@ -168,60 +165,68 @@ None — `realtime-assessment.md` todo (created 2026-03-09) is unrelated to perf
 
 ### Reusable Assets
 
-- **`IMemoryCache _cache`** sudah injected ke `AssessmentAdminController` constructor (L22, L34). Tidak perlu DI registration — langsung pakai `_cache.GetOrCreateAsync(...)`.
-- **`PaginationHelper.Calculate`** L180 — existing pagination utility. Preserve as-is, no changes needed.
-- **`_logger`** instance available via constructor injection — used untuk Stopwatch logging (D-11).
+- **`IMemoryCache _cache`** sudah injected ke `AssessmentAdminController` constructor (L22, L34). Untuk Plan 03 Categories cache.
+- **`PaginationHelper.Calculate`** L191 — existing pagination utility. Preserve as-is, partial actions tetap pakai.
+- **`_logger`** instance available — used untuk Stopwatch logging (D-09).
+- **Bootstrap 5 `.placeholder-glow` + `.placeholder` classes** — sudah aktif di project. Skeleton bisa langsung pakai (Claude's Discretion).
+- **jQuery available** — bisa dipakai untuk JS handler kalau perlu, tapi HTMX handle most cases.
 
 ### Established Patterns
 
-- **EF Core projection without Include** (anti-Include-redundancy pattern): codebase sudah pakai pola ini di Phase 296+ refactors. New work D-09 mengikuti precedent.
-- **Single-column HasIndex** convention di `ApplicationDbContext.cs:178-200` — analog untuk D-05, D-06 additions.
-- **Migration naming convention** `YYYYMMDDHHmmss_Description.cs` — auto-generated by EF tools, no manual override.
-- **MemoryCache TTL pattern** — first usage di codebase untuk this controller; no existing pattern, set new precedent dengan `AbsoluteExpirationRelativeToNow`.
+- **EF Core projection without Include** (anti-Include-redundancy pattern): codebase sudah pakai pola ini di Phase 296+ refactors. Plan 03 D-09 mengikuti precedent.
+- **Single-column `HasIndex` convention** di `ApplicationDbContext.cs:178-200` — analog untuk Plan 03 indexes.
+- **PartialView return** pattern: existing controllers banyak return `PartialView("~/Views/Admin/Shared/_...cshtml", model)` — analog untuk 3 partial actions baru.
+- **`[Authorize(Roles = "Admin, HC")]`** consistent di `AssessmentAdminController` — apply ke 3 partial actions baru juga.
+- **PathBase `/KPB-PortalHC`** — semua URL relatif harus respect prefix ini (verified `appsettings.json:9` + `Program.cs:186` `app.UsePathBase`).
 
 ### Integration Points
 
-- **No external API dependencies** — pure DB + memory cache.
-- **ViewBag contract** — Razor view `Views/Admin/ManageAssessment.cshtml` (TBD verify exists) consume `ViewBag.Categories`, `ViewBag.ManagementData`, etc. Patch must preserve ViewBag shape exactly.
+- **No external API dependencies** — pure DB + memory cache + Razor partials.
+- **Bootstrap 5 nav-tabs structure** existing di `Views/Admin/ManageAssessment.cshtml:57-91` — preserve struktur button[data-bs-toggle="tab"] + tab-pane#pane-{tab}, modify isi tab-pane jadi HTMX-driven.
+- **Filter form** existing di view — wrap dalam `<form id="filter-form">` (atau pakai existing form id), tambah `hx-include="#filter-form"` di tab pane HTMX attrs.
 - **No SignalR / real-time push** — read-only request-response pattern.
 
 ### Constraints / Gotchas
 
-- **COALESCE in WHERE clause** L67 `(a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo` translates ke SQL `ISNULL(ExamWindowCloseDate, Schedule)` — this prevents pure index seek even with composite index. Optimizer mostly falls back ke scan + filter. D-05 honest about this limitation.
-- **`Distinct().OrderBy()` di Categories query** L172-176 — without index pada Category column, this is a sort-distinct table scan. Cache hit path eliminates this (only run cold). NOT in scope to add `IX_AssessmentSessions_Category`.
-- **Backward compat** — controller signature dan ViewBag shape WAJIB unchanged. Only internal implementation changes.
+- **PathBase `/KPB-PortalHC`** — HTMX `hx-get` URL harus include path base. Pakai Razor helper `@Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin")` untuk auto-resolve.
+- **Bootstrap event timing** — `shown.bs.tab` fires AFTER tab transition complete. HTMX listener via `from:closest button.nav-link` perlu careful: button ada di nav, tab pane di sibling div. Verify selector during planning.
+- **HTMX 2.0 breaking changes** — beberapa atribut renamed dari 1.x. Planner reference 2.0 docs khusus.
+- **Backward compat** — controller signature `ManageAssessment(string? search, int page = 1, ...)` WAJIB unchanged untuk URL bookmarks tetap valid. Internal hanya jadi shell, parameter tetap accepted (forwarded ke partial endpoints via `hx-include`).
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- **Logging field names** preferred to match existing structured logging in codebase. Planner to verify by grep `_logger.LogInformation` di same controller for naming pattern.
-- **Migration ordering** — sebelum execute, verify no pending migration di `Migrations/` directory yang belum di-apply ke Dev DB (gosulu `dotnet ef migrations list`). New migration appended at HEAD, no edit existing.
-- **Reproducibility of measurement** — baseline + postpatch runs harus dengan dataset yang sama (no data mutation between runs). If running on local Dev DB, snapshot DB state before run.
+- **HTMX integration ASP.NET Core MVC** — pakai `Url.Action()` Razor helper untuk URL resolution (auto-respect PathBase). Jangan hardcode URL.
+- **Vendor HTMX**: download `htmx.min.js` v2.0.x dari https://unpkg.com/htmx.org@2.0/dist/htmx.min.js, save ke `wwwroot/lib/htmx/htmx.min.js`. Verify SHA hash kalau ada di docs official.
+- **Skeleton placeholder height**: match approximate height tabel actual (3-5 row × ~60px) supaya layout shift minimal saat content swap.
+- **Stopwatch logging**: tetap `_logger.LogInformation(...)` dengan structured fields. Per partial action 1 Stopwatch, log saat return.
+- **Filter form id**: kalau view existing belum punya `<form id="filter-form">`, tambah saat refactor shell view.
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
-- **Composite index `IX_AssessmentSessions_Schedule_ExamWindowCloseDate`** — defer to optional optimization phase if D-05's two single-column indexes don't yield sufficient improvement. Add via separate migration.
-- **Persisted computed column `EffectiveDate = COALESCE(ExamWindowCloseDate, Schedule)` + index** — alternative to fix COALESCE seek issue. Defer (schema migration overhead, breaks backward compat with raw SQL queries elsewhere).
-- **Categories cache invalidation on Category CRUD** — TTL drift acceptable for now. If user reports stale dropdowns become annoying, add explicit cache key bump via `_cache.Remove("assessment_categories_distinct")` di `CreateCategory/UpdateCategory/DeleteCategory` actions. Track as future improvement.
-- **Training/History tab perf optimization** — `GetWorkersInSection` (L210) dan `GetAllWorkersHistory` (L212) potentially slow on large worker datasets. **Default out-of-scope Phase 311**, namun D-16 baseline breakdown bisa surface ke scope kalau Skenario B/C terjadi (user decide saat itu).
-- **Lazy-load tab non-aktif** — controller saat ini selalu fetch data ketiga tab dalam 1 request (Training/History queries jalan walau user buka tab Assessment, lihat komentar L195-197). Refactor ke lazy-load via AJAX partial reload per tab = phase masa depan (bukan Phase 311). Architectural change beyond "AsNoTracking + index" scope.
-- **MiniProfiler integration** — comprehensive request profiling tool. Defer untuk future observability phase.
-- **Application Insights / OpenTelemetry** — production-grade APM. Out of scope, separate infra phase.
+- **Composite index `IX_AssessmentSessions_Schedule_ExamWindowCloseDate`** — defer ke phase masa depan kalau Plan 03 single-column indexes belum cukup. Schema migration overhead untuk persisted computed column tidak justified saat ini.
+- **Persisted computed column `EffectiveDate = COALESCE(ExamWindowCloseDate, Schedule)` + index** — defer (schema migration overhead, breaks backward compat dengan raw SQL queries elsewhere).
+- **Frontend service worker / advanced caching** — overkill untuk masalah saat ini.
+- **WebSocket / real-time updates** untuk ManageAssessment — different concern, tidak related ke proxy lag.
+- **Lazy-load pattern reuse di halaman lain** (ManageWorkers, Coach Workload, etc.) — defer; setelah Phase 311 prove pattern bekerja, evaluate replicate ke halaman lain di phase masa depan.
+- **MiniProfiler / Application Insights / OpenTelemetry** — out of scope, separate observability phase.
+- **Move filter logic ke client-side** (filter without round trip) — defer; client-side filtering butuh prefetch all data which contradicts payload-reduction goal.
 
 ### Reviewed Todos (not folded)
 
-- `realtime-assessment.md` (2026-03-09) — concept of real-time assessment monitoring. Unrelated to perf optimization. Stays in todos backlog.
+- `realtime-assessment.md` (2026-03-09, score 0.6) — concept of real-time assessment monitoring (live status push?). Different concern dari lazy-load architecture. Tidak relevan untuk Phase 311. Stays di todos backlog untuk evaluation di milestone berikutnya.
 
 </deferred>
 
 ---
 
 *Phase: 311-manageassessment-performance*
-*Context gathered: 2026-05-05 (autonomous pass — auto mode active)*
-*Revised: 2026-05-05 (interactive discuss-phase — D-03 explicit invalidation, D-16 baseline breakdown added)*
-*Auto-mode log: 15 decisions auto-selected; 1 revised (D-03) and 1 added (D-16) via user-driven discussion.*
+*Context revised: 2026-05-07 (interactive discuss-phase --revise)*
+*Approved direction: HTMX lazy load (Opsi 2 dari 6, brainstorm 2026-05-07)*
+*Decisions: 8 new (D-01..D-08) + 2 preserved (D-09 Stopwatch, D-10 backward compat) + 6 Claude's Discretion items*
+*Old D-01..D-16 (initial 2026-05-05): superseded; preserved di git history.*
