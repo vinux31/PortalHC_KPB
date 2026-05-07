@@ -948,7 +948,9 @@ else
 
 ## Risks & Open Questions
 
-### Open Questions
+### Open Questions (RESOLVED)
+
+> **STATUS:** All 4 questions RESOLVED at plan-phase 2026-05-07. Decisions locked dan tertulis sebagai inline RESOLVED markers di bawah. Plan 01/02 implement keputusan ini.
 
 1. **UI conditional render for Open + has-response (HC)**
    - What we know: D-01 says hide untuk `Status==Completed` ATAU `responseCount > 0`. SC #3 echoes ini.
@@ -957,21 +959,25 @@ else
      - (A) Precompute `responseCount` per group di partial action — accept perf cost (~20 queries × <2ms = <40ms overhead).
      - (B) UI hide pakai Status only; HC + Open + has-response → button shown → modal opened → backend reject + audit blocked. Defense-in-depth via backend guard. Trade-off: HC sees button briefly.
      - **Recommended: B** (backend is authoritative; UI imperfection minor; perf preserved).
+   - **RESOLVED: Opsi B locked.** UI hide pakai `Status != "Completed"` only (perf preserve, no precompute). Backend `EnsureCanDeleteAsync` (Plan 01) authoritative untuk responseCount block. HC + Open + has-response → button shown → modal opened → backend reject + AuditLog blocked. Trade-off accepted: HC sees button briefly untuk has-response cases (defense-in-depth via backend guard menutup celah security).
 
 2. **Modal placement: partial vs shell view**
    - What we know: `_AssessmentGroupsTab.cshtml` partial re-rendered by HTMX. Shell view `ManageAssessment.cshtml` outermost.
    - What's unclear: Modal markup di partial = re-rendered tiap HTMX swap (clean state but JS handler lost), atau di shell = stable but partial doesn't own its UI.
    - Recommendation: Place modal di `_AssessmentGroupsTab.cshtml` partial bottom (after table, before script section). Re-attach JS handler via `htmx:afterSwap` listener (Pitfall 5).
+   - **RESOLVED: Modal markup di partial bottom + handler re-attach via `htmx:afterSwap` listener.** Plan 02 Task 1 implement: (a) modal markup ditempatkan di akhir `_AssessmentGroupsTab.cshtml` (after table, before script); (b) `<script>` block dengan event delegation di `document.body` untuk `show.bs.modal` + `click` handlers (stable across DOM mutations); (c) tambah `htmx:afterSwap` listener yang reset state flag `window.__dam312Attached` dan re-init handler post-swap, supaya handler tidak hilang saat partial swap.
 
 3. **Audit blocked entry PrePost reason format**
    - What we know: D-03 specifies "reason (Status atau ResponseCount yang trigger block)". Tapi PrePost group ada 2 sesi.
    - What's unclear: Reason: `"Status=Completed"` (1 sesi), `"Status=Completed (Pre)"`, atau `"Status=Completed,Completed"`?
    - Recommendation: Format `"Status=PreTest:Open,PostTest:Completed ResponseCount=12"` (explicit per-session). Plan-phase finalize wording.
+   - **RESOLVED: Format explicit per-session locked.** Format: `Status=PreTest:{preStatus},PostTest:{postStatus} ResponseCount={total}` (e.g., `Status=PreTest:Open,PostTest:Completed ResponseCount=12`). Field discriminator: `AssessmentSession.AssessmentType` (string nullable, values `"PreTest"` | `"PostTest"` | null) per `Models/AssessmentSession.cs:154`. Implementation di `EnsureCanDeleteAsync` (Plan 01 Task 1) + `DeletePrePostGroup` (Plan 01 Task 2).
 
 4. **Smoke test data seeding strategy**
    - What we know: Test "HC + Completed" butuh assessment dengan Status=Completed.
    - What's unclear: Force Status via direct DB (need tests/helpers/db) atau via API (AkhiriUjian)?
    - Recommendation: Use `AkhiriUjian` endpoint via Playwright admin login (existing test pattern). Greenfield DB helper avoided — heavier infra.
+   - **RESOLVED: AkhiriUjian via Playwright admin login locked.** No direct DB write (heavier infra avoided). Plan 02 Task 2 menyediakan dua jalur: (a) preferred — Plan 02 Task 2 menyertakan seeding sub-task (admin login → buat assessment → AkhiriUjian endpoint untuk fixture Completed; submit jawaban worker untuk has-response fixture); (b) fallback — `test.skip` graceful jika seed missing, TAPI ditutup dengan strict 6/6 PASS gate di Task 4 manual UAT (sign-off matrix harus PASS no SKIP allowed untuk SC #6 closure).
 
 ### Risks
 
