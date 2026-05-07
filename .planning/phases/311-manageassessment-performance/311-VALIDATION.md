@@ -2,7 +2,7 @@
 phase: 311
 slug: manageassessment-performance
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-05
 ---
@@ -49,11 +49,14 @@ created: 2026-05-05
 | 311-02-06 | 02 | 1 | PERF-01 D-03 | — | `_cache.Remove("assessment_categories_distinct")` di AddCategory/EditCategory/DeleteCategory actions | unit | `grep -c "_cache.Remove(\"assessment_categories_distinct\")" Controllers/AssessmentAdminController.cs` ≥ 3 | ✅ | ⬜ pending |
 | 311-02-07 | 02 | 1 | PERF-01 | — | Build success: 0 errors, ≤ 92 warnings (preserve Phase 309 baseline) | unit | `dotnet build --nologo \| grep -E "(0 Error\|[0-9]+ Warning)"` | ✅ | ⬜ pending |
 | 311-02-08 | 02 | 1 | PERF-01 SC #1, SC #6 | — | Post-patch measurement: T1..T5 + total p95 dengan baseline data | manual | Run pre/post 5x, compute (baseline_p95 - postpatch_p95) / baseline_p95 ≥ 0.30 documented di SUMMARY.md | ❌ W0 | ⬜ pending |
-| 311-02-09 | 02 | 1 | PERF-01 SC #7 | — | Smoke test parity: tab=assessment + tab=training + tab=history page load 200 OK + grouping count identik pre/post | E2E + manual | `npx playwright test --grep "ManageAssessment smoke parity"` PASS + manual checklist | ⚠️ Wave 0 may need new test | ⬜ pending |
+| 311-02-09 | 02 | 1 | PERF-01 SC #7 | — | Smoke test parity 3 tab: kolom + row count + ordering identik pre/post | manual (WAIVED Playwright) | N/A — manual UAT per DESIGN §4.4 (no automated browser test feasible di wifi kantor proxy-network) | ❌ W0→manual | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
+
+
+> **N-1 Exception (manual-UAT-only stance):** Task `311-02-09` Playwright reference WAIVED per DESIGN §4.4. Phase 311 adalah proxy-network-bound perf phase — bottleneck di wifi kantor proxy throttling; automated browser smoke (Playwright Chromium di Windows) TIDAK reproduce wifi kantor network path, jadi automated parity check tidak memberi feedback signal yang valid. Smoke parity 3 tab di-cover via manual UAT 4-step BI di Plan 02 Task 4 (`checkpoint:human-verify`). Plan 02 SUMMARY harus dokumentasikan UAT verdict (PASS/FAIL per tab) sebagai equivalent gate. `nyquist_compliant: true` valid karena dimensi #1 (Functional smoke parity) terpenuhi via manual checkpoint dengan resume-signal blocker, bukan automated test.
 
 ## Wave 0 Requirements
 

@@ -194,20 +194,23 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
 
 #### Phase 311: ManageAssessment Performance
 
-- [ ] **Phase 311: ManageAssessment Performance** — AsNoTracking + DB index + cache
+- [ ] **Phase 311: ManageAssessment Performance** — HTMX lazy load architecture + opportunistic backend (REFRAMED 2026-05-07: backend bukan bottleneck, proxy wifi kantor adalah)
   - **REQ:** PERF-01
-  - **Success Criteria:**
-    1. Baseline measurement didokumentasikan (Stopwatch atau SQL profiler) sebelum patch
-    2. `ManageAssessment` query (baris 66) ditambah `.AsNoTracking()`
-    3. Redundant `.Include(a => a.User)` baris 88 dihapus (projection sudah pakai `a.User.FullName` langsung)
-    4. EF Core migration baru: index `IX_AssessmentSessions_Schedule_ExamWindowCloseDate` & `IX_LinkedGroupId` jika belum ada (cek migration history dulu)
-    5. `IMemoryCache` (TTL 5 menit) untuk distinct Categories di baris 172
-    6. Post-patch measurement: response time p95 ≤ baseline × 0.7 (≥30% improvement)
-    7. Smoke test tab Assessment, Training, History — grouping & paging hasil identik dengan sebelum patch
+  - **Depends on:** 310
+  - **Success Criteria (revised 2026-05-07 — supersedes original SC #1-7 per CONTEXT.md):**
+    1. Baseline per-segment Stopwatch terdokumentasi sebelum patch (DONE — commit a4ce556e Plan 01)
+    2. Initial response document <14 KB (TCP first roundtrip)
+    3. End-to-end load wifi kantor ≤40 detik (≥50% reduction dari baseline ~1.4 menit)
+    4. Tab switching post-initial ≤2 detik
+    5. TTFB tetap ≤500ms (no regression backend)
+    6. Smoke test parity per tab (Assessment/Training/History) — kolom, row count, ordering identik pre/post
+    7. Backward compat: filter form, pagination, ViewBag contract preserved
+    8. (Plan 03 opportunistic) AsNoTracking + IX_AssessmentSessions_LinkedGroupId + IX_AssessmentSessions_ExamWindowCloseDate + IMemoryCache TTL 5min Categories cache + 3x invalidation di Add/Edit/DeleteCategory
   - **Risk:** Medium | **Effort:** M-L
-  - **Plans:** 2 plans (measurement-driven gate Wave 0 → patches Wave 1+2)
-    - 311-01-PLAN.md — Wave 0 baseline: per-segment Stopwatch instrumentation (T1..T5) + 5x cold runs + Skenario A/B/C decision gate (D-11, D-13, D-16) — autonomous: false (human checkpoint)
-    - 311-02-PLAN.md — Wave 1+2 patches: AddManageAssessmentPerfIndexes migration + AsNoTracking + Include removal + Categories cache + 3x invalidation + post-patch measurement + 4-step UAT (D-01..D-09, ROADMAP SC #2-7) — autonomous: false (UAT human checkpoint)
+  - **Plans:** 3 plans (Plan 01 DONE — baseline preserved; Plan 02 + 03 NEW HTMX direction)
+    - [x] 311-01-PLAN.md — Wave 0 baseline: per-segment Stopwatch instrumentation (T1..T5) — DONE commit a4ce556e (preserved as ongoing telemetry)
+    - [ ] 311-02-PLAN.md — Wave 1 HTMX lazy load: REQUIREMENTS update + vendor HTMX 2.0.x + shell action refactor + 3 partial actions + shell view HTMX attrs + skeleton + filter form + error template + manual UAT 5-step BI (D-01..D-10)
+    - [ ] 311-03-PLAN.md — Wave 2 backend opportunistic: 2 indexes migration + AsNoTracking + Include removal + Categories cache + 3 invalidation hooks (D-04..D-07)
 
 #### Wave 5 — Audit Findings 29 April 2026 (parallel-safe, post-Wave 4)
 
@@ -217,6 +220,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
 
 - [ ] **Phase 312: Admin Full-Delete Assessment Room** — Role tier guard (Admin override status guard, HC blocked dari Completed/with-response) + UI conditional render
   - **REQ:** DEL-01
+  - **Depends on:** 311
   - **Success Criteria:**
     1. Role tier guard di `DeleteAssessment()` & `DeleteAssessmentGroup()` body: `if (!User.IsInRole("Admin"))` cek status Completed atau hasResponses → block dengan TempData error
     2. Authorize attribute existing `[Authorize(Roles = "Admin, HC")]` (line 1929, 2034) tidak diubah
@@ -233,6 +237,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
 
 - [ ] **Phase 313: Block Manual Submit Saat Waktu Habis** — Modify LIFE-03 jadi 2-tier (manual reject tanpa grace, auto reject setelah grace)
   - **REQ:** TMR-01
+  - **Depends on:** 311
   - **Success Criteria:**
     1. Modify `CMPController.SubmitExam()` LIFE-03 block (line ~1618–1631) jadi 2-tier branching `isAutoSubmit`
     2. Tier 1: `!isAutoSubmit && elapsed > allowed` → reject manual dengan TempData error + redirect Assessment
@@ -249,6 +254,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
 
 - [ ] **Phase 314: Fix Regenerate Token untuk Status Upcoming** — Investigative bug fix (repro → root cause → patch minimal)
   - **REQ:** TKN-01
+  - **Depends on:** 311
   - **Trigger Condition (dari user):** Status `Upcoming` + `IsTokenRequired=true` + 0 worker yang sudah masuk ujian
   - **Success Criteria:**
     1. Investigation phase: repro bug di environment dev sesuai trigger condition; capture exception/log/HTTP response
