@@ -238,7 +238,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
 
 #### Phase 313: Block Manual Submit Saat Waktu Habis
 
-- [ ] **Phase 313: Block Manual Submit Saat Waktu Habis** — Modify LIFE-03 jadi 2-tier (manual reject tanpa grace, auto reject setelah grace)
+- [x] **Phase 313: Block Manual Submit Saat Waktu Habis** — Modify LIFE-03 jadi 2-tier (manual reject tanpa grace, auto reject setelah grace) (completed 2026-05-08)
   - **REQ:** TMR-01
   - **Depends on:** 311
   - **Success Criteria:**
@@ -250,7 +250,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
     6. Verifikasi 3 tipe ber-timer: Online, PreTest, PostTest (Manual exclude)
     7. E2E test 6 skenario manual/auto × before-time/at-time/in-grace/after-grace
   - **Risk:** Medium-High | **Effort:** M-L
-  - **Plans:** 3 plans (Wave 0 + Wave 1 parallel-eligible 02+03)
+  - **Plans:** 3/3 plans complete
     - 313-01-PLAN.md — Wave 0 test infrastructure: SQL seed 7 fixture (.planning/seeds/313-timer-fixtures.sql) + FLOW 313 Playwright 7-test RED state + 313-UAT.md 7-step manual checklist (TMR-01)
     - 313-02-PLAN.md — Wave 1 backend: EnsureCanSubmitExamAsync helper + WriteSubmitBlockedAuditAsync + replace LIFE-03 inline block (2-tier branching D-09 + D-15 AssessmentType exclude C-01) (TMR-01)
     - 313-03-PLAN.md — Wave 1 frontend: ExamSummary.cshtml 3-branch button + retry handler D-10/D-11 + StartExam.cshtml modal info-only spinner C-03 + JS timer flow no setTimeout 10s (TMR-01)
