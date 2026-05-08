@@ -113,10 +113,19 @@
     }
 
     <!-- Final submit form -->
+    @{
+        // Phase 313 CR-01 fix: token server-issued, hanya non-null saat timerExpired=true.
+        var autoSubmitToken = ViewBag.AutoSubmitToken as string;
+    }
     <form asp-action="SubmitExam" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" name="id" value="@assessmentId" />
         <input type="hidden" name="isAutoSubmit" value="@(timerExpired ? "true" : "false")" id="autoSubmitFlag" />
+        @if (!string.IsNullOrEmpty(autoSubmitToken))
+        {
+            @* Phase 313 CR-01: server-issued one-shot token untuk validasi auto-submit di Tier-1. *@
+            <input type="hidden" name="autoSubmitToken" value="@autoSubmitToken" id="autoSubmitToken" />
+        }
         @foreach (var kvp in answers)
         {
             <input type="hidden" name="answers[@kvp.Key]" value="@kvp.Value" />
@@ -169,7 +178,8 @@
     (function () {
         // Phase 313 D-10: auto-submit retry 3x exponential backoff [1s, 2s, 4s].
         // Hanya aktif kalau timerExpired (form auto-fired dari StartExam.cshtml redirect chain).
-        var timerExpired = @Json.Serialize((bool?)(ViewBag.TimerExpired) ?? false);
+        // Phase 313 IN-01 fix: reuse Razor variable `timerExpired` (line 9), no duplicate ViewBag read.
+        var timerExpired = @Json.Serialize(timerExpired);
         if (!timerExpired) return; // Happy path — pakai native form submit + confirm.
 
         var form = document.querySelector('form[action$="/SubmitExam"]');
@@ -178,19 +188,34 @@
         var maxAttempts = 3;
         var delays = [1000, 2000, 4000]; // D-10 exponential backoff
         var attempt = 0;
+        var stopRetry = false; // Phase 313 CR-02 fix: stop chain kalau server reject (Tier-1/Tier-2).
 
         function attemptSubmit() {
+            if (stopRetry) return;
             attempt++;
             var fd = new FormData(form);
             return fetch(form.action, { method: 'POST', body: fd, redirect: 'follow' })
                 .then(function (r) {
-                    if (r.redirected) { window.location.href = r.url; return; }
+                    if (r.redirected) {
+                        // Phase 313 CR-02 fix: redirect ke /CMP/StartExam = signal "submit ditolak"
+                        // (Tier-1 atau Tier-2 fire). JANGAN follow — itu bisa memicu loop
+                        // StartExam → ExamSummary → SubmitExam → StartExam tanpa batas.
+                        // Hanya redirect ke /CMP/Results yang dianggap sukses.
+                        if (/\/CMP\/StartExam(\/|\?|$)/i.test(r.url)) {
+                            stopRetry = true;
+                            showRetryFailBanner('Server menolak submit (waktu sudah lewat grace). Hubungi admin — jawaban Anda tersimpan di server.');
+                            return; // STOP retry chain, jangan navigate.
+                        }
+                        window.location.href = r.url;
+                        return;
+                    }
                     if (!r.ok) throw new Error('HTTP ' + r.status);
                     // Server returned non-redirect 2xx — fallback: reload to current URL.
                     window.location.reload();
                 })
                 .catch(function (err) {
                     console.error('[Phase 313] Submit attempt ' + attempt + ' failed', err);
+                    if (stopRetry) return;
                     if (attempt < maxAttempts) {
                         setTimeout(attemptSubmit, delays[attempt - 1]);
                     } else {
@@ -199,17 +224,20 @@
                 });
         }
 
-        function showRetryFailBanner() {
+        function showRetryFailBanner(customMessage) {
             // D-11: banner permanent — server-side last-resort save deferred ke v16.0+.
+            // Phase 313 CR-02: optional customMessage untuk membedakan reject server vs gagal jaringan.
             var container = document.querySelector('.container.py-4') || document.querySelector('main') || document.body;
             if (!container) return;
             var banner = document.createElement('div');
             banner.className = 'alert alert-warning fw-semibold';
             banner.setAttribute('role', 'alert');
-            banner.innerHTML =
-                '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+            var defaultMsg =
                 'Submit gagal karena masalah jaringan. Hubungi admin. ' +
                 'Jawaban Anda tersimpan di tab ini, jangan tutup browser.';
+            banner.innerHTML =
+                '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+                (customMessage || defaultMsg);
             container.prepend(banner);
         }
 

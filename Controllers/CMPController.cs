@@ -1542,18 +1542,31 @@ namespace HcPortal.Controllers
                 timerExpired = elapsed >= allowed;
             }
 
+            // Phase 313 CR-01 fix: server-generated one-shot token saat timerExpired=true.
+            // Token ini di-render ke hidden field di form, lalu di-validate + consume oleh
+            // EnsureCanSubmitExamAsync. Tujuan: Tier-1 (no-grace) hanya bypass kalau request
+            // berasal dari path auto-submit yang sah (server-issued), BUKAN dari client yang
+            // bisa spoof `isAutoSubmit=true` via DevTools.
+            string? autoSubmitToken = null;
+            if (timerExpired)
+            {
+                autoSubmitToken = Guid.NewGuid().ToString("N");
+                TempData[$"AutoSubmitToken_{id}"] = autoSubmitToken;
+            }
+
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.AssessmentId = id;
             ViewBag.AssignmentId = assignmentId;
             ViewBag.UnansweredCount = unansweredCount;
             ViewBag.Answers = answers; // passed to the hidden final-submit form
             ViewBag.TimerExpired = timerExpired;
+            ViewBag.AutoSubmitToken = autoSubmitToken; // Phase 313 CR-01 — null kalau !timerExpired
             return View(summaryItems);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers, bool isAutoSubmit = false)
+        public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers, bool isAutoSubmit = false, string? autoSubmitToken = null)
         {
             var assessment = await _context.AssessmentSessions
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -1617,7 +1630,9 @@ namespace HcPortal.Controllers
             // Phase 313: 2-tier branching — manual reject tanpa grace (D-09), auto reject setelah grace (existing).
             // Helper extraction mirror Phase 312 EnsureCanDeleteAsync pattern (D-04 lock, body-method placement).
             // AssessmentType Manual exclude di-handle dalam helper (D-15 defense-in-depth).
-            var timerBlockResult = await EnsureCanSubmitExamAsync(assessment, isAutoSubmit);
+            // Phase 313 CR-01 fix: pass autoSubmitToken (server-issued one-shot) ke helper.
+            // Tier-1 enforcement TIDAK lagi trust client `isAutoSubmit` flag — token-based check.
+            var timerBlockResult = await EnsureCanSubmitExamAsync(assessment, isAutoSubmit, autoSubmitToken, id);
             if (timerBlockResult != null) return timerBlockResult;
 
             // Check for package path — must happen before any grading logic
@@ -4528,7 +4543,9 @@ namespace HcPortal.Controllers
         /// </summary>
         private async Task<IActionResult?> EnsureCanSubmitExamAsync(
             AssessmentSession assessment,
-            bool isAutoSubmit)
+            bool isAutoSubmitClientHint,
+            string? autoSubmitToken,
+            int sessionId)
         {
             // D-15 / C-01: Manual type exclude via explicit field check (defense-in-depth).
             // Field di model adalah `AssessmentType` (Models/AssessmentSession.cs:154 verified).
@@ -4542,12 +4559,34 @@ namespace HcPortal.Controllers
             // Legacy session: StartedAt null (sessions sebelum Phase 21) — skip check (existing convention preserved).
             if (!assessment.StartedAt.HasValue) return null;
 
+            // Phase 313 WR-02 fix: gunakan satuan dan operator yang konsisten — detik integer, ≥.
+            // Selaras dengan ExamSummary GET (line 1542) dan SubmitExam awal (line 1585).
             var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
             int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0);
-            int graceLimitMinutes = allowedMinutes + 2; // 2-minute grace untuk network latency (existing tier-2)
+            double elapsedSec = elapsed.TotalSeconds;
+            double allowedSec = allowedMinutes * 60.0;
+            double graceLimitSec = allowedSec + 120.0; // 2-minute grace untuk network latency (existing tier-2)
 
-            // Tier 1 (Phase 313 NEW): manual reject tanpa grace (D-09 strict 0-grace).
-            if (!isAutoSubmit && elapsed.TotalMinutes > allowedMinutes)
+            // Phase 313 CR-01 fix: server-side token validation menggantikan trust client `isAutoSubmit`.
+            // Token = one-shot Guid yang di-issue di ExamSummary GET saat timerExpired=true (TempData).
+            // Validate + consume di sini: kalau token cocok → request datang dari path auto-submit yang sah.
+            // Kalau attacker spoof `isAutoSubmit=true` via DevTools tanpa token valid, Tier-1 tetap reject.
+            bool serverApprovedAutoSubmit = false;
+            var tempKey = $"AutoSubmitToken_{sessionId}";
+            var expectedToken = TempData[tempKey] as string;
+            if (!string.IsNullOrEmpty(autoSubmitToken)
+                && !string.IsNullOrEmpty(expectedToken)
+                && string.Equals(autoSubmitToken, expectedToken, StringComparison.Ordinal))
+            {
+                serverApprovedAutoSubmit = true;
+            }
+            // TempData accessed-and-cleared (one-shot semantics): pastikan token tidak bisa dipakai ulang.
+            TempData.Remove(tempKey);
+
+            // Tier 1 (Phase 313 NEW + CR-01 hardening): manual reject tanpa grace (D-09 strict 0-grace).
+            // Reject kalau elapsed > allowed DAN tidak ada server-approved auto-submit token.
+            // Client `isAutoSubmitClientHint` TIDAK lagi sufficient — harus dibarengi token sah.
+            if (elapsedSec >= allowedSec && !serverApprovedAutoSubmit)
             {
                 await WriteSubmitBlockedAuditAsync(assessment, elapsed, allowedMinutes);
                 // D-01 explanatory message — Bahasa Indonesia per CLAUDE.md.
@@ -4557,7 +4596,7 @@ namespace HcPortal.Controllers
 
             // Tier 2 (existing LIFE-03 preserved): auto reject setelah grace.
             // D-06: TIDAK tulis AuditLog Blocked entry untuk Tier 2 (scope minimal, hanya tier-1 yang baru).
-            if (elapsed.TotalMinutes > graceLimitMinutes)
+            if (elapsedSec >= graceLimitSec)
             {
                 TempData["Error"] = "Waktu ujian Anda telah habis. Pengiriman jawaban tidak dapat diproses.";
                 return RedirectToAction("StartExam", new { id = assessment.Id });
@@ -4584,10 +4623,14 @@ namespace HcPortal.Controllers
                     : $"{blockUser.NIP} - {blockUser.FullName}";
 
                 // D-05 Description format EXACT — parsing-friendly key=value:
-                // "HC/User role manual submit blocked after timeup. Type={...} ElapsedMin={X} AllowedMin={Y} SessionId={id}"
+                // "HC/User role manual submit blocked after timeup. Type={...} ElapsedSec={X} AllowedSec={Y} SessionId={id}"
+                // Phase 313 WR-04 fix: log dengan presisi detik (bukan truncated minutes) supaya
+                // reviewer audit tidak melihat kontradiktif `ElapsedMin == AllowedMin` saat sebenarnya elapsed > allowed.
                 var description =
                     $"HC/User role manual submit blocked after timeup. " +
                     $"Type={assessment.AssessmentType} " +
+                    $"ElapsedSec={(int)elapsed.TotalSeconds} " +
+                    $"AllowedSec={allowedMinutes * 60} " +
                     $"ElapsedMin={(int)elapsed.TotalMinutes} " +
                     $"AllowedMin={allowedMinutes} " +
                     $"SessionId={assessment.Id}";
@@ -4603,9 +4646,11 @@ namespace HcPortal.Controllers
             catch (Exception auditEx)
             {
                 // Swallow — audit failure tidak boleh block primary action (Phase 312 T-306-02 precedent).
+                // Phase 313 WR-03 fix: structured key `event=audit_drop_phase313` untuk dashboard log
+                // grep + drop-rate monitoring. Memungkinkan alarm kalau audit-write gagal sistematik.
                 _logger.LogWarning(auditEx,
-                    "AuditLog SubmitExamBlocked write failed for SessionId={SessionId}",
-                    assessment.Id);
+                    "AuditLog SubmitExamBlocked write failed for SessionId={SessionId} Event={Event}",
+                    assessment.Id, "audit_drop_phase313");
             }
         }
 
