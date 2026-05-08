@@ -1633,14 +1633,12 @@ test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
   test('313.2 - Manual + after-time (in grace) + Online → BLOCKED + AuditLog SubmitExamBlocked', async ({ page }) => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture Online ManualAfterGrace';
-    await page.goto('/CMP/Assessment');
-    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
-    if (await targetRow.count() === 0) {
-      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
-    }
-    // Expected: redirect StartExam dengan TempData D-01 banner.
-    // AuditLog verify via DB SQL spot-check di Manual UAT (313-UAT.md).
-    await expect(targetRow).toBeVisible();
+    const sessionId = await clickResumeForFixture(page, fixtureTitle);
+    // Server detects timer expired → redirect StartExam → ExamSummary.
+    // JS auto-fire retry handler → POST SubmitExam → server Tier-1 reject 302 StartExam.
+    // assertTier1Reject covers final waitForURL StartExam + banner D-01 'Waktu ujian Anda sudah habis'.
+    await assertTier1Reject(page, sessionId);
+    // AuditLog SubmitExamBlocked verify TETAP MANUAL SQL spot-check di 313-UAT.md (Playwright tidak query DB direct).
   });
 
   test('313.3 - Auto + after-time (in grace) + Online → submit OK (Tier 2 grace covers)', async ({ page }) => {
@@ -1668,23 +1666,15 @@ test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
   test('313.5 - Manual + after-time + PreTest → BLOCKED (Tier-1)', async ({ page }) => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture PreTest ManualAfterGrace';
-    await page.goto('/CMP/Assessment');
-    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
-    if (await targetRow.count() === 0) {
-      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
-    }
-    await expect(targetRow).toBeVisible();
+    const sessionId = await clickResumeForFixture(page, fixtureTitle);
+    await assertTier1Reject(page, sessionId);
   });
 
   test('313.6 - Manual + after-time + PostTest → BLOCKED (Tier-1)', async ({ page }) => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture PostTest ManualAfterGrace';
-    await page.goto('/CMP/Assessment');
-    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
-    if (await targetRow.count() === 0) {
-      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
-    }
-    await expect(targetRow).toBeVisible();
+    const sessionId = await clickResumeForFixture(page, fixtureTitle);
+    await assertTier1Reject(page, sessionId);
   });
 
   test('313.7 - Manual + after-time + Manual type → submit OK (D-15 exclude verify)', async ({ page }) => {
