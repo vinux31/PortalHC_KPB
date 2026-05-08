@@ -1644,23 +1644,21 @@ test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
   test('313.3 - Auto + after-time (in grace) + Online → submit OK (Tier 2 grace covers)', async ({ page }) => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture Online AutoInGrace';
-    await page.goto('/CMP/Assessment');
-    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
-    if (await targetRow.count() === 0) {
-      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
-    }
-    await expect(targetRow).toBeVisible();
+    const sessionId = await clickResumeForFixture(page, fixtureTitle);
+    // Server timer-expired → redirect ExamSummary. JS auto-fire retry POST SubmitExam.
+    // isAutoSubmit=true + elapsed within grace (< allowed + 2min) → server Tier-2 ACCEPT → 302 Results.
+    await assertSubmitSuccess(page, sessionId);
   });
 
   test('313.4 - Auto + after-grace + Online → BLOCKED Tier 2 (existing preserved)', async ({ page }) => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture Online AutoAfterGrace';
-    await page.goto('/CMP/Assessment');
-    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
-    if (await targetRow.count() === 0) {
-      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
-    }
-    await expect(targetRow).toBeVisible();
+    const sessionId = await clickResumeForFixture(page, fixtureTitle);
+    // isAutoSubmit=true + elapsed > allowed + 2min grace → server Tier-2 REJECT.
+    // JS retry handler intercept redirect StartExam → custom .alert-warning 'Server menolak submit'
+    // ATAU server-side .alert-danger 'Waktu ujian Anda telah habis' (kalau JS tidak intercept).
+    // assertTier2Reject covers both branches via regex match.
+    await assertTier2Reject(page, sessionId);
   });
 
   test('313.5 - Manual + after-time + PreTest → BLOCKED (Tier-1)', async ({ page }) => {
