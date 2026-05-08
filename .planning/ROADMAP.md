@@ -269,7 +269,7 @@ Plans:
 
 #### Phase 314: Fix Regenerate Token untuk Status Upcoming
 
-- [ ] **Phase 314: Fix Regenerate Token untuk Status Upcoming** — Investigative bug fix (repro → root cause → patch minimal)
+- [x] **Phase 314: Fix Regenerate Token untuk Status Upcoming** — Investigative bug fix (repro → root cause → patch minimal) (completed 2026-05-08)
   - **REQ:** TKN-01
   - **Depends on:** 311
   - **Trigger Condition (dari user):** Status `Upcoming` + `IsTokenRequired=true` + 0 worker yang sudah masuk ujian
@@ -281,7 +281,7 @@ Plans:
     5. Frontend `AssessmentMonitoring.cshtml` line 396–419 & `AssessmentMonitoringDetail.cshtml` line 981–1009: error message dari server JSON dipropagasi ke `alert()` (bukan generik)
     6. Smoke test 3 skenario: Upcoming+0-peserta OK, Upcoming+sebagian-start OK, Open running OK
   - **Risk:** Low-Medium | **Effort:** S-M (investigative)
-  - **Plans:** 2 plans
+  - **Plans:** 2/2 plans complete
     - 314-01-PLAN.md — Repro & RESEARCH.md (root cause documentation)
     - 314-02-PLAN.md — Patch backend + frontend error propagation + smoke test
 
