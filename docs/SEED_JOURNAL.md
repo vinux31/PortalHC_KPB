@@ -6,4 +6,4 @@ Audit trail untuk seed `temporary + local-only`. Lihat [`docs/SEED_WORKFLOW.md`]
 
 | Tanggal | Phase | Klasifikasi | Tujuan | Dampak (entitas tersentuh) | Snapshot file | Status |
 |---------|-------|-------------|--------|----------------------------|---------------|--------|
-| _(belum ada entry)_ | | | | | | |
+| 2026-05-08 | 313 | temporary + local-only | UAT FLOW 313 timer enforcement (TMR-01) — 2-tier reject manual submit setelah waktu habis (7 fixtures: Online/PreTest/PostTest × Before/Tier-1/Tier-2 + Manual exclude) | AssessmentSessions(7) prefix `Phase 313 Timer Fixture` | HcPortalDB_Dev.20260508-pre313.bak | active |

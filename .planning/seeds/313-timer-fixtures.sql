@@ -9,16 +9,16 @@
 --   + Manual UAT 313-UAT.md.
 --
 -- Cara run (DB lokal saja - JANGAN jalankan di Dev/Prod per CLAUDE.md DEV_WORKFLOW):
---   - SSMS: open file, F5 (execute) terhadap koneksi DB lokal HcPortal
---   - sqlcmd: sqlcmd -S localhost -d HcPortal -E -i .planning\seeds\313-timer-fixtures.sql
+--   - SSMS: open file, F5 (execute) terhadap koneksi DB lokal HcPortalDB_Dev
+--   - sqlcmd: sqlcmd -S "localhost\SQLEXPRESS" -d HcPortalDB_Dev -E -C -I -i .planning\seeds\313-timer-fixtures.sql
 --
 -- Idempotent:
 --   Script ini WIPE-AND-INSERT - re-run aman, akan delete fixture lama (title prefix
 --   'Phase 313 Timer Fixture') sebelum INSERT 7 row baru. Tidak akan menyentuh data lain.
 --
 -- Pre-condition:
---   1. User dengan Email = 'rino.prasetyo@pertamina.com' ada di AspNetUsers (coachee fixture).
---      Verify: SELECT Email FROM AspNetUsers WHERE Email='rino.prasetyo@pertamina.com';
+--   1. User dengan Email = 'rino.prasetyo@pertamina.com' ada di Users (coachee fixture).
+--      Verify: SELECT Email FROM Users WHERE Email='rino.prasetyo@pertamina.com';
 --   2. Skema AssessmentSessions sesuai snapshot 2026-05-08
 --      (verified Migrations/ApplicationDbContextModelSnapshot.cs:286-459)
 --
@@ -34,7 +34,7 @@ SET XACT_ABORT ON;
 -- ============================================================
 DECLARE @UserId NVARCHAR(450) = (
     SELECT TOP 1 Id
-    FROM AspNetUsers
+    FROM Users
     WHERE Email = 'rino.prasetyo@pertamina.com'
 );
 
@@ -44,7 +44,7 @@ DECLARE @Now DATETIME2 = SYSUTCDATETIME();
 IF @UserId IS NULL
 BEGIN
     THROW 50001,
-        'User rino.prasetyo@pertamina.com tidak ditemukan di AspNetUsers - abort. Jalankan seed user coachee terlebih dahulu.',
+        'User rino.prasetyo@pertamina.com tidak ditemukan di Users - abort. Jalankan seed user coachee terlebih dahulu.',
         1;
 END;
 
