@@ -1591,3 +1591,105 @@ test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
     }
   });
 });
+
+// ============================================================
+// FLOW 313: Phase 313 — Block Manual Submit Saat Waktu Habis
+// REQ: TMR-01 (7 success criteria)
+// 313.1 — Manual + before-time + Online → submit OK (regression)
+// 313.2 — Manual + after-time (in grace) + Online → BLOCKED + AuditLog SubmitExamBlocked + redirect
+// 313.3 — Auto + after-time (in grace) + Online → submit OK (Tier 2 grace covers)
+// 313.4 — Auto + after-grace + Online → BLOCKED Tier 2 (existing preserved)
+// 313.5 — Manual + after-time + PreTest → BLOCKED (3 timer types verify)
+// 313.6 — Manual + after-time + PostTest → BLOCKED
+// 313.7 — Manual + after-time + Manual type → submit OK (D-15 exclude verify)
+// Wave 0: semua test SKIP graceful jika fixture .planning/seeds/313-timer-fixtures.sql belum dijalankan.
+// ============================================================
+test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
+
+  test('313.1 - Manual + before-time + Online → submit OK (regression)', async ({ page }) => {
+    await login(page, 'coachee');
+    const fixtureTitle = 'Phase 313 Timer Fixture Online ManualBeforeTime';
+    await page.goto('/CMP/Assessment');
+    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
+    if (await targetRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required (jalankan .planning/seeds/313-timer-fixtures.sql)`);
+    }
+    // Plan 03 implementasi finalisasi flow assertion. Wave 0 placeholder:
+    await expect(targetRow).toBeVisible();
+  });
+
+  test('313.2 - Manual + after-time (in grace) + Online → BLOCKED + AuditLog SubmitExamBlocked', async ({ page }) => {
+    await login(page, 'coachee');
+    const fixtureTitle = 'Phase 313 Timer Fixture Online ManualAfterGrace';
+    await page.goto('/CMP/Assessment');
+    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
+    if (await targetRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
+    }
+    // Expected: redirect StartExam dengan TempData D-01 banner.
+    // AuditLog verify via DB SQL spot-check di Manual UAT (313-UAT.md).
+    await expect(targetRow).toBeVisible();
+  });
+
+  test('313.3 - Auto + after-time (in grace) + Online → submit OK (Tier 2 grace covers)', async ({ page }) => {
+    await login(page, 'coachee');
+    const fixtureTitle = 'Phase 313 Timer Fixture Online AutoInGrace';
+    await page.goto('/CMP/Assessment');
+    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
+    if (await targetRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
+    }
+    await expect(targetRow).toBeVisible();
+  });
+
+  test('313.4 - Auto + after-grace + Online → BLOCKED Tier 2 (existing preserved)', async ({ page }) => {
+    await login(page, 'coachee');
+    const fixtureTitle = 'Phase 313 Timer Fixture Online AutoAfterGrace';
+    await page.goto('/CMP/Assessment');
+    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
+    if (await targetRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
+    }
+    await expect(targetRow).toBeVisible();
+  });
+
+  test('313.5 - Manual + after-time + PreTest → BLOCKED (Tier-1)', async ({ page }) => {
+    await login(page, 'coachee');
+    const fixtureTitle = 'Phase 313 Timer Fixture PreTest ManualAfterGrace';
+    await page.goto('/CMP/Assessment');
+    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
+    if (await targetRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
+    }
+    await expect(targetRow).toBeVisible();
+  });
+
+  test('313.6 - Manual + after-time + PostTest → BLOCKED (Tier-1)', async ({ page }) => {
+    await login(page, 'coachee');
+    const fixtureTitle = 'Phase 313 Timer Fixture PostTest ManualAfterGrace';
+    await page.goto('/CMP/Assessment');
+    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
+    if (await targetRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
+    }
+    await expect(targetRow).toBeVisible();
+  });
+
+  test('313.7 - Manual + after-time + Manual type → submit OK (D-15 exclude verify)', async ({ page }) => {
+    await login(page, 'coachee');
+    const fixtureTitle = 'Phase 313 Timer Fixture Manual ExcludeVerify';
+    await page.goto('/CMP/Assessment');
+    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
+    if (await targetRow.count() === 0) {
+      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
+    }
+    // Manual type harus PASS guard (D-15 exclude). AuditLog SubmitExamBlocked TIDAK boleh exist untuk fixture ini.
+    await expect(targetRow).toBeVisible();
+  });
+});
+
+// Helper untuk escape regex special chars (Pitfall 5 — Phase 312 WR-03 selector substring mitigation)
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
