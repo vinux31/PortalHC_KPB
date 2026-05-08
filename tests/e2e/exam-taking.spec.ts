@@ -1611,22 +1611,41 @@ test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture Online ManualBeforeTime';
     const sessionId = await clickResumeForFixture(page, fixtureTitle);
-    // Manual+BeforeTime: Resume → StartExam (alive). Modal dismiss kalau ada.
-    const resumeModal = page.locator('#resumeConfirmModal');
-    if (await resumeModal.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await page.locator('#resumeConfirmBtn').click();
-      await page.waitForTimeout(500);
+    // Order kritikal (StartExam.cshtml line 1141-1144):
+    //   examLoadingOverlay HIDE DULU → resumeConfirmModal SHOW (kondisional IS_RESUME).
+    // Test harus tunggu overlay hide DULU, baru dismiss modal kalau muncul.
+    const loadingOverlay = page.locator('#examLoadingOverlay');
+    if (await loadingOverlay.count() > 0) {
+      await expect(loadingOverlay).not.toBeVisible({ timeout: 15_000 });
     }
-    // Fill Q1 first option (= "Pilihan A" per D-03 IsCorrect=true index 0).
-    // No data-testid in StartExam.cshtml — use class selector .exam-radio (per D-18).
-    const firstQuestion = page.locator('[id^="qcard_"]').first();
-    await firstQuestion.locator('input.exam-radio[type="radio"]').first().check({ force: true });
-    // Trigger Review and Submit (POST → ExamSummary).
+    // Sekarang modal "Ada ujian yang belum selesai" mungkin sudah show (Pitfall 3).
+    // Click "Lanjutkan" via #resumeConfirmBtn → modal hide (line 1146-1152 handler).
+    const resumeModal = page.locator('#resumeConfirmModal');
+    if (await resumeModal.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click();
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
+    }
+    // Fill SEMUA 3 questions (D-02 seed) supaya "Kumpulkan Ujian" enabled di ExamSummary.
+    // D-04: IsCorrect=true HANYA index 0 (OptionText="Pilihan A"). Cross-package shuffle
+    // random-kan urutan, jadi cari label "Pilihan A" per question card.
+    // Click label (markup line 164-175 StartExam.cshtml) — browser fires native onChange →
+    // JS handler line 803 → AJAX save → form submit unblocked.
+    const questionCards = page.locator('[id^="qcard_"]');
+    const cardCount = await questionCards.count();
+    for (let i = 0; i < cardCount; i++) {
+      const card = questionCards.nth(i);
+      await card.locator('label[id^="lbl_"]').filter({ hasText: 'Pilihan A' }).first().click();
+      await page.waitForTimeout(700); // debounced save (line 817 saveAnswerWithDebounce ~500ms)
+    }
+    // Tunggu submit button enabled (line 968 guard release setelah semua save complete).
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
     await page.locator('#reviewSubmitBtn').click();
-    await page.waitForURL(/\/CMP\/ExamSummary\/\d+/, { timeout: 10_000 });
+    await page.waitForURL(/\/CMP\/ExamSummary\/\d+/, { timeout: 15_000 });
     // Confirm dialog handler (Pitfall 4) MUST register before click.
     page.once('dialog', dialog => dialog.accept());
-    await page.locator('button:has-text("Kumpulkan Ujian")').click();
+    const kumpulkanBtn = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkanBtn).toBeEnabled({ timeout: 10_000 });
+    await kumpulkanBtn.click();
     await assertSubmitSuccess(page, sessionId);
   });
 
@@ -1679,20 +1698,11 @@ test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture Manual ExcludeVerify';
     const sessionId = await clickResumeForFixture(page, fixtureTitle);
-    // AssessmentType=Manual + StartedAt=NOW-161min: walaupun "after-time" jauh,
-    // backend EnsureCanSubmitExamAsync skip Tier-1/Tier-2 untuk Manual type (D-15 exclude).
-    // User reach exam page normal, fill answer, submit OK → /CMP/Results/{id}.
-    const resumeModal = page.locator('#resumeConfirmModal');
-    if (await resumeModal.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await page.locator('#resumeConfirmBtn').click();
-      await page.waitForTimeout(500);
-    }
-    const firstQuestion = page.locator('[id^="qcard_"]').first();
-    await firstQuestion.locator('input.exam-radio[type="radio"]').first().check({ force: true });
-    await page.locator('#reviewSubmitBtn').click();
-    await page.waitForURL(/\/CMP\/ExamSummary\/\d+/, { timeout: 10_000 });
-    page.once('dialog', dialog => dialog.accept());
-    await page.locator('button:has-text("Kumpulkan Ujian")').click();
+    // AssessmentType=Manual + StartedAt=NOW-161min: server redirect StartExam → ExamSummary
+    // (timer-expired generic check). D-15 exclude di SubmitExam controller layer (BUKAN
+    // StartExam guard) — Manual type bypass Tier-1/Tier-2 reject saat submit.
+    // ExamSummary auto-fire submit dengan isAutoSubmit=true → server SubmitExam → D-15 exclude
+    // → ACCEPT → 302 Results.
     await assertSubmitSuccess(page, sessionId);
     // AuditLog "TIDAK ada SubmitExamBlocked row untuk fixture id 156" verify tetap MANUAL SQL spot-check
     // di 313-UAT.md (Playwright tidak query DB direct, deferred per CONTEXT.md).
