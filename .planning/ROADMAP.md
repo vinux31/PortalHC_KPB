@@ -238,7 +238,8 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
 
 #### Phase 313: Block Manual Submit Saat Waktu Habis
 
-- [x] **Phase 313: Block Manual Submit Saat Waktu Habis** — Modify LIFE-03 jadi 2-tier (manual reject tanpa grace, auto reject setelah grace) (completed 2026-05-08)
+- [x] **Phase 313: Block Manual Submit Saat Waktu Habis** — Modify LIFE-03 jadi 2-tier (manual reject tanpa grace, auto reject setelah grace)
+ (completed 2026-05-08)
   - **REQ:** TMR-01
   - **Depends on:** 311
   - **Success Criteria:**
@@ -257,13 +258,14 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
 
 ### Phase 313.1: Gap closure Phase 313 - extend seed dengan AssessmentPackages+PackageQuestions+PackageOptions clone supaya fixture 150-156 self-contained untuk live UAT; finalize Playwright FLOW 313 assertion bodies. Resolves F-313-UAT-01 (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Resolve F-313-UAT-01 — extend .planning/seeds/313-timer-fixtures.sql dengan AssessmentPackages(7)+PackageQuestions(21)+PackageOptions(84) supaya CMPController.StartExam packages.Any() resolve true (fixture 150-156 self-contained). Finalize 7 Playwright FLOW 313 test bodies (replace targetRow.toBeVisible() placeholder dengan flow lengkap: click Resume → assert StartExam/ExamSummary navigation → fill answer ATAU verify Tier-1/Tier-2 banner). Hasil: UAT 7-step Phase 313 dapat di-re-run end-to-end via fixture (bukan session-hijack pivot).
+**Requirements**: F-313-UAT-01, TMR-01 (carry-over Phase 313)
 **Depends on:** Phase 313
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 313.1 to break down)
+- [ ] 313.1-01-PLAN.md — Wave 0 SQL seed extend: cleanup chain 6-step FK-respecting + hierarchical INSERT (Sessions OUTPUT identity → Packages cross-join → Questions cross-join × 3 template → Options cross-join × 4 template) + snapshot DB lokal + journal entry (F-313-UAT-01)
+- [ ] 313.1-02-PLAN.md — Wave 1 Playwright FLOW 313 finalize: helper module exam313.ts (4 function exports) + replace 7 test bodies (313.1-313.7) dengan flow assertion + UAT.md annotation Phase 313.1 update (F-313-UAT-01)
 
 #### Phase 314: Fix Regenerate Token untuk Status Upcoming
 
