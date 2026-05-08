@@ -103,6 +103,15 @@
         </span>
     </div>
 
+    @if (timerExpired)
+    {
+        @* Phase 313 D-13: banner info untuk awareness reload-after-timeup. *@
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            Waktu ujian sudah habis. Submit otomatis sudah/sedang berjalan.
+        </div>
+    }
+
     <!-- Final submit form -->
     <form asp-action="SubmitExam" method="post">
         @Html.AntiForgeryToken()
@@ -127,7 +136,17 @@
                 </a>
             }
 
-            @if (unanswered > 0 && !timerExpired)
+            @* Phase 313 D-03 / C-02: 3-branch button — timerExpired (disabled+spinner), unanswered (disabled), else submit *@
+            @if (timerExpired)
+            {
+                <button type="button" class="btn btn-secondary btn-lg fw-bold" disabled
+                        id="manualSubmitDisabledBtn"
+                        title="Auto-submit sedang berjalan, mohon tunggu">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Waktu Habis - Submit Otomatis Berjalan...
+                </button>
+            }
+            else if (unanswered > 0)
             {
                 <button type="button" class="btn btn-success btn-lg fw-bold" disabled
                         title="Jawab semua soal terlebih dahulu">
@@ -144,3 +163,62 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+<script>
+    (function () {
+        // Phase 313 D-10: auto-submit retry 3x exponential backoff [1s, 2s, 4s].
+        // Hanya aktif kalau timerExpired (form auto-fired dari StartExam.cshtml redirect chain).
+        var timerExpired = @Json.Serialize((bool?)(ViewBag.TimerExpired) ?? false);
+        if (!timerExpired) return; // Happy path — pakai native form submit + confirm.
+
+        var form = document.querySelector('form[action$="/SubmitExam"]');
+        if (!form) return;
+
+        var maxAttempts = 3;
+        var delays = [1000, 2000, 4000]; // D-10 exponential backoff
+        var attempt = 0;
+
+        function attemptSubmit() {
+            attempt++;
+            var fd = new FormData(form);
+            return fetch(form.action, { method: 'POST', body: fd, redirect: 'follow' })
+                .then(function (r) {
+                    if (r.redirected) { window.location.href = r.url; return; }
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    // Server returned non-redirect 2xx — fallback: reload to current URL.
+                    window.location.reload();
+                })
+                .catch(function (err) {
+                    console.error('[Phase 313] Submit attempt ' + attempt + ' failed', err);
+                    if (attempt < maxAttempts) {
+                        setTimeout(attemptSubmit, delays[attempt - 1]);
+                    } else {
+                        showRetryFailBanner(); // D-11 banner permanent
+                    }
+                });
+        }
+
+        function showRetryFailBanner() {
+            // D-11: banner permanent — server-side last-resort save deferred ke v16.0+.
+            var container = document.querySelector('.container.py-4') || document.querySelector('main') || document.body;
+            if (!container) return;
+            var banner = document.createElement('div');
+            banner.className = 'alert alert-warning fw-semibold';
+            banner.setAttribute('role', 'alert');
+            banner.innerHTML =
+                '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+                'Submit gagal karena masalah jaringan. Hubungi admin. ' +
+                'Jawaban Anda tersimpan di tab ini, jangan tutup browser.';
+            container.prepend(banner);
+        }
+
+        // Auto-fire on page-ready kalau timerExpired (chain dari StartExam timer-up flow).
+        if (document.readyState === 'complete') {
+            attemptSubmit();
+        } else {
+            window.addEventListener('load', attemptSubmit);
+        }
+    })();
+</script>
+}
