@@ -17,3 +17,16 @@ Aturan ringkas saat fix bug / development:
 ❌ Jangan edit kode/DB langsung di server Dev/Prod. ❌ Jangan push tanpa verifikasi lokal.
 
 Detail lengkap (environment map, SOP migration, checklist): lihat [`docs/DEV_WORKFLOW.md`](docs/DEV_WORKFLOW.md).
+
+## Seed Data Workflow (Lokal)
+
+Aturan ringkas saat butuh seed data untuk testing/development:
+
+1. **Klasifikasi dulu** sebelum membuat seed — `temporary + local-only` (untuk test/reproduce) atau `permanent + prod-required` (masuk `Data/SeedData.cs`). Kalau ragu, diskusikan.
+2. **Snapshot DB** lokal (`sqlcmd ... BACKUP DATABASE`) sebelum insert seed temporary.
+3. **Catat di `docs/SEED_JOURNAL.md`** — tujuan, klasifikasi, dampak entitas tersentuh.
+4. **Restore DB** setelah test selesai (sukses *atau* gagal), lalu tandai journal `cleaned`.
+
+❌ Jangan biarkan seed temporary nempel di DB lokal lewat session kerja. ❌ Jangan promosikan seed temporary jadi permanent tanpa review (pindah ke `Data/SeedData.cs` dulu, baru commit).
+
+Detail lengkap (klasifikasi, format journal, command SQL Server BACKUP/RESTORE): lihat [`docs/SEED_WORKFLOW.md`](docs/SEED_WORKFLOW.md).
