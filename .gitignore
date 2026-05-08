@@ -504,6 +504,7 @@ test.txt
 *.db
 *.db-shm
 *.db-wal
+*.bak
 .playwright-mcp/
 
 # Cookie/session test files
