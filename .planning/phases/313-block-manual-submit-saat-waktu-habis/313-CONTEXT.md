@@ -185,5 +185,46 @@ Plus AuditLog blocked entries dengan ActionType `SubmitExamBlocked` + Descriptio
 
 ---
 
+<post_research_corrections>
+## Post-Research Corrections (2026-05-08)
+
+Setelah `gsd-phase-researcher` membaca codebase aktual, ada 3 koreksi yang **OVERRIDE** keputusan di atas. Planner & executor MUST honor section ini di atas D-XX original kalau ada konflik.
+
+### C-01: Field name `assessment.Type` → `assessment.AssessmentType`
+**Override:** D-15 dan semua referensi `assessment.Type` di CONTEXT.md.
+**Source-of-truth:** `Models/AssessmentSession.cs:154` field name adalah `AssessmentType`. Constants tersedia di `Models/AssessmentConstants.cs::AssessmentType.{Online,PreTest,PostTest,Manual}`.
+**Apply:** Pakai constants, jangan magic string. Tier guard jadi:
+```csharp
+if (assessment.AssessmentType == AssessmentType.Online ||
+    assessment.AssessmentType == AssessmentType.PreTest ||
+    assessment.AssessmentType == AssessmentType.PostTest) {
+    // 2-tier guard
+}
+```
+
+### C-02: Submit button utama di `Views/CMP/ExamSummary.cshtml`, bukan StartExam.cshtml saja
+**Override:** D-03, D-13 file targets.
+**Source-of-truth:** `StartExam.cshtml` examForm submit ke `ExamSummary` (review page) line 71 — bukan langsung ke SubmitExam. Submit button utama dengan POST ke SubmitExam ada di `Views/CMP/ExamSummary.cshtml:139-143`. Hidden field `isAutoSubmit` sudah ada di ExamSummary.cshtml line 110 (tied ke `ViewBag.TimerExpired`).
+**Apply:** D-03 disable button UI scope = **PRIMARILY** `ExamSummary.cshtml` Submit button. `StartExam.cshtml` modify hanya untuk timer auto-submit modal flow (per C-03).
+
+### C-03: D-04 adjustment — popup TETAP MUNCUL + submit paralel langsung
+**Override:** D-04 "auto-submit fire immediate at countdown=0" original.
+**User decision (2026-05-08):** Popup notifikasi `timeUpWarningModal` (existing di StartExam.cshtml line 377-391) **tetap muncul** untuk awareness, **TAPI** POST submit fire **langsung paralel** (tidak nunggu klik OK, tidak ada `setTimeout(10000)` delay).
+**Apply:**
+- Modal text adjust jadi info-only: header "Waktu Habis!", body "Jawaban Anda sedang dikirim otomatis...", **hapus button "OK — Kirim Jawaban"** (atau replace dengan disabled spinner indicator).
+- JS code di `StartExam.cshtml` line 462-478 modify: hapus `setTimeout(10000)`, fire `examForm.submit()` immediate setelah `timeupModal.show()` (atau invoke paralel via async pattern).
+- Modal `data-bs-backdrop="static"` preserved — user tidak bisa close modal sampai redirect ke ExamSummary selesai.
+- Server grace 2min (tier-2) tetap intact untuk cover network latency.
+
+**Visual flow:**
+```
+Timer 00:00 → modal muncul ("Waktu Habis! Jawaban sedang dikirim...") → POST fire paralel → server respond → redirect ExamSummary
+```
+
+</post_research_corrections>
+
+---
+
 *Phase: 313-block-manual-submit-saat-waktu-habis*
 *Context gathered: 2026-05-07*
+*Post-research corrections: 2026-05-08 (C-01, C-02, C-03)*
