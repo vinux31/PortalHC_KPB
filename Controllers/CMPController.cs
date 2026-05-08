@@ -1613,19 +1613,12 @@ namespace HcPortal.Controllers
                 }
             }
 
-            // ---- Server-side timer enforcement (LIFE-03) ----
-            // Grace period: 2 minutes to account for network latency and slow connections.
-            // Skip check if StartedAt is null (legacy sessions that existed before Phase 21).
-            if (assessment.StartedAt.HasValue)
-            {
-                var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
-                int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0) + 2; // 2-minute grace
-                if (elapsed.TotalMinutes > allowedMinutes)
-                {
-                    TempData["Error"] = "Waktu ujian Anda telah habis. Pengiriman jawaban tidak dapat diproses.";
-                    return RedirectToAction("StartExam", new { id });
-                }
-            }
+            // ---- Server-side timer enforcement (LIFE-03 + Phase 313 2-tier TMR-01) ----
+            // Phase 313: 2-tier branching — manual reject tanpa grace (D-09), auto reject setelah grace (existing).
+            // Helper extraction mirror Phase 312 EnsureCanDeleteAsync pattern (D-04 lock, body-method placement).
+            // AssessmentType Manual exclude di-handle dalam helper (D-15 defense-in-depth).
+            var timerBlockResult = await EnsureCanSubmitExamAsync(assessment, isAutoSubmit);
+            if (timerBlockResult != null) return timerBlockResult;
 
             // Check for package path — must happen before any grading logic
             var packageAssignment = await _context.UserPackageAssignments
