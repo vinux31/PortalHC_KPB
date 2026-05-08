@@ -1119,15 +1119,25 @@ else
         clearInterval(timerInterval);   // Stop timer (time already up)
         clearInterval(saveInterval);
         window.onbeforeunload = null;
-        const expiredModal = new bootstrap.Modal(document.getElementById('examExpiredModal'));
-        expiredModal.show();
-        // Auto-submit after worker acknowledges (or after 5 seconds as fallback)
-        document.querySelector('#examExpiredModal button').addEventListener('click', function() {
-            document.getElementById('examForm').submit();
-        });
-        setTimeout(function() {
-            document.getElementById('examForm').submit();
-        }, 5000);
+        // Phase 313 WR-01 fix: gunakan flag `submitted` (declared line 442) untuk guard
+        // double-submit antara updateTimer() first-tick (line 478) dan EXAM_EXPIRED branch.
+        // Tanpa guard, kalau REMAINING_SECONDS_FROM_DB <= 0, updateTimer fire submit dulu,
+        // lalu setTimeout 5000 fire submit kedua → race / double POST.
+        if (!submitted) {
+            const expiredModal = new bootstrap.Modal(document.getElementById('examExpiredModal'));
+            expiredModal.show();
+            // Auto-submit after worker acknowledges (or after 5 seconds as fallback)
+            document.querySelector('#examExpiredModal button').addEventListener('click', function() {
+                if (submitted) return;
+                submitted = true;
+                document.getElementById('examForm').submit();
+            });
+            setTimeout(function() {
+                if (submitted) return;
+                submitted = true;
+                document.getElementById('examForm').submit();
+            }, 5000);
+        }
     } else if (IS_RESUME) {
         // Show resume confirmation modal (worker has an in-progress exam)
         const resumeModal = new bootstrap.Modal(document.getElementById('resumeConfirmModal'));
