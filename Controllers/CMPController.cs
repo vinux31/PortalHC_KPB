@@ -1566,8 +1566,14 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers, bool isAutoSubmit = false, string? autoSubmitToken = null)
+        public async Task<IActionResult> SubmitExam(int id, [FromForm(Name = "answers")] Dictionary<int, int>? answers, bool isAutoSubmit = false, string? autoSubmitToken = null)
         {
+            // Phase 313 F-313-UAT-02 fix: explicit FromForm prefix prevents DictionaryModelBinder fallback
+            // dari greedy-binding semua top-level form field ke `answers` saat zero MC answers (auto-submit
+            // timer-expired tanpa user pernah jawab). Default-null + normalize ke empty dict supaya kode
+            // hilir (Count, ContainsKey) tetap aman tanpa null-guard tambahan.
+            answers ??= new Dictionary<int, int>();
+
             var assessment = await _context.AssessmentSessions
                 .FirstOrDefaultAsync(a => a.Id == id);
 
