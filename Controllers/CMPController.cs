@@ -4521,5 +4521,100 @@ namespace HcPortal.Controllers
             return Json(new { success = true, updated = items.Count });
         }
 
+        // ============================================================
+        // Phase 313 — Block Manual Submit Saat Waktu Habis (TMR-01)
+        // 2-tier server-side timer enforcement helper (analog Phase 312 EnsureCanDeleteAsync)
+        // ============================================================
+
+        /// <summary>
+        /// Enforces 2-tier timer rules pada SubmitExam:
+        ///  - Tier 1 (Phase 313 NEW, D-09): manual submit (!isAutoSubmit) reject tanpa grace bila elapsed > Duration+ExtraTime.
+        ///  - Tier 2 (existing LIFE-03 preserved, D-06): auto submit reject bila elapsed > Duration+ExtraTime+2min grace.
+        /// AssessmentType Manual / null di-skip (D-15 defense-in-depth).
+        /// Returns IActionResult kalau reject (caller `return` value), atau null kalau pass (caller lanjut).
+        /// </summary>
+        private async Task<IActionResult?> EnsureCanSubmitExamAsync(
+            AssessmentSession assessment,
+            bool isAutoSubmit)
+        {
+            // D-15 / C-01: Manual type exclude via explicit field check (defense-in-depth).
+            // Field di model adalah `AssessmentType` (Models/AssessmentSession.cs:154 verified).
+            if (assessment.AssessmentType != AssessmentConstants.AssessmentType.Online &&
+                assessment.AssessmentType != AssessmentConstants.AssessmentType.PreTest &&
+                assessment.AssessmentType != AssessmentConstants.AssessmentType.PostTest)
+            {
+                return null; // Manual / null AssessmentType — skip guard
+            }
+
+            // Legacy session: StartedAt null (sessions sebelum Phase 21) — skip check (existing convention preserved).
+            if (!assessment.StartedAt.HasValue) return null;
+
+            var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
+            int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0);
+            int graceLimitMinutes = allowedMinutes + 2; // 2-minute grace untuk network latency (existing tier-2)
+
+            // Tier 1 (Phase 313 NEW): manual reject tanpa grace (D-09 strict 0-grace).
+            if (!isAutoSubmit && elapsed.TotalMinutes > allowedMinutes)
+            {
+                await WriteSubmitBlockedAuditAsync(assessment, elapsed, allowedMinutes);
+                // D-01 explanatory message — Bahasa Indonesia per CLAUDE.md.
+                TempData["Error"] = "Waktu ujian Anda sudah habis. Sistem akan otomatis mengirim jawaban Anda dalam beberapa detik. Mohon tunggu, jangan refresh halaman.";
+                return RedirectToAction("StartExam", new { id = assessment.Id });
+            }
+
+            // Tier 2 (existing LIFE-03 preserved): auto reject setelah grace.
+            // D-06: TIDAK tulis AuditLog Blocked entry untuk Tier 2 (scope minimal, hanya tier-1 yang baru).
+            if (elapsed.TotalMinutes > graceLimitMinutes)
+            {
+                TempData["Error"] = "Waktu ujian Anda telah habis. Pengiriman jawaban tidak dapat diproses.";
+                return RedirectToAction("StartExam", new { id = assessment.Id });
+            }
+
+            return null; // Pass — caller lanjut grading flow.
+        }
+
+        /// <summary>
+        /// Tulis AuditLog `SubmitExamBlocked` entry (D-05) untuk Tier-1 manual reject.
+        /// Try/catch swallow — audit failure jangan block primary action (Phase 312 T-306-02 precedent).
+        /// </summary>
+        private async Task WriteSubmitBlockedAuditAsync(
+            AssessmentSession assessment,
+            TimeSpan elapsed,
+            int allowedMinutes)
+        {
+            try
+            {
+                var blockUser = await _userManager.GetUserAsync(User);
+                // Actor name pattern: NIP - FullName (Phase 312 EnsureCanDeleteAsync line 5567-5570 reference).
+                var blockActor = string.IsNullOrWhiteSpace(blockUser?.NIP)
+                    ? (blockUser?.FullName ?? "Unknown")
+                    : $"{blockUser.NIP} - {blockUser.FullName}";
+
+                // D-05 Description format EXACT — parsing-friendly key=value:
+                // "HC/User role manual submit blocked after timeup. Type={...} ElapsedMin={X} AllowedMin={Y} SessionId={id}"
+                var description =
+                    $"HC/User role manual submit blocked after timeup. " +
+                    $"Type={assessment.AssessmentType} " +
+                    $"ElapsedMin={(int)elapsed.TotalMinutes} " +
+                    $"AllowedMin={allowedMinutes} " +
+                    $"SessionId={assessment.Id}";
+
+                await _auditLog.LogAsync(
+                    actorUserId: blockUser?.Id ?? "",
+                    actorName: blockActor,
+                    actionType: "SubmitExamBlocked", // D-05 — Phase 312 {Action}Blocked convention
+                    description: description,
+                    targetId: assessment.Id,
+                    targetType: "AssessmentSession");
+            }
+            catch (Exception auditEx)
+            {
+                // Swallow — audit failure tidak boleh block primary action (Phase 312 T-306-02 precedent).
+                _logger.LogWarning(auditEx,
+                    "AuditLog SubmitExamBlocked write failed for SessionId={SessionId}",
+                    assessment.Id);
+            }
+        }
+
     }
 }
