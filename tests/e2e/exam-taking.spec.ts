@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { login } from '../helpers/auth';
 import { uniqueTitle, today, autoConfirm } from '../helpers/utils';
+import { clickResumeForFixture, assertTier1Reject, assertTier2Reject, assertSubmitSuccess } from './helpers/exam313';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -1609,13 +1610,24 @@ test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
   test('313.1 - Manual + before-time + Online → submit OK (regression)', async ({ page }) => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture Online ManualBeforeTime';
-    await page.goto('/CMP/Assessment');
-    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
-    if (await targetRow.count() === 0) {
-      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required (jalankan .planning/seeds/313-timer-fixtures.sql)`);
+    const sessionId = await clickResumeForFixture(page, fixtureTitle);
+    // Manual+BeforeTime: Resume → StartExam (alive). Modal dismiss kalau ada.
+    const resumeModal = page.locator('#resumeConfirmModal');
+    if (await resumeModal.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click();
+      await page.waitForTimeout(500);
     }
-    // Plan 03 implementasi finalisasi flow assertion. Wave 0 placeholder:
-    await expect(targetRow).toBeVisible();
+    // Fill Q1 first option (= "Pilihan A" per D-03 IsCorrect=true index 0).
+    // No data-testid in StartExam.cshtml — use class selector .exam-radio (per D-18).
+    const firstQuestion = page.locator('[id^="qcard_"]').first();
+    await firstQuestion.locator('input.exam-radio[type="radio"]').first().check({ force: true });
+    // Trigger Review and Submit (POST → ExamSummary).
+    await page.locator('#reviewSubmitBtn').click();
+    await page.waitForURL(/\/CMP\/ExamSummary\/\d+/, { timeout: 10_000 });
+    // Confirm dialog handler (Pitfall 4) MUST register before click.
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('button:has-text("Kumpulkan Ujian")').click();
+    await assertSubmitSuccess(page, sessionId);
   });
 
   test('313.2 - Manual + after-time (in grace) + Online → BLOCKED + AuditLog SubmitExamBlocked', async ({ page }) => {
