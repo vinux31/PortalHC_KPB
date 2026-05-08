@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
 status: executing
-stopped_at: Phase 313 context gathered
-last_updated: "2026-05-07T12:58:21.558Z"
+stopped_at: Phase 314 context gathered
+last_updated: "2026-05-08T00:23:53.064Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 11
@@ -29,7 +29,7 @@ Phase: 313
 Plan: Not started
 Status: Executing Phase 312
 Last activity: 2026-05-07
-Resume file: .planning/phases/313-block-manual-submit-saat-waktu-habis/313-CONTEXT.md
+Resume file: .planning/phases/314-fix-regenerate-token-untuk-status-upcoming/314-CONTEXT.md
 
 ## Next Action
 
@@ -128,5 +128,5 @@ Last activity: 2026-04-29 — Phase 308 Plan 02 (Wave 1 implementation) COMPLETE
 - Wave 0 commit `cedbebb0` (308-01 finalization)
 - Intermediate paused-at-checkpoint commit `a0610acc`
 
-Stopped at: Phase 313 context gathered
+Stopped at: Phase 314 context gathered
 Next action: Jalankan `/gsd-verify-work` untuk verify Phase 308 closure. Pre-verify smoke: 4 Playwright tests Phase 308 (8.1-8.4) expect transisi RED → GREEN dari Wave 0.
