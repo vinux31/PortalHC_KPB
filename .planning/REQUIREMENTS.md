@@ -52,7 +52,7 @@ Empat temuan audit lapangan tambahan yang dilaporkan operator pada 29 April 2026
 
 ### Exam Integrity
 
-- [ ] **TMR-01**: Server **menolak submit manual** worker pada assessment ber-timer (Online, PreTest, PostTest) saat `elapsed > DurationMinutes + ExtraTimeMinutes`; hanya jalur **auto-submit** (`isAutoSubmit=true`) yang sah setelah waktu habis, dengan grace 2 menit untuk network latency. Implementasi: modify LIFE-03 enforcement di `CMPController.SubmitExam()` (line ~1618–1631) jadi 2-tier branching (manual reject tanpa grace; auto reject setelah grace). Frontend `StartExam.cshtml` disable tombol Submit saat countdown=0. Tipe `Manual` exclude. *(maps Audit-29Apr T2)*
+- [x] **TMR-01**: Server **menolak submit manual** worker pada assessment ber-timer (Online, PreTest, PostTest) saat `elapsed > DurationMinutes + ExtraTimeMinutes`; hanya jalur **auto-submit** (`isAutoSubmit=true`) yang sah setelah waktu habis, dengan grace 2 menit untuk network latency. Implementasi: modify LIFE-03 enforcement di `CMPController.SubmitExam()` (line ~1618–1631) jadi 2-tier branching (manual reject tanpa grace; auto reject setelah grace). Frontend `StartExam.cshtml` disable tombol Submit saat countdown=0. Tipe `Manual` exclude. *(maps Audit-29Apr T2)*
 
 ### Submitted Status Handling
 
@@ -107,7 +107,7 @@ Mapping requirement ke phase (filled by roadmap 2026-04-28). Phase numbering mel
 | PERF-01 | Phase 311 (ManageAssessment Performance) | Pending |
 | EPRV-01 | DEFERRED (due 2026-05-12) | Pending klarifikasi user |
 | DEL-01 | Phase 312 (Admin Full-Delete Assessment Room) | Pending |
-| TMR-01 | Phase 313 (Block Manual Submit Saat Waktu Habis) | Pending |
+| TMR-01 | Phase 313 (Block Manual Submit Saat Waktu Habis) | Complete |
 | SUB-01 | Phase 309 (bundled — Submitted Status Handling) | Complete (2026-05-01) |
 | TKN-01 | Phase 314 (Fix Regenerate Token Upcoming) | Pending |
 

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
-status: executing
-stopped_at: Phase 313.1 Plan 01 complete (F-313-UAT-01 closed via UI smoke); siap Plan 02
-last_updated: "2026-05-08T06:25:08.244Z"
+status: verifying
+stopped_at: Phase 313.1 complete (F-313-UAT-01 resolved + 7 FLOW 313 PASS)
+last_updated: "2026-05-08T07:08:49.964Z"
 last_activity: 2026-05-08
 progress:
   total_phases: 12
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 28
-  completed_plans: 25
-  percent: 89
+  completed_plans: 26
+  percent: 93
 ---
 
 # Project State: Portal HC KPB
@@ -27,27 +27,29 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 Phase: 313.1 (Gap closure Phase 313 - extend seed AssessmentPackages + finalize Playwright FLOW 313) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-08
-Resume file: None
+Resume file: .planning/STATE.md
 
 ## Next Action
 
-Phase 308 Plan 02 COMPLETE. Tasks 1-4 finalized:
+Phase 313.1 Plan 02 COMPLETE — F-313-UAT-01 RESOLVED end-to-end. 7 commits + 7/7 FLOW 313 PASS dalam 28.3s:
 
-- Task 1 (commit `630f4e66`): JS handler set Status='Upcoming' (D-01) + clear '' (D-02) di Views/Admin/CreateAssessment.cshtml line 1875/1885/1892
-- Task 2 (commit `c99b981c`): Server conditional `if (isPrePostMode) ModelState.Remove("Status")` (D-04) di Controllers/AssessmentAdminController.cs line 781-787
-- Task 3 (no commit): Automated verification PASS — TypeScript compile 0 errors, Playwright list 4+4+1 tests, .NET build 0 errors 92 warnings (Phase 307 baseline)
-- Task 4 (orchestrator-approved 2026-04-29): Manual UAT 4-step Bahasa Indonesia PASSED via /gsd-execute-phase 308 checkpoint user approval. Step 3 key acceptance (REQ WIZ-04 — Pre-Post submit sukses tanpa "Status field is required" + tidak reset wizard) verified live. Sign-off di `308-UAT.md` filled dengan Result: PASS untuk semua 4 step + sub-step 1a regression.
+- Task 1 commit `15c7aba0`: helper module `tests/e2e/helpers/exam313.ts` (4 function exports flat)
+- Task 2 commit `a95609ec`: replace test 313.1 + import 4 helper konsolidasi
+- Task 3 commit `1f53699f`: replace tests 313.2/313.5/313.6 (Tier-1 reject)
+- Task 4 commit `4a3e55ba`: replace tests 313.3 + 313.4 (Tier-2 grace pass + Tier-2 reject)
+- Task 5 commit `41391292`: replace test 313.7 (Manual ExcludeVerify D-15)
+- Task 6 commit `dfea9a03`: annotate `313-UAT.md` pre-conditions Phase 313.1 update + extended SQL PkgCount/QCount
+- Task 7 commit `5807adae`: runtime-tested helper + 313.1/313.7 fill-all 3 questions + race-tolerant assertion (7 fixes Rule 1)
+- SUMMARY commit `36ecf3df`: docs(313.1-02) summary plan complete
 
-**Next:** Jalankan `/gsd-verify-work` untuk close Phase 308. Pre-verify smoke E2E:
+**Operator approved Task 7 checkpoint** — full FLOW 313 run 7/7 PASS dalam 28.3s (313.1 6.9s, 313.2 7.2s, 313.3 1.9s, 313.4 2.3s, 313.5 2.0s, 313.6 1.9s, 313.7 2.1s).
 
-```bash
-cd tests && npx playwright test e2e/assessment.spec.ts --grep "Phase 308" --reporter=list
-
-# Expected: 4 tests PASS (transisi RED → GREEN dari Wave 0). Phase 307 + FLOW 1 baseline preserved.
-
-```
+**Next:**
+1. **Operator TODO:** Restore snapshot DB lokal `HcPortalDB_Dev.20260508-pre313_1.bak` (per CLAUDE.md Seed Data Workflow) + mark `docs/SEED_JOURNAL.md` Phase 313.1 entry status `cleaned`.
+2. Jalankan `/gsd-verify-work` untuk close Phase 313.1.
+3. Lanjut Phase 314 (Fix Regenerate Token Upcoming, TKN-01) — last phase v15.0 milestone.
 
 Setelah Phase 308 closed, milestone v15.0 lanjut ke Phase 309 (Worker Certificate Defensive Fix + Submitted Status Handling — WCRT-01, SUB-01, parallel-eligible dengan Phase 310).
 
@@ -112,6 +114,10 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - [v15.0 / Phase 307 / Plan 01]: Selectors helper module placed di `tests/e2e/helpers/wizardSelectors.ts` (NEW folder), bukan `tests/helpers/`, untuk separation e2e-specific selectors vs shared utilities (login/utils/accounts)
 - [v15.0 / Phase 307 / Plan 01]: Performance budget #4 + Step 2/Step 4 visual parity di-defer ke manual UAT karena E2E flaky di CI runner — Step 4 punya `performance.mark/measure` script copy-paste-able ke Console
 - [v15.0 / Phase 307 / Plan 01]: Opportunistic rot fix line 45 (`'2 selected'` → `'2 terpilih'`) applied di Wave 0 — match production text Bahasa Indonesia di `CreateAssessment.cshtml` line 289 default `'0 terpilih'` dan `updateSelectedCount` line 1446 format `count + ' terpilih'`
+- [v15.0 / Phase 313.1 / Plan 02]: Helper module `tests/e2e/helpers/exam313.ts` (4 function exports flat: clickResumeForFixture, assertTier1Reject, assertTier2Reject, assertSubmitSuccess) + private escapeRegex; mirror `wizardSelectors.ts` pattern (Phase 307 D-01)
+- [v15.0 / Phase 313.1 / Plan 02]: Tier-1 manual reject TRUE end-to-end TIDAK UI-testable (server-side StartExam redirect ExamSummary saat timer expired → ExamSummary auto-fire submit isAutoSubmit=true → Tier-2 path); coverage tetap UAT 7-step manual
+- [v15.0 / Phase 313.1 / Plan 02]: Race-tolerant Tier-2 assertion via `Promise.race` (waitForURL Results vs banner toContainText) — handle JS retry intercept vs server redirect ambiguity Online type vs PreTest/PostTest type end-state difference
+- [v15.0 / Phase 313.1 / Plan 02]: Fixture locator pattern via `getByRole('heading', level:5, name)` + ancestor card div (BUKAN `tr` table row) — list page render fixture sebagai `<div class=card>` dengan `<h5>` heading
 
 ### Roadmap Evolution
 
@@ -132,5 +138,5 @@ Last activity: 2026-04-29 — Phase 308 Plan 02 (Wave 1 implementation) COMPLETE
 - Wave 0 commit `cedbebb0` (308-01 finalization)
 - Intermediate paused-at-checkpoint commit `a0610acc`
 
-Stopped at: Phase 313.1 Plan 01 complete (F-313-UAT-01 closed via UI smoke); siap Plan 02
+Stopped at: Phase 313.1 complete (F-313-UAT-01 resolved + 7 FLOW 313 PASS)
 Next action: Jalankan `/gsd-verify-work` untuk verify Phase 308 closure. Pre-verify smoke: 4 Playwright tests Phase 308 (8.1-8.4) expect transisi RED → GREEN dari Wave 0.
