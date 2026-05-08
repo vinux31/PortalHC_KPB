@@ -1678,13 +1678,24 @@ test.describe('Exam Taking - Phase 313 Block Manual Submit', () => {
   test('313.7 - Manual + after-time + Manual type → submit OK (D-15 exclude verify)', async ({ page }) => {
     await login(page, 'coachee');
     const fixtureTitle = 'Phase 313 Timer Fixture Manual ExcludeVerify';
-    await page.goto('/CMP/Assessment');
-    const targetRow = page.locator('tr', { hasText: new RegExp(`^\\s*${escapeRegex(fixtureTitle)}\\s*`, 'm') }).first();
-    if (await targetRow.count() === 0) {
-      test.skip(true, `Seed "${fixtureTitle}" tidak ditemukan — Wave 0 manual seed required`);
+    const sessionId = await clickResumeForFixture(page, fixtureTitle);
+    // AssessmentType=Manual + StartedAt=NOW-161min: walaupun "after-time" jauh,
+    // backend EnsureCanSubmitExamAsync skip Tier-1/Tier-2 untuk Manual type (D-15 exclude).
+    // User reach exam page normal, fill answer, submit OK → /CMP/Results/{id}.
+    const resumeModal = page.locator('#resumeConfirmModal');
+    if (await resumeModal.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click();
+      await page.waitForTimeout(500);
     }
-    // Manual type harus PASS guard (D-15 exclude). AuditLog SubmitExamBlocked TIDAK boleh exist untuk fixture ini.
-    await expect(targetRow).toBeVisible();
+    const firstQuestion = page.locator('[id^="qcard_"]').first();
+    await firstQuestion.locator('input.exam-radio[type="radio"]').first().check({ force: true });
+    await page.locator('#reviewSubmitBtn').click();
+    await page.waitForURL(/\/CMP\/ExamSummary\/\d+/, { timeout: 10_000 });
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('button:has-text("Kumpulkan Ujian")').click();
+    await assertSubmitSuccess(page, sessionId);
+    // AuditLog "TIDAK ada SubmitExamBlocked row untuk fixture id 156" verify tetap MANUAL SQL spot-check
+    // di 313-UAT.md (Playwright tidak query DB direct, deferred per CONTEXT.md).
   });
 });
 
