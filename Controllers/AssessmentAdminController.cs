@@ -2421,7 +2421,7 @@ namespace HcPortal.Controllers
         }
 
         // --- REGENERATE TOKEN ---
-        [HttpPost]
+        [HttpPost("{id:int}")]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegenerateToken(int id)
