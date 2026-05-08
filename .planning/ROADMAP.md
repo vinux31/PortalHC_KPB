@@ -255,6 +255,16 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
     - 313-02-PLAN.md — Wave 1 backend: EnsureCanSubmitExamAsync helper + WriteSubmitBlockedAuditAsync + replace LIFE-03 inline block (2-tier branching D-09 + D-15 AssessmentType exclude C-01) (TMR-01)
     - 313-03-PLAN.md — Wave 1 frontend: ExamSummary.cshtml 3-branch button + retry handler D-10/D-11 + StartExam.cshtml modal info-only spinner C-03 + JS timer flow no setTimeout 10s (TMR-01)
 
+### Phase 313.1: Gap closure Phase 313 - extend seed dengan AssessmentPackages+PackageQuestions+PackageOptions clone supaya fixture 150-156 self-contained untuk live UAT; finalize Playwright FLOW 313 assertion bodies. Resolves F-313-UAT-01 (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 313
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 313.1 to break down)
+
 #### Phase 314: Fix Regenerate Token untuk Status Upcoming
 
 - [ ] **Phase 314: Fix Regenerate Token untuk Status Upcoming** — Investigative bug fix (repro → root cause → patch minimal)

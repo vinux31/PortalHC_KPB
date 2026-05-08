@@ -113,6 +113,10 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - [v15.0 / Phase 307 / Plan 01]: Performance budget #4 + Step 2/Step 4 visual parity di-defer ke manual UAT karena E2E flaky di CI runner — Step 4 punya `performance.mark/measure` script copy-paste-able ke Console
 - [v15.0 / Phase 307 / Plan 01]: Opportunistic rot fix line 45 (`'2 selected'` → `'2 terpilih'`) applied di Wave 0 — match production text Bahasa Indonesia di `CreateAssessment.cshtml` line 289 default `'0 terpilih'` dan `updateSelectedCount` line 1446 format `count + ' terpilih'`
 
+### Roadmap Evolution
+
+- Phase 313.1 inserted after Phase 313: Gap closure — extend seed `313-timer-fixtures.sql` dengan AssessmentPackages+PackageQuestions+PackageOptions clone supaya fixture 150-156 self-contained untuk live UAT; finalize Playwright FLOW 313 assertion bodies (saat ini placeholder `targetRow.toBeVisible`). Resolves F-313-UAT-01 dari `313-UAT-FINDINGS.md`. (URGENT)
+
 ### Open Blockers/Concerns
 
 - Phase 293 `GetSectionUnitsDictAsync` — hardcoded 2-level, unit Level 2+ tidak muncul di dropdown ManageWorkers secara diam-diam (keputusan masih tertunda)
