@@ -1,8 +1,9 @@
 # Phase 314: Fix Regenerate Token untuk Status Upcoming - Context
 
 **Gathered:** 2026-05-08
+**Updated:** 2026-05-08 (4 area baru, +15 decisions)
 **Status:** Ready for planning
-**Mode:** interactive discuss — 7 gray areas selected, 24 decisions captured
+**Mode:** interactive discuss — 11 gray areas selected, 39 decisions captured
 
 <domain>
 ## Phase Boundary
@@ -29,12 +30,21 @@ Investigative bug fix endpoint `Controllers/AssessmentAdminController.cs` `Regen
 - Logging extended structured + LogInformation success path (D-19/D-20/D-21)
 - Warn confirmation dialog saat Open + active worker (D-22/D-23)
 - Playwright E2E 3 skenario via UI Admin setup hook seeding (D-13/D-14/D-15/D-16)
+- **(Update 2026-05-08)** Pre-condition Status check (block Cancelled+Completed) extension flow linear (D-25/D-28)
+- **(Update 2026-05-08)** Sibling 0-row throw error explanatory + LogWarning anomaly (D-33/D-35)
+- **(Update 2026-05-08)** Plan 01 RESEARCH.md DB sample queries comprehensive (D-39)
+- **(Update 2026-05-08)** Conditional defensive guard untuk Schedule MinValue di Plan 02 KALAU RESEARCH confirm legacy data (D-37/D-38)
 
 **Out-of-scope:**
 - TOCTOU re-fetch / version check (D-18 — race window narrow + last-writer-wins acceptable)
 - Concurrency token (RowVersion) — schema change required, deferred
 - Refactor extract helper JS function — scope creep
 - Schema migration (no DB schema change needed)
+- Ownership scope check granular — `[Authorize(Roles="Admin, HC")]` cukup (D-26)
+- Schedule passed-time guard separate — Status enum sudah implicit cover (D-27)
+- Title trim/lowercase normalize, Category null-coalesce — audit-only di RESEARCH, no code change kalau bukan root cause (D-29/D-31/D-32)
+- Token uniqueness collision retry — probability rendah, deferred
+- UpdatedBy field di sibling row — schema change, deferred
 
 </domain>
 
@@ -99,6 +109,55 @@ Investigative bug fix endpoint `Controllers/AssessmentAdminController.cs` `Regen
 - **D-15:** **Assertion comprehensive:** (a) `AccessToken` di DB berubah ke value baru, (b) sibling sessions ter-update, (c) `AuditLogs` row `ActionType='RegenerateToken'` exists, (d) UI alert `'Token baru: {6-char}'` muncul.
 - **D-16:** **File baru** `tests/e2e/admin-assessment-token.spec.ts` (konsisten Phase 312 pattern `admin-assessment-delete.spec.ts`).
 - **D-24:** **Skenario test #3 (Open running)** verify (a) admin success regen + (b) AccessToken DB berubah + (c) worker dengan token lama dapat error invalid saat next request. **Asumsi perlu di-verify research:** apakah token lama benar-benar invalidate worker session, atau session worker sudah established via cookie/identity sehingga token cuma untuk login flow. Planner/researcher harus konfirmasi behavior ini sebelum tulis test.
+
+### Pre-condition Validation Order & Scope (Update 2026-05-08)
+- **D-25:** **Block Status `Cancelled` + `Completed`.** Tambah pre-condition setelah `IsTokenRequired` check:
+  ```csharp
+  if (assessment.Status == "Cancelled" || assessment.Status == "Completed")
+      return Json(new { success = false, message = $"Tidak bisa regenerate token untuk assessment yang sudah {assessment.Status}." });
+  ```
+  Allow hanya `Upcoming` + `Open`. Prevent admin accidentally regen finished/cancelled assessment.
+- **D-26:** **Role validation cukup `[Authorize(Roles="Admin, HC")]` existing.** Tidak tambah ownership/scope check granular — admin role di Pertamina cross-cutting per business rule. Tidak ubah authorization existing.
+- **D-27:** **Tidak perlu separate schedule-passed guard.** Status enum (`Upcoming`/`Open`/`Completed`/`Cancelled`) sudah implicit cover situasi schedule lewat — Status berubah ke `Completed` saat lewat. D-25 status block sudah cukup. Hindari double-validation.
+- **D-28:** **Order validation = extend existing flow linear** (null check → IsTokenRequired → Status → query sibling). Tidak extract ke `EnsureCanRegenerateAsync()` helper (Phase 312 pattern). Minimal diff, konsisten philosophy "patch minimal" SC ROADMAP — helper extraction = scope creep untuk RegenerateToken sederhana.
+
+### Sibling Group Key Matching Robustness (Update 2026-05-08)
+- **D-29:** **Title matching tetap `a.Title == assessment.Title`.** SQL Server default collation CI_AS sudah handle case-insensitive. Tidak normalize trim/lowercase (untranslatable LINQ + scope creep + risk break existing working matching).
+- **D-30:** **`Schedule.Date` matching as-is.** DB pattern UTC-only consistent dengan `CreateAssessment`. Tidak konversi WIB. Group key konsisten karena dibuat dengan `Schedule` yang sama.
+- **D-31:** **Category matching as-is** (`a.Category == assessment.Category`). Asumsi `[Required]` non-null — verify di RESEARCH.md. Kalau ada legacy NULL Category, defer guard ke patch conditional.
+- **D-32:** **Sibling group key matching = audit-only di RESEARCH.md.** Hipotesis "sibling matching miss" di-status sesuai stacktrace evidence (CONFIRMED/RULED OUT/INCONCLUSIVE). **Tidak ubah matching logic kalau bukan root cause** (existing already work for happy path). Plan 01 RESEARCH include sample query DB untuk validate Title/Category/Schedule pattern (D-39).
+
+### Sibling List Edge Cases (Update 2026-05-08)
+- **D-33:** **Sibling 0-row → throw error explanatory + abort regen.** Format response:
+  ```csharp
+  if (siblings.Count == 0)
+      return Json(new { success = false, message = "Data assessment tidak konsisten — sibling group tidak ditemukan. Hubungi IT." });
+  ```
+  Detect data corruption early, prevent silent fail. Note: secara theoritis kasus ini tidak terjadi (assessment itu sendiri pasti match grouping criteria), tapi guard defensive untuk DbContext quirk.
+- **D-34:** **Sibling 1-row (Online single, tanpa Pre-Post pair) = allow regen normal.** Existing behavior preserved. Audit log dengan `siblings.Count=1`. Tidak ada warning karena ini normal untuk Online assessment.
+- **D-35:** **`LogWarning` untuk anomalous sibling count:**
+  ```csharp
+  if (siblings.Count == 0)
+      _logger.LogWarning("RegenerateToken: empty sibling group for session {Id}, title={Title}", id, assessment.Title);
+  ```
+  Audit trail data anomaly. Plus existing `LogInformation` success path (D-21) sudah include `siblings.Count`.
+- **D-36:** **Test coverage 1-sibling implicit via skenario #3.** Skenario #3 (Open running) pakai Online type → implicit cover 1-sibling case. Skenario #1 (Upcoming+0-peserta) pakai PrePost pair → cover multi-sibling (3+). Tidak perlu skenario tambahan.
+
+### Schedule Invalid Defensive (Update 2026-05-08)
+- **D-37:** **Schedule MinValue (`'0001-01-01'`) tidak guard upfront.** Audit dulu di Plan 01 RESEARCH.md — query `SELECT COUNT(*) FROM AssessmentSessions WHERE Schedule = '0001-01-01'`. Kalau ZERO, guard tidak diperlukan (CreateAssessment validate via datepicker UI).
+- **D-38:** **Conditional defensive guard di Plan 02 KALAU RESEARCH confirm legacy MinValue rows.** Format guard:
+  ```csharp
+  if (assessment.Schedule == DateTime.MinValue)
+      return Json(new { success = false, message = "Schedule assessment tidak valid. Hubungi IT." });
+  ```
+  Plus suggest data cleanup script untuk Team IT (out-of-scope Phase 314, masuk deferred ideas). **KALAU RESEARCH return COUNT=0**, skip guard — minimal diff.
+- **D-39:** **Plan 01 RESEARCH.md include comprehensive DB sample queries:**
+  - (a) `SELECT COUNT(*) FROM AssessmentSessions WHERE Schedule = '0001-01-01'` — validate D-37
+  - (b) Sample 10 row dengan duplicate Title (case/whitespace test) — validate D-29
+  - (c) `SELECT COUNT(*) FROM AssessmentSessions WHERE Category IS NULL` — validate D-31
+  - (d) Status distribution untuk trigger condition (`Status='Upcoming' AND IsTokenRequired=1 AND no UserAssessmentSessions started`)
+  - (e) Sibling group size statistics (avg/min/max per group key) — validate D-32
+  Hasil masuk RESEARCH.md sebagai "Data shape baseline" section.
 
 ### Claude's Discretion
 - **Stacktrace parsing logic** untuk RESEARCH.md — exact format tabel/markdown adjustment sesuai temuan investigasi.
@@ -191,6 +250,11 @@ Investigative bug fix endpoint `Controllers/AssessmentAdminController.cs` `Regen
 - **Audit failure non-blocking** (D-06): Pattern Phase 306 D-10 explicitly cited, user setuju.
 - **Inline data attribute untuk warning count** (D-23): Frontend butuh sibling startedCount untuk wording. Render dari Monitoring view markup sebagai `data-started-count` per row → no extra GET. Detail view bisa hit endpoint terpisah kalau perlu.
 - **Test seeding via UI Admin** (D-14): User pilih over DB manipulation — real flow, also smoke-test UI Admin tidak break.
+- **(Update 2026-05-08) Pre-condition Status block** (D-25): Allow `Upcoming`+`Open` only. `Cancelled`/`Completed` di-block untuk prevent admin accidental regen.
+- **(Update 2026-05-08) Audit-only matching robustness** (D-32): Title/Category/Schedule.Date matching tidak diubah unless RESEARCH.md confirm sibling miss sebagai root cause. Existing kode work for happy path.
+- **(Update 2026-05-08) Sibling 0-row defensive** (D-33): Walaupun secara theoritis tidak terjadi, guard return error explanatory untuk catch DbContext quirk.
+- **(Update 2026-05-08) Conditional Schedule MinValue guard** (D-37/D-38): Plan 01 RESEARCH validate dulu apakah ada legacy data. Plan 02 only patch kalau confirmed exists.
+- **(Update 2026-05-08) RESEARCH.md "Data shape baseline"** (D-39): Plan 01 include 5 sample queries DB untuk validate matching/Schedule/Status assumptions sebelum patch decision.
 
 </specifics>
 
@@ -205,6 +269,13 @@ Investigative bug fix endpoint `Controllers/AssessmentAdminController.cs` `Regen
 - **Server-side cookie/session invalidate on token regen** (D-24 followup) — kalau research confirm worker session NOT auto-invalidated by token change, ini jadi separate enhancement (force logout active sessions).
 - **`HttpContext.TraceIdentifier` correlation ID di logging** (D-20 alternative) — useful untuk cross-reference ASP.NET Core request log, tapi scope creep untuk fix ini.
 - **Hybrid Playwright + manual UAT** (D-13 alternative) — kalau Playwright fixture too brittle, fallback manual.
+- **(Update 2026-05-08) Title trim/lowercase normalize** (D-29 alternative) — defensive matching untuk legacy whitespace/case duplicate. Bisa di-add kalau RESEARCH.md confirm Title duplicate cause sibling miss.
+- **(Update 2026-05-08) Category null-coalesce matching** (D-31 alternative) — `(a.Category ?? "") == (assessment.Category ?? "")`. Defensive untuk legacy NULL Category.
+- **(Update 2026-05-08) `EnsureCanRegenerateAsync()` helper extraction** (D-28 alternative) — pattern Phase 312 EnsureCanDeleteAsync. Refactor cleanup, bisa di-do as separate maintenance phase.
+- **(Update 2026-05-08) Ownership scope check granular** (D-26 alternative) — admin yang create assessment saja. Out-of-scope untuk Pertamina cross-cutting admin role, tapi bisa jadi audit feature future.
+- **(Update 2026-05-08) Token uniqueness collision retry** — kalau `GenerateSecureToken()` random 6-char collide dengan AccessToken existing, retry generate. Probability low (~1B kombinasi), defer.
+- **(Update 2026-05-08) `UpdatedBy` field di sibling row** — track admin yang regenerate token per row. Schema change required, defer ke milestone v16.0+ kalau audit forensic granular dibutuhkan.
+- **(Update 2026-05-08) Data cleanup script untuk Schedule MinValue legacy rows** — kalau D-39 RESEARCH confirm exists. Out-of-scope Phase 314, masuk Team IT scope sebagai data hygiene phase.
 
 </deferred>
 
@@ -212,3 +283,4 @@ Investigative bug fix endpoint `Controllers/AssessmentAdminController.cs` `Regen
 
 *Phase: 314-fix-regenerate-token-untuk-status-upcoming*
 *Context gathered: 2026-05-08*
+*Context updated: 2026-05-08 — added 4 gray areas, 15 decisions (D-25 through D-39)*
