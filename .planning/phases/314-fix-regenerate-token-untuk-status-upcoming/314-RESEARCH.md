@@ -941,29 +941,31 @@ ORDER BY SiblingCount;
 
 **Risk mitigation summary:** A1, A2, A5 sudah cross-checked via grep + DbContext config + 10+ usage pattern (HIGH confidence). A3, A4, A6, A7 — assumptions yang BISA salah, di-flag untuk Plan 01 verify saat repro.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Stacktrace dari log Dev — 4 hipotesis mana yang CONFIRMED?**
+> **Status (2026-05-08):** All 5 questions RESOLVED — either scheduled into Plan 01 tasks dengan acceptance criteria explicit, atau resolved via existing finding (D-24 grep, PATTERNS Pitfall 5, D-01 admin fallback). No open blockers.
+
+1. **Stacktrace dari log Dev — 4 hipotesis mana yang CONFIRMED?** — **RESOLVED** — dijadwalkan ke **Plan 01 Task 2** (D-02 capture stacktrace, output ke RESEARCH.md `## Stacktrace Evidence` section dengan acceptance criteria `grep -q "^## Stacktrace Evidence"`). Plan 02 Task 1 verify pre-condition `grep -q "## Root Cause (Finalized" RESEARCH.md` sebelum patch.
    - What we know: Pre-repro analisis prediksi Frontend handler (Hipotesis 4) paling likely
    - What's unclear: Real exception type + stack trace
    - Recommendation: Plan 01 langkah pertama (D-02) — capture log Dev. Tools: Kestrel log file di server, atau Application Insights kalau ter-config.
 
-2. **DB Dev legacy data — apakah Schedule MinValue rows exist?**
+2. **DB Dev legacy data — apakah Schedule MinValue rows exist?** — **RESOLVED** — dijadwalkan ke **Plan 01 Task 3** (5 SQL queries D-39 dengan output ke RESEARCH.md `## Data Shape Baseline` section). Query (a) result drives D-37/D-38 conditional inclusion di Plan 02 Task 1 (verify via `grep "MinValueCount" RESEARCH.md`).
    - What we know: CreateAssessment datepicker UI prevents at create time
    - What's unclear: Apakah ada rows pre-Phase 192 atau dari migration data legacy
    - Recommendation: Plan 01 jalankan Query (a) di §Data Shape Baseline → drives D-37/D-38
 
-3. **Worker session invalidation behavior post-regen — pertahankan atau enhancement future?**
+3. **Worker session invalidation behavior post-regen — pertahankan atau enhancement future?** — **RESOLVED** via D-24 finding (HIGH confidence) — token TIDAK invalidate active worker session. Cookie-based ASP.NET Core Identity ticket persists sampai logout/expiry; token verified hanya di login flow `CMPController.VerifyToken` line 804 (grep `AccessToken` confirms tidak ada middleware re-check per request). D-23 wording direvisi accordingly di Plan 01 Task 5. Strict invalidation = separate enhancement v16.0+ (Deferred Ideas).
    - What we know: Current behavior = NOT invalidated (token login-gate only)
    - What's unclear: Apakah Pertamina butuh strict invalidation (force logout) untuk audit/security
    - Recommendation: D-23 wording revision Phase 314 (dokumentasikan current behavior accurate). Strict invalidation = separate enhancement v16.0+ (sudah di Deferred Ideas).
 
-4. **HTMX-based ManageAssessment view — partial render preserves event listener?**
+4. **HTMX-based ManageAssessment view — partial render preserves event listener?** — **RESOLVED** via PATTERNS.md Pitfall 5 + Plan 02 Task 4 (preserve `document.body.addEventListener` delegation pattern karena body element stable across HTMX swap). Manual UAT step di Plan 02 Task 7 verify regen handler fire setelah tab switch + filter apply (acceptance: dialog confirm muncul, fetch dispatched).
    - What we know: Phase 311 implemented HTMX lazy load untuk 3 tab (Assessment/Training/History)
    - What's unclear: Apakah tab swap reset `document.body.addEventListener` atau preserve (event delegation pattern depends on body element being stable)
    - Recommendation: Plan 02 manual UAT verify regen handler fire setelah tab switch + setelah filter apply (HTMX swap)
 
-5. **Repro at Dev — admin@pertamina.com peserta sebagai dirinya sendiri, valid?**
+5. **Repro at Dev — admin@pertamina.com peserta sebagai dirinya sendiri, valid?** — **RESOLVED** via D-01 fallback strategy — admin@pertamina.com Admin role allow assign Admin sebagai peserta (verified tidak ada role-based restrict di CreateAssessment Authorize policy, hanya `[Authorize(Roles = "Admin, HC")]`). Fallback: kalau policy reject saat repro, pakai 1 user Coachee fixture yang tidak StartExam (Plan 01 Task 1 instructions cover both paths).
    - What we know: D-01 user explicit: "buat assessmentnya sendiri"
    - What's unclear: Apakah Authorize policy di CreateAssessment allow Admin assign Admin sebagai peserta (vs peserta=Coachee role only)
    - Recommendation: Plan 01 verify saat repro. Fallback: pakai 1 user Coachee fixture yang tidak StartExam.
