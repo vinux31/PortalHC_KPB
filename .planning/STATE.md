@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v15.0
 milestone_name: Audit Findings 27 April 2026
-status: verifying
-stopped_at: Phase 313.1 complete (F-313-UAT-01 resolved + 7 FLOW 313 PASS)
-last_updated: "2026-05-08T07:08:49.964Z"
-last_activity: 2026-05-08
+status: executing
+stopped_at: Phase 314 complete (TKN-01 routing fix lokal-verified, IT redeploy pending)
+last_updated: "2026-05-08T09:51:08.560Z"
+last_activity: 2026-05-08 -- Phase 314 execution started
 progress:
   total_phases: 12
   completed_phases: 11
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 313.1 — Gap closure Phase 313 - extend seed AssessmentPackages + finalize Playwright FLOW 313
+**Current focus:** Phase 314 — Fix Regenerate Token untuk Status Upcoming (TKN-01)
 
 ## Current Position
 
-Phase: 313.1 (Gap closure Phase 313 - extend seed AssessmentPackages + finalize Playwright FLOW 313) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-05-08
-Resume file: .planning/STATE.md
+Phase: 314 (Fix Regenerate Token untuk Status Upcoming (TKN-01)) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 314
+Last activity: 2026-05-08 -- Phase 314 execution started
+Resume file: .planning/phases/314-fix-regenerate-token-untuk-status-upcoming/314-UAT.md
 
 ## Next Action
 
@@ -47,6 +47,7 @@ Phase 313.1 Plan 02 COMPLETE — F-313-UAT-01 RESOLVED end-to-end. 7 commits + 7
 **Operator approved Task 7 checkpoint** — full FLOW 313 run 7/7 PASS dalam 28.3s (313.1 6.9s, 313.2 7.2s, 313.3 1.9s, 313.4 2.3s, 313.5 2.0s, 313.6 1.9s, 313.7 2.1s).
 
 **Next:**
+
 1. **Operator TODO:** Restore snapshot DB lokal `HcPortalDB_Dev.20260508-pre313_1.bak` (per CLAUDE.md Seed Data Workflow) + mark `docs/SEED_JOURNAL.md` Phase 313.1 entry status `cleaned`.
 2. Jalankan `/gsd-verify-work` untuk close Phase 313.1.
 3. Lanjut Phase 314 (Fix Regenerate Token Upcoming, TKN-01) — last phase v15.0 milestone.
@@ -138,5 +139,5 @@ Last activity: 2026-04-29 — Phase 308 Plan 02 (Wave 1 implementation) COMPLETE
 - Wave 0 commit `cedbebb0` (308-01 finalization)
 - Intermediate paused-at-checkpoint commit `a0610acc`
 
-Stopped at: Phase 313.1 complete (F-313-UAT-01 resolved + 7 FLOW 313 PASS)
+Stopped at: Phase 314 complete (TKN-01 routing fix lokal-verified, IT redeploy pending)
 Next action: Jalankan `/gsd-verify-work` untuk verify Phase 308 closure. Pre-verify smoke: 4 Playwright tests Phase 308 (8.1-8.4) expect transisi RED → GREEN dari Wave 0.
