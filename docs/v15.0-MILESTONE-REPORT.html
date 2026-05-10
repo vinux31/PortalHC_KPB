@@ -465,6 +465,58 @@ dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."<
     <div class="field"><span class="field-label">Commit:</span> <code>dd56926b..551339c5</code></div>
   </div>
 </section>
+
+<section id="deferred">
+  <h2>Deferred &amp; Carry-Over</h2>
+
+  <h3>Deferred v15.0 (1 item)</h3>
+  <table>
+    <thead>
+      <tr><th>REQ</th><th>Item</th><th>Due</th><th>Aksi</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>EPRV-01</td>
+        <td>Preview Essay rubrik/jawaban — Jalur A (label) vs Jalur B (field baru + migrasi DB)</td>
+        <td>2026-05-12</td>
+        <td>Smoke test save/load Rubrik dulu. Jalur B → defer v16.0 (tabrak goal "tanpa migrasi DB").</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Carry-Over dari v14.0 (7 item, masih open)</h3>
+  <table>
+    <thead>
+      <tr><th>Kategori</th><th>Item</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>UAT</td><td>Phase 303 Plan 02 Task 3 — Coach Workload 12-langkah human verification</td><td><span class="badge badge-deferred">Paused-at-checkpoint</span></td></tr>
+      <tr><td>UAT</td><td>Phase 235 — 5 items butuh human browser verification</td><td><span class="badge badge-deferred">Pending</span></td></tr>
+      <tr><td>UAT</td><td>Phase 247 approval chain — 2 TODO (HC review + resubmit notif)</td><td><span class="badge badge-deferred">Pending — overlap risk Phase 310</span></td></tr>
+      <tr><td>Research gap</td><td>Phase 297 PrePost Renewal — keputusan 2 sesi baru otomatis</td><td><span class="badge badge-deferred">Undecided</span></td></tr>
+      <tr><td>Research gap</td><td>Phase 298 essay max char limit nvarchar(max) vs nvarchar(2000)</td><td><span class="badge badge-deferred">Undecided</span></td></tr>
+      <tr><td>Blocker</td><td>Phase 293 <code>GetSectionUnitsDictAsync</code> Level 2+ support</td><td><span class="badge badge-deferred">Undecided</span></td></tr>
+      <tr><td>Paused</td><td>Phase 281 + 285 (System Settings + Dedicated Impersonation)</td><td><span class="badge badge-deferred">Paused</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="referensi">
+  <h2>Referensi</h2>
+  <ul>
+    <li><strong>Commit range:</strong> <code>381b36cd..551339c5</code> (2026-04-15 → 2026-05-08)</li>
+    <li><strong>Roadmap:</strong> <code>.planning/ROADMAP.md</code> § "v15.0 Audit Findings 27 April 2026"</li>
+    <li><strong>State:</strong> <code>.planning/STATE.md</code></li>
+    <li><strong>Source audit:</strong> Audit Findings 27 April 2026 + 29 April 2026 (internal doc)</li>
+    <li><strong>Workflow developer:</strong> <code>docs/DEV_WORKFLOW.md</code></li>
+    <li><strong>Seed data workflow:</strong> <code>docs/SEED_WORKFLOW.md</code> + <code>docs/SEED_JOURNAL.md</code></li>
+    <li><strong>Spec laporan ini:</strong> <code>docs/superpowers/specs/2026-05-10-v15-milestone-report-design.md</code></li>
+  </ul>
+</section>
+
+<footer class="report-footer">
+  Laporan dibuat 2026-05-10 — Portal HC KPB · Milestone v15.0 · HEAD <code>551339c5</code>
+</footer>
 </div>
 </body>
 </html>
