@@ -1,0 +1,963 @@
+# v15.0 Milestone Report HTML — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Generate a single self-contained HTML report (`docs/v15.0-MILESTONE-REPORT.html`) summarizing the entire v15.0 milestone for handoff to Tim IT — covering DB migration, redeploy checklist, smoke test, and 12 phase cards.
+
+**Architecture:** Static HTML5 + embedded CSS, no JS, no external dependency. Single file. Print-friendly (`@media print` rules). Bahasa Indonesia. Hybrid layout: executive summary on top → IT actionables (highlighted) → wave summary table → 12 phase cards → deferred → references.
+
+**Tech Stack:** HTML5, CSS3 (system font stack), no build tooling.
+
+**Spec reference:** `docs/superpowers/specs/2026-05-10-v15-milestone-report-design.md`
+
+---
+
+## File Structure
+
+| File | Status | Responsibility |
+|------|--------|----------------|
+| `docs/v15.0-MILESTONE-REPORT.html` | Create | Final deliverable — single self-contained HTML report |
+| `docs/superpowers/specs/2026-05-10-v15-milestone-report-design.md` | Already exists | Source-of-truth design spec (reference) |
+
+Tidak ada file lain yang dibuat/dimodifikasi. Sumber data: `.planning/ROADMAP.md`, `.planning/STATE.md`, `git log`.
+
+---
+
+## Task 1: Kumpulkan data commit hash per phase
+
+**Files:**
+- Reference only: `.planning/ROADMAP.md`, git history
+- Output: tulis hasil ke catatan inline (akan dipakai Task 6)
+
+- [ ] **Step 1: Extract commit hash range per phase**
+
+Run setiap command, catat output (first hash + last hash per phase). Phase 313.1 ditangani terpisah karena nomor titik:
+
+```bash
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(304" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(305" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(306" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(307" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(308" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(309" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(310" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(311" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(312" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(313" --grep="(313-" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(313\.1" | head -3
+git log 381b36cd..HEAD --reverse --format="%h %s" --grep="(314" | head -3
+```
+
+Untuk setiap phase, juga ambil **last commit**:
+
+```bash
+git log 381b36cd..HEAD --format="%h %s" --grep="(304" | tail -3
+# (ulangi untuk 305..314, 313.1)
+```
+
+Expected: dapat ~12 mapping `<phase> → <first-hash>..<last-hash>`. Catat dalam scratch berikut:
+
+```
+304: 256f0aa3..<last>
+305: be5c2bb6..<last>
+306: 3949fe92..<last>
+307: 37c4bb90..<last>
+308: 093fc84b..<last>
+309: 09013322..<last>
+310: <first>..<last>
+311: <first>..<last>
+312: 0b9a5e34..<last>
+313: a2dfe521..<last>
+313.1: 15c7aba0..7a95a36d
+314: dd56926b..551339c5
+```
+
+- [ ] **Step 2: Verify migration file list**
+
+Run:
+```bash
+git diff 381b36cd..HEAD --name-only -- "Migrations/" "*.sql"
+```
+
+Expected output (catat bila berbeda):
+```
+.planning/phases/314-fix-regenerate-token-untuk-status-upcoming/repro-evidence/05-d39-queries.sql
+.planning/seeds/313-timer-fixtures.sql
+Migrations/20260507073825_AddManageAssessmentPerfIndexes.Designer.cs
+Migrations/20260507073825_AddManageAssessmentPerfIndexes.cs
+Migrations/ApplicationDbContextModelSnapshot.cs
+```
+
+Catatan: 2 file `.sql` adalah seed/repro test untuk lokal — tidak diapply ke Dev. Hanya migration EF Core yang relevan untuk IT.
+
+- [ ] **Step 3: No commit (data gathering only)**
+
+Task ini tidak menulis file. Hanya memvalidasi sumber data sebelum menulis HTML.
+
+---
+
+## Task 2: Skeleton HTML + global CSS
+
+**Files:**
+- Create: `docs/v15.0-MILESTONE-REPORT.html`
+
+- [ ] **Step 1: Tulis skeleton HTML5 dengan global CSS**
+
+Tulis file `docs/v15.0-MILESTONE-REPORT.html` berisi:
+
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Milestone v15.0 — Audit Findings 27 April 2026</title>
+<style>
+:root {
+  --brand: #e30613;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-alt: #f9fafb;
+  --green: #16a34a;
+  --amber: #f59e0b;
+  --red: #dc2626;
+  --highlight-bg: #fef3c7;
+  --highlight-border: #f59e0b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+h1 { font-size: 28px; margin: 0 0 8px; color: var(--text); }
+h2 { font-size: 22px; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 18px; margin: 24px 0 12px; }
+h4 { font-size: 16px; margin: 16px 0 8px; }
+
+p { margin: 0 0 12px; }
+
+code, .mono {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  background: var(--bg-alt);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  background: var(--bg-alt);
+  padding: 12px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  border-left: 3px solid var(--brand);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th { background: var(--bg-alt); font-weight: 600; }
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+.badge-done { background: var(--green); }
+.badge-deferred { background: var(--amber); }
+.badge-blocker { background: var(--red); }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.kpi-box {
+  text-align: center;
+  padding: 20px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-alt);
+}
+.kpi-box .num { font-size: 32px; font-weight: 700; color: var(--brand); display: block; }
+.kpi-box .label { font-size: 13px; color: var(--muted); }
+
+.status-box {
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid var(--green);
+  color: #065f46;
+  font-weight: 600;
+  margin: 16px 0;
+}
+
+.it-actions {
+  background: var(--highlight-bg);
+  border: 2px solid var(--highlight-border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 24px 0;
+}
+.it-actions h2 { border-bottom: 2px solid var(--highlight-border); margin-top: 0; }
+
+.phase-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+  background: #ffffff;
+}
+.phase-card h3 { margin-top: 0; color: var(--brand); }
+.phase-card .meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.phase-card .field {
+  margin: 8px 0;
+}
+.phase-card .field-label {
+  font-weight: 600;
+  display: inline-block;
+  min-width: 90px;
+  color: var(--text);
+}
+
+header.report-header {
+  border-bottom: 4px solid var(--brand);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+header.report-header .subtitle { color: var(--muted); font-size: 16px; }
+header.report-header .meta-row { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+footer.report-footer {
+  margin-top: 64px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media print {
+  body { font-size: 12px; }
+  .container { max-width: none; padding: 16px; }
+  h2 { page-break-after: avoid; }
+  .phase-card { page-break-inside: avoid; }
+  .it-actions { background: #ffffff; }
+  .kpi-box { background: #ffffff; }
+  pre { white-space: pre-wrap; word-wrap: break-word; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- SECTIONS akan diisi pada task berikutnya -->
+</div>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Buka file di browser, verifikasi render**
+
+Run:
+```bash
+start "" "docs\v15.0-MILESTONE-REPORT.html"
+```
+
+Expected: Browser membuka file, halaman kosong putih (placeholder container). Tidak ada error console.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add docs/v15.0-MILESTONE-REPORT.html
+git commit -m "feat(report): scaffold v15.0 milestone report HTML skeleton"
+```
+
+---
+
+## Task 3: Section 1 (Header) + Section 2 (Executive Summary)
+
+**Files:**
+- Modify: `docs/v15.0-MILESTONE-REPORT.html` (replace `<!-- SECTIONS akan diisi -->` placeholder)
+
+- [ ] **Step 1: Tulis Header + Executive Summary**
+
+Replace placeholder dengan:
+
+```html
+<header class="report-header">
+  <h1>Laporan Milestone v15.0</h1>
+  <div class="subtitle">Audit Findings 27 April 2026 — Serah-Terima Pengembangan ke Tim IT untuk Redeploy</div>
+  <div class="meta-row">
+    <strong>Periode:</strong> 2026-04-15 — 2026-05-08 &nbsp;|&nbsp;
+    <strong>Commit terakhir:</strong> <code>551339c5</code> &nbsp;|&nbsp;
+    <strong>Commit IT terakhir:</strong> <code>381b36cd</code>
+  </div>
+</header>
+
+<section id="summary">
+  <h2>Ringkasan Eksekutif</h2>
+
+  <div class="kpi-grid">
+    <div class="kpi-box"><span class="num">12/12</span><span class="label">Phase Selesai</span></div>
+    <div class="kpi-box"><span class="num">28/28</span><span class="label">Plan Selesai</span></div>
+    <div class="kpi-box"><span class="num">14/14</span><span class="label">Requirement</span></div>
+    <div class="kpi-box"><span class="num">15/15</span><span class="label">Temuan Audit</span></div>
+  </div>
+
+  <p>
+    Milestone v15.0 menyelesaikan seluruh 15 temuan audit (11 audit 27 April 2026 + 4 audit susulan 29 April 2026)
+    tanpa migrasi DB skala besar. Pekerjaan dipecah menjadi 12 phase di 5 wave
+    (UI label &rarr; UI behavior &rarr; defensive fix &rarr; performance &rarr; audit susulan),
+    seluruhnya selesai dalam ~24 hari kalender (28 April – 8 Mei 2026).
+    Semua phase telah lolos UAT lokal; siap redeploy ke server Development.
+    Satu deferred item (<code>EPRV-01</code> Preview Essay rubrik) menunggu klarifikasi user dengan due 2026-05-12.
+  </p>
+
+  <div class="status-box">
+    ✅ STATUS: SIAP REDEPLOY KE SERVER DEVELOPMENT (10.55.3.3)
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Verifikasi render**
+
+Run:
+```bash
+start "" "docs\v15.0-MILESTONE-REPORT.html"
+```
+
+Expected:
+- Header dengan judul, subtitle, periode tampil rapi
+- 4 KPI box dalam grid horizontal (12/12, 28/28, 14/14, 15/15)
+- Paragraf eksekutif terbaca
+- Status box hijau "SIAP REDEPLOY"
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add docs/v15.0-MILESTONE-REPORT.html
+git commit -m "feat(report): tambah header dan ringkasan eksekutif"
+```
+
+---
+
+## Task 4: Section 3 — AKSI IT (highlighted)
+
+**Files:**
+- Modify: `docs/v15.0-MILESTONE-REPORT.html` (append after `</section>` Executive Summary)
+
+- [ ] **Step 1: Tulis section AKSI IT**
+
+Append before closing `</div>` container:
+
+```html
+<section id="it-actions" class="it-actions">
+  <h2>⚠️ Aksi Tim IT — Wajib Dilakukan Saat Redeploy</h2>
+
+  <h3>1. Perubahan DB Schema</h3>
+  <p>
+    Sejak commit IT <code>381b36cd</code> (2026-04-15), DB schema berubah dengan
+    <strong>1 EF migration baru</strong>:
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Migration</th><th>Phase</th><th>Dampak</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>20260507073825_AddManageAssessmentPerfIndexes</code></td>
+        <td>311 (PERF-01)</td>
+        <td>Tambah 2 non-clustered index ke tabel <code>AssessmentSessions</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Index yang ditambahkan:</strong></p>
+  <ul>
+    <li><code>IX_AssessmentSessions_LinkedGroupId</code></li>
+    <li><code>IX_AssessmentSessions_ExamWindowCloseDate</code></li>
+  </ul>
+
+  <p><strong>Sifat:</strong> Schema-only (tidak mengubah data row), idempotent, reversible (<code>Down</code> migration tersedia).</p>
+
+  <h3>2. Opsi Apply Migration</h3>
+
+  <h4>Opsi A (Recommended) — Apply via EF Core Tools</h4>
+  <p>Setelah pull HEAD, jalankan migration di server Dev:</p>
+  <pre>git pull origin main
+dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."</pre>
+
+  <h4>Opsi B (Alternatif) — Restore dari snapshot DB lokal</h4>
+  <p>
+    Jika ada concern data drift atau tidak yakin migration history server Dev sinkron,
+    request snapshot DB lokal dari Rino, lalu restore di server Dev.
+    Kontak Rino untuk file <code>.bak</code>.
+  </p>
+
+  <h3>3. Redeploy Checklist</h3>
+  <ol>
+    <li>Pull <code>551339c5</code> (atau HEAD <code>main</code>) ke server Dev</li>
+    <li>Apply migration (Opsi A atau B di atas)</li>
+    <li>Build &amp; publish: <code>dotnet publish -c Release</code></li>
+    <li>Restart IIS app pool <code>KPB-PortalHC</code></li>
+    <li>Smoke test 5 area kritis (lihat poin 4)</li>
+  </ol>
+
+  <h3>4. Smoke Test Pasca-Redeploy</h3>
+  <table>
+    <thead>
+      <tr><th>Area</th><th>Test</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Login</td><td>Eye-icon password toggle berfungsi (Phase 304)</td></tr>
+      <tr><td>Wizard Create Assessment</td><td>Step 2 menampilkan list peserta, Step 3 label "(WIB)", PrePost mode tidak reset wizard (Phase 304/307/308)</td></tr>
+      <tr><td>Exam timer</td><td>Manual submit setelah waktu habis ditolak banner Tier-1; auto-submit grace 2 menit (Phase 313)</td></tr>
+      <tr><td>Regenerate token</td><td>Klik Regenerate Token di session Upcoming tidak 404 lagi (Phase 314)</td></tr>
+      <tr><td>ManageAssessment</td><td>Halaman load &lt;2 detik via HTMX lazy load (Phase 311)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5. Rollback Note</h3>
+  <p>
+    Jika perlu rollback: <code>dotnet ef database update &lt;previous-migration-name&gt;</code>
+    untuk revert index, lalu redeploy commit pre-<code>551339c5</code>.
+    Index drop tidak mempengaruhi data.
+  </p>
+</section>
+```
+
+- [ ] **Step 2: Verifikasi render**
+
+Run:
+```bash
+start "" "docs\v15.0-MILESTONE-REPORT.html"
+```
+
+Expected:
+- Section "Aksi Tim IT" dengan border kuning highlight
+- Tabel migration tampil
+- Block code untuk command `dotnet ef database update`
+- Checklist 5-step ordered list
+- Tabel smoke test 5 baris
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add docs/v15.0-MILESTONE-REPORT.html
+git commit -m "feat(report): tambah section Aksi IT (DB migration + redeploy + smoke test)"
+```
+
+---
+
+## Task 5: Section 4 — Ringkasan per Wave
+
+**Files:**
+- Modify: `docs/v15.0-MILESTONE-REPORT.html` (append after Section 3)
+
+- [ ] **Step 1: Tulis tabel wave summary**
+
+Append before closing `</div>` container:
+
+```html
+<section id="wave-summary">
+  <h2>Ringkasan per Wave</h2>
+  <p>Pekerjaan v15.0 dibagi menjadi 5 wave berdasarkan dependency dan risiko file conflict:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Wave</th>
+        <th>Tema</th>
+        <th>Phase</th>
+        <th>Tanggal Selesai</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>UI Label &amp; Polish</td>
+        <td>304, 305</td>
+        <td>2026-04-28</td>
+        <td><span class="badge badge-done">Selesai</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>UI Behavior</td>
+        <td>306, 307, 308</td>
+        <td>2026-04-28 → 04-29</td>
+        <td><span class="badge badge-done">Selesai</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Defensive + State Machine</td>
+        <td>309, 310</td>
+        <td>2026-05-01 → 05-05</td>
+        <td><span class="badge badge-done">Selesai</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Performance</td>
+        <td>311</td>
+        <td>2026-05-07</td>
+        <td><span class="badge badge-done">Selesai</span></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Audit Susulan 29 April</td>
+        <td>312, 313, 313.1, 314</td>
+        <td>2026-05-07 → 05-08</td>
+        <td><span class="badge badge-done">Selesai</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+```
+
+- [ ] **Step 2: Verifikasi render**
+
+Run:
+```bash
+start "" "docs\v15.0-MILESTONE-REPORT.html"
+```
+
+Expected: Tabel 5 baris wave dengan badge hijau "Selesai".
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add docs/v15.0-MILESTONE-REPORT.html
+git commit -m "feat(report): tambah ringkasan per wave"
+```
+
+---
+
+## Task 6: Section 5 — Detail per Phase (12 card)
+
+**Files:**
+- Modify: `docs/v15.0-MILESTONE-REPORT.html` (append after Section 4)
+
+**Catatan:** Card pakai data dari Task 1 (commit hash range) + `.planning/ROADMAP.md` (REQ + success criteria). Setiap card mengikuti template yang sama.
+
+- [ ] **Step 1: Tulis section opener**
+
+Append:
+```html
+<section id="phase-detail">
+  <h2>Detail per Phase</h2>
+  <p>Setiap card berisi: <strong>REQ ID</strong>, <strong>problem audit</strong>, <strong>fix singkat</strong>, <strong>file utama</strong>, <strong>status UAT</strong>, dan <strong>commit hash range</strong>.</p>
+```
+
+- [ ] **Step 2: Tulis Card Phase 304**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 304 — UI Label Polish (Login + WIB)</h3>
+    <div class="meta"><strong>Wave:</strong> 1 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-28 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> AUTH-01, WIZ-02, WIZ-03</div>
+    <div class="field"><span class="field-label">Problem:</span> Login tidak punya eye-icon toggle password. Label waktu di Step 3 wizard tanpa zona (kebingungan WIB vs WITA). Step 4 summary tanpa suffix "WIB".</div>
+    <div class="field"><span class="field-label">Fix:</span> Eye-icon button JS toggle <code>type="password"</code> ↔ <code>type="text"</code>. Suffix "(WIB)" pada 6 label Step 3, " WIB" pada 5 lokasi populateSummary Step 4.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Views/Account/Login.cshtml</code>, <code>Views/Admin/CreateAssessment.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>256f0aa3..002bfe79</code></div>
+  </div>
+```
+
+- [ ] **Step 3: Tulis Card Phase 305**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 305 — Question Type Naming Clarity</h3>
+    <div class="meta"><strong>Wave:</strong> 1 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-28 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> LBL-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Label "Multiple Choice" (MC) vs "Multiple Answer" (MA) rancu, user sering salah pilih.</div>
+    <div class="field"><span class="field-label">Fix:</span> Helper class <code>QuestionTypeLabels</code>. UI ganti label jadi "Single Choice (1 jawaban benar)" dan "Multiple Answers (≥2 jawaban benar)" — wording standar Moodle/Canvas. Enum/DB tidak diubah (backward compat).</div>
+    <div class="field"><span class="field-label">File:</span> <code>Helpers/QuestionTypeLabels.cs</code> (new), 5 view edits, 8 docs context-aware.</div>
+    <div class="field"><span class="field-label">Commit:</span> <code>be5c2bb6..142bb609</code></div>
+  </div>
+```
+
+- [ ] **Step 4: Tulis Card Phase 306**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 306 — Score Editable per Question Type</h3>
+    <div class="meta"><strong>Wave:</strong> 2 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-28 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> QSCR-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Score input di-disable untuk MC/MA, force ke 10. Admin tidak bisa atur bobot soal.</div>
+    <div class="field"><span class="field-label">Fix:</span> Server-side range validation 1–100, hapus force-override pada <code>CreateQuestion</code> + <code>EditQuestion</code>. View enable input. Modal warning saat ubah skor pada soal yang sudah punya session associated. AuditLog entry untuk score change.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/ManagePackageQuestions.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>3949fe92..3a8cb48e</code></div>
+  </div>
+```
+
+- [ ] **Step 5: Tulis Card Phase 307**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 307 — Selected Participants Inline View</h3>
+    <div class="meta"><strong>Wave:</strong> 2 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-29 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> WIZ-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Step 2 wizard tidak menampilkan list peserta yang dipilih. Admin harus loncat ke Step 4 summary untuk verifikasi.</div>
+    <div class="field"><span class="field-label">Fix:</span> Panel "Peserta Terpilih" real-time di Step 2 dengan badge count + nama 5 pertama + expand "...dan N lainnya". Helper <code>renderSelectedParticipants</code> reuse di Step 2 &amp; Step 4 (DRY).</div>
+    <div class="field"><span class="field-label">File:</span> <code>Views/Admin/CreateAssessment.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>37c4bb90..7d81eecf</code></div>
+  </div>
+```
+
+- [ ] **Step 6: Tulis Card Phase 308**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 308 — PrePost Wizard Validation Fix</h3>
+    <div class="meta"><strong>Wave:</strong> 2 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-29 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> WIZ-04</div>
+    <div class="field"><span class="field-label">Problem:</span> Saat user pilih PrePost mode, field Status validation memaksa reset wizard ke Step 1.</div>
+    <div class="field"><span class="field-label">Fix:</span> JS handler set <code>Status='Upcoming'</code> saat type=PrePost. Server-side <code>ModelState.Remove("Status")</code> conditional pada PrePost mode. Test matrix 4 kombinasi (Standard/PrePost/switch) lolos.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Views/Admin/CreateAssessment.cshtml</code>, <code>Controllers/AssessmentAdminController.cs</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>093fc84b..61e3b0ef</code></div>
+  </div>
+```
+
+- [ ] **Step 7: Tulis Card Phase 309**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 309 — Worker Certificate Defensive Fix + Submitted Status Handling</h3>
+    <div class="meta"><strong>Wave:</strong> 3 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-01 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> WCRT-01, SUB-01 (bundled)</div>
+    <div class="field"><span class="field-label">Problem:</span> (1) Worker dengan exotic Category atau null FullName crash di view Certificate. (2) Status "Menunggu Penilaian" (essay pending) ditolak sebagai "not completed".</div>
+    <div class="field"><span class="field-label">Fix:</span> (1) Try-catch berlapis di <code>Certificate</code> action + helper <code>ResolveCategorySignatory</code>, null-safe accessor di view, fallback "HC Manager". Logging structured. (2) Helper <code>IsAssessmentSubmitted(status)</code> recognize "Completed" + "Menunggu Penilaian". 3 lokasi cek di <code>CMPController</code> diupdate. Branch khusus PendingGrading dengan TempData["Info"] (bukan Error).</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/CMPController.cs</code>, <code>Views/CMP/Certificate.cshtml</code>, <code>Helpers/AssessmentConstants.cs</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>09013322..a06519b7</code></div>
+  </div>
+```
+
+- [ ] **Step 8: Tulis Card Phase 310**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 310 — Essay Finalize Idempotency</h3>
+    <div class="meta"><strong>Wave:</strong> 3 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-05 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> ESCG-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Klik "Create Sertifikasi" 2x menduplikasi <code>TrainingRecord</code>, <code>NomorSertifikat</code>, dan notifikasi.</div>
+    <div class="field"><span class="field-label">Fix:</span> <code>FinalizeEssayGrading</code> capture rowsAffected, return success/no-op friendly message bila Status sudah Completed. UI hide tombol saat sudah Completed + ada NomorSertifikat. Dedup notif via <code>NotificationSentAt</code> guard. AuditLog gated.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/CDP/CertificationManagement.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> Plan 310-01 + 310-02 (lihat <code>git log --grep="(310"</code>)</div>
+  </div>
+```
+
+- [ ] **Step 9: Tulis Card Phase 311**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 311 — ManageAssessment Performance (HTMX Lazy Load)</h3>
+    <div class="meta"><strong>Wave:</strong> 4 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-07 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> PERF-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Halaman <code>ManageAssessment</code> load ~1.4 menit di wifi kantor. Awalnya disangka backend bottleneck, ternyata proxy wifi + payload size.</div>
+    <div class="field"><span class="field-label">Fix:</span> HTMX lazy load architecture — initial response &lt;14 KB, 3 partial actions per tab (Assessment/Training/History). Wave 2 backend opportunistic: <code>AsNoTracking</code> + 2 index migration + IMemoryCache TTL 5min Categories. Hasil: end-to-end load ≤40 detik (≥50% reduction). <strong>⚠️ Migration baru ada di phase ini.</strong></div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/ManageAssessment.cshtml</code> + 3 partial views, <code>Migrations/20260507073825_AddManageAssessmentPerfIndexes.cs</code></div>
+    <div class="field"><span class="field-label">Commit:</span> Plan 311-01..04 (lihat <code>git log --grep="(311"</code>)</div>
+  </div>
+```
+
+- [ ] **Step 10: Tulis Card Phase 312**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 312 — Admin Full-Delete Assessment Room</h3>
+    <div class="meta"><strong>Wave:</strong> 5 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-07 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> DEL-01</div>
+    <div class="field"><span class="field-label">Problem:</span> HC bisa hapus assessment Completed atau yang sudah ada response — risk data loss. Admin tidak punya override.</div>
+    <div class="field"><span class="field-label">Fix:</span> Role tier guard di <code>DeleteAssessment</code> + <code>DeleteAssessmentGroup</code>: Admin override, HC blocked dari Completed/with-response. UI conditional render tombol Hapus. Wrap delete methods dalam transaction (TOCTOU mitigation). AuditLog include Status + ResponseCount.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/ManageAssessment.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>0b9a5e34..aaa3c719</code></div>
+  </div>
+```
+
+- [ ] **Step 11: Tulis Card Phase 313**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 313 — Block Manual Submit Saat Waktu Habis</h3>
+    <div class="meta"><strong>Wave:</strong> 5 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-08 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> TMR-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Worker bisa submit manual setelah waktu ujian habis — bypass timer enforcement.</div>
+    <div class="field"><span class="field-label">Fix:</span> 2-tier rejection di <code>SubmitExam</code>. Tier-1: manual reject tanpa grace (banner + redirect). Tier-2: auto reject setelah grace 2 menit. Helper <code>EnsureCanSubmitExamAsync</code> + <code>WriteSubmitBlockedAuditAsync</code>. Frontend modal info-only saat timer 0, submit paralel.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/CMPController.cs</code>, <code>Views/CMP/StartExam.cshtml</code>, <code>Views/CMP/ExamSummary.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>a2dfe521..2759f748</code></div>
+  </div>
+```
+
+- [ ] **Step 12: Tulis Card Phase 313.1**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 313.1 — Gap Closure Phase 313 (Seed + Playwright Finalize)</h3>
+    <div class="meta"><strong>Wave:</strong> 5 (gap closure) &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-08 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified 7/7 PASS</span></div>
+    <div class="field"><span class="field-label">REQ:</span> F-313-UAT-01, TMR-01 (carry-over)</div>
+    <div class="field"><span class="field-label">Problem:</span> Test fixture Phase 313 tidak self-contained — UAT 7-step tidak bisa di-rerun end-to-end.</div>
+    <div class="field"><span class="field-label">Fix:</span> Extend seed <code>313-timer-fixtures.sql</code> dengan AssessmentPackages(7) + PackageQuestions(21) + PackageOptions(84). Helper module <code>tests/e2e/helpers/exam313.ts</code>, replace 7 Playwright FLOW 313 test bodies dengan flow assertion lengkap. Hasil: 7/7 PASS dalam 28.3 detik.</div>
+    <div class="field"><span class="field-label">File:</span> <code>.planning/seeds/313-timer-fixtures.sql</code>, <code>tests/e2e/helpers/exam313.ts</code> (new), <code>tests/e2e/exam.spec.ts</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>15c7aba0..7a95a36d</code></div>
+  </div>
+```
+
+- [ ] **Step 13: Tulis Card Phase 314 + close section**
+
+```html
+  <div class="phase-card">
+    <h3>Phase 314 — Fix Regenerate Token untuk Status Upcoming</h3>
+    <div class="meta"><strong>Wave:</strong> 5 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-08 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT 4/5 PASS + 1 deferred hardening</span></div>
+    <div class="field"><span class="field-label">REQ:</span> TKN-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Klik "Regenerate Token" pada session status Upcoming → 404 error.</div>
+    <div class="field"><span class="field-label">Fix:</span> Investigative — root cause: Phase 287 controller split menghilangkan route attribute. Patch minimal: tambah <code>[HttpPost("{id:int}")]</code> route attribute di <code>RegenerateToken</code> action. Single fix cover 3 callsites. Frontend error message propagasi server JSON ke alert.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/AssessmentMonitoring.cshtml</code>, <code>Views/Admin/AssessmentMonitoringDetail.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>dd56926b..551339c5</code></div>
+  </div>
+</section>
+```
+
+- [ ] **Step 14: Verifikasi render**
+
+Run:
+```bash
+start "" "docs\v15.0-MILESTONE-REPORT.html"
+```
+
+Expected: 12 card phase tampil dengan layout konsisten, badge hijau "UAT verified".
+
+- [ ] **Step 15: Commit**
+
+```bash
+git add docs/v15.0-MILESTONE-REPORT.html
+git commit -m "feat(report): tambah 12 card detail phase v15.0"
+```
+
+---
+
+## Task 7: Section 6 (Deferred) + Section 7 (Referensi) + Footer
+
+**Files:**
+- Modify: `docs/v15.0-MILESTONE-REPORT.html` (append after Section 5)
+
+- [ ] **Step 1: Tulis section Deferred + Referensi + footer**
+
+Append:
+
+```html
+<section id="deferred">
+  <h2>Deferred &amp; Carry-Over</h2>
+
+  <h3>Deferred v15.0 (1 item)</h3>
+  <table>
+    <thead>
+      <tr><th>REQ</th><th>Item</th><th>Due</th><th>Aksi</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>EPRV-01</td>
+        <td>Preview Essay rubrik/jawaban — Jalur A (label) vs Jalur B (field baru + migrasi DB)</td>
+        <td>2026-05-12</td>
+        <td>Smoke test save/load Rubrik dulu. Jalur B → defer v16.0 (tabrak goal "tanpa migrasi DB").</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Carry-Over dari v14.0 (7 item, masih open)</h3>
+  <table>
+    <thead>
+      <tr><th>Kategori</th><th>Item</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>UAT</td><td>Phase 303 Plan 02 Task 3 — Coach Workload 12-langkah human verification</td><td><span class="badge badge-deferred">Paused-at-checkpoint</span></td></tr>
+      <tr><td>UAT</td><td>Phase 235 — 5 items butuh human browser verification</td><td><span class="badge badge-deferred">Pending</span></td></tr>
+      <tr><td>UAT</td><td>Phase 247 approval chain — 2 TODO (HC review + resubmit notif)</td><td><span class="badge badge-deferred">Pending — overlap risk Phase 310</span></td></tr>
+      <tr><td>Research gap</td><td>Phase 297 PrePost Renewal — keputusan 2 sesi baru otomatis</td><td><span class="badge badge-deferred">Undecided</span></td></tr>
+      <tr><td>Research gap</td><td>Phase 298 essay max char limit nvarchar(max) vs nvarchar(2000)</td><td><span class="badge badge-deferred">Undecided</span></td></tr>
+      <tr><td>Blocker</td><td>Phase 293 <code>GetSectionUnitsDictAsync</code> Level 2+ support</td><td><span class="badge badge-deferred">Undecided</span></td></tr>
+      <tr><td>Paused</td><td>Phase 281 + 285 (System Settings + Dedicated Impersonation)</td><td><span class="badge badge-deferred">Paused</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="referensi">
+  <h2>Referensi</h2>
+  <ul>
+    <li><strong>Commit range:</strong> <code>381b36cd..551339c5</code> (2026-04-15 → 2026-05-08)</li>
+    <li><strong>Roadmap:</strong> <code>.planning/ROADMAP.md</code> § "v15.0 Audit Findings 27 April 2026"</li>
+    <li><strong>State:</strong> <code>.planning/STATE.md</code></li>
+    <li><strong>Source audit:</strong> Audit Findings 27 April 2026 + 29 April 2026 (internal doc)</li>
+    <li><strong>Workflow developer:</strong> <code>docs/DEV_WORKFLOW.md</code></li>
+    <li><strong>Seed data workflow:</strong> <code>docs/SEED_WORKFLOW.md</code> + <code>docs/SEED_JOURNAL.md</code></li>
+    <li><strong>Spec laporan ini:</strong> <code>docs/superpowers/specs/2026-05-10-v15-milestone-report-design.md</code></li>
+  </ul>
+</section>
+
+<footer class="report-footer">
+  Laporan dibuat 2026-05-10 — Portal HC KPB · Milestone v15.0 · HEAD <code>551339c5</code>
+</footer>
+```
+
+- [ ] **Step 2: Verifikasi render**
+
+Run:
+```bash
+start "" "docs\v15.0-MILESTONE-REPORT.html"
+```
+
+Expected:
+- Tabel Deferred 1 baris (EPRV-01)
+- Tabel Carry-over 7 baris dengan badge amber
+- Section Referensi dengan bullet list 7 link
+- Footer rapi di bawah
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add docs/v15.0-MILESTONE-REPORT.html
+git commit -m "feat(report): tambah deferred, carry-over, referensi, dan footer"
+```
+
+---
+
+## Task 8: Final QA — Print Preview + Validasi Konten
+
+**Files:**
+- Modify: `docs/v15.0-MILESTONE-REPORT.html` (fix bila ada issue)
+
+- [ ] **Step 1: Test print preview**
+
+Run:
+```bash
+start "" "docs\v15.0-MILESTONE-REPORT.html"
+```
+
+Di browser: Ctrl+P (print preview).
+
+Expected:
+- Header tetap visible halaman 1
+- Card phase tidak terpotong di tengah (page-break-inside: avoid)
+- IT Actions section background diganti border (no yellow background di print)
+- Tidak ada overflow horizontal
+
+- [ ] **Step 2: Audit konten checklist**
+
+Buka file di browser, verifikasi:
+
+```
+[ ] 4 KPI box menampilkan angka benar (12/12, 28/28, 14/14, 15/15)
+[ ] Section "Aksi IT" menyebut migration name lengkap
+[ ] Opsi A dan Opsi B tertulis dengan command lengkap
+[ ] Checklist 5-step ada
+[ ] Smoke test 5 baris ada
+[ ] Tabel wave 5 baris
+[ ] 12 card phase semua hadir (304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 313.1, 314)
+[ ] Setiap card punya: REQ, Problem, Fix, File, Commit
+[ ] Section Deferred 1 + 7 baris
+[ ] Section Referensi 7 bullet
+[ ] Footer tampil
+[ ] Tidak ada teks "TODO", "TBD", "FIXME"
+```
+
+- [ ] **Step 3: Validasi HTML5**
+
+Run:
+```bash
+grep -c "<section" docs/v15.0-MILESTONE-REPORT.html
+```
+Expected: 7 (header tidak dihitung karena pakai `<header>` tag)
+
+```bash
+grep -c "phase-card" docs/v15.0-MILESTONE-REPORT.html
+```
+Expected: 12 (CSS rule + 12 instance) atau lebih.
+
+```bash
+grep -E "TODO|TBD|FIXME|XXX" docs/v15.0-MILESTONE-REPORT.html
+```
+Expected: NO MATCH (exit code 1).
+
+- [ ] **Step 4: Test offline (no network dependency)**
+
+Disconnect network. Buka file di browser. Expected: layout identik, no broken styling, no missing font.
+
+- [ ] **Step 5: Fix issues bila ada, lalu commit final**
+
+Bila ada issue dari Step 1-4, fix inline.
+
+```bash
+git add docs/v15.0-MILESTONE-REPORT.html
+git commit -m "feat(report): final QA pass — laporan v15.0 siap dikirim ke IT"
+```
+
+Bila tidak ada perubahan (semua lolos): skip commit, tandai task selesai.
+
+---
+
+## Self-Review Checklist (Plan vs Spec)
+
+| Spec Requirement | Task |
+|------------------|------|
+| File `docs/v15.0-MILESTONE-REPORT.html` | Task 2 |
+| Single self-contained, no JS | Task 2 (no `<script>`), Task 8 Step 4 |
+| Bahasa Indonesia | Semua task |
+| Header dengan title, periode, status | Task 3 |
+| 4 KPI box | Task 3 |
+| Status box "SIAP REDEPLOY" | Task 3 |
+| Section AKSI IT highlighted | Task 4 |
+| Migration name `20260507073825_AddManageAssessmentPerfIndexes` | Task 4 |
+| Opsi A `dotnet ef database update` | Task 4 |
+| Opsi B request DB lokal | Task 4 |
+| Redeploy checklist 5-step | Task 4 |
+| Smoke test 3+ area (5 actual) | Task 4 |
+| Rollback note | Task 4 |
+| Wave summary tabel 5 baris | Task 5 |
+| 12 phase card | Task 6 |
+| Setiap card: REQ, Problem, Fix, File, Status, Commit | Task 6 (template konsisten) |
+| Deferred section: EPRV-01 + 7 carry-over | Task 7 |
+| Referensi section | Task 7 |
+| Print-friendly @media print | Task 2 (CSS), Task 8 Step 1 |
+| Color palette Pertamina red | Task 2 |
+| Font system stack | Task 2 |
+| Container max-width 900px | Task 2 |
+| No CDN dependency | Task 2 (no `<link>`/`<script src=`), Task 8 Step 4 |
+| No "TODO"/"TBD" | Task 8 Step 2-3 |
+
+**Coverage:** 23/23 spec requirement → minimum 1 task. Tidak ada gap.
