@@ -412,7 +412,7 @@ dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."<
     <div class="field"><span class="field-label">Problem:</span> Klik "Create Sertifikasi" 2x menduplikasi <code>TrainingRecord</code>, <code>NomorSertifikat</code>, dan notifikasi.</div>
     <div class="field"><span class="field-label">Fix:</span> <code>FinalizeEssayGrading</code> capture rowsAffected, return success/no-op friendly message bila Status sudah Completed. UI hide tombol saat sudah Completed + ada NomorSertifikat. Dedup notif via <code>NotificationSentAt</code> guard. AuditLog gated.</div>
     <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/CDP/CertificationManagement.cshtml</code></div>
-    <div class="field"><span class="field-label">Commit:</span> Plan 310-01 + 310-02 (lihat <code>git log --grep="(310"</code>)</div>
+    <div class="field"><span class="field-label">Commit:</span> <code>d7afca07..71f32be9</code></div>
   </div>
 
   <div class="phase-card">
@@ -422,7 +422,7 @@ dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."<
     <div class="field"><span class="field-label">Problem:</span> Halaman <code>ManageAssessment</code> load ~1.4 menit di wifi kantor. Awalnya disangka backend bottleneck, ternyata proxy wifi + payload size.</div>
     <div class="field"><span class="field-label">Fix:</span> HTMX lazy load architecture — initial response &lt;14 KB, 3 partial actions per tab (Assessment/Training/History). Wave 2 backend opportunistic: <code>AsNoTracking</code> + 2 index migration + IMemoryCache TTL 5min Categories. Hasil: end-to-end load ≤40 detik (≥50% reduction). <strong>⚠️ Migration baru ada di phase ini.</strong></div>
     <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/ManageAssessment.cshtml</code> + 3 partial views, <code>Migrations/20260507073825_AddManageAssessmentPerfIndexes.cs</code></div>
-    <div class="field"><span class="field-label">Commit:</span> Plan 311-01..04 (lihat <code>git log --grep="(311"</code>)</div>
+    <div class="field"><span class="field-label">Commit:</span> <code>fd2bcf15..9013cab1</code></div>
   </div>
 
   <div class="phase-card">
