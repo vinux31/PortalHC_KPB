@@ -211,6 +211,81 @@ footer.report-footer {
     ✅ STATUS: SIAP REDEPLOY KE SERVER DEVELOPMENT (10.55.3.3)
   </div>
 </section>
+
+<section id="it-actions" class="it-actions">
+  <h2>⚠️ Aksi Tim IT — Wajib Dilakukan Saat Redeploy</h2>
+
+  <h3>1. Perubahan DB Schema</h3>
+  <p>
+    Sejak commit IT <code>381b36cd</code> (2026-04-15), DB schema berubah dengan
+    <strong>1 EF migration baru</strong>:
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Migration</th><th>Phase</th><th>Dampak</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>20260507073825_AddManageAssessmentPerfIndexes</code></td>
+        <td>311 (PERF-01)</td>
+        <td>Tambah 2 non-clustered index ke tabel <code>AssessmentSessions</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Index yang ditambahkan:</strong></p>
+  <ul>
+    <li><code>IX_AssessmentSessions_LinkedGroupId</code></li>
+    <li><code>IX_AssessmentSessions_ExamWindowCloseDate</code></li>
+  </ul>
+
+  <p><strong>Sifat:</strong> Schema-only (tidak mengubah data row), idempotent, reversible (<code>Down</code> migration tersedia).</p>
+
+  <h3>2. Opsi Apply Migration</h3>
+
+  <h4>Opsi A (Recommended) — Apply via EF Core Tools</h4>
+  <p>Setelah pull HEAD, jalankan migration di server Dev:</p>
+  <pre>git pull origin main
+dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."</pre>
+
+  <h4>Opsi B (Alternatif) — Restore dari snapshot DB lokal</h4>
+  <p>
+    Jika ada concern data drift atau tidak yakin migration history server Dev sinkron,
+    request snapshot DB lokal dari Rino, lalu restore di server Dev.
+    Kontak Rino untuk file <code>.bak</code>.
+  </p>
+
+  <h3>3. Redeploy Checklist</h3>
+  <ol>
+    <li>Pull <code>551339c5</code> (atau HEAD <code>main</code>) ke server Dev</li>
+    <li>Apply migration (Opsi A atau B di atas)</li>
+    <li>Build &amp; publish: <code>dotnet publish -c Release</code></li>
+    <li>Restart IIS app pool <code>KPB-PortalHC</code></li>
+    <li>Smoke test 5 area kritis (lihat poin 4)</li>
+  </ol>
+
+  <h3>4. Smoke Test Pasca-Redeploy</h3>
+  <table>
+    <thead>
+      <tr><th>Area</th><th>Test</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Login</td><td>Eye-icon password toggle berfungsi (Phase 304)</td></tr>
+      <tr><td>Wizard Create Assessment</td><td>Step 2 menampilkan list peserta, Step 3 label "(WIB)", PrePost mode tidak reset wizard (Phase 304/307/308)</td></tr>
+      <tr><td>Exam timer</td><td>Manual submit setelah waktu habis ditolak banner Tier-1; auto-submit grace 2 menit (Phase 313)</td></tr>
+      <tr><td>Regenerate token</td><td>Klik Regenerate Token di session Upcoming tidak 404 lagi (Phase 314)</td></tr>
+      <tr><td>ManageAssessment</td><td>Halaman load &lt;2 detik via HTMX lazy load (Phase 311)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5. Rollback Note</h3>
+  <p>
+    Jika perlu rollback: <code>dotnet ef database update &lt;previous-migration-name&gt;</code>
+    untuk revert index, lalu redeploy commit pre-<code>551339c5</code>.
+    Index drop tidak mempengaruhi data.
+  </p>
+</section>
 </div>
 </body>
 </html>
