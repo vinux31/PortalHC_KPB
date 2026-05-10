@@ -340,6 +340,131 @@ dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."<
     </tbody>
   </table>
 </section>
+
+<section id="phase-detail">
+  <h2>Detail per Phase</h2>
+  <p>Setiap card berisi: <strong>REQ ID</strong>, <strong>problem audit</strong>, <strong>fix singkat</strong>, <strong>file utama</strong>, <strong>status UAT</strong>, dan <strong>commit hash range</strong>.</p>
+
+  <div class="phase-card">
+    <h3>Phase 304 — UI Label Polish (Login + WIB)</h3>
+    <div class="meta"><strong>Wave:</strong> 1 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-28 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> AUTH-01, WIZ-02, WIZ-03</div>
+    <div class="field"><span class="field-label">Problem:</span> Login tidak punya eye-icon toggle password. Label waktu di Step 3 wizard tanpa zona (kebingungan WIB vs WITA). Step 4 summary tanpa suffix "WIB".</div>
+    <div class="field"><span class="field-label">Fix:</span> Eye-icon button JS toggle <code>type="password"</code> ↔ <code>type="text"</code>. Suffix "(WIB)" pada 6 label Step 3, " WIB" pada 5 lokasi populateSummary Step 4.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Views/Account/Login.cshtml</code>, <code>Views/Admin/CreateAssessment.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>256f0aa3..002bfe79</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 305 — Question Type Naming Clarity</h3>
+    <div class="meta"><strong>Wave:</strong> 1 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-28 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> LBL-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Label "Multiple Choice" (MC) vs "Multiple Answer" (MA) rancu, user sering salah pilih.</div>
+    <div class="field"><span class="field-label">Fix:</span> Helper class <code>QuestionTypeLabels</code>. UI ganti label jadi "Single Choice (1 jawaban benar)" dan "Multiple Answers (≥2 jawaban benar)" — wording standar Moodle/Canvas. Enum/DB tidak diubah (backward compat).</div>
+    <div class="field"><span class="field-label">File:</span> <code>Helpers/QuestionTypeLabels.cs</code> (new), 5 view edits, 8 docs context-aware.</div>
+    <div class="field"><span class="field-label">Commit:</span> <code>be5c2bb6..142bb609</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 306 — Score Editable per Question Type</h3>
+    <div class="meta"><strong>Wave:</strong> 2 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-28 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> QSCR-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Score input di-disable untuk MC/MA, force ke 10. Admin tidak bisa atur bobot soal.</div>
+    <div class="field"><span class="field-label">Fix:</span> Server-side range validation 1–100, hapus force-override pada <code>CreateQuestion</code> + <code>EditQuestion</code>. View enable input. Modal warning saat ubah skor pada soal yang sudah punya session associated. AuditLog entry untuk score change.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/ManagePackageQuestions.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>3949fe92..3a8cb48e</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 307 — Selected Participants Inline View</h3>
+    <div class="meta"><strong>Wave:</strong> 2 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-29 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> WIZ-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Step 2 wizard tidak menampilkan list peserta yang dipilih. Admin harus loncat ke Step 4 summary untuk verifikasi.</div>
+    <div class="field"><span class="field-label">Fix:</span> Panel "Peserta Terpilih" real-time di Step 2 dengan badge count + nama 5 pertama + expand "...dan N lainnya". Helper <code>renderSelectedParticipants</code> reuse di Step 2 &amp; Step 4 (DRY).</div>
+    <div class="field"><span class="field-label">File:</span> <code>Views/Admin/CreateAssessment.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>37c4bb90..7d81eecf</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 308 — PrePost Wizard Validation Fix</h3>
+    <div class="meta"><strong>Wave:</strong> 2 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-04-29 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> WIZ-04</div>
+    <div class="field"><span class="field-label">Problem:</span> Saat user pilih PrePost mode, field Status validation memaksa reset wizard ke Step 1.</div>
+    <div class="field"><span class="field-label">Fix:</span> JS handler set <code>Status='Upcoming'</code> saat type=PrePost. Server-side <code>ModelState.Remove("Status")</code> conditional pada PrePost mode. Test matrix 4 kombinasi (Standard/PrePost/switch) lolos.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Views/Admin/CreateAssessment.cshtml</code>, <code>Controllers/AssessmentAdminController.cs</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>093fc84b..61e3b0ef</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 309 — Worker Certificate Defensive Fix + Submitted Status Handling</h3>
+    <div class="meta"><strong>Wave:</strong> 3 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-01 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> WCRT-01, SUB-01 (bundled)</div>
+    <div class="field"><span class="field-label">Problem:</span> (1) Worker dengan exotic Category atau null FullName crash di view Certificate. (2) Status "Menunggu Penilaian" (essay pending) ditolak sebagai "not completed".</div>
+    <div class="field"><span class="field-label">Fix:</span> (1) Try-catch berlapis di <code>Certificate</code> action + helper <code>ResolveCategorySignatory</code>, null-safe accessor di view, fallback "HC Manager". Logging structured. (2) Helper <code>IsAssessmentSubmitted(status)</code> recognize "Completed" + "Menunggu Penilaian". 3 lokasi cek di <code>CMPController</code> diupdate. Branch khusus PendingGrading dengan TempData["Info"] (bukan Error).</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/CMPController.cs</code>, <code>Views/CMP/Certificate.cshtml</code>, <code>Helpers/AssessmentConstants.cs</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>09013322..a06519b7</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 310 — Essay Finalize Idempotency</h3>
+    <div class="meta"><strong>Wave:</strong> 3 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-05 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> ESCG-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Klik "Create Sertifikasi" 2x menduplikasi <code>TrainingRecord</code>, <code>NomorSertifikat</code>, dan notifikasi.</div>
+    <div class="field"><span class="field-label">Fix:</span> <code>FinalizeEssayGrading</code> capture rowsAffected, return success/no-op friendly message bila Status sudah Completed. UI hide tombol saat sudah Completed + ada NomorSertifikat. Dedup notif via <code>NotificationSentAt</code> guard. AuditLog gated.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/CDP/CertificationManagement.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> Plan 310-01 + 310-02 (lihat <code>git log --grep="(310"</code>)</div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 311 — ManageAssessment Performance (HTMX Lazy Load)</h3>
+    <div class="meta"><strong>Wave:</strong> 4 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-07 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> PERF-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Halaman <code>ManageAssessment</code> load ~1.4 menit di wifi kantor. Awalnya disangka backend bottleneck, ternyata proxy wifi + payload size.</div>
+    <div class="field"><span class="field-label">Fix:</span> HTMX lazy load architecture — initial response &lt;14 KB, 3 partial actions per tab (Assessment/Training/History). Wave 2 backend opportunistic: <code>AsNoTracking</code> + 2 index migration + IMemoryCache TTL 5min Categories. Hasil: end-to-end load ≤40 detik (≥50% reduction). <strong>⚠️ Migration baru ada di phase ini.</strong></div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/ManageAssessment.cshtml</code> + 3 partial views, <code>Migrations/20260507073825_AddManageAssessmentPerfIndexes.cs</code></div>
+    <div class="field"><span class="field-label">Commit:</span> Plan 311-01..04 (lihat <code>git log --grep="(311"</code>)</div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 312 — Admin Full-Delete Assessment Room</h3>
+    <div class="meta"><strong>Wave:</strong> 5 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-07 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> DEL-01</div>
+    <div class="field"><span class="field-label">Problem:</span> HC bisa hapus assessment Completed atau yang sudah ada response — risk data loss. Admin tidak punya override.</div>
+    <div class="field"><span class="field-label">Fix:</span> Role tier guard di <code>DeleteAssessment</code> + <code>DeleteAssessmentGroup</code>: Admin override, HC blocked dari Completed/with-response. UI conditional render tombol Hapus. Wrap delete methods dalam transaction (TOCTOU mitigation). AuditLog include Status + ResponseCount.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/ManageAssessment.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>0b9a5e34..aaa3c719</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 313 — Block Manual Submit Saat Waktu Habis</h3>
+    <div class="meta"><strong>Wave:</strong> 5 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-08 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified</span></div>
+    <div class="field"><span class="field-label">REQ:</span> TMR-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Worker bisa submit manual setelah waktu ujian habis — bypass timer enforcement.</div>
+    <div class="field"><span class="field-label">Fix:</span> 2-tier rejection di <code>SubmitExam</code>. Tier-1: manual reject tanpa grace (banner + redirect). Tier-2: auto reject setelah grace 2 menit. Helper <code>EnsureCanSubmitExamAsync</code> + <code>WriteSubmitBlockedAuditAsync</code>. Frontend modal info-only saat timer 0, submit paralel.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/CMPController.cs</code>, <code>Views/CMP/StartExam.cshtml</code>, <code>Views/CMP/ExamSummary.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>a2dfe521..2759f748</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 313.1 — Gap Closure Phase 313 (Seed + Playwright Finalize)</h3>
+    <div class="meta"><strong>Wave:</strong> 5 (gap closure) &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-08 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT verified 7/7 PASS</span></div>
+    <div class="field"><span class="field-label">REQ:</span> F-313-UAT-01, TMR-01 (carry-over)</div>
+    <div class="field"><span class="field-label">Problem:</span> Test fixture Phase 313 tidak self-contained — UAT 7-step tidak bisa di-rerun end-to-end.</div>
+    <div class="field"><span class="field-label">Fix:</span> Extend seed <code>313-timer-fixtures.sql</code> dengan AssessmentPackages(7) + PackageQuestions(21) + PackageOptions(84). Helper module <code>tests/e2e/helpers/exam313.ts</code>, replace 7 Playwright FLOW 313 test bodies dengan flow assertion lengkap. Hasil: 7/7 PASS dalam 28.3 detik.</div>
+    <div class="field"><span class="field-label">File:</span> <code>.planning/seeds/313-timer-fixtures.sql</code>, <code>tests/e2e/helpers/exam313.ts</code> (new), <code>tests/e2e/exam.spec.ts</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>15c7aba0..7a95a36d</code></div>
+  </div>
+
+  <div class="phase-card">
+    <h3>Phase 314 — Fix Regenerate Token untuk Status Upcoming</h3>
+    <div class="meta"><strong>Wave:</strong> 5 &nbsp;|&nbsp; <strong>Selesai:</strong> 2026-05-08 &nbsp;|&nbsp; <strong>Status:</strong> <span class="badge badge-done">UAT 4/5 PASS + 1 deferred hardening</span></div>
+    <div class="field"><span class="field-label">REQ:</span> TKN-01</div>
+    <div class="field"><span class="field-label">Problem:</span> Klik "Regenerate Token" pada session status Upcoming → 404 error.</div>
+    <div class="field"><span class="field-label">Fix:</span> Investigative — root cause: Phase 287 controller split menghilangkan route attribute. Patch minimal: tambah <code>[HttpPost("{id:int}")]</code> route attribute di <code>RegenerateToken</code> action. Single fix cover 3 callsites. Frontend error message propagasi server JSON ke alert.</div>
+    <div class="field"><span class="field-label">File:</span> <code>Controllers/AssessmentAdminController.cs</code>, <code>Views/Admin/AssessmentMonitoring.cshtml</code>, <code>Views/Admin/AssessmentMonitoringDetail.cshtml</code></div>
+    <div class="field"><span class="field-label">Commit:</span> <code>dd56926b..551339c5</code></div>
+  </div>
+</section>
 </div>
 </body>
 </html>
