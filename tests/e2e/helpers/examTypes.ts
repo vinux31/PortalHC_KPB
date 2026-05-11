@@ -269,3 +269,142 @@ export async function checkMAOptionsForQuestion(
     .filter({ hasText: /saved|tersimpan/i })
     .waitFor({ state: 'visible', timeout: 7_500 });
 }
+
+/**
+ * Worker fill Essay textarea + wait saveIndicator text-change (SignalR debounce 2s).
+ *
+ * Pattern source: tests/e2e/helpers/examMatrix.ts:153-182 (Phase 315 Essay flow):
+ *   Capture prev indicator text → fill textarea → waitForFunction text CHANGES AND matches saved.
+ *   Save indicator auto-fades 2s setelah 'saved' set (Views/CMP/StartExam.cshtml:566-569) —
+ *   visibility-based wait race-prone. Text-change pattern defeats fade-out.
+ *
+ * StartExam.cshtml:861-889 textarea 'input' event listener debounce 2 detik sebelum fire
+ * SaveTextAnswer hub. Test wait minimal 3s post-fill (debounce 2s + roundtrip).
+ *
+ * @param page worker page (StartExam)
+ * @param qCard Locator untuk specific [id^="qcard_"] yang sudah di-filter by hasText marker
+ * @param answer essay text untuk fill
+ */
+export async function fillEssayAnswer(page: Page, qCard: Locator, answer: string): Promise<void> {
+  // Set textarea value via fill (UI state visible to user) — TRIGGER char counter + answered state
+  const textarea = qCard.locator('textarea.exam-essay');
+  await textarea.fill(answer);
+  await textarea.evaluate((el) => {
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  // Extract qId dari qcard id attribute (format `qcard_{qId}`)
+  const qcardId = await qCard.getAttribute('id');
+  const qIdMatch = qcardId?.match(/qcard_(\d+)/);
+  if (!qIdMatch) {
+    throw new Error(`fillEssayAnswer: qcard id "${qcardId}" tidak match pattern qcard_{qId}`);
+  }
+  const qId = parseInt(qIdMatch[1], 10);
+
+  // DIRECT SignalR hub invoke + await (bypass UI debounce fire-and-forget race).
+  //   StartExam.cshtml:893-902 debounce 2s setTimeout calls `assessmentHub.invoke` BUT immediately
+  //   sets indicator to 'saved' WITHOUT awaiting the SignalR roundtrip. Indicator lies. `#reviewSubmitBtn`
+  //   listener cuma track HTTP saves (pendingSaves), Essay SignalR tidak di-track → submit dapat fire
+  //   sebelum server persist PackageUserResponse → ExamSummary `unanswered > 0` → submit btn disabled.
+  //
+  //   Test invoke hub directly + await — guarantees TextAnswer persist sebelum proceed ke submit.
+  //   SessionId extracted from page URL (`/CMP/StartExam/{sessionId}`) since `const SESSION_ID`
+  //   di Razor script-scope tidak attached ke window.
+  const sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)?.[1] || '0', 10);
+  if (!sessionId) {
+    throw new Error(`fillEssayAnswer: page URL "${page.url()}" missing StartExam/{sessionId} segment`);
+  }
+  await page.evaluate(
+    async ({ sid, qIdNum, text }) => {
+      const w = window as unknown as {
+        assessmentHub?: { state?: string; invoke: (m: string, ...args: unknown[]) => Promise<void> };
+      };
+      const hub = w.assessmentHub;
+      if (!hub || hub.state !== 'Connected') {
+        throw new Error(`fillEssayAnswer: SignalR hub not connected (state=${hub?.state})`);
+      }
+      await hub.invoke('SaveTextAnswer', sid, qIdNum, text);
+    },
+    { sid: sessionId, qIdNum: qId, text: answer }
+  );
+}
+
+/**
+ * HC grade SINGLE essay session via AssessmentMonitoringDetail UI + finalize.
+ *
+ * Markup source: Views/Admin/AssessmentMonitoringDetail.cshtml (verified 2026-05-11):
+ *  - lines 399-409 — `input.essay-score-input[data-question-id][data-session-id][max]` + sibling `button.btn-save-essay-score`
+ *  - lines 1327-1372 — btn-save-essay-score click → fetch /Admin/SubmitEssayScore JSON
+ *    → on success: badge#badge_{sid}_{qid} text "Sudah Dinilai" class bg-success
+ *    → if data.allGraded: #finalizeSection_{sid} display block
+ *  - lines 1375-1413 — btn-finalize-grading click → confirm() dialog → fetch /Admin/FinalizeEssayGrading JSON
+ *    → success normal → `location.reload()` (line 1402)
+ *
+ * Controller signature (AssessmentAdminController.cs:2684):
+ *   AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate, string? assessmentType=null)
+ *   → /Admin/AssessmentMonitoringDetail?title=...&category=...&scheduleDate=YYYY-MM-DD
+ *
+ * @param pageHc HC user page (sudah login)
+ * @param opts.title assessment title (URL param)
+ * @param opts.category category value (URL param)
+ * @param opts.scheduleDate YYYY-MM-DD format
+ * @param opts.sessionId target session ID (data-session-id filter)
+ * @param opts.score score 0..maxScore untuk semua essay questions di session ini
+ */
+export async function gradeSingleEssaySession(
+  pageHc: Page,
+  opts: {
+    title: string;
+    category: string;
+    scheduleDate: string;
+    sessionId: number;
+    score: number;
+  }
+): Promise<void> {
+  const params = new URLSearchParams({
+    title: opts.title,
+    category: opts.category,
+    scheduleDate: opts.scheduleDate,
+  });
+  await pageHc.goto(`/Admin/AssessmentMonitoringDetail?${params.toString()}`);
+  await pageHc.waitForLoadState('networkidle');
+
+  // Find all essay-score-input untuk session ini (scoped by data-session-id)
+  const scoreInputs = pageHc.locator(`input.essay-score-input[data-session-id="${opts.sessionId}"]`);
+  const inputCount = await scoreInputs.count();
+  if (inputCount === 0) {
+    throw new Error(
+      `gradeSingleEssaySession: no essay-score-input untuk sessionId=${opts.sessionId} di ${pageHc.url()}`
+    );
+  }
+
+  // Fill score + click save per essay question, wait badge update sebelum next
+  for (let i = 0; i < inputCount; i++) {
+    const input = scoreInputs.nth(i);
+    const qId = await input.getAttribute('data-question-id');
+    if (!qId) {
+      throw new Error(`gradeSingleEssaySession: essay-score-input #${i} missing data-question-id`);
+    }
+    await input.fill(String(opts.score));
+    await pageHc
+      .locator(`button.btn-save-essay-score[data-session-id="${opts.sessionId}"][data-question-id="${qId}"]`)
+      .click();
+    // Badge update text → "Sudah Dinilai" = save persisted server-side
+    await expect(
+      pageHc.locator(`#badge_${opts.sessionId}_${qId}`).filter({ hasText: /sudah dinilai/i })
+    ).toBeVisible({ timeout: 5_000 });
+  }
+
+  // Wait finalize button visible (allGraded triggered display:block via JS line 1359-1361)
+  const finalizeBtn = pageHc.locator(
+    `button.btn-finalize-grading[data-session-id="${opts.sessionId}"]:not([disabled])`
+  );
+  await expect(finalizeBtn).toBeVisible({ timeout: 5_000 });
+
+  // Arm confirm() dialog handler BEFORE click (browser native confirm fires synchronously)
+  pageHc.once('dialog', (dialog) => dialog.accept());
+  await finalizeBtn.click();
+
+  // Success normal → location.reload() (line 1402). Wait networkidle setelah reload.
+  await pageHc.waitForLoadState('networkidle');
+}

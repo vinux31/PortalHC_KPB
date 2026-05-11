@@ -7,6 +7,8 @@ import {
   addQuestionViaForm,
   submitExamTwoStep,
   checkMAOptionsForQuestion,
+  fillEssayAnswer,
+  gradeSingleEssaySession,
   type QuestionInput,
 } from './helpers/examTypes';
 import { verifyResultPage } from './helpers/examMatrix';
@@ -245,9 +247,123 @@ test.describe('FLOW K — MA Full Cycle', () => {
 });
 
 test.describe('FLOW L — Essay Full Cycle + HC Grading', () => {
-  // BODY ditulis di Task 4
-  test('placeholder', async () => {
-    expect(true).toBe(true);
+  let title: string;
+  let category: string;
+  let scheduleDate: string;
+  let assessmentId: number;
+  let packageId: number;
+  let sessionId: number;
+  const Q_MARKER = '[317-L] Essay — OJT pengembangan kompetensi';
+
+  test('L1 — HC creates Essay assessment via wizard', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    title = uniqueTitle('[317-L] Essay Exam');
+    category = 'IHT';
+    scheduleDate = today();
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title,
+      category,
+      scheduleDate,
+      scheduleTime: '00:01',
+      durationMinutes: 60,
+      passPercentage: 70,
+      allowAnswerReview: true,
+      generateCertificate: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    expect(href).toMatch(/\/Admin\/ManagePackages(?:\/|\?assessmentId=)\d+/);
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+  });
+
+  test('L2 — HC navigates ManagePackages → createDefaultPackage', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+  });
+
+  test('L3 — HC adds 1 Essay question', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await addQuestionViaForm(page, packageId, {
+      type: 'Essay',
+      text: `${Q_MARKER} — Jelaskan peran OJT dalam pengembangan kompetensi pekerja (min. 100 kata).`,
+      rubrik:
+        'Penilaian: kelengkapan jawaban + relevansi teori OJT + struktur paragraf. Skor 0-100.',
+      maxCharacters: 2000,
+      score: 100,
+    });
+  });
+
+  test('L4 — Worker fills essay + submits → status PendingGrading', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+
+    page.once('dialog', (d) => d.accept());
+    await card
+      .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard, a:has-text("Resume")')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+
+    sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+
+    const qCards = page.locator('[id^="qcard_"]');
+    await expect(qCards).toHaveCount(1);
+    const qCard = qCards.filter({ hasText: Q_MARKER });
+    await expect(qCard).toHaveCount(1);
+
+    const essayAnswer =
+      'OJT (On-the-Job Training) adalah metode pembelajaran terstruktur di tempat kerja yang menggabungkan ' +
+      'teori dengan praktek nyata. Peran OJT dalam pengembangan kompetensi pekerja meliputi: ' +
+      '(1) transfer pengetahuan dari coach senior ke coachee junior, (2) pengasahan keterampilan teknis ' +
+      'lewat observasi langsung, (3) penilaian berbasis kinerja aktual dengan rubrik jelas, ' +
+      '(4) feedback loop real-time untuk koreksi cepat, (5) building muscle memory melalui pengulangan ' +
+      'dalam konteks operasional sebenarnya.';
+    await fillEssayAnswer(page, qCard, essayAnswer);
+
+    await submitExamTwoStep(page);
+  });
+
+  test('L5 — HC grades essay 80 + finalize via AssessmentMonitoringDetail', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await gradeSingleEssaySession(page, {
+      title,
+      category,
+      scheduleDate,
+      sessionId,
+      score: 80,
+    });
+  });
+
+  test('L6 — Worker scores 80 (DB-based verify per SURF-317-A workaround)', async () => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    const score = await db.queryScalar(
+      `SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${sessionId}`
+    );
+    expect(score).toBe(80);
+
+    const statusOk = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${sessionId} AND Status = 'Completed'`
+    );
+    expect(statusOk).toBe(1);
   });
 });
 
