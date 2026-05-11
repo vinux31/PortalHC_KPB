@@ -41,6 +41,13 @@ function findWrongOption(q: QuestionConfig): number {
 /**
  * Peserta login + buka StartExam + jawab semua questions + Submit.
  *
+ * Phase 316 fix:
+ * - Submit click memakai `Promise.all([waitForURL, click])` race-tolerant
+ *   (precedent exam313.ts:107). Eliminate "Target page, context or browser has been closed"
+ *   regression dari Phase 315 smoke run 2026-05-11T06:14:36Z.
+ * - `page.isClosed()` gate di awal setiap softAssert callback (MC/MA/Essay) — throw
+ *   SkipScenarioError langsung saat page closed mid-loop. Cegah cascade-fail noise di report.
+ *
  * Hub readiness gate via `window.assessmentHub.state === 'Connected'` mencegah Pitfall 1
  * (SignalR handshake belum selesai saat checkbox click → SaveMultipleAnswer silent skip
  * di Views/CMP/StartExam.cshtml:850 condition).
@@ -102,6 +109,12 @@ export async function takeExam(
       await softAssert(
         { scenario: cfg, step: `mc-q${q.id}`, severity: 'major', page },
         async () => {
+          // Phase 316: page-closed gate — abort cascade saat submit-exam (langkah sebelumnya)
+          // sudah close context. SkipScenarioError di-rethrow oleh softAssert catch handler
+          // (matrixReport.ts) tanpa record finding. Ref: 316-PATTERNS.md Pattern B (line 87-133).
+          if (page.isClosed()) {
+            throw new SkipScenarioError(`page closed before mc-q${q.id} step — cascade abort`);
+          }
           // Radio click — change handler invoke SaveAnswer endpoint (server-side persist).
           await page.check(`input.exam-radio[data-question-id="${q.id}"][value="${optId}"]`);
           await page
@@ -116,6 +129,10 @@ export async function takeExam(
       await softAssert(
         { scenario: cfg, step: `ma-q${q.id}`, severity: 'major', page },
         async () => {
+          // Phase 316: page-closed gate (lihat MC step di atas untuk rasional).
+          if (page.isClosed()) {
+            throw new SkipScenarioError(`page closed before ma-q${q.id} step — cascade abort`);
+          }
           // Tick semua target checkbox; last change trigger SignalR SaveMultipleAnswer
           // (Hubs/AssessmentHub.cs:188 — wipe-and-insert atomic per question).
           for (const oid of targets) {
@@ -133,6 +150,10 @@ export async function takeExam(
       await softAssert(
         { scenario: cfg, step: `essay-q${q.id}`, severity: 'major', page },
         async () => {
+          // Phase 316: page-closed gate (lihat MC step di atas untuk rasional).
+          if (page.isClosed()) {
+            throw new SkipScenarioError(`page closed before essay-q${q.id} step — cascade abort`);
+          }
           await page.fill(`textarea.exam-essay[data-question-id="${q.id}"]`, answer);
           // Wait > 2s debounce client + roundtrip ke SaveTextAnswer hub
           // (Hubs/AssessmentHub.cs:134-182 upsert PackageUserResponse.TextAnswer).
@@ -152,8 +173,15 @@ export async function takeExam(
     async () => {
       // Submit button — id #reviewSubmitBtn (review modal) atau direct [type="submit"]
       // (Controllers/CMPController.cs:1569 SubmitExam form binding).
-      await page.click('#reviewSubmitBtn, [type="submit"]:not(.btn-cancel)');
-      await page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 15_000 });
+      //
+      // Phase 316 fix: arm waitForURL BEFORE click fires navigate.
+      // Race-tolerant per Phase 313.1 precedent (exam313.ts:39, 107).
+      // Order matters: waitForURL index 0 (listener arm sync), click index 1 (action fire).
+      // Reverse order = bug-equivalent (Pitfall 1 RESEARCH.md:368-375).
+      await Promise.all([
+        page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 15_000 }),
+        page.click('#reviewSubmitBtn, [type="submit"]:not(.btn-cancel)'),
+      ]);
     },
     'SubmitExam redirects to /CMP/Results/{id}'
   );
