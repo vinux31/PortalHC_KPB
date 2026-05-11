@@ -213,6 +213,38 @@ export async function softAssert<T>(
     }
 
     const err = e as { message?: string };
+    const errMsg = err?.message ?? String(e);
+
+    // === Phase 316 Plan 04 (GAP-316-2 a-revised): page-closed cascade promotion ===
+    // Saat severity='major' tapi error message contain "closed"/"Test ended" ATAU
+    // ctx.page.isClosed() === true, page sudah dead — sisa step scenario akan retry-
+    // then-timeout (page.check accumulator → 240s test timeout hit). Promote langsung
+    // ke SkipScenarioError (analog severity='critical' branch bawah, tapi):
+    //   1. Skip page.screenshot defensive capture (page closed = screenshot akan timeout)
+    //   2. Record finding dengan severity='critical' (promoted) + screenshotPath=undefined
+    //   3. Throw SkipScenarioError → bubble ke runDiscoveryScenario catch → scenario abort
+    //
+    // Edge case: kalau MA step REAL bug page-closed (BUKAN cascade dari step sebelumnya)
+    // → still skip → masuk report sebagai critical finding di MA step. Acceptable — report
+    // tetap punya signal. Ref: 316-RESEARCH-GAP-316-2.md line 287-292.
+    const isPageClosedError = /closed|Test ended/i.test(errMsg) || ctx.page.isClosed();
+    if (isPageClosedError && ctx.severity === 'major') {
+      await collector.record({
+        scenarioId: ctx.scenario.id,
+        scenarioTitle: ctx.scenario.title,
+        step: ctx.step,
+        expected,
+        actual: errMsg,
+        screenshotPath: undefined,  // page closed — skip screenshot capture
+        severity: 'critical',  // promoted from 'major' (page-closed cascade)
+        isMeta: ctx.isMeta,
+      });
+      throw new SkipScenarioError(
+        `page-closed cascade at ${ctx.step}: ${errMsg}`
+      );
+    }
+    // === End Phase 316 Plan 04 cascade promotion ===
+
     const stepSlug = ctx.step.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
     const candidatePath = `test-results/matrix-s${ctx.scenario.id}-${stepSlug}.png`;
 
@@ -235,14 +267,14 @@ export async function softAssert<T>(
       scenarioTitle: ctx.scenario.title,
       step: ctx.step,
       expected,
-      actual: err?.message ?? String(e),
+      actual: errMsg,
       screenshotPath,
       severity: ctx.severity,
       isMeta: ctx.isMeta,
     });
 
     if (ctx.severity === 'critical') {
-      throw new SkipScenarioError(`Critical at ${ctx.step}: ${err?.message ?? String(e)}`);
+      throw new SkipScenarioError(`Critical at ${ctx.step}: ${errMsg}`);
     }
     return null;
   }
