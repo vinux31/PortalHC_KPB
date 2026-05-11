@@ -366,6 +366,16 @@ Full details: [milestones/v15.0-ROADMAP.md](milestones/v15.0-ROADMAP.md) • Req
 
 **Active mapped: 1/1 ✓ — Orphans: 0 — Duplicates: 0**
 
+### Phase 316: Fix SubmitExam page-closed bug + matrix test infra polish — resolve cascade fail dari Phase 315 yang block sentinel S8/S9/S10 verification
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 315
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 316 to break down)
+
 ---
 
 *Roadmap updated: 2026-05-11 (v15.0 closed; v16.0 added Phase 315 Assessment Matrix Test)*

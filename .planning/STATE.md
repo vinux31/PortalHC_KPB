@@ -79,6 +79,10 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 - Phase 293 `GetSectionUnitsDictAsync` — hardcoded 2-level, unit Level 2+ tidak muncul di dropdown ManageWorkers secara diam-diam (keputusan masih tertunda)
 
+### Roadmap Evolution
+
+- Phase 316 added: Fix SubmitExam page-closed bug + matrix test infra polish — resolve cascade fail dari Phase 315 yang block sentinel S8/S9/S10 verification
+
 ## Session Continuity
 
 Last activity: 2026-05-11 — v15.0 milestone closed via `/gsd-complete-milestone`. ROADMAP.md collapsed v15.0 ke shipped section, MILESTONES.md entry diperbaiki dari accomplishments dirty hasil parser failure, phase dirs (304-314 + 313.1) dipindah ke `.planning/milestones/v15.0-phases/`. PROJECT.md Current Milestone reset ke "(none — defining next)". STATE.md di-rewrite untuk between-milestones state.
