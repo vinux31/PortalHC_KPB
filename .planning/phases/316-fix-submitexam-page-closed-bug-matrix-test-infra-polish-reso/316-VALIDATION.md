@@ -106,5 +106,30 @@ created: 2026-05-11
 
 *Result captured by Plan 03 Task 2. Lihat juga `/tmp/316-w0-probe.log`.*
 
-(To be filled after Plan 03 execution.)
+#### Plan 03 Wave 0 — A2 Probe Result (2026-05-11)
+
+- **Outcome:** **A2 VALID**
+- **Run command:** `cd tests && npx playwright test e2e/_throwaway-probe.spec.ts --project=chromium --reporter=list`
+- **Log:** `/tmp/316-w0-probe.log`
+- **Exit code:** 0
+- **Evidence summary line:**
+  ```
+  1 failed
+    [chromium] › e2e\_throwaway-probe.spec.ts:23:7 › _PROBE_316 Block A: always-fail-fast › synthetic throw — no page operation
+  2 passed (6.5s)
+  ```
+- **Per-test outcome:**
+  - `ok 1 [setup]` — globalSetup verify + seed (2.2s) PASSED
+  - `x 2 Block A` — synthetic throw (3ms) FAILED (intentional)
+  - `ok 3 Block B` — synthetic pass (2ms) PASSED ← **Block B executed setelah Block A fail**
+  - Console.log `[_PROBE_316] Block B executed — A2 validation: PASS` ter-emit di stdout → Block B benar-benar di-execute, BUKAN "did not run".
+- **Decision:** **PROCEED Wave 1+ (Plan 04 helper edits + Plan 05 describe restructure)**. `test.describe()` boundary DI MODE `fullyParallel: false` (no spec-level `mode:'serial'`) **MEMANG ISOLATE failure** — failure di Block A TIDAK halt Block B execution. (d-partial) describe restructure di Plan 05 valid empirical-backed.
+- **Probe spec status:** `tests/e2e/_throwaway-probe.spec.ts` di-commit di Task 1 (hash `82ab3b6d`); akan di-delete di Plan 06 final cleanup task per spec line 107.
+- **globalSetup/teardown side-effect:** BACKUP + seed 18 sessions + RESTORE + Layer 4 cleanup all OK (DB tidak terdampak; SEED_JOURNAL.md cleaned).
+
+### Plan 03 — Status Update
+
+Task IDs di per-task verification map:
+- 316-03-01 → ✅ green (probe spec ditulis, TS compile clean, committed `82ab3b6d`)
+- 316-03-02 → ✅ green (probe run, A2 VALID, decision recorded di section di atas)
 
