@@ -12,7 +12,7 @@
 //  - A4 question order persistence — verified di smoke wave-0 block
 //  - A5 window.timerStartRemaining scope — verified di smoke wave-0 block
 
-import { Page, expect } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { wizardSelectors, questionFormSelectors } from './wizardSelectors';
 
 export type QuestionInput =
@@ -230,4 +230,42 @@ export async function submitExamTwoStep(page: Page): Promise<void> {
     page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 15_000 }),
     page.click('button[type="submit"]:has-text("Kumpulkan")'),
   ]);
+}
+
+/**
+ * Worker check semua MA correct options untuk 1 qcard (DOM-text matching, batch SaveMultipleAnswer).
+ *
+ * Pivot 2026-05-11 — Plan 317 Wave 0 A4 verdict:
+ *   Controllers/CMPController.cs:1188-1196 BuildCrossPackageAssignment SHUFFLE single-package
+ *   questions per-session (anti-cheat). PLUS Views/CMP/StartExam.cshtml:125-128 SHUFFLE
+ *   options A/B/C/D per-question. Positional .nth() correctIndices mapping = SALAH.
+ *
+ * Pattern source: tests/e2e/helpers/examMatrix.ts:132-152 (Phase 315 MA flow):
+ *   "Tick semua target checkbox; last change trigger SignalR SaveMultipleAnswer
+ *    (Hubs/AssessmentHub.cs:188 — wipe-and-insert atomic per question)."
+ *   → BATCH check, ONCE wait save indicator (BUKAN per-option wait — race fade-out).
+ *
+ * Strategy: scope locator ke `qCard`, find label by visible option text, check each input,
+ * then wait #saveIndicatorText visible + text matches `saved|tersimpan` (auto-fade 2s harmless).
+ *
+ * @param page worker page (StartExam)
+ * @param qCard Locator untuk specific [id^="qcard_"] yang sudah di-filter by hasText marker
+ * @param optionTexts array display text option (substring match, case-sensitive)
+ */
+export async function checkMAOptionsForQuestion(
+  page: Page,
+  qCard: Locator,
+  optionTexts: string[]
+): Promise<void> {
+  for (const optText of optionTexts) {
+    await qCard
+      .locator('label.list-group-item', { hasText: optText })
+      .locator('input.exam-checkbox')
+      .check();
+  }
+  // ONCE wait — last check triggers SignalR SaveMultipleAnswer batch atomic
+  await page
+    .locator('#saveIndicatorText')
+    .filter({ hasText: /saved|tersimpan/i })
+    .waitFor({ state: 'visible', timeout: 7_500 });
 }
