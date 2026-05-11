@@ -1,0 +1,4 @@
+# Phase 315 — Matrix test runtime artifacts (jangan commit)
+# Root .gitignore sudah cover *.bak secara global; entry ini scoped + discoverable per Phase 315.
+.matrix-state.json
+sql/*.bak
