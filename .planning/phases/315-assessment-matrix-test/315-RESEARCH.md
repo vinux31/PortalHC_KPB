@@ -1006,19 +1006,22 @@ export default globalTeardown;
 
 **Resolution priority:** A1, A2, A6 are HIGH RISK. Plan stage Wave 0 task #1 must resolve via source-code read before any seed SQL drafting.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **AssessmentPackage cardinality with sibling sessions** (linked to A1, A6)
+   - **RESOLVED via Plan 01 Wave 0:** investigation task reads Models/AssessmentPackage.cs + Models/UserPackageAssignment.cs + Controllers/CMPController.cs:880-1000 (StartExam) dan menghasilkan verdict definitif (1-PER-SESSION vs SHARED) di 315-INVESTIGATION.md § A1 + § Final Seed Dimensions sebelum seed SQL drafting.
    - What we know: AssessmentPackage.AssessmentSessionId is FK (one direction). `Controllers/CMPController.cs:912` queries packages WHERE `siblingSessionIds.Contains(p.AssessmentSessionId)` — suggesting packages exist per-session, BUT line 947 sentinel comment "store first package ID" implies sharing pattern.
    - What's unclear: Does test seed need to create AssessmentPackage rows for EACH sibling session (2 per scenario), or can siblings share a single AssessmentPackage row via the composite-key matching at query time?
    - Recommendation: Plan Wave 0 Task 1 — read `Models/AssessmentPackage.cs` + `Models/UserPackageAssignment.cs` + execution path `CMPController.StartExam:880-1000` carefully and document.
 
 2. **SubmitExam Essay handling — form value vs DB persisted value**
+   - **RESOLVED via Plan 01 Wave 0:** investigation task reads Controllers/CMPController.cs:1569-1800 (SubmitExam body) + GradingService Essay branch, menghasilkan verdict (FORM-VALUE / DB-PERSISTED / HYBRID) di 315-INVESTIGATION.md § A2 yang menentukan helper takeExam Essay handling strategy.
    - What we know: Hidden input `name="answers[@q.QuestionId]"` (StartExam.cshtml:81) sends form value at submit. SignalR `SaveTextAnswer` upserts DB.
    - What's unclear: Does `SubmitExam` controller (CMPController.cs:1569) read `answers[essayQId]` (cast to int — would be NaN for Essay) or query DB `PackageUserResponse.TextAnswer` for Essay grading branch?
    - Recommendation: Plan Wave 0 Task 1 — read `CMPController.SubmitExam` body fully + GradingService for Essay branch.
 
 3. **Whitelist of "safe to ignore" console errors**
+   - **RESOLVED via Plan 05:** whitelist diiterasi selama Plan 05 Task 1 (refine matrixReport.consoleErrorWhitelist) berdasarkan pattern benign yang muncul saat smoke run S5 + full run. Pattern starting set di Plan 02 (favicon, SignalR reconnect, manifest 404, DevTools hint); extended di Plan 05 sesuai observed output.
    - What we know: Spec § Self-check mentions "Tidak ada error di console Playwright runtime".
    - What's unclear: Production app likely logs benign console.warn (favicon 404 di subpath, SignalR negotiate retries) yang akan trigger false positives.
    - Recommendation: matrixReport accept whitelist regex array, populated during smoke run (S5 only) iteration — start empty, add encountered benign patterns.
