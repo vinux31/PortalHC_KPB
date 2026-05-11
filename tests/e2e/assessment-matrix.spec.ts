@@ -58,10 +58,16 @@ import type { ScenarioConfig } from './helpers/matrixTypes';
 import { takeExam, gradeEssaysAsHc, verifyResultPage } from './helpers/examMatrix';
 import { softAssert, SkipScenarioError } from './helpers/matrixReport';
 
-// Serial mode — singleton `collector` di matrixReport.ts + sequential scenario execution
-// (RESEARCH.md § Pattern 3 line 573). fullyParallel=false sudah di playwright.config.ts:7
-// tapi konfirmasi di sini agar describe behavior eksplisit.
-test.describe.configure({ mode: 'serial' });
+// Phase 316 Plan 05 (GAP-316-2): spec-level `test.describe.configure({mode:'serial'})`
+// DROPPED. Sequential execution preserved via `fullyParallel: false` + `workers: 1`
+// di playwright.config.ts. Failure isolation per describe boundary — failure di S1
+// TIDAK halt S2-S10 (Plan 03 Wave 0 A2 verified — `tests/e2e/_throwaway-probe.spec.ts`
+// run output `1 failed, 2 passed` confirm describe boundary isolate failure).
+//
+// Singleton collector matrixReport.ts:189 TETAP safe — Playwright spawn worker per FILE,
+// bukan per describe. 1 worker = 1 process = 1 collector instance (file-system NDJSON
+// per worker via matrixReport.ts:42-185, multi-worker safe by design walaupun di sini
+// kita pakai 1 worker).
 
 // Per-test timeout extension (Rule 3 — default 60s di playwright.config.ts:6 tidak cukup
 // untuk 3 BrowserContext × 3-soal exam × HC grading × verify result page). Smoke run S5
@@ -177,24 +183,32 @@ async function runDiscoveryScenario(browser: Browser, cfg: ScenarioConfig): Prom
 // kombinasi soal MC+MA+Essay. Soal mix di setiap scenario sama (3 soal: 1 MC + 1 MA + 1 Essay).
 // =====================================================================
 
-test('Scenario 1: S1 Manual Mixed (MC + MA + Essay)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  await runDiscoveryScenario(browser, getScenario(1));
+test.describe('Scenario 1: S1 Manual Mixed (MC + MA + Essay)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    await runDiscoveryScenario(browser, getScenario(1));
+  });
 });
 
-test('Scenario 2: S2 Online Mixed (MC + MA + Essay)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  await runDiscoveryScenario(browser, getScenario(2));
+test.describe('Scenario 2: S2 Online Mixed (MC + MA + Essay)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    await runDiscoveryScenario(browser, getScenario(2));
+  });
 });
 
-test('Scenario 3: S3 PreTest Mixed (MC + MA + Essay)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  await runDiscoveryScenario(browser, getScenario(3));
+test.describe('Scenario 3: S3 PreTest Mixed (MC + MA + Essay)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    await runDiscoveryScenario(browser, getScenario(3));
+  });
 });
 
-test('Scenario 4: S4 PostTest Mixed (MC + MA + Essay)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  await runDiscoveryScenario(browser, getScenario(4));
+test.describe('Scenario 4: S4 PostTest Mixed (MC + MA + Essay)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    await runDiscoveryScenario(browser, getScenario(4));
+  });
 });
 
 // =====================================================================
@@ -203,19 +217,25 @@ test('Scenario 4: S4 PostTest Mixed (MC + MA + Essay)', async ({ browser }) => {
 // finding bisa di-attribute ke tipe soal specific tanpa cross-interference.
 // =====================================================================
 
-test('Scenario 5: S5 Online MC only (3 MultipleChoice questions)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  await runDiscoveryScenario(browser, getScenario(5));
+test.describe('Scenario 5: S5 Online MC only (3 MultipleChoice questions)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    await runDiscoveryScenario(browser, getScenario(5));
+  });
 });
 
-test('Scenario 6: S6 Online MA only (3 MultipleAnswer questions)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  await runDiscoveryScenario(browser, getScenario(6));
+test.describe('Scenario 6: S6 Online MA only (3 MultipleAnswer questions)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    await runDiscoveryScenario(browser, getScenario(6));
+  });
 });
 
-test('Scenario 7: S7 Online Essay only (3 Essay questions)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  await runDiscoveryScenario(browser, getScenario(7));
+test.describe('Scenario 7: S7 Online Essay only (3 Essay questions)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    await runDiscoveryScenario(browser, getScenario(7));
+  });
 });
 
 // =====================================================================
@@ -225,143 +245,147 @@ test('Scenario 7: S7 Online Essay only (3 Essay questions)', async ({ browser })
 // (matrixReport.renderReport pisah ke `## Meta-validation results` via isMeta flag).
 // =====================================================================
 
-test('Scenario 8: META-AllCorrect Sentinel (expect 100% score)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  // [META-AllCorrect]: peserta1 jawab semua benar (no sabotage), HC grading penuh.
-  // Expect: result page show score 100% (atau pattern /100|sempurna|full/i). Kalau
-  // tidak 100% → meta finding (collector record dengan isMeta=true).
-  const cfg = getScenario(8);
+test.describe('Scenario 8: META-AllCorrect Sentinel (expect 100% score)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    // [META-AllCorrect]: peserta1 jawab semua benar (no sabotage), HC grading penuh.
+    // Expect: result page show score 100% (atau pattern /100|sempurna|full/i). Kalau
+    // tidak 100% → meta finding (collector record dengan isMeta=true).
+    const cfg = getScenario(8);
 
-  const ctx1 = await browser.newContext();
-  const page1 = await ctx1.newPage();
-  const ctxHc = await browser.newContext();
-  const pageHc = await ctxHc.newPage();
+    const ctx1 = await browser.newContext();
+    const page1 = await ctx1.newPage();
+    const ctxHc = await browser.newContext();
+    const pageHc = await ctxHc.newPage();
 
-  try {
-    // Peserta 1 — semua benar (no sabotage)
-    await takeExam(page1, cfg, 'coachee', cfg.sessionIdPeserta1);
+    try {
+      // Peserta 1 — semua benar (no sabotage)
+      await takeExam(page1, cfg, 'coachee', cfg.sessionIdPeserta1);
 
-    // HC grade essay full marks via helper (scoreValue diisi dari cfg.questions[i].scoreValue)
-    if (cfg.hasEssay) {
-      await gradeEssaysAsHc(pageHc, cfg);
+      // HC grade essay full marks via helper (scoreValue diisi dari cfg.questions[i].scoreValue)
+      if (cfg.hasEssay) {
+        await gradeEssaysAsHc(pageHc, cfg);
+      }
+
+      // Sentinel meta-assert: race-tolerant locator + regex match expected 100% pattern.
+      // isMeta=true → collector pisahkan ke section `## Meta-validation results`.
+      await softAssert(
+        {
+          scenario: cfg,
+          step: 'sentinel-all-correct-score',
+          severity: 'minor',
+          page: page1,
+          isMeta: true,
+        },
+        async () => {
+          await page1.goto(`/CMP/Results/${cfg.sessionIdPeserta1}`);
+          const scoreLocator = page1.locator('.score-badge, [data-score], .result-score').first();
+          await scoreLocator.waitFor({ state: 'visible', timeout: 10_000 });
+          const scoreText = (await scoreLocator.textContent()) ?? '';
+          if (!/100|full|sempurna/i.test(scoreText)) {
+            throw new Error(`Sentinel AllCorrect expected score 100%/sempurna, got: "${scoreText.trim()}"`);
+          }
+        },
+        'Sentinel AllCorrect: peserta1 jawab semua benar → score 100%/sempurna'
+      );
+    } catch (e) {
+      if (e instanceof SkipScenarioError) {
+        console.log(`[S${cfg.id} META-AllCorrect] Critical fail — collector record: ${e.message}`);
+        return;
+      }
+      throw e;
+    } finally {
+      await ctx1.close();
+      await ctxHc.close();
     }
-
-    // Sentinel meta-assert: race-tolerant locator + regex match expected 100% pattern.
-    // isMeta=true → collector pisahkan ke section `## Meta-validation results`.
-    await softAssert(
-      {
-        scenario: cfg,
-        step: 'sentinel-all-correct-score',
-        severity: 'minor',
-        page: page1,
-        isMeta: true,
-      },
-      async () => {
-        await page1.goto(`/CMP/Results/${cfg.sessionIdPeserta1}`);
-        const scoreLocator = page1.locator('.score-badge, [data-score], .result-score').first();
-        await scoreLocator.waitFor({ state: 'visible', timeout: 10_000 });
-        const scoreText = (await scoreLocator.textContent()) ?? '';
-        if (!/100|full|sempurna/i.test(scoreText)) {
-          throw new Error(`Sentinel AllCorrect expected score 100%/sempurna, got: "${scoreText.trim()}"`);
-        }
-      },
-      'Sentinel AllCorrect: peserta1 jawab semua benar → score 100%/sempurna'
-    );
-  } catch (e) {
-    if (e instanceof SkipScenarioError) {
-      console.log(`[S${cfg.id} META-AllCorrect] Critical fail — collector record: ${e.message}`);
-      return;
-    }
-    throw e;
-  } finally {
-    await ctx1.close();
-    await ctxHc.close();
-  }
+  });
 });
 
-test('Scenario 9: META-AllWrong Sentinel (expect 0% score)', async ({ browser }) => {
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
-  // [META-AllWrong]: peserta1 sengaja jawab semua salah → expect score 0%.
-  // Strategi: clone cfg dengan correctOptionIds=[] supaya findWrongOption di examMatrix.ts
-  // selalu pick option yang tidak ada di correctOptionIds (= seluruh option). Untuk MA,
-  // correctOptionIds.slice(1) = [] (no checkbox ticked → no save → 0 score). Untuk Essay,
-  // jawaban kosong (HC grade 0).
-  //
-  // PENTING: sabotageOneAnswer=true hanya sabotage question index 0. Untuk full-wrong kita
-  // pakai pendekatan clone cfg (mutate questions[].correctOptionIds = []) + jangan pass
-  // sabotageOneAnswer. Dengan correctOptionIds=[], helper takeExam akan:
-  //   - MC: pick correctOptionIds[0] = undefined → throw di page.check. Solusi: pass
-  //     sabotageOneAnswer=true AND clone, supaya helper masuk branch findWrongOption yang
-  //     iterate allOptionIds. Tapi sabotage hanya index 0.
-  // Pendekatan pragmatic: clone cfg dengan correctOptionIds=[<first wrong>] supaya helper
-  // jawab opsi salah untuk MC, AND untuk MA correctOptionIds.slice(1)=[] (no tick).
-  const cfg = getScenario(9);
-  const cfgAllWrong: ScenarioConfig = {
-    ...cfg,
-    questions: cfg.questions.map((q) => {
-      if (q.type === 'MultipleChoice' || q.type === 'MultipleAnswer') {
-        // Pilih option salah pertama sebagai "correct" supaya helper jawab dengan opsi yang
-        // sebenarnya salah (DB grading later akan score 0). Untuk MA, slice(1)=[] tetap
-        // sabotage karena helper tick `correctOptionIds` array.
-        const wrong = q.allOptionIds.filter((id) => !q.correctOptionIds.includes(id));
-        return { ...q, correctOptionIds: wrong.length > 0 ? [wrong[0]] : [] };
-      }
-      // Essay: correctOptionIds kosong dari awal; helper kirim string kosong saat
-      // sabotageOneAnswer (atau jawaban benar tanpa sabotage). Untuk AllWrong consistency
-      // pakai sabotageOneAnswer di call site supaya Essay kosong → HC grade 0.
-      return q;
-    }),
-  };
-
-  const ctx1 = await browser.newContext();
-  const page1 = await ctx1.newPage();
-  const ctxHc = await browser.newContext();
-  const pageHc = await ctxHc.newPage();
-
-  try {
-    // sabotageOneAnswer=true → Essay index 0 kirim "" (HC grade 0). MC/MA pakai cfgAllWrong
-    // questions yang sudah swap correctOptionIds ke wrong option.
-    await takeExam(page1, cfgAllWrong, 'coachee', cfg.sessionIdPeserta1, { sabotageOneAnswer: true });
-
-    if (cfg.hasEssay) {
-      // HC grade essay dengan scoreValue=0 untuk simulate all-wrong (helper pakai
-      // q.scoreValue dari cfg, jadi kita override via cfgAllWrong essay scoreValue=0).
-      const cfgZeroEssay: ScenarioConfig = {
-        ...cfg,
-        questions: cfg.questions.map((q) => (q.type === 'Essay' ? { ...q, scoreValue: 0 } : q)),
-      };
-      await gradeEssaysAsHc(pageHc, cfgZeroEssay);
-    }
-
-    await softAssert(
-      {
-        scenario: cfg,
-        step: 'sentinel-all-wrong-score',
-        severity: 'minor',
-        page: page1,
-        isMeta: true,
-      },
-      async () => {
-        await page1.goto(`/CMP/Results/${cfg.sessionIdPeserta1}`);
-        const scoreLocator = page1.locator('.score-badge, [data-score], .result-score').first();
-        await scoreLocator.waitFor({ state: 'visible', timeout: 10_000 });
-        const scoreText = (await scoreLocator.textContent()) ?? '';
-        if (!/\b0\b|nol|zero/i.test(scoreText)) {
-          throw new Error(`Sentinel AllWrong expected score 0/nol, got: "${scoreText.trim()}"`);
+test.describe('Scenario 9: META-AllWrong Sentinel (expect 0% score)', () => {
+  test('execute', async ({ browser }) => {
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
+    // [META-AllWrong]: peserta1 sengaja jawab semua salah → expect score 0%.
+    // Strategi: clone cfg dengan correctOptionIds=[] supaya findWrongOption di examMatrix.ts
+    // selalu pick option yang tidak ada di correctOptionIds (= seluruh option). Untuk MA,
+    // correctOptionIds.slice(1) = [] (no checkbox ticked → no save → 0 score). Untuk Essay,
+    // jawaban kosong (HC grade 0).
+    //
+    // PENTING: sabotageOneAnswer=true hanya sabotage question index 0. Untuk full-wrong kita
+    // pakai pendekatan clone cfg (mutate questions[].correctOptionIds = []) + jangan pass
+    // sabotageOneAnswer. Dengan correctOptionIds=[], helper takeExam akan:
+    //   - MC: pick correctOptionIds[0] = undefined → throw di page.check. Solusi: pass
+    //     sabotageOneAnswer=true AND clone, supaya helper masuk branch findWrongOption yang
+    //     iterate allOptionIds. Tapi sabotage hanya index 0.
+    // Pendekatan pragmatic: clone cfg dengan correctOptionIds=[<first wrong>] supaya helper
+    // jawab opsi salah untuk MC, AND untuk MA correctOptionIds.slice(1)=[] (no tick).
+    const cfg = getScenario(9);
+    const cfgAllWrong: ScenarioConfig = {
+      ...cfg,
+      questions: cfg.questions.map((q) => {
+        if (q.type === 'MultipleChoice' || q.type === 'MultipleAnswer') {
+          // Pilih option salah pertama sebagai "correct" supaya helper jawab dengan opsi yang
+          // sebenarnya salah (DB grading later akan score 0). Untuk MA, slice(1)=[] tetap
+          // sabotage karena helper tick `correctOptionIds` array.
+          const wrong = q.allOptionIds.filter((id) => !q.correctOptionIds.includes(id));
+          return { ...q, correctOptionIds: wrong.length > 0 ? [wrong[0]] : [] };
         }
-      },
-      'Sentinel AllWrong: peserta1 jawab semua salah → score 0%/nol'
-    );
-  } catch (e) {
-    if (e instanceof SkipScenarioError) {
-      console.log(`[S${cfg.id} META-AllWrong] Critical fail — collector record: ${e.message}`);
-      return;
+        // Essay: correctOptionIds kosong dari awal; helper kirim string kosong saat
+        // sabotageOneAnswer (atau jawaban benar tanpa sabotage). Untuk AllWrong consistency
+        // pakai sabotageOneAnswer di call site supaya Essay kosong → HC grade 0.
+        return q;
+      }),
+    };
+
+    const ctx1 = await browser.newContext();
+    const page1 = await ctx1.newPage();
+    const ctxHc = await browser.newContext();
+    const pageHc = await ctxHc.newPage();
+
+    try {
+      // sabotageOneAnswer=true → Essay index 0 kirim "" (HC grade 0). MC/MA pakai cfgAllWrong
+      // questions yang sudah swap correctOptionIds ke wrong option.
+      await takeExam(page1, cfgAllWrong, 'coachee', cfg.sessionIdPeserta1, { sabotageOneAnswer: true });
+
+      if (cfg.hasEssay) {
+        // HC grade essay dengan scoreValue=0 untuk simulate all-wrong (helper pakai
+        // q.scoreValue dari cfg, jadi kita override via cfgAllWrong essay scoreValue=0).
+        const cfgZeroEssay: ScenarioConfig = {
+          ...cfg,
+          questions: cfg.questions.map((q) => (q.type === 'Essay' ? { ...q, scoreValue: 0 } : q)),
+        };
+        await gradeEssaysAsHc(pageHc, cfgZeroEssay);
+      }
+
+      await softAssert(
+        {
+          scenario: cfg,
+          step: 'sentinel-all-wrong-score',
+          severity: 'minor',
+          page: page1,
+          isMeta: true,
+        },
+        async () => {
+          await page1.goto(`/CMP/Results/${cfg.sessionIdPeserta1}`);
+          const scoreLocator = page1.locator('.score-badge, [data-score], .result-score').first();
+          await scoreLocator.waitFor({ state: 'visible', timeout: 10_000 });
+          const scoreText = (await scoreLocator.textContent()) ?? '';
+          if (!/\b0\b|nol|zero/i.test(scoreText)) {
+            throw new Error(`Sentinel AllWrong expected score 0/nol, got: "${scoreText.trim()}"`);
+          }
+        },
+        'Sentinel AllWrong: peserta1 jawab semua salah → score 0%/nol'
+      );
+    } catch (e) {
+      if (e instanceof SkipScenarioError) {
+        console.log(`[S${cfg.id} META-AllWrong] Critical fail — collector record: ${e.message}`);
+        return;
+      }
+      throw e;
+    } finally {
+      await ctx1.close();
+      await ctxHc.close();
     }
-    throw e;
-  } finally {
-    await ctx1.close();
-    await ctxHc.close();
-  }
+  });
 });
 
 // S10 SENGAJA gagal — `test.fail()` annotation (D-06). Body force critical softAssert
@@ -370,40 +394,44 @@ test('Scenario 9: META-AllWrong Sentinel (expect 0% score)', async ({ browser })
 // Playwright treat sebagai unexpected pass → exit non-0 (collector rusak terdeteksi).
 //
 // CATATAN: annotation `test.fail()` di-call di dalam test body (sintaks Playwright valid;
-// equivalent dengan `test.fail('name', async ...)` outer form). Kita pakai inner form
-// supaya literal `test(` tetap di start-of-line untuk konsistensi 10 test blocks.
-test('Scenario 10: META-CollectorCheck Sentinel (sengaja gagal — verifikasi collector working)', async ({ browser }) => {
-  test.fail(); // expected-failure annotation — exit 0 saat body throw, exit non-0 kalau pass tanpa throw.
-  test.setTimeout(SCENARIO_TIMEOUT_MS);
+// equivalent dengan `test.fail('name', async ...)` outer form). Annotation scope = test
+// (bukan describe boundary) — per Playwright docs https://playwright.dev/docs/test-annotations
+// annotation valid di any describe context. Phase 316 Plan 05 wrap describe TIDAK
+// pengaruh semantik test.fail() — tetap exit 0 saat body throw.
+test.describe('Scenario 10: META-CollectorCheck Sentinel (sengaja gagal — verifikasi collector working)', () => {
+  test('execute', async ({ browser }) => {
+    test.fail(); // expected-failure annotation — scope=test (bukan describe). Per Playwright docs https://playwright.dev/docs/test-annotations annotation valid di any describe context. Exit 0 saat body throw, exit non-0 kalau pass tanpa throw.
+    test.setTimeout(SCENARIO_TIMEOUT_MS);
 
-  const cfg = getScenario(10);
+    const cfg = getScenario(10);
 
-  const ctx1 = await browser.newContext();
-  const page1 = await ctx1.newPage();
+    const ctx1 = await browser.newContext();
+    const page1 = await ctx1.newPage();
 
-  try {
-    // Force critical softAssert fail. severity='critical' → throw SkipScenarioError.
-    // isMeta=true → finding masuk section `## Meta-validation results` di report.
-    await softAssert(
-      {
-        scenario: cfg,
-        step: 'sentinel-collector-check',
-        severity: 'critical',
-        page: page1,
-        isMeta: true,
-      },
-      async () => {
-        // Buka result page dulu supaya screenshot ada konten (bukan blank). Tidak wajib
-        // success — boleh fail navigation juga, intent-nya adalah trigger softAssert fail.
-        await page1.goto(`/CMP/Results/${cfg.sessionIdPeserta1}`).catch(() => {});
-        throw new Error(
-          'Sentinel CollectorCheck intentionally fails — verifikasi collector record finding ' +
-            'sebagai meta + throw SkipScenarioError untuk test.fail() expected-failure semantics.'
-        );
-      },
-      'Sentinel CollectorCheck: collector record meta finding + throw SkipScenarioError'
-    );
-  } finally {
-    await ctx1.close();
-  }
+    try {
+      // Force critical softAssert fail. severity='critical' → throw SkipScenarioError.
+      // isMeta=true → finding masuk section `## Meta-validation results` di report.
+      await softAssert(
+        {
+          scenario: cfg,
+          step: 'sentinel-collector-check',
+          severity: 'critical',
+          page: page1,
+          isMeta: true,
+        },
+        async () => {
+          // Buka result page dulu supaya screenshot ada konten (bukan blank). Tidak wajib
+          // success — boleh fail navigation juga, intent-nya adalah trigger softAssert fail.
+          await page1.goto(`/CMP/Results/${cfg.sessionIdPeserta1}`).catch(() => {});
+          throw new Error(
+            'Sentinel CollectorCheck intentionally fails — verifikasi collector record finding ' +
+              'sebagai meta + throw SkipScenarioError untuk test.fail() expected-failure semantics.'
+          );
+        },
+        'Sentinel CollectorCheck: collector record meta finding + throw SkipScenarioError'
+      );
+    } finally {
+      await ctx1.close();
+    }
+  });
 });
