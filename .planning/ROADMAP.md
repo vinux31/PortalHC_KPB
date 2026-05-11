@@ -336,7 +336,7 @@ Full details: [milestones/v15.0-ROADMAP.md](milestones/v15.0-ROADMAP.md) • Req
 
 **Goal:** Membangun automated test infrastructure untuk Portal HC sebagai tooling discovery bug end-to-end. Fokus pertama: assessment flow (tipe assessment × tipe soal). Foundation untuk expand test coverage di milestone berikutnya.
 
-**Started:** 2026-05-11 | **Phases:** 315 (1 phase) | **Active REQ:** 1 (QA-01)
+**Started:** 2026-05-11 | **Phases:** 315, 316, 317, 318, 319 (5 phases) | **Active REQ:** 1 (QA-01)
 
 #### Phase 315: Assessment Matrix Test
 
@@ -380,6 +380,27 @@ Plans:
 - [x] 316-01-PLAN.md — Helper hardening (softAssert re-throw + Promise.all submit + isClosed gate + screenshot fallback)
 - [x] 316-02-PLAN.md — Staged validation (S5 + full run) + D-02 server smoke + 316-UAT.md
 
+### Phase 317: Fix SURF-316-A + MA/Essay/Mixed E2E via UI — close exam-type test gap via HC wizard creation
+
+**Goal:** Tutup SURF-316-A (submit selector match dropdown-item hidden + 2-step submit flow incomplete) + buat `tests/e2e/exam-types.spec.ts` 5 FLOW baru via HC UI creation (FLOW K MA, FLOW L Essay+HC grading, FLOW M Mixed, FLOW N AllowAnswerReview=false, FLOW O AddExtraTime) untuk coverage tipe soal yang belum di-test FLOW A-J `exam-taking.spec.ts`. Regression smoke FLOW A-J catat baseline pass rate.
+**Requirements:** QA-02 (exam-types coverage)
+**Depends on:** Phase 316
+**Plans:** TBD
+
+### Phase 318: PreTest/PostTest full cycle + ExamWindowCloseDate + Certificate PDF E2E
+
+**Goal:** Test coverage untuk PreTest/PostTest workflow (paired assessment auto-generated), ExamWindowCloseDate enforcement (server-side reject submit setelah window tutup), AllowAnswerReview=true vs false comparison di Results page, Certificate PDF download verification (NomorSertifikat generated + downloadable).
+**Requirements:** QA-03 (advanced exam features coverage)
+**Depends on:** Phase 317
+**Plans:** TBD (preview only)
+
+### Phase 319: ManualAssessment + Export Excel + Analytics + CertificationManagement E2E
+
+**Goal:** Test coverage untuk ManualAssessment workflow (HC manual entry skor tanpa peserta exam), ManageCategories CRUD, Export Excel endpoint (re-query independent vs API), Analytics dashboard charts (Chart.js v4 indexAxis:'y'), CertificationManagement page (sertifikat lookup + reissue).
+**Requirements:** QA-04 (admin features coverage)
+**Depends on:** Phase 318
+**Plans:** TBD (preview only)
+
 ---
 
-*Roadmap updated: 2026-05-11 (Phase 316 plans created — 2 plans, 2 waves)*
+*Roadmap updated: 2026-05-11 (Phase 317-319 added — extend v16.0 scope ke exam types + advanced features + admin coverage)*

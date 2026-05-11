@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v16.0
 milestone_name: QA Test Coverage
 status: executing
-last_updated: "2026-05-11T09:34:46.958Z"
+last_updated: "2026-05-11T11:00:00.000Z"
 last_activity: 2026-05-11
 progress:
-  total_phases: 2
+  total_phases: 5
   completed_phases: 2
   total_plans: 11
   completed_plans: 11
-  percent: 100
+  percent: 40
 ---
 
 # Project State: Portal HC KPB
@@ -20,21 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-11)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 316 — fix-submitexam-page-closed-bug-matrix-test-infra-polish-reso
+**Current focus:** Phase 317 — fix-surf-316-a-ma-essay-mixed-e2e-via-ui
 
 ## Current Position
 
-Phase: 316
-Plan: Not started
-Status: Executing Phase 316
+Phase: 317
+Plan: Not started (plan draft di `~/.claude/plans/phase-315-dan-316-streamed-llama.md` — 8 tasks)
+Status: Executing Phase 317 (Tasks 1+2 done outside planner; Tasks 3-8 pending)
 Last activity: 2026-05-11
-Resume file: .planning/phases/316-fix-submitexam-page-closed-bug-matrix-test-infra-polish-reso/316-CONTEXT.md
+Resume file: TBD (Phase 317 belum punya CONTEXT.md formal)
 
 ## Next Action
 
-1. **Recommended:** `/gsd-discuss-phase 315` — gather context Phase 315 (akan baca spec di `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` dan resolve 5 open questions: MA save flow, Essay save flow, Notes field, ID collision check, URL encoding)
-2. **Alternatively:** `/gsd-plan-phase 315` — skip discuss, plan langsung (kalau yakin spec sudah lengkap, pakai sebagai CONTEXT.md langsung)
-3. After plan: `/gsd-execute-phase 315` — eksekusi atomic per plan
+1. **Recommended:** `/gsd-plan-phase 317` — convert plan draft jadi formal phase plans (split Task 3-7 jadi exam-types.spec.ts plans; Task 8 jadi regression smoke plan)
+2. **Alternatively:** Lanjut execute langsung tanpa planner — buat `tests/e2e/exam-types.spec.ts` FLOW K (MA full cycle) sebagai first wave
+3. **Defer:** Phase 318+319 plan (preview only di ROADMAP) — activate setelah 317 selesai
 
 ## Deferred Items
 
@@ -81,10 +81,11 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ### Roadmap Evolution
 
-- Phase 316 added: Fix SubmitExam page-closed bug + matrix test infra polish — resolve cascade fail dari Phase 315 yang block sentinel S8/S9/S10 verification
+- Phase 316 added (2026-05-11): Fix SubmitExam page-closed bug + matrix test infra polish — resolve cascade fail dari Phase 315 yang block sentinel S8/S9/S10 verification
+- Phase 317-319 added (2026-05-11): Extend v16.0 dari 2 → 5 phases untuk close exam-type coverage gap (317: MA/Essay/Mixed via HC UI), advanced features (318: PreTest/PostTest, ExamWindowCloseDate, Certificate PDF), admin coverage (319: ManualAssessment, Export, Analytics, CertificationManagement)
 
 ## Session Continuity
 
-Last activity: 2026-05-11 — v15.0 milestone closed via `/gsd-complete-milestone`. ROADMAP.md collapsed v15.0 ke shipped section, MILESTONES.md entry diperbaiki dari accomplishments dirty hasil parser failure, phase dirs (304-314 + 313.1) dipindah ke `.planning/milestones/v15.0-phases/`. PROJECT.md Current Milestone reset ke "(none — defining next)". STATE.md di-rewrite untuk between-milestones state.
+Last activity: 2026-05-11 — Phase 316 complete (11/11 matrix tests passed). Phase 317 started outside planner: Task 1 fix SURF-316-A done (examMatrix.ts submit selector + 2-step flow), Task 2 matrix smoke validation done (sibling-pool root cause resolved via seed SQL peserta2 packages removed + Layer 1 counts updated). Bonus helper hardening done (essay saveIndicator text check, gradeEssaysAsHc data-session-id targeting, verifyResultPage badge selector).
 
-Next action: Jalankan `/gsd-new-milestone v16.0 QA Test Coverage` (streamlined — skip research). Phase pertama akan pakai spec `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` sebagai input CONTEXT.md.
+Next action: Commit current changes (SURF-316-A fix + seed SQL fix + helper hardening + ROADMAP/STATE updates). Then `/gsd-plan-phase 317` untuk formal split Task 3-8 jadi plans, ATAU lanjut execute manual buat `tests/e2e/exam-types.spec.ts` (FLOW K MA full cycle first).
