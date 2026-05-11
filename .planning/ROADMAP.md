@@ -385,7 +385,11 @@ Plans:
 **Goal:** Tutup SURF-316-A (submit selector match dropdown-item hidden + 2-step submit flow incomplete) + buat `tests/e2e/exam-types.spec.ts` 5 FLOW baru via HC UI creation (FLOW K MA, FLOW L Essay+HC grading, FLOW M Mixed, FLOW N AllowAnswerReview=false, FLOW O AddExtraTime) untuk coverage tipe soal yang belum di-test FLOW A-J `exam-taking.spec.ts`. Regression smoke FLOW A-J catat baseline pass rate.
 **Requirements:** QA-02 (exam-types coverage)
 **Depends on:** Phase 316
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 317-01-PLAN.md — Wave 0 smoke (A4 question order + A5 timer var) + FLOW K MA + FLOW L Essay+HC grading (QA-02)
+- [ ] 317-02-PLAN.md — FLOW M Mixed + FLOW N AllowAnswerReview=false + FLOW O AddExtraTime SignalR + regression smoke FLOW A-J baseline (QA-02)
 
 ### Phase 318: PreTest/PostTest full cycle + ExamWindowCloseDate + Certificate PDF E2E
 
