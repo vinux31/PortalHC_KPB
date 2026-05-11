@@ -126,3 +126,31 @@ export async function queryScalar(sql: string): Promise<number> {
   }
   return parseInt(match[0], 10);
 }
+
+/**
+ * Run single SELECT string-scalar query, return first non-empty trimmed line.
+ * Pakai untuk resolve `SERVERPROPERTY('InstanceDefaultBackupPath')` saat setup BACKUP
+ * — `C:\\Temp\\` blocked oleh SQL Server service account, kita harus pakai default
+ * backup directory yang SQL Server sudah owned (e.g. `C:\\Program Files\\Microsoft SQL
+ * Server\\MSSQL17.SQLEXPRESS\\MSSQL\\Backup\\`).
+ *
+ * Throw kalau output kosong (e.g. SERVERPROPERTY returns NULL atau syntax error).
+ */
+export async function queryString(sql: string): Promise<string> {
+  const { stdout } = await runSqlcmd([
+    ...SQLCMD_BASE_ARGS,
+    '-Q', `SET NOCOUNT ON; ${sql}`,
+    '-h', '-1',
+    '-W',
+  ]);
+  const trimmed = stdout.trim();
+  if (!trimmed) {
+    throw new Error(`queryString: empty output dari "${sql}"`);
+  }
+  // Ambil baris non-empty pertama (sqlcmd kadang append baris-baris kosong).
+  const firstLine = trimmed.split(/\r?\n/).map((l) => l.trim()).find((l) => l.length > 0);
+  if (!firstLine) {
+    throw new Error(`queryString: tidak ada baris non-empty dari "${sql}"\nStdout: ${stdout}`);
+  }
+  return firstLine;
+}
