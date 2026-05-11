@@ -47,6 +47,11 @@ function findWrongOption(q: QuestionConfig): number {
  *   regression dari Phase 315 smoke run 2026-05-11T06:14:36Z.
  * - `page.isClosed()` gate di awal setiap softAssert callback (MC/MA/Essay) — throw
  *   SkipScenarioError langsung saat page closed mid-loop. Cegah cascade-fail noise di report.
+ * - **Plan 04 (gap closure):** waitForURL regex widen ke `(Results|ExamSummary)` — tolerant
+ *   terhadap server-side incomplete-answers branch (Controllers/CMPController.cs:1630)
+ *   yang redirect ke ExamSummary saat helper takeExam tidak sukses answer semua soal
+ *   sebelum submit (page-closed cascade, mc selector timeout, dll). Server BERPERILAKU
+ *   BENAR (D-02 smoke verified) — bug ada di helper regex yang terlalu sempit.
  *
  * Hub readiness gate via `window.assessmentHub.state === 'Connected'` mencegah Pitfall 1
  * (SignalR handshake belum selesai saat checkbox click → SaveMultipleAnswer silent skip
@@ -179,11 +184,15 @@ export async function takeExam(
       // Order matters: waitForURL index 0 (listener arm sync), click index 1 (action fire).
       // Reverse order = bug-equivalent (Pitfall 1 RESEARCH.md:368-375).
       await Promise.all([
-        page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 15_000 }),
+        // Phase 316 Plan 04 (GAP-316-1): widen regex accept `/CMP/ExamSummary/{id}` —
+        // server-side incomplete-answers branch (Controllers/CMPController.cs:1630)
+        // redirect ke ExamSummary saat answeredCount < totalQuestions. D-02 server smoke
+        // (316-UAT.md) confirm BOTH paths valid 302 dari SubmitExam endpoint.
+        page.waitForURL(/\/CMP\/(Results|ExamSummary)\/\d+/, { timeout: 15_000 }),
         page.click('#reviewSubmitBtn, [type="submit"]:not(.btn-cancel)'),
       ]);
     },
-    'SubmitExam redirects to /CMP/Results/{id}'
+    'SubmitExam redirects to /CMP/Results/{id} OR /CMP/ExamSummary/{id} (incomplete-answers branch)'
   );
 }
 
