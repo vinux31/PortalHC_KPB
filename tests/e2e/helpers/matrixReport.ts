@@ -20,6 +20,7 @@
 
 import { Page } from '@playwright/test';
 import { writeFile, mkdir, readdir, readFile, unlink, appendFile } from 'fs/promises';
+import { existsSync, readdirSync } from 'fs';
 import { dirname, resolve, join } from 'path';
 import type { Finding, Severity, ScenarioConfig } from './matrixTypes';
 
@@ -292,6 +293,48 @@ function renderReport(discovery: Finding[], meta: Finding[]): string {
   return [summarySection, discoverySection, metaSection].join('\n');
 }
 
+/**
+ * Phase 316 fallback strategy (D-11):
+ * 1. Kalau `f.screenshotPath` di-set DAN file exists di disk → emit custom path.
+ * 2. Kalau missing OR undefined → scan Playwright auto-capture dir
+ *    (`test-results/assessment-matrix-Scenario-*\/test-failed-*.png`), emit first match.
+ *    Best-effort — slug→scenarioId correlation tidak guaranteed (Pitfall 3 RESEARCH.md:384-391).
+ * 3. Kalau juga tidak ada → return undefined → renderFinding omit Screenshot line.
+ *
+ * Forward-slash path emission (Pitfall 4 RESEARCH.md:393-398) — string concat,
+ * JANGAN path.join (Windows emit backslash, broken di markdown viewer).
+ *
+ * [ASSUMED A1] naming pattern `assessment-matrix-Scenario-*` observed di smoke run
+ * 315-UAT.md:24 — Wave 0 verify formal di Plan 02.
+ */
+function resolveScreenshotPath(f: Finding): string | undefined {
+  // Layer 1: custom path exists di disk.
+  if (f.screenshotPath) {
+    const abs = resolve(f.screenshotPath);
+    if (existsSync(abs)) {
+      return f.screenshotPath;
+    }
+  }
+  // Layer 2: Playwright auto-capture fallback. Scan FINDINGS_DIR untuk
+  // dir berawalan 'assessment-matrix-Scenario-' lalu cari 'test-failed-*.png' di dalamnya.
+  try {
+    if (!existsSync(FINDINGS_DIR)) return undefined;
+    const subdirs = readdirSync(FINDINGS_DIR, { withFileTypes: true })
+      .filter((d) => d.isDirectory() && d.name.startsWith('assessment-matrix-Scenario-'));
+    for (const d of subdirs) {
+      const inner = readdirSync(join(FINDINGS_DIR, d.name))
+        .filter((n) => n.startsWith('test-failed-') && n.endsWith('.png'));
+      if (inner.length > 0) {
+        // Forward-slash output untuk markdown viewer compat (Windows safety).
+        return `test-results/${d.name}/${inner[0]}`;
+      }
+    }
+  } catch {
+    // fs probe error — fall through to undefined (no Screenshot line).
+  }
+  return undefined;
+}
+
 function renderFinding(f: Finding): string {
   const lines = [
     `### Scenario ${f.scenarioId}: ${f.scenarioTitle} — ${f.step}`,
@@ -300,8 +343,9 @@ function renderFinding(f: Finding): string {
     `- **Expected:** ${f.expected}`,
     `- **Actual:** ${f.actual}`,
   ];
-  if (f.screenshotPath) {
-    lines.push(`- **Screenshot:** \`${f.screenshotPath}\``);
+  const resolvedPath = resolveScreenshotPath(f);
+  if (resolvedPath) {
+    lines.push(`- **Screenshot:** \`${resolvedPath}\``);
   }
   lines.push(`- **Hypothesis:** ${deriveHypothesis(f)}`);
   return lines.join('\n');

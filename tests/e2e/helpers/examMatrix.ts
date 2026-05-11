@@ -109,6 +109,12 @@ export async function takeExam(
       await softAssert(
         { scenario: cfg, step: `mc-q${q.id}`, severity: 'major', page },
         async () => {
+          // Phase 316: page-closed gate — abort cascade saat submit-exam (langkah sebelumnya)
+          // sudah close context. SkipScenarioError di-rethrow oleh softAssert catch handler
+          // (matrixReport.ts) tanpa record finding. Ref: 316-PATTERNS.md Pattern B (line 87-133).
+          if (page.isClosed()) {
+            throw new SkipScenarioError(`page closed before mc-q${q.id} step — cascade abort`);
+          }
           // Radio click — change handler invoke SaveAnswer endpoint (server-side persist).
           await page.check(`input.exam-radio[data-question-id="${q.id}"][value="${optId}"]`);
           await page
@@ -123,6 +129,10 @@ export async function takeExam(
       await softAssert(
         { scenario: cfg, step: `ma-q${q.id}`, severity: 'major', page },
         async () => {
+          // Phase 316: page-closed gate (lihat MC step di atas untuk rasional).
+          if (page.isClosed()) {
+            throw new SkipScenarioError(`page closed before ma-q${q.id} step — cascade abort`);
+          }
           // Tick semua target checkbox; last change trigger SignalR SaveMultipleAnswer
           // (Hubs/AssessmentHub.cs:188 — wipe-and-insert atomic per question).
           for (const oid of targets) {
@@ -140,6 +150,10 @@ export async function takeExam(
       await softAssert(
         { scenario: cfg, step: `essay-q${q.id}`, severity: 'major', page },
         async () => {
+          // Phase 316: page-closed gate (lihat MC step di atas untuk rasional).
+          if (page.isClosed()) {
+            throw new SkipScenarioError(`page closed before essay-q${q.id} step — cascade abort`);
+          }
           await page.fill(`textarea.exam-essay[data-question-id="${q.id}"]`, answer);
           // Wait > 2s debounce client + roundtrip ke SaveTextAnswer hub
           // (Hubs/AssessmentHub.cs:134-182 upsert PackageUserResponse.TextAnswer).
