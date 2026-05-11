@@ -517,3 +517,4 @@ null
 *.ps1
 *.bat
 TempDbCheck/
+.superpowers/
