@@ -83,17 +83,17 @@ setup('verify app is running + seed matrix', async ({ page }) => {
   const packageCount = await db.queryScalar(
     `SELECT COUNT(*) FROM AssessmentPackages WHERE AssessmentSessionId IN (SELECT Id FROM AssessmentSessions WHERE Title LIKE '[[]MATRIX_TEST_2026_05_11]%')`
   );
-  expect(packageCount, `Layer 1: expected 18 matrix AssessmentPackages seeded`).toBe(18);
+  expect(packageCount, `Layer 1: expected 10 matrix AssessmentPackages seeded (peserta2 shares via sibling pool)`).toBe(10);
 
   const questionCount = await db.queryScalar(
     `SELECT COUNT(*) FROM PackageQuestions WHERE AssessmentPackageId BETWEEN 9001 AND 9018`
   );
-  expect(questionCount, `Layer 1: expected 54 PackageQuestions seeded`).toBe(54);
+  expect(questionCount, `Layer 1: expected 30 PackageQuestions seeded (peserta1 only)`).toBe(30);
 
   const optionCount = await db.queryScalar(
     `SELECT COUNT(*) FROM PackageOptions WHERE PackageQuestionId BETWEEN 50001 AND 50054`
   );
-  expect(optionCount, `Layer 1: expected 144 PackageOptions seeded`).toBe(144);
+  expect(optionCount, `Layer 1: expected 80 PackageOptions seeded`).toBe(80);
 
   // A6 verdict cross-check: UPA harus 0 (lazy create saat StartExam).
   const upaCount = await db.queryScalar(

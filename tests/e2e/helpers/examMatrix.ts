@@ -159,14 +159,24 @@ export async function takeExam(
           if (page.isClosed()) {
             throw new SkipScenarioError(`page closed before essay-q${q.id} step — cascade abort`);
           }
+          // Capture indicator text before fill — used to detect NEW save event (avoid stale text).
+          const prevText = await page.evaluate(() => {
+            const el = document.getElementById('saveIndicatorText');
+            return (el?.textContent || '').trim();
+          });
           await page.fill(`textarea.exam-essay[data-question-id="${q.id}"]`, answer);
-          // Wait > 2s debounce client + roundtrip ke SaveTextAnswer hub
-          // (Hubs/AssessmentHub.cs:134-182 upsert PackageUserResponse.TextAnswer).
-          await page.waitForTimeout(2_500);
-          await page
-            .locator(`#saveIndicatorText`)
-            .filter({ hasText: /saved|tersimpan/i })
-            .waitFor({ timeout: 5_000 });
+          // Wait for indicator text to CHANGE to new "saved" text after 2s debounce.
+          // Uses text check (not visibility) — indicator fades visually but textContent persists
+          // (Views/CMP/StartExam.cshtml:560-568 — showSaveIndicator auto-fade after 2s display).
+          await page.waitForFunction(
+            (prev) => {
+              const el = document.getElementById('saveIndicatorText');
+              const text = ((el as HTMLElement)?.textContent || '').trim();
+              return text !== prev && /saved|tersimpan/i.test(text);
+            },
+            prevText,
+            { timeout: 7_500 }
+          );
         },
         `Essay q${q.id} saved via SaveTextAnswer hub (debounce 2s)`
       );
@@ -176,23 +186,21 @@ export async function takeExam(
   await softAssert(
     { scenario: cfg, step: 'submit-exam', severity: 'critical', page },
     async () => {
-      // Submit button — id #reviewSubmitBtn (review modal) atau direct [type="submit"]
-      // (Controllers/CMPController.cs:1569 SubmitExam form binding).
-      //
-      // Phase 316 fix: arm waitForURL BEFORE click fires navigate.
-      // Race-tolerant per Phase 313.1 precedent (exam313.ts:39, 107).
-      // Order matters: waitForURL index 0 (listener arm sync), click index 1 (action fire).
-      // Reverse order = bug-equivalent (Pitfall 1 RESEARCH.md:368-375).
+      // Step 1: #reviewSubmitBtn POSTs examForm to /CMP/ExamSummary/{id} (StartExam.cshtml:71).
+      // Phase 316 fix: arm waitForURL BEFORE click (race-tolerant, exam313.ts precedent).
       await Promise.all([
-        // Phase 316 Plan 04 (GAP-316-1): widen regex accept `/CMP/ExamSummary/{id}` —
-        // server-side incomplete-answers branch (Controllers/CMPController.cs:1630)
-        // redirect ke ExamSummary saat answeredCount < totalQuestions. D-02 server smoke
-        // (316-UAT.md) confirm BOTH paths valid 302 dari SubmitExam endpoint.
-        page.waitForURL(/\/CMP\/(Results|ExamSummary)\/\d+/, { timeout: 15_000 }),
-        page.click('#reviewSubmitBtn, [type="submit"]:not(.btn-cancel)'),
+        page.waitForURL(/\/CMP\/ExamSummary\/\d+/, { timeout: 15_000 }),
+        page.click('#reviewSubmitBtn'),
+      ]);
+      // Step 2: ExamSummary → klik "Kumpulkan Ujian" → /CMP/SubmitExam/{id} → Results.
+      // onclick="return confirm(...)" triggers browser dialog — must arm listener before click.
+      page.once('dialog', dialog => dialog.accept());
+      await Promise.all([
+        page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 15_000 }),
+        page.click('button[type="submit"]:has-text("Kumpulkan")'),
       ]);
     },
-    'SubmitExam redirects to /CMP/Results/{id} OR /CMP/ExamSummary/{id} (incomplete-answers branch)'
+    'SubmitExam 2-step: StartExam→ExamSummary→Results'
   );
 }
 
@@ -243,44 +251,38 @@ export async function gradeEssaysAsHc(pageHc: Page, cfg: ScenarioConfig): Promis
     async () => {
       for (const sessionId of sessionIds) {
         for (const q of essayQs) {
-          // Input score — class `.essay-score-input` + data-question-id per
-          // Views/Admin/AssessmentMonitoringDetail.cshtml:399-403.
-          // Catatan: input ada di dalam `#essay_{qId}` card. Karena 2 sibling sessions
-          // share view yang sama (di-render per session), scope locator ke session row
-          // via badge ID `badge_{sessionId}_{qId}` (line 379). Strategi: gunakan
-          // closest ancestor session group, OR pakai input dengan data-question-id +
-          // data-session-id kalau ada. Fallback: ambil semua input.essay-score-input
-          // dengan questionId match yang count == jumlah session (sibling rendered
-          // sebagai daftar) lalu pick by index.
-          const scoreSelector = `input.essay-score-input[data-question-id="${q.id}"]`;
-          const inputs = pageHc.locator(scoreSelector);
-          const inputCount = await inputs.count();
-          if (inputCount === 0) {
-            throw new Error(`Tidak ada essay-score-input untuk questionId=${q.id} (session ${sessionId})`);
+          // Target input + button via [data-session-id] + [data-question-id] — precise, no nth().
+          // Both attributes present per Views/Admin/AssessmentMonitoringDetail.cshtml:402-407.
+          const scoreInput = pageHc.locator(
+            `input.essay-score-input[data-question-id="${q.id}"][data-session-id="${sessionId}"]`
+          );
+          if (await scoreInput.count() === 0) {
+            throw new Error(`Tidak ada essay-score-input untuk questionId=${q.id} session=${sessionId}`);
           }
-          // Index sibling: peserta1 dulu (index 0), peserta2 (index 1).
-          const sessionIndex = sessionIds.indexOf(sessionId);
-          const scoreInput = inputs.nth(Math.min(sessionIndex, inputCount - 1));
           await scoreInput.fill(String(q.scoreValue));
 
-          // Klik save per-question — button.btn-save-essay-score (line 405-407).
           const saveBtn = pageHc.locator(
-            `button.btn-save-essay-score[data-question-id="${q.id}"]`
-          ).nth(Math.min(sessionIndex, inputCount - 1));
+            `button.btn-save-essay-score[data-question-id="${q.id}"][data-session-id="${sessionId}"]`
+          );
           await saveBtn.click();
-          // Wait AJAX response — badge state transition ke "Sudah Dinilai"
-          // (Views/Admin/AssessmentMonitoringDetail.cshtml:1356-1358).
-          await pageHc.waitForTimeout(500);
+          // Wait for badge to show "Sudah Dinilai" — confirms AJAX SubmitEssayScore success
+          // (Views/Admin/AssessmentMonitoringDetail.cshtml:1354-1358).
+          await pageHc
+            .locator(`#badge_${sessionId}_${q.id}`)
+            .filter({ hasText: /Sudah Dinilai/i })
+            .waitFor({ timeout: 10_000 });
         }
 
-        // Finalize per session — button.btn-finalize-grading[data-session-id="{sessionId}"]
-        // muncul saat EssayPendingCount == 0 (line 414-417, 428, 438).
+        // Finalize per session — finalizeSection_ div visible when EssayPendingCount=0
+        // (line 414-415 AJAX sets display:block after last SubmitEssayScore).
+        // btn-finalize-grading click handler shows confirm() dialog (line 1377).
         const finalizeBtn = pageHc.locator(
           `button.btn-finalize-grading[data-session-id="${sessionId}"]`
         ).first();
         await finalizeBtn.waitFor({ state: 'visible', timeout: 10_000 });
+        pageHc.once('dialog', (d) => d.accept());
         await finalizeBtn.click();
-        await pageHc.waitForLoadState('networkidle', { timeout: 10_000 });
+        await pageHc.waitForLoadState('networkidle', { timeout: 15_000 });
       }
     },
     `HC grades ${essayQs.length} essay questions × ${sessionIds.length} sessions + finalize`
@@ -302,8 +304,9 @@ export async function verifyResultPage(
     { scenario: cfg, step: 'verify-result-page', severity: 'major', page },
     async () => {
       await page.goto(`/CMP/Results/${sessionId}`);
+      // Status badge — one of 3 classes per Views/CMP/Results.cshtml:69-83.
       await expect(
-        page.locator('.score-badge, [data-score], .result-score').first()
+        page.locator('.badge.text-bg-secondary, .badge.text-bg-success, .badge.text-bg-danger').first()
       ).toBeVisible({ timeout: 10_000 });
     },
     `Result page score visible untuk ${peserta} session ${sessionId}`

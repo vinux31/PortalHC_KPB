@@ -227,26 +227,19 @@ SET IDENTITY_INSERT AssessmentPackages ON;
 INSERT INTO AssessmentPackages (Id, AssessmentSessionId, PackageName, PackageNumber, CreatedAt)
 VALUES
   (9001, 9001, N'Phase 315 Matrix Package', 1, @Now),
-  (9002, 9002, N'Phase 315 Matrix Package', 1, @Now),
   (9003, 9003, N'Phase 315 Matrix Package', 1, @Now),
-  (9004, 9004, N'Phase 315 Matrix Package', 1, @Now),
   (9005, 9005, N'Phase 315 Matrix Package', 1, @Now),
-  (9006, 9006, N'Phase 315 Matrix Package', 1, @Now),
   (9007, 9007, N'Phase 315 Matrix Package', 1, @Now),
-  (9008, 9008, N'Phase 315 Matrix Package', 1, @Now),
   (9009, 9009, N'Phase 315 Matrix Package', 1, @Now),
-  (9010, 9010, N'Phase 315 Matrix Package', 1, @Now),
   (9011, 9011, N'Phase 315 Matrix Package', 1, @Now),
-  (9012, 9012, N'Phase 315 Matrix Package', 1, @Now),
   (9013, 9013, N'Phase 315 Matrix Package', 1, @Now),
-  (9014, 9014, N'Phase 315 Matrix Package', 1, @Now),
   (9015, 9015, N'Phase 315 Matrix Package', 1, @Now),
-  (9016, 9016, N'Phase 315 Matrix Package', 1, @Now),
   (9017, 9017, N'Phase 315 Matrix Package', 1, @Now),
   (9018, 9018, N'Phase 315 Matrix Package', 1, @Now);
 
 SET IDENTITY_INSERT AssessmentPackages OFF;
-PRINT N'[Phase 315 seed] 18 AssessmentPackages di-INSERT (Id 9001-9018).';
+-- 10 packages (peserta1 only per scenario; peserta2 shares via sibling-session cross-package pool).
+PRINT N'[Phase 315 seed] 10 AssessmentPackages di-INSERT (peserta1 sessions only).';
 
 -- ============================================================
 -- 5.3 PackageQuestions -- 54 questions (3 per package, mixed type per scenario)
@@ -262,62 +255,38 @@ INSERT INTO PackageQuestions
   (Id, AssessmentPackageId, [Order], QuestionText, QuestionType, ScoreValue, MaxCharacters, Rubrik, ElemenTeknis)
 VALUES
   -- S1 Manual Mixed peserta1 (package 9001): MC + MA + Essay
+  -- peserta2 (session 9002) shares via cross-package pool — no separate package needed.
   (50001, 9001, 1, N'S1 MC: Pilih jawaban benar', N'MultipleChoice', 30, 2000, NULL, NULL),
   (50002, 9001, 2, N'S1 MA: Pilih dua jawaban benar', N'MultipleAnswer', 35, 2000, NULL, NULL),
   (50003, 9001, 3, N'S1 Essay: Jelaskan konsep singkat', N'Essay', 35, 2000, N'Kunci: konsep matrix test discovery', NULL),
-  -- S1 peserta2 (package 9002)
-  (50004, 9002, 1, N'S1 MC: Pilih jawaban benar', N'MultipleChoice', 30, 2000, NULL, NULL),
-  (50005, 9002, 2, N'S1 MA: Pilih dua jawaban benar', N'MultipleAnswer', 35, 2000, NULL, NULL),
-  (50006, 9002, 3, N'S1 Essay: Jelaskan konsep singkat', N'Essay', 35, 2000, N'Kunci: konsep matrix test discovery', NULL),
-  -- S2 Online Mixed peserta1 (9003) + peserta2 (9004)
+  -- S2 Online Mixed peserta1 (9003)
   (50007, 9003, 1, N'S2 MC', N'MultipleChoice', 30, 2000, NULL, NULL),
   (50008, 9003, 2, N'S2 MA', N'MultipleAnswer', 35, 2000, NULL, NULL),
   (50009, 9003, 3, N'S2 Essay', N'Essay', 35, 2000, N'Kunci S2', NULL),
-  (50010, 9004, 1, N'S2 MC', N'MultipleChoice', 30, 2000, NULL, NULL),
-  (50011, 9004, 2, N'S2 MA', N'MultipleAnswer', 35, 2000, NULL, NULL),
-  (50012, 9004, 3, N'S2 Essay', N'Essay', 35, 2000, N'Kunci S2', NULL),
-  -- S3 PreTest Mixed (9005, 9006)
+  -- S3 PreTest Mixed peserta1 (9005)
   (50013, 9005, 1, N'S3 MC', N'MultipleChoice', 30, 2000, NULL, NULL),
   (50014, 9005, 2, N'S3 MA', N'MultipleAnswer', 35, 2000, NULL, NULL),
   (50015, 9005, 3, N'S3 Essay', N'Essay', 35, 2000, N'Kunci S3', NULL),
-  (50016, 9006, 1, N'S3 MC', N'MultipleChoice', 30, 2000, NULL, NULL),
-  (50017, 9006, 2, N'S3 MA', N'MultipleAnswer', 35, 2000, NULL, NULL),
-  (50018, 9006, 3, N'S3 Essay', N'Essay', 35, 2000, N'Kunci S3', NULL),
-  -- S4 PostTest Mixed (9007, 9008)
+  -- S4 PostTest Mixed peserta1 (9007)
   (50019, 9007, 1, N'S4 MC', N'MultipleChoice', 30, 2000, NULL, NULL),
   (50020, 9007, 2, N'S4 MA', N'MultipleAnswer', 35, 2000, NULL, NULL),
   (50021, 9007, 3, N'S4 Essay', N'Essay', 35, 2000, N'Kunci S4', NULL),
-  (50022, 9008, 1, N'S4 MC', N'MultipleChoice', 30, 2000, NULL, NULL),
-  (50023, 9008, 2, N'S4 MA', N'MultipleAnswer', 35, 2000, NULL, NULL),
-  (50024, 9008, 3, N'S4 Essay', N'Essay', 35, 2000, N'Kunci S4', NULL),
-  -- S5 Online MC only (9009, 9010): 3 MC questions per package
+  -- S5 Online MC only peserta1 (9009): 3 MC questions
   (50025, 9009, 1, N'S5 MC #1', N'MultipleChoice', 34, 2000, NULL, NULL),
   (50026, 9009, 2, N'S5 MC #2', N'MultipleChoice', 33, 2000, NULL, NULL),
   (50027, 9009, 3, N'S5 MC #3', N'MultipleChoice', 33, 2000, NULL, NULL),
-  (50028, 9010, 1, N'S5 MC #1', N'MultipleChoice', 34, 2000, NULL, NULL),
-  (50029, 9010, 2, N'S5 MC #2', N'MultipleChoice', 33, 2000, NULL, NULL),
-  (50030, 9010, 3, N'S5 MC #3', N'MultipleChoice', 33, 2000, NULL, NULL),
-  -- S6 Online MA only (9011, 9012)
+  -- S6 Online MA only peserta1 (9011)
   (50031, 9011, 1, N'S6 MA #1', N'MultipleAnswer', 34, 2000, NULL, NULL),
   (50032, 9011, 2, N'S6 MA #2', N'MultipleAnswer', 33, 2000, NULL, NULL),
   (50033, 9011, 3, N'S6 MA #3', N'MultipleAnswer', 33, 2000, NULL, NULL),
-  (50034, 9012, 1, N'S6 MA #1', N'MultipleAnswer', 34, 2000, NULL, NULL),
-  (50035, 9012, 2, N'S6 MA #2', N'MultipleAnswer', 33, 2000, NULL, NULL),
-  (50036, 9012, 3, N'S6 MA #3', N'MultipleAnswer', 33, 2000, NULL, NULL),
-  -- S7 Online Essay only (9013, 9014) -- Rubrik populated, no options seeded
+  -- S7 Online Essay only peserta1 (9013)
   (50037, 9013, 1, N'S7 Essay #1', N'Essay', 34, 2000, N'Kunci S7 #1', NULL),
   (50038, 9013, 2, N'S7 Essay #2', N'Essay', 33, 2000, N'Kunci S7 #2', NULL),
   (50039, 9013, 3, N'S7 Essay #3', N'Essay', 33, 2000, N'Kunci S7 #3', NULL),
-  (50040, 9014, 1, N'S7 Essay #1', N'Essay', 34, 2000, N'Kunci S7 #1', NULL),
-  (50041, 9014, 2, N'S7 Essay #2', N'Essay', 33, 2000, N'Kunci S7 #2', NULL),
-  (50042, 9014, 3, N'S7 Essay #3', N'Essay', 33, 2000, N'Kunci S7 #3', NULL),
-  -- Sentinel S8 META-AllCorrect (9015, 9016)
+  -- Sentinel S8 META-AllCorrect peserta1 (9015)
   (50043, 9015, 1, N'S8 MC sentinel', N'MultipleChoice', 30, 2000, NULL, NULL),
   (50044, 9015, 2, N'S8 MA sentinel', N'MultipleAnswer', 35, 2000, NULL, NULL),
   (50045, 9015, 3, N'S8 Essay sentinel', N'Essay', 35, 2000, N'Kunci sentinel', NULL),
-  (50046, 9016, 1, N'S8 MC sentinel', N'MultipleChoice', 30, 2000, NULL, NULL),
-  (50047, 9016, 2, N'S8 MA sentinel', N'MultipleAnswer', 35, 2000, NULL, NULL),
-  (50048, 9016, 3, N'S8 Essay sentinel', N'Essay', 35, 2000, N'Kunci sentinel', NULL),
   -- Sentinel S9 META-AllWrong (9017) -- 1 peserta saja
   (50049, 9017, 1, N'S9 MC sentinel', N'MultipleChoice', 30, 2000, NULL, NULL),
   (50050, 9017, 2, N'S9 MA sentinel', N'MultipleAnswer', 35, 2000, NULL, NULL),
@@ -328,10 +297,10 @@ VALUES
   (50054, 9018, 3, N'S10 Essay sentinel', N'Essay', 35, 2000, N'Kunci sentinel S10', NULL);
 
 SET IDENTITY_INSERT PackageQuestions OFF;
-PRINT N'[Phase 315 seed] 54 PackageQuestions di-INSERT (Id 50001-50054).';
+PRINT N'[Phase 315 seed] 30 PackageQuestions di-INSERT (peserta1 only — peserta2 shares via sibling pool).';
 
 -- ============================================================
--- 5.4 PackageOptions -- 144 options (4 per MC/MA question; Essay skipped)
+-- 5.4 PackageOptions -- 80 options (4 per MC/MA question; Essay skipped; peserta2 removed — sibling pool)
 --     Generated mekanis dengan formula optId = 80001 + (qId - 50001) * 4 + optIndex.
 --     Schema (per Migrations/ApplicationDbContextModelSnapshot.cs:1198-1221):
 --       Id, PackageQuestionId, OptionText, IsCorrect (4 kolom -- TIDAK ada CreatedAt/OrderNumber).
@@ -351,14 +320,7 @@ VALUES
   (80006, 50002, N'Jawaban B (benar)', 1),
   (80007, 50002, N'Jawaban C', 0),
   (80008, 50002, N'Jawaban D', 0),
-  (80013, 50004, N'Jawaban A (benar)', 1),
-  (80014, 50004, N'Jawaban B', 0),
-  (80015, 50004, N'Jawaban C', 0),
-  (80016, 50004, N'Jawaban D', 0),
-  (80017, 50005, N'Jawaban A (benar)', 1),
-  (80018, 50005, N'Jawaban B (benar)', 1),
-  (80019, 50005, N'Jawaban C', 0),
-  (80020, 50005, N'Jawaban D', 0),
+  -- S1 P2 options (80013-80020 for q50004/50005) removed — peserta2 shares P1 via sibling pool
   (80025, 50007, N'Jawaban A (benar)', 1),
   (80026, 50007, N'Jawaban B', 0),
   (80027, 50007, N'Jawaban C', 0),
@@ -367,14 +329,7 @@ VALUES
   (80030, 50008, N'Jawaban B (benar)', 1),
   (80031, 50008, N'Jawaban C', 0),
   (80032, 50008, N'Jawaban D', 0),
-  (80037, 50010, N'Jawaban A (benar)', 1),
-  (80038, 50010, N'Jawaban B', 0),
-  (80039, 50010, N'Jawaban C', 0),
-  (80040, 50010, N'Jawaban D', 0),
-  (80041, 50011, N'Jawaban A (benar)', 1),
-  (80042, 50011, N'Jawaban B (benar)', 1),
-  (80043, 50011, N'Jawaban C', 0),
-  (80044, 50011, N'Jawaban D', 0),
+  -- S2 P2 options (80037-80044 for q50010/50011) removed — peserta2 shares P1 via sibling pool
   (80049, 50013, N'Jawaban A (benar)', 1),
   (80050, 50013, N'Jawaban B', 0),
   (80051, 50013, N'Jawaban C', 0),
@@ -383,14 +338,7 @@ VALUES
   (80054, 50014, N'Jawaban B (benar)', 1),
   (80055, 50014, N'Jawaban C', 0),
   (80056, 50014, N'Jawaban D', 0),
-  (80061, 50016, N'Jawaban A (benar)', 1),
-  (80062, 50016, N'Jawaban B', 0),
-  (80063, 50016, N'Jawaban C', 0),
-  (80064, 50016, N'Jawaban D', 0),
-  (80065, 50017, N'Jawaban A (benar)', 1),
-  (80066, 50017, N'Jawaban B (benar)', 1),
-  (80067, 50017, N'Jawaban C', 0),
-  (80068, 50017, N'Jawaban D', 0),
+  -- S3 P2 options (80061-80068 for q50016/50017) removed — peserta2 shares P1 via sibling pool
   (80073, 50019, N'Jawaban A (benar)', 1),
   (80074, 50019, N'Jawaban B', 0),
   (80075, 50019, N'Jawaban C', 0),
@@ -399,14 +347,7 @@ VALUES
   (80078, 50020, N'Jawaban B (benar)', 1),
   (80079, 50020, N'Jawaban C', 0),
   (80080, 50020, N'Jawaban D', 0),
-  (80085, 50022, N'Jawaban A (benar)', 1),
-  (80086, 50022, N'Jawaban B', 0),
-  (80087, 50022, N'Jawaban C', 0),
-  (80088, 50022, N'Jawaban D', 0),
-  (80089, 50023, N'Jawaban A (benar)', 1),
-  (80090, 50023, N'Jawaban B (benar)', 1),
-  (80091, 50023, N'Jawaban C', 0),
-  (80092, 50023, N'Jawaban D', 0),
+  -- S4 P2 options (80085-80092 for q50022/50023) removed — peserta2 shares P1 via sibling pool
   (80097, 50025, N'Jawaban A (benar)', 1),
   (80098, 50025, N'Jawaban B', 0),
   (80099, 50025, N'Jawaban C', 0),
@@ -419,18 +360,7 @@ VALUES
   (80106, 50027, N'Jawaban B', 0),
   (80107, 50027, N'Jawaban C', 0),
   (80108, 50027, N'Jawaban D', 0),
-  (80109, 50028, N'Jawaban A (benar)', 1),
-  (80110, 50028, N'Jawaban B', 0),
-  (80111, 50028, N'Jawaban C', 0),
-  (80112, 50028, N'Jawaban D', 0),
-  (80113, 50029, N'Jawaban A (benar)', 1),
-  (80114, 50029, N'Jawaban B', 0),
-  (80115, 50029, N'Jawaban C', 0),
-  (80116, 50029, N'Jawaban D', 0),
-  (80117, 50030, N'Jawaban A (benar)', 1),
-  (80118, 50030, N'Jawaban B', 0),
-  (80119, 50030, N'Jawaban C', 0),
-  (80120, 50030, N'Jawaban D', 0),
+  -- S5 P2 options (80109-80120 for q50028/50029/50030) removed — peserta2 shares P1 via sibling pool
   (80121, 50031, N'Jawaban A (benar)', 1),
   (80122, 50031, N'Jawaban B (benar)', 1),
   (80123, 50031, N'Jawaban C', 0),
@@ -443,18 +373,7 @@ VALUES
   (80130, 50033, N'Jawaban B (benar)', 1),
   (80131, 50033, N'Jawaban C', 0),
   (80132, 50033, N'Jawaban D', 0),
-  (80133, 50034, N'Jawaban A (benar)', 1),
-  (80134, 50034, N'Jawaban B (benar)', 1),
-  (80135, 50034, N'Jawaban C', 0),
-  (80136, 50034, N'Jawaban D', 0),
-  (80137, 50035, N'Jawaban A (benar)', 1),
-  (80138, 50035, N'Jawaban B (benar)', 1),
-  (80139, 50035, N'Jawaban C', 0),
-  (80140, 50035, N'Jawaban D', 0),
-  (80141, 50036, N'Jawaban A (benar)', 1),
-  (80142, 50036, N'Jawaban B (benar)', 1),
-  (80143, 50036, N'Jawaban C', 0),
-  (80144, 50036, N'Jawaban D', 0),
+  -- S6 P2 options (80133-80144 for q50034/50035/50036) removed — peserta2 shares P1 via sibling pool
   (80169, 50043, N'Jawaban A (benar)', 1),
   (80170, 50043, N'Jawaban B', 0),
   (80171, 50043, N'Jawaban C', 0),
@@ -463,14 +382,7 @@ VALUES
   (80174, 50044, N'Jawaban B (benar)', 1),
   (80175, 50044, N'Jawaban C', 0),
   (80176, 50044, N'Jawaban D', 0),
-  (80181, 50046, N'Jawaban A (benar)', 1),
-  (80182, 50046, N'Jawaban B', 0),
-  (80183, 50046, N'Jawaban C', 0),
-  (80184, 50046, N'Jawaban D', 0),
-  (80185, 50047, N'Jawaban A (benar)', 1),
-  (80186, 50047, N'Jawaban B (benar)', 1),
-  (80187, 50047, N'Jawaban C', 0),
-  (80188, 50047, N'Jawaban D', 0),
+  -- S8 P2 options (80181-80188 for q50046/50047) removed — peserta2 shares P1 via sibling pool
   (80193, 50049, N'Jawaban A (benar)', 1),
   (80194, 50049, N'Jawaban B', 0),
   (80195, 50049, N'Jawaban C', 0),
@@ -489,7 +401,7 @@ VALUES
   (80212, 50053, N'Jawaban D', 0);
 
 SET IDENTITY_INSERT PackageOptions OFF;
-PRINT N'[Phase 315 seed] 144 PackageOptions di-INSERT (range 80001-80212, gap untuk Essay).';
+PRINT N'[Phase 315 seed] 80 PackageOptions di-INSERT (range 80001-80212, gap untuk Essay dan peserta2 — sibling pool).';
 
 -- ============================================================
 -- 6. COMMIT -- close explicit transaction (Pattern E)
@@ -501,8 +413,7 @@ PRINT N'[Phase 315 seed] COMMIT -- transaction closed, INSERT chain persisted.';
 
 -- ============================================================
 -- 7. Final verification SELECT (Layer 1 source -- dipakai global.setup.ts queryScalar)
---    Expected: 18 rows; PkgCount = 1 per session; QCount = 3 per session;
---    OptCount per session: varies by question-type mix (MC/MA both = 8, Essay only = 0).
+--    Expected: 18 rows; peserta1 PkgCount=1 QCount=3; peserta2 PkgCount=0 QCount=0 (sibling pool).
 -- ============================================================
 SELECT s.Id, s.Title, s.UserId, s.AssessmentType,
     (SELECT COUNT(*) FROM AssessmentPackages WHERE AssessmentSessionId = s.Id) AS PkgCount,
@@ -514,10 +425,7 @@ SELECT s.Id, s.Title, s.UserId, s.AssessmentType,
 FROM AssessmentSessions s
 WHERE s.Title LIKE '[[]MATRIX_TEST_2026_05_11]%'
 ORDER BY s.Id;
--- Expected layout: 18 rows; PkgCount=1 per session; QCount=3 per session;
--- OptCount: S1-S4 mixed = 8 (1 MC x 4 + 1 MA x 4 + Essay x 0);
---           S5 (MC only) = 12 (3 MC x 4);
---           S6 (MA only) = 12 (3 MA x 4);
---           S7 (Essay only) = 0;
---           S8 sentinel mixed = 8;
---           S9, S10 sentinel mixed = 8 each.
+-- Expected layout: 18 rows; peserta1 sessions PkgCount=1, QCount=3;
+-- peserta2 sessions PkgCount=0, QCount=0 (get sibling package from peserta1 at StartExam).
+-- peserta1 OptCount: S1-S4 mixed=8; S5 MC-only=12; S6 MA-only=12; S7 Essay-only=0;
+--                   S8 sentinel mixed=8; S9,S10 sentinel mixed=8 each.
