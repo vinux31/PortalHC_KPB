@@ -1,1 +1,0 @@
-[POST] http://10.55.3.3/KPB-PortalHC/Admin/RegenerateToken/6 => [404] Not Found
