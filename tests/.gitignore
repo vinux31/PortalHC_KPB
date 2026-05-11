@@ -2,3 +2,6 @@
 # Root .gitignore sudah cover *.bak secara global; entry ini scoped + discoverable per Phase 315.
 .matrix-state.json
 sql/*.bak
+# Plan 04 — Playwright runner build artifacts (smoke run output)
+playwright-report/
+test-results/

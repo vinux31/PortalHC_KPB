@@ -15,6 +15,19 @@
 import { test as setup, expect } from '@playwright/test';
 import * as db from '../helpers/dbSnapshot';
 import { writeFile, appendFile, mkdir } from 'fs/promises';
+import { resolve } from 'path';
+
+// Path resolver — semua path resolved relatif __dirname (`tests/e2e/`) supaya
+// independent dari cwd Playwright runner (cwd bisa `tests/` saat `cd tests && npx
+// playwright test`, atau worktree-root via custom invocation). Tanpa ini, writeFile
+// 'tests/.matrix-state.json' dengan cwd=tests/ akan resolve ke `tests/tests/...` (Rule 3
+// blocking fix saat Plan 04 smoke run).
+const TESTS_DIR = resolve(__dirname, '..');                    // -> tests/
+const REPO_ROOT = resolve(__dirname, '..', '..');              // -> worktree root
+const STATE_FILE = resolve(TESTS_DIR, '.matrix-state.json');
+const SEED_SQL = resolve(TESTS_DIR, 'sql', 'assessment-matrix-seed.sql');
+const REPORTS_DIR = resolve(REPO_ROOT, 'docs', 'test-reports');
+const JOURNAL_FILE = resolve(REPO_ROOT, 'docs', 'SEED_JOURNAL.md');
 
 setup('verify app is running + seed matrix', async ({ page }) => {
   // ===== EXISTING (PRESERVE) =====
@@ -57,18 +70,18 @@ setup('verify app is running + seed matrix', async ({ page }) => {
   console.log(`[setup] BACKUP OK: ${snapshotPath}`);
 
   // Step 5: Execute seed SQL (idempotent — internal cleanup chain handle re-run aman).
-  await db.execScript('tests/sql/assessment-matrix-seed.sql');
-  console.log(`[setup] Seed SQL executed: tests/sql/assessment-matrix-seed.sql`);
+  await db.execScript(SEED_SQL);
+  console.log(`[setup] Seed SQL executed: ${SEED_SQL}`);
 
   // Step 6: Layer 1 validation — expect 18 sessions tagged.
   // Multiple count checks supaya kalau gagal, error message indikatif (bukan generic "expected 18 got X").
   const sessionCount = await db.queryScalar(
-    `SELECT COUNT(*) FROM AssessmentSessions WHERE Title LIKE '[MATRIX_TEST_2026_05_11]%'`
+    `SELECT COUNT(*) FROM AssessmentSessions WHERE Title LIKE '[[]MATRIX_TEST_2026_05_11]%'`
   );
   expect(sessionCount, `Layer 1: expected 18 matrix AssessmentSessions seeded`).toBe(18);
 
   const packageCount = await db.queryScalar(
-    `SELECT COUNT(*) FROM AssessmentPackages WHERE AssessmentSessionId IN (SELECT Id FROM AssessmentSessions WHERE Title LIKE '[MATRIX_TEST_2026_05_11]%')`
+    `SELECT COUNT(*) FROM AssessmentPackages WHERE AssessmentSessionId IN (SELECT Id FROM AssessmentSessions WHERE Title LIKE '[[]MATRIX_TEST_2026_05_11]%')`
   );
   expect(packageCount, `Layer 1: expected 18 matrix AssessmentPackages seeded`).toBe(18);
 
@@ -92,7 +105,7 @@ setup('verify app is running + seed matrix', async ({ page }) => {
 
   // Step 7: Pre-create docs/test-reports/ supaya teardown matrixReport.flush() tidak race
   // mkdir di parallel run.
-  await mkdir('docs/test-reports', { recursive: true });
+  await mkdir(REPORTS_DIR, { recursive: true });
 
   // Step 8: Write tests/.matrix-state.json — consumed oleh Plan 04 spec + globalTeardown.
   const scenarios = buildScenarios();
@@ -101,8 +114,8 @@ setup('verify app is running + seed matrix', async ({ page }) => {
     seededAt: new Date().toISOString(),
     scenarios,
   };
-  await writeFile('tests/.matrix-state.json', JSON.stringify(stateJson, null, 2));
-  console.log(`[setup] State file written: tests/.matrix-state.json (${scenarios.length} scenarios)`);
+  await writeFile(STATE_FILE, JSON.stringify(stateJson, null, 2));
+  console.log(`[setup] State file written: ${STATE_FILE} (${scenarios.length} scenarios)`);
 
   // Step 9: Append SEED_JOURNAL.md entry (status=active). globalTeardown akan regex-replace
   // active → cleaned setelah RESTORE + Layer 4 sukses.
@@ -112,8 +125,8 @@ setup('verify app is running + seed matrix', async ({ page }) => {
     `7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | ` +
     `AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | ` +
     `${snapshotPath} | active |\n`;
-  await appendFile('docs/SEED_JOURNAL.md', journalEntry);
-  console.log(`[setup] SEED_JOURNAL.md appended (status=active)`);
+  await appendFile(JOURNAL_FILE, journalEntry);
+  console.log(`[setup] SEED_JOURNAL.md appended (status=active): ${JOURNAL_FILE}`);
 });
 
 // ============================================================

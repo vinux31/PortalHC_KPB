@@ -50,6 +50,11 @@
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+-- Rule 1 auto-fix Plan 04: QUOTED_IDENTIFIER + ANSI_NULLS WAJIB ON untuk DELETE pada
+-- table yang punya filtered indexes / indexed views (error 1934 di smoke run Plan 04
+-- saat DELETE di section 2 cleanup). sqlcmd default OFF — set explicit di seed header.
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 
 -- ============================================================
 -- 1. Resolve referensi user + waktu acuan (2 users -- coachee + coachee2)
@@ -105,13 +110,13 @@ PRINT N'[Phase 315 seed] Collision check passed: range 9001-9018 free.';
 -- 3.1 PackageUserResponses (Restrict on Session/Question/Option)
 DELETE pur FROM PackageUserResponses pur
 INNER JOIN AssessmentSessions s ON pur.AssessmentSessionId = s.Id
-WHERE s.Title LIKE '[MATRIX_TEST_2026_05_11]%';
+WHERE s.Title LIKE '[[]MATRIX_TEST_2026_05_11]%';
 PRINT N'[Phase 315 seed] PackageUserResponses cleaned.';
 
 -- 3.2 UserPackageAssignments (Cascade on Session, Restrict on Package)
 DELETE upa FROM UserPackageAssignments upa
 INNER JOIN AssessmentSessions s ON upa.AssessmentSessionId = s.Id
-WHERE s.Title LIKE '[MATRIX_TEST_2026_05_11]%';
+WHERE s.Title LIKE '[[]MATRIX_TEST_2026_05_11]%';
 PRINT N'[Phase 315 seed] UserPackageAssignments cleaned.';
 
 -- 3.3 PackageOptions (JOIN via PackageQuestions -> AssessmentPackages -> AssessmentSessions)
@@ -119,24 +124,24 @@ DELETE po FROM PackageOptions po
 INNER JOIN PackageQuestions pq ON po.PackageQuestionId = pq.Id
 INNER JOIN AssessmentPackages ap ON pq.AssessmentPackageId = ap.Id
 INNER JOIN AssessmentSessions s ON ap.AssessmentSessionId = s.Id
-WHERE s.Title LIKE '[MATRIX_TEST_2026_05_11]%';
+WHERE s.Title LIKE '[[]MATRIX_TEST_2026_05_11]%';
 PRINT N'[Phase 315 seed] PackageOptions cleaned.';
 
 -- 3.4 PackageQuestions
 DELETE pq FROM PackageQuestions pq
 INNER JOIN AssessmentPackages ap ON pq.AssessmentPackageId = ap.Id
 INNER JOIN AssessmentSessions s ON ap.AssessmentSessionId = s.Id
-WHERE s.Title LIKE '[MATRIX_TEST_2026_05_11]%';
+WHERE s.Title LIKE '[[]MATRIX_TEST_2026_05_11]%';
 PRINT N'[Phase 315 seed] PackageQuestions cleaned.';
 
 -- 3.5 AssessmentPackages
 DELETE ap FROM AssessmentPackages ap
 INNER JOIN AssessmentSessions s ON ap.AssessmentSessionId = s.Id
-WHERE s.Title LIKE '[MATRIX_TEST_2026_05_11]%';
+WHERE s.Title LIKE '[[]MATRIX_TEST_2026_05_11]%';
 PRINT N'[Phase 315 seed] AssessmentPackages cleaned.';
 
 -- 3.6 AssessmentSessions
-DELETE FROM AssessmentSessions WHERE Title LIKE '[MATRIX_TEST_2026_05_11]%';
+DELETE FROM AssessmentSessions WHERE Title LIKE '[[]MATRIX_TEST_2026_05_11]%';
 PRINT N'[Phase 315 seed] AssessmentSessions cleaned.';
 
 -- ============================================================
@@ -507,7 +512,7 @@ SELECT s.Id, s.Title, s.UserId, s.AssessmentType,
         ON po.PackageQuestionId = pq.Id INNER JOIN AssessmentPackages ap
         ON pq.AssessmentPackageId = ap.Id WHERE ap.AssessmentSessionId = s.Id) AS OptCount
 FROM AssessmentSessions s
-WHERE s.Title LIKE '[MATRIX_TEST_2026_05_11]%'
+WHERE s.Title LIKE '[[]MATRIX_TEST_2026_05_11]%'
 ORDER BY s.Id;
 -- Expected layout: 18 rows; PkgCount=1 per session; QCount=3 per session;
 -- OptCount: S1-S4 mixed = 8 (1 MC x 4 + 1 MA x 4 + Essay x 0);

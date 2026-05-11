@@ -15,10 +15,18 @@ import type { FullConfig } from '@playwright/test';
 import * as db from '../helpers/dbSnapshot';
 import { collector } from './helpers/matrixReport';
 import { readFile, unlink, writeFile } from 'fs/promises';
+import { resolve } from 'path';
+
+// Path resolver — independent dari cwd Playwright runner (Rule 3 blocking fix Plan 04).
+const TESTS_DIR = resolve(__dirname, '..');                    // -> tests/
+const REPO_ROOT = resolve(__dirname, '..', '..');              // -> worktree root
+const STATE_FILE = resolve(TESTS_DIR, '.matrix-state.json');
+const JOURNAL_FILE = resolve(REPO_ROOT, 'docs', 'SEED_JOURNAL.md');
+const REPORTS_DIR = resolve(REPO_ROOT, 'docs', 'test-reports');
 
 async function globalTeardown(_config: FullConfig): Promise<void> {
   const today = new Date().toISOString().slice(0, 10);
-  const reportPath = `docs/test-reports/${today}-assessment-matrix.md`;
+  const reportPath = resolve(REPORTS_DIR, `${today}-assessment-matrix.md`);
 
   // ============================================================
   // Step 1: FLUSH report FIRST (preserve findings sebelum RESTORE)
@@ -36,10 +44,10 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
   // ============================================================
   let state: { snapshotPath: string } | null = null;
   try {
-    const raw = await readFile('tests/.matrix-state.json', 'utf-8');
+    const raw = await readFile(STATE_FILE, 'utf-8');
     state = JSON.parse(raw);
   } catch (e) {
-    console.error('[teardown] tests/.matrix-state.json missing atau parse error:', e);
+    console.error(`[teardown] ${STATE_FILE} missing atau parse error:`, e);
     throw new Error(
       'Teardown abort: state file tidak ditemukan. globalSetup belum jalan atau state.json terhapus. ' +
         'Manual restore via SSMS pakai snapshot terbaru di SQL default backup directory.'
@@ -73,7 +81,7 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
   //   throw untuk halt CI (jangan biarkan dirty state lolos ke run berikutnya).
   // ============================================================
   const remainingSessions = await db.queryScalar(
-    `SELECT COUNT(*) FROM AssessmentSessions WHERE Title LIKE '[MATRIX_TEST_2026_05_11]%'`
+    `SELECT COUNT(*) FROM AssessmentSessions WHERE Title LIKE '[[]MATRIX_TEST_2026_05_11]%'`
   );
   if (remainingSessions !== 0) {
     console.error(
@@ -92,7 +100,7 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
   //   Backslash di Windows path harus di-escape sebagai regex literal — pakai escape helper.
   // ============================================================
   try {
-    const journalText = await readFile('docs/SEED_JOURNAL.md', 'utf-8');
+    const journalText = await readFile(JOURNAL_FILE, 'utf-8');
     // Regex: cari baris journal dengan ".bak" yang mengandung "matrix" + status "active",
     // ganti active → cleaned. Pakai non-greedy match supaya tidak nyangkut baris lain.
     const updatedJournal = journalText.replace(
@@ -105,7 +113,7 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
           `atau snapshot path format berbeda. Cek manual.`
       );
     } else {
-      await writeFile('docs/SEED_JOURNAL.md', updatedJournal);
+      await writeFile(JOURNAL_FILE, updatedJournal);
       console.log(`[teardown] SEED_JOURNAL.md updated → cleaned`);
     }
   } catch (e) {
@@ -116,7 +124,7 @@ async function globalTeardown(_config: FullConfig): Promise<void> {
   // ============================================================
   // Step 6: Cleanup runtime artifacts (best-effort, swallow errors)
   // ============================================================
-  await unlink('tests/.matrix-state.json').catch(() => {});
+  await unlink(STATE_FILE).catch(() => {});
   await unlink(state.snapshotPath).catch(() => {});
   console.log(`[teardown] Cleanup state.json + ${state.snapshotPath} (best-effort).`);
 }
