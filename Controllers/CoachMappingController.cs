@@ -1640,7 +1640,7 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SkipReassignSuggestion(int mappingId)
+        public IActionResult SkipReassignSuggestion(int mappingId)
         {
             return Json(new { success = true });
         }

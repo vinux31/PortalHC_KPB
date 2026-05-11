@@ -1,4 +1,5 @@
 using System.DirectoryServices;
+using System.Runtime.Versioning;
 using HcPortal.Models;
 using Microsoft.AspNetCore.Identity;
 
@@ -16,6 +17,7 @@ namespace HcPortal.Services
     /// - Generic error messages: COMException/technical details never reach the caller or UI.
     /// - samaccountname filter with LDAP escaping: prevents LDAP injection attacks.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public class LdapAuthService : IAuthService
     {
         private readonly IConfiguration _config;

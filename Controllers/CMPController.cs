@@ -1957,17 +1957,6 @@ namespace HcPortal.Controllers
             var completedAt = assessment.CompletedAt ?? assessment.UpdatedAt ?? assessment.CreatedAt;
             var dateStr = completedAt.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("id-ID"));
 
-            // Generate watermark SVG as image for the PDF
-            byte[]? watermarkBytes = null;
-            try
-            {
-                var svgContent = @"<svg viewBox='0 0 400 350' xmlns='http://www.w3.org/2000/svg'>
-                    <path d='M200 20L30 330H370L200 20ZM200 80L325 310H75L200 80Z' fill='#1a4a8d' opacity='0.05'/>
-                </svg>";
-                // SVG content used inline below — no temp file needed
-            }
-            catch (Exception ex) { _logger.LogWarning(ex, "Failed to create certificate watermark SVG"); }
-
             try
             {
             var pdf = Document.Create(container =>

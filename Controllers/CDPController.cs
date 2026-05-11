@@ -2983,7 +2983,7 @@ namespace HcPortal.Controllers
                         ftr.RelativeItem().Background("#CC0000").Padding(8).AlignLeft().AlignMiddle()
                             .Text("ptkpi.pertamina.com").FontSize(10).FontColor(QuestPDF.Helpers.Colors.White);
                         if (logo135Bytes != null && logo135Bytes.Length > 0)
-                            ftr.ConstantItem(50).Image(logo135Bytes, QuestPDF.Infrastructure.ImageScaling.FitArea);
+                            ftr.ConstantItem(50).Image(logo135Bytes).FitArea();
                     });
                 });
             });

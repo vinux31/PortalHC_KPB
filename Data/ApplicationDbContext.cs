@@ -162,8 +162,8 @@ namespace HcPortal.Data
                     .OnDelete(DeleteBehavior.NoAction);
 
                 // Mutual exclusivity: only one of RenewsTrainingId/RenewsSessionId can be set
-                entity.HasCheckConstraint("CK_TrainingRecord_RenewalChain",
-                    "[RenewsTrainingId] IS NULL OR [RenewsSessionId] IS NULL");
+                entity.ToTable(t => t.HasCheckConstraint("CK_TrainingRecord_RenewalChain",
+                    "[RenewsTrainingId] IS NULL OR [RenewsSessionId] IS NULL"));
             });
 
             // AssessmentSession -> User
@@ -185,9 +185,12 @@ namespace HcPortal.Data
                 entity.HasIndex(a => a.LinkedGroupId);
 
                 // Check constraints for data integrity
-                entity.HasCheckConstraint("CK_AssessmentSession_Progress", "[Progress] >= 0 AND [Progress] <= 100");
-                entity.HasCheckConstraint("CK_AssessmentSession_DurationMinutes", "[DurationMinutes] >= 0");
-                entity.HasCheckConstraint("CK_AssessmentSession_PassPercentage", "[PassPercentage] >= 0 AND [PassPercentage] <= 100");
+                entity.ToTable(t =>
+                {
+                    t.HasCheckConstraint("CK_AssessmentSession_Progress", "[Progress] >= 0 AND [Progress] <= 100");
+                    t.HasCheckConstraint("CK_AssessmentSession_DurationMinutes", "[DurationMinutes] >= 0");
+                    t.HasCheckConstraint("CK_AssessmentSession_PassPercentage", "[PassPercentage] >= 0 AND [PassPercentage] <= 100");
+                });
 
                 // Default values
                 entity.Property(a => a.PassPercentage).HasDefaultValue(70);
@@ -222,8 +225,8 @@ namespace HcPortal.Data
                     .OnDelete(DeleteBehavior.NoAction);
 
                 // Mutual exclusivity: only one of RenewsSessionId/RenewsTrainingId can be set
-                entity.HasCheckConstraint("CK_AssessmentSession_RenewalChain",
-                    "[RenewsSessionId] IS NULL OR [RenewsTrainingId] IS NULL");
+                entity.ToTable(t => t.HasCheckConstraint("CK_AssessmentSession_RenewalChain",
+                    "[RenewsSessionId] IS NULL OR [RenewsTrainingId] IS NULL"));
             });
 
             // Legacy UserResponse and AssessmentQuestion tables removed in Phase 227 (CLEN-02 migration).
