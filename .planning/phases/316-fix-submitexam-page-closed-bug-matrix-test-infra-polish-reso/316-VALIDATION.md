@@ -83,3 +83,28 @@ created: 2026-05-11
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
+
+---
+
+## Plan 03-06 Gap Closure Tasks (added 2026-05-11)
+
+### Per-Task Verification Map (Gap Closure)
+
+| Task ID | Plan | Wave | Anchor ID | Secure Behavior | Test Type | Automated Command | Status |
+|---------|------|------|-----------|-----------------|-----------|-------------------|--------|
+| 316-03-01 | 03 | 0 | A2-probe-write | Probe spec 2-block ditulis dengan synthetic throw/pass | Code | `test -f tests/e2e/_throwaway-probe.spec.ts && cd tests && npx tsc --noEmit` | ⬜ pending |
+| 316-03-02 | 03 | 0 | A2-probe-run | Probe run capture log + decision di VALIDATION.md | E2E + log | `cd tests && npx playwright test e2e/_throwaway-probe.spec.ts --project=chromium 2>&1 \| tee /tmp/316-w0-probe.log; grep -qE "(passed\|did not run)" /tmp/316-w0-probe.log` | ⬜ pending |
+| 316-04-01 | 04 | 1 | GAP-316-1 | examMatrix.ts:182 regex `(Results\|ExamSummary)` | Code | `grep -qE "Results\\\\\|ExamSummary" tests/e2e/helpers/examMatrix.ts && cd tests && npx tsc --noEmit` | ⬜ pending |
+| 316-04-02 | 04 | 1 | GAP-316-2 (a-revised) | matrixReport.ts softAssert cascade promotion branch | Code | `grep -qE "isPageClosedError" tests/e2e/helpers/matrixReport.ts && cd tests && npx tsc --noEmit` | ⬜ pending |
+| 316-05-01 | 05 | 2 | A2-gate-check | Read VALIDATION.md A2 outcome — proceed atau skip | Bash | `grep -qE "A2 (VALID\|INVALID)" .planning/phases/316-*/316-VALIDATION.md` | ⬜ pending |
+| 316-05-02 | 05 | 2 | GAP-316-2 (d-partial) | 10 test.describe() blocks + serial config dropped | Code | `grep -c "test\.describe\('Scenario" tests/e2e/assessment-matrix.spec.ts \| grep -q "^10$"` | ⬜ pending |
+| 316-06-01 | 06 | 3 | actionTimeout-defense | playwright.config.ts use.actionTimeout: 10_000 | Code | `grep -qE "actionTimeout: 10_000" tests/playwright.config.ts && cd tests && npx tsc --noEmit` | ⬜ pending |
+| 316-06-02 | 06 | 3 | full-validation | Quick S5 + full S1-S10 runs executed + report regenerated + probe deleted | E2E | `test ! -f tests/e2e/_throwaway-probe.spec.ts && test -f /tmp/316-final-full.log && grep -qE "## Meta-validation results" docs/test-reports/2026-05-11-assessment-matrix.md` | ⬜ pending |
+| 316-06-03 | 06 | 3 | UAT-reverdict | 316-UAT.md re-verdict 5 D-16 items pasca Plan 04+05+06 | Doc | `grep -qE "Plan 04\+05\+06\|gap closure\|CLOSED" .planning/phases/316-*/316-UAT.md` | ⬜ pending |
+
+### Wave 0 Probe Outcome
+
+*Result captured by Plan 03 Task 2. Lihat juga `/tmp/316-w0-probe.log`.*
+
+(To be filled after Plan 03 execution.)
+
