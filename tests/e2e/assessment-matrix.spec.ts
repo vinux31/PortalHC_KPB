@@ -160,9 +160,14 @@ async function runDiscoveryScenario(browser: Browser, cfg: ScenarioConfig): Prom
     // Unexpected error — let Playwright handle (will fail test, recorded di run statistics).
     throw e;
   } finally {
-    await ctx1.close();
-    await ctx2.close();
-    await ctxHc.close();
+    // Defensive close — context may already be closed mid-scenario (page-closed cascade,
+    // navigate race, atau crash). throw dari ctx.close() ESCAPE finally → Playwright treat
+    // test sebagai timeout-failed + halt sequential queue (`9 did not run`). Phase 316 fix
+    // (Plan 02 deviation Rule 3): swallow close error supaya catch SkipScenarioError
+    // semantic preserved + serial queue continue ke S2-S10.
+    await ctx1.close().catch(() => { /* already closed — non-fatal */ });
+    await ctx2.close().catch(() => { /* already closed — non-fatal */ });
+    await ctxHc.close().catch(() => { /* already closed — non-fatal */ });
   }
 }
 
