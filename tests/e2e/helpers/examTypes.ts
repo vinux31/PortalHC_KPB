@@ -104,6 +104,40 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
 }
 
 /**
+ * HC create 1 package di ManagePackages page setelah wizard create assessment.
+ *
+ * Pattern source: Views/Admin/ManagePackages.cshtml lines 168-194 (verified 2026-05-11 W0.1 fail).
+ * Wizard tidak auto-create package — assessment landing punya "Packages (0). No packages yet."
+ * Caller WAJIB call ini sebelum addQuestionViaForm.
+ *
+ * Form: POST `/Admin/CreatePackage` dengan hidden `assessmentId` + visible `packageName`.
+ * Server redirect kembali ke ManagePackages dengan TempData.Success → page reload + link
+ * `a[href*="ManagePackageQuestions"]` muncul.
+ *
+ * @param page HC user page yang sudah arrive di /Admin/ManagePackages?assessmentId={id}
+ * @param packageName default 'Paket A' (mengikuti naming convention placeholder Razor view)
+ * @returns extracted packageId dari link ManagePackageQuestions
+ */
+export async function createDefaultPackage(page: Page, packageName = 'Paket A'): Promise<number> {
+  await page.locator('input[name="packageName"]').fill(packageName);
+  await page.locator('button[type="submit"]:has-text("Create Package")').click();
+  await page.waitForLoadState('networkidle');
+
+  // Verify alert-success + package count incremented
+  await expect(page.locator('.alert-success').first()).toBeVisible({ timeout: 5_000 });
+
+  // Extract packageId dari link `a[href*="ManagePackageQuestions"]`
+  const manageQLink = page.locator('a[href*="ManagePackageQuestions"]').first();
+  await expect(manageQLink).toBeVisible({ timeout: 5_000 });
+  const href = await manageQLink.getAttribute('href');
+  const match = href?.match(/packageId=(\d+)/);
+  if (!match) {
+    throw new Error(`createDefaultPackage: unable to extract packageId from href="${href}"`);
+  }
+  return parseInt(match[1], 10);
+}
+
+/**
  * HC add 1 question via ManagePackageQuestions right-pane form.
  *
  * Pattern source: Views/Admin/ManagePackageQuestions.cshtml lines 117-458 (verified 2026-05-11).
@@ -118,7 +152,9 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
  * @param q QuestionInput discriminated union
  */
 export async function addQuestionViaForm(page: Page, packageId: number, q: QuestionInput): Promise<void> {
-  await page.goto(`/Admin/ManageQuestions?packageId=${packageId}`);
+  // Action route: [Route("Admin/[action]")] on AssessmentAdminController → /Admin/ManagePackageQuestions?packageId={N}
+  // (RESEARCH said `/Admin/ManageQuestions` — verified salah 2026-05-11; actual action name `ManagePackageQuestions`.)
+  await page.goto(`/Admin/ManagePackageQuestions?packageId=${packageId}`);
   await page.locator(questionFormSelectors.formCard).waitFor({ state: 'visible' });
 
   await page.selectOption(questionFormSelectors.questionType, q.type);
@@ -169,8 +205,10 @@ export async function addQuestionViaForm(page: Page, packageId: number, q: Quest
   await page.locator(questionFormSelectors.submitBtn).click();
   await page.waitForLoadState('networkidle');
 
-  // Verify post-submit success (Open Q4 mitigation)
-  await expect(page.locator('.alert-success, .alert.alert-success')).toBeVisible({ timeout: 5_000 });
+  // Verify post-submit success (Open Q4 mitigation).
+  // Strict-mode fix: page mungkin punya 2 alerts simultan — global toast (b-06zfpy70xb scoped) +
+  // inline TempData alert. Pakai .first() supaya tidak strict mode violation.
+  await expect(page.locator('.alert-success, .alert.alert-success').first()).toBeVisible({ timeout: 5_000 });
 }
 
 /**
