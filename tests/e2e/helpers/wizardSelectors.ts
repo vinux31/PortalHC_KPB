@@ -25,3 +25,71 @@ export const selectors = {
   statusSelect: '#Status',
   submitBtn: '#createAssessmentForm button[type="submit"]',
 } as const;
+
+// ============================================================
+// Phase 317 — Wizard 4-step lengkap + ManagePackageQuestions form + ExtraTime
+// Source: Views/Admin/CreateAssessment.cshtml lines 77-815 (verified 2026-05-11)
+// Source: Views/Admin/ManagePackageQuestions.cshtml lines 117-458 (verified 2026-05-11)
+// Pattern: extend additive — JANGAN refactor `selectors` existing (preserve Phase 307/308 blame)
+// ============================================================
+
+export const wizardSelectors = {
+  // Step navigation
+  step1: '#step-1', step2: '#step-2', step3: '#step-3', step4: '#step-4',
+  pill1: '#pill-1', pill2: '#pill-2', pill3: '#pill-3', pill4: '#pill-4',
+  btnNext1: '#btnNext1', btnNext2: '#btnNext2', btnNext3: '#btnNext3',
+  btnPrev2: '#btnPrev2', btnPrev3: '#btnPrev3', btnPrev4: '#btnPrev4',
+  btnSubmit: '#btnSubmit',
+
+  // Step 1 fields
+  category: '#Category',
+  title: '#Title',
+  assessmentType: '#assessmentTypeInput',
+
+  // Step 2 fields
+  userContainer: '#userCheckboxContainer',
+  userCheckItem: '.user-check-item',
+  userCheckbox: 'input.user-checkbox',
+  selectedCountBadge: '#selectedCountBadge',
+  selectAllBtn: '#selectAllBtn',
+  deselectAllBtn: '#deselectAllBtn',
+
+  // Step 3 fields
+  schedDateInput: '#schedDateInput',
+  schedTimeInput: '#schedTimeInput',
+  durationMinutes: '#DurationMinutes',
+  ewcdDateInput: '#ewcdDateInput',
+  ewcdTimeInput: '#ewcdTimeInput',
+  status: '#Status',
+  passPercentage: '#PassPercentage',
+  allowAnswerReview: '#AllowAnswerReview',
+  generateCertificate: '#GenerateCertificate',
+  isTokenRequired: '#IsTokenRequired',
+  accessToken: '#AccessToken',
+  validUntil: '#ValidUntil',
+
+  // Submit modal
+  successModal: '#successModal',
+  modalManageBtn: '#modal-manage-btn',
+  createdAssessmentData: '#createdAssessmentData',
+} as const;
+
+export const questionFormSelectors = {
+  formCard: '#questionFormCard',
+  formTitle: '#formTitle',
+  questionForm: '#questionForm',
+  editQuestionId: '#editQuestionId',
+  questionType: '#QuestionType',
+  questionText: '#questionText',
+  optionsSection: '#optionsSection',
+  maLabel: '#maLabel',
+  rubrikSection: '#rubrikSection',
+  rubrik: '#rubrik',
+  maxCharacters: '#maxCharacters',
+  scoreValue: '#scoreValue',
+  elemenTeknis: '#elemenTeknis',
+  submitBtn: '#submitBtn',
+  cancelEditBtn: '#cancelEditBtn',
+  optionA: '#option_A', optionB: '#option_B', optionC: '#option_C', optionD: '#option_D',
+  correctA: '#correct_A', correctB: '#correct_B', correctC: '#correct_C', correctD: '#correct_D',
+} as const;
