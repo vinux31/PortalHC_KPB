@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v16.0
 milestone_name: QA Test Coverage
-status: planning
-stopped_at: v16.0 defined, Phase 315 ready untuk /gsd-discuss-phase or /gsd-plan-phase
-last_updated: "2026-05-11T00:00:00.000Z"
-last_activity: 2026-05-11 — v16.0 milestone created, Phase 315 (Assessment Matrix Test) di roadmap, REQUIREMENTS.md fresh dengan QA-01
+status: v16.0 defined, REQUIREMENTS.md fresh, ROADMAP.md updated, Phase 315 ready untuk discuss/plan
+last_updated: "2026-05-11T01:39:47.558Z"
+last_activity: 2026-05-11 — v16.0 milestone definition (streamlined, skip research). Spec lengkap di docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md (commit 94bacecf) sudah ada — akan jadi input CONTEXT.md
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -29,7 +27,7 @@ Phase: 315 (Assessment Matrix Test) — PLANNING
 Plan: — (not yet generated, see Next Action)
 Status: v16.0 defined, REQUIREMENTS.md fresh, ROADMAP.md updated, Phase 315 ready untuk discuss/plan
 Last activity: 2026-05-11 — v16.0 milestone definition (streamlined, skip research). Spec lengkap di docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md (commit 94bacecf) sudah ada — akan jadi input CONTEXT.md
-Resume file: .planning/STATE.md
+Resume file: .planning/phases/315-assessment-matrix-test/315-CONTEXT.md
 
 ## Next Action
 
