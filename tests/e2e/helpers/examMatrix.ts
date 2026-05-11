@@ -41,6 +41,13 @@ function findWrongOption(q: QuestionConfig): number {
 /**
  * Peserta login + buka StartExam + jawab semua questions + Submit.
  *
+ * Phase 316 fix:
+ * - Submit click memakai `Promise.all([waitForURL, click])` race-tolerant
+ *   (precedent exam313.ts:107). Eliminate "Target page, context or browser has been closed"
+ *   regression dari Phase 315 smoke run 2026-05-11T06:14:36Z.
+ * - `page.isClosed()` gate di awal setiap softAssert callback (MC/MA/Essay) — throw
+ *   SkipScenarioError langsung saat page closed mid-loop. Cegah cascade-fail noise di report.
+ *
  * Hub readiness gate via `window.assessmentHub.state === 'Connected'` mencegah Pitfall 1
  * (SignalR handshake belum selesai saat checkbox click → SaveMultipleAnswer silent skip
  * di Views/CMP/StartExam.cshtml:850 condition).
@@ -152,8 +159,15 @@ export async function takeExam(
     async () => {
       // Submit button — id #reviewSubmitBtn (review modal) atau direct [type="submit"]
       // (Controllers/CMPController.cs:1569 SubmitExam form binding).
-      await page.click('#reviewSubmitBtn, [type="submit"]:not(.btn-cancel)');
-      await page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 15_000 });
+      //
+      // Phase 316 fix: arm waitForURL BEFORE click fires navigate.
+      // Race-tolerant per Phase 313.1 precedent (exam313.ts:39, 107).
+      // Order matters: waitForURL index 0 (listener arm sync), click index 1 (action fire).
+      // Reverse order = bug-equivalent (Pitfall 1 RESEARCH.md:368-375).
+      await Promise.all([
+        page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 15_000 }),
+        page.click('#reviewSubmitBtn, [type="submit"]:not(.btn-cancel)'),
+      ]);
     },
     'SubmitExam redirects to /CMP/Results/{id}'
   );
