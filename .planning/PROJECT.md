@@ -29,6 +29,10 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **Current focus:** v16.0 QA Test Coverage — automated test infrastructure untuk discovery bug di flow assessment (sweep tipe assessment × tipe soal).
 
+**v16.0 in progress:**
+- Phase 315 shipped (assessment matrix test sweep — Playwright spec + lifecycle automation, 3 carry-forward gaps GAP-315-1/2/3 documented)
+- Phase 316 shipped (2026-05-11) — SubmitExam page-closed bug fix + matrix test infra polish. Original 2 plans expanded to 6 research-driven (cascade promotion + describe boundary + actionTimeout triple defense). GAP-315-1/2/3 closed empirically (full S1-S10 run 11 passed, 0 did-not-run, 5.1 min, sentinel S10 META-CollectorCheck recorded). SURF-316-A `#reviewSubmitBtn` selector visibility = new surface handoff next phase.
+
 ## Current Milestone: v16.0 QA Test Coverage
 
 **Goal:** Membangun automated test infrastructure untuk Portal HC yang mampu menyapu kombinasi (tipe assessment × tipe soal) end-to-end sebagai tooling discovery bug — bukan regression suite. Foundation untuk expand test coverage di milestone berikutnya.
@@ -899,4 +903,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-04-24 after v14.0 Assessment Enhancement milestone close — Pre-Post Test, 4 tipe soal, mobile exam, item analysis + gain score reporting, WCAG quick wins, Coach Workload dashboard*
+*Last updated: 2026-05-11 after Phase 316 close (v16.0 in progress — Phase 315 + 316 shipped, GAP-315-1/2/3 closed empirically via triple-defense Playwright infrastructure)*
