@@ -203,10 +203,31 @@ export async function softAssert<T>(
   try {
     return await fn();
   } catch (e: unknown) {
+    // Phase 316: re-throw SkipScenarioError tanpa record finding — helper sudah signal
+    // explicit skip (page-closed cascade abort). Tanpa branch ini, isClosed gate akan
+    // di-swallow oleh severity='major' continue-logic → cascade noise tetap muncul.
+    // Ref: 316-RESEARCH.md Pitfall 5 (line 400-407) + Open Question 2 (line 486-489).
+    if (e instanceof SkipScenarioError) {
+      throw e;
+    }
+
     const err = e as { message?: string };
     const stepSlug = ctx.step.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-    const screenshotPath = `test-results/matrix-s${ctx.scenario.id}-${stepSlug}.png`;
-    await ctx.page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
+    const candidatePath = `test-results/matrix-s${ctx.scenario.id}-${stepSlug}.png`;
+
+    // Phase 316: defensive screenshot — page-closed pre-check + try/catch.
+    // Closed → skip custom path (jangan throw, jangan retry); renderer fallback
+    // ke Playwright auto-capture handle missing custom path di renderFinding.
+    let screenshotPath: string | undefined;
+    if (!ctx.page.isClosed()) {
+      try {
+        await ctx.page.screenshot({ path: candidatePath, fullPage: true });
+        screenshotPath = candidatePath;  // only set kalau write sukses
+      } catch {
+        // Page may have closed antara isClosed() check dan screenshot fire (microsec race).
+        // Skip silent — renderer fallback handles missing custom path.
+      }
+    }
 
     await collector.record({
       scenarioId: ctx.scenario.id,
