@@ -278,23 +278,29 @@ Tidak ada new threat surface di luar threat_model PLAN.
 
 N/A — Plan 05 `tdd="false"`. RED/GREEN/REFACTOR cycle tidak applicable untuk infra polish work.
 
-## Task 2 Pending: Manual UAT Checkpoint
+## Task 2: Manual UAT Checkpoint — RESOLVED 2026-05-11
 
-**Status:** `pending-user-verify` (committed dengan pending status per executor prompt exception clause — worktree force-remove risk).
+**Status:** `approved-with-noted-limitations` (user lakukan 5 step UAT, 4/5 LULUS).
 
-**User WAJIB lakukan (5 step):**
-1. Buka `docs/test-reports/2026-05-11-assessment-matrix.md` — verify struktur lengkap (Summary + Discovery + Meta-validation).
-2. Pilih random screenshot dari 2 finding (matrix-s1-essay-q50003.png + matrix-s1-submit-exam.png di `tests/test-results/`), buka file, verify URL bar visible + relevant UI captured.
-3. Evaluate "actionable hypothesis quality" (subjective): hypothesis cukup spesifik untuk reproduce / debug?
-4. Cek `docs/SEED_JOURNAL.md` 2 entries terbaru (matrix-2026-05-11T05-02-46 + matrix-2026-05-11T05-07-45) = status `cleaned`.
-5. Verify DB clean: `sqlcmd -S "localhost\SQLEXPRESS" -d HcPortalDB_Dev -E -C -I -h -1 -W -Q "SELECT COUNT(*) FROM AssessmentSessions WHERE Title LIKE '[[]MATRIX_TEST_2026_05_11]%'"` returns 0.
+**5 Step UAT result:**
 
-**Response options:**
-- "approved" / "ok" / "lanjut" → orchestrator finalize, Phase 315 lanjut ke `/gsd-verify-work` gate.
-- "issue: <description>" → executor (atau new spawn) investigate & redo polish.
-- "skip" → mark Task 2 as `skipped` (UAT deferred ke future iteration).
+| Step | Result |
+|------|--------|
+| 1 Report struktur (Summary + Discovery + Meta-validation) | ✓ LULUS |
+| 2 Screenshot files (matrix-s1-*.png di test-results/) | ✗ FAIL — file tidak ter-capture |
+| 3 Hypothesis quality (actionable, file:line citation) | ✓ LULUS |
+| 4 SEED_JOURNAL 5 entries `cleaned` post-run | ✓ LULUS |
+| 5 DB clean (Layer 4 = 0 row) | ✓ LULUS |
 
-**Sentinel Layer 2/3 caveat:** S8 [META-AllCorrect] + S10 [META-CollectorCheck] BELUM exercised karena S1 critical fail kaskade. Plan 05 infrastructure SIAP untuk sentinel — yang block adalah real bug di examMatrix.takeExam submit-exam (out-of-scope Plan 05). User boleh approve dengan caveat "sentinel verification deferred sampai bug examMatrix submit-exam diperbaiki".
+**Limitation diterima (Opsi C — hybrid resolution):**
+
+Step UAT 2 fail bukan karena infra defect murni — root cause: `softAssert()` di `tests/e2e/helpers/matrixReport.ts:208-209` panggil `page.screenshot()` SETELAH page closed (cascade dari real bug app S1 submit-exam page-closed race). `.catch(() => {})` swallow screenshot error silent. Path tetap di-write ke report tapi file tidak ter-capture.
+
+**Decision opsi C (hybrid):**
+- **NOW** (Plan 05 approved): dokumentasi limitation di SUMMARY ini. Phase 315 infra deliverable LENGKAP per acceptance criteria (renderer + collector singleton fix + whitelist + full run executed + DB clean + journal cleaned).
+- **Phase 316 (deferred work):** fix real bug app `Controllers/CMPController.cs` SubmitExam page-closed race + refine matrixReport softAssert untuk defensive screenshot (e.g., screenshot SEBELUM operation yang mungkin close page, atau leverage Playwright trace fallback). Setelah app bug fix → full 10 scenarios + sentinel S8/S9/S10 ter-exercise, screenshot auto-capture normally.
+
+**Sentinel Layer 2/3 caveat (carried forward):** S8 [META-AllCorrect] + S10 [META-CollectorCheck] BELUM exercised karena S1 critical fail kaskade. Plan 05 infrastructure SIAP — yang block adalah real bug di examMatrix.takeExam submit-exam (= Phase 316 fix scope).
 
 ## Ready for /gsd-verify-work gate?
 
