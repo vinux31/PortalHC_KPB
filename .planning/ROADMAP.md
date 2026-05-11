@@ -14,6 +14,7 @@
 - ✅ **v13.0 Redesign Struktur Organisasi** — Phases 292-295 (shipped 2026-04-06)
 - ✅ **v14.0 Assessment Enhancement** — Phases 296-303 (shipped 2026-04-24) — [archive](milestones/v14.0-ROADMAP.md)
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
+- 🚧 **v16.0 QA Test Coverage** — Phase 315 (planning, started 2026-05-11)
 
 ## Phases
 
@@ -329,6 +330,37 @@ Full details: [milestones/v15.0-ROADMAP.md](milestones/v15.0-ROADMAP.md) • Req
 
 </details>
 
+### 🚧 v16.0 QA Test Coverage (Active)
+
+**Goal:** Membangun automated test infrastructure untuk Portal HC sebagai tooling discovery bug end-to-end. Fokus pertama: assessment flow (tipe assessment × tipe soal). Foundation untuk expand test coverage di milestone berikutnya.
+
+**Started:** 2026-05-11 | **Phases:** 315 (1 phase) | **Active REQ:** 1 (QA-01)
+
+#### Phase 315: Assessment Matrix Test
+
+- [ ] **Phase 315: Assessment Matrix Test** — Automated Playwright spec yang sweep kombinasi (tipe assessment × tipe soal) end-to-end dengan DB seed temporary + cleanup + bug report markdown
+  - **REQ:** QA-01
+  - **Goal:** Build `tests/e2e/assessment-matrix.spec.ts` yang loop 7 discovery skenario (4 mixed per tipe assessment + 3 single-type Online per tipe soal) + 3 sentinel meta-validation. Setiap skenario: peserta1 + peserta2 kerjakan exam → submit → grading manual essay (jika ada) → verify score di result page. Continue-on-fail; semua finding ke `docs/test-reports/2026-05-11-assessment-matrix.md`. DB seed via `tests/sql/assessment-matrix-seed.sql` + RESTORE cleanup di `globalTeardown`.
+  - **Success Criteria:**
+    1. 7 skenario discovery + 3 sentinel jalan end-to-end di lokal tanpa human intervention via `npx playwright test assessment-matrix`
+    2. Report markdown ter-generate dengan struktur sesuai spec (severity, screenshot, hypothesis per finding)
+    3. DB lokal kembali ke state pre-test setelah teardown (Layer 4 validation: post-RESTORE row count = 0)
+    4. Smoke run protocol lewat sebelum full run (1 skenario via `--grep "Scenario 5"`)
+    5. 4-layer meta-validasi (setup, helper, collector, cleanup) semua pass di clean run
+    6. Finding (jika ada) actionable: severity + screenshot + URL/lokasi + hypothesis
+    7. 5 open questions di spec (MA save flow, Essay save flow, Notes field, ID collision check, URL encoding) terjawab di Wave 0 investigation
+  - **Risk:** Medium (test infra baru, seed SQL hand-written) | **Effort:** M-L
+  - **Spec:** `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` (commit `94bacecf`) — akan jadi input CONTEXT.md
+  - **Plans:** TBD (akan dibuat oleh `/gsd-plan-phase 315` — kemungkinan 4 plans: Wave 0 investigation, Wave 1 helpers, Wave 2 spec utama + sentinel, Wave 3 report polish)
+
+#### Coverage Validation
+
+| REQ | Phase | Status |
+|-----|-------|--------|
+| QA-01 | 315 | Pending |
+
+**Active mapped: 1/1 ✓ — Orphans: 0 — Duplicates: 0**
+
 ---
 
-*Roadmap updated: 2026-05-11 (v15.0 closed; v16.0 next)*
+*Roadmap updated: 2026-05-11 (v15.0 closed; v16.0 added Phase 315 Assessment Matrix Test)*

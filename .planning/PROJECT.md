@@ -27,9 +27,20 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v14.0 shipped** — Assessment Enhancement (phases 296-303): Pre-Post Test end-to-end, 4 tipe soal baru (TF/MA/Essay/FiB), mobile exam UI, item analysis + gain score reporting, WCAG quick wins, Coach Workload dashboard.
 **v15.0 shipped** — Audit Findings 27 April 2026 (phases 304-314 + 313.1): 15 temuan audit cleared (login UX, score editable, WIB labels, PrePost wizard, worker cert defensive, essay finalize idempotency, ManageAssessment HTMX perf, full-delete role tier, 2-tier timer submit, regenerate token Upcoming).
 
-**Current focus:** v16.0 — TBD (akan diisi oleh /gsd-new-milestone).
+**Current focus:** v16.0 QA Test Coverage — automated test infrastructure untuk discovery bug di flow assessment (sweep tipe assessment × tipe soal).
 
-## Current Milestone: (none — defining next)
+## Current Milestone: v16.0 QA Test Coverage
+
+**Goal:** Membangun automated test infrastructure untuk Portal HC yang mampu menyapu kombinasi (tipe assessment × tipe soal) end-to-end sebagai tooling discovery bug — bukan regression suite. Foundation untuk expand test coverage di milestone berikutnya.
+
+**Target features:**
+- QA-01 — Assessment matrix test sweep (Phase 315): Playwright spec yang loop 7 discovery skenario (4 mixed per tipe assessment + 3 single-type Online per tipe soal) + 3 sentinel meta-validation. Full lifecycle (peserta kerjakan + submit + grading manual essay + verify score). DB seed temporary + RESTORE cleanup. Continue-and-collect bug report markdown.
+
+**Key context:**
+- Spec design lengkap sudah ditulis: `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` (commit `94bacecf`) — akan jadi input CONTEXT.md Phase 315
+- 5 open questions di spec = blocker investigation pre-impl (MA save flow, Essay save flow, Notes field, ID collision check, URL encoding)
+- Phase numbering melanjutkan dari Phase 314 (v15.0)
+- Scope sengaja sempit (1 REQ, 1 phase) — milestone deliberately small untuk foundation; expand ke regression/CI/multi-env di milestone berikutnya jika tooling proven
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

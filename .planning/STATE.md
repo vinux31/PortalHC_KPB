@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: pending
-milestone_name: Defining v16.0
-status: between-milestones
-stopped_at: v15.0 closed (2026-05-11), v16.0 not yet defined
+milestone: v16.0
+milestone_name: QA Test Coverage
+status: planning
+stopped_at: v16.0 defined, Phase 315 ready untuk /gsd-discuss-phase or /gsd-plan-phase
 last_updated: "2026-05-11T00:00:00.000Z"
-last_activity: 2026-05-11 — v15.0 milestone archived, awaiting /gsd-new-milestone v16.0
+last_activity: 2026-05-11 — v16.0 milestone created, Phase 315 (Assessment Matrix Test) di roadmap, REQUIREMENTS.md fresh dengan QA-01
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,20 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-11)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Defining v16.0 milestone (next: `/gsd-new-milestone`)
+**Current focus:** v16.0 QA Test Coverage — Phase 315 Assessment Matrix Test (PLANNING)
 
 ## Current Position
 
-Phase: — (between milestones)
-Plan: —
-Status: v15.0 archived, v16.0 not yet defined
-Last activity: 2026-05-11 — v15.0 closed, MILESTONES.md updated, archive di milestones/v15.0-{ROADMAP,REQUIREMENTS}.md, phase dirs moved ke milestones/v15.0-phases/, git tag v15.0 pending
+Phase: 315 (Assessment Matrix Test) — PLANNING
+Plan: — (not yet generated, see Next Action)
+Status: v16.0 defined, REQUIREMENTS.md fresh, ROADMAP.md updated, Phase 315 ready untuk discuss/plan
+Last activity: 2026-05-11 — v16.0 milestone definition (streamlined, skip research). Spec lengkap di docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md (commit 94bacecf) sudah ada — akan jadi input CONTEXT.md
 Resume file: .planning/STATE.md
 
 ## Next Action
 
-1. `/gsd-new-milestone v16.0 QA Test Coverage` — define new milestone (streamlined: skip research, single REQ untuk assessment matrix test)
-2. Spec assessment matrix test sudah ditulis di `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` (commit `94bacecf`) — akan jadi input CONTEXT.md untuk phase pertama v16.0
+1. **Recommended:** `/gsd-discuss-phase 315` — gather context Phase 315 (akan baca spec di `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` dan resolve 5 open questions: MA save flow, Essay save flow, Notes field, ID collision check, URL encoding)
+2. **Alternatively:** `/gsd-plan-phase 315` — skip discuss, plan langsung (kalau yakin spec sudah lengkap, pakai sebagai CONTEXT.md langsung)
+3. After plan: `/gsd-execute-phase 315` — eksekusi atomic per plan
 
 ## Deferred Items
 
