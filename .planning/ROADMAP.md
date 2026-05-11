@@ -374,7 +374,7 @@ Full details: [milestones/v15.0-ROADMAP.md](milestones/v15.0-ROADMAP.md) • Req
 **Goal:** Surgical hardening Playwright matrix test helper (Promise.all submit race fix + page.isClosed gate + defensive screenshot dengan fallback path renderer) supaya 3 acknowledged gaps Phase 315 UAT tertutup (GAP-315-1 sentinel S8/S9/S10 verifiable, GAP-315-2 screenshot path konsisten, GAP-315-3 full inter-scenario continue-on-fail demonstrated E2E).
 **Requirements**: GAP-315-1, GAP-315-2, GAP-315-3 (anchor IDs dari 315-UAT.md lines 82-86)
 **Depends on:** Phase 315
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 - [x] 316-01-PLAN.md — Helper hardening (softAssert re-throw + Promise.all submit + isClosed gate + screenshot fallback)
