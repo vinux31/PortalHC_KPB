@@ -338,7 +338,7 @@ Full details: [milestones/v15.0-ROADMAP.md](milestones/v15.0-ROADMAP.md) • Req
 
 #### Phase 315: Assessment Matrix Test
 
-- [ ] **Phase 315: Assessment Matrix Test** — Automated Playwright spec yang sweep kombinasi (tipe assessment × tipe soal) end-to-end dengan DB seed temporary + cleanup + bug report markdown
+- [x] **Phase 315: Assessment Matrix Test** — Automated Playwright spec yang sweep kombinasi (tipe assessment × tipe soal) end-to-end dengan DB seed temporary + cleanup + bug report markdown (completed 2026-05-11)
   - **REQ:** QA-01
   - **Goal:** Build `tests/e2e/assessment-matrix.spec.ts` yang loop 7 discovery skenario (4 mixed per tipe assessment + 3 single-type Online per tipe soal) + 3 sentinel meta-validation. Setiap skenario: peserta1 + peserta2 kerjakan exam → submit → grading manual essay (jika ada) → verify score di result page. Continue-on-fail; semua finding ke `docs/test-reports/2026-05-11-assessment-matrix.md`. DB seed via `tests/sql/assessment-matrix-seed.sql` + RESTORE cleanup di `globalTeardown`.
   - **Success Criteria:**
@@ -351,12 +351,12 @@ Full details: [milestones/v15.0-ROADMAP.md](milestones/v15.0-ROADMAP.md) • Req
     7. 5 open questions di spec (MA save flow, Essay save flow, Notes field, ID collision check, URL encoding) terjawab di Wave 0 investigation
   - **Risk:** Medium (test infra baru, seed SQL hand-written) | **Effort:** M-L
   - **Spec:** `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` (commit `94bacecf`) — akan jadi input CONTEXT.md
-  - **Plans:** 4/5 plans executed
+  - **Plans:** 5/5 plans complete
     - [x] 315-01-PLAN.md — Wave 0 source-code investigation (A1+A2+A6 resolution → 315-INVESTIGATION.md final seed dimensions)
     - [x] 315-02-PLAN.md — Wave 1 helpers foundation (matrixTypes + dbSnapshot + matrixReport collector + examMatrix POM-flat + tests/.gitignore)
     - [x] 315-03-PLAN.md — Wave 1 seed SQL + lifecycle (assessment-matrix-seed.sql + global.setup extend + global.teardown new + playwright.config + SEED_JOURNAL append)
     - [x] 315-04-PLAN.md — Wave 2 spec utama (assessment-matrix.spec.ts 10 test blocks: 7 discovery + 3 sentinel)
-    - [ ] 315-05-PLAN.md — Wave 3 polish + manual UAT gate (hypothesis renderer refine + whitelist + full run + checkpoint approval)
+    - [x] 315-05-PLAN.md — Wave 3 polish + manual UAT gate (hypothesis renderer refine + whitelist + full run + checkpoint approval)
 
 #### Coverage Validation
 
