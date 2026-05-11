@@ -242,12 +242,40 @@ footer.report-footer {
 
   <p><strong>Sifat:</strong> Schema-only (tidak mengubah data row), idempotent, reversible (<code>Down</code> migration tersedia).</p>
 
-  <h3>2. Opsi Apply Migration</h3>
+  <h3>2. Pre-Apply: Backup &amp; Sanity Check</h3>
+
+  <h4>2.1 Backup DB Dev (wajib walau migration reversible)</h4>
+  <pre>sqlcmd -S &lt;DB_SERVER&gt; -E -Q "BACKUP DATABASE HcPortalDB_Dev
+  TO DISK='C:\Backup\HcPortalDB_Dev_pre_v15.bak'
+  WITH INIT, COMPRESSION, STATS=10"</pre>
+
+  <h4>2.2 Sanity check baseline migration history</h4>
+  <p>Cek baris teratas <code>__EFMigrationsHistory</code> di server Dev sebelum apply:</p>
+  <pre>SELECT TOP 3 MigrationId
+FROM HcPortalDB_Dev.dbo.__EFMigrationsHistory
+ORDER BY MigrationId DESC;</pre>
+  <ul>
+    <li><strong>Expected baris teratas:</strong> <code>20260414013459_AddAssessmentExtraFields</code> (baseline 15 Apr).</li>
+    <li><strong>Jika sesuai:</strong> hanya 1 migration baru (<code>20260507073825_AddManageAssessmentPerfIndexes</code>) akan dieksekusi. Lanjut Opsi A.</li>
+    <li><strong>Jika lebih lama dari <code>20260414013459</code>:</strong> server Dev ketinggalan migration April lain → eskalasi ke Rino sebelum lanjut.</li>
+  </ul>
+
+  <h3>3. Opsi Apply Migration</h3>
 
   <h4>Opsi A (Recommended) — Apply via EF Core Tools</h4>
-  <p>Setelah pull HEAD, jalankan migration di server Dev:</p>
-  <pre>git pull origin main
-dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."</pre>
+  <p>Jalankan dari folder root project (folder yang berisi <code>HcPortal.csproj</code>) di server Dev:</p>
+  <pre>cd &lt;PortalHC_KPB_path&gt;
+git fetch origin
+git checkout main
+git pull origin main
+
+# Build dulu — mandatory untuk dotnet ef
+dotnet build -c Release
+
+# Apply migration. Connection string dibaca dari appsettings.Production.json
+# atau env var ASPNETCORE_ENVIRONMENT — JANGAN inline credentials di command line
+dotnet ef database update --no-build --configuration Release</pre>
+  <p><strong>Catatan:</strong> <code>dotnet ef</code> butuh assembly compiled; flag <code>--no-build</code> dipakai karena sudah dibuild di langkah sebelumnya. Untuk override environment: <code>set ASPNETCORE_ENVIRONMENT=Production</code> (Windows) sebelum command.</p>
 
   <h4>Opsi B (Alternatif) — Restore dari snapshot DB lokal</h4>
   <p>
@@ -256,16 +284,37 @@ dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."<
     Kontak Rino untuk file <code>.bak</code>.
   </p>
 
-  <h3>3. Redeploy Checklist</h3>
+  <h3>4. Post-Apply: Verifikasi</h3>
+  <p>Setelah <code>dotnet ef database update</code> selesai, konfirmasi 2 hal:</p>
+  <pre>-- 4.1 Migration history sudah tercatat
+SELECT TOP 1 MigrationId
+FROM HcPortalDB_Dev.dbo.__EFMigrationsHistory
+ORDER BY MigrationId DESC;
+-- Expected: 20260507073825_AddManageAssessmentPerfIndexes
+
+-- 4.2 Index fisik benar-benar terbuat
+SELECT i.name, OBJECT_NAME(i.object_id) AS table_name
+FROM sys.indexes i
+WHERE i.name IN (
+  'IX_AssessmentSessions_LinkedGroupId',
+  'IX_AssessmentSessions_ExamWindowCloseDate'
+);
+-- Expected: 2 baris, table_name = AssessmentSessions</pre>
+
+  <h3>5. Redeploy Checklist</h3>
   <ol>
+    <li>Backup DB Dev (poin 2.1)</li>
+    <li>Sanity check <code>__EFMigrationsHistory</code> (poin 2.2)</li>
     <li>Pull <code>551339c5</code> (atau HEAD <code>main</code>) ke server Dev</li>
-    <li>Apply migration (Opsi A atau B di atas)</li>
-    <li>Build &amp; publish: <code>dotnet publish -c Release</code></li>
+    <li>Build: <code>dotnet build -c Release</code></li>
+    <li>Apply migration (Opsi A atau B di poin 3)</li>
+    <li>Verifikasi post-apply (poin 4)</li>
+    <li>Publish: <code>dotnet publish -c Release -o &lt;deploy_path&gt;</code></li>
     <li>Restart IIS app pool <code>KPB-PortalHC</code></li>
-    <li>Smoke test 5 area kritis (lihat poin 4)</li>
+    <li>Smoke test 5 area kritis (lihat poin 6)</li>
   </ol>
 
-  <h3>4. Smoke Test Pasca-Redeploy</h3>
+  <h3>6. Smoke Test Pasca-Redeploy</h3>
   <table>
     <thead>
       <tr><th>Area</th><th>Test</th></tr>
@@ -279,7 +328,7 @@ dotnet ef database update --connection "Server=...;Database=HcPortalDB_Dev;..."<
     </tbody>
   </table>
 
-  <h3>5. Rollback Note</h3>
+  <h3>7. Rollback Note</h3>
   <p>
     Jika perlu rollback: <code>dotnet ef database update &lt;previous-migration-name&gt;</code>
     untuk revert index, lalu redeploy commit pre-<code>551339c5</code>.
