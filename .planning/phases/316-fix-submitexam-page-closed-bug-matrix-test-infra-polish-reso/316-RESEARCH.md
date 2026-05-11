@@ -476,22 +476,28 @@ curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" \
 | A3 | Server-side `Controllers/CMPController.cs:1569+` SubmitExam still returns 302 to /CMP/Results/{id} (per smoke verdict hypothesis 2026-05-11) | Server smoke 302 verify | If false (server-side broken), Promise.all fix won't help → Phase 316 expanded scope to server audit. D-02 quick-smoke confirms before phase exit |
 | A4 | `test.fail()` inner form (called di body) gives same expected-failure semantics as outer form `test.fail('name', async () => {})` | Sentinel + test.fail() semantics | If different, S10 may exit non-0 even when collector OK. Playwright docs don't explicitly contrast forms — flag at first full run |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Playwright auto-capture directory naming exact pattern**
+> **Status (2026-05-11):** Ketiga open questions sudah ter-encode resolusinya di plan tasks. Lihat inline RESOLVED marker per Q untuk reference plan/task/step yang implement resolusi.
+
+1. **Playwright auto-capture directory naming exact pattern** — **RESOLVED** (Plan 02 Task 1 Step 4 Wave 0 verify)
    - What we know: smoke run produced `test-results/assessment-matrix-Scenario-30ab3-.../test-failed-{1,2,3}.png` (315-UAT.md:24)
    - What's unclear: how the `30ab3-...` slug suffix maps to `scenario.id` — appears to be Playwright-internal hash of test name
    - Recommendation: log directory listing at globalTeardown start; emit map in collector output; tune fallback glob accordingly. Acceptable for Phase 316 = best-effort fallback (any screenshot beats dead link).
+   - **Resolution path:** Plan 02 Task 1 Step 4 (`ls tests/test-results/ | grep "^assessment-matrix-Scenario"`) runtime-verify A1 assumption + record actual naming pattern di `/tmp/316-validation-summary.txt`. Plan 01 Task 3 Bagian B `resolveScreenshotPath()` implement fallback dengan filter prefix `assessment-matrix-Scenario-`; Wave 0 verify confirm pattern atau flag perlu tune di future plan.
 
-2. **SkipScenarioError caught oleh softAssert when thrown FROM dalam callback**
+2. **SkipScenarioError caught oleh softAssert when thrown FROM dalam callback** — **RESOLVED** (Plan 01 Task 1 softAssert re-throw amendment)
    - What we know: softAssert try-catch (matrixReport.ts:203-205) catches all errors
    - What's unclear: if `if (page.isClosed()) throw new SkipScenarioError(...)` di dalam callback body → softAssert catch → record finding + (severity=major) return null → NO escalation
    - Recommendation: amend softAssert catch handler dengan `if (e instanceof SkipScenarioError) throw e;` re-throw branch BEFORE generic error handling. OR alternative: check isClosed di luar softAssert (di examMatrix helper wrapper). See Pitfall 5.
+   - **Resolution path:** Plan 01 Task 1 implement re-throw branch (`if (e instanceof SkipScenarioError) throw e;`) di catch handler softAssert PALING ATAS, sebelum screenshot capture + collector.record. Acceptance criteria Task 1 enforce ordering (catch block: re-throw FIRST, lalu defensive screenshot, lalu collector.record). Plan 01 Task 3 Bagian A inject `if (page.isClosed()) throw new SkipScenarioError(...)` di MC/MA/Essay softAssert callback bodies — bekerja sequential dengan Task 1 re-throw branch (Task 1 commit dulu, lalu Task 3 gate aktif).
 
-3. **Full 10-scenario runtime budget**
+3. **Full 10-scenario runtime budget** — **RESOLVED** (Plan 02 Task 1 background-run note + Step 2)
    - What we know: per-scenario timeout 240s (spec line 71); 10 scenarios × ~120-180s actual = ~20-30 min full run
    - What's unclear: total wallclock + impact on developer workflow iteration
    - Recommendation: run di terminal background; result not required for Promise.all fix verification (S5-only run sufficient for D-13.a). Document expected wallclock di UAT 316.
+   - **Resolution path:** Plan 02 Task 1 Step 2 (full run command) explicitly notes "Expected runtime ~20-30 min. Bisa run di background (`run_in_background: true` flag)." Wallclock actual akan didokumentasi di `316-UAT.md` Task 2 sebagai bagian dari `full-run-S1-S10` UAT item evidence. D-13.a (S5 isolated) cukup untuk validate Promise.all fix tanpa wait full run — staged validation D-13 design memang split quick/full untuk akomodasi runtime budget ini.
+
 
 ## Environment Availability
 
