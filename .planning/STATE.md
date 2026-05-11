@@ -1,78 +1,44 @@
 ---
 gsd_state_version: 1.0
-milestone: v15.0
-milestone_name: Audit Findings 27 April 2026
-status: executing
-stopped_at: Phase 314 formal closed (last v15.0, IT redeploy pending Dev verify)
-last_updated: "2026-05-08T10:49:33.336Z"
-last_activity: 2026-05-08 -- Phase 314 execution started
+milestone: pending
+milestone_name: Defining v16.0
+status: between-milestones
+stopped_at: v15.0 closed (2026-05-11), v16.0 not yet defined
+last_updated: "2026-05-11T00:00:00.000Z"
+last_activity: 2026-05-11 — v15.0 milestone archived, awaiting /gsd-new-milestone v16.0
 progress:
-  total_phases: 12
-  completed_phases: 12
-  total_plans: 28
-  completed_plans: 28
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-28)
+See: .planning/PROJECT.md (updated 2026-05-11)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 314 — Fix Regenerate Token untuk Status Upcoming (TKN-01)
+**Current focus:** Defining v16.0 milestone (next: `/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 314 (Fix Regenerate Token untuk Status Upcoming (TKN-01)) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 314
-Last activity: 2026-05-08 -- Phase 314 execution started
+Phase: — (between milestones)
+Plan: —
+Status: v15.0 archived, v16.0 not yet defined
+Last activity: 2026-05-11 — v15.0 closed, MILESTONES.md updated, archive di milestones/v15.0-{ROADMAP,REQUIREMENTS}.md, phase dirs moved ke milestones/v15.0-phases/, git tag v15.0 pending
 Resume file: .planning/STATE.md
 
 ## Next Action
 
-Phase 313.1 Plan 02 COMPLETE — F-313-UAT-01 RESOLVED end-to-end. 7 commits + 7/7 FLOW 313 PASS dalam 28.3s:
-
-- Task 1 commit `15c7aba0`: helper module `tests/e2e/helpers/exam313.ts` (4 function exports flat)
-- Task 2 commit `a95609ec`: replace test 313.1 + import 4 helper konsolidasi
-- Task 3 commit `1f53699f`: replace tests 313.2/313.5/313.6 (Tier-1 reject)
-- Task 4 commit `4a3e55ba`: replace tests 313.3 + 313.4 (Tier-2 grace pass + Tier-2 reject)
-- Task 5 commit `41391292`: replace test 313.7 (Manual ExcludeVerify D-15)
-- Task 6 commit `dfea9a03`: annotate `313-UAT.md` pre-conditions Phase 313.1 update + extended SQL PkgCount/QCount
-- Task 7 commit `5807adae`: runtime-tested helper + 313.1/313.7 fill-all 3 questions + race-tolerant assertion (7 fixes Rule 1)
-- SUMMARY commit `36ecf3df`: docs(313.1-02) summary plan complete
-
-**Operator approved Task 7 checkpoint** — full FLOW 313 run 7/7 PASS dalam 28.3s (313.1 6.9s, 313.2 7.2s, 313.3 1.9s, 313.4 2.3s, 313.5 2.0s, 313.6 1.9s, 313.7 2.1s).
-
-**Next:**
-
-1. **Operator TODO:** Restore snapshot DB lokal `HcPortalDB_Dev.20260508-pre313_1.bak` (per CLAUDE.md Seed Data Workflow) + mark `docs/SEED_JOURNAL.md` Phase 313.1 entry status `cleaned`.
-2. Jalankan `/gsd-verify-work` untuk close Phase 313.1.
-3. Lanjut Phase 314 (Fix Regenerate Token Upcoming, TKN-01) — last phase v15.0 milestone.
-
-Setelah Phase 308 closed, milestone v15.0 lanjut ke Phase 309 (Worker Certificate Defensive Fix + Submitted Status Handling — WCRT-01, SUB-01, parallel-eligible dengan Phase 310).
-
-## v15.0 Phase Roadmap (lihat ROADMAP.md untuk detail success criteria)
-
-| Phase | Goal | REQ | Wave |
-|-------|------|-----|------|
-| 304 | UI Label Polish (Login + WIB) | AUTH-01, WIZ-02, WIZ-03 | 1 (Low risk) |
-| 305 | Question Type Naming Clarity | LBL-01 | 1 (Low+docs) |
-| 306 | Score Editable per Question Type | QSCR-01 | 2 (Medium) |
-| 307 | Selected Participants Inline View | WIZ-01 | 2 (Low) |
-| 308 | PrePost Wizard Validation Fix | WIZ-04 | 2 (Medium) |
-| 309 | Worker Certificate Defensive Fix + Submitted Status Handling | WCRT-01, SUB-01 | 3 (Med-High, parallel w/310) |
-| 310 | Essay Finalize Idempotency | ESCG-01 | 3 (Med-High, parallel w/309) |
-| 311 | ManageAssessment Performance | PERF-01 | 4 (Med, measurement-driven) |
-| 312 | Admin Full-Delete Assessment Room | DEL-01 | 5 (Med, parallel-eligible) |
-| 313 | Block Manual Submit Saat Waktu Habis | TMR-01 | 5 (Med-High, parallel-eligible) |
-| 314 | Fix Regenerate Token Upcoming | TKN-01 | 5 (Low-Med, investigative) |
+1. `/gsd-new-milestone v16.0 QA Test Coverage` — define new milestone (streamlined: skip research, single REQ untuk assessment matrix test)
+2. Spec assessment matrix test sudah ditulis di `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` (commit `94bacecf`) — akan jadi input CONTEXT.md untuk phase pertama v16.0
 
 ## Deferred Items
 
-### v15.0 Deferred (current milestone)
+### v15.0 Deferred (carry-over ke v16.0+)
 
 | REQ | Item | Status | Due |
 |-----|------|--------|-----|
@@ -104,25 +70,10 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - [v13.0]: SortableJS 1.15.7 via CDN; drag-drop sibling-only (group: false); orgTree.js single JS orchestrator
 - [v12.0]: AdminController dipecah menjadi 8 controller per domain; URL tetap via [Route] attribute
 - [Phase 292]: IsAjaxRequest() sebagai protected method di AdminBaseController; dual-response pattern
-- [v15.0 / Phase 306 / Plan 01]: Replace force-override `scoreValue=10` MC/MA dengan inline range check 1-100 server-side (D-12, D-13, D-14) — defense in depth, tahan DevTools bypass
-- [v15.0 / Phase 306 / Plan 01]: AuditLog `EditQuestion-ScoreChange` dengan format `oldScore → newScore (N sessions affected)` literal arrow U+2192, dibungkus try/catch dengan _logger.LogWarning fallback (D-10, T-306-02 mitigation)
-- [v15.0 / Phase 306 / Plan 01]: AuditLog `CreateQuestion-CustomScore` saat scoreValue != 10 (D-11, CD-05) — informational audit untuk non-default score
-- [v15.0 / Phase 306 / Plan 01]: EditQuestion AJAX GET extends JSON dengan `affectedSessions` field (Distinct().CountAsync() per AssessmentSessionId) untuk Plan 02 modal trigger (D-09)
-- [v15.0 / Phase 306 / Plan 02]: Score input default-enabled untuk semua tipe MC/MA/Essay; JS dynamic disabled/reset/help-text logic dihapus — single source of truth = Razor static `Range 1–100` (D-03, D-04, D-05)
-- [v15.0 / Phase 306 / Plan 02]: Modal `editScoreWarningModal` trigger condition = editMode AND scoreChange AND affectedSessions > 0 (informational only); confirm button class `btn-warning btn-sm` per CD-D-08 UI-SPEC override (D-06, D-08, D-09, CD-02)
-- [v15.0 / Phase 306 / Plan 02]: Header daftar soal format `(N soal • Total X poin)` dengan bullet U+2022; computed via `@questions.Sum(q => q.ScoreValue)` (D-17, CD-03)
-- [v15.0 / Phase 306 / Plan 02]: D-19 verified via UAT — Stored AssessmentSessions.Score di Completed sessions TIDAK auto-recalculate setelah admin edit; Score di-persist saat SubmitExam, modal warning informasional only
-- [v15.0 / Phase 307 / Plan 01]: Selectors helper module placed di `tests/e2e/helpers/wizardSelectors.ts` (NEW folder), bukan `tests/helpers/`, untuk separation e2e-specific selectors vs shared utilities (login/utils/accounts)
-- [v15.0 / Phase 307 / Plan 01]: Performance budget #4 + Step 2/Step 4 visual parity di-defer ke manual UAT karena E2E flaky di CI runner — Step 4 punya `performance.mark/measure` script copy-paste-able ke Console
-- [v15.0 / Phase 307 / Plan 01]: Opportunistic rot fix line 45 (`'2 selected'` → `'2 terpilih'`) applied di Wave 0 — match production text Bahasa Indonesia di `CreateAssessment.cshtml` line 289 default `'0 terpilih'` dan `updateSelectedCount` line 1446 format `count + ' terpilih'`
-- [v15.0 / Phase 313.1 / Plan 02]: Helper module `tests/e2e/helpers/exam313.ts` (4 function exports flat: clickResumeForFixture, assertTier1Reject, assertTier2Reject, assertSubmitSuccess) + private escapeRegex; mirror `wizardSelectors.ts` pattern (Phase 307 D-01)
-- [v15.0 / Phase 313.1 / Plan 02]: Tier-1 manual reject TRUE end-to-end TIDAK UI-testable (server-side StartExam redirect ExamSummary saat timer expired → ExamSummary auto-fire submit isAutoSubmit=true → Tier-2 path); coverage tetap UAT 7-step manual
-- [v15.0 / Phase 313.1 / Plan 02]: Race-tolerant Tier-2 assertion via `Promise.race` (waitForURL Results vs banner toContainText) — handle JS retry intercept vs server redirect ambiguity Online type vs PreTest/PostTest type end-state difference
-- [v15.0 / Phase 313.1 / Plan 02]: Fixture locator pattern via `getByRole('heading', level:5, name)` + ancestor card div (BUKAN `tr` table row) — list page render fixture sebagai `<div class=card>` dengan `<h5>` heading
-
-### Roadmap Evolution
-
-- Phase 313.1 inserted after Phase 313: Gap closure — extend seed `313-timer-fixtures.sql` dengan AssessmentPackages+PackageQuestions+PackageOptions clone supaya fixture 150-156 self-contained untuk live UAT; finalize Playwright FLOW 313 assertion bodies (saat ini placeholder `targetRow.toBeVisible`). Resolves F-313-UAT-01 dari `313-UAT-FINDINGS.md`. (URGENT)
+- [v15.0 / Phase 306]: Score editable MC/MA/Essay range 1-100 server-side; AuditLog `EditQuestion-ScoreChange` dengan format `oldScore → newScore (N sessions affected)`; modal warning informasional only (Stored AssessmentSessions.Score di Completed sessions TIDAK auto-recalculate)
+- [v15.0 / Phase 307]: Selectors helper di `tests/e2e/helpers/wizardSelectors.ts` (NEW folder), bukan `tests/helpers/`, untuk separation e2e-specific selectors vs shared utilities
+- [v15.0 / Phase 311]: ManageAssessment performance bottleneck = proxy wifi kantor (bukan backend); HTMX lazy load + AsNoTracking + 2 EF index + IMemoryCache Categories TTL 5min
+- [v15.0 / Phase 313.1]: Helper module `tests/e2e/helpers/exam313.ts` (4 function exports flat); Race-tolerant Tier-2 assertion via `Promise.race`; Tier-1 manual reject TRUE end-to-end TIDAK UI-testable (server-side StartExam redirect ExamSummary)
 
 ### Open Blockers/Concerns
 
@@ -130,14 +81,6 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ## Session Continuity
 
-Last activity: 2026-04-29 — Phase 308 Plan 02 (Wave 1 implementation) COMPLETE. Tasks 1-4 finalized:
+Last activity: 2026-05-11 — v15.0 milestone closed via `/gsd-complete-milestone`. ROADMAP.md collapsed v15.0 ke shipped section, MILESTONES.md entry diperbaiki dari accomplishments dirty hasil parser failure, phase dirs (304-314 + 313.1) dipindah ke `.planning/milestones/v15.0-phases/`. PROJECT.md Current Milestone reset ke "(none — defining next)". STATE.md di-rewrite untuk between-milestones state.
 
-- Task 1 commit `630f4e66`: JS handler D-01/D-02 set Status='Upcoming'/clear di line 1875/1885/1892 (Views/Admin/CreateAssessment.cshtml)
-- Task 2 commit `c99b981c`: Server conditional ModelState.Remove("Status") D-04/D-05 line 781-787 (Controllers/AssessmentAdminController.cs)
-- Task 3 (no commit): Automated verification PASS — TypeScript compile, Playwright list 4+4+1 tests, .NET build 0 errors 92 warnings
-- Task 4 (orchestrator-approved 2026-04-29): Manual UAT 4-step Bahasa Indonesia PASSED via /gsd-execute-phase 308 checkpoint user approval. Step 3 key acceptance REQ WIZ-04 verified live. Sign-off di 308-UAT.md filled dengan Result: PASS.
-- Wave 0 commit `cedbebb0` (308-01 finalization)
-- Intermediate paused-at-checkpoint commit `a0610acc`
-
-Stopped at: Phase 314 formal closed (last v15.0, IT redeploy pending Dev verify)
-Next action: Jalankan `/gsd-verify-work` untuk verify Phase 308 closure. Pre-verify smoke: 4 Playwright tests Phase 308 (8.1-8.4) expect transisi RED → GREEN dari Wave 0.
+Next action: Jalankan `/gsd-new-milestone v16.0 QA Test Coverage` (streamlined — skip research). Phase pertama akan pakai spec `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` sebagai input CONTEXT.md.

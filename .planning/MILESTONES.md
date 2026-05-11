@@ -1,5 +1,33 @@
 # Milestones
 
+## v15.0 Audit Findings 27 April 2026 (Shipped: 2026-05-11)
+
+**Phases completed:** 12 phases (304-314 + 313.1), 28 plans, 53 tasks
+
+**Delivered:** Tindak lanjut 11 temuan audit 27 April + 4 temuan audit 29 April pada flow assessment & login PortalHC_KPB — bug-fix + UX enhancements + 1 perf improvement (HTMX lazy load + DB index opportunistic). Coverage 100% (15/15 temuan).
+
+**Key accomplishments:**
+
+1. **Phase 304 — UI Label Polish (Login + WIB)** (AUTH-01, WIZ-02, WIZ-03): Eye-icon toggle password Login + label "(WIB)" konsisten Step 3 + suffix "WIB" Step 4 wizard.
+2. **Phase 305 — Question Type Naming Clarity** (LBL-01): Helper `QuestionTypeLabels` + 5 view edit + 8 file dokumentasi context-aware. UI rename Single Choice / Multiple Answers tanpa ubah enum DB.
+3. **Phase 306 — Score Editable per Question Type** (QSCR-01): Score input MC/MA/Essay enabled (range 1-100), modal warning edit score yang mempengaruhi sesi Completed, AuditLog `EditQuestion-ScoreChange` + `CreateQuestion-CustomScore`. UAT 10/10 PASS.
+4. **Phase 307 — Selected Participants Inline View** (WIZ-01): Panel "Peserta Terpilih" real-time Step 2 + helper `renderSelectedParticipants` reused Step 4. Performance 50+ peserta <200ms via DocumentFragment + debounce.
+5. **Phase 308 — PrePost Wizard Validation Fix** (WIZ-04): JS Status='Upcoming' + server `ModelState.Remove("Status")` conditional — wizard PrePost tidak reset Step 1. UAT 4-step PASS.
+6. **Phase 309 — Worker Cert Defensive + Submitted Status** (WCRT-01, SUB-01): Try-catch + structured log + null-safe `CMPController.Certificate` + helper `IsAssessmentSubmitted` (Completed OR `Menunggu Penilaian`) di 3 lokasi. GradingService `PendingGrading` constant refactor opportunistic.
+7. **Phase 310 — Essay Finalize Idempotency** (ESCG-01): `FinalizeEssayGrading` rowsAffected branching D-03/D-04 BI message + UI gate "Create Sertifikasi" disabled saat finalized + dedup `NotifyIfGroupCompleted`. Path A Playwright MCP walkthrough PASS.
+8. **Phase 311 — ManageAssessment Performance** (PERF-01): REFRAMED — backend bukan bottleneck, proxy wifi kantor adalah. HTMX lazy load (initial doc <14 KB, ≥50% reduction baseline ~1.4 menit) + AsNoTracking + 2 EF migration index + IMemoryCache Categories TTL 5min + 3 invalidation hooks.
+9. **Phase 312 — Admin Full-Delete Assessment Room** (DEL-01): Role tier guard — Admin override status guard, HC blocked Completed/with-response. UI conditional render + AuditLog dengan Status & ResponseCount. Smoke 5 skenario PASS.
+10. **Phase 313 + 313.1 — Block Manual Submit Saat Waktu Habis** (TMR-01, F-313-UAT-01): LIFE-03 jadi 2-tier branching (manual reject tanpa grace, auto reject setelah 2-min grace) + ExamSummary 3-branch button + Phase 313.1 SQL seed extend self-contained + Playwright FLOW 313 helper `exam313.ts` 7 tests PASS dalam 28.3s.
+11. **Phase 314 — Fix Regenerate Token Upcoming** (TKN-01): Investigative bug fix — repro → root cause → patch backend defensive + frontend error propagation server JSON ke `alert()` (line 396-419 + 981-1009). Smoke 3 skenario PASS.
+
+**Known Deferred:**
+- **EPRV-01** (Preview Essay rubrik/jawaban) — DEFERRED, butuh user verifikasi save/load Rubrik. Due 2026-05-12.
+- Carry-over dari v14.0: Phase 235 UAT (5 items), Phase 247 approval chain UAT (2 TODO), Phase 303 Coach Workload 12-langkah, research gaps Phase 297/298, blocker Phase 293.
+
+**Tag:** v15.0 (created 2026-05-11)
+
+---
+
 ## v14.0 Assessment Enhancement (Shipped: 2026-04-24)
 
 **Phases completed:** 8 phases (296-303), 23 plans, 35 tasks

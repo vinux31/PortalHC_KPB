@@ -1,0 +1,72 @@
+# Phase 314 — Repro Evidence Response Body
+
+**Captured:** 2026-05-08T09:17 (Dev URL `http://10.55.3.3/KPB-PortalHC`)
+**Tester:** admin@pertamina.com via Playwright MCP browser
+**Fixture:** Phase 314 Repro Token Bug (id=6, Status=Upcoming, IsTokenRequired=true, Token=ATBDF5, 1 peserta admin@pertamina.com belum StartExam)
+
+## Action
+
+POST `/KPB-PortalHC/Admin/RegenerateToken/6` (klik tombol Regenerate Token di AssessmentMonitoring → confirm dialog "Regenerate token untuk assessment ini?" → OK)
+
+## Browser Alert (D-07/D-12/D-14 frontend handler output)
+
+```
+Gagal regenerate token. Periksa koneksi jaringan.
+```
+
+## Network Response
+
+```
+Method: POST
+URL: http://10.55.3.3/KPB-PortalHC/Admin/RegenerateToken/6
+Status: 404 Not Found
+Content-Type: (404 page, exact body not captured by MCP — text content kosong/HTML default)
+```
+
+## Console Error
+
+```
+Failed to load resource: the server responded with a status of 404 (Not Found) @ http://10.55.3.3/KPB-PortalHC/Admin/RegenerateToken/6:0
+```
+
+## Findings — Hipotesis Update
+
+### **Hipotesis 5 (BARU, prime candidate): Dev binary stale / endpoint missing**
+
+**Evidence:**
+- Lokal source code `Controllers/AssessmentAdminController.cs:19` punya `[Route("Admin/[action]")]`
+- Lokal source code `Controllers/AssessmentAdminController.cs:2427` punya `public async Task<IActionResult> RegenerateToken(int id)`
+- Path `/Admin/RegenerateToken/{id}` matches frontend POST URL
+- Server Dev return 404 → endpoint TIDAK terdaftar di Dev runtime
+
+**Possible causes:**
+1. **Dev binary versi lama** — IT belum deploy commit terbaru yang punya `RegenerateToken` action
+2. **Endpoint dihapus / di-rename di Dev fork** (unlikely — branching strategy adalah single main)
+3. **Route attribute conflict di Dev** — `app.UsePathBase("/KPB-PortalHC")` doublecount atau routing config beda environment
+
+**Likely root:** **Dev deployment lag**. Need IT confirm Dev binary git hash vs `main` HEAD.
+
+### **Hipotesis 4 (PARTIALLY confirmed, secondary)**: Frontend handler hide actual error reason
+
+**Evidence:**
+- Server return 404 (HTTP transport-level error, bukan business logic)
+- Frontend alert: "Periksa koneksi jaringan" — generic, MISLEADING (404 != network issue, server reachable, returns valid HTTP response)
+- D-07/D-12/D-14 frontend patch (Plan 02 Tasks 2-4) yang propagate `data.message` server JSON tetap valid — kalau server 4xx/5xx return JSON `{success:false, message:"..."}`, frontend handler harus extract + display.
+- BUT: untuk 404, server return HTML default (no JSON body) — frontend perlu handle status code-based fallback (e.g. "Endpoint tidak tersedia, hubungi admin sistem.")
+
+### **Hipotesis 1/2/3 (RULED OUT untuk repro Dev current state)**
+
+NRE Schedule.Date / DbUpdateException AuditLog FK / SqlException concurrency = TIDAK fire karena server tidak pernah reach RegenerateToken method body (404 occurs at routing layer).
+
+## Implications untuk Plan 02
+
+- **D-37/D-38** (Schedule MinValue guard) — TIDAK testable di Dev current state (endpoint 404). Cek di lokal setelah restart `dotnet run` ATAU defer ke post-deploy verification.
+- **D-05/D-06/D-12/D-17/D-20/D-21/D-25/D-33** (8 layered defensive guards) — tetap valid sebagai future-proof refactor, tapi current Dev bug = deployment, NOT code bug.
+- **D-07 frontend handler** (propagate `data.message`) — perlu extend untuk handle 404/non-JSON response dengan status-code-based fallback.
+
+## Action Items
+
+1. **IMMEDIATE:** Confirm dengan Team IT — Dev binary git hash. Compare vs `main` HEAD commit (latest: post Phase 313.1 closure, commit `7a95a36d`).
+2. Kalau Dev stale → IT redeploy → re-run repro Step 1
+3. Repro lokal (start `dotnet run`) untuk validate endpoint exists di local binary current
+4. Update RESEARCH.md `## Stacktrace Evidence` section dengan finding ini (no exception, deployment issue)
