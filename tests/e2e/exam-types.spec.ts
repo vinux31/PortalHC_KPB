@@ -131,6 +131,48 @@ test.describe('smoke wave-0 (verify RESEARCH A4 + A5 assumptions)', () => {
   });
 });
 
+test.describe('smoke wave-0 phase-319 (verify RESEARCH A3 TomSelect)', () => {
+  test('W0.T0 — TomSelect #WorkerSelect interaction pattern reliable', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto('/Admin/AddManualAssessment');
+
+    await expect(page.locator('form[action*="AddManualAssessment"]')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#WorkerSelect')).toBeAttached();
+
+    // Btn starts disabled (verified Views/Admin/AddManualAssessment.cshtml:277)
+    const btnSubmit = page.locator('#btnSimpanAssessment');
+    await expect(btnSubmit).toBeDisabled();
+
+    // TomSelect interaction Pattern 1 (RESEARCH lines 442-450)
+    const tsControl = page.locator('.ts-control').first();
+    await expect(tsControl).toBeVisible({ timeout: 5_000 });
+    await tsControl.click();
+
+    // Dropdown panel opens
+    const tsDropdown = page.locator('.ts-dropdown').first();
+    await tsDropdown.waitFor({ state: 'visible', timeout: 5_000 });
+
+    // Type search
+    const tsInput = page.locator('.ts-control input').first();
+    await tsInput.fill('Rino');
+
+    // Click matching option
+    const option = page.locator('.ts-dropdown .option', { hasText: /Rino/i }).first();
+    await option.waitFor({ state: 'visible', timeout: 5_000 });
+    await option.click();
+
+    // .worker-cert-card rendered (JS addWorkerRow fired)
+    await expect(page.locator('.worker-cert-card')).toHaveCount(1, { timeout: 5_000 });
+
+    // Submit button now enabled
+    await expect(btnSubmit).toBeEnabled({ timeout: 5_000 });
+
+    // eslint-disable-next-line no-console
+    console.log('[W0.T0] TomSelect Pattern 1 OK — proceed dengan Pattern 1 di FLOW T2');
+  });
+});
+
 test.describe('FLOW K — MA Full Cycle', () => {
   let title: string;
   let assessmentId: number;
