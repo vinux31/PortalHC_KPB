@@ -619,3 +619,99 @@ export async function verifyCertificatePdfDownload(
 
   return { bytes: body.length, filename };
 }
+
+// ============================================================
+// Phase 319 Plan 01 — Excel download + Analytics JSON intercept helpers
+// Staged in Plan 01 untuk consume di Plan 03 (FLOW V + W).
+// Source: Helpers/ExcelExportHelper.cs:1-40, Controllers/CMPController.cs:2731-2813
+// ============================================================
+
+/**
+ * Phase 319 — verify Excel download dari endpoint binary.
+ * Pattern: adaptasi `verifyCertificatePdfDownload` (Phase 318 R4 PROVEN).
+ * APIRequest cookies inherit dari page context — caller MUST be logged in.
+ *
+ * Assertions:
+ *  1. response.status() === 200
+ *  2. content-type matches Excel MIME (xlsx OR xls)
+ *  3. content-disposition match /attachment.*\.xlsx?/i (filename optional pattern)
+ *  4. body bytes > opts.minBytes (default 2048; lowering OK untuk empty-DB header-only)
+ *
+ * @param page logged-in page context
+ * @param endpointPath e.g. '/AssessmentAdmin/ExportCategoriesExcel'
+ * @param opts.minBytes minimum byte threshold (default 2048; can lower to 256 utk header-only)
+ * @param opts.filenamePattern optional regex utk filename verify
+ * @returns { bytes, filename, contentType }
+ */
+export async function verifyExcelDownload(
+  page: Page,
+  endpointPath: string,
+  opts: { minBytes?: number; filenamePattern?: RegExp } = {}
+): Promise<{ bytes: number; filename: string; contentType: string }> {
+  const response = await page.request.get(endpointPath);
+
+  expect(response.status(), `Excel download status (${endpointPath})`).toBe(200);
+
+  const contentType = response.headers()['content-type'] ?? '';
+  expect(contentType, `Content-Type (${endpointPath})`).toMatch(
+    /application\/vnd\.(openxmlformats-officedocument\.spreadsheetml\.sheet|ms-excel)/i
+  );
+
+  const contentDisp = response.headers()['content-disposition'] ?? '';
+  expect(contentDisp, `Content-Disposition (${endpointPath})`).toMatch(/attachment.*\.xlsx?/i);
+
+  const filenameMatch = contentDisp.match(/filename=(?:"([^"]+)"|([^;\s]+))/i);
+  const filename = (filenameMatch?.[1] ?? filenameMatch?.[2] ?? '').trim();
+  if (opts.filenamePattern) {
+    expect(filename, `Filename pattern (${endpointPath})`).toMatch(opts.filenamePattern);
+  }
+
+  const body = await response.body();
+  const minBytes = opts.minBytes ?? 2048;
+  expect(body.length, `Excel body bytes (min ${minBytes}, ${endpointPath})`).toBeGreaterThan(minBytes);
+
+  return { bytes: body.length, filename, contentType };
+}
+
+/**
+ * Phase 319 — Analytics endpoint JSON response shape.
+ * Verified dari Controllers/CMPController.cs:2731-2813 (`Json(new { totalSessions, passRate, ... })`).
+ * ASP.NET Core default JsonSerializerOptions = camelCase (anonymous object → camelCase keys).
+ *
+ * NOTE: Wave 0 W0.W0 di Plan 03 verify camelCase serialization (RESEARCH A4 YELLOW).
+ */
+export interface AnalyticsResponseShape {
+  totalSessions: number;
+  passRate: number;
+  expiringCount: number;
+  avgGainScore: number;
+}
+
+/**
+ * Phase 319 — intercept JSON response dari analytics endpoint.
+ * Pattern: page.waitForResponse() → action() → parse JSON → cast T.
+ *
+ * @param page logged-in page
+ * @param action navigation/click yang trigger endpoint fire
+ * @param endpointMatcher string substring (URL.includes) atau RegExp utk URL match
+ * @returns parsed JSON cast ke generic T
+ */
+export async function interceptAnalyticsResponse<T = AnalyticsResponseShape>(
+  page: Page,
+  action: () => Promise<void>,
+  endpointMatcher: string | RegExp
+): Promise<T> {
+  const responsePromise = page.waitForResponse(
+    (r) => {
+      if (typeof endpointMatcher === 'string') {
+        return r.url().includes(endpointMatcher);
+      }
+      return endpointMatcher.test(r.url());
+    },
+    { timeout: 15_000 }
+  );
+  await action();
+  const response = await responsePromise;
+  expect(response.status(), `Analytics response status (${endpointMatcher})`).toBe(200);
+  return (await response.json()) as T;
+}
