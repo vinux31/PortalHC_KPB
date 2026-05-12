@@ -28,7 +28,100 @@
   </div>
 
   <main class="max-w-5xl mx-auto px-6 py-8">
-    <!-- Cluster sections di Task 3.2-3.6 -->
+    <!-- Quick Start section -->
+    <section x-show="activeTab === 'quickstart'" x-transition class="space-y-8">
+      <h2 class="text-2xl font-bold brand-navy">⚡ Quick Start — Daily Ops</h2>
+      <p class="text-slate-600">4 fitur dasar untuk semua role. Mulai di sini kalau baru kenal portal.</p>
+
+      <!-- Item 1: Login -->
+      <article id="login" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">DAILY · SEMUA ROLE</span>
+          <a href="praktik.html#login" class="ml-auto text-sm text-amber-600 hover:underline">🧪 Drill di Praktik →</a>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">1. Login ke Portal</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>Buka URL Dev <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">http://10.55.3.3/KPB-PortalHC</code> di Chrome/Edge</li>
+          <li>Halaman login muncul — input <strong>Email kantor</strong> + <strong>Password</strong></li>
+          <li>Klik tombol <strong>Sign In</strong></li>
+          <li>Berhasil → masuk ke Dashboard</li>
+          <li>Lupa password? Hubungi admin (Tim IT KPB)</li>
+        </ol>
+        <div class="mt-4 bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm">
+          <strong>💡 Tip:</strong> Bookmark URL di browser. AD/LDAP belum aktif — saat ini login pakai form email/password biasa.
+        </div>
+      </article>
+
+      <!-- Item 2: Navbar / Dashboard -->
+      <article id="navbar" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">DAILY · SEMUA ROLE</span>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">2. Navigasi Dashboard + Top Navbar</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>Setelah login, landing di Dashboard</li>
+          <li>Top navbar punya menu sesuai role kamu (role-based)</li>
+          <li>Avatar pojok kanan = dropdown Profile + Settings + Logout</li>
+          <li>Notification bell di sebelah avatar = alert sistem</li>
+          <li>Icon <strong>?</strong> di navbar = link ke Panduan portal lengkap</li>
+        </ol>
+        <div class="mt-4 bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm">
+          <strong>💡 Tip:</strong> Menu "Kelola Data" hanya muncul kalau role kamu = Admin. Kalau tidak muncul, bukan bug — cek badge role samping nama.
+        </div>
+      </article>
+
+      <!-- Item 3: Panduan icon ? -->
+      <article id="panduan-icon" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">SELF-HELP · SEMUA ROLE</span>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">3. Buka Panduan via Icon ?</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>Klik icon ? di top navbar</li>
+          <li>Buka halaman index 9 panduan HTML (Admin, Assessment, Coaching, dll)</li>
+          <li>Pilih topik yang dibutuhkan</li>
+          <li>Search by keyword di halaman index kalau panduan banyak</li>
+        </ol>
+        <div class="mt-4 bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm">
+          <strong>💡 Tip:</strong> Bookmark URL <code class="bg-white px-1.5 py-0.5 rounded text-xs">documents/guides/</code> kalau sering buka panduan.
+        </div>
+      </article>
+
+      <!-- Item 4: Notification bell -->
+      <article id="notif-bell" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">DAILY · SEMUA ROLE</span>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">4. Notification Bell</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>Klik icon 🔔 di top navbar (samping avatar)</li>
+          <li>Dropdown muncul dengan list notifikasi terbaru</li>
+          <li>Badge angka = jumlah unread</li>
+          <li>Klik notifikasi → navigate ke halaman terkait (assessment, coaching, dll)</li>
+          <li>Notifikasi otomatis di-mark read setelah dibuka</li>
+        </ol>
+        <div class="mt-4 bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm">
+          <strong>💡 Tip:</strong> Cek bell setiap login — notifikasi assessment baru atau follow-up coaching biasanya muncul di sini.
+        </div>
+      </article>
+
+      <!-- Quiz 1: Quick Start -->
+      <div x-data="{ answered: false, correct: null, choice: null }" class="bg-indigo-50 border-2 border-indigo-300 rounded-lg p-6">
+        <h3 class="font-bold text-indigo-900 mb-2">🎯 Quiz — Quick Start</h3>
+        <p class="text-sm mb-4">Kamu lihat menu "Kelola Data" hilang dari navbar. Kemungkinan penyebab?</p>
+        <div class="space-y-2">
+          <button @click="answered = true; choice = 'a'; correct = false" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'a' ? 'border-red-500 bg-red-50' : ''">A. Sistem bug, lapor ke IT</button>
+          <button @click="answered = true; choice = 'b'; correct = true" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'b' ? 'border-green-500 bg-green-50' : ''">B. Role kamu bukan Admin (cek badge samping nama)</button>
+          <button @click="answered = true; choice = 'c'; correct = false" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'c' ? 'border-red-500 bg-red-50' : ''">C. Browser tidak compatible</button>
+        </div>
+        <div x-show="answered" x-transition class="mt-4 p-3 rounded" :class="correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+          <p x-show="correct"><strong>✓ Betul!</strong> Menu di navbar di-filter sesuai role. Cek role badge dulu sebelum lapor bug.</p>
+          <p x-show="!correct"><strong>✗ Bukan.</strong> Jawaban benar: <strong>B</strong>. Menu "Kelola Data" hanya muncul kalau role = Admin. Cek badge role samping nama di pojok kanan.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cluster sections lainnya di Task 3.3-3.6 -->
   </main>
 
   <footer class="bg-slate-100 text-slate-600 py-6 px-6 text-center text-sm mt-12">
