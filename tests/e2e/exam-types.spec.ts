@@ -367,6 +367,263 @@ test.describe('FLOW L — Essay Full Cycle + HC Grading', () => {
   });
 });
 
-// Suppress unused-import warnings — these symbols dipakai di Task 3-4 bodies (placeholder skeleton).
-void submitExamTwoStep;
+test.describe('FLOW M — Mixed (MC+MA+Essay) Full Cycle', () => {
+  let title: string;
+  let category: string;
+  let scheduleDate: string;
+  let assessmentId: number;
+  let packageId: number;
+  let sessionId: number;
+  const Q1_MC_MARKER = '[317-M] Q1-MC — OJT kepanjangan';
+  const Q1_MC_CORRECT_TEXT = 'On-the-Job Training';
+  const Q2_MA_MARKER = '[317-M] Q2-MA — komponen OJT';
+  const Q2_MA_CORRECT = ['Coach senior', 'Coachee junior'];
+  const Q3_ESSAY_MARKER = '[317-M] Q3-Essay — tujuan OJT';
+
+  test('M1 — HC creates Mixed assessment via wizard', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    title = uniqueTitle('[317-M] Mixed Exam');
+    category = 'OJT';
+    scheduleDate = today();
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title,
+      category,
+      scheduleDate,
+      scheduleTime: '00:01',
+      durationMinutes: 60,
+      passPercentage: 60,
+      allowAnswerReview: true,
+      generateCertificate: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    expect(href).toMatch(/\/Admin\/ManagePackages(?:\/|\?assessmentId=)\d+/);
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+  });
+
+  test('M2 — HC navigates ManagePackages → createDefaultPackage', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+  });
+
+  test('M3 — HC adds 1 MC + 1 MA + 1 Essay (3 question types)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    // Q1: MC score 40
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice',
+      text: `${Q1_MC_MARKER} — Apa kepanjangan OJT?`,
+      options: [Q1_MC_CORRECT_TEXT, 'Online Job Test', 'Office Job Theory', 'Operational Job Task'],
+      correctIndex: 0,
+      score: 40,
+    });
+    // Q2: MA score 30 (correctIndices=[0,1])
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleAnswer',
+      text: `${Q2_MA_MARKER} — Pilih komponen OJT yang wajib (pilih ≥2)`,
+      options: ['Coach senior', 'Coachee junior', 'Theoretical exam', 'External certification'],
+      correctIndices: [0, 1],
+      score: 30,
+    });
+    // Q3: Essay score 30
+    await addQuestionViaForm(page, packageId, {
+      type: 'Essay',
+      text: `${Q3_ESSAY_MARKER} — Jelaskan tujuan utama OJT (minimum 50 kata).`,
+      rubrik: 'Penilaian: clarity + kelengkapan + relevansi.',
+      maxCharacters: 1000,
+      score: 30,
+    });
+  });
+
+  test('M4 — Worker answers all 3 question types + submits', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', (d) => d.accept());
+    await card
+      .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard, a:has-text("Resume")')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+
+    sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+
+    const qCards = page.locator('[id^="qcard_"]');
+    await expect(qCards).toHaveCount(3);
+
+    // DOM-text marker matching (A4 shuffle pivot — Controllers/CMPController.cs:1188-1196)
+    const mcCard = qCards.filter({ hasText: Q1_MC_MARKER });
+    const maCard = qCards.filter({ hasText: Q2_MA_MARKER });
+    const essayCard = qCards.filter({ hasText: Q3_ESSAY_MARKER });
+    await expect(mcCard).toHaveCount(1);
+    await expect(maCard).toHaveCount(1);
+    await expect(essayCard).toHaveCount(1);
+
+    // Q1 MC — pick correct option by text (StartExam.cshtml:125-128 shuffles options per question)
+    await mcCard
+      .locator('label.list-group-item', { hasText: Q1_MC_CORRECT_TEXT })
+      .locator('input.exam-radio')
+      .check();
+    await page
+      .locator('#saveIndicatorText')
+      .filter({ hasText: /saved|tersimpan/i })
+      .first()
+      .waitFor({ timeout: 5_000 });
+
+    // Q2 MA — batch DOM-text check
+    await checkMAOptionsForQuestion(page, maCard, Q2_MA_CORRECT);
+
+    // Q3 Essay — direct hub invoke via fillEssayAnswer
+    await fillEssayAnswer(
+      page,
+      essayCard,
+      'Tujuan utama OJT adalah pengembangan kompetensi pekerja melalui pembelajaran berbasis praktek langsung di tempat kerja, dengan supervisi coach senior, evaluasi berdasarkan kinerja aktual, dan transfer pengetahuan terstruktur dari pengalaman lapangan ke peserta latih dalam konteks operasional nyata.'
+    );
+
+    await submitExamTwoStep(page);
+  });
+
+  test('M5 — HC grades essay 30 + DB verify total score 100 (SURF-317-A workaround)', async ({ browser }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    // HC: grade essay 30 (max=30)
+    const ctxHc = await browser.newContext();
+    const pageHc = await ctxHc.newPage();
+    try {
+      await login(pageHc, 'hc');
+      await gradeSingleEssaySession(pageHc, { title, category, scheduleDate, sessionId, score: 30 });
+    } finally {
+      await ctxHc.close().catch(() => { /* non-fatal */ });
+    }
+
+    // SURF-317-A — MA questions break Results page; verify via DB.
+    // Total = 40 (MC) + 30 (MA) + 30 (Essay) = 100
+    const score = await db.queryScalar(
+      `SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${sessionId}`
+    );
+    expect(score).toBe(100);
+
+    const statusOk = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${sessionId} AND Status = 'Completed'`
+    );
+    expect(statusOk).toBe(1);
+  });
+});
+
+test.describe('FLOW N — AllowAnswerReview=false negative assertion', () => {
+  let title: string;
+  let assessmentId: number;
+  let packageId: number;
+  let sessionId: number;
+  const Q1_MC_MARKER = '[317-N] Q1 — answer marker';
+  const Q1_MC_CORRECT_TEXT = '[N-CORRECT]';
+
+  test('N1 — HC creates assessment with AllowAnswerReview=false + 1 MC', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    title = uniqueTitle('[317-N] NoReview Exam');
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title,
+      category: 'OJT',
+      scheduleDate: today(),
+      scheduleTime: '00:01',
+      durationMinutes: 60,
+      passPercentage: 70,
+      allowAnswerReview: false, // FLOW N key parameter
+      generateCertificate: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+  });
+
+  test('N2 — HC creates package + adds 1 MC', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice',
+      text: `${Q1_MC_MARKER} — pilih jawaban benar`,
+      options: [Q1_MC_CORRECT_TEXT, 'Wrong-1', 'Wrong-2', 'Wrong-3'],
+      correctIndex: 0,
+      score: 100,
+    });
+  });
+
+  test('N3 — Worker submits exam', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', (d) => d.accept());
+    await card
+      .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard, a:has-text("Resume")')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+
+    sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+
+    const qCard = page.locator('[id^="qcard_"]').filter({ hasText: Q1_MC_MARKER });
+    await expect(qCard).toHaveCount(1);
+    await qCard
+      .locator('label.list-group-item', { hasText: Q1_MC_CORRECT_TEXT })
+      .locator('input.exam-radio')
+      .check();
+    await page
+      .locator('#saveIndicatorText')
+      .filter({ hasText: /saved|tersimpan/i })
+      .first()
+      .waitFor({ timeout: 5_000 });
+
+    await submitExamTwoStep(page);
+  });
+
+  test('N4 — Results page hides review (alert-info shown, review card absent)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto(`/CMP/Results/${sessionId}`);
+
+    // MC-only → SURF-317-A doesn't trigger → Results page renders. Score visible (100).
+    await expect(page.locator('body')).toContainText(/100/);
+
+    // POSITIVE assertion: alert-info "Tinjauan jawaban tidak tersedia" visible
+    await expect(
+      page.locator('.alert-info, .alert.alert-info', { hasText: /Tinjauan jawaban tidak tersedia/i })
+    ).toBeVisible({ timeout: 10_000 });
+
+    // NEGATIVE assertion: review card "Tinjauan Jawaban" TIDAK ada
+    await expect(page.locator('.card', { hasText: /^Tinjauan Jawaban/i })).toHaveCount(0);
+  });
+});
+
+// Suppress unused-import warnings — verifyResultPage di-skip per SURF-317-A workaround pattern.
 void verifyResultPage;
