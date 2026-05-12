@@ -378,7 +378,67 @@
       </div>
     </section>
 
-    <!-- Cluster sections lainnya di Task 3.5-3.6 -->
+    <!-- CDP Coaching section -->
+    <section x-show="activeTab === 'cdp'" x-transition class="space-y-8">
+      <h2 class="text-2xl font-bold brand-navy">🎯 CDP Coaching</h2>
+      <p class="text-slate-600">Modul coaching: Proton session + IDP planning. Untuk role Coach.</p>
+
+      <!-- Item 32: Coaching Proton -->
+      <article id="coaching-proton" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">COACH</span>
+          <a href="praktik.html#coaching-proton" class="ml-auto text-sm text-amber-600 hover:underline">🧪 Drill di Praktik →</a>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">32. Coaching Proton Session</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>Login sebagai Coach → menu "CDP" → "Coaching Proton"</li>
+          <li>List coachee yang di-assign (per CoachCoacheeMapping)</li>
+          <li>Pilih 1 coachee → "Create Session" → input topik, deliverable, due date</li>
+          <li>Coachee submit evidence (file/text) di portal</li>
+          <li>Coach review → approve / request revision / reject</li>
+          <li>Status berubah ke "Completed" setelah evidence di-approve</li>
+        </ol>
+        <div class="mt-4 bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm">
+          <strong>💡 Tip:</strong> Approval bertingkat: Coach approve → Supervisor verify → Manager final sign-off (untuk milestone besar).
+        </div>
+      </article>
+
+      <!-- Item 33: Plan IDP -->
+      <article id="plan-idp" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">COACH</span>
+          <a href="praktik.html#plan-idp" class="ml-auto text-sm text-amber-600 hover:underline">🧪 Drill di Praktik →</a>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">33. Plan IDP (Individual Development Plan)</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>"CDP" → "Plan IDP" → pilih coachee</li>
+          <li>View silabus kompetensi (per role/section)</li>
+          <li>Map target kompetensi yang dikembangkan tahun ini</li>
+          <li>Set timeline + milestone per kompetensi</li>
+          <li>Save → IDP tersimpan, jadi acuan Coaching Proton sessions</li>
+        </ol>
+        <div class="mt-4 bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm">
+          <strong>💡 Tip:</strong> IDP biasanya di-review awal tahun + mid-year. Update IDP kalau ada rotasi role coachee.
+        </div>
+      </article>
+
+      <!-- Quiz 4: CDP -->
+      <div x-data="{ answered: false, correct: null, choice: null }" class="bg-indigo-50 border-2 border-indigo-300 rounded-lg p-6">
+        <h3 class="font-bold text-indigo-900 mb-2">🎯 Quiz — CDP Coaching</h3>
+        <p class="text-sm mb-4">Coach overload assign coachee ke-11 (threshold 8). Sistem react bagaimana?</p>
+        <div class="space-y-2">
+          <button @click="answered = true; choice = 'a'; correct = false" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'a' ? 'border-red-500 bg-red-50' : ''">A. Block assign, error message</button>
+          <button @click="answered = true; choice = 'b'; correct = true" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'b' ? 'border-green-500 bg-green-50' : ''">B. Warn dengan visual indicator, assign tetap berhasil</button>
+          <button @click="answered = true; choice = 'c'; correct = false" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'c' ? 'border-red-500 bg-red-50' : ''">C. Auto-reassign ke coach lain dengan load lebih ringan</button>
+        </div>
+        <div x-show="answered" x-transition class="mt-4 p-3 rounded" :class="correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+          <p x-show="correct"><strong>✓ Betul!</strong> Threshold = signal warn, bukan hard block. Admin tetap bisa assign manual + sistem tampilkan warning.</p>
+          <p x-show="!correct"><strong>✗ Bukan.</strong> Jawaban benar: <strong>B Warn saja</strong>. Threshold = soft constraint. Block (A) dan auto-reassign (C) tidak diterapkan agar admin punya control.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics section di Task 3.6 -->
   </main>
 
   <footer class="bg-slate-100 text-slate-600 py-6 px-6 text-center text-sm mt-12">
