@@ -135,7 +135,93 @@
       </div>
     </section>
 
-    <!-- Slide 6-15 di-append di Task 2.3-2.4 -->
+    <!-- Slide 6: Struktur Role (FIX: 6 level akses, 10 role total) -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 6 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-2">Struktur <span class="text-amber-500">Role</span> Pengguna</h2>
+        <p class="text-slate-500 mb-6">6 level akses (10 role total) — makin tinggi tangga, makin luas authority</p>
+        <div class="space-y-2">
+          <div class="flex gap-3 items-center bg-red-50 p-3 rounded"><span class="font-bold w-20 text-red-700">Level 1</span><span class="font-mono">Admin</span><span class="text-xs text-slate-500 ml-auto">Full system control</span></div>
+          <div class="flex gap-3 items-center bg-orange-50 p-3 rounded"><span class="font-bold w-20 text-orange-700">Level 2</span><span class="font-mono">HC</span><span class="text-xs text-slate-500 ml-auto">HC operational lead</span></div>
+          <div class="flex gap-3 items-center bg-amber-50 p-3 rounded"><span class="font-bold w-20 text-amber-700">Level 3</span><span class="font-mono">Direktur · VP · Manager</span><span class="text-xs text-slate-500 ml-auto">Management (3 role)</span></div>
+          <div class="flex gap-3 items-center bg-yellow-50 p-3 rounded"><span class="font-bold w-20 text-yellow-700">Level 4</span><span class="font-mono">SectionHead · SrSupervisor</span><span class="text-xs text-slate-500 ml-auto">Section supervisory (2 role)</span></div>
+          <div class="flex gap-3 items-center bg-green-50 p-3 rounded"><span class="font-bold w-20 text-green-700">Level 5</span><span class="font-mono">Coach · Supervisor</span><span class="text-xs text-slate-500 ml-auto">Coaching (2 role)</span></div>
+          <div class="flex gap-3 items-center bg-blue-50 p-3 rounded"><span class="font-bold w-20 text-blue-700">Level 6</span><span class="font-mono">Coachee</span><span class="text-xs text-slate-500 ml-auto">Operational (default)</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 7: Modul CMP -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 7 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-2">Modul <span class="text-amber-500">CMP</span></h2>
+        <p class="text-slate-500 mb-6">Competency Management Program — assessment & sertifikasi kompetensi pekerja</p>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-slate-50 p-4 rounded">
+            <h3 class="font-bold brand-navy mb-2">📝 Question & Assessment</h3>
+            <ul class="text-sm text-slate-700 space-y-1 list-disc list-inside">
+              <li>Question bank per package + bulk import Excel</li>
+              <li>Create Assessment single / Pre-Post / Mixed mode</li>
+              <li>Schedule + assign user + grading auto/manual</li>
+              <li>Live monitoring sesi berjalan</li>
+            </ul>
+          </div>
+          <div class="bg-slate-50 p-4 rounded">
+            <h3 class="font-bold brand-navy mb-2">🏆 Result & Certification</h3>
+            <ul class="text-sm text-slate-700 space-y-1 list-disc list-inside">
+              <li>Results page MA mixed (Manual + Auto)</li>
+              <li>Pre-Post gain score analysis</li>
+              <li>Certificate PDF auto-generate</li>
+              <li>Renewal tracking + ExpiringSoon alert</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 8: 6 Kategori Assessment -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 8 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-2">6 Kategori <span class="text-amber-500">Assessment</span></h2>
+        <p class="text-slate-500 mb-6">Cakupan business reference — admin dapat tambah/edit kategori</p>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="bg-blue-50 p-4 rounded text-center"><div class="text-2xl mb-1">🛠️</div><strong class="text-blue-800">OJ</strong><p class="text-xs text-slate-600">On Job</p></div>
+          <div class="bg-purple-50 p-4 rounded text-center"><div class="text-2xl mb-1">🏫</div><strong class="text-purple-800">IHT</strong><p class="text-xs text-slate-600">In-House Training</p></div>
+          <div class="bg-amber-50 p-4 rounded text-center"><div class="text-2xl mb-1">📜</div><strong class="text-amber-800">Licencor</strong><p class="text-xs text-slate-600">Vendor license</p></div>
+          <div class="bg-green-50 p-4 rounded text-center"><div class="text-2xl mb-1">🎮</div><strong class="text-green-800">OTS</strong><p class="text-xs text-slate-600">Operator Training Simulator</p></div>
+          <div class="bg-red-50 p-4 rounded text-center"><div class="text-2xl mb-1">⛑️</div><strong class="text-red-800">HSSE</strong><p class="text-xs text-slate-600">Safety & environment</p></div>
+          <div class="bg-indigo-50 p-4 rounded text-center"><div class="text-2xl mb-1">⚛️</div><strong class="text-indigo-800">Proton</strong><p class="text-xs text-slate-600">Coaching program</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 9: Modul CDP -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 9 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-2">Modul <span class="text-amber-500">CDP</span></h2>
+        <p class="text-slate-500 mb-6">Continuous Development Program — coaching, IDP, sertifikasi pekerja</p>
+        <div class="space-y-3">
+          <div class="bg-slate-50 p-4 rounded flex gap-3 items-start"><span class="text-3xl">👥</span><div><h3 class="font-bold brand-navy">Coaching Proton</h3><p class="text-sm text-slate-700">Manage coaching session, submit deliverable, evidence approval flow coach-coachee</p></div></div>
+          <div class="bg-slate-50 p-4 rounded flex gap-3 items-start"><span class="text-3xl">🎯</span><div><h3 class="font-bold brand-navy">Plan IDP (Individual Development Plan)</h3><p class="text-sm text-slate-700">Setup target kompetensi per worker, silabus-based mapping, monitor progress</p></div></div>
+          <div class="bg-slate-50 p-4 rounded flex gap-3 items-start"><span class="text-3xl">🔗</span><div><h3 class="font-bold brand-navy">Coach-Coachee Mapping</h3><p class="text-sm text-slate-700">Assign coach ke coachee, threshold workload monitoring, bulk import Excel</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 10: Coaching Proton Journey -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 10 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-2">Coaching Proton <span class="text-amber-500">Journey</span></h2>
+        <p class="text-slate-500 mb-6">Perjalanan pengembangan pekerja Tahun 1 → Tahun 3</p>
+        <div class="space-y-3">
+          <div class="flex gap-3 items-start"><div class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div><div class="bg-blue-50 p-3 rounded flex-1"><strong>Tahun 1 — Fundamental:</strong> Onboarding, basic kompetensi, IDP awal, coach mapping</div></div>
+          <div class="flex gap-3 items-start"><div class="bg-amber-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div><div class="bg-amber-50 p-3 rounded flex-1"><strong>Tahun 2 — Develop:</strong> Advanced kompetensi, deliverable submission, mid-cycle assessment</div></div>
+          <div class="flex gap-3 items-start"><div class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div><div class="bg-green-50 p-3 rounded flex-1"><strong>Tahun 3 — Certify:</strong> Final assessment, sertifikasi, transition ke role baru</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 11-15 di-append di Task 2.4 -->
   </main>
 
   <script>
