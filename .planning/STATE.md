@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v16.0
 milestone_name: QA Test Coverage
-status: executing
-last_updated: "2026-05-11T11:00:00.000Z"
-last_activity: 2026-05-11
+status: phase-complete
+last_updated: "2026-05-12T03:00:00.000Z"
+last_activity: 2026-05-12 -- Phase 318 complete (5/5 plans, 49/49 regression HIJAU, QA-08 4/4 covered)
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
-  percent: 40
+  completed_phases: 4
+  total_plans: 18
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -20,21 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-11)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 317 — fix-surf-316-a-ma-essay-mixed-e2e-via-ui
+**Current focus:** Phase 318 ✅ COMPLETE — ready for Phase 319 (admin features QA-09)
 
 ## Current Position
 
-Phase: 317
-Plan: Not started (plan draft di `~/.claude/plans/phase-315-dan-316-streamed-llama.md` — 8 tasks)
-Status: Executing Phase 317 (Tasks 1+2 done outside planner; Tasks 3-8 pending)
-Last activity: 2026-05-11
-Resume file: TBD (Phase 317 belum punya CONTEXT.md formal)
+Phase: 318 (pretest-posttest-full-cycle-examwindowclosedate-certificate-pdf-e2e) — ✅ COMPLETE
+Plan: 5 of 5 (all landed)
+Status: Phase 318 closed (49/49 regression HIJAU, QA-08 4/4 covered)
+Last activity: 2026-05-12 -- Phase 318 complete (commits f9704fb7, 8c490655, 063a4763, d84309bd, 3bfc09a5)
+Closure report: docs/test-reports/2026-05-12-phase-318-summary.md
 
 ## Next Action
 
-1. **Recommended:** `/gsd-plan-phase 317` — convert plan draft jadi formal phase plans (split Task 3-7 jadi exam-types.spec.ts plans; Task 8 jadi regression smoke plan)
-2. **Alternatively:** Lanjut execute langsung tanpa planner — buat `tests/e2e/exam-types.spec.ts` FLOW K (MA full cycle) sebagai first wave
-3. **Defer:** Phase 318+319 plan (preview only di ROADMAP) — activate setelah 317 selesai
+1. **Recommended:** `/gsd-discuss-phase 319` — start Phase 319 admin features (ManualAssessment + Export Excel + Analytics + CertificationManagement E2E)
+2. **Production:** Notify Team IT untuk rollout Plan 02 commit `8c490655` ke Dev (10.55.3.3) — flag "no migration"
+3. **Backlog:** Phase 320 proposed (FLOW A-J wholesale refresh + K5/M5 UI assertion upgrade)
 
 ## Deferred Items
 
