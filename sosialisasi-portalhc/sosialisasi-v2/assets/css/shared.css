@@ -1,0 +1,57 @@
+:root {
+  --navy: #002e6d;
+  --navy-dark: #001c44;
+  --red: #ed1c24;
+  --red-dark: #b0121a;
+  --green: #009640;
+  --amber: #f59e0b;
+  --slate: #64748b;
+  --bg-light: #f0f2f5;
+  --bg-dark: #0f172a;
+  --text-light: #1a1a1a;
+  --text-dark: #f1f5f9;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: var(--bg-light);
+  color: var(--text-light);
+}
+
+body.dark {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+.brand-navy { color: var(--navy); }
+.brand-red { color: var(--red); }
+.bg-brand-navy { background: var(--navy); }
+.bg-brand-red { background: var(--red); }
+
+.card-hover {
+  transition: transform 200ms, box-shadow 200ms;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 46, 109, 0.15);
+}
+
+.slide-fade-enter { animation: slide-fade 300ms ease-out; }
+@keyframes slide-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shake { animation: shake 300ms; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.checkmark-pop { animation: pop 400ms; }
+@keyframes pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
