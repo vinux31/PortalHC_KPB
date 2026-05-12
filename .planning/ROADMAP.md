@@ -408,7 +408,7 @@ Plans:
 **Goal:** Test coverage untuk ManualAssessment workflow (HC manual entry skor tanpa peserta exam), ManageCategories CRUD, Export Excel endpoint (re-query independent vs API), Analytics dashboard charts (Chart.js v4 indexAxis:'y'), CertificationManagement page (sertifikat lookup + reissue).
 **Requirements:** QA-04 (admin features coverage)
 **Depends on:** Phase 318
-**Plans:** TBD (preview only)
+**Plans:** 1/4 plans executed
 
 ---
 
