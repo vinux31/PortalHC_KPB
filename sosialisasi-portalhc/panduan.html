@@ -438,7 +438,87 @@
       </div>
     </section>
 
-    <!-- Analytics section di Task 3.6 -->
+    <!-- Analytics section -->
+    <section x-show="activeTab === 'analytics'" x-transition class="space-y-8">
+      <h2 class="text-2xl font-bold brand-navy">📊 Analytics & Reporting</h2>
+      <p class="text-slate-600">Dashboard insight + export Excel laporan untuk HR, manager, compliance.</p>
+
+      <!-- Item 36: Analytics Dashboard -->
+      <article id="dashboard" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">MANAGER + ADMIN</span>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">36. Analytics Dashboard</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>Menu "Analytics" → "Dashboard"</li>
+          <li>Chart utama: fail rate, trend, ET breakdown, expiring soon</li>
+          <li>Klik chart bagian → drill-down detail (per category, per worker, per section)</li>
+          <li>Filter date range + category di top dashboard</li>
+          <li>Tombol "Export Excel" per chart untuk laporan</li>
+        </ol>
+      </article>
+
+      <!-- Item 40: Expiring Soon -->
+      <article id="expiring-soon" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">COMPLIANCE</span>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">40. Expiring Soon (Certificate Renewal)</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>"Analytics" → "Expiring Soon"</li>
+          <li>List sertifikat yang expire dalam 30/60/90 hari</li>
+          <li>Filter by category, section, worker</li>
+          <li>Tombol "Schedule Renewal Assessment" → langsung create assessment baru</li>
+          <li>Export list untuk follow-up HR</li>
+        </ol>
+        <div class="mt-4 bg-red-50 border-l-4 border-red-400 p-3 rounded text-sm">
+          <strong>⚠️ Compliance critical:</strong> Cek minimal mingguan. Sertifikat expire tanpa renewal = pekerja tidak boleh kerja di area regulated.
+        </div>
+      </article>
+
+      <!-- Item 43: Certification Management -->
+      <article id="certification" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">HR · REPORTING</span>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">43. Certification Management</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>"Analytics" → "Certification Management"</li>
+          <li>List semua sertifikat valid per worker</li>
+          <li>Filter by status (Valid / Expired / Revoked), category, section</li>
+          <li>Tombol "Export Sertifikat" → Excel detail full</li>
+          <li>Tombol "Export Detail" → Excel dengan certificate metadata + tanggal</li>
+        </ol>
+      </article>
+
+      <!-- Item 44: Export Assessment Results -->
+      <article id="export-results" class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">ASESOR · REPORTING</span>
+        </div>
+        <h3 class="text-xl font-bold brand-navy mb-3">44. Export Assessment Results</h3>
+        <ol class="space-y-2 text-sm list-decimal list-inside">
+          <li>"Manage Assessment" → klik sesi → tombol "Export Results"</li>
+          <li>Excel file ter-download dengan kolom: NIP, FullName, Section, Skor, Grade, Status, Tanggal</li>
+          <li>Atau bulk: "Manage Assessment" → tombol "Export All" → semua sesi dalam date range</li>
+        </ol>
+      </article>
+
+      <!-- Quiz 5: Analytics -->
+      <div x-data="{ answered: false, correct: null, choice: null }" class="bg-indigo-50 border-2 border-indigo-300 rounded-lg p-6">
+        <h3 class="font-bold text-indigo-900 mb-2">🎯 Quiz — Analytics</h3>
+        <p class="text-sm mb-4">Compliance officer mau cek pekerja dengan sertifikat expire dalam 60 hari. Buka menu apa?</p>
+        <div class="space-y-2">
+          <button @click="answered = true; choice = 'a'; correct = false" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'a' ? 'border-red-500 bg-red-50' : ''">A. Manage Assessment → filter expired</button>
+          <button @click="answered = true; choice = 'b'; correct = false" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'b' ? 'border-red-500 bg-red-50' : ''">B. Worker CRUD → cek expiry per worker manual</button>
+          <button @click="answered = true; choice = 'c'; correct = true" :disabled="answered" class="block w-full text-left p-3 rounded border bg-white hover:bg-slate-50" :class="answered && choice === 'c' ? 'border-green-500 bg-green-50' : ''">C. Analytics → Expiring Soon, filter 60 hari</button>
+        </div>
+        <div x-show="answered" x-transition class="mt-4 p-3 rounded" :class="correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+          <p x-show="correct"><strong>✓ Betul!</strong> Expiring Soon dirancang khusus untuk compliance renewal tracking dengan filter 30/60/90 hari.</p>
+          <p x-show="!correct"><strong>✗ Bukan.</strong> Jawaban benar: <strong>C Expiring Soon</strong>. (A) Manage Assessment buat sesi, bukan tracking expiry. (B) Worker CRUD untuk data worker, tidak efisien manual.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="bg-slate-100 text-slate-600 py-6 px-6 text-center text-sm mt-12">
