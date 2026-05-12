@@ -37,7 +37,7 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
     await page.goto('/Admin/CreateAssessment');
 
     // Select Rino
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
+    await page.locator('.user-check-item[data-email="rino.prasetyo@pertamina.com"] input.user-checkbox').check({ force: true });
     await expect(page.locator('#selectedCountBadge')).toContainText('1 selected');
 
     await page.fill('#Title', title);
