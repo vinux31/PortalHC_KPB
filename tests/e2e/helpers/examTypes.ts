@@ -579,3 +579,43 @@ export async function createPrePostAssessmentViaWizard(
   const postIds = parsed.Sessions.map((s) => s.PostId);
   return { preIds, postIds };
 }
+
+// ============================================================
+// Phase 318 Plan 04 — Certificate PDF download via APIRequest
+// Source: Controllers/CMPController.cs:1898-1962 (verified 2026-05-12)
+// ============================================================
+
+/**
+ * Verify Certificate PDF download dari /CMP/CertificatePdf/{sessionId}.
+ * APIRequest pattern: page.request.get() inherits page context cookies → auth preserved.
+ *
+ * Assertions:
+ *  - status === 200
+ *  - content-type startsWith 'application/pdf'
+ *  - content-disposition match /attachment.*Sertifikat_/i
+ *  - body bytes > 1024 (guard zero-byte regression CMPController.cs:2118-2122)
+ *
+ * Pre-condition: caller logged in; session Completed + IsPassed=true + GenerateCertificate=true.
+ */
+export async function verifyCertificatePdfDownload(
+  page: Page,
+  sessionId: number
+): Promise<{ bytes: number; filename: string }> {
+  const response = await page.request.get(`/CMP/CertificatePdf/${sessionId}`);
+
+  expect(response.status(), `CertificatePdf status (sessionId=${sessionId})`).toBe(200);
+
+  const contentType = response.headers()['content-type'] ?? '';
+  expect(contentType, 'Content-Type header').toMatch(/^application\/pdf/i);
+
+  const contentDisp = response.headers()['content-disposition'] ?? '';
+  expect(contentDisp, 'Content-Disposition header').toMatch(/attachment.*Sertifikat_/i);
+  const filenameMatch = contentDisp.match(/filename=(?:"([^"]+)"|([^;\s]+))/i);
+  const filename = (filenameMatch?.[1] ?? filenameMatch?.[2] ?? '').trim();
+  expect(filename, 'Filename extracted from Content-Disposition').toMatch(/^Sertifikat_/);
+
+  const body = await response.body();
+  expect(body.length, 'PDF body bytes').toBeGreaterThan(1024);
+
+  return { bytes: body.length, filename };
+}

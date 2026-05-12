@@ -11,6 +11,7 @@ import {
   gradeSingleEssaySession,
   addExtraTimeViaModal,
   createPrePostAssessmentViaWizard,
+  verifyCertificatePdfDownload,
   type QuestionInput,
   type CreatePrePostOpts,
 } from './helpers/examTypes';
@@ -1086,6 +1087,318 @@ test.describe('FLOW Q — ExamWindowCloseDate Reject', () => {
        FROM AssessmentSessions WHERE Id = ${sessionId}`
     );
     expect(startedAt).toBe('<null>');
+  });
+});
+
+// ============================================================
+// Phase 318 Plan 04 — FLOW R (Certificate PDF Download + NomorSertifikat)
+// ============================================================
+test.describe('FLOW R — Certificate PDF Download + NomorSertifikat', () => {
+  let title: string;
+  let assessmentId: number;
+  let packageId: number;
+  let sessionId: number;
+  const Q_MARKER = '[318-R] Q1 — Apa singkatan HC?';
+  const Q_CORRECT = 'Human Capital';
+
+  test('R1 — HC creates assessment with GenerateCertificate=true', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    title = uniqueTitle('[318-R] Cert Exam');
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title,
+      category: 'OJT',
+      scheduleDate: today(),
+      scheduleTime: '00:01',
+      durationMinutes: 60,
+      passPercentage: 70,
+      allowAnswerReview: true,
+      generateCertificate: true,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    expect(assessmentId).toBeGreaterThan(0);
+  });
+
+  test('R2 — HC creates package + 1 MC question (correct=A) score 100', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice',
+      text: Q_MARKER,
+      options: [Q_CORRECT, 'Health Care', 'Hard Copy', 'Help Center'],
+      correctIndex: 0,
+      score: 100,
+    });
+  });
+
+  test('R3 — Worker submits correct answer + DB Passed=true', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card, .card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', (d) => d.accept());
+    await card
+      .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+
+    sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+    expect(sessionId).toBeGreaterThan(0);
+
+    const qCard = page.locator('[id^="qcard_"]').filter({ hasText: Q_MARKER });
+    await qCard
+      .locator('label.list-group-item', { hasText: Q_CORRECT })
+      .locator('input.exam-radio')
+      .check();
+    await page
+      .locator('#saveIndicatorText')
+      .filter({ hasText: /saved|tersimpan/i })
+      .first()
+      .waitFor({ timeout: 7_500 });
+    await submitExamTwoStep(page);
+
+    const passed = await db.queryScalar(
+      `SELECT CAST(IsPassed AS int) FROM AssessmentSessions WHERE Id = ${sessionId}`
+    );
+    expect(passed).toBe(1);
+
+    const status = await db.queryString(
+      `SELECT Status FROM AssessmentSessions WHERE Id = ${sessionId}`
+    );
+    expect(status).toBe('Completed');
+
+    const score = await db.queryScalar(
+      `SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${sessionId}`
+    );
+    expect(score).toBe(100);
+  });
+
+  test('R4 — Worker downloads Certificate PDF via APIRequest (Wave 0 verify A4)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    const result = await verifyCertificatePdfDownload(page, sessionId);
+    expect(result.bytes).toBeGreaterThan(1024);
+    expect(result.filename).toMatch(/^Sertifikat_/);
+    // eslint-disable-next-line no-console
+    console.log(`[FLOW R4] PDF download OK — bytes=${result.bytes}, filename=${result.filename}`);
+  });
+
+  test('R5 — DB verify NomorSertifikat populated (sync generation)', async () => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    const nomor = await db.queryString(
+      `SELECT ISNULL(NomorSertifikat, '') FROM AssessmentSessions WHERE Id = ${sessionId}`
+    );
+    expect(typeof nomor).toBe('string');
+    expect(nomor.length).toBeGreaterThan(0);
+    // eslint-disable-next-line no-console
+    console.log(`[FLOW R5] NomorSertifikat=${nomor}`);
+
+    // Suppress unused — packageId tracked for documentation (used by R2 side effect only)
+    void packageId;
+  });
+});
+
+// ============================================================
+// Phase 318 Plan 04 — FLOW S (AllowAnswerReview True vs False Paired Comparison)
+// ============================================================
+test.describe('FLOW S — AllowAnswerReview True vs False Paired Comparison', () => {
+  let titleTrue: string;
+  let titleFalse: string;
+  let aIdTrue: number;
+  let aIdFalse: number;
+  let pkgTrue: number;
+  let pkgFalse: number;
+  let sessTrue: number;
+  let sessFalse: number;
+  const Q_TRUE_MARKER = '[318-S-TRUE] Q1 — Pilih jawaban benar';
+  const Q_FALSE_MARKER = '[318-S-FALSE] Q1 — Pilih jawaban benar';
+
+  test('S1 — HC creates assessment A (allowAnswerReview=true) + package + MC question', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    titleTrue = uniqueTitle('[318-S-TRUE] Review Exam');
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title: titleTrue,
+      category: 'OJT',
+      scheduleDate: today(),
+      scheduleTime: '00:01',
+      durationMinutes: 60,
+      passPercentage: 70,
+      allowAnswerReview: true,
+      generateCertificate: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    aIdTrue = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+
+    await page.goto(`/Admin/ManagePackages?assessmentId=${aIdTrue}`);
+    await page.waitForLoadState('networkidle');
+    pkgTrue = await createDefaultPackage(page);
+    await addQuestionViaForm(page, pkgTrue, {
+      type: 'MultipleChoice',
+      text: Q_TRUE_MARKER,
+      options: ['Correct', 'Wrong-1', 'Wrong-2', 'Wrong-3'],
+      correctIndex: 0,
+      score: 100,
+    });
+  });
+
+  test('S2 — Worker submits A → captures sessTrue', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card, .card', { hasText: titleTrue }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', (d) => d.accept());
+    await card
+      .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+    sessTrue = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+
+    const qCard = page.locator('[id^="qcard_"]').filter({ hasText: Q_TRUE_MARKER });
+    await qCard
+      .locator('label.list-group-item', { hasText: 'Correct' })
+      .locator('input.exam-radio')
+      .check();
+    await page
+      .locator('#saveIndicatorText')
+      .filter({ hasText: /saved|tersimpan/i })
+      .first()
+      .waitFor({ timeout: 7_500 });
+    await submitExamTwoStep(page);
+  });
+
+  test('S3 — Results A: .card "Tinjauan Jawaban" VISIBLE (positive)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto(`/CMP/Results/${sessTrue}`);
+
+    await expect(page.locator('body')).toContainText(/100/);
+
+    await expect(
+      page.locator('.card', { hasText: /Tinjauan Jawaban/i }).first()
+    ).toBeVisible({ timeout: 10_000 });
+
+    // .card "Tinjauan Jawaban" contains 1 question wrapper + N option list-group-items (Razor lines 326+).
+    // Verify at least 1 item visible (relaxed from strict count=1 — option items also wrap as list-group-item).
+    const items = page.locator('.card', { hasText: /Tinjauan Jawaban/i }).first().locator('.list-group-item');
+    expect(await items.count()).toBeGreaterThan(0);
+
+    await expect(
+      page.locator('.alert-info', { hasText: /Tinjauan jawaban tidak tersedia/i })
+    ).toHaveCount(0);
+  });
+
+  test('S4 — HC creates assessment B (allowAnswerReview=false) + package + MC question', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    titleFalse = uniqueTitle('[318-S-FALSE] NoReview Exam');
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title: titleFalse,
+      category: 'OJT',
+      scheduleDate: today(),
+      scheduleTime: '00:01',
+      durationMinutes: 60,
+      passPercentage: 70,
+      allowAnswerReview: false,
+      generateCertificate: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    aIdFalse = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+
+    await page.goto(`/Admin/ManagePackages?assessmentId=${aIdFalse}`);
+    await page.waitForLoadState('networkidle');
+    pkgFalse = await createDefaultPackage(page);
+    await addQuestionViaForm(page, pkgFalse, {
+      type: 'MultipleChoice',
+      text: Q_FALSE_MARKER,
+      options: ['Correct', 'Wrong-1', 'Wrong-2', 'Wrong-3'],
+      correctIndex: 0,
+      score: 100,
+    });
+  });
+
+  test('S5 — Worker submits B → captures sessFalse', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card, .card', { hasText: titleFalse }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', (d) => d.accept());
+    await card
+      .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+    sessFalse = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+
+    const qCard = page.locator('[id^="qcard_"]').filter({ hasText: Q_FALSE_MARKER });
+    await qCard
+      .locator('label.list-group-item', { hasText: 'Correct' })
+      .locator('input.exam-radio')
+      .check();
+    await page
+      .locator('#saveIndicatorText')
+      .filter({ hasText: /saved|tersimpan/i })
+      .first()
+      .waitFor({ timeout: 7_500 });
+    await submitExamTwoStep(page);
+  });
+
+  test('S6 — Results B: .alert-info "tidak tersedia" VISIBLE + .card count=0 (negative)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto(`/CMP/Results/${sessFalse}`);
+
+    await expect(page.locator('body')).toContainText(/100/);
+
+    await expect(
+      page.locator('.alert-info, .alert.alert-info', {
+        hasText: /Tinjauan jawaban tidak tersedia/i,
+      })
+    ).toBeVisible({ timeout: 10_000 });
+
+    await expect(page.locator('.card', { hasText: /^Tinjauan Jawaban/i })).toHaveCount(0);
+
+    // Suppress unused — id+pkg tracked for documentation (used by S1/S4 side effects only)
+    void aIdTrue;
+    void aIdFalse;
+    void pkgTrue;
+    void pkgFalse;
   });
 });
 
