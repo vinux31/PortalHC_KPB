@@ -1629,5 +1629,157 @@ test.describe('FLOW T — ManualAssessment Full CRUD', () => {
   });
 });
 
+test.describe('FLOW U — ManageCategories CRUD + Duplicate Reject', () => {
+  let catName: string;
+  let editedName: string;
+  const escapeSqlU = (s: string) => s.replace(/'/g, "''");
+
+  test('U1 — HC create category + DB verify INSERT', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    catName = `[319-U] OJT-${Date.now()}`;
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageCategories');
+    await page.waitForLoadState('networkidle');
+
+    // Expand add form collapse
+    const expandBtn = page.locator('button[data-bs-target="#addCategoryForm"]').first();
+    await expandBtn.click();
+    await expect(page.locator('#addCategoryForm.show')).toBeVisible({ timeout: 5_000 });
+
+    // Fill form fields
+    await page.fill('#addCategoryForm input[name="name"]', catName);
+    const passInput = page.locator('#addCategoryForm input[name="defaultPassPercentage"]');
+    if (await passInput.count() > 0) await passInput.fill('75');
+    const sortInput = page.locator('#addCategoryForm input[name="sortOrder"]');
+    if (await sortInput.count() > 0) await sortInput.fill('99');
+
+    // Submit + wait redirect (POST-redirect-GET pattern)
+    const submitBtn = page.locator('#addCategoryForm button[type="submit"]').filter({ hasText: /tambah|simpan|save/i }).first();
+    await Promise.all([
+      page.waitForURL(/\/ManageCategories/, { timeout: 10_000 }),
+      submitBtn.click(),
+    ]);
+
+    // Assert success alert + table contains row (use .first() — Blazor toast + TempData dual render per Plan 01 deviation)
+    await expect(
+      page.locator('.alert-success', { hasText: /berhasil/i }).first()
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('td', { hasText: catName }).first()).toBeVisible({ timeout: 5_000 });
+
+    // DB verify
+    const count = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentCategories WHERE Name = N'${escapeSqlU(catName)}'`
+    );
+    expect(count).toBe(1);
+  });
+
+  test('U2 — HC edit category name + DB verify UPDATE', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    editedName = `${catName} EDITED`;
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageCategories');
+    await page.waitForLoadState('networkidle');
+
+    // Find row by catName → click edit button
+    const row = page.locator('tr', { hasText: catName }).first();
+    await expect(row).toBeVisible({ timeout: 5_000 });
+
+    // Edit anchor pattern (View line 281/345/404): <a href="/Admin/EditCategory?id={id}">
+    const editLink = row.locator('a[href*="EditCategory"]').first();
+    await editLink.click();
+    await page.waitForLoadState('networkidle');
+
+    // Edit form scoped by action attr (View line 140: form action="/Admin/EditCategory?id=X")
+    const editForm = page.locator('form[action*="EditCategory"]');
+    await expect(editForm).toBeVisible({ timeout: 5_000 });
+    await editForm.locator('input[name="name"]').fill(editedName);
+
+    const editSubmit = editForm.locator('button[type="submit"].btn-warning, button[type="submit"]').first();
+    await Promise.all([
+      page.waitForURL(/\/ManageCategories/, { timeout: 10_000 }),
+      editSubmit.click(),
+    ]);
+
+    // DB verify
+    const newCount = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentCategories WHERE Name = N'${escapeSqlU(editedName)}'`
+    );
+    expect(newCount).toBe(1);
+    const oldCount = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentCategories WHERE Name = N'${escapeSqlU(catName)}'`
+    );
+    expect(oldCount).toBe(0);
+  });
+
+  test('U3 — HC delete category + DB verify row removed', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+
+    // Strategy 1: direct POST /Admin/DeleteCategory (avoid Bootstrap modal animation race).
+    // View JS sets #deleteForm.action + #deleteModalId via show.bs.modal handler — fragile under headless timing.
+    // Same pattern as FLOW T6 delete. Controller line 473: DeleteCategory(int id) hard-delete.
+    const idStr = await db.queryString(
+      `SELECT TOP 1 CAST(Id AS NVARCHAR(20)) FROM AssessmentCategories WHERE Name = N'${escapeSqlU(editedName)}'`
+    );
+    const catId = parseInt(idStr, 10);
+    expect(catId).toBeGreaterThan(0);
+
+    await page.goto('/Admin/ManageCategories');
+    const token = await page.locator('input[name="__RequestVerificationToken"]').first().getAttribute('value');
+    expect(token).toBeTruthy();
+
+    const deleteResp = await page.request.post('/Admin/DeleteCategory', {
+      form: {
+        id: String(catId),
+        __RequestVerificationToken: token!,
+      },
+    });
+    expect([200, 302]).toContain(deleteResp.status());
+
+    // DB verify removed (hard delete per controller line 484)
+    const stillActive = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentCategories WHERE Name = N'${escapeSqlU(editedName)}' AND (IsActive IS NULL OR IsActive = 1)`
+    );
+    expect(stillActive).toBe(0);
+  });
+
+  test('U4 — HC duplicate name rejected via TempData alert-danger', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    // Pick existing category name dari DB (seed-aged row, BUKAN dari U1-U3)
+    const existingName = await db.queryString(
+      `SELECT TOP 1 Name FROM AssessmentCategories WHERE (IsActive IS NULL OR IsActive = 1) ORDER BY Id ASC`
+    );
+    expect(existingName.length).toBeGreaterThan(0);
+
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageCategories');
+    await page.waitForLoadState('networkidle');
+
+    await page.locator('button[data-bs-target="#addCategoryForm"]').first().click();
+    await expect(page.locator('#addCategoryForm.show')).toBeVisible({ timeout: 5_000 });
+
+    await page.fill('#addCategoryForm input[name="name"]', existingName);
+    const passInput = page.locator('#addCategoryForm input[name="defaultPassPercentage"]');
+    if (await passInput.count() > 0) await passInput.fill('80');
+
+    const submitBtn = page.locator('#addCategoryForm button[type="submit"]').filter({ hasText: /tambah|simpan|save/i }).first();
+    await Promise.all([
+      page.waitForURL(/\/ManageCategories/, { timeout: 10_000 }),
+      submitBtn.click(),
+    ]);
+
+    // Pitfall 5: TempData-based reject — alert-danger, NOT inline ModelState validation. .first() — defensive vs dual-alert render
+    await expect(
+      page.locator('.alert-danger', { hasText: /sudah digunakan|already exists/i }).first()
+    ).toBeVisible({ timeout: 5_000 });
+
+    // DB verify NO duplicate row added (count tetap 1 untuk existingName)
+    const dupCount = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentCategories WHERE Name = N'${escapeSqlU(existingName)}'`
+    );
+    expect(dupCount).toBe(1);
+  });
+});
+
 // Suppress unused-import warnings — verifyResultPage di-skip per SURF-317-A workaround pattern.
 void verifyResultPage;
