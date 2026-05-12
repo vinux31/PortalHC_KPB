@@ -12,8 +12,11 @@ import {
   addExtraTimeViaModal,
   createPrePostAssessmentViaWizard,
   verifyCertificatePdfDownload,
+  verifyExcelDownload,
+  interceptAnalyticsResponse,
   type QuestionInput,
   type CreatePrePostOpts,
+  type AnalyticsResponseShape,
 } from './helpers/examTypes';
 import { verifyResultPage } from './helpers/examMatrix';
 import * as db from '../helpers/dbSnapshot';
@@ -1778,6 +1781,147 @@ test.describe('FLOW U — ManageCategories CRUD + Duplicate Reject', () => {
       `SELECT COUNT(*) FROM AssessmentCategories WHERE Name = N'${escapeSqlU(existingName)}'`
     );
     expect(dupCount).toBe(1);
+  });
+});
+
+test.describe('smoke wave-0 phase-319 V+W (verify A1 Excel + A4 Analytics)', () => {
+  test('W0.V0 — Excel endpoint /Admin/ExportCategoriesExcel reachable + log bytes', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    const result = await verifyExcelDownload(
+      page,
+      '/Admin/ExportCategoriesExcel',
+      { minBytes: 256, filenamePattern: /\.xlsx$/i }
+    );
+    // eslint-disable-next-line no-console
+    console.log(`[W0.V0] Excel bytes=${result.bytes}, filename=${result.filename}, contentType=${result.contentType}`);
+    expect(result.bytes).toBeGreaterThan(256);
+  });
+
+  test('W0.W0 — Analytics JSON shape camelCase log raw response', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    const data = await interceptAnalyticsResponse<Record<string, unknown>>(
+      page,
+      () => page.goto('/CMP/AnalyticsDashboard').then(() => undefined),
+      '/CMP/GetAnalyticsSummary'
+    );
+    // eslint-disable-next-line no-console
+    console.log(`[W0.W0] Analytics raw JSON keys: ${Object.keys(data).join(', ')}`);
+    const keys = Object.keys(data);
+    const hasTotalSessions = keys.some(k => k.toLowerCase() === 'totalsessions');
+    expect(hasTotalSessions).toBe(true);
+  });
+});
+
+test.describe('FLOW V — Export Excel Endpoint Validation', () => {
+  const EXCEL_ENDPOINT = '/Admin/ExportCategoriesExcel';
+
+  test('V1 — HC export Excel → 200 + xlsx MIME + bytes threshold', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    const result = await verifyExcelDownload(page, EXCEL_ENDPOINT, {
+      minBytes: 1024,
+      filenamePattern: /\.xlsx$/i,
+    });
+    expect(result.bytes).toBeGreaterThan(1024);
+    expect(result.filename).toMatch(/\.xlsx$/);
+    // eslint-disable-next-line no-console
+    console.log(`[V1] Excel: bytes=${result.bytes}, filename=${result.filename}`);
+  });
+
+  test('V2 — Content-Type explicit assert spreadsheetml OR ms-excel', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    const result = await verifyExcelDownload(page, EXCEL_ENDPOINT, { minBytes: 1024 });
+    const isXlsx = result.contentType.includes('spreadsheetml');
+    const isXls = result.contentType.includes('ms-excel');
+    expect(isXlsx || isXls).toBe(true);
+  });
+
+  test('V3 — Unauthenticated request blocked (auth gate)', async ({ page, context }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await context.clearCookies();
+    // maxRedirects:0 — Playwright default follows redirects; we need raw 302 from /Admin/ExportCategoriesExcel,
+    // not the final 200 of the login page after redirect chain.
+    const response = await page.request.get(EXCEL_ENDPOINT, { maxRedirects: 0 });
+    expect(response.status()).not.toBe(200);
+    expect([302, 401, 403]).toContain(response.status());
+  });
+});
+
+test.describe('FLOW W — Analytics Dashboard JSON+DOM+DB', () => {
+  test('W1 — HC navigate /CMP/AnalyticsDashboard + page elements visible', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto('/CMP/AnalyticsDashboard');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page).toHaveURL(/AnalyticsDashboard/);
+    await expect(page.locator('#analyticsConfig')).toBeAttached({ timeout: 10_000 });
+
+    // Filter via #analyticsConfig data-* attributes (View line 38-39: data-summary-url, etc.)
+    const summaryUrl = await page.locator('#analyticsConfig').getAttribute('data-summary-url');
+    expect(summaryUrl, 'analyticsConfig data-summary-url attr set').toBeTruthy();
+  });
+
+  test('W2 — Intercept GetAnalyticsSummary → assert shape (totalSessions, passRate, etc.)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+
+    const data = await interceptAnalyticsResponse<AnalyticsResponseShape>(
+      page,
+      () => page.goto('/CMP/AnalyticsDashboard').then(() => undefined),
+      '/CMP/GetAnalyticsSummary'
+    );
+
+    expect(data).toHaveProperty('totalSessions');
+    expect(data).toHaveProperty('passRate');
+    expect(data).toHaveProperty('expiringCount');
+    expect(data).toHaveProperty('avgGainScore');
+
+    expect(typeof data.totalSessions).toBe('number');
+    expect(typeof data.passRate).toBe('number');
+    // eslint-disable-next-line no-console
+    console.log(`[W2] Analytics shape: totalSessions=${data.totalSessions}, passRate=${data.passRate}`);
+  });
+
+  test('W3 — DOM canvas smoke (3 charts attached + Chart.js loaded)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto('/CMP/AnalyticsDashboard');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2_000);
+
+    await expect(page.locator('canvas#failRateChart')).toBeAttached({ timeout: 10_000 });
+    await expect(page.locator('canvas#trendChart')).toBeAttached({ timeout: 10_000 });
+    await expect(page.locator('canvas#gainScoreTrendChart')).toBeAttached({ timeout: 10_000 });
+
+    const chartLoaded = await page.evaluate(() => typeof (window as unknown as { Chart?: unknown }).Chart === 'function');
+    expect(chartLoaded).toBe(true);
+  });
+
+  test('W4 — DB cross-check totalSessions matches COUNT query', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+
+    const data = await interceptAnalyticsResponse<AnalyticsResponseShape>(
+      page,
+      () => page.goto('/CMP/AnalyticsDashboard').then(() => undefined),
+      '/CMP/GetAnalyticsSummary'
+    );
+
+    // Default periode (CMPController.cs:2737-2746): periodeEnd = today (Indonesia TZ, midnight Date), periodeStart = periodeEnd - 1y.
+    // Raw DB query (no upper bound) >= API filter (upper bound = today midnight Indonesia).
+    // Sessions completed today after midnight WIB excluded by API. Allow API ≤ DB.
+    const dbCount = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE IsPassed IS NOT NULL AND CompletedAt IS NOT NULL AND CompletedAt >= DATEADD(year, -1, GETDATE())`
+    );
+
+    expect(data.totalSessions).toBeLessThanOrEqual(dbCount);
+    expect(data.totalSessions).toBeGreaterThanOrEqual(0);
+    // eslint-disable-next-line no-console
+    console.log(`[W4] DB cross-check: API totalSessions=${data.totalSessions} (filter <=today WIB), DB COUNT=${dbCount} (unbounded)`);
   });
 });
 
