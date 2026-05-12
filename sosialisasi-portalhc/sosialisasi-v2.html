@@ -76,6 +76,30 @@
       white-space: nowrap;
       border: 0;
     }
+    .flow-step {
+      position: relative;
+      padding: 1rem;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.5rem;
+      text-align: center;
+      transition: all 200ms;
+    }
+    .flow-step:hover { border-color: var(--navy); transform: translateY(-2px); }
+    .flow-step.active { border-color: var(--navy); background: #eff6ff; }
+    .flow-step .step-num {
+      position: absolute;
+      top: -12px; left: 50%; transform: translateX(-50%);
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--navy); color: white;
+      font-size: 12px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flow-arrow {
+      display: flex; align-items: center; justify-content: center;
+      color: #94a3b8; font-size: 1.5rem;
+    }
+    body.dark .flow-step { background: #334155; border-color: #475569; color: #f1f5f9; }
   </style>
 </head>
 <body class="min-h-screen" :class="{ 'dark': dark }" x-data="deck()" x-init="init()"
@@ -175,6 +199,117 @@
                 <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses Utama</div>
                 <div class="text-sm font-medium">Sama seperti role standar + tools teknis</div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 4: Sistem Assessment CMP -->
+        <section class="slide" x-show="current === 4" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1</div>
+            <h2 class="text-4xl font-bold brand-navy mb-6">Sistem Assessment (CMP)</h2>
+            <p class="text-slate-600 mb-6">Dua jenis assessment utama dalam Competency Management Program:</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-brand-navy text-white">
+                    <th class="px-4 py-3 text-left">Jenis</th>
+                    <th class="px-4 py-3 text-left">Kategori</th>
+                    <th class="px-4 py-3 text-left">Metode Ujian</th>
+                    <th class="px-4 py-3 text-left">Penilaian</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="bg-white border-b">
+                    <td class="px-4 py-4 font-bold brand-navy">Assessment OJT</td>
+                    <td class="px-4 py-4 text-slate-700">Per unit operasi<br><span class="text-xs text-slate-500">(misal: Alkylation, RFCC, NHT)</span></td>
+                    <td class="px-4 py-4 text-slate-700">Ujian online (pilihan ganda)<br><span class="text-xs text-slate-500">berdurasi, timer otomatis</span></td>
+                    <td class="px-4 py-4 text-slate-700">Otomatis<br><span class="text-xs text-slate-500">berdasarkan passing grade</span></td>
+                  </tr>
+                  <tr class="bg-slate-50">
+                    <td class="px-4 py-4 font-bold brand-red">Assessment Proton</td>
+                    <td class="px-4 py-4 text-slate-700">Per track per tahun<br><span class="text-xs text-slate-500">(Panelman/Operator, Tahun 1-3)</span></td>
+                    <td class="px-4 py-4 text-slate-700">Online (Th 1-2) +<br>Interview offline (Th 3)</td>
+                    <td class="px-4 py-4 text-slate-700">Otomatis (online) +<br>Manual panel (interview)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+              <div class="text-xs font-bold text-amber-700 uppercase mb-1">💡 Tips</div>
+              <div class="text-sm text-slate-700">OJT untuk evaluasi reguler per unit, Proton untuk program pengembangan 3 tahun.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 5: Alur OJT 1-4 -->
+        <section class="slide" x-show="current === 5" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1 · Alur</div>
+            <h2 class="text-3xl font-bold brand-navy mb-6">Alur Assessment OJT <span class="text-base font-normal text-slate-500">(Step 1-4)</span></h2>
+            <div class="grid grid-cols-9 gap-2 items-stretch">
+              <div class="col-span-2 flow-step">
+                <div class="step-num">1</div>
+                <div class="font-bold brand-navy mb-1">Persiapan Data</div>
+                <div class="text-xs text-slate-600">Buat kategori (per unit), atur organisasi & daftar pekerja</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
+                <div class="step-num">2</div>
+                <div class="font-bold brand-navy mb-1">Buat Assessment</div>
+                <div class="text-xs text-slate-600">Pilih kategori "Assessment OJT", set durasi & soal</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
+                <div class="step-num">3</div>
+                <div class="font-bold brand-navy mb-1">Distribusi Soal</div>
+                <div class="text-xs text-slate-600">Sistem random soal sesuai paket per peserta</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
+                <div class="step-num">4</div>
+                <div class="font-bold brand-navy mb-1">Peserta Ujian</div>
+                <div class="text-xs text-slate-600">Login portal, kerjakan soal dalam timer</div>
+              </div>
+            </div>
+            <div class="mt-8 bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-sm text-slate-700 dark:text-slate-200">
+              <strong>Role:</strong> Admin / HC menyiapkan data, peserta dari Tim Operasional unit terkait.
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 6: Alur OJT 5-8 -->
+        <section class="slide" x-show="current === 6" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1 · Alur (lanjutan)</div>
+            <h2 class="text-3xl font-bold brand-navy mb-6">Alur Assessment OJT <span class="text-base font-normal text-slate-500">(Step 5-8)</span></h2>
+            <div class="grid grid-cols-9 gap-2 items-stretch">
+              <div class="col-span-2 flow-step">
+                <div class="step-num">5</div>
+                <div class="font-bold brand-navy mb-1">Monitoring Real-Time</div>
+                <div class="text-xs text-slate-600">Admin/HC pantau progress, bisa akhiri ujian manual</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
+                <div class="step-num">6</div>
+                <div class="font-bold brand-navy mb-1">Submit Ujian</div>
+                <div class="text-xs text-slate-600">Peserta submit, atau auto-submit saat timer habis</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
+                <div class="step-num">7</div>
+                <div class="font-bold brand-navy mb-1">Penilaian Otomatis</div>
+                <div class="text-xs text-slate-600">Sistem hitung skor vs passing grade</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+                <div class="step-num" style="background: var(--green);">8</div>
+                <div class="font-bold" style="color: var(--green)">Hasil & Laporan</div>
+                <div class="text-xs text-slate-600">Lulus/tidak lulus, laporan tersimpan</div>
+              </div>
+            </div>
+            <div class="mt-8 bg-green-50 border-l-4 border-green-500 p-4 rounded text-sm text-slate-700">
+              <strong>✅ Output:</strong> Skor pekerja, status kelulusan, dan rekap per unit/per kategori.
             </div>
           </div>
         </section>
