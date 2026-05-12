@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Praktik PortalHC — Mockup Drill</title>
+  <link rel="stylesheet" href="assets/css/shared.css">
+  <script src="assets/vendor/tailwind.min.js"></script>
+  <script defer src="assets/vendor/alpine-persist.min.js"></script>
+  <script defer src="assets/vendor/alpinejs.min.js"></script>
+</head>
+<body class="min-h-screen bg-slate-50" x-data="{ activeMockup: 'login' }">
+  <!-- Top nav -->
+  <nav class="bg-white shadow-sm px-6 py-3 flex justify-between items-center sticky top-0 z-10">
+    <a href="index.html" class="text-sm brand-navy hover:underline">← Hub</a>
+    <h1 class="font-bold brand-navy">Praktik — Mockup Drill</h1>
+    <a href="panduan.html" class="text-sm bg-amber-400 px-3 py-1 rounded font-bold hover:bg-amber-300">Panduan →</a>
+  </nav>
+
+  <!-- Workflow nav sidebar + content -->
+  <div class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
+    <!-- Sidebar -->
+    <aside class="space-y-1">
+      <h2 class="font-bold brand-navy mb-3">Pilih Workflow</h2>
+      <button @click="activeMockup = 'login'" :class="activeMockup === 'login' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">🔐 #1 Login</button>
+      <button @click="activeMockup = 'worker'" :class="activeMockup === 'worker' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">👤 #8 Worker CRUD</button>
+      <button @click="activeMockup = 'question'" :class="activeMockup === 'question' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">📝 #19 Question CRUD</button>
+      <button @click="activeMockup = 'create-assessment'" :class="activeMockup === 'create-assessment' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">📋 #22 Create Assessment</button>
+      <button @click="activeMockup = 'prepost'" :class="activeMockup === 'prepost' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">🔁 #23 Pre-Post</button>
+      <button @click="activeMockup = 'manual-grading'" :class="activeMockup === 'manual-grading' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">✍️ #26 Manual Grading</button>
+      <button @click="activeMockup = 'coaching-proton'" :class="activeMockup === 'coaching-proton' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">🎯 #32 Coaching Proton</button>
+      <button @click="activeMockup = 'plan-idp'" :class="activeMockup === 'plan-idp' ? 'bg-brand-navy text-white' : 'bg-white text-slate-700'" class="block w-full text-left px-3 py-2 rounded text-sm">📋 #33 Plan IDP</button>
+    </aside>
+
+    <!-- Main content -->
+    <main>
+      <p class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm mb-6">
+        <strong>ℹ️ Info:</strong> Mockup simulasi — data fake, no DB connect. Refresh aman (state preserve via localStorage). Klik "Drill Ulang" untuk reset.
+      </p>
+      <!-- Mockup sections di Task 4.2 - 4.9 -->
+    </main>
+  </div>
+</body>
+</html>
