@@ -100,6 +100,12 @@
       color: #94a3b8; font-size: 1.5rem;
     }
     body.dark .flow-step { background: #334155; border-color: #475569; color: #f1f5f9; }
+    /* Custom Tailwind-like utilities for brand colors not in default Tailwind */
+    .border-brand-navy { border-color: var(--navy) !important; }
+    .border-brand-red { border-color: var(--red) !important; }
+    .border-brand-green { border-color: var(--green) !important; }
+    .text-brand-navy { color: var(--navy) !important; }
+    .text-brand-red { color: var(--red) !important; }
 
     /* Mobile portrait: scale down slide */
     @media (max-width: 768px) and (orientation: portrait) {
@@ -111,8 +117,8 @@
       .slide .text-4xl { font-size: 1.5rem !important; }
       .slide .text-5xl, .slide .text-6xl, .slide .text-7xl { font-size: 2rem !important; }
       .slide .grid-cols-3 { grid-template-columns: 1fr; gap: 0.5rem; }
-      .slide .grid-cols-9 { grid-template-columns: 1fr; gap: 0.5rem; }
-      .slide .grid-cols-9 .col-span-2 { grid-column: span 1 / span 1; }
+      .slide .grid-cols-11 { grid-template-columns: 1fr; gap: 0.5rem; }
+      .slide .grid-cols-11 .col-span-2 { grid-column: span 1 / span 1; }
       .flow-arrow { transform: rotate(90deg); }
       .nav-bar { padding: 0.5rem 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
     }
@@ -304,7 +310,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1 · Alur</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Assessment OJT <span class="text-base font-normal text-slate-500">(Step 1-4)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step">
                 <div class="step-num">1</div>
                 <div class="font-bold brand-navy mb-1">Persiapan Data</div>
@@ -340,7 +346,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1 · Alur (lanjutan)</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Assessment OJT <span class="text-base font-normal text-slate-500">(Step 5-8)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step">
                 <div class="step-num">5</div>
                 <div class="font-bold brand-navy mb-1">Monitoring Real-Time</div>
@@ -414,7 +420,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 2 · Alur</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Proton — Tahun 1 & 2 <span class="text-base font-normal text-slate-500">(Ujian Online)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step">
                 <div class="step-num">1</div>
                 <div class="font-bold brand-navy mb-1">Buat Assessment</div>
@@ -457,7 +463,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 2 · Alur</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Proton — Tahun 3 <span class="text-base font-normal text-slate-500">(Interview Offline)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step" style="border-color: var(--amber); background: #fffbeb;">
                 <div class="step-num" style="background: var(--amber);">1</div>
                 <div class="font-bold" style="color: #b45309">Buat Assessment</div>
@@ -581,7 +587,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 1 & 2</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 1 & 2 <span class="text-base font-normal text-slate-500">(Step 1-4)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step">
                 <div class="step-num">1</div>
                 <div class="font-bold brand-navy mb-1">Siapkan Silabus</div>
@@ -617,7 +623,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 1 & 2 (lanjutan)</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 1 & 2 <span class="text-base font-normal text-slate-500">(Step 5-8)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step">
                 <div class="step-num">5</div>
                 <div class="font-bold brand-navy mb-1">Review HC</div>
@@ -653,7 +659,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 3</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 3 <span class="text-base font-normal text-slate-500">(Step 1-4)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">1</div>
                 <div class="font-bold" style="color: var(--red)">Siapkan Silabus Mahir</div>
@@ -689,7 +695,7 @@
           <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 3 (lanjutan)</div>
             <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 3 <span class="text-base font-normal text-slate-500">(Step 5-8)</span></h2>
-            <div class="grid grid-cols-9 gap-2 items-stretch">
+            <div class="grid grid-cols-11 gap-2 items-stretch">
               <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">5</div>
                 <div class="font-bold" style="color: var(--red)">Interview Online</div>
