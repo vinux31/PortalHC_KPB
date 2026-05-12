@@ -4,6 +4,7 @@ plan: 02
 status: completed
 commit: 8c490655
 date: 2026-05-12
+requirements-completed: [QA-08]
 ---
 
 # Plan 318-02 Summary — SURF-317-A Production Fix (CMPController ToLookup MA-aware)

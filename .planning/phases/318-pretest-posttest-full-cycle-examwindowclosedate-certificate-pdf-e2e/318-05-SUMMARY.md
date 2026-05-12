@@ -4,6 +4,7 @@ plan: 05
 status: completed
 commit: 3bfc09a5
 date: 2026-05-12
+requirements-completed: [QA-08]
 ---
 
 # Plan 318-05 Summary — Docs Finalize + Final Regression Gate

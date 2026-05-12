@@ -4,6 +4,7 @@ plan: 03
 status: completed
 commit: 063a4763
 date: 2026-05-12
+requirements-completed: [QA-08]
 ---
 
 # Plan 318-03 Summary — FLOW P PrePostTest + FLOW Q EWCD Reject (10/10 PASS)

@@ -12,7 +12,7 @@ Membangun automated test infrastructure untuk Portal HC sebagai tooling discover
 
 ### QA — Test Infrastructure
 
-- [ ] **QA-01**: Developer dapat menjalankan automated test sweep yang menguji seluruh kombinasi (tipe assessment × tipe soal) end-to-end di lokal, dengan output 1 markdown report yang merangkum semua temuan bug per skenario (severity, screenshot, hypothesis). Harus include DB seed temporary + cleanup otomatis (BACKUP/RESTORE), continue-and-collect bug behavior, dan meta-validation (sentinel skenario verifikasi framework test sendiri).
+- [x] **QA-01**: Developer dapat menjalankan automated test sweep yang menguji seluruh kombinasi (tipe assessment × tipe soal) end-to-end di lokal, dengan output 1 markdown report yang merangkum semua temuan bug per skenario (severity, screenshot, hypothesis). Harus include DB seed temporary + cleanup otomatis (BACKUP/RESTORE), continue-and-collect bug behavior, dan meta-validation (sentinel skenario verifikasi framework test sendiri).
 
 ## Future Requirements (deferred)
 
@@ -38,7 +38,7 @@ Membangun automated test infrastructure untuk Portal HC sebagai tooling discover
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| QA-01 | 315 | Pending |
+| QA-01 | 315 | Complete |
 | QA-02 | 317 | Complete |
 | QA-08 | 318 | Complete |
 | QA-09 | 319 | Complete |

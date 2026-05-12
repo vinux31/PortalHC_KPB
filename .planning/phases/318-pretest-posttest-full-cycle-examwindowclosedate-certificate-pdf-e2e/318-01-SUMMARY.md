@@ -4,6 +4,7 @@ plan: 01
 status: completed-with-deviation
 commit: f9704fb7
 date: 2026-05-12
+requirements-completed: [QA-08]
 ---
 
 # Plan 318-01 Summary — SURF-317-A1 Selector Patch
