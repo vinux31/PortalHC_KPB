@@ -431,6 +431,93 @@
             </div>
           </div>
         </section>
+
+        <!-- Slide 10: Coaching CDP Overview -->
+        <section class="slide" x-show="current === 10" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 3</div>
+            <h2 class="text-4xl font-bold brand-navy mb-4">Coaching Proton (CDP)</h2>
+            <p class="text-lg text-slate-600 mb-6">Program <strong class="brand-navy">3 tahun</strong> pengembangan kompetensi. Setiap tahun punya track tersendiri dengan deliverable berbeda.</p>
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-5 mb-6">
+              <h3 class="font-bold mb-3 brand-navy">Track Type:</h3>
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="bg-white dark:bg-slate-600 rounded p-3">
+                  <div class="font-bold mb-1">Panelman</div>
+                  <div class="text-xs text-slate-500">Panelman – Tahun 1, 2, 3 (3 track terpisah)</div>
+                </div>
+                <div class="bg-white dark:bg-slate-600 rounded p-3">
+                  <div class="font-bold mb-1">Operator</div>
+                  <div class="text-xs text-slate-500">Operator – Tahun 1, 2, 3 (3 track terpisah)</div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded text-sm">
+              <strong class="text-amber-700">💡 Setiap track berdiri sendiri:</strong> hierarki kompetensi dan deliverable independen — pekerja dipromosikan tiap tahun.
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 11: Hierarki Kompetensi -->
+        <section class="slide" x-show="current === 11" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 3 · Struktur</div>
+            <h2 class="text-3xl font-bold brand-navy mb-6">Hierarki Kompetensi per Track</h2>
+            <div class="bg-white dark:bg-slate-700 rounded-lg border border-slate-200 p-6 font-mono text-sm">
+              <div class="space-y-2">
+                <div class="font-bold brand-navy">📁 Track <span class="text-slate-500">(misal: Operator - Tahun 1)</span></div>
+                <div class="pl-6 border-l-2 border-slate-300 ml-2">
+                  <div>↓</div>
+                  <div class="font-bold brand-red mb-1">📂 Kompetensi (Level 1)</div>
+                  <div class="pl-6 border-l-2 border-slate-300 ml-2">
+                    <div>↓</div>
+                    <div class="font-medium mb-1">📄 Sub-Kompetensi (Level 2)</div>
+                    <div class="pl-6 border-l-2 border-slate-300 ml-2">
+                      <div>↓</div>
+                      <div class="text-slate-600">🎯 Deliverable</div>
+                      <div class="text-xs text-slate-500 mt-1">(tugas/output konkret yang harus diselesaikan pekerja)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 grid grid-cols-2 gap-4 text-sm">
+              <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <strong class="text-blue-700">Independen:</strong> Tiap track punya hierarki sendiri-sendiri, tidak shared.
+              </div>
+              <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                <strong class="text-green-700">Sertifikasi:</strong> Semua deliverable selesai = lulus track, siap promosi ke tahun berikutnya.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 12: Fokus Kompetensi -->
+        <section class="slide" x-show="current === 12" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 3 · Progresi</div>
+            <h2 class="text-3xl font-bold brand-navy mb-6">Fokus Kompetensi per Tahun</h2>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="card-hover rounded-lg p-6 text-white" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                <div class="text-xs uppercase opacity-80 mb-1">Tahun 1</div>
+                <div class="text-4xl mb-3">🌱</div>
+                <h3 class="text-2xl font-bold mb-3">Kompetensi Dasar</h3>
+                <p class="text-sm opacity-90">Pengenalan unit kerja, fundamental proses, basic skill.</p>
+              </div>
+              <div class="card-hover rounded-lg p-6 text-white" style="background: linear-gradient(135deg, #002e6d, #001c44);">
+                <div class="text-xs uppercase opacity-80 mb-1">Tahun 2</div>
+                <div class="text-4xl mb-3">🌿</div>
+                <h3 class="text-2xl font-bold mb-3">Kompetensi Lanjutan</h3>
+                <p class="text-sm opacity-90">Pendalaman proses, troubleshoot dasar, integrasi antar unit.</p>
+              </div>
+              <div class="card-hover rounded-lg p-6 text-white" style="background: linear-gradient(135deg, #ed1c24, #b0121a);">
+                <div class="text-xs uppercase opacity-80 mb-1">Tahun 3</div>
+                <div class="text-4xl mb-3">🌳</div>
+                <h3 class="text-2xl font-bold mb-3">Kompetensi Mahir</h3>
+                <p class="text-sm opacity-90">Penguasaan penuh, leadership, problem solving kompleks.</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </main>
