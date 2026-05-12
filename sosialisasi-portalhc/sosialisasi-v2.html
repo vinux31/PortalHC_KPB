@@ -101,6 +101,33 @@
     }
     body.dark .flow-step { background: #334155; border-color: #475569; color: #f1f5f9; }
 
+    /* Mobile portrait: scale down slide */
+    @media (max-width: 768px) and (orientation: portrait) {
+      .slide-deck { max-width: 100%; }
+      .slide { padding: 1.5rem 1.5rem; }
+      .slide h1 { font-size: 2rem !important; }
+      .slide h2 { font-size: 1.5rem !important; }
+      .slide h3 { font-size: 1.1rem !important; }
+      .slide .text-4xl { font-size: 1.5rem !important; }
+      .slide .text-5xl, .slide .text-6xl, .slide .text-7xl { font-size: 2rem !important; }
+      .slide .grid-cols-3 { grid-template-columns: 1fr; gap: 0.5rem; }
+      .slide .grid-cols-9 { grid-template-columns: 1fr; gap: 0.5rem; }
+      .slide .grid-cols-9 .col-span-2 { grid-column: span 1 / span 1; }
+      .flow-arrow { transform: rotate(90deg); }
+      .nav-bar { padding: 0.5rem 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+    }
+    /* Rotate prompt */
+    .rotate-prompt {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,46,109,0.95); color: white;
+      z-index: 100; padding: 2rem; text-align: center;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    @media (max-width: 768px) and (orientation: portrait) {
+      .rotate-prompt[data-dismissed="false"] { display: flex; }
+    }
+
     @media print {
       @page {
         size: A4 landscape;
@@ -772,6 +799,17 @@
   <!-- Aria-live region for screen reader -->
   <div class="sr-only" aria-live="polite" aria-atomic="true">
     Slide <span x-text="current"></span> dari <span x-text="total"></span>
+  </div>
+
+  <!-- Rotate prompt (mobile portrait only) -->
+  <div class="rotate-prompt" x-data="{ rotateDismissed: sessionStorage.getItem('phc_v2_rotate_dismiss') === 'true' }" :data-dismissed="rotateDismissed ? 'true' : 'false'">
+    <div class="text-6xl mb-6 animate-pulse">📱➡️📱</div>
+    <h2 class="text-2xl font-bold mb-3">Putar HP Anda</h2>
+    <p class="opacity-80 mb-6">Untuk pengalaman terbaik, gunakan mode landscape.</p>
+    <button @click="rotateDismissed = true; sessionStorage.setItem('phc_v2_rotate_dismiss', 'true')"
+            class="px-6 py-2 bg-white text-brand-navy rounded font-medium">
+      Lanjut anyway
+    </button>
   </div>
 
   <!-- Nav bar -->
