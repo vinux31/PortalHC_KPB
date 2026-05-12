@@ -58,6 +58,8 @@ Adopt **APIRequest pattern** (sama dengan Phase 318 Plan 04 `verifyCertificatePd
 
 Cover 1 representative endpoint untuk efficiency — pilih CMP atau Admin level (TBD di research). Skip multi-endpoint coverage.
 
+**AMENDED 2026-05-12:** Endpoint final = `/AssessmentAdmin/ExportCategoriesExcel` (paling sederhana, no params). Hipotetis `/Admin/ExportAssessmentMatrix` TIDAK exist di codebase (verified via grep — RESEARCH Pitfall 1). User-confirmed via plan-phase orchestrator AskUserQuestion.
+
 ### Analytics Chart Assertion Strategy (D-319-04)
 
 Chart.js canvas adalah opaque rendering — DOM-text scrape tidak reliable. Strategy:
@@ -69,9 +71,9 @@ Helper: `interceptAnalyticsResponse(page, params)` di `examTypes.ts` — wrap `w
 
 ### CertificationManagement Scope (D-319-05)
 
-- **CMP variant only** (`CMPController.cs:3666`) — admin HC perspective listing semua sertifikat
-- CDP variant (`CDPController.cs:3539`) **DEFERRED Phase 320+** — CDP feature lebih kompleks (Coaching context), separate phase
-- 3 sub-tests: X1 navigate, X2 filter by judul, X3 detail page navigation
+- ~~**CMP variant only** (`CMPController.cs:3666`)~~ — **AMENDED 2026-05-12:** switch ke **CDP variant** (`/CDP/CertificationManagement`, `Views/CDP/CertificationManagement.cshtml` exists). CMP variant abandoned karena `Views/CMP/CertificationManagement.cshtml` MISSING → controller `return View(vm)` produces 500. Verified via filesystem check + RESEARCH Pitfall 2. User-confirmed via plan-phase orchestrator AskUserQuestion (DISCUSSION-LOG separate event).
+- CDP variant becomes **PRIMARY** untuk Phase 319 FLOW X (3 sub-tests X1-X3 unchanged: navigate, filter, detail).
+- CMP variant variant **DEFERRED Phase 320+** — requires view file creation + controller fix (production bug separate scope).
 - Skip: reissue workflow, multi-page pagination edge cases, search-by-NomorSertifikat (separate phase kalau muncul UAT bug)
 
 ### ManageCategories Scope (D-319-06)
