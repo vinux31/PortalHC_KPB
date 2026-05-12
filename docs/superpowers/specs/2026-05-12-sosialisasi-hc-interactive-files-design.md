@@ -198,18 +198,18 @@ Hari ini 12 Mei 2026. Target acara sebelumnya 17-24 Mei = **9 hari kerja remaini
 | 4 | localStorage edge case — version mismatch saat mockup update | Schema versioning di localStorage key (`mockup_v1_login_state`) |
 | 5 | Browser quirk — Tailwind purge atau Alpine.js compatibility | Test Chrome + Edge sebelum release |
 
-## 10. Open Gaps + Assumed Defaults
+## 10. Open Gaps + Locked Defaults
 
-Gap yang belum di-lock saat brainstorm (perlu konfirmasi user sebelum implementasi):
+Status post-brainstorm 2026-05-12:
 
-| Gap | Default assumption |
+| Gap | Lock |
 |---|---|
-| Deadline spesifik | 5 Juni 2026 (push dari 24 Mei) |
-| Fallback cut prioritas | (1) animasi (2) mockup count (3) quiz count (4) screenshot depth |
+| Deadline spesifik | **Flexible** (user: "gampang nanti") — full scope tanpa pressure waktu. Best-effort, no hard cutoff. |
+| Maintenance owner | **Self** (user yang implement = owner update file kalau portal UI berubah) |
+| Fallback cut prioritas | Order kalau perlu (saat ini tidak block): (1) animasi (2) mockup count (3) quiz count (4) screenshot depth |
 | Slide 13 (Progress) konten refresh | Drop slide expired April 2026, replace dengan "Status Mei 2026" atau remove |
 | Slide 14 (Akses) URL update | URL Dev `http://10.55.3.3/KPB-PortalHC` + URL Prod (TBD per IT) |
 | Mockup #25 AssessmentMonitoring live | **Tidak masuk mockup** (real-time dynamic data — pakai screenshot + screencast 30-detik di Panduan) |
-| Maintenance owner | Developer assigned (TBD) |
 
 ## 11. Definition of Done (DoD) per File
 
