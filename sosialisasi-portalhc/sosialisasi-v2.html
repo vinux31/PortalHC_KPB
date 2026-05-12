@@ -80,9 +80,44 @@
     </div>
   </main>
 
-  <!-- Nav bar (placeholder, akan dibangun di Task 2) -->
+  <!-- Nav bar -->
   <nav class="nav-bar">
-    <span class="text-sm">Slide <span x-text="current"></span> / <span x-text="total"></span></span>
+    <!-- Left: Hub link + counter -->
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-sm brand-navy hover:underline">← Hub</a>
+      <span class="text-sm text-slate-500">
+        Slide <span x-text="current" class="font-bold"></span> / <span x-text="total"></span>
+      </span>
+    </div>
+
+    <!-- Center: Dot indicators -->
+    <div class="flex gap-2 items-center" role="tablist" aria-label="Slide navigation">
+      <template x-for="n in total" :key="n">
+        <button
+          class="dot"
+          :class="{ active: current === n }"
+          :aria-current="current === n ? 'true' : 'false'"
+          :aria-label="`Slide ${n}`"
+          @click="goTo(n)"
+        ></button>
+      </template>
+    </div>
+
+    <!-- Right: Prev/Next + controls -->
+    <div class="flex items-center gap-2">
+      <button
+        @click="prev()"
+        :disabled="current === 1"
+        class="px-3 py-1 rounded bg-slate-200 disabled:opacity-50 hover:bg-slate-300"
+        aria-label="Slide sebelumnya">‹</button>
+      <button
+        @click="next()"
+        :disabled="current === total"
+        class="px-3 py-1 rounded bg-brand-navy text-white disabled:opacity-50 hover:opacity-90"
+        aria-label="Slide selanjutnya">›</button>
+      <button @click="toggleFullscreen()" class="px-2 py-1 text-lg" aria-label="Toggle fullscreen" title="Fullscreen (F)">⛶</button>
+      <button @click="toggleDark()" class="px-2 py-1 text-lg" aria-label="Toggle dark mode" title="Dark mode">🌓</button>
+    </div>
   </nav>
 
   <script>
@@ -90,16 +125,58 @@
       return {
         current: 1,
         total: 18,
-        dark: false,
+        dark: (typeof Alpine !== 'undefined' && Alpine.$persist) ? Alpine.$persist(false).as('phc_v2_dark') : false,
         fullscreen: false,
 
         init() {
-          // Sync URL hash on load
           const hash = location.hash.match(/^#slide-(\d+)$/);
           if (hash) {
             const n = parseInt(hash[1], 10);
             if (n >= 1 && n <= this.total) this.current = n;
           }
+          window.addEventListener('hashchange', () => {
+            const h = location.hash.match(/^#slide-(\d+)$/);
+            if (h) this.current = parseInt(h[1], 10);
+          });
+        },
+
+        next() {
+          if (this.current < this.total) {
+            this.current++;
+            this.syncHash();
+          }
+        },
+
+        prev() {
+          if (this.current > 1) {
+            this.current--;
+            this.syncHash();
+          }
+        },
+
+        goTo(n) {
+          if (n >= 1 && n <= this.total) {
+            this.current = n;
+            this.syncHash();
+          }
+        },
+
+        syncHash() {
+          history.replaceState(null, '', `#slide-${this.current}`);
+        },
+
+        toggleFullscreen() {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+            this.fullscreen = true;
+          } else {
+            document.exitFullscreen?.();
+            this.fullscreen = false;
+          }
+        },
+
+        toggleDark() {
+          this.dark = !this.dark;
         }
       };
     }
