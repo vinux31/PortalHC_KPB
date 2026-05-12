@@ -22,6 +22,7 @@ Membangun automated test infrastructure untuk Portal HC sebagai tooling discover
 - **QA-05** — Multi-environment: extend matrix test ke staging/prod (deferred — start lokal saja)
 - **QA-06** — Concurrency stress test: simulate banyak peserta paralel di session yang sama (deferred — out-of-scope discovery sweep)
 - **QA-07** — Coverage expansion: matrix test untuk flow lain (CDP, IDP, Coaching, Worker management) (deferred — proven foundation dulu)
+- **QA-08** — Advanced exam features E2E coverage: PreTest/PostTest paired full cycle, ExamWindowCloseDate enforcement (server-side reject post-window), Certificate PDF download (NomorSertifikat generated + downloadable), AllowAnswerReview true vs false comparison di Results page.
 
 ## Out of Scope (v16.0)
 
@@ -37,8 +38,10 @@ Membangun automated test infrastructure untuk Portal HC sebagai tooling discover
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | QA-01 | 315 | Pending |
+| QA-02 | 317 | Complete |
+| QA-08 | 318 | Complete |
 
-**Active mapped: 1/1 ✓ — Orphans: 0 — Duplicates: 0**
+**Active mapped: 3/3 ✓ — Orphans: 0 — Duplicates: 0**
 
 ## Notes
 

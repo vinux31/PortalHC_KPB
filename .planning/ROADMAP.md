@@ -393,10 +393,15 @@ Plans:
 
 ### Phase 318: PreTest/PostTest full cycle + ExamWindowCloseDate + Certificate PDF E2E
 
-**Goal:** Test coverage untuk PreTest/PostTest workflow (paired assessment auto-generated), ExamWindowCloseDate enforcement (server-side reject submit setelah window tutup), AllowAnswerReview=true vs false comparison di Results page, Certificate PDF download verification (NomorSertifikat generated + downloadable).
-**Requirements:** QA-03 (advanced exam features coverage)
+**Goal:** Test coverage untuk PreTest/PostTest workflow (paired assessment auto-generated), ExamWindowCloseDate enforcement (server-side reject submit setelah window tutup), AllowAnswerReview=true vs false comparison di Results page, Certificate PDF download verification (NomorSertifikat generated + downloadable). Plus SURF-317 carryover fixes — SURF-317-A1 test fixture (exam-taking.spec.ts:40 selector form-check compat) + SURF-317-A production code (CMPController.cs:2190 MA Results ToLookup refactor).
+**Requirements:** QA-08 (advanced exam features E2E coverage)
 **Depends on:** Phase 317
-**Plans:** TBD (preview only)
+**Plans:**
+- [x] 318-01-PLAN.md — SURF-317-A1 test fixture patch (exam-taking.spec.ts:40 selector form-check) + Phase 317 regression gate
+- [x] 318-02-PLAN.md — SURF-317-A production fix (CMPController.cs ToLookup + MA-aware refactor) + Phase 317 regression rerun gate
+- [x] 318-03-PLAN.md — FLOW P PreTest/PostTest paired (P1-P6) + FLOW Q ExamWindowCloseDate reject (Q1-Q4)
+- [x] 318-04-PLAN.md — FLOW R Certificate PDF + NomorSertifikat (R1-R5) + FLOW S AllowAnswerReview true vs false paired comparison (S1-S6)
+- [x] 318-05-PLAN.md — REQUIREMENTS QA-08 + ROADMAP Phase 318 closure + final regression gate 49/49
 
 ### Phase 319: ManualAssessment + Export Excel + Analytics + CertificationManagement E2E
 
