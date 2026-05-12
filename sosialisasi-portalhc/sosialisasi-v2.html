@@ -114,6 +114,70 @@
             </div>
           </div>
         </section>
+
+        <!-- Slide 2: Definisi -->
+        <section class="slide" x-show="current === 2" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-3xl mx-auto">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Pengenalan</div>
+            <h2 class="text-4xl font-bold brand-navy mb-6">Apa itu HC Portal KPB?</h2>
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6 border-l-4 border-brand-navy">
+              <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-200">
+                Sistem informasi berbasis web yang digunakan oleh
+                <strong class="brand-navy">Tim Human Capital Kilang Pertamina Balikpapan</strong>
+                untuk mengelola <strong>kompetensi</strong> dan <strong>pengembangan pekerja</strong>
+                melalui program <strong class="brand-red">CMP (Competency Management Program)</strong>.
+              </p>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mt-8">
+              <div class="card-hover bg-white border border-slate-200 rounded-lg p-4 text-center">
+                <div class="text-3xl mb-2">📊</div>
+                <div class="text-sm font-medium">Assessment</div>
+              </div>
+              <div class="card-hover bg-white border border-slate-200 rounded-lg p-4 text-center">
+                <div class="text-3xl mb-2">🎯</div>
+                <div class="text-sm font-medium">Coaching</div>
+              </div>
+              <div class="card-hover bg-white border border-slate-200 rounded-lg p-4 text-center">
+                <div class="text-3xl mb-2">🏆</div>
+                <div class="text-sm font-medium">Sertifikasi</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 3: Role -->
+        <section class="slide" x-show="current === 3" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Struktur Akses</div>
+            <h2 class="text-4xl font-bold brand-navy mb-8">Role Pengguna</h2>
+            <div class="grid grid-cols-3 gap-6">
+              <div class="card-hover bg-white border-t-4 border-brand-red rounded-lg p-6 shadow-sm">
+                <div class="text-4xl mb-3">🛡️</div>
+                <h3 class="text-xl font-bold brand-navy mb-1">Admin</h3>
+                <div class="text-xs uppercase text-slate-500 mb-3">Administrator Sistem</div>
+                <p class="text-sm text-slate-600 mb-4">Akses penuh ke seluruh fitur sistem, manage user dan konfigurasi.</p>
+                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses Utama</div>
+                <div class="text-sm font-medium">Seluruh fitur tanpa terkecuali</div>
+              </div>
+              <div class="card-hover bg-white border-t-4 border-brand-navy rounded-lg p-6 shadow-sm">
+                <div class="text-4xl mb-3">👥</div>
+                <h3 class="text-xl font-bold brand-navy mb-1">HC</h3>
+                <div class="text-xs uppercase text-slate-500 mb-3">Tim Human Capital</div>
+                <p class="text-sm text-slate-600 mb-4">Operasional harian — assessment, coaching, sertifikasi.</p>
+                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses Utama</div>
+                <div class="text-sm font-medium">Kelola Data, Monitoring, Coaching Review, Sertifikasi</div>
+              </div>
+              <div class="card-hover bg-white border-t-4 border-amber-500 rounded-lg p-6 shadow-sm">
+                <div class="text-4xl mb-3">💻</div>
+                <h3 class="text-xl font-bold brand-navy mb-1">IT</h3>
+                <div class="text-xs uppercase text-slate-500 mb-3">Tim Information Technology</div>
+                <p class="text-sm text-slate-600 mb-4">Setara role standar + tools teknis untuk maintenance sistem.</p>
+                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses Utama</div>
+                <div class="text-sm font-medium">Sama seperti role standar + tools teknis</div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </main>
