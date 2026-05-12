@@ -588,7 +588,87 @@
         }
       </script>
 
-      <!-- Other mockups di Task 4.8-4.9 -->
+      <!-- Mockup #32: Coaching Proton -->
+      <section x-show="activeMockup === 'coaching-proton'" x-data="coachingMock()" id="coaching-proton" class="bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold brand-navy mb-2">🎯 #32 Coaching Proton Session</h2>
+        <p class="text-sm text-slate-600 mb-6">Drill: setup session + simulasi evidence submission + approval flow. Multi-state workflow.</p>
+
+        <div class="space-y-3">
+          <template x-for="s in sessions" :key="s.id">
+            <div class="border rounded p-4 bg-white">
+              <div class="flex justify-between mb-2">
+                <h3 class="font-bold" x-text="s.topic"></h3>
+                <span :class="stateColor(s.state)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="s.state"></span>
+              </div>
+              <p class="text-sm text-slate-600 mb-2">Coachee: <strong x-text="s.coachee"></strong> · Due: <span x-text="s.due"></span></p>
+              <p class="text-sm mb-2"><strong>Deliverable:</strong> <span x-text="s.deliverable"></span></p>
+
+              <div x-show="s.state === 'Draft'" class="bg-slate-50 p-2 rounded text-xs">
+                <button @click="s.state = 'Pending Submission'" class="bg-brand-navy text-white px-3 py-1 rounded font-bold">Publish Session</button>
+              </div>
+
+              <div x-show="s.state === 'Pending Submission'" class="bg-amber-50 p-3 rounded text-sm">
+                <p class="mb-2">Coachee submit evidence:</p>
+                <textarea x-model="s.evidence" rows="2" class="w-full px-2 py-1 border rounded text-xs"></textarea>
+                <button @click="submitEvidence(s)" class="mt-2 bg-amber-500 text-white px-3 py-1 rounded font-bold text-xs">Submit Evidence</button>
+              </div>
+
+              <div x-show="s.state === 'Pending Review'" class="bg-blue-50 p-3 rounded text-sm">
+                <p class="mb-2"><strong>Evidence dari coachee:</strong></p>
+                <p class="bg-white p-2 rounded italic text-xs mb-2" x-text="s.evidence"></p>
+                <div class="space-x-2">
+                  <button @click="s.state = 'Approved'" class="bg-green-500 text-white px-3 py-1 rounded font-bold text-xs">✓ Approve</button>
+                  <button @click="s.state = 'Pending Submission'; s.evidence = ''" class="bg-amber-500 text-white px-3 py-1 rounded font-bold text-xs">↻ Request Revision</button>
+                  <button @click="s.state = 'Rejected'" class="bg-red-500 text-white px-3 py-1 rounded font-bold text-xs">✗ Reject</button>
+                </div>
+              </div>
+
+              <div x-show="s.state === 'Approved'" class="bg-green-50 p-3 rounded text-sm">
+                <p>✓ Session Completed. Evidence: <span class="italic" x-text="s.evidence"></span></p>
+              </div>
+
+              <div x-show="s.state === 'Rejected'" class="bg-red-50 p-3 rounded text-sm">
+                <p>✗ Session Rejected. Coach memberikan feedback negatif.</p>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <button @click="reset()" class="mt-6 bg-amber-400 px-4 py-2 rounded font-bold text-sm">🔄 Drill Ulang</button>
+      </section>
+
+      <script>
+        function coachingMock() {
+          return {
+            sessions: $persist([
+              { id: 1, topic: 'Belajar Procedure RFCC Startup', coachee: 'Worker 003', due: '2026-06-15', deliverable: 'Tulis SOP startup RFCC 2 halaman', state: 'Draft', evidence: '' },
+              { id: 2, topic: 'Maintenance Inspection Pumps', coachee: 'Worker 004', due: '2026-06-20', deliverable: 'Lakukan 5 inspeksi + report', state: 'Pending Submission', evidence: '' },
+            ]).as('mockup_v1_coaching_sessions'),
+            stateColor(state) {
+              return {
+                'Draft': 'bg-slate-200 text-slate-700',
+                'Pending Submission': 'bg-amber-100 text-amber-700',
+                'Pending Review': 'bg-blue-100 text-blue-700',
+                'Approved': 'bg-green-100 text-green-700',
+                'Rejected': 'bg-red-100 text-red-700'
+              }[state];
+            },
+            submitEvidence(s) {
+              if (!s.evidence || s.evidence.length < 10) {
+                alert('Evidence min 10 karakter');
+                return;
+              }
+              s.state = 'Pending Review';
+            },
+            reset() {
+              localStorage.removeItem('mockup_v1_coaching_sessions');
+              location.reload();
+            }
+          }
+        }
+      </script>
+
+      <!-- Plan IDP di Task 4.9 -->
     </main>
   </div>
 </body>
