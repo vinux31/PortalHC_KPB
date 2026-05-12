@@ -406,10 +406,14 @@ Plans:
 ### Phase 319: ManualAssessment + Export Excel + Analytics + CertificationManagement E2E
 
 **Goal:** Test coverage untuk ManualAssessment workflow (HC manual entry skor tanpa peserta exam), ManageCategories CRUD, Export Excel endpoint (re-query independent vs API), Analytics dashboard charts (Chart.js v4 indexAxis:'y'), CertificationManagement page (sertifikat lookup + reissue).
-**Requirements:** QA-04 (admin features coverage)
+**Requirements:** QA-09 (admin features E2E coverage)
 **Depends on:** Phase 318
-**Plans:** 3/4 plans executed
+**Plans:**
+- [x] 319-01-PLAN.md — Helpers extension (verifyExcelDownload + interceptAnalyticsResponse) + W0.T0 TomSelect smoke + FLOW T ManualAssessment CRUD (QA-09)
+- [x] 319-02-PLAN.md — FLOW U ManageCategories CRUD + duplicate-reject negative (QA-09)
+- [x] 319-03-PLAN.md — W0.V0+W0.W0 smoke + FLOW V Export Excel + FLOW W Analytics dashboard (QA-09)
+- [x] 319-04-PLAN.md — W0.X0 smoke + FLOW X CertificationManagement CDP variant + REQUIREMENTS QA-09 + ROADMAP Phase 319 closure + final regression gate ≥73 (72 pass + 1 skip)
 
 ---
 
-*Roadmap updated: 2026-05-11 (Phase 317-319 added — extend v16.0 scope ke exam types + advanced features + admin coverage)*
+*Roadmap updated: 2026-05-12 (Phase 319 closed — QA-09 covered, regression 72/72 hijau + 1 skip X3, 4/4 plans complete)*

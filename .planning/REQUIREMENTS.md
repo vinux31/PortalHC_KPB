@@ -23,6 +23,7 @@ Membangun automated test infrastructure untuk Portal HC sebagai tooling discover
 - **QA-06** — Concurrency stress test: simulate banyak peserta paralel di session yang sama (deferred — out-of-scope discovery sweep)
 - **QA-07** — Coverage expansion: matrix test untuk flow lain (CDP, IDP, Coaching, Worker management) (deferred — proven foundation dulu)
 - **QA-08** — Advanced exam features E2E coverage: PreTest/PostTest paired full cycle, ExamWindowCloseDate enforcement (server-side reject post-window), Certificate PDF download (NomorSertifikat generated + downloadable), AllowAnswerReview true vs false comparison di Results page.
+- **QA-09** — Admin features E2E coverage — ManualAssessment CRUD, ManageCategories CRUD, Export Excel endpoint validation, Analytics dashboard JSON+DOM verification, CertificationManagement listing+filter.
 
 ## Out of Scope (v16.0)
 
@@ -40,8 +41,9 @@ Membangun automated test infrastructure untuk Portal HC sebagai tooling discover
 | QA-01 | 315 | Pending |
 | QA-02 | 317 | Complete |
 | QA-08 | 318 | Complete |
+| QA-09 | 319 | Complete |
 
-**Active mapped: 3/3 ✓ — Orphans: 0 — Duplicates: 0**
+**Active mapped: 4/4 ✓ — Orphans: 0 — Duplicates: 0**
 
 ## Notes
 
