@@ -1925,5 +1925,98 @@ test.describe('FLOW W — Analytics Dashboard JSON+DOM+DB', () => {
   });
 });
 
+test.describe('smoke wave-0 phase-319 X (verify A2 CDP CertMgmt reachable)', () => {
+  test('W0.X0 — /CDP/CertificationManagement reachable + heading visible', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    const response = await page.goto('/CDP/CertificationManagement');
+    expect(response?.status()).toBe(200);
+
+    const heading = page.locator('h1, h2, h3').filter({ hasText: /Certif/i }).first();
+    await expect(heading).toBeVisible({ timeout: 10_000 });
+    // eslint-disable-next-line no-console
+    console.log('[W0.X0] /CDP/CertificationManagement page reachable + heading verified');
+  });
+});
+
+test.describe('FLOW X — CertificationManagement CDP Variant', () => {
+  test('X1 — HC navigate /CDP/CertificationManagement + page elements visible', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto('/CDP/CertificationManagement');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page).toHaveURL(/CertificationManagement/);
+
+    const heading = page.locator('h1, h2, h3').filter({ hasText: /Certif/i }).first();
+    await expect(heading).toBeVisible({ timeout: 10_000 });
+
+    // Verified View line 127, 155
+    await expect(page.locator('#filter-category')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#cert-table-container')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('X2 — Filter by category → AJAX partial refresh /CDP/FilterCertificationManagement', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto('/CDP/CertificationManagement');
+    await page.waitForLoadState('networkidle');
+
+    const dropdown = page.locator('#filter-category');
+    const optionCount = await dropdown.locator('option').count();
+    if (optionCount < 2) {
+      test.skip(true, 'No categories available di dropdown — empty dev DB');
+      return;
+    }
+    const firstValue = await dropdown.locator('option').nth(1).getAttribute('value');
+    if (!firstValue) {
+      test.skip(true, 'Category option value null');
+      return;
+    }
+
+    const responsePromise = page.waitForResponse(
+      (r) => r.url().includes('/FilterCertificationManagement') || r.url().includes('/Filter'),
+      { timeout: 10_000 }
+    ).catch(() => null);
+
+    await dropdown.selectOption(firstValue);
+    const response = await responsePromise;
+
+    if (response) {
+      expect(response.status()).toBe(200);
+      const text = await response.text();
+      expect(text.length).toBeGreaterThan(0);
+    } else {
+      await page.waitForLoadState('networkidle');
+      await expect(page.locator('#cert-table-container')).toBeVisible();
+    }
+  });
+
+  test('X3 — Detail page navigation', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto('/CDP/CertificationManagement');
+    await page.waitForLoadState('networkidle');
+
+    // Strict detail link selector — only href pointing ke CertificationManagementDetail.
+    // Generic '#cert-table-container a' too permissive (matches sort/breadcrumb anchors di table).
+    const detailLink = page.locator('a[href*="CertificationManagementDetail"]').first();
+    const linkCount = await detailLink.count();
+
+    if (linkCount === 0) {
+      test.skip(true, 'No detail links available — empty data atau row tidak punya CertificationManagementDetail anchor (acceptable per plan)');
+      return;
+    }
+
+    await Promise.all([
+      page.waitForURL(/CertificationManagementDetail/i, { timeout: 10_000 }),
+      detailLink.click(),
+    ]);
+
+    const detailHeading = page.locator('h1, h2, h3, h4').filter({ hasText: /detail|certif/i }).first();
+    await expect(detailHeading).toBeVisible({ timeout: 10_000 });
+  });
+});
+
 // Suppress unused-import warnings — verifyResultPage di-skip per SURF-317-A workaround pattern.
 void verifyResultPage;
