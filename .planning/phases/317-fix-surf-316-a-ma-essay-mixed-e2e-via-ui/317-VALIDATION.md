@@ -1,8 +1,8 @@
 ---
 phase: 317
 slug: fix-surf-316-a-ma-essay-mixed-e2e-via-ui
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-11
 ---
