@@ -501,6 +501,7 @@ test.txt
 # Temp/debug artifacts
 *.png
 !wwwroot/**/*.png
+!sosialisasi-portalhc/assets/ppt-images/*.png
 *.db
 *.db-shm
 *.db-wal
