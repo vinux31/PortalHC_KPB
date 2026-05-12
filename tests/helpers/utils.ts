@@ -12,6 +12,13 @@ export function today(): string {
   return new Date().toISOString().split('T')[0];
 }
 
+/** Format yesterday's date as YYYY-MM-DD (Phase 318 Plan 03 — FLOW Q EWCD past). */
+export function yesterday(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+}
+
 /** Generate a unique assessment title for test isolation */
 export function uniqueTitle(prefix = 'E2E Test'): string {
   return `${prefix} ${Date.now()}`;

@@ -13,7 +13,7 @@
 //  - A5 window.timerStartRemaining scope — verified di smoke wave-0 block
 
 import { Page, Locator, expect } from '@playwright/test';
-import { wizardSelectors, questionFormSelectors, extraTimeSelectors } from './wizardSelectors';
+import { wizardSelectors, questionFormSelectors, extraTimeSelectors, prePostWizardSelectors } from './wizardSelectors';
 
 export type QuestionInput =
   | { type: 'MultipleChoice'; text: string; options: [string, string, string, string]; correctIndex: 0 | 1 | 2 | 3; score: number }
@@ -474,4 +474,108 @@ export async function addExtraTimeViaModal(
     { initial: initialRemaining, expectedDelta },
     { timeout: 20_000 }
   );
+}
+
+// ============================================================
+// Phase 318 Plan 03 — PrePostTest wizard helper
+// Source: Views/Admin/CreateAssessment.cshtml lines 195-465 + 1660-1700 (verified 2026-05-12)
+// Controller: AssessmentAdminController.cs lines 1155-1279 ATOMIC 2-session create
+// ============================================================
+
+export interface CreatePrePostOpts {
+  title: string;
+  category: string;
+  preSchedule: string;           // 'YYYY-MM-DDTHH:mm' datetime-local
+  preDurationMinutes: number;
+  preExamWindowCloseDate: string;
+  postSchedule: string;
+  postDurationMinutes: number;
+  postExamWindowCloseDate: string;
+  passPercentage: number;
+  allowAnswerReview: boolean;
+  generateCertificate?: boolean;
+  participantEmails: string[];
+  samePackage?: boolean;
+}
+
+/**
+ * HC create PrePostTest assessment via 4-step wizard.
+ * Returns { preIds, postIds } extracted dari #createdAssessmentData JSON.
+ * Fallback: caller dapat pakai DB query kalau JSON parse gagal (lihat FLOW P1).
+ */
+export async function createPrePostAssessmentViaWizard(
+  page: Page,
+  opts: CreatePrePostOpts
+): Promise<{ preIds: number[]; postIds: number[] }> {
+  await page.goto('/Admin/CreateAssessment');
+
+  // STEP 1 — Title + Category + Type=PrePostTest
+  await page.locator(wizardSelectors.step1).waitFor({ state: 'visible' });
+  await page.selectOption(wizardSelectors.category, opts.category);
+  await page.fill(wizardSelectors.title, opts.title);
+  await page.selectOption(wizardSelectors.assessmentType, 'PrePostTest');
+  // NOTE: #ppt-jadwal-section is inside Step 3 wrapper — not visible at Step 1.
+  // selectOption fires change event sync; Bootstrap collapse animation completes
+  // by the time Step 3 is reached.
+  await page.locator(wizardSelectors.btnNext1).click();
+
+  // STEP 2 — Peserta
+  await page.locator(wizardSelectors.step2).waitFor({ state: 'visible', timeout: 5_000 });
+  for (const email of opts.participantEmails) {
+    const attrSelector = `${wizardSelectors.userCheckItem}[data-email="${email}"] ${wizardSelectors.userCheckbox}`;
+    try {
+      await page.locator(attrSelector).check({ timeout: 3_000 });
+    } catch {
+      const localPart = email.split('@')[0];
+      await page
+        .locator(`${wizardSelectors.userCheckItem}:has-text("${localPart}") ${wizardSelectors.userCheckbox}`)
+        .first()
+        .check();
+    }
+  }
+  await page.locator(wizardSelectors.btnNext2).click();
+
+  // STEP 3 — Pre + Post discrete schedule/duration/EWCD
+  await page.locator(wizardSelectors.step3).waitFor({ state: 'visible', timeout: 5_000 });
+  await page.fill(prePostWizardSelectors.preSchedule, opts.preSchedule);
+  await page.fill(prePostWizardSelectors.preDurationMinutes, String(opts.preDurationMinutes));
+  await page.fill(prePostWizardSelectors.preExamWindowCloseDate, opts.preExamWindowCloseDate);
+  await page.fill(prePostWizardSelectors.postSchedule, opts.postSchedule);
+  await page.fill(prePostWizardSelectors.postDurationMinutes, String(opts.postDurationMinutes));
+  await page.fill(prePostWizardSelectors.postExamWindowCloseDate, opts.postExamWindowCloseDate);
+
+  await page.fill(wizardSelectors.passPercentage, String(opts.passPercentage));
+  if (opts.allowAnswerReview) await page.locator(wizardSelectors.allowAnswerReview).check();
+  if (opts.generateCertificate) await page.locator(wizardSelectors.generateCertificate).check();
+  if (opts.samePackage) {
+    await page
+      .locator(prePostWizardSelectors.samePackageCheck)
+      .check()
+      .catch(() => {
+        /* checkbox optional */
+      });
+  }
+
+  await page.locator(wizardSelectors.btnNext3).click();
+
+  // STEP 4 — Submit
+  await page.locator(wizardSelectors.step4).waitFor({ state: 'visible', timeout: 5_000 });
+  await page.locator(wizardSelectors.btnSubmit).click();
+
+  await page.locator(wizardSelectors.successModal).waitFor({ state: 'visible', timeout: 15_000 });
+
+  const dataRaw = await page.locator(wizardSelectors.createdAssessmentData).textContent();
+  if (!dataRaw) {
+    throw new Error('createPrePostAssessmentViaWizard: #createdAssessmentData empty');
+  }
+  const parsed = JSON.parse(dataRaw) as {
+    IsPrePostTest?: boolean;
+    Sessions?: Array<{ PreId: number; PostId: number; UserId: string; UserName: string; UserEmail: string }>;
+  };
+  if (!parsed.IsPrePostTest || !parsed.Sessions) {
+    throw new Error('createPrePostAssessmentViaWizard: createdAssessmentData JSON missing PrePostTest fields');
+  }
+  const preIds = parsed.Sessions.map((s) => s.PreId);
+  const postIds = parsed.Sessions.map((s) => s.PostId);
+  return { preIds, postIds };
 }

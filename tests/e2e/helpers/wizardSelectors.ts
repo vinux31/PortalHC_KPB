@@ -84,6 +84,22 @@ export const extraTimeSelectors = {
   // Effect on HC page: .alert-success/.alert-danger di .container-fluid
 } as const;
 
+// ============================================================
+// Phase 318 Plan 03 — PrePostTest wizard fields
+// Source: Views/Admin/CreateAssessment.cshtml lines 411-465 (verified 2026-05-12)
+// Behavior: select #assessmentTypeInput='PrePostTest' → change event → #ppt-jadwal-section show
+// ============================================================
+export const prePostWizardSelectors = {
+  jadwalSection: '#ppt-jadwal-section',
+  preSchedule: '#preSchedule',
+  preDurationMinutes: '#preDurationMinutes',
+  preExamWindowCloseDate: '#preExamWindowCloseDate',
+  postSchedule: '#postSchedule',
+  postDurationMinutes: '#postDurationMinutes',
+  postExamWindowCloseDate: '#postExamWindowCloseDate',
+  samePackageCheck: '#samePackageCheck',
+} as const;
+
 export const questionFormSelectors = {
   formCard: '#questionFormCard',
   formTitle: '#formTitle',
