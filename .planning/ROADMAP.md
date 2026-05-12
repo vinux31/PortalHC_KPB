@@ -409,7 +409,7 @@ Plans:
 **Requirements:** QA-09 (admin features E2E coverage)
 **Depends on:** Phase 318
 **Plans:**
-- [x] 319-01-PLAN.md — Helpers extension (verifyExcelDownload + interceptAnalyticsResponse) + W0.T0 TomSelect smoke + FLOW T ManualAssessment CRUD (QA-09)
+4/4 plans complete
 - [x] 319-02-PLAN.md — FLOW U ManageCategories CRUD + duplicate-reject negative (QA-09)
 - [x] 319-03-PLAN.md — W0.V0+W0.W0 smoke + FLOW V Export Excel + FLOW W Analytics dashboard (QA-09)
 - [x] 319-04-PLAN.md — W0.X0 smoke + FLOW X CertificationManagement CDP variant + REQUIREMENTS QA-09 + ROADMAP Phase 319 closure + final regression gate ≥73 (72 pass + 1 skip)
