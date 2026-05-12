@@ -100,6 +100,36 @@
       color: #94a3b8; font-size: 1.5rem;
     }
     body.dark .flow-step { background: #334155; border-color: #475569; color: #f1f5f9; }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 1cm;
+      }
+      body { background: white !important; color: black !important; }
+      body.dark { background: white !important; color: black !important; }
+      body.dark .slide-deck { background: white !important; }
+      body.dark .flow-step { background: white !important; color: black !important; border-color: #ccc !important; }
+      .nav-bar { display: none !important; }
+      .sr-only { display: none !important; }
+      .cursor-w-resize, .cursor-e-resize { display: none !important; }
+      /* Force show all slides for print */
+      [x-cloak] { display: none !important; }
+      .slide { display: flex !important; page-break-before: always; page-break-inside: avoid; }
+      .slide:first-of-type { page-break-before: avoid; }
+      .slide-deck {
+        width: 100% !important;
+        max-width: none !important;
+        aspect-ratio: auto;
+        height: auto;
+        box-shadow: none !important;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        page-break-inside: avoid;
+      }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      [x-show] { display: flex !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen" :class="{ 'dark': dark }" x-data="deck()" x-init="init()"
