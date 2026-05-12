@@ -68,9 +68,9 @@
       <script>
         function loginMock() {
           return {
-            email: $persist('').as('mockup_v1_login_email'),
-            password: $persist('').as('mockup_v1_login_password'),
-            submitted: $persist(false).as('mockup_v1_login_submitted'),
+            email: Alpine.$persist('').as('mockup_v1_login_email'),
+            password: Alpine.$persist('').as('mockup_v1_login_password'),
+            submitted: Alpine.$persist(false).as('mockup_v1_login_submitted'),
             error: '',
             submit() {
               if (!this.email || !this.email.includes('@')) {
@@ -138,7 +138,7 @@
       <script>
         function workerMock() {
           return {
-            workers: $persist([
+            workers: Alpine.$persist([
               { id: 1, nip: 'W001', name: 'Asesor 1', section: 'RFCC', active: true },
               { id: 2, nip: 'W002', name: 'Coach 1', section: 'DHT', active: true },
               { id: 3, nip: 'W003', name: 'Worker 003', section: 'NGP', active: false }
@@ -246,7 +246,7 @@
       <script>
         function questionMock() {
           return {
-            questions: $persist([]).as('mockup_v1_question_list'),
+            questions: Alpine.$persist([]).as('mockup_v1_question_list'),
             newType: 'MC',
             newText: '',
             newChoices: ['', '', '', ''],
@@ -394,16 +394,16 @@
       <script>
         function createAssessmentMock() {
           return {
-            name: $persist('').as('mockup_v1_ca_name'),
-            pkg: $persist('').as('mockup_v1_ca_pkg'),
-            category: $persist('').as('mockup_v1_ca_category'),
-            date: $persist('').as('mockup_v1_ca_date'),
-            time: $persist('').as('mockup_v1_ca_time'),
-            duration: $persist(60).as('mockup_v1_ca_duration'),
-            mode: $persist('Single').as('mockup_v1_ca_mode'),
-            passingScore: $persist(70).as('mockup_v1_ca_passing'),
-            assignedIds: $persist([]).as('mockup_v1_ca_assigned'),
-            submitted: $persist(false).as('mockup_v1_ca_submitted'),
+            name: Alpine.$persist('').as('mockup_v1_ca_name'),
+            pkg: Alpine.$persist('').as('mockup_v1_ca_pkg'),
+            category: Alpine.$persist('').as('mockup_v1_ca_category'),
+            date: Alpine.$persist('').as('mockup_v1_ca_date'),
+            time: Alpine.$persist('').as('mockup_v1_ca_time'),
+            duration: Alpine.$persist(60).as('mockup_v1_ca_duration'),
+            mode: Alpine.$persist('Single').as('mockup_v1_ca_mode'),
+            passingScore: Alpine.$persist(70).as('mockup_v1_ca_passing'),
+            assignedIds: Alpine.$persist([]).as('mockup_v1_ca_assigned'),
+            submitted: Alpine.$persist(false).as('mockup_v1_ca_submitted'),
             error: '',
             availableUsers: [
               { id: 1, nip: 'W001', name: 'Asesor 1', section: 'RFCC' },
@@ -494,11 +494,11 @@
       <script>
         function prePostMock() {
           return {
-            groupName: $persist('').as('mockup_v1_pp_name'),
-            pkg: $persist('').as('mockup_v1_pp_pkg'),
-            preDate: $persist('').as('mockup_v1_pp_pre'),
-            postDate: $persist('').as('mockup_v1_pp_post'),
-            submitted: $persist(false).as('mockup_v1_pp_submitted'),
+            groupName: Alpine.$persist('').as('mockup_v1_pp_name'),
+            pkg: Alpine.$persist('').as('mockup_v1_pp_pkg'),
+            preDate: Alpine.$persist('').as('mockup_v1_pp_pre'),
+            postDate: Alpine.$persist('').as('mockup_v1_pp_post'),
+            submitted: Alpine.$persist(false).as('mockup_v1_pp_submitted'),
             error: '',
             submit() {
               if (!this.groupName || !this.pkg || !this.preDate || !this.postDate) {
@@ -568,7 +568,7 @@
       <script>
         function manualGradingMock() {
           return {
-            submissions: $persist([
+            submissions: Alpine.$persist([
               { id: 1, nip: 'W001', name: 'Asesor 1', question: 'Jelaskan fungsi unit RFCC', answer: 'RFCC mengolah residu menjadi LPG dan propylene dengan catalytic cracking. Tekanan reaktor sekitar 1.5 bar, suhu 540°C. Output naik 95% dari feed.', graded: false, tempScore: null, tempFeedback: '' },
               { id: 2, nip: 'W002', name: 'Coach 1', question: 'Jelaskan fungsi unit RFCC', answer: 'RFCC = crack residu', graded: false, tempScore: null, tempFeedback: '' },
               { id: 3, nip: 'W003', name: 'Worker 003', question: 'Jelaskan fungsi unit RFCC', answer: 'Unit untuk memproses residu vacuum. Catalytic cracking jadi LPG, naphtha, propylene. Bagian penting kilang KPB.', graded: false, tempScore: null, tempFeedback: '' },
@@ -640,7 +640,7 @@
       <script>
         function coachingMock() {
           return {
-            sessions: $persist([
+            sessions: Alpine.$persist([
               { id: 1, topic: 'Belajar Procedure RFCC Startup', coachee: 'Worker 003', due: '2026-06-15', deliverable: 'Tulis SOP startup RFCC 2 halaman', state: 'Draft', evidence: '' },
               { id: 2, topic: 'Maintenance Inspection Pumps', coachee: 'Worker 004', due: '2026-06-20', deliverable: 'Lakukan 5 inspeksi + report', state: 'Pending Submission', evidence: '' },
             ]).as('mockup_v1_coaching_sessions'),
@@ -706,9 +706,9 @@
       <script>
         function idpMock() {
           return {
-            coachee: $persist('Worker 003 (Section NGP)').as('mockup_v1_idp_coachee'),
-            selectedComps: $persist([]).as('mockup_v1_idp_selected'),
-            milestones: $persist({}).as('mockup_v1_idp_milestones'),
+            coachee: Alpine.$persist('Worker 003 (Section NGP)').as('mockup_v1_idp_coachee'),
+            selectedComps: Alpine.$persist([]).as('mockup_v1_idp_selected'),
+            milestones: Alpine.$persist({}).as('mockup_v1_idp_milestones'),
             message: '',
             messageType: 'success',
             availableCompetencies: [
