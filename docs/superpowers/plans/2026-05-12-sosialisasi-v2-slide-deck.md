@@ -1,0 +1,1661 @@
+# Sosialisasi v2 Slide Deck Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Bikin `sosialisasi-portalhc/sosialisasi-v2.html` — slide deck 16:9 presenter mode interaktif, redesign dari `PPT HC PORTAL KPB (1).pptx` (18 slide), brand Pertamina, offline-capable, print-to-PDF.
+
+**Architecture:** Single HTML file pakai Alpine.js + Tailwind CDN lokal. State global `deck()` Alpine component handle slide navigation, dark mode, fullscreen. Tiap slide adalah `<section class="slide" x-show="current === N">` dengan content native HTML/CSS — no SVG flowchart library, pakai utility class shared.css existing.
+
+**Tech Stack:** HTML5 + Tailwind (CDN lokal) + Alpine.js + Alpine Persist plugin + shared.css. No build, no node. Font: Segoe UI. Brand: `--navy #002e6d`, `--red #ed1c24`.
+
+**Spec source:** `docs/superpowers/specs/2026-05-12-sosialisasi-v2-slide-deck-design.md`
+
+---
+
+## File Structure
+
+**Create:**
+- `sosialisasi-portalhc/sosialisasi-v2.html` — main slide deck file
+- `sosialisasi-portalhc/assets/ppt-images/image1.png` — optimized cover image (from PPT, target <200KB)
+- `sosialisasi-portalhc/assets/ppt-images/image2.png` through `image6.png` — PPT images as-is or replaced with SVG
+
+**Modify:**
+- `sosialisasi-portalhc/index.html` — tambah card link ke v2
+
+**Do not touch:**
+- `sosialisasi-portalhc/sosialisasi.html` (v1 arsip)
+- `sosialisasi-portalhc/panduan.html`
+- `sosialisasi-portalhc/praktik.html`
+- `sosialisasi-portalhc/assets/css/shared.css` (extend via inline `<style>` di v2, jangan modify)
+
+---
+
+## Testing Strategy
+
+Frontend single-file, **no automated test framework**. Manual verification per task:
+- Buka file di Chrome: `start sosialisasi-portalhc/sosialisasi-v2.html` (Windows) atau drag ke browser
+- DevTools console: cek `Alpine.version` muncul, no error
+- DevTools responsive: test 1920×1080, iPad (768), iPhone 12 (390)
+- Lighthouse audit di Task akhir
+
+Commit setiap task selesai (frequent commit).
+
+---
+
+## Task 1: Setup File Skeleton + Vendor Links + Base State
+
+**Files:**
+- Create: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Create file skeleton**
+
+Create `sosialisasi-portalhc/sosialisasi-v2.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sosialisasi PortalHC v2 — Slide Deck 2026</title>
+  <link rel="stylesheet" href="assets/css/shared.css">
+  <script src="assets/vendor/tailwind.min.js"></script>
+  <script defer src="assets/vendor/alpine-persist.min.js"></script>
+  <script defer src="assets/vendor/alpinejs.min.js"></script>
+  <style>
+    /* Custom extensions on top of shared.css */
+    :root {
+      --slide-max-w: 1280px;
+    }
+    .slide-deck {
+      width: 100%;
+      max-width: var(--slide-max-w);
+      margin: 0 auto;
+      aspect-ratio: 16 / 9;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
+    }
+    body.dark .slide-deck { background: #1e293b; }
+    .slide {
+      width: 100%;
+      height: 100%;
+      padding: 3rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid #e2e8f0;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+    body.dark .nav-bar {
+      background: rgba(15,23,42,0.95);
+      border-top-color: #334155;
+      color: #f1f5f9;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      cursor: pointer;
+      transition: all 200ms;
+    }
+    .dot.active { background: var(--navy); width: 24px; border-radius: 4px; }
+    .dot:hover { transform: scale(1.3); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen" :class="{ 'dark': dark }" x-data="deck()" x-init="init()">
+
+  <!-- Stage area -->
+  <main class="flex items-center justify-center min-h-screen px-4 pb-20 pt-4">
+    <div class="slide-deck" id="stage">
+      <!-- Slides will go here in later tasks -->
+      <section class="slide" x-show="current === 1">
+        <h1 class="text-5xl font-bold brand-navy">PLACEHOLDER Slide 1</h1>
+        <p class="text-slate-600 mt-4">Skeleton — content akan diisi di task selanjutnya</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- Nav bar (placeholder, akan dibangun di Task 2) -->
+  <nav class="nav-bar">
+    <span class="text-sm">Slide <span x-text="current"></span> / <span x-text="total"></span></span>
+  </nav>
+
+  <script>
+    function deck() {
+      return {
+        current: 1,
+        total: 18,
+        dark: false,
+        fullscreen: false,
+
+        init() {
+          // Sync URL hash on load
+          const hash = location.hash.match(/^#slide-(\d+)$/);
+          if (hash) {
+            const n = parseInt(hash[1], 10);
+            if (n >= 1 && n <= this.total) this.current = n;
+          }
+        }
+      };
+    }
+  </script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Verify in browser**
+
+Open `sosialisasi-portalhc/sosialisasi-v2.html` in browser. Expected:
+- "PLACEHOLDER Slide 1" muncul di tengah dalam container 16:9
+- Nav bar bawah: "Slide 1 / 18"
+- DevTools console: no error, `Alpine.version` accessible
+
+- [ ] **Step 3: Verify URL hash**
+
+Buka `sosialisasi-v2.html#slide-5`. Expected: `current` jadi 5 (placeholder text masih show slide 1 karena belum ada slide 5 di skeleton — yang penting nav bar tampilkan "Slide 5 / 18").
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): skeleton HTML + Alpine state + URL hash sync"
+```
+
+---
+
+## Task 2: Nav Bar Bottom (Prev/Next + Dots + Counter + Buttons)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html` (nav `<nav>` block + Alpine methods)
+
+- [ ] **Step 1: Replace placeholder nav with full nav bar**
+
+Ganti `<nav class="nav-bar">...</nav>` block dengan:
+
+```html
+<nav class="nav-bar">
+  <!-- Left: Hub link + counter -->
+  <div class="flex items-center gap-4">
+    <a href="index.html" class="text-sm brand-navy hover:underline">← Hub</a>
+    <span class="text-sm text-slate-500">
+      Slide <span x-text="current" class="font-bold"></span> / <span x-text="total"></span>
+    </span>
+  </div>
+
+  <!-- Center: Dot indicators -->
+  <div class="flex gap-2 items-center" role="tablist" aria-label="Slide navigation">
+    <template x-for="n in total" :key="n">
+      <button
+        class="dot"
+        :class="{ active: current === n }"
+        :aria-current="current === n ? 'true' : 'false'"
+        :aria-label="`Slide ${n}`"
+        @click="goTo(n)"
+      ></button>
+    </template>
+  </div>
+
+  <!-- Right: Prev/Next + controls -->
+  <div class="flex items-center gap-2">
+    <button
+      @click="prev()"
+      :disabled="current === 1"
+      class="px-3 py-1 rounded bg-slate-200 disabled:opacity-50 hover:bg-slate-300"
+      aria-label="Slide sebelumnya">‹</button>
+    <button
+      @click="next()"
+      :disabled="current === total"
+      class="px-3 py-1 rounded bg-brand-navy text-white disabled:opacity-50 hover:opacity-90"
+      aria-label="Slide selanjutnya">›</button>
+    <button @click="toggleFullscreen()" class="px-2 py-1 text-lg" aria-label="Toggle fullscreen" title="Fullscreen (F)">⛶</button>
+    <button @click="toggleDark()" class="px-2 py-1 text-lg" aria-label="Toggle dark mode" title="Dark mode">🌓</button>
+  </div>
+</nav>
+```
+
+- [ ] **Step 2: Extend `deck()` with methods**
+
+Replace `<script>` block isi:
+
+```html
+<script>
+  function deck() {
+    return {
+      current: 1,
+      total: 18,
+      dark: Alpine.$persist ? Alpine.$persist(false).as('phc_v2_dark') : false,
+      fullscreen: false,
+
+      init() {
+        const hash = location.hash.match(/^#slide-(\d+)$/);
+        if (hash) {
+          const n = parseInt(hash[1], 10);
+          if (n >= 1 && n <= this.total) this.current = n;
+        }
+        window.addEventListener('hashchange', () => {
+          const h = location.hash.match(/^#slide-(\d+)$/);
+          if (h) this.current = parseInt(h[1], 10);
+        });
+      },
+
+      next() {
+        if (this.current < this.total) {
+          this.current++;
+          this.syncHash();
+        }
+      },
+
+      prev() {
+        if (this.current > 1) {
+          this.current--;
+          this.syncHash();
+        }
+      },
+
+      goTo(n) {
+        if (n >= 1 && n <= this.total) {
+          this.current = n;
+          this.syncHash();
+        }
+      },
+
+      syncHash() {
+        history.replaceState(null, '', `#slide-${this.current}`);
+      },
+
+      toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+          this.fullscreen = true;
+        } else {
+          document.exitFullscreen?.();
+          this.fullscreen = false;
+        }
+      },
+
+      toggleDark() {
+        this.dark = !this.dark;
+      }
+    };
+  }
+</script>
+```
+
+**Note dark mode persist:** Alpine Persist plugin pasang `Alpine.$persist` di global setelah Alpine ready. Akses langsung kadang race kalau init terlalu cepat. Fallback ke `false` aman.
+
+- [ ] **Step 3: Verify in browser**
+
+Reload file. Test:
+- Klik tombol `›` → counter naik 1→2, dot ke-2 active (wide bar)
+- Klik tombol `‹` → counter turun
+- Klik dot ke-5 → langsung loncat ke slide 5, URL berubah `#slide-5`
+- Klik `⛶` → browser masuk fullscreen mode
+- Klik `🌓` → background nav berubah dark, slide deck container ikut dark
+- Reload halaman → dark mode persist (kalau diaktifkan sebelumnya)
+- Klik `← Hub` → ke `index.html`
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): nav bar with prev/next/dots/fullscreen/dark"
+```
+
+---
+
+## Task 3: Keyboard Navigation + Click Area + Aria Live
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah keyboard listener di body**
+
+Ganti opening `<body>` tag:
+
+```html
+<body class="min-h-screen" :class="{ 'dark': dark }" x-data="deck()" x-init="init()"
+      @keydown.window.right.prevent="next()"
+      @keydown.window.left.prevent="prev()"
+      @keydown.window.space.prevent="next()"
+      @keydown.window.backspace.prevent="prev()"
+      @keydown.window.home.prevent="goTo(1)"
+      @keydown.window.end.prevent="goTo(total)"
+      @keydown.window.escape="if (document.fullscreenElement) { document.exitFullscreen(); fullscreen = false }"
+      @keydown.window.f="toggleFullscreen()">
+```
+
+- [ ] **Step 2: Tambah click area kiri/kanan di stage**
+
+Ganti `<main>` block:
+
+```html
+<main class="flex items-center justify-center min-h-screen px-4 pb-20 pt-4">
+  <div class="relative" style="width:100%; max-width: var(--slide-max-w);">
+    <!-- Click area: left third -->
+    <div class="absolute left-0 top-0 bottom-0 w-1/3 z-10 cursor-w-resize"
+         @click="prev()" aria-label="Prev (klik area kiri)"
+         title="Klik untuk slide sebelumnya"></div>
+    <!-- Click area: right third -->
+    <div class="absolute right-0 top-0 bottom-0 w-1/3 z-10 cursor-e-resize"
+         @click="next()" aria-label="Next (klik area kanan)"
+         title="Klik untuk slide selanjutnya"></div>
+
+    <div class="slide-deck" id="stage">
+      <section class="slide" x-show="current === 1">
+        <h1 class="text-5xl font-bold brand-navy">PLACEHOLDER Slide 1</h1>
+      </section>
+    </div>
+  </div>
+</main>
+```
+
+- [ ] **Step 3: Tambah aria-live region untuk screen reader**
+
+Tambah sebelum closing `</body>`:
+
+```html
+<div class="sr-only" aria-live="polite" aria-atomic="true">
+  Slide <span x-text="current"></span> dari <span x-text="total"></span>
+</div>
+```
+
+Tambah CSS class `.sr-only` di `<style>`:
+
+```css
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+```
+
+- [ ] **Step 4: Verify in browser**
+
+Test:
+- Keyboard `→`: next slide
+- Keyboard `←`: prev slide
+- Keyboard `Space`: next
+- Keyboard `Backspace`: prev
+- Keyboard `Home`: ke slide 1
+- Keyboard `End`: ke slide 18
+- Keyboard `F`: toggle fullscreen
+- Keyboard `Esc` (saat fullscreen): exit fullscreen
+- Klik area kiri 1/3 slide → prev
+- Klik area kanan 1/3 slide → next
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): keyboard nav + click area + aria-live"
+```
+
+---
+
+## Task 4: Copy + Optimize PPT Images
+
+**Files:**
+- Create: `sosialisasi-portalhc/assets/ppt-images/image1.png` through `image6.png`
+
+- [ ] **Step 1: Buat folder**
+
+```bash
+mkdir -p "sosialisasi-portalhc/assets/ppt-images"
+```
+
+- [ ] **Step 2: Copy image2-6 as-is (sudah kecil)**
+
+```bash
+cp /tmp/pptx_extract/ppt/media/image2.png sosialisasi-portalhc/assets/ppt-images/
+cp /tmp/pptx_extract/ppt/media/image3.png sosialisasi-portalhc/assets/ppt-images/
+cp /tmp/pptx_extract/ppt/media/image4.png sosialisasi-portalhc/assets/ppt-images/
+cp /tmp/pptx_extract/ppt/media/image5.png sosialisasi-portalhc/assets/ppt-images/
+cp /tmp/pptx_extract/ppt/media/image6.png sosialisasi-portalhc/assets/ppt-images/
+```
+
+(Kalau `/tmp/pptx_extract/` udah hilang, re-extract dulu dari `sosialisasi-portalhc/PPT HC PORTAL KPB (1).pptx` pakai unzip)
+
+- [ ] **Step 3: Inspect image1.png isi**
+
+```bash
+file "/tmp/pptx_extract/ppt/media/image1.png"
+ls -la "/tmp/pptx_extract/ppt/media/image1.png"
+```
+
+Buka image1.png di image viewer. Cek: logo Pertamina HQ, foto kilang, atau cover image lain?
+
+- [ ] **Step 4: Optimize image1.png**
+
+Pakai PowerShell + System.Drawing (no external dep):
+
+```powershell
+Add-Type -AssemblyName System.Drawing
+$src = "C:\Users\Administrator\OneDrive - PT Pertamina (Persero)\Desktop\PortalHC_KPB\sosialisasi-portalhc\assets\ppt-images\image1-original.png"
+Copy-Item "/tmp/pptx_extract/ppt/media/image1.png" $src
+$img = [System.Drawing.Image]::FromFile($src)
+$maxW = 1200
+$ratio = $maxW / $img.Width
+$newH = [int]($img.Height * $ratio)
+$bmp = New-Object System.Drawing.Bitmap $maxW, $newH
+$g = [System.Drawing.Graphics]::FromImage($bmp)
+$g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+$g.DrawImage($img, 0, 0, $maxW, $newH)
+$bmp.Save("C:\Users\Administrator\OneDrive - PT Pertamina (Persero)\Desktop\PortalHC_KPB\sosialisasi-portalhc\assets\ppt-images\image1.png", [System.Drawing.Imaging.ImageFormat]::Png)
+$img.Dispose(); $bmp.Dispose(); $g.Dispose()
+Remove-Item $src
+```
+
+Verify size:
+```bash
+ls -la "sosialisasi-portalhc/assets/ppt-images/image1.png"
+```
+
+Expected: < 500 KB (kalau masih besar, resize ke 800px width, atau accept as-is — bukan blocker)
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add sosialisasi-portalhc/assets/ppt-images/
+git commit -m "feat(sosialisasi-v2): copy PPT images, optimize image1"
+```
+
+---
+
+## Task 5: Slide 1 (Cover)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Replace placeholder slide 1**
+
+Ganti `<section class="slide" x-show="current === 1">...</section>` dengan:
+
+```html
+<!-- Slide 1: Cover -->
+<section class="slide" x-show="current === 1" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+  <div class="h-full flex flex-col items-center justify-center text-white text-center"
+       style="background: linear-gradient(135deg, #002e6d 0%, #001c44 70%, #ed1c24 100%); margin: -3rem -4rem; padding: 3rem 4rem; border-radius: 12px;">
+    <div class="text-sm uppercase tracking-widest opacity-80 mb-4">Pertamina Kilang Balikpapan</div>
+    <h1 class="text-6xl font-bold mb-3 leading-tight">HUMAN CAPITAL PORTAL</h1>
+    <div class="text-2xl font-light mb-12 opacity-90">Kilang Pertamina Balikpapan</div>
+    <div class="border-t border-white/30 pt-6 mt-6 max-w-md">
+      <div class="text-sm opacity-70 mb-1">Sosialisasi</div>
+      <div class="text-xl font-medium">Balikpapan, 27 Maret 2026</div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Verify in browser**
+
+Reload, slide 1 active. Expected:
+- Gradient navy→red full slide
+- "HUMAN CAPITAL PORTAL" huruf besar putih
+- "Balikpapan, 27 Maret 2026" di bawah dgn divider line
+- Fade-in animasi saat load
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): slide 1 cover with brand gradient"
+```
+
+---
+
+## Task 6: Slide 2 (Definisi HC Portal) + Slide 3 (Role 3 Card)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah slide 2 setelah slide 1**
+
+Tambah setelah closing `</section>` slide 1:
+
+```html
+<!-- Slide 2: Definisi -->
+<section class="slide" x-show="current === 2" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Pengenalan</div>
+    <h2 class="text-4xl font-bold brand-navy mb-6">Apa itu HC Portal KPB?</h2>
+    <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6 border-l-4 border-brand-navy">
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-200">
+        Sistem informasi berbasis web yang digunakan oleh
+        <strong class="brand-navy">Tim Human Capital Kilang Pertamina Balikpapan</strong>
+        untuk mengelola <strong>kompetensi</strong> dan <strong>pengembangan pekerja</strong>
+        melalui program <strong class="brand-red">CMP (Competency Management Program)</strong>.
+      </p>
+    </div>
+    <div class="grid grid-cols-3 gap-4 mt-8">
+      <div class="card-hover bg-white border border-slate-200 rounded-lg p-4 text-center">
+        <div class="text-3xl mb-2">📊</div>
+        <div class="text-sm font-medium">Assessment</div>
+      </div>
+      <div class="card-hover bg-white border border-slate-200 rounded-lg p-4 text-center">
+        <div class="text-3xl mb-2">🎯</div>
+        <div class="text-sm font-medium">Coaching</div>
+      </div>
+      <div class="card-hover bg-white border border-slate-200 rounded-lg p-4 text-center">
+        <div class="text-3xl mb-2">🏆</div>
+        <div class="text-sm font-medium">Sertifikasi</div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Tambah slide 3 (Role 3 card)**
+
+```html
+<!-- Slide 3: Role -->
+<section class="slide" x-show="current === 3" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Struktur Akses</div>
+    <h2 class="text-4xl font-bold brand-navy mb-8">Role Pengguna</h2>
+    <div class="grid grid-cols-3 gap-6">
+      <!-- Admin -->
+      <div class="card-hover bg-white border-t-4 border-brand-red rounded-lg p-6 shadow-sm">
+        <div class="text-4xl mb-3">🛡️</div>
+        <h3 class="text-xl font-bold brand-navy mb-1">Admin</h3>
+        <div class="text-xs uppercase text-slate-500 mb-3">Administrator Sistem</div>
+        <p class="text-sm text-slate-600 mb-4">Akses penuh ke seluruh fitur sistem, manage user dan konfigurasi.</p>
+        <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses Utama</div>
+        <div class="text-sm font-medium">Seluruh fitur tanpa terkecuali</div>
+      </div>
+      <!-- HC -->
+      <div class="card-hover bg-white border-t-4 border-brand-navy rounded-lg p-6 shadow-sm">
+        <div class="text-4xl mb-3">👥</div>
+        <h3 class="text-xl font-bold brand-navy mb-1">HC</h3>
+        <div class="text-xs uppercase text-slate-500 mb-3">Tim Human Capital</div>
+        <p class="text-sm text-slate-600 mb-4">Operasional harian — assessment, coaching, sertifikasi.</p>
+        <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses Utama</div>
+        <div class="text-sm font-medium">Kelola Data, Monitoring, Coaching Review, Sertifikasi</div>
+      </div>
+      <!-- IT -->
+      <div class="card-hover bg-white border-t-4 border-amber-500 rounded-lg p-6 shadow-sm">
+        <div class="text-4xl mb-3">💻</div>
+        <h3 class="text-xl font-bold brand-navy mb-1">IT</h3>
+        <div class="text-xs uppercase text-slate-500 mb-3">Tim Information Technology</div>
+        <p class="text-sm text-slate-600 mb-4">Setara role standar + tools teknis untuk maintenance sistem.</p>
+        <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses Utama</div>
+        <div class="text-sm font-medium">Sama seperti role standar + tools teknis</div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Verify in browser**
+
+Navigate ke slide 2 (klik dot 2 atau →): expected card definisi + 3 mini card icon di bawah. Slide 3: 3 kartu role besar (Admin red, HC navy, IT amber).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): slides 2-3 (definisi + role)"
+```
+
+---
+
+## Task 7: Slide 4 (CMP Table) + Slide 5-6 (OJT Flowchart)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah slide 4 (Sistem Assessment CMP)**
+
+```html
+<!-- Slide 4: Sistem Assessment CMP -->
+<section class="slide" x-show="current === 4" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1</div>
+    <h2 class="text-4xl font-bold brand-navy mb-6">Sistem Assessment (CMP)</h2>
+    <p class="text-slate-600 mb-6">Dua jenis assessment utama dalam Competency Management Program:</p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-brand-navy text-white">
+            <th class="px-4 py-3 text-left">Jenis</th>
+            <th class="px-4 py-3 text-left">Kategori</th>
+            <th class="px-4 py-3 text-left">Metode Ujian</th>
+            <th class="px-4 py-3 text-left">Penilaian</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="bg-white border-b">
+            <td class="px-4 py-4 font-bold brand-navy">Assessment OJT</td>
+            <td class="px-4 py-4 text-slate-700">Per unit operasi<br><span class="text-xs text-slate-500">(misal: Alkylation, RFCC, NHT)</span></td>
+            <td class="px-4 py-4 text-slate-700">Ujian online (pilihan ganda)<br><span class="text-xs text-slate-500">berdurasi, timer otomatis</span></td>
+            <td class="px-4 py-4 text-slate-700">Otomatis<br><span class="text-xs text-slate-500">berdasarkan passing grade</span></td>
+          </tr>
+          <tr class="bg-slate-50">
+            <td class="px-4 py-4 font-bold brand-red">Assessment Proton</td>
+            <td class="px-4 py-4 text-slate-700">Per track per tahun<br><span class="text-xs text-slate-500">(Panelman/Operator, Tahun 1-3)</span></td>
+            <td class="px-4 py-4 text-slate-700">Online (Th 1-2) +<br>Interview offline (Th 3)</td>
+            <td class="px-4 py-4 text-slate-700">Otomatis (online) +<br>Manual panel (interview)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+      <div class="text-xs font-bold text-amber-700 uppercase mb-1">💡 Tips</div>
+      <div class="text-sm text-slate-700">OJT untuk evaluasi reguler per unit, Proton untuk program pengembangan 3 tahun.</div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Tambah helper CSS untuk flowchart step di `<style>`**
+
+```css
+.flow-step {
+  position: relative;
+  padding: 1rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  text-align: center;
+  transition: all 200ms;
+}
+.flow-step:hover { border-color: var(--navy); transform: translateY(-2px); }
+.flow-step.active { border-color: var(--navy); background: #eff6ff; }
+.flow-step .step-num {
+  position: absolute;
+  top: -12px; left: 50%; transform: translateX(-50%);
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--navy); color: white;
+  font-size: 12px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+}
+.flow-arrow {
+  display: flex; align-items: center; justify-content: center;
+  color: #94a3b8; font-size: 1.5rem;
+}
+body.dark .flow-step { background: #334155; border-color: #475569; color: #f1f5f9; }
+```
+
+- [ ] **Step 3: Tambah slide 5 (Alur OJT Step 1-4)**
+
+```html
+<!-- Slide 5: Alur OJT 1-4 -->
+<section class="slide" x-show="current === 5" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1 · Alur</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Assessment OJT <span class="text-base font-normal text-slate-500">(Step 1-4)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step">
+        <div class="step-num">1</div>
+        <div class="font-bold brand-navy mb-1">Persiapan Data</div>
+        <div class="text-xs text-slate-600">Buat kategori (per unit), atur organisasi & daftar pekerja</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">2</div>
+        <div class="font-bold brand-navy mb-1">Buat Assessment</div>
+        <div class="text-xs text-slate-600">Pilih kategori "Assessment OJT", set durasi & soal</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">3</div>
+        <div class="font-bold brand-navy mb-1">Distribusi Soal</div>
+        <div class="text-xs text-slate-600">Sistem random soal sesuai paket per peserta</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">4</div>
+        <div class="font-bold brand-navy mb-1">Peserta Ujian</div>
+        <div class="text-xs text-slate-600">Login portal, kerjakan soal dalam timer</div>
+      </div>
+    </div>
+    <div class="mt-8 bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-sm text-slate-700 dark:text-slate-200">
+      <strong>Role:</strong> Admin / HC menyiapkan data, peserta dari Tim Operasional unit terkait.
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 4: Tambah slide 6 (Alur OJT Step 5-8)**
+
+```html
+<!-- Slide 6: Alur OJT 5-8 -->
+<section class="slide" x-show="current === 6" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1 · Alur (lanjutan)</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Assessment OJT <span class="text-base font-normal text-slate-500">(Step 5-8)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step">
+        <div class="step-num">5</div>
+        <div class="font-bold brand-navy mb-1">Monitoring Real-Time</div>
+        <div class="text-xs text-slate-600">Admin/HC pantau progress, bisa akhiri ujian manual</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">6</div>
+        <div class="font-bold brand-navy mb-1">Submit Ujian</div>
+        <div class="text-xs text-slate-600">Peserta submit, atau auto-submit saat timer habis</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">7</div>
+        <div class="font-bold brand-navy mb-1">Penilaian Otomatis</div>
+        <div class="text-xs text-slate-600">Sistem hitung skor vs passing grade</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+        <div class="step-num" style="background: var(--green);">8</div>
+        <div class="font-bold" style="color: var(--green)">Hasil & Laporan</div>
+        <div class="text-xs text-slate-600">Lulus/tidak lulus, laporan tersimpan</div>
+      </div>
+    </div>
+    <div class="mt-8 bg-green-50 border-l-4 border-green-500 p-4 rounded text-sm text-slate-700">
+      <strong>✅ Output:</strong> Skor pekerja, status kelulusan, dan rekap per unit/per kategori.
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 5: Verify in browser**
+
+Slide 4: tabel CMP 2 row dengan callout tips amber. Slide 5: 4 flow step horizontal "Persiapan → Buat → Distribusi → Peserta". Slide 6: 4 flow step "Monitoring → Submit → Penilaian → Hasil" (step 8 highlight green).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): slides 4-6 (CMP table + OJT flowchart 1-8)"
+```
+
+---
+
+## Task 8: Slide 7 (Proton Table) + Slide 8-9 (Proton Flowchart)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah slide 7 (Proton — Track per Tahun)**
+
+```html
+<!-- Slide 7: Assessment Proton -->
+<section class="slide" x-show="current === 7" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 2</div>
+    <h2 class="text-4xl font-bold brand-navy mb-6">Assessment Proton</h2>
+    <p class="text-slate-600 mb-6">Program 3 tahun, satu track per role. Setiap tahun punya track & deliverable yang berbeda.</p>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card-hover bg-white border-t-4 border-blue-400 rounded-lg p-5 shadow-sm">
+        <div class="text-xs uppercase text-slate-500 font-bold mb-1">Tahun 1</div>
+        <h3 class="text-xl font-bold brand-navy mb-3">Panelman / Operator</h3>
+        <ul class="text-sm text-slate-700 space-y-1">
+          <li>• Track dasar per role</li>
+          <li>• Ujian online pilihan ganda</li>
+          <li>• Fokus: kompetensi dasar</li>
+        </ul>
+      </div>
+      <div class="card-hover bg-white border-t-4 border-blue-600 rounded-lg p-5 shadow-sm">
+        <div class="text-xs uppercase text-slate-500 font-bold mb-1">Tahun 2</div>
+        <h3 class="text-xl font-bold brand-navy mb-3">Panelman / Operator</h3>
+        <ul class="text-sm text-slate-700 space-y-1">
+          <li>• Track lanjutan</li>
+          <li>• Ujian online pilihan ganda</li>
+          <li>• Fokus: pendalaman proses</li>
+        </ul>
+      </div>
+      <div class="card-hover bg-white border-t-4 border-red-600 rounded-lg p-5 shadow-sm">
+        <div class="text-xs uppercase text-slate-500 font-bold mb-1">Tahun 3</div>
+        <h3 class="text-xl font-bold brand-red mb-3">Panelman / Operator</h3>
+        <ul class="text-sm text-slate-700 space-y-1">
+          <li>• Track mahir</li>
+          <li>• <strong>Interview offline</strong> oleh panel juri</li>
+          <li>• Penilaian 5 aspek (skor 1-5)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Tambah slide 8 (Alur Proton Th 1-2 Online)**
+
+```html
+<!-- Slide 8: Alur Proton Th 1-2 -->
+<section class="slide" x-show="current === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 2 · Alur</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Proton — Tahun 1 & 2 <span class="text-base font-normal text-slate-500">(Ujian Online)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step">
+        <div class="step-num">1</div>
+        <div class="font-bold brand-navy mb-1">Buat Assessment</div>
+        <div class="text-xs text-slate-600">Kategori "Assessment Proton", pilih track (Operator/Panelman) & tahun</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">2</div>
+        <div class="font-bold brand-navy mb-1">Set Paket Soal</div>
+        <div class="text-xs text-slate-600">Pilih paket sesuai track tahun, set durasi & passing grade</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">3</div>
+        <div class="font-bold brand-navy mb-1">Peserta Ujian Online</div>
+        <div class="text-xs text-slate-600">Login portal, kerjakan soal dalam timer otomatis</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+        <div class="step-num" style="background: var(--green);">4</div>
+        <div class="font-bold" style="color: var(--green)">Penilaian Otomatis</div>
+        <div class="text-xs text-slate-600">Skor otomatis, laporan lulus/tidak per peserta</div>
+      </div>
+    </div>
+    <div class="mt-8 grid grid-cols-2 gap-4">
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm">
+        <div class="font-bold text-blue-700 mb-1">Mirip OJT</div>
+        <div class="text-slate-700">Alur online sama dengan OJT, beda di kategori & paket soal per track.</div>
+      </div>
+      <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded text-sm">
+        <div class="font-bold text-amber-700 mb-1">⚠️ Catatan</div>
+        <div class="text-slate-700">Peserta harus lulus Tahun N untuk lanjut ke Tahun N+1.</div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Tambah slide 9 (Alur Proton Th 3 Interview)**
+
+```html
+<!-- Slide 9: Alur Proton Th 3 -->
+<section class="slide" x-show="current === 9" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 2 · Alur</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Proton — Tahun 3 <span class="text-base font-normal text-slate-500">(Interview Offline)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step" style="border-color: var(--amber); background: #fffbeb;">
+        <div class="step-num" style="background: var(--amber);">1</div>
+        <div class="font-bold" style="color: #b45309">Buat Assessment</div>
+        <div class="text-xs text-slate-600">Pilih track Tahun 3. Tidak perlu durasi & paket soal.</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--amber); background: #fffbeb;">
+        <div class="step-num" style="background: var(--amber);">2</div>
+        <div class="font-bold" style="color: #b45309">Interview Offline</div>
+        <div class="text-xs text-slate-600">Panel juri tatap muka, peserta presentasi & dijuri</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--amber); background: #fffbeb;">
+        <div class="step-num" style="background: var(--amber);">3</div>
+        <div class="font-bold" style="color: #b45309">Penilaian 5 Aspek</div>
+        <div class="text-xs text-slate-600">Skor 1-5 per aspek kompetensi oleh panel</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+        <div class="step-num" style="background: var(--green);">4</div>
+        <div class="font-bold" style="color: var(--green)">Rekap & Sertifikasi</div>
+        <div class="text-xs text-slate-600">Input skor ke sistem, sertifikasi level kompetensi</div>
+      </div>
+    </div>
+    <div class="mt-8 bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+      <div class="text-sm font-bold text-amber-800 mb-1">🎤 Mode Offline</div>
+      <div class="text-sm text-slate-700">Tahun 3 berbeda dari Th 1-2 — bukan ujian online tapi <strong>interview tatap muka</strong> dengan panel juri. Sistem hanya untuk input skor & rekap.</div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 4: Verify in browser**
+
+Navigate slide 7-9. Expected: 3 kartu track per tahun (slide 7), 4 step flowchart online (slide 8), 4 step amber-themed offline (slide 9).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): slides 7-9 (Proton table + online + offline flow)"
+```
+
+---
+
+## Task 9: Slide 10-12 (Coaching CDP overview + hierarki + fokus)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah slide 10 (Coaching Overview)**
+
+```html
+<!-- Slide 10: Coaching CDP Overview -->
+<section class="slide" x-show="current === 10" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 3</div>
+    <h2 class="text-4xl font-bold brand-navy mb-4">Coaching Proton (CDP)</h2>
+    <p class="text-lg text-slate-600 mb-6">Program <strong class="brand-navy">3 tahun</strong> pengembangan kompetensi. Setiap tahun punya track tersendiri dengan deliverable berbeda.</p>
+    <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-5 mb-6">
+      <h3 class="font-bold mb-3 brand-navy">Track Type:</h3>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="bg-white dark:bg-slate-600 rounded p-3">
+          <div class="font-bold mb-1">Panelman</div>
+          <div class="text-xs text-slate-500">Panelman – Tahun 1, 2, 3 (3 track terpisah)</div>
+        </div>
+        <div class="bg-white dark:bg-slate-600 rounded p-3">
+          <div class="font-bold mb-1">Operator</div>
+          <div class="text-xs text-slate-500">Operator – Tahun 1, 2, 3 (3 track terpisah)</div>
+        </div>
+      </div>
+    </div>
+    <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded text-sm">
+      <strong class="text-amber-700">💡 Setiap track berdiri sendiri:</strong> hierarki kompetensi dan deliverable independen — pekerja dipromosikan tiap tahun.
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Tambah slide 11 (Hierarki Tree)**
+
+```html
+<!-- Slide 11: Hierarki Kompetensi -->
+<section class="slide" x-show="current === 11" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 3 · Struktur</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Hierarki Kompetensi per Track</h2>
+    <div class="bg-white dark:bg-slate-700 rounded-lg border border-slate-200 p-6 font-mono text-sm">
+      <div class="space-y-2">
+        <div class="font-bold brand-navy">📁 Track <span class="text-slate-500">(misal: Operator - Tahun 1)</span></div>
+        <div class="pl-6 border-l-2 border-slate-300 ml-2">
+          <div>↓</div>
+          <div class="font-bold brand-red mb-1">📂 Kompetensi (Level 1)</div>
+          <div class="pl-6 border-l-2 border-slate-300 ml-2">
+            <div>↓</div>
+            <div class="font-medium mb-1">📄 Sub-Kompetensi (Level 2)</div>
+            <div class="pl-6 border-l-2 border-slate-300 ml-2">
+              <div>↓</div>
+              <div class="text-slate-600">🎯 Deliverable</div>
+              <div class="text-xs text-slate-500 mt-1">(tugas/output konkret yang harus diselesaikan pekerja)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-6 grid grid-cols-2 gap-4 text-sm">
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+        <strong class="text-blue-700">Independen:</strong> Tiap track punya hierarki sendiri-sendiri, tidak shared.
+      </div>
+      <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+        <strong class="text-green-700">Sertifikasi:</strong> Semua deliverable selesai = lulus track, siap promosi ke tahun berikutnya.
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Tambah slide 12 (Fokus Kompetensi)**
+
+```html
+<!-- Slide 12: Fokus Kompetensi -->
+<section class="slide" x-show="current === 12" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 3 · Progresi</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Fokus Kompetensi per Tahun</h2>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card-hover rounded-lg p-6 text-white" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+        <div class="text-xs uppercase opacity-80 mb-1">Tahun 1</div>
+        <div class="text-4xl mb-3">🌱</div>
+        <h3 class="text-2xl font-bold mb-3">Kompetensi Dasar</h3>
+        <p class="text-sm opacity-90">Pengenalan unit kerja, fundamental proses, basic skill.</p>
+      </div>
+      <div class="card-hover rounded-lg p-6 text-white" style="background: linear-gradient(135deg, #002e6d, #001c44);">
+        <div class="text-xs uppercase opacity-80 mb-1">Tahun 2</div>
+        <div class="text-4xl mb-3">🌿</div>
+        <h3 class="text-2xl font-bold mb-3">Kompetensi Lanjutan</h3>
+        <p class="text-sm opacity-90">Pendalaman proses, troubleshoot dasar, integrasi antar unit.</p>
+      </div>
+      <div class="card-hover rounded-lg p-6 text-white" style="background: linear-gradient(135deg, #ed1c24, #b0121a);">
+        <div class="text-xs uppercase opacity-80 mb-1">Tahun 3</div>
+        <div class="text-4xl mb-3">🌳</div>
+        <h3 class="text-2xl font-bold mb-3">Kompetensi Mahir</h3>
+        <p class="text-sm opacity-90">Penguasaan penuh, leadership, problem solving kompleks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 4: Verify in browser**
+
+Slide 10: overview CDP + 2 track type card. Slide 11: tree diagram indented. Slide 12: 3 card gradasi (blue, navy, red).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): slides 10-12 (CDP overview + hierarki + fokus)"
+```
+
+---
+
+## Task 10: Slides 13-16 (Coaching Flowchart Th 1-2 & Th 3)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah slide 13 (Coaching Th 1-2 Step 1-4)**
+
+```html
+<!-- Slide 13: Coaching Th 1-2, step 1-4 -->
+<section class="slide" x-show="current === 13" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 1 & 2</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 1 & 2 <span class="text-base font-normal text-slate-500">(Step 1-4)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step">
+        <div class="step-num">1</div>
+        <div class="font-bold brand-navy mb-1">Siapkan Silabus</div>
+        <div class="text-xs text-slate-600">Buat/import kompetensi & deliverable untuk track tahun</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">2</div>
+        <div class="font-bold brand-navy mb-1">Upload Guidance</div>
+        <div class="text-xs text-slate-600">Unggah dokumen panduan belajar per kompetensi</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">3</div>
+        <div class="font-bold brand-navy mb-1">Mapping ke Track</div>
+        <div class="text-xs text-slate-600">Assign coachee ke track sesuai tahun program</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">4</div>
+        <div class="font-bold brand-navy mb-1">Kerjakan Deliverable</div>
+        <div class="text-xs text-slate-600">Coachee submit evidence per deliverable</div>
+      </div>
+    </div>
+    <div class="mt-8 bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-sm">
+      <strong>Role HC:</strong> siapkan silabus + upload guidance. <strong>Role Coachee:</strong> kerjakan & submit deliverable.
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Tambah slide 14 (Coaching Th 1-2 Step 5-8)**
+
+```html
+<!-- Slide 14: Coaching Th 1-2, step 5-8 -->
+<section class="slide" x-show="current === 14" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 1 & 2 (lanjutan)</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 1 & 2 <span class="text-base font-normal text-slate-500">(Step 5-8)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step">
+        <div class="step-num">5</div>
+        <div class="font-bold brand-navy mb-1">Review HC</div>
+        <div class="text-xs text-slate-600">Tim HC review evidence yang di-submit coachee</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">6</div>
+        <div class="font-bold brand-navy mb-1">Approval / Revisi</div>
+        <div class="text-xs text-slate-600">HC approve atau request revisi dengan komentar</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step">
+        <div class="step-num">7</div>
+        <div class="font-bold brand-navy mb-1">Hitung Progress</div>
+        <div class="text-xs text-slate-600">Persentase penyelesaian deliverable dalam track</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+        <div class="step-num" style="background: var(--green);">8</div>
+        <div class="font-bold" style="color: var(--green)">Sertifikasi</div>
+        <div class="text-xs text-slate-600">Semua deliverable selesai = lulus tahun</div>
+      </div>
+    </div>
+    <div class="mt-8 bg-green-50 border-l-4 border-green-500 p-4 rounded text-sm">
+      <strong class="text-green-700">✅ Output:</strong> Coachee lulus tahun, dapat sertifikat, eligible naik ke tahun berikutnya.
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Tambah slide 15 (Coaching Th 3 Step 1-4)**
+
+```html
+<!-- Slide 15: Coaching Th 3, step 1-4 -->
+<section class="slide" x-show="current === 15" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 3</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 3 <span class="text-base font-normal text-slate-500">(Step 1-4)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
+        <div class="step-num" style="background: var(--red);">1</div>
+        <div class="font-bold" style="color: var(--red)">Siapkan Silabus Mahir</div>
+        <div class="text-xs text-slate-600">Kompetensi & deliverable level mahir, beda dari Th 1-2</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
+        <div class="step-num" style="background: var(--red);">2</div>
+        <div class="font-bold" style="color: var(--red)">Mapping ke Track Th 3</div>
+        <div class="text-xs text-slate-600">Assign coachee yang lulus Th 2 ke track Tahun 3</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
+        <div class="step-num" style="background: var(--red);">3</div>
+        <div class="font-bold" style="color: var(--red)">Kerjakan Deliverable</div>
+        <div class="text-xs text-slate-600">Submit evidence level mahir (proses lebih kompleks)</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
+        <div class="step-num" style="background: var(--red);">4</div>
+        <div class="font-bold" style="color: var(--red)">Review Mendalam</div>
+        <div class="text-xs text-slate-600">HC review evidence level mahir lebih ketat</div>
+      </div>
+    </div>
+    <div class="mt-8 bg-red-50 border-l-4 border-red-500 p-4 rounded text-sm">
+      <strong class="text-red-700">🎯 Tahun 3 = level Mahir:</strong> deliverable lebih kompleks, review lebih ketat.
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 4: Tambah slide 16 (Coaching Th 3 Step 5-8)**
+
+```html
+<!-- Slide 16: Coaching Th 3, step 5-8 -->
+<section class="slide" x-show="current === 16" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 3 (lanjutan)</div>
+    <h2 class="text-3xl font-bold brand-navy mb-6">Alur Coaching — Tahun 3 <span class="text-base font-normal text-slate-500">(Step 5-8)</span></h2>
+    <div class="grid grid-cols-9 gap-2 items-stretch">
+      <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
+        <div class="step-num" style="background: var(--red);">5</div>
+        <div class="font-bold" style="color: var(--red)">Interview Online</div>
+        <div class="text-xs text-slate-600">Coaching & review via interview (komponen Th 3)</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
+        <div class="step-num" style="background: var(--red);">6</div>
+        <div class="font-bold" style="color: var(--red)">Hitung Progress</div>
+        <div class="text-xs text-slate-600">Persentase deliverable Th 3 + skor interview</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+        <div class="step-num" style="background: var(--green);">7</div>
+        <div class="font-bold" style="color: var(--green)">Sertifikasi Final</div>
+        <div class="text-xs text-slate-600">Semua deliverable Th 3 selesai = sertifikasi final</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+        <div class="step-num" style="background: var(--green);">8</div>
+        <div class="font-bold" style="color: var(--green)">Penetapan Level</div>
+        <div class="text-xs text-slate-600">Review final, tetapkan level kompetensi pekerja</div>
+      </div>
+    </div>
+    <div class="mt-8 bg-green-50 border-l-4 border-green-500 p-4 rounded text-sm">
+      <strong class="text-green-700">🏆 Output Final:</strong> Pekerja lulus program 3 tahun → ditetapkan level kompetensi mahir, eligible untuk role advance.
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 5: Verify in browser**
+
+Slide 13-14: flowchart navy 8 step Th 1-2. Slide 15-16: flowchart red theme step 1-6, green theme step 7-8 (sertifikasi).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): slides 13-16 (coaching Th 1-2 + Th 3 flowchart)"
+```
+
+---
+
+## Task 11: Slide 17 (Timeline) + Slide 18 (Closing)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah slide 17 (Timeline 3 Tahun Summary)**
+
+```html
+<!-- Slide 17: Timeline Summary -->
+<section class="slide" x-show="current === 17" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Ringkasan</div>
+    <h2 class="text-3xl font-bold brand-navy mb-8">Program Proton — 3 Tahun</h2>
+
+    <!-- Timeline -->
+    <div class="relative">
+      <!-- Horizontal line -->
+      <div class="absolute top-12 left-12 right-12 h-1 bg-gradient-to-r from-blue-400 via-navy to-red-600" style="background: linear-gradient(to right, #3b82f6, #002e6d, #ed1c24);"></div>
+
+      <div class="grid grid-cols-3 gap-8 relative">
+        <!-- Year 1 -->
+        <div class="text-center">
+          <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-white text-3xl font-bold relative z-10" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+            1
+          </div>
+          <h3 class="text-lg font-bold brand-navy mt-3">Kompetensi Dasar</h3>
+          <p class="text-xs text-slate-600 mt-2">Deliverable Tahun 1<br>Coaching & Assessment Online</p>
+        </div>
+        <!-- Year 2 -->
+        <div class="text-center">
+          <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-white text-3xl font-bold relative z-10" style="background: linear-gradient(135deg, #002e6d, #001c44);">
+            2
+          </div>
+          <h3 class="text-lg font-bold brand-navy mt-3">Kompetensi Lanjutan</h3>
+          <p class="text-xs text-slate-600 mt-2">Deliverable Tahun 2<br>Coaching & Assessment Online</p>
+        </div>
+        <!-- Year 3 -->
+        <div class="text-center">
+          <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-white text-3xl font-bold relative z-10" style="background: linear-gradient(135deg, #ed1c24, #b0121a);">
+            3
+          </div>
+          <h3 class="text-lg font-bold brand-red mt-3">Kompetensi Mahir</h3>
+          <p class="text-xs text-slate-600 mt-2">Deliverable Tahun 3<br>Coaching & Review Interview<br><strong>Sertifikasi Final</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-10 bg-gradient-to-r from-blue-50 via-slate-50 to-red-50 dark:from-slate-700 dark:to-slate-700 rounded-lg p-5 text-center">
+      <div class="text-sm uppercase tracking-wide text-slate-500 mb-2">Hasil Akhir</div>
+      <div class="text-2xl font-bold brand-navy">Pekerja Kompeten, Tersertifikasi, Siap Operasi Kompleks</div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 2: Tambah slide 18 (Closing)**
+
+```html
+<!-- Slide 18: Closing -->
+<section class="slide" x-show="current === 18" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+  <div class="h-full flex flex-col items-center justify-center text-white text-center"
+       style="background: linear-gradient(135deg, #002e6d 0%, #001c44 70%, #ed1c24 100%); margin: -3rem -4rem; padding: 3rem 4rem; border-radius: 12px;">
+    <div class="text-7xl mb-6">🙏</div>
+    <h1 class="text-6xl font-bold mb-4">Terima Kasih</h1>
+    <p class="text-xl opacity-90 mb-8">Sosialisasi PortalHC Kilang Pertamina Balikpapan</p>
+
+    <div class="grid grid-cols-2 gap-8 mt-8 max-w-2xl w-full border-t border-white/20 pt-8">
+      <div>
+        <div class="text-xs uppercase opacity-70 mb-1">Kontak</div>
+        <div class="font-medium">Tim HC Operasional</div>
+        <div class="text-sm opacity-80">PT Pertamina (Persero) — KPB</div>
+      </div>
+      <div>
+        <div class="text-xs uppercase opacity-70 mb-1">Materi lanjutan</div>
+        <a href="panduan.html" class="block text-white hover:underline">📖 Panduan Step-by-Step →</a>
+        <a href="praktik.html" class="block text-white hover:underline mt-1">🧪 Praktik Workflow →</a>
+      </div>
+    </div>
+
+    <div class="mt-12 text-xs opacity-60">
+      Balikpapan, 27 Maret 2026
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Verify in browser**
+
+Slide 17: timeline 3 circle horizontal (blue → navy → red) dengan label. Slide 18: gradient closing dengan kontak HC + link panduan/praktik.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): slides 17-18 (timeline + closing)"
+```
+
+---
+
+## Task 12: Print Stylesheet (PDF Export Ready)
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html` (tambah `@media print` di `<style>`)
+
+- [ ] **Step 1: Tambah print rules ke `<style>` block**
+
+Tambah di akhir `<style>`:
+
+```css
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+  body { background: white !important; color: black !important; }
+  body.dark { background: white !important; color: black !important; }
+  body.dark * { color: black !important; background: white !important; border-color: #ccc !important; }
+  .nav-bar { display: none !important; }
+  .sr-only { display: none !important; }
+  /* Show all slides for print */
+  .slide { display: flex !important; page-break-before: always; page-break-inside: avoid; }
+  .slide:first-of-type { page-break-before: avoid; }
+  .slide-deck {
+    width: 100% !important;
+    max-width: none !important;
+    aspect-ratio: auto;
+    height: auto;
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+    border-radius: 0;
+    page-break-inside: avoid;
+  }
+  /* Disable animations */
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  /* Disable click area overlays */
+  .cursor-w-resize, .cursor-e-resize { display: none !important; }
+}
+```
+
+- [ ] **Step 2: Force show all slides in print mode**
+
+Edit existing `x-show` slides — gak perlu ubah `x-show` (Alpine hide via `display:none` inline style). Pakai trik `@media print` override:
+
+Tambah ke `@media print` style block:
+
+```css
+@media print {
+  [x-show] { display: flex !important; }
+}
+```
+
+- [ ] **Step 3: Verify print preview**
+
+Buka di Chrome → `Ctrl+P` → preview. Expected:
+- 18 halaman A4 landscape
+- 1 slide per halaman
+- Nav bar tidak muncul
+- Konten readable
+- Color preserved (Chrome print settings: enable "Background graphics")
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): print stylesheet for PDF landscape A4 export"
+```
+
+---
+
+## Task 13: Mobile Responsive + Rotate Prompt
+
+**Files:**
+- Modify: `sosialisasi-portalhc/sosialisasi-v2.html`
+
+- [ ] **Step 1: Tambah mobile responsive rules ke `<style>`**
+
+Tambah di `<style>`:
+
+```css
+/* Mobile portrait: scale down slide */
+@media (max-width: 768px) and (orientation: portrait) {
+  .slide-deck { max-width: 100%; }
+  .slide { padding: 1.5rem 1.5rem; }
+  .slide h1 { font-size: 2rem !important; }
+  .slide h2 { font-size: 1.5rem !important; }
+  .slide h3 { font-size: 1.1rem !important; }
+  .slide .text-4xl { font-size: 1.5rem !important; }
+  .slide .text-5xl, .slide .text-6xl, .slide .text-7xl { font-size: 2rem !important; }
+  .slide .grid-cols-3 { grid-template-columns: 1fr; gap: 0.5rem; }
+  .slide .grid-cols-9 { grid-template-columns: 1fr; gap: 0.5rem; }
+  .flow-arrow { transform: rotate(90deg); }
+  .nav-bar { padding: 0.5rem 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+}
+/* Rotate prompt */
+.rotate-prompt {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,46,109,0.95); color: white;
+  z-index: 100; padding: 2rem; text-align: center;
+  flex-direction: column; align-items: center; justify-content: center;
+}
+@media (max-width: 768px) and (orientation: portrait) {
+  .rotate-prompt[data-dismissed="false"] { display: flex; }
+}
+```
+
+- [ ] **Step 2: Tambah rotate prompt HTML**
+
+Tambah sebelum closing `</body>`:
+
+```html
+<div class="rotate-prompt" :data-dismissed="rotateDismissed" x-data="{ rotateDismissed: sessionStorage.getItem('phc_v2_rotate_dismiss') === 'true' }">
+  <div class="text-6xl mb-6 animate-pulse">📱➡️📱</div>
+  <h2 class="text-2xl font-bold mb-3">Putar HP Anda</h2>
+  <p class="opacity-80 mb-6">Untuk pengalaman terbaik, gunakan mode landscape.</p>
+  <button @click="rotateDismissed = true; sessionStorage.setItem('phc_v2_rotate_dismiss', 'true')"
+          class="px-6 py-2 bg-white text-brand-navy rounded font-medium">
+    Lanjut anyway
+  </button>
+</div>
+```
+
+- [ ] **Step 3: Verify mobile via DevTools**
+
+DevTools → Responsive → iPhone 12 portrait (390x844). Expected:
+- Rotate prompt muncul fullscreen overlay
+- Klik "Lanjut anyway" → hilang, slide visible, scale down
+- Switch ke landscape (844x390) → prompt hidden, slide full 16:9
+- Flow step grid stack vertikal di portrait
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add sosialisasi-portalhc/sosialisasi-v2.html
+git commit -m "feat(sosialisasi-v2): mobile responsive + rotate prompt"
+```
+
+---
+
+## Task 14: Update `index.html` Hub Card
+
+**Files:**
+- Modify: `sosialisasi-portalhc/index.html`
+
+- [ ] **Step 1: Ubah grid hub jadi 4-kolom dan tambah card v2**
+
+Replace `<main>` block di `sosialisasi-portalhc/index.html`:
+
+```html
+<main class="flex-1 max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <a href="sosialisasi-v2.html" class="card-hover bg-white rounded-xl shadow-md p-6 block relative">
+    <span class="absolute top-3 right-3 text-xs font-bold uppercase bg-brand-red text-white px-2 py-1 rounded">BARU</span>
+    <div class="text-4xl mb-3">🎬</div>
+    <h2 class="text-xl font-bold brand-navy mb-2">Sosialisasi v2</h2>
+    <p class="text-sm text-slate-600">Slide deck interaktif 16:9, redesign dari PPT 27 Maret 2026. Fullscreen presenter mode, dark mode, print-to-PDF.</p>
+    <div class="text-xs text-slate-400 mt-3">18 slide · 2026</div>
+  </a>
+
+  <a href="sosialisasi.html" class="card-hover bg-white rounded-xl shadow-md p-6 block opacity-75">
+    <div class="text-4xl mb-3">📊</div>
+    <h2 class="text-xl font-bold brand-navy mb-2">Sosialisasi v1</h2>
+    <p class="text-sm text-slate-600">Versi 1.0 (arsip) — overview PortalHC, 15 slide.</p>
+    <div class="text-xs text-slate-400 mt-3">15 slide · arsip</div>
+  </a>
+
+  <a href="panduan.html" class="card-hover bg-white rounded-xl shadow-md p-6 block">
+    <div class="text-4xl mb-3">📖</div>
+    <h2 class="text-xl font-bold brand-navy mb-2">Panduan</h2>
+    <p class="text-sm text-slate-600">Tutorial step-by-step 22 use case daily/weekly + 5 quiz concept-check.</p>
+  </a>
+
+  <a href="praktik.html" class="card-hover bg-white rounded-xl shadow-md p-6 block">
+    <div class="text-4xl mb-3">🧪</div>
+    <h2 class="text-xl font-bold brand-navy mb-2">Praktik</h2>
+    <p class="text-sm text-slate-600">Mockup drill 8 workflow interactive — latihan tanpa rusak data real.</p>
+  </a>
+</main>
+```
+
+- [ ] **Step 2: Verify in browser**
+
+Buka `index.html`. Expected:
+- 4 card grid (2 col tablet, 4 col desktop)
+- Card "Sosialisasi v2" punya badge "BARU" merah
+- Card v1 opacity reduced (arsip)
+- Klik card v2 → buka `sosialisasi-v2.html`
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add sosialisasi-portalhc/index.html
+git commit -m "feat(sosialisasi): hub - tambah card sosialisasi v2 + label v1 arsip"
+```
+
+---
+
+## Task 15: QA Pass + Lighthouse Audit
+
+**Files:**
+- No file changes (verification only — fix issues found inline)
+
+- [ ] **Step 1: Manual QA — desktop**
+
+Open `sosialisasi-portalhc/sosialisasi-v2.html` di Chrome 1920×1080:
+
+Test checklist:
+- [ ] Slide 1 cover render benar (gradient navy→red, "HUMAN CAPITAL PORTAL")
+- [ ] Slides 2-18 navigable via tombol next/prev
+- [ ] Keyboard: →, ←, Space, Backspace, Home, End, F, Esc
+- [ ] Klik area kiri/kanan slide → prev/next
+- [ ] Klik dot indicator → jump ke slide
+- [ ] URL hash sync: load `#slide-10` → langsung slide 10
+- [ ] Fullscreen API jalan (klik ⛶ atau F)
+- [ ] Dark mode toggle, persist setelah reload
+- [ ] Animasi slide-in dari kanan saat next, dari kiri saat prev
+- [ ] No DevTools console error
+
+- [ ] **Step 2: Manual QA — mobile**
+
+DevTools → iPhone 12 portrait:
+- [ ] Rotate prompt muncul
+- [ ] Klik dismiss → prompt hilang
+- [ ] Slide content scaled down, readable
+- [ ] Flow step grid stack vertikal
+
+iPhone 12 landscape (844x390):
+- [ ] Rotate prompt hidden
+- [ ] Slide full 16:9 nyaman
+
+iPad 768x1024 portrait:
+- [ ] Slide 16:9 fit, nav bar OK
+
+- [ ] **Step 3: Print preview**
+
+Chrome → Ctrl+P → "Save as PDF", orientation Landscape:
+- [ ] 18 halaman
+- [ ] 1 slide per halaman
+- [ ] Nav bar tidak muncul
+- [ ] Color preserved (enable "Background graphics" di print settings)
+
+- [ ] **Step 4: Lighthouse audit**
+
+DevTools → Lighthouse → Performance + Accessibility + Best Practices + SEO:
+- [ ] Performance ≥ 80
+- [ ] Accessibility ≥ 90
+- [ ] Best Practices ≥ 90
+
+Kalau ada score di bawah target → fix issues yang muncul (lazy load image1, tambah missing alt text, dll), repeat.
+
+- [ ] **Step 5: Offline test**
+
+DevTools Network → throttle "Offline", reload page:
+- [ ] File tetap load (vendor lokal, asset lokal)
+- [ ] Semua slide visible
+- [ ] Navigation works
+
+- [ ] **Step 6: Reduced motion test**
+
+OS Settings: enable "Reduce motion":
+- [ ] Reload page, animasi disabled (instant slide swap, no fade)
+
+- [ ] **Step 7: Cross-browser smoke test**
+
+Open di Edge + Firefox:
+- [ ] Edge: render OK, fullscreen OK, dark mode OK
+- [ ] Firefox: render OK, fullscreen OK, dark mode OK
+
+- [ ] **Step 8: Commit QA fix kalau ada**
+
+Kalau ada issue ditemukan dan diperbaiki:
+
+```bash
+git add sosialisasi-portalhc/
+git commit -m "fix(sosialisasi-v2): QA pass - <ringkasan fix>"
+```
+
+Kalau no fix needed, skip commit.
+
+- [ ] **Step 9: Final summary commit**
+
+```bash
+git log --oneline | head -20
+```
+
+Verify all task commits ada. Buat tag (optional):
+
+```bash
+git tag sosialisasi-v2.0
+```
+
+Notify user: feature complete, butuh user verify via browser sebelum ship.
+
+---
+
+## Self-Review Notes
+
+**Spec coverage check:**
+- ✅ 18 slide tercover (Task 5-11)
+- ✅ Stack HTML + Tailwind + Alpine lokal (Task 1)
+- ✅ Slide deck 16:9 (Task 1 CSS + Task 5-11 content)
+- ✅ Navigasi keyboard + click + dots + hash (Task 2-3)
+- ✅ Dark mode persist (Task 2)
+- ✅ Fullscreen API (Task 2)
+- ✅ PPT images copy + optimize (Task 4)
+- ✅ Polish konten (Task 5-11 — text rewritten per slide)
+- ✅ Print stylesheet (Task 12)
+- ✅ Mobile responsive + rotate prompt (Task 13)
+- ✅ Update index.html hub (Task 14)
+- ✅ QA + Lighthouse (Task 15)
+- ⚠️ Screenshot existing integration — DIPANGKAS dari spec (tidak masuk task explicit). Decide saat execute: tambah `<img>` reference ke `assets/screenshots/cmp/*` di slide 4 atau 7 kalau mau ilustrasi visual fitur. Bukan blocker.
+- ⚠️ Flowchart clickable popup — DIPANGKAS dari spec (popup detail per step). Treatment current: hover lift + visual aja. Bukan blocker, scope-cut untuk simplicity.
+
+**Placeholder scan:** All steps have actual code. No "TBD" / "implement later" patterns.
+
+**Type consistency:** `deck()` methods `next()`, `prev()`, `goTo()`, `syncHash()`, `toggleFullscreen()`, `toggleDark()` defined Task 2, used consistently Task 3+. State props `current`, `total`, `dark`, `fullscreen` defined Task 1-2, used everywhere.
+
+**Scope-cut from spec → manageable plan:**
+1. Slide flowchart step "clickable popup detail" — current: hover effect only
+2. Screenshot existing integration per slide — current: optional, decide saat execute
+3. Animated counter slide 17 — current: static number (visual gradient + label only)
+4. Element reveal stagger dalam slide — current: slide-level transition only, bukan per-element
+
+User dapat request 4 enhancement ini sebagai follow-up phase setelah v2.0 ship.
