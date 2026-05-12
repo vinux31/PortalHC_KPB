@@ -293,7 +293,145 @@
         }
       </script>
 
-      <!-- Other mockups di Task 4.5-4.9 -->
+      <!-- Mockup #22: Create Assessment Single -->
+      <section x-show="activeMockup === 'create-assessment'" x-data="createAssessmentMock()" id="create-assessment" class="bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold brand-navy mb-2">📋 #22 Create Assessment — Single</h2>
+        <p class="text-sm text-slate-600 mb-6">Drill: setup sesi assessment complete. Workflow paling complex — banyak field, tapi logical flow.</p>
+
+        <form @submit.prevent="submit()" x-show="!submitted">
+          <fieldset class="border rounded p-4 mb-4">
+            <legend class="font-bold px-2">1. Info Sesi</legend>
+            <label class="block mb-2">
+              <span class="text-sm font-bold">Nama Sesi</span>
+              <input x-model="name" class="mt-1 w-full px-3 py-2 border rounded text-sm" placeholder="Assessment OJ Kuartal 2">
+            </label>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="text-sm font-bold">Package</span>
+                <select x-model="pkg" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+                  <option value="">-- Pilih Package --</option>
+                  <option>Package OJ-2026</option>
+                  <option>Package IHT-Maintenance</option>
+                  <option>Package HSSE-Safety</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="text-sm font-bold">Kategori</span>
+                <select x-model="category" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+                  <option value="">-- Pilih Kategori --</option>
+                  <option>OJ</option><option>IHT</option><option>Licencor</option><option>OTS</option><option>HSSE</option><option>Proton</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="border rounded p-4 mb-4">
+            <legend class="font-bold px-2">2. Schedule</legend>
+            <div class="grid md:grid-cols-3 gap-3">
+              <label class="block">
+                <span class="text-sm font-bold">Tanggal</span>
+                <input type="date" x-model="date" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+              </label>
+              <label class="block">
+                <span class="text-sm font-bold">Jam Mulai</span>
+                <input type="time" x-model="time" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+              </label>
+              <label class="block">
+                <span class="text-sm font-bold">Durasi (menit)</span>
+                <input type="number" x-model.number="duration" min="15" max="180" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="border rounded p-4 mb-4">
+            <legend class="font-bold px-2">3. Mode & Settings</legend>
+            <label class="block mb-2">
+              <span class="text-sm font-bold">Mode</span>
+              <select x-model="mode" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+                <option value="Single">Single (MC auto-grade)</option>
+                <option value="Mixed">Mixed (MC auto + Essay manual)</option>
+              </select>
+            </label>
+            <label class="block mb-2">
+              <span class="text-sm font-bold">Passing Score (%)</span>
+              <input type="number" x-model.number="passingScore" min="0" max="100" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+            </label>
+          </fieldset>
+
+          <fieldset class="border rounded p-4 mb-4">
+            <legend class="font-bold px-2">4. Assign Users</legend>
+            <div class="space-y-1">
+              <template x-for="u in availableUsers" :key="u.id">
+                <label class="flex gap-2 items-center text-sm">
+                  <input type="checkbox" :value="u.id" x-model="assignedIds">
+                  <span x-text="u.nip + ' — ' + u.name + ' (' + u.section + ')'"></span>
+                </label>
+              </template>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="bg-brand-navy text-white px-6 py-3 rounded font-bold">💾 Save Assessment</button>
+          <p x-show="error" x-text="error" class="mt-3 text-sm text-red-600 shake"></p>
+        </form>
+
+        <div x-show="submitted" x-transition class="text-center py-8">
+          <div class="text-6xl mb-3 checkmark-pop">✅</div>
+          <h3 class="text-xl font-bold text-green-700 mb-2">Assessment Created (Simulasi)</h3>
+          <div class="bg-slate-50 p-4 rounded inline-block text-left text-sm space-y-1">
+            <p><strong>Nama:</strong> <span x-text="name"></span></p>
+            <p><strong>Package:</strong> <span x-text="pkg"></span></p>
+            <p><strong>Kategori:</strong> <span x-text="category"></span></p>
+            <p><strong>Schedule:</strong> <span x-text="date + ' ' + time"></span></p>
+            <p><strong>Mode:</strong> <span x-text="mode"></span></p>
+            <p><strong>Passing:</strong> <span x-text="passingScore + '%'"></span></p>
+            <p><strong>Assigned:</strong> <span x-text="assignedIds.length + ' user'"></span></p>
+          </div>
+          <p class="text-xs text-slate-500 mt-3">Status: Scheduled — siap di-monitor saat jadwal.</p>
+          <button @click="reset()" class="mt-4 bg-amber-400 px-6 py-2 rounded font-bold">🔄 Drill Ulang</button>
+        </div>
+      </section>
+
+      <script>
+        function createAssessmentMock() {
+          return {
+            name: $persist('').as('mockup_v1_ca_name'),
+            pkg: $persist('').as('mockup_v1_ca_pkg'),
+            category: $persist('').as('mockup_v1_ca_category'),
+            date: $persist('').as('mockup_v1_ca_date'),
+            time: $persist('').as('mockup_v1_ca_time'),
+            duration: $persist(60).as('mockup_v1_ca_duration'),
+            mode: $persist('Single').as('mockup_v1_ca_mode'),
+            passingScore: $persist(70).as('mockup_v1_ca_passing'),
+            assignedIds: $persist([]).as('mockup_v1_ca_assigned'),
+            submitted: $persist(false).as('mockup_v1_ca_submitted'),
+            error: '',
+            availableUsers: [
+              { id: 1, nip: 'W001', name: 'Asesor 1', section: 'RFCC' },
+              { id: 2, nip: 'W002', name: 'Coach 1', section: 'DHT' },
+              { id: 3, nip: 'W003', name: 'Worker 003', section: 'NGP' },
+              { id: 4, nip: 'W004', name: 'Worker 004', section: 'GAST' },
+            ],
+            submit() {
+              if (!this.name || !this.pkg || !this.category || !this.date) {
+                this.error = 'Field wajib (Nama, Package, Kategori, Tanggal) belum lengkap';
+                return;
+              }
+              if (this.assignedIds.length === 0) {
+                this.error = 'Assign minimal 1 user';
+                return;
+              }
+              this.error = '';
+              this.submitted = true;
+            },
+            reset() {
+              ['mockup_v1_ca_name','mockup_v1_ca_pkg','mockup_v1_ca_category','mockup_v1_ca_date','mockup_v1_ca_time','mockup_v1_ca_duration','mockup_v1_ca_mode','mockup_v1_ca_passing','mockup_v1_ca_assigned','mockup_v1_ca_submitted'].forEach(k => localStorage.removeItem(k));
+              location.reload();
+            }
+          }
+        }
+      </script>
+
+      <!-- Other mockups di Task 4.6-4.9 -->
     </main>
   </div>
 </body>
