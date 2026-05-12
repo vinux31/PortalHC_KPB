@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sosialisasi PortalHC v2 — Slide Deck 2026</title>
+  <link rel="stylesheet" href="assets/css/shared.css">
+  <script src="assets/vendor/tailwind.min.js"></script>
+  <script defer src="assets/vendor/alpine-persist.min.js"></script>
+  <script defer src="assets/vendor/alpinejs.min.js"></script>
+  <style>
+    /* Custom extensions on top of shared.css */
+    :root {
+      --slide-max-w: 1280px;
+    }
+    .slide-deck {
+      width: 100%;
+      max-width: var(--slide-max-w);
+      margin: 0 auto;
+      aspect-ratio: 16 / 9;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
+    }
+    body.dark .slide-deck { background: #1e293b; }
+    .slide {
+      width: 100%;
+      height: 100%;
+      padding: 3rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid #e2e8f0;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+    body.dark .nav-bar {
+      background: rgba(15,23,42,0.95);
+      border-top-color: #334155;
+      color: #f1f5f9;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      cursor: pointer;
+      transition: all 200ms;
+    }
+    .dot.active { background: var(--navy); width: 24px; border-radius: 4px; }
+    .dot:hover { transform: scale(1.3); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen" :class="{ 'dark': dark }" x-data="deck()" x-init="init()">
+
+  <!-- Stage area -->
+  <main class="flex items-center justify-center min-h-screen px-4 pb-20 pt-4">
+    <div class="slide-deck" id="stage">
+      <!-- Slides will go here in later tasks -->
+      <section class="slide" x-show="current === 1">
+        <h1 class="text-5xl font-bold brand-navy">PLACEHOLDER Slide 1</h1>
+        <p class="text-slate-600 mt-4">Skeleton — content akan diisi di task selanjutnya</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- Nav bar (placeholder, akan dibangun di Task 2) -->
+  <nav class="nav-bar">
+    <span class="text-sm">Slide <span x-text="current"></span> / <span x-text="total"></span></span>
+  </nav>
+
+  <script>
+    function deck() {
+      return {
+        current: 1,
+        total: 18,
+        dark: false,
+        fullscreen: false,
+
+        init() {
+          // Sync URL hash on load
+          const hash = location.hash.match(/^#slide-(\d+)$/);
+          if (hash) {
+            const n = parseInt(hash[1], 10);
+            if (n >= 1 && n <= this.total) this.current = n;
+          }
+        }
+      };
+    }
+  </script>
+</body>
+</html>
