@@ -668,7 +668,78 @@
         }
       </script>
 
-      <!-- Plan IDP di Task 4.9 -->
+      <!-- Mockup #33: Plan IDP -->
+      <section x-show="activeMockup === 'plan-idp'" x-data="idpMock()" id="plan-idp" class="bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold brand-navy mb-2">📋 #33 Plan IDP — Individual Development Plan</h2>
+        <p class="text-sm text-slate-600 mb-6">Drill: map kompetensi target + timeline untuk coachee. Concept: competency tree + milestone.</p>
+
+        <label class="block mb-4">
+          <span class="text-sm font-bold">Coachee</span>
+          <select x-model="coachee" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+            <option>Worker 003 (Section NGP)</option>
+            <option>Worker 004 (Section GAST)</option>
+          </select>
+        </label>
+
+        <div class="mb-4">
+          <h3 class="font-bold mb-2">Pilih Kompetensi Target (dari Silabus)</h3>
+          <div class="space-y-2">
+            <template x-for="comp in availableCompetencies" :key="comp.id">
+              <label class="flex gap-3 items-start bg-slate-50 p-3 rounded text-sm">
+                <input type="checkbox" :value="comp.id" x-model="selectedComps" class="mt-1">
+                <div class="flex-1">
+                  <strong x-text="comp.name"></strong>
+                  <p class="text-xs text-slate-600" x-text="comp.desc"></p>
+                </div>
+                <input type="month" x-show="selectedComps.includes(comp.id)" x-model="milestones[comp.id]" class="px-2 py-1 border rounded text-xs">
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <button @click="save()" class="bg-brand-navy text-white px-6 py-2 rounded font-bold">💾 Save IDP</button>
+        <p x-show="message" x-text="message" :class="messageType === 'success' ? 'text-green-600' : 'text-red-600'" class="text-sm mt-3"></p>
+
+        <button @click="reset()" class="mt-4 bg-amber-400 px-4 py-2 rounded font-bold text-sm">🔄 Drill Ulang</button>
+      </section>
+
+      <script>
+        function idpMock() {
+          return {
+            coachee: $persist('Worker 003 (Section NGP)').as('mockup_v1_idp_coachee'),
+            selectedComps: $persist([]).as('mockup_v1_idp_selected'),
+            milestones: $persist({}).as('mockup_v1_idp_milestones'),
+            message: '',
+            messageType: 'success',
+            availableCompetencies: [
+              { id: 1, name: 'Process Safety Management', desc: 'Pahami principles PSM, MOC, incident investigation' },
+              { id: 2, name: 'Equipment Reliability', desc: 'Inspection methodology, RCA, predictive maintenance' },
+              { id: 3, name: 'Refining Process Fundamentals', desc: 'Crude distillation, hydrotreating, conversion units' },
+              { id: 4, name: 'Quality Control & Lab Analysis', desc: 'Sampling, testing methods, spec verification' },
+              { id: 5, name: 'Environmental Compliance', desc: 'Emisi regulation, waste mgmt, ISO 14001' },
+            ],
+            save() {
+              if (this.selectedComps.length === 0) {
+                this.message = 'Pilih minimal 1 kompetensi target';
+                this.messageType = 'error';
+                return;
+              }
+              const missingMilestone = this.selectedComps.find(id => !this.milestones[id]);
+              if (missingMilestone) {
+                this.message = `Kompetensi pilihan harus punya milestone tanggal (kompetensi ID ${missingMilestone} belum di-set)`;
+                this.messageType = 'error';
+                return;
+              }
+              this.message = `✓ IDP saved — ${this.selectedComps.length} kompetensi target untuk ${this.coachee}`;
+              this.messageType = 'success';
+            },
+            reset() {
+              ['mockup_v1_idp_coachee','mockup_v1_idp_selected','mockup_v1_idp_milestones'].forEach(k => localStorage.removeItem(k));
+              location.reload();
+            }
+          }
+        }
+      </script>
     </main>
   </div>
 </body>
