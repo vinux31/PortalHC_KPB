@@ -520,7 +520,75 @@
         }
       </script>
 
-      <!-- Other mockups di Task 4.7-4.9 -->
+      <!-- Mockup #26: Manual Grading -->
+      <section x-show="activeMockup === 'manual-grading'" x-data="manualGradingMock()" id="manual-grading" class="bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold brand-navy mb-2">✍️ #26 Manual Grading (Essay)</h2>
+        <p class="text-sm text-slate-600 mb-6">Drill: grade Essay submission. Konsistensi penilaian penting — baca rubric dulu sebelum batch grading.</p>
+
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded text-sm mb-4">
+          <strong>📋 Rubric Sample:</strong>
+          <ul class="list-disc list-inside mt-1 text-xs">
+            <li>90-100: Jawaban lengkap, struktur clear, contoh konkret</li>
+            <li>70-89: Jawaban substansial, minor missing</li>
+            <li>50-69: Jawaban basic, lack detail</li>
+            <li>0-49: Jawaban tidak adekuat</li>
+          </ul>
+        </div>
+
+        <div class="space-y-3">
+          <template x-for="s in submissions" :key="s.id">
+            <div class="border rounded p-4" :class="s.graded ? 'bg-green-50 border-green-300' : 'bg-white'">
+              <div class="flex justify-between mb-2">
+                <span class="text-sm font-bold" x-text="s.nip + ' — ' + s.name"></span>
+                <span :class="s.graded ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'" class="px-2 py-0.5 rounded text-xs font-bold" x-text="s.graded ? 'Graded' : 'Pending'"></span>
+              </div>
+              <p class="text-xs text-slate-600 mb-2"><strong>Soal:</strong> <span x-text="s.question"></span></p>
+              <p class="text-sm bg-slate-50 p-2 rounded italic mb-2">"<span x-text="s.answer"></span>"</p>
+
+              <div x-show="!s.graded" class="grid md:grid-cols-2 gap-2 mt-2">
+                <input type="number" min="0" max="100" x-model.number="s.tempScore" placeholder="Skor 0-100" class="px-3 py-2 border rounded text-sm">
+                <input x-model="s.tempFeedback" placeholder="Feedback singkat" class="px-3 py-2 border rounded text-sm">
+              </div>
+              <div x-show="!s.graded" class="mt-2">
+                <button @click="grade(s)" class="bg-brand-navy text-white px-4 py-1.5 rounded text-sm font-bold">Save Grade</button>
+              </div>
+
+              <div x-show="s.graded" class="text-sm mt-2 space-y-1">
+                <p><strong>Skor:</strong> <span x-text="s.tempScore"></span> / 100</p>
+                <p><strong>Feedback:</strong> <span x-text="s.tempFeedback"></span></p>
+                <button @click="s.graded = false" class="text-xs text-amber-600 hover:underline">↻ Re-grade</button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <button @click="reset()" class="mt-6 bg-amber-400 px-4 py-2 rounded font-bold text-sm">🔄 Drill Ulang</button>
+      </section>
+
+      <script>
+        function manualGradingMock() {
+          return {
+            submissions: $persist([
+              { id: 1, nip: 'W001', name: 'Asesor 1', question: 'Jelaskan fungsi unit RFCC', answer: 'RFCC mengolah residu menjadi LPG dan propylene dengan catalytic cracking. Tekanan reaktor sekitar 1.5 bar, suhu 540°C. Output naik 95% dari feed.', graded: false, tempScore: null, tempFeedback: '' },
+              { id: 2, nip: 'W002', name: 'Coach 1', question: 'Jelaskan fungsi unit RFCC', answer: 'RFCC = crack residu', graded: false, tempScore: null, tempFeedback: '' },
+              { id: 3, nip: 'W003', name: 'Worker 003', question: 'Jelaskan fungsi unit RFCC', answer: 'Unit untuk memproses residu vacuum. Catalytic cracking jadi LPG, naphtha, propylene. Bagian penting kilang KPB.', graded: false, tempScore: null, tempFeedback: '' },
+            ]).as('mockup_v1_grading_subs'),
+            grade(s) {
+              if (s.tempScore === null || s.tempScore < 0 || s.tempScore > 100) {
+                alert('Skor harus 0-100');
+                return;
+              }
+              s.graded = true;
+            },
+            reset() {
+              localStorage.removeItem('mockup_v1_grading_subs');
+              location.reload();
+            }
+          }
+        }
+      </script>
+
+      <!-- Other mockups di Task 4.8-4.9 -->
     </main>
   </div>
 </body>
