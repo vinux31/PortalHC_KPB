@@ -2187,7 +2187,10 @@ namespace HcPortal.Controllers
                 var packageResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
                     .ToListAsync();
-                var responseDict = packageResponses.ToDictionary(r => r.PackageQuestionId);
+                // SURF-317-A fix (Phase 318 Plan 02): ToDictionary throws ArgumentException
+                // untuk MA multi-row-per-question (Hubs/AssessmentHub.cs SaveMultipleAnswer
+                // insert 1 row per selected option). ToLookup safe grouping.
+                var responseLookup = packageResponses.ToLookup(r => r.PackageQuestionId);
 
                 // Use shuffled order from assignment for display (shuffledQuestionIds already declared above)
                 var questionLookup = packageQuestions.ToDictionary(q => q.Id);
@@ -2206,26 +2209,49 @@ namespace HcPortal.Controllers
                         if (!questionLookup.TryGetValue(qId, out var question)) continue;
                         questionNum++;
 
-                        responseDict.TryGetValue(qId, out var userResponse);
-                        var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
-                        var selectedOption = userResponse?.PackageOptionId != null
-                            ? question.Options.FirstOrDefault(o => o.Id == userResponse.PackageOptionId)
-                            : null;
-                        bool isCorrect = selectedOption != null && selectedOption.IsCorrect;
+                        // SURF-317-A fix: multi-row aggregation via ToLookup
+                        var userResponses = responseLookup[qId].ToList();
+                        var selectedOptionIds = userResponses
+                            .Where(r => r.PackageOptionId != null)
+                            .Select(r => r.PackageOptionId!.Value)
+                            .ToHashSet();
+                        var correctOptions = question.Options.Where(o => o.IsCorrect).ToList();
+                        var selectedOptions = question.Options.Where(o => selectedOptionIds.Contains(o.Id)).ToList();
+
+                        bool isCorrect;
+                        if ((question.QuestionType ?? "MultipleChoice") == "MultipleAnswer")
+                        {
+                            // MA: exact-match all correct, none-incorrect
+                            var correctIds = correctOptions.Select(o => o.Id).ToHashSet();
+                            isCorrect = selectedOptionIds.Count > 0 && correctIds.SetEquals(selectedOptionIds);
+                        }
+                        else
+                        {
+                            // MC / Essay path: single selection
+                            var single = selectedOptions.FirstOrDefault();
+                            isCorrect = single != null && single.IsCorrect;
+                        }
                         if (isCorrect) correctCount++;
+
+                        var userAnswerText = selectedOptions.Any()
+                            ? string.Join(", ", selectedOptions.Select(o => o.OptionText))
+                            : null;
+                        var correctAnswerText = correctOptions.Any()
+                            ? string.Join(", ", correctOptions.Select(o => o.OptionText))
+                            : "N/A";
 
                         questionReviews.Add(new QuestionReviewItem
                         {
                             QuestionNumber = questionNum,
                             QuestionText = question.QuestionText,
-                            UserAnswer = selectedOption?.OptionText,
-                            CorrectAnswer = correctOption?.OptionText ?? "N/A",
+                            UserAnswer = userAnswerText,
+                            CorrectAnswer = correctAnswerText,
                             IsCorrect = isCorrect,
                             Options = question.Options.Select(o => new OptionReviewItem
                             {
                                 OptionText = o.OptionText,
                                 IsCorrect = o.IsCorrect,
-                                IsSelected = userResponse?.PackageOptionId == o.Id
+                                IsSelected = selectedOptionIds.Contains(o.Id)
                             }).ToList(),
                             // SUB-01 OQ#3 D-08: Essay items TETAP tampil di review — flag true saat status PendingGrading + QuestionType Essay
                             // (View Razor render label "Menunggu Penilaian" alih-alih correct/incorrect; CONTEXT D-08 lock)
@@ -2236,16 +2262,25 @@ namespace HcPortal.Controllers
                 }
                 else
                 {
-                    // Count correct even when review disabled
+                    // Count correct even when review disabled (SURF-317-A: MA-aware)
                     foreach (var qId in orderedQuestionIds)
                     {
                         if (!questionLookup.TryGetValue(qId, out var question)) continue;
-                        responseDict.TryGetValue(qId, out var userResponse);
-                        if (userResponse?.PackageOptionId != null)
+                        var selectedIds = responseLookup[qId]
+                            .Where(r => r.PackageOptionId != null)
+                            .Select(r => r.PackageOptionId!.Value)
+                            .ToHashSet();
+                        if (selectedIds.Count == 0) continue;
+
+                        if ((question.QuestionType ?? "MultipleChoice") == "MultipleAnswer")
                         {
-                            var selectedOpt = question.Options.FirstOrDefault(o => o.Id == userResponse.PackageOptionId);
-                            if (selectedOpt != null && selectedOpt.IsCorrect)
-                                correctCount++;
+                            var correctIds = question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                            if (correctIds.SetEquals(selectedIds)) correctCount++;
+                        }
+                        else
+                        {
+                            var selectedOpt = question.Options.FirstOrDefault(o => selectedIds.Contains(o.Id));
+                            if (selectedOpt != null && selectedOpt.IsCorrect) correctCount++;
                         }
                     }
                 }
@@ -2266,9 +2301,18 @@ namespace HcPortal.Controllers
                             var total = g.Count();
                             var correct = g.Count(q =>
                             {
-                                if (!responseDict.TryGetValue(q.Id, out var resp)) return false;
-                                if (resp.PackageOptionId == null) return false;
-                                var sel = q.Options.FirstOrDefault(o => o.Id == resp.PackageOptionId);
+                                // SURF-317-A fix: MA-aware aggregation
+                                var selectedIds = responseLookup[q.Id]
+                                    .Where(r => r.PackageOptionId != null)
+                                    .Select(r => r.PackageOptionId!.Value)
+                                    .ToHashSet();
+                                if (selectedIds.Count == 0) return false;
+                                if ((q.QuestionType ?? "MultipleChoice") == "MultipleAnswer")
+                                {
+                                    var correctIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                                    return correctIds.SetEquals(selectedIds);
+                                }
+                                var sel = q.Options.FirstOrDefault(o => selectedIds.Contains(o.Id));
                                 return sel != null && sel.IsCorrect;
                             });
                             return new ElemenTeknisScore
