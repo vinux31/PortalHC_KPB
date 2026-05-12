@@ -431,7 +431,96 @@
         }
       </script>
 
-      <!-- Other mockups di Task 4.6-4.9 -->
+      <!-- Mockup #23: Create Assessment Pre-Post -->
+      <section x-show="activeMockup === 'prepost'" x-data="prePostMock()" id="prepost" class="bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold brand-navy mb-2">🔁 #23 Create Assessment — Pre-Post</h2>
+        <p class="text-sm text-slate-600 mb-6">Drill: setup Pre-Post group. 2 sesi linked untuk measure gain score training.</p>
+
+        <form @submit.prevent="submit()" x-show="!submitted">
+          <fieldset class="border rounded p-4 mb-4">
+            <legend class="font-bold px-2">Pre-Post Group</legend>
+            <label class="block mb-2">
+              <span class="text-sm font-bold">Nama Group</span>
+              <input x-model="groupName" class="mt-1 w-full px-3 py-2 border rounded text-sm" placeholder="Training Maintenance Q2 2026">
+            </label>
+            <label class="block mb-2">
+              <span class="text-sm font-bold">Package</span>
+              <select x-model="pkg" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+                <option value="">-- Pilih --</option>
+                <option>Package OJ-2026</option>
+                <option>Package IHT-Maintenance</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset class="border rounded p-4 mb-4 bg-blue-50">
+            <legend class="font-bold px-2 text-blue-800">📋 Pre Assessment</legend>
+            <label class="block mb-2">
+              <span class="text-sm font-bold">Tanggal Pre</span>
+              <input type="date" x-model="preDate" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+            </label>
+          </fieldset>
+
+          <fieldset class="border rounded p-4 mb-4 bg-amber-50">
+            <legend class="font-bold px-2 text-amber-800">📋 Post Assessment</legend>
+            <label class="block mb-2">
+              <span class="text-sm font-bold">Tanggal Post (harus setelah Pre)</span>
+              <input type="date" x-model="postDate" class="mt-1 w-full px-3 py-2 border rounded text-sm">
+            </label>
+          </fieldset>
+
+          <div class="bg-slate-50 p-3 rounded text-sm mb-4">
+            <strong>💡 Catatan:</strong> Pre dan Post pakai soal level kompetensi sama (auto-linked via PrePostGroupId). Gain score = Post − Pre dihitung otomatis di Results.
+          </div>
+
+          <button type="submit" class="bg-brand-navy text-white px-6 py-3 rounded font-bold">💾 Save Pre-Post Group</button>
+          <p x-show="error" x-text="error" class="mt-3 text-sm text-red-600 shake"></p>
+        </form>
+
+        <div x-show="submitted" x-transition class="text-center py-8">
+          <div class="text-6xl mb-3 checkmark-pop">✅</div>
+          <h3 class="text-xl font-bold text-green-700 mb-2">Pre-Post Group Created (Simulasi)</h3>
+          <div class="bg-slate-50 p-4 rounded inline-block text-left text-sm space-y-1">
+            <p><strong>Group:</strong> <span x-text="groupName"></span></p>
+            <p><strong>Package:</strong> <span x-text="pkg"></span></p>
+            <p><strong>Pre:</strong> <span x-text="preDate"></span></p>
+            <p><strong>Post:</strong> <span x-text="postDate"></span></p>
+            <p><strong>Linked:</strong> ✓ Auto-link via PrePostGroupId</p>
+          </div>
+          <button @click="reset()" class="mt-4 bg-amber-400 px-6 py-2 rounded font-bold">🔄 Drill Ulang</button>
+        </div>
+      </section>
+
+      <script>
+        function prePostMock() {
+          return {
+            groupName: $persist('').as('mockup_v1_pp_name'),
+            pkg: $persist('').as('mockup_v1_pp_pkg'),
+            preDate: $persist('').as('mockup_v1_pp_pre'),
+            postDate: $persist('').as('mockup_v1_pp_post'),
+            submitted: $persist(false).as('mockup_v1_pp_submitted'),
+            error: '',
+            submit() {
+              if (!this.groupName || !this.pkg || !this.preDate || !this.postDate) {
+                this.error = 'Semua field wajib diisi';
+                return;
+              }
+              if (new Date(this.postDate) <= new Date(this.preDate)) {
+                this.error = 'Tanggal Post harus SETELAH Pre';
+                return;
+              }
+              this.error = '';
+              this.submitted = true;
+            },
+            reset() {
+              ['mockup_v1_pp_name','mockup_v1_pp_pkg','mockup_v1_pp_pre','mockup_v1_pp_post','mockup_v1_pp_submitted'].forEach(k => localStorage.removeItem(k));
+              location.reload();
+            }
+          }
+        }
+      </script>
+
+      <!-- Other mockups di Task 4.7-4.9 -->
     </main>
   </div>
 </body>
