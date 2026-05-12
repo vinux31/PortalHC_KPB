@@ -1444,5 +1444,190 @@ test.describe('FLOW S — AllowAnswerReview True vs False Paired Comparison', ()
   });
 });
 
+test.describe('FLOW T — ManualAssessment Full CRUD', () => {
+  let manualTitle: string;
+  let manualSessionId: number;
+  const escapeSql = (s: string) => s.replace(/'/g, "''");
+
+  test('T1 — HC navigate AddManualAssessment + verify form fields', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    manualTitle = uniqueTitle('[319-T] Manual CRUD');
+    await login(page, 'hc');
+    await page.goto('/Admin/AddManualAssessment');
+
+    await expect(page.locator('form[action*="AddManualAssessment"]')).toBeVisible({ timeout: 10_000 });
+
+    // Verified Views/Admin/AddManualAssessment.cshtml field IDs (Category id overridden to #kategoriSelect line 93)
+    await expect(page.locator('#Title')).toBeAttached();
+    await expect(page.locator('#kategoriSelect')).toBeAttached();
+    await expect(page.locator('#WorkerSelect')).toBeAttached();
+    await expect(page.locator('#Score')).toBeAttached();
+    await expect(page.locator('#CompletedAt')).toBeAttached();
+
+    // Card headers visible (verified Views lines 51, 71, 148, 248)
+    await expect(page.locator('.card-header', { hasText: /Peserta|Worker/i }).first()).toBeVisible();
+  });
+
+  test('T2 — HC submit form (TomSelect pick + score 85) → DB INSERT', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto('/Admin/AddManualAssessment');
+
+    await page.fill('#Title', manualTitle);
+
+    // Category: try 'OJT' (seed expected per Models/TrainingRecord.cs:16 + DB AssessmentCategories verified), fallback first non-empty option
+    const kategoriSelect = page.locator('#kategoriSelect');
+    const ojtOption = kategoriSelect.locator('option[value="OJT"]');
+    if (await ojtOption.count() > 0) {
+      await kategoriSelect.selectOption('OJT');
+    } else {
+      const firstValue = await kategoriSelect.locator('option').nth(1).getAttribute('value');
+      if (!firstValue) throw new Error('Category dropdown empty — seed AssessmentCategories required');
+      await kategoriSelect.selectOption(firstValue);
+    }
+
+    await page.fill('#Score', '85');
+    await page.fill('#CompletedAt', today());
+
+    // TomSelect Pattern 1 (verified W0.T0)
+    await page.locator('.ts-control').first().click();
+    await page.locator('.ts-control input').first().fill('Rino');
+    await page.locator('.ts-dropdown .option', { hasText: /Rino/i }).first().click();
+    await expect(page.locator('.worker-cert-card')).toHaveCount(1, { timeout: 5_000 });
+
+    // Optional NomorSertifikat (verified WorkerCerts[0].NomorSertifikat field name)
+    const certInput = page.locator('input[name="WorkerCerts[0].NomorSertifikat"]');
+    if (await certInput.count() > 0) {
+      await certInput.fill(`CERT-319-T-${Date.now()}`);
+    }
+
+    const btnSubmit = page.locator('#btnSimpanAssessment');
+    await expect(btnSubmit).toBeEnabled({ timeout: 5_000 });
+
+    // Submit + wait redirect (Pitfall 7)
+    await Promise.all([
+      page.waitForURL(/\/Admin\/ManageAssessment/, { timeout: 15_000 }),
+      btnSubmit.click(),
+    ]);
+
+    // TempData alert-success rendered post-redirect. Use .first() — page has 2 alert-success elements:
+    // (1) Blazor layout scoped toast "Success: Berhasil membuat 1"
+    // (2) TempData "Berhasil membuat 1 assessment manual."
+    await expect(
+      page.locator('.alert-success', { hasText: /berhasil/i }).first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('T3 — DB verify AssessmentSession IsManualEntry=1, Status=Completed, Score=85', async () => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    const count = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Title = N'${escapeSql(manualTitle)}' AND IsManualEntry = 1`
+    );
+    expect(count).toBe(1);
+
+    const status = await db.queryString(
+      `SELECT TOP 1 Status FROM AssessmentSessions WHERE Title = N'${escapeSql(manualTitle)}'`
+    );
+    expect(status).toBe('Completed');
+
+    const score = await db.queryScalar(
+      `SELECT TOP 1 ISNULL(Score, -1) FROM AssessmentSessions WHERE Title = N'${escapeSql(manualTitle)}'`
+    );
+    expect(score).toBe(85);
+
+    // Capture sessionId untuk T4-T6
+    const idStr = await db.queryString(
+      `SELECT TOP 1 CAST(Id AS NVARCHAR(20)) FROM AssessmentSessions WHERE Title = N'${escapeSql(manualTitle)}' ORDER BY Id DESC`
+    );
+    manualSessionId = parseInt(idStr, 10);
+    expect(manualSessionId).toBeGreaterThan(0);
+    // eslint-disable-next-line no-console
+    console.log(`[FLOW T3] manualSessionId=${manualSessionId}, Title=${manualTitle}`);
+  });
+
+  test('T4 — HC edit ManualAssessment + Score update to 92', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+    // Direct nav bypass collapse UI (Pitfall 3). Controller [Route("Admin/[action]")] + id from query (model bind, no URL segment).
+    await page.goto(`/Admin/EditManualAssessment?id=${manualSessionId}`);
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('form[action*="EditManualAssessment"]')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#Score')).toBeAttached();
+
+    await page.fill('#Score', '92');
+
+    const btnSubmit = page.locator('button[type="submit"]').filter({ hasText: /simpan|update|save/i }).first();
+    await Promise.all([
+      page.waitForURL(/\/Admin\/ManageAssessment|\/EditManualAssessment/, { timeout: 15_000 }),
+      btnSubmit.click(),
+    ]);
+
+    // DB verify Score updated
+    const newScore = await db.queryScalar(
+      `SELECT TOP 1 ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${manualSessionId}`
+    );
+    expect(newScore).toBe(92);
+  });
+
+  test('T5 — Worker view: ManualAssessment visible di /CMP/Assessment (Completed, no Start)', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    await page.waitForLoadState('networkidle');
+
+    // Title visible somewhere di page (could be Completed tab atau Riwayat — both accept)
+    const titleLocator = page.locator(`text=${manualTitle}`).first();
+    await expect(titleLocator).toBeVisible({ timeout: 10_000 });
+
+    // Manual assessment di worker side TIDAK punya Start button — worker just views completion
+    const containingCard = page.locator('.assessment-card, .card', { hasText: manualTitle }).first();
+    if (await containingCard.count() > 0) {
+      await expect(
+        containingCard.locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard')
+      ).toHaveCount(0);
+    }
+  });
+
+  test('T6 — HC delete + DB row removed', async ({ page }) => {
+    test.setTimeout(FLOW_TIMEOUT_MS);
+    await login(page, 'hc');
+
+    // Strategy 1: POST direct via page.request (cookies inherited)
+    await page.goto('/Admin/ManageAssessment?tab=training');
+    const tokenInput = await page.locator('input[name="__RequestVerificationToken"]').first().getAttribute('value').catch(() => null);
+
+    if (tokenInput) {
+      // Controller [Route("Admin/[action]")] + DeleteManualAssessment(int id) — id model-bound from form body, NOT URL segment
+      const deleteResp = await page.request.post(`/Admin/DeleteManualAssessment`, {
+        form: {
+          id: String(manualSessionId),
+          __RequestVerificationToken: tokenInput,
+        },
+      });
+      // Accept 200 OR 302 redirect — both = delete success
+      expect([200, 302]).toContain(deleteResp.status());
+    } else {
+      // Strategy 2 fallback: navigate ke ManageAssessment table → expand worker row → click delete
+      await page.goto('/Admin/ManageAssessment?tab=training');
+      await page.waitForLoadState('networkidle');
+      const workerRow = page.locator('tr', { hasText: /Rino/i }).first();
+      const chevronBtn = workerRow.locator('button[data-bs-target^="#"]').first();
+      await chevronBtn.click();
+      const expandedRow = page.locator('tr.collapse.show').first();
+      await expandedRow.waitFor({ state: 'visible', timeout: 5_000 });
+      page.once('dialog', d => d.accept());
+      await expandedRow.locator(`button[data-session-id="${manualSessionId}"], a[href*="DeleteManualAssessment/${manualSessionId}"]`).first().click();
+      await page.waitForTimeout(2_000);
+    }
+
+    // DB verify row deleted
+    const count = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${manualSessionId}`
+    );
+    expect(count).toBe(0);
+  });
+});
+
 // Suppress unused-import warnings — verifyResultPage di-skip per SURF-317-A workaround pattern.
 void verifyResultPage;
