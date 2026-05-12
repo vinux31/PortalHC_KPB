@@ -74,6 +74,16 @@ export const wizardSelectors = {
   createdAssessmentData: '#createdAssessmentData',
 } as const;
 
+// Phase 317 Plan 02 — AddExtraTime modal
+// Source: Views/Admin/AssessmentMonitoringDetail.cshtml lines 132-143 + 1462-1495 (verified 2026-05-11)
+export const extraTimeSelectors = {
+  triggerBtn: 'button[data-bs-target="#extraTimeModal"]',
+  modal: '#extraTimeModal',
+  select: '#extraTimeSelect',           // option values: 5, 10, 15, 20, 25, 30, 45, 60, 90, 120
+  confirmBtn: '#btnConfirmExtraTime',
+  // Effect on HC page: .alert-success/.alert-danger di .container-fluid
+} as const;
+
 export const questionFormSelectors = {
   formCard: '#questionFormCard',
   formTitle: '#formTitle',

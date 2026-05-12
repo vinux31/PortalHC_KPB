@@ -13,7 +13,7 @@
 //  - A5 window.timerStartRemaining scope — verified di smoke wave-0 block
 
 import { Page, Locator, expect } from '@playwright/test';
-import { wizardSelectors, questionFormSelectors } from './wizardSelectors';
+import { wizardSelectors, questionFormSelectors, extraTimeSelectors } from './wizardSelectors';
 
 export type QuestionInput =
   | { type: 'MultipleChoice'; text: string; options: [string, string, string, string]; correctIndex: 0 | 1 | 2 | 3; score: number }
@@ -407,4 +407,71 @@ export async function gradeSingleEssaySession(
 
   // Success normal → location.reload() (line 1402). Wait networkidle setelah reload.
   await pageHc.waitForLoadState('networkidle');
+}
+
+/**
+ * HC fire AddExtraTime modal → AJAX POST → SignalR broadcast → worker timer JS update.
+ *
+ * Group naming (Controllers/AssessmentAdminController.cs:5483-5527 — verified 2026-05-11):
+ *   batch-{Title}|{Category}|{Date:yyyy-MM-dd} — composite key, BUKAN per-token group.
+ *
+ * Verify strategy (RESEARCH Pitfall 4 mitigation):
+ *  1. pageHc: alert-success text /berhasil ditambahkan/i — server-side success confirmation
+ *  2. pageWorker: window.timerStartRemaining increased ≥ (extraMinutes*60 - 30s margin)
+ *
+ * Pre-condition: pageWorker MUST be at /CMP/StartExam/{id} with SignalR Connected state.
+ *
+ * Open Q5: server filter status="InProgress" — pageWorker MUST be at StartExam
+ * (status auto-flipped to InProgress at StartExam controller action).
+ *
+ * @param pageHc HC user page (sudah login, fresh context untuk avoid cookie collision)
+ * @param pageWorker worker page sudah di /CMP/StartExam dengan SignalR Connected
+ * @param opts assessment lookup (composite group key) + extraMinutes
+ */
+export async function addExtraTimeViaModal(
+  pageHc: Page,
+  pageWorker: Page,
+  opts: {
+    title: string;
+    category: string;
+    scheduleDate: string;
+    extraMinutes: 5 | 10 | 15 | 20 | 25 | 30 | 45 | 60 | 90 | 120;
+  }
+): Promise<void> {
+  // 1. Capture initial timerStartRemaining (verified A5 Plan 01 Wave 0 — accessible JS var)
+  const initialRemaining = await pageWorker.evaluate(() => {
+    return (window as unknown as { timerStartRemaining?: number }).timerStartRemaining ?? 0;
+  });
+  expect(initialRemaining).toBeGreaterThan(0);
+
+  // 2. HC navigate to AssessmentMonitoringDetail via URLSearchParams (gradeSingleEssaySession pattern)
+  const params = new URLSearchParams({
+    title: opts.title,
+    category: opts.category,
+    scheduleDate: opts.scheduleDate,
+  });
+  await pageHc.goto(`/Admin/AssessmentMonitoringDetail?${params.toString()}`);
+  await pageHc.waitForLoadState('networkidle');
+
+  // 3. Fire modal + confirm
+  await pageHc.locator(extraTimeSelectors.triggerBtn).first().click();
+  await pageHc.locator(extraTimeSelectors.modal).waitFor({ state: 'visible', timeout: 10_000 });
+  await pageHc.selectOption(extraTimeSelectors.select, String(opts.extraMinutes));
+  await pageHc.locator(extraTimeSelectors.confirmBtn).click();
+
+  // 4. Verify HC alert-success (server-side success)
+  await expect(
+    pageHc.locator('.alert-success, .alert.alert-success', { hasText: /berhasil ditambahkan/i }).first()
+  ).toBeVisible({ timeout: 10_000 });
+
+  // 5. Verify worker timer increased (SignalR broadcast received)
+  const expectedDelta = opts.extraMinutes * 60 - 30; // -30s margin for elapsed time during HC action
+  await pageWorker.waitForFunction(
+    (args) => {
+      const remaining = (window as unknown as { timerStartRemaining?: number }).timerStartRemaining ?? 0;
+      return remaining > args.initial + args.expectedDelta;
+    },
+    { initial: initialRemaining, expectedDelta },
+    { timeout: 20_000 }
+  );
 }

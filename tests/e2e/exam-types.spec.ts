@@ -9,6 +9,7 @@ import {
   checkMAOptionsForQuestion,
   fillEssayAnswer,
   gradeSingleEssaySession,
+  addExtraTimeViaModal,
   type QuestionInput,
 } from './helpers/examTypes';
 import { verifyResultPage } from './helpers/examMatrix';
@@ -18,6 +19,7 @@ import * as db from '../helpers/dbSnapshot';
 test.describe.configure({ mode: 'serial' });
 
 const FLOW_TIMEOUT_MS = 120_000;
+const FLOW_O_TIMEOUT_MS = 180_000; // 2-context simul + SignalR wait extends runtime
 
 test.describe('smoke wave-0 (verify RESEARCH A4 + A5 assumptions)', () => {
   let smokeTitle: string;
@@ -622,6 +624,170 @@ test.describe('FLOW N — AllowAnswerReview=false negative assertion', () => {
 
     // NEGATIVE assertion: review card "Tinjauan Jawaban" TIDAK ada
     await expect(page.locator('.card', { hasText: /^Tinjauan Jawaban/i })).toHaveCount(0);
+  });
+});
+
+test.describe('FLOW O — AddExtraTime SignalR real-time', () => {
+  let title: string;
+  let category: string;
+  let scheduleDate: string;
+  let assessmentId: number;
+  let packageId: number;
+  let sessionId: number;
+  const Q1_MC_MARKER = '[317-O] Q1 — extraTime marker';
+  const Q1_MC_CORRECT_TEXT = '[O-CORRECT]';
+
+  test('O1 — HC creates assessment (duration 30 min)', async ({ page }) => {
+    test.setTimeout(FLOW_O_TIMEOUT_MS);
+    title = uniqueTitle('[317-O] ExtraTime Exam');
+    category = 'OJT';
+    scheduleDate = today();
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title,
+      category,
+      scheduleDate,
+      scheduleTime: '00:01',
+      durationMinutes: 30,
+      passPercentage: 70,
+      allowAnswerReview: true,
+      generateCertificate: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+  });
+
+  test('O2 — HC creates package + adds 1 MC question', async ({ page }) => {
+    test.setTimeout(FLOW_O_TIMEOUT_MS);
+    await login(page, 'hc');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice',
+      text: `${Q1_MC_MARKER} — pilih jawaban benar`,
+      options: [Q1_MC_CORRECT_TEXT, 'Wrong-1', 'Wrong-2', 'Wrong-3'],
+      correctIndex: 0,
+      score: 100,
+    });
+  });
+
+  test('O3 — HC adds 10 min extra time → worker timer updates via SignalR (multi-context)', async ({ browser }) => {
+    test.setTimeout(FLOW_O_TIMEOUT_MS);
+    // Multi-context: HC + Worker simultan (Pitfall 5 mitigation — cookie isolation)
+    const ctxWorker = await browser.newContext();
+    const ctxHc = await browser.newContext();
+    const pageWorker = await ctxWorker.newPage();
+    const pageHc = await ctxHc.newPage();
+
+    try {
+      // Worker: login + start exam
+      await login(pageWorker, 'coachee');
+      await pageWorker.goto('/CMP/Assessment');
+      const card = pageWorker.locator('.assessment-card', { hasText: title }).first();
+      await expect(card).toBeVisible({ timeout: 10_000 });
+      pageWorker.once('dialog', (d) => d.accept());
+      await card
+        .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard, a:has-text("Resume")')
+        .first()
+        .click();
+      await pageWorker.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+
+      // SignalR readiness (worker)
+      await pageWorker.waitForFunction(
+        () => {
+          const w = window as unknown as { assessmentHub?: { state?: string } };
+          return w.assessmentHub?.state === 'Connected';
+        },
+        undefined,
+        { timeout: 10_000 }
+      );
+
+      sessionId = parseInt(pageWorker.url().match(/StartExam\/(\d+)/)![1], 10);
+
+      // Open Q5 buffer — 2s wait setelah StartExam supaya server set status=InProgress
+      await pageWorker.waitForTimeout(2_000);
+
+      // HC: login (separate context, no cookie collision)
+      await login(pageHc, 'hc');
+
+      // Fire AddExtraTime modal → verify HC alert + worker timer increment
+      await addExtraTimeViaModal(pageHc, pageWorker, {
+        title,
+        category,
+        scheduleDate,
+        extraMinutes: 10,
+      });
+    } finally {
+      await ctxWorker.close().catch(() => { /* already closed — non-fatal */ });
+      await ctxHc.close().catch(() => { /* already closed — non-fatal */ });
+    }
+  });
+
+  test('O4 — Worker submits exam after extra time added', async ({ page }) => {
+    test.setTimeout(FLOW_O_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    // Resume link = direct navigation (no confirm() dialog). Stale page.once would collide
+    // with submitExamTwoStep's dialog handler → "Cannot accept dialog which is already handled".
+    await card
+      .locator('a:has-text("Resume"), a:has-text("Lanjutkan"), a:has-text("Mulai"), .btn-start-standard')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+
+    // Resume scenario — IS_RESUME flow di StartExam.cshtml:1141-1152:
+    //   examLoadingOverlay HIDE DULU → resumeConfirmModal SHOW. Test harus tunggu overlay
+    //   hide DULU baru dismiss modal kalau muncul. Pattern reference exam-taking.spec.ts:1613-1625.
+    const loadingOverlay = page.locator('#examLoadingOverlay');
+    if (await loadingOverlay.count() > 0) {
+      await expect(loadingOverlay).not.toBeVisible({ timeout: 15_000 });
+    }
+    const resumeModal = page.locator('#resumeConfirmModal');
+    if (await resumeModal.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click();
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
+    }
+
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+
+    // Confirm sessionId still valid (Resume continues same session)
+    const resumeSessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+    expect(resumeSessionId).toBe(sessionId);
+
+    // Answer MC by text (post-shuffle) + submit
+    const qCard = page.locator('[id^="qcard_"]').filter({ hasText: Q1_MC_MARKER });
+    await expect(qCard).toHaveCount(1);
+    await qCard
+      .locator('label.list-group-item', { hasText: Q1_MC_CORRECT_TEXT })
+      .locator('input.exam-radio')
+      .check();
+    await page
+      .locator('#saveIndicatorText')
+      .filter({ hasText: /saved|tersimpan/i })
+      .first()
+      .waitFor({ timeout: 5_000 });
+
+    await submitExamTwoStep(page);
+  });
+
+  test('O5 — Worker sees Results score 100 normal (MC-only, no SURF-317-A)', async ({ page }) => {
+    test.setTimeout(FLOW_O_TIMEOUT_MS);
+    await login(page, 'coachee');
+    await page.goto(`/CMP/Results/${sessionId}`);
+    await expect(page.locator('body')).toContainText(/100/);
+    await expect(page.locator('.badge.text-bg-success').first()).toBeVisible({ timeout: 10_000 });
   });
 });
 
