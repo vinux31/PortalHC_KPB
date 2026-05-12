@@ -183,7 +183,117 @@
         }
       </script>
 
-      <!-- Other mockups di Task 4.4-4.9 -->
+      <!-- Mockup #19: Question CRUD -->
+      <section x-show="activeMockup === 'question'" x-data="questionMock()" id="question" class="bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold brand-navy mb-2">📝 #19 Manage Package Questions</h2>
+        <p class="text-sm text-slate-600 mb-6">Drill: buat soal MC dengan choices + kunci jawaban. Coba juga tipe Essay/Interview.</p>
+
+        <div class="mb-6">
+          <h3 class="font-bold mb-2">Bank Soal (Package "Test Sosialisasi")</h3>
+          <template x-if="questions.length === 0">
+            <p class="text-sm text-slate-500 italic">Belum ada soal. Tambah via form bawah.</p>
+          </template>
+          <template x-for="q in questions" :key="q.id">
+            <div class="border rounded p-3 mb-2 bg-slate-50">
+              <div class="flex justify-between mb-1">
+                <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded" x-text="q.type"></span>
+                <button @click="remove(q)" class="text-xs text-red-600 hover:underline">Hapus</button>
+              </div>
+              <p class="text-sm font-medium" x-text="q.text"></p>
+              <template x-if="q.type === 'MC'">
+                <ol class="text-xs mt-2 space-y-1 list-decimal list-inside">
+                  <template x-for="(c, i) in q.choices" :key="i">
+                    <li :class="i === q.correctIndex ? 'font-bold text-green-700' : ''" x-text="c + (i === q.correctIndex ? ' ✓' : '')"></li>
+                  </template>
+                </ol>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded">
+          <h3 class="font-bold mb-3">Tambah Soal</h3>
+          <label class="block mb-3">
+            <span class="text-sm font-bold">Tipe Soal</span>
+            <select x-model="newType" class="mt-1 w-full px-3 py-2 border rounded">
+              <option>MC</option>
+              <option>Essay</option>
+              <option>Interview</option>
+            </select>
+          </label>
+          <label class="block mb-3">
+            <span class="text-sm font-bold">Pertanyaan</span>
+            <textarea x-model="newText" rows="2" class="mt-1 w-full px-3 py-2 border rounded text-sm" placeholder="Contoh: Apa fungsi RFCC?"></textarea>
+          </label>
+
+          <div x-show="newType === 'MC'">
+            <span class="text-sm font-bold">Pilihan Jawaban (klik radio untuk kunci jawaban)</span>
+            <template x-for="(c, i) in newChoices" :key="i">
+              <div class="flex gap-2 mt-1 items-center">
+                <input type="radio" name="correct" :value="i" x-model="newCorrectIndex" :checked="newCorrectIndex == i">
+                <input x-model="newChoices[i]" :placeholder="'Pilihan ' + (i+1)" class="flex-1 px-3 py-1 border rounded text-sm">
+              </div>
+            </template>
+          </div>
+
+          <button @click="add()" class="mt-4 bg-brand-navy text-white px-4 py-2 rounded font-bold">+ Tambah Soal</button>
+          <p x-show="message" x-text="message" :class="messageType === 'success' ? 'text-green-600' : 'text-red-600'" class="text-sm mt-2"></p>
+        </div>
+
+        <button @click="reset()" class="mt-4 bg-amber-400 px-4 py-2 rounded font-bold text-sm">🔄 Drill Ulang</button>
+      </section>
+
+      <script>
+        function questionMock() {
+          return {
+            questions: $persist([]).as('mockup_v1_question_list'),
+            newType: 'MC',
+            newText: '',
+            newChoices: ['', '', '', ''],
+            newCorrectIndex: null,
+            message: '',
+            messageType: 'success',
+            add() {
+              if (!this.newText) {
+                this.message = 'Pertanyaan wajib diisi';
+                this.messageType = 'error';
+                return;
+              }
+              if (this.newType === 'MC') {
+                if (this.newChoices.filter(c => c).length < 2) {
+                  this.message = 'Minimal 2 pilihan jawaban';
+                  this.messageType = 'error';
+                  return;
+                }
+                if (this.newCorrectIndex === null || this.newCorrectIndex === '') {
+                  this.message = 'WAJIB pilih kunci jawaban (radio button) — tanpa kunci, auto-grade gagal';
+                  this.messageType = 'error';
+                  return;
+                }
+              }
+              this.questions.push({
+                id: Date.now(),
+                type: this.newType,
+                text: this.newText,
+                choices: this.newType === 'MC' ? [...this.newChoices] : [],
+                correctIndex: this.newType === 'MC' ? parseInt(this.newCorrectIndex) : null
+              });
+              this.message = `✓ Soal ${this.newType} ditambah`;
+              this.messageType = 'success';
+              this.newText = ''; this.newChoices = ['', '', '', '']; this.newCorrectIndex = null;
+            },
+            remove(q) {
+              this.questions = this.questions.filter(x => x.id !== q.id);
+            },
+            reset() {
+              localStorage.removeItem('mockup_v1_question_list');
+              location.reload();
+            }
+          }
+        }
+      </script>
+
+      <!-- Other mockups di Task 4.5-4.9 -->
     </main>
   </div>
 </body>
