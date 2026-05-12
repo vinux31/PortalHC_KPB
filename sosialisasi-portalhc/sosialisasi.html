@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Sosialisasi PortalHC — Slide Overview</title>
+  <link rel="stylesheet" href="assets/css/shared.css">
+  <script src="assets/vendor/tailwind.min.js"></script>
+  <script defer src="assets/vendor/alpine-persist.min.js"></script>
+  <script defer src="assets/vendor/alpinejs.min.js"></script>
+  <style>
+    .slide { display: none; }
+    .slide.active { display: block; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50" x-data="slideNav()" @keydown.window.right.prevent="next()" @keydown.window.left.prevent="prev()" @keydown.window.space.prevent="next()">
+  <!-- Top nav -->
+  <nav class="bg-white shadow-sm px-6 py-3 flex justify-between items-center sticky top-0 z-10">
+    <a href="index.html" class="text-sm brand-navy hover:underline">← Hub</a>
+    <span class="text-xs text-slate-500">Slide <span x-text="current"></span> / 15</span>
+    <div class="flex gap-2">
+      <button @click="prev()" :disabled="current === 1" class="px-3 py-1 bg-slate-200 rounded disabled:opacity-50">‹ Prev</button>
+      <button @click="next()" :disabled="current === 15" class="px-3 py-1 bg-brand-navy text-white rounded disabled:opacity-50">Next ›</button>
+    </div>
+  </nav>
+
+  <!-- Slides container -->
+  <main class="max-w-5xl mx-auto px-6 py-8">
+    <!-- Slide 1: Cover -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 1 }">
+      <div class="bg-gradient-to-br from-brand-navy to-blue-900 text-white rounded-2xl p-12 text-center">
+        <h1 class="text-5xl font-bold mb-4">HC Portal <span class="text-amber-400">KPB</span></h1>
+        <p class="text-xl opacity-90">Sosialisasi Aplikasi untuk Tim HC Operasional</p>
+        <p class="mt-8 text-sm opacity-75">Pertamina Kilang Balikpapan · 2026</p>
+      </div>
+    </section>
+
+    <!-- Slide 2-15 di-append di Task 2.2-2.4 -->
+  </main>
+
+  <script>
+    function slideNav() {
+      return {
+        current: 1,
+        total: 15,
+        next() { if (this.current < this.total) this.current++ },
+        prev() { if (this.current > 1) this.current-- }
+      }
+    }
+  </script>
+</body>
+</html>
