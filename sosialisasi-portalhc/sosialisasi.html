@@ -34,7 +34,108 @@
       </div>
     </section>
 
-    <!-- Slide 2-15 di-append di Task 2.2-2.4 -->
+    <!-- Slide 2: Agenda -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 2 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-2">Agenda <span class="text-amber-500">Presentasi</span></h2>
+        <p class="text-slate-500 mb-6">Apa saja yang akan dibahas hari ini</p>
+        <ol class="space-y-3 list-decimal list-inside text-lg">
+          <li>Latar belakang & tujuan PortalHC</li>
+          <li>3 Pilar Manfaat</li>
+          <li>Struktur Role pengguna (6 level akses)</li>
+          <li>Modul CMP — Assessment & Sertifikasi</li>
+          <li>Modul CDP — Coaching & IDP</li>
+          <li>Dashboard Analytics & Reporting</li>
+          <li>Integrasi & Keamanan</li>
+          <li>Cara mengakses + Q&A</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Slide 3: Latar Belakang -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 3 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-6">Latar <span class="text-amber-500">Belakang</span></h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded">
+            <h3 class="font-bold text-red-700 mb-2">⚠️ Sebelum PortalHC</h3>
+            <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+              <li>Data assessment scatter di Excel berbagai folder</li>
+              <li>Audit retensi sertifikasi susah dilacak</li>
+              <li>Coaching record manual, sulit di-rollup</li>
+              <li>Laporan Analytics jadi PR bulanan HC</li>
+            </ul>
+          </div>
+          <div class="bg-green-50 border-l-4 border-green-500 p-5 rounded">
+            <h3 class="font-bold text-green-700 mb-2">✓ Setelah PortalHC</h3>
+            <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+              <li>1 platform terintegrasi untuk semua HC ops</li>
+              <li>Audit trail otomatis tiap action</li>
+              <li>Coaching tracked end-to-end</li>
+              <li>Dashboard real-time + export 1-klik</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4: Apa Itu HC Portal -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 4 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-4">Apa Itu <span class="text-amber-500">HC Portal</span> KPB?</h2>
+        <p class="text-lg text-slate-700 mb-6">Sistem informasi berbasis web untuk Tim Human Capital Kilang Pertamina Balikpapan dalam mengelola <strong>kompetensi dan pengembangan pekerja</strong> secara terintegrasi, transparan, dan data-driven.</p>
+        <div class="grid md:grid-cols-3 gap-4 text-center">
+          <div class="bg-slate-50 p-5 rounded-lg">
+            <div class="text-3xl mb-2">🎯</div>
+            <h3 class="font-bold brand-navy">Terintegrasi</h3>
+            <p class="text-sm text-slate-600 mt-1">Semua modul HC dalam 1 portal</p>
+          </div>
+          <div class="bg-slate-50 p-5 rounded-lg">
+            <div class="text-3xl mb-2">🔍</div>
+            <h3 class="font-bold brand-navy">Transparan</h3>
+            <p class="text-sm text-slate-600 mt-1">Audit trail + role-based access</p>
+          </div>
+          <div class="bg-slate-50 p-5 rounded-lg">
+            <div class="text-3xl mb-2">📈</div>
+            <h3 class="font-bold brand-navy">Data-Driven</h3>
+            <p class="text-sm text-slate-600 mt-1">Analytics + report real-time</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 5: 3 Pilar Manfaat -->
+    <section class="slide slide-fade-enter" :class="{ active: current === 5 }">
+      <div class="bg-white rounded-2xl p-10 shadow">
+        <h2 class="text-3xl font-bold brand-navy mb-2">3 Pilar <span class="text-amber-500">Manfaat</span></h2>
+        <p class="text-slate-500 mb-6">Nilai utama PortalHC untuk operasional KPB</p>
+        <div class="space-y-4">
+          <div class="flex gap-4 items-start bg-blue-50 p-5 rounded-lg">
+            <div class="text-4xl">⚙️</div>
+            <div>
+              <h3 class="font-bold text-lg brand-navy">1. Efisiensi Operasional</h3>
+              <p class="text-sm text-slate-700">Bulk import worker, auto-grading MC, certificate PDF instant. Tugas yang dulu 1 hari, sekarang 1 jam.</p>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start bg-amber-50 p-5 rounded-lg">
+            <div class="text-4xl">🔒</div>
+            <div>
+              <h3 class="font-bold text-lg brand-navy">2. Compliance & Audit</h3>
+              <p class="text-sm text-slate-700">AuditLog otomatis tiap action, soft delete preserve history, export ke Excel untuk audit eksternal.</p>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start bg-green-50 p-5 rounded-lg">
+            <div class="text-4xl">📊</div>
+            <div>
+              <h3 class="font-bold text-lg brand-navy">3. Insight Pengembangan</h3>
+              <p class="text-sm text-slate-700">Dashboard fail-rate, gain score Pre-Post, coaching progress — manajemen punya data untuk decide intervention.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 6-15 di-append di Task 2.3-2.4 -->
   </main>
 
   <script>
