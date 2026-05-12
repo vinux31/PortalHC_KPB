@@ -94,7 +94,96 @@
         }
       </script>
 
-      <!-- Other mockups di Task 4.3-4.9 -->
+      <!-- Mockup #8: Worker CRUD -->
+      <section x-show="activeMockup === 'worker'" x-data="workerMock()" id="worker" class="bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold brand-navy mb-2">👤 #8 Worker CRUD</h2>
+        <p class="text-sm text-slate-600 mb-6">Drill: tambah/edit/deactivate worker. Test perbedaan Delete vs Deactivate.</p>
+
+        <div class="mb-6 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-100">
+              <tr><th class="p-2 text-left">NIP</th><th class="p-2 text-left">Nama</th><th class="p-2 text-left">Section</th><th class="p-2 text-left">Status</th><th class="p-2">Aksi</th></tr>
+            </thead>
+            <tbody>
+              <template x-for="w in workers" :key="w.id">
+                <tr :class="w.active ? '' : 'opacity-50 bg-slate-50'" class="border-b">
+                  <td class="p-2" x-text="w.nip"></td>
+                  <td class="p-2" x-text="w.name"></td>
+                  <td class="p-2" x-text="w.section"></td>
+                  <td class="p-2"><span :class="w.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'" class="px-2 py-0.5 rounded text-xs" x-text="w.active ? 'Active' : 'Inactive'"></span></td>
+                  <td class="p-2 text-right space-x-1">
+                    <button @click="toggle(w)" class="text-xs px-2 py-1 rounded" :class="w.active ? 'bg-amber-400' : 'bg-green-400'" x-text="w.active ? 'Deactivate' : 'Reactivate'"></button>
+                    <button @click="hardDelete(w)" class="text-xs px-2 py-1 bg-red-400 rounded">Delete</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded">
+          <h3 class="font-bold mb-3">Tambah Worker Baru</h3>
+          <div class="grid md:grid-cols-3 gap-3 mb-3">
+            <input x-model="newNip" placeholder="NIP" class="px-3 py-2 border rounded text-sm">
+            <input x-model="newName" placeholder="Nama Lengkap" class="px-3 py-2 border rounded text-sm">
+            <input x-model="newSection" placeholder="Section (RFCC/DHT/dll)" class="px-3 py-2 border rounded text-sm">
+          </div>
+          <button @click="add()" class="bg-brand-navy text-white px-4 py-2 rounded font-bold">+ Tambah</button>
+          <p x-show="message" x-text="message" :class="messageType === 'success' ? 'text-green-600' : 'text-red-600'" class="text-sm mt-2"></p>
+        </div>
+
+        <button @click="reset()" class="mt-4 bg-amber-400 px-4 py-2 rounded font-bold text-sm">🔄 Drill Ulang</button>
+      </section>
+
+      <script>
+        function workerMock() {
+          return {
+            workers: $persist([
+              { id: 1, nip: 'W001', name: 'Asesor 1', section: 'RFCC', active: true },
+              { id: 2, nip: 'W002', name: 'Coach 1', section: 'DHT', active: true },
+              { id: 3, nip: 'W003', name: 'Worker 003', section: 'NGP', active: false }
+            ]).as('mockup_v1_worker_list'),
+            newNip: '',
+            newName: '',
+            newSection: '',
+            message: '',
+            messageType: 'success',
+            add() {
+              if (!this.newNip || !this.newName || !this.newSection) {
+                this.message = 'Semua field wajib diisi';
+                this.messageType = 'error';
+                return;
+              }
+              if (this.workers.find(w => w.nip === this.newNip)) {
+                this.message = 'NIP duplikat — sudah ada di list';
+                this.messageType = 'error';
+                return;
+              }
+              this.workers.push({ id: Date.now(), nip: this.newNip, name: this.newName, section: this.newSection, active: true });
+              this.message = `✓ Worker ${this.newName} ditambah`;
+              this.messageType = 'success';
+              this.newNip = ''; this.newName = ''; this.newSection = '';
+            },
+            toggle(w) {
+              w.active = !w.active;
+              this.message = w.active ? `${w.name} di-reactivate` : `${w.name} di-deactivate (soft delete, data preserved)`;
+              this.messageType = 'success';
+            },
+            hardDelete(w) {
+              if (!confirm(`Hard delete ${w.name}? Data hilang permanen. Untuk audit retention, pakai Deactivate.`)) return;
+              this.workers = this.workers.filter(x => x.id !== w.id);
+              this.message = `${w.name} di-hard delete (data hilang)`;
+              this.messageType = 'success';
+            },
+            reset() {
+              localStorage.removeItem('mockup_v1_worker_list');
+              location.reload();
+            }
+          }
+        }
+      </script>
+
+      <!-- Other mockups di Task 4.4-4.9 -->
     </main>
   </div>
 </body>
