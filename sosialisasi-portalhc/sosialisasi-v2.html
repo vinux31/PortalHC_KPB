@@ -101,10 +101,18 @@
            title="Klik untuk slide selanjutnya"></div>
 
       <div class="slide-deck" id="stage">
-        <!-- Slides will go here in later tasks -->
-        <section class="slide" x-show="current === 1">
-          <h1 class="text-5xl font-bold brand-navy">PLACEHOLDER Slide 1</h1>
-          <p class="text-slate-600 mt-4">Skeleton — content akan diisi di task selanjutnya</p>
+        <!-- Slide 1: Cover -->
+        <section class="slide" x-show="current === 1" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+          <div class="h-full flex flex-col items-center justify-center text-white text-center"
+               style="background: linear-gradient(135deg, #002e6d 0%, #001c44 70%, #ed1c24 100%); margin: -3rem -4rem; padding: 3rem 4rem; border-radius: 12px;">
+            <div class="text-sm uppercase tracking-widest opacity-80 mb-4">Pertamina Kilang Balikpapan</div>
+            <h1 class="text-6xl font-bold mb-3 leading-tight">HUMAN CAPITAL PORTAL</h1>
+            <div class="text-2xl font-light mb-12 opacity-90">Kilang Pertamina Balikpapan</div>
+            <div class="border-t border-white/30 pt-6 mt-6 max-w-md">
+              <div class="text-sm opacity-70 mb-1">Sosialisasi</div>
+              <div class="text-xl font-medium">Balikpapan, 27 Maret 2026</div>
+            </div>
+          </div>
         </section>
       </div>
     </div>
