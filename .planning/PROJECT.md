@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v15.0 shipped, 2026-05-11)
+## Current State (v16.0 shipped, 2026-05-12)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -26,25 +26,13 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v13.0 shipped** — Redesign Struktur Organisasi (phases 292-295): tree view recursive, AJAX CRUD via modal, drag-drop reorder SortableJS sibling-only.
 **v14.0 shipped** — Assessment Enhancement (phases 296-303): Pre-Post Test end-to-end, 4 tipe soal baru (TF/MA/Essay/FiB), mobile exam UI, item analysis + gain score reporting, WCAG quick wins, Coach Workload dashboard.
 **v15.0 shipped** — Audit Findings 27 April 2026 (phases 304-314 + 313.1): 15 temuan audit cleared (login UX, score editable, WIB labels, PrePost wizard, worker cert defensive, essay finalize idempotency, ManageAssessment HTMX perf, full-delete role tier, 2-tier timer submit, regenerate token Upcoming).
+**v16.0 shipped** — QA Test Coverage (phases 315-319): automated E2E test infrastructure. 73 sub-tests baseline di `tests/e2e/exam-types.spec.ts` (15 FLOW A-X coverage) + assessment matrix discovery harness + 2 production fixes (SURF-317-A CMPController MA-aware + SURF-317-A1 test fixture). 4 QA requirements satisfied (QA-01 matrix infra, QA-02 exam-types, QA-08 advanced features, QA-09 admin features).
 
-**Current focus:** v16.0 QA Test Coverage — automated test infrastructure untuk discovery bug di flow assessment (sweep tipe assessment × tipe soal).
+**Current focus:** TBD — next milestone planning belum dimulai. Kandidat: Phase 320 FLOW A-J wholesale refresh, CI integration QA-02, multi-env extension QA-05, Performance Deep Check.
 
-**v16.0 in progress:**
-- Phase 315 shipped (assessment matrix test sweep — Playwright spec + lifecycle automation, 3 carry-forward gaps GAP-315-1/2/3 documented)
-- Phase 316 shipped (2026-05-11) — SubmitExam page-closed bug fix + matrix test infra polish. Original 2 plans expanded to 6 research-driven (cascade promotion + describe boundary + actionTimeout triple defense). GAP-315-1/2/3 closed empirically (full S1-S10 run 11 passed, 0 did-not-run, 5.1 min, sentinel S10 META-CollectorCheck recorded). SURF-316-A `#reviewSubmitBtn` selector visibility = new surface handoff next phase.
+## Next Milestone Goals
 
-## Current Milestone: v16.0 QA Test Coverage
-
-**Goal:** Membangun automated test infrastructure untuk Portal HC yang mampu menyapu kombinasi (tipe assessment × tipe soal) end-to-end sebagai tooling discovery bug — bukan regression suite. Foundation untuk expand test coverage di milestone berikutnya.
-
-**Target features:**
-- QA-01 — Assessment matrix test sweep (Phase 315): Playwright spec yang loop 7 discovery skenario (4 mixed per tipe assessment + 3 single-type Online per tipe soal) + 3 sentinel meta-validation. Full lifecycle (peserta kerjakan + submit + grading manual essay + verify score). DB seed temporary + RESTORE cleanup. Continue-and-collect bug report markdown.
-
-**Key context:**
-- Spec design lengkap sudah ditulis: `docs/superpowers/specs/2026-05-11-assessment-matrix-test-design.md` (commit `94bacecf`) — akan jadi input CONTEXT.md Phase 315
-- 5 open questions di spec = blocker investigation pre-impl (MA save flow, Essay save flow, Notes field, ID collision check, URL encoding)
-- Phase numbering melanjutkan dari Phase 314 (v15.0)
-- Scope sengaja sempit (1 REQ, 1 phase) — milestone deliberately small untuk foundation; expand ke regression/CI/multi-env di milestone berikutnya jika tooling proven
+Belum di-define. Run `/gsd-new-milestone` untuk start questioning → research → requirements → roadmap. Kandidat prioritas tinggi tersedia di Backlog Lainnya section bawah.
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

@@ -14,7 +14,7 @@
 - ✅ **v13.0 Redesign Struktur Organisasi** — Phases 292-295 (shipped 2026-04-06)
 - ✅ **v14.0 Assessment Enhancement** — Phases 296-303 (shipped 2026-04-24) — [archive](milestones/v14.0-ROADMAP.md)
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
-- 🚧 **v16.0 QA Test Coverage** — Phase 315 (planning, started 2026-05-11)
+- ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
 
 ## Phases
 
@@ -332,7 +332,23 @@ Full details: [milestones/v15.0-ROADMAP.md](milestones/v15.0-ROADMAP.md) • Req
 
 </details>
 
-### 🚧 v16.0 QA Test Coverage (Active)
+### ✅ v16.0 QA Test Coverage (Phases 315-319) — SHIPPED 2026-05-12
+
+**Goal:** Membangun automated test infrastructure untuk Portal HC sebagai tooling discovery bug end-to-end.
+
+**Started:** 2026-05-11 | **Shipped:** 2026-05-12 | **Phases:** 315-319 (5 phases, 22 plans) | **Active REQ:** 4 (QA-01, QA-02, QA-08, QA-09)
+
+**Outcome:**
+- `tests/e2e/exam-types.spec.ts` 73 sub-tests baseline (15 FLOW A-X coverage)
+- `tests/e2e/assessment-matrix.spec.ts` discovery matrix (10 scenarios + sentinels)
+- 2 production fixes (SURF-317-A CMPController MA-aware + SURF-317-A1 test fixture)
+- Reusable helpers (`examTypes.ts`, `wizardSelectors.ts`, `dbSnapshot.ts`)
+- 3 closure reports di `docs/test-reports/2026-05-1[12]-*.md`
+
+Full details: [milestones/v16.0-ROADMAP.md](milestones/v16.0-ROADMAP.md) • Requirements: [milestones/v16.0-REQUIREMENTS.md](milestones/v16.0-REQUIREMENTS.md) • Audit: [v16.0-MILESTONE-AUDIT.md](v16.0-MILESTONE-AUDIT.md)
+
+<details>
+<summary>v16.0 phase-level details (collapsed for context efficiency)</summary>
 
 **Goal:** Membangun automated test infrastructure untuk Portal HC sebagai tooling discovery bug end-to-end. Fokus pertama: assessment flow (tipe assessment × tipe soal). Foundation untuk expand test coverage di milestone berikutnya.
 
@@ -414,6 +430,8 @@ Plans:
 - [x] 319-03-PLAN.md — W0.V0+W0.W0 smoke + FLOW V Export Excel + FLOW W Analytics dashboard (QA-09)
 - [x] 319-04-PLAN.md — W0.X0 smoke + FLOW X CertificationManagement CDP variant + REQUIREMENTS QA-09 + ROADMAP Phase 319 closure + final regression gate ≥73 (72 pass + 1 skip)
 
+</details>
+
 ---
 
-*Roadmap updated: 2026-05-12 (Phase 319 closed — QA-09 covered, regression 72/72 hijau + 1 skip X3, 4/4 plans complete)*
+*Roadmap updated: 2026-05-12 (v16.0 SHIPPED — 5/5 phases, 22/22 plans, 73 sub-tests baseline, audit `gaps_found` tracking-only with patches applied)*
