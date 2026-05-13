@@ -336,50 +336,61 @@
           </div>
         </section>
 
-        <!-- Slide 6: Role (will rewrite to piramida in Task 6) -->
+        <!-- Slide 6: Role Piramida 6 Tier -->
         <section class="slide" x-show="current === 6" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
-          <div class="max-w-6xl mx-auto w-full">
+          <div class="max-w-5xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Struktur Role di Sistem</div>
-            <h2 class="text-4xl font-bold brand-navy mb-8">Role Pengguna</h2>
-            <div class="grid grid-cols-5 gap-3">
-              <div class="card-hover bg-white border-t-4 border-brand-red rounded-lg p-4 shadow-sm">
-                <div class="text-3xl mb-2">🛡️</div>
-                <h3 class="text-lg font-bold brand-navy mb-1">Admin</h3>
-                <div class="text-xs uppercase text-slate-500 mb-3">Administrator Sistem</div>
-                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses</div>
-                <div class="text-xs text-slate-700">Seluruh fitur tanpa terkecuali</div>
+            <h2 class="text-3xl font-bold brand-navy mb-4">Role Pengguna <span class="text-base font-normal text-slate-500">(10 role · 6 level hierarki)</span></h2>
+            <div class="space-y-2">
+              <!-- Level 1 - Admin -->
+              <div class="flex items-center gap-3 rounded-lg p-2" style="background: linear-gradient(90deg, #002e6d22, transparent);">
+                <div class="text-xs font-bold text-white rounded px-2 py-1 w-16 text-center" style="background: var(--navy);">L1</div>
+                <div class="flex-1 flex justify-center gap-2">
+                  <span class="px-3 py-1 bg-white border-2 border-brand-navy rounded-full text-sm font-bold brand-navy" title="Administrator sistem — akses seluruh fitur">🛡️ Admin</span>
+                </div>
               </div>
-              <div class="card-hover bg-white border-t-4 border-brand-navy rounded-lg p-4 shadow-sm">
-                <div class="text-3xl mb-2">👥</div>
-                <h3 class="text-lg font-bold brand-navy mb-1">HC</h3>
-                <div class="text-xs uppercase text-slate-500 mb-3">Tim Human Capital</div>
-                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses</div>
-                <div class="text-xs text-slate-700">Kelola data, monitoring, coaching review, sertifikasi</div>
+              <!-- Level 2 - HC -->
+              <div class="flex items-center gap-3 rounded-lg p-2" style="background: linear-gradient(90deg, #002e6d1e, transparent);">
+                <div class="text-xs font-bold text-white rounded px-2 py-1 w-16 text-center" style="background: var(--navy);">L2</div>
+                <div class="flex-1 flex justify-center gap-2">
+                  <span class="px-3 py-1 bg-white border-2 border-brand-navy rounded-full text-sm font-bold brand-navy" title="Tim Human Capital — kelola data, monitoring, coaching review, sertifikasi">👥 HC</span>
+                </div>
               </div>
-              <div class="card-hover bg-white border-t-4 border-amber-500 rounded-lg p-4 shadow-sm">
-                <div class="text-3xl mb-2">🎓</div>
-                <h3 class="text-lg font-bold brand-navy mb-1">Coach</h3>
-                <div class="text-xs uppercase text-slate-500 mb-3">Coach / Mentor</div>
-                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses</div>
-                <div class="text-xs text-slate-700">Coaching Proton, review deliverable, approve/reject</div>
+              <!-- Level 3 - Management -->
+              <div class="flex items-center gap-3 rounded-lg p-2" style="background: linear-gradient(90deg, #3b82f622, transparent);">
+                <div class="text-xs font-bold text-white rounded px-2 py-1 w-16 text-center" style="background: #3b82f6;">L3</div>
+                <div class="flex-1 flex justify-center gap-2 flex-wrap">
+                  <span class="px-3 py-1 bg-white border-2 border-blue-500 rounded-full text-sm font-medium text-blue-700" title="Direktur — view-only level direksi">👔 Direktur</span>
+                  <span class="px-3 py-1 bg-white border-2 border-blue-500 rounded-full text-sm font-medium text-blue-700" title="Vice President">📌 VP</span>
+                  <span class="px-3 py-1 bg-white border-2 border-blue-500 rounded-full text-sm font-medium text-blue-700" title="Manager unit">🧭 Manager</span>
+                </div>
               </div>
-              <div class="card-hover bg-white border-t-4 border-blue-500 rounded-lg p-4 shadow-sm">
-                <div class="text-3xl mb-2">👤</div>
-                <h3 class="text-lg font-bold brand-navy mb-1">Supervisor</h3>
-                <div class="text-xs uppercase text-slate-500 mb-3">Supervisor Unit</div>
-                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses</div>
-                <div class="text-xs text-slate-700">Sama Coach, tanpa coachee mapping</div>
+              <!-- Level 4 - Section Supervisory -->
+              <div class="flex items-center gap-3 rounded-lg p-2" style="background: linear-gradient(90deg, #0ea5e922, transparent);">
+                <div class="text-xs font-bold text-white rounded px-2 py-1 w-16 text-center" style="background: #0ea5e9;">L4</div>
+                <div class="flex-1 flex justify-center gap-2 flex-wrap">
+                  <span class="px-3 py-1 bg-white border-2 border-sky-500 rounded-full text-sm font-medium text-sky-700" title="Section Head — approval bertingkat coaching">🏢 Section Head</span>
+                  <span class="px-3 py-1 bg-white border-2 border-sky-500 rounded-full text-sm font-medium text-sky-700" title="Senior Supervisor — approval evidence deliverable">🧑‍💼 Sr Supervisor</span>
+                </div>
               </div>
-              <div class="card-hover bg-white border-t-4 border-green-500 rounded-lg p-4 shadow-sm">
-                <div class="text-3xl mb-2">👨‍🎓</div>
-                <h3 class="text-lg font-bold brand-navy mb-1">Coachee</h3>
-                <div class="text-xs uppercase text-slate-500 mb-3">Pekerja / Peserta</div>
-                <div class="text-xs font-medium text-slate-500 uppercase mb-1">Akses</div>
-                <div class="text-xs text-slate-700">Assessment, IDP, submit deliverable, lihat progress</div>
+              <!-- Level 5 - Coaching -->
+              <div class="flex items-center gap-3 rounded-lg p-2" style="background: linear-gradient(90deg, #f59e0b22, transparent);">
+                <div class="text-xs font-bold text-white rounded px-2 py-1 w-16 text-center" style="background: #f59e0b;">L5</div>
+                <div class="flex-1 flex justify-center gap-2 flex-wrap">
+                  <span class="px-3 py-1 bg-white border-2 border-amber-500 rounded-full text-sm font-medium text-amber-700" title="Coach — bimbing coachee, review deliverable, log coaching session">🎓 Coach</span>
+                  <span class="px-3 py-1 bg-white border-2 border-amber-500 rounded-full text-sm font-medium text-amber-700" title="Supervisor — akses sama Coach tanpa coachee mapping">👤 Supervisor</span>
+                </div>
+              </div>
+              <!-- Level 6 - Operational -->
+              <div class="flex items-center gap-3 rounded-lg p-2" style="background: linear-gradient(90deg, #10b98122, transparent);">
+                <div class="text-xs font-bold text-white rounded px-2 py-1 w-16 text-center" style="background: #10b981;">L6</div>
+                <div class="flex-1 flex justify-center gap-2">
+                  <span class="px-3 py-1 bg-white border-2 border-green-500 rounded-full text-sm font-bold text-green-700" title="Coachee — pekerja peserta program, assessment & submit deliverable">👨‍🎓 Coachee</span>
+                </div>
               </div>
             </div>
-            <div class="mt-6 bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-sm text-slate-700 dark:text-slate-200">
-              <strong>Catatan:</strong> Selain 5 role utama di atas, sistem juga mengakomodasi level management (Direktur, VP, Manager, Section Head, Sr Supervisor) dengan akses sesuai hierarki organisasi.
+            <div class="mt-4 bg-slate-50 dark:bg-slate-700 rounded-lg p-3 text-xs text-slate-700 dark:text-slate-200">
+              <strong>Catatan:</strong> Hover tiap role untuk detail akses. Hierarki sesuai <code>Models/UserRoles.cs</code> — Admin (L1) akses penuh, Coachee (L6) akses operasional pekerja.
             </div>
           </div>
         </section>
