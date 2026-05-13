@@ -839,34 +839,37 @@
           </div>
         </section>
 
-        <!-- Slide 17: Alur Coaching Th 1-2 (will fix in Task 10) -->
+        <!-- Slide 17: Alur Coaching Th 1-2 -->
         <section class="slide" x-show="current === 17" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
           <div class="max-w-6xl mx-auto w-full">
-            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 1 & 2</div>
-            <h2 class="text-3xl font-bold brand-navy mb-1">Alur Coaching — Tahun 1 & 2</h2>
-            <p class="text-sm text-slate-500 mb-5">Persiapan Silabus → Review → Sertifikasi (8 step end-to-end)</p>
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 1 &amp; 2</div>
+            <h2 class="text-3xl font-bold brand-navy mb-1">Alur Coaching — Tahun 1 &amp; 2</h2>
+            <p class="text-sm text-slate-500 mb-5">Persiapan Silabus → Review Multi-Role → Sertifikasi (8 step end-to-end)</p>
 
-            <!-- Row 1: Step 1-4 -->
-            <div class="grid grid-cols-4 gap-3 mb-3">
-              <div class="flow-step">
+            <!-- Row 1: Step 1-4 with arrows -->
+            <div class="grid grid-cols-11 gap-2 items-stretch mb-3">
+              <div class="col-span-2 flow-step">
                 <div class="step-num">1</div>
                 <div class="text-2xl mb-1">📋</div>
                 <div class="font-bold brand-navy mb-1 text-sm">Siapkan Silabus</div>
-                <div class="text-xs text-slate-600">Kompetensi & deliverable per track tahun</div>
+                <div class="text-xs text-slate-600">Kompetensi &amp; deliverable per track tahun</div>
               </div>
-              <div class="flow-step">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
                 <div class="step-num">2</div>
                 <div class="text-2xl mb-1">📤</div>
                 <div class="font-bold brand-navy mb-1 text-sm">Upload Guidance</div>
                 <div class="text-xs text-slate-600">Dokumen panduan belajar per kompetensi</div>
               </div>
-              <div class="flow-step">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
                 <div class="step-num">3</div>
                 <div class="text-2xl mb-1">🔗</div>
                 <div class="font-bold brand-navy mb-1 text-sm">Mapping Track</div>
                 <div class="text-xs text-slate-600">Assign coachee ke track tahun program</div>
               </div>
-              <div class="flow-step">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
                 <div class="step-num">4</div>
                 <div class="text-2xl mb-1">✍️</div>
                 <div class="font-bold brand-navy mb-1 text-sm">Kerjakan Deliverable</div>
@@ -876,27 +879,30 @@
 
             <div class="text-center text-2xl text-slate-400 my-1">↓</div>
 
-            <!-- Row 2: Step 5-8 -->
-            <div class="grid grid-cols-4 gap-3 mt-1">
-              <div class="flow-step">
-                <div class="step-num">5</div>
-                <div class="text-2xl mb-1">👁️</div>
-                <div class="font-bold brand-navy mb-1 text-sm">Review HC</div>
-                <div class="text-xs text-slate-600">HC validasi evidence coachee</div>
+            <!-- Row 2: Step 5-8 with arrows -->
+            <div class="grid grid-cols-11 gap-2 items-stretch mt-1">
+              <div class="col-span-2 flow-step" style="border-color: #0ea5e9; background: #f0f9ff;">
+                <div class="step-num" style="background: #0ea5e9;">5</div>
+                <div class="text-2xl mb-1">👀</div>
+                <div class="font-bold mb-1 text-sm" style="color: #0369a1">Review Multi-Role</div>
+                <div class="text-xs text-slate-600">Coach + SrSpv + SH + HC review <strong>paralel</strong> per-role</div>
               </div>
-              <div class="flow-step">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
                 <div class="step-num">6</div>
                 <div class="text-2xl mb-1">✅</div>
                 <div class="font-bold brand-navy mb-1 text-sm">Approval / Revisi</div>
                 <div class="text-xs text-slate-600">Approve atau request revisi dgn komentar</div>
               </div>
-              <div class="flow-step">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
                 <div class="step-num">7</div>
                 <div class="text-2xl mb-1">📊</div>
                 <div class="font-bold brand-navy mb-1 text-sm">Hitung Progress</div>
                 <div class="text-xs text-slate-600">% penyelesaian deliverable dalam track</div>
               </div>
-              <div class="flow-step" style="border-color: var(--green); background: #f0fdf4;">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
                 <div class="step-num" style="background: var(--green);">8</div>
                 <div class="text-2xl mb-1">🏅</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--green)">Sertifikasi</div>
@@ -905,7 +911,7 @@
             </div>
 
             <div class="mt-5 bg-slate-50 dark:bg-slate-700 rounded-lg p-3 text-xs text-slate-700 dark:text-slate-200 flex items-center gap-4">
-              <div><strong>Role HC:</strong> silabus + guidance. <strong>Role Coachee:</strong> submit.</div>
+              <div><strong>Role:</strong> HC kelola silabus + guidance. Coachee submit. Reviewer (Coach/SrSpv/SH/HC) independent per-role (Phase 65 architecture).</div>
               <div class="text-slate-300">|</div>
               <div class="text-green-700"><strong>✅ Output:</strong> sertifikat tahun + eligible naik tahun berikutnya.</div>
             </div>
