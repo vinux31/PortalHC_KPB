@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handoff IT — Sinkronisasi DB Dev HcPortal KPB (2026-05-13)</title>
+<style>
+:root {
+  --brand: #e30613;
+  --brand-dark: #b8050f;
+  --navy: #1e3a8a;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-alt: #f9fafb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --amber: #f59e0b;
+  --amber-bg: #fef3c7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --info-bg: #eff6ff;
+  --info-border: #3b82f6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 950px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+header.hero {
+  border-top: 6px solid var(--brand);
+  padding: 24px 0 16px;
+  margin-bottom: 8px;
+}
+
+header.hero .badge {
+  display: inline-block;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+header.hero h1 {
+  font-size: 30px;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  padding: 16px 20px;
+  background: var(--bg-alt);
+  border-left: 4px solid var(--navy);
+  border-radius: 4px;
+  margin: 16px 0 32px;
+  font-size: 14px;
+}
+
+.meta-row .meta-item strong {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+h2 {
+  font-size: 22px;
+  margin: 40px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+
+h3 { font-size: 17px; margin: 24px 0 10px; }
+h4 { font-size: 15px; margin: 14px 0 6px; }
+
+p { margin: 0 0 12px; }
+
+code, .mono {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  background: var(--bg-alt);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  border-left: 4px solid var(--brand);
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+pre.sql {
+  background: var(--bg-alt);
+  color: var(--text);
+  border-left-color: var(--navy);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-alt);
+  font-weight: 600;
+  color: var(--text);
+}
+
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+
+ul, ol { margin: 8px 0 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+
+.tag.ok { background: var(--green-bg); color: var(--green); }
+.tag.warn { background: var(--amber-bg); color: #92400e; }
+.tag.danger { background: var(--red-bg); color: var(--red); }
+
+.callout {
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+.callout.info { background: var(--info-bg); border-color: var(--info-border); }
+.callout.warn { background: var(--amber-bg); border-color: var(--amber); }
+.callout.success { background: var(--green-bg); border-color: var(--green); }
+.callout.danger { background: var(--red-bg); border-color: var(--red); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.toc {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 0 0 32px;
+}
+.toc .title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.toc ol { margin: 0; padding-left: 22px; }
+.toc li { margin-bottom: 4px; font-size: 14px; }
+.toc a { color: var(--navy); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tldr {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  margin: 24px 0;
+}
+.tldr .label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.tldr p { margin: 0; font-size: 16px; line-height: 1.5; }
+
+@media print {
+  body { font-size: 11pt; }
+  .container { max-width: 100%; padding: 0; }
+  pre { background: #f4f4f4 !important; color: #000 !important; }
+  pre.sql { background: #f4f4f4 !important; }
+  .toc, header.hero { page-break-after: avoid; }
+  h2 { page-break-after: avoid; page-break-before: auto; }
+  table, pre, .callout { page-break-inside: avoid; }
+  a { color: var(--text); text-decoration: none; }
+  footer { page-break-before: avoid; }
+  @page { size: A4; margin: 18mm 15mm; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <span class="badge">HANDOFF TEAM IT</span>
+  <h1>Sinkronisasi DB Dev — HcPortal KPB</h1>
+  <p class="subtitle">Apa yang perlu IT lakukan agar DB Server Dev (<code>10.55.3.3</code>) selaras dengan schema lokal — <strong>tanpa menghilangkan data HC</strong>.</p>
+</header>
+
+<div class="meta-row">
+  <div class="meta-item">
+    <strong>Tanggal</strong>
+    13 Mei 2026
+  </div>
+  <div class="meta-item">
+    <strong>Baseline Dev</strong>
+    <code>d77bd62a</code> (15 Apr)
+  </div>
+  <div class="meta-item">
+    <strong>Target HEAD</strong>
+    <code>d3e53051</code> (13 Mei)
+  </div>
+  <div class="meta-item">
+    <strong>Migration Pending</strong>
+    <strong style="color: var(--brand);">1 file</strong>
+  </div>
+  <div class="meta-item">
+    <strong>Risk</strong>
+    <span class="tag ok">Non-destructive</span>
+  </div>
+</div>
+
+<div class="tldr">
+  <div class="label">TL;DR</div>
+  <p>IT cukup <code style="background:rgba(255,255,255,0.2); color:#fff;">git pull</code> + apply <strong>1 migration non-destructive</strong> (<code style="background:rgba(255,255,255,0.2); color:#fff;">20260507073825_AddManageAssessmentPerfIndexes</code>). Migration ini hanya menambah 2 index ke tabel <code style="background:rgba(255,255,255,0.2); color:#fff;">AssessmentSessions</code> — tidak menyentuh data. <strong>Data HC (worker baru, sertifikat baru) 100% aman.</strong></p>
+</div>
+
+<div class="toc">
+  <div class="title">Daftar Isi</div>
+  <ol>
+    <li><a href="#context">Context — Kenapa Sinkronisasi Diperlukan</a></li>
+    <li><a href="#findings">Findings — Cross-Reference 3 Sumber</a></li>
+    <li><a href="#migration">Migration Pending (Detail)</a></li>
+    <li><a href="#not-needed">Yang TIDAK Perlu IT Lakukan</a></li>
+    <li><a href="#checklist">Checklist Handoff IT</a></li>
+    <li><a href="#bugfix">Bug Fix Production (Code, Bukan DB)</a></li>
+    <li><a href="#verify">Verifikasi End-to-End (Post-Deploy)</a></li>
+    <li><a href="#refs">File Referensi</a></li>
+  </ol>
+</div>
+
+<h2 id="context">1. Context — Kenapa Sinkronisasi Diperlukan</h2>
+
+<p><strong>Problem:</strong> DB server Dev (<code>HcPortalDB_Dev</code> di <code>10.55.3.3</code>) saat ini masih running pada commit baseline <code>d77bd62a</code> (15 April 2026 09:48). Sejak handoff itu, lokal sudah jalan 2 milestone (v15.0 + v16.0) dengan <strong>~190 commit baru</strong>. Sementara itu, team HC sudah upload data riil ke DB Dev (worker baru, sertifikat baru).</p>
+
+<p><strong>Pertanyaan:</strong> Apa yang IT perlu apply ke DB Dev supaya selaras dengan schema lokal, <strong>tanpa menghilangkan data HC</strong>?</p>
+
+<p><strong>Outcome dokumen ini:</strong> Daftar pasti migration pending + risk assessment + checklist handoff yang actionable.</p>
+
+<h2 id="findings">2. Findings — Cross-Reference 3 Sumber</h2>
+
+<p>Saya verifikasi schema delta dari 3 angle independen. Hasilnya konvergen.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Sumber Verifikasi</th>
+      <th>Hasil</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Commit history <code>Migrations/</code> sejak 15 April</td>
+      <td>1 commit baru: <code>ac86fea3</code> (7 Mei)</td>
+    </tr>
+    <tr>
+      <td><code>git diff</code> snapshot baseline vs HEAD</td>
+      <td>Entity count identik (81 → 81), delta hanya 2 <code>HasIndex</code></td>
+    </tr>
+    <tr>
+      <td><code>docs/MILESTONE-REPORT.html</code> (v15.0 + v16.0)</td>
+      <td>Konfirmasi: 1 migration (Phase 311), v16.0 zero-migration</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout success">
+  <div class="title">Verifikasi Konvergen</div>
+  <p>3 sumber independen menunjuk ke <strong>1 migration pending</strong> yang sama. Tidak ada hidden ALTER/DROP/UPDATE.</p>
+</div>
+
+<h2 id="migration">3. Migration Pending (Detail)</h2>
+
+<h3><code>20260507073825_AddManageAssessmentPerfIndexes</code></h3>
+
+<table>
+  <tbody>
+    <tr><th style="width: 140px;">File</th><td><code>Migrations/20260507073825_AddManageAssessmentPerfIndexes.cs</code></td></tr>
+    <tr><th>Commit</th><td><code>ac86fea3</code> (7 Mei 2026)</td></tr>
+    <tr><th>Phase</th><td>311 — ManageAssessment Performance</td></tr>
+    <tr><th>Tabel target</th><td><code>AssessmentSessions</code></td></tr>
+    <tr><th>Operasi</th><td>CREATE INDEX × 2 (non-clustered, single-column)</td></tr>
+  </tbody>
+</table>
+
+<h4>Isi migration (verbatim):</h4>
+
+<pre>CreateIndex IX_AssessmentSessions_ExamWindowCloseDate
+    ON AssessmentSessions(ExamWindowCloseDate)
+
+CreateIndex IX_AssessmentSessions_LinkedGroupId
+    ON AssessmentSessions(LinkedGroupId)</pre>
+
+<h4>Sifat migration:</h4>
+<ul>
+  <li><span class="tag ok">SAFE</span> Non-destructive — CREATE INDEX saja, tidak ada ALTER/DROP</li>
+  <li><span class="tag ok">SAFE</span> Idempotent — kolom target sudah eksis di Dev</li>
+  <li><span class="tag ok">SAFE</span> Reversible — <code>Down()</code> drop kedua index</li>
+  <li><span class="tag ok">SAFE</span> Data HC 100% aman — tidak menyentuh row, hanya struktur lookup</li>
+  <li><span class="tag warn">NOTE</span> Index build me-lock tabel sebentar — schedule low-traffic window</li>
+</ul>
+
+<h2 id="not-needed">4. Yang TIDAK Perlu IT Lakukan</h2>
+
+<ul>
+  <li><span class="tag danger">JANGAN</span> Restore DB Lokal ke Dev — data HC akan hilang</li>
+  <li><span class="tag danger">JANGAN</span> Drop / recreate tabel — tidak ada destructive migration</li>
+  <li><span class="tag danger">JANGAN</span> Apply manual SQL ALTER — EF migration sudah handle</li>
+  <li><span class="tag danger">JANGAN</span> Apply seed data temporary (Phase 313/315/317) — semua <code>local-only</code> &amp; sudah <code>cleaned</code> per <code>docs/SEED_JOURNAL.md</code></li>
+  <li><span class="tag danger">JANGAN</span> Migrate data row — v16.0 = pure C# logic + test, zero data migration</li>
+</ul>
+
+<h2 id="checklist">5. Checklist Handoff IT</h2>
+
+<div class="callout info">
+  <div class="title">SOP Step-by-Step</div>
+  <p>Ikuti urutan ini. Backup wajib, walau migration reversible.</p>
+</div>
+
+<h4>Step 1 — Backup DB Dev (wajib)</h4>
+<pre class="sql">BACKUP DATABASE HcPortalDB_Dev
+TO DISK = 'C:\Backup\HcPortalDB_Dev.pre-311.bak'
+WITH FORMAT, INIT, NAME = 'HcPortalDB_Dev Full Backup Pre-311';</pre>
+
+<h4>Step 2 — Pre-check (apakah migration sudah ter-apply)</h4>
+<pre class="sql">SELECT * FROM __EFMigrationsHistory
+WHERE MigrationId = '20260507073825_AddManageAssessmentPerfIndexes';</pre>
+<ul>
+  <li>Return <strong>0 row</strong> → migration belum apply, lanjut Step 3</li>
+  <li>Return <strong>1 row</strong> → sudah apply, skip Step 3 langsung Step 5</li>
+</ul>
+
+<h4>Step 3 — Git pull (deploy code v15.0 + v16.0)</h4>
+<pre>cd /path/to/HcPortal && git pull origin main
+# Target HEAD commit: d3e53051 (13 Mei 2026) — atau HEAD `main` saat IT pull</pre>
+
+<h4>Step 4 — Apply migration</h4>
+<pre>dotnet ef database update --context ApplicationDbContext</pre>
+
+<h4>Step 5 — Post-verify (index harus ter-create)</h4>
+<pre class="sql">SELECT name FROM sys.indexes
+WHERE name IN ('IX_AssessmentSessions_ExamWindowCloseDate',
+               'IX_AssessmentSessions_LinkedGroupId');
+-- Expected: 2 row</pre>
+
+<h4>Step 6 — Verify data HC utuh (sanity check)</h4>
+<pre class="sql">-- Total worker harus sama dengan sebelum migration
+SELECT COUNT(*) FROM AspNetUsers WHERE PekerjaId IS NOT NULL;
+
+-- Total sertifikat harus sama dengan sebelum migration
+SELECT COUNT(*) FROM WorkerCertificates;</pre>
+
+<h2 id="bugfix">6. Bug Fix Production (Code, Bukan DB)</h2>
+
+<p>Selain migration, ada <strong>1 bug fix production</strong> di v16.0 yang IT perlu deploy via code (otomatis saat <code>git pull</code> di Step 3):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Issue ID</th>
+      <th>File</th>
+      <th>Deskripsi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>SURF-317-A</strong></td>
+      <td><code>Controllers/CMPController.cs</code></td>
+      <td>MA-aware <code>ToLookup</code> refactor — unblocks Results page render untuk MultipleAnswer assessments. C# logic only, no schema change.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="verify">7. Verifikasi End-to-End (Post-Deploy)</h2>
+
+<p>Setelah IT confirm deploy + migration apply, user (Rino) verifikasi di <code>http://10.55.3.3/KPB-PortalHC</code>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 50px;">#</th>
+      <th>Check</th>
+      <th>Expected</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Data HC utuh</strong> — buka daftar Worker</td>
+      <td>Sertifikat baru yang HC upload tetap ada</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Migration applied</strong> — ManageAssessment page</td>
+      <td>Load ≤ 40 detik (Phase 311 target — index aktif)</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Bug fix</strong> — Results page untuk MA assessment</td>
+      <td>Render normal (SURF-317-A)</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>AddManualAssessment</strong> — feature lama (14 April)</td>
+      <td>Create manual assessment sukses (regression check)</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>v16.0 features</strong> — Phase 315-319 routes</td>
+      <td>Spot check via Admin/Assessment routes, no broken page</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="refs">8. File Referensi</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Migrations/20260507073825_AddManageAssessmentPerfIndexes.cs</code></td>
+      <td>Migration source (satu-satunya pending)</td>
+    </tr>
+    <tr>
+      <td><code>Controllers/CMPController.cs</code></td>
+      <td>SURF-317-A fix</td>
+    </tr>
+    <tr>
+      <td><code>docs/MILESTONE-REPORT.html</code></td>
+      <td>Sumber kebenaran feature v15.0 + v16.0</td>
+    </tr>
+    <tr>
+      <td><code>docs/SEED_JOURNAL.md</code></td>
+      <td>Konfirmasi semua seed temporary sudah <code>cleaned</code></td>
+    </tr>
+    <tr>
+      <td><code>docs/DEV_WORKFLOW.md</code> §4</td>
+      <td>SOP migration umum (referensi kebijakan)</td>
+    </tr>
+  </tbody>
+</table>
+
+<footer>
+  Disusun oleh Rino · 2026-05-13 · HcPortal KPB Project<br>
+  Tekan <code>Ctrl+P</code> → "Save as PDF" untuk export ke PDF.
+</footer>
+
+</div>
+</body>
+</html>
