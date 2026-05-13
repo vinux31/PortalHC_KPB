@@ -434,6 +434,57 @@
           </div>
         </section>
 
+        <!-- Slide 8: Pre/Post Test -->
+        <section class="slide" x-show="current === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+          <div class="max-w-5xl mx-auto w-full">
+            <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Bagian 1 · CMP</div>
+            <h2 class="text-3xl font-bold brand-navy mb-2">Pre &amp; Post Test <span class="text-base font-normal text-slate-500">— Ukur Efektivitas Training</span></h2>
+            <p class="text-slate-600 mb-6">Pasangan ujian sebelum &amp; sesudah training untuk menghitung peningkatan kompetensi (gain score).</p>
+
+            <!-- Flow 4 step horizontal -->
+            <div class="grid grid-cols-9 gap-2 items-stretch mb-6">
+              <div class="col-span-2 flow-step">
+                <div class="step-num">1</div>
+                <div class="text-2xl mb-1">📋</div>
+                <div class="font-bold brand-navy text-sm mb-1">Pre Test</div>
+                <div class="text-xs text-slate-600">Sebelum training, ukur baseline kompetensi peserta</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
+                <div class="step-num">2</div>
+                <div class="text-2xl mb-1">🎓</div>
+                <div class="font-bold brand-navy text-sm mb-1">Training / OJT</div>
+                <div class="text-xs text-slate-600">Sesi pembelajaran (in-class atau on-the-job)</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step">
+                <div class="step-num">3</div>
+                <div class="text-2xl mb-1">✅</div>
+                <div class="font-bold brand-navy text-sm mb-1">Post Test</div>
+                <div class="text-xs text-slate-600">Setelah training, ujian dengan paket soal sejenis</div>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="col-span-1 flow-step" style="border-color: var(--green); background: #f0fdf4;">
+                <div class="step-num" style="background: var(--green);">4</div>
+                <div class="text-2xl mb-1">📊</div>
+                <div class="font-bold text-sm" style="color: var(--green)">Gain Score</div>
+                <div class="text-xs text-slate-600">Analisis</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm">
+                <div class="font-bold text-blue-700 mb-1">📈 Gain Score</div>
+                <div class="text-slate-700">Selisih skor Post - Pre. Indikator efektivitas training per peserta &amp; per kategori.</div>
+              </div>
+              <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded text-sm">
+                <div class="font-bold text-amber-700 mb-1">🔍 Item Analysis</div>
+                <div class="text-slate-700">Per-soal: kesulitan, daya beda, distractor power. Bantu HC perbaiki paket soal.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Slide 9: Alur Assessment OJT (will fix in Task 9) -->
         <section class="slide" x-show="current === 9" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
           <div class="max-w-6xl mx-auto w-full">
