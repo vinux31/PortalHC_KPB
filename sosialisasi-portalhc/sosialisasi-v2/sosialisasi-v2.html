@@ -107,8 +107,9 @@
     .text-brand-navy { color: var(--navy) !important; }
     .text-brand-red { color: var(--red) !important; }
 
-    /* Mobile portrait: scale down slide */
-    @media (max-width: 768px) and (orientation: portrait) {
+    /* Mobile portrait: scale down slide. 'screen' qualifier prevents firing during @media print
+       (Chrome interprets print viewport as narrow → would collapse grid layouts to 1-column in PDF). */
+    @media screen and (max-width: 768px) and (orientation: portrait) {
       .slide-deck { max-width: 100%; }
       .slide { padding: 1.5rem 1.5rem; }
       .slide h1 { font-size: 2rem !important; }
@@ -130,7 +131,7 @@
       z-index: 100; padding: 2rem; text-align: center;
       flex-direction: column; align-items: center; justify-content: center;
     }
-    @media (max-width: 768px) and (orientation: portrait) {
+    @media screen and (max-width: 768px) and (orientation: portrait) {
       .rotate-prompt[data-dismissed="false"] { display: flex; }
     }
 
