@@ -135,34 +135,83 @@
     }
 
     @media print {
+      /* A4 landscape: 297mm x 210mm, no margin (full bleed slide) */
       @page {
         size: A4 landscape;
-        margin: 1cm;
+        margin: 0;
       }
-      body { background: white !important; color: black !important; }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        color: black !important;
+        min-height: 0 !important;
+      }
       body.dark { background: white !important; color: black !important; }
       body.dark .slide-deck { background: white !important; }
       body.dark .flow-step { background: white !important; color: black !important; border-color: #ccc !important; }
-      .nav-bar { display: none !important; }
-      .sr-only { display: none !important; }
-      .cursor-w-resize, .cursor-e-resize { display: none !important; }
-      .rotate-prompt { display: none !important; }
-      /* Force show all slides for print */
+      body.dark .nav-bar, body.dark .rotate-prompt { display: none !important; }
+
+      /* Hide UI chrome */
+      .nav-bar,
+      .sr-only,
+      .rotate-prompt,
+      .cursor-w-resize,
+      .cursor-e-resize { display: none !important; }
       [x-cloak] { display: none !important; }
-      .slide { display: flex !important; page-break-before: always; page-break-inside: avoid; }
-      .slide:first-of-type { page-break-before: avoid; }
-      .slide-deck {
-        width: 100% !important;
-        max-width: none !important;
-        aspect-ratio: auto;
-        height: auto;
-        box-shadow: none !important;
-        border: 1px solid #ccc;
-        border-radius: 0;
-        page-break-inside: avoid;
+
+      /* Stage area: strip Tailwind layout flex/centering */
+      main {
+        display: block !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
-      *, *::before, *::after { animation: none !important; transition: none !important; }
+      main > div { width: 100% !important; max-width: none !important; }
+
+      /* Slide-deck wrapper: invisible (each slide is its own page) */
+      .slide-deck {
+        width: 297mm !important;
+        max-width: none !important;
+        height: auto !important;
+        aspect-ratio: auto !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+
+      /* Each slide = exact 1 page A4 landscape */
       [x-show] { display: flex !important; }
+      .slide {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        width: 297mm !important;
+        height: 210mm !important;
+        padding: 12mm 16mm !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        break-after: page !important;
+        break-inside: avoid !important;
+        overflow: hidden !important;
+        background: white !important;
+      }
+      .slide:last-of-type {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+
+      /* Animations off */
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+      }
     }
   </style>
 </head>
