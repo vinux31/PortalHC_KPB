@@ -918,34 +918,37 @@
           </div>
         </section>
 
-        <!-- Slide 18: Alur Coaching Th 3 (will fix in Task 11) -->
+        <!-- Slide 18: Alur Coaching Th 3 -->
         <section class="slide" x-show="current === 18" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
           <div class="max-w-6xl mx-auto w-full">
             <div class="text-sm uppercase tracking-wide brand-red font-bold mb-2">Coaching · Tahun 3 (Level Mahir)</div>
             <h2 class="text-3xl font-bold brand-navy mb-1">Alur Coaching — Tahun 3</h2>
-            <p class="text-sm text-slate-500 mb-5">Silabus Mahir → Review Mendalam → Sertifikasi Final (8 step)</p>
+            <p class="text-sm text-slate-500 mb-5">Silabus Mahir → Coaching Intensif → Sertifikasi Final (8 step)</p>
 
             <!-- Row 1: Step 1-4 (red theme — preparation & deliverable) -->
-            <div class="grid grid-cols-4 gap-3 mb-3">
-              <div class="flow-step" style="border-color: var(--red); background: #fef2f2;">
+            <div class="grid grid-cols-11 gap-2 items-stretch mb-3">
+              <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">1</div>
                 <div class="text-2xl mb-1">🎓</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--red)">Silabus Mahir</div>
                 <div class="text-xs text-slate-600">Level mahir, beda dari Th 1-2</div>
               </div>
-              <div class="flow-step" style="border-color: var(--red); background: #fef2f2;">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">2</div>
                 <div class="text-2xl mb-1">🔗</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--red)">Mapping Th 3</div>
                 <div class="text-xs text-slate-600">Coachee lulus Th 2 → Track Tahun 3</div>
               </div>
-              <div class="flow-step" style="border-color: var(--red); background: #fef2f2;">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">3</div>
                 <div class="text-2xl mb-1">✍️</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--red)">Kerjakan Deliverable</div>
                 <div class="text-xs text-slate-600">Submit evidence level mahir</div>
               </div>
-              <div class="flow-step" style="border-color: var(--red); background: #fef2f2;">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">4</div>
                 <div class="text-2xl mb-1">🔍</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--red)">Review Mendalam</div>
@@ -956,26 +959,29 @@
             <div class="text-center text-2xl text-slate-400 my-1">↓</div>
 
             <!-- Row 2: Step 5-8 (red→green progression untuk sertifikasi final) -->
-            <div class="grid grid-cols-4 gap-3 mt-1">
-              <div class="flow-step" style="border-color: var(--red); background: #fef2f2;">
+            <div class="grid grid-cols-11 gap-2 items-stretch mt-1">
+              <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">5</div>
-                <div class="text-2xl mb-1">🎤</div>
-                <div class="font-bold mb-1 text-sm" style="color: var(--red)">Interview Online</div>
-                <div class="text-xs text-slate-600">Coaching & review via interview</div>
+                <div class="text-2xl mb-1">🗣️</div>
+                <div class="font-bold mb-1 text-sm" style="color: var(--red)">Coaching Intensif</div>
+                <div class="text-xs text-slate-600">Sesi coaching mendalam per deliverable, dicatat di CoachingSession log</div>
               </div>
-              <div class="flow-step" style="border-color: var(--red); background: #fef2f2;">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--red); background: #fef2f2;">
                 <div class="step-num" style="background: var(--red);">6</div>
                 <div class="text-2xl mb-1">📊</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--red)">Hitung Progress</div>
-                <div class="text-xs text-slate-600">% deliverable + skor interview</div>
+                <div class="text-xs text-slate-600">% deliverable + skor review</div>
               </div>
-              <div class="flow-step" style="border-color: var(--green); background: #f0fdf4;">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
                 <div class="step-num" style="background: var(--green);">7</div>
                 <div class="text-2xl mb-1">🏆</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--green)">Sertifikasi Final</div>
                 <div class="text-xs text-slate-600">Semua deliverable Th 3 selesai</div>
               </div>
-              <div class="flow-step" style="border-color: var(--green); background: #f0fdf4;">
+              <div class="flow-arrow">→</div>
+              <div class="col-span-2 flow-step" style="border-color: var(--green); background: #f0fdf4;">
                 <div class="step-num" style="background: var(--green);">8</div>
                 <div class="text-2xl mb-1">⭐</div>
                 <div class="font-bold mb-1 text-sm" style="color: var(--green)">Penetapan Level</div>
