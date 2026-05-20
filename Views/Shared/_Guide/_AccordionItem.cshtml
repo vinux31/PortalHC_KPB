@@ -20,8 +20,6 @@
         HcPortal.Models.Guide.GuideModule.Admin   => "btn-admin",
         _ => ""
     };
-
-    var keywordList = string.Join(" ", Model.Keywords).ToLowerInvariant();
 }
 
 <div class="guide-list-item accordion-item">
@@ -34,7 +32,7 @@
         </button>
     </h2>
     <div id="@collapseId" class="accordion-collapse collapse" data-bs-parent="">
-        <div class="accordion-body guide-list-body" data-keywords="@keywordList">
+        <div class="accordion-body guide-list-body">
             <ul class="guide-steps">
                 @foreach (var step in Model.Steps)
                 {

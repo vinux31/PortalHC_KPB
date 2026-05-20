@@ -9,8 +9,9 @@
    class="guide-module-card @Model.CardCssClass searchable-card text-decoration-none"
    data-keywords="@keywordList"
    data-aos="fade-up"
+   data-aos-delay="@Model.AosDelay"
    role="article"
-   aria-label="Panduan @Model.Title - @Model.ItemCount panduan tersedia">
+   aria-label="Panduan @Model.ShortLabel - @Model.ItemCount panduan tersedia">
     <div class="guide-card-header">
         <div class="guide-card-header-icon icon-@moduleSlug"><i class="bi @Model.IconCssClass" aria-hidden="true"></i></div>
         <div class="guide-card-header-text">
