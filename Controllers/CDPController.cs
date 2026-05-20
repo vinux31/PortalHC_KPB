@@ -660,9 +660,9 @@ namespace HcPortal.Controllers
             // Load progress with full hierarchy including ProtonTrack for display info
             var progress = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
-                    .ThenInclude(d => d.ProtonSubKompetensi)
-                        .ThenInclude(s => s.ProtonKompetensi)
-                            .ThenInclude(k => k.ProtonTrack)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                            .ThenInclude(k => k!.ProtonTrack)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (progress == null) return NotFound();
@@ -810,8 +810,8 @@ namespace HcPortal.Controllers
             // Load progress with full Include chain
             var progress = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
-                    .ThenInclude(d => d.ProtonSubKompetensi)
-                        .ThenInclude(s => s.ProtonKompetensi)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
                 .FirstOrDefaultAsync(p => p.Id == progressId);
 
             if (progress == null) return NotFound();
@@ -885,8 +885,8 @@ namespace HcPortal.Controllers
             // Load ALL progress records for this coachee's track (for all-approved check only)
             var allProgresses = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
-                    .ThenInclude(d => d.ProtonSubKompetensi)
-                        .ThenInclude(s => s.ProtonKompetensi)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
                 .Where(p => p.CoacheeId == progress.CoacheeId)
                 .ToListAsync();
 
@@ -2277,9 +2277,9 @@ namespace HcPortal.Controllers
                     Kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
                     SubKompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
                     Deliverable = progress.ProtonDeliverable?.NamaDeliverable ?? "",
-                    CatatanCoach = catatanCoach,
-                    Kesimpulan = kesimpulan,
-                    Result = result,
+                    CatatanCoach = catatanCoach ?? "",
+                    Kesimpulan = kesimpulan ?? "",
+                    Result = result ?? "",
                     AcuanPedoman = acuanPedoman ?? "",
                     AcuanTko = acuanTko ?? "",
                     AcuanBestPractice = acuanBestPractice ?? "",
@@ -2413,9 +2413,9 @@ namespace HcPortal.Controllers
                 TempData["Error"] = "Input melebihi batas panjang (Catatan 4000, Kesimpulan/Result 100).";
                 return RedirectToAction("Deliverable", new { id = session.ProtonDeliverableProgressId });
             }
-            session.CatatanCoach = catatanCoach;
-            session.Kesimpulan = kesimpulan;
-            session.Result = result;
+            session.CatatanCoach = catatanCoach ?? "";
+            session.Kesimpulan = kesimpulan ?? "";
+            session.Result = result ?? "";
             session.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             var actorName = string.IsNullOrWhiteSpace(user.NIP)
@@ -2740,9 +2740,9 @@ namespace HcPortal.Controllers
 
             var progress = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
-                    .ThenInclude(d => d.ProtonSubKompetensi)
-                        .ThenInclude(s => s.ProtonKompetensi)
-                            .ThenInclude(k => k.ProtonTrack)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                            .ThenInclude(k => k!.ProtonTrack)
                 .FirstOrDefaultAsync(p => p.Id == progressId);
 
             if (progress == null) return NotFound();
@@ -2922,10 +2922,10 @@ namespace HcPortal.Controllers
                                     });
                                 }
 
-                                AcuanRow("Pedoman", session.AcuanPedoman);
-                                AcuanRow("TKO/TKI/TKPA", session.AcuanTko);
-                                AcuanRow("Best Practice", session.AcuanBestPractice);
-                                AcuanRow("Dokumen", session.AcuanDokumen);
+                                AcuanRow("Pedoman", session.AcuanPedoman ?? "");
+                                AcuanRow("TKO/TKI/TKPA", session.AcuanTko ?? "");
+                                AcuanRow("Best Practice", session.AcuanBestPractice ?? "");
+                                AcuanRow("Dokumen", session.AcuanDokumen ?? "");
                             });
                         });
 
