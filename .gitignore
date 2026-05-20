@@ -522,4 +522,5 @@ TempDbCheck/
 
 # Build/export artifacts
 build_output.txt
+warnings_list.txt
 sosialisasi-portalhc/*.pdf
