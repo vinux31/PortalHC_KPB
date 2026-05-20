@@ -305,9 +305,22 @@
     font-weight: 600;
     color: var(--text);
     opacity: 0;
-    transform: translateY(6px);
+    transform: rotate(-3deg) scale(0.85);
+    transform-origin: left center;
+    display: flex;
+    align-items: center;
   }
   .year-card.y3 .chip { border-color: rgba(230,51,41,0.18); }
+
+  .chip::before {
+    content: "\2713";
+    color: var(--navy-soft);
+    font-weight: 800;
+    margin-right: 8px;
+    opacity: 0;
+    animation: chipTick 0.3s ease-out 0.2s forwards;
+  }
+  .year-card.y3 .chip::before { color: var(--red); }
 
   .year-card .footer-line {
     margin-top: auto;
@@ -344,28 +357,31 @@
   @keyframes cardIn {
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  @keyframes chipIn {
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes chipStamp {
+    0%   { opacity: 0; transform: rotate(-3deg) scale(0.85); }
+    60%  { opacity: 1; transform: rotate(1deg)  scale(1.04); }
+    100% { opacity: 1; transform: rotate(0)     scale(1); }
   }
+  @keyframes chipTick { to { opacity: 1; } }
   @keyframes footerIn {
     to { opacity: 1; }
   }
 
   /* ===== ANIMATION DELAYS (timeline 25 detik) ===== */
   #card-y1 { animation: cardIn 0.7s 5.0s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-  #chips-y1 .chip:nth-child(1) { animation: chipIn 0.4s 5.7s ease-out forwards; }
-  #chips-y1 .chip:nth-child(2) { animation: chipIn 0.4s 5.82s ease-out forwards; }
+  #chips-y1 .chip:nth-child(1) { animation: chipStamp 0.6s 4.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  #chips-y1 .chip:nth-child(2) { animation: chipStamp 0.6s 4.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #foot-y1 { animation: footerIn 0.5s 7.0s ease-out forwards; }
 
   #card-y2 { animation: cardIn 0.7s 10.0s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-  #chips-y2 .chip:nth-child(1) { animation: chipIn 0.4s 10.7s ease-out forwards; }
-  #chips-y2 .chip:nth-child(2) { animation: chipIn 0.4s 10.82s ease-out forwards; }
-  #chips-y2 .chip:nth-child(3) { animation: chipIn 0.4s 10.94s ease-out forwards; }
+  #chips-y2 .chip:nth-child(1) { animation: chipStamp 0.6s 12.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  #chips-y2 .chip:nth-child(2) { animation: chipStamp 0.6s 12.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  #chips-y2 .chip:nth-child(3) { animation: chipStamp 0.6s 12.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #foot-y2 { animation: footerIn 0.5s 12.5s ease-out forwards; }
 
   #card-y3 { animation: cardIn 0.7s 14.0s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-  #chips-y3 .chip:nth-child(1) { animation: chipIn 0.4s 14.7s ease-out forwards; }
-  #chips-y3 .chip:nth-child(2) { animation: chipIn 0.4s 14.82s ease-out forwards; }
+  #chips-y3 .chip:nth-child(1) { animation: chipStamp 0.6s 20.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  #chips-y3 .chip:nth-child(2) { animation: chipStamp 0.6s 20.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #foot-y3 { animation: footerIn 0.5s 16.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 </style>
 </head>
