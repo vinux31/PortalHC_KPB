@@ -246,6 +246,7 @@
     gap: clamp(12px, 1.2vw, 24px);
   }
   .year-card {
+    position: relative;
     background: #FFFFFF;
     border: 1px solid var(--hairline);
     border-top: 4px solid var(--navy);
@@ -283,6 +284,35 @@
       0 0 0 4px rgba(230,51,41,0.15);
   }
   .year-card.dim { opacity: 0.65; }
+
+  /* Y3 climax burst ring */
+  .burst-ring {
+    position: absolute;
+    inset: -8px;
+    border: 3px solid var(--red);
+    border-radius: 14px;
+    opacity: 0;
+    pointer-events: none;
+    animation: burstRing 1.2s 25.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  @keyframes burstRing {
+    0%   { opacity: 0.9; transform: scale(0.92); }
+    100% { opacity: 0;   transform: scale(1.12); }
+  }
+  @keyframes glowPulseRed {
+    0%, 100% {
+      box-shadow:
+        0 1px 2px rgba(10,36,71,0.03),
+        0 8px 24px rgba(230,51,41,0.10),
+        0 0 0 4px rgba(230,51,41,0.15);
+    }
+    50% {
+      box-shadow:
+        0 1px 2px rgba(10,36,71,0.03),
+        0 12px 36px rgba(230,51,41,0.18),
+        0 0 0 12px rgba(230,51,41,0.05);
+    }
+  }
 
   .year-badge {
     display: inline-block;
@@ -429,7 +459,11 @@
   #chips-y2 .chip:nth-child(3) { animation: chipStamp 0.6s 12.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #foot-y2 { animation: footerIn 0.5s 17.0s ease-out forwards; }
 
-  #card-y3 { animation: cardIn 0.7s 19.0s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  #card-y3 {
+    animation:
+      cardIn 0.7s 19.0s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+      glowPulseRed 2.5s 25.5s ease-out 2;
+  }
   #chips-y3 .chip:nth-child(1) { animation: chipStamp 0.6s 20.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #chips-y3 .chip:nth-child(2) { animation: chipStamp 0.6s 20.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #foot-y3 { animation: footerIn 0.5s 23.5s ease-out forwards; }
@@ -509,6 +543,7 @@
       </div>
 
       <div class="year-card y3" id="card-y3">
+        <span class="burst-ring" aria-hidden="true"></span>
         <span class="year-badge">Tahun 3</span>
         <div class="year-theme">Mastery</div>
         <div class="counter">
