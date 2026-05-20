@@ -9,6 +9,9 @@
 # Uploaded files (runtime data)
 wwwroot/uploads/
 
+# Superpowers visual companion session data
+.superpowers/
+
 # Windows NUL artifact
 NUL
 
