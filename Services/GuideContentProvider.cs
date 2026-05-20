@@ -582,7 +582,7 @@ public static class GuideContentProvider
             Id: "faq-assessment-pre-post",
             Category: FaqCategory.Assessment,
             Question: "Apa itu assessment Pre-Post Test?",
-            AnswerHtml: "Pre-Post Test adalah tipe assessment khusus untuk mengukur <strong>peningkatan kompetensi</strong> sebelum dan sesudah program pelatihan. Peserta mengerjakan <strong>Pre-Test</strong> sebelum pelatihan dan <strong>Post-Test</strong> setelah pelatihan, dengan jadwal yang ditentukan oleh Admin. Hasil kedua test dibandingkan untuk mengukur <strong>Gain Score</strong> (selisih peningkatan nilai).",
+            AnswerHtml: "Pre-Post Test adalah tipe assessment khusus untuk mengukur <strong>peningkatan kompetensi</strong> sebelum dan sesudah program pelatihan. Peserta mengerjakan <strong>Pre-Test</strong> sebelum pelatihan dan <strong>Post-Test</strong> setelah pelatihan, dengan jadwal yang ditentukan oleh Admin. Hasil kedua test dibandingkan untuk mengukur <strong>Gain Score</strong> (selisih peningkatan nilai). Lihat panduan step-by-step di <a href=\"/Home/GuideDetail?module=cmp#collapse-cmp-pre-post-test\"><strong>CMP → Cara Mengerjakan Pre-Post Test</strong></a>.",
             Roles: new[] { RoleGroup.All },
             Keywords: new[] { "pre-post", "test", "pretest", "posttest", "gain score", "peningkatan", "kompetensi" }
         ),
@@ -624,9 +624,25 @@ public static class GuideContentProvider
             Id: "faq-cdp-approve-deliverable",
             Category: FaqCategory.CdpCoaching,
             Question: "Siapa yang bisa menyetujui (approve) deliverable?",
-            AnswerHtml: "Deliverable melewati <strong>rantai approval bertingkat</strong>: setelah coach upload evidence, deliverable di-review oleh <strong>Sr. Supervisor</strong> → <strong>Section Head</strong> → <strong>HC Review</strong>. Jika salah satu reviewer menolak, seluruh rantai approval di-reset dan coach harus upload ulang evidence. Mapping coach-coachee dikelola oleh Admin/HC.",
+            AnswerHtml: "Deliverable melewati <strong>rantai approval bertingkat</strong>: setelah coachee upload evidence, deliverable di-review oleh <strong>Sr. Supervisor</strong> → <strong>Section Head</strong> → <strong>HC Review</strong>. Jika salah satu reviewer menolak, <em>seluruh rantai approval di-reset</em> dan coachee harus upload ulang evidence. Mapping coach-coachee dikelola oleh Admin/HC. Lihat panduan lengkap di <a href=\"/Home/GuideDetail?module=cdp#collapse-cdp-reviewer-chain\"><strong>CDP → Memahami Alur Reviewer</strong></a>.",
             Roles: new[] { RoleGroup.All },
             Keywords: new[] { "approve", "approval", "deliverable", "siapa", "coach", "atasan", "sr supervisor", "section head", "hc" }
+        ),
+        new GuideFaqItem(
+            Id: "faq-coach-coachee-self",
+            Category: FaqCategory.CdpCoaching,
+            Question: "Bagaimana saya tahu siapa coach saya?",
+            AnswerHtml: "Buka menu <strong>CDP</strong> → halaman utama menampilkan <strong>Mapping Coach-Coachee</strong> Anda di bagian atas. Nama coach dan unit terlihat jelas. Kalau belum ada mapping, hubungi Admin/HC untuk assignment.",
+            Roles: new[] { RoleGroup.Coachee },
+            Keywords: new[] { "coach", "saya", "siapa", "mapping" }
+        ),
+        new GuideFaqItem(
+            Id: "faq-supervisor-vs-coach",
+            Category: FaqCategory.CdpCoaching,
+            Question: "Apa beda Coach dan Supervisor?",
+            AnswerHtml: "<strong>Coach</strong> dan <strong>Supervisor</strong> punya level akses sama (Level 5). Bedanya: <strong>Coach</strong> punya mapping ke coachee tertentu (bertanggung jawab langsung untuk coaching session + validasi final assessment). <strong>Supervisor</strong> punya akses sistem yang sama tapi tidak punya mapping coachee — biasanya untuk role pengawas yang tidak terlibat langsung coaching.",
+            Roles: new[] { RoleGroup.All },
+            Keywords: new[] { "coach", "supervisor", "beda", "perbedaan", "level" }
         ),
 
         // ═══════════════════ Umum ═══════════════════
@@ -660,7 +676,9 @@ public static class GuideContentProvider
             Question: "Bagaimana cara mengetahui role saya di sistem?",
             AnswerHtml: "Sistem HC Portal memiliki <strong>10 role</strong> dengan 6 level akses:<br><br><strong>Level 1 — Admin</strong>: Akses penuh ke seluruh fitur dan konfigurasi sistem<br><strong>Level 2 — HC</strong>: Akses penuh untuk pengelolaan SDM dan coaching<br><strong>Level 3 — Direktur, VP, Manager</strong>: Akses manajemen untuk monitoring seluruh section/unit<br><strong>Level 4 — Section Head, Sr Supervisor</strong>: Akses monitoring pada level section masing-masing serta review deliverable<br><strong>Level 5 — Coach, Supervisor</strong>: Akses coaching dan pengelolaan coachee yang di-assign<br><strong>Level 6 — Coachee</strong>: Akses untuk mengerjakan assessment, melihat silabus, dan mengelola deliverable pribadi<br><br>Role Anda ditampilkan di <strong>navbar kanan atas</strong> sebagai badge di bawah nama Anda.",
             Roles: new[] { RoleGroup.All },
-            Keywords: new[] { "role", "saya", "apa", "posisi", "admin", "hc", "coachee" }
+            Keywords: new[] { "role", "saya", "apa", "posisi", "admin", "hc", "coachee",
+                              "section head", "sr supervisor", "supervisor",
+                              "manager", "vp", "direktur" }
         ),
         new GuideFaqItem(
             Id: "faq-umum-data-aman",
