@@ -1,7 +1,7 @@
 // Record track-progresi.html to WebM via Playwright
 // Usage: node docs/assets/proton-video/record-track-progresi.mjs
 //
-// Output: docs/assets/proton-video/track-progresi.webm (26s, 1920x1080)
+// Output: docs/assets/proton-video/track-progresi.webm (36s, 1920x1080)
 // Convert to MP4: ffmpeg -i track-progresi.webm -c:v libx264 -crf 18 -preset slow track-progresi.mp4
 
 import { chromium } from 'playwright';
@@ -14,7 +14,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 8767;
 const URL = `http://127.0.0.1:${PORT}/track-progresi.html`;
 const OUT_DIR = here;
-const RECORD_DURATION_MS = 26_000; // 25s animation + 1s buffer
+const RECORD_DURATION_MS = 36_000; // 35s animation + 1s buffer
 
 // 1. Start http server
 const server = spawn(
