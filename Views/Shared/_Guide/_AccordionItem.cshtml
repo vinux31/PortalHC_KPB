@@ -1,4 +1,5 @@
 @model HcPortal.Models.Guide.GuideItem
+@using HcPortal.Services
 @{
     var collapseId = $"collapse-{Model.Id}";
     var headingId  = $"heading-{Model.Id}";
@@ -32,7 +33,7 @@
         </button>
     </h2>
     <div id="@collapseId" class="accordion-collapse collapse" data-bs-parent="">
-        <div class="accordion-body guide-list-body">
+        <div class="accordion-body guide-list-body" data-keywords="@GuideContentProvider.BuildKeywords(Model)">
             <ul class="guide-steps">
                 @foreach (var step in Model.Steps)
                 {

@@ -1,13 +1,16 @@
 @model HcPortal.Models.Guide.GuideModuleCardVm
+@using HcPortal.Services
 @{
     var moduleSlug = Model.Module.ToString().ToLowerInvariant();
-    var keywordList = string.Join(" ", Model.Keywords);
+    var keywordList = GuideContentProvider.BuildKeywords(Model);
+    var roleList = string.Join(" ", Model.Roles.Select(r => r.ToString().ToLowerInvariant()));
 }
 
 <a asp-action="GuideDetail"
    asp-route-module="@moduleSlug"
    class="guide-module-card @Model.CardCssClass searchable-card text-decoration-none"
    data-keywords="@keywordList"
+   data-roles="@roleList"
    data-aos="fade-up"
    data-aos-delay="@Model.AosDelay"
    role="article"

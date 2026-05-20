@@ -887,4 +887,44 @@ public static class GuideContentProvider
             ))
             .ToList();
     }
+
+    // Phase 4: auto-keyword builder. Gabung title + module + role label + manual keywords
+    // + step titles (untuk GuideItem). Eliminasi miss search untuk role names tanpa
+    // perlu manual tag tiap item.
+    public static string BuildKeywords(GuideItem item)
+    {
+        var parts = new System.Collections.Generic.List<string>
+        {
+            item.Title.ToLowerInvariant(),
+            item.Module.ToString().ToLowerInvariant(),
+            GuideRoleAccess.BadgeLabel(item.Roles).ToLowerInvariant()
+        };
+        parts.AddRange(item.Steps.Select(s => s.Title.ToLowerInvariant()));
+        parts.AddRange(item.Keywords);
+        return string.Join(" ", parts.Where(s => !string.IsNullOrWhiteSpace(s)));
+    }
+
+    public static string BuildKeywords(GuideFaqItem faq)
+    {
+        var parts = new System.Collections.Generic.List<string>
+        {
+            faq.Question.ToLowerInvariant(),
+            faq.Category.ToString().ToLowerInvariant(),
+            GuideRoleAccess.BadgeLabel(faq.Roles).ToLowerInvariant()
+        };
+        parts.AddRange(faq.Keywords);
+        return string.Join(" ", parts.Where(s => !string.IsNullOrWhiteSpace(s)));
+    }
+
+    public static string BuildKeywords(GuideModuleCardVm card)
+    {
+        var parts = new System.Collections.Generic.List<string>
+        {
+            card.Title.ToLowerInvariant(),
+            card.Module.ToString().ToLowerInvariant(),
+            GuideRoleAccess.BadgeLabel(card.Roles).ToLowerInvariant()
+        };
+        parts.AddRange(card.Keywords);
+        return string.Join(" ", parts.Where(s => !string.IsNullOrWhiteSpace(s)));
+    }
 }

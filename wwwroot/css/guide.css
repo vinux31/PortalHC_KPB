@@ -1267,6 +1267,43 @@ mark.search-highlight {
     color: #00796b;
 }
 
+/* Phase 4: filter chip per role */
+.guide-filter-chips {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+.guide-filter-chips .filter-label {
+    font-size: .85rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-right: .25rem;
+}
+.guide-filter-chips .filter-chip {
+    background: transparent;
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    padding: .25rem .85rem;
+    font-size: .85rem;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.guide-filter-chips .filter-chip:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+.guide-filter-chips .filter-chip.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+.role-filtered-out {
+    display: none !important;
+}
+
 .guide-detail-header {
     border-radius: 20px;
     padding: 2.5rem;

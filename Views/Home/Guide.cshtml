@@ -61,6 +61,16 @@
     <div id="keyboard-help" class="sr-only">Gunakan Tab untuk navigasi, Enter/Space untuk membuka, Escape untuk menutup pencarian</div>
 </div>
 
+<div class="guide-filter-chips" data-aos="fade-up" data-aos-delay="120" role="group" aria-label="Filter berdasarkan role">
+    <span class="filter-label">Filter role:</span>
+    <button type="button" class="filter-chip active" data-role-filter="all">Semua</button>
+    <button type="button" class="filter-chip" data-role-filter="coachee">Coachee</button>
+    <button type="button" class="filter-chip" data-role-filter="coach">Coach</button>
+    <button type="button" class="filter-chip" data-role-filter="atasan">Atasan</button>
+    <button type="button" class="filter-chip" data-role-filter="manager">Manager</button>
+    <button type="button" class="filter-chip" data-role-filter="admin">Admin &amp; HC</button>
+</div>
+
 <section aria-labelledby="modules-heading">
 <div class="guide-section-heading" data-aos="fade-right" id="modules-heading">
     <div class="guide-section-icon"><i class="bi bi-grid-fill" aria-hidden="true"></i></div>
@@ -148,6 +158,47 @@ function toggleAllFaq() {
         btn.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i> Tutup Semua';
     }
 }
+
+// ─── Role filter chips (Phase 4) ───
+(function () {
+    var chips = document.querySelectorAll('.filter-chip');
+    if (chips.length === 0) return;
+
+    chips.forEach(function(chip) {
+        chip.addEventListener('click', function() {
+            chips.forEach(function(c) { c.classList.remove('active'); });
+            this.classList.add('active');
+
+            var role = this.dataset.roleFilter;
+
+            // Map chip role-filter slug → RoleGroup tokens di data-roles
+            var roleMap = {
+                'coachee':  ['coachee'],
+                'coach':    ['coach'],
+                'atasan':   ['atasan'],
+                'manager':  ['manager'],
+                'admin':    ['adminhc']
+            };
+            var targets = roleMap[role] || [];
+
+            document.querySelectorAll('.searchable-card, .searchable-faq').forEach(function(el) {
+                if (role === 'all') {
+                    el.classList.remove('role-filtered-out');
+                    return;
+                }
+                var roles = (el.dataset.roles || '').toLowerCase().split(/\s+/);
+                // Match kalau item tagged All, atau salah satu target match
+                var match = roles.includes('all') || targets.some(function(t) { return roles.includes(t); });
+                el.classList.toggle('role-filtered-out', !match);
+            });
+
+            document.querySelectorAll('.faq-category').forEach(function(cat) {
+                var visible = cat.querySelectorAll('.searchable-faq:not(.role-filtered-out)').length;
+                cat.style.display = visible > 0 ? '' : 'none';
+            });
+        });
+    });
+})();
 
 (function () {
     // ─── Mobile-specific placeholder text ───

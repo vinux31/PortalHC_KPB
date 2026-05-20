@@ -1,10 +1,12 @@
 @model HcPortal.Models.Guide.GuideFaqItem
+@using HcPortal.Services
 @{
     var collapseId = $"collapse-{Model.Id}";
-    var keywordList = string.Join(" ", Model.Keywords).ToLowerInvariant();
+    var keywordList = GuideContentProvider.BuildKeywords(Model);
+    var roleList = string.Join(" ", Model.Roles.Select(r => r.ToString().ToLowerInvariant()));
 }
 
-<div class="faq-item searchable-faq" data-keywords="@keywordList">
+<div class="faq-item searchable-faq" data-keywords="@keywordList" data-roles="@roleList">
     <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false">
         @Model.Question
         <i class="bi bi-chevron-down faq-chevron"></i>
