@@ -149,6 +149,121 @@
   @keyframes fadeUp {
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: stretch;
+    gap: clamp(12px, 1.2vw, 24px);
+  }
+  .year-card {
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-top: 4px solid var(--navy);
+    border-radius: 10px;
+    padding: clamp(18px, 1.8vw, 28px) clamp(20px, 2vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1vw, 16px);
+    box-shadow: 0 1px 2px rgba(10,36,71,0.03), 0 8px 24px rgba(10,36,71,0.04);
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  .year-card.y1 { border-top-color: var(--navy); }
+  .year-card.y2 { border-top-color: var(--navy-soft); }
+  .year-card.y3 { border-top-color: var(--red); }
+
+  .year-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--navy);
+    color: #FFFFFF;
+    font-size: clamp(10px, 0.85vw, 13px);
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    width: fit-content;
+  }
+  .year-card.y2 .year-badge { background: var(--navy-soft); }
+  .year-card.y3 .year-badge { background: var(--red); }
+
+  .year-theme {
+    font-size: clamp(15px, 1.4vw, 22px);
+    font-weight: 800;
+    color: var(--navy-deep);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .year-card.y3 .year-theme { color: var(--red-dark); }
+
+  .chips {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .chip {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: clamp(11px, 0.95vw, 14px);
+    font-weight: 600;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .year-card.y3 .chip { border-color: rgba(230,51,41,0.18); }
+
+  .year-card .footer-line {
+    margin-top: auto;
+    padding-top: clamp(10px, 1vw, 16px);
+    border-top: 1px dashed var(--hairline);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: clamp(11px, 0.85vw, 13px);
+    font-weight: 700;
+    color: var(--navy-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0;
+  }
+  .year-card.y3 .footer-line { color: var(--red); }
+  .footer-line .check { font-size: 1.2em; }
+
+  /* Arrow connector antar kartu */
+  .arrow {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: clamp(10px, 0.8vw, 12px);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0;
+  }
+  .arrow svg { width: clamp(28px, 2.4vw, 40px); height: auto; color: var(--navy-soft); }
+
+  /* ===== FOOTER ===== */
+  .brand-footer {
+    margin-top: clamp(20px, 2vw, 32px);
+    text-align: center;
+    font-size: clamp(10px, 0.78vw, 12px);
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeIn 0.8s 1.3s ease-out forwards;
+  }
+  .brand-footer .dot-sep { display: inline-block; margin: 0 8px; color: var(--hairline); }
 </style>
 </head>
 <body>
@@ -187,7 +302,57 @@
         <div class="label">Operator</div>
       </div>
     </div>
-    <!-- timeline akan ditambahkan di task berikutnya -->
+    <div class="timeline">
+      <div class="year-card y1" id="card-y1">
+        <span class="year-badge">Tahun 1</span>
+        <div class="year-theme">Foundation</div>
+        <div class="chips" id="chips-y1">
+          <div class="chip">Safe Work Practice</div>
+          <div class="chip">Refinery Ops &middot; Basic</div>
+        </div>
+        <div class="footer-line" id="foot-y1">Lulus &rarr;</div>
+      </div>
+
+      <div class="arrow" id="arrow-1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <polyline points="14 6 20 12 14 18"/>
+        </svg>
+        <span>Naik Tahun</span>
+      </div>
+
+      <div class="year-card y2" id="card-y2">
+        <span class="year-badge">Tahun 2</span>
+        <div class="year-theme">Pendalaman</div>
+        <div class="chips" id="chips-y2">
+          <div class="chip">Energy Management</div>
+          <div class="chip">Catalyst &amp; Chemical</div>
+          <div class="chip">Refinery Ops &middot; Sub-Proses</div>
+        </div>
+        <div class="footer-line" id="foot-y2">Lulus &rarr;</div>
+      </div>
+
+      <div class="arrow" id="arrow-2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <polyline points="14 6 20 12 14 18"/>
+        </svg>
+        <span>Naik Tahun</span>
+      </div>
+
+      <div class="year-card y3" id="card-y3">
+        <span class="year-badge">Tahun 3</span>
+        <div class="year-theme">Mastery</div>
+        <div class="chips" id="chips-y3">
+          <div class="chip">Process Control</div>
+          <div class="chip">Refinery Ops &middot; Optimization</div>
+        </div>
+        <div class="footer-line" id="foot-y3"><span class="check">&#10004;</span> Kompetensi Tervalidasi</div>
+      </div>
+    </div>
+    <div class="brand-footer">
+      PROTON <span class="dot-sep">&bull;</span> Program Coaching Pekerja KPB
+    </div>
   </div>
 </body>
 </html>
