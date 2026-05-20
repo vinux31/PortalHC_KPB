@@ -166,6 +166,12 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes rolePulse {
+    0%, 100% { transform: scale(1); border-color: var(--navy); }
+    50%      { transform: scale(1.06); border-color: var(--red); }
+  }
+  .role-row.pulse .role .icon { animation: rolePulse 1s ease-in-out; }
+
   /* ===== BACKBONE ===== */
   .backbone-slot {
     height: clamp(24px, 2.4vw, 32px);
@@ -420,7 +426,7 @@
         <span class="dot" id="d3"></span>
       </div>
     </div>
-    <div class="role-row">
+    <div class="role-row" id="role-row">
       <div class="role">
         <div class="icon" aria-label="Panelman">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -529,15 +535,20 @@
     el.classList.remove('active');
     el.classList.add('dim');
   }
+  function pulseRole() {
+    const r = document.getElementById('role-row');
+    r.classList.add('pulse');
+    setTimeout(() => r.classList.remove('pulse'), 1000);
+  }
 
   const milestones = [
-    { t: 3000,  fn: () => { activate('card-y1'); setDot('d1', 'active'); } },
+    { t: 3000,  fn: () => { activate('card-y1'); pulseRole(); setDot('d1', 'active'); } },
     { t: 4800,  fn: () => tweenCounter('cnt-y1', 0, 2, 1200) },
     { t: 9500,  fn: () => { dim('card-y1'); setDot('d1', 'done'); } },
-    { t: 11000, fn: () => { activate('card-y2'); setDot('d2', 'active'); } },
+    { t: 11000, fn: () => { activate('card-y2'); pulseRole(); setDot('d2', 'active'); } },
     { t: 12500, fn: () => tweenCounter('cnt-y2', 0, 3, 1400) },
     { t: 18000, fn: () => { dim('card-y2'); setDot('d2', 'done'); } },
-    { t: 19000, fn: () => { activate('card-y3'); setDot('d3', 'active final'); } },
+    { t: 19000, fn: () => { activate('card-y3'); pulseRole(); setDot('d3', 'active final'); } },
     { t: 20500, fn: () => tweenCounter('cnt-y3', 0, 2, 1200) }
   ];
 
