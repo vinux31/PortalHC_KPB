@@ -810,6 +810,15 @@ public static class GuideContentProvider
             BtnColorClass: "btn-danger",
             Roles: new[] { RoleGroup.AdminHC }
         ),
+        new GuidePdfLink(
+            Module: GuideModule.Account,
+            Title: "Panduan Penggunaan Website HC Portal KPB",
+            Description: "Tutorial umum penggunaan HC Portal: navigasi, fitur dasar, dan tips & trik untuk semua role.",
+            FilePath: "~/documents/guides/Panduan-Penggunaan-Website-HC-Portal-KPB.html",
+            CardCssClass: "guide-tutorial-card--account",
+            BtnColorClass: "btn-info",
+            Roles: new[] { RoleGroup.All }
+        ),
     };
 
     public static IReadOnlyList<GuideItem> GetItems(GuideModule module, string userRole)
