@@ -268,6 +268,28 @@
   }
   .year-card.y3 .year-theme { color: var(--red-dark); }
 
+  .counter {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 4px 0 2px;
+  }
+  .counter .num {
+    font-size: clamp(28px, 2.4vw, 40px);
+    font-weight: 900;
+    color: var(--navy-deep);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .year-card.y3 .counter .num { color: var(--red-dark); }
+  .counter .unit {
+    font-size: clamp(10px, 0.85vw, 13px);
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
   .chips {
     display: flex;
     flex-direction: column;
@@ -394,6 +416,10 @@
       <div class="year-card y1" id="card-y1">
         <span class="year-badge">Tahun 1</span>
         <div class="year-theme">Foundation</div>
+        <div class="counter">
+          <span class="num" id="cnt-y1" data-target="2">0</span>
+          <span class="unit">Kompetensi</span>
+        </div>
         <div class="chips" id="chips-y1">
           <div class="chip">Safe Work Practice</div>
           <div class="chip">Refinery Ops &middot; Basic</div>
@@ -404,6 +430,10 @@
       <div class="year-card y2" id="card-y2">
         <span class="year-badge">Tahun 2</span>
         <div class="year-theme">Pendalaman</div>
+        <div class="counter">
+          <span class="num" id="cnt-y2" data-target="3">0</span>
+          <span class="unit">Kompetensi</span>
+        </div>
         <div class="chips" id="chips-y2">
           <div class="chip">Energy Management</div>
           <div class="chip">Catalyst &amp; Chemical</div>
@@ -415,6 +445,10 @@
       <div class="year-card y3" id="card-y3">
         <span class="year-badge">Tahun 3</span>
         <div class="year-theme">Mastery</div>
+        <div class="counter">
+          <span class="num" id="cnt-y3" data-target="2">0</span>
+          <span class="unit">Kompetensi</span>
+        </div>
         <div class="chips" id="chips-y3">
           <div class="chip">Process Control</div>
           <div class="chip">Refinery Ops &middot; Optimization</div>
