@@ -21,7 +21,7 @@ Daftar lengkap shot yang harus diproduksi/dikumpulkan. Dikelompokkan per jenis.
 | MG-02 | Title card "PROTON — Program Coaching Pekerja" | 5s | Tipografi mengikuti brand KPB (hijau Pertamina) |
 | MG-03 | Diagram 3 Platform (CMP, CDP, BP) | 5s | 3 kartu sejajar, BP dikunci/labeled "Coming Soon" |
 | MG-04 | Kartu fitur Coaching Proton, IDP, Histori PROTON | 5s | Stack 3 kartu zoom-in dari CDP |
-| MG-05 | Diagram SMART (5 ikon sequential) | 20s | Ikon: target, ruler, checkmark, link, clock |
+| MG-05 | Diagram SMART (Bold Acronym, 1 menit sequential reveal) | 60s | **Animasi HTML siap pakai**: `docs/assets/proton-video/smart-animation.html` (Bentuk 4 Bold Acronym, intro 5s + 9s × 5 huruf + outro 10s, putih elegant, Playfair italic + Manrope Black, light gold leaf `#E8C76A`). Motion designer dapat re-render ke MP4 via Puppeteer/Playwright atau export tiap frame |
 | MG-06 | Track Panelman vs Operator + timeline 3 tahun | 25s | Dua kolom, timeline horizontal Y1→Y2→Y3 |
 | MG-07 | Flowchart 6 langkah PROTON | 40s | 6 node bertahap, arrow animasi sequential |
 | MG-08 | Diagram Multi-Role Approval 3-tingkat | 5s | Sr Supervisor → Section Head → HC (badge ✓) |
