@@ -150,6 +150,78 @@ public static class GuideContentProvider
             },
             Keywords: new[] { "historik", "proton", "export", "laporan", "bottleneck", "workload" }
         ),
+        new GuideItem(
+            Id: "cdp-upload-evidence",
+            Module: GuideModule.Cdp,
+            Title: "Cara Upload Evidence Deliverable",
+            Roles: new[] { RoleGroup.Coachee },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Deliverable Saya", "Di menu CDP, klik <b>Deliverable</b>. Pilih deliverable yang sedang dikerjakan."),
+                new GuideStep(2, "Siapkan File Evidence", "Format yang didukung: PDF, DOCX, XLSX, JPG, PNG. Maksimal ukuran file sesuai konfigurasi (umumnya 10 MB)."),
+                new GuideStep(3, "Klik Upload Evidence", "Klik tombol <b>Upload Evidence</b>, pilih file, tambah catatan singkat (opsional)."),
+                new GuideStep(4, "Submit untuk Review", "Klik <b>Submit</b>. Status berubah jadi <i>Pending Approval</i>. Notifikasi akan dikirim ke reviewer chain (Sr Supervisor → Section Head → HC).")
+            },
+            Keywords: new[] { "upload", "evidence", "deliverable", "coachee", "submit" }
+        ),
+        new GuideItem(
+            Id: "cdp-coaching-session",
+            Module: GuideModule.Cdp,
+            Title: "Cara Catat Coaching Session",
+            Roles: new[] { RoleGroup.Coach, RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Daftar Coachee", "Di menu CDP, buka <b>My Coachee</b>. Pilih coachee yang sudah sesi coaching."),
+                new GuideStep(2, "Tambah Coaching Session", "Klik <b>+ Tambah Session</b>. Isi tanggal, durasi, dan topik yang dibahas."),
+                new GuideStep(3, "Catat Outcome", "Isi outcome diskusi: insight yang dipelajari, action item, dan link ke deliverable yang dibahas (kalau ada)."),
+                new GuideStep(4, "Save", "Klik <b>Save</b>. Histori session ini akan muncul di Histori Proton coachee.")
+            },
+            Keywords: new[] { "coaching", "session", "catat", "log", "coach" }
+        ),
+        new GuideItem(
+            Id: "cdp-reviewer-chain",
+            Module: GuideModule.Cdp,
+            Title: "Memahami Alur Reviewer (Sr Supervisor → Section Head → HC)",
+            Roles: new[] { RoleGroup.Atasan, RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Notifikasi Evidence Masuk", "Saat coachee submit evidence, notifikasi muncul di bell icon. Pertama-tama review oleh <b>Sr Supervisor</b>."),
+                new GuideStep(2, "Sr Supervisor Review", "Sr Supervisor buka deliverable → cek evidence → klik <b>Approve</b> atau <b>Reject</b> dengan catatan."),
+                new GuideStep(3, "Section Head Review", "Setelah Sr Supervisor approve, naik ke <b>Section Head</b>. Section Head review final dari sisi unit."),
+                new GuideStep(4, "HC Review", "Terakhir review oleh <b>HC</b>. HC verifikasi kelengkapan dan compliance program."),
+                new GuideStep(5, "Reject Reset Chain", "Kalau salah satu reviewer reject, seluruh chain di-reset. Coachee harus upload evidence baru, mulai dari Sr Supervisor lagi.")
+            },
+            Keywords: new[] { "reviewer", "chain", "approval", "sr supervisor", "section head", "hc", "alur" }
+        ),
+        new GuideItem(
+            Id: "cdp-final-assessment",
+            Module: GuideModule.Cdp,
+            Title: "Cara Submit Final Assessment Proton",
+            Roles: new[] { RoleGroup.Coachee, RoleGroup.Coach },
+            Steps: new[]
+            {
+                new GuideStep(1, "Pastikan Semua Deliverable Approved", "Final Assessment hanya bisa di-submit kalau semua deliverable di periode Proton sudah <i>Approved</i>."),
+                new GuideStep(2, "Buka Final Assessment", "Di menu CDP, klik <b>Final Assessment</b>. Daftar kompetensi akan muncul beserta target level."),
+                new GuideStep(3, "Isi Self-Assessment (Coachee)", "Coachee isi nilai self-assessment per kompetensi. Tambah refleksi pembelajaran selama periode."),
+                new GuideStep(4, "Validasi Coach", "Coach validasi nilai coachee, koreksi kalau perlu, tambah komentar."),
+                new GuideStep(5, "Submit Final", "Coach klik <b>Submit Final</b>. Hasil masuk ke Histori Proton dan tidak bisa diedit lagi.")
+            },
+            Keywords: new[] { "final", "assessment", "proton", "submit", "coachee", "coach" }
+        ),
+        new GuideItem(
+            Id: "cdp-bottleneck-report",
+            Module: GuideModule.Cdp,
+            Title: "Cara Lihat Bottleneck Report",
+            Roles: new[] { RoleGroup.Manager, RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Coaching Proton Dashboard", "Di menu CDP, klik <b>Coaching Proton Dashboard</b>."),
+                new GuideStep(2, "Pilih Tab Bottleneck", "Klik tab <b>Bottleneck Report</b>. Tabel menampilkan deliverable yang stuck (lama tidak progress) per coachee/unit."),
+                new GuideStep(3, "Filter & Drill Down", "Filter berdasarkan section, status (Pending Approval > X hari, Rejected, dll), atau coach. Klik baris untuk lihat detail histori deliverable."),
+                new GuideStep(4, "Eskalasi", "Identifikasi akar bottleneck (reviewer lambat, coachee pasif, scope unclear) → eskalasi ke pihak terkait via internal comms.")
+            },
+            Keywords: new[] { "bottleneck", "report", "stuck", "delay", "deliverable", "manager" }
+        ),
 
         // ═══════════════════ Account ═══════════════════
         new GuideItem(
