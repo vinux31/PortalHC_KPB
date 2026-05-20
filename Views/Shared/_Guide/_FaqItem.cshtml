@@ -1,0 +1,15 @@
+@model HcPortal.Models.Guide.GuideFaqItem
+@{
+    var collapseId = $"collapse-{Model.Id}";
+    var keywordList = string.Join(" ", Model.Keywords).ToLowerInvariant();
+}
+
+<div class="faq-item searchable-faq" data-keywords="@keywordList">
+    <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false">
+        @Model.Question
+        <i class="bi bi-chevron-down faq-chevron"></i>
+    </button>
+    <div id="@collapseId" class="collapse faq-answer">
+        @Html.Raw(Model.AnswerHtml)
+    </div>
+</div>

@@ -1,0 +1,52 @@
+@model HcPortal.Models.Guide.GuideItem
+@{
+    var collapseId = $"collapse-{Model.Id}";
+    var headingId  = $"heading-{Model.Id}";
+
+    var stepVariant = Model.Module switch
+    {
+        HcPortal.Models.Guide.GuideModule.Cdp     => "step-variant-green",
+        HcPortal.Models.Guide.GuideModule.Account => "step-variant-teal",
+        HcPortal.Models.Guide.GuideModule.Data    => "step-variant-orange",
+        HcPortal.Models.Guide.GuideModule.Admin   => "step-variant-blue",
+        _ => ""
+    };
+
+    var btnVariant = Model.Module switch
+    {
+        HcPortal.Models.Guide.GuideModule.Cdp     => "btn-cdp",
+        HcPortal.Models.Guide.GuideModule.Account => "btn-account",
+        HcPortal.Models.Guide.GuideModule.Data    => "btn-data",
+        HcPortal.Models.Guide.GuideModule.Admin   => "btn-admin",
+        _ => ""
+    };
+
+    var keywordList = string.Join(" ", Model.Keywords).ToLowerInvariant();
+}
+
+<div class="guide-list-item accordion-item">
+    <h2 class="accordion-header" id="@headingId">
+        <button class="accordion-button collapsed guide-list-btn @btnVariant"
+                type="button" data-bs-toggle="collapse"
+                data-bs-target="#@collapseId" aria-expanded="false">
+            @Model.Title
+            <partial name="_Guide/_RoleBadge" model="Model.Roles" />
+        </button>
+    </h2>
+    <div id="@collapseId" class="accordion-collapse collapse" data-bs-parent="">
+        <div class="accordion-body guide-list-body" data-keywords="@keywordList">
+            <ul class="guide-steps">
+                @foreach (var step in Model.Steps)
+                {
+                    <li class="guide-step-item @stepVariant">
+                        <div class="guide-step-badge">@step.Number</div>
+                        <div class="guide-step-text">
+                            <strong>@step.Title</strong>
+                            <span>@Html.Raw(step.BodyHtml)</span>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

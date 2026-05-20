@@ -1,34 +1,26 @@
+@model HcPortal.Models.Guide.GuideViewModel
 @{
     ViewData["Title"] = "Panduan & Bantuan";
-    var role = ViewBag.UserRole as string ?? "User";
-    var isAdminOrHc = role == "Admin" || role == "HC";
-
-    // Set print date for footer
     var printDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 
-    // Guide counts: accordion items + PDF tutorial card per module per role
-    // CMP: 3 accordion items (all users) + 1 Admin/HC accordion + 1 PDF tutorial card
-    int cmpCount = isAdminOrHc ? 5 : 4;
-    // CDP: 3 accordion items (all users) + 2 Admin/HC accordions + 1 PDF tutorial card
-    int cdpCount = isAdminOrHc ? 6 : 4;
-    // Account: 4 accordion items, no PDF tutorial
-    int accountCount = 4;
-    // Kelola Data: 3 accordion items (Admin/HC only)
-    int dataCount = 3;
-    // Admin Panel: 11 accordion items + 1 AD tutorial card
-    int adminCount = 12;
-    // Note: FAQ counts are dynamic (Admin & Kelola Data has 9 items for Admin/HC)
+    var faqCategoryDisplay = new[]
+    {
+        (Cat: HcPortal.Models.Guide.FaqCategory.Akun,        Label: "Akun & Login",            Icon: "bi-lock-fill",              Slug: "akun"),
+        (Cat: HcPortal.Models.Guide.FaqCategory.Assessment,  Label: "Assessment",              Icon: "bi-pencil-square",          Slug: "assessment"),
+        (Cat: HcPortal.Models.Guide.FaqCategory.CdpCoaching, Label: "CDP & Coaching",          Icon: "bi-bar-chart-fill",         Slug: "cdp"),
+        (Cat: HcPortal.Models.Guide.FaqCategory.Umum,        Label: "Umum",                    Icon: "bi-question-circle-fill",   Slug: "umum"),
+        (Cat: HcPortal.Models.Guide.FaqCategory.KkjCpdp,     Label: "KKJ & CPDP",              Icon: "bi-file-earmark-text-fill", Slug: "kkj"),
+        (Cat: HcPortal.Models.Guide.FaqCategory.AdminData,   Label: "Admin & Kelola Data",     Icon: "bi-shield-fill-gear",       Slug: "admin")
+    };
 }
 
 <link rel="stylesheet" href="~/css/guide.css" />
 
-<!-- Skip Links for Accessibility -->
 <a href="#guide-search" class="skip-link">Lompat ke pencarian</a>
 <a href="#guide-modules" class="skip-link">Lompat ke modul</a>
 <a href="#guide-faq" class="skip-link">Lompat ke FAQ</a>
 
 <main role="main" id="main-content" data-print-date="@printDate">
-<!-- Hero Section -->
 <div class="guide-hero" data-aos="fade-down">
     <div class="guide-hero-content">
         <div class="row align-items-center">
@@ -40,14 +32,13 @@
                 <p class="mb-3">Pelajari cara menggunakan setiap fitur HC Portal secara lengkap, langkah demi langkah.</p>
                 <span class="guide-role-badge">
                     <i class="bi bi-person-badge-fill"></i>
-                    Anda login sebagai: <strong>@role</strong>
+                    Anda login sebagai: <strong>@Model.UserRole</strong>
                 </span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Breadcrumb -->
 <nav role="navigation" aria-label="Breadcrumb navigasi" class="guide-breadcrumb mb-3" data-aos="fade-down">
     <ol class="breadcrumb">
         <li class="breadcrumb-item">
@@ -59,7 +50,6 @@
     </ol>
 </nav>
 
-<!-- Search Bar -->
 <div class="guide-search-wrapper" id="guide-search" data-aos="fade-up" data-aos-delay="100">
     <i class="bi bi-search guide-search-icon" aria-hidden="true"></i>
     <input type="text" id="guideSearchInput" class="guide-search-input"
@@ -71,9 +61,6 @@
     <div id="keyboard-help" class="sr-only">Gunakan Tab untuk navigasi, Enter/Space untuk membuka, Escape untuk menutup pencarian</div>
 </div>
 
-<!-- ==================================================
-     SECTION: Panduan Per Modul (Card Grid)
-     ================================================== -->
 <section aria-labelledby="modules-heading">
 <div class="guide-section-heading" data-aos="fade-right" id="modules-heading">
     <div class="guide-section-icon"><i class="bi bi-grid-fill" aria-hidden="true"></i></div>
@@ -81,71 +68,11 @@
 </div>
 
 <div class="guide-card-grid" id="guide-modules" role="list">
-
-    <!-- ===== CARD 1: CMP ===== -->
-    <a asp-action="GuideDetail" asp-route-module="cmp" class="guide-module-card card-cmp searchable-card text-decoration-none" data-keywords="cmp competency assessment kkj cpdp mapping sertifikat training records library ujian soal" data-aos="fade-up" data-aos-delay="100" role="article" aria-label="Panduan CMP - @cmpCount panduan tersedia">
-        <div class="guide-card-header">
-            <div class="guide-card-header-icon icon-cmp"><i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i></div>
-            <div class="guide-card-header-text">
-                <h5>CMP — Competency Management Platform</h5>
-                <p id="card-desc-cmp">@cmpCount panduan tersedia</p>
-            </div>
-            <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
-        </div>
-    </a>
-
-    <!-- ===== CARD 2: CDP ===== -->
-    <a asp-action="GuideDetail" asp-route-module="cdp" class="guide-module-card card-cdp searchable-card text-decoration-none" data-keywords="cdp career development idp silabus coaching proton deliverable evidence upload approval plan" data-aos="fade-up" data-aos-delay="150" role="article" aria-label="Panduan CDP - @cdpCount panduan tersedia">
-        <div class="guide-card-header">
-            <div class="guide-card-header-icon icon-cdp"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></div>
-            <div class="guide-card-header-text">
-                <h5>CDP — Competency Development Platform</h5>
-                <p>@cdpCount panduan tersedia</p>
-            </div>
-            <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
-        </div>
-    </a>
-
-    <!-- ===== CARD 3: Akun & Profil ===== -->
-    <a asp-action="GuideDetail" asp-route-module="account" class="guide-module-card card-account searchable-card text-decoration-none" data-keywords="akun profil password ganti settings login logout edit nama" data-aos="fade-up" data-aos-delay="200" role="article" aria-label="Panduan Akun & Profil - @accountCount panduan tersedia">
-        <div class="guide-card-header">
-            <div class="guide-card-header-icon icon-account"><i class="bi bi-person-circle" aria-hidden="true"></i></div>
-            <div class="guide-card-header-text">
-                <h5>Akun & Profil</h5>
-                <p>@accountCount panduan tersedia</p>
-            </div>
-            <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
-        </div>
-    </a>
-
-    @if (isAdminOrHc)
+    @foreach (var card in Model.ModuleCards)
     {
-        <!-- ===== CARD 4: Kelola Data (Admin/HC only) ===== -->
-        <a asp-action="GuideDetail" asp-route-module="data" class="guide-module-card card-data searchable-card text-decoration-none" data-keywords="kelola data proton import sinkronisasi override sync" data-aos="fade-up" data-aos-delay="250" role="article" aria-label="Panduan Kelola Data - @dataCount panduan tersedia">
-            <div class="guide-card-header">
-                <div class="guide-card-header-icon icon-data"><i class="bi bi-database-fill" aria-hidden="true"></i></div>
-                <div class="guide-card-header-text">
-                    <h5>Kelola Data <span class="guide-role-badge ms-1">Admin & HC</span></h5>
-                    <p>@dataCount panduan tersedia</p>
-                </div>
-                <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
-            </div>
-        </a>
-
-        <!-- ===== CARD 5: Admin Panel (Admin/HC only) ===== -->
-        <a asp-action="GuideDetail" asp-route-module="admin" class="guide-module-card card-admin searchable-card text-decoration-none" data-keywords="admin panel kelola pekerja kkj cpdp upload mapping coach coachee assessment monitoring audit log" data-aos="fade-up" data-aos-delay="300" role="article" aria-label="Panduan Admin Panel - @adminCount panduan tersedia">
-            <div class="guide-card-header">
-                <div class="guide-card-header-icon icon-admin"><i class="bi bi-gear-wide-connected" aria-hidden="true"></i></div>
-                <div class="guide-card-header-text">
-                    <h5>Admin Panel <span class="guide-role-badge ms-1">Admin & HC</span></h5>
-                    <p>@adminCount panduan tersedia</p>
-                </div>
-                <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
-            </div>
-        </a>
+        <partial name="_Guide/_ModuleCard" model="card" />
     }
-
-</div><!-- end guide-card-grid -->
+</div>
 </section>
 
 <div class="no-results-msg" id="noResultsMsg" role="status" aria-live="polite">
@@ -153,9 +80,6 @@
     Tidak ada panduan atau FAQ yang cocok dengan pencarian Anda.
 </div>
 
-<!-- ==================================================
-     SECTION: FAQ — Line Text Style
-     ================================================== -->
 <section aria-labelledby="faq-heading" class="guide-faq-section" id="guide-faq" data-aos="fade-up">
     <div class="guide-section-heading mb-2">
         <div class="guide-section-icon"><i class="bi bi-chat-square-quote-fill" aria-hidden="true"></i></div>
@@ -169,368 +93,21 @@
         </button>
     </div>
 
-    <!-- ─── Akun & Login ─── -->
-    <div class="faq-category" id="faqGroup-akun">
-        <div class="faq-category-title"><i class="bi bi-lock-fill me-1"></i> Akun & Login</div>
-
-        <div class="faq-item searchable-faq" data-keywords="login cara masuk akun">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="false">
-                Bagaimana cara login ke HC Portal?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq1" class="collapse faq-answer">
-                Buka halaman login di browser Anda, masukkan <strong>email</strong> dan <strong>password</strong> yang sudah terdaftar di sistem, lalu klik <strong>Login</strong>. Pastikan akun Anda sudah aktif dan diverifikasi oleh admin.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="lupa password reset">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false">
-                Bagaimana jika lupa password?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq2" class="collapse faq-answer">
-                Hubungi <strong>Admin atau tim HC</strong> melalui jalur komunikasi internal untuk meminta reset password. Saat ini belum tersedia fitur self-service lupa password.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="daftar akun baru registrasi pekerja">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false">
-                Siapa yang bisa mendaftarkan akun baru?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq3" class="collapse faq-answer">
-                Hanya <strong>Admin dan HC</strong> yang dapat menambahkan pekerja baru ke sistem melalui menu <strong>Admin Panel → Kelola Pekerja</strong>. Pekerja tidak dapat mendaftar sendiri.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="ganti ubah password settings">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false">
-                Bagaimana cara mengganti password?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq4" class="collapse faq-answer">
-                Klik <strong>avatar / nama Anda</strong> di kanan atas navbar → pilih <strong>Settings</strong> → masukkan password lama dan password baru → klik <strong>Simpan</strong>.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="akses menu tersembunyi role hak">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false">
-                Kenapa saya tidak bisa mengakses menu tertentu?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq5" class="collapse faq-answer">
-                Beberapa menu hanya tersedia untuk role tertentu. Menu <strong>Kelola Data</strong> dan <strong>Admin Panel</strong> hanya tampil untuk role <strong>Admin</strong> dan <strong>HC</strong>. Jika Anda merasa perlu akses lebih, hubungi Admin sistem.
-            </div>
-        </div>
-    </div>
-
-    <!-- ─── Assessment ─── -->
-    <div class="faq-category" id="faqGroup-assessment">
-        <div class="faq-category-title"><i class="bi bi-pencil-square me-1"></i> Assessment</div>
-
-        <div class="faq-item searchable-faq" data-keywords="assessment apa ujian kompetensi">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq6" aria-expanded="false">
-                Apa itu assessment?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq6" class="collapse faq-answer">
-                Assessment adalah <strong>ujian kompetensi</strong> yang digunakan untuk mengukur tingkat pengetahuan dan kemampuan sesuai KKJ (Kebutuhan Kompetensi Jabatan) pada posisi Anda.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="batas waktu timer assessment ujian">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq7" aria-expanded="false">
-                Apakah ada batas waktu mengerjakan assessment?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq7" class="collapse faq-answer">
-                Ya, setiap assessment memiliki <strong>timer</strong> yang terlihat di bagian atas halaman ujian. Jika waktu habis, jawaban yang sudah diisi akan <strong>otomatis tersubmit</strong>. Jangan menutup browser saat ujian berlangsung.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="ulang kembali assessment retake">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq8" aria-expanded="false">
-                Bisakah saya mengerjakan ulang assessment?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq8" class="collapse faq-answer">
-                Tergantung pada <strong>konfigurasi yang ditetapkan Admin</strong>. Beberapa assessment hanya boleh diambil sekali, sementara yang lain dapat diulang. Hubungi Admin atau HC jika Anda memerlukan izin untuk mengulang.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="kategori jenis assessment ojt iht licencor ots mandatory hsse proton">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq8b" aria-expanded="false">
-                Apa saja kategori assessment yang tersedia?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq8b" class="collapse faq-answer">
-                Tersedia 6 kategori assessment: <strong>Assessment OJ</strong> (On the Job), <strong>IHT</strong> (In House Training), <strong>Licencor</strong> (Training Licencor/Sertifikasi), <strong>OTS</strong> (On The Spot), <strong>Mandatory HSSE Training</strong>, dan <strong>Assessment Proton</strong> (terkait program Coaching Proton). Selain itu, tersedia juga tipe <strong>Pre-Post Test</strong> untuk mengukur peningkatan kompetensi sebelum dan sesudah program pelatihan.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="pre-post test pretest posttest gain score peningkatan kompetensi">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq8d" aria-expanded="false">
-                Apa itu assessment Pre-Post Test?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq8d" class="collapse faq-answer">
-                Pre-Post Test adalah tipe assessment khusus untuk mengukur <strong>peningkatan kompetensi</strong> sebelum dan sesudah program pelatihan. Peserta mengerjakan <strong>Pre-Test</strong> sebelum pelatihan dan <strong>Post-Test</strong> setelah pelatihan, dengan jadwal yang ditentukan oleh Admin. Hasil kedua test dibandingkan untuk mengukur <strong>Gain Score</strong> (selisih peningkatan nilai).
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="sertifikat kadaluarsa expired masa berlaku renewal">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq8c" aria-expanded="false">
-                Apakah sertifikat assessment memiliki masa berlaku?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq8c" class="collapse faq-answer">
-                Ya, beberapa sertifikat memiliki <strong>masa berlaku</strong> yang ditentukan Admin. Sertifikat yang mendekati masa kadaluarsa akan ditandai dengan status <strong>Akan Expired</strong> di halaman <strong>Analytics Dashboard</strong> (CMP) dan <strong>Renewal Management</strong> (Admin Panel). Periksa secara berkala dan hubungi HC untuk proses renewal assessment.
-            </div>
-        </div>
-    </div>
-
-    <!-- ─── CDP & Coaching ─── -->
-    <div class="faq-category" id="faqGroup-cdp">
-        <div class="faq-category-title"><i class="bi bi-bar-chart-fill me-1"></i> CDP & Coaching</div>
-
-        <div class="faq-item searchable-faq" data-keywords="perbedaan cmp cdp beda apa">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq9" aria-expanded="false">
-                Apa perbedaan CMP dan CDP?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq9" class="collapse faq-answer">
-                <strong>CMP (Competency Management Platform)</strong> berfokus pada pengelolaan kompetensi: KKJ, assessment, dan training records.<br><br>
-                <strong>CDP (Competency Development Platform)</strong> berfokus pada pengembangan karier: IDP, coaching terstruktur, dan deliverable pengembangan diri.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="idp individual development plan apa">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq10" aria-expanded="false">
-                Apa itu IDP (Individual Development Plan)?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq10" class="collapse faq-answer">
-                IDP adalah <strong>rencana pengembangan kompetensi personal</strong> yang disusun untuk setiap pekerja. Berisi daftar aktivitas pengembangan (pelatihan, sertifikasi, dll.) yang perlu diselesaikan dalam periode tertentu.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="coaching proton apa itu">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq11" aria-expanded="false">
-                Apa itu Coaching Proton?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq11" class="collapse faq-answer">
-                Coaching Proton adalah <strong>program coaching terstruktur</strong> di mana setiap coachee (pekerja) memiliki deliverable yang harus diselesaikan, dibuktikan dengan evidence, dan disetujui oleh coach atau atasan yang ditentukan.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="approve approval deliverable siapa coach atasan sr supervisor section head hc">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq12" aria-expanded="false">
-                Siapa yang bisa menyetujui (approve) deliverable?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq12" class="collapse faq-answer">
-                Deliverable melewati <strong>rantai approval bertingkat</strong>: setelah coach upload evidence, deliverable di-review oleh <strong>Sr. Supervisor</strong> → <strong>Section Head</strong> → <strong>HC Review</strong>. Jika salah satu reviewer menolak, seluruh rantai approval di-reset dan coach harus upload ulang evidence. Mapping coach-coachee dikelola oleh Admin/HC.
-            </div>
-        </div>
-    </div>
-
-    <!-- ─── Umum ─── -->
-    <div class="faq-category" id="faqGroup-umum">
-        <div class="faq-category-title"><i class="bi bi-question-circle-fill me-1"></i> Umum</div>
-
-        <div class="faq-item searchable-faq" data-keywords="browser chrome edge firefox rekomendasi">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq13" aria-expanded="false">
-                Browser apa yang direkomendasikan?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq13" class="collapse faq-answer">
-                Disarankan menggunakan <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong>, atau <strong>Mozilla Firefox</strong> versi terbaru untuk pengalaman terbaik. Hindari menggunakan Internet Explorer atau browser lawas.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="hp mobile handphone akses ponsel">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq14" aria-expanded="false">
-                Apakah HC Portal bisa diakses dari HP?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq14" class="collapse faq-answer">
-                Ya, HC Portal dirancang <strong>responsif (mobile-friendly)</strong> dan dapat diakses melalui browser di perangkat smartphone atau tablet. Namun untuk kemudahan pengisian data yang kompleks, disarankan menggunakan komputer/laptop.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="kendala masalah error hubungi kontak bantuan">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq15" aria-expanded="false">
-                Siapa yang harus dihubungi jika ada kendala?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq15" class="collapse faq-answer">
-                Hubungi <strong>tim HC atau Admin sistem</strong> melalui jalur komunikasi internal yang berlaku di organisasi Anda (email, grup pesan, atau datang langsung).
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="role saya apa posisi admin hc coachee">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq16" aria-expanded="false">
-                Bagaimana cara mengetahui role saya di sistem?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq16" class="collapse faq-answer">
-                Sistem HC Portal memiliki <strong>10 role</strong> dengan 6 level akses:<br><br>
-                <strong>Level 1 — Admin</strong>: Akses penuh ke seluruh fitur dan konfigurasi sistem<br>
-                <strong>Level 2 — HC</strong>: Akses penuh untuk pengelolaan SDM dan coaching<br>
-                <strong>Level 3 — Direktur, VP, Manager</strong>: Akses manajemen untuk monitoring seluruh section/unit<br>
-                <strong>Level 4 — Section Head, Sr Supervisor</strong>: Akses monitoring pada level section masing-masing serta review deliverable<br>
-                <strong>Level 5 — Coach, Supervisor</strong>: Akses coaching dan pengelolaan coachee yang di-assign<br>
-                <strong>Level 6 — Coachee</strong>: Akses untuk mengerjakan assessment, melihat silabus, dan mengelola deliverable pribadi<br><br>
-                Role Anda ditampilkan di <strong>navbar kanan atas</strong> sebagai badge di bawah nama Anda.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="aman data keamanan privasi">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq17" aria-expanded="false">
-                Apakah data saya aman di HC Portal?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq17" class="collapse faq-answer">
-                Ya. HC Portal menggunakan sistem <strong>autentikasi dan otorisasi berbasis role</strong> yang ketat. Setiap user hanya dapat mengakses data sesuai hak aksesnya. Data penting diproteksi oleh mekanisme keamanan aplikasi.
-            </div>
-        </div>
-    </div>
-
-    <!-- ─── KKJ & CPDP ─── -->
-    <div class="faq-category" id="faqGroup-kkj">
-        <div class="faq-category-title"><i class="bi bi-file-earmark-text-fill me-1"></i> KKJ & CPDP</div>
-
-        <div class="faq-item searchable-faq" data-keywords="kkj matrix apa kebutuhan kompetensi jabatan">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq18" aria-expanded="false">
-                Apa itu KKJ Matrix?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq18" class="collapse faq-answer">
-                KKJ Matrix (Kebutuhan Kompetensi Jabatan) adalah <strong>dokumen standar kompetensi</strong> yang mendefinisikan kompetensi apa saja yang diperlukan untuk setiap jabatan/posisi dalam organisasi.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="kkj mana lihat saya dimana">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq19" aria-expanded="false">
-                Di mana saya bisa melihat KKJ saya?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq19" class="collapse faq-answer">
-                Masuk ke halaman <strong>CMP</strong> → klik tab <strong>Library KKJ</strong>. KKJ yang ditampilkan sudah disesuaikan dengan posisi/jabatan Anda.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="cpdp apa competency proficiency development program">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq20" aria-expanded="false">
-                Apa itu CPDP?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq20" class="collapse faq-answer">
-                CPDP (Competency and Proficiency Development Program) adalah <strong>peta program pengembangan kompetensi</strong> yang menghubungkan gap kompetensi pekerja dengan program pelatihan atau kegiatan yang relevan.
-            </div>
-        </div>
-
-        <div class="faq-item searchable-faq" data-keywords="upload kkj cpdp file admin hc">
-            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq21" aria-expanded="false">
-                Bagaimana cara upload file KKJ atau CPDP?
-                <i class="bi bi-chevron-down faq-chevron"></i>
-            </button>
-            <div id="faq21" class="collapse faq-answer">
-                Fitur ini hanya tersedia untuk <strong>Admin dan HC</strong>. Masuk ke <strong>Admin Panel</strong> → pilih <strong>KKJ Matrix Files</strong> atau <strong>CPDP Files</strong> → klik <strong>Upload File</strong> → pilih file → Simpan.
-            </div>
-        </div>
-    </div>
-
-    @if (isAdminOrHc)
+    @foreach (var grp in faqCategoryDisplay)
     {
-        <!-- ─── Admin & Kelola Data ─── -->
-        <div class="faq-category" id="faqGroup-admin">
-            <div class="faq-category-title"><i class="bi bi-shield-fill-gear me-1"></i> Admin & Kelola Data</div>
-
-            <div class="faq-item searchable-faq" data-keywords="tambah pekerja baru cara admin">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq22" aria-expanded="false">
-                    Bagaimana cara menambahkan pekerja baru?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq22" class="collapse faq-answer">
-                    Masuk ke <strong>Admin Panel → Kelola Pekerja</strong> → klik tombol <strong>Tambah Pekerja</strong> → isi formulir data pekerja → simpan. Untuk import massal, gunakan fitur <strong>Import Workers</strong> sesuai template Excel yang tersedia.
-                </div>
-            </div>
-
-            <div class="faq-item searchable-faq" data-keywords="import massal pekerja excel template">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq23" aria-expanded="false">
-                    Bagaimana cara import data pekerja secara massal?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq23" class="collapse faq-answer">
-                    Masuk ke <strong>Admin Panel → Kelola Pekerja</strong> → klik <strong>Import Workers</strong> → download template Excel yang tersedia → isi data pekerja sesuai format → upload kembali file tersebut.
-                </div>
-            </div>
-
-            <div class="faq-item searchable-faq" data-keywords="mapping coach coachee cara">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq24" aria-expanded="false">
-                    Bagaimana cara mapping Coach-Coachee?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq24" class="collapse faq-answer">
-                    Masuk ke <strong>Admin Panel → Coach-Coachee Mapping</strong> → klik <strong>Tambah Mapping</strong> → pilih Coach dan Coachee → tentukan periode mapping → simpan. Mapping yang sudah tidak aktif dapat dinonaktifkan menggunakan tombol <strong>Nonaktifkan</strong>.
-                </div>
-            </div>
-
-            <div class="faq-item searchable-faq" data-keywords="audit log apa itu aktivitas">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq25" aria-expanded="false">
-                    Apa itu Audit Log?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq25" class="collapse faq-answer">
-                    Audit Log adalah <strong>catatan otomatis</strong> yang merekam semua aktivitas penting yang dilakukan user di sistem (login, upload file, perubahan data, dll.). Berguna untuk tracking, investigasi, dan keamanan sistem.
-                </div>
-            </div>
-
-            <div class="faq-item searchable-faq" data-keywords="silabus proton import data kelola override guidance">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq26" aria-expanded="false">
-                    Bagaimana cara mengelola data Silabus Proton?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq26" class="collapse faq-answer">
-                    Masuk ke menu <strong>Kelola Data</strong> di navbar → di halaman Admin Panel, pilih section <strong>Kelola Data Proton</strong>. Di sini Anda bisa mengelola <strong>Silabus</strong> (import/export via Excel, tambah/edit/hapus kompetensi), upload <strong>Guidance Document</strong>, dan membuat <strong>Override</strong> jika diperlukan penyesuaian silabus.
-                </div>
-            </div>
-
-            <div class="faq-item searchable-faq" data-keywords="analytics dashboard laporan statistik assessment">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq27" aria-expanded="false">
-                    Di mana saya bisa melihat statistik dan laporan assessment?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq27" class="collapse faq-answer">
-                    Buka menu <strong>CMP</strong> → klik <strong>Analytics Dashboard</strong>. Halaman ini menampilkan grafik dan statistik assessment berdasarkan unit, kategori, distribusi hasil, serta daftar sertifikat yang akan segera kadaluarsa.
-                </div>
-            </div>
-
-            <div class="faq-item searchable-faq" data-keywords="monitoring ujian realtime pantau assessment">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq28" aria-expanded="false">
-                    Bagaimana cara memonitor ujian yang sedang berlangsung?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq28" class="collapse faq-answer">
-                    Masuk ke <strong>Admin Panel → Assessment Monitoring</strong>. Anda bisa memantau sesi ujian <strong>secara real-time</strong>: melihat progress peserta, skor sementara, dan jika diperlukan dapat <strong>mengakhiri sesi ujian</strong> atau <strong>me-reset assessment</strong> peserta tertentu.
-                </div>
-            </div>
-
-            <div class="faq-item searchable-faq" data-keywords="export laporan excel pdf coaching bottleneck workload">
-                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq29" aria-expanded="false">
-                    Laporan apa saja yang bisa di-export?
-                    <i class="bi bi-chevron-down faq-chevron"></i>
-                </button>
-                <div id="faq29" class="collapse faq-answer">
-                    Tersedia berbagai laporan yang bisa di-download: <strong>Records Assessment</strong> (Excel), <strong>Progress Deliverable</strong> (Excel/PDF), <strong>Coaching Tracking</strong>, <strong>Bottleneck Report</strong> (deliverable yang terhambat), <strong>Workload Summary</strong> (beban kerja coach), <strong>Sertifikat</strong>, <strong>Histori Proton</strong>, dan <strong>Audit Log</strong>.
-                </div>
-            </div>
+        if (!Model.FaqsByCategory.TryGetValue(grp.Cat, out var faqs) || faqs.Count == 0)
+        {
+            continue;
+        }
+        <div class="faq-category" id="faqGroup-@grp.Slug">
+            <div class="faq-category-title"><i class="bi @grp.Icon me-1"></i> @grp.Label</div>
+            @foreach (var faq in faqs)
+            {
+                <partial name="_Guide/_FaqItem" model="faq" />
+            }
         </div>
     }
-
-</div><!-- end faq section -->
+</section>
 
 <button type="button" class="guide-back-to-top" id="backToTopBtn" aria-label="Kembali ke atas" title="Kembali ke atas">
     <i class="bi bi-chevron-up"></i>
@@ -582,7 +159,6 @@ function toggleAllFaq() {
     // ─── Smooth scroll to top when clicking module cards ───
     document.querySelectorAll('.guide-module-card').forEach(function(card) {
         card.addEventListener('click', function(e) {
-            // Smooth scroll to top after a short delay for navigation
             setTimeout(function() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 100);
@@ -595,7 +171,6 @@ function toggleAllFaq() {
         var target = document.querySelector(targetId);
         if (!target) return;
 
-        // Add Space key support for FAQ buttons
         trigger.addEventListener('keydown', function(e) {
             if (e.key === ' ' || e.key === 'Spacebar') {
                 e.preventDefault();
@@ -605,22 +180,18 @@ function toggleAllFaq() {
 
         target.addEventListener('show.bs.collapse', function() {
             trigger.setAttribute('aria-expanded', 'true');
-            // Add fade-in animation to FAQ answer
             target.classList.add('fade-in');
         });
         target.addEventListener('hide.bs.collapse', function() {
             trigger.setAttribute('aria-expanded', 'false');
-            // Remove fade-in animation class when hiding
             target.classList.remove('fade-in');
         });
     });
 
     // ─── Client-side Search ───
-    var searchInput = document.getElementById('guideSearchInput');
     var noResults   = document.getElementById('noResultsMsg');
     var searchResults = document.getElementById('search-results');
 
-    // Add Escape key to clear search
     searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             this.value = '';
@@ -632,7 +203,6 @@ function toggleAllFaq() {
     searchInput.addEventListener('input', function () {
         var q = this.value.toLowerCase().trim();
 
-        // Filter module cards
         var cards = document.querySelectorAll('.searchable-card');
         var visibleCards = 0;
         cards.forEach(function(card) {
@@ -645,7 +215,6 @@ function toggleAllFaq() {
             }
         });
 
-        // Filter FAQ items
         var faqItems = document.querySelectorAll('.searchable-faq');
         var visibleFaq = 0;
         faqItems.forEach(function(item) {
@@ -658,16 +227,13 @@ function toggleAllFaq() {
             }
         });
 
-        // Show/hide category headings
         document.querySelectorAll('.faq-category').forEach(function(cat) {
             var visible = cat.querySelectorAll('.searchable-faq:not(.search-hidden)').length;
             cat.style.display = visible > 0 ? '' : 'none';
         });
 
-        // Show/hide no-results message
         noResults.style.display = (visibleCards === 0 && visibleFaq === 0 && q) ? 'block' : 'none';
 
-        // Trigger shake animation if no results
         if (q && visibleCards === 0 && visibleFaq === 0) {
             searchInput.classList.add('shake');
             setTimeout(function() {
@@ -675,7 +241,6 @@ function toggleAllFaq() {
             }, 400);
         }
 
-        // Announce search results via aria-live
         var totalCards = cards.length;
         if (q && visibleCards === 0) {
             searchResults.textContent = 'Tidak ada panduan yang cocok dengan pencarian "' + q + '"';
@@ -685,32 +250,26 @@ function toggleAllFaq() {
             searchResults.textContent = '';
         }
 
-        // Highlight search terms
         highlightSearchTerms(q, document.querySelector('.guide-card-grid'));
         highlightSearchTerms(q, document.querySelector('.guide-faq-section'));
     });
 
-    // ─── Search Term Highlighting ───
     function highlightSearchTerms(query, container) {
         if (!query) {
-            // Remove existing highlights
             container.querySelectorAll('mark.search-highlight').forEach(function(mark) {
                 var parent = mark.parentNode;
                 parent.replaceChild(document.createTextNode(mark.textContent), mark);
-                parent.normalize(); // Merge adjacent text nodes
+                parent.normalize();
             });
             return;
         }
 
-        // Remove old highlights first
         container.querySelectorAll('mark.search-highlight').forEach(function(mark) {
             var parent = mark.parentNode;
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
             parent.normalize();
         });
 
-        // Add new highlights (simple text-only traversal to avoid breaking HTML)
-        // Only highlight in text nodes, not inside element attributes
         var walker = document.createTreeWalker(
             container,
             NodeFilter.SHOW_TEXT,
