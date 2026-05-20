@@ -1,7 +1,7 @@
 @model HcPortal.Models.Guide.GuideModuleCardVm
 @{
     var moduleSlug = Model.Module.ToString().ToLowerInvariant();
-    var keywordList = string.Join(" ", Model.Title.ToLowerInvariant().Split(' '));
+    var keywordList = string.Join(" ", Model.Keywords);
 }
 
 <a asp-action="GuideDetail"

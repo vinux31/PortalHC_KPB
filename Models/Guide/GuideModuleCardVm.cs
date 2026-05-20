@@ -6,5 +6,6 @@ public record GuideModuleCardVm(
     string IconCssClass,
     string CardCssClass,
     int ItemCount,
-    RoleGroup[] Roles
+    RoleGroup[] Roles,
+    string[] Keywords
 );

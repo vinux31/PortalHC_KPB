@@ -693,11 +693,16 @@ public static class GuideContentProvider
     {
         var allModules = new[]
         {
-            (Module: GuideModule.Cmp,     Title: "CMP — Competency Management Platform", Icon: "bi-journal-bookmark-fill", Card: "card-cmp",     Roles: new[] { RoleGroup.All }),
-            (Module: GuideModule.Cdp,     Title: "CDP — Competency Development Platform", Icon: "bi-graph-up-arrow",        Card: "card-cdp",     Roles: new[] { RoleGroup.All }),
-            (Module: GuideModule.Account, Title: "Akun & Profil",                         Icon: "bi-person-circle",         Card: "card-account", Roles: new[] { RoleGroup.All }),
-            (Module: GuideModule.Data,    Title: "Kelola Data",                           Icon: "bi-database-fill",         Card: "card-data",    Roles: new[] { RoleGroup.AdminHC }),
-            (Module: GuideModule.Admin,   Title: "Admin Panel",                           Icon: "bi-gear-wide-connected",   Card: "card-admin",   Roles: new[] { RoleGroup.AdminHC }),
+            (Module: GuideModule.Cmp,     Title: "CMP — Competency Management Platform", Icon: "bi-journal-bookmark-fill", Card: "card-cmp",     Roles: new[] { RoleGroup.All },
+             Keywords: new[] { "cmp", "competency", "assessment", "kkj", "cpdp", "mapping", "sertifikat", "training", "records", "library", "ujian", "soal" }),
+            (Module: GuideModule.Cdp,     Title: "CDP — Competency Development Platform", Icon: "bi-graph-up-arrow",        Card: "card-cdp",     Roles: new[] { RoleGroup.All },
+             Keywords: new[] { "cdp", "career", "development", "idp", "silabus", "coaching", "proton", "deliverable", "evidence", "upload", "approval", "plan" }),
+            (Module: GuideModule.Account, Title: "Akun & Profil",                         Icon: "bi-person-circle",         Card: "card-account", Roles: new[] { RoleGroup.All },
+             Keywords: new[] { "akun", "profil", "password", "ganti", "settings", "login", "logout", "edit", "nama" }),
+            (Module: GuideModule.Data,    Title: "Kelola Data",                           Icon: "bi-database-fill",         Card: "card-data",    Roles: new[] { RoleGroup.AdminHC },
+             Keywords: new[] { "kelola", "data", "proton", "import", "sinkronisasi", "override", "sync" }),
+            (Module: GuideModule.Admin,   Title: "Admin Panel",                           Icon: "bi-gear-wide-connected",   Card: "card-admin",   Roles: new[] { RoleGroup.AdminHC },
+             Keywords: new[] { "admin", "panel", "kelola", "pekerja", "kkj", "cpdp", "upload", "mapping", "coach", "coachee", "assessment", "monitoring", "audit", "log" }),
         };
 
         return allModules
@@ -708,7 +713,8 @@ public static class GuideContentProvider
                 IconCssClass: m.Icon,
                 CardCssClass: m.Card,
                 ItemCount: GetItems(m.Module, userRole).Count + (GetPdf(m.Module, userRole) != null ? 1 : 0),
-                Roles: m.Roles
+                Roles: m.Roles,
+                Keywords: m.Keywords
             ))
             .ToList();
     }
