@@ -50,6 +50,22 @@
     flex-direction: column;
   }
 
+  /* ===== GRID BACKDROP ===== */
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(15,45,92,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,45,92,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    opacity: 0;
+    animation: fadeIn 0.4s 0.1s ease-out forwards;
+    z-index: 0;
+  }
+  .stage > * { position: relative; z-index: 1; }
+
   /* ===== HEADER ===== */
   .header {
     display: flex;
