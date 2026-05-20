@@ -314,6 +314,12 @@
     }
   }
 
+  @keyframes dotBreathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+  }
+  .dot.final.breathing { animation: dotBreathe 2s ease-in-out infinite; }
+
   .year-badge {
     display: inline-block;
     padding: 4px 10px;
@@ -606,7 +612,8 @@
     { t: 12500, fn: () => tweenCounter('cnt-y2', 0, 3, 1400) },
     { t: 18000, fn: () => { dim('card-y2'); setDot('d2', 'done'); } },
     { t: 19000, fn: () => { activate('card-y3'); pulseRole(); setDot('d3', 'active final'); } },
-    { t: 20500, fn: () => tweenCounter('cnt-y3', 0, 2, 1200) }
+    { t: 20500, fn: () => tweenCounter('cnt-y3', 0, 2, 1200) },
+    { t: 28000, fn: () => document.getElementById('d3').classList.add('breathing') }
   ];
 
   milestones.forEach(m => setTimeout(m.fn, m.t));
