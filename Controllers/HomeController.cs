@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using HcPortal.Models;
+using HcPortal.Models.Guide;
 using HcPortal.Data;
 using HcPortal.Services;
 
@@ -326,8 +327,16 @@ public class HomeController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
         var userRoles = await _userManager.GetRolesAsync(user);
-        ViewBag.UserRole = userRoles.FirstOrDefault() ?? "User";
-        return View();
+        var userRole = userRoles.FirstOrDefault() ?? "User";
+
+        var vm = new GuideViewModel(
+            UserRole: userRole,
+            ModuleCards: GuideContentProvider.GetModuleCards(userRole),
+            FaqsByCategory: GuideContentProvider.GetFaqsByCategory(userRole)
+        );
+
+        ViewBag.UserRole = userRole;
+        return View(vm);
     }
 
     public async Task<IActionResult> GuideDetail(string module)
@@ -337,21 +346,70 @@ public class HomeController : Controller
         var userRoles = await _userManager.GetRolesAsync(user);
         var userRole = userRoles.FirstOrDefault() ?? "User";
 
-        // Normalize module to lowercase so /Home/GuideDetail?module=CMP works same as ?module=cmp
         module = module?.ToLowerInvariant() ?? "";
 
-        // Validate module & role access
-        var adminModules = new[] { "data", "admin" };
-        if (adminModules.Contains(module) && userRole != "Admin" && userRole != "HC")
+        GuideModule moduleEnum;
+        string moduleTitle, moduleIcon, moduleBreadcrumb, moduleCategory;
+        switch (module)
+        {
+            case "cmp":
+                moduleEnum = GuideModule.Cmp;
+                moduleTitle = "CMP — Competency Management Platform";
+                moduleIcon = "bi-journal-bookmark-fill";
+                moduleBreadcrumb = "CMP";
+                moduleCategory = "cmp";
+                break;
+            case "cdp":
+                moduleEnum = GuideModule.Cdp;
+                moduleTitle = "CDP — Competency Development Platform";
+                moduleIcon = "bi-graph-up-arrow";
+                moduleBreadcrumb = "CDP";
+                moduleCategory = "cdp";
+                break;
+            case "account":
+                moduleEnum = GuideModule.Account;
+                moduleTitle = "Akun & Profil";
+                moduleIcon = "bi-person-circle";
+                moduleBreadcrumb = "Akun";
+                moduleCategory = "account";
+                break;
+            case "data":
+                moduleEnum = GuideModule.Data;
+                moduleTitle = "Kelola Data";
+                moduleIcon = "bi-database-fill";
+                moduleBreadcrumb = "Kelola Data";
+                moduleCategory = "data";
+                break;
+            case "admin":
+                moduleEnum = GuideModule.Admin;
+                moduleTitle = "Admin Panel";
+                moduleIcon = "bi-gear-wide-connected";
+                moduleBreadcrumb = "Admin Panel";
+                moduleCategory = "admin";
+                break;
+            default:
+                return RedirectToAction("Guide");
+        }
+
+        // Role access guard untuk Data + Admin module
+        var restrictedModules = new[] { GuideModule.Data, GuideModule.Admin };
+        if (restrictedModules.Contains(moduleEnum) && !GuideRoleAccess.CanSee(userRole, new[] { RoleGroup.AdminHC }))
             return RedirectToAction("Guide");
 
-        var validModules = new[] { "cmp", "cdp", "account", "data", "admin" };
-        if (!validModules.Contains(module))
-            return RedirectToAction("Guide");
+        var vm = new GuideDetailViewModel(
+            UserRole: userRole,
+            Module: moduleEnum,
+            ModuleTitle: moduleTitle,
+            ModuleIcon: moduleIcon,
+            ModuleBreadcrumb: moduleBreadcrumb,
+            ModuleCategory: moduleCategory,
+            Pdf: GuideContentProvider.GetPdf(moduleEnum, userRole),
+            Items: GuideContentProvider.GetItems(moduleEnum, userRole)
+        );
 
         ViewBag.UserRole = userRole;
         ViewBag.Module = module;
-        return View();
+        return View(vm);
     }
 
     private string GetTimeBasedGreeting()

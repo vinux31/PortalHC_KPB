@@ -1,0 +1,29 @@
+@model HcPortal.Models.Guide.GuideModuleCardVm
+@using HcPortal.Services
+@{
+    var moduleSlug = Model.Module.ToString().ToLowerInvariant();
+    var keywordList = GuideContentProvider.BuildKeywords(Model);
+    var roleList = string.Join(" ", Model.Roles.Select(r => r.ToString().ToLowerInvariant()));
+}
+
+<a asp-action="GuideDetail"
+   asp-route-module="@moduleSlug"
+   class="guide-module-card @Model.CardCssClass searchable-card text-decoration-none"
+   data-keywords="@keywordList"
+   data-roles="@roleList"
+   data-aos="fade-up"
+   data-aos-delay="@Model.AosDelay"
+   role="article"
+   aria-label="Panduan @Model.ShortLabel - @Model.ItemCount panduan tersedia">
+    <div class="guide-card-header">
+        <div class="guide-card-header-icon icon-@moduleSlug"><i class="bi @Model.IconCssClass" aria-hidden="true"></i></div>
+        <div class="guide-card-header-text">
+            <h5>
+                @Model.Title
+                <partial name="_Guide/_RoleBadge" model="Model.Roles" />
+            </h5>
+            <p>@Model.ItemCount panduan tersedia</p>
+        </div>
+        <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
+    </div>
+</a>

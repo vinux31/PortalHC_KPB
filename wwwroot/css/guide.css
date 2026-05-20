@@ -1225,6 +1225,85 @@ mark.search-highlight {
     color: #c2185b;
 }
 
+/* Data — orange */
+.guide-tutorial-card--data > .guide-tutorial-inner {
+    background: linear-gradient(135deg, #fff3e0 0%, #f5f5f5 100%);
+    border-radius: 10px;
+    border: 1px solid #ffcc80;
+}
+
+.guide-tutorial-card--data .guide-tutorial-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #ef6c00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guide-tutorial-card--data .guide-tutorial-title {
+    color: #ef6c00;
+}
+
+/* Account — teal */
+.guide-tutorial-card--account > .guide-tutorial-inner {
+    background: linear-gradient(135deg, #e0f2f1 0%, #f5f5f5 100%);
+    border-radius: 10px;
+    border: 1px solid #80cbc4;
+}
+
+.guide-tutorial-card--account .guide-tutorial-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #00796b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guide-tutorial-card--account .guide-tutorial-title {
+    color: #00796b;
+}
+
+/* Phase 4: filter chip per role */
+.guide-filter-chips {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+.guide-filter-chips .filter-label {
+    font-size: .85rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-right: .25rem;
+}
+.guide-filter-chips .filter-chip {
+    background: transparent;
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    padding: .25rem .85rem;
+    font-size: .85rem;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.guide-filter-chips .filter-chip:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+.guide-filter-chips .filter-chip.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+.role-filtered-out {
+    display: none !important;
+}
+
 .guide-detail-header {
     border-radius: 20px;
     padding: 2.5rem;

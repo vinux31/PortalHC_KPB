@@ -1,0 +1,11 @@
+@model HcPortal.Models.Guide.RoleGroup[]
+@using HcPortal.Services
+
+@{
+    var label = GuideRoleAccess.BadgeLabel(Model);
+}
+
+@if (!string.IsNullOrEmpty(label))
+{
+    <span class="guide-role-badge ms-1">@label</span>
+}

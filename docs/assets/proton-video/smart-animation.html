@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Animasi Prinsip SMART — Video PROTON (Segmen 2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Manrope:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+<link rel="icon" href="data:,">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-deep:  #004D22;
+    --green:       #007A36;
+    --green-light: #00A148;
+    --gold:        #E8C76A;          /* R1: Light gold leaf */
+    --gold-soft:   #F2DCA0;
+    --ink:         #1A2A1F;
+    --muted:       #8FA194;
+    --hairline:    #DDE5DF;
+    --paper:       #FAFCF9;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  body {
+    font-family: 'Manrope', system-ui, sans-serif;
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    background: #FFFFFF;
+  }
+
+  /* 16:9 stage — exact video aspect */
+  .stage {
+    width: min(96vw, 1600px);
+    aspect-ratio: 16 / 9;
+    position: relative;
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.02),
+      0 30px 80px rgba(0,77,34,0.08);
+    border-radius: 6px;
+    overflow: hidden;
+    padding: clamp(40px, 4vw, 70px) clamp(36px, 5vw, 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(18px, 2vw, 36px);
+  }
+
+  /* R7: 2 hairline rule horizontal emas — anchored to header & footer (FIX F1) */
+  .header::after, .footer::before {
+    content: "";
+    display: block;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+    opacity: 0;
+    animation: ruleFade 1s 0.6s ease-out forwards;
+  }
+  .header::after { margin-top: clamp(14px, 1.4vw, 22px); }
+  .footer::before { margin-bottom: clamp(10px, 1.2vw, 18px); }
+
+  /* ===== HEADER (R2: drop hero — eyebrow + tagline only) ===== */
+  .header {
+    text-align: center;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeDown 1.2s 0.3s ease-out forwards;
+  }
+  .header .tagline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(18px, 1.5vw, 26px);
+    color: var(--muted);
+    letter-spacing: 0.01em;
+  }
+  .header .tagline .brand {
+    font-family: 'Manrope', sans-serif;
+    font-style: normal;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+    margin-left: 6px;
+  }
+
+  /* ===== LETTERS ROW ===== */
+  .letters {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+  }
+
+  .letter {
+    text-align: center;
+    position: relative;
+    opacity: 0;
+    transform: translateY(40px) scale(0.85);
+    animation: letterEnter 0.9s ease-out forwards;
+    transition: filter 0.7s ease, transform 0.7s ease;
+  }
+  .letter:nth-child(1) { animation-delay: 1.4s; }
+  .letter:nth-child(2) { animation-delay: 1.7s; }
+  .letter:nth-child(3) { animation-delay: 2.0s; }
+  .letter:nth-child(4) { animation-delay: 2.3s; }
+  .letter:nth-child(5) { animation-delay: 2.6s; }
+
+  .letter .char {
+    display: block;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: clamp(80px, 11vw, 220px);
+    line-height: 0.9;
+    color: var(--hairline);
+    transition: color 0.9s ease, text-shadow 0.9s ease, transform 0.9s ease;
+    letter-spacing: -0.03em;
+  }
+  .letter .word {
+    display: block;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-style: italic;
+    font-size: clamp(14px, 1.3vw, 22px);
+    color: var(--muted);
+    margin-top: 10px;
+    transition: color 0.9s ease;
+  }
+
+  /* Active state */
+  .letter.active .char {
+    color: var(--green-deep);
+    text-shadow: 0 18px 40px rgba(0,77,34,0.18);
+    transform: translateY(-6px);
+  }
+  .letter.active .word {
+    color: var(--gold);
+  }
+  .letter.active::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: -14px;
+    transform: translateX(-50%);
+    width: 36px; height: 3px;
+    background: var(--gold);
+    border-radius: 2px;
+    animation: underlineDraw 0.5s ease-out;
+  }
+
+  /* Compose state — all letters active */
+  .stage.compose .letter .char { color: var(--green-deep); transform: translateY(-3px); }
+  .stage.compose .letter .word { color: var(--gold); }
+  .stage.compose .letter::after { display: none; }
+
+  /* ===== DESCRIPTION PANEL ===== */
+  .desc-panel {
+    text-align: center;
+    min-height: clamp(70px, 8vw, 110px);
+    opacity: 0;
+    animation: fadeUp 1s 3s ease-out forwards;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .desc-panel .desc {
+    display: none;
+    animation: descIn 0.6s ease-out;
+  }
+  .desc-panel .desc.show { display: block; }
+
+  .desc-panel .label {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(13px, 1vw, 16px);
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .desc-panel .text {
+    font-size: clamp(15px, 1.4vw, 24px);
+    color: var(--ink);
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 92%;
+    margin: 0 auto;
+  }
+  .desc-panel .text strong {
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  /* Compose / outro tagline (R4) */
+  .desc-panel .compose-msg {
+    display: none;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(18px, 1.7vw, 30px);
+    color: var(--green-deep);
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+  }
+  .desc-panel .compose-msg .accent {
+    color: var(--gold);
+    font-weight: 600;
+    font-style: italic;
+  }
+  .stage.compose .desc-panel .desc { display: none; }
+  .stage.compose .desc-panel .compose-msg { display: block; animation: descIn 0.8s ease-out; }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    font-size: clamp(9px, 0.75vw, 12px);
+    color: var(--muted);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    font-weight: 500;
+    opacity: 0;
+    animation: fadeIn 1s 4s ease-out forwards;
+  }
+  .footer .dot { color: var(--gold); margin: 0 8px; }
+
+  /* ===== PROGRESS DOTS ===== */
+  .progress {
+    position: absolute;
+    bottom: 18px; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    animation: fadeIn 1s 3.5s ease-out forwards;
+  }
+  .progress .dot-step {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--hairline);
+    transition: all 0.4s ease;
+  }
+  .progress .dot-step.active {
+    background: var(--gold);
+    transform: scale(1.3);
+  }
+  .progress .dot-step.done {
+    background: var(--green);
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeDown { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp   { to { opacity: 1; } }
+  @keyframes fadeIn   { to { opacity: 1; } }
+  @keyframes ruleFade { to { opacity: 1; } }
+  @keyframes letterEnter { to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes descIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes underlineDraw { from { width: 0; } to { width: 36px; } }
+
+  /* ===== CONTROL BAR ===== */
+  .control {
+    position: fixed;
+    bottom: 14px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,77,34,0.92);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-family: 'Manrope', sans-serif;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+  .control button {
+    background: var(--gold);
+    color: var(--green-deep);
+    border: 0;
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+  }
+  .control button:hover { background: var(--gold-soft); }
+  .control .timer { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- HEADER (tagline only) -->
+  <header class="header">
+    <div class="tagline">Kerangka Pengembangan Kompetensi<span class="brand">PROTON</span></div>
+  </header>
+
+  <!-- LETTERS -->
+  <div class="letters" id="letters">
+    <div class="letter" data-key="S">
+      <span class="char">S</span>
+      <span class="word">Specific</span>
+    </div>
+    <div class="letter" data-key="M">
+      <span class="char">M</span>
+      <span class="word">Measurable</span>
+    </div>
+    <div class="letter" data-key="A">
+      <span class="char">A</span>
+      <span class="word">Achievable</span>
+    </div>
+    <div class="letter" data-key="R">
+      <span class="char">R</span>
+      <span class="word">Relevant</span>
+    </div>
+    <div class="letter" data-key="T">
+      <span class="char">T</span>
+      <span class="word">Time-Bound</span>
+    </div>
+  </div>
+
+  <!-- DESCRIPTION (R3: align VO, drop contoh chip) -->
+  <div class="desc-panel" id="descPanel">
+    <div class="desc" data-key="S">
+      <div class="label">— Specific —</div>
+      <div class="text">Memiliki <strong>target dan deliverable yang jelas</strong>.</div>
+    </div>
+    <div class="desc" data-key="M">
+      <div class="label">— Measurable —</div>
+      <div class="text">Setiap proses memiliki <strong>parameter evaluasi yang terukur</strong>.</div>
+    </div>
+    <div class="desc" data-key="A">
+      <div class="label">— Achievable —</div>
+      <div class="text">Semua tugas dapat <strong>diselesaikan sesuai kemampuan coachee</strong>.</div>
+    </div>
+    <div class="desc" data-key="R">
+      <div class="label">— Relevant —</div>
+      <div class="text">Penugasan <strong>sesuai dengan lingkup pekerjaan</strong> untuk meningkatkan kompetensi.</div>
+    </div>
+    <div class="desc" data-key="T">
+      <div class="label">— Time-Bound —</div>
+      <div class="text">Memiliki <strong>jadwal awal dan akhir</strong> yang sudah ditentukan.</div>
+    </div>
+
+    <!-- Outro tagline (R4) -->
+    <div class="compose-msg">
+      <span class="accent">SMART</span> — fondasi pengembangan kompetensi PROTON.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    PROTON <span class="dot">·</span> Program Coaching Pekerja <span class="dot">·</span> Portal HC KPB
+  </footer>
+
+  <!-- PROGRESS DOTS -->
+  <div class="progress" id="progress">
+    <div class="dot-step" data-step="S"></div>
+    <div class="dot-step" data-step="M"></div>
+    <div class="dot-step" data-step="A"></div>
+    <div class="dot-step" data-step="R"></div>
+    <div class="dot-step" data-step="T"></div>
+  </div>
+</div>
+
+<!-- Control bar -->
+<div class="control">
+  <span class="timer" id="timer">00:00 / 01:00</span>
+  <button id="replay">REPLAY</button>
+</div>
+
+<script>
+/* =========================================================
+   TIMELINE — Total 60 detik (R5: intro 5s + 9s × 5 + outro 10s)
+   0–5s    : Intro (header + 5 huruf masuk dim)
+   5–14s   : S
+   14–23s  : M
+   23–32s  : A
+   32–41s  : R
+   41–50s  : T
+   50–60s  : Outro — compose all + closing tagline
+   ========================================================= */
+
+const TOTAL = 60_000;
+const STEPS = [
+  { key: null,    start: 0,     dur: 5000  },
+  { key: 'S',     start: 5000,  dur: 9000  },
+  { key: 'M',     start: 14000, dur: 9000  },
+  { key: 'A',     start: 23000, dur: 9000  },
+  { key: 'R',     start: 32000, dur: 9000  },
+  { key: 'T',     start: 41000, dur: 9000  },
+  { key: 'OUTRO', start: 50000, dur: 10000 }
+];
+
+const stage   = document.getElementById('stage');
+const letters = document.querySelectorAll('.letter');
+const descs   = document.querySelectorAll('.desc-panel .desc');
+const dots    = document.querySelectorAll('.progress .dot-step');
+const timerEl = document.getElementById('timer');
+const replayBtn = document.getElementById('replay');
+
+let startTime = null;
+let rafId = null;
+let activeKey = null;
+const completed = new Set();
+
+function fmt(ms) {
+  const total = Math.floor(ms / 1000);
+  const mm = String(Math.floor(total / 60)).padStart(2,'0');
+  const ss = String(total % 60).padStart(2,'0');
+  return `${mm}:${ss}`;
+}
+
+function setActive(key) {
+  if (activeKey === key) return;
+  if (activeKey && activeKey !== 'OUTRO') completed.add(activeKey);
+  activeKey = key;
+
+  letters.forEach(el => el.classList.toggle('active', el.dataset.key === key));
+  descs.forEach(el => el.classList.toggle('show', el.dataset.key === key));
+
+  dots.forEach(d => {
+    d.classList.remove('active', 'done');
+    if (d.dataset.step === key) d.classList.add('active');
+    else if (completed.has(d.dataset.step)) d.classList.add('done');
+  });
+}
+
+function setCompose(on) {
+  stage.classList.toggle('compose', on);
+  if (on) {
+    letters.forEach(el => el.classList.remove('active'));
+    descs.forEach(el => el.classList.remove('show'));
+    dots.forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+  }
+}
+
+function tick(ts) {
+  if (!startTime) startTime = ts;
+  const elapsed = ts - startTime;
+
+  const step = STEPS.find(s => elapsed >= s.start && elapsed < s.start + s.dur);
+
+  if (step) {
+    if (step.key === 'OUTRO') {
+      setCompose(true);
+    } else if (step.key) {
+      setCompose(false);
+      setActive(step.key);
+    } else {
+      setActive(null);
+      setCompose(false);
+    }
+  }
+
+  timerEl.textContent = `${fmt(Math.min(elapsed, TOTAL))} / 01:00`;
+
+  if (elapsed < TOTAL) {
+    rafId = requestAnimationFrame(tick);
+  } else {
+    timerEl.textContent = '01:00 / 01:00';
+  }
+}
+
+function start() {
+  cancelAnimationFrame(rafId);
+  startTime = null;
+  activeKey = null;
+  completed.clear();
+  setCompose(false);
+  letters.forEach(el => el.classList.remove('active'));
+  descs.forEach(el => el.classList.remove('show'));
+  dots.forEach(d => d.classList.remove('active', 'done'));
+  rafId = requestAnimationFrame(tick);
+}
+
+replayBtn.addEventListener('click', () => location.reload());
+
+start();
+</script>
+
+</body>
+</html>
