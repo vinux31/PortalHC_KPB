@@ -166,6 +166,37 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* ===== BACKBONE ===== */
+  .backbone-slot {
+    height: clamp(24px, 2.4vw, 32px);
+    margin-bottom: clamp(12px, 1.2vw, 20px);
+    position: relative;
+  }
+  .backbone {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+  .backbone-path {
+    fill: none;
+    stroke: var(--navy-soft);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 1440;
+    stroke-dashoffset: 1440;
+    opacity: 0;
+    animation:
+      backboneAppear 0.5s 2.0s ease-out forwards,
+      backboneDraw1 1.5s 3.0s cubic-bezier(0.65, 0, 0.35, 1) forwards,
+      backboneDraw2 1.8s 9.2s cubic-bezier(0.65, 0, 0.35, 1) forwards,
+      backboneDraw3 1.3s 17.7s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  @keyframes backboneAppear { to { opacity: 0.35; } }
+  @keyframes backboneDraw1 { to { stroke-dashoffset: 960; opacity: 1; } }
+  @keyframes backboneDraw2 { to { stroke-dashoffset: 480; } }
+  @keyframes backboneDraw3 { to { stroke-dashoffset: 0; stroke: var(--red); } }
+
   /* ===== TIMELINE ===== */
   .timeline {
     flex: 1;
@@ -329,6 +360,11 @@
         </div>
         <div class="label">Operator</div>
       </div>
+    </div>
+    <div class="backbone-slot">
+      <svg class="backbone" viewBox="0 0 1600 4" preserveAspectRatio="none" aria-hidden="true">
+        <path class="backbone-path" d="M 8 2 L 1592 2"/>
+      </svg>
     </div>
     <div class="timeline">
       <div class="year-card y1" id="card-y1">
