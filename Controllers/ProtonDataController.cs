@@ -946,12 +946,12 @@ namespace HcPortal.Controllers
                     // D-15: Duplikasi detection — cek apakah deliverable sudah ada di DB (active)
                     var existingDeliverable = await _context.ProtonDeliverableList
                         .AnyAsync(d => d.NamaDeliverable == colDel
-                                    && d.ProtonSubKompetensi.NamaSubKompetensi == colSub
-                                    && d.ProtonSubKompetensi.ProtonKompetensi.NamaKompetensi == colKomp
-                                    && d.ProtonSubKompetensi.ProtonKompetensi.Bagian == bagian
-                                    && d.ProtonSubKompetensi.ProtonKompetensi.Unit == unit
-                                    && d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == trackId.Value
-                                    && d.ProtonSubKompetensi.ProtonKompetensi.IsActive);
+                                    && d.ProtonSubKompetensi!.NamaSubKompetensi == colSub
+                                    && d.ProtonSubKompetensi!.ProtonKompetensi!.NamaKompetensi == colKomp
+                                    && d.ProtonSubKompetensi!.ProtonKompetensi!.Bagian == bagian
+                                    && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit == unit
+                                    && d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == trackId.Value
+                                    && d.ProtonSubKompetensi!.ProtonKompetensi!.IsActive);
                     if (existingDeliverable)
                     {
                         result.Status = "Skipped";
@@ -1283,12 +1283,12 @@ namespace HcPortal.Controllers
             // 1. Load all deliverables for this Bagian+Unit+Track scope
             var deliverables = await _context.ProtonDeliverableList
                 .Include(d => d.ProtonSubKompetensi)
-                    .ThenInclude(s => s.ProtonKompetensi)
-                .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.Bagian == bagian
-                         && d.ProtonSubKompetensi.ProtonKompetensi.Unit == unit
-                         && d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == trackId)
-                .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
-                    .ThenBy(d => d.ProtonSubKompetensi.Urutan)
+                    .ThenInclude(s => s!.ProtonKompetensi)
+                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.Bagian == bagian
+                         && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit == unit
+                         && d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == trackId)
+                .OrderBy(d => d.ProtonSubKompetensi!.ProtonKompetensi!.Urutan)
+                    .ThenBy(d => d.ProtonSubKompetensi!.Urutan)
                     .ThenBy(d => d.Urutan)
                 .ToListAsync();
 
