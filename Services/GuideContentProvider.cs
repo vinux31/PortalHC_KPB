@@ -485,6 +485,20 @@ public static class GuideContentProvider
             },
             Keywords: new[] { "maintenance", "impersonate", "debug", "testing" }
         ),
+        new GuideItem(
+            Id: "admin-renewal-management",
+            Module: GuideModule.Admin,
+            Title: "Cara Kelola Renewal Sertifikat",
+            Roles: new[] { RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Renewal Management", "Pilih <b>Admin Panel → Renewal Management</b>. Halaman menampilkan daftar sertifikat assessment yang mendekati masa kadaluarsa."),
+                new GuideStep(2, "Filter Sertifikat", "Filter berdasarkan rentang tanggal expired (mis: 30 / 60 / 90 hari ke depan), kategori assessment, atau unit."),
+                new GuideStep(3, "Buat Jadwal Renewal", "Pilih sertifikat → klik <b>Schedule Renewal</b>. Sistem otomatis create assessment baru dengan paket soal sama, assign ke pekerja terkait."),
+                new GuideStep(4, "Notifikasi Pekerja", "Pekerja akan dapat notifikasi assessment renewal. Setelah lulus, sertifikat baru terbit dan masa berlaku otomatis di-update.")
+            },
+            Keywords: new[] { "renewal", "sertifikat", "expired", "kadaluarsa", "perpanjangan" }
+        ),
     };
 
     public static readonly IReadOnlyList<GuideFaqItem> Faqs = new List<GuideFaqItem>
