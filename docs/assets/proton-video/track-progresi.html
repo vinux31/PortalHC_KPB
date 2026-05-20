@@ -473,6 +473,25 @@
   #chips-y3 .chip:nth-child(1) { animation: chipStamp 0.6s 20.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #chips-y3 .chip:nth-child(2) { animation: chipStamp 0.6s 20.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #foot-y3 { animation: footerIn 0.5s 23.5s ease-out forwards; }
+
+  /* ===== ACCESSIBILITY — REDUCED MOTION ===== */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .year-card { opacity: 1; transform: none; }
+    .year-card.dim { opacity: 1; }
+    .chip { opacity: 1; transform: none; }
+    .chip::before { opacity: 1; }
+    .backbone-path { stroke-dashoffset: 0; opacity: 1; stroke: var(--red); }
+    .title em { background-size: 100% 6px; }
+    .dot.final { transform: none; }
+    .burst-ring { display: none; }
+    .backbone-caption { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -616,7 +635,20 @@
     { t: 28000, fn: () => document.getElementById('d3').classList.add('breathing') }
   ];
 
-  milestones.forEach(m => setTimeout(m.fn, m.t));
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    document.getElementById('cnt-y1').textContent = '2';
+    document.getElementById('cnt-y2').textContent = '3';
+    document.getElementById('cnt-y3').textContent = '2';
+    ['card-y1', 'card-y2', 'card-y3'].forEach(id => {
+      document.getElementById(id).classList.add('active');
+    });
+    setDot('d1', 'done');
+    setDot('d2', 'done');
+    setDot('d3', 'active final');
+  } else {
+    milestones.forEach(m => setTimeout(m.fn, m.t));
+  }
 </script>
 </body>
 </html>
