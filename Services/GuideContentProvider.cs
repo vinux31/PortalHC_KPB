@@ -137,16 +137,29 @@ public static class GuideContentProvider
             Keywords: new[] { "login", "masuk", "kredensial", "akun" }
         ),
         new GuideItem(
-            Id: "account-profile-view-edit",
+            Id: "account-view-profile",
             Module: GuideModule.Account,
-            Title: "Cara Melihat & Edit Profil (Nama, Posisi)",
+            Title: "Cara Melihat Profil",
             Roles: new[] { RoleGroup.All },
             Steps: new[]
             {
                 new GuideStep(1, "Buka Profil", "Klik avatar profil Anda di pojok kanan atas layar, lalu pilih <b>My Profile</b>."),
-                new GuideStep(2, "Edit Data Personal", "Klik tombol pensil/Edit di profil. Edit informasi yang diperlukan, lalu tekan Simpan.")
+                new GuideStep(2, "Review Data Personal", "Halaman profil menampilkan informasi: nama, NIP, email, jabatan, unit kerja, dan role. Pastikan semua data sudah benar.")
             },
-            Keywords: new[] { "profil", "edit", "nama", "posisi", "my profile" }
+            Keywords: new[] { "profil", "lihat", "my profile", "view" }
+        ),
+        new GuideItem(
+            Id: "account-edit-profile",
+            Module: GuideModule.Account,
+            Title: "Cara Edit Profil",
+            Roles: new[] { RoleGroup.All },
+            Steps: new[]
+            {
+                new GuideStep(1, "Masuk Halaman Profil", "Klik avatar profil → pilih <b>My Profile</b>."),
+                new GuideStep(2, "Klik Tombol Edit", "Klik tombol pensil/Edit di halaman profil."),
+                new GuideStep(3, "Simpan Perubahan", "Edit informasi yang diperlukan, lalu tekan <b>Simpan</b>. Beberapa field (mis: NIP, role) tidak bisa diedit user — hubungi Admin/HC kalau perlu update.")
+            },
+            Keywords: new[] { "edit", "ubah", "profil", "nama" }
         ),
         new GuideItem(
             Id: "account-change-password",
@@ -161,16 +174,29 @@ public static class GuideContentProvider
             Keywords: new[] { "password", "ganti", "ubah", "change", "settings" }
         ),
         new GuideItem(
-            Id: "account-logout-role-system",
+            Id: "account-logout",
             Module: GuideModule.Account,
-            Title: "Cara Logout & Memahami Role System",
+            Title: "Cara Logout",
             Roles: new[] { RoleGroup.All },
             Steps: new[]
             {
-                new GuideStep(1, "Logout dari Portal", "Klik avatar profil di pojok kanan atas, lalu pilih <b>Logout</b> untuk keluar dari sistem dengan aman."),
-                new GuideStep(2, "Memahami Role Badge", "Role Anda ditampilkan di navbar (badge: HC, Admin, Coachee). Role menentukan akses menu. Hubungi Admin jika role tidak sesuai.")
+                new GuideStep(1, "Buka Menu Profil", "Klik avatar profil Anda di pojok kanan atas navbar."),
+                new GuideStep(2, "Pilih Logout", "Pilih opsi <b>Logout</b> untuk keluar dari sistem dengan aman. Anda akan diarahkan kembali ke halaman login.")
             },
-            Keywords: new[] { "logout", "role", "badge", "akses" }
+            Keywords: new[] { "logout", "keluar", "sign out" }
+        ),
+        new GuideItem(
+            Id: "account-role-system",
+            Module: GuideModule.Account,
+            Title: "Memahami Role System",
+            Roles: new[] { RoleGroup.All },
+            Steps: new[]
+            {
+                new GuideStep(1, "Lihat Role di Navbar", "Role Anda ditampilkan di navbar kanan atas sebagai badge (mis: <b>HC</b>, <b>Coachee</b>, <b>Coach</b>)."),
+                new GuideStep(2, "Pahami 6 Level Akses", "Sistem punya 6 level: <b>1</b> Admin, <b>2</b> HC, <b>3</b> Direktur/VP/Manager, <b>4</b> Section Head/Sr Supervisor, <b>5</b> Coach/Supervisor, <b>6</b> Coachee. Setiap level punya akses menu berbeda."),
+                new GuideStep(3, "Minta Update Role", "Kalau role tidak sesuai jabatan Anda, hubungi <b>Admin atau HC</b> untuk update via Admin Panel → Kelola Pekerja.")
+            },
+            Keywords: new[] { "role", "level", "akses", "section head", "supervisor", "manager", "vp", "direktur" }
         ),
 
         // ═══════════════════ Data (AdminHC) ═══════════════════
