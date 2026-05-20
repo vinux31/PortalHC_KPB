@@ -263,7 +263,7 @@ namespace HcPortal.Controllers
             foreach (var pre in prePairs)
             {
                 var post = postPairs.FirstOrDefault(p => p.LinkedGroupId == pre.LinkedGroupId);
-                pairedGroups.Add(new { Pre = (dynamic)pre, Post = (dynamic)post });
+                pairedGroups.Add(new { Pre = (dynamic)pre, Post = (dynamic?)post });
             }
 
             // Track IDs yang sudah masuk pair
@@ -279,8 +279,8 @@ namespace HcPortal.Controllers
             // SATU query untuk semua — bukan per-pair (review fix: avoid N+1)
             var postGroupIds = postPairs
                 .Where(p => p.LinkedGroupId.HasValue)
-                .Select(p => p.LinkedGroupId.Value)
-                .Except(prePairs.Where(p => p.LinkedGroupId.HasValue).Select(p => p.LinkedGroupId.Value))
+                .Select(p => p.LinkedGroupId!.Value)
+                .Except(prePairs.Where(p => p.LinkedGroupId.HasValue).Select(p => p.LinkedGroupId!.Value))
                 .ToList();
 
             if (postGroupIds.Any())
@@ -3740,7 +3740,7 @@ namespace HcPortal.Controllers
             var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
             ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
             ViewBag.AllBagian = sectionUnitsDict.Keys.ToList();
-            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User.Section;
+            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User!.Section;
 
             return View(vm);
         }
@@ -3920,7 +3920,7 @@ namespace HcPortal.Controllers
             {
                 // L4: see own section only
                 scopedUserIds = await _context.Users
-                    .Where(u => u.IsActive && u.Section == user.Section)
+                    .Where(u => u.IsActive && u.Section == user!.Section)
                     .Select(u => u.Id)
                     .ToListAsync();
             }
@@ -3928,23 +3928,23 @@ namespace HcPortal.Controllers
             {
                 if (l5OwnDataOnly)
                 {
-                    scopedUserIds = new List<string> { user.Id };
+                    scopedUserIds = new List<string> { user!.Id };
                 }
                 else
                 {
                     // L5: coach sees mapped coachees + own data
                     var coacheeIds = await _context.CoachCoacheeMappings
-                        .Where(m => m.CoachId == user.Id && m.IsActive)
+                        .Where(m => m.CoachId == user!.Id && m.IsActive)
                         .Select(m => m.CoacheeId)
                         .ToListAsync();
-                    coacheeIds.Add(user.Id);
+                    coacheeIds.Add(user!.Id);
                     scopedUserIds = coacheeIds;
                 }
             }
             else
             {
                 // L6: own data only
-                scopedUserIds = new List<string> { user.Id };
+                scopedUserIds = new List<string> { user!.Id };
             }
 
             // Query TrainingRecords with certificate
@@ -4323,7 +4323,7 @@ namespace HcPortal.Controllers
             ws.Column(10).Style.NumberFormat.Format = "#,##0";
 
             // Auto-filter on header row
-            ws.RangeUsed().SetAutoFilter();
+            ws.RangeUsed()!.SetAutoFilter();
             ws.Columns().AdjustToContents();
 
             // Sheet 2: Ringkasan
