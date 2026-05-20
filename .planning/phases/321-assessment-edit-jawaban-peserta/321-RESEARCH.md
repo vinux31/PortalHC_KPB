@@ -1,16 +1,22 @@
-# Milestone v3.18 — Phase 2: Edit Jawaban Peserta Implementation Plan
+# Phase 321: Assessment Edit Jawaban Peserta — Research
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Researched:** 2026-05-21
+**Milestone:** v17.0 Assessment Admin Power Tools
+**Confidence:** HIGH (semua claim verified via direct codebase read 2026-05-21; spec `docs/superpowers/specs/2026-05-20-assessment-admin-power-tools-design.md` commit `c37e55ef`)
+**Language:** Bahasa Indonesia (per CLAUDE.md)
+**Source:** Promoted dari `docs/superpowers/plans/2026-05-21-v318-phase2-edit-jawaban.md` (commit `594cfd95`) — superpowers `writing-plans` output sebelum di-formalisasi via `/gsd-plan-phase`.
+
+> **Catatan untuk `gsd-planner`:** Dokumen ini berisi task breakdown + code blocks tingkat implementasi yang sudah codebase-verified. `/gsd-plan-phase 321` consume dokumen ini sebagai research input, lalu output `.planning/phases/321-assessment-edit-jawaban-peserta/321-01-PLAN.md` (dst.) sesuai GSD multi-PLAN sub-numbering convention. Migration baru `AddAssessmentEditLogs` perlu masuk plan dengan apply+rollback verification.
 
 **Goal:** Bangun halaman admin/HC untuk edit jawaban MC+MA peserta Completed dengan recompute otomatis (Score/IsPassed/ElemenTeknis), cascade sertifikat & TrainingRecord, audit trail granular, dan SignalR broadcast.
 
 **Architecture:** 3 layer baru: (1) Model + Migration `AssessmentEditLog`, (2) Service method `GradingService.RegradeAfterEditAsync` + refactor compute internal, (3) Controller `AssessmentAdminController.EditPesertaAnswers` (GET/POST) + dry-run `PreviewEditScore` + View `Views/AssessmentAdmin/EditPesertaAnswers.cshtml`. UI dropdown ⋮ ditambah ke `AssessmentMonitoringDetail.cshtml` per-user table. SignalR signal baru `workerAnswerEdited` ke group `monitor-{batchKey}`. Tab "Edit History" dipasang di modal Activity Log existing. Transaction scope membungkus edit+audit+regrade+cascade.
 
-**Tech Stack:** .NET 8 + EF Core 8 (existing), SignalR (existing AssessmentHub), Bootstrap 5 dropdown + modal (existing), ClosedXML/SkiaSharp (NOT used Phase 2). No frontend framework — vanilla JS + jQuery existing pattern.
+**Tech Stack:** .NET 8 + EF Core 8 (existing), SignalR (existing AssessmentHub), Bootstrap 5 dropdown + modal (existing), ClosedXML/SkiaSharp (NOT used Phase 321). No frontend framework — vanilla JS + jQuery existing pattern.
 
 **Spec reference:** `docs/superpowers/specs/2026-05-20-assessment-admin-power-tools-design.md` Section 4 (commit c37e55ef).
 
-**Project test infra:** Project TIDAK punya unit/integration test (per spec 5.10). Verification path = `dotnet build` + EF migration apply lokal + manual UAT via browser. Pre-commit checklist dari [`docs/DEV_WORKFLOW.md`](../../DEV_WORKFLOW.md) §5 wajib dijalankan per task. Migration WAJIB di-test apply+rollback lokal sebelum commit.
+**Project test infra:** Project TIDAK punya unit/integration test (per spec 5.10). Verification path = `dotnet build` + EF migration apply lokal + manual UAT via browser. Pre-commit checklist dari [`docs/DEV_WORKFLOW.md`](../../../../docs/DEV_WORKFLOW.md) §5 wajib dijalankan per task. Migration WAJIB di-test apply+rollback lokal sebelum commit.
 
 ---
 
@@ -137,7 +143,7 @@ Expected: Build succeeded, 0 error.
 
 ```bash
 git add Models/AssessmentEditLog.cs Data/ApplicationDbContext.cs Migrations/
-git commit -m "feat(v3.18-phase2): add AssessmentEditLog model + migration (audit granular)"
+git commit -m "feat(v17.0-p321): add AssessmentEditLog model + migration (audit granular)"
 ```
 
 ---
@@ -197,7 +203,7 @@ Run: `Grep pattern="TahunKe" path=Models/AssessmentSession.cs`. Sesuaikan proper
 
 ```bash
 git add Helpers/AssessmentEditEligibility.cs
-git commit -m "feat(v3.18-phase2): add AssessmentEditEligibility helper (IsEditable gating)"
+git commit -m "feat(v17.0-p321): add AssessmentEditEligibility helper (IsEditable gating)"
 ```
 
 ---
@@ -339,7 +345,7 @@ Catatan: kita BIARKAN `GradeAndCompleteAsync` keep inline logic existing (TIDAK 
 
 ```bash
 git add Services/GradingService.cs
-git commit -m "feat(v3.18-phase2): add ComputeScoreAndETInternalAsync (pure compute, overrideAnswers? param)"
+git commit -m "feat(v17.0-p321): add ComputeScoreAndETInternalAsync (pure compute, overrideAnswers? param)"
 ```
 
 ---
@@ -499,7 +505,7 @@ Expected: Build succeeded.
 
 ```bash
 git add Services/GradingService.cs
-git commit -m "feat(v3.18-phase2): add GradingService.RegradeAfterEditAsync (recompute + cascade cert/TR on flip)"
+git commit -m "feat(v17.0-p321): add GradingService.RegradeAfterEditAsync (recompute + cascade cert/TR on flip)"
 ```
 
 ---
@@ -638,7 +644,7 @@ Expected: Build succeeded.
 
 ```bash
 git add Models/ViewModels/EditPesertaAnswersViewModel.cs Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase2): add GET EditPesertaAnswers controller + view model"
+git commit -m "feat(v17.0-p321): add GET EditPesertaAnswers controller + view model"
 ```
 
 ---
@@ -816,7 +822,7 @@ Run: `dotnet build && dotnet run`. Buka `http://localhost:5277/AssessmentAdmin/E
 
 ```bash
 git add Views/AssessmentAdmin/EditPesertaAnswers.cshtml wwwroot/js/edit-peserta-answers.js
-git commit -m "feat(v3.18-phase2): add EditPesertaAnswers.cshtml + JS stub"
+git commit -m "feat(v17.0-p321): add EditPesertaAnswers.cshtml + JS stub"
 ```
 
 ---
@@ -998,7 +1004,7 @@ Run: `dotnet run`. Buka edit page. Ubah 1 jawaban MC → card highlight warning,
 
 ```bash
 git add wwwroot/js/edit-peserta-answers.js
-git commit -m "feat(v3.18-phase2): edit-peserta-answers.js (dirty state + reason + flip preview)"
+git commit -m "feat(v17.0-p321): edit-peserta-answers.js (dirty state + reason + flip preview)"
 ```
 
 ---
@@ -1233,7 +1239,7 @@ Expected: Build succeeded.
 
 ```bash
 git add Controllers/AssessmentAdminController.cs Models/ViewModels/EditAnswersSubmission.cs
-git commit -m "feat(v3.18-phase2): POST SubmitEditAnswers (tx + audit + regrade + SignalR)"
+git commit -m "feat(v17.0-p321): POST SubmitEditAnswers (tx + audit + regrade + SignalR)"
 ```
 
 ---
@@ -1319,7 +1325,7 @@ Run `dotnet run`. Buka edit page, ubah jawaban, klik Save. Tap network tab DevTo
 
 ```bash
 git add Controllers/AssessmentAdminController.cs Services/GradingService.cs Models/ViewModels/EditAnswersSubmission.cs
-git commit -m "feat(v3.18-phase2): POST PreviewEditScore endpoint (dry-run flip detection)"
+git commit -m "feat(v17.0-p321): POST PreviewEditScore endpoint (dry-run flip detection)"
 ```
 
 ---
@@ -1386,7 +1392,7 @@ Run: `dotnet build && dotnet run`. Buka monitoring detail page. Per row:
 
 ```bash
 git add Views/AssessmentAdmin/AssessmentMonitoringDetail.cshtml
-git commit -m "feat(v3.18-phase2): per-user table action dropdown (hybrid inline+menu)"
+git commit -m "feat(v17.0-p321): per-user table action dropdown (hybrid inline+menu)"
 ```
 
 ---
@@ -1446,7 +1452,7 @@ Run: `dotnet run`. Buka monitoring detail di 2 tab browser sekaligus (sama sessi
 
 ```bash
 git add Views/AssessmentAdmin/AssessmentMonitoringDetail.cshtml
-git commit -m "feat(v3.18-phase2): SignalR workerAnswerEdited handler (row update + toast)"
+git commit -m "feat(v17.0-p321): SignalR workerAnswerEdited handler (row update + toast)"
 ```
 
 ---
@@ -1564,7 +1570,7 @@ Run: `dotnet build && dotnet run`. Buka monitoring detail → klik 🕐 modal �
 
 ```bash
 git add Views/AssessmentAdmin/AssessmentMonitoringDetail.cshtml Views/AssessmentAdmin/_EditHistoryPartial.cshtml Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase2): Activity Log Edit History tab (lazy-load partial)"
+git commit -m "feat(v17.0-p321): Activity Log Edit History tab (lazy-load partial)"
 ```
 
 ---
@@ -1604,21 +1610,21 @@ Tickbox di branch lokal sebelum push:
 - [ ] **Step 3: Tag milestone phase**
 
 ```bash
-git tag -a v3.18-phase2-complete -m "Milestone v3.18 Phase 2: Edit Jawaban complete"
+git tag -a v17.0-p321-complete -m "Milestone v17.0 Phase 321: Edit Jawaban complete"
 ```
 
 - [ ] **Step 4: Push + handoff IT**
 
 Notify IT team channel dengan format:
 ```
-Milestone v3.18 Phase 2 deploy-ready. Commit hash: {LAST_COMMIT}.
+Milestone v17.0 Phase 321 deploy-ready. Commit hash: {LAST_COMMIT}.
 Ada migration baru: AddAssessmentEditLogs — perlu dotnet ef database update di DB Dev.
 Verify post-deploy: /AssessmentAdmin/AssessmentMonitoringDetail → dropdown ⋮ → Edit Jawaban accessible utk Admin/HC.
 ```
 
 ```bash
 git push origin main
-git push origin v3.18-phase2-complete
+git push origin v17.0-p321-complete
 ```
 
 ---

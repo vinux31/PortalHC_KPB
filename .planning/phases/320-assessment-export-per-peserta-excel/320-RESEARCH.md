@@ -1,16 +1,22 @@
-# Milestone v3.18 — Phase 1: Export Per-Peserta Implementation Plan
+# Phase 320: Assessment Export Per-Peserta Excel — Research
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Researched:** 2026-05-21
+**Milestone:** v17.0 Assessment Admin Power Tools
+**Confidence:** HIGH (semua claim verified via direct codebase read 2026-05-21; spec `docs/superpowers/specs/2026-05-20-assessment-admin-power-tools-design.md` commit `c37e55ef`)
+**Language:** Bahasa Indonesia (per CLAUDE.md)
+**Source:** Promoted dari `docs/superpowers/plans/2026-05-21-v318-phase1-export-per-peserta.md` (commit `594cfd95`) — superpowers `writing-plans` output sebelum di-formalisasi via `/gsd-plan-phase`.
+
+> **Catatan untuk `gsd-planner`:** Dokumen ini berisi task breakdown + code blocks tingkat implementasi yang sudah codebase-verified. `/gsd-plan-phase 320` consume dokumen ini sebagai research input, lalu output `.planning/phases/320-assessment-export-per-peserta-excel/320-01-PLAN.md` (dst.) sesuai GSD multi-PLAN sub-numbering convention.
 
 **Goal:** Extend `ExportAssessmentResults` agar file Excel berisi 1 sheet "Summary" + N sheet per peserta (data lengkap + PNG radar chart) untuk Admin/HC.
 
 **Architecture:** Refactor controller existing (`AssessmentAdminController.ExportAssessmentResults`) jadi 2 layer: (1) Summary sheet (rename "Results"→"Summary"), (2) Per-peserta loop yang generate sheet content via helper baru `Helpers/SpiderChartRenderer.cs` (SkiaSharp PNG renderer). Chart PNG di-generate paralel pakai `Task.WhenAll` dengan `MaxDegreeOfParallelism = Environment.ProcessorCount`. No DB schema change.
 
-**Tech Stack:** .NET 8 + ClosedXML 0.105.0 (existing), SkiaSharp 3.116.1 + SkiaSharp.NativeAssets.Win32 (NEW), Bootstrap 5 view layer (no UI change Phase 1).
+**Tech Stack:** .NET 8 + ClosedXML 0.105.0 (existing), SkiaSharp 3.116.1 + SkiaSharp.NativeAssets.Win32 (NEW), Bootstrap 5 view layer (no UI change Phase 320).
 
 **Spec reference:** `docs/superpowers/specs/2026-05-20-assessment-admin-power-tools-design.md` Section 3 (commit c37e55ef).
 
-**Project test infra:** Project TIDAK punya unit/integration test (per spec 5.10). Verification path = `dotnet build` + manual UAT via browser. Pre-commit checklist dari [`docs/DEV_WORKFLOW.md`](../../DEV_WORKFLOW.md) §5 wajib dijalankan per task yang menghasilkan commit.
+**Project test infra:** Project TIDAK punya unit/integration test (per spec 5.10). Verification path = `dotnet build` + manual UAT via browser. Pre-commit checklist dari [`docs/DEV_WORKFLOW.md`](../../../../docs/DEV_WORKFLOW.md) §5 wajib dijalankan per task yang menghasilkan commit.
 
 ---
 
@@ -58,7 +64,7 @@ Test via `dotnet script` atau bikin temporary test endpoint. Pastikan `SKBitmap`
 
 ```bash
 git add HcPortal.csproj
-git commit -m "feat(v3.18-phase1): add SkiaSharp 3.116.1 for spider chart PNG render"
+git commit -m "feat(v17.0-p320): add SkiaSharp 3.116.1 for spider chart PNG render"
 ```
 
 ---
@@ -198,7 +204,7 @@ Buka di browser. Verify chart muncul 500×500 dengan 5 axis + polygon biru. Hapu
 
 ```bash
 git add Helpers/SpiderChartRenderer.cs
-git commit -m "feat(v3.18-phase1): add SpiderChartRenderer (SkiaSharp PNG radar)"
+git commit -m "feat(v17.0-p320): add SpiderChartRenderer (SkiaSharp PNG radar)"
 ```
 
 ---
@@ -264,7 +270,7 @@ Expected: Build succeeded.
 
 ```bash
 git add Helpers/SheetNameSanitizer.cs
-git commit -m "feat(v3.18-phase1): add SheetNameSanitizer ({NIP}_{FullName} format)"
+git commit -m "feat(v17.0-p320): add SheetNameSanitizer ({NIP}_{FullName} format)"
 ```
 
 ---
@@ -302,7 +308,7 @@ Run: `dotnet build && dotnet run`. Buka `http://localhost:5277/AssessmentAdmin/E
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "refactor(v3.18-phase1)!: rename export sheet Results->Summary
+git commit -m "refactor(v17.0-p320)!: rename export sheet Results->Summary
 
 BREAKING CHANGE: Tab pertama export Excel sekarang bernama 'Summary' (sebelumnya 'Results'). File suffix berubah _Results.xlsx -> _Summary.xlsx."
 ```
@@ -319,7 +325,7 @@ BREAKING CHANGE: Tab pertama export Excel sekarang bernama 'Summary' (sebelumnya
 Setelah block "Data rows" (line 3789), sebelum `var safeTitle = ...`, sisipkan:
 
 ```csharp
-// === Per-Peserta Sheets (v3.18 Phase 1) ===
+// === Per-Peserta Sheets (v17.0 Phase 320) ===
 // Filter peserta eligible: Completed + Abandoned only. Skip InProgress, Not Started, Cancelled.
 var eligibleSessions = sessions
     .Where(s => s.Status == "Completed" || s.Status == "Abandoned")
@@ -344,7 +350,7 @@ Expected: Build succeeded.
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase1): filter eligible sessions (Completed+Abandoned) for per-peserta sheets"
+git commit -m "feat(v17.0-p320): filter eligible sessions (Completed+Abandoned) for per-peserta sheets"
 ```
 
 ---
@@ -416,7 +422,7 @@ Run: `dotnet build && dotnet run`. Export dari `ManageAssessment` → Excel. Ver
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase1): per-peserta sheet with session header + info"
+git commit -m "feat(v17.0-p320): per-peserta sheet with session header + info"
 ```
 
 ---
@@ -492,7 +498,7 @@ Run: `dotnet build && dotnet run`. Export → buka tab peserta Online (non-Manua
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase1): per-peserta ElemenTeknis section (Variant A)"
+git commit -m "feat(v17.0-p320): per-peserta ElemenTeknis section (Variant A)"
 ```
 
 ---
@@ -534,7 +540,7 @@ Run: `dotnet build && dotnet run`. Export → tab peserta Online dengan ≥ 3 El
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase1): embed spider chart PNG (>=3 ET, SkiaSharp render)"
+git commit -m "feat(v17.0-p320): embed spider chart PNG (>=3 ET, SkiaSharp render)"
 ```
 
 ---
@@ -647,7 +653,7 @@ Run: `dotnet build && dotnet run`. Export → tab peserta Completed → verify t
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase1): per-peserta Detail Jawaban table (MC+MA, Tidak dijawab handling)"
+git commit -m "feat(v17.0-p320): per-peserta Detail Jawaban table (MC+MA, Tidak dijawab handling)"
 ```
 
 ---
@@ -720,7 +726,7 @@ Run `dotnet run`. Export grup yang punya 1+ session dengan `IsManualEntry = true
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "feat(v3.18-phase1): per-peserta Variant B (Manual Entry section)"
+git commit -m "feat(v17.0-p320): per-peserta Variant B (Manual Entry section)"
 ```
 
 ---
@@ -794,7 +800,7 @@ Run: `dotnet build && dotnet run`. Export grup dengan 20 peserta. Catat response
 
 ```bash
 git add Controllers/AssessmentAdminController.cs
-git commit -m "perf(v3.18-phase1): parallel PNG pre-compute (cap MaxDegreeOfParallelism=Cores)"
+git commit -m "perf(v17.0-p320): parallel PNG pre-compute (cap MaxDegreeOfParallelism=Cores)"
 ```
 
 ---
@@ -832,7 +838,7 @@ Tickbox di branch lokal sebelum push:
 - [ ] **Step 3: Tag milestone phase**
 
 ```bash
-git tag -a v3.18-phase1-complete -m "Milestone v3.18 Phase 1: Export Per-Peserta complete"
+git tag -a v17.0-p320-complete -m "Milestone v17.0 Phase 320: Export Per-Peserta complete"
 ```
 
 - [ ] **Step 4: Update spec status di memory + push**
@@ -841,7 +847,7 @@ User notify IT team commit hash via channel komunikasi yang biasa dipakai (Teams
 
 ```bash
 git push origin main
-git push origin v3.18-phase1-complete
+git push origin v17.0-p320-complete
 ```
 
 ---
