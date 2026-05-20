@@ -519,3 +519,7 @@ null
 *.bat
 TempDbCheck/
 .superpowers/
+
+# Build/export artifacts
+build_output.txt
+sosialisasi-portalhc/*.pdf
