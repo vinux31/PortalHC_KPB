@@ -47,7 +47,7 @@ public static class GuideContentProvider
             Id: "cmp-monitoring-records-tim",
             Module: GuideModule.Cmp,
             Title: "Cara Monitoring Records Tim",
-            Roles: new[] { RoleGroup.AdminHC },
+            Roles: new[] { RoleGroup.Atasan, RoleGroup.AdminHC },
             Steps: new[]
             {
                 new GuideStep(1, "Tab Records Team", "Di menu CMP, klik tab <b>Records Team</b>."),
@@ -74,7 +74,7 @@ public static class GuideContentProvider
             Id: "cdp-approve-deliverable",
             Module: GuideModule.Cdp,
             Title: "Cara Approve / Reject Deliverable (Coaching Guidance)",
-            Roles: new[] { RoleGroup.AdminHC },
+            Roles: new[] { RoleGroup.Atasan, RoleGroup.AdminHC },
             Steps: new[]
             {
                 new GuideStep(1, "Cek Request Masuk", "Buka CDP dan cek notifikasi approval yang muncul saat coachee submit evidence."),
@@ -87,7 +87,7 @@ public static class GuideContentProvider
             Id: "cdp-coaching-proton-dashboard",
             Module: GuideModule.Cdp,
             Title: "Cara Melihat Coaching Proton Dashboard",
-            Roles: new[] { RoleGroup.AdminHC },
+            Roles: new[] { RoleGroup.Manager, RoleGroup.AdminHC },
             Steps: new[]
             {
                 new GuideStep(1, "Akses Dashboard", "Di halaman CDP, klik kartu <b>Coaching Proton Dashboard</b>."),
