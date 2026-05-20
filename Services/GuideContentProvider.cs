@@ -56,6 +56,34 @@ public static class GuideContentProvider
             },
             Keywords: new[] { "monitoring", "records team", "compliance" }
         ),
+        new GuideItem(
+            Id: "cmp-pre-post-test",
+            Module: GuideModule.Cmp,
+            Title: "Cara Mengerjakan Pre-Post Test",
+            Roles: new[] { RoleGroup.All },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Tab Assessment", "Di menu CMP, buka <b>Assessment</b>. Pre-Test akan tampil sebelum jadwal pelatihan dimulai."),
+                new GuideStep(2, "Kerjakan Pre-Test", "Klik <b>Mulai Pre-Test</b>. Kerjakan soal seperti assessment biasa — tidak ada batas pengulangan, jawab sesuai pemahaman awal Anda."),
+                new GuideStep(3, "Ikuti Pelatihan", "Setelah Pre-Test selesai, ikuti program pelatihan sesuai jadwal yang ditentukan."),
+                new GuideStep(4, "Kerjakan Post-Test", "Setelah pelatihan selesai, buka kembali tab Assessment dan klik <b>Mulai Post-Test</b>. Sistem akan otomatis menghitung <b>Gain Score</b> (selisih Pre vs Post).")
+            },
+            Keywords: new[] { "pre", "post", "pretest", "posttest", "gain score", "test" }
+        ),
+        new GuideItem(
+            Id: "cmp-monitoring-manager",
+            Module: GuideModule.Cmp,
+            Title: "Monitoring Compliance Unit/Section",
+            Roles: new[] { RoleGroup.Manager, RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Analytics Dashboard", "Di menu CMP, klik <b>Analytics Dashboard</b>."),
+                new GuideStep(2, "Filter per Unit/Section", "Gunakan filter Unit, Section, atau Kategori Assessment untuk fokus ke scope yang Anda monitor."),
+                new GuideStep(3, "Review Compliance Chart", "Lihat persentase kepatuhan assessment, distribusi nilai, dan daftar pekerja yang belum complete assessment wajib."),
+                new GuideStep(4, "Export Laporan", "Klik <b>Export Excel</b> untuk download laporan compliance untuk meeting unit/section.")
+            },
+            Keywords: new[] { "monitoring", "compliance", "unit", "section", "dashboard", "manager" }
+        ),
 
         // ═══════════════════ CDP ═══════════════════
         new GuideItem(
