@@ -41,15 +41,15 @@ Lengkapi tooling admin assessment dengan dua kemampuan:
 ```
 Workbook
 ├── Sheet "Summary"  (rename dari "Results", breaking change accepted)
-└── Sheet "[NamaPeserta] - [NIP]" × N  (Completed + Abandoned only)
+└── Sheet "[NIP]_[NamaPeserta]" × N  (Completed + Abandoned only)
 ```
 
 Filter peserta yang dapat sheet: `Status ∈ { "Completed", "Abandoned" }`. Skip `InProgress`, `Not Started`, `Cancelled`.
 
 Sheet name sanitization:
 - Excel limit: 31 karakter, exclude `\ / ? * [ ] :`
-- Format: `{FullName} - {NIP}` truncate kalau melebihi
-- Collision guard: append `(2)`, `(3)`, …
+- Format: `{NIP}_{FullName}` — NIP di depan agar collision-free (NIP unique per worker). Truncate FullName dari belakang kalau total > 31 char.
+- Collision guard: append `(2)`, `(3)`, … (fallback, harusnya tidak terpicu karena NIP unique)
 
 ### 3.2 Isi Sheet Peserta — 2 Variant
 
@@ -72,6 +72,7 @@ Section 2: Detail Jawaban  (MC + MA only)
   - MC row: 1 baris, kolom Jawaban = single option
   - MA row: 1 baris, kolom Jawaban = comma-separated selected options
   - Essay row: skip dengan note "Essay – manual grading (lihat Penilaian Essay)"
+  - Soal tanpa `PackageUserResponses` (Abandoned skip soal): kolom "Jawaban Peserta" = `"Tidak dijawab"`, Status = ✗
 ```
 
 **Variant B — Manual entry assessment (`IsManualEntry == true`)**
@@ -307,7 +308,10 @@ Tujuan: re-grade session yang sudah Completed setelah edit jawaban.
 Implementasi:
 
 1. DELETE existing `SessionElemenTeknisScores WHERE AssessmentSessionId == session.Id`
-2. Reuse compute logic dari `GradeAndCompleteAsync` step 1–2 (factor out jadi private method `ComputeScoreAndETInternalAsync(session)` yang return `(totalScore, maxScore, isPassed, etScores)` tanpa side-effect)
+2. Reuse compute logic dari `GradeAndCompleteAsync` step 1–2 (factor out jadi private method `ComputeScoreAndETInternalAsync(session, overrideAnswers?)` yang return `(totalScore, maxScore, isPassed, etScores)` tanpa side-effect)
+   - Signature: `ComputeScoreAndETInternalAsync(AssessmentSession session, IDictionary<int, List<int>>? overrideAnswers = null)`
+   - `overrideAnswers == null` → baca semua jawaban dari `PackageUserResponses` (path untuk `RegradeAfterEditAsync` setelah DB tertulis)
+   - `overrideAnswers != null` → merge: pakai override untuk `PackageQuestionId` yang ada di dict, fallback ke DB untuk soal sisanya. Path untuk endpoint `PreviewEditScore` (4.6) yang dry-run tanpa persist.
 3. Insert `SessionElemenTeknisScores` baru
 4. Update session via `ExecuteUpdateAsync` — **status guard berbeda**: WHERE Status == "Completed" (bukan != Completed)
 5. Cascade sertifikat + TrainingRecord:
@@ -359,8 +363,11 @@ Tab "Edit History" tampilkan `AssessmentEditLog` filtered by `AssessmentSessionI
 ### 5.1 SignalR Broadcast
 
 - Group: `monitor-{batchKey}` (admin/HC monitoring viewer)
-- Signal baru Phase 2: `workerAnswerEdited` payload `{ sessionId, newScore, newIsPassed, oldScore, oldIsPassed }`
-- Frontend `AssessmentMonitoringDetail` handler update row score/result cell tanpa full reload (konsisten dengan `workerSubmitted` pattern)
+- Signal baru Phase 2: `workerAnswerEdited` payload `{ sessionId, workerName, oldScore, newScore, oldIsPassed, newIsPassed, actorName, actorRole }`
+  - `workerName` — `User.FullName` peserta (konsisten dengan `workerStarted` / `workerSubmitted` convention)
+  - `actorName` — `"NIP - FullName"` admin/HC yang edit (untuk toast notification ke admin lain)
+  - `actorRole` — `"Admin"` / `"HC"`
+- Frontend `AssessmentMonitoringDetail` handler update row score/result cell tanpa full reload (konsisten dengan `workerSubmitted` pattern), plus toast "{actorRole} {actorName} edit jawaban {workerName}: {oldScore}→{newScore}, {Pass→Fail|Fail→Pass|...}"
 
 ### 5.2 Cache Invalidation
 
