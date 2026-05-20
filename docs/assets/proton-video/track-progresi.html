@@ -197,6 +197,28 @@
   @keyframes backboneDraw2 { to { stroke-dashoffset: 480; } }
   @keyframes backboneDraw3 { to { stroke-dashoffset: 0; stroke: var(--red); } }
 
+  .backbone-caption {
+    position: absolute;
+    top: -18px;
+    font-size: clamp(10px, 0.8vw, 12px);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .backbone-caption.c1 { left: 41.67%; animation: captionFlash 1.6s 9.4s ease-out forwards; }
+  .backbone-caption.c2 { left: 75%;    animation: captionFlash 1.6s 17.9s ease-out forwards; }
+  @keyframes captionFlash {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    25%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    75%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
   /* ===== TIMELINE ===== */
   .timeline {
     flex: 1;
@@ -365,6 +387,8 @@
       <svg class="backbone" viewBox="0 0 1600 4" preserveAspectRatio="none" aria-hidden="true">
         <path class="backbone-path" d="M 8 2 L 1592 2"/>
       </svg>
+      <span class="backbone-caption c1">Naik Tahun</span>
+      <span class="backbone-caption c2">Naik Tahun</span>
     </div>
     <div class="timeline">
       <div class="year-card y1" id="card-y1">
