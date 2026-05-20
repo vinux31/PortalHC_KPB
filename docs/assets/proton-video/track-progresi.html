@@ -49,11 +49,76 @@
     display: flex;
     flex-direction: column;
   }
+
+  /* ===== HEADER ===== */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: clamp(24px, 2.5vw, 40px);
+  }
+  .header .title-block {
+    opacity: 0;
+    transform: translateY(-12px);
+    animation: fadeDown 0.8s 0.2s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+  }
+  .eyebrow {
+    font-size: clamp(11px, 0.9vw, 14px);
+    font-weight: 800;
+    color: var(--red);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .title {
+    font-size: clamp(28px, 2.6vw, 44px);
+    font-weight: 900;
+    color: var(--navy-deep);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .title em { font-style: normal; color: var(--red); }
+
+  .progress-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    opacity: 0;
+    animation: fadeIn 0.6s 0.5s ease-out forwards;
+  }
+  .dot {
+    width: 32px;
+    height: 4px;
+    background: var(--hairline);
+    border-radius: 2px;
+    transition: background 0.5s ease, width 0.5s ease;
+  }
+  .dot.active { background: var(--navy); width: 44px; }
+  .dot.done   { background: var(--navy-soft); }
+  .dot.final  { background: var(--red); }
+
+  @keyframes fadeDown {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
 </style>
 </head>
 <body>
   <div class="stage" id="stage">
-    <!-- header + role-row + timeline akan ditambahkan di task berikutnya -->
+    <div class="header">
+      <div class="title-block">
+        <div class="eyebrow">Track &amp; Progresi Tahunan</div>
+        <h1 class="title">Dua Track. Tiga Tahun. <em>Satu Tujuan.</em></h1>
+      </div>
+      <div class="progress-dots">
+        <span class="dot" id="d1"></span>
+        <span class="dot" id="d2"></span>
+        <span class="dot" id="d3"></span>
+      </div>
+    </div>
+    <!-- role-row + timeline akan ditambahkan di task berikutnya -->
   </div>
 </body>
 </html>
