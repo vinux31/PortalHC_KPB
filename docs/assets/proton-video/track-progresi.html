@@ -461,21 +461,38 @@
     </div>
   </div>
 <script>
-  // Progress dots — sync dengan munculnya tiap kartu tahun
+  // ===== TRACK & PROGRESI ANIMATION ORCHESTRATION =====
+
+  function setDot(id, classes) {
+    const el = document.getElementById(id);
+    el.classList.remove('active', 'done', 'final');
+    classes.split(' ').forEach(c => el.classList.add(c));
+  }
+
+  function tweenCounter(id, from, to, duration) {
+    const el = document.getElementById(id);
+    const start = performance.now();
+    function frame(now) {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (to - from) * eased);
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
   const milestones = [
-    { delay: 5200, dot: 'd1', cls: 'active' },
-    { delay: 9500, dot: 'd1', cls: 'done' },
-    { delay: 9700, dot: 'd2', cls: 'active' },
-    { delay: 13500, dot: 'd2', cls: 'done' },
-    { delay: 13700, dot: 'd3', cls: 'active final' },
+    { t: 3000,  fn: () => setDot('d1', 'active') },
+    { t: 4800,  fn: () => tweenCounter('cnt-y1', 0, 2, 1200) },
+    { t: 9500,  fn: () => setDot('d1', 'done') },
+    { t: 9700,  fn: () => setDot('d2', 'active') },
+    { t: 12500, fn: () => tweenCounter('cnt-y2', 0, 3, 1400) },
+    { t: 18000, fn: () => setDot('d2', 'done') },
+    { t: 18200, fn: () => setDot('d3', 'active final') },
+    { t: 20500, fn: () => tweenCounter('cnt-y3', 0, 2, 1200) }
   ];
-  milestones.forEach(m => {
-    setTimeout(() => {
-      const el = document.getElementById(m.dot);
-      el.classList.remove('active', 'done', 'final');
-      m.cls.split(' ').forEach(c => el.classList.add(c));
-    }, m.delay);
-  });
+
+  milestones.forEach(m => setTimeout(m.fn, m.t));
 </script>
 </body>
 </html>
