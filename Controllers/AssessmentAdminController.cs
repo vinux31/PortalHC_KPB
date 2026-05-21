@@ -3724,7 +3724,7 @@ namespace HcPortal.Controllers
 
             // Generate workbook (ClosedXML)
             using var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Results");
+            var worksheet = workbook.Worksheets.Add("Summary");
 
             var firstSession = sessions.First();
             int totalCols = 7;
@@ -3790,7 +3790,7 @@ namespace HcPortal.Controllers
 
             // Sanitize title for filename: replace non-alphanumeric with _
             var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
-            var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Results.xlsx";
+            var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Summary.xlsx";
             return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
