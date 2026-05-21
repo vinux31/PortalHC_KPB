@@ -116,6 +116,83 @@
     animation: fadeIn 0.8s 1.5s ease-out forwards;
     pointer-events: none;
   }
+
+  /* ===== STEPPER ===== */
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-top: auto;
+    margin-bottom: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeUp 0.6s 0.9s ease-out forwards;
+  }
+  .step-node {
+    width: clamp(28px, 2.4vw, 40px);
+    height: clamp(28px, 2.4vw, 40px);
+    border-radius: 50%;
+    border: 2px solid var(--hairline);
+    display: grid;
+    place-items: center;
+    font-size: clamp(12px, 1vw, 16px);
+    font-weight: 800;
+    color: var(--muted);
+    background: #FFFFFF;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .step-node.active {
+    border-color: var(--navy);
+    background: var(--navy);
+    color: #FFFFFF;
+    transform: scale(1.15);
+  }
+  .step-node.done {
+    border-color: var(--navy-soft);
+    background: var(--navy-soft);
+    color: transparent;
+  }
+  .step-node.done::after {
+    content: "✓";
+    position: absolute;
+    color: #FFFFFF;
+    font-size: 1.1em;
+    line-height: 1;
+  }
+  .step-node.active.final {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .stepper.done-all .step-node {
+    background: var(--navy-soft);
+    border-color: var(--navy-soft);
+    color: transparent;
+    transform: scale(1);
+  }
+  .stepper.done-all .step-node:last-child {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .stepper.done-all .step-node::after {
+    content: "✓";
+    position: absolute;
+    color: #FFFFFF;
+    font-size: 1.1em;
+    line-height: 1;
+  }
+
+  .step-connector {
+    width: clamp(40px, 5vw, 80px);
+    height: 2px;
+    background: var(--hairline);
+    transition: background 0.5s ease;
+  }
+  .step-connector.filled { background: var(--navy-soft); }
+  .step-connector.final { background: var(--red); }
+  .stepper.done-all .step-connector { background: var(--navy-soft); }
+  .stepper.done-all .step-connector:last-of-type { background: var(--red); }
 </style>
 </head>
 <body>
@@ -125,7 +202,21 @@
       <h1 class="title">Enam Langkah <em>Terstruktur</em></h1>
     </div>
 
-    <!-- scenes container + stepper akan ditambahkan task berikutnya -->
+    <!-- scenes container akan ditambahkan task berikutnya -->
+
+    <div class="stepper" id="stepper">
+      <div class="step-node">1</div>
+      <div class="step-connector"></div>
+      <div class="step-node">2</div>
+      <div class="step-connector"></div>
+      <div class="step-node">3</div>
+      <div class="step-connector"></div>
+      <div class="step-node">4</div>
+      <div class="step-connector"></div>
+      <div class="step-node">5</div>
+      <div class="step-connector"></div>
+      <div class="step-node">6</div>
+    </div>
 
     <div class="brand-mark">PROTON × KPB</div>
   </div>
