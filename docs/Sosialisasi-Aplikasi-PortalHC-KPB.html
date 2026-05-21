@@ -116,7 +116,7 @@
     line-height: 1.1;
     letter-spacing: -0.3px;
   }
-  .slide-title .accent { color: var(--red); }
+  .slide-title .accent { color: var(--navy); }
   .slide-subtitle {
     font-size: 10.5pt;
     color: var(--slate);
@@ -132,11 +132,19 @@
     font-weight: 700;
     letter-spacing: 0.5px;
   }
-  .slide-body { position: relative; z-index: 2; }
+  .slide-body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    min-height: calc(100% - 90px);
+  }
 
   /* Dark mode slide adjustments */
   body.dark .slide-title { color: #e0f2fe; }
-  body.dark .slide-title .accent { color: #ff6b75; }
+  body.dark .slide-title .accent { color: #e0f2fe; }
 
   /* =================== NAVIGATION CONTROLS =================== */
   .controls {
@@ -245,66 +253,42 @@
   .cover::before {
     content: '';
     position: absolute;
-    top: -200px; right: -200px;
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(237, 28, 36, 0.25) 0%, transparent 70%);
+    bottom: -150px; right: -150px;
+    width: 540px; height: 540px;
+    background: radial-gradient(circle, rgba(237, 28, 36, 0.35) 0%, transparent 70%);
     border-radius: 50%;
   }
-  .cover::after {
-    content: '';
-    position: absolute;
-    bottom: -200px; left: -200px;
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(0, 150, 64, 0.2) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-  .cover-strip {
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 6px;
-    background: linear-gradient(180deg, var(--red) 0%, var(--red) 33%, var(--green) 33%, var(--green) 66%, #fff 66%);
-  }
-  .cover-content { text-align: center; position: relative; z-index: 2; padding: 40px; }
-  .logo-box {
-    display: inline-flex;
-    align-items: center;
-    gap: 18px;
-    padding: 16px 28px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    border-radius: 16px;
-    margin-bottom: 30px;
-  }
-  .logo-mark {
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24pt; font-weight: 800; color: #fff;
-    box-shadow: 0 4px 12px rgba(237, 28, 36, 0.4);
-  }
-  .logo-text { text-align: left; }
-  .logo-main { font-size: 18pt; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
-  .logo-sub { font-size: 9pt; font-weight: 500; color: #bbdefb; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+  .cover-content { text-align: center; position: relative; z-index: 2; padding: 40px 60px; }
   .cover-eyebrow {
-    font-size: 10pt; font-weight: 700; letter-spacing: 4px;
-    color: var(--red); margin-bottom: 16px; text-transform: uppercase;
+    font-size: 10pt; font-weight: 600; letter-spacing: 5px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 36px; text-transform: uppercase;
   }
   .cover-title {
-    font-size: 42pt; font-weight: 800; letter-spacing: -1px;
-    margin-bottom: 12px; line-height: 1.1;
+    font-size: 48pt; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 18px; line-height: 1.05; color: #fff;
   }
-  .cover-title .accent { color: var(--red); }
-  .cover-subtitle { font-size: 14pt; color: #bbdefb; font-weight: 400; margin-bottom: 30px; }
-  .cover-tags { display: flex; justify-content: center; gap: 14px; margin-top: 40px; flex-wrap: wrap; }
-  .cover-tag {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-size: 9.5pt;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+  .cover-title .accent { color: #fff; }
+  .cover-subtitle {
+    font-size: 16pt; color: rgba(255, 255, 255, 0.85);
+    font-weight: 400; margin-bottom: 0;
+  }
+  .cover-divider {
+    width: 220px; height: 1px;
+    background: rgba(255, 255, 255, 0.4);
+    margin: 40px auto 22px;
+  }
+  .cover-meta {
+    text-align: center;
+  }
+  .cover-meta-eyebrow {
+    font-size: 10pt; font-style: italic;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 6px;
+  }
+  .cover-meta-date {
+    font-size: 14pt; font-weight: 700;
+    color: #fff;
   }
 
   /* =================== AGENDA SLIDE =================== */
@@ -507,9 +491,18 @@
     display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: 11pt;
   }
-  .step-icon { font-size: 22pt; margin-bottom: 8px; }
+  .step-icon { font-size: 22pt; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
   .step-role { font-size: 10pt; font-weight: 800; line-height: 1.2; margin-bottom: 6px; min-height: 26px; }
-  .step-access { font-size: 8.5pt; opacity: 0.95; line-height: 1.3; }
+  .step-access {
+    font-size: 8.5pt;
+    line-height: 1.3;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-top: 6px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
   .s6 { height: 50%;  background: linear-gradient(180deg, #64748b 0%, #475569 100%); }
   .s5 { height: 60%;  background: linear-gradient(180deg, var(--green) 0%, var(--green-dark) 100%); }
   .s4 { height: 70%;  background: linear-gradient(180deg, var(--amber) 0%, #c97a07 100%); }
@@ -544,15 +537,15 @@
     border-top: 5px solid;
     position: relative;
   }
-  .akses-card.prod { border-top-color: var(--green); }
-  .akses-card.dev { border-top-color: var(--amber); }
+  .akses-card.prod { border-top-color: var(--amber); }
+  .akses-card.dev { border-top-color: var(--green); }
   .akses-label {
     font-size: 8pt; font-weight: 800; text-transform: uppercase;
     letter-spacing: 2px; padding: 4px 12px;
     border-radius: 12px; display: inline-block; margin-bottom: 14px;
   }
-  .akses-card.prod .akses-label { background: #dcfce7; color: #166534; }
-  .akses-card.dev .akses-label { background: #fef3c7; color: #92400e; }
+  .akses-card.prod .akses-label { background: #fef3c7; color: #92400e; }
+  .akses-card.dev .akses-label { background: #dcfce7; color: #166534; }
   .akses-card h3 {
     font-size: 16pt; font-weight: 800;
     margin-bottom: 6px; color: var(--navy);
@@ -659,6 +652,10 @@
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 14px; margin-top: 18px;
   }
+  .cat-grid.center-5 {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+  }
+  .cat-grid.center-5 .cat-card { flex: 0 1 calc(33.333% - 10px); }
   .cat-card {
     background: var(--slide-bg);
     border-radius: 12px; padding: 18px 16px;
@@ -732,28 +729,31 @@
   /* CHIP ROLE PILL (slide 6) */
   .role-chips {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    margin: 4px 0;
   }
   .role-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 10px;
-    background: rgba(0, 46, 109, 0.08);
-    border: 1px solid rgba(0, 46, 109, 0.2);
-    border-radius: 12px;
-    font-size: 8.5pt;
-    font-weight: 600;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 46, 109, 0.25);
+    border-radius: 10px;
+    font-size: 7.5pt;
+    font-weight: 700;
     color: var(--navy);
+    white-space: nowrap;
+    max-width: 100%;
   }
   body.dark .role-chip {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #e0f2fe;
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: var(--navy);
   }
-  .role-chip .chip-icon { font-size: 10pt; }
+  .role-chip .chip-icon { font-size: 9pt; }
 
   /* 2-ROW JENIS CARD (slide 7) */
   .jenis-grid {
@@ -770,7 +770,7 @@
     box-shadow: 0 4px 12px rgba(0, 46, 109, 0.06);
   }
   .jenis-card.umum { border-top: 4px solid var(--navy); }
-  .jenis-card.proton { border-top: 4px solid var(--red); }
+  .jenis-card.proton { border-top: 4px solid var(--amber); }
   .jenis-card .jenis-head {
     font-size: 14pt;
     font-weight: 800;
@@ -780,7 +780,7 @@
     gap: 8px;
   }
   .jenis-card.umum .jenis-head { color: var(--navy); }
-  .jenis-card.proton .jenis-head { color: var(--red); }
+  .jenis-card.proton .jenis-head { color: var(--amber); }
   .jenis-row {
     padding: 10px 0;
     border-top: 1px solid var(--border);
@@ -799,8 +799,8 @@
     line-height: 1.5;
   }
   .tip-bar {
-    background: linear-gradient(90deg, rgba(0, 150, 64, 0.08), rgba(0, 150, 64, 0.02));
-    border-left: 3px solid var(--green);
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.10), rgba(245, 158, 11, 0.03));
+    border-left: 3px solid var(--amber);
     padding: 10px 14px;
     font-size: 9.5pt;
     color: var(--text);
@@ -868,6 +868,9 @@
   .swim-step .step-desc { font-size: 8pt; color: var(--text-muted); line-height: 1.3; }
   .swim-step.highlight { border-color: var(--amber); background: linear-gradient(135deg, #fff8e8, #ffe9c0); }
   .swim-step.highlight .step-num-mini { background: var(--amber); }
+  .swim-step.final { border-color: var(--green); background: linear-gradient(135deg, rgba(0,150,64,0.06), #fff); }
+  .swim-step.final .step-num-mini { background: var(--green); }
+  .swim-step.final .step-title { color: var(--green); }
   .output-bar {
     margin-top: 16px;
     background: linear-gradient(90deg, var(--navy), var(--navy-dark));
@@ -972,12 +975,12 @@
     background: rgba(0, 46, 109, 0.04);
   }
   .progresi-table tbody td.diff-cell {
-    background: linear-gradient(135deg, rgba(237, 28, 36, 0.08), rgba(245, 158, 11, 0.08));
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
     font-weight: 700;
-    color: var(--red);
+    color: #b45309;
   }
   body.dark .progresi-table tbody td.aspek-label { color: #e0f2fe; background: rgba(255,255,255,0.04); }
-  body.dark .progresi-table tbody td.diff-cell { color: #ff9aa0; }
+  body.dark .progresi-table tbody td.diff-cell { color: #fbbf24; }
 
   /* TREE HIERARKI (slide 16) */
   .tree-grid {
@@ -1035,7 +1038,7 @@
   .pp-stepper {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 26px;
     margin-bottom: 20px;
     align-items: stretch;
   }
@@ -1050,10 +1053,10 @@
   .pp-step + .pp-step::before {
     content: '→';
     position: absolute;
-    left: -12px;
+    left: -20px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 14pt;
+    font-size: 13pt;
     color: var(--slate);
     font-weight: 800;
   }
@@ -1068,6 +1071,9 @@
     font-size: 11pt;
     margin-bottom: 8px;
   }
+  .pp-step.final { border-color: var(--green); background: linear-gradient(135deg, rgba(0,150,64,0.06), #fff); }
+  .pp-step.final .pp-num { background: var(--green); }
+  .pp-step.final .pp-title { color: var(--green); }
   .pp-step .pp-icon { font-size: 22pt; display: block; margin-bottom: 6px; }
   .pp-step .pp-title { font-weight: 700; color: var(--navy); font-size: 11pt; }
   .pp-step .pp-desc { font-size: 8.5pt; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
@@ -1103,14 +1109,14 @@
     padding: 22px 26px;
     text-align: center;
   }
-  .dt-col.operator { border-top-color: var(--red); }
+  .dt-col.operator { border-top-color: var(--amber); }
   .dt-col .dt-head {
     font-size: 15pt;
     font-weight: 800;
     margin-bottom: 14px;
     color: var(--navy);
   }
-  .dt-col.operator .dt-head { color: var(--red); }
+  .dt-col.operator .dt-head { color: var(--amber); }
   .dt-pills {
     display: flex;
     justify-content: center;
@@ -1125,7 +1131,7 @@
     font-weight: 700;
     font-size: 10pt;
   }
-  .dt-col.operator .dt-pill { background: var(--red); }
+  .dt-col.operator .dt-pill { background: var(--amber); }
   .dt-note { font-size: 8.5pt; color: var(--text-muted); font-style: italic; }
   body.dark .dt-col { background: linear-gradient(135deg, var(--slide-bg), var(--slide-bg-2)); }
 
@@ -1145,7 +1151,7 @@
     position: relative;
   }
   .ringkasan-card.t2 { background: linear-gradient(135deg, #1e88e5, #0d47a1); }
-  .ringkasan-card.t3 { background: linear-gradient(135deg, var(--red), var(--red-dark)); }
+  .ringkasan-card.t3 { background: linear-gradient(135deg, var(--amber), #b45309); }
   .ringkasan-card .rc-year {
     font-size: 9pt;
     letter-spacing: 1.5px;
@@ -1198,8 +1204,8 @@
     position: relative;
   }
   .proton-tahun-card.tahun-3 {
-    border-top-color: var(--red);
-    background: linear-gradient(135deg, #fff5f5, #fff);
+    border-top-color: var(--amber);
+    background: linear-gradient(135deg, #fffbeb, #fff);
   }
   .proton-tahun-card .tahun-eyebrow {
     font-size: 8pt;
@@ -1214,7 +1220,7 @@
     color: var(--navy);
     margin: 4px 0 10px;
   }
-  .proton-tahun-card.tahun-3 .tahun-title { color: var(--red); }
+  .proton-tahun-card.tahun-3 .tahun-title { color: var(--amber); }
   .proton-tahun-card .tahun-track {
     font-size: 9pt;
     color: var(--text-muted);
@@ -1232,8 +1238,8 @@
     position: absolute;
     top: 14px;
     right: 14px;
-    background: rgba(237, 28, 36, 0.15);
-    color: var(--red);
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
     font-size: 7.5pt;
     font-weight: 800;
     padding: 3px 8px;
@@ -1246,7 +1252,7 @@
   .alur-stepper {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 24px;
     margin-bottom: 14px;
     align-items: stretch;
   }
@@ -1262,10 +1268,10 @@
   .alur-step + .alur-step::before {
     content: '→';
     position: absolute;
-    left: -10px;
+    left: -18px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 13pt;
+    font-size: 12pt;
     color: var(--slate);
     font-weight: 800;
   }
@@ -1281,11 +1287,14 @@
     margin-bottom: 6px;
   }
   .alur-stepper.offline-mode .alur-step .as-num { background: var(--amber); }
+  .alur-step.final { border-color: var(--green); background: linear-gradient(135deg, rgba(0,150,64,0.06), #fff); }
+  .alur-step.final .as-num { background: var(--green); }
+  .alur-step.final .as-title { color: var(--green); }
   .alur-step .as-title { font-weight: 700; color: var(--navy); font-size: 10pt; margin-bottom: 3px; }
   .alur-step .as-desc { font-size: 8pt; color: var(--text-muted); line-height: 1.3; }
   .alur-crossref {
-    background: rgba(0, 150, 64, 0.06);
-    border-left: 3px solid var(--green);
+    background: rgba(30, 136, 229, 0.08);
+    border-left: 3px solid #1e88e5;
     padding: 8px 12px;
     font-size: 9pt;
     margin-bottom: 10px;
@@ -1301,8 +1310,8 @@
     border-radius: 6px;
   }
   .alur-callout {
-    background: rgba(237, 28, 36, 0.06);
-    border-left: 3px solid var(--red);
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 3px solid var(--amber);
     padding: 8px 12px;
     font-size: 9pt;
     font-weight: 600;
@@ -1342,19 +1351,15 @@
 
   <!-- ================= SLIDE 1: COVER ================= -->
   <div class="slide cover active" data-slide="1">
-    <div class="cover-strip"></div>
     <div class="cover-content">
-      <div class="logo-box">
-        <div class="logo-mark">HC</div>
-        <div class="logo-text">
-          <div class="logo-main">HC Portal</div>
-          <div class="logo-sub">KPB</div>
-        </div>
+      <div class="cover-eyebrow">PERTAMINA KILANG BALIKPAPAN</div>
+      <h1 class="cover-title">HUMAN CAPITAL PORTAL</h1>
+      <p class="cover-subtitle">Kilang Pertamina Balikpapan</p>
+      <div class="cover-divider"></div>
+      <div class="cover-meta">
+        <div class="cover-meta-eyebrow">Sosialisasi</div>
+        <div class="cover-meta-date">Balikpapan, 25 Mei 2026</div>
       </div>
-      <div class="cover-eyebrow">🎯 Sosialisasi Aplikasi</div>
-      <h1 class="cover-title">HC <span class="accent">Portal</span> KPB</h1>
-      <p class="cover-subtitle">Human Capital Portal &mdash; Kilang Pertamina Balikpapan</p>
-      <p class="cover-subtitle" style="margin-top:10px;font-weight:600;color:var(--red);">📅 Balikpapan · 25 Mei 2026</p>
     </div>
   </div>
 
@@ -1638,7 +1643,7 @@
       <div class="slide-badge">SLIDE 8 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="cat-grid">
+      <div class="cat-grid center-5">
         <div class="cat-card c1">
           <div class="cat-head"><div class="cat-ic">🔧</div><div class="cat-name">Assessment OJT</div></div>
           <div class="cat-desc">On the Job Training &mdash; ujian kompetensi berbasis unit kerja (Alkylation, RFCC NHT, dll)</div>
@@ -1694,7 +1699,7 @@
           <div class="pp-title">Post Test</div>
           <div class="pp-desc">Setelah training, ujian dengan paket soal sejenis</div>
         </div>
-        <div class="pp-step">
+        <div class="pp-step final">
           <div class="pp-num">4</div>
           <span class="pp-icon">📊</span>
           <div class="pp-title">Gain Score</div>
@@ -1775,7 +1780,7 @@
               <div class="step-title">Penilaian Otomatis</div>
               <div class="step-desc">Skor vs passing grade otomatis</div>
             </div>
-            <div class="swim-step">
+            <div class="swim-step final">
               <span class="step-num-mini">7</span>
               <span class="step-icon-mini">🏆</span>
               <div class="step-title">Hasil &amp; Laporan</div>
@@ -1862,7 +1867,7 @@
           <div class="as-title">Peserta Ujian Online</div>
           <div class="as-desc">Login portal, kerjakan soal dalam timer otomatis</div>
         </div>
-        <div class="alur-step">
+        <div class="alur-step final">
           <span class="as-num">4</span>
           <div class="as-title">Penilaian Otomatis</div>
           <div class="as-desc">Skor otomatis, laporan lulus/tidak per peserta</div>
@@ -1878,7 +1883,7 @@
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 2 · ALUR</p>
-        <h1 class="slide-title">Alur Proton &mdash; Tahun <span class="accent">3</span></h1>
+        <h1 class="slide-title">Alur Proton &mdash; Tahun <span class="accent" style="color:var(--amber);">3</span></h1>
         <p class="slide-subtitle">Interview Offline (Tatap Muka, Panel Juri)</p>
       </div>
       <div class="slide-badge" style="background:var(--amber);">🎤 OFFLINE MODE</div>
@@ -1900,7 +1905,7 @@
           <div class="as-title">Penilaian Kompetensi</div>
           <div class="as-desc">Penilaian kompetensi oleh panel juri</div>
         </div>
-        <div class="alur-step">
+        <div class="alur-step final">
           <span class="as-num">4</span>
           <div class="as-title">Rekap &amp; Sertifikasi</div>
           <div class="as-desc">Input skor ke sistem, sertifikasi level kompetensi</div>
@@ -2170,10 +2175,10 @@
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">COACHING · TAHUN 3 (MAHIR)</p>
-        <h1 class="slide-title">Alur Coaching <span class="accent">Mahir</span> &mdash; 8 Step</h1>
+        <h1 class="slide-title">Alur Coaching <span class="accent" style="color:var(--amber);">Mahir</span> &mdash; 8 Step</h1>
         <p class="slide-subtitle">Silabus Mahir &rarr; Review Multi-Role &rarr; Sertifikasi Final</p>
       </div>
-      <div class="slide-badge" style="background:var(--red);">🎯 LEVEL MAHIR</div>
+      <div class="slide-badge" style="background:var(--amber);">🎯 LEVEL MAHIR</div>
     </div>
     <div class="slide-body">
       <div class="swim-row" style="grid-template-columns:3fr 3fr 2fr;">
@@ -2241,7 +2246,7 @@
           </div>
         </div>
       </div>
-      <div class="output-bar" style="background:linear-gradient(90deg,var(--red),var(--red-dark));">🏆 <strong>Output:</strong> Pekerja kompeten penuh + sertifikasi final + eligible role advance</div>
+      <div class="output-bar" style="background:linear-gradient(90deg,var(--amber),#b45309);">🏆 <strong>Output:</strong> Pekerja kompeten penuh + sertifikasi final + eligible role advance</div>
     </div>
   </div>
 
