@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>§3.4 v3.3 — Versi P: Workflow Topology HC Portal (Enhanced)</title>
+<title>§3.4 v3.4 — Versi P: Workflow Topology HC Portal (Enhanced)</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='80' font-size='80' text-anchor='middle'%3E%F0%9F%8C%90%3C/text%3E%3C/svg%3E"/>
 <style>
   @page { size: A3 landscape; margin: 10mm; }
@@ -137,7 +137,7 @@
   <div class="logo-pertamina">PERTAMINA<br/><small>PATRA NIAGA</small></div>
   <div class="header-title">
     <h1>§3.4 Solusi Terpilih — HC Portal</h1>
-    <small>Versi P v3.3: Workflow Topology • Side-by-Side • Bezier Lines • DMZ-Analog Buffer Zone</small>
+    <small>Versi P v3.4: Workflow Topology • Side-by-Side • Bezier Lines • DMZ-Analog Buffer Zone</small>
   </div>
   <div class="pcp-badge">PCP SMART<br/><small>2026</small></div>
 </div>
@@ -150,7 +150,7 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar">
-  <div>📐 <b>Versi P v3.3</b> — Side-by-side • 5 layer aktor + Layer 3.5 Buffer Zone • Bezier lines + 3 channel color coding</div>
+  <div>📐 <b>Versi P v3.4</b> — Side-by-side • 5 layer aktor + Layer 3.5 Buffer Zone • Bezier lines + 3 channel color coding</div>
   <button onclick="window.print()">🖨️ Print A3 / Save PDF</button>
 </div>
 
@@ -174,8 +174,7 @@
     </div>
 
     <div class="diagram-area">
-      <svg class="connections-svg" viewBox="0 0 600 720" preserveAspectRatio="none">
-        <!-- Arrow marker definitions -->
+      <svg class="connections-svg" preserveAspectRatio="none">
         <defs>
           <marker id="arrow-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" fill="#d4a017"/>
@@ -184,45 +183,7 @@
             <path d="M 0 0 L 10 5 L 0 10 z" fill="#C8102E"/>
           </marker>
         </defs>
-
-        <!-- L4 Excel chaos (merah) — 2 lengkungan horizontal antar Excel di L4 -->
-        <path d="M 220 250 C 280 230, 360 230, 430 250" stroke="#C8102E" stroke-width="3.5" opacity="0.85"/>
-        <path d="M 220 280 C 320 305, 380 305, 440 280" stroke="#C8102E" stroke-width="3" opacity="0.6"/>
-
-        <!-- L4 → L5 Email kirim laporan (kuning, ascending) — Marker D -->
-        <path d="M 280 200 C 280 180, 280 160, 280 145" stroke="#d4a017" stroke-width="4" marker-end="url(#arrow-yellow)"/>
-
-        <!-- L4 → L2 Email assign coachee (kuning, descending) -->
-        <path d="M 460 330 C 480 410, 470 480, 450 525" stroke="#d4a017" stroke-width="4" marker-end="url(#arrow-yellow)"/>
-
-        <!-- L4 → L1 Email FleQi link (kuning, descending panjang) -->
-        <path d="M 530 330 C 560 450, 555 580, 520 655" stroke="#d4a017" stroke-width="4" marker-end="url(#arrow-yellow)"/>
-
-        <!-- L3 → L2 WhatsApp approval lisan (kuning dashed) — Marker C -->
-        <path d="M 280 425 C 260 460, 260 490, 280 525" stroke="#d4a017" stroke-width="4" stroke-dasharray="7,4" marker-end="url(#arrow-yellow)"/>
-
-        <!-- L2 → L4 bukti via WA + Arsip (kuning dashed ascending) — Marker E -->
-        <path d="M 160 525 C 100 460, 100 340, 160 280" stroke="#d4a017" stroke-width="3.5" stroke-dasharray="6,4" marker-end="url(#arrow-yellow)"/>
-
-        <!-- L1 → L4 FleQi export hasil (merah dashed ascending) -->
-        <path d="M 360 655 C 360 540, 360 400, 360 280" stroke="#C8102E" stroke-width="3.5" stroke-dasharray="6,4" marker-end="url(#arrow-red)"/>
-
-        <!-- Markers on-line (di tengah path, tidak overlap komponen) -->
-        <!-- Marker A: di tengah L4 chaos loop -->
-        <circle cx="325" cy="262" r="14" fill="#C8102E" stroke="white" stroke-width="2.5"/>
-        <text x="325" y="267" fill="white" font-size="12" font-weight="800" text-anchor="middle">A</text>
-
-        <!-- Marker D: di middle line L4→L5 -->
-        <circle cx="280" cy="170" r="14" fill="#C8102E" stroke="white" stroke-width="2.5"/>
-        <text x="280" y="175" fill="white" font-size="12" font-weight="800" text-anchor="middle">D</text>
-
-        <!-- Marker C: di middle arc L3→L2 WA -->
-        <circle cx="262" cy="475" r="14" fill="#C8102E" stroke="white" stroke-width="2.5"/>
-        <text x="262" y="480" fill="white" font-size="12" font-weight="800" text-anchor="middle">C</text>
-
-        <!-- Marker E: di middle arc L2→L4 ascending -->
-        <circle cx="103" cy="395" r="14" fill="#C8102E" stroke="white" stroke-width="2.5"/>
-        <text x="103" y="400" fill="white" font-size="12" font-weight="800" text-anchor="middle">E</text>
+        <!-- Paths drawn dynamically via JavaScript -->
       </svg>
 
       <div class="layers-content">
@@ -332,38 +293,13 @@
     </div>
 
     <div class="diagram-area">
-      <svg class="connections-svg" viewBox="0 0 600 720" preserveAspectRatio="none">
-        <!-- Arrow marker definition (biru) -->
+      <svg class="connections-svg" preserveAspectRatio="none">
         <defs>
           <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" fill="#00558C"/>
           </marker>
         </defs>
-
-        <!-- ===== CONVERGING (top half: L5, L4 → Hub TOP edge y=280) ===== -->
-
-        <!-- L5 Manajemen → Hub TOP (terminate at hub top) -->
-        <path d="M 300 145 C 300 200, 300 240, 300 275" stroke="#00558C" stroke-width="5" marker-end="url(#arrow-blue)"/>
-
-        <!-- L4 HC → Hub TOP (terminate at hub top) -->
-        <path d="M 300 270 C 300 273, 300 274, 300 275" stroke="#00558C" stroke-width="5" marker-end="url(#arrow-blue)"/>
-        <path d="M 230 270 C 230 273, 250 275, 290 280" stroke="#00558C" stroke-width="4" opacity="0.7"/>
-        <path d="M 380 270 C 380 273, 360 275, 320 280" stroke="#00558C" stroke-width="4" opacity="0.7"/>
-
-        <!-- ===== DIVERGING (bottom half: Hub BOTTOM edge y=415 → L3, L2, L1) ===== -->
-
-        <!-- Hub BOTTOM → L3 Atasan -->
-        <path d="M 280 415 C 280 440, 280 455, 280 470" stroke="#00558C" stroke-width="5" marker-end="url(#arrow-blue)"/>
-
-        <!-- Hub BOTTOM → L2 Coach -->
-        <path d="M 320 415 C 320 480, 320 540, 320 580" stroke="#00558C" stroke-width="5" marker-end="url(#arrow-blue)"/>
-
-        <!-- Hub BOTTOM → L1 Pekerja (paling jauh) -->
-        <path d="M 360 415 C 360 510, 360 620, 360 680" stroke="#00558C" stroke-width="5" marker-end="url(#arrow-blue)"/>
-
-        <!-- Side reinforcement (subtle) -->
-        <path d="M 200 415 C 180 460, 180 540, 220 660" stroke="#00558C" stroke-width="3" opacity="0.4" stroke-dasharray="6,4"/>
-        <path d="M 440 415 C 460 460, 460 540, 420 660" stroke="#00558C" stroke-width="3" opacity="0.4" stroke-dasharray="6,4"/>
+        <!-- Paths drawn dynamically via JavaScript -->
       </svg>
 
       <div class="layers-content">
@@ -504,9 +440,220 @@
 </div>
 
 <div class="footer">
-  <p>📌 <b>Versi P v3.3 Enhanced</b> (Workflow Topology) — PCP SMART 2026 §3.4 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.3</code></p>
-  <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print A3 Landscape untuk save PDF.</p>
+  <p>📌 <b>Versi P v3.4 Enhanced</b> (Workflow Topology) — PCP SMART 2026 §3.4 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.4</code></p>
+  <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print A3 Landscape untuk save PDF. Garis koneksi auto-adjust mengikuti layout.</p>
 </div>
+
+<script>
+(function() {
+  const SEBELUM_CONNECTIONS = [
+    // L4 Excel chaos: line antar Excel components di L4 (intra-layer)
+    { from: 'L4', to: 'L4', type: 'chaos', color: '#C8102E', width: 3.5, marker: 'A', markerColor: '#C8102E' },
+    // L4 → L5 Email kirim laporan (kuning ascending) — Marker D
+    { from: 'L4', to: 'L5', side: 'left', color: '#d4a017', width: 4, dashed: false, arrow: 'arrow-yellow', marker: 'D', markerColor: '#C8102E' },
+    // L4 → L2 Email assign coachee (kuning descending)
+    { from: 'L4', to: 'L2', side: 'right', color: '#d4a017', width: 4, dashed: false, arrow: 'arrow-yellow' },
+    // L4 → L1 Email FleQi link (kuning descending paling jauh)
+    { from: 'L4', to: 'L1', side: 'right', color: '#d4a017', width: 4, dashed: false, arrow: 'arrow-yellow', curveOffset: 60 },
+    // L3 → L2 WhatsApp approval lisan (kuning dashed) — Marker C
+    { from: 'L3', to: 'L2', side: 'middle', color: '#d4a017', width: 4, dashed: true, arrow: 'arrow-yellow', marker: 'C', markerColor: '#C8102E' },
+    // L2 → L4 bukti via WA + Arsip (kuning dashed ascending reverse) — Marker E
+    { from: 'L2', to: 'L4', side: 'left', color: '#d4a017', width: 3.5, dashed: true, arrow: 'arrow-yellow', marker: 'E', markerColor: '#C8102E', curveOffset: -70 },
+    // L1 → L4 FleQi export hasil (merah dashed ascending reverse)
+    { from: 'L1', to: 'L4', side: 'middle', color: '#C8102E', width: 3.5, dashed: true, arrow: 'arrow-red' },
+  ];
+
+  const SESUDAH_CONNECTIONS = [
+    // L5 → Hub (biru thick descending)
+    { from: 'L5', to: 'HUB', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
+    // L4 → Hub (biru thick short)
+    { from: 'L4', to: 'HUB', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
+    // Hub → L3 (biru thick)
+    { from: 'HUB', to: 'L3', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
+    // Hub → L2 (biru thick)
+    { from: 'HUB', to: 'L2', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
+    // Hub → L1 (biru thick descending paling jauh)
+    { from: 'HUB', to: 'L1', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
+  ];
+
+  function getNodes(panel, isAfter) {
+    const layers = panel.querySelectorAll('.layer-content');
+    if (isAfter) {
+      const hub = panel.querySelector('.portal-hub');
+      return { L5: layers[0], L4: layers[1], HUB: hub, L3: layers[2], L2: layers[3], L1: layers[4] };
+    }
+    return { L5: layers[0], L4: layers[1], L3: layers[2], L2: layers[3], L1: layers[4] };
+  }
+
+  function getAnchor(el, panelRect, position) {
+    const r = el.getBoundingClientRect();
+    const baseX = r.left - panelRect.left;
+    const baseY = r.top - panelRect.top;
+    return {
+      cx: baseX + r.width / 2,
+      cy: baseY + r.height / 2,
+      top: { x: baseX + r.width / 2, y: baseY },
+      bottom: { x: baseX + r.width / 2, y: baseY + r.height },
+      left: { x: baseX, y: baseY + r.height / 2 },
+      right: { x: baseX + r.width, y: baseY + r.height / 2 },
+      width: r.width,
+      height: r.height,
+    };
+  }
+
+  function drawPanel(svgEl, panel, connections, isAfter) {
+    const panelRect = panel.getBoundingClientRect();
+    // Set SVG size to match panel
+    svgEl.setAttribute('width', panelRect.width);
+    svgEl.setAttribute('height', panelRect.height);
+    svgEl.setAttribute('viewBox', `0 0 ${panelRect.width} ${panelRect.height}`);
+
+    // Clear dynamic content (keep defs)
+    svgEl.querySelectorAll('.dyn').forEach(n => n.remove());
+
+    const nodes = getNodes(panel, isAfter);
+
+    connections.forEach(conn => {
+      const fromEl = nodes[conn.from];
+      const toEl = nodes[conn.to];
+      if (!fromEl || !toEl) return;
+
+      const fromA = getAnchor(fromEl, panelRect);
+      const toA = getAnchor(toEl, panelRect);
+
+      let startX, startY, endX, endY, ctrlX1, ctrlY1, ctrlX2, ctrlY2;
+
+      if (conn.type === 'chaos') {
+        // Intra-layer horizontal chaos lines (di dalam layer)
+        const layerR = fromEl.getBoundingClientRect();
+        const layerX = layerR.left - panelRect.left;
+        const layerY = layerR.top - panelRect.top;
+        const w = layerR.width;
+        const h = layerR.height;
+        // 2 chaos arcs di tengah layer
+        const path1 = `M ${layerX + 30} ${layerY + h * 0.5} C ${layerX + w * 0.3} ${layerY + 10}, ${layerX + w * 0.7} ${layerY + 10}, ${layerX + w - 30} ${layerY + h * 0.5}`;
+        const path2 = `M ${layerX + 30} ${layerY + h * 0.5 + 8} C ${layerX + w * 0.3} ${layerY + h - 10}, ${layerX + w * 0.7} ${layerY + h - 10}, ${layerX + w - 30} ${layerY + h * 0.5 + 8}`;
+        addPath(svgEl, path1, conn.color, conn.width, false, null);
+        addPath(svgEl, path2, conn.color, conn.width * 0.85, false, null, 0.6);
+        if (conn.marker) {
+          addMarker(svgEl, layerX + w * 0.5, layerY + h * 0.5 + 4, conn.marker, conn.markerColor);
+        }
+        return;
+      }
+
+      // Determine direction (ascending/descending)
+      const descending = fromA.cy < toA.cy;
+      const side = conn.side || 'middle';
+
+      // Anchor points based on side
+      if (descending) {
+        startY = fromA.bottom.y;
+        endY = toA.top.y;
+        if (side === 'left') {
+          startX = fromA.left.x + fromA.width * 0.2;
+          endX = toA.left.x + toA.width * 0.2;
+        } else if (side === 'right') {
+          startX = fromA.right.x - fromA.width * 0.2;
+          endX = toA.right.x - toA.width * 0.2;
+        } else {
+          startX = fromA.cx;
+          endX = toA.cx;
+        }
+      } else {
+        // ascending (reverse: from is below to)
+        startY = fromA.top.y;
+        endY = toA.bottom.y;
+        if (side === 'left') {
+          startX = fromA.left.x + fromA.width * 0.15;
+          endX = toA.left.x + toA.width * 0.15;
+        } else if (side === 'right') {
+          startX = fromA.right.x - fromA.width * 0.15;
+          endX = toA.right.x - toA.width * 0.15;
+        } else {
+          startX = fromA.cx;
+          endX = toA.cx;
+        }
+      }
+
+      // Bezier control points (cubic) — gentle S-curve
+      const distY = Math.abs(endY - startY);
+      const curveOffset = conn.curveOffset || 0;
+      ctrlX1 = startX + curveOffset;
+      ctrlY1 = startY + (descending ? distY * 0.4 : -distY * 0.4);
+      ctrlX2 = endX + curveOffset;
+      ctrlY2 = endY - (descending ? distY * 0.4 : -distY * 0.4);
+
+      const path = `M ${startX} ${startY} C ${ctrlX1} ${ctrlY1}, ${ctrlX2} ${ctrlY2}, ${endX} ${endY}`;
+      addPath(svgEl, path, conn.color, conn.width, conn.dashed, conn.arrow);
+
+      // Marker on line (mid-path)
+      if (conn.marker) {
+        const midX = (startX + endX) / 2 + curveOffset;
+        const midY = (startY + endY) / 2;
+        addMarker(svgEl, midX, midY, conn.marker, conn.markerColor);
+      }
+    });
+  }
+
+  function addPath(svg, d, stroke, width, dashed, arrow, opacity) {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('stroke', stroke);
+    p.setAttribute('stroke-width', width);
+    p.setAttribute('fill', 'none');
+    if (dashed) p.setAttribute('stroke-dasharray', '7,4');
+    if (arrow) p.setAttribute('marker-end', `url(#${arrow})`);
+    if (opacity) p.setAttribute('opacity', opacity);
+    p.classList.add('dyn');
+    svg.appendChild(p);
+  }
+
+  function addMarker(svg, cx, cy, text, color) {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', cx);
+    c.setAttribute('cy', cy);
+    c.setAttribute('r', 14);
+    c.setAttribute('fill', color || '#C8102E');
+    c.setAttribute('stroke', 'white');
+    c.setAttribute('stroke-width', 2.5);
+    c.classList.add('dyn');
+    svg.appendChild(c);
+
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', cx);
+    t.setAttribute('y', cy + 5);
+    t.setAttribute('fill', 'white');
+    t.setAttribute('font-size', '13');
+    t.setAttribute('font-weight', '800');
+    t.setAttribute('text-anchor', 'middle');
+    t.textContent = text;
+    t.classList.add('dyn');
+    svg.appendChild(t);
+  }
+
+  function drawAll() {
+    const beforePanel = document.querySelector('.diagram-wrap.before-style .diagram-area');
+    const beforeSvg = beforePanel.querySelector('.connections-svg');
+    drawPanel(beforeSvg, beforePanel, SEBELUM_CONNECTIONS, false);
+
+    const afterPanel = document.querySelector('.diagram-wrap.after-style .diagram-area');
+    const afterSvg = afterPanel.querySelector('.connections-svg');
+    drawPanel(afterSvg, afterPanel, SESUDAH_CONNECTIONS, true);
+  }
+
+  // Initial draw + redraw on resize/load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', drawAll);
+  } else {
+    drawAll();
+  }
+  window.addEventListener('load', drawAll);
+  window.addEventListener('resize', () => {
+    clearTimeout(window._redrawTimer);
+    window._redrawTimer = setTimeout(drawAll, 100);
+  });
+})();
+</script>
 
 </body>
 </html>
