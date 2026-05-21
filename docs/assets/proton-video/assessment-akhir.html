@@ -491,6 +491,43 @@
     transition: opacity 0.6s ease;
   }
   .pass-caption.show { opacity: 1; }
+
+  /* ===== CONFETTI BURST (12 partikel radial) ===== */
+  .confetti-burst {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .confetti-burst .particle {
+    position: absolute;
+    width: clamp(8px, 0.8vw, 12px);
+    height: clamp(8px, 0.8vw, 12px);
+    opacity: 0;
+    margin-left: -6px;
+    margin-top: -6px;
+  }
+  .confetti-burst .particle:nth-child(1)  { --angle: 0deg;   background: var(--red);       }
+  .confetti-burst .particle:nth-child(2)  { --angle: 30deg;  background: var(--navy);      }
+  .confetti-burst .particle:nth-child(3)  { --angle: 60deg;  background: var(--gold);  border-radius: 50%; }
+  .confetti-burst .particle:nth-child(4)  { --angle: 90deg;  background: var(--red);       }
+  .confetti-burst .particle:nth-child(5)  { --angle: 120deg; background: var(--navy-soft); }
+  .confetti-burst .particle:nth-child(6)  { --angle: 150deg; background: var(--gold);  border-radius: 50%; }
+  .confetti-burst .particle:nth-child(7)  { --angle: 180deg; background: var(--red);       }
+  .confetti-burst .particle:nth-child(8)  { --angle: 210deg; background: var(--navy);      }
+  .confetti-burst .particle:nth-child(9)  { --angle: 240deg; background: var(--gold);  border-radius: 50%; }
+  .confetti-burst .particle:nth-child(10) { --angle: 270deg; background: var(--red);       }
+  .confetti-burst .particle:nth-child(11) { --angle: 300deg; background: var(--navy-soft); }
+  .confetti-burst .particle:nth-child(12) { --angle: 330deg; background: var(--gold);  border-radius: 50%; }
+
+  .confetti-burst.fired .particle {
+    animation: confettiBurst 1.2s ease-out forwards;
+  }
+  @keyframes confettiBurst {
+    0%   { opacity: 0.9; transform: rotate(var(--angle)) translateX(0) rotate(0deg); }
+    100% { opacity: 0;   transform: rotate(var(--angle)) translateX(clamp(120px, 14vw, 220px)) rotate(360deg); }
+  }
 </style>
 </head>
 <body>
@@ -540,7 +577,14 @@
             <span class="url">portalhc.kpb · <em>Hasil Assessment</em></span>
           </div>
           <div class="browser-body result-body">
-            <!-- confetti containers akan ditambahkan task 6 + 7 -->
+            <div class="confetti-burst" aria-hidden="true">
+              <span class="particle"></span><span class="particle"></span>
+              <span class="particle"></span><span class="particle"></span>
+              <span class="particle"></span><span class="particle"></span>
+              <span class="particle"></span><span class="particle"></span>
+              <span class="particle"></span><span class="particle"></span>
+              <span class="particle"></span><span class="particle"></span>
+            </div>
             <div class="result-card">
               <div class="r-title">Hasil Assessment</div>
               <div class="score-block">
