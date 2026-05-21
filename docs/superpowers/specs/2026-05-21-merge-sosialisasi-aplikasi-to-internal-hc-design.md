@@ -1,6 +1,6 @@
 # Spec — Merge Sosialisasi-Aplikasi ke Sosialisasi-Internal-Tim-HC
 
-**Status:** WIP brainstorming. Q1-Q4 locked. Q5 pending user recall.
+**Status:** WIP brainstorming. Q1-Q5 locked. Design sections pending.
 **Date:** 2026-05-21
 **Resume command:** `/clear` → bilang "lanjutkan brainstorming merge sosialisasi-aplikasi ke internal-tim-HC, baca spec 2026-05-21-merge-sosialisasi-aplikasi-to-internal-hc-design.md"
 
@@ -85,16 +85,8 @@ Visual styling File 2 dipreserve (color palette, accent, slide-title pattern).
 
 ---
 
-## Pending — Q5: Output Strategy
-
-**Opsi yang ditawarkan:**
-- **A.** In-place update `Sosialisasi-Internal-Tim-HC-PortalHC-KPB.html` → bump v1.1 → v2.0
-- **B.** File baru `Sosialisasi-Internal-Tim-HC-PortalHC-KPB-v2.html` coexist
-- **C.** Branch + PDF export (mirror v3 sosialisasi flow)
-
-**Rekomendasi:** A — single source of truth, history retrievable via git.
-
-User mau recall + jawab besok.
+### Q5 — Output Strategy
+**Opsi A — In-place update** `Sosialisasi-Internal-Tim-HC-PortalHC-KPB.html`, bump v1.1 → v2.0. Single source of truth, history via git.
 
 ---
 
