@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v17.0
 milestone_name: Assessment Admin Power Tools
-status: Defining requirements via /gsd-new-milestone workflow
-last_updated: "2026-05-21T00:44:56.094Z"
-last_activity: 2026-05-21 -- Milestone v17.0 started (spec final commit c37e55ef, research per phase commit f442220b)
+status: executing
+last_updated: "2026-05-21T01:07:45.982Z"
+last_activity: 2026-05-21 -- Phase 320 execution started
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Milestone v17.0 Assessment Admin Power Tools — defining requirements & roadmap
+**Current focus:** Phase 320 — assessment-export-per-peserta-excel
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements via /gsd-new-milestone workflow
-Last activity: 2026-05-21 -- Milestone v17.0 started (spec final commit c37e55ef, research per phase commit f442220b)
+Phase: 320 (assessment-export-per-peserta-excel) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 320
+Last activity: 2026-05-21 -- Phase 320 execution started
 
 ## Next Action
 
