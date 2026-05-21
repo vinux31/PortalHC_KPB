@@ -573,6 +573,101 @@
     margin-top: 2px;
   }
 
+  /* ===== SCENE 5: FINAL ASSESSMENT ===== */
+  .assess-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .meta-strip {
+    display: flex;
+    gap: clamp(12px, 2vw, 32px);
+    padding: 8px 12px;
+    background: var(--paper);
+    border-radius: 6px;
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    color: var(--navy-deep);
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  #scene-5.active .meta-strip { animation: fadeUp 0.4s 0.5s ease-out forwards; }
+
+  .quiz-card {
+    padding: clamp(14px, 1.6vw, 22px);
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  #scene-5.active .quiz-card { animation: fadeUp 0.5s 1.0s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  .q-label {
+    font-size: clamp(10px, 0.85vw, 12px);
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .q-text {
+    font-size: clamp(13px, 1.15vw, 16px);
+    font-weight: 700;
+    color: var(--navy-deep);
+    margin-bottom: 12px;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    font-size: clamp(11px, 0.95vw, 13px);
+    color: var(--text);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  #scene-5.active .opt:nth-of-type(1) { animation: fadeUp 0.3s 1.5s ease-out forwards; }
+  #scene-5.active .opt:nth-of-type(2) { animation: fadeUp 0.3s 1.65s ease-out forwards; }
+  #scene-5.active .opt:nth-of-type(3) { animation: fadeUp 0.3s 1.80s ease-out forwards; }
+  #scene-5.active .opt:nth-of-type(4) { animation: fadeUp 0.3s 1.95s ease-out forwards; }
+  .opt.selected {
+    border-color: var(--navy);
+    background: rgba(15,45,92,0.06);
+    font-weight: 700;
+    color: var(--navy-deep);
+  }
+  .opt input { accent-color: var(--navy); }
+
+  .progress-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .p-label {
+    font-size: clamp(10px, 0.85vw, 12px);
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .progress-strip .progress-bar { flex: 1; }
+  .p-count {
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    color: var(--navy-deep);
+    font-variant-numeric: tabular-nums;
+  }
+
   /* ===== STEPPER ===== */
   .stepper {
     display: flex;
@@ -773,6 +868,36 @@
                 <div class="stamp-role">HC Final</div>
                 <div class="stamp-date">05/05/26</div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene" id="scene-5">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="url">portalhc.kpb · <em>Final Assessment</em></span>
+          </div>
+          <div class="browser-body assess-body">
+            <div class="meta-strip">
+              <span>⏱ Durasi: 60 menit</span>
+              <span>📋 Soal: 30</span>
+            </div>
+            <div class="quiz-card">
+              <div class="q-label">Pertanyaan 12 / 30</div>
+              <div class="q-text">Berapa langkah dalam Alur Pelaksanaan PROTON?</div>
+              <div class="options">
+                <label class="opt"><input type="radio" name="q" disabled> A) 4 langkah</label>
+                <label class="opt selected"><input type="radio" name="q" checked disabled> B) 6 langkah</label>
+                <label class="opt"><input type="radio" name="q" disabled> C) 8 langkah</label>
+                <label class="opt"><input type="radio" name="q" disabled> D) 10 langkah</label>
+              </div>
+            </div>
+            <div class="progress-strip">
+              <span class="p-label">Progres</span>
+              <div class="progress-bar" id="quiz-bar"><div class="fill"></div></div>
+              <span class="p-count">12 / 30</span>
             </div>
           </div>
         </div>
