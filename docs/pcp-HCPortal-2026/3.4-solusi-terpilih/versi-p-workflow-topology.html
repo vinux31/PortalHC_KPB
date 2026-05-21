@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>§3.4 v3.1 — Versi P: Workflow Topology HC Portal (Enhanced)</title>
+<title>§3.4 v3.2 — Versi P: Workflow Topology HC Portal (Enhanced)</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='80' font-size='80' text-anchor='middle'%3E%F0%9F%8C%90%3C/text%3E%3C/svg%3E"/>
 <style>
   @page { size: A3 landscape; margin: 10mm; }
   :root {
@@ -19,8 +20,8 @@
     --bg: #f6f7fb;
     --border: #d1d5db;
     --hub-grad: linear-gradient(135deg, #00558C, #00A551);
-    --tint-pink: #fef2f4;
-    --tint-green: #f0fdf4;
+    --tint-pink: #fde8eb;
+    --tint-green: #d4f0dd;
     --line-manual: #C8102E;
     --line-nonformal: #d4a017;
     --line-portal: #00558C;
@@ -58,8 +59,9 @@
   .diagram-header .tagline { font-style: italic; color: var(--neutral-gray); font-size: .85rem; margin-top: .2rem; }
 
   /* ============ DIAGRAM AREA + SVG OVERLAY ============ */
-  .diagram-area { position: relative; }
-  .connections-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+  .diagram-area { position: relative; min-height: 720px; }
+  .connections-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.12)); }
+  .connections-svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
   .layers-content { position: relative; z-index: 2; }
 
   .layer-row { display: grid; grid-template-columns: 130px 1fr; gap: .75rem; margin-bottom: .65rem; align-items: stretch; }
@@ -71,7 +73,7 @@
 
   .layer-content { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; background: rgba(255,255,255,.7); border: 1px solid var(--border); border-radius: .35rem; padding: .65rem; position: relative; }
 
-  .comp { padding: .4rem .7rem; border-radius: .35rem; font-size: .82rem; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.08); border: 1px solid; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem; }
+  .comp { padding: .35rem .6rem; border-radius: .35rem; font-size: .78rem; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.08); border: 1px solid; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem; }
   .comp.manual { background: var(--pertamina-red-light); border-color: var(--pertamina-red); color: var(--pertamina-red); }
   .comp.portal { background: var(--pertamina-blue-light); border-color: var(--pertamina-blue); color: var(--pertamina-blue-dark); }
   .comp.tool-ext { background: #fff3cd; border-color: #d4a017; color: #856404; font-style: italic; }
@@ -135,7 +137,7 @@
   <div class="logo-pertamina">PERTAMINA<br/><small>PATRA NIAGA</small></div>
   <div class="header-title">
     <h1>§3.4 Solusi Terpilih — HC Portal</h1>
-    <small>Versi P (Enhanced): Workflow Topology • Side-by-Side • Bezier Lines • DMZ-Analog Buffer Zone</small>
+    <small>Versi P v3.2: Workflow Topology • Side-by-Side • Bezier Lines • DMZ-Analog Buffer Zone</small>
   </div>
   <div class="pcp-badge">PCP SMART<br/><small>2026</small></div>
 </div>
@@ -148,7 +150,7 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar">
-  <div>📐 <b>Versi P v3.1</b> — Side-by-side • 5 layer aktor + Layer 3.5 Buffer Zone (HC Portal hub) • Bezier connection lines</div>
+  <div>📐 <b>Versi P v3.2</b> — Side-by-side • 5 layer aktor + Layer 3.5 Buffer Zone • Bezier lines + 3 channel color coding</div>
   <button onclick="window.print()">🖨️ Print A3 / Save PDF</button>
 </div>
 
@@ -172,47 +174,49 @@
     </div>
 
     <div class="diagram-area">
-      <svg class="connections-svg" viewBox="0 0 600 700" preserveAspectRatio="none">
-        <!-- L4 internal Excel chaos (merah) - horizontal loops -->
-        <path d="M 200 220 Q 250 200, 300 220" stroke="#C8102E" stroke-width="2.5" fill="none" stroke-dasharray="0"/>
-        <path d="M 300 220 Q 350 200, 400 220" stroke="#C8102E" stroke-width="2.5" fill="none"/>
-        <path d="M 400 220 Q 450 200, 500 220" stroke="#C8102E" stroke-width="2.5" fill="none"/>
-        <path d="M 220 240 Q 320 270, 480 240" stroke="#C8102E" stroke-width="2" fill="none" opacity="0.5"/>
+      <svg class="connections-svg" viewBox="0 0 600 720" preserveAspectRatio="none">
+        <!-- L4 internal Excel chaos (merah) - horizontal loops antar Excel components -->
+        <path d="M 180 195 C 230 175, 280 175, 330 195" stroke="#C8102E" stroke-width="3" />
+        <path d="M 330 195 C 380 175, 430 175, 480 195" stroke="#C8102E" stroke-width="3" />
+        <path d="M 180 210 C 280 230, 380 230, 480 210" stroke="#C8102E" stroke-width="2.5" opacity="0.6"/>
 
-        <!-- L5 ↔ L4 Email -->
-        <path d="M 250 200 C 250 150, 250 130, 250 90" stroke="#d4a017" stroke-width="2.5" fill="none"/>
-        <path d="M 350 90 C 350 130, 350 160, 350 195" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+        <!-- L5 ↔ L4 Email (kuning) -->
+        <path d="M 270 90 C 270 130, 270 145, 270 165" stroke="#d4a017" stroke-width="4" />
+        <path d="M 360 165 C 360 145, 360 125, 360 90" stroke="#d4a017" stroke-width="4" />
 
-        <!-- L4 → L3 Email -->
-        <path d="M 300 250 C 300 290, 280 310, 280 350" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+        <!-- L4 → L3 Email (kuning) -->
+        <path d="M 250 215 C 250 260, 250 280, 250 310" stroke="#d4a017" stroke-width="4" />
 
-        <!-- L4 → L2 Email assign -->
-        <path d="M 400 250 C 420 320, 400 400, 380 480" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+        <!-- L4 → L2 Email assign (kuning) -->
+        <path d="M 420 215 C 440 320, 430 380, 410 440" stroke="#d4a017" stroke-width="4" />
 
-        <!-- L4 → L1 Email FleQi link -->
-        <path d="M 500 250 C 520 400, 500 550, 480 620" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+        <!-- L4 → L1 Email FleQi link (kuning) -->
+        <path d="M 520 215 C 545 380, 535 520, 510 580" stroke="#d4a017" stroke-width="4" />
 
-        <!-- L3 ↔ L2 WhatsApp (with marker C) -->
-        <path d="M 250 380 C 230 420, 220 450, 230 480" stroke="#d4a017" stroke-width="3" fill="none"/>
+        <!-- L3 ↔ L2 WhatsApp (kuning) -->
+        <path d="M 320 330 C 295 380, 295 410, 310 440" stroke="#d4a017" stroke-width="4" />
 
-        <!-- L2 → L4 WA bukti + Arsip (with marker E) -->
-        <path d="M 180 480 C 100 400, 100 300, 180 250" stroke="#d4a017" stroke-width="2.5" fill="none" stroke-dasharray="4,3"/>
+        <!-- L2 → L4 WA bukti + Arsip (kuning dashed) -->
+        <path d="M 200 440 C 130 360, 130 270, 200 215" stroke="#d4a017" stroke-width="3.5" stroke-dasharray="6,4"/>
 
-        <!-- L1 → L4 FleQi export (merah) -->
-        <path d="M 350 620 C 350 500, 350 350, 350 250" stroke="#C8102E" stroke-width="2.5" fill="none" stroke-dasharray="6,3"/>
+        <!-- L1 → L4 FleQi result export (merah dashed) -->
+        <path d="M 360 580 C 360 440, 360 300, 360 215" stroke="#C8102E" stroke-width="3.5" stroke-dasharray="6,4"/>
 
-        <!-- L4 → L1 sertifikat hardcopy (abu) -->
-        <path d="M 550 250 C 580 450, 580 550, 560 620" stroke="#999" stroke-width="2" fill="none" stroke-dasharray="3,3"/>
+        <!-- L4 → L1 sertifikat hardcopy (abu dashed) -->
+        <path d="M 560 215 C 590 380, 590 530, 560 590" stroke="#999" stroke-width="2.5" stroke-dasharray="4,3"/>
 
-        <!-- Markers di line -->
-        <circle cx="300" cy="240" r="11" fill="#C8102E"/>
-        <text x="300" y="244" fill="white" font-size="11" font-weight="700" text-anchor="middle">A</text>
+        <!-- Markers di line edge (tidak overlap text) -->
+        <!-- Marker A: di L4 chaos area, posisi tengah loop -->
+        <circle cx="500" cy="185" r="13" fill="#C8102E" stroke="white" stroke-width="2"/>
+        <text x="500" y="190" fill="white" font-size="12" font-weight="800" text-anchor="middle">A</text>
 
-        <circle cx="240" cy="430" r="11" fill="#C8102E"/>
-        <text x="240" y="434" fill="white" font-size="11" font-weight="700" text-anchor="middle">C</text>
+        <!-- Marker C: di line L3↔L2 WhatsApp, posisi mid-arc -->
+        <circle cx="295" cy="385" r="13" fill="#C8102E" stroke="white" stroke-width="2"/>
+        <text x="295" y="390" fill="white" font-size="12" font-weight="800" text-anchor="middle">C</text>
 
-        <circle cx="110" cy="350" r="11" fill="#C8102E"/>
-        <text x="110" y="354" fill="white" font-size="11" font-weight="700" text-anchor="middle">E</text>
+        <!-- Marker E: di line L2→L4 WA bukti, posisi mid-arc kiri -->
+        <circle cx="125" cy="320" r="13" fill="#C8102E" stroke="white" stroke-width="2"/>
+        <text x="125" y="325" fill="white" font-size="12" font-weight="800" text-anchor="middle">E</text>
       </svg>
 
       <div class="layers-content">
@@ -322,25 +326,28 @@
     </div>
 
     <div class="diagram-area">
-      <svg class="connections-svg" viewBox="0 0 600 700" preserveAspectRatio="none">
-        <!-- L5 → Hub (biru) -->
-        <path d="M 300 100 C 300 140, 300 200, 300 250" stroke="#00558C" stroke-width="3" fill="none"/>
+      <svg class="connections-svg" viewBox="0 0 600 720" preserveAspectRatio="none">
+        <!-- L5 → Hub (biru, gentle Bezier descending) -->
+        <path d="M 280 95 C 280 160, 280 240, 280 290" stroke="#00558C" stroke-width="5" />
+        <path d="M 360 95 C 360 160, 360 240, 360 290" stroke="#00558C" stroke-width="4" opacity="0.7"/>
 
-        <!-- L4 → Hub (biru) -->
-        <path d="M 300 220 C 300 250, 300 270, 300 290" stroke="#00558C" stroke-width="3" fill="none"/>
+        <!-- L4 → Hub (biru, short descent) -->
+        <path d="M 260 215 C 260 240, 260 260, 260 290" stroke="#00558C" stroke-width="5" />
+        <path d="M 400 215 C 400 240, 400 260, 400 290" stroke="#00558C" stroke-width="4" opacity="0.7"/>
 
-        <!-- Hub → L3 (biru) -->
-        <path d="M 250 380 C 250 410, 250 430, 250 460" stroke="#00558C" stroke-width="3" fill="none"/>
+        <!-- Hub → L3 (biru, descent ke supervisor) -->
+        <path d="M 260 410 C 260 430, 260 445, 260 460" stroke="#00558C" stroke-width="5" />
+        <path d="M 400 410 C 400 430, 400 445, 400 460" stroke="#00558C" stroke-width="4" opacity="0.7"/>
 
-        <!-- Hub → L2 (biru) -->
-        <path d="M 350 380 C 350 430, 350 480, 350 540" stroke="#00558C" stroke-width="3" fill="none"/>
+        <!-- Hub → L2 (biru, descent ke coaching) -->
+        <path d="M 300 410 C 300 470, 300 530, 300 580" stroke="#00558C" stroke-width="5" />
 
-        <!-- Hub → L1 (biru) -->
-        <path d="M 400 380 C 400 470, 400 570, 400 640" stroke="#00558C" stroke-width="3" fill="none"/>
+        <!-- Hub → L1 (biru, descent ke operational, paling jauh) -->
+        <path d="M 340 410 C 340 530, 340 640, 340 690" stroke="#00558C" stroke-width="4" />
 
-        <!-- Hub → all (additional flows) -->
-        <path d="M 200 380 C 200 440, 200 510, 200 550" stroke="#00558C" stroke-width="2" fill="none" opacity="0.6"/>
-        <path d="M 450 380 C 450 460, 450 540, 450 620" stroke="#00558C" stroke-width="2" fill="none" opacity="0.6"/>
+        <!-- Side connections (mendukung visual hub-and-spoke) -->
+        <path d="M 180 320 C 130 380, 130 480, 200 580" stroke="#00558C" stroke-width="3" opacity="0.5" stroke-dasharray="5,3"/>
+        <path d="M 480 320 C 540 400, 540 540, 470 660" stroke="#00558C" stroke-width="3" opacity="0.5" stroke-dasharray="5,3"/>
       </svg>
 
       <div class="layers-content">
@@ -481,7 +488,7 @@
 </div>
 
 <div class="footer">
-  <p>📌 <b>Versi P v3.1 Enhanced</b> (Workflow Topology) — PCP SMART 2026 §3.4 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.1</code></p>
+  <p>📌 <b>Versi P v3.2 Enhanced</b> (Workflow Topology) — PCP SMART 2026 §3.4 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.2</code></p>
   <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print A3 Landscape untuk save PDF.</p>
 </div>
 
