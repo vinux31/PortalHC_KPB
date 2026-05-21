@@ -796,6 +796,108 @@
   </div>
 </article>
 
+<!-- ============================================================ -->
+<!-- BAB 4: KELOLA DATA PROTON -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab4">
+  <h2>4. Kelola Data Proton</h2>
+  <p>Silabus, Guidance Files, dan Override data sync Proton.</p>
+</div>
+
+<article class="task" id="data-silabus">
+  <h3>4.1 Silabus Proton &mdash; CRUD + Import/Export Excel</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Kelola Data &rarr; Silabus
+    <code class="url">/ProtonData/Index</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Silabus</span></div>
+    <div class="step-body">Klik <b>Kelola Data</b> di navbar &rarr; halaman default <code>/ProtonData/Index</code>. Filter dropdown <b>Bagian</b>, <b>Unit</b>, <b>Track</b>. Toggle <b>Show Inactive</b> untuk lihat silabus yang sudah dinonaktifkan.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Inline Edit Silabus</span></div>
+    <div class="step-body">Edit langsung di tabel: ubah judul, urutan, target level. Klik <b>Save</b> untuk submit batch via <code>/ProtonData/SilabusSave</code> (POST JSON body).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Deactivate / Reactivate</span></div>
+    <div class="step-body">Untuk silabus obsolete, klik <b>Deactivate</b> (<code>/ProtonData/SilabusDeactivate</code>). Bisa di-reactivate kalau ternyata salah (<code>/ProtonData/SilabusReactivate</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Import Excel</span></div>
+    <div class="step-body">Klik <b>Import Silabus</b> (<code>/ProtonData/ImportSilabus</code>):
+      <ul>
+        <li>Download template lewat <code>/ProtonData/DownloadSilabusTemplate?bagian=&amp;unit=&amp;trackId=</code></li>
+        <li>Isi data sesuai format, pilih Bagian/Unit/Track di form</li>
+        <li>Upload Excel via tombol Upload</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export Silabus</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/ProtonData/ExportSilabus?bagian=&amp;unit=&amp;trackId=</code>) untuk download Excel hasil silabus aktif.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Delete Permanent</div>
+    <b>SilabusDelete</b> menghapus permanen + cascade ke deliverable / coachee history. Pakai <b>Deactivate</b> dulu &mdash; delete hanya kalau silabus belum pernah dipakai. Endpoint preview cascade: <code>/ProtonData/SilabusDeletePreview</code>, <code>/ProtonData/SubKompetensiDeletePreview</code>, <code>/ProtonData/KompetensiDeletePreview</code>.
+  </div>
+</article>
+
+<article class="task" id="data-guidance">
+  <h3>4.2 Guidance Files &mdash; Upload &amp; Kelola Dokumen Rujukan</h3>
+  <div class="breadcrumb">
+    Kelola Data &rarr; Guidance List per Bagian/Unit/Track
+    <code class="url">/ProtonData/GuidanceList</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Guidance</span></div>
+    <div class="step-body">Akses <code>/ProtonData/GuidanceList?bagian={b}&amp;unit={u}&amp;trackId={t}</code>. Daftar guidance file aktif untuk scope tersebut.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Upload Guidance Baru</span></div>
+    <div class="step-body">Klik <b>Upload Guidance</b>. Pilih Bagian/Unit/Track, lampirkan file (PDF rekomendasi). Submit ke <code>/ProtonData/GuidanceUpload</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Replace / Delete</span></div>
+    <div class="step-body">Untuk update file: <code>/ProtonData/GuidanceReplace/{id}</code>. Untuk hapus: <code>/ProtonData/GuidanceDelete</code> (POST JSON body). File yang dihapus tidak bisa di-restore.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Download</span></div>
+    <div class="step-body">Coachee + Coach + HC bisa download guidance lewat <code>/ProtonData/GuidanceDownload/{id}</code> &mdash; link tampil di Plan IDP (Bab 3.1).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Pakai PDF untuk standardisasi</div>
+    Pakai PDF supaya format konsisten lintas device. Hindari DOCX/XLSX kecuali memang perlu di-edit oleh user.
+  </div>
+</article>
+
+<article class="task" id="data-override">
+  <h3>4.3 Override Data Pekerja &mdash; Proton Sync Fallback</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Kelola Data &rarr; (tab) Override
+    <code class="url">/ProtonData/Override</code> <code class="url">/ProtonData/OverrideList</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Cek Status Sync</span></div>
+    <div class="step-body">Buka <code>/ProtonData/StatusData</code> dulu untuk lihat status sync data dari source ke Proton. Identifikasi pekerja yang gagal mapping otomatis (mis: ID jabatan tidak ter-detect).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Override Page</span></div>
+    <div class="step-body">Akses <code>/ProtonData/Override</code> untuk halaman utama, atau <code>/ProtonData/OverrideList?bagian={b}&amp;unit={u}&amp;trackId={t}&amp;statusFilter={s}</code> untuk daftar dengan filter.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Detail per Override</span></div>
+    <div class="step-body">Klik baris untuk drill ke <code>/ProtonData/OverrideDetail/{id}</code>. Tampilan: data source vs data Proton yang diinginkan + field-field mapping.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Save Override</span></div>
+    <div class="step-body">Isi paksa value mapping (mis: mapping KKJ kalau Proton tidak detect ID Jabatan otomatis). Klik <b>Save</b> &mdash; submit ke <code>/ProtonData/OverrideSave</code> (POST JSON body). Data generated otomatis setelah override.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Fitur Sensitif</div>
+    Override mem-bypass auto-sync. Pakai hanya untuk fix data yang gagal sync otomatis &mdash; bukan untuk "fix" data source yang salah (data source harus diperbaiki di hulunya). Override masuk ke Audit Log.
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
