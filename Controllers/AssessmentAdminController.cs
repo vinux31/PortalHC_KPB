@@ -5815,11 +5815,44 @@ namespace HcPortal.Controllers
         }
 
         // === Variant B: Manual Entry — Info Sertifikasi Manual (REQ EXP-04) ===
-        // Stub di Task 7; body lengkap di Task 10.
         private int WriteManualEntrySection(ClosedXML.Excel.IXLWorksheet ws, AssessmentSession session, int startRow)
         {
-            // Implemented in Task 10
-            return startRow;
+            int row = startRow;
+            ws.Cell(row, 1).Value = "Info Sertifikasi Manual";
+            ws.Cell(row, 1).Style.Font.Bold = true;
+            ws.Range(row, 1, row, 2).Merge();
+            row++;
+
+            var fields = new (string Label, string? Value)[]
+            {
+                ("Penyelenggara",    session.Penyelenggara),
+                ("Kota",             session.Kota),
+                ("Sub Kategori",     session.SubKategori),
+                ("Tipe Sertifikat",  session.CertificateType),
+            };
+            foreach (var (label, value) in fields)
+            {
+                ws.Cell(row, 1).Value = label;
+                ws.Cell(row, 1).Style.Font.Bold = true;
+                ws.Cell(row, 2).Value = value ?? "—";
+                row++;
+            }
+
+            // Hyperlink ManualSertifikatUrl (REQ EXP-04 clickable link)
+            ws.Cell(row, 1).Value = "Link Sertifikat";
+            ws.Cell(row, 1).Style.Font.Bold = true;
+            if (!string.IsNullOrWhiteSpace(session.ManualSertifikatUrl))
+            {
+                ws.Cell(row, 2).Value = session.ManualSertifikatUrl;
+                ws.Cell(row, 2).SetHyperlink(new ClosedXML.Excel.XLHyperlink(session.ManualSertifikatUrl));
+            }
+            else
+            {
+                ws.Cell(row, 2).Value = "—";
+            }
+            row++;
+
+            return row;
         }
 
     }
