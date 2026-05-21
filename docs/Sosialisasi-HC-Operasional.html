@@ -380,6 +380,342 @@
       display: flex !important;
     }
   }
+
+  /* ===== Reusable component styles ===== */
+
+  /* Agenda list */
+  .agenda-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 24px; margin-top: 8px; }
+  .agenda-item {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--slide-bg); padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+    border-left: 4px solid var(--teal);
+    transition: all 0.3s;
+  }
+  .agenda-item:hover { transform: translateX(4px); border-left-color: var(--amber); }
+  .agenda-num { font-size: 22pt; font-weight: 800; color: var(--amber-dark); width: 42px; flex-shrink: 0; line-height: 1; }
+  body.dark .agenda-num { color: var(--amber); }
+  .agenda-content h4 { font-size: 12pt; color: var(--teal-dark); font-weight: 800; margin-bottom: 3px; }
+  body.dark .agenda-content h4 { color: var(--teal-light); }
+  .agenda-content p { font-size: 9.5pt; color: var(--text-muted); line-height: 1.4; }
+  .agenda-footer {
+    text-align: center; margin-top: 14px; padding: 10px 16px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    color: #fff; border-radius: 10px;
+    font-size: 11pt; font-weight: 700;
+  }
+
+  /* Role ladder */
+  .ladder-wrap { display: flex; align-items: flex-end; justify-content: center; gap: 0; height: 280px; padding: 20px 20px 0; }
+  .ladder-step {
+    flex: 1;
+    border-radius: 10px 10px 0 0;
+    padding: 12px 8px 14px;
+    text-align: center; color: #fff;
+    position: relative;
+    box-shadow: 0 -4px 12px rgba(13, 148, 136, 0.08);
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  }
+  .ladder-step.highlight {
+    box-shadow: 0 -8px 20px rgba(245, 158, 11, 0.4);
+    transform: translateY(-4px);
+    z-index: 2;
+  }
+  .ladder-step.highlight::after {
+    content: '⭐ ANDA';
+    position: absolute;
+    top: -28px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: var(--teal-dark);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 9pt;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .ladder-step .step-num {
+    position: absolute; top: -14px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--slide-bg);
+    border: 3px solid;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 10pt;
+  }
+  .ladder-step .step-role { font-size: 10pt; font-weight: 800; line-height: 1.2; }
+  .l6 { height: 45%;  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%); }
+  .l5 { height: 55%;  background: linear-gradient(180deg, var(--green) 0%, #059669 100%); }
+  .l4 { height: 65%;  background: linear-gradient(180deg, var(--amber) 0%, var(--amber-dark) 100%); }
+  .l3 { height: 75%;  background: linear-gradient(180deg, #7b1fa2 0%, #581280 100%); }
+  .l2 { height: 95%;  background: linear-gradient(180deg, var(--teal) 0%, var(--teal-dark) 100%); }
+  .l1 { height: 100%; background: linear-gradient(180deg, var(--red) 0%, #991b1b 100%); }
+  .l1 .step-num { border-color: var(--red); color: var(--red); }
+  .l2 .step-num { border-color: var(--teal); color: var(--teal-dark); }
+  .l3 .step-num { border-color: #7b1fa2; color: #7b1fa2; }
+  .l4 .step-num { border-color: var(--amber); color: var(--amber-dark); }
+  .l5 .step-num { border-color: var(--green); color: var(--green); }
+  .l6 .step-num { border-color: #64748b; color: #64748b; }
+
+  /* Authority area cards */
+  .area-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+  .area-card {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 16px 14px;
+    text-align: center;
+    border-top: 4px solid var(--teal);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  .area-card .area-icon { font-size: 26pt; margin-bottom: 6px; line-height: 1; }
+  .area-card .area-name { font-size: 11pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 4px; }
+  body.dark .area-card .area-name { color: var(--teal-light); }
+  .area-card .area-desc { font-size: 8.5pt; color: var(--text-muted); line-height: 1.3; }
+
+  /* Flow diagram horizontal */
+  .flow-h { display: flex; align-items: stretch; gap: 0; margin: 16px 0; }
+  .flow-node {
+    flex: 1; text-align: center;
+    padding: 14px 8px;
+    border-radius: 10px;
+    background: var(--slide-bg);
+    border: 2px solid var(--teal);
+    color: var(--teal-dark);
+    font-size: 9.5pt; line-height: 1.4;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  body.dark .flow-node { color: var(--teal-light); }
+  .flow-node .flow-icon { font-size: 22pt; margin-bottom: 6px; display: block; }
+  .flow-node strong { display: block; font-size: 10pt; margin-bottom: 3px; }
+  .flow-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; flex-shrink: 0;
+    font-size: 22pt; color: var(--amber);
+  }
+  .flow-caption { text-align: center; margin-top: 12px; font-size: 10pt; color: var(--slate); font-style: italic; }
+
+  /* Tip bar */
+  .tip-bar {
+    margin-top: 14px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border-left: 4px solid var(--amber);
+    border-radius: 0 8px 8px 0;
+    font-size: 10pt;
+    color: var(--text);
+  }
+  .tip-bar strong { color: var(--amber-dark); }
+  body.dark .tip-bar strong { color: var(--amber); }
+
+  /* Cross-ref panduan footer per slide */
+  .panduan-ref {
+    position: absolute;
+    bottom: 14px; left: 50px;
+    font-size: 8pt; color: var(--slate);
+    font-style: italic;
+    z-index: 2;
+  }
+  .panduan-ref strong { color: var(--teal-dark); font-style: normal; }
+  body.dark .panduan-ref strong { color: var(--teal-light); }
+
+  /* Module grid (CMP/CDP overview) */
+  .module-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 10px 0; }
+  .module-tile {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+    border-top: 4px solid var(--amber);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.1);
+  }
+  .module-tile .m-icon { font-size: 28pt; line-height: 1; margin-bottom: 8px; }
+  .module-tile .m-title { font-size: 11pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 4px; }
+  body.dark .module-tile .m-title { color: var(--teal-light); }
+  .module-tile .m-desc { font-size: 8.5pt; color: var(--text-muted); line-height: 1.4; }
+
+  /* Metric cards */
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 10px 0; }
+  .metric-card {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.1);
+    border-left: 4px solid var(--teal);
+  }
+  .metric-num { font-size: 32pt; font-weight: 900; color: var(--teal); line-height: 1; margin-bottom: 4px; }
+  .metric-label { font-size: 9.5pt; color: var(--text-muted); font-weight: 600; }
+
+  /* Two-column split */
+  .split-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 10px; }
+  .split-card {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 18px 20px;
+    border-top: 4px solid var(--teal);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  .split-card.amber { border-top-color: var(--amber); }
+  .split-card.green { border-top-color: var(--green); }
+  .split-card.red { border-top-color: var(--red); }
+  .split-card h4 {
+    font-size: 13pt; font-weight: 800; color: var(--teal-dark);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  body.dark .split-card h4 { color: var(--teal-light); }
+  .split-card.amber h4 { color: var(--amber-dark); }
+  body.dark .split-card.amber h4 { color: var(--amber); }
+  .split-card.red h4 { color: var(--red); }
+  .split-card ul { padding-left: 20px; margin: 0; }
+  .split-card li { font-size: 10pt; color: var(--text-muted); line-height: 1.5; margin-bottom: 5px; }
+
+  /* Reviewer chain visual */
+  .chain-wrap { display: flex; align-items: stretch; gap: 0; margin: 14px 0; }
+  .chain-step {
+    flex: 1; text-align: center;
+    padding: 18px 12px;
+    border-radius: 10px;
+    background: var(--slide-bg);
+    border: 2px dashed var(--slate);
+    color: var(--text);
+    font-size: 10pt;
+    position: relative;
+  }
+  .chain-step.final {
+    background: linear-gradient(135deg, var(--amber) 0%, var(--amber-dark) 100%);
+    color: #fff;
+    border: 2px solid var(--amber-dark);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+    transform: scale(1.05);
+  }
+  .chain-step strong { display: block; font-size: 11pt; margin-bottom: 4px; }
+  .chain-step.final::after {
+    content: '⭐ ANDA';
+    position: absolute;
+    top: -16px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--teal-dark);
+    color: var(--amber);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 8pt;
+    font-weight: 800;
+  }
+  .chain-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 28px;
+    font-size: 20pt; color: var(--amber);
+  }
+
+  /* 16-cell menu map */
+  .menu-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+  .menu-cell {
+    background: var(--slide-bg);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.06);
+    border-left: 3px solid var(--teal);
+    font-size: 8.5pt;
+    color: var(--text);
+  }
+  .menu-cell .mc-icon { font-size: 16pt; display: block; margin-bottom: 3px; }
+  .menu-cell .mc-name { font-weight: 700; color: var(--teal-dark); line-height: 1.2; }
+  body.dark .menu-cell .mc-name { color: var(--teal-light); }
+  .menu-cell.workers { border-left-color: var(--teal); }
+  .menu-cell.assessment { border-left-color: var(--amber); }
+  .menu-cell.assessment .mc-name { color: var(--amber-dark); }
+  body.dark .menu-cell.assessment .mc-name { color: var(--amber); }
+  .menu-cell.mapping { border-left-color: var(--green); }
+  .menu-cell.mapping .mc-name { color: var(--green); }
+  .menu-cell.files { border-left-color: #7b1fa2; }
+  .menu-cell.files .mc-name { color: #7b1fa2; }
+  .menu-cell.maintenance { border-left-color: var(--red); }
+  .menu-cell.maintenance .mc-name { color: var(--red); }
+
+  /* Checklist 3 column */
+  .checklist-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 10px 0; }
+  .checklist-col {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border-top: 4px solid var(--teal);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  .checklist-col.amber { border-top-color: var(--amber); }
+  .checklist-col.green { border-top-color: var(--green); }
+  .checklist-col h4 { font-size: 12pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 10px; text-align: center; }
+  body.dark .checklist-col h4 { color: var(--teal-light); }
+  .checklist-col.amber h4 { color: var(--amber-dark); }
+  body.dark .checklist-col.amber h4 { color: var(--amber); }
+  .checklist-col.green h4 { color: var(--green); }
+  .checklist-col ul { padding-left: 0; list-style: none; margin: 0; }
+  .checklist-col li {
+    font-size: 9.5pt; color: var(--text-muted);
+    padding: 4px 0 4px 22px; position: relative;
+    line-height: 1.5;
+  }
+  .checklist-col li::before {
+    content: '✓'; position: absolute; left: 0; top: 4px;
+    color: var(--green); font-weight: 800; font-size: 11pt;
+  }
+
+  /* Reference cards (slide 22) */
+  .ref-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 12px 0; }
+  .ref-card {
+    background: var(--slide-bg);
+    border-radius: 14px;
+    padding: 22px 18px;
+    text-align: center;
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.08);
+    transition: all 0.3s;
+  }
+  .ref-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--amber);
+  }
+  .ref-card .ref-icon { font-size: 36pt; line-height: 1; margin-bottom: 10px; }
+  .ref-card .ref-title { font-size: 11pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 6px; }
+  body.dark .ref-card .ref-title { color: var(--teal-light); }
+  .ref-card .ref-desc { font-size: 9pt; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px; }
+  .ref-card a {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 9pt;
+    font-weight: 700;
+  }
+  .ref-card a:hover { background: var(--amber); }
+
+  /* Notif matrix mini */
+  .notif-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 9pt;
+  }
+  .notif-table th {
+    background: var(--teal);
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .notif-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .notif-table tr:nth-child(even) td { background: var(--slide-bg-2); }
+  .notif-table code { font-family: 'Cascadia Code', Consolas, monospace; font-size: 8pt; color: var(--teal-dark); }
+  body.dark .notif-table code { color: var(--teal-light); }
 </style>
 </head>
 <body>
@@ -404,6 +740,177 @@
       <div class="cover-badge-hc">&#127942; ROLE HC &mdash; LEVEL 2</div>
       <p class="cover-meta-date">Kilang Pertamina Balikpapan &bull; Mei 2026</p>
     </div>
+  </div>
+
+  <!-- ================= SLIDE 2: SELAMAT DATANG ================= -->
+  <div class="slide default-deco" data-slide="2">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">PENGENALAN</p>
+        <h1 class="slide-title">Selamat Datang <span class="accent">Tim HC</span></h1>
+        <p class="slide-subtitle">Yang akan kita bahas dalam sesi ini</p>
+      </div>
+      <div class="slide-badge">SLIDE 2 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="agenda-grid">
+        <div class="agenda-item">
+          <div class="agenda-num">01</div>
+          <div class="agenda-content">
+            <h4>Pengenalan Role HC</h4>
+            <p>Authority, scope, dan alur kerja harian Anda</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">02</div>
+          <div class="agenda-content">
+            <h4>CMP &mdash; Competency Mgmt</h4>
+            <p>Records, Analytics, Pre/Post, Budget Training</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">03</div>
+          <div class="agenda-content">
+            <h4>CDP &mdash; Coaching Proton</h4>
+            <p>Dashboard, Reviewer Chain, Histori, Renewal</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">04</div>
+          <div class="agenda-content">
+            <h4>Kelola Data Proton</h4>
+            <p>Silabus, Guidance, Override data</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">05</div>
+          <div class="agenda-content">
+            <h4>Admin Panel HC</h4>
+            <p>Pekerja, Bank Soal, Mapping, Maintenance</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">06</div>
+          <div class="agenda-content">
+            <h4>Notifikasi &amp; Tugas Cepat</h4>
+            <p>Bell icon, daily/weekly checklist, reference</p>
+          </div>
+        </div>
+      </div>
+      <div class="agenda-footer">&#9201; Estimasi durasi: ~45 menit &bull; Pertanyaan kapan saja</div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 3: ROLE HC ================= -->
+  <div class="slide default-deco" data-slide="3">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">PENGENALAN</p>
+        <h1 class="slide-title">Posisi <span class="accent">HC</span> di Portal</h1>
+        <p class="slide-subtitle">Level 2 &mdash; akses penuh ke pengelolaan SDM &amp; coaching</p>
+      </div>
+      <div class="slide-badge">SLIDE 3 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="ladder-wrap">
+        <div class="ladder-step l6">
+          <div class="step-num">L6</div>
+          <div class="step-role">Coachee</div>
+        </div>
+        <div class="ladder-step l5">
+          <div class="step-num">L5</div>
+          <div class="step-role">Coach / Supervisor</div>
+        </div>
+        <div class="ladder-step l4">
+          <div class="step-num">L4</div>
+          <div class="step-role">Section Head / Sr Spv</div>
+        </div>
+        <div class="ladder-step l3">
+          <div class="step-num">L3</div>
+          <div class="step-role">Direktur / VP / Manager</div>
+        </div>
+        <div class="ladder-step l2 highlight">
+          <div class="step-num">L2</div>
+          <div class="step-role">HC</div>
+        </div>
+        <div class="ladder-step l1">
+          <div class="step-num">L1</div>
+          <div class="step-role">Admin</div>
+        </div>
+      </div>
+      <div class="area-grid">
+        <div class="area-card">
+          <div class="area-icon">&#128202;</div>
+          <div class="area-name">CMP</div>
+          <div class="area-desc">Monitor lintas section</div>
+        </div>
+        <div class="area-card">
+          <div class="area-icon">&#127919;</div>
+          <div class="area-name">CDP</div>
+          <div class="area-desc">Final reviewer chain</div>
+        </div>
+        <div class="area-card">
+          <div class="area-icon">&#128193;</div>
+          <div class="area-name">Kelola Data</div>
+          <div class="area-desc">Silabus &amp; Override</div>
+        </div>
+        <div class="area-card">
+          <div class="area-icon">&#9881;</div>
+          <div class="area-name">Admin Panel</div>
+          <div class="area-desc">16 menu operasional</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;1.1 &mdash; Authority &amp; Scope</p>
+  </div>
+
+  <!-- ================= SLIDE 4: ALUR KERJA HARIAN ================= -->
+  <div class="slide default-deco" data-slide="4">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">PENGENALAN</p>
+        <h1 class="slide-title">Alur Kerja <span class="accent">Harian HC</span></h1>
+        <p class="slide-subtitle">5 aktivitas inti yang berulang setiap hari</p>
+      </div>
+      <div class="slide-badge">SLIDE 4 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="flow-h">
+        <div class="flow-node">
+          <span class="flow-icon">&#128276;</span>
+          <strong>1. Cek Notif</strong>
+          Bell icon &mdash; evidence siap review, renewal, error
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#9989;</span>
+          <strong>2. Review Evidence</strong>
+          Final reviewer Coaching Proton
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128064;</span>
+          <strong>3. Monitor Assessment</strong>
+          Real-time + force-close kalau perlu
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128221;</span>
+          <strong>4. Schedule Renewal</strong>
+          Sertifikat mendekati expired
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128295;</span>
+          <strong>5. Resolve Issues</strong>
+          Bottleneck, override, eskalasi
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Tip:</strong> Mulai hari dengan cek <b>Bell Icon</b> dan <b>Bottleneck Report</b>. Dua tempat ini paling cepat surface hal yang perlu HC tangani hari itu.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>
   </div>
 
   <!-- ================= SLIDE 23: PENUTUP ================= -->
