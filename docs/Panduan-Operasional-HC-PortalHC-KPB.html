@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Panduan Operasional HC &mdash; Portal HC KPB</title>
+<style>
+  @page { size: A4; margin: 18mm 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.7; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 80px 20px 50px; margin-bottom: 30px; border-bottom: 3px solid #1565c0; }
+  .cover-icon { font-size: 56pt; margin-bottom: 16px; }
+  .cover h1 { color: #1565c0; font-size: 26pt; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .cover .subtitle { color: #555; font-size: 12pt; margin-bottom: 4px; }
+  .cover .version { color: #888; font-size: 9.5pt; margin-top: 20px; }
+  .cover .audience { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 6px 18px; border-radius: 20px; font-size: 10pt; font-weight: 600; margin-top: 12px; }
+
+  /* TOC */
+  .toc { background: #f8f9fa; border-radius: 8px; padding: 24px 28px; margin-bottom: 28px; }
+  .toc h2 { color: #1565c0; font-size: 14pt; margin-bottom: 14px; border: none; padding: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 5px; font-size: 10.5pt; }
+  .toc a { color: #1565c0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .toc-sub { list-style-type: disc; margin-top: 4px; }
+
+  /* Sections */
+  h2 { color: #1565c0; font-size: 14pt; margin-top: 34px; margin-bottom: 12px; border-left: 4px solid #1565c0; padding-left: 12px; }
+  h3 { color: #2e7d32; font-size: 12pt; margin-top: 20px; margin-bottom: 8px; }
+  h4 { color: #555; font-size: 11pt; margin-top: 14px; margin-bottom: 6px; }
+  p { margin-bottom: 8px; }
+  ul, ol { padding-left: 24px; margin-bottom: 8px; }
+  li { margin-bottom: 4px; }
+  strong { color: #1a1a1a; }
+
+  /* Step cards */
+  .step { background: #f5f7fa; border-radius: 8px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #1565c0; }
+  .step-header { display: flex; align-items: center; margin-bottom: 8px; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; background: #1565c0; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11pt; margin-right: 10px; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 11.5pt; color: #1565c0; }
+  .step-body { margin-left: 40px; font-size: 10.5pt; color: #333; }
+  .step-body ul { margin-top: 4px; }
+
+  /* Callout boxes */
+  .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .info-title { font-weight: 700; color: #1565c0; margin-bottom: 4px; }
+  .warn { background: #fff3e0; border-left: 4px solid #e65100; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .warn-title { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .success { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .success-title { font-weight: 700; color: #2e7d32; margin-bottom: 4px; }
+
+  /* Flow diagram */
+  .diagram { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 18px; margin: 14px 0; font-family: 'Cascadia Code', Consolas, monospace; font-size: 9.5pt; white-space: pre; line-height: 1.8; text-align: center; }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10pt; }
+  th { background: #1565c0; color: #fff; padding: 10px 14px; text-align: left; }
+  td { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+
+  /* Role tag */
+  .role-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 8.5pt; font-weight: 700; margin-right: 4px; }
+  .role-admin { background: #c62828; color: #fff; }
+  .role-hc { background: #1565c0; color: #fff; }
+  .role-it { background: #6a1b9a; color: #fff; }
+  .role-all { background: #2e7d32; color: #fff; }
+  .role-coach { background: #e65100; color: #fff; }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+
+  /* Print */
+  .no-print { }
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+    .step, .info, .warn, .success { page-break-inside: avoid; }
+    .task { page-break-inside: avoid; }
+  }
+
+  /* Action buttons */
+  .action-bar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
+  .action-bar button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 10pt; font-weight: 600; cursor: pointer; }
+  .btn-print { background: #1565c0; color: #fff; }
+  .btn-print:hover { background: #0d47a1; }
+
+  /* Chapter header */
+  .chapter { background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: #fff; padding: 20px 24px; border-radius: 8px; margin-top: 36px; margin-bottom: 18px; }
+  .chapter h2 { color: #fff; border-left: 4px solid #fff; margin-top: 0; }
+  .chapter p { color: #bbdefb; font-size: 10.5pt; margin-left: 16px; }
+
+  /* Sticky TOC sidebar (desktop only) */
+  @media (min-width: 1100px) {
+    body { padding-left: 280px; max-width: 1100px; }
+    .toc-sidebar {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 240px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 16px 18px;
+      font-size: 9.5pt;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      z-index: 50;
+    }
+    .toc-sidebar h3 { color: #1565c0; font-size: 11pt; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid #1565c0; }
+    .toc-sidebar ol { padding-left: 18px; margin: 0; }
+    .toc-sidebar li { margin-bottom: 3px; }
+    .toc-sidebar a { color: #444; text-decoration: none; }
+    .toc-sidebar a:hover { color: #1565c0; text-decoration: underline; }
+    .toc-sidebar a.active { color: #1565c0; font-weight: 700; }
+  }
+  @media (max-width: 1099px) {
+    .toc-sidebar { display: none; }
+  }
+  @media print {
+    .toc-sidebar { display: none; }
+    body { padding-left: 20mm; max-width: 210mm; }
+  }
+
+  /* Task article */
+  .task { margin: 22px 0 28px; padding-bottom: 14px; border-bottom: 1px dashed #e0e0e0; }
+  .task h3 { display: flex; align-items: center; gap: 10px; }
+  .breadcrumb { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px 14px; margin: 10px 0 14px; font-size: 10pt; color: #555; }
+  .breadcrumb .url { display: inline-block; margin-left: 8px; padding: 1px 8px; background: #1565c0; color: #fff; border-radius: 4px; font-family: 'Cascadia Code', Consolas, monospace; font-size: 9pt; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="action-bar no-print">
+  <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+<aside class="toc-sidebar no-print" id="tocSidebar">
+  <h3>Navigasi</h3>
+  <ol>
+    <li><a href="#bab1">1. Pengenalan</a></li>
+    <li><a href="#bab2">2. CMP</a></li>
+    <li><a href="#bab3">3. CDP</a></li>
+    <li><a href="#bab4">4. Kelola Data Proton</a></li>
+    <li><a href="#bab5">5. Admin Panel</a></li>
+    <li><a href="#bab6">6. Notifikasi &amp; Workflow</a></li>
+    <li><a href="#lampA">Lampiran A &mdash; Glossary</a></li>
+    <li><a href="#lampB">Lampiran B &mdash; Troubleshooting</a></li>
+    <li><a href="#lampC">Lampiran C &mdash; URL Cheatsheet</a></li>
+  </ol>
+</aside>
+
+<div class="cover">
+  <div class="cover-icon">&#128188;</div>
+  <h1>Panduan Operasional HC<br>Portal HC KPB</h1>
+  <p class="subtitle">Human Capital Portal &mdash; Kilang Pertamina Balikpapan</p>
+  <p class="subtitle">Panduan harian untuk tim Human Capital (Role L2 &mdash; HC)</p>
+  <div class="audience"><span class="role-tag role-hc">HC</span> Khusus Tim Human Capital</div>
+  <p class="version">Versi 1.0 &bull; Mei 2026</p>
+</div>
+
+<div class="toc">
+  <h2>Daftar Isi</h2>
+  <ol>
+    <li><a href="#bab1">Pengenalan</a>
+      <ul class="toc-sub">
+        <li><a href="#bab1-1">1.1 Role HC &mdash; Authority &amp; Scope</a></li>
+        <li><a href="#bab1-2">1.2 Cara Akses (Dev / Prod)</a></li>
+        <li><a href="#account-login">1.3 Login &amp; First-time Setup</a></li>
+        <li><a href="#account-profile">1.4 Profile &amp; Settings</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab2">CMP &mdash; Competency Management Platform</a>
+      <ul class="toc-sub">
+        <li><a href="#cmp-library-kkj">2.1 Library KKJ</a></li>
+        <li><a href="#cmp-cpdp-mapping">2.2 CPDP Mapping</a></li>
+        <li><a href="#cmp-training-records">2.3 Training Records</a></li>
+        <li><a href="#cmp-records-team">2.4 Records Team (oversight)</a></li>
+        <li><a href="#cmp-analytics-dashboard">2.5 Analytics Dashboard + Export</a></li>
+        <li><a href="#cmp-pre-post-test">2.6 Pre/Post Test setup &amp; monitor</a></li>
+        <li><a href="#cmp-budget-training">2.7 Budget Training</a></li>
+        <li><a href="#cmp-certificate">2.8 Certificate management</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab3">CDP &mdash; Competency Development Platform</a>
+      <ul class="toc-sub">
+        <li><a href="#cdp-plan-idp">3.1 Plan IDP review</a></li>
+        <li><a href="#cdp-deliverable-monitoring">3.2 Deliverable monitoring</a></li>
+        <li><a href="#cdp-coaching-dashboard">3.3 Coaching Proton Dashboard</a></li>
+        <li><a href="#cdp-histori-proton">3.4 Histori Proton + Export</a></li>
+        <li><a href="#cdp-bottleneck-report">3.5 Bottleneck Report</a></li>
+        <li><a href="#cdp-coach-workload">3.6 Coach Workload Dashboard</a></li>
+        <li><a href="#cdp-certification-management">3.7 Certification Management</a></li>
+        <li><a href="#cdp-reviewer-chain">3.8 Reviewer Chain &mdash; HC sebagai final reviewer</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab4">Kelola Data Proton</a>
+      <ul class="toc-sub">
+        <li><a href="#data-silabus">4.1 Silabus Proton (CRUD + Import/Export)</a></li>
+        <li><a href="#data-guidance">4.2 Guidance Files upload + history</a></li>
+        <li><a href="#data-override">4.3 Override Data Pekerja</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab5">Admin Panel (HC Operational Scope)</a>
+      <ul class="toc-sub">
+        <li><a href="#admin-kelola-pekerja">5.1 Kelola Pekerja</a></li>
+        <li><a href="#admin-kelola-units">5.2 Kelola Units / Bagian</a></li>
+        <li><a href="#admin-kelola-categories">5.3 Kelola Categories</a></li>
+        <li><a href="#admin-bank-soal">5.4 Bank Soal &mdash; Manage Packages</a></li>
+        <li><a href="#admin-import-soal">5.5 Bank Soal &mdash; Import Soal Excel</a></li>
+        <li><a href="#admin-create-assessment">5.6 Create Jadwal Assessment</a></li>
+        <li><a href="#admin-edit-assessment">5.7 Edit Assessment + Manual</a></li>
+        <li><a href="#admin-assessment-monitoring">5.8 Assessment Monitoring + Force-Close</a></li>
+        <li><a href="#admin-coach-mapping">5.9 Coach-Coachee Mapping</a></li>
+        <li><a href="#admin-renewal">5.10 Renewal Certificate Management</a></li>
+        <li><a href="#admin-training-records">5.11 Add/Edit/Import Training Record</a></li>
+        <li><a href="#admin-kkj-files">5.12 KKJ Matrix Files</a></li>
+        <li><a href="#admin-cpdp-files">5.13 CPDP Files</a></li>
+        <li><a href="#admin-audit-log">5.14 Audit Log &mdash; investigation playbook</a></li>
+        <li><a href="#admin-maintenance">5.15 Maintenance Mode</a></li>
+        <li><a href="#admin-impersonate">5.16 Impersonate User</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab6">Notifikasi &amp; Workflow</a></li>
+    <li><a href="#lampA">Lampiran A &mdash; Glossary</a></li>
+    <li><a href="#lampB">Lampiran B &mdash; Troubleshooting</a></li>
+    <li><a href="#lampC">Lampiran C &mdash; URL Cheatsheet</a></li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<!-- BAB 1: PENGENALAN -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab1">
+  <h2>1. Pengenalan</h2>
+  <p>Role HC, cara akses, login, dan pengaturan akun pribadi.</p>
+</div>
+
+<h3 id="bab1-1">1.1 Role HC &mdash; Authority &amp; Scope (L2)</h3>
+<p>HC (Human Capital) adalah role <b>Level 2</b> dengan akses penuh ke pengelolaan SDM dan program coaching. Authority HC mencakup:</p>
+<ul>
+  <li><b>CMP</b>: monitor seluruh assessment lintas Unit/Section, Analytics Dashboard, Records Team semua bagian, kelola Pre/Post Test, Budget Training, Certificate.</li>
+  <li><b>CDP</b>: review semua deliverable, Coaching Proton Dashboard global, Bottleneck Report, Coach Workload, Final Reviewer di approval chain.</li>
+  <li><b>Kelola Data Proton</b>: CRUD Silabus, upload Guidance Files, Override Data Pekerja.</li>
+  <li><b>Admin Panel</b>: Kelola Pekerja/Units/Categories, Bank Soal + Create Assessment, Assessment Monitoring real-time, Coach-Coachee Mapping, Renewal Certificate, Training Record, KKJ/CPDP Files, Audit Log, Maintenance Mode, Impersonate.</li>
+</ul>
+<div class="info">
+  <div class="info-title">💡 Beda dengan Admin (L1)</div>
+  Admin punya semua hak akses HC + konfigurasi sistem yang lebih sensitif (perubahan role pekerja, hapus permanen, escalation override). HC tidak.
+</div>
+
+<h3 id="bab1-2">1.2 Cara Akses (Dev / Prod)</h3>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th><th>Tujuan</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge badge-green">Dev</span></td><td><code>http://10.55.3.3/KPB-PortalHC</code></td><td>Server testing internal (akses dari jaringan kantor)</td></tr>
+    <tr><td><span class="badge badge-orange">Prod</span></td><td><code>(Hubungi Tim IT untuk URL produksi)</code></td><td>Operasional harian</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <div class="warn-title">⚠️ Server Dev = jaringan kantor</div>
+  Server <code>10.55.3.3</code> hanya bisa diakses dari jaringan kantor KPB. Tidak bisa diakses dari rumah atau WiFi publik.
+</div>
+
+<article class="task" id="account-login">
+  <h3>1.3 Login ke HC Portal</h3>
+  <div class="breadcrumb">
+    Browser &rarr; Halaman Login
+    <code class="url">/Account/Login</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka URL Portal</span></div>
+    <div class="step-body">Akses URL Dev atau Prod di browser modern (Chrome, Edge, Firefox versi terbaru).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Masukkan Kredensial</span></div>
+    <div class="step-body">Ketik <b>email</b> dan <b>password</b> yang sudah diaktifkan oleh Admin / Tim IT. Centang <b>Remember Me</b> kalau pakai komputer pribadi. Klik <b>Login</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Verifikasi Role Badge</span></div>
+    <div class="step-body">Setelah login, cek navbar kanan atas. Avatar Anda akan tampil dengan badge <span class="role-tag role-hc">HC</span>. Kalau bukan HC, hubungi Admin untuk update role di <b>Admin Panel &rarr; Kelola Pekerja</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Logout</span></div>
+    <div class="step-body">Klik avatar &rarr; <b>Logout</b>. Form Logout pakai metode POST &mdash; aman dari CSRF.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Lupa password</div>
+    Belum tersedia self-service reset di portal. Hubungi <b>Admin / Tim IT</b> untuk reset password manual.
+  </div>
+</article>
+
+<article class="task" id="account-profile">
+  <h3>1.4 Profile &amp; Settings</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Avatar (kanan atas) &rarr; My Profile / Settings
+    <code class="url">/Account/Profile</code> <code class="url">/Account/Settings</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Lihat Profil (read-only)</span></div>
+    <div class="step-body">Klik <b>avatar</b> Anda di pojok kanan atas navbar &rarr; pilih <b>My Profile</b> (<code>/Account/Profile</code>). Halaman menampilkan: nama, NIP, email, jabatan, unit kerja, dan role.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Edit Profil</span></div>
+    <div class="step-body">Klik avatar &rarr; <b>Settings</b> (<code>/Account/Settings</code>). Field yang bisa di-edit: <b>Nama Lengkap</b>, <b>Jabatan</b>, <b>Nomor Telepon</b>. Klik <b>Simpan Profil</b> di bawah form.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Field yang Tidak Bisa Di-edit</span></div>
+    <div class="step-body">NIP, Email, Role, Bagian, Direktorat, Unit hanya tampil read-only. Update field-field ini harus lewat Admin Panel &mdash; hubungi Admin / HC lain.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Ganti Password</div>
+    Belum ada fitur self-service ganti password di portal. Reset password harus via <b>Admin / Tim IT</b>. Kemungkinan password terhubung ke Active Directory perusahaan &mdash; reset lewat jalur IT standar.
+  </div>
+</article>
+
+<!-- ============================================================ -->
+<!-- BAB 2: CMP -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab2">
+  <h2>2. CMP &mdash; Competency Management Platform</h2>
+  <p>Pengelolaan kompetensi: KKJ, assessment, training records, analytics, dan sertifikat.</p>
+</div>
+
+<article class="task" id="cmp-library-kkj">
+  <h3>2.1 Library KKJ &mdash; Lihat Kebutuhan Kompetensi Jabatan</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; (landing card) Dokumen KKJ
+    <code class="url">/CMP/Index</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Modul CMP</span></div>
+    <div class="step-body">Klik menu <b>CMP</b> di navbar. Halaman landing CMP (<code>/CMP/Index</code>) menampilkan card-card modul.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Klik Card Dokumen KKJ</span></div>
+    <div class="step-body">Pilih card <b>Dokumen KKJ &amp; Alignment KKJ/IDP</b> untuk navigate ke halaman lihat KKJ + CPDP.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Library KKJ HC scope</div>
+    Sebagai HC (L2), Anda bisa lihat KKJ untuk semua posisi/jabatan. Pekerja role lain hanya lihat KKJ posisi sendiri.
+  </div>
+</article>
+
+<article class="task" id="cmp-cpdp-mapping">
+  <h3>2.2 CPDP Mapping &mdash; Pemetaan Pengembangan Kompetensi</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Dokumen KKJ
+    <code class="url">/CMP/DokumenKkj</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Dokumen KKJ</span></div>
+    <div class="step-body">Akses langsung <code>/CMP/DokumenKkj</code> atau via card di <code>/CMP/Index</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Pilih Tab</span></div>
+    <div class="step-body">Pakai parameter <code>?tab=</code> atau klik tab di halaman untuk switch antara <b>Library KKJ</b>, <b>CPDP Mapping</b>, dan dokumen alignment.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download File KKJ / CPDP</span></div>
+    <div class="step-body">Klik tombol download di tiap dokumen. URL endpoint: <code>/CMP/KkjFileDownload/{id}</code> dan <code>/CMP/CpdpFileDownload/{id}</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Update file KKJ / CPDP</div>
+    Upload file baru lewat <b>Admin Panel &rarr; KKJ Matrix</b> / <b>CPDP Files</b>. Lihat Bab 5.12 / 5.13.
+  </div>
+</article>
+
+<article class="task" id="cmp-training-records">
+  <h3>2.3 Training Records &mdash; Riwayat Pelatihan Pribadi + Tim</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Records (Training Records)
+    <code class="url">/CMP/Records</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Records</span></div>
+    <div class="step-body">Klik menu <b>CMP</b> &rarr; card / link <b>Training Records</b>. Tab default menampilkan riwayat assessment + training pribadi (unified records).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Data</span></div>
+    <div class="step-body">Pakai filter di atas tabel: <b>Section</b>, <b>Unit</b>, <b>Category</b>, <b>Status</b>, atau search. Filter di-URL via query string (<code>?section=&amp;unit=&amp;category=</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Excel</span></div>
+    <div class="step-body">Klik tombol <b>Export</b>. Endpoint: <code>/CMP/ExportRecords</code> untuk full export, atau <code>/CMP/ExportRecordsTeamAssessment</code> / <code>/CMP/ExportRecordsTeamTraining</code> untuk team-scoped export dengan filter aktif.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Records vs Records Team</div>
+    Halaman <code>/CMP/Records</code> sama untuk semua role; isi tab berubah sesuai role level. HC lihat tab Team View untuk seluruh tim.
+  </div>
+</article>
+
+<article class="task" id="cmp-records-team">
+  <h3>2.4 Records Team &mdash; Monitoring Tim Lintas Section</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Records &rarr; (tab) Team View
+    <code class="url">/CMP/Records</code> <code class="url">/CMP/RecordsTeamPartial</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Tab Team View</span></div>
+    <div class="step-body">Di halaman <b>Records</b>, klik tab <b>Team View</b>. Tab ini hanya muncul untuk role level 1-4 (HC, Admin, Manager, Section Head, Sr Supervisor). HC bisa lihat semua section.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter per Section / Unit / Kategori</span></div>
+    <div class="step-body">Pakai dropdown <b>Section</b>, <b>Unit</b>, <b>Kategori Assessment</b>, <b>Sub-Kategori</b>, <b>Status</b>, atau search nama. Partial reload via AJAX ke <code>/CMP/RecordsTeamPartial</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Drill ke Detail Pekerja</span></div>
+    <div class="step-body">Klik nama pekerja di tabel. Halaman detail <code>/CMP/RecordsWorkerDetail?workerId={id}</code> menampilkan unified history: assessment + training + sertifikat per worker.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Tim</span></div>
+    <div class="step-body">Klik <b>Export Excel</b> di tab Team View. Pilih <b>Assessment</b> atau <b>Training</b> &mdash; endpoint terpisah dengan filter aktif diteruskan sebagai query string.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 HC scope vs L4 scope</div>
+    HC (L2) bisa lihat lintas section. Section Head / Sr Supervisor (L4) locked ke section mereka sendiri (auto-filter di controller).
+  </div>
+</article>
+
+<article class="task" id="cmp-analytics-dashboard">
+  <h3>2.5 Analytics Dashboard &mdash; Compliance, Fail Rate, Gain Score</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Analytics Dashboard
+    <code class="url">/CMP/AnalyticsDashboard</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Analytics Dashboard</span></div>
+    <div class="step-body">Klik <b>CMP &rarr; Analytics Dashboard</b>. Dashboard load data via beberapa AJAX endpoint untuk komponen chart.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Pilih Filter Cascade</span></div>
+    <div class="step-body">Filter tersedia: <b>Bagian</b>, <b>Unit</b> (cascade dari Bagian via <code>/CMP/GetAnalyticsCascadeUnits</code>), <b>Kategori</b>, <b>Sub-Kategori</b> (cascade via <code>/CMP/GetAnalyticsCascadeSubKategori</code>), rentang tanggal.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Review Komponen Chart</span></div>
+    <div class="step-body">Komponen utama:
+      <ul>
+        <li><b>Summary</b> &mdash; total assessment, pass/fail rate, distribusi (<code>/CMP/GetAnalyticsSummary</code>).</li>
+        <li><b>Fail Rate</b> per kategori + drill-down (<code>/CMP/GetFailRateData</code>, <code>/CMP/GetFailRateDrillDown</code>).</li>
+        <li><b>Trend</b> bulanan (<code>/CMP/GetTrendData</code>).</li>
+        <li><b>ET Breakdown</b> per Excellent / Tinggi / dst (<code>/CMP/GetEtBreakdownData</code>).</li>
+        <li><b>Expiring Soon</b> &mdash; sertifikat hampir kadaluarsa (<code>/CMP/GetExpiringSoonData</code>).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Excel per Chart</span></div>
+    <div class="step-body">Tiap komponen punya tombol Export sendiri: <code>/CMP/ExportFailRateExcel</code>, <code>/CMP/ExportTrendExcel</code>, <code>/CMP/ExportEtBreakdownExcel</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Item Analysis &amp; Gain Score</div>
+    Untuk Pre/Post Test analysis, klik card / link Pre-Post di Analytics. Endpoint khusus: <code>/CMP/GetItemAnalysisData</code>, <code>/CMP/GetGainScoreData</code>, plus export Excel terpisah.
+  </div>
+</article>
+
+<article class="task" id="cmp-pre-post-test">
+  <h3>2.6 Pre/Post Test &mdash; Setup &amp; Monitor Gain Score</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Assessment (filter Pre/Post)
+    <code class="url">/CMP/Assessment</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buat Jadwal Pre-Test</span></div>
+    <div class="step-body">Pre-Test dijadwalkan via <b>Admin Panel &rarr; Create Assessment</b> (lihat Bab 5.6). Pilih kategori <b>Pre-Test</b> + assign ke peserta + set jadwal sebelum tanggal training.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Monitor Pre-Test Selesai</span></div>
+    <div class="step-body">Buka <b>CMP &rarr; Assessment</b> (<code>/CMP/Assessment</code>), search "Pre-Test [topik]". Cek peserta yang sudah complete via tab Records atau Assessment Monitoring (Bab 5.8).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Setelah Pelatihan, Buat Post-Test</span></div>
+    <div class="step-body">Buat assessment Post-Test dengan paket soal yang sama persis. Sistem otomatis pair Pre + Post berdasarkan peserta + topik.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Review Gain Score</span></div>
+    <div class="step-body">Buka <b>Analytics Dashboard &rarr; Gain Score</b>. Sistem hitung selisih nilai Post vs Pre per peserta. Export ke Excel via <code>/CMP/ExportGainScoreExcel?assessmentGroupId={id}</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Item Analysis</div>
+    Untuk lihat soal yang paling sulit / paling salah dijawab, buka <b>Item Analysis</b> di Analytics. Berguna untuk evaluasi kurikulum training.
+  </div>
+</article>
+
+<article class="task" id="cmp-budget-training">
+  <h3>2.7 Budget Training &mdash; Kelola Anggaran Pelatihan Tahunan</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Budget Training
+    <code class="url">/CMP/BudgetTraining</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Lihat Daftar Budget</span></div>
+    <div class="step-body">Buka <code>/CMP/BudgetTraining</code>. Daftar budget per tahun anggaran. Filter via dropdown tahun + search.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Budget Item Baru</span></div>
+    <div class="step-body">Klik <b>Tambah Budget</b> (<code>/CMP/BudgetTrainingCreate</code>). Isi nama training, anggaran, tahun, kategori, unit. Klik <b>Simpan</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Import Massal via Excel</span></div>
+    <div class="step-body">Untuk input banyak, klik <b>Import</b> (<code>/CMP/BudgetTrainingImport</code>). Download template via <b>Download Template</b> (<code>/CMP/DownloadBudgetTrainingTemplate</code>), isi data, upload kembali. Wajib pilih <b>Tahun Anggaran</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Update Realisasi</span></div>
+    <div class="step-body">Edit realisasi anggaran per item di tabel (quick edit inline via <code>/CMP/BudgetTrainingQuickUpdate</code>) atau bulk update (<code>/CMP/BudgetTrainingBulkUpdateRealisasi</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export Laporan Tahunan</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/CMP/BudgetTrainingExport?tahun={tahun}</code>) untuk download Excel rekap budget vs realisasi per tahun.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Bulk Delete</div>
+    Tombol <b>Bulk Delete</b> akan menghapus item terpilih permanen. Backup / export dulu sebelum bulk delete.
+  </div>
+</article>
+
+<article class="task" id="cmp-certificate">
+  <h3>2.8 Certificate &mdash; Download Sertifikat Assessment</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Results / Records &rarr; (per assessment) Certificate
+    <code class="url">/CMP/Certificate/{id}</code> <code class="url">/CMP/CertificatePdf/{id}</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Results Assessment</span></div>
+    <div class="step-body">Setelah peserta selesai assessment dan lulus passing grade, halaman Results (<code>/CMP/Results/{id}</code>) akan menampilkan link Sertifikat.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Preview Sertifikat</span></div>
+    <div class="step-body">Klik <b>Lihat Sertifikat</b> (<code>/CMP/Certificate/{id}</code>) &mdash; render preview di browser.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download PDF</span></div>
+    <div class="step-body">Klik <b>Download PDF</b> (<code>/CMP/CertificatePdf/{id}</code>) untuk file resmi yang bisa di-cetak atau di-share.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Sertifikat untuk renewal</div>
+    Sertifikat dengan masa berlaku akan muncul di <b>Renewal Certificate</b> (Bab 5.10) saat mendekati expired. HC schedule renewal dari sana.
+  </div>
+</article>
+
+<!-- ============================================================ -->
+<!-- BAB 3: CDP -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab3">
+  <h2>3. CDP &mdash; Competency Development Platform</h2>
+  <p>Coaching Proton, IDP, deliverable, dan approval chain dengan HC sebagai final reviewer.</p>
+</div>
+
+<article class="task" id="cdp-plan-idp">
+  <h3>3.1 Plan IDP &mdash; Review Silabus Pengembangan</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Plan IDP
+    <code class="url">/CDP/PlanIdp</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Plan IDP</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Plan IDP</b>. Halaman menampilkan silabus pengembangan kompetensi berdasarkan jabatan + level.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Bagian / Unit / Track</span></div>
+    <div class="step-body">Pakai query string filter: <code>?bagian=&amp;unit=&amp;trackId=</code> atau dropdown di halaman. Filter memungkinkan HC review silabus per scope tertentu.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download Guidance Document</span></div>
+    <div class="step-body">Per item silabus yang punya guidance file, klik link download (<code>/CDP/GuidanceDownload/{id}</code>).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Update silabus</div>
+    Silabus dikelola via <b>Kelola Data Proton</b> (Bab 4.1). Edit / tambah / nonaktifkan dari sana, tidak dari Plan IDP.
+  </div>
+</article>
+
+<article class="task" id="cdp-deliverable-monitoring">
+  <h3>3.2 Deliverable Monitoring &mdash; Semua Coachee</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Coaching Proton / Deliverable
+    <code class="url">/CDP/CoachingProton</code> <code class="url">/CDP/Deliverable/{id}</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Coaching Proton</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Coaching Proton</b> (<code>/CDP/CoachingProton</code>). HC lihat semua coachee lintas section dengan status deliverable.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter &amp; Search</span></div>
+    <div class="step-body">Pakai filter Section, Unit, Track, periode, status (<i>Not Started, In Progress, Pending Approval, Approved, Rejected</i>). Search nama coachee untuk cari cepat.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Buka Detail Deliverable</span></div>
+    <div class="step-body">Klik judul deliverable. Halaman detail <code>/CDP/Deliverable/{id}</code> menampilkan deskripsi, target tanggal, evidence yang sudah ter-upload, status approval chain, dan history coaching session.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Download Evidence</span></div>
+    <div class="step-body">Untuk review evidence yang di-submit coachee, klik link download (<code>/CDP/DownloadEvidence/{progressId}</code> atau <code>/CDP/DownloadEvidencePdf/{progressId}</code> untuk format PDF).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 HC = Final Reviewer</div>
+    HC tidak approve di tahap awal &mdash; tunggu Sr Supervisor + Section Head approve dulu. HC pakai endpoint <b>HCReviewDeliverable</b> di tahap terakhir (lihat 3.8).
+  </div>
+</article>
+
+<article class="task" id="cdp-coaching-dashboard">
+  <h3>3.3 Coaching Proton Dashboard &mdash; Monitoring Global</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Dashboard
+    <code class="url">/CDP/Dashboard</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Dashboard</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Dashboard</b>. Dashboard menampilkan progress coaching global: total coachee aktif, distribusi status deliverable, progress per Section / Unit / Track.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Cascade</span></div>
+    <div class="step-body">Filter via dropdown:
+      <ul>
+        <li><b>Section</b> &rarr; cascade <b>Unit</b> (via <code>/CDP/GetCascadeOptions?section={s}</code>)</li>
+        <li><b>Kategori</b> &rarr; cascade <b>Sub-Kategori</b> (via <code>/CDP/GetSubCategories?category={c}</code>)</li>
+        <li><b>Track</b> &mdash; Panelman, Operator, dll</li>
+      </ul>
+      Filter trigger reload partial via <code>/CDP/FilterCoachingProton</code>.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Drill ke Detail Coachee</span></div>
+    <div class="step-body">Klik card coachee di dashboard untuk lihat <b>deliverable + session history</b> (loaded via <code>/CDP/GetCoacheeDeliverables?coacheeId={id}</code>).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Tab Bottleneck</div>
+    Bottleneck Report ada sebagai tab / section di Dashboard ini. Lihat Bab 3.5.
+  </div>
+</article>
+
+<article class="task" id="cdp-histori-proton">
+  <h3>3.4 Histori Proton &mdash; Export Laporan per Periode</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Histori Proton
+    <code class="url">/CDP/HistoriProton</code> <code class="url">/CDP/HistoriProtonDetail</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Histori Proton</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Histori Proton</b>. Tampilan riwayat coaching per periode Proton yang sudah berjalan / selesai.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Detail per Coachee</span></div>
+    <div class="step-body">Klik nama coachee. Halaman detail (<code>/CDP/HistoriProtonDetail?userId={id}</code>) menampilkan complete history: deliverable submitted, coaching session log, final assessment scores.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Excel</span></div>
+    <div class="step-body">Klik <b>Export Excel</b> (<code>/CDP/ExportHistoriProton</code>). Export bisa difilter via parameter periode + section + unit.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Progress per Coachee</span></div>
+    <div class="step-body">Untuk laporan per coachee individual:
+      <ul>
+        <li>Excel: <code>/CDP/ExportProgressExcel?coacheeId={id}</code></li>
+        <li>PDF: <code>/CDP/ExportProgressPdf?coacheeId={id}</code></li>
+      </ul>
+    </div>
+  </div>
+</article>
+
+<article class="task" id="cdp-bottleneck-report">
+  <h3>3.5 Bottleneck Report &mdash; Identifikasi Deliverable Stuck</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Dashboard &rarr; (tab) Bottleneck
+    <code class="url">/CDP/Dashboard</code> <code class="url">/CDP/ExportBottleneckReport</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Akses Tab Bottleneck</span></div>
+    <div class="step-body">Di halaman Dashboard (<code>/CDP/Dashboard</code>), pilih tab / section <b>Bottleneck Report</b>. Tabel menampilkan deliverable yang stuck (lama tidak progress) per coachee / unit.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Bottleneck</span></div>
+    <div class="step-body">Filter umum:
+      <ul>
+        <li><b>Pending Approval &gt; X hari</b> &mdash; deliverable nunggu reviewer terlalu lama</li>
+        <li><b>Rejected</b> &mdash; coachee belum re-upload setelah ditolak</li>
+        <li><b>Coach</b> &mdash; coach tertentu yang banyak deliverable stuck</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Identifikasi Akar Bottleneck</span></div>
+    <div class="step-body">Klik baris untuk drill detail. Akar umum: reviewer lambat (tagging Sr Supervisor / Section Head), coachee pasif (belum upload), scope unclear (deliverable bermasalah).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export untuk Eskalasi</span></div>
+    <div class="step-body">Klik <b>Export Bottleneck</b> (<code>/CDP/ExportBottleneckReport</code>). Excel ini biasa dipakai HC untuk meeting eskalasi ke Section Head / Manager.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export Coaching Tracking</span></div>
+    <div class="step-body">Untuk laporan coaching tracking lebih luas: <code>/CDP/ExportCoachingTracking</code> dengan parameter filter aktif.</div>
+  </div>
+</article>
+
+<article class="task" id="cdp-coach-workload">
+  <h3>3.6 Coach Workload &mdash; Beban Kerja Coach</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; (Admin / CoachMapping) &rarr; Coach Workload
+    <code class="url">/CoachMapping/CoachWorkload</code> <code class="url">/CoachMapping/ExportCoachWorkload</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Coach Workload</span></div>
+    <div class="step-body">Akses <code>/CoachMapping/CoachWorkload</code>. Halaman menampilkan tiap coach + jumlah coachee aktif + deliverable pending review.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter per Section</span></div>
+    <div class="step-body">Pakai dropdown / query string <code>?section={s}</code> untuk filter coach per section.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Identifikasi Overload</span></div>
+    <div class="step-body">Sort by jumlah coachee atau pending review. Coach dengan workload tinggi = kandidat untuk redistribusi mapping (lihat Bab 5.9).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Workload Summary</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/CoachMapping/ExportCoachWorkload</code>) atau dari CDP: <code>/CDP/ExportWorkloadSummary</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Aksi setelah identifikasi overload</div>
+    Buka <b>Coach-Coachee Mapping</b> (Bab 5.9), pindahkan coachee dari coach yang overloaded ke coach yang capacity-nya masih ada.
+  </div>
+</article>
+
+<article class="task" id="cdp-certification-management">
+  <h3>3.7 Certification Management &mdash; Sertifikat Coaching Proton</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Certification Management
+    <code class="url">/CDP/CertificationManagement</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Certification Management</b>. Daftar sertifikat coaching: aktif, mendekati expired, expired.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Sertifikat</span></div>
+    <div class="step-body">Pakai filter section, kategori, sub-kategori, rentang tanggal expired via <code>/CDP/FilterCertificationManagement</code>. Pagination via <code>?page={n}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Excel</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/CDP/ExportSertifikatExcel</code>) dengan parameter filter aktif.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Schedule Renewal</span></div>
+    <div class="step-body">Untuk sertifikat yang mendekati expired, lanjut ke <b>Admin Panel &rarr; Renewal Certificate</b> (Bab 5.10) untuk schedule assessment renewal.</div>
+  </div>
+</article>
+
+<article class="task" id="cdp-reviewer-chain">
+  <h3>3.8 Reviewer Chain &mdash; HC sebagai Final Reviewer</h3>
+  <div class="breadcrumb">
+    Workflow approval (multi-step, no single URL)
+    <code class="url">(workflow)</code>
+  </div>
+  <div class="diagram">Coachee Submit Evidence
+            &darr;
+  1. Sr Supervisor Review
+            &darr;
+  2. Section Head Review
+            &darr;
+  3. HC Final Review   &larr; Anda
+            &darr;
+     Approved / Rejected</div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Notifikasi Evidence Siap Review</span></div>
+    <div class="step-body">Setelah Sr Supervisor + Section Head approve, notifikasi muncul di <b>bell icon</b> HC. Klik untuk navigate ke deliverable (Bab 6.1).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Halaman Deliverable</span></div>
+    <div class="step-body">Akses <code>/CDP/Deliverable/{id}</code>. Cek evidence yang ter-upload, coaching session log, dan history approval di bawah.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Review &amp; Approve / Reject</span></div>
+    <div class="step-body">Klik <b>HC Approve</b> (POST <code>/CDP/HCReviewDeliverable</code>) untuk approve final. Atau <b>Reject</b> (POST <code>/CDP/RejectDeliverable</code> dengan <code>rejectionReason</code>) kalau evidence belum memenuhi standar.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Batch HC Approve</span></div>
+    <div class="step-body">Untuk approve banyak deliverable sekaligus, pakai <b>Batch HC Approve</b> (POST <code>/CDP/BatchHCApprove</code> dengan body JSON list progressId).</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Reject = Reset Chain</div>
+    Kalau HC reject, seluruh chain (Sr Supervisor + Section Head + HC) ter-reset. Coachee harus upload evidence baru, di-review ulang dari Sr Supervisor lagi. Pastikan reject reason jelas + actionable.
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Jangan Skip Chain</div>
+    HC tidak boleh approve langsung tanpa tunggu Sr Supervisor + Section Head approve dulu. Sistem enforce urutan via endpoint terpisah (Approve vs HCReview).
+  </div>
+</article>
+
+<!-- ============================================================ -->
+<!-- BAB 4: KELOLA DATA PROTON -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab4">
+  <h2>4. Kelola Data Proton</h2>
+  <p>Silabus, Guidance Files, dan Override data sync Proton.</p>
+</div>
+
+<article class="task" id="data-silabus">
+  <h3>4.1 Silabus Proton &mdash; CRUD + Import/Export Excel</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Kelola Data &rarr; Silabus
+    <code class="url">/ProtonData/Index</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Silabus</span></div>
+    <div class="step-body">Klik <b>Kelola Data</b> di navbar &rarr; halaman default <code>/ProtonData/Index</code>. Filter dropdown <b>Bagian</b>, <b>Unit</b>, <b>Track</b>. Toggle <b>Show Inactive</b> untuk lihat silabus yang sudah dinonaktifkan.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Inline Edit Silabus</span></div>
+    <div class="step-body">Edit langsung di tabel: ubah judul, urutan, target level. Klik <b>Save</b> untuk submit batch via <code>/ProtonData/SilabusSave</code> (POST JSON body).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Deactivate / Reactivate</span></div>
+    <div class="step-body">Untuk silabus obsolete, klik <b>Deactivate</b> (<code>/ProtonData/SilabusDeactivate</code>). Bisa di-reactivate kalau ternyata salah (<code>/ProtonData/SilabusReactivate</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Import Excel</span></div>
+    <div class="step-body">Klik <b>Import Silabus</b> (<code>/ProtonData/ImportSilabus</code>):
+      <ul>
+        <li>Download template lewat <code>/ProtonData/DownloadSilabusTemplate?bagian=&amp;unit=&amp;trackId=</code></li>
+        <li>Isi data sesuai format, pilih Bagian/Unit/Track di form</li>
+        <li>Upload Excel via tombol Upload</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export Silabus</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/ProtonData/ExportSilabus?bagian=&amp;unit=&amp;trackId=</code>) untuk download Excel hasil silabus aktif.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Delete Permanent</div>
+    <b>SilabusDelete</b> menghapus permanen + cascade ke deliverable / coachee history. Pakai <b>Deactivate</b> dulu &mdash; delete hanya kalau silabus belum pernah dipakai. Endpoint preview cascade: <code>/ProtonData/SilabusDeletePreview</code>, <code>/ProtonData/SubKompetensiDeletePreview</code>, <code>/ProtonData/KompetensiDeletePreview</code>.
+  </div>
+</article>
+
+<article class="task" id="data-guidance">
+  <h3>4.2 Guidance Files &mdash; Upload &amp; Kelola Dokumen Rujukan</h3>
+  <div class="breadcrumb">
+    Kelola Data &rarr; Guidance List per Bagian/Unit/Track
+    <code class="url">/ProtonData/GuidanceList</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Guidance</span></div>
+    <div class="step-body">Akses <code>/ProtonData/GuidanceList?bagian={b}&amp;unit={u}&amp;trackId={t}</code>. Daftar guidance file aktif untuk scope tersebut.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Upload Guidance Baru</span></div>
+    <div class="step-body">Klik <b>Upload Guidance</b>. Pilih Bagian/Unit/Track, lampirkan file (PDF rekomendasi). Submit ke <code>/ProtonData/GuidanceUpload</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Replace / Delete</span></div>
+    <div class="step-body">Untuk update file: <code>/ProtonData/GuidanceReplace/{id}</code>. Untuk hapus: <code>/ProtonData/GuidanceDelete</code> (POST JSON body). File yang dihapus tidak bisa di-restore.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Download</span></div>
+    <div class="step-body">Coachee + Coach + HC bisa download guidance lewat <code>/ProtonData/GuidanceDownload/{id}</code> &mdash; link tampil di Plan IDP (Bab 3.1).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Pakai PDF untuk standardisasi</div>
+    Pakai PDF supaya format konsisten lintas device. Hindari DOCX/XLSX kecuali memang perlu di-edit oleh user.
+  </div>
+</article>
+
+<article class="task" id="data-override">
+  <h3>4.3 Override Data Pekerja &mdash; Proton Sync Fallback</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Kelola Data &rarr; (tab) Override
+    <code class="url">/ProtonData/Override</code> <code class="url">/ProtonData/OverrideList</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Cek Status Sync</span></div>
+    <div class="step-body">Buka <code>/ProtonData/StatusData</code> dulu untuk lihat status sync data dari source ke Proton. Identifikasi pekerja yang gagal mapping otomatis (mis: ID jabatan tidak ter-detect).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Override Page</span></div>
+    <div class="step-body">Akses <code>/ProtonData/Override</code> untuk halaman utama, atau <code>/ProtonData/OverrideList?bagian={b}&amp;unit={u}&amp;trackId={t}&amp;statusFilter={s}</code> untuk daftar dengan filter.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Detail per Override</span></div>
+    <div class="step-body">Klik baris untuk drill ke <code>/ProtonData/OverrideDetail/{id}</code>. Tampilan: data source vs data Proton yang diinginkan + field-field mapping.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Save Override</span></div>
+    <div class="step-body">Isi paksa value mapping (mis: mapping KKJ kalau Proton tidak detect ID Jabatan otomatis). Klik <b>Save</b> &mdash; submit ke <code>/ProtonData/OverrideSave</code> (POST JSON body). Data generated otomatis setelah override.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Fitur Sensitif</div>
+    Override mem-bypass auto-sync. Pakai hanya untuk fix data yang gagal sync otomatis &mdash; bukan untuk "fix" data source yang salah (data source harus diperbaiki di hulunya). Override masuk ke Audit Log.
+  </div>
+</article>
+
+<!-- ============================================================ -->
+<!-- BAB 5: ADMIN PANEL -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab5">
+  <h2>5. Admin Panel (HC Operational Scope)</h2>
+  <p>16 menu admin: kelola pekerja, bank soal, assessment, mapping, renewal, audit, maintenance.</p>
+</div>
+
+<article class="task" id="admin-kelola-pekerja">
+  <h3>5.1 Kelola Pekerja &mdash; CRUD + Import/Export Excel</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Admin Panel &rarr; Kelola Pekerja
+    <code class="url">/Worker/ManageWorkers</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Pekerja</span></div>
+    <div class="step-body">Akses <code>/Worker/ManageWorkers</code>. Filter via query: <code>?search=&amp;sectionFilter=&amp;unitFilter=&amp;roleFilter=&amp;showInactive=false</code>. Toggle <b>Show Inactive</b> untuk lihat pekerja yang dinonaktifkan.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Pekerja</span></div>
+    <div class="step-body">Klik <b>Tambah Pekerja</b> &rarr; <code>/Worker/CreateWorker</code>. Isi: nama, NIP, email, jabatan, bagian, unit, role. Submit POST ke endpoint sama.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit / Detail Pekerja</span></div>
+    <div class="step-body">Klik nama pekerja:
+      <ul>
+        <li><b>Detail</b>: <code>/Worker/WorkerDetail/{id}</code> &mdash; lihat profil + history</li>
+        <li><b>Edit</b>: <code>/Worker/EditWorker/{id}</code> &mdash; ubah field termasuk role assignment</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Deactivate / Reactivate / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>Deactivate</b>: POST <code>/Worker/DeactivateWorker/{id}</code> &mdash; pekerja tidak bisa login, data tetap ada</li>
+        <li><b>Reactivate</b>: POST <code>/Worker/ReactivateWorker/{id}</code></li>
+        <li><b>Delete permanen</b>: POST <code>/Worker/DeleteWorker/{id}</code> &mdash; cascade ke records</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Mass Import via Excel</span></div>
+    <div class="step-body">Klik <b>Import Workers</b> &rarr; <code>/Worker/ImportWorkers</code>:
+      <ul>
+        <li>Download template: <code>/Worker/DownloadImportTemplate</code></li>
+        <li>Isi data sesuai format kolom</li>
+        <li>Upload via POST <code>/Worker/ImportWorkers</code> (form-data: <code>excelFile</code>)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">6</span><span class="step-title">Export Backup Excel</span></div>
+    <div class="step-body">Untuk backup / pelaporan, klik <b>Export Excel</b> (<code>/Worker/ExportWorkers</code>) dengan filter aktif diteruskan via query.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Delete = Cascade</div>
+    Delete pekerja akan menghapus referensi terkait (assessment history, deliverable). Pakai <b>Deactivate</b> dulu kecuali memang perlu hapus permanen (mis: data uji coba salah input).
+  </div>
+</article>
+
+<article class="task" id="admin-kelola-units">
+  <h3>5.2 Kelola Units / Bagian / Organisasi</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Admin Panel &rarr; Kelola Organisasi
+    <code class="url">/Organization/ManageOrganization</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Manage Organization</span></div>
+    <div class="step-body">Akses <code>/Organization/ManageOrganization</code>. Struktur ditampilkan sebagai tree hierarchical (parent &rarr; child). API endpoint untuk tree: <code>/Organization/GetOrganizationTree</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Unit Baru</span></div>
+    <div class="step-body">Klik <b>Tambah Unit</b> &mdash; POST <code>/Organization/AddOrganizationUnit</code> dengan form data <code>name</code>, <code>parentId</code> (kosong = root).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit Unit</span></div>
+    <div class="step-body">Klik icon edit &rarr; POST <code>/Organization/EditOrganizationUnit</code> dengan <code>id</code>, <code>name</code>, <code>parentId</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Toggle Active / Reorder / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>Toggle Active</b>: POST <code>/Organization/ToggleOrganizationUnitActive</code> (nonaktifkan tanpa hapus)</li>
+        <li><b>Reorder</b>: POST <code>/Organization/ReorderOrganizationUnit</code> dengan <code>direction</code> (up/down), atau batch <code>/Organization/ReorderBatch</code> dengan <code>orderedIds</code></li>
+        <li><b>Delete</b>: POST <code>/Organization/DeleteOrganizationUnit</code> &mdash; pastikan tidak ada pekerja terassign</li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Cek Assign Sebelum Delete</div>
+    Delete unit yang masih punya pekerja assigned akan error / cascade. Pindahkan pekerja ke unit lain dulu via Kelola Pekerja, baru delete unit.
+  </div>
+</article>
+
+<article class="task" id="admin-kelola-categories">
+  <h3>5.3 Kelola Categories &mdash; Kategori Assessment</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Admin Panel &rarr; Kelola Categories
+    <code class="url">/AssessmentAdmin/ManageCategories</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/ManageCategories</code>. Tampilan daftar kategori + sub-kategori (parent-child) untuk assessment.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Kategori</span></div>
+    <div class="step-body">Klik <b>Add Category</b> &mdash; submit POST <code>/AssessmentAdmin/AddCategory</code> dengan <code>name</code>, <code>defaultPassPercentage</code>, <code>sortOrder</code>, <code>parentId</code> (untuk sub-kategori), <code>signatoryUserId</code> (penanda-tangan sertifikat).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit Kategori</span></div>
+    <div class="step-body">Klik icon edit &mdash; GET <code>/AssessmentAdmin/EditCategory/{id}</code> untuk form, POST endpoint sama untuk save.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Toggle Active / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Toggle: POST <code>/AssessmentAdmin/ToggleCategoryActive/{id}</code></li>
+        <li>Delete: POST <code>/AssessmentAdmin/DeleteCategory/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export</span></div>
+    <div class="step-body">Excel: <code>/AssessmentAdmin/ExportCategoriesExcel</code>. PDF: <code>/AssessmentAdmin/ExportCategoriesPdf</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Signatory User</div>
+    Tetapkan <b>Signatory User</b> per kategori &mdash; ini yang muncul sebagai penanda-tangan di sertifikat assessment kategori tersebut. Biasanya Section Head atau Manager bagian terkait.
+  </div>
+</article>
+
+<article class="task" id="admin-bank-soal">
+  <h3>5.4 Bank Soal &mdash; Manage Packages &amp; Questions</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Kelola Assessment &rarr; (per assessment) Manage Packages
+    <code class="url">/AssessmentAdmin/ManagePackages</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Paket Soal per Assessment</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/ManagePackages?assessmentId={id}</code>. Per assessment bisa punya beberapa paket soal (misal: paket A, paket B untuk random distribution).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buat Paket Baru</span></div>
+    <div class="step-body">Klik <b>Create Package</b> &mdash; POST <code>/AssessmentAdmin/CreatePackage</code> dengan <code>assessmentId</code> + <code>packageName</code>. Untuk Pre/Post Test, gunakan <b>Copy from Pre</b> (<code>/AssessmentAdmin/CopyPackagesFromPre</code>) supaya paket Post sama persis dengan Pre.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Kelola Soal dalam Paket</span></div>
+    <div class="step-body">Klik paket &rarr; <code>/AssessmentAdmin/ManagePackageQuestions?packageId={id}</code>:
+      <ul>
+        <li>Tambah soal: POST <code>/AssessmentAdmin/CreateQuestion</code></li>
+        <li>Edit soal: GET/POST <code>/AssessmentAdmin/EditQuestion?questionId={id}</code></li>
+        <li>Hapus soal: POST <code>/AssessmentAdmin/DeleteQuestion</code></li>
+        <li>Preview soal: <code>/AssessmentAdmin/PreviewQuestion?questionId={id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Preview Paket Lengkap</span></div>
+    <div class="step-body">Sebelum publish, klik <b>Preview Package</b> (<code>/AssessmentAdmin/PreviewPackage?packageId={id}</code>) untuk simulasi tampilan peserta.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Delete Paket</span></div>
+    <div class="step-body">POST <code>/AssessmentAdmin/DeletePackage</code> dengan <code>packageId</code>. Pastikan paket belum dipakai assessment aktif.</div>
+  </div>
+</article>
+
+<article class="task" id="admin-import-soal">
+  <h3>5.5 Bank Soal &mdash; Import Soal via Excel Template</h3>
+  <div class="breadcrumb">
+    Manage Packages &rarr; (per paket) Import Questions
+    <code class="url">/AssessmentAdmin/ImportPackageQuestions</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Download Template Excel</span></div>
+    <div class="step-body">Dari halaman <b>Manage Packages</b>, klik <b>Download Template</b> (<code>/AssessmentAdmin/DownloadQuestionTemplate?type=MC</code> untuk Multiple Choice, atau <code>?type=Essay</code> untuk soal essay).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Isi Soal di Excel</span></div>
+    <div class="step-body">Template berisi kolom: pertanyaan, opsi A-E, kunci jawaban (huruf kapital), bobot, pembahasan. Ikuti format dengan tepat &mdash; sheet validation di template akan reject input invalid.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Upload File</span></div>
+    <div class="step-body">Klik <b>Import Questions</b> per paket &rarr; <code>/AssessmentAdmin/ImportPackageQuestions?packageId={id}</code>. Upload file via POST endpoint sama (form-data).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Verifikasi Hasil Import</span></div>
+    <div class="step-body">Setelah import sukses, buka <b>Manage Package Questions</b> untuk verifikasi soal masuk dengan benar. Periksa beberapa soal random via Preview.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Format Kunci Jawaban</div>
+    Kolom <b>Kunci Jawaban</b> harus huruf kapital tunggal (<code>A</code>, <code>B</code>, <code>C</code>, <code>D</code>, atau <code>E</code>). Lowercase atau multiple value bisa ditolak. Untuk multi-answer / essay, ikut format khusus di sheet template.
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Backup Sebelum Import Ulang</div>
+    Re-import bisa duplicate atau overwrite soal. Cek behavior di hasil import pertama &mdash; kalau ragu, buat paket baru kosong dan test di sana.
+  </div>
+</article>
+
+<article class="task" id="admin-create-assessment">
+  <h3>5.6 Create Jadwal Assessment</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Kelola Assessment &rarr; Create Assessment
+    <code class="url">/AssessmentAdmin/CreateAssessment</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Form Create</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/CreateAssessment</code>. Untuk renewal sertifikat, parameter <code>?renewSessionId={id}</code> atau <code>?renewTrainingId={id}</code> akan auto-fill data renewal.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Isi Data Assessment</span></div>
+    <div class="step-body">Field utama:
+      <ul>
+        <li><b>Title</b> &mdash; nama assessment</li>
+        <li><b>Category</b> &mdash; pilih dari kategori yang ada (Bab 5.3)</li>
+        <li><b>Schedule Date</b> &mdash; tanggal pelaksanaan</li>
+        <li><b>Duration (minutes)</b> &mdash; durasi timer</li>
+        <li><b>Pass Percentage</b> &mdash; passing grade (default dari kategori)</li>
+        <li><b>Assessment Type</b> &mdash; Standard / Pre-Test / Post-Test / Interview</li>
+        <li><b>HasManualGrading</b> &mdash; toggle kalau ada soal essay yang perlu manual grading</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Pilih Paket Soal</span></div>
+    <div class="step-body">Setelah create assessment dasar, buka <b>Manage Packages</b> (Bab 5.4) untuk attach paket soal yang sudah dibuat.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Assign Peserta</span></div>
+    <div class="step-body">Pilih peserta individu via search atau group-assign berdasarkan Section/Unit. POST <code>/AssessmentAdmin/CreateAssessment</code> dengan list <code>NewUserIds</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Publish &amp; Notif Peserta</span></div>
+    <div class="step-body">Save assessment. Notifikasi otomatis dikirim ke peserta via bell icon (lihat Bab 6).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Pre/Post Test</div>
+    Untuk Pre-Test, set <b>Assessment Type = Pre-Test</b>. Setelah training selesai, create Post-Test dengan kategori + judul kontekstual &mdash; sistem auto-pair via <code>linkedGroupId</code>.
+  </div>
+</article>
+
+<article class="task" id="admin-edit-assessment">
+  <h3>5.7 Edit Assessment + Manual Entry Assessment</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Kelola Assessment &rarr; (per item) Edit / Manual
+    <code class="url">/AssessmentAdmin/ManageAssessment</code> <code class="url">/AssessmentAdmin/EditAssessment</code> <code class="url">/TrainingAdmin/AddManualAssessment</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Assessment</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/ManageAssessment</code>. Halaman punya tab: <b>Assessment</b>, <b>Training</b>, <b>History</b> (loaded via partial endpoint <code>ManageAssessmentTab_Assessment</code>, <code>_Training</code>, <code>_History</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Edit Assessment</span></div>
+    <div class="step-body">Klik icon edit per row. GET <code>/AssessmentAdmin/EditAssessment/{id}</code> untuk form. POST endpoint sama untuk save. Bisa update field utama + tambah/cabut peserta.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Manual Entry Assessment (Variant B)</span></div>
+    <div class="step-body">Untuk catat hasil assessment yang dilakukan offline (mis: training eksternal yang ada sertifikat tapi tidak ada test online), pakai <b>Add Manual Assessment</b> (<code>/TrainingAdmin/AddManualAssessment</code>). Isi data user + sertifikat info + skor + tanggal.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Edit / Delete Manual Assessment</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Edit: <code>/TrainingAdmin/EditManualAssessment/{id}</code></li>
+        <li>Delete: POST <code>/TrainingAdmin/DeleteManualAssessment/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Delete Assessment Bertingkat</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Delete single: POST <code>/AssessmentAdmin/DeleteAssessment/{id}</code></li>
+        <li>Delete group (multi-session batch): POST <code>/AssessmentAdmin/DeleteAssessmentGroup/{id}</code></li>
+        <li>Delete Pre/Post pair: POST <code>/AssessmentAdmin/DeletePrePostGroup</code> dengan <code>linkedGroupId</code></li>
+        <li>Preview impact dulu: GET <code>/AssessmentAdmin/GetDeleteImpact?id={id}&amp;type={type}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Delete = Hilang Records</div>
+    Delete assessment yang sudah ada peserta complete = hilangkan history nilai mereka. Cek <b>GetDeleteImpact</b> dulu. Untuk audit purpose, lebih baik tidak delete sama sekali kecuali memang salah input.
+  </div>
+</article>
+
+<article class="task" id="admin-assessment-monitoring">
+  <h3>5.8 Assessment Monitoring Real-Time + Force-Close</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Assessment Monitoring
+    <code class="url">/AssessmentAdmin/AssessmentMonitoring</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Monitoring Page</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/AssessmentMonitoring</code>. Tampilan semua sesi assessment aktif: status login peserta, waktu tersisa, jumlah soal terjawab, persentase progress.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Detail Sesi per Kelompok</span></div>
+    <div class="step-body">Klik judul assessment &rarr; <code>/AssessmentAdmin/AssessmentMonitoringDetail?title={t}&amp;category={c}&amp;scheduleDate={d}</code>. Detail per peserta + actions per row.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Force-Close Sesi Individual</span></div>
+    <div class="step-body">Kalau user freeze / disconnect, klik <b>Akhiri Ujian</b> per row &mdash; POST <code>/AssessmentAdmin/AkhiriUjian/{id}</code>. Sistem auto-submit jawaban yang sudah diisi + hitung skor proporsional.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Force-Close Semua Sesi (Batch)</span></div>
+    <div class="step-body">Untuk akhiri semua sesi sekaligus (mis: jadwal selesai tapi masih ada peserta belum submit), klik <b>Akhiri Semua</b>:
+      <ul>
+        <li>Preview count: GET <code>/AssessmentAdmin/GetAkhiriSemuaCounts</code></li>
+        <li>Execute: POST <code>/AssessmentAdmin/AkhiriSemuaUjian</code> dengan <code>title</code>+<code>category</code>+<code>scheduleDate</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Reset Assessment per Peserta</span></div>
+    <div class="step-body">Kalau peserta perlu retake (mis: gangguan teknis dari awal), klik <b>Reset</b> &mdash; POST <code>/AssessmentAdmin/ResetAssessment/{id}</code>. Sesi kembali ke status NotStarted.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">6</span><span class="step-title">Add Extra Time</span></div>
+    <div class="step-body">Tambah waktu untuk semua peserta yang masih In Progress: POST <code>/AssessmentAdmin/AddExtraTime/{assessmentId}</code> dengan <code>minutes</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">7</span><span class="step-title">Regenerate Token / Reshuffle</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Regenerate token (untuk peserta yang salah token): POST <code>/AssessmentAdmin/RegenerateToken/{id}</code></li>
+        <li>Reshuffle paket per sesi: POST <code>/AssessmentAdmin/ReshufflePackage/{sessionId}</code></li>
+        <li>Reshuffle batch: POST <code>/AssessmentAdmin/ReshuffleAll</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">8</span><span class="step-title">Manual Grading Essay</span></div>
+    <div class="step-body">Untuk assessment dengan <code>HasManualGrading=true</code>, scoring per essay: POST <code>/AssessmentAdmin/SubmitEssayScore</code>. Finalize: POST <code>/AssessmentAdmin/FinalizeEssayGrading/{sessionId}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">9</span><span class="step-title">Interview Results (Proton Th 3)</span></div>
+    <div class="step-body">Submit hasil interview offline: POST <code>/AssessmentAdmin/SubmitInterviewResults</code>. Activity log per sesi: GET <code>/AssessmentAdmin/GetActivityLog/{sessionId}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">10</span><span class="step-title">Export Hasil Batch</span></div>
+    <div class="step-body">Klik <b>Export</b> di Monitoring Detail &mdash; <code>/AssessmentAdmin/ExportAssessmentResults?title=&amp;category=&amp;scheduleDate=</code>.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Force-Close Ireversibel</div>
+    <b>Akhiri Ujian</b> langsung submit skor sesuai progress saat itu &mdash; user tidak bisa lanjutkan. Pakai hanya untuk kasus genuine (freeze, disconnect, jadwal selesai). Semua action force-close + reset masuk Audit Log (Bab 5.14).
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Reset = Hilang Jawaban</div>
+    Reset menghapus jawaban sebelumnya. Konfirmasi dengan peserta sebelum reset.
+  </div>
+</article>
+
+<article class="task" id="admin-coach-mapping">
+  <h3>5.9 Coach-Coachee Mapping</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Coach-Coachee Mapping
+    <code class="url">/CoachMapping/CoachCoacheeMapping</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Mapping</span></div>
+    <div class="step-body">Akses <code>/CoachMapping/CoachCoacheeMapping</code>. Daftar semua relasi coach-coachee aktif + history. Filter via dropdown / search.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Assign Mapping Baru</span></div>
+    <div class="step-body">Klik <b>Assign Mapping</b> &mdash; POST <code>/CoachMapping/CoachCoacheeMappingAssign</code> (JSON body <code>CoachAssignRequest</code>). Lihat coachee eligible per track: <code>/CoachMapping/GetEligibleCoachees?protonTrackId={id}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit Mapping</span></div>
+    <div class="step-body">POST <code>/CoachMapping/CoachCoacheeMappingEdit</code> &mdash; ubah coach untuk coachee tertentu (mis: transfer / redistribusi workload).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Deactivate / Reactivate / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>Deactivate</b>: POST <code>/CoachMapping/CoachCoacheeMappingDeactivate/{id}</code> (transfer, resign, suspend)</li>
+        <li><b>Reactivate</b>: POST <code>/CoachMapping/CoachCoacheeMappingReactivate/{id}</code></li>
+        <li><b>Delete</b>: preview impact dulu <code>/CoachMapping/CoachCoacheeMappingDeletePreview/{id}</code>, lalu POST <code>/CoachMapping/CoachCoacheeMappingDelete/{id}</code></li>
+        <li><b>Mark Completed</b>: POST <code>/CoachMapping/MarkMappingCompleted/{mappingId}</code> &mdash; tandai mapping selesai (akhir periode Proton)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Import Mapping Massal</span></div>
+    <div class="step-body">Download template: <code>/CoachMapping/DownloadMappingImportTemplate</code>. Upload via POST <code>/CoachMapping/ImportCoachCoacheeMapping</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">6</span><span class="step-title">Workload Threshold &amp; Reassign Suggestion</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Set threshold: POST <code>/CoachMapping/SetWorkloadThreshold</code> dengan <code>maxCoachees</code> + <code>warningThreshold</code></li>
+        <li>Sistem auto-suggest reassign untuk coach overload. Approve: POST <code>/CoachMapping/ApproveReassignSuggestion</code></li>
+        <li>Skip: POST <code>/CoachMapping/SkipReassignSuggestion</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">7</span><span class="step-title">Export Mapping</span></div>
+    <div class="step-body">Klik <b>Export</b> &mdash; <code>/CoachMapping/CoachCoacheeMappingExport</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Cleanup Org</div>
+    Untuk auto-cleanup mapping yang sudah tidak valid karena perubahan struktur organisasi: POST <code>/CoachMapping/CleanupCoachCoacheeMappingOrg</code>. Pakai dengan hati-hati &mdash; preview hasilnya kalau memungkinkan.
+  </div>
+</article>
+
+<article class="task" id="admin-renewal">
+  <h3>5.10 Renewal Certificate Management</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Renewal Certificate
+    <code class="url">/Renewal/RenewalCertificate</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Renewal</span></div>
+    <div class="step-body">Akses <code>/Renewal/RenewalCertificate</code>. Daftar sertifikat assessment yang mendekati expired, ter-group per kategori. Pagination: <code>?page={n}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Sertifikat</span></div>
+    <div class="step-body">Pakai filter via:
+      <ul>
+        <li>Per item: GET <code>/Renewal/FilterRenewalCertificate</code></li>
+        <li>Per group/kategori: GET <code>/Renewal/FilterRenewalCertificateGroup</code></li>
+      </ul>
+      Filter umum: rentang tanggal expired (30/60/90 hari), kategori assessment, unit.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Lihat Certificate History</span></div>
+    <div class="step-body">Klik nama pekerja &rarr; <code>/Renewal/CertificateHistory?workerId={id}&amp;mode=readonly</code>. Lihat semua sertifikat per worker + masa berlaku.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Schedule Renewal Assessment</span></div>
+    <div class="step-body">Pilih sertifikat &rarr; klik <b>Schedule Renewal</b>. Sistem redirect ke <code>/AssessmentAdmin/CreateAssessment?renewSessionId={id}</code> atau <code>?renewTrainingId={id}</code> &mdash; form auto-fill dengan paket soal + peserta dari renewal target.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Notifikasi Otomatis</span></div>
+    <div class="step-body">Setelah jadwal renewal di-publish, peserta dapat notifikasi assessment baru via bell icon (lihat Bab 6).</div>
+  </div>
+  <div class="success">
+    <div class="success-title">✅ Lifecycle Renewal</div>
+    <b>Sertifikat mendekati expired</b> &rarr; muncul di Renewal Certificate &rarr; <b>Schedule Renewal</b> (auto-create assessment baru) &rarr; <b>Peserta dapat notif</b> &rarr; <b>Kerjakan assessment</b> &rarr; <b>Lulus passing grade</b> &rarr; <b>Sertifikat baru terbit</b> + masa berlaku auto-update.
+  </div>
+</article>
+
+<article class="task" id="admin-training-records">
+  <h3>5.11 Add / Edit / Import Training Record</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; (Manage Assessment tab Training) atau Add Training direct
+    <code class="url">/TrainingAdmin/AddTraining</code> <code class="url">/TrainingAdmin/ImportTraining</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Add Training Manual</span></div>
+    <div class="step-body">Klik <b>Add Training</b> &mdash; GET <code>/TrainingAdmin/AddTraining</code>. Isi: pekerja (search), nama training, penyelenggara, tanggal, durasi (jam), kategori (Mandatory / Opsional), upload sertifikat (opsional). POST endpoint sama.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Edit / Delete Training</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Edit: GET/POST <code>/TrainingAdmin/EditTraining/{id}</code></li>
+        <li>Delete: POST <code>/TrainingAdmin/DeleteTraining/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Import Massal via Excel</span></div>
+    <div class="step-body">Download template: <code>/TrainingAdmin/DownloadImportTrainingTemplate</code> atau <code>/TrainingAdmin/DownloadImportAssessmentTemplate</code> (untuk manual assessment). Upload via POST <code>/TrainingAdmin/ImportTraining</code> dengan form-data: <code>excelFile</code> + <code>recordType</code> (Training / Assessment).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Verifikasi di Records</span></div>
+    <div class="step-body">Setelah input, cek tab <b>Training Records</b> di <code>/CMP/Records</code> &mdash; data baru langsung muncul di tabel pekerja terkait.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Kategori Training</div>
+    <b>Mandatory</b> = wajib (terkait KKJ kompetensi jabatan). <b>Opsional</b> = pengembangan tambahan. Klasifikasi ini mempengaruhi metrik compliance di Analytics Dashboard.
+  </div>
+</article>
+
+<article class="task" id="admin-kkj-files">
+  <h3>5.12 KKJ Matrix Files (Upload + History)</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; KKJ Matrix Files
+    <code class="url">/DocumentAdmin/KkjMatrix</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman KKJ Matrix</span></div>
+    <div class="step-body">Akses <code>/DocumentAdmin/KkjMatrix?bagian={id}</code>. Tampilan file KKJ aktif per Bagian. Tanpa parameter = pilih bagian dulu.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Upload File KKJ Baru</span></div>
+    <div class="step-body">Klik <b>Upload KKJ</b> &mdash; GET <code>/DocumentAdmin/KkjUpload?bagianId={id}</code>. Pilih file PDF + isi keterangan. POST endpoint sama dengan form-data <code>file</code> + <code>keterangan</code> + <code>bagianId</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Download: <code>/DocumentAdmin/KkjFileDownload/{id}</code> (juga accessible via <code>/CMP/KkjFileDownload/{id}</code> untuk user umum)</li>
+        <li>Delete: POST <code>/DocumentAdmin/KkjFileDelete/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">History File</span></div>
+    <div class="step-body">Lihat history versi sebelumnya: <code>/DocumentAdmin/KkjFileHistory?bagianId={id}</code>. File lama tetap di-archive untuk traceability.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Kelola Bagian</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Tambah bagian baru: POST <code>/DocumentAdmin/KkjBagianAdd</code></li>
+        <li>Delete bagian: POST <code>/DocumentAdmin/DeleteBagian/{id}</code> (cek konfirmasi via <code>?confirmed=true</code>)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Upload Mengganti File Aktif</div>
+    Upload file baru untuk Bagian yang sama otomatis demote file lama ke history. File baru langsung aktif untuk semua pekerja Bagian tsb.
+  </div>
+</article>
+
+<article class="task" id="admin-cpdp-files">
+  <h3>5.13 CPDP Files (Upload + History)</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; CPDP Files
+    <code class="url">/DocumentAdmin/CpdpFiles</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar CPDP</span></div>
+    <div class="step-body">Akses <code>/DocumentAdmin/CpdpFiles?bagian={id}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Upload CPDP Baru</span></div>
+    <div class="step-body">GET <code>/DocumentAdmin/CpdpUpload?bagianId={id}</code>. POST dengan form-data <code>file</code> + <code>keterangan</code> + <code>bagianId</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download / Archive</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Download: <code>/DocumentAdmin/CpdpFileDownload/{id}</code> (atau <code>/CMP/CpdpFileDownload/{id}</code> untuk user)</li>
+        <li>Archive (soft delete): POST <code>/DocumentAdmin/CpdpFileArchive/{id}</code> &mdash; lebih aman dari hard delete</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">History</span></div>
+    <div class="step-body">Lihat versi sebelumnya: <code>/DocumentAdmin/CpdpFileHistory?bagianId={id}</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Archive vs Delete</div>
+    CPDP pakai <b>Archive</b> (soft delete) yang mempertahankan record untuk audit. Untuk hard delete, hubungi Admin / IT.
+  </div>
+</article>
+
+<article class="task" id="admin-audit-log">
+  <h3>5.14 Audit Log &mdash; Investigation Playbook</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Audit Log
+    <code class="url">/AssessmentAdmin/AuditLog</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Audit Log</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/AuditLog</code>. Daftar semua aktivitas system: login, perubahan data, upload, force-close, override, dll. Pagination: <code>?page={n}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter per Rentang Tanggal</span></div>
+    <div class="step-body">Pakai filter: <code>?startDate={d}&amp;endDate={d}</code>. Fokus ke jendela waktu kasus yang sedang diinvestigasi.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Audit Log</span></div>
+    <div class="step-body">Download Excel: <code>/AssessmentAdmin/ExportAuditLog?startDate=&amp;endDate=</code>. Berguna untuk eskalasi / laporan compliance.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Investigation Playbook</div>
+    Saat ada laporan anomali / kasus eskalasi:
+    <ol>
+      <li><b>Tentukan jendela waktu</b> kejadian (mis: 2 hari sebelum &mdash; 1 hari sesudah)</li>
+      <li><b>Filter Audit Log</b> berdasarkan jendela tsb</li>
+      <li><b>Cari user + action terkait</b> &mdash; cross-check dengan timestamp laporan</li>
+      <li><b>Drill ke detail aksi sensitif</b>: <code>ForceClose</code>, <code>Override</code>, <code>Delete</code>, <code>RoleChange</code>, <code>MaintenanceEnabled/Disabled</code>, <code>ImpersonateStart/End</code></li>
+      <li><b>Cek IP address + waktu</b> untuk konfirmasi identitas pelaku</li>
+      <li><b>Eskalasi ke Admin / IT</b> kalau menemukan unauthorized action</li>
+    </ol>
+  </div>
+</article>
+
+<article class="task" id="admin-maintenance">
+  <h3>5.15 Maintenance Mode</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Maintenance Mode
+    <code class="url">/Admin/Maintenance</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Maintenance</span></div>
+    <div class="step-body">Akses <code>/Admin/Maintenance</code>. Authorized untuk role <b>Admin</b> dan <b>HC</b>. Tampilan status current + form toggle.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Pilih Scope</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>All</b> &mdash; seluruh sistem masuk maintenance (Admin masih bisa akses)</li>
+        <li><b>Specific</b> &mdash; pilih modul tertentu via checkbox <code>selectedModules</code> (CMP, CDP, dll). Minimal 1 modul harus dipilih.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Isi Pesan + Estimasi Selesai</span></div>
+    <div class="step-body">Field <b>Message</b> tampil ke user yang akses. Optional <b>Estimated End Time</b> kasih info kapan maintenance selesai.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Aktifkan / Nonaktifkan</span></div>
+    <div class="step-body">Toggle <code>isEnabled</code> &rarr; POST <code>/Admin/Maintenance</code>. Action ter-log di Audit Log dengan <code>MaintenanceEnabled</code> / <code>MaintenanceDisabled</code>.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Cek Scope Sebelum Aktifkan</div>
+    Scope <b>All</b> akan kunci akses semua non-Admin termasuk semua HC lain. Pakai Scope <b>Specific</b> kalau hanya ingin freeze modul tertentu (mis: maintenance Bank Soal saja, CMP/CDP masih jalan).
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Komunikasi ke User</div>
+    Sebelum aktifkan maintenance, komunikasikan ke user via channel kantor (email, grup chat). Isi pesan maintenance dengan kontak person + perkiraan durasi yang realistis.
+  </div>
+</article>
+
+<article class="task" id="admin-impersonate">
+  <h3>5.16 Impersonate User &mdash; Admin Only</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Impersonate (Admin only)
+    <code class="url">/Admin/Impersonate</code>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Fitur ini Admin Only</div>
+    Endpoint <code>/Admin/Impersonate</code>, <code>StartImpersonation</code>, <code>StopImpersonation</code>, <code>SearchUsersApi</code> semua di-authorize hanya untuk role <b>Admin (L1)</b>. <b>HC tidak bisa pakai langsung</b>. Section ini sebagai referensi kalau HC perlu request bantuan Admin.
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Request ke Admin</span></div>
+    <div class="step-body">HC laporkan kasus user (mis: "user X tidak bisa akses menu Y") ke Admin dengan detail: NIP user, menu/halaman, screenshot error, langkah reproduksi.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Admin Lakukan Impersonate</span></div>
+    <div class="step-body">Admin buka <code>/Admin/Impersonate</code>. Pilih mode: <b>By Role</b> (impersonate generic role, mis: jadi role Coachee) atau <b>By User</b> (impersonate user spesifik via search NIP / nama). POST <code>/Admin/StartImpersonation</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Banner Kuning Tampil</span></div>
+    <div class="step-body">Setelah start, banner kuning <i>"Anda sedang impersonate sebagai..."</i> tampil di top page (component <code>_ImpersonationBanner.cshtml</code>). Tetap muncul sampai dihentikan.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Stop Impersonating</span></div>
+    <div class="step-body">Admin klik <b>Stop Impersonating</b> di banner kuning &rarr; POST <code>/Admin/StopImpersonation</code>. Session kembali ke akun Admin asli.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Aksi Ter-audit</div>
+    Semua impersonate session ter-log di Audit Log dengan action <code>ImpersonateStart</code> / <code>ImpersonateEnd</code>. Halaman <code>/Admin/Impersonate</code> juga menampilkan 50 log terakhir untuk monitoring.
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Admin Tidak Bisa Impersonate Admin Lain</div>
+    System block impersonate target dengan role Admin (security guardrail). Maksimal impersonate role L2 (HC) ke bawah.
+  </div>
+</article>
+
+<!-- ============================================================ -->
+<!-- BAB 6: NOTIFIKASI & WORKFLOW -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab6">
+  <h2>6. Notifikasi &amp; Workflow</h2>
+  <p>Bell icon, approval chain context, dan matrix notifikasi otomatis.</p>
+</div>
+
+<h3 id="bab6-1">6.1 Bell Icon &mdash; Lihat &amp; Kelola Notifikasi</h3>
+<p>Bell icon di navbar kanan atas memunculkan badge merah saat ada notifikasi baru. Klik untuk buka daftar.</p>
+
+<article class="task" id="notif-bell">
+  <h4>Endpoint Notifikasi</h4>
+  <div class="breadcrumb">
+    Navbar &rarr; Bell Icon
+    <code class="url">/Notification/List</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Lihat Unread Count</span></div>
+    <div class="step-body">Badge merah update dari endpoint <code>/Notification/UnreadCount</code> (polled atau pada page load).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Daftar Notifikasi</span></div>
+    <div class="step-body">Klik bell &mdash; GET <code>/Notification/List</code>. Daftar 50 notifikasi terakhir. Klik item untuk navigate langsung ke halaman terkait (mis: deliverable yang perlu review).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Mark as Read</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Single: POST <code>/Notification/MarkAsRead/{id}</code></li>
+        <li>All: POST <code>/Notification/MarkAllAsRead</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Dismiss Notifikasi</span></div>
+    <div class="step-body">Hapus dari daftar: POST <code>/Notification/Dismiss/{id}</code>.</div>
+  </div>
+</article>
+
+<h3 id="bab6-2">6.2 Approval Chain &mdash; HC sebagai Final Reviewer</h3>
+<p>HC adalah <b>reviewer ke-3 (final)</b> di approval chain deliverable Coaching Proton:</p>
+<div class="diagram">Coachee Submit Evidence
+            &darr;
+  1. Sr Supervisor Review  (COACH_EVIDENCE_APPROVED_SRSPV)
+            &darr;
+  2. Section Head Review   (COACH_EVIDENCE_APPROVED_SH)
+            &darr;
+  3. HC Final Review       (COACH_EVIDENCE_APPROVED_HC)   &larr; Anda
+            &darr;
+     Approved / Rejected   (COACH_EVIDENCE_REJECTED)</div>
+<div class="warn">
+  <div class="warn-title">⚠️ Reject = Reset Chain</div>
+  Kalau HC reject, seluruh chain (Sr Supervisor + Section Head + HC) ter-reset. Coachee harus upload evidence baru, di-review ulang dari Sr Supervisor lagi.
+</div>
+
+<h3 id="bab6-3">6.3 Auto-Notifications Matrix</h3>
+<p>Notifikasi dikirim otomatis oleh <code>NotificationService</code> ke recipient yang relevan. Berikut event yang ter-template di sistem:</p>
+<table>
+  <thead>
+    <tr>
+      <th>Event Code</th>
+      <th>Title</th>
+      <th>Trigger</th>
+      <th>Recipient</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ASMT_ASSIGNED</code></td>
+      <td>Assessment Assigned</td>
+      <td>Admin/HC create jadwal assessment + assign peserta</td>
+      <td>Peserta assigned</td>
+    </tr>
+    <tr>
+      <td><code>ASMT_RESULTS_READY</code></td>
+      <td>Assessment Results Ready</td>
+      <td>Peserta selesai assessment + nilai ter-finalize</td>
+      <td>Peserta</td>
+    </tr>
+    <tr>
+      <td><code>COACH_ASSIGNED</code></td>
+      <td>Coach Assigned</td>
+      <td>Admin/HC assign coach ke coachee (Bab 5.9)</td>
+      <td>Coachee + Coach baru</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_SUBMITTED</code></td>
+      <td>Evidence Submitted for Review</td>
+      <td>Coachee upload evidence deliverable</td>
+      <td>Sr Supervisor (reviewer pertama di chain)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_APPROVED_SRSPV</code></td>
+      <td>Evidence Approved by SrSpv</td>
+      <td>Sr Supervisor klik Approve</td>
+      <td>Section Head (reviewer berikut) + Coachee (info)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_APPROVED_SH</code></td>
+      <td>Evidence Approved by Section Head</td>
+      <td>Section Head klik Approve</td>
+      <td><b>HC</b> (final reviewer) + Coachee (info)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_APPROVED_HC</code></td>
+      <td>Evidence Approved by HC</td>
+      <td>HC klik HC Approve (final)</td>
+      <td>Coachee + Coach + reviewer chain</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_REJECTED</code></td>
+      <td>Evidence Rejected</td>
+      <td>Reviewer (Sr Spv / Section Head / HC) klik Reject</td>
+      <td>Coachee (untuk re-upload) + reviewer di atasnya (info)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_SESSION_COMPLETED</code></td>
+      <td>Coaching Session Completed</td>
+      <td>Coach catat coaching session selesai</td>
+      <td>Coachee</td>
+    </tr>
+  </tbody>
+</table>
+<div class="info">
+  <div class="info-title">💡 Event yang Paling Sering Trigger Notif untuk HC</div>
+  <ul>
+    <li><b>COACH_EVIDENCE_APPROVED_SH</b> &mdash; evidence siap di-review HC (final reviewer)</li>
+    <li><b>ASMT_RESULTS_READY</b> &mdash; peserta assessment selesai (untuk monitoring)</li>
+    <li><b>COACH_EVIDENCE_REJECTED</b> &mdash; salah satu reviewer di chain reject (untuk awareness)</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- LAMPIRAN A: GLOSSARY -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="lampA">
+  <h2>Lampiran A &mdash; Glossary</h2>
+  <p>Istilah teknis dan singkatan yang sering muncul di Portal HC KPB.</p>
+</div>
+
+<table>
+  <thead><tr><th>Istilah</th><th>Kepanjangan / Definisi</th></tr></thead>
+  <tbody>
+    <tr><td><b>KKJ</b></td><td>Kebutuhan Kompetensi Jabatan &mdash; dokumen standar kompetensi per posisi.</td></tr>
+    <tr><td><b>CPDP</b></td><td>Competency and Proficiency Development Program &mdash; peta gap kompetensi ke program pelatihan.</td></tr>
+    <tr><td><b>IDP</b></td><td>Individual Development Plan &mdash; rencana pengembangan kompetensi personal per pekerja.</td></tr>
+    <tr><td><b>Proton</b></td><td>Program coaching terstruktur 3 tahun (Th 1-2 online, Th 3 offline interview).</td></tr>
+    <tr><td><b>CMP</b></td><td>Competency Management Platform &mdash; modul untuk pengelolaan KKJ, assessment, training records, analytics.</td></tr>
+    <tr><td><b>CDP</b></td><td>Competency Development Platform &mdash; modul untuk coaching Proton, IDP, deliverable, certification.</td></tr>
+    <tr><td><b>OJT</b></td><td>On the Job Training &mdash; assessment kompetensi berbasis unit kerja.</td></tr>
+    <tr><td><b>IHT</b></td><td>In House Training &mdash; assessment terkait pelatihan internal perusahaan.</td></tr>
+    <tr><td><b>OTS</b></td><td>On The Spot &mdash; assessment langsung di lapangan.</td></tr>
+    <tr><td><b>HSSE</b></td><td>Health, Safety, Security &amp; Environment &mdash; mandatory training kategori K3.</td></tr>
+    <tr><td><b>Licencor</b></td><td>Training Licencor &mdash; lisensi / sertifikasi eksternal.</td></tr>
+    <tr><td><b>Gain Score</b></td><td>Selisih nilai Pre-Test vs Post-Test &mdash; ukur efektivitas training.</td></tr>
+    <tr><td><b>Deliverable</b></td><td>Tugas terstruktur yang harus diselesaikan coachee di program Proton.</td></tr>
+    <tr><td><b>Evidence</b></td><td>Bukti penyelesaian deliverable (PDF/DOCX/XLSX/JPG/PNG, max 10MB).</td></tr>
+    <tr><td><b>Reviewer Chain</b></td><td>Urutan approval 3-tahap: Sr Supervisor &rarr; Section Head &rarr; HC. Reject di salah satu = reset semua.</td></tr>
+    <tr><td><b>Force-Close</b></td><td>Aksi Admin/HC untuk mengakhiri sesi assessment user yang stuck. Auto-submit progress saat itu.</td></tr>
+    <tr><td><b>Override</b></td><td>Aksi Admin/HC untuk paksa value mapping data Proton yang gagal sync otomatis.</td></tr>
+    <tr><td><b>Renewal</b></td><td>Perpanjangan sertifikat yang mendekati masa kadaluarsa.</td></tr>
+    <tr><td><b>Bottleneck</b></td><td>Deliverable stuck (lama tidak progress) per coachee / unit.</td></tr>
+    <tr><td><b>Pre/Post Test</b></td><td>Pasangan assessment sebelum + sesudah training untuk ukur peningkatan kompetensi.</td></tr>
+    <tr><td><b>Workload Threshold</b></td><td>Batas jumlah coachee per coach yang trigger warning di Coach Workload.</td></tr>
+    <tr><td><b>Manual Entry Assessment</b></td><td>Catat hasil assessment offline (mis: sertifikat eksternal) yang tidak ada test online.</td></tr>
+    <tr><td><b>Maintenance Mode</b></td><td>State system yang kunci akses user (Scope All / Specific). Admin + HC bisa toggle.</td></tr>
+    <tr><td><b>Impersonate</b></td><td>Login sebagai user lain untuk debugging. <b>Admin only</b>, ter-log di Audit Log.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- LAMPIRAN B: TROUBLESHOOTING -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="lampB">
+  <h2>Lampiran B &mdash; Troubleshooting (HC Perspective)</h2>
+  <p>Masalah umum yang sering di-eskalasi ke HC dan cara menanganinya.</p>
+</div>
+
+<h3>B.1 User Lupa Password</h3>
+<div class="warn">
+  <div class="warn-title">Belum tersedia self-service reset</div>
+  Solusi: HC buka <b>Admin Panel &rarr; Kelola Pekerja</b> (<code>/Worker/ManageWorkers</code>) &rarr; Edit user &rarr; reset password manual atau eskalasi ke <b>Admin / Tim IT</b>. Kemungkinan integrasi Active Directory &mdash; reset lewat jalur IT standar. Sampaikan ke user untuk segera ganti password setelah login pertama.
+</div>
+
+<h3>B.2 User Tidak Bisa Akses Menu Tertentu</h3>
+<p>Cek role user di <b>Kelola Pekerja</b> (<code>/Worker/EditWorker/{id}</code>). Menu CMP/CDP/Profile selalu visible untuk semua role login. Menu Kelola Data + Admin Panel hanya untuk role AdminHC. Beberapa endpoint Impersonate / Audit Log lebih ketat (Admin-only). Update role kalau perlu lewat Edit Worker.</p>
+
+<h3>B.3 Upload File Gagal</h3>
+<ul>
+  <li>Cek ukuran file &le; 10 MB (default).</li>
+  <li>Cek format yang diterima per context:
+    <ul>
+      <li>Evidence deliverable: PDF / DOCX / XLSX / JPG / PNG</li>
+      <li>KKJ / CPDP Files: PDF</li>
+      <li>Guidance Files: PDF (rekomendasi)</li>
+      <li>Excel template (Workers / Soal / Training / Mapping / Silabus / Budget): <code>.xlsx</code></li>
+    </ul>
+  </li>
+  <li>Cek koneksi jaringan kantor (terutama untuk file besar).</li>
+  <li>Cek error message yang muncul &mdash; biasanya jelas (size exceeded, invalid format, dll).</li>
+</ul>
+
+<h3>B.4 Sertifikat Tidak Muncul Setelah Assessment</h3>
+<ul>
+  <li>Cek nilai user &ge; passing grade di <b>Assessment Monitoring Detail</b> (<code>/AssessmentAdmin/AssessmentMonitoringDetail</code>).</li>
+  <li>Cek status assessment &mdash; harus <b>Completed</b>, bukan <b>In Progress</b>.</li>
+  <li>Untuk assessment dengan essay: pastikan grading sudah ter-finalize (<code>/AssessmentAdmin/FinalizeEssayGrading/{sessionId}</code>).</li>
+  <li>Cek signatory user di kategori assessment terkait (<code>/AssessmentAdmin/EditCategory/{id}</code>) &mdash; tanpa signatory, sertifikat tidak ter-generate.</li>
+  <li>Kalau passing grade tercapai tapi sertifikat masih kosong: cek <b>Renewal Certificate</b>, kemungkinan sertifikat lama belum expired sehingga tidak terbit baru.</li>
+</ul>
+
+<h3>B.5 Notifikasi Tidak Masuk</h3>
+<p>Refresh halaman dulu (bell icon di-update saat page load / polling <code>/Notification/UnreadCount</code>). Cek <b>List notifikasi</b> langsung di <code>/Notification/List</code>. Kalau benar-benar kosong padahal event sudah trigger, cek log error server (NotificationService.LogWarning) &mdash; eskalasi ke IT.</p>
+
+<h3>B.6 Reviewer Chain Stuck</h3>
+<p>Buka <b>CDP &rarr; Dashboard &rarr; Bottleneck Report</b> (<code>/CDP/Dashboard</code> tab Bottleneck). Identifikasi siapa reviewer yang lambat. Eskalasi via komunikasi internal. HC <b>tidak boleh skip reviewer chain</b> &mdash; harus tunggu Sr Supervisor + Section Head approve dulu, baru HC final review. Sistem enforce ini via endpoint terpisah.</p>
+
+<h3>B.7 Browser Tidak Kompatibel</h3>
+<p>Rekomendasi: Chrome / Edge / Firefox versi terbaru. Hindari Internet Explorer dan browser lawas. Mobile browser (Safari iOS, Chrome Android) bisa untuk view, tapi form complex (Create Assessment, Import Excel) sebaiknya pakai desktop.</p>
+
+<h3>B.8 Impersonate Banner Tidak Hilang</h3>
+<p>Admin klik tombol <b>Stop Impersonating</b> di banner kuning (POST <code>/Admin/StopImpersonation</code>). Kalau banner masih ada setelah klik, refresh page atau logout-login ulang dengan akun Admin asli. Sebagai HC, kalau melihat banner ini di session sendiri, kemungkinan ada bug atau Admin lupa stop &mdash; eskalasi ke Admin.</p>
+
+<h3>B.9 Override Data Pekerja Tidak Tersimpan</h3>
+<p>Cek apakah body request valid (semua field mapping required terisi). Cek Audit Log untuk action <code>Override</code> setelah submit &mdash; kalau muncul = tersimpan. Kalau tidak, cek error response di network tab browser. Eskalasi ke IT kalau server error.</p>
+
+<h3>B.10 Bulk Import Excel Hanya Sebagian Masuk</h3>
+<p>Sistem biasanya batal seluruh import kalau ada baris invalid (semantic: atomicity). Cek pesan error setelah upload &mdash; biasanya menyebut nomor baris yang bermasalah. Perbaiki di Excel, upload ulang. Backup data sebelum bulk import besar.</p>
+
+<!-- ============================================================ -->
+<!-- LAMPIRAN C: URL CHEATSHEET -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="lampC">
+  <h2>Lampiran C &mdash; URL Cheatsheet</h2>
+  <p>Quick reference untuk semua URL yang dipakai HC. Bookmark di browser untuk akses cepat.</p>
+</div>
+
+<table>
+  <thead><tr><th>Menu</th><th>URL</th><th>Tujuan</th></tr></thead>
+  <tbody>
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Account &amp; Profile</td></tr>
+    <tr><td>Login</td><td><code>/Account/Login</code></td><td>Login portal</td></tr>
+    <tr><td>Logout</td><td><code>/Account/Logout</code></td><td>Logout (POST)</td></tr>
+    <tr><td>My Profile</td><td><code>/Account/Profile</code></td><td>Lihat profil (read-only)</td></tr>
+    <tr><td>Settings</td><td><code>/Account/Settings</code></td><td>Edit nama, jabatan, telepon</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">CMP</td></tr>
+    <tr><td>CMP Landing</td><td><code>/CMP/Index</code></td><td>Card menu CMP + Library KKJ</td></tr>
+    <tr><td>Dokumen KKJ / CPDP</td><td><code>/CMP/DokumenKkj</code></td><td>Lihat KKJ + mapping CPDP</td></tr>
+    <tr><td>Training Records</td><td><code>/CMP/Records</code></td><td>Riwayat assessment + training (own + team)</td></tr>
+    <tr><td>Worker Detail</td><td><code>/CMP/RecordsWorkerDetail</code></td><td>Drill detail per worker</td></tr>
+    <tr><td>Export Records</td><td><code>/CMP/ExportRecords</code></td><td>Export Excel unified records</td></tr>
+    <tr><td>Export Team Assessment</td><td><code>/CMP/ExportRecordsTeamAssessment</code></td><td>Export tim &mdash; assessment</td></tr>
+    <tr><td>Export Team Training</td><td><code>/CMP/ExportRecordsTeamTraining</code></td><td>Export tim &mdash; training</td></tr>
+    <tr><td>CMP Assessment</td><td><code>/CMP/Assessment</code></td><td>List + kerjakan assessment</td></tr>
+    <tr><td>CMP Results</td><td><code>/CMP/Results/{id}</code></td><td>Hasil assessment per sesi</td></tr>
+    <tr><td>CMP Certificate</td><td><code>/CMP/Certificate/{id}</code></td><td>Preview sertifikat</td></tr>
+    <tr><td>Certificate PDF</td><td><code>/CMP/CertificatePdf/{id}</code></td><td>Download PDF sertifikat</td></tr>
+    <tr><td>Analytics Dashboard</td><td><code>/CMP/AnalyticsDashboard</code></td><td>Compliance + Fail Rate + Trend</td></tr>
+    <tr><td>Export Fail Rate</td><td><code>/CMP/ExportFailRateExcel</code></td><td>Export fail rate</td></tr>
+    <tr><td>Export Trend</td><td><code>/CMP/ExportTrendExcel</code></td><td>Export trend bulanan</td></tr>
+    <tr><td>Export ET Breakdown</td><td><code>/CMP/ExportEtBreakdownExcel</code></td><td>Export distribusi nilai</td></tr>
+    <tr><td>Export Item Analysis</td><td><code>/CMP/ExportItemAnalysisExcel</code></td><td>Per-soal analytics</td></tr>
+    <tr><td>Export Gain Score</td><td><code>/CMP/ExportGainScoreExcel</code></td><td>Pre/Post Test gain score</td></tr>
+    <tr><td>Budget Training</td><td><code>/CMP/BudgetTraining</code></td><td>List anggaran per tahun</td></tr>
+    <tr><td>Budget Create</td><td><code>/CMP/BudgetTrainingCreate</code></td><td>Tambah budget item</td></tr>
+    <tr><td>Budget Import</td><td><code>/CMP/BudgetTrainingImport</code></td><td>Import Excel batch</td></tr>
+    <tr><td>Budget Template</td><td><code>/CMP/DownloadBudgetTrainingTemplate</code></td><td>Download template Excel</td></tr>
+    <tr><td>Budget Export</td><td><code>/CMP/BudgetTrainingExport</code></td><td>Export rekap per tahun</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">CDP</td></tr>
+    <tr><td>CDP Landing</td><td><code>/CDP/Index</code></td><td>Card menu CDP</td></tr>
+    <tr><td>Plan IDP</td><td><code>/CDP/PlanIdp</code></td><td>Silabus pengembangan per posisi</td></tr>
+    <tr><td>Coaching Proton</td><td><code>/CDP/CoachingProton</code></td><td>Daftar coachee + deliverable</td></tr>
+    <tr><td>Deliverable Detail</td><td><code>/CDP/Deliverable/{id}</code></td><td>Review deliverable per ID</td></tr>
+    <tr><td>Download Evidence</td><td><code>/CDP/DownloadEvidence/{progressId}</code></td><td>Download evidence file</td></tr>
+    <tr><td>Coaching Dashboard</td><td><code>/CDP/Dashboard</code></td><td>Monitoring global + Bottleneck tab</td></tr>
+    <tr><td>Histori Proton</td><td><code>/CDP/HistoriProton</code></td><td>Histori coaching per periode</td></tr>
+    <tr><td>Histori Detail</td><td><code>/CDP/HistoriProtonDetail</code></td><td>Detail per coachee</td></tr>
+    <tr><td>Export Histori</td><td><code>/CDP/ExportHistoriProton</code></td><td>Excel histori</td></tr>
+    <tr><td>Export Progress Excel</td><td><code>/CDP/ExportProgressExcel</code></td><td>Per-coachee progress</td></tr>
+    <tr><td>Export Progress PDF</td><td><code>/CDP/ExportProgressPdf</code></td><td>Per-coachee progress PDF</td></tr>
+    <tr><td>Export Bottleneck</td><td><code>/CDP/ExportBottleneckReport</code></td><td>Deliverable stuck</td></tr>
+    <tr><td>Export Coaching Tracking</td><td><code>/CDP/ExportCoachingTracking</code></td><td>Tracking lengkap</td></tr>
+    <tr><td>Export Workload Summary</td><td><code>/CDP/ExportWorkloadSummary</code></td><td>Beban coach</td></tr>
+    <tr><td>Certification Mgmt</td><td><code>/CDP/CertificationManagement</code></td><td>Sertifikat coaching</td></tr>
+    <tr><td>Export Sertifikat</td><td><code>/CDP/ExportSertifikatExcel</code></td><td>Export sertifikat</td></tr>
+    <tr><td>Batch HC Approve</td><td><code>/CDP/BatchHCApprove</code></td><td>POST bulk approve</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Kelola Data Proton</td></tr>
+    <tr><td>Silabus List</td><td><code>/ProtonData/Index</code></td><td>CRUD silabus</td></tr>
+    <tr><td>Import Silabus</td><td><code>/ProtonData/ImportSilabus</code></td><td>Import Excel</td></tr>
+    <tr><td>Export Silabus</td><td><code>/ProtonData/ExportSilabus</code></td><td>Export aktif</td></tr>
+    <tr><td>Silabus Template</td><td><code>/ProtonData/DownloadSilabusTemplate</code></td><td>Download template</td></tr>
+    <tr><td>Override</td><td><code>/ProtonData/Override</code></td><td>Halaman override</td></tr>
+    <tr><td>Override List</td><td><code>/ProtonData/OverrideList</code></td><td>List dengan filter</td></tr>
+    <tr><td>Status Sync</td><td><code>/ProtonData/StatusData</code></td><td>Status sync Proton</td></tr>
+    <tr><td>Guidance List</td><td><code>/ProtonData/GuidanceList</code></td><td>Daftar guidance file</td></tr>
+    <tr><td>Guidance Download</td><td><code>/ProtonData/GuidanceDownload/{id}</code></td><td>Download guidance</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Workers &amp; Org</td></tr>
+    <tr><td>Admin Index</td><td><code>/Admin/Index</code></td><td>Landing Admin Panel</td></tr>
+    <tr><td>Kelola Pekerja</td><td><code>/Worker/ManageWorkers</code></td><td>CRUD pekerja</td></tr>
+    <tr><td>Create Worker</td><td><code>/Worker/CreateWorker</code></td><td>Tambah pekerja baru</td></tr>
+    <tr><td>Edit Worker</td><td><code>/Worker/EditWorker/{id}</code></td><td>Edit pekerja</td></tr>
+    <tr><td>Worker Detail</td><td><code>/Worker/WorkerDetail/{id}</code></td><td>Profile + history</td></tr>
+    <tr><td>Import Workers</td><td><code>/Worker/ImportWorkers</code></td><td>Import Excel batch</td></tr>
+    <tr><td>Export Workers</td><td><code>/Worker/ExportWorkers</code></td><td>Export Excel</td></tr>
+    <tr><td>Template Import</td><td><code>/Worker/DownloadImportTemplate</code></td><td>Template Excel</td></tr>
+    <tr><td>Manage Organization</td><td><code>/Organization/ManageOrganization</code></td><td>Units / Bagian</td></tr>
+    <tr><td>Manage Categories</td><td><code>/AssessmentAdmin/ManageCategories</code></td><td>Kategori assessment</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Assessment</td></tr>
+    <tr><td>Manage Assessment</td><td><code>/AssessmentAdmin/ManageAssessment</code></td><td>Daftar + tab Training/History</td></tr>
+    <tr><td>Create Assessment</td><td><code>/AssessmentAdmin/CreateAssessment</code></td><td>Buat jadwal</td></tr>
+    <tr><td>Edit Assessment</td><td><code>/AssessmentAdmin/EditAssessment/{id}</code></td><td>Edit jadwal</td></tr>
+    <tr><td>Manage Packages</td><td><code>/AssessmentAdmin/ManagePackages</code></td><td>Bank soal per assessment</td></tr>
+    <tr><td>Manage Questions</td><td><code>/AssessmentAdmin/ManagePackageQuestions</code></td><td>Soal per paket</td></tr>
+    <tr><td>Import Questions</td><td><code>/AssessmentAdmin/ImportPackageQuestions</code></td><td>Import soal Excel</td></tr>
+    <tr><td>Question Template</td><td><code>/AssessmentAdmin/DownloadQuestionTemplate</code></td><td>Template (?type=MC/Essay)</td></tr>
+    <tr><td>Preview Package</td><td><code>/AssessmentAdmin/PreviewPackage</code></td><td>Preview paket lengkap</td></tr>
+    <tr><td>Assessment Monitoring</td><td><code>/AssessmentAdmin/AssessmentMonitoring</code></td><td>Real-time monitoring</td></tr>
+    <tr><td>Monitoring Detail</td><td><code>/AssessmentAdmin/AssessmentMonitoringDetail</code></td><td>Detail per sesi</td></tr>
+    <tr><td>Akhiri Ujian</td><td><code>/AssessmentAdmin/AkhiriUjian/{id}</code></td><td>Force-close per sesi (POST)</td></tr>
+    <tr><td>Akhiri Semua</td><td><code>/AssessmentAdmin/AkhiriSemuaUjian</code></td><td>Force-close batch (POST)</td></tr>
+    <tr><td>Reset Assessment</td><td><code>/AssessmentAdmin/ResetAssessment/{id}</code></td><td>Reset sesi (POST)</td></tr>
+    <tr><td>Add Extra Time</td><td><code>/AssessmentAdmin/AddExtraTime/{id}</code></td><td>Tambah waktu (POST)</td></tr>
+    <tr><td>User Assessment History</td><td><code>/AssessmentAdmin/UserAssessmentHistory</code></td><td>History per user</td></tr>
+    <tr><td>Audit Log</td><td><code>/AssessmentAdmin/AuditLog</code></td><td>Catatan aktivitas system</td></tr>
+    <tr><td>Export Audit Log</td><td><code>/AssessmentAdmin/ExportAuditLog</code></td><td>Excel audit log</td></tr>
+    <tr><td>Export Assessment Results</td><td><code>/AssessmentAdmin/ExportAssessmentResults</code></td><td>Hasil batch assessment</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Mapping, Renewal, Training, Files</td></tr>
+    <tr><td>Coach Mapping</td><td><code>/CoachMapping/CoachCoacheeMapping</code></td><td>List + assign</td></tr>
+    <tr><td>Import Mapping</td><td><code>/CoachMapping/ImportCoachCoacheeMapping</code></td><td>Bulk import Excel</td></tr>
+    <tr><td>Mapping Template</td><td><code>/CoachMapping/DownloadMappingImportTemplate</code></td><td>Template Excel</td></tr>
+    <tr><td>Mapping Export</td><td><code>/CoachMapping/CoachCoacheeMappingExport</code></td><td>Export Excel</td></tr>
+    <tr><td>Coach Workload</td><td><code>/CoachMapping/CoachWorkload</code></td><td>Beban kerja coach</td></tr>
+    <tr><td>Export Workload</td><td><code>/CoachMapping/ExportCoachWorkload</code></td><td>Export workload</td></tr>
+    <tr><td>Renewal Certificate</td><td><code>/Renewal/RenewalCertificate</code></td><td>Schedule renewal</td></tr>
+    <tr><td>Certificate History</td><td><code>/Renewal/CertificateHistory</code></td><td>History per worker</td></tr>
+    <tr><td>Add Training</td><td><code>/TrainingAdmin/AddTraining</code></td><td>Input training manual</td></tr>
+    <tr><td>Edit Training</td><td><code>/TrainingAdmin/EditTraining/{id}</code></td><td>Edit training</td></tr>
+    <tr><td>Import Training</td><td><code>/TrainingAdmin/ImportTraining</code></td><td>Import Excel batch</td></tr>
+    <tr><td>Add Manual Assessment</td><td><code>/TrainingAdmin/AddManualAssessment</code></td><td>Catat sertifikat eksternal</td></tr>
+    <tr><td>Edit Manual Assessment</td><td><code>/TrainingAdmin/EditManualAssessment/{id}</code></td><td>Edit manual entry</td></tr>
+    <tr><td>Training Template</td><td><code>/TrainingAdmin/DownloadImportTrainingTemplate</code></td><td>Template training Excel</td></tr>
+    <tr><td>Assessment Template</td><td><code>/TrainingAdmin/DownloadImportAssessmentTemplate</code></td><td>Template manual assessment</td></tr>
+    <tr><td>KKJ Matrix</td><td><code>/DocumentAdmin/KkjMatrix</code></td><td>KKJ files per Bagian</td></tr>
+    <tr><td>KKJ Upload</td><td><code>/DocumentAdmin/KkjUpload</code></td><td>Upload KKJ baru</td></tr>
+    <tr><td>KKJ History</td><td><code>/DocumentAdmin/KkjFileHistory</code></td><td>History versi file</td></tr>
+    <tr><td>CPDP Files</td><td><code>/DocumentAdmin/CpdpFiles</code></td><td>CPDP per Bagian</td></tr>
+    <tr><td>CPDP Upload</td><td><code>/DocumentAdmin/CpdpUpload</code></td><td>Upload CPDP baru</td></tr>
+    <tr><td>CPDP History</td><td><code>/DocumentAdmin/CpdpFileHistory</code></td><td>History versi file</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Maintenance &amp; Impersonate</td></tr>
+    <tr><td>Maintenance Mode</td><td><code>/Admin/Maintenance</code></td><td>Toggle maintenance (HC OK)</td></tr>
+    <tr><td>Impersonate</td><td><code>/Admin/Impersonate</code></td><td>Admin only</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Notifikasi</td></tr>
+    <tr><td>Notification List</td><td><code>/Notification/List</code></td><td>Daftar notifikasi</td></tr>
+    <tr><td>Unread Count</td><td><code>/Notification/UnreadCount</code></td><td>Badge count</td></tr>
+    <tr><td>Mark as Read</td><td><code>/Notification/MarkAsRead/{id}</code></td><td>POST per item</td></tr>
+    <tr><td>Mark All as Read</td><td><code>/Notification/MarkAllAsRead</code></td><td>POST batch</td></tr>
+    <tr><td>Dismiss</td><td><code>/Notification/Dismiss/{id}</code></td><td>POST hapus</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
+  Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
+</div>
+
+<script>
+  (function () {
+    var sidebar = document.getElementById('tocSidebar');
+    if (!sidebar) return;
+    var links = sidebar.querySelectorAll('a[href^="#"]');
+    var sections = Array.from(links).map(function (a) {
+      var el = document.getElementById(a.getAttribute('href').slice(1));
+      return { link: a, el: el };
+    }).filter(function (s) { return s.el; });
+    function onScroll() {
+      var top = window.scrollY + 100;
+      var current = sections[0];
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].el && sections[i].el.offsetTop <= top) current = sections[i];
+      }
+      links.forEach(function (a) { a.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
+
+</body>
+</html>

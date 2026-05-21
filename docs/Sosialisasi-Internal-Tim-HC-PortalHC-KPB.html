@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sosialisasi Operasional HC &mdash; Portal HC KPB</title>
+<style>
+  :root {
+    --teal: #0d9488;
+    --teal-dark: #0f766e;
+    --teal-light: #14b8a6;
+    --amber: #f59e0b;
+    --amber-dark: #d97706;
+    --green: #10b981;
+    --orange: #ea580c;
+    --red: #dc2626;
+    --slate: #64748b;
+    --slate-dark: #334155;
+    --bg: #f0fdfa;
+    --slide-bg: #ffffff;
+    --slide-bg-2: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --border: #e2e8f0;
+  }
+
+  body.dark {
+    --bg: #0f2027;
+    --slide-bg: #1a2e35;
+    --slide-bg-2: #0f2027;
+    --text: #f1f5f9;
+    --text-muted: #cbd5e1;
+    --border: #334155;
+    --slate: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s;
+  }
+
+  /* Deck */
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Slide base */
+  .slide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(1280px, 95vw);
+    aspect-ratio: 16 / 9;
+    max-height: 88vh;
+    background: linear-gradient(135deg, var(--slide-bg) 0%, var(--slide-bg-2) 100%);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(13, 148, 136, 0.15);
+    padding: 36px 50px;
+    overflow: hidden;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .slide.active {
+    display: block;
+    opacity: 1;
+    animation: slideIn 0.5s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translate(-50%, -48%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  /* Decorative blob default */
+  .slide.default-deco::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .slide.default-deco::after {
+    content: '';
+    position: absolute;
+    bottom: -120px; left: -120px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Header */
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+  .section-eyebrow {
+    font-size: 9pt;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--amber-dark);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  body.dark .section-eyebrow { color: var(--amber); }
+  .slide-title {
+    font-size: 26pt;
+    font-weight: 800;
+    color: var(--teal-dark);
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+  }
+  body.dark .slide-title { color: var(--teal-light); }
+  .slide-title .accent { color: var(--amber-dark); }
+  body.dark .slide-title .accent { color: var(--amber); }
+  .slide-subtitle {
+    font-size: 11pt;
+    color: var(--slate);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .slide-badge {
+    background: var(--teal);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .slide-body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    min-height: calc(100% - 90px);
+  }
+
+  /* Controls (bottom) */
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(13, 148, 136, 0.92);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 10pt;
+    box-shadow: 0 8px 24px rgba(13, 148, 136, 0.3);
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+  }
+  body.dark .controls { background: rgba(15, 118, 110, 0.95); }
+  .ctrl-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13pt;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ctrl-btn:hover {
+    background: var(--amber);
+    transform: scale(1.1);
+  }
+  .ctrl-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .slide-counter {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* Utility bar (top-right) */
+  .utility-bar {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+  }
+  .util-btn {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--border);
+    color: var(--teal-dark);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13pt;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .util-btn:hover {
+    background: var(--teal);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+  body.dark .util-btn {
+    background: rgba(26, 46, 53, 0.92);
+    border-color: var(--border);
+    color: var(--teal-light);
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--amber) 50%, var(--green) 100%);
+    transition: width 0.4s ease-out;
+    z-index: 999;
+  }
+
+  /* COVER */
+  .slide.cover {
+    padding: 0;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    color: #fff;
+  }
+  .slide.cover.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    bottom: -150px; right: -150px;
+    width: 540px; height: 540px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: -120px; left: -120px;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover-content { text-align: center; position: relative; z-index: 2; padding: 40px 60px; }
+  .cover-eyebrow {
+    font-size: 14pt; font-weight: 700; letter-spacing: 6px;
+    color: rgba(255, 255, 255, 0.92);
+    margin-bottom: 24px; text-transform: uppercase;
+  }
+  .cover-title {
+    font-size: 44pt; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 18px; line-height: 1.05; color: #fff;
+  }
+  .cover-subtitle {
+    font-size: 15pt; color: rgba(255, 255, 255, 0.88);
+    font-weight: 400; margin-bottom: 0;
+  }
+  .cover-divider {
+    width: 220px; height: 2px;
+    background: rgba(255, 255, 255, 0.4);
+    margin: 36px auto 22px;
+  }
+  .cover-badge-hc {
+    display: inline-block;
+    background: var(--amber);
+    color: var(--teal-dark);
+    padding: 8px 22px;
+    border-radius: 24px;
+    font-size: 12pt;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin: 18px 0 6px;
+  }
+  .cover-meta-date {
+    font-size: 13pt; font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 10px;
+  }
+
+  /* PENUTUP */
+  .slide.penutup {
+    padding: 0;
+    background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+    color: #fff;
+  }
+  .slide.penutup.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .penutup::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .penutup::after {
+    content: '';
+    position: absolute;
+    bottom: -200px; right: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .penutup-content { text-align: center; position: relative; z-index: 2; padding: 40px 60px; }
+  .penutup-title {
+    font-size: 56pt; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 16px; color: #fff;
+  }
+  .penutup-subtitle {
+    font-size: 16pt; color: rgba(255, 255, 255, 0.88);
+    margin-bottom: 32px;
+  }
+  .penutup-contact {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 16px 32px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 12px;
+  }
+
+  /* Print */
+  @media print {
+    @page { size: A4 landscape; margin: 0; }
+    html, body { height: auto; overflow: visible; background: #fff; }
+    .controls, .utility-bar, .progress-bar { display: none !important; }
+    .deck { display: block; width: 100%; height: auto; }
+    .slide {
+      position: relative !important;
+      top: auto; left: auto;
+      transform: none !important;
+      display: block !important;
+      opacity: 1 !important;
+      page-break-after: always;
+      width: 100%;
+      max-height: none;
+      box-shadow: none;
+      border-radius: 0;
+      margin: 0;
+      animation: none !important;
+    }
+    .slide.cover, .slide.penutup {
+      display: flex !important;
+    }
+  }
+
+  /* ===== Reusable component styles ===== */
+
+  /* Mockup + content split layout */
+  .slide-mockup-split { display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; align-items: stretch; margin-top: 4px; height: 100%; }
+  .mockup-frame {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid var(--slate-dark);
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(13, 148, 136, 0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  body.dark .mockup-frame { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-color: var(--teal); }
+  .mockup-bar {
+    background: #cbd5e1;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  body.dark .mockup-bar { background: #334155; }
+  .mockup-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .mockup-dot.red { background: #ef4444; }
+  .mockup-dot.yellow { background: #eab308; }
+  .mockup-dot.green { background: #22c55e; }
+  .mockup-url {
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 2px 10px;
+    font-size: 8pt;
+    color: var(--slate);
+    margin-left: 8px;
+    flex: 1;
+    font-family: 'Cascadia Code', Consolas, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  body.dark .mockup-url { background: #0f172a; color: #94a3b8; }
+  .mockup-img-wrap {
+    flex: 1;
+    overflow: hidden;
+    background: #fff;
+    position: relative;
+  }
+  body.dark .mockup-img-wrap { background: #0f172a; }
+  .mockup-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .mockup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mockup-content h4 {
+    font-size: 13pt;
+    font-weight: 800;
+    color: var(--teal-dark);
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  body.dark .mockup-content h4 { color: var(--teal-light); }
+  .mockup-content ul { padding-left: 18px; margin: 0; }
+  .mockup-content li { font-size: 9.5pt; color: var(--text-muted); line-height: 1.45; margin-bottom: 4px; }
+  .mockup-content li strong { color: var(--text); }
+  .mockup-tip {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.04) 100%);
+    border-left: 3px solid var(--amber);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 9pt;
+    color: var(--text);
+    margin-top: auto;
+  }
+  .mockup-tip strong { color: var(--amber-dark); }
+  body.dark .mockup-tip strong { color: var(--amber); }
+  .mockup-warn {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.10) 0%, rgba(220, 38, 38, 0.03) 100%);
+    border-left: 3px solid var(--red);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 9pt;
+    color: var(--text);
+  }
+  .mockup-warn strong { color: var(--red); }
+
+  /* Mockup HTML recreated (for slides without screenshot) */
+  .mockup-recreated { padding: 14px; background: #fff; flex: 1; overflow: hidden; }
+  body.dark .mockup-recreated { background: #1a2e35; color: #f1f5f9; }
+  .mr-navbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 6px 10px; display: flex; align-items: center; gap: 14px; font-size: 8.5pt; }
+  body.dark .mr-navbar { background: #1a2e35; border-color: #334155; }
+  .mr-brand { color: #2563eb; font-weight: 800; font-size: 10pt; }
+  .mr-nav-item { color: #475569; }
+  .mr-nav-item.active { color: #2563eb; }
+  .mr-bell { margin-left: auto; position: relative; font-size: 11pt; color: #475569; }
+  .mr-bell-badge { position: absolute; top: -6px; right: -8px; background: #dc2626; color: #fff; border-radius: 8px; font-size: 7pt; padding: 1px 5px; font-weight: 700; }
+
+  /* Agenda list */
+  .agenda-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 24px; margin-top: 8px; }
+  .agenda-item {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--slide-bg); padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+    border-left: 4px solid var(--teal);
+    transition: all 0.3s;
+  }
+  .agenda-item:hover { transform: translateX(4px); border-left-color: var(--amber); }
+  .agenda-num { font-size: 22pt; font-weight: 800; color: var(--amber-dark); width: 42px; flex-shrink: 0; line-height: 1; }
+  body.dark .agenda-num { color: var(--amber); }
+  .agenda-content h4 { font-size: 12pt; color: var(--teal-dark); font-weight: 800; margin-bottom: 3px; }
+  body.dark .agenda-content h4 { color: var(--teal-light); }
+  .agenda-content p { font-size: 9.5pt; color: var(--text-muted); line-height: 1.4; }
+  .agenda-footer {
+    text-align: center; margin-top: 14px; padding: 10px 16px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    color: #fff; border-radius: 10px;
+    font-size: 11pt; font-weight: 700;
+  }
+
+  /* Role ladder */
+  .ladder-wrap { display: flex; align-items: flex-end; justify-content: center; gap: 0; height: 280px; padding: 20px 20px 0; }
+  .ladder-step {
+    flex: 1;
+    border-radius: 10px 10px 0 0;
+    padding: 12px 8px 14px;
+    text-align: center; color: #fff;
+    position: relative;
+    box-shadow: 0 -4px 12px rgba(13, 148, 136, 0.08);
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  }
+  .ladder-step.highlight {
+    box-shadow: 0 -8px 20px rgba(245, 158, 11, 0.4);
+    transform: translateY(-4px);
+    z-index: 2;
+  }
+  .ladder-step.highlight::after {
+    content: '⭐ ANDA';
+    position: absolute;
+    top: -28px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: var(--teal-dark);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 9pt;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .ladder-step .step-num {
+    position: absolute; top: -14px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--slide-bg);
+    border: 3px solid;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 10pt;
+  }
+  .ladder-step .step-role { font-size: 10pt; font-weight: 800; line-height: 1.2; }
+  .l6 { height: 45%;  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%); }
+  .l5 { height: 55%;  background: linear-gradient(180deg, var(--green) 0%, #059669 100%); }
+  .l4 { height: 65%;  background: linear-gradient(180deg, var(--amber) 0%, var(--amber-dark) 100%); }
+  .l3 { height: 75%;  background: linear-gradient(180deg, #7b1fa2 0%, #581280 100%); }
+  .l2 { height: 95%;  background: linear-gradient(180deg, var(--teal) 0%, var(--teal-dark) 100%); }
+  .l1 { height: 100%; background: linear-gradient(180deg, var(--red) 0%, #991b1b 100%); }
+  .l1 .step-num { border-color: var(--red); color: var(--red); }
+  .l2 .step-num { border-color: var(--teal); color: var(--teal-dark); }
+  .l3 .step-num { border-color: #7b1fa2; color: #7b1fa2; }
+  .l4 .step-num { border-color: var(--amber); color: var(--amber-dark); }
+  .l5 .step-num { border-color: var(--green); color: var(--green); }
+  .l6 .step-num { border-color: #64748b; color: #64748b; }
+
+  /* Authority area cards */
+  .area-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+  .area-card {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 16px 14px;
+    text-align: center;
+    border-top: 4px solid var(--teal);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  .area-card .area-icon { font-size: 26pt; margin-bottom: 6px; line-height: 1; }
+  .area-card .area-name { font-size: 11pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 4px; }
+  body.dark .area-card .area-name { color: var(--teal-light); }
+  .area-card .area-desc { font-size: 8.5pt; color: var(--text-muted); line-height: 1.3; }
+
+  /* Flow diagram horizontal */
+  .flow-h { display: flex; align-items: stretch; gap: 0; margin: 16px 0; }
+  .flow-node {
+    flex: 1; text-align: center;
+    padding: 14px 8px;
+    border-radius: 10px;
+    background: var(--slide-bg);
+    border: 2px solid var(--teal);
+    color: var(--teal-dark);
+    font-size: 9.5pt; line-height: 1.4;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  body.dark .flow-node { color: var(--teal-light); }
+  .flow-node .flow-icon { font-size: 22pt; margin-bottom: 6px; display: block; }
+  .flow-node strong { display: block; font-size: 10pt; margin-bottom: 3px; }
+  .flow-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; flex-shrink: 0;
+    font-size: 22pt; color: var(--amber);
+  }
+  .flow-caption { text-align: center; margin-top: 12px; font-size: 10pt; color: var(--slate); font-style: italic; }
+
+  /* Tip bar */
+  .tip-bar {
+    margin-top: 14px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border-left: 4px solid var(--amber);
+    border-radius: 0 8px 8px 0;
+    font-size: 10pt;
+    color: var(--text);
+  }
+  .tip-bar strong { color: var(--amber-dark); }
+  body.dark .tip-bar strong { color: var(--amber); }
+
+  /* Cross-ref panduan footer per slide */
+  .panduan-ref {
+    position: absolute;
+    bottom: 14px; left: 50px;
+    font-size: 8pt; color: var(--slate);
+    font-style: italic;
+    z-index: 2;
+  }
+  .panduan-ref strong { color: var(--teal-dark); font-style: normal; }
+  body.dark .panduan-ref strong { color: var(--teal-light); }
+
+  /* Module grid (CMP/CDP overview) */
+  .module-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 10px 0; }
+  .module-tile {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+    border-top: 4px solid var(--amber);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.1);
+  }
+  .module-tile .m-icon { font-size: 28pt; line-height: 1; margin-bottom: 8px; }
+  .module-tile .m-title { font-size: 11pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 4px; }
+  body.dark .module-tile .m-title { color: var(--teal-light); }
+  .module-tile .m-desc { font-size: 8.5pt; color: var(--text-muted); line-height: 1.4; }
+
+  /* Metric cards */
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 10px 0; }
+  .metric-card {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.1);
+    border-left: 4px solid var(--teal);
+  }
+  .metric-num { font-size: 32pt; font-weight: 900; color: var(--teal); line-height: 1; margin-bottom: 4px; }
+  .metric-label { font-size: 9.5pt; color: var(--text-muted); font-weight: 600; }
+
+  /* Two-column split */
+  .split-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 10px; }
+  .split-card {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 18px 20px;
+    border-top: 4px solid var(--teal);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  .split-card.amber { border-top-color: var(--amber); }
+  .split-card.green { border-top-color: var(--green); }
+  .split-card.red { border-top-color: var(--red); }
+  .split-card h4 {
+    font-size: 13pt; font-weight: 800; color: var(--teal-dark);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  body.dark .split-card h4 { color: var(--teal-light); }
+  .split-card.amber h4 { color: var(--amber-dark); }
+  body.dark .split-card.amber h4 { color: var(--amber); }
+  .split-card.red h4 { color: var(--red); }
+  .split-card ul { padding-left: 20px; margin: 0; }
+  .split-card li { font-size: 10pt; color: var(--text-muted); line-height: 1.5; margin-bottom: 5px; }
+
+  /* Reviewer chain visual */
+  .chain-wrap { display: flex; align-items: stretch; gap: 0; margin: 14px 0; }
+  .chain-step {
+    flex: 1; text-align: center;
+    padding: 18px 12px;
+    border-radius: 10px;
+    background: var(--slide-bg);
+    border: 2px dashed var(--slate);
+    color: var(--text);
+    font-size: 10pt;
+    position: relative;
+  }
+  .chain-step.final {
+    background: linear-gradient(135deg, var(--amber) 0%, var(--amber-dark) 100%);
+    color: #fff;
+    border: 2px solid var(--amber-dark);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+    transform: scale(1.05);
+  }
+  .chain-step strong { display: block; font-size: 11pt; margin-bottom: 4px; }
+  .chain-step.final::after {
+    content: '⭐ ANDA';
+    position: absolute;
+    top: -16px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--teal-dark);
+    color: var(--amber);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 8pt;
+    font-weight: 800;
+  }
+  .chain-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 28px;
+    font-size: 20pt; color: var(--amber);
+  }
+
+  /* 16-cell menu map */
+  .menu-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+  .menu-cell {
+    background: var(--slide-bg);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.06);
+    border-left: 3px solid var(--teal);
+    font-size: 8.5pt;
+    color: var(--text);
+  }
+  .menu-cell .mc-icon { font-size: 16pt; display: block; margin-bottom: 3px; }
+  .menu-cell .mc-name { font-weight: 700; color: var(--teal-dark); line-height: 1.2; }
+  body.dark .menu-cell .mc-name { color: var(--teal-light); }
+  .menu-cell.workers { border-left-color: var(--teal); }
+  .menu-cell.assessment { border-left-color: var(--amber); }
+  .menu-cell.assessment .mc-name { color: var(--amber-dark); }
+  body.dark .menu-cell.assessment .mc-name { color: var(--amber); }
+  .menu-cell.mapping { border-left-color: var(--green); }
+  .menu-cell.mapping .mc-name { color: var(--green); }
+  .menu-cell.files { border-left-color: #7b1fa2; }
+  .menu-cell.files .mc-name { color: #7b1fa2; }
+  .menu-cell.maintenance { border-left-color: var(--red); }
+  .menu-cell.maintenance .mc-name { color: var(--red); }
+
+  /* Checklist 3 column */
+  .checklist-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 10px 0; }
+  .checklist-col {
+    background: var(--slide-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border-top: 4px solid var(--teal);
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.08);
+  }
+  .checklist-col.amber { border-top-color: var(--amber); }
+  .checklist-col.green { border-top-color: var(--green); }
+  .checklist-col h4 { font-size: 12pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 10px; text-align: center; }
+  body.dark .checklist-col h4 { color: var(--teal-light); }
+  .checklist-col.amber h4 { color: var(--amber-dark); }
+  body.dark .checklist-col.amber h4 { color: var(--amber); }
+  .checklist-col.green h4 { color: var(--green); }
+  .checklist-col ul { padding-left: 0; list-style: none; margin: 0; }
+  .checklist-col li {
+    font-size: 9.5pt; color: var(--text-muted);
+    padding: 4px 0 4px 22px; position: relative;
+    line-height: 1.5;
+  }
+  .checklist-col li::before {
+    content: '✓'; position: absolute; left: 0; top: 4px;
+    color: var(--green); font-weight: 800; font-size: 11pt;
+  }
+
+  /* Reference cards (slide 22) */
+  .ref-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 12px 0; }
+  .ref-card {
+    background: var(--slide-bg);
+    border-radius: 14px;
+    padding: 22px 18px;
+    text-align: center;
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.08);
+    transition: all 0.3s;
+  }
+  .ref-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--amber);
+  }
+  .ref-card .ref-icon { font-size: 36pt; line-height: 1; margin-bottom: 10px; }
+  .ref-card .ref-title { font-size: 11pt; font-weight: 800; color: var(--teal-dark); margin-bottom: 6px; }
+  body.dark .ref-card .ref-title { color: var(--teal-light); }
+  .ref-card .ref-desc { font-size: 9pt; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px; }
+  .ref-card a {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 9pt;
+    font-weight: 700;
+  }
+  .ref-card a:hover { background: var(--amber); }
+
+  /* Notif matrix mini */
+  .notif-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 9pt;
+  }
+  .notif-table th {
+    background: var(--teal);
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .notif-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .notif-table tr:nth-child(even) td { background: var(--slide-bg-2); }
+  .notif-table code { font-family: 'Cascadia Code', Consolas, monospace; font-size: 8pt; color: var(--teal-dark); }
+  body.dark .notif-table code { color: var(--teal-light); }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="width: 4.3%;"></div>
+
+<div class="utility-bar no-print">
+  <button class="util-btn" id="darkToggle" title="Dark Mode">&#9728;</button>
+  <button class="util-btn" id="fullToggle" title="Fullscreen">&#9974;</button>
+  <button class="util-btn" onclick="window.print()" title="Cetak / PDF">&#128424;</button>
+</div>
+
+<div class="deck">
+
+  <!-- ================= SLIDE 1: COVER ================= -->
+  <div class="slide cover active" data-slide="1">
+    <div class="cover-content">
+      <p class="cover-eyebrow">Sosialisasi Operasional</p>
+      <h1 class="cover-title">Portal HC KPB<br>untuk Tim HC</h1>
+      <p class="cover-subtitle">Panduan operasional harian yang ringkas &amp; visual</p>
+      <div class="cover-divider"></div>
+      <div class="cover-badge-hc">&#127942; ROLE HC &mdash; LEVEL 2</div>
+      <p class="cover-meta-date">Kilang Pertamina Balikpapan &bull; Mei 2026</p>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 2: SELAMAT DATANG ================= -->
+  <div class="slide default-deco" data-slide="2">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">PENGENALAN</p>
+        <h1 class="slide-title">Selamat Datang <span class="accent">Tim HC</span></h1>
+        <p class="slide-subtitle">Yang akan kita bahas dalam sesi ini</p>
+      </div>
+      <div class="slide-badge">SLIDE 2 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="agenda-grid">
+        <div class="agenda-item">
+          <div class="agenda-num">01</div>
+          <div class="agenda-content">
+            <h4>Pengenalan Role HC</h4>
+            <p>Authority, scope, dan alur kerja harian Anda</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">02</div>
+          <div class="agenda-content">
+            <h4>CMP &mdash; Competency Mgmt</h4>
+            <p>Records, Analytics, Pre/Post, Budget Training</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">03</div>
+          <div class="agenda-content">
+            <h4>CDP &mdash; Coaching Proton</h4>
+            <p>Dashboard, Reviewer Chain, Histori, Renewal</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">04</div>
+          <div class="agenda-content">
+            <h4>Kelola Data Proton</h4>
+            <p>Silabus, Guidance, Override data</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">05</div>
+          <div class="agenda-content">
+            <h4>Admin Panel HC</h4>
+            <p>Pekerja, Bank Soal, Mapping, Maintenance</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">06</div>
+          <div class="agenda-content">
+            <h4>Notifikasi &amp; Tugas Cepat</h4>
+            <p>Bell icon, daily/weekly checklist, reference</p>
+          </div>
+        </div>
+      </div>
+      <div class="agenda-footer">&#9201; Estimasi durasi: ~45 menit &bull; Pertanyaan kapan saja</div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 3: ROLE HC ================= -->
+  <div class="slide default-deco" data-slide="3">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">PENGENALAN</p>
+        <h1 class="slide-title">Posisi <span class="accent">HC</span> di Portal</h1>
+        <p class="slide-subtitle">Level 2 &mdash; akses penuh ke pengelolaan SDM &amp; coaching</p>
+      </div>
+      <div class="slide-badge">SLIDE 3 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="ladder-wrap">
+        <div class="ladder-step l6">
+          <div class="step-num">L6</div>
+          <div class="step-role">Coachee</div>
+        </div>
+        <div class="ladder-step l5">
+          <div class="step-num">L5</div>
+          <div class="step-role">Coach / Supervisor</div>
+        </div>
+        <div class="ladder-step l4">
+          <div class="step-num">L4</div>
+          <div class="step-role">Section Head / Sr Spv</div>
+        </div>
+        <div class="ladder-step l3">
+          <div class="step-num">L3</div>
+          <div class="step-role">Direktur / VP / Manager</div>
+        </div>
+        <div class="ladder-step l2 highlight">
+          <div class="step-num">L2</div>
+          <div class="step-role">HC</div>
+        </div>
+        <div class="ladder-step l1">
+          <div class="step-num">L1</div>
+          <div class="step-role">Admin</div>
+        </div>
+      </div>
+      <div class="area-grid">
+        <div class="area-card">
+          <div class="area-icon">&#128202;</div>
+          <div class="area-name">CMP</div>
+          <div class="area-desc">Monitor lintas section</div>
+        </div>
+        <div class="area-card">
+          <div class="area-icon">&#127919;</div>
+          <div class="area-name">CDP</div>
+          <div class="area-desc">Final reviewer chain</div>
+        </div>
+        <div class="area-card">
+          <div class="area-icon">&#128193;</div>
+          <div class="area-name">Kelola Data</div>
+          <div class="area-desc">Silabus &amp; Override</div>
+        </div>
+        <div class="area-card">
+          <div class="area-icon">&#9881;</div>
+          <div class="area-name">Admin Panel</div>
+          <div class="area-desc">16 menu operasional</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;1.1 &mdash; Authority &amp; Scope</p>
+  </div>
+
+  <!-- ================= SLIDE 4: ALUR KERJA HARIAN ================= -->
+  <div class="slide default-deco" data-slide="4">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">PENGENALAN</p>
+        <h1 class="slide-title">Alur Kerja <span class="accent">Harian HC</span></h1>
+        <p class="slide-subtitle">5 aktivitas inti yang berulang setiap hari</p>
+      </div>
+      <div class="slide-badge">SLIDE 4 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="flow-h">
+        <div class="flow-node">
+          <span class="flow-icon">&#128276;</span>
+          <strong>1. Cek Notif</strong>
+          Bell icon &mdash; evidence siap review, renewal, error
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#9989;</span>
+          <strong>2. Review Evidence</strong>
+          Final reviewer Coaching Proton
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128064;</span>
+          <strong>3. Monitor Assessment</strong>
+          Real-time + force-close kalau perlu
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128221;</span>
+          <strong>4. Schedule Renewal</strong>
+          Sertifikat mendekati expired
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128295;</span>
+          <strong>5. Resolve Issues</strong>
+          Bottleneck, override, eskalasi
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Tip:</strong> Mulai hari dengan cek <b>Bell Icon</b> dan <b>Bottleneck Report</b>. Dua tempat ini paling cepat surface hal yang perlu HC tangani hari itu.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>
+  </div>
+
+  <!-- ================= SLIDE 5: CMP OVERVIEW ================= -->
+  <div class="slide default-deco" data-slide="5">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
+        <h1 class="slide-title">CMP <span class="accent">Overview</span></h1>
+        <p class="slide-subtitle">Halaman landing CMP &mdash; akses 6 sub-modul utama via card grid</p>
+      </div>
+      <div class="slide-badge">SLIDE 5 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span>
+            <span class="mockup-dot yellow"></span>
+            <span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/Index</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/05-cmp-index.png" alt="CMP Landing Page"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128202; 6 Sub-Modul di CMP</h4>
+          <ul>
+            <li><strong>Dokumen KKJ</strong> &mdash; kerangka kompetensi per jabatan</li>
+            <li><strong>Assessment Saya</strong> &mdash; ujian &amp; hasil</li>
+            <li><strong>Riwayat Pelatihan</strong> &mdash; records + Team View</li>
+            <li><strong>Manajemen Sertifikasi</strong> &mdash; status sertifikat</li>
+            <li><strong>Dasbor Analitik</strong> &mdash; chart compliance + fail rate</li>
+            <li><strong>Budget Training</strong> &mdash; anggaran &amp; realisasi</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Inti HC:</strong> fokus harian di <strong>Records Team</strong> + <strong>Analytics Dashboard</strong>. Selain itu ad-hoc.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 2 CMP (8 task lengkap)</p>
+  </div>
+
+  <!-- ================= SLIDE 6: RECORDS TEAM ================= -->
+  <div class="slide default-deco" data-slide="6">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
+        <h1 class="slide-title">Records <span class="accent">Team</span></h1>
+        <p class="slide-subtitle">12 pekerja monitored real-time &mdash; filter cascade + export</p>
+      </div>
+      <div class="slide-badge">SLIDE 6 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/Records (Team View)</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/06-records-team.png" alt="Records Team View"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128269; Yang Bisa Anda Lakukan</h4>
+          <ul>
+            <li>Filter <strong>Bagian / Unit / Kategori / Sub-Kategori / Status / Tanggal</strong></li>
+            <li>Kolom Assessment &amp; Training per pekerja (badge count biru/hijau)</li>
+            <li>Drill <strong>Detail</strong> per pekerja &rarr; unified history</li>
+            <li>Tombol <strong>Export Assessment</strong> &amp; <strong>Export Training</strong> Excel</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; HC scope:</strong> HC (L2) lihat <strong>semua section</strong>. Section Head (L4) locked ke section sendiri.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.4 &mdash; Records Team</p>
+  </div>
+
+  <!-- ================= SLIDE 7: ANALYTICS DASHBOARD ================= -->
+  <div class="slide default-deco" data-slide="7">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
+        <h1 class="slide-title">Analytics <span class="accent">Dashboard</span></h1>
+        <p class="slide-subtitle">25 Sesi &middot; 56% Pass Rate &middot; 6 tab chart &middot; export Excel per chart</p>
+      </div>
+      <div class="slide-badge">SLIDE 7 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/AnalyticsDashboard</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/07-analytics-dashboard.png" alt="Analytics Dashboard"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128202; 4 Metric + 6 Tab Chart</h4>
+          <ul>
+            <li><strong>Total Sesi</strong> &middot; <strong>Pass Rate</strong> &middot; <strong>Sertifikat Expired</strong> &middot; <strong>Avg Gain Score</strong></li>
+            <li>Tab: <strong>Fail Rate</strong>, <strong>Trend</strong>, <strong>Skor Elemen Teknis</strong>, <strong>Sertifikat Expired</strong>, <strong>Item Analysis</strong>, <strong>Gain Score</strong></li>
+            <li>Filter cascade Bagian &rarr; Unit, Kategori &rarr; Sub-Kategori, rentang tanggal</li>
+            <li>Tombol <strong>Export Excel</strong> per chart</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Klik bar fail rate</strong> untuk drill-down ke kategori &amp; soal yang banyak gagal.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.5 &mdash; Analytics Dashboard + Export</p>
+  </div>
+
+  <!-- ================= SLIDE 8: PRE/POST TEST ================= -->
+  <div class="slide default-deco" data-slide="8">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
+        <h1 class="slide-title">Pre / Post Test &mdash; <span class="accent">Gain Score</span></h1>
+        <p class="slide-subtitle">Mengukur efektivitas training secara terstandar</p>
+      </div>
+      <div class="slide-badge">SLIDE 8 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="flow-h">
+        <div class="flow-node">
+          <span class="flow-icon">&#128221;</span>
+          <strong>1. Pre-Test</strong>
+          Sebelum training, ukur baseline
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#127979;</span>
+          <strong>2. Training</strong>
+          Peserta ikut pelatihan
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128209;</span>
+          <strong>3. Post-Test</strong>
+          Setelah training, paket soal sama
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128200;</span>
+          <strong>4. Gain Score</strong>
+          Selisih Post &minus; Pre auto-hitung
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128269;</span>
+          <strong>5. Item Analysis</strong>
+          Soal paling sulit/salah
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Tip:</strong> Gain Score tinggi = training efektif. Gain Score rendah = evaluasi kurikulum via <b>Item Analysis</b> &mdash; mungkin soal terlalu mudah/sulit, atau materi training mismatch.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.6 &mdash; Pre/Post Test setup &amp; monitor</p>
+  </div>
+
+  <!-- ================= SLIDE 9: CDP OVERVIEW + REVIEWER CHAIN ================= -->
+  <div class="slide default-deco" data-slide="9">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">CDP &mdash; <span class="accent">Reviewer Chain</span></h1>
+        <p class="slide-subtitle">HC = Final Reviewer (Reviewer ke-3) di approval chain</p>
+      </div>
+      <div class="slide-badge">SLIDE 9 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="chain-wrap">
+        <div class="chain-step">
+          <strong>Coachee Submit</strong>
+          Upload evidence deliverable
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-step">
+          <strong>1. Sr Supervisor</strong>
+          Review pertama
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-step">
+          <strong>2. Section Head</strong>
+          Review kedua
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-step final">
+          <strong>3. HC Final</strong>
+          Approve / Reject
+        </div>
+      </div>
+      <div class="split-2">
+        <div class="split-card red">
+          <h4>&#9888; Reject = Reset Chain</h4>
+          <ul>
+            <li>Reject di tahap mana pun = chain ulang dari awal</li>
+            <li>Coachee upload evidence baru</li>
+            <li>Sr Supervisor + Section Head review ulang</li>
+            <li>HC final review lagi</li>
+          </ul>
+        </div>
+        <div class="split-card amber">
+          <h4>&#9989; Tidak Boleh Skip Chain</h4>
+          <ul>
+            <li>HC tunggu Sr Spv + Section Head approve</li>
+            <li>Sistem enforce urutan via endpoint</li>
+            <li>Tombol HC Approve baru aktif setelah Section Head approve</li>
+            <li>Batch HC Approve untuk efisiensi</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.8 &mdash; Reviewer Chain</p>
+  </div>
+
+  <!-- ================= SLIDE 10: COACHING DASHBOARD ================= -->
+  <div class="slide default-deco" data-slide="10">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">Coaching Proton <span class="accent">Dashboard</span></h1>
+        <p class="slide-subtitle">5 metric global + filter cascade + tab Bottleneck Report</p>
+      </div>
+      <div class="slide-badge">SLIDE 10 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CDP/Dashboard</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/10-cdp-dashboard.png" alt="CDP Coaching Proton Dashboard"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#127760; Komponen Utama</h4>
+          <ul>
+            <li>5 metric card: <strong>Total Coachees</strong>, <strong>Approved/Total</strong>, <strong>Pending Sr Spv</strong>, <strong>Pending HC Review</strong>, <strong>Completed Track</strong></li>
+            <li>Chart <strong>Competency Level Granted Over Time</strong> + <strong>Deliverable Status</strong></li>
+            <li>Tabel <strong>Team Deliverable Progress</strong> per coachee (progress bar + status)</li>
+            <li>Filter cascade: Section &rarr; Unit, Kategori &rarr; Track</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Daily routine HC:</strong> buka Dashboard pagi, scan card <strong>Pending HC Review</strong> &mdash; itu yang menunggu approval Anda.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.3 &amp; &sect;3.5 &mdash; Dashboard + Bottleneck</p>
+  </div>
+
+  <!-- ================= SLIDE 11: HISTORI PROTON + EXPORT ================= -->
+  <div class="slide default-deco" data-slide="11">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">Histori Proton + <span class="accent">Export</span></h1>
+        <p class="slide-subtitle">2 coachee Operator Alkylation Unit aktif &mdash; progress visual Th1/2/3</p>
+      </div>
+      <div class="slide-badge">SLIDE 11 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CDP/HistoriProton</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/11-histori-proton.png" alt="Histori Proton"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128218; Fitur Halaman</h4>
+          <ul>
+            <li>Filter <strong>Bagian / Unit / Jalur (Panelman/Operator) / Status</strong></li>
+            <li>Progress dot <strong>Tahun 1 / 2 / 3</strong> visual per coachee</li>
+            <li>Search nama atau NIP langsung</li>
+            <li>Klik <strong>Lihat Riwayat</strong> &rarr; detail deliverable + session log + final assessment</li>
+            <li>Tombol <strong>Export Excel</strong> rekap periode</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Reporting bulanan:</strong> kombinasi <strong>Histori Proton</strong> + <strong>Bottleneck</strong> + <strong>Workload</strong> sudah cover 80% kebutuhan ke manajemen.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.4 &mdash; Histori Proton + Export</p>
+  </div>
+
+  <!-- ================= SLIDE 12: RENEWAL LIFECYCLE ================= -->
+  <div class="slide default-deco" data-slide="12">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">Renewal Certificate <span class="accent">Lifecycle</span></h1>
+        <p class="slide-subtitle">Alur lengkap sertifikat expired sampai terbit baru</p>
+      </div>
+      <div class="slide-badge">SLIDE 12 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="flow-h">
+        <div class="flow-node" style="border-color: var(--orange); color: var(--orange);">
+          <span class="flow-icon">&#9203;</span>
+          <strong>1. Mendekati Expired</strong>
+          Filter 30/60/90 hari
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128197;</span>
+          <strong>2. Schedule Renewal</strong>
+          HC klik dari Renewal page
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128276;</span>
+          <strong>3. Notif Peserta</strong>
+          Auto bell icon ke pekerja
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128221;</span>
+          <strong>4. Kerjakan Assessment</strong>
+          Pakai paket soal kategori
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node" style="border-color: var(--green); color: var(--green);">
+          <span class="flow-icon">&#127942;</span>
+          <strong>5. Sertifikat Baru</strong>
+          Masa berlaku auto-update
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Routine bulanan:</strong> Buka <b>Renewal Certificate</b> &rarr; filter 60 hari ke depan &rarr; schedule batch renewal sekaligus. Auto-create assessment + notif ke pekerja terkait.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.7 &amp; &sect;5.10 &mdash; Renewal Management</p>
+  </div>
+
+  <!-- ================= SLIDE 13: SILABUS + GUIDANCE ================= -->
+  <div class="slide default-deco" data-slide="13">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &mdash; KELOLA DATA</p>
+        <h1 class="slide-title">Silabus + <span class="accent">Guidance Files</span></h1>
+        <p class="slide-subtitle">Tabel silabus per Bagian/Unit/Track + Coaching Guidance (3 tab)</p>
+      </div>
+      <div class="slide-badge">SLIDE 13 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/ProtonData/Index?tab=silabus</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/13-silabus.png" alt="Silabus & Coaching Guidance"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128218; Tab Silabus</h4>
+          <ul>
+            <li>Pilih <strong>Bagian + Unit + Track</strong> &rarr; klik <strong>Muat Data</strong></li>
+            <li>Tabel: <strong>Kompetensi / Sub Kompetensi / Target / Deliverable</strong></li>
+            <li>Tombol <strong>Edit / Nonaktifkan / Hapus</strong> per baris</li>
+            <li>Aksi global: <strong>Export Excel</strong>, <strong>Import Excel</strong>, <strong>Download Template</strong></li>
+            <li>Tab <strong>Coaching Guidance</strong> &mdash; upload PDF guidance per scope</li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Penting:</strong> <strong>Delete silabus = cascade</strong> ke deliverable + coachee history. Pakai <strong>Deactivate</strong> dulu.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;4.1 &amp; &sect;4.2 &mdash; Silabus + Guidance</p>
+  </div>
+
+  <!-- ================= SLIDE 14: OVERRIDE ================= -->
+  <div class="slide default-deco" data-slide="14">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &mdash; KELOLA DATA</p>
+        <h1 class="slide-title">Override <span class="accent">Data Pekerja</span></h1>
+        <p class="slide-subtitle">Fitur sensitif &mdash; pakai dengan hati-hati</p>
+      </div>
+      <div class="slide-badge">SLIDE 14 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card">
+          <h4>&#128269; Kapan Dipakai</h4>
+          <ul>
+            <li>Data Proton gagal sync otomatis dari source</li>
+            <li>Mapping KKJ tidak ter-detect (ID Jabatan invalid)</li>
+            <li>Mapping silabus per posisi error</li>
+            <li>Cek <b>Status Sync</b> dulu untuk identifikasi gap</li>
+            <li>Fallback manual setelah auto-sync gagal</li>
+          </ul>
+        </div>
+        <div class="split-card red">
+          <h4>&#9888; Aturan Pakai</h4>
+          <ul>
+            <li><b>Bukan untuk fix data source yang salah</b> &mdash; perbaiki di hulu (data source)</li>
+            <li>Override = bypass auto-sync, hanya untuk gap teknis</li>
+            <li>Setiap override <b>ter-log di Audit Log</b></li>
+            <li>Bisa di-review oleh auditor / compliance</li>
+            <li>Konsultasi Admin / IT kalau ragu</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Best practice:</strong> Sebelum override, screenshot kondisi error + catatan reason di komunikasi internal. Audit Log cuma simpan action; reasoning ada di komunikasi paralel.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;4.3 &mdash; Override Data Pekerja</p>
+  </div>
+
+  <!-- ================= SLIDE 15: ADMIN PANEL MAP ================= -->
+  <div class="slide default-deco" data-slide="15">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Admin Panel <span class="accent">Landing</span></h1>
+        <p class="slide-subtitle">4 section ABCD &mdash; total 14 menu yang HC kelola</p>
+      </div>
+      <div class="slide-badge">SLIDE 15 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/15-admin-panel.png" alt="Admin Panel Landing"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#9881; Organized in 4 Sections</h4>
+          <ul>
+            <li><strong>A &mdash; Data Management</strong>: Worker, Organization, KKJ, CPDP</li>
+            <li><strong>B &mdash; Proton</strong>: Silabus &amp; Guidance, Coach Mapping, Workload, Override</li>
+            <li><strong>C &mdash; Assessment &amp; Training</strong>: Manage A&amp;T, Monitoring, Audit Log, Categories, Renewal <span class="badge badge-orange" style="font-size:7pt;">3</span></li>
+            <li><strong>D &mdash; System</strong>: Maintenance Mode</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Renewal badge:</strong> angka di card Renewal = sertifikat yang perlu di-renew. Cek harian.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 5 Admin Panel (16 task lengkap)</p>
+  </div>
+
+  <!-- ================= SLIDE 16: KELOLA PEKERJA ================= -->
+  <div class="slide default-deco" data-slide="16">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Manajemen <span class="accent">Pekerja</span></h1>
+        <p class="slide-subtitle">12 user aktif: 1 Admin, 1 HC, 5 Coachee, sisanya Coach/Manager/Section Head</p>
+      </div>
+      <div class="slide-badge">SLIDE 16 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/ManageWorkers</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/16-manage-workers.png" alt="Manajemen Pekerja"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128101; Operasi Pekerja</h4>
+          <ul>
+            <li>4 metric: <strong>Total / Admin / HC Staff / Worker</strong></li>
+            <li>Filter <strong>Bagian + Unit + Role</strong> + search nama/email/NIP</li>
+            <li>Aksi per row: <strong>Edit</strong> &middot; <strong>Deactivate</strong></li>
+            <li>Tombol global: <strong>Tambah</strong> &middot; <strong>Import Excel</strong> &middot; <strong>Export Excel</strong> &middot; <strong>Tampilkan Inactive</strong></li>
+            <li>Role badge color-coded: <span class="badge badge-red" style="font-size:7pt;">Admin</span> <span class="badge badge-blue" style="font-size:7pt;">Manager</span> <span class="badge badge-orange" style="font-size:7pt;">HC</span></li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Bank Soal:</strong> ada di section C &mdash; <strong>Manage Assessment &amp; Training</strong>. Import soal pakai Excel template (kunci jawaban A-E kapital).</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.1, 5.4, 5.5 &mdash; Pekerja + Bank Soal + Import</p>
+  </div>
+
+  <!-- ================= SLIDE 17: ASSESSMENT MONITORING ================= -->
+  <div class="slide default-deco" data-slide="17">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Assessment <span class="accent">Monitoring</span></h1>
+        <p class="slide-subtitle">Real-time tracking 2 grup aktif: ojt test (Open) + Pre-Post UAT (Upcoming)</p>
+      </div>
+      <div class="slide-badge">SLIDE 17 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/AssessmentMonitoring</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/17-assessment-monitoring.png" alt="Assessment Monitoring"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128064; Power Tools Monitor</h4>
+          <ul>
+            <li>4 metric: <strong>Grup / Peserta / Selesai / Lulus</strong></li>
+            <li>Filter status: <strong>Open + Upcoming</strong> / Closed</li>
+            <li>Dropdown <strong>Aksi</strong> per grup: Akhiri / Reset / Regenerate Token / Reshuffle / Add Extra Time</li>
+            <li>Klik nama grup &rarr; <strong>Detail per peserta</strong></li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Force-Close ireversibel:</strong> auto-submit jawaban saat itu, user tidak bisa lanjut. Pakai hanya untuk freeze/disconnect/jadwal selesai.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.6, 5.7, 5.8 &mdash; Create / Edit / Monitor</p>
+  </div>
+
+  <!-- ================= SLIDE 18: COACH MAPPING ================= -->
+  <div class="slide default-deco" data-slide="18">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Coach-Coachee <span class="accent">Mapping</span></h1>
+        <p class="slide-subtitle">Rustam Santiko (GAST) coaching Rino Operator Alkylation &mdash; aktif sejak 10 Apr</p>
+      </div>
+      <div class="slide-badge">SLIDE 18 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/CoachCoacheeMapping</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/18-coach-mapping.png" alt="Coach-Coachee Mapping"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128279; Operasi Mapping</h4>
+          <ul>
+            <li><strong>Group by coach</strong> &mdash; expandable row, badge "Coachee Aktif"</li>
+            <li>Tombol global: <strong>Download Template</strong> &middot; <strong>Import Excel</strong> &middot; <strong>Export Excel</strong> &middot; <strong>Tambah Mapping</strong></li>
+            <li>Aksi per coachee: <strong>Edit</strong> &middot; <strong>Nonaktifkan</strong> &middot; <strong>Graduated</strong></li>
+            <li>Filter <strong>Seksi</strong> + search nama coach/coachee</li>
+            <li>Status: <span class="badge badge-green" style="font-size:7pt;">Aktif</span> &middot; <span class="badge badge-orange" style="font-size:7pt;">Nonaktif</span></li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Routine:</strong> kalau bell banyak notif evidence siap review &rarr; cek <strong>Coach Workload</strong> di section B &rarr; redistribusi kalau ada coach overload.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.9 &amp; &sect;3.6 &mdash; Mapping + Workload</p>
+  </div>
+
+  <!-- ================= SLIDE 19: MAINTENANCE + AUDIT LOG ================= -->
+  <div class="slide default-deco" data-slide="19">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Maintenance + <span class="accent">Audit Log</span></h1>
+        <p class="slide-subtitle">Operational tools yang HC pakai saat investigasi atau update</p>
+      </div>
+      <div class="slide-badge">SLIDE 19 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/AuditLog &mdash; 352 entries</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/19b-audit-log.png" alt="Audit Log 352 entries"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128269; Audit Log: 352 Entries Live</h4>
+          <ul>
+            <li>Filter <strong>rentang tanggal</strong> + tombol <strong>Export Excel</strong></li>
+            <li>Action badge: <span class="badge badge-green" style="font-size:7pt;">CreateAssessment</span> <span class="badge" style="font-size:7pt;background:#1e293b;color:#fff;">ImportQuestions</span> <span class="badge" style="font-size:7pt;background:#1e293b;color:#fff;">RegenerateToken</span> <span class="badge" style="font-size:7pt;background:#1e293b;color:#fff;">ImpersonateStart/End</span></li>
+            <li>Investigation playbook 5 step: jendela waktu &rarr; filter &rarr; user/action &rarr; drill sensitif &rarr; eskalasi</li>
+            <li>Pagination: 15 halaman riwayat (lebih dari 1 bulan)</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Maintenance Mode</strong> juga di section ini &mdash; pilih <strong>Scope Specific</strong> per modul (CMP, CDP, dll) kalau cuma freeze sebagian. <strong>Komunikasi user dulu</strong> sebelum aktifkan.</div>
+          <div class="mockup-warn"><strong>&#9888; Impersonate Admin-only:</strong> HC request ke Admin dengan NIP user + screenshot error + langkah reproduksi.</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.14, 5.15, 5.16 &mdash; Audit / Maintenance / Impersonate</p>
+  </div>
+
+  <!-- ================= SLIDE 20: NOTIFIKASI ================= -->
+  <div class="slide default-deco" data-slide="20">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
+        <h1 class="slide-title">Notifikasi &amp; <span class="accent">Workflow</span></h1>
+        <p class="slide-subtitle">Bell icon di navbar &mdash; 7 unread notif untuk Admin KPB saat sosialisasi ini</p>
+      </div>
+      <div class="slide-badge">SLIDE 20 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/ &mdash; navbar bell dropdown</span>
+          </div>
+          <div class="mockup-recreated">
+            <div class="mr-navbar">
+              <span class="mr-brand">&#127970; HC Portal</span>
+              <span class="mr-nav-item">CMP</span>
+              <span class="mr-nav-item">CDP</span>
+              <span class="mr-nav-item">Panduan</span>
+              <span class="mr-nav-item active">Kelola Data</span>
+              <span class="mr-bell">&#128276;<span class="mr-bell-badge">7</span></span>
+            </div>
+            <div style="background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); padding: 0;">
+              <div style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: #0f172a; font-size: 10pt;">Notifikasi (7)</strong>
+                <span style="font-size: 8pt; color: #2563eb; cursor: pointer;">Mark all as read</span>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; background: #eff6ff;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#9989; Evidence Approved by Section Head</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Deliverable Rino &mdash; siap HC final review &middot; 2j</div>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; background: #eff6ff;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#128221; Assessment Results Ready</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Test Pre-Post UAT 297 &mdash; 1 peserta selesai &middot; 4j</div>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#128279; Coach Assigned</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Rustam Santiko &rarr; Rino (Operator Tahun 1) &middot; 1h</div>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#10060; Evidence Rejected</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Chain reset &mdash; awareness untuk HC &middot; 2h</div>
+              </div>
+              <div style="padding: 10px 14px;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#9203; Sertifikat Akan Expired</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">3 sertifikat mendekati expired &middot; 3h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128276; Bell Icon = Entry Point</h4>
+          <ul>
+            <li><strong>Badge merah</strong> di navbar &mdash; jumlah unread</li>
+            <li>Klik bell &rarr; dropdown notif terbaru</li>
+            <li>Klik item &rarr; navigate ke halaman terkait</li>
+            <li><strong>Mark as Read</strong> per item / <strong>Mark all as read</strong></li>
+            <li><strong>Dismiss</strong> kalau notif tidak relevan</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Routine:</strong> mulai hari dengan klik bell. Notif paling penting untuk HC = <strong>Evidence Approved by Section Head</strong> (siap HC final review).</div>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>
+  </div>
+
+  <!-- ================= SLIDE 21: TUGAS HC CEPAT ================= -->
+  <div class="slide default-deco" data-slide="21">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
+        <h1 class="slide-title">Tugas HC <span class="accent">Cepat</span></h1>
+        <p class="slide-subtitle">Checklist harian, mingguan, bulanan</p>
+      </div>
+      <div class="slide-badge">SLIDE 21 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="checklist-3">
+        <div class="checklist-col">
+          <h4>&#128197; Daily</h4>
+          <ul>
+            <li>Cek <b>bell icon</b> &mdash; evidence siap review</li>
+            <li>Buka <b>Coaching Dashboard</b> &mdash; tab Bottleneck</li>
+            <li>HC Approve evidence yang sudah lengkap</li>
+            <li>Monitor assessment berjalan</li>
+            <li>Resolve pending request user</li>
+          </ul>
+        </div>
+        <div class="checklist-col amber">
+          <h4>&#128198; Weekly</h4>
+          <ul>
+            <li>Review <b>Bottleneck Report</b> mendalam</li>
+            <li>Cek <b>Coach Workload</b> + redistribusi kalau overload</li>
+            <li>Audit compliance per Section di Analytics</li>
+            <li>Follow-up renewal H-30</li>
+            <li>Tutup mapping coachee yang completed</li>
+          </ul>
+        </div>
+        <div class="checklist-col green">
+          <h4>&#128467; Monthly</h4>
+          <ul>
+            <li><b>Schedule batch renewal</b> H-60</li>
+            <li>Export <b>Histori Proton</b> + <b>Bottleneck</b> + <b>Workload</b> untuk laporan</li>
+            <li>Review <b>Audit Log</b> bulanan</li>
+            <li>Cek silabus aktif &mdash; ada yang perlu update?</li>
+            <li>Review Pre/Post Test Gain Score &mdash; insight kurikulum</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Tip:</strong> Kalau rutin ini dijalankan konsisten, 80% pekerjaan HC harian = approve evidence + monitor compliance + schedule renewal. Sisanya = resolve edge case.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 22: REFERENCE CARD ================= -->
+  <div class="slide default-deco" data-slide="22">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
+        <h1 class="slide-title">Reference <span class="accent">Card</span></h1>
+        <p class="slide-subtitle">Dokumen detail untuk self-service kapan saja</p>
+      </div>
+      <div class="slide-badge">SLIDE 22 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="ref-grid">
+        <div class="ref-card">
+          <div class="ref-icon">&#128188;</div>
+          <div class="ref-title">Panduan Operasional HC</div>
+          <div class="ref-desc">Reference lengkap 38 task per modul + Glossary + Troubleshooting + URL Cheatsheet</div>
+          <a href="Panduan-Operasional-HC-PortalHC-KPB.html" target="_blank">Buka Panduan &rarr;</a>
+        </div>
+        <div class="ref-card">
+          <div class="ref-icon">&#128218;</div>
+          <div class="ref-title">Panduan Penggunaan Website</div>
+          <div class="ref-desc">Panduan general semua role &mdash; navigasi, fitur dasar, tips</div>
+          <a href="../wwwroot/documents/guides/Panduan-Penggunaan-Website-HC-Portal-KPB.html" target="_blank">Buka Panduan &rarr;</a>
+        </div>
+        <div class="ref-card">
+          <div class="ref-icon">&#127942;</div>
+          <div class="ref-title">Sosialisasi Aplikasi Umum</div>
+          <div class="ref-desc">Slide deck overview portal untuk audience semua role (22 slide)</div>
+          <a href="Sosialisasi-Aplikasi-PortalHC-KPB.html" target="_blank">Buka Slide &rarr;</a>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128221; Self-service first:</strong> Sebelum tanya senior atau Admin, cek <b>Panduan Operasional HC</b> dulu. URL Cheatsheet di Lampiran C berisi ~110 URL menu untuk akses cepat. Bookmark file ini di browser.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 23: PENUTUP ================= -->
+  <div class="slide penutup" data-slide="23">
+    <div class="penutup-content">
+      <h1 class="penutup-title">Terima Kasih</h1>
+      <p class="penutup-subtitle">Pertanyaan? Diskusi terbuka.</p>
+      <div class="penutup-contact">
+        <p style="font-size: 11pt; opacity: 0.85; margin-bottom: 6px;">Kontak &amp; Support</p>
+        <p style="font-size: 14pt; font-weight: 700;">Tim Human Capital KPB</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="controls no-print">
+  <button class="ctrl-btn" id="prevBtn" title="Previous">&#8249;</button>
+  <span class="slide-counter" id="slideCounter">1 / 23</span>
+  <button class="ctrl-btn" id="nextBtn" title="Next">&#8250;</button>
+</div>
+
+<script>
+  (function () {
+    const TOTAL = 23;
+    let current = 1;
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('slideCounter');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressBar = document.getElementById('progressBar');
+    const darkToggle = document.getElementById('darkToggle');
+    const fullToggle = document.getElementById('fullToggle');
+
+    function go(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      slides.forEach(s => s.classList.remove('active'));
+      const target = document.querySelector('[data-slide="' + n + '"]');
+      if (target) target.classList.add('active');
+      current = n;
+      counter.textContent = current + ' / ' + TOTAL;
+      progressBar.style.width = (current / TOTAL * 100) + '%';
+      prevBtn.disabled = current === 1;
+      nextBtn.disabled = current === TOTAL;
+    }
+
+    prevBtn.addEventListener('click', () => go(current - 1));
+    nextBtn.addEventListener('click', () => go(current + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(current + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+      else if (e.key === 'Home') { e.preventDefault(); go(1); }
+      else if (e.key === 'End') { e.preventDefault(); go(TOTAL); }
+      else if (e.key === 'Escape' && document.fullscreenElement) { document.exitFullscreen(); }
+    });
+
+    darkToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      darkToggle.textContent = document.body.classList.contains('dark') ? '☼' : '☀';
+    });
+
+    fullToggle.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    });
+
+    go(1);
+  })();
+</script>
+
+</body>
+</html>
