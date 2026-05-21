@@ -1687,6 +1687,242 @@
   </ul>
 </div>
 
+<!-- ============================================================ -->
+<!-- LAMPIRAN A: GLOSSARY -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="lampA">
+  <h2>Lampiran A &mdash; Glossary</h2>
+  <p>Istilah teknis dan singkatan yang sering muncul di Portal HC KPB.</p>
+</div>
+
+<table>
+  <thead><tr><th>Istilah</th><th>Kepanjangan / Definisi</th></tr></thead>
+  <tbody>
+    <tr><td><b>KKJ</b></td><td>Kebutuhan Kompetensi Jabatan &mdash; dokumen standar kompetensi per posisi.</td></tr>
+    <tr><td><b>CPDP</b></td><td>Competency and Proficiency Development Program &mdash; peta gap kompetensi ke program pelatihan.</td></tr>
+    <tr><td><b>IDP</b></td><td>Individual Development Plan &mdash; rencana pengembangan kompetensi personal per pekerja.</td></tr>
+    <tr><td><b>Proton</b></td><td>Program coaching terstruktur 3 tahun (Th 1-2 online, Th 3 offline interview).</td></tr>
+    <tr><td><b>CMP</b></td><td>Competency Management Platform &mdash; modul untuk pengelolaan KKJ, assessment, training records, analytics.</td></tr>
+    <tr><td><b>CDP</b></td><td>Competency Development Platform &mdash; modul untuk coaching Proton, IDP, deliverable, certification.</td></tr>
+    <tr><td><b>OJT</b></td><td>On the Job Training &mdash; assessment kompetensi berbasis unit kerja.</td></tr>
+    <tr><td><b>IHT</b></td><td>In House Training &mdash; assessment terkait pelatihan internal perusahaan.</td></tr>
+    <tr><td><b>OTS</b></td><td>On The Spot &mdash; assessment langsung di lapangan.</td></tr>
+    <tr><td><b>HSSE</b></td><td>Health, Safety, Security &amp; Environment &mdash; mandatory training kategori K3.</td></tr>
+    <tr><td><b>Licencor</b></td><td>Training Licencor &mdash; lisensi / sertifikasi eksternal.</td></tr>
+    <tr><td><b>Gain Score</b></td><td>Selisih nilai Pre-Test vs Post-Test &mdash; ukur efektivitas training.</td></tr>
+    <tr><td><b>Deliverable</b></td><td>Tugas terstruktur yang harus diselesaikan coachee di program Proton.</td></tr>
+    <tr><td><b>Evidence</b></td><td>Bukti penyelesaian deliverable (PDF/DOCX/XLSX/JPG/PNG, max 10MB).</td></tr>
+    <tr><td><b>Reviewer Chain</b></td><td>Urutan approval 3-tahap: Sr Supervisor &rarr; Section Head &rarr; HC. Reject di salah satu = reset semua.</td></tr>
+    <tr><td><b>Force-Close</b></td><td>Aksi Admin/HC untuk mengakhiri sesi assessment user yang stuck. Auto-submit progress saat itu.</td></tr>
+    <tr><td><b>Override</b></td><td>Aksi Admin/HC untuk paksa value mapping data Proton yang gagal sync otomatis.</td></tr>
+    <tr><td><b>Renewal</b></td><td>Perpanjangan sertifikat yang mendekati masa kadaluarsa.</td></tr>
+    <tr><td><b>Bottleneck</b></td><td>Deliverable stuck (lama tidak progress) per coachee / unit.</td></tr>
+    <tr><td><b>Pre/Post Test</b></td><td>Pasangan assessment sebelum + sesudah training untuk ukur peningkatan kompetensi.</td></tr>
+    <tr><td><b>Workload Threshold</b></td><td>Batas jumlah coachee per coach yang trigger warning di Coach Workload.</td></tr>
+    <tr><td><b>Manual Entry Assessment</b></td><td>Catat hasil assessment offline (mis: sertifikat eksternal) yang tidak ada test online.</td></tr>
+    <tr><td><b>Maintenance Mode</b></td><td>State system yang kunci akses user (Scope All / Specific). Admin + HC bisa toggle.</td></tr>
+    <tr><td><b>Impersonate</b></td><td>Login sebagai user lain untuk debugging. <b>Admin only</b>, ter-log di Audit Log.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- LAMPIRAN B: TROUBLESHOOTING -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="lampB">
+  <h2>Lampiran B &mdash; Troubleshooting (HC Perspective)</h2>
+  <p>Masalah umum yang sering di-eskalasi ke HC dan cara menanganinya.</p>
+</div>
+
+<h3>B.1 User Lupa Password</h3>
+<div class="warn">
+  <div class="warn-title">Belum tersedia self-service reset</div>
+  Solusi: HC buka <b>Admin Panel &rarr; Kelola Pekerja</b> (<code>/Worker/ManageWorkers</code>) &rarr; Edit user &rarr; reset password manual atau eskalasi ke <b>Admin / Tim IT</b>. Kemungkinan integrasi Active Directory &mdash; reset lewat jalur IT standar. Sampaikan ke user untuk segera ganti password setelah login pertama.
+</div>
+
+<h3>B.2 User Tidak Bisa Akses Menu Tertentu</h3>
+<p>Cek role user di <b>Kelola Pekerja</b> (<code>/Worker/EditWorker/{id}</code>). Menu CMP/CDP/Profile selalu visible untuk semua role login. Menu Kelola Data + Admin Panel hanya untuk role AdminHC. Beberapa endpoint Impersonate / Audit Log lebih ketat (Admin-only). Update role kalau perlu lewat Edit Worker.</p>
+
+<h3>B.3 Upload File Gagal</h3>
+<ul>
+  <li>Cek ukuran file &le; 10 MB (default).</li>
+  <li>Cek format yang diterima per context:
+    <ul>
+      <li>Evidence deliverable: PDF / DOCX / XLSX / JPG / PNG</li>
+      <li>KKJ / CPDP Files: PDF</li>
+      <li>Guidance Files: PDF (rekomendasi)</li>
+      <li>Excel template (Workers / Soal / Training / Mapping / Silabus / Budget): <code>.xlsx</code></li>
+    </ul>
+  </li>
+  <li>Cek koneksi jaringan kantor (terutama untuk file besar).</li>
+  <li>Cek error message yang muncul &mdash; biasanya jelas (size exceeded, invalid format, dll).</li>
+</ul>
+
+<h3>B.4 Sertifikat Tidak Muncul Setelah Assessment</h3>
+<ul>
+  <li>Cek nilai user &ge; passing grade di <b>Assessment Monitoring Detail</b> (<code>/AssessmentAdmin/AssessmentMonitoringDetail</code>).</li>
+  <li>Cek status assessment &mdash; harus <b>Completed</b>, bukan <b>In Progress</b>.</li>
+  <li>Untuk assessment dengan essay: pastikan grading sudah ter-finalize (<code>/AssessmentAdmin/FinalizeEssayGrading/{sessionId}</code>).</li>
+  <li>Cek signatory user di kategori assessment terkait (<code>/AssessmentAdmin/EditCategory/{id}</code>) &mdash; tanpa signatory, sertifikat tidak ter-generate.</li>
+  <li>Kalau passing grade tercapai tapi sertifikat masih kosong: cek <b>Renewal Certificate</b>, kemungkinan sertifikat lama belum expired sehingga tidak terbit baru.</li>
+</ul>
+
+<h3>B.5 Notifikasi Tidak Masuk</h3>
+<p>Refresh halaman dulu (bell icon di-update saat page load / polling <code>/Notification/UnreadCount</code>). Cek <b>List notifikasi</b> langsung di <code>/Notification/List</code>. Kalau benar-benar kosong padahal event sudah trigger, cek log error server (NotificationService.LogWarning) &mdash; eskalasi ke IT.</p>
+
+<h3>B.6 Reviewer Chain Stuck</h3>
+<p>Buka <b>CDP &rarr; Dashboard &rarr; Bottleneck Report</b> (<code>/CDP/Dashboard</code> tab Bottleneck). Identifikasi siapa reviewer yang lambat. Eskalasi via komunikasi internal. HC <b>tidak boleh skip reviewer chain</b> &mdash; harus tunggu Sr Supervisor + Section Head approve dulu, baru HC final review. Sistem enforce ini via endpoint terpisah.</p>
+
+<h3>B.7 Browser Tidak Kompatibel</h3>
+<p>Rekomendasi: Chrome / Edge / Firefox versi terbaru. Hindari Internet Explorer dan browser lawas. Mobile browser (Safari iOS, Chrome Android) bisa untuk view, tapi form complex (Create Assessment, Import Excel) sebaiknya pakai desktop.</p>
+
+<h3>B.8 Impersonate Banner Tidak Hilang</h3>
+<p>Admin klik tombol <b>Stop Impersonating</b> di banner kuning (POST <code>/Admin/StopImpersonation</code>). Kalau banner masih ada setelah klik, refresh page atau logout-login ulang dengan akun Admin asli. Sebagai HC, kalau melihat banner ini di session sendiri, kemungkinan ada bug atau Admin lupa stop &mdash; eskalasi ke Admin.</p>
+
+<h3>B.9 Override Data Pekerja Tidak Tersimpan</h3>
+<p>Cek apakah body request valid (semua field mapping required terisi). Cek Audit Log untuk action <code>Override</code> setelah submit &mdash; kalau muncul = tersimpan. Kalau tidak, cek error response di network tab browser. Eskalasi ke IT kalau server error.</p>
+
+<h3>B.10 Bulk Import Excel Hanya Sebagian Masuk</h3>
+<p>Sistem biasanya batal seluruh import kalau ada baris invalid (semantic: atomicity). Cek pesan error setelah upload &mdash; biasanya menyebut nomor baris yang bermasalah. Perbaiki di Excel, upload ulang. Backup data sebelum bulk import besar.</p>
+
+<!-- ============================================================ -->
+<!-- LAMPIRAN C: URL CHEATSHEET -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="lampC">
+  <h2>Lampiran C &mdash; URL Cheatsheet</h2>
+  <p>Quick reference untuk semua URL yang dipakai HC. Bookmark di browser untuk akses cepat.</p>
+</div>
+
+<table>
+  <thead><tr><th>Menu</th><th>URL</th><th>Tujuan</th></tr></thead>
+  <tbody>
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Account &amp; Profile</td></tr>
+    <tr><td>Login</td><td><code>/Account/Login</code></td><td>Login portal</td></tr>
+    <tr><td>Logout</td><td><code>/Account/Logout</code></td><td>Logout (POST)</td></tr>
+    <tr><td>My Profile</td><td><code>/Account/Profile</code></td><td>Lihat profil (read-only)</td></tr>
+    <tr><td>Settings</td><td><code>/Account/Settings</code></td><td>Edit nama, jabatan, telepon</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">CMP</td></tr>
+    <tr><td>CMP Landing</td><td><code>/CMP/Index</code></td><td>Card menu CMP + Library KKJ</td></tr>
+    <tr><td>Dokumen KKJ / CPDP</td><td><code>/CMP/DokumenKkj</code></td><td>Lihat KKJ + mapping CPDP</td></tr>
+    <tr><td>Training Records</td><td><code>/CMP/Records</code></td><td>Riwayat assessment + training (own + team)</td></tr>
+    <tr><td>Worker Detail</td><td><code>/CMP/RecordsWorkerDetail</code></td><td>Drill detail per worker</td></tr>
+    <tr><td>Export Records</td><td><code>/CMP/ExportRecords</code></td><td>Export Excel unified records</td></tr>
+    <tr><td>Export Team Assessment</td><td><code>/CMP/ExportRecordsTeamAssessment</code></td><td>Export tim &mdash; assessment</td></tr>
+    <tr><td>Export Team Training</td><td><code>/CMP/ExportRecordsTeamTraining</code></td><td>Export tim &mdash; training</td></tr>
+    <tr><td>CMP Assessment</td><td><code>/CMP/Assessment</code></td><td>List + kerjakan assessment</td></tr>
+    <tr><td>CMP Results</td><td><code>/CMP/Results/{id}</code></td><td>Hasil assessment per sesi</td></tr>
+    <tr><td>CMP Certificate</td><td><code>/CMP/Certificate/{id}</code></td><td>Preview sertifikat</td></tr>
+    <tr><td>Certificate PDF</td><td><code>/CMP/CertificatePdf/{id}</code></td><td>Download PDF sertifikat</td></tr>
+    <tr><td>Analytics Dashboard</td><td><code>/CMP/AnalyticsDashboard</code></td><td>Compliance + Fail Rate + Trend</td></tr>
+    <tr><td>Export Fail Rate</td><td><code>/CMP/ExportFailRateExcel</code></td><td>Export fail rate</td></tr>
+    <tr><td>Export Trend</td><td><code>/CMP/ExportTrendExcel</code></td><td>Export trend bulanan</td></tr>
+    <tr><td>Export ET Breakdown</td><td><code>/CMP/ExportEtBreakdownExcel</code></td><td>Export distribusi nilai</td></tr>
+    <tr><td>Export Item Analysis</td><td><code>/CMP/ExportItemAnalysisExcel</code></td><td>Per-soal analytics</td></tr>
+    <tr><td>Export Gain Score</td><td><code>/CMP/ExportGainScoreExcel</code></td><td>Pre/Post Test gain score</td></tr>
+    <tr><td>Budget Training</td><td><code>/CMP/BudgetTraining</code></td><td>List anggaran per tahun</td></tr>
+    <tr><td>Budget Create</td><td><code>/CMP/BudgetTrainingCreate</code></td><td>Tambah budget item</td></tr>
+    <tr><td>Budget Import</td><td><code>/CMP/BudgetTrainingImport</code></td><td>Import Excel batch</td></tr>
+    <tr><td>Budget Template</td><td><code>/CMP/DownloadBudgetTrainingTemplate</code></td><td>Download template Excel</td></tr>
+    <tr><td>Budget Export</td><td><code>/CMP/BudgetTrainingExport</code></td><td>Export rekap per tahun</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">CDP</td></tr>
+    <tr><td>CDP Landing</td><td><code>/CDP/Index</code></td><td>Card menu CDP</td></tr>
+    <tr><td>Plan IDP</td><td><code>/CDP/PlanIdp</code></td><td>Silabus pengembangan per posisi</td></tr>
+    <tr><td>Coaching Proton</td><td><code>/CDP/CoachingProton</code></td><td>Daftar coachee + deliverable</td></tr>
+    <tr><td>Deliverable Detail</td><td><code>/CDP/Deliverable/{id}</code></td><td>Review deliverable per ID</td></tr>
+    <tr><td>Download Evidence</td><td><code>/CDP/DownloadEvidence/{progressId}</code></td><td>Download evidence file</td></tr>
+    <tr><td>Coaching Dashboard</td><td><code>/CDP/Dashboard</code></td><td>Monitoring global + Bottleneck tab</td></tr>
+    <tr><td>Histori Proton</td><td><code>/CDP/HistoriProton</code></td><td>Histori coaching per periode</td></tr>
+    <tr><td>Histori Detail</td><td><code>/CDP/HistoriProtonDetail</code></td><td>Detail per coachee</td></tr>
+    <tr><td>Export Histori</td><td><code>/CDP/ExportHistoriProton</code></td><td>Excel histori</td></tr>
+    <tr><td>Export Progress Excel</td><td><code>/CDP/ExportProgressExcel</code></td><td>Per-coachee progress</td></tr>
+    <tr><td>Export Progress PDF</td><td><code>/CDP/ExportProgressPdf</code></td><td>Per-coachee progress PDF</td></tr>
+    <tr><td>Export Bottleneck</td><td><code>/CDP/ExportBottleneckReport</code></td><td>Deliverable stuck</td></tr>
+    <tr><td>Export Coaching Tracking</td><td><code>/CDP/ExportCoachingTracking</code></td><td>Tracking lengkap</td></tr>
+    <tr><td>Export Workload Summary</td><td><code>/CDP/ExportWorkloadSummary</code></td><td>Beban coach</td></tr>
+    <tr><td>Certification Mgmt</td><td><code>/CDP/CertificationManagement</code></td><td>Sertifikat coaching</td></tr>
+    <tr><td>Export Sertifikat</td><td><code>/CDP/ExportSertifikatExcel</code></td><td>Export sertifikat</td></tr>
+    <tr><td>Batch HC Approve</td><td><code>/CDP/BatchHCApprove</code></td><td>POST bulk approve</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Kelola Data Proton</td></tr>
+    <tr><td>Silabus List</td><td><code>/ProtonData/Index</code></td><td>CRUD silabus</td></tr>
+    <tr><td>Import Silabus</td><td><code>/ProtonData/ImportSilabus</code></td><td>Import Excel</td></tr>
+    <tr><td>Export Silabus</td><td><code>/ProtonData/ExportSilabus</code></td><td>Export aktif</td></tr>
+    <tr><td>Silabus Template</td><td><code>/ProtonData/DownloadSilabusTemplate</code></td><td>Download template</td></tr>
+    <tr><td>Override</td><td><code>/ProtonData/Override</code></td><td>Halaman override</td></tr>
+    <tr><td>Override List</td><td><code>/ProtonData/OverrideList</code></td><td>List dengan filter</td></tr>
+    <tr><td>Status Sync</td><td><code>/ProtonData/StatusData</code></td><td>Status sync Proton</td></tr>
+    <tr><td>Guidance List</td><td><code>/ProtonData/GuidanceList</code></td><td>Daftar guidance file</td></tr>
+    <tr><td>Guidance Download</td><td><code>/ProtonData/GuidanceDownload/{id}</code></td><td>Download guidance</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Workers &amp; Org</td></tr>
+    <tr><td>Admin Index</td><td><code>/Admin/Index</code></td><td>Landing Admin Panel</td></tr>
+    <tr><td>Kelola Pekerja</td><td><code>/Worker/ManageWorkers</code></td><td>CRUD pekerja</td></tr>
+    <tr><td>Create Worker</td><td><code>/Worker/CreateWorker</code></td><td>Tambah pekerja baru</td></tr>
+    <tr><td>Edit Worker</td><td><code>/Worker/EditWorker/{id}</code></td><td>Edit pekerja</td></tr>
+    <tr><td>Worker Detail</td><td><code>/Worker/WorkerDetail/{id}</code></td><td>Profile + history</td></tr>
+    <tr><td>Import Workers</td><td><code>/Worker/ImportWorkers</code></td><td>Import Excel batch</td></tr>
+    <tr><td>Export Workers</td><td><code>/Worker/ExportWorkers</code></td><td>Export Excel</td></tr>
+    <tr><td>Template Import</td><td><code>/Worker/DownloadImportTemplate</code></td><td>Template Excel</td></tr>
+    <tr><td>Manage Organization</td><td><code>/Organization/ManageOrganization</code></td><td>Units / Bagian</td></tr>
+    <tr><td>Manage Categories</td><td><code>/AssessmentAdmin/ManageCategories</code></td><td>Kategori assessment</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Assessment</td></tr>
+    <tr><td>Manage Assessment</td><td><code>/AssessmentAdmin/ManageAssessment</code></td><td>Daftar + tab Training/History</td></tr>
+    <tr><td>Create Assessment</td><td><code>/AssessmentAdmin/CreateAssessment</code></td><td>Buat jadwal</td></tr>
+    <tr><td>Edit Assessment</td><td><code>/AssessmentAdmin/EditAssessment/{id}</code></td><td>Edit jadwal</td></tr>
+    <tr><td>Manage Packages</td><td><code>/AssessmentAdmin/ManagePackages</code></td><td>Bank soal per assessment</td></tr>
+    <tr><td>Manage Questions</td><td><code>/AssessmentAdmin/ManagePackageQuestions</code></td><td>Soal per paket</td></tr>
+    <tr><td>Import Questions</td><td><code>/AssessmentAdmin/ImportPackageQuestions</code></td><td>Import soal Excel</td></tr>
+    <tr><td>Question Template</td><td><code>/AssessmentAdmin/DownloadQuestionTemplate</code></td><td>Template (?type=MC/Essay)</td></tr>
+    <tr><td>Preview Package</td><td><code>/AssessmentAdmin/PreviewPackage</code></td><td>Preview paket lengkap</td></tr>
+    <tr><td>Assessment Monitoring</td><td><code>/AssessmentAdmin/AssessmentMonitoring</code></td><td>Real-time monitoring</td></tr>
+    <tr><td>Monitoring Detail</td><td><code>/AssessmentAdmin/AssessmentMonitoringDetail</code></td><td>Detail per sesi</td></tr>
+    <tr><td>Akhiri Ujian</td><td><code>/AssessmentAdmin/AkhiriUjian/{id}</code></td><td>Force-close per sesi (POST)</td></tr>
+    <tr><td>Akhiri Semua</td><td><code>/AssessmentAdmin/AkhiriSemuaUjian</code></td><td>Force-close batch (POST)</td></tr>
+    <tr><td>Reset Assessment</td><td><code>/AssessmentAdmin/ResetAssessment/{id}</code></td><td>Reset sesi (POST)</td></tr>
+    <tr><td>Add Extra Time</td><td><code>/AssessmentAdmin/AddExtraTime/{id}</code></td><td>Tambah waktu (POST)</td></tr>
+    <tr><td>User Assessment History</td><td><code>/AssessmentAdmin/UserAssessmentHistory</code></td><td>History per user</td></tr>
+    <tr><td>Audit Log</td><td><code>/AssessmentAdmin/AuditLog</code></td><td>Catatan aktivitas system</td></tr>
+    <tr><td>Export Audit Log</td><td><code>/AssessmentAdmin/ExportAuditLog</code></td><td>Excel audit log</td></tr>
+    <tr><td>Export Assessment Results</td><td><code>/AssessmentAdmin/ExportAssessmentResults</code></td><td>Hasil batch assessment</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Mapping, Renewal, Training, Files</td></tr>
+    <tr><td>Coach Mapping</td><td><code>/CoachMapping/CoachCoacheeMapping</code></td><td>List + assign</td></tr>
+    <tr><td>Import Mapping</td><td><code>/CoachMapping/ImportCoachCoacheeMapping</code></td><td>Bulk import Excel</td></tr>
+    <tr><td>Mapping Template</td><td><code>/CoachMapping/DownloadMappingImportTemplate</code></td><td>Template Excel</td></tr>
+    <tr><td>Mapping Export</td><td><code>/CoachMapping/CoachCoacheeMappingExport</code></td><td>Export Excel</td></tr>
+    <tr><td>Coach Workload</td><td><code>/CoachMapping/CoachWorkload</code></td><td>Beban kerja coach</td></tr>
+    <tr><td>Export Workload</td><td><code>/CoachMapping/ExportCoachWorkload</code></td><td>Export workload</td></tr>
+    <tr><td>Renewal Certificate</td><td><code>/Renewal/RenewalCertificate</code></td><td>Schedule renewal</td></tr>
+    <tr><td>Certificate History</td><td><code>/Renewal/CertificateHistory</code></td><td>History per worker</td></tr>
+    <tr><td>Add Training</td><td><code>/TrainingAdmin/AddTraining</code></td><td>Input training manual</td></tr>
+    <tr><td>Edit Training</td><td><code>/TrainingAdmin/EditTraining/{id}</code></td><td>Edit training</td></tr>
+    <tr><td>Import Training</td><td><code>/TrainingAdmin/ImportTraining</code></td><td>Import Excel batch</td></tr>
+    <tr><td>Add Manual Assessment</td><td><code>/TrainingAdmin/AddManualAssessment</code></td><td>Catat sertifikat eksternal</td></tr>
+    <tr><td>Edit Manual Assessment</td><td><code>/TrainingAdmin/EditManualAssessment/{id}</code></td><td>Edit manual entry</td></tr>
+    <tr><td>Training Template</td><td><code>/TrainingAdmin/DownloadImportTrainingTemplate</code></td><td>Template training Excel</td></tr>
+    <tr><td>Assessment Template</td><td><code>/TrainingAdmin/DownloadImportAssessmentTemplate</code></td><td>Template manual assessment</td></tr>
+    <tr><td>KKJ Matrix</td><td><code>/DocumentAdmin/KkjMatrix</code></td><td>KKJ files per Bagian</td></tr>
+    <tr><td>KKJ Upload</td><td><code>/DocumentAdmin/KkjUpload</code></td><td>Upload KKJ baru</td></tr>
+    <tr><td>KKJ History</td><td><code>/DocumentAdmin/KkjFileHistory</code></td><td>History versi file</td></tr>
+    <tr><td>CPDP Files</td><td><code>/DocumentAdmin/CpdpFiles</code></td><td>CPDP per Bagian</td></tr>
+    <tr><td>CPDP Upload</td><td><code>/DocumentAdmin/CpdpUpload</code></td><td>Upload CPDP baru</td></tr>
+    <tr><td>CPDP History</td><td><code>/DocumentAdmin/CpdpFileHistory</code></td><td>History versi file</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Admin Panel &mdash; Maintenance &amp; Impersonate</td></tr>
+    <tr><td>Maintenance Mode</td><td><code>/Admin/Maintenance</code></td><td>Toggle maintenance (HC OK)</td></tr>
+    <tr><td>Impersonate</td><td><code>/Admin/Impersonate</code></td><td>Admin only</td></tr>
+
+    <tr><td colspan="3" style="background:#1565c0;color:#fff;font-weight:700;">Notifikasi</td></tr>
+    <tr><td>Notification List</td><td><code>/Notification/List</code></td><td>Daftar notifikasi</td></tr>
+    <tr><td>Unread Count</td><td><code>/Notification/UnreadCount</code></td><td>Badge count</td></tr>
+    <tr><td>Mark as Read</td><td><code>/Notification/MarkAsRead/{id}</code></td><td>POST per item</td></tr>
+    <tr><td>Mark All as Read</td><td><code>/Notification/MarkAllAsRead</code></td><td>POST batch</td></tr>
+    <tr><td>Dismiss</td><td><code>/Notification/Dismiss/{id}</code></td><td>POST hapus</td></tr>
+  </tbody>
+</table>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
