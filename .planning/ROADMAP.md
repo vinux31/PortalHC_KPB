@@ -446,7 +446,7 @@ Plans:
 
 #### Phase 320: Assessment Export Per-Peserta Excel
 
-- [ ] **Phase 320: Assessment Export Per-Peserta Excel** — Extend `ExportAssessmentResults` jadi 1 sheet "Summary" + N sheet per peserta dengan info detail, tabel ElemenTeknis, PNG spider chart (SkiaSharp), dan Detail Jawaban MC/MA
+- [x] **Phase 320: Assessment Export Per-Peserta Excel** — Extend `ExportAssessmentResults` jadi 1 sheet "Summary" + N sheet per peserta dengan info detail, tabel ElemenTeknis, PNG spider chart (SkiaSharp), dan Detail Jawaban MC/MA (completed 2026-05-21)
   - **REQ:** EXP-01, EXP-02, EXP-03, EXP-04, EXP-05, EXP-06, EXP-07, EXP-08
   - **Goal:** Refactor `AssessmentAdminController.ExportAssessmentResults` (line 3651) — rename sheet "Results"→"Summary" (breaking) + per-peserta loop yang generate sheet content via 2 helper baru (`Helpers/SpiderChartRenderer.cs` PNG via SkiaSharp, `Helpers/SheetNameSanitizer.cs` `{NIP}_{FullName}` format). PNG generate paralel `Task.WhenAll` dengan `MaxDegreeOfParallelism = Environment.ProcessorCount`. No DB schema change.
   - **Success Criteria:**
@@ -459,10 +459,10 @@ Plans:
   - **Risk:** Medium (lib baru SkiaSharp, native asset Win32, performance) | **Effort:** M
   - **Dependencies:** Tidak ada (paralel-able dengan Phase 321)
   - **Research:** `320-RESEARCH.md` 12 task breakdown (full code blocks)
-  - **Plans:** 2/3 plans executed
+  - **Plans:** 3/3 plans complete
     - [x] 320-01-PLAN.md — Helpers foundation: SkiaSharp PackageReference + SpiderChartRenderer.cs + SheetNameSanitizer.cs (EXP-03, EXP-06)
     - [x] 320-02-PLAN.md — Controller refactor: rename Summary + filter eligible + per-peserta loop + ET section + chart embed + Detail Jawaban + Variant B Manual Entry (EXP-01..07)
-    - [ ] 320-03-PLAN.md — Perf + UAT: Parallel.ForEachAsync PNG pre-compute + Playwright 4-test (Admin/HC/Worker/benchmark) + manual UAT 8-step + tag v17.0-p320-complete (EXP-07, EXP-08)
+    - [x] 320-03-PLAN.md — Perf + UAT: Parallel.ForEachAsync PNG pre-compute + Playwright 4-test (Admin/HC/Worker/benchmark) + manual UAT 8-step + tag v17.0-p320-complete (EXP-07, EXP-08)
 
 #### Phase 321: Assessment Edit Jawaban Peserta
 
