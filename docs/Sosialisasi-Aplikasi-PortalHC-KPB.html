@@ -378,8 +378,8 @@
     position: absolute;
     top: 8px; left: 14px;
     font-size: 50pt;
-    color: var(--red);
-    opacity: 0.5;
+    color: var(--amber);
+    opacity: 0.6;
     line-height: 1;
     font-family: Georgia, serif;
   }
@@ -389,7 +389,7 @@
     padding-left: 30px;
     font-weight: 400;
   }
-  .definition-text strong { color: #ff8a8f; font-weight: 700; }
+  .definition-text strong { color: #fbbf24; font-weight: 700; }
   .modules-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -403,7 +403,7 @@
     border-top: 4px solid;
     box-shadow: 0 4px 14px rgba(0, 46, 109, 0.08);
   }
-  .module-card.cmp { border-top-color: var(--red); }
+  .module-card.cmp { border-top-color: var(--navy); }
   .module-card.cdp { border-top-color: var(--green); }
   .module-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
   .module-icon {
@@ -412,10 +412,10 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 22pt; color: #fff;
   }
-  .module-card.cmp .module-icon { background: var(--red); }
+  .module-card.cmp .module-icon { background: var(--navy); }
   .module-card.cdp .module-icon { background: var(--green); }
   .module-name { font-size: 14pt; font-weight: 800; line-height: 1.2; }
-  .module-card.cmp .module-name { color: var(--red); }
+  .module-card.cmp .module-name { color: var(--navy); }
   .module-card.cdp .module-name { color: var(--green); }
   .module-subname { font-size: 9pt; color: var(--slate); margin-top: 2px; }
   .module-desc { font-size: 9.5pt; color: var(--text-muted); line-height: 1.5; }
@@ -438,7 +438,7 @@
     border-top: 4px solid;
   }
   .pilar-card:hover { transform: translateY(-6px); }
-  .pilar-card.p1 { border-top-color: var(--red); }
+  .pilar-card.p1 { border-top-color: var(--amber); }
   .pilar-card.p2 { border-top-color: var(--navy); }
   .pilar-card.p3 { border-top-color: var(--green); }
   .pilar-icon-wrap {
@@ -449,7 +449,7 @@
     font-size: 28pt;
     color: #fff;
   }
-  .pilar-card.p1 .pilar-icon-wrap { background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%); box-shadow: 0 6px 16px rgba(237, 28, 36, 0.3); }
+  .pilar-card.p1 .pilar-icon-wrap { background: linear-gradient(135deg, var(--amber) 0%, #b45309 100%); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3); }
   .pilar-card.p2 .pilar-icon-wrap { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%); box-shadow: 0 6px 16px rgba(0, 46, 109, 0.3); }
   .pilar-card.p3 .pilar-icon-wrap { background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%); box-shadow: 0 6px 16px rgba(0, 150, 64, 0.3); }
   .pilar-num {
@@ -461,7 +461,7 @@
     line-height: 1;
   }
   .pilar-title { font-size: 14pt; font-weight: 800; margin-bottom: 10px; }
-  .pilar-card.p1 .pilar-title { color: var(--red); }
+  .pilar-card.p1 .pilar-title { color: #b45309; }
   .pilar-card.p2 .pilar-title { color: var(--navy); }
   .pilar-card.p3 .pilar-title { color: var(--green); }
   .pilar-desc { font-size: 10pt; color: var(--text-muted); line-height: 1.5; }
@@ -826,7 +826,7 @@
   }
   .swim-lane.lane-prep { border-color: rgba(0, 150, 64, 0.4); background: linear-gradient(135deg, rgba(0, 150, 64, 0.05), rgba(0, 150, 64, 0.01)); }
   .swim-lane.lane-exec { border-color: rgba(0, 46, 109, 0.4); }
-  .swim-lane.lane-result { border-color: rgba(237, 28, 36, 0.4); background: linear-gradient(135deg, rgba(237, 28, 36, 0.05), rgba(237, 28, 36, 0.01)); }
+  .swim-lane.lane-result { border-color: rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(245, 158, 11, 0.01)); }
   .swim-label {
     font-size: 8pt;
     font-weight: 800;
