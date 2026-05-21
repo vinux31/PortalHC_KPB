@@ -579,6 +579,20 @@
     90%  { opacity: 1; }
     100% { opacity: 0; transform: translateY(clamp(300px, 35vw, 500px)) rotate(540deg); }
   }
+
+  /* ===== ACCESSIBILITY — REDUCED MOTION ===== */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .scene { opacity: 0; }
+    .scene#scene-result { opacity: 1; transform: none; }
+    .title em { background-size: 100% 6px; }
+    .result-card, .result-meta, .pass-caption { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -759,7 +773,18 @@
     { t: 17500, fn: () => document.getElementById('pass-caption').classList.add('show') }
   ];
 
-  milestones.forEach(m => setTimeout(m.fn, m.t));
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    showScene('scene-result');
+    document.getElementById('score-num').textContent = '85';
+    document.getElementById('result-meta').classList.add('show');
+    document.querySelector('.badge-lulus').classList.add('fired');
+    document.querySelector('.confetti-burst').classList.add('fired');
+    document.querySelector('.confetti-fall').classList.add('active');
+    document.getElementById('pass-caption').classList.add('show');
+  } else {
+    milestones.forEach(m => setTimeout(m.fn, m.t));
+  }
 </script>
 </body>
 </html>
