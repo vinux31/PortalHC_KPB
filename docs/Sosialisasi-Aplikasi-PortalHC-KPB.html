@@ -1037,6 +1037,599 @@
   }
   .kb-hint.show { opacity: 1; }
 
+  /* =================== V3 TOKENS — added 2026-05-25 =================== */
+
+  /* CHIP ROLE PILL (slide 6) */
+  .role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+  .role-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(0, 46, 109, 0.08);
+    border: 1px solid rgba(0, 46, 109, 0.2);
+    border-radius: 12px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  body.dark .role-chip {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #e0f2fe;
+  }
+  .role-chip .chip-icon { font-size: 10pt; }
+
+  /* 2-ROW JENIS CARD (slide 7) */
+  .jenis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+  .jenis-card {
+    background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 12px rgba(0, 46, 109, 0.06);
+  }
+  .jenis-card.umum { border-top: 4px solid var(--navy); }
+  .jenis-card.proton { border-top: 4px solid var(--red); }
+  .jenis-card .jenis-head {
+    font-size: 14pt;
+    font-weight: 800;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .jenis-card.umum .jenis-head { color: var(--navy); }
+  .jenis-card.proton .jenis-head { color: var(--red); }
+  .jenis-row {
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .jenis-row .jenis-label {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .jenis-row .jenis-value {
+    font-size: 10pt;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .tip-bar {
+    background: linear-gradient(90deg, rgba(0, 150, 64, 0.08), rgba(0, 150, 64, 0.02));
+    border-left: 3px solid var(--green);
+    padding: 10px 14px;
+    font-size: 9.5pt;
+    color: var(--text);
+    border-radius: 6px;
+  }
+  body.dark .jenis-card { background: linear-gradient(135deg, var(--slide-bg) 0%, var(--slide-bg-2) 100%); }
+
+  /* 3-SWIMLANE (slide 10/18/19) */
+  .swim-row {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .swim-lane {
+    background: linear-gradient(135deg, rgba(0, 46, 109, 0.04), rgba(0, 46, 109, 0.01));
+    border: 1px dashed rgba(0, 46, 109, 0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .swim-lane.lane-prep { border-color: rgba(0, 150, 64, 0.4); background: linear-gradient(135deg, rgba(0, 150, 64, 0.05), rgba(0, 150, 64, 0.01)); }
+  .swim-lane.lane-exec { border-color: rgba(0, 46, 109, 0.4); }
+  .swim-lane.lane-result { border-color: rgba(237, 28, 36, 0.4); background: linear-gradient(135deg, rgba(237, 28, 36, 0.05), rgba(237, 28, 36, 0.01)); }
+  .swim-label {
+    font-size: 8pt;
+    font-weight: 800;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .swim-steps {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .swim-step {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    font-size: 9pt;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  .swim-step .step-num-mini {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 9pt;
+    margin-bottom: 6px;
+  }
+  .swim-step .step-icon-mini { font-size: 14pt; display: block; margin-bottom: 4px; }
+  .swim-step .step-title { font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .swim-step .step-desc { font-size: 8pt; color: var(--text-muted); line-height: 1.3; }
+  .swim-step.highlight { border-color: var(--amber); background: linear-gradient(135deg, #fff8e8, #ffe9c0); }
+  .swim-step.highlight .step-num-mini { background: var(--amber); }
+  .output-bar {
+    margin-top: 16px;
+    background: linear-gradient(90deg, var(--navy), var(--navy-dark));
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 10pt;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  body.dark .swim-step { background: var(--slide-bg); border-color: var(--border); }
+  body.dark .swim-step .step-title { color: #e0f2fe; }
+
+  /* FADED CARD (slide 5 BP) */
+  .module-card.faded {
+    border: 2px dashed var(--slate);
+    opacity: 0.78;
+    background: linear-gradient(135deg, rgba(100, 116, 139, 0.06), rgba(100, 116, 139, 0.02));
+    position: relative;
+  }
+  .module-card.faded::before {
+    content: '🚧 COMING SOON';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 8pt;
+    font-weight: 800;
+    color: var(--amber);
+    background: rgba(245, 158, 11, 0.12);
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .module-card .module-bullets {
+    list-style: none;
+    margin-top: 12px;
+    padding: 0;
+  }
+  .module-card .module-bullets li {
+    font-size: 9.5pt;
+    color: var(--text);
+    padding: 4px 0;
+    display: flex;
+    gap: 6px;
+  }
+  .module-card.faded .module-bullets li { color: var(--text-muted); }
+
+  /* STATUS BADGE (slide 22) */
+  .akses-card .akses-status {
+    display: inline-block;
+    font-size: 8.5pt;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .akses-card.dev .akses-status { background: rgba(0, 150, 64, 0.15); color: var(--green); }
+  .akses-card.prod .akses-status { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+  .url-perkiraan {
+    font-size: 8pt;
+    color: var(--amber);
+    margin-top: 4px;
+    display: block;
+    font-style: italic;
+  }
+  .akses-footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 10px;
+    background: rgba(245, 158, 11, 0.08);
+    border-radius: 8px;
+  }
+
+  /* PROGRESI TABLE (slide 17) */
+  .progresi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  .progresi-table th, .progresi-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .progresi-table thead th {
+    background: var(--navy);
+    color: #fff;
+    font-weight: 700;
+    font-size: 9.5pt;
+    letter-spacing: 0.3px;
+  }
+  .progresi-table tbody td.aspek-label {
+    font-weight: 700;
+    color: var(--navy);
+    background: rgba(0, 46, 109, 0.04);
+  }
+  .progresi-table tbody td.diff-cell {
+    background: linear-gradient(135deg, rgba(237, 28, 36, 0.08), rgba(245, 158, 11, 0.08));
+    font-weight: 700;
+    color: var(--red);
+  }
+  body.dark .progresi-table tbody td.aspek-label { color: #e0f2fe; background: rgba(255,255,255,0.04); }
+  body.dark .progresi-table tbody td.diff-cell { color: #ff9aa0; }
+
+  /* TREE HIERARKI (slide 16) */
+  .tree-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 16px;
+  }
+  .tree-col {
+    background: linear-gradient(135deg, #fff, #f8fafc);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .tree-col.generic { border-top: 4px solid var(--navy); }
+  .tree-col.example { border-top: 4px solid var(--green); }
+  .tree-col h4 {
+    font-size: 10.5pt;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .tree-node {
+    background: var(--slide-bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 0 auto 8px;
+    text-align: center;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--text);
+    max-width: 80%;
+  }
+  .tree-node .node-level {
+    display: block;
+    font-size: 7.5pt;
+    color: var(--slate);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
+  }
+  .tree-arrow {
+    text-align: center;
+    font-size: 16pt;
+    color: var(--slate);
+    margin: 0 0 8px;
+  }
+  body.dark .tree-col { background: linear-gradient(135deg, var(--slide-bg), var(--slide-bg-2)); }
+
+  /* PRE-POST STEPPER (slide 9) */
+  .pp-stepper {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: stretch;
+  }
+  .pp-step {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    position: relative;
+  }
+  .pp-step + .pp-step::before {
+    content: '→';
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14pt;
+    color: var(--slate);
+    font-weight: 800;
+  }
+  .pp-step .pp-num {
+    display: inline-block;
+    width: 28px; height: 28px;
+    line-height: 28px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 11pt;
+    margin-bottom: 8px;
+  }
+  .pp-step .pp-icon { font-size: 22pt; display: block; margin-bottom: 6px; }
+  .pp-step .pp-title { font-weight: 700; color: var(--navy); font-size: 11pt; }
+  .pp-step .pp-desc { font-size: 8.5pt; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+  .pp-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .pp-metric {
+    background: linear-gradient(135deg, rgba(0, 46, 109, 0.05), rgba(0, 46, 109, 0.01));
+    border-left: 4px solid var(--navy);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .pp-metric.alt { border-left-color: var(--green); background: linear-gradient(135deg, rgba(0, 150, 64, 0.05), rgba(0, 150, 64, 0.01)); }
+  .pp-metric h5 { font-size: 11pt; color: var(--navy); margin-bottom: 4px; }
+  .pp-metric.alt h5 { color: var(--green); }
+  .pp-metric p { font-size: 9.5pt; color: var(--text); line-height: 1.4; }
+  body.dark .pp-step { background: var(--slide-bg); }
+
+  /* DUAL TRACK (slide 14) */
+  .dt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+  .dt-col {
+    background: linear-gradient(135deg, #fff, #f8fafc);
+    border: 1.5px solid var(--border);
+    border-top: 4px solid var(--navy);
+    border-radius: 14px;
+    padding: 22px 26px;
+    text-align: center;
+  }
+  .dt-col.operator { border-top-color: var(--red); }
+  .dt-col .dt-head {
+    font-size: 15pt;
+    font-weight: 800;
+    margin-bottom: 14px;
+    color: var(--navy);
+  }
+  .dt-col.operator .dt-head { color: var(--red); }
+  .dt-pills {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .dt-pill {
+    background: var(--navy);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 10pt;
+  }
+  .dt-col.operator .dt-pill { background: var(--red); }
+  .dt-note { font-size: 8.5pt; color: var(--text-muted); font-style: italic; }
+  body.dark .dt-col { background: linear-gradient(135deg, var(--slide-bg), var(--slide-bg-2)); }
+
+  /* RINGKASAN (slide 20) */
+  .ringkasan-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .ringkasan-card {
+    background: linear-gradient(135deg, var(--navy), var(--navy-dark));
+    color: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+  }
+  .ringkasan-card.t2 { background: linear-gradient(135deg, #1e88e5, #0d47a1); }
+  .ringkasan-card.t3 { background: linear-gradient(135deg, var(--red), var(--red-dark)); }
+  .ringkasan-card .rc-year {
+    font-size: 9pt;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.85;
+  }
+  .ringkasan-card .rc-fokus {
+    font-size: 14pt;
+    font-weight: 800;
+    margin: 6px 0 10px;
+  }
+  .ringkasan-card .rc-bullet {
+    font-size: 9.5pt;
+    padding: 4px 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .ringkasan-output {
+    background: linear-gradient(135deg, var(--amber), #d97706);
+    color: #fff;
+    border-radius: 14px;
+    padding: 18px 24px;
+    text-align: center;
+  }
+  .ringkasan-output .rio-label {
+    font-size: 9.5pt;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .ringkasan-output .rio-text {
+    font-size: 16pt;
+    font-weight: 800;
+    margin-top: 6px;
+  }
+
+  /* PROTON 3-TAHUN (slide 11) */
+  .proton-tahun-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .proton-tahun-card {
+    background: linear-gradient(135deg, #fff, #f8fafc);
+    border-top: 4px solid var(--navy);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    position: relative;
+  }
+  .proton-tahun-card.tahun-3 {
+    border-top-color: var(--red);
+    background: linear-gradient(135deg, #fff5f5, #fff);
+  }
+  .proton-tahun-card .tahun-eyebrow {
+    font-size: 8pt;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--slate);
+    text-transform: uppercase;
+  }
+  .proton-tahun-card .tahun-title {
+    font-size: 17pt;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 4px 0 10px;
+  }
+  .proton-tahun-card.tahun-3 .tahun-title { color: var(--red); }
+  .proton-tahun-card .tahun-track {
+    font-size: 9pt;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .proton-tahun-card .tahun-bullets { list-style: none; padding: 0; }
+  .proton-tahun-card .tahun-bullets li {
+    font-size: 9.5pt;
+    padding: 4px 0;
+    display: flex;
+    gap: 6px;
+  }
+  .offline-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(237, 28, 36, 0.15);
+    color: var(--red);
+    font-size: 7.5pt;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  body.dark .proton-tahun-card { background: linear-gradient(135deg, var(--slide-bg), var(--slide-bg-2)); }
+
+  /* PROTON ALUR STEPPER (slide 12/13) */
+  .alur-stepper {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+    align-items: stretch;
+  }
+  .alur-step {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: center;
+    position: relative;
+  }
+  .alur-stepper.offline-mode .alur-step { border-top: 3px solid var(--amber); }
+  .alur-step + .alur-step::before {
+    content: '→';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13pt;
+    color: var(--slate);
+    font-weight: 800;
+  }
+  .alur-step .as-num {
+    display: inline-block;
+    width: 24px; height: 24px;
+    line-height: 24px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 9pt;
+    margin-bottom: 6px;
+  }
+  .alur-stepper.offline-mode .alur-step .as-num { background: var(--amber); }
+  .alur-step .as-title { font-weight: 700; color: var(--navy); font-size: 10pt; margin-bottom: 3px; }
+  .alur-step .as-desc { font-size: 8pt; color: var(--text-muted); line-height: 1.3; }
+  .alur-crossref {
+    background: rgba(0, 150, 64, 0.06);
+    border-left: 3px solid var(--green);
+    padding: 8px 12px;
+    font-size: 9pt;
+    margin-bottom: 10px;
+    border-radius: 6px;
+  }
+  .alur-warning {
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 3px solid var(--amber);
+    padding: 8px 12px;
+    font-size: 9pt;
+    font-weight: 600;
+    color: var(--text);
+    border-radius: 6px;
+  }
+  .alur-callout {
+    background: rgba(237, 28, 36, 0.06);
+    border-left: 3px solid var(--red);
+    padding: 8px 12px;
+    font-size: 9pt;
+    font-weight: 600;
+    border-radius: 6px;
+    margin-top: 10px;
+  }
+  body.dark .alur-step { background: var(--slide-bg); }
+
+  /* SECTION EYEBROW (BAGIAN labels above slide-title) */
+  .section-eyebrow {
+    font-size: 8.5pt;
+    color: var(--red);
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+
 </style>
 </head>
 <body>
