@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PCP §3.4 v2 — Master Viewer</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-blue: #00558C;
+    --pertamina-green: #00A551;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+  .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+  .sidebar { background: linear-gradient(180deg, var(--pertamina-blue), #003D63); color: #fff; padding: 1.5rem 1rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .sidebar h1 { font-size: 1.1rem; margin: 0 0 .25rem; line-height: 1.3; }
+  .sidebar .subtitle { font-size: .8rem; opacity: .8; margin-bottom: 1.5rem; }
+  .sidebar nav ul { list-style: none; padding: 0; margin: 0; }
+  .sidebar nav li { margin-bottom: .25rem; }
+  .sidebar nav a { color: #fff; text-decoration: none; display: block; padding: .5rem .75rem; border-radius: .35rem; font-size: .9rem; transition: background .15s; }
+  .sidebar nav a:hover { background: rgba(255,255,255,.1); }
+  .sidebar nav a.active { background: rgba(255,255,255,.18); font-weight: 600; }
+  .sidebar .group-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; opacity: .7; margin: 1.25rem 0 .5rem .75rem; }
+  main { padding: 2rem 3rem; max-width: 1100px; }
+  section.doc { background: var(--card); border: 1px solid var(--border); border-radius: .75rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); scroll-margin-top: 1rem; }
+  section.doc h2 { margin: 0 0 .25rem; color: var(--pertamina-blue); border-bottom: 3px solid var(--pertamina-red); padding-bottom: .5rem; display: inline-block; }
+  section.doc h3 { margin: 1.5rem 0 .5rem; color: var(--text); font-size: 1.1rem; }
+  section.doc table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+  section.doc thead th { background: var(--pertamina-blue); color: #fff; text-align: left; padding: .55rem .75rem; }
+  section.doc tbody td { padding: .5rem .75rem; border: 1px solid var(--border); vertical-align: top; }
+  section.doc tbody tr:nth-child(even) td { background: #fafbfc; }
+  .mermaid { background: #fff; border: 1px dashed var(--border); border-radius: .5rem; padding: 1rem; margin: 1rem 0; overflow-x: auto; text-align: center; }
+  .gt-card { background: linear-gradient(135deg, var(--pertamina-blue), var(--pertamina-green)); color: white; padding: 1.5rem; border-radius: .75rem; margin: 1rem 0; }
+  .gt-card a { color: white; text-decoration: underline; font-weight: 700; }
+  .gt-card a:hover { opacity: .85; }
+  blockquote { border-left: 4px solid var(--pertamina-blue); background: #f0f7fc; padding: .65rem 1rem; margin: 1rem 0; border-radius: 0 .35rem .35rem 0; }
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <h1>PCP §3.4 v2<br/>HC Portal</h1>
+  <div class="subtitle">Master Viewer</div>
+  <nav>
+    <div class="group-label">Pendahuluan</div>
+    <ul>
+      <li><a href="#readme">📖 Executive Summary</a></li>
+      <li><a href="#konvensi">🔖 Legend & Konvensi</a></li>
+    </ul>
+    <div class="group-label">Gambar Teknik (Utama)</div>
+    <ul>
+      <li><a href="gambar-teknik/versi-a-layered-aktor.html" target="_blank">🏛️ Versi A — Layered Aktor ↗</a></li>
+      <li><a href="gambar-teknik/versi-b-c4-context.html" target="_blank">📡 Versi B — C4 Context ↗</a></li>
+      <li><a href="#komparasi">📋 Tabel Komparasi</a></li>
+    </ul>
+    <div class="group-label">Flow Proses (Lampiran)</div>
+    <ul>
+      <li><a href="#flow-01">📝 01 Assessment</a></li>
+      <li><a href="#flow-02">🎯 02 PROTON</a></li>
+      <li><a href="#flow-03">📋 03 IDP</a></li>
+      <li><a href="#flow-04">📊 04 KKJ</a></li>
+      <li><a href="#flow-05">🏆 05 Sertifikat</a></li>
+      <li><a href="#flow-06">📈 06 Reporting</a></li>
+      <li><a href="#flow-07">👥 07 Data Pekerja</a></li>
+    </ul>
+    <div class="group-label">Pendukung</div>
+    <ul>
+      <li><a href="#issue">🛠️ Tabel Issue A-F</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<main>
+  <section class="doc" id="readme">
+    <h2>📖 Executive Summary</h2>
+    <blockquote>
+      <strong>Audience:</strong> Reviewer PCP, manajemen HC, tim implementasi.<br/>
+      <strong>Domain:</strong> HC Portal (PortalHC_KPB) — web app pengelolaan kompetensi CSU Process KPB.
+    </blockquote>
+    <p>HC Portal menggantikan workflow manual berbasis Excel + FleQi + paperwork + email/WhatsApp dengan single web portal terintegrasi. Hasilnya: pengurangan jumlah tools, jumlah step proses, dan waktu rekap; ditambah audit trail, single source of truth, dan governance compliance.</p>
+
+    <h3>Cakupan §3.4</h3>
+    <p>2 jenis valid dari 4 pilihan §3.4 ("Design / Gambar Teknik / Flow Proses / Formula"):</p>
+    <ol>
+      <li><strong>Gambar Teknik</strong> (utama) — diagram landscape Sebelum vs Sesudah, 2 versi style</li>
+      <li><strong>Flow Proses</strong> (lampiran) — swimlane workflow per 7 fitur impactful</li>
+    </ol>
+
+    <h3>2 Versi Gambar Teknik</h3>
+    <div class="gt-card">
+      <h4 style="margin:0 0 .5rem">🏛️ Versi A — Layered Aktor</h4>
+      <p style="margin:0 0 .5rem">5 layer vertikal per peran (Manajemen → HC → Atasan → Coach → Pekerja). Hub HC Portal di tengah. Mirip slide PCP referensi.</p>
+      <a href="gambar-teknik/versi-a-layered-aktor.html" target="_blank">Buka Versi A →</a>
+    </div>
+    <div class="gt-card">
+      <h4 style="margin:0 0 .5rem">📡 Versi B — C4 System Context</h4>
+      <p style="margin:0 0 .5rem">Hub-and-spoke. HC Portal di tengah, 4 aktor mengelilingi. Standar Simon Brown C4 Model.</p>
+      <a href="gambar-teknik/versi-b-c4-context.html" target="_blank">Buka Versi B →</a>
+    </div>
+  </section>
+
+  <section class="doc" id="konvensi">
+    <h2>🔖 Legend & Konvensi</h2>
+    <p>Detail di <code>pendukung/legend-konvensi.md</code></p>
+    <h3>Aktor (singkat)</h3>
+    <table>
+      <thead><tr><th>Kode</th><th>Nama</th></tr></thead>
+      <tbody>
+        <tr><td><code>MANAJEMEN</code></td><td>Direktur / VP</td></tr>
+        <tr><td><code>HC</code></td><td>Human Capital</td></tr>
+        <tr><td><code>ATASAN</code></td><td>Sr Spv / Section Head / Manager</td></tr>
+        <tr><td><code>COACH</code></td><td>Pendamping coachee</td></tr>
+        <tr><td><code>COACHEE</code></td><td>Program pengembangan</td></tr>
+        <tr><td><code>USER</code></td><td>Pekerja umum</td></tr>
+        <tr><td><code>SISTEM</code></td><td>HC Portal (otomatis)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="doc" id="komparasi">
+    <h2>📋 Tabel Komparasi Master</h2>
+    <p>Detail di <code>gambar-teknik/tabel-komparasi.md</code></p>
+    <h3>Per Fitur</h3>
+    <table>
+      <thead><tr><th>#</th><th>Fitur</th><th>Δ Step</th><th>Δ Tools</th><th>Δ Waktu</th></tr></thead>
+      <tbody>
+        <tr><td>01</td><td>Assessment Online</td><td><strong>-67%</strong></td><td><strong>-75%</strong></td><td><strong>~95%</strong></td></tr>
+        <tr><td>02</td><td>PROTON Coaching</td><td><strong>-60%</strong></td><td><strong>-75%</strong></td><td><strong>~95%</strong></td></tr>
+        <tr><td>03</td><td>IDP / Plan</td><td><strong>-75%</strong></td><td><strong>-67%</strong></td><td><strong>~94%</strong></td></tr>
+        <tr><td>04</td><td>KKJ & Matriks</td><td><strong>-75%</strong></td><td><strong>-67%</strong></td><td><strong>~99%</strong></td></tr>
+        <tr><td>05</td><td>Sertifikat & Renewal</td><td><strong>-67%</strong></td><td><strong>-75%</strong></td><td><strong>~99%</strong></td></tr>
+        <tr><td>06</td><td>Reporting / Analytics</td><td><strong>-60%</strong></td><td><strong>-67%</strong></td><td><strong>~96%</strong></td></tr>
+        <tr><td>07</td><td>Data Pekerja</td><td><strong>-83%</strong></td><td><strong>-80%</strong></td><td><strong>~83%</strong></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="doc" id="flow-01">
+    <h2>📝 01 — Assessment Online</h2>
+    <p>Detail: <a href="flow-proses/01-assessment.md" target="_blank">flow-proses/01-assessment.md</a></p>
+    <h3>Flow SEBELUM</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: buat soal] --> FQ1(FleQi Quiz)
+    FQ1 --> HC2[HC: input peserta]
+    HC2 --> HC3[HC: kirim email]
+    HC3 --> P1[Peserta: ujian]
+    P1 --> HC4[HC: download Excel]
+    HC4 --> EX1(Excel Rekap)
+    EX1 --> HC5[HC: rekap laporan]
+    HC5 --> HC6[HC: kirim email]
+    </pre>
+    <h3>Flow SESUDAH</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: buat paket + import soal] --> SYS1{{Sistem: assign + notifikasi}}
+    SYS1 --> P1[Peserta: ujian online]
+    P1 --> SYS2{{Sistem: auto-grade + simpan}}
+    SYS2 --> HC2[HC: Analytics Dashboard]
+    </pre>
+  </section>
+
+  <section class="doc" id="flow-02">
+    <h2>🎯 02 — PROTON Coaching</h2>
+    <p>Detail: <a href="flow-proses/02-proton-coaching.md" target="_blank">flow-proses/02-proton-coaching.md</a></p>
+    <h3>Flow SEBELUM</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC0[HC: assign via email] --> CO1[Coach: jadwalkan]
+    CO1 --> CO2[Coach: print form]
+    CO2 --> FORM(Form PROTON cetak)
+    FORM --> CO3[Coach: isi 5 fase]
+    CO3 --> CO4[Coach: foto bukti WA]
+    CO4 --> WA(WhatsApp / Email)
+    WA --> CO5[Coach: arsip fisik]
+    CO5 --> HC1[HC: track via WA]
+    HC1 --> AT1[Atasan: approval lisan]
+    </pre>
+    <h3>Flow SESUDAH</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC0[HC: Coach-Coachee Mapping] --> CO1[Coach: form digital 5 fase]
+    CO1 --> CO2[Coach: upload evidence]
+    CO2 --> SYS1{{Sistem: link evidence + histori}}
+    SYS1 --> AT1[Atasan: approve/reject portal]
+    AT1 --> HC1[HC: final review dashboard]
+    </pre>
+  </section>
+
+  <section class="doc" id="flow-03">
+    <h2>📋 03 — IDP / Plan</h2>
+    <p>Detail: <a href="flow-proses/03-idp-plan.md" target="_blank">flow-proses/03-idp-plan.md</a></p>
+    <h3>Flow SEBELUM</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: susun IDP Excel] --> EX1(Excel Template IDP)
+    EX1 --> HC2[HC: email distribusi]
+    HC2 --> CO1[Coach: simpan pribadi]
+    CO1 --> CO2[Coach: tracking manual Excel]
+    CO2 --> HC3[HC: minta update email]
+    HC3 --> HC4[HC: konsolidasi versi]
+    </pre>
+    <h3>Flow SESUDAH</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: PROTON Data import silabus] --> SYS1{{Sistem: parse Track-Komp-Sub-Deliv}}
+    SYS1 --> SYS2{{Sistem: tampil di Plan IDP coachee}}
+    SYS2 --> VIEW[Coachee/Coach/Atasan: view real-time]
+    </pre>
+  </section>
+
+  <section class="doc" id="flow-04">
+    <h2>📊 04 — KKJ & Matriks</h2>
+    <p>Detail: <a href="flow-proses/04-kkj-matriks.md" target="_blank">flow-proses/04-kkj-matriks.md</a></p>
+    <h3>Flow SEBELUM</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: update KKJ Excel] --> EX1(Excel KKJ Master)
+    EX1 --> HC2[HC: simpan share folder]
+    HC2 --> SF1(Share Folder)
+    SF1 --> HC3[HC: email link]
+    HC3 --> AT1[Atasan: download Excel]
+    AT1 --> AT2[Atasan: minta matriks via email]
+    AT2 --> HC4[HC: susun matriks manual]
+    </pre>
+    <h3>Flow SESUDAH</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: upload Dokumen KKJ] --> SYS1{{Sistem: simpan + versioning + history}}
+    SYS1 --> SYS2{{Sistem: render KKJ Matrix digital}}
+    SYS2 --> VIEW[USER/Atasan: view real-time filter bagian]
+    </pre>
+  </section>
+
+  <section class="doc" id="flow-05">
+    <h2>🏆 05 — Sertifikat & Renewal</h2>
+    <p>Detail: <a href="flow-proses/05-sertifikat-renewal.md" target="_blank">flow-proses/05-sertifikat-renewal.md</a></p>
+    <h3>Flow SEBELUM</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: buat sertifikat Word] --> WORD(Template Word/PDF)
+    WORD --> HC2[HC: print + ttd basah]
+    HC2 --> HC3[HC: serah ke pekerja]
+    HC3 --> P1[Pekerja: simpan hardcopy]
+    P1 --> HC4[HC: catat expiry Excel]
+    HC4 --> HC5[HC: cek bulanan/audit]
+    HC5 --> HC6[HC: koordinasi renewal email]
+    </pre>
+    <h3>Flow SESUDAH</h3>
+    <pre class="mermaid">
+flowchart LR
+    SYS1{{Sistem: auto-generate PDF lulus assessment}} --> P1[Pekerja: download Certificate]
+    P1 --> SYS2{{Sistem: badge kuning/merah expiry}}
+    SYS2 --> HC1[HC: Renewal Certificate filter]
+    HC1 --> HC2[HC: assign training + export planning]
+    </pre>
+  </section>
+
+  <section class="doc" id="flow-06">
+    <h2>📈 06 — Reporting & Analytics</h2>
+    <p>Detail: <a href="flow-proses/06-reporting-analytics.md" target="_blank">flow-proses/06-reporting-analytics.md</a></p>
+    <h3>Flow SEBELUM</h3>
+    <pre class="mermaid">
+flowchart LR
+    MGR1[Manajemen: minta laporan email] --> HC1[HC: kumpul data Excel]
+    HC1 --> EX1(Excel Master)
+    EX1 --> HC2[HC: copy ke Excel laporan]
+    HC2 --> HC3[HC: pivot + chart manual]
+    HC3 --> HC4[HC: review + format]
+    HC4 --> HC5[HC: kirim PDF email]
+    </pre>
+    <h3>Flow SESUDAH</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: Analytics Dashboard] --> SYS1{{Sistem: heatmap + chart real-time}}
+    SYS1 --> HC2[HC: export Excel/PDF on-demand]
+    </pre>
+  </section>
+
+  <section class="doc" id="flow-07">
+    <h2>👥 07 — Data Pekerja</h2>
+    <p>Detail: <a href="flow-proses/07-data-pekerja.md" target="_blank">flow-proses/07-data-pekerja.md</a></p>
+    <h3>Flow SEBELUM</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: data baru via email] --> HC2[HC: input Excel Master Pekerja]
+    HC2 --> HC3[HC: copy ke Excel Assessment]
+    HC3 --> HC4[HC: copy ke Excel Training]
+    HC4 --> HC5[HC: copy ke Excel Sertifikat]
+    HC5 --> HC6[HC: update mutasi di 4 file]
+    </pre>
+    <h3>Flow SESUDAH</h3>
+    <pre class="mermaid">
+flowchart LR
+    HC1[HC: Kelola Pekerja Import/Form] --> SYS1{{Sistem: validasi + bulk insert + audit log}}
+    SYS1 --> SYS2{{Sistem: refresh role-based access}}
+    SYS2 --> VIEW[Modul A/T/S: pakai DB tunggal]
+    </pre>
+  </section>
+
+  <section class="doc" id="issue">
+    <h2>🛠️ Tabel Issue Resolved</h2>
+    <p>Detail: <code>pendukung/tabel-issue-resolved.md</code></p>
+    <table>
+      <thead><tr><th>Code</th><th>Issue</th><th>Mapping Fitur</th></tr></thead>
+      <tbody>
+        <tr><td><strong>A</strong></td><td>Tools Terfragmentasi</td><td>01, 02, 03, 04, 05, 07</td></tr>
+        <tr><td><strong>B</strong></td><td>No Single Source of Truth</td><td>01, 03, 04, 06, 07</td></tr>
+        <tr><td><strong>C</strong></td><td>No Audit Trail</td><td>01, 02, 05, 07</td></tr>
+        <tr><td><strong>D</strong></td><td>Reporting Ad-Hoc</td><td>01, 04, 06</td></tr>
+        <tr><td><strong>E</strong></td><td>Workflow Tanpa Tracking</td><td>02, 03</td></tr>
+        <tr><td><strong>F</strong></td><td>Renewal Sertifikat Reaktif</td><td>05</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer style="text-align:center; padding:2rem; color:var(--muted); font-size:.85rem;">
+    <p>PCP SMART 2026 §3.4 v2 — HC Portal • Master Viewer • Tag <code>pcp-hcportal-3.4-v2.0</code></p>
+  </footer>
+</main>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    themeVariables: {
+      primaryColor: '#00558C',
+      primaryTextColor: '#fff',
+      primaryBorderColor: '#003D63',
+      lineColor: '#6b7280',
+      secondaryColor: '#C8102E',
+      tertiaryColor: '#f3f4f6'
+    },
+    flowchart: { curve: 'basis', useMaxWidth: true }
+  });
+  const links = document.querySelectorAll('.sidebar nav a[href^="#"]');
+  const sections = document.querySelectorAll('section.doc');
+  function onScroll() {
+    let current = '';
+    const scrollPos = window.scrollY + 80;
+    sections.forEach(s => { if (s.offsetTop <= scrollPos) current = s.id; });
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
