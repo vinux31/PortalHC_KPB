@@ -2678,6 +2678,83 @@ namespace HcPortal.Controllers
             return View(grouped);
         }
 
+        // --- EDIT PESERTA ANSWERS (Phase 321) ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditPesertaAnswers(int id)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            if (session == null)
+            {
+                TempData["Error"] = "Sesi tidak ditemukan.";
+                return RedirectToAction("ManageAssessment");
+            }
+
+            if (!await HcPortal.Helpers.AssessmentEditEligibility.IsEditableAsync(_context, session))
+            {
+                TempData["Error"] = "Sesi ini tidak dapat diedit (status bukan Completed, atau IsManualEntry, atau Assessment Proton Tahun 3).";
+                return RedirectToAction("AssessmentMonitoringDetail", new {
+                    title = session.Title, category = session.Category, scheduleDate = session.Schedule
+                });
+            }
+
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+            if (assignment == null) return NotFound();
+
+            var shuffledIds = assignment.GetShuffledQuestionIds();
+            var questions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => shuffledIds.Contains(q.Id))
+                .ToListAsync();
+            var responses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == id)
+                .ToListAsync();
+
+            var rows = new List<HcPortal.Models.EditQuestionRow>();
+            foreach (var qId in shuffledIds)
+            {
+                var q = questions.FirstOrDefault(x => x.Id == qId);
+                if (q == null) continue;
+                var selectedIds = responses
+                    .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue)
+                    .Select(r => r.PackageOptionId!.Value)
+                    .ToList();
+                var correctIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToList();
+                bool isCorrect = (q.QuestionType ?? "MultipleChoice") switch
+                {
+                    "MultipleChoice" => selectedIds.Count == 1 && correctIds.Contains(selectedIds[0]),
+                    "MultipleAnswer" => selectedIds.ToHashSet().SetEquals(correctIds.ToHashSet()),
+                    _ => false
+                };
+                rows.Add(new HcPortal.Models.EditQuestionRow
+                {
+                    PackageQuestionId = q.Id,
+                    QuestionText = q.QuestionText,
+                    QuestionType = q.QuestionType ?? "MultipleChoice",
+                    Options = q.Options.Select(o => new HcPortal.Models.EditOptionRow
+                    {
+                        Id = o.Id, OptionText = o.OptionText, IsCorrect = o.IsCorrect
+                    }).ToList(),
+                    SelectedOptionIds = selectedIds,
+                    CorrectOptionIds = correctIds,
+                    IsCurrentCorrect = isCorrect
+                });
+            }
+
+            var vm = new HcPortal.Models.EditPesertaAnswersViewModel
+            {
+                Session = session,
+                FullName = session.User?.FullName ?? "Unknown",
+                NIP = session.User?.NIP ?? "—",
+                UpdatedAt = session.UpdatedAt ?? session.CreatedAt,
+                Questions = rows
+            };
+            return View(vm);
+        }
+
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
