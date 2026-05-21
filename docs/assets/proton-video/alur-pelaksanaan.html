@@ -405,6 +405,55 @@
   }
   .toast.show { opacity: 1; transform: translateX(0); }
 
+  /* ===== SCENE 3: COACHING PROTON FORM ===== */
+  .coaching-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  #scene-3.active .form-field:nth-of-type(1) { animation: fadeUp 0.4s 0.4s ease-out forwards; }
+  #scene-3.active .form-field:nth-of-type(2) { animation: fadeUp 0.4s 0.55s ease-out forwards; }
+  #scene-3.active .form-field:nth-of-type(3) { animation: fadeUp 0.4s 0.70s ease-out forwards; }
+  .form-field label {
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    color: var(--navy-deep);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .form-field .textarea {
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    font-size: clamp(11px, 0.95vw, 13px);
+    color: var(--text);
+    min-height: 32px;
+    font-family: inherit;
+  }
+  .btn-save {
+    align-self: flex-start;
+    padding: 8px 16px;
+    background: var(--navy);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-size: clamp(11px, 0.95vw, 13px);
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  #scene-3.active .btn-save { animation: fadeUp 0.4s 3.4s ease-out forwards; }
+
   /* ===== STEPPER ===== */
   .stepper {
     display: flex;
@@ -543,6 +592,31 @@
               </div>
               <div class="toast" id="toast-upload">✓ Bukti terunggah</div>
             </main>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene" id="scene-3">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="url">portalhc.kpb · <em>Coaching PROTON · Sesi 04</em></span>
+          </div>
+          <div class="browser-body coaching-body">
+            <div class="form-field">
+              <label>Diskusi</label>
+              <div class="textarea" id="field-diskusi"></div>
+            </div>
+            <div class="form-field">
+              <label>Kesimpulan</label>
+              <div class="textarea" id="field-kesimpulan"></div>
+            </div>
+            <div class="form-field">
+              <label>Tindak Lanjut</label>
+              <div class="textarea" id="field-tindak"></div>
+            </div>
+            <button class="btn-save">💾 Simpan Sesi</button>
+            <div class="toast" id="toast-coaching">✓ Sesi tersimpan</div>
           </div>
         </div>
       </div>
