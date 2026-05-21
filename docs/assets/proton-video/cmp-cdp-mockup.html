@@ -356,6 +356,20 @@
   #scene-cdp.active .cdp-cards .bs-card:nth-child(2) { animation: cardPop 0.5s 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #scene-cdp.active .cdp-cards .bs-card:nth-child(3) { animation: cardPop 0.5s 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   #scene-cdp.active .cdp-cards .bs-card:nth-child(4) { animation: cardPop 0.5s 2.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+  /* ===== ACCESSIBILITY — REDUCED MOTION ===== */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .scene { opacity: 0; }
+    .scene#scene-cdp { opacity: 1; transform: none; }
+    .title em { background-size: 100% 6px; }
+    .bs-card { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -520,7 +534,16 @@
     { t: 16250, fn: () => highlightCard('scene-cdp', 4, 750) }
   ];
 
-  milestones.forEach(m => setTimeout(m.fn, m.t));
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    showScene('scene-cdp');
+    document.querySelectorAll('.bs-card').forEach(c => {
+      c.style.opacity = '1';
+      c.style.transform = 'none';
+    });
+  } else {
+    milestones.forEach(m => setTimeout(m.fn, m.t));
+  }
 </script>
 </body>
 </html>
