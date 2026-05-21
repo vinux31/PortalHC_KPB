@@ -239,6 +239,92 @@
   </ol>
 </div>
 
+<!-- ============================================================ -->
+<!-- BAB 1: PENGENALAN -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab1">
+  <h2>1. Pengenalan</h2>
+  <p>Role HC, cara akses, login, dan pengaturan akun pribadi.</p>
+</div>
+
+<h3 id="bab1-1">1.1 Role HC &mdash; Authority &amp; Scope (L2)</h3>
+<p>HC (Human Capital) adalah role <b>Level 2</b> dengan akses penuh ke pengelolaan SDM dan program coaching. Authority HC mencakup:</p>
+<ul>
+  <li><b>CMP</b>: monitor seluruh assessment lintas Unit/Section, Analytics Dashboard, Records Team semua bagian, kelola Pre/Post Test, Budget Training, Certificate.</li>
+  <li><b>CDP</b>: review semua deliverable, Coaching Proton Dashboard global, Bottleneck Report, Coach Workload, Final Reviewer di approval chain.</li>
+  <li><b>Kelola Data Proton</b>: CRUD Silabus, upload Guidance Files, Override Data Pekerja.</li>
+  <li><b>Admin Panel</b>: Kelola Pekerja/Units/Categories, Bank Soal + Create Assessment, Assessment Monitoring real-time, Coach-Coachee Mapping, Renewal Certificate, Training Record, KKJ/CPDP Files, Audit Log, Maintenance Mode, Impersonate.</li>
+</ul>
+<div class="info">
+  <div class="info-title">💡 Beda dengan Admin (L1)</div>
+  Admin punya semua hak akses HC + konfigurasi sistem yang lebih sensitif (perubahan role pekerja, hapus permanen, escalation override). HC tidak.
+</div>
+
+<h3 id="bab1-2">1.2 Cara Akses (Dev / Prod)</h3>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th><th>Tujuan</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge badge-green">Dev</span></td><td><code>http://10.55.3.3/KPB-PortalHC</code></td><td>Server testing internal (akses dari jaringan kantor)</td></tr>
+    <tr><td><span class="badge badge-orange">Prod</span></td><td><code>(Hubungi Tim IT untuk URL produksi)</code></td><td>Operasional harian</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <div class="warn-title">⚠️ Server Dev = jaringan kantor</div>
+  Server <code>10.55.3.3</code> hanya bisa diakses dari jaringan kantor KPB. Tidak bisa diakses dari rumah atau WiFi publik.
+</div>
+
+<article class="task" id="account-login">
+  <h3>1.3 Login ke HC Portal</h3>
+  <div class="breadcrumb">
+    Browser &rarr; Halaman Login
+    <code class="url">/Account/Login</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka URL Portal</span></div>
+    <div class="step-body">Akses URL Dev atau Prod di browser modern (Chrome, Edge, Firefox versi terbaru).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Masukkan Kredensial</span></div>
+    <div class="step-body">Ketik <b>email</b> dan <b>password</b> yang sudah diaktifkan oleh Admin / Tim IT. Centang <b>Remember Me</b> kalau pakai komputer pribadi. Klik <b>Login</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Verifikasi Role Badge</span></div>
+    <div class="step-body">Setelah login, cek navbar kanan atas. Avatar Anda akan tampil dengan badge <span class="role-tag role-hc">HC</span>. Kalau bukan HC, hubungi Admin untuk update role di <b>Admin Panel &rarr; Kelola Pekerja</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Logout</span></div>
+    <div class="step-body">Klik avatar &rarr; <b>Logout</b>. Form Logout pakai metode POST &mdash; aman dari CSRF.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Lupa password</div>
+    Belum tersedia self-service reset di portal. Hubungi <b>Admin / Tim IT</b> untuk reset password manual.
+  </div>
+</article>
+
+<article class="task" id="account-profile">
+  <h3>1.4 Profile &amp; Settings</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Avatar (kanan atas) &rarr; My Profile / Settings
+    <code class="url">/Account/Profile</code> <code class="url">/Account/Settings</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Lihat Profil (read-only)</span></div>
+    <div class="step-body">Klik <b>avatar</b> Anda di pojok kanan atas navbar &rarr; pilih <b>My Profile</b> (<code>/Account/Profile</code>). Halaman menampilkan: nama, NIP, email, jabatan, unit kerja, dan role.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Edit Profil</span></div>
+    <div class="step-body">Klik avatar &rarr; <b>Settings</b> (<code>/Account/Settings</code>). Field yang bisa di-edit: <b>Nama Lengkap</b>, <b>Jabatan</b>, <b>Nomor Telepon</b>. Klik <b>Simpan Profil</b> di bawah form.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Field yang Tidak Bisa Di-edit</span></div>
+    <div class="step-body">NIP, Email, Role, Bagian, Direktorat, Unit hanya tampil read-only. Update field-field ini harus lewat Admin Panel &mdash; hubungi Admin / HC lain.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Ganti Password</div>
+    Belum ada fitur self-service ganti password di portal. Reset password harus via <b>Admin / Tim IT</b>. Kemungkinan password terhubung ke Active Directory perusahaan &mdash; reset lewat jalur IT standar.
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
