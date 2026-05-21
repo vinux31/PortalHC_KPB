@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Animasi Alur Pelaksanaan PROTON — Video Bagian 4 (1:15–1:55)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="icon" href="data:,">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy-deep: #0A2447;
+    --navy:      #0F2D5C;
+    --navy-soft: #1E4280;
+    --red:       #E63329;
+    --red-dark:  #C5251D;
+    --ink:       #1A1A1A;
+    --text:      #3D3D3D;
+    --muted:     #888888;
+    --hairline:  #E5E7EB;
+    --paper:     #F9FAFB;
+    --sky:       #F0F4FA;
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #FFFFFF; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    background: #FFFFFF;
+  }
+
+  /* 16:9 stage */
+  .stage {
+    width: min(96vw, 1600px);
+    aspect-ratio: 16 / 9;
+    position: relative;
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--sky) 100%);
+    border: 1px solid var(--hairline);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02), 0 24px 64px rgba(10,36,71,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: clamp(28px, 3vw, 48px) clamp(36px, 4vw, 64px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== GRID BACKDROP ===== */
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(15,45,92,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,45,92,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    opacity: 0;
+    animation: fadeIn 0.4s 0.1s ease-out forwards;
+    z-index: 0;
+  }
+  .stage > * { position: relative; z-index: 1; }
+
+  /* ===== HEADER ===== */
+  .header {
+    margin-bottom: clamp(12px, 1.5vw, 24px);
+    opacity: 0;
+    transform: translateY(-8px);
+    animation: fadeDown 0.8s 0.2s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+  }
+  .eyebrow {
+    font-size: clamp(11px, 0.9vw, 14px);
+    font-weight: 800;
+    color: var(--red);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .title {
+    font-size: clamp(24px, 2.2vw, 38px);
+    font-weight: 900;
+    color: var(--navy-deep);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .title em {
+    font-style: normal;
+    color: var(--red);
+    background-image: linear-gradient(90deg, var(--red), var(--red));
+    background-size: 0% 6px;
+    background-position: 0 92%;
+    background-repeat: no-repeat;
+    padding-bottom: 2px;
+    animation: underlineDraw 0.6s 1.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  @keyframes underlineDraw { to { background-size: 100% 6px; } }
+  @keyframes fadeDown { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== BRAND MARK ===== */
+  .brand-mark {
+    position: absolute;
+    bottom: 20px;
+    right: 28px;
+    font-size: clamp(10px, 0.78vw, 12px);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeIn 0.8s 1.5s ease-out forwards;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="header">
+      <div class="eyebrow">Alur Pelaksanaan PROTON</div>
+      <h1 class="title">Enam Langkah <em>Terstruktur</em></h1>
+    </div>
+
+    <!-- scenes container + stepper akan ditambahkan task berikutnya -->
+
+    <div class="brand-mark">PROTON × KPB</div>
+  </div>
+</body>
+</html>
