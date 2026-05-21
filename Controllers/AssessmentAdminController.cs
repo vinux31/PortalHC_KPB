@@ -3850,8 +3850,46 @@ namespace HcPortal.Controllers
                 ws.Cell(5, 2).Value = session.AssessmentType ?? "—";
 
                 ws.Range(2, 1, 5, 1).Style.Font.Bold = true;
-                // Section ElemenTeknis + Chart + Detail Jawaban DI Task 7-9 (Variant A).
-                // Section Info Sertifikasi Manual DI Task 10 (Variant B).
+
+                int currentRow = 7;
+
+                if (session.IsManualEntry)
+                {
+                    // Variant B: Manual Entry — body diisi di Task 10
+                    currentRow = WriteManualEntrySection(ws, session, currentRow);
+                    continue;
+                }
+
+                // === Variant A: Online — Section Analisis Elemen Teknis (REQ EXP-03) ===
+                var sessionEt = allEtScores.Where(et => et.AssessmentSessionId == session.Id).ToList();
+                if (sessionEt.Any())
+                {
+                    ws.Cell(currentRow, 1).Value = "Analisis Elemen Teknis";
+                    ws.Cell(currentRow, 1).Style.Font.Bold = true;
+                    ws.Range(currentRow, 1, currentRow, 4).Merge();
+                    currentRow++;
+
+                    // Table header
+                    ws.Cell(currentRow, 1).Value = "Elemen Teknis";
+                    ws.Cell(currentRow, 2).Value = "Benar";
+                    ws.Cell(currentRow, 3).Value = "Total";
+                    ws.Cell(currentRow, 4).Value = "Persentase";
+                    ws.Range(currentRow, 1, currentRow, 4).Style.Font.Bold = true;
+                    ws.Range(currentRow, 1, currentRow, 4).Style.Fill.BackgroundColor = XLColor.LightBlue;
+                    currentRow++;
+
+                    foreach (var et in sessionEt.OrderBy(e => e.ElemenTeknis))
+                    {
+                        ws.Cell(currentRow, 1).Value = et.ElemenTeknis;
+                        ws.Cell(currentRow, 2).Value = et.CorrectCount;
+                        ws.Cell(currentRow, 3).Value = et.QuestionCount;
+                        double pct = et.QuestionCount > 0 ? (double)et.CorrectCount / et.QuestionCount * 100 : 0;
+                        ws.Cell(currentRow, 4).Value = $"{pct:F1}%";
+                        currentRow++;
+                    }
+                    currentRow++; // blank separator
+                }
+                // Skip section kalau sessionEt kosong (Abandoned tanpa ET, atau Essay-only)
             }
 
             // Sanitize title for filename: replace non-alphanumeric with _
@@ -5675,6 +5713,14 @@ namespace HcPortal.Controllers
             }
 
             return null;  // pass — caller lanjut cascade
+        }
+
+        // === Variant B: Manual Entry — Info Sertifikasi Manual (REQ EXP-04) ===
+        // Stub di Task 7; body lengkap di Task 10.
+        private int WriteManualEntrySection(ClosedXML.Excel.IXLWorksheet ws, AssessmentSession session, int startRow)
+        {
+            // Implemented in Task 10
+            return startRow;
         }
 
     }
