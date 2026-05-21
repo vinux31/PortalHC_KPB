@@ -116,6 +116,30 @@
     animation: fadeIn 0.8s 1.5s ease-out forwards;
     pointer-events: none;
   }
+
+  /* ===== SCENES CONTAINER ===== */
+  .scenes {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+    margin: clamp(8px, 1vw, 16px) 0;
+  }
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(12px, 1.5vw, 24px);
+  }
+  .scene.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
 </style>
 </head>
 <body>
@@ -125,7 +149,9 @@
       <h1 class="title">Standar Penilaian <em>Per Tahap</em></h1>
     </div>
 
-    <!-- scenes container akan ditambahkan task berikutnya -->
+    <div class="scenes">
+      <!-- 2 scene akan ditambahkan task 4-5 -->
+    </div>
 
     <div class="brand-mark">PROTON × KPB</div>
   </div>
