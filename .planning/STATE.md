@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v17.0
 milestone_name: Assessment Admin Power Tools
-status: ready
-last_updated: "2026-05-21T02:40:00.000Z"
-last_activity: 2026-05-21 -- Phase 320 complete + tagged v17.0-p320-complete
+status: Phase 320 shipped locally (pending user push remote + IT promo Dev)
+last_updated: "2026-05-21T07:42:00.628Z"
+last_activity: 2026-05-21 -- Phase 320 UAT pass + tagged + follow-up UAT (Variant B + PNG byte-verify)
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 3
   completed_plans: 3
-  percent: 50
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
