@@ -446,7 +446,8 @@ Plans:
 
 #### Phase 320: Assessment Export Per-Peserta Excel
 
-- [x] **Phase 320: Assessment Export Per-Peserta Excel** — Extend `ExportAssessmentResults` jadi 1 sheet "Summary" + N sheet per peserta dengan info detail, tabel ElemenTeknis, PNG spider chart (SkiaSharp), dan Detail Jawaban MC/MA (completed 2026-05-21)
+- [x] **Phase 320: Assessment Export Per-Peserta Excel** — Extend `ExportAssessmentResults` jadi 1 sheet "Summary" + N sheet per peserta dengan info detail, tabel ElemenTeknis, PNG spider chart (SkiaSharp), dan Detail Jawaban MC/MA
+ (completed 2026-05-21)
   - **REQ:** EXP-01, EXP-02, EXP-03, EXP-04, EXP-05, EXP-06, EXP-07, EXP-08
   - **Goal:** Refactor `AssessmentAdminController.ExportAssessmentResults` (line 3651) — rename sheet "Results"→"Summary" (breaking) + per-peserta loop yang generate sheet content via 2 helper baru (`Helpers/SpiderChartRenderer.cs` PNG via SkiaSharp, `Helpers/SheetNameSanitizer.cs` `{NIP}_{FullName}` format). PNG generate paralel `Task.WhenAll` dengan `MaxDegreeOfParallelism = Environment.ProcessorCount`. No DB schema change.
   - **Success Criteria:**
@@ -481,21 +482,22 @@ Plans:
   - **Risk:** High (transaction + cascade + concurrency + audit + UI dropdown refactor + new migration) | **Effort:** L
   - **Dependencies:** Tidak ada (paralel-able dengan Phase 320; perlu koordinasi merge di `AssessmentAdminController.cs` karena kedua phase edit file ini)
   - **Research:** `321-RESEARCH.md` 13 task breakdown (full code blocks)
-  - **Plans:** 4/4 plans planned (sequential strict, branch feature/phase-321-edit-jawaban)
+  - **Plans:** 5/5 plans planned (sequential strict, branch feature/phase-321-edit-jawaban; revised iteration 1: PLAN 03 awal 7 tasks di-split 03+04)
     - [ ] 321-01-PLAN.md — Model + Migration + Helper + ViewModels foundation (EDIT-02, EDIT-06, EDIT-13)
     - [ ] 321-02-PLAN.md — Service layer: ComputeScoreAndETInternalAsync + RegradeAfterEditAsync + PreviewScoreAsync (EDIT-03, EDIT-04)
-    - [ ] 321-03-PLAN.md — Controller + View + JS + Dropdown hybrid + SignalR (EDIT-01, EDIT-02, EDIT-05..10, EDIT-12)
-    - [ ] 321-04-PLAN.md — Activity Log Edit History tab + Playwright spec + Manual UAT + Tag + Merge main + IT notify (EDIT-04, EDIT-07, EDIT-09, EDIT-11, EDIT-13)
+    - [ ] 321-03-PLAN.md — Controller GET + View + JS dirty/flip + PreviewEditScore dry-run (EDIT-01, EDIT-02, EDIT-05, EDIT-10)
+    - [ ] 321-04-PLAN.md — POST SubmitEditAnswers (transaction + audit + regrade) + Dropdown ⋮ hybrid + SignalR workerAnswerEdited handler (D-07 8s LOCKED) (EDIT-02, EDIT-03, EDIT-04, EDIT-06, EDIT-07, EDIT-08, EDIT-09, EDIT-12)
+    - [ ] 321-05-PLAN.md — Activity Log Edit History tab + Playwright spec HARD GATE 4/4 + Manual UAT (SEED_WORKFLOW pre/cleanup) + Tag + Merge main + IT notify (EDIT-04, EDIT-07, EDIT-09, EDIT-11, EDIT-13)
 
 #### Coverage Validation v17.0
 
 | REQ | Phase | Status |
 |-----|-------|--------|
 | EXP-01..08 | 320 | Pending plan |
-| EDIT-01..13 | 321 | 4 plans planned |
+| EDIT-01..13 | 321 | 5 plans planned |
 
 **Active mapped: 21/21 ✓ — Orphans: 0 — Duplicates: 0**
 
 ---
 
-*Roadmap updated: 2026-05-21 (v17.0 STARTED — Phase 320 + 321 paralel-able, research siap, requirements defined)*
+*Roadmap updated: 2026-05-21 (v17.0 STARTED — Phase 320 + 321 paralel-able, research siap, requirements defined; Phase 321 revised iteration 1: 4-PLAN → 5-PLAN split)*

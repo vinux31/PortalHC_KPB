@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v17.0
 milestone_name: Assessment Admin Power Tools
 status: Phase 320 shipped locally (pending user push remote + IT promo Dev)
-last_updated: "2026-05-21T07:42:00.628Z"
+last_updated: "2026-05-21T09:40:28.223Z"
 last_activity: 2026-05-21 -- Phase 320 UAT pass + tagged + follow-up UAT (Variant B + PNG byte-verify)
 progress:
   total_phases: 2
