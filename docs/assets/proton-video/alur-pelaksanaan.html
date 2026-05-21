@@ -894,6 +894,21 @@
   .step-connector.final { background: var(--red); }
   .stepper.done-all .step-connector { background: var(--navy-soft); }
   .stepper.done-all .step-connector:last-of-type { background: var(--red); }
+
+  /* ===== ACCESSIBILITY — REDUCED MOTION ===== */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .scene { opacity: 0; }
+    .scene#scene-outro { opacity: 1; transform: none; }
+    .title em { background-size: 100% 6px; }
+    .recap-item, .recap-tagline { opacity: 1; transform: none; }
+    .recap-item .r-check { opacity: 1; transform: scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -1212,7 +1227,18 @@
     { t: 43500, fn: () => document.querySelector('.recap-tagline').classList.add('show') }
   ];
 
-  milestones.forEach(m => setTimeout(m.fn, m.t));
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    showScene('scene-outro');
+    setStep(6);
+    document.getElementById('stepper').classList.add('done-all');
+    ['r1','r2','r3','r4','r5','r6'].forEach(id => {
+      document.getElementById(id).classList.add('show', 'checked');
+    });
+    document.querySelector('.recap-tagline').classList.add('show');
+  } else {
+    milestones.forEach(m => setTimeout(m.fn, m.t));
+  }
 </script>
 </body>
 </html>
