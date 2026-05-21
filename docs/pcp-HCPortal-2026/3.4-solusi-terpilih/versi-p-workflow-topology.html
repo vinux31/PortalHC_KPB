@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>§3.4 v3 — Versi P: Workflow Topology HC Portal</title>
+<title>§3.4 v3.1 — Versi P: Workflow Topology HC Portal (Enhanced)</title>
 <style>
+  @page { size: A3 landscape; margin: 10mm; }
   :root {
     --pertamina-red: #C8102E;
     --pertamina-red-light: #fce8eb;
@@ -18,103 +19,105 @@
     --bg: #f6f7fb;
     --border: #d1d5db;
     --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+    --tint-pink: #fef2f4;
+    --tint-green: #f0fdf4;
+    --line-manual: #C8102E;
+    --line-nonformal: #d4a017;
+    --line-portal: #00558C;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #1f2937; padding: 1.5rem; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #1f2937; padding: 1rem; }
 
-  .header-bar {
-    max-width: 1400px;
-    margin: 0 auto 1rem;
-    display: grid;
-    grid-template-columns: 160px 1fr 160px;
-    align-items: center;
-    background: white;
-    border-radius: .75rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,.06);
-    padding: 1rem 1.5rem;
-    border-top: 5px solid var(--pertamina-red);
-  }
-  .logo-pertamina { font-weight: 900; font-size: 1.1rem; color: var(--pertamina-red); line-height: 1.1; }
-  .logo-pertamina small { display:block; font-weight: 600; font-size: .7rem; color: var(--neutral-gray); }
+  /* ============ HEADER ============ */
+  .header-bar { max-width: 1800px; margin: 0 auto 1rem; display: grid; grid-template-columns: 180px 1fr 180px; align-items: center; background: white; border-radius: .75rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); padding: 1rem 1.5rem; border-top: 5px solid var(--pertamina-red); }
+  .logo-pertamina { font-weight: 900; font-size: 1.2rem; color: var(--pertamina-red); line-height: 1.1; }
+  .logo-pertamina small { display:block; font-weight: 600; font-size: .75rem; color: var(--neutral-gray); }
   .header-title { text-align: center; }
-  .header-title h1 { margin: 0; font-size: 1.4rem; color: var(--pertamina-blue); }
-  .header-title small { display:block; color: var(--neutral-gray); font-size: .85rem; margin-top: .15rem; }
-  .pcp-badge { text-align: right; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: .85rem; }
-  .pcp-badge small { display:block; font-weight: 400; font-size: .65rem; opacity: .9; }
+  .header-title h1 { margin: 0; font-size: 1.6rem; color: var(--pertamina-blue); }
+  .header-title small { display:block; color: var(--neutral-gray); font-size: .9rem; margin-top: .25rem; }
+  .pcp-badge { text-align: right; background: var(--pertamina-blue); color: white; padding: .5rem .85rem; border-radius: .35rem; font-weight: 700; font-size: .9rem; }
+  .pcp-badge small { display:block; font-weight: 400; font-size: .7rem; opacity: .9; }
 
-  .meta-bar {
-    max-width: 1400px;
-    margin: 0 auto 1.5rem;
-    background: white;
-    border-radius: .5rem;
-    padding: .75rem 1.25rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    font-size: .85rem;
-    border-left: 4px solid var(--pertamina-yellow);
-  }
+  .meta-bar { max-width: 1800px; margin: 0 auto 1rem; background: white; border-radius: .5rem; padding: .75rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: .9rem; border-left: 4px solid var(--pertamina-yellow); }
   .meta-bar b { color: var(--pertamina-blue); }
 
-  .toolbar { max-width: 1400px; margin: 0 auto 1.5rem; display: flex; justify-content: space-between; align-items: center; padding: .75rem 1.25rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  .toolbar .note { font-size: .85rem; color: var(--neutral-gray); }
+  .toolbar { max-width: 1800px; margin: 0 auto 1rem; display: flex; justify-content: space-between; align-items: center; padding: .65rem 1.25rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); font-size: .9rem; }
   .toolbar button { background: var(--pertamina-red); color: white; border: none; padding: .5rem 1rem; border-radius: .35rem; font-weight: 600; cursor: pointer; }
 
-  .diagram-wrap { max-width: 1400px; margin: 0 auto 2.5rem; background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 1.5rem 2rem; position: relative; }
-  .diagram-wrap.before-style { border-top: 6px solid var(--pertamina-red); }
-  .diagram-wrap.after-style { border-top: 6px solid var(--pertamina-green); }
+  /* ============ SIDE-BY-SIDE PANELS ============ */
+  .panels-row { max-width: 1800px; margin: 0 auto 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
-  .diagram-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: .75rem; border-bottom: 2px dashed var(--border); }
-  .diagram-header h2 { margin: 0; font-size: 1.5rem; }
+  .diagram-wrap { background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 1.25rem 1.5rem; position: relative; }
+  .diagram-wrap.before-style { border-top: 6px solid var(--pertamina-red); background: var(--tint-pink); }
+  .diagram-wrap.after-style { border-top: 6px solid var(--pertamina-green); background: var(--tint-green); }
+
+  .diagram-header { margin-bottom: 1rem; padding-bottom: .65rem; border-bottom: 2px dashed var(--border); }
+  .diagram-header h2 { margin: 0; font-size: 1.35rem; }
   .before-style .diagram-header h2 { color: var(--pertamina-red); }
   .after-style .diagram-header h2 { color: var(--pertamina-blue); }
-  .diagram-header .tagline { font-style: italic; color: var(--neutral-gray); font-size: .85rem; }
+  .diagram-header .tagline { font-style: italic; color: var(--neutral-gray); font-size: .85rem; margin-top: .2rem; }
 
-  .layer-row { display: grid; grid-template-columns: 200px 1fr; gap: 1rem; margin-bottom: .75rem; align-items: stretch; position: relative; }
-  .layer-label { background: #f3f4f6; border-left: 5px solid var(--pertamina-blue); padding: .85rem; border-radius: .35rem; display: flex; flex-direction: column; justify-content: center; text-align: center; font-weight: 600; }
-  .layer-label .icon { font-size: 2rem; margin-bottom: .25rem; }
-  .layer-label .level-num { font-size: 1.3rem; color: var(--pertamina-blue); line-height: 1; }
-  .layer-label .level-name { font-size: .75rem; color: var(--neutral-gray); text-transform: uppercase; letter-spacing: .05em; margin-top: .25rem; }
-  .layer-label .level-actor { font-size: 1.05rem; margin-top: .35rem; }
+  /* ============ DIAGRAM AREA + SVG OVERLAY ============ */
+  .diagram-area { position: relative; }
+  .connections-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+  .layers-content { position: relative; z-index: 2; }
 
-  .layer-content { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; background: #fafbfc; border: 1px solid var(--border); border-radius: .35rem; padding: .85rem; position: relative; }
+  .layer-row { display: grid; grid-template-columns: 130px 1fr; gap: .75rem; margin-bottom: .65rem; align-items: stretch; }
+  .layer-label { background: rgba(255,255,255,.85); border-left: 4px solid var(--pertamina-blue); padding: .65rem; border-radius: .35rem; display: flex; flex-direction: column; justify-content: center; text-align: center; font-weight: 600; }
+  .layer-label .icon { font-size: 1.6rem; margin-bottom: .15rem; }
+  .layer-label .level-num { font-size: 1.05rem; color: var(--pertamina-blue); line-height: 1; }
+  .layer-label .level-name { font-size: .65rem; color: var(--neutral-gray); text-transform: uppercase; letter-spacing: .05em; margin-top: .2rem; }
+  .layer-label .level-actor { font-size: .95rem; margin-top: .25rem; }
 
-  .comp { padding: .5rem .85rem; border-radius: .4rem; font-size: .85rem; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.08); border: 1px solid; white-space: nowrap; display: inline-flex; align-items: center; gap: .3rem; position: relative; }
+  .layer-content { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; background: rgba(255,255,255,.7); border: 1px solid var(--border); border-radius: .35rem; padding: .65rem; position: relative; }
+
+  .comp { padding: .4rem .7rem; border-radius: .35rem; font-size: .82rem; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.08); border: 1px solid; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem; }
   .comp.manual { background: var(--pertamina-red-light); border-color: var(--pertamina-red); color: var(--pertamina-red); }
   .comp.portal { background: var(--pertamina-blue-light); border-color: var(--pertamina-blue); color: var(--pertamina-blue-dark); }
   .comp.tool-ext { background: #fff3cd; border-color: #d4a017; color: #856404; font-style: italic; }
   .comp.paper { background: #e8e8e8; border-color: #999; color: #555; }
 
-  .buffer-zone { display: grid; grid-template-columns: 200px 1fr; gap: 1rem; margin: 1.25rem 0; position: relative; }
-  .buffer-zone-label { background: linear-gradient(135deg, var(--pertamina-yellow), #ffa500); color: #5a4400; padding: .85rem; border-radius: .5rem; text-align: center; font-weight: 700; font-size: .85rem; box-shadow: 0 2px 8px rgba(255,199,44,.4); display: flex; flex-direction: column; justify-content: center; }
-  .buffer-zone-label small { font-size: .7rem; opacity: .85; font-weight: 600; }
-  .portal-hub { background: var(--hub-grad); color: white; padding: 1.25rem 1.5rem; border-radius: .75rem; text-align: center; font-weight: 700; font-size: 1.2rem; box-shadow: 0 6px 18px rgba(0,85,140,.3); position: relative; }
-  .portal-hub small { display: block; font-size: .75rem; font-weight: 400; opacity: .95; margin-top: .35rem; }
-  .portal-hub .marker { background: white; color: var(--pertamina-blue); margin-left: .5rem; }
+  /* ============ BUFFER ZONE (DMZ-Analog) ============ */
+  .buffer-zone { margin: .85rem 0; padding: .65rem; background: linear-gradient(135deg, #fff8e0, #fffaeb); border: 2px dashed var(--pertamina-yellow); border-radius: .75rem; position: relative; }
+  .buffer-zone-label { font-size: .75rem; font-weight: 800; color: #856404; text-transform: uppercase; letter-spacing: .08em; text-align: center; margin-bottom: .5rem; }
+  .portal-hub { background: var(--hub-grad); color: white; padding: .85rem 1rem; border-radius: .65rem; text-align: center; font-weight: 700; box-shadow: 0 4px 12px rgba(0,85,140,.3); }
+  .portal-hub-title { font-size: 1.1rem; margin-bottom: .4rem; }
+  .portal-hub-sub { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; margin-top: .45rem; }
+  .portal-hub-sub .pill { background: rgba(255,255,255,.25); padding: .2rem .55rem; border-radius: 999px; font-size: .7rem; font-weight: 600; }
 
-  .marker { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; color: white; font-weight: 700; font-size: .75rem; margin-left: .35rem; cursor: help; transition: transform .15s; }
-  .marker:hover { transform: scale(1.2); }
+  /* ============ MARKERS ============ */
+  .marker { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: white; font-weight: 700; font-size: .72rem; margin-left: .3rem; cursor: help; transition: transform .15s; vertical-align: middle; }
+  .marker:hover { transform: scale(1.25); }
   .marker.issue { background: var(--pertamina-red); }
   .marker.improvement { background: var(--pertamina-green); }
+  .marker.on-line { position: absolute; box-shadow: 0 2px 6px rgba(0,0,0,.3); z-index: 3; }
 
-  .layer-content::after { content: ''; position: absolute; left: -16px; top: 50%; width: 12px; height: 2px; background: var(--pertamina-blue); opacity: .3; }
-  .before-style .layer-content::after { background: var(--pertamina-red); }
-
-  .legend-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: .85rem; }
-  .legend-table th { background: var(--pertamina-blue); color: white; text-align: left; padding: .55rem .75rem; }
-  .legend-table td { padding: .55rem .75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-  .legend-table td:first-child { width: 50px; text-align: center; }
-  .legend-marker { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; color: white; font-weight: 700; font-size: .85rem; }
+  /* ============ LEGEND TABLES ============ */
+  .legend-section { margin-top: 1rem; padding-top: .75rem; border-top: 1px dashed var(--border); }
+  .legend-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .legend-table th { background: var(--pertamina-blue); color: white; text-align: left; padding: .45rem .65rem; }
+  .legend-table td { padding: .45rem .65rem; border-bottom: 1px solid var(--border); vertical-align: top; background: rgba(255,255,255,.7); }
+  .legend-table td:first-child { width: 40px; text-align: center; }
+  .legend-marker { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: white; font-weight: 700; font-size: .8rem; }
   .legend-marker.issue { background: var(--pertamina-red); }
   .legend-marker.improvement { background: var(--pertamina-green); }
 
-  .komparasi-section { max-width: 1400px; margin: 0 auto 2.5rem; background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 1.5rem 2rem; border-top: 6px solid var(--pertamina-yellow); }
-  .komparasi-section h2 { margin: 0 0 1rem; color: #856404; }
+  /* ============ LINE LEGEND ============ */
+  .line-legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: .65rem; padding: .65rem 1rem; background: rgba(255,255,255,.85); border-radius: .35rem; font-size: .8rem; border: 1px solid var(--border); }
+  .line-legend-item { display: flex; align-items: center; gap: .35rem; }
+  .line-legend-swatch { width: 26px; height: 3px; border-radius: 2px; }
+  .swatch-manual { background: var(--line-manual); }
+  .swatch-nonformal { background: var(--line-nonformal); }
+  .swatch-portal { background: var(--line-portal); }
 
-  .transformation-arrow { max-width: 1400px; margin: 0 auto 2rem; text-align: center; font-size: 2.5rem; color: var(--pertamina-blue); }
-  .transformation-arrow small { display: block; font-size: .85rem; color: var(--neutral-gray); margin-top: .25rem; font-style: italic; }
+  /* ============ TABEL KOMPARASI ============ */
+  .komparasi-section { max-width: 1800px; margin: 0 auto 1.5rem; background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 1.25rem 1.5rem; border-top: 6px solid var(--pertamina-yellow); }
+  .komparasi-section h2 { margin: 0 0 .85rem; color: #856404; font-size: 1.25rem; }
+  .komparasi-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .komparasi-table th { background: var(--pertamina-yellow); color: #5a4400; padding: .55rem .75rem; text-align: left; }
+  .komparasi-table td { padding: .5rem .75rem; border-bottom: 1px solid var(--border); }
 
-  .footer { text-align:center; padding:1.5rem; color:var(--neutral-gray); font-size:.85rem; max-width: 1400px; margin: 0 auto; }
+  .footer { text-align:center; padding:1rem; color:var(--neutral-gray); font-size:.85rem; max-width: 1800px; margin: 0 auto; }
   .footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
 
   @media print {
@@ -127,264 +130,359 @@
 </head>
 <body>
 
+<!-- HEADER BAR -->
 <div class="header-bar">
   <div class="logo-pertamina">PERTAMINA<br/><small>PATRA NIAGA</small></div>
   <div class="header-title">
     <h1>§3.4 Solusi Terpilih — HC Portal</h1>
-    <small>Versi P: Workflow Topology (Purdue-Style Adaptation)</small>
+    <small>Versi P (Enhanced): Workflow Topology • Side-by-Side • Bezier Lines • DMZ-Analog Buffer Zone</small>
   </div>
   <div class="pcp-badge">PCP SMART<br/><small>2026</small></div>
 </div>
 
+<!-- AUDIENCE + TUJUAN -->
 <div class="meta-bar">
   <div>🎯 <b>Audience:</b> Reviewer PCP, manajemen HC, tim engineering</div>
   <div>📌 <b>Tujuan:</b> Tunjukkan transformasi workflow HC dari multi-tools manual ke single portal terintegrasi</div>
 </div>
 
+<!-- TOOLBAR -->
 <div class="toolbar">
-  <div class="note">📐 <b>Versi P (Primary)</b> — 5 layer aktor + HC Portal sebagai DMZ-analog buffer zone</div>
-  <button onclick="window.print()">🖨️ Print / Save PDF</button>
+  <div>📐 <b>Versi P v3.1</b> — Side-by-side • 5 layer aktor + Layer 3.5 Buffer Zone (HC Portal hub) • Bezier connection lines</div>
+  <button onclick="window.print()">🖨️ Print A3 / Save PDF</button>
 </div>
 
-<div class="diagram-wrap before-style">
-  <div class="diagram-header">
-    <h2>❌ Sebelum (Kondisi Aktual)</h2>
-    <div class="tagline">Workflow manual tersebar — 4-5 tools tanpa integrasi</div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">👔</div>
-      <div class="level-num">Level 5</div>
-      <div class="level-name">Strategic</div>
-      <div class="level-actor">Manajemen</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp manual">📄 Laporan PDF/Excel</div>
-      <div class="comp tool-ext">📧 Email Pertamina</div>
-      <span class="marker issue" title="D: Reporting Ad-Hoc — laporan manual pivot per request">D</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">👤</div>
-      <div class="level-num">Level 4</div>
-      <div class="level-name">Governance</div>
-      <div class="level-actor">HC</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp manual">📊 Excel Master Pekerja</div>
-      <div class="comp manual">📊 Excel Master Assessment</div>
-      <div class="comp manual">📊 Excel Master Training</div>
-      <div class="comp manual">📊 Excel Master KKJ</div>
-      <div class="comp manual">📊 Excel Master Sertifikat</div>
-      <div class="comp manual">📝 Word Template</div>
-      <span class="marker issue" title="A: Tools Terfragmentasi — workflow tersebar di 4-5 aplikasi">A</span>
-      <span class="marker issue" title="B: No Single Source of Truth — data dicopy ke beberapa Excel">B</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">🏢</div>
-      <div class="level-num">Level 3</div>
-      <div class="level-name">Supervisory</div>
-      <div class="level-actor">Atasan</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp tool-ext">📧 Email kotak masuk</div>
-      <div class="comp tool-ext">💬 WhatsApp approval lisan</div>
-      <span class="marker issue" title="C: No Audit Trail — approval lisan tanpa record">C</span>
-      <span class="marker issue" title="E: Workflow tanpa tracking — no status history">E</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">🧑‍🏫</div>
-      <div class="level-num">Level 2</div>
-      <div class="level-name">Coaching</div>
-      <div class="level-actor">Coach</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp paper">📋 Form PROTON cetak</div>
-      <div class="comp paper">📁 Arsip fisik (map)</div>
-      <div class="comp tool-ext">💬 WhatsApp (bukti foto)</div>
-      <div class="comp tool-ext">📧 Email (lampiran)</div>
-      <span class="marker issue" title="A: Tools terfragmentasi (paperwork + WA + email)">A</span>
-      <span class="marker issue" title="E: Workflow tanpa tracking">E</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">👷</div>
-      <div class="level-num">Level 1</div>
-      <div class="level-name">Operational</div>
-      <div class="level-actor">Pekerja</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp tool-ext">🌐 FleQi Quiz (eksternal)</div>
-      <div class="comp paper">🎓 Sertifikat hardcopy</div>
-      <div class="comp manual">📊 Excel pribadi (IDP)</div>
-      <span class="marker issue" title="A: Tools terfragmentasi">A</span>
-      <span class="marker issue" title="F: Renewal Sertifikat Reaktif — expired sering kelewat">F</span>
-    </div>
-  </div>
-
-  <table class="legend-table">
-    <thead><tr><th>Code</th><th>Issue Sebelum</th><th>Lokasi di Diagram</th></tr></thead>
-    <tbody>
-      <tr><td><span class="legend-marker issue">A</span></td><td><b>Tools Terfragmentasi</b> — workflow tersebar di 4-5 aplikasi/medium berbeda</td><td>Level 1, 2, 4</td></tr>
-      <tr><td><span class="legend-marker issue">B</span></td><td><b>No Single Source of Truth</b> — data sama dicopy ke beberapa Excel</td><td>Level 4 (HC)</td></tr>
-      <tr><td><span class="legend-marker issue">C</span></td><td><b>No Audit Trail</b> — approval lisan, no record</td><td>Level 3 (Atasan)</td></tr>
-      <tr><td><span class="legend-marker issue">D</span></td><td><b>Reporting Ad-Hoc</b> — laporan manual pivot tiap request</td><td>Level 5↔4</td></tr>
-      <tr><td><span class="legend-marker issue">E</span></td><td><b>Workflow Tanpa Tracking</b> — coaching/approval no status history</td><td>Level 2-3</td></tr>
-      <tr><td><span class="legend-marker issue">F</span></td><td><b>Renewal Sertifikat Reaktif</b> — expired sering kelewat</td><td>Level 1</td></tr>
-    </tbody>
-  </table>
+<!-- LINE LEGEND -->
+<div class="line-legend" style="max-width: 1800px; margin: 0 auto 1rem;">
+  <div class="line-legend-item"><span class="line-legend-swatch swatch-manual"></span><span><b>🔴 Merah</b> = Manual/Data Excel</span></div>
+  <div class="line-legend-item"><span class="line-legend-swatch swatch-nonformal"></span><span><b>🟡 Kuning</b> = Channel Non-Formal (Email, WA)</span></div>
+  <div class="line-legend-item"><span class="line-legend-swatch swatch-portal"></span><span><b>🔵 Biru</b> = Portal / Digital (via HC Portal Hub)</span></div>
+  <div class="line-legend-item"><span style="color:var(--pertamina-red); font-weight:700;">⊙ A-F</span><span>= Issue marker (Sebelum)</span></div>
+  <div class="line-legend-item"><span style="color:var(--pertamina-green); font-weight:700;">⊙ 1-7</span><span>= Improvement marker (Sesudah)</span></div>
 </div>
 
-<div class="transformation-arrow">
-  ▼
-  <small>Transformasi via HC Portal</small>
+<!-- =============== PANELS ROW =============== -->
+<div class="panels-row">
+
+  <!-- ========== SEBELUM ========== -->
+  <div class="diagram-wrap before-style">
+    <div class="diagram-header">
+      <h2>❌ Sebelum (Kondisi Aktual)</h2>
+      <div class="tagline">🌪️ Workflow manual tersebar — 5 Excel master + 4 channel non-formal</div>
+    </div>
+
+    <div class="diagram-area">
+      <svg class="connections-svg" viewBox="0 0 600 700" preserveAspectRatio="none">
+        <!-- L4 internal Excel chaos (merah) - horizontal loops -->
+        <path d="M 200 220 Q 250 200, 300 220" stroke="#C8102E" stroke-width="2.5" fill="none" stroke-dasharray="0"/>
+        <path d="M 300 220 Q 350 200, 400 220" stroke="#C8102E" stroke-width="2.5" fill="none"/>
+        <path d="M 400 220 Q 450 200, 500 220" stroke="#C8102E" stroke-width="2.5" fill="none"/>
+        <path d="M 220 240 Q 320 270, 480 240" stroke="#C8102E" stroke-width="2" fill="none" opacity="0.5"/>
+
+        <!-- L5 ↔ L4 Email -->
+        <path d="M 250 200 C 250 150, 250 130, 250 90" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+        <path d="M 350 90 C 350 130, 350 160, 350 195" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L4 → L3 Email -->
+        <path d="M 300 250 C 300 290, 280 310, 280 350" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L4 → L2 Email assign -->
+        <path d="M 400 250 C 420 320, 400 400, 380 480" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L4 → L1 Email FleQi link -->
+        <path d="M 500 250 C 520 400, 500 550, 480 620" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L3 ↔ L2 WhatsApp (with marker C) -->
+        <path d="M 250 380 C 230 420, 220 450, 230 480" stroke="#d4a017" stroke-width="3" fill="none"/>
+
+        <!-- L2 → L4 WA bukti + Arsip (with marker E) -->
+        <path d="M 180 480 C 100 400, 100 300, 180 250" stroke="#d4a017" stroke-width="2.5" fill="none" stroke-dasharray="4,3"/>
+
+        <!-- L1 → L4 FleQi export (merah) -->
+        <path d="M 350 620 C 350 500, 350 350, 350 250" stroke="#C8102E" stroke-width="2.5" fill="none" stroke-dasharray="6,3"/>
+
+        <!-- L4 → L1 sertifikat hardcopy (abu) -->
+        <path d="M 550 250 C 580 450, 580 550, 560 620" stroke="#999" stroke-width="2" fill="none" stroke-dasharray="3,3"/>
+
+        <!-- Markers di line -->
+        <circle cx="300" cy="240" r="11" fill="#C8102E"/>
+        <text x="300" y="244" fill="white" font-size="11" font-weight="700" text-anchor="middle">A</text>
+
+        <circle cx="240" cy="430" r="11" fill="#C8102E"/>
+        <text x="240" y="434" fill="white" font-size="11" font-weight="700" text-anchor="middle">C</text>
+
+        <circle cx="110" cy="350" r="11" fill="#C8102E"/>
+        <text x="110" y="354" fill="white" font-size="11" font-weight="700" text-anchor="middle">E</text>
+      </svg>
+
+      <div class="layers-content">
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">👔</div>
+            <div class="level-num">Level 5</div>
+            <div class="level-name">Strategic</div>
+            <div class="level-actor">Manajemen</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp manual">📄 Laporan PDF/Excel</div>
+            <div class="comp tool-ext">📧 Email Pertamina</div>
+            <span class="marker issue" title="D: Reporting Ad-Hoc — laporan manual pivot per request">D</span>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">👤</div>
+            <div class="level-num">Level 4</div>
+            <div class="level-name">Governance</div>
+            <div class="level-actor">HC</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp manual">📊 Excel Pekerja</div>
+            <div class="comp manual">📊 Excel Assessment</div>
+            <div class="comp manual">📊 Excel Training</div>
+            <div class="comp manual">📊 Excel KKJ</div>
+            <div class="comp manual">📊 Excel Sertifikat</div>
+            <div class="comp manual">📝 Word Template</div>
+            <span class="marker issue" title="A: Tools Terfragmentasi">A</span>
+            <span class="marker issue" title="B: No Single Source of Truth">B</span>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">🏢</div>
+            <div class="level-num">Level 3</div>
+            <div class="level-name">Supervisory</div>
+            <div class="level-actor">Atasan</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp tool-ext">📧 Email kotak masuk</div>
+            <div class="comp tool-ext">💬 WhatsApp approval</div>
+            <span class="marker issue" title="C: No Audit Trail — approval lisan">C</span>
+            <span class="marker issue" title="E: Workflow Tanpa Tracking">E</span>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">🧑‍🏫</div>
+            <div class="level-num">Level 2</div>
+            <div class="level-name">Coaching</div>
+            <div class="level-actor">Coach</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp paper">📋 Form PROTON cetak</div>
+            <div class="comp paper">📁 Arsip fisik (map)</div>
+            <div class="comp tool-ext">💬 WhatsApp bukti</div>
+            <div class="comp tool-ext">📧 Email lampiran</div>
+            <span class="marker issue" title="A: Tools terfragmentasi">A</span>
+            <span class="marker issue" title="E: Workflow tanpa tracking">E</span>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">👷</div>
+            <div class="level-num">Level 1</div>
+            <div class="level-name">Operational</div>
+            <div class="level-actor">Pekerja</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp tool-ext">🌐 FleQi Quiz</div>
+            <div class="comp paper">🎓 Sertifikat hardcopy</div>
+            <div class="comp manual">📊 Excel pribadi IDP</div>
+            <span class="marker issue" title="A: Tools terfragmentasi">A</span>
+            <span class="marker issue" title="F: Renewal Reaktif — expired kelewat">F</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend-section">
+      <table class="legend-table">
+        <thead><tr><th>Code</th><th>Issue Sebelum</th></tr></thead>
+        <tbody>
+          <tr><td><span class="legend-marker issue">A</span></td><td><b>Tools Terfragmentasi</b> — workflow tersebar di 4-5 aplikasi</td></tr>
+          <tr><td><span class="legend-marker issue">B</span></td><td><b>No Single Source of Truth</b> — data dicopy ke beberapa Excel</td></tr>
+          <tr><td><span class="legend-marker issue">C</span></td><td><b>No Audit Trail</b> — approval lisan, no record</td></tr>
+          <tr><td><span class="legend-marker issue">D</span></td><td><b>Reporting Ad-Hoc</b> — pivot manual tiap request</td></tr>
+          <tr><td><span class="legend-marker issue">E</span></td><td><b>Workflow Tanpa Tracking</b> — no status history</td></tr>
+          <tr><td><span class="legend-marker issue">F</span></td><td><b>Renewal Sertifikat Reaktif</b> — expired sering kelewat</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== SESUDAH ========== -->
+  <div class="diagram-wrap after-style">
+    <div class="diagram-header">
+      <h2>✅ Sesudah (Konsep Improvement)</h2>
+      <div class="tagline">🎯 Single portal terpusat — semua aktor lewat HC Portal Hub (DMZ-analog Buffer Zone)</div>
+    </div>
+
+    <div class="diagram-area">
+      <svg class="connections-svg" viewBox="0 0 600 700" preserveAspectRatio="none">
+        <!-- L5 → Hub (biru) -->
+        <path d="M 300 100 C 300 140, 300 200, 300 250" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- L4 → Hub (biru) -->
+        <path d="M 300 220 C 300 250, 300 270, 300 290" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → L3 (biru) -->
+        <path d="M 250 380 C 250 410, 250 430, 250 460" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → L2 (biru) -->
+        <path d="M 350 380 C 350 430, 350 480, 350 540" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → L1 (biru) -->
+        <path d="M 400 380 C 400 470, 400 570, 400 640" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → all (additional flows) -->
+        <path d="M 200 380 C 200 440, 200 510, 200 550" stroke="#00558C" stroke-width="2" fill="none" opacity="0.6"/>
+        <path d="M 450 380 C 450 460, 450 540, 450 620" stroke="#00558C" stroke-width="2" fill="none" opacity="0.6"/>
+      </svg>
+
+      <div class="layers-content">
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">👔</div>
+            <div class="level-num">Level 5</div>
+            <div class="level-name">Strategic</div>
+            <div class="level-actor">Manajemen</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp portal">📈 Analytics Dashboard</div>
+            <div class="comp portal">🔥 Heatmap Gap</div>
+            <div class="comp portal">📤 Export Excel/PDF</div>
+            <span class="marker improvement" title="1: Analytics Dashboard Real-Time">1</span>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">👤</div>
+            <div class="level-num">Level 4</div>
+            <div class="level-name">Governance</div>
+            <div class="level-actor">HC</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp portal">👥 Kelola Pekerja</div>
+            <div class="comp portal">🎯 PROTON Data</div>
+            <div class="comp portal">📝 Kelola Paket</div>
+            <div class="comp portal">📊 Kelola KKJ</div>
+            <div class="comp portal">🔄 Renewal Certificate</div>
+            <div class="comp portal">🔍 Audit Log</div>
+            <span class="marker improvement" title="2: Master Data Terpusat">2</span>
+            <span class="marker improvement" title="3: Audit Log Lengkap">3</span>
+          </div>
+        </div>
+
+        <!-- BUFFER ZONE (Layer 3.5) -->
+        <div class="buffer-zone">
+          <div class="buffer-zone-label">🛡️ Layer 3.5 — Buffer Zone (DMZ-Analog)</div>
+          <div class="portal-hub">
+            <div class="portal-hub-title">🌐 HC PORTAL — Single Source of Truth <span class="marker improvement" style="background: white; color: var(--pertamina-blue); margin-left: .35rem;" title="4: HC Portal sebagai Hub">4</span></div>
+            <div class="portal-hub-sub">
+              <span class="pill">🗄️ SQL Server</span>
+              <span class="pill">⚙️ ASP.NET Core 8</span>
+              <span class="pill">⚡ SignalR Real-Time</span>
+              <span class="pill">🔍 Audit Log</span>
+              <span class="pill">🔐 RBAC</span>
+              <span class="pill">⏰ Hangfire</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">🏢</div>
+            <div class="level-num">Level 3</div>
+            <div class="level-name">Supervisory</div>
+            <div class="level-actor">Atasan</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp portal">👀 Records Team</div>
+            <div class="comp portal">✅ Approval Deliverable</div>
+            <div class="comp portal">📊 View Matriks KKJ</div>
+            <span class="marker improvement" title="5: Workflow Approval Terstruktur">5</span>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">🧑‍🏫</div>
+            <div class="level-num">Level 2</div>
+            <div class="level-name">Coaching</div>
+            <div class="level-actor">Coach</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp portal">🎯 Coaching PROTON</div>
+            <div class="comp portal">📎 Upload Evidence</div>
+            <div class="comp portal">📜 Histori PROTON</div>
+            <span class="marker improvement" title="6: Coaching Digital + Evidence Link">6</span>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-label">
+            <div class="icon">👷</div>
+            <div class="level-num">Level 1</div>
+            <div class="level-name">Operational</div>
+            <div class="level-actor">Pekerja</div>
+          </div>
+          <div class="layer-content">
+            <div class="comp portal">📝 Assessment Online</div>
+            <div class="comp portal">📋 Plan IDP</div>
+            <div class="comp portal">🏆 Certificate Download</div>
+            <div class="comp portal">🔔 Notifikasi In-App</div>
+            <span class="marker improvement" title="7: Pekerja Self-Service">7</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend-section">
+      <table class="legend-table">
+        <thead><tr><th>No</th><th>Improvement</th></tr></thead>
+        <tbody>
+          <tr><td><span class="legend-marker improvement">1</span></td><td><b>Analytics Dashboard Real-Time</b> — manajemen self-service</td></tr>
+          <tr><td><span class="legend-marker improvement">2</span></td><td><b>Master Data Terpusat</b> — pekerja, KKJ, paket assessment, IDP, training di 1 portal</td></tr>
+          <tr><td><span class="legend-marker improvement">3</span></td><td><b>Audit Log Lengkap</b> — CRUD, approval, impersonation tercatat</td></tr>
+          <tr><td><span class="legend-marker improvement">4</span></td><td><b>HC Portal sebagai Hub</b> — SSoT, eliminasi scattered tools</td></tr>
+          <tr><td><span class="legend-marker improvement">5</span></td><td><b>Workflow Approval Terstruktur</b> — Coach→Atasan→HC dengan status history</td></tr>
+          <tr><td><span class="legend-marker improvement">6</span></td><td><b>Coaching Digital + Evidence Link</b> — form 5 fase + upload evidence auto-link IDP</td></tr>
+          <tr><td><span class="legend-marker improvement">7</span></td><td><b>Pekerja Self-Service</b> — ujian + sertifikat + IDP + notifikasi in-app</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
-<div class="diagram-wrap after-style">
-  <div class="diagram-header">
-    <h2>✅ Sesudah (Konsep Improvement — HC Portal)</h2>
-    <div class="tagline">Single portal terpusat — semua aktor lewat hub digital terintegrasi</div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">👔</div>
-      <div class="level-num">Level 5</div>
-      <div class="level-name">Strategic</div>
-      <div class="level-actor">Manajemen</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp portal">📈 Analytics Dashboard</div>
-      <div class="comp portal">🔥 Heatmap Gap Kompetensi</div>
-      <div class="comp portal">📤 Export Excel/PDF</div>
-      <span class="marker improvement" title="1: Analytics Dashboard Real-Time — manajemen self-service">1</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">👤</div>
-      <div class="level-num">Level 4</div>
-      <div class="level-name">Governance</div>
-      <div class="level-actor">HC</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp portal">👥 Kelola Pekerja</div>
-      <div class="comp portal">🎯 PROTON Data (IDP)</div>
-      <div class="comp portal">📝 Kelola Paket Assessment</div>
-      <div class="comp portal">📊 Kelola KKJ</div>
-      <div class="comp portal">🔄 Renewal Certificate</div>
-      <div class="comp portal">🔍 Audit Log</div>
-      <span class="marker improvement" title="2: Master Data Terpusat di 1 portal">2</span>
-      <span class="marker improvement" title="3: Audit Log Lengkap untuk compliance">3</span>
-    </div>
-  </div>
-
-  <div class="buffer-zone">
-    <div class="buffer-zone-label">
-      🛡️ BUFFER ZONE<br/>
-      <small>DMZ-Analog<br/>HC Portal Layer</small>
-    </div>
-    <div class="portal-hub">
-      🌐 HC PORTAL — Single Source of Truth
-      <small>ASP.NET Core 8 • SQL Server • SignalR • Audit Log • Role-Based Access Control</small>
-      <span class="marker improvement" title="4: HC Portal sebagai Hub — eliminasi scattered tools">4</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">🏢</div>
-      <div class="level-num">Level 3</div>
-      <div class="level-name">Supervisory</div>
-      <div class="level-actor">Atasan</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp portal">👀 Records Team</div>
-      <div class="comp portal">✅ Approval Deliverable</div>
-      <div class="comp portal">📊 View Matriks KKJ Bagian</div>
-      <span class="marker improvement" title="5: Workflow Approval Terstruktur Coach→Atasan→HC">5</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">🧑‍🏫</div>
-      <div class="level-num">Level 2</div>
-      <div class="level-name">Coaching</div>
-      <div class="level-actor">Coach</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp portal">🎯 Coaching PROTON (5 fase)</div>
-      <div class="comp portal">📎 Upload Evidence</div>
-      <div class="comp portal">📜 Histori PROTON</div>
-      <span class="marker improvement" title="6: Form digital + Evidence auto-link ke Deliverable">6</span>
-    </div>
-  </div>
-
-  <div class="layer-row">
-    <div class="layer-label">
-      <div class="icon">👷</div>
-      <div class="level-num">Level 1</div>
-      <div class="level-name">Operational</div>
-      <div class="level-actor">Pekerja</div>
-    </div>
-    <div class="layer-content">
-      <div class="comp portal">📝 Assessment Online</div>
-      <div class="comp portal">📋 Plan IDP</div>
-      <div class="comp portal">🏆 Certificate Download</div>
-      <div class="comp portal">🔔 Notifikasi In-App</div>
-      <span class="marker improvement" title="7: Pekerja Self-Service — ujian + sertifikat + IDP">7</span>
-    </div>
-  </div>
-
-  <table class="legend-table">
-    <thead><tr><th>No</th><th>Improvement</th><th>Deskripsi</th></tr></thead>
-    <tbody>
-      <tr><td><span class="legend-marker improvement">1</span></td><td><b>Analytics Dashboard Real-Time</b></td><td>Manajemen self-service untuk laporan kompetensi, eliminasi pivot Excel ad-hoc</td></tr>
-      <tr><td><span class="legend-marker improvement">2</span></td><td><b>Master Data Terpusat</b></td><td>HC kelola pekerja, KKJ, paket assessment, IDP, training di 1 portal</td></tr>
-      <tr><td><span class="legend-marker improvement">3</span></td><td><b>Audit Log Lengkap</b></td><td>Setiap aksi (CRUD, approval, impersonation) tercatat untuk compliance</td></tr>
-      <tr><td><span class="legend-marker improvement">4</span></td><td><b>HC Portal sebagai Hub</b></td><td>Single source of truth — semua aktor pakai 1 portal, no scattered tools</td></tr>
-      <tr><td><span class="legend-marker improvement">5</span></td><td><b>Workflow Approval Terstruktur</b></td><td>Atasan approve/reject deliverable dengan status history (Coach → Atasan → HC)</td></tr>
-      <tr><td><span class="legend-marker improvement">6</span></td><td><b>Coaching Digital + Evidence Link</b></td><td>Form PROTON 5 fase digital + upload evidence auto-link ke deliverable IDP</td></tr>
-      <tr><td><span class="legend-marker improvement">7</span></td><td><b>Pekerja Self-Service</b></td><td>Ujian online + auto-grade + download sertifikat + lihat IDP + notifikasi in-app</td></tr>
-    </tbody>
-  </table>
-</div>
-
+<!-- TABEL KOMPARASI ASPEK (Full Width) -->
 <div class="komparasi-section">
   <h2>📋 Tabel Komparasi Aspek</h2>
-  <table class="legend-table" style="margin-top:0;">
-    <thead><tr><th style="width:30%;">Aspek</th><th style="width:35%;">Sebelum (Aktual)</th><th style="width:35%;">Sesudah (HC Portal)</th></tr></thead>
+  <table class="komparasi-table">
+    <thead><tr><th style="width:30%;">Aspek</th><th style="width:35%;">❌ Sebelum (Aktual)</th><th style="width:35%;">✅ Sesudah (HC Portal)</th></tr></thead>
     <tbody>
-      <tr><td><b>Single Source of Truth</b></td><td>❌ Tidak ada (data tersebar 4-5 Excel)</td><td>✅ Ada — DB SQL Server terpusat</td></tr>
-      <tr><td><b>Tools yang Dipakai</b></td><td>❌ 4-5 aplikasi (Excel, FleQi, Word, Email, WA)</td><td>✅ 1 portal — HC Portal</td></tr>
-      <tr><td><b>Audit Trail</b></td><td>❌ Tidak ada / catatan manual</td><td>✅ Audit log lengkap (siapa-apa-kapan)</td></tr>
-      <tr><td><b>Real-Time Data</b></td><td>❌ Snapshot manual</td><td>✅ Real-time (DB + SignalR)</td></tr>
-      <tr><td><b>Workflow Approval</b></td><td>❌ Lisan / WhatsApp, no trail</td><td>✅ Terstruktur Coach→Atasan→HC + status history</td></tr>
-      <tr><td><b>Self-Service Manajemen</b></td><td>❌ Bergantung rekap HC</td><td>✅ Dashboard role-based</td></tr>
-      <tr><td><b>Versioning Dokumen</b></td><td>❌ Manual (rename file)</td><td>✅ Otomatis (timestamp + GUID)</td></tr>
-      <tr><td><b>Renewal Sertifikat</b></td><td>❌ Reaktif</td><td>✅ Proaktif (badge expiry + menu Renewal)</td></tr>
-      <tr><td><b>Compliance Posture</b></td><td>❌ Reaktif</td><td>✅ Proaktif + audit-ready</td></tr>
-      <tr><td><b>Bulk Operation</b></td><td>❌ Copy-paste manual</td><td>✅ Import Excel + validasi</td></tr>
+      <tr><td><b>Single Source of Truth</b></td><td>Tidak ada (data tersebar 4-5 Excel)</td><td>Ada — DB SQL Server terpusat</td></tr>
+      <tr><td><b>Tools yang Dipakai</b></td><td>4-5 aplikasi (Excel, FleQi, Word, Email, WA)</td><td>1 portal — HC Portal</td></tr>
+      <tr><td><b>Audit Trail</b></td><td>Tidak ada / catatan manual</td><td>Audit log lengkap (siapa-apa-kapan)</td></tr>
+      <tr><td><b>Real-Time Data</b></td><td>Snapshot manual</td><td>Real-time (DB + SignalR)</td></tr>
+      <tr><td><b>Workflow Approval</b></td><td>Lisan / WhatsApp, no trail</td><td>Terstruktur Coach→Atasan→HC + status history</td></tr>
+      <tr><td><b>Self-Service Manajemen</b></td><td>Bergantung rekap HC</td><td>Dashboard role-based</td></tr>
+      <tr><td><b>Versioning Dokumen</b></td><td>Manual (rename file)</td><td>Otomatis (timestamp + GUID)</td></tr>
+      <tr><td><b>Renewal Sertifikat</b></td><td>Reaktif (sering kelewat)</td><td>Proaktif (badge expiry + menu Renewal)</td></tr>
+      <tr><td><b>Compliance Posture</b></td><td>Reaktif</td><td>Proaktif + audit-ready</td></tr>
+      <tr><td><b>Bulk Operation</b></td><td>Copy-paste manual</td><td>Import Excel + validasi</td></tr>
     </tbody>
   </table>
 </div>
 
 <div class="footer">
-  <p>📌 <b>Versi P</b> (Workflow Topology) — PCP SMART 2026 §3.4 v3.0 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.0</code></p>
-  <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print untuk save PDF.</p>
+  <p>📌 <b>Versi P v3.1 Enhanced</b> (Workflow Topology) — PCP SMART 2026 §3.4 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.1</code></p>
+  <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print A3 Landscape untuk save PDF.</p>
 </div>
 
 </body>
