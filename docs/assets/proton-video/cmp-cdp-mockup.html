@@ -113,6 +113,143 @@
     animation: fadeIn 0.8s 1.5s ease-out forwards;
     pointer-events: none;
   }
+
+  /* ===== SCENES CONTAINER ===== */
+  .scenes {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+    margin: clamp(8px, 1vw, 16px) 0;
+  }
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(12px, 1.5vw, 24px);
+  }
+  .scene.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== PORTAL FRAME ===== */
+  .portal-frame {
+    width: 100%;
+    max-width: 1100px;
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(10,36,71,0.03), 0 12px 32px rgba(10,36,71,0.06);
+    overflow: hidden;
+  }
+  .portal-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--hairline);
+    box-shadow: 0 2px 4px rgba(10,36,71,0.03);
+  }
+  .portal-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(13px, 1.1vw, 16px);
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+  .portal-brand-icon {
+    width: clamp(18px, 1.6vw, 24px);
+    height: clamp(18px, 1.6vw, 24px);
+    fill: var(--navy);
+  }
+  .portal-nav {
+    display: flex;
+    gap: clamp(14px, 1.8vw, 28px);
+    flex: 1;
+    justify-content: center;
+  }
+  .portal-nav-item {
+    font-size: clamp(11px, 0.95vw, 13px);
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .portal-nav-item.active { color: var(--navy); font-weight: 700; }
+  .portal-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(11px, 0.9vw, 13px);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .portal-avatar {
+    width: clamp(26px, 2.2vw, 32px);
+    height: clamp(26px, 2.2vw, 32px);
+    border-radius: 50%;
+    background: var(--navy);
+    color: #FFFFFF;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: clamp(9px, 0.8vw, 11px);
+  }
+
+  .portal-breadcrumb {
+    padding: 10px 20px 4px;
+    font-size: clamp(10px, 0.82vw, 12px);
+    color: var(--muted);
+    background: var(--paper);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .portal-breadcrumb .crumb { color: var(--muted); }
+  .portal-breadcrumb .crumb.active { color: var(--navy-deep); font-weight: 700; }
+  .portal-breadcrumb .sep { margin: 0 6px; opacity: 0.6; }
+
+  .portal-title {
+    padding: 14px 20px 12px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .portal-title h2 {
+    font-size: clamp(16px, 1.5vw, 22px);
+    font-weight: 800;
+    color: var(--navy-deep);
+    margin-bottom: 2px;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .portal-title h2 .bi {
+    font-size: 1.1em;
+    color: var(--navy);
+  }
+  .portal-title p {
+    font-size: clamp(10px, 0.82vw, 12px);
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .portal-body {
+    padding: clamp(14px, 1.6vw, 22px) clamp(16px, 1.8vw, 24px);
+    min-height: clamp(220px, 24vw, 320px);
+    position: relative;
+    background: #FFFFFF;
+  }
+
+  #scene-cdp .portal-body {
+    min-height: clamp(280px, 30vw, 400px);
+  }
 </style>
 </head>
 <body>
@@ -122,7 +259,9 @@
       <h1 class="title">Dua Platform <em>Inti</em></h1>
     </div>
 
-    <!-- scenes container akan ditambahkan task berikutnya -->
+    <div class="scenes">
+      <!-- 2 scene akan ditambahkan task 4-5 -->
+    </div>
 
     <div class="brand-mark">PROTON × KPB</div>
   </div>
