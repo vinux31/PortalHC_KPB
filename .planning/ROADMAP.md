@@ -459,9 +459,9 @@ Plans:
   - **Risk:** Medium (lib baru SkiaSharp, native asset Win32, performance) | **Effort:** M
   - **Dependencies:** Tidak ada (paralel-able dengan Phase 321)
   - **Research:** `320-RESEARCH.md` 12 task breakdown (full code blocks)
-  - **Plans:** 1/3 plans executed
+  - **Plans:** 2/3 plans executed
     - [x] 320-01-PLAN.md — Helpers foundation: SkiaSharp PackageReference + SpiderChartRenderer.cs + SheetNameSanitizer.cs (EXP-03, EXP-06)
-    - [ ] 320-02-PLAN.md — Controller refactor: rename Summary + filter eligible + per-peserta loop + ET section + chart embed + Detail Jawaban + Variant B Manual Entry (EXP-01..07)
+    - [x] 320-02-PLAN.md — Controller refactor: rename Summary + filter eligible + per-peserta loop + ET section + chart embed + Detail Jawaban + Variant B Manual Entry (EXP-01..07)
     - [ ] 320-03-PLAN.md — Perf + UAT: Parallel.ForEachAsync PNG pre-compute + Playwright 4-test (Admin/HC/Worker/benchmark) + manual UAT 8-step + tag v17.0-p320-complete (EXP-07, EXP-08)
 
 #### Phase 321: Assessment Edit Jawaban Peserta
