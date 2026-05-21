@@ -189,6 +189,166 @@
     min-height: clamp(280px, 30vw, 420px);
     position: relative;
   }
+
+  /* ===== SCENE QUIZ ===== */
+  .quiz-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .stage-chips {
+    display: flex;
+    gap: clamp(8px, 1vw, 16px);
+    margin-bottom: clamp(8px, 1vw, 14px);
+  }
+  .stage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    font-size: clamp(11px, 0.95vw, 14px);
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .stage-chip.active {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #FFFFFF;
+    transform: scale(1.08);
+  }
+  .stage-chip.done {
+    background: var(--navy-soft);
+    border-color: var(--navy-soft);
+    color: #FFFFFF;
+    transform: scale(1);
+  }
+  .stage-chip.done::before {
+    content: "✓ ";
+    font-weight: 900;
+  }
+
+  .quiz-meta {
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  #scene-quiz.active .quiz-meta { animation: fadeUp 0.4s 0.8s ease-out forwards; }
+
+  .quiz-card {
+    padding: clamp(14px, 1.6vw, 22px);
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease;
+  }
+  #scene-quiz.active .quiz-card { animation: fadeUp 0.5s 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+  .q-label {
+    font-size: clamp(10px, 0.85vw, 12px);
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .q-text {
+    font-size: clamp(13px, 1.15vw, 16px);
+    font-weight: 700;
+    color: var(--navy-deep);
+    margin-bottom: 12px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    font-size: clamp(11px, 0.95vw, 13px);
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: border-color 0.3s ease, background 0.3s ease, font-weight 0.3s ease, color 0.3s ease;
+  }
+  #scene-quiz.active .opt:nth-of-type(1) { animation: fadeUp 0.3s 1.6s ease-out forwards; }
+  #scene-quiz.active .opt:nth-of-type(2) { animation: fadeUp 0.3s 1.75s ease-out forwards; }
+  #scene-quiz.active .opt:nth-of-type(3) { animation: fadeUp 0.3s 1.90s ease-out forwards; }
+  #scene-quiz.active .opt:nth-of-type(4) { animation: fadeUp 0.3s 2.05s ease-out forwards; }
+  .opt.selected {
+    border-color: var(--navy);
+    background: rgba(15,45,92,0.06);
+    font-weight: 700;
+    color: var(--navy-deep);
+  }
+  .opt input { accent-color: var(--navy); }
+
+  .progress-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .p-label {
+    font-size: clamp(10px, 0.85vw, 12px);
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .progress-strip .progress-bar { flex: 1; }
+  .p-count {
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    color: var(--navy-deep);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-bar {
+    height: 8px;
+    background: var(--hairline);
+    border-radius: 4px;
+    overflow: hidden;
+    width: 100%;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--navy);
+    width: 0%;
+    transition: width 1.3s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .progress-bar.active .fill { width: var(--target, 100%); }
+
+  .quiz-caption {
+    margin-top: 8px;
+    text-align: center;
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .quiz-caption.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -199,7 +359,37 @@
     </div>
 
     <div class="scenes">
-      <!-- 2 scene akan ditambahkan task 4-5 -->
+      <div class="scene" id="scene-quiz">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="url">portalhc.kpb · <em>Assessment Online</em></span>
+          </div>
+          <div class="browser-body quiz-body">
+            <div class="stage-chips">
+              <span class="stage-chip" id="chip-y1">Tahun 1</span>
+              <span class="stage-chip" id="chip-y2">Tahun 2</span>
+            </div>
+            <div class="quiz-meta" id="q-meta">Sub-Kompetensi: Refinery Ops · Soal 5/10</div>
+            <div class="quiz-card">
+              <div class="q-label">Pertanyaan</div>
+              <div class="q-text" id="q-text">Apa fungsi utama refinery catalyst dalam proses cracking?</div>
+              <div class="options">
+                <label class="opt"><input type="radio" disabled> A) Menyimpan crude oil</label>
+                <label class="opt"><input type="radio" disabled> B) Meningkatkan suhu boiler</label>
+                <label class="opt"><input type="radio" disabled> C) Mempercepat reaksi kimia</label>
+                <label class="opt"><input type="radio" disabled> D) Memurnikan air pendingin</label>
+              </div>
+            </div>
+            <div class="progress-strip">
+              <span class="p-label">Progres</span>
+              <div class="progress-bar" id="quiz-progress"><div class="fill"></div></div>
+              <span class="p-count">10 / 10</span>
+            </div>
+            <div class="quiz-caption" id="quiz-caption">10 soal · penilaian otomatis</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="brand-mark">PROTON × KPB</div>
