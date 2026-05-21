@@ -3805,6 +3805,55 @@ namespace HcPortal.Controllers
             // Pre-populate dengan "Summary" supaya peserta tidak collide dengan tab utama.
             var usedSheetNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Summary" };
 
+            // Pre-load all per-session data in single query (avoid N+1 — T-320-02-07).
+            var eligibleSessionIds = eligibleSessions.Select(s => s.Id).ToList();
+            var allResponses = await _context.PackageUserResponses
+                .Where(r => eligibleSessionIds.Contains(r.AssessmentSessionId))
+                .ToListAsync();
+            var allEtScores = await _context.SessionElemenTeknisScores
+                .Where(et => eligibleSessionIds.Contains(et.AssessmentSessionId))
+                .ToListAsync();
+
+            // Load all questions+options for involved packages.
+            var sessionPackageMap = await _context.UserPackageAssignments
+                .Where(a => eligibleSessionIds.Contains(a.AssessmentSessionId))
+                .Select(a => new { a.AssessmentSessionId, a.AssessmentPackageId })
+                .ToListAsync();
+            var packageIds = sessionPackageMap.Select(x => x.AssessmentPackageId).Distinct().ToList();
+            var allQuestions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => packageIds.Contains(q.AssessmentPackageId))
+                .ToListAsync();
+
+            foreach (var session in eligibleSessions)
+            {
+                string sheetName = HcPortal.Helpers.SheetNameSanitizer.Sanitize(
+                    session.User?.NIP ?? "NA",
+                    session.User?.FullName ?? "Unknown",
+                    usedSheetNames);
+                var ws = workbook.Worksheets.Add(sheetName);
+
+                // === Header (REQ EXP-03 Variant A + REQ EXP-04 Variant B sama) ===
+                ws.Cell(1, 1).Value = $"{session.User?.FullName ?? "Unknown"} (NIP {session.User?.NIP ?? "—"})";
+                ws.Range(1, 1, 1, 4).Merge();
+                ws.Cell(1, 1).Style.Font.Bold = true;
+                ws.Cell(1, 1).Style.Font.FontSize = 13;
+
+                ws.Cell(2, 1).Value = "Started At";
+                ws.Cell(2, 2).Value = session.StartedAt?.ToString("dd MMM yyyy HH:mm") ?? "—";
+                ws.Cell(3, 1).Value = "Completed At";
+                ws.Cell(3, 2).Value = session.CompletedAt?.ToString("dd MMM yyyy HH:mm") ?? "—";
+                ws.Cell(4, 1).Value = "Durasi Aktual";
+                int durasi = session.ElapsedSeconds / 60;
+                ws.Cell(4, 2).Value = durasi > 0 ? $"{durasi} menit" : "—";
+                ws.Cell(5, 1).Value = "Tipe Assessment";
+                ws.Cell(5, 2).Value = session.AssessmentType ?? "—";
+
+                ws.Range(2, 1, 5, 1).Style.Font.Bold = true;
+                // Section ElemenTeknis + Chart + Detail Jawaban DI Task 7-9 (Variant A).
+                // Section Info Sertifikasi Manual DI Task 10 (Variant B).
+            }
+
             // Sanitize title for filename: replace non-alphanumeric with _
             var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
             var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Summary.xlsx";
