@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sosialisasi Aplikasi HC Portal KPB</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --navy: #002e6d;
@@ -1621,14 +1620,14 @@
 <!-- Navigation controls -->
 <div class="controls">
   <button class="ctrl-btn" id="btnPrev" onclick="prevSlide()" title="Previous (← or Space)">◄</button>
-  <div class="slide-counter"><span id="curNum">1</span> / <span id="totalNum">15</span></div>
+  <div class="slide-counter"><span id="curNum">1</span> / <span id="totalNum">23</span></div>
   <button class="ctrl-btn" id="btnNext" onclick="nextSlide()" title="Next (→ or Space)">►</button>
 </div>
 
 <script>
   // ============================ NAVIGATION ============================
   let current = 1;
-  const total = 15;
+  const total = 23;
   const slides = document.querySelectorAll('.slide');
   const progressBar = document.getElementById('progressBar');
   const curNum = document.getElementById('curNum');
@@ -1647,8 +1646,6 @@
     progressBar.style.width = (n / total * 100) + '%';
     btnPrev.disabled = n === 1;
     btnNext.disabled = n === total;
-
-    if (n === 11) setTimeout(initCharts, 100);
   }
 
   function nextSlide() { if (current < total) showSlide(current + 1); }
@@ -1675,9 +1672,6 @@
   // ============================ UTILITY ============================
   function toggleDark() {
     document.body.classList.toggle('dark');
-    if (document.querySelector('[data-slide="11"]').classList.contains('active')) {
-      initCharts();
-    }
   }
   function toggleFS() {
     if (!document.fullscreenElement) {
@@ -1693,88 +1687,6 @@
     kbHint.classList.add('show');
     setTimeout(() => kbHint.classList.remove('show'), 4000);
   }, 600);
-
-  // ============================ MOCKUP TAB FILTER ============================
-  function filterMock(btn, status, module) {
-    const container = btn.closest('.mockup');
-    container.querySelectorAll('.mockup-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    const rows = container.querySelectorAll('.mockup-row');
-    rows.forEach(r => {
-      if (status === 'all' || r.dataset.status === status) {
-        r.style.display = 'flex';
-      } else {
-        r.style.display = 'none';
-      }
-    });
-  }
-
-  // ============================ CHART.JS ============================
-  let chartCatInst, chartGainInst;
-  function initCharts() {
-    const isDark = document.body.classList.contains('dark');
-    const textColor = isDark ? '#cbd5e1' : '#475569';
-    const gridColor = isDark ? '#334155' : '#e2e8f0';
-
-    if (chartCatInst) chartCatInst.destroy();
-    if (chartGainInst) chartGainInst.destroy();
-
-    // Chart 1: Bar - Assessment per Kategori
-    const ctx1 = document.getElementById('chartCat').getContext('2d');
-    chartCatInst = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: ['OJ', 'IHT', 'Licencor', 'OTS', 'HSSE', 'Proton'],
-        datasets: [{
-          label: 'Jumlah Peserta',
-          data: [87, 54, 32, 28, 142, 48],
-          backgroundColor: ['#1565c0', '#009640', '#f59e0b', '#64748b', '#ed1c24', '#7b1fa2'],
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
-          x: { grid: { display: false }, ticks: { color: textColor } }
-        }
-      }
-    });
-
-    // Chart 2: Line - Gain Score Trend
-    const ctx2 = document.getElementById('chartGain').getContext('2d');
-    chartGainInst = new Chart(ctx2, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [
-          {
-            label: 'Pre-Test Avg',
-            data: [58, 61, 60, 63, 65, 64],
-            borderColor: '#ed1c24',
-            backgroundColor: 'rgba(237, 28, 36, 0.1)',
-            tension: 0.3, fill: true
-          },
-          {
-            label: 'Post-Test Avg',
-            data: [78, 82, 81, 85, 87, 88],
-            borderColor: '#009640',
-            backgroundColor: 'rgba(0, 150, 64, 0.1)',
-            tension: 0.3, fill: true
-          }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { color: textColor, font: { size: 9 } } } },
-        scales: {
-          y: { beginAtZero: false, grid: { color: gridColor }, ticks: { color: textColor } },
-          x: { grid: { display: false }, ticks: { color: textColor } }
-        }
-      }
-    });
-  }
 
   // Initialize
   showSlide(1);
