@@ -549,6 +549,253 @@
   </div>
 </article>
 
+<!-- ============================================================ -->
+<!-- BAB 3: CDP -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab3">
+  <h2>3. CDP &mdash; Competency Development Platform</h2>
+  <p>Coaching Proton, IDP, deliverable, dan approval chain dengan HC sebagai final reviewer.</p>
+</div>
+
+<article class="task" id="cdp-plan-idp">
+  <h3>3.1 Plan IDP &mdash; Review Silabus Pengembangan</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Plan IDP
+    <code class="url">/CDP/PlanIdp</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Plan IDP</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Plan IDP</b>. Halaman menampilkan silabus pengembangan kompetensi berdasarkan jabatan + level.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Bagian / Unit / Track</span></div>
+    <div class="step-body">Pakai query string filter: <code>?bagian=&amp;unit=&amp;trackId=</code> atau dropdown di halaman. Filter memungkinkan HC review silabus per scope tertentu.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download Guidance Document</span></div>
+    <div class="step-body">Per item silabus yang punya guidance file, klik link download (<code>/CDP/GuidanceDownload/{id}</code>).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Update silabus</div>
+    Silabus dikelola via <b>Kelola Data Proton</b> (Bab 4.1). Edit / tambah / nonaktifkan dari sana, tidak dari Plan IDP.
+  </div>
+</article>
+
+<article class="task" id="cdp-deliverable-monitoring">
+  <h3>3.2 Deliverable Monitoring &mdash; Semua Coachee</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Coaching Proton / Deliverable
+    <code class="url">/CDP/CoachingProton</code> <code class="url">/CDP/Deliverable/{id}</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Coaching Proton</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Coaching Proton</b> (<code>/CDP/CoachingProton</code>). HC lihat semua coachee lintas section dengan status deliverable.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter &amp; Search</span></div>
+    <div class="step-body">Pakai filter Section, Unit, Track, periode, status (<i>Not Started, In Progress, Pending Approval, Approved, Rejected</i>). Search nama coachee untuk cari cepat.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Buka Detail Deliverable</span></div>
+    <div class="step-body">Klik judul deliverable. Halaman detail <code>/CDP/Deliverable/{id}</code> menampilkan deskripsi, target tanggal, evidence yang sudah ter-upload, status approval chain, dan history coaching session.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Download Evidence</span></div>
+    <div class="step-body">Untuk review evidence yang di-submit coachee, klik link download (<code>/CDP/DownloadEvidence/{progressId}</code> atau <code>/CDP/DownloadEvidencePdf/{progressId}</code> untuk format PDF).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 HC = Final Reviewer</div>
+    HC tidak approve di tahap awal &mdash; tunggu Sr Supervisor + Section Head approve dulu. HC pakai endpoint <b>HCReviewDeliverable</b> di tahap terakhir (lihat 3.8).
+  </div>
+</article>
+
+<article class="task" id="cdp-coaching-dashboard">
+  <h3>3.3 Coaching Proton Dashboard &mdash; Monitoring Global</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Dashboard
+    <code class="url">/CDP/Dashboard</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Dashboard</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Dashboard</b>. Dashboard menampilkan progress coaching global: total coachee aktif, distribusi status deliverable, progress per Section / Unit / Track.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Cascade</span></div>
+    <div class="step-body">Filter via dropdown:
+      <ul>
+        <li><b>Section</b> &rarr; cascade <b>Unit</b> (via <code>/CDP/GetCascadeOptions?section={s}</code>)</li>
+        <li><b>Kategori</b> &rarr; cascade <b>Sub-Kategori</b> (via <code>/CDP/GetSubCategories?category={c}</code>)</li>
+        <li><b>Track</b> &mdash; Panelman, Operator, dll</li>
+      </ul>
+      Filter trigger reload partial via <code>/CDP/FilterCoachingProton</code>.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Drill ke Detail Coachee</span></div>
+    <div class="step-body">Klik card coachee di dashboard untuk lihat <b>deliverable + session history</b> (loaded via <code>/CDP/GetCoacheeDeliverables?coacheeId={id}</code>).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Tab Bottleneck</div>
+    Bottleneck Report ada sebagai tab / section di Dashboard ini. Lihat Bab 3.5.
+  </div>
+</article>
+
+<article class="task" id="cdp-histori-proton">
+  <h3>3.4 Histori Proton &mdash; Export Laporan per Periode</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Histori Proton
+    <code class="url">/CDP/HistoriProton</code> <code class="url">/CDP/HistoriProtonDetail</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Histori Proton</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Histori Proton</b>. Tampilan riwayat coaching per periode Proton yang sudah berjalan / selesai.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Detail per Coachee</span></div>
+    <div class="step-body">Klik nama coachee. Halaman detail (<code>/CDP/HistoriProtonDetail?userId={id}</code>) menampilkan complete history: deliverable submitted, coaching session log, final assessment scores.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Excel</span></div>
+    <div class="step-body">Klik <b>Export Excel</b> (<code>/CDP/ExportHistoriProton</code>). Export bisa difilter via parameter periode + section + unit.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Progress per Coachee</span></div>
+    <div class="step-body">Untuk laporan per coachee individual:
+      <ul>
+        <li>Excel: <code>/CDP/ExportProgressExcel?coacheeId={id}</code></li>
+        <li>PDF: <code>/CDP/ExportProgressPdf?coacheeId={id}</code></li>
+      </ul>
+    </div>
+  </div>
+</article>
+
+<article class="task" id="cdp-bottleneck-report">
+  <h3>3.5 Bottleneck Report &mdash; Identifikasi Deliverable Stuck</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Dashboard &rarr; (tab) Bottleneck
+    <code class="url">/CDP/Dashboard</code> <code class="url">/CDP/ExportBottleneckReport</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Akses Tab Bottleneck</span></div>
+    <div class="step-body">Di halaman Dashboard (<code>/CDP/Dashboard</code>), pilih tab / section <b>Bottleneck Report</b>. Tabel menampilkan deliverable yang stuck (lama tidak progress) per coachee / unit.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Bottleneck</span></div>
+    <div class="step-body">Filter umum:
+      <ul>
+        <li><b>Pending Approval &gt; X hari</b> &mdash; deliverable nunggu reviewer terlalu lama</li>
+        <li><b>Rejected</b> &mdash; coachee belum re-upload setelah ditolak</li>
+        <li><b>Coach</b> &mdash; coach tertentu yang banyak deliverable stuck</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Identifikasi Akar Bottleneck</span></div>
+    <div class="step-body">Klik baris untuk drill detail. Akar umum: reviewer lambat (tagging Sr Supervisor / Section Head), coachee pasif (belum upload), scope unclear (deliverable bermasalah).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export untuk Eskalasi</span></div>
+    <div class="step-body">Klik <b>Export Bottleneck</b> (<code>/CDP/ExportBottleneckReport</code>). Excel ini biasa dipakai HC untuk meeting eskalasi ke Section Head / Manager.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export Coaching Tracking</span></div>
+    <div class="step-body">Untuk laporan coaching tracking lebih luas: <code>/CDP/ExportCoachingTracking</code> dengan parameter filter aktif.</div>
+  </div>
+</article>
+
+<article class="task" id="cdp-coach-workload">
+  <h3>3.6 Coach Workload &mdash; Beban Kerja Coach</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; (Admin / CoachMapping) &rarr; Coach Workload
+    <code class="url">/CoachMapping/CoachWorkload</code> <code class="url">/CoachMapping/ExportCoachWorkload</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Coach Workload</span></div>
+    <div class="step-body">Akses <code>/CoachMapping/CoachWorkload</code>. Halaman menampilkan tiap coach + jumlah coachee aktif + deliverable pending review.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter per Section</span></div>
+    <div class="step-body">Pakai dropdown / query string <code>?section={s}</code> untuk filter coach per section.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Identifikasi Overload</span></div>
+    <div class="step-body">Sort by jumlah coachee atau pending review. Coach dengan workload tinggi = kandidat untuk redistribusi mapping (lihat Bab 5.9).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Workload Summary</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/CoachMapping/ExportCoachWorkload</code>) atau dari CDP: <code>/CDP/ExportWorkloadSummary</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Aksi setelah identifikasi overload</div>
+    Buka <b>Coach-Coachee Mapping</b> (Bab 5.9), pindahkan coachee dari coach yang overloaded ke coach yang capacity-nya masih ada.
+  </div>
+</article>
+
+<article class="task" id="cdp-certification-management">
+  <h3>3.7 Certification Management &mdash; Sertifikat Coaching Proton</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CDP &rarr; Certification Management
+    <code class="url">/CDP/CertificationManagement</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman</span></div>
+    <div class="step-body">Klik <b>CDP &rarr; Certification Management</b>. Daftar sertifikat coaching: aktif, mendekati expired, expired.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Sertifikat</span></div>
+    <div class="step-body">Pakai filter section, kategori, sub-kategori, rentang tanggal expired via <code>/CDP/FilterCertificationManagement</code>. Pagination via <code>?page={n}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Excel</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/CDP/ExportSertifikatExcel</code>) dengan parameter filter aktif.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Schedule Renewal</span></div>
+    <div class="step-body">Untuk sertifikat yang mendekati expired, lanjut ke <b>Admin Panel &rarr; Renewal Certificate</b> (Bab 5.10) untuk schedule assessment renewal.</div>
+  </div>
+</article>
+
+<article class="task" id="cdp-reviewer-chain">
+  <h3>3.8 Reviewer Chain &mdash; HC sebagai Final Reviewer</h3>
+  <div class="breadcrumb">
+    Workflow approval (multi-step, no single URL)
+    <code class="url">(workflow)</code>
+  </div>
+  <div class="diagram">Coachee Submit Evidence
+            &darr;
+  1. Sr Supervisor Review
+            &darr;
+  2. Section Head Review
+            &darr;
+  3. HC Final Review   &larr; Anda
+            &darr;
+     Approved / Rejected</div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Notifikasi Evidence Siap Review</span></div>
+    <div class="step-body">Setelah Sr Supervisor + Section Head approve, notifikasi muncul di <b>bell icon</b> HC. Klik untuk navigate ke deliverable (Bab 6.1).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Halaman Deliverable</span></div>
+    <div class="step-body">Akses <code>/CDP/Deliverable/{id}</code>. Cek evidence yang ter-upload, coaching session log, dan history approval di bawah.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Review &amp; Approve / Reject</span></div>
+    <div class="step-body">Klik <b>HC Approve</b> (POST <code>/CDP/HCReviewDeliverable</code>) untuk approve final. Atau <b>Reject</b> (POST <code>/CDP/RejectDeliverable</code> dengan <code>rejectionReason</code>) kalau evidence belum memenuhi standar.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Batch HC Approve</span></div>
+    <div class="step-body">Untuk approve banyak deliverable sekaligus, pakai <b>Batch HC Approve</b> (POST <code>/CDP/BatchHCApprove</code> dengan body JSON list progressId).</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Reject = Reset Chain</div>
+    Kalau HC reject, seluruh chain (Sr Supervisor + Section Head + HC) ter-reset. Coachee harus upload evidence baru, di-review ulang dari Sr Supervisor lagi. Pastikan reject reason jelas + actionable.
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Jangan Skip Chain</div>
+    HC tidak boleh approve langsung tanpa tunggu Sr Supervisor + Section Head approve dulu. Sistem enforce urutan via endpoint terpisah (Approve vs HCReview).
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
