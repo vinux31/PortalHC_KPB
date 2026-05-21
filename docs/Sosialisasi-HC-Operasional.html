@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sosialisasi Operasional HC &mdash; Portal HC KPB</title>
+<style>
+  :root {
+    --teal: #0d9488;
+    --teal-dark: #0f766e;
+    --teal-light: #14b8a6;
+    --amber: #f59e0b;
+    --amber-dark: #d97706;
+    --green: #10b981;
+    --orange: #ea580c;
+    --red: #dc2626;
+    --slate: #64748b;
+    --slate-dark: #334155;
+    --bg: #f0fdfa;
+    --slide-bg: #ffffff;
+    --slide-bg-2: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --border: #e2e8f0;
+  }
+
+  body.dark {
+    --bg: #0f2027;
+    --slide-bg: #1a2e35;
+    --slide-bg-2: #0f2027;
+    --text: #f1f5f9;
+    --text-muted: #cbd5e1;
+    --border: #334155;
+    --slate: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s;
+  }
+
+  /* Deck */
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Slide base */
+  .slide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(1280px, 95vw);
+    aspect-ratio: 16 / 9;
+    max-height: 88vh;
+    background: linear-gradient(135deg, var(--slide-bg) 0%, var(--slide-bg-2) 100%);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(13, 148, 136, 0.15);
+    padding: 36px 50px;
+    overflow: hidden;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .slide.active {
+    display: block;
+    opacity: 1;
+    animation: slideIn 0.5s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translate(-50%, -48%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  /* Decorative blob default */
+  .slide.default-deco::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .slide.default-deco::after {
+    content: '';
+    position: absolute;
+    bottom: -120px; left: -120px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Header */
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+  .section-eyebrow {
+    font-size: 9pt;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--amber-dark);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  body.dark .section-eyebrow { color: var(--amber); }
+  .slide-title {
+    font-size: 26pt;
+    font-weight: 800;
+    color: var(--teal-dark);
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+  }
+  body.dark .slide-title { color: var(--teal-light); }
+  .slide-title .accent { color: var(--amber-dark); }
+  body.dark .slide-title .accent { color: var(--amber); }
+  .slide-subtitle {
+    font-size: 11pt;
+    color: var(--slate);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .slide-badge {
+    background: var(--teal);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .slide-body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    min-height: calc(100% - 90px);
+  }
+
+  /* Controls (bottom) */
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(13, 148, 136, 0.92);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 10pt;
+    box-shadow: 0 8px 24px rgba(13, 148, 136, 0.3);
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+  }
+  body.dark .controls { background: rgba(15, 118, 110, 0.95); }
+  .ctrl-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13pt;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ctrl-btn:hover {
+    background: var(--amber);
+    transform: scale(1.1);
+  }
+  .ctrl-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .slide-counter {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* Utility bar (top-right) */
+  .utility-bar {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+  }
+  .util-btn {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--border);
+    color: var(--teal-dark);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13pt;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .util-btn:hover {
+    background: var(--teal);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+  body.dark .util-btn {
+    background: rgba(26, 46, 53, 0.92);
+    border-color: var(--border);
+    color: var(--teal-light);
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--amber) 50%, var(--green) 100%);
+    transition: width 0.4s ease-out;
+    z-index: 999;
+  }
+
+  /* COVER */
+  .slide.cover {
+    padding: 0;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    color: #fff;
+  }
+  .slide.cover.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    bottom: -150px; right: -150px;
+    width: 540px; height: 540px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: -120px; left: -120px;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover-content { text-align: center; position: relative; z-index: 2; padding: 40px 60px; }
+  .cover-eyebrow {
+    font-size: 14pt; font-weight: 700; letter-spacing: 6px;
+    color: rgba(255, 255, 255, 0.92);
+    margin-bottom: 24px; text-transform: uppercase;
+  }
+  .cover-title {
+    font-size: 44pt; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 18px; line-height: 1.05; color: #fff;
+  }
+  .cover-subtitle {
+    font-size: 15pt; color: rgba(255, 255, 255, 0.88);
+    font-weight: 400; margin-bottom: 0;
+  }
+  .cover-divider {
+    width: 220px; height: 2px;
+    background: rgba(255, 255, 255, 0.4);
+    margin: 36px auto 22px;
+  }
+  .cover-badge-hc {
+    display: inline-block;
+    background: var(--amber);
+    color: var(--teal-dark);
+    padding: 8px 22px;
+    border-radius: 24px;
+    font-size: 12pt;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin: 18px 0 6px;
+  }
+  .cover-meta-date {
+    font-size: 13pt; font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 10px;
+  }
+
+  /* PENUTUP */
+  .slide.penutup {
+    padding: 0;
+    background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+    color: #fff;
+  }
+  .slide.penutup.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .penutup::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .penutup::after {
+    content: '';
+    position: absolute;
+    bottom: -200px; right: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .penutup-content { text-align: center; position: relative; z-index: 2; padding: 40px 60px; }
+  .penutup-title {
+    font-size: 56pt; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 16px; color: #fff;
+  }
+  .penutup-subtitle {
+    font-size: 16pt; color: rgba(255, 255, 255, 0.88);
+    margin-bottom: 32px;
+  }
+  .penutup-contact {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 16px 32px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 12px;
+  }
+
+  /* Print */
+  @media print {
+    @page { size: A4 landscape; margin: 0; }
+    html, body { height: auto; overflow: visible; background: #fff; }
+    .controls, .utility-bar, .progress-bar { display: none !important; }
+    .deck { display: block; width: 100%; height: auto; }
+    .slide {
+      position: relative !important;
+      top: auto; left: auto;
+      transform: none !important;
+      display: block !important;
+      opacity: 1 !important;
+      page-break-after: always;
+      width: 100%;
+      max-height: none;
+      box-shadow: none;
+      border-radius: 0;
+      margin: 0;
+      animation: none !important;
+    }
+    .slide.cover, .slide.penutup {
+      display: flex !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="width: 4.3%;"></div>
+
+<div class="utility-bar no-print">
+  <button class="util-btn" id="darkToggle" title="Dark Mode">&#9728;</button>
+  <button class="util-btn" id="fullToggle" title="Fullscreen">&#9974;</button>
+  <button class="util-btn" onclick="window.print()" title="Cetak / PDF">&#128424;</button>
+</div>
+
+<div class="deck">
+
+  <!-- ================= SLIDE 1: COVER ================= -->
+  <div class="slide cover active" data-slide="1">
+    <div class="cover-content">
+      <p class="cover-eyebrow">Sosialisasi Operasional</p>
+      <h1 class="cover-title">Portal HC KPB<br>untuk Tim HC</h1>
+      <p class="cover-subtitle">Panduan operasional harian yang ringkas &amp; visual</p>
+      <div class="cover-divider"></div>
+      <div class="cover-badge-hc">&#127942; ROLE HC &mdash; LEVEL 2</div>
+      <p class="cover-meta-date">Kilang Pertamina Balikpapan &bull; Mei 2026</p>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 23: PENUTUP ================= -->
+  <div class="slide penutup" data-slide="23">
+    <div class="penutup-content">
+      <h1 class="penutup-title">Terima Kasih</h1>
+      <p class="penutup-subtitle">Pertanyaan? Diskusi terbuka.</p>
+      <div class="penutup-contact">
+        <p style="font-size: 11pt; opacity: 0.85; margin-bottom: 6px;">Kontak &amp; Support</p>
+        <p style="font-size: 14pt; font-weight: 700;">Tim Human Capital KPB</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="controls no-print">
+  <button class="ctrl-btn" id="prevBtn" title="Previous">&#8249;</button>
+  <span class="slide-counter" id="slideCounter">1 / 23</span>
+  <button class="ctrl-btn" id="nextBtn" title="Next">&#8250;</button>
+</div>
+
+<script>
+  (function () {
+    const TOTAL = 23;
+    let current = 1;
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('slideCounter');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressBar = document.getElementById('progressBar');
+    const darkToggle = document.getElementById('darkToggle');
+    const fullToggle = document.getElementById('fullToggle');
+
+    function go(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      slides.forEach(s => s.classList.remove('active'));
+      const target = document.querySelector('[data-slide="' + n + '"]');
+      if (target) target.classList.add('active');
+      current = n;
+      counter.textContent = current + ' / ' + TOTAL;
+      progressBar.style.width = (current / TOTAL * 100) + '%';
+      prevBtn.disabled = current === 1;
+      nextBtn.disabled = current === TOTAL;
+    }
+
+    prevBtn.addEventListener('click', () => go(current - 1));
+    nextBtn.addEventListener('click', () => go(current + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(current + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+      else if (e.key === 'Home') { e.preventDefault(); go(1); }
+      else if (e.key === 'End') { e.preventDefault(); go(TOTAL); }
+      else if (e.key === 'Escape' && document.fullscreenElement) { document.exitFullscreen(); }
+    });
+
+    darkToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      darkToggle.textContent = document.body.classList.contains('dark') ? '☼' : '☀';
+    });
+
+    fullToggle.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    });
+
+    go(1);
+  })();
+</script>
+
+</body>
+</html>
