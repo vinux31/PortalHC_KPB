@@ -1093,6 +1093,189 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.6 &mdash; Pre/Post Test setup &amp; monitor</p>
   </div>
 
+  <!-- ================= SLIDE 9: CDP OVERVIEW + REVIEWER CHAIN ================= -->
+  <div class="slide default-deco" data-slide="9">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">CDP &mdash; <span class="accent">Reviewer Chain</span></h1>
+        <p class="slide-subtitle">HC = Final Reviewer (Reviewer ke-3) di approval chain</p>
+      </div>
+      <div class="slide-badge">SLIDE 9 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="chain-wrap">
+        <div class="chain-step">
+          <strong>Coachee Submit</strong>
+          Upload evidence deliverable
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-step">
+          <strong>1. Sr Supervisor</strong>
+          Review pertama
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-step">
+          <strong>2. Section Head</strong>
+          Review kedua
+        </div>
+        <div class="chain-arrow">&rarr;</div>
+        <div class="chain-step final">
+          <strong>3. HC Final</strong>
+          Approve / Reject
+        </div>
+      </div>
+      <div class="split-2">
+        <div class="split-card red">
+          <h4>&#9888; Reject = Reset Chain</h4>
+          <ul>
+            <li>Reject di tahap mana pun = chain ulang dari awal</li>
+            <li>Coachee upload evidence baru</li>
+            <li>Sr Supervisor + Section Head review ulang</li>
+            <li>HC final review lagi</li>
+          </ul>
+        </div>
+        <div class="split-card amber">
+          <h4>&#9989; Tidak Boleh Skip Chain</h4>
+          <ul>
+            <li>HC tunggu Sr Spv + Section Head approve</li>
+            <li>Sistem enforce urutan via endpoint</li>
+            <li>Tombol HC Approve baru aktif setelah Section Head approve</li>
+            <li>Batch HC Approve untuk efisiensi</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.8 &mdash; Reviewer Chain</p>
+  </div>
+
+  <!-- ================= SLIDE 10: COACHING DASHBOARD ================= -->
+  <div class="slide default-deco" data-slide="10">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">Coaching Proton <span class="accent">Dashboard</span></h1>
+        <p class="slide-subtitle">Monitoring global + drill ke coachee + bottleneck</p>
+      </div>
+      <div class="slide-badge">SLIDE 10 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card">
+          <h4>&#127760; Global View</h4>
+          <ul>
+            <li>Total coachee aktif lintas section</li>
+            <li>Distribusi status deliverable</li>
+            <li>Progress per Section / Unit / Track</li>
+            <li>Filter cascade: Section &rarr; Unit, Kategori &rarr; Sub-Kategori</li>
+            <li>Drill ke card coachee untuk detail deliverable + session</li>
+          </ul>
+        </div>
+        <div class="split-card red">
+          <h4>&#128680; Tab Bottleneck Report</h4>
+          <ul>
+            <li>Deliverable stuck per coachee / unit</li>
+            <li>Filter: Pending Approval &gt; X hari, Rejected, by Coach</li>
+            <li>Identifikasi akar: reviewer lambat, coachee pasif, scope unclear</li>
+            <li>Export untuk meeting eskalasi</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Daily routine HC:</strong> Buka Dashboard pagi, scan tab Bottleneck dulu. Identifikasi 3-5 deliverable terlama, eskalasi ke Section Head terkait.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.3 &amp; &sect;3.5 &mdash; Dashboard + Bottleneck</p>
+  </div>
+
+  <!-- ================= SLIDE 11: HISTORI PROTON + EXPORT ================= -->
+  <div class="slide default-deco" data-slide="11">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">Histori Proton + <span class="accent">Export</span></h1>
+        <p class="slide-subtitle">Laporan periode + per coachee &mdash; Excel &amp; PDF</p>
+      </div>
+      <div class="slide-badge">SLIDE 11 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card">
+          <h4>&#128218; Histori per Periode</h4>
+          <ul>
+            <li>Riwayat coaching per periode Proton</li>
+            <li>Filter section, unit, track, periode</li>
+            <li>Drill detail per coachee &mdash; deliverable + session log + final assessment</li>
+            <li>Histori tetap accessible setelah periode selesai (audit trail)</li>
+          </ul>
+        </div>
+        <div class="split-card green">
+          <h4>&#128229; Export Options</h4>
+          <ul>
+            <li><b>Histori Proton</b> &mdash; Excel rekap periode</li>
+            <li><b>Progress per Coachee</b> &mdash; Excel atau PDF</li>
+            <li><b>Bottleneck Report</b> &mdash; Excel stuck items</li>
+            <li><b>Coaching Tracking</b> &mdash; Excel lengkap</li>
+            <li><b>Workload Summary</b> &mdash; Excel beban coach</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Untuk laporan bulanan:</strong> Kombinasikan <b>Histori Proton</b> + <b>Bottleneck</b> + <b>Workload</b>. Tiga file ini sudah cover 80% kebutuhan reporting HC ke manajemen.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.4 &mdash; Histori Proton + Export</p>
+  </div>
+
+  <!-- ================= SLIDE 12: RENEWAL LIFECYCLE ================= -->
+  <div class="slide default-deco" data-slide="12">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
+        <h1 class="slide-title">Renewal Certificate <span class="accent">Lifecycle</span></h1>
+        <p class="slide-subtitle">Alur lengkap sertifikat expired sampai terbit baru</p>
+      </div>
+      <div class="slide-badge">SLIDE 12 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="flow-h">
+        <div class="flow-node" style="border-color: var(--orange); color: var(--orange);">
+          <span class="flow-icon">&#9203;</span>
+          <strong>1. Mendekati Expired</strong>
+          Filter 30/60/90 hari
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128197;</span>
+          <strong>2. Schedule Renewal</strong>
+          HC klik dari Renewal page
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128276;</span>
+          <strong>3. Notif Peserta</strong>
+          Auto bell icon ke pekerja
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128221;</span>
+          <strong>4. Kerjakan Assessment</strong>
+          Pakai paket soal kategori
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node" style="border-color: var(--green); color: var(--green);">
+          <span class="flow-icon">&#127942;</span>
+          <strong>5. Sertifikat Baru</strong>
+          Masa berlaku auto-update
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Routine bulanan:</strong> Buka <b>Renewal Certificate</b> &rarr; filter 60 hari ke depan &rarr; schedule batch renewal sekaligus. Auto-create assessment + notif ke pekerja terkait.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.7 &amp; &sect;5.10 &mdash; Renewal Management</p>
+  </div>
+
   <!-- ================= SLIDE 23: PENUTUP ================= -->
   <div class="slide penutup" data-slide="23">
     <div class="penutup-content">
