@@ -667,5 +667,99 @@
 
     <div class="brand-mark">PROTON × KPB</div>
   </div>
+<script>
+  // ===== ASSESSMENT AKHIR — ORCHESTRATION =====
+
+  function showScene(id) {
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function setChip(id, state) {
+    const el = document.getElementById(id);
+    el.classList.remove('active', 'done');
+    state.split(' ').forEach(c => el.classList.add(c));
+  }
+
+  function fillProgress(id, target) {
+    const el = document.getElementById(id);
+    el.style.setProperty('--target', target + '%');
+    el.classList.add('active');
+  }
+
+  function resetProgress(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('active');
+    el.style.setProperty('--target', '0%');
+  }
+
+  function tweenCounter(id, from, to, duration) {
+    const el = document.getElementById(id);
+    const start = performance.now();
+    function frame(now) {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (to - from) * eased);
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function fireBadge() {
+    document.querySelector('.badge-lulus').classList.add('fired');
+    document.querySelector('.confetti-burst').classList.add('fired');
+    setTimeout(() => document.querySelector('.confetti-fall').classList.add('active'), 300);
+  }
+
+  function selectOption(idx) {
+    document.querySelectorAll('#scene-quiz .opt').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('#scene-quiz .opt')[idx].classList.add('selected');
+  }
+
+  function swapQuizContent() {
+    const card = document.querySelector('#scene-quiz .quiz-card');
+    card.style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('q-text').textContent = 'Bagaimana prinsip kerja energy management di unit refinery?';
+      document.getElementById('q-meta').textContent = 'Sub-Kompetensi: Energy Management · Soal 5/10';
+      document.querySelectorAll('#scene-quiz .opt').forEach(o => o.classList.remove('selected'));
+      card.style.opacity = '1';
+    }, 200);
+  }
+
+  const milestones = [
+    // Quiz Y1 (2-6.5s)
+    { t: 2000, fn: () => { showScene('scene-quiz'); setChip('chip-y1', 'active'); } },
+    { t: 4800, fn: () => selectOption(2) },
+    { t: 5200, fn: () => fillProgress('quiz-progress', 100) },
+
+    // Y1 done → Y2 active (6.5-8.5s)
+    { t: 6500, fn: () => { setChip('chip-y1', 'done'); resetProgress('quiz-progress'); swapQuizContent(); } },
+    { t: 6800, fn: () => setChip('chip-y2', 'active') },
+    { t: 7000, fn: () => fillProgress('quiz-progress', 100) },
+    { t: 7500, fn: () => selectOption(1) },
+
+    // Y2 done + caption (8.5-9s)
+    { t: 8500, fn: () => setChip('chip-y2', 'done') },
+    { t: 9000, fn: () => document.getElementById('quiz-caption').classList.add('show') },
+
+    // Cross-fade to Result (11-12s)
+    { t: 11000, fn: () => showScene('scene-result') },
+
+    // Score tween (13.2-14.7s)
+    { t: 13200, fn: () => tweenCounter('score-num', 0, 85, 1500) },
+
+    // Meta line (14.7s)
+    { t: 14700, fn: () => document.getElementById('result-meta').classList.add('show') },
+
+    // Badge + confetti (15.2s)
+    { t: 15200, fn: () => fireBadge() },
+
+    // Pass criteria caption (17.5s)
+    { t: 17500, fn: () => document.getElementById('pass-caption').classList.add('show') }
+  ];
+
+  milestones.forEach(m => setTimeout(m.fn, m.t));
+</script>
 </body>
 </html>
