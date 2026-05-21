@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>§3.4 v3 — Versi C: Comparison Dashboard HC Portal</title>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-red-light: #fce8eb;
+    --pertamina-blue: #00558C;
+    --pertamina-blue-dark: #003D63;
+    --pertamina-blue-light: #e6f0f7;
+    --pertamina-green: #00A551;
+    --pertamina-green-light: #d4f0dd;
+    --pertamina-yellow: #FFC72C;
+    --neutral-gray: #6b7280;
+    --bg: #f6f7fb;
+    --border: #d1d5db;
+    --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #1f2937; padding: 1.5rem; }
+
+  .header-bar { max-width: 1400px; margin: 0 auto 1rem; display: grid; grid-template-columns: 160px 1fr 160px; align-items: center; background: white; border-radius: .75rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); padding: 1rem 1.5rem; border-top: 5px solid var(--pertamina-green); }
+  .logo-pertamina { font-weight: 900; font-size: 1.1rem; color: var(--pertamina-red); line-height: 1.1; }
+  .logo-pertamina small { display:block; font-weight: 600; font-size: .7rem; color: var(--neutral-gray); }
+  .header-title { text-align: center; }
+  .header-title h1 { margin: 0; font-size: 1.4rem; color: var(--pertamina-blue); }
+  .header-title small { display:block; color: var(--neutral-gray); font-size: .85rem; margin-top: .15rem; }
+  .pcp-badge { text-align: right; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: .85rem; }
+  .pcp-badge small { display:block; font-weight: 400; font-size: .65rem; opacity: .9; }
+
+  .meta-bar { max-width: 1400px; margin: 0 auto 1.5rem; background: white; border-radius: .5rem; padding: .75rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: .85rem; border-left: 4px solid var(--pertamina-green); }
+  .meta-bar b { color: var(--pertamina-blue); }
+
+  .toolbar { max-width: 1400px; margin: 0 auto 1.5rem; display: flex; justify-content: space-between; align-items: center; padding: .75rem 1.25rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .toolbar .note { font-size: .85rem; color: var(--neutral-gray); }
+  .toolbar button { background: var(--pertamina-red); color: white; border: none; padding: .5rem 1rem; border-radius: .35rem; font-weight: 600; cursor: pointer; }
+
+  .dashboard-wrap { max-width: 1400px; margin: 0 auto 2rem; background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 2rem; }
+  .dashboard-wrap h2 { margin: 0 0 1.5rem; color: var(--pertamina-blue); border-bottom: 3px solid var(--pertamina-red); padding-bottom: .5rem; display: inline-block; }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .feature-card { background: white; border-radius: .75rem; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-top: 5px solid var(--pertamina-blue); transition: transform .15s, box-shadow .15s; }
+  .feature-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,.1); }
+  .feature-card.high-impact { border-top-color: var(--pertamina-green); }
+  .feature-card.med-impact { border-top-color: var(--pertamina-yellow); }
+  .feature-card.low-impact { border-top-color: var(--neutral-gray); }
+  .feature-card h3 { margin: 0 0 .5rem; font-size: 1.1rem; display: flex; align-items: center; gap: .5rem; }
+  .feature-card .icon-big { font-size: 1.8rem; }
+  .metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; margin: .75rem 0; }
+  .metric-box { padding: .5rem .65rem; border-radius: .35rem; text-align: center; font-size: .85rem; }
+  .metric-box.before { background: var(--pertamina-red-light); color: var(--pertamina-red); border: 1px solid var(--pertamina-red); }
+  .metric-box.after { background: var(--pertamina-blue-light); color: var(--pertamina-blue-dark); border: 1px solid var(--pertamina-blue); }
+  .metric-box .label { display: block; font-size: .65rem; font-weight: 700; text-transform: uppercase; opacity: .8; margin-bottom: .15rem; }
+  .metric-box .value { font-weight: 700; font-size: .95rem; }
+
+  .delta-row { display: flex; justify-content: space-around; margin: .75rem 0; padding: .65rem; background: var(--pertamina-green-light); border-radius: .35rem; border: 1px solid var(--pertamina-green); }
+  .delta-item { text-align: center; }
+  .delta-item .label { display: block; font-size: .65rem; color: var(--neutral-gray); text-transform: uppercase; font-weight: 700; }
+  .delta-item .value { font-weight: 800; font-size: 1rem; color: var(--pertamina-green); }
+  .delta-item .arrow { color: var(--pertamina-green); font-weight: 900; }
+
+  .issue-tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem; }
+  .issue-tag { background: var(--pertamina-red); color: white; font-size: .7rem; font-weight: 700; padding: .15rem .4rem; border-radius: 3px; }
+
+  .agregat-box { background: linear-gradient(135deg, var(--pertamina-yellow), #ffa500); color: #5a4400; padding: 1.5rem; border-radius: .75rem; box-shadow: 0 4px 14px rgba(255,199,44,.4); }
+  .agregat-box h3 { margin: 0 0 1rem; font-size: 1.15rem; }
+  .agregat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .agregat-item { text-align: center; }
+  .agregat-item .metric { font-size: 2rem; font-weight: 900; line-height: 1; }
+  .agregat-item .desc { font-size: .8rem; margin-top: .35rem; }
+
+  .hub-showcase { background: var(--hub-grad); color: white; padding: 2rem; border-radius: 1rem; text-align: center; box-shadow: 0 6px 20px rgba(0,85,140,.3); margin: 2rem 0; }
+  .hub-showcase h2 { margin: 0 0 .5rem; color: white; border: none; }
+  .hub-showcase .tagline { font-style: italic; opacity: .95; margin-bottom: 1rem; }
+  .stack-pills { display: flex; flex-wrap: wrap; gap: .65rem; justify-content: center; }
+  .stack-pill { background: rgba(255,255,255,.2); padding: .4rem .85rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+
+  .issue-section { max-width: 1400px; margin: 0 auto 2rem; background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 2rem; }
+  .issue-section h2 { margin: 0 0 1rem; color: var(--pertamina-red); border-bottom: 3px solid var(--pertamina-red); padding-bottom: .5rem; display: inline-block; }
+  .issue-table { width: 100%; border-collapse: collapse; font-size: .9rem; margin-bottom: 1.5rem; }
+  .issue-table th { background: var(--pertamina-red); color: white; padding: .55rem .75rem; text-align: left; }
+  .issue-table td { padding: .55rem .75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .issue-table .code { font-weight: 800; color: var(--pertamina-red); text-align: center; width: 50px; }
+
+  .coverage-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .coverage-table th { background: var(--pertamina-blue); color: white; padding: .5rem; text-align: center; }
+  .coverage-table th:first-child { text-align: left; }
+  .coverage-table td { padding: .45rem .5rem; border: 1px solid var(--border); text-align: center; }
+  .coverage-table td:first-child { text-align: left; font-weight: 600; }
+  .coverage-table .yes { background: var(--pertamina-green-light); color: var(--pertamina-green); font-weight: 800; }
+  .coverage-table .no { background: #f3f4f6; color: var(--neutral-gray); }
+
+  .footer { text-align:center; padding:1.5rem; color:var(--neutral-gray); font-size:.85rem; max-width: 1400px; margin: 0 auto; }
+  .footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
+
+  @media print {
+    body { padding: 0; background: white; }
+    .toolbar { display: none; }
+    .dashboard-wrap, .issue-section, .hub-showcase { box-shadow: none; page-break-inside: avoid; }
+    .header-bar { box-shadow: none; }
+    .feature-card:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-bar">
+  <div class="logo-pertamina">PERTAMINA<br/><small>PATRA NIAGA</small></div>
+  <div class="header-title">
+    <h1>§3.4 Solusi Terpilih — HC Portal</h1>
+    <small>Versi C: Comparison Dashboard (Executive View)</small>
+  </div>
+  <div class="pcp-badge">PCP SMART<br/><small>2026</small></div>
+</div>
+
+<div class="meta-bar">
+  <div>🎯 <b>Audience:</b> Executive review, manajemen senior, presentation singkat</div>
+  <div>📌 <b>Tujuan:</b> Tunjukkan impact kuantitatif HC Portal lintas 7 fitur dalam 1 dashboard view</div>
+</div>
+
+<div class="toolbar">
+  <div class="note">📊 <b>Versi C (Secondary)</b> — Card grid 7 fitur + agregat impact + HC Portal hub showcase</div>
+  <button onclick="window.print()">🖨️ Print / Save PDF</button>
+</div>
+
+<div class="dashboard-wrap">
+  <h2>🎯 7 Fitur Impactful — Comparison Card</h2>
+
+  <div class="cards-grid">
+    <div class="feature-card high-impact">
+      <h3><span class="icon-big">📝</span> 01 Assessment Online</h3>
+      <div class="metric-row">
+        <div class="metric-box before"><span class="label">Sebelum</span><span class="value">6 step</span></div>
+        <div class="metric-box after"><span class="label">Sesudah</span><span class="value">2 step</span></div>
+      </div>
+      <div class="delta-row">
+        <div class="delta-item"><span class="label">Step</span><span class="value">-67% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Tools</span><span class="value">-75% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Waktu</span><span class="value">~95% <span class="arrow">⬇</span></span></div>
+      </div>
+      <div class="issue-tags"><span class="issue-tag">A</span><span class="issue-tag">B</span><span class="issue-tag">C</span><span class="issue-tag">D</span></div>
+    </div>
+
+    <div class="feature-card high-impact">
+      <h3><span class="icon-big">🎯</span> 02 PROTON Coaching</h3>
+      <div class="metric-row">
+        <div class="metric-box before"><span class="label">Sebelum</span><span class="value">5 step</span></div>
+        <div class="metric-box after"><span class="label">Sesudah</span><span class="value">2 step</span></div>
+      </div>
+      <div class="delta-row">
+        <div class="delta-item"><span class="label">Step</span><span class="value">-60% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Tools</span><span class="value">-75% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Waktu</span><span class="value">~95% <span class="arrow">⬇</span></span></div>
+      </div>
+      <div class="issue-tags"><span class="issue-tag">A</span><span class="issue-tag">C</span><span class="issue-tag">E</span></div>
+    </div>
+
+    <div class="feature-card high-impact">
+      <h3><span class="icon-big">📋</span> 03 IDP / Plan</h3>
+      <div class="metric-row">
+        <div class="metric-box before"><span class="label">Sebelum</span><span class="value">4 step</span></div>
+        <div class="metric-box after"><span class="label">Sesudah</span><span class="value">1 step</span></div>
+      </div>
+      <div class="delta-row">
+        <div class="delta-item"><span class="label">Step</span><span class="value">-75% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Tools</span><span class="value">-67% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Waktu</span><span class="value">~94% <span class="arrow">⬇</span></span></div>
+      </div>
+      <div class="issue-tags"><span class="issue-tag">A</span><span class="issue-tag">B</span><span class="issue-tag">E</span></div>
+    </div>
+
+    <div class="feature-card high-impact">
+      <h3><span class="icon-big">📊</span> 04 KKJ & Matriks</h3>
+      <div class="metric-row">
+        <div class="metric-box before"><span class="label">Sebelum</span><span class="value">4 step</span></div>
+        <div class="metric-box after"><span class="label">Sesudah</span><span class="value">1 step</span></div>
+      </div>
+      <div class="delta-row">
+        <div class="delta-item"><span class="label">Step</span><span class="value">-75% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Tools</span><span class="value">-67% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Waktu</span><span class="value">~99% <span class="arrow">⬇</span></span></div>
+      </div>
+      <div class="issue-tags"><span class="issue-tag">A</span><span class="issue-tag">B</span><span class="issue-tag">D</span></div>
+    </div>
+
+    <div class="feature-card high-impact">
+      <h3><span class="icon-big">🏆</span> 05 Sertifikat & Renewal</h3>
+      <div class="metric-row">
+        <div class="metric-box before"><span class="label">Sebelum</span><span class="value">6 step</span></div>
+        <div class="metric-box after"><span class="label">Sesudah</span><span class="value">2 step</span></div>
+      </div>
+      <div class="delta-row">
+        <div class="delta-item"><span class="label">Step</span><span class="value">-67% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Tools</span><span class="value">-75% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Waktu</span><span class="value">~99% <span class="arrow">⬇</span></span></div>
+      </div>
+      <div class="issue-tags"><span class="issue-tag">A</span><span class="issue-tag">C</span><span class="issue-tag">F</span></div>
+    </div>
+
+    <div class="feature-card high-impact">
+      <h3><span class="icon-big">📈</span> 06 Reporting / Analytics</h3>
+      <div class="metric-row">
+        <div class="metric-box before"><span class="label">Sebelum</span><span class="value">5 step</span></div>
+        <div class="metric-box after"><span class="label">Sesudah</span><span class="value">2 step</span></div>
+      </div>
+      <div class="delta-row">
+        <div class="delta-item"><span class="label">Step</span><span class="value">-60% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Tools</span><span class="value">-67% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Waktu</span><span class="value">~96% <span class="arrow">⬇</span></span></div>
+      </div>
+      <div class="issue-tags"><span class="issue-tag">B</span><span class="issue-tag">D</span></div>
+    </div>
+
+    <div class="feature-card high-impact">
+      <h3><span class="icon-big">👥</span> 07 Data Pekerja</h3>
+      <div class="metric-row">
+        <div class="metric-box before"><span class="label">Sebelum</span><span class="value">6 step</span></div>
+        <div class="metric-box after"><span class="label">Sesudah</span><span class="value">1 step</span></div>
+      </div>
+      <div class="delta-row">
+        <div class="delta-item"><span class="label">Step</span><span class="value">-83% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Tools</span><span class="value">-80% <span class="arrow">⬇</span></span></div>
+        <div class="delta-item"><span class="label">Waktu</span><span class="value">~83% <span class="arrow">⬇</span></span></div>
+      </div>
+      <div class="issue-tags"><span class="issue-tag">A</span><span class="issue-tag">B</span><span class="issue-tag">C</span></div>
+    </div>
+
+    <div class="agregat-box">
+      <h3>📊 Agregat Impact (Median)</h3>
+      <div class="agregat-grid">
+        <div class="agregat-item">
+          <div class="metric">-67%</div>
+          <div class="desc">Step Process</div>
+        </div>
+        <div class="agregat-item">
+          <div class="metric">-75%</div>
+          <div class="desc">Tools Count</div>
+        </div>
+        <div class="agregat-item">
+          <div class="metric">~95%</div>
+          <div class="desc">Time Saved</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub-showcase">
+    <h2>🌐 HC PORTAL — Single Source of Truth</h2>
+    <div class="tagline">Web application terintegrasi yang menyatukan 7 fitur kompetensi HC dalam 1 platform</div>
+    <div class="stack-pills">
+      <span class="stack-pill">⚙️ ASP.NET Core 8</span>
+      <span class="stack-pill">🗄️ SQL Server</span>
+      <span class="stack-pill">⚡ SignalR Real-Time</span>
+      <span class="stack-pill">🔍 Audit Log</span>
+      <span class="stack-pill">🔐 Role-Based Access</span>
+      <span class="stack-pill">⏰ Hangfire Background</span>
+    </div>
+  </div>
+</div>
+
+<div class="issue-section">
+  <h2>🛠️ Issue Pain Point & Coverage Matrix</h2>
+
+  <table class="issue-table">
+    <thead><tr><th style="width:50px;">Code</th><th style="width:30%;">Issue Sebelum</th><th>Mitigated by HC Portal</th></tr></thead>
+    <tbody>
+      <tr><td class="code">A</td><td><b>Tools Terfragmentasi</b></td><td>Konsolidasi ke 1 portal — eliminasi Excel scattered, FleQi, Word, paperwork, WA koordinasi</td></tr>
+      <tr><td class="code">B</td><td><b>No Single Source of Truth</b></td><td>DB SQL Server terpusat dengan foreign key linking antar entity</td></tr>
+      <tr><td class="code">C</td><td><b>No Audit Trail</b></td><td>Audit log seluruh aksi (CRUD, approval, impersonation) + timestamp</td></tr>
+      <tr><td class="code">D</td><td><b>Reporting Ad-Hoc</b></td><td>Analytics Dashboard real-time + export Excel/PDF on-demand</td></tr>
+      <tr><td class="code">E</td><td><b>Workflow Tanpa Tracking</b></td><td>Status history Coach → Atasan → HC tersimpan di DB</td></tr>
+      <tr><td class="code">F</td><td><b>Renewal Sertifikat Reaktif</b></td><td>Badge expiry otomatis + menu Renewal Certificate + planning export</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="color: var(--pertamina-blue);">Matriks Coverage — Fitur × Issue</h3>
+  <table class="coverage-table">
+    <thead>
+      <tr>
+        <th>Issue \ Fitur</th>
+        <th>01 Assessment</th><th>02 PROTON</th><th>03 IDP</th><th>04 KKJ</th><th>05 Sertifikat</th><th>06 Reporting</th><th>07 Data Pekerja</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><b>A</b> Tools</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td><b>B</b> SSoT</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td><b>C</b> Audit</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td><b>D</b> Reporting</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td></tr>
+      <tr><td><b>E</b> Workflow</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td><b>F</b> Renewal</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">
+  <p>📌 <b>Versi C</b> (Comparison Dashboard) — PCP SMART 2026 §3.4 v3.0 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.0</code></p>
+  <p>💡 Hover card untuk highlight. Klik 🖨️ Print untuk save PDF.</p>
+</div>
+
+</body>
+</html>
