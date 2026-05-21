@@ -3908,6 +3908,87 @@ namespace HcPortal.Controllers
                         currentRow += 22; // approx rows occupied by 400px image
                     }
                 }
+
+                // === Detail Jawaban (REQ EXP-03 — MC/MA per soal, Essay skip, "Tidak dijawab" untuk Abandoned) ===
+                var sessionPackage = sessionPackageMap.FirstOrDefault(x => x.AssessmentSessionId == session.Id);
+                if (sessionPackage != null)
+                {
+                    var sessionQuestions = allQuestions
+                        .Where(q => q.AssessmentPackageId == sessionPackage.AssessmentPackageId)
+                        .OrderBy(q => q.Id)
+                        .ToList();
+                    var sessionResp = allResponses.Where(r => r.AssessmentSessionId == session.Id).ToList();
+
+                    ws.Cell(currentRow, 1).Value = "Detail Jawaban";
+                    ws.Cell(currentRow, 1).Style.Font.Bold = true;
+                    ws.Range(currentRow, 1, currentRow, 6).Merge();
+                    currentRow++;
+
+                    // Table header
+                    ws.Cell(currentRow, 1).Value = "No";
+                    ws.Cell(currentRow, 2).Value = "Soal";
+                    ws.Cell(currentRow, 3).Value = "Tipe";
+                    ws.Cell(currentRow, 4).Value = "Jawaban Peserta";
+                    ws.Cell(currentRow, 5).Value = "Jawaban Benar";
+                    ws.Cell(currentRow, 6).Value = "Status";
+                    ws.Range(currentRow, 1, currentRow, 6).Style.Font.Bold = true;
+                    ws.Range(currentRow, 1, currentRow, 6).Style.Fill.BackgroundColor = XLColor.LightBlue;
+                    currentRow++;
+
+                    int no = 1;
+                    foreach (var q in sessionQuestions)
+                    {
+                        string tipe = q.QuestionType ?? "MultipleChoice";
+
+                        if (tipe == "Essay")
+                        {
+                            ws.Cell(currentRow, 1).Value = no++;
+                            ws.Cell(currentRow, 2).Value = q.QuestionText;
+                            ws.Cell(currentRow, 3).Value = "Essay";
+                            ws.Cell(currentRow, 4).Value = "Essay – manual grading (lihat Penilaian Essay)";
+                            ws.Cell(currentRow, 5).Value = "—";
+                            ws.Cell(currentRow, 6).Value = "—";
+                            currentRow++;
+                            continue;
+                        }
+
+                        var responses = sessionResp.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue).ToList();
+                        string jawabanText;
+                        bool correct;
+
+                        if (!responses.Any())
+                        {
+                            // Soal tanpa response (Abandoned skip soal) — REQ EXP-03
+                            jawabanText = "Tidak dijawab";
+                            correct = false;
+                        }
+                        else if (tipe == "MultipleChoice")
+                        {
+                            var optId = responses.First().PackageOptionId!.Value;
+                            var opt = q.Options.FirstOrDefault(o => o.Id == optId);
+                            jawabanText = opt?.OptionText ?? "—";
+                            correct = opt?.IsCorrect == true;
+                        }
+                        else // MultipleAnswer
+                        {
+                            var selectedIds = responses.Select(r => r.PackageOptionId!.Value).ToHashSet();
+                            jawabanText = string.Join(", ",
+                                q.Options.Where(o => selectedIds.Contains(o.Id)).Select(o => o.OptionText));
+                            var correctIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                            correct = selectedIds.SetEquals(correctIds);
+                        }
+
+                        string correctText = string.Join(", ", q.Options.Where(o => o.IsCorrect).Select(o => o.OptionText));
+
+                        ws.Cell(currentRow, 1).Value = no++;
+                        ws.Cell(currentRow, 2).Value = q.QuestionText;
+                        ws.Cell(currentRow, 3).Value = tipe == "MultipleChoice" ? "MC" : "MA";
+                        ws.Cell(currentRow, 4).Value = jawabanText;
+                        ws.Cell(currentRow, 5).Value = correctText;
+                        ws.Cell(currentRow, 6).Value = correct ? "✓" : "✗";
+                        currentRow++;
+                    }
+                }
             }
 
             // Sanitize title for filename: replace non-alphanumeric with _
