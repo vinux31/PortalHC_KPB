@@ -383,6 +383,102 @@
 
   /* ===== Reusable component styles ===== */
 
+  /* Mockup + content split layout */
+  .slide-mockup-split { display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; align-items: stretch; margin-top: 4px; height: 100%; }
+  .mockup-frame {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid var(--slate-dark);
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(13, 148, 136, 0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  body.dark .mockup-frame { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-color: var(--teal); }
+  .mockup-bar {
+    background: #cbd5e1;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  body.dark .mockup-bar { background: #334155; }
+  .mockup-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .mockup-dot.red { background: #ef4444; }
+  .mockup-dot.yellow { background: #eab308; }
+  .mockup-dot.green { background: #22c55e; }
+  .mockup-url {
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 2px 10px;
+    font-size: 8pt;
+    color: var(--slate);
+    margin-left: 8px;
+    flex: 1;
+    font-family: 'Cascadia Code', Consolas, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  body.dark .mockup-url { background: #0f172a; color: #94a3b8; }
+  .mockup-img-wrap {
+    flex: 1;
+    overflow: hidden;
+    background: #fff;
+    position: relative;
+  }
+  body.dark .mockup-img-wrap { background: #0f172a; }
+  .mockup-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .mockup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mockup-content h4 {
+    font-size: 13pt;
+    font-weight: 800;
+    color: var(--teal-dark);
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  body.dark .mockup-content h4 { color: var(--teal-light); }
+  .mockup-content ul { padding-left: 18px; margin: 0; }
+  .mockup-content li { font-size: 9.5pt; color: var(--text-muted); line-height: 1.45; margin-bottom: 4px; }
+  .mockup-content li strong { color: var(--text); }
+  .mockup-tip {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.04) 100%);
+    border-left: 3px solid var(--amber);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 9pt;
+    color: var(--text);
+    margin-top: auto;
+  }
+  .mockup-tip strong { color: var(--amber-dark); }
+  body.dark .mockup-tip strong { color: var(--amber); }
+  .mockup-warn {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.10) 0%, rgba(220, 38, 38, 0.03) 100%);
+    border-left: 3px solid var(--red);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 9pt;
+    color: var(--text);
+  }
+  .mockup-warn strong { color: var(--red); }
+
+  /* Mockup HTML recreated (for slides without screenshot) */
+  .mockup-recreated { padding: 14px; background: #fff; flex: 1; overflow: hidden; }
+  body.dark .mockup-recreated { background: #1a2e35; color: #f1f5f9; }
+  .mr-navbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 6px 10px; display: flex; align-items: center; gap: 14px; font-size: 8.5pt; }
+  body.dark .mr-navbar { background: #1a2e35; border-color: #334155; }
+  .mr-brand { color: #2563eb; font-weight: 800; font-size: 10pt; }
+  .mr-nav-item { color: #475569; }
+  .mr-nav-item.active { color: #2563eb; }
+  .mr-bell { margin-left: auto; position: relative; font-size: 11pt; color: #475569; }
+  .mr-bell-badge { position: absolute; top: -6px; right: -8px; background: #dc2626; color: #fff; border-radius: 8px; font-size: 7pt; padding: 1px 5px; font-weight: 700; }
+
   /* Agenda list */
   .agenda-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 24px; margin-top: 8px; }
   .agenda-item {
@@ -919,35 +1015,33 @@
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
         <h1 class="slide-title">CMP <span class="accent">Overview</span></h1>
-        <p class="slide-subtitle">Empat sub-modul utama yang HC pegang harian</p>
+        <p class="slide-subtitle">Halaman landing CMP &mdash; akses 6 sub-modul utama via card grid</p>
       </div>
       <div class="slide-badge">SLIDE 5 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="module-grid">
-        <div class="module-tile">
-          <div class="m-icon">&#128101;</div>
-          <div class="m-title">Records Team</div>
-          <div class="m-desc">Monitor tim lintas section + filter cascade + export Excel</div>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span>
+            <span class="mockup-dot yellow"></span>
+            <span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/Index</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/05-cmp-index.png" alt="CMP Landing Page"></div>
         </div>
-        <div class="module-tile">
-          <div class="m-icon">&#128200;</div>
-          <div class="m-title">Analytics Dashboard</div>
-          <div class="m-desc">Compliance, fail rate, trend, expiring soon &mdash; semua chart</div>
+        <div class="mockup-content">
+          <h4>&#128202; 6 Sub-Modul di CMP</h4>
+          <ul>
+            <li><strong>Dokumen KKJ</strong> &mdash; kerangka kompetensi per jabatan</li>
+            <li><strong>Assessment Saya</strong> &mdash; ujian &amp; hasil</li>
+            <li><strong>Riwayat Pelatihan</strong> &mdash; records + Team View</li>
+            <li><strong>Manajemen Sertifikasi</strong> &mdash; status sertifikat</li>
+            <li><strong>Dasbor Analitik</strong> &mdash; chart compliance + fail rate</li>
+            <li><strong>Budget Training</strong> &mdash; anggaran &amp; realisasi</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Inti HC:</strong> fokus harian di <strong>Records Team</strong> + <strong>Analytics Dashboard</strong>. Selain itu ad-hoc.</div>
         </div>
-        <div class="module-tile">
-          <div class="m-icon">&#128203;</div>
-          <div class="m-title">Pre / Post Test</div>
-          <div class="m-desc">Setup &amp; ukur Gain Score efektivitas pelatihan</div>
-        </div>
-        <div class="module-tile">
-          <div class="m-icon">&#128176;</div>
-          <div class="m-title">Budget Training</div>
-          <div class="m-desc">Anggaran pelatihan tahunan + realisasi tracking</div>
-        </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; Inti:</strong> CMP = data &amp; analytics. Untuk HC, fokus utama di <b>Records Team</b> (cek compliance harian) dan <b>Analytics Dashboard</b> (insight untuk laporan).
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 2 CMP (8 task lengkap)</p>
@@ -959,33 +1053,29 @@
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
         <h1 class="slide-title">Records <span class="accent">Team</span></h1>
-        <p class="slide-subtitle">Monitoring training &amp; assessment tim lintas section</p>
+        <p class="slide-subtitle">12 pekerja monitored real-time &mdash; filter cascade + export</p>
       </div>
       <div class="slide-badge">SLIDE 6 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="split-2">
-        <div class="split-card">
-          <h4>&#128269; Filter Cascade</h4>
-          <ul>
-            <li><b>Section</b> &rarr; cascade <b>Unit</b></li>
-            <li><b>Kategori Assessment</b> &rarr; <b>Sub-Kategori</b></li>
-            <li><b>Status</b>: Belum, Berjalan, Selesai, Expired</li>
-            <li>Search nama pekerja langsung</li>
-          </ul>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/Records (Team View)</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/06-records-team.png" alt="Records Team View"></div>
         </div>
-        <div class="split-card amber">
-          <h4>&#128229; Export Excel</h4>
+        <div class="mockup-content">
+          <h4>&#128269; Yang Bisa Anda Lakukan</h4>
           <ul>
-            <li>Export tim &mdash; <b>Assessment</b> per kategori</li>
-            <li>Export tim &mdash; <b>Training</b> per periode</li>
-            <li>Filter aktif diteruskan ke export</li>
-            <li>Drill ke detail worker per nama</li>
+            <li>Filter <strong>Bagian / Unit / Kategori / Sub-Kategori / Status / Tanggal</strong></li>
+            <li>Kolom Assessment &amp; Training per pekerja (badge count biru/hijau)</li>
+            <li>Drill <strong>Detail</strong> per pekerja &rarr; unified history</li>
+            <li>Tombol <strong>Export Assessment</strong> &amp; <strong>Export Training</strong> Excel</li>
           </ul>
+          <div class="mockup-tip"><strong>&#128161; HC scope:</strong> HC (L2) lihat <strong>semua section</strong>. Section Head (L4) locked ke section sendiri.</div>
         </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; HC scope:</strong> HC (L2) bisa lihat <b>semua section</b>. Section Head (L4) cuma section mereka sendiri. Manfaatkan akses lintas section untuk identifikasi unit yang lambat compliance.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.4 &mdash; Records Team</p>
@@ -997,47 +1087,28 @@
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
         <h1 class="slide-title">Analytics <span class="accent">Dashboard</span></h1>
-        <p class="slide-subtitle">Empat metric utama + filter cascade + export</p>
+        <p class="slide-subtitle">25 Sesi &middot; 56% Pass Rate &middot; 6 tab chart &middot; export Excel per chart</p>
       </div>
       <div class="slide-badge">SLIDE 7 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="metric-grid">
-        <div class="metric-card">
-          <div class="metric-num">&#128202;</div>
-          <div class="metric-label"><b>Compliance Chart</b><br>Pass/fail rate per section</div>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/AnalyticsDashboard</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/07-analytics-dashboard.png" alt="Analytics Dashboard"></div>
         </div>
-        <div class="metric-card" style="border-left-color: var(--red);">
-          <div class="metric-num" style="color: var(--red);">&#9888;</div>
-          <div class="metric-label"><b>Fail Rate</b><br>Drill per kategori + soal</div>
-        </div>
-        <div class="metric-card" style="border-left-color: var(--amber);">
-          <div class="metric-num" style="color: var(--amber-dark);">&#128200;</div>
-          <div class="metric-label"><b>Trend Bulanan</b><br>Movement compliance</div>
-        </div>
-        <div class="metric-card" style="border-left-color: var(--orange);">
-          <div class="metric-num" style="color: var(--orange);">&#9203;</div>
-          <div class="metric-label"><b>Expiring Soon</b><br>Sertifikat &le; 90 hari</div>
-        </div>
-      </div>
-      <div class="split-2">
-        <div class="split-card green">
-          <h4>&#128229; Export per Chart</h4>
+        <div class="mockup-content">
+          <h4>&#128202; 4 Metric + 6 Tab Chart</h4>
           <ul>
-            <li>Fail Rate Excel</li>
-            <li>Trend Bulanan Excel</li>
-            <li>ET Breakdown Excel</li>
-            <li>Item Analysis &amp; Gain Score</li>
+            <li><strong>Total Sesi</strong> &middot; <strong>Pass Rate</strong> &middot; <strong>Sertifikat Expired</strong> &middot; <strong>Avg Gain Score</strong></li>
+            <li>Tab: <strong>Fail Rate</strong>, <strong>Trend</strong>, <strong>Skor Elemen Teknis</strong>, <strong>Sertifikat Expired</strong>, <strong>Item Analysis</strong>, <strong>Gain Score</strong></li>
+            <li>Filter cascade Bagian &rarr; Unit, Kategori &rarr; Sub-Kategori, rentang tanggal</li>
+            <li>Tombol <strong>Export Excel</strong> per chart</li>
           </ul>
-        </div>
-        <div class="split-card">
-          <h4>&#128269; Cascade Filter</h4>
-          <ul>
-            <li>Bagian &rarr; Unit (auto-load)</li>
-            <li>Kategori &rarr; Sub-Kategori</li>
-            <li>Rentang tanggal custom</li>
-            <li>Apply ke semua komponen</li>
-          </ul>
+          <div class="mockup-tip"><strong>&#128161; Klik bar fail rate</strong> untuk drill-down ke kategori &amp; soal yang banyak gagal.</div>
         </div>
       </div>
     </div>
@@ -1155,34 +1226,29 @@
       <div>
         <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
         <h1 class="slide-title">Coaching Proton <span class="accent">Dashboard</span></h1>
-        <p class="slide-subtitle">Monitoring global + drill ke coachee + bottleneck</p>
+        <p class="slide-subtitle">5 metric global + filter cascade + tab Bottleneck Report</p>
       </div>
       <div class="slide-badge">SLIDE 10 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="split-2">
-        <div class="split-card">
-          <h4>&#127760; Global View</h4>
-          <ul>
-            <li>Total coachee aktif lintas section</li>
-            <li>Distribusi status deliverable</li>
-            <li>Progress per Section / Unit / Track</li>
-            <li>Filter cascade: Section &rarr; Unit, Kategori &rarr; Sub-Kategori</li>
-            <li>Drill ke card coachee untuk detail deliverable + session</li>
-          </ul>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CDP/Dashboard</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/10-cdp-dashboard.png" alt="CDP Coaching Proton Dashboard"></div>
         </div>
-        <div class="split-card red">
-          <h4>&#128680; Tab Bottleneck Report</h4>
+        <div class="mockup-content">
+          <h4>&#127760; Komponen Utama</h4>
           <ul>
-            <li>Deliverable stuck per coachee / unit</li>
-            <li>Filter: Pending Approval &gt; X hari, Rejected, by Coach</li>
-            <li>Identifikasi akar: reviewer lambat, coachee pasif, scope unclear</li>
-            <li>Export untuk meeting eskalasi</li>
+            <li>5 metric card: <strong>Total Coachees</strong>, <strong>Approved/Total</strong>, <strong>Pending Sr Spv</strong>, <strong>Pending HC Review</strong>, <strong>Completed Track</strong></li>
+            <li>Chart <strong>Competency Level Granted Over Time</strong> + <strong>Deliverable Status</strong></li>
+            <li>Tabel <strong>Team Deliverable Progress</strong> per coachee (progress bar + status)</li>
+            <li>Filter cascade: Section &rarr; Unit, Kategori &rarr; Track</li>
           </ul>
+          <div class="mockup-tip"><strong>&#128161; Daily routine HC:</strong> buka Dashboard pagi, scan card <strong>Pending HC Review</strong> &mdash; itu yang menunggu approval Anda.</div>
         </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; Daily routine HC:</strong> Buka Dashboard pagi, scan tab Bottleneck dulu. Identifikasi 3-5 deliverable terlama, eskalasi ke Section Head terkait.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.3 &amp; &sect;3.5 &mdash; Dashboard + Bottleneck</p>
@@ -1194,34 +1260,30 @@
       <div>
         <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
         <h1 class="slide-title">Histori Proton + <span class="accent">Export</span></h1>
-        <p class="slide-subtitle">Laporan periode + per coachee &mdash; Excel &amp; PDF</p>
+        <p class="slide-subtitle">2 coachee Operator Alkylation Unit aktif &mdash; progress visual Th1/2/3</p>
       </div>
       <div class="slide-badge">SLIDE 11 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="split-2">
-        <div class="split-card">
-          <h4>&#128218; Histori per Periode</h4>
-          <ul>
-            <li>Riwayat coaching per periode Proton</li>
-            <li>Filter section, unit, track, periode</li>
-            <li>Drill detail per coachee &mdash; deliverable + session log + final assessment</li>
-            <li>Histori tetap accessible setelah periode selesai (audit trail)</li>
-          </ul>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/CDP/HistoriProton</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/11-histori-proton.png" alt="Histori Proton"></div>
         </div>
-        <div class="split-card green">
-          <h4>&#128229; Export Options</h4>
+        <div class="mockup-content">
+          <h4>&#128218; Fitur Halaman</h4>
           <ul>
-            <li><b>Histori Proton</b> &mdash; Excel rekap periode</li>
-            <li><b>Progress per Coachee</b> &mdash; Excel atau PDF</li>
-            <li><b>Bottleneck Report</b> &mdash; Excel stuck items</li>
-            <li><b>Coaching Tracking</b> &mdash; Excel lengkap</li>
-            <li><b>Workload Summary</b> &mdash; Excel beban coach</li>
+            <li>Filter <strong>Bagian / Unit / Jalur (Panelman/Operator) / Status</strong></li>
+            <li>Progress dot <strong>Tahun 1 / 2 / 3</strong> visual per coachee</li>
+            <li>Search nama atau NIP langsung</li>
+            <li>Klik <strong>Lihat Riwayat</strong> &rarr; detail deliverable + session log + final assessment</li>
+            <li>Tombol <strong>Export Excel</strong> rekap periode</li>
           </ul>
+          <div class="mockup-tip"><strong>&#128161; Reporting bulanan:</strong> kombinasi <strong>Histori Proton</strong> + <strong>Bottleneck</strong> + <strong>Workload</strong> sudah cover 80% kebutuhan ke manajemen.</div>
         </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; Untuk laporan bulanan:</strong> Kombinasikan <b>Histori Proton</b> + <b>Bottleneck</b> + <b>Workload</b>. Tiga file ini sudah cover 80% kebutuhan reporting HC ke manajemen.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.4 &mdash; Histori Proton + Export</p>
@@ -1282,35 +1344,30 @@
       <div>
         <p class="section-eyebrow">BAGIAN 3 &mdash; KELOLA DATA</p>
         <h1 class="slide-title">Silabus + <span class="accent">Guidance Files</span></h1>
-        <p class="slide-subtitle">Kelola materi pengembangan Proton per Bagian/Unit/Track</p>
+        <p class="slide-subtitle">Tabel silabus per Bagian/Unit/Track + Coaching Guidance (3 tab)</p>
       </div>
       <div class="slide-badge">SLIDE 13 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="split-2">
-        <div class="split-card">
-          <h4>&#128218; Silabus Proton</h4>
-          <ul>
-            <li><b>CRUD inline</b> &mdash; edit langsung di tabel</li>
-            <li><b>Import Excel</b> &mdash; download template, isi, upload</li>
-            <li><b>Export Excel</b> &mdash; backup silabus aktif</li>
-            <li><b>Deactivate</b> daripada Delete &mdash; safer, bisa di-reactivate</li>
-            <li>Filter per Bagian / Unit / Track</li>
-          </ul>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/ProtonData/Index?tab=silabus</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/13-silabus.png" alt="Silabus & Coaching Guidance"></div>
         </div>
-        <div class="split-card amber">
-          <h4>&#128221; Guidance Files</h4>
+        <div class="mockup-content">
+          <h4>&#128218; Tab Silabus</h4>
           <ul>
-            <li>Upload dokumen rujukan (PDF rekomendasi)</li>
-            <li>Per Bagian / Unit / Track scope</li>
-            <li>History versi sebelumnya tersimpan</li>
-            <li>Coachee + Coach + HC download dari Plan IDP</li>
-            <li>Replace file: file lama auto-archive</li>
+            <li>Pilih <strong>Bagian + Unit + Track</strong> &rarr; klik <strong>Muat Data</strong></li>
+            <li>Tabel: <strong>Kompetensi / Sub Kompetensi / Target / Deliverable</strong></li>
+            <li>Tombol <strong>Edit / Nonaktifkan / Hapus</strong> per baris</li>
+            <li>Aksi global: <strong>Export Excel</strong>, <strong>Import Excel</strong>, <strong>Download Template</strong></li>
+            <li>Tab <strong>Coaching Guidance</strong> &mdash; upload PDF guidance per scope</li>
           </ul>
+          <div class="mockup-warn"><strong>&#9888; Penting:</strong> <strong>Delete silabus = cascade</strong> ke deliverable + coachee history. Pakai <strong>Deactivate</strong> dulu.</div>
         </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#9888; Penting:</strong> <b>Delete silabus = cascade</b> ke deliverable + coachee history. Gunakan <b>Deactivate</b> dulu; delete hanya kalau silabus belum pernah dipakai. Endpoint preview cascade tersedia.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;4.1 &amp; &sect;4.2 &mdash; Silabus + Guidance</p>
@@ -1361,176 +1418,134 @@
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
-        <h1 class="slide-title">Admin Panel <span class="accent">Map</span></h1>
-        <p class="slide-subtitle">16 menu HC, dikategorikan berdasarkan area kerja</p>
+        <h1 class="slide-title">Admin Panel <span class="accent">Landing</span></h1>
+        <p class="slide-subtitle">4 section ABCD &mdash; total 14 menu yang HC kelola</p>
       </div>
       <div class="slide-badge">SLIDE 15 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="menu-map">
-        <div class="menu-cell workers"><span class="mc-icon">&#128101;</span><div class="mc-name">Kelola Pekerja</div></div>
-        <div class="menu-cell workers"><span class="mc-icon">&#127970;</span><div class="mc-name">Kelola Units</div></div>
-        <div class="menu-cell workers"><span class="mc-icon">&#127991;</span><div class="mc-name">Kelola Categories</div></div>
-        <div class="menu-cell workers"><span class="mc-icon">&#128214;</span><div class="mc-name">Audit Log</div></div>
-
-        <div class="menu-cell assessment"><span class="mc-icon">&#128190;</span><div class="mc-name">Bank Soal</div></div>
-        <div class="menu-cell assessment"><span class="mc-icon">&#128221;</span><div class="mc-name">Import Soal</div></div>
-        <div class="menu-cell assessment"><span class="mc-icon">&#128197;</span><div class="mc-name">Create Assessment</div></div>
-        <div class="menu-cell assessment"><span class="mc-icon">&#128064;</span><div class="mc-name">Monitoring</div></div>
-
-        <div class="menu-cell mapping"><span class="mc-icon">&#128279;</span><div class="mc-name">Coach Mapping</div></div>
-        <div class="menu-cell mapping"><span class="mc-icon">&#9851;</span><div class="mc-name">Renewal</div></div>
-        <div class="menu-cell mapping"><span class="mc-icon">&#127979;</span><div class="mc-name">Add Training</div></div>
-        <div class="menu-cell mapping"><span class="mc-icon">&#127942;</span><div class="mc-name">Manual Assessment</div></div>
-
-        <div class="menu-cell files"><span class="mc-icon">&#128194;</span><div class="mc-name">KKJ Files</div></div>
-        <div class="menu-cell files"><span class="mc-icon">&#128450;</span><div class="mc-name">CPDP Files</div></div>
-
-        <div class="menu-cell maintenance"><span class="mc-icon">&#128679;</span><div class="mc-name">Maintenance</div></div>
-        <div class="menu-cell maintenance"><span class="mc-icon">&#128100;</span><div class="mc-name">Impersonate <small>(Admin)</small></div></div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; Color code:</strong> <span style="color:var(--teal);">&#9632; Workers</span> &middot; <span style="color:var(--amber-dark);">&#9632; Assessment</span> &middot; <span style="color:var(--green);">&#9632; Mapping/Renewal</span> &middot; <span style="color:#7b1fa2;">&#9632; Files</span> &middot; <span style="color:var(--red);">&#9632; Maintenance</span>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/15-admin-panel.png" alt="Admin Panel Landing"></div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#9881; Organized in 4 Sections</h4>
+          <ul>
+            <li><strong>A &mdash; Data Management</strong>: Worker, Organization, KKJ, CPDP</li>
+            <li><strong>B &mdash; Proton</strong>: Silabus &amp; Guidance, Coach Mapping, Workload, Override</li>
+            <li><strong>C &mdash; Assessment &amp; Training</strong>: Manage A&amp;T, Monitoring, Audit Log, Categories, Renewal <span class="badge badge-orange" style="font-size:7pt;">3</span></li>
+            <li><strong>D &mdash; System</strong>: Maintenance Mode</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Renewal badge:</strong> angka di card Renewal = sertifikat yang perlu di-renew. Cek harian.</div>
+        </div>
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 5 Admin Panel (16 task lengkap)</p>
   </div>
 
-  <!-- ================= SLIDE 16: KELOLA PEKERJA + BANK SOAL ================= -->
+  <!-- ================= SLIDE 16: KELOLA PEKERJA ================= -->
   <div class="slide default-deco" data-slide="16">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
-        <h1 class="slide-title">Pekerja + <span class="accent">Bank Soal</span></h1>
-        <p class="slide-subtitle">Dua operasi yang paling sering HC lakukan</p>
+        <h1 class="slide-title">Manajemen <span class="accent">Pekerja</span></h1>
+        <p class="slide-subtitle">12 user aktif: 1 Admin, 1 HC, 5 Coachee, sisanya Coach/Manager/Section Head</p>
       </div>
       <div class="slide-badge">SLIDE 16 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="split-2">
-        <div class="split-card">
-          <h4>&#128101; Kelola Pekerja</h4>
-          <ul>
-            <li><b>CRUD</b> &mdash; Tambah / Edit / Detail / Deactivate</li>
-            <li><b>Import Excel</b> &mdash; massal pakai template, sekali upload ratusan worker</li>
-            <li><b>Export Excel</b> &mdash; backup atau laporan struktur SDM</li>
-            <li><b>Update role</b> &mdash; assign HC, Coach, dll</li>
-            <li>Search + filter Section/Unit/Role/Active</li>
-          </ul>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/ManageWorkers</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/16-manage-workers.png" alt="Manajemen Pekerja"></div>
         </div>
-        <div class="split-card amber">
-          <h4>&#128190; Bank Soal</h4>
+        <div class="mockup-content">
+          <h4>&#128101; Operasi Pekerja</h4>
           <ul>
-            <li><b>Manage Packages</b> &mdash; paket soal per assessment</li>
-            <li><b>Import via Excel</b> &mdash; download template MC/Essay, isi, upload</li>
-            <li><b>Preview</b> sebelum publish &mdash; simulasi tampilan peserta</li>
-            <li><b>Multiple package</b> per assessment untuk distribusi random</li>
-            <li>Copy paket Pre &rarr; Post untuk konsistensi</li>
+            <li>4 metric: <strong>Total / Admin / HC Staff / Worker</strong></li>
+            <li>Filter <strong>Bagian + Unit + Role</strong> + search nama/email/NIP</li>
+            <li>Aksi per row: <strong>Edit</strong> &middot; <strong>Deactivate</strong></li>
+            <li>Tombol global: <strong>Tambah</strong> &middot; <strong>Import Excel</strong> &middot; <strong>Export Excel</strong> &middot; <strong>Tampilkan Inactive</strong></li>
+            <li>Role badge color-coded: <span class="badge badge-red" style="font-size:7pt;">Admin</span> <span class="badge badge-blue" style="font-size:7pt;">Manager</span> <span class="badge badge-orange" style="font-size:7pt;">HC</span></li>
           </ul>
+          <div class="mockup-tip"><strong>&#128161; Bank Soal:</strong> ada di section C &mdash; <strong>Manage Assessment &amp; Training</strong>. Import soal pakai Excel template (kunci jawaban A-E kapital).</div>
         </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#9888; Pitfall import soal:</strong> Kunci jawaban di kolom Excel <b>harus huruf kapital</b> (A/B/C/D/E). Lowercase ditolak. Sheet validation di template auto-cek format.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.1, 5.4, 5.5 &mdash; Pekerja + Bank Soal + Import</p>
   </div>
 
-  <!-- ================= SLIDE 17: CREATE + MONITORING ASSESSMENT ================= -->
+  <!-- ================= SLIDE 17: ASSESSMENT MONITORING ================= -->
   <div class="slide default-deco" data-slide="17">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
-        <h1 class="slide-title">Create &amp; <span class="accent">Monitor Assessment</span></h1>
-        <p class="slide-subtitle">Alur 4 langkah dari setup sampai eksekusi real-time</p>
+        <h1 class="slide-title">Assessment <span class="accent">Monitoring</span></h1>
+        <p class="slide-subtitle">Real-time tracking 2 grup aktif: ojt test (Open) + Pre-Post UAT (Upcoming)</p>
       </div>
       <div class="slide-badge">SLIDE 17 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="flow-h">
-        <div class="flow-node">
-          <span class="flow-icon">&#128221;</span>
-          <strong>1. Create</strong>
-          Set title, kategori, jadwal, durasi, passing grade
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/AssessmentMonitoring</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/17-assessment-monitoring.png" alt="Assessment Monitoring"></div>
         </div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-node">
-          <span class="flow-icon">&#128101;</span>
-          <strong>2. Assign</strong>
-          Individu atau group/unit batch
-        </div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-node" style="border-color: var(--green); color: var(--green);">
-          <span class="flow-icon">&#128064;</span>
-          <strong>3. Monitor</strong>
-          Real-time: status, progress, waktu
-        </div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-node" style="border-color: var(--red); color: var(--red);">
-          <span class="flow-icon">&#128721;</span>
-          <strong>4. Force-Close</strong>
-          Kalau freeze/disconnect/jadwal selesai
-        </div>
-      </div>
-      <div class="split-2">
-        <div class="split-card green">
-          <h4>&#128176; Power Tools Monitor</h4>
+        <div class="mockup-content">
+          <h4>&#128064; Power Tools Monitor</h4>
           <ul>
-            <li><b>Add Extra Time</b> &mdash; tambah waktu kolektif</li>
-            <li><b>Reset Assessment</b> &mdash; full retake per user</li>
-            <li><b>Regenerate Token</b> &mdash; user salah token</li>
-            <li><b>Reshuffle Paket</b> &mdash; randomize ulang</li>
+            <li>4 metric: <strong>Grup / Peserta / Selesai / Lulus</strong></li>
+            <li>Filter status: <strong>Open + Upcoming</strong> / Closed</li>
+            <li>Dropdown <strong>Aksi</strong> per grup: Akhiri / Reset / Regenerate Token / Reshuffle / Add Extra Time</li>
+            <li>Klik nama grup &rarr; <strong>Detail per peserta</strong></li>
           </ul>
-        </div>
-        <div class="split-card red">
-          <h4>&#9888; Force-Close Ireversibel</h4>
-          <ul>
-            <li>Auto-submit jawaban yang sudah diisi</li>
-            <li>User tidak bisa lanjutkan</li>
-            <li>Ter-log di Audit Log</li>
-            <li>Pakai untuk genuine case (freeze, disconnect)</li>
-          </ul>
+          <div class="mockup-warn"><strong>&#9888; Force-Close ireversibel:</strong> auto-submit jawaban saat itu, user tidak bisa lanjut. Pakai hanya untuk freeze/disconnect/jadwal selesai.</div>
         </div>
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.6, 5.7, 5.8 &mdash; Create / Edit / Monitor</p>
   </div>
 
-  <!-- ================= SLIDE 18: COACH MAPPING + WORKLOAD ================= -->
+  <!-- ================= SLIDE 18: COACH MAPPING ================= -->
   <div class="slide default-deco" data-slide="18">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
-        <h1 class="slide-title">Coach Mapping + <span class="accent">Workload</span></h1>
-        <p class="slide-subtitle">Distribusi coachee per coach + monitoring beban kerja</p>
+        <h1 class="slide-title">Coach-Coachee <span class="accent">Mapping</span></h1>
+        <p class="slide-subtitle">Rustam Santiko (GAST) coaching Rino Operator Alkylation &mdash; aktif sejak 10 Apr</p>
       </div>
       <div class="slide-badge">SLIDE 18 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="split-2">
-        <div class="split-card">
-          <h4>&#128279; Coach-Coachee Mapping</h4>
-          <ul>
-            <li><b>Assign</b> coach ke coachee eligible per Proton track</li>
-            <li><b>Edit / Deactivate / Reactivate / Delete</b> dengan preview cascade</li>
-            <li><b>Mark Completed</b> di akhir periode Proton</li>
-            <li><b>Import Excel</b> untuk mapping batch awal</li>
-            <li><b>Export</b> mapping aktif untuk audit</li>
-          </ul>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/CoachCoacheeMapping</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/18-coach-mapping.png" alt="Coach-Coachee Mapping"></div>
         </div>
-        <div class="split-card amber">
-          <h4>&#128202; Coach Workload</h4>
+        <div class="mockup-content">
+          <h4>&#128279; Operasi Mapping</h4>
           <ul>
-            <li>Daftar coach + jumlah coachee aktif + pending review</li>
-            <li>Sort by workload &mdash; identifikasi overload</li>
-            <li><b>Set Threshold</b> &mdash; warning otomatis kalau coach overload</li>
-            <li><b>Auto-suggest reassign</b> &mdash; approve atau skip</li>
-            <li>Export untuk meeting redistribusi</li>
+            <li><strong>Group by coach</strong> &mdash; expandable row, badge "Coachee Aktif"</li>
+            <li>Tombol global: <strong>Download Template</strong> &middot; <strong>Import Excel</strong> &middot; <strong>Export Excel</strong> &middot; <strong>Tambah Mapping</strong></li>
+            <li>Aksi per coachee: <strong>Edit</strong> &middot; <strong>Nonaktifkan</strong> &middot; <strong>Graduated</strong></li>
+            <li>Filter <strong>Seksi</strong> + search nama coach/coachee</li>
+            <li>Status: <span class="badge badge-green" style="font-size:7pt;">Aktif</span> &middot; <span class="badge badge-orange" style="font-size:7pt;">Nonaktif</span></li>
           </ul>
+          <div class="mockup-tip"><strong>&#128161; Routine:</strong> kalau bell banyak notif evidence siap review &rarr; cek <strong>Coach Workload</strong> di section B &rarr; redistribusi kalau ada coach overload.</div>
         </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; Daily routine HC:</strong> Kalau bell icon banyak notif <i>evidence siap review</i>, cek <b>Coach Workload</b>. Kemungkinan ada coach overload &mdash; redistribusi mapping untuk seimbangkan beban.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.9 &amp; &sect;3.6 &mdash; Mapping + Workload</p>
@@ -1547,30 +1562,25 @@
       <div class="slide-badge">SLIDE 19 / 23</div>
     </div>
     <div class="slide-body">
-      <div class="split-2">
-        <div class="split-card amber">
-          <h4>&#128679; Maintenance Mode</h4>
-          <ul>
-            <li><b>Scope All</b> &mdash; freeze seluruh sistem (kecuali Admin)</li>
-            <li><b>Scope Specific</b> &mdash; freeze modul tertentu (CMP, CDP, dll)</li>
-            <li>Isi pesan + estimasi waktu selesai</li>
-            <li><b>Komunikasi user dulu</b> sebelum aktifkan</li>
-            <li>Action ter-log <code>MaintenanceEnabled/Disabled</code></li>
-          </ul>
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/AuditLog &mdash; 352 entries</span>
+          </div>
+          <div class="mockup-img-wrap"><img src="sosialisasi-screenshots/19b-audit-log.png" alt="Audit Log 352 entries"></div>
         </div>
-        <div class="split-card">
-          <h4>&#128269; Audit Log Investigation</h4>
+        <div class="mockup-content">
+          <h4>&#128269; Audit Log: 352 Entries Live</h4>
           <ul>
-            <li>1. Tentukan jendela waktu kasus</li>
-            <li>2. Filter Audit Log per startDate/endDate</li>
-            <li>3. Cari user + action terkait (cross-check timestamp)</li>
-            <li>4. Drill aksi sensitif: ForceClose, Override, Delete, RoleChange</li>
-            <li>5. Eskalasi ke Admin / IT kalau menemukan unauthorized action</li>
+            <li>Filter <strong>rentang tanggal</strong> + tombol <strong>Export Excel</strong></li>
+            <li>Action badge: <span class="badge badge-green" style="font-size:7pt;">CreateAssessment</span> <span class="badge" style="font-size:7pt;background:#1e293b;color:#fff;">ImportQuestions</span> <span class="badge" style="font-size:7pt;background:#1e293b;color:#fff;">RegenerateToken</span> <span class="badge" style="font-size:7pt;background:#1e293b;color:#fff;">ImpersonateStart/End</span></li>
+            <li>Investigation playbook 5 step: jendela waktu &rarr; filter &rarr; user/action &rarr; drill sensitif &rarr; eskalasi</li>
+            <li>Pagination: 15 halaman riwayat (lebih dari 1 bulan)</li>
           </ul>
+          <div class="mockup-tip"><strong>&#128161; Maintenance Mode</strong> juga di section ini &mdash; pilih <strong>Scope Specific</strong> per modul (CMP, CDP, dll) kalau cuma freeze sebagian. <strong>Komunikasi user dulu</strong> sebelum aktifkan.</div>
+          <div class="mockup-warn"><strong>&#9888; Impersonate Admin-only:</strong> HC request ke Admin dengan NIP user + screenshot error + langkah reproduksi.</div>
         </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; Impersonate (Admin only):</strong> HC tidak bisa pakai Impersonate. Kalau perlu debug user case, request ke Admin dengan detail: NIP user, menu/halaman, screenshot error, langkah reproduksi.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.14, 5.15, 5.16 &mdash; Audit / Maintenance / Impersonate</p>
@@ -1582,27 +1592,65 @@
       <div>
         <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
         <h1 class="slide-title">Notifikasi &amp; <span class="accent">Workflow</span></h1>
-        <p class="slide-subtitle">Bell icon = entry point alur kerja Anda</p>
+        <p class="slide-subtitle">Bell icon di navbar &mdash; 7 unread notif untuk Admin KPB saat sosialisasi ini</p>
       </div>
       <div class="slide-badge">SLIDE 20 / 23</div>
     </div>
     <div class="slide-body">
-      <table class="notif-table">
-        <thead>
-          <tr><th>Event</th><th>Title</th><th>Untuk HC</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>COACH_EVIDENCE_APPROVED_SH</code></td><td>Evidence Approved by Section Head</td><td><b>Siap HC final review</b></td></tr>
-          <tr><td><code>COACH_EVIDENCE_SUBMITTED</code></td><td>Evidence Submitted</td><td>Info awareness (notif utama ke Sr Spv)</td></tr>
-          <tr><td><code>COACH_EVIDENCE_REJECTED</code></td><td>Evidence Rejected</td><td>Awareness chain reset</td></tr>
-          <tr><td><code>ASMT_RESULTS_READY</code></td><td>Assessment Results Ready</td><td>Monitoring peserta selesai</td></tr>
-          <tr><td><code>ASMT_ASSIGNED</code></td><td>Assessment Assigned</td><td>Konfirmasi peserta diberitahu</td></tr>
-          <tr><td><code>COACH_ASSIGNED</code></td><td>Coach Assigned</td><td>Setelah HC assign mapping baru</td></tr>
-          <tr><td><code>COACH_SESSION_COMPLETED</code></td><td>Coaching Session Completed</td><td>Tracking session selesai</td></tr>
-        </tbody>
-      </table>
-      <div class="tip-bar">
-        <strong>&#128161; Routine:</strong> Mulai hari dengan klik <b>bell icon</b>. Kelola via <b>Mark as Read</b> / <b>Dismiss</b> supaya badge merah selalu reflect notif yang benar-benar butuh action.
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/ &mdash; navbar bell dropdown</span>
+          </div>
+          <div class="mockup-recreated">
+            <div class="mr-navbar">
+              <span class="mr-brand">&#127970; HC Portal</span>
+              <span class="mr-nav-item">CMP</span>
+              <span class="mr-nav-item">CDP</span>
+              <span class="mr-nav-item">Panduan</span>
+              <span class="mr-nav-item active">Kelola Data</span>
+              <span class="mr-bell">&#128276;<span class="mr-bell-badge">7</span></span>
+            </div>
+            <div style="background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); padding: 0;">
+              <div style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: #0f172a; font-size: 10pt;">Notifikasi (7)</strong>
+                <span style="font-size: 8pt; color: #2563eb; cursor: pointer;">Mark all as read</span>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; background: #eff6ff;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#9989; Evidence Approved by Section Head</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Deliverable Rino &mdash; siap HC final review &middot; 2j</div>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; background: #eff6ff;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#128221; Assessment Results Ready</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Test Pre-Post UAT 297 &mdash; 1 peserta selesai &middot; 4j</div>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#128279; Coach Assigned</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Rustam Santiko &rarr; Rino (Operator Tahun 1) &middot; 1h</div>
+              </div>
+              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#10060; Evidence Rejected</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Chain reset &mdash; awareness untuk HC &middot; 2h</div>
+              </div>
+              <div style="padding: 10px 14px;">
+                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#9203; Sertifikat Akan Expired</div>
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">3 sertifikat mendekati expired &middot; 3h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128276; Bell Icon = Entry Point</h4>
+          <ul>
+            <li><strong>Badge merah</strong> di navbar &mdash; jumlah unread</li>
+            <li>Klik bell &rarr; dropdown notif terbaru</li>
+            <li>Klik item &rarr; navigate ke halaman terkait</li>
+            <li><strong>Mark as Read</strong> per item / <strong>Mark all as read</strong></li>
+            <li><strong>Dismiss</strong> kalau notif tidak relevan</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; Routine:</strong> mulai hari dengan klik bell. Notif paling penting untuk HC = <strong>Evidence Approved by Section Head</strong> (siap HC final review).</div>
+        </div>
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>

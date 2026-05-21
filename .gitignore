@@ -505,6 +505,7 @@ test.txt
 *.png
 !wwwroot/**/*.png
 !sosialisasi-portalhc/assets/ppt-images/*.png
+!docs/sosialisasi-screenshots/*.png
 *.db
 *.db-shm
 *.db-wal
