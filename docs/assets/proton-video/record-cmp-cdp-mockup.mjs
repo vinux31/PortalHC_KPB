@@ -1,7 +1,7 @@
 // Record cmp-cdp-mockup.html to WebM via Playwright
 // Usage: node docs/assets/proton-video/record-cmp-cdp-mockup.mjs
 //
-// Output: docs/assets/proton-video/cmp-cdp-mockup.webm (21s, 1920x1080)
+// Output: docs/assets/proton-video/cmp-cdp-mockup.webm (41s, 1920x1080)
 // Convert to MP4: ffmpeg -i cmp-cdp-mockup.webm -c:v libx264 -crf 18 -preset slow cmp-cdp-mockup.mp4
 
 import { chromium } from 'playwright';
@@ -14,7 +14,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 8770;
 const URL = `http://127.0.0.1:${PORT}/cmp-cdp-mockup.html`;
 const OUT_DIR = here;
-const RECORD_DURATION_MS = 21_000; // 20s animation + 1s buffer
+const RECORD_DURATION_MS = 41_000; // 40s animation (2x slower) + 1s buffer
 
 const server = spawn(
   process.platform === 'win32' ? 'python.exe' : 'python',
