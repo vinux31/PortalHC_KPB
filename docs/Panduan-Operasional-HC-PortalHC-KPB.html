@@ -325,6 +325,230 @@
   </div>
 </article>
 
+<!-- ============================================================ -->
+<!-- BAB 2: CMP -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab2">
+  <h2>2. CMP &mdash; Competency Management Platform</h2>
+  <p>Pengelolaan kompetensi: KKJ, assessment, training records, analytics, dan sertifikat.</p>
+</div>
+
+<article class="task" id="cmp-library-kkj">
+  <h3>2.1 Library KKJ &mdash; Lihat Kebutuhan Kompetensi Jabatan</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; (landing card) Dokumen KKJ
+    <code class="url">/CMP/Index</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Modul CMP</span></div>
+    <div class="step-body">Klik menu <b>CMP</b> di navbar. Halaman landing CMP (<code>/CMP/Index</code>) menampilkan card-card modul.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Klik Card Dokumen KKJ</span></div>
+    <div class="step-body">Pilih card <b>Dokumen KKJ &amp; Alignment KKJ/IDP</b> untuk navigate ke halaman lihat KKJ + CPDP.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Library KKJ HC scope</div>
+    Sebagai HC (L2), Anda bisa lihat KKJ untuk semua posisi/jabatan. Pekerja role lain hanya lihat KKJ posisi sendiri.
+  </div>
+</article>
+
+<article class="task" id="cmp-cpdp-mapping">
+  <h3>2.2 CPDP Mapping &mdash; Pemetaan Pengembangan Kompetensi</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Dokumen KKJ
+    <code class="url">/CMP/DokumenKkj</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Dokumen KKJ</span></div>
+    <div class="step-body">Akses langsung <code>/CMP/DokumenKkj</code> atau via card di <code>/CMP/Index</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Pilih Tab</span></div>
+    <div class="step-body">Pakai parameter <code>?tab=</code> atau klik tab di halaman untuk switch antara <b>Library KKJ</b>, <b>CPDP Mapping</b>, dan dokumen alignment.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download File KKJ / CPDP</span></div>
+    <div class="step-body">Klik tombol download di tiap dokumen. URL endpoint: <code>/CMP/KkjFileDownload/{id}</code> dan <code>/CMP/CpdpFileDownload/{id}</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Update file KKJ / CPDP</div>
+    Upload file baru lewat <b>Admin Panel &rarr; KKJ Matrix</b> / <b>CPDP Files</b>. Lihat Bab 5.12 / 5.13.
+  </div>
+</article>
+
+<article class="task" id="cmp-training-records">
+  <h3>2.3 Training Records &mdash; Riwayat Pelatihan Pribadi + Tim</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Records (Training Records)
+    <code class="url">/CMP/Records</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Records</span></div>
+    <div class="step-body">Klik menu <b>CMP</b> &rarr; card / link <b>Training Records</b>. Tab default menampilkan riwayat assessment + training pribadi (unified records).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Data</span></div>
+    <div class="step-body">Pakai filter di atas tabel: <b>Section</b>, <b>Unit</b>, <b>Category</b>, <b>Status</b>, atau search. Filter di-URL via query string (<code>?section=&amp;unit=&amp;category=</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Excel</span></div>
+    <div class="step-body">Klik tombol <b>Export</b>. Endpoint: <code>/CMP/ExportRecords</code> untuk full export, atau <code>/CMP/ExportRecordsTeamAssessment</code> / <code>/CMP/ExportRecordsTeamTraining</code> untuk team-scoped export dengan filter aktif.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Records vs Records Team</div>
+    Halaman <code>/CMP/Records</code> sama untuk semua role; isi tab berubah sesuai role level. HC lihat tab Team View untuk seluruh tim.
+  </div>
+</article>
+
+<article class="task" id="cmp-records-team">
+  <h3>2.4 Records Team &mdash; Monitoring Tim Lintas Section</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Records &rarr; (tab) Team View
+    <code class="url">/CMP/Records</code> <code class="url">/CMP/RecordsTeamPartial</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Tab Team View</span></div>
+    <div class="step-body">Di halaman <b>Records</b>, klik tab <b>Team View</b>. Tab ini hanya muncul untuk role level 1-4 (HC, Admin, Manager, Section Head, Sr Supervisor). HC bisa lihat semua section.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter per Section / Unit / Kategori</span></div>
+    <div class="step-body">Pakai dropdown <b>Section</b>, <b>Unit</b>, <b>Kategori Assessment</b>, <b>Sub-Kategori</b>, <b>Status</b>, atau search nama. Partial reload via AJAX ke <code>/CMP/RecordsTeamPartial</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Drill ke Detail Pekerja</span></div>
+    <div class="step-body">Klik nama pekerja di tabel. Halaman detail <code>/CMP/RecordsWorkerDetail?workerId={id}</code> menampilkan unified history: assessment + training + sertifikat per worker.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Tim</span></div>
+    <div class="step-body">Klik <b>Export Excel</b> di tab Team View. Pilih <b>Assessment</b> atau <b>Training</b> &mdash; endpoint terpisah dengan filter aktif diteruskan sebagai query string.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 HC scope vs L4 scope</div>
+    HC (L2) bisa lihat lintas section. Section Head / Sr Supervisor (L4) locked ke section mereka sendiri (auto-filter di controller).
+  </div>
+</article>
+
+<article class="task" id="cmp-analytics-dashboard">
+  <h3>2.5 Analytics Dashboard &mdash; Compliance, Fail Rate, Gain Score</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Analytics Dashboard
+    <code class="url">/CMP/AnalyticsDashboard</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Analytics Dashboard</span></div>
+    <div class="step-body">Klik <b>CMP &rarr; Analytics Dashboard</b>. Dashboard load data via beberapa AJAX endpoint untuk komponen chart.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Pilih Filter Cascade</span></div>
+    <div class="step-body">Filter tersedia: <b>Bagian</b>, <b>Unit</b> (cascade dari Bagian via <code>/CMP/GetAnalyticsCascadeUnits</code>), <b>Kategori</b>, <b>Sub-Kategori</b> (cascade via <code>/CMP/GetAnalyticsCascadeSubKategori</code>), rentang tanggal.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Review Komponen Chart</span></div>
+    <div class="step-body">Komponen utama:
+      <ul>
+        <li><b>Summary</b> &mdash; total assessment, pass/fail rate, distribusi (<code>/CMP/GetAnalyticsSummary</code>).</li>
+        <li><b>Fail Rate</b> per kategori + drill-down (<code>/CMP/GetFailRateData</code>, <code>/CMP/GetFailRateDrillDown</code>).</li>
+        <li><b>Trend</b> bulanan (<code>/CMP/GetTrendData</code>).</li>
+        <li><b>ET Breakdown</b> per Excellent / Tinggi / dst (<code>/CMP/GetEtBreakdownData</code>).</li>
+        <li><b>Expiring Soon</b> &mdash; sertifikat hampir kadaluarsa (<code>/CMP/GetExpiringSoonData</code>).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Export Excel per Chart</span></div>
+    <div class="step-body">Tiap komponen punya tombol Export sendiri: <code>/CMP/ExportFailRateExcel</code>, <code>/CMP/ExportTrendExcel</code>, <code>/CMP/ExportEtBreakdownExcel</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Item Analysis &amp; Gain Score</div>
+    Untuk Pre/Post Test analysis, klik card / link Pre-Post di Analytics. Endpoint khusus: <code>/CMP/GetItemAnalysisData</code>, <code>/CMP/GetGainScoreData</code>, plus export Excel terpisah.
+  </div>
+</article>
+
+<article class="task" id="cmp-pre-post-test">
+  <h3>2.6 Pre/Post Test &mdash; Setup &amp; Monitor Gain Score</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Assessment (filter Pre/Post)
+    <code class="url">/CMP/Assessment</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buat Jadwal Pre-Test</span></div>
+    <div class="step-body">Pre-Test dijadwalkan via <b>Admin Panel &rarr; Create Assessment</b> (lihat Bab 5.6). Pilih kategori <b>Pre-Test</b> + assign ke peserta + set jadwal sebelum tanggal training.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Monitor Pre-Test Selesai</span></div>
+    <div class="step-body">Buka <b>CMP &rarr; Assessment</b> (<code>/CMP/Assessment</code>), search "Pre-Test [topik]". Cek peserta yang sudah complete via tab Records atau Assessment Monitoring (Bab 5.8).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Setelah Pelatihan, Buat Post-Test</span></div>
+    <div class="step-body">Buat assessment Post-Test dengan paket soal yang sama persis. Sistem otomatis pair Pre + Post berdasarkan peserta + topik.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Review Gain Score</span></div>
+    <div class="step-body">Buka <b>Analytics Dashboard &rarr; Gain Score</b>. Sistem hitung selisih nilai Post vs Pre per peserta. Export ke Excel via <code>/CMP/ExportGainScoreExcel?assessmentGroupId={id}</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Item Analysis</div>
+    Untuk lihat soal yang paling sulit / paling salah dijawab, buka <b>Item Analysis</b> di Analytics. Berguna untuk evaluasi kurikulum training.
+  </div>
+</article>
+
+<article class="task" id="cmp-budget-training">
+  <h3>2.7 Budget Training &mdash; Kelola Anggaran Pelatihan Tahunan</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Budget Training
+    <code class="url">/CMP/BudgetTraining</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Lihat Daftar Budget</span></div>
+    <div class="step-body">Buka <code>/CMP/BudgetTraining</code>. Daftar budget per tahun anggaran. Filter via dropdown tahun + search.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Budget Item Baru</span></div>
+    <div class="step-body">Klik <b>Tambah Budget</b> (<code>/CMP/BudgetTrainingCreate</code>). Isi nama training, anggaran, tahun, kategori, unit. Klik <b>Simpan</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Import Massal via Excel</span></div>
+    <div class="step-body">Untuk input banyak, klik <b>Import</b> (<code>/CMP/BudgetTrainingImport</code>). Download template via <b>Download Template</b> (<code>/CMP/DownloadBudgetTrainingTemplate</code>), isi data, upload kembali. Wajib pilih <b>Tahun Anggaran</b>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Update Realisasi</span></div>
+    <div class="step-body">Edit realisasi anggaran per item di tabel (quick edit inline via <code>/CMP/BudgetTrainingQuickUpdate</code>) atau bulk update (<code>/CMP/BudgetTrainingBulkUpdateRealisasi</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export Laporan Tahunan</span></div>
+    <div class="step-body">Klik <b>Export</b> (<code>/CMP/BudgetTrainingExport?tahun={tahun}</code>) untuk download Excel rekap budget vs realisasi per tahun.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Bulk Delete</div>
+    Tombol <b>Bulk Delete</b> akan menghapus item terpilih permanen. Backup / export dulu sebelum bulk delete.
+  </div>
+</article>
+
+<article class="task" id="cmp-certificate">
+  <h3>2.8 Certificate &mdash; Download Sertifikat Assessment</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; CMP &rarr; Results / Records &rarr; (per assessment) Certificate
+    <code class="url">/CMP/Certificate/{id}</code> <code class="url">/CMP/CertificatePdf/{id}</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Results Assessment</span></div>
+    <div class="step-body">Setelah peserta selesai assessment dan lulus passing grade, halaman Results (<code>/CMP/Results/{id}</code>) akan menampilkan link Sertifikat.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Preview Sertifikat</span></div>
+    <div class="step-body">Klik <b>Lihat Sertifikat</b> (<code>/CMP/Certificate/{id}</code>) &mdash; render preview di browser.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download PDF</span></div>
+    <div class="step-body">Klik <b>Download PDF</b> (<code>/CMP/CertificatePdf/{id}</code>) untuk file resmi yang bisa di-cetak atau di-share.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Sertifikat untuk renewal</div>
+    Sertifikat dengan masa berlaku akan muncul di <b>Renewal Certificate</b> (Bab 5.10) saat mendekati expired. HC schedule renewal dari sana.
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
