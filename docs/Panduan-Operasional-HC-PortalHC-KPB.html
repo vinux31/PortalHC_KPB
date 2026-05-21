@@ -1250,6 +1250,205 @@
   </div>
 </article>
 
+<article class="task" id="admin-coach-mapping">
+  <h3>5.9 Coach-Coachee Mapping</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Coach-Coachee Mapping
+    <code class="url">/CoachMapping/CoachCoacheeMapping</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Mapping</span></div>
+    <div class="step-body">Akses <code>/CoachMapping/CoachCoacheeMapping</code>. Daftar semua relasi coach-coachee aktif + history. Filter via dropdown / search.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Assign Mapping Baru</span></div>
+    <div class="step-body">Klik <b>Assign Mapping</b> &mdash; POST <code>/CoachMapping/CoachCoacheeMappingAssign</code> (JSON body <code>CoachAssignRequest</code>). Lihat coachee eligible per track: <code>/CoachMapping/GetEligibleCoachees?protonTrackId={id}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit Mapping</span></div>
+    <div class="step-body">POST <code>/CoachMapping/CoachCoacheeMappingEdit</code> &mdash; ubah coach untuk coachee tertentu (mis: transfer / redistribusi workload).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Deactivate / Reactivate / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>Deactivate</b>: POST <code>/CoachMapping/CoachCoacheeMappingDeactivate/{id}</code> (transfer, resign, suspend)</li>
+        <li><b>Reactivate</b>: POST <code>/CoachMapping/CoachCoacheeMappingReactivate/{id}</code></li>
+        <li><b>Delete</b>: preview impact dulu <code>/CoachMapping/CoachCoacheeMappingDeletePreview/{id}</code>, lalu POST <code>/CoachMapping/CoachCoacheeMappingDelete/{id}</code></li>
+        <li><b>Mark Completed</b>: POST <code>/CoachMapping/MarkMappingCompleted/{mappingId}</code> &mdash; tandai mapping selesai (akhir periode Proton)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Import Mapping Massal</span></div>
+    <div class="step-body">Download template: <code>/CoachMapping/DownloadMappingImportTemplate</code>. Upload via POST <code>/CoachMapping/ImportCoachCoacheeMapping</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">6</span><span class="step-title">Workload Threshold &amp; Reassign Suggestion</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Set threshold: POST <code>/CoachMapping/SetWorkloadThreshold</code> dengan <code>maxCoachees</code> + <code>warningThreshold</code></li>
+        <li>Sistem auto-suggest reassign untuk coach overload. Approve: POST <code>/CoachMapping/ApproveReassignSuggestion</code></li>
+        <li>Skip: POST <code>/CoachMapping/SkipReassignSuggestion</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">7</span><span class="step-title">Export Mapping</span></div>
+    <div class="step-body">Klik <b>Export</b> &mdash; <code>/CoachMapping/CoachCoacheeMappingExport</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Cleanup Org</div>
+    Untuk auto-cleanup mapping yang sudah tidak valid karena perubahan struktur organisasi: POST <code>/CoachMapping/CleanupCoachCoacheeMappingOrg</code>. Pakai dengan hati-hati &mdash; preview hasilnya kalau memungkinkan.
+  </div>
+</article>
+
+<article class="task" id="admin-renewal">
+  <h3>5.10 Renewal Certificate Management</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Renewal Certificate
+    <code class="url">/Renewal/RenewalCertificate</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Renewal</span></div>
+    <div class="step-body">Akses <code>/Renewal/RenewalCertificate</code>. Daftar sertifikat assessment yang mendekati expired, ter-group per kategori. Pagination: <code>?page={n}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter Sertifikat</span></div>
+    <div class="step-body">Pakai filter via:
+      <ul>
+        <li>Per item: GET <code>/Renewal/FilterRenewalCertificate</code></li>
+        <li>Per group/kategori: GET <code>/Renewal/FilterRenewalCertificateGroup</code></li>
+      </ul>
+      Filter umum: rentang tanggal expired (30/60/90 hari), kategori assessment, unit.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Lihat Certificate History</span></div>
+    <div class="step-body">Klik nama pekerja &rarr; <code>/Renewal/CertificateHistory?workerId={id}&amp;mode=readonly</code>. Lihat semua sertifikat per worker + masa berlaku.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Schedule Renewal Assessment</span></div>
+    <div class="step-body">Pilih sertifikat &rarr; klik <b>Schedule Renewal</b>. Sistem redirect ke <code>/AssessmentAdmin/CreateAssessment?renewSessionId={id}</code> atau <code>?renewTrainingId={id}</code> &mdash; form auto-fill dengan paket soal + peserta dari renewal target.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Notifikasi Otomatis</span></div>
+    <div class="step-body">Setelah jadwal renewal di-publish, peserta dapat notifikasi assessment baru via bell icon (lihat Bab 6).</div>
+  </div>
+  <div class="success">
+    <div class="success-title">✅ Lifecycle Renewal</div>
+    <b>Sertifikat mendekati expired</b> &rarr; muncul di Renewal Certificate &rarr; <b>Schedule Renewal</b> (auto-create assessment baru) &rarr; <b>Peserta dapat notif</b> &rarr; <b>Kerjakan assessment</b> &rarr; <b>Lulus passing grade</b> &rarr; <b>Sertifikat baru terbit</b> + masa berlaku auto-update.
+  </div>
+</article>
+
+<article class="task" id="admin-training-records">
+  <h3>5.11 Add / Edit / Import Training Record</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; (Manage Assessment tab Training) atau Add Training direct
+    <code class="url">/TrainingAdmin/AddTraining</code> <code class="url">/TrainingAdmin/ImportTraining</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Add Training Manual</span></div>
+    <div class="step-body">Klik <b>Add Training</b> &mdash; GET <code>/TrainingAdmin/AddTraining</code>. Isi: pekerja (search), nama training, penyelenggara, tanggal, durasi (jam), kategori (Mandatory / Opsional), upload sertifikat (opsional). POST endpoint sama.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Edit / Delete Training</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Edit: GET/POST <code>/TrainingAdmin/EditTraining/{id}</code></li>
+        <li>Delete: POST <code>/TrainingAdmin/DeleteTraining/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Import Massal via Excel</span></div>
+    <div class="step-body">Download template: <code>/TrainingAdmin/DownloadImportTrainingTemplate</code> atau <code>/TrainingAdmin/DownloadImportAssessmentTemplate</code> (untuk manual assessment). Upload via POST <code>/TrainingAdmin/ImportTraining</code> dengan form-data: <code>excelFile</code> + <code>recordType</code> (Training / Assessment).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Verifikasi di Records</span></div>
+    <div class="step-body">Setelah input, cek tab <b>Training Records</b> di <code>/CMP/Records</code> &mdash; data baru langsung muncul di tabel pekerja terkait.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Kategori Training</div>
+    <b>Mandatory</b> = wajib (terkait KKJ kompetensi jabatan). <b>Opsional</b> = pengembangan tambahan. Klasifikasi ini mempengaruhi metrik compliance di Analytics Dashboard.
+  </div>
+</article>
+
+<article class="task" id="admin-kkj-files">
+  <h3>5.12 KKJ Matrix Files (Upload + History)</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; KKJ Matrix Files
+    <code class="url">/DocumentAdmin/KkjMatrix</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman KKJ Matrix</span></div>
+    <div class="step-body">Akses <code>/DocumentAdmin/KkjMatrix?bagian={id}</code>. Tampilan file KKJ aktif per Bagian. Tanpa parameter = pilih bagian dulu.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Upload File KKJ Baru</span></div>
+    <div class="step-body">Klik <b>Upload KKJ</b> &mdash; GET <code>/DocumentAdmin/KkjUpload?bagianId={id}</code>. Pilih file PDF + isi keterangan. POST endpoint sama dengan form-data <code>file</code> + <code>keterangan</code> + <code>bagianId</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Download: <code>/DocumentAdmin/KkjFileDownload/{id}</code> (juga accessible via <code>/CMP/KkjFileDownload/{id}</code> untuk user umum)</li>
+        <li>Delete: POST <code>/DocumentAdmin/KkjFileDelete/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">History File</span></div>
+    <div class="step-body">Lihat history versi sebelumnya: <code>/DocumentAdmin/KkjFileHistory?bagianId={id}</code>. File lama tetap di-archive untuk traceability.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Kelola Bagian</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Tambah bagian baru: POST <code>/DocumentAdmin/KkjBagianAdd</code></li>
+        <li>Delete bagian: POST <code>/DocumentAdmin/DeleteBagian/{id}</code> (cek konfirmasi via <code>?confirmed=true</code>)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Upload Mengganti File Aktif</div>
+    Upload file baru untuk Bagian yang sama otomatis demote file lama ke history. File baru langsung aktif untuk semua pekerja Bagian tsb.
+  </div>
+</article>
+
+<article class="task" id="admin-cpdp-files">
+  <h3>5.13 CPDP Files (Upload + History)</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; CPDP Files
+    <code class="url">/DocumentAdmin/CpdpFiles</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar CPDP</span></div>
+    <div class="step-body">Akses <code>/DocumentAdmin/CpdpFiles?bagian={id}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Upload CPDP Baru</span></div>
+    <div class="step-body">GET <code>/DocumentAdmin/CpdpUpload?bagianId={id}</code>. POST dengan form-data <code>file</code> + <code>keterangan</code> + <code>bagianId</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Download / Archive</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Download: <code>/DocumentAdmin/CpdpFileDownload/{id}</code> (atau <code>/CMP/CpdpFileDownload/{id}</code> untuk user)</li>
+        <li>Archive (soft delete): POST <code>/DocumentAdmin/CpdpFileArchive/{id}</code> &mdash; lebih aman dari hard delete</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">History</span></div>
+    <div class="step-body">Lihat versi sebelumnya: <code>/DocumentAdmin/CpdpFileHistory?bagianId={id}</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Archive vs Delete</div>
+    CPDP pakai <b>Archive</b> (soft delete) yang mempertahankan record untuk audit. Untuk hard delete, hubungi Admin / IT.
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
