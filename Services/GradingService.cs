@@ -325,5 +325,116 @@ namespace HcPortal.Services
 
             return true;
         }
+
+        /// <summary>
+        /// Pure compute: hitung total/max score + IsPassed + ElemenTeknis breakdown TANPA side effect (tidak insert DB).
+        /// Dipakai oleh RegradeAfterEditAsync (re-grade post-edit) + PreviewScoreAsync (dry-run).
+        /// `GradeAndCompleteAsync` initial grading KEEP inline logic existing (TIDAK refactor) supaya regression risk = 0.
+        /// </summary>
+        /// <param name="session">Session target.</param>
+        /// <param name="overrideAnswers">
+        /// Optional. Dict (PackageQuestionId -> List of selected PackageOption.Id).
+        /// Null -> baca semua dari PackageUserResponses normal.
+        /// Non-null -> pakai override untuk question yang ada di dict, fallback DB untuk sisanya. Path PreviewEditScore.
+        /// </param>
+        private async Task<(int totalScore, int maxScore, bool isPassed, List<SessionElemenTeknisScore> etScores)>
+            ComputeScoreAndETInternalAsync(AssessmentSession session, IDictionary<int, List<int>>? overrideAnswers = null)
+        {
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == session.Id);
+            if (packageAssignment == null)
+                return (0, 0, false, new List<SessionElemenTeknisScore>());
+
+            var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+            var packageQuestions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => shuffledIds.Contains(q.Id))
+                .ToListAsync();
+            var questionLookup = packageQuestions.ToDictionary(q => q.Id);
+
+            var dbResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == session.Id)
+                .ToListAsync();
+
+            HashSet<int> SelectedOptions(int qId)
+            {
+                if (overrideAnswers != null && overrideAnswers.TryGetValue(qId, out var ov))
+                    return ov.ToHashSet();
+                return dbResponses
+                    .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue)
+                    .Select(r => r.PackageOptionId!.Value)
+                    .ToHashSet();
+            }
+
+            int totalScore = 0, maxScore = 0;
+            foreach (var qId in shuffledIds)
+            {
+                if (!questionLookup.TryGetValue(qId, out var q)) continue;
+                maxScore += q.ScoreValue;
+
+                switch (q.QuestionType ?? "MultipleChoice")
+                {
+                    case "MultipleChoice":
+                        var mcSel = SelectedOptions(qId);
+                        if (mcSel.Count > 0)
+                        {
+                            var optId = mcSel.First();
+                            var opt = q.Options.FirstOrDefault(o => o.Id == optId);
+                            if (opt?.IsCorrect == true) totalScore += q.ScoreValue;
+                        }
+                        break;
+                    case "MultipleAnswer":
+                        var maSel = SelectedOptions(qId);
+                        var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        if (maSel.SetEquals(maCorrect)) totalScore += q.ScoreValue;
+                        break;
+                    case "Essay":
+                        break;
+                }
+            }
+
+            int pct = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+            bool isPassed = pct >= session.PassPercentage;
+
+            var etScores = new List<SessionElemenTeknisScore>();
+            var etGroups = packageQuestions
+                .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+
+            foreach (var etGroup in etGroups)
+            {
+                int etCorrect = 0;
+                int etTotal = etGroup.Count();
+                foreach (var q in etGroup)
+                {
+                    switch (q.QuestionType ?? "MultipleChoice")
+                    {
+                        case "MultipleChoice":
+                            var mcSel = SelectedOptions(q.Id);
+                            if (mcSel.Count > 0)
+                            {
+                                var opt = q.Options.FirstOrDefault(o => o.Id == mcSel.First());
+                                if (opt?.IsCorrect == true) etCorrect++;
+                            }
+                            break;
+                        case "MultipleAnswer":
+                            var maSel = SelectedOptions(q.Id);
+                            var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                            if (maSel.SetEquals(maCorrect)) etCorrect++;
+                            break;
+                        case "Essay":
+                            break;
+                    }
+                }
+                etScores.Add(new SessionElemenTeknisScore
+                {
+                    AssessmentSessionId = session.Id,
+                    ElemenTeknis = etGroup.Key,
+                    CorrectCount = etCorrect,
+                    QuestionCount = etTotal
+                });
+            }
+
+            return (totalScore, maxScore, isPassed, etScores);
+        }
     }
 }
