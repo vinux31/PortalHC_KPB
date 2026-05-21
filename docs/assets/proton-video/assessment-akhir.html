@@ -349,6 +349,148 @@
     transition: opacity 0.5s ease;
   }
   .quiz-caption.show { opacity: 1; }
+
+  /* ===== SCENE RESULT ===== */
+  .result-body {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .result-card {
+    position: relative;
+    z-index: 2;
+    width: clamp(360px, 38vw, 540px);
+    padding: clamp(24px, 2.4vw, 36px);
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(10,36,71,0.03), 0 12px 32px rgba(10,36,71,0.08);
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  #scene-result.active .result-card { animation: cardPop 0.6s 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  @keyframes cardPop {
+    0%   { opacity: 0; transform: translateY(12px) scale(0.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .r-title {
+    font-size: clamp(12px, 1vw, 14px);
+    font-weight: 800;
+    color: var(--navy-deep);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    opacity: 0;
+  }
+  #scene-result.active .r-title { animation: fadeUp 0.4s 1.0s ease-out forwards; }
+
+  .score-block {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    margin: clamp(16px, 2vw, 24px) 0 4px;
+  }
+  .score-num {
+    font-size: clamp(72px, 8vw, 120px);
+    font-weight: 900;
+    color: var(--navy-deep);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .score-unit {
+    font-size: clamp(20px, 2vw, 32px);
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .score-label {
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 800;
+    color: var(--navy-soft);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: clamp(14px, 1.6vw, 22px);
+    opacity: 0;
+  }
+  #scene-result.active .score-label { animation: fadeIn 0.4s 2.0s ease-out forwards; }
+
+  .badge-lulus {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 28px;
+    background: #FFFFFF;
+    border: 3px solid var(--red);
+    border-radius: 999px;
+    font-size: clamp(18px, 1.8vw, 28px);
+    font-weight: 900;
+    color: var(--red);
+    letter-spacing: 0.15em;
+    opacity: 0;
+    transform: translateY(-40px) rotate(-15deg) scale(0.5);
+    position: relative;
+  }
+  .badge-lulus .b-tick {
+    font-size: 1.1em;
+    color: var(--red);
+  }
+  .badge-lulus.fired {
+    animation:
+      badgeDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+      badgeGlow 2.5s 0.6s ease-out 2;
+  }
+  @keyframes badgeDrop {
+    60%  { opacity: 1; transform: translateY(8px) rotate(2deg) scale(1.1); }
+    100% { opacity: 1; transform: translateY(0) rotate(-3deg) scale(1); }
+  }
+  @keyframes badgeGlow {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(230,51,41,0.15); }
+    50%      { box-shadow: 0 0 0 16px rgba(230,51,41,0.06); }
+  }
+  .badge-lulus.fired::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border: 3px solid var(--red);
+    border-radius: 999px;
+    opacity: 0;
+    animation: badgeImpact 0.6s ease-out 0.4s forwards;
+  }
+  @keyframes badgeImpact {
+    0%   { opacity: 0.9; transform: scale(0.7); }
+    100% { opacity: 0;   transform: scale(1.5); }
+  }
+
+  .result-meta {
+    margin-top: clamp(14px, 1.6vw, 22px);
+    font-size: clamp(11px, 0.95vw, 14px);
+    font-weight: 600;
+    color: var(--muted);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .result-meta.show { opacity: 1; transform: translateY(0); }
+
+  .pass-caption {
+    position: absolute;
+    bottom: clamp(8px, 1vw, 16px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    color: var(--navy-soft);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0;
+    text-align: center;
+    white-space: nowrap;
+    transition: opacity 0.6s ease;
+  }
+  .pass-caption.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -387,6 +529,32 @@
               <span class="p-count">10 / 10</span>
             </div>
             <div class="quiz-caption" id="quiz-caption">10 soal · penilaian otomatis</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene" id="scene-result">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="url">portalhc.kpb · <em>Hasil Assessment</em></span>
+          </div>
+          <div class="browser-body result-body">
+            <!-- confetti containers akan ditambahkan task 6 + 7 -->
+            <div class="result-card">
+              <div class="r-title">Hasil Assessment</div>
+              <div class="score-block">
+                <span class="score-num" id="score-num">0</span>
+                <span class="score-unit">/100</span>
+              </div>
+              <div class="score-label">NILAI</div>
+              <div class="badge-lulus">
+                <span class="b-tick">✓</span>
+                <span class="b-text">LULUS</span>
+              </div>
+              <div class="result-meta" id="result-meta">8 dari 10 soal benar · Durasi 45 menit</div>
+            </div>
+            <div class="pass-caption" id="pass-caption">Nilai minimal 75 — syarat naik ke tahap berikutnya</div>
           </div>
         </div>
       </div>
