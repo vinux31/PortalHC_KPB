@@ -1030,6 +1030,226 @@
   </div>
 </article>
 
+<article class="task" id="admin-bank-soal">
+  <h3>5.4 Bank Soal &mdash; Manage Packages &amp; Questions</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Kelola Assessment &rarr; (per assessment) Manage Packages
+    <code class="url">/AssessmentAdmin/ManagePackages</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Paket Soal per Assessment</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/ManagePackages?assessmentId={id}</code>. Per assessment bisa punya beberapa paket soal (misal: paket A, paket B untuk random distribution).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buat Paket Baru</span></div>
+    <div class="step-body">Klik <b>Create Package</b> &mdash; POST <code>/AssessmentAdmin/CreatePackage</code> dengan <code>assessmentId</code> + <code>packageName</code>. Untuk Pre/Post Test, gunakan <b>Copy from Pre</b> (<code>/AssessmentAdmin/CopyPackagesFromPre</code>) supaya paket Post sama persis dengan Pre.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Kelola Soal dalam Paket</span></div>
+    <div class="step-body">Klik paket &rarr; <code>/AssessmentAdmin/ManagePackageQuestions?packageId={id}</code>:
+      <ul>
+        <li>Tambah soal: POST <code>/AssessmentAdmin/CreateQuestion</code></li>
+        <li>Edit soal: GET/POST <code>/AssessmentAdmin/EditQuestion?questionId={id}</code></li>
+        <li>Hapus soal: POST <code>/AssessmentAdmin/DeleteQuestion</code></li>
+        <li>Preview soal: <code>/AssessmentAdmin/PreviewQuestion?questionId={id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Preview Paket Lengkap</span></div>
+    <div class="step-body">Sebelum publish, klik <b>Preview Package</b> (<code>/AssessmentAdmin/PreviewPackage?packageId={id}</code>) untuk simulasi tampilan peserta.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Delete Paket</span></div>
+    <div class="step-body">POST <code>/AssessmentAdmin/DeletePackage</code> dengan <code>packageId</code>. Pastikan paket belum dipakai assessment aktif.</div>
+  </div>
+</article>
+
+<article class="task" id="admin-import-soal">
+  <h3>5.5 Bank Soal &mdash; Import Soal via Excel Template</h3>
+  <div class="breadcrumb">
+    Manage Packages &rarr; (per paket) Import Questions
+    <code class="url">/AssessmentAdmin/ImportPackageQuestions</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Download Template Excel</span></div>
+    <div class="step-body">Dari halaman <b>Manage Packages</b>, klik <b>Download Template</b> (<code>/AssessmentAdmin/DownloadQuestionTemplate?type=MC</code> untuk Multiple Choice, atau <code>?type=Essay</code> untuk soal essay).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Isi Soal di Excel</span></div>
+    <div class="step-body">Template berisi kolom: pertanyaan, opsi A-E, kunci jawaban (huruf kapital), bobot, pembahasan. Ikuti format dengan tepat &mdash; sheet validation di template akan reject input invalid.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Upload File</span></div>
+    <div class="step-body">Klik <b>Import Questions</b> per paket &rarr; <code>/AssessmentAdmin/ImportPackageQuestions?packageId={id}</code>. Upload file via POST endpoint sama (form-data).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Verifikasi Hasil Import</span></div>
+    <div class="step-body">Setelah import sukses, buka <b>Manage Package Questions</b> untuk verifikasi soal masuk dengan benar. Periksa beberapa soal random via Preview.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Format Kunci Jawaban</div>
+    Kolom <b>Kunci Jawaban</b> harus huruf kapital tunggal (<code>A</code>, <code>B</code>, <code>C</code>, <code>D</code>, atau <code>E</code>). Lowercase atau multiple value bisa ditolak. Untuk multi-answer / essay, ikut format khusus di sheet template.
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Backup Sebelum Import Ulang</div>
+    Re-import bisa duplicate atau overwrite soal. Cek behavior di hasil import pertama &mdash; kalau ragu, buat paket baru kosong dan test di sana.
+  </div>
+</article>
+
+<article class="task" id="admin-create-assessment">
+  <h3>5.6 Create Jadwal Assessment</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Kelola Assessment &rarr; Create Assessment
+    <code class="url">/AssessmentAdmin/CreateAssessment</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Form Create</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/CreateAssessment</code>. Untuk renewal sertifikat, parameter <code>?renewSessionId={id}</code> atau <code>?renewTrainingId={id}</code> akan auto-fill data renewal.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Isi Data Assessment</span></div>
+    <div class="step-body">Field utama:
+      <ul>
+        <li><b>Title</b> &mdash; nama assessment</li>
+        <li><b>Category</b> &mdash; pilih dari kategori yang ada (Bab 5.3)</li>
+        <li><b>Schedule Date</b> &mdash; tanggal pelaksanaan</li>
+        <li><b>Duration (minutes)</b> &mdash; durasi timer</li>
+        <li><b>Pass Percentage</b> &mdash; passing grade (default dari kategori)</li>
+        <li><b>Assessment Type</b> &mdash; Standard / Pre-Test / Post-Test / Interview</li>
+        <li><b>HasManualGrading</b> &mdash; toggle kalau ada soal essay yang perlu manual grading</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Pilih Paket Soal</span></div>
+    <div class="step-body">Setelah create assessment dasar, buka <b>Manage Packages</b> (Bab 5.4) untuk attach paket soal yang sudah dibuat.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Assign Peserta</span></div>
+    <div class="step-body">Pilih peserta individu via search atau group-assign berdasarkan Section/Unit. POST <code>/AssessmentAdmin/CreateAssessment</code> dengan list <code>NewUserIds</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Publish &amp; Notif Peserta</span></div>
+    <div class="step-body">Save assessment. Notifikasi otomatis dikirim ke peserta via bell icon (lihat Bab 6).</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Pre/Post Test</div>
+    Untuk Pre-Test, set <b>Assessment Type = Pre-Test</b>. Setelah training selesai, create Post-Test dengan kategori + judul kontekstual &mdash; sistem auto-pair via <code>linkedGroupId</code>.
+  </div>
+</article>
+
+<article class="task" id="admin-edit-assessment">
+  <h3>5.7 Edit Assessment + Manual Entry Assessment</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Kelola Assessment &rarr; (per item) Edit / Manual
+    <code class="url">/AssessmentAdmin/ManageAssessment</code> <code class="url">/AssessmentAdmin/EditAssessment</code> <code class="url">/TrainingAdmin/AddManualAssessment</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Assessment</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/ManageAssessment</code>. Halaman punya tab: <b>Assessment</b>, <b>Training</b>, <b>History</b> (loaded via partial endpoint <code>ManageAssessmentTab_Assessment</code>, <code>_Training</code>, <code>_History</code>).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Edit Assessment</span></div>
+    <div class="step-body">Klik icon edit per row. GET <code>/AssessmentAdmin/EditAssessment/{id}</code> untuk form. POST endpoint sama untuk save. Bisa update field utama + tambah/cabut peserta.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Manual Entry Assessment (Variant B)</span></div>
+    <div class="step-body">Untuk catat hasil assessment yang dilakukan offline (mis: training eksternal yang ada sertifikat tapi tidak ada test online), pakai <b>Add Manual Assessment</b> (<code>/TrainingAdmin/AddManualAssessment</code>). Isi data user + sertifikat info + skor + tanggal.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Edit / Delete Manual Assessment</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Edit: <code>/TrainingAdmin/EditManualAssessment/{id}</code></li>
+        <li>Delete: POST <code>/TrainingAdmin/DeleteManualAssessment/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Delete Assessment Bertingkat</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Delete single: POST <code>/AssessmentAdmin/DeleteAssessment/{id}</code></li>
+        <li>Delete group (multi-session batch): POST <code>/AssessmentAdmin/DeleteAssessmentGroup/{id}</code></li>
+        <li>Delete Pre/Post pair: POST <code>/AssessmentAdmin/DeletePrePostGroup</code> dengan <code>linkedGroupId</code></li>
+        <li>Preview impact dulu: GET <code>/AssessmentAdmin/GetDeleteImpact?id={id}&amp;type={type}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Delete = Hilang Records</div>
+    Delete assessment yang sudah ada peserta complete = hilangkan history nilai mereka. Cek <b>GetDeleteImpact</b> dulu. Untuk audit purpose, lebih baik tidak delete sama sekali kecuali memang salah input.
+  </div>
+</article>
+
+<article class="task" id="admin-assessment-monitoring">
+  <h3>5.8 Assessment Monitoring Real-Time + Force-Close</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Assessment Monitoring
+    <code class="url">/AssessmentAdmin/AssessmentMonitoring</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Monitoring Page</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/AssessmentMonitoring</code>. Tampilan semua sesi assessment aktif: status login peserta, waktu tersisa, jumlah soal terjawab, persentase progress.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Detail Sesi per Kelompok</span></div>
+    <div class="step-body">Klik judul assessment &rarr; <code>/AssessmentAdmin/AssessmentMonitoringDetail?title={t}&amp;category={c}&amp;scheduleDate={d}</code>. Detail per peserta + actions per row.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Force-Close Sesi Individual</span></div>
+    <div class="step-body">Kalau user freeze / disconnect, klik <b>Akhiri Ujian</b> per row &mdash; POST <code>/AssessmentAdmin/AkhiriUjian/{id}</code>. Sistem auto-submit jawaban yang sudah diisi + hitung skor proporsional.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Force-Close Semua Sesi (Batch)</span></div>
+    <div class="step-body">Untuk akhiri semua sesi sekaligus (mis: jadwal selesai tapi masih ada peserta belum submit), klik <b>Akhiri Semua</b>:
+      <ul>
+        <li>Preview count: GET <code>/AssessmentAdmin/GetAkhiriSemuaCounts</code></li>
+        <li>Execute: POST <code>/AssessmentAdmin/AkhiriSemuaUjian</code> dengan <code>title</code>+<code>category</code>+<code>scheduleDate</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Reset Assessment per Peserta</span></div>
+    <div class="step-body">Kalau peserta perlu retake (mis: gangguan teknis dari awal), klik <b>Reset</b> &mdash; POST <code>/AssessmentAdmin/ResetAssessment/{id}</code>. Sesi kembali ke status NotStarted.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">6</span><span class="step-title">Add Extra Time</span></div>
+    <div class="step-body">Tambah waktu untuk semua peserta yang masih In Progress: POST <code>/AssessmentAdmin/AddExtraTime/{assessmentId}</code> dengan <code>minutes</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">7</span><span class="step-title">Regenerate Token / Reshuffle</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Regenerate token (untuk peserta yang salah token): POST <code>/AssessmentAdmin/RegenerateToken/{id}</code></li>
+        <li>Reshuffle paket per sesi: POST <code>/AssessmentAdmin/ReshufflePackage/{sessionId}</code></li>
+        <li>Reshuffle batch: POST <code>/AssessmentAdmin/ReshuffleAll</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">8</span><span class="step-title">Manual Grading Essay</span></div>
+    <div class="step-body">Untuk assessment dengan <code>HasManualGrading=true</code>, scoring per essay: POST <code>/AssessmentAdmin/SubmitEssayScore</code>. Finalize: POST <code>/AssessmentAdmin/FinalizeEssayGrading/{sessionId}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">9</span><span class="step-title">Interview Results (Proton Th 3)</span></div>
+    <div class="step-body">Submit hasil interview offline: POST <code>/AssessmentAdmin/SubmitInterviewResults</code>. Activity log per sesi: GET <code>/AssessmentAdmin/GetActivityLog/{sessionId}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">10</span><span class="step-title">Export Hasil Batch</span></div>
+    <div class="step-body">Klik <b>Export</b> di Monitoring Detail &mdash; <code>/AssessmentAdmin/ExportAssessmentResults?title=&amp;category=&amp;scheduleDate=</code>.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Force-Close Ireversibel</div>
+    <b>Akhiri Ujian</b> langsung submit skor sesuai progress saat itu &mdash; user tidak bisa lanjutkan. Pakai hanya untuk kasus genuine (freeze, disconnect, jadwal selesai). Semua action force-close + reset masuk Audit Log (Bab 5.14).
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Reset = Hilang Jawaban</div>
+    Reset menghapus jawaban sebelumnya. Konfirmasi dengan peserta sebelum reset.
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
