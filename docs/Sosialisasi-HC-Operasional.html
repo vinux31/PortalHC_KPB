@@ -1276,6 +1276,306 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.7 &amp; &sect;5.10 &mdash; Renewal Management</p>
   </div>
 
+  <!-- ================= SLIDE 13: SILABUS + GUIDANCE ================= -->
+  <div class="slide default-deco" data-slide="13">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &mdash; KELOLA DATA</p>
+        <h1 class="slide-title">Silabus + <span class="accent">Guidance Files</span></h1>
+        <p class="slide-subtitle">Kelola materi pengembangan Proton per Bagian/Unit/Track</p>
+      </div>
+      <div class="slide-badge">SLIDE 13 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card">
+          <h4>&#128218; Silabus Proton</h4>
+          <ul>
+            <li><b>CRUD inline</b> &mdash; edit langsung di tabel</li>
+            <li><b>Import Excel</b> &mdash; download template, isi, upload</li>
+            <li><b>Export Excel</b> &mdash; backup silabus aktif</li>
+            <li><b>Deactivate</b> daripada Delete &mdash; safer, bisa di-reactivate</li>
+            <li>Filter per Bagian / Unit / Track</li>
+          </ul>
+        </div>
+        <div class="split-card amber">
+          <h4>&#128221; Guidance Files</h4>
+          <ul>
+            <li>Upload dokumen rujukan (PDF rekomendasi)</li>
+            <li>Per Bagian / Unit / Track scope</li>
+            <li>History versi sebelumnya tersimpan</li>
+            <li>Coachee + Coach + HC download dari Plan IDP</li>
+            <li>Replace file: file lama auto-archive</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#9888; Penting:</strong> <b>Delete silabus = cascade</b> ke deliverable + coachee history. Gunakan <b>Deactivate</b> dulu; delete hanya kalau silabus belum pernah dipakai. Endpoint preview cascade tersedia.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;4.1 &amp; &sect;4.2 &mdash; Silabus + Guidance</p>
+  </div>
+
+  <!-- ================= SLIDE 14: OVERRIDE ================= -->
+  <div class="slide default-deco" data-slide="14">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &mdash; KELOLA DATA</p>
+        <h1 class="slide-title">Override <span class="accent">Data Pekerja</span></h1>
+        <p class="slide-subtitle">Fitur sensitif &mdash; pakai dengan hati-hati</p>
+      </div>
+      <div class="slide-badge">SLIDE 14 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card">
+          <h4>&#128269; Kapan Dipakai</h4>
+          <ul>
+            <li>Data Proton gagal sync otomatis dari source</li>
+            <li>Mapping KKJ tidak ter-detect (ID Jabatan invalid)</li>
+            <li>Mapping silabus per posisi error</li>
+            <li>Cek <b>Status Sync</b> dulu untuk identifikasi gap</li>
+            <li>Fallback manual setelah auto-sync gagal</li>
+          </ul>
+        </div>
+        <div class="split-card red">
+          <h4>&#9888; Aturan Pakai</h4>
+          <ul>
+            <li><b>Bukan untuk fix data source yang salah</b> &mdash; perbaiki di hulu (data source)</li>
+            <li>Override = bypass auto-sync, hanya untuk gap teknis</li>
+            <li>Setiap override <b>ter-log di Audit Log</b></li>
+            <li>Bisa di-review oleh auditor / compliance</li>
+            <li>Konsultasi Admin / IT kalau ragu</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Best practice:</strong> Sebelum override, screenshot kondisi error + catatan reason di komunikasi internal. Audit Log cuma simpan action; reasoning ada di komunikasi paralel.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;4.3 &mdash; Override Data Pekerja</p>
+  </div>
+
+  <!-- ================= SLIDE 15: ADMIN PANEL MAP ================= -->
+  <div class="slide default-deco" data-slide="15">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Admin Panel <span class="accent">Map</span></h1>
+        <p class="slide-subtitle">16 menu HC, dikategorikan berdasarkan area kerja</p>
+      </div>
+      <div class="slide-badge">SLIDE 15 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="menu-map">
+        <div class="menu-cell workers"><span class="mc-icon">&#128101;</span><div class="mc-name">Kelola Pekerja</div></div>
+        <div class="menu-cell workers"><span class="mc-icon">&#127970;</span><div class="mc-name">Kelola Units</div></div>
+        <div class="menu-cell workers"><span class="mc-icon">&#127991;</span><div class="mc-name">Kelola Categories</div></div>
+        <div class="menu-cell workers"><span class="mc-icon">&#128214;</span><div class="mc-name">Audit Log</div></div>
+
+        <div class="menu-cell assessment"><span class="mc-icon">&#128190;</span><div class="mc-name">Bank Soal</div></div>
+        <div class="menu-cell assessment"><span class="mc-icon">&#128221;</span><div class="mc-name">Import Soal</div></div>
+        <div class="menu-cell assessment"><span class="mc-icon">&#128197;</span><div class="mc-name">Create Assessment</div></div>
+        <div class="menu-cell assessment"><span class="mc-icon">&#128064;</span><div class="mc-name">Monitoring</div></div>
+
+        <div class="menu-cell mapping"><span class="mc-icon">&#128279;</span><div class="mc-name">Coach Mapping</div></div>
+        <div class="menu-cell mapping"><span class="mc-icon">&#9851;</span><div class="mc-name">Renewal</div></div>
+        <div class="menu-cell mapping"><span class="mc-icon">&#127979;</span><div class="mc-name">Add Training</div></div>
+        <div class="menu-cell mapping"><span class="mc-icon">&#127942;</span><div class="mc-name">Manual Assessment</div></div>
+
+        <div class="menu-cell files"><span class="mc-icon">&#128194;</span><div class="mc-name">KKJ Files</div></div>
+        <div class="menu-cell files"><span class="mc-icon">&#128450;</span><div class="mc-name">CPDP Files</div></div>
+
+        <div class="menu-cell maintenance"><span class="mc-icon">&#128679;</span><div class="mc-name">Maintenance</div></div>
+        <div class="menu-cell maintenance"><span class="mc-icon">&#128100;</span><div class="mc-name">Impersonate <small>(Admin)</small></div></div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Color code:</strong> <span style="color:var(--teal);">&#9632; Workers</span> &middot; <span style="color:var(--amber-dark);">&#9632; Assessment</span> &middot; <span style="color:var(--green);">&#9632; Mapping/Renewal</span> &middot; <span style="color:#7b1fa2;">&#9632; Files</span> &middot; <span style="color:var(--red);">&#9632; Maintenance</span>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 5 Admin Panel (16 task lengkap)</p>
+  </div>
+
+  <!-- ================= SLIDE 16: KELOLA PEKERJA + BANK SOAL ================= -->
+  <div class="slide default-deco" data-slide="16">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Pekerja + <span class="accent">Bank Soal</span></h1>
+        <p class="slide-subtitle">Dua operasi yang paling sering HC lakukan</p>
+      </div>
+      <div class="slide-badge">SLIDE 16 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card">
+          <h4>&#128101; Kelola Pekerja</h4>
+          <ul>
+            <li><b>CRUD</b> &mdash; Tambah / Edit / Detail / Deactivate</li>
+            <li><b>Import Excel</b> &mdash; massal pakai template, sekali upload ratusan worker</li>
+            <li><b>Export Excel</b> &mdash; backup atau laporan struktur SDM</li>
+            <li><b>Update role</b> &mdash; assign HC, Coach, dll</li>
+            <li>Search + filter Section/Unit/Role/Active</li>
+          </ul>
+        </div>
+        <div class="split-card amber">
+          <h4>&#128190; Bank Soal</h4>
+          <ul>
+            <li><b>Manage Packages</b> &mdash; paket soal per assessment</li>
+            <li><b>Import via Excel</b> &mdash; download template MC/Essay, isi, upload</li>
+            <li><b>Preview</b> sebelum publish &mdash; simulasi tampilan peserta</li>
+            <li><b>Multiple package</b> per assessment untuk distribusi random</li>
+            <li>Copy paket Pre &rarr; Post untuk konsistensi</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#9888; Pitfall import soal:</strong> Kunci jawaban di kolom Excel <b>harus huruf kapital</b> (A/B/C/D/E). Lowercase ditolak. Sheet validation di template auto-cek format.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.1, 5.4, 5.5 &mdash; Pekerja + Bank Soal + Import</p>
+  </div>
+
+  <!-- ================= SLIDE 17: CREATE + MONITORING ASSESSMENT ================= -->
+  <div class="slide default-deco" data-slide="17">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Create &amp; <span class="accent">Monitor Assessment</span></h1>
+        <p class="slide-subtitle">Alur 4 langkah dari setup sampai eksekusi real-time</p>
+      </div>
+      <div class="slide-badge">SLIDE 17 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="flow-h">
+        <div class="flow-node">
+          <span class="flow-icon">&#128221;</span>
+          <strong>1. Create</strong>
+          Set title, kategori, jadwal, durasi, passing grade
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node">
+          <span class="flow-icon">&#128101;</span>
+          <strong>2. Assign</strong>
+          Individu atau group/unit batch
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node" style="border-color: var(--green); color: var(--green);">
+          <span class="flow-icon">&#128064;</span>
+          <strong>3. Monitor</strong>
+          Real-time: status, progress, waktu
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node" style="border-color: var(--red); color: var(--red);">
+          <span class="flow-icon">&#128721;</span>
+          <strong>4. Force-Close</strong>
+          Kalau freeze/disconnect/jadwal selesai
+        </div>
+      </div>
+      <div class="split-2">
+        <div class="split-card green">
+          <h4>&#128176; Power Tools Monitor</h4>
+          <ul>
+            <li><b>Add Extra Time</b> &mdash; tambah waktu kolektif</li>
+            <li><b>Reset Assessment</b> &mdash; full retake per user</li>
+            <li><b>Regenerate Token</b> &mdash; user salah token</li>
+            <li><b>Reshuffle Paket</b> &mdash; randomize ulang</li>
+          </ul>
+        </div>
+        <div class="split-card red">
+          <h4>&#9888; Force-Close Ireversibel</h4>
+          <ul>
+            <li>Auto-submit jawaban yang sudah diisi</li>
+            <li>User tidak bisa lanjutkan</li>
+            <li>Ter-log di Audit Log</li>
+            <li>Pakai untuk genuine case (freeze, disconnect)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.6, 5.7, 5.8 &mdash; Create / Edit / Monitor</p>
+  </div>
+
+  <!-- ================= SLIDE 18: COACH MAPPING + WORKLOAD ================= -->
+  <div class="slide default-deco" data-slide="18">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Coach Mapping + <span class="accent">Workload</span></h1>
+        <p class="slide-subtitle">Distribusi coachee per coach + monitoring beban kerja</p>
+      </div>
+      <div class="slide-badge">SLIDE 18 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card">
+          <h4>&#128279; Coach-Coachee Mapping</h4>
+          <ul>
+            <li><b>Assign</b> coach ke coachee eligible per Proton track</li>
+            <li><b>Edit / Deactivate / Reactivate / Delete</b> dengan preview cascade</li>
+            <li><b>Mark Completed</b> di akhir periode Proton</li>
+            <li><b>Import Excel</b> untuk mapping batch awal</li>
+            <li><b>Export</b> mapping aktif untuk audit</li>
+          </ul>
+        </div>
+        <div class="split-card amber">
+          <h4>&#128202; Coach Workload</h4>
+          <ul>
+            <li>Daftar coach + jumlah coachee aktif + pending review</li>
+            <li>Sort by workload &mdash; identifikasi overload</li>
+            <li><b>Set Threshold</b> &mdash; warning otomatis kalau coach overload</li>
+            <li><b>Auto-suggest reassign</b> &mdash; approve atau skip</li>
+            <li>Export untuk meeting redistribusi</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Daily routine HC:</strong> Kalau bell icon banyak notif <i>evidence siap review</i>, cek <b>Coach Workload</b>. Kemungkinan ada coach overload &mdash; redistribusi mapping untuk seimbangkan beban.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.9 &amp; &sect;3.6 &mdash; Mapping + Workload</p>
+  </div>
+
+  <!-- ================= SLIDE 19: MAINTENANCE + AUDIT LOG ================= -->
+  <div class="slide default-deco" data-slide="19">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Maintenance + <span class="accent">Audit Log</span></h1>
+        <p class="slide-subtitle">Operational tools yang HC pakai saat investigasi atau update</p>
+      </div>
+      <div class="slide-badge">SLIDE 19 / 23</div>
+    </div>
+    <div class="slide-body">
+      <div class="split-2">
+        <div class="split-card amber">
+          <h4>&#128679; Maintenance Mode</h4>
+          <ul>
+            <li><b>Scope All</b> &mdash; freeze seluruh sistem (kecuali Admin)</li>
+            <li><b>Scope Specific</b> &mdash; freeze modul tertentu (CMP, CDP, dll)</li>
+            <li>Isi pesan + estimasi waktu selesai</li>
+            <li><b>Komunikasi user dulu</b> sebelum aktifkan</li>
+            <li>Action ter-log <code>MaintenanceEnabled/Disabled</code></li>
+          </ul>
+        </div>
+        <div class="split-card">
+          <h4>&#128269; Audit Log Investigation</h4>
+          <ul>
+            <li>1. Tentukan jendela waktu kasus</li>
+            <li>2. Filter Audit Log per startDate/endDate</li>
+            <li>3. Cari user + action terkait (cross-check timestamp)</li>
+            <li>4. Drill aksi sensitif: ForceClose, Override, Delete, RoleChange</li>
+            <li>5. Eskalasi ke Admin / IT kalau menemukan unauthorized action</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar">
+        <strong>&#128161; Impersonate (Admin only):</strong> HC tidak bisa pakai Impersonate. Kalau perlu debug user case, request ke Admin dengan detail: NIP user, menu/halaman, screenshot error, langkah reproduksi.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.14, 5.15, 5.16 &mdash; Audit / Maintenance / Impersonate</p>
+  </div>
+
   <!-- ================= SLIDE 23: PENUTUP ================= -->
   <div class="slide penutup" data-slide="23">
     <div class="penutup-content">
