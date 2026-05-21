@@ -2755,6 +2755,33 @@ namespace HcPortal.Controllers
             return View(vm);
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PreviewEditScore(int sessionId,
+            HcPortal.Models.EditDraftSubmission form)
+        {
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (session == null) return NotFound();
+            if (!await HcPortal.Helpers.AssessmentEditEligibility.IsEditableAsync(_context, session))
+                return Forbid();
+
+            var overrideAnswers = form.Drafts.ToDictionary(d => d.QuestionId, d => d.Options);
+
+            var (newScore, newIsPassed) = await _gradingService.PreviewScoreAsync(session, overrideAnswers);
+
+            return Json(new
+            {
+                oldScore = session.Score,
+                oldIsPassed = session.IsPassed,
+                newScore,
+                newIsPassed,
+                hasCert = !string.IsNullOrEmpty(session.NomorSertifikat),
+                nomorSertifikat = session.NomorSertifikat,
+                willGenerateCert = session.GenerateCertificate && session.AssessmentType != "PreTest"
+            });
+        }
+
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
