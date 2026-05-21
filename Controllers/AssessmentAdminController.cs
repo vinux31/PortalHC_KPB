@@ -3890,6 +3890,24 @@ namespace HcPortal.Controllers
                     currentRow++; // blank separator
                 }
                 // Skip section kalau sessionEt kosong (Abandoned tanpa ET, atau Essay-only)
+
+                // === Spider Chart PNG (REQ EXP-03, D-02 warna biru, D-03 render 500 embed 400) ===
+                if (sessionEt.Count >= 3)
+                {
+                    var chartData = sessionEt
+                        .OrderBy(e => e.ElemenTeknis)
+                        .Select(e => (e.ElemenTeknis, e.QuestionCount > 0 ? (double)e.CorrectCount / e.QuestionCount * 100 : 0d))
+                        .ToList();
+                    var png = HcPortal.Helpers.SpiderChartRenderer.RenderRadarPng(chartData);
+                    if (png.Length > 0)
+                    {
+                        using var ms = new MemoryStream(png);
+                        var pic = ws.AddPicture(ms, $"spider-{session.Id}")
+                            .MoveTo(ws.Cell(currentRow, 1))
+                            .WithSize(400, 400);
+                        currentRow += 22; // approx rows occupied by 400px image
+                    }
+                }
             }
 
             // Sanitize title for filename: replace non-alphanumeric with _
