@@ -28,11 +28,27 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v15.0 shipped** — Audit Findings 27 April 2026 (phases 304-314 + 313.1): 15 temuan audit cleared (login UX, score editable, WIB labels, PrePost wizard, worker cert defensive, essay finalize idempotency, ManageAssessment HTMX perf, full-delete role tier, 2-tier timer submit, regenerate token Upcoming).
 **v16.0 shipped** — QA Test Coverage (phases 315-319): automated E2E test infrastructure. 73 sub-tests baseline di `tests/e2e/exam-types.spec.ts` (15 FLOW A-X coverage) + assessment matrix discovery harness + 2 production fixes (SURF-317-A CMPController MA-aware + SURF-317-A1 test fixture). 4 QA requirements satisfied (QA-01 matrix infra, QA-02 exam-types, QA-08 advanced features, QA-09 admin features).
 
-**Current focus:** TBD — next milestone planning belum dimulai. Kandidat: Phase 320 FLOW A-J wholesale refresh, CI integration QA-02, multi-env extension QA-05, Performance Deep Check.
+**Current focus:** v17.0 Assessment Admin Power Tools — Phase 320 Export Per-Peserta Excel + Phase 321 Edit Jawaban Peserta (paralel-able).
+
+## Current Milestone: v17.0 Assessment Admin Power Tools
+
+**Goal:** Power tools admin/HC untuk assessment — export Excel lengkap per-peserta + edit jawaban peserta dengan cascade otomatis ke sertifikat, TrainingRecord, dan audit trail granular.
+
+**Target features:**
+- Excel export dengan sheet "Summary" + N sheet per peserta (info detail, ElemenTeknis, PNG spider chart via SkiaSharp, Detail Jawaban MC/MA) — Phase 320
+- Edit jawaban MC/MA peserta Completed via halaman dedicated dengan recompute Score/IsPassed/ElemenTeknis + cascade NomorSertifikat/TrainingRecord saat Pass↔Fail flip + audit dual-write (AuditLog generic + AssessmentEditLog granular) + SignalR live update — Phase 321
+
+**Key context:**
+- Spec final: `docs/superpowers/specs/2026-05-20-assessment-admin-power-tools-design.md` (commit `c37e55ef`, 4 patch codebase-verified)
+- 19 keputusan terkunci di spec Section 7 (Q1-Q16 + Q5b/Q6b/Q6c)
+- 2 phase **paralel-able** (file scope independent — Phase 320 fokus `ExportAssessmentResults`+`Helpers/SpiderChartRenderer.cs`; Phase 321 fokus `EditPesertaAnswers` action+view+`GradingService.RegradeAfterEditAsync`+migration `AddAssessmentEditLogs`+view dropdown ⋮)
+- Dependency baru: `SkiaSharp 3.116.1` + `SkiaSharp.NativeAssets.Win32` (Phase 320). Migration baru: `AddAssessmentEditLogs` (Phase 321)
+- Verifikasi: project tidak punya unit test infra → manual UAT only per `docs/DEV_WORKFLOW.md` §5
+- Research per phase ready di `.planning/phases/320-assessment-export-per-peserta-excel/320-RESEARCH.md` + `.planning/phases/321-assessment-edit-jawaban-peserta/321-RESEARCH.md` (commit `f442220b`)
 
 ## Next Milestone Goals
 
-Belum di-define. Run `/gsd-new-milestone` untuk start questioning → research → requirements → roadmap. Kandidat prioritas tinggi tersedia di Backlog Lainnya section bawah.
+v17.0 sedang aktif. Kandidat milestone berikutnya tetap di Backlog Lainnya.
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

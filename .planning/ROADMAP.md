@@ -15,6 +15,7 @@
 - ✅ **v14.0 Assessment Enhancement** — Phases 296-303 (shipped 2026-04-24) — [archive](milestones/v14.0-ROADMAP.md)
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
 - ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
+- 🚧 **v17.0 Assessment Admin Power Tools** — Phases 320-321 (started 2026-05-21)
 
 ## Phases
 
@@ -434,4 +435,60 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-05-12 (v16.0 SHIPPED — 5/5 phases, 22/22 plans, 73 sub-tests baseline, audit `gaps_found` tracking-only with patches applied)*
+### 🚧 v17.0 Assessment Admin Power Tools (Phases 320-321) — STARTED 2026-05-21
+
+**Goal:** Power tools admin/HC untuk assessment — Excel export per-peserta lengkap (Summary + N sheet per peserta, info detail, ElemenTeknis, PNG radar chart, Detail Jawaban) + edit jawaban MC/MA peserta Completed dengan auto-recompute Score/IsPassed/ElemenTeknis + cascade NomorSertifikat & TrainingRecord saat Pass↔Fail flip + audit dual-write (AuditLog generic + AssessmentEditLog granular) + SignalR live monitor update.
+
+**Started:** 2026-05-21 | **Phases:** 320-321 (2 phases, **paralel-able**) | **Active REQ:** 21 (EXP-01..08 + EDIT-01..13)
+
+**Spec:** `docs/superpowers/specs/2026-05-20-assessment-admin-power-tools-design.md` (commit `c37e55ef`, 4 patch codebase-verified)
+**Research per phase:** `.planning/phases/320-assessment-export-per-peserta-excel/320-RESEARCH.md` + `.planning/phases/321-assessment-edit-jawaban-peserta/321-RESEARCH.md` (commit `f442220b`)
+
+#### Phase 320: Assessment Export Per-Peserta Excel
+
+- [ ] **Phase 320: Assessment Export Per-Peserta Excel** — Extend `ExportAssessmentResults` jadi 1 sheet "Summary" + N sheet per peserta dengan info detail, tabel ElemenTeknis, PNG spider chart (SkiaSharp), dan Detail Jawaban MC/MA
+  - **REQ:** EXP-01, EXP-02, EXP-03, EXP-04, EXP-05, EXP-06, EXP-07, EXP-08
+  - **Goal:** Refactor `AssessmentAdminController.ExportAssessmentResults` (line 3651) — rename sheet "Results"→"Summary" (breaking) + per-peserta loop yang generate sheet content via 2 helper baru (`Helpers/SpiderChartRenderer.cs` PNG via SkiaSharp, `Helpers/SheetNameSanitizer.cs` `{NIP}_{FullName}` format). PNG generate paralel `Task.WhenAll` dengan `MaxDegreeOfParallelism = Environment.ProcessorCount`. No DB schema change.
+  - **Success Criteria:**
+    1. Export grup assessment menghasilkan workbook dengan tab "Summary" (data tabel ringkas existing) + N tab `{NIP}_{FullName}` untuk peserta Completed + Abandoned (filter exact)
+    2. Tab peserta Online: header + tabel ElemenTeknis + PNG radar 500×500 (skip kalau < 3 elemen) + tabel Detail Jawaban MC/MA dengan ✓/✗ dan "Tidak dijawab" untuk soal tanpa response
+    3. Tab peserta Manual Entry: header + section Info Sertifikasi Manual + hyperlink `ManualSertifikatUrl` (no chart/ET/detail jawaban)
+    4. Sheet name truncated tepat 31 char tanpa collision (NIP unique guarantee), exclude `\ / ? * [ ] :`
+    5. Login Admin atau HC export sukses (403 untuk role lain); Worker tidak punya akses
+    6. Benchmark 50 peserta < 30 detik response time di lokal (file 3–5 MB)
+  - **Risk:** Medium (lib baru SkiaSharp, native asset Win32, performance) | **Effort:** M
+  - **Dependencies:** Tidak ada (paralel-able dengan Phase 321)
+  - **Research:** `320-RESEARCH.md` 12 task breakdown (full code blocks)
+  - **Plans:** Akan di-generate via `/gsd-plan-phase 320` consume RESEARCH.md → sub-numbered PLAN.md
+
+#### Phase 321: Assessment Edit Jawaban Peserta
+
+- [ ] **Phase 321: Assessment Edit Jawaban Peserta** — Halaman admin/HC untuk edit jawaban MC/MA peserta Completed dengan auto-recompute + cascade cert/TR + audit granular + SignalR live update
+  - **REQ:** EDIT-01, EDIT-02, EDIT-03, EDIT-04, EDIT-05, EDIT-06, EDIT-07, EDIT-08, EDIT-09, EDIT-10, EDIT-11, EDIT-12, EDIT-13
+  - **Goal:** 3 layer baru — (1) Model + migration `AssessmentEditLog`, (2) `GradingService.RegradeAfterEditAsync` + refactor extract `ComputeScoreAndETInternalAsync(session, overrideAnswers?)` no-side-effect, (3) Controller `EditPesertaAnswers` (GET/POST/PreviewEditScore) + View dedicated + JS dirty state + flip modal + dropdown ⋮ di `AssessmentMonitoringDetail.cshtml` + Activity Log "Edit History" tab. Transaction scope membungkus edit+audit+regrade+cascade. SignalR signal baru `workerAnswerEdited`.
+  - **Success Criteria:**
+    1. Admin/HC dapat akses `/AssessmentAdmin/EditPesertaAnswers/{id}` untuk session Completed, edit MC/MA, simpan dengan reason wajib (5 preset + Lainnya freetext)
+    2. POST save auto-recompute: Score+IsPassed updated, `SessionElemenTeknisScores` DELETE+recompute, AuditLog + AssessmentEditLog granular entries tertulis (snapshot text + Actor + Reason)
+    3. Pass↔Fail flip cascade: cabut NomorSertifikat + TrainingRecord="Failed" (Pass→Fail) atau generate NomorSertifikat baru + TrainingRecord="Passed" (Fail→Pass, kalau `GenerateCertificate && !PreTest`). Modal konfirmasi muncul via dry-run `PreviewEditScore` sebelum submit
+    4. 2 admin edit session sama bersamaan → admin kedua kena stale "Sesi sudah diubah admin lain" (concurrency token UpdatedAt)
+    5. Session non-Completed / IsManualEntry / Assessment Proton Tahun 3 → Edit page block + UI dropdown item hidden (IsEditable gating)
+    6. SignalR broadcast: monitor di tab/browser lain auto-update score+result cell + toast `{actorRole} {actorName} edit jawaban {workerName}: {oldScore}→{newScore}, {flip}`
+    7. Tab "Edit History" di modal Activity Log menampilkan timeline lengkap (timestamp, soal, old→new, actor, reason)
+    8. Migration `AddAssessmentEditLogs` apply + rollback test lokal lulus
+  - **Risk:** High (transaction + cascade + concurrency + audit + UI dropdown refactor + new migration) | **Effort:** L
+  - **Dependencies:** Tidak ada (paralel-able dengan Phase 320; perlu koordinasi merge di `AssessmentAdminController.cs` karena kedua phase edit file ini)
+  - **Research:** `321-RESEARCH.md` 13 task breakdown (full code blocks)
+  - **Plans:** Akan di-generate via `/gsd-plan-phase 321` consume RESEARCH.md → sub-numbered PLAN.md
+
+#### Coverage Validation v17.0
+
+| REQ | Phase | Status |
+|-----|-------|--------|
+| EXP-01..08 | 320 | Pending plan |
+| EDIT-01..13 | 321 | Pending plan |
+
+**Active mapped: 21/21 ✓ — Orphans: 0 — Duplicates: 0**
+
+---
+
+*Roadmap updated: 2026-05-21 (v17.0 STARTED — Phase 320 + 321 paralel-able, research siap, requirements defined)*

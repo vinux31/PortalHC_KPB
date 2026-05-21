@@ -1,40 +1,39 @@
 ---
 gsd_state_version: 1.0
-milestone: v16.0
-milestone_name: QA Test Coverage
-status: executing
-last_updated: "2026-05-12T04:09:37.466Z"
-last_activity: 2026-05-12 -- Phase 319 execution started
+milestone: v17.0
+milestone_name: Assessment Admin Power Tools
+status: defining_requirements
+last_updated: "2026-05-21T12:00:00.000Z"
+last_activity: 2026-05-21 -- Milestone v17.0 started via /gsd-new-milestone
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 22
-  completed_plans: 18
-  percent: 82
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-11)
+See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 319 — manualassessment-export-excel-analytics-certificationmanagement-e2e
+**Current focus:** Milestone v17.0 Assessment Admin Power Tools — defining requirements & roadmap
 
 ## Current Position
 
-Phase: 319 (manualassessment-export-excel-analytics-certificationmanagement-e2e) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 319
-Last activity: 2026-05-12 -- Phase 319 execution started
-Closure report: docs/test-reports/2026-05-12-phase-318-summary.md
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements via /gsd-new-milestone workflow
+Last activity: 2026-05-21 -- Milestone v17.0 started (spec final commit c37e55ef, research per phase commit f442220b)
 
 ## Next Action
 
-1. **Recommended:** `/gsd-discuss-phase 319` — start Phase 319 admin features (ManualAssessment + Export Excel + Analytics + CertificationManagement E2E)
-2. **Production:** Notify Team IT untuk rollout Plan 02 commit `8c490655` ke Dev (10.55.3.3) — flag "no migration"
-3. **Backlog:** Phase 320 proposed (FLOW A-J wholesale refresh + K5/M5 UI assertion upgrade)
+1. **Recommended:** Finalize `.planning/REQUIREMENTS.md` (EXP-* + EDIT-* REQ-IDs) → spawn gsd-roadmapper untuk `.planning/ROADMAP.md` v17.0 entry (2 phase: 320 + 321)
+2. **After roadmap:** `/gsd-plan-phase 320` + `/gsd-plan-phase 321` (consume RESEARCH.md per phase, output sub-numbered PLAN.md)
+3. **Backlog:** v16.0 milestone phases 315-319 belum di-archive via `/gsd-complete-milestone` — pre-existing housekeeping (bukan blocker)
 
 ## Deferred Items
 
