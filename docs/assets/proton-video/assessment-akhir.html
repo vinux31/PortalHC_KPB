@@ -528,6 +528,57 @@
     0%   { opacity: 0.9; transform: rotate(var(--angle)) translateX(0) rotate(0deg); }
     100% { opacity: 0;   transform: rotate(var(--angle)) translateX(clamp(120px, 14vw, 220px)) rotate(360deg); }
   }
+
+  /* ===== CONFETTI FALL (24 flake ambient) ===== */
+  .confetti-fall {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 3;
+  }
+  .confetti-fall .flake {
+    position: absolute;
+    top: -20px;
+    width: clamp(6px, 0.6vw, 10px);
+    height: clamp(6px, 0.6vw, 10px);
+    opacity: 0;
+  }
+  .confetti-fall .flake:nth-child(3n+1)  { background: var(--red); }
+  .confetti-fall .flake:nth-child(3n+2)  { background: var(--navy); border-radius: 50%; }
+  .confetti-fall .flake:nth-child(3n)    { background: var(--gold); }
+
+  .confetti-fall.active .flake:nth-child(1)  { left: 4%;  animation: confettiFall 3.5s 0.0s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(2)  { left: 10%; animation: confettiFall 3.8s 0.15s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(3)  { left: 16%; animation: confettiFall 3.2s 0.30s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(4)  { left: 22%; animation: confettiFall 3.6s 0.10s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(5)  { left: 28%; animation: confettiFall 3.3s 0.45s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(6)  { left: 34%; animation: confettiFall 3.9s 0.20s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(7)  { left: 40%; animation: confettiFall 3.4s 0.55s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(8)  { left: 46%; animation: confettiFall 3.7s 0.35s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(9)  { left: 52%; animation: confettiFall 3.5s 0.65s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(10) { left: 58%; animation: confettiFall 3.8s 0.05s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(11) { left: 64%; animation: confettiFall 3.2s 0.75s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(12) { left: 70%; animation: confettiFall 3.6s 0.25s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(13) { left: 76%; animation: confettiFall 3.3s 0.85s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(14) { left: 82%; animation: confettiFall 3.9s 0.40s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(15) { left: 88%; animation: confettiFall 3.4s 0.95s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(16) { left: 94%; animation: confettiFall 3.7s 0.50s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(17) { left: 8%;  animation: confettiFall 3.5s 1.05s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(18) { left: 20%; animation: confettiFall 3.8s 1.15s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(19) { left: 32%; animation: confettiFall 3.2s 1.25s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(20) { left: 44%; animation: confettiFall 3.6s 1.20s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(21) { left: 56%; animation: confettiFall 3.3s 1.30s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(22) { left: 68%; animation: confettiFall 3.9s 1.35s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(23) { left: 80%; animation: confettiFall 3.4s 1.40s ease-in forwards; }
+  .confetti-fall.active .flake:nth-child(24) { left: 92%; animation: confettiFall 3.7s 1.45s ease-in forwards; }
+
+  @keyframes confettiFall {
+    0%   { opacity: 0; transform: translateY(-20px) rotate(0deg); }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(clamp(300px, 35vw, 500px)) rotate(540deg); }
+  }
 </style>
 </head>
 <body>
@@ -584,6 +635,16 @@
               <span class="particle"></span><span class="particle"></span>
               <span class="particle"></span><span class="particle"></span>
               <span class="particle"></span><span class="particle"></span>
+            </div>
+            <div class="confetti-fall" aria-hidden="true">
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
+              <span class="flake"></span><span class="flake"></span><span class="flake"></span>
             </div>
             <div class="result-card">
               <div class="r-title">Hasil Assessment</div>
