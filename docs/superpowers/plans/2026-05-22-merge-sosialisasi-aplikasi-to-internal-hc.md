@@ -409,15 +409,13 @@ Tulis script `tmp_renumber.ps1`:
 $path = 'docs/Sosialisasi-Internal-Tim-HC-PortalHC-KPB.html'
 $html = Get-Content $path -Raw
 
-# Find all data-slide attributes in physical file order (preserve order of appearance)
+# === Phase 1: Renumber data-slide attributes 1..41 in physical order ===
 $matches = [regex]::Matches($html, 'data-slide="(\d+)"')
 if ($matches.Count -ne 41) {
   Write-Host "ERROR: expected 41 data-slide matches, found $($matches.Count)"
   exit 1
 }
 
-# Build replacement map: each occurrence gets sequential N=1..41
-# Strategy: walk through matches in order, build new string piece by piece
 $result = New-Object System.Text.StringBuilder
 $lastEnd = 0
 $counter = 1
@@ -428,33 +426,52 @@ foreach ($m in $matches) {
   $counter++
 }
 $null = $result.Append($html.Substring($lastEnd))
-
 $newHtml = $result.ToString()
+$renumberedCount = $counter - 1  # Actual count (counter incremented past last)
 
-# Now sweep slide-badge text: "SLIDE <anyNum> / <anyNum>" → "SLIDE <N> / 41"
-# Track slide-badge in same physical order, replace with sequential
-$badgeMatches = [regex]::Matches($newHtml, 'SLIDE\s+\d+\s*/\s*\d+')
+# === Phase 2: Sync slide-badge text per slide block ===
+# Each slide block is delimited by consecutive `data-slide="N"` markers.
+# For each block, replace `SLIDE \d+ / \d+` with `SLIDE N / 41` using the block's
+# own data-slide value. This handles cover (#1, no badge) and penutup (#41, no
+# badge) correctly because their blocks just won't contain the badge regex.
+$slideAttrs = [regex]::Matches($newHtml, 'data-slide="(\d+)"')
 $result2 = New-Object System.Text.StringBuilder
 $lastEnd2 = 0
-$counter2 = 1
-foreach ($m in $badgeMatches) {
-  $null = $result2.Append($newHtml.Substring($lastEnd2, $m.Index - $lastEnd2))
-  # Skip badge counter on cover (slide 1) and penutup (slide 41) — they usually don't have slide-badge.
-  # Just trust physical order: assume each badge belongs to its preceding slide.
-  $null = $result2.Append("SLIDE $counter2 / 41")
-  $lastEnd2 = $m.Index + $m.Length
-  $counter2++
+$badgesUpdated = 0
+for ($i = 0; $i -lt $slideAttrs.Count; $i++) {
+  $m = $slideAttrs[$i]
+  $slideNum = [int]$m.Groups[1].Value
+  $blockStart = $m.Index
+  $blockEnd = if ($i + 1 -lt $slideAttrs.Count) { $slideAttrs[$i + 1].Index } else { $newHtml.Length }
+
+  # Append content before this slide block
+  $null = $result2.Append($newHtml.Substring($lastEnd2, $blockStart - $lastEnd2))
+
+  # Extract & transform this slide block
+  $block = $newHtml.Substring($blockStart, $blockEnd - $blockStart)
+  $badgeRegex = [regex]'SLIDE\s+\d+\s*/\s*\d+'
+  $badgeFound = $badgeRegex.IsMatch($block)
+  if ($badgeFound) {
+    $block = $badgeRegex.Replace($block, "SLIDE $slideNum / 41")
+    $badgesUpdated++
+  }
+  $null = $result2.Append($block)
+  $lastEnd2 = $blockEnd
 }
 $null = $result2.Append($newHtml.Substring($lastEnd2))
 
-Set-Content -Path $path -Value $result2.ToString() -NoNewline -Encoding utf8
-Write-Host "Renumbered $counter data-slide attrs, $counter2 slide-badge texts."
+# Write UTF-8 without BOM (avoid PS5.1 default UTF-16 LE / utf8-with-BOM)
+[System.IO.File]::WriteAllText((Resolve-Path $path), $result2.ToString(), (New-Object System.Text.UTF8Encoding($false)))
+
+Write-Host "Renumbered $renumberedCount data-slide attrs, $badgesUpdated slide-badge texts."
 ```
 
-Run: `pwsh -File tmp_renumber.ps1` (Windows PowerShell juga bisa: `powershell -File tmp_renumber.ps1`)
-Expected output: `Renumbered 42 data-slide attrs, X slide-badge texts.` (42 = 41 + 1 because $counter++ happens AFTER last). Verify N = 41 actual matches.
+Run: `powershell -File tmp_renumber.ps1` (atau `pwsh -File tmp_renumber.ps1` kalau PS7 ada)
+Expected output: `Renumbered 41 data-slide attrs, 39 slide-badge texts.`
 
-> **Catatan slide-badge:** Cover (#1) dan Penutup (#41) tidak punya slide-badge text — skip otomatis karena loop hanya match "SLIDE N / M" pattern. Hitung match real sebelum lanjut. Kalau jumlah badge bukan 39 (= 41 - 2), investigasi manual sebelum Step 3.
+Kalau output ≠ `41 ... 39`: STOP, restore backup (`.bak`), investigate. Common cause: file ada extra `data-slide=` di komentar/string yang ke-match regex.
+
+> **Logic catatan:** Phase 1 renumber data-slide sequential 1..41 berdasar physical order. Phase 2 walk per-slide block (delimited oleh consecutive data-slide markers), pakai data-slide N value dari block itu untuk badge replace. Cover (#1) dan Penutup (#41) tidak punya badge dalam block-nya → tidak di-touch otomatis. Hasil: 39 badges = slide 2..40 sync dengan data-slide N.
 
 - [ ] **Step 3: Verify renumber result**
 
