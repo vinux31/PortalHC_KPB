@@ -1449,6 +1449,111 @@
   </div>
 </article>
 
+<article class="task" id="admin-audit-log">
+  <h3>5.14 Audit Log &mdash; Investigation Playbook</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Audit Log
+    <code class="url">/AssessmentAdmin/AuditLog</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Audit Log</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/AuditLog</code>. Daftar semua aktivitas system: login, perubahan data, upload, force-close, override, dll. Pagination: <code>?page={n}</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Filter per Rentang Tanggal</span></div>
+    <div class="step-body">Pakai filter: <code>?startDate={d}&amp;endDate={d}</code>. Fokus ke jendela waktu kasus yang sedang diinvestigasi.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Export Audit Log</span></div>
+    <div class="step-body">Download Excel: <code>/AssessmentAdmin/ExportAuditLog?startDate=&amp;endDate=</code>. Berguna untuk eskalasi / laporan compliance.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Investigation Playbook</div>
+    Saat ada laporan anomali / kasus eskalasi:
+    <ol>
+      <li><b>Tentukan jendela waktu</b> kejadian (mis: 2 hari sebelum &mdash; 1 hari sesudah)</li>
+      <li><b>Filter Audit Log</b> berdasarkan jendela tsb</li>
+      <li><b>Cari user + action terkait</b> &mdash; cross-check dengan timestamp laporan</li>
+      <li><b>Drill ke detail aksi sensitif</b>: <code>ForceClose</code>, <code>Override</code>, <code>Delete</code>, <code>RoleChange</code>, <code>MaintenanceEnabled/Disabled</code>, <code>ImpersonateStart/End</code></li>
+      <li><b>Cek IP address + waktu</b> untuk konfirmasi identitas pelaku</li>
+      <li><b>Eskalasi ke Admin / IT</b> kalau menemukan unauthorized action</li>
+    </ol>
+  </div>
+</article>
+
+<article class="task" id="admin-maintenance">
+  <h3>5.15 Maintenance Mode</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Maintenance Mode
+    <code class="url">/Admin/Maintenance</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Maintenance</span></div>
+    <div class="step-body">Akses <code>/Admin/Maintenance</code>. Authorized untuk role <b>Admin</b> dan <b>HC</b>. Tampilan status current + form toggle.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Pilih Scope</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>All</b> &mdash; seluruh sistem masuk maintenance (Admin masih bisa akses)</li>
+        <li><b>Specific</b> &mdash; pilih modul tertentu via checkbox <code>selectedModules</code> (CMP, CDP, dll). Minimal 1 modul harus dipilih.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Isi Pesan + Estimasi Selesai</span></div>
+    <div class="step-body">Field <b>Message</b> tampil ke user yang akses. Optional <b>Estimated End Time</b> kasih info kapan maintenance selesai.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Aktifkan / Nonaktifkan</span></div>
+    <div class="step-body">Toggle <code>isEnabled</code> &rarr; POST <code>/Admin/Maintenance</code>. Action ter-log di Audit Log dengan <code>MaintenanceEnabled</code> / <code>MaintenanceDisabled</code>.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Cek Scope Sebelum Aktifkan</div>
+    Scope <b>All</b> akan kunci akses semua non-Admin termasuk semua HC lain. Pakai Scope <b>Specific</b> kalau hanya ingin freeze modul tertentu (mis: maintenance Bank Soal saja, CMP/CDP masih jalan).
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Komunikasi ke User</div>
+    Sebelum aktifkan maintenance, komunikasikan ke user via channel kantor (email, grup chat). Isi pesan maintenance dengan kontak person + perkiraan durasi yang realistis.
+  </div>
+</article>
+
+<article class="task" id="admin-impersonate">
+  <h3>5.16 Impersonate User &mdash; Admin Only</h3>
+  <div class="breadcrumb">
+    Admin Panel &rarr; Impersonate (Admin only)
+    <code class="url">/Admin/Impersonate</code>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Fitur ini Admin Only</div>
+    Endpoint <code>/Admin/Impersonate</code>, <code>StartImpersonation</code>, <code>StopImpersonation</code>, <code>SearchUsersApi</code> semua di-authorize hanya untuk role <b>Admin (L1)</b>. <b>HC tidak bisa pakai langsung</b>. Section ini sebagai referensi kalau HC perlu request bantuan Admin.
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Request ke Admin</span></div>
+    <div class="step-body">HC laporkan kasus user (mis: "user X tidak bisa akses menu Y") ke Admin dengan detail: NIP user, menu/halaman, screenshot error, langkah reproduksi.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Admin Lakukan Impersonate</span></div>
+    <div class="step-body">Admin buka <code>/Admin/Impersonate</code>. Pilih mode: <b>By Role</b> (impersonate generic role, mis: jadi role Coachee) atau <b>By User</b> (impersonate user spesifik via search NIP / nama). POST <code>/Admin/StartImpersonation</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Banner Kuning Tampil</span></div>
+    <div class="step-body">Setelah start, banner kuning <i>"Anda sedang impersonate sebagai..."</i> tampil di top page (component <code>_ImpersonationBanner.cshtml</code>). Tetap muncul sampai dihentikan.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Stop Impersonating</span></div>
+    <div class="step-body">Admin klik <b>Stop Impersonating</b> di banner kuning &rarr; POST <code>/Admin/StopImpersonation</code>. Session kembali ke akun Admin asli.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Aksi Ter-audit</div>
+    Semua impersonate session ter-log di Audit Log dengan action <code>ImpersonateStart</code> / <code>ImpersonateEnd</code>. Halaman <code>/Admin/Impersonate</code> juga menampilkan 50 log terakhir untuk monitoring.
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Admin Tidak Bisa Impersonate Admin Lain</div>
+    System block impersonate target dengan role Admin (security guardrail). Maksimal impersonate role L2 (HC) ke bawah.
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
