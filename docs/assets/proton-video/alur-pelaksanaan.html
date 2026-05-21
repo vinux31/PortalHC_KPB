@@ -1103,5 +1103,116 @@
 
     <div class="brand-mark">PROTON × KPB</div>
   </div>
+<script>
+  // ===== ALUR PELAKSANAAN PROTON — ORCHESTRATION =====
+
+  function setStep(n) {
+    const nodes = document.querySelectorAll('.step-node');
+    const conns = document.querySelectorAll('.step-connector');
+    nodes.forEach((el, i) => {
+      el.classList.remove('active', 'done', 'final');
+      if (i + 1 < n) el.classList.add('done');
+      if (i + 1 === n) el.classList.add('active');
+      if (n === 6 && i + 1 === 6) el.classList.add('final');
+    });
+    conns.forEach((el, i) => {
+      el.classList.toggle('filled', i + 1 < n);
+      el.classList.toggle('final', i + 1 === 5 && n === 6);
+    });
+  }
+
+  function showScene(id) {
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function typeIn(el, text, perChar = 25) {
+    el.textContent = '';
+    let i = 0;
+    const id = setInterval(() => {
+      el.textContent += text[i++];
+      if (i >= text.length) clearInterval(id);
+    }, perChar);
+  }
+
+  function fillProgress(id, target) {
+    const el = document.getElementById(id);
+    el.style.setProperty('--target', target + '%');
+    el.classList.add('active');
+  }
+
+  function stampFire(id) {
+    document.getElementById(id).classList.add('fired');
+  }
+
+  function showToast(id) {
+    document.getElementById(id).classList.add('show');
+  }
+
+  function showRow(id) {
+    document.getElementById(id).classList.add('show');
+  }
+
+  function highlightCoach() {
+    document.querySelector('.role-card.coach').classList.add('highlight');
+  }
+
+  const milestones = [
+    // Step 1: HC Assign Coach (2-7s)
+    { t: 2000, fn: () => { setStep(1); showScene('scene-1'); } },
+    { t: 4800, fn: () => highlightCoach() },
+
+    // Step 2: Deliverable IDP (7-15s)
+    { t: 7000,  fn: () => { setStep(2); showScene('scene-2'); } },
+    { t: 11000, fn: () => fillProgress('upload-bar', 100) },
+    { t: 13500, fn: () => showToast('toast-upload') },
+
+    // Step 3: Coaching Proton (15-20s)
+    { t: 15000, fn: () => { setStep(3); showScene('scene-3'); } },
+    { t: 15600, fn: () => typeIn(document.getElementById('field-diskusi'), 'Membahas hambatan studi kasus refinery ops.') },
+    { t: 16500, fn: () => typeIn(document.getElementById('field-kesimpulan'), 'Coachee perlu refresh modul 3.') },
+    { t: 17500, fn: () => typeIn(document.getElementById('field-tindak'), 'Penugasan modul ulang minggu depan.') },
+    { t: 19000, fn: () => showToast('toast-coaching') },
+
+    // Step 4: Approval (20-28s)
+    { t: 20000, fn: () => { setStep(4); showScene('scene-4'); } },
+    { t: 20800, fn: () => stampFire('stamp-1') },
+    { t: 22500, fn: () => stampFire('stamp-2') },
+    { t: 24500, fn: () => stampFire('stamp-3') },
+    { t: 26500, fn: () => document.getElementById('status-verif').classList.add('show') },
+
+    // Step 5: Final Assessment (28-33s)
+    { t: 28000, fn: () => { setStep(5); showScene('scene-5'); } },
+    { t: 31000, fn: () => fillProgress('quiz-bar', 40) },
+
+    // Step 6: Histori (33-40s)
+    { t: 33000, fn: () => { setStep(6); showScene('scene-6'); } },
+    { t: 33800, fn: () => showRow('row-1') },
+    { t: 34500, fn: () => showRow('row-2') },
+    { t: 35200, fn: () => showRow('row-3') },
+    { t: 35900, fn: () => showRow('row-4') },
+    { t: 36600, fn: () => showRow('row-5') },
+    { t: 37300, fn: () => showRow('row-6') },
+    { t: 38500, fn: () => document.getElementById('histori-caption').classList.add('show') },
+
+    // Outro recap (40-45s)
+    { t: 40000, fn: () => { showScene('scene-outro'); document.getElementById('stepper').classList.add('done-all'); } },
+    { t: 40400, fn: () => document.getElementById('r1').classList.add('show') },
+    { t: 40480, fn: () => document.getElementById('r2').classList.add('show') },
+    { t: 40560, fn: () => document.getElementById('r3').classList.add('show') },
+    { t: 40640, fn: () => document.getElementById('r4').classList.add('show') },
+    { t: 40720, fn: () => document.getElementById('r5').classList.add('show') },
+    { t: 40800, fn: () => document.getElementById('r6').classList.add('show') },
+    { t: 41800, fn: () => document.getElementById('r1').classList.add('checked') },
+    { t: 42000, fn: () => document.getElementById('r2').classList.add('checked') },
+    { t: 42200, fn: () => document.getElementById('r3').classList.add('checked') },
+    { t: 42400, fn: () => document.getElementById('r4').classList.add('checked') },
+    { t: 42600, fn: () => document.getElementById('r5').classList.add('checked') },
+    { t: 42800, fn: () => document.getElementById('r6').classList.add('checked') },
+    { t: 43500, fn: () => document.querySelector('.recap-tagline').classList.add('show') }
+  ];
+
+  milestones.forEach(m => setTimeout(m.fn, m.t));
+</script>
 </body>
 </html>
