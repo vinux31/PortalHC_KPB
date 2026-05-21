@@ -3825,6 +3825,34 @@ namespace HcPortal.Controllers
                 .Where(q => packageIds.Contains(q.AssessmentPackageId))
                 .ToListAsync();
 
+            // === Parallel PNG pre-compute (REQ EXP-08 — <30s untuk 50 peserta) ===
+            // CPU-bound rendering paralel; cap concurrency = ProcessorCount supaya tidak starvation thread pool.
+            // CONTEXT D-08: ConcurrentDictionary upgrade dari plan literal Dictionary+lock (Claude's Discretion).
+            var pngCache = new System.Collections.Concurrent.ConcurrentDictionary<int, byte[]>();
+            var pngTasks = eligibleSessions
+                .Where(s => !s.IsManualEntry)
+                .Select(s => new
+                {
+                    SessionId = s.Id,
+                    EtData = allEtScores
+                        .Where(et => et.AssessmentSessionId == s.Id)
+                        .OrderBy(e => e.ElemenTeknis)
+                        .Select(e => (e.ElemenTeknis, e.QuestionCount > 0 ? (double)e.CorrectCount / e.QuestionCount * 100 : 0d))
+                        .ToList()
+                })
+                .Where(x => x.EtData.Count >= 3)
+                .ToList();
+
+            await Parallel.ForEachAsync(
+                pngTasks,
+                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                (item, ct) =>
+                {
+                    var png = HcPortal.Helpers.SpiderChartRenderer.RenderRadarPng(item.EtData);
+                    pngCache[item.SessionId] = png;
+                    return ValueTask.CompletedTask;
+                });
+
             foreach (var session in eligibleSessions)
             {
                 string sheetName = HcPortal.Helpers.SheetNameSanitizer.Sanitize(
@@ -3891,22 +3919,14 @@ namespace HcPortal.Controllers
                 }
                 // Skip section kalau sessionEt kosong (Abandoned tanpa ET, atau Essay-only)
 
-                // === Spider Chart PNG (REQ EXP-03, D-02 warna biru, D-03 render 500 embed 400) ===
-                if (sessionEt.Count >= 3)
+                // === Spider Chart PNG embed via cache lookup (REQ EXP-08, refactored Plan 03 Task 11) ===
+                if (pngCache.TryGetValue(session.Id, out var png) && png.Length > 0)
                 {
-                    var chartData = sessionEt
-                        .OrderBy(e => e.ElemenTeknis)
-                        .Select(e => (e.ElemenTeknis, e.QuestionCount > 0 ? (double)e.CorrectCount / e.QuestionCount * 100 : 0d))
-                        .ToList();
-                    var png = HcPortal.Helpers.SpiderChartRenderer.RenderRadarPng(chartData);
-                    if (png.Length > 0)
-                    {
-                        using var ms = new MemoryStream(png);
-                        var pic = ws.AddPicture(ms, $"spider-{session.Id}")
-                            .MoveTo(ws.Cell(currentRow, 1))
-                            .WithSize(400, 400);
-                        currentRow += 22; // approx rows occupied by 400px image
-                    }
+                    using var ms = new MemoryStream(png);
+                    var pic = ws.AddPicture(ms, $"spider-{session.Id}")
+                        .MoveTo(ws.Cell(currentRow, 1))
+                        .WithSize(400, 400);
+                    currentRow += 22; // approx rows occupied by 400px image
                 }
 
                 // === Detail Jawaban (REQ EXP-03 — MC/MA per soal, Essay skip, "Tidak dijawab" untuk Abandoned) ===
