@@ -141,8 +141,8 @@
     transform: translateY(0);
   }
 
-  /* ===== BROWSER FRAME (reusable) ===== */
-  .browser-frame {
+  /* ===== PORTAL FRAME (mimic Portal HC KPB) ===== */
+  .portal-frame {
     width: 100%;
     max-width: 1100px;
     background: #FFFFFF;
@@ -151,43 +151,100 @@
     box-shadow: 0 1px 2px rgba(10,36,71,0.03), 0 12px 32px rgba(10,36,71,0.06);
     overflow: hidden;
   }
-  .browser-bar {
+  .portal-navbar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
-    background: #F5F7FA;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: #FFFFFF;
     border-bottom: 1px solid var(--hairline);
+    box-shadow: 0 2px 4px rgba(10,36,71,0.03);
   }
-  .browser-bar .dots {
+  .portal-brand {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(13px, 1.1vw, 16px);
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.01em;
   }
-  .browser-bar .dots i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #D0D5DD;
-    display: inline-block;
+  .portal-brand-icon {
+    width: clamp(18px, 1.6vw, 24px);
+    height: clamp(18px, 1.6vw, 24px);
+    fill: var(--navy);
   }
-  .browser-bar .dots i:first-child { background: #F56565; }
-  .browser-bar .dots i:nth-child(2) { background: #ECC94B; }
-  .browser-bar .dots i:nth-child(3) { background: #48BB78; }
-  .browser-bar .url {
+  .portal-nav {
+    display: flex;
+    gap: clamp(14px, 1.8vw, 28px);
     flex: 1;
-    font-size: clamp(11px, 0.85vw, 13px);
-    color: var(--muted);
-    font-weight: 600;
+    justify-content: center;
   }
-  .browser-bar .url em {
-    font-style: normal;
-    color: var(--navy-deep);
+  .portal-nav-item {
+    font-size: clamp(11px, 0.95vw, 13px);
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .portal-nav-item.active {
+    color: var(--navy);
     font-weight: 700;
   }
-  .browser-body {
-    padding: clamp(20px, 2vw, 32px);
-    min-height: clamp(280px, 30vw, 420px);
+  .portal-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(11px, 0.9vw, 13px);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .portal-avatar {
+    width: clamp(26px, 2.2vw, 32px);
+    height: clamp(26px, 2.2vw, 32px);
+    border-radius: 50%;
+    background: var(--navy);
+    color: #FFFFFF;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: clamp(9px, 0.8vw, 11px);
+    letter-spacing: 0;
+  }
+
+  .portal-breadcrumb {
+    padding: 10px 20px 4px;
+    font-size: clamp(10px, 0.82vw, 12px);
+    color: var(--muted);
+    background: var(--paper);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .portal-breadcrumb .crumb { color: var(--muted); }
+  .portal-breadcrumb .crumb.active { color: var(--navy-deep); font-weight: 700; }
+  .portal-breadcrumb .sep { margin: 0 6px; opacity: 0.6; }
+
+  .portal-title {
+    padding: 14px 20px 12px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .portal-title h2 {
+    font-size: clamp(16px, 1.5vw, 22px);
+    font-weight: 800;
+    color: var(--navy-deep);
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+  .portal-title p {
+    font-size: clamp(10px, 0.82vw, 12px);
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .portal-body {
+    padding: clamp(14px, 1.6vw, 22px) clamp(16px, 1.8vw, 24px);
+    min-height: clamp(220px, 24vw, 320px);
     position: relative;
+    background: #FFFFFF;
   }
 
   /* ===== SCENE QUIZ ===== */
@@ -604,12 +661,32 @@
 
     <div class="scenes">
       <div class="scene" id="scene-quiz">
-        <div class="browser-frame">
-          <div class="browser-bar">
-            <span class="dots"><i></i><i></i><i></i></span>
-            <span class="url">portalhc.kpb · <em>Assessment Online</em></span>
+        <div class="portal-frame">
+          <div class="portal-navbar">
+            <div class="portal-brand">
+              <svg class="portal-brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 21V7l9-4v4h9v14h-7v-6h-4v6H3zm2-2h5v-4h6v4h5V9h-9V5.5L5 8.45V19z"/>
+              </svg>
+              <span>HC Portal</span>
+            </div>
+            <div class="portal-nav">
+              <a class="portal-nav-item">Beranda</a>
+              <a class="portal-nav-item active">CMP</a>
+              <a class="portal-nav-item">Histori</a>
+            </div>
+            <div class="portal-user">
+              <div class="portal-avatar">RA</div>
+              <span>Rino A.</span>
+            </div>
           </div>
-          <div class="browser-body quiz-body">
+          <div class="portal-breadcrumb">
+            <span class="crumb">Beranda</span><span class="sep">›</span><span class="crumb">CMP</span><span class="sep">›</span><span class="crumb active">Assessment</span>
+          </div>
+          <div class="portal-title">
+            <h2>Final Assessment</h2>
+            <p>Ujian online pilihan ganda — 10 soal per sub-kompetensi</p>
+          </div>
+          <div class="portal-body quiz-body">
             <div class="stage-chips">
               <span class="stage-chip" id="chip-y1">Tahun 1</span>
               <span class="stage-chip" id="chip-y2">Tahun 2</span>
@@ -636,12 +713,32 @@
       </div>
 
       <div class="scene" id="scene-result">
-        <div class="browser-frame">
-          <div class="browser-bar">
-            <span class="dots"><i></i><i></i><i></i></span>
-            <span class="url">portalhc.kpb · <em>Hasil Assessment</em></span>
+        <div class="portal-frame">
+          <div class="portal-navbar">
+            <div class="portal-brand">
+              <svg class="portal-brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 21V7l9-4v4h9v14h-7v-6h-4v6H3zm2-2h5v-4h6v4h5V9h-9V5.5L5 8.45V19z"/>
+              </svg>
+              <span>HC Portal</span>
+            </div>
+            <div class="portal-nav">
+              <a class="portal-nav-item">Beranda</a>
+              <a class="portal-nav-item active">CMP</a>
+              <a class="portal-nav-item">Histori</a>
+            </div>
+            <div class="portal-user">
+              <div class="portal-avatar">RA</div>
+              <span>Rino A.</span>
+            </div>
           </div>
-          <div class="browser-body result-body">
+          <div class="portal-breadcrumb">
+            <span class="crumb">Beranda</span><span class="sep">›</span><span class="crumb">CMP</span><span class="sep">›</span><span class="crumb">Assessment</span><span class="sep">›</span><span class="crumb active">Hasil</span>
+          </div>
+          <div class="portal-title">
+            <h2>Hasil Assessment</h2>
+            <p>Sesi assessment telah selesai · Nilai akhir tersedia</p>
+          </div>
+          <div class="portal-body result-body">
             <div class="confetti-burst" aria-hidden="true">
               <span class="particle"></span><span class="particle"></span>
               <span class="particle"></span><span class="particle"></span>
