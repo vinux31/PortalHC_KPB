@@ -3788,6 +3788,23 @@ namespace HcPortal.Controllers
                 worksheet.Cell(row, c).Value   = r.CompletedAt;
             }
 
+            // === Per-Peserta Sheets (v17.0 Phase 320) ===
+            // REQ EXP-05 — Filter peserta eligible: UI-match logic (Cancelled excluded;
+            // Completed via CompletedAt/Score OR explicit Status="Abandoned").
+            // Deviation dari plan literal `Status == "Completed" || "Abandoned"` — captures
+            // edge-case session dengan Status="Open" + CompletedAt!=null (1 row di DB Dev)
+            // yang UI tampilkan sebagai "Completed" tapi raw filter literal skip.
+            // D-01 — OrderBy(FullName) ascending konsisten UI ManageAssessment.
+            var eligibleSessions = sessions
+                .Where(s => s.Status != "Cancelled"
+                         && ((s.CompletedAt != null || s.Score != null) || s.Status == "Abandoned"))
+                .OrderBy(s => s.User?.FullName ?? "")
+                .ToList();
+
+            // Sheet name registry untuk collision guard (case-insensitive).
+            // Pre-populate dengan "Summary" supaya peserta tidak collide dengan tab utama.
+            var usedSheetNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Summary" };
+
             // Sanitize title for filename: replace non-alphanumeric with _
             var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
             var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Summary.xlsx";
