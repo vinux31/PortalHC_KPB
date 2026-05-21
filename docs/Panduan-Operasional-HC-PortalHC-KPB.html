@@ -898,6 +898,138 @@
   </div>
 </article>
 
+<!-- ============================================================ -->
+<!-- BAB 5: ADMIN PANEL -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab5">
+  <h2>5. Admin Panel (HC Operational Scope)</h2>
+  <p>16 menu admin: kelola pekerja, bank soal, assessment, mapping, renewal, audit, maintenance.</p>
+</div>
+
+<article class="task" id="admin-kelola-pekerja">
+  <h3>5.1 Kelola Pekerja &mdash; CRUD + Import/Export Excel</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Admin Panel &rarr; Kelola Pekerja
+    <code class="url">/Worker/ManageWorkers</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Daftar Pekerja</span></div>
+    <div class="step-body">Akses <code>/Worker/ManageWorkers</code>. Filter via query: <code>?search=&amp;sectionFilter=&amp;unitFilter=&amp;roleFilter=&amp;showInactive=false</code>. Toggle <b>Show Inactive</b> untuk lihat pekerja yang dinonaktifkan.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Pekerja</span></div>
+    <div class="step-body">Klik <b>Tambah Pekerja</b> &rarr; <code>/Worker/CreateWorker</code>. Isi: nama, NIP, email, jabatan, bagian, unit, role. Submit POST ke endpoint sama.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit / Detail Pekerja</span></div>
+    <div class="step-body">Klik nama pekerja:
+      <ul>
+        <li><b>Detail</b>: <code>/Worker/WorkerDetail/{id}</code> &mdash; lihat profil + history</li>
+        <li><b>Edit</b>: <code>/Worker/EditWorker/{id}</code> &mdash; ubah field termasuk role assignment</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Deactivate / Reactivate / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>Deactivate</b>: POST <code>/Worker/DeactivateWorker/{id}</code> &mdash; pekerja tidak bisa login, data tetap ada</li>
+        <li><b>Reactivate</b>: POST <code>/Worker/ReactivateWorker/{id}</code></li>
+        <li><b>Delete permanen</b>: POST <code>/Worker/DeleteWorker/{id}</code> &mdash; cascade ke records</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Mass Import via Excel</span></div>
+    <div class="step-body">Klik <b>Import Workers</b> &rarr; <code>/Worker/ImportWorkers</code>:
+      <ul>
+        <li>Download template: <code>/Worker/DownloadImportTemplate</code></li>
+        <li>Isi data sesuai format kolom</li>
+        <li>Upload via POST <code>/Worker/ImportWorkers</code> (form-data: <code>excelFile</code>)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">6</span><span class="step-title">Export Backup Excel</span></div>
+    <div class="step-body">Untuk backup / pelaporan, klik <b>Export Excel</b> (<code>/Worker/ExportWorkers</code>) dengan filter aktif diteruskan via query.</div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Delete = Cascade</div>
+    Delete pekerja akan menghapus referensi terkait (assessment history, deliverable). Pakai <b>Deactivate</b> dulu kecuali memang perlu hapus permanen (mis: data uji coba salah input).
+  </div>
+</article>
+
+<article class="task" id="admin-kelola-units">
+  <h3>5.2 Kelola Units / Bagian / Organisasi</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Admin Panel &rarr; Kelola Organisasi
+    <code class="url">/Organization/ManageOrganization</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman Manage Organization</span></div>
+    <div class="step-body">Akses <code>/Organization/ManageOrganization</code>. Struktur ditampilkan sebagai tree hierarchical (parent &rarr; child). API endpoint untuk tree: <code>/Organization/GetOrganizationTree</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Unit Baru</span></div>
+    <div class="step-body">Klik <b>Tambah Unit</b> &mdash; POST <code>/Organization/AddOrganizationUnit</code> dengan form data <code>name</code>, <code>parentId</code> (kosong = root).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit Unit</span></div>
+    <div class="step-body">Klik icon edit &rarr; POST <code>/Organization/EditOrganizationUnit</code> dengan <code>id</code>, <code>name</code>, <code>parentId</code>.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Toggle Active / Reorder / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li><b>Toggle Active</b>: POST <code>/Organization/ToggleOrganizationUnitActive</code> (nonaktifkan tanpa hapus)</li>
+        <li><b>Reorder</b>: POST <code>/Organization/ReorderOrganizationUnit</code> dengan <code>direction</code> (up/down), atau batch <code>/Organization/ReorderBatch</code> dengan <code>orderedIds</code></li>
+        <li><b>Delete</b>: POST <code>/Organization/DeleteOrganizationUnit</code> &mdash; pastikan tidak ada pekerja terassign</li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn">
+    <div class="warn-title">⚠️ Cek Assign Sebelum Delete</div>
+    Delete unit yang masih punya pekerja assigned akan error / cascade. Pindahkan pekerja ke unit lain dulu via Kelola Pekerja, baru delete unit.
+  </div>
+</article>
+
+<article class="task" id="admin-kelola-categories">
+  <h3>5.3 Kelola Categories &mdash; Kategori Assessment</h3>
+  <div class="breadcrumb">
+    Navbar &rarr; Admin Panel &rarr; Kelola Categories
+    <code class="url">/AssessmentAdmin/ManageCategories</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Buka Halaman</span></div>
+    <div class="step-body">Akses <code>/AssessmentAdmin/ManageCategories</code>. Tampilan daftar kategori + sub-kategori (parent-child) untuk assessment.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Tambah Kategori</span></div>
+    <div class="step-body">Klik <b>Add Category</b> &mdash; submit POST <code>/AssessmentAdmin/AddCategory</code> dengan <code>name</code>, <code>defaultPassPercentage</code>, <code>sortOrder</code>, <code>parentId</code> (untuk sub-kategori), <code>signatoryUserId</code> (penanda-tangan sertifikat).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Edit Kategori</span></div>
+    <div class="step-body">Klik icon edit &mdash; GET <code>/AssessmentAdmin/EditCategory/{id}</code> untuk form, POST endpoint sama untuk save.</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Toggle Active / Delete</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Toggle: POST <code>/AssessmentAdmin/ToggleCategoryActive/{id}</code></li>
+        <li>Delete: POST <code>/AssessmentAdmin/DeleteCategory/{id}</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">5</span><span class="step-title">Export</span></div>
+    <div class="step-body">Excel: <code>/AssessmentAdmin/ExportCategoriesExcel</code>. PDF: <code>/AssessmentAdmin/ExportCategoriesPdf</code>.</div>
+  </div>
+  <div class="info">
+    <div class="info-title">💡 Signatory User</div>
+    Tetapkan <b>Signatory User</b> per kategori &mdash; ini yang muncul sebagai penanda-tangan di sertifikat assessment kategori tersebut. Biasanya Section Head atau Manager bagian terkait.
+  </div>
+</article>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
