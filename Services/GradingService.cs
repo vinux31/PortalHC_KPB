@@ -436,5 +436,151 @@ namespace HcPortal.Services
 
             return (totalScore, maxScore, isPassed, etScores);
         }
+
+        /// <summary>
+        /// Re-grade session yang sudah Completed setelah edit jawaban oleh Admin/HC.
+        /// DELETE existing SessionElemenTeknisScores -> recompute -> update session + cascade sertifikat/TR.
+        /// CALLER bertanggung jawab: open transaction sebelum invoke, commit setelahnya.
+        /// </summary>
+        /// <returns>(newScore, newIsPassed, oldScore, oldIsPassed)</returns>
+        public async Task<(int newScore, bool newIsPassed, int? oldScore, bool? oldIsPassed)>
+            RegradeAfterEditAsync(AssessmentSession session)
+        {
+            int? oldScore = session.Score;
+            bool? oldIsPassed = session.IsPassed;
+
+            // 1. DELETE existing ET scores
+            await _context.SessionElemenTeknisScores
+                .Where(et => et.AssessmentSessionId == session.Id)
+                .ExecuteDeleteAsync();
+
+            // 2. Recompute (overrideAnswers = null -> baca DB which is already updated)
+            var (totalScore, maxScore, isPassed, etScores) = await ComputeScoreAndETInternalAsync(session);
+            int newPct = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+            // 3. Insert new ET scores
+            _context.SessionElemenTeknisScores.AddRange(etScores);
+
+            // 4. Update session — status guard WHERE Status == "Completed"
+            var rowsAffected = await _context.AssessmentSessions
+                .Where(s => s.Id == session.Id && s.Status == "Completed")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Score, newPct)
+                    .SetProperty(r => r.IsPassed, isPassed)
+                    .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
+                );
+
+            if (rowsAffected == 0)
+            {
+                _logger.LogWarning(
+                    "GradingService.RegradeAfterEditAsync: session {SessionId} bukan Completed (race).",
+                    session.Id);
+                throw new InvalidOperationException("Session bukan dalam status Completed saat re-grade.");
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 5. Cascade sertifikat + TrainingRecord (only when flip)
+            bool wasPassed = oldIsPassed ?? false;
+            if (wasPassed && !isPassed)
+            {
+                // Pass -> Fail
+                await _context.AssessmentSessions
+                    .Where(s => s.Id == session.Id)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(r => r.NomorSertifikat, (string?)null)
+                        .SetProperty(r => r.ValidUntil, (DateTime?)null));
+
+                var judul = $"Assessment: {session.Title}";
+                await _context.TrainingRecords
+                    .Where(t => t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule)
+                    .ExecuteUpdateAsync(t => t.SetProperty(r => r.Status, "Failed"));
+
+                _logger.LogInformation(
+                    "RegradeAfterEditAsync: session {SessionId} flip Pass->Fail — cert dicabut, TR=Failed.",
+                    session.Id);
+            }
+            else if (!wasPassed && isPassed)
+            {
+                // Fail -> Pass
+                if (session.GenerateCertificate && session.AssessmentType != "PreTest")
+                {
+                    var certNow = DateTime.Now;
+                    int certYear = certNow.Year;
+                    int certAttempts = 0;
+                    const int maxCertAttempts = 3;
+                    bool certSaved = false;
+                    while (!certSaved && certAttempts < maxCertAttempts)
+                    {
+                        certAttempts++;
+                        try
+                        {
+                            var nextSeq = await HcPortal.Helpers.CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                            var nomor = HcPortal.Helpers.CertNumberHelper.Build(nextSeq, certNow);
+                            var validUntil = certNow.AddYears(3);
+                            var updated = await _context.AssessmentSessions
+                                .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
+                                .ExecuteUpdateAsync(s => s
+                                    .SetProperty(r => r.NomorSertifikat, nomor)
+                                    .SetProperty(r => r.ValidUntil, validUntil));
+                            if (updated > 0) certSaved = true;
+                        }
+                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && HcPortal.Helpers.CertNumberHelper.IsDuplicateKeyException(ex))
+                        {
+                            // Retry dengan sequence baru
+                        }
+                    }
+
+                    if (!certSaved)
+                    {
+                        _logger.LogError("RegradeAfterEditAsync: failed generate cert for session {SessionId} after {N} attempts",
+                            session.Id, maxCertAttempts);
+                    }
+
+                    var judul = $"Assessment: {session.Title}";
+                    var existingTr = await _context.TrainingRecords
+                        .FirstOrDefaultAsync(t => t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule);
+                    if (existingTr == null)
+                    {
+                        _context.TrainingRecords.Add(new TrainingRecord
+                        {
+                            UserId = session.UserId,
+                            Judul = judul,
+                            Kategori = session.Category ?? "Assessment",
+                            Tanggal = session.Schedule,
+                            TanggalSelesai = DateTime.UtcNow,
+                            Penyelenggara = "Internal",
+                            Status = "Passed"
+                        });
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        existingTr.Status = "Passed";
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                _logger.LogInformation(
+                    "RegradeAfterEditAsync: session {SessionId} flip Fail->Pass — cert generated (if applicable), TR=Passed.",
+                    session.Id);
+            }
+            // Pass->Pass, Fail->Fail: no cascade
+
+            return (newPct, isPassed, oldScore, oldIsPassed);
+        }
+
+        /// <summary>
+        /// Public wrapper for PreviewEditScore (dry-run) — exposes ComputeScoreAndETInternalAsync without ET breakdown.
+        /// Consumed by PLAN 03 Task 9 PreviewEditScore controller action.
+        /// </summary>
+        public async Task<(int newScore, bool newIsPassed)> PreviewScoreAsync(
+            AssessmentSession session,
+            IDictionary<int, List<int>> overrideAnswers)
+        {
+            var (totalScore, maxScore, isPassed, _) = await ComputeScoreAndETInternalAsync(session, overrideAnswers);
+            int pct = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+            return (pct, isPassed);
+        }
     }
 }
