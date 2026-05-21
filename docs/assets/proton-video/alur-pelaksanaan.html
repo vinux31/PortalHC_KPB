@@ -753,6 +753,71 @@
   }
   .histori-caption.show { opacity: 1; }
 
+  /* ===== SCENE OUTRO: MINI-RECAP 6 IKON ===== */
+  #scene-outro {
+    flex-direction: column;
+  }
+  .recap-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: clamp(8px, 1vw, 16px);
+    width: 100%;
+    max-width: 1100px;
+    margin-bottom: clamp(16px, 2vw, 28px);
+  }
+  .recap-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: clamp(10px, 1.2vw, 16px);
+    background: #FFFFFF;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .recap-item:last-child { border-color: var(--red); }
+  .recap-item.show { opacity: 1; transform: translateY(0); }
+  .recap-item .r-icon {
+    font-size: clamp(20px, 2vw, 28px);
+    line-height: 1;
+  }
+  .recap-item .r-label {
+    font-size: clamp(10px, 0.78vw, 11px);
+    font-weight: 700;
+    color: var(--navy-deep);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .recap-item .r-check {
+    font-size: clamp(14px, 1.2vw, 18px);
+    font-weight: 900;
+    color: var(--navy-soft);
+    opacity: 0;
+    transform: scale(0.4);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .recap-item:last-child .r-check { color: var(--red); }
+  .recap-item.checked .r-check { opacity: 1; transform: scale(1); }
+
+  .recap-tagline {
+    font-size: clamp(13px, 1.1vw, 16px);
+    font-weight: 800;
+    color: var(--navy-deep);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .recap-tagline.show { opacity: 1; }
+  .recap-tagline em { font-style: normal; color: var(--red); }
+
   /* ===== STEPPER ===== */
   .stepper {
     display: flex;
@@ -1007,6 +1072,18 @@
             <div class="histori-caption" id="histori-caption">Rekam jejak permanen</div>
           </div>
         </div>
+      </div>
+
+      <div class="scene" id="scene-outro">
+        <div class="recap-grid">
+          <div class="recap-item" id="r1"><div class="r-icon">👥</div><div class="r-label">HC Assign Coach</div><div class="r-check">✓</div></div>
+          <div class="recap-item" id="r2"><div class="r-icon">📤</div><div class="r-label">Upload Bukti</div><div class="r-check">✓</div></div>
+          <div class="recap-item" id="r3"><div class="r-icon">📝</div><div class="r-label">Catat Sesi</div><div class="r-check">✓</div></div>
+          <div class="recap-item" id="r4"><div class="r-icon">🗂️</div><div class="r-label">Approve 3-Tier</div><div class="r-check">✓</div></div>
+          <div class="recap-item" id="r5"><div class="r-icon">📋</div><div class="r-label">Assess Final</div><div class="r-check">✓</div></div>
+          <div class="recap-item" id="r6"><div class="r-icon">⭐</div><div class="r-label">Histori</div><div class="r-check">✓</div></div>
+        </div>
+        <div class="recap-tagline">Alur PROTON · <em>6 Langkah Terstruktur</em></div>
       </div>
     </div>
 
