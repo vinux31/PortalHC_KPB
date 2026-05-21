@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PCP SMART 2026 §3.4 — Solusi Terpilih HC Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-blue: #00558C;
+    --pertamina-green: #00A551;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+  }
+  /* Layout */
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+  .sidebar {
+    background: linear-gradient(180deg, var(--pertamina-blue), #003D63);
+    color: #fff;
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar h1 {
+    font-size: 1.1rem;
+    margin: 0 0 .25rem;
+    line-height: 1.3;
+  }
+  .sidebar .subtitle {
+    font-size: .8rem;
+    opacity: .8;
+    margin-bottom: 1.5rem;
+  }
+  .sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar nav li { margin-bottom: .25rem; }
+  .sidebar nav a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    padding: .5rem .75rem;
+    border-radius: .35rem;
+    font-size: .9rem;
+    transition: background .15s;
+  }
+  .sidebar nav a:hover { background: rgba(255,255,255,.1); }
+  .sidebar nav a.active { background: rgba(255,255,255,.18); font-weight: 600; }
+  .sidebar .group-label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    opacity: .7;
+    margin: 1.25rem 0 .5rem .75rem;
+  }
+  .badge-cat {
+    display: inline-block;
+    font-size: .65rem;
+    padding: .1rem .4rem;
+    border-radius: 3px;
+    background: rgba(255,255,255,.18);
+    margin-left: .35rem;
+    vertical-align: middle;
+  }
+  /* Main */
+  main { padding: 2rem 3rem; max-width: 1100px; }
+  section.doc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 1rem;
+  }
+  section.doc h2 {
+    margin: 0 0 .25rem;
+    color: var(--pertamina-blue);
+    border-bottom: 3px solid var(--pertamina-red);
+    padding-bottom: .5rem;
+    display: inline-block;
+  }
+  section.doc .file-tag {
+    display: inline-block;
+    background: var(--bg);
+    color: var(--muted);
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .75rem;
+    padding: .15rem .5rem;
+    border-radius: 3px;
+    margin-left: .5rem;
+    vertical-align: middle;
+  }
+  section.doc h3 {
+    margin: 1.75rem 0 .5rem;
+    color: var(--text);
+    font-size: 1.15rem;
+  }
+  section.doc h4 {
+    margin: 1.25rem 0 .35rem;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  section.doc p { margin: .5rem 0; }
+  section.doc ul, section.doc ol { margin: .35rem 0 .75rem 1.5rem; padding: 0; }
+  section.doc li { margin: .15rem 0; }
+  section.doc blockquote {
+    border-left: 4px solid var(--pertamina-blue);
+    background: #f0f7fc;
+    padding: .65rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 .35rem .35rem 0;
+    color: #1e3a5f;
+    font-size: .92rem;
+  }
+  section.doc code:not(pre code) {
+    background: #f3f4f6;
+    padding: .1rem .35rem;
+    border-radius: 3px;
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .88em;
+    color: var(--pertamina-red);
+  }
+  /* Tables */
+  section.doc table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: .9rem;
+  }
+  section.doc thead th {
+    background: var(--pertamina-blue);
+    color: #fff;
+    text-align: left;
+    padding: .55rem .75rem;
+    font-weight: 600;
+    border: 1px solid var(--pertamina-blue);
+  }
+  section.doc tbody td {
+    padding: .5rem .75rem;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  section.doc tbody tr:nth-child(even) td { background: #fafbfc; }
+  section.doc tbody tr:hover td { background: #fff5e6; }
+  /* Mermaid container */
+  .mermaid {
+    background: #fff;
+    border: 1px dashed var(--border);
+    border-radius: .5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    text-align: center;
+  }
+  /* Strong/highlight */
+  strong { color: var(--pertamina-red); }
+  em { color: var(--muted); }
+  /* Print */
+  @media print {
+    .sidebar { display: none; }
+    .app { grid-template-columns: 1fr; }
+    main { padding: 0; max-width: 100%; }
+    section.doc {
+      box-shadow: none;
+      border: 1px solid #ccc;
+      page-break-inside: avoid;
+      margin-bottom: 1rem;
+    }
+  }
+  /* Toolbar */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    background: rgba(246,247,251,.95);
+    backdrop-filter: blur(6px);
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+    z-index: 5;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .toolbar h2 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--muted);
+  }
+  .toolbar button {
+    background: var(--pertamina-red);
+    color: #fff;
+    border: none;
+    padding: .5rem 1rem;
+    border-radius: .35rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: .85rem;
+  }
+  .toolbar button:hover { background: #a30d25; }
+  /* Issue codes pill */
+  .issue-pill {
+    display: inline-block;
+    background: var(--pertamina-red);
+    color: #fff;
+    font-weight: 700;
+    padding: 0 .4rem;
+    border-radius: 3px;
+    font-size: .85em;
+    margin: 0 .15rem;
+  }
+  /* Coverage cell */
+  td.cov-yes { background: #d1fae5 !important; color: #065f46; text-align: center; font-weight: 700; }
+  td.cov-no  { background: #fee2e2 !important; color: #991b1b; text-align: center; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar">
+  <h1>PCP SMART 2026<br/>§3.4 Solusi Terpilih</h1>
+  <div class="subtitle">HC Portal — PortalHC_KPB</div>
+
+  <nav>
+    <div class="group-label">Pendahuluan</div>
+    <ul>
+      <li><a href="#readme">📖 Executive Summary</a></li>
+      <li><a href="#legend">🔖 Legend & Konvensi <span class="badge-cat">10</span></a></li>
+    </ul>
+
+    <div class="group-label">Gambar Teknik</div>
+    <ul>
+      <li><a href="#arsitektur">🏗️ Arsitektur Sistem <span class="badge-cat">00</span></a></li>
+    </ul>
+
+    <div class="group-label">Flow Proses (7 Fitur)</div>
+    <ul>
+      <li><a href="#flow-01">📝 Assessment Online <span class="badge-cat">01</span></a></li>
+      <li><a href="#flow-02">🎯 PROTON Coaching <span class="badge-cat">02</span></a></li>
+      <li><a href="#flow-03">📋 IDP / Plan <span class="badge-cat">03</span></a></li>
+      <li><a href="#flow-04">📊 KKJ & Matriks <span class="badge-cat">04</span></a></li>
+      <li><a href="#flow-05">🏆 Sertifikat & Renewal <span class="badge-cat">05</span></a></li>
+      <li><a href="#flow-06">📈 Reporting & Analytics <span class="badge-cat">06</span></a></li>
+      <li><a href="#flow-07">👥 Data Pekerja <span class="badge-cat">07</span></a></li>
+    </ul>
+
+    <div class="group-label">Ringkasan</div>
+    <ul>
+      <li><a href="#tabel-improvement">📉 Tabel Improvement <span class="badge-cat">08</span></a></li>
+      <li><a href="#tabel-issue">🛠️ Tabel Issue A-F <span class="badge-cat">09</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main>
+
+<div class="toolbar">
+  <h2>Mode Baca — semua dokumen di satu halaman</h2>
+  <div>
+    <button onclick="window.print()">🖨️ Print / Save PDF</button>
+  </div>
+</div>
+
+<!-- ===== README ===== -->
+<section class="doc" id="readme">
+  <h2>📖 Executive Summary</h2><span class="file-tag">README.md</span>
+
+  <blockquote>
+    <strong>Audience:</strong> Reviewer PCP, manajemen HC, tim implementasi.<br/>
+    <strong>Domain:</strong> HC Portal (PortalHC_KPB) — web app pengelolaan kompetensi CSU Process KPB.
+  </blockquote>
+
+  <h3>Executive Summary</h3>
+  <p>HC Portal menggantikan workflow manual berbasis Excel + FleQi + paperwork + email/WhatsApp dengan single web portal terintegrasi. Hasilnya: pengurangan jumlah tools, jumlah step proses, dan waktu rekap; ditambah audit trail, single source of truth, dan governance compliance.</p>
+
+  <h3>Cakupan §3.4</h3>
+  <p>Dokumen ini berisi visualisasi solusi terpilih HC Portal dalam dua bentuk yang valid di PCP §3.4:</p>
+  <ol>
+    <li><strong>Gambar Teknik</strong> — arsitektur sistem 3-tier HC Portal</li>
+    <li><strong>Flow Proses</strong> — process flow before/after untuk 7 fitur impactful</li>
+  </ol>
+
+  <h3>Index Dokumen</h3>
+  <table>
+    <thead><tr><th>File</th><th>Topik</th><th>Kategori</th></tr></thead>
+    <tbody>
+      <tr><td><code>00-arsitektur-sistem.md</code></td><td>Arsitektur Sistem HC Portal</td><td>Gambar Teknik</td></tr>
+      <tr><td><code>01-flow-assessment.md</code></td><td>Process Flow Assessment Online</td><td>Flow Proses</td></tr>
+      <tr><td><code>02-flow-proton-coaching.md</code></td><td>Process Flow PROTON Coaching</td><td>Flow Proses</td></tr>
+      <tr><td><code>03-flow-idp-plan.md</code></td><td>Process Flow IDP / Plan</td><td>Flow Proses</td></tr>
+      <tr><td><code>04-flow-kkj-matriks.md</code></td><td>Process Flow KKJ & Matriks Kompetensi</td><td>Flow Proses</td></tr>
+      <tr><td><code>05-flow-sertifikat-renewal.md</code></td><td>Process Flow Sertifikat & Renewal</td><td>Flow Proses</td></tr>
+      <tr><td><code>06-flow-reporting-analytics.md</code></td><td>Process Flow Reporting / Analytics</td><td>Flow Proses</td></tr>
+      <tr><td><code>07-flow-data-pekerja.md</code></td><td>Process Flow Pengelolaan Data Pekerja</td><td>Flow Proses</td></tr>
+      <tr><td><code>08-tabel-improvement.md</code></td><td>Tabel Improvement Kuantitatif</td><td>Ringkasan</td></tr>
+      <tr><td><code>09-tabel-issue-resolved.md</code></td><td>Tabel Issue A-F & Mapping</td><td>Ringkasan</td></tr>
+      <tr><td><code>10-legend-aktor.md</code></td><td>Legend Swimlane & Aktor</td><td>Konvensi</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Format Dokumen</h3>
+  <ul>
+    <li><strong>Source:</strong> Markdown + Mermaid (versionable di git)</li>
+    <li><strong>Final delivery:</strong> Manual redraw ke PowerPoint / Draw.io oleh tim untuk slide PCP</li>
+  </ul>
+
+  <h3>Catatan Data Kuantitatif</h3>
+  <p>Angka kuantitatif (jumlah step, waktu hemat, %) menggunakan <strong>estimasi internal</strong> berdasarkan inventory workflow manual sebelum HC Portal dan observasi proses HC. Akan di-refine dengan data riil pasca-implementasi.</p>
+</section>
+
+<!-- ===== LEGEND ===== -->
+<section class="doc" id="legend">
+  <h2>🔖 Legend — Aktor & Konvensi Swimlane</h2><span class="file-tag">10-legend-aktor.md</span>
+
+  <blockquote>Dipakai konsisten di seluruh diagram process flow §3.4 (file <code>01..07-flow-*.md</code>).</blockquote>
+
+  <h3>Aktor</h3>
+  <table>
+    <thead><tr><th>Kode</th><th>Nama</th><th>Definisi</th></tr></thead>
+    <tbody>
+      <tr><td><code>USER</code></td><td>User / Pekerja</td><td>Pekerja umum CSU Process (pembaca/pengguna fitur)</td></tr>
+      <tr><td><code>COACHEE</code></td><td>Coachee</td><td>Pekerja yang mengikuti program pengembangan PROTON</td></tr>
+      <tr><td><code>COACH</code></td><td>Coach</td><td>Pekerja senior pendamping coachee</td></tr>
+      <tr><td><code>ATASAN</code></td><td>Atasan</td><td>Sr Supervisor / Section Head / Manager / VP</td></tr>
+      <tr><td><code>HC</code></td><td>Human Capital</td><td>Fungsi pengelola kompetensi & pengembangan</td></tr>
+      <tr><td><code>SISTEM</code></td><td>Sistem HC Portal</td><td>Web application (otomatis, tanpa intervensi manual)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Tools / Lane di Workflow SEBELUM</h3>
+  <table>
+    <thead><tr><th>Tools</th><th>Tipe</th><th>Fungsi</th></tr></thead>
+    <tbody>
+      <tr><td>Excel Master</td><td>Spreadsheet lokal/share folder</td><td>Data pekerja, KKJ, training, anggaran</td></tr>
+      <tr><td>FleQi Quiz</td><td>Aplikasi web eksternal</td><td>Ujian assessment online</td></tr>
+      <tr><td>Form PROTON cetak</td><td>Paperwork</td><td>Form coaching 5 fase</td></tr>
+      <tr><td>Word / PDF</td><td>Dokumen statis</td><td>Sertifikat, laporan</td></tr>
+      <tr><td>Email Pertamina</td><td>Channel komunikasi</td><td>Distribusi dokumen, approval</td></tr>
+      <tr><td>WhatsApp</td><td>Channel komunikasi</td><td>Koordinasi cepat, approval lisan tertulis</td></tr>
+      <tr><td>Arsip fisik</td><td>Map / lemari</td><td>Bukti coaching, evidence hardcopy</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Notasi Mermaid (Standar)</h3>
+  <p><strong>Tipe diagram utama:</strong> <code>flowchart LR</code> (left-right) untuk alur step-by-step.</p>
+  <p><strong>Konvensi node:</strong></p>
+  <ul>
+    <li><code>[Aktor]</code> rectangle = aksi manual oleh aktor</li>
+    <li><code>(Tools eksternal)</code> rounded = penggunaan tools non-portal</li>
+    <li><code>{{Sistem}}</code> hexagon = aksi otomatis oleh HC Portal</li>
+    <li><code>[/Decision/]</code> parallelogram = percabangan</li>
+  </ul>
+
+  <h4>Contoh skeleton SEBELUM</h4>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: input soal]
+    HC1 --> FQ1(FleQi Quiz)
+    FQ1 --> HC2[HC: input peserta]
+    HC2 --> P1[Peserta: ujian]
+    P1 --> HC3[HC: export Excel]
+    HC3 --> EX1(Excel Rekap)
+    EX1 --> HC4[HC: tulis laporan]
+  </pre>
+
+  <h4>Contoh skeleton SESUDAH</h4>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: buat paket di portal]
+    HC1 --> SYS1{{Sistem: assign peserta}}
+    SYS1 --> P1[Peserta: ujian online]
+    P1 --> SYS2{{Sistem: auto-grade}}
+    SYS2 --> HC2[HC: lihat dashboard]
+  </pre>
+
+  <h3>Konvensi Warna (untuk redraw final)</h3>
+  <ul>
+    <li>Manual / tools eksternal: <strong>abu-abu / merah muda</strong> (pain point)</li>
+    <li>Portal / digital: <strong>biru / hijau Pertamina</strong> (improvement)</li>
+    <li>Decision: <strong>kuning</strong></li>
+    <li>Aktor swimlane: highlight nama aktor dengan warna konsisten per peran</li>
+  </ul>
+</section>
+
+<!-- ===== ARSITEKTUR ===== -->
+<section class="doc" id="arsitektur">
+  <h2>🏗️ Arsitektur Sistem HC Portal</h2><span class="file-tag">00-arsitektur-sistem.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>HC Portal adalah aplikasi web 3-tier yang menyatukan workflow pengelolaan kompetensi (Competency Management, Career Development, PROTON Coaching) ke dalam satu platform tunggal. Arsitektur dipilih agar mendukung akses multi-role (Pekerja, Coach, Atasan, HC), monitoring real-time, audit trail menyeluruh, dan integrasi dengan dokumen kompetensi yang sebelumnya tersebar di Excel dan paperwork.</p>
+
+  <h3>Diagram Arsitektur 3-Tier</h3>
+  <pre class="mermaid">
+flowchart TB
+    subgraph CLIENT["Presentation Tier"]
+        BROWSER[Browser<br/>Chrome / Edge / Firefox]
+    end
+
+    subgraph APP["Application Tier — ASP.NET Core 8"]
+        WEB[Web App<br/>Razor Pages + MVC]
+        SIGNAL[SignalR Hub<br/>Real-time monitoring]
+        HANGFIRE[Hangfire<br/>Background jobs]
+        IDENTITY[ASP.NET Identity<br/>Auth + Impersonation]
+    end
+
+    subgraph DATA["Data Tier"]
+        EFCORE[Entity Framework Core]
+        SQLDB[(SQL Server<br/>Master DB)]
+        FILES[(File Storage<br/>KKJ / CPDP / Evidence / Sertifikat)]
+    end
+
+    BROWSER -->|HTTPS| WEB
+    BROWSER -.WebSocket.-> SIGNAL
+    WEB --> SIGNAL
+    WEB --> HANGFIRE
+    WEB --> IDENTITY
+    WEB --> EFCORE
+    EFCORE --> SQLDB
+    WEB --> FILES
+  </pre>
+
+  <h3>Komponen Utama (Teknis)</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>Komponen</th><th>Fungsi</th><th>Justifikasi</th></tr></thead>
+    <tbody>
+      <tr><td>Presentation</td><td>Razor Pages + Bootstrap 5</td><td>Server-rendered UI, responsive</td><td>Konsisten Pertamina internal tooling, low front-end maintenance</td></tr>
+      <tr><td>Application</td><td>ASP.NET Core 8</td><td>Web framework</td><td>Long-term support, performant, sesuai standar IT Pertamina</td></tr>
+      <tr><td>Application</td><td>SignalR</td><td>Real-time push (assessment monitoring)</td><td>Native ASP.NET, no third-party broker</td></tr>
+      <tr><td>Application</td><td>Hangfire</td><td>Background job (reminder, notifikasi expired sertifikat)</td><td>Persisted job storage di SQL, no external scheduler</td></tr>
+      <tr><td>Application</td><td>ASP.NET Identity</td><td>Otentikasi + role-based access + impersonation</td><td>Built-in, audit-ready, integrasi LDAP siap</td></tr>
+      <tr><td>Data</td><td>Entity Framework Core</td><td>ORM</td><td>Code-first migration, type-safe query</td></tr>
+      <tr><td>Data</td><td>SQL Server</td><td>RDBMS master data</td><td>Standar Pertamina, backup/restore matang</td></tr>
+      <tr><td>Storage</td><td>File System</td><td>Upload KKJ/CPDP/Evidence/Sertifikat</td><td>Path versioned dengan timestamp + GUID + filename</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Karakteristik Non-Fungsional</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Penanganan</th></tr></thead>
+    <tbody>
+      <tr><td>Skalabilitas</td><td>Vertical scale-up di server Dev 10.55.3.3; horizontal scaling tersedia bila migrasi ke load-balanced production</td></tr>
+      <tr><td>Keamanan</td><td>HTTPS only, anti-forgery token, role-based authorization, audit log seluruh aksi CRUD, impersonation dengan banner peringatan</td></tr>
+      <tr><td>Reliability</td><td>Database backup harian, file storage backup mingguan, maintenance mode untuk patching</td></tr>
+      <tr><td>Observability</td><td>Audit log per user-action, log file aplikasi, Hangfire dashboard</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Modul Fungsional (Mapping ke Fitur Impactful)</h3>
+  <table>
+    <thead><tr><th>Modul</th><th>Fitur §3.4 yang Didukung</th></tr></thead>
+    <tbody>
+      <tr><td>CMP — Competency Management</td><td>Assessment Online (01), KKJ & Matriks (04), Sertifikat (05)</td></tr>
+      <tr><td>CDP — Career Development / PROTON</td><td>PROTON Coaching (02), IDP / Plan (03)</td></tr>
+      <tr><td>Modul HC (Admin)</td><td>Data Pekerja (07), Reporting / Analytics (06), input ke semua modul</td></tr>
+      <tr><td>Sistem (cross-cutting)</td><td>Notifikasi, Audit Log, Maintenance — <em>out of scope §3.4 narrative</em></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Justifikasi Pemilihan Stack</h3>
+  <ol>
+    <li><strong>ASP.NET Core 8</strong> — standar internal Pertamina untuk web internal; long-term support sampai 2026; integrasi mudah dengan Active Directory.</li>
+    <li><strong>SQL Server</strong> — sesuai lisensi korporat; tooling backup/restore matang; tim IT familiar.</li>
+    <li><strong>Bootstrap 5 + Razor Pages</strong> — server-rendered, tidak butuh SPA tooling; mempercepat development dan deployment internal.</li>
+    <li><strong>SignalR</strong> — built-in ke ASP.NET; tidak perlu broker eksternal (Redis/RabbitMQ); ideal untuk monitoring assessment volume KPB.</li>
+    <li><strong>Hangfire</strong> — persisted job di SQL DB; dashboard built-in; eliminasi cron eksternal.</li>
+  </ol>
+</section>
+
+<!-- ===== FLOW 01 ASSESSMENT ===== -->
+<section class="doc" id="flow-01">
+  <h2>📝 Process Flow — Assessment Online</h2><span class="file-tag">01-flow-assessment.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>Assessment kompetensi adalah aktivitas pengukuran kemampuan teknis pekerja CSU Process terhadap matriks KKJ. Sebelum HC Portal, proses ini melibatkan tiga aplikasi (FleQi Quiz, Excel master, rekap manual) dengan banyak titik koordinasi HC–peserta–atasan. HC Portal menyatukan seluruh siklus assessment (buat paket → assign → ujian → grading → laporan) dalam satu portal dengan auto-grading dan dashboard real-time.</p>
+
+  <h3>Flow SEBELUM — Workflow Manual (8 Step, 3 Tools)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: buat soal] --> FQ1(FleQi Quiz<br/>input soal)
+    FQ1 --> HC2[HC: input data peserta]
+    HC2 --> HC3[HC: kirim link via email]
+    HC3 --> P1[Peserta: ujian di FleQi]
+    P1 --> HC4[HC: download hasil Excel]
+    HC4 --> EX1(Excel Rekap Master)
+    EX1 --> HC5[HC: rekap manual ke laporan]
+    HC5 --> HC6[HC: kirim laporan ke atasan via email]
+  </pre>
+
+  <h3>Flow SESUDAH — HC Portal (4 Step, 1 Portal)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: buat paket + import soal Excel] --> SYS1{{Sistem: assign peserta + notifikasi}}
+    SYS1 --> P1[Peserta: ujian online di portal]
+    P1 --> SYS2{{Sistem: auto-grade non-essay + simpan hasil}}
+    SYS2 --> HC2[HC: review Analytics Dashboard]
+    HC2 -.essay only.-> HC3[HC: grading manual essay]
+  </pre>
+
+  <h3>Tabel Komparasi Step</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th><th>Improvement</th></tr></thead>
+    <tbody>
+      <tr><td>Jumlah step HC</td><td>6 step</td><td>2 step (3 bila essay)</td><td><strong>-50% s.d. -67%</strong></td></tr>
+      <tr><td>Tools yang dipakai</td><td>FleQi Quiz + Excel Master + Email + Word laporan</td><td>1 portal</td><td><strong>-75% tools</strong></td></tr>
+      <tr><td>Waktu rekap hasil (estimasi)</td><td>~2 jam manual Excel per paket</td><td>~5 menit (otomatis)</td><td><strong>~95% lebih cepat</strong></td></tr>
+      <tr><td>Real-time monitoring HC</td><td>Tidak ada</td><td>Ada (SignalR)</td><td><em>kualitatif: visibility baru</em></td></tr>
+      <tr><td>Audit trail aksi</td><td>Tidak ada</td><td>Lengkap (audit log)</td><td><em>kualitatif: compliance</em></td></tr>
+      <tr><td>Risiko data hilang</td><td>Tinggi (Excel scattered, email lost)</td><td>Rendah (DB terpusat + backup)</td><td><em>kualitatif: data integrity</em></td></tr>
+      <tr><td>Auto-grading</td><td>Manual</td><td>Otomatis untuk single/multiple choice</td><td><em>kualitatif: akurasi 100% non-essay</em></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Issue yang Diselesaikan</h3>
+  <p>
+    <span class="issue-pill">A</span> tools terfragmentasi
+    <span class="issue-pill">B</span> no single source of truth
+    <span class="issue-pill">C</span> no audit trail
+    <span class="issue-pill">D</span> reporting ad-hoc
+  </p>
+
+  <h3>Benefit</h3>
+  <h4>Kuantitatif (estimasi)</h4>
+  <ul>
+    <li>Pengurangan step proses HC: -50% s.d. -67%</li>
+    <li>Pengurangan jumlah tools: 4 tools → 1 portal (-75%)</li>
+    <li>Pengurangan waktu rekap hasil: ~95%</li>
+    <li>Real-time monitoring: 0 → tersedia (SignalR)</li>
+  </ul>
+  <h4>Kualitatif</h4>
+  <ul>
+    <li>Single source of truth untuk hasil assessment per pekerja</li>
+    <li>Audit trail menyeluruh (siapa buat paket, siapa assign, kapan peserta submit)</li>
+    <li>Visibility manajemen via Analytics Dashboard</li>
+    <li>Eliminasi risiko file Excel rekap hilang/rusak</li>
+    <li>Auto-grading menghilangkan human error pada soal single/multiple choice</li>
+  </ul>
+</section>
+
+<!-- ===== FLOW 02 PROTON ===== -->
+<section class="doc" id="flow-02">
+  <h2>🎯 Process Flow — PROTON Coaching</h2><span class="file-tag">02-flow-proton-coaching.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>PROTON adalah metodologi coaching 5 fase (Purpose, Realita, Options, To-do, Outcome & Next-step) yang digunakan HC KPB untuk mengembangkan kompetensi coachee. Sebelum HC Portal, sesi coaching dicatat di form cetak, bukti coaching dikirim via WhatsApp / email, dan progress deliverable di-track manual oleh HC. HC Portal menyediakan form digital 5 fase + upload evidence + auto-link ke deliverable IDP + workflow approval terstruktur.</p>
+
+  <h3>Flow SEBELUM — Paperwork + Channel Manual (9 Step, 4 Tools)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC0[HC: assign coachee-coach via email] --> CO1[Coach: jadwalkan sesi]
+    CO1 --> CO2[Coach: print form PROTON]
+    CO2 --> FORM(Form PROTON cetak)
+    FORM --> CO3[Coach: isi 5 fase manual]
+    CO3 --> CO4[Coach: foto bukti / upload WhatsApp]
+    CO4 --> WA(WhatsApp / Email)
+    WA --> CO5[Coach: simpan form di map fisik]
+    CO5 --> ARSIP(Arsip fisik)
+    ARSIP --> HC1[HC: track progress manual via WA]
+    HC1 --> AT1[Atasan: approval lisan / WA]
+  </pre>
+
+  <h3>Flow SESUDAH — HC Portal (5 Step, 1 Portal)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC0[HC: Coach-Coachee Mapping di portal] --> CO1[Coach: buka CDP → Coaching PROTON]
+    CO1 --> CO2[Coach: isi form digital 5 fase + upload evidence]
+    CO2 --> SYS1{{Sistem: link evidence ke deliverable IDP + simpan histori}}
+    SYS1 --> AT1[Atasan: approve/reject di portal]
+    AT1 --> HC1[HC: final review + visibility di dashboard]
+  </pre>
+
+  <h3>Tabel Komparasi Step</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th><th>Improvement</th></tr></thead>
+    <tbody>
+      <tr><td>Jumlah step Coach</td><td>5 step</td><td>2 step</td><td><strong>-60% step</strong></td></tr>
+      <tr><td>Tools yang dipakai</td><td>Form cetak + WhatsApp + Email + Arsip fisik</td><td>1 portal</td><td><strong>-75% tools</strong></td></tr>
+      <tr><td>Bukti coaching</td><td>File terserak (WA media, email attachment)</td><td>Tersimpan terpusat + linked ke deliverable</td><td><em>kualitatif: traceable</em></td></tr>
+      <tr><td>Workflow approval</td><td>Lisan / WA, no trail</td><td>Coach→Atasan(Reviewer)→HC dengan status history</td><td><em>kualitatif: governance</em></td></tr>
+      <tr><td>Histori sesi coachee</td><td>Tidak terstruktur (map fisik)</td><td>Timeline digital lengkap (Histori PROTON)</td><td><em>kualitatif: longitudinal view</em></td></tr>
+      <tr><td>Waktu rekap progress (estimasi HC)</td><td>~3 jam per bulan per coach</td><td>~10 menit (otomatis dari dashboard)</td><td><strong>~95% lebih cepat</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Issue yang Diselesaikan</h3>
+  <p>
+    <span class="issue-pill">A</span> tools terfragmentasi
+    <span class="issue-pill">C</span> no audit trail
+    <span class="issue-pill">E</span> workflow tanpa tracking
+  </p>
+
+  <h3>Benefit</h3>
+  <h4>Kuantitatif (estimasi)</h4>
+  <ul>
+    <li>Pengurangan step Coach: -60%</li>
+    <li>Pengurangan tools: 4 → 1 portal (-75%)</li>
+    <li>Pengurangan waktu rekap progress HC: ~95%</li>
+    <li>Histori coaching tersedia 100% (sebelumnya ~ tidak terlacak)</li>
+  </ul>
+  <h4>Kualitatif</h4>
+  <ul>
+    <li>Single source of truth untuk seluruh sesi PROTON + evidence</li>
+    <li>Auto-link evidence ke deliverable IDP — Coach upload sekali, deliverable progress otomatis update</li>
+    <li>Workflow approval bertingkat (Coach → Atasan → HC) terdokumentasi</li>
+    <li>Eliminasi risiko form fisik hilang / coretan tidak terbaca</li>
+    <li>Atasan dan HC mendapat visibility coaching per coachee secara real-time</li>
+  </ul>
+</section>
+
+<!-- ===== FLOW 03 IDP ===== -->
+<section class="doc" id="flow-03">
+  <h2>📋 Process Flow — IDP / Plan</h2><span class="file-tag">03-flow-idp-plan.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>Individual Development Plan (IDP) adalah rencana pengembangan kompetensi per coachee, terdiri dari struktur Track → Kompetensi → Sub-Kompetensi → Deliverable. Sebelum HC Portal, IDP disusun HC di Excel template lalu didistribusikan via email dengan tracking progress manual; perubahan struktur memerlukan re-distribusi file. HC Portal menggunakan menu PROTON Data — HC upload silabus Excel sekali, dan IDP langsung tampil di halaman Plan IDP coachee dengan progress auto-update dari deliverable.</p>
+
+  <h3>Flow SEBELUM — Excel + Email (7 Step, 3 Tools)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: susun IDP di Excel] --> EX1(Excel Template IDP)
+    EX1 --> HC2[HC: email ke coachee + coach + atasan]
+    HC2 --> EMAIL(Email Pertamina)
+    EMAIL --> CO1[Coach: simpan file pribadi]
+    CO1 --> CO2[Coach: tracking progress manual di Excel]
+    CO2 --> HC3[HC: minta update progress via email berkala]
+    HC3 --> HC4[HC: konsolidasi Excel berbagai versi]
+  </pre>
+
+  <h3>Flow SESUDAH — HC Portal (3 Step, 1 Portal)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: HC → PROTON Data → import silabus Excel] --> SYS1{{Sistem: parse Track→Komp→Sub→Deliverable + assign track ke coachee}}
+    SYS1 --> SYS2{{Sistem: tampil otomatis di CDP → Plan IDP coachee}}
+    SYS2 --> VIEW[Coachee/Coach/Atasan: view IDP real-time + progress auto-update]
+  </pre>
+
+  <h3>Tabel Komparasi Step</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th><th>Improvement</th></tr></thead>
+    <tbody>
+      <tr><td>Jumlah step HC distribusi</td><td>4 step (susun, email, update, konsolidasi)</td><td>1 step (import sekali)</td><td><strong>-75% step</strong></td></tr>
+      <tr><td>Tools</td><td>Excel + Email + arsip pribadi coachee</td><td>1 portal</td><td><strong>-67% tools</strong></td></tr>
+      <tr><td>Versi file IDP</td><td>Banyak versi tersebar</td><td>1 versi terpusat</td><td><em>kualitatif: konsistensi</em></td></tr>
+      <tr><td>Update struktur IDP</td><td>Re-distribusi email ke semua pihak</td><td>Upload ulang Excel di portal, langsung ter-refleksi</td><td><em>kualitatif: agility</em></td></tr>
+      <tr><td>Progress tracking</td><td>Manual per coach, no aggregation</td><td>Auto-update dari deliverable + visible ke semua role</td><td><em>kualitatif: visibility</em></td></tr>
+      <tr><td>Waktu konsolidasi IDP (estimasi)</td><td>~4 jam per siklus</td><td>~15 menit</td><td><strong>~94% lebih cepat</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Issue yang Diselesaikan</h3>
+  <p>
+    <span class="issue-pill">A</span> tools terfragmentasi
+    <span class="issue-pill">B</span> no single source of truth
+    <span class="issue-pill">E</span> workflow tanpa tracking
+  </p>
+
+  <h3>Benefit</h3>
+  <h4>Kuantitatif (estimasi)</h4>
+  <ul>
+    <li>Pengurangan step distribusi HC: -75%</li>
+    <li>Pengurangan tools: 3 → 1 portal (-67%)</li>
+    <li>Pengurangan waktu konsolidasi: ~94%</li>
+    <li>100% coachee melihat IDP versi terkini (sebelumnya bergantung email terakhir diterima)</li>
+  </ul>
+  <h4>Kualitatif</h4>
+  <ul>
+    <li>IDP tunggal sebagai single source of truth — HC update sekali, semua role lihat versi sama</li>
+    <li>Progress deliverable auto-update dari sesi coaching (no double-entry)</li>
+    <li>Atasan dan Coach memiliki view yang konsisten dengan coachee</li>
+    <li>Refresh struktur kompetensi (track baru, sub-kompetensi baru) tidak butuh email blast</li>
+  </ul>
+</section>
+
+<!-- ===== FLOW 04 KKJ ===== -->
+<section class="doc" id="flow-04">
+  <h2>📊 Process Flow — KKJ & Matriks Kompetensi</h2><span class="file-tag">04-flow-kkj-matriks.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>Kebutuhan Kompetensi Jabatan (KKJ) adalah dokumen referensi standar kompetensi per jabatan. Sebelum HC Portal, file KKJ tersimpan di share folder Excel/PDF tanpa versioning yang jelas, dan matriks kompetensi bagian disusun manual per request. HC Portal menyediakan menu upload terpusat dengan history versi otomatis + matriks KKJ digital per bagian.</p>
+
+  <h3>Flow SEBELUM — Share Folder + Manual (6 Step, 3 Tools)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: update KKJ di Excel] --> EX1(Excel KKJ Master)
+    EX1 --> HC2[HC: simpan ke share folder]
+    HC2 --> SF1(Share Folder)
+    SF1 --> HC3[HC: email link ke atasan terkait]
+    HC3 --> EMAIL(Email Pertamina)
+    EMAIL --> AT1[Atasan: download Excel KKJ]
+    AT1 --> AT2[Atasan: minta matriks bagian via email ke HC]
+    AT2 --> HC4[HC: susun matriks manual di Excel]
+  </pre>
+
+  <h3>Flow SESUDAH — HC Portal (3 Step, 1 Portal)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: Kelola Dokumen KKJ → upload file] --> SYS1{{Sistem: simpan dengan versioning + history file}}
+    SYS1 --> SYS2{{Sistem: render KKJ Matrix digital per bagian}}
+    SYS2 --> VIEW[USER/Atasan: view KKJ + Matriks real-time, filter per bagian]
+  </pre>
+
+  <h3>Tabel Komparasi Step</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th><th>Improvement</th></tr></thead>
+    <tbody>
+      <tr><td>Jumlah step HC</td><td>4 step (update, simpan, email, susun matriks)</td><td>1 step (upload)</td><td><strong>-75% step</strong></td></tr>
+      <tr><td>Tools</td><td>Excel + Share Folder + Email</td><td>1 portal</td><td><strong>-67% tools</strong></td></tr>
+      <tr><td>Versioning file</td><td>Manual (rename file <code>_v2</code>, <code>_final</code>, ...)</td><td>Otomatis dengan timestamp + GUID</td><td><em>kualitatif: traceable</em></td></tr>
+      <tr><td>Matriks kompetensi</td><td>On-demand manual susun</td><td>Real-time digital</td><td><em>kualitatif: instant</em></td></tr>
+      <tr><td>Akses Atasan</td><td>Bergantung email berkala</td><td>Self-service di portal</td><td><em>kualitatif: empowerment</em></td></tr>
+      <tr><td>Waktu susun matriks (estimasi)</td><td>~3 jam per request</td><td>~real-time (auto-render)</td><td><strong>~99% lebih cepat</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Issue yang Diselesaikan</h3>
+  <p>
+    <span class="issue-pill">A</span> tools terfragmentasi
+    <span class="issue-pill">B</span> no single source of truth
+    <span class="issue-pill">D</span> reporting ad-hoc
+  </p>
+
+  <h3>Benefit</h3>
+  <h4>Kuantitatif (estimasi)</h4>
+  <ul>
+    <li>Pengurangan step HC: -75%</li>
+    <li>Pengurangan tools: 3 → 1 portal (-67%)</li>
+    <li>Pengurangan waktu susun matriks: ~99%</li>
+    <li>Versioning otomatis: 0 → 100% file ter-track</li>
+  </ul>
+  <h4>Kualitatif</h4>
+  <ul>
+    <li>History versi KKJ tersimpan otomatis (KkjFileHistory)</li>
+    <li>Atasan akses matriks kompetensi self-service, tanpa permintaan ke HC</li>
+    <li>Single source of truth — tidak ada lagi file <code>KKJ_v3_final_REAL.xlsx</code></li>
+    <li>Visibility gap kompetensi per pekerja terstruktur di KKJ Matrix</li>
+  </ul>
+</section>
+
+<!-- ===== FLOW 05 SERTIFIKAT ===== -->
+<section class="doc" id="flow-05">
+  <h2>🏆 Process Flow — Sertifikat & Renewal</h2><span class="file-tag">05-flow-sertifikat-renewal.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>Sertifikat kompetensi (hasil assessment) dan sertifikat training (mandatory: Safety for Refinery, SUPREME, ERP, Confined Space, dll.) memiliki tanggal expired yang harus di-track agar compliance terjaga. Sebelum HC Portal, sertifikat dibuat manual di Word/PDF tanpa tracking expired terstruktur, sehingga sering ada sertifikat kelewat expired sebelum diingatkan. HC Portal auto-generate sertifikat dari hasil assessment, menampilkan badge expired di profil pekerja, dan menyediakan menu Renewal Certificate untuk perencanaan training renewal.</p>
+
+  <h3>Flow SEBELUM — Manual + Reaktif (7 Step, 3 Tools)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: buat sertifikat di Word] --> WORD(Template Word/PDF)
+    WORD --> HC2[HC: print + tanda tangan basah]
+    HC2 --> HC3[HC: serah ke pekerja]
+    HC3 --> P1[Pekerja: simpan hardcopy]
+    P1 --> HC4[HC: catat expiry di Excel master]
+    HC4 --> EX1(Excel Master Sertifikat)
+    EX1 --> HC5[HC: cek manual setiap bulan / saat audit]
+    HC5 --> HC6[HC: koordinasi training renewal via email]
+  </pre>
+
+  <h3>Flow SESUDAH — HC Portal (4 Step, 1 Portal)</h3>
+  <pre class="mermaid">
+flowchart LR
+    SYS1{{Sistem: hasil assessment lulus → auto-generate PDF sertifikat}} --> P1[Pekerja: download di CMP → Certificate]
+    P1 --> SYS2{{Sistem: badge kuning ≤90 hari sebelum expired, badge merah saat expired}}
+    SYS2 --> HC1[HC: Renewal Certificate menu, filter expiring]
+    HC1 --> HC2[HC: assign ke training renewal + ekspor untuk perencanaan tahunan]
+  </pre>
+
+  <h3>Tabel Komparasi Step</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th><th>Improvement</th></tr></thead>
+    <tbody>
+      <tr><td>Jumlah step HC</td><td>6 step (buat, print, catat, cek, koordinasi)</td><td>2 step (auto + plan)</td><td><strong>-67% step</strong></td></tr>
+      <tr><td>Tools</td><td>Word + Excel + Email + Hardcopy</td><td>1 portal</td><td><strong>-75% tools</strong></td></tr>
+      <tr><td>Generasi sertifikat</td><td>Manual per pekerja</td><td>Otomatis dari hasil assessment</td><td><em>kualitatif: skalabel</em></td></tr>
+      <tr><td>Tracking expired</td><td>Manual check Excel, reaktif</td><td>Badge otomatis (kuning/merah)</td><td><em>kualitatif: proaktif</em></td></tr>
+      <tr><td>Renewal planning</td><td>Reaktif (sering kelewat)</td><td>Menu Renewal Certificate + filter expiring</td><td><em>kualitatif: compliance</em></td></tr>
+      <tr><td>Waktu generate sertifikat (estimasi)</td><td>~10 menit per pekerja</td><td>~instant</td><td><strong>~99% lebih cepat</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Issue yang Diselesaikan</h3>
+  <p>
+    <span class="issue-pill">A</span> tools terfragmentasi
+    <span class="issue-pill">C</span> no audit trail
+    <span class="issue-pill">F</span> renewal sertifikat reaktif
+  </p>
+
+  <h3>Benefit</h3>
+  <h4>Kuantitatif (estimasi)</h4>
+  <ul>
+    <li>Pengurangan step HC: -67%</li>
+    <li>Pengurangan tools: 4 → 1 portal (-75%)</li>
+    <li>Pengurangan waktu generate per sertifikat: ~99% (manual ~10 menit → instant)</li>
+    <li>100% sertifikat ter-track expiry-nya (sebelumnya bergantung Excel manual)</li>
+  </ul>
+  <h4>Kualitatif</h4>
+  <ul>
+    <li>Auto-generate eliminasi risiko typo / format inkonsisten</li>
+    <li>Badge visual (kuning/merah) memberi early warning ke pekerja & HC</li>
+    <li>Menu Renewal Certificate memungkinkan planning training renewal tahunan terstruktur</li>
+    <li>Audit-ready: setiap sertifikat memiliki referensi ke assessment / training source</li>
+    <li>Compliance posture berubah dari <strong>reaktif</strong> → <strong>proaktif</strong></li>
+  </ul>
+</section>
+
+<!-- ===== FLOW 06 REPORTING ===== -->
+<section class="doc" id="flow-06">
+  <h2>📈 Process Flow — Reporting & Analytics</h2><span class="file-tag">06-flow-reporting-analytics.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>Reporting kompetensi HC ke manajemen mencakup heatmap gap kompetensi, progress assessment per bagian, coaching completion rate, training adoption, dan lainnya. Sebelum HC Portal, setiap permintaan laporan dari manajemen memerlukan HC melakukan pivot Excel ad-hoc dari beberapa file master. HC Portal menyediakan Analytics Dashboard real-time dengan filter periode & bagian, plus export Excel/PDF on-demand.</p>
+
+  <h3>Flow SEBELUM — Pivot Manual (6 Step, 2 Tools)</h3>
+  <pre class="mermaid">
+flowchart LR
+    MGR1[Manajemen: minta laporan via email] --> HC1[HC: kumpulkan data dari Excel master]
+    HC1 --> EX1(Excel Master Assessment / Training / Sertifikat)
+    EX1 --> HC2[HC: copy data ke Excel laporan]
+    HC2 --> HC3[HC: buat pivot manual + chart]
+    HC3 --> HC4[HC: review + format]
+    HC4 --> HC5[HC: kirim PDF via email]
+  </pre>
+
+  <h3>Flow SESUDAH — HC Portal (2 Step, 1 Portal)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: CMP → Analytics Dashboard] --> SYS1{{Sistem: render heatmap + chart real-time, filter periode/bagian}}
+    SYS1 --> HC2[HC: export Excel/PDF on-demand untuk manajemen]
+  </pre>
+
+  <h3>Tabel Komparasi Step</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th><th>Improvement</th></tr></thead>
+    <tbody>
+      <tr><td>Jumlah step HC</td><td>5 step (kumpul, copy, pivot, format, kirim)</td><td>2 step (lihat + export)</td><td><strong>-60% step</strong></td></tr>
+      <tr><td>Tools</td><td>Excel master + Excel laporan + Email</td><td>1 portal</td><td><strong>-67% tools</strong></td></tr>
+      <tr><td>Data freshness</td><td>Snapshot saat HC buat laporan</td><td>Real-time</td><td><em>kualitatif: timeliness</em></td></tr>
+      <tr><td>Self-service manajemen</td><td>Tidak (bergantung HC)</td><td>Bisa (dashboard role-based)</td><td><em>kualitatif: empowerment</em></td></tr>
+      <tr><td>Konsistensi metric</td><td>Bergantung formula Excel HC</td><td>Standar di dashboard</td><td><em>kualitatif: trust</em></td></tr>
+      <tr><td>Waktu per laporan ad-hoc (estimasi)</td><td>~4 jam</td><td>~10 menit</td><td><strong>~96% lebih cepat</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Issue yang Diselesaikan</h3>
+  <p>
+    <span class="issue-pill">B</span> no single source of truth
+    <span class="issue-pill">D</span> reporting ad-hoc
+  </p>
+
+  <h3>Benefit</h3>
+  <h4>Kuantitatif (estimasi)</h4>
+  <ul>
+    <li>Pengurangan step HC: -60%</li>
+    <li>Pengurangan tools: 3 → 1 portal (-67%)</li>
+    <li>Pengurangan waktu per laporan: ~96%</li>
+    <li>Data refresh: snapshot → real-time</li>
+  </ul>
+  <h4>Kualitatif</h4>
+  <ul>
+    <li>Manajemen dapat akses dashboard sendiri (self-service) — HC fokus ke analisis, bukan pivot manual</li>
+    <li>Metric standar dan konsisten — tidak ada lagi laporan dengan formula Excel berbeda-beda</li>
+    <li>Heatmap gap kompetensi memberi visibility per bagian / per kompetensi</li>
+    <li>Export Excel/PDF tetap tersedia untuk distribusi formal</li>
+    <li>Auditable: chart bersumber dari DB, bukan pivot Excel yang sulit diaudit</li>
+  </ul>
+</section>
+
+<!-- ===== FLOW 07 DATA PEKERJA ===== -->
+<section class="doc" id="flow-07">
+  <h2>👥 Process Flow — Pengelolaan Data Pekerja</h2><span class="file-tag">07-flow-data-pekerja.md</span>
+
+  <h3>Konteks (Eksekutif)</h3>
+  <p>Data pekerja CSU Process (NIP, nama, jabatan, bagian, role) menjadi fondasi seluruh modul HC Portal. Sebelum HC Portal, data pekerja tersebar di beberapa Excel master per fungsi (assessment, training, KKJ) dengan update manual yang sering tidak sinkron. HC Portal memusatkan data pekerja di satu DB dengan import Excel + form CRUD + role-based access + audit log seluruh perubahan.</p>
+
+  <h3>Flow SEBELUM — Excel Scattered (8 Step, 2 Tools)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: data pekerja baru dari fungsi terkait via email] --> EMAIL(Email Pertamina)
+    EMAIL --> HC2[HC: input ke Excel Master Pekerja]
+    HC2 --> EX1(Excel Master Pekerja)
+    EX1 --> HC3[HC: copy data ke Excel Assessment]
+    HC3 --> EX2(Excel Master Assessment)
+    EX2 --> HC4[HC: copy data ke Excel Training]
+    HC4 --> EX3(Excel Master Training)
+    EX3 --> HC5[HC: copy data ke Excel Sertifikat]
+    HC5 --> EX4(Excel Master Sertifikat)
+    EX4 --> HC6[HC: update bila ada mutasi jabatan/role di seluruh file]
+  </pre>
+
+  <h3>Flow SESUDAH — HC Portal (3 Step, 1 Portal)</h3>
+  <pre class="mermaid">
+flowchart LR
+    HC1[HC: HC → Kelola Pekerja → Import Excel atau Form] --> SYS1{{Sistem: validasi + bulk insert ke DB + audit log}}
+    SYS1 --> SYS2{{Sistem: refresh role-based access di seluruh modul otomatis}}
+    SYS2 --> VIEW[Modul Assessment/Training/Sertifikat: pakai data pekerja dari DB tunggal]
+  </pre>
+
+  <h3>Tabel Komparasi Step</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th><th>Improvement</th></tr></thead>
+    <tbody>
+      <tr><td>Jumlah step HC saat pekerja baru</td><td>6 step (input + 4 copy ke Excel berbeda + maintain)</td><td>1 step (input/import sekali)</td><td><strong>-83% step</strong></td></tr>
+      <tr><td>Tools</td><td>4 Excel master + Email</td><td>1 portal</td><td><strong>-80% tools</strong></td></tr>
+      <tr><td>Risiko data mismatch antar modul</td><td>Tinggi (4 file Excel berbeda)</td><td>Nol (1 DB)</td><td><em>kualitatif: integritas</em></td></tr>
+      <tr><td>Update mutasi/role</td><td>Manual di 4 Excel</td><td>Otomatis di seluruh modul</td><td><em>kualitatif: konsistensi</em></td></tr>
+      <tr><td>Audit perubahan data</td><td>Tidak ada</td><td>Audit log lengkap</td><td><em>kualitatif: governance</em></td></tr>
+      <tr><td>Import massal</td><td>Manual copy-paste</td><td>Import Excel + preview + validasi</td><td><em>kualitatif: bulk operation</em></td></tr>
+      <tr><td>Waktu input pekerja baru (estimasi)</td><td>~30 menit per pekerja (5 file)</td><td>~5 menit (1 form atau bulk)</td><td><strong>~83% lebih cepat</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Issue yang Diselesaikan</h3>
+  <p>
+    <span class="issue-pill">A</span> tools terfragmentasi
+    <span class="issue-pill">B</span> no single source of truth
+    <span class="issue-pill">C</span> no audit trail
+  </p>
+
+  <h3>Benefit</h3>
+  <h4>Kuantitatif (estimasi)</h4>
+  <ul>
+    <li>Pengurangan step input HC: -83%</li>
+    <li>Pengurangan tools: 5 → 1 portal (-80%)</li>
+    <li>Pengurangan waktu input per pekerja baru: ~83%</li>
+    <li>Mismatch antar modul: tinggi → nol</li>
+  </ul>
+  <h4>Kualitatif</h4>
+  <ul>
+    <li>Single source of truth data pekerja menjadi fondasi seluruh modul</li>
+    <li>Update mutasi jabatan/role otomatis ter-refleksi di seluruh fitur (assessment, IDP, sertifikat)</li>
+    <li>Audit log mencatat siapa mengubah data apa, kapan — siap audit eksternal</li>
+    <li>Import Excel mendukung onboarding massal (bulk insert) dengan validasi otomatis (duplikat NIP, email invalid)</li>
+    <li>Role-based access otomatis aktif begitu role pekerja di-assign</li>
+  </ul>
+</section>
+
+<!-- ===== TABEL IMPROVEMENT ===== -->
+<section class="doc" id="tabel-improvement">
+  <h2>📉 Tabel Improvement Kuantitatif — Ringkasan 7 Fitur</h2><span class="file-tag">08-tabel-improvement.md</span>
+
+  <h3>Tujuan</h3>
+  <p>Ringkasan kuantitatif impact HC Portal terhadap workflow manual sebelumnya, untuk 7 fitur impactful yang masuk cakupan §3.4. Angka berasal dari estimasi internal hasil inventory workflow + observasi proses HC; akan di-refine dengan data riil pasca-implementasi.</p>
+
+  <h3>Tabel Ringkasan Per Fitur</h3>
+  <table style="font-size: .82rem;">
+    <thead>
+      <tr>
+        <th>#</th><th>Fitur</th>
+        <th>Step Sebelum</th><th>Step Sesudah</th><th>Δ Step</th>
+        <th>Tools Sebelum</th><th>Tools Sesudah</th><th>Δ Tools</th>
+        <th>Waktu Sebelum</th><th>Waktu Sesudah</th><th>Δ Waktu</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>01</td><td>Assessment Online</td><td>6</td><td>2</td><td><strong>-67%</strong></td><td>4</td><td>1</td><td><strong>-75%</strong></td><td>~2 jam/paket</td><td>~5 menit/paket</td><td><strong>~95%</strong></td></tr>
+      <tr><td>02</td><td>PROTON Coaching</td><td>5</td><td>2</td><td><strong>-60%</strong></td><td>4</td><td>1</td><td><strong>-75%</strong></td><td>~3 jam/bulan/coach</td><td>~10 menit/bulan/coach</td><td><strong>~95%</strong></td></tr>
+      <tr><td>03</td><td>IDP / Plan</td><td>4</td><td>1</td><td><strong>-75%</strong></td><td>3</td><td>1</td><td><strong>-67%</strong></td><td>~4 jam/siklus</td><td>~15 menit/siklus</td><td><strong>~94%</strong></td></tr>
+      <tr><td>04</td><td>KKJ & Matriks</td><td>4</td><td>1</td><td><strong>-75%</strong></td><td>3</td><td>1</td><td><strong>-67%</strong></td><td>~3 jam/request</td><td>real-time</td><td><strong>~99%</strong></td></tr>
+      <tr><td>05</td><td>Sertifikat & Renewal</td><td>6</td><td>2</td><td><strong>-67%</strong></td><td>4</td><td>1</td><td><strong>-75%</strong></td><td>~10 menit/pekerja</td><td>instant</td><td><strong>~99%</strong></td></tr>
+      <tr><td>06</td><td>Reporting / Analytics</td><td>5</td><td>2</td><td><strong>-60%</strong></td><td>3</td><td>1</td><td><strong>-67%</strong></td><td>~4 jam/laporan</td><td>~10 menit</td><td><strong>~96%</strong></td></tr>
+      <tr><td>07</td><td>Data Pekerja</td><td>6</td><td>1</td><td><strong>-83%</strong></td><td>5</td><td>1</td><td><strong>-80%</strong></td><td>~30 menit/pekerja</td><td>~5 menit/pekerja</td><td><strong>~83%</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Agregat Lintas Fitur</h3>
+  <table>
+    <thead><tr><th>Metrik</th><th>Range</th><th>Median</th></tr></thead>
+    <tbody>
+      <tr><td>Pengurangan step proses</td><td>-60% s.d. -83%</td><td><strong>-67%</strong></td></tr>
+      <tr><td>Pengurangan tools</td><td>-67% s.d. -80%</td><td><strong>-75%</strong></td></tr>
+      <tr><td>Pengurangan waktu (estimasi)</td><td>-83% s.d. -99%</td><td><strong>~95%</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Aspek Kualitatif (Lintas Fitur)</h3>
+  <table>
+    <thead><tr><th>Aspek</th><th>Sebelum</th><th>Sesudah</th></tr></thead>
+    <tbody>
+      <tr><td>Single source of truth</td><td>Tidak ada (data tersebar 4-5 Excel)</td><td>Ada (1 DB)</td></tr>
+      <tr><td>Audit trail</td><td>Tidak ada / manual</td><td>Lengkap (audit log per aksi)</td></tr>
+      <tr><td>Real-time data</td><td>Snapshot manual</td><td>Real-time (DB + SignalR)</td></tr>
+      <tr><td>Self-service manajemen</td><td>Tidak (bergantung rekap HC)</td><td>Ya (dashboard role-based)</td></tr>
+      <tr><td>Workflow approval</td><td>Lisan / WA</td><td>Terstruktur (Coach → Atasan → HC)</td></tr>
+      <tr><td>Versioning dokumen</td><td>Manual (rename file)</td><td>Otomatis (timestamp + GUID)</td></tr>
+      <tr><td>Bulk operation</td><td>Copy-paste manual</td><td>Import Excel + validasi</td></tr>
+      <tr><td>Compliance posture</td><td>Reaktif (sering kelewat)</td><td>Proaktif (badge expiry, renewal menu)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Sumber Estimasi</h3>
+  <ul>
+    <li><strong>Step count:</strong> dihitung dari diagram swimlane file flow 01-07</li>
+    <li><strong>Tools count:</strong> inventory aplikasi/medium pra-HC Portal (Excel master per modul, FleQi Quiz, Word, Email Pertamina, WhatsApp, arsip fisik)</li>
+    <li><strong>Waktu:</strong> estimasi internal berdasarkan observasi proses HC + benchmark workflow umum manual</li>
+  </ul>
+
+  <h3>Catatan untuk Reviewer</h3>
+  <p>Angka kuantitatif bersifat <strong>estimasi internal</strong>, bukan hasil time-motion study formal. Tujuan utama adalah menunjukkan <strong>magnitude order improvement</strong> per fitur, bukan presisi absolut. Data riil akan dikumpulkan pasca-implementasi via:</p>
+  <ul>
+    <li>Audit log untuk durasi proses aktual</li>
+    <li>Wawancara HC pasca-1 siklus</li>
+    <li>Telemetri Hangfire untuk background job</li>
+  </ul>
+</section>
+
+<!-- ===== TABEL ISSUE ===== -->
+<section class="doc" id="tabel-issue">
+  <h2>🛠️ Tabel Issue Resolved — Pain Point Manual & Mapping</h2><span class="file-tag">09-tabel-issue-resolved.md</span>
+
+  <h3>Tujuan</h3>
+  <p>Identifikasi 6 pain point sistemik dari workflow manual sebelum HC Portal, beserta mapping ke fitur HC Portal yang menyelesaikan pain point tersebut.</p>
+
+  <h3>Daftar Issue (A — F)</h3>
+  <table>
+    <thead><tr><th>Code</th><th>Issue</th><th>Deskripsi</th></tr></thead>
+    <tbody>
+      <tr><td><span class="issue-pill">A</span></td><td>Tools Terfragmentasi</td><td>Workflow tersebar di 4-5 tools terpisah (Excel master + FleQi Quiz + Word + Email + WhatsApp + arsip fisik) tanpa integrasi otomatis. HC harus copy-paste antar tools dengan risiko inkonsistensi</td></tr>
+      <tr><td><span class="issue-pill">B</span></td><td>Tidak Ada Single Source of Truth</td><td>Data sama disalin di beberapa Excel berbeda (per modul). Update di satu file tidak ter-refleksi di file lain, menimbulkan data mismatch yang menyulitkan rekonsiliasi</td></tr>
+      <tr><td><span class="issue-pill">C</span></td><td>Tidak Ada Audit Trail</td><td>Perubahan data, approval coaching, generasi sertifikat dilakukan manual tanpa pencatatan siapa-apa-kapan. Sulit ditelusur saat audit eksternal atau investigasi insiden</td></tr>
+      <tr><td><span class="issue-pill">D</span></td><td>Reporting Ad-Hoc & Non-Real-Time</td><td>Setiap permintaan laporan dari manajemen memerlukan HC melakukan pivot Excel ad-hoc dari beberapa file. Data bersifat snapshot (bukan real-time) dan formula bisa berbeda per laporan</td></tr>
+      <tr><td><span class="issue-pill">E</span></td><td>Workflow Tanpa Tracking</td><td>Coaching, approval deliverable, dan progress IDP berjalan via koordinasi WhatsApp / email / lisan tanpa workflow terstruktur dengan status history</td></tr>
+      <tr><td><span class="issue-pill">F</span></td><td>Renewal Sertifikat Reaktif</td><td>Tracking expired sertifikat dilakukan manual di Excel master. HC sering baru menyadari sertifikat expired saat audit, sehingga compliance posture menjadi reaktif</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Mapping Issue ↔ Fitur HC Portal</h3>
+  <table>
+    <thead><tr><th>Issue</th><th>Fitur yang Menyelesaikan</th><th>Mekanisme</th></tr></thead>
+    <tbody>
+      <tr><td><span class="issue-pill">A</span> Tools Terfragmentasi</td><td>01, 02, 03, 04, 05, 07</td><td>Konsolidasi seluruh workflow ke 1 portal; eliminasi FleQi, Excel master per modul, paperwork, WhatsApp koordinasi</td></tr>
+      <tr><td><span class="issue-pill">B</span> No Single Source of Truth</td><td>01, 03, 04, 06, 07</td><td>DB SQL Server terpusat; entity pekerja, KKJ, assessment, IDP, deliverable saling-link via foreign key; perubahan di satu modul otomatis ter-refleksi di modul lain</td></tr>
+      <tr><td><span class="issue-pill">C</span> No Audit Trail</td><td>01, 02, 05, 07</td><td>Audit log mencatat seluruh aksi CRUD + login + impersonation; status history per deliverable/sertifikat; ASP.NET Identity dengan timestamp</td></tr>
+      <tr><td><span class="issue-pill">D</span> Reporting Ad-Hoc</td><td>01, 04, 06</td><td>Analytics Dashboard real-time dengan filter periode/bagian; export Excel/PDF on-demand; KKJ Matrix digital auto-render</td></tr>
+      <tr><td><span class="issue-pill">E</span> Workflow Tanpa Tracking</td><td>02, 03</td><td>Workflow Coach → Reviewer (Atasan) → HC dengan status approval (Pending / Approved / Rejected) tersimpan di DB; histori coaching timeline</td></tr>
+      <tr><td><span class="issue-pill">F</span> Renewal Reaktif</td><td>05</td><td>Badge expiry (kuning ≤ 90 hari, merah ≥ expired) otomatis; menu Renewal Certificate dengan filter expiring; ekspor untuk perencanaan training tahunan</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Matriks Coverage</h3>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>01 Assessment</th><th>02 PROTON</th><th>03 IDP</th><th>04 KKJ</th><th>05 Sertifikat</th><th>06 Reporting</th><th>07 Data Pekerja</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>A</strong> Tools</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-yes">✓</td></tr>
+      <tr><td><strong>B</strong> SSoT</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td></tr>
+      <tr><td><strong>C</strong> Audit</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-no">—</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-yes">✓</td></tr>
+      <tr><td><strong>D</strong> Reporting</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-no">—</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-yes">✓</td><td class="cov-no">—</td></tr>
+      <tr><td><strong>E</strong> Workflow</td><td class="cov-no">—</td><td class="cov-yes">✓</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-no">—</td><td class="cov-no">—</td><td class="cov-no">—</td></tr>
+      <tr><td><strong>F</strong> Renewal</td><td class="cov-no">—</td><td class="cov-no">—</td><td class="cov-no">—</td><td class="cov-no">—</td><td class="cov-yes">✓</td><td class="cov-no">—</td><td class="cov-no">—</td></tr>
+    </tbody>
+  </table>
+  <p><em>Cell ✓ = fitur menyelesaikan / mitigate issue tersebut.</em></p>
+
+  <h3>Konsolidasi Risiko Sebelum vs Sesudah</h3>
+  <table>
+    <thead><tr><th>Risiko (Sebelum)</th><th>Status (Sesudah)</th></tr></thead>
+    <tbody>
+      <tr><td>Data Excel rekap hilang/rusak</td><td>Mitigated — DB + backup</td></tr>
+      <tr><td>Inkonsistensi data antar modul</td><td>Mitigated — 1 DB referensial</td></tr>
+      <tr><td>Sertifikat kelewat expired tanpa renewal</td><td>Mitigated — badge expiry + menu Renewal</td></tr>
+      <tr><td>Approval coaching tidak terdokumentasi</td><td>Mitigated — workflow Coach→Atasan→HC dengan status history</td></tr>
+      <tr><td>Laporan ke manajemen tidak real-time</td><td>Mitigated — Analytics Dashboard</td></tr>
+      <tr><td>HC overload rekap manual</td><td>Mitigated — auto-grading, auto-rekap, auto-aggregate</td></tr>
+      <tr><td>Audit eksternal sulit (no trail)</td><td>Mitigated — audit log lengkap</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer style="text-align:center; padding:2rem; color:var(--muted); font-size:.85rem;">
+  <p>PCP SMART 2026 §3.4 — HC Portal • Generated 2026-05-21 • Tag <code>pcp-hcportal-3.4-v1.0</code></p>
+</footer>
+
+</main>
+</div>
+
+<script>
+  // Mermaid init
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    themeVariables: {
+      primaryColor: '#00558C',
+      primaryTextColor: '#fff',
+      primaryBorderColor: '#003D63',
+      lineColor: '#6b7280',
+      secondaryColor: '#C8102E',
+      tertiaryColor: '#f3f4f6'
+    },
+    flowchart: { curve: 'basis', useMaxWidth: true }
+  });
+
+  // Sidebar active link on scroll
+  const links = document.querySelectorAll('.sidebar nav a');
+  const sections = document.querySelectorAll('section.doc');
+  function onScroll() {
+    let current = '';
+    const scrollPos = window.scrollY + 80;
+    sections.forEach(s => {
+      if (s.offsetTop <= scrollPos) current = s.id;
+    });
+    links.forEach(l => {
+      l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
