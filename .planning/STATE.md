@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v17.0
 milestone_name: Assessment Admin Power Tools
-status: executing
-last_updated: "2026-05-21T01:07:45.982Z"
-last_activity: 2026-05-21 -- Phase 320 execution started
+status: ready
+last_updated: "2026-05-21T02:40:00.000Z"
+last_activity: 2026-05-21 -- Phase 320 complete + tagged v17.0-p320-complete
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -20,19 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 320 — assessment-export-per-peserta-excel
+**Current focus:** Phase 321 — assessment-edit-jawaban-peserta (next, planning pending)
 
 ## Current Position
 
-Phase: 320 (assessment-export-per-peserta-excel) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 320
-Last activity: 2026-05-21 -- Phase 320 execution started
+Phase: 320 — COMPLETE + tagged `v17.0-p320-complete` (commit 6c292083)
+Plan: 3 of 3 done
+Status: Phase 320 shipped locally (pending user push remote + IT promo Dev)
+Last activity: 2026-05-21 -- Phase 320 UAT pass + tagged + follow-up UAT (Variant B + PNG byte-verify)
 
 ## Next Action
 
-1. **Recommended:** Finalize `.planning/REQUIREMENTS.md` (EXP-* + EDIT-* REQ-IDs) → spawn gsd-roadmapper untuk `.planning/ROADMAP.md` v17.0 entry (2 phase: 320 + 321)
-2. **After roadmap:** `/gsd-plan-phase 320` + `/gsd-plan-phase 321` (consume RESEARCH.md per phase, output sub-numbered PLAN.md)
+1. **User action:** Push remote `git push origin main && git push origin v17.0-p320-complete` + notify IT (commit hash + tag + no-migration flag, draft di `320-03-SUMMARY.md`)
+2. **Phase 321 planning:** `/gsd-plan-phase 321` — Assessment Edit Jawaban Peserta (REQ EDIT-01..13). 321-RESEARCH.md sudah ada (13 task breakdown).
+3. **Backlog:** v16.0 milestone phases 315-319 belum di-archive via `/gsd-complete-milestone` — pre-existing housekeeping (bukan blocker)
 3. **Backlog:** v16.0 milestone phases 315-319 belum di-archive via `/gsd-complete-milestone` — pre-existing housekeeping (bukan blocker)
 
 ## Deferred Items
