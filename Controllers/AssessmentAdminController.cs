@@ -2758,6 +2758,175 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitEditAnswers(HcPortal.Models.EditAnswersSubmission form)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == form.SessionId);
+            if (session == null) { TempData["Error"] = "Sesi tidak ditemukan."; return RedirectToAction("ManageAssessment"); }
+
+            var redirectBack = RedirectToAction("AssessmentMonitoringDetail", new {
+                title = session.Title, category = session.Category, scheduleDate = session.Schedule
+            });
+
+            if (!await HcPortal.Helpers.AssessmentEditEligibility.IsEditableAsync(_context, session))
+            {
+                TempData["Error"] = "Sesi tidak dapat di-edit.";
+                return redirectBack;
+            }
+
+            var currentUpdatedAt = session.UpdatedAt ?? session.CreatedAt;
+            if (Math.Abs((currentUpdatedAt - form.UpdatedAt).TotalSeconds) > 1)
+            {
+                TempData["Error"] = "Sesi sudah diubah admin lain. Refresh halaman.";
+                return redirectBack;
+            }
+
+            foreach (var (qid, _) in form.Answers)
+            {
+                if (!form.Reasons.TryGetValue(qid, out var reason) || string.IsNullOrWhiteSpace(reason.Code))
+                {
+                    TempData["Error"] = $"Alasan wajib untuk soal {qid}.";
+                    return redirectBack;
+                }
+                if (!new[] { "SoalSalah", "KunciSalah", "BugSistem", "PermintaanPeserta", "Lainnya" }.Contains(reason.Code))
+                {
+                    TempData["Error"] = "ReasonCode tidak valid.";
+                    return redirectBack;
+                }
+                if (reason.Code == "Lainnya" && string.IsNullOrWhiteSpace(reason.Text))
+                {
+                    TempData["Error"] = "ReasonText wajib kalau ReasonCode == Lainnya.";
+                    return redirectBack;
+                }
+            }
+
+            var actorId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actorRole = User.IsInRole("Admin") ? "Admin" : "HC";
+            var actorName = $"{actor?.NIP} - {actor?.FullName}";
+
+            var qIds = form.Answers.Keys.ToList();
+            var questions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => qIds.Contains(q.Id))
+                .ToListAsync();
+            var existingResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == session.Id && qIds.Contains(r.PackageQuestionId))
+                .ToListAsync();
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                int editCount = 0;
+                foreach (var (qId, newOptionIds) in form.Answers)
+                {
+                    var q = questions.FirstOrDefault(x => x.Id == qId);
+                    if (q == null) continue;
+                    if ((q.QuestionType ?? "MultipleChoice") == "Essay") continue;
+
+                    var validOptionIds = q.Options.Select(o => o.Id).ToHashSet();
+                    var sanitizedNew = newOptionIds.Where(id => validOptionIds.Contains(id)).ToList();
+
+                    var oldResponses = existingResponses
+                        .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue).ToList();
+                    var oldOptionIds = oldResponses.Select(r => r.PackageOptionId!.Value).ToList();
+                    var oldTextSnapshot = string.Join(", ",
+                        q.Options.Where(o => oldOptionIds.Contains(o.Id)).Select(o => o.OptionText));
+
+                    _context.PackageUserResponses.RemoveRange(oldResponses);
+                    foreach (var newOid in sanitizedNew)
+                    {
+                        _context.PackageUserResponses.Add(new PackageUserResponse
+                        {
+                            AssessmentSessionId = session.Id,
+                            PackageQuestionId = qId,
+                            PackageOptionId = newOid,
+                            TextAnswer = null,
+                            SubmittedAt = DateTime.UtcNow
+                        });
+                    }
+
+                    var newTextSnapshot = string.Join(", ",
+                        q.Options.Where(o => sanitizedNew.Contains(o.Id)).Select(o => o.OptionText));
+
+                    _context.AssessmentEditLogs.Add(new AssessmentEditLog
+                    {
+                        AssessmentSessionId = session.Id,
+                        PackageQuestionId = qId,
+                        QuestionTextSnapshot = q.QuestionText ?? "",
+                        OldAnswerJson = System.Text.Json.JsonSerializer.Serialize(oldOptionIds),
+                        OldAnswerTextSnapshot = oldTextSnapshot,
+                        NewAnswerJson = System.Text.Json.JsonSerializer.Serialize(sanitizedNew),
+                        NewAnswerTextSnapshot = newTextSnapshot,
+                        OldScore = session.Score,
+                        OldIsPassed = session.IsPassed,
+                        ActorUserId = actorId,
+                        ActorName = actorName,
+                        ActorRole = actorRole,
+                        ReasonCode = form.Reasons[qId].Code,
+                        ReasonText = form.Reasons[qId].Text,
+                        EditedAt = DateTime.UtcNow
+                    });
+                    editCount++;
+                }
+                await _context.SaveChangesAsync();
+
+                var (newScore, newIsPassed, oldScore, oldIsPassed) = await _gradingService.RegradeAfterEditAsync(session);
+
+                await _context.AssessmentEditLogs
+                    .Where(l => l.AssessmentSessionId == session.Id && l.NewScore == null && l.ActorUserId == actorId)
+                    .ExecuteUpdateAsync(l => l
+                        .SetProperty(x => x.NewScore, newScore)
+                        .SetProperty(x => x.NewIsPassed, newIsPassed));
+
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    ActorUserId = actorId,
+                    ActorName = actorName,
+                    ActionType = "EditAssessmentAnswer",
+                    Description = $"Edit {editCount} jawaban session #{session.Id} ({session.User?.FullName}), score {oldScore?.ToString() ?? "—"} → {newScore}",
+                    TargetType = "AssessmentSession",
+                    TargetId = session.Id,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+
+                await tx.CommitAsync();
+
+                _cache.Remove($"exam-status-{session.Id}");
+
+                var batchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+                await _hubContext.Clients.Group($"monitor-{batchKey}").SendAsync("workerAnswerEdited", new
+                {
+                    sessionId = session.Id,
+                    workerName = session.User?.FullName ?? "Unknown",
+                    oldScore, newScore, oldIsPassed, newIsPassed,
+                    actorName, actorRole
+                });
+
+                string flip = (oldIsPassed == true, newIsPassed) switch
+                {
+                    (true, false) => "Pass→Fail",
+                    (false, true) => "Fail→Pass",
+                    (true, true) => "Pass→Pass",
+                    _ => "Fail→Fail"
+                };
+                TempData["Success"] = $"Edit {editCount} jawaban berhasil. Score: {oldScore?.ToString() ?? "—"} → {newScore}, {flip}";
+                return redirectBack;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Edit jawaban gagal untuk session {SessionId}", session.Id);
+                TempData["Error"] = "Terjadi kesalahan saat menyimpan. Coba lagi atau hubungi administrator.";
+                return redirectBack;
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> PreviewEditScore(int sessionId,
             HcPortal.Models.EditDraftSubmission form)
         {
