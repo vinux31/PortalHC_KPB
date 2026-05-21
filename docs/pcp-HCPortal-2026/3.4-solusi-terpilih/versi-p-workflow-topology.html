@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>§3.4 v3.5 — Versi P: Workflow Topology HC Portal (Enhanced)</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='80' font-size='80' text-anchor='middle'%3E%F0%9F%8C%90%3C/text%3E%3C/svg%3E"/>
+<title>§3.4 v3.1 — Versi P: Workflow Topology HC Portal (Enhanced)</title>
 <style>
   @page { size: A3 landscape; margin: 10mm; }
   :root {
@@ -20,8 +19,8 @@
     --bg: #f6f7fb;
     --border: #d1d5db;
     --hub-grad: linear-gradient(135deg, #00558C, #00A551);
-    --tint-pink: #fde8eb;
-    --tint-green: #d4f0dd;
+    --tint-pink: #fef2f4;
+    --tint-green: #f0fdf4;
     --line-manual: #C8102E;
     --line-nonformal: #d4a017;
     --line-portal: #00558C;
@@ -59,9 +58,8 @@
   .diagram-header .tagline { font-style: italic; color: var(--neutral-gray); font-size: .85rem; margin-top: .2rem; }
 
   /* ============ DIAGRAM AREA + SVG OVERLAY ============ */
-  .diagram-area { position: relative; min-height: 720px; }
-  .connections-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; filter: drop-shadow(0 2px 3px rgba(0,0,0,.15)); }
-  .connections-svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .diagram-area { position: relative; }
+  .connections-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
   .layers-content { position: relative; z-index: 2; }
 
   .layer-row { display: grid; grid-template-columns: 130px 1fr; gap: .75rem; margin-bottom: .65rem; align-items: stretch; }
@@ -73,7 +71,7 @@
 
   .layer-content { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; background: rgba(255,255,255,.7); border: 1px solid var(--border); border-radius: .35rem; padding: .65rem; position: relative; }
 
-  .comp { padding: .35rem .6rem; border-radius: .35rem; font-size: .78rem; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.08); border: 1px solid; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem; }
+  .comp { padding: .4rem .7rem; border-radius: .35rem; font-size: .82rem; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.08); border: 1px solid; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem; }
   .comp.manual { background: var(--pertamina-red-light); border-color: var(--pertamina-red); color: var(--pertamina-red); }
   .comp.portal { background: var(--pertamina-blue-light); border-color: var(--pertamina-blue); color: var(--pertamina-blue-dark); }
   .comp.tool-ext { background: #fff3cd; border-color: #d4a017; color: #856404; font-style: italic; }
@@ -88,7 +86,7 @@
   .portal-hub-sub .pill { background: rgba(255,255,255,.25); padding: .2rem .55rem; border-radius: 999px; font-size: .7rem; font-weight: 600; }
 
   /* ============ MARKERS ============ */
-  .marker { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: white; font-weight: 700; font-size: .72rem; margin-left: .3rem; cursor: help; transition: transform .15s; vertical-align: middle; position: relative; z-index: 10; }
+  .marker { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: white; font-weight: 700; font-size: .72rem; margin-left: .3rem; cursor: help; transition: transform .15s; vertical-align: middle; }
   .marker:hover { transform: scale(1.25); }
   .marker.issue { background: var(--pertamina-red); }
   .marker.improvement { background: var(--pertamina-green); }
@@ -137,7 +135,7 @@
   <div class="logo-pertamina">PERTAMINA<br/><small>PATRA NIAGA</small></div>
   <div class="header-title">
     <h1>§3.4 Solusi Terpilih — HC Portal</h1>
-    <small>Versi P v3.5: Workflow Topology • Side-by-Side • Bezier Lines • DMZ-Analog Buffer Zone</small>
+    <small>Versi P (Enhanced): Workflow Topology • Side-by-Side • Bezier Lines • DMZ-Analog Buffer Zone</small>
   </div>
   <div class="pcp-badge">PCP SMART<br/><small>2026</small></div>
 </div>
@@ -150,7 +148,7 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar">
-  <div>📐 <b>Versi P v3.5</b> — Side-by-side • 5 layer aktor + Layer 3.5 Buffer Zone • Bezier lines + 3 channel color coding</div>
+  <div>📐 <b>Versi P v3.1</b> — Side-by-side • 5 layer aktor + Layer 3.5 Buffer Zone (HC Portal hub) • Bezier connection lines</div>
   <button onclick="window.print()">🖨️ Print A3 / Save PDF</button>
 </div>
 
@@ -174,16 +172,47 @@
     </div>
 
     <div class="diagram-area">
-      <svg class="connections-svg" preserveAspectRatio="none">
-        <defs>
-          <marker id="arrow-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#d4a017"/>
-          </marker>
-          <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#C8102E"/>
-          </marker>
-        </defs>
-        <!-- Paths drawn dynamically via JavaScript -->
+      <svg class="connections-svg" viewBox="0 0 600 700" preserveAspectRatio="none">
+        <!-- L4 internal Excel chaos (merah) - horizontal loops -->
+        <path d="M 200 220 Q 250 200, 300 220" stroke="#C8102E" stroke-width="2.5" fill="none" stroke-dasharray="0"/>
+        <path d="M 300 220 Q 350 200, 400 220" stroke="#C8102E" stroke-width="2.5" fill="none"/>
+        <path d="M 400 220 Q 450 200, 500 220" stroke="#C8102E" stroke-width="2.5" fill="none"/>
+        <path d="M 220 240 Q 320 270, 480 240" stroke="#C8102E" stroke-width="2" fill="none" opacity="0.5"/>
+
+        <!-- L5 ↔ L4 Email -->
+        <path d="M 250 200 C 250 150, 250 130, 250 90" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+        <path d="M 350 90 C 350 130, 350 160, 350 195" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L4 → L3 Email -->
+        <path d="M 300 250 C 300 290, 280 310, 280 350" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L4 → L2 Email assign -->
+        <path d="M 400 250 C 420 320, 400 400, 380 480" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L4 → L1 Email FleQi link -->
+        <path d="M 500 250 C 520 400, 500 550, 480 620" stroke="#d4a017" stroke-width="2.5" fill="none"/>
+
+        <!-- L3 ↔ L2 WhatsApp (with marker C) -->
+        <path d="M 250 380 C 230 420, 220 450, 230 480" stroke="#d4a017" stroke-width="3" fill="none"/>
+
+        <!-- L2 → L4 WA bukti + Arsip (with marker E) -->
+        <path d="M 180 480 C 100 400, 100 300, 180 250" stroke="#d4a017" stroke-width="2.5" fill="none" stroke-dasharray="4,3"/>
+
+        <!-- L1 → L4 FleQi export (merah) -->
+        <path d="M 350 620 C 350 500, 350 350, 350 250" stroke="#C8102E" stroke-width="2.5" fill="none" stroke-dasharray="6,3"/>
+
+        <!-- L4 → L1 sertifikat hardcopy (abu) -->
+        <path d="M 550 250 C 580 450, 580 550, 560 620" stroke="#999" stroke-width="2" fill="none" stroke-dasharray="3,3"/>
+
+        <!-- Markers di line -->
+        <circle cx="300" cy="240" r="11" fill="#C8102E"/>
+        <text x="300" y="244" fill="white" font-size="11" font-weight="700" text-anchor="middle">A</text>
+
+        <circle cx="240" cy="430" r="11" fill="#C8102E"/>
+        <text x="240" y="434" fill="white" font-size="11" font-weight="700" text-anchor="middle">C</text>
+
+        <circle cx="110" cy="350" r="11" fill="#C8102E"/>
+        <text x="110" y="354" fill="white" font-size="11" font-weight="700" text-anchor="middle">E</text>
       </svg>
 
       <div class="layers-content">
@@ -293,13 +322,25 @@
     </div>
 
     <div class="diagram-area">
-      <svg class="connections-svg" preserveAspectRatio="none">
-        <defs>
-          <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#00558C"/>
-          </marker>
-        </defs>
-        <!-- Paths drawn dynamically via JavaScript -->
+      <svg class="connections-svg" viewBox="0 0 600 700" preserveAspectRatio="none">
+        <!-- L5 → Hub (biru) -->
+        <path d="M 300 100 C 300 140, 300 200, 300 250" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- L4 → Hub (biru) -->
+        <path d="M 300 220 C 300 250, 300 270, 300 290" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → L3 (biru) -->
+        <path d="M 250 380 C 250 410, 250 430, 250 460" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → L2 (biru) -->
+        <path d="M 350 380 C 350 430, 350 480, 350 540" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → L1 (biru) -->
+        <path d="M 400 380 C 400 470, 400 570, 400 640" stroke="#00558C" stroke-width="3" fill="none"/>
+
+        <!-- Hub → all (additional flows) -->
+        <path d="M 200 380 C 200 440, 200 510, 200 550" stroke="#00558C" stroke-width="2" fill="none" opacity="0.6"/>
+        <path d="M 450 380 C 450 460, 450 540, 450 620" stroke="#00558C" stroke-width="2" fill="none" opacity="0.6"/>
       </svg>
 
       <div class="layers-content">
@@ -440,223 +481,9 @@
 </div>
 
 <div class="footer">
-  <p>📌 <b>Versi P v3.5 Enhanced</b> (Workflow Topology) — PCP SMART 2026 §3.4 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.5</code></p>
-  <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print A3 Landscape untuk save PDF. Garis koneksi auto-adjust mengikuti layout.</p>
+  <p>📌 <b>Versi P v3.1 Enhanced</b> (Workflow Topology) — PCP SMART 2026 §3.4 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.1</code></p>
+  <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print A3 Landscape untuk save PDF.</p>
 </div>
-
-<script>
-(function() {
-  const SEBELUM_CONNECTIONS = [
-    // L4 Excel chaos: line antar Excel components di L4 (intra-layer)
-    { from: 'L4', to: 'L4', type: 'chaos', color: '#C8102E', width: 3.5, marker: 'A', markerColor: '#C8102E' },
-    // L4 → L5 Email kirim laporan (kuning ascending) — Marker D, adjacent center
-    { from: 'L4', to: 'L5', side: 'center', color: '#d4a017', width: 4, dashed: false, arrow: 'arrow-yellow', marker: 'D', markerColor: '#C8102E' },
-    // L4 → L2 Email assign coachee (kuning descending) — route via right side
-    { from: 'L4', to: 'L2', side: 'right', color: '#d4a017', width: 4, dashed: false, arrow: 'arrow-yellow', curveOffset: 80 },
-    // L4 → L1 Email FleQi link (kuning descending paling jauh) — route via right side
-    { from: 'L4', to: 'L1', side: 'right', color: '#d4a017', width: 4, dashed: false, arrow: 'arrow-yellow', curveOffset: 130 },
-    // L3 → L2 WhatsApp approval lisan (kuning dashed) — Marker C, adjacent
-    { from: 'L3', to: 'L2', side: 'center', color: '#d4a017', width: 4, dashed: true, arrow: 'arrow-yellow', marker: 'C', markerColor: '#C8102E' },
-    // L2 → L4 bukti via WA + Arsip (kuning dashed ascending reverse) — Marker E, route via left side
-    { from: 'L2', to: 'L4', side: 'left', color: '#d4a017', width: 3.5, dashed: true, arrow: 'arrow-yellow', marker: 'E', markerColor: '#C8102E', curveOffset: -120 },
-    // L1 → L4 FleQi export hasil (merah dashed ascending reverse) — route via left side
-    { from: 'L1', to: 'L4', side: 'left', color: '#C8102E', width: 3.5, dashed: true, arrow: 'arrow-red', curveOffset: -150 },
-  ];
-
-  const SESUDAH_CONNECTIONS = [
-    // L5 → Hub (biru thick descending)
-    { from: 'L5', to: 'HUB', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
-    // L4 → Hub (biru thick short)
-    { from: 'L4', to: 'HUB', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
-    // Hub → L3 (biru thick)
-    { from: 'HUB', to: 'L3', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
-    // Hub → L2 (biru thick)
-    { from: 'HUB', to: 'L2', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
-    // Hub → L1 (biru thick descending paling jauh)
-    { from: 'HUB', to: 'L1', side: 'middle', color: '#00558C', width: 5, arrow: 'arrow-blue' },
-  ];
-
-  function getNodes(panel, isAfter) {
-    const layers = panel.querySelectorAll('.layer-content');
-    if (isAfter) {
-      const hub = panel.querySelector('.portal-hub');
-      return { L5: layers[0], L4: layers[1], HUB: hub, L3: layers[2], L2: layers[3], L1: layers[4] };
-    }
-    return { L5: layers[0], L4: layers[1], L3: layers[2], L2: layers[3], L1: layers[4] };
-  }
-
-  function getAnchor(el, panelRect, position) {
-    const r = el.getBoundingClientRect();
-    const baseX = r.left - panelRect.left;
-    const baseY = r.top - panelRect.top;
-    return {
-      cx: baseX + r.width / 2,
-      cy: baseY + r.height / 2,
-      top: { x: baseX + r.width / 2, y: baseY },
-      bottom: { x: baseX + r.width / 2, y: baseY + r.height },
-      left: { x: baseX, y: baseY + r.height / 2 },
-      right: { x: baseX + r.width, y: baseY + r.height / 2 },
-      width: r.width,
-      height: r.height,
-    };
-  }
-
-  function drawPanel(svgEl, panel, connections, isAfter) {
-    const panelRect = panel.getBoundingClientRect();
-    // Set SVG size to match panel
-    svgEl.setAttribute('width', panelRect.width);
-    svgEl.setAttribute('height', panelRect.height);
-    svgEl.setAttribute('viewBox', `0 0 ${panelRect.width} ${panelRect.height}`);
-
-    // Clear dynamic content (keep defs)
-    svgEl.querySelectorAll('.dyn').forEach(n => n.remove());
-
-    const nodes = getNodes(panel, isAfter);
-
-    connections.forEach(conn => {
-      const fromEl = nodes[conn.from];
-      const toEl = nodes[conn.to];
-      if (!fromEl || !toEl) return;
-
-      const fromA = getAnchor(fromEl, panelRect);
-      const toA = getAnchor(toEl, panelRect);
-
-      let startX, startY, endX, endY, ctrlX1, ctrlY1, ctrlX2, ctrlY2;
-
-      if (conn.type === 'chaos') {
-        // Intra-layer horizontal chaos lines (di dalam layer)
-        const layerR = fromEl.getBoundingClientRect();
-        const layerX = layerR.left - panelRect.left;
-        const layerY = layerR.top - panelRect.top;
-        const w = layerR.width;
-        const h = layerR.height;
-        // 2 chaos arcs di tengah layer
-        const path1 = `M ${layerX + 30} ${layerY + h * 0.5} C ${layerX + w * 0.3} ${layerY + 10}, ${layerX + w * 0.7} ${layerY + 10}, ${layerX + w - 30} ${layerY + h * 0.5}`;
-        const path2 = `M ${layerX + 30} ${layerY + h * 0.5 + 8} C ${layerX + w * 0.3} ${layerY + h - 10}, ${layerX + w * 0.7} ${layerY + h - 10}, ${layerX + w - 30} ${layerY + h * 0.5 + 8}`;
-        addPath(svgEl, path1, conn.color, conn.width, false, null);
-        addPath(svgEl, path2, conn.color, conn.width * 0.85, false, null, 0.6);
-        if (conn.marker) {
-          addMarker(svgEl, layerX + w * 0.5, layerY + h * 0.5 + 4, conn.marker, conn.markerColor);
-        }
-        return;
-      }
-
-      // Determine direction (ascending/descending)
-      const descending = fromA.cy < toA.cy;
-      const side = conn.side || 'middle';
-
-      // Y padding: small offset dari edge box supaya line ada breathing room
-      const yPad = 3;
-
-      // Anchor points based on side
-      if (descending) {
-        startY = fromA.bottom.y + yPad;
-        endY = toA.top.y - yPad;
-        if (side === 'left') {
-          startX = fromA.left.x + fromA.width * 0.15;
-          endX = toA.left.x + toA.width * 0.15;
-        } else if (side === 'right') {
-          startX = fromA.right.x - fromA.width * 0.15;
-          endX = toA.right.x - toA.width * 0.15;
-        } else {
-          startX = fromA.cx;
-          endX = toA.cx;
-        }
-      } else {
-        // ascending (reverse: from is below to)
-        startY = fromA.top.y - yPad;
-        endY = toA.bottom.y + yPad;
-        if (side === 'left') {
-          startX = fromA.left.x + fromA.width * 0.12;
-          endX = toA.left.x + toA.width * 0.12;
-        } else if (side === 'right') {
-          startX = fromA.right.x - fromA.width * 0.12;
-          endX = toA.right.x - toA.width * 0.12;
-        } else {
-          startX = fromA.cx;
-          endX = toA.cx;
-        }
-      }
-
-      // Bezier control points (cubic) — gentle S-curve
-      const distY = Math.abs(endY - startY);
-      const curveOffset = conn.curveOffset || 0;
-      ctrlX1 = startX + curveOffset;
-      ctrlY1 = startY + (descending ? distY * 0.4 : -distY * 0.4);
-      ctrlX2 = endX + curveOffset;
-      ctrlY2 = endY - (descending ? distY * 0.4 : -distY * 0.4);
-
-      const path = `M ${startX} ${startY} C ${ctrlX1} ${ctrlY1}, ${ctrlX2} ${ctrlY2}, ${endX} ${endY}`;
-      addPath(svgEl, path, conn.color, conn.width, conn.dashed, conn.arrow);
-
-      // Marker on line (mid-path)
-      if (conn.marker) {
-        const midX = (startX + endX) / 2 + curveOffset;
-        const midY = (startY + endY) / 2;
-        addMarker(svgEl, midX, midY, conn.marker, conn.markerColor);
-      }
-    });
-  }
-
-  function addPath(svg, d, stroke, width, dashed, arrow, opacity) {
-    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    p.setAttribute('d', d);
-    p.setAttribute('stroke', stroke);
-    p.setAttribute('stroke-width', width);
-    p.setAttribute('fill', 'none');
-    if (dashed) p.setAttribute('stroke-dasharray', '7,4');
-    if (arrow) p.setAttribute('marker-end', `url(#${arrow})`);
-    if (opacity) p.setAttribute('opacity', opacity);
-    p.classList.add('dyn');
-    svg.appendChild(p);
-  }
-
-  function addMarker(svg, cx, cy, text, color) {
-    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    c.setAttribute('cx', cx);
-    c.setAttribute('cy', cy);
-    c.setAttribute('r', 14);
-    c.setAttribute('fill', color || '#C8102E');
-    c.setAttribute('stroke', 'white');
-    c.setAttribute('stroke-width', 2.5);
-    c.classList.add('dyn');
-    svg.appendChild(c);
-
-    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttribute('x', cx);
-    t.setAttribute('y', cy + 5);
-    t.setAttribute('fill', 'white');
-    t.setAttribute('font-size', '13');
-    t.setAttribute('font-weight', '800');
-    t.setAttribute('text-anchor', 'middle');
-    t.textContent = text;
-    t.classList.add('dyn');
-    svg.appendChild(t);
-  }
-
-  function drawAll() {
-    const beforePanel = document.querySelector('.diagram-wrap.before-style .diagram-area');
-    const beforeSvg = beforePanel.querySelector('.connections-svg');
-    drawPanel(beforeSvg, beforePanel, SEBELUM_CONNECTIONS, false);
-
-    const afterPanel = document.querySelector('.diagram-wrap.after-style .diagram-area');
-    const afterSvg = afterPanel.querySelector('.connections-svg');
-    drawPanel(afterSvg, afterPanel, SESUDAH_CONNECTIONS, true);
-  }
-
-  // Initial draw + redraw on resize/load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', drawAll);
-  } else {
-    drawAll();
-  }
-  window.addEventListener('load', drawAll);
-  window.addEventListener('resize', () => {
-    clearTimeout(window._redrawTimer);
-    window._redrawTimer = setTimeout(drawAll, 100);
-  });
-})();
-</script>
 
 </body>
 </html>
