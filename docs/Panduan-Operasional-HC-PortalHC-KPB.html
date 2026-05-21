@@ -1554,6 +1554,139 @@
   </div>
 </article>
 
+<!-- ============================================================ -->
+<!-- BAB 6: NOTIFIKASI & WORKFLOW -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab6">
+  <h2>6. Notifikasi &amp; Workflow</h2>
+  <p>Bell icon, approval chain context, dan matrix notifikasi otomatis.</p>
+</div>
+
+<h3 id="bab6-1">6.1 Bell Icon &mdash; Lihat &amp; Kelola Notifikasi</h3>
+<p>Bell icon di navbar kanan atas memunculkan badge merah saat ada notifikasi baru. Klik untuk buka daftar.</p>
+
+<article class="task" id="notif-bell">
+  <h4>Endpoint Notifikasi</h4>
+  <div class="breadcrumb">
+    Navbar &rarr; Bell Icon
+    <code class="url">/Notification/List</code>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">1</span><span class="step-title">Lihat Unread Count</span></div>
+    <div class="step-body">Badge merah update dari endpoint <code>/Notification/UnreadCount</code> (polled atau pada page load).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">2</span><span class="step-title">Buka Daftar Notifikasi</span></div>
+    <div class="step-body">Klik bell &mdash; GET <code>/Notification/List</code>. Daftar 50 notifikasi terakhir. Klik item untuk navigate langsung ke halaman terkait (mis: deliverable yang perlu review).</div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">3</span><span class="step-title">Mark as Read</span></div>
+    <div class="step-body">
+      <ul>
+        <li>Single: POST <code>/Notification/MarkAsRead/{id}</code></li>
+        <li>All: POST <code>/Notification/MarkAllAsRead</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-header"><span class="step-num">4</span><span class="step-title">Dismiss Notifikasi</span></div>
+    <div class="step-body">Hapus dari daftar: POST <code>/Notification/Dismiss/{id}</code>.</div>
+  </div>
+</article>
+
+<h3 id="bab6-2">6.2 Approval Chain &mdash; HC sebagai Final Reviewer</h3>
+<p>HC adalah <b>reviewer ke-3 (final)</b> di approval chain deliverable Coaching Proton:</p>
+<div class="diagram">Coachee Submit Evidence
+            &darr;
+  1. Sr Supervisor Review  (COACH_EVIDENCE_APPROVED_SRSPV)
+            &darr;
+  2. Section Head Review   (COACH_EVIDENCE_APPROVED_SH)
+            &darr;
+  3. HC Final Review       (COACH_EVIDENCE_APPROVED_HC)   &larr; Anda
+            &darr;
+     Approved / Rejected   (COACH_EVIDENCE_REJECTED)</div>
+<div class="warn">
+  <div class="warn-title">⚠️ Reject = Reset Chain</div>
+  Kalau HC reject, seluruh chain (Sr Supervisor + Section Head + HC) ter-reset. Coachee harus upload evidence baru, di-review ulang dari Sr Supervisor lagi.
+</div>
+
+<h3 id="bab6-3">6.3 Auto-Notifications Matrix</h3>
+<p>Notifikasi dikirim otomatis oleh <code>NotificationService</code> ke recipient yang relevan. Berikut event yang ter-template di sistem:</p>
+<table>
+  <thead>
+    <tr>
+      <th>Event Code</th>
+      <th>Title</th>
+      <th>Trigger</th>
+      <th>Recipient</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ASMT_ASSIGNED</code></td>
+      <td>Assessment Assigned</td>
+      <td>Admin/HC create jadwal assessment + assign peserta</td>
+      <td>Peserta assigned</td>
+    </tr>
+    <tr>
+      <td><code>ASMT_RESULTS_READY</code></td>
+      <td>Assessment Results Ready</td>
+      <td>Peserta selesai assessment + nilai ter-finalize</td>
+      <td>Peserta</td>
+    </tr>
+    <tr>
+      <td><code>COACH_ASSIGNED</code></td>
+      <td>Coach Assigned</td>
+      <td>Admin/HC assign coach ke coachee (Bab 5.9)</td>
+      <td>Coachee + Coach baru</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_SUBMITTED</code></td>
+      <td>Evidence Submitted for Review</td>
+      <td>Coachee upload evidence deliverable</td>
+      <td>Sr Supervisor (reviewer pertama di chain)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_APPROVED_SRSPV</code></td>
+      <td>Evidence Approved by SrSpv</td>
+      <td>Sr Supervisor klik Approve</td>
+      <td>Section Head (reviewer berikut) + Coachee (info)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_APPROVED_SH</code></td>
+      <td>Evidence Approved by Section Head</td>
+      <td>Section Head klik Approve</td>
+      <td><b>HC</b> (final reviewer) + Coachee (info)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_APPROVED_HC</code></td>
+      <td>Evidence Approved by HC</td>
+      <td>HC klik HC Approve (final)</td>
+      <td>Coachee + Coach + reviewer chain</td>
+    </tr>
+    <tr>
+      <td><code>COACH_EVIDENCE_REJECTED</code></td>
+      <td>Evidence Rejected</td>
+      <td>Reviewer (Sr Spv / Section Head / HC) klik Reject</td>
+      <td>Coachee (untuk re-upload) + reviewer di atasnya (info)</td>
+    </tr>
+    <tr>
+      <td><code>COACH_SESSION_COMPLETED</code></td>
+      <td>Coaching Session Completed</td>
+      <td>Coach catat coaching session selesai</td>
+      <td>Coachee</td>
+    </tr>
+  </tbody>
+</table>
+<div class="info">
+  <div class="info-title">💡 Event yang Paling Sering Trigger Notif untuk HC</div>
+  <ul>
+    <li><b>COACH_EVIDENCE_APPROVED_SH</b> &mdash; evidence siap di-review HC (final reviewer)</li>
+    <li><b>ASMT_RESULTS_READY</b> &mdash; peserta assessment selesai (untuk monitoring)</li>
+    <li><b>COACH_EVIDENCE_REJECTED</b> &mdash; salah satu reviewer di chain reject (untuk awareness)</li>
+  </ul>
+</div>
+
 <div class="footer">
   Panduan Operasional HC &mdash; Portal HC KPB v1.0 &bull; Mei 2026<br>
   Maintainer: Tim Human Capital KPB &bull; <code>docs/Panduan-Operasional-HC-PortalHC-KPB.html</code>
