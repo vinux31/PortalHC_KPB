@@ -491,5 +491,36 @@
 
     <div class="brand-mark">PROTON × KPB</div>
   </div>
+<script>
+  // ===== CMP & CDP MOCKUP — ORCHESTRATION =====
+
+  function showScene(id) {
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function highlightCard(sceneId, idx, duration = 800) {
+    const card = document.querySelectorAll(`#${sceneId} .bs-card`)[idx - 1];
+    if (!card) return;
+    card.classList.add('highlight');
+    setTimeout(() => card.classList.remove('highlight'), duration);
+  }
+
+  const milestones = [
+    { t: 2000, fn: () => showScene('scene-cmp') },
+    { t: 4500, fn: () => highlightCard('scene-cmp', 1) },
+    { t: 5300, fn: () => highlightCard('scene-cmp', 2) },
+    { t: 6100, fn: () => highlightCard('scene-cmp', 3) },
+
+    { t: 11000, fn: () => showScene('scene-cdp') },
+
+    { t: 14000, fn: () => highlightCard('scene-cdp', 1, 750) },
+    { t: 14750, fn: () => highlightCard('scene-cdp', 2, 750) },
+    { t: 15500, fn: () => highlightCard('scene-cdp', 3, 750) },
+    { t: 16250, fn: () => highlightCard('scene-cdp', 4, 750) }
+  ];
+
+  milestones.forEach(m => setTimeout(m.fn, m.t));
+</script>
 </body>
 </html>
