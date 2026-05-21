@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v17.0
 milestone_name: Assessment Admin Power Tools
-status: Phase 320 shipped locally (pending user push remote + IT promo Dev)
-last_updated: "2026-05-21T09:40:28.223Z"
-last_activity: 2026-05-21 -- Phase 320 UAT pass + tagged + follow-up UAT (Variant B + PNG byte-verify)
+status: executing
+last_updated: "2026-05-21T23:15:34.866Z"
+last_activity: 2026-05-21 -- Phase 321 execution started
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 3
+  total_plans: 8
   completed_plans: 3
-  percent: 100
+  percent: 38
 ---
 
 # Project State: Portal HC KPB
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 321 — assessment-edit-jawaban-peserta (next, planning pending)
+**Current focus:** Phase 321 — assessment-edit-jawaban-peserta
 
 ## Current Position
 
-Phase: 320 — COMPLETE + tagged `v17.0-p320-complete` (commit 6c292083)
-Plan: 3 of 3 done
-Status: Phase 320 shipped locally (pending user push remote + IT promo Dev)
-Last activity: 2026-05-21 -- Phase 320 UAT pass + tagged + follow-up UAT (Variant B + PNG byte-verify)
+Phase: 321 (assessment-edit-jawaban-peserta) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 321
+Last activity: 2026-05-21 -- Phase 321 execution started
 
 ## Next Action
 
