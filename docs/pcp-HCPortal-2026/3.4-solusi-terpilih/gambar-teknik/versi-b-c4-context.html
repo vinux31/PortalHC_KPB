@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>§3.4 — Gambar Teknik Versi B (C4 System Context)</title>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-blue: #00558C;
+    --pertamina-blue-dark: #003D63;
+    --pertamina-green: #00A551;
+    --pertamina-yellow: #FFC72C;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #d1d5db;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f6f7fb; color: var(--text); padding: 2rem; }
+  h1 { text-align: center; color: var(--pertamina-blue); border-bottom: 4px solid var(--pertamina-red); padding-bottom: .5rem; margin: 0 auto 2rem; max-width: 1400px; }
+  h1 small { display: block; font-size: .9rem; color: var(--muted); font-weight: normal; margin-top: .35rem; }
+  .toolbar { max-width: 1400px; margin: 0 auto 1.5rem; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .toolbar button { background: var(--pertamina-red); color: white; border: none; padding: .5rem 1rem; border-radius: .35rem; font-weight: 600; cursor: pointer; }
+  .diagram-wrap { max-width: 1400px; margin: 0 auto 3rem; background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 1.5rem 2rem; }
+  .diagram-wrap.before-style { border-top: 6px solid var(--pertamina-red); }
+  .diagram-wrap.after-style { border-top: 6px solid var(--pertamina-green); }
+  .diagram-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: .75rem; border-bottom: 2px dashed var(--border); }
+  .diagram-header h2 { margin: 0; font-size: 1.5rem; }
+  .before-style .diagram-header h2 { color: var(--pertamina-red); }
+  .after-style .diagram-header h2 { color: var(--pertamina-blue); }
+  .c4-canvas { position: relative; height: 520px; background: linear-gradient(180deg, #f8f9fa, #fff); border: 1px solid var(--border); border-radius: .5rem; overflow: hidden; }
+  .c4-hub { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, var(--pertamina-blue), var(--pertamina-green)); color: white; padding: 1.5rem 2rem; border-radius: 1rem; text-align: center; font-weight: 700; font-size: 1.2rem; box-shadow: 0 8px 20px rgba(0,85,140,.4); width: 220px; z-index: 5; }
+  .c4-hub small { display: block; font-weight: 400; font-size: .75rem; opacity: .9; margin-top: .35rem; }
+  .c4-actor { position: absolute; background: white; border: 3px solid var(--pertamina-blue); padding: .85rem 1.25rem; border-radius: 999px; font-size: .95rem; font-weight: 700; text-align: center; color: var(--pertamina-blue); box-shadow: 0 4px 10px rgba(0,0,0,.12); z-index: 3; min-width: 140px; }
+  .c4-actor small { display: block; font-weight: 400; font-size: .7rem; color: var(--muted); margin-top: .15rem; }
+  .c4-tools { position: absolute; background: #fff3cd; border: 2px solid #d4a017; padding: .65rem .85rem; border-radius: .35rem; font-size: .8rem; color: #856404; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,.1); font-weight: 600; z-index: 2; }
+  .c4-tools.scattered { background: #fce8eb; border-color: var(--pertamina-red); color: var(--pertamina-red); }
+  .legend-box { margin-top: 1rem; padding: .75rem 1rem; background: #f8f9fa; border-left: 4px solid var(--pertamina-yellow); border-radius: .35rem; font-size: .85rem; }
+  .legend-box b { color: var(--pertamina-blue); }
+  @media print { body { padding: 0; } .toolbar { display: none; } .diagram-wrap { box-shadow: none; page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div>📡 <b>Gambar Teknik Versi B</b> — C4 System Context (hub-and-spoke)</div>
+  <button onclick="window.print()">🖨️ Print / Save PDF</button>
+</div>
+
+<h1>
+  PCP SMART 2026 §3.4 — Solusi Terpilih HC Portal
+  <small>Versi B: C4 System Context Diagram • Standar Simon Brown C4 Model</small>
+</h1>
+
+<!-- SEBELUM -->
+<div class="diagram-wrap before-style">
+  <div class="diagram-header">
+    <h2>❌ Sebelum — Tools Tersebar (No Centralized Hub)</h2>
+    <div style="font-style:italic; color:var(--muted); font-size:.85rem;">Multi-tools scattered, no integration, koordinasi via channel non-formal</div>
+  </div>
+
+  <div class="c4-canvas">
+    <div class="c4-actor" style="left:30px; top:30px;">👔 Manajemen<small>Strategic view</small></div>
+    <div class="c4-actor" style="right:30px; top:30px;">👤 HC<small>Master data + reporting</small></div>
+    <div class="c4-actor" style="left:30px; bottom:30px;">👷 Pekerja<small>Assessment & sertifikat</small></div>
+    <div class="c4-actor" style="right:30px; bottom:30px;">🧑‍🏫 Atasan / Coach<small>Approval & coaching</small></div>
+
+    <div class="c4-tools scattered" style="left:50%; top:25%; transform:translateX(-50%);">📑 Excel Master<br/>(5 file scattered)</div>
+    <div class="c4-tools scattered" style="left:25%; top:50%; transform:translateY(-50%);">📝 Form PROTON cetak<br/>+ Arsip fisik</div>
+    <div class="c4-tools scattered" style="right:25%; top:50%; transform:translateY(-50%);">📧 Email + 💬 WhatsApp<br/>(koordinasi manual)</div>
+    <div class="c4-tools scattered" style="left:50%; bottom:25%; transform:translateX(-50%);">🌐 FleQi Quiz<br/>(web eksternal)</div>
+  </div>
+
+  <div class="legend-box">
+    🔗 <b>Pola koneksi:</b> Tidak ada hub sentral. Aktor mengakses tools manual yang berbeda-beda.
+    Komunikasi antar aktor melalui Email/WhatsApp. Data sama dicopy ulang di 5 Excel berbeda.
+    <b>Issue:</b> Tools terfragmentasi (A), No SSoT (B), No audit trail (C), Reporting ad-hoc (D), Workflow tanpa tracking (E), Renewal reaktif (F).
+  </div>
+</div>
+
+<!-- SESUDAH -->
+<div class="diagram-wrap after-style">
+  <div class="diagram-header">
+    <h2>✅ Sesudah — HC Portal sebagai Hub Sentral</h2>
+    <div style="font-style:italic; color:var(--muted); font-size:.85rem;">Single point of truth — semua aktor terhubung ke HC Portal via HTTPS</div>
+  </div>
+
+  <div class="c4-canvas">
+    <div class="c4-hub">
+      🌐 HC PORTAL<br/>
+      <small>ASP.NET Core 8<br/>SQL Server + SignalR<br/>Audit Log + RBAC</small>
+    </div>
+
+    <div class="c4-actor" style="left:30px; top:30px;">👔 Manajemen<small>Analytics Dashboard</small></div>
+    <div class="c4-actor" style="right:30px; top:30px;">👤 HC<small>Kelola master + setup IDP</small></div>
+    <div class="c4-actor" style="left:30px; bottom:30px;">👷 Pekerja<small>Assessment + sertifikat + IDP</small></div>
+    <div class="c4-actor" style="right:30px; bottom:30px;">🧑‍🏫 Atasan / Coach<small>Approval + coaching</small></div>
+
+    <svg style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1;" viewBox="0 0 1400 520" preserveAspectRatio="none">
+      <line x1="150" y1="80" x2="700" y2="260" stroke="#00558C" stroke-width="2" stroke-dasharray="0" opacity="0.5"/>
+      <line x1="1250" y1="80" x2="700" y2="260" stroke="#00558C" stroke-width="2" opacity="0.5"/>
+      <line x1="150" y1="440" x2="700" y2="260" stroke="#00558C" stroke-width="2" opacity="0.5"/>
+      <line x1="1250" y1="440" x2="700" y2="260" stroke="#00558C" stroke-width="2" opacity="0.5"/>
+    </svg>
+  </div>
+
+  <div class="legend-box">
+    🔗 <b>Pola koneksi:</b> Semua aktor terhubung ke <b>HC Portal hub</b> via HTTPS (web browser).
+    Data tersimpan di 1 DB SQL Server. Workflow approval terstruktur. Audit log otomatis.
+    No copy-paste antar tools. <b>Mitigated:</b> A (tools→1 portal), B (SSoT=DB), C (audit log), D (Dashboard real-time),
+    E (workflow Coach→Atasan→HC), F (badge expiry + Renewal menu).
+  </div>
+</div>
+
+<div style="text-align:center; padding:2rem; color:var(--muted); font-size:.85rem;">
+  <p>📌 Versi B — C4 System Context • Untuk audience IT-savvy / executive overview</p>
+</div>
+
+</body>
+</html>
