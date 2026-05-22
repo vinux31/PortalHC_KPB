@@ -149,17 +149,22 @@
 async function exportPNG() {
   const btn = document.getElementById('export-btn');
   btn.style.display = 'none';
-  const target = document.getElementById('panel-wrap');
-  const canvas = await html2canvas(target, {
-    scale: 2,
-    backgroundColor: '#ffffff',
-    useCORS: true
-  });
-  btn.style.display = '';
-  const link = document.createElement('a');
-  link.download = 'panel-rencana-slide8.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+  try {
+    const target = document.getElementById('panel-wrap');
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true
+    });
+    const link = document.createElement('a');
+    link.download = 'panel-rencana-slide8.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (error) {
+    alert('Export failed: ' + error.message);
+  } finally {
+    btn.style.display = '';
+  }
 }
 </script>
 </body>
