@@ -2782,25 +2782,6 @@ namespace HcPortal.Controllers
                 return redirectBack;
             }
 
-            foreach (var (qid, _) in form.Answers)
-            {
-                if (!form.Reasons.TryGetValue(qid, out var reason) || string.IsNullOrWhiteSpace(reason.Code))
-                {
-                    TempData["Error"] = $"Alasan wajib untuk soal {qid}.";
-                    return redirectBack;
-                }
-                if (!new[] { "SoalSalah", "KunciSalah", "BugSistem", "PermintaanPeserta", "Lainnya" }.Contains(reason.Code))
-                {
-                    TempData["Error"] = "ReasonCode tidak valid.";
-                    return redirectBack;
-                }
-                if (reason.Code == "Lainnya" && string.IsNullOrWhiteSpace(reason.Text))
-                {
-                    TempData["Error"] = "ReasonText wajib kalau ReasonCode == Lainnya.";
-                    return redirectBack;
-                }
-            }
-
             var actorId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
             var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             var actorRole = User.IsInRole("Admin") ? "Admin" : "HC";
@@ -2826,11 +2807,37 @@ namespace HcPortal.Controllers
                     if ((q.QuestionType ?? "MultipleChoice") == "Essay") continue;
 
                     var validOptionIds = q.Options.Select(o => o.Id).ToHashSet();
-                    var sanitizedNew = newOptionIds.Where(id => validOptionIds.Contains(id)).ToList();
+                    var sanitizedNewSet = newOptionIds.Where(id => validOptionIds.Contains(id)).ToHashSet();
 
                     var oldResponses = existingResponses
                         .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue).ToList();
-                    var oldOptionIds = oldResponses.Select(r => r.PackageOptionId!.Value).ToList();
+                    var oldOptionIdsSet = oldResponses.Select(r => r.PackageOptionId!.Value).ToHashSet();
+
+                    // Skip if answer unchanged (no edit log, no DB write, no reason required)
+                    if (oldOptionIdsSet.SetEquals(sanitizedNewSet)) continue;
+
+                    // CHANGED — require reason
+                    if (!form.Reasons.TryGetValue(qId, out var reason) || string.IsNullOrWhiteSpace(reason.Code))
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = $"Alasan wajib untuk soal {qId} (jawaban berubah).";
+                        return redirectBack;
+                    }
+                    if (!new[] { "SoalSalah", "KunciSalah", "BugSistem", "PermintaanPeserta", "Lainnya" }.Contains(reason.Code))
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = "ReasonCode tidak valid.";
+                        return redirectBack;
+                    }
+                    if (reason.Code == "Lainnya" && string.IsNullOrWhiteSpace(reason.Text))
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = "ReasonText wajib kalau ReasonCode == Lainnya.";
+                        return redirectBack;
+                    }
+
+                    var sanitizedNew = sanitizedNewSet.ToList();
+                    var oldOptionIds = oldOptionIdsSet.ToList();
                     var oldTextSnapshot = string.Join(", ",
                         q.Options.Where(o => oldOptionIds.Contains(o.Id)).Select(o => o.OptionText));
 
@@ -2864,12 +2871,20 @@ namespace HcPortal.Controllers
                         ActorUserId = actorId,
                         ActorName = actorName,
                         ActorRole = actorRole,
-                        ReasonCode = form.Reasons[qId].Code,
-                        ReasonText = form.Reasons[qId].Text,
+                        ReasonCode = reason.Code,
+                        ReasonText = reason.Text,
                         EditedAt = DateTime.UtcNow
                     });
                     editCount++;
                 }
+
+                if (editCount == 0)
+                {
+                    await tx.RollbackAsync();
+                    TempData["Error"] = "Tidak ada perubahan jawaban untuk disimpan.";
+                    return redirectBack;
+                }
+
                 await _context.SaveChangesAsync();
 
                 var (newScore, newIsPassed, oldScore, oldIsPassed) = await _gradingService.RegradeAfterEditAsync(session);
