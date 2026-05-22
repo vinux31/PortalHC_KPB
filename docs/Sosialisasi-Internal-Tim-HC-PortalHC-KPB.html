@@ -2055,6 +2055,184 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.5 &mdash; Analytics Dashboard + Export</p>
   </div>
 
+  <!-- ================= MERGED CLUSTER: ASSESSMENT LIFECYCLE (3 slides from File 2 #7-9, placeholders 906-908 — renumber Task 6) ================= -->
+
+  <!-- 906: Sistem Assessment (File 2 #7) -->
+  <div class="slide default-deco" data-slide="906">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1</p>
+        <h1 class="slide-title">Sistem <span class="accent">Assessment</span></h1>
+        <p class="slide-subtitle">Dua jenis assessment utama di HC Portal</p>
+      </div>
+      <div class="slide-badge">SLIDE 906 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="jenis-grid">
+        <div class="jenis-card umum">
+          <div class="jenis-head">&#128202; Assessment Umum</div>
+          <div class="jenis-row">
+            <div class="jenis-label">Kategori</div>
+            <div class="jenis-value">Per batch unit operasi / batch berdurasi</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Metode Ujian</div>
+            <div class="jenis-value">Ujian online (single choice, multiple choice, essay), timer otomatis</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Penilaian</div>
+            <div class="jenis-value">Otomatis berdasarkan passing grade</div>
+          </div>
+        </div>
+        <div class="jenis-card proton">
+          <div class="jenis-head">&#127891; Assessment Proton</div>
+          <div class="jenis-row">
+            <div class="jenis-label">Kategori</div>
+            <div class="jenis-value">Per track per tahun (Panelman/Operator, Tahun 1-3)</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Metode Ujian</div>
+            <div class="jenis-value">Online (Th 1-2) + Interview offline (Th 3)</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Penilaian</div>
+            <div class="jenis-value">Otomatis (online) + Manual panel (interview)</div>
+          </div>
+        </div>
+      </div>
+      <div class="tip-bar">&#128161; <strong>Assessment Umum</strong> untuk evaluasi reguler per batch unit / jenis kompetensi &middot; <strong>Proton</strong> untuk program pengembangan 3 tahun</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: setup jadwal, bank soal, monitor real-time, force-close</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 907: 5 Kategori Assessment Umum (File 2 #8) -->
+  <div class="slide default-deco" data-slide="907">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &middot; CMP</p>
+        <h1 class="slide-title">5 Kategori <span class="accent">Assessment Umum</span></h1>
+        <p class="slide-subtitle">Cakupan jenis ujian kompetensi di KPB di luar Proton</p>
+      </div>
+      <div class="slide-badge">SLIDE 907 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="cat-grid center-5">
+        <div class="cat-card c1">
+          <div class="cat-head"><div class="cat-ic">&#128295;</div><div class="cat-name">Assessment OJT</div></div>
+          <div class="cat-desc">On the Job Training &mdash; ujian kompetensi berbasis unit kerja (Alkylation, RFCC NHT, dll)</div>
+        </div>
+        <div class="cat-card c2">
+          <div class="cat-head"><div class="cat-ic">&#127979;</div><div class="cat-name">IHT</div></div>
+          <div class="cat-desc">In House Training &mdash; assessment terkait pelatihan internal perusahaan</div>
+        </div>
+        <div class="cat-card c3">
+          <div class="cat-head"><div class="cat-ic">&#128220;</div><div class="cat-name">Licencor</div></div>
+          <div class="cat-desc">Training Licencor &mdash; lisensi &amp; sertifikasi eksternal</div>
+        </div>
+        <div class="cat-card c4">
+          <div class="cat-head"><div class="cat-ic">&#128205;</div><div class="cat-name">OTS</div></div>
+          <div class="cat-desc">On The Spot &mdash; assessment langsung di lapangan</div>
+        </div>
+        <div class="cat-card c5">
+          <div class="cat-head"><div class="cat-ic">&#9888;&#65039;</div><div class="cat-name">HSSE</div></div>
+          <div class="cat-desc">Mandatory Health, Safety, Security &amp; Environment training</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:14px;">&#128204; <strong>Assessment Proton</strong> dibahas di Bagian 2 &mdash; sistem track 3-tahun Panelman/Operator</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: assign kategori per jadwal, lihat fail rate per kategori (Analytics)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 908: Alur Assessment 7-Step E2E (File 2 #9) -->
+  <div class="slide default-deco" data-slide="908">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &middot; ALUR</p>
+        <h1 class="slide-title">Alur <span class="accent">Assessment</span> &mdash; 7 Step End-to-End</h1>
+        <p class="slide-subtitle">Persiapan &rarr; Pelaksanaan &rarr; Penilaian</p>
+      </div>
+      <div class="slide-badge">SLIDE 908 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="swim-row" style="grid-template-columns:2fr 3fr 2fr;">
+        <div class="swim-lane lane-prep">
+          <div class="swim-label">&#128193; Persiapan (1-2)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">1</span>
+              <span class="step-icon-mini">&#128193;</span>
+              <div class="step-title">Persiapan Data</div>
+              <div class="step-desc">Kategori per unit, organisasi, daftar pekerja</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">2</span>
+              <span class="step-icon-mini">&#128221;</span>
+              <div class="step-title">Buat Assessment</div>
+              <div class="step-desc">Pilih kategori, set durasi &amp; soal</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-exec">
+          <div class="swim-label">&#9881; Pelaksanaan (3-5)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">3</span>
+              <span class="step-icon-mini">&#128187;</span>
+              <div class="step-title">Peserta Ujian</div>
+              <div class="step-desc">Login portal, random soal, timer otomatis</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">4</span>
+              <span class="step-icon-mini">&#128065;</span>
+              <div class="step-title">Monitoring</div>
+              <div class="step-desc">Pantau real-time, akhiri manual bila perlu</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">5</span>
+              <span class="step-icon-mini">&#128228;</span>
+              <div class="step-title">Submit</div>
+              <div class="step-desc">Manual atau auto-submit saat timer habis</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-result">
+          <div class="swim-label">&#127942; Penilaian (6-7)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">6</span>
+              <span class="step-icon-mini">&#9881;</span>
+              <div class="step-title">Penilaian Otomatis</div>
+              <div class="step-desc">Skor vs passing grade otomatis</div>
+            </div>
+            <div class="swim-step final">
+              <span class="step-num-mini">7</span>
+              <span class="step-icon-mini">&#127942;</span>
+              <div class="step-title">Hasil &amp; Laporan</div>
+              <div class="step-desc">Sertifikasi + rekap per unit/kategori</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="output-bar">&#128228; <strong>Output:</strong> skor pekerja &middot; status kelulusan &middot; rekap per unit</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: step 1 (setup), step 5 (monitor), step 7 (manual entry + cert)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= SLIDE 8: PRE/POST TEST ================= -->
   <div class="slide default-deco" data-slide="8">
     <div class="slide-header">
