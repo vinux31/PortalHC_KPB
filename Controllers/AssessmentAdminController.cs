@@ -75,11 +75,13 @@ namespace HcPortal.Controllers
 
             // Filter values preserve untuk pre-populate wrapper hx-vals (D-21 Strategy D)
             // dan partial actions yang baca via param (URL bookmark backward compat).
-            ViewBag.SearchTerm = search;
+            // Phase 322 fix: coalesce semua string null ke "" supaya @Json.Serialize tidak
+            // produce JSON null (yang HTMX URL-encode jadi literal string "null").
+            ViewBag.SearchTerm = search ?? "";
             ViewBag.SelectedCategory = category ?? "";
             ViewBag.SelectedStatus = statusFilter ?? "";
-            ViewBag.SelectedSection = section;
-            ViewBag.SelectedUnit = unit;
+            ViewBag.SelectedSection = section ?? "";
+            ViewBag.SelectedUnit = unit ?? "";
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
 
