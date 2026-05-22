@@ -38,6 +38,39 @@
   .toolbar { display: flex; justify-content: space-between; align-items: center; padding: .75rem 1.25rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
   .toolbar .note { font-size: .85rem; color: var(--neutral-gray); }
   .toolbar button { background: var(--pertamina-red); color: white; border: none; padding: .5rem 1rem; border-radius: .35rem; font-weight: 600; cursor: pointer; }
+  .swimlanes-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .swimlane-panel { background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 1.5rem; }
+  .swimlane-panel.sebelum { border-top: 6px solid var(--pertamina-red); background: linear-gradient(180deg, var(--pertamina-red-bg) 0%, white 30%); }
+  .swimlane-panel.sesudah { border-top: 6px solid var(--pertamina-blue); background: linear-gradient(180deg, var(--pertamina-blue-bg) 0%, white 30%); }
+  .panel-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
+  .swimlane-panel.sebelum .panel-title { color: var(--pertamina-red); }
+  .swimlane-panel.sesudah .panel-title { color: var(--pertamina-blue); }
+  .lane { display: grid; grid-template-columns: 90px 1fr; border-bottom: 1px dashed var(--neutral-light); min-height: 70px; padding: .5rem 0; }
+  .lane:last-child { border-bottom: none; }
+  .lane-label { font-weight: 700; font-size: .8rem; padding: .5rem .25rem; border-right: 2px solid var(--neutral-light); display: flex; flex-direction: column; justify-content: center; color: var(--neutral-gray); }
+  .lane.system .lane-label { color: var(--pertamina-blue); background: linear-gradient(90deg, var(--pertamina-blue-light), transparent); }
+  .lane.passive .lane-label { opacity: .55; }
+  .lane-content { padding: .35rem .5rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; position: relative; }
+  .task { background: white; border: 2px solid var(--pertamina-red); border-radius: .5rem; padding: .35rem .6rem; font-size: .78rem; min-width: 90px; max-width: 200px; box-shadow: 0 1px 3px rgba(0,0,0,.08); position: relative; }
+  .swimlane-panel.sesudah .task { border-color: var(--pertamina-blue); }
+  .task .task-num { font-weight: 800; color: var(--pertamina-red); }
+  .swimlane-panel.sesudah .task .task-num { color: var(--pertamina-blue); }
+  .task .task-time { display: block; font-size: .68rem; font-style: italic; color: var(--neutral-gray); margin-top: .15rem; }
+  .marker { display: inline-block; width: 18px; height: 18px; border-radius: 50%; text-align: center; line-height: 18px; font-size: .7rem; font-weight: 800; color: white; margin-left: .15rem; cursor: help; }
+  .marker.issue { background: var(--pertamina-red); }
+  .marker.improvement { background: var(--pertamina-green); }
+  .event { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 800; }
+  .event.start { background: var(--pertamina-green); color: white; }
+  .event.end { background: white; border: 3px solid var(--pertamina-blue); color: var(--pertamina-blue); }
+  .swimlane-panel.sebelum .event.end { border-color: var(--pertamina-red); color: var(--pertamina-red); }
+  .data-obj { display: inline-flex; align-items: center; font-size: .9rem; opacity: .85; }
+  .data-obj.multi { gap: 1px; }
+  .arrow-svg { position: absolute; pointer-events: none; }
+  .total-stripe { margin-top: 1rem; padding: .75rem 1rem; border-radius: .5rem; font-weight: 700; text-align: center; }
+  .swimlane-panel.sebelum .total-stripe { background: var(--pertamina-red); color: white; }
+  .swimlane-panel.sesudah .total-stripe { background: var(--pertamina-blue); color: white; }
+  .total-stripe .big { font-size: 1.4rem; }
+  .total-stripe .label { font-size: .85rem; opacity: .9; margin-right: .5rem; }
 </style>
 </head>
 <body>
@@ -58,6 +91,86 @@
     <span class="note">📌 Versi X — Workflow-focused, native BPMN notation. Hero workflow: Assessment (6 → 2 step).</span>
     <button onclick="window.print()">🖨️ Print / Save PDF</button>
   </div>
+
+  <div class="swimlanes-wrap">
+
+    <section class="swimlane-panel sebelum">
+      <div class="panel-title"><i class="bi bi-x-circle-fill"></i> SEBELUM (As-Is) — 6 Step Manual</div>
+
+      <div class="lane passive">
+        <div class="lane-label">Manajemen</div>
+        <div class="lane-content">
+          <div class="task" style="opacity:.6">Terima laporan akhir<span class="task-time">passive</span></div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-label">HC</div>
+        <div class="lane-content">
+          <span class="event start" title="Start workflow">●</span>
+          <div class="task">
+            <span class="task-num">1.</span> Siapkan form Excel + distribusi email
+            <span class="data-obj multi">📄📄📄📄📄</span>
+            <span class="marker issue" title="A: Tools Terfragmentasi">A</span>
+            <span class="marker issue" title="B: No SSoT">B</span>
+            <span class="task-time">1j + 0,5j</span>
+          </div>
+          <div class="task">
+            <span class="task-num">4.</span> Input + cross-check KKJ/Sertifikat
+            <span class="data-obj multi">📄📄📄📄</span>
+            <span class="marker issue" title="A: Tools">A</span>
+            <span class="marker issue" title="B: SSoT">B</span>
+            <span class="marker issue" title="D: Reporting ad-hoc">D</span>
+            <span class="task-time">4j + 0,5j</span>
+          </div>
+          <div class="task">
+            <span class="task-num">5.</span> Lapor atasan via Word + email
+            <span class="data-obj">📄✉️</span>
+            <span class="marker issue" title="C: No Audit Trail">C</span>
+            <span class="marker issue" title="D: Reporting">D</span>
+            <span class="task-time">2j + 8j</span>
+          </div>
+          <div class="task">
+            <span class="task-num">6.</span> Arsip file share
+            <span class="data-obj">📄</span>
+            <span class="marker issue" title="C: No Audit">C</span>
+            <span class="task-time">1j + 0j</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-label">Atasan</div>
+        <div class="lane-content">
+          <div class="task">
+            <span class="task-num">2.</span> Forward email/WA ke pekerja
+            <span class="data-obj">✉️📱</span>
+            <span class="marker issue" title="A: Tools">A</span>
+            <span class="task-time">0,5j + 24j</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-label">Pekerja</div>
+        <div class="lane-content">
+          <div class="task">
+            <span class="task-num">3.</span> Isi form manual, kirim balik
+            <span class="data-obj">📄</span>
+            <span class="marker issue" title="A: Tools manual">A</span>
+            <span class="task-time">1j + 16j</span>
+          </div>
+          <span class="event end" title="End workflow">○</span>
+        </div>
+      </div>
+
+      <div class="total-stripe">
+        <span class="label">Total Lead Time:</span>
+        <span class="big">58,5j</span> <span style="font-size:.85rem">(~7 hari kerja)</span>
+        | <span class="label">Active CT:</span> <b>9,5j</b>
+        | <span class="label">Tools:</span> <b>4-5</b>
+      </div>
+    </section>
 </div>
 </body>
 </html>
