@@ -71,6 +71,30 @@
   .swimlane-panel.sesudah .total-stripe { background: var(--pertamina-blue); color: white; }
   .total-stripe .big { font-size: 1.4rem; }
   .total-stripe .label { font-size: .85rem; opacity: .9; margin-right: .5rem; }
+
+  .legend-section { background: white; border-radius: 1rem; padding: 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
+  .legend-section h3 { margin: 0 0 .75rem; color: var(--pertamina-blue); font-size: 1rem; }
+  .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .legend-list { display: flex; flex-wrap: wrap; gap: .65rem; font-size: .8rem; }
+  .legend-list .item { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .5rem; background: var(--bg); border-radius: .35rem; }
+  .legend-marker { display: inline-block; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-weight: 800; color: white; font-size: .75rem; }
+  .legend-marker.issue { background: var(--pertamina-red); }
+  .legend-marker.improvement { background: var(--pertamina-green); }
+
+  .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .table-card { background: white; border-radius: .75rem; padding: 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,.06); }
+  .table-card h3 { margin: 0 0 .75rem; color: var(--pertamina-blue); font-size: 1rem; border-bottom: 2px solid var(--pertamina-red); padding-bottom: .35rem; }
+  .table-card table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .table-card th, .table-card td { padding: .5rem .65rem; text-align: left; border-bottom: 1px solid var(--neutral-light); }
+  .table-card th { background: var(--bg); font-weight: 700; color: var(--pertamina-blue); }
+  .table-card tr:last-child td { border-bottom: none; }
+  .aspek-table { background: white; border-radius: .75rem; padding: 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
+  .aspek-table h3 { margin: 0 0 .75rem; color: var(--pertamina-blue); font-size: 1rem; border-bottom: 2px solid var(--pertamina-red); padding-bottom: .35rem; }
+  .aspek-table table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .aspek-table th, .aspek-table td { padding: .55rem .75rem; text-align: left; border-bottom: 1px solid var(--neutral-light); }
+  .aspek-table th { background: var(--pertamina-blue); color: white; }
+  .aspek-table .col-before { background: var(--pertamina-red-light); color: var(--pertamina-red); }
+  .aspek-table .col-after { background: var(--pertamina-green-light); color: var(--pertamina-green); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -247,6 +271,81 @@
     </section>
 
   </div><!-- /swimlanes-wrap -->
+
+  <section class="legend-section">
+    <h3>📖 Legenda BPMN + Marker</h3>
+    <div class="legend-grid">
+      <div>
+        <b style="font-size:.85rem">BPMN Notation:</b>
+        <div class="legend-list" style="margin-top:.5rem">
+          <span class="item"><span class="event start">●</span> Start event</span>
+          <span class="item"><span class="event end">○</span> End event</span>
+          <span class="item">□ Task</span>
+          <span class="item">→ Sequence flow</span>
+          <span class="item">⤳ Message flow</span>
+          <span class="item">📄 Data object</span>
+          <span class="item"><i class="bi bi-gear-fill"></i> System lane</span>
+        </div>
+      </div>
+      <div>
+        <b style="font-size:.85rem">Marker:</b>
+        <div class="legend-list" style="margin-top:.5rem">
+          <span class="item"><span class="legend-marker issue">A</span> Issue (Sebelum)</span>
+          <span class="item"><span class="legend-marker improvement">1</span> Improvement (Sesudah)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aspek-table">
+    <h3>📊 Tabel Aspek Komparasi — Assessment Workflow</h3>
+    <table>
+      <thead>
+        <tr><th>Aspek</th><th class="col-before">Sebelum (Aktual)</th><th class="col-after">Sesudah (Desain)</th><th style="text-align:center">Δ</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>Step Count</b></td><td class="col-before">6 step manual</td><td class="col-after">2 step di portal</td><td style="text-align:center;color:var(--pertamina-green);font-weight:700">-67%</td></tr>
+        <tr><td><b>Tools</b></td><td class="col-before">4-5 (Excel x4 + Word + Email)</td><td class="col-after">1 (HC Portal)</td><td style="text-align:center;color:var(--pertamina-green);font-weight:700">-80%</td></tr>
+        <tr><td><b>Active CT</b></td><td class="col-before">9,5 jam</td><td class="col-after">0,35 jam (21 mnt)</td><td style="text-align:center;color:var(--pertamina-green);font-weight:700">-96%</td></tr>
+        <tr><td><b>Lead Time</b></td><td class="col-before">58,5 jam (~7 hari)</td><td class="col-after">8,35 jam (~1 hari)</td><td style="text-align:center;color:var(--pertamina-green);font-weight:700">-86%</td></tr>
+        <tr><td><b>Issue Cover</b></td><td class="col-before">A, B, C, D</td><td class="col-after">— (semua resolved)</td><td style="text-align:center;color:var(--pertamina-green);font-weight:700">100%</td></tr>
+        <tr><td><b>Audit Trail</b></td><td class="col-before">❌ Tidak ada</td><td class="col-after">✅ Lengkap (CRUD log)</td><td style="text-align:center;color:var(--pertamina-green);font-weight:700">+∞</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="tables-grid">
+    <section class="table-card">
+      <h3><span class="legend-marker issue" style="vertical-align:middle">!</span> Tabel Issue A-F (Konteks)</h3>
+      <table>
+        <thead><tr><th>No</th><th>Issue</th><th>Lokasi</th></tr></thead>
+        <tbody>
+          <tr><td><span class="legend-marker issue">A</span></td><td><b>Tools Terfragmentasi</b> — 4-5 aplikasi berbeda</td><td>Multi-aktor</td></tr>
+          <tr><td><span class="legend-marker issue">B</span></td><td><b>No SSoT</b> — data dicopy ke beberapa Excel</td><td>HC</td></tr>
+          <tr><td><span class="legend-marker issue">C</span></td><td><b>No Audit Trail</b> — approval lisan</td><td>Atasan/HC</td></tr>
+          <tr><td><span class="legend-marker issue">D</span></td><td><b>Reporting Ad-Hoc</b> — pivot manual</td><td>HC ↔ Mgmt</td></tr>
+          <tr><td><span class="legend-marker issue" style="opacity:.5">E</span></td><td style="opacity:.5">Workflow Tanpa Tracking (PROTON/IDP)</td><td style="opacity:.5">Coach</td></tr>
+          <tr><td><span class="legend-marker issue" style="opacity:.5">F</span></td><td style="opacity:.5">Renewal Sertifikat Reaktif</td><td style="opacity:.5">Pekerja</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="table-card">
+      <h3><span class="legend-marker improvement" style="vertical-align:middle">!</span> Tabel Improvement 1-7</h3>
+      <table>
+        <thead><tr><th>No</th><th>Improvement</th><th>Applied</th></tr></thead>
+        <tbody>
+          <tr><td><span class="legend-marker improvement" style="opacity:.5">1</span></td><td style="opacity:.7"><b>Analytics Dashboard Real-Time</b></td><td>Mgmt lane</td></tr>
+          <tr><td><span class="legend-marker improvement">2</span></td><td><b>Master Data Terpusat</b></td><td>HC trigger</td></tr>
+          <tr><td><span class="legend-marker improvement">3</span></td><td><b>Audit Log Lengkap</b></td><td>Portal + Submit</td></tr>
+          <tr><td><span class="legend-marker improvement">4</span></td><td><b>HC Portal sebagai Hub</b></td><td>HC trigger</td></tr>
+          <tr><td><span class="legend-marker improvement" style="opacity:.5">5</span></td><td style="opacity:.7">Workflow Approval (IDP/PROTON)</td><td>—</td></tr>
+          <tr><td><span class="legend-marker improvement" style="opacity:.5">6</span></td><td style="opacity:.7">Coaching Digital + Evidence Link</td><td>—</td></tr>
+          <tr><td><span class="legend-marker improvement">7</span></td><td><b>Pekerja Self-Service</b></td><td>Submit lane</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
 </div>
 </body>
 </html>
