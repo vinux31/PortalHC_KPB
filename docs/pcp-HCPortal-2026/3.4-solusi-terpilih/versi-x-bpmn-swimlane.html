@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>§3.4 v3.6 — Versi X: BPMN Swimlane As-Is/To-Be HC Portal</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<title>§3.4 v3.7 — Versi X: BPMN Swimlane As-Is/To-Be HC Portal</title>
 <style>
   :root {
     --pertamina-red: #C8102E;
@@ -21,22 +20,28 @@
     --neutral-light: #d1d5db;
     --bg: #f6f7fb;
     --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.85rem;
+    --fs-base: 0.95rem;
+    --fs-md: 1.05rem;
+    --fs-lg: 1.3rem;
+    --fs-xl: 2rem;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #1f2937; padding: 1.5rem; }
   .container { max-width: 1400px; margin: 0 auto; }
   .header-bar { display: grid; grid-template-columns: 160px 1fr 160px; align-items: center; background: white; border-radius: .75rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); padding: 1rem 1.5rem; border-top: 5px solid var(--pertamina-blue); margin-bottom: 1rem; }
   .logo-pertamina { font-weight: 900; font-size: 1.1rem; color: var(--pertamina-red); line-height: 1.1; }
-  .logo-pertamina small { display:block; font-weight: 600; font-size: .7rem; color: var(--neutral-gray); }
+  .logo-pertamina small { display:block; font-weight: 600; font-size: var(--fs-xs); color: var(--neutral-gray); }
   .header-title { text-align: center; }
   .header-title h1 { margin: 0; font-size: 1.4rem; color: var(--pertamina-blue); }
-  .header-title small { display:block; color: var(--neutral-gray); font-size: .85rem; margin-top: .15rem; }
-  .pcp-badge { text-align: center; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: .85rem; }
-  .pcp-badge small { display:block; font-weight: 400; font-size: .65rem; opacity: .9; }
-  .meta-bar { background: white; border-radius: .5rem; padding: .75rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: .85rem; border-left: 4px solid var(--pertamina-blue); margin-bottom: 1.5rem; }
+  .header-title small { display:block; color: var(--neutral-gray); font-size: var(--fs-sm); margin-top: .15rem; }
+  .pcp-badge { text-align: center; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: var(--fs-sm); }
+  .pcp-badge small { display:block; font-weight: 400; font-size: var(--fs-xs); opacity: .9; }
+  .meta-bar { background: white; border-radius: .5rem; padding: .75rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: var(--fs-sm); border-left: 4px solid var(--pertamina-blue); margin-bottom: 1.5rem; }
   .meta-bar b { color: var(--pertamina-blue); }
   .toolbar { display: flex; justify-content: space-between; align-items: center; padding: .75rem 1.25rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
-  .toolbar .note { font-size: .85rem; color: var(--neutral-gray); }
+  .toolbar .note { font-size: var(--fs-sm); color: var(--neutral-gray); }
   .toolbar button { background: var(--pertamina-red); color: white; border: none; padding: .5rem 1rem; border-radius: .35rem; font-weight: 600; cursor: pointer; }
   .swimlanes-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
   .swimlane-panel { background: white; border-radius: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.08); padding: 1.5rem; }
@@ -45,18 +50,18 @@
   .panel-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
   .swimlane-panel.sebelum .panel-title { color: var(--pertamina-red); }
   .swimlane-panel.sesudah .panel-title { color: var(--pertamina-blue); }
-  .lane { display: grid; grid-template-columns: 90px 1fr; border-bottom: 1px dashed var(--neutral-light); min-height: 70px; padding: .5rem 0; }
+  .lane { display: grid; grid-template-columns: 110px 1fr; border-bottom: 1px dashed var(--neutral-light); min-height: 70px; padding: .5rem 0; }
   .lane:last-child { border-bottom: none; }
-  .lane-label { font-weight: 700; font-size: .8rem; padding: .5rem .25rem; border-right: 2px solid var(--neutral-light); display: flex; flex-direction: column; justify-content: center; color: var(--neutral-gray); }
+  .lane-label { font-weight: 700; font-size: var(--fs-sm); padding: .5rem .35rem; border-right: 2px solid var(--neutral-light); display: flex; flex-direction: column; justify-content: center; color: var(--neutral-gray); }
   .lane.system .lane-label { color: var(--pertamina-blue); background: linear-gradient(90deg, var(--pertamina-blue-light), transparent); }
   .lane.passive .lane-label { opacity: .55; }
   .lane-content { padding: .35rem .5rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; position: relative; }
-  .task { background: white; border: 2px solid var(--pertamina-red); border-radius: .5rem; padding: .35rem .6rem; font-size: .78rem; min-width: 90px; max-width: 200px; box-shadow: 0 1px 3px rgba(0,0,0,.08); position: relative; }
+  .task { background: white; border: 2px solid var(--pertamina-red); border-radius: .5rem; padding: .4rem .65rem; font-size: var(--fs-sm); min-width: 100px; max-width: 220px; box-shadow: 0 1px 3px rgba(0,0,0,.08); position: relative; }
   .swimlane-panel.sesudah .task { border-color: var(--pertamina-blue); }
   .task .task-num { font-weight: 800; color: var(--pertamina-red); }
   .swimlane-panel.sesudah .task .task-num { color: var(--pertamina-blue); }
-  .task .task-time { display: block; font-size: .68rem; font-style: italic; color: var(--neutral-gray); margin-top: .15rem; }
-  .marker { display: inline-block; width: 18px; height: 18px; border-radius: 50%; text-align: center; line-height: 18px; font-size: .7rem; font-weight: 800; color: white; margin-left: .15rem; cursor: help; }
+  .task .task-time { display: block; font-size: var(--fs-xs); font-style: italic; color: var(--neutral-gray); margin-top: .15rem; }
+  .marker { display: inline-block; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: var(--fs-xs); font-weight: 800; color: white; margin-left: .2rem; cursor: help; }
   .marker.issue { background: var(--pertamina-red); }
   .marker.improvement { background: var(--pertamina-green); }
   .event { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 800; }
@@ -69,22 +74,22 @@
   .total-stripe { margin-top: 1rem; padding: .75rem 1rem; border-radius: .5rem; font-weight: 700; text-align: center; }
   .swimlane-panel.sebelum .total-stripe { background: var(--pertamina-red); color: white; }
   .swimlane-panel.sesudah .total-stripe { background: var(--pertamina-blue); color: white; }
-  .total-stripe .big { font-size: 1.4rem; }
-  .total-stripe .label { font-size: .85rem; opacity: .9; margin-right: .5rem; }
+  .total-stripe .big { font-size: 1.6rem; }
+  .total-stripe .label { font-size: var(--fs-sm); opacity: .9; margin-right: .5rem; }
 
   .legend-section { background: white; border-radius: 1rem; padding: 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
   .legend-section h3 { margin: 0 0 .75rem; color: var(--pertamina-blue); font-size: 1rem; }
   .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-  .legend-list { display: flex; flex-wrap: wrap; gap: .65rem; font-size: .8rem; }
+  .legend-list { display: flex; flex-wrap: wrap; gap: .65rem; font-size: var(--fs-sm); }
   .legend-list .item { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .5rem; background: var(--bg); border-radius: .35rem; }
-  .legend-marker { display: inline-block; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-weight: 800; color: white; font-size: .75rem; }
+  .legend-marker { display: inline-block; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-weight: 800; color: white; font-size: var(--fs-xs); }
   .legend-marker.issue { background: var(--pertamina-red); }
   .legend-marker.improvement { background: var(--pertamina-green); }
 
   .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
   .table-card { background: white; border-radius: .75rem; padding: 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,.06); }
   .table-card h3 { margin: 0 0 .75rem; color: var(--pertamina-blue); font-size: 1rem; border-bottom: 2px solid var(--pertamina-red); padding-bottom: .35rem; }
-  .table-card table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .table-card table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
   .table-card th, .table-card td { padding: .5rem .65rem; text-align: left; border-bottom: 1px solid var(--neutral-light); }
   .table-card th { background: var(--bg); font-weight: 700; color: var(--pertamina-blue); }
   .table-card tr:last-child td { border-bottom: none; }
@@ -95,16 +100,27 @@
   .aspek-table th { background: var(--pertamina-blue); color: white; }
   .aspek-table .col-before { background: var(--pertamina-red-light); color: var(--pertamina-red); }
   .aspek-table .col-after { background: var(--pertamina-green-light); color: var(--pertamina-green); font-weight: 600; }
-  footer { text-align: center; padding: 1.5rem; color: var(--neutral-gray); font-size: .85rem; }
+  footer { text-align: center; padding: 1.5rem; color: var(--neutral-gray); font-size: var(--fs-sm); }
   footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
 
+  @media (max-width: 1200px) {
+    .swimlanes-wrap { grid-template-columns: 1fr; }
+    .tables-grid, .legend-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    .header-bar { grid-template-columns: 1fr; gap: .5rem; text-align: center; }
+    .meta-bar { grid-template-columns: 1fr; }
+    .lane { grid-template-columns: 90px 1fr; }
+  }
   @media print {
     @page { size: A3 landscape; margin: 1cm; }
-    body { padding: 0; background: white; }
-    .toolbar { display: none; }
-    .swimlane-panel, .legend-section, .aspek-table, .table-card, .header-bar, .meta-bar { box-shadow: none; break-inside: avoid; }
-    .swimlanes-wrap { page-break-after: avoid; }
+    body { padding: 0; background: white; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .toolbar { display: none !important; }
+    .swimlane-panel, .legend-section, .aspek-table, .table-card, .header-bar, .meta-bar { box-shadow: none; break-inside: avoid; border: 1px solid #e5e7eb; }
+    .swimlanes-wrap { grid-template-columns: 1fr 1fr; page-break-after: avoid; }
     .tables-grid { page-break-before: auto; }
+    .task { break-inside: avoid; }
+    h1, h2, h3 { page-break-after: avoid; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
@@ -131,7 +147,7 @@
   <div class="swimlanes-wrap">
 
     <section class="swimlane-panel sebelum">
-      <div class="panel-title"><i class="bi bi-x-circle-fill"></i> SEBELUM (As-Is) — 6 Step Manual</div>
+      <div class="panel-title">❌ SEBELUM (As-Is) — 6 Step Manual</div>
 
       <div class="lane passive">
         <div class="lane-label">Manajemen</div>
@@ -209,13 +225,13 @@
     </section>
 
     <section class="swimlane-panel sesudah">
-      <div class="panel-title"><i class="bi bi-check-circle-fill"></i> SESUDAH (To-Be) — 2 Step via HC Portal</div>
+      <div class="panel-title">✅ SESUDAH (To-Be) — 2 Step via HC Portal</div>
 
       <div class="lane">
         <div class="lane-label">Manajemen</div>
         <div class="lane-content">
           <div class="task">
-            <i class="bi bi-graph-up"></i> Dashboard live
+            📈 Dashboard live
             <span class="marker improvement" title="1: Analytics Dashboard Real-Time">1</span>
             <span class="task-time">self-service</span>
           </div>
@@ -236,17 +252,17 @@
       </div>
 
       <div class="lane system">
-        <div class="lane-label"><i class="bi bi-gear-fill"></i> HC Portal<br><small style="font-style:italic;font-weight:400">(System)</small></div>
+        <div class="lane-label">⚙️ HC Portal<br><small style="font-style:italic;font-weight:400">(System)</small></div>
         <div class="lane-content">
           <div class="task" style="background:var(--pertamina-blue-light)">
-            <i class="bi bi-file-earmark-text"></i> Form auto-generated
+            📄 Form auto-generated
           </div>
           <div class="task" style="background:var(--pertamina-blue-light)">
-            <i class="bi bi-shield-check"></i> Audit Log
+            🛡️ Audit Log
             <span class="marker improvement" title="3: Audit Log Lengkap">3</span>
           </div>
           <div class="task" style="background:var(--pertamina-blue-light)">
-            <i class="bi bi-broadcast"></i> Notif broadcast
+            📣 Notif broadcast
           </div>
         </div>
       </div>
@@ -255,7 +271,7 @@
         <div class="lane-label">Atasan</div>
         <div class="lane-content">
           <div class="task" style="opacity:.7">
-            <i class="bi bi-eye"></i> auto-notif (view-only)
+            👁️ auto-notif (view-only)
             <span class="task-time">passive</span>
           </div>
         </div>
@@ -296,7 +312,7 @@
           <span class="item">→ Sequence flow</span>
           <span class="item">⤳ Message flow</span>
           <span class="item">📄 Data object</span>
-          <span class="item"><i class="bi bi-gear-fill"></i> System lane</span>
+          <span class="item">⚙️ System lane</span>
         </div>
       </div>
       <div>
@@ -360,8 +376,8 @@
   </div>
 
   <footer>
-    <p>📌 <b>Versi X</b> — BPMN Swimlane As-Is/To-Be · PCP SMART 2026 §3.4 v3.6 · HC Portal · Tag <code>pcp-hcportal-3.4-v3.6</code></p>
-    <p style="font-size:.75rem">Catatan: angka cycle/lead time = estimasi rekonstruksi back-calculation dari data agregat existing. Refine pasca-implementasi dengan time-motion study.</p>
+    <p>📌 <b>Versi X</b> — BPMN Swimlane As-Is/To-Be · PCP SMART 2026 §3.4 v3.7 · HC Portal · Tag <code>pcp-hcportal-3.4-v3.7</code> · Generated 2026-05-22</p>
+    <p style="font-size:var(--fs-xs)">Catatan: angka cycle/lead time = estimasi rekonstruksi back-calculation dari data agregat existing. Refine pasca-implementasi dengan time-motion study.</p>
   </footer>
 </div>
 </body>
