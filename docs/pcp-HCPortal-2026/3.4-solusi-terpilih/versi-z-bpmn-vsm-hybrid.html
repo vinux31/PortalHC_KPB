@@ -87,6 +87,17 @@
   .timeline-ticks { display: flex; justify-content: space-between; font-size: .65rem; color: var(--neutral-gray); margin-top: .25rem; }
   .vsm-summary { margin-top: .5rem; display: flex; gap: 1rem; font-size: .8rem; flex-wrap: wrap; }
   .vsm-summary b { color: var(--pertamina-blue); }
+
+  .metric-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: .75rem; }
+  .kpi-card { background: white; border-radius: .65rem; padding: 1rem; text-align: center; border-top: 4px solid var(--neutral-gray); box-shadow: 0 2px 8px rgba(0,0,0,.05); position: relative; }
+  .kpi-card.lean { border-top-color: var(--pertamina-green); }
+  .kpi-card .kpi-title { font-size: .75rem; font-weight: 700; color: var(--neutral-gray); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .35rem; }
+  .kpi-card .kpi-before-after { font-size: .9rem; color: var(--pertamina-blue); font-weight: 600; margin-bottom: .25rem; }
+  .kpi-card .kpi-delta { font-size: 1.5rem; font-weight: 900; line-height: 1; }
+  .kpi-card .kpi-delta.green { color: var(--pertamina-green); }
+  .kpi-card .kpi-delta.boost { color: var(--pertamina-blue); }
+  .kpi-card .kpi-badge { position: absolute; top: .5rem; right: .5rem; background: var(--pertamina-green); color: white; font-size: .55rem; font-weight: 800; padding: .15rem .35rem; border-radius: 3px; text-transform: uppercase; }
+  @media (max-width: 1100px) { .metric-cards { grid-template-columns: repeat(3, 1fr); } }
 </style>
 </head>
 <body>
@@ -262,6 +273,45 @@
       </div>
     </div>
 
+  </section>
+
+  <section class="zona">
+    <div class="zona-title">⚡ Zona 3 — Metric KPI Quantified (Lean Six Sigma)</div>
+    <div class="metric-cards">
+
+      <div class="kpi-card lean">
+        <span class="kpi-badge">✅ Lean</span>
+        <div class="kpi-title">Lead Time</div>
+        <div class="kpi-before-after">58,5j → 8,35j</div>
+        <div class="kpi-delta green">-86%</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Active CT</div>
+        <div class="kpi-before-after">9,5j → 0,35j</div>
+        <div class="kpi-delta green">-96%</div>
+      </div>
+
+      <div class="kpi-card lean">
+        <span class="kpi-badge">✅ &gt;25%</span>
+        <div class="kpi-title">VA Ratio (of CT)</div>
+        <div class="kpi-before-after">10,5% → 71,4%</div>
+        <div class="kpi-delta boost">+581%</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Tools</div>
+        <div class="kpi-before-after">5 → 1</div>
+        <div class="kpi-delta green">-80%</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Step Count</div>
+        <div class="kpi-before-after">6 → 2</div>
+        <div class="kpi-delta green">-67%</div>
+      </div>
+
+    </div>
   </section>
 
 </div>
