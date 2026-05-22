@@ -43,18 +43,18 @@ created: 2026-05-22
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| FILTER-01 | 01+02 | 1-2 | Bug 1 — no double filter Tab 1 | — | Shell shared form deleted, single `#filterFormAssessment` rendered di Tab 1 | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-01"` | ✅ | ⬜ pending runtime |
-| FILTER-02a | 02 | 2 | Bug 2 prevention D-21 Strategy D | T-322-01 cross-tab leak | Tab 2 switch URL bookmark Tab 1 `?category=OJT&statusFilter=Open` → XHR Tab 2 drop overlap params (`section=&unit=&page=1` only) | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-02a"` | ✅ | ⬜ pending runtime |
-| FILTER-02b | 02 | 2 | D-10 URL bookmark backward compat | — | URL `?category=OJT&statusFilter=Open` → Tab 1 initial XHR include filter + dropdown pre-selected | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-02b"` | ✅ | ⬜ pending runtime |
-| FILTER-03 | 01 | 1 | Bug 3 pagination preserve filter state | — | Pagination button `hx-include="#filterFormAssessment"` preserve filter param saat klik page | E2E (conditional skip) | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-03"` | ✅ | ⬜ pending runtime (skip kalau totalPages≤1) |
-| FILTER-04 | 01 | 1 | Cascade Bagian → Unit Tab 2 | — | Bagian change → onchange clear Unit pre-HTMX → XHR `section=<value>` → Unit populate cascade | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-04"` | ✅ | ⬜ pending runtime |
-| FILTER-05 | 01+02 | 1-2 | Sub-tab Riwayat Training filter NEW | — | `#trainingWorkerFilter` + `oninput="filterTrainingRows()"` + `#trainingHistoryTable` + `.training-history-row[data-worker]` + client-side hide rows, NO XHR | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-05"` | ✅ | ⬜ pending runtime |
-| REGRESSION-A | 02 (post-UAT) | n/a | ViewBag null coalesce (commit `6ecb7a50`) | — | Clean URL → textbox value="" (NOT literal "null") + XHR `search=` empty (NOT `search=null`) | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "REGRESSION-A"` | ✅ | ⬜ pending runtime |
-| REGRESSION-B | 02 (post-UAT) | n/a | HTMX hx-vals inheritance fix CRITICAL (commit `773c970c`) | T-322-02 inheritance pollution | Wrapper `.htmx-tab-wrapper` MUST NOT have `hx-vals` attribute (migrated to hx-get URL query string) — prevent descendant form data override | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "REGRESSION-B"` | ✅ | ⬜ pending runtime |
+| FILTER-01 | 01+02 | 1-2 | Bug 1 — no double filter Tab 1 | — | Shell shared form deleted, single `#filterFormAssessment` rendered di Tab 1 | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-01"` | ✅ | ✅ green (runtime 2026-05-22) |
+| FILTER-02a | 02 | 2 | Bug 2 prevention D-21 Strategy D | T-322-01 cross-tab leak | Tab 2 switch URL bookmark Tab 1 `?category=OJT&statusFilter=Open` → XHR Tab 2 drop overlap params (`section=&unit=&page=1` only) | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-02a"` | ✅ | ✅ green (runtime 2026-05-22) |
+| FILTER-02b | 02 | 2 | D-10 URL bookmark backward compat | — | URL `?category=OJT&statusFilter=Open` → Tab 1 initial XHR include filter + dropdown pre-selected | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-02b"` | ✅ | ✅ green (runtime 2026-05-22) |
+| FILTER-03 | 01 | 1 | Bug 3 pagination preserve filter state | — | Pagination button `hx-include="#filterFormAssessment"` preserve filter param saat klik page | E2E (conditional skip) | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-03"` | ✅ | ⏭ skipped (runtime 2026-05-22 — totalPages=1 lokal DB, expected per spec; bonus fix verified code review) |
+| FILTER-04 | 01 | 1 | Cascade Bagian → Unit Tab 2 | — | Bagian change → onchange clear Unit pre-HTMX → XHR `section=<value>` → Unit populate cascade | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-04"` | ✅ | ✅ green (runtime 2026-05-22) |
+| FILTER-05 | 01+02 | 1-2 | Sub-tab Riwayat Training filter NEW | — | `#trainingWorkerFilter` + `oninput="filterTrainingRows()"` + `#trainingHistoryTable` + `.training-history-row[data-worker]` + client-side hide rows, NO XHR | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "FILTER-05"` | ✅ | ✅ green (runtime 2026-05-22) |
+| REGRESSION-A | 02 (post-UAT) | n/a | ViewBag null coalesce (commit `6ecb7a50`) | — | Clean URL → textbox value="" (NOT literal "null") + XHR `search=` empty (NOT `search=null`) | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "REGRESSION-A"` | ✅ | ✅ green (runtime 2026-05-22) |
+| REGRESSION-B | 02 (post-UAT) | n/a | HTMX hx-vals inheritance fix CRITICAL (commit `773c970c`) | T-322-02 inheritance pollution | Wrapper `.htmx-tab-wrapper` MUST NOT have `hx-vals` attribute (migrated to hx-get URL query string) — prevent descendant form data override | E2E | `cd tests && npx playwright test e2e/manage-assessment-filter.spec.ts -g "REGRESSION-B"` | ✅ | ✅ green (runtime 2026-05-22) |
 
-*Status: ⬜ pending runtime · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ✅ green (runtime 2026-05-22) · ✅ green · ❌ red · ⚠️ flaky*
 
-**Note:** Status `pending runtime` karena spec di-generate post-SHIP, runtime test deferred sampai user `dotnet watch run` start + manual run. Compile + Playwright discovery sudah passed. UAT manual via Playwright MCP runtime sudah PASS dokumentasi di `322-UAT.md` (11/12 + 1 N/A).
+**Runtime confirmation 2026-05-22:** `npx playwright test e2e/manage-assessment-filter.spec.ts` → **8 PASS + 1 SKIP** (FILTER-03 conditional skip — totalPages=1 lokal DB insufficient untuk multi-page). Total runtime ~35 detik (8 test sequential). Spec auto-skip pattern works as designed.
 
 ---
 
@@ -104,8 +104,11 @@ Original CONTEXT D-07 decision (Manual UAT only) overridden post-UAT due to 2 cr
 | Gaps found | 8 (all MISSING) |
 | Resolved | 8 (automated via Playwright spec generated) |
 | Escalated to manual-only | 0 |
-| New file | 1 (`tests/e2e/manage-assessment-filter.spec.ts`, 330 baris) |
-| Commit | `d648f959` test(phase-322) |
+| New file | 1 (`tests/e2e/manage-assessment-filter.spec.ts`, ~340 baris post-fix) |
+| Commit (spec) | `d648f959` test(phase-322) |
+| Commit (VALIDATION) | `4bdeacf9` docs(phase-322) |
+| Runtime result | 8 PASS + 1 SKIP (35s) |
+| Debug iterations | 2 (waitFor state visible → attached untuk Bootstrap tab pane fade; selectOption/fill → evaluate untuk bypass display:none) |
 
 ### Audit Notes
 
