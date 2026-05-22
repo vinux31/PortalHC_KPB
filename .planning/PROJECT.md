@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v16.0 shipped, 2026-05-12)
+## Current State (v17.0 shipped + archived, 2026-05-23)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -27,28 +27,13 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v14.0 shipped** — Assessment Enhancement (phases 296-303): Pre-Post Test end-to-end, 4 tipe soal baru (TF/MA/Essay/FiB), mobile exam UI, item analysis + gain score reporting, WCAG quick wins, Coach Workload dashboard.
 **v15.0 shipped** — Audit Findings 27 April 2026 (phases 304-314 + 313.1): 15 temuan audit cleared (login UX, score editable, WIB labels, PrePost wizard, worker cert defensive, essay finalize idempotency, ManageAssessment HTMX perf, full-delete role tier, 2-tier timer submit, regenerate token Upcoming).
 **v16.0 shipped** — QA Test Coverage (phases 315-319): automated E2E test infrastructure. 73 sub-tests baseline di `tests/e2e/exam-types.spec.ts` (15 FLOW A-X coverage) + assessment matrix discovery harness + 2 production fixes (SURF-317-A CMPController MA-aware + SURF-317-A1 test fixture). 4 QA requirements satisfied (QA-01 matrix infra, QA-02 exam-types, QA-08 advanced features, QA-09 admin features).
+**v17.0 shipped + archived** — Assessment Admin Power Tools (phases 320-322): Excel export per-peserta dengan spider chart PNG SkiaSharp + edit jawaban peserta dengan auto-regrade + cert/TR cascade + audit dual-write (`AuditLog` + new `AssessmentEditLog`) + SignalR signal `workerAnswerEdited` + Edit History tab + rollback Phase 311 shared filter ke per-tab native (eliminate Bug 1 double filter + Bug 2 cross-tab contamination + Bug 3 pagination). 24 REQ delivered (EXP-01..08 + EDIT-01..13 + FILTER-01..03). Post-shipping: 2 CSS dead-code fix dari Phase 311.1 cleanup miss.
 
-**Current focus:** v17.0 Assessment Admin Power Tools — Phase 320 Export Per-Peserta Excel + Phase 321 Edit Jawaban Peserta (paralel-able).
-
-## Current Milestone: v17.0 Assessment Admin Power Tools
-
-**Goal:** Power tools admin/HC untuk assessment — export Excel lengkap per-peserta + edit jawaban peserta dengan cascade otomatis ke sertifikat, TrainingRecord, dan audit trail granular.
-
-**Target features:**
-- Excel export dengan sheet "Summary" + N sheet per peserta (info detail, ElemenTeknis, PNG spider chart via SkiaSharp, Detail Jawaban MC/MA) — Phase 320
-- Edit jawaban MC/MA peserta Completed via halaman dedicated dengan recompute Score/IsPassed/ElemenTeknis + cascade NomorSertifikat/TrainingRecord saat Pass↔Fail flip + audit dual-write (AuditLog generic + AssessmentEditLog granular) + SignalR live update — Phase 321
-
-**Key context:**
-- Spec final: `docs/superpowers/specs/2026-05-20-assessment-admin-power-tools-design.md` (commit `c37e55ef`, 4 patch codebase-verified)
-- 19 keputusan terkunci di spec Section 7 (Q1-Q16 + Q5b/Q6b/Q6c)
-- 2 phase **paralel-able** (file scope independent — Phase 320 fokus `ExportAssessmentResults`+`Helpers/SpiderChartRenderer.cs`; Phase 321 fokus `EditPesertaAnswers` action+view+`GradingService.RegradeAfterEditAsync`+migration `AddAssessmentEditLogs`+view dropdown ⋮)
-- Dependency baru: `SkiaSharp 3.116.1` + `SkiaSharp.NativeAssets.Win32` (Phase 320). Migration baru: `AddAssessmentEditLogs` (Phase 321)
-- Verifikasi: project tidak punya unit test infra → manual UAT only per `docs/DEV_WORKFLOW.md` §5
-- Research per phase ready di `.planning/phases/320-assessment-export-per-peserta-excel/320-RESEARCH.md` + `.planning/phases/321-assessment-edit-jawaban-peserta/321-RESEARCH.md` (commit `f442220b`)
+**Current focus:** No active milestone — v17.0 archived 2026-05-23. Next: `/gsd-new-milestone` untuk v18.0 atau promote backlog item.
 
 ## Next Milestone Goals
 
-v17.0 sedang aktif. Kandidat milestone berikutnya tetap di Backlog Lainnya.
+Belum diputuskan. Kandidat di Backlog Lainnya bawah. Run `/gsd-new-milestone` untuk pick milestone v18.0.
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

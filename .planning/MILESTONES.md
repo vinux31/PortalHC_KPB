@@ -1,5 +1,50 @@
 # Milestones
 
+## v17.0 Assessment Admin Power Tools (Shipped: 2026-05-22)
+
+**Phases completed:** 3 phases (320 + 321 + 322), 11 plans, 84 commits
+
+**Delivered:** 3 power tool admin assessment — Excel export per-peserta dengan spider chart PNG (SkiaSharp), edit jawaban peserta dengan auto-regrade + cert cascade + audit dual-write + SignalR real-time, dan rollback filter scope ke per-tab native (eliminate 3 bug Phase 311 shared shell filter).
+
+**Key accomplishments:**
+
+1. **Phase 320 — Excel Export Per-Peserta** (EXP-01..08): Refactor `ExportAssessmentResults` → 1 sheet "Summary" (rename dari "Results") + N sheet per peserta dengan spider chart PNG 500×500 (SkiaSharp), `Helpers/SheetNameSanitizer.cs` format `{NIP}_{FullName}`, paralel `Task.WhenAll`. Variant A Online + Variant B Manual Entry. Status filter Completed + Abandoned only. HC permission full sama Admin. Performance < 30s untuk 50 peserta.
+2. **Phase 321 — Edit Jawaban Peserta** (EDIT-01..13): Halaman dedicated `/AssessmentAdmin/EditPesertaAnswers/{sessionId}` dengan form MC/MA per soal + reason dropdown 5 preset + concurrency token + transaction scope + dry-run `PreviewEditScore`. Auto-cascade Pass↔Fail flip (cabut/generate NomorSertifikat retry 3x + TrainingRecord status). Audit dual-write `AuditLog` + tabel baru `AssessmentEditLog`. SignalR signal real-time `workerAnswerEdited`. Activity Log tab "Edit History". Dropdown ⋮ hybrid layout.
+3. **Phase 322 — Filter Scope Per Tab** (FILTER-01..03): Rollback Phase 311 Plan 02 shared filter shell ke per-tab native filter. Eliminate Bug 1 (double filter Tab 1) + Bug 2 (cross-tab contamination semantic mismatch via D-21 Strategy D Hybrid URL query string) + Bug 3 bonus (pagination preserve filter via hx-include pattern). Sub-tab Riwayat Training filter NEW.
+
+**Critical bugs discovered + fixed during execution:**
+
+- **`6ecb7a50` Phase 322-06:** ViewBag string null → JSON null → URL-encoded `"null"` literal di filter param.
+- **`773c970c` Phase 322-05 CRITICAL:** HTMX `hx-vals` attribute inheritance gotcha (wrapper ancestor hx-vals override descendant form data) → migrate ke URL query string per-wrapper. Key learning didokumentasikan di ROADMAP closure.
+
+**Post-shipping discovery (2026-05-22) + 3 follow-up fix commit (2026-05-23):**
+
+- Browser visual verification reveal filter Tab 2 (Input Records) + Tab 3 (History) **invisible** meski element ada di DOM. Root cause: CSS dead-code Phase 311.1 (commit `b17292f7`, 2026-05-07) tidak dihapus saat Phase 322 rollback shell shared filter.
+- `b0b4049b fix(manage-assessment)`: hoist `_HistoryTab.cshtml` filter row di luar `@if/@else` empty-state.
+- `3cdccfb4 fix(css)`: hapus dead Phase 311.1 hide-rules `wwwroot/css/site.css:93-122`.
+- `13046757 docs(phase-322)`: UAT.md amend — Step 4+7 false-positive flag + Post-Verification Discovery section.
+- Spec gap exposed: `tests/e2e/manage-assessment-filter.spec.ts:118,181` assert `state: 'attached'` bukan `toBeVisible()`. Added `FUTURE-SPEC-01` ke deferred backlog.
+
+**Tags:** `v17.0-p320-complete` + `v17.0-p322-complete` + `v17.0` (milestone close, this archive)
+
+**Verification artifacts (per phase):**
+
+- Phase 320: `320-UAT.md` (8-step manual UAT + Playwright 4-test PASS) + `320-RESEARCH.md`
+- Phase 321: `321-VALIDATION.md` (Nyquist) + `321-UI-SPEC.md` + `321-SECURITY.md`
+- Phase 322: `322-UAT.md` (12-step manual UAT — 11 PASS + 1 N/A) + `322-VALIDATION.md` (Nyquist 8/8) + `322-SECURITY.md` (threats:0) + post-discovery section
+
+**Known Deferred (carry-over to v18.0+):**
+
+- EPRV-01 (Preview Essay rubrik/jawaban) — v15.0 carry-over, menunggu user verifikasi save/load Rubrik
+- FUTURE-KUNCI-01, FUTURE-NOTIFY-01, FUTURE-APPROVAL-01, FUTURE-BULK-01, FUTURE-UNDO-01 — v17.0 deferred per spec
+- FUTURE-SPEC-01 — strengthen Playwright assertion `toBeVisible()` di filter spec
+- v14.0/v15.0 carry-over: Phase 303 UAT, Phase 235 UAT, Phase 247 UAT 2 TODO, research gaps Phase 297/298, blocker Phase 293, v11.2 paused (Phase 281 + 285)
+- v16.0 housekeeping — milestone shipped 2026-05-12 tapi belum ada entry di MILESTONES.md log
+
+**Tag:** `v17.0` (created 2026-05-23)
+
+---
+
 ## v15.0 Audit Findings 27 April 2026 (Shipped: 2026-05-11)
 
 **Phases completed:** 12 phases (304-314 + 313.1), 28 plans, 53 tasks

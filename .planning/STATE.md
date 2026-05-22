@@ -1,40 +1,39 @@
 ---
 gsd_state_version: 1.0
-milestone: v17.0
-milestone_name: Assessment Admin Power Tools
-status: ready-for-next
-last_updated: "2026-05-22T09:20:00.000Z"
-last_activity: 2026-05-22 -- Phase 322 SHIPPED (UAT 11/12 PASS + 1 N/A, tag v17.0-p322-complete pending)
+milestone: null
+milestone_name: null
+status: milestone-closed
+last_updated: "2026-05-23T00:00:00.000Z"
+last_activity: 2026-05-23 -- v17.0 milestone ARCHIVED (Phase 320+321+322 SHIPPED, tag v17.0 created, REQUIREMENTS.md cleared for next milestone)
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-21)
+See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v17.0 milestone complete (3/3 phases SHIPPED) — ready for v18.0 planning or backlog promotion
+**Current focus:** No active milestone — v17.0 closed 2026-05-23. Next: `/gsd-new-milestone` untuk start v18.0 atau promote backlog item.
 
 ## Current Position
 
-Phase: 322 (filter-scope-per-tab-manage-assessment) — SHIPPED
-Plan: 3 of 3 (all done)
-Status: v17.0 milestone complete (Phase 320 + 321 + 322 all SHIPPED)
-Last activity: 2026-05-22 -- Phase 322 SHIPPED (UAT 11/12 PASS + 1 N/A pagination DB lokal insufficient)
+Phase: — (no active milestone)
+Status: v17.0 milestone CLOSED + archived ke `.planning/milestones/v17.0-ROADMAP.md`
+Last activity: 2026-05-23 -- v17.0 archived (3/3 phase SHIPPED, 24/24 REQ delivered, 2 post-shipping CSS dead-code fix applied, tag v17.0)
 
 ## Next Action
 
-1. **User action:** Tag `v17.0-p322-complete` di main (annotated tag dengan UAT summary) — *pending user confirm via /gsd-execute-phase finishing prompt*
-2. **User action:** Push remote `git push origin main && git push origin v17.0-p320-complete v17.0-p322-complete` + notify IT (commit hash + tag + no-migration flag, draft di `322-UAT.md` Handoff section)
-3. **Milestone close:** `/gsd-complete-milestone` v17.0 untuk archive + prep v18.0
-4. **Backlog:** v16.0 milestone phases 315-319 belum di-archive — pre-existing housekeeping (bukan blocker)
+1. **User action:** Notify IT — commit hash `202ce331` (push 2026-05-22) + 3 follow-up commit `b0b4049b` + `3cdccfb4` + `13046757` (post-shipping CSS dead-code fix + UAT amend) + tag `v17.0` (milestone close). NO migration flag. Draft di `322-UAT.md` Handoff section.
+2. **Push milestone close commits:** `git push origin main && git push origin v17.0` (tag created during milestone close).
+3. **Next milestone:** `/gsd-new-milestone` untuk start v18.0 — atau promote backlog item dulu (EPRV-01 v15.0 + 7 carry-over v14.0).
+4. **Backlog housekeeping (non-blocker):** v16.0 milestone (Phases 315-319, shipped 2026-05-12) sudah di-archive di `milestones/v16.0-ROADMAP.md` tapi belum punya entry di `MILESTONES.md` log. Optional — tambah saat sempat.
 
 ## Deferred Items
 

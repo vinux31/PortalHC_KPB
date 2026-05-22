@@ -15,7 +15,7 @@
 - ✅ **v14.0 Assessment Enhancement** — Phases 296-303 (shipped 2026-04-24) — [archive](milestones/v14.0-ROADMAP.md)
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
 - ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
-- ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 SHIPPED (closed 2026-05-22)
+- ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 (shipped 2026-05-22, archived 2026-05-23) — [archive](milestones/v17.0-ROADMAP.md)
 
 ## Phases
 
@@ -435,7 +435,15 @@ Plans:
 
 ---
 
-### ✅ v17.0 Assessment Admin Power Tools (Phases 320-322) — SHIPPED 2026-05-22
+<details>
+<summary>✅ v17.0 Assessment Admin Power Tools (Phases 320-322) — SHIPPED 2026-05-22</summary>
+
+Full details: [milestones/v17.0-ROADMAP.md](milestones/v17.0-ROADMAP.md) • Requirements: [milestones/v17.0-REQUIREMENTS.md](milestones/v17.0-REQUIREMENTS.md)
+
+</details>
+
+<details>
+<summary>v17.0 phase-level details (collapsed for context efficiency)</summary>
 
 **Goal:** Power tools admin/HC untuk assessment — Excel export per-peserta lengkap (Summary + N sheet per peserta, info detail, ElemenTeknis, PNG radar chart, Detail Jawaban) + edit jawaban MC/MA peserta Completed dengan auto-recompute Score/IsPassed/ElemenTeknis + cascade NomorSertifikat & TrainingRecord saat Pass↔Fail flip + audit dual-write (AuditLog generic + AssessmentEditLog granular) + SignalR live monitor update.
 
@@ -513,6 +521,10 @@ Plans:
 - [x] 322-02-PLAN.md — Shell View Cleanup + Controller Cleanup (delete shared form + cross-tab listener + endpoint updater; add filterTrainingRows JS; wrapper hx-vals D-21 Strategy D Hybrid; ViewBag.Categories cache drop di shell action) — 2 commit
 - [x] 322-03-PLAN.md — Manual UAT 12-step + Handoff (Playwright automation; 2 critical bug discovered + fixed: ViewBag null coalesce + wrapper hx-vals → URL migration)
 
+**Post-shipping fix (2026-05-23):** Browser visual verification discovery — CSS dead-code Phase 311.1 (commit `b17292f7`) hide Tab 2+3 filter. 2 follow-up fix: `b0b4049b` hoist `_HistoryTab` filter outside `@if/@else` + `3cdccfb4` delete `site.css:93-122` dead rules. UAT `13046757` amend Step 4+7 false-positive. See `milestones/v17.0-ROADMAP.md` Post-Verification Discovery section.
+
+</details>
+
 ---
 
-*Roadmap updated: 2026-05-22 (v17.0 SHIPPED — all 3 phases complete: 320 EXP + 321 EDIT + 322 FILTER. Phase 322 closed with 2 critical bug fix post-UAT — HTMX hx-vals inheritance gotcha documented sebagai key learning.)*
+*Roadmap updated: 2026-05-23 (v17.0 SHIPPED + archived — all 3 phases complete: 320 EXP + 321 EDIT + 322 FILTER. Phase 322 closed with 2 critical bug fix in-flight + 2 post-shipping fix CSS dead-code. HTMX hx-vals inheritance gotcha + spec gap `state:attached vs visible` documented sebagai key learning.)*
