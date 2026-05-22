@@ -4,8 +4,8 @@ Compact HTML variants of §3.4 diagrams tailored for insertion into Risalah Web.
 
 ## Files
 
-- `versi-p-compact.html` — placeholder #1 GAMBAR DESAIN (1100×440 landscape)
-- (future) `panel-rencana-compact.html` — placeholder #2 RENCANA PEMBUATAN
+- `versi-p-compact.html` — placeholder #1 GAMBAR DESAIN (972×340 landscape, aspect 2.85)
+- `panel-rencana-compact.html` — placeholder #2 RENCANA PEMBUATAN (450×145, System focus: stack 3+3 + deploy flow + metode)
 - (future) `panel-standard-compact.html` — placeholder #3 STANDARD DESIGN
 
 ## Export Workflow
