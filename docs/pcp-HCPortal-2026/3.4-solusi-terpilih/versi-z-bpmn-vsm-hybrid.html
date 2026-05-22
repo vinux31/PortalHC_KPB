@@ -56,6 +56,37 @@
   .bpmn-side.sebelum .compact-task { border-color: var(--pertamina-red); }
   .bpmn-side.sesudah .compact-task { border-color: var(--pertamina-blue); }
   .bpmn-side.sesudah .compact-task.system { background: var(--pertamina-blue-light); }
+
+  .vsm-block { margin-bottom: 1rem; padding: .75rem; border-radius: .5rem; }
+  .vsm-block.sebelum { background: var(--pertamina-red-bg); }
+  .vsm-block.sesudah { background: var(--pertamina-blue-bg); }
+  .vsm-block h4 { margin: 0 0 .65rem; font-size: .9rem; }
+  .vsm-block.sebelum h4 { color: var(--pertamina-red); }
+  .vsm-block.sesudah h4 { color: var(--pertamina-blue); }
+  .vsm-row { display: flex; align-items: flex-start; gap: .25rem; overflow-x: auto; padding-bottom: .5rem; }
+  .vsm-process { background: white; border: 2px solid var(--pertamina-blue); border-radius: .35rem; padding: .35rem .5rem; min-width: 80px; text-align: center; font-size: .72rem; }
+  .vsm-process .pn { font-weight: 800; color: var(--pertamina-blue); display: block; font-size: .7rem; }
+  .vsm-process .ct { font-weight: 700; font-size: .75rem; color: var(--pertamina-blue); }
+  .vsm-process .va-badge { display: inline-block; font-size: .6rem; font-weight: 800; padding: 1px 4px; border-radius: 3px; margin-top: .15rem; }
+  .vsm-process .va-badge.va { background: var(--pertamina-green); color: white; }
+  .vsm-process .va-badge.nva { background: var(--neutral-gray); color: white; }
+  .vsm-process.va { border-color: var(--pertamina-green); border-width: 3px; }
+  .vsm-triangle { color: var(--pertamina-yellow); align-self: center; font-size: 1.8rem; line-height: 1; position: relative; }
+  .vsm-triangle::after { content: attr(data-wait); position: absolute; top: -1.2rem; left: 50%; transform: translateX(-50%); font-size: .65rem; color: var(--neutral-gray); white-space: nowrap; font-weight: 700; }
+  .vsm-end { align-self: center; width: 22px; height: 22px; border-radius: 50%; background: white; border: 3px solid var(--pertamina-blue); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: var(--pertamina-blue); }
+  .vsm-databox { display: grid; grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); gap: .15rem; font-size: .6rem; margin-top: .25rem; padding-top: .25rem; border-top: 1px solid var(--neutral-light); }
+  .vsm-databox .dcell { text-align: center; }
+  .vsm-databox .dcell .k { display: block; color: var(--neutral-gray); font-weight: 700; }
+
+  .timeline-stripe { margin-top: .75rem; padding: .75rem; background: white; border-radius: .5rem; }
+  .timeline-stripe .tline { display: flex; height: 28px; width: 100%; border: 1px solid var(--neutral-light); border-radius: 3px; overflow: hidden; position: relative; }
+  .tseg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: .65rem; font-weight: 800; color: white; overflow: hidden; white-space: nowrap; }
+  .tseg.va { background: var(--pertamina-green); }
+  .tseg.nva { background: repeating-linear-gradient(45deg, var(--neutral-gray), var(--neutral-gray) 4px, #9aa3af 4px, #9aa3af 8px); }
+  .tseg.wait { background: repeating-linear-gradient(90deg, var(--pertamina-red-light), var(--pertamina-red-light) 6px, white 6px, white 8px); color: var(--pertamina-red); }
+  .timeline-ticks { display: flex; justify-content: space-between; font-size: .65rem; color: var(--neutral-gray); margin-top: .25rem; }
+  .vsm-summary { margin-top: .5rem; display: flex; gap: 1rem; font-size: .8rem; flex-wrap: wrap; }
+  .vsm-summary b { color: var(--pertamina-blue); }
 </style>
 </head>
 <body>
@@ -101,6 +132,91 @@
 
     </div>
   </section>
+
+  <section class="zona">
+    <div class="zona-title">📊 Zona 2 — Value Stream Map (Shared Linear Scale 0-58,5j)</div>
+
+    <div class="vsm-block sebelum">
+      <h4><i class="bi bi-x-circle-fill"></i> SEBELUM VSM — Total LT 58,5j</h4>
+      <div class="vsm-row">
+        <span class="event start" style="background:var(--pertamina-green);color:white;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;align-self:center">●</span>
+        <div class="vsm-process">
+          <span class="pn">P1 Siapkan</span>
+          <div class="ct">CT 1j</div>
+          <div class="vsm-databox">
+            <div class="dcell"><span class="k">Tool</span>E×5</div>
+            <div class="dcell"><span class="k">Iss</span>A,B</div>
+          </div>
+          <span class="va-badge nva">NVA</span>
+        </div>
+        <span class="vsm-triangle" data-wait="0,5j" title="Wait 0,5j">▽</span>
+        <div class="vsm-process">
+          <span class="pn">P2 Forward</span>
+          <div class="ct">CT 0,5j</div>
+          <div class="vsm-databox">
+            <div class="dcell"><span class="k">Tool</span>Email</div>
+            <div class="dcell"><span class="k">Iss</span>A</div>
+          </div>
+          <span class="va-badge nva">NVA</span>
+        </div>
+        <span class="vsm-triangle" data-wait="24j">▽</span>
+        <div class="vsm-process va">
+          <span class="pn">P3 Isi Form</span>
+          <div class="ct">CT 1j</div>
+          <div class="vsm-databox">
+            <div class="dcell"><span class="k">Tool</span>Paper</div>
+            <div class="dcell"><span class="k">Iss</span>A</div>
+          </div>
+          <span class="va-badge va">VA</span>
+        </div>
+        <span class="vsm-triangle" data-wait="16j">▽</span>
+        <div class="vsm-process">
+          <span class="pn">P4 Input+X</span>
+          <div class="ct">CT 4j</div>
+          <div class="vsm-databox">
+            <div class="dcell"><span class="k">Tool</span>E×4</div>
+            <div class="dcell"><span class="k">Iss</span>A,B,D</div>
+          </div>
+          <span class="va-badge nva">NVA</span>
+        </div>
+        <span class="vsm-triangle" data-wait="0,5j">▽</span>
+        <div class="vsm-process">
+          <span class="pn">P5 Lapor</span>
+          <div class="ct">CT 2j</div>
+          <div class="vsm-databox">
+            <div class="dcell"><span class="k">Tool</span>Word</div>
+            <div class="dcell"><span class="k">Iss</span>C,D</div>
+          </div>
+          <span class="va-badge nva">NVA</span>
+        </div>
+        <span class="vsm-triangle" data-wait="8j">▽</span>
+        <div class="vsm-process">
+          <span class="pn">P6 Arsip</span>
+          <div class="ct">CT 1j</div>
+          <div class="vsm-databox">
+            <div class="dcell"><span class="k">Tool</span>Share</div>
+            <div class="dcell"><span class="k">Iss</span>C</div>
+          </div>
+          <span class="va-badge nva">NVA</span>
+        </div>
+        <span class="vsm-end">○</span>
+      </div>
+
+      <div class="timeline-stripe">
+        <div class="tline">
+          <div class="tseg va" style="width:1.71%" title="VA 1j">VA</div>
+          <div class="tseg nva" style="width:14.5%" title="NVA 8,5j">NVA 8,5j</div>
+          <div class="tseg wait" style="width:83.76%" title="Wait 49j">Wait 49j</div>
+        </div>
+        <div class="timeline-ticks"><span>0j</span><span>10j</span><span>20j</span><span>30j</span><span>40j</span><span>50j</span><span>58,5j</span></div>
+        <div class="vsm-summary">
+          <span>⏱ <b>Total LT 58,5j</b></span>
+          <span>CT <b>9,5j</b></span>
+          <span>VA% of CT <b>10,5%</b></span>
+          <span>VA% of LT <b>1,7%</b></span>
+        </div>
+      </div>
+    </div>
 
 </div>
 </body>
