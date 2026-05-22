@@ -98,6 +98,26 @@
   .kpi-card .kpi-delta.boost { color: var(--pertamina-blue); }
   .kpi-card .kpi-badge { position: absolute; top: .5rem; right: .5rem; background: var(--pertamina-green); color: white; font-size: .55rem; font-weight: 800; padding: .15rem .35rem; border-radius: 3px; text-transform: uppercase; }
   @media (max-width: 1100px) { .metric-cards { grid-template-columns: repeat(3, 1fr); } }
+
+  .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .table-card { background: white; border-radius: .75rem; padding: 1rem 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,.06); }
+  .table-card h3 { margin: 0 0 .65rem; color: var(--pertamina-blue); font-size: .95rem; border-bottom: 2px solid var(--pertamina-green); padding-bottom: .35rem; }
+  .table-card table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+  .table-card th, .table-card td { padding: .4rem .6rem; text-align: left; border-bottom: 1px solid var(--neutral-light); }
+  .table-card th { background: var(--bg); font-weight: 700; color: var(--pertamina-blue); }
+  .legend-marker { display: inline-block; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-weight: 800; color: white; font-size: .7rem; }
+  .legend-marker.issue { background: var(--pertamina-red); }
+  .legend-marker.improvement { background: var(--pertamina-green); }
+  footer { text-align: center; padding: 1.5rem; color: var(--neutral-gray); font-size: .85rem; }
+  footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
+
+  @media print {
+    @page { size: A3 landscape; margin: 1cm; }
+    body { padding: 0; background: white; }
+    .toolbar { display: none; }
+    .zona, .table-card, .header-bar, .meta-bar { box-shadow: none; break-inside: avoid; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
 </style>
 </head>
 <body>
@@ -313,6 +333,44 @@
 
     </div>
   </section>
+
+  <div class="tables-grid">
+    <section class="table-card">
+      <h3><span class="legend-marker issue" style="vertical-align:middle">!</span> Issue A-F (Konteks)</h3>
+      <table>
+        <thead><tr><th>No</th><th>Issue</th></tr></thead>
+        <tbody>
+          <tr><td><span class="legend-marker issue">A</span></td><td><b>Tools Terfragmentasi</b></td></tr>
+          <tr><td><span class="legend-marker issue">B</span></td><td><b>No SSoT</b></td></tr>
+          <tr><td><span class="legend-marker issue">C</span></td><td><b>No Audit Trail</b></td></tr>
+          <tr><td><span class="legend-marker issue">D</span></td><td><b>Reporting Ad-Hoc</b></td></tr>
+          <tr><td><span class="legend-marker issue" style="opacity:.5">E</span></td><td style="opacity:.5">Workflow Tracking (lain)</td></tr>
+          <tr><td><span class="legend-marker issue" style="opacity:.5">F</span></td><td style="opacity:.5">Renewal Reaktif (lain)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="table-card">
+      <h3><span class="legend-marker improvement" style="vertical-align:middle">!</span> Improvement 1-7</h3>
+      <table>
+        <thead><tr><th>No</th><th>Improvement</th><th>Lane</th></tr></thead>
+        <tbody>
+          <tr><td><span class="legend-marker improvement" style="opacity:.5">1</span></td><td style="opacity:.7"><b>Analytics Dashboard</b></td><td>Mgmt</td></tr>
+          <tr><td><span class="legend-marker improvement">2</span></td><td><b>Master Data Terpusat</b></td><td>HC trigger</td></tr>
+          <tr><td><span class="legend-marker improvement">3</span></td><td><b>Audit Log Lengkap</b></td><td>Portal/Submit</td></tr>
+          <tr><td><span class="legend-marker improvement">4</span></td><td><b>HC Portal sebagai Hub</b></td><td>HC trigger</td></tr>
+          <tr><td><span class="legend-marker improvement" style="opacity:.5">5</span></td><td style="opacity:.7">Workflow Approval (lain)</td><td>—</td></tr>
+          <tr><td><span class="legend-marker improvement" style="opacity:.5">6</span></td><td style="opacity:.7">Coaching Digital (lain)</td><td>—</td></tr>
+          <tr><td><span class="legend-marker improvement">7</span></td><td><b>Self-Service</b></td><td>Submit</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <footer>
+    <p>📌 <b>Versi Z</b> — BPMN+VSM Hybrid (Lean Six Sigma) · PCP SMART 2026 §3.4 v3.6 · HC Portal · Tag <code>pcp-hcportal-3.4-v3.6</code></p>
+    <p style="font-size:.75rem">Catatan: cycle time + VA classification estimasi rekonstruksi. VA orthodox (Lean): step 4 cross-check Excel = NVA (rework/re-entry).</p>
+  </footer>
 
 </div>
 </body>
