@@ -15,7 +15,7 @@
 - ✅ **v14.0 Assessment Enhancement** — Phases 296-303 (shipped 2026-04-24) — [archive](milestones/v14.0-ROADMAP.md)
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
 - ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
-- 🚧 **v17.0 Assessment Admin Power Tools** — Phases 320-321 (started 2026-05-21)
+- ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 SHIPPED (closed 2026-05-22)
 
 ## Phases
 
@@ -435,7 +435,7 @@ Plans:
 
 ---
 
-### 🚧 v17.0 Assessment Admin Power Tools (Phases 320-321) — STARTED 2026-05-21
+### ✅ v17.0 Assessment Admin Power Tools (Phases 320-322) — SHIPPED 2026-05-22
 
 **Goal:** Power tools admin/HC untuk assessment — Excel export per-peserta lengkap (Summary + N sheet per peserta, info detail, ElemenTeknis, PNG radar chart, Detail Jawaban) + edit jawaban MC/MA peserta Completed dengan auto-recompute Score/IsPassed/ElemenTeknis + cascade NomorSertifikat & TrainingRecord saat Pass↔Fail flip + audit dual-write (AuditLog generic + AssessmentEditLog granular) + SignalR live monitor update.
 
@@ -493,21 +493,26 @@ Plans:
 
 | REQ | Phase | Status |
 |-----|-------|--------|
-| EXP-01..08 | 320 | Pending plan |
-| EDIT-01..13 | 321 | 5 plans planned |
+| EXP-01..08 | 320 | ✅ SHIPPED |
+| EDIT-01..13 | 321 | ✅ SHIPPED |
+| FILTER-01..03 (Bug 1 double filter + Bug 2 cross-tab + Bug 3 pagination) | 322 | ✅ SHIPPED |
 
-**Active mapped: 21/21 ✓ — Orphans: 0 — Duplicates: 0**
+**Active mapped: 24/24 ✓ — Orphans: 0 — Duplicates: 0**
 
-### Phase 322: filter-scope-per-tab-manage-assessment
+### ✅ Phase 322: filter-scope-per-tab-manage-assessment — SHIPPED 2026-05-22
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Rollback Phase 311 Plan 02 shared filter shell; per-tab native filter (Tab 1 search+kategori+status, Tab 2 bagian+kategori-training+unit+status+nama/nopeg, Tab 3 sub-tab client-side). Bug 1 double filter + Bug 2 cross-tab contamination + Bug 3 pagination filter state eliminated.
+**Requirements**: 3 bug (double filter, cross-tab contamination, pagination)
 **Depends on:** Phase 321
-**Plans:** 0 plans
+**Plans:** 3 plans (all SHIPPED)
+**UAT:** 11/12 PASS + 1 N/A (`322-UAT.md`)
+**Tag:** `v17.0-p322-complete` (pending push)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 322 to break down)
+- [x] 322-01-PLAN.md — Partial Views Filter HTMX Refactor (Tab 1 filter+pagination, Tab 2 5-field, Tab 3 sub-tab DOM hooks) — 4 commit atomic
+- [x] 322-02-PLAN.md — Shell View Cleanup + Controller Cleanup (delete shared form + cross-tab listener + endpoint updater; add filterTrainingRows JS; wrapper hx-vals D-21 Strategy D Hybrid; ViewBag.Categories cache drop di shell action) — 2 commit
+- [x] 322-03-PLAN.md — Manual UAT 12-step + Handoff (Playwright automation; 2 critical bug discovered + fixed: ViewBag null coalesce + wrapper hx-vals → URL migration)
 
 ---
 
-*Roadmap updated: 2026-05-21 (v17.0 STARTED — Phase 320 + 321 paralel-able, research siap, requirements defined; Phase 321 revised iteration 1: 4-PLAN → 5-PLAN split)*
+*Roadmap updated: 2026-05-22 (v17.0 SHIPPED — all 3 phases complete: 320 EXP + 321 EDIT + 322 FILTER. Phase 322 closed with 2 critical bug fix post-UAT — HTMX hx-vals inheritance gotcha documented sebagai key learning.)*

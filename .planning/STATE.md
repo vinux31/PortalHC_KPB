@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v17.0
 milestone_name: Assessment Admin Power Tools
-status: executing
-last_updated: "2026-05-22T06:51:23.030Z"
-last_activity: 2026-05-22 -- Phase 322 planning complete
+status: ready-for-next
+last_updated: "2026-05-22T09:20:00.000Z"
+last_activity: 2026-05-22 -- Phase 322 SHIPPED (UAT 11/12 PASS + 1 N/A, tag v17.0-p322-complete pending)
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 8
-  percent: 73
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -20,21 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 321 — assessment-edit-jawaban-peserta
+**Current focus:** v17.0 milestone complete (3/3 phases SHIPPED) — ready for v18.0 planning or backlog promotion
 
 ## Current Position
 
-Phase: 321 (assessment-edit-jawaban-peserta) — EXECUTING
-Plan: 1 of 5
-Status: Ready to execute
-Last activity: 2026-05-22 -- Phase 322 planning complete
+Phase: 322 (filter-scope-per-tab-manage-assessment) — SHIPPED
+Plan: 3 of 3 (all done)
+Status: v17.0 milestone complete (Phase 320 + 321 + 322 all SHIPPED)
+Last activity: 2026-05-22 -- Phase 322 SHIPPED (UAT 11/12 PASS + 1 N/A pagination DB lokal insufficient)
 
 ## Next Action
 
-1. **User action:** Push remote `git push origin main && git push origin v17.0-p320-complete` + notify IT (commit hash + tag + no-migration flag, draft di `320-03-SUMMARY.md`)
-2. **Phase 321 planning:** `/gsd-plan-phase 321` — Assessment Edit Jawaban Peserta (REQ EDIT-01..13). 321-RESEARCH.md sudah ada (13 task breakdown).
-3. **Backlog:** v16.0 milestone phases 315-319 belum di-archive via `/gsd-complete-milestone` — pre-existing housekeeping (bukan blocker)
-3. **Backlog:** v16.0 milestone phases 315-319 belum di-archive via `/gsd-complete-milestone` — pre-existing housekeeping (bukan blocker)
+1. **User action:** Tag `v17.0-p322-complete` di main (annotated tag dengan UAT summary) — *pending user confirm via /gsd-execute-phase finishing prompt*
+2. **User action:** Push remote `git push origin main && git push origin v17.0-p320-complete v17.0-p322-complete` + notify IT (commit hash + tag + no-migration flag, draft di `322-UAT.md` Handoff section)
+3. **Milestone close:** `/gsd-complete-milestone` v17.0 untuk archive + prep v18.0
+4. **Backlog:** v16.0 milestone phases 315-319 belum di-archive — pre-existing housekeeping (bukan blocker)
 
 ## Deferred Items
 
@@ -87,6 +87,15 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ## Session Continuity
 
-Last activity: 2026-05-11 — Phase 316 complete (11/11 matrix tests passed). Phase 317 started outside planner: Task 1 fix SURF-316-A done (examMatrix.ts submit selector + 2-step flow), Task 2 matrix smoke validation done (sibling-pool root cause resolved via seed SQL peserta2 packages removed + Layer 1 counts updated). Bonus helper hardening done (essay saveIndicator text check, gradeEssaysAsHc data-session-id targeting, verifyResultPage badge selector).
+Last activity: 2026-05-22 — Phase 322 SHIPPED via /gsd-execute-phase 322 --interactive (Playwright automated UAT). 13 commit total: 6 feat (322-01..06) + 2 fix critical post-UAT discovery (`6ecb7a50` ViewBag null coalesce + `773c970c` wrapper hx-vals → URL migration — HTMX hx-vals inheritance gotcha) + 5 docs (UAT + 3 SUMMARY). UAT 11/12 PASS + 1 N/A (Step 3 pagination — DB lokal 1 grup insufficient; bonus fix verified via code review).
 
-Next action: Commit current changes (SURF-316-A fix + seed SQL fix + helper hardening + ROADMAP/STATE updates). Then `/gsd-plan-phase 317` untuk formal split Task 3-8 jadi plans, ATAU lanjut execute manual buat `tests/e2e/exam-types.spec.ts` (FLOW K MA full cycle first).
+Phase 322 deliverables:
+- Bug 1 (double filter Tab 1): FIXED via shell shared form delete
+- Bug 2 (cross-tab contamination): PREVENTED by-design via D-21 Strategy D Hybrid (URL query string per-wrapper, NOT hx-vals which inherits to descendants)
+- Bug 3 (pagination filter state): bonus fix via hx-include=#filterFormAssessment
+- Riwayat Training filter NEW (parity sama Riwayat Assessment)
+- D-10 URL bookmark backward compat preserved
+
+Next action: User confirm finishing actions (tag v17.0-p322-complete + push origin/main). v17.0 milestone 3/3 phases SHIPPED — ready /gsd-complete-milestone untuk prep v18.0.
+
+Key learning untuk depan: HTMX hx-vals attribute INHERITS dari ancestor ke descendant HTMX triggers (override descendant form data). Solution wrapper-only params: bake ke hx-get URL query string. Solution user-driven params (form/dropdown): descendant pakai hx-include="closest form" tanpa ancestor hx-vals.
