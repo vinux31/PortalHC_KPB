@@ -1479,6 +1479,29 @@
     color: inherit !important;
   }
 
+  /* ============================================================
+     RESPONSIVE — Viewport < 1366px (laptop 13" etc)
+     ============================================================ */
+  @media (max-width: 1366px) {
+    /* Slide #2 agenda — chip grid 5→3 cols, lalu wrap */
+    [data-slide="2"] .slide-body > div {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 12px !important;
+    }
+    /* Slide #3 — 2-col Tantangan/Jawaban — stack jadi 1 col */
+    [data-slide="3"] .slide-body > div:first-child {
+      grid-template-columns: 1fr !important;
+    }
+    /* Compact font + padding for small viewports */
+    .slide-title { font-size: 1.8rem; }
+    .slide-subtitle { font-size: 0.85rem; }
+  }
+  @media (max-width: 1024px) {
+    [data-slide="2"] .slide-body > div {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+
 </style>
 </head>
 <body>
