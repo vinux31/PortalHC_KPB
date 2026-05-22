@@ -9,78 +9,106 @@
     var selectedAssessmentStatus = ViewBag.SelectedStatus as string ?? "";
 }
 
-<!-- Search Form -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <form method="get" asp-action="ManageAssessment" asp-controller="AssessmentAdmin">
-            <input type="hidden" name="tab" value="assessment" />
+<!-- Filter Form (Phase 322 — HTMX inline triggers, scoped to Assessment Groups tab only) -->
+<form id="filterFormAssessment" onsubmit="return false;" class="mb-3">
+    <input type="hidden" name="tab" value="assessment" />
+    <input type="hidden" name="page" value="1" id="filterPageAssessment" />
+    <input type="hidden" name="pageSize" value="20" />
+
+    <!-- Search Row -->
+    <div class="row mb-3">
+        <div class="col-md-6">
             <div class="input-group">
                 <span class="input-group-text bg-white border-end-0">
                     <i class="bi bi-search text-muted"></i>
                 </span>
                 <input type="text" class="form-control border-start-0 ps-0" name="search"
-                       placeholder="Cari berdasarkan judul, kategori, nama, atau NIP..." value="@searchTerm">
-                <button class="btn btn-primary" type="submit">Cari</button>
+                       id="searchAssessment"
+                       placeholder="Cari berdasarkan judul, kategori, nama, atau NIP..."
+                       value="@searchTerm"
+                       hx-get="@Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin")"
+                       hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
+                       hx-target="closest .htmx-tab-wrapper"
+                       hx-swap="innerHTML"
+                       hx-include="closest form" />
+                <button class="btn btn-primary" type="button"
+                        hx-get="@Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin")"
+                        hx-target="closest .htmx-tab-wrapper"
+                        hx-swap="innerHTML"
+                        hx-include="closest form">Cari</button>
                 @if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    <a asp-action="ManageAssessment" asp-controller="AssessmentAdmin" asp-route-tab="assessment"
-                       class="btn btn-outline-secondary" title="Hapus pencarian">
+                    <button type="button" class="btn btn-outline-secondary" title="Hapus pencarian"
+                            onclick="document.getElementById('searchAssessment').value=''; htmx.trigger('#searchAssessment','input')">
                         <i class="bi bi-x-lg"></i>
-                    </a>
+                    </button>
                 }
             </div>
-        </form>
-    </div>
-</div>
-
-<!-- Filter Row: Kategori + Status -->
-<div class="row mb-3">
-    <div class="col-md-3">
-        <select id="categoryFilter" class="form-select form-select-sm" onchange="applyAssessmentFilters()">
-            <option value="">Semua Kategori</option>
-            @foreach (var cat in assessmentCategories)
-            {
-                if (selectedAssessmentCategory == cat)
-                { <option value="@cat" selected="selected">@cat</option> }
-                else
-                { <option value="@cat">@cat</option> }
-            }
-        </select>
-    </div>
-    <div class="col-md-3">
-        <select id="statusFilter" class="form-select form-select-sm" onchange="applyAssessmentFilters()">
-            @if (string.IsNullOrEmpty(selectedAssessmentStatus))
-            { <option value="" selected="selected">Aktif (Open/Upcoming)</option> }
-            else
-            { <option value="">Aktif (Open/Upcoming)</option> }
-            @if (selectedAssessmentStatus == "Open")
-            { <option value="Open" selected="selected">Open</option> }
-            else
-            { <option value="Open">Open</option> }
-            @if (selectedAssessmentStatus == "Upcoming")
-            { <option value="Upcoming" selected="selected">Upcoming</option> }
-            else
-            { <option value="Upcoming">Upcoming</option> }
-            @if (selectedAssessmentStatus == "Closed")
-            { <option value="Closed" selected="selected">Closed</option> }
-            else
-            { <option value="Closed">Closed</option> }
-            @if (selectedAssessmentStatus == "All")
-            { <option value="All" selected="selected">Semua Status</option> }
-            else
-            { <option value="All">Semua Status</option> }
-        </select>
-    </div>
-    @if (!string.IsNullOrEmpty(selectedAssessmentCategory) || !string.IsNullOrEmpty(selectedAssessmentStatus))
-    {
-        <div class="col-md-2">
-            <a asp-action="ManageAssessment" asp-controller="AssessmentAdmin" asp-route-tab="assessment"
-               class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-x-lg me-1"></i>Reset Filter
-            </a>
         </div>
-    }
-</div>
+    </div>
+
+    <!-- Filter Row: Kategori + Status -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <select id="categoryFilter" name="category" class="form-select form-select-sm"
+                    hx-get="@Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin")"
+                    hx-trigger="change"
+                    hx-target="closest .htmx-tab-wrapper"
+                    hx-swap="innerHTML"
+                    hx-include="closest form">
+                <option value="">Semua Kategori</option>
+                @foreach (var cat in assessmentCategories)
+                {
+                    if (selectedAssessmentCategory == cat)
+                    { <option value="@cat" selected="selected">@cat</option> }
+                    else
+                    { <option value="@cat">@cat</option> }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select id="statusFilter" name="statusFilter" class="form-select form-select-sm"
+                    hx-get="@Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin")"
+                    hx-trigger="change"
+                    hx-target="closest .htmx-tab-wrapper"
+                    hx-swap="innerHTML"
+                    hx-include="closest form">
+                @if (string.IsNullOrEmpty(selectedAssessmentStatus))
+                { <option value="" selected="selected">Aktif (Open/Upcoming)</option> }
+                else
+                { <option value="">Aktif (Open/Upcoming)</option> }
+                @if (selectedAssessmentStatus == "Open")
+                { <option value="Open" selected="selected">Open</option> }
+                else
+                { <option value="Open">Open</option> }
+                @if (selectedAssessmentStatus == "Upcoming")
+                { <option value="Upcoming" selected="selected">Upcoming</option> }
+                else
+                { <option value="Upcoming">Upcoming</option> }
+                @if (selectedAssessmentStatus == "Closed")
+                { <option value="Closed" selected="selected">Closed</option> }
+                else
+                { <option value="Closed">Closed</option> }
+                @if (selectedAssessmentStatus == "All")
+                { <option value="All" selected="selected">Semua Status</option> }
+                else
+                { <option value="All">Semua Status</option> }
+            </select>
+        </div>
+        @if (!string.IsNullOrEmpty(selectedAssessmentCategory) || !string.IsNullOrEmpty(selectedAssessmentStatus) || !string.IsNullOrEmpty(searchTerm))
+        {
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        hx-get="@Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin")"
+                        hx-target="closest .htmx-tab-wrapper"
+                        hx-swap="innerHTML"
+                        onclick="document.getElementById('searchAssessment').value=''; document.getElementById('categoryFilter').value=''; document.getElementById('statusFilter').value=''; document.getElementById('filterPageAssessment').value='1';">
+                    <i class="bi bi-x-lg me-1"></i>Reset Filter
+                </button>
+            </div>
+        }
+    </div>
+</form>
 
 <!-- Stats Badge -->
 <div class="mb-3">
