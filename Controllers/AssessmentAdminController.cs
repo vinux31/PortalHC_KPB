@@ -63,9 +63,9 @@ namespace HcPortal.Controllers
             string? tab = null, string? section = null, string? unit = null,
             string? category = null, string? statusFilter = null, string? isFiltered = null)
         {
-            // Phase 311 Plan 02: shell-only refactor (D-01..D-10).
-            // Per D-10 backward compat: action signature + Categories ViewBag dipertahankan.
-            // Data fetch per tab dipindah ke 3 partial actions (lazy load via HTMX).
+            // Phase 322: shared filter shell removed (rollback Phase 311 Plan 02).
+            // Per-tab native filter di partial views — shell hanya routing + lazy-load HTMX trigger.
+            // Filter values di-set ViewBag untuk wrapper hx-vals (URL bookmark backward compat).
 
             var swShell = System.Diagnostics.Stopwatch.StartNew();
 
@@ -73,7 +73,8 @@ namespace HcPortal.Controllers
             var activeTab = tab switch { "training" => "training", "history" => "history", _ => "assessment" };
             ViewBag.ActiveTab = activeTab;
 
-            // Filter values yang HARUS preserved untuk pre-populate filter form di shell view
+            // Filter values preserve untuk pre-populate wrapper hx-vals (D-21 Strategy D)
+            // dan partial actions yang baca via param (URL bookmark backward compat).
             ViewBag.SearchTerm = search;
             ViewBag.SelectedCategory = category ?? "";
             ViewBag.SelectedStatus = statusFilter ?? "";
@@ -81,20 +82,6 @@ namespace HcPortal.Controllers
             ViewBag.SelectedUnit = unit;
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
-
-            // Categories dropdown — dibutuhkan di shell untuk filter form.
-            // Phase 311 Plan 03 (D-04): wrap dengan IMemoryCache.GetOrCreateAsync TTL 5 menit absolute expiration.
-            // Cache invalidation di Add/Edit/DeleteCategory setelah SaveChangesAsync.
-            ViewBag.Categories = await _cache.GetOrCreateAsync(CategoriesCacheKey, async entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
-                return await _context.AssessmentSessions
-                    .AsNoTracking()
-                    .Select(a => a.Category)
-                    .Distinct()
-                    .OrderBy(c => c)
-                    .ToListAsync();
-            });
 
             swShell.Stop();
             _logger.LogInformation(
