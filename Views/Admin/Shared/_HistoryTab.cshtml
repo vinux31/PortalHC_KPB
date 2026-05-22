@@ -26,6 +26,24 @@
 
     <!-- Riwayat Assessment Sub-Tab -->
     <div class="tab-pane fade show active" id="riwayat-assessment-pane" role="tabpanel">
+        <!-- Filters -->
+        <div class="row g-2 mb-3 pt-3 px-0">
+            <div class="col-md-4">
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Cari nama pekerja / NIP..."
+                       id="assessmentWorkerFilter" oninput="filterAssessmentRows()">
+            </div>
+            <div class="col-md-4">
+                <select class="form-select form-select-sm" id="assessmentTitleFilter" onchange="filterAssessmentRows()">
+                    <option value="">-- Semua Assessment --</option>
+                    @foreach (var title in assessmentTitles)
+                    {
+                        <option value="@title">@title</option>
+                    }
+                </select>
+            </div>
+        </div>
+
         @if (!assessmentHistory.Any())
         {
             <div class="text-center py-5 text-muted">
@@ -36,24 +54,6 @@
         }
         else
         {
-            <!-- Filters -->
-            <div class="row g-2 mb-3 pt-3 px-0">
-                <div class="col-md-4">
-                    <input type="text" class="form-control form-control-sm"
-                           placeholder="Cari nama pekerja / NIP..."
-                           id="assessmentWorkerFilter" oninput="filterAssessmentRows()">
-                </div>
-                <div class="col-md-4">
-                    <select class="form-select form-select-sm" id="assessmentTitleFilter" onchange="filterAssessmentRows()">
-                        <option value="">-- Semua Assessment --</option>
-                        @foreach (var title in assessmentTitles)
-                        {
-                            <option value="@title">@title</option>
-                        }
-                    </select>
-                </div>
-            </div>
-
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="assessmentHistoryTable">
                     <thead class="table-dark">
@@ -107,6 +107,15 @@
 
     <!-- Riwayat Training Sub-Tab -->
     <div class="tab-pane fade" id="riwayat-training-pane" role="tabpanel">
+        <!-- Filter (Phase 322 \u2014 client-side, parity sama Riwayat Assessment) -->
+        <div class="row g-2 mb-3 pt-3 px-0">
+            <div class="col-md-4">
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Cari nama pekerja / Nopeg..."
+                       id="trainingWorkerFilter" oninput="filterTrainingRows()">
+            </div>
+        </div>
+
         @if (!trainingHistory.Any())
         {
             <div class="text-center py-5 text-muted">
@@ -117,15 +126,6 @@
         }
         else
         {
-            <!-- Filter (Phase 322 \u2014 client-side, parity sama Riwayat Assessment) -->
-            <div class="row g-2 mb-3 pt-3 px-0">
-                <div class="col-md-4">
-                    <input type="text" class="form-control form-control-sm"
-                           placeholder="Cari nama pekerja / Nopeg..."
-                           id="trainingWorkerFilter" oninput="filterTrainingRows()">
-                </div>
-            </div>
-
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="trainingHistoryTable">
                     <thead class="table-dark">
