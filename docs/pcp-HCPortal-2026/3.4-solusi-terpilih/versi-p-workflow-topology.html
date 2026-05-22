@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>§3.4 v3.6 — Versi P: Workflow Topology HC Portal</title>
+<title>§3.4 v3.7 — Versi P: Workflow Topology HC Portal</title>
 <style>
   :root {
     --pertamina-red: #C8102E;
@@ -18,6 +18,12 @@
     --bg: #f6f7fb;
     --border: #d1d5db;
     --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.85rem;
+    --fs-base: 0.95rem;
+    --fs-md: 1.05rem;
+    --fs-lg: 1.3rem;
+    --fs-xl: 2rem;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #1f2937; padding: 1.5rem; }
@@ -32,15 +38,15 @@
     border-radius: .75rem;
     box-shadow: 0 2px 10px rgba(0,0,0,.06);
     padding: 1rem 1.5rem;
-    border-top: 5px solid var(--pertamina-red);
+    border-top: 5px solid var(--pertamina-green);
   }
   .logo-pertamina { font-weight: 900; font-size: 1.1rem; color: var(--pertamina-red); line-height: 1.1; }
-  .logo-pertamina small { display:block; font-weight: 600; font-size: .7rem; color: var(--neutral-gray); }
+  .logo-pertamina small { display:block; font-weight: 600; font-size: var(--fs-xs); color: var(--neutral-gray); }
   .header-title { text-align: center; }
   .header-title h1 { margin: 0; font-size: 1.4rem; color: var(--pertamina-blue); }
-  .header-title small { display:block; color: var(--neutral-gray); font-size: .85rem; margin-top: .15rem; }
-  .pcp-badge { text-align: right; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: .85rem; }
-  .pcp-badge small { display:block; font-weight: 400; font-size: .65rem; opacity: .9; }
+  .header-title small { display:block; color: var(--neutral-gray); font-size: var(--fs-sm); margin-top: .15rem; }
+  .pcp-badge { text-align: right; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: var(--fs-sm); }
+  .pcp-badge small { display:block; font-weight: 400; font-size: var(--fs-xs); opacity: .9; }
 
   .meta-bar {
     max-width: 1400px;
@@ -87,9 +93,9 @@
 
   .buffer-zone { display: grid; grid-template-columns: 200px 1fr; gap: 1rem; margin: 1.25rem 0; position: relative; }
   .buffer-zone-label { background: linear-gradient(135deg, var(--pertamina-yellow), #ffa500); color: #5a4400; padding: .85rem; border-radius: .5rem; text-align: center; font-weight: 700; font-size: .85rem; box-shadow: 0 2px 8px rgba(255,199,44,.4); display: flex; flex-direction: column; justify-content: center; }
-  .buffer-zone-label small { font-size: .7rem; opacity: .85; font-weight: 600; }
+  .buffer-zone-label small { font-size: var(--fs-xs); opacity: .85; font-weight: 600; }
   .portal-hub { background: var(--hub-grad); color: white; padding: 1.25rem 1.5rem; border-radius: .75rem; text-align: center; font-weight: 700; font-size: 1.2rem; box-shadow: 0 6px 18px rgba(0,85,140,.3); position: relative; }
-  .portal-hub small { display: block; font-size: .75rem; font-weight: 400; opacity: .95; margin-top: .35rem; }
+  .portal-hub small { display: block; font-size: var(--fs-xs); font-weight: 400; opacity: .95; margin-top: .35rem; }
   .portal-hub .marker { background: white; color: var(--pertamina-blue); margin-left: .5rem; }
 
   .marker { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; color: white; font-weight: 700; font-size: .75rem; margin-left: .35rem; cursor: help; transition: transform .15s; }
@@ -100,8 +106,8 @@
   .layer-content::after { content: ''; position: absolute; left: -16px; top: 50%; width: 12px; height: 2px; background: var(--pertamina-blue); opacity: .3; }
   .before-style .layer-content::after { background: var(--pertamina-red); }
 
-  .legend-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: .85rem; }
-  .legend-table th { background: var(--pertamina-blue); color: white; text-align: left; padding: .55rem .75rem; }
+  .legend-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: var(--fs-sm); }
+  .legend-table th { background: var(--pertamina-blue); color: white; text-align: left; padding: .55rem .75rem; position: sticky; top: 0; z-index: 2; }
   .legend-table td { padding: .55rem .75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
   .legend-table td:first-child { width: 50px; text-align: center; }
   .legend-marker { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; color: white; font-weight: 700; font-size: .85rem; }
@@ -117,11 +123,24 @@
   .footer { text-align:center; padding:1.5rem; color:var(--neutral-gray); font-size:.85rem; max-width: 1400px; margin: 0 auto; }
   .footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
 
+  @media (max-width: 1200px) {
+    .layer-row, .buffer-zone { grid-template-columns: 150px 1fr; }
+  }
+  @media (max-width: 900px) {
+    .layer-row, .buffer-zone { grid-template-columns: 1fr; gap: .5rem; }
+    .header-bar { grid-template-columns: 1fr; gap: .5rem; text-align: center; }
+    .meta-bar { grid-template-columns: 1fr; }
+  }
   @media print {
-    body { padding: 0; background: white; }
-    .toolbar { display: none; }
-    .diagram-wrap, .komparasi-section { box-shadow: none; page-break-inside: avoid; }
+    @page { size: A3 landscape; margin: 1cm; }
+    body { padding: 0; background: white; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .toolbar { display: none !important; }
+    .diagram-wrap, .komparasi-section { box-shadow: none; page-break-inside: avoid; border: 1px solid #e5e7eb; }
     .header-bar { box-shadow: none; }
+    .layer-row { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+    h1, h2, h3 { page-break-after: avoid; }
+    .marker, .legend-marker { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
 </style>
 </head>
@@ -383,7 +402,7 @@
 </div>
 
 <div class="footer">
-  <p>📌 <b>Versi P</b> (Workflow Topology) — PCP SMART 2026 §3.4 v3.6 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.6</code></p>
+  <p>📌 <b>Versi P</b> (Workflow Topology) — PCP SMART 2026 §3.4 v3.7 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.7</code> • Generated 2026-05-22</p>
   <p>💡 Hover marker A-F atau 1-7 untuk lihat detail. Klik 🖨️ Print untuk save PDF.</p>
 </div>
 
