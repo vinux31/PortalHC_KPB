@@ -2678,6 +2678,305 @@ namespace HcPortal.Controllers
             return View(grouped);
         }
 
+        // --- EDIT PESERTA ANSWERS (Phase 321) ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditPesertaAnswers(int id)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            if (session == null)
+            {
+                TempData["Error"] = "Sesi tidak ditemukan.";
+                return RedirectToAction("ManageAssessment");
+            }
+
+            if (!await HcPortal.Helpers.AssessmentEditEligibility.IsEditableAsync(_context, session))
+            {
+                TempData["Error"] = "Sesi ini tidak dapat diedit (status bukan Completed, atau IsManualEntry, atau Assessment Proton Tahun 3).";
+                return RedirectToAction("AssessmentMonitoringDetail", new {
+                    title = session.Title, category = session.Category, scheduleDate = session.Schedule
+                });
+            }
+
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+            if (assignment == null) return NotFound();
+
+            var shuffledIds = assignment.GetShuffledQuestionIds();
+            var questions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => shuffledIds.Contains(q.Id))
+                .ToListAsync();
+            var responses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == id)
+                .ToListAsync();
+
+            var rows = new List<HcPortal.Models.EditQuestionRow>();
+            foreach (var qId in shuffledIds)
+            {
+                var q = questions.FirstOrDefault(x => x.Id == qId);
+                if (q == null) continue;
+                var selectedIds = responses
+                    .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue)
+                    .Select(r => r.PackageOptionId!.Value)
+                    .ToList();
+                var correctIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToList();
+                bool isCorrect = (q.QuestionType ?? "MultipleChoice") switch
+                {
+                    "MultipleChoice" => selectedIds.Count == 1 && correctIds.Contains(selectedIds[0]),
+                    "MultipleAnswer" => selectedIds.ToHashSet().SetEquals(correctIds.ToHashSet()),
+                    _ => false
+                };
+                rows.Add(new HcPortal.Models.EditQuestionRow
+                {
+                    PackageQuestionId = q.Id,
+                    QuestionText = q.QuestionText,
+                    QuestionType = q.QuestionType ?? "MultipleChoice",
+                    Options = q.Options.Select(o => new HcPortal.Models.EditOptionRow
+                    {
+                        Id = o.Id, OptionText = o.OptionText, IsCorrect = o.IsCorrect
+                    }).ToList(),
+                    SelectedOptionIds = selectedIds,
+                    CorrectOptionIds = correctIds,
+                    IsCurrentCorrect = isCorrect
+                });
+            }
+
+            var vm = new HcPortal.Models.EditPesertaAnswersViewModel
+            {
+                Session = session,
+                FullName = session.User?.FullName ?? "Unknown",
+                NIP = session.User?.NIP ?? "—",
+                UpdatedAt = session.UpdatedAt ?? session.CreatedAt,
+                Questions = rows
+            };
+            return View(vm);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitEditAnswers(HcPortal.Models.EditAnswersSubmission form)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == form.SessionId);
+            if (session == null) { TempData["Error"] = "Sesi tidak ditemukan."; return RedirectToAction("ManageAssessment"); }
+
+            var redirectBack = RedirectToAction("AssessmentMonitoringDetail", new {
+                title = session.Title, category = session.Category, scheduleDate = session.Schedule
+            });
+
+            if (!await HcPortal.Helpers.AssessmentEditEligibility.IsEditableAsync(_context, session))
+            {
+                TempData["Error"] = "Sesi tidak dapat di-edit.";
+                return redirectBack;
+            }
+
+            var currentUpdatedAt = session.UpdatedAt ?? session.CreatedAt;
+            if (Math.Abs((currentUpdatedAt - form.UpdatedAt).TotalSeconds) > 1)
+            {
+                TempData["Error"] = "Sesi sudah diubah admin lain. Refresh halaman.";
+                return redirectBack;
+            }
+
+            var actorId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actorRole = User.IsInRole("Admin") ? "Admin" : "HC";
+            var actorName = $"{actor?.NIP} - {actor?.FullName}";
+
+            var qIds = form.Answers.Keys.ToList();
+            var questions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => qIds.Contains(q.Id))
+                .ToListAsync();
+            var existingResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == session.Id && qIds.Contains(r.PackageQuestionId))
+                .ToListAsync();
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                int editCount = 0;
+                foreach (var (qId, newOptionIds) in form.Answers)
+                {
+                    var q = questions.FirstOrDefault(x => x.Id == qId);
+                    if (q == null) continue;
+                    if ((q.QuestionType ?? "MultipleChoice") == "Essay") continue;
+
+                    var validOptionIds = q.Options.Select(o => o.Id).ToHashSet();
+                    var sanitizedNewSet = newOptionIds.Where(id => validOptionIds.Contains(id)).ToHashSet();
+
+                    var oldResponses = existingResponses
+                        .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue).ToList();
+                    var oldOptionIdsSet = oldResponses.Select(r => r.PackageOptionId!.Value).ToHashSet();
+
+                    // Skip if answer unchanged (no edit log, no DB write, no reason required)
+                    if (oldOptionIdsSet.SetEquals(sanitizedNewSet)) continue;
+
+                    // CHANGED — require reason
+                    if (!form.Reasons.TryGetValue(qId, out var reason) || string.IsNullOrWhiteSpace(reason.Code))
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = $"Alasan wajib untuk soal {qId} (jawaban berubah).";
+                        return redirectBack;
+                    }
+                    if (!new[] { "SoalSalah", "KunciSalah", "BugSistem", "PermintaanPeserta", "Lainnya" }.Contains(reason.Code))
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = "ReasonCode tidak valid.";
+                        return redirectBack;
+                    }
+                    if (reason.Code == "Lainnya" && string.IsNullOrWhiteSpace(reason.Text))
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = "ReasonText wajib kalau ReasonCode == Lainnya.";
+                        return redirectBack;
+                    }
+
+                    var sanitizedNew = sanitizedNewSet.ToList();
+                    var oldOptionIds = oldOptionIdsSet.ToList();
+                    var oldTextSnapshot = string.Join(", ",
+                        q.Options.Where(o => oldOptionIds.Contains(o.Id)).Select(o => o.OptionText));
+
+                    _context.PackageUserResponses.RemoveRange(oldResponses);
+                    foreach (var newOid in sanitizedNew)
+                    {
+                        _context.PackageUserResponses.Add(new PackageUserResponse
+                        {
+                            AssessmentSessionId = session.Id,
+                            PackageQuestionId = qId,
+                            PackageOptionId = newOid,
+                            TextAnswer = null,
+                            SubmittedAt = DateTime.UtcNow
+                        });
+                    }
+
+                    var newTextSnapshot = string.Join(", ",
+                        q.Options.Where(o => sanitizedNew.Contains(o.Id)).Select(o => o.OptionText));
+
+                    _context.AssessmentEditLogs.Add(new AssessmentEditLog
+                    {
+                        AssessmentSessionId = session.Id,
+                        PackageQuestionId = qId,
+                        QuestionTextSnapshot = q.QuestionText ?? "",
+                        OldAnswerJson = System.Text.Json.JsonSerializer.Serialize(oldOptionIds),
+                        OldAnswerTextSnapshot = oldTextSnapshot,
+                        NewAnswerJson = System.Text.Json.JsonSerializer.Serialize(sanitizedNew),
+                        NewAnswerTextSnapshot = newTextSnapshot,
+                        OldScore = session.Score,
+                        OldIsPassed = session.IsPassed,
+                        ActorUserId = actorId,
+                        ActorName = actorName,
+                        ActorRole = actorRole,
+                        ReasonCode = reason.Code,
+                        ReasonText = reason.Text,
+                        EditedAt = DateTime.UtcNow
+                    });
+                    editCount++;
+                }
+
+                if (editCount == 0)
+                {
+                    await tx.RollbackAsync();
+                    TempData["Error"] = "Tidak ada perubahan jawaban untuk disimpan.";
+                    return redirectBack;
+                }
+
+                await _context.SaveChangesAsync();
+
+                var (newScore, newIsPassed, oldScore, oldIsPassed) = await _gradingService.RegradeAfterEditAsync(session);
+
+                await _context.AssessmentEditLogs
+                    .Where(l => l.AssessmentSessionId == session.Id && l.NewScore == null && l.ActorUserId == actorId)
+                    .ExecuteUpdateAsync(l => l
+                        .SetProperty(x => x.NewScore, newScore)
+                        .SetProperty(x => x.NewIsPassed, newIsPassed));
+
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    ActorUserId = actorId,
+                    ActorName = actorName,
+                    ActionType = "EditAssessmentAnswer",
+                    Description = $"Edit {editCount} jawaban session #{session.Id} ({session.User?.FullName}), score {oldScore?.ToString() ?? "—"} → {newScore}",
+                    TargetType = "AssessmentSession",
+                    TargetId = session.Id,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+
+                await tx.CommitAsync();
+
+                _cache.Remove($"exam-status-{session.Id}");
+
+                var batchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+                await _hubContext.Clients.Group($"monitor-{batchKey}").SendAsync("workerAnswerEdited", new
+                {
+                    sessionId = session.Id,
+                    workerName = session.User?.FullName ?? "Unknown",
+                    oldScore, newScore, oldIsPassed, newIsPassed,
+                    actorName, actorRole
+                });
+
+                string flip = (oldIsPassed == true, newIsPassed) switch
+                {
+                    (true, false) => "Pass→Fail",
+                    (false, true) => "Fail→Pass",
+                    (true, true) => "Pass→Pass",
+                    _ => "Fail→Fail"
+                };
+                TempData["Success"] = $"Edit {editCount} jawaban berhasil. Score: {oldScore?.ToString() ?? "—"} → {newScore}, {flip}";
+                return redirectBack;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Edit jawaban gagal untuk session {SessionId}", session.Id);
+                TempData["Error"] = "Terjadi kesalahan saat menyimpan. Coba lagi atau hubungi administrator.";
+                return redirectBack;
+            }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditHistoryPartial(int sessionId)
+        {
+            var logs = await _context.AssessmentEditLogs
+                .Where(l => l.AssessmentSessionId == sessionId)
+                .OrderByDescending(l => l.EditedAt)
+                .ToListAsync();
+            return PartialView("_EditHistoryPartial", logs);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PreviewEditScore(int sessionId,
+            HcPortal.Models.EditDraftSubmission form)
+        {
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (session == null) return NotFound();
+            if (!await HcPortal.Helpers.AssessmentEditEligibility.IsEditableAsync(_context, session))
+                return Forbid();
+
+            var overrideAnswers = form.Drafts.ToDictionary(d => d.QuestionId, d => d.Options);
+
+            var (newScore, newIsPassed) = await _gradingService.PreviewScoreAsync(session, overrideAnswers);
+
+            return Json(new
+            {
+                oldScore = session.Score,
+                oldIsPassed = session.IsPassed,
+                newScore,
+                newIsPassed,
+                hasCert = !string.IsNullOrEmpty(session.NomorSertifikat),
+                nomorSertifikat = session.NomorSertifikat,
+                willGenerateCert = session.GenerateCertificate && session.AssessmentType != "PreTest"
+            });
+        }
+
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]

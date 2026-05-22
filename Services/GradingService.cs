@@ -325,5 +325,262 @@ namespace HcPortal.Services
 
             return true;
         }
+
+        /// <summary>
+        /// Pure compute: hitung total/max score + IsPassed + ElemenTeknis breakdown TANPA side effect (tidak insert DB).
+        /// Dipakai oleh RegradeAfterEditAsync (re-grade post-edit) + PreviewScoreAsync (dry-run).
+        /// `GradeAndCompleteAsync` initial grading KEEP inline logic existing (TIDAK refactor) supaya regression risk = 0.
+        /// </summary>
+        /// <param name="session">Session target.</param>
+        /// <param name="overrideAnswers">
+        /// Optional. Dict (PackageQuestionId -> List of selected PackageOption.Id).
+        /// Null -> baca semua dari PackageUserResponses normal.
+        /// Non-null -> pakai override untuk question yang ada di dict, fallback DB untuk sisanya. Path PreviewEditScore.
+        /// </param>
+        private async Task<(int totalScore, int maxScore, bool isPassed, List<SessionElemenTeknisScore> etScores)>
+            ComputeScoreAndETInternalAsync(AssessmentSession session, IDictionary<int, List<int>>? overrideAnswers = null)
+        {
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == session.Id);
+            if (packageAssignment == null)
+                return (0, 0, false, new List<SessionElemenTeknisScore>());
+
+            var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+            var packageQuestions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => shuffledIds.Contains(q.Id))
+                .ToListAsync();
+            var questionLookup = packageQuestions.ToDictionary(q => q.Id);
+
+            var dbResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == session.Id)
+                .ToListAsync();
+
+            HashSet<int> SelectedOptions(int qId)
+            {
+                if (overrideAnswers != null && overrideAnswers.TryGetValue(qId, out var ov))
+                    return ov.ToHashSet();
+                return dbResponses
+                    .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue)
+                    .Select(r => r.PackageOptionId!.Value)
+                    .ToHashSet();
+            }
+
+            int totalScore = 0, maxScore = 0;
+            foreach (var qId in shuffledIds)
+            {
+                if (!questionLookup.TryGetValue(qId, out var q)) continue;
+                maxScore += q.ScoreValue;
+
+                switch (q.QuestionType ?? "MultipleChoice")
+                {
+                    case "MultipleChoice":
+                        var mcSel = SelectedOptions(qId);
+                        if (mcSel.Count > 0)
+                        {
+                            var optId = mcSel.First();
+                            var opt = q.Options.FirstOrDefault(o => o.Id == optId);
+                            if (opt?.IsCorrect == true) totalScore += q.ScoreValue;
+                        }
+                        break;
+                    case "MultipleAnswer":
+                        var maSel = SelectedOptions(qId);
+                        var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        if (maSel.SetEquals(maCorrect)) totalScore += q.ScoreValue;
+                        break;
+                    case "Essay":
+                        break;
+                }
+            }
+
+            int pct = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+            bool isPassed = pct >= session.PassPercentage;
+
+            var etScores = new List<SessionElemenTeknisScore>();
+            var etGroups = packageQuestions
+                .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+
+            foreach (var etGroup in etGroups)
+            {
+                int etCorrect = 0;
+                int etTotal = etGroup.Count();
+                foreach (var q in etGroup)
+                {
+                    switch (q.QuestionType ?? "MultipleChoice")
+                    {
+                        case "MultipleChoice":
+                            var mcSel = SelectedOptions(q.Id);
+                            if (mcSel.Count > 0)
+                            {
+                                var opt = q.Options.FirstOrDefault(o => o.Id == mcSel.First());
+                                if (opt?.IsCorrect == true) etCorrect++;
+                            }
+                            break;
+                        case "MultipleAnswer":
+                            var maSel = SelectedOptions(q.Id);
+                            var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                            if (maSel.SetEquals(maCorrect)) etCorrect++;
+                            break;
+                        case "Essay":
+                            break;
+                    }
+                }
+                etScores.Add(new SessionElemenTeknisScore
+                {
+                    AssessmentSessionId = session.Id,
+                    ElemenTeknis = etGroup.Key,
+                    CorrectCount = etCorrect,
+                    QuestionCount = etTotal
+                });
+            }
+
+            return (totalScore, maxScore, isPassed, etScores);
+        }
+
+        /// <summary>
+        /// Re-grade session yang sudah Completed setelah edit jawaban oleh Admin/HC.
+        /// DELETE existing SessionElemenTeknisScores -> recompute -> update session + cascade sertifikat/TR.
+        /// CALLER bertanggung jawab: open transaction sebelum invoke, commit setelahnya.
+        /// </summary>
+        /// <returns>(newScore, newIsPassed, oldScore, oldIsPassed)</returns>
+        public async Task<(int newScore, bool newIsPassed, int? oldScore, bool? oldIsPassed)>
+            RegradeAfterEditAsync(AssessmentSession session)
+        {
+            int? oldScore = session.Score;
+            bool? oldIsPassed = session.IsPassed;
+
+            // 1. DELETE existing ET scores
+            await _context.SessionElemenTeknisScores
+                .Where(et => et.AssessmentSessionId == session.Id)
+                .ExecuteDeleteAsync();
+
+            // 2. Recompute (overrideAnswers = null -> baca DB which is already updated)
+            var (totalScore, maxScore, isPassed, etScores) = await ComputeScoreAndETInternalAsync(session);
+            int newPct = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+            // 3. Insert new ET scores
+            _context.SessionElemenTeknisScores.AddRange(etScores);
+
+            // 4. Update session — status guard WHERE Status == "Completed"
+            var rowsAffected = await _context.AssessmentSessions
+                .Where(s => s.Id == session.Id && s.Status == "Completed")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Score, newPct)
+                    .SetProperty(r => r.IsPassed, isPassed)
+                    .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
+                );
+
+            if (rowsAffected == 0)
+            {
+                _logger.LogWarning(
+                    "GradingService.RegradeAfterEditAsync: session {SessionId} bukan Completed (race).",
+                    session.Id);
+                throw new InvalidOperationException("Session bukan dalam status Completed saat re-grade.");
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 5. Cascade sertifikat + TrainingRecord (only when flip)
+            bool wasPassed = oldIsPassed ?? false;
+            if (wasPassed && !isPassed)
+            {
+                // Pass -> Fail
+                await _context.AssessmentSessions
+                    .Where(s => s.Id == session.Id)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(r => r.NomorSertifikat, (string?)null)
+                        .SetProperty(r => r.ValidUntil, (DateTime?)null));
+
+                var judul = $"Assessment: {session.Title}";
+                await _context.TrainingRecords
+                    .Where(t => t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule)
+                    .ExecuteUpdateAsync(t => t.SetProperty(r => r.Status, "Failed"));
+
+                _logger.LogInformation(
+                    "RegradeAfterEditAsync: session {SessionId} flip Pass->Fail — cert dicabut, TR=Failed.",
+                    session.Id);
+            }
+            else if (!wasPassed && isPassed)
+            {
+                // Fail -> Pass
+                if (session.GenerateCertificate && session.AssessmentType != "PreTest")
+                {
+                    var certNow = DateTime.Now;
+                    int certYear = certNow.Year;
+                    int certAttempts = 0;
+                    const int maxCertAttempts = 3;
+                    bool certSaved = false;
+                    while (!certSaved && certAttempts < maxCertAttempts)
+                    {
+                        certAttempts++;
+                        try
+                        {
+                            var nextSeq = await HcPortal.Helpers.CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                            var nomor = HcPortal.Helpers.CertNumberHelper.Build(nextSeq, certNow);
+                            var validUntil = certNow.AddYears(3);
+                            var updated = await _context.AssessmentSessions
+                                .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
+                                .ExecuteUpdateAsync(s => s
+                                    .SetProperty(r => r.NomorSertifikat, nomor)
+                                    .SetProperty(r => r.ValidUntil, validUntil));
+                            if (updated > 0) certSaved = true;
+                        }
+                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && HcPortal.Helpers.CertNumberHelper.IsDuplicateKeyException(ex))
+                        {
+                            // Retry dengan sequence baru
+                        }
+                    }
+
+                    if (!certSaved)
+                    {
+                        _logger.LogError("RegradeAfterEditAsync: failed generate cert for session {SessionId} after {N} attempts",
+                            session.Id, maxCertAttempts);
+                    }
+
+                    var judul = $"Assessment: {session.Title}";
+                    var existingTr = await _context.TrainingRecords
+                        .FirstOrDefaultAsync(t => t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule);
+                    if (existingTr == null)
+                    {
+                        _context.TrainingRecords.Add(new TrainingRecord
+                        {
+                            UserId = session.UserId,
+                            Judul = judul,
+                            Kategori = session.Category ?? "Assessment",
+                            Tanggal = session.Schedule,
+                            TanggalSelesai = DateTime.UtcNow,
+                            Penyelenggara = "Internal",
+                            Status = "Passed"
+                        });
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        existingTr.Status = "Passed";
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                _logger.LogInformation(
+                    "RegradeAfterEditAsync: session {SessionId} flip Fail->Pass — cert generated (if applicable), TR=Passed.",
+                    session.Id);
+            }
+            // Pass->Pass, Fail->Fail: no cascade
+
+            return (newPct, isPassed, oldScore, oldIsPassed);
+        }
+
+        /// <summary>
+        /// Public wrapper for PreviewEditScore (dry-run) — exposes ComputeScoreAndETInternalAsync without ET breakdown.
+        /// Consumed by PLAN 03 Task 9 PreviewEditScore controller action.
+        /// </summary>
+        public async Task<(int newScore, bool newIsPassed)> PreviewScoreAsync(
+            AssessmentSession session,
+            IDictionary<int, List<int>> overrideAnswers)
+        {
+            var (totalScore, maxScore, isPassed, _) = await ComputeScoreAndETInternalAsync(session, overrideAnswers);
+            int pct = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+            return (pct, isPassed);
+        }
     }
 }

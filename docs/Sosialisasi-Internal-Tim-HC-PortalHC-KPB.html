@@ -22,6 +22,13 @@
     --text: #0f172a;
     --text-muted: #475569;
     --border: #e2e8f0;
+
+    /* Color aliases for merged gap slides from Sosialisasi-Aplikasi (File 2) */
+    --navy: var(--teal-dark);
+    --navy-dark: var(--teal-dark);
+    --red-dark: #b91c1c;
+    --green-dark: #059669;
+    --purple: var(--amber-dark);
   }
 
   body.dark {
@@ -812,6 +819,939 @@
   .notif-table tr:nth-child(even) td { background: var(--slide-bg-2); }
   .notif-table code { font-family: 'Cascadia Code', Consolas, monospace; font-size: 8pt; color: var(--teal-dark); }
   body.dark .notif-table code { color: var(--teal-light); }
+
+  /* Callout "Implikasi untuk HC" — disisip di slide gap dari merge File 2 */
+  .hc-callout {
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: rgba(245, 158, 11, 0.10);
+    border-left: 4px solid var(--amber-dark);
+    border-radius: 8px;
+    font-size: 0.92em;
+    color: var(--text);
+  }
+  body.dark .hc-callout {
+    background: rgba(245, 158, 11, 0.15);
+    border-left-color: var(--amber);
+  }
+  .hc-callout strong {
+    display: block;
+    color: var(--amber-dark);
+    margin-bottom: 6px;
+    font-size: 0.95em;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  body.dark .hc-callout strong { color: var(--amber); }
+  .hc-callout ul { margin: 0; padding-left: 18px; }
+  .hc-callout li { margin: 3px 0; line-height: 1.5; }
+  /* =================== File 2 (Sosialisasi-Aplikasi) content classes — merged via plan 2026-05-22 Task 1.5, re-extracted via PowerShell UTF-8 native =================== */
+  /* =================== AGENDA SLIDE =================== */
+  .agenda-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 24px;
+    margin-top: 14px;
+  }
+  .agenda-item {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--slide-bg); padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 46, 109, 0.06);
+    border-left: 4px solid var(--navy);
+    cursor: pointer; transition: all 0.3s;
+  }
+  .agenda-item:hover {
+    transform: translateX(6px);
+    box-shadow: 0 6px 16px rgba(0, 46, 109, 0.12);
+    border-left-color: var(--red);
+  }
+  .agenda-num { font-size: 26pt; font-weight: 800; color: var(--red); width: 48px; flex-shrink: 0; line-height: 1; }
+  .agenda-content h4 { font-size: 12pt; color: var(--navy); font-weight: 800; margin-bottom: 3px; }
+  body.dark .agenda-content h4 { color: #93c5fd; }
+  .agenda-content p { font-size: 9pt; color: var(--text-muted); line-height: 1.4; }
+
+  /* =================== LATAR BELAKANG SLIDE =================== */
+  .latar-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .latar-side {
+    background: var(--slide-bg);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0, 46, 109, 0.08);
+    border-top: 5px solid;
+    min-height: 360px;
+  }
+  .latar-before { border-top-color: var(--red); }
+  .latar-after { border-top-color: var(--green); }
+  .latar-label {
+    font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+    padding: 4px 10px; border-radius: 12px; display: inline-block; margin-bottom: 12px;
+  }
+  .latar-before .latar-label { background: #fee2e2; color: #b91c1c; }
+  .latar-after .latar-label { background: #dcfce7; color: #166534; }
+  .latar-heading { font-size: 14pt; font-weight: 800; margin-bottom: 12px; line-height: 1.2; }
+  .latar-before .latar-heading { color: #b91c1c; }
+  .latar-after .latar-heading { color: #166534; }
+  .latar-list { list-style: none; padding: 0; }
+  .latar-list li {
+    padding: 6px 0 6px 24px; position: relative;
+    font-size: 10pt; color: var(--text-muted); line-height: 1.5;
+  }
+  .latar-before .latar-list li::before { content: '✗'; position: absolute; left: 0; color: #ef4444; font-weight: 800; font-size: 12pt; }
+  .latar-after .latar-list li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 800; font-size: 12pt; }
+  .latar-arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  .latar-arrow-icon {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 22pt;
+    box-shadow: 0 4px 12px rgba(0, 46, 109, 0.3);
+  }
+  .latar-arrow-label {
+    font-size: 9pt; font-weight: 700; color: var(--navy);
+    text-transform: uppercase; letter-spacing: 1.5px; text-align: center; line-height: 1.3;
+  }
+  body.dark .latar-arrow-label { color: #93c5fd; }
+
+  /* =================== APA ITU SLIDE =================== */
+  .definition-box {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .definition-box .quote-mark {
+    position: absolute;
+    top: 8px; left: 14px;
+    font-size: 50pt;
+    color: var(--amber);
+    opacity: 0.6;
+    line-height: 1;
+    font-family: Georgia, serif;
+  }
+  .definition-text {
+    font-size: 13pt;
+    line-height: 1.5;
+    padding-left: 30px;
+    font-weight: 400;
+  }
+  .definition-text strong { color: #fbbf24; font-weight: 700; }
+  .modules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 16px;
+  }
+  .module-card {
+    background: var(--slide-bg);
+    border-radius: 14px;
+    padding: 20px;
+    border-top: 4px solid;
+    box-shadow: 0 4px 14px rgba(0, 46, 109, 0.08);
+  }
+  .module-card.cmp { border-top-color: var(--navy); }
+  .module-card.cdp { border-top-color: var(--green); }
+  .module-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .module-icon {
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22pt; color: #fff;
+  }
+  .module-card.cmp .module-icon { background: var(--navy); }
+  .module-card.cdp .module-icon { background: var(--green); }
+  .module-name { font-size: 14pt; font-weight: 800; line-height: 1.2; }
+  .module-card.cmp .module-name { color: var(--navy); }
+  .module-card.cdp .module-name { color: var(--green); }
+  .module-subname { font-size: 9pt; color: var(--slate); margin-top: 2px; }
+  .module-desc { font-size: 9.5pt; color: var(--text-muted); line-height: 1.5; }
+
+  /* =================== 3 PILAR VALUE SLIDE =================== */
+  .pilar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 20px;
+  }
+  .pilar-card {
+    background: var(--slide-bg);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0, 46, 109, 0.08);
+    text-align: center;
+    position: relative;
+    transition: transform 0.3s;
+    border-top: 4px solid;
+  }
+  .pilar-card:hover { transform: translateY(-6px); }
+  .pilar-card.p1 { border-top-color: var(--amber); }
+  .pilar-card.p2 { border-top-color: var(--navy); }
+  .pilar-card.p3 { border-top-color: var(--green); }
+  .pilar-icon-wrap {
+    width: 72px; height: 72px;
+    border-radius: 20px;
+    margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28pt;
+    color: #fff;
+  }
+  .pilar-card.p1 .pilar-icon-wrap { background: linear-gradient(135deg, var(--amber) 0%, #b45309 100%); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3); }
+  .pilar-card.p2 .pilar-icon-wrap { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%); box-shadow: 0 6px 16px rgba(0, 46, 109, 0.3); }
+  .pilar-card.p3 .pilar-icon-wrap { background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%); box-shadow: 0 6px 16px rgba(0, 150, 64, 0.3); }
+  .pilar-num {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-size: 36pt;
+    font-weight: 900;
+    color: var(--border);
+    line-height: 1;
+  }
+  .pilar-title { font-size: 14pt; font-weight: 800; margin-bottom: 10px; }
+  .pilar-card.p1 .pilar-title { color: #b45309; }
+  .pilar-card.p2 .pilar-title { color: var(--navy); }
+  .pilar-card.p3 .pilar-title { color: var(--green); }
+  .pilar-desc { font-size: 10pt; color: var(--text-muted); line-height: 1.5; }
+
+  /* =================== ROLE STAIRCASE =================== */
+  .stairs {
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 0; height: 420px; padding: 40px 20px 0;
+  }
+  .step {
+    flex: 1;
+    border-radius: 10px 10px 0 0;
+    padding: 14px 8px 16px;
+    text-align: center; color: #fff;
+    position: relative;
+    box-shadow: 0 -4px 12px rgba(0, 46, 109, 0.1);
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+    min-width: 0;
+  }
+  .step-num {
+    position: absolute; top: -14px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--slide-bg);
+    border: 3px solid;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 11pt;
+  }
+  .step-icon { font-size: 22pt; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+  .step-role { font-size: 10pt; font-weight: 800; line-height: 1.2; margin-bottom: 6px; min-height: 26px; }
+  .step-access {
+    font-size: 8.5pt;
+    line-height: 1.3;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-top: 6px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .s6 { height: 50%;  background: linear-gradient(180deg, #64748b 0%, #475569 100%); }
+  .s5 { height: 60%;  background: linear-gradient(180deg, var(--green) 0%, var(--green-dark) 100%); }
+  .s4 { height: 70%;  background: linear-gradient(180deg, var(--amber) 0%, #c97a07 100%); }
+  .s3 { height: 80%;  background: linear-gradient(180deg, var(--purple) 0%, #581280 100%); }
+  .s2 { height: 90%;  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%); }
+  .s1 { height: 100%; background: linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%); }
+  .s1 .step-num { border-color: var(--red); color: var(--red); }
+  .s2 .step-num { border-color: var(--navy); color: var(--navy); }
+  .s3 .step-num { border-color: var(--purple); color: var(--purple); }
+  .s4 .step-num { border-color: var(--amber); color: #c97a07; }
+  .s5 .step-num { border-color: var(--green); color: var(--green); }
+  .s6 .step-num { border-color: #64748b; color: #64748b; }
+  .stair-caption {
+    text-align: center; margin-top: 14px; font-size: 9pt;
+    color: var(--slate); font-style: italic;
+  }
+
+  /* Mockup, dashboard, progress slide styles removed in v3 — slides dropped. */
+
+  /* =================== CARA AKSES SLIDE =================== */
+  .akses-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-top: 20px;
+  }
+  .akses-card {
+    background: var(--slide-bg);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0, 46, 109, 0.1);
+    border-top: 5px solid;
+    position: relative;
+  }
+  .akses-card.prod { border-top-color: var(--amber); }
+  .akses-card.dev { border-top-color: var(--green); }
+  .akses-label {
+    font-size: 8pt; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 2px; padding: 4px 12px;
+    border-radius: 12px; display: inline-block; margin-bottom: 14px;
+  }
+  .akses-card.prod .akses-label { background: #fef3c7; color: #92400e; }
+  .akses-card.dev .akses-label { background: #dcfce7; color: #166534; }
+  .akses-card h3 {
+    font-size: 16pt; font-weight: 800;
+    margin-bottom: 6px; color: var(--navy);
+  }
+  body.dark .akses-card h3 { color: #93c5fd; }
+  .akses-card > p { font-size: 9.5pt; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4; }
+  .url-box {
+    background: var(--slide-bg-2);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'Cascadia Code', Consolas, monospace;
+    font-size: 10pt;
+    color: var(--navy);
+    word-break: break-all;
+    margin-bottom: 12px;
+  }
+  body.dark .url-box { color: #93c5fd; }
+  .akses-info {
+    background: var(--slide-bg-2);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 9pt; color: var(--text-muted);
+    border-left: 3px solid var(--navy);
+  }
+  .akses-info strong { color: var(--navy); }
+  body.dark .akses-info strong { color: #93c5fd; }
+
+  /* =================== KATEGORI & COACHING SLIDES =================== */
+  .cat-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-top: 18px;
+  }
+  .cat-grid.center-5 {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+  }
+  .cat-grid.center-5 .cat-card { flex: 0 1 calc(33.333% - 10px); }
+  .cat-card {
+    background: var(--slide-bg);
+    border-radius: 12px; padding: 18px 16px;
+    box-shadow: 0 3px 10px rgba(0, 46, 109, 0.08);
+    border-left: 4px solid;
+    transition: transform 0.2s;
+  }
+  .cat-card:hover { transform: translateY(-4px); }
+  .cat-card.c1 { border-left-color: #1565c0; } .cat-card.c1 .cat-ic { background: #1565c0; }
+  .cat-card.c2 { border-left-color: var(--green); } .cat-card.c2 .cat-ic { background: var(--green); }
+  .cat-card.c3 { border-left-color: var(--amber); } .cat-card.c3 .cat-ic { background: var(--amber); }
+  .cat-card.c4 { border-left-color: var(--slate); } .cat-card.c4 .cat-ic { background: var(--slate); }
+  .cat-card.c5 { border-left-color: var(--red); } .cat-card.c5 .cat-ic { background: var(--red); }
+  .cat-card.c6 { border-left-color: var(--purple); } .cat-card.c6 .cat-ic { background: var(--purple); }
+  .cat-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .cat-ic {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16pt;
+  }
+  .cat-name { font-size: 11pt; font-weight: 800; color: var(--text); }
+  body.dark .cat-name { color: #f1f5f9; }
+  .cat-desc { font-size: 9pt; color: var(--text-muted); line-height: 1.4; }
+
+  /* Coach journey block removed in v3 — replaced by dt-grid + ringkasan-cards. */
+
+  /* =================== V3 TOKENS — added 2026-05-25 =================== */
+
+  /* CHIP ROLE PILL (slide 6) */
+  .role-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    margin: 4px 0;
+  }
+  .role-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 46, 109, 0.25);
+    border-radius: 10px;
+    font-size: 7.5pt;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  body.dark .role-chip {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: var(--navy);
+  }
+  .role-chip .chip-icon { font-size: 9pt; }
+
+  /* 2-ROW JENIS CARD (slide 7) */
+  .jenis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+  .jenis-card {
+    background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 12px rgba(0, 46, 109, 0.06);
+  }
+  .jenis-card.umum { border-top: 4px solid var(--navy); }
+  .jenis-card.proton { border-top: 4px solid var(--amber); }
+  .jenis-card .jenis-head {
+    font-size: 14pt;
+    font-weight: 800;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .jenis-card.umum .jenis-head { color: var(--navy); }
+  .jenis-card.proton .jenis-head { color: var(--amber); }
+  .jenis-row {
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .jenis-row .jenis-label {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .jenis-row .jenis-value {
+    font-size: 10pt;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  body.dark .jenis-card { background: linear-gradient(135deg, var(--slide-bg) 0%, var(--slide-bg-2) 100%); }
+
+  /* 3-SWIMLANE (slide 10/18/19) */
+  .swim-row {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .swim-lane {
+    background: linear-gradient(135deg, rgba(0, 46, 109, 0.04), rgba(0, 46, 109, 0.01));
+    border: 1px dashed rgba(0, 46, 109, 0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .swim-lane.lane-prep { border-color: rgba(0, 150, 64, 0.4); background: linear-gradient(135deg, rgba(0, 150, 64, 0.05), rgba(0, 150, 64, 0.01)); }
+  .swim-lane.lane-exec { border-color: rgba(0, 46, 109, 0.4); }
+  .swim-lane.lane-result { border-color: rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(245, 158, 11, 0.01)); }
+  .swim-label {
+    font-size: 8pt;
+    font-weight: 800;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .swim-steps {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .swim-step {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    font-size: 9pt;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  .swim-step .step-num-mini {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 9pt;
+    margin-bottom: 6px;
+  }
+  .swim-step .step-icon-mini { font-size: 14pt; display: block; margin-bottom: 4px; }
+  .swim-step .step-title { font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .swim-step .step-desc { font-size: 8pt; color: var(--text-muted); line-height: 1.3; }
+  .swim-step.highlight { border-color: var(--amber); background: linear-gradient(135deg, #fff8e8, #ffe9c0); }
+  .swim-step.highlight .step-num-mini { background: var(--amber); }
+  .swim-step.final { border-color: var(--green); background: linear-gradient(135deg, rgba(0,150,64,0.06), #fff); }
+  .swim-step.final .step-num-mini { background: var(--green); }
+  .swim-step.final .step-title { color: var(--green); }
+  .output-bar {
+    margin-top: 16px;
+    background: linear-gradient(90deg, var(--navy), var(--navy-dark));
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 10pt;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  body.dark .swim-step { background: var(--slide-bg); border-color: var(--border); }
+  body.dark .swim-step .step-title { color: #e0f2fe; }
+
+  /* FADED CARD (slide 5 BP) */
+  .module-card.faded {
+    border: 2px dashed var(--slate);
+    opacity: 0.78;
+    background: linear-gradient(135deg, rgba(100, 116, 139, 0.06), rgba(100, 116, 139, 0.02));
+    position: relative;
+  }
+  .module-card.faded::before {
+    content: '🚧 COMING SOON';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 8pt;
+    font-weight: 800;
+    color: var(--amber);
+    background: rgba(245, 158, 11, 0.12);
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .module-card .module-bullets {
+    list-style: none;
+    margin-top: 12px;
+    padding: 0;
+  }
+  .module-card .module-bullets li {
+    font-size: 9.5pt;
+    color: var(--text);
+    padding: 4px 0;
+    display: flex;
+    gap: 6px;
+  }
+  .module-card.faded .module-bullets li { color: var(--text-muted); }
+
+  /* STATUS BADGE (slide 22) */
+  .akses-card .akses-status {
+    display: inline-block;
+    font-size: 8.5pt;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .akses-card.dev .akses-status { background: rgba(0, 150, 64, 0.15); color: var(--green); }
+  .akses-card.prod .akses-status { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+  .url-perkiraan {
+    font-size: 8pt;
+    color: var(--amber);
+    margin-top: 4px;
+    display: block;
+    font-style: italic;
+  }
+  .akses-footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 10px;
+    background: rgba(245, 158, 11, 0.08);
+    border-radius: 8px;
+  }
+
+  /* PROGRESI TABLE (slide 17) */
+  .progresi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  .progresi-table th, .progresi-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .progresi-table thead th {
+    background: var(--navy);
+    color: #fff;
+    font-weight: 700;
+    font-size: 9.5pt;
+    letter-spacing: 0.3px;
+  }
+  .progresi-table tbody td.aspek-label {
+    font-weight: 700;
+    color: var(--navy);
+    background: rgba(0, 46, 109, 0.04);
+  }
+  .progresi-table tbody td.diff-cell {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
+    font-weight: 700;
+    color: #b45309;
+  }
+  body.dark .progresi-table tbody td.aspek-label { color: #e0f2fe; background: rgba(255,255,255,0.04); }
+  body.dark .progresi-table tbody td.diff-cell { color: #fbbf24; }
+
+  /* TREE HIERARKI (slide 16) */
+  .tree-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 16px;
+  }
+  .tree-col {
+    background: linear-gradient(135deg, #fff, #f8fafc);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .tree-col.generic { border-top: 4px solid var(--navy); }
+  .tree-col.example { border-top: 4px solid var(--green); }
+  .tree-col h4 {
+    font-size: 10.5pt;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .tree-node {
+    background: var(--slide-bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 0 auto 8px;
+    text-align: center;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--text);
+    max-width: 80%;
+  }
+  .tree-node .node-level {
+    display: block;
+    font-size: 7.5pt;
+    color: var(--slate);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
+  }
+  .tree-arrow {
+    text-align: center;
+    font-size: 16pt;
+    color: var(--slate);
+    margin: 0 0 8px;
+  }
+  body.dark .tree-col { background: linear-gradient(135deg, var(--slide-bg), var(--slide-bg-2)); }
+
+  /* PRE-POST STEPPER (slide 9) */
+  .pp-stepper {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 26px;
+    margin-bottom: 20px;
+    align-items: stretch;
+  }
+  .pp-step {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    position: relative;
+  }
+  .pp-step + .pp-step::before {
+    content: '→';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13pt;
+    color: var(--slate);
+    font-weight: 800;
+  }
+  .pp-step .pp-num {
+    display: inline-block;
+    width: 28px; height: 28px;
+    line-height: 28px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 11pt;
+    margin-bottom: 8px;
+  }
+  .pp-step.final { border-color: var(--green); background: linear-gradient(135deg, rgba(0,150,64,0.06), #fff); }
+  .pp-step.final .pp-num { background: var(--green); }
+  .pp-step.final .pp-title { color: var(--green); }
+  .pp-step .pp-icon { font-size: 22pt; display: block; margin-bottom: 6px; }
+  .pp-step .pp-title { font-weight: 700; color: var(--navy); font-size: 11pt; }
+  .pp-step .pp-desc { font-size: 8.5pt; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+  .pp-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .pp-metric {
+    background: linear-gradient(135deg, rgba(0, 46, 109, 0.05), rgba(0, 46, 109, 0.01));
+    border-left: 4px solid var(--navy);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .pp-metric.alt { border-left-color: var(--green); background: linear-gradient(135deg, rgba(0, 150, 64, 0.05), rgba(0, 150, 64, 0.01)); }
+  .pp-metric h5 { font-size: 11pt; color: var(--navy); margin-bottom: 4px; }
+  .pp-metric.alt h5 { color: var(--green); }
+  .pp-metric p { font-size: 9.5pt; color: var(--text); line-height: 1.4; }
+  body.dark .pp-step { background: var(--slide-bg); }
+
+  /* DUAL TRACK (slide 14) */
+  .dt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+  .dt-col {
+    background: linear-gradient(135deg, #fff, #f8fafc);
+    border: 1.5px solid var(--border);
+    border-top: 4px solid var(--navy);
+    border-radius: 14px;
+    padding: 22px 26px;
+    text-align: center;
+  }
+  .dt-col.operator { border-top-color: var(--amber); }
+  .dt-col .dt-head {
+    font-size: 15pt;
+    font-weight: 800;
+    margin-bottom: 14px;
+    color: var(--navy);
+  }
+  .dt-col.operator .dt-head { color: var(--amber); }
+  .dt-pills {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .dt-pill {
+    background: var(--navy);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 10pt;
+  }
+  .dt-col.operator .dt-pill { background: var(--amber); }
+  .dt-note { font-size: 8.5pt; color: var(--text-muted); font-style: italic; }
+  body.dark .dt-col { background: linear-gradient(135deg, var(--slide-bg), var(--slide-bg-2)); }
+
+  /* RINGKASAN (slide 20) */
+  .ringkasan-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .ringkasan-card {
+    background: linear-gradient(135deg, var(--navy), var(--navy-dark));
+    color: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+  }
+  .ringkasan-card.t2 { background: linear-gradient(135deg, #1e88e5, #0d47a1); }
+  .ringkasan-card.t3 { background: linear-gradient(135deg, var(--amber), #b45309); }
+  .ringkasan-card .rc-year {
+    font-size: 9pt;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.85;
+  }
+  .ringkasan-card .rc-fokus {
+    font-size: 14pt;
+    font-weight: 800;
+    margin: 6px 0 10px;
+  }
+  .ringkasan-card .rc-bullet {
+    font-size: 9.5pt;
+    padding: 4px 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .ringkasan-output {
+    background: linear-gradient(135deg, var(--amber), #d97706);
+    color: #fff;
+    border-radius: 14px;
+    padding: 18px 24px;
+    text-align: center;
+  }
+  .ringkasan-output .rio-label {
+    font-size: 9.5pt;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .ringkasan-output .rio-text {
+    font-size: 16pt;
+    font-weight: 800;
+    margin-top: 6px;
+  }
+
+  /* PROTON 3-TAHUN (slide 11) */
+  .proton-tahun-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .proton-tahun-card {
+    background: linear-gradient(135deg, #fff, #f8fafc);
+    border-top: 4px solid var(--navy);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    position: relative;
+  }
+  .proton-tahun-card.tahun-3 {
+    border-top-color: var(--amber);
+    background: linear-gradient(135deg, #fffbeb, #fff);
+  }
+  .proton-tahun-card .tahun-eyebrow {
+    font-size: 8pt;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--slate);
+    text-transform: uppercase;
+  }
+  .proton-tahun-card .tahun-title {
+    font-size: 17pt;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 4px 0 10px;
+  }
+  .proton-tahun-card.tahun-3 .tahun-title { color: var(--amber); }
+  .proton-tahun-card .tahun-track {
+    font-size: 9pt;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .proton-tahun-card .tahun-bullets { list-style: none; padding: 0; }
+  .proton-tahun-card .tahun-bullets li {
+    font-size: 9.5pt;
+    padding: 4px 0;
+    display: flex;
+    gap: 6px;
+  }
+  .offline-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+    font-size: 7.5pt;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  body.dark .proton-tahun-card { background: linear-gradient(135deg, var(--slide-bg), var(--slide-bg-2)); }
+
+  /* PROTON ALUR STEPPER (slide 12/13) */
+  .alur-stepper {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 14px;
+    align-items: stretch;
+  }
+  .alur-step {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: center;
+    position: relative;
+  }
+  .alur-stepper.offline-mode .alur-step { border-top: 3px solid var(--amber); }
+  .alur-step + .alur-step::before {
+    content: '→';
+    position: absolute;
+    left: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12pt;
+    color: var(--slate);
+    font-weight: 800;
+  }
+  .alur-step .as-num {
+    display: inline-block;
+    width: 24px; height: 24px;
+    line-height: 24px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 9pt;
+    margin-bottom: 6px;
+  }
+  .alur-stepper.offline-mode .alur-step .as-num { background: var(--amber); }
+  .alur-step.final { border-color: var(--green); background: linear-gradient(135deg, rgba(0,150,64,0.06), #fff); }
+  .alur-step.final .as-num { background: var(--green); }
+  .alur-step.final .as-title { color: var(--green); }
+  .alur-step .as-title { font-weight: 700; color: var(--navy); font-size: 10pt; margin-bottom: 3px; }
+  .alur-step .as-desc { font-size: 8pt; color: var(--text-muted); line-height: 1.3; }
+  .alur-crossref {
+    background: rgba(30, 136, 229, 0.08);
+    border-left: 3px solid #1e88e5;
+    padding: 8px 12px;
+    font-size: 9pt;
+    margin-bottom: 10px;
+    border-radius: 6px;
+  }
+  .alur-warning {
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 3px solid var(--amber);
+    padding: 8px 12px;
+    font-size: 9pt;
+    font-weight: 600;
+    color: var(--text);
+    border-radius: 6px;
+  }
+  .alur-callout {
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 3px solid var(--amber);
+    padding: 8px 12px;
+    font-size: 9pt;
+    font-weight: 600;
+    border-radius: 6px;
+    margin-top: 10px;
+  }
+  body.dark .alur-step { background: var(--slide-bg); }
+
 </style>
 </head>
 <body>
@@ -846,7 +1786,7 @@
         <h1 class="slide-title">Selamat Datang <span class="accent">Tim HC</span></h1>
         <p class="slide-subtitle">Yang akan kita bahas dalam sesi ini</p>
       </div>
-      <div class="slide-badge">SLIDE 2 / 23</div>
+      <div class="slide-badge">SLIDE 2 / 41</div>
     </div>
     <div class="slide-body">
       <div class="agenda-grid">
@@ -897,15 +1837,287 @@
     </div>
   </div>
 
-  <!-- ================= SLIDE 3: ROLE HC ================= -->
+  <!-- ================= MERGED CLUSTER: KONTEKS (5 slides from File 2 #3-#6, #21, placeholders 901-905 — renumber Task 6) ================= -->
+
+  <!-- 901: Latar Belakang (File 2 #3) -->
   <div class="slide default-deco" data-slide="3">
+    <div class="slide-header">
+      <div>
+        <h1 class="slide-title">Latar <span class="accent">Belakang</span></h1>
+        <p class="slide-subtitle">Mengapa HC Portal KPB dibangun</p>
+      </div>
+      <div class="slide-badge">SLIDE 3 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="latar-container">
+        <div class="latar-side latar-before">
+          <span class="latar-label">Sebelumnya</span>
+          <h3 class="latar-heading">Proses Manual &amp; Terfragmentasi</h3>
+          <ul class="latar-list">
+            <li>Assessment via kertas &amp; Excel</li>
+            <li>Data coaching tersebar antar unit</li>
+            <li>Sulit tracking progress pekerja</li>
+            <li>Tidak ada audit trail</li>
+            <li>Laporan manual, tidak real-time</li>
+          </ul>
+        </div>
+        <div class="latar-arrow">
+          <div class="latar-arrow-icon">&#10148;</div>
+          <div class="latar-arrow-label">Transformasi<br>Digital</div>
+        </div>
+        <div class="latar-side latar-after">
+          <span class="latar-label">HC Portal KPB</span>
+          <h3 class="latar-heading">Terintegrasi &amp; Data-Driven</h3>
+          <ul class="latar-list">
+            <li>Assessment online otomatis</li>
+            <li>Satu platform seragam</li>
+            <li>Dashboard real-time &amp; analytics</li>
+            <li>Audit log &amp; role-based access</li>
+            <li>Efisiensi operasional &amp; compliance</li>
+          </ul>
+        </div>
+      </div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: jembatan antara user pain "manual" &rarr; adopsi platform terintegrasi</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 902: Apa Itu HC Portal (File 2 #4) -->
+  <div class="slide default-deco" data-slide="4">
+    <div class="slide-header">
+      <div>
+        <h1 class="slide-title">Apa Itu <span class="accent">HC Portal</span> KPB?</h1>
+        <p class="slide-subtitle">Sistem informasi terpadu untuk Tim Human Capital Kilang Pertamina Balikpapan</p>
+      </div>
+      <div class="slide-badge">SLIDE 4 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="definition-box">
+        <div class="quote-mark">"</div>
+        <div class="definition-text">
+          Sistem informasi berbasis web Tim <strong>Human Capital Kilang Pertamina Balikpapan</strong> untuk <strong>MENGELOLA &middot; MENGEMBANGKAN &middot; MENDAMPINGI</strong> kompetensi pekerja lewat tiga platform terpadu: CMP, CDP, BP.
+        </div>
+      </div>
+      <div class="pilar-grid" style="margin-top:24px;">
+        <div class="pilar-card p1">
+          <div class="pilar-num">01</div>
+          <div class="pilar-icon-wrap">&#127919;</div>
+          <div class="pilar-title">Terpusat</div>
+          <div class="pilar-desc">Satu portal untuk seluruh proses kompetensi &amp; pengembangan pekerja KPB.</div>
+        </div>
+        <div class="pilar-card p2">
+          <div class="pilar-num">02</div>
+          <div class="pilar-icon-wrap">&#128208;</div>
+          <div class="pilar-title">Terstandar</div>
+          <div class="pilar-desc">Kriteria, deliverable, sertifikasi mengacu standard Kilang Pertamina Balikpapan.</div>
+        </div>
+        <div class="pilar-card p3">
+          <div class="pilar-num">03</div>
+          <div class="pilar-icon-wrap">&#128202;</div>
+          <div class="pilar-title">Terukur</div>
+          <div class="pilar-desc">Skor, progress, level kompetensi tertrace per pekerja secara real-time.</div>
+        </div>
+      </div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: owner data + reviewer final di semua workflow Proton</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 903: 3 Platform Terpadu (File 2 #5) -->
+  <div class="slide default-deco" data-slide="5">
+    <div class="slide-header">
+      <div>
+        <h1 class="slide-title">3 <span class="accent">Platform</span> Terpadu</h1>
+        <p class="slide-subtitle">CMP &middot; CDP &middot; BP &mdash; manajemen, pengembangan, &amp; strategic partner</p>
+      </div>
+      <div class="slide-badge">SLIDE 5 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="modules-grid" style="grid-template-columns:repeat(3,1fr);gap:14px;">
+        <div class="module-card cmp">
+          <div class="module-head">
+            <div class="module-icon">&#128203;</div>
+            <div>
+              <div class="module-name">CMP</div>
+              <div class="module-subname">Competency Management Platform</div>
+            </div>
+          </div>
+          <div class="module-desc">Platform digital untuk pengelolaan kompetensi terintegrasi &mdash; penyusunan KKJ, IDP, asesmen teknis &amp; Safety.</div>
+          <ul class="module-bullets">
+            <li>&#128202; Assessment &mdash; Ujian online &amp; sertifikasi</li>
+            <li>&#127891; Assessment Proton &mdash; Program 3-tahun</li>
+            <li>&#128260; Pre / Post Test &mdash; Ukur efektivitas training</li>
+            <li>&#127942; Sertifikasi &mdash; Otomatis + renewal lifecycle</li>
+          </ul>
+        </div>
+        <div class="module-card cdp">
+          <div class="module-head">
+            <div class="module-icon">&#127793;</div>
+            <div>
+              <div class="module-name">CDP</div>
+              <div class="module-subname">Competency Development Platform</div>
+            </div>
+          </div>
+          <div class="module-desc">Pembelajaran terstruktur untuk menutup gap kompetensi &mdash; prinsip blended Learning (Assignment, Coaching, Self Study).</div>
+          <ul class="module-bullets">
+            <li>&#127919; Coaching Proton &mdash; Silabus + deliverable + review multi-role</li>
+            <li>&#128203; IDP &mdash; Individual Development Plan tahunan</li>
+            <li>&#128218; Training Records &mdash; Riwayat training + sertifikat</li>
+          </ul>
+        </div>
+        <div class="module-card faded">
+          <div class="module-head">
+            <div class="module-icon">&#128679;</div>
+            <div>
+              <div class="module-name">BP</div>
+              <div class="module-subname">Business Partner</div>
+            </div>
+          </div>
+          <div class="module-desc">Modul HRBP &mdash; strategic partner antara HC &amp; unit operasional untuk workforce planning, employee relations, &amp; advisory.</div>
+          <ul class="module-bullets">
+            <li>For Future &mdash; in roadmap</li>
+          </ul>
+        </div>
+      </div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC operate di semua 3 (CMP analytics, CDP coaching, BP via integrasi)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 904: Struktur Role Pengguna (File 2 #6) -->
+  <div class="slide default-deco" data-slide="6">
+    <div class="slide-header">
+      <div>
+        <h1 class="slide-title">Struktur <span class="accent">Role</span> Pengguna</h1>
+        <p class="slide-subtitle">10 role &middot; 6 level &mdash; makin tinggi tangga, makin luas authority</p>
+      </div>
+      <div class="slide-badge">SLIDE 6 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="stairs">
+        <div class="step s6">
+          <div class="step-num">L6</div>
+          <div class="step-icon">&#128104;&#8205;&#127891;</div>
+          <div class="role-chips"><span class="role-chip"><span class="chip-icon">&#128104;&#8205;&#127891;</span>Coachee</span></div>
+          <div class="step-access">Self assessment &amp; IDP</div>
+        </div>
+        <div class="step s5">
+          <div class="step-num">L5</div>
+          <div class="step-icon">&#127891;</div>
+          <div class="role-chips">
+            <span class="role-chip"><span class="chip-icon">&#127891;</span>Coach</span>
+            <span class="role-chip"><span class="chip-icon">&#128100;</span>Supervisor</span>
+          </div>
+          <div class="step-access">Coaching &amp; review</div>
+        </div>
+        <div class="step s4">
+          <div class="step-num">L4</div>
+          <div class="step-icon">&#127970;</div>
+          <div class="role-chips">
+            <span class="role-chip"><span class="chip-icon">&#127970;</span>Section Head</span>
+            <span class="role-chip"><span class="chip-icon">&#129489;&#8205;&#128188;</span>Sr Supervisor</span>
+          </div>
+          <div class="step-access">Section-level monitor</div>
+        </div>
+        <div class="step s3">
+          <div class="step-num">L3</div>
+          <div class="step-icon">&#128084;</div>
+          <div class="role-chips">
+            <span class="role-chip"><span class="chip-icon">&#128084;</span>Direktur</span>
+            <span class="role-chip"><span class="chip-icon">&#128204;</span>VP</span>
+            <span class="role-chip"><span class="chip-icon">&#129517;</span>Manager</span>
+          </div>
+          <div class="step-access">Executive dashboard</div>
+        </div>
+        <div class="step s2">
+          <div class="step-num">L2</div>
+          <div class="step-icon">&#128101;</div>
+          <div class="role-chips"><span class="role-chip"><span class="chip-icon">&#128101;</span>HC</span></div>
+          <div class="step-access">All section access</div>
+        </div>
+        <div class="step s1">
+          <div class="step-num">L1</div>
+          <div class="step-icon">&#128737;&#65039;</div>
+          <div class="role-chips"><span class="role-chip"><span class="chip-icon">&#128737;&#65039;</span>Admin</span></div>
+          <div class="step-access">Full system control</div>
+        </div>
+      </div>
+      <p class="stair-caption">&larr; Operational Level &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; Higher Authority &rarr;</p>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC = L2 authority; scope: cross-section, final reviewer</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 905: Cara Mengakses HC Portal (File 2 #21) -->
+  <div class="slide default-deco" data-slide="7">
+    <div class="slide-header">
+      <div>
+        <h1 class="slide-title">Cara <span class="accent">Mengakses</span> HC Portal</h1>
+        <p class="slide-subtitle">Sekarang fase Development &mdash; Production akan menyusul</p>
+      </div>
+      <div class="slide-badge">SLIDE 7 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="akses-grid">
+        <div class="akses-card dev">
+          <span class="akses-status">&#9989; AKTIF SEKARANG</span>
+          <span class="akses-label">&#128994; Development</span>
+          <h3>Environment Utama</h3>
+          <p>Lingkungan pengembangan &amp; sosialisasi saat ini.</p>
+          <div class="url-box">http://10.55.3.3/KPB-PortalHC</div>
+          <div class="akses-info">
+            <strong>Login:</strong> Akun Active Directory Pertamina<br>
+            <strong>Jaringan:</strong> Intranet Pertamina
+          </div>
+        </div>
+        <div class="akses-card prod">
+          <span class="akses-status">&#9203; BELUM AKTIF</span>
+          <span class="akses-label">&#128679; Production</span>
+          <h3>Environment Target</h3>
+          <p>Akses resmi setelah promosi ke Production.</p>
+          <div class="url-box">https://appkpb.pertamina.com/KPB-PortalHC</div>
+          <span class="url-perkiraan">&#9432; URL perkiraan</span>
+          <div class="akses-info">
+            <strong>Login:</strong> Akun Active Directory Pertamina<br>
+            <strong>Jaringan:</strong> VPN / Intranet Pertamina
+          </div>
+        </div>
+      </div>
+      <div class="akses-footer">&#128204; Saat ini masih development</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC akses sama dengan user umum, tapi role-gated menu (Bab 1.2 Panduan)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 3: ROLE HC ================= -->
+  <div class="slide default-deco" data-slide="8">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">PENGENALAN</p>
         <h1 class="slide-title">Posisi <span class="accent">HC</span> di Portal</h1>
         <p class="slide-subtitle">Level 2 &mdash; akses penuh ke pengelolaan SDM &amp; coaching</p>
       </div>
-      <div class="slide-badge">SLIDE 3 / 23</div>
+      <div class="slide-badge">SLIDE 8 / 41</div>
     </div>
     <div class="slide-body">
       <div class="ladder-wrap">
@@ -961,14 +2173,14 @@
   </div>
 
   <!-- ================= SLIDE 4: ALUR KERJA HARIAN ================= -->
-  <div class="slide default-deco" data-slide="4">
+  <div class="slide default-deco" data-slide="9">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">PENGENALAN</p>
         <h1 class="slide-title">Alur Kerja <span class="accent">Harian HC</span></h1>
         <p class="slide-subtitle">5 aktivitas inti yang berulang setiap hari</p>
       </div>
-      <div class="slide-badge">SLIDE 4 / 23</div>
+      <div class="slide-badge">SLIDE 9 / 41</div>
     </div>
     <div class="slide-body">
       <div class="flow-h">
@@ -1010,14 +2222,14 @@
   </div>
 
   <!-- ================= SLIDE 5: CMP OVERVIEW ================= -->
-  <div class="slide default-deco" data-slide="5">
+  <div class="slide default-deco" data-slide="10">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
         <h1 class="slide-title">CMP <span class="accent">Overview</span></h1>
         <p class="slide-subtitle">Halaman landing CMP &mdash; akses 6 sub-modul utama via card grid</p>
       </div>
-      <div class="slide-badge">SLIDE 5 / 23</div>
+      <div class="slide-badge">SLIDE 10 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1048,14 +2260,14 @@
   </div>
 
   <!-- ================= SLIDE 6: RECORDS TEAM ================= -->
-  <div class="slide default-deco" data-slide="6">
+  <div class="slide default-deco" data-slide="11">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
         <h1 class="slide-title">Records <span class="accent">Team</span></h1>
         <p class="slide-subtitle">12 pekerja monitored real-time &mdash; filter cascade + export</p>
       </div>
-      <div class="slide-badge">SLIDE 6 / 23</div>
+      <div class="slide-badge">SLIDE 11 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1082,14 +2294,14 @@
   </div>
 
   <!-- ================= SLIDE 7: ANALYTICS DASHBOARD ================= -->
-  <div class="slide default-deco" data-slide="7">
+  <div class="slide default-deco" data-slide="12">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
         <h1 class="slide-title">Analytics <span class="accent">Dashboard</span></h1>
         <p class="slide-subtitle">25 Sesi &middot; 56% Pass Rate &middot; 6 tab chart &middot; export Excel per chart</p>
       </div>
-      <div class="slide-badge">SLIDE 7 / 23</div>
+      <div class="slide-badge">SLIDE 12 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1115,15 +2327,193 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.5 &mdash; Analytics Dashboard + Export</p>
   </div>
 
+  <!-- ================= MERGED CLUSTER: ASSESSMENT LIFECYCLE (3 slides from File 2 #7-9, placeholders 906-908 — renumber Task 6) ================= -->
+
+  <!-- 906: Sistem Assessment (File 2 #7) -->
+  <div class="slide default-deco" data-slide="13">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1</p>
+        <h1 class="slide-title">Sistem <span class="accent">Assessment</span></h1>
+        <p class="slide-subtitle">Dua jenis assessment utama di HC Portal</p>
+      </div>
+      <div class="slide-badge">SLIDE 13 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="jenis-grid">
+        <div class="jenis-card umum">
+          <div class="jenis-head">&#128202; Assessment Umum</div>
+          <div class="jenis-row">
+            <div class="jenis-label">Kategori</div>
+            <div class="jenis-value">Per batch unit operasi / batch berdurasi</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Metode Ujian</div>
+            <div class="jenis-value">Ujian online (single choice, multiple choice, essay), timer otomatis</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Penilaian</div>
+            <div class="jenis-value">Otomatis berdasarkan passing grade</div>
+          </div>
+        </div>
+        <div class="jenis-card proton">
+          <div class="jenis-head">&#127891; Assessment Proton</div>
+          <div class="jenis-row">
+            <div class="jenis-label">Kategori</div>
+            <div class="jenis-value">Per track per tahun (Panelman/Operator, Tahun 1-3)</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Metode Ujian</div>
+            <div class="jenis-value">Online (Th 1-2) + Interview offline (Th 3)</div>
+          </div>
+          <div class="jenis-row">
+            <div class="jenis-label">Penilaian</div>
+            <div class="jenis-value">Otomatis (online) + Manual panel (interview)</div>
+          </div>
+        </div>
+      </div>
+      <div class="tip-bar">&#128161; <strong>Assessment Umum</strong> untuk evaluasi reguler per batch unit / jenis kompetensi &middot; <strong>Proton</strong> untuk program pengembangan 3 tahun</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: setup jadwal, bank soal, monitor real-time, force-close</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 907: 5 Kategori Assessment Umum (File 2 #8) -->
+  <div class="slide default-deco" data-slide="14">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &middot; CMP</p>
+        <h1 class="slide-title">5 Kategori <span class="accent">Assessment Umum</span></h1>
+        <p class="slide-subtitle">Cakupan jenis ujian kompetensi di KPB di luar Proton</p>
+      </div>
+      <div class="slide-badge">SLIDE 14 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="cat-grid center-5">
+        <div class="cat-card c1">
+          <div class="cat-head"><div class="cat-ic">&#128295;</div><div class="cat-name">Assessment OJT</div></div>
+          <div class="cat-desc">On the Job Training &mdash; ujian kompetensi berbasis unit kerja (Alkylation, RFCC NHT, dll)</div>
+        </div>
+        <div class="cat-card c2">
+          <div class="cat-head"><div class="cat-ic">&#127979;</div><div class="cat-name">IHT</div></div>
+          <div class="cat-desc">In House Training &mdash; assessment terkait pelatihan internal perusahaan</div>
+        </div>
+        <div class="cat-card c3">
+          <div class="cat-head"><div class="cat-ic">&#128220;</div><div class="cat-name">Licencor</div></div>
+          <div class="cat-desc">Training Licencor &mdash; lisensi &amp; sertifikasi eksternal</div>
+        </div>
+        <div class="cat-card c4">
+          <div class="cat-head"><div class="cat-ic">&#128205;</div><div class="cat-name">OTS</div></div>
+          <div class="cat-desc">On The Spot &mdash; assessment langsung di lapangan</div>
+        </div>
+        <div class="cat-card c5">
+          <div class="cat-head"><div class="cat-ic">&#9888;&#65039;</div><div class="cat-name">HSSE</div></div>
+          <div class="cat-desc">Mandatory Health, Safety, Security &amp; Environment training</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:14px;">&#128204; <strong>Assessment Proton</strong> dibahas di Bagian 2 &mdash; sistem track 3-tahun Panelman/Operator</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: assign kategori per jadwal, lihat fail rate per kategori (Analytics)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 908: Alur Assessment 7-Step E2E (File 2 #9) -->
+  <div class="slide default-deco" data-slide="15">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 1 &middot; ALUR</p>
+        <h1 class="slide-title">Alur <span class="accent">Assessment</span> &mdash; 7 Step End-to-End</h1>
+        <p class="slide-subtitle">Persiapan &rarr; Pelaksanaan &rarr; Penilaian</p>
+      </div>
+      <div class="slide-badge">SLIDE 15 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="swim-row" style="grid-template-columns:2fr 3fr 2fr;">
+        <div class="swim-lane lane-prep">
+          <div class="swim-label">&#128193; Persiapan (1-2)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">1</span>
+              <span class="step-icon-mini">&#128193;</span>
+              <div class="step-title">Persiapan Data</div>
+              <div class="step-desc">Kategori per unit, organisasi, daftar pekerja</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">2</span>
+              <span class="step-icon-mini">&#128221;</span>
+              <div class="step-title">Buat Assessment</div>
+              <div class="step-desc">Pilih kategori, set durasi &amp; soal</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-exec">
+          <div class="swim-label">&#9881; Pelaksanaan (3-5)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">3</span>
+              <span class="step-icon-mini">&#128187;</span>
+              <div class="step-title">Peserta Ujian</div>
+              <div class="step-desc">Login portal, random soal, timer otomatis</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">4</span>
+              <span class="step-icon-mini">&#128065;</span>
+              <div class="step-title">Monitoring</div>
+              <div class="step-desc">Pantau real-time, akhiri manual bila perlu</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">5</span>
+              <span class="step-icon-mini">&#128228;</span>
+              <div class="step-title">Submit</div>
+              <div class="step-desc">Manual atau auto-submit saat timer habis</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-result">
+          <div class="swim-label">&#127942; Penilaian (6-7)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">6</span>
+              <span class="step-icon-mini">&#9881;</span>
+              <div class="step-title">Penilaian Otomatis</div>
+              <div class="step-desc">Skor vs passing grade otomatis</div>
+            </div>
+            <div class="swim-step final">
+              <span class="step-num-mini">7</span>
+              <span class="step-icon-mini">&#127942;</span>
+              <div class="step-title">Hasil &amp; Laporan</div>
+              <div class="step-desc">Sertifikasi + rekap per unit/kategori</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="output-bar">&#128228; <strong>Output:</strong> skor pekerja &middot; status kelulusan &middot; rekap per unit</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: step 1 (setup), step 5 (monitor), step 7 (manual entry + cert)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= SLIDE 8: PRE/POST TEST ================= -->
-  <div class="slide default-deco" data-slide="8">
+  <div class="slide default-deco" data-slide="16">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
         <h1 class="slide-title">Pre / Post Test &mdash; <span class="accent">Gain Score</span></h1>
         <p class="slide-subtitle">Mengukur efektivitas training secara terstandar</p>
       </div>
-      <div class="slide-badge">SLIDE 8 / 23</div>
+      <div class="slide-badge">SLIDE 16 / 41</div>
     </div>
     <div class="slide-body">
       <div class="flow-h">
@@ -1165,14 +2555,14 @@
   </div>
 
   <!-- ================= SLIDE 9: CDP OVERVIEW + REVIEWER CHAIN ================= -->
-  <div class="slide default-deco" data-slide="9">
+  <div class="slide default-deco" data-slide="17">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
         <h1 class="slide-title">CDP &mdash; <span class="accent">Reviewer Chain</span></h1>
         <p class="slide-subtitle">HC = Final Reviewer (Reviewer ke-3) di approval chain</p>
       </div>
-      <div class="slide-badge">SLIDE 9 / 23</div>
+      <div class="slide-badge">SLIDE 17 / 41</div>
     </div>
     <div class="slide-body">
       <div class="chain-wrap">
@@ -1220,15 +2610,521 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.8 &mdash; Reviewer Chain</p>
   </div>
 
+  <!-- ================= MERGED CLUSTER: PROTON + COACHING (9 slides from File 2 #11-#18 narrative order, placeholders 909-917 — renumber Task 6) ================= -->
+
+  <!-- 909: Assessment Proton (File 2 #11) -->
+  <div class="slide default-deco" data-slide="18">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2</p>
+        <h1 class="slide-title">Assessment <span class="accent">Proton</span></h1>
+        <p class="slide-subtitle">Program 3 tahun &middot; 1 track per role (Panelman / Operator)</p>
+      </div>
+      <div class="slide-badge">SLIDE 18 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div style="text-align:center;padding:20px;">
+        <div style="display:inline-flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;">
+          <span style="background:var(--navy);color:#fff;padding:14px 28px;border-radius:24px;font-size:13pt;font-weight:700;">Tahun 1 &mdash; Dasar</span>
+          <span style="background:var(--navy);color:#fff;padding:14px 28px;border-radius:24px;font-size:13pt;font-weight:700;">Tahun 2 &mdash; Lanjutan</span>
+          <span style="background:var(--amber);color:#fff;padding:14px 28px;border-radius:24px;font-size:13pt;font-weight:700;">Tahun 3 &mdash; Mahir &#127908;</span>
+        </div>
+        <p style="font-size:11pt;color:var(--text-muted);max-width:760px;margin:0 auto 18px;line-height:1.6;">
+          Tahun 1 &amp; 2 ujian online (single/multi/essay) &middot; Tahun 3 interview offline panel juri.
+          Wajib lulus Tahun N untuk lanjut Tahun N+1.
+        </p>
+        <div class="tip-bar" style="display:inline-block;text-align:left;max-width:640px;">
+          &#128161; Detail komparasi 5 aspek per tahun (fokus, deliverable, coaching, assessment, akhir tahun) di <strong>slide Progresi Kompetensi</strong> (BAGIAN 3).
+        </div>
+      </div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: reviewer final chain Proton, manage silabus + guidance files</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 910: Alur Proton Th 1&2 (File 2 #12) -->
+  <div class="slide default-deco" data-slide="19">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &middot; ALUR</p>
+        <h1 class="slide-title">Alur Proton &mdash; Tahun <span class="accent">1 &amp; 2</span></h1>
+        <p class="slide-subtitle">Ujian Online (Pilihan Ganda)</p>
+      </div>
+      <div class="slide-badge">SLIDE 19 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="alur-stepper">
+        <div class="alur-step">
+          <span class="as-num">1</span>
+          <div class="as-title">Buat Assessment</div>
+          <div class="as-desc">Kategori "Assessment Proton", pilih track (Operator/Panelman) &amp; tahun</div>
+        </div>
+        <div class="alur-step">
+          <span class="as-num">2</span>
+          <div class="as-title">Set Paket Soal</div>
+          <div class="as-desc">Pilih paket sesuai track tahun, set durasi &amp; passing grade</div>
+        </div>
+        <div class="alur-step">
+          <span class="as-num">3</span>
+          <div class="as-title">Peserta Ujian Online</div>
+          <div class="as-desc">Login portal, kerjakan soal dalam timer otomatis</div>
+        </div>
+        <div class="alur-step final">
+          <span class="as-num">4</span>
+          <div class="as-title">Penilaian Otomatis</div>
+          <div class="as-desc">Skor otomatis, laporan lulus/tidak per peserta</div>
+        </div>
+      </div>
+      <div class="alur-crossref">&#128161; <strong>Mirip Assessment Umum</strong> &mdash; beda di kategori &amp; paket soal per track</div>
+      <div class="alur-warning">&#9888; <strong>Wajib lulus Tahun N</strong> untuk lanjut ke Tahun N+1</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: jaga deliverable submission timeline, eskalasi bottleneck</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 911: Alur Proton Th 3 (File 2 #13) -->
+  <div class="slide default-deco" data-slide="20">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 2 &middot; ALUR</p>
+        <h1 class="slide-title">Alur Proton &mdash; Tahun <span class="accent" style="color:var(--amber);">3</span></h1>
+        <p class="slide-subtitle">Interview Offline (Tatap Muka, Panel Juri)</p>
+      </div>
+      <div class="slide-badge" style="background:var(--amber);">&#127908; OFFLINE MODE</div>
+    </div>
+    <div class="slide-body">
+      <div class="alur-stepper offline-mode">
+        <div class="alur-step">
+          <span class="as-num">1</span>
+          <div class="as-title">Buat Assessment</div>
+          <div class="as-desc">Pilih track Tahun 3. <strong>Tanpa</strong> durasi &amp; paket soal</div>
+        </div>
+        <div class="alur-step">
+          <span class="as-num">2</span>
+          <div class="as-title">Interview Offline</div>
+          <div class="as-desc">Panel juri tatap muka, peserta presentasi &amp; dijuri</div>
+        </div>
+        <div class="alur-step">
+          <span class="as-num">3</span>
+          <div class="as-title">Penilaian Kompetensi</div>
+          <div class="as-desc">Penilaian kompetensi oleh panel juri</div>
+        </div>
+        <div class="alur-step final">
+          <span class="as-num">4</span>
+          <div class="as-title">Rekap &amp; Sertifikasi</div>
+          <div class="as-desc">Input skor ke sistem, sertifikasi level kompetensi</div>
+        </div>
+      </div>
+      <div class="alur-callout">&#128276; <strong>Sistem hanya untuk input skor &amp; rekap</strong> &mdash; bukan ujian online</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: validasi mahir, certification renewal management</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 912: Coaching Proton Dual Track (File 2 #14) -->
+  <div class="slide default-deco" data-slide="21">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &middot; CDP</p>
+        <h1 class="slide-title">Coaching <span class="accent">Proton</span> &mdash; Dual Track</h1>
+        <p class="slide-subtitle">Program 3 tahun pengembangan kompetensi &middot; 2 track independen</p>
+      </div>
+      <div class="slide-badge">SLIDE 21 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="dt-grid">
+        <div class="dt-col">
+          <div class="dt-head">&#128119; Panelman</div>
+          <div class="dt-pills">
+            <span class="dt-pill">Th 1</span>
+            <span class="dt-pill">Th 2</span>
+            <span class="dt-pill">Th 3</span>
+          </div>
+          <p class="dt-note">3 track terpisah &middot; hierarki &amp; deliverable independen</p>
+        </div>
+        <div class="dt-col operator">
+          <div class="dt-head">&#128295; Operator</div>
+          <div class="dt-pills">
+            <span class="dt-pill">Th 1</span>
+            <span class="dt-pill">Th 2</span>
+            <span class="dt-pill">Th 3</span>
+          </div>
+          <p class="dt-note">3 track terpisah &middot; hierarki &amp; deliverable independen</p>
+        </div>
+      </div>
+      <div class="tip-bar">&#128161; <strong>Setiap track berdiri sendiri</strong> &mdash; hierarki kompetensi &amp; deliverable independen. Pekerja dipromosikan setiap tahun setelah semua deliverable selesai.</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: monitor kedua track via Coaching Proton Dashboard</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 913: IDP & Training Records (File 2 #19) -->
+  <div class="slide default-deco" data-slide="22">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &middot; CDP</p>
+        <h1 class="slide-title">IDP &amp; <span class="accent">Training Records</span></h1>
+        <p class="slide-subtitle">Dua komponen pelengkap Coaching Proton di CDP</p>
+      </div>
+      <div class="slide-badge">SLIDE 22 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="modules-grid" style="grid-template-columns:1fr 1fr;gap:18px;">
+        <div class="module-card cmp">
+          <div class="module-head">
+            <div class="module-icon">&#128203;</div>
+            <div>
+              <div class="module-name">IDP</div>
+              <div class="module-subname">Individual Development Plan (Perpustakaan)</div>
+            </div>
+          </div>
+          <ul class="module-bullets">
+            <li>&#128194; Repository dokumen IDP per pekerja</li>
+            <li>&#128196; Akses dokumen KKJ (Kebutuhan Kompetensi Jabatan)</li>
+            <li>&#128065; Worker view &amp; download dokumen</li>
+            <li>&#128269; Filter &amp; search per jabatan / unit</li>
+          </ul>
+        </div>
+        <div class="module-card cdp">
+          <div class="module-head">
+            <div class="module-icon">&#128218;</div>
+            <div>
+              <div class="module-name">Training Records</div>
+              <div class="module-subname">Riwayat Pelatihan</div>
+            </div>
+          </div>
+          <ul class="module-bullets">
+            <li>&#127979; Training internal &amp; eksternal</li>
+            <li>&#127991; Kategori + sub-kategori</li>
+            <li>&#128206; Sertifikat upload (PDF/image)</li>
+            <li>&#9203; Validity period &amp; renewal</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:14px;">&#128161; IDP &amp; Training Records <strong>terintegrasi dengan profile pekerja</strong> &mdash; jadi referensi gap analysis &amp; promosi.</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: review IDP coachee, audit training records team</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 914: Hierarki Kompetensi per Track (File 2 #15) -->
+  <div class="slide default-deco" data-slide="23">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &middot; STRUKTUR</p>
+        <h1 class="slide-title">Hierarki <span class="accent">Kompetensi</span> per Track</h1>
+        <p class="slide-subtitle">Track &rarr; Kompetensi &rarr; Sub-Kompetensi &rarr; Deliverable</p>
+      </div>
+      <div class="slide-badge">SLIDE 23 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="tree-grid">
+        <div class="tree-col generic">
+          <h4>Struktur Umum</h4>
+          <div class="tree-node">&#128193; Track<span class="node-level">Level 0</span></div>
+          <div class="tree-arrow">&darr;</div>
+          <div class="tree-node">&#128194; Kompetensi<span class="node-level">Level 1</span></div>
+          <div class="tree-arrow">&darr;</div>
+          <div class="tree-node">&#128196; Sub-Kompetensi<span class="node-level">Level 2</span></div>
+          <div class="tree-arrow">&darr;</div>
+          <div class="tree-node">&#127919; Deliverable<span class="node-level">Output Konkret</span></div>
+        </div>
+        <div class="tree-col example">
+          <h4>Contoh Konkret</h4>
+          <div class="tree-node">&#128193; Operator &mdash; Tahun 1<span class="node-level">Track</span></div>
+          <div class="tree-arrow">&darr;</div>
+          <div class="tree-node">&#128194; Safety Operation<span class="node-level">Kompetensi</span></div>
+          <div class="tree-arrow">&darr;</div>
+          <div class="tree-node">&#128196; LOTO (Lock Out Tag Out)<span class="node-level">Sub-Kompetensi</span></div>
+          <div class="tree-arrow">&darr;</div>
+          <div class="tree-node">&#127919; Submit prosedur LOTO unit X<span class="node-level">Deliverable</span></div>
+        </div>
+      </div>
+      <div class="tip-bar">&#128161; <strong>Independen per track</strong> &mdash; tidak shared. Semua deliverable selesai = lulus track &rarr; promosi ke tahun berikutnya.</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: gunakan KKJ matrix untuk gap analysis CPDP Mapping</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 915: Progresi Kompetensi per Tahun (File 2 #16) -->
+  <div class="slide default-deco" data-slide="24">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 3 &middot; PROGRESI</p>
+        <h1 class="slide-title">Progresi <span class="accent">Kompetensi</span> per Tahun</h1>
+        <p class="slide-subtitle">5 aspek pembanding antara Tahun 1, 2, dan 3</p>
+      </div>
+      <div class="slide-badge">SLIDE 24 / 41</div>
+    </div>
+    <div class="slide-body">
+      <table class="progresi-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Tahun 1</th>
+            <th>Tahun 2</th>
+            <th>Tahun 3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="aspek-label">&#127919; Fokus</td>
+            <td>Dasar &amp; pengenalan unit kerja</td>
+            <td>Lanjutan &amp; pendalaman proses</td>
+            <td class="diff-cell">Mahir &amp; penguasaan penuh</td>
+          </tr>
+          <tr>
+            <td class="aspek-label">&#128230; Deliverable</td>
+            <td>Khusus Tahun 1 (beda dari Th 2 &amp; 3)</td>
+            <td>Khusus Tahun 2 (beda dari Th 1 &amp; 3)</td>
+            <td class="diff-cell">Khusus Tahun 3 (beda dari Th 1 &amp; 2)</td>
+          </tr>
+          <tr>
+            <td class="aspek-label">&#128260; Coaching Process</td>
+            <td>Submit Evidence &rarr; Multi Approval &rarr; Final Assessment</td>
+            <td>Submit Evidence &rarr; Multi Approval &rarr; Final Assessment</td>
+            <td class="diff-cell">Submit Evidence &rarr; Multi Approval &rarr; <strong>Final Assessment Interview</strong></td>
+          </tr>
+          <tr>
+            <td class="aspek-label">&#128221; Assessment</td>
+            <td>Ujian online (pilihan ganda)</td>
+            <td>Ujian online (pilihan ganda)</td>
+            <td class="diff-cell"><strong>Interview offline panel juri</strong></td>
+          </tr>
+          <tr>
+            <td class="aspek-label">&#127942; Akhir Tahun</td>
+            <td>Sertifikasi Th 1 &rarr; lanjut Tahun 2</td>
+            <td>Sertifikasi Th 2 &rarr; lanjut Tahun 3</td>
+            <td class="diff-cell"><strong>Sertifikasi Final &rarr; Pekerja Kompeten Penuh</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: track progresi via Analytics + Bottleneck Report</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 916: Alur Coaching Reguler 9-Step (File 2 #17) -->
+  <div class="slide default-deco" data-slide="25">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">COACHING &middot; TAHUN 1 &amp; 2</p>
+        <h1 class="slide-title">Alur <span class="accent">Coaching</span> &mdash; 9 Step</h1>
+        <p class="slide-subtitle">Persiapan Silabus &rarr; Review Multi-Role &rarr; Assessment Online &rarr; Sertifikasi</p>
+      </div>
+      <div class="slide-badge">SLIDE 25 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="swim-row" style="grid-template-columns:3fr 3fr 2fr;">
+        <div class="swim-lane lane-prep">
+          <div class="swim-label">&#128203; Persiapan (1-3)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">1</span>
+              <span class="step-icon-mini">&#128203;</span>
+              <div class="step-title">Silabus</div>
+              <div class="step-desc">Kompetensi &amp; deliverable per track tahun</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">2</span>
+              <span class="step-icon-mini">&#128228;</span>
+              <div class="step-title">Guidance</div>
+              <div class="step-desc">Dokumen panduan belajar per kompetensi</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">3</span>
+              <span class="step-icon-mini">&#128279;</span>
+              <div class="step-title">Assign Coachee</div>
+              <div class="step-desc">HC assign coachee ke track tahun</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-exec">
+          <div class="swim-label">&#128064; Review Multi-Role (4-6)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">4</span>
+              <span class="step-icon-mini">&#128229;</span>
+              <div class="step-title">Submit Evidence</div>
+              <div class="step-desc">Coach submit evidence per deliverable</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">5</span>
+              <span class="step-icon-mini">&#128064;</span>
+              <div class="step-title">Review Multi-Role</div>
+              <div class="step-desc">Coach + SrSpv + SH + HC paralel</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">6</span>
+              <span class="step-icon-mini">&#9989;</span>
+              <div class="step-title">Approval / Revisi</div>
+              <div class="step-desc">Approve atau request revisi dgn komentar</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-result">
+          <div class="swim-label">&#127941; Sertifikasi (7-9)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">7</span>
+              <span class="step-icon-mini">&#128202;</span>
+              <div class="step-title">Hitung Progress</div>
+              <div class="step-desc">% penyelesaian deliverable dalam track</div>
+            </div>
+            <div class="swim-step highlight">
+              <span class="step-num-mini">8</span>
+              <span class="step-icon-mini">&#128187;</span>
+              <div class="step-title">Assessment Online</div>
+              <div class="step-desc">Ujian akhir online (single/multi/essay)</div>
+            </div>
+            <div class="swim-step final">
+              <span class="step-num-mini">9</span>
+              <span class="step-icon-mini">&#127941;</span>
+              <div class="step-title">Sertifikasi</div>
+              <div class="step-desc">Lulus tahun, naik ke tahun berikutnya</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="output-bar">&#9989; <strong>Output:</strong> sertifikat tahun + eligible naik tahun berikutnya</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: reviewer final di step 8-9 (approval chain)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 917: Alur Coaching Mahir 9-Step (File 2 #18) -->
+  <div class="slide default-deco" data-slide="26">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">COACHING &middot; TAHUN 3 (MAHIR)</p>
+        <h1 class="slide-title">Alur Coaching <span class="accent" style="color:var(--amber);">Mahir</span> &mdash; 9 Step</h1>
+        <p class="slide-subtitle">Silabus Mahir &rarr; Review Multi-Role &rarr; Interview Offline &rarr; Sertifikasi Final</p>
+      </div>
+      <div class="slide-badge" style="background:var(--amber);">&#127919; LEVEL MAHIR</div>
+    </div>
+    <div class="slide-body">
+      <div class="swim-row" style="grid-template-columns:3fr 3fr 2fr;">
+        <div class="swim-lane lane-prep">
+          <div class="swim-label">&#127891; Silabus Mahir (1-3)</div>
+          <div class="swim-steps">
+            <div class="swim-step highlight">
+              <span class="step-num-mini">1</span>
+              <span class="step-icon-mini">&#127891;</span>
+              <div class="step-title">Silabus Mahir</div>
+              <div class="step-desc">Level mahir, beda dari Th 1-2</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">2</span>
+              <span class="step-icon-mini">&#128279;</span>
+              <div class="step-title">Mapping Th 3</div>
+              <div class="step-desc">Coachee lulus Th 2 &rarr; track Th 3</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">3</span>
+              <span class="step-icon-mini">&#9999;</span>
+              <div class="step-title">Kerjakan Deliverable</div>
+              <div class="step-desc">Submit evidence level mahir</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-exec">
+          <div class="swim-label">&#128064; Review Multi-Role (4-6)</div>
+          <div class="swim-steps">
+            <div class="swim-step">
+              <span class="step-num-mini">4</span>
+              <span class="step-icon-mini">&#128064;</span>
+              <div class="step-title">Review Multi-Role</div>
+              <div class="step-desc">Coach + SrSpv + SH + HC paralel</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">5</span>
+              <span class="step-icon-mini">&#9989;</span>
+              <div class="step-title">Approval / Revisi</div>
+              <div class="step-desc">Approve atau request revisi dgn komentar</div>
+            </div>
+            <div class="swim-step">
+              <span class="step-num-mini">6</span>
+              <span class="step-icon-mini">&#128202;</span>
+              <div class="step-title">Hitung Progress</div>
+              <div class="step-desc">% deliverable + skor review</div>
+            </div>
+          </div>
+        </div>
+        <div class="swim-lane lane-result">
+          <div class="swim-label">&#127942; Sertifikasi Final (7-9)</div>
+          <div class="swim-steps">
+            <div class="swim-step highlight">
+              <span class="step-num-mini">7</span>
+              <span class="step-icon-mini">&#127908;</span>
+              <div class="step-title">Interview Offline</div>
+              <div class="step-desc">Final assessment panel juri tatap muka</div>
+            </div>
+            <div class="swim-step final">
+              <span class="step-num-mini">8</span>
+              <span class="step-icon-mini">&#127942;</span>
+              <div class="step-title">Sertifikasi Final</div>
+              <div class="step-desc">Semua deliverable Th 3 selesai</div>
+            </div>
+            <div class="swim-step final">
+              <span class="step-num-mini">9</span>
+              <span class="step-icon-mini">&#11088;</span>
+              <div class="step-title">Penetapan Level</div>
+              <div class="step-desc">Tetapkan level kompetensi pekerja</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="output-bar" style="background:linear-gradient(90deg,var(--amber),#b45309);">&#127942; <strong>Output:</strong> Pekerja kompeten penuh + sertifikasi final + eligible role advance</div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: validation mahir + sertifikasi (Renewal Certificate Mgmt)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= SLIDE 10: COACHING DASHBOARD ================= -->
-  <div class="slide default-deco" data-slide="10">
+  <div class="slide default-deco" data-slide="27">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
         <h1 class="slide-title">Coaching Proton <span class="accent">Dashboard</span></h1>
         <p class="slide-subtitle">5 metric global + filter cascade + tab Bottleneck Report</p>
       </div>
-      <div class="slide-badge">SLIDE 10 / 23</div>
+      <div class="slide-badge">SLIDE 27 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1255,14 +3151,14 @@
   </div>
 
   <!-- ================= SLIDE 11: HISTORI PROTON + EXPORT ================= -->
-  <div class="slide default-deco" data-slide="11">
+  <div class="slide default-deco" data-slide="28">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
         <h1 class="slide-title">Histori Proton + <span class="accent">Export</span></h1>
         <p class="slide-subtitle">2 coachee Operator Alkylation Unit aktif &mdash; progress visual Th1/2/3</p>
       </div>
-      <div class="slide-badge">SLIDE 11 / 23</div>
+      <div class="slide-badge">SLIDE 28 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1290,14 +3186,14 @@
   </div>
 
   <!-- ================= SLIDE 12: RENEWAL LIFECYCLE ================= -->
-  <div class="slide default-deco" data-slide="12">
+  <div class="slide default-deco" data-slide="29">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 2 &mdash; CDP</p>
         <h1 class="slide-title">Renewal Certificate <span class="accent">Lifecycle</span></h1>
         <p class="slide-subtitle">Alur lengkap sertifikat expired sampai terbit baru</p>
       </div>
-      <div class="slide-badge">SLIDE 12 / 23</div>
+      <div class="slide-badge">SLIDE 29 / 41</div>
     </div>
     <div class="slide-body">
       <div class="flow-h">
@@ -1339,14 +3235,14 @@
   </div>
 
   <!-- ================= SLIDE 13: SILABUS + GUIDANCE ================= -->
-  <div class="slide default-deco" data-slide="13">
+  <div class="slide default-deco" data-slide="30">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 3 &mdash; KELOLA DATA</p>
         <h1 class="slide-title">Silabus + <span class="accent">Guidance Files</span></h1>
         <p class="slide-subtitle">Tabel silabus per Bagian/Unit/Track + Coaching Guidance (3 tab)</p>
       </div>
-      <div class="slide-badge">SLIDE 13 / 23</div>
+      <div class="slide-badge">SLIDE 30 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1374,14 +3270,14 @@
   </div>
 
   <!-- ================= SLIDE 14: OVERRIDE ================= -->
-  <div class="slide default-deco" data-slide="14">
+  <div class="slide default-deco" data-slide="31">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 3 &mdash; KELOLA DATA</p>
         <h1 class="slide-title">Override <span class="accent">Data Pekerja</span></h1>
         <p class="slide-subtitle">Fitur sensitif &mdash; pakai dengan hati-hati</p>
       </div>
-      <div class="slide-badge">SLIDE 14 / 23</div>
+      <div class="slide-badge">SLIDE 31 / 41</div>
     </div>
     <div class="slide-body">
       <div class="split-2">
@@ -1414,14 +3310,14 @@
   </div>
 
   <!-- ================= SLIDE 15: ADMIN PANEL MAP ================= -->
-  <div class="slide default-deco" data-slide="15">
+  <div class="slide default-deco" data-slide="32">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
         <h1 class="slide-title">Admin Panel <span class="accent">Landing</span></h1>
         <p class="slide-subtitle">4 section ABCD &mdash; total 14 menu yang HC kelola</p>
       </div>
-      <div class="slide-badge">SLIDE 15 / 23</div>
+      <div class="slide-badge">SLIDE 32 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1448,14 +3344,14 @@
   </div>
 
   <!-- ================= SLIDE 16: KELOLA PEKERJA ================= -->
-  <div class="slide default-deco" data-slide="16">
+  <div class="slide default-deco" data-slide="33">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
         <h1 class="slide-title">Manajemen <span class="accent">Pekerja</span></h1>
         <p class="slide-subtitle">12 user aktif: 1 Admin, 1 HC, 5 Coachee, sisanya Coach/Manager/Section Head</p>
       </div>
-      <div class="slide-badge">SLIDE 16 / 23</div>
+      <div class="slide-badge">SLIDE 33 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1483,14 +3379,14 @@
   </div>
 
   <!-- ================= SLIDE 17: ASSESSMENT MONITORING ================= -->
-  <div class="slide default-deco" data-slide="17">
+  <div class="slide default-deco" data-slide="34">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
         <h1 class="slide-title">Assessment <span class="accent">Monitoring</span></h1>
         <p class="slide-subtitle">Real-time tracking 2 grup aktif: ojt test (Open) + Pre-Post UAT (Upcoming)</p>
       </div>
-      <div class="slide-badge">SLIDE 17 / 23</div>
+      <div class="slide-badge">SLIDE 34 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1517,14 +3413,14 @@
   </div>
 
   <!-- ================= SLIDE 18: COACH MAPPING ================= -->
-  <div class="slide default-deco" data-slide="18">
+  <div class="slide default-deco" data-slide="35">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
         <h1 class="slide-title">Coach-Coachee <span class="accent">Mapping</span></h1>
         <p class="slide-subtitle">Rustam Santiko (GAST) coaching Rino Operator Alkylation &mdash; aktif sejak 10 Apr</p>
       </div>
-      <div class="slide-badge">SLIDE 18 / 23</div>
+      <div class="slide-badge">SLIDE 35 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1552,14 +3448,14 @@
   </div>
 
   <!-- ================= SLIDE 19: MAINTENANCE + AUDIT LOG ================= -->
-  <div class="slide default-deco" data-slide="19">
+  <div class="slide default-deco" data-slide="36">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
         <h1 class="slide-title">Maintenance + <span class="accent">Audit Log</span></h1>
         <p class="slide-subtitle">Operational tools yang HC pakai saat investigasi atau update</p>
       </div>
-      <div class="slide-badge">SLIDE 19 / 23</div>
+      <div class="slide-badge">SLIDE 36 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1587,14 +3483,14 @@
   </div>
 
   <!-- ================= SLIDE 20: NOTIFIKASI ================= -->
-  <div class="slide default-deco" data-slide="20">
+  <div class="slide default-deco" data-slide="37">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
         <h1 class="slide-title">Notifikasi &amp; <span class="accent">Workflow</span></h1>
         <p class="slide-subtitle">Bell icon di navbar &mdash; 7 unread notif untuk Admin KPB saat sosialisasi ini</p>
       </div>
-      <div class="slide-badge">SLIDE 20 / 23</div>
+      <div class="slide-badge">SLIDE 37 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -1657,14 +3553,14 @@
   </div>
 
   <!-- ================= SLIDE 21: TUGAS HC CEPAT ================= -->
-  <div class="slide default-deco" data-slide="21">
+  <div class="slide default-deco" data-slide="38">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
         <h1 class="slide-title">Tugas HC <span class="accent">Cepat</span></h1>
         <p class="slide-subtitle">Checklist harian, mingguan, bulanan</p>
       </div>
-      <div class="slide-badge">SLIDE 21 / 23</div>
+      <div class="slide-badge">SLIDE 38 / 41</div>
     </div>
     <div class="slide-body">
       <div class="checklist-3">
@@ -1705,15 +3601,60 @@
     </div>
   </div>
 
+  <!-- ================= MERGED: INTEGRASI & KEAMANAN (from File 2 #20) — placeholder 918, renumber Task 6 ================= -->
+  <div class="slide default-deco" data-slide="39">
+    <div class="slide-header">
+      <div>
+        <h1 class="slide-title">Integrasi &amp; <span class="accent">Keamanan</span></h1>
+        <p class="slide-subtitle">Fitur pendukung yang menjaga integritas &amp; kemudahan</p>
+      </div>
+      <div class="slide-badge">SLIDE 39 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="cat-grid">
+        <div class="cat-card c1">
+          <div class="cat-head"><div class="cat-ic">&#128274;</div><div class="cat-name">LDAP Pertamina</div></div>
+          <div class="cat-desc">Login menggunakan akun Active Directory Pertamina &mdash; Single Sign-On</div>
+        </div>
+        <div class="cat-card c5">
+          <div class="cat-head"><div class="cat-ic">&#128737;&#65039;</div><div class="cat-name">Anti-Copy</div></div>
+          <div class="cat-desc">Perlindungan soal ujian online dari copy-paste &mdash; integritas assessment</div>
+        </div>
+        <div class="cat-card c3">
+          <div class="cat-head"><div class="cat-ic">&#128203;</div><div class="cat-name">Audit Log</div></div>
+          <div class="cat-desc">Aksi penting tercatat (login, submit, approval) &mdash; transparansi</div>
+        </div>
+        <div class="cat-card c6">
+          <div class="cat-head"><div class="cat-ic">&#128101;</div><div class="cat-name">Role-Based Access</div></div>
+          <div class="cat-desc">10 role &middot; 6 level akses sesuai tanggung jawab</div>
+        </div>
+        <div class="cat-card c2">
+          <div class="cat-head"><div class="cat-ic">&#128276;</div><div class="cat-name">Notifikasi Real-time</div></div>
+          <div class="cat-desc">Assessment, approval coaching, renewal sertifikat</div>
+        </div>
+        <div class="cat-card c4">
+          <div class="cat-head"><div class="cat-ic">&#128229;</div><div class="cat-name">Import Excel</div></div>
+          <div class="cat-desc">Bulk import training records, assessment, soal &mdash; hemat waktu admin</div>
+        </div>
+      </div>
+      <div class="hc-callout">
+        <strong>Implikasi untuk HC</strong>
+        <ul>
+          <li>HC: tanggung jawab audit log review, impersonate dengan justifikasi</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= SLIDE 22: REFERENCE CARD ================= -->
-  <div class="slide default-deco" data-slide="22">
+  <div class="slide default-deco" data-slide="40">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
         <h1 class="slide-title">Reference <span class="accent">Card</span></h1>
         <p class="slide-subtitle">Dokumen detail untuk self-service kapan saja</p>
       </div>
-      <div class="slide-badge">SLIDE 22 / 23</div>
+      <div class="slide-badge">SLIDE 40 / 41</div>
     </div>
     <div class="slide-body">
       <div class="ref-grid">
@@ -1743,7 +3684,7 @@
   </div>
 
   <!-- ================= SLIDE 23: PENUTUP ================= -->
-  <div class="slide penutup" data-slide="23">
+  <div class="slide penutup" data-slide="41">
     <div class="penutup-content">
       <h1 class="penutup-title">Terima Kasih</h1>
       <p class="penutup-subtitle">Pertanyaan? Diskusi terbuka.</p>
@@ -1758,13 +3699,13 @@
 
 <div class="controls no-print">
   <button class="ctrl-btn" id="prevBtn" title="Previous">&#8249;</button>
-  <span class="slide-counter" id="slideCounter">1 / 23</span>
+  <span class="slide-counter" id="slideCounter">1 / 41</span>
   <button class="ctrl-btn" id="nextBtn" title="Next">&#8250;</button>
 </div>
 
 <script>
   (function () {
-    const TOTAL = 23;
+    const TOTAL = 41;
     let current = 1;
     const slides = document.querySelectorAll('.slide');
     const counter = document.getElementById('slideCounter');

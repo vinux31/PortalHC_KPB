@@ -1,0 +1,39 @@
+@model List<HcPortal.Models.AssessmentEditLog>
+
+@{
+    string ReasonLabel(string code) => code switch
+    {
+        "SoalSalah" => "Soal salah / typo",
+        "KunciSalah" => "Kunci jawaban salah",
+        "BugSistem" => "Bug sistem / glitch",
+        "PermintaanPeserta" => "Permintaan koreksi peserta",
+        "Lainnya" => "Lainnya (jelaskan)",
+        _ => code
+    };
+}
+
+@if (!Model.Any())
+{
+  <p class="text-muted">Belum ada edit untuk sesi ini.</p>
+}
+else
+{
+  <ul class="list-unstyled">
+    @foreach (var log in Model)
+    {
+      <li class="border-bottom pb-2 mb-2">
+        <div class="small text-muted">[@log.EditedAt.ToString("yyyy-MM-dd HH:mm")] Soal #@log.PackageQuestionId</div>
+        <div class="fw-bold">@log.QuestionTextSnapshot</div>
+        <div>
+          <span class="text-muted">@(string.IsNullOrEmpty(log.OldAnswerTextSnapshot) ? "—" : log.OldAnswerTextSnapshot)</span>
+          → <span class="text-success">@log.NewAnswerTextSnapshot</span>
+        </div>
+        <div class="small">oleh @log.ActorRole (@log.ActorName)</div>
+        <div class="small text-muted">
+          Alasan: @ReasonLabel(log.ReasonCode)
+          @if (!string.IsNullOrEmpty(log.ReasonText)) { @($" — {log.ReasonText}") }
+        </div>
+      </li>
+    }
+  </ul>
+}

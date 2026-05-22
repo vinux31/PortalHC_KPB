@@ -1,0 +1,157 @@
+@model HcPortal.Models.EditPesertaAnswersViewModel
+@{
+    ViewData["Title"] = $"Edit Jawaban — {Model.FullName}";
+}
+
+<div class="container-fluid py-3">
+  <a asp-action="AssessmentMonitoringDetail"
+     asp-route-title="@Model.Session.Title"
+     asp-route-category="@Model.Session.Category"
+     asp-route-scheduleDate="@Model.Session.Schedule.ToString("yyyy-MM-dd")"
+     class="btn btn-sm btn-outline-secondary">← Back to Monitoring</a>
+
+  <h3 class="mt-3">Edit Jawaban — @Model.FullName (NIP @Model.NIP)</h3>
+
+  <div class="card mb-3">
+    <div class="card-body small">
+      <strong>@Model.Session.Title</strong> · Kategori: @Model.Session.Category
+      · Schedule: @Model.Session.Schedule.ToString("dd MMM yyyy HH:mm")<br/>
+      Skor saat ini: <strong>@(Model.Session.Score?.ToString() ?? "—")%</strong>
+      · Status: <strong>@(Model.Session.IsPassed == true ? "Pass" : Model.Session.IsPassed == false ? "Fail" : "—")</strong>
+    </div>
+  </div>
+
+  @if (TempData["Error"] != null)
+  {
+    <div class="alert alert-danger" role="alert">@TempData["Error"]</div>
+  }
+
+  <div class="alert alert-warning" role="alert">
+    <strong>⚠️ Catatan:</strong> Edit jawaban akan recompute skor + spider chart otomatis.
+    Aksi ini di-log audit. Hasil tidak ditampilkan ke peserta.
+  </div>
+
+  <form id="editAnswersForm" method="post"
+        asp-action="SubmitEditAnswers"
+        data-preview-url="@Url.Action("PreviewEditScore", new { sessionId = Model.Session.Id })">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="SessionId" value="@Model.Session.Id" />
+    <input type="hidden" name="UpdatedAt" value="@Model.UpdatedAt.ToString("O")" />
+
+    @foreach (var (q, idx) in Model.Questions.Select((q, i) => (q, i + 1)))
+    {
+      <div class="card mb-3 question-card"
+           data-question-id="@q.PackageQuestionId"
+           data-question-type="@q.QuestionType">
+        <div class="card-body">
+          <div class="mb-2">
+            <strong>Soal @idx</strong>
+            <span class="badge bg-secondary">@(q.QuestionType == "MultipleChoice" ? "MC" : q.QuestionType == "MultipleAnswer" ? "MA" : "Essay")</span>
+            @if (q.IsCurrentCorrect) { <span class="badge bg-success">✓ Benar</span> }
+            else { <span class="badge bg-danger">✗ Salah</span> }
+          </div>
+          <div class="mb-2">@q.QuestionText</div>
+
+          @if (q.QuestionType == "Essay")
+          {
+            <div class="text-muted fst-italic">
+              Essay – manual grading via halaman Penilaian Essay
+            </div>
+          }
+          else if (q.QuestionType == "MultipleChoice")
+          {
+            <div class="ms-2">
+              @foreach (var opt in q.Options)
+              {
+                <div class="form-check">
+                  <input class="form-check-input answer-input" type="radio"
+                         name="Answers[@q.PackageQuestionId]"
+                         value="@opt.Id"
+                         id="opt-@q.PackageQuestionId-@opt.Id"
+                         @(q.SelectedOptionIds.Contains(opt.Id) ? "checked" : "") />
+                  <label class="form-check-label" for="opt-@q.PackageQuestionId-@opt.Id">
+                    @opt.OptionText
+                    @if (opt.IsCorrect) { <span class="badge bg-success ms-2">Kunci</span> }
+                  </label>
+                </div>
+              }
+            </div>
+          }
+          else
+          {
+            <div class="ms-2">
+              @foreach (var opt in q.Options)
+              {
+                <div class="form-check">
+                  <input class="form-check-input answer-input" type="checkbox"
+                         name="Answers[@q.PackageQuestionId]"
+                         value="@opt.Id"
+                         id="opt-@q.PackageQuestionId-@opt.Id"
+                         @(q.SelectedOptionIds.Contains(opt.Id) ? "checked" : "") />
+                  <label class="form-check-label" for="opt-@q.PackageQuestionId-@opt.Id">
+                    @opt.OptionText
+                    @if (opt.IsCorrect) { <span class="badge bg-success ms-2">Kunci</span> }
+                  </label>
+                </div>
+              }
+            </div>
+          }
+
+          @if (q.QuestionType != "Essay")
+          {
+            <div class="reason-block mt-2 d-none">
+              <label class="form-label small" for="reason-code-@q.PackageQuestionId">
+                Alasan edit <span class="text-danger" aria-hidden="true">*</span>
+              </label>
+              <select class="form-select form-select-sm reason-code"
+                      id="reason-code-@q.PackageQuestionId"
+                      name="Reasons[@q.PackageQuestionId].Code"
+                      aria-required="true">
+                <option value="">— Pilih —</option>
+                <option value="SoalSalah">Soal salah / typo</option>
+                <option value="KunciSalah">Kunci jawaban salah</option>
+                <option value="BugSistem">Bug sistem / glitch</option>
+                <option value="PermintaanPeserta">Permintaan koreksi peserta</option>
+                <option value="Lainnya">Lainnya (jelaskan)</option>
+              </select>
+              <textarea class="form-control form-control-sm mt-2 reason-text d-none" rows="2"
+                        id="reason-text-@q.PackageQuestionId"
+                        name="Reasons[@q.PackageQuestionId].Text"
+                        placeholder="Detail alasan (wajib kalau pilih Lainnya)"></textarea>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="d-flex gap-2 mt-3">
+      <a asp-action="AssessmentMonitoringDetail"
+         asp-route-title="@Model.Session.Title"
+         asp-route-category="@Model.Session.Category"
+         asp-route-scheduleDate="@Model.Session.Schedule.ToString("yyyy-MM-dd")"
+         class="btn btn-outline-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" id="submitEditBtn">Save & Recompute</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal fade" id="flipConfirmModal" tabindex="-1"
+     aria-labelledby="flipConfirmModalLabel" aria-describedby="flipModalBody" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="flipConfirmModalLabel">⚠️ Perubahan Hasil</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body" id="flipModalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" id="flipConfirmBtn">Lanjutkan, simpan perubahan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  <script src="~/js/edit-peserta-answers.js" asp-append-version="true"></script>
+}

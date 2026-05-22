@@ -284,57 +284,81 @@
                                         @(session.CompletedAt.HasValue ? session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "\u2014")
                                     </td>
                                     <td>
-                                        @* Reshuffle -- package mode, Not started or Abandoned (always enabled) *@
-                                        @if (Model.IsPackageMode && (session.UserStatus == "Not started" || session.UserStatus == "Abandoned"))
-                                        {
+                                        @{ var canEdit = HcPortal.Helpers.AssessmentEditEligibility.IsEditableShallow(session); }
+                                        <div class="d-flex gap-1 align-items-center">
+                                            @* Inline: View Results (Completed only) *@
+                                            @if (session.UserStatus == "Completed")
+                                            {
+                                                <a href="@Url.Action("Results", "CMP", new { id = session.Id })" target="_blank"
+                                                   class="btn btn-success btn-sm">View Results</a>
+                                            }
+                                            @* Inline: Activity Log (always) *@
                                             <button type="button"
-                                                    class="btn btn-outline-primary btn-sm me-1"
+                                                    class="btn btn-outline-secondary btn-sm btn-activity-log"
                                                     data-session-id="@session.Id"
-                                                    onclick="reshuffleWorker(@session.Id)"
-                                                    title="Reshuffle paket ujian">
-                                                <i class="bi bi-shuffle me-1"></i>Reshuffle
+                                                    data-worker-name="@session.UserFullName"
+                                                    title="Lihat activity log">
+                                                <i class="bi bi-clock-history"></i>
                                             </button>
-                                        }
-                                        @* Akhiri Ujian -- InProgress only *@
-                                        @if (session.UserStatus == "InProgress")
-                                        {
-                                            <form asp-action="AkhiriUjian" asp-controller="AssessmentAdmin" method="post" class="d-inline me-1"
-                                                  onsubmit="return confirm('Akhiri ujian untuk @(session.UserFullName)? Jawaban tersimpan akan dinilai otomatis.')">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@session.Id" />
-                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                    <i class="bi bi-x-circle me-1"></i>Akhiri Ujian
-                                                </button>
-                                            </form>
-                                        }
-                                        @* Reset -- all statuses except Cancelled *@
-                                        @if (session.UserStatus != "Cancelled")
-                                        {
-                                            <form asp-action="ResetAssessment" asp-controller="AssessmentAdmin" method="post" class="d-inline me-1"
-                                                  onsubmit="return confirm('Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.')">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@session.Id" />
-                                                <button type="submit" class="btn btn-warning btn-sm">
-                                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                                                </button>
-                                            </form>
-                                        }
-                                        @* View Results -- Completed only *@
-                                        @if (session.UserStatus == "Completed")
-                                        {
-                                            <a href="@Url.Action("Results", "CMP", new { id = session.Id })" target="_blank"
-                                               class="btn btn-success btn-sm">
-                                                View Results
-                                            </a>
-                                        }
-                                        @* Activity Log button -- always shown, enabled if session has started *@
-                                        <button type="button"
-                                                class="btn btn-outline-secondary btn-sm ms-1 btn-activity-log"
-                                                data-session-id="@session.Id"
-                                                data-worker-name="@session.UserFullName"
-                                                title="Lihat activity log">
-                                            <i class="bi bi-clock-history"></i>
-                                        </button>
+
+                                            @* Dropdown ⋮ *@
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary"
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                        aria-haspopup="true"
+                                                        aria-label="Aksi lain untuk @session.UserFullName"
+                                                        style="min-height:40px;">⋮</button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    @if (canEdit)
+                                                    {
+                                                        <li>
+                                                            <a class="dropdown-item" asp-action="EditPesertaAnswers" asp-controller="AssessmentAdmin" asp-route-id="@session.Id">
+                                                                <i class="bi bi-pencil-square me-1"></i>Edit Jawaban
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (session.UserStatus != "Cancelled")
+                                                    {
+                                                        <li>
+                                                            <form asp-action="ResetAssessment" asp-controller="AssessmentAdmin" method="post" class="m-0"
+                                                                  onsubmit="return confirm('Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.')">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@session.Id" />
+                                                                <button type="submit" class="dropdown-item">
+                                                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    }
+                                                    @if (session.UserStatus == "InProgress")
+                                                    {
+                                                        <li>
+                                                            <form asp-action="AkhiriUjian" asp-controller="AssessmentAdmin" method="post" class="m-0"
+                                                                  onsubmit="return confirm('Akhiri ujian untuk @(session.UserFullName)? Jawaban tersimpan akan dinilai otomatis.')">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@session.Id" />
+                                                                <button type="submit" class="dropdown-item text-danger">
+                                                                    <i class="bi bi-x-octagon me-1"></i>Akhiri Ujian
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    }
+                                                    @if (Model.IsPackageMode && (session.UserStatus == "Not started" || session.UserStatus == "Abandoned"))
+                                                    {
+                                                        <li>
+                                                            <button type="button"
+                                                                    class="dropdown-item"
+                                                                    data-session-id="@session.Id"
+                                                                    onclick="reshuffleWorker(@session.Id)">
+                                                                <i class="bi bi-shuffle me-1"></i>Reshuffle
+                                                            </button>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -548,10 +572,34 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="logSummary" class="mb-3 p-2 bg-light rounded small text-muted"></div>
-                    <div id="logTimeline"></div>
-                    <div id="logLoading" class="text-center d-none">
-                        <div class="spinner-border spinner-border-sm me-2"></div>Memuat...
+                    <ul class="nav nav-tabs" role="tablist" id="activityLogTabs">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-timeline-btn"
+                                    data-bs-toggle="tab" data-bs-target="#tab-timeline"
+                                    role="tab" aria-controls="tab-timeline" aria-selected="true">
+                                Activity Timeline
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-edit-history-btn"
+                                    data-bs-toggle="tab" data-bs-target="#tab-edit-history"
+                                    role="tab" aria-controls="tab-edit-history" aria-selected="false"
+                                    data-load-url-template="@Url.Action("EditHistoryPartial")">
+                                Edit History
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content pt-3">
+                        <div class="tab-pane fade show active" id="tab-timeline" role="tabpanel" aria-labelledby="tab-timeline-btn">
+                            <div id="logSummary" class="mb-3 p-2 bg-light rounded small text-muted"></div>
+                            <div id="logTimeline"></div>
+                            <div id="logLoading" class="text-center d-none">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Memuat...
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tab-edit-history" role="tabpanel" aria-labelledby="tab-edit-history-btn">
+                            <div class="edit-history-placeholder text-muted small">Memuat...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -930,7 +978,51 @@
             var sid = parseInt(btn.getAttribute('data-session-id'), 10);
             var wname = btn.getAttribute('data-worker-name') || '';
             showActivityLog(sid, wname);
+            // Phase 321: set modal currentSessionId + reset Edit History tab cache
+            var modal = document.getElementById('activityLogModal');
+            if (modal) modal.dataset.currentSessionId = sid;
+            var ehBtn = document.getElementById('tab-edit-history-btn');
+            if (ehBtn) ehBtn.dataset.loaded = '';
+            var ehPane = document.getElementById('tab-edit-history');
+            if (ehPane) ehPane.innerHTML = '<div class="edit-history-placeholder text-muted small">Memuat...</div>';
+            // Reset to Timeline tab on open
+            var tlBtn = document.getElementById('tab-timeline-btn');
+            if (tlBtn && window.bootstrap && bootstrap.Tab) {
+                bootstrap.Tab.getOrCreateInstance(tlBtn).show();
+            }
         }
+    });
+
+    // Phase 321: Lazy-load Edit History tab on first show per session
+    document.addEventListener('shown.bs.tab', function (event) {
+        var btn = event.target;
+        if (!btn || btn.id !== 'tab-edit-history-btn') return;
+        if (btn.dataset.loaded === '1') return;
+
+        var modal = document.getElementById('activityLogModal');
+        var sessionId = modal ? modal.dataset.currentSessionId : null;
+        var pane = document.getElementById('tab-edit-history');
+        if (!sessionId) {
+            if (pane) pane.innerHTML = '<p class="text-muted small">Sesi tidak diketahui.</p>';
+            return;
+        }
+
+        var urlTemplate = btn.dataset.loadUrlTemplate;
+        var url = urlTemplate + '?sessionId=' + sessionId;
+
+        fetch(url)
+            .then(function (resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.text();
+            })
+            .then(function (html) {
+                pane.innerHTML = html;
+                btn.dataset.loaded = '1';
+            })
+            .catch(function (err) {
+                pane.innerHTML = '<p class="text-danger small">Gagal memuat edit history.</p>';
+                console.error('EditHistory load failed:', err);
+            });
     });
 
     // ---- Akhiri Semua Modal: fetch counts on open ----
@@ -1296,6 +1388,36 @@ function eventLabel(eventType, detail) {
         if (allDone) {
             var akhiriBtn = document.getElementById('akhiriSemuaBtn');
             if (akhiriBtn) akhiriBtn.style.display = 'none';
+        }
+    });
+
+    // workerAnswerEdited: admin/HC edited a session's answers (Phase 321 EDIT-09)
+    window.assessmentHub.on('workerAnswerEdited', function (data) {
+        var row = document.querySelector('tr[data-session-id="' + data.sessionId + '"]');
+        if (row) {
+            var scoreCell = row.querySelector('.score-cell');
+            var resultCell = row.querySelector('.result-cell');
+            if (scoreCell) scoreCell.textContent = data.newScore + '%';
+            if (resultCell) {
+                resultCell.textContent = data.newIsPassed ? 'Pass' : 'Fail';
+                resultCell.className = 'result-cell ' + (data.newIsPassed ? 'text-success fw-semibold' : 'text-danger fw-semibold');
+            }
+        }
+
+        // D-07 toast verbose template (8 detik per D-07 LOCKED)
+        var oldResult = (data.oldIsPassed === true) ? 'Pass' : (data.oldIsPassed === false) ? 'Fail' : '—';
+        var newResult = data.newIsPassed ? 'Pass' : 'Fail';
+        var flipSegment = (data.oldIsPassed !== data.newIsPassed)
+            ? ', ' + oldResult + '→' + newResult
+            : '';
+        var msg = data.actorRole + ' ' + data.actorName +
+                  ' edit jawaban ' + data.workerName +
+                  ': Score ' + (data.oldScore !== null && data.oldScore !== undefined ? data.oldScore : '—') + '→' + data.newScore +
+                  flipSegment;
+        if (typeof window.showAssessmentToast === 'function') {
+            window.showAssessmentToast(msg, null, null, 8000);
+        } else {
+            console.log('[toast]', msg);
         }
     });
 </script>

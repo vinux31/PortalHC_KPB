@@ -76,6 +76,9 @@ namespace HcPortal.Data
         // ET Scores per Session — Phase 223
         public DbSet<SessionElemenTeknisScore> SessionElemenTeknisScores { get; set; }
 
+        // Assessment Edit Log — Phase 321 (granular audit per question edit)
+        public DbSet<AssessmentEditLog> AssessmentEditLogs { get; set; }
+
         // Maintenance Mode — Phase 282
         public DbSet<MaintenanceMode> MaintenanceModes { get; set; }
 
@@ -227,6 +230,19 @@ namespace HcPortal.Data
                 // Mutual exclusivity: only one of RenewsSessionId/RenewsTrainingId can be set
                 entity.ToTable(t => t.HasCheckConstraint("CK_AssessmentSession_RenewalChain",
                     "[RenewsSessionId] IS NULL OR [RenewsTrainingId] IS NULL"));
+            });
+
+            // AssessmentEditLog -> AssessmentSession (Phase 321: granular audit per question edit)
+            builder.Entity<AssessmentEditLog>(entity =>
+            {
+                entity.HasOne(e => e.AssessmentSession)
+                    .WithMany()
+                    .HasForeignKey(e => e.AssessmentSessionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => new { e.AssessmentSessionId, e.EditedAt })
+                    .HasDatabaseName("IX_AssessmentEditLogs_SessionId_EditedAt")
+                    .IsDescending(false, true);
             });
 
             // Legacy UserResponse and AssessmentQuestion tables removed in Phase 227 (CLEN-02 migration).
