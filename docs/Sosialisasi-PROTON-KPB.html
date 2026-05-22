@@ -1333,6 +1333,82 @@
     margin-bottom: 4px;
   }
 
+  /* ============================================================
+     TEMPLATE C — Demo split layout (kiri foto · kanan teks)
+     ============================================================ */
+  .slide-body.demo-split {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    gap: 32px;
+    align-items: start;
+  }
+  .demo-image-frame {
+    border: 2px dashed #94a3b8;
+    border-radius: 12px;
+    background: #f1f5f9;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #64748b;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-align: center;
+    padding: 16px;
+  }
+  .demo-image-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+  .demo-image-caption {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: #64748b;
+    text-align: center;
+    font-style: italic;
+  }
+  .demo-text-col { padding: 8px 0; }
+  .demo-lead {
+    font-style: italic;
+    color: #475569;
+    margin-bottom: 14px;
+    font-size: 0.95rem;
+  }
+  .demo-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px 0;
+  }
+  .demo-bullets li {
+    padding: 6px 0 6px 22px;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .demo-bullets li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--navy);
+    font-weight: 700;
+  }
+  .demo-takeaway {
+    background: linear-gradient(90deg, #fef3c7, #fde68a);
+    border-left: 4px solid #f59e0b;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #78350f;
+  }
+  body.dark .demo-image-frame { background: #1e293b; border-color: #475569; color: #94a3b8; }
+  body.dark .demo-text-col { color: #e2e8f0; }
+  body.dark .demo-lead { color: #cbd5e1; }
+  body.dark .demo-takeaway { background: rgba(245, 158, 11, 0.15); color: #fef3c7; border-left-color: #fbbf24; }
+
 </style>
 </head>
 <body>
