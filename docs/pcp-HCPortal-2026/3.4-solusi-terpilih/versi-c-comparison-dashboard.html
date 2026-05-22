@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>§3.4 v3.6 — Versi C: Comparison Dashboard HC Portal</title>
+<title>§3.4 v3.7 — Versi C: Comparison Dashboard HC Portal</title>
 <style>
   :root {
     --pertamina-red: #C8102E;
@@ -18,20 +18,26 @@
     --bg: #f6f7fb;
     --border: #d1d5db;
     --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.85rem;
+    --fs-base: 0.95rem;
+    --fs-md: 1.05rem;
+    --fs-lg: 1.3rem;
+    --fs-xl: 2rem;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #1f2937; padding: 1.5rem; }
 
-  .header-bar { max-width: 1400px; margin: 0 auto 1rem; display: grid; grid-template-columns: 160px 1fr 160px; align-items: center; background: white; border-radius: .75rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); padding: 1rem 1.5rem; border-top: 5px solid var(--pertamina-green); }
+  .header-bar { max-width: 1400px; margin: 0 auto 1rem; display: grid; grid-template-columns: 160px 1fr 160px; align-items: center; background: white; border-radius: .75rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); padding: 1rem 1.5rem; border-top: 5px solid var(--pertamina-yellow); }
   .logo-pertamina { font-weight: 900; font-size: 1.1rem; color: var(--pertamina-red); line-height: 1.1; }
-  .logo-pertamina small { display:block; font-weight: 600; font-size: .7rem; color: var(--neutral-gray); }
+  .logo-pertamina small { display:block; font-weight: 600; font-size: var(--fs-xs); color: var(--neutral-gray); }
   .header-title { text-align: center; }
   .header-title h1 { margin: 0; font-size: 1.4rem; color: var(--pertamina-blue); }
-  .header-title small { display:block; color: var(--neutral-gray); font-size: .85rem; margin-top: .15rem; }
-  .pcp-badge { text-align: right; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: .85rem; }
-  .pcp-badge small { display:block; font-weight: 400; font-size: .65rem; opacity: .9; }
+  .header-title small { display:block; color: var(--neutral-gray); font-size: var(--fs-sm); margin-top: .15rem; }
+  .pcp-badge { text-align: right; background: var(--pertamina-blue); color: white; padding: .5rem .75rem; border-radius: .35rem; font-weight: 700; font-size: var(--fs-sm); }
+  .pcp-badge small { display:block; font-weight: 400; font-size: var(--fs-xs); opacity: .9; }
 
-  .meta-bar { max-width: 1400px; margin: 0 auto 1.5rem; background: white; border-radius: .5rem; padding: .75rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: .85rem; border-left: 4px solid var(--pertamina-green); }
+  .meta-bar { max-width: 1400px; margin: 0 auto 1.5rem; background: white; border-radius: .5rem; padding: .75rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: var(--fs-sm); border-left: 4px solid var(--pertamina-yellow); }
   .meta-bar b { color: var(--pertamina-blue); }
 
   .toolbar { max-width: 1400px; margin: 0 auto 1.5rem; display: flex; justify-content: space-between; align-items: center; padding: .75rem 1.25rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
@@ -53,17 +59,17 @@
   .metric-box { padding: .5rem .65rem; border-radius: .35rem; text-align: center; font-size: .85rem; }
   .metric-box.before { background: var(--pertamina-red-light); color: var(--pertamina-red); border: 1px solid var(--pertamina-red); }
   .metric-box.after { background: var(--pertamina-blue-light); color: var(--pertamina-blue-dark); border: 1px solid var(--pertamina-blue); }
-  .metric-box .label { display: block; font-size: .65rem; font-weight: 700; text-transform: uppercase; opacity: .8; margin-bottom: .15rem; }
+  .metric-box .label { display: block; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; opacity: .8; margin-bottom: .15rem; }
   .metric-box .value { font-weight: 700; font-size: .95rem; }
 
   .delta-row { display: flex; justify-content: space-around; margin: .75rem 0; padding: .65rem; background: var(--pertamina-green-light); border-radius: .35rem; border: 1px solid var(--pertamina-green); }
   .delta-item { text-align: center; }
-  .delta-item .label { display: block; font-size: .65rem; color: var(--neutral-gray); text-transform: uppercase; font-weight: 700; }
+  .delta-item .label { display: block; font-size: var(--fs-xs); color: var(--neutral-gray); text-transform: uppercase; font-weight: 700; }
   .delta-item .value { font-weight: 800; font-size: 1rem; color: var(--pertamina-green); }
   .delta-item .arrow { color: var(--pertamina-green); font-weight: 900; }
 
   .issue-tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem; }
-  .issue-tag { background: var(--pertamina-red); color: white; font-size: .7rem; font-weight: 700; padding: .15rem .4rem; border-radius: 3px; }
+  .issue-tag { background: var(--pertamina-red); color: white; font-size: var(--fs-xs); font-weight: 700; padding: .15rem .4rem; border-radius: 3px; }
 
   .agregat-box { background: linear-gradient(135deg, var(--pertamina-yellow), #ffa500); color: #5a4400; padding: 1.5rem; border-radius: .75rem; box-shadow: 0 4px 14px rgba(255,199,44,.4); }
   .agregat-box h3 { margin: 0 0 1rem; font-size: 1.15rem; }
@@ -96,12 +102,29 @@
   .footer { text-align:center; padding:1.5rem; color:var(--neutral-gray); font-size:.85rem; max-width: 1400px; margin: 0 auto; }
   .footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
 
+  @media (max-width: 1200px) {
+    .cards-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .agregat-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .agregat-grid { grid-template-columns: 1fr; }
+    .header-bar { grid-template-columns: 1fr; gap: .5rem; text-align: center; }
+    .meta-bar { grid-template-columns: 1fr; }
+    .stack-pills { gap: .35rem; }
+  }
   @media print {
-    body { padding: 0; background: white; }
-    .toolbar { display: none; }
-    .dashboard-wrap, .issue-section, .hub-showcase { box-shadow: none; page-break-inside: avoid; }
+    @page { size: A3 landscape; margin: 1cm; }
+    body { padding: 0; background: white; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .toolbar { display: none !important; }
+    .dashboard-wrap, .issue-section, .hub-showcase { box-shadow: none; page-break-inside: avoid; border: 1px solid #e5e7eb; }
     .header-bar { box-shadow: none; }
+    .feature-card { page-break-inside: avoid; }
     .feature-card:hover { transform: none; }
+    .cards-grid { grid-template-columns: repeat(4, 1fr); }
+    table { page-break-inside: avoid; }
+    h1, h2, h3 { page-break-after: avoid; }
+    .metric-box, .delta-row, .issue-tag, .stack-pill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
 </style>
 </head>
@@ -293,10 +316,14 @@
       <tr><td><b>F</b> Renewal</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
     </tbody>
   </table>
+  <div style="margin-top: .65rem; font-size: var(--fs-xs); color: var(--neutral-gray); display: flex; gap: 1.5rem; align-items: center;">
+    <span><span style="display:inline-block; width: 16px; height: 16px; background: var(--pertamina-green-light); color: var(--pertamina-green); text-align: center; font-weight: 800; border-radius: 3px; vertical-align: middle;">✓</span> &nbsp;Issue ter-cover oleh fitur</span>
+    <span><span style="display:inline-block; width: 16px; height: 16px; background: #f3f4f6; color: var(--neutral-gray); text-align: center; font-weight: 800; border-radius: 3px; vertical-align: middle;">—</span> &nbsp;Tidak applicable</span>
+  </div>
 </div>
 
 <div class="footer">
-  <p>📌 <b>Versi C</b> (Comparison Dashboard) — PCP SMART 2026 §3.4 v3.6 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.6</code></p>
+  <p>📌 <b>Versi C</b> (Comparison Dashboard) — PCP SMART 2026 §3.4 v3.7 — HC Portal • Tag <code>pcp-hcportal-3.4-v3.7</code> • Generated 2026-05-22</p>
   <p>💡 Hover card untuk highlight. Klik 🖨️ Print untuk save PDF.</p>
 </div>
 
