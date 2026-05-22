@@ -58,15 +58,15 @@
     overflow: hidden;
   }
 
-  /* Slide base */
+  /* Slide base — fixed 1280x720 internal design, scaled to fit viewport via CSS variable */
   .slide {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(1280px, 95vw);
-    aspect-ratio: 16 / 9;
-    max-height: 88vh;
+    transform: translate(-50%, -50%) scale(var(--deck-scale, 1));
+    transform-origin: center center;
+    width: 1280px;
+    height: 720px;
     background: linear-gradient(135deg, var(--slide-bg) 0%, var(--slide-bg-2) 100%);
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(13, 148, 136, 0.15);
@@ -82,8 +82,8 @@
     animation: slideIn 0.5s ease-out;
   }
   @keyframes slideIn {
-    from { opacity: 0; transform: translate(-50%, -48%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
+    from { opacity: 0; transform: translate(-50%, -48%) scale(var(--deck-scale, 1)); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(var(--deck-scale, 1)); }
   }
 
   /* Decorative blob default */
@@ -3691,6 +3691,19 @@
       if (!document.fullscreenElement) document.documentElement.requestFullscreen();
       else document.exitFullscreen();
     });
+
+    // Responsive scale: fit 1280x720 design to viewport at any zoom level.
+    // Reserve ~90px for controls bar + visual margin.
+    function updateDeckScale() {
+      var availW = window.innerWidth - 40;       // 20px margin each side
+      var availH = window.innerHeight - 180;     // reserve top+bottom for controls bar (slide centered = need 2x bar+margin)
+      var sw = availW / 1280;
+      var sh = availH / 720;
+      var scale = Math.min(sw, sh, 1.4);
+      document.documentElement.style.setProperty('--deck-scale', scale.toFixed(4));
+    }
+    window.addEventListener('resize', updateDeckScale);
+    updateDeckScale();
 
     go(1);
   })();
