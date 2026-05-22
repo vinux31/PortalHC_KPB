@@ -39,6 +39,23 @@
   .toolbar { display: flex; justify-content: space-between; align-items: center; padding: .75rem 1.25rem; background: white; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
   .toolbar .note { font-size: .85rem; color: var(--neutral-gray); }
   .toolbar button { background: var(--pertamina-red); color: white; border: none; padding: .5rem 1rem; border-radius: .35rem; font-weight: 600; cursor: pointer; }
+  .zona { background: white; border-radius: 1rem; padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,.06); }
+  .zona-title { font-size: 1rem; font-weight: 700; color: var(--pertamina-blue); margin: 0 0 .75rem; padding-bottom: .35rem; border-bottom: 2px solid var(--pertamina-green); }
+  .bpmn-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .bpmn-side { padding: .75rem; border-radius: .5rem; }
+  .bpmn-side.sebelum { background: var(--pertamina-red-bg); border-left: 4px solid var(--pertamina-red); }
+  .bpmn-side.sesudah { background: var(--pertamina-blue-bg); border-left: 4px solid var(--pertamina-blue); }
+  .bpmn-side h4 { margin: 0 0 .5rem; font-size: .9rem; }
+  .bpmn-side.sebelum h4 { color: var(--pertamina-red); }
+  .bpmn-side.sesudah h4 { color: var(--pertamina-blue); }
+  .compact-lane { display: grid; grid-template-columns: 70px 1fr; padding: .25rem 0; border-bottom: 1px dashed rgba(0,0,0,.08); font-size: .78rem; }
+  .compact-lane:last-child { border-bottom: none; }
+  .compact-lane .lbl { font-weight: 700; color: var(--neutral-gray); align-self: center; }
+  .compact-lane .flow { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; }
+  .compact-task { background: white; border: 1.5px solid var(--neutral-light); border-radius: .25rem; padding: .15rem .4rem; font-size: .7rem; }
+  .bpmn-side.sebelum .compact-task { border-color: var(--pertamina-red); }
+  .bpmn-side.sesudah .compact-task { border-color: var(--pertamina-blue); }
+  .bpmn-side.sesudah .compact-task.system { background: var(--pertamina-blue-light); }
 </style>
 </head>
 <body>
@@ -60,6 +77,30 @@
     <span class="note">📌 Versi Z — 3 zona: BPMN compact + VSM strip + 5 metric KPI. Lean orthodox VA classification.</span>
     <button onclick="window.print()">🖨️ Print / Save PDF</button>
   </div>
+
+  <section class="zona">
+    <div class="zona-title">🔷 Zona 1 — BPMN Swimlane (Compact)</div>
+    <div class="bpmn-compact">
+
+      <div class="bpmn-side sebelum">
+        <h4><i class="bi bi-x-circle-fill"></i> SEBELUM — 6 step manual</h4>
+        <div class="compact-lane"><div class="lbl">Mgmt</div><div class="flow"><span style="opacity:.5">(passive terima laporan)</span></div></div>
+        <div class="compact-lane"><div class="lbl">HC</div><div class="flow">●→<span class="compact-task">1.Siapkan</span>→<span class="compact-task">4.Input+Cross</span>→<span class="compact-task">5.Lapor</span>→<span class="compact-task">6.Arsip</span></div></div>
+        <div class="compact-lane"><div class="lbl">Atasan</div><div class="flow">⤳<span class="compact-task">2.Forward</span></div></div>
+        <div class="compact-lane"><div class="lbl">Pekerja</div><div class="flow">⤳<span class="compact-task">3.Isi Manual</span>→○</div></div>
+      </div>
+
+      <div class="bpmn-side sesudah">
+        <h4><i class="bi bi-check-circle-fill"></i> SESUDAH — 2 step di portal</h4>
+        <div class="compact-lane"><div class="lbl">Mgmt</div><div class="flow"><span class="compact-task"><i class="bi bi-graph-up"></i> Dashboard live</span></div></div>
+        <div class="compact-lane"><div class="lbl">HC</div><div class="flow">●→<span class="compact-task">1.Trigger Portal</span></div></div>
+        <div class="compact-lane"><div class="lbl"><i class="bi bi-gear-fill"></i> Portal</div><div class="flow"><span class="compact-task system">Form auto</span><span class="compact-task system">Audit Log</span><span class="compact-task system">Notif</span></div></div>
+        <div class="compact-lane"><div class="lbl">Atasan</div><div class="flow"><span style="opacity:.5">⚡auto-notif</span></div></div>
+        <div class="compact-lane"><div class="lbl">Pekerja</div><div class="flow">⤳<span class="compact-task">2.Submit Portal</span>→○</div></div>
+      </div>
+
+    </div>
+  </section>
 
 </div>
 </body>
