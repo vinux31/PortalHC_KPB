@@ -467,7 +467,7 @@ Plans:
 
 #### Phase 321: Assessment Edit Jawaban Peserta
 
-- [ ] **Phase 321: Assessment Edit Jawaban Peserta** — Halaman admin/HC untuk edit jawaban MC/MA peserta Completed dengan auto-recompute + cascade cert/TR + audit granular + SignalR live update
+- [x] **Phase 321: Assessment Edit Jawaban Peserta** — Halaman admin/HC untuk edit jawaban MC/MA peserta Completed dengan auto-recompute + cascade cert/TR + audit granular + SignalR live update (completed 2026-05-22)
   - **REQ:** EDIT-01, EDIT-02, EDIT-03, EDIT-04, EDIT-05, EDIT-06, EDIT-07, EDIT-08, EDIT-09, EDIT-10, EDIT-11, EDIT-12, EDIT-13
   - **Goal:** 3 layer baru — (1) Model + migration `AssessmentEditLog`, (2) `GradingService.RegradeAfterEditAsync` + refactor extract `ComputeScoreAndETInternalAsync(session, overrideAnswers?)` no-side-effect, (3) Controller `EditPesertaAnswers` (GET/POST/PreviewEditScore) + View dedicated + JS dirty state + flip modal + dropdown ⋮ di `AssessmentMonitoringDetail.cshtml` + Activity Log "Edit History" tab. Transaction scope membungkus edit+audit+regrade+cascade. SignalR signal baru `workerAnswerEdited`.
   - **Success Criteria:**
@@ -482,12 +482,12 @@ Plans:
   - **Risk:** High (transaction + cascade + concurrency + audit + UI dropdown refactor + new migration) | **Effort:** L
   - **Dependencies:** Tidak ada (paralel-able dengan Phase 320; perlu koordinasi merge di `AssessmentAdminController.cs` karena kedua phase edit file ini)
   - **Research:** `321-RESEARCH.md` 13 task breakdown (full code blocks)
-  - **Plans:** 2/5 plans executed
+  - **Plans:** 5/5 plans complete
     - [x] 321-01-PLAN.md — Model + Migration + Helper + ViewModels foundation (EDIT-02, EDIT-06, EDIT-13)
     - [x] 321-02-PLAN.md — Service layer: ComputeScoreAndETInternalAsync + RegradeAfterEditAsync + PreviewScoreAsync (EDIT-03, EDIT-04)
-    - [ ] 321-03-PLAN.md — Controller GET + View + JS dirty/flip + PreviewEditScore dry-run (EDIT-01, EDIT-02, EDIT-05, EDIT-10)
-    - [ ] 321-04-PLAN.md — POST SubmitEditAnswers (transaction + audit + regrade) + Dropdown ⋮ hybrid + SignalR workerAnswerEdited handler (D-07 8s LOCKED) (EDIT-02, EDIT-03, EDIT-04, EDIT-06, EDIT-07, EDIT-08, EDIT-09, EDIT-12)
-    - [ ] 321-05-PLAN.md — Activity Log Edit History tab + Playwright spec HARD GATE 4/4 + Manual UAT (SEED_WORKFLOW pre/cleanup) + Tag + Merge main + IT notify (EDIT-04, EDIT-07, EDIT-09, EDIT-11, EDIT-13)
+    - [x] 321-03-PLAN.md — Controller GET + View + JS dirty/flip + PreviewEditScore dry-run (EDIT-01, EDIT-02, EDIT-05, EDIT-10)
+    - [x] 321-04-PLAN.md — POST SubmitEditAnswers (transaction + audit + regrade) + Dropdown ⋮ hybrid + SignalR workerAnswerEdited handler (D-07 8s LOCKED) (EDIT-02, EDIT-03, EDIT-04, EDIT-06, EDIT-07, EDIT-08, EDIT-09, EDIT-12)
+    - [x] 321-05-PLAN.md — Activity Log Edit History tab + Playwright spec HARD GATE 4/4 + Manual UAT (SEED_WORKFLOW pre/cleanup) + Tag + Merge main + IT notify (EDIT-04, EDIT-07, EDIT-09, EDIT-11, EDIT-13)
 
 #### Coverage Validation v17.0
 
