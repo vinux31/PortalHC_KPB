@@ -31,7 +31,7 @@
   body {
     margin: 0;
     padding: 0;
-    width: 1100px;
+    width: 972px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
     color: #1f2937;
@@ -52,14 +52,14 @@
 
   #diagram-row {
     display: grid;
-    grid-template-columns: 545px 545px;
-    gap: 8px;
+    grid-template-columns: 478px 478px;
+    gap: 6px;
     padding: 4px;
   }
   .panel {
     background: white;
     border-radius: .5rem;
-    padding: 8px;
+    padding: 6px;
     box-shadow: 0 2px 8px rgba(0,0,0,.06);
   }
   .panel.sebelum { border-top: 4px solid var(--pertamina-red); }
@@ -68,8 +68,8 @@
   .panel-title {
     font-size: var(--fs-title);
     font-weight: 700;
-    margin: 0 0 6px;
-    padding-bottom: 4px;
+    margin: 0 0 4px;
+    padding-bottom: 3px;
     border-bottom: 1px dashed var(--neutral-light);
   }
   .panel.sebelum .panel-title { color: var(--pertamina-red); }
@@ -77,11 +77,11 @@
 
   .layer {
     display: grid;
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: 80px 1fr;
     gap: 4px;
-    min-height: 48px;
+    min-height: 40px;
     border-bottom: 1px dashed var(--neutral-light);
-    padding: 3px 0;
+    padding: 2px 0;
   }
   .layer:last-child { border-bottom: none; }
   .layer-label {
@@ -131,10 +131,10 @@
   .marker.improvement { background: var(--pertamina-green); }
 
   .no-buffer-slot {
-    height: 50px;
+    height: 40px;
     border: 1.5px dashed var(--neutral-light);
     border-radius: 4px;
-    margin: 4px 0;
+    margin: 2px 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -144,11 +144,11 @@
   }
 
   .buffer-zone {
-    height: 50px;
+    height: 40px;
     background: var(--hub-grad);
     color: white;
     border-radius: 4px;
-    margin: 4px 0;
+    margin: 2px 0;
     padding: 6px 8px;
     display: flex;
     align-items: center;
@@ -198,12 +198,12 @@
         <span class="lv">Lv 4 · Governance</span>
       </div>
       <div class="layer-content">
-        <span class="comp manual">📊 Excel Pekerja</span>
-        <span class="comp manual">📊 Excel Assessment</span>
-        <span class="comp manual">📊 Excel Training</span>
-        <span class="comp manual">📊 Excel KKJ</span>
-        <span class="comp manual">📊 Excel Sertifikat</span>
-        <span class="comp manual">📝 Word Template</span>
+        <span class="comp manual">📊 Pekerja</span>
+        <span class="comp manual">📊 Assessment</span>
+        <span class="comp manual">📊 Training</span>
+        <span class="comp manual">📊 KKJ</span>
+        <span class="comp manual">📊 Sertifikat</span>
+        <span class="comp manual">📝 Word</span>
         <span class="marker issue">A</span>
         <span class="marker issue">B</span>
       </div>
@@ -281,11 +281,11 @@
         <span class="lv">Lv 4 · Governance</span>
       </div>
       <div class="layer-content">
-        <span class="comp portal">👥 Kelola Pekerja</span>
+        <span class="comp portal">👥 Pekerja</span>
         <span class="comp portal">🎯 PROTON IDP</span>
-        <span class="comp portal">📝 Paket Assessment</span>
-        <span class="comp portal">📊 Kelola KKJ</span>
-        <span class="comp portal">🔄 Renewal Cert</span>
+        <span class="comp portal">📝 Assessment</span>
+        <span class="comp portal">📊 KKJ</span>
+        <span class="comp portal">🔄 Renewal</span>
         <span class="comp portal">🔍 Audit Log</span>
         <span class="marker improvement">2</span>
         <span class="marker improvement">3</span>
