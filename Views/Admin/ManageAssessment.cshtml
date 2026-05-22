@@ -4,10 +4,19 @@
 
     var activeTab = ViewBag.ActiveTab as string ?? "assessment";
 
-    // Phase 311 Plan 02: HTMX endpoint URLs (PathBase auto-resolved via @Url.Action).
-    var urlAssessment = Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin");
-    var urlTraining = Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin");
-    var urlHistory = Url.Action("ManageAssessmentTab_History", "AssessmentAdmin");
+    // Phase 322 D-21 Strategy D Hybrid (revised): inject filter params via hx-get URL
+    // query string (NOT hx-vals — hx-vals inherits to descendant HTMX triggers and
+    // overrides form data). URL params apply ONLY untuk wrapper's own request.
+    var urlAssessmentBase = Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin");
+    var urlTrainingBase = Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin");
+    var urlHistoryBase = Url.Action("ManageAssessmentTab_History", "AssessmentAdmin");
+
+    // Wrapper Tab 1: full param (search + category + statusFilter + page) — URL bookmark preserve.
+    var urlAssessment = $"{urlAssessmentBase}?search={Uri.EscapeDataString(ViewBag.SearchTerm ?? "")}&category={Uri.EscapeDataString(ViewBag.SelectedCategory ?? "")}&statusFilter={Uri.EscapeDataString(ViewBag.SelectedStatus ?? "")}&page={ViewBag.CurrentPage}";
+    // Wrapper Tab 2: section + unit + page ONLY (drop overlap — Bug 2 prevention by-design).
+    var urlTraining = $"{urlTrainingBase}?section={Uri.EscapeDataString(ViewBag.SelectedSection ?? "")}&unit={Uri.EscapeDataString(ViewBag.SelectedUnit ?? "")}&page={ViewBag.CurrentPage}";
+    // Wrapper Tab 3: page only (Tab 3 client-side filter own).
+    var urlHistory = $"{urlHistoryBase}?page={ViewBag.CurrentPage}";
 }
 
 @Html.AntiForgeryToken()
@@ -90,12 +99,6 @@
              hx-trigger="@(activeTab == "assessment" ? "load" : "shown.bs.tab from:#tab-assessment once")"
              hx-target="this"
              hx-swap="innerHTML"
-             hx-vals='@Json.Serialize(new {
-                 search = ViewBag.SearchTerm,
-                 category = ViewBag.SelectedCategory,
-                 statusFilter = ViewBag.SelectedStatus,
-                 page = ViewBag.CurrentPage
-             })'
              hx-sync="this:replace"
              data-tab-name="assessment">
             <!-- Skeleton Assessment (UI-SPEC §1a) -->
@@ -129,11 +132,6 @@
              hx-trigger="@(activeTab == "training" ? "load" : "shown.bs.tab from:#tab-training once")"
              hx-target="this"
              hx-swap="innerHTML"
-             hx-vals='@Json.Serialize(new {
-                 section = ViewBag.SelectedSection,
-                 unit = ViewBag.SelectedUnit,
-                 page = ViewBag.CurrentPage
-             })'
              hx-sync="this:replace"
              data-tab-name="training">
             <!-- Skeleton Training (UI-SPEC §1b) -->
@@ -177,9 +175,6 @@
              hx-trigger="@(activeTab == "history" ? "load" : "shown.bs.tab from:#tab-history once")"
              hx-target="this"
              hx-swap="innerHTML"
-             hx-vals='@Json.Serialize(new {
-                 page = ViewBag.CurrentPage
-             })'
              hx-sync="this:replace"
              data-tab-name="history">
             <!-- Skeleton History (UI-SPEC §1c) -->
