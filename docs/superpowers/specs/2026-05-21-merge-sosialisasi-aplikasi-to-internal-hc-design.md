@@ -1,8 +1,8 @@
 # Spec — Merge Sosialisasi-Aplikasi ke Sosialisasi-Internal-Tim-HC
 
-**Status:** Brainstorming Q1-Q5 locked, Design Sections 1-5 locked, ready for user review.
-**Date:** 2026-05-21 (revised 2026-05-22)
-**Resume:** baca spec ini, semua section locked → langsung ke writing-plans skill.
+**Status:** SHIPPED 2026-05-22. Tag `sosialisasi-internal-tim-hc-v2.0`. Implementation per plan `docs/superpowers/plans/2026-05-22-merge-sosialisasi-aplikasi-to-internal-hc.md`.
+**Date:** 2026-05-21 (revised 2026-05-22, shipped 2026-05-22)
+**Outcome:** File 3 grew 1815 → 3756 lines. 23 → 41 slide. CSS bulk-merge dari File 2 + 18 gap slide dengan `.hc-callout` "Implikasi untuk HC" per slide. Browser visual smoke pending user verify.
 
 ---
 
