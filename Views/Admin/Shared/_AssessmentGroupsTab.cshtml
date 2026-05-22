@@ -319,7 +319,7 @@ else
         </div>
     </div>
 
-    <!-- Pagination -->
+    <!-- Pagination (Phase 322 — HTMX with hx-include filter form for state preservation) -->
     @if (totalPages > 1)
     {
         <nav aria-label="Assessment pagination" class="mt-4">
@@ -328,17 +328,32 @@ else
                     Menampilkan @((currentPage - 1) * 20 + 1) - @(Math.Min(currentPage * 20, totalCount)) dari @totalCount grup
                 </div>
                 <ul class="pagination pagination-sm mb-0">
+                    @{
+                        var paginateAction = Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin");
+                    }
                     @* First Page *@
                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                        <a class="page-link" href="?tab=assessment&page=1@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"1"}'
+                                hx-include="#filterFormAssessment"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == 1 ? "disabled" : "")>
                             <i class="bi bi-chevron-double-left"></i>
-                        </a>
+                        </button>
                     </li>
                     @* Previous Page *@
                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                        <a class="page-link" href="?tab=assessment&page=@(currentPage - 1)@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"@(currentPage - 1)"}'
+                                hx-include="#filterFormAssessment"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == 1 ? "disabled" : "")>
                             <i class="bi bi-chevron-left"></i>
-                        </a>
+                        </button>
                     </li>
                     @* Page Numbers *@
                     @{
@@ -347,21 +362,38 @@ else
                         for (int i = startPage; i <= endPage; i++)
                         {
                             <li class="page-item @(i == currentPage ? "active" : "")">
-                                <a class="page-link" href="?tab=assessment&page=@i@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">@i</a>
+                                <button class="page-link" type="button"
+                                        hx-get="@paginateAction"
+                                        hx-vals='{"page":"@i"}'
+                                        hx-include="#filterFormAssessment"
+                                        hx-target="closest .htmx-tab-wrapper"
+                                        hx-swap="innerHTML">@i</button>
                             </li>
                         }
                     }
                     @* Next Page *@
                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                        <a class="page-link" href="?tab=assessment&page=@(currentPage + 1)@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"@(currentPage + 1)"}'
+                                hx-include="#filterFormAssessment"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == totalPages ? "disabled" : "")>
                             <i class="bi bi-chevron-right"></i>
-                        </a>
+                        </button>
                     </li>
                     @* Last Page *@
                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                        <a class="page-link" href="?tab=assessment&page=@totalPages@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"@totalPages"}'
+                                hx-include="#filterFormAssessment"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == totalPages ? "disabled" : "")>
                             <i class="bi bi-chevron-double-right"></i>
-                        </a>
+                        </button>
                     </li>
                 </ul>
             </div>
