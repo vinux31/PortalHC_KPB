@@ -73,6 +73,16 @@ Rollback Phase 311 Plan 02 shared filter shell di `/Admin/ManageAssessment`. Set
 - **D-19:** **Single revert commit rollback** — kalau bug post-deploy ditemukan, single `git revert` mengembalikan Phase 311 Plan 02 state (shared filter + cross-tab listener restored). Phase 322 changes contained di 5 file.
 - **D-20:** **Phase 311 Plan 02 UI-SPEC compliance impact** — flagged as risk Medium (shared filter design rolled back). Re-evaluate UI-SPEC sebelum merge atau defer ke docs phase. PLAN 03 UAT include explicit check tidak ada regression.
 
+### Wrapper Attribute Fix (discuss revision 2026-05-22)
+- **D-21:** **Wrapper `hx-vals` per-tab explicit replace dangling `hx-include="#filter-form"`** — 3 wrapper `<div class="htmx-tab-wrapper">` di shell baris 198/232/276 punya `hx-include="#filter-form"` untuk pass query string ke partial action saat initial load (URL bookmark D-10 backward compat). Setelah PLAN 02 5a hapus `<form id="filter-form">`, selector dangling → partial dapet zero params → URL bookmark `?category=OJT` BROKEN.
+  - **Fix:** Hapus `hx-include="#filter-form"` di 3 wrapper, ganti dengan `hx-vals='@Json.Serialize(new { ... })'` per-tab dengan ViewBag.* values yang RELEVANT ke tab itu only:
+    - Wrapper Tab 1: `search`, `category`, `statusFilter`, `page`
+    - Wrapper Tab 2: `section`, `unit`, `category`, `statusFilter`, `search`, `page`
+    - Wrapper Tab 3: `search`, `page`
+  - **Bonus benefit:** Structurally prevent Bug 2 cross-tab contamination — Tab 2 wrapper TIDAK include param yang tidak relevant, Tab 1 wrapper TIDAK include `section`/`unit`. Bug 2 prevention bukan defensive (cross-tab listener), tapi by-design (no leak).
+  - **Effect on D-10 backward compat:** Preserved — URL `?category=OJT` → controller set ViewBag.SelectedCategory → wrapper Tab 1 inject via hx-vals → partial dapet `category=OJT` ✅.
+  - **Effect on PLAN 02 5e:** Drop `searchTerm`/`selectedCategory`/`selectedStatus` vars di top `@{}` block tetap valid — akses langsung via `ViewBag.SearchTerm`/etc di hx-vals (lebih clean).
+
 </decisions>
 
 <references>
