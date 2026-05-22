@@ -1,0 +1,335 @@
+Plan
+3.4. Design/Gambar Teknik/Flow Proses/Formula Solusi Terpilih
+Cloud
+Internet
+DCS
+PLC
+Field
+Instrument
+Operator
+Workstation
+Engineering
+Workstation
+Server
+Process
+Historian
+Advanced
+Process
+Control
+Asset
+Performance
+Manager
+Alarm
+Management
+System
+Intranet
+Corporate
+Database
+Network Level 5
+Global Network
+Network Level 4
+Enterprise Network
+Network Level 3
+Application Network
+Network Level 2
+Supervisory Network
+Network Level 1
+Control Network
+IT Firewall
+Domain
+Controller IT
+Access Managed by
+Domain Controller
+Cloud
+Internet
+DCS
+PLC
+Field
+Instrument
+Operator
+Workstation
+Engineering
+Workstation
+Server
+Process
+Historian
+Advanced
+Process
+Control
+Asset
+Performance
+Manager
+Alarm
+Management
+System
+Intranet
+Corporate
+Database
+Network Level 3.5
+Demilitarized Zone
+Network Level 5
+Global Network
+Network Level 4
+Enterprise Network
+Network Level 3
+Application Network
+Network Level 2
+Supervisory Network
+Network Level 1
+Control Network
+IT Firewall
+Mirroring
+Application
+Managed
+Security
+Services
+OT Firewall
+Front-End
+Domain
+Controller OT
+Domain
+Controller OT
+Domain
+Controller IT
+Windows
+Security
+Update
+Antivirus (AV)
+Server
+OT Firewall
+Back-End
+AV
+AV
+AV
+AV
+AV
+AV
+AV
+Access Managed by
+Domain Controller
+Access Managed by
+Domain Controller
+IT & OT Segregated
+Network
+Sebelum (Kondisi Aktual)
+Konsep Improvement (Desain)
+Aspek
+Sebelum (Aktual)
+Konsep Improvement (Desain)
+Segmentasi IT–OT
+❌ Tidak ada pemisahan tegas
+✅ DMZ sebagai buffer zone
+Firewall OT
+❌ Tidak ada
+✅ Double firewall (Front-End & Back-End)
+Transfer Data IT↔OT
+❌ Koneksi langsung (risiko tinggi)
+✅ Via Mirroring Application (one-way)
+Antivirus Endpoint
+❌ Tidak ada di OT
+✅ AV di semua workstation & server
+Patch Management
+❌ Tidak terpusat
+✅ Windows Security Update Server dan
+Antivirus Definition terpusat di DMZ
+Monitoring Keamanan
+❌ Tidak ada
+✅ Managed Security Services aktif
+Domain Controller
+❌ Satu (Domain IT only)
+✅ Terpisah: IT Domain + OT Domain
+Kepatuhan IEC 62443
+❌ Compliance rendah (actual SAL 0)
+✅ Compliance tinggi (target SAL 3)
+Deskripsi Acuan/Standard
+Referensi Acuan/Standard External
+Standard yang digunakan
+pada Audit IT/OT
+IEC 62443 – Industrial Automation &
+Control System (IACS) Cybersecurity
+Standard instalasi dan
+desain Security IT/OT
+ISO/IEC 27001 – Information Security
+Management System (ISMS)
+Standard instalasi dan
+desain Jaringan OT
+NIST SP 800-82 – Guide to Industrial
+Control System (ICS) Security
+Deskripsi
+Acuan/Standard
+Referensi Acuan/Standard Internal
+Pedoman
+Pengamanan Jaringan
+OT
+Pedoman Pengamanan Operational Technology
+(OT) No. A-010/H000000/2018-S9
+Pedoman Desain
+Penerapan
+Infrastruktur OT
+Pertamina Practice Operational Technology
+(OT) Security Pertamina Group No. CICT-IT-
+0002-25:2018
+No
+Issue to Solved
+Deskripsi Issue
+A
+Tidak Ada Segmentasi IT–OT
+Jaringan IT terhubung langsung ke OT tanpa barrier memadai, sehingga breaching
+pada IT dapat menjangkau seluruh jaringan OT
+B
+Domain Controller IT
+Access Management hanya ada pada IT, belum tersedia pada OT
+C
+Tidak Ada Proteksi Endpoint OT
+Workstation dan server OT tidak memiliki antivirus maupun patch management
+terpusat sehingga rentan terhadap malware dan akses tidak sah.
+D
+Tidak Ada Monitoring
+Keamanan OT
+Belum tersedia monitoring atau managed security services untuk mendeteksi anomali
+dan serangan secara real-time.
+No
+Improvement
+Deskripsi Improvement
+1
+Penambahan
+DMZ (Level
+3.5)
+Menambahkan DMZ sebagai buffer zone antara
+IT dan OT untuk menerapkan defense-in-depth
+sesuai IEC 62443.
+2
+Double
+Firewall OT
+Menggunakan Front-End dan Back-End Firewall
+untuk membatasi serta memfilter traffic IT–OT
+secara berlapis.
+3
+Mirroring
+Application
+Transfer data IT–OT menggunakan prinsip one-
+way/data diode tanpa koneksi langsung ke
+jaringan OT.
+4
+Managed
+Security
+Services
+Monitoring keamanan OT aktif 24/7 untuk
+mendeteksi anomali dan serangan secara real-
+time.
+5
+Patch
+Management
+Terpusat
+Windows Security Update Server di DMZ
+mendistribusikan patch ke endpoint OT tanpa
+akses internet langsung.
+6
+Deployment
+Antivirus OT
+Seluruh workstation dan server OT dilengkapi
+antivirus dengan update melalui AV Server di
+DMZ.
+7
+OT Domain
+Controller
+Terpisah
+OT memiliki Domain Controller sendiri sehingga
+akses dan kebijakan keamanan OT terisolasi dari
+IT.
+8
+Koneksi
+Antar Level
+Lebih
+Terkontrol
+Aliran data antar level berjalan melalui jalur
+terdefinisi dan lebih aman, bukan koneksi bebas
+seperti sebelumnya.
+STEP
+ 3. Solusi Terpilih
+Standard yang digunakan
+Standard yang digunakan
+Standard yang digunakan
+sebagai 
+acuan
+sebagai 
+acuan
+sebagai 
+acuan
+desain/pengujian/sertifikasi/
+desain/pengujian/sertifikasi/
+desain/pengujian/sertifikasi/
+inspeksi
+inspeksi
+inspeksi
+Validasi desain terpilih
+alidasi desain terpilih
+alidasi desain terpilih
+Standard yang digunakan
+sebagai 
+acuan
+desain/pengujian/sertifikasi/
+inspeksi
+Validasi desain terpilih
+7
+8
+7
+8
+LAMPIRAN
+3.5. Standard
+Desain/Pengujian/Sertifikasi/
+Inspeksi
+LEGEND
+IT Network
+OT Network
+DMZ Network
+IT Network
+OT Network
+INFO!
+Network Level 3.5
+Demilitarized Zone
+Network Level 5
+Global Network
+Network Level 4
+Enterprise Network
+Network
+Level 3
+Application
+Network
+Network Level 1
+Control Network
+Network Level 2
+Supervisory Network
+Level 5 adalah dunia di luar
+perusahaan — internet
+global dan layanan cloud
+yang digunakan oleh
+perusahaan.
+Level 4 adalah jaringan IT
+korporat standar —
+tempat beroperasinya
+sistem bisnis, administrasi,
+dan manajemen
+perusahaan.
+Zona Perbatasan —
+Buffer Antara Dunia
+IT dan OT
+Level 3 adalah lapisan aplikasi
+operasional — tidak lagi
+mengontrol proses secara
+langsung, tapi mengolah data
+dari Level 1-2 menjadi
+informasi bernilai tinggi untuk
+optimasi dan manajemen.
+Level 2 adalah lapisan
+supervisory — di sinilah
+manusia berinteraksi
+dengan sistem kontrol
+secara langsung.
+Ini adalah lapisan paling
+bawah sekaligus paling
+kritis dalam seluruh
+arsitektur. Di sinilah
+kontrol proses fisik
+sesungguhnya
+berlangsung.
