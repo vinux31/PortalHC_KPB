@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<title>§3.4 Slide 8 — Panel Rencana Pembuatan (System)</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-red-light: #fce8eb;
+    --pertamina-blue: #00558C;
+    --pertamina-blue-dark: #003D63;
+    --pertamina-blue-light: #e6f0f7;
+    --pertamina-green: #00A551;
+    --pertamina-yellow: #FFC72C;
+    --pertamina-yellow-light: #fff5d6;
+    --neutral-gray: #6b7280;
+    --neutral-light: #d1d5db;
+    --bg: #f6f7fb;
+
+    --stack-net: #C8102E;
+    --stack-mvc: #6f42c1;
+    --stack-ef: #00558C;
+    --stack-sql: #003D63;
+    --stack-signalr: #f97316;
+    --stack-bs: #4c1d95;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    width: 450px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: #1f2937;
+  }
+  #export-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--pertamina-red);
+    color: white;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100;
+  }
+
+  #panel-wrap {
+    background: white;
+    border-radius: .35rem;
+    padding: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    border-top: 3px solid var(--pertamina-yellow);
+  }
+
+  /* Strip 1: Tech Stack */
+  .stack-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px 2px;
+    border-bottom: 1px dashed var(--neutral-light);
+    justify-content: center;
+  }
+  .badge {
+    padding: 2px 6px;
+    border: 1px solid;
+    border-radius: 3px;
+    font-size: 8.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+  .badge.net { background: #fbe5e9; border-color: var(--stack-net); color: var(--stack-net); }
+  .badge.mvc { background: #ede4f7; border-color: var(--stack-mvc); color: var(--stack-mvc); }
+  .badge.ef { background: var(--pertamina-blue-light); border-color: var(--stack-ef); color: var(--stack-ef); }
+  .badge.sql { background: #d6e1ea; border-color: var(--stack-sql); color: var(--stack-sql); }
+  .badge.signalr { background: #fde6cf; border-color: var(--stack-signalr); color: #c2410c; }
+  .badge.bs { background: #e1d6f2; border-color: var(--stack-bs); color: var(--stack-bs); }
+
+  /* Strip 2a: Deployment flow */
+  .flow-strip {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 2px;
+  }
+  .flow-node {
+    background: var(--pertamina-blue-light);
+    border: 1px solid var(--pertamina-blue);
+    color: var(--pertamina-blue-dark);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .flow-node small { font-weight: 400; opacity: .8; }
+  .flow-arrow {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--neutral-gray);
+  }
+
+  /* Strip 2b: Metode footer */
+  .metode-footer {
+    text-align: center;
+    font-size: 7.5px;
+    font-style: italic;
+    color: var(--neutral-gray);
+    padding: 2px 4px 1px;
+  }
+
+  @media print { #export-btn { display: none; } }
+</style>
+</head>
+<body>
+<button id="export-btn" onclick="exportPNG()">📸 PNG</button>
+
+<div id="panel-wrap">
+  <div class="stack-strip">
+    <span class="badge net">⚙️ .NET 8</span>
+    <span class="badge mvc">🌐 ASP.NET Core MVC</span>
+    <span class="badge ef">🔗 EF Core 8</span>
+    <span class="badge sql">🗄️ SQL Server</span>
+    <span class="badge signalr">📡 SignalR</span>
+    <span class="badge bs">🎨 Bootstrap</span>
+  </div>
+
+  <div class="flow-strip">
+    <div class="flow-node">💻 Lokal</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">🛠️ Dev <small>(10.55.3.3)</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">🚀 Prod <small>(IIS Windows)</small></div>
+  </div>
+
+  <div class="metode-footer">
+    👥 Internal Gugus PROTON · ⏱️ ~1 bulan build · 📋 SOP DEV_WORKFLOW
+  </div>
+</div>
+
+<script>
+async function exportPNG() {
+  const btn = document.getElementById('export-btn');
+  btn.style.display = 'none';
+  const target = document.getElementById('panel-wrap');
+  const canvas = await html2canvas(target, {
+    scale: 2,
+    backgroundColor: '#ffffff',
+    useCORS: true
+  });
+  btn.style.display = '';
+  const link = document.createElement('a');
+  link.download = 'panel-rencana-slide8.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>
