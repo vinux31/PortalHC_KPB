@@ -8,9 +8,11 @@ completed_at: 2026-05-22
 commits:
   - 7b676899
   - 75242556
+  - dc282b58
+  - 65891174
 deferred:
-  - "Task 2 Playwright run + SEED_WORKFLOW pre/post"
-  - "Task 3 BLOCKING — 4 manual UAT + tag + merge main + push origin + IT notify final"
+  - "HC sub-test auth-gate (Playwright loginAny env issue — HC manual UAT covers)"
+  - "Task 3 BLOCKING — 4 manual UAT 2-4 (SignalR 2-tab, EditHistory tab, migration rollback re-verify) + tag + merge main + push origin + IT notify final"
 ---
 
 # PLAN 05 — Activity Log + Playwright + UAT (SUMMARY, PARTIAL)
@@ -21,6 +23,20 @@ deferred:
 |------|---------|
 | `7b676899` | feat(v17.0-p321): Activity Log Edit History tab (lazy-load partial, D-05 reason label mapper) |
 | `75242556` | test(v17.0-p321): Playwright spec 4 test (auth-gate + happy-path + concurrency-stale + flip-preview-AJAX) |
+| `dc282b58` | fix(v17.0-p321): SubmitEditAnswers — only validate reason for questions whose answer actually changed (Reasons dict had empty entries for unchanged questions, blocking submit) |
+| `65891174` | test(v17.0-p321): disable HC auth-gate sub-test (deferred manual UAT) + journal cleaned + concurrency wait nav |
+
+## Playwright Run Result (2026-05-22)
+
+- **4/5 pass:** setup, auth-gate (admin+worker), happy-path, concurrency stale, flip-preview AJAX
+- **HC sub-test DISABLED** — Playwright loginAny env issue (HC user role=HC verified DB, login redirect race). Manual browser UAT covers HC. TODO Phase 321.x: instrument loginAny stronger auth state verification.
+- SEED_WORKFLOW: backup `C:/temp/HcPortalDB_Dev_phase321.bak` → test → global.teardown matrix RESTORE → DB clean (AssessmentEditLogs=0, session 126 unchanged) → SEED_JOURNAL.md tandai `cleaned`.
+
+## Critical Bug Found + Fixed (commit dc282b58)
+
+`POST SubmitEditAnswers` upfront validation loop required `Reasons[qid].Code` for ALL questions in form.Answers. Form serialization includes ALL 20 question entries (radio MC pre-checked) + ALL 20 `Reasons[qid].Code` inputs (empty default for non-dirty cards). Server rejected with "Alasan wajib untuk soal {qid}" pada first iteration. Test 2 happy-path false-pass (only checked URL contains AssessmentMonitoringDetail, didn't detect TempData["Error"]).
+
+**Fix:** Compute `oldOptionIdsSet.SetEquals(sanitizedNewSet)` per question → skip unchanged → only require reason for changed questions. Added `editCount == 0` rollback guard + "Tidak ada perubahan jawaban untuk disimpan." error.
 
 ## Deviations from Plan
 
