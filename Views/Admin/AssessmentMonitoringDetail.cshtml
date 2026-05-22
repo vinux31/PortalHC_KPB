@@ -1322,6 +1322,36 @@ function eventLabel(eventType, detail) {
             if (akhiriBtn) akhiriBtn.style.display = 'none';
         }
     });
+
+    // workerAnswerEdited: admin/HC edited a session's answers (Phase 321 EDIT-09)
+    window.assessmentHub.on('workerAnswerEdited', function (data) {
+        var row = document.querySelector('tr[data-session-id="' + data.sessionId + '"]');
+        if (row) {
+            var scoreCell = row.querySelector('.score-cell');
+            var resultCell = row.querySelector('.result-cell');
+            if (scoreCell) scoreCell.textContent = data.newScore + '%';
+            if (resultCell) {
+                resultCell.textContent = data.newIsPassed ? 'Pass' : 'Fail';
+                resultCell.className = 'result-cell ' + (data.newIsPassed ? 'text-success fw-semibold' : 'text-danger fw-semibold');
+            }
+        }
+
+        // D-07 toast verbose template (8 detik per D-07 LOCKED)
+        var oldResult = (data.oldIsPassed === true) ? 'Pass' : (data.oldIsPassed === false) ? 'Fail' : '—';
+        var newResult = data.newIsPassed ? 'Pass' : 'Fail';
+        var flipSegment = (data.oldIsPassed !== data.newIsPassed)
+            ? ', ' + oldResult + '→' + newResult
+            : '';
+        var msg = data.actorRole + ' ' + data.actorName +
+                  ' edit jawaban ' + data.workerName +
+                  ': Score ' + (data.oldScore !== null && data.oldScore !== undefined ? data.oldScore : '—') + '→' + data.newScore +
+                  flipSegment;
+        if (typeof window.showAssessmentToast === 'function') {
+            window.showAssessmentToast(msg, null, null, 8000);
+        } else {
+            console.log('[toast]', msg);
+        }
+    });
 </script>
 
 @* ===== ESSAY GRADING AJAX HANDLERS (Phase 298-05) ===== *@

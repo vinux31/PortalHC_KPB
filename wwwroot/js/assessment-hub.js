@@ -6,7 +6,7 @@
         .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
         .build();
 
-    function showToast(message, linkUrl, linkText) {
+    function showToast(message, linkUrl, linkText, delayMs) {
         var el = document.createElement('div');
         el.className = 'assessment-toast';
         el.textContent = message;
@@ -24,12 +24,14 @@
             el.classList.add('visible');
         });
 
+        // delayMs default 5000ms (Phase 321 D-07 LOCKED 8s: edit handler invoke dgn 8000)
+        var timeout = (typeof delayMs === 'number' && delayMs > 0) ? delayMs : 5000;
         setTimeout(function () {
             el.classList.remove('visible');
             setTimeout(function () {
                 if (el.parentNode) el.parentNode.removeChild(el);
             }, 350);
-        }, 5000);
+        }, timeout);
     }
 
     function showPersistentToast(message, buttonText, buttonAction) {
