@@ -24,10 +24,10 @@
     </div>
 </div>
 
-<!-- Filter Section -->
+<!-- Filter Section (Phase 322 — HTMX inline triggers, scoped to Input Records tab only) -->
 <div class="card bg-light border-0 mb-4">
     <div class="card-body">
-        <form method="get" action="@Url.Action("ManageAssessment", "AssessmentAdmin")" id="filterFormTraining">
+        <form id="filterFormTraining" onsubmit="return false;">
             <input type="hidden" name="tab" value="training" />
             <input type="hidden" name="isFiltered" value="true" />
 
@@ -36,7 +36,12 @@
                 <div class="col-12 col-md-2">
                     <label class="form-label fw-bold small">Bagian</label>
                     <select class="form-select form-select-sm" name="section" id="filterSection"
-                            onchange="document.getElementById('filterUnit').value=''; this.form.submit()">
+                            hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+                            hx-trigger="change"
+                            hx-target="closest .htmx-tab-wrapper"
+                            hx-swap="innerHTML"
+                            hx-include="closest form"
+                            onchange="document.getElementById('filterUnit').value='';">
                         <option value="">Semua Bagian</option>
                         @{ var sects = ViewBag.TrainingSections as List<string> ?? new List<string>(); }
                         @foreach (var s in sects)
@@ -53,7 +58,11 @@
                 <div class="col-12 col-md-2">
                     <label class="form-label fw-bold small">Kategori Training</label>
                     <select class="form-select form-select-sm" name="category" id="filterCategory"
-                            onchange="this.form.submit()">
+                            hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+                            hx-trigger="change"
+                            hx-target="closest .htmx-tab-wrapper"
+                            hx-swap="innerHTML"
+                            hx-include="closest form">
                         <option value="">-- Pilih Kategori --</option>
                         @{
                             var cats = new[] {
@@ -77,7 +86,11 @@
                 <div class="col-12 col-md-2">
                     <label class="form-label fw-bold small">Unit</label>
                     <select class="form-select form-select-sm" name="unit" id="filterUnit"
-                            onchange="this.form.submit()">
+                            hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+                            hx-trigger="change"
+                            hx-target="closest .htmx-tab-wrapper"
+                            hx-swap="innerHTML"
+                            hx-include="closest form">
                         <option value="">Semua Unit</option>
                         @{ var trainingUnits = ViewBag.TrainingUnits as List<string> ?? new List<string>(); }
                         @foreach (var unitVal in trainingUnits)
@@ -94,7 +107,11 @@
                 <div class="col-12 col-md-2">
                     <label class="form-label fw-bold small">Status</label>
                     <select class="form-select form-select-sm" name="statusFilter" id="filterStatus"
-                            onchange="this.form.submit()">
+                            hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+                            hx-trigger="change"
+                            hx-target="closest .htmx-tab-wrapper"
+                            hx-swap="innerHTML"
+                            hx-include="closest form">
                         <option value="">Semua</option>
                         @if (selectedStatus == "Sudah")
                         { <option value="Sudah" selected="selected">Sudah</option> }
@@ -112,15 +129,28 @@
                     <label class="form-label fw-bold small">Cari Nama/Nopeg</label>
                     <div class="input-group input-group-sm">
                         <input type="text" class="form-control" name="search"
+                               id="searchTraining"
                                placeholder="Cari nama atau nopeg..."
-                               value="@searchTerm2">
-                        <button class="btn btn-primary" type="submit" title="Cari">
+                               value="@searchTerm2"
+                               hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+                               hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
+                               hx-target="closest .htmx-tab-wrapper"
+                               hx-swap="innerHTML"
+                               hx-include="closest form" />
+                        <button class="btn btn-primary" type="button" title="Cari"
+                                hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                hx-include="closest form">
                             <i class="bi bi-search"></i>
                         </button>
-                        <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = "training" })"
-                           class="btn btn-secondary" title="Reset Filter">
+                        <button type="button" class="btn btn-secondary" title="Reset Filter"
+                                hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                onclick="document.getElementById('filterSection').value=''; document.getElementById('filterCategory').value=''; document.getElementById('filterUnit').value=''; document.getElementById('filterStatus').value=''; document.getElementById('searchTraining').value='';">
                             <i class="bi bi-arrow-counterclockwise"></i>
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
