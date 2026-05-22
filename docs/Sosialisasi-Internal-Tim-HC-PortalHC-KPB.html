@@ -820,7 +820,7 @@
   .notif-table code { font-family: 'Cascadia Code', Consolas, monospace; font-size: 8pt; color: var(--teal-dark); }
   body.dark .notif-table code { color: var(--teal-light); }
 
-  /* Callout "Implikasi untuk HC" — disisip di slide gap dari merge File 2 */
+  /* Callout "Penjelasan" — deskripsi singkat per slide */
   .hc-callout {
     margin-top: 20px;
     padding: 14px 18px;
@@ -1786,7 +1786,7 @@
         <h1 class="slide-title">Selamat Datang <span class="accent">Tim HC</span></h1>
         <p class="slide-subtitle">Yang akan kita bahas dalam sesi ini</p>
       </div>
-      SLIDE 2 / 41
+      <div class="slide-badge">SLIDE 2 / 41</div>
     </div>
     <div class="slide-body">
       <div class="agenda-grid">
@@ -1833,7 +1833,6 @@
           </div>
         </div>
       </div>
-      <div class="agenda-footer">&#9201; Estimasi durasi: ~45 menit &bull; Pertanyaan kapan saja</div>
     </div>
   </div>
 
@@ -1844,7 +1843,7 @@
         <h1 class="slide-title">Latar <span class="accent">Belakang</span></h1>
         <p class="slide-subtitle">Mengapa HC Portal KPB dibangun</p>
       </div>
-      SLIDE 3 / 41
+      <div class="slide-badge">SLIDE 3 / 41</div>
     </div>
     <div class="slide-body">
       <div class="latar-container">
@@ -1876,9 +1875,9 @@
         </div>
       </div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: jembatan antara user pain "manual" &rarr; adopsi platform terintegrasi</li>
+          <li>Slide ini menunjukkan transformasi dari proses manual (kertas, Excel, data tersebar) menjadi platform terintegrasi &amp; data-driven.</li>
         </ul>
       </div>
     </div>
@@ -1891,7 +1890,7 @@
         <h1 class="slide-title">Apa Itu <span class="accent">HC Portal</span> KPB?</h1>
         <p class="slide-subtitle">Sistem informasi terpadu untuk Tim Human Capital Kilang Pertamina Balikpapan</p>
       </div>
-      SLIDE 4 / 41
+      <div class="slide-badge">SLIDE 4 / 41</div>
     </div>
     <div class="slide-body">
       <div class="definition-box">
@@ -1920,12 +1919,6 @@
           <div class="pilar-desc">Skor, progress, level kompetensi tertrace per pekerja secara real-time.</div>
         </div>
       </div>
-      <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
-        <ul>
-          <li>HC: owner data + reviewer final di semua workflow Proton</li>
-        </ul>
-      </div>
     </div>
   </div>
 
@@ -1936,7 +1929,7 @@
         <h1 class="slide-title">3 <span class="accent">Platform</span> Terpadu</h1>
         <p class="slide-subtitle">CMP &middot; CDP &middot; BP &mdash; manajemen, pengembangan, &amp; strategic partner</p>
       </div>
-      SLIDE 5 / 41
+      <div class="slide-badge">SLIDE 5 / 41</div>
     </div>
     <div class="slide-body">
       <div class="modules-grid" style="grid-template-columns:repeat(3,1fr);gap:14px;">
@@ -1986,9 +1979,9 @@
         </div>
       </div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC operate di semua 3 (CMP analytics, CDP coaching, BP via integrasi)</li>
+          <li>Tiga platform utama Portal HC: CMP untuk asesmen kompetensi, CDP untuk pengembangan kompetensi (coaching), BP untuk strategic partner (masih roadmap).</li>
         </ul>
       </div>
     </div>
@@ -2001,7 +1994,7 @@
         <h1 class="slide-title">Struktur <span class="accent">Role</span> Pengguna</h1>
         <p class="slide-subtitle">10 role &middot; 6 level &mdash; makin tinggi tangga, makin luas authority</p>
       </div>
-      SLIDE 6 / 41
+      <div class="slide-badge">SLIDE 6 / 41</div>
     </div>
     <div class="slide-body">
       <div class="stairs">
@@ -2054,9 +2047,9 @@
       </div>
       <p class="stair-caption">&larr; Operational Level &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; Higher Authority &rarr;</p>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC = L2 authority; scope: cross-section, final reviewer</li>
+          <li>10 role dikelompokkan dalam 6 level otorisasi. HC berada di Level 2 dengan akses lintas section sebagai final reviewer.</li>
         </ul>
       </div>
     </div>
@@ -2069,7 +2062,7 @@
         <h1 class="slide-title">Cara <span class="accent">Mengakses</span> HC Portal</h1>
         <p class="slide-subtitle">Sekarang fase Development &mdash; Production akan menyusul</p>
       </div>
-      SLIDE 7 / 41
+      <div class="slide-badge">SLIDE 7 / 41</div>
     </div>
     <div class="slide-body">
       <div class="akses-grid">
@@ -2098,12 +2091,6 @@
         </div>
       </div>
       <div class="akses-footer">&#128204; Saat ini masih development</div>
-      <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
-        <ul>
-          <li>HC akses sama dengan user umum, tapi role-gated menu (Bab 1.2 Panduan)</li>
-        </ul>
-      </div>
     </div>
   </div>
 
@@ -2114,7 +2101,7 @@
         <h1 class="slide-title">Integrasi &amp; <span class="accent">Keamanan</span></h1>
         <p class="slide-subtitle">Fitur pendukung yang menjaga integritas &amp; kemudahan</p>
       </div>
-      SLIDE 8 / 41
+      <div class="slide-badge">SLIDE 8 / 41</div>
     </div>
     <div class="slide-body">
       <div class="cat-grid">
@@ -2144,9 +2131,9 @@
         </div>
       </div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: tanggung jawab audit log review, impersonate dengan justifikasi</li>
+          <li>Fitur keamanan &amp; integrasi yang menjaga integritas data: login lewat AD Pertamina, anti-copy soal, audit log, role-based access, notifikasi real-time, dan import Excel.</li>
         </ul>
       </div>
     </div>
@@ -2157,10 +2144,10 @@
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 0 &mdash; PENGENALAN</p>
-        <h1 class="slide-title">Posisi <span class="accent">HC</span> di Portal</h1>
-        <p class="slide-subtitle">Level 2 &mdash; akses penuh ke pengelolaan SDM &amp; coaching</p>
+        <h1 class="slide-title">Area Kerja <span class="accent">HC</span> di Portal</h1>
+        <p class="slide-subtitle">4 area utama yang Anda kelola setiap hari di Portal HC</p>
       </div>
-      SLIDE 9 / 41
+      <div class="slide-badge">SLIDE 9 / 41</div>
     </div>
     <div class="slide-body">
       <div class="area-grid" style="grid-template-columns:repeat(2,1fr);gap:18px;max-width:760px;margin:30px auto;">
@@ -2198,7 +2185,7 @@
         <h1 class="slide-title">Alur Kerja <span class="accent">Harian HC</span></h1>
         <p class="slide-subtitle">5 aktivitas inti yang berulang setiap hari</p>
       </div>
-      SLIDE 10 / 41
+      <div class="slide-badge">SLIDE 10 / 41</div>
     </div>
     <div class="slide-body">
       <div class="flow-h">
@@ -2247,7 +2234,7 @@
         <h1 class="slide-title">CMP <span class="accent">Overview</span></h1>
         <p class="slide-subtitle">Halaman landing CMP &mdash; akses 6 sub-modul utama via card grid</p>
       </div>
-      SLIDE 11 / 41
+      <div class="slide-badge">SLIDE 11 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -2285,7 +2272,7 @@
         <h1 class="slide-title">Records <span class="accent">Team</span></h1>
         <p class="slide-subtitle">Team view real-time &mdash; filter cascade + export Excel per pekerja</p>
       </div>
-      SLIDE 12 / 41
+      <div class="slide-badge">SLIDE 12 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -2319,7 +2306,7 @@
         <h1 class="slide-title">Analytics <span class="accent">Dashboard</span></h1>
         <p class="slide-subtitle">4 metric global &middot; 6 tab chart &middot; export Excel per chart</p>
       </div>
-      SLIDE 13 / 41
+      <div class="slide-badge">SLIDE 13 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -2353,7 +2340,7 @@
         <h1 class="slide-title">Sistem <span class="accent">Assessment</span></h1>
         <p class="slide-subtitle">Dua jenis assessment utama di HC Portal</p>
       </div>
-      SLIDE 14 / 41
+      <div class="slide-badge">SLIDE 14 / 41</div>
     </div>
     <div class="slide-body">
       <div class="jenis-grid">
@@ -2389,12 +2376,6 @@
         </div>
       </div>
       <div class="tip-bar">&#128161; <strong>Assessment Umum</strong> untuk evaluasi reguler per batch unit / jenis kompetensi &middot; <strong>Proton</strong> untuk program pengembangan 3 tahun</div>
-      <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
-        <ul>
-          <li>HC: setup jadwal, bank soal, monitor real-time, force-close</li>
-        </ul>
-      </div>
     </div>
   </div>
 
@@ -2406,7 +2387,7 @@
         <h1 class="slide-title">5 Kategori <span class="accent">Assessment Umum</span></h1>
         <p class="slide-subtitle">Cakupan jenis ujian kompetensi di KPB di luar Proton</p>
       </div>
-      SLIDE 15 / 41
+      <div class="slide-badge">SLIDE 15 / 41</div>
     </div>
     <div class="slide-body">
       <div class="cat-grid center-5">
@@ -2432,12 +2413,6 @@
         </div>
       </div>
       <div class="tip-bar" style="margin-top:14px;">&#128204; <strong>Assessment Proton</strong> dibahas di Bagian 2 &mdash; sistem track 3-tahun Panelman/Operator</div>
-      <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
-        <ul>
-          <li>HC: assign kategori per jadwal, lihat fail rate per kategori (Analytics)</li>
-        </ul>
-      </div>
     </div>
   </div>
 
@@ -2449,7 +2424,7 @@
         <h1 class="slide-title">Alur <span class="accent">Assessment</span> &mdash; 7 Step End-to-End</h1>
         <p class="slide-subtitle">Persiapan &rarr; Pelaksanaan &rarr; Penilaian</p>
       </div>
-      SLIDE 16 / 41
+      <div class="slide-badge">SLIDE 16 / 41</div>
     </div>
     <div class="slide-body">
       <div class="swim-row" style="grid-template-columns:2fr 3fr 2fr;">
@@ -2513,9 +2488,9 @@
       </div>
       <div class="output-bar">&#128228; <strong>Output:</strong> skor pekerja &middot; status kelulusan &middot; rekap per unit</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: step 1 (setup), step 5 (monitor), step 7 (manual entry + cert)</li>
+          <li>7 langkah end-to-end ujian online: persiapan data, buat assessment, peserta ujian, monitoring real-time, submit, penilaian otomatis, dan laporan + sertifikasi.</li>
         </ul>
       </div>
     </div>
@@ -2529,7 +2504,7 @@
         <h1 class="slide-title">Pre / Post Test &mdash; <span class="accent">Gain Score</span></h1>
         <p class="slide-subtitle">Mengukur efektivitas training secara terstandar</p>
       </div>
-      SLIDE 17 / 41
+      <div class="slide-badge">SLIDE 17 / 41</div>
     </div>
     <div class="slide-body">
       <div class="flow-h">
@@ -2578,7 +2553,7 @@
         <h1 class="slide-title">Assessment <span class="accent">Proton</span></h1>
         <p class="slide-subtitle">Format penilaian per tahun &middot; 1 track per role (Panelman / Operator)</p>
       </div>
-      SLIDE 18 / 41
+      <div class="slide-badge">SLIDE 18 / 41</div>
     </div>
     <div class="slide-body">
       <div style="text-align:center;padding:20px;">
@@ -2595,12 +2570,6 @@
           &#128161; Detail komparasi 5 aspek per tahun (fokus, deliverable, coaching, assessment, akhir tahun) di <strong>slide Progresi Kompetensi</strong> (BAGIAN 3).
         </div>
       </div>
-      <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
-        <ul>
-          <li>HC: reviewer final chain Proton, manage silabus + guidance files</li>
-        </ul>
-      </div>
     </div>
   </div>
 
@@ -2612,7 +2581,7 @@
         <h1 class="slide-title">Alur Proton &mdash; Tahun <span class="accent">1 &amp; 2</span></h1>
         <p class="slide-subtitle">Ujian Online (Pilihan Ganda)</p>
       </div>
-      SLIDE 19 / 41
+      <div class="slide-badge">SLIDE 19 / 41</div>
     </div>
     <div class="slide-body">
       <div class="alur-stepper">
@@ -2640,9 +2609,9 @@
       <div class="alur-crossref">&#128161; <strong>Mirip Assessment Umum</strong> &mdash; beda di kategori &amp; paket soal per track</div>
       <div class="alur-warning">&#9888; <strong>Wajib lulus Tahun N</strong> untuk lanjut ke Tahun N+1</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: jaga deliverable submission timeline, eskalasi bottleneck</li>
+          <li>Tahun 1 dan Tahun 2 Proton menggunakan ujian online (pilihan ganda) seperti assessment umum &mdash; perbedaannya hanya di kategori dan paket soal per track.</li>
         </ul>
       </div>
     </div>
@@ -2683,9 +2652,9 @@
       </div>
       <div class="alur-callout">&#128276; <strong>Sistem hanya untuk input skor &amp; rekap</strong> &mdash; bukan ujian online</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: validasi mahir, certification renewal management</li>
+          <li>Tahun 3 Proton tidak menggunakan ujian online &mdash; penilaian via interview panel juri tatap muka. Sistem hanya dipakai untuk input skor &amp; rekap hasil.</li>
         </ul>
       </div>
     </div>
@@ -2696,10 +2665,10 @@
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 3 &mdash; COACHING PROTON / CDP</p>
-        <h1 class="slide-title">CDP &mdash; <span class="accent">Reviewer Chain</span></h1>
+        <h1 class="slide-title">Proton &mdash; <span class="accent">Reviewer Chain</span></h1>
         <p class="slide-subtitle">HC = Final Reviewer (Reviewer ke-3) di approval chain</p>
       </div>
-      SLIDE 21 / 41
+      <div class="slide-badge">SLIDE 21 / 41</div>
     </div>
     <div class="slide-body">
       <div class="chain-wrap">
@@ -2755,7 +2724,7 @@
         <h1 class="slide-title">Coaching <span class="accent">Proton</span> &mdash; Dual Track</h1>
         <p class="slide-subtitle">Program pendampingan 3 tahun &middot; 2 track independen (Panelman + Operator)</p>
       </div>
-      SLIDE 22 / 41
+      <div class="slide-badge">SLIDE 22 / 41</div>
     </div>
     <div class="slide-body">
       <div class="dt-grid">
@@ -2780,9 +2749,9 @@
       </div>
       <div class="tip-bar">&#128161; <strong>Setiap track berdiri sendiri</strong> &mdash; hierarki kompetensi &amp; deliverable independen. Pekerja dipromosikan setiap tahun setelah semua deliverable selesai.</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: monitor kedua track via Coaching Proton Dashboard</li>
+          <li>Coaching Proton punya 2 track independen (Panelman dan Operator). Setiap track punya hierarki kompetensi &amp; deliverable sendiri. Pekerja dipromosikan setiap tahun setelah semua deliverable selesai.</li>
         </ul>
       </div>
     </div>
@@ -2796,7 +2765,7 @@
         <h1 class="slide-title">Hierarki <span class="accent">Kompetensi</span> per Track</h1>
         <p class="slide-subtitle">Track &rarr; Kompetensi &rarr; Sub-Kompetensi &rarr; Deliverable</p>
       </div>
-      SLIDE 23 / 41
+      <div class="slide-badge">SLIDE 23 / 41</div>
     </div>
     <div class="slide-body">
       <div class="tree-grid">
@@ -2823,9 +2792,9 @@
       </div>
       <div class="tip-bar">&#128161; <strong>Independen per track</strong> &mdash; tidak shared. Semua deliverable selesai = lulus track &rarr; promosi ke tahun berikutnya.</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: gunakan KKJ matrix untuk gap analysis CPDP Mapping</li>
+          <li>Struktur kompetensi 4-level: Track &rarr; Kompetensi &rarr; Sub-Kompetensi &rarr; Deliverable. Independen per track. Semua deliverable selesai = lulus track.</li>
         </ul>
       </div>
     </div>
@@ -2839,7 +2808,7 @@
         <h1 class="slide-title">Progresi <span class="accent">Kompetensi</span> per Tahun</h1>
         <p class="slide-subtitle">5 aspek pembanding antara Tahun 1, 2, dan 3</p>
       </div>
-      SLIDE 24 / 41
+      <div class="slide-badge">SLIDE 24 / 41</div>
     </div>
     <div class="slide-body">
       <table class="progresi-table">
@@ -2885,9 +2854,9 @@
         </tbody>
       </table>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: track progresi via Analytics + Bottleneck Report</li>
+          <li>Perbedaan Tahun 1, 2, dan 3 di 5 aspek: fokus pembelajaran, deliverable, coaching process, metode assessment, dan output akhir tahun.</li>
         </ul>
       </div>
     </div>
@@ -2901,7 +2870,7 @@
         <h1 class="slide-title">Alur <span class="accent">Coaching</span> &mdash; 9 Step</h1>
         <p class="slide-subtitle">Persiapan Silabus &rarr; Review Multi-Role &rarr; Assessment Online &rarr; Sertifikasi</p>
       </div>
-      SLIDE 25 / 41
+      <div class="slide-badge">SLIDE 25 / 41</div>
     </div>
     <div class="slide-body">
       <div class="swim-row" style="grid-template-columns:3fr 3fr 2fr;">
@@ -2977,9 +2946,9 @@
       </div>
       <div class="output-bar">&#9989; <strong>Output:</strong> sertifikat tahun + eligible naik tahun berikutnya &middot; Komparasi 5-aspek Th 1/2/3 &rarr; slide Progresi Kompetensi</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: reviewer final di step 8-9 (approval chain)</li>
+          <li>9 langkah coaching reguler (Tahun 1-2): persiapan silabus &amp; guidance, assign coachee, review multi-role, progress + assessment online, dan sertifikasi tahun.</li>
         </ul>
       </div>
     </div>
@@ -3069,9 +3038,9 @@
       </div>
       <div class="output-bar" style="background:linear-gradient(90deg,var(--amber),#b45309);">&#127942; <strong>Output:</strong> Pekerja kompeten penuh + sertifikasi final + eligible role advance &middot; Komparasi Mahir vs Th 1-2 &rarr; slide Progresi Kompetensi</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: validation mahir + sertifikasi (Renewal Certificate Mgmt)</li>
+          <li>9 langkah coaching level mahir (Tahun 3): silabus mahir, kerjakan deliverable, review multi-role, interview offline, sertifikasi final, dan penetapan level kompetensi.</li>
         </ul>
       </div>
     </div>
@@ -3085,7 +3054,7 @@
         <h1 class="slide-title">Coaching Proton <span class="accent">Dashboard</span></h1>
         <p class="slide-subtitle">5 metric global + filter cascade + tab Bottleneck Report</p>
       </div>
-      SLIDE 27 / 41
+      <div class="slide-badge">SLIDE 27 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3119,7 +3088,7 @@
         <h1 class="slide-title">Histori Proton + <span class="accent">Export</span></h1>
         <p class="slide-subtitle">Histori coaching per pekerja &mdash; progress visual Th 1/2/3 + export Excel</p>
       </div>
-      SLIDE 28 / 41
+      <div class="slide-badge">SLIDE 28 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3154,7 +3123,7 @@
         <h1 class="slide-title">Renewal Certificate <span class="accent">Lifecycle</span></h1>
         <p class="slide-subtitle">Alur lengkap sertifikat expired sampai terbit baru</p>
       </div>
-      SLIDE 29 / 41
+      <div class="slide-badge">SLIDE 29 / 41</div>
     </div>
     <div class="slide-body">
       <div class="flow-h">
@@ -3203,7 +3172,7 @@
         <h1 class="slide-title">IDP &amp; <span class="accent">Training Records</span></h1>
         <p class="slide-subtitle">Dua komponen pelengkap Coaching Proton di CDP</p>
       </div>
-      SLIDE 30 / 41
+      <div class="slide-badge">SLIDE 30 / 41</div>
     </div>
     <div class="slide-body">
       <div class="modules-grid" style="grid-template-columns:1fr 1fr;gap:18px;">
@@ -3240,9 +3209,9 @@
       </div>
       <div class="tip-bar" style="margin-top:14px;">&#128161; IDP &amp; Training Records <strong>terintegrasi dengan profile pekerja</strong> &mdash; jadi referensi gap analysis &amp; promosi.</div>
       <div class="hc-callout">
-        <strong>Implikasi untuk HC</strong>
+        <strong>Penjelasan</strong>
         <ul>
-          <li>HC: review IDP coachee, audit training records team</li>
+          <li>Dua modul pelengkap CDP non-coaching: IDP (perpustakaan dokumen development plan per pekerja) dan Training Records (riwayat pelatihan + sertifikat).</li>
         </ul>
       </div>
     </div>
@@ -3256,7 +3225,7 @@
         <h1 class="slide-title">Admin Panel <span class="accent">Landing</span></h1>
         <p class="slide-subtitle">4 section ABCD &mdash; total 14 menu yang HC kelola</p>
       </div>
-      SLIDE 31 / 41
+      <div class="slide-badge">SLIDE 31 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3290,7 +3259,7 @@
         <h1 class="slide-title">Manajemen <span class="accent">Pekerja</span></h1>
         <p class="slide-subtitle">CRUD pekerja + import/export Excel &middot; role badge color-coded</p>
       </div>
-      SLIDE 32 / 41
+      <div class="slide-badge">SLIDE 32 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3325,7 +3294,7 @@
         <h1 class="slide-title">Assessment <span class="accent">Monitoring</span></h1>
         <p class="slide-subtitle">Real-time tracking grup assessment &middot; force-close + reset + extra time controls</p>
       </div>
-      SLIDE 33 / 41
+      <div class="slide-badge">SLIDE 33 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3359,7 +3328,7 @@
         <h1 class="slide-title">Coach-Coachee <span class="accent">Mapping</span></h1>
         <p class="slide-subtitle">Group by coach &middot; expandable row &middot; bulk import/export Excel</p>
       </div>
-      SLIDE 34 / 41
+      <div class="slide-badge">SLIDE 34 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3394,7 +3363,7 @@
         <h1 class="slide-title">Silabus + <span class="accent">Guidance Files</span></h1>
         <p class="slide-subtitle">ProtonData Index &mdash; 3 tab: Status Sync &middot; Silabus &middot; Coaching Guidance</p>
       </div>
-      SLIDE 35 / 41
+      <div class="slide-badge">SLIDE 35 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3429,7 +3398,7 @@
         <h1 class="slide-title">Override <span class="accent">Data Pekerja</span></h1>
         <p class="slide-subtitle">Fitur sensitif &mdash; pakai dengan hati-hati</p>
       </div>
-      SLIDE 36 / 41
+      <div class="slide-badge">SLIDE 36 / 41</div>
     </div>
     <div class="slide-body">
       <div class="split-2">
@@ -3469,7 +3438,7 @@
         <h1 class="slide-title">Maintenance + <span class="accent">Audit Log</span></h1>
         <p class="slide-subtitle">Operational tools yang HC pakai saat investigasi atau update</p>
       </div>
-      SLIDE 37 / 41
+      <div class="slide-badge">SLIDE 37 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3504,7 +3473,7 @@
         <h1 class="slide-title">Notifikasi &amp; <span class="accent">Workflow</span></h1>
         <p class="slide-subtitle">Bell icon di navbar &mdash; entry point notifikasi terpusat</p>
       </div>
-      SLIDE 38 / 41
+      <div class="slide-badge">SLIDE 38 / 41</div>
     </div>
     <div class="slide-body">
       <div class="slide-mockup-split">
@@ -3574,7 +3543,7 @@
         <h1 class="slide-title">Tugas HC <span class="accent">Cepat</span></h1>
         <p class="slide-subtitle">Checklist harian, mingguan, bulanan</p>
       </div>
-      SLIDE 39 / 41
+      <div class="slide-badge">SLIDE 39 / 41</div>
     </div>
     <div class="slide-body">
       <div class="checklist-3">
@@ -3623,7 +3592,7 @@
         <h1 class="slide-title">Reference <span class="accent">Card</span></h1>
         <p class="slide-subtitle">Dokumen detail untuk self-service kapan saja</p>
       </div>
-      SLIDE 40 / 41
+      <div class="slide-badge">SLIDE 40 / 41</div>
     </div>
     <div class="slide-body">
       <div class="ref-grid">
