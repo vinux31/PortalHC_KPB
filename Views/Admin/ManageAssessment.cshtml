@@ -3,10 +3,6 @@
     ViewData["ContainerClass"] = "container-fluid";
 
     var activeTab = ViewBag.ActiveTab as string ?? "assessment";
-    var searchTerm = ViewBag.SearchTerm as string;
-    var assessmentCategories = ViewBag.Categories as List<string> ?? new List<string>();
-    var selectedCategory = ViewBag.SelectedCategory as string ?? "";
-    var selectedStatus = ViewBag.SelectedStatus as string ?? "";
 
     // Phase 311 Plan 02: HTMX endpoint URLs (PathBase auto-resolved via @Url.Action).
     var urlAssessment = Url.Action("ManageAssessmentTab_Assessment", "AssessmentAdmin");
@@ -81,113 +77,7 @@
     </li>
 </ul>
 
-<!-- ============================================================ -->
-<!-- Phase 311 Plan 02: Shared filter form di shell level         -->
-<!-- (HTMX hx-include="#filter-form" target tab pane aktif).      -->
-<!-- ============================================================ -->
-<form id="filter-form" method="get" action="@Url.Action("ManageAssessment", "AssessmentAdmin")"
-      class="row g-2 align-items-end my-3"
-      onsubmit="return false;">
-
-    <input type="hidden" name="tab" value="@activeTab" id="filter-tab" />
-    <input type="hidden" name="page" value="1" id="filter-page" />
-    <input type="hidden" name="pageSize" value="20" />
-
-    <!-- Search input (D-03 debounce 500ms input) -->
-    <div class="col-md-4">
-        <div class="input-group">
-            <span class="input-group-text bg-white border-end-0">
-                <i class="bi bi-search text-muted"></i>
-            </span>
-            <input type="text" class="form-control border-start-0 ps-0" name="search"
-                   id="filter-search"
-                   placeholder="Cari berdasarkan judul, kategori, nama, atau NIP..."
-                   value="@searchTerm"
-                   hx-get="@urlAssessment"
-                   hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
-                   hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
-                   hx-swap="innerHTML"
-                   hx-include="#filter-form"
-                   hx-sync="this:replace" />
-            <button class="btn btn-primary" type="button"
-                    hx-get="@urlAssessment"
-                    hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
-                    hx-swap="innerHTML"
-                    hx-include="#filter-form"
-                    hx-sync="closest form:replace">Cari</button>
-            @if (!string.IsNullOrEmpty(searchTerm))
-            {
-                <button type="button" class="btn btn-outline-secondary" title="Hapus pencarian"
-                        onclick="document.getElementById('filter-search').value=''; htmx.trigger('#filter-search','input')">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            }
-        </div>
-    </div>
-
-    <!-- Category dropdown (D-03 instant change) -->
-    <div class="col-md-3">
-        <select id="filter-category" name="category" class="form-select form-select-sm"
-                hx-get="@urlAssessment"
-                hx-trigger="change"
-                hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
-                hx-swap="innerHTML"
-                hx-include="#filter-form"
-                hx-sync="this:replace">
-            <option value="">Semua Kategori</option>
-            @foreach (var cat in assessmentCategories)
-            {
-                if (selectedCategory == cat)
-                { <option value="@cat" selected="selected">@cat</option> }
-                else
-                { <option value="@cat">@cat</option> }
-            }
-        </select>
-    </div>
-
-    <!-- Status dropdown (D-03 instant change) -->
-    <div class="col-md-3">
-        <select id="filter-status" name="statusFilter" class="form-select form-select-sm"
-                hx-get="@urlAssessment"
-                hx-trigger="change"
-                hx-target="#pane-@activeTab > div.htmx-tab-wrapper"
-                hx-swap="innerHTML"
-                hx-include="#filter-form"
-                hx-sync="this:replace">
-            @if (string.IsNullOrEmpty(selectedStatus))
-            { <option value="" selected="selected">Aktif (Open/Upcoming)</option> }
-            else
-            { <option value="">Aktif (Open/Upcoming)</option> }
-            @if (selectedStatus == "Open")
-            { <option value="Open" selected="selected">Open</option> }
-            else
-            { <option value="Open">Open</option> }
-            @if (selectedStatus == "Upcoming")
-            { <option value="Upcoming" selected="selected">Upcoming</option> }
-            else
-            { <option value="Upcoming">Upcoming</option> }
-            @if (selectedStatus == "Closed")
-            { <option value="Closed" selected="selected">Closed</option> }
-            else
-            { <option value="Closed">Closed</option> }
-            @if (selectedStatus == "All")
-            { <option value="All" selected="selected">Semua Status</option> }
-            else
-            { <option value="All">Semua Status</option> }
-        </select>
-    </div>
-
-    <!-- Reset filter -->
-    @if (!string.IsNullOrEmpty(selectedCategory) || !string.IsNullOrEmpty(selectedStatus) || !string.IsNullOrEmpty(searchTerm))
-    {
-        <div class="col-md-2">
-            <a href="@Url.Action("ManageAssessment", "AssessmentAdmin", new { tab = activeTab })"
-               class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-x-lg me-1"></i>Reset Filter
-            </a>
-        </div>
-    }
-</form>
+<!-- Phase 322: shared filter form removed — per-tab native filter di partial views -->
 
 <!-- Tab content -->
 <div class="tab-content pt-2" id="manageAssessmentTabsContent">
@@ -200,7 +90,12 @@
              hx-trigger="@(activeTab == "assessment" ? "load" : "shown.bs.tab from:#tab-assessment once")"
              hx-target="this"
              hx-swap="innerHTML"
-             hx-include="#filter-form"
+             hx-vals='@Json.Serialize(new {
+                 search = ViewBag.SearchTerm,
+                 category = ViewBag.SelectedCategory,
+                 statusFilter = ViewBag.SelectedStatus,
+                 page = ViewBag.CurrentPage
+             })'
              hx-sync="this:replace"
              data-tab-name="assessment">
             <!-- Skeleton Assessment (UI-SPEC §1a) -->
@@ -234,7 +129,11 @@
              hx-trigger="@(activeTab == "training" ? "load" : "shown.bs.tab from:#tab-training once")"
              hx-target="this"
              hx-swap="innerHTML"
-             hx-include="#filter-form"
+             hx-vals='@Json.Serialize(new {
+                 section = ViewBag.SelectedSection,
+                 unit = ViewBag.SelectedUnit,
+                 page = ViewBag.CurrentPage
+             })'
              hx-sync="this:replace"
              data-tab-name="training">
             <!-- Skeleton Training (UI-SPEC §1b) -->
@@ -278,7 +177,9 @@
              hx-trigger="@(activeTab == "history" ? "load" : "shown.bs.tab from:#tab-history once")"
              hx-target="this"
              hx-swap="innerHTML"
-             hx-include="#filter-form"
+             hx-vals='@Json.Serialize(new {
+                 page = ViewBag.CurrentPage
+             })'
              hx-sync="this:replace"
              data-tab-name="history">
             <!-- Skeleton History (UI-SPEC §1c) -->
@@ -335,67 +236,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     headerAssessmentBtns.style.display = 'none';
                 }
-                // Phase 311 Plan 02: update hidden tab name di filter form supaya
-                // filter trigger fetch tab yang aktif sekarang.
-                var newTab = target.replace('#pane-','');
-                var hiddenTab = document.getElementById('filter-tab');
-                if (hiddenTab) hiddenTab.value = newTab;
-
-                // Update hx-get filter input + dropdowns ke endpoint tab aktif (D-05 mendukung
-                // filter affects active tab, cross-tab invalidation di-handle di bawah).
-                var endpointMap = {
-                    'assessment': '@urlAssessment',
-                    'training': '@urlTraining',
-                    'history': '@urlHistory'
-                };
-                var endpoint = endpointMap[newTab];
-                if (endpoint) {
-                    document.querySelectorAll('#filter-form [hx-get]').forEach(function(el){
-                        el.setAttribute('hx-get', endpoint);
-                        el.setAttribute('hx-target', '#pane-' + newTab + ' > div.htmx-tab-wrapper');
-                    });
-                    // Re-process attributes karena htmx tidak observe atribut runtime change
-                    if (window.htmx) htmx.process(document.getElementById('filter-form'));
-                }
             });
         });
     }
 });
 
-// Phase 311 Plan 04 gap closure (BUG-2A): Cross-tab cache invalidation (D-05).
-// Listener fire HANYA saat swap berasal dari filter form change/input —
-// BUKAN saat normal lazy-load tab activation swap. Dipakai elt provenance
-// check via htmx:afterSwap event detail.requestConfig.elt: kalau elt
-// closest ke #filter-form, swap = filter-driven; selain itu skip.
-// BUG-2B fix: restored hx-trigger DROP `once` modifier — wrapper akan
-// re-fire setiap shown.bs.tab event sampai content swap (saat user filter
-// ulang, invalidation fire lagi). Sederhana, no htmx.cleanup needed.
-document.body.addEventListener('htmx:afterSwap', function(evt) {
-    var target = evt.detail.target;
-    if (!target || !target.classList || !target.classList.contains('htmx-tab-wrapper')) return;
-
-    // Provenance check: hanya invalidate saat trigger elt berada di dalam #filter-form.
-    // evt.detail.requestConfig.elt = element yang trigger HTMX request.
-    // Tab activation swap (hx-trigger="load" atau "shown.bs.tab") punya elt = wrapper itu sendiri,
-    // BUKAN element di dalam #filter-form. Filter-driven swap punya elt = input/select di filter-form.
-    var triggerElt = evt.detail.requestConfig && evt.detail.requestConfig.elt;
-    if (!triggerElt || !triggerElt.closest || !triggerElt.closest('#filter-form')) {
-        return; // Skip: bukan filter-driven swap (normal tab activation atau retry)
-    }
-
-    var activeTabName = target.getAttribute('data-tab-name');
-    document.querySelectorAll('.htmx-tab-wrapper').forEach(function(wrapper){
-        var tabName = wrapper.getAttribute('data-tab-name');
-        if (tabName === activeTabName) return;
-        // Reset ke skeleton placeholder + restore hx-trigger TANPA `once` (BUG-2B fix Option 2).
-        // Tanpa `once`, wrapper akan re-fire setiap shown.bs.tab event — acceptable karena
-        // selama wrapper sudah swap content sekali, fire kedua akan re-fetch dengan filter terbaru
-        // (idempotent + intentional behavior post-invalidation).
-        wrapper.innerHTML = '<div aria-busy="true" aria-label="Memuat data" class="placeholder-glow"><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div></div>';
-        wrapper.setAttribute('hx-trigger', 'shown.bs.tab from:#tab-' + tabName);
-        if (window.htmx) htmx.process(wrapper);
-    });
-});
+// Phase 322: cross-tab htmx:afterSwap invalidation listener removed
+// (Phase 311 Plan 04 BUG-2A/2B — irrelevant tanpa shared filter state).
 
 // Phase 311 Plan 02: Error template (UI-SPEC §2).
 // Saat partial endpoint return 4xx/5xx atau network fail, swap target dengan error template + retry button.
@@ -439,8 +286,8 @@ document.body.addEventListener('click', function(evt) {
     // Show skeleton selama refetch in-flight (UX feedback).
     wrapper.innerHTML = '<div aria-busy="true" aria-label="Memuat ulang data" class="placeholder-glow"><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div><div class="row g-2 mb-2"><span class="placeholder col-12" style="height:48px"></span></div></div>';
     // Direct AJAX call: bypass trigger dispatcher, target = wrapper, innerHTML swap.
-    // hx-include="#filter-form" pada wrapper sudah declarative — htmx.ajax
-    // honor hx-include attribute saat element argument disediakan (3rd arg).
+    // hx-vals pada wrapper declarative — htmx.ajax honor hx-vals attribute
+    // saat source element argument disediakan (3rd arg).
     htmx.ajax('GET', url, { target: wrapper, swap: 'innerHTML', source: wrapper });
 });
 
@@ -481,6 +328,16 @@ function filterAssessmentRows() {
         var workerMatch = !workerFilter || worker.includes(workerFilter);
         var titleMatch = !titleFilter || title.toLowerCase().includes(titleFilter);
         row.style.display = (workerMatch && titleMatch) ? '' : 'none';
+    });
+}
+
+// Phase 322: History tab Riwayat Training client-side filter (parity sama Riwayat Assessment)
+function filterTrainingRows() {
+    var workerFilter = document.getElementById('trainingWorkerFilter')?.value.toLowerCase() || '';
+    var rows = document.querySelectorAll('#trainingHistoryTable .training-history-row');
+    rows.forEach(function(row) {
+        var worker = row.getAttribute('data-worker') || '';
+        row.style.display = (!workerFilter || worker.includes(workerFilter)) ? '' : 'none';
     });
 }
 </script>
