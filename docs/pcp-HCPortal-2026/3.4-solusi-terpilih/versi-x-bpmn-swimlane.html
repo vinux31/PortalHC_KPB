@@ -95,6 +95,18 @@
   .aspek-table th { background: var(--pertamina-blue); color: white; }
   .aspek-table .col-before { background: var(--pertamina-red-light); color: var(--pertamina-red); }
   .aspek-table .col-after { background: var(--pertamina-green-light); color: var(--pertamina-green); font-weight: 600; }
+  footer { text-align: center; padding: 1.5rem; color: var(--neutral-gray); font-size: .85rem; }
+  footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
+
+  @media print {
+    @page { size: A3 landscape; margin: 1cm; }
+    body { padding: 0; background: white; }
+    .toolbar { display: none; }
+    .swimlane-panel, .legend-section, .aspek-table, .table-card, .header-bar, .meta-bar { box-shadow: none; break-inside: avoid; }
+    .swimlanes-wrap { page-break-after: avoid; }
+    .tables-grid { page-break-before: auto; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
 </style>
 </head>
 <body>
@@ -346,6 +358,11 @@
       </table>
     </section>
   </div>
+
+  <footer>
+    <p>📌 <b>Versi X</b> — BPMN Swimlane As-Is/To-Be · PCP SMART 2026 §3.4 v3.6 · HC Portal · Tag <code>pcp-hcportal-3.4-v3.6</code></p>
+    <p style="font-size:.75rem">Catatan: angka cycle/lead time = estimasi rekonstruksi back-calculation dari data agregat existing. Refine pasca-implementasi dengan time-motion study.</p>
+  </footer>
 </div>
 </body>
 </html>
