@@ -143,6 +143,31 @@
     color: var(--neutral-gray);
   }
 
+  .buffer-zone {
+    height: 50px;
+    background: var(--hub-grad);
+    color: white;
+    border-radius: 4px;
+    margin: 4px 0;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(0,85,140,.25);
+    position: relative;
+  }
+  .buffer-zone .hub-label {
+    font-size: var(--fs-base);
+    font-weight: 700;
+    text-align: center;
+  }
+  .buffer-zone .marker {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+  }
+
   @media print { #export-btn { display: none; } }
 </style>
 </head>
@@ -228,6 +253,90 @@
         <span class="comp manual">📊 Excel pribadi (IDP)</span>
         <span class="marker issue">A</span>
         <span class="marker issue">F</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel sesudah">
+    <h2 class="panel-title">✅ SESUDAH (Konsep HC Portal)</h2>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👔</span>
+        <span class="actor">Manajemen</span>
+        <span class="lv">Lv 5 · Strategic</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">📈 Analytics Dashboard</span>
+        <span class="comp portal">🔥 Heatmap Gap</span>
+        <span class="comp portal">📤 Export Excel/PDF</span>
+        <span class="marker improvement">1</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👤</span>
+        <span class="actor">HC</span>
+        <span class="lv">Lv 4 · Governance</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">👥 Kelola Pekerja</span>
+        <span class="comp portal">🎯 PROTON IDP</span>
+        <span class="comp portal">📝 Paket Assessment</span>
+        <span class="comp portal">📊 Kelola KKJ</span>
+        <span class="comp portal">🔄 Renewal Cert</span>
+        <span class="comp portal">🔍 Audit Log</span>
+        <span class="marker improvement">2</span>
+        <span class="marker improvement">3</span>
+      </div>
+    </div>
+
+    <div class="buffer-zone">
+      <div class="hub-label">🛡️ BUFFER ZONE — 🌐 HC PORTAL · Single Source of Truth</div>
+      <span class="marker improvement">4</span>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🏢</span>
+        <span class="actor">Atasan</span>
+        <span class="lv">Lv 3 · Supervisory</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">👀 Records Team</span>
+        <span class="comp portal">✅ Approval Deliverable</span>
+        <span class="comp portal">📊 View Matriks KKJ</span>
+        <span class="marker improvement">5</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🧑‍🏫</span>
+        <span class="actor">Coach</span>
+        <span class="lv">Lv 2 · Coaching</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">🎯 Coaching PROTON (5 fase)</span>
+        <span class="comp portal">📎 Upload Evidence</span>
+        <span class="comp portal">📜 Histori PROTON</span>
+        <span class="marker improvement">6</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👷</span>
+        <span class="actor">Pekerja</span>
+        <span class="lv">Lv 1 · Operational</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">📝 Assessment Online</span>
+        <span class="comp portal">📋 Plan IDP</span>
+        <span class="comp portal">🏆 Certificate Download</span>
+        <span class="comp portal">🔔 Notifikasi In-App</span>
+        <span class="marker improvement">7</span>
       </div>
     </div>
   </section>
