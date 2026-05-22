@@ -528,3 +528,12 @@ TempDbCheck/
 build_output.txt
 warnings_list.txt
 sosialisasi-portalhc/*.pdf
+
+# Local-only reference docs (PROTON deck capture sources)
+docs/doc support Proton/
+
+# Local-only PCP iteration artifacts (superseded versions)
+docs/pcp-HCPortal-2026/PCP SMART 2026 APQ Rev 9999 Final.pdf
+
+# Session test reports (transient)
+docs/test-reports/
