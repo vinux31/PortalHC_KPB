@@ -35,5 +35,18 @@ namespace HcPortal.Helpers
             if (s.Category == "Assessment Proton" && s.TahunKe == "Tahun 3") return false;
             return true;
         }
+
+        /// <summary>
+        /// Overload for MonitoringSessionViewModel (Phase 321 dropdown gating).
+        /// Relaxed check — only `Status == "Completed"` enforced; IsManualEntry/Proton T3
+        /// not in VM. Server GET /Admin/EditPesertaAnswers enforces full IsEditableAsync gate
+        /// (T-321-02 defense-in-depth).
+        /// </summary>
+        public static bool IsEditableShallow(MonitoringSessionViewModel vm)
+        {
+            if (vm == null) return false;
+            if (vm.Status != "Completed") return false;
+            return true;
+        }
     }
 }
