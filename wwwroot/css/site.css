@@ -90,33 +90,3 @@
   cursor: progress;
 }
 
-/* =====================================================================
-   Phase 311.1 gap closure (2026-05-07): hide partial view filter rows.
-   Reason: 3 partial views (_AssessmentGroupsTab, _TrainingRecordsTab,
-   _HistoryTab) have own legacy filter rows yang TIDAK punya hx-attrs.
-   Shell #filter-form HTMX-driven sudah benar (di-promote ke shell level
-   per Plan 02). Per D-10 backward compat, partial files TIDAK dimodifikasi —
-   gunakan CSS untuk hide legacy filter row yang muncul setelah HTMX swap.
-   Selector: direct child .htmx-tab-wrapper untuk avoid affecting nested
-   table rows yang juga pakai class `.row` di partial view internal.
-   ===================================================================== */
-
-/* _AssessmentGroupsTab.cshtml — search form (row.mb-4) + filter row (row.mb-3) */
-.htmx-tab-wrapper > .row.mb-4,
-.htmx-tab-wrapper > .row.mb-3 {
-    display: none !important;
-}
-
-/* _TrainingRecordsTab.cshtml — filter card (card.bg-light) */
-.htmx-tab-wrapper > .card.bg-light {
-    display: none !important;
-}
-
-/* _HistoryTab.cshtml — nested filter row inside sub-tab pane.
-   Filter di sini bersarang dalam .tab-content > .tab-pane (sub-tabs Riwayat
-   Assessment / Riwayat Training), TIDAK direct child wrapper. Match via
-   descendant selector dengan `.row.g-2.mb-3.pt-3` (4-class match unique
-   ke filter row history, bukan content row generic). */
-.htmx-tab-wrapper .row.g-2.mb-3.pt-3 {
-    display: none !important;
-}
