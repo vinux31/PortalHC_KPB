@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sosialisasi Portal HC KPB — Untuk Pekerja Pertamina</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E⚙%3C/text%3E%3C/svg%3E">
+<title>Sosialisasi PROTON · Portal HC KPB</title>
 <style>
   :root {
     --navy: #002e6d;
@@ -260,7 +261,14 @@
     background: radial-gradient(circle, rgba(237, 28, 36, 0.35) 0%, transparent 70%);
     border-radius: 50%;
   }
-  .cover-content { text-align: center; position: relative; z-index: 2; padding: 40px 60px; }
+  .cover-content {
+    text-align: center; position: relative; z-index: 2; padding: 40px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
   .cover-eyebrow {
     font-size: 16pt; font-weight: 700; letter-spacing: 6px;
     color: rgba(255, 255, 255, 0.92);
@@ -613,24 +621,6 @@
     background-clip: text;
   }
   .penutup-subtitle { font-size: 16pt; color: #bbdefb; font-weight: 300; margin-bottom: 14px; }
-  .penutup-qa {
-    display: inline-flex; align-items: center; gap: 12px;
-    background: rgba(237, 28, 36, 0.2);
-    border: 2px solid var(--red);
-    padding: 10px 22px; border-radius: 30px;
-    font-size: 14pt; font-weight: 700;
-    margin-top: 18px; margin-bottom: 34px;
-  }
-  .penutup-qa-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--red);
-    box-shadow: 0 0 0 4px rgba(237, 28, 36, 0.3);
-    animation: pulseDot 1.5s ease-in-out infinite;
-  }
-  @keyframes pulseDot {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(237, 28, 36, 0.3); }
-    50% { box-shadow: 0 0 0 8px rgba(237, 28, 36, 0.15); }
-  }
   .penutup-cta {
     display: inline-flex; align-items: center; gap: 12px;
     padding: 16px 36px;
@@ -1333,6 +1323,175 @@
     margin-bottom: 4px;
   }
 
+  /* ============================================================
+     TEMPLATE C — Demo split layout (kiri foto · kanan teks)
+     ============================================================ */
+  .slide-body.demo-split {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    gap: 32px;
+    align-items: start;
+  }
+  .demo-image-frame {
+    border: 2px dashed #94a3b8;
+    border-radius: 12px;
+    background: #f1f5f9;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #64748b;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-align: center;
+    padding: 16px;
+  }
+  .demo-image-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+  .demo-image-caption {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: #64748b;
+    text-align: center;
+    font-style: italic;
+  }
+  .demo-text-col { padding: 8px 0; }
+  .demo-lead {
+    font-style: italic;
+    color: #475569;
+    margin-bottom: 14px;
+    font-size: 0.95rem;
+  }
+  .demo-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px 0;
+  }
+  .demo-bullets li {
+    padding: 6px 0 6px 22px;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .demo-bullets li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--navy);
+    font-weight: 700;
+  }
+  .demo-takeaway {
+    background: linear-gradient(90deg, #fef3c7, #fde68a);
+    border-left: 4px solid #f59e0b;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #78350f;
+  }
+  body.dark .demo-image-frame { background: #1e293b; border-color: #475569; color: #94a3b8; }
+  body.dark .demo-text-col { color: #e2e8f0; }
+  body.dark .demo-lead { color: #cbd5e1; }
+  body.dark .demo-takeaway { background: rgba(245, 158, 11, 0.15); color: #fef3c7; border-left-color: #fbbf24; }
+
+  /* ============================================================
+     DARK MODE OVERRIDES untuk inline-styled elements
+     Slides #3-11, #20, #21 pakai inline pastel colors —
+     override via attribute selector di dark mode.
+     ============================================================ */
+  body.dark [style*="background:#f1f5f9"],
+  body.dark [style*="background: #f1f5f9"],
+  body.dark [style*="background:#f8fafc"],
+  body.dark [style*="background: #f8fafc"] {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+  }
+  body.dark [style*="background:#dbeafe"],
+  body.dark [style*="background: #dbeafe"] {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #dbeafe !important;
+  }
+  body.dark [style*="background:#fef3c7"],
+  body.dark [style*="background: #fef3c7"] {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fef3c7 !important;
+  }
+  body.dark [style*="background:#d1fae5"],
+  body.dark [style*="background: #d1fae5"] {
+    background: rgba(5, 150, 105, 0.20) !important;
+    color: #d1fae5 !important;
+  }
+  body.dark [style*="background:#e9d5ff"],
+  body.dark [style*="background: #e9d5ff"] {
+    background: rgba(124, 58, 237, 0.20) !important;
+    color: #e9d5ff !important;
+  }
+  body.dark [style*="background:linear-gradient(90deg,#dbeafe"],
+  body.dark [style*="background:linear-gradient(90deg, #dbeafe"] {
+    background: linear-gradient(90deg, rgba(59,130,246,0.15), rgba(59,130,246,0.25)) !important;
+    color: #dbeafe !important;
+  }
+  body.dark [style*="background:linear-gradient(90deg,#fef3c7"],
+  body.dark [style*="background:linear-gradient(90deg, #fef3c7"] {
+    background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.25)) !important;
+    color: #fef3c7 !important;
+  }
+  body.dark [style*="background:linear-gradient(135deg,#fef3c7"],
+  body.dark [style*="background:linear-gradient(135deg, #fef3c7"] {
+    background: linear-gradient(135deg, rgba(245,158,11,0.20), rgba(245,158,11,0.30)) !important;
+    color: #fef3c7 !important;
+  }
+  /* Slide #11 Progresi table — Tahun 3 column highlighted */
+  body.dark .progresi-table tr td.diff-cell,
+  body.dark [style*="background:#fef3c7"] td,
+  body.dark [style*="background:#fef3c7"] strong {
+    color: #fde68a !important;
+  }
+  /* Inline white card text default */
+  body.dark .slide-body table {
+    color: #e2e8f0 !important;
+  }
+  body.dark .slide-body table thead tr {
+    /* keep navy header — readable */
+  }
+  /* Force text visible in any inline-styled pastel cards */
+  body.dark .slide-body [style*="border-radius"] h3,
+  body.dark .slide-body [style*="border-radius"] h4,
+  body.dark .slide-body [style*="border-radius"] p,
+  body.dark .slide-body [style*="border-radius"] ul,
+  body.dark .slide-body [style*="border-radius"] li,
+  body.dark .slide-body [style*="border-radius"] strong {
+    color: inherit !important;
+  }
+
+  /* ============================================================
+     RESPONSIVE — Viewport < 1366px (laptop 13" etc)
+     ============================================================ */
+  @media (max-width: 1366px) {
+    /* Slide #2 agenda — chip grid 5→3 cols, lalu wrap */
+    [data-slide="2"] .slide-body > div {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 12px !important;
+    }
+    /* Slide #3 — 2-col Tantangan/Jawaban — stack jadi 1 col */
+    [data-slide="3"] .slide-body > div:first-child {
+      grid-template-columns: 1fr !important;
+    }
+    /* Compact font + padding for small viewports */
+    .slide-title { font-size: 1.8rem; }
+    .slide-subtitle { font-size: 0.85rem; }
+  }
+  @media (max-width: 1024px) {
+    [data-slide="2"] .slide-body > div {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -1357,11 +1516,12 @@
   <div class="slide cover active" data-slide="1">
     <div class="cover-content">
       <div class="cover-eyebrow">PERTAMINA KILANG BALIKPAPAN</div>
-      <h1 class="cover-title">HUMAN CAPITAL PORTAL</h1>
+      <h1 class="cover-title">PROTON</h1>
+      <div class="cover-subtitle-small" style="font-size:1.1rem; opacity:0.85; margin-top:8px;">Human Capital Portal · Kilang Pertamina Balikpapan</div>
       <div class="cover-divider"></div>
       <div class="cover-meta">
-        <div class="cover-meta-eyebrow">Sosialisasi untuk Pekerja Pertamina</div>
-        <div class="cover-meta-date">Balikpapan, 25 Mei 2026</div>
+        <div class="cover-meta-eyebrow">Sosialisasi Program · Section Head · Sr. Supervisor · Coach · Coachee</div>
+        <div class="cover-meta-date">Balikpapan, [TBD tanggal acara]</div>
       </div>
     </div>
   </div>
@@ -1370,19 +1530,38 @@
   <div class="slide default-deco" data-slide="2">
     <div class="slide-header">
       <div>
-        <h1 class="slide-title">Agenda <span class="accent">Presentasi</span></h1>
-        <p class="slide-subtitle">Apa saja yang akan dibahas &mdash; klik untuk lompat ke bagian</p>
+        <h1 class="slide-title">Agenda <span class="accent">Sosialisasi</span></h1>
+        <p class="slide-subtitle">5 bagian utama — klik untuk lompat</p>
       </div>
-      <div class="slide-badge">SLIDE 2 / 19</div>
+      <div class="slide-badge">SLIDE 2 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="agenda-grid">
-        <div class="agenda-item" onclick="goTo(3)"><div class="agenda-num">01</div><div class="agenda-content"><h4>Pengenalan</h4><p>Latar belakang, definisi, 3 platform, role pengguna</p></div></div>
-        <div class="agenda-item" onclick="goTo(7)"><div class="agenda-num">02</div><div class="agenda-content"><h4>Sistem Assessment</h4><p>2 jenis + 5 kategori + alur 7-step</p></div></div>
-        <div class="agenda-item" onclick="goTo(10)"><div class="agenda-num">03</div><div class="agenda-content"><h4>Assessment Proton</h4><p>Program 3 tahun · online &amp; interview offline</p></div></div>
-        <div class="agenda-item" onclick="goTo(13)"><div class="agenda-num">04</div><div class="agenda-content"><h4>Pengembangan Kompetensi</h4><p>Progresi 3 tahun, alur coaching, IDP &amp; training records</p></div></div>
-        <div class="agenda-item" onclick="goTo(17)"><div class="agenda-num">05</div><div class="agenda-content"><h4>Operasional</h4><p>Integrasi keamanan &amp; cara akses portal</p></div></div>
-        <div class="agenda-item" onclick="goTo(19)"><div class="agenda-num">06</div><div class="agenda-content"><h4>Q&amp;A</h4><p>Diskusi dan tanya jawab</p></div></div>
+      <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:14px;">
+        <div onclick="goTo(3)" style="cursor:pointer; padding:18px; background:#f1f5f9; border-radius:10px; text-align:center; transition:all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#f1f5f9'">
+          <div style="font-size:0.7rem; color:#64748b;">SLIDE 3-6</div>
+          <h4 style="margin:6px 0 4px 0;">PROLOG</h4>
+          <p style="font-size:0.78rem; margin:0;">Latar Belakang · HC Portal · Platform · Role</p>
+        </div>
+        <div onclick="goTo(7)" style="cursor:pointer; padding:18px; background:#f1f5f9; border-radius:10px; text-align:center; transition:all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#f1f5f9'">
+          <div style="font-size:0.7rem; color:#64748b;">SLIDE 7-11</div>
+          <h4 style="margin:6px 0 4px 0;">FONDASI PROTON</h4>
+          <p style="font-size:0.78rem; margin:0;">Pilar · Role · Overview · Timeline · Progresi</p>
+        </div>
+        <div onclick="goTo(12)" style="cursor:pointer; padding:18px; background:#f1f5f9; border-radius:10px; text-align:center; transition:all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#f1f5f9'">
+          <div style="font-size:0.7rem; color:#64748b;">SLIDE 12-14</div>
+          <h4 style="margin:6px 0 4px 0;">REFERENSI</h4>
+          <p style="font-size:0.78rem; margin:0;">KKJ · Silabus · Coaching Guidance</p>
+        </div>
+        <div onclick="goTo(15)" style="cursor:pointer; padding:18px; background:#f1f5f9; border-radius:10px; text-align:center; transition:all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#f1f5f9'">
+          <div style="font-size:0.7rem; color:#64748b;">SLIDE 15-19</div>
+          <h4 style="margin:6px 0 4px 0;">ALUR EKSEKUSI</h4>
+          <p style="font-size:0.78rem; margin:0;">T1&amp;2 · T3 · Coaching · Coaching Mahir · Dashboard</p>
+        </div>
+        <div onclick="goTo(20)" style="cursor:pointer; padding:18px; background:#f1f5f9; border-radius:10px; text-align:center; transition:all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#f1f5f9'">
+          <div style="font-size:0.7rem; color:#64748b;">SLIDE 20-22</div>
+          <h4 style="margin:6px 0 4px 0;">PENDUKUNG</h4>
+          <p style="font-size:0.78rem; margin:0;">IDP · Akses · Penutup</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1394,36 +1573,28 @@
         <h1 class="slide-title">Latar <span class="accent">Belakang</span></h1>
         <p class="slide-subtitle">Mengapa HC Portal KPB dibangun</p>
       </div>
-      <div class="slide-badge">SLIDE 3 / 19</div>
+      <div class="slide-badge">SLIDE 3 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="latar-container">
-        <div class="latar-side latar-before">
-          <span class="latar-label">Sebelumnya</span>
-          <h3 class="latar-heading">Proses Manual &amp; Terfragmentasi</h3>
-          <ul class="latar-list">
-            <li>Assessment via kertas &amp; Excel</li>
-            <li>Data coaching tersebar antar unit</li>
-            <li>Sulit tracking progress pekerja</li>
-            <li>Tidak ada audit trail</li>
-            <li>Laporan manual, tidak real-time</li>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start;">
+        <div>
+          <h3 style="margin-bottom:12px;">Tantangan</h3>
+          <ul>
+            <li>Kompetensi pekerja KPB dulu dikelola manual & tersebar di banyak dokumen</li>
+            <li>Tracking progresi 3 tahun sulit dilakukan</li>
+            <li>Coaching & assessment tidak terstandardisasi antar section</li>
           </ul>
         </div>
-        <div class="latar-arrow">
-          <div class="latar-arrow-icon">➤</div>
-          <div class="latar-arrow-label">Transformasi<br>Digital</div>
-        </div>
-        <div class="latar-side latar-after">
-          <span class="latar-label">HC Portal KPB</span>
-          <h3 class="latar-heading">Terintegrasi &amp; Data-Driven</h3>
-          <ul class="latar-list">
-            <li>Assessment online otomatis</li>
-            <li>Satu platform seragam</li>
-            <li>Dashboard real-time &amp; analytics</li>
-            <li>Audit log &amp; role-based access</li>
-            <li>Efisiensi operasional &amp; compliance</li>
+        <div>
+          <h3 style="margin-bottom:12px;">Jawaban</h3>
+          <ul>
+            <li><strong>PROTON</strong> — jalur pengembangan terstruktur 3 tahun</li>
+            <li><strong>HC Portal</strong> — alat digital pengelola PROTON end-to-end</li>
           </ul>
         </div>
+      </div>
+      <div style="margin-top:28px; background:linear-gradient(90deg,#dbeafe,#bfdbfe); padding:14px 18px; border-left:4px solid #2563eb; border-radius:6px; font-weight:600;">
+        🎯 Tujuan: Panelman & Operator KPB kompeten, terdokumentasi, & tersertifikasi
       </div>
     </div>
   </div>
@@ -1435,35 +1606,27 @@
         <h1 class="slide-title">Apa Itu <span class="accent">HC Portal</span> KPB?</h1>
         <p class="slide-subtitle">Sistem informasi pengembangan kompetensi pekerja Kilang Pertamina Balikpapan</p>
       </div>
-      <div class="slide-badge">SLIDE 4 / 19</div>
+      <div class="slide-badge">SLIDE 4 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="definition-box">
-        <div class="quote-mark">"</div>
-        <div class="definition-text">
-          Sistem informasi berbasis web <strong>Kilang Pertamina Balikpapan</strong> untuk <strong>MENGELOLA · MENGEMBANGKAN · MENDAMPINGI</strong> kompetensi pekerja lewat tiga platform terpadu: CMP, CDP, BP.
+      <p style="font-size:1.15rem; line-height:1.6; max-width:900px;">
+        HC Portal adalah <strong>sistem informasi pengembangan kompetensi pekerja</strong> Kilang Pertamina Balikpapan — mengintegrasikan kelola, kembangkan, & dampingi pekerja dalam satu platform.
+      </p>
+      <div style="display:flex; gap:16px; margin-top:32px;">
+        <div style="flex:1; padding:18px; background:#f1f5f9; border-radius:8px; text-align:center;">
+          <div style="font-size:1.5rem; font-weight:700; color:#64748b;">CMP</div>
+          <div style="font-size:0.85rem; color:#64748b;">Competency Management</div>
+        </div>
+        <div style="flex:1.3; padding:18px; background:linear-gradient(135deg,#1e3a8a,#1e40af); color:#fff; border-radius:8px; text-align:center; box-shadow:0 8px 20px rgba(30,58,138,0.3);">
+          <div style="font-size:1.5rem; font-weight:700;">CDP</div>
+          <div style="font-size:0.85rem;">Coaching & Development — rumah PROTON</div>
+        </div>
+        <div style="flex:1; padding:18px; background:#f1f5f9; border-radius:8px; text-align:center;">
+          <div style="font-size:1.5rem; font-weight:700; color:#64748b;">BP</div>
+          <div style="font-size:0.85rem; color:#64748b;">Business Process</div>
         </div>
       </div>
-      <div class="pilar-grid" style="margin-top:24px;">
-        <div class="pilar-card p1">
-          <div class="pilar-num">01</div>
-          <div class="pilar-icon-wrap">🎯</div>
-          <div class="pilar-title">Terpusat</div>
-          <div class="pilar-desc">Satu portal untuk seluruh proses kompetensi &amp; pengembangan pekerja KPB.</div>
-        </div>
-        <div class="pilar-card p2">
-          <div class="pilar-num">02</div>
-          <div class="pilar-icon-wrap">📐</div>
-          <div class="pilar-title">Terstandar</div>
-          <div class="pilar-desc">Kriteria, deliverable, sertifikasi mengacu standard Kilang Pertamina Balikpapan.</div>
-        </div>
-        <div class="pilar-card p3">
-          <div class="pilar-num">03</div>
-          <div class="pilar-icon-wrap">📊</div>
-          <div class="pilar-title">Terukur</div>
-          <div class="pilar-desc">Skor, progress, level kompetensi tertrace per pekerja secara real-time.</div>
-        </div>
-      </div>
+      <p style="margin-top:20px; font-style:italic; color:#475569;">Detail per platform di slide berikutnya.</p>
     </div>
   </div>
 
@@ -1474,52 +1637,37 @@
         <h1 class="slide-title">3 <span class="accent">Platform</span> Terpadu</h1>
         <p class="slide-subtitle">CMP · CDP · BP &mdash; kelola, kembangkan, &amp; dampingi kompetensi pekerja</p>
       </div>
-      <div class="slide-badge">SLIDE 5 / 19</div>
+      <div class="slide-badge">SLIDE 5 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="modules-grid" style="grid-template-columns:repeat(3,1fr);gap:14px;">
-        <div class="module-card cmp">
-          <div class="module-head">
-            <div class="module-icon">📋</div>
-            <div>
-              <div class="module-name">CMP</div>
-              <div class="module-subname">Competency Management Platform</div>
-            </div>
-          </div>
-          <div class="module-desc">Platform digital untuk pengelolaan kompetensi pekerja &mdash; penyusunan KKJ (Kebutuhan Kompetensi Jabatan), IDP, asesmen teknis &amp; Safety.</div>
-          <ul class="module-bullets">
-            <li>📊 Assessment &mdash; Ujian online &amp; sertifikasi</li>
-            <li>🎓 Assessment Proton &mdash; Program 3-tahun</li>
-            <li>🔄 Pre/Post Test &mdash; Ukur efektivitas training</li>
-            <li>🏆 Sertifikasi &mdash; Otomatis + renewal lifecycle</li>
+      <div style="display:grid; grid-template-columns: 1fr 1.6fr 1fr; gap:20px; align-items:stretch;">
+        <div style="padding:20px; background:#f1f5f9; border-radius:10px;">
+          <h3 style="margin-top:0;">CMP</h3>
+          <p style="font-size:0.9rem; color:#475569;">Competency Management Platform</p>
+          <ul style="font-size:0.85rem; padding-left:18px;">
+            <li>Assessment engine generic</li>
+            <li>Pre/Post test</li>
+            <li>Bank soal</li>
           </ul>
         </div>
-        <div class="module-card cdp">
-          <div class="module-head">
-            <div class="module-icon">🌱</div>
-            <div>
-              <div class="module-name">CDP</div>
-              <div class="module-subname">Competency Development Platform</div>
-            </div>
-          </div>
-          <div class="module-desc">Pembelajaran terstruktur untuk menutup gap kompetensi pekerja &mdash; prinsip blended Learning (Assignment, Coaching, Self Study).</div>
-          <ul class="module-bullets">
-            <li>🎯 Coaching Proton &mdash; Silabus + deliverable + review multi-role</li>
-            <li>📋 IDP &mdash; Individual Development Plan tahunan</li>
-            <li>📚 Training Records &mdash; Riwayat training + sertifikat</li>
+        <div style="padding:24px; background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:#fff; border-radius:10px; box-shadow:0 10px 24px rgba(30,58,138,0.35);">
+          <div style="display:inline-block; background:rgba(255,255,255,0.2); padding:4px 10px; border-radius:12px; font-size:0.75rem; margin-bottom:8px;">⭐ RUMAH PROTON</div>
+          <h3 style="margin-top:0; color:#fff;">CDP</h3>
+          <p style="font-size:0.95rem;">Coaching & Development Platform</p>
+          <ul style="font-size:0.9rem; padding-left:18px;">
+            <li><strong>PROTON</strong> — 3 tahun progresi</li>
+            <li>Coaching workflow (Coach-Coachee)</li>
+            <li>IDP & Training Records</li>
+            <li>Histori & Dashboard tracking</li>
+            <li>Sertifikasi final</li>
           </ul>
         </div>
-        <div class="module-card faded">
-          <div class="module-head">
-            <div class="module-icon">🚧</div>
-            <div>
-              <div class="module-name">BP</div>
-              <div class="module-subname">Business Partner</div>
-            </div>
-          </div>
-          <div class="module-desc">Modul Business Partner &mdash; jembatan antara fungsi HC &amp; unit operasional untuk workforce planning, employee relations, &amp; advisory.</div>
-          <ul class="module-bullets">
-            <li>For Future &mdash; in roadmap</li>
+        <div style="padding:20px; background:#f1f5f9; border-radius:10px;">
+          <h3 style="margin-top:0;">BP</h3>
+          <p style="font-size:0.9rem; color:#475569;">Business Process</p>
+          <ul style="font-size:0.85rem; padding-left:18px;">
+            <li>Workflow operasional</li>
+            <li>Tidak masuk scope sosialisasi ini</li>
           </ul>
         </div>
       </div>
@@ -1531,60 +1679,46 @@
     <div class="slide-header">
       <div>
         <h1 class="slide-title">Struktur <span class="accent">Role</span> Pengguna</h1>
-        <p class="slide-subtitle">10 role &middot; 6 level &mdash; pekerja umumnya masuk L5 Coach atau L6 Coachee</p>
+        <p class="slide-subtitle">6 level role HC Portal — 4 role audience sosialisasi ini di-highlight</p>
       </div>
-      <div class="slide-badge">SLIDE 6 / 19</div>
+      <div class="slide-badge">SLIDE 6 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="stairs">
-        <div class="step s6">
-          <div class="step-num">L6</div>
-          <div class="step-icon">👨‍🎓</div>
-          <div class="role-chips"><span class="role-chip"><span class="chip-icon">👨‍🎓</span>Coachee</span></div>
-          <div class="step-access">Self assessment &amp; IDP</div>
+      <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:10px;">
+        <!-- L1 -->
+        <div style="padding:14px 8px; background:#f1f5f9; border-radius:8px; text-align:center; font-size:0.8rem;">
+          <div style="font-weight:700;">L1</div>
+          <div>Admin</div>
         </div>
-        <div class="step s5">
-          <div class="step-num">L5</div>
-          <div class="step-icon">🎓</div>
-          <div class="role-chips">
-            <span class="role-chip"><span class="chip-icon">🎓</span>Coach</span>
-            <span class="role-chip"><span class="chip-icon">👤</span>Supervisor</span>
-          </div>
-          <div class="step-access">Coaching &amp; review</div>
+        <!-- L2 -->
+        <div style="padding:14px 8px; background:#f1f5f9; border-radius:8px; text-align:center; font-size:0.8rem;">
+          <div style="font-weight:700;">L2</div>
+          <div>HC</div>
         </div>
-        <div class="step s4">
-          <div class="step-num">L4</div>
-          <div class="step-icon">🏢</div>
-          <div class="role-chips">
-            <span class="role-chip"><span class="chip-icon">🏢</span>Section Head</span>
-            <span class="role-chip"><span class="chip-icon">🧑‍💼</span>Sr Supervisor</span>
-          </div>
-          <div class="step-access">Section-level monitor</div>
+        <!-- L3 -->
+        <div style="padding:14px 8px; background:#f1f5f9; border-radius:8px; text-align:center; font-size:0.8rem;">
+          <div style="font-weight:700;">L3</div>
+          <div>Direktur · VP · Manager</div>
         </div>
-        <div class="step s3">
-          <div class="step-num">L3</div>
-          <div class="step-icon">👔</div>
-          <div class="role-chips">
-            <span class="role-chip"><span class="chip-icon">👔</span>Direktur</span>
-            <span class="role-chip"><span class="chip-icon">📌</span>VP</span>
-            <span class="role-chip"><span class="chip-icon">🧭</span>Manager</span>
-          </div>
-          <div class="step-access">Executive dashboard</div>
+        <!-- L4 HIGHLIGHT -->
+        <div style="padding:14px 8px; background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:#fff; border-radius:8px; text-align:center; font-size:0.8rem; box-shadow:0 6px 14px rgba(30,58,138,0.3);">
+          <div style="font-weight:700; font-size:0.9rem;">⭐ L4</div>
+          <div>Section Head<br>Sr. Supervisor</div>
         </div>
-        <div class="step s2">
-          <div class="step-num">L2</div>
-          <div class="step-icon">👥</div>
-          <div class="role-chips"><span class="role-chip"><span class="chip-icon">👥</span>HC</span></div>
-          <div class="step-access">All section access</div>
+        <!-- L5 HIGHLIGHT -->
+        <div style="padding:14px 8px; background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:#fff; border-radius:8px; text-align:center; font-size:0.8rem; box-shadow:0 6px 14px rgba(30,58,138,0.3);">
+          <div style="font-weight:700; font-size:0.9rem;">⭐ L5</div>
+          <div>Coach</div>
         </div>
-        <div class="step s1">
-          <div class="step-num">L1</div>
-          <div class="step-icon">🛡️</div>
-          <div class="role-chips"><span class="role-chip"><span class="chip-icon">🛡️</span>Admin</span></div>
-          <div class="step-access">Full system control</div>
+        <!-- L6 HIGHLIGHT -->
+        <div style="padding:14px 8px; background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:#fff; border-radius:8px; text-align:center; font-size:0.8rem; box-shadow:0 6px 14px rgba(30,58,138,0.3);">
+          <div style="font-weight:700; font-size:0.9rem;">⭐ L6</div>
+          <div>Coachee</div>
         </div>
       </div>
-      <p class="stair-caption">⬅ Operational Level · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · Higher Authority ➡</p>
+      <div style="margin-top:28px; padding:16px; background:#fef3c7; border-left:4px solid #f59e0b; border-radius:6px; font-size:0.92rem;">
+        💡 <strong>Slide ini = peta akses role di HC Portal.</strong> Slide #8 nanti membahas role spesifik di alur kerja PROTON.
+      </div>
     </div>
   </div>
 
@@ -1593,635 +1727,611 @@
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 1</p>
-        <h1 class="slide-title">Sistem <span class="accent">Assessment</span></h1>
-        <p class="slide-subtitle">Dua jenis assessment utama untuk pekerja KPB</p>
+        <h1 class="slide-title">Sistem <span class="accent">Assessment</span> — PROTON Pilar Utama</h1>
+        <p class="slide-subtitle">PROTON menjadi pondasi utama assessment kompetensi di KPB</p>
       </div>
-      <div class="slide-badge">SLIDE 7 / 19</div>
+      <div class="slide-badge">SLIDE 7 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="jenis-grid">
-        <div class="jenis-card umum">
-          <div class="jenis-head">📊 Assessment Umum</div>
-          <div class="jenis-row">
-            <div class="jenis-label">Kategori</div>
-            <div class="jenis-value">Per batch unit operasi / batch berdurasi</div>
-          </div>
-          <div class="jenis-row">
-            <div class="jenis-label">Metode Ujian</div>
-            <div class="jenis-value">Ujian online (single choice, multiple choice, essay), timer otomatis</div>
-          </div>
-          <div class="jenis-row">
-            <div class="jenis-label">Penilaian</div>
-            <div class="jenis-value">Otomatis berdasarkan passing grade</div>
-          </div>
+      <div style="display:grid; grid-template-columns: 3fr 1fr; gap:24px; align-items:stretch;">
+        <!-- PROTON box BESAR -->
+        <div style="padding:32px; background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:#fff; border-radius:12px; box-shadow:0 12px 28px rgba(30,58,138,0.4);">
+          <div style="display:inline-block; background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:14px; font-size:0.75rem; margin-bottom:14px;">⭐ PILAR UTAMA · ~75% BOBOT</div>
+          <h2 style="margin:0 0 12px 0; font-size:2rem; color:#fff;">PROTON</h2>
+          <p style="margin:0 0 16px 0; font-size:1rem;">Program 3 tahun untuk Panelman & Operator KPB</p>
+          <ul style="font-size:0.95rem; padding-left:20px;">
+            <li>Assessment + Coaching + Sertifikasi terintegrasi</li>
+            <li>Tahun 1 & 2: ujian online + coaching</li>
+            <li>Tahun 3: interview Mahir + final assessment</li>
+          </ul>
         </div>
-        <div class="jenis-card proton">
-          <div class="jenis-head">🎓 Assessment Proton</div>
-          <div class="jenis-row">
-            <div class="jenis-label">Kategori</div>
-            <div class="jenis-value">Per track per tahun (Panelman/Operator, Tahun 1-3)</div>
-          </div>
-          <div class="jenis-row">
-            <div class="jenis-label">Metode Ujian</div>
-            <div class="jenis-value">Online (Th 1-2) + Interview offline (Th 3)</div>
-          </div>
-          <div class="jenis-row">
-            <div class="jenis-label">Penilaian</div>
-            <div class="jenis-value">Otomatis (online) + Manual panel (interview)</div>
-          </div>
+        <!-- Pre/Post box KECIL -->
+        <div style="padding:18px; background:#f1f5f9; border-radius:10px; align-self:center;">
+          <div style="font-size:0.7rem; color:#64748b; margin-bottom:6px;">Pelengkap · ~25%</div>
+          <h4 style="margin:0 0 8px 0; font-size:1.1rem;">Pre / Post Test</h4>
+          <ul style="font-size:0.82rem; padding-left:18px; color:#475569;">
+            <li>Assessment sebelum/sesudah training</li>
+            <li>Tidak masuk jalur sertifikasi PROTON</li>
+          </ul>
         </div>
       </div>
-      <div class="tip-bar">💡 <strong>Assessment Umum</strong> untuk evaluasi reguler per batch / jenis kompetensi &middot; <strong>Proton</strong> untuk program pengembangan 3 tahun &middot; <strong>Pre/Post Test</strong> mengukur Gain Score peserta sebelum vs sesudah pelatihan</div>
     </div>
   </div>
 
-  <!-- ================= SLIDE 8: 5 KATEGORI ASSESSMENT UMUM ================= -->
+  <!-- ================= SLIDE 8 PLACEHOLDER ================= -->
   <div class="slide default-deco" data-slide="8">
     <div class="slide-header">
       <div>
-        <p class="section-eyebrow">BAGIAN 1 · CMP</p>
-        <h1 class="slide-title">5 Kategori <span class="accent">Assessment Umum</span></h1>
-        <p class="slide-subtitle">Cakupan jenis ujian kompetensi di KPB di luar Proton</p>
+        <p class="section-eyebrow">PROTON FONDASI · ROLE</p>
+        <h1 class="slide-title">Role di <span class="accent">PROTON</span></h1>
+        <p class="slide-subtitle">Siapa eksekusi step apa di alur kerja PROTON</p>
       </div>
-      <div class="slide-badge">SLIDE 8 / 19</div>
+      <div class="slide-badge">SLIDE 8 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="cat-grid center-5">
-        <div class="cat-card c1">
-          <div class="cat-head"><div class="cat-ic">🔧</div><div class="cat-name">Assessment OJT</div></div>
-          <div class="cat-desc">On the Job Training &mdash; ujian kompetensi berbasis unit kerja (Alkylation, RFCC NHT, dll)</div>
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:14px;">
+        <!-- Coachee -->
+        <div style="padding:18px; background:#fef3c7; border-radius:10px; border-top:4px solid #f59e0b;">
+          <div style="font-size:0.7rem; color:#78350f; margin-bottom:6px;">L6 · EKSEKUTOR</div>
+          <h4 style="margin:0 0 10px 0;">Coachee</h4>
+          <ul style="font-size:0.82rem; padding-left:18px; margin:0;">
+            <li>Ikut ujian online (T1&2)</li>
+            <li>Kerjakan deliverable</li>
+            <li>Upload evidence</li>
+            <li>Ikut interview Mahir (T3)</li>
+          </ul>
         </div>
-        <div class="cat-card c2">
-          <div class="cat-head"><div class="cat-ic">🏫</div><div class="cat-name">IHT</div></div>
-          <div class="cat-desc">In House Training &mdash; assessment terkait pelatihan internal perusahaan</div>
+        <!-- Coach -->
+        <div style="padding:18px; background:#dbeafe; border-radius:10px; border-top:4px solid #2563eb;">
+          <div style="font-size:0.7rem; color:#1e3a8a; margin-bottom:6px;">L5 · PENDAMPING</div>
+          <h4 style="margin:0 0 10px 0;">Coach</h4>
+          <ul style="font-size:0.82rem; padding-left:18px; margin:0;">
+            <li>Sampaikan silabus</li>
+            <li>Sesi coaching reguler</li>
+            <li>Validasi evidence</li>
+            <li>Catat hasil sesi</li>
+          </ul>
         </div>
-        <div class="cat-card c3">
-          <div class="cat-head"><div class="cat-ic">📜</div><div class="cat-name">Licencor</div></div>
-          <div class="cat-desc">Training Licencor &mdash; lisensi &amp; sertifikasi eksternal</div>
+        <!-- Sr. Supervisor -->
+        <div style="padding:18px; background:#d1fae5; border-radius:10px; border-top:4px solid #059669;">
+          <div style="font-size:0.7rem; color:#064e3b; margin-bottom:6px;">L4 · APPROVER</div>
+          <h4 style="margin:0 0 10px 0;">Sr. Supervisor</h4>
+          <ul style="font-size:0.82rem; padding-left:18px; margin:0;">
+            <li>Approve deliverable</li>
+            <li><code>SrSpvApprovalStatus</code></li>
+            <li>Mapping Coach-Coachee</li>
+            <li>Monitoring section</li>
+          </ul>
         </div>
-        <div class="cat-card c4">
-          <div class="cat-head"><div class="cat-ic">📍</div><div class="cat-name">OTS</div></div>
-          <div class="cat-desc">On The Spot &mdash; assessment langsung di lapangan</div>
-        </div>
-        <div class="cat-card c5">
-          <div class="cat-head"><div class="cat-ic">⚠️</div><div class="cat-name">HSSE</div></div>
-          <div class="cat-desc">Mandatory Health, Safety, Security &amp; Environment training</div>
-        </div>
-      </div>
-      <div class="tip-bar" style="margin-top:14px;">📌 <strong>Assessment Proton</strong> dibahas di Bagian 2 &mdash; sistem track 3-tahun Panelman/Operator</div>
-    </div>
-  </div>
-
-  <!-- ================= SLIDE 9 (was 10): ALUR ASSESSMENT 7-STEP SWIMLANE ================= -->
-  <div class="slide default-deco" data-slide="9">
-    <div class="slide-header">
-      <div>
-        <p class="section-eyebrow">BAGIAN 1 · ALUR</p>
-        <h1 class="slide-title">Alur <span class="accent">Assessment</span> &mdash; 7 Step End-to-End</h1>
-        <p class="slide-subtitle">Persiapan &rarr; Pelaksanaan &rarr; Penilaian</p>
-      </div>
-      <div class="slide-badge">SLIDE 9 / 19</div>
-    </div>
-    <div class="slide-body">
-      <div class="swim-row" style="grid-template-columns:2fr 3fr 2fr;">
-        <div class="swim-lane lane-prep">
-          <div class="swim-label">📁 Persiapan (1-2)</div>
-          <div class="swim-steps">
-            <div class="swim-step">
-              <span class="step-num-mini">1</span>
-              <span class="step-icon-mini">📁</span>
-              <div class="step-title">Persiapan Data</div>
-              <div class="step-desc">Kategori per unit, organisasi, daftar pekerja</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">2</span>
-              <span class="step-icon-mini">📝</span>
-              <div class="step-title">Buat Assessment</div>
-              <div class="step-desc">Pilih kategori, set durasi &amp; soal</div>
-            </div>
-          </div>
-        </div>
-        <div class="swim-lane lane-exec">
-          <div class="swim-label">⚙ Pelaksanaan (3-5)</div>
-          <div class="swim-steps">
-            <div class="swim-step">
-              <span class="step-num-mini">3</span>
-              <span class="step-icon-mini">💻</span>
-              <div class="step-title">Peserta Ujian</div>
-              <div class="step-desc">Login portal, random soal, timer otomatis</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">4</span>
-              <span class="step-icon-mini">👁</span>
-              <div class="step-title">Monitoring</div>
-              <div class="step-desc">Pantau real-time, akhiri manual bila perlu</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">5</span>
-              <span class="step-icon-mini">📤</span>
-              <div class="step-title">Submit</div>
-              <div class="step-desc">Manual atau auto-submit saat timer habis</div>
-            </div>
-          </div>
-        </div>
-        <div class="swim-lane lane-result">
-          <div class="swim-label">🏆 Penilaian (6-7)</div>
-          <div class="swim-steps">
-            <div class="swim-step">
-              <span class="step-num-mini">6</span>
-              <span class="step-icon-mini">⚙</span>
-              <div class="step-title">Penilaian Otomatis</div>
-              <div class="step-desc">Skor vs passing grade otomatis</div>
-            </div>
-            <div class="swim-step final">
-              <span class="step-num-mini">7</span>
-              <span class="step-icon-mini">🏆</span>
-              <div class="step-title">Hasil &amp; Laporan</div>
-              <div class="step-desc">Sertifikasi + rekap per unit/kategori</div>
-            </div>
-          </div>
+        <!-- Section Head -->
+        <div style="padding:18px; background:#e9d5ff; border-radius:10px; border-top:4px solid #7c3aed;">
+          <div style="font-size:0.7rem; color:#4c1d95; margin-bottom:6px;">L4 · GOVERNANCE</div>
+          <h4 style="margin:0 0 10px 0;">Section Head</h4>
+          <ul style="font-size:0.82rem; padding-left:18px; margin:0;">
+            <li>Overview section</li>
+            <li>Approve final</li>
+            <li>Eskalasi & decision</li>
+            <li>Review dashboard</li>
+          </ul>
         </div>
       </div>
-      <div class="output-bar">📤 <strong>Output:</strong> skor pekerja &middot; status kelulusan &middot; rekap per unit</div>
+      <div style="margin-top:20px; padding:14px; background:#f1f5f9; border-radius:8px; font-size:0.85rem; color:#475569;">
+        <strong>Pendukung:</strong> <em>HC</em> review final + sertifikasi · <em>Admin</em> kelola data master (Silabus, KKJ, Guidance)
+      </div>
     </div>
   </div>
 
   <!-- ================= SLIDE 11: BAGIAN 2 OPENER — ASSESSMENT PROTON ================= -->
-  <div class="slide default-deco" data-slide="10">
+  <div class="slide default-deco" data-slide="9">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 2</p>
-        <h1 class="slide-title">Assessment <span class="accent">Proton</span></h1>
-        <p class="slide-subtitle">Program kompetensi 3 tahun untuk Panelman / Operator &mdash; jalur pengembangan terstruktur</p>
+        <h1 class="slide-title">Assessment <span class="accent">PROTON</span> — Overview</h1>
+        <p class="slide-subtitle">3 tahun, 2 jenis assessment, 1 sertifikasi Mahir</p>
       </div>
-      <div class="slide-badge">SLIDE 10 / 19</div>
+      <div class="slide-badge">SLIDE 9 / 22</div>
     </div>
     <div class="slide-body">
-      <div style="text-align:center;padding:20px;">
-        <div style="display:inline-flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;">
-          <span style="background:var(--navy);color:#fff;padding:14px 28px;border-radius:24px;font-size:13pt;font-weight:700;">Tahun 1 &mdash; Dasar</span>
-          <span style="background:var(--navy);color:#fff;padding:14px 28px;border-radius:24px;font-size:13pt;font-weight:700;">Tahun 2 &mdash; Lanjutan</span>
-          <span style="background:var(--amber);color:#fff;padding:14px 28px;border-radius:24px;font-size:13pt;font-weight:700;">Tahun 3 &mdash; Mahir 🎤</span>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; align-items:stretch;">
+        <!-- Tahun 1 -->
+        <div style="padding:24px; background:#f1f5f9; border-radius:12px; border-top:6px solid #3b82f6;">
+          <div style="font-size:0.75rem; color:#64748b;">TAHUN 1</div>
+          <h3 style="margin:6px 0;">Ujian Online</h3>
+          <p style="font-size:0.88rem; color:#475569; margin-bottom:10px;">Pilihan ganda per Kompetensi</p>
+          <ul style="font-size:0.82rem; padding-left:18px;">
+            <li>5 dimensi Kompetensi</li>
+            <li>Auto-grading sistem</li>
+            <li>Output: sertif per kompetensi</li>
+          </ul>
         </div>
-        <p style="font-size:11pt;color:var(--text-muted);max-width:760px;margin:0 auto 18px;line-height:1.6;">
-          Tahun 1 &amp; 2 ujian online (single/multi/essay) &middot; Tahun 3 interview offline panel juri.
-          Wajib lulus Tahun N untuk lanjut Tahun N+1.
-        </p>
-        <div class="tip-bar" style="display:inline-block;text-align:left;max-width:640px;">
-          💡 Detail komparasi 5 aspek per tahun (fokus, deliverable, coaching, assessment, akhir tahun) di <strong>Slide 13 · Progresi Kompetensi</strong> (Bagian 3).
+        <!-- Tahun 2 -->
+        <div style="padding:24px; background:#f1f5f9; border-radius:12px; border-top:6px solid #3b82f6;">
+          <div style="font-size:0.75rem; color:#64748b;">TAHUN 2</div>
+          <h3 style="margin:6px 0;">Ujian Online + Coaching</h3>
+          <p style="font-size:0.88rem; color:#475569; margin-bottom:10px;">Lanjutan kedalaman kompetensi</p>
+          <ul style="font-size:0.82rem; padding-left:18px;">
+            <li>Soal lebih kompleks dari T1</li>
+            <li>Coaching mendalam</li>
+            <li>Output: progresi sertif</li>
+          </ul>
+        </div>
+        <!-- Tahun 3 MAHIR -->
+        <div style="padding:24px; background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:12px; border-top:6px solid #f59e0b;">
+          <div style="font-size:0.75rem; color:#78350f;">TAHUN 3 · MAHIR</div>
+          <h3 style="margin:6px 0;">Interview Offline</h3>
+          <p style="font-size:0.88rem; color:#78350f; margin-bottom:10px;">Tatap muka, panel juri</p>
+          <ul style="font-size:0.82rem; padding-left:18px;">
+            <li>Panel: Section Head + HC + Ahli</li>
+            <li>Kriteria mahir per KKJ</li>
+            <li>Output: <strong>Sertif Mahir</strong></li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ================= SLIDE 12: ALUR PROTON TH 1&2 ONLINE ================= -->
+  <!-- ================= SLIDE 10 PLACEHOLDER ================= -->
+  <div class="slide default-deco" data-slide="10">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">PROTON FONDASI · TIMELINE</p>
+        <h1 class="slide-title">Timeline <span class="accent">3 Tahun</span> PROTON</h1>
+        <p class="slide-subtitle">Milestone per tahun — silabus, coaching, assessment, sertifikasi</p>
+      </div>
+      <div class="slide-badge">SLIDE 10 / 22</div>
+    </div>
+    <div class="slide-body">
+      <div style="position:relative; padding:30px 0;">
+        <!-- Timeline line -->
+        <div style="position:absolute; top:50%; left:5%; right:5%; height:4px; background:linear-gradient(90deg,#3b82f6,#3b82f6 66%,#f59e0b); transform:translateY(-50%);"></div>
+        <!-- Year markers -->
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; position:relative;">
+          <!-- Year 1 -->
+          <div style="text-align:center;">
+            <div style="width:60px; height:60px; margin:0 auto; background:#3b82f6; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem; box-shadow:0 6px 14px rgba(59,130,246,0.4);">T1</div>
+            <div style="margin-top:14px; padding:14px; background:#f1f5f9; border-radius:8px; text-align:left;">
+              <div style="font-size:0.75rem; color:#64748b;">BULAN 1-12</div>
+              <ul style="font-size:0.82rem; padding-left:18px; margin:6px 0 0 0;">
+                <li>Silabus dibagikan</li>
+                <li>Coaching reguler</li>
+                <li>Evidence per deliverable</li>
+                <li>Ujian Online akhir tahun</li>
+              </ul>
+            </div>
+          </div>
+          <!-- Year 2 -->
+          <div style="text-align:center;">
+            <div style="width:60px; height:60px; margin:0 auto; background:#3b82f6; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem; box-shadow:0 6px 14px rgba(59,130,246,0.4);">T2</div>
+            <div style="margin-top:14px; padding:14px; background:#f1f5f9; border-radius:8px; text-align:left;">
+              <div style="font-size:0.75rem; color:#64748b;">BULAN 13-24</div>
+              <ul style="font-size:0.82rem; padding-left:18px; margin:6px 0 0 0;">
+                <li>Silabus lanjutan</li>
+                <li>Coaching mendalam</li>
+                <li>Evidence progressif</li>
+                <li>Ujian Online akhir tahun</li>
+              </ul>
+            </div>
+          </div>
+          <!-- Year 3 MAHIR -->
+          <div style="text-align:center;">
+            <div style="width:60px; height:60px; margin:0 auto; background:#f59e0b; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem; box-shadow:0 6px 14px rgba(245,158,11,0.4);">T3</div>
+            <div style="margin-top:14px; padding:14px; background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:8px; text-align:left;">
+              <div style="font-size:0.75rem; color:#78350f;">BULAN 25-36 · MAHIR</div>
+              <ul style="font-size:0.82rem; padding-left:18px; margin:6px 0 0 0;">
+                <li>Silabus Mahir</li>
+                <li>Coaching intensif</li>
+                <li>Final Assessment HC</li>
+                <li><strong>Interview Panel + Sertif Mahir</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 11 PLACEHOLDER ================= -->
   <div class="slide default-deco" data-slide="11">
     <div class="slide-header">
       <div>
-        <p class="section-eyebrow">BAGIAN 2 · ALUR</p>
-        <h1 class="slide-title">Alur Proton &mdash; Tahun <span class="accent">1 &amp; 2</span></h1>
-        <p class="slide-subtitle">Ujian Online (Pilihan Ganda)</p>
-      </div>
-      <div class="slide-badge">SLIDE 11 / 19</div>
-    </div>
-    <div class="slide-body">
-      <div class="alur-stepper">
-        <div class="alur-step">
-          <span class="as-num">1</span>
-          <div class="as-title">Buat Assessment</div>
-          <div class="as-desc">Kategori "Assessment Proton", pilih track (Operator/Panelman) &amp; tahun</div>
-        </div>
-        <div class="alur-step">
-          <span class="as-num">2</span>
-          <div class="as-title">Set Paket Soal</div>
-          <div class="as-desc">Pilih paket sesuai track tahun, set durasi &amp; passing grade</div>
-        </div>
-        <div class="alur-step">
-          <span class="as-num">3</span>
-          <div class="as-title">Peserta Ujian Online</div>
-          <div class="as-desc">Login portal, kerjakan soal dalam timer otomatis</div>
-        </div>
-        <div class="alur-step final">
-          <span class="as-num">4</span>
-          <div class="as-title">Penilaian Otomatis</div>
-          <div class="as-desc">Skor otomatis, laporan lulus/tidak per peserta</div>
-        </div>
-      </div>
-      <div class="alur-crossref">💡 <strong>Mirip Assessment Umum</strong> &mdash; beda di kategori &amp; paket soal per track</div>
-      <div class="alur-warning">⚠ <strong>Wajib lulus Tahun N</strong> untuk lanjut ke Tahun N+1</div>
-    </div>
-  </div>
-
-  <!-- ================= SLIDE 13: ALUR PROTON TH 3 OFFLINE ================= -->
-  <div class="slide default-deco" data-slide="12">
-    <div class="slide-header">
-      <div>
-        <p class="section-eyebrow">BAGIAN 2 · ALUR</p>
-        <h1 class="slide-title">Alur Proton &mdash; Tahun <span class="accent" style="color:var(--amber);">3</span></h1>
-        <p class="slide-subtitle">Interview Offline (Tatap Muka, Panel Juri)</p>
-      </div>
-      <div class="slide-badge" style="background:var(--amber);">🎤 OFFLINE MODE</div>
-    </div>
-    <div class="slide-body">
-      <div class="alur-stepper offline-mode">
-        <div class="alur-step">
-          <span class="as-num">1</span>
-          <div class="as-title">Buat Assessment</div>
-          <div class="as-desc">Pilih track Tahun 3. <strong>Tanpa</strong> durasi &amp; paket soal</div>
-        </div>
-        <div class="alur-step">
-          <span class="as-num">2</span>
-          <div class="as-title">Interview Offline</div>
-          <div class="as-desc">Panel juri tatap muka, peserta presentasi &amp; dijuri</div>
-        </div>
-        <div class="alur-step">
-          <span class="as-num">3</span>
-          <div class="as-title">Penilaian Kompetensi</div>
-          <div class="as-desc">Penilaian kompetensi oleh panel juri</div>
-        </div>
-        <div class="alur-step final">
-          <span class="as-num">4</span>
-          <div class="as-title">Rekap &amp; Sertifikasi</div>
-          <div class="as-desc">Input skor ke sistem, sertifikasi level kompetensi</div>
-        </div>
-      </div>
-      <div class="alur-callout">🔔 <strong>Sistem hanya untuk input skor &amp; rekap</strong> &mdash; bukan ujian online</div>
-    </div>
-  </div>
-
-  <!-- ================= SLIDE 17: PROGRESI 5 ASPEK TABEL ================= -->
-  <div class="slide default-deco" data-slide="13">
-    <div class="slide-header">
-      <div>
-        <p class="section-eyebrow">BAGIAN 3 · PROGRESI</p>
+        <p class="section-eyebrow">PROTON FONDASI · PROGRESI</p>
         <h1 class="slide-title">Progresi <span class="accent">Kompetensi</span> per Tahun</h1>
         <p class="slide-subtitle">5 aspek pembanding antara Tahun 1, 2, dan 3</p>
       </div>
-      <div class="slide-badge">SLIDE 13 / 19</div>
+      <div class="slide-badge">SLIDE 11 / 22</div>
     </div>
     <div class="slide-body">
-      <table class="progresi-table">
+      <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
         <thead>
-          <tr>
-            <th>Aspek</th>
-            <th>Tahun 1</th>
-            <th>Tahun 2</th>
-            <th>Tahun 3</th>
+          <tr style="background:#1e3a8a; color:#fff;">
+            <th style="padding:10px 14px; text-align:left; width:25%;">Aspek</th>
+            <th style="padding:10px 14px; text-align:center;">Tahun 1</th>
+            <th style="padding:10px 14px; text-align:center;">Tahun 2</th>
+            <th style="padding:10px 14px; text-align:center;">Tahun 3 · Mahir</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="aspek-label">🎯 Fokus</td>
-            <td>Dasar &amp; pengenalan unit kerja</td>
-            <td>Lanjutan &amp; pendalaman proses</td>
-            <td class="diff-cell">Mahir &amp; penguasaan penuh</td>
+          <tr style="background:#f8fafc;">
+            <td style="padding:10px 14px; font-weight:600;">📚 Pengetahuan</td>
+            <td style="padding:10px 14px; text-align:center;">Dasar konsep</td>
+            <td style="padding:10px 14px; text-align:center;">Pendalaman teori</td>
+            <td style="padding:10px 14px; text-align:center; background:#fef3c7; font-weight:600;">Sintesis & evaluasi</td>
           </tr>
           <tr>
-            <td class="aspek-label">📦 Deliverable</td>
-            <td>Khusus Tahun 1 (beda dari Th 2 &amp; 3)</td>
-            <td>Khusus Tahun 2 (beda dari Th 1 &amp; 3)</td>
-            <td class="diff-cell">Khusus Tahun 3 (beda dari Th 1 &amp; 2)</td>
+            <td style="padding:10px 14px; font-weight:600;">🔧 Keterampilan</td>
+            <td style="padding:10px 14px; text-align:center;">Operasi standar</td>
+            <td style="padding:10px 14px; text-align:center;">Troubleshooting</td>
+            <td style="padding:10px 14px; text-align:center; background:#fef3c7; font-weight:600;">Optimasi sistem</td>
+          </tr>
+          <tr style="background:#f8fafc;">
+            <td style="padding:10px 14px; font-weight:600;">⚙️ Aplikasi</td>
+            <td style="padding:10px 14px; text-align:center;">Tugas terbimbing</td>
+            <td style="padding:10px 14px; text-align:center;">Tugas mandiri</td>
+            <td style="padding:10px 14px; text-align:center; background:#fef3c7; font-weight:600;">Pengambilan keputusan</td>
           </tr>
           <tr>
-            <td class="aspek-label">🔄 Coaching Process</td>
-            <td>Submit Evidence &rarr; Multi Approval &rarr; Final Assessment</td>
-            <td>Submit Evidence &rarr; Multi Approval &rarr; Final Assessment</td>
-            <td class="diff-cell">Submit Evidence &rarr; Multi Approval &rarr; <strong>Final Assessment Interview</strong></td>
+            <td style="padding:10px 14px; font-weight:600;">🧩 Kompleksitas</td>
+            <td style="padding:10px 14px; text-align:center;">Skenario sederhana</td>
+            <td style="padding:10px 14px; text-align:center;">Multi-variabel</td>
+            <td style="padding:10px 14px; text-align:center; background:#fef3c7; font-weight:600;">Sistem terintegrasi</td>
           </tr>
-          <tr>
-            <td class="aspek-label">📝 Assessment</td>
-            <td>Ujian online (pilihan ganda)</td>
-            <td>Ujian online (pilihan ganda)</td>
-            <td class="diff-cell"><strong>Interview offline panel juri</strong></td>
-          </tr>
-          <tr>
-            <td class="aspek-label">🏆 Akhir Tahun</td>
-            <td>Sertifikasi Th 1 &rarr; lanjut Tahun 2</td>
-            <td>Sertifikasi Th 2 &rarr; lanjut Tahun 3</td>
-            <td class="diff-cell"><strong>Sertifikasi Final &rarr; Pekerja Kompeten Penuh</strong></td>
+          <tr style="background:#f8fafc;">
+            <td style="padding:10px 14px; font-weight:600;">🎯 Otonomi</td>
+            <td style="padding:10px 14px; text-align:center;">Diawasi penuh</td>
+            <td style="padding:10px 14px; text-align:center;">Konsultatif</td>
+            <td style="padding:10px 14px; text-align:center; background:#fef3c7; font-weight:600;">Mandiri & coaching others</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- ================= SLIDE 17 (was 18): ALUR COACHING TH 1&2 9-STEP ================= -->
+  <!-- ================= SLIDE 12: KKJ — Template C demo ================= -->
+  <div class="slide default-deco" data-slide="12">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">REFERENSI · DOKUMEN DASAR</p>
+        <h1 class="slide-title">KKJ — <span class="accent">Kebutuhan Kompetensi</span> Jabatan</h1>
+        <p class="slide-subtitle">Peta kompetensi target per jabatan — dasar acuan PROTON</p>
+      </div>
+      <div class="slide-badge">SLIDE 12 / 22</div>
+    </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>SS KPB_KKJ Fungsi System Completion &amp; Simops</small>
+        </div>
+        <div class="demo-image-caption">Sumber: docs/doc support Proton/SS KPB_KKJ Fungsi System Completion &amp; Simops.pdf</div>
+      </div>
+      <div class="demo-text-col">
+        <p class="demo-lead">KKJ = peta kompetensi per jabatan</p>
+        <ul class="demo-bullets">
+          <li>Sumber dasar acuan PROTON</li>
+          <li>Per fungsi (System Completion, Simops, dll)</li>
+          <li>Mapping ke level kompetensi target</li>
+          <li>Dasar penyusunan silabus</li>
+        </ul>
+        <div class="demo-takeaway">Tanpa KKJ, PROTON tidak punya target</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 13: Silabus PROTON — Template C demo ================= -->
+  <div class="slide default-deco" data-slide="13">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">REFERENSI · SILABUS</p>
+        <h1 class="slide-title">Silabus <span class="accent">PROTON</span></h1>
+        <p class="slide-subtitle">Penjabaran KKJ jadi deliverable per dimensi kompetensi</p>
+      </div>
+      <div class="slide-badge">SLIDE 13 / 22</div>
+    </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>Folder silabus — Operator + Panelman Kompetensi 1-5</small>
+        </div>
+        <div class="demo-image-caption">Sumber: docs/doc support Proton/silabus/ (10 file .docx)</div>
+      </div>
+      <div class="demo-text-col">
+        <p class="demo-lead">Silabus = jabarkan KKJ jadi deliverable konkret</p>
+        <ul class="demo-bullets">
+          <li>2 track: <strong>Panelman</strong> &amp; <strong>Operator</strong></li>
+          <li>5 dimensi Kompetensi per track (Kompetensi 1-5)</li>
+          <li>Hierarki: Kompetensi → SubKompetensi → Deliverable</li>
+          <li>Diinput &amp; dikelola Admin/HC via Silabus Manager</li>
+        </ul>
+        <div class="demo-takeaway">Silabus = peta kerja Coach + Coachee</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 14: Coaching Guidance — Template C demo ================= -->
   <div class="slide default-deco" data-slide="14">
     <div class="slide-header">
       <div>
-        <p class="section-eyebrow">COACHING · TAHUN 1 &amp; 2</p>
-        <h1 class="slide-title">Alur <span class="accent">Coaching</span> &mdash; 9 Step</h1>
-        <p class="slide-subtitle">Persiapan Silabus &rarr; Review Multi-Role &rarr; Assessment Online &rarr; Sertifikasi</p>
+        <p class="section-eyebrow">REFERENSI · PEDOMAN COACH</p>
+        <h1 class="slide-title">Coaching <span class="accent">Guidance</span></h1>
+        <p class="slide-subtitle">Pedoman materi coaching per dimensi kompetensi</p>
       </div>
-      <div class="slide-badge">SLIDE 14 / 19</div>
+      <div class="slide-badge">SLIDE 14 / 22</div>
     </div>
-    <div class="slide-body">
-      <div class="swim-row" style="grid-template-columns:3fr 3fr 2fr;">
-        <div class="swim-lane lane-prep">
-          <div class="swim-label">📋 Persiapan (1-3)</div>
-          <div class="swim-steps">
-            <div class="swim-step">
-              <span class="step-num-mini">1</span>
-              <span class="step-icon-mini">📋</span>
-              <div class="step-title">Silabus</div>
-              <div class="step-desc">Kompetensi &amp; deliverable per track tahun</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">2</span>
-              <span class="step-icon-mini">📤</span>
-              <div class="step-title">Guidance</div>
-              <div class="step-desc">Dokumen panduan belajar per kompetensi</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">3</span>
-              <span class="step-icon-mini">🔗</span>
-              <div class="step-title">Assign Coachee</div>
-              <div class="step-desc">HC assign coachee ke track tahun</div>
-            </div>
-          </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>Coaching Guidance RFCC NHT Dimensi 1-5</small>
         </div>
-        <div class="swim-lane lane-exec">
-          <div class="swim-label">👀 Review Multi-Role (4-6)</div>
-          <div class="swim-steps">
-            <div class="swim-step">
-              <span class="step-num-mini">4</span>
-              <span class="step-icon-mini">📥</span>
-              <div class="step-title">Submit Evidence</div>
-              <div class="step-desc">Coach submit evidence per deliverable</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">5</span>
-              <span class="step-icon-mini">👀</span>
-              <div class="step-title">Review Multi-Role</div>
-              <div class="step-desc">Coach + SrSpv + SH + HC paralel</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">6</span>
-              <span class="step-icon-mini">✅</span>
-              <div class="step-title">Approval / Revisi</div>
-              <div class="step-desc">Approve atau request revisi dgn komentar</div>
-            </div>
-          </div>
-        </div>
-        <div class="swim-lane lane-result">
-          <div class="swim-label">🏅 Sertifikasi (7-9)</div>
-          <div class="swim-steps">
-            <div class="swim-step">
-              <span class="step-num-mini">7</span>
-              <span class="step-icon-mini">📊</span>
-              <div class="step-title">Hitung Progress</div>
-              <div class="step-desc">% penyelesaian deliverable dalam track</div>
-            </div>
-            <div class="swim-step highlight">
-              <span class="step-num-mini">8</span>
-              <span class="step-icon-mini">💻</span>
-              <div class="step-title">Assessment Online</div>
-              <div class="step-desc">Ujian akhir online (single/multi/essay)</div>
-            </div>
-            <div class="swim-step final">
-              <span class="step-num-mini">9</span>
-              <span class="step-icon-mini">🏅</span>
-              <div class="step-title">Sertifikasi</div>
-              <div class="step-desc">Lulus tahun, naik ke tahun berikutnya</div>
-            </div>
-          </div>
-        </div>
+        <div class="demo-image-caption">Sumber: docs/doc support Proton/coaching guidance/ (10 file .docx)</div>
       </div>
-      <div class="output-bar">✅ <strong>Output:</strong> sertifikat tahun + eligible naik tahun berikutnya</div>
+      <div class="demo-text-col">
+        <p class="demo-lead">Pedoman materi coaching per dimensi</p>
+        <ul class="demo-bullets">
+          <li>5 Dimensi × 2 track (Operator + Panelman) = 10 dokumen</li>
+          <li>Rujukan Coach saat sesi coaching</li>
+          <li>Diakses via portal (entity <code>CoachingGuidanceFile</code>)</li>
+          <li>Update ikut revisi KKJ</li>
+        </ul>
+        <div class="demo-takeaway">Coach tidak coaching tanpa pedoman</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 12: ALUR PROTON TH 1&2 ONLINE ================= -->
+  <div class="slide default-deco" data-slide="15">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">ALUR EKSEKUSI · TAHUN 1 &amp; 2</p>
+        <h1 class="slide-title">Alur PROTON — Tahun <span class="accent">1 &amp; 2</span></h1>
+        <p class="slide-subtitle">Ujian Online Pilihan Ganda</p>
+      </div>
+      <div class="slide-badge">SLIDE 15 / 22</div>
+    </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>Tampilan ujian online PROTON di portal</small>
+        </div>
+        <div class="demo-image-caption">TBD source: Views/CMP/Assessment.cshtml atau Views/CDP/PlanIdp.cshtml — pilih view yg paling representatif saat capture</div>
+      </div>
+      <div class="demo-text-col">
+        <p class="demo-lead">Ujian online pilihan ganda per Kompetensi</p>
+        <ul class="demo-bullets">
+          <li>Login portal → pilih ujian aktif</li>
+          <li>Kerjakan soal pilihan ganda</li>
+          <li>Submit jawaban → grading otomatis</li>
+          <li>Hasil tampil langsung + sertif per kompetensi</li>
+          <li>Akumulasi sertif jadi syarat naik ke T3</li>
+        </ul>
+        <div class="demo-takeaway">Lulus T1 &amp; T2 → syarat naik ke T3 (Mahir)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 13: ALUR PROTON TH 3 OFFLINE ================= -->
+  <div class="slide default-deco" data-slide="16">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">ALUR EKSEKUSI · TAHUN 3 MAHIR</p>
+        <h1 class="slide-title">Alur PROTON — Tahun <span class="accent" style="color:var(--amber);">3</span></h1>
+        <p class="slide-subtitle">Interview Offline · Tatap Muka · Panel Juri</p>
+      </div>
+      <div class="slide-badge" style="background:var(--amber);">🎤 OFFLINE MODE</div>
+    </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>EditCoachingSession / panel interview Mahir</small>
+        </div>
+        <div class="demo-image-caption">Sumber: Views/CDP/EditCoachingSession.cshtml (form interview + scoring)</div>
+      </div>
+      <div class="demo-text-col">
+        <p class="demo-lead">Penilaian Mahir via wawancara panel</p>
+        <ul class="demo-bullets">
+          <li>Panel juri: <strong>Section Head + HC + Ahli</strong></li>
+          <li>Format: tanya-jawab tatap muka</li>
+          <li>Kriteria mahir berdasar KKJ</li>
+          <li>Skoring per dimensi kompetensi</li>
+          <li>Output: sertifikasi final Mahir</li>
+        </ul>
+        <div class="demo-takeaway">T3 = pintu sertifikasi Mahir</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 17: PROGRESI 5 ASPEK TABEL ================= -->
+  <!-- ================= SLIDE 17 (was 18): ALUR COACHING TH 1&2 9-STEP ================= -->
+  <div class="slide default-deco" data-slide="17">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">ALUR EKSEKUSI · COACHING T1&amp;2</p>
+        <h1 class="slide-title">Alur <span class="accent">Coaching</span> — 9 Step</h1>
+        <p class="slide-subtitle">Pendampingan Coachee oleh Coach</p>
+      </div>
+      <div class="slide-badge">SLIDE 17 / 22</div>
+    </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>Views/CDP/CoachingProton.cshtml — form Coach</small>
+        </div>
+        <div class="demo-image-caption">Sumber: form Coach (Result · Kesimpulan · AcuanPedoman)</div>
+      </div>
+      <div class="demo-text-col">
+        <p class="demo-lead">Coaching = jantung PROTON, bukan formalitas</p>
+        <ul class="demo-bullets">
+          <li>1. Silabus dibagikan ke Coachee</li>
+          <li>2. Assign Coach-Coachee oleh Sr.Supervisor</li>
+          <li>3. Sesi coaching reguler + isi catatan</li>
+          <li>4. Coachee submit evidence per deliverable</li>
+          <li>5. Coach validasi → Sr.Supervisor approve</li>
+          <li>6. HC review → 7. Approve final</li>
+          <li>8. Lanjut deliverable berikutnya</li>
+          <li>9. Akumulasi sertif kompetensi</li>
+        </ul>
+        <div class="demo-takeaway">9 step = siklus per deliverable</div>
+      </div>
     </div>
   </div>
 
   <!-- ================= SLIDE 18 (was 19): ALUR COACHING TH 3 MAHIR 9-STEP ================= -->
-  <div class="slide default-deco" data-slide="15">
+  <div class="slide default-deco" data-slide="18">
     <div class="slide-header">
       <div>
-        <p class="section-eyebrow">COACHING · TAHUN 3 (MAHIR)</p>
-        <h1 class="slide-title">Alur Coaching <span class="accent" style="color:var(--amber);">Mahir</span> &mdash; 9 Step</h1>
-        <p class="slide-subtitle">Silabus Mahir &rarr; Review Multi-Role &rarr; Interview Offline &rarr; Sertifikasi Final</p>
+        <p class="section-eyebrow">ALUR EKSEKUSI · COACHING MAHIR T3</p>
+        <h1 class="slide-title">Alur Coaching <span class="accent" style="color:var(--amber);">Mahir</span> — 9 Step</h1>
+        <p class="slide-subtitle">Coaching level Mahir dengan kriteria lebih tegas</p>
       </div>
       <div class="slide-badge" style="background:var(--amber);">🎯 LEVEL MAHIR</div>
     </div>
-    <div class="slide-body">
-      <div class="swim-row" style="grid-template-columns:3fr 3fr 2fr;">
-        <div class="swim-lane lane-prep">
-          <div class="swim-label">🎓 Silabus Mahir (1-3)</div>
-          <div class="swim-steps">
-            <div class="swim-step highlight">
-              <span class="step-num-mini">1</span>
-              <span class="step-icon-mini">🎓</span>
-              <div class="step-title">Silabus Mahir</div>
-              <div class="step-desc">Level mahir, beda dari Th 1-2</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">2</span>
-              <span class="step-icon-mini">🔗</span>
-              <div class="step-title">Mapping Th 3</div>
-              <div class="step-desc">Coachee lulus Th 2 &rarr; track Th 3</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">3</span>
-              <span class="step-icon-mini">✍</span>
-              <div class="step-title">Kerjakan Deliverable</div>
-              <div class="step-desc">Submit evidence level mahir</div>
-            </div>
-          </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>Views/CDP/Shared/_CoachingProtonContentPartial.cshtml</small>
         </div>
-        <div class="swim-lane lane-exec">
-          <div class="swim-label">👀 Review Multi-Role (4-6)</div>
-          <div class="swim-steps">
-            <div class="swim-step">
-              <span class="step-num-mini">4</span>
-              <span class="step-icon-mini">👀</span>
-              <div class="step-title">Review Multi-Role</div>
-              <div class="step-desc">Coach + SrSpv + SH + HC paralel</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">5</span>
-              <span class="step-icon-mini">✅</span>
-              <div class="step-title">Approval / Revisi</div>
-              <div class="step-desc">Approve atau request revisi dgn komentar</div>
-            </div>
-            <div class="swim-step">
-              <span class="step-num-mini">6</span>
-              <span class="step-icon-mini">📊</span>
-              <div class="step-title">Hitung Progress</div>
-              <div class="step-desc">% deliverable + skor review</div>
-            </div>
-          </div>
-        </div>
-        <div class="swim-lane lane-result">
-          <div class="swim-label">🏆 Sertifikasi Final (7-9)</div>
-          <div class="swim-steps">
-            <div class="swim-step highlight">
-              <span class="step-num-mini">7</span>
-              <span class="step-icon-mini">🎤</span>
-              <div class="step-title">Interview Offline</div>
-              <div class="step-desc">Final assessment panel juri tatap muka</div>
-            </div>
-            <div class="swim-step final">
-              <span class="step-num-mini">8</span>
-              <span class="step-icon-mini">🏆</span>
-              <div class="step-title">Sertifikasi Final</div>
-              <div class="step-desc">Semua deliverable Th 3 selesai</div>
-            </div>
-            <div class="swim-step final">
-              <span class="step-num-mini">9</span>
-              <span class="step-icon-mini">⭐</span>
-              <div class="step-title">Penetapan Level</div>
-              <div class="step-desc">Tetapkan level kompetensi pekerja</div>
-            </div>
-          </div>
-        </div>
+        <div class="demo-image-caption">Sumber: form Coach level Mahir + Final Assessment</div>
       </div>
-      <div class="output-bar" style="background:linear-gradient(90deg,var(--amber),#b45309);">🏆 <strong>Output:</strong> Pekerja kompeten penuh + sertifikasi final + eligible role advance</div>
+      <div class="demo-text-col">
+        <p class="demo-lead">Coach Mahir = kunci kualitas sertifikasi</p>
+        <ul class="demo-bullets">
+          <li>1. Silabus Mahir dibagikan</li>
+          <li>2. Assign Coach senior</li>
+          <li>3. Coaching intensif (frequency lebih tinggi)</li>
+          <li>4. Evidence + Final Assessment HC</li>
+          <li>5-6. Review berjenjang (SrSpv + HC)</li>
+          <li>7. Interview Panel (Section Head + Ahli)</li>
+          <li>8. Skoring per dimensi KKJ</li>
+          <li>9. <strong>Sertif Mahir final</strong></li>
+        </ul>
+        <div class="demo-takeaway">Mahir bukan otomatis — wajib interview panel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE 19 PLACEHOLDER ================= -->
+  <div class="slide default-deco" data-slide="19">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">ALUR EKSEKUSI · MONITORING</p>
+        <h1 class="slide-title">Dashboard <span class="accent">Tracking</span> PROTON</h1>
+        <p class="slide-subtitle">Visibility untuk Section Head &amp; Sr. Supervisor</p>
+      </div>
+      <div class="slide-badge">SLIDE 19 / 22</div>
+    </div>
+    <div class="slide-body demo-split">
+      <div>
+        <div class="demo-image-frame">
+          📷 Screenshot akan ditambah<br>
+          <small>Views/CDP/HistoriProton.cshtml / Dashboard.cshtml</small>
+        </div>
+        <div class="demo-image-caption">Sumber: tampilan tracking + audit trail</div>
+      </div>
+      <div class="demo-text-col">
+        <p class="demo-lead">Tool monitoring untuk Section Head &amp; Sr. Supervisor</p>
+        <ul class="demo-bullets">
+          <li>Filter per section / track / tahun</li>
+          <li>Status progress per coachee real-time</li>
+          <li>Audit trail (<code>DeliverableStatusHistory</code>)</li>
+          <li>Drill-down ke detail per deliverable</li>
+          <li>Export Excel / PDF untuk reporting</li>
+        </ul>
+        <div class="demo-takeaway">Dashboard = visibility manajemen lini</div>
+      </div>
     </div>
   </div>
 
   <!-- ================= SLIDE 19 (was 15): IDP & TRAINING RECORDS ================= -->
-  <div class="slide default-deco" data-slide="16">
+  <div class="slide default-deco" data-slide="20">
     <div class="slide-header">
       <div>
-        <p class="section-eyebrow">BAGIAN 3 · CDP</p>
+        <p class="section-eyebrow">PENDUKUNG · APPENDIX</p>
         <h1 class="slide-title">IDP &amp; <span class="accent">Training Records</span></h1>
-        <p class="slide-subtitle">Jejak pengembangan pekerja &mdash; rencana karir &amp; riwayat pelatihan tersimpan rapi</p>
+        <p class="slide-subtitle">Rencana karir &amp; riwayat pelatihan terdokumentasi</p>
       </div>
-      <div class="slide-badge">SLIDE 16 / 19</div>
+      <div class="slide-badge">SLIDE 20 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="modules-grid" style="grid-template-columns:1fr 1fr;gap:18px;">
-        <div class="module-card cmp">
-          <div class="module-head">
-            <div class="module-icon">📋</div>
-            <div>
-              <div class="module-name">IDP</div>
-              <div class="module-subname">Individual Development Plan (Perpustakaan)</div>
-            </div>
-          </div>
-          <ul class="module-bullets">
-            <li>📂 Repository dokumen IDP per pekerja</li>
-            <li>📄 Akses dokumen KKJ (Kebutuhan Kompetensi Jabatan)</li>
-            <li>👁 Worker view &amp; download dokumen</li>
-            <li>🔍 Filter &amp; search per jabatan / unit</li>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start;">
+        <div style="padding:18px; background:#f1f5f9; border-radius:10px;">
+          <h4 style="margin-top:0;">IDP — Individual Development Plan</h4>
+          <ul style="font-size:0.88rem;">
+            <li>Rencana karir pekerja jangka menengah</li>
+            <li>Target kompetensi per tahun</li>
+            <li>Terhubung dengan deliverable PROTON</li>
           </ul>
         </div>
-        <div class="module-card cdp">
-          <div class="module-head">
-            <div class="module-icon">📚</div>
-            <div>
-              <div class="module-name">Training Records</div>
-              <div class="module-subname">Riwayat Pelatihan</div>
-            </div>
-          </div>
-          <ul class="module-bullets">
-            <li>🏫 Training internal &amp; eksternal</li>
-            <li>🏷️ Kategori + sub-kategori</li>
-            <li>📎 Sertifikat upload (PDF/image)</li>
-            <li>⏳ Validity period &amp; renewal</li>
+        <div style="padding:18px; background:#f1f5f9; border-radius:10px;">
+          <h4 style="margin-top:0;">Training Records</h4>
+          <ul style="font-size:0.88rem;">
+            <li>Riwayat pelatihan internal &amp; eksternal</li>
+            <li>Sertifikasi diterima</li>
+            <li>Deliverable PROTON masuk otomatis</li>
           </ul>
         </div>
       </div>
-      <div class="tip-bar" style="margin-top:14px;">💡 IDP &amp; Training Records <strong>terintegrasi dengan profile pekerja</strong> &mdash; referensi untuk rencana pengembangan &amp; promosi karir.</div>
-    </div>
-  </div>
-
-  <!-- ================= SLIDE 20: INTEGRASI & KEAMANAN ================= -->
-  <div class="slide default-deco" data-slide="17">
-    <div class="slide-header">
-      <div>
-        <h1 class="slide-title">Integrasi &amp; <span class="accent">Keamanan</span></h1>
-        <p class="slide-subtitle">Data pekerja aman, terotorisasi, &amp; mudah diakses sesuai role</p>
-      </div>
-      <div class="slide-badge">SLIDE 17 / 19</div>
-    </div>
-    <div class="slide-body">
-      <div class="cat-grid">
-        <div class="cat-card c1">
-          <div class="cat-head"><div class="cat-ic">🔐</div><div class="cat-name">LDAP Pertamina</div></div>
-          <div class="cat-desc">Login menggunakan akun Active Directory Pertamina &mdash; Single Sign-On</div>
-        </div>
-        <div class="cat-card c5">
-          <div class="cat-head"><div class="cat-ic">🛡️</div><div class="cat-name">Anti-Copy</div></div>
-          <div class="cat-desc">Perlindungan soal ujian online dari copy-paste &mdash; integritas assessment</div>
-        </div>
-        <div class="cat-card c3">
-          <div class="cat-head"><div class="cat-ic">📋</div><div class="cat-name">Audit Log</div></div>
-          <div class="cat-desc">Aksi penting tercatat (login, submit, approval) &mdash; transparansi</div>
-        </div>
-        <div class="cat-card c6">
-          <div class="cat-head"><div class="cat-ic">👥</div><div class="cat-name">Role-Based Access</div></div>
-          <div class="cat-desc">10 role &middot; 6 level akses sesuai tanggung jawab</div>
-        </div>
-        <div class="cat-card c2">
-          <div class="cat-head"><div class="cat-ic">🔔</div><div class="cat-name">Notifikasi Real-time</div></div>
-          <div class="cat-desc">Assessment, approval coaching, renewal sertifikat</div>
-        </div>
-        <div class="cat-card c4">
-          <div class="cat-head"><div class="cat-ic">📥</div><div class="cat-name">Import Excel</div></div>
-          <div class="cat-desc">Bulk import training records, assessment, soal &mdash; hemat waktu admin</div>
-        </div>
+      <div style="margin-top:20px; padding:14px; background:#dbeafe; border-left:4px solid #2563eb; border-radius:6px; font-size:0.88rem;">
+        🔗 IDP &amp; Training Records = ekosistem pendukung PROTON. Setiap progres PROTON tercatat otomatis di sini.
       </div>
     </div>
   </div>
 
   <!-- ================= SLIDE 21: CARA AKSES DEV/PROD ================= -->
-  <div class="slide default-deco" data-slide="18">
+  <div class="slide default-deco" data-slide="21">
     <div class="slide-header">
       <div>
+        <p class="section-eyebrow">PENDUKUNG · AKSES</p>
         <h1 class="slide-title">Cara <span class="accent">Mengakses</span> HC Portal</h1>
-        <p class="slide-subtitle">Sekarang fase Development &mdash; Production akan menyusul</p>
+        <p class="slide-subtitle">Saat ini fase Development — Production akan menyusul</p>
       </div>
-      <div class="slide-badge">SLIDE 18 / 19</div>
+      <div class="slide-badge">SLIDE 21 / 22</div>
     </div>
     <div class="slide-body">
-      <div class="akses-grid">
-        <div class="akses-card dev">
-          <span class="akses-status">✅ AKTIF SEKARANG</span>
-          <span class="akses-label">🟢 Development</span>
-          <h3>Environment Utama</h3>
-          <p>Lingkungan pengembangan &amp; sosialisasi saat ini.</p>
-          <div class="url-box">http://10.55.3.3/KPB-PortalHC</div>
-          <div class="akses-info">
-            <strong>Login:</strong> Akun Active Directory Pertamina<br>
-            <strong>Jaringan:</strong> Intranet Pertamina
-          </div>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:18px;">
+        <div style="padding:18px; background:#f1f5f9; border-radius:10px;">
+          <div style="font-size:0.7rem; color:#64748b;">URL DEV</div>
+          <h4 style="margin:6px 0;">🌐 Alamat</h4>
+          <code style="background:#fff; padding:6px 10px; border-radius:4px; display:block; word-break:break-all;">http://10.55.3.3/KPB-PortalHC</code>
+          <p style="font-size:0.78rem; color:#64748b; margin-top:8px;">Hanya bisa diakses dari jaringan internal Pertamina KPB</p>
         </div>
-        <div class="akses-card prod">
-          <span class="akses-status">⏳ BELUM AKTIF</span>
-          <span class="akses-label">🚧 Production</span>
-          <h3>Environment Target</h3>
-          <p>Akses resmi setelah promosi ke Production.</p>
-          <div class="url-box">https://appkpb.pertamina.com/KPB-PortalHC</div>
-          <span class="url-perkiraan">ⓘ URL perkiraan</span>
-          <div class="akses-info">
-            <strong>Login:</strong> Akun Active Directory Pertamina<br>
-            <strong>Jaringan:</strong> VPN / Intranet Pertamina
-          </div>
+        <div style="padding:18px; background:#f1f5f9; border-radius:10px;">
+          <div style="font-size:0.7rem; color:#64748b;">LOGIN</div>
+          <h4 style="margin:6px 0;">🔑 Akun</h4>
+          <ul style="font-size:0.88rem; padding-left:18px;">
+            <li>SSO Pertamina</li>
+            <li>atau akun disiapkan HC</li>
+          </ul>
+          <p style="font-size:0.78rem; color:#64748b;">Hubungi HC kalau belum dapat akses</p>
+        </div>
+        <div style="padding:18px; background:#f1f5f9; border-radius:10px;">
+          <div style="font-size:0.7rem; color:#64748b;">BROWSER</div>
+          <h4 style="margin:6px 0;">🌐 Rekomendasi</h4>
+          <ul style="font-size:0.88rem; padding-left:18px;">
+            <li>Microsoft Edge (latest)</li>
+            <li>Google Chrome (latest)</li>
+          </ul>
+          <p style="font-size:0.78rem; color:#64748b;">Hindari IE11 / browser jadul</p>
         </div>
       </div>
-      <div class="akses-footer">📌 Saat ini masih development</div>
+      <div style="margin-top:20px; padding:14px; background:#fef3c7; border-left:4px solid #f59e0b; border-radius:6px; font-size:0.88rem;">
+        ⚠️ Fase Development — bug mungkin masih ditemukan. Laporkan ke tim HC untuk perbaikan.
+      </div>
     </div>
   </div>
 
   <!-- ================= SLIDE 22: PENUTUP + KONTAK ================= -->
-  <div class="slide penutup" data-slide="19">
+  <div class="slide penutup" data-slide="22">
     <div class="penutup-content">
       <div class="penutup-icon">🙏</div>
       <h1 class="penutup-title">Terima Kasih</h1>
-      <p class="penutup-subtitle">Mari bersama digitalisasi pengembangan kompetensi pekerja Pertamina KPB</p>
-      <div class="penutup-qa">
-        <span class="penutup-qa-dot"></span>
-        Q&amp;A &mdash; Sesi Tanya Jawab
-      </div>
-      <br>
-      <button class="penutup-cta" onclick="window.open('http://10.55.3.3/KPB-PortalHC', '_blank')">
-        🚀 Akses HC Portal Sekarang
-        <span class="arrow">→</span>
-      </button>
-      <span class="penutup-url">http://10.55.3.3/KPB-PortalHC</span>
-      <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.2);text-align:center;">
-        <div style="font-size:9pt;letter-spacing:1.5px;font-weight:700;opacity:0.7;">📞 KONTAK</div>
-        <div style="font-size:13pt;font-weight:700;margin-top:6px;">PT Kilang Pertamina Balikpapan</div>
-        <div style="font-size:10pt;opacity:0.85;margin-top:4px;">📅 Balikpapan &middot; 25 Mei 2026</div>
+      <p class="penutup-subtitle">Mari kembangkan kompetensi pekerja KPB lewat PROTON</p>
+      <div style="margin-top:40px; font-size:0.9rem; opacity:0.8;">
+        Section Head · Sr. Supervisor · Coach · Coachee — bersama membangun jalur Mahir
       </div>
     </div>
   </div>
@@ -2231,14 +2341,14 @@
 <!-- Navigation controls -->
 <div class="controls">
   <button class="ctrl-btn" id="btnPrev" onclick="prevSlide()" title="Previous (← or Space)">◄</button>
-  <div class="slide-counter"><span id="curNum">1</span> / <span id="totalNum">19</span></div>
+  <div class="slide-counter"><span id="curNum">1</span> / <span id="totalNum">22</span></div>
   <button class="ctrl-btn" id="btnNext" onclick="nextSlide()" title="Next (→ or Space)">►</button>
 </div>
 
 <script>
   // ============================ NAVIGATION ============================
   let current = 1;
-  const total = 19;
+  const total = 22;
   const slides = document.querySelectorAll('.slide');
   const progressBar = document.getElementById('progressBar');
   const curNum = document.getElementById('curNum');
