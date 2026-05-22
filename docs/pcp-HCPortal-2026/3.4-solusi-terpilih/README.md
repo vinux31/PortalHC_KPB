@@ -68,6 +68,19 @@ Angka cycle/lead time per step = **estimasi rekonstruksi back-calculation** dari
 
 ## Changelog
 
+### v3.7-slide8 — Versi P Compact untuk Risalah Web slide 8 (2026-05-22)
+
+- New: `slide8/versi-p-compact.html` (972×340 landscape, side-by-side Sebelum+Sesudah, aspect match box pptx 8.05×25.72 cm)
+- Drop chrome (header/toolbar/komparasi/legend table) untuk PNG export ke slide 8 placeholder #1 GAMBAR DESAIN
+- Buffer zone Sesudah ↔ no-buffer slot Sebelum symmetric row height
+- L4 HC labels shortened (drop "Excel"/"Kelola" prefix) supaya single-row fit
+- Tech stack subtitle removed dari buffer zone (akan ke placeholder #3 Standard Design spec)
+- Export PNG via html2canvas @2x retina (button corner top-right)
+- Master `versi-p-workflow-topology.html` v3.7 **untouched**
+- PNG inserted ke `docs/pcp-HCPortal-2026/Risalah Web.pptx` slide 8
+- Spec: `docs/superpowers/specs/2026-05-22-pcp-slide8-versi-p-compact-design.md`
+- Plan: `docs/superpowers/plans/2026-05-22-pcp-slide8-versi-p-compact-implementation.md`
+
 ### v3.7 — Polish Pass (2026-05-22)
 
 - **Versi P, C, X** polished full overhaul:
