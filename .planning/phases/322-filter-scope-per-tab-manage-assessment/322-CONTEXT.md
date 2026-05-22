@@ -74,14 +74,31 @@ Rollback Phase 311 Plan 02 shared filter shell di `/Admin/ManageAssessment`. Set
 - **D-20:** **Phase 311 Plan 02 UI-SPEC compliance impact** — flagged as risk Medium (shared filter design rolled back). Re-evaluate UI-SPEC sebelum merge atau defer ke docs phase. PLAN 03 UAT include explicit check tidak ada regression.
 
 ### Wrapper Attribute Fix (discuss revision 2026-05-22)
-- **D-21:** **Wrapper `hx-vals` per-tab explicit replace dangling `hx-include="#filter-form"`** — 3 wrapper `<div class="htmx-tab-wrapper">` di shell baris 198/232/276 punya `hx-include="#filter-form"` untuk pass query string ke partial action saat initial load (URL bookmark D-10 backward compat). Setelah PLAN 02 5a hapus `<form id="filter-form">`, selector dangling → partial dapet zero params → URL bookmark `?category=OJT` BROKEN.
-  - **Fix:** Hapus `hx-include="#filter-form"` di 3 wrapper, ganti dengan `hx-vals='@Json.Serialize(new { ... })'` per-tab dengan ViewBag.* values yang RELEVANT ke tab itu only:
-    - Wrapper Tab 1: `search`, `category`, `statusFilter`, `page`
-    - Wrapper Tab 2: `section`, `unit`, `category`, `statusFilter`, `search`, `page`
-    - Wrapper Tab 3: `search`, `page`
-  - **Bonus benefit:** Structurally prevent Bug 2 cross-tab contamination — Tab 2 wrapper TIDAK include param yang tidak relevant, Tab 1 wrapper TIDAK include `section`/`unit`. Bug 2 prevention bukan defensive (cross-tab listener), tapi by-design (no leak).
-  - **Effect on D-10 backward compat:** Preserved — URL `?category=OJT` → controller set ViewBag.SelectedCategory → wrapper Tab 1 inject via hx-vals → partial dapet `category=OJT` ✅.
-  - **Effect on PLAN 02 5e:** Drop `searchTerm`/`selectedCategory`/`selectedStatus` vars di top `@{}` block tetap valid — akses langsung via `ViewBag.SearchTerm`/etc di hx-vals (lebih clean).
+- **D-21:** **Wrapper `hx-vals` per-tab Strategy D Hybrid — semantic-relevant param only, drop cross-tab overlap.**
+
+  **Problem:** 3 wrapper `<div class="htmx-tab-wrapper">` di shell baris 198/232/276 punya `hx-include="#filter-form"` untuk pass query string ke partial action saat initial load (URL bookmark D-10 backward compat). Setelah PLAN 02 5a hapus `<form id="filter-form">`, selector dangling → partial dapet zero params → URL bookmark `?category=OJT` BROKEN.
+
+  **First attempt (rejected by plan-checker iter 1):** Ganti dengan `hx-vals` per-tab inject SEMUA ViewBag.* values. Mechanism CACAT karena `category`/`statusFilter`/`search` adalah param **shared single field** di controller (`ViewBag.SelectedCategory`) tapi punya **semantic berbeda per tab** (D-01 + RESEARCH.md). Skenario reproduce Bug 2: URL `?category=OJT&statusFilter=Active` → controller set ViewBag → wrapper Tab 1 inject OK → user switch Tab 2 → wrapper Tab 2 inject `category=OJT` ke partial Tab 2 (interpret Kategori Training hardcoded enum 8) + `statusFilter=Active` (interpret Sudah/Belum) → semantic mismatch = Bug 2 reproduce di tab switch.
+
+  **Strategy D Hybrid (locked):** Drop param yang cross-tab overlap dari Tab 2/3 hx-vals. Tab 1 wrapper full; Tab 2/3 wrapper hanya inject param semantic-valid untuk tab itu only.
+
+  - **Wrapper Tab 1 (Assessment Groups):** `search`, `category`, `statusFilter`, `page` — domain Tab 1
+  - **Wrapper Tab 2 (Input Records):** `section`, `unit`, `page` ONLY — DROP `category`/`statusFilter`/`search` karena param-param ini overlap semantic-different. Tab 2 partial action signature accept `category`/`statusFilter` tapi default empty kalau tidak di-inject → partial render default (semua kategori training, semua status) saat tab switch — acceptable, user filter ulang via form Tab 2 sendiri.
+  - **Wrapper Tab 3 (History):** Empty hx-vals — Tab 3 punya 2 sub-tab dengan filter client-side own (tidak butuh inject param). Page param optional kalau ada Tab 3 server-side pagination (saat ini tidak ada).
+
+  **Bug 2 prevention by-design:**
+  - URL bookmark `?category=OJT` → wrapper Tab 1 inject `category=OJT` ke partial Tab 1 ✅
+  - User switch Tab 2 → wrapper Tab 2 hx-vals **TIDAK include** `category` → partial Tab 2 dapet empty `category` → default semua kategori training → no semantic mismatch ✅
+  - Trade-off: URL bookmark `?tab=training&section=Operation` works (section preserved), tapi `?tab=training&category=OJT` → `category=OJT` tidak ikut (acceptable, OJT bukan Kategori Training valid anyway).
+
+  **Effect on D-10 backward compat:**
+  - **Tab 1 URL bookmark:** Preserved fully (`search`+`category`+`statusFilter`+`page`)
+  - **Tab 2 URL bookmark:** Preserved hanya untuk `section`+`unit`+`page` — kalau user bookmark Tab 2 dengan filter `section=Operation`, tetap applied. Param `category`/`statusFilter`/`search` Tab 2 perlu di-set via form Tab 2 setelah landing (acceptable scope reduction, document di RISK section).
+  - **Tab 3 URL bookmark:** Drop (Tab 3 client-side filter own, tidak butuh URL state)
+
+  **Effect on PLAN 02 5e:** Drop `searchTerm`/`selectedCategory`/`selectedStatus` vars di top `@{}` block tetap valid — akses langsung via `ViewBag.SearchTerm`/etc di Tab 1 hx-vals (lebih clean).
+
+  **Prerequisite:** `Views/_ViewImports.cshtml` sekarang TIDAK punya `@using System.Text.Json`. PLAN 02 wajib tambah sub-edit pre-5f untuk update ViewImports, ATAU pakai fully-qualified `@System.Text.Json.JsonSerializer.Serialize(...)` inline.
 
 </decisions>
 
