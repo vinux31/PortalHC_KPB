@@ -49,6 +49,100 @@
     cursor: pointer;
     z-index: 100;
   }
+
+  #diagram-row {
+    display: grid;
+    grid-template-columns: 545px 545px;
+    gap: 8px;
+    padding: 4px;
+  }
+  .panel {
+    background: white;
+    border-radius: .5rem;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .panel.sebelum { border-top: 4px solid var(--pertamina-red); }
+  .panel.sesudah { border-top: 4px solid var(--pertamina-green); }
+
+  .panel-title {
+    font-size: var(--fs-title);
+    font-weight: 700;
+    margin: 0 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--neutral-light);
+  }
+  .panel.sebelum .panel-title { color: var(--pertamina-red); }
+  .panel.sesudah .panel-title { color: var(--pertamina-blue); }
+
+  .layer {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 4px;
+    min-height: 48px;
+    border-bottom: 1px dashed var(--neutral-light);
+    padding: 3px 0;
+  }
+  .layer:last-child { border-bottom: none; }
+  .layer-label {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    padding: 2px 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--neutral-gray);
+  }
+  .layer-label .icon { font-size: 1rem; line-height: 1; }
+  .layer-label .actor { font-weight: 700; color: #1f2937; }
+  .layer-label .lv { font-size: var(--fs-xxs); font-weight: 500; opacity: .7; }
+  .layer-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    align-items: center;
+    padding: 2px 4px;
+  }
+  .comp {
+    padding: 2px 5px;
+    border: 1px solid;
+    border-radius: 3px;
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+  .comp.manual { background: var(--pertamina-red-light); border-color: var(--pertamina-red); color: var(--pertamina-red); }
+  .comp.tool-ext { background: var(--pertamina-yellow-light); border-color: var(--pertamina-yellow); color: #8a6500; }
+  .comp.paper { background: var(--pertamina-orange-light); border-color: #d97706; color: #9a3412; }
+  .comp.portal { background: var(--pertamina-blue-light); border-color: var(--pertamina-blue); color: var(--pertamina-blue-dark); }
+  .marker {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    line-height: 12px;
+    text-align: center;
+    color: white;
+    font-size: var(--fs-xxs);
+    font-weight: 800;
+    margin-left: 2px;
+  }
+  .marker.issue { background: var(--pertamina-red); }
+  .marker.improvement { background: var(--pertamina-green); }
+
+  .no-buffer-slot {
+    height: 50px;
+    border: 1.5px dashed var(--neutral-light);
+    border-radius: 4px;
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-sm);
+    font-style: italic;
+    color: var(--neutral-gray);
+  }
+
   @media print { #export-btn { display: none; } }
 </style>
 </head>
@@ -56,7 +150,87 @@
 <button id="export-btn" onclick="exportPNG()">📸 Export PNG</button>
 
 <div id="diagram-row">
-  <!-- Panels go here in Task 2 + 3 -->
+  <section class="panel sebelum">
+    <h2 class="panel-title">❌ SEBELUM (Kondisi Aktual)</h2>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👔</span>
+        <span class="actor">Manajemen</span>
+        <span class="lv">Lv 5 · Strategic</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp manual">📄 Laporan PDF/Excel</span>
+        <span class="comp tool-ext">📧 Email Pertamina</span>
+        <span class="marker issue">D</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👤</span>
+        <span class="actor">HC</span>
+        <span class="lv">Lv 4 · Governance</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp manual">📊 Excel Pekerja</span>
+        <span class="comp manual">📊 Excel Assessment</span>
+        <span class="comp manual">📊 Excel Training</span>
+        <span class="comp manual">📊 Excel KKJ</span>
+        <span class="comp manual">📊 Excel Sertifikat</span>
+        <span class="comp manual">📝 Word Template</span>
+        <span class="marker issue">A</span>
+        <span class="marker issue">B</span>
+      </div>
+    </div>
+
+    <div class="no-buffer-slot">— Tidak ada hub terintegrasi —</div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🏢</span>
+        <span class="actor">Atasan</span>
+        <span class="lv">Lv 3 · Supervisory</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp tool-ext">📧 Email kotak masuk</span>
+        <span class="comp tool-ext">💬 WhatsApp approval</span>
+        <span class="marker issue">C</span>
+        <span class="marker issue">E</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🧑‍🏫</span>
+        <span class="actor">Coach</span>
+        <span class="lv">Lv 2 · Coaching</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp paper">📋 Form PROTON cetak</span>
+        <span class="comp paper">📁 Arsip fisik</span>
+        <span class="comp tool-ext">💬 WhatsApp (foto)</span>
+        <span class="comp tool-ext">📧 Email (lampiran)</span>
+        <span class="marker issue">A</span>
+        <span class="marker issue">E</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👷</span>
+        <span class="actor">Pekerja</span>
+        <span class="lv">Lv 1 · Operational</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp tool-ext">🌐 FleQi Quiz</span>
+        <span class="comp paper">🎓 Sertifikat hardcopy</span>
+        <span class="comp manual">📊 Excel pribadi (IDP)</span>
+        <span class="marker issue">A</span>
+        <span class="marker issue">F</span>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
