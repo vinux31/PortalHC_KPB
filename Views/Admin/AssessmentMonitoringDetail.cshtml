@@ -572,10 +572,34 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="logSummary" class="mb-3 p-2 bg-light rounded small text-muted"></div>
-                    <div id="logTimeline"></div>
-                    <div id="logLoading" class="text-center d-none">
-                        <div class="spinner-border spinner-border-sm me-2"></div>Memuat...
+                    <ul class="nav nav-tabs" role="tablist" id="activityLogTabs">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-timeline-btn"
+                                    data-bs-toggle="tab" data-bs-target="#tab-timeline"
+                                    role="tab" aria-controls="tab-timeline" aria-selected="true">
+                                Activity Timeline
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-edit-history-btn"
+                                    data-bs-toggle="tab" data-bs-target="#tab-edit-history"
+                                    role="tab" aria-controls="tab-edit-history" aria-selected="false"
+                                    data-load-url-template="@Url.Action("EditHistoryPartial")">
+                                Edit History
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content pt-3">
+                        <div class="tab-pane fade show active" id="tab-timeline" role="tabpanel" aria-labelledby="tab-timeline-btn">
+                            <div id="logSummary" class="mb-3 p-2 bg-light rounded small text-muted"></div>
+                            <div id="logTimeline"></div>
+                            <div id="logLoading" class="text-center d-none">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Memuat...
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tab-edit-history" role="tabpanel" aria-labelledby="tab-edit-history-btn">
+                            <div class="edit-history-placeholder text-muted small">Memuat...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -954,7 +978,51 @@
             var sid = parseInt(btn.getAttribute('data-session-id'), 10);
             var wname = btn.getAttribute('data-worker-name') || '';
             showActivityLog(sid, wname);
+            // Phase 321: set modal currentSessionId + reset Edit History tab cache
+            var modal = document.getElementById('activityLogModal');
+            if (modal) modal.dataset.currentSessionId = sid;
+            var ehBtn = document.getElementById('tab-edit-history-btn');
+            if (ehBtn) ehBtn.dataset.loaded = '';
+            var ehPane = document.getElementById('tab-edit-history');
+            if (ehPane) ehPane.innerHTML = '<div class="edit-history-placeholder text-muted small">Memuat...</div>';
+            // Reset to Timeline tab on open
+            var tlBtn = document.getElementById('tab-timeline-btn');
+            if (tlBtn && window.bootstrap && bootstrap.Tab) {
+                bootstrap.Tab.getOrCreateInstance(tlBtn).show();
+            }
         }
+    });
+
+    // Phase 321: Lazy-load Edit History tab on first show per session
+    document.addEventListener('shown.bs.tab', function (event) {
+        var btn = event.target;
+        if (!btn || btn.id !== 'tab-edit-history-btn') return;
+        if (btn.dataset.loaded === '1') return;
+
+        var modal = document.getElementById('activityLogModal');
+        var sessionId = modal ? modal.dataset.currentSessionId : null;
+        var pane = document.getElementById('tab-edit-history');
+        if (!sessionId) {
+            if (pane) pane.innerHTML = '<p class="text-muted small">Sesi tidak diketahui.</p>';
+            return;
+        }
+
+        var urlTemplate = btn.dataset.loadUrlTemplate;
+        var url = urlTemplate + '?sessionId=' + sessionId;
+
+        fetch(url)
+            .then(function (resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.text();
+            })
+            .then(function (html) {
+                pane.innerHTML = html;
+                btn.dataset.loaded = '1';
+            })
+            .catch(function (err) {
+                pane.innerHTML = '<p class="text-danger small">Gagal memuat edit history.</p>';
+                console.error('EditHistory load failed:', err);
+            });
     });
 
     // ---- Akhiri Semua Modal: fetch counts on open ----

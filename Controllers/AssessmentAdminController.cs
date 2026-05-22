@@ -2924,6 +2924,17 @@ namespace HcPortal.Controllers
             }
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditHistoryPartial(int sessionId)
+        {
+            var logs = await _context.AssessmentEditLogs
+                .Where(l => l.AssessmentSessionId == sessionId)
+                .OrderByDescending(l => l.EditedAt)
+                .ToListAsync();
+            return PartialView("_EditHistoryPartial", logs);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
