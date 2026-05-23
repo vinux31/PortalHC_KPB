@@ -2095,125 +2095,72 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;1.1 &mdash; Authority &amp; Scope</p>
   </div>
 
-  <!-- ================= SLIDE 10: ALUR KERJA HARIAN HC ================= -->
+  <!-- ================= SLIDE 7: ALUR HARIAN + NOTIFIKASI (MERGED) ================= -->
   <div class="slide default-deco" data-slide="9">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 0 &mdash; PENGENALAN</p>
-        <h1 class="slide-title">Alur Kerja <span class="accent">Harian HC</span></h1>
-        <p class="slide-subtitle">5 aktivitas inti yang berulang setiap hari</p>
+        <h1 class="slide-title">Alur <span class="accent">Harian</span> + Notifikasi</h1>
+        <p class="slide-subtitle">5 aktivitas inti harian &middot; bell icon navbar = entry point notif terpusat</p>
       </div>
       <div class="slide-badge">SLIDE 9 / 40</div>
     </div>
     <div class="slide-body">
-      <div class="flow-h">
-        <div class="flow-node">
-          <span class="flow-icon">&#128276;</span>
-          <strong>1. Cek Notif</strong>
-          Bell icon &mdash; evidence siap review, renewal, error
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+        <div>
+          <h3 style="margin:0 0 10px; font-size:11pt;">&#128338; Alur Kerja Harian HC</h3>
+          <ol style="margin:0; padding-left:22px; line-height:1.7;">
+            <li>&#128276; <strong>Cek Notif</strong> &mdash; Bell icon: evidence, renewal, error</li>
+            <li>&#9989; <strong>Review Evidence</strong> &mdash; Final reviewer Coaching Proton</li>
+            <li>&#128064; <strong>Monitor Assessment</strong> &mdash; Real-time + force-close kalau perlu</li>
+            <li>&#128221; <strong>Schedule Renewal</strong> &mdash; Sertifikat mendekati expired</li>
+            <li>&#128295; <strong>Resolve Issues</strong> &mdash; Bottleneck, override, eskalasi</li>
+          </ol>
+          <div class="tip-bar" style="margin-top:10px;">
+            <strong>&#128161; Tip:</strong> Mulai hari dengan cek <b>Bell Icon</b> dan <b>Bottleneck Report</b> &mdash; dua tempat tercepat surface hal yang perlu HC tangani.
+          </div>
         </div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-node">
-          <span class="flow-icon">&#9989;</span>
-          <strong>2. Review Evidence</strong>
-          Final reviewer Coaching Proton
+        <div>
+          <h3 style="margin:0 0 10px; font-size:11pt;">&#128276; Notifikasi &amp; Workflow</h3>
+          <div class="mockup-frame">
+            <div class="mockup-bar">
+              <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+              <span class="mockup-url">navbar bell dropdown</span>
+            </div>
+            <div class="mockup-recreated">
+              <div class="mr-navbar">
+                <span class="mr-brand">&#127970; HC Portal</span>
+                <span class="mr-nav-item">CMP</span>
+                <span class="mr-nav-item">CDP</span>
+                <span class="mr-nav-item active">Kelola Data</span>
+                <span class="mr-bell">&#128276;<span class="mr-bell-badge">7</span></span>
+              </div>
+              <div style="background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.1);">
+                <div style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="color: #0f172a; font-size: 9pt;">Notifikasi (7)</strong>
+                  <span style="font-size: 7.5pt; color: #2563eb; cursor: pointer;">Mark all as read</span>
+                </div>
+                <div style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9; background: #eff6ff;">
+                  <div style="font-size: 8.5pt; font-weight: 700; color: #0f172a;">&#9989; Evidence Approved by Section Head</div>
+                  <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Deliverable Rino &mdash; siap HC final review &middot; 2j</div>
+                </div>
+                <div style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">
+                  <div style="font-size: 8.5pt; font-weight: 700; color: #0f172a;">&#10060; Evidence Rejected &mdash; Chain Reset</div>
+                  <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Awareness untuk HC &middot; 2h</div>
+                </div>
+                <div style="padding: 8px 12px;">
+                  <div style="font-size: 8.5pt; font-weight: 700; color: #0f172a;">&#9203; Sertifikat Akan Expired</div>
+                  <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">3 sertifikat mendekati expired &middot; 3h</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-node">
-          <span class="flow-icon">&#128064;</span>
-          <strong>3. Monitor Assessment</strong>
-          Real-time + force-close kalau perlu
-        </div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-node">
-          <span class="flow-icon">&#128221;</span>
-          <strong>4. Schedule Renewal</strong>
-          Sertifikat mendekati expired
-        </div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-node">
-          <span class="flow-icon">&#128295;</span>
-          <strong>5. Resolve Issues</strong>
-          Bottleneck, override, eskalasi
-        </div>
-      </div>
-      <div class="tip-bar">
-        <strong>&#128161; Tip:</strong> Mulai hari dengan cek <b>Bell Icon</b> dan <b>Bottleneck Report</b>. Dua tempat ini paling cepat surface hal yang perlu HC tangani hari itu.
       </div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>
   </div>
 
-  <!-- ================= SLIDE 38: NOTIFIKASI & WORKFLOW ================= -->
-  <div class="slide default-deco" data-slide="10">
-    <div class="slide-header">
-      <div>
-        <p class="section-eyebrow">BAGIAN 0 &mdash; PENGENALAN</p>
-        <h1 class="slide-title">Notifikasi &amp; <span class="accent">Workflow</span></h1>
-        <p class="slide-subtitle">Bell icon di navbar &mdash; entry point notifikasi terpusat</p>
-      </div>
-      <div class="slide-badge">SLIDE 10 / 40</div>
-    </div>
-    <div class="slide-body">
-      <div class="slide-mockup-split">
-        <div class="mockup-frame">
-          <div class="mockup-bar">
-            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
-            <span class="mockup-url">localhost:5277/KPB-PortalHC/ &mdash; navbar bell dropdown</span>
-          </div>
-          <div class="mockup-recreated">
-            <div class="mr-navbar">
-              <span class="mr-brand">&#127970; HC Portal</span>
-              <span class="mr-nav-item">CMP</span>
-              <span class="mr-nav-item">CDP</span>
-              <span class="mr-nav-item">Panduan</span>
-              <span class="mr-nav-item active">Kelola Data</span>
-              <span class="mr-bell">&#128276;<span class="mr-bell-badge">7</span></span>
-            </div>
-            <div style="background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); padding: 0;">
-              <div style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <strong style="color: #0f172a; font-size: 10pt;">Notifikasi (7)</strong>
-                <span style="font-size: 8pt; color: #2563eb; cursor: pointer;">Mark all as read</span>
-              </div>
-              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; background: #eff6ff;">
-                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#9989; Evidence Approved by Section Head</div>
-                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Deliverable Rino &mdash; siap HC final review &middot; 2j</div>
-              </div>
-              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; background: #eff6ff;">
-                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#128221; Assessment Results Ready</div>
-                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Test Pre-Post UAT 297 &mdash; 1 peserta selesai &middot; 4j</div>
-              </div>
-              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9;">
-                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#128279; Coach Assigned</div>
-                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Rustam Santiko &rarr; Rino (Operator Tahun 1) &middot; 1h</div>
-              </div>
-              <div style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9;">
-                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#10060; Evidence Rejected</div>
-                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">Chain reset &mdash; awareness untuk HC &middot; 2h</div>
-              </div>
-              <div style="padding: 10px 14px;">
-                <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">&#9203; Sertifikat Akan Expired</div>
-                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">3 sertifikat mendekati expired &middot; 3h</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="mockup-content">
-          <h4>&#128276; Bell Icon = Entry Point</h4>
-          <ul>
-            <li><strong>Badge merah</strong> di navbar &mdash; jumlah unread</li>
-            <li>Klik bell &rarr; dropdown notif terbaru</li>
-            <li>Klik item &rarr; navigate ke halaman terkait</li>
-            <li><strong>Mark as Read</strong> per item / <strong>Mark all as read</strong></li>
-            <li><strong>Dismiss</strong> kalau notif tidak relevan</li>
-          </ul>
-          <div class="mockup-tip"><strong>&#128161; Routine:</strong> mulai hari dengan klik bell. Notif paling penting untuk HC = <strong>Evidence Approved by Section Head</strong> (siap HC final review).</div>
-        </div>
-      </div>
-      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Bell icon navbar = entry point notifikasi terpusat. Klik bell &rarr; dropdown notif terbaru &rarr; klik item navigate ke halaman. Mark as Read / Mark all as read / Dismiss per item.</div>
-    </div>
-    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>
-  </div>
 
   <!-- ================= SLIDE 11: CMP OVERVIEW ================= -->
   <div class="slide default-deco" data-slide="11">
