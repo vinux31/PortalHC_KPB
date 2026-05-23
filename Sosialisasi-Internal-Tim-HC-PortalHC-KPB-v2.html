@@ -2349,127 +2349,85 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 2 CMP (8 task lengkap)</p>
   </div>
 
-  <!-- ================= SLIDE 12: RECORDS TEAM ================= -->
+  <!-- ================= SLIDE 9: RECORDS TEAM + ANALYTICS DASHBOARD (MERGED) ================= -->
   <div class="slide default-deco" data-slide="12">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
-        <h1 class="slide-title">Records <span class="accent">Team</span></h1>
-        <p class="slide-subtitle">Riwayat assessment + training tim real-time per pekerja, dengan filter cascade + export Excel</p>
+        <h1 class="slide-title">Records Team + <span class="accent">Analytics Dashboard</span></h1>
+        <p class="slide-subtitle">Riwayat tim real-time + dasbor metric assessment dengan export Excel</p>
       </div>
       <div class="slide-badge">SLIDE 12 / 40</div>
     </div>
     <div class="slide-body">
-      <div class="slide-mockup-split">
-        <div class="mockup-frame">
-          <div class="mockup-bar">
-            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
-            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/Records (Team View)</span>
-          </div>
-          <div class="mockup-recreated">
-            <div class="mr-tab-strip"><span class="mr-tab">Riwayat Saya</span><span class="mr-tab active">Team View &mdash; HC</span></div>
-            <div class="mr-filter-row">
-              <span style="font-size:7.5pt;color:#475569;font-weight:600;">Filter:</span>
-              <span class="mr-filter-chip active">Bagian: HSSE</span>
-              <span class="mr-filter-chip">Unit</span>
-              <span class="mr-filter-chip">Kategori</span>
-              <span class="mr-filter-chip">Status</span>
-              <span class="mr-filter-chip">Tanggal</span>
-              <button class="mr-btn secondary" style="margin-left:auto;">&#128229; Export Assessment</button>
-              <button class="mr-btn secondary">&#128229; Export Training</button>
+      <div style="display:grid; grid-template-rows:1fr 1fr; gap:14px;">
+        <div>
+          <h3 style="margin:0 0 6px; font-size:11pt;">&#128203; Records Team &mdash; riwayat assessment + training per pekerja</h3>
+          <div class="mockup-frame">
+            <div class="mockup-bar">
+              <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+              <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/Records (Team View)</span>
             </div>
-            <table class="mr-table">
-              <thead><tr><th>NIP</th><th>Nama</th><th>Section</th><th style="text-align:center;">Assessment</th><th style="text-align:center;">Training</th><th>Aksi</th></tr></thead>
-              <tbody>
-                <tr><td>754321</td><td>Rino Pratama</td><td>Alkylation</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">12</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-green">8</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
-                <tr><td>754322</td><td>Andi Setiawan</td><td>RFCC NHT</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">9</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-green">6</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
-                <tr><td>754323</td><td>Budi Santoso</td><td>Alkylation</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">15</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-green">11</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
-                <tr><td>754324</td><td>Citra Dewi</td><td>HSSE</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">7</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-orange">3</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
-                <tr><td>754325</td><td>Dewi Anggraini</td><td>RFCC NHT</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">11</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-green">9</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
-              </tbody>
-            </table>
+            <div class="mockup-recreated">
+              <div class="mr-filter-row">
+                <span class="mr-filter-chip active">Bagian: HSSE</span>
+                <span class="mr-filter-chip">Unit</span>
+                <span class="mr-filter-chip">Kategori</span>
+                <span class="mr-filter-chip">Status</span>
+                <button class="mr-btn secondary" style="margin-left:auto;">&#128229; Export Assessment</button>
+                <button class="mr-btn secondary">&#128229; Export Training</button>
+              </div>
+              <table class="mr-table">
+                <thead><tr><th>NIP</th><th>Nama</th><th>Section</th><th style="text-align:center;">Assessment</th><th style="text-align:center;">Training</th><th>Aksi</th></tr></thead>
+                <tbody>
+                  <tr><td>754321</td><td>Rino Pratama</td><td>Alkylation</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">12</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-green">8</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
+                  <tr><td>754323</td><td>Budi Santoso</td><td>Alkylation</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">15</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-green">11</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
+                  <tr><td>754324</td><td>Citra Dewi</td><td>HSSE</td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-blue">7</span></td><td style="text-align:center;"><span class="mr-badge-pill mr-badge-orange">3</span></td><td><a style="color:#0f766e;font-weight:600;">Detail &rarr;</a></td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-        <div class="mockup-content">
-          <h4>&#128269; Yang Bisa Anda Lakukan</h4>
-          <ul>
-            <li>Filter <strong>Bagian / Unit / Kategori / Sub-Kategori / Status / Tanggal</strong></li>
-            <li>Kolom Assessment &amp; Training per pekerja (badge count biru/hijau)</li>
-            <li>Drill <strong>Detail</strong> per pekerja &rarr; unified history</li>
-            <li>Tombol <strong>Export Assessment</strong> &amp; <strong>Export Training</strong> Excel</li>
-          </ul>
-          <div class="mockup-tip"><strong>&#128161; HC scope:</strong> HC (L2) lihat <strong>semua section</strong>. Section Head (L4) locked ke section sendiri.</div>
+        <div>
+          <h3 style="margin:0 0 6px; font-size:11pt;">&#128200; Analytics Dashboard &mdash; 4 metric + 6 tab chart</h3>
+          <div class="mockup-frame">
+            <div class="mockup-bar">
+              <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+              <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/AnalyticsDashboard</span>
+            </div>
+            <div class="mockup-recreated">
+              <div class="mr-metric-row" style="grid-template-columns:repeat(4,1fr);">
+                <div class="mr-metric"><div class="mr-metric-value">247</div><div class="mr-metric-label">Total Sesi</div></div>
+                <div class="mr-metric"><div class="mr-metric-value" style="color:#16a34a;">89%</div><div class="mr-metric-label">Pass Rate</div></div>
+                <div class="mr-metric"><div class="mr-metric-value" style="color:#dc2626;">12</div><div class="mr-metric-label">Sertif Expired</div></div>
+                <div class="mr-metric"><div class="mr-metric-value" style="color:#f59e0b;">+24</div><div class="mr-metric-label">Avg Gain Score</div></div>
+              </div>
+              <div class="mr-tab-strip">
+                <span class="mr-tab active">Fail Rate</span>
+                <span class="mr-tab">Trend</span>
+                <span class="mr-tab">Skor Elemen</span>
+                <span class="mr-tab">Sertif Expired</span>
+                <span class="mr-tab">Item Analysis</span>
+                <span class="mr-tab">Gain Score</span>
+              </div>
+              <div class="mr-chart-placeholder" style="height:60px;">
+                <div class="mr-chart-bar" style="height:40%;"></div>
+                <div class="mr-chart-bar" style="height:70%;background:#dc2626;"></div>
+                <div class="mr-chart-bar" style="height:55%;"></div>
+                <div class="mr-chart-bar" style="height:85%;background:#dc2626;"></div>
+                <div class="mr-chart-bar" style="height:30%;"></div>
+                <div class="mr-chart-bar" style="height:60%;"></div>
+                <div class="mr-chart-bar" style="height:45%;"></div>
+                <div class="mr-chart-bar" style="height:75%;"></div>
+              </div>
+              <div style="font-size:7pt;color:#64748b;text-align:center;margin-top:4px;">Fail Rate per Kategori (klik bar &rarr; drill-down soal)</div>
+            </div>
+          </div>
         </div>
       </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128161; <strong>HC scope:</strong> HC (L2) lihat semua section di Records. Section Head (L4) locked ke section sendiri. Analytics: klik bar fail rate untuk drill-down soal.</div>
     </div>
-    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.4 &mdash; Records Team</p>
-  </div>
-
-  <!-- ================= SLIDE 13: ANALYTICS DASHBOARD ================= -->
-  <div class="slide default-deco" data-slide="13">
-    <div class="slide-header">
-      <div>
-        <p class="section-eyebrow">BAGIAN 1 &mdash; CMP</p>
-        <h1 class="slide-title">Analytics <span class="accent">Dashboard</span></h1>
-        <p class="slide-subtitle">Dasbor monitor kesehatan assessment: 4 metric + 6 tab chart + export Excel</p>
-      </div>
-      <div class="slide-badge">SLIDE 13 / 40</div>
-    </div>
-    <div class="slide-body">
-      <div class="slide-mockup-split">
-        <div class="mockup-frame">
-          <div class="mockup-bar">
-            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
-            <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/AnalyticsDashboard</span>
-          </div>
-          <div class="mockup-recreated">
-            <div class="mr-metric-row" style="grid-template-columns:repeat(4,1fr);">
-              <div class="mr-metric"><div class="mr-metric-value">247</div><div class="mr-metric-label">Total Sesi</div></div>
-              <div class="mr-metric"><div class="mr-metric-value" style="color:#16a34a;">89%</div><div class="mr-metric-label">Pass Rate</div></div>
-              <div class="mr-metric"><div class="mr-metric-value" style="color:#dc2626;">12</div><div class="mr-metric-label">Sertif Expired</div></div>
-              <div class="mr-metric"><div class="mr-metric-value" style="color:#f59e0b;">+24</div><div class="mr-metric-label">Avg Gain Score</div></div>
-            </div>
-            <div class="mr-tab-strip">
-              <span class="mr-tab active">Fail Rate</span>
-              <span class="mr-tab">Trend</span>
-              <span class="mr-tab">Skor Elemen</span>
-              <span class="mr-tab">Sertif Expired</span>
-              <span class="mr-tab">Item Analysis</span>
-              <span class="mr-tab">Gain Score</span>
-            </div>
-            <div class="mr-filter-row">
-              <span class="mr-filter-chip active">Bagian: All</span>
-              <span class="mr-filter-chip">Unit</span>
-              <span class="mr-filter-chip">Kategori</span>
-              <span class="mr-filter-chip">2026-01..05</span>
-              <button class="mr-btn secondary" style="margin-left:auto;">&#128229; Export Excel</button>
-            </div>
-            <div class="mr-chart-placeholder">
-              <div class="mr-chart-bar" style="height:40%;"></div>
-              <div class="mr-chart-bar" style="height:70%;background:#dc2626;"></div>
-              <div class="mr-chart-bar" style="height:55%;"></div>
-              <div class="mr-chart-bar" style="height:85%;background:#dc2626;"></div>
-              <div class="mr-chart-bar" style="height:30%;"></div>
-              <div class="mr-chart-bar" style="height:60%;"></div>
-              <div class="mr-chart-bar" style="height:45%;"></div>
-              <div class="mr-chart-bar" style="height:75%;"></div>
-            </div>
-            <div style="font-size:7pt;color:#64748b;text-align:center;margin-top:4px;">Fail Rate per Kategori (klik bar &rarr; drill-down soal)</div>
-          </div>
-        </div>
-        <div class="mockup-content">
-          <h4>&#128202; 4 Metric + 6 Tab Chart</h4>
-          <ul>
-            <li><strong>Total Sesi</strong> &middot; <strong>Pass Rate</strong> &middot; <strong>Sertifikat Expired</strong> &middot; <strong>Avg Gain Score</strong></li>
-            <li>Tab: <strong>Fail Rate</strong>, <strong>Trend</strong>, <strong>Skor Elemen Teknis</strong>, <strong>Sertifikat Expired</strong>, <strong>Item Analysis</strong>, <strong>Gain Score</strong></li>
-            <li>Filter cascade Bagian &rarr; Unit, Kategori &rarr; Sub-Kategori, rentang tanggal</li>
-            <li>Tombol <strong>Export Excel</strong> per chart</li>
-          </ul>
-          <div class="mockup-tip"><strong>&#128161; Klik bar fail rate</strong> untuk drill-down ke kategori &amp; soal yang banyak gagal.</div>
-        </div>
-      </div>
-    </div>
-    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.5 &mdash; Analytics Dashboard + Export</p>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.4 + &sect;2.5 &mdash; Records Team + Analytics Dashboard</p>
   </div>
 
   <!-- ================= SLIDE 14: SISTEM ASSESSMENT ================= -->
