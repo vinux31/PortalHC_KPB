@@ -156,8 +156,8 @@ Cross-ref dalam isi slide yang menyebut nomor slide lain perlu update setelah re
 ## Implementation Strategy
 
 1. **Copy baseline:** `cp Sosialisasi-Internal-Tim-HC-PortalHC-KPB.html Sosialisasi-Internal-Tim-HC-PortalHC-KPB-v2.html`
-2. **Update JS constant:** `TOTAL = 30` (cari di footer script v1, line ~3907)
-3. **Update badge template:** "SLIDE X/30"
+2. **Update JS constant:** `TOTAL = 30` (di v1: line **3894**, `const TOTAL = 40;`)
+3. **Update badge template:** "SLIDE X / 30" (semua 39 occurrence `slide-badge`)
 4. **Iterative edit per BAGIAN** (per commit, bottom-up biar nomor di atas tidak terganggu saat edit nomor di bawah):
    - Phase 1: Closing (cluster 5) — merge 38+39 → slide v2 #29
    - Phase 2: Admin Panel (cluster 4) — no merge, hanya renumber data-slide 22-28
@@ -165,8 +165,8 @@ Cross-ref dalam isi slide yang menyebut nomor slide lain perlu update setelah re
    - Phase 4: PROTON Assessment (cluster 2) — merge 20+21
    - Phase 5: CMP (cluster 1) — merge 12+13
    - Phase 6: Pengenalan (cluster 0) — drop 3, merge 4+5, merge 9+10
-   - Phase 7: Renumber semua data-slide attribute 1-30 + badge SLIDE X/30
-   - Phase 8: Cross-ref fix (line 2748 dan sejenis)
+   - Phase 7: Renumber semua data-slide attribute 1-30 + badge `SLIDE X / 30` + **bulk-update legacy block comments `<!-- SLIDE N: TITLE -->` agar match data-slide v2** (per inspeksi v1, comment relik tidak konsisten dengan data-slide — contoh line 2184 comment SLIDE 10 vs data-slide=9; line 3872 comment SLIDE 41 vs data-slide=40)
+   - Phase 8: Cross-ref fix — line 2748 (slide v1 #19 → "slide Progresi Kompetensi"); ganti strategy ke title-only reference (drop nomor)
    - Phase 9: Browser smoke-test via Playwright MCP — navigation 1→30, counter check, BAGIAN label monotonic
 
 5. **No CSS file changes** — semua class reuse dari v1. Tambah inline class `.merge-split-v` atau `.merge-split-h` di slide merged kalau perlu split visual.
@@ -180,6 +180,18 @@ Cross-ref dalam isi slide yang menyebut nomor slide lain perlu update setelah re
 - **Tidak ubah konten teknis/data faktual** — semua angka/klaim (14 menu Admin Panel, 5 kategori assessment, 10 role/6 level, dll) sudah diverifikasi di review v1.x, dipertahankan apa adanya
 - **Tidak audit ulang vs source code** — diasumsikan v1 sudah pass review (per memory `project_panduan_sosialisasi_hc_merged`)
 - **Tidak buat PDF companion** (out of scope, terpisah dari HTML)
+- **Tidak sentuh** `Sosialisasi-PROTON-KPB.html` (git status anomaly: deleted dari docs/, ada untracked di root — issue terpisah, tidak related v2)
+- **Tidak bulk-cleanup CSS comment legacy** (lines 815/1215/1244/1289/1367/1401/1431/1463/1515/1575/1616/1670/1729 ref ke nomor slide era 22-slide) — non-rendering, low priority
+
+---
+
+## Known Issues di v1 (Tidak Diperbaiki di v2 Compress)
+
+Issue di file v1 yang ditemukan saat inspeksi tapi **diluar scope v2 compress**:
+
+1. **v1 slide 24 (Dual Track) inconsistency** — line 2985 & 2994 tulis "3 track terpisah", subtitle (line 2972) tulis "2 track independen". Kemungkinan typo "track" → "tahun". Workaround di v2: saat merge 23+24, gunakan wording konsisten "2 track × 3 tahun" agar tidak meneruskan ambiguity.
+2. **CSS comment legacy** — banyak `/* ... (slide N) */` di style block ref ke nomor slide era 22-slide. Tidak affect rendering.
+3. **Block comment `<!-- SLIDE N: TITLE -->` legacy** — 14+ comment relik tidak match data-slide aktual. **Dibersihkan di Phase 7 v2 saat renumber** (in scope karena saat renumber wajib touch comment juga biar konsisten).
 
 ---
 
