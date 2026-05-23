@@ -1799,6 +1799,117 @@
   }
   body.dark .alur-step { background: var(--slide-bg); }
 
+  /* ============================================================
+     Template C — Demo split layout (kiri foto · kanan teks)
+     Adopted from Sosialisasi-PROTON-KPB.html (teal-themed)
+     ============================================================ */
+  .slide-body.demo-split {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    gap: 32px;
+    align-items: start;
+  }
+  .demo-image-frame {
+    border: 2px dashed var(--slate);
+    border-radius: 12px;
+    background: var(--slide-bg-2);
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--slate);
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-align: center;
+    padding: 16px;
+  }
+  .demo-image-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+  .demo-image-caption {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--slate);
+    text-align: center;
+    font-style: italic;
+  }
+  .demo-text-col { padding: 8px 0; }
+  .demo-lead {
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    font-size: 1rem;
+  }
+  .demo-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px 0;
+  }
+  .demo-bullets li {
+    padding: 6px 0 6px 22px;
+    position: relative;
+    font-size: 0.98rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .demo-bullets li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--teal-dark);
+    font-weight: 700;
+  }
+  .demo-takeaway {
+    background: linear-gradient(90deg, #fef3c7, #fde68a);
+    border-left: 4px solid var(--amber);
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #78350f;
+  }
+  body.dark .demo-image-frame { background: var(--slide-bg-2); border-color: var(--border); color: var(--text-muted); }
+  body.dark .demo-takeaway { background: rgba(245, 158, 11, 0.15); color: #fef3c7; border-left-color: var(--amber); }
+
+  /* Coaching 9-step grid */
+  .coaching-step-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .coaching-step-card {
+    background: var(--slide-bg-2);
+    border-radius: 10px;
+    padding: 14px;
+    border-left: 4px solid var(--teal);
+    position: relative;
+  }
+  .coaching-step-card.advanced { border-left-color: var(--amber); }
+  .coaching-step-card .step-num {
+    font-size: 22pt;
+    font-weight: 900;
+    color: var(--teal-dark);
+    line-height: 1;
+  }
+  .coaching-step-card.advanced .step-num { color: var(--amber-dark); }
+  .coaching-step-card .step-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 4px;
+  }
+  .coaching-step-card .step-desc {
+    font-size: 9.5pt;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
 </style>
 </head>
 <body>
@@ -2164,6 +2275,35 @@
     <p style="font-size: 12pt; color: var(--text-muted); margin-top: 28px; text-align: center;">
       Tiga slide berikutnya zoom-in tiap pilar (Assessment sudah dibahas di slide CMP).
     </p>
+  </div>
+</div>
+
+<!-- ================= SLIDE 12: KKJ ================= -->
+<div class="slide default-deco" data-slide="12">
+  <div class="slide-header">
+    <div>
+      <p class="section-eyebrow">PART 3 &middot; APA ITU PROTON</p>
+      <h1 class="slide-title"><span class="accent">KKJ</span> &mdash; Kebutuhan Kompetensi Jabatan</h1>
+      <p class="slide-subtitle">Peta kompetensi target per jabatan &mdash; dasar acuan PROTON</p>
+    </div>
+    <div class="slide-badge">12 / 20</div>
+  </div>
+  <div class="slide-body">
+    <div class="demo-image-frame" style="aspect-ratio:auto; height:36vh;">
+      <img src="sosialisasi-screenshots/proton/12-kkj.png" alt="KKJ Fungsi System Completion &amp; Simops" style="width:100%; height:100%; object-fit:fill;">
+    </div>
+    <div class="demo-image-caption">Contoh: KKJ Unit RFCC NHT Bagian GAST</div>
+    <div style="margin-top:14px; display:grid; grid-template-columns: 1.6fr 1fr; gap:24px; align-items:start;">
+      <div>
+        <p class="demo-lead" style="margin-bottom:8px;">KKJ = daftar kompetensi yang dituntut tiap jabatan</p>
+        <ul class="demo-bullets" style="margin:0;">
+          <li>Sumber dasar acuan PROTON</li>
+          <li>Disusun per fungsi (System Completion, Simops, dll)</li>
+          <li>Mengatur level kompetensi target &middot; jadi dasar penyusunan silabus</li>
+        </ul>
+      </div>
+      <div class="demo-takeaway">Tanpa KKJ, PROTON tidak punya target.</div>
+    </div>
   </div>
 </div>
 
