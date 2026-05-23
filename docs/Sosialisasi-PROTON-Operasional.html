@@ -1915,6 +1915,130 @@
     line-height: 1.4;
   }
 
+  /* ============================================================
+     Browser-frame mockup (slide-mockup-split, mockup-frame)
+     Adopted from Sosialisasi-Internal-Tim-HC for slide CMP/CDP/akses
+     ============================================================ */
+  .slide-mockup-split {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 22px;
+    align-items: stretch;
+    height: 100%;
+  }
+  .mockup-frame {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid var(--slate-dark);
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(13, 148, 136, 0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  body.dark .mockup-frame { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-color: var(--teal); }
+  .mockup-bar {
+    background: #cbd5e1;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  body.dark .mockup-bar { background: #334155; }
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-dot.red { background: #ef4444; }
+  .mockup-dot.yellow { background: #eab308; }
+  .mockup-dot.green { background: #22c55e; }
+  .mockup-url {
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 9pt;
+    color: var(--slate);
+    margin-left: 8px;
+    flex: 1;
+    font-family: 'Cascadia Code', Consolas, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  body.dark .mockup-url { background: #0f172a; color: #94a3b8; }
+  .mockup-img-wrap {
+    flex: 1;
+    overflow: hidden;
+    background: #fff;
+    position: relative;
+  }
+  body.dark .mockup-img-wrap { background: #0f172a; }
+  .mockup-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: top center;
+    display: block;
+    background: #fff;
+  }
+  .mockup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mockup-content h4 {
+    font-size: 14pt;
+    font-weight: 800;
+    color: var(--teal-dark);
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  body.dark .mockup-content h4 { color: var(--teal-light); }
+  .mockup-content ul { padding-left: 18px; margin: 0; }
+  .mockup-content li { font-size: 10.5pt; color: var(--text-muted); line-height: 1.5; margin-bottom: 6px; }
+  .mockup-content li strong { color: var(--text); }
+  .mockup-tip {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.04) 100%);
+    border-left: 3px solid var(--amber);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 10pt;
+    color: var(--text);
+    margin-top: auto;
+  }
+  .mockup-tip strong { color: var(--amber-dark); }
+  body.dark .mockup-tip strong { color: var(--amber); }
+
+  /* Mockup recreated (HTML representation of UI for slide 5/6) */
+  .mockup-recreated { padding: 14px; background: #fff; flex: 1; overflow: hidden; }
+  body.dark .mockup-recreated { background: #1a2e35; color: #f1f5f9; }
+  .mr-section-header {
+    font-size: 9pt;
+    color: var(--teal-dark);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--teal-dark);
+  }
+  body.dark .mr-section-header { color: #5eead4; border-color: #5eead4; }
+  .mr-menu-grid { display: grid; gap: 8px; }
+  .mr-menu-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 9px 11px;
+    font-size: 9pt;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  body.dark .mr-menu-card { background: #0f1f24; border-color: #334155; color: #f1f5f9; }
+  .mr-menu-icon { font-size: 13pt; flex-shrink: 0; }
+  .mr-menu-title { font-weight: 700; color: #0f172a; line-height: 1.2; }
+  body.dark .mr-menu-title { color: #f1f5f9; }
+  .mr-menu-sub { font-size: 7.5pt; color: #64748b; margin-top: 2px; }
+  body.dark .mr-menu-sub { color: #94a3b8; }
+
 </style>
 </head>
 <body>
@@ -1955,18 +2079,34 @@
     <div>
       <p class="section-eyebrow">PART 1 &middot; APA ITU WEB HC</p>
       <h1 class="slide-title">Apa itu <span class="accent">Portal HC KPB</span>?</h1>
+      <p class="slide-subtitle">Satu pintu digital Tim Human Capital &mdash; dari operator lapangan hingga manajemen</p>
     </div>
     <div class="slide-badge">2 / 20</div>
   </div>
   <div class="slide-body">
-    <p style="font-size: 18pt; line-height: 1.5; color: var(--text); max-width: 1100px;">
-      Portal HC KPB adalah <strong>satu pintu digital Tim Human Capital</strong> Kilang Pertamina Balikpapan untuk semua pekerja &mdash; dari operator lapangan hingga manajemen.
-    </p>
-    <ul style="font-size: 14pt; line-height: 1.9; color: var(--text-muted); margin-top: 16px; list-style: none; padding: 0;">
-      <li style="margin-bottom: 8px;">🌐 <strong>Berbasis web</strong> &mdash; diakses dari komputer kantor maupun perangkat pribadi</li>
-      <li style="margin-bottom: 8px;">👥 <strong>Untuk semua pekerja</strong> &mdash; Admin, HC, Manager, Section Head, Supervisor, Coach, Coachee</li>
-      <li style="margin-bottom: 8px;">🔗 <strong>Terhubung</strong> dengan data kepegawaian, kompetensi, dan pengembangan karir</li>
-    </ul>
+    <div class="slide-mockup-split">
+      <div class="mockup-frame">
+        <div class="mockup-bar">
+          <span class="mockup-dot red"></span>
+          <span class="mockup-dot yellow"></span>
+          <span class="mockup-dot green"></span>
+          <span class="mockup-url">http://10.55.3.3/KPB-PortalHC</span>
+        </div>
+        <div class="mockup-img-wrap">
+          <img src="doc support Proton/ss_page login portal.png" alt="Halaman login Portal HC KPB">
+        </div>
+      </div>
+      <div class="mockup-content">
+        <h4>🌐 Portal HC KPB</h4>
+        <ul>
+          <li><strong>Berbasis web</strong> &mdash; diakses dari komputer kantor maupun perangkat pribadi</li>
+          <li><strong>Login satu akun</strong> &mdash; pakai akun email Pertamina</li>
+          <li><strong>Otomatis kenal peran</strong> &mdash; halaman menyesuaikan: Coachee, Coach, Sr Supervisor, Section Head, HC</li>
+          <li><strong>Terhubung</strong> dengan data kepegawaian, kompetensi, dan rencana karir</li>
+        </ul>
+        <div class="mockup-tip"><strong>💡 Akses:</strong> URL Development <code style="font-family:monospace;">http://10.55.3.3/KPB-PortalHC</code> &mdash; URL Production menyusul.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2039,20 +2179,45 @@
     <div>
       <p class="section-eyebrow">PART 2 &middot; FITUR PORTAL</p>
       <h1 class="slide-title"><span class="accent">CMP</span> &mdash; Competency Management Platform</h1>
-      <p class="slide-subtitle">Rumah <strong>Assessment Proton</strong></p>
+      <p class="slide-subtitle">Halaman landing CMP &mdash; rumah <strong>Assessment Proton</strong></p>
     </div>
     <div class="slide-badge">5 / 20</div>
   </div>
   <div class="slide-body">
-    <p style="font-size: 15pt; color: var(--text); max-width: 1100px; line-height: 1.5; margin-top: 8px;">
-      CMP mengelola seluruh <strong>kegiatan asesmen kompetensi</strong> pekerja KPB &mdash; mulai dari soal, paket, jadwal, sampai sertifikat.
-    </p>
-    <ul style="font-size: 13pt; line-height: 2; color: var(--text-muted); margin-top: 18px; list-style: none; padding: 0;">
-      <li>📝 <strong>Ujian online</strong> &mdash; pilihan ganda dan essay untuk PROTON Tahun 1 &amp; Tahun 2</li>
-      <li>🎤 <strong>Interview offline</strong> &mdash; tatap muka panel juri untuk PROTON Tahun 3 (sertifikasi Mahir)</li>
-      <li>📊 <strong>Records &amp; analytics</strong> &mdash; riwayat asesmen + visualisasi kompetensi tim</li>
-      <li>📜 <strong>Sertifikat digital</strong> &mdash; bukti formal kompetensi (lengkap dengan masa berlaku &amp; renewal)</li>
-    </ul>
+    <div class="slide-mockup-split">
+      <div class="mockup-frame">
+        <div class="mockup-bar">
+          <span class="mockup-dot red"></span>
+          <span class="mockup-dot yellow"></span>
+          <span class="mockup-dot green"></span>
+          <span class="mockup-url">localhost:5277/KPB-PortalHC/CMP/Index</span>
+        </div>
+        <div class="mockup-recreated">
+          <div class="mr-section-header">📊 Competency Management Platform</div>
+          <div class="mr-menu-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="mr-menu-card" style="border-color:var(--teal); background:#f0fdfa;">
+              <span class="mr-menu-icon">📝</span>
+              <div><div class="mr-menu-title" style="color:var(--teal-dark);">Assessment Saya ⭐</div><div class="mr-menu-sub">Ujian online &amp; hasil PROTON</div></div>
+            </div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">📄</span><div><div class="mr-menu-title">Dokumen KKJ</div><div class="mr-menu-sub">Peta kompetensi jabatan</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">📚</span><div><div class="mr-menu-title">Riwayat Pelatihan</div><div class="mr-menu-sub">Training records pribadi</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">🏆</span><div><div class="mr-menu-title">Manajemen Sertifikasi</div><div class="mr-menu-sub">Sertifikat &amp; masa berlaku</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">📈</span><div><div class="mr-menu-title">Dasbor Analitik</div><div class="mr-menu-sub">Chart kompetensi tim</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">💰</span><div><div class="mr-menu-title">Budget Training</div><div class="mr-menu-sub">Alokasi &amp; realisasi</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup-content">
+        <h4>📊 CMP &mdash; Rumah Assessment</h4>
+        <ul>
+          <li><strong>Assessment Saya</strong> &mdash; tempat coachee kerjakan ujian PROTON: pilihan ganda (T1/T2) atau interview (T3)</li>
+          <li><strong>Dokumen KKJ</strong> &mdash; library kompetensi target tiap jabatan</li>
+          <li><strong>Riwayat Pelatihan &amp; Sertifikasi</strong> &mdash; rekam jejak pengembangan + status sertifikat</li>
+          <li><strong>Dasbor Analitik</strong> &mdash; visualisasi kompetensi tim untuk atasan</li>
+        </ul>
+        <div class="mockup-tip"><strong>💡 Untuk Coachee:</strong> menu <strong>Assessment Saya</strong> &mdash; tempat kerjakan ujian PROTON yang sudah di-assign.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2062,20 +2227,45 @@
     <div>
       <p class="section-eyebrow">PART 2 &middot; FITUR PORTAL</p>
       <h1 class="slide-title"><span class="accent">CDP</span> &mdash; Competency Development Platform</h1>
-      <p class="slide-subtitle">Rumah <strong>Coaching Proton</strong></p>
+      <p class="slide-subtitle">Halaman landing CDP &mdash; rumah <strong>Coaching Proton</strong></p>
     </div>
     <div class="slide-badge">6 / 20</div>
   </div>
   <div class="slide-body">
-    <p style="font-size: 15pt; color: var(--text); max-width: 1100px; line-height: 1.5; margin-top: 8px;">
-      CDP mengelola seluruh <strong>kegiatan pengembangan kompetensi</strong> &mdash; pendampingan, deliverable, dan rencana karir.
-    </p>
-    <ul style="font-size: 13pt; line-height: 2; color: var(--text-muted); margin-top: 18px; list-style: none; padding: 0;">
-      <li>👥 <strong>Coaching Proton</strong> &mdash; Coach mencatat sesi pendampingan, Coachee upload bukti kerja</li>
-      <li>📂 <strong>Deliverable tracking</strong> &mdash; daftar pekerjaan yang harus diselesaikan per kompetensi</li>
-      <li>📈 <strong>Dashboard progres</strong> &mdash; Section Head &amp; Sr Supervisor pantau seluruh tim</li>
-      <li>🎯 <strong>IDP</strong> &mdash; Individual Development Plan: riwayat &amp; rencana pelatihan pribadi</li>
-    </ul>
+    <div class="slide-mockup-split">
+      <div class="mockup-frame">
+        <div class="mockup-bar">
+          <span class="mockup-dot red"></span>
+          <span class="mockup-dot yellow"></span>
+          <span class="mockup-dot green"></span>
+          <span class="mockup-url">localhost:5277/KPB-PortalHC/CDP/Index</span>
+        </div>
+        <div class="mockup-recreated">
+          <div class="mr-section-header">👥 Competency Development Platform</div>
+          <div class="mr-menu-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="mr-menu-card" style="border-color:var(--amber); background:#fffbeb;">
+              <span class="mr-menu-icon">👥</span>
+              <div><div class="mr-menu-title" style="color:var(--amber-dark);">Coaching Proton ⭐</div><div class="mr-menu-sub">Sesi coaching + deliverable</div></div>
+            </div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">📊</span><div><div class="mr-menu-title">Dashboard PROTON</div><div class="mr-menu-sub">Pantau progres seluruh tim</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">📜</span><div><div class="mr-menu-title">Histori PROTON</div><div class="mr-menu-sub">Riwayat perjalanan kompetensi</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">🎯</span><div><div class="mr-menu-title">IDP</div><div class="mr-menu-sub">Rencana &amp; riwayat pelatihan</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">🤝</span><div><div class="mr-menu-title">Coach Mapping</div><div class="mr-menu-sub">Pasangan Coach &mdash; Coachee</div></div></div>
+            <div class="mr-menu-card"><span class="mr-menu-icon">🏅</span><div><div class="mr-menu-title">Final Assessment</div><div class="mr-menu-sub">Sertifikasi Mahir T3</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup-content">
+        <h4>👥 CDP &mdash; Rumah Coaching</h4>
+        <ul>
+          <li><strong>Coaching Proton</strong> &mdash; tempat Coach catat sesi pendampingan, Coachee upload bukti kerja per deliverable</li>
+          <li><strong>Dashboard PROTON</strong> &mdash; Sr Supervisor &amp; Section Head pantau progres seluruh coachee real-time</li>
+          <li><strong>Histori PROTON</strong> &mdash; seluruh perjalanan kompetensi pekerja terdokumentasi</li>
+          <li><strong>IDP &amp; Coach Mapping</strong> &mdash; rencana karir + pasangan Coach-Coachee</li>
+        </ul>
+        <div class="mockup-tip"><strong>💡 Untuk semua peran:</strong> menu <strong>Coaching Proton</strong> &mdash; pusat aktivitas harian pendampingan.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2164,14 +2354,14 @@
         <div style="font-size: 30pt;">👤</div>
         <h3 style="font-size: 15pt; color: var(--green-dark); margin-top: 6px; font-weight: 800;">Coachee</h3>
         <p style="font-size: 10.5pt; color: var(--text-muted); margin-top: 10px; line-height: 1.5;">
-          Pekerja yang <strong>dikembangkan</strong>. Menerima coaching, menyelesaikan deliverable, upload bukti kerja.
+          Pekerja yang <strong>dikembangkan</strong>. Melakukan coaching dengan Coach, menyelesaikan deliverable.
         </p>
       </div>
       <div style="background: var(--slide-bg-2); border-top: 5px solid var(--teal); padding: 20px; border-radius: 10px;">
         <div style="font-size: 30pt;">🧑‍🏫</div>
         <h3 style="font-size: 15pt; color: var(--teal-dark); margin-top: 6px; font-weight: 800;">Coach</h3>
         <p style="font-size: 10.5pt; color: var(--text-muted); margin-top: 10px; line-height: 1.5;">
-          Pekerja senior yang <strong>mendampingi</strong>. Catat sesi coaching, beri arahan, approve hasil tahap awal.
+          Pekerja senior yang <strong>mendampingi</strong>. Catat sesi coaching, beri arahan, approve dan upload evidence coach ke Website.
         </p>
       </div>
       <div style="background: var(--slide-bg-2); border-top: 5px solid var(--amber); padding: 20px; border-radius: 10px;">
@@ -2445,8 +2635,8 @@
       </div>
       <div class="coaching-step-card">
         <div class="step-num">2</div>
-        <div class="step-title">Coach di-assign</div>
-        <div class="step-desc">Sr Supervisor pasangkan Coachee dengan Coach senior.</div>
+        <div class="step-title">Assign Coach-Coachee</div>
+        <div class="step-desc">Sr Supervisor pasangkan Coachee dengan Coach.</div>
       </div>
       <div class="coaching-step-card">
         <div class="step-num">3</div>
@@ -2455,13 +2645,13 @@
       </div>
       <div class="coaching-step-card">
         <div class="step-num">4</div>
-        <div class="step-title">Coachee submit evidence</div>
-        <div class="step-desc">Upload bukti kerja per deliverable lewat Portal.</div>
+        <div class="step-title">Coach validasi</div>
+        <div class="step-desc">Coach approve, sesi coaching.</div>
       </div>
       <div class="coaching-step-card">
         <div class="step-num">5</div>
-        <div class="step-title">Coach validasi</div>
-        <div class="step-desc">Coach review evidence &amp; beri kesimpulan (Mandiri / Perlu Dikembangkan).</div>
+        <div class="step-title">Coach upload Evidence</div>
+        <div class="step-desc">Coach melakukan upload evidence di Website HC Portal.</div>
       </div>
       <div class="coaching-step-card">
         <div class="step-num">6</div>
@@ -2485,7 +2675,7 @@
       </div>
     </div>
     <p style="font-size: 11.5pt; color: var(--text-muted); margin-top: 16px; text-align: center; font-style: italic;">
-      Coaching = jantung PROTON. Tahun 3 Mahir butuh interview panel tambahan (Section Head + Ahli).
+      Coaching = jantung PROTON. Tahun 3 Mahir butuh interview panel tambahan.
     </p>
   </div>
 </div>
