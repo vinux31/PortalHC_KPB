@@ -1926,6 +1926,25 @@
     align-items: stretch;
     height: 100%;
   }
+  /* Variant when left side is image-only (no mockup-recreated)
+     — shrink frame to match image natural height, no empty space below */
+  .slide-mockup-split.image-only {
+    align-items: start;
+  }
+  .slide-mockup-split.image-only .mockup-frame {
+    align-self: start;
+  }
+  .slide-mockup-split.image-only .mockup-img-wrap {
+    flex: 0 0 auto;
+    aspect-ratio: auto;
+    height: auto;
+  }
+  .slide-mockup-split.image-only .mockup-img-wrap img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+  }
   .mockup-frame {
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     border: 2px solid var(--slate-dark);
@@ -2084,7 +2103,7 @@
     <div class="slide-badge">2 / 20</div>
   </div>
   <div class="slide-body">
-    <div class="slide-mockup-split">
+    <div class="slide-mockup-split image-only">
       <div class="mockup-frame">
         <div class="mockup-bar">
           <span class="mockup-dot red"></span>
