@@ -2907,101 +2907,85 @@
     </div>
   </div>
 
-  <!-- ================= SLIDE 21: CDP — REVIEWER CHAIN ================= -->
+  <!-- ================= SLIDE 18: COACHING CHAIN + DUAL TRACK (MERGED) ================= -->
   <div class="slide default-deco" data-slide="23">
     <div class="slide-header">
       <div>
         <p class="section-eyebrow">BAGIAN 3 &mdash; PROTON LIFECYCLE &amp; COACHING</p>
-        <h1 class="slide-title">Coaching Proton &mdash; <span class="accent">Reviewer Chain</span></h1>
-        <p class="slide-subtitle">HC = Final Reviewer (Reviewer ke-3) di approval chain</p>
+        <h1 class="slide-title">Coaching PROTON &mdash; <span class="accent">Chain + Dual Track</span></h1>
+        <p class="slide-subtitle">HC = Final Reviewer (ke-3) &middot; 2 track independen × 3 tahun (Panelman + Operator)</p>
       </div>
       <div class="slide-badge">SLIDE 23 / 40</div>
     </div>
     <div class="slide-body">
-      <div class="chain-wrap">
-        <div class="chain-step">
-          <strong>Coach Submit</strong>
-          Upload evidence deliverable atas nama Coachee
-        </div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-step">
-          <strong>1. Sr Supervisor</strong>
-          Review pertama
-        </div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-step">
-          <strong>2. Section Head</strong>
-          Review kedua
-        </div>
-        <div class="chain-arrow">&rarr;</div>
-        <div class="chain-step final">
-          <strong>3. HC Final</strong>
-          Approve / Reject
-        </div>
-      </div>
-      <div class="split-2">
-        <div class="split-card red">
-          <h4>&#9888; Reject = Reset Chain</h4>
-          <ul>
-            <li>Reject di tahap mana pun = chain ulang dari awal</li>
-            <li>Coach upload evidence baru atas nama Coachee</li>
-            <li>Sr Supervisor + Section Head review ulang</li>
-            <li>HC final review lagi</li>
-          </ul>
-        </div>
-        <div class="split-card amber">
-          <h4>&#9989; Tidak Boleh Skip Chain</h4>
-          <ul>
-            <li>HC tunggu Sr Spv + Section Head approve</li>
-            <li>Sistem enforce urutan via endpoint</li>
-            <li>Tombol HC Approve baru aktif setelah Section Head approve</li>
-            <li>Batch HC Approve untuk efisiensi</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.8 &mdash; Reviewer Chain</p>
-  </div>
-
-  <!-- ================= SLIDE 22: COACHING PROTON — DUAL TRACK ================= -->
-  <div class="slide default-deco" data-slide="24">
-    <div class="slide-header">
-      <div>
-        <p class="section-eyebrow">BAGIAN 3 &mdash; PROTON LIFECYCLE &amp; COACHING</p>
-        <h1 class="slide-title">Coaching <span class="accent">Proton</span> &mdash; Dual Track</h1>
-        <p class="slide-subtitle">Program pendampingan 3 tahun &middot; 2 track independen (Panelman + Operator)</p>
-      </div>
-      <div class="slide-badge">SLIDE 24 / 40</div>
-    </div>
-    <div class="slide-body">
-      <div class="dt-grid">
-        <div class="dt-col">
-          <div class="dt-head">&#128119; Panelman</div>
-          <div class="dt-pills">
-            <span class="dt-pill">Th 1</span>
-            <span class="dt-pill">Th 2</span>
-            <span class="dt-pill">Th 3</span>
+      <div style="display:grid; grid-template-rows:auto auto; gap:16px;">
+        <div>
+          <h3 style="margin:0 0 10px;">&#128279; Reviewer Chain</h3>
+          <div class="chain-wrap">
+            <div class="chain-step">
+              <strong>Coach Submit</strong>
+              Upload evidence deliverable
+            </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step">
+              <strong>1. Sr Supervisor</strong>
+              Review pertama
+            </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step">
+              <strong>2. Section Head</strong>
+              Review kedua
+            </div>
+            <div class="chain-arrow">&rarr;</div>
+            <div class="chain-step final">
+              <strong>3. HC Final</strong>
+              Approve / Reject
+            </div>
           </div>
-          <p class="dt-note">3 track terpisah &middot; hierarki &amp; deliverable independen</p>
-        </div>
-        <div class="dt-col operator">
-          <div class="dt-head">&#128295; Operator</div>
-          <div class="dt-pills">
-            <span class="dt-pill">Th 1</span>
-            <span class="dt-pill">Th 2</span>
-            <span class="dt-pill">Th 3</span>
+          <div class="split-2" style="margin-top:10px;">
+            <div class="split-card red">
+              <h4>&#9888; Reject = Reset Chain</h4>
+              <ul>
+                <li>Reject di tahap mana pun = chain ulang dari awal</li>
+                <li>Coach upload evidence baru, semua reviewer ulang</li>
+              </ul>
+            </div>
+            <div class="split-card amber">
+              <h4>&#9989; Tidak Boleh Skip</h4>
+              <ul>
+                <li>HC tunggu Sr Spv + Section Head approve</li>
+                <li>Tombol HC Approve aktif setelah chain selesai</li>
+              </ul>
+            </div>
           </div>
-          <p class="dt-note">3 track terpisah &middot; hierarki &amp; deliverable independen</p>
         </div>
-      </div>
-      <div class="tip-bar">&#128161; <strong>Setiap track berdiri sendiri</strong> &mdash; hierarki kompetensi &amp; deliverable independen. Pekerja dipromosikan setiap tahun setelah semua deliverable selesai.</div>
-      <div class="hc-callout">
-        <strong>Penjelasan</strong>
-        <ul>
-          <li>Coaching Proton punya 2 track independen (Panelman dan Operator). Setiap track punya hierarki kompetensi &amp; deliverable sendiri. Pekerja dipromosikan setiap tahun setelah semua deliverable selesai.</li>
-        </ul>
+        <div>
+          <h3 style="margin:0 0 10px;">&#128106; Dual Track (2 track × 3 tahun)</h3>
+          <div class="dt-grid">
+            <div class="dt-col">
+              <div class="dt-head">&#128119; Panelman</div>
+              <div class="dt-pills">
+                <span class="dt-pill">Th 1</span>
+                <span class="dt-pill">Th 2</span>
+                <span class="dt-pill">Th 3</span>
+              </div>
+              <p class="dt-note">3 tahun &middot; hierarki &amp; deliverable independen</p>
+            </div>
+            <div class="dt-col operator">
+              <div class="dt-head">&#128295; Operator</div>
+              <div class="dt-pills">
+                <span class="dt-pill">Th 1</span>
+                <span class="dt-pill">Th 2</span>
+                <span class="dt-pill">Th 3</span>
+              </div>
+              <p class="dt-note">3 tahun &middot; hierarki &amp; deliverable independen</p>
+            </div>
+          </div>
+          <div class="tip-bar" style="margin-top:8px;">&#128161; <strong>Setiap track berdiri sendiri</strong> &mdash; pekerja dipromosikan tiap tahun setelah deliverable selesai.</div>
+        </div>
       </div>
     </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;3.8 &mdash; Reviewer Chain &middot; &sect;3.9 &mdash; Dual Track</p>
   </div>
 
   <!-- ================= SLIDE 25: ALUR COACHING — 9 STEP ================= -->
