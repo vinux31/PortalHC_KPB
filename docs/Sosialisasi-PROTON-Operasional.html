@@ -78,7 +78,8 @@
     transition: opacity 0.4s;
   }
   .slide.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
     opacity: 1;
     animation: slideIn 0.5s ease-out;
   }
@@ -156,9 +157,12 @@
     z-index: 2;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     gap: 14px;
-    min-height: calc(100% - 90px);
+    flex: 1;
+    min-height: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
 
   /* Controls (bottom) */
@@ -1974,7 +1978,7 @@
     </div>
     <div class="slide-badge">3 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 24px;">
       <div style="background: var(--slide-bg-2); border-left: 5px solid var(--teal); padding: 22px; border-radius: 10px;">
         <div style="font-size: 30pt;">🔍</div>
@@ -2004,7 +2008,7 @@
     </div>
     <div class="slide-badge">4 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 28px;">
       <div style="background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%); color: #fff; padding: 28px; border-radius: 14px; text-align: center; box-shadow: 0 8px 24px rgba(13, 148, 136, 0.25);">
         <div style="font-size: 42pt; font-weight: 900; letter-spacing: 2px;">CMP</div>
@@ -2038,7 +2042,7 @@
     </div>
     <div class="slide-badge">5 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <p style="font-size: 15pt; color: var(--text); max-width: 1100px; line-height: 1.5; margin-top: 8px;">
       CMP mengelola seluruh <strong>kegiatan asesmen kompetensi</strong> pekerja KPB &mdash; mulai dari soal, paket, jadwal, sampai sertifikat.
     </p>
@@ -2061,7 +2065,7 @@
     </div>
     <div class="slide-badge">6 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <p style="font-size: 15pt; color: var(--text); max-width: 1100px; line-height: 1.5; margin-top: 8px;">
       CDP mengelola seluruh <strong>kegiatan pengembangan kompetensi</strong> &mdash; pendampingan, deliverable, dan rencana karir.
     </p>
@@ -2084,7 +2088,7 @@
     </div>
     <div class="slide-badge">7 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="background: var(--slide-bg-2); padding: 32px; border-radius: 12px; border: 2px dashed var(--slate); max-width: 1100px; margin-top: 20px;">
       <p style="font-size: 15pt; color: var(--text); line-height: 1.6;">
         BP akan menjadi <strong>jembatan strategis</strong> antara Tim HC dan unit operasional &mdash; profil talent, eligibilitas karir, dan rekomendasi pengembangan.
@@ -2106,7 +2110,7 @@
     </div>
     <div class="slide-badge">8 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <p style="font-size: 15pt; color: var(--text); max-width: 1100px; line-height: 1.5; margin-top: 8px;">
       PROTON adalah <strong>program digital pengembangan kompetensi</strong> pekerja operasional kilang, dirancang dengan <strong>prinsip SMART</strong> dan terdokumentasi di Portal HC KPB.
     </p>
@@ -2153,7 +2157,7 @@
     </div>
     <div class="slide-badge">9 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px;">
       <div style="background: var(--slide-bg-2); border-top: 5px solid var(--green); padding: 20px; border-radius: 10px;">
         <div style="font-size: 30pt;">👤</div>
@@ -2200,7 +2204,7 @@
     </div>
     <div class="slide-badge">10 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <table style="width: 100%; border-collapse: separate; border-spacing: 8px; margin-top: 16px;">
       <thead>
         <tr>
@@ -2241,7 +2245,7 @@
     </div>
     <div class="slide-badge">11 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 24px;">
       <div style="background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%); color: #fff; padding: 22px; border-radius: 12px;">
         <div style="font-size: 30pt;">🏗️</div>
@@ -2382,7 +2386,7 @@
     </div>
     <div class="slide-badge">15 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 24px;">
       <div style="background: var(--teal); color: #fff; padding: 16px 10px; border-radius: 10px; text-align: center;">
         <div style="font-size: 20pt; font-weight: 900;">1</div>
@@ -2431,7 +2435,7 @@
     </div>
     <div class="slide-badge">16 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div class="coaching-step-grid">
       <div class="coaching-step-card">
         <div class="step-num">1</div>
@@ -2494,7 +2498,7 @@
     </div>
     <div class="slide-badge">17 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 20px;">
       <div style="background: var(--slide-bg-2); padding: 22px; border-radius: 12px; border-left: 5px solid var(--green);">
         <h3 style="font-size: 17pt; color: var(--green-dark); font-weight: 800;">👤 Coachee</h3>
@@ -2541,7 +2545,7 @@
     </div>
     <div class="slide-badge">18 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
       <div style="background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%); color: #fff; padding: 28px; border-radius: 14px; box-shadow: 0 8px 24px rgba(13, 148, 136, 0.25);">
         <div style="font-size: 40pt;">🎖️</div>
@@ -2576,7 +2580,7 @@
     </div>
     <div class="slide-badge">19 / 20</div>
   </div>
-  <div class="slide-body" style="justify-content: flex-start;">
+  <div class="slide-body">
     <div style="background: var(--slide-bg-2); padding: 24px; border-radius: 12px; border-left: 5px solid var(--teal); margin-top: 18px;">
       <h3 style="font-size: 16pt; color: var(--teal-dark); font-weight: 800;">🔐 Cara Login</h3>
       <ol style="font-size: 12pt; color: var(--text); margin-top: 12px; line-height: 1.9; padding-left: 22px;">
