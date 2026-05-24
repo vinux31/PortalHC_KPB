@@ -3215,6 +3215,83 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.1, 5.4, 5.5 &mdash; Pekerja + Bank Soal + Import</p>
   </div>
 
+  <!-- ================= SLIDE 26: ONBOARDING PEKERJA BARU E2E ================= -->
+  <div class="slide default-deco" data-slide="26">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Onboarding <span class="accent">Pekerja Baru</span> &mdash; E2E</h1>
+        <p class="slide-subtitle">Import Excel &rarr; Validate &rarr; Assign Role &rarr; First Login</p>
+      </div>
+      <div class="slide-badge">SLIDE 26 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/ImportWorkers</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;">
+              <div style="border:2px solid #0d6efd;border-radius:6px;padding:8px;background:#eff6ff;text-align:center;">
+                <div style="font-size:18pt;">&#128229;</div>
+                <div style="font-size:7pt;font-weight:700;color:#0d6efd;">1. Download Template</div>
+                <div style="font-size:6pt;color:#64748b;">Excel 6 kolom</div>
+              </div>
+              <div style="border:2px solid #f59e0b;border-radius:6px;padding:8px;background:#fffbeb;text-align:center;">
+                <div style="font-size:18pt;">&#128228;</div>
+                <div style="font-size:7pt;font-weight:700;color:#b45309;">2. Upload + Validate</div>
+                <div style="font-size:6pt;color:#64748b;">Cek NIP + email</div>
+              </div>
+              <div style="border:2px solid #7c3aed;border-radius:6px;padding:8px;background:#faf5ff;text-align:center;">
+                <div style="font-size:18pt;">&#128269;</div>
+                <div style="font-size:7pt;font-weight:700;color:#7c3aed;">3. Preview Result</div>
+                <div style="font-size:6pt;color:#64748b;">Success/Error/Dup</div>
+              </div>
+              <div style="border:2px solid #16a34a;border-radius:6px;padding:8px;background:#f0fdf4;text-align:center;">
+                <div style="font-size:18pt;">&#9989;</div>
+                <div style="font-size:7pt;font-weight:700;color:#16a34a;">4. Assign Role</div>
+                <div style="font-size:6pt;color:#64748b;">Bulk via Worker</div>
+              </div>
+            </div>
+            <div style="border:1px solid #cbd5e1;border-radius:4px;padding:6px;background:#f8fafc;font-size:7pt;">
+              <strong style="color:#0f172a;">Template Excel kolom:</strong> NIP &middot; Nama &middot; Email &middot; Bagian &middot; Unit &middot; Role
+            </div>
+            <div style="margin-top:6px;">
+              <table class="mr-table" style="font-size:7pt;">
+                <thead><tr><th>Baris</th><th>Status</th><th>Detail</th></tr></thead>
+                <tbody>
+                  <tr><td>1-15</td><td><span class="mr-badge-pill mr-badge-green">Created</span></td><td>15 pekerja baru</td></tr>
+                  <tr><td>16</td><td><span class="mr-badge-pill mr-badge-orange">Duplicate</span></td><td>NIP 754201 sudah ada</td></tr>
+                  <tr><td>17</td><td><span class="mr-badge-pill" style="background:#dc2626;color:#fff;">Error</span></td><td>Email invalid</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128640; Onboarding Lifecycle</h4>
+          <ul>
+            <li><strong>Step 1</strong> Download template <code>.xlsx</code> dari ImportWorkers UI</li>
+            <li><strong>Step 2</strong> Isi data + upload &mdash; server validate NIP unik, email valid, role exist</li>
+            <li><strong>Step 3</strong> Review preview &mdash; fix error di Excel + re-upload, atau partial import</li>
+            <li><strong>Step 4</strong> Bulk assign role via Worker Mgmt filter "Belum ada role"</li>
+          </ul>
+          <h4 style="margin-top:8px;">&#128274; First Login Flow</h4>
+          <ul>
+            <li>Pekerja terima email link reset password (ASP.NET Identity token)</li>
+            <li>Klik link &rarr; set password baru &rarr; masuk Portal</li>
+            <li>Token expire 24 jam &mdash; expired? request ulang via "Lupa Password?" di login</li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Email salah:</strong> Import success tapi email tidak nyampe &mdash; verify kolom email sebelum upload.</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> E2E onboarding pekerja baru &mdash; dari import Excel sampai first login. 4 step, ~5 menit per batch 20 pekerja.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; &sect;5.2 Worker Import + First Login</p>
+  </div>
+
   <!-- ================= SLIDE 28: COACH-COACHEE MAPPING ================= -->
   <div class="slide default-deco" data-slide="28">
     <div class="slide-header">
