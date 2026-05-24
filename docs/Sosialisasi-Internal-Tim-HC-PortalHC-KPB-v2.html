@@ -3407,6 +3407,63 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.9 &amp; &sect;3.6 &mdash; Mapping + Workload</p>
   </div>
 
+  <!-- ================= SLIDE 29: COACH WORKLOAD ================= -->
+  <div class="slide default-deco" data-slide="29">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Coach <span class="accent">Workload</span> &mdash; Distribusi &amp; Penyeimbangan</h1>
+        <p class="slide-subtitle">Tabel beban coach + chart + warna threshold + rekomendasi redistribusi</p>
+      </div>
+      <div class="slide-badge">SLIDE 29 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/CoachWorkload</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+              <span style="font-size:7pt;color:#475569;">Section:</span>
+              <span class="mr-filter-chip" style="font-size:7pt;">Alkylation &#9662;</span>
+              <button class="mr-btn">Apply</button>
+            </div>
+            <div style="background:linear-gradient(to top, #14b8a6 50%, #fef3c7 70%, #dc2626 90%);border-radius:4px;padding:6px;font-size:6.5pt;color:#fff;text-align:center;margin-bottom:6px;height:32px;display:flex;align-items:center;justify-content:center;">
+              &#128202; Bar Chart: Coach &times; Jumlah Coachee (canvas)
+            </div>
+            <table class="mr-table">
+              <thead><tr><th>Nama Coach</th><th>Section</th><th>Jumlah</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Andi P.</td><td>Alkylation</td><td><strong>8</strong></td><td><span class="mr-badge-pill" style="background:#dc2626;color:#fff;">&#128308; Overload</span></td></tr>
+                <tr><td>Budi S.</td><td>Alkylation</td><td>5</td><td><span class="mr-badge-pill mr-badge-green">&#128994; Normal</span></td></tr>
+                <tr><td>Citra R.</td><td>RFCC</td><td>2</td><td><span class="mr-badge-pill mr-badge-orange">&#128993; Under</span></td></tr>
+                <tr><td>Dimas H.</td><td>NHT</td><td>6</td><td><span class="mr-badge-pill mr-badge-green">&#128994; Normal</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#9878; Workload Balance Threshold</h4>
+          <ul>
+            <li><span class="mr-badge-pill" style="background:#dc2626;color:#fff;">&#128308; Overload &gt;7</span> &mdash; pertimbangkan redistribusi ke coach Under</li>
+            <li><span class="mr-badge-pill mr-badge-green">&#128994; Normal 3-7</span> &mdash; sweet spot, biarkan</li>
+            <li><span class="mr-badge-pill mr-badge-orange">&#128993; Under &lt;3</span> &mdash; bisa terima coachee tambahan</li>
+          </ul>
+          <h4 style="margin-top:8px;">&#128279; Cross-link</h4>
+          <ul>
+            <li>Weekly task (Sl40 Quick Ref) &mdash; cek setiap Senin</li>
+            <li>Redistribusi via Coach Mapping (Sl28) edit assignment</li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Empty state:</strong> "Belum ada mapping aktif" &rarr; arahin ke Coach Mapping dulu untuk bikin mapping.</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Real-time view distribusi coach-coachee. Identifikasi over/under capacity. Trigger redistribusi via Coach Mapping.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; &sect;5.4 Coach Workload Balance</p>
+  </div>
+
   <!-- ================= SLIDE 30: SILABUS + GUIDANCE FILES ================= -->
   <div class="slide default-deco" data-slide="30">
     <div class="slide-header">
