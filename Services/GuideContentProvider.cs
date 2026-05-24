@@ -10,51 +10,82 @@ public static class GuideContentProvider
         new GuideItem(
             Id: "cmp-library-kkj",
             Module: GuideModule.Cmp,
-            Title: "Cara Melihat Library KKJ (Kebutuhan Kompetensi Jabatan)",
+            Title: "Cara Akses Library KKJ (Kebutuhan Kompetensi Jabatan)",
             Roles: new[] { RoleGroup.All },
             Steps: new[]
             {
-                new GuideStep(1, "Akses CMP", "Klik menu <b>CMP</b> di navbar atas."),
-                new GuideStep(2, "Buka Tab Library", "Klik tab <b>Library KKJ</b>. Anda akan melihat daftar kompetensi khusus untuk posisi Anda.")
+                new GuideStep(1, "Akses Dokumen KKJ",
+                    "Buka menu <b>CMP</b> di navbar → klik card <b>Dokumen KKJ & Alignment KKJ/IDP</b>. Halaman muncul dgn 2 tab: <b>KKJ</b> (default) + <b>Alignment KKJ/IDP</b>."),
+                new GuideStep(2, "Pahami Filter Role-Based",
+                    "Sistem otomatis filter daftar bagian sesuai role Anda: <b>L1-L4</b> (Admin/HC/Manager/Atasan) lihat semua bagian; <b>L5-L6</b> (Coach/Coachee) lihat bagian sendiri saja (sesuai field <code>Section</code> di profil Anda)."),
+                new GuideStep(3, "Browse Per Bagian",
+                    "Daftar bagian terurut berdasarkan <code>DisplayOrder</code>. Klik baris bagian → expand → muncul daftar file KKJ yang tersedia untuk bagian tersebut."),
+                new GuideStep(4, "Download File KKJ",
+                    "Klik tombol <b>Download</b> di samping file → file ter-download (endpoint <code>/CMP/KkjFileDownload/:id</code>). Nama file menyimpan informasi versi."),
+                new GuideStep(5, "Cari Versi Lama (Archived)",
+                    "File yang sudah di-archive oleh AdminHC tidak tampil di list. Kalau perlu versi historis tertentu, koordinasi langsung dengan AdminHC.")
             },
-            Keywords: new[] { "kkj", "library", "kebutuhan kompetensi jabatan" }
+            Keywords: new[] { "kkj", "library", "kebutuhan kompetensi jabatan", "download", "dokumen", "bagian", "section" }
         ),
         new GuideItem(
             Id: "cmp-mapping-kkj-cpdp",
             Module: GuideModule.Cmp,
-            Title: "Cara Melihat Mapping KKJ — CPDP",
+            Title: "Cara Akses Alignment KKJ ↔ IDP (Mapping Pengembangan)",
             Roles: new[] { RoleGroup.All },
             Steps: new[]
             {
-                new GuideStep(1, "Akses CMP", "Klik menu <b>CMP</b> di navbar atas."),
-                new GuideStep(2, "Buka Tab Mapping", "Klik tab <b>CPDP Mapping</b> untuk melihat pemetaan pengembangan kompetensi Anda.")
+                new GuideStep(1, "Akses Tab Alignment",
+                    "Dari halaman <b>Dokumen KKJ & Alignment KKJ/IDP</b>, klik tab <b>Alignment KKJ/IDP</b> (di samping tab KKJ). URL bisa langsung: <code>/CMP/DokumenKkj?tab=alignment</code>."),
+                new GuideStep(2, "Tujuan Alignment",
+                    "Dokumen ini menyelaraskan <b>KKJ</b> (Kebutuhan Kompetensi Jabatan) dengan <b>IDP</b> (Individual Development Plan). Tujuannya: rencana pelatihan setiap pekerja sesuai kompetensi yang dibutuhkan jabatannya."),
+                new GuideStep(3, "Browse Per Bagian",
+                    "Pattern sama dgn tab KKJ — daftar bagian terurut. Klik bagian → expand → tampil daftar file CPDP (Competency Personal Development Plan) per bagian."),
+                new GuideStep(4, "Download File CPDP",
+                    "Klik tombol <b>Download</b> per file → endpoint <code>/CMP/CpdpFileDownload/:id</code>."),
+                new GuideStep(5, "Refresh Frekuensi",
+                    "Koordinasi AdminHC bila ada update KKJ — dokumen CPDP harus mengikuti supaya mapping tetap akurat. Versi lama akan di-archive otomatis.")
             },
-            Keywords: new[] { "mapping", "cpdp", "kkj" }
+            Keywords: new[] { "alignment", "mapping", "cpdp", "kkj", "idp", "individual development plan", "pengembangan" }
         ),
         new GuideItem(
             Id: "cmp-training-records",
             Module: GuideModule.Cmp,
-            Title: "Cara Melihat Riwayat Training (Capability Building Records)",
+            Title: "Cara Akses Training Records (Capability Building Records)",
             Roles: new[] { RoleGroup.All },
             Steps: new[]
             {
-                new GuideStep(1, "Buka Tab Training Records", "Di menu CMP, klik tab <b>Training Records</b> (Riwayat Pelatihan)."),
-                new GuideStep(2, "Review Riwayat", "Semua pelatihan baik internal maupun eksternal yang di-input oleh HC akan tampil di tabel riwayat beserta jam pelatihannya.")
+                new GuideStep(1, "Akses Records",
+                    "Buka menu <b>CMP</b> → klik card <b>Riwayat Pelatihan</b> → masuk halaman <b>Capability Building Records</b>."),
+                new GuideStep(2, "Tab My Records (Default)",
+                    "Tab pertama yang aktif. Menampilkan semua record peserta yang sedang login. Badge angka di tab = total record (Assessment Online + Training Manual)."),
+                new GuideStep(3, "Pahami 2 Tipe Record",
+                    "<b>Assessment Online</b>: record otomatis dari ujian sistem yang Anda kerjakan. <b>Training Manual</b>: record yang di-input oleh HC dari pelatihan eksternal/sertifikasi vendor (tidak melalui ujian online)."),
+                new GuideStep(4, "Filter & Search",
+                    "Tersedia filter: <b>Section</b>, <b>Unit</b>, <b>Kategori</b>, <b>Status</b>. Kolom search untuk cari berdasarkan judul atau nama penyelenggara."),
+                new GuideStep(5, "Export Personal",
+                    "Klik tombol <b>Export Excel</b> di sudut kanan → file Excel 2 sheet (Assessment + Training) ter-download untuk dokumentasi personal Anda.")
             },
-            Keywords: new[] { "training", "riwayat", "records", "capability building" }
+            Keywords: new[] { "training records", "riwayat pelatihan", "capability building", "assessment online", "training manual", "export excel" }
         ),
         new GuideItem(
             Id: "cmp-monitoring-records-tim",
             Module: GuideModule.Cmp,
-            Title: "Cara Monitoring Records Tim",
-            Roles: new[] { RoleGroup.Atasan, RoleGroup.AdminHC },
+            Title: "Cara Monitoring Records Tim (Team View)",
+            Roles: new[] { RoleGroup.Atasan, RoleGroup.Manager, RoleGroup.AdminHC },
             Steps: new[]
             {
-                new GuideStep(1, "Tab Records Team", "Di menu CMP, klik tab <b>Records Team</b>."),
-                new GuideStep(2, "List Anggota Tim", "Anda akan melihat semua anggota tim di bawah supervisi Anda beserta persentase kepatuhan (compliance) dan jam pelatihannya."),
-                new GuideStep(3, "Detail Pekerja", "Klik nama pekerja untuk melihat lebih detail riwayat assessment dan training-nya.")
+                new GuideStep(1, "Akses Team View",
+                    "Buka halaman <b>Records</b> (CMP → Riwayat Pelatihan). Klik tab <b>Team View</b> di samping tab My Records. Tab ini hanya muncul untuk role level ≤4 (Atasan, Manager, AdminHC)."),
+                new GuideStep(2, "Cakupan Tim",
+                    "Tab menampilkan bawahan langsung Anda. Kalau Anda <b>Manager+</b>, sistem juga menampilkan bawahan tidak langsung mengikuti struktur organisasi (rekursif via <code>OrganizationUnit.ParentId</code>)."),
+                new GuideStep(3, "Cascade Filter + Date Range",
+                    "Filter cascade: pilih <b>Bagian</b> → <b>Unit</b> terkait muncul; pilih <b>Kategori</b> → <b>Sub-Kategori</b> muncul. Plus filter <b>Status</b> dan rentang tanggal <b>Date From</b> / <b>Date To</b>. Partial reload tabel via <code>RecordsTeamPartial</code> tanpa full page refresh."),
+                new GuideStep(4, "Detail Worker",
+                    "Klik tombol <b>Detail</b> di samping nama pekerja → halaman <code>/CMP/RecordsWorkerDetail?workerId=...</code>. Tampil riwayat lengkap (assessment + training) per individu."),
+                new GuideStep(5, "Export Excel Team",
+                    "Dua tombol export terpisah: <b>Export Assessment Team</b> (Excel khusus assessment) dan <b>Export Training Team</b> (Excel khusus training manual). Filter yang aktif di view ikut diteruskan ke export.")
             },
-            Keywords: new[] { "monitoring", "records team", "compliance" }
+            Keywords: new[] { "monitoring", "team view", "records tim", "atasan", "manager", "cascade filter", "export team", "bawahan" }
         ),
         new GuideItem(
             Id: "cmp-pre-post-test",
@@ -63,26 +94,64 @@ public static class GuideContentProvider
             Roles: new[] { RoleGroup.All },
             Steps: new[]
             {
-                new GuideStep(1, "Buka Tab Assessment", "Di menu CMP, buka <b>Assessment</b>. Pre-Test akan tampil sebelum jadwal pelatihan dimulai."),
-                new GuideStep(2, "Kerjakan Pre-Test", "Klik <b>Mulai Pre-Test</b>. Kerjakan soal seperti assessment biasa — tidak ada batas pengulangan, jawab sesuai pemahaman awal Anda."),
-                new GuideStep(3, "Ikuti Pelatihan", "Setelah Pre-Test selesai, ikuti program pelatihan sesuai jadwal yang ditentukan."),
-                new GuideStep(4, "Kerjakan Post-Test", "Setelah pelatihan selesai, buka kembali tab Assessment dan klik <b>Mulai Post-Test</b>. Sistem akan otomatis menghitung <b>Gain Score</b> (selisih Pre vs Post).")
+                new GuideStep(1, "Akses Assessment",
+                    "Buka <b>CMP</b> → klik card <b>Assessment Saya</b>. Tampil daftar semua ujian yang ditujukan untuk Anda."),
+                new GuideStep(2, "Pahami Pairing Pre-Post",
+                    "Sistem otomatis memasangkan <b>Pre-Test</b> + <b>Post-Test</b> berdampingan dalam 1 card visual. Badge <b>Pre-Test</b> (warna info) dan badge <b>Post-Test</b> (warna primary) untuk identifikasi cepat."),
+                new GuideStep(3, "Kerjakan Pre-Test",
+                    "Klik tombol <b>Mulai Pre-Test</b> (kalau belum pernah mulai) atau <b>Lanjutkan Pre-Test</b> (kalau ada saved progress dari sesi sebelumnya). Wizard ujian akan terbuka dengan timer + soal."),
+                new GuideStep(4, "Ikuti Pelatihan",
+                    "Setelah Pre-Test selesai, ikuti program pelatihan sesuai jadwal HC. Post-Test belum aktif sampai pelatihan dianggap selesai oleh sistem."),
+                new GuideStep(5, "Kerjakan Post-Test",
+                    "Setelah pelatihan, tombol <b>Mulai Post-Test</b> muncul di card yang sama. Klik → ujian Post-Test. Sistem otomatis menghitung <b>Gain Score</b> = nilai Post − nilai Pre untuk lihat seberapa besar peningkatan Anda."),
+                new GuideStep(6, "Lihat Hasil",
+                    "Setelah Post-Test selesai, klik tombol <b>Lihat Hasil</b> → halaman <code>/CMP/Results/:id</code>. Tampil breakdown nilai per soal + analisa per elemen teknis (skor per kompetensi).")
             },
-            Keywords: new[] { "pre", "post", "pretest", "posttest", "gain score", "test" }
+            Keywords: new[] { "pre-test", "post-test", "pretest", "posttest", "gain score", "pairing", "ujian pasangan", "improvement" }
         ),
         new GuideItem(
             Id: "cmp-monitoring-manager",
             Module: GuideModule.Cmp,
-            Title: "Monitoring Compliance Unit/Section",
-            Roles: new[] { RoleGroup.Manager, RoleGroup.AdminHC },
+            Title: "Monitoring Compliance via Analytics Dashboard",
+            Roles: new[] { RoleGroup.AdminHC },
             Steps: new[]
             {
-                new GuideStep(1, "Buka Analytics Dashboard", "Di menu CMP, klik <b>Analytics Dashboard</b>."),
-                new GuideStep(2, "Filter per Unit/Section", "Gunakan filter Unit, Section, atau Kategori Assessment untuk fokus ke scope yang Anda monitor."),
-                new GuideStep(3, "Review Compliance Chart", "Lihat persentase kepatuhan assessment, distribusi nilai, dan daftar pekerja yang belum complete assessment wajib."),
-                new GuideStep(4, "Export Laporan", "Klik <b>Export Excel</b> untuk download laporan compliance untuk meeting unit/section.")
+                new GuideStep(1, "Akses & Pahami Summary",
+                    "Buka <b>CMP</b> → klik card <b>Dasbor Analitik</b> (hanya visible untuk Admin/HC). Halaman menampilkan 4 KPI cards atas: <b>Total Sessions</b>, <b>Pass Rate</b>, <b>Expiring</b> (sertifikat akan expire), <b>Avg Gain Score</b>."),
+                new GuideStep(2, "Tab Fail Rate",
+                    "Tab pertama. Visualisasi persentase peserta yang <b>fail</b> per kategori/bagian. Klik bar/segment chart → drill-down ke daftar pekerja yang gagal di kategori tersebut."),
+                new GuideStep(3, "Tab Trend",
+                    "Chart line menunjukkan tren <b>pass rate</b> over time. Filter periode: bulan / quarter / tahun. Berguna untuk lihat dampak training program pada periode tertentu."),
+                new GuideStep(4, "Tab Skor Elemen Teknis (ET)",
+                    "Breakdown skor rata-rata per <b>elemen kompetensi teknis</b>. Identify area kompetensi yang lemah cross-unit — input untuk perencanaan training kolektif."),
+                new GuideStep(5, "Tab Sertifikat Expired",
+                    "Daftar pekerja yang sertifikatnya akan expire dalam rentang tertentu. Sort by tanggal expiry — data untuk plan perpanjangan sertifikat (renewal chain di Bagian Assessment Admin)."),
+                new GuideStep(6, "Tab Item Analysis + Gain Score Report",
+                    "Tab analisa lanjutan untuk Pre-Post pair. Pilih <b>Assessment Group</b> → <b>Item Analysis</b> (per-soal: persentase peserta jawab benar/salah, identify soal terlalu sulit/mudah) + <b>Gain Score Report</b> (per-peserta: improvement Pre→Post). Masing-masing punya tombol <b>Export Excel</b>.")
             },
-            Keywords: new[] { "monitoring", "compliance", "unit", "section", "dashboard", "manager" }
+            Keywords: new[] { "analytics dashboard", "monitoring", "compliance", "fail rate", "trend", "elemen teknis", "sertifikat expired", "item analysis", "gain score report" }
+        ),
+        new GuideItem(
+            Id: "cmp-budget-training",
+            Module: GuideModule.Cmp,
+            Title: "Cara Kelola Budget Training & Assessment",
+            Roles: new[] { RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Akses Budget Training",
+                    "Buka <b>CMP</b> → klik card <b>Budget Training</b> (hanya visible untuk Admin/HC). Halaman dgn 2 tab: <b>Data Budget</b> (default) + <b>Ringkasan</b>."),
+                new GuideStep(2, "Tab Data Budget",
+                    "Tampil tabel semua budget item dgn filter: <b>Tahun</b>, <b>Type</b>, <b>Kategori</b>, dan <b>Search</b> by judul. Kolom sortable + pagination."),
+                new GuideStep(3, "Tambah Budget Item",
+                    "Klik tombol <b>Tambah</b> → form wizard 3 card: <b>Card 1</b> (Tahun Anggaran + Judul), <b>Card 2</b> (Kategori + SubKategori cascade + Jumlah Peserta), <b>Card 3</b> (Anggaran/<code>EstimasiBiayaTotal</code> + Realisasi Biaya + Vendor)."),
+                new GuideStep(4, "Quick Update Realisasi",
+                    "Inline edit nilai realisasi langsung di tabel tanpa buka form penuh. Endpoint <code>BudgetTrainingQuickUpdate</code> — perubahan tersimpan otomatis saat blur input."),
+                new GuideStep(5, "Import Excel",
+                    "Klik tombol <b>Import</b> → halaman import. <b>Download Template</b> Excel dulu → isi data → upload via <b>Choose File</b>. Sistem validate per baris dan tampilkan hasil <b>Success / Skip / Error</b> per row dengan pesan detail."),
+                new GuideStep(6, "Export Excel & Tab Ringkasan",
+                    "Tombol <b>Export Excel</b> di header → download filtered data ke Excel. Tab <b>Ringkasan</b> menampilkan grafik total anggaran vs realisasi per kategori/tahun untuk monitoring progress.")
+            },
+            Keywords: new[] { "budget training", "anggaran", "realisasi", "import excel", "export", "vendor", "kategori biaya", "estimasi biaya" }
         ),
         new GuideItem(
             Id: "cmp-tipe-assessment",
