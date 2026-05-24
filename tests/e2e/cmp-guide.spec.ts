@@ -26,27 +26,34 @@ test.describe('CMP Guide Page - PDF Card & Accordion Role-Gating', () => {
     await expect(pdfCards.first()).not.toContainText('Panduan Buat Assessment');
   });
 
-  test('5.3 - Admin sees 12 accordion items on CMP page', async ({ page }) => {
+  test('5.3 - Admin sees 13 accordion items on CMP page (post Budget Training)', async ({ page }) => {
     await login(page, 'admin');
     await page.goto('/Home/GuideDetail?module=cmp');
     await page.waitForLoadState('networkidle');
 
     const accordionItems = page.locator('#guideAccordion .accordion-item');
-    await expect(accordionItems).toHaveCount(12);
+    await expect(accordionItems).toHaveCount(13);
   });
 
-  test('5.4 - Coachee sees 7 accordion items on CMP page (1 new + 6 existing)', async ({ page }) => {
+  test('5.4 - Coachee sees 5 accordion items on CMP page (5 role-All)', async ({ page }) => {
     await login(page, 'coachee');
     await page.goto('/Home/GuideDetail?module=cmp');
     await page.waitForLoadState('networkidle');
 
     const accordionItems = page.locator('#guideAccordion .accordion-item');
-    await expect(accordionItems).toHaveCount(7);
+    await expect(accordionItems).toHaveCount(5);
 
+    // 5 role-All accordion MUST be visible
+    await expect(page.locator('text=Library KKJ')).toBeVisible();
+    await expect(page.locator('text=Alignment KKJ')).toBeVisible();
+    await expect(page.locator('text=Training Records')).toBeVisible();
+    await expect(page.locator('text=Pre-Post Test')).toBeVisible();
     await expect(page.locator('text=Tipe-tipe Assessment')).toBeVisible();
 
+    // AdminHC-only accordion MUST NOT be visible
     await expect(page.locator('text=Fitur Khusus Admin')).not.toBeVisible();
     await expect(page.locator('text=Cara Manage Kategori Assessment')).not.toBeVisible();
+    await expect(page.locator('text=Budget Training')).not.toBeVisible();
   });
 
   test('5.5 - Data module no longer has PDF card (admin)', async ({ page }) => {
@@ -98,6 +105,27 @@ test.describe('CMP Guide Page - PDF Card & Accordion Role-Gating', () => {
     await expect(body).toContainText('Pre-Test');
     await expect(body).toContainText('Post-Test');
     await expect(body).toContainText('Regular Assessment');
+  });
+
+  test('5.9 - Admin sees Budget Training accordion + 13 total', async ({ page }) => {
+    await login(page, 'admin');
+    await page.goto('/Home/GuideDetail?module=cmp');
+    await page.waitForLoadState('networkidle');
+
+    const accordionItems = page.locator('#guideAccordion .accordion-item');
+    await expect(accordionItems).toHaveCount(13);
+
+    // Acc-7 Budget Training visible to admin
+    const budgetAcc = page.locator('.accordion-item', { hasText: 'Budget Training' });
+    await expect(budgetAcc).toBeVisible();
+
+    // Expand and verify content
+    await budgetAcc.locator('button.accordion-button').click();
+    await page.waitForTimeout(500);
+    const body = budgetAcc.locator('.accordion-collapse.show');
+    await expect(body).toContainText('Data Budget');
+    await expect(body).toContainText('Import Excel');
+    await expect(body).toContainText('Ringkasan');
   });
 
 });
