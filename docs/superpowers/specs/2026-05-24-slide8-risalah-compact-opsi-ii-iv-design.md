@@ -57,17 +57,17 @@ Kedua opsi pakai layout **2-panel side-by-side** (kiri Sebelum, kanan Sesudah/So
 }
 ```
 
-### Compact font scale (lebih kecil dari v1.0)
+### Compact font scale — vw units (proportional ke viewport)
 ```css
 :root {
-  --fs-xs: 9px;
-  --fs-sm: 11px;
-  --fs-base: 13px;
-  --fs-md: 15px;
-  --fs-lg: 18px;
+  --fs-xs: 1vw;       /* ≈ 30 CSS px @ 3035 viewport = 7.3 pt printed */
+  --fs-sm: 1.25vw;    /* ≈ 38 CSS px = 9 pt printed */
+  --fs-base: 1.5vw;   /* ≈ 45 CSS px = 11 pt printed */
+  --fs-md: 1.75vw;    /* ≈ 53 CSS px = 12.5 pt printed */
+  --fs-lg: 2vw;       /* ≈ 60 CSS px = 14.6 pt printed */
 }
 ```
-Floor 9px utk readable @ 25,72 cm wide saat printed @ 300 DPI.
+**Math:** PNG scale to PPT box → 1 vw = 1% × 25.72 cm = 2.572 mm di PPT. 1vw = ~7.3 pt printed (readable). Floor 1vw memastikan minimum 7 pt readability.
 
 ### Layout shell
 ```css
@@ -108,7 +108,7 @@ body { width: 100vw; height: 100vh; margin: 0; padding: 0; background: white;
 .layer:last-child { border-bottom: none; }
 .layer-actor { width: 32%; font-weight: 600; }
 .layer-tools { flex: 1; display: flex; gap: 0.2vw; flex-wrap: wrap; align-items: center; }
-.chip { font-size: 9px; padding: 1px 5px; border-radius: 3px; white-space: nowrap; font-weight: 500; }
+.chip { font-size: 0.95vw; padding: 0.1vw 0.4vw; border-radius: 3px; white-space: nowrap; font-weight: 500; }
 .chip.manual { background: var(--pertamina-red-light); color: var(--pertamina-red); border: 1px solid var(--pertamina-red); }
 .chip.ext { background: #fff3cd; color: #856404; border: 1px solid #d4a017; }
 .chip.paper { background: #e8e8e8; color: #555; border: 1px solid #999; }
@@ -119,9 +119,9 @@ body { width: 100vw; height: 100vh; margin: 0; padding: 0; background: white;
 ```css
 .marker {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 18px; height: 18px; border-radius: 50%;
-  color: white; font-weight: 700; font-size: 10px;
-  margin-left: 2px;
+  width: 2vw; height: 2vw; border-radius: 50%;
+  color: white; font-weight: 700; font-size: 1.1vw;
+  margin-left: 0.15vw;
 }
 .marker.issue { background: var(--pertamina-red); }
 .marker.improvement { background: var(--pertamina-green); }
@@ -322,7 +322,7 @@ Body fills 100vw × 100vh — PNG output otomatis 3035 × 957 = 300 DPI equivale
 5. Visual QA
 6. PNG export both (300 DPI)
 7. Update slide8-risalah/README.md (mention compact/ subfolder)
-8. Commit + tag (extend `slide8-risalah-v1.1` atau pakai tag yang sama force-update)
+8. Commit + new tag `slide8-risalah-v1.1` (preserve v1.0 stable)
 
 ## 12. Acceptance Criteria
 
@@ -331,8 +331,10 @@ Body fills 100vw × 100vh — PNG output otomatis 3035 × 957 = 300 DPI equivale
 - [ ] Sebelum panel: 5 layer Lv5→Lv1 + markers A-F + RPN note + legend inset
 - [ ] Opsi II Sesudah: Pipeline 3-stage horizontal + actor-per-stage + features + markers 1-7
 - [ ] Opsi IV Sesudah: 5 layer + Buffer Zone hero + markers 1-7
-- [ ] Font readable saat printed @ 25,72 × 8,11 cm (floor 9px @ 300 DPI = ~ 7pt printed)
-- [ ] PNG file size 200KB-1MB each
+- [ ] Font readable saat printed @ 25,72 × 8,11 cm (floor `--fs-xs: 1vw` = 30 CSS px @ 3035 vp = ~7.3 pt printed)
+- [ ] Marker diameter visible (`2vw` = 60 CSS px = ~5 mm di PPT)
+- [ ] Chip font readable (`0.95vw` = ~28 CSS px = ~6.8 pt printed)
+- [ ] PNG file size 200KB-1.5MB each
 - [ ] No element overflow (overflow: hidden body)
 - [ ] All 9 approved decisions applied
 
