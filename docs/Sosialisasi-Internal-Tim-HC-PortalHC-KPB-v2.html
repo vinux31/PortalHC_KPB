@@ -3292,6 +3292,66 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; &sect;5.2 Worker Import + First Login</p>
   </div>
 
+  <!-- ================= SLIDE 27: KKJ FILES + CPDP SYNC ================= -->
+  <div class="slide default-deco" data-slide="27">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">KKJ Files + <span class="accent">CPDP Sync</span></h1>
+        <p class="slide-subtitle">Master kompetensi (KKJ) + sync data eksternal (CPDP)</p>
+      </div>
+      <div class="slide-badge">SLIDE 27 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">Admin/KkjUpload + Admin/CpdpUpload (2 modul)</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="border:1px solid #cbd5e1;border-radius:6px;padding:8px;background:#fff;margin-bottom:6px;">
+              <div style="font-size:8pt;font-weight:700;color:#0f766e;margin-bottom:4px;">&#128203; KKJ Files &mdash; /Admin/KkjUpload</div>
+              <div style="display:flex;gap:3px;margin-bottom:4px;">
+                <span class="mr-tab active" style="font-size:6.5pt;">Upload</span>
+                <span class="mr-tab" style="font-size:6.5pt;">Matrix</span>
+                <span class="mr-tab" style="font-size:6.5pt;">History</span>
+              </div>
+              <div style="font-size:6.5pt;color:#475569;">Pilih Bagian &#9662; &middot; Upload .xlsx</div>
+              <table class="mr-table" style="font-size:6pt;margin-top:4px;"><thead><tr><th>Jabatan</th><th>LOTO</th><th>Hot Work</th><th>ESD</th></tr></thead><tbody>
+                <tr><td>Operator T1</td><td>&#9989;</td><td>&#9989;</td><td>&#9745;</td></tr>
+                <tr><td>Panelman</td><td>&#9989;</td><td>&#9745;</td><td>&#9989;</td></tr>
+              </tbody></table>
+            </div>
+            <div style="border:1px solid #cbd5e1;border-radius:6px;padding:8px;background:#fff;">
+              <div style="font-size:8pt;font-weight:700;color:#7c3aed;margin-bottom:4px;">&#128229; CPDP Sync &mdash; /Admin/CpdpUpload</div>
+              <div style="background:#faf5ff;border:1px dashed #7c3aed;border-radius:4px;padding:8px;font-size:7pt;color:#7c3aed;text-align:center;">&#128228; Drop file CPDP .xlsx di sini atau klik browse</div>
+              <table class="mr-table" style="font-size:6pt;margin-top:4px;"><thead><tr><th>Tanggal</th><th>File</th><th>Status</th></tr></thead><tbody>
+                <tr><td>2026-05-20</td><td>cpdp-may.xlsx</td><td><span class="mr-badge-pill mr-badge-green">Success</span></td></tr>
+                <tr><td>2026-05-13</td><td>cpdp-may-w2.xlsx</td><td><span class="mr-badge-pill mr-badge-green">Success</span></td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128202; KKJ vs CPDP &mdash; Difference</h4>
+          <table class="mr-table" style="font-size:7pt;">
+            <thead><tr><th>Aspek</th><th>KKJ Files</th><th>CPDP Sync</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Isi</strong></td><td>Matrix kompetensi per jabatan</td><td>Data pekerja eksternal (HR korporat)</td></tr>
+              <tr><td><strong>Source</strong></td><td>Manual Excel HC</td><td>Sistem HR korporat</td></tr>
+              <tr><td><strong>Frekuensi</strong></td><td>Per perubahan jabatan</td><td>Weekly/monthly</td></tr>
+              <tr><td><strong>Impact</strong></td><td>KKJ assessment requirement</td><td>Sync data pekerja terbaru</td></tr>
+            </tbody>
+          </table>
+          <div class="mockup-tip" style="margin-top:6px;"><strong>&#128161; CPDP frequency:</strong> cek History sebelum sync ulang &mdash; hindari duplicate. KKJ Matrix update saat ada jabatan baru.</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> 2 master data input untuk drive assessment. KKJ = kompetensi per jabatan. CPDP = sync pekerja eksternal.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; &sect;5.3 KKJ + CPDP Sync</p>
+  </div>
+
   <!-- ================= SLIDE 28: COACH-COACHEE MAPPING ================= -->
   <div class="slide default-deco" data-slide="28">
     <div class="slide-header">
