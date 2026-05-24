@@ -159,6 +159,7 @@
     justify-content: center;
     gap: 14px;
     min-height: calc(100% - 90px);
+    padding-bottom: 48px;
   }
 
   /* Controls (bottom) */
@@ -662,10 +663,13 @@
   /* Cross-ref panduan footer per slide */
   .panduan-ref {
     position: absolute;
-    bottom: 14px; left: 50px;
+    bottom: 8px; left: 50px; right: 50px;
     font-size: 8pt; color: var(--slate);
     font-style: italic;
-    z-index: 2;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 2px 6px;
+    border-radius: 3px;
   }
   .panduan-ref strong { color: var(--teal-dark); font-style: normal; }
   body.dark .panduan-ref strong { color: var(--teal-light); }
@@ -2007,7 +2011,7 @@
       <div class="hc-callout">
         <strong>Penjelasan</strong>
         <ul>
-          <li>10 role dikelompokkan dalam 6 level otorisasi. HC berada di Level 2 dengan akses lintas section sebagai final reviewer. <strong>Matriks role &times; menu visibility</strong> &rarr; Sl5.</li>
+          <li>10 role dikelompokkan dalam 6 level otorisasi. HC berada di Level 2 dengan akses lintas section sebagai final reviewer (matriks lengkap di Sl5).</li>
         </ul>
       </div>
     </div>
@@ -2448,9 +2452,8 @@
           </div>
         </div>
       </div>
-      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128161; <strong>HC scope:</strong> HC (L2) lihat semua section di Records. Section Head (L4) locked ke section sendiri. Analytics: klik bar fail rate untuk drill-down soal.</div>
     </div>
-    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.4 + &sect;2.5 &mdash; Records Team + Analytics Dashboard</p>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;2.4 + &sect;2.5 &mdash; HC (L2) lihat semua section, Section Head locked section sendiri</p>
   </div>
 
   <!-- ================= SLIDE 13: SISTEM ASSESSMENT ================= -->
@@ -3177,7 +3180,7 @@
           <div class="mockup-tip"><strong>&#128161; Renewal badge:</strong> sertifikat perlu di-renew. Deep-dive &rarr; slide Renewal Lifecycle (B3). <strong>CPDP</strong> = sync data eksternal, lihat Panduan &sect;5.3.</div>
         </div>
       </div>
-      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Halaman landing Admin Panel dengan 14 menu yang HC kelola, dikelompokkan dalam 4 section ABCD: Data Management, Proton, Assessment &amp; Training, dan System. Entry point untuk semua operasi admin.</div>
+      <div class="tip-bar" style="margin-top:10px;margin-bottom:32px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Halaman landing Admin Panel dengan 14 menu yang HC kelola, dikelompokkan dalam 4 section ABCD: Data Management, Proton, Assessment &amp; Training, dan System. Entry point untuk semua operasi admin.</div>
     </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 5 Admin Panel (16 task lengkap)</p>
   </div>
