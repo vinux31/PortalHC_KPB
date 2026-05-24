@@ -3985,6 +3985,70 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Monitor / Reset / Force-Close (selaras Sl30 overview)</p>
   </div>
 
+  <!-- ================= SLIDE 38: CERTIFICATE RENEWAL UI ================= -->
+  <div class="slide default-deco" data-slide="38">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Certificate <span class="accent">Renewal</span> UI</h1>
+        <p class="slide-subtitle">Filter sertifikat near-expired + bulk schedule renewal &middot; auto-create assessment</p>
+      </div>
+      <div class="slide-badge">SLIDE 38 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/RenewalCertificate</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:6px;">
+              <span class="mr-filter-chip" style="font-size:6.5pt;">Bagian &#9662;</span>
+              <span class="mr-filter-chip" style="font-size:6.5pt;">Unit &#9662;</span>
+              <span class="mr-filter-chip" style="font-size:6.5pt;">Kategori &#9662;</span>
+              <span class="mr-filter-chip" style="font-size:6.5pt;">Sub-Kategori &#9662;</span>
+              <span class="mr-filter-chip" style="font-size:6.5pt;">Tipe &#9662;</span>
+              <span class="mr-filter-chip" style="font-size:6.5pt;">Status &#9662;</span>
+            </div>
+            <table class="mr-table">
+              <thead><tr><th>&#9745;</th><th>Pekerja</th><th>Sertifikat</th><th>Expired</th><th>Sisa</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr style="background:#fef2f2;"><td>&#9745;</td><td>Widodo A.</td><td>LOTO</td><td>2026-06-15</td><td><strong style="color:#dc2626;">H-22 &#128308;</strong></td><td>Aktif</td></tr>
+                <tr style="background:#fef3c7;"><td>&#9745;</td><td>Andi P.</td><td>Hot Work</td><td>2026-07-08</td><td><strong style="color:#f59e0b;">H-45 &#128993;</strong></td><td>Aktif</td></tr>
+                <tr><td>&#9744;</td><td>Citra R.</td><td>Pump Op</td><td>2026-08-20</td><td><strong style="color:#16a34a;">H-88 &#128994;</strong></td><td>Aktif</td></tr>
+                <tr><td>&#9744;</td><td>Budi S.</td><td>ESD</td><td>2026-09-12</td><td><strong style="color:#94a3b8;">H-111 &#9898;</strong></td><td>Aktif</td></tr>
+              </tbody>
+            </table>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+              <span style="font-size:7pt;color:#64748b;">2 selected</span>
+              <button class="mr-btn" style="background:#0f766e;color:#fff;">&#128467; Bulk Schedule Renewal</button>
+            </div>
+            <div style="font-size:6pt;color:#64748b;margin-top:3px;">Legend: &#128308; &lt;30 hari &middot; &#128993; 30-60 &middot; &#128994; 60-90 &middot; &#9898; &gt;90</div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#9203; Renewal Workflow</h4>
+          <ul>
+            <li>Filter near-expired (6 dropdown chain: Bagian &rarr; Tipe)</li>
+            <li>Bulk select pekerja yang due</li>
+            <li>Klik <strong>Bulk Schedule Renewal</strong> &rarr; auto-create assessment (pre-fill kategori + peserta dari renewal source)</li>
+          </ul>
+          <h4 style="margin-top:8px;">&#128279; Cross-link</h4>
+          <ul>
+            <li>Sl22 Renewal Lifecycle (konsep) &rarr; UI tutorial di sini</li>
+            <li>Sl34-35 Create Asm wizard auto-pre-fill kalau dari renewal</li>
+            <li>Monthly task Sl40 Quick Ref &mdash; cek H-60 awal bulan</li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Tidak campur tipe:</strong> Bulk renew Assessment + Training campuran ditolak. Filter Tipe dulu untuk pisahkan.</div>
+          <div class="mockup-tip"><strong>&#128161; Auto-notify:</strong> Pekerja dapat email otomatis H-30/14/7 sebelum expired (cron daily).</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Workflow renewal sertifikat near-expired. Bulk schedule untuk efisiensi. Linked Renewal Lifecycle Sl22 (konsep).</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; &sect;5.6 Certificate Renewal</p>
+  </div>
+
   <!-- ================= SLIDE 39: MAINTENANCE + AUDIT LOG ================= -->
   <div class="slide default-deco" data-slide="39">
     <div class="slide-header">
