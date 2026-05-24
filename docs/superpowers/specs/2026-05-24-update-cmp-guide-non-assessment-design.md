@@ -1,6 +1,6 @@
 # Update CMP Guide — Non-Assessment Accordion Rewrite
 
-**Status:** APPROVED — 5 Q locked + 3 section design lokal 2026-05-24. Siap invoke `writing-plans`.
+**Status:** APPROVED — 5 Q locked + 3 section design + 5 miss fix lokal 2026-05-24. Siap invoke `writing-plans`.
 
 **Trigger:** Update materi accordion bagian CMP yang sudah ada (6 accordion non-assessment), tambah 1 accordion baru untuk fitur Budget Training. Tujuan: konsistensi step depth dgn 6 accordion baru yang baru di-ship (Acc-5..10), surface fitur Budget Training yang belum tercover, fix 2 role bug existing.
 
@@ -85,7 +85,7 @@
 |---|-----------|------|
 | 1 | Akses Team View | Records page → tab "Team View" (visible role level ≤4: Atasan, Manager+, AdminHC) |
 | 2 | Cakupan Tim | Bawahan langsung; Manager+ juga lihat bawahan tidak langsung sesuai struktur organisasi |
-| 3 | Cascade Filter | Pilih bagian → unit terkait muncul; pilih kategori → sub-kategori muncul; partial reload via `RecordsTeamPartial` |
+| 3 | Cascade Filter + Date Range | Pilih bagian → unit terkait muncul; pilih kategori → sub-kategori muncul; plus filter **status** + **dateFrom / dateTo** (rentang tanggal). Partial reload via `RecordsTeamPartial` |
 | 4 | Detail Worker | Klik nama pekerja → `/CMP/RecordsWorkerDetail?workerId=...`, lihat riwayat lengkap individu |
 | 5 | Export Excel Team | 2 tombol terpisah: **ExportRecordsTeamAssessment** (Excel assessment) + **ExportRecordsTeamTraining** (Excel training manual); filter mengikuti view aktif |
 
@@ -94,7 +94,7 @@
 | # | Step Title | Body |
 |---|-----------|------|
 | 1 | Akses Assessment | CMP → "Assessment Saya" → daftar semua ujian Anda |
-| 2 | Pahami Pairing | Sistem otomatis pasangkan **Pre-Test + Post-Test** dalam 1 card visual (warna info kuning untuk Pre, hijau untuk Post) |
+| 2 | Pahami Pairing | Sistem otomatis pasangkan **Pre-Test + Post-Test** berdampingan dalam 1 card visual. Badge **Pre-Test** (info) dan **Post-Test** (primary) untuk identifikasi |
 | 3 | Kerjakan Pre-Test | Tombol **Mulai Pre-Test** (atau **Lanjutkan Pre-Test** kalau sudah ada saved progress); klik → wizard ujian |
 | 4 | Ikuti Pelatihan | Setelah Pre-Test selesai, ikuti program pelatihan sesuai jadwal HC |
 | 5 | Kerjakan Post-Test | Tombol **Mulai Post-Test** muncul setelah pelatihan; sistem auto-hitung **Gain Score** (selisih Pre vs Post) |
@@ -117,23 +117,28 @@
 |---|-----------|------|
 | 1 | Akses Budget Training | CMP → "Budget Training" (visible Admin/HC only) → halaman dgn 2 tab: Data Budget + Ringkasan |
 | 2 | Tab Data Budget | Tab default; filter **Tahun** + **Type** + **Kategori** + **Search**; sort per kolom; pagination |
-| 3 | Tambah Budget Item | Tombol **Tambah** → form Create (judul, kategori, tahun anggaran, anggaran Rp, realisasi opsional) |
+| 3 | Tambah Budget Item | Tombol **Tambah** → form Create wizard 3 card: (1) Tahun Anggaran + Judul, (2) Kategori + SubKategori (cascade) + Jumlah Peserta, (3) Anggaran (Estimasi Biaya Total) + Realisasi Biaya + Vendor |
 | 4 | Quick Update Realisasi | Inline edit realisasi per baris tanpa buka form penuh (endpoint `BudgetTrainingQuickUpdate`) |
 | 5 | Import Excel | Tombol **Import** → Download Template Excel → isi → upload → sistem validate per baris + tampilkan hasil import (Success/Skip/Error per row) |
 | 6 | Export Excel + Ringkasan | Tombol **Export Excel** untuk download filtered data; tab **Ringkasan** untuk grafik total anggaran vs realisasi per kategori/tahun |
 
 ---
 
-## Role Visibility Matrix (after update)
+## Role Visibility Matrix (after update — verified per GuideRoleAccess.GroupsFor)
 
-| Pertamina Role | Lvl | Acc visible (12 existing rewrite + Acc-7 NEW) |
-|----------------|-----|----------------------------------------------|
-| Admin / HC | 1, 2 | **14** (semua, termasuk Acc-7) |
-| Direktur / VP | 3 | 6 (Acc-1,2,3,5 + 1 Acc-5-shipped + Acc-6-removed → ACC-6 hilang setelah bug fix; tetap 6) |
-| Manager | 3 | **6** (Acc-1,2,3,4-fix,5 + Acc-5-shipped; Acc-6 hilang post-fix, Acc-4 baru visible post-fix) |
-| SectionHead / SrSupervisor (Atasan) | 4 | 8 (Acc-1,2,3,4,5 + Acc-5-shipped) |
-| Coach / Supervisor | 5 | 7 (Acc-1,2,3,5 + Acc-5-shipped) |
-| Coachee | 6 | 7 (sama dgn Coach) |
+Total 13 accordion CMP setelah update (12 existing post-assessment + Acc-7 NEW).
+
+5 accordion role `All` (visible semua): Acc-1 Library KKJ, Acc-2 Alignment, Acc-3 Training Records, Acc-5 Pre-Post, cmp-tipe-assessment (shipped).
+
+| Pertamina Role | Lvl | Sees groups | Acc count |
+|----------------|-----|-------------|-----------|
+| Admin / HC | 1, 2 | All groups | **13** (semua, termasuk Acc-7) |
+| Direktur / VP / Manager | 3 | Manager + All | **6** (5 All + Acc-4-fix dgn Manager) |
+| SectionHead / SrSupervisor (Atasan) | 4 | Atasan + All | **6** (5 All + Acc-4 existing) |
+| Coach / Supervisor | 5 | Coach + All | **5** (5 All only) |
+| Coachee | 6 | Coachee + All | **5** (5 All only) |
+
+**Catatan:** Acc-6 Compliance (AdminHC only post-fix) + Acc-7 Budget Training (AdminHC) hanya visible Admin/HC. Acc-4 Records Tim visible Manager+Atasan+AdminHC.
 
 ---
 
@@ -156,21 +161,30 @@ Expected: `0 Error, 23 Warning` (baseline).
 | Acc-6 role contains `RoleGroup.Manager` | 0 hit (was 1, bug fix) |
 | 6 existing IDs preserved | All 6 hit |
 
-### Layer 3 — Playwright Extend
+### Layer 3 — Playwright Extend + Pre-existing Fix
 
-Tambah test 5.9 ke `tests/e2e/cmp-guide.spec.ts`:
+**Fix pre-existing bug di test 5.3 + 5.4 (`tests/e2e/cmp-guide.spec.ts`):**
+
+| Test | Assertion lama | Assertion benar |
+|------|----------------|-----------------|
+| 5.3 Admin accordion count | `toHaveCount(12)` | `toHaveCount(13)` (post Acc-7) |
+| 5.4 Coachee accordion count | `toHaveCount(7)` ❌ | `toHaveCount(5)` ✅ |
+
+Test 5.4 belum pernah pass (LDAP block coachee login di env saya), tapi assertion 7 salah bahkan tanpa LDAP issue. Coachee aktual lihat 5 accordion role All (Library + Mapping + Training Records + Pre-Post + Tipe Assessment).
+
+**Tambah test 5.9 baru:**
 
 ```typescript
-test('5.9 - Admin sees 13 CMP accordion + Acc-7 Budget Training', async ({ page }) => {
+test('5.9 - Admin sees 13 CMP accordion + Acc-7 Budget Training visible', async ({ page }) => {
   await login(page, 'admin');
   await page.goto('/Home/GuideDetail?module=cmp');
   await page.waitForLoadState('networkidle');
   await expect(page.locator('#guideAccordion .accordion-item')).toHaveCount(13);
-  await expect(page.locator('text=Budget Training')).toBeVisible();
+  await expect(page.locator('text=Budget Training & Assessment')).toBeVisible();
 });
 ```
 
-Total 9 test e2e.
+Total 9 test e2e (8 fix + 1 NEW).
 
 ### Layer 4 — Manual Browser UAT
 
@@ -182,12 +196,15 @@ Bapak verifikasi di browser dgn LDAP working:
 
 ### Commit Plan
 
-**1 atomic commit:**
+**Commit 1 — Rewrite + Role fix:**
 - Rewrite 6 existing CMP non-assessment accordion (Title/Steps/Keywords)
 - Add 1 NEW accordion `cmp-budget-training`
 - Fix 2 role bug (Acc-4 +Manager, Acc-6 -Manager)
 
-**Optional 2nd commit:** Add Playwright test 5.9 (extend existing spec file).
+**Commit 2 — Playwright fixes:**
+- Fix pre-existing test 5.3 assertion: 12 → 13 (post Acc-7)
+- Fix pre-existing test 5.4 assertion: 7 → 5 (was always wrong, never validated due to LDAP block)
+- Add test 5.9 NEW (Acc-7 Budget Training visible + 13 accordion total)
 
 ---
 
