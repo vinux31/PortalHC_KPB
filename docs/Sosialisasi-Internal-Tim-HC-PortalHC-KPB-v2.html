@@ -2242,6 +2242,39 @@
   </div>
 
 
+  <!-- ================= SLIDE 9: TIPE NOTIFIKASI ================= -->
+  <div class="slide default-deco" data-slide="9">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 0 &mdash; PENGENALAN</p>
+        <h1 class="slide-title">Tipe <span class="accent">Notifikasi</span> &mdash; 10 Tipe Lengkap</h1>
+        <p class="slide-subtitle">Detail trigger + penerima per kategori &middot; 4 kategori (Evidence / Renewal / Assessment / System)</p>
+      </div>
+      <div class="slide-badge">SLIDE 9 / 43</div>
+    </div>
+    <div class="slide-body">
+      <table class="mr-table" style="font-size:8pt;margin:0 16px;">
+        <thead><tr><th>Kategori</th><th>Tipe Notif</th><th>Trigger</th><th>Penerima</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3" style="background:#eff6ff;font-weight:700;color:#1d4ed8;">&#128277; Evidence</td><td>&#9989; Approved by Section Head</td><td>Atasan approve</td><td>HC (final reviewer)</td></tr>
+          <tr><td>&#10060; Rejected &mdash; Chain Reset</td><td>Atasan reject</td><td>HC + Coach + Coachee</td></tr>
+          <tr><td>&#128228; Submitted by Coach</td><td>Coach submit deliverable</td><td>Atasan (next reviewer)</td></tr>
+          <tr><td rowspan="3" style="background:#fef3c7;font-weight:700;color:#b45309;">&#9203; Renewal</td><td>&#128172; H-90 Warning</td><td>Auto cron daily</td><td>HC + Pekerja</td></tr>
+          <tr><td>&#9888; H-30 Critical</td><td>Auto cron daily</td><td>HC + Pekerja + Atasan</td></tr>
+          <tr><td>&#128680; H-7 Last Call</td><td>Auto cron daily</td><td>HC + Atasan eskalasi</td></tr>
+          <tr><td rowspan="2" style="background:#f0fdfa;font-weight:700;color:#0f766e;">&#127919; Assessment</td><td>&#128221; Created &amp; Published</td><td>HC publish</td><td>Peserta + Coach</td></tr>
+          <tr><td>&#10060; Force-Close by HC</td><td>HC akhiri ujian (Sl38)</td><td>Peserta</td></tr>
+          <tr><td rowspan="2" style="background:#fef2f2;font-weight:700;color:#dc2626;">&#9881; System</td><td>&#128737; Override KKJ Logged</td><td>HC override manual (Sl33)</td><td>Admin (audit)</td></tr>
+          <tr><td>&#128295; Maintenance Mode On</td><td>Admin enable</td><td>All users</td></tr>
+        </tbody>
+      </table>
+      <div class="tip-bar" style="margin:10px 16px 0;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">
+        &#128161; <strong>Frekuensi:</strong> Evidence + Assessment = event-driven (instant). Renewal + System = auto cron daily 06:00. <strong>Bell icon</strong> di navbar = entry point semua tipe (Sl8).
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi (10 tipe lengkap)</p>
+  </div>
+
   <!-- ================= SLIDE 10: CMP OVERVIEW ================= -->
   <div class="slide default-deco" data-slide="10">
     <div class="slide-header">
@@ -4185,6 +4218,65 @@
         <strong>&#128161; Self-service first:</strong> 80% pekerjaan HC harian = approve evidence + monitor compliance + schedule renewal. Untuk hal lain, cek Panduan Operasional dulu sebelum tanya senior. <strong>&#128274; Password reset:</strong> user pakai "Lupa Password?" di login &mdash; HC tidak punya tool reset langsung.
       </div>
     </div>
+  </div>
+
+  <!-- ================= SLIDE 42: REFERENCE TABLES (KEYBOARD + URL + GUIDE) ================= -->
+  <div class="slide default-deco" data-slide="42">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 5 &mdash; CLOSING</p>
+        <h1 class="slide-title">Reference <span class="accent">Tables</span> &mdash; Cheatsheet HC</h1>
+        <p class="slide-subtitle">Keyboard shortcut deck + URL cheatsheet HC + akses Help System</p>
+      </div>
+      <div class="slide-badge">SLIDE 42 / 43</div>
+    </div>
+    <div class="slide-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0 16px;">
+        <div>
+          <h4 style="margin:0 0 6px;font-size:10pt;color:#0f766e;">&#9000; Keyboard Shortcut Deck</h4>
+          <table class="mr-table" style="font-size:8pt;">
+            <thead><tr><th>Tombol</th><th>Fungsi</th></tr></thead>
+            <tbody>
+              <tr><td><code>&larr;</code> / <code>&rarr;</code></td><td>Slide prev/next</td></tr>
+              <tr><td><code>Space</code> / <code>PageDown</code></td><td>Slide next</td></tr>
+              <tr><td><code>PageUp</code></td><td>Slide prev</td></tr>
+              <tr><td><code>Home</code></td><td>Slide 1 (Cover)</td></tr>
+              <tr><td><code>End</code></td><td>Slide 43 (Terima Kasih)</td></tr>
+              <tr><td><code>Esc</code></td><td>Exit fullscreen</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4 style="margin:0 0 6px;font-size:10pt;color:#0f766e;">&#127760; URL Cheatsheet HC</h4>
+          <table class="mr-table" style="font-size:8pt;">
+            <thead><tr><th>Route</th><th>Fungsi</th></tr></thead>
+            <tbody>
+              <tr><td><code>/Admin</code></td><td>Admin Panel landing</td></tr>
+              <tr><td><code>/Admin/AssessmentMonitoring</code></td><td>Real-time monitor</td></tr>
+              <tr><td><code>/Admin/RenewalCertificate</code></td><td>Renewal queue</td></tr>
+              <tr><td><code>/Admin/CoachWorkload</code></td><td>Workload balance</td></tr>
+              <tr><td><code>/Home/Guide</code></td><td>Help system</td></tr>
+              <tr><td><code>/Admin/AuditLog</code></td><td>Investigation</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div style="margin:14px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="border:1px solid #14b8a6;border-radius:6px;padding:10px;background:#f0fdfa;">
+          <h4 style="margin:0 0 4px;font-size:9.5pt;color:#0f766e;">&#128218; CMP Guide (Help System)</h4>
+          <p style="margin:0;font-size:8pt;color:#475569;">Help system in-app per RoleGroup (Sl6). Akses: Navbar top-right Profile dropdown &rarr; "Panduan".</p>
+          <a href="/KPB-PortalHC/Home/Guide" target="_blank" style="font-size:8pt;color:#0f766e;font-weight:600;">Buka &rarr; /KPB-PortalHC/Home/Guide</a>
+        </div>
+        <div style="border:1px solid #f59e0b;border-radius:6px;padding:10px;background:#fffbeb;">
+          <h4 style="margin:0 0 4px;font-size:9.5pt;color:#b45309;">&#128274; Password Reset</h4>
+          <p style="margin:0;font-size:8pt;color:#475569;">HC <strong>tidak punya tool reset langsung</strong>. Arahin user pakai "Lupa Password?" di halaman login &mdash; ASP.NET Identity kirim email token reset.</p>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin:10px 16px 0;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">
+        &#128221; <strong>Self-service first:</strong> Guide (Sl6) cover 80% pertanyaan user. URL Cheatsheet bookmark di browser untuk akses cepat.
+      </div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Sl40 Tugas HC Cepat + Sl6 CMP Guide</p>
   </div>
 
   <!-- ================= SLIDE 43: TERIMA KASIH ================= -->
