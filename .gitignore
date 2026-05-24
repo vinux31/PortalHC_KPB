@@ -506,6 +506,7 @@ test.txt
 !wwwroot/**/*.png
 !sosialisasi-portalhc/assets/ppt-images/*.png
 !docs/sosialisasi-screenshots/*.png
+!docs/pcp-HCPortal-2026/**/*.png
 *.db
 *.db-shm
 *.db-wal
