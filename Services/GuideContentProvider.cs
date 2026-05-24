@@ -84,6 +84,122 @@ public static class GuideContentProvider
             },
             Keywords: new[] { "monitoring", "compliance", "unit", "section", "dashboard", "manager" }
         ),
+        new GuideItem(
+            Id: "cmp-tipe-assessment",
+            Module: GuideModule.Cmp,
+            Title: "Tipe-tipe Assessment (Pre-Test, Post-Test, Regular)",
+            Roles: new[] { RoleGroup.All },
+            Steps: new[]
+            {
+                new GuideStep(1, "Pre-Test",
+                    "<b>Pre-Test</b> adalah ujian awal yang dikerjakan <i>sebelum</i> pelatihan atau coaching dimulai. Tujuannya untuk mengukur tingkat pemahaman awal Anda (baseline knowledge) sebelum mendapat materi. Hasil Pre-Test biasanya tidak menentukan kelulusan — fungsi utamanya membandingkan progres."),
+                new GuideStep(2, "Post-Test",
+                    "<b>Post-Test</b> dikerjakan <i>setelah</i> pelatihan selesai. Sistem otomatis menghitung selisih nilai vs Pre-Test (<b>Gain Score</b>) untuk lihat seberapa besar peningkatan pemahaman Anda. Paket soal Post-Test bisa <i>sama</i> dengan Pre-Test (sengaja untuk perbandingan langsung) atau berbeda — tergantung setting HC."),
+                new GuideStep(3, "Regular Assessment",
+                    "<b>Regular Assessment</b> adalah ujian mandiri yang tidak dipasangkan dengan ujian lain. Cakupannya: sertifikasi kompetensi, On-the-Job assessment, Mandatory HSSE Training, dan lain-lain. Tidak ada hitungan Gain Score karena tidak ada pasangan Pre/Post.")
+            },
+            Keywords: new[] { "tipe", "pre-test", "post-test", "regular", "pretest", "posttest", "jenis assessment", "gain score" }
+        ),
+        new GuideItem(
+            Id: "cmp-tipe-package-question",
+            Module: GuideModule.Cmp,
+            Title: "Tipe Soal: Multiple Choice, Multiple Answer, Essay",
+            Roles: new[] { RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Multiple Choice (MC)",
+                    "Soal dengan <b>satu</b> jawaban benar dari beberapa opsi (radio button). Default semua soal lama. Auto-grading instant saat peserta submit."),
+                new GuideStep(2, "Multiple Answer (MA)",
+                    "Soal dengan <b>lebih dari satu</b> jawaban benar (checkbox). Peserta harus pilih <i>semua</i> opsi benar untuk dianggap betul — kurang satu = salah. Auto-grading instant. (Feature Phase 296)"),
+                new GuideStep(3, "Essay",
+                    "Soal jawaban teks bebas. Field tambahan saat input soal: <b>Rubrik</b> (kunci jawaban referensi internal HC — tidak ditampilkan ke peserta) dan <b>MaxCharacters</b> (default 2000). <b>Grading manual</b> oleh HC — hasil tidak instan, peserta harus tunggu HC nilai."),
+                new GuideStep(4, "Kapan pakai yang mana",
+                    "<b>MC</b> untuk pengetahuan faktual (definisi, prosedur). <b>MA</b> untuk konsep multi-aspek (mis: \"Sebutkan APD yang wajib dipakai\"). <b>Essay</b> untuk analisis, penjelasan, atau studi kasus.")
+            },
+            Keywords: new[] { "tipe soal", "multiple choice", "multiple answer", "essay", "rubrik", "package question", "mc", "ma" }
+        ),
+        new GuideItem(
+            Id: "cmp-cara-buat-assessment",
+            Module: GuideModule.Cmp,
+            Title: "Cara Buat Assessment (Admin)",
+            Roles: new[] { RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Akses Admin Assessment",
+                    "Login sebagai Admin/HC. Buka menu <b>Kelola Data → Manage Assessment & Training</b>. Klik tombol <b>Buat Assessment</b> di kanan atas."),
+                new GuideStep(2, "Pilih Kategori",
+                    "Pilih kategori dari dropdown (OJT, IHT, Mandatory HSSE, dll). Kalau kategori punya sub-kategori, dropdown sub-kategori muncul otomatis. Kalau kategori belum ada, buat dulu via <b>Manage Categories</b> (lihat accordion \"Cara Manage Kategori Assessment\")."),
+                new GuideStep(3, "Isi Detail Sesi",
+                    "Isi: judul, deskripsi, tanggal mulai/akhir, durasi (menit), tipe assessment (Pre-Test / Post-Test / Regular), pass percentage, token akses (opsional). Set <b>Extra Time</b> kalau ada peserta perlu tambahan waktu (aksesibilitas)."),
+                new GuideStep(4, "Link Pre-Post (Opsional)",
+                    "Kalau buat Post-Test, ada field <b>Linked Pre-Test Session</b> untuk pilih sesi Pre yang dipasangkan. Centang <b>SamePackage</b> kalau ingin paket soal Post-Test <i>identik</i> dengan Pre — biar perbandingan apple-to-apple. Kosongkan kalau paket berbeda."),
+                new GuideStep(5, "Tambah Peserta",
+                    "Pilih peserta dari daftar pekerja (filter unit, pencarian nama/email, Select All/Deselect All). Token akses <i>shared</i> per batch — semua peserta sesi pakai token yang sama."),
+                new GuideStep(6, "Publish & Monitor",
+                    "Klik <b>Buat Assessment</b>. Setelah publish, peserta bisa akses ujian. Monitor real-time via <b>Admin Monitoring</b> (SignalR live update — lihat siapa yang sudah masuk, soal ke berapa, sisa waktu).")
+            },
+            Keywords: new[] { "buat assessment", "create", "wizard", "admin", "settings", "extra time", "linked session", "samepackage" }
+        ),
+        new GuideItem(
+            Id: "cmp-cara-upload-package",
+            Module: GuideModule.Cmp,
+            Title: "Cara Upload Package Question (Paket Soal)",
+            Roles: new[] { RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Manage Package",
+                    "Dari sesi assessment, klik menu <b>Manage Questions</b>. Bisa buat <b>multi-package</b> per sesi (Paket A, Paket B, Paket C — <code>PackageNumber</code>). Berguna untuk anti-contek: peserta dapat paket berbeda."),
+                new GuideStep(2, "Pilih Metode Input",
+                    "Tiga cara input soal: <b>1.</b> Upload file Excel (download template dulu), <b>2.</b> Paste dari clipboard Excel, <b>3.</b> Manual entry per-soal di form."),
+                new GuideStep(3, "Format Excel",
+                    "Kolom wajib: <b>Question</b>, <b>OptionA</b>, <b>OptionB</b>, <b>OptionC</b>, <b>OptionD</b> (E opsional), <b>CorrectAnswer</b> (huruf opsi benar atau pisah koma kalau MA), <b>QuestionType</b> (MC/MA/Essay). Untuk Essay: tambah kolom <b>Rubrik</b> dan <b>MaxCharacters</b>."),
+                new GuideStep(4, "Preview & Verifikasi",
+                    "Setelah import, cek <b>semua</b> soal di tab Preview: pertanyaan, opsi, kunci jawaban. Edit per-soal kalau ada salah ketik atau kunci jawaban keliru. Wajib verifikasi sebelum publish — soal yang sudah dikerjakan peserta sulit di-edit."),
+                new GuideStep(5, "Shuffle & Publish",
+                    "Aktifkan <b>Shuffle Per-User</b> kalau ingin tiap peserta lihat urutan opsi A/B/C/D berbeda (anti-contek). Display saja — grading tetap pakai <code>PackageOption.Id</code> di backend. Bisa <b>reshuffle</b> per-sesi atau bulk kalau perlu ulang acak.")
+            },
+            Keywords: new[] { "upload", "package", "paket soal", "excel", "import", "shuffle", "preview", "multi-package" }
+        ),
+        new GuideItem(
+            Id: "cmp-cara-manage-kategori",
+            Module: GuideModule.Cmp,
+            Title: "Cara Manage Kategori Assessment (Admin)",
+            Roles: new[] { RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Buka Manage Categories",
+                    "Login sebagai Admin/HC. Buka menu <b>Admin → Manage Kategori Assessment</b>. Halaman ini punya CRUD penuh untuk kategori assessment (tambah, edit, hapus)."),
+                new GuideStep(2, "Buat Parent Category",
+                    "Klik <b>Tambah Kategori</b>. Isi nama (contoh: \"Assessment OJ\", \"Mandatory HSSE Training\"). Tambah <b>Signatory User</b> (pekerja yang akan TTD sertifikat untuk kategori ini — biasanya manager unit terkait)."),
+                new GuideStep(3, "Tambah Sub-Kategori",
+                    "Untuk hierarki, buat kategori baru dan pilih <b>Parent Category</b> dari dropdown. Sub-kategori bisa <i>inherit signatory parent</i> (kosongkan signatory) atau set signatory sendiri (override). Mendukung 2 level (parent + child)."),
+                new GuideStep(4, "Edit / Hapus",
+                    "Edit kapan saja (nama, signatory). <b>Hapus</b> hanya bisa kalau tidak ada sesi aktif yang masih pakai kategori ini — kalau ada, sistem block dan tampilkan daftar sesi yang menghalangi.")
+            },
+            Keywords: new[] { "kategori", "manage", "categories", "signatory", "parent", "sub-kategori", "ttd", "sertifikat" }
+        ),
+        new GuideItem(
+            Id: "cmp-fitur-khusus-admin",
+            Module: GuideModule.Cmp,
+            Title: "Fitur Khusus Admin (Manual Entry, Extra Time, Reshuffle, Edit Jawaban, Renewal)",
+            Roles: new[] { RoleGroup.AdminHC },
+            Steps: new[]
+            {
+                new GuideStep(1, "Manual Entry Sertifikat",
+                    "Untuk peserta yang sudah punya sertifikat dari lembaga luar (tidak ikut ujian online), gunakan <b>Manual Entry</b>. Aktifkan toggle saat buat sesi → muncul field: <b>Penyelenggara</b>, <b>Kota</b>, <b>SubKategori</b>, <b>CertificateType</b> (Kompetensi/Profesi/Pelatihan). Sistem set <code>IsManualEntry=true</code> — sertifikat tetap masuk records peserta."),
+                new GuideStep(2, "Set Extra Time",
+                    "Per-sesi atau per-peserta, set <b>ExtraTimeMinutes</b> (tambahan waktu menit) untuk aksesibilitas. Saat peserta mulai ujian, timer otomatis dapat tambahan — peserta tidak perlu lapor. (Feature Phase 302)"),
+                new GuideStep(3, "Reshuffle Package",
+                    "Kalau perlu ulang acak urutan opsi A/B/C/D (mis: ada bocor jawaban), klik <b>Reshuffle</b> per-sesi atau bulk (semua sesi sekaligus). Display random, grading tetap konsisten via <code>PackageOption.Id</code>."),
+                new GuideStep(4, "Akhiri Ujian",
+                    "<b>AkhiriUjian</b> (1 peserta) atau <b>AkhiriSemuaUjian</b> (bulk semua peserta sesi) — paksa submit semua jawaban yang sudah ada. Berguna kalau waktu habis tapi peserta lupa submit, atau ada keadaan darurat."),
+                new GuideStep(5, "Edit Jawaban Peserta",
+                    "Setelah ujian selesai, Admin bisa <b>override jawaban</b> peserta lewat halaman Detail Sesi (mis: koreksi typo sistem, atau adjudikasi soal yang ambigu). Setiap edit di-log otomatis ke <b>AssessmentEditLog</b> dengan timestamp + user yang edit — audit trail lengkap."),
+                new GuideStep(6, "Renewal Chain",
+                    "Untuk sertifikat yang perlu diperbarui (mis: lisensi tahunan), buat sesi baru lalu link ke sertifikat lama via <b>RenewsSessionId</b> atau <b>RenewsTrainingId</b>. Sistem chain sertifikat lama → baru untuk tracking history perpanjangan. (Feature Phase 200)")
+            },
+            Keywords: new[] { "manual entry", "extra time", "reshuffle", "akhiri ujian", "edit jawaban", "renewal", "fitur khusus", "audit log", "aksesibilitas" }
+        ),
 
         // ═══════════════════ CDP ═══════════════════
         new GuideItem(
