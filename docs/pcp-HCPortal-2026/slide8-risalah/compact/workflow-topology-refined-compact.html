@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opsi IV Compact — Workflow Topology Refined</title>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-red-light: #fce8eb;
+    --pertamina-blue: #00558C;
+    --pertamina-blue-dark: #003D63;
+    --pertamina-blue-light: #e6f0f7;
+    --pertamina-green: #00A551;
+    --pertamina-green-light: #d4f0dd;
+    --pertamina-yellow: #FFC72C;
+    --neutral-gray: #6b7280;
+    --border: #d1d5db;
+    --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+    --fs-xs: 1vw;
+    --fs-sm: 1.25vw;
+    --fs-base: 1.5vw;
+    --fs-md: 1.75vw;
+    --fs-lg: 2vw;
+  }
+  * { box-sizing: border-box; }
+  body { width: 100vw; height: 100vh; margin: 0; padding: 0; background: white;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         color: #1f2937; overflow: hidden; }
+
+  .compact-container {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5vw;
+    width: 100%; height: 100%; padding: 0.3vw 0.5vw;
+  }
+  .panel {
+    border: 2px solid; border-radius: 6px;
+    padding: 0.4vw 0.6vw; display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
+  }
+  .panel-sebelum { border-color: var(--pertamina-red);
+                    background: linear-gradient(180deg, #fff5f5 0%, white 30%); }
+  .panel-sesudah { border-color: var(--pertamina-green);
+                    background: linear-gradient(180deg, #f0fdf4 0%, white 30%); }
+  .panel-header { font-size: var(--fs-sm); font-weight: 700;
+                   margin-bottom: 0.3vw; padding-bottom: 0.2vw;
+                   border-bottom: 1px dashed var(--border); }
+  .panel-sebelum .panel-header { color: var(--pertamina-red); }
+  .panel-sesudah .panel-header { color: var(--pertamina-green); }
+
+  .layer-list { display: flex; flex-direction: column; gap: 0.15vw; flex: 1; }
+  .layer { display: flex; gap: 0.4vw; align-items: center;
+           padding: 0.2vw 0.3vw; border-bottom: 1px dashed #f3f4f6;
+           font-size: var(--fs-xs); }
+  .layer:last-child { border-bottom: none; }
+  .layer-actor { width: 32%; font-weight: 600; }
+  .layer-tools { flex: 1; display: flex; gap: 0.2vw; flex-wrap: wrap; align-items: center; }
+  .chip { font-size: 0.95vw; padding: 0.1vw 0.4vw; border-radius: 3px;
+           white-space: nowrap; font-weight: 500; }
+  .chip.manual { background: var(--pertamina-red-light); color: var(--pertamina-red);
+                  border: 1px solid var(--pertamina-red); }
+  .chip.ext { background: #fff3cd; color: #856404; border: 1px solid #d4a017; }
+  .chip.paper { background: #e8e8e8; color: #555; border: 1px solid #999; }
+  .chip.portal { background: var(--pertamina-blue-light); color: var(--pertamina-blue-dark);
+                  border: 1px solid var(--pertamina-blue); }
+
+  .marker {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2vw; height: 2vw; border-radius: 50%;
+    color: white; font-weight: 700; font-size: 1.1vw;
+    margin-left: 0.15vw;
+  }
+  .marker.issue { background: var(--pertamina-red); }
+  .marker.improvement { background: var(--pertamina-green); }
+
+  .legend-inset {
+    position: absolute; top: 0.3vw; right: 0.4vw;
+    font-size: var(--fs-xs);
+    background: rgba(255,255,255,.9);
+    padding: 0.15vw 0.3vw; border-radius: 3px; border: 1px solid var(--border);
+  }
+
+  .rpn-note { font-size: var(--fs-xs); color: var(--neutral-gray);
+              font-style: italic; margin-top: 0.3vw; text-align: center; }
+
+  .buffer-zone {
+    background: var(--hub-grad); color: white;
+    padding: 0.35vw 0.5vw; border-radius: 5px;
+    margin: 0.2vw 0; text-align: center;
+    border-left: 4px solid var(--pertamina-yellow);
+    position: relative;
+  }
+  .buffer-label { font-weight: 700; font-size: var(--fs-sm); }
+  .buffer-content { font-size: var(--fs-xs); opacity: .95; margin-top: 0.1vw; }
+</style>
+</head>
+<body>
+<div class="compact-container">
+
+  <!-- KIRI: SEBELUM 5-layer (identik Opsi II) -->
+  <div class="panel panel-sebelum">
+    <div class="panel-header">❌ Sebelum (Kondisi Aktual)</div>
+    <div class="layer-list">
+      <div class="layer">
+        <div class="layer-actor">👔 <b>Lv5</b> Manajemen</div>
+        <div class="layer-tools">
+          <span class="chip manual">📄 PDF/Excel</span>
+          <span class="chip ext">📧 Email</span>
+          <span class="marker issue">D</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">👤 <b>Lv4</b> HC</div>
+        <div class="layer-tools">
+          <span class="chip manual">📊 Excel ×5</span>
+          <span class="chip manual">📝 Word</span>
+          <span class="marker issue">A</span>
+          <span class="marker issue">B</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">🏢 <b>Lv3</b> Atasan</div>
+        <div class="layer-tools">
+          <span class="chip ext">📧 Email</span>
+          <span class="chip ext">💬 WA approval</span>
+          <span class="marker issue">C</span>
+          <span class="marker issue">E</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">🧑‍🏫 <b>Lv2</b> Coach</div>
+        <div class="layer-tools">
+          <span class="chip paper">📋 Form cetak</span>
+          <span class="chip paper">📁 Arsip</span>
+          <span class="chip ext">💬 WA</span>
+          <span class="chip ext">📧 Email</span>
+          <span class="marker issue">A</span>
+          <span class="marker issue">E</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">👷 <b>Lv1</b> Pekerja</div>
+        <div class="layer-tools">
+          <span class="chip ext">🌐 FleQi</span>
+          <span class="chip paper">🎓 Cert hardcopy</span>
+          <span class="chip manual">📊 Excel IDP</span>
+          <span class="marker issue">A</span>
+          <span class="marker issue">F</span>
+        </div>
+      </div>
+    </div>
+    <div class="rpn-note">FMEA RPN · Method 140 · Machine 140 · Man 90 (Risalah PROTON)</div>
+    <div class="legend-inset">A-F · Issue</div>
+  </div>
+
+  <!-- KANAN: SOLUSI TERPILIH — 5-layer + Buffer Zone -->
+  <div class="panel panel-sesudah">
+    <div class="panel-header">✅ Solusi Terpilih — HC Portal (Buffer Zone DMZ-analog)</div>
+    <div class="layer-list">
+      <div class="layer">
+        <div class="layer-actor">👔 <b>Lv5</b> Manajemen</div>
+        <div class="layer-tools">
+          <span class="chip portal">📈 Analytics</span>
+          <span class="chip portal">🔥 Heatmap</span>
+          <span class="chip portal">📤 Export</span>
+          <span class="marker improvement">1</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">👤 <b>Lv4</b> HC</div>
+        <div class="layer-tools">
+          <span class="chip portal">👥 Pekerja</span>
+          <span class="chip portal">🎯 IDP</span>
+          <span class="chip portal">📝 Asm</span>
+          <span class="chip portal">📊 KKJ</span>
+          <span class="marker improvement">2</span>
+          <span class="marker improvement">3</span>
+        </div>
+      </div>
+
+      <div class="buffer-zone">
+        <div class="buffer-label">🛡️ BUFFER ZONE — HC PORTAL</div>
+        <div class="buffer-content">Single Source of Truth · .NET 8 · SQL Server · SignalR · Audit Log <span class="marker improvement">4</span></div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-actor">🏢 <b>Lv3</b> Atasan</div>
+        <div class="layer-tools">
+          <span class="chip portal">👀 Records</span>
+          <span class="chip portal">✅ Approval</span>
+          <span class="chip portal">📊 View KKJ</span>
+          <span class="marker improvement">5</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">🧑‍🏫 <b>Lv2</b> Coach</div>
+        <div class="layer-tools">
+          <span class="chip portal">🎯 Coaching PROTON</span>
+          <span class="chip portal">📎 Evidence</span>
+          <span class="chip portal">📜 Histori</span>
+          <span class="marker improvement">6</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">👷 <b>Lv1</b> Pekerja</div>
+        <div class="layer-tools">
+          <span class="chip portal">📝 Asm</span>
+          <span class="chip portal">📋 IDP</span>
+          <span class="chip portal">🏆 Cert</span>
+          <span class="chip portal">🔔 Notif</span>
+          <span class="marker improvement">7</span>
+        </div>
+      </div>
+    </div>
+    <div class="legend-inset">1-7 · Improvement</div>
+  </div>
+
+</div>
+</body>
+</html>
