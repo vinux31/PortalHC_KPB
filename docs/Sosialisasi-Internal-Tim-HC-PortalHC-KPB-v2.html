@@ -3374,6 +3374,90 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Create Assessment (Wizard) &middot; lanjut Sl29 untuk Field Detail Step 2-4</p>
   </div>
 
+  <!-- ================= SLIDE 29: CREATE ASSESSMENT - FIELD DETAIL ================= -->
+  <div class="slide default-deco" data-slide="29">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Create Assessment <span class="accent">Field Detail</span></h1>
+        <p class="slide-subtitle">Step 2 Peserta &middot; Step 3 Settings &middot; Step 4 Konfirmasi</p>
+      </div>
+      <div class="slide-badge">SLIDE 29 / 34</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/CreateAssessment (lanjutan)</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+              <div style="border:1px solid #cbd5e1;border-radius:6px;padding:6px;background:#fff;">
+                <div style="font-size:7pt;font-weight:700;color:#0f766e;margin-bottom:4px;">&#9679; Step 2: Peserta</div>
+                <div style="display:flex;gap:2px;margin-bottom:3px;">
+                  <span class="mr-filter-chip" style="font-size:6pt;">Unit &#9662;</span>
+                  <span class="mr-filter-chip" style="font-size:6pt;">Bagian &#9662;</span>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:3px;font-size:6.5pt;margin-bottom:3px;">&#128269; Cari NIP&hellip;</div>
+                <table class="mr-table" style="font-size:6pt;"><thead><tr><th>&#9745;</th><th>NIP</th><th>Nama</th></tr></thead><tbody>
+                  <tr><td>&#9745;</td><td>754201</td><td>Widodo A.</td></tr>
+                  <tr><td>&#9745;</td><td>754202</td><td>Andi P.</td></tr>
+                  <tr><td>&#9745;</td><td>754203</td><td>Citra R.</td></tr>
+                </tbody></table>
+                <div style="font-size:6pt;color:#64748b;margin-top:3px;"><strong>12 peserta</strong> dipilih</div>
+              </div>
+              <div style="border:1px solid #cbd5e1;border-radius:6px;padding:6px;background:#fff;">
+                <div style="font-size:7pt;font-weight:700;color:#0f766e;margin-bottom:4px;">&#9679; Step 3: Settings</div>
+                <div style="font-size:6pt;color:#475569;">Durasi (menit)</div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:2px 4px;font-size:6.5pt;margin-bottom:3px;">60</div>
+                <div style="font-size:6pt;color:#475569;">Passing Grade (%)</div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:2px 4px;font-size:6.5pt;margin-bottom:3px;">70</div>
+                <div style="font-size:6pt;color:#475569;">Tanggal Mulai</div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:2px 4px;font-size:6.5pt;margin-bottom:3px;">2026-06-01 09:00</div>
+                <div style="font-size:6pt;color:#475569;">Package Soal</div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:2px 4px;font-size:6.5pt;margin-bottom:3px;">Safety Op T1 (24 soal) &#9662;</div>
+                <div style="font-size:6pt;color:#475569;display:flex;justify-content:space-between;">
+                  <span>Token</span><span style="background:#cbd5e1;color:#475569;padding:0 4px;border-radius:8px;">OFF</span>
+                </div>
+                <div style="font-size:6pt;color:#475569;display:flex;justify-content:space-between;margin-top:2px;">
+                  <span>Anti-Copy</span><span style="background:#16a34a;color:#fff;padding:0 4px;border-radius:8px;">ON</span>
+                </div>
+              </div>
+              <div style="border:1px solid #cbd5e1;border-radius:6px;padding:6px;background:#fff;">
+                <div style="font-size:7pt;font-weight:700;color:#0f766e;margin-bottom:4px;">&#9679; Step 4: Konfirmasi</div>
+                <div style="background:#f0fdfa;border:1px dashed #14b8a6;border-radius:4px;padding:6px;font-size:6.5pt;line-height:1.4;">
+                  <div><strong>Kategori:</strong> Safety Op</div>
+                  <div><strong>Judul:</strong> Op T1 Q2 2026</div>
+                  <div><strong>Peserta:</strong> 12 orang</div>
+                  <div><strong>Jadwal:</strong> 2026-06-01 09:00</div>
+                  <div><strong>Durasi:</strong> 60 menit</div>
+                  <div><strong>Package:</strong> Safety Op T1</div>
+                </div>
+                <button class="mr-btn" style="width:100%;margin-top:6px;background:#16a34a;color:#fff;">&#9989; Publish Assessment</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128203; Field per Step</h4>
+          <table class="mr-table" style="font-size:7.5pt;">
+            <thead><tr><th>Step</th><th>Field Utama</th><th>Catatan</th></tr></thead>
+            <tbody>
+              <tr><td><strong>2</strong> Peserta</td><td>NIP picker + filter Unit/Bagian</td><td>Bulk per unit</td></tr>
+              <tr><td><strong>3</strong> Settings</td><td>Durasi, Passing, Jadwal, Package, Token, Anti-Copy</td><td>Anti-Copy default ON</td></tr>
+              <tr><td><strong>4</strong> Konfirmasi</td><td>Review semua field</td><td>Publish ireversibel</td></tr>
+            </tbody>
+          </table>
+          <div class="mockup-tip" style="margin-top:6px;"><strong>&#128161; Token Required:</strong> tiap peserta dapat token unik &mdash; regenerate via Sl30 Monitoring.</div>
+          <div class="mockup-warn"><strong>&#9888; Publish ireversibel:</strong> setelah klik, assessment muncul di portal peserta. Edit hanya boleh sebelum ada peserta submit (cek <code>AssessmentEditEligibility</code>).</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Detail field Step 2-4 wizard. Step 2 pilih peserta dari master pekerja. Step 3 set durasi/passing/jadwal/package + 2 toggle. Step 4 review + Publish.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Field Wizard Step 2-4 (lanjutan Sl28)</p>
+  </div>
+
   <!-- ================= SLIDE 30: ASSESSMENT MONITORING ================= -->
   <div class="slide default-deco" data-slide="30">
     <div class="slide-header">
