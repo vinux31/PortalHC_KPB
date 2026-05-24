@@ -3514,6 +3514,92 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;5.6, 5.7, 5.8 &mdash; Create / Edit / Monitor</p>
   </div>
 
+  <!-- ================= SLIDE 31: MONITORING ACTIONS ================= -->
+  <div class="slide default-deco" data-slide="31">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Monitoring <span class="accent">Actions</span> &mdash; Detail per Peserta</h1>
+        <p class="slide-subtitle">Drill dari Sl30 overview &mdash; Reset / Akhiri / Reshuffle / Tambah Waktu</p>
+      </div>
+      <div class="slide-badge">SLIDE 31 / 34</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/AssessmentMonitoringDetail</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="font-size:8pt;color:#0f172a;">Alkylation Batch 5 &mdash; 4 peserta</strong>
+              <span>
+                <button class="mr-btn" style="background:#f59e0b;color:#fff;">&#9201; Tambah Waktu</button>
+                <button class="mr-btn" style="background:#dc2626;color:#fff;">&#10060; Akhiri Semua</button>
+              </span>
+            </div>
+            <table class="mr-table">
+              <thead><tr><th>NIP</th><th>Nama</th><th>Progress</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>754201</td><td>Widodo A.</td><td>15/30 (50%)</td>
+                  <td><span class="mr-badge-pill mr-badge-green">InProgress</span></td>
+                  <td style="font-size:7pt;">
+                    <a style="color:#f59e0b;">&#8634; Reset</a> &middot;
+                    <a style="color:#dc2626;">&#10060; Akhiri</a> &middot;
+                    <a style="color:#0f766e;">&#8644; Reshuffle</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td>754202</td><td>Andi P.</td><td>30/30 (100%)</td>
+                  <td><span class="mr-badge-pill mr-badge-blue">Submitted</span></td>
+                  <td style="font-size:7pt;"><a style="color:#f59e0b;">&#8634; Reset</a></td>
+                </tr>
+                <tr>
+                  <td>754203</td><td>Citra R.</td><td>0/30 (0%)</td>
+                  <td><span class="mr-badge-pill" style="background:#94a3b8;color:#fff;">NotStarted</span></td>
+                  <td style="font-size:7pt;">
+                    <a style="color:#f59e0b;">&#8634; Reset</a> &middot;
+                    <a style="color:#0f766e;">&#8644; Reshuffle</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td>754204</td><td>Budi S.</td><td>8/30 (27%)</td>
+                  <td><span class="mr-badge-pill mr-badge-green">InProgress</span></td>
+                  <td style="font-size:7pt;">
+                    <a style="color:#f59e0b;">&#8634; Reset</a> &middot;
+                    <a style="color:#dc2626;">&#10060; Akhiri</a> &middot;
+                    <a style="color:#0f766e;">&#8644; Reshuffle</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#127916; Action Hierarchy &mdash; 2 Level</h4>
+          <ul>
+            <li style="font-weight:700;color:#dc2626;">Group-Level (top bar):</li>
+            <li>&#9201; <strong>Tambah Waktu</strong> &mdash; extend timer semua peserta</li>
+            <li>&#10060; <strong>Akhiri Semua Ujian</strong> &mdash; force-close all, auto-submit (modal confirm)</li>
+            <li>&#8644; <strong>Reshuffle All</strong> &mdash; ganti package semua peserta sekaligus</li>
+          </ul>
+          <ul>
+            <li style="font-weight:700;color:#0f766e;">Per-Peserta:</li>
+            <li>&#8634; <strong>Reset</strong> &mdash; hapus jawaban, attempt baru</li>
+            <li>&#10060; <strong>Akhiri Ujian</strong> &mdash; force-submit (auto-grade), <em>InProgress</em> only</li>
+            <li>&#8644; <strong>Reshuffle Worker</strong> &mdash; AJAX ganti package, no reload</li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Ireversibel:</strong> Akhiri = auto-submit jawaban saat itu. Reset = hapus progress.</div>
+          <div class="mockup-tip"><strong>&#128161; Use case:</strong> Reshuffle &rarr; curiga bocor soal. Tambah Waktu &rarr; peserta disconnect / hardware issue.</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Page Detail per grup assessment (klik dari Sl30 overview). 3 action group-level + 3 action per-peserta. Handle disconnect, freeze peserta, atau curiga kebocoran soal.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Monitor / Reset / Force-Close (selaras Sl30 overview)</p>
+  </div>
+
   <!-- ================= SLIDE 32: MAINTENANCE + AUDIT LOG ================= -->
   <div class="slide default-deco" data-slide="32">
     <div class="slide-header">
