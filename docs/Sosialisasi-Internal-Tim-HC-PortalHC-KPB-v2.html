@@ -3195,6 +3195,77 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;4.1 &amp; &sect;4.2 &mdash; Silabus + Guidance</p>
   </div>
 
+  <!-- ================= SLIDE 26: MANAGE PACKAGE QUESTION ================= -->
+  <div class="slide default-deco" data-slide="26">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Manage Package <span class="accent">Question</span></h1>
+        <p class="slide-subtitle">Bank soal per package &mdash; manual form / Import Excel / Paste from Excel</p>
+      </div>
+      <div class="slide-badge">SLIDE 26 / 34</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/AssessmentAdmin/ManagePackageQuestions</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="font-size:8.5pt;color:#0f172a;">Package: Safety Op T1 &mdash; 24 soal &middot; 240 poin</strong>
+              <span><button class="mr-btn">&#128228; Import Excel</button> <button class="mr-btn secondary">&larr; Kembali</button></span>
+            </div>
+            <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:8px;">
+              <table class="mr-table">
+                <thead><tr><th>#</th><th>Teks Soal</th><th>Tipe</th><th>Skor</th><th>Aksi</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td>LOTO step pertama yang&hellip;</td><td><span class="mr-badge-pill mr-badge-blue">MC</span></td><td>10</td><td>&#128065; &#9999; &#128465;</td></tr>
+                  <tr><td>2</td><td>Pilih semua APAR class&hellip;</td><td><span class="mr-badge-pill" style="background:#7c3aed;color:#fff;">MA</span></td><td>15</td><td>&#128065; &#9999; &#128465;</td></tr>
+                  <tr><td>3</td><td>Jelaskan prosedur ESD&hellip;</td><td><span class="mr-badge-pill mr-badge-orange">Essay</span></td><td>25</td><td>&#128065; &#9999; &#128465;</td></tr>
+                  <tr><td>4</td><td>Hot work permit valid&hellip;</td><td><span class="mr-badge-pill mr-badge-blue">MC</span></td><td>10</td><td>&#128065; &#9999; &#128465;</td></tr>
+                </tbody>
+              </table>
+              <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#f8fafc;">
+                <div style="font-size:8pt;font-weight:700;color:#0f766e;margin-bottom:5px;">Tambah Soal Baru</div>
+                <div style="font-size:7pt;color:#475569;margin-bottom:3px;">QuestionType</div>
+                <div style="background:#fff;border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:7.5pt;margin-bottom:5px;">MultipleChoice &#9662;</div>
+                <div style="font-size:7pt;color:#475569;margin-bottom:3px;">Teks Soal</div>
+                <div style="background:#fff;border:1px solid #cbd5e1;border-radius:4px;padding:8px;font-size:7pt;color:#94a3b8;margin-bottom:5px;height:24px;">Ketik soal&hellip;</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px;">
+                  <div style="background:#fff;border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:7pt;color:#94a3b8;">Opsi A</div>
+                  <div style="background:#fff;border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:7pt;color:#94a3b8;">Opsi B</div>
+                  <div style="background:#fff;border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:7pt;color:#94a3b8;">Opsi C</div>
+                  <div style="background:#fff;border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:7pt;color:#94a3b8;">Opsi D</div>
+                </div>
+                <button class="mr-btn" style="width:100%;">Simpan Soal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#128221; 3 Entry Mode</h4>
+          <ul>
+            <li><strong>Manual form</strong> &mdash; tambah per soal, langsung simpan</li>
+            <li><strong>Import Excel</strong> &mdash; upload <code>.xlsx</code> 9 kolom (Pertanyaan / A / B / C / D / Benar / Elemen / Type / Rubrik)</li>
+            <li><strong>Paste from Excel</strong> &mdash; copy-paste cell langsung dari Excel</li>
+          </ul>
+          <h4 style="margin-top:8px;">&#128218; 3 QuestionType</h4>
+          <ul>
+            <li><strong>MultipleChoice</strong> &mdash; default, 1 jawaban benar</li>
+            <li><strong>MultipleAnswer</strong> &mdash; multi jawaban (format <code>A,C</code>)</li>
+            <li><strong>Essay</strong> &mdash; opsi kosong, <strong>Rubrik wajib</strong> (manual grading)</li>
+          </ul>
+          <div class="mockup-tip"><strong>&#128161; 4 template Excel:</strong> MC &middot; MA &middot; Essay &middot; Universal</div>
+          <div class="mockup-warn"><strong>&#9888; Cascade delete:</strong> Hapus soal cascade ke history attempt. Preview dulu via &#128065; sebelum &#128465;.</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Kelola bank soal per package assessment. 3 cara input (manual / upload Excel / paste). Mix tipe MC + MA + Essay dalam 1 package.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bank Soal &amp; Package Question</p>
+  </div>
+
   <!-- ================= SLIDE 27: OVERRIDE KKJ + MAPPING SILABUS ================= -->
   <div class="slide default-deco" data-slide="27">
     <div class="slide-header">
