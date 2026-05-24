@@ -15,7 +15,7 @@ public static class GuideContentProvider
             Steps: new[]
             {
                 new GuideStep(1, "Akses Dokumen KKJ",
-                    "Buka menu <b>CMP</b> di navbar → klik card <b>Dokumen KKJ & Alignment KKJ/IDP</b>. Halaman muncul dgn 2 tab: <b>KKJ</b> (default) + <b>Alignment KKJ/IDP</b>."),
+                    "Buka menu <b>CMP</b> di navbar → klik card <b>Dokumen KKJ & Alignment KKJ/IDP</b>. Halaman muncul dengan 2 tab: <b>KKJ</b> (default) + <b>Alignment KKJ/IDP</b>."),
                 new GuideStep(2, "Pahami Filter Role-Based",
                     "Sistem otomatis filter daftar bagian sesuai role Anda: <b>L1-L4</b> (Admin/HC/Manager/Atasan) lihat semua bagian; <b>L5-L6</b> (Coach/Coachee) lihat bagian sendiri saja (sesuai field <code>Section</code> di profil Anda)."),
                 new GuideStep(3, "Browse Per Bagian",
@@ -39,7 +39,7 @@ public static class GuideContentProvider
                 new GuideStep(2, "Tujuan Alignment",
                     "Dokumen ini menyelaraskan <b>KKJ</b> (Kebutuhan Kompetensi Jabatan) dengan <b>IDP</b> (Individual Development Plan). Tujuannya: rencana pelatihan setiap pekerja sesuai kompetensi yang dibutuhkan jabatannya."),
                 new GuideStep(3, "Browse Per Bagian",
-                    "Pattern sama dgn tab KKJ — daftar bagian terurut. Klik bagian → expand → tampil daftar file CPDP (Competency Personal Development Plan) per bagian."),
+                    "Pattern sama dengan tab KKJ — daftar bagian terurut. Klik bagian → expand → tampil daftar file CPDP (Competency Personal Development Plan) per bagian."),
                 new GuideStep(4, "Download File CPDP",
                     "Klik tombol <b>Download</b> per file → endpoint <code>/CMP/CpdpFileDownload/:id</code>."),
                 new GuideStep(5, "Refresh Frekuensi",
@@ -77,7 +77,7 @@ public static class GuideContentProvider
                 new GuideStep(1, "Akses Team View",
                     "Buka halaman <b>Records</b> (CMP → Riwayat Pelatihan). Klik tab <b>Team View</b> di samping tab My Records. Tab ini hanya muncul untuk role level ≤4 (Atasan, Manager, AdminHC)."),
                 new GuideStep(2, "Cakupan Tim",
-                    "Tab menampilkan bawahan langsung Anda. Kalau Anda <b>Manager+</b>, sistem juga menampilkan bawahan tidak langsung mengikuti struktur organisasi (rekursif via <code>OrganizationUnit.ParentId</code>)."),
+                    "Tab menampilkan bawahan langsung Anda. Kalau Anda <b>Manager+</b>, sistem juga menampilkan bawahan tidak langsung mengikuti struktur organisasi (rekursif sesuai hierarki bagian)."),
                 new GuideStep(3, "Cascade Filter + Date Range",
                     "Filter cascade: pilih <b>Bagian</b> → <b>Unit</b> terkait muncul; pilih <b>Kategori</b> → <b>Sub-Kategori</b> muncul. Plus filter <b>Status</b> dan rentang tanggal <b>Date From</b> / <b>Date To</b>. Partial reload tabel via <code>RecordsTeamPartial</code> tanpa full page refresh."),
                 new GuideStep(4, "Detail Worker",
@@ -105,7 +105,7 @@ public static class GuideContentProvider
                 new GuideStep(5, "Kerjakan Post-Test",
                     "Setelah pelatihan, tombol <b>Mulai Post-Test</b> muncul di card yang sama. Klik → ujian Post-Test. Sistem otomatis menghitung <b>Gain Score</b> = nilai Post − nilai Pre untuk lihat seberapa besar peningkatan Anda."),
                 new GuideStep(6, "Lihat Hasil",
-                    "Setelah Post-Test selesai, klik tombol <b>Lihat Hasil</b> → halaman <code>/CMP/Results/:id</code>. Tampil breakdown nilai per soal + analisa per elemen teknis (skor per kompetensi).")
+                    "Setelah Post-Test selesai, klik tombol <b>Lihat Hasil</b> → halaman <code>/CMP/Results?id=...</code>. Tampil breakdown nilai per soal + analisa per elemen teknis (skor per kompetensi).")
             },
             Keywords: new[] { "pre-test", "post-test", "pretest", "posttest", "gain score", "pairing", "ujian pasangan", "improvement" }
         ),
@@ -121,13 +121,13 @@ public static class GuideContentProvider
                 new GuideStep(2, "Tab Fail Rate",
                     "Tab pertama. Visualisasi persentase peserta yang <b>fail</b> per kategori/bagian. Klik bar/segment chart → drill-down ke daftar pekerja yang gagal di kategori tersebut."),
                 new GuideStep(3, "Tab Trend",
-                    "Chart line menunjukkan tren <b>pass rate</b> over time. Filter periode: bulan / quarter / tahun. Berguna untuk lihat dampak training program pada periode tertentu."),
-                new GuideStep(4, "Tab Skor Elemen Teknis (ET)",
+                    "Chart line menampilkan jumlah <b>Pass</b> / <b>Fail</b> per bulan, ditambah sub-chart <b>rata-rata Gain Score per bulan</b>. Filter periode tersedia — berguna untuk lihat dampak training program pada periode tertentu."),
+                new GuideStep(4, "Tab Skor Elemen Teknis",
                     "Breakdown skor rata-rata per <b>elemen kompetensi teknis</b>. Identify area kompetensi yang lemah cross-unit — input untuk perencanaan training kolektif."),
                 new GuideStep(5, "Tab Sertifikat Expired",
                     "Daftar pekerja yang sertifikatnya akan expire dalam rentang tertentu. Sort by tanggal expiry — data untuk plan perpanjangan sertifikat (renewal chain di Bagian Assessment Admin)."),
                 new GuideStep(6, "Tab Item Analysis + Gain Score Report",
-                    "Tab analisa lanjutan untuk Pre-Post pair. Pilih <b>Assessment Group</b> → <b>Item Analysis</b> (per-soal: persentase peserta jawab benar/salah, identify soal terlalu sulit/mudah) + <b>Gain Score Report</b> (per-peserta: improvement Pre→Post). Masing-masing punya tombol <b>Export Excel</b>.")
+                    "Dua tab terpisah untuk analisa lanjutan Pre-Post pair. <b>Tab Item Analysis</b>: pilih <b>Assessment</b> dari dropdown → per-soal analytics (persentase peserta jawab benar/salah, identify soal terlalu sulit/mudah). <b>Tab Gain Score Report</b>: per-peserta improvement Pre→Post. Masing-masing punya tombol <b>Export Excel</b>.")
             },
             Keywords: new[] { "analytics dashboard", "monitoring", "compliance", "fail rate", "trend", "elemen teknis", "sertifikat expired", "item analysis", "gain score report" }
         ),
@@ -139,9 +139,9 @@ public static class GuideContentProvider
             Steps: new[]
             {
                 new GuideStep(1, "Akses Budget Training",
-                    "Buka <b>CMP</b> → klik card <b>Budget Training</b> (hanya visible untuk Admin/HC). Halaman dgn 2 tab: <b>Data Budget</b> (default) + <b>Ringkasan</b>."),
+                    "Buka <b>CMP</b> → klik card <b>Budget Training</b> (hanya visible untuk Admin/HC). Halaman dengan 2 tab: <b>Data Budget</b> (default) + <b>Ringkasan</b>."),
                 new GuideStep(2, "Tab Data Budget",
-                    "Tampil tabel semua budget item dgn filter: <b>Tahun</b>, <b>Type</b>, <b>Kategori</b>, dan <b>Search</b> by judul. Kolom sortable + pagination."),
+                    "Tampil tabel semua budget item dengan filter: <b>Tahun</b>, <b>Type</b>, <b>Kategori</b>, dan <b>Search</b> by judul. Kolom sortable + pagination."),
                 new GuideStep(3, "Tambah Budget Item",
                     "Klik tombol <b>Tambah</b> → form wizard 3 card: <b>Card 1</b> (Tahun Anggaran + Judul), <b>Card 2</b> (Kategori + SubKategori cascade + Jumlah Peserta), <b>Card 3</b> (Anggaran/<code>EstimasiBiayaTotal</code> + Realisasi Biaya + Vendor)."),
                 new GuideStep(4, "Quick Update Realisasi",
