@@ -3632,6 +3632,65 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &sect;4.3 &mdash; Override Data Pekerja</p>
   </div>
 
+  <!-- ================= SLIDE 33: CATEGORIES CRUD ================= -->
+  <div class="slide default-deco" data-slide="33">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Categories <span class="accent">CRUD</span> &mdash; Master Kategori Assessment</h1>
+        <p class="slide-subtitle">Parent-child hierarchy &middot; Default passing % &middot; Signatory user binding</p>
+      </div>
+      <div class="slide-badge">SLIDE 33 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/ManageCategories</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="font-size:8.5pt;color:#0f172a;">&#127991; Kategori Assessment</strong>
+              <span><button class="mr-btn">&#128229; Export &#9662;</button> <button class="mr-btn">+ Tambah Kategori</button></span>
+            </div>
+            <table class="mr-table">
+              <thead><tr><th>Nama</th><th>Pass %</th><th>Sort</th><th>Signatory</th><th>Aksi</th></tr></thead>
+              <tbody>
+                <tr><td><strong>HSSE</strong> <span style="font-size:6pt;color:#94a3b8;">(parent)</span></td><td>75%</td><td>1</td><td>Manager HSSE</td><td>&#9999; &#128465;</td></tr>
+                <tr><td><strong>Operations</strong> <span style="font-size:6pt;color:#94a3b8;">(parent)</span></td><td>70%</td><td>2</td><td>Manager Ops</td><td>&#9999; &#128465;</td></tr>
+                <tr style="background:#f8fafc;"><td style="padding-left:20px;">&#8627; Alkylation</td><td>70%</td><td>1</td><td>&mdash;</td><td>&#9999; &#128465;</td></tr>
+                <tr style="background:#f8fafc;"><td style="padding-left:20px;">&#8627; RFCC</td><td>70%</td><td>2</td><td>&mdash;</td><td>&#9999; &#128465;</td></tr>
+                <tr style="background:#f8fafc;"><td style="padding-left:20px;">&#8627; NHT</td><td>70%</td><td>3</td><td>&mdash;</td><td>&#9999; &#128465;</td></tr>
+                <tr><td><strong>OJT</strong> <span style="font-size:6pt;color:#94a3b8;">(parent)</span></td><td>80%</td><td>3</td><td>Sr Supervisor</td><td>&#9999; &#128465;</td></tr>
+              </tbody>
+            </table>
+            <div style="background:#f0fdfa;border:1px dashed #14b8a6;border-radius:4px;padding:6px;margin-top:6px;font-size:7pt;color:#0f766e;">
+              <strong>Add Form:</strong> Nama &middot; Parent (optional) &middot; Pass % &middot; Sort &middot; Signatory User &middot; Aktif
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#127991; Field per Kategori</h4>
+          <ul>
+            <li><strong>Default Passing %</strong> &mdash; auto-fill saat Create Assessment Step 1</li>
+            <li><strong>Signatory User</strong> &mdash; penandatangan sertifikat (kalau lulus)</li>
+            <li><strong>Sort Order</strong> &mdash; urutan tampil di dropdown Create Asm</li>
+            <li><strong>Parent</strong> &mdash; optional, untuk hierarchy 2-level</li>
+          </ul>
+          <h4 style="margin-top:8px;">&#128279; Cross-link</h4>
+          <ul>
+            <li>Sl34 Create Asm Step 1 dropdown pakai data dari sini (optgroup parent-child)</li>
+            <li>Sl12 (5 Kategori konsep) &rarr; UI tutorial di sini</li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Cascade delete:</strong> Hapus parent = hapus semua child + assessment terkait. Pakai Nonaktif dulu.</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Master kategori assessment (parent-child + signatory + passing %). Drive dropdown Create Assessment + signatory sertifikat.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; &sect;5.5 Categories CRUD</p>
+  </div>
+
   <!-- ================= SLIDE 34: CREATE ASSESSMENT - WIZARD OVERVIEW ================= -->
   <div class="slide default-deco" data-slide="34">
     <div class="slide-header">
