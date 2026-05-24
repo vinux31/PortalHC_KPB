@@ -290,17 +290,72 @@ Semua badge `SLIDE N / 30` di slide existing **wajib di-update** ke `SLIDE N / 3
 - `SLIDE 30 / 30` → `SLIDE 34 / 34`
 - Untuk Sl1..Sl25: hanya update denominator `/ 30` → `/ 34` (data-slide tetap)
 
-**Risiko**: pattern `SLIDE 30 / 30` ada di Sl30, replace dulu Sl30 sebelum Sl1..25 denominator. Atau pakai 2-pass:
-1. Pass 1: rename shifted slides (urutan **descending** Sl30→Sl29→Sl28→Sl27→Sl26) untuk avoid collision
-2. Pass 2: update denominator `/ 30` → `/ 34` di semua slide non-shifted
+**Exception**:
+- **Sl1 cover** (line 1817) layout `class="slide cover active"` — **TIDAK punya** `slide-badge`. Skip badge/denominator update untuk Sl1, hanya `data-slide="1"` tetap.
+- **Sl30 penutup** (line 3424) layout `class="slide penutup"` — **TIDAK punya** `slide-badge`. Hanya update `data-slide="30"` → `data-slide="34"`.
+- Slide dengan badge = **Sl2..Sl29** (28 slide). Denominator update hanya di slide-slide ini.
 
-Implementasi: lakukan via Edit tool dengan `replace_all` per-slide unique string (gunakan context line) atau script Python one-shot.
+**Risiko collision**: pattern `SLIDE 26 / 30` ada di Sl26 (existing Override KKJ). Kalau replace `SLIDE 26 / 30 → SLIDE 27 / 34` tapi belum geser dulu, akan crash dengan new Sl26 (Package Question) yang juga `SLIDE 26 / 34`. **Solusi 3-pass**:
+1. **Pass 1 (descending data-slide)**: shift existing data-slide values dari paling besar → kecil untuk avoid collision:
+   - `data-slide="30"` → `data-slide="34"` (Terima Kasih)
+   - `data-slide="29"` → `data-slide="33"` (Quick Ref)
+   - `data-slide="28"` → `data-slide="32"` (Maintenance)
+   - `data-slide="27"` → `data-slide="30"` (Monitoring)
+   - `data-slide="26"` → `data-slide="27"` (Override KKJ)
+2. **Pass 2 (descending badge text)**: same descending order untuk text `SLIDE N / 30`:
+   - `SLIDE 29 / 30` → `SLIDE 33 / 34` (Quick Ref)
+   - `SLIDE 28 / 30` → `SLIDE 32 / 34` (Maintenance)
+   - `SLIDE 27 / 30` → `SLIDE 30 / 34` (Monitoring)
+   - `SLIDE 26 / 30` → `SLIDE 27 / 34` (Override KKJ)
+   - `SLIDE 25 / 30` → `SLIDE 25 / 34` (denominator only, Silabus)
+   - ... cascade Sl24..Sl2: denominator-only update `/ 30 → / 34`
+3. **Pass 3**: update HTML section comments `<!-- ================= SLIDE N: ... =================` untuk shifted slides (Sl26→27, Sl27→30, Sl28→32, Sl29→33, Sl30→34). Maintenance-only, tidak affect rendering tapi penting untuk grep-ability future edit.
+4. **Pass 4 (insert new slides)**: insert 4 slide baru di posisi 26, 28, 29, 31 dengan badge `SLIDE N / 34`.
+
+Implementasi: pakai Edit tool dengan `old_string` context unik (include line context) atau script Python one-shot.
+
+### Wajib Update Selain Slide (HARDCODED 30 di JS + UI)
+
+Selain badge slide, **3 lokasi hardcoded angka 30** wajib update:
+
+| Line | Element | Sebelum | Sesudah |
+|------|---------|---------|---------|
+| 3439 | `<span class="slide-counter" id="slideCounter">` | `1 / 30` | `1 / 34` |
+| 3445 | JS `const TOTAL` | `const TOTAL = 30;` | `const TOTAL = 34;` |
+| 1816, 1828, 1879, ... | HTML comment `<!-- SLIDE N: ... =====` di slide shifted | `SLIDE 26 → 30` | `SLIDE 27, 30, 32, 33, 34` |
+
+Tanpa update JS `TOTAL`, keyboard nav `End` key (line 3474) akan stop di slide ke-30, slide 31-34 tidak accessible. Tanpa update `slideCounter`, counter initial display salah sampai user klik next.
 
 ---
 
-## CSS Tambahan (Opsional)
+## CSS & Icon Convention
 
-Pattern existing punya class yang re-usable:
+### Icon Convention (PENTING)
+
+Deck v2 **TIDAK pakai Bootstrap Icons** (`bi-*` class) — verified via `grep "bi-" → no matches` dan tidak ada `<link>` Bootstrap Icons CDN. Semua icon = **HTML entity emoji** (`&#NNNNN;`).
+
+**Konversi wajib** untuk konten slide baru (kalau saat implementasi tergoda pakai `bi-*` dari source codebase view):
+
+| Bootstrap Icon | HTML Entity | Visual |
+|---|---|---|
+| `bi-eye` | `&#128065;` | 👁 |
+| `bi-pencil` | `&#9999;` | ✏ |
+| `bi-trash` | `&#128465;` | 🗑 |
+| `bi-upload` | `&#128228;` | 📤 |
+| `bi-download` | `&#128229;` | 📥 |
+| `bi-arrow-left` | `&larr;` atau `&#8592;` | ← |
+| `bi-arrow-right` | `&rarr;` atau `&#8594;` | → |
+| `bi-circle-fill` | `&#9679;` | ● |
+| `bi-circle` | `&#9675;` | ○ |
+| `bi-x-circle` / `bi-x-octagon` | `&#10060;` | ❌ |
+| `bi-arrow-counterclockwise` | `&#8634;` | ↺ |
+| `bi-shuffle` | `&#128256;` atau `&#8644;` | 🔀 / ⇄ |
+| `bi-clock-history` / `bi-clock` | `&#9201;` | ⏱ |
+| `bi-check-circle-fill` | `&#9989;` | ✅ |
+
+### CSS Re-use (No New CSS Needed)
+
+Pattern existing class yang reuseable:
 - `slide-mockup-split` — split 2-col mockup+content
 - `mockup-frame` / `mockup-bar` / `mockup-recreated` — browser frame
 - `mockup-content` / `mockup-tip` / `mockup-warn` — content side
@@ -308,28 +363,34 @@ Pattern existing punya class yang re-usable:
 - `panduan-ref` — reference link
 - `mr-table` / `mr-filter-chip` / `mr-btn` / `mr-metric` — Admin Panel mockup atoms
 - `mr-badge-pill` `mr-badge-green/orange/blue` — status badges
+- **`mr-tab-strip` + `mr-tab` + `mr-tab.active`** (line 516-520) — **reuse untuk wizard nav-pills Sl28** (tidak perlu invent baru). Lihat usage di Sl25 Silabus (`<div class="mr-tab-strip">…</div>`).
 
-**Tidak perlu CSS baru.** Semua mockup recreate pakai class existing. Kalau butuh nav-pills wizard (Sl28) atau toggle (Sl29 settings card) → inline style `<style>` tag di scope slide tertentu, atau extend section `/* SLIDE 28 WIZARD */` di `<style>` global existing.
+**Tidak perlu tambah CSS class baru.** Wizard step indicator Sl28 = pakai `mr-tab-strip` dengan tweak inline style (tambah disabled state via `style="opacity:0.4;"`).
 
-**Komponen baru yang mungkin perlu inline style:**
-- Nav-pills wizard Sl28: `display:flex;gap:8px;` + `.pill.active{bg-primary}` + `.pill.disabled{border;color:muted}` (Bootstrap-like, ringan)
-- 3 mini-card horizontal Sl29: `display:grid;grid-template-columns:repeat(3,1fr);gap:8px;` + card kecil dengan badge step number
+**Komponen yang mungkin butuh inline style:**
+- 3 mini-card horizontal Sl29: `display:grid;grid-template-columns:repeat(3,1fr);gap:6px;` + tiap card pakai existing `.mockup-frame` mini (atau plain `border:1px solid #e2e8f0;border-radius:6px;padding:8px;`)
+- Step number badge Sl29: pakai `step-num-mini` existing (line 1297 area, sudah ada untuk swim-step)
 
 ---
 
 ## Verifikasi & Test Plan
 
-Sosialisasi deck = HTML statis, no JS logic. Verifikasi visual only:
+Sosialisasi deck = HTML statis. Verifikasi visual + functional:
 
 1. **Buka file di browser lokal** (`Live Server` VS Code atau `file://` direct).
-2. **Cek 4 slide baru** muat tanpa overflow (Sl26, Sl28, Sl29, Sl31):
+2. **Cek 4 slide baru** muat dalam frame 1280×720 (deck scale via `--deck-scale`):
    - Mockup frame tidak crop
    - Content kanan tidak terpotong
    - Tip-bar terlihat di footer slide
-3. **Cek renumber** semua slide badge konsisten `/ 34`.
-4. **Cek navigation** (kalau ada keyboard nav) `data-slide` sequential 1..34.
-5. **Cek dark mode** (kalau body.dark toggle exist) — semua slide baru contrast OK.
-6. **Print preview** (Ctrl+P) — pastikan 1 slide per page, layout tidak break.
+3. **Cek renumber badge**: Sl2..Sl29 semua `SLIDE N / 34` (Sl1 cover + Sl30 penutup tidak punya badge).
+4. **Cek navigation keyboard**:
+   - Tombol `End` → harus loncat ke `data-slide="34"` (Terima Kasih), bukan stop di 30
+   - Counter `slideCounter` initial display `1 / 34`
+   - `←` `→` Space PageUp PageDown navigate sequential 1..34
+5. **Cek data-slide sequential 1..34** tanpa gap/duplicate (browser DevTools: `document.querySelectorAll('[data-slide]').length === 34`).
+6. **Cek dark mode toggle** (`☀`/`☼` button) — slide baru contrast OK di kedua mode.
+7. **Cek progress bar** width = `current/34 * 100%` (otomatis kalau `TOTAL=34` updated).
+8. **Print preview** (Ctrl+P) — pastikan 1 slide per page, layout tidak break.
 
 ---
 
