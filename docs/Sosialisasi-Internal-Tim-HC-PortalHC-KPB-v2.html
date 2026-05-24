@@ -2004,14 +2004,8 @@
         </div>
       </div>
       <p class="stair-caption">&larr; Operational Level &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot; Higher Authority &rarr;</p>
-      <div class="hc-callout">
-        <strong>Penjelasan</strong>
-        <ul>
-          <li>10 role dikelompokkan dalam 6 level otorisasi. HC berada di Level 2 dengan akses lintas section sebagai final reviewer.</li>
-        </ul>
-      </div>
-      <div style="margin-top:14px;">
-        <h4 style="margin:0 0 6px;font-size:9.5pt;color:#0f766e;">&#128202; Matriks Role &times; Menu Visibility</h4>
+      <div style="margin-top:10px;">
+        <h4 style="margin:0 0 6px;font-size:9.5pt;color:#0f766e;">&#128202; Matriks Role &times; Menu Visibility <span style="font-size:7.5pt;color:#64748b;font-weight:400;">(HC = L2, lintas section, final reviewer)</span></h4>
         <table class="mr-table" style="font-size:7pt;">
           <thead><tr><th>Level</th><th>Role</th><th>CMP</th><th>CDP</th><th>Admin Panel</th><th>Profile</th><th>Guide RoleGroup</th></tr></thead>
           <tbody>
@@ -2244,25 +2238,7 @@
         </div>
       </div>
     </div>
-    <div style="margin:10px 16px 0;">
-      <h4 style="margin:0 0 6px;font-size:9pt;color:#0f766e;">&#128276; Tabel Tipe Notif Lengkap (10 tipe)</h4>
-      <table class="mr-table" style="font-size:7pt;">
-        <thead><tr><th>Kategori</th><th>Tipe</th><th>Trigger</th><th>Penerima</th></tr></thead>
-        <tbody>
-          <tr><td rowspan="3" style="background:#eff6ff;font-weight:700;">Evidence</td><td>&#9989; Approved by Section Head</td><td>Atasan approve</td><td>HC (final reviewer)</td></tr>
-          <tr><td>&#10060; Rejected &mdash; Chain Reset</td><td>Atasan reject</td><td>HC + Coach + Coachee</td></tr>
-          <tr><td>&#128228; Submitted by Coach</td><td>Coach submit deliverable</td><td>Atasan (next reviewer)</td></tr>
-          <tr><td rowspan="3" style="background:#fef3c7;font-weight:700;">Renewal</td><td>&#9203; H-90 Warning</td><td>Auto cron daily</td><td>HC + Pekerja</td></tr>
-          <tr><td>&#9888; H-30 Critical</td><td>Auto cron daily</td><td>HC + Pekerja + Atasan</td></tr>
-          <tr><td>&#128680; H-7 Last Call</td><td>Auto cron daily</td><td>HC + Atasan eskalasi</td></tr>
-          <tr><td rowspan="2" style="background:#f0fdfa;font-weight:700;">Assessment</td><td>&#127919; Created &amp; Published</td><td>HC publish</td><td>Peserta + Coach</td></tr>
-          <tr><td>&#10060; Force-Close by HC</td><td>HC akhiri ujian (Sl37)</td><td>Peserta</td></tr>
-          <tr><td rowspan="2" style="background:#fef2f2;font-weight:700;">System</td><td>&#9881; Override KKJ Logged</td><td>HC override manual (Sl32)</td><td>Admin (audit)</td></tr>
-          <tr><td>&#128295; Maintenance Mode On</td><td>Admin enable</td><td>All users</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow &middot; lihat juga Sl9 Tipe Notif</p>
   </div>
 
 
@@ -4202,42 +4178,6 @@
               <div class="ref-desc">Slide deck overview semua role (22 slide)</div>
               <a href="Sosialisasi-Aplikasi-PortalHC-KPB.html" target="_blank">Buka &rarr;</a>
             </div>
-            <div class="ref-card">
-              <div class="ref-icon">&#128218;</div>
-              <div class="ref-title">CMP Guide (Help System)</div>
-              <div class="ref-desc">Help system in-app per RoleGroup (Sl6)</div>
-              <a href="/KPB-PortalHC/Home/Guide" target="_blank">Buka &rarr;</a>
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div>
-            <h4 style="margin:0 0 4px;font-size:9pt;color:#0f766e;">&#9000; Keyboard Shortcut Deck</h4>
-            <table class="mr-table" style="font-size:7pt;">
-              <thead><tr><th>Tombol</th><th>Fungsi</th></tr></thead>
-              <tbody>
-                <tr><td><code>&larr;</code> / <code>&rarr;</code></td><td>Slide prev/next</td></tr>
-                <tr><td><code>Space</code> / <code>PageDown</code></td><td>Slide next</td></tr>
-                <tr><td><code>PageUp</code></td><td>Slide prev</td></tr>
-                <tr><td><code>Home</code></td><td>Slide 1 (Cover)</td></tr>
-                <tr><td><code>End</code></td><td>Slide 41 (Terima Kasih)</td></tr>
-                <tr><td><code>Esc</code></td><td>Exit fullscreen</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div>
-            <h4 style="margin:0 0 4px;font-size:9pt;color:#0f766e;">&#127760; URL Cheatsheet HC</h4>
-            <table class="mr-table" style="font-size:7pt;">
-              <thead><tr><th>Route</th><th>Fungsi</th></tr></thead>
-              <tbody>
-                <tr><td><code>/Admin</code></td><td>Admin Panel landing</td></tr>
-                <tr><td><code>/Admin/AssessmentMonitoring</code></td><td>Real-time monitor</td></tr>
-                <tr><td><code>/Admin/RenewalCertificate</code></td><td>Renewal queue</td></tr>
-                <tr><td><code>/Admin/CoachWorkload</code></td><td>Workload balance</td></tr>
-                <tr><td><code>/Home/Guide</code></td><td>Help system</td></tr>
-                <tr><td><code>/Admin/AuditLog</code></td><td>Investigation</td></tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
