@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Slide 8 Risalah Web v1.0 — Index</title>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-blue: #00558C;
+    --pertamina-green: #00A551;
+    --pertamina-yellow: #FFC72C;
+    --neutral-gray: #6b7280;
+    --bg: #f6f7fb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #1f2937; padding: 2rem; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .hero { background: linear-gradient(135deg, var(--pertamina-blue), var(--pertamina-green)); color: white; padding: 2.5rem; border-radius: 1rem; text-align: center; margin-bottom: 2rem; }
+  .hero h1 { margin: 0 0 .5rem; font-size: 2rem; }
+  .hero p { margin: 0; opacity: .95; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  .card { background: white; border-radius: .75rem; box-shadow: 0 4px 16px rgba(0,0,0,.08); padding: 1.5rem; text-decoration: none; color: inherit; transition: transform .2s, box-shadow .2s; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  .card.opsi-ii { border-top: 6px solid var(--pertamina-green); }
+  .card.opsi-iv { border-top: 6px solid var(--pertamina-blue); }
+  .card h2 { margin: 0 0 .35rem; font-size: 1.35rem; }
+  .card .tag { display: inline-block; padding: .2rem .55rem; border-radius: .35rem; font-size: .75rem; font-weight: 700; margin-bottom: .75rem; }
+  .card.opsi-ii .tag { background: var(--pertamina-green); color: white; }
+  .card.opsi-iv .tag { background: var(--pertamina-blue); color: white; }
+  .card p { margin: 0 0 .75rem; font-size: .9rem; color: var(--neutral-gray); }
+  .card ul { margin: .5rem 0 0; padding-left: 1.25rem; font-size: .85rem; }
+  .card li { margin-bottom: .25rem; }
+  .audience-matrix { background: white; padding: 1.5rem; border-radius: .75rem; box-shadow: 0 2px 12px rgba(0,0,0,.05); margin-bottom: 1.5rem; }
+  .audience-matrix h3 { margin: 0 0 .75rem; color: var(--pertamina-blue); }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th { background: var(--pertamina-blue); color: white; text-align: left; padding: .55rem .75rem; }
+  td { padding: .5rem .75rem; border-bottom: 1px solid #e5e7eb; }
+  .footer { text-align: center; padding: 1.5rem; color: var(--neutral-gray); font-size: .85rem; }
+  .footer code { background: white; padding: .15rem .4rem; border-radius: 3px; }
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <h1>Slide 8 Risalah Web — Solusi Terpilih HC Portal</h1>
+    <p>PCP SMART 2026 · §3.4 · v1.0 · 2 versi alternatif</p>
+  </div>
+
+  <div class="cards">
+    <a href="pipeline-outcome.html" class="card opsi-ii">
+      <div class="tag">PRIMARY ALTERNATIVE</div>
+      <h2>Opsi II — Pipeline Outcome</h2>
+      <p>Pemantauan Kompetensi 3-stage hero + Outcome matrix Spearman R → Panca Mutu</p>
+      <ul>
+        <li><b>Hero:</b> Pipeline 3-stage (Info Gathering → Auditing → Feedback)</li>
+        <li><b>Framework:</b> Ogoun &amp; Tamunosiki-Amadi (2023)</li>
+        <li><b>Formula:</b> R=0.777 (Time), 0.610 (Innov), 0.190 (Alert)</li>
+        <li><b>Audience:</b> PCP reviewer evidence-based, OPEX</li>
+      </ul>
+    </a>
+
+    <a href="workflow-topology-refined.html" class="card opsi-iv">
+      <div class="tag">REFINED VERSI P (LOW RISK)</div>
+      <h2>Opsi IV — Workflow Topology Refined</h2>
+      <p>Versi P existing + 2 callout box theory + Standar Internal + Coret + footer</p>
+      <ul>
+        <li><b>Base:</b> Versi P (Purdue 5-layer + Buffer Zone HC Portal)</li>
+        <li><b>+ Callout 1:</b> Flow Proses Ogoun 3-stage</li>
+        <li><b>+ Callout 2:</b> Formula R → Panca Mutu</li>
+        <li><b>Audience:</b> PCP reviewer preserve metafora familiar</li>
+      </ul>
+    </a>
+  </div>
+
+  <div class="audience-matrix">
+    <h3>Matriks Audience → Versi</h3>
+    <table>
+      <thead><tr><th>Audience</th><th>Rekomendasi</th></tr></thead>
+      <tbody>
+        <tr><td>PCP reviewer evidence-based + formula kuantitatif</td><td><b>Opsi II</b></td></tr>
+        <tr><td>PCP reviewer prefer metafora arsitektur familiar</td><td><b>Opsi IV</b></td></tr>
+        <tr><td>HC management showcase</td><td>Opsi IV (kontinuitas dengan Versi P)</td></tr>
+        <tr><td>OPEX / Process Improvement</td><td>Opsi II (Pipeline explicit)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <p>📌 Slide 8 Risalah Web v1.0 · Tag <code>slide8-risalah-v1.0</code> · Generated 2026-05-24</p>
+    <p>Spec: <code>docs/superpowers/specs/2026-05-24-slide8-risalah-opsi-ii-iv-design.md</code></p>
+    <p>Plan: <code>docs/superpowers/plans/2026-05-24-slide8-risalah-opsi-ii-iv.md</code></p>
+  </div>
+
+</div>
+</body>
+</html>
