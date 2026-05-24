@@ -8,6 +8,21 @@
 
 Slide 8 Risalah Web.pptx saat ini menggunakan Versi P (Workflow Topology Purdue-style + DMZ-analog Buffer Zone). Audit terhadap 4 jurnal akademis + 3 laporan korelasi di `referensi slide 8 solusi terpilih/` menemukan gap: tidak ada Flow Proses eksplisit, tidak ada Formula kuantitatif, zero theory grounding. Folder ini menyediakan 2 versi alternatif yang menambal gap tersebut.
 
+## Cakupan v1.1 (Compact untuk PPT box 8.11 × 25.72 cm)
+
+Folder `compact/` berisi versi compact yang pas masuk kotak konten slide 8 PowerPoint:
+
+- `compact/pipeline-outcome-compact.html` — Opsi II compact (Pipeline 3-stage)
+- `compact/workflow-topology-refined-compact.html` — Opsi IV compact (5-layer + Buffer Zone)
+- `compact/*.png` — PNG export 3035×957 (300 DPI) drop-in untuk PPT paste
+
+**Use case:** Paste PNG langsung ke slide 8 PowerPoint di kotak 8.11 × 25.72 cm di bawah bar judul hijau "Design / Gambar Teknik / Flow Proses / Formula Solusi Terpilih".
+
+Spec: `docs/superpowers/specs/2026-05-24-slide8-risalah-compact-opsi-ii-iv-design.md`
+Tag: `slide8-risalah-v1.1`
+
+---
+
 ## Cakupan v1.0
 
 ### Opsi II — `pipeline-outcome.html` (PRIMARY ALTERNATIVE)
