@@ -3091,6 +3091,68 @@
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 5 Admin Panel (16 task lengkap)</p>
   </div>
 
+  <!-- ================= SLIDE 24: ORGANIZATION MANAGEMENT ================= -->
+  <div class="slide default-deco" data-slide="24">
+    <div class="slide-header">
+      <div>
+        <p class="section-eyebrow">BAGIAN 4 &mdash; ADMIN PANEL</p>
+        <h1 class="slide-title">Organization <span class="accent">Management</span></h1>
+        <p class="slide-subtitle">Hierarki Bagian &rarr; Unit &rarr; Section &middot; CRUD master struktur organisasi</p>
+      </div>
+      <div class="slide-badge">SLIDE 24 / 41</div>
+    </div>
+    <div class="slide-body">
+      <div class="slide-mockup-split">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span>
+            <span class="mockup-url">localhost:5277/KPB-PortalHC/Admin/ManageOrganization</span>
+          </div>
+          <div class="mockup-recreated">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <strong style="font-size:8.5pt;color:#0f172a;">&#127970; Struktur Organisasi (3-level)</strong>
+              <button class="mr-btn">+ Tambah Node</button>
+            </div>
+            <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#fff;font-size:7.5pt;line-height:1.8;">
+              <div><span style="color:#0d6efd;">&#9660;</span> <strong>Operations</strong> <span style="background:#fef3c7;color:#b45309;padding:1px 6px;border-radius:8px;font-size:6.5pt;">3 unit</span> <span style="float:right;color:#94a3b8;">&#9999; Edit &middot; &#128465;</span></div>
+              <div style="padding-left:24px;border-left:2px dashed #667eea;margin-left:8px;">
+                <div><span style="color:#667eea;">&#9660;</span> Alkylation <span style="background:#fef3c7;color:#b45309;padding:1px 6px;border-radius:8px;font-size:6.5pt;">2 section</span></div>
+                <div style="padding-left:24px;border-left:2px dashed #0dcaf0;margin-left:8px;">
+                  <div><span style="color:#0dcaf0;">&#9679;</span> Section A</div>
+                  <div><span style="color:#0dcaf0;">&#9679;</span> Section B</div>
+                </div>
+                <div><span style="color:#667eea;">&#9654;</span> RFCC</div>
+                <div><span style="color:#667eea;">&#9654;</span> NHT</div>
+              </div>
+              <div><span style="color:#0d6efd;">&#9654;</span> <strong>HSSE</strong></div>
+              <div><span style="color:#0d6efd;">&#9654;</span> <strong>Maintenance</strong></div>
+            </div>
+            <div style="background:#f0fdfa;border:1px dashed #14b8a6;border-radius:4px;padding:6px;margin-top:6px;font-size:7pt;">
+              <strong style="color:#0f766e;">Add Node Form:</strong> Parent (dropdown) &middot; Nama &middot; Kode &middot; Sort &middot; Aktif
+            </div>
+          </div>
+        </div>
+        <div class="mockup-content">
+          <h4>&#127970; 3-Level Hierarchy</h4>
+          <ul>
+            <li><strong>Bagian</strong> (root) &mdash; departemen besar (Operations, HSSE, Maintenance)</li>
+            <li><strong>Unit</strong> (child) &mdash; sub-departemen (Alkylation, RFCC, NHT)</li>
+            <li><strong>Section</strong> (grandchild) &mdash; team/shift granular</li>
+          </ul>
+          <h4 style="margin-top:8px;">&#128279; Cross-link</h4>
+          <ul>
+            <li>Worker Mgmt (Sl25) pakai dropdown dari sini</li>
+            <li>Coach Mapping (Sl28) filter section</li>
+            <li>KKJ Files (Sl27) per Bagian</li>
+          </ul>
+          <div class="mockup-warn"><strong>&#9888; Cascade delete:</strong> Hapus Bagian = hapus semua Unit + Section di bawahnya. Pakai Nonaktif dulu.</div>
+        </div>
+      </div>
+      <div class="tip-bar" style="margin-top:10px;font-size:8.5pt;background:#fef3c7;border-left:3px solid #f59e0b;color:#78350f;">&#128221; <strong>Fungsi:</strong> Master data struktur organisasi 3-level. Drive dropdown unit/bagian di Worker Mgmt + Coach Mapping + Filter Monitoring.</div>
+    </div>
+    <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; &sect;5.1 Organization</p>
+  </div>
+
   <!-- ================= SLIDE 25: MANAJEMEN PEKERJA ================= -->
   <div class="slide default-deco" data-slide="25">
     <div class="slide-header">
