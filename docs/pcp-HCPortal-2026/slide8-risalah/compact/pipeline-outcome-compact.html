@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opsi II Compact — Pipeline Outcome</title>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-red-light: #fce8eb;
+    --pertamina-blue: #00558C;
+    --pertamina-blue-dark: #003D63;
+    --pertamina-blue-light: #e6f0f7;
+    --pertamina-green: #00A551;
+    --pertamina-green-light: #d4f0dd;
+    --pertamina-yellow: #FFC72C;
+    --neutral-gray: #6b7280;
+    --border: #d1d5db;
+    --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+    --fs-xs: 1vw;
+    --fs-sm: 1.25vw;
+    --fs-base: 1.5vw;
+    --fs-md: 1.75vw;
+    --fs-lg: 2vw;
+  }
+  * { box-sizing: border-box; }
+  body { width: 100vw; height: 100vh; margin: 0; padding: 0; background: white;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         color: #1f2937; overflow: hidden; }
+
+  .compact-container {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5vw;
+    width: 100%; height: 100%; padding: 0.3vw 0.5vw;
+  }
+  .panel {
+    border: 2px solid; border-radius: 6px;
+    padding: 0.4vw 0.6vw; display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
+  }
+  .panel-sebelum { border-color: var(--pertamina-red);
+                    background: linear-gradient(180deg, #fff5f5 0%, white 30%); }
+  .panel-sesudah { border-color: var(--pertamina-green);
+                    background: linear-gradient(180deg, #f0fdf4 0%, white 30%); }
+  .panel-header { font-size: var(--fs-sm); font-weight: 700;
+                   margin-bottom: 0.3vw; padding-bottom: 0.2vw;
+                   border-bottom: 1px dashed var(--border); }
+  .panel-sebelum .panel-header { color: var(--pertamina-red); }
+  .panel-sesudah .panel-header { color: var(--pertamina-green); }
+
+  .layer-list { display: flex; flex-direction: column; gap: 0.15vw; flex: 1; }
+  .layer { display: flex; gap: 0.4vw; align-items: center;
+           padding: 0.2vw 0.3vw; border-bottom: 1px dashed #f3f4f6;
+           font-size: var(--fs-xs); }
+  .layer:last-child { border-bottom: none; }
+  .layer-actor { width: 32%; font-weight: 600; }
+  .layer-tools { flex: 1; display: flex; gap: 0.2vw; flex-wrap: wrap; align-items: center; }
+  .chip { font-size: 0.95vw; padding: 0.1vw 0.4vw; border-radius: 3px;
+           white-space: nowrap; font-weight: 500; }
+  .chip.manual { background: var(--pertamina-red-light); color: var(--pertamina-red);
+                  border: 1px solid var(--pertamina-red); }
+  .chip.ext { background: #fff3cd; color: #856404; border: 1px solid #d4a017; }
+  .chip.paper { background: #e8e8e8; color: #555; border: 1px solid #999; }
+
+  .marker {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2vw; height: 2vw; border-radius: 50%;
+    color: white; font-weight: 700; font-size: 1.1vw;
+    margin-left: 0.15vw;
+  }
+  .marker.issue { background: var(--pertamina-red); }
+  .marker.improvement { background: var(--pertamina-green); }
+
+  .legend-inset {
+    position: absolute; top: 0.3vw; right: 0.4vw;
+    font-size: var(--fs-xs);
+    background: rgba(255,255,255,.9);
+    padding: 0.15vw 0.3vw; border-radius: 3px; border: 1px solid var(--border);
+  }
+
+  .rpn-note { font-size: var(--fs-xs); color: var(--neutral-gray);
+              font-style: italic; margin-top: 0.3vw; text-align: center; }
+
+  .pipeline-row { display: flex; gap: 0.3vw; flex: 1;
+                   align-items: stretch; padding: 0.2vw 0; }
+  .stage { color: white; padding: 0.4vw 0.5vw; border-radius: 5px;
+            flex: 1; display: flex; flex-direction: column; gap: 0.2vw;
+            font-size: var(--fs-xs); }
+  .stage-1 { background: linear-gradient(135deg, #00558C, #0077B5); }
+  .stage-2 { background: linear-gradient(135deg, #0077B5, #00A551); }
+  .stage-3 { background: linear-gradient(135deg, #00A551, #5cba7d); }
+  .stage-num { font-size: var(--fs-md); font-weight: 800; line-height: 1; }
+  .stage-title { font-weight: 700; font-size: var(--fs-xs); margin-top: 0.15vw; }
+  .stage-actors { font-size: 0.85vw; opacity: .85; font-style: italic; }
+  .stage-features { font-size: 0.85vw; line-height: 1.4; }
+  .stage-markers { margin-top: auto; display: flex; gap: 0.15vw; }
+  .pipeline-arrow { display: flex; align-items: center;
+                    font-size: var(--fs-md); color: var(--pertamina-yellow);
+                    padding: 0 0.1vw; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="compact-container">
+
+  <!-- KIRI: SEBELUM 5-layer -->
+  <div class="panel panel-sebelum">
+    <div class="panel-header">❌ Sebelum (Kondisi Aktual)</div>
+    <div class="layer-list">
+      <div class="layer">
+        <div class="layer-actor">👔 <b>Lv5</b> Manajemen</div>
+        <div class="layer-tools">
+          <span class="chip manual">📄 PDF/Excel</span>
+          <span class="chip ext">📧 Email</span>
+          <span class="marker issue">D</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">👤 <b>Lv4</b> HC</div>
+        <div class="layer-tools">
+          <span class="chip manual">📊 Excel ×5</span>
+          <span class="chip manual">📝 Word</span>
+          <span class="marker issue">A</span>
+          <span class="marker issue">B</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">🏢 <b>Lv3</b> Atasan</div>
+        <div class="layer-tools">
+          <span class="chip ext">📧 Email</span>
+          <span class="chip ext">💬 WA approval</span>
+          <span class="marker issue">C</span>
+          <span class="marker issue">E</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">🧑‍🏫 <b>Lv2</b> Coach</div>
+        <div class="layer-tools">
+          <span class="chip paper">📋 Form cetak</span>
+          <span class="chip paper">📁 Arsip</span>
+          <span class="chip ext">💬 WA</span>
+          <span class="chip ext">📧 Email</span>
+          <span class="marker issue">A</span>
+          <span class="marker issue">E</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-actor">👷 <b>Lv1</b> Pekerja</div>
+        <div class="layer-tools">
+          <span class="chip ext">🌐 FleQi</span>
+          <span class="chip paper">🎓 Cert hardcopy</span>
+          <span class="chip manual">📊 Excel IDP</span>
+          <span class="marker issue">A</span>
+          <span class="marker issue">F</span>
+        </div>
+      </div>
+    </div>
+    <div class="rpn-note">FMEA RPN · Method 140 · Machine 140 · Man 90 (Risalah PROTON)</div>
+    <div class="legend-inset">A-F · Issue</div>
+  </div>
+
+  <!-- KANAN: SOLUSI TERPILIH — Pipeline 3-stage hero -->
+  <div class="panel panel-sesudah">
+    <div class="panel-header">✅ Solusi Terpilih — Pemantauan Kompetensi Pipeline · Ogoun &amp; Tamunosiki-Amadi (2023)</div>
+    <div class="pipeline-row">
+      <div class="stage stage-1">
+        <div class="stage-num">①</div>
+        <div class="stage-title">Information Gathering &amp; Evaluation</div>
+        <div class="stage-actors">👤 HC · 👷 Pekerja</div>
+        <div class="stage-features">📝 Assessment Online<br/>📊 KKJ Matrix<br/>🎯 PROTON IDP</div>
+        <div class="stage-markers">
+          <span class="marker improvement">2</span>
+          <span class="marker improvement">7</span>
+        </div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="stage stage-2">
+        <div class="stage-num">②</div>
+        <div class="stage-title">Activity Auditing</div>
+        <div class="stage-actors">🏢 Atasan · 🧑‍🏫 Coach · 👤 HC</div>
+        <div class="stage-features">📎 Upload Evidence<br/>✅ Approval<br/>🔍 Audit Log<br/>🔐 RBAC</div>
+        <div class="stage-markers">
+          <span class="marker improvement">3</span>
+          <span class="marker improvement">5</span>
+          <span class="marker improvement">6</span>
+        </div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="stage stage-3">
+        <div class="stage-num">③</div>
+        <div class="stage-title">Feedback Loop</div>
+        <div class="stage-actors">👔 Manajemen · 👤 HC · 👷 Pekerja</div>
+        <div class="stage-features">🔥 Heatmap Gap<br/>🏆 Cert Download<br/>🔔 Notif In-App</div>
+        <div class="stage-markers">
+          <span class="marker improvement">1</span>
+          <span class="marker improvement">4</span>
+        </div>
+      </div>
+    </div>
+    <div class="legend-inset">1-7 · Improvement</div>
+  </div>
+
+</div>
+</body>
+</html>
