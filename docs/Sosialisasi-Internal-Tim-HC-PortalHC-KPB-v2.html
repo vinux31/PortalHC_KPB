@@ -2244,6 +2244,24 @@
         </div>
       </div>
     </div>
+    <div style="margin:10px 16px 0;">
+      <h4 style="margin:0 0 6px;font-size:9pt;color:#0f766e;">&#128276; Tabel Tipe Notif Lengkap (10 tipe)</h4>
+      <table class="mr-table" style="font-size:7pt;">
+        <thead><tr><th>Kategori</th><th>Tipe</th><th>Trigger</th><th>Penerima</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3" style="background:#eff6ff;font-weight:700;">Evidence</td><td>&#9989; Approved by Section Head</td><td>Atasan approve</td><td>HC (final reviewer)</td></tr>
+          <tr><td>&#10060; Rejected &mdash; Chain Reset</td><td>Atasan reject</td><td>HC + Coach + Coachee</td></tr>
+          <tr><td>&#128228; Submitted by Coach</td><td>Coach submit deliverable</td><td>Atasan (next reviewer)</td></tr>
+          <tr><td rowspan="3" style="background:#fef3c7;font-weight:700;">Renewal</td><td>&#9203; H-90 Warning</td><td>Auto cron daily</td><td>HC + Pekerja</td></tr>
+          <tr><td>&#9888; H-30 Critical</td><td>Auto cron daily</td><td>HC + Pekerja + Atasan</td></tr>
+          <tr><td>&#128680; H-7 Last Call</td><td>Auto cron daily</td><td>HC + Atasan eskalasi</td></tr>
+          <tr><td rowspan="2" style="background:#f0fdfa;font-weight:700;">Assessment</td><td>&#127919; Created &amp; Published</td><td>HC publish</td><td>Peserta + Coach</td></tr>
+          <tr><td>&#10060; Force-Close by HC</td><td>HC akhiri ujian (Sl37)</td><td>Peserta</td></tr>
+          <tr><td rowspan="2" style="background:#fef2f2;font-weight:700;">System</td><td>&#9881; Override KKJ Logged</td><td>HC override manual (Sl32)</td><td>Admin (audit)</td></tr>
+          <tr><td>&#128295; Maintenance Mode On</td><td>Admin enable</td><td>All users</td></tr>
+        </tbody>
+      </table>
+    </div>
     <p class="panduan-ref"><strong>Detail:</strong> Panduan Operasional HC &mdash; Bab 6 Notifikasi &amp; Workflow</p>
   </div>
 
