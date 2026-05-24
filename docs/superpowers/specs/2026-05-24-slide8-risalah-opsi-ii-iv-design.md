@@ -232,13 +232,16 @@ Mulai dari Versi P existing (`docs/pcp-HCPortal-2026/3.4-solusi-terpilih/versi-p
 
 ## 9. PNG Export Process
 
-Per file HTML:
-1. Open di browser
-2. Print → Save as PDF (A3 landscape, scale 100%)
-3. Convert PDF page 1 → PNG (resolution 300 DPI minimum)
-4. Save sebagai `<filename>.png` di folder yang sama
+**Default: Playwright automated** (faster, repeatable):
+- `browser_navigate` ke `file:///.../slide8-risalah/<filename>.html`
+- `browser_resize` ke 1600×1100 (A3 landscape proportion)
+- `browser_take_screenshot` dengan `fullPage: true, type: 'png', filename: '<filename>.png'`
+- Save ke folder `slide8-risalah/`
 
-Atau: gunakan Playwright `browser_take_screenshot` dengan `fullPage: true, type: 'png'`.
+**Fallback manual** (kalau Playwright gagal):
+1. Open HTML di Chrome/Edge
+2. Print → Save as PDF (A3 landscape, scale 100%)
+3. Convert PDF page 1 → PNG (300 DPI minimum) via tool eksternal
 
 ## 10. Implementation Sequence (untuk plan)
 
