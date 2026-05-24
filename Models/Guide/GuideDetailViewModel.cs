@@ -7,6 +7,6 @@ public record GuideDetailViewModel(
     string ModuleIcon,
     string ModuleBreadcrumb,
     string ModuleCategory,
-    GuidePdfLink? Pdf,
+    IReadOnlyList<GuidePdfLink> Pdfs,
     IReadOnlyList<GuideItem> Items
 );

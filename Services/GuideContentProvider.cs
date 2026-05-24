@@ -811,11 +811,11 @@ public static class GuideContentProvider
             Roles: new[] { RoleGroup.All }
         ),
         new GuidePdfLink(
-            Module: GuideModule.Data,
+            Module: GuideModule.Cmp,
             Title: "Panduan Buat Assessment & Input Soal",
             Description: "Tutorial lengkap membuat assessment, mengelola paket soal, dan mengimpor soal dari Excel — untuk Admin & HC.",
             FilePath: "~/documents/guides/Panduan-Admin-Buat-Assessment-dan-Input-Soal.html",
-            CardCssClass: "guide-tutorial-card--data",
+            CardCssClass: "guide-tutorial-card--cmp",
             BtnColorClass: "btn-primary",
             Roles: new[] { RoleGroup.AdminHC }
         ),
@@ -853,8 +853,8 @@ public static class GuideContentProvider
                 g => (IReadOnlyList<GuideFaqItem>)g.ToList()
             );
 
-    public static GuidePdfLink? GetPdf(GuideModule module, string userRole)
-        => Pdfs.FirstOrDefault(p => p.Module == module && GuideRoleAccess.CanSee(userRole, p.Roles));
+    public static IReadOnlyList<GuidePdfLink> GetPdfs(GuideModule module, string userRole)
+        => Pdfs.Where(p => p.Module == module && GuideRoleAccess.CanSee(userRole, p.Roles)).ToList();
 
     public static IReadOnlyList<GuideModuleCardVm> GetModuleCards(string userRole)
     {
@@ -880,7 +880,7 @@ public static class GuideContentProvider
                 ShortLabel: m.Short,
                 IconCssClass: m.Icon,
                 CardCssClass: m.Card,
-                ItemCount: GetItems(m.Module, userRole).Count + (GetPdf(m.Module, userRole) != null ? 1 : 0),
+                ItemCount: GetItems(m.Module, userRole).Count + GetPdfs(m.Module, userRole).Count,
                 AosDelay: m.AosDelay,
                 Roles: m.Roles,
                 Keywords: m.Keywords

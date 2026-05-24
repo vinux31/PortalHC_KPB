@@ -30,31 +30,35 @@
     </div>
 </div>
 
-@if (Model.Pdf != null)
+@{
+    var pdfDelay = 150;
+}
+@foreach (var pdf in Model.Pdfs)
 {
-    var outlineBtn = Model.Pdf.BtnColorClass.Replace("btn-", "btn-outline-");
-    var pdfDownloadName = System.IO.Path.GetFileName(Model.Pdf.FilePath);
-    <div class="guide-tutorial-card @Model.Pdf.CardCssClass" data-aos="fade-up" data-aos-delay="150">
+    var outlineBtn = pdf.BtnColorClass.Replace("btn-", "btn-outline-");
+    var pdfDownloadName = System.IO.Path.GetFileName(pdf.FilePath);
+    <div class="guide-tutorial-card @pdf.CardCssClass" data-aos="fade-up" data-aos-delay="@pdfDelay">
         <div class="guide-tutorial-inner d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
                 <div class="guide-tutorial-icon">
                     <i class="bi bi-file-earmark-pdf-fill fs-4"></i>
                 </div>
                 <div>
-                    <h5 class="guide-tutorial-title mb-1 fw-bold">@Model.Pdf.Title</h5>
-                    <p class="mb-0 text-muted small">@Model.Pdf.Description</p>
+                    <h5 class="guide-tutorial-title mb-1 fw-bold">@pdf.Title</h5>
+                    <p class="mb-0 text-muted small">@pdf.Description</p>
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <a href="@Url.Content(Model.Pdf.FilePath)" target="_blank" class="btn @outlineBtn btn-sm">
+                <a href="@Url.Content(pdf.FilePath)" target="_blank" class="btn @outlineBtn btn-sm">
                     <i class="bi bi-eye me-1"></i> Lihat
                 </a>
-                <a href="@Url.Content(Model.Pdf.FilePath)" download="@pdfDownloadName" class="btn @Model.Pdf.BtnColorClass btn-sm">
+                <a href="@Url.Content(pdf.FilePath)" download="@pdfDownloadName" class="btn @pdf.BtnColorClass btn-sm">
                     <i class="bi bi-download me-1"></i> Download
                 </a>
             </div>
         </div>
     </div>
+    pdfDelay += 50;
 }
 
 <div class="guide-detail-content" data-aos="fade-up" data-aos-delay="200">

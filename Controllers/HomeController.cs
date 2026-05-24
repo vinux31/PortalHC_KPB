@@ -403,7 +403,7 @@ public class HomeController : Controller
             ModuleIcon: moduleIcon,
             ModuleBreadcrumb: moduleBreadcrumb,
             ModuleCategory: moduleCategory,
-            Pdf: GuideContentProvider.GetPdf(moduleEnum, userRole),
+            Pdfs: GuideContentProvider.GetPdfs(moduleEnum, userRole),
             Items: GuideContentProvider.GetItems(moduleEnum, userRole)
         );
 
