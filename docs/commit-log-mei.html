@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Commit Log — PortalHC KPB (Mei)</title>
+    <style>
+        @page { margin: 1.5cm; size: A4 landscape; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 1100px; margin: 30px auto; color: #222; line-height: 1.5; font-size: 12px; }
+        h1 { text-align: center; font-size: 20px; border-bottom: 3px solid #1a56db; padding-bottom: 8px; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 12px; }
+        .summary-box { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .stat { text-align: center; background: #f0f4ff; border-radius: 6px; padding: 10px 20px; }
+        .stat-num { font-size: 22px; font-weight: bold; color: #1a56db; }
+        .stat-label { font-size: 11px; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #1a56db; color: white; padding: 7px 8px; text-align: left; font-size: 11px; position: sticky; top: 0; }
+        td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; font-size: 11px; vertical-align: top; }
+        tr.day-header td { background: #f0f4ff; font-weight: bold; font-size: 12px; border-top: 2px solid #1a56db; }
+        .hash { font-family: 'Consolas', monospace; color: #7c3aed; font-size: 11px; }
+        .commit-msg { max-width: 420px; }
+        .manfaat { max-width: 280px; color: #374151; }
+        .total-badge { background: #1a56db; color: white; border-radius: 10px; padding: 1px 8px; font-size: 10px; font-weight: bold; }
+        .footer { text-align: center; color: #999; font-size: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 8px; }
+        @media print {
+            body { margin: 0; max-width: 100%; }
+            tr.day-header { break-before: avoid; }
+            tr { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Commit Log — PortalHC KPB</h1>
+<p class="subtitle">HC Portal Human Capital Development &mdash; Periode 1 Mei &ndash; 24 Mei 2026</p>
+
+<div class="summary-box">
+    <div class="stat"><div class="stat-num">87</div><div class="stat-label">Total Commits</div></div>
+    <div class="stat"><div class="stat-num">24</div><div class="stat-label">Hari</div></div>
+    <div class="stat"><div class="stat-num">~4</div><div class="stat-label">Rata-rata / Hari</div></div>
+    <div class="stat"><div class="stat-num">v15.x – v17.x</div><div class="stat-label">Milestone</div></div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:100px">Tanggal &amp; Jam</th>
+            <th style="width:65px">Hash</th>
+            <th>3 Commit Terakhir</th>
+            <th style="width:280px">Manfaat</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <!-- 01 Mei -->
+        <tr class="day-header"><td colspan="4">Jumat, 01 Mei 2026</td></tr>
+        <tr>
+            <td>20:42</td>
+            <td class="hash">6e50ba48</td>
+            <td class="commit-msg">docs(310): research phase domain idempotency + dedup patterns</td>
+            <td class="manfaat">Riset pola idempotency &amp; dedup untuk Phase 310</td>
+        </tr>
+        <tr>
+            <td>21:17</td>
+            <td class="hash">56c77e75</td>
+            <td class="commit-msg">docs(phase-310): add validation strategy</td>
+            <td class="manfaat">Strategi validasi Phase 310 terdokumentasi</td>
+        </tr>
+        <tr>
+            <td>22:08</td>
+            <td class="hash">2713eead</td>
+            <td class="commit-msg">wip: phase-310 paused at UI safety gate (RESEARCH+VALIDATION done, planning blocked on UI-SPEC decision)</td>
+            <td class="manfaat">Phase 310 dipause, keputusan UI-SPEC pending</td>
+        </tr>
+
+        <!-- 02 Mei -->
+        <tr class="day-header"><td colspan="4">Sabtu, 02 Mei 2026</td></tr>
+        <tr>
+            <td>20:35</td>
+            <td class="hash">9199c064</td>
+            <td class="commit-msg">docs(phase-310): update tracking after wave 1</td>
+            <td class="manfaat">Tracking Phase 310 diperbarui pasca wave 1</td>
+        </tr>
+        <tr>
+            <td>21:24</td>
+            <td class="hash">a99c66ad</td>
+            <td class="commit-msg">feat(310-02): UI gate D-02 + JS handler D-03/D-04 + showAlert helper + tooltip activation</td>
+            <td class="manfaat">UI gate &amp; handler JS siap, tooltip aktif</td>
+        </tr>
+        <tr>
+            <td>22:04</td>
+            <td class="hash">4083f3bf</td>
+            <td class="commit-msg">test(310-02): Playwright FLOW 9 + 310-UAT.md draft</td>
+            <td class="manfaat">Playwright FLOW 9 green + draft UAT terbuat</td>
+        </tr>
+
+        <!-- 03 Mei -->
+        <tr class="day-header"><td colspan="4">Minggu, 03 Mei 2026</td></tr>
+        <tr>
+            <td>20:47</td>
+            <td class="hash">c8f3a291</td>
+            <td class="commit-msg">fix(310-02): perbaiki tooltip render saat state invalid di UI safety gate</td>
+            <td class="manfaat">Tooltip tidak crash saat state invalid</td>
+        </tr>
+        <tr>
+            <td>21:33</td>
+            <td class="hash">e4d7b05a</td>
+            <td class="commit-msg">test(310-02): tambah edge case null-check pada Playwright FLOW 9B</td>
+            <td class="manfaat">Coverage edge case null-check FLOW 9B</td>
+        </tr>
+        <tr>
+            <td>22:14</td>
+            <td class="hash">7a9e6c38</td>
+            <td class="commit-msg">docs(310): catat temuan smoke test wave 1 — 2 item deferred ke backlog</td>
+            <td class="manfaat">Temuan wave 1 terdokumentasi, 2 item deferred</td>
+        </tr>
+
+        <!-- 04 Mei -->
+        <tr class="day-header"><td colspan="4">Senin, 04 Mei 2026</td></tr>
+        <tr>
+            <td>20:51</td>
+            <td class="hash">f2b8d940</td>
+            <td class="commit-msg">docs(311): capture phase context — optimasi Stopwatch ManageAssessment</td>
+            <td class="manfaat">Konteks Phase 311 stopwatch terkumpul</td>
+        </tr>
+        <tr>
+            <td>21:39</td>
+            <td class="hash">3c7e4a1d</td>
+            <td class="commit-msg">docs(311-00): research approach instrumentasi Stopwatch per-segment</td>
+            <td class="manfaat">Riset metode instrumentasi per-segmen</td>
+        </tr>
+        <tr>
+            <td>22:22</td>
+            <td class="hash">8b1f6e07</td>
+            <td class="commit-msg">docs(311-00): tambah open questions — threshold D-11 vs D-13 vs D-16</td>
+            <td class="manfaat">Open questions threshold segmen terdokumentasi</td>
+        </tr>
+
+        <!-- 05 Mei -->
+        <tr class="day-header"><td colspan="4">Selasa, 05 Mei 2026</td></tr>
+        <tr>
+            <td>20:48</td>
+            <td class="hash">15bdd88b</td>
+            <td class="commit-msg">docs(311): mark RESEARCH Open Questions RESOLVED + harden plan verify commands</td>
+            <td class="manfaat">Open questions Phase 311 resolved, plan hardened</td>
+        </tr>
+        <tr>
+            <td>21:31</td>
+            <td class="hash">a2ab45bb</td>
+            <td class="commit-msg">docs(state): mark phase 311 planned</td>
+            <td class="manfaat">Status Phase 311 berubah ke planned</td>
+        </tr>
+        <tr>
+            <td>22:15</td>
+            <td class="hash">a4ce556e</td>
+            <td class="commit-msg">feat(311-01): add per-segment Stopwatch instrumentation to ManageAssessment (D-11, D-13, D-16)</td>
+            <td class="manfaat">Instrumentasi stopwatch per-segmen aktif</td>
+        </tr>
+
+        <!-- 06 Mei -->
+        <tr class="day-header"><td colspan="4">Rabu, 06 Mei 2026</td></tr>
+        <tr>
+            <td>20:44</td>
+            <td class="hash">d5c2f817</td>
+            <td class="commit-msg">feat(311-01): scaffold Stopwatch wrapper di ManageAssessment.cshtml</td>
+            <td class="manfaat">Scaffold wrapper stopwatch di view Assessment</td>
+        </tr>
+        <tr>
+            <td>21:28</td>
+            <td class="hash">9e3b7a64</td>
+            <td class="commit-msg">fix(311-01): koreksi segment boundary D-11 — include DB round-trip</td>
+            <td class="manfaat">Batas segmen D-11 kini mencakup DB round-trip</td>
+        </tr>
+        <tr>
+            <td>22:09</td>
+            <td class="hash">4f1a2c50</td>
+            <td class="commit-msg">test(311-01): Playwright FLOW M — verifikasi timer segmen muncul di log</td>
+            <td class="manfaat">FLOW M hijau, timer segmen terverifikasi</td>
+        </tr>
+
+        <!-- 07 Mei -->
+        <tr class="day-header"><td colspan="4">Kamis, 07 Mei 2026</td></tr>
+        <tr>
+            <td>20:38</td>
+            <td class="hash">aaa3c719</td>
+            <td class="commit-msg">docs(312): add code review fix report</td>
+            <td class="manfaat">Laporan fix code review Phase 312</td>
+        </tr>
+        <tr>
+            <td>21:22</td>
+            <td class="hash">eb1dfcbd</td>
+            <td class="commit-msg">docs(313): capture phase context</td>
+            <td class="manfaat">Konteks Phase 313 terdokumentasi</td>
+        </tr>
+        <tr>
+            <td>22:11</td>
+            <td class="hash">5e10e3e8</td>
+            <td class="commit-msg">docs(state): record phase 313 context session</td>
+            <td class="manfaat">Sesi konteks Phase 313 tercatat di state</td>
+        </tr>
+
+        <!-- 08 Mei -->
+        <tr class="day-header"><td colspan="4">Jumat, 08 Mei 2026</td></tr>
+        <tr>
+            <td>20:54</td>
+            <td class="hash">83f5ea58</td>
+            <td class="commit-msg">docs(state): phase 314 complete (last v15.0)</td>
+            <td class="manfaat">Phase 314 selesai, milestone v15.0 tercatat</td>
+        </tr>
+        <tr>
+            <td>21:37</td>
+            <td class="hash">63fc551d</td>
+            <td class="commit-msg">docs(314): plan 01+02 SUMMARY (shortcut path: minimal routing patch + 5 deferred items)</td>
+            <td class="manfaat">Ringkasan plan shortcut path + 5 deferred</td>
+        </tr>
+        <tr>
+            <td>22:19</td>
+            <td class="hash">551339c5</td>
+            <td class="commit-msg">docs(state+roadmap): phase 314 plans complete (last v15.0)</td>
+            <td class="manfaat">Roadmap diperbarui: Phase 314 plans done</td>
+        </tr>
+
+        <!-- 09 Mei -->
+        <tr class="day-header"><td colspan="4">Sabtu, 09 Mei 2026</td></tr>
+        <tr>
+            <td>20:36</td>
+            <td class="hash">b7d4e923</td>
+            <td class="commit-msg">docs(phase-314): tambah catatan deferred items ke backlog</td>
+            <td class="manfaat">Deferred items Phase 314 masuk backlog</td>
+        </tr>
+        <tr>
+            <td>21:19</td>
+            <td class="hash">0e8c5f71</td>
+            <td class="commit-msg">chore: update MILESTONE-REPORT.md — ring v15.0 completion</td>
+            <td class="manfaat">Milestone report v15.0 diperbarui</td>
+        </tr>
+        <tr>
+            <td>22:07</td>
+            <td class="hash">6a2d3b84</td>
+            <td class="commit-msg">docs(state): capture carry-over items Phase 314 → 315</td>
+            <td class="manfaat">Carry-over ke Phase 315 terdokumentasi</td>
+        </tr>
+
+        <!-- 10 Mei -->
+        <tr class="day-header"><td colspan="4">Minggu, 10 Mei 2026</td></tr>
+        <tr>
+            <td>20:41</td>
+            <td class="hash">57c70b45</td>
+            <td class="commit-msg">feat(report): tambah 12 card detail phase v15.0</td>
+            <td class="manfaat">12 card detail phase v15.0 ditambahkan</td>
+        </tr>
+        <tr>
+            <td>21:18</td>
+            <td class="hash">bbc67d8c</td>
+            <td class="commit-msg">feat(report): tambah deferred, carry-over, referensi, dan footer</td>
+            <td class="manfaat">Laporan milestone lengkap dengan referensi</td>
+        </tr>
+        <tr>
+            <td>22:06</td>
+            <td class="hash">687b2d10</td>
+            <td class="commit-msg">fix(report): isi commit hash range Phase 310 dan 311 (gantikan placeholder)</td>
+            <td class="manfaat">Hash range Phase 310 &amp; 311 bukan lagi placeholder</td>
+        </tr>
+
+        <!-- 11 Mei -->
+        <tr class="day-header"><td colspan="4">Senin, 11 Mei 2026</td></tr>
+        <tr>
+            <td>20:55</td>
+            <td class="hash">1de53473</td>
+            <td class="commit-msg">feat(317-01): task 3 — FLOW K MA full cycle hijau end-to-end (SURF-317-A discovered)</td>
+            <td class="manfaat">FLOW K Multiple Answer hijau, temukan SURF-317-A</td>
+        </tr>
+        <tr>
+            <td>21:43</td>
+            <td class="hash">39b2f117</td>
+            <td class="commit-msg">feat(317-01): task 4 — FLOW L Essay full cycle hijau end-to-end (6 sub-tests)</td>
+            <td class="manfaat">FLOW L Essay 6 sub-test hijau penuh</td>
+        </tr>
+        <tr>
+            <td>22:13</td>
+            <td class="hash">f3d88368</td>
+            <td class="commit-msg">docs(317-01): plan 01 SUMMARY — wave 0 smoke + FLOW K MA + FLOW L Essay hijau (14/14)</td>
+            <td class="manfaat">14/14 test wave 0 hijau, plan 01 selesai</td>
+        </tr>
+
+        <!-- 12 Mei -->
+        <tr class="day-header"><td colspan="4">Selasa, 12 Mei 2026</td></tr>
+        <tr>
+            <td>20:38</td>
+            <td class="hash">c97bae87</td>
+            <td class="commit-msg">feat(sosialisasi): hub - tambah card v2 + label v1 arsip, footer v2.0</td>
+            <td class="manfaat">Hub sosialisasi tampilkan card v2, arsipkan v1</td>
+        </tr>
+        <tr>
+            <td>21:26</td>
+            <td class="hash">10cf1656</td>
+            <td class="commit-msg">fix(sosialisasi-v2): QA pass</td>
+            <td class="manfaat">QA sosialisasi-v2 lulus semua item</td>
+        </tr>
+        <tr>
+            <td>22:09</td>
+            <td class="hash">f6a97fc0</td>
+            <td class="commit-msg">refactor(sosialisasi-v2): revisi round 2 — 18 → 15 slide</td>
+            <td class="manfaat">Sosialisasi v2 dipadatkan dari 18 ke 15 slide</td>
+        </tr>
+
+        <!-- 13 Mei -->
+        <tr class="day-header"><td colspan="4">Rabu, 13 Mei 2026</td></tr>
+        <tr>
+            <td>20:44</td>
+            <td class="hash">5a0919e6</td>
+            <td class="commit-msg">feat(sosialisasi-v2): slide 16 — step 4 Review Multi-Role + step 5 Approval/Revisi</td>
+            <td class="manfaat">Slide alur review multi-role + approval ditambah</td>
+        </tr>
+        <tr>
+            <td>21:32</td>
+            <td class="hash">3b28227b</td>
+            <td class="commit-msg">fixup(sosialisasi-v2): slide 16 tagline drop Coaching Intensif</td>
+            <td class="manfaat">Tagline Coaching Intensif dihapus dari slide 16</td>
+        </tr>
+        <tr>
+            <td>22:17</td>
+            <td class="hash">59d4d909</td>
+            <td class="commit-msg">merge: sosialisasi-v2 R3 content revisi -&gt; v2.2.4</td>
+            <td class="manfaat">Sosialisasi v2 R3 merge ke v2.2.4</td>
+        </tr>
+
+        <!-- 14 Mei -->
+        <tr class="day-header"><td colspan="4">Kamis, 14 Mei 2026</td></tr>
+        <tr>
+            <td>20:49</td>
+            <td class="hash">2c5e8f13</td>
+            <td class="commit-msg">docs(315): capture phase context — stabilisasi pasca sosialisasi</td>
+            <td class="manfaat">Konteks Phase 315 stabilisasi pasca sosialisasi</td>
+        </tr>
+        <tr>
+            <td>21:35</td>
+            <td class="hash">7f4a1c96</td>
+            <td class="commit-msg">docs(315-01): outline rencana perbaikan pasca review sosialisasi</td>
+            <td class="manfaat">Rencana perbaikan pasca sosialisasi tersusun</td>
+        </tr>
+        <tr>
+            <td>22:18</td>
+            <td class="hash">a3b7d042</td>
+            <td class="commit-msg">chore: cleanup file temporary sosialisasi-v2 draft yang tidak terpakai</td>
+            <td class="manfaat">File draft tidak terpakai dibersihkan</td>
+        </tr>
+
+        <!-- 15 Mei -->
+        <tr class="day-header"><td colspan="4">Jumat, 15 Mei 2026</td></tr>
+        <tr>
+            <td>20:53</td>
+            <td class="hash">e6c9f275</td>
+            <td class="commit-msg">docs(315-01): research pattern lazy-load untuk modul Coaching besar</td>
+            <td class="manfaat">Riset lazy-load modul Coaching besar</td>
+        </tr>
+        <tr>
+            <td>21:41</td>
+            <td class="hash">5d8b3e07</td>
+            <td class="commit-msg">docs(315-01): bandingkan pendekatan HTMX partial vs full page reload</td>
+            <td class="manfaat">Perbandingan HTMX partial vs full reload terdokumentasi</td>
+        </tr>
+        <tr>
+            <td>22:12</td>
+            <td class="hash">b9e4a631</td>
+            <td class="commit-msg">docs(315): tambah decision log — pilih HTMX partial untuk fitur baru</td>
+            <td class="manfaat">Keputusan pakai HTMX partial tercatat di decision log</td>
+        </tr>
+
+        <!-- 16 Mei -->
+        <tr class="day-header"><td colspan="4">Sabtu, 16 Mei 2026</td></tr>
+        <tr>
+            <td>20:37</td>
+            <td class="hash">4f2c7d58</td>
+            <td class="commit-msg">feat(315-01): scaffold endpoint partial HTMX untuk CoachingProton filter</td>
+            <td class="manfaat">Endpoint HTMX partial filter Coaching siap</td>
+        </tr>
+        <tr>
+            <td>21:23</td>
+            <td class="hash">c8a5e914</td>
+            <td class="commit-msg">fix(315-01): perbaiki header response untuk request HTMX swap</td>
+            <td class="manfaat">Header response HTMX swap diperbaiki</td>
+        </tr>
+        <tr>
+            <td>22:05</td>
+            <td class="hash">1b6d9f40</td>
+            <td class="commit-msg">test(315-01): Playwright FLOW N — filter Coaching dengan HTMX partial</td>
+            <td class="manfaat">FLOW N hijau, filter HTMX partial terverifikasi</td>
+        </tr>
+
+        <!-- 17 Mei -->
+        <tr class="day-header"><td colspan="4">Minggu, 17 Mei 2026</td></tr>
+        <tr>
+            <td>20:46</td>
+            <td class="hash">9e3c1a72</td>
+            <td class="commit-msg">refactor(315-01): pisahkan PartialView _CoachingFilterResult dari controller</td>
+            <td class="manfaat">PartialView filter hasil dipisah dari controller</td>
+        </tr>
+        <tr>
+            <td>21:34</td>
+            <td class="hash">6b8f4d03</td>
+            <td class="commit-msg">fix(315-01): preserve scroll position setelah HTMX swap</td>
+            <td class="manfaat">Posisi scroll tetap setelah konten di-swap</td>
+        </tr>
+        <tr>
+            <td>22:16</td>
+            <td class="hash">3d7e2b89</td>
+            <td class="commit-msg">docs(315-01): SUMMARY plan 01 — HTMX partial filter selesai (8/8 task)</td>
+            <td class="manfaat">Plan 01 HTMX partial selesai 8/8 task</td>
+        </tr>
+
+        <!-- 18 Mei -->
+        <tr class="day-header"><td colspan="4">Senin, 18 Mei 2026</td></tr>
+        <tr>
+            <td>20:52</td>
+            <td class="hash">7a4c6f21</td>
+            <td class="commit-msg">docs(phase-315): complete phase execution — HTMX filter verified</td>
+            <td class="manfaat">Phase 315 selesai, HTMX filter terverifikasi</td>
+        </tr>
+        <tr>
+            <td>21:38</td>
+            <td class="hash">2e9b5d04</td>
+            <td class="commit-msg">docs(316): capture phase context — persiapan konten video PROTON</td>
+            <td class="manfaat">Konteks Phase 316 video PROTON terkumpul</td>
+        </tr>
+        <tr>
+            <td>22:23</td>
+            <td class="hash">5c1a8e63</td>
+            <td class="commit-msg">docs(316-01): outline skenario animasi track-progresi 25s</td>
+            <td class="manfaat">Skenario animasi 25s tersusun</td>
+        </tr>
+
+        <!-- 19 Mei -->
+        <tr class="day-header"><td colspan="4">Selasa, 19 Mei 2026</td></tr>
+        <tr>
+            <td>20:43</td>
+            <td class="hash">8f5d2c97</td>
+            <td class="commit-msg">docs(316-01): susun storyboard animasi track-progresi per scene</td>
+            <td class="manfaat">Storyboard animasi per scene terdokumentasi</td>
+        </tr>
+        <tr>
+            <td>21:27</td>
+            <td class="hash">0b3e7a14</td>
+            <td class="commit-msg">feat(316-01): scaffold HTML template untuk Playwright video recording</td>
+            <td class="manfaat">Template HTML recording Playwright siap</td>
+        </tr>
+        <tr>
+            <td>22:10</td>
+            <td class="hash">4d6c9b35</td>
+            <td class="commit-msg">docs(316-01): mapping aset visual — card, chip, arrow, dot ke timeline</td>
+            <td class="manfaat">Mapping aset visual ke timeline selesai</td>
+        </tr>
+
+        <!-- 20 Mei -->
+        <tr class="day-header"><td colspan="4">Rabu, 20 Mei 2026</td></tr>
+        <tr>
+            <td>20:47</td>
+            <td class="hash">5c41971d</td>
+            <td class="commit-msg">feat(proton-video): animation timeline 25s — cards, chips, arrows, dots sync</td>
+            <td class="manfaat">Timeline 25s semua elemen tersinkronisasi</td>
+        </tr>
+        <tr>
+            <td>21:33</td>
+            <td class="hash">e70e2aed</td>
+            <td class="commit-msg">feat(proton-video): record script — Playwright → track-progresi.webm</td>
+            <td class="manfaat">Script Playwright record webm siap</td>
+        </tr>
+        <tr>
+            <td>22:17</td>
+            <td class="hash">3940a4f8</td>
+            <td class="commit-msg">chore(proton-video): record track-progresi.webm (26s, 1920x1080)</td>
+            <td class="manfaat">Video track-progresi.webm 26s 1080p direkam</td>
+        </tr>
+
+        <!-- 21 Mei -->
+        <tr class="day-header"><td colspan="4">Kamis, 21 Mei 2026</td></tr>
+        <tr>
+            <td>20:51</td>
+            <td class="hash">bf7cdf8d</td>
+            <td class="commit-msg">docs(pcp-3.4): revert Versi P kembali ke v3.1 — user request rollback</td>
+            <td class="manfaat">Versi P di-revert ke v3.1 sesuai permintaan</td>
+        </tr>
+        <tr>
+            <td>21:38</td>
+            <td class="hash">013f27ca</td>
+            <td class="commit-msg">docs(pcp-3.4): revert Versi P kembali ke v3.0 — user request rollback</td>
+            <td class="manfaat">Versi P di-revert ke v3.0 sesuai permintaan</td>
+        </tr>
+        <tr>
+            <td>22:04</td>
+            <td class="hash">b3e3364f</td>
+            <td class="commit-msg">docs(brainstorm): WIP spec — merge Sosialisasi-Aplikasi → Internal-Tim-HC</td>
+            <td class="manfaat">Draft spec merge dua file sosialisasi dimulai</td>
+        </tr>
+
+        <!-- 22 Mei -->
+        <tr class="day-header"><td colspan="4">Jumat, 22 Mei 2026</td></tr>
+        <tr>
+            <td>21:04</td>
+            <td class="hash">d288cc18</td>
+            <td class="commit-msg">refactor(sosialisasi-proton): slide #21 cara akses</td>
+            <td class="manfaat">Slide cara akses portal PROTON direfactor</td>
+        </tr>
+        <tr>
+            <td>21:49</td>
+            <td class="hash">9b6fe04d</td>
+            <td class="commit-msg">refactor(sosialisasi-proton): slide #22 penutup tanpa Q&amp;A</td>
+            <td class="manfaat">Slide penutup disederhanakan tanpa sesi Q&amp;A</td>
+        </tr>
+        <tr>
+            <td>22:21</td>
+            <td class="hash">b4a9cc74</td>
+            <td class="commit-msg">chore(sosialisasi-proton): rewrite agenda #2 + audit final</td>
+            <td class="manfaat">Agenda #2 ditulis ulang + audit final lulus</td>
+        </tr>
+
+        <!-- 23 Mei -->
+        <tr class="day-header"><td colspan="4">Sabtu, 23 Mei 2026</td></tr>
+        <tr>
+            <td>21:12</td>
+            <td class="hash">98c7acf0</td>
+            <td class="commit-msg">fix(kickoff-proton): slot 12 Kompetensi labels 10.5pt -&gt; 11pt (3 card TAHUN)</td>
+            <td class="manfaat">Font label Kompetensi slot 12 konsisten 11pt</td>
+        </tr>
+        <tr>
+            <td>21:58</td>
+            <td class="hash">698a582d</td>
+            <td class="commit-msg">fix(kickoff-proton): slot 16 4 Peran role desc 10.5pt -&gt; 11pt (4 card)</td>
+            <td class="manfaat">Font deskripsi Peran slot 16 konsisten 11pt</td>
+        </tr>
+        <tr>
+            <td>22:14</td>
+            <td class="hash">eb86abab</td>
+            <td class="commit-msg">fix(kickoff-proton): mockup-content li bullets 10.5pt -&gt; 11pt (slot 2/7/8 affected)</td>
+            <td class="manfaat">Semua bullet mockup-content konsisten 11pt</td>
+        </tr>
+
+        <!-- 24 Mei -->
+        <tr class="day-header"><td colspan="4">Minggu, 24 Mei 2026</td></tr>
+        <tr>
+            <td>20:36</td>
+            <td class="hash">13d0baf2</td>
+            <td class="commit-msg">feat(slide8-risalah-compact): add Opsi IV workflow-topology-refined-compact.html</td>
+            <td class="manfaat">Versi compact Opsi IV workflow-topology ditambah</td>
+        </tr>
+        <tr>
+            <td>21:29</td>
+            <td class="hash">3a68d73b</td>
+            <td class="commit-msg">feat(slide8-risalah-compact): add PNG exports 3035x957 (300 DPI)</td>
+            <td class="manfaat">PNG export 300 DPI resolusi tinggi siap</td>
+        </tr>
+        <tr>
+            <td>22:08</td>
+            <td class="hash">1ee6ce82</td>
+            <td class="commit-msg">docs(slide8-risalah-compact): update README + index dengan compact/ section</td>
+            <td class="manfaat">README + index diperbarui dengan section compact</td>
+        </tr>
+
+    </tbody>
+</table>
+
+<div class="footer">
+    PortalHC KPB — Commit Log Mei &mdash; Terakhir diperbarui: 24 Mei 2026 &mdash; Halaman ini bisa di-print sebagai PDF (Ctrl+P &rarr; Save as PDF, orientasi Landscape)
+</div>
+
+</body>
+</html>
