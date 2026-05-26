@@ -407,7 +407,68 @@
           </div>
         </section>
 
-        <!-- §5.3 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-5-std">
+          <h4 class="mt-2">§5.3 — International Certification Standards</h4>
+          <p class="small">Standar/framework yang mengatur sertifikasi digital + body of knowledge personnel certification.</p>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+              <thead class="table-primary">
+                <tr><th>Standar</th><th>Scope</th><th>Klausa Relevan</th><th>Portal HC Status</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>ISO/IEC 17024</strong></td>
+                  <td>Personnel Certification Body — body operating certification of persons.</td>
+                  <td>Clause 9.4.9 (cert anti-counterfeit), 9.8 (appeal procedure), 9 general (lifecycle: application → assessment → decision → cert → recert → suspension → withdrawal).</td>
+                  <td><span class="badge bg-warning text-dark">Partial</span> — assessor model ada (KKJ), no formal appeal flow, no anti-counterfeit (QR/blockchain).</td>
+                  <td><a href="https://www.iso.org/standard/17024">iso.org/standard/17024</a></td>
+                </tr>
+                <tr>
+                  <td><strong>IACET CEU (ANSI/IACET 1-2018)</strong></td>
+                  <td>Continuing Education Unit — 1 CEU = 10 hours contact learning.</td>
+                  <td>Standard 1-2018 — design, delivery, measurement learning experience.</td>
+                  <td><span class="badge bg-danger">No</span> — no CEU/CPD tracking (N-11 capability gap).</td>
+                  <td><a href="https://www.iacet.org/standards">iacet.org/standards</a></td>
+                </tr>
+                <tr>
+                  <td><strong>Open Badges 3.0 (1EdTech)</strong></td>
+                  <td>Verifiable digital credential standard — JSON-LD + cryptographic signature.</td>
+                  <td>OB 3.0 rebuild on W3C VCDM 2.0 — JSON document signed dengan issuer cryptographic key, verifiable claim recipient skill/achievement.</td>
+                  <td><span class="badge bg-danger">No</span> — PDF only, no JSON-LD badge (N-01 net-new).</td>
+                  <td><a href="https://www.imsglobal.org/spec/ob/v3p0">1EdTech Open Badges 3.0 Spec</a></td>
+                </tr>
+                <tr>
+                  <td><strong>W3C Verifiable Credentials Data Model 2.0</strong></td>
+                  <td>General verifiable credential data model — sertifikat sebagai signed JSON, DID method support.</td>
+                  <td>VC Data Model 2.0, DID method, cryptographic proof schemas.</td>
+                  <td><span class="badge bg-danger">No</span> — foundation untuk N-01 + N-02 implementation.</td>
+                  <td><a href="https://www.w3.org/TR/vc-data-model-2.0/">w3.org/TR/vc-data-model-2.0</a></td>
+                </tr>
+                <tr>
+                  <td><strong>Accredible / Credly Platform</strong></td>
+                  <td>Commercial platform issue digital credential (Open Badges + blockchain).</td>
+                  <td>Platform-as-a-service, REST API issuance, integrasi Moodle/LMS umum.</td>
+                  <td><span class="badge bg-warning text-dark">Reference</span> — model commercial untuk N-02 implementation.</td>
+                  <td><a href="https://www.accredible.com/">accredible.com</a> · <a href="https://info.credly.com/">credly.com</a></td>
+                </tr>
+                <tr>
+                  <td><strong>BNSP / SKKNI Indonesia</strong></td>
+                  <td>National competency framework Indonesia + LSP cert.</td>
+                  <td>UU 13/2003 + Permenaker + Permen ESDM SKKNI migas wajib.</td>
+                  <td><span class="badge bg-warning text-dark">Partial</span> — mendukung renewal cycle 3 tahun tapi tidak ada CPD tracker (N-11).</td>
+                  <td><a href="https://bnsp.go.id/">bnsp.go.id</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="alert alert-warning mt-3">
+            <strong>Insight strategic:</strong> Adopsi <strong>ISO 17024</strong> + <strong>Open Badges 3.0 (W3C VCDM)</strong> bersamaan memberi Pertamina KPB posisi sertifikat yang (a) compliance standar internasional + (b) interoperable digital tamper-proof. Kombinasi N-01 + N-07 + G-10 audit log = paket compliance lengkap untuk audit eksternal Lloyd's/BNSP.
+          </div>
+        </section>
+
+        <!-- §6 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
