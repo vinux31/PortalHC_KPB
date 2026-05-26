@@ -562,7 +562,7 @@ Plans:
 
 ### Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion
 
-- [ ] **Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion**
+- [x] **Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion** (completed 2026-05-26)
   - **REQ:** DUPL-01, DUPL-02, DUPL-03, DUPL-04, DUPL-05
   - **Depends on:** Phase 323
   - **Goal:** Hapus mekanisme auto-create `TrainingRecord` saat session assessment completed di 3 lokasi production (`Services/GradingService.cs:255-285` GradeAndCompleteAsync + `Controllers/AssessmentAdminController.cs:3404-3421` FinalizeEssayGrading + `Services/GradingService.cs:483-567` RegradeAfterEditAsync Pass↔Fail cascade). Resolve regression dari commit `766011b6` (2026-04-10) yang re-introduce auto-create TR setelah commit `79284609` (2026-03-18) menghapusnya — visual duplicate 2 row di `/CMP/Records` hilang. Cleanup data legacy lokal (SEED_WORKFLOW) + IT handoff HTML untuk Dev/Prod cleanup. Subtract phase: NO migration, NO model change, NO schema change.
@@ -578,11 +578,11 @@ Plans:
     9. `docs/DB_HANDOFF_IT_2026-05-26.html` exists dengan Pertamina branding + embedded SQL script + ordering callout (Step 1 deploy code DULU)
     10. AssessmentSessions TIDAK ter-touch (sole source-of-truth utuh)
   - **Risk:** Low (subtract phase) | **Effort:** S-M (3 file edit + UAT + cleanup + handoff)
-  - **Plans:** 4 plans
-    - [ ] 324-01-PLAN.md — Wave 1 code edit: 3 lokasi block hapus (GradeAndComplete + FinalizeEssay + RegradeAfterEdit Pass↔Fail) + cross-grep audit final (DUPL-01)
-    - [ ] 324-02-PLAN.md — Wave 2 Playwright UAT 7 scenario + helper module phase324.ts + checkpoint user verify (DUPL-02)
-    - [ ] 324-03-PLAN.md — Wave 3 data cleanup lokal: schema verify A3 + orphan check OQ#3 + SQL script + BACKUP/RESTORE + SEED_JOURNAL + checkpoint (DUPL-03, DUPL-05)
-    - [ ] 324-04-PLAN.md — Wave 3 IT handoff HTML doc Pertamina-branded (DUPL-04)
+  - **Plans:** 4/4 plans complete
+    - [x] 324-01-PLAN.md — Wave 1 code edit: 3 lokasi block hapus (GradeAndComplete + FinalizeEssay + RegradeAfterEdit Pass↔Fail) + cross-grep audit final (DUPL-01)
+    - [x] 324-02-PLAN.md — Wave 2 Playwright UAT 7 scenario + helper module phase324.ts + checkpoint user verify (DUPL-02)
+    - [x] 324-03-PLAN.md — Wave 3 data cleanup lokal: schema verify A3 + orphan check OQ#3 + SQL script + BACKUP/RESTORE + SEED_JOURNAL + checkpoint (DUPL-03, DUPL-05)
+    - [x] 324-04-PLAN.md — Wave 3 IT handoff HTML doc Pertamina-branded (DUPL-04)
   - **Files affected:** `Services/GradingService.cs` (2 spot) + `Controllers/AssessmentAdminController.cs` (1 spot) + `tests/e2e/Phase324_NoDuplicateTrainingRecord.spec.ts` (NEW) + `tests/e2e/helpers/phase324.ts` (NEW) + `docs/sql/cleanup-2026-05-26-trainingrecord-duplicates.sql` (NEW) + `docs/SEED_JOURNAL.md` (append) + `docs/DB_HANDOFF_IT_2026-05-26.html` (NEW)
   - **Wave structure:** Wave 1 (Plan 01) → Wave 2 (Plan 02) → Wave 3 (Plan 03 + Plan 04 parallel — no file conflict)
 
