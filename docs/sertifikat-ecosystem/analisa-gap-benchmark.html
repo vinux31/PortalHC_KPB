@@ -127,7 +127,61 @@
           </div>
         </section>
 
-        <!-- §2 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-2">
+          <h2><span class="badge bg-secondary">§2</span> Methodology</h2>
+
+          <h5 class="mt-3">2.1 Sumber Data</h5>
+          <ul>
+            <li><strong>Existing Gap (25)</strong> — derive dari <a href="index.html#sec-10">index.html §10 Gap Analysis</a> (8 fungsi + 8 sistem + 9 logic, dedup ke 25 unique).</li>
+            <li><strong>Net-New Capability (12)</strong> — hasil benchmark industri (Open Badges, blockchain credential, expiry pipeline, skill matrix, peer endorsement, badge wallet, revocation list, multi-language, dynamic QR, SCORM, CPD, proctor mode).</li>
+            <li><strong>Benchmark Vendor</strong> — Migas (Shell/Chevron/Exxon) + HRIS/LMS (Workday/SuccessFactors/Cornerstone/Moodle) + Cert Std (ISO 17024/IACET/Open Badges 1EdTech/Accredible/Credly).</li>
+            <li><strong>Citation</strong> — WebSearch real-time tanggal 2026-05-26 untuk klaim faktual; URL + access date di <a href="#sec-10">§10</a>.</li>
+          </ul>
+
+          <h5 class="mt-4">2.2 Framework Prioritisasi — ICE</h5>
+          <p>RICE (Reach·Impact·Confidence/Effort) tidak fit karena Reach hampir flat di context internal Pertamina KPB (semua user terjangkau). Kami pakai <strong>ICE = Impact × Confidence × Ease / 100</strong>.</p>
+          <ul>
+            <li><strong>Impact (1-10)</strong> — Dampak business / compliance / UX bila item diimplementasi.</li>
+            <li><strong>Confidence (%)</strong> — Keyakinan solusi efektif (data + benchmark backing).</li>
+            <li><strong>Ease (1-10)</strong> — Kebalikan effort. 10 = ½ PW, 1 = 8+ PW.</li>
+          </ul>
+
+          <h5 class="mt-4">2.3 Quadrant 2x2 — Effort × Impact</h5>
+          <div class="row">
+            <div class="col-md-8">
+              <table class="table table-sm table-bordered">
+                <thead class="table-light"><tr><th>Quadrant</th><th>Effort</th><th>Impact</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="badge bg-success">Quick-Win</span></td><td>Low</td><td>High</td><td>Eksekusi dulu</td></tr>
+                  <tr><td><span class="badge bg-primary">Big-Bet</span></td><td>High</td><td>High</td><td>Plan kuartal</td></tr>
+                  <tr><td><span class="badge bg-warning text-dark">Fill-In</span></td><td>Low</td><td>Low</td><td>Selipan sprint</td></tr>
+                  <tr><td><span class="badge bg-secondary">Time-Sink</span></td><td>High</td><td>Low</td><td>Tolak / defer</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <h5 class="mt-4">2.4 Mini-Glossary (Term Internal)</h5>
+          <p class="small">Glossary lengkap di <a href="index.html#sec-12">index.html §12</a>. Berikut 6 term paling sering di laporan ini:</p>
+          <dl class="row small">
+            <dt class="col-sm-3">KKJ</dt><dd class="col-sm-9">Komite Konsultatif Jabatan — komite penilai kompetensi pekerja di KPB.</dd>
+            <dt class="col-sm-3">CMP</dt><dd class="col-sm-9">Competency Management Program — program penilaian kompetensi.</dd>
+            <dt class="col-sm-3">CDP</dt><dd class="col-sm-9">Career Development Program — sertifikasi berbasis training/edukasi.</dd>
+            <dt class="col-sm-3">BP</dt><dd class="col-sm-9">Budget Plan — perencanaan anggaran training tahunan.</dd>
+            <dt class="col-sm-3">PROTON</dt><dd class="col-sm-9">Professional Refinery Operations Competency Development — program coaching pekerja kilang.</dd>
+            <dt class="col-sm-3">UPA</dt><dd class="col-sm-9">Unit Pengolahan dan Administrasi — unit kerja struktural KPB.</dd>
+          </dl>
+
+          <h5 class="mt-4">2.5 Limitasi</h5>
+          <ul class="small">
+            <li>ICE score baseline subjektif (assigned by reviewer) — adjust per review stakeholder.</li>
+            <li>Effort estimate person-week range, bukan kalender hari (asumsi 1 dev full-time fokus).</li>
+            <li>Benchmark vendor hanya publicly-disclosed source; klaim internal Shell/Chevron tidak diverifikasi.</li>
+            <li>Tidak include cost estimasi Rupiah — focus pada effort engineering saja.</li>
+          </ul>
+        </section>
+
+        <!-- §3 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
