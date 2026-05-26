@@ -3401,24 +3401,9 @@ namespace HcPortal.Controllers
                 });
             }
 
-            // 4. Generate TrainingRecord (duplicate guard — same as GradingService)
-            var judul = $"Assessment: {session.Title}";
-            bool trExists = await _context.TrainingRecords.AnyAsync(t =>
-                t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule);
-            if (!trExists)
-            {
-                _context.TrainingRecords.Add(new TrainingRecord
-                {
-                    UserId = session.UserId,
-                    Judul = judul,
-                    Kategori = session.Category ?? "Assessment",
-                    Tanggal = session.Schedule,
-                    TanggalSelesai = DateTime.UtcNow,
-                    Penyelenggara = "Internal",
-                    Status = isPassed ? "Passed" : "Failed"
-                });
-                await _context.SaveChangesAsync();
-            }
+            // Phase 324 D-02: TrainingRecord auto-create removed dari FinalizeEssayGrading path.
+            // Konsisten dengan GradingService.GradeAndCompleteAsync (D-01).
+            // AssessmentSession sole source-of-truth untuk Records page display.
 
             // 5. Generate sertifikat jika applicable (same pattern as GradingService)
             if (session.GenerateCertificate && isPassed)
