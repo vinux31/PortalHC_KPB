@@ -939,7 +939,40 @@
         </div>
     </div>
 
-    <!-- Modal C2: Tinjau Deliverable (Task 8) -->
+    <!-- ============ MODAL C2: Tinjau Deliverable ============ -->
+    <div class="modal fade" id="modalTinjau" tabindex="-1" aria-labelledby="modalTinjauLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTinjauLabel">Tinjau Deliverable</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Kompetensi:</strong> <span id="tinjauKompetensi"></span></p>
+                    <p><strong>Sub-Kompetensi:</strong> <span id="tinjauSubKompetensi"></span></p>
+                    <p><strong>Deliverable:</strong> <span id="tinjauDeliverable"></span></p>
+                    <p><strong>Evidence:</strong> <a href="#" class="demo-disabled" id="tinjauEvidenceLink">Lihat Evidence</a></p>
+                    <div class="mb-3">
+                        <label class="form-label">Aksi</label>
+                        <select class="form-select" id="tinjauAction">
+                            <option value="">-- Pilih Aksi --</option>
+                            <option value="approve">Approve</option>
+                            <option value="reject">Reject</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 d-none" id="tinjauCommentGroup">
+                        <label class="form-label">Komentar <span id="tinjauCommentRequired" class="text-danger d-none">*</span></label>
+                        <textarea class="form-control" id="tinjauComment" rows="3" placeholder="Komentar..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnTinjauSubmit" disabled>Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal C3: Batch HC Approve (Task 11) -->
 
     <script src="./vendor/bootstrap.bundle.min.js"></script>
@@ -1126,6 +1159,64 @@
                     showToast('Mock: Evidence terkirim — di production akan masuk antrian approval Sr Supervisor', 'success');
                 });
             }
+        }
+
+        // === MODAL C2 Tinjau ===
+        const modalTinjau = document.getElementById('modalTinjau');
+        const tinjauActionEl = document.getElementById('tinjauAction');
+        const tinjauCommentGroup = document.getElementById('tinjauCommentGroup');
+        const tinjauCommentRequired = document.getElementById('tinjauCommentRequired');
+        const tinjauCommentEl = document.getElementById('tinjauComment');
+        const btnTinjauSubmit = document.getElementById('btnTinjauSubmit');
+
+        if (modalTinjau) {
+            modalTinjau.addEventListener('show.bs.modal', (event) => {
+                const trigger = event.relatedTarget;
+                if (!trigger) return;
+                document.getElementById('tinjauKompetensi').textContent = trigger.dataset.kompetensi || '';
+                document.getElementById('tinjauSubKompetensi').textContent = trigger.dataset.subkompetensi || '';
+                document.getElementById('tinjauDeliverable').textContent = trigger.dataset.deliverable || '';
+                tinjauActionEl.value = '';
+                tinjauCommentGroup.classList.add('d-none');
+                tinjauCommentEl.value = '';
+                btnTinjauSubmit.disabled = true;
+            });
+        }
+
+        if (tinjauActionEl) {
+            tinjauActionEl.addEventListener('change', function() {
+                const action = this.value;
+                if (action === 'reject') {
+                    tinjauCommentGroup.classList.remove('d-none');
+                    tinjauCommentRequired.classList.remove('d-none');
+                    tinjauCommentEl.placeholder = 'Masukkan alasan penolakan...';
+                } else if (action === 'approve') {
+                    tinjauCommentGroup.classList.remove('d-none');
+                    tinjauCommentRequired.classList.add('d-none');
+                    tinjauCommentEl.placeholder = 'Komentar (opsional)';
+                } else {
+                    tinjauCommentGroup.classList.add('d-none');
+                }
+                btnTinjauSubmit.disabled = !action;
+            });
+        }
+
+        if (btnTinjauSubmit) {
+            btnTinjauSubmit.addEventListener('click', () => {
+                const action = tinjauActionEl.value;
+                const comment = tinjauCommentEl.value.trim();
+                if (action === 'reject' && !comment) {
+                    showToast('Alasan penolakan wajib diisi', 'danger');
+                    return;
+                }
+                const modal = bootstrap.Modal.getInstance(modalTinjau);
+                if (modal) modal.hide();
+                if (action === 'approve') {
+                    showToast('Mock: Deliverable disetujui Sr Supervisor — selanjutnya menunggu Section Head', 'success');
+                } else {
+                    showToast('Mock: Deliverable ditolak — Coach perlu re-submit', 'danger');
+                }
+            });
         }
 
         // Init
