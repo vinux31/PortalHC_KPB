@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handoff IT — Cleanup Data Duplikat TrainingRecord HcPortal KPB (2026-05-26)</title>
+<style>
+:root {
+  --brand: #e30613;
+  --brand-dark: #b8050f;
+  --navy: #1e3a8a;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-alt: #f9fafb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --amber: #f59e0b;
+  --amber-bg: #fef3c7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --info-bg: #eff6ff;
+  --info-border: #3b82f6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 950px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+header.hero {
+  border-top: 6px solid var(--brand);
+  padding: 24px 0 16px;
+  margin-bottom: 8px;
+}
+
+header.hero .badge {
+  display: inline-block;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+header.hero h1 {
+  font-size: 30px;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  padding: 16px 20px;
+  background: var(--bg-alt);
+  border-left: 4px solid var(--navy);
+  border-radius: 4px;
+  margin: 16px 0 32px;
+  font-size: 14px;
+}
+
+.meta-row .meta-item strong {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+h2 {
+  font-size: 22px;
+  margin: 40px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+
+h3 { font-size: 17px; margin: 24px 0 10px; }
+h4 { font-size: 15px; margin: 14px 0 6px; }
+
+p { margin: 0 0 12px; }
+
+code, .mono {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  background: var(--bg-alt);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  border-left: 4px solid var(--brand);
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+pre.sql {
+  background: var(--bg-alt);
+  color: var(--text);
+  border-left-color: var(--navy);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-alt);
+  font-weight: 600;
+  color: var(--text);
+}
+
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+
+ul, ol { margin: 8px 0 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+
+.tag.ok { background: var(--green-bg); color: var(--green); }
+.tag.warn { background: var(--amber-bg); color: #92400e; }
+.tag.danger { background: var(--red-bg); color: var(--red); }
+
+.callout {
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+.callout.info { background: var(--info-bg); border-color: var(--info-border); }
+.callout.warn { background: var(--amber-bg); border-color: var(--amber); }
+.callout.success { background: var(--green-bg); border-color: var(--green); }
+.callout.danger { background: var(--red-bg); border-color: var(--red); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.toc {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 0 0 32px;
+}
+.toc .title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.toc ol { margin: 0; padding-left: 22px; }
+.toc li { margin-bottom: 4px; font-size: 14px; }
+.toc a { color: var(--navy); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tldr {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  margin: 24px 0;
+}
+.tldr .label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.tldr p { margin: 0; font-size: 16px; line-height: 1.5; }
+
+@media print {
+  body { font-size: 11pt; }
+  .container { max-width: 100%; padding: 0; }
+  pre { background: #f4f4f4 !important; color: #000 !important; }
+  pre.sql { background: #f4f4f4 !important; }
+  .toc, header.hero { page-break-after: avoid; }
+  h2 { page-break-after: avoid; page-break-before: auto; }
+  table, pre, .callout { page-break-inside: avoid; }
+  a { color: var(--text); text-decoration: none; }
+  footer { page-break-before: avoid; }
+  @page { size: A4; margin: 18mm 15mm; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <span class="badge">HANDOFF TEAM IT</span>
+  <h1>Cleanup Data Duplikat TrainingRecord — HcPortal KPB</h1>
+  <p class="subtitle">Apa yang IT perlu lakukan untuk eksekusi cleanup row <code>TrainingRecord</code> auto-generated di DB Dev (<code>10.55.3.3</code>) supaya halaman <code>/CMP/Records</code> hanya tampil 1 row per assessment event (bukan 2).</p>
+</header>
+
+<div class="meta-row">
+  <div class="meta-item">
+    <strong>Tanggal</strong>
+    26 Mei 2026
+  </div>
+  <div class="meta-item">
+    <strong>Phase</strong>
+    324
+  </div>
+  <div class="meta-item">
+    <strong>Commit Hash Target</strong>
+    <code>3023c5e7</code> (Plan 01 final)
+  </div>
+  <div class="meta-item">
+    <strong>Migration Pending</strong>
+    <strong style="color: var(--green);">NONE</strong>
+  </div>
+  <div class="meta-item">
+    <strong>Risk</strong>
+    <span class="tag ok">Low — data cleanup only</span>
+  </div>
+</div>
+
+<div class="tldr">
+  <div class="label">TL;DR</div>
+  <p>IT cukup <code style="background:rgba(255,255,255,0.2); color:#fff;">git pull</code> (deploy code commit <code style="background:rgba(255,255,255,0.2); color:#fff;">3023c5e7</code>) + apply <code style="background:rgba(255,255,255,0.2); color:#fff;">docs/sql/cleanup-2026-05-26-trainingrecord-duplicates.sql</code> di DB Dev. <strong>NO schema change, NO migration.</strong> Script idempotent, transactional, safety cap 5000. Data <code style="background:rgba(255,255,255,0.2); color:#fff;">AssessmentSessions</code> 100% utuh — hanya hapus row <code style="background:rgba(255,255,255,0.2); color:#fff;">TrainingRecord</code> copy yang ter-insert auto antara 2026-04-10 sampai commit fix merge.</p>
+</div>
+
+<div class="toc">
+  <div class="title">Daftar Isi</div>
+  <ol>
+    <li><a href="#context">Context — Kenapa Cleanup Diperlukan</a></li>
+    <li><a href="#precheck">Pre-Check Sample (MANDATORY sebelum DELETE)</a></li>
+    <li><a href="#sql">SQL Cleanup Script (Embedded)</a></li>
+    <li><a href="#checklist">Checklist IT (URUTAN WAJIB)</a></li>
+    <li><a href="#verify">Verifikasi Post-Cleanup</a></li>
+    <li><a href="#not-needed">Yang TIDAK Perlu IT Lakukan</a></li>
+    <li><a href="#rollback">Rollback Plan</a></li>
+    <li><a href="#refs">File Referensi</a></li>
+  </ol>
+</div>
+
+<h2 id="context">1. Context — Kenapa Cleanup Diperlukan</h2>
+
+<p><strong>Bug:</strong> Worker submit 1 assessment biasa (non-essay, non-PreTest) di Portal HC KPB → halaman <code>/CMP/Records</code> tampil <strong>2 row</strong> untuk event sama: 1 row tipe "Assessment Online" + 1 row tipe "Training Manual" dengan judul prefix <code>"Assessment: "</code>. User report sebagai duplicate.</p>
+
+<p><strong>Root cause:</strong> Code di <code>GradingService.GradeAndCompleteAsync()</code> auto-generate baris <code>TrainingRecord</code> copy setiap kali worker selesai assessment. Halaman <code>/CMP/Records</code> via <code>WorkerDataService.GetUnifiedRecords()</code> union baris dari <code>AssessmentSession</code> + <code>TrainingRecord</code> → user lihat 2 baris untuk 1 event.</p>
+
+<p><strong>Regression history:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Commit</th>
+      <th>Tanggal</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>817b29bd</code></td>
+      <td>(Phase 153-04, era awal)</td>
+      <td>Introduce auto-create TR on exam completion (ASSESS-08)</td>
+    </tr>
+    <tr>
+      <td><code>79284609</code></td>
+      <td>2026-03-18</td>
+      <td><strong>REMOVE</strong> auto-create karena commit msg: <em>"caused duplicate entries in RecordWorkerDetail unified view"</em></td>
+    </tr>
+    <tr>
+      <td><code>766011b6</code></td>
+      <td>2026-04-10</td>
+      <td><strong>RE-ADD</strong> auto-create dengan dead-code <code>try/catch DbUpdateException</code> guard — <strong>regression yang Phase 324 fix</strong></td>
+    </tr>
+    <tr>
+      <td><code>3023c5e7</code></td>
+      <td>2026-05-26</td>
+      <td><strong>Plan 01 fix:</strong> hapus block insert TR di 3 lokasi production (<code>GradingService</code> + <code>AssessmentAdminController</code>)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Outcome:</strong> Setelah deploy code commit <code>3023c5e7</code> + apply SQL cleanup script ini → halaman <code>/CMP/Records</code> tampil 1 row per assessment event (sole source-of-truth = <code>AssessmentSession</code>).</p>
+
+<div class="callout success">
+  <div class="title">Validation Lokal Done</div>
+  <p>Developer sudah validate cleanup di DB lokal: <strong>18 row legacy TR hapus, AssessmentSessions Completed=28 utuh</strong>. Pre-fix + post-fix screenshot tersimpan di <code>docs/screenshots/phase324/</code> sebagai proof.</p>
+</div>
+
+<h2 id="precheck">2. Pre-Check Sample (MANDATORY sebelum DELETE)</h2>
+
+<div class="callout warn">
+  <div class="title">Wajib — Sanity Inspection</div>
+  <p>IT <strong>JANGAN execute DELETE</strong> sebelum confirm sample 20 row semua auto-generated (<code>Penyelenggara="Internal"</code>, <code>Kategori</code> match Assessment pattern, <code>Judul</code> prefix <code>"Assessment: "</code>). Kalau ada anomali (Penyelenggara berbeda, Kategori asing, Judul typo) → <strong>STOP dan eskalasi ke developer (Rino)</strong>.</p>
+</div>
+
+<p>Query sample 20 row (sesuai filter yang dipakai cleanup script):</p>
+
+<pre class="sql">SELECT TOP 20
+    Id, UserId,
+    LEFT(Judul, 50) AS Judul,
+    Kategori, Tanggal, TanggalSelesai,
+    Penyelenggara, Status
+FROM TrainingRecords
+WHERE Judul LIKE 'Assessment:%'
+  AND TanggalSelesai &gt;= '2026-04-10'
+ORDER BY Id DESC;</pre>
+
+<p><strong>Expected sample pattern (validasi lokal Phase 324 Plan 03 Task 2):</strong></p>
+<ul>
+  <li><code>Penyelenggara = 'Internal'</code> (auto-create selalu Internal)</li>
+  <li><code>Kategori</code> ∈ {'Assessment', 'OJT', 'Assessment OJT', dst — match assessment category nama yang ada di tabel <code>AssessmentCategories</code>}</li>
+  <li><code>Judul</code> prefix <code>"Assessment: "</code> diikuti judul assessment original</li>
+  <li><code>TanggalSelesai</code> populated (set di code line 273 <code>GradingService</code> pre-fix = <code>DateTime.UtcNow</code> saat insert)</li>
+</ul>
+
+<p>Catatan: validasi lokal menemukan <strong>0 row</strong> di lokal yang match filter <code>TanggalSelesai &gt;= '2026-04-10'</code> (data lokal era pre-Mar-18 ASSESS-08). Di Dev/Prod kemungkinan ada row yang ter-insert antara 10 Apr - 26 Mei 2026 (selama bug regression aktif). Kalau IT temukan <strong>0 row</strong> di Dev/Prod via query di atas, cleanup = no-op (script aman dijalankan, COMMIT silent).</p>
+
+<h3>2b. Orphan Pre-Check (defensive)</h3>
+
+<p>Phase <code>200</code> menambahkan <code>RenewsTrainingId</code> FK (<code>OnDelete(NoAction)</code>). Kalau ada TR child yang reference parent TR auto-generated, DELETE parent akan gagal dengan FK violation. Pre-check orphan count:</p>
+
+<pre class="sql">SELECT COUNT(*) AS OrphanRiskCount
+FROM TrainingRecords
+WHERE RenewsTrainingId IN (
+    SELECT Id FROM TrainingRecords
+    WHERE Judul LIKE 'Assessment:%'
+      AND TanggalSelesai &gt;= '2026-04-10'
+);</pre>
+
+<ul>
+  <li><strong>Result = 0:</strong> Lanjut langsung Step 4 (script standard, null-clear pre-step SKIPPED). Validasi lokal verifikasi orphan count = 0.</li>
+  <li><strong>Result &gt; 0:</strong> IT <strong>uncomment</strong> block null-clear di script (Section 3, line "3. SKIPPED" comment) sebelum execute. Tanpa null-clear, DELETE akan gagal FK violation.</li>
+</ul>
+
+<h2 id="sql">3. SQL Cleanup Script (Embedded)</h2>
+
+<p>Verbatim copy dari <code>docs/sql/cleanup-2026-05-26-trainingrecord-duplicates.sql</code> (commit <code>43f00210</code>):</p>
+
+<div class="callout warn">
+  <div class="title">Adjust untuk Prod</div>
+  <p>Kalau IT execute di <strong>Prod</strong>, ganti <code>USE HcPortalDB_Dev</code> → <code>USE HcPortalDB</code> (nama DB Prod). Sisanya identik.</p>
+</div>
+
+<pre class="sql">-- Phase 324 D-04..D-06 cleanup: hapus TrainingRecord auto-generated antara 2026-04-10 sampai hari ini.
+-- Sumber bug: commit 766011b6 (2026-04-10) re-introduce auto-create TR yang menyebabkan visual duplicate di /CMP/Records.
+-- Fix di code: Phase 324 Plan 01 hapus block insert TR di 3 lokasi production (GradingService + AssessmentAdminController).
+-- Script ini idempotent: re-run aman, post-count = 0 = nothing to do.
+-- Filter column: TanggalSelesai (TrainingRecords model TIDAK ada CreatedAt column - per RESEARCH A3 resolved).
+-- Safety cap: 5000 row.
+-- Database name: HcPortalDB_Dev (lokal). IT adjust ke HcPortalDB saat run di Prod via USE statement.
+--
+-- ENV NOTE:
+-- - Script ini PRIMARY untuk Dev/Prod (data post-regression Apr 10).
+-- - Untuk LOKAL recovery legacy data pre-Mar-18 (era ASSESS-08), pakai inline command dengan filter
+--   pattern-only (no date filter). Lihat docs/SEED_JOURNAL.md entry Phase 324 untuk detail.
+
+USE HcPortalDB_Dev;
+GO
+
+SET XACT_ABORT ON;
+SET NOCOUNT ON;
+
+BEGIN TRY
+    BEGIN TRANSACTION cleanup324;
+
+    -- 1. Pre-count
+    DECLARE @preCount INT;
+    SELECT @preCount = COUNT(*)
+    FROM TrainingRecords
+    WHERE Judul LIKE 'Assessment:%' AND TanggalSelesai &gt;= '2026-04-10';
+    PRINT CONCAT('Phase 324 cleanup pre-count: ', @preCount);
+
+    -- 2. Safety cap (defensive guard)
+    IF @preCount &gt; 5000
+    BEGIN
+        ROLLBACK TRANSACTION cleanup324;
+        RAISERROR('Safety cap exceeded (%d &gt; 5000). Investigate before bumping cap.', 16, 1, @preCount);
+        RETURN;
+    END
+
+    -- 3. (SKIPPED - RESEARCH OQ #3 resolved: orphan count = 0 di lokal verified Task 2)
+    --    Tidak perlu null-clear RenewsTrainingId pre-step karena tidak ada child TR yang
+    --    reference parent TR auto-generated. Kalau IT temui orphan &gt; 0 di Dev/Prod via
+    --    pre-check query, uncomment block berikut:
+    -- UPDATE TrainingRecords
+    -- SET RenewsTrainingId = NULL
+    -- WHERE RenewsTrainingId IN (
+    --     SELECT Id FROM TrainingRecords
+    --     WHERE Judul LIKE 'Assessment:%' AND TanggalSelesai &gt;= '2026-04-10'
+    -- );
+    -- DECLARE @nullClearedCount INT = @@ROWCOUNT;
+    -- PRINT CONCAT('Phase 324 null-cleared RenewsTrainingId in child rows: ', @nullClearedCount);
+
+    -- 4. DELETE
+    DELETE FROM TrainingRecords
+    WHERE Judul LIKE 'Assessment:%' AND TanggalSelesai &gt;= '2026-04-10';
+    DECLARE @deletedCount INT = @@ROWCOUNT;
+    PRINT CONCAT('Phase 324 cleanup deleted: ', @deletedCount);
+
+    -- 5. Post-count verify
+    DECLARE @postCount INT;
+    SELECT @postCount = COUNT(*)
+    FROM TrainingRecords
+    WHERE Judul LIKE 'Assessment:%' AND TanggalSelesai &gt;= '2026-04-10';
+    PRINT CONCAT('Phase 324 cleanup post-count: ', @postCount);
+
+    IF @postCount &gt; 0
+    BEGIN
+        ROLLBACK TRANSACTION cleanup324;
+        RAISERROR('Phase 324 post-count not zero (%d). Rolled back.', 16, 1, @postCount);
+        RETURN;
+    END
+
+    COMMIT TRANSACTION cleanup324;
+    PRINT 'Phase 324 cleanup committed successfully.';
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() &lt;&gt; 0 ROLLBACK TRANSACTION cleanup324;
+    DECLARE @errMsg NVARCHAR(4000) = ERROR_MESSAGE();
+    PRINT CONCAT('Phase 324 cleanup failed: ', @errMsg);
+    THROW;
+END CATCH;
+GO</pre>
+
+<h2 id="checklist">4. Checklist IT (URUTAN WAJIB)</h2>
+
+<div class="callout warn">
+  <div class="title">URUTAN WAJIB — Cegah Race Condition</div>
+  <p>Step 1 deploy code <strong>DULU</strong> (commit <code>3023c5e7</code>) supaya app berhenti generate TR baru. <strong>STEP 2 baru SQL cleanup.</strong> Jangan reverse order — race condition bisa bikin row baru ter-insert selama cleanup running.</p>
+</div>
+
+<ol>
+  <li>
+    <strong>Step 1 — Deploy code commit <code>3023c5e7</code>:</strong>
+    <pre>cd /path/to/PortalHC_KPB
+git fetch origin main
+git checkout 3023c5e7   # atau git pull origin main kalau sudah ada commit terbaru
+# Restart IIS app pool (atau systemctl restart kalau Kestrel-native)
+iisreset    # Windows; atau equivalent restart untuk env IT</pre>
+    <p>Verifikasi deploy sukses: cek log app start, akses <code>http://10.55.3.3/KPB-PortalHC</code>, login → halaman tidak error.</p>
+  </li>
+  <li>
+    <strong>Step 2 — BACKUP DB Dev:</strong>
+    <pre class="sql">BACKUP DATABASE HcPortalDB_Dev
+TO DISK='C:\Backup\HcPortalDB_Dev.20260526-phase324-pre-cleanup.bak'
+WITH FORMAT, INIT;</pre>
+    <p>Wajib backup sebelum DELETE — supaya rollback option tersedia (Section 7).</p>
+  </li>
+  <li>
+    <strong>Step 3 — Pre-check sample query (lihat Section 2):</strong>
+    <p>Execute query sample 20 row + orphan check. Visual inspect output. Kalau ada anomali → STOP dan eskalasi ke developer.</p>
+  </li>
+  <li>
+    <strong>Step 4 — Execute cleanup script:</strong>
+    <pre>sqlcmd -S "10.55.3.3" -U sa -P "&lt;password&gt;" -C \
+       -i "C:\path\to\cleanup-2026-05-26-trainingrecord-duplicates.sql"</pre>
+    <p>(Adjust connection string sesuai env IT. Untuk Windows Integrated Security pakai <code>-E</code> tanpa <code>-U/-P</code>.)</p>
+    <p>Expected output:</p>
+    <pre>Phase 324 cleanup pre-count: &lt;N&gt;
+Phase 324 cleanup deleted: &lt;N&gt;
+Phase 324 cleanup post-count: 0
+Phase 324 cleanup committed successfully.</pre>
+  </li>
+  <li>
+    <strong>Step 5 — Post-verify count (lihat Section 5):</strong>
+    <p>Confirm post-cleanup count = 0 + <code>AssessmentSessions</code> count UTUH.</p>
+  </li>
+  <li>
+    <strong>Step 6 — Idempotency check (re-run script):</strong>
+    <p>Run script kedua kali. Expected: <code>pre-count: 0, deleted: 0, post-count: 0, committed successfully</code>. Kalau output beda → eskalasi.</p>
+  </li>
+</ol>
+
+<h2 id="verify">5. Verifikasi Post-Cleanup</h2>
+
+<h3>5a. SQL Verify</h3>
+
+<pre class="sql">-- Post-count verify cleanup berhasil
+SELECT COUNT(*) AS RemainingAutoTR
+FROM TrainingRecords
+WHERE Judul LIKE 'Assessment:%'
+  AND TanggalSelesai &gt;= '2026-04-10';
+-- Expected: 0
+
+-- Sanity AssessmentSessions UTUH (sole source-of-truth)
+SELECT COUNT(*) AS CompletedSessions
+FROM AssessmentSessions
+WHERE Status = 'Completed';
+-- Expected: SAMA dengan pre-cleanup count (IT catat pre vs post)
+
+-- Sample 5 row residual TR Assessment:% (kalau ada pre-Apr-10 yang tidak masuk filter)
+SELECT TOP 5 Id, Judul, TanggalSelesai
+FROM TrainingRecords
+WHERE Judul LIKE 'Assessment:%'
+ORDER BY Id DESC;
+-- Expected: 0 row atau row pre-2026-04-10 (legacy era pre-Mar-18, di luar scope cleanup)</pre>
+
+<h3>5b. Visual Verify via Browser</h3>
+
+<ol>
+  <li>Login worker test (misal Rino atau Iwan3) di <code>http://10.55.3.3/KPB-PortalHC</code></li>
+  <li>Navigate <code>/CMP/Records</code></li>
+  <li>Assert: untuk setiap event assessment Completed → tampil <strong>1 row "Assessment Online"</strong> (TIDAK ada paired "Training Manual" dengan judul <code>"Assessment: "</code> prefix)</li>
+  <li>Bandingkan dengan screenshot di <code>docs/screenshots/phase324/before-fix.png</code> (pre-fix 2-row state) vs <code>after-fix.png</code> (post-fix 1-row state) sebagai reference</li>
+</ol>
+
+<h2 id="not-needed">6. Yang TIDAK Perlu IT Lakukan</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>Status</th>
+      <th>Alasan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Apply migration EF Core</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Phase 324 = subtract phase. <strong>NO migration</strong>, NO schema change.</td>
+    </tr>
+    <tr>
+      <td>ALTER TABLE / DROP COLUMN</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Schema <code>TrainingRecords</code> tetap utuh. Cleanup hanya DELETE row.</td>
+    </tr>
+    <tr>
+      <td>Restore DB Dev dari lokal</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Data HC (worker baru, sertifikat baru) di Dev harus dipertahankan.</td>
+    </tr>
+    <tr>
+      <td>Edit kode di server Dev langsung</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Per CLAUDE.md Golden Rules: dev/code edit hanya di lokal, push origin/main, IT git pull.</td>
+    </tr>
+    <tr>
+      <td>Execute cleanup tanpa BACKUP dulu</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>BACKUP wajib untuk rollback safety (Step 2 + Section 7).</td>
+    </tr>
+    <tr>
+      <td>Hapus TR yang Penyelenggara ≠ Internal</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Cleanup filter target hanya auto-generated TR (Penyelenggara="Internal"). Manual entry admin tidak ter-touch.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="rollback">7. Rollback Plan</h2>
+
+<p>Kalau ada masalah post-cleanup (misalnya delete row legitimate yang ternyata bukan auto-generated):</p>
+
+<pre class="sql">-- Restore DB dari .bak Step 2
+ALTER DATABASE HcPortalDB_Dev SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+RESTORE DATABASE HcPortalDB_Dev
+FROM DISK='C:\Backup\HcPortalDB_Dev.20260526-phase324-pre-cleanup.bak'
+WITH REPLACE;
+ALTER DATABASE HcPortalDB_Dev SET MULTI_USER;</pre>
+
+<div class="callout info">
+  <div class="title">Prerequisite Rollback</div>
+  <p>Rollback hanya feasible kalau <strong>Step 2 BACKUP</strong> dilakukan. Tanpa <code>.bak</code> file, rollback impossible. Itulah kenapa Step 2 wajib + tidak boleh skip.</p>
+</div>
+
+<p>Kalau rollback dilakukan, eskalasi ke developer untuk investigate kenapa cleanup mis-target.</p>
+
+<h2 id="refs">8. File Referensi</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Services/GradingService.cs</code></td>
+      <td>Code edit Plan 01 D-01 (line 255) + D-03 (line 485) — hapus block insert TR auto + cascade Pass↔Fail</td>
+    </tr>
+    <tr>
+      <td><code>Controllers/AssessmentAdminController.cs</code></td>
+      <td>Code edit Plan 01 D-02 (line 3404) — hapus block insert TR di FinalizeEssayGrading</td>
+    </tr>
+    <tr>
+      <td><code>docs/sql/cleanup-2026-05-26-trainingrecord-duplicates.sql</code></td>
+      <td>SQL cleanup script (embedded verbatim di Section 3)</td>
+    </tr>
+    <tr>
+      <td><code>docs/DEV_WORKFLOW.md</code></td>
+      <td>SOP umum Lokal → Dev → Prod workflow</td>
+    </tr>
+    <tr>
+      <td><code>docs/SEED_WORKFLOW.md</code></td>
+      <td>SOP BACKUP/RESTORE pattern (referensi untuk Dev/Prod adjustment)</td>
+    </tr>
+    <tr>
+      <td><code>docs/screenshots/phase324/before-fix.png</code></td>
+      <td>Pre-fix visual proof — 2-row state di <code>/CMP/Records</code> Admin KPB</td>
+    </tr>
+    <tr>
+      <td><code>docs/screenshots/phase324/after-fix.png</code></td>
+      <td>Post-fix visual proof — 1-row state setelah cleanup lokal</td>
+    </tr>
+    <tr>
+      <td><code>.planning/phases/324-fix-duplicate-trainingrecord-auto-create-on-assessment-compl/</code></td>
+      <td>Full planning context (CONTEXT, RESEARCH, 4 PLAN.md + SUMMARY.md per plan)</td>
+    </tr>
+  </tbody>
+</table>
+
+<footer>
+  Disusun oleh Rino — 2026-05-26 — HcPortal KPB Project<br>
+  Tekan <code>Ctrl+P</code> → "Save as PDF" untuk export ke PDF.
+</footer>
+
+</div>
+</body>
+</html>
