@@ -1330,7 +1330,25 @@
         </div>
     </div>
 
-    <!-- Modal C3: Batch HC Approve (Task 11) -->
+    <!-- ============ MODAL C3: Batch HC Approve ============ -->
+    <div class="modal fade" id="modalBatchApprove" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Konfirmasi Batch Approve HC</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Approve <strong><span id="batchApproveModalCount">0</span></strong> deliverable berikut?</p>
+                    <ul id="batchApproveModalList" style="max-height:200px;overflow-y:auto;font-size:0.9em"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success btn-sm" id="btnBatchApproveConfirm">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="./vendor/bootstrap.bundle.min.js"></script>
     <script>
@@ -1605,6 +1623,37 @@
                 showToast('Mock: Deliverable ditandai sudah di-review HC', 'success');
             });
         });
+
+        // === MODAL C3 Batch HC Approve ===
+        const modalBatchApprove = document.getElementById('modalBatchApprove');
+        if (modalBatchApprove) {
+            modalBatchApprove.addEventListener('show.bs.modal', () => {
+                const checked = document.querySelectorAll('.batch-check:checked');
+                document.getElementById('batchApproveModalCount').textContent = checked.length;
+                const list = document.getElementById('batchApproveModalList');
+                list.innerHTML = '';
+                checked.forEach(cb => {
+                    const li = document.createElement('li');
+                    li.textContent = (cb.dataset.coachee || '?') + ' — ' + (cb.dataset.deliverable || '?');
+                    list.appendChild(li);
+                });
+            });
+            const btnConfirm = document.getElementById('btnBatchApproveConfirm');
+            if (btnConfirm) {
+                btnConfirm.addEventListener('click', () => {
+                    const checked = document.querySelectorAll('.batch-check:checked');
+                    const count = checked.length;
+                    checked.forEach(cb => cb.checked = false);
+                    const selectAllCb = document.getElementById('selectAllHc');
+                    if (selectAllCb) selectAllCb.checked = false;
+                    const batchBtn = document.getElementById('batchApproveBtn');
+                    if (batchBtn) batchBtn.style.display = 'none';
+                    const modal = bootstrap.Modal.getInstance(modalBatchApprove);
+                    if (modal) modal.hide();
+                    showToast('Mock: ' + count + ' deliverable ditandai sudah di-review HC', 'success');
+                });
+            }
+        }
 
         // Init
         showScreen(1);
