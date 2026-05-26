@@ -522,7 +522,290 @@
         </div>
         <!-- Layar 3: SrSpv View -->
         <div id="screen-3" class="mockup-screen">
-            <!-- TODO Task 7 -->
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#" class="demo-disabled">CDP</a></li>
+                    <li class="breadcrumb-item active">Coaching Proton</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <h2><i class="bi bi-graph-up me-2"></i>Coaching Proton</h2>
+                    <p class="text-muted mb-0">Monitor deliverable progress and approval status</p>
+                </div>
+                <a href="#" class="btn btn-outline-secondary demo-disabled">
+                    <i class="bi bi-arrow-left me-1"></i>Kembali
+                </a>
+            </div>
+
+            <div class="card shadow-sm mb-3" style="border:1px solid #e0e0e0;">
+                <div class="card-body py-2 px-3">
+                    <small class="text-muted fw-semibold text-uppercase d-block mb-2" style="font-size:0.7rem;letter-spacing:0.5px;">Filter</small>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:180px">
+                            <option value="">Semua Unit</option>
+                            <option>Maintenance</option>
+                            <option>Operasi</option>
+                        </select>
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:180px">
+                            <option value="">— Pilih Coachee —</option>
+                            <option>Ahmad Budiman [Mekanikal]</option>
+                            <option>Citra Lestari [Kilang]</option>
+                            <option>Dimas Pratama [Mekanikal]</option>
+                            <option>Bayu Saputra [Listrik]</option>
+                            <option>Rini Astuti [Utility]</option>
+                        </select>
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:140px">
+                            <option value="">Semua Track</option>
+                            <option>PROTON Maintenance</option>
+                            <option>PROTON Operasi</option>
+                        </select>
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:130px">
+                            <option value="">Semua Tahun</option>
+                            <option>Tahun 1</option>
+                            <option>Tahun 2</option>
+                        </select>
+                        <div class="position-relative" style="min-width:200px">
+                            <span class="position-absolute top-50 start-0 translate-middle-y ps-2 text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control form-control-sm ps-4 search-input"
+                                   data-target="#table-screen-3" placeholder="Cari kompetensi..." autocomplete="off">
+                        </div>
+                        <button class="btn btn-outline-secondary btn-sm demo-disabled">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-primary) !important;">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-1"><i class="bi bi-graph-up me-1"></i>Progress</h6>
+                            <h3 class="mb-0 text-primary">72%</h3>
+                            <div class="progress mt-2" style="height: 6px;"><div class="progress-bar" style="width: 72%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-warning) !important;">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Pending Actions</h6>
+                            <h3 class="mb-0 text-warning">5</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-info) !important;">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-1"><i class="bi bi-hourglass-split me-1"></i>Pending Approvals</h6>
+                            <h3 class="mb-0 text-info">3</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <small class="text-muted mb-2 d-block">
+                Menampilkan <span class="rows-counter">1-8</span> dari 15 deliverable
+            </small>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="table-screen-3">
+                    <thead style="background-color: #e8f0fe; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <tr>
+                            <th>Coachee</th>
+                            <th>Kompetensi</th>
+                            <th>Sub Kompetensi</th>
+                            <th>Deliverable</th>
+                            <th>Evidence</th>
+                            <th>Approval Sr. Spv</th>
+                            <th>Approval Section Head</th>
+                            <th>Approval HC</th>
+                            <th>Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-page-1">
+                        <tr data-search="ahmad budiman pemeliharaan mekanikal rotating equipment">
+                            <td rowspan="2" class="align-middle fw-bold">Ahmad Budiman</td>
+                            <td rowspan="2" class="align-middle fw-bold">Pemeliharaan Mekanikal</td>
+                            <td class="align-middle">Pemeliharaan Rotating Equipment</td>
+                            <td>Laporan Inspeksi Mingguan Rotating Equipment</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#modalTinjau"
+                                        data-kompetensi="Pemeliharaan Mekanikal" data-subkompetensi="Pemeliharaan Rotating Equipment"
+                                        data-deliverable="Laporan Inspeksi Mingguan Rotating Equipment">Tinjau</button>
+                            </td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="ahmad budiman pemeliharaan mekanikal static equipment troubleshooting">
+                            <td class="align-middle">Pemeliharaan Static Equipment</td>
+                            <td>Dokumen Troubleshooting Static Equipment</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#modalTinjau"
+                                        data-kompetensi="Pemeliharaan Mekanikal" data-subkompetensi="Pemeliharaan Static Equipment"
+                                        data-deliverable="Dokumen Troubleshooting Static Equipment">Tinjau</button>
+                            </td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="citra lestari operasi kilang crude distillation sop">
+                            <td rowspan="2" class="align-middle fw-bold">Citra Lestari</td>
+                            <td rowspan="2" class="align-middle fw-bold">Operasi Kilang Lanjut</td>
+                            <td rowspan="2" class="align-middle">Operasi Crude Distillation Unit</td>
+                            <td>Standard Operating Procedure CDU</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="citra lestari operasi kilang performance bulanan">
+                            <td>Laporan Performance CDU Bulanan</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#modalTinjau"
+                                        data-kompetensi="Operasi Kilang Lanjut" data-subkompetensi="Operasi Crude Distillation Unit"
+                                        data-deliverable="Laporan Performance CDU Bulanan">Tinjau</button>
+                            </td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="dimas pratama quality assurance inspeksi korosi pipa">
+                            <td rowspan="2" class="align-middle fw-bold">Dimas Pratama</td>
+                            <td rowspan="2" class="align-middle fw-bold">Quality Assurance Inspeksi</td>
+                            <td class="align-middle">Inspeksi Korosi Pipa</td>
+                            <td>Laporan Hasil Inspeksi Pipa Bulan Berjalan</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="dimas pratama quality assurance inspeksi bejana tekan">
+                            <td class="align-middle">Inspeksi Bejana Tekan</td>
+                            <td>Sertifikat Inspeksi Bejana Tekan</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="bayu saputra pemeliharaan listrik motor induksi">
+                            <td rowspan="2" class="align-middle fw-bold">Bayu Saputra</td>
+                            <td rowspan="2" class="align-middle fw-bold">Pemeliharaan Listrik</td>
+                            <td class="align-middle">Pemeliharaan Motor Induksi</td>
+                            <td>Laporan IR Test Motor Pompa</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="bayu saputra pemeliharaan listrik transformator">
+                            <td class="align-middle">Pemeliharaan Transformator</td>
+                            <td>Resume Coaching Transformator</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                    </tbody>
+                    <tbody class="table-page-2" style="display:none">
+                        <tr data-search="rini astuti operasi utility steam generator">
+                            <td rowspan="3" class="align-middle fw-bold">Rini Astuti</td>
+                            <td rowspan="2" class="align-middle fw-bold">Operasi Utility</td>
+                            <td rowspan="2" class="align-middle">Operasi Steam Generator</td>
+                            <td>SOP Steam Generator Start-up</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="rini astuti operasi utility steam generator shutdown">
+                            <td>Laporan Shutdown Steam Generator</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="rini astuti operasi utility cooling water tower">
+                            <td class="fw-bold">Operasi Cooling Water</td>
+                            <td>Pengaturan Cooling Tower</td>
+                            <td>Logbook Operasi Cooling Tower</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="ahmad budiman pemeliharaan rotating equipment alignment">
+                            <td class="fw-bold">Ahmad Budiman</td>
+                            <td class="fw-bold">Pemeliharaan Mekanikal</td>
+                            <td>Pemeliharaan Rotating Equipment</td>
+                            <td>Laporan Alignment Shaft Pompa</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="citra lestari operasi kilang vacuum distillation">
+                            <td class="fw-bold">Citra Lestari</td>
+                            <td class="fw-bold">Operasi Kilang Lanjut</td>
+                            <td>Operasi Vacuum Distillation Unit</td>
+                            <td>SOP Vacuum Distillation Unit</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="dimas pratama quality assurance ndt ultrasonic">
+                            <td class="fw-bold">Dimas Pratama</td>
+                            <td class="fw-bold">Quality Assurance Inspeksi</td>
+                            <td>NDT Ultrasonic Testing</td>
+                            <td>Laporan UT Pipa Header</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="bayu saputra pemeliharaan listrik panel mcc">
+                            <td class="fw-bold">Bayu Saputra</td>
+                            <td class="fw-bold">Pemeliharaan Listrik</td>
+                            <td>Pemeliharaan Panel MCC</td>
+                            <td>Resume Coaching Panel MCC</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav class="mt-4 d-flex justify-content-between align-items-center">
+                <small class="text-muted">Halaman <span class="page-current">1</span> dari 2</small>
+                <ul class="pagination pagination-sm mb-0" data-pagination-target="#table-screen-3">
+                    <li class="page-item disabled"><span class="page-link">«</span></li>
+                    <li class="page-item active" aria-current="page"><a class="page-link" href="#" data-page="1">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#" data-page="2">2</a></li>
+                    <li class="page-item"><a class="page-link">»</a></li>
+                </ul>
+            </nav>
         </div>
         <!-- Layar 4: Detail Approved -->
         <div id="screen-4" class="mockup-screen">
