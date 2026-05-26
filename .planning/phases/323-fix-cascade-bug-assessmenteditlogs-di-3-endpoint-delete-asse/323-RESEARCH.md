@@ -617,27 +617,27 @@ INSERT INTO AssessmentEditLogs (
 | A4 | Selector tombol Delete di Razor view `ManageAssessment` (atau partial views post Phase 322) stable enough untuk Playwright `page.click('button[data-action="delete"]')` atau similar. | Playwright spec template | MEDIUM — selector belum di-verify untuk Phase 323. Plan Wave 0 task wajib include "inspect HTML manage-assessment partials, identify delete selectors". Existing test `tests/e2e/manage-assessment-filter.spec.ts` mungkin already reveals selectors. |
 | A5 | DB lokal `localhost\SQLEXPRESS` instance + `HcPortalDB_Dev` database tersedia + Windows Integrated Security configured. | Seed workflow | [VERIFIED: `docs/SEED_WORKFLOW.md` §1 + `appsettings.Development.json`. SAFE.] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Selektor exact untuk tombol Delete / Hapus Grup / Hapus Pre-Post di view ManageAssessment**
    - What we know: View existing di `Views/Admin/ManageAssessment*.cshtml` (post Phase 322 partial split). Tombol delete pasti ada di sub-partial.
    - What's unclear: CSS selector spesifik (button class, data attribute, form action) — belum di-probe untuk Phase 323.
-   - Recommendation: Plan Wave 0 mini-task "probe selector Delete di partial views" sebelum write spec body. ALT: defer ke implementer dengan reference ke `tests/e2e/manage-assessment-filter.spec.ts` yang sudah navigate page ini.
+   - **RESOLVED:** Defer ke Plan 02 Task 1 Sub-step A "Selector probe" — selector identified saat probe live partial view sebelum write spec body, dokumentasi sebagai comment header di spec file. Reference fallback: `tests/e2e/manage-assessment-filter.spec.ts` (Phase 322) untuk pattern navigasi ke halaman ini.
 
 2. **Apakah perlu test untuk DeletePrePostGroup secara eksplisit (skenario 4)?**
    - What we know: 3 skenario CONTEXT.md cover (a)(b)(c) untuk single + group via Title-Schedule grouping. PrePostGroup variant (LinkedGroupId-based) tidak explicit di-test.
    - What's unclear: Risk of regression di endpoint ke-3 tanpa E2E coverage. Code review-only confirmation cukup?
-   - Recommendation: Planner add 4th smoke skenario (optional, bonus) ATAU explicit code-review verification di Plan checklist. CONTEXT.md tidak melarang.
+   - **RESOLVED:** Tidak buat skenario ke-4 eksplisit. Code-review verification cukup karena pattern Plan 01 Task 3 (`groupIds.Contains` predicate di DeletePrePostGroup) struktural identik dengan Task 2 (`siblingIds.Contains` di DeleteAssessmentGroup) yang sudah di-cover skenario (c) E2E. Effort hemat tanpa kompromi coverage.
 
 3. **Seed strategy — single AssessmentEditLog row cukup, atau perlu multiple untuk variasi `ReasonCode` / actor?**
    - What we know: REQ acceptance #3 hanya butuh "≥1 edit log" untuk verify cascade.
    - What's unclear: Apakah simulate "realistic edit history" (3-5 row dengan timestamp berbeda) tambah value coverage?
-   - Recommendation: 1 row cukup untuk REQ. Bonus row untuk realism = nice-to-have; planner discretion.
+   - **RESOLVED:** 1-3 row cukup (1 untuk WITH_EDITS scenario + 1-2 untuk sibling GROUP_REP per Plan 02 Task 1 Sub-step C). Tidak perlu simulate multi-actor / multi-ReasonCode untuk acceptance CASCADE-01 #3. Hindari over-seed yang nambah cleanup risk.
 
 4. **Apakah `DELETE FROM AssessmentSessions` cascade trigger SignalR broadcast (workerAnswerEdited dari Phase 321)?**
    - What we know: Phase 321 SignalR signal di-emit saat EDIT, bukan saat delete cascade.
    - What's unclear: Apakah ada broadcast lain (e.g., dashboard refresh) yang ter-trigger oleh delete cascade?
-   - Recommendation: Out-of-scope untuk Phase 323 (REQ tidak mention). Bisa di-defer.
+   - **RESOLVED:** Out-of-scope. SignalR `workerAnswerEdited` di-emit hanya di EDIT path Phase 321, bukan DELETE cascade. Tidak ada broadcast lain yang relevan untuk Phase 323 scope.
 
 ## Environment Availability
 
