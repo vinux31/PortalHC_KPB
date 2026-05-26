@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mockup Coaching Proton - Portal HC KPB</title>
+    <link rel="stylesheet" href="./vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="./vendor/bootstrap-icons.css" />
+    <style>
+        /* Chrome ala Portal real */
+        .navbar { box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-link { font-weight: 500; }
+        .dropdown-item:active { background-color: #0d6efd; }
+
+        /* Footer navigasi sticky */
+        .mockup-footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-top: 1px solid #dee2e6;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            padding: 12px 24px;
+            z-index: 1040;
+        }
+        .mockup-screen-dots { display: flex; gap: 8px; }
+        .mockup-screen-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #ced4da; cursor: pointer; transition: background 0.2s;
+        }
+        .mockup-screen-dot.active { background: var(--bs-primary); }
+        .mockup-screen-dot:hover { background: #6c757d; }
+
+        /* Padding bawah body supaya footer tidak nutupin konten */
+        body { padding-bottom: 70px; }
+
+        /* Sembunyikan layar non-aktif */
+        .mockup-screen { display: none; }
+        .mockup-screen.screen-active { display: block; }
+
+        /* Hotspot mati: cursor not-allowed */
+        .demo-disabled { cursor: not-allowed !important; }
+
+        /* Avatar bulatan match Portal */
+        .navbar-avatar {
+            width: 36px; height: 36px; font-size: 0.85em;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- ============ HEADER NAVBAR PERTAMINA ============ -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4 sticky-top">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand fw-bold text-primary d-flex align-items-center demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()">
+                    <i class="bi bi-buildings-fill me-2 fs-4"></i> HC Portal
+                </a>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()">CMP</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()">CDP</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()">
+                                <i class="bi bi-question-circle me-1"></i>Panduan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()">
+                                <i class="bi bi-gear-fill me-1"></i>Kelola Data
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center border-start ps-lg-4 ms-lg-2 mt-3 mt-lg-0">
+                        <div class="text-end me-3 d-none d-lg-block">
+                            <div class="fw-bold text-dark small" id="navUserName">Eko Wibowo</div>
+                            <div class="d-flex align-items-center justify-content-end gap-1">
+                                <span class="badge bg-primary bg-opacity-10 text-primary" id="navUserRole">Coach</span>
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold navbar-avatar" id="navUserInitials">EW</div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width: 200px;">
+                                <li><a class="dropdown-item demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()"><i class="bi bi-person me-2"></i> My Profile</a></li>
+                                <li><a class="dropdown-item demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger fw-bold demo-disabled" href="#" onclick="event.preventDefault(); showDemoToast()">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ============ KONTAINER 6 LAYAR ============ -->
+    <div class="container-fluid pb-5">
+        <!-- Layar 1: Coach View -->
+        <div id="screen-1" class="mockup-screen screen-active">
+            <!-- TODO Task 4 -->
+        </div>
+        <!-- Layar 2: Detail Pending -->
+        <div id="screen-2" class="mockup-screen">
+            <!-- TODO Task 6 -->
+        </div>
+        <!-- Layar 3: SrSpv View -->
+        <div id="screen-3" class="mockup-screen">
+            <!-- TODO Task 7 -->
+        </div>
+        <!-- Layar 4: Detail Approved -->
+        <div id="screen-4" class="mockup-screen">
+            <!-- TODO Task 9 -->
+        </div>
+        <!-- Layar 5: HC View -->
+        <div id="screen-5" class="mockup-screen">
+            <!-- TODO Task 10 -->
+        </div>
+        <!-- Layar 6: Edit Session -->
+        <div id="screen-6" class="mockup-screen">
+            <!-- TODO Task 12 -->
+        </div>
+    </div>
+
+    <!-- ============ FOOTER NAVIGATION ============ -->
+    <div class="mockup-footer-nav d-flex justify-content-between align-items-center">
+        <button id="btnPrev" class="btn btn-outline-secondary" disabled>
+            <i class="bi bi-arrow-left me-1"></i>Sebelumnya
+        </button>
+        <div class="d-flex align-items-center gap-3">
+            <div class="mockup-screen-dots" id="screenDots">
+                <span class="mockup-screen-dot active" data-screen="1"></span>
+                <span class="mockup-screen-dot" data-screen="2"></span>
+                <span class="mockup-screen-dot" data-screen="3"></span>
+                <span class="mockup-screen-dot" data-screen="4"></span>
+                <span class="mockup-screen-dot" data-screen="5"></span>
+                <span class="mockup-screen-dot" data-screen="6"></span>
+            </div>
+            <small class="text-muted">Layar <span id="screenCurrent">1</span> dari 6</small>
+        </div>
+        <button id="btnNext" class="btn btn-primary">
+            Berikutnya<i class="bi bi-arrow-right ms-1"></i>
+        </button>
+    </div>
+
+    <!-- ============ TOAST CONTAINER ============ -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+        <div id="actionToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body text-white" id="actionToastBody"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODAL PLACEHOLDERS ============ -->
+    <!-- Modal C1: Submit Evidence (Task 5) -->
+    <!-- Modal C2: Tinjau Deliverable (Task 8) -->
+    <!-- Modal C3: Batch HC Approve (Task 11) -->
+
+    <script src="./vendor/bootstrap.bundle.min.js"></script>
+    <script>
+        // === TOAST HELPER ===
+        function showToast(message, type) {
+            type = type || 'success';
+            const toast = document.getElementById('actionToast');
+            const toastBody = document.getElementById('actionToastBody');
+            if (!toast || !toastBody) return;
+            toastBody.textContent = message;
+            toast.className = 'toast align-items-center border-0';
+            toast.classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+            const bsToast = bootstrap.Toast.getOrCreateInstance(toast, { delay: 4000 });
+            bsToast.show();
+        }
+
+        function showDemoToast() {
+            showToast('Demo mode — fitur ini aktif di Portal produksi', 'danger');
+        }
+
+        // === NAVIGATION ===
+        let currentScreen = 1;
+        const TOTAL_SCREENS = 6;
+
+        function showScreen(n) {
+            if (n < 1 || n > TOTAL_SCREENS) return;
+            document.querySelectorAll('.mockup-screen').forEach(s => s.classList.remove('screen-active'));
+            document.getElementById('screen-' + n).classList.add('screen-active');
+            document.querySelectorAll('.mockup-screen-dot').forEach(d => d.classList.remove('active'));
+            document.querySelector('.mockup-screen-dot[data-screen="' + n + '"]').classList.add('active');
+            document.getElementById('screenCurrent').textContent = n;
+            document.getElementById('btnPrev').disabled = (n === 1);
+            document.getElementById('btnNext').disabled = (n === TOTAL_SCREENS);
+            updateUserPov(n);
+            currentScreen = n;
+            window.scrollTo(0, 0);
+        }
+
+        // === POV (user dropdown) per layar ===
+        function updateUserPov(n) {
+            const povMap = {
+                1: { name: 'Eko Wibowo', role: 'Coach', initials: 'EW' },
+                2: { name: 'Eko Wibowo', role: 'Coach', initials: 'EW' },
+                3: { name: 'Fajar Hidayat', role: 'Sr Supervisor', initials: 'FH' },
+                4: { name: 'Eko Wibowo', role: 'Coach', initials: 'EW' },
+                5: { name: 'Hadi Nugroho', role: 'HC', initials: 'HN' },
+                6: { name: 'Eko Wibowo', role: 'Coach', initials: 'EW' }
+            };
+            const pov = povMap[n];
+            document.getElementById('navUserName').textContent = pov.name;
+            document.getElementById('navUserRole').textContent = pov.role;
+            document.getElementById('navUserInitials').textContent = pov.initials;
+        }
+
+        // === EVENT LISTENERS ===
+        document.getElementById('btnPrev').addEventListener('click', () => showScreen(currentScreen - 1));
+        document.getElementById('btnNext').addEventListener('click', () => showScreen(currentScreen + 1));
+        document.querySelectorAll('.mockup-screen-dot').forEach(dot => {
+            dot.addEventListener('click', () => showScreen(parseInt(dot.dataset.screen)));
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') showScreen(currentScreen - 1);
+            else if (e.key === 'ArrowRight') showScreen(currentScreen + 1);
+        });
+
+        // === DEMO-DISABLED hotspot ===
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.demo-disabled') && !e.defaultPrevented) {
+                e.preventDefault();
+                showDemoToast();
+            }
+        });
+
+        // Init
+        showScreen(1);
+    </script>
+</body>
+</html>
