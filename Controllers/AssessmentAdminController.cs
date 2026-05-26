@@ -2215,6 +2215,10 @@ namespace HcPortal.Controllers
                     .CountAsync(r => siblingIds.Contains(r.AssessmentSessionId));
                 int preDeleteSessionCount = siblings.Count;
 
+                // PHASE 323: snapshot EditLog count agregat semua siblings
+                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
+                    .CountAsync(e => siblingIds.Contains(e.AssessmentSessionId));
+
                 // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
                 if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
                 {
@@ -2224,6 +2228,16 @@ namespace HcPortal.Controllers
                     await tx.RollbackAsync();
                     TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
                     return RedirectToAction("ManageAssessment");
+                }
+
+                // PHASE 323: Delete AssessmentEditLogs untuk semua siblings (Restrict FK)
+                var allEditLogs = await _context.AssessmentEditLogs
+                    .Where(e => siblingIds.Contains(e.AssessmentSessionId))
+                    .ToListAsync();
+                if (allEditLogs.Any())
+                {
+                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allEditLogs.Count} edit logs across {siblingIds.Count} sessions");
+                    _context.AssessmentEditLogs.RemoveRange(allEditLogs);
                 }
 
                 // Delete PackageUserResponses for all siblings (Restrict FK — must be removed before sessions)
@@ -2276,7 +2290,7 @@ namespace HcPortal.Controllers
                         dgUser?.Id ?? "",
                         dgActorName,
                         "DeleteAssessmentGroup",
-                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) [RepId={id}] SessionCount={preDeleteSessionCount} Status={preDeleteStatus} ResponseCount={preDeleteResponseCount}",
+                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) [RepId={id}] SessionCount={preDeleteSessionCount} Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
                         id,
                         "AssessmentSession");
                 }
