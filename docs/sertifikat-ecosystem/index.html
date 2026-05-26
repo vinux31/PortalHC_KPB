@@ -1274,7 +1274,7 @@ Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
             <li><strong>FK constraint cascade:</strong> Renewal FK = NoAction (default). Delete TR/AS yang di-renews → DbUpdateException.</li>
             <li><strong>Signatory cascade:</strong> AssessmentCategory.SignatoryUserId = SetNull on User delete. ParentId = Restrict.</li>
             <li><strong>Cert# retry attempts:</strong> <code>maxCertAttempts</code> (lihat GradingService.cs:302)</li>
-            <li><strong>Notification poll interval:</strong> TBD (audit JS code di _Layout)</li>
+            <li><strong>Notification fetch model:</strong> User-initiated (klik bell dropdown) via <code>fetch(appUrl('/Notification/List'))</code> di <code>Views/Shared/Components/NotificationBell/Default.cshtml:71</code> — bukan polling interval. Selain endpoint di §17, tersedia juga <code>/Notification/MarkAllAsRead</code> dan <code>/Notification/Dismiss/{id}</code>.</li>
           </ul>
 
           <h5 class="mt-4">D. File Layout Reference</h5>
@@ -1316,7 +1316,7 @@ Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script>
     mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
     hljs.highlightAll();
