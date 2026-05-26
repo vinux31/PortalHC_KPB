@@ -118,7 +118,54 @@ flowchart LR
         <dd class="col-sm-9">Sistem kirim notif otomatis 30 hari sebelum sertifikat expired, ke pekerja terkait dan tim HC.</dd>
       </dl>
     </section>
-    <section id="sec-3"><h2><span class="badge bg-secondary">§3</span> Perjalanan Sertifikat</h2><p><em>Konten Task 4</em></p></section>
+    <section id="sec-3">
+      <h2><span class="badge bg-secondary">§3</span> Perjalanan Sertifikat</h2>
+      <p>Berikut perjalanan satu sertifikat dari awal hingga renewal — happy path:</p>
+      <div class="mermaid">
+flowchart TD
+    A[Pekerja ikut Assessment / Training] --> B{Lulus?}
+    B -- Ya --> C[Sertifikat Terbit<br/>Auto atau Manual Upload]
+    C --> D[Status: Aktif]
+    D --> E[30 hari sebelum expired]
+    E --> F[Notifikasi<br/>Pekerja + HC]
+    F --> G[Renewal<br/>Training/Assessment Baru]
+    G --> H[Sertifikat Baru<br/>terhubung ke sertifikat lama]
+    B -- Tidak --> X[Sertifikat TIDAK terbit<br/>lihat 3 alasan di bawah]
+      </div>
+      <h5 class="mt-4">2 Jalur Sumber Sertifikat</h5>
+      <ul>
+        <li><strong>Otomatis (online)</strong> — Pekerja lulus assessment di Portal HC, sistem auto-generate nomor sertifikat format <code>KPB/{NOMOR-URUT}/{ROMAWI-BULAN}/{TAHUN}</code>. Contoh: <code>KPB/15/V/2026</code>.</li>
+        <li><strong>Manual (upload)</strong> — HC/Admin upload bukti sertifikat dari training external (di luar Portal HC). Nomor sertifikat di-input manual oleh HC.</li>
+      </ul>
+      <h5 class="mt-4">Kapan Sertifikat TIDAK Terbit</h5>
+      <p>Tim HC sering tanya: "Kenapa pekerja sudah selesai assessment tapi sertifikat tidak muncul?" Ini bukan bug — ada 3 alasan valid:</p>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card h-100 border-danger">
+            <div class="card-body">
+              <h6 class="card-title"><i class="bi bi-x-circle text-danger"></i> Gagal Lulus</h6>
+              <p class="card-text small">Skor pekerja di bawah passing percentage yang ditetapkan. Status assessment: <strong>Failed</strong>. Sertifikat tidak terbit.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 border-warning">
+            <div class="card-body">
+              <h6 class="card-title"><i class="bi bi-toggle-off text-warning"></i> Lulus tapi Flag Mati</h6>
+              <p class="card-text small">Assessment di-konfigurasi tanpa flag <strong>Generate Certificate</strong> (misal: latihan/simulasi internal). Pekerja lulus tapi tidak ada sertifikat terbit.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 border-info">
+            <div class="card-body">
+              <h6 class="card-title"><i class="bi bi-hourglass-split text-info"></i> Nunggu Penilaian Essay</h6>
+              <p class="card-text small">Pekerja lulus pilihan ganda, tapi ada soal essay yang belum dinilai HC. Status: <strong>Pending Grading</strong>. Sertifikat menyusul setelah HC selesai grading essay.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     <section id="sec-4"><h2><span class="badge bg-secondary">§4</span> Status & Kapan Berubah</h2><p><em>Konten Task 5</em></p></section>
     <section id="sec-5"><h2><span class="badge bg-secondary">§5</span> Renewal — Kenapa & Bagaimana</h2><p><em>Konten Task 6</em></p></section>
     <section id="sec-6"><h2><span class="badge bg-secondary">§6</span> Peran & Hak Akses</h2><p><em>Konten Task 7</em></p></section>
