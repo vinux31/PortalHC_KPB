@@ -406,6 +406,204 @@ sequenceDiagram
     Note over DB: COLLISION jika tidak ada UNIQUE constraint atau lock. Audit §9.
           </div>
         </section>
+
+        <section id="sec-5">
+          <h2><span class="badge bg-secondary">§5</span> Per-Page Deep Dive</h2>
+          <p class="text-muted">13 endpoint: 10 page utama + 3 endpoint kritis. Setiap card berisi route, controller <code>file:line</code> (verified per 2026-05-26), view, ViewModel, read/write, RBAC.</p>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.1 Riwayat Pelatihan</strong> &mdash; <span class="path-line">GET /CMP/Records</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/CMPController.cs:479</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/CMP/Records.cshtml</code></dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9"><code>List&lt;UnifiedTrainingRecord&gt;</code></dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">TrainingRecord (UserId scope), AssessmentSession (Status=Completed) → unified merge</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">None (read-only)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">L1-3 full / L4 section / L5-6 own (lihat §6)</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Filter: section, unit, category, search, statusFilter. Linked export: §5.10.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.2 Manajemen Sertifikasi</strong> &mdash; <span class="path-line">GET /CDP/CertificationManagement</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/CDPController.cs:3539</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/CDP/CertificationManagement.cshtml</code></dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9"><code>CertificationManagementViewModel</code> (SertifikatRow, SertifikatGroupRow)</dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">TrainingRecord (SertifikatUrl != null), AssessmentSession (GenerateCertificate=true + IsPassed=true), 4 batch lookup renewal FK</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">None</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">L1-3 full / L4 section / L5 dual-mode / L6 own</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Union-Find IsRenewed flag (lihat §8). Filter: bagian, unit, category, status (Aktif/AkanExpired/Expired/Permanent).</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.3 Budget Training</strong> &mdash; <span class="path-line">GET /CMP/BudgetTraining</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/CMPController.cs:4108</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/CMP/BudgetTraining.cshtml</code></dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9"><code>BudgetTrainingViewModel</code></dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">BudgetItem (paginated, filter Type/Kategori/Tahun)</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">Create / Edit / Delete / Import / BulkUpdate / BulkDelete (lihat §17)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">L1-3 CRUD / L4+ read-only / L5-6 blocked</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Serapan % = RealisasiBiaya / EstimasiBiayaTotal. Chart by kategori (Rencana vs Realisasi). Top 10 by anggaran.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.4 Manage Assessment &amp; Training</strong> &mdash; <span class="path-line">GET /Admin/ManageAssessment</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/AssessmentAdminController.cs:62</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/Admin/ManageAssessment.cshtml</code> (tab shell, HTMX lazy-load)</dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9">Tab partial: <code>ManageAssessmentTab_Assessment / _Training / _History</code></dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">AssessmentSession (Schedule &gt;= 7 days ago, Include User), TrainingRecord (paginated)</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">CreateAssessment, EditAssessment, DeleteAssessment, AddTraining, EditTraining, DeleteTraining, AddManualAssessment (sub-endpoint, lihat §5.8)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">Admin, HC only — others Forbid</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">3 tab: Assessment (recent sessions), Training, History audit trail.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.5 Certificate Renewal</strong> &mdash; <span class="path-line">GET /Admin/RenewalCertificate</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/RenewalController.cs:210</code> (+ FilterRenewalCertificate <code>:237</code>)</dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/Admin/RenewalCertificate.cshtml</code></dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9"><code>CertificationManagementViewModel</code> (reused dari CDP) + <code>RenewalGroup</code></dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9"><code>BuildRenewalRowsAsync()</code> — query TR + AS with status=Expired or AkanExpired, exclude already-renewed</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">None (dashboard only, renewal dibuat via §5.8)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9"><code>[Authorize(Roles = "Admin, HC")]</code></dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Grouped accordion by judul sertifikat. Sort: ValidUntil asc. Filter HTMX partial: <code>FilterRenewalCertificate</code>.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.6 Certificate View</strong> &mdash; <span class="path-line">GET /CMP/Certificate/{id}</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/CMPController.cs:1787</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/CMP/Certificate.cshtml</code></dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9"><code>AssessmentSession</code> + <code>PSignViewModel</code> (signatory)</dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">AssessmentSession (Include User), AssessmentCategory.SignatoryUserId (parent fallback)</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">None</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">Owner (UserId match) OR Admin OR HC; others Forbid</dd>
+                <dt class="col-sm-3">Guard</dt><dd class="col-sm-9">Status == Completed atau PendingGrading; IsPassed == true; GenerateCertificate == true. SUB-01 D-07 branch redirect Results jika PendingGrading.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.7 Certificate PDF Export</strong> &mdash; <span class="path-line">GET /CMP/CertificatePdf/{id}</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/CMPController.cs:1898</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9">PDF binary (QuestPDF render)</dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9">Sama dengan §5.6</dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">AssessmentSession, AssessmentCategory.Signatory</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">None (PDF stream)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">Sama dengan §5.6 (verify konsistensi — audit §9)</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">QuestPDF synchronous render → block request thread (perf §16).</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.8 Add/Edit Training (Upload Bukti)</strong> &mdash; <span class="path-line">POST /Admin/AddTraining, /Admin/EditTraining</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9">AddTraining GET <code>TrainingAdminController.cs:71</code>, POST <code>:188</code>; EditTraining GET <code>:420</code>, POST <code>:454</code>; DeleteTraining <code>:527</code>; AddManualAssessment GET <code>:555</code>, POST <code>:566</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/Admin/AddTraining.cshtml</code>, <code>EditTraining.cshtml</code></dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9"><code>CreateTrainingRecordViewModel</code>, <code>EditTrainingRecordViewModel</code>, <code>CreateManualAssessmentViewModel</code></dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">AssessmentCategory hierarchy (dropdown), ApplicationUser (worker dropdown)</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">TrainingRecord (Insert/Update/Delete) + file upload ke <code>wwwroot/uploads/</code></dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">Admin, HC only</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Optional FK RenewsTrainingId / RenewsSessionId. File upload validation (mime/size/path traversal) audit §9.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.9 Notification (Expiry Reminder)</strong> &mdash; <span class="path-line">GET /Notification/{List,UnreadCount}, POST /Notification/MarkAsRead</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/NotificationController.cs:22</code> (List), <code>:43</code> (MarkAsRead), <code>:71</code> (UnreadCount)</dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9">JSON (consumed via AJAX di _Layout bell icon)</dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9"><code>NotificationDto</code> (or anonymous JSON)</dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">Notification (UserId scope, IsRead filter)</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">Notification.IsRead = true (MarkAsRead)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">Authorized users (any role)</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Generator notification untuk cert expiry: <strong>lokasi belum jelas</strong> (audit §9 + gap §10 — background job?).</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>5.10 Export Sertifikat</strong> &mdash; <span class="path-line">GET /CMP/ExportRecords, /CDP/ExportSertifikatExcel</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>CMPController.cs:588</code> (ExportRecords), <code>CDPController.cs:3628+</code> (ExportSertifikatExcel)</dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9">Binary <code>.xlsx</code> stream</dd>
+                <dt class="col-sm-3">Engine</dt><dd class="col-sm-9">ClosedXML (XLWorkbook)</dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">Sama dengan source page (Records / CertificationManagement)</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">None</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">ExportRecords: role-scoped sama dengan §5.1. ExportSertifikat*: Admin, HC.</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">2-sheet workbook (Assessment + Training). Tidak ada rate-limit / streaming pagination (gap §10).</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-primary">
+            <div class="card-header bg-primary-subtle"><strong>5.11 Submit Exam (cert generation trigger)</strong> &mdash; <span class="path-line">POST /CMP/SubmitExam</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/CMPController.cs:1569</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9">Redirect ke <code>/CMP/Certificate/{id}</code> atau <code>/CMP/Results</code></dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">UserPackageAssignment + Question (grade), AssessmentSession (load session)</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">AssessmentSession (Score, IsPassed, CompletedAt, Status, NomorSertifikat, ValidUntil)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">Coachee (own session only)</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Endpoint kritis — trigger cert generation. Auto-submit branch via <code>isAutoSubmit + autoSubmitToken</code>. Race condition cert# audit §9.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-primary">
+            <div class="card-header bg-primary-subtle"><strong>5.12 Finalize Essay Grading</strong> &mdash; <span class="path-line">POST /Admin/FinalizeEssayGrading</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/AssessmentAdminController.cs:3271</code></dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9">JSON / Redirect ManageAssessment</dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">AssessmentSession (Status=PendingGrading), EssayGradingItemViewModel map</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">AssessmentSession (Score final, IsPassed, Status=Completed, NomorSertifikat jika cert)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">Admin, HC only</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Idempotent (race condition guarded — lihat log line :3386). Audit log dispatch line :3449.</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-secondary">
+            <div class="card-header bg-secondary-subtle"><strong>5.13 CDP Coaching Dashboard (L5 view)</strong> &mdash; <span class="path-line">GET /CDP/...</span></div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-3">Controller</dt><dd class="col-sm-9"><code>Controllers/CDPController.cs</code> (multiple methods, lihat method routing)</dd>
+                <dt class="col-sm-3">View</dt><dd class="col-sm-9"><code>Views/CDP/*</code></dd>
+                <dt class="col-sm-3">ViewModel</dt><dd class="col-sm-9">Coaching-specific (di luar scope sertifikat murni)</dd>
+                <dt class="col-sm-3">Read</dt><dd class="col-sm-9">CoachCoacheeMappings (Coach=user.Id, IsActive), worker records via mapping</dd>
+                <dt class="col-sm-3">Write</dt><dd class="col-sm-9">CoachingSession, BigMenu (luar scope sertifikat)</dd>
+                <dt class="col-sm-3">RBAC</dt><dd class="col-sm-9">L5 Coach/Supervisor (mapped coachees via <code>l5OwnDataOnly=false</code>)</dd>
+                <dt class="col-sm-3">Spesial</dt><dd class="col-sm-9">Cross-cut sertifikat: dashboard show sertifikat coachee mapped sebagai pendamping. Bukan owner sertifikat.</dd>
+              </dl>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   </div>
