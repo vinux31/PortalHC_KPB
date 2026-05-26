@@ -3274,6 +3274,54 @@
   </div>
 </div>
 
+<!-- ================= SLIDE 28: STATUS LIFECYCLE & TIMER ================= -->
+<div class="slide default-deco" data-slide="28">
+  <div class="slide-header">
+    <div>
+      <div class="section-eyebrow">PART 2 &mdash; ASSESSMENT</div>
+      <h1 class="slide-title">Status Lifecycle &amp; <span class="accent">Timer</span></h1>
+    </div>
+    <div class="slide-badge">28 / 31</div>
+  </div>
+  <div class="slide-body">
+    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px;">
+      <div style="font-size: 10pt; font-weight: 800; letter-spacing: 2px; color: var(--slate-dark); text-transform: uppercase; margin-bottom: 14px;">State Machine &mdash; 6 Status (string value exact)</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 10pt; flex-wrap: nowrap;">
+        <div style="background: #e0e7ff; color: #3730a3; padding: 8px 12px; border-radius: 6px; font-weight: 700; text-align: center; min-width: 90px;">Upcoming</div>
+        <div style="font-size: 18pt; color: var(--slate);">&rarr;</div>
+        <div style="background: #e0f2fe; color: #075985; padding: 8px 12px; border-radius: 6px; font-weight: 700; text-align: center; min-width: 90px;">Open</div>
+        <div style="font-size: 18pt; color: var(--slate);">&rarr;</div>
+        <div style="background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 6px; font-weight: 700; text-align: center; min-width: 90px;">InProgress</div>
+        <div style="font-size: 18pt; color: var(--slate);">&rarr;</div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="background: #fed7aa; color: #9a3412; padding: 8px 12px; border-radius: 6px; font-weight: 700; text-align: center; font-size: 9.5pt;">"Menunggu Penilaian"<br><span style="font-size: 8pt; font-weight: 500;">(PendingGrading)</span></div>
+          <div style="background: #d1fae5; color: #065f46; padding: 8px 12px; border-radius: 6px; font-weight: 700; text-align: center;">Completed</div>
+          <div style="background: #fee2e2; color: #991b1b; padding: 8px 12px; border-radius: 6px; font-weight: 700; text-align: center;">Cancelled</div>
+        </div>
+      </div>
+      <div style="font-size: 9.5pt; color: var(--text-muted); margin-top: 10px; font-style: italic; text-align: center;">
+        ⚠️ Note: <code>PendingGrading</code> string value Indonesian (<strong>"Menunggu Penilaian"</strong>), bukan English. Reference: <code>Models/AssessmentConstants.cs:18</code>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px;">
+      <div style="background: #fff; border: 2px solid var(--teal-dark); border-radius: 10px; padding: 14px 18px;">
+        <h4 style="font-size: 13pt; font-weight: 800; color: var(--teal-dark);">⏱️ Timer Control</h4>
+        <ul style="margin-top: 8px; padding-left: 18px; font-size: 10.5pt; line-height: 1.7;">
+          <li><strong>DurationMinutes</strong> &mdash; server-enforced, fixed per session</li>
+          <li><strong>ExtraTimeMinutes</strong> (Phase 302) &mdash; akomodasi khusus per coachee</li>
+          <li>Client countdown real-time + server validation saat submit</li>
+          <li><strong>Auto-submit</strong> saat timer habis &mdash; partial jawaban tetap dinilai</li>
+        </ul>
+      </div>
+      <div style="background: linear-gradient(135deg, var(--teal-dark), var(--teal)); color: #fff; border-radius: 10px; padding: 14px 18px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 9.5pt; font-weight: 700; opacity: 0.9; letter-spacing: 2px;">SISA WAKTU</div>
+        <div style="font-size: 48pt; font-weight: 900; letter-spacing: -2px; margin-top: 6px; font-family: 'Courier New', monospace;">00:47:23</div>
+        <div style="font-size: 9pt; opacity: 0.85; margin-top: 4px;">⏰ ExtraTime +15 min applied</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 </div>
 
