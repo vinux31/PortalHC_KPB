@@ -654,26 +654,26 @@ test.describe('Phase 324 — No Duplicate TrainingRecord on Assessment Completio
 
 **Critical follow-up:** A3 `CreatedAt` column existence WAJIB di-verify sebelum SQL script di-finalize. Saran Plan 01 task awal: `sqlcmd ... -Q "SELECT TOP 1 name FROM sys.columns WHERE object_id = OBJECT_ID('TrainingRecords') AND name = 'CreatedAt';"` — kalau return 0 row, filter clause harus diganti (mis. pakai `Tanggal >= '2026-04-10'` ATAU `Id >= <id-first-post-regression>`).
 
-## Open Questions
+## Open Questions (RESOLVED — see resolution markers per question)
 
-1. **`TrainingRecords.CreatedAt` column existence di DB**
+1. **`TrainingRecords.CreatedAt` column existence di DB** — **RESOLVED via Plan 03 Task 1** (schema verify via sqlcmd INFORMATION_SCHEMA query → filter column decision documented di 324-03-SUMMARY.md)
    - What we know: Model `TrainingRecord.cs` TIDAK punya property `CreatedAt`. Bug repro CONTEXT.md asumsi kolom ada.
    - What's unclear: Apakah kolom ada di DB (shadow property / migration default) atau memang tidak ada?
    - Recommendation: Plan 01 first task → verify via `sqlcmd` query schema. Kalau tidak ada, alternative filter:
      - `WHERE Judul LIKE 'Assessment:%' AND TanggalSelesai >= '2026-04-10'` (TanggalSelesai DI-SET di code line 273)
      - ATAU `WHERE Judul LIKE 'Assessment:%' AND Id > <max-id-before-2026-04-10>` (cari max Id pre-regression dari `Migrations` history atau audit log)
 
-2. **Cutoff atas cleanup window**
+2. **Cutoff atas cleanup window** — **RESOLVED**: no upper bound needed. Cleanup script idempotent (re-run aman, post-count tetap 0). Pitfall 5 race condition di-handle via Plan 04 IT handoff explicit ordering callout (Step 1 deploy code DULU, Step 2 SQL cleanup) — bukan via filter cutoff atas.
    - What we know: D-04 spec hanya `CreatedAt >= '2026-04-10'` (no upper bound)
    - What's unclear: Apakah perlu `< '2026-05-26'` (date cleanup) untuk avoid race condition selama deploy?
    - Recommendation: Tidak perlu upper bound; cleanup idempotent → kalau ada drift, re-run. Tapi documentation di HTML handoff WAJIB explicit "deploy code DLL DULU, baru SQL cleanup."
 
-3. **TrainingRecord legacy yang RenewsSessionId/RenewsTrainingId-nya FK ke session yang di-delete**
+3. **TrainingRecord legacy yang RenewsSessionId/RenewsTrainingId-nya FK ke session yang di-delete** — **RESOLVED via Plan 03 Task 2** (orphan-check query measured + decision branch: kalau N=0 standard cleanup, kalau N>0 tambah null-clear pre-DELETE statement di SQL script Task 3)
    - What we know: TrainingRecord punya `RenewsSessionId` + `RenewsTrainingId` (Phase 200 renewal chain) — FK `NoAction`, nullable.
    - What's unclear: Adakah TR auto-generated yang punya child TR me-renew-nya (jadi delete akan leave orphan reference)?
    - Recommendation: Pre-check sample query: `SELECT COUNT(*) FROM TrainingRecords WHERE RenewsTrainingId IN (SELECT Id FROM TrainingRecords WHERE Judul LIKE 'Assessment:%' AND CreatedAt >= '2026-04-10');` — kalau 0, aman. Kalau >0, planner perlu decide: null-clear `RenewsTrainingId` di child sebelum delete, atau skip parent dari cleanup. **MEDIUM RISK** — perlu addressed di Plan 01.
 
-4. **PreTest dengan `IsPassed=true` apakah generate sertifikat (existing behavior intent)?**
+4. **PreTest dengan `IsPassed=true` apakah generate sertifikat (existing behavior intent)?** — **RESOLVED**: out of scope Phase 324. Phase 324 hanya subtract TR auto-create — cert generation existing behavior tidak diubah. Kalau ada PreTest dengan `GenerateCertificate=true`, post-Phase-324 PreTest yang passed akan punya NomorSertifikat visible di /CMP/Records via AssessmentSession branch (existing WorkerDataService.GetUnifiedRecords flow, tidak ada regression). Defer audit ke Phase masa depan kalau ada user report.
    - What we know: Pre-fix code line 264 `if (!trainingRecordExists && session.AssessmentType != "PreTest")` — TR skip untuk PreTest. Tapi cert generation (line 289-321) TIDAK gate by AssessmentType.
    - What's unclear: Apakah ada PreTest dengan `GenerateCertificate=true`? Kalau iya, post-Phase-324 PreTest yang passed akan punya NomorSertifikat (visible di Records via AssessmentSession branch).
    - Recommendation: Planner check apakah Spec asli `GenerateCertificate` selalu false untuk PreTest. Konteks: `WorkerDataService.GetUnifiedRecords:54` ekspos `GenerateCertificate` flag — kemungkinan UI filter di view. Tidak block phase, tapi worth flagging.

@@ -42,14 +42,18 @@ Hapus mekanisme auto-create `TrainingRecord` saat worker selesai assessment (non
 - **D-06:** Dev/Prod: tidak touch langsung. Buat `docs/DB_HANDOFF_IT_2026-05-26.html` dengan template + style mengikuti `docs/DB_HANDOFF_IT_2026-05-13.html` (Pertamina branding). Isi: commit hash, SQL cleanup script, prerequisite backup, verification query, rollback plan. IT yang eksekusi.
 
 ### Testing
-- **D-07:** Playwright UAT automated mengikuti pattern Phase 322. Spec coverage minimum:
-  - Worker submit assessment biasa (non-essay) → assert `/CMP/Records` hanya tampil 1 row "Assessment Online" (bukan 2)
-  - PreTest tetap skip TR (regression guard existing behavior)
-  - Essay flow finalize → assert tidak insert TR
-  - HC `AkhiriUjian` (force-end single) → assert grading tetap jalan, tidak insert TR
-  - HC `AkhiriSemuaUjian` (bulk) → assert grading tetap jalan untuk semua, tidak insert TR
-  - HC `RegradeAfterEdit` Pass→Fail flip → `AssessmentSession.IsPassed` update, tidak ada TR cascade
-  - HC `RegradeAfterEdit` Fail→Pass flip → sertifikat generate via `AssessmentSession.NomorSertifikat`, tidak ada TR cascade
+- **D-07a (Phase 324 — SHIPS):** Playwright UAT automated mengikuti pattern Phase 322. **Spec coverage WAJIB di Phase 324:**
+  - **S1** Worker submit assessment biasa (non-essay) → assert `/CMP/Records` hanya tampil 1 row "Assessment Online" (bukan 2) — primary regression guard untuk Plan 01 Task 1 (D-01 GradingService block removal)
+  - **S2** PreTest tetap skip TR (regression guard existing behavior) — confirms PreTest branch unaffected
+  - **7-scenario spec file SKELETON exists** dengan S3-S7 sebagai `test.skip(true, "Implementasi di Phase 325 — butuh fixture seed assessment + sertifikat existing state")` placeholder + TODO comment referencing D-07b
+- **D-07b (Phase 325 — DEFERRED):** Implementasi S3-S7 sebagai phase berikutnya karena butuh fixture seed assessment non-trivial (essay flow + existing certificate state + Pass↔Fail flip orchestration). Phase 325 akan di-spawn user via `/gsd-add-phase` setelah Phase 324 ship. Slug draft: `complete-uat-phase324-s3-to-s7`. Scope D-07b:
+  - **S3** Essay flow finalize → assert tidak insert TR (butuh seed essay assessment + HC FinalizeEssayGrading action)
+  - **S4** HC `AkhiriUjian` (force-end single) → assert grading tetap jalan, tidak insert TR (butuh seed running session + 1 worker yang belum submit)
+  - **S5** HC `AkhiriSemuaUjian` (bulk) → assert grading tetap jalan untuk semua, tidak insert TR (butuh seed running session + multi-worker pending)
+  - **S6** HC `RegradeAfterEdit` Pass→Fail flip → `AssessmentSession.IsPassed` update, tidak ada TR cascade (butuh seed Pass session + sertifikat existing untuk revoke verify)
+  - **S7** HC `RegradeAfterEdit` Fail→Pass flip → sertifikat generate via `AssessmentSession.NomorSertifikat`, tidak ada TR cascade (butuh seed Fail session + assert NomorSertifikat newly generated)
+
+  **Rationale PHASE SPLIT (decided 2026-05-26 via checker iteration 3 BLOCKER 1):** S3-S7 setiap-nya butuh fixture seed assessment yang berbeda (essay vs running vs Pass-state vs Fail-state) + orchestration multi-actor (HC + worker). Implementasi context cost > 50% single agent kalau dipaksa di Phase 324. Split memungkinkan Phase 324 ship dengan S1+S2 + Plan 01 code edit + Plan 03 cleanup + Plan 04 IT handoff dalam timeline reasonable, sementara S3-S7 dapat dedicated phase planning + fixture engineering treatment.
 
 ### Verification
 - **D-08:** Pre-fix repro lokal: bikin assessment baru, submit sebagai worker, buka `/CMP/Records`, capture screenshot 2-row state (proof of bug).

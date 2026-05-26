@@ -16,7 +16,7 @@
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
 - ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
 - ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 (shipped 2026-05-22, archived 2026-05-23) — [archive](milestones/v17.0-ROADMAP.md)
-- 🚧 **v18.0 Cascade Delete Hardening** — Phases 323-324 (started 2026-05-26)
+- 🚧 **v18.0 Cascade Delete Hardening + Duplicate TR Fix** — Phases 323-324 (started 2026-05-26)
 - 📋 **v19.0 Portal HC Bug Fixes (Sertifikat Ecosystem Audit)** — Phases 325-327 (planned 2026-05-26) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
 
 ## Phases
@@ -558,23 +558,46 @@ Plans:
     - [ ] 323-02-PLAN.md — Wave 2 Playwright E2E spec Phase323_CascadeAssessmentEditLogs 3 test (no-edits / with-edits / group-mixed) + seed SEED_WORKFLOW lifecycle + audit log DB verify + manual UAT 3 skenario + commit + IT notify (CASCADE-01)
   - **Files affected:** `Controllers/AssessmentAdminController.cs` (3 spot) + `tests/e2e/Phase323_CascadeAssessmentEditLogs.spec.ts` (NEW) + `docs/SEED_JOURNAL.md` (append)
 
-#### Coverage Validation v18.0
-
-| REQ | Phase | Status |
-|-----|-------|--------|
-| CASCADE-01 | 323 | Pending |
-
 **Active mapped: 1/1 ✓ — Orphans: 0 — Duplicates: 0**
 
 ### Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion
 
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 323
-**Plans:** 0 plans
+- [ ] **Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion**
+  - **REQ:** DUPL-01, DUPL-02, DUPL-03, DUPL-04, DUPL-05
+  - **Depends on:** Phase 323
+  - **Goal:** Hapus mekanisme auto-create `TrainingRecord` saat session assessment completed di 3 lokasi production (`Services/GradingService.cs:255-285` GradeAndCompleteAsync + `Controllers/AssessmentAdminController.cs:3404-3421` FinalizeEssayGrading + `Services/GradingService.cs:483-567` RegradeAfterEditAsync Pass↔Fail cascade). Resolve regression dari commit `766011b6` (2026-04-10) yang re-introduce auto-create TR setelah commit `79284609` (2026-03-18) menghapusnya — visual duplicate 2 row di `/CMP/Records` hilang. Cleanup data legacy lokal (SEED_WORKFLOW) + IT handoff HTML untuk Dev/Prod cleanup. Subtract phase: NO migration, NO model change, NO schema change.
+  - **Success Criteria:**
+    1. Worker submit assessment biasa (non-essay) → `/CMP/Records` hanya tampil 1 row "Assessment Online" (bukan 2)
+    2. Block insert TR di 3 lokasi production HILANG (cross-grep `TrainingRecords.(Add|AddAsync|AddRange)` di `Services/` + `Controllers/AssessmentAdminController.cs` + `Controllers/CMPController.cs` returns 0 hit)
+    3. `dotnet build` 0 Error setelah 3 file edit
+    4. Cert generate logic (`NomorSertifikat` di `GradeAndCompleteAsync` + `RegradeAfterEditAsync` Fail→Pass) TETAP UTUH
+    5. Cert revoke logic (`NomorSertifikat=null` + `ValidUntil=null` di `RegradeAfterEditAsync` Pass→Fail) TETAP UTUH
+    6. Playwright UAT 7 scenario (S1 worker submit non-essay + S2 PreTest skip + S3 Essay finalize + S4 AkhiriUjian + S5 AkhiriSemuaUjian + S6 Regrade Pass→Fail + S7 Regrade Fail→Pass) — minimum S1+S2 green
+    7. Data legacy cleanup lokal: pre-count > 0, post-count = 0, idempotent re-run safe
+    8. `docs/SEED_JOURNAL.md` entry baru status `cleaned`
+    9. `docs/DB_HANDOFF_IT_2026-05-26.html` exists dengan Pertamina branding + embedded SQL script + ordering callout (Step 1 deploy code DULU)
+    10. AssessmentSessions TIDAK ter-touch (sole source-of-truth utuh)
+  - **Risk:** Low (subtract phase) | **Effort:** S-M (3 file edit + UAT + cleanup + handoff)
+  - **Plans:** 4 plans
+    - [ ] 324-01-PLAN.md — Wave 1 code edit: 3 lokasi block hapus (GradeAndComplete + FinalizeEssay + RegradeAfterEdit Pass↔Fail) + cross-grep audit final (DUPL-01)
+    - [ ] 324-02-PLAN.md — Wave 2 Playwright UAT 7 scenario + helper module phase324.ts + checkpoint user verify (DUPL-02)
+    - [ ] 324-03-PLAN.md — Wave 3 data cleanup lokal: schema verify A3 + orphan check OQ#3 + SQL script + BACKUP/RESTORE + SEED_JOURNAL + checkpoint (DUPL-03, DUPL-05)
+    - [ ] 324-04-PLAN.md — Wave 3 IT handoff HTML doc Pertamina-branded (DUPL-04)
+  - **Files affected:** `Services/GradingService.cs` (2 spot) + `Controllers/AssessmentAdminController.cs` (1 spot) + `tests/e2e/Phase324_NoDuplicateTrainingRecord.spec.ts` (NEW) + `tests/e2e/helpers/phase324.ts` (NEW) + `docs/sql/cleanup-2026-05-26-trainingrecord-duplicates.sql` (NEW) + `docs/SEED_JOURNAL.md` (append) + `docs/DB_HANDOFF_IT_2026-05-26.html` (NEW)
+  - **Wave structure:** Wave 1 (Plan 01) → Wave 2 (Plan 02) → Wave 3 (Plan 03 + Plan 04 parallel — no file conflict)
 
-Plans:
-- [ ] TBD (run /gsd-plan-phase 324 to break down)
+#### Coverage Validation v18.0 (updated 2026-05-26 setelah Phase 324 planned)
+
+| REQ | Phase | Status |
+|-----|-------|--------|
+| CASCADE-01 | 323 | Pending |
+| DUPL-01 | 324 | Pending |
+| DUPL-02 | 324 | Pending |
+| DUPL-03 | 324 | Pending |
+| DUPL-04 | 324 | Pending |
+| DUPL-05 | 324 | Pending |
+
+**Active mapped: 6/6 ✓ — Orphans: 0 — Duplicates: 0**
 
 ---
 

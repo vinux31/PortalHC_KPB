@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v18.0
-milestone_name: Cascade Delete Hardening
+milestone_name: Cascade Delete Hardening + Duplicate TR Fix
 status: executing
-last_updated: "2026-05-26T09:38:42.391Z"
-last_activity: 2026-05-26
+last_updated: "2026-05-26T12:01:25.911Z"
+last_activity: 2026-05-26 -- Phase 324 execution started
 progress:
-  total_phases: 1
+  total_phases: 2
   completed_phases: 0
-  total_plans: 2
+  total_plans: 6
   completed_plans: 1
-  percent: 50
+  percent: 17
 ---
 
 # Project State: Portal HC KPB
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 323 — fix-cascade-bug-assessmenteditlogs-di-3-endpoint-delete-asse
+**Current focus:** Phase 324 — fix-duplicate-trainingrecord-auto-create-on-assessment-compl
 
 ## Current Position
 
-Phase: 323
-Plan: Not started
-Status: Executing Phase 323
-Last activity: 2026-05-26
+Phase: 324 (fix-duplicate-trainingrecord-auto-create-on-assessment-compl) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 324
+Last activity: 2026-05-26 -- Phase 324 execution started
 
 ## Next Action
 
@@ -91,6 +91,7 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - Phase 317-319 added (2026-05-11): Extend v16.0 dari 2 → 5 phases untuk close exam-type coverage gap (317: MA/Essay/Mixed via HC UI), advanced features (318: PreTest/PostTest, ExamWindowCloseDate, Certificate PDF), admin coverage (319: ManualAssessment, Export, Analytics, CertificationManagement)
 - Phase 322 added (2026-05-22): filter-scope-per-tab-manage-assessment — fix double filter di tab Assessment Groups (dev) + filter contamination antar tab (Phase 311 Plan 02 shared filter rollback). Per-tab native filter: Tab 1 (search+kategori+status), Tab 2 (bagian+unit+kategori-training+status+nama/nopeg), Tab 3 sub-tab History masing-masing punya filter client-side (Riwayat Assessment + Riwayat Training).
 - Phase 323 added (2026-05-26): Fix cascade bug AssessmentEditLogs di 3 endpoint delete assessment — Phase 321 oversight di Phase 312 cascade. `AssessmentEditLog` (Phase 321) punya FK Restrict ke `AssessmentSession`, tapi `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup` (Phase 312) tidak cascade hapus. Repro Dev: AssessmentSession Id 1 (0 edit logs) sukses; Id 2+5 (ada edit logs) gagal "Gagal menghapus assessment". Scope: tambah `RemoveRange(AssessmentEditLogs)` block sebelum cascade existing di 3 endpoint di `Controllers/AssessmentAdminController.cs`. Tidak ubah schema/model/migration.
+- Phase 324 added (2026-05-26): Fix duplicate TrainingRecord auto-create on assessment completion — regression dari commit `766011b6` (2026-04-10) yang re-introduce auto-create TrainingRecord di `GradingService.GradeAndCompleteAsync` setelah sebelumnya di-remove oleh `79284609` (2026-03-18) karena "caused duplicate entries in RecordWorkerDetail unified view". Worker submit 1 assessment biasa (non-essay/non-PreTest) → DB store 1 AssessmentSession + 1 TrainingRecord (Judul=`Assessment: {Title}`). `WorkerDataService.GetUnifiedRecords` query keduanya → user lihat 2 row untuk 1 event. Scope: hapus auto-create di `GradingService.cs:255-285`, `AssessmentAdminController.cs:3404-3421` (FinalizeEssayGrading), `GradingService.cs:483-562` (RegradeAfterEditAsync TR cascade); cleanup TR legacy `Judul LIKE 'Assessment:%'` antara 2026-04-10..hari ini (backup DB lokal dulu per SEED_WORKFLOW).
 
 ## Session Continuity
 
