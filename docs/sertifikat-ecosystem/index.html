@@ -890,6 +890,63 @@ Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
             <strong>Ringkasan:</strong> 12 finding. <strong>1 HIGH</strong> (path traversal), <strong>5 MED</strong> (MIME, cycle, timezone, orphan FK, Permanent inconsistency), <strong>6 LOW/Verified-OK</strong>. Prioritas fix: #1 Path Traversal (security), #2 MIME (security), #5 Orphan FK (data integrity).
           </div>
         </section>
+
+        <section id="sec-10">
+          <h2><span class="badge bg-secondary">§10</span> Gap Analysis</h2>
+          <p>Fitur, sistem, dan logic yang menurut review kemungkinan diharapkan tapi belum ada. Analytical (developer perspective), bukan klaim user request.</p>
+
+          <h5 class="mt-3">10.1 Gap Fungsi (Feature-Level)</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+              <thead class="table-primary"><tr><th>Gap</th><th>Deskripsi</th><th>Urgency</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Bulk Renewal Action</strong></td><td>Page <code>/Admin/RenewalCertificate</code> hanya display dashboard. Admin harus pindah ke <code>/Admin/AddTraining</code> manual untuk insert renewal. Tidak ada tombol "Renew Selected" untuk batch.</td><td><span class="badge bg-warning text-dark">Med</span></td></tr>
+                <tr><td><strong>Auto-Email Reminder Expiry</strong></td><td>Tabel Notification ada + endpoint <code>/Notification/*</code> ada, tapi <strong>tidak ada</strong> dispatch email ke user untuk cert akan expired. Notification bell icon doang.</td><td><span class="badge bg-danger">High</span></td></tr>
+                <tr><td><strong>Cert Revocation Mechanism</strong></td><td>Tidak ada cara revoke sertifikat (fraud, salah generate) tanpa delete row. Delete row hilangkan audit trail.</td><td><span class="badge bg-success">Low</span></td></tr>
+                <tr><td><strong>Cert Verification Publik (QR)</strong></td><td>Sertifikat PDF tidak punya QR / link publik untuk verify keaslian. External verifier (vendor, audit) tidak bisa cek.</td><td><span class="badge bg-success">Low</span></td></tr>
+                <tr><td><strong>Renewal History Timeline View</strong></td><td>Chain ditrack via FK tapi UI tidak punya visualisasi timeline per worker (sertifikat A → B → C dalam satu strip).</td><td><span class="badge bg-warning text-dark">Med</span></td></tr>
+                <tr><td><strong>Budget Multi-Year Trend</strong></td><td>Budget Training cuma per-tahun. Tidak ada chart trend 3-5 tahun. Forecast budget tahun depan manual.</td><td><span class="badge bg-success">Low</span></td></tr>
+                <tr><td><strong>Cert Template Customization</strong></td><td>Template PDF (QuestPDF) hardcoded di kode. Admin tidak bisa edit logo/wording tanpa rebuild.</td><td><span class="badge bg-success">Low</span></td></tr>
+                <tr><td><strong>Mass Upload Renewal (Excel Import)</strong></td><td>ImportTraining ada (line :873), tapi tidak ada flag/column untuk paste renewal FK. Bulk renewal harus per-row manual.</td><td><span class="badge bg-warning text-dark">Med</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h5 class="mt-4">10.2 Gap Sistem (Infra/Architecture)</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+              <thead class="table-primary"><tr><th>Gap</th><th>Deskripsi</th><th>Risiko</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Background Job (Hangfire/Quartz)</strong></td><td>Tidak ada scheduler untuk daily check expiry + dispatch notification. Reminder generation tidak otomatis.</td><td><span class="badge bg-danger">High</span></td></tr>
+                <tr><td><strong>Audit Log Table (Sertifikat-Specific)</strong></td><td>Mutasi TrainingRecord/AssessmentSession tidak ditrack siapa modify apa kapan (hanya <code>CreatedBy/CreatedAt</code>). FinalizeEssayGrading punya audit log tersendiri (line 3449) — tapi tidak general.</td><td><span class="badge bg-danger">High (compliance)</span></td></tr>
+                <tr><td><strong>Caching Layer</strong></td><td>CertificationManagement query 4 batch lookup setiap request. Tidak ada Redis/MemoryCache. Pada dataset besar (>10rb worker) latency naik.</td><td><span class="badge bg-warning text-dark">Med</span></td></tr>
+                <tr><td><strong>Rate-Limit Export</strong></td><td>Tidak ada throttle pada <code>/CMP/ExportRecords</code>, <code>/CDP/ExportSertifikatExcel</code>. User bisa spam request, OOM risk jika dataset besar load ke MemoryStream.</td><td><span class="badge bg-warning text-dark">Med</span></td></tr>
+                <tr><td><strong>DB Index pada ValidUntil</strong></td><td>Filter WHERE ValidUntil &lt;= now+30d tanpa index = scan table. Audit migration: ada IX_TrainingRecord_ValidUntil dan IX_AssessmentSessions_ValidUntil?</td><td><span class="badge bg-warning text-dark">Med</span></td></tr>
+                <tr><td><strong>Soft Delete (IsDeleted Flag)</strong></td><td>Hard delete TrainingRecord/AssessmentSession lenyapkan renewal chain history + dangling FK (lihat §9 #5).</td><td><span class="badge bg-danger">High</span></td></tr>
+                <tr><td><strong>CDN untuk SertifikatUrl</strong></td><td>File sertifikat disimpan di <code>wwwroot/uploads/certificates</code> — di-serve oleh Kestrel/IIS langsung. Tidak ada CDN, cache header, atau signed URL untuk akses time-limited.</td><td><span class="badge bg-success">Low</span></td></tr>
+                <tr><td><strong>Cert PDF Async Generation</strong></td><td>QuestPDF render synchronous di request thread (CMPController:1962+). Block thread saat user buka PDF banyak.</td><td><span class="badge bg-warning text-dark">Med</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h5 class="mt-4">10.3 Gap Logic (Edge Case)</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+              <thead class="table-primary"><tr><th>Gap</th><th>Deskripsi</th><th>Dampak</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Null ValidUntil Ambiguity</strong></td><td><code>DeriveCertificateStatus</code> return Expired untuk null ValidUntil (line 56). Tapi semantik "tidak ada expiry" bisa juga = Permanent (jika lupa set type=Permanent). False negative.</td><td>Misklasifikasi → user salah lihat "expired" padahal data corrupt</td></tr>
+                <tr><td><strong>Cycle Detection</strong></td><td>Renewal chain A→B→A tidak dideteksi (§9 #3).</td><td>Dashboard outstanding renewal salah</td></tr>
+                <tr><td><strong>Timezone WIB vs UTC</strong></td><td><code>DateTime.UtcNow</code> bandingkan dengan <code>ValidUntil</code> yang di-input user (WIB?). Selisih 7 jam saat boundary.</td><td>Late/early ekspirasi sehari</td></tr>
+                <tr><td><strong>SEQ Reset Semantics Tahunan</strong></td><td>SEQ reset per tahun (<code>EndsWith("/{year}")</code> di CertNumberHelper:26). Bulan Januari tahun baru SEQ kembali ke 1 — tapi format <code>KPB/SEQ/ROMAN-MM/YYYY</code> tetap menampung ROMAN-MM. Risiko: persepsi "KPB/001/I/2027" duplicate dengan "KPB/001/V/2026" (format mirip tapi tahun beda — sebenarnya unique).</td><td>Persepsi salah saja, data unique</td></tr>
+                <tr><td><strong>AkanExpired Boundary Inclusive</strong></td><td><code>days &lt;= 30</code> inclusive. <code>days == 30</code> sudah AkanExpired meski 30 hari penuh masih ahead. Premature alert.</td><td>UX: alert terlalu dini</td></tr>
+                <tr><td><strong>Permanent + ValidUntil Filled</strong></td><td>CertificateType=Permanent tapi ValidUntil terisi — logic abaikan ValidUntil (§9 #6). Data invalid tidak dicegah saat input.</td><td>Data integrity</td></tr>
+                <tr><td><strong>Dual FK Both Filled (DB Level)</strong></td><td>App-level validator ada (§9 #9), tapi tidak ada DB CHECK. Direct SQL / seed data bisa bypass.</td><td>Ambiguous renewal</td></tr>
+                <tr><td><strong>Permanent String Case-Sensitivity</strong></td><td><code>certificateType == "Permanent"</code> case-sensitive. Variasi "permanent"/"PERMANENT" → fall-through ke "Expired".</td><td>Data sensitivity</td></tr>
+                <tr><td><strong>AssessmentSession.CertificateType Tidak Ada</strong></td><td>Hanya TrainingRecord punya kolom <code>CertificateType</code>. AssessmentSession derive status berdasarkan <code>ValidUntil</code> saja. Implikasi: assessment tidak bisa "Permanent" — selalu time-bound (atau Expired jika ValidUntil null).</td><td>Schema asymmetry — perlu eksplisit di docs HC</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
   </div>
