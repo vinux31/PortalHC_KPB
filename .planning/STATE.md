@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v18.0
 milestone_name: Cascade Delete Hardening
 status: executing
-last_updated: "2026-05-26T02:06:56.164Z"
-last_activity: 2026-05-26 -- Phase 323 planning complete
+last_updated: "2026-05-26T02:10:00.165Z"
+last_activity: 2026-05-26 -- Phase 323 execution started
 progress:
   total_phases: 1
   completed_phases: 0
@@ -20,13 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v18.0 Cascade Delete Hardening — Phase 323 fix oversight Phase 321 di Phase 312 cascade (`AssessmentEditLog` FK Restrict block delete).
+**Current focus:** Phase 323 — fix-cascade-bug-assessmenteditlogs-di-3-endpoint-delete-asse
 
 ## Current Position
 
-Phase: 323 (defining plan)
-Status: Ready to execute
-Last activity: 2026-05-26 -- Phase 323 planning complete
+Phase: 323 (fix-cascade-bug-assessmenteditlogs-di-3-endpoint-delete-asse) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 323
+Last activity: 2026-05-26 -- Phase 323 execution started
 
 ## Next Action
 
@@ -56,6 +57,12 @@ Last activity: 2026-05-26 -- Phase 323 planning complete
 | v11.2 paused | Phase 281 (System Settings) + Phase 285 (Dedicated Impersonation Page) | paused | MILESTONES.md v11.2 |
 
 Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked items.
+
+## Quick Tasks Completed
+
+| Date | Slug | Description |
+|------|------|-------------|
+| 2026-05-26 | cdp-portal-platform-rename | Rename CDP label "Competency Development Portal" → "Platform" (parity dgn CMP). 4 edit di Views/CDP/Index.cshtml + Views/Home/Index.cshtml. |
 
 ## Accumulated Context
 
