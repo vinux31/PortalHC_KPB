@@ -1168,6 +1168,148 @@ Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
           </div>
           <p class="small text-muted"><strong>Offline note:</strong> Dokumen ini butuh internet untuk render Mermaid + highlight.js + Bootstrap. Webapp Portal HC sendiri tidak terpengaruh — dia menggunakan static assets lokal.</p>
         </section>
+
+        <section id="sec-16">
+          <h2><span class="badge bg-secondary">§16</span> Performance Hotspot</h2>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead class="table-dark"><tr><th>Hotspot</th><th>Lokasi</th><th>Risiko</th><th>Mitigasi</th></tr></thead>
+              <tbody>
+                <tr><td>Renewal Union-Find per Request</td><td>CDPController.cs:3759-3794</td><td>4 batch query (4× ToListAsync) tiap render CertificationManagement. Pada 10rb+ worker, latency naik linear.</td><td>MemoryCache 5–15 menit. Invalidate saat Insert/Update TR/AS.</td></tr>
+                <tr><td>N+1 Risk Worker Info</td><td>CMP Records, CertMgmt, Renewal</td><td>Lazy load <code>Section</code>/<code>Unit</code>/<code>FullName</code> per row jika <code>.Include(t =&gt; t.User)</code> miss.</td><td>Eager <code>.Include(t =&gt; t.User)</code> + projection ke flat DTO.</td></tr>
+                <tr><td>DB Index <code>ValidUntil</code></td><td>Migration files (audit needed)</td><td>Filter <code>WHERE ValidUntil &lt;= now+30d</code> tanpa index = full scan. Phase 200 migration tambah index untuk RenewsId tapi tidak untuk ValidUntil.</td><td>Tambah <code>CREATE INDEX IX_TR_ValidUntil ON TrainingRecords(ValidUntil)</code> + AssessmentSessions sama.</td></tr>
+                <tr><td>Excel Export Streaming</td><td>ExportRecords, ExportSertifikatExcel</td><td>Load all rows ke MemoryStream → OOM jika dataset &gt; 50rb baris.</td><td>Streaming workbook write via ClosedXML <code>Worksheet.Cell().Value</code> langsung ke stream. Atau pagination export per-batch.</td></tr>
+                <tr><td>QuestPDF Synchronous Render</td><td>CMPController.cs:1962+</td><td>Block request thread saat CertificatePdf generate. Multi-user concurrent download → thread pool starvation.</td><td>Cache PDF per sessionId hash di disk (immutable cert). Async render via background job + poll URL.</td></tr>
+                <tr><td>CertNumberHelper.GetNextSeqAsync</td><td>Helpers/CertNumberHelper.cs:23-35</td><td><code>.ToListAsync()</code> seluruh NomorSertifikat year-X lalu MAX di memory. Pada akhir tahun (jika tahun aktif punya 10rb sertifikat) load 10rb string ke memory.</td><td>SQL aggregate: <code>SELECT MAX(seq) FROM AssessmentSessions WHERE NomorSertifikat LIKE 'KPB/%/%/{year}'</code> + parse di SQL CTE atau computed column.</td></tr>
+                <tr><td>FilterRenewalCertificate HTMX Partial</td><td>RenewalController.cs:237-306</td><td>Tiap interaction filter trigger ke <code>BuildRenewalRowsAsync</code> — full re-compute Union-Find.</td><td>Cache filter results per user session (sliding 5 menit).</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="sec-17">
+          <h2><span class="badge bg-secondary">§17</span> API/AJAX Endpoint Catalog</h2>
+          <p>Non-view endpoint (JSON/HTMX/AJAX) yang dipakai frontend Portal HC.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead><tr><th>Method</th><th>URL</th><th>Controller</th><th>Response</th><th>Pakai untuk</th></tr></thead>
+              <tbody>
+                <tr><td>GET</td><td><code>/Notification/List</code></td><td><code>NotificationController.cs:22</code></td><td>JSON</td><td>Fetch notif user (bell icon dropdown)</td></tr>
+                <tr><td>GET</td><td><code>/Notification/UnreadCount</code></td><td><code>NotificationController.cs:71</code></td><td>JSON</td><td>Badge count bell icon (polling)</td></tr>
+                <tr><td>POST</td><td><code>/Notification/MarkAsRead/{id}</code></td><td><code>NotificationController.cs:43</code></td><td>JSON</td><td>Mark satu notif read</td></tr>
+                <tr><td>POST</td><td><code>/CMP/BudgetTrainingBulkUpdateRealisasi</code></td><td><code>CMPController.cs:4551</code></td><td>JSON</td><td>Bulk update realisasi anggaran</td></tr>
+                <tr><td>POST</td><td><code>/CMP/BudgetTrainingBulkDelete</code></td><td><code>CMPController.cs:4520-4567</code></td><td>JSON</td><td>Bulk delete budget items</td></tr>
+                <tr><td>POST</td><td><code>/CMP/BudgetTrainingImport</code></td><td><code>CMPController.cs:4446</code></td><td>Redirect</td><td>Import Budget dari Excel</td></tr>
+                <tr><td>GET</td><td><code>/Admin/FilterRenewalCertificate</code></td><td><code>RenewalController.cs:237</code></td><td>HTMX partial HTML</td><td>Filter dashboard renewal (lazy load)</td></tr>
+                <tr><td>POST</td><td><code>/Admin/FinalizeEssayGrading</code></td><td><code>AssessmentAdminController.cs:3271</code></td><td>JSON / Redirect</td><td>Finalize essay grading (idempotent, race-guarded)</td></tr>
+                <tr><td>GET</td><td><code>/Admin/ManageAssessmentTab_*</code></td><td><code>AssessmentAdminController.cs:106-356</code></td><td>HTMX partial</td><td>Lazy-load tab Assessment/Training/History</td></tr>
+                <tr><td>POST</td><td><code>/Admin/AddTraining /EditTraining /DeleteTraining</code></td><td><code>TrainingAdminController.cs:188, 454, 527</code></td><td>Redirect</td><td>CRUD training manual</td></tr>
+                <tr><td>POST</td><td><code>/Admin/AddManualAssessment</code></td><td><code>TrainingAdminController.cs:566</code></td><td>Redirect</td><td>Tambah assessment manual</td></tr>
+                <tr><td>POST</td><td><code>/Admin/ImportTraining</code></td><td><code>TrainingAdminController.cs:873</code></td><td>Redirect</td><td>Bulk import training dari Excel</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="sec-18">
+          <h2><span class="badge bg-secondary">§18</span> Appendix</h2>
+
+          <h5>A. Route → Controller Flat Map</h5>
+<pre><code class="language-text">/CMP/Records                              CMPController.Records()                       line 479
+/CMP/ExportRecords                        CMPController.ExportRecords()                 line 588
+/CMP/SubmitExam                           CMPController.SubmitExam(int, ...)            line 1569
+/CMP/Certificate/{id}                     CMPController.Certificate(int)                line 1787
+/CMP/CertificatePdf/{id}                  CMPController.CertificatePdf(int)             line 1898
+/CMP/BudgetTraining                       CMPController.BudgetTraining(...)             line 4108
+/CMP/BudgetTrainingImport                 CMPController.BudgetTrainingImport(...)       line 4446
+/CMP/BudgetTrainingBulkUpdateRealisasi    CMPController                                 line 4551
+/CDP/CertificationManagement              CDPController.CertificationManagement(int)    line 3539
+/CDP/ExportSertifikatExcel                CDPController.ExportSertifikatExcel(...)      line 3628+
+/Admin/ManageAssessment                   AssessmentAdminController.ManageAssessment    line 62
+/Admin/CreateAssessment                   AssessmentAdminController.CreateAssessment    line 807
+/Admin/EditAssessment                     AssessmentAdminController.EditAssessment      line 1588
+/Admin/DeleteAssessment                   AssessmentAdminController.DeleteAssessment    line 2011
+/Admin/FinalizeEssayGrading               AssessmentAdminController.FinalizeEssayGrading line 3271
+/Admin/AddTraining (GET/POST)             TrainingAdminController.AddTraining           line 71 / 188
+/Admin/EditTraining (GET/POST)            TrainingAdminController.EditTraining          line 420 / 454
+/Admin/DeleteTraining                     TrainingAdminController.DeleteTraining        line 527
+/Admin/AddManualAssessment (GET/POST)     TrainingAdminController.AddManualAssessment   line 555 / 566
+/Admin/ImportTraining                     TrainingAdminController.ImportTraining        line 873
+/Admin/RenewalCertificate                 RenewalController.RenewalCertificate(int)     line 210
+/Admin/FilterRenewalCertificate           RenewalController.FilterRenewalCertificate    line 237
+/Notification/List                        NotificationController.List()                 line 22
+/Notification/MarkAsRead/{id}             NotificationController.MarkAsRead(int)        line 43
+/Notification/UnreadCount                 NotificationController.UnreadCount()          line 71</code></pre>
+
+          <h5 class="mt-4">B. DB Column → Page Usage Matrix</h5>
+          <p class="small text-muted">R = Read, W = Write, — = Tidak diakses.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead><tr><th>Column</th><th>Records</th><th>CertMgmt</th><th>Budget</th><th>Renewal</th><th>Certificate</th><th>CertPdf</th><th>SubmitExam</th><th>Manage</th><th>FinalizeEssay</th></tr></thead>
+              <tbody>
+                <tr><td><code>ValidUntil</code></td><td>R</td><td>R</td><td>—</td><td>R</td><td>R</td><td>R</td><td>W</td><td>R/W</td><td>R/W</td></tr>
+                <tr><td><code>NomorSertifikat</code></td><td>R</td><td>R</td><td>—</td><td>R</td><td>R</td><td>R</td><td>W</td><td>R/W</td><td>R/W</td></tr>
+                <tr><td><code>CertificateType</code></td><td>R</td><td>R</td><td>—</td><td>R</td><td>—</td><td>—</td><td>—</td><td>R/W (TR only)</td><td>—</td></tr>
+                <tr><td><code>GenerateCertificate</code></td><td>—</td><td>R (filter)</td><td>—</td><td>—</td><td>R (guard)</td><td>R (guard)</td><td>R</td><td>R/W</td><td>R</td></tr>
+                <tr><td><code>SertifikatUrl</code></td><td>R</td><td>R (filter)</td><td>—</td><td>R</td><td>—</td><td>—</td><td>—</td><td>R/W (TR)</td><td>—</td></tr>
+                <tr><td><code>RenewsTrainingId</code></td><td>—</td><td>R (Union-Find)</td><td>—</td><td>R</td><td>—</td><td>—</td><td>—</td><td>R/W</td><td>—</td></tr>
+                <tr><td><code>RenewsSessionId</code></td><td>—</td><td>R (Union-Find)</td><td>—</td><td>R</td><td>—</td><td>—</td><td>—</td><td>R/W</td><td>—</td></tr>
+                <tr><td><code>IsPassed</code></td><td>R</td><td>R (filter)</td><td>—</td><td>—</td><td>R (guard)</td><td>R (guard)</td><td>W</td><td>R</td><td>R/W</td></tr>
+                <tr><td><code>Status</code> (AS)</td><td>R</td><td>—</td><td>—</td><td>—</td><td>R (guard)</td><td>R (guard)</td><td>W</td><td>R/W</td><td>R/W</td></tr>
+                <tr><td><code>Score</code></td><td>R</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>W</td><td>R</td><td>R/W</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h5 class="mt-4">C. Konstanta Penting</h5>
+          <ul>
+            <li><strong>PassPercentage default:</strong> 70 (<code>AssessmentCategory.DefaultPassPercentage</code>)</li>
+            <li><strong>Expiry threshold AkanExpired:</strong> 30 hari (<code>DeriveCertificateStatus</code> line 60)</li>
+            <li><strong>Cert number format:</strong> <code>KPB/{SEQ:D3}/{ROMAN-MONTH}/{YEAR}</code> — contoh <code>KPB/043/V/2026</code> (CertNumberHelper.Build)</li>
+            <li><strong>SEQ reset:</strong> per tahun (<code>NomorSertifikat.EndsWith($"/{year}")</code>)</li>
+            <li><strong>File upload max size:</strong> 10 MB (<code>10 * 1024 * 1024</code> bytes)</li>
+            <li><strong>File upload allowed extensions:</strong> .pdf, .jpg, .jpeg, .png</li>
+            <li><strong>L4 section scoping:</strong> Active jika <code>GetRoleLevel(role) == 4</code> (SectionHead, SrSupervisor)</li>
+            <li><strong>L5 dual-mode flag:</strong> <code>l5OwnDataOnly</code> (true = own data; false = mapped coachees)</li>
+            <li><strong>FK constraint cascade:</strong> Renewal FK = NoAction (default). Delete TR/AS yang di-renews → DbUpdateException.</li>
+            <li><strong>Signatory cascade:</strong> AssessmentCategory.SignatoryUserId = SetNull on User delete. ParentId = Restrict.</li>
+            <li><strong>Cert# retry attempts:</strong> <code>maxCertAttempts</code> (lihat GradingService.cs:302)</li>
+            <li><strong>Notification poll interval:</strong> TBD (audit JS code di _Layout)</li>
+          </ul>
+
+          <h5 class="mt-4">D. File Layout Reference</h5>
+<pre><code class="language-text">PortalHC_KPB/
+├── Controllers/
+│   ├── CMPController.cs                # Records, Budget, Certificate, SubmitExam, ExportRecords
+│   ├── CDPController.cs                # CertificationManagement, ExportSertifikatExcel, Coaching
+│   ├── AssessmentAdminController.cs    # ManageAssessment, Create/Edit/DeleteAssessment, FinalizeEssayGrading
+│   ├── TrainingAdminController.cs      # Add/Edit/DeleteTraining, AddManualAssessment, ImportTraining
+│   ├── RenewalController.cs            # RenewalCertificate dashboard
+│   ├── NotificationController.cs       # List, MarkAsRead, UnreadCount
+│   ├── AdminBaseController.cs          # Base utilities, BuildRenewalRowsAsync
+│   └── HomeController.cs               # Dashboard stats
+├── Models/
+│   ├── TrainingRecord.cs               # entity
+│   ├── AssessmentSession.cs            # entity
+│   ├── CertificationManagementViewModel.cs  # SertifikatRow + DeriveCertificateStatus
+│   ├── UnifiedTrainingRecord.cs        # ViewModel CMP Records
+│   └── BudgetItem.cs                   # entity
+├── Helpers/
+│   ├── CertNumberHelper.cs             # NomorSertifikat generation + retry
+│   └── FileUploadHelper.cs             # File upload (audit §9 #1 path traversal)
+├── Services/
+│   └── GradingService.cs               # Grade + cert# generation (line 302, 518)
+├── Views/
+│   ├── CMP/Records.cshtml, BudgetTraining.cshtml, Certificate.cshtml
+│   ├── CDP/CertificationManagement.cshtml
+│   └── Admin/ManageAssessment.cshtml, RenewalCertificate.cshtml, AddTraining.cshtml, EditTraining.cshtml
+├── Migrations/
+│   ├── 20260311012214_AddGenerateCertificateToAssessmentSession.cs
+│   ├── 20260318023131_AddParentAndSignatoryToAssessmentCategory.cs
+│   └── 20260319001833_AddRenewalChainFKs.cs
+└── docs/
+    └── sertifikat-ecosystem/index.html  # FILE INI</code></pre>
+        </section>
       </main>
     </div>
   </div>
