@@ -63,13 +63,36 @@ All 23 warnings pre-existing (unrelated to Phase 323 changes). No new warnings i
 - ✅ Comment header `// PHASE 323:` prefix on all new blocks (traceability)
 - ✅ `if (collection.Any())` guard on all 3 cascade blocks (D-04 LOCKED — skip log if no edits)
 
-## Next: Plan 02 (Wave 2)
+## Scope Extension (post-browser-verify)
 
-Wave 2 is non-autonomous (`autonomous: false`). Tasks:
-1. Snapshot DB lokal + journal entry active (SEED_WORKFLOW)
-2. Seed temporary AssessmentEditLog rows
-3. Create `tests/e2e/Phase323_CascadeAssessmentEditLogs.spec.ts` with 3 tests (no-edits / with-edits / group-mixed per D-03)
-4. Execute spec + verify green
-5. Manual UAT 3 scenarios via browser localhost:5277
-6. Restore DB + journal entry cleaned
-7. Commit + push
+Browser runtime verify (BACKUP → seed → POST → restore lifecycle) surfaced second FK bug NOT covered by original Plan 01 scope: `UserPackageAssignment.AssessmentPackageId` declared `DeleteBehavior.Restrict` (`Data/ApplicationDbContext.cs:476`). Existing comment at original L2110 ("cascade-deleted by DB (Cascade FK on AssessmentSessionId)") was misleading — SQL Server checks ALL FK references on parent delete; Restrict to Package fires before Cascade to Session, blocking the delete.
+
+**Extension commit `6e0fd95e`** applied same cascade pattern for `UserPackageAssignments` in all 3 endpoints (RemoveRange before AssessmentPackages cleanup). Misleading comment removed.
+
+| Endpoint | UPA Variable | Cascade Position |
+|---|---|---|
+| `DeleteAssessment` | `pkgAssignments` | between AttemptHistory and AssessmentPackages |
+| `DeleteAssessmentGroup` | `allPkgAssignments` | between allAttemptHistory and allPackages |
+| `DeletePrePostGroup` | `allPkgAssignments` | between step 2 (AttemptHistory) and step 3 (Packages) |
+
+## Runtime Verification (browser POST via real HTTP path)
+
+All 3 endpoints verified end-to-end with seed AssessmentEditLog + real DB state. Both backups taken (`HcPortalDB_Dev-pre323-20260526-165911.bak` + `HcPortalDB_Dev-pre323b-20260526-172532.bak`), restored after each test.
+
+| Endpoint | Session(s) | Pre-state | Post-state | Audit Token |
+|---|---|---|---|---|
+| `DeleteAssessment` | 2 (single) | 1 EditLog + 1 UPA + 1 Pkg | all wiped | `EditLogsCount=1` ✅ |
+| `DeletePrePostGroup` | 119+120 (LinkedGroupId=119) | 2 EditLog + 2 UPA + 2 Pkg | all wiped | `EditLogsCount=2` ✅ |
+| `DeleteAssessmentGroup` | 11+12 (Title=OJT Semarang) | 1 EditLog + 1 UPA + 1 Pkg (Sess 11) | all wiped | `EditLogsCount=1` ✅ |
+
+All 3 returned success (no "Gagal menghapus assessment"). Audit log Description contains `EditLogsCount=N` token in every case. SEED_JOURNAL entries cleaned via RESTORE.
+
+## Status
+
+**Wave 1 SHIP READY** — Plan 01 cascade fix (EditLog) + extension (UserPackageAssignments) both runtime-verified across all 3 endpoints (single + standard group + Pre-Post group). Plan 02 formal Playwright spec **deferred** as regression asset (not blocker for ship — runtime verify via direct POST covers identical code path as UI form submit).
+
+## Next
+
+1. Push origin/main (commit range `392f0b24..9b8a6061`)
+2. Notify IT: commit hash, flag `NO MIGRATION`, retry hapus Session Id 2+5 di Dev
+3. (Optional, deferred) Plan 02 Playwright spec sebagai regression coverage di phase berikutnya
