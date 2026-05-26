@@ -2103,6 +2103,17 @@ namespace HcPortal.Controllers
                     _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
                 }
 
+                // PHASE 323: Delete UserPackageAssignments (Restrict FK to AssessmentPackage — must be removed before packages)
+                // Comment lama "cascade-deleted by SessionId" salah: FK AssessmentPackageId Restrict fire saat Package dihapus duluan
+                var pkgAssignments = await _context.UserPackageAssignments
+                    .Where(a => a.AssessmentSessionId == id)
+                    .ToListAsync();
+                if (pkgAssignments.Any())
+                {
+                    logger.LogInformation($"Deleting {pkgAssignments.Count} user package assignments");
+                    _context.UserPackageAssignments.RemoveRange(pkgAssignments);
+                }
+
                 // Explicit cleanup: AssessmentPackages + nested Questions + Options
                 // (DB may cascade, but explicit removal prevents ordering issues)
                 var packages = await _context.AssessmentPackages
@@ -2120,8 +2131,6 @@ namespace HcPortal.Controllers
                     _context.AssessmentPackages.RemoveRange(packages);
                     logger.LogInformation($"Deleting {packages.Count} packages with their questions/options");
                 }
-
-                // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
 
                 // Finally delete the assessment itself
                 _context.AssessmentSessions.Remove(assessment);
@@ -2253,6 +2262,16 @@ namespace HcPortal.Controllers
                     .ToListAsync();
                 if (allAttemptHistory.Any())
                     _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
+
+                // PHASE 323: Delete UserPackageAssignments untuk semua siblings (Restrict FK to AssessmentPackage)
+                var allPkgAssignments = await _context.UserPackageAssignments
+                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPkgAssignments.Any())
+                {
+                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allPkgAssignments.Count} user package assignments across {siblingIds.Count} sessions");
+                    _context.UserPackageAssignments.RemoveRange(allPkgAssignments);
+                }
 
                 // Explicit cleanup: AssessmentPackages + nested Questions + Options for all siblings
                 var allPackages = await _context.AssessmentPackages
@@ -2399,6 +2418,16 @@ namespace HcPortal.Controllers
                     .ToListAsync();
                 if (allAttemptHistory.Any())
                     _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
+
+                // PHASE 323: 2b. UserPackageAssignments untuk semua sessions Pre-Post group (Restrict FK to AssessmentPackage)
+                var allPkgAssignments = await _context.UserPackageAssignments
+                    .Where(a => groupIds.Contains(a.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPkgAssignments.Any())
+                {
+                    logger.LogInformation($"DeletePrePostGroup: deleting {allPkgAssignments.Count} user package assignments across {groupIds.Count} sessions (LinkedGroupId={linkedGroupId})");
+                    _context.UserPackageAssignments.RemoveRange(allPkgAssignments);
+                }
 
                 // 3. Packages + Questions + Options
                 var allPackages = await _context.AssessmentPackages
