@@ -931,7 +931,246 @@
         </div>
         <!-- Layar 5: HC View -->
         <div id="screen-5" class="mockup-screen">
-            <!-- TODO Task 10 -->
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#" class="demo-disabled">CDP</a></li>
+                    <li class="breadcrumb-item active">Coaching Proton</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <h2><i class="bi bi-graph-up me-2"></i>Coaching Proton</h2>
+                    <p class="text-muted mb-0">Monitor deliverable progress and approval status</p>
+                </div>
+                <a href="#" class="btn btn-outline-secondary demo-disabled"><i class="bi bi-arrow-left me-1"></i>Kembali</a>
+            </div>
+
+            <div class="card shadow-sm mb-3" style="border:1px solid #e0e0e0;">
+                <div class="card-body py-2 px-3">
+                    <small class="text-muted fw-semibold text-uppercase d-block mb-2" style="font-size:0.7rem;letter-spacing:0.5px;">Filter</small>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:150px">
+                            <option value="">Semua Bagian</option>
+                            <option>Operasi Kilang</option>
+                            <option>Maintenance</option>
+                            <option>Quality Assurance</option>
+                        </select>
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:180px">
+                            <option value="">Semua Unit</option>
+                            <option>Maintenance</option>
+                            <option>Operasi</option>
+                        </select>
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:180px">
+                            <option value="">— Pilih Coachee —</option>
+                            <option>Ahmad Budiman</option>
+                            <option>Citra Lestari</option>
+                            <option>Dimas Pratama</option>
+                            <option>Bayu Saputra</option>
+                            <option>Rini Astuti</option>
+                        </select>
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:140px">
+                            <option value="">Semua Track</option>
+                            <option>PROTON Maintenance</option>
+                            <option>PROTON Operasi</option>
+                        </select>
+                        <select class="form-select form-select-sm filter-demo" style="width:auto;min-width:130px">
+                            <option value="">Semua Tahun</option>
+                            <option>Tahun 1</option>
+                            <option>Tahun 2</option>
+                        </select>
+                        <div class="position-relative" style="min-width:200px">
+                            <span class="position-absolute top-50 start-0 translate-middle-y ps-2 text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control form-control-sm ps-4 search-input" data-target="#table-screen-5" placeholder="Cari kompetensi..." autocomplete="off">
+                        </div>
+                        <button class="btn btn-outline-secondary btn-sm demo-disabled"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                    </div>
+                    <hr class="my-2">
+                    <span class="text-muted small me-2">Laporan:</span>
+                    <button class="btn btn-sm btn-outline-warning me-1 demo-disabled"><i class="bi bi-file-earmark-excel me-1"></i>Bottleneck Report</button>
+                    <button class="btn btn-sm btn-outline-warning me-1 demo-disabled"><i class="bi bi-file-earmark-excel me-1"></i>Coaching Tracking</button>
+                    <button class="btn btn-sm btn-outline-warning demo-disabled"><i class="bi bi-file-earmark-excel me-1"></i>Workload Summary</button>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-primary) !important;">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-1"><i class="bi bi-graph-up me-1"></i>Progress</h6>
+                            <h3 class="mb-0 text-primary">68%</h3>
+                            <div class="progress mt-2" style="height: 6px;"><div class="progress-bar" style="width: 68%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-warning) !important;">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Pending Actions</h6>
+                            <h3 class="mb-0 text-warning">8</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm" style="border:none; border-left: 4px solid var(--bs-info) !important;">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-1"><i class="bi bi-hourglass-split me-1"></i>Pending Approvals</h6>
+                            <h3 class="mb-0 text-info">3</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <button id="batchApproveBtn" class="btn btn-success btn-sm" style="display:none;" data-bs-toggle="modal" data-bs-target="#modalBatchApprove">
+                    Approve Selected (<span id="batchSelectedCount">0</span>)
+                </button>
+            </div>
+
+            <small class="text-muted mb-2 d-block">Menampilkan 1-5 dari 12 deliverable</small>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="table-screen-5">
+                    <thead style="background-color: #e8f0fe; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <tr>
+                            <th style="width:36px"><input type="checkbox" id="selectAllHc" title="Pilih semua"/></th>
+                            <th>Coachee</th>
+                            <th>Kompetensi</th>
+                            <th>Sub Kompetensi</th>
+                            <th>Deliverable</th>
+                            <th>Evidence</th>
+                            <th>Approval Sr. Spv</th>
+                            <th>Approval Section Head</th>
+                            <th>Approval HC</th>
+                            <th>Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-page-1">
+                        <tr data-search="ahmad budiman pemeliharaan mekanikal static equipment bejana">
+                            <td class="text-center align-middle"><input type="checkbox" class="batch-check" data-deliverable="Resume Coaching Bejana Tekan" data-coachee="Ahmad Budiman"></td>
+                            <td class="fw-bold">Ahmad Budiman</td>
+                            <td class="fw-bold">Pemeliharaan Mekanikal</td>
+                            <td>Pemeliharaan Static Equipment</td>
+                            <td>Resume Coaching Bejana Tekan</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span><br><button class="btn btn-sm btn-outline-success btnHcReviewMock mt-1">Review</button></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="citra lestari operasi kilang crude distillation performance">
+                            <td class="text-center align-middle"><input type="checkbox" class="batch-check" data-deliverable="Laporan Performance CDU Bulanan" data-coachee="Citra Lestari"></td>
+                            <td class="fw-bold">Citra Lestari</td>
+                            <td class="fw-bold">Operasi Kilang Lanjut</td>
+                            <td>Operasi Crude Distillation Unit</td>
+                            <td>Laporan Performance CDU Bulanan</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span><br><button class="btn btn-sm btn-outline-success btnHcReviewMock mt-1">Review</button></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="bayu saputra pemeliharaan listrik motor induksi">
+                            <td class="text-center align-middle"><input type="checkbox" class="batch-check" data-deliverable="Laporan IR Test Motor Pompa" data-coachee="Bayu Saputra"></td>
+                            <td class="fw-bold">Bayu Saputra</td>
+                            <td class="fw-bold">Pemeliharaan Listrik</td>
+                            <td>Pemeliharaan Motor Induksi</td>
+                            <td>Laporan IR Test Motor Pompa</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">Pending</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="rini astuti operasi utility cooling water">
+                            <td class="text-center align-middle"></td>
+                            <td class="fw-bold">Rini Astuti</td>
+                            <td class="fw-bold">Operasi Utility</td>
+                            <td>Operasi Cooling Water</td>
+                            <td>Logbook Operasi Cooling Tower</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                        <tr data-search="dimas pratama quality assurance ndt ultrasonic">
+                            <td class="text-center align-middle"></td>
+                            <td class="fw-bold">Dimas Pratama</td>
+                            <td class="fw-bold">Quality Assurance Inspeksi</td>
+                            <td>NDT Ultrasonic Testing</td>
+                            <td>Laporan UT Pipa Header</td>
+                            <td class="text-center"><span class="badge bg-success">Sudah Upload</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Approved</span></td>
+                            <td class="text-center"><span class="badge bg-success">Reviewed</span></td>
+                            <td class="text-center"><a href="#" onclick="event.preventDefault(); showScreen(4)" class="btn btn-sm btn-outline-secondary">Lihat Detail</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center py-2" style="cursor:pointer" data-bs-toggle="collapse" data-bs-target="#hcReviewPanelBody" aria-expanded="true">
+                        <h6 class="mb-0">
+                            <i class="bi bi-clipboard-check me-2 text-success"></i>Antrian Review HC
+                            <span class="badge bg-warning text-dark ms-2">3 pending</span>
+                        </h6>
+                        <i class="bi bi-chevron-down text-muted small"></i>
+                    </div>
+                    <div class="collapse show" id="hcReviewPanelBody">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead style="background-color: #e8f0fe; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        <tr>
+                                            <th>Coachee</th>
+                                            <th>Kompetensi</th>
+                                            <th>Sub-Kompetensi</th>
+                                            <th>Deliverable</th>
+                                            <th class="text-center">Status</th>
+                                            <th class="text-center">Tanggal Submit</th>
+                                            <th class="text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Ahmad Budiman</td>
+                                            <td class="small text-muted">Pemeliharaan Mekanikal</td>
+                                            <td class="small text-muted">Pemeliharaan Static Equipment</td>
+                                            <td>Resume Coaching Bejana Tekan</td>
+                                            <td class="text-center"><span class="badge bg-primary">Submitted</span></td>
+                                            <td class="text-center small text-muted">15 Mei 2026</td>
+                                            <td class="text-center"><button class="btn btn-sm btn-outline-success btnHcReviewPanelMock"><i class="bi bi-check-circle me-1"></i>Review</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Citra Lestari</td>
+                                            <td class="small text-muted">Operasi Kilang Lanjut</td>
+                                            <td class="small text-muted">Operasi Crude Distillation Unit</td>
+                                            <td>Laporan Performance CDU Bulanan</td>
+                                            <td class="text-center"><span class="badge bg-primary">Submitted</span></td>
+                                            <td class="text-center small text-muted">17 Mei 2026</td>
+                                            <td class="text-center"><button class="btn btn-sm btn-outline-success btnHcReviewPanelMock"><i class="bi bi-check-circle me-1"></i>Review</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Bayu Saputra</td>
+                                            <td class="small text-muted">Pemeliharaan Listrik</td>
+                                            <td class="small text-muted">Pemeliharaan Transformator</td>
+                                            <td>Resume Coaching Transformator</td>
+                                            <td class="text-center"><span class="badge bg-primary">Submitted</span></td>
+                                            <td class="text-center small text-muted">18 Mei 2026</td>
+                                            <td class="text-center"><button class="btn btn-sm btn-outline-success btnHcReviewPanelMock"><i class="bi bi-check-circle me-1"></i>Review</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="px-3 py-2 text-muted small border-top">
+                                <i class="bi bi-info-circle me-1"></i>Setelah diklik Review, deliverable ditandai sebagai sudah diperiksa HC. Status tidak berubah.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- Layar 6: Edit Session -->
         <div id="screen-6" class="mockup-screen">
@@ -1336,6 +1575,36 @@
                 }
             });
         }
+
+        // === HC View: Checkbox batch + tombol Review inline ===
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('batch-check')) {
+                const checked = document.querySelectorAll('.batch-check:checked').length;
+                const btn = document.getElementById('batchApproveBtn');
+                const counter = document.getElementById('batchSelectedCount');
+                if (btn && counter) {
+                    counter.textContent = checked;
+                    btn.style.display = checked > 0 ? 'inline-block' : 'none';
+                }
+            }
+            if (e.target.id === 'selectAllHc') {
+                const checkAll = e.target.checked;
+                document.querySelectorAll('.batch-check').forEach(cb => cb.checked = checkAll);
+                const checked = document.querySelectorAll('.batch-check:checked').length;
+                const btn = document.getElementById('batchApproveBtn');
+                const counter = document.getElementById('batchSelectedCount');
+                if (btn && counter) {
+                    counter.textContent = checked;
+                    btn.style.display = checked > 0 ? 'inline-block' : 'none';
+                }
+            }
+        });
+
+        document.querySelectorAll('.btnHcReviewMock, .btnHcReviewPanelMock').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showToast('Mock: Deliverable ditandai sudah di-review HC', 'success');
+            });
+        });
 
         // Init
         showScreen(1);
