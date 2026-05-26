@@ -243,7 +243,95 @@ flowchart LR
         <li>Dashboard CDP cuma menampilkan sertifikat outstanding yang masih perlu di-renew, bukan sertifikat lama yang sudah ada penggantinya</li>
       </ul>
     </section>
-    <section id="sec-6"><h2><span class="badge bg-secondary">§6</span> Peran & Hak Akses</h2><p><em>Konten Task 7</em></p></section>
+    <section id="sec-6">
+      <h2><span class="badge bg-secondary">§6</span> Peran & Hak Akses</h2>
+      <p>Portal HC punya 6 peran (level L1 paling tinggi, L6 paling terbatas). Berikut ringkasan hak akses terhadap sertifikat:</p>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Peran</th>
+              <th>Level</th>
+              <th class="text-center">Lihat</th>
+              <th class="text-center">Buat</th>
+              <th class="text-center">Edit</th>
+              <th class="text-center">Hapus</th>
+              <th>Scope</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Admin</strong></td>
+              <td>L1</td>
+              <td class="text-center text-success">✓</td>
+              <td class="text-center text-success">✓</td>
+              <td class="text-center text-success">✓</td>
+              <td class="text-center text-success">✓</td>
+              <td><small>Full — semua section, semua role</small></td>
+            </tr>
+            <tr>
+              <td><strong>HC</strong></td>
+              <td>L2</td>
+              <td class="text-center text-success">✓</td>
+              <td class="text-center text-success">✓</td>
+              <td class="text-center text-success">✓</td>
+              <td class="text-center text-success">✓</td>
+              <td><small>Full — sama dengan Admin</small></td>
+            </tr>
+            <tr>
+              <td><strong>Manager</strong></td>
+              <td>L3</td>
+              <td class="text-center text-success">✓</td>
+              <td class="text-center text-danger">✗</td>
+              <td class="text-center text-danger">✗</td>
+              <td class="text-center text-danger">✗</td>
+              <td><small>Full lihat, terbatas tulis (read-only sertifikat)</small></td>
+            </tr>
+            <tr>
+              <td><strong>SectionHead</strong></td>
+              <td>L4</td>
+              <td class="text-center text-warning">⚠ section</td>
+              <td class="text-center text-danger">✗</td>
+              <td class="text-center text-danger">✗</td>
+              <td class="text-center text-danger">✗</td>
+              <td><small>Hanya pekerja di section yang sama</small></td>
+            </tr>
+            <tr>
+              <td><strong>Coach</strong></td>
+              <td>L5</td>
+              <td class="text-center text-warning">⚠ mapped</td>
+              <td class="text-center text-danger">✗</td>
+              <td class="text-center text-danger">✗</td>
+              <td class="text-center text-danger">✗</td>
+              <td><small>Dual-mode: coachee yang di-assign + diri sendiri</small></td>
+            </tr>
+            <tr>
+              <td><strong>Coachee</strong></td>
+              <td>L6</td>
+              <td class="text-center text-warning">⚠ own</td>
+              <td class="text-center text-warning">⚠ submit exam</td>
+              <td class="text-center text-danger">✗</td>
+              <td class="text-center text-danger">✗</td>
+              <td><small>Hanya sertifikat pribadi</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h5 class="mt-3">Ringkasan per peran</h5>
+      <dl class="row">
+        <dt class="col-sm-3">Admin / HC</dt>
+        <dd class="col-sm-9">Operator sistem — akses penuh semua fitur sertifikat, satu-satunya yang boleh trigger renewal.</dd>
+        <dt class="col-sm-3">Manager</dt>
+        <dd class="col-sm-9">Pimpinan unit — bisa lihat semua sertifikat untuk keperluan reporting, tidak bisa ubah data.</dd>
+        <dt class="col-sm-3">SectionHead</dt>
+        <dd class="col-sm-9">Atasan section — lihat sertifikat pekerja di section yang sama saja (scope terbatas).</dd>
+        <dt class="col-sm-3">Coach</dt>
+        <dd class="col-sm-9">Pembimbing — lihat sertifikat coachee yang di-assign ke dia, plus sertifikat dirinya sendiri.</dd>
+        <dt class="col-sm-3">Coachee</dt>
+        <dd class="col-sm-9">Pekerja akhir — lihat dan unduh sertifikat pribadi, ikut assessment online untuk dapat sertifikat baru.</dd>
+      </dl>
+      <p class="small text-muted"><i class="bi bi-info-circle"></i> Untuk matriks hak akses lengkap per endpoint, lihat <a href="./index.html#sec-6">index.html §6</a>.</p>
+    </section>
     <section id="sec-7"><h2><span class="badge bg-secondary">§7</span> Peta Menu Aplikasi</h2><p><em>Konten Task 8</em></p></section>
     <section id="sec-8"><h2><span class="badge bg-secondary">§8</span> Glosarium</h2><p><em>Konten Task 9</em></p></section>
 
