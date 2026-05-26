@@ -378,7 +378,56 @@ flowchart LR
         </div>
       </div>
     </section>
-    <section id="sec-8"><h2><span class="badge bg-secondary">§8</span> Glosarium</h2><p><em>Konten Task 9</em></p></section>
+    <section id="sec-8">
+      <h2><span class="badge bg-secondary">§8</span> Glosarium</h2>
+      <p>Istilah-istilah yang muncul di dokumen ini:</p>
+      <dl class="row glosarium">
+        <dt class="col-sm-3">CMP</dt>
+        <dd class="col-sm-9">Competency Management Program — modul utama untuk pengelolaan sertifikat &amp; assessment online.</dd>
+
+        <dt class="col-sm-3">CDP</dt>
+        <dd class="col-sm-9">Competency Development Program — modul dashboard tracking sertifikat (status, expired, renewal outstanding).</dd>
+
+        <dt class="col-sm-3">KKJ</dt>
+        <dd class="col-sm-9">Kompetensi Kerja Jabatan — standar kompetensi per jabatan di KPB.</dd>
+
+        <dt class="col-sm-3">PROTON</dt>
+        <dd class="col-sm-9">Professional Refinery Operations Competency Development — program besar pengembangan kompetensi RU IV Cilacap.</dd>
+
+        <dt class="col-sm-3">Assessment</dt>
+        <dd class="col-sm-9">Ujian online di Portal HC, terdiri dari soal pilihan ganda dan/atau essay. Hasil lulus dapat menerbitkan sertifikat.</dd>
+
+        <dt class="col-sm-3">Sertifikat Permanent</dt>
+        <dd class="col-sm-9">Jenis sertifikat tanpa tanggal kadaluarsa (tidak perlu renewal).</dd>
+
+        <dt class="col-sm-3">ValidUntil</dt>
+        <dd class="col-sm-9">Kolom database yang menyimpan tanggal kadaluarsa sertifikat. Tampil di UI sebagai "Berlaku sampai".</dd>
+
+        <dt class="col-sm-3">Renewal Chain</dt>
+        <dd class="col-sm-9">Rantai sertifikat hasil renewal yang saling terhubung — sertifikat ke-1 → renewal ke-1 → renewal ke-2, dst.</dd>
+
+        <dt class="col-sm-3">Pending Grading</dt>
+        <dd class="col-sm-9">Status assessment yang menunggu HC menilai soal essay-nya. Sertifikat menyusul setelah grading selesai.</dd>
+
+        <dt class="col-sm-3">Generate Certificate flag</dt>
+        <dd class="col-sm-9">Pengaturan per-assessment: apakah lulus assessment akan menerbitkan sertifikat resmi (true) atau tidak (false).</dd>
+
+        <dt class="col-sm-3">Section</dt>
+        <dd class="col-sm-9">Unit kerja di KPB. Basis scope untuk peran L4 SectionHead — hanya bisa lihat pekerja di section yang sama.</dd>
+
+        <dt class="col-sm-3">Mapped Coachee</dt>
+        <dd class="col-sm-9">Pekerja yang di-assign ke seorang Coach melalui tabel mapping di sistem.</dd>
+
+        <dt class="col-sm-3">L1 – L6</dt>
+        <dd class="col-sm-9">Level peran sistem. L1 paling tinggi (Admin), L6 paling terbatas (Coachee).</dd>
+
+        <dt class="col-sm-3">Nomor Sertifikat</dt>
+        <dd class="col-sm-9">Format <code>KPB/{nomor-urut}/{romawi-bulan}/{tahun}</code> — di-generate otomatis untuk sertifikat hasil assessment online.</dd>
+
+        <dt class="col-sm-3">Renewal Certificate</dt>
+        <dd class="col-sm-9">Menu di Admin Panel untuk trigger renewal sertifikat — hanya Admin + HC yang boleh akses.</dd>
+      </dl>
+    </section>
 
     <footer class="text-center text-muted small mt-5 pt-4 border-top">
       <p>Ekosistem Sertifikat Portal HC KPB — Panduan Awam v1.0 — 2026-05-26<br>
