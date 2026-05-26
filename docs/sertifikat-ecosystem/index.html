@@ -604,6 +604,135 @@ sequenceDiagram
             </div>
           </div>
         </section>
+
+        <section id="sec-6">
+          <h2><span class="badge bg-secondary">§6</span> RBAC Matrix Global</h2>
+          <p>Akses 13 endpoint × 6 role. Legenda: <span class="badge bg-success">✅ full</span> <span class="badge bg-warning text-dark">⚠ scoped</span> <span class="badge bg-info">👁 read-only</span> <span class="badge bg-secondary">— N/A</span> <span class="badge bg-danger">❌ blocked</span>.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+              <thead class="table-dark">
+                <tr><th>Endpoint</th><th>Admin (L1)</th><th>HC (L2)</th><th>Manager (L3)</th><th>SectionHead (L4)</th><th>Coach (L5)</th><th>Coachee (L6)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>/CMP/Records</code></td><td>✅ full</td><td>✅ full</td><td>✅ full</td><td>⚠ section</td><td>⚠ dual-mode</td><td>⚠ own</td></tr>
+                <tr><td><code>/CDP/CertificationManagement</code></td><td>✅</td><td>✅</td><td>✅</td><td>⚠ section</td><td>⚠ dual-mode</td><td>⚠ own</td></tr>
+                <tr><td><code>/CMP/BudgetTraining</code></td><td>✅ CRUD</td><td>✅ CRUD</td><td>✅ CRUD</td><td>👁 read</td><td>❌</td><td>❌</td></tr>
+                <tr><td><code>/Admin/ManageAssessment</code></td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+                <tr><td><code>/Admin/RenewalCertificate</code></td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+                <tr><td><code>/CMP/Certificate/{id}</code></td><td>✅</td><td>✅</td><td>👁 owner</td><td>👁 owner</td><td>👁 owner</td><td>👁 owner</td></tr>
+                <tr><td><code>/CMP/CertificatePdf/{id}</code></td><td>✅</td><td>✅</td><td>👁 owner</td><td>👁 owner</td><td>👁 owner</td><td>👁 owner</td></tr>
+                <tr><td><code>/Admin/AddTraining /EditTraining</code></td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+                <tr><td><code>/Notification/*</code></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                <tr><td><code>/CMP/ExportRecords</code></td><td>✅</td><td>✅</td><td>✅</td><td>⚠ section</td><td>⚠ dual-mode</td><td>⚠ own</td></tr>
+                <tr><td><code>/CDP/ExportSertifikatExcel</code></td><td>✅</td><td>✅</td><td>✅</td><td>⚠ section</td><td>⚠ dual-mode</td><td>❌</td></tr>
+                <tr><td><code>/CMP/SubmitExam</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✅ own session</td></tr>
+                <tr><td><code>/Admin/FinalizeEssayGrading</code></td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h6 class="mt-3">4 Dimensi Access Pattern</h6>
+          <ul class="small">
+            <li><strong>Full</strong> — L1-3 (Admin, HC, Manager/Direktur/VP). Akses semua section, semua role.</li>
+            <li><strong>Section-scoped</strong> — L4 (SectionHead, SrSupervisor). Akses worker dengan <code>Section == user.Section</code>.</li>
+            <li><strong>Dual-mode</strong> — L5 (Coach, Supervisor). Flag <code>l5OwnDataOnly</code>: true = own data; false = mapped coachees via <code>CoachCoacheeMappings</code> (CoachId=user.Id, IsActive).</li>
+            <li><strong>Own-data</strong> — L6 (Coachee). Hanya record dengan <code>UserId == user.Id</code>.</li>
+          </ul>
+        </section>
+
+        <section id="sec-7">
+          <h2><span class="badge bg-secondary">§7</span> Status Derivation Logic</h2>
+          <p>Status sertifikat <strong>tidak disimpan</strong> di DB. Di-derivasi runtime dari kombinasi <code>ValidUntil</code> + <code>CertificateType</code> oleh function <code>DeriveCertificateStatus()</code>.</p>
+
+          <h5 class="mt-3">7.1 Source Code</h5>
+<pre><code class="language-csharp">// Source: Models/CertificationManagementViewModel.cs:53-63
+public static CertificateStatus DeriveCertificateStatus(DateTime? validUntil, string? certificateType)
+{
+    if (certificateType == "Permanent") return CertificateStatus.Permanent;
+    if (validUntil == null) return CertificateStatus.Expired;  // non-permanent without expiry
+    var days = (validUntil.Value - DateTime.UtcNow).Days;
+    if (days &lt; 0) return CertificateStatus.Expired;
+    if (days &lt;= 30) return CertificateStatus.AkanExpired;
+    return CertificateStatus.Aktif;
+}
+</code></pre>
+
+          <h5 class="mt-4">7.2 Truth Table</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead class="table-dark"><tr><th>CertificateType</th><th>ValidUntil</th><th><code>days</code></th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>"Permanent"</td><td><em>any</em></td><td>—</td><td><span class="badge bg-info">Permanent</span></td></tr>
+                <tr><td>!= "Permanent"</td><td><code>null</code></td><td>—</td><td><span class="badge bg-danger">Expired</span></td></tr>
+                <tr><td>!= "Permanent"</td><td>future &gt; 30d</td><td>&gt; 30</td><td><span class="badge bg-success">Aktif</span></td></tr>
+                <tr><td>!= "Permanent"</td><td>0..30 days ahead</td><td>0..30</td><td><span class="badge bg-warning text-dark">AkanExpired</span></td></tr>
+                <tr><td>!= "Permanent"</td><td>past</td><td>&lt; 0</td><td><span class="badge bg-danger">Expired</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h5 class="mt-4">7.3 Edge Case</h5>
+          <ul>
+            <li><strong>Boundary inclusive (<code>days == 30</code>):</strong> kondisi <code>days &lt;= 30</code> inclusive → <strong>AkanExpired</strong>. Sertifikat tepat 30 hari mendatang sudah mulai di-flag.</li>
+            <li><strong><code>days == 0</code> (hari ini):</strong> masuk AkanExpired (karena 0 &gt;= 0 &amp;&amp; &lt;= 30). Tidak masuk Expired meski real-time mungkin sudah lewat jam expiry.</li>
+            <li><strong>Permanent + ValidUntil terisi:</strong> ValidUntil diabaikan (return Permanent). Data invalid (kontradiktif) tidak dicegah saat input — lihat §9.</li>
+            <li><strong>Timezone WIB vs UTC:</strong> pakai <code>DateTime.UtcNow</code>. <code>ValidUntil</code> kemungkinan disimpan local WIB (+7). Selisih 7 jam dapat misklasifikasi sertifikat yang expired tepat pada batas hari — lihat §9 #4.</li>
+            <li><strong>Permanent semantics:</strong> "Permanent" assume case-sensitive string match. Variasi "permanent", "PERMANENT" tidak terdeteksi.</li>
+          </ul>
+        </section>
+
+        <section id="sec-8">
+          <h2><span class="badge bg-secondary">§8</span> Renewal Chain Algorithm</h2>
+          <p>Model dual-FK lintas-tabel: <code>TrainingRecord</code> dan <code>AssessmentSession</code> keduanya bisa renew baik TR maupun AS lain via <code>RenewsTrainingId</code> dan <code>RenewsSessionId</code> (nullable, mutually exclusive per konvensi).</p>
+
+          <h5 class="mt-3">8.1 4 Batch Lookup (Union-Find)</h5>
+<pre><code class="language-csharp">// Source: CDPController.cs:3759-3794 (CertificationManagement)
+var renewedByAsSessionIds = await db.AssessmentSessions
+    .Where(a =&gt; a.RenewsSessionId != null &amp;&amp; a.IsPassed == true)
+    .Select(a =&gt; a.RenewsSessionId.Value).ToListAsync();
+
+var renewedByTrSessionIds = await db.TrainingRecords
+    .Where(t =&gt; t.RenewsSessionId != null)
+    .Select(t =&gt; t.RenewsSessionId.Value).ToListAsync();
+
+var renewedByAsTrainingIds = await db.AssessmentSessions
+    .Where(a =&gt; a.RenewsTrainingId != null &amp;&amp; a.IsPassed == true)
+    .Select(a =&gt; a.RenewsTrainingId.Value).ToListAsync();
+
+var renewedByTrTrainingIds = await db.TrainingRecords
+    .Where(t =&gt; t.RenewsTrainingId != null)
+    .Select(t =&gt; t.RenewsTrainingId.Value).ToListAsync();
+
+// Union per type:
+var renewedAssessmentSessionIds = renewedByAsSessionIds
+    .Union(renewedByTrSessionIds).ToHashSet();
+var renewedTrainingRecordIds = renewedByAsTrainingIds
+    .Union(renewedByTrTrainingIds).ToHashSet();
+
+// Per row:
+row.IsRenewed = row.RecordType == "Assessment"
+    ? renewedAssessmentSessionIds.Contains(row.SourceId)
+    : renewedTrainingRecordIds.Contains(row.SourceId);
+</code></pre>
+
+          <h5 class="mt-4">8.2 Contoh Chain</h5>
+<pre><code class="language-text">TR#1 (Pelatihan K3 Dasar, 2024)
+    ↑ renewed by (AS#5.RenewsTrainingId = 1)
+AS#5 (Assessment K3 Re-test, 2025, IsPassed=true)
+    ↑ renewed by (TR#9.RenewsSessionId = 5)
+TR#9 (Pelatihan K3 Renewal, 2026)
+
+Pembacaan chain: TR#1 → AS#5 → TR#9 (chronological)
+Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
+</code></pre>
+
+          <h5 class="mt-4">8.3 Risiko (Audit Target §9)</h5>
+          <ul>
+            <li><strong>Cycle Detection:</strong> Skenario A→B→A tidak dideteksi. Union-Find naive masukkan keduanya ke set "renewed" → keduanya hilang dari dashboard outstanding renewal.</li>
+            <li><strong>Both FK Filled:</strong> Tidak ada CHECK constraint DB. Row dengan kedua <code>RenewsTrainingId</code> dan <code>RenewsSessionId</code> terisi = ambiguous semantic.</li>
+            <li><strong>Orphan FK:</strong> Tidak ada FK constraint (kemungkinan disengaja untuk cross-table flexibility). Delete TR/AS yang di-renews → dangling reference.</li>
+            <li><strong>AS.RenewsSessionId Filter <code>IsPassed=true</code>:</strong> renewal yang failed assessment tidak dihitung sebagai "menggantikan" — semantic correct, tapi bisa mengejutkan jika AS gagal padahal cert lama sudah expired.</li>
+          </ul>
+        </section>
       </main>
     </div>
   </div>
