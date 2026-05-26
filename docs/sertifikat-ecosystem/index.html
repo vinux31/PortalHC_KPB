@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sertifikat Ecosystem — Portal HC KPB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css" rel="stylesheet">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    #sidebar-toc { position: sticky; top: 0; height: 100vh; overflow-y: auto; border-right: 1px solid var(--bs-border-color); padding: 1rem; }
+    #sidebar-toc a { display: block; padding: 0.25rem 0.5rem; color: var(--bs-body-color); text-decoration: none; border-radius: 0.25rem; font-size: 0.875rem; margin-bottom: 0.1rem; }
+    #sidebar-toc a:hover { background: var(--bs-secondary-bg); }
+    #sidebar-toc a.active { background: var(--bs-primary); color: white; font-weight: 600; }
+    main { padding: 2rem 3rem; max-width: 100%; }
+    section { scroll-margin-top: 2rem; padding-bottom: 3rem; border-bottom: 1px solid var(--bs-border-color); margin-bottom: 2rem; }
+    h2 { margin-top: 2rem; padding-top: 1rem; }
+    h2 .badge { font-size: 0.75em; vertical-align: middle; }
+    .severity-high { background: #dc3545; color: white; }
+    .severity-med { background: #ffc107; color: black; }
+    .severity-low { background: #198754; color: white; }
+    .path-line { font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--bs-info-text-emphasis); }
+    pre code.hljs { padding: 1rem; border-radius: 0.5rem; }
+    .mermaid { background: var(--bs-light-bg-subtle); padding: 1rem; border-radius: 0.5rem; text-align: center; margin: 1rem 0; }
+    [data-bs-theme="dark"] .mermaid { background: #1e1e1e; }
+    .card-header strong { font-size: 1.05rem; }
+    dl.row dt { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="sidebar-toc" class="col-lg-3 col-md-4 d-none d-md-block">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="text-uppercase text-muted mb-0">Daftar Isi</h6>
+          <button id="theme-toggle" class="btn btn-sm btn-outline-secondary" title="Toggle dark mode">
+            <i class="bi bi-moon-stars"></i>
+          </button>
+        </div>
+        <div class="small fw-bold mb-2 text-truncate">Sertifikat Ecosystem v1.0</div>
+        <a href="#sec-0">§0 Header</a>
+        <a href="#sec-1">§1 Executive Summary</a>
+        <a href="#sec-2">§2 Data Model</a>
+        <a href="#sec-3">§3 State Machine</a>
+        <a href="#sec-4">§4 Core Flow Diagrams</a>
+        <a href="#sec-5">§5 Per-Page Deep Dive</a>
+        <a href="#sec-6">§6 RBAC Matrix</a>
+        <a href="#sec-7">§7 Status Derivation</a>
+        <a href="#sec-8">§8 Renewal Algorithm</a>
+        <a href="#sec-9">§9 Bugs &amp; Issues</a>
+        <a href="#sec-10">§10 Gap Analysis</a>
+        <a href="#sec-11">§11 Spec Cross-Check</a>
+        <a href="#sec-12">§12 Glossary</a>
+        <a href="#sec-13">§13 Migration Timeline</a>
+        <a href="#sec-14">§14 Test Coverage</a>
+        <a href="#sec-15">§15 External Dependency</a>
+        <a href="#sec-16">§16 Performance Hotspot</a>
+        <a href="#sec-17">§17 API/AJAX Catalog</a>
+        <a href="#sec-18">§18 Appendix</a>
+      </nav>
+      <main class="col-lg-9 col-md-8">
+        <section id="sec-0">
+          <h1>Sertifikat Ecosystem Documentation</h1>
+          <p class="lead text-muted">Portal HC KPB — Technical Reference for Developers</p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+    hljs.highlightAll();
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    themeToggle.addEventListener('click', () => {
+      const current = html.getAttribute('data-bs-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-bs-theme', next);
+      document.querySelectorAll('.mermaid').forEach((el) => {
+        const code = el.getAttribute('data-original') || el.textContent;
+        if (!el.getAttribute('data-original')) el.setAttribute('data-original', code);
+        el.innerHTML = code;
+        el.removeAttribute('data-processed');
+      });
+      mermaid.initialize({ startOnLoad: false, theme: next === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
+      mermaid.run();
+    });
+
+    const links = document.querySelectorAll('#sidebar-toc a');
+    const sections = document.querySelectorAll('main section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const id = entry.target.getAttribute('id');
+          const link = document.querySelector(`#sidebar-toc a[href="#${id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    sections.forEach(s => observer.observe(s));
+  </script>
+</body>
+</html>
