@@ -181,7 +181,48 @@
           </ul>
         </section>
 
-        <!-- §3 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-3">
+          <h2><span class="badge bg-secondary">§3</span> Existing System Gap Inventory</h2>
+          <p>Derive dari <a href="index.html#sec-10">index.html §10 Gap Analysis</a>. ID stable: G-01..G-25. Kategori: <span class="badge bg-info">Fungsi</span> (8), <span class="badge bg-warning text-dark">Sistem</span> (8), <span class="badge bg-secondary">Logic</span> (9). Kolom <em>Related Bug</em> menunjuk ke <a href="bug-findings.html">bug-findings.html</a> bila overlap.</p>
+
+          <div class="table-responsive mt-3">
+            <table class="table table-sm table-bordered table-hover small">
+              <thead class="table-primary">
+                <tr><th>ID</th><th>Kategori</th><th>Description</th><th>Urgency</th><th>Related Bug</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>G-01</td><td><span class="badge bg-info">Fungsi</span></td><td>Bulk Renewal Action — <code>/Admin/RenewalCertificate</code> hanya display, no batch renew button.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-02</td><td><span class="badge bg-info">Fungsi</span></td><td>Auto-Email Reminder Expiry — Notification table ada tapi tidak ada dispatch email cert akan expired.</td><td><span class="badge bg-danger">High</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-03</td><td><span class="badge bg-info">Fungsi</span></td><td>Cert Revocation Mechanism — tidak ada cara revoke selain hard delete.</td><td><span class="badge bg-success">Low</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-04</td><td><span class="badge bg-info">Fungsi</span></td><td>Cert Verification Publik (QR) — PDF tidak punya QR/link verify keaslian.</td><td><span class="badge bg-success">Low</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-05</td><td><span class="badge bg-info">Fungsi</span></td><td>Renewal History Timeline View — chain di-FK tapi UI tidak visualisasi.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-06</td><td><span class="badge bg-info">Fungsi</span></td><td>Budget Multi-Year Trend — BP cuma per-tahun, no chart 3-5 tahun.</td><td><span class="badge bg-success">Low</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-07</td><td><span class="badge bg-info">Fungsi</span></td><td>Cert Template Customization — QuestPDF hardcode, admin tidak bisa edit logo/wording.</td><td><span class="badge bg-success">Low</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-08</td><td><span class="badge bg-info">Fungsi</span></td><td>Mass Upload Renewal (Excel) — ImportTraining ada tapi no flag renewal FK.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.1</a></td></tr>
+                <tr><td>G-09</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>Background Job Scheduler (Hangfire/Quartz) — no scheduler untuk daily expiry check.</td><td><span class="badge bg-danger">High</span></td><td>—</td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-10</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>Audit Log Generic — mutasi TrainingRecord/AssessmentSession tidak ditrack siapa-apa-kapan.</td><td><span class="badge bg-danger">High</span></td><td>—</td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-11</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>Caching Layer — no Redis/MemoryCache, latency risk dataset besar.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-12</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>Rate-Limit Export — no throttle /CMP/ExportRecords + /CDP/ExportSertifikatExcel, OOM risk.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-13</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>DB Index pada ValidUntil — filter WHERE ValidUntil ≤ now+30d tanpa index = full scan.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-14</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>Soft Delete (IsDeleted Flag) — hard delete lenyapkan renewal chain history.</td><td><span class="badge bg-danger">High</span></td><td><a href="bug-findings.html#bug-P05">P05</a></td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-15</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>CDN untuk SertifikatUrl — file di wwwroot, no CDN/signed URL.</td><td><span class="badge bg-success">Low</span></td><td>—</td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-16</td><td><span class="badge bg-warning text-dark">Sistem</span></td><td>Cert PDF Async Generation — QuestPDF synchronous block thread di banyak PDF.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.2</a></td></tr>
+                <tr><td>G-17</td><td><span class="badge bg-secondary">Logic</span></td><td>Null ValidUntil Ambiguity — <code>DeriveCertificateStatus</code> return Expired untuk null, ambigu dengan Permanent.</td><td><span class="badge bg-warning text-dark">Med</span></td><td><a href="bug-findings.html#bug-P06">P06</a></td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-18</td><td><span class="badge bg-secondary">Logic</span></td><td>Cycle Detection — renewal chain A→B→A tidak dideteksi.</td><td><span class="badge bg-warning text-dark">Med</span></td><td><a href="bug-findings.html#bug-P03">P03</a></td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-19</td><td><span class="badge bg-secondary">Logic</span></td><td>Timezone WIB vs UTC — UtcNow vs ValidUntil input WIB, selisih 7 jam di boundary.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-20</td><td><span class="badge bg-secondary">Logic</span></td><td>SEQ Reset Tahunan — persepsi duplikasi format antar tahun (KPB/001/I/2027 vs KPB/001/V/2026).</td><td><span class="badge bg-success">Low</span></td><td>—</td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-21</td><td><span class="badge bg-secondary">Logic</span></td><td>AkanExpired Boundary Inclusive — <code>days ≤ 30</code> premature alert.</td><td><span class="badge bg-success">Low</span></td><td>—</td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-22</td><td><span class="badge bg-secondary">Logic</span></td><td>Permanent + ValidUntil Filled — logic abaikan ValidUntil, data invalid tidak dicegah.</td><td><span class="badge bg-warning text-dark">Med</span></td><td><a href="bug-findings.html#bug-P07">P07</a></td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-23</td><td><span class="badge bg-secondary">Logic</span></td><td>Dual FK Both Filled (DB Level) — app validator ada tapi no DB CHECK constraint.</td><td><span class="badge bg-warning text-dark">Med</span></td><td>—</td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-24</td><td><span class="badge bg-secondary">Logic</span></td><td>Permanent String Case-Sensitivity — "permanent"/"PERMANENT" fall-through ke Expired.</td><td><span class="badge bg-warning text-dark">Med</span></td><td><a href="bug-findings.html#bug-P02">P02</a></td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+                <tr><td>G-25</td><td><span class="badge bg-secondary">Logic</span></td><td>AssessmentSession.CertificateType Tidak Ada — schema asymmetry vs TrainingRecord.</td><td><span class="badge bg-success">Low</span></td><td><a href="bug-findings.html#bug-D02">D02</a></td><td><a href="index.html#sec-10">§10.3</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small text-muted mt-2">Catatan: <em>Related Bug</em> hanya cross-ref bila tema overlap. Beberapa bug fix dapat menutup gap (mis. <code>bug-P05</code> menutup G-14 partial). Detail bug → klik link.</p>
+        </section>
+
+        <!-- §4 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
