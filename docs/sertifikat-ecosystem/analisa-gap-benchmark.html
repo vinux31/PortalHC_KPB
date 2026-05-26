@@ -760,7 +760,50 @@ public class CertExpiryReminderJob {
           </div>
         </section>
 
-        <!-- §9 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-9">
+          <h2><span class="badge bg-secondary">§9</span> Roadmap Tentative</h2>
+          <p>3 fase kategorikal (no hardcoded calendar date). Grouping berdasarkan ICE rank + dependency.</p>
+
+          <div class="mermaid">
+timeline
+  title Sertifikat Ecosystem Improvement Roadmap
+  Now (3 bulan pertama)
+    : R-01 DB Index ValidUntil
+    : R-02 QR-Code Dynamic Verify
+    : R-04 Rate-Limit Export
+    : R-06 Permanent Case-Insensitive
+    : R-07 Permanent ValidUntil Validator
+    : R-08 Cycle Detection
+  Next (3-9 bulan)
+    : R-03 Auto-Email Reminder Hangfire baseline
+    : R-05 Cert Revocation List
+    : G-14 Soft Delete IsDeleted
+    : G-10 Audit Log Generic
+    : G-17 G-19 Logic edge case fix
+  Later (9-18 bulan)
+    : R-09 Hangfire Scheduler full pipeline
+    : R-10 Open Badges 3.0 Issuer + W3C VC
+    : N-04 Skill Matrix Integration
+    : N-11 CPD Point Tracker
+    : N-12 External Assessor Mode
+          </div>
+
+          <h5 class="mt-4">Rationale Grouping</h5>
+          <dl class="row small">
+            <dt class="col-sm-3">Now (3 bulan)</dt>
+            <dd class="col-sm-9">Pure Quick-Win — momentum cepat, low risk, prerequisite untuk Big-Bet (mis. R-02 QR siap sebelum R-10 Open Badges).</dd>
+            <dt class="col-sm-3">Next (3-9 bulan)</dt>
+            <dd class="col-sm-9">Mid-effort infrastructure (Hangfire baseline R-03, Audit Log G-10 compliance, Soft Delete G-14 prerequisite). Foundation untuk fase Later.</dd>
+            <dt class="col-sm-3">Later (9-18 bulan)</dt>
+            <dd class="col-sm-9">High-effort transformational (Open Badges interoperability, Skill Matrix taxonomy, External Assessor compliance ISO 17024). Memerlukan baseline dari fase Next.</dd>
+          </dl>
+
+          <div class="alert alert-secondary mt-3">
+            <strong>Catatan:</strong> Roadmap ini tentative — sequencing final harus validate dengan capacity planning team IT + stakeholder review. Quarterly checkpoint disarankan untuk re-prioritisasi berdasarkan business need shift.
+          </div>
+        </section>
+
+        <!-- §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
