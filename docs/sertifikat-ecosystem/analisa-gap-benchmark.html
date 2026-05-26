@@ -27,6 +27,21 @@
     .vendor-card { margin-bottom: 1rem; }
     pre { background: var(--bs-light-bg-subtle); padding: 0.75rem; border-radius: 0.375rem; font-size: 0.85rem; overflow-x: auto; }
     [data-bs-theme="dark"] pre { background: #1e1e1e; color: #e0e0e0; }
+    @media print {
+      #sidebar-toc, #theme-toggle { display: none !important; }
+      main { padding: 1rem !important; max-width: 100% !important; }
+      .col-lg-9, .col-md-8 { width: 100% !important; flex: 0 0 100% !important; max-width: 100% !important; }
+      section { page-break-before: always; border-bottom: none; padding-bottom: 1rem; margin-bottom: 1rem; }
+      section#sec-0 { page-break-before: auto; }
+      .accordion-collapse { display: block !important; }
+      .accordion-button { display: none; }
+      .accordion-body { padding: 0.5rem 0; border: none; }
+      .card { page-break-inside: avoid; }
+      .mermaid { page-break-inside: avoid; }
+      table { page-break-inside: avoid; }
+      a { color: black; text-decoration: underline; }
+      h2 { page-break-after: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -847,6 +862,16 @@ timeline
           <h5 class="mt-4">10.3 Acknowledgment</h5>
           <p class="small">Laporan disusun via Claude Opus 4.7 caveman session (brainstorming → writing-plans → inline execution). Citation URL diverifikasi tanggal akses; konten internal review per stakeholder Pertamina KPB sebelum publikasi resmi.</p>
         </section>
+
+        <footer class="text-center text-muted small py-4 mt-5 border-top">
+          <p class="mb-1"><strong>Analisa Gap + Benchmark</strong> · Sertifikat Ecosystem Portal HC KPB · v1.0</p>
+          <p class="mb-1">Last updated: 2026-05-26 · Generated via Claude Opus 4.7 (caveman session)</p>
+          <p class="mb-0">
+            <a href="index.html">← Index</a> ·
+            <a href="bug-findings.html">Bug Findings</a> ·
+            <a href="#sec-0">↑ Top</a>
+          </p>
+        </footer>
 
       </main>
     </div>
