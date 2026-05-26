@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bug Findings — Sertifikat Ecosystem Portal HC KPB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" rel="stylesheet">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    #sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; border-right: 1px solid var(--bs-border-color); padding: 1rem; }
+    #sidebar a { display: block; padding: 0.25rem 0.5rem; color: var(--bs-body-color); text-decoration: none; border-radius: 0.25rem; font-size: 0.875rem; margin-bottom: 0.1rem; }
+    #sidebar a:hover { background: var(--bs-secondary-bg); }
+    #sidebar a.active { background: var(--bs-primary); color: white; font-weight: 600; }
+    main { padding: 2rem 3rem; max-width: 100%; }
+    .bug-card { border-left: 4px solid var(--bs-border-color); margin-bottom: 1.5rem; }
+    .bug-card.bug-high { border-left-color: #dc3545; }
+    .bug-card.bug-med { border-left-color: #ffc107; }
+    .bug-card.bug-low { border-left-color: #198754; }
+    .bug-card .bug-id { font-family: 'Courier New', monospace; font-weight: bold; }
+    .severity-high { background: #dc3545; color: white; }
+    .severity-med { background: #ffc107; color: black; }
+    .severity-low { background: #198754; color: white; }
+    .path-line { font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--bs-info-text-emphasis); }
+    pre code.hljs { padding: 1rem; border-radius: 0.5rem; }
+    .simple-explain { background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%); border-left: 4px solid #1971c2; padding: 1rem 1.25rem; border-radius: 0.5rem; margin: 1rem 0; }
+    [data-bs-theme="dark"] .simple-explain { background: linear-gradient(135deg, #1c2533 0%, #1a3a5c 100%); border-left-color: #4dabf7; }
+    .simple-explain h6 { color: #1864ab; font-weight: bold; margin-bottom: 0.5rem; }
+    [data-bs-theme="dark"] .simple-explain h6 { color: #74c0fc; }
+    .repro-steps { background: var(--bs-light-bg-subtle); padding: 1rem; border-radius: 0.5rem; }
+    .fix-block { background: #f0f9ff; border: 1px solid #38bdf8; border-radius: 0.5rem; padding: 1rem; }
+    [data-bs-theme="dark"] .fix-block { background: #0c4a6e; border-color: #0ea5e9; }
+    .badge-tag { background: var(--bs-secondary-bg); color: var(--bs-body-color); font-weight: normal; margin-right: 0.25rem; }
+    .stat-card h2 { font-size: 2.5rem; margin: 0; }
+    .stat-card { transition: transform 0.2s; cursor: default; }
+    .stat-card:hover { transform: translateY(-2px); }
+    summary { cursor: pointer; font-weight: 500; padding: 0.5rem 0; }
+    summary:hover { color: var(--bs-primary); }
+    details[open] summary { color: var(--bs-primary); margin-bottom: 0.5rem; }
+    .priority-tier { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: bold; }
+    .tier-1 { background: #fee; color: #991b1b; }
+    .tier-2 { background: #fef3c7; color: #92400e; }
+    .tier-3 { background: #dcfce7; color: #14532d; }
+    .tier-4 { background: #e0e7ff; color: #3730a3; }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row">
+    <nav id="sidebar" class="col-lg-3 col-md-4 d-none d-md-block">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="text-uppercase text-muted mb-0">Bug Findings</h6>
+        <button id="theme-toggle" class="btn btn-sm btn-outline-secondary" title="Toggle dark mode"><i class="bi bi-moon-stars"></i></button>
+      </div>
+      <div class="small fw-bold mb-3">Sertifikat Ecosystem</div>
+      <a href="index.html"><i class="bi bi-arrow-left"></i> Kembali ke index</a>
+      <hr>
+      <a href="#summary">📊 Ringkasan</a>
+      <a href="#filter">🔍 Filter &amp; Cara Baca</a>
+      <a href="#section-portal"><strong>A. Bug Portal HC (12)</strong></a>
+      <a href="#bug-P01" class="ps-4">P01 Path Traversal 🔴</a>
+      <a href="#bug-P02" class="ps-4">P02 MIME Validation 🟡</a>
+      <a href="#bug-P03" class="ps-4">P03 Cycle Detection 🟡</a>
+      <a href="#bug-P04" class="ps-4">P04 Timezone Mix 🟡</a>
+      <a href="#bug-P05" class="ps-4">P05 Hard Delete FK 🟡</a>
+      <a href="#bug-P06" class="ps-4">P06 Permanent + ValidUntil 🟡</a>
+      <a href="#bug-P07" class="ps-4">P07 Cert# Race ✅</a>
+      <a href="#bug-P08" class="ps-4">P08 CertPdf Authz ✅</a>
+      <a href="#bug-P09" class="ps-4">P09 Both FK Excl ✅</a>
+      <a href="#bug-P10" class="ps-4">P10 Null ValidUntil ✅</a>
+      <a href="#bug-P11" class="ps-4">P11 N+1 Query ✅</a>
+      <a href="#bug-P12" class="ps-4">P12 RBAC Section ✅</a>
+      <a href="#section-doc"><strong>B. Bug Dokumen (4)</strong></a>
+      <a href="#bug-D01" class="ps-4">D01 Mermaid Toggle 🔴</a>
+      <a href="#bug-D02" class="ps-4">D02 §17 vs §18 🟡</a>
+      <a href="#bug-D03" class="ps-4">D03 Favicon 404 🟢</a>
+      <a href="#bug-D04" class="ps-4">D04 Badge Emoji 🟢</a>
+      <a href="#priority"><strong>C. Action Priority</strong></a>
+    </nav>
+
+    <main class="col-lg-9 col-md-8">
+      <section id="header">
+        <h1>Bug Findings — Sertifikat Ecosystem</h1>
+        <p class="lead text-muted">Portal HC KPB — Audit hasil + dokumen bug</p>
+        <table class="table table-sm table-bordered w-auto">
+          <tbody>
+            <tr><th scope="row">Versi</th><td>v1.0</td></tr>
+            <tr><th scope="row">Tanggal Scan</th><td>2026-05-26</td></tr>
+            <tr><th scope="row">Scope</th><td>Bug di Portal HC codebase (12) + Bug di file dokumentasi sertifikat-ecosystem (4)</td></tr>
+            <tr><th scope="row">Companion</th><td><a href="index.html">index.html §9 (static audit ringkas)</a></td></tr>
+            <tr><th scope="row">Spec</th><td><code>docs/superpowers/specs/2026-05-26-sertifikat-ecosystem-doc-design.md</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <hr>
+
+      <section id="summary">
+        <h2><i class="bi bi-bar-chart-fill"></i> Ringkasan Statistik</h2>
+        <p>Total <strong>16 bug</strong>: 12 di codebase Portal HC + 4 di file dokumentasi sertifikat-ecosystem.</p>
+
+        <div class="row g-3 my-4">
+          <div class="col-md-3 col-6">
+            <div class="card stat-card border-danger">
+              <div class="card-body text-center">
+                <h2 class="text-danger">2</h2>
+                <small class="text-muted">🔴 HIGH (critical)</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card stat-card border-warning">
+              <div class="card-body text-center">
+                <h2 class="text-warning">6</h2>
+                <small class="text-muted">🟡 MED (important)</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card stat-card border-success">
+              <div class="card-body text-center">
+                <h2 class="text-success">8</h2>
+                <small class="text-muted">🟢 LOW / Verified-OK</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card stat-card border-primary">
+              <div class="card-body text-center">
+                <h2 class="text-primary">16</h2>
+                <small class="text-muted">Total Finding</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header bg-light"><strong>A. Bug Portal HC Codebase (12)</strong></div>
+              <div class="card-body">
+                <ul class="mb-0">
+                  <li>🔴 HIGH: 1 (path traversal upload)</li>
+                  <li>🟡 MED: 5 (MIME, cycle, timezone, hard delete, Permanent+ValidUntil)</li>
+                  <li>🟢 VERIFIED-OK: 6 (race condition, authz, FK exclusion, null-safety, N+1, RBAC)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header bg-light"><strong>B. Bug Dokumen (4)</strong></div>
+              <div class="card-body">
+                <ul class="mb-0">
+                  <li>🔴 HIGH: 1 (dark mode toggle break Mermaid)</li>
+                  <li>🟡 MED: 1 (inconsistency §17 vs §18C)</li>
+                  <li>🟢 LOW: 2 (favicon 404, badge emoji rendering)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr>
+
+      <section id="filter">
+        <h2><i class="bi bi-funnel-fill"></i> Cara Baca Bug Card</h2>
+        <p>Setiap bug punya struktur sama supaya konsisten dibaca:</p>
+        <ol>
+          <li><strong>Penjelasan Sederhana</strong> (kotak biru) — bahasa awam, tanpa istilah teknis. Untuk HC, admin, manager, atau siapa saja yang bukan developer.</li>
+          <li><strong>Detail Teknis</strong> — problem analysis untuk developer. Termasuk code snippet aktual.</li>
+          <li><strong>Cara Reproduksi</strong> — langkah simulasi atau pengamatan.</li>
+          <li><strong>Dampak</strong> — apa akibatnya kalau tidak di-fix (security, data, UX, compliance).</li>
+          <li><strong>Cara Fix</strong> — code snippet sebelum/sesudah + perintah verifikasi.</li>
+          <li><strong>Status Footer</strong> — Open / Mitigated / Verified-OK + Priority Tier + Estimasi effort + Tags.</li>
+        </ol>
+        <div class="alert alert-info">
+          <strong>Tier (urutan fix yang disarankan):</strong>
+          <span class="priority-tier tier-1">Tier 1</span> Security/data integrity wajib —
+          <span class="priority-tier tier-2">Tier 2</span> Correctness —
+          <span class="priority-tier tier-3">Tier 3</span> Gap+bug combine —
+          <span class="priority-tier tier-4">Tier 4</span> Polish / opsional.
+        </div>
+      </section>
+
+      <hr>
+
+      <section id="section-portal">
+        <h2><i class="bi bi-shield-exclamation"></i> A. Bug Portal HC Codebase</h2>
+        <p class="text-muted">12 finding dari static scan controller, helper, service per 2026-05-26.</p>
+
+        <!-- ============ P01 ============ -->
+        <div id="bug-P01" class="card bug-card bug-high">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P01</span> &nbsp; <span class="badge severity-high">🔴 HIGH</span> &nbsp; Path Traversal pada Upload Sertifikat</span>
+            <span class="path-line">Helpers/FileUploadHelper.cs:37</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Saat Admin/HC upload file sertifikat, sistem cuma cek <strong>extension nama file</strong> (boleh .pdf, .jpg, .png) — tapi <strong>tidak cek isi path di nama file</strong>. Penjahat yang tahu trick ini bisa kasih nama file aneh seperti <code>../../web.config.pdf</code> dan file tersimpan keluar dari folder yang seharusnya — masuk ke folder rahasia server (config, kode aplikasi). Bahaya untuk security.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>Function <code>SaveFileAsync</code> bangun <code>safeFileName</code> dengan template <code>{timestamp}_{guid8}_{file.FileName}</code>. Variable <code>file.FileName</code> diambil mentah dari client — tidak ada <code>Path.GetFileName()</code> untuk strip directory component (<code>../</code>, <code>..\</code>, atau path absolute).</p>
+
+<pre><code class="language-csharp">// Helpers/FileUploadHelper.cs:35-38 (kondisi sekarang)
+var uniqueId = Guid.NewGuid().ToString("N")[..8];
+var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{uniqueId}_{file.FileName}";
+//                                                                  ^^^^^^^^^^^^^
+//                                                                  TIDAK DI-SANITASI
+var filePath = Path.Combine(uploadDir, safeFileName);
+// Path.Combine resolve ".." — keluar dari uploadDir
+</code></pre>
+
+            <h6 class="mt-3">Cara Reproduksi</h6>
+            <div class="repro-steps">
+              <ol class="mb-0">
+                <li>Login sebagai Admin/HC, buka <code>/Admin/AddTraining</code>.</li>
+                <li>Pilih file PDF normal. Rename via developer tools (intercept multipart) atau pakai tool seperti Postman/curl — set FileName ke <code>../../../wwwroot/dangerous.pdf</code> (tetap berakhir .pdf supaya lolos validasi extension).</li>
+                <li>Submit. Cek folder <code>wwwroot/</code>: file muncul di lokasi yang seharusnya tidak boleh.</li>
+              </ol>
+            </div>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>Security HIGH:</strong> File attacker bisa overwrite asset web atau muncul di lokasi serve-able (e.g., bypass auth jika diserve langsung).</li>
+              <li><strong>Compliance:</strong> Audit OWASP Top 10 — A01 Broken Access Control / A04 Insecure Design.</li>
+              <li><strong>Data Integrity:</strong> File hasil upload sertifikat tidak tracked benar di <code>SertifikatUrl</code> jika path traversal — link broken atau leak ke folder lain.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+<pre><code class="language-csharp">// SEBELUM (line 35-38):
+var uniqueId = Guid.NewGuid().ToString("N")[..8];
+var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{uniqueId}_{file.FileName}";
+
+// SESUDAH (fix):
+var uniqueId = Guid.NewGuid().ToString("N")[..8];
+var originalName = Path.GetFileName(file.FileName);  // ← STRIP DIRECTORY COMPONENT
+var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{uniqueId}_{originalName}";
+</code></pre>
+              <p class="mb-0 mt-2"><strong>Verifikasi:</strong> Run test upload dengan FileName <code>../../test.pdf</code> — harus tersimpan sebagai <code>{ts}_{guid}_test.pdf</code> di folder <code>uploads/certificates</code> (tanpa <code>../</code>).</p>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-danger">Open</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-1">Tier 1</span></span>
+              <span><strong>Est. Effort:</strong> 5 min (1 line fix + test)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">security</span><span class="badge badge-tag">file-upload</span><span class="badge badge-tag">owasp-A01</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P02 ============ -->
+        <div id="bug-P02" class="card bug-card bug-med">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P02</span> &nbsp; <span class="badge severity-med">🟡 MED</span> &nbsp; Validasi MIME Type Hanya Extension-Only</span>
+            <span class="path-line">Helpers/FileUploadHelper.cs:12-24, TrainingAdminController.cs:206-215</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Sistem cuma cek <strong>nama file</strong> (".pdf", ".jpg") — bukan <strong>isi file sebenarnya</strong>. Mudah dibohongi: file virus <code>virus.exe</code> tinggal di-rename jadi <code>virus.pdf</code> dan lolos. File tersimpan di server (tidak langsung berbahaya kalau cuma nyimpen), tapi membuka pintu serangan kalau ada bagian sistem lain yang serve atau proses file ini.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>Validasi pakai <code>Path.GetExtension(file.FileName)</code>. Browser/sniffer tidak dipakai. Header <code>Content-Type</code> dari multipart juga tidak di-validate. Magic byte (PDF: <code>%PDF</code>, JPG: <code>FF D8 FF</code>, PNG: <code>89 50 4E 47</code>) tidak di-check.</p>
+
+<pre><code class="language-csharp">// Helpers/FileUploadHelper.cs:12-24
+public static (bool IsValid, string? Error) ValidateCertificateFile(IFormFile? file)
+{
+    if (file == null || file.Length == 0) return (true, null);
+    var ext = Path.GetExtension(file.FileName);  // hanya nama, bukan isi
+    if (!AssessmentConstants.FileValidation.AllowedCertificateExtensions.Contains(ext))
+        return (false, "Hanya file PDF, JPG, dan PNG yang diperbolehkan.");
+    if (file.Length > AssessmentConstants.FileValidation.MaxCertificateFileSizeBytes)
+        return (false, "Ukuran file maksimal 10MB.");
+    return (true, null);
+}
+</code></pre>
+
+            <h6 class="mt-3">Cara Reproduksi</h6>
+            <div class="repro-steps">
+              <ol class="mb-0">
+                <li>Siapkan file executable kecil (<code>test.exe</code>) atau script HTML berbahaya.</li>
+                <li>Rename ekstensi ke <code>.pdf</code>.</li>
+                <li>Upload via <code>/Admin/AddTraining</code>. Validasi lolos.</li>
+                <li>Cek file di folder <code>wwwroot/uploads/certificates/</code> — file masih executable/script, hanya nama menipu.</li>
+              </ol>
+            </div>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>XSS:</strong> Jika web server auto-detect content-type berdasar magic byte, attacker bisa upload HTML berbahaya dengan nama .pdf → tampil sebagai HTML.</li>
+              <li><strong>RCE chain:</strong> Jika ada feature lain yang process file (image resize, PDF parse), file fake bisa trigger vulnerability di parser.</li>
+              <li><strong>Storage abuse:</strong> Selain itu, attacker bisa upload file legal-sized tapi bukan tipe yang dimaksud — abuse storage budget.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+<pre><code class="language-csharp">// Tambah magic-byte check di ValidateCertificateFile:
+public static (bool IsValid, string? Error) ValidateCertificateFile(IFormFile? file)
+{
+    if (file == null || file.Length == 0) return (true, null);
+
+    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+    if (!AssessmentConstants.FileValidation.AllowedCertificateExtensions.Contains(ext))
+        return (false, "Hanya file PDF, JPG, dan PNG yang diperbolehkan.");
+
+    if (file.Length > AssessmentConstants.FileValidation.MaxCertificateFileSizeBytes)
+        return (false, "Ukuran file maksimal 10MB.");
+
+    // MAGIC BYTE CHECK
+    using var stream = file.OpenReadStream();
+    var header = new byte[8];
+    stream.Read(header, 0, 8);
+    stream.Position = 0; // reset untuk SaveFileAsync nanti
+
+    bool magicOk = ext switch
+    {
+        ".pdf" => header[0] == 0x25 &amp;&amp; header[1] == 0x50 &amp;&amp; header[2] == 0x44 &amp;&amp; header[3] == 0x46,  // %PDF
+        ".jpg" or ".jpeg" => header[0] == 0xFF &amp;&amp; header[1] == 0xD8 &amp;&amp; header[2] == 0xFF,
+        ".png" => header[0] == 0x89 &amp;&amp; header[1] == 0x50 &amp;&amp; header[2] == 0x4E &amp;&amp; header[3] == 0x47,
+        _ => false
+    };
+
+    if (!magicOk) return (false, "Isi file tidak cocok dengan ekstensi (magic byte mismatch).");
+    return (true, null);
+}
+</code></pre>
+              <p class="mb-0 mt-2"><strong>Alternatif:</strong> Pakai library <code>MimeDetective</code> via NuGet — lebih lengkap signature database.</p>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-1">Tier 1</span></span>
+              <span><strong>Est. Effort:</strong> 30 min (helper + unit test)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">security</span><span class="badge badge-tag">file-upload</span><span class="badge badge-tag">defense-depth</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P03 ============ -->
+        <div id="bug-P03" class="card bug-card bug-med">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P03</span> &nbsp; <span class="badge severity-med">🟡 MED</span> &nbsp; Cycle Detection Absent (Renewal Chain)</span>
+            <span class="path-line">CDPController.cs:3759-3794, TrainingAdminController.cs:253-265</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Sertifikat A bisa "diperbarui" oleh sertifikat B (renewal). Sistem cek "B tidak boleh dipakai 2x sebagai renewer" — bagus. Tapi sistem <strong>tidak cek loop</strong>: kalau A renewal B, dan B renewal A, dashboard renewal jadi bingung — kedua sertifikat dianggap sudah di-renew, hilang dari daftar yang butuh perpanjangan.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>Validator <code>TrainingAdminController.cs:253-265</code> cek <code>srcAlreadyRenewed</code> via <code>AnyAsync()</code> — mencegah double-renewal source. Tapi tidak cek graph walk untuk cycle. Union-Find di <code>CertificationManagement</code> menggabungkan semua "renewed IDs" ke HashSet → cycle members otomatis masuk set "renewed", hilang dari outstanding.</p>
+
+<pre><code class="language-csharp">// TrainingAdminController.cs:253-265 — yang ADA:
+if (model.RenewsTrainingId.HasValue)
+{
+    var srcAlreadyRenewed = await _context.TrainingRecords
+        .AnyAsync(t => t.RenewsTrainingId == model.RenewsTrainingId)
+        || await _context.AssessmentSessions
+            .AnyAsync(a => a.RenewsTrainingId == model.RenewsTrainingId &amp;&amp; a.IsPassed == true);
+    // ... reject jika sudah pernah jadi source renewal
+}
+
+// Yang BELUM ADA: cycle detection. Tidak ada graph walk.
+// Skenario: TR#1.RenewsTrainingId = 2, TR#2.RenewsTrainingId = 1
+// → keduanya "renewed", hilang dari Renewal dashboard
+</code></pre>
+
+            <h6 class="mt-3">Cara Reproduksi</h6>
+            <div class="repro-steps">
+              <ol class="mb-0">
+                <li>Direct SQL atau seed: <code>UPDATE TrainingRecords SET RenewsTrainingId = 2 WHERE Id = 1;</code> dan <code>UPDATE TrainingRecords SET RenewsTrainingId = 1 WHERE Id = 2;</code></li>
+                <li>Buka <code>/Admin/RenewalCertificate</code>. Sertifikat 1 dan 2 tidak muncul meski expired.</li>
+              </ol>
+              <p class="small text-muted mb-0 mt-2">Catatan: validator app-level mungkin cegah ini saat insert via form, tapi cycle bisa terjadi via Edit (ganti FK) atau direct SQL seed.</p>
+            </div>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>Data integrity:</strong> Dashboard renewal salah — sertifikat expired tidak surface.</li>
+              <li><strong>Audit/compliance:</strong> Mismatch antara expired-data dan outstanding renewal count.</li>
+              <li><strong>Visual chain (history view):</strong> Jika di-render sebagai timeline, infinite loop atau confusion.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+<pre><code class="language-csharp">// Pilihan 1: DAG enforcement saat insert renewal
+// (RenewsTrainingId target.Tanggal HARUS < new.Tanggal)
+if (model.RenewsTrainingId.HasValue)
+{
+    var src = await _context.TrainingRecords.FindAsync(model.RenewsTrainingId.Value);
+    if (src != null &amp;&amp; src.Tanggal >= model.Tanggal)
+    {
+        ModelState.AddModelError("",
+            "Tanggal renewal harus lebih besar dari tanggal sertifikat yang di-renew.");
+    }
+}
+
+// Pilihan 2: Cycle detection saat batch lookup (CDPController)
+// Walk forward dari setiap node, jika balik ke start → cycle → flag.
+// (Lebih complex, recommended pilihan 1 dulu)
+</code></pre>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-2">Tier 2</span></span>
+              <span><strong>Est. Effort:</strong> 1-2 jam (pilihan 1) atau 4 jam (pilihan 2)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">data-integrity</span><span class="badge badge-tag">renewal-chain</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P04 ============ -->
+        <div id="bug-P04" class="card bug-card bug-med">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P04</span> &nbsp; <span class="badge severity-med">🟡 MED</span> &nbsp; DateTime.Now vs DateTime.UtcNow Mix (Timezone Drift)</span>
+            <span class="path-line">Multi-file (34× Now, 92× UtcNow)</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Indonesia ada di timezone <strong>WIB (+7 dari UTC)</strong>. Kode kadang pakai jam Indonesia (<code>DateTime.Now</code>), kadang pakai jam dunia (<code>DateTime.UtcNow</code>) — campur aduk. Akibatnya: sertifikat yang expired tanggal 26 Mei 23:59 WIB bisa salah dihitung karena selisih 7 jam saat di-bandingkan. Bisa expired sehari lebih awal atau lebih lambat dari yang seharusnya.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>Function <code>DeriveCertificateStatus</code> pakai <code>DateTime.UtcNow</code>. Tapi:</p>
+            <ul>
+              <li>34 occurrence <code>DateTime.Now</code> di Controllers (CMP 18×, CDP 8×, etc.)</li>
+              <li>92 occurrence <code>DateTime.UtcNow</code></li>
+              <li>Input form user kemungkinan WIB (browser local time)</li>
+              <li>DB store sebagai <code>datetime2</code> tanpa timezone info</li>
+            </ul>
+
+<pre><code class="language-csharp">// Models/CertificationManagementViewModel.cs:53-63
+public static CertificateStatus DeriveCertificateStatus(DateTime? validUntil, string? certificateType)
+{
+    if (certificateType == "Permanent") return Permanent;
+    if (validUntil == null) return Expired;
+    var days = (validUntil.Value - DateTime.UtcNow).Days;  // ← UtcNow
+    if (days &lt; 0) return Expired;
+    if (days &lt;= 30) return AkanExpired;
+    return Aktif;
+}
+
+// Tapi di CMPController.cs (18 tempat) pakai DateTime.Now (local WIB)
+// Mismatch arithmetic saat compare ValidUntil yang asal-usul mixed.
+</code></pre>
+
+            <h6 class="mt-3">Cara Reproduksi</h6>
+            <div class="repro-steps">
+              <ol class="mb-0">
+                <li>Input ValidUntil = 2026-05-26 (assume WIB) via form.</li>
+                <li>Tanggal hari ini 2026-05-26, jam 18:00 WIB = 11:00 UTC.</li>
+                <li>Sertifikat dianggap "Aktif 0 hari ahead" atau "AkanExpired" — bergantung representasi DateTime.Kind saat insert.</li>
+                <li>Variasi: pakai SQL Server datetime2 default Kind=Unspecified, hasil <code>.Days</code> arithmetic kurang deterministic.</li>
+              </ol>
+            </div>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>UX:</strong> Sertifikat marked expired sehari lebih awal/lambat — user confuse.</li>
+              <li><strong>Notification:</strong> Reminder dikirim 7 jam off — bisa hari yang salah.</li>
+              <li><strong>Audit:</strong> Audit log timestamp mixed format — analisis kronologis sulit.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+              <p>Standardisasi project-wide (refactor multi-file, lakukan bertahap):</p>
+<pre><code class="language-csharp">// 1. Konvensi: SEMUA timestamp di-store sebagai UTC.
+// 2. SEMUA comparison di-derivasi pakai DateTime.UtcNow.
+// 3. Konversi user input (WIB) → UTC di controller boundary:
+var validUntilUtc = TimeZoneInfo.ConvertTimeToUtc(
+    model.ValidUntilLocal,
+    TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));  // WIB
+
+// 4. Display ke user: convert balik UTC → WIB di view.
+// 5. Atau alternative SIMPLE: pakai DateOnly (hilangkan time component) untuk ValidUntil.
+public DateOnly? ValidUntil { get; set; }  // tanpa timezone issue
+</code></pre>
+              <p class="mb-0 mt-2"><strong>Pilihan paling simple:</strong> Migrate ValidUntil ke <code>DateOnly</code>. Kebanyakan use case sertifikat tidak butuh time-of-day precision.</p>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-warning text-dark">Open — multi-file</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-2">Tier 2</span></span>
+              <span><strong>Est. Effort:</strong> 1-2 hari (DateOnly migration termasuk EF migration)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">timezone</span><span class="badge badge-tag">consistency</span><span class="badge badge-tag">refactor</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P05 ============ -->
+        <div id="bug-P05" class="card bug-card bug-med">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P05</span> &nbsp; <span class="badge severity-med">🟡 MED</span> &nbsp; Hard Delete tanpa Handle DbUpdateException (FK Violation)</span>
+            <span class="path-line">TrainingAdminController.cs:539, :744; AssessmentAdminController.cs:2136</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Sertifikat lama bisa dipakai sebagai "sumber" untuk renewal sertifikat baru (link: "Sertifikat B adalah perpanjangan dari Sertifikat A"). Kalau Admin coba <strong>hapus Sertifikat A</strong> sementara Sertifikat B masih nge-link ke A, sistem error 500 (database menolak karena ada referensi). User lihat halaman error tanpa penjelasan jelas.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>Migration <code>20260319001833_AddRenewalChainFKs</code> tambah 4 FK constraint cross-table. Default cascade = <code>NoAction</code> — delete throws <code>DbUpdateException</code> jika row di-reference oleh FK. Delete handler tidak <code>try/catch</code> exception, jadi unhandled exception → 500.</p>
+
+<pre><code class="language-csharp">// TrainingAdminController.cs:539 (kondisi sekarang)
+_context.TrainingRecords.Remove(record);
+await _context.SaveChangesAsync();  // throw DbUpdateException jika ada
+                                     // TR/AS lain yang RenewsTrainingId = record.Id
+return RedirectToAction("Index");
+</code></pre>
+
+            <h6 class="mt-3">Cara Reproduksi</h6>
+            <div class="repro-steps">
+              <ol class="mb-0">
+                <li>Buat 2 TrainingRecord: A (basic) dan B (RenewsTrainingId = A.Id).</li>
+                <li>Buka <code>/Admin/ManageAssessment</code>, tab Training. Klik Delete pada Training A.</li>
+                <li>Server return 500 error page. Database tidak hapus A (rollback). Tapi user tidak tahu kenapa.</li>
+              </ol>
+            </div>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>UX:</strong> Error 500 tanpa pesan jelas — admin bingung kenapa delete gagal.</li>
+              <li><strong>Operasional:</strong> Admin harus manual cari/hapus referencing rows dulu sebelum hapus source. Tidak ada UI hint.</li>
+              <li><strong>Audit log:</strong> Failed delete tidak tercatat sebagai "FK conflict" — hanya generic exception.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+<pre><code class="language-csharp">// SESUDAH (defensive + user-friendly):
+try
+{
+    // Pre-check referencing rows
+    var referencingTr = await _context.TrainingRecords
+        .CountAsync(t => t.RenewsTrainingId == record.Id);
+    var referencingAs = await _context.AssessmentSessions
+        .CountAsync(a => a.RenewsTrainingId == record.Id);
+
+    if (referencingTr + referencingAs > 0)
+    {
+        TempData["Error"] = $"Tidak bisa hapus: {referencingTr + referencingAs} sertifikat lain "
+                          + "menggunakan record ini sebagai sumber renewal. "
+                          + "Hapus atau update sertifikat pemakai terlebih dulu.";
+        return RedirectToAction("Index");
+    }
+
+    _context.TrainingRecords.Remove(record);
+    await _context.SaveChangesAsync();
+    TempData["Success"] = "Training record dihapus.";
+}
+catch (DbUpdateException ex)
+{
+    _logger.LogWarning(ex, "Delete failed for TrainingRecord {Id}", record.Id);
+    TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
+}
+return RedirectToAction("Index");
+</code></pre>
+              <p class="mb-0 mt-2"><strong>Long-term:</strong> Tambah soft delete (<code>IsDeleted</code> column) — preserve renewal chain history, audit trail.</p>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-1">Tier 1</span></span>
+              <span><strong>Est. Effort:</strong> 1 jam (3 endpoint × try-catch pattern)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">error-handling</span><span class="badge badge-tag">ux</span><span class="badge badge-tag">data-integrity</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P06 ============ -->
+        <div id="bug-P06" class="card bug-card bug-med">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P06</span> &nbsp; <span class="badge severity-med">🟡 MED</span> &nbsp; Permanent + ValidUntil Filled Tidak Divalidasi</span>
+            <span class="path-line">TrainingAdminController.cs (Add/Edit forms)</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Ada 2 tipe sertifikat: <strong>Permanent</strong> (tidak pernah expired) atau <strong>Time-Bound</strong> (ada tanggal expired). Saat Admin input sertifikat baru, sistem tidak cegah kombinasi aneh: tipe "Permanent" + isi tanggal expired. Data jadi kontradiktif. Sistem display sebagai Permanent (abaikan tanggal), tapi kalau nanti tipe diganti ke "Annual", tanggal expired lama yang sudah salah ikut ke-bawa.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>Validator di <code>AddTraining</code> / <code>EditTraining</code> POST tidak cek kombinasi <code>CertificateType == "Permanent" &amp;&amp; ValidUntil != null</code>. Function <code>DeriveCertificateStatus</code> handle case ini dengan return <code>Permanent</code> (abaikan ValidUntil) — tapi data raw di DB tetap kontradiktif.</p>
+
+            <h6 class="mt-3">Cara Reproduksi</h6>
+            <div class="repro-steps">
+              <ol class="mb-0">
+                <li>Buka <code>/Admin/AddTraining</code>.</li>
+                <li>Pilih <code>CertificateType = "Permanent"</code>.</li>
+                <li>Isi <code>ValidUntil = 2030-01-01</code>.</li>
+                <li>Submit. Sukses tersimpan.</li>
+                <li>Buka detail: status tampil "Permanent". Tanggal 2030 tersimpan di DB tapi tidak dipakai.</li>
+                <li>Edit, ganti type ke "Annual". Status sekarang derive dari ValidUntil = 2030 → "Aktif" (4 tahun ahead). Tidak masalah di sini, tapi tanggal asalnya invalid input.</li>
+              </ol>
+            </div>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>Data integrity:</strong> Data invalid tersimpan, tidak prevent di boundary.</li>
+              <li><strong>Future bug surface:</strong> Logic baru yang assume "Permanent = ValidUntil null" akan miss case ini.</li>
+              <li><strong>Reporting:</strong> Query ad-hoc <code>WHERE CertificateType = 'Permanent' AND ValidUntil IS NOT NULL</code> bisa surface inconsistency — surprise saat audit.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+<pre><code class="language-csharp">// Validator di TrainingAdminController POST AddTraining/EditTraining:
+if (model.CertificateType == "Permanent" &amp;&amp; model.ValidUntil != null)
+{
+    // Pilihan 1: REJECT
+    ModelState.AddModelError("ValidUntil",
+        "Sertifikat Permanent tidak boleh punya tanggal expired.");
+
+    // Pilihan 2: AUTO-NULL (silent fix)
+    // model.ValidUntil = null;
+}
+</code></pre>
+              <p class="mb-0 mt-2">Pilih sesuai UX preference. Reject = strict (user re-input). Auto-null = forgiving (silent normalize). Reject lebih recommended.</p>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-2">Tier 2</span></span>
+              <span><strong>Est. Effort:</strong> 15 min (2 endpoint × 3 line)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">validation</span><span class="badge badge-tag">data-integrity</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P07 (verified OK) ============ -->
+        <div id="bug-P07" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P07</span> &nbsp; <span class="badge severity-low">🟢 VERIFIED-OK</span> &nbsp; Cert Number Generation Race Condition</span>
+            <span class="path-line">Helpers/CertNumberHelper.cs, Services/GradingService.cs:302, :518</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Kalau 2 user submit ujian bersamaan, sistem perlu kasih NomorSertifikat unik (tidak boleh kembar). Awalnya kekhawatiran: kedua proses baca "nomor terakhir = 42" → keduanya simpen sebagai "43" → duplikat. Tapi sebenarnya <strong>aman</strong>: database punya unique index, dan kalau collision terjadi sistem otomatis retry sampai unik. <span class="badge bg-success">Verified OK — sudah ditangani.</span></p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis (verifikasi)</h6>
+            <p>Mekanisme race-safe:</p>
+            <ol>
+              <li>DB punya unique index <code>IX_AssessmentSessions_NomorSertifikat</code> (verified dari <code>CertNumberHelper.IsDuplicateKeyException</code>:39).</li>
+              <li><code>GradingService.cs:302</code> dan <code>:518</code> wrap cert generation dalam try-catch:</li>
+            </ol>
+
+<pre><code class="language-csharp">// Services/GradingService.cs:302+ (verified OK pattern)
+int maxCertAttempts = 5;
+int certAttempts = 0;
+while (certAttempts &lt; maxCertAttempts)
+{
+    try
+    {
+        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+        await _context.AssessmentSessions
+            .Where(s => s.Id == sessionId &amp;&amp; s.NomorSertifikat == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(r => r.NomorSertifikat,
+                CertNumberHelper.Build(nextSeq, certNow)));
+        break;  // success
+    }
+    catch (DbUpdateException ex) when (
+        certAttempts &lt; maxCertAttempts
+        &amp;&amp; CertNumberHelper.IsDuplicateKeyException(ex))
+    {
+        certAttempts++;  // retry with new SEQ
+    }
+}
+</code></pre>
+
+            <h6 class="mt-3">Catatan</h6>
+            <ul>
+              <li>SEQ reset per <strong>tahun</strong> (NomorSertifikat <code>EndsWith($"/{year}")</code> di <code>GetNextSeqAsync:26</code>), bukan per bulan.</li>
+              <li>Format aktual: <code>KPB/{SEQ:D3}/{ROMAN-MONTH}/{YEAR}</code> — contoh <code>KPB/043/V/2026</code>.</li>
+              <li>5 retry attempts. Probability collision &gt; 5x dalam concurrent burst = sangat kecil (kombinasi dengan random GUID).</li>
+            </ul>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-success">Verified — DB unique + retry</span></span>
+              <span><strong>Priority:</strong> —</span>
+              <span><strong>Est. Effort:</strong> No action</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">concurrency</span><span class="badge badge-tag">verified</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P08 (verified OK) ============ -->
+        <div id="bug-P08" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P08</span> &nbsp; <span class="badge severity-low">🟢 VERIFIED-OK</span> &nbsp; CertificatePdf Authorization Guard</span>
+            <span class="path-line">CMPController.cs:1898-1935</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Endpoint download PDF sertifikat: <code>/CMP/CertificatePdf/123</code>. Khawatir: orang lain bisa download sertifikat orang lain dengan tebak-tebak nomor ID. <strong>Aman</strong> — sistem cek: hanya pemilik sertifikat itu sendiri, atau role Admin/HC, yang bisa download. Selain itu di-tolak.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis (verifikasi)</h6>
+<pre><code class="language-csharp">// CMPController.cs:1898-1935 — guard chain lengkap
+public async Task&lt;IActionResult&gt; CertificatePdf(int id)
+{
+    var assessment = await _context.AssessmentSessions.Include(a => a.User)
+        .FirstOrDefaultAsync(a => a.Id == id);
+    if (assessment == null) return NotFound();
+
+    var user = await _userManager.GetUserAsync(User);
+    if (user == null) return Challenge();
+
+    var userRoles = await _userManager.GetRolesAsync(user);
+    bool isAuthorized = assessment.UserId == user.Id     // owner
+                     || userRoles.Contains("Admin")       // Admin
+                     || userRoles.Contains("HC");          // HC
+    if (!isAuthorized) return Forbid();
+
+    // Plus: status guard (Completed/PendingGrading), IsPassed, GenerateCertificate
+    // SUB-01 D-06, D-07 sequence ada di line 1915-1935
+}
+</code></pre>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-success">Verified OK</span></span>
+              <span><strong>Priority:</strong> —</span>
+              <span><strong>Est. Effort:</strong> No action</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">security</span><span class="badge badge-tag">authz</span><span class="badge badge-tag">verified</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P09 (verified OK) ============ -->
+        <div id="bug-P09" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P09</span> &nbsp; <span class="badge severity-low">🟢 VERIFIED-OK</span> &nbsp; Renewal FK Mutual Exclusion</span>
+            <span class="path-line">TrainingAdminController.cs:248-251</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Saat tambah sertifikat baru sebagai "renewal" dari yang lama, ada 2 kolom: link ke Training lama (<code>RenewsTrainingId</code>) atau link ke Assessment lama (<code>RenewsSessionId</code>). Kekhawatiran: user isi keduanya = ambigu. <strong>Aman</strong> — validator menolak input dengan 2 FK terisi.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis (verifikasi)</h6>
+<pre><code class="language-csharp">// TrainingAdminController.cs:248
+if (model.RenewsTrainingId.HasValue &amp;&amp; model.RenewsSessionId.HasValue)
+{
+    ModelState.AddModelError("",
+        "Renewal FK tidak valid: hanya boleh mengisi salah satu dari "
+      + "RenewsTrainingId atau RenewsSessionId.");
+}
+</code></pre>
+
+            <h6 class="mt-3">Catatan</h6>
+            <p>Validator app-level. Tidak ada CHECK constraint di DB level — jika ada path lain yang bypass validator (direct SQL atau seed bypass aplikasi), invalid state bisa tertinggal. <strong>Recommended improvement:</strong> tambah CHECK constraint via migration untuk strict enforcement.</p>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-success">Mitigated (app-level)</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-4">Tier 4 (DB-level CHECK opsional)</span></span>
+              <span><strong>Est. Effort:</strong> 15 min (migration CHECK)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">validation</span><span class="badge badge-tag">verified</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P10 (verified OK) ============ -->
+        <div id="bug-P10" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P10</span> &nbsp; <span class="badge severity-low">🟢 VERIFIED-OK</span> &nbsp; ValidUntil.Value Null-Safety</span>
+            <span class="path-line">HomeController.cs, AssessmentAdminController.cs, CMPController.cs (9 occurrence)</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Kolom <code>ValidUntil</code> di database boleh kosong (null). Kekhawatiran: kode akses <code>.Value</code> dari null = crash NullReferenceException. <strong>Aman</strong> — semua tempat yang akses <code>.Value</code> sudah di-guard dengan check <code>.HasValue</code> dulu atau berada di code path yang menjamin tidak null.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis (verifikasi)</h6>
+<pre><code class="language-csharp">// HomeController.cs:103 — pola guard yang benar:
+&amp;&amp; t.ValidUntil.HasValue &amp;&amp; t.ValidUntil.Value &lt; today)
+//  ^^^^^^^^^^^^^^^^^^^^^^^ guard
+
+// HomeController.cs:197 (! shortcut):
+trainingCerts.Count(t => t.ValidUntil!.Value &gt;= today &amp;&amp; ...
+// "!" di sini OK karena trainingCerts di-filter sebelumnya
+// hanya yang punya ValidUntil non-null masuk ke list
+
+// CMPController.cs:2086 — di PDF generation:
+.Text($"Berlaku Hingga: {assessment.ValidUntil.Value.ToString(...)}")
+// di-guard oleh: GenerateCertificate=true + IsPassed=true (line 1929, 1931)
+// SubmitExam selalu set NomorSertifikat + ValidUntil bersamaan
+</code></pre>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-success">Verified OK</span></span>
+              <span><strong>Priority:</strong> —</span>
+              <span><strong>Est. Effort:</strong> No action</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">null-safety</span><span class="badge badge-tag">verified</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P11 (verified OK) ============ -->
+        <div id="bug-P11" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P11</span> &nbsp; <span class="badge severity-low">🟢 NOT-FOUND</span> &nbsp; N+1 Query di Renewal Dashboard</span>
+            <span class="path-line">CDPController.cs:3759-3794</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Halaman CertificationManagement load banyak data sertifikat. Khawatir: untuk tiap baris, sistem query database berkali-kali (N+1 problem = lambat). <strong>Aman</strong> — sistem pakai 4 query batch saja (terlepas berapa baris) untuk lookup renewal. Bukan N+1 problem. Perf hotspot lain ada (lihat §16 index.html), tapi bukan N+1.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis (verifikasi)</h6>
+            <p>Renewal Union-Find pakai 4 batch query (lookup ID sets), bukan per-row loop. Worker info diharapkan via <code>.Include()</code> eager loading.</p>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-success">Not Found — refactor cache opsional</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-4">Tier 4 (perf cache, gap §10)</span></span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">performance</span><span class="badge badge-tag">verified</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ P12 (verified OK) ============ -->
+        <div id="bug-P12" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">P12</span> &nbsp; <span class="badge severity-low">🟢 NOT-FOUND</span> &nbsp; RBAC Section Scoping Inconsistency</span>
+            <span class="path-line">CMPController, CDPController, WorkerController, AdminController</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Level 4 (Section Head, Sr Supervisor) hanya boleh lihat data section sendiri (bukan section lain). Khawatir: ada endpoint yang miss aturan ini. <strong>Aman</strong> — pattern scoping konsisten di 4 controller utama yang sentuh sertifikat. Tetap rekomendasi: tambah test integrasi untuk regression future.</p>
+            </div>
+
+            <h6 class="mt-3">Catatan</h6>
+            <p>Audit lebih dalam disarankan untuk endpoint AJAX (FilterRenewalCertificate, BudgetTrainingBulkUpdate). Tambah integration test untuk validate RBAC enforcement programmatic.</p>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-success">Not Found (top-level scope)</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-4">Tier 4 (test coverage gap)</span></span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">rbac</span><span class="badge badge-tag">verified</span></span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <hr>
+
+      <section id="section-doc">
+        <h2><i class="bi bi-file-earmark-text"></i> B. Bug di File Dokumentasi</h2>
+        <p class="text-muted">4 finding hasil verifikasi browser <code>index.html</code> per 2026-05-26.</p>
+
+        <!-- ============ D01 ============ -->
+        <div id="bug-D01" class="card bug-card bug-high">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">D01</span> &nbsp; <span class="badge severity-high">🔴 HIGH</span> &nbsp; Dark Mode Toggle Merusak Semua Mermaid Diagram</span>
+            <span class="path-line">docs/sertifikat-ecosystem/index.html (theme toggle JS)</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Tombol ganti dark mode di file dokumentasi <code>index.html</code> rusak: setelah diklik, <strong>semua diagram berubah jadi gambar bom dengan tulisan "Syntax error in text"</strong>. Toggle balik ke light mode juga tidak pulih. Hanya refresh halaman (F5) yang bisa kembalikan diagram. Bug di file dokumentasi sendiri, bukan di webapp Portal HC.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>JS theme toggle re-render Mermaid dengan capture <code>data-original</code> dari <code>el.textContent</code>. Tapi capture dilakukan <strong>setelah</strong> Mermaid initial run sudah replace innerHTML dengan SVG. Akibatnya yang disimpan sebagai "original" adalah SVG markup, bukan syntax Mermaid asli. Re-render dengan SVG-as-source → parser fail.</p>
+
+<pre><code class="language-javascript">// docs/sertifikat-ecosystem/index.html — JS yang buggy (sekitar line 1334)
+themeToggle.addEventListener('click', () => {
+  const current = html.getAttribute('data-bs-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-bs-theme', next);
+
+  document.querySelectorAll('.mermaid').forEach((el) => {
+    const code = el.getAttribute('data-original') || el.textContent;
+    //                                                ^^^^^^^^^^^^^^
+    //  PERTAMA KALI: textContent = SVG markup (Mermaid sudah render)
+    //  Yang disimpan sebagai data-original = SVG, bukan syntax asli
+    if (!el.getAttribute('data-original')) el.setAttribute('data-original', code);
+    el.innerHTML = code;  // ← Mermaid coba parse SVG sebagai syntax → error
+    el.removeAttribute('data-processed');
+  });
+  mermaid.initialize({ ... theme: next === 'dark' ? 'dark' : 'default' ... });
+  mermaid.run();
+});
+</code></pre>
+
+            <h6 class="mt-3">Cara Reproduksi</h6>
+            <div class="repro-steps">
+              <ol class="mb-0">
+                <li>Buka <code>file://.../docs/sertifikat-ecosystem/index.html</code> atau via HTTP server.</li>
+                <li>Klik tombol bulan/dark mode di pojok kanan atas sidebar.</li>
+                <li>Scroll ke section §3 atau §4 — semua Mermaid diagram tampil gambar bom merah "Syntax error in text — mermaid version 10.6.1".</li>
+                <li>Konsol: <code>Uncaught (in promise) #&lt;Object&gt; at fPt (mermaid.min.js:83:3761)</code></li>
+                <li>Klik toggle balik ke light — tetap broken. Hanya F5 reload yang fix.</li>
+              </ol>
+            </div>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>UX:</strong> Pembaca yang pakai dark mode (developer preference) tidak bisa lihat diagram apapun.</li>
+              <li><strong>Kepercayaan:</strong> Bug yang obvious mengurangi kredibilitas dokumen.</li>
+              <li><strong>Distribusi:</strong> Tidak bisa share dokumen yang functional sampai fix.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+<pre><code class="language-html">&lt;script&gt;
+  // STEP 1: Capture original mermaid syntax SEBELUM Mermaid render
+  document.querySelectorAll('.mermaid').forEach(el => {
+    el.setAttribute('data-original', el.textContent.trim());
+  });
+
+  // STEP 2: Sekarang Mermaid initial render
+  mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+  hljs.highlightAll();
+
+  // STEP 3: Theme toggle pakai data-original yang sudah benar
+  themeToggle.addEventListener('click', () => {
+    const current = html.getAttribute('data-bs-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-bs-theme', next);
+
+    document.querySelectorAll('.mermaid').forEach((el) => {
+      const code = el.getAttribute('data-original');  // sudah benar (syntax asli)
+      el.innerHTML = code;
+      el.removeAttribute('data-processed');
+    });
+
+    mermaid.initialize({ startOnLoad: false, theme: next === 'dark' ? 'dark' : 'default',
+                         securityLevel: 'loose' });
+    mermaid.run();
+  });
+&lt;/script&gt;
+</code></pre>
+              <p class="mb-0 mt-2"><strong>Verifikasi:</strong> Toggle dark→light→dark beberapa kali. Diagram tetap render benar di setiap state.</p>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-danger">Open</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-2">Tier 2 (doc usability)</span></span>
+              <span><strong>Est. Effort:</strong> 5 min (3-line reorder)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">doc</span><span class="badge badge-tag">mermaid</span><span class="badge badge-tag">ux</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ D02 ============ -->
+        <div id="bug-D02" class="card bug-card bug-med">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">D02</span> &nbsp; <span class="badge severity-med">🟡 MED</span> &nbsp; Inconsistency §17 vs §18C — Notification Polling Claim</span>
+            <span class="path-line">docs/sertifikat-ecosystem/index.html §17 row UnreadCount + §18C konstanta</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Di dokumen, tabel <strong>§17</strong> bilang endpoint <code>/Notification/UnreadCount</code> dipakai untuk "polling" (cek otomatis tiap beberapa detik). Tapi di section <strong>§18C konstanta</strong>, ditulis "bukan polling interval, user-initiated". <strong>Salah satu salah</strong> — pembaca confuse mana yang benar. Hasil verifikasi kode aktual: notification fetched saat user klik bell icon (user-triggered), bukan polling interval.</p>
+            </div>
+
+            <h6 class="mt-3">Detail Teknis</h6>
+            <p>Reading <code>Views/Shared/Components/NotificationBell/Default.cshtml</code> tidak menemukan <code>setInterval</code> atau polling loop. Fetch hanya saat:</p>
+            <ul>
+              <li>Klik bell icon → trigger fetch <code>/Notification/List</code></li>
+              <li>Klik mark-as-read / dismiss → POST endpoint terkait</li>
+            </ul>
+            <p>Source §17 row keliru: "Badge count bell icon (polling)" — sebenarnya tidak polling.</p>
+
+            <h6 class="mt-3">Dampak</h6>
+            <ul>
+              <li><strong>Akurasi dokumentasi:</strong> Developer baca dokumen percaya ada polling → salah implementasi atau salah expect behavior.</li>
+              <li><strong>Mismatch internal:</strong> 2 section dokumen kontradiktif = quality issue.</li>
+            </ul>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+              <p>Edit <code>index.html</code> §17 tabel row UnreadCount:</p>
+<pre><code class="language-html">&lt;!-- SEBELUM --&gt;
+&lt;tr&gt;&lt;td&gt;GET&lt;/td&gt;&lt;td&gt;&lt;code&gt;/Notification/UnreadCount&lt;/code&gt;&lt;/td&gt;
+    &lt;td&gt;...&lt;/td&gt;&lt;td&gt;JSON&lt;/td&gt;
+    &lt;td&gt;Badge count bell icon (polling)&lt;/td&gt;&lt;/tr&gt;
+
+&lt;!-- SESUDAH --&gt;
+&lt;tr&gt;&lt;td&gt;GET&lt;/td&gt;&lt;td&gt;&lt;code&gt;/Notification/UnreadCount&lt;/code&gt;&lt;/td&gt;
+    &lt;td&gt;...&lt;/td&gt;&lt;td&gt;JSON&lt;/td&gt;
+    &lt;td&gt;Badge count bell icon (user-triggered, no polling)&lt;/td&gt;&lt;/tr&gt;
+</code></pre>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-3">Tier 3 (doc update)</span></span>
+              <span><strong>Est. Effort:</strong> 1 min</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">doc</span><span class="badge badge-tag">consistency</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ D03 ============ -->
+        <div id="bug-D03" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">D03</span> &nbsp; <span class="badge severity-low">🟢 LOW</span> &nbsp; Favicon.ico 404</span>
+            <span class="path-line">docs/sertifikat-ecosystem/index.html</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Tab browser yang buka dokumen tidak punya icon kecil khas (favicon). Console browser nunjukin error 404 untuk <code>favicon.ico</code>. Murni kosmetik — tidak mengganggu fungsi apapun.</p>
+            </div>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+              <p>Tambah inline data URI favicon di <code>&lt;head&gt;</code>:</p>
+<pre><code class="language-html">&lt;link rel="icon" type="image/svg+xml" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;🔒&lt;/text&gt;&lt;/svg&gt;"&gt;
+</code></pre>
+              <p class="mb-0 mt-2">Atau abaikan saja (low priority cosmetic).</p>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-secondary">Won't-Fix-Default</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-4">Tier 4</span></span>
+              <span><strong>Est. Effort:</strong> 1 min</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">doc</span><span class="badge badge-tag">cosmetic</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ D04 ============ -->
+        <div id="bug-D04" class="card bug-card bug-low">
+          <div class="card-header d-flex justify-content-between flex-wrap">
+            <span><span class="bug-id">D04</span> &nbsp; <span class="badge severity-low">🟢 LOW</span> &nbsp; Badge Emoji "⚠" Rendering di Windows Font</span>
+            <span class="path-line">docs/sertifikat-ecosystem/index.html §6 RBAC matrix</span>
+          </div>
+          <div class="card-body">
+
+            <div class="simple-explain">
+              <h6>💡 Penjelasan Sederhana</h6>
+              <p class="mb-0">Di tabel RBAC §6, badge "⚠ section" / "⚠ dual-mode" pakai simbol segitiga peringatan ⚠. Di Windows dengan font default, simbol ini tampil mirip huruf "A" geometric (tanpa color emoji). Masih kebaca, tapi kurang distinct dari badge lain yang isinya teks "Aktif". Kosmetik.</p>
+            </div>
+
+            <h6 class="mt-3">Cara Fix</h6>
+            <div class="fix-block">
+              <p>Pilihan 1: Ganti ke Bootstrap Icon (lebih konsisten cross-platform):</p>
+<pre><code class="language-html">&lt;!-- SEBELUM --&gt; ⚠ section
+&lt;!-- SESUDAH --&gt; &lt;i class="bi bi-exclamation-triangle-fill"&gt;&lt;/i&gt; section
+</code></pre>
+              <p>Pilihan 2: Hapus emoji, pakai text saja:</p>
+<pre><code class="language-html">&lt;!-- SESUDAH --&gt; Scoped
+</code></pre>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex justify-content-between flex-wrap small text-muted">
+              <span><strong>Status:</strong> <span class="badge bg-secondary">Polish-opsional</span></span>
+              <span><strong>Priority:</strong> <span class="priority-tier tier-4">Tier 4</span></span>
+              <span><strong>Est. Effort:</strong> 5 min (replace_all)</span>
+              <span><strong>Tags:</strong> <span class="badge badge-tag">doc</span><span class="badge badge-tag">visual</span></span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <hr>
+
+      <section id="priority">
+        <h2><i class="bi bi-list-ol"></i> C. Action Priority — Urutan Fix Recommended</h2>
+        <p>16 bug di-prioritize berdasar risiko + effort. Mulai dari Tier 1 (security/integrity wajib), turun ke Tier 4 (polish opsional).</p>
+
+        <div class="card mb-3 border-danger">
+          <div class="card-header bg-danger text-white"><strong><span class="priority-tier tier-1" style="background:white;color:#991b1b;">Tier 1</span> Security &amp; Data Integrity — WAJIB FIX</strong></div>
+          <div class="card-body">
+            <ol>
+              <li><strong>P01 Path Traversal</strong> — <span class="badge severity-high">🔴 HIGH</span> — 5 menit fix, security exposure real. <strong>Mulai dari sini.</strong></li>
+              <li><strong>P02 MIME Validation</strong> — <span class="badge severity-med">🟡 MED</span> — 30 menit, defense-in-depth security.</li>
+              <li><strong>P05 Hard Delete + FK Exception</strong> — <span class="badge severity-med">🟡 MED</span> — 1 jam (3 endpoint), UX + data integrity.</li>
+            </ol>
+            <p class="small text-muted mb-0"><strong>Total effort Tier 1:</strong> ~2 jam. <strong>Risiko residual setelah fix:</strong> rendah.</p>
+          </div>
+        </div>
+
+        <div class="card mb-3 border-warning">
+          <div class="card-header bg-warning"><strong><span class="priority-tier tier-2" style="background:white;color:#92400e;">Tier 2</span> Correctness — Recommended</strong></div>
+          <div class="card-body">
+            <ol>
+              <li><strong>P06 Permanent + ValidUntil Validator</strong> — 15 menit. Cegah data invalid.</li>
+              <li><strong>P03 Renewal Cycle Detection</strong> — 1-2 jam. Pilih option 1 (DAG enforcement) lebih simple.</li>
+              <li><strong>D01 Mermaid Dark Toggle Fix</strong> — 5 menit. Doc usability.</li>
+            </ol>
+            <p class="small text-muted mb-0"><strong>Total effort Tier 2:</strong> ~2-3 jam.</p>
+          </div>
+        </div>
+
+        <div class="card mb-3 border-success">
+          <div class="card-header bg-success text-white"><strong><span class="priority-tier tier-3" style="background:white;color:#14532d;">Tier 3</span> Gap+Bug Combine</strong></div>
+          <div class="card-body">
+            <ol>
+              <li><strong>P04 Timezone DateOnly Migration</strong> — 1-2 hari. Major refactor + EF migration. Schedule sebagai phase tersendiri.</li>
+              <li><strong>D02 §17 vs §18C Update</strong> — 1 menit. Doc consistency.</li>
+              <li><strong>Soft Delete Implementation (gap §10.2 + P05 long-term)</strong> — bahkan bisa replace P05 patch dengan soft delete proper.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="card mb-3 border-primary">
+          <div class="card-header bg-primary text-white"><strong><span class="priority-tier tier-4" style="background:white;color:#3730a3;">Tier 4</span> Polish — Opsional</strong></div>
+          <div class="card-body">
+            <ol>
+              <li><strong>P09 FK Mutual Exclusion CHECK Constraint</strong> — 15 menit migration.</li>
+              <li><strong>P11 Performance Cache</strong> — gap §10.2, refactor cache layer.</li>
+              <li><strong>P12 RBAC Integration Test</strong> — gap §14, tambah Playwright/xUnit test.</li>
+              <li><strong>D03 Favicon</strong> — 1 menit.</li>
+              <li><strong>D04 Badge Emoji</strong> — 5 menit.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="alert alert-success">
+          <strong>Saran eksekusi:</strong> Mulai dari Tier 1 (P01 + P02 + P05) sebagai satu batch fix-commit. Setelah merge, lanjut Tier 2. Tier 3 schedule sebagai phase planning tersendiri (terutama P04 timezone). Tier 4 polish saat ada bandwidth.
+        </div>
+      </section>
+
+      <hr>
+
+      <section id="footer">
+        <p class="text-muted small">
+          <i class="bi bi-info-circle"></i> Dokumen ini snapshot per 2026-05-26. Bila kode di-refactor, regenerate. Companion doc: <a href="index.html">index.html</a>.<br>
+          Spec: <code>docs/superpowers/specs/2026-05-26-sertifikat-ecosystem-doc-design.md</code><br>
+          Plan: <code>docs/superpowers/plans/2026-05-26-sertifikat-ecosystem-doc.md</code>
+        </p>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  hljs.highlightAll();
+
+  // Theme toggle (tidak ada Mermaid di bug-findings, simple toggle)
+  const themeToggle = document.getElementById('theme-toggle');
+  const html = document.documentElement;
+  themeToggle.addEventListener('click', () => {
+    const current = html.getAttribute('data-bs-theme');
+    html.setAttribute('data-bs-theme', current === 'dark' ? 'light' : 'dark');
+  });
+
+  // Scroll-spy
+  const links = document.querySelectorAll('#sidebar a');
+  const sections = document.querySelectorAll('main section, .bug-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        if (id) {
+          links.forEach(l => l.classList.remove('active'));
+          const link = document.querySelector(`#sidebar a[href="#${id}"]`);
+          if (link) link.classList.add('active');
+        }
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => { if (s.id) observer.observe(s); });
+</script>
+</body>
+</html>
