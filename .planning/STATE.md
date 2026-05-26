@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v18.0
 milestone_name: Cascade Delete Hardening
-status: active
-last_updated: "2026-05-26T00:00:00.000Z"
-last_activity: 2026-05-26 -- v18.0 milestone started (Phase 323 Cascade AssessmentEditLogs fix in roadmap, REQUIREMENTS.md CASCADE-01 defined)
+status: v18.0 active — requirements ditulis (CASCADE-01), Phase 323 di roadmap (0 plans)
+last_updated: "2026-05-26T01:25:52.982Z"
+last_activity: 2026-05-26 -- v18.0 milestone start + Phase 323 added + REQUIREMENTS.md CASCADE-01 ditulis
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -90,6 +89,7 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 Last activity: 2026-05-22 — Phase 322 SHIPPED via /gsd-execute-phase 322 --interactive (Playwright automated UAT). 13 commit total: 6 feat (322-01..06) + 2 fix critical post-UAT discovery (`6ecb7a50` ViewBag null coalesce + `773c970c` wrapper hx-vals → URL migration — HTMX hx-vals inheritance gotcha) + 5 docs (UAT + 3 SUMMARY). UAT 11/12 PASS + 1 N/A (Step 3 pagination — DB lokal 1 grup insufficient; bonus fix verified via code review).
 
 Phase 322 deliverables:
+
 - Bug 1 (double filter Tab 1): FIXED via shell shared form delete
 - Bug 2 (cross-tab contamination): PREVENTED by-design via D-21 Strategy D Hybrid (URL query string per-wrapper, NOT hx-vals which inherits to descendants)
 - Bug 3 (pagination filter state): bonus fix via hx-include=#filterFormAssessment
