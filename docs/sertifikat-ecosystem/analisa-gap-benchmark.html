@@ -573,7 +573,194 @@ quadrantChart
           <p class="small text-muted">Catatan: Skor ICE baseline subjektif assigned reviewer; adjust di review stakeholder. Quadrant assignment final-locked di <a href="#sec-9">§9 Roadmap</a>.</p>
         </section>
 
-        <!-- §8 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-8">
+          <h2><span class="badge bg-secondary">§8</span> Engineering Recommendation</h2>
+          <p>10 rekomendasi detail untuk Top Quick-Win (R-01..R-08) + Top Big-Bet (R-09, R-10). Format per card: Problem · Solution · Library/Standard · Integration sketch · Trade-off · Effort.</p>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-01: DB Index pada ValidUntil</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">G-13</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Query <code>WHERE ValidUntil &lt;= now+30d</code> di <code>CertificationManagement</code> dashboard scan table TrainingRecord + AssessmentSession tanpa index. Latency naik linear dengan growth data.</p>
+              <p><strong>Solution:</strong> Add non-clustered index pada kolom <code>ValidUntil</code> di kedua tabel via EF Core migration. Tambahkan filter index <code>WHERE ValidUntil IS NOT NULL</code> untuk efisiensi.</p>
+              <p><strong>Library/Standard:</strong> EF Core 9 <code>HasIndex().HasFilter()</code>.</p>
+              <p><strong>Integration Sketch:</strong></p>
+              <pre><code>modelBuilder.Entity&lt;TrainingRecord&gt;()
+  .HasIndex(t =&gt; t.ValidUntil)
+  .HasFilter("[ValidUntil] IS NOT NULL")
+  .HasDatabaseName("IX_TrainingRecord_ValidUntil");
+
+modelBuilder.Entity&lt;AssessmentSession&gt;()
+  .HasIndex(a =&gt; a.ValidUntil)
+  .HasFilter("[ValidUntil] IS NOT NULL")
+  .HasDatabaseName("IX_AssessmentSession_ValidUntil");</code></pre>
+              <p><strong>Trade-off:</strong> Index storage ~1-2 MB per 100k row. Write performance turun ~5% (negligible). Rejected alternative: covering index — too wide untuk justify.</p>
+              <p><strong>Effort:</strong> 0.5 PW (1 migration + test query plan).</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-02: QR-Code Dynamic Verify</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">N-09</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> PDF sertifikat tidak punya QR code. External verifier (vendor audit, BNSP) tidak punya cara cepat verify keaslian.</p>
+              <p><strong>Solution:</strong> QuestPDF embed QR code di footer setiap PDF. QR berisi URL <code>https://portalhc.kpb.pertamina.com/cert/verify/{id}</code>. Endpoint public return status JSON (Active/Revoked/Expired) + metadata minimal (no PII).</p>
+              <p><strong>Library/Standard:</strong> QRCoder NuGet (cross-platform, no Skia dep) + QuestPDF Image embed.</p>
+              <p><strong>Integration Sketch:</strong></p>
+              <pre><code>// SertifikatService.cs Generate()
+var qrGen = new QRCoder.QRCodeGenerator();
+var qrData = qrGen.CreateQrCode($"{baseUrl}/cert/verify/{cert.Id}", QRCodeGenerator.ECCLevel.M);
+var pngBytes = new QRCoder.PngByteQRCode(qrData).GetGraphic(20);
+// QuestPDF: container.Image(pngBytes).FitWidth();
+
+// New: CertVerifyController.cs
+[HttpGet("/cert/verify/{id:guid}")]
+[AllowAnonymous]
+public async Task&lt;IActionResult&gt; Verify(Guid id) =&gt; Json(new {
+  status = await _service.GetCertStatusAsync(id),
+  issuedDate = ..., validUntil = ..., title = ...
+});</code></pre>
+              <p><strong>Trade-off:</strong> Public endpoint = no auth — risiko enumeration. Mitigation: GUID id (unguessable) + rate-limit (R-04). Rejected alternative: signed JWT QR — overkill, browser tidak parse JWT.</p>
+              <p><strong>Effort:</strong> 1 PW (QR generation + endpoint + test).</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-03: Auto-Email Reminder Expiry</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">G-02</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Notification table ada + bell icon ada, tapi tidak ada dispatch email ke user untuk cert akan expired (T-30/T-15/T-3 days). User tidak aware sampai login.</p>
+              <p><strong>Solution:</strong> Hangfire background job daily 06:00 WIB: query cert akan expired di window 30/15/3 days, dispatch email via existing <code>EmailService</code>. Tandai notification record <code>EmailSentAt</code>.</p>
+              <p><strong>Library/Standard:</strong> Hangfire (industry-standard .NET BG job) + SendGrid/SMTP existing.</p>
+              <p><strong>Integration Sketch:</strong></p>
+              <pre><code>// Program.cs
+builder.Services.AddHangfire(c =&gt; c.UseSqlServerStorage(connString));
+builder.Services.AddHangfireServer();
+
+// Jobs/CertExpiryReminderJob.cs
+public class CertExpiryReminderJob {
+  public async Task ExecuteAsync() {
+    foreach (var d in new[] { 30, 15, 3 }) {
+      var certs = await _db.TrainingRecords
+        .Where(t =&gt; t.ValidUntil.HasValue &amp;&amp; EF.Functions.DateDiffDay(DateTime.UtcNow, t.ValidUntil.Value) == d)
+        .ToListAsync();
+      foreach (var c in certs) await _email.SendExpiryReminderAsync(c, d);
+    }
+  }
+}
+// RecurringJob.AddOrUpdate&lt;CertExpiryReminderJob&gt;("cert-expiry", x =&gt; x.ExecuteAsync(),
+//   "0 6 * * *", TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));</code></pre>
+              <p><strong>Trade-off:</strong> Hangfire add dependency + table baru (HangfireSchema). Rejected alternative: Quartz.NET — Hangfire UI dashboard lebih siap; SQL Server storage cocok dengan existing.</p>
+              <p><strong>Effort:</strong> 1-2 PW (Hangfire setup + email template + test schedule).</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-04: Rate-Limit Export Endpoint</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">G-12</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Endpoint <code>/CMP/ExportRecords</code> + <code>/CDP/ExportSertifikatExcel</code> tidak throttle. User spam → load full dataset ke MemoryStream → OOM risk.</p>
+              <p><strong>Solution:</strong> AspNetCoreRateLimit middleware. Limit: 5 request/menit per IP+UserId pada endpoint export.</p>
+              <p><strong>Library/Standard:</strong> AspNetCoreRateLimit NuGet (configuration-based, no code change endpoint).</p>
+              <p><strong>Integration Sketch:</strong> Tambah <code>ClientRateLimitPolicies</code> di <code>appsettings.json</code> matching export path + register middleware di Program.cs.</p>
+              <p><strong>Trade-off:</strong> Rejected alternative: roll-own ASP.NET RateLimiter (built-in .NET 7+) — kurang fleksibel per-endpoint config.</p>
+              <p><strong>Effort:</strong> 0.5 PW.</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-05: Cert Revocation List (CRL)</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">N-07</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Cert revoked (fraud, salah generate) → hanya bisa hard delete → hilang audit trail. Tidak ada public endpoint untuk verifier external check.</p>
+              <p><strong>Solution:</strong> Tambah <code>IsRevoked</code> + <code>RevokedAt</code> + <code>RevokedReason</code> kolom (soft revoke). Expose endpoint <code>/cert/revoked</code> JSON list (ID + revoke date + reason). Endpoint R-02 verify return "Revoked" untuk ID di list.</p>
+              <p><strong>Library/Standard:</strong> ISO 17024 clause 9.5 — revocation publicly accessible.</p>
+              <p><strong>Integration Sketch:</strong> Add 3 column TrainingRecord + AssessmentSession via migration. Endpoint kembalikan paged JSON cached 5 menit (MemoryCache).</p>
+              <p><strong>Trade-off:</strong> Soft revoke butuh update semua query existing untuk filter <code>IsRevoked = false</code>. Mitigation: EF Core global query filter.</p>
+              <p><strong>Effort:</strong> 1-2 PW.</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-06: Permanent Case-Insensitive Comparison</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">G-24</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> <code>certificateType == "Permanent"</code> case-sensitive. Input variasi "permanent" / "PERMANENT" fall-through ke "Expired".</p>
+              <p><strong>Solution:</strong> Ganti dengan <code>string.Equals(certificateType, "Permanent", StringComparison.OrdinalIgnoreCase)</code> atau introduce enum <code>CertificateType { Permanent, TimeBound }</code>.</p>
+              <p><strong>Library/Standard:</strong> C# StringComparison enum.</p>
+              <p><strong>Integration Sketch:</strong> Refactor <code>Services/CertificateStatusHelper.cs:56</code> (lokasi reference, verify saat implement). Add unit test untuk variasi case + null.</p>
+              <p><strong>Trade-off:</strong> Enum lebih type-safe tapi butuh migration string→int. Phase: ship case-insensitive dulu (zero migration), enum di phase berikutnya.</p>
+              <p><strong>Effort:</strong> 0.5 PW (helper fix + test).</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-07: Permanent + ValidUntil Validator</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">G-22</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> CertificateType=Permanent + ValidUntil terisi = data invalid, logic abaikan ValidUntil tanpa reject input.</p>
+              <p><strong>Solution:</strong> FluentValidation rule di <code>TrainingRecordValidator</code>: bila <code>CertificateType == Permanent</code>, <code>ValidUntil</code> must be null.</p>
+              <p><strong>Library/Standard:</strong> FluentValidation (verify exist di project).</p>
+              <p><strong>Integration Sketch:</strong></p>
+              <pre><code>RuleFor(x =&gt; x.ValidUntil)
+  .Null()
+  .When(x =&gt; string.Equals(x.CertificateType, "Permanent", StringComparison.OrdinalIgnoreCase))
+  .WithMessage("ValidUntil harus kosong untuk cert Permanent.");</code></pre>
+              <p><strong>Trade-off:</strong> Bila FluentValidation belum ada, pakai DataAnnotations + IValidatableObject. Pilih sesuai existing pattern.</p>
+              <p><strong>Effort:</strong> 0.5 PW.</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-success">
+            <div class="card-header"><strong>R-08: Renewal Cycle Detection (Union-Find)</strong> <span class="badge bg-success float-end">Quick-Win</span> <span class="badge bg-info">G-18</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Renewal chain A→B→A (cycle) tidak dideteksi. Dashboard outstanding renewal salah perhitungan.</p>
+              <p><strong>Solution:</strong> Union-Find guard saat insert renewal: traverse chain via FK <code>RenewalOfId</code>. Jika encounter ID yang akan jadi parent, tolak.</p>
+              <p><strong>Library/Standard:</strong> Algorithmic — implementasi sendiri.</p>
+              <p><strong>Integration Sketch:</strong></p>
+              <pre><code>public bool WillCreateCycle(Guid newRecordId, Guid? renewalOfId) {
+  var visited = new HashSet&lt;Guid&gt;();
+  var current = renewalOfId;
+  while (current.HasValue) {
+    if (current == newRecordId) return true;
+    if (!visited.Add(current.Value)) return true;
+    current = _db.TrainingRecords
+      .Where(t =&gt; t.Id == current).Select(t =&gt; t.RenewalOfId).FirstOrDefault();
+  }
+  return false;
+}</code></pre>
+              <p><strong>Trade-off:</strong> N query DB per insert (chain depth). Untuk chain ≤10 negligible. Rejected alternative: recursive CTE one-query — kompleksitas SQL Server-specific.</p>
+              <p><strong>Effort:</strong> 1 PW (helper + integration di Create endpoint + unit test).</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-primary">
+            <div class="card-header"><strong>R-09: Hangfire Scheduler + Expiry Pipeline (Combo)</strong> <span class="badge bg-primary float-end">Big-Bet</span> <span class="badge bg-info">G-09 + N-03</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Tidak ada scheduler. Reminder email (R-03) standalone; pipeline auto-create assessment renewal belum ada.</p>
+              <p><strong>Solution:</strong> Full pipeline: Hangfire daily 06:00 → query expired+expiring cert → (a) dispatch email (R-03), (b) auto-generate AssessmentSession draft untuk renewal kalau type=Renewable + grace period, (c) notify assessor.</p>
+              <p><strong>Library/Standard:</strong> Hangfire + existing AssessmentService.</p>
+              <p><strong>Integration Sketch:</strong> Extend R-03 job dengan step "GenerateRenewalAssessment" + assessor assignment via business rule.</p>
+              <p><strong>Trade-off:</strong> Auto-create butuh business rule clarity (which assessor? deadline?). Rejected alternative: pure email-only — miss productivity gain.</p>
+              <p><strong>Effort:</strong> 5-6 PW (build on R-03 baseline, + assessment draft logic + assessor assignment rule + UI review queue).</p>
+            </div>
+          </div>
+
+          <div class="card mb-3 border-primary">
+            <div class="card-header"><strong>R-10: Open Badges 3.0 Issuer + W3C VC</strong> <span class="badge bg-primary float-end">Big-Bet</span> <span class="badge bg-info">N-01 + N-07</span></div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Sertifikat hanya PDF. Tidak interoperable dengan LinkedIn, external HR system, vendor verifier. Reference Workday/Moodle sudah issue badge digital.</p>
+              <p><strong>Solution:</strong> Extend SertifikatService emit Open Badges 3.0 JSON-LD signed (Ed25519) sesuai W3C VCDM 2.0. Store sebagai <code>BadgeAssertion</code> table. Endpoint <code>/badge/{id}.json</code> public + verify via W3C VC validator. Combine dengan R-05 (Revocation List).</p>
+              <p><strong>Library/Standard:</strong> Open Badges 3.0 (1EdTech) + W3C VC Data Model 2.0 + NSec.Cryptography (Ed25519 .NET).</p>
+              <p><strong>Integration Sketch:</strong></p>
+              <pre><code>// New table: BadgeAssertion (Id, RecordId, JsonLd, Signature, IssuedAt, Status)
+// New endpoint: GET /badge/{id:guid}.json → return JSON-LD signed
+// SertifikatService.cs.Generate():
+//   1. Generate PDF (existing)
+//   2. Build OB 3.0 assertion object (VCDM 2.0 schema)
+//   3. Sign with issuer Ed25519 keypair
+//   4. Save BadgeAssertion row
+//   5. PDF embed link ke /badge/{id}.json</code></pre>
+              <p><strong>Trade-off:</strong> Compliance burden setup keypair management + key rotation policy. Cost: 1x effort setup, ongoing minor. Rejected alternative: Accredible/Credly SaaS — vendor lock-in + data residency concern Pertamina.</p>
+              <p><strong>Effort:</strong> 6-8 PW (badge spec impl + keypair infra + endpoint + verify flow + migration).</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- §9 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
