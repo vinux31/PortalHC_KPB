@@ -16,7 +16,8 @@
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
 - ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
 - ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 (shipped 2026-05-22, archived 2026-05-23) — [archive](milestones/v17.0-ROADMAP.md)
-- 🚧 **v18.0 Cascade Delete Hardening** — Phase 323 (started 2026-05-26)
+- 🚧 **v18.0 Cascade Delete Hardening** — Phases 323-324 (started 2026-05-26)
+- 📋 **v19.0 Portal HC Bug Fixes (Sertifikat Ecosystem Audit)** — Phases 325-327 (planned 2026-05-26) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
 
 ## Phases
 
@@ -565,6 +566,91 @@ Plans:
 
 **Active mapped: 1/1 ✓ — Orphans: 0 — Duplicates: 0**
 
+### Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 323
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 324 to break down)
+
 ---
 
-*Roadmap updated: 2026-05-26 (v18.0 milestone started — Phase 323 cascade AssessmentEditLogs fix scoped via REQUIREMENTS.md CASCADE-01).*
+## v19.0 Portal HC Bug Fixes (Sertifikat Ecosystem Audit) — Phases 325-327
+
+**Source:** `docs/sertifikat-ecosystem/bug-findings.html` — 6 bug Portal HC actionable (1 HIGH + 5 MED)
+**Spec:** `docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md`
+**Strategy:** Sequential strict 325 → 326 → 327, IT promo Dev 1× batch akhir setelah Phase 327 ship
+**Est. total effort:** ~3-4 hari coding + UAT batch akhir
+**Started:** Pending v18.0 completion
+
+### Phase 325: Security Hardening (P01 + P02 + P05 quick patch)
+
+- [ ] **Phase 325: Security Hardening upload + delete error UX**
+  - **Bug:** P01 (HIGH path traversal), P02 (MED MIME magic byte), P05 (MED hard delete FK quick patch)
+  - **Depends on:** Phase 324
+  - **Goal:** Tutup security gap upload file (path traversal + magic byte validation) + perbaiki UX delete error 500 dengan pre-check referencing + try/catch + TempData error friendly. Soft delete proper defer ke v20.0.
+  - **Success Criteria:**
+    1. Upload `../../test.pdf` via Postman tersimpan di `uploads/certificates/` tanpa keluar folder (P01)
+    2. Upload `.exe` rename `.pdf` ditolak dengan pesan magic byte mismatch (P02)
+    3. Upload PDF/JPG/PNG asli tetap lolos (P02 no false positive)
+    4. Delete TrainingRecord dengan referencing → TempData error display, record tidak terhapus (P05)
+    5. Delete TrainingRecord tanpa referencing → sukses normal (P05 no regression)
+    6. Unit test helper `ValidateCertificateFile` 6 case pass
+  - **Risk:** Low | **Effort:** S (~2-3 jam)
+  - **Files affected:** `Helpers/FileUploadHelper.cs` + `Controllers/TrainingAdminController.cs` (line 206-215, 539, 744) + `Controllers/AssessmentAdminController.cs` (line 2136)
+  - **Migration:** ❌ Tidak ada
+
+### Phase 326: Validator Hardening (P03 + P06)
+
+- [ ] **Phase 326: Validator hardening Add/Edit Training form**
+  - **Bug:** P03 (MED cycle detection via DAG enforcement), P06 (MED Permanent + ValidUntil reject)
+  - **Depends on:** Phase 325
+  - **Goal:** Cegah data kontradiktif tersimpan via form Add/Edit Training. DAG enforcement: tanggal renewal harus > tanggal source (cycle otomatis ditolak via monotonic constraint). Permanent + ValidUntil isi → reject di ModelState.
+  - **Success Criteria:**
+    1. Add TR renewal dengan tanggal lebih awal dari source → form error display (P03)
+    2. Add TR renewal dengan tanggal valid > source → lolos (P03 no regression)
+    3. Add TR Permanent + ValidUntil isi → form error display field ValidUntil (P06)
+    4. Add TR Permanent + ValidUntil null → lolos (P06 no regression)
+    5. Add TR Annual + ValidUntil valid → lolos (P06 no regression)
+    6. Edit case: tidak boleh renewal dirinya sendiri (P03 self-renewal check)
+  - **Risk:** Low | **Effort:** S (~1-2 jam)
+  - **Files affected:** `Controllers/TrainingAdminController.cs` (Add + Edit POST handler, sekitar line 253-265)
+  - **Migration:** ❌ Tidak ada
+
+### Phase 327: Timezone DateOnly Refactor (P04)
+
+- [ ] **Phase 327: Migrate ValidUntil DateTime → DateOnly (eliminasi timezone drift permanen)**
+  - **Bug:** P04 (MED DateTime.Now vs UtcNow mix)
+  - **Depends on:** Phase 326
+  - **Goal:** Eliminasi timezone drift permanen untuk `ValidUntil` dengan migrasi `DateTime?` → `DateOnly?`. Cert validity semantik harian — komponen jam tidak relevan. `DateTime.Now` di lokasi non-ValidUntil tidak disentuh (defer v20.0).
+  - **Success Criteria:**
+    1. EF migration `ChangeValidUntilToDateOnly` apply sukses (datetime2 → date di 2 tabel)
+    2. Pre-migration SQL check confirm zero row punya komponen jam non-zero
+    3. `DeriveCertificateStatus` unit test 5 case pass (Expired / AkanExpired / Aktif / Permanent / null)
+    4. Add training Annual + ValidUntil today+1 → status display "AkanExpired" benar
+    5. Display ValidUntil di 5 halaman wajib (ManageAssessment, RenewalCertificate, CMP/Records, CDP/CertificationManagement, Worker dashboard) — tanggal benar tanpa jam
+    6. PDF generation `/CMP/CertificatePdf/{id}` — format tanggal di PDF tetap correct
+    7. Rollback EF `Down()` migration siap kalau ada drama
+  - **Risk:** Medium (EF migration + multi-view binding) | **Effort:** M (~1 hari)
+  - **Files affected:** `Models/TrainingRecord.cs` + `Models/AssessmentSession.cs` + `Models/CertificationManagementViewModel.cs` + `Migrations/{ts}_ChangeValidUntilToDateOnly.cs` (NEW) + Razor view minor adjust
+  - **Migration:** ✅ `ChangeValidUntilToDateOnly`
+
+#### Coverage Validation v19.0
+
+| Bug | Phase | Status |
+|-----|-------|--------|
+| P01 Path Traversal | 325 | Pending |
+| P02 MIME Magic Byte | 325 | Pending |
+| P03 Cycle Detection | 326 | Pending |
+| P04 Timezone DateOnly | 327 | Pending |
+| P05 Hard Delete FK quick patch | 325 | Pending |
+| P06 Permanent+ValidUntil | 326 | Pending |
+
+**Active mapped: 6/6 ✓ — Orphans: 0 — Duplicates: 0**
+
+---
+
+*Roadmap updated: 2026-05-26 (v19.0 planned — 6 bug Portal HC actionable dari sertifikat-ecosystem audit, 3 phase sequential, IT promo batch akhir).*
