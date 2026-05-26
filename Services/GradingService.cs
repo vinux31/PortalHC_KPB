@@ -457,25 +457,20 @@ namespace HcPortal.Services
             bool wasPassed = oldIsPassed ?? false;
             if (wasPassed && !isPassed)
             {
-                // Pass -> Fail
+                // Pass -> Fail: revoke sertifikat (Phase 324 D-03: TR cascade removed)
                 await _context.AssessmentSessions
                     .Where(s => s.Id == session.Id)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(r => r.NomorSertifikat, (string?)null)
                         .SetProperty(r => r.ValidUntil, (DateTime?)null));
 
-                var judul = $"Assessment: {session.Title}";
-                await _context.TrainingRecords
-                    .Where(t => t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule)
-                    .ExecuteUpdateAsync(t => t.SetProperty(r => r.Status, "Failed"));
-
                 _logger.LogInformation(
-                    "RegradeAfterEditAsync: session {SessionId} flip Pass->Fail — cert dicabut, TR=Failed.",
+                    "RegradeAfterEditAsync: session {SessionId} flip Pass->Fail - sertifikat dicabut (Phase 324 D-03).",
                     session.Id);
             }
             else if (!wasPassed && isPassed)
             {
-                // Fail -> Pass
+                // Fail -> Pass: generate sertifikat (Phase 324 D-03: TR cascade removed)
                 if (session.GenerateCertificate && session.AssessmentType != "PreTest")
                 {
                     var certNow = DateTime.Now;
@@ -509,33 +504,10 @@ namespace HcPortal.Services
                         _logger.LogError("RegradeAfterEditAsync: failed generate cert for session {SessionId} after {N} attempts",
                             session.Id, maxCertAttempts);
                     }
-
-                    var judul = $"Assessment: {session.Title}";
-                    var existingTr = await _context.TrainingRecords
-                        .FirstOrDefaultAsync(t => t.UserId == session.UserId && t.Judul == judul && t.Tanggal == session.Schedule);
-                    if (existingTr == null)
-                    {
-                        _context.TrainingRecords.Add(new TrainingRecord
-                        {
-                            UserId = session.UserId,
-                            Judul = judul,
-                            Kategori = session.Category ?? "Assessment",
-                            Tanggal = session.Schedule,
-                            TanggalSelesai = DateTime.UtcNow,
-                            Penyelenggara = "Internal",
-                            Status = "Passed"
-                        });
-                        await _context.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        existingTr.Status = "Passed";
-                        await _context.SaveChangesAsync();
-                    }
                 }
 
                 _logger.LogInformation(
-                    "RegradeAfterEditAsync: session {SessionId} flip Fail->Pass — cert generated (if applicable), TR=Passed.",
+                    "RegradeAfterEditAsync: session {SessionId} flip Fail->Pass - sertifikat dibuat (jika applicable, Phase 324 D-03).",
                     session.Id);
             }
             // Pass->Pass, Fail->Fail: no cascade
