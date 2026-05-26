@@ -214,6 +214,198 @@ erDiagram
             </table>
           </div>
         </section>
+
+        <section id="sec-3">
+          <h2><span class="badge bg-secondary">§3</span> State Machine Sertifikat</h2>
+          <p>Lifecycle sertifikat dari penciptaan sampai expiry/renewal. State <strong>Permanent</strong>, <strong>Renewed</strong>, <strong>Failed</strong>, dan <strong>NoCert</strong> bersifat terminal (sertifikat tidak transition lebih lanjut). <strong>PendingGrading</strong> hanya muncul untuk assessment dengan soal essay yang menunggu manual grading.</p>
+          <div class="mermaid">
+stateDiagram-v2
+    [*] --> Draft : create assessment
+    Draft --> InProgress : start exam
+    InProgress --> PendingGrading : submit + essay belum dinilai
+    InProgress --> Failed : IsPassed=false
+    InProgress --> NoCert : passed + GenerateCertificate=false
+    InProgress --> Issued : passed + GenerateCertificate=true
+    PendingGrading --> Failed : essay graded, total fail
+    PendingGrading --> Issued : essay graded, pass + cert
+    PendingGrading --> NoCert : pass + GenerateCertificate=false
+    Issued --> Aktif : ValidUntil > today+30d
+    Issued --> Permanent : CertificateType=Permanent
+    Issued --> AkanExpired : ValidUntil within 30d
+    Aktif --> AkanExpired : days <= 30
+    AkanExpired --> Expired : days < 0
+    Aktif --> Expired : data correction
+    Expired --> Renewed : new TR/AS dgn Renews* FK
+    AkanExpired --> Renewed : pre-emptive renewal
+    Renewed --> [*]
+    Permanent --> [*]
+    Failed --> [*]
+    NoCert --> [*]
+          </div>
+          <p class="small text-muted">Catatan: state <code>Aktif/AkanExpired/Expired/Permanent</code> di-derivasi runtime oleh <code>SertifikatRow.DeriveCertificateStatus()</code> — bukan kolom DB. Hanya <code>AssessmentSession.Status</code> ("Open", "InProgress", "Completed", "PendingGrading") yang persistent.</p>
+        </section>
+
+        <section id="sec-4">
+          <h2><span class="badge bg-secondary">§4</span> Core Flow Diagrams</h2>
+          <p>8 sequence diagram lintas-page untuk alur kritis sertifikat. Diagram per-page (mini-sequence) ada di §5.</p>
+
+          <h5 class="mt-4">4.1 Assessment Submit → Certificate Generation</h5>
+          <div class="mermaid">
+sequenceDiagram
+    actor User
+    participant CMP as CMPController
+    participant DB
+    participant CertGen as Cert#Generator
+    User->>CMP: POST /CMP/SubmitExam (id, answers)
+    CMP->>DB: Load UserPackageAssignment + Questions
+    CMP->>CMP: Grade MC/MA otomatis
+    alt Ada Essay
+        CMP->>DB: Status=PendingGrading
+        CMP-->>User: Redirect /CMP/Results (cert nanti)
+    else Tanpa Essay
+        CMP->>CMP: score>=PassPercentage ? IsPassed=true
+        alt IsPassed && GenerateCertificate
+            CMP->>CertGen: Generate NomorSertifikat
+            CertGen->>DB: SELECT MAX(SEQ) WHERE month,year
+            CertGen->>DB: INSERT NomorSertifikat = KPB/{SEQ+1}/{ROMAN-MM}/{YYYY}
+            CMP->>DB: Set ValidUntil, Status=Completed
+            CMP-->>User: Redirect /CMP/Certificate/{id}
+        else
+            CMP->>DB: Status=Completed (no cert)
+            CMP-->>User: Redirect /CMP/Results
+        end
+    end
+          </div>
+
+          <h5 class="mt-4">4.2 Training Manual Upload (Admin)</h5>
+          <div class="mermaid">
+sequenceDiagram
+    actor Admin
+    participant Ctrl as AssessmentAdminController
+    participant FS as FileSystem
+    participant DB
+    Admin->>Ctrl: POST /Admin/AddTraining (form + IFormFile)
+    Ctrl->>Ctrl: Validate (mime, size — audit §9)
+    Ctrl->>FS: Save SertifikatUrl ke wwwroot/uploads
+    alt RenewsTrainingId atau RenewsSessionId terisi
+        Ctrl->>DB: Verify FK target masih exist
+    end
+    Ctrl->>DB: Insert TrainingRecord
+    Ctrl-->>Admin: Redirect /Admin/ManageAssessment#training
+          </div>
+
+          <h5 class="mt-4">4.3 Renewal Chain Detection (CertificationManagement)</h5>
+          <div class="mermaid">
+sequenceDiagram
+    actor HC
+    participant CDP as CDPController
+    participant DB
+    HC->>CDP: GET /CDP/CertificationManagement
+    CDP->>DB: Query TrainingRecord (SertifikatUrl != null)
+    CDP->>DB: Query AssessmentSession (GenerateCertificate=true + IsPassed=true)
+    par Batch lookup 4 set
+        CDP->>DB: AS.RenewsSessionId where IsPassed=true
+        CDP->>DB: TR.RenewsSessionId
+        CDP->>DB: AS.RenewsTrainingId where IsPassed=true
+        CDP->>DB: TR.RenewsTrainingId
+    end
+    CDP->>CDP: Union → renewedAssessmentIds, renewedTrainingIds
+    CDP->>CDP: For each row: IsRenewed = id in set
+    CDP->>CDP: DeriveCertificateStatus per row
+    CDP-->>HC: Render dengan status badge + IsRenewed flag
+          </div>
+
+          <h5 class="mt-4">4.4 Status Derivation Function</h5>
+          <div class="mermaid">
+sequenceDiagram
+    participant VM as ViewModel
+    participant D as DeriveCertificateStatus
+    VM->>D: (validUntil, certificateType)
+    alt certificateType == "Permanent"
+        D-->>VM: Permanent
+    else validUntil == null
+        D-->>VM: Expired (needs renewal)
+    else
+        D->>D: days = (validUntil - UtcNow).Days
+        alt days < 0
+            D-->>VM: Expired
+        else days <= 30
+            D-->>VM: AkanExpired
+        else
+            D-->>VM: Aktif
+        end
+    end
+          </div>
+
+          <h5 class="mt-4">4.5 Export Excel (ClosedXML)</h5>
+          <div class="mermaid">
+sequenceDiagram
+    actor User
+    participant Ctrl as ExportCtrl
+    participant DB
+    participant XL as ClosedXML
+    User->>Ctrl: GET /CMP/ExportRecords (filter)
+    Ctrl->>Ctrl: Apply role-scope (L4 section / L5 dual / L6 own)
+    Ctrl->>DB: Query TR + AS (filtered)
+    Ctrl->>XL: Build XLWorkbook
+    XL->>XL: Sheet1=Assessment, Sheet2=Training
+    XL->>XL: Apply header style, freeze pane
+    XL-->>Ctrl: MemoryStream
+    Ctrl-->>User: FileResult (.xlsx)
+          </div>
+
+          <h5 class="mt-4">4.6 Budget Training Import Excel</h5>
+          <div class="mermaid">
+sequenceDiagram
+    actor HC
+    participant CMP as CMPController
+    participant XL as ClosedXML
+    participant DB
+    HC->>CMP: POST /CMP/BudgetTrainingImport (IFormFile)
+    CMP->>XL: Parse XLWorkbook → rows
+    loop Per row
+        CMP->>CMP: Validate (Type, Judul, TahunAnggaran required)
+        CMP->>DB: Check duplicate (Judul + Tahun + Kategori)
+        alt Duplicate
+            CMP->>CMP: Skip + log warning
+        else
+            CMP->>DB: Insert BudgetItem
+        end
+    end
+    CMP-->>HC: Redirect with success/skip/error count
+          </div>
+
+          <h5 class="mt-4">4.7 Notification Dispatch (Expiry Reminder)</h5>
+          <div class="mermaid">
+sequenceDiagram
+    participant T as Trigger
+    participant N as NotifService
+    participant DB
+    Note over T: Background job? On-demand? (audit §9)
+    T->>DB: Query TR + AS where ValidUntil in [now..now+30d]
+    loop Per record
+        T->>N: Build payload (CertExpiring + userId)
+        N->>DB: Insert Notification (IsRead=false)
+    end
+    Note over N: Bell icon poll /Notification/UnreadCount tiap N detik
+          </div>
+
+          <h5 class="mt-4">4.8 Cert Number Generation Race</h5>
+          <div class="mermaid">
+sequenceDiagram
+    participant R1 as Request1
+    participant R2 as Request2
+    participant DB
+    Note over R1,R2: 2 user submit exam bersamaan
+    R1->>DB: SELECT MAX(SEQ) WHERE month=X,year=Y
+    R2->>DB: SELECT MAX(SEQ) WHERE month=X,year=Y
+    DB-->>R1: 42
+    DB-->>R2: 42
+    R1->>DB: INSERT NomorSertifikat = KPB/43/V/2026
+    R2->>DB: INSERT NomorSertifikat = KPB/43/V/2026
+    Note over DB: COLLISION jika tidak ada UNIQUE constraint atau lock. Audit §9.
+          </div>
+        </section>
       </main>
     </div>
   </div>
