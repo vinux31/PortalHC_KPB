@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: milestone-closed
-last_updated: "2026-05-23T00:00:00.000Z"
-last_activity: 2026-05-23 -- v17.0 milestone ARCHIVED (Phase 320+321+322 SHIPPED, tag v17.0 created, REQUIREMENTS.md cleared for next milestone)
+milestone: v18.0
+milestone_name: Cascade Delete Hardening
+status: active
+last_updated: "2026-05-26T00:00:00.000Z"
+last_activity: 2026-05-26 -- v18.0 milestone started (Phase 323 Cascade AssessmentEditLogs fix in roadmap, REQUIREMENTS.md CASCADE-01 defined)
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,20 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** No active milestone — v17.0 closed 2026-05-23. Next: `/gsd-new-milestone` untuk start v18.0 atau promote backlog item.
+**Current focus:** v18.0 Cascade Delete Hardening — Phase 323 fix oversight Phase 321 di Phase 312 cascade (`AssessmentEditLog` FK Restrict block delete).
 
 ## Current Position
 
-Phase: — (no active milestone)
-Status: v17.0 milestone CLOSED + archived ke `.planning/milestones/v17.0-ROADMAP.md`
-Last activity: 2026-05-23 -- v17.0 archived (3/3 phase SHIPPED, 24/24 REQ delivered, 2 post-shipping CSS dead-code fix applied, tag v17.0)
+Phase: 323 (defining plan)
+Status: v18.0 active — requirements ditulis (CASCADE-01), Phase 323 di roadmap (0 plans)
+Last activity: 2026-05-26 -- v18.0 milestone start + Phase 323 added + REQUIREMENTS.md CASCADE-01 ditulis
 
 ## Next Action
 
-1. **User action:** Notify IT — commit hash `202ce331` (push 2026-05-22) + 3 follow-up commit `b0b4049b` + `3cdccfb4` + `13046757` (post-shipping CSS dead-code fix + UAT amend) + tag `v17.0` (milestone close). NO migration flag. Draft di `322-UAT.md` Handoff section.
-2. **Push milestone close commits:** `git push origin main && git push origin v17.0` (tag created during milestone close).
-3. **Next milestone:** `/gsd-new-milestone` untuk start v18.0 — atau promote backlog item dulu (EPRV-01 v15.0 + 7 carry-over v14.0).
-4. **Backlog housekeeping (non-blocker):** v16.0 milestone (Phases 315-319, shipped 2026-05-12) sudah di-archive di `milestones/v16.0-ROADMAP.md` tapi belum punya entry di `MILESTONES.md` log. Optional — tambah saat sempat.
+1. **`/gsd-plan-phase 323`** — break down Phase 323 jadi plan (1-2 task: cascade patch 3 endpoint + smoke test lokal).
+2. **Setelah Phase 323 ship**: notify IT — commit hash + flag NO migration. Retry hapus AssessmentSession Id 2 + Id 5 via UI Admin di Dev.
+3. **Bonus** (optional): SQL one-off untuk hapus 2 record sekarang tanpa tunggu code fix promo (draft script di chat session 2026-05-26).
+4. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
 
 ## Deferred Items
 
@@ -83,6 +83,7 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - Phase 316 added (2026-05-11): Fix SubmitExam page-closed bug + matrix test infra polish — resolve cascade fail dari Phase 315 yang block sentinel S8/S9/S10 verification
 - Phase 317-319 added (2026-05-11): Extend v16.0 dari 2 → 5 phases untuk close exam-type coverage gap (317: MA/Essay/Mixed via HC UI), advanced features (318: PreTest/PostTest, ExamWindowCloseDate, Certificate PDF), admin coverage (319: ManualAssessment, Export, Analytics, CertificationManagement)
 - Phase 322 added (2026-05-22): filter-scope-per-tab-manage-assessment — fix double filter di tab Assessment Groups (dev) + filter contamination antar tab (Phase 311 Plan 02 shared filter rollback). Per-tab native filter: Tab 1 (search+kategori+status), Tab 2 (bagian+unit+kategori-training+status+nama/nopeg), Tab 3 sub-tab History masing-masing punya filter client-side (Riwayat Assessment + Riwayat Training).
+- Phase 323 added (2026-05-26): Fix cascade bug AssessmentEditLogs di 3 endpoint delete assessment — Phase 321 oversight di Phase 312 cascade. `AssessmentEditLog` (Phase 321) punya FK Restrict ke `AssessmentSession`, tapi `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup` (Phase 312) tidak cascade hapus. Repro Dev: AssessmentSession Id 1 (0 edit logs) sukses; Id 2+5 (ada edit logs) gagal "Gagal menghapus assessment". Scope: tambah `RemoveRange(AssessmentEditLogs)` block sebelum cascade existing di 3 endpoint di `Controllers/AssessmentAdminController.cs`. Tidak ubah schema/model/migration.
 
 ## Session Continuity
 

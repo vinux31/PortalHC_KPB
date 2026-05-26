@@ -16,6 +16,7 @@
 - ✅ **v15.0 Audit Findings 27 April 2026** — Phases 304-314 + 313.1 (shipped 2026-05-11) — [archive](milestones/v15.0-ROADMAP.md)
 - ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
 - ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 (shipped 2026-05-22, archived 2026-05-23) — [archive](milestones/v17.0-ROADMAP.md)
+- 🚧 **v18.0 Cascade Delete Hardening** — Phase 323 (started 2026-05-26)
 
 ## Phases
 
@@ -525,6 +526,43 @@ Plans:
 
 </details>
 
+## 🚧 v18.0 Cascade Delete Hardening (Phase 323) — STARTED 2026-05-26
+
+**Goal:** Tutup oversight Phase 321 (model `AssessmentEditLog` baru, FK Restrict ke `AssessmentSession`) di Phase 312 cascade. 3 endpoint `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup` tidak hapus `AssessmentEditLogs` duluan → session yang pernah di-edit soal exception "Gagal menghapus assessment".
+
+**Started:** 2026-05-26 | **Phases:** 323 (1 phase) | **Active REQ:** 1 (CASCADE-01)
+
+**Repro evidence (Dev 10.55.3.3, 2026-05-26):**
+- AssessmentSession Id 1 (`[TEST] Online Assessment Audit`, 0 edit logs) — DELETED OK
+- AssessmentSession Id 2 (same title, has edit logs) — EXCEPTION caught
+- AssessmentSession Id 5 (`[Test] Tes Lagi`, has edit logs) — EXCEPTION caught
+
+### Phase 323: Fix cascade bug AssessmentEditLogs di 3 endpoint delete assessment
+
+- [ ] **Phase 323: Cascade AssessmentEditLogs di 3 endpoint delete assessment**
+  - **REQ:** CASCADE-01
+  - **Depends on:** Phase 322 (Phase 321 `AssessmentEditLog` model + Phase 312 cascade pattern existing)
+  - **Goal:** Tambah `RemoveRange(AssessmentEditLogs)` block sebelum cascade existing di 3 endpoint di `Controllers/AssessmentAdminController.cs` (~line 2071, ~2215, ~2348). Wrap di transaction scope existing (line 2040, 2184, 2313). Logging info per cascade — sama pola dengan `PackageUserResponses` / `AttemptHistory` / `AssessmentPackages`.
+  - **Success Criteria:**
+    1. Hapus session belum pernah di-edit → tetap sukses (no regression)
+    2. Hapus session sudah di-edit ≥1 soal → sukses, `AssessmentEditLogs` ikut terhapus
+    3. Hapus group dengan campuran sibling no-edits + edits → sukses
+    4. Audit log `DeleteAssessment*` tercatat normal (description sebelumnya tidak berubah)
+    5. Transaction rollback bersih kalau exception lain terjadi
+    6. Smoke test 3 skenario di lokal: (a) no-edits delete OK, (b) 1+ edits delete OK, (c) group campuran delete OK
+    7. Tidak ubah schema DB / model / migration / endpoint signature
+  - **Risk:** Low | **Effort:** S
+  - **Plans:** 0/? plans — run `/gsd-plan-phase 323` untuk break down
+  - **Files affected:** `Controllers/AssessmentAdminController.cs` (3 spot)
+
+#### Coverage Validation v18.0
+
+| REQ | Phase | Status |
+|-----|-------|--------|
+| CASCADE-01 | 323 | Pending |
+
+**Active mapped: 1/1 ✓ — Orphans: 0 — Duplicates: 0**
+
 ---
 
-*Roadmap updated: 2026-05-23 (v17.0 SHIPPED + archived — all 3 phases complete: 320 EXP + 321 EDIT + 322 FILTER. Phase 322 closed with 2 critical bug fix in-flight + 2 post-shipping fix CSS dead-code. HTMX hx-vals inheritance gotcha + spec gap `state:attached vs visible` documented sebagai key learning.)*
+*Roadmap updated: 2026-05-26 (v18.0 milestone started — Phase 323 cascade AssessmentEditLogs fix scoped via REQUIREMENTS.md CASCADE-01).*

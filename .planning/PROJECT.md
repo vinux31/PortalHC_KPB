@@ -29,11 +29,18 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v16.0 shipped** — QA Test Coverage (phases 315-319): automated E2E test infrastructure. 73 sub-tests baseline di `tests/e2e/exam-types.spec.ts` (15 FLOW A-X coverage) + assessment matrix discovery harness + 2 production fixes (SURF-317-A CMPController MA-aware + SURF-317-A1 test fixture). 4 QA requirements satisfied (QA-01 matrix infra, QA-02 exam-types, QA-08 advanced features, QA-09 admin features).
 **v17.0 shipped + archived** — Assessment Admin Power Tools (phases 320-322): Excel export per-peserta dengan spider chart PNG SkiaSharp + edit jawaban peserta dengan auto-regrade + cert/TR cascade + audit dual-write (`AuditLog` + new `AssessmentEditLog`) + SignalR signal `workerAnswerEdited` + Edit History tab + rollback Phase 311 shared filter ke per-tab native (eliminate Bug 1 double filter + Bug 2 cross-tab contamination + Bug 3 pagination). 24 REQ delivered (EXP-01..08 + EDIT-01..13 + FILTER-01..03). Post-shipping: 2 CSS dead-code fix dari Phase 311.1 cleanup miss.
 
-**Current focus:** No active milestone — v17.0 archived 2026-05-23. Next: `/gsd-new-milestone` untuk v18.0 atau promote backlog item.
+**Current focus:** v18.0 Cascade Delete Hardening — started 2026-05-26. Phase 323 (cascade fix `AssessmentEditLogs` di 3 endpoint `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup`).
 
-## Next Milestone Goals
+## Current Milestone: v18.0 Cascade Delete Hardening
 
-Belum diputuskan. Kandidat di Backlog Lainnya bawah. Run `/gsd-new-milestone` untuk pick milestone v18.0.
+**Goal:** Tutup oversight Phase 321 di Phase 312 cascade — `AssessmentEditLog` FK Restrict ke `AssessmentSession` belum di-cascade di 3 endpoint delete; session yang sudah pernah di-edit soal tidak bisa dihapus.
+
+**Target features:**
+- Cascade hapus `AssessmentEditLogs` di `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup`
+- Repro + smoke test lokal: session + edit soal + delete → sukses tanpa exception
+- Backward compat — endpoint signature + audit log behavior tidak berubah
+
+**Started:** 2026-05-26 | **Active REQ:** 1 (CASCADE-01) | **Phases:** 323 (1 phase initial — bisa expand bila ada bug serupa)
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 
