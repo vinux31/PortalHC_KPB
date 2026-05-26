@@ -336,7 +336,78 @@
           </div>
         </section>
 
-        <!-- §5.2 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-5-cont">
+          <h4 class="mt-2">§5.2 — HRIS / LMS Umum</h4>
+          <p class="small">Best practice generic digital sertifikasi dari platform mainstream (vendor-agnostic, fokus kapabilitas).</p>
+
+          <div class="accordion mt-3" id="acc-hris">
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#hris-workday">Workday Learning + Skills Cloud</button></h2>
+              <div id="hris-workday" class="accordion-collapse collapse show" data-bs-parent="#acc-hris">
+                <div class="accordion-body">
+                  <ul class="small">
+                    <li><strong>Skills Cloud</strong> — ML-driven skill inference + verify dari workforce data, identifikasi skills gap, reskilling measurement.</li>
+                    <li><strong>Workday Learning (powered by Sana)</strong> — hyper-personalized learning experience + content recommendation in flow-of-work.</li>
+                    <li><strong>Talent Management</strong> — succession planning identifikasi internal leader, calibrated assessment, personalized career path.</li>
+                    <li><strong>AI integration (Workday GenAI)</strong> — auto-generate job description, sentiment analysis interview, dynamic job recommendation.</li>
+                  </ul>
+                  <p class="small"><strong>Gap vs Portal HC KPB:</strong> Portal HC standalone — no ML skill inference, no career path engine, no GenAI integration. Skill matrix manual via form. Reference architecture untuk N-04 + N-05.</p>
+                  <p class="citation">Source: <a href="https://www.workday.com/en-us/products/human-capital-management/skills-cloud.html">workday.com Skills Cloud</a> + <a href="https://www.workday.com/en-us/products/talent-management/overview.html">workday.com Talent Management</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hris-sf">SAP SuccessFactors Learning</button></h2>
+              <div id="hris-sf" class="accordion-collapse collapse" data-bs-parent="#acc-hris">
+                <div class="accordion-body">
+                  <ul class="small">
+                    <li><strong>Compliance training automation</strong> — auto-assignment mandatory training, due-date tracking, escalation notif, overdue alert, completion doc.</li>
+                    <li><strong>Audit-ready reporting</strong> — support compliance reporting 100+ negara, e-signature document management.</li>
+                    <li><strong>Content network</strong> — SAP Content Stream + LinkedIn Learning + Harvard Publishing + Open Content Network (500+ learning path).</li>
+                    <li><strong>Curriculum bundle</strong> — bundle multiple cert ke learning path mandatory; rule-engine auto-assign per role/asset/region.</li>
+                  </ul>
+                  <p class="small"><strong>Gap vs Portal HC KPB:</strong> Portal HC no curriculum bundle, no rule-based auto-assignment, no escalation notif workflow. Manual assign per assessment. Reference architecture untuk N-03 (auto-renewal pipeline) + R-09 (Hangfire + email escalation).</p>
+                  <p class="citation">Source: <a href="https://research.com/software/reviews/sap-successfactors-learning">research.com SuccessFactors review</a> + <a href="https://www.sap.com/products/hcm/successfactors-learning.html">sap.com SuccessFactors Learning</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hris-cornerstone">Cornerstone Skills Cloud</button></h2>
+              <div id="hris-cornerstone" class="accordion-collapse collapse" data-bs-parent="#acc-hris">
+                <div class="accordion-body">
+                  <ul class="small">
+                    <li>Skill graph dengan global taxonomy untuk skill identification.</li>
+                    <li>AI-driven skill gap identification per worker vs target role.</li>
+                    <li>Personalized learning recommendation engine.</li>
+                    <li>Integrasi Microsoft Viva Skills + Office 365 ecosystem.</li>
+                  </ul>
+                  <p class="small"><strong>Gap vs Portal HC KPB:</strong> No skill taxonomy global, no AI recommendation. N-04 (Skill Matrix Integration) baseline kapabilitas.</p>
+                  <p class="citation">Source: <a href="https://www.cornerstoneondemand.com/products/learning/skills-cloud">cornerstoneondemand.com Skills Cloud</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hris-moodle">Moodle (Open-Source LMS Reference)</button></h2>
+              <div id="hris-moodle" class="accordion-collapse collapse" data-bs-parent="#acc-hris">
+                <div class="accordion-body">
+                  <ul class="small">
+                    <li><strong>1EdTech certified Open Badges 2.0 Issuer</strong> sejak Moodle 3.8 + 3.9 (verified 1EdTech 2020).</li>
+                    <li>Badge dapat di-import ke badge backpack publik (Mozilla/Badgr/dll).</li>
+                    <li>Plugin: <strong>Open Badge Factory (OBF)</strong> untuk badge issuance + <strong>Accredible Plugin</strong> untuk PDF cert + blockchain credential replacement.</li>
+                    <li>Open source, on-premise option (relevan compliance Pertamina — data residency).</li>
+                  </ul>
+                  <p class="small"><strong>Gap vs Portal HC KPB:</strong> Reference architecture untuk N-01 (Open Badges 1EdTech) + R-10 (Open Badges issuer). Moodle bukan replace Portal HC — kapabilitas patch yang dapat diadopsi via library port (.NET equivalent OB 2.0/3.0 JSON-LD generator).</p>
+                  <p class="citation">Source: <a href="https://moodle.com/news/certify-your-learners-with-open-badges-on-moodle/">moodle.com Open Badges</a> + <a href="https://docs.moodle.org/dev/openbadges">docs.moodle.org openbadges</a> + <a href="https://moodle.org/plugins/local_obf">Open Badge Factory plugin</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- §5.3 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
