@@ -75,7 +75,59 @@
           <p class="small text-muted">Laporan ini snapshot strategis. Gap ID + Capability ID stable; ICE score subjektif baseline (user dapat override).</p>
         </section>
 
-        <!-- §1 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-1">
+          <h2><span class="badge bg-secondary">§1</span> Executive Summary</h2>
+          <p class="lead">Laporan ini memetakan <strong>37 area peningkatan</strong> pada sistem sertifikat Portal HC KPB — 25 gap existing (sudah teridentifikasi review internal) + 12 kapabilitas baru hasil benchmark industri migas, HRIS/LMS, dan standar sertifikasi internasional.</p>
+
+          <div class="row g-3 mt-3">
+            <div class="col-md-4">
+              <div class="card text-center border-primary">
+                <div class="card-body">
+                  <div class="display-4 text-primary">37</div>
+                  <div class="text-muted small">Total Area Peningkatan</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-center border-success">
+                <div class="card-body">
+                  <div class="display-4 text-success">10</div>
+                  <div class="text-muted small">Quick-Win Teridentifikasi</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-center border-warning">
+                <div class="card-body">
+                  <div class="display-4 text-warning">~48</div>
+                  <div class="text-muted small">Estimasi Total Effort (Person-Week)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="mt-4">Top 5 Quick-Win (low effort, high impact)</h5>
+          <ol>
+            <li><strong>Auto-Email Reminder Expiry</strong> (G-02) — Hangfire scheduler + email template. Effort: 1-2 PW.</li>
+            <li><strong>DB Index pada ValidUntil</strong> (G-13) — Migration EF Core 2 index. Effort: 0.5 PW.</li>
+            <li><strong>QR-Code Dynamic Verify</strong> (N-09) — QuestPDF QR + endpoint verify. Effort: 1 PW.</li>
+            <li><strong>Cycle Detection Renewal Chain</strong> (G-18) — Union-Find guard. Effort: 1 PW.</li>
+            <li><strong>Rate-Limit Export</strong> (G-12) — AspNetCoreRateLimit middleware. Effort: 0.5 PW.</li>
+          </ol>
+
+          <h5 class="mt-4">Top 3 Big-Bet (high effort, high impact)</h5>
+          <ol>
+            <li><strong>Open Badges 1EdTech Issuer</strong> (N-01) — Standar credential digital, interoperability dengan LinkedIn / vendor. Effort: 6-8 PW.</li>
+            <li><strong>Background Job Scheduler (Hangfire)</strong> (G-09 + N-03) — Daily expiry check + notification dispatch + audit log async. Effort: 5-6 PW.</li>
+            <li><strong>Soft Delete + Audit Log Generic</strong> (G-14 + G-10) — <code>IsDeleted</code> flag + audit trail per mutasi. Compliance migas. Effort: 5-7 PW.</li>
+          </ol>
+
+          <div class="alert alert-info mt-4">
+            <strong>Rekomendasi sequencing:</strong> Eksekusi Quick-Win dulu (3-4 minggu) untuk momentum, lalu Big-Bet (3-4 bulan) bertahap. Detail roadmap di <a href="#sec-9">§9</a>.
+          </div>
+        </section>
+
+        <!-- §2 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
