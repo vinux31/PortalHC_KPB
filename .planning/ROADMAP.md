@@ -539,7 +539,7 @@ Plans:
 
 ### Phase 323: Fix cascade bug AssessmentEditLogs di 3 endpoint delete assessment
 
-- [ ] **Phase 323: Cascade AssessmentEditLogs di 3 endpoint delete assessment**
+- [x] **Phase 323: Cascade AssessmentEditLogs di 3 endpoint delete assessment** (completed 2026-05-26)
   - **REQ:** CASCADE-01
   - **Depends on:** Phase 322 (Phase 321 `AssessmentEditLog` model + Phase 312 cascade pattern existing)
   - **Goal:** Tambah `RemoveRange(AssessmentEditLogs)` block sebelum cascade existing di 3 endpoint di `Controllers/AssessmentAdminController.cs` (~line 2071, ~2215, ~2348). Wrap di transaction scope existing (line 2040, 2184, 2313). Logging info per cascade — sama pola dengan `PackageUserResponses` / `AttemptHistory` / `AssessmentPackages`.
@@ -552,7 +552,7 @@ Plans:
     6. Smoke test 3 skenario di lokal: (a) no-edits delete OK, (b) 1+ edits delete OK, (c) group campuran delete OK
     7. Tidak ubah schema DB / model / migration / endpoint signature
   - **Risk:** Low | **Effort:** S
-  - **Plans:** 1/2 plans executed
+  - **Plans:** 1/2 plans complete
     - [x] 323-01-PLAN.md — Wave 1 controller cascade patch 3 endpoint (DeleteAssessment + DeleteAssessmentGroup + DeletePrePostGroup) + snapshot preDeleteEditLogsCount + audit description EditLogsCount token (CASCADE-01)
     - [ ] 323-02-PLAN.md — Wave 2 Playwright E2E spec Phase323_CascadeAssessmentEditLogs 3 test (no-edits / with-edits / group-mixed) + seed SEED_WORKFLOW lifecycle + audit log DB verify + manual UAT 3 skenario + commit + IT notify (CASCADE-01)
   - **Files affected:** `Controllers/AssessmentAdminController.cs` (3 spot) + `tests/e2e/Phase323_CascadeAssessmentEditLogs.spec.ts` (NEW) + `docs/SEED_JOURNAL.md` (append)
