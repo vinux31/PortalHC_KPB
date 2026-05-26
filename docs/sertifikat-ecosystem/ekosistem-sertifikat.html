@@ -216,7 +216,33 @@ flowchart TD
         Status sertifikat <strong>bukan kolom database</strong> — sistem menghitungnya real-time setiap kali halaman dibuka, berdasarkan tanggal kadaluarsa + jenis sertifikat. Artinya: Anda tidak perlu update status manual; sistem otomatis menggeser sertifikat dari <em>Aktif → Akan Expired → Expired</em> sesuai berjalannya waktu.
       </div>
     </section>
-    <section id="sec-5"><h2><span class="badge bg-secondary">§5</span> Renewal — Kenapa & Bagaimana</h2><p><em>Konten Task 6</em></p></section>
+    <section id="sec-5">
+      <h2><span class="badge bg-secondary">§5</span> Renewal — Kenapa & Bagaimana</h2>
+      <h5>Kenapa renewal perlu?</h5>
+      <p>Kompetensi tidak permanent. Sertifikat tertentu (misal K3, safety, sertifikasi profesi) wajib di-refresh periodik agar pekerja tetap kompeten dan compliant dengan regulasi.</p>
+      <h5 class="mt-3">Kapan trigger?</h5>
+      <ul>
+        <li><strong>Otomatis</strong> — 30 hari sebelum tanggal kadaluarsa, sistem kirim notifikasi ke pekerja + HC.</li>
+        <li><strong>Manual</strong> — HC/Admin proaktif via menu <em>Renewal Certificate</em> sebelum notif otomatis keluar.</li>
+      </ul>
+      <h5 class="mt-3">Siapa boleh trigger?</h5>
+      <p>Hanya <strong>Admin (L1)</strong> dan <strong>HC (L2)</strong>. Peran lain (Manager, SectionHead, Coach, Coachee) tidak punya akses ke menu Renewal Certificate.</p>
+      <h5 class="mt-3">Alur Renewal</h5>
+      <div class="mermaid">
+flowchart LR
+    A[Sertifikat Lama<br/>mau expired] --> B[Form Renewal<br/>diisi HC/Admin]
+    B --> C[Training/Assessment<br/>Baru dijalani pekerja]
+    C --> D[Sertifikat Baru terbit]
+    D --> E[Terhubung ke<br/>Sertifikat Lama]
+      </div>
+      <h5 class="mt-3">Renewal Chain — Apa Itu?</h5>
+      <p>Sertifikat baru hasil renewal <strong>"diingat" sistem terhubung ke sertifikat lama</strong>. Manfaatnya:</p>
+      <ul>
+        <li>HC bisa lihat riwayat lengkap kompetensi pekerja: sertifikat ke-1 → renewal ke-1 → renewal ke-2, dst</li>
+        <li>Sertifikat lama yang sudah di-renew otomatis dianggap "sudah ditangani" — <strong>tidak masuk daftar outstanding</strong> meskipun statusnya Expired</li>
+        <li>Dashboard CDP cuma menampilkan sertifikat outstanding yang masih perlu di-renew, bukan sertifikat lama yang sudah ada penggantinya</li>
+      </ul>
+    </section>
     <section id="sec-6"><h2><span class="badge bg-secondary">§6</span> Peran & Hak Akses</h2><p><em>Konten Task 7</em></p></section>
     <section id="sec-7"><h2><span class="badge bg-secondary">§7</span> Peta Menu Aplikasi</h2><p><em>Konten Task 8</em></p></section>
     <section id="sec-8"><h2><span class="badge bg-secondary">§8</span> Glosarium</h2><p><em>Konten Task 9</em></p></section>
