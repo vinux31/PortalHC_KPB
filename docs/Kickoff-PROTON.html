@@ -3149,6 +3149,67 @@
   </div>
 </div>
 
+<!-- ================= SLIDE 26: SISTEM UJIAN — ANATOMI SOAL ================= -->
+<div class="slide default-deco" data-slide="26">
+  <div class="slide-header">
+    <div>
+      <div class="section-eyebrow">PART 2 &mdash; ASSESSMENT</div>
+      <h1 class="slide-title">Sistem Ujian &mdash; <span class="accent">Anatomi Soal</span></h1>
+    </div>
+    <div class="slide-badge">26 / 31</div>
+  </div>
+  <div class="slide-body">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; align-items: stretch;">
+      <div style="background: #fff; border: 2px solid var(--teal-dark); border-radius: 10px; padding: 12px;">
+        <div style="background: var(--teal-dark); color: #fff; font-size: 11pt; font-weight: 800; padding: 6px 10px; border-radius: 5px; text-align: center;">AssessmentSession</div>
+        <ul style="margin-top: 10px; padding-left: 16px; font-size: 9.5pt; color: var(--text); line-height: 1.5;">
+          <li><strong>Status</strong></li>
+          <li>DurationMinutes</li>
+          <li>ExtraTimeMinutes</li>
+          <li>PassPercentage</li>
+          <li>GenerateCertificate</li>
+          <li>NomorSertifikat</li>
+          <li>ProtonTrackId</li>
+          <li>TahunKe</li>
+          <li>Category</li>
+          <li>InterviewResultsJson</li>
+        </ul>
+      </div>
+      <div style="background: #fff; border: 2px solid var(--teal); border-radius: 10px; padding: 12px;">
+        <div style="background: var(--teal); color: #fff; font-size: 11pt; font-weight: 800; padding: 6px 10px; border-radius: 5px; text-align: center;">AssessmentPackage</div>
+        <ul style="margin-top: 10px; padding-left: 16px; font-size: 9.5pt; color: var(--text); line-height: 1.5;">
+          <li>Name</li>
+          <li>Order</li>
+          <li>WeightPercentage</li>
+          <li><em>multi-package per session</em></li>
+        </ul>
+        <div style="font-size: 9pt; color: var(--text-muted); margin-top: 12px; text-align: center; font-style: italic;">1 Session &harr; many Package</div>
+      </div>
+      <div style="background: #fff; border: 2px solid var(--amber); border-radius: 10px; padding: 12px;">
+        <div style="background: var(--amber); color: #fff; font-size: 11pt; font-weight: 800; padding: 6px 10px; border-radius: 5px; text-align: center;">PackageQuestion</div>
+        <ul style="margin-top: 10px; padding-left: 16px; font-size: 9.5pt; color: var(--text); line-height: 1.5;">
+          <li><strong>Type:</strong><br>&middot; MultipleChoice<br>&middot; MultipleAnswer<br>&middot; Essay</li>
+          <li>ScoreValue</li>
+          <li><strong>Rubrik</strong> (Essay only)</li>
+          <li>QuestionText</li>
+        </ul>
+      </div>
+      <div style="background: #fff; border: 2px solid var(--amber-dark); border-radius: 10px; padding: 12px;">
+        <div style="background: var(--amber-dark); color: #fff; font-size: 11pt; font-weight: 800; padding: 6px 10px; border-radius: 5px; text-align: center;">PackageOption</div>
+        <ul style="margin-top: 10px; padding-left: 16px; font-size: 9.5pt; color: var(--text); line-height: 1.5;">
+          <li>OptionText</li>
+          <li><strong>IsCorrect</strong> (auto-grade key)</li>
+          <li>Order</li>
+          <li><em>untuk MC/MA only</em></li>
+        </ul>
+      </div>
+    </div>
+    <div style="background: #f8fafc; border: 1px solid var(--border); padding: 10px 16px; border-radius: 8px; font-size: 10.5pt; color: var(--text); text-align: center;">
+      <strong>Relasi:</strong> AssessmentSession <span style="color: var(--teal-dark); font-weight: 800;">1&mdash;*</span> AssessmentPackage <span style="color: var(--teal); font-weight: 800;">1&mdash;*</span> PackageQuestion <span style="color: var(--amber); font-weight: 800;">1&mdash;*</span> PackageOption
+    </div>
+  </div>
+</div>
+
 
 </div>
 
