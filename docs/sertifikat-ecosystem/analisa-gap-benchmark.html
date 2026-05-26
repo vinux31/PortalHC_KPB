@@ -222,7 +222,34 @@
           <p class="small text-muted mt-2">Catatan: <em>Related Bug</em> hanya cross-ref bila tema overlap. Beberapa bug fix dapat menutup gap (mis. <code>bug-P05</code> menutup G-14 partial). Detail bug → klik link.</p>
         </section>
 
-        <!-- §4 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-4">
+          <h2><span class="badge bg-secondary">§4</span> Net-New Capability Research</h2>
+          <p>Kapabilitas yang <strong>belum ada</strong> di Portal HC KPB dan tidak tercantum di <a href="index.html#sec-10">§10 Gap</a>. Sumber: benchmark vendor industri (detail di <a href="#sec-5">§5</a>). ID stable: N-01..N-12.</p>
+
+          <div class="table-responsive mt-3">
+            <table class="table table-sm table-bordered table-hover">
+              <thead class="table-primary"><tr><th>ID</th><th>Capability</th><th>Definisi</th><th>Sumber Benchmark</th><th>Manfaat</th><th>Complexity</th></tr></thead>
+              <tbody>
+                <tr><td>N-01</td><td><strong>Open Badges 1EdTech Issuer</strong></td><td>Issue cert sebagai badge JSON-LD standar Open Badges 2.0/3.0 — verifiable assertion + cryptographic signature.</td><td>1EdTech (Open Badges spec), Credly, Accredible</td><td>Interoperability LinkedIn/external HR, portfolio digital portable.</td><td><span class="badge bg-danger">L (6-8 PW)</span></td></tr>
+                <tr><td>N-02</td><td><strong>Blockchain Credential Verify</strong></td><td>Anchor hash credential ke blockchain public (Ethereum/Polygon) untuk tamper-proof verify.</td><td>Accredible, Credly, Blockcerts</td><td>Anti-fraud absolut, third-party trust tanpa Pertamina infrastructure.</td><td><span class="badge bg-danger">L (8+ PW)</span></td></tr>
+                <tr><td>N-03</td><td><strong>Expiry Auto-Renewal Pipeline</strong></td><td>Cron daily: detect cert ≤30/15/3 days → email coachee + atasan + auto-create assessment baru via template.</td><td>Workday Learning, SAP SuccessFactors</td><td>Compliance migas (cert valid wajib), reduce admin manual.</td><td><span class="badge bg-warning text-dark">M (3-4 PW)</span></td></tr>
+                <tr><td>N-04</td><td><strong>Skill Matrix Integration</strong></td><td>Cert mapping ke skill taxonomy (mis. "Pump Operator L2") + dashboard kompetensi per unit kerja.</td><td>Workday Talent, Cornerstone Skills Cloud</td><td>Visibility skill gap unit, basis succession planning.</td><td><span class="badge bg-danger">L (6-7 PW)</span></td></tr>
+                <tr><td>N-05</td><td><strong>Peer Endorsement</strong></td><td>Rekan kerja endorse skill peer (mis. "Pak Andi handle valve safely") melalui in-app modal, tampil di profil.</td><td>Workday Talent, LinkedIn Learning</td><td>Validasi soft-skill, social proof internal.</td><td><span class="badge bg-warning text-dark">M (3-4 PW)</span></td></tr>
+                <tr><td>N-06</td><td><strong>Digital Badge Wallet/Portfolio</strong></td><td>Halaman profil publik per worker dengan semua badge/cert active + history, shareable URL.</td><td>Credly Acclaim, Mozilla Backpack (legacy)</td><td>Worker mobility internal, self-promote untuk rotasi/proyek.</td><td><span class="badge bg-warning text-dark">M (4-5 PW)</span></td></tr>
+                <tr><td>N-07</td><td><strong>Cert Revocation List (CRL)</strong></td><td>Public endpoint <code>/cert/revoked</code> JSON list ID cert revoked + reason + date. Verifier external check.</td><td>ISO 17024 (clause 9.5), Accredible</td><td>Compliance audit, revoke fraud cert tanpa hilang audit trail (G-03 enabler).</td><td><span class="badge bg-success">S (1-2 PW)</span></td></tr>
+                <tr><td>N-08</td><td><strong>Multi-Language Cert Generation</strong></td><td>Generate PDF dalam EN + ID; user pilih saat issue/download.</td><td>Workday Learning, Moodle</td><td>Penggunaan eksternal (vendor internasional, audit ISO).</td><td><span class="badge bg-warning text-dark">M (2-3 PW)</span></td></tr>
+                <tr><td>N-09</td><td><strong>QR-Code Dynamic Verify</strong></td><td>PDF embed QR → scan → buka endpoint <code>/cert/verify/{id}</code> tampilkan status real-time (Active/Revoked/Expired).</td><td>Accredible, Credly</td><td>External audit/vendor verify keaslian cepat (G-04 implementasi).</td><td><span class="badge bg-success">S (1 PW)</span></td></tr>
+                <tr><td>N-10</td><td><strong>SCORM/xAPI Export</strong></td><td>Export cert + learning record sebagai paket SCORM 2004 atau xAPI statement ke LMS eksternal.</td><td>Moodle, TalentLMS, Cornerstone</td><td>Portability training data jika consolidate ke LMS Pertamina pusat.</td><td><span class="badge bg-warning text-dark">M (3-4 PW)</span></td></tr>
+                <tr><td>N-11</td><td><strong>CPD Point Accumulation</strong></td><td>Setiap cert/training award N CPD point. Worker punya total CPD tahunan dengan target (mis. 30 pts/year).</td><td>IACET CEU, BNSP CPD, Permen ESDM</td><td>Compliance LSP/BNSP, gamification self-development.</td><td><span class="badge bg-warning text-dark">M (3-4 PW)</span></td></tr>
+                <tr><td>N-12</td><td><strong>External Assessor / Proctor Mode</strong></td><td>Role baru: assessor eksternal (BNSP/LSP) login, lihat hanya assessment ditugaskan, beri grade.</td><td>ISO 17024 clause 9.2, BNSP framework</td><td>Compliance personnel certification body standard.</td><td><span class="badge bg-danger">L (5-6 PW)</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="small text-muted">Complexity legend: <span class="badge bg-success">S</span> ≤2 PW · <span class="badge bg-warning text-dark">M</span> 2-5 PW · <span class="badge bg-danger">L</span> ≥5 PW. Effort person-week range, asumsi 1 dev fokus full-time.</p>
+        </section>
+
+        <!-- §5 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
