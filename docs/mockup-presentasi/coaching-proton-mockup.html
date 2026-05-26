@@ -1174,7 +1174,53 @@
         </div>
         <!-- Layar 6: Edit Session -->
         <div id="screen-6" class="mockup-screen">
-            <!-- TODO Task 12 -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#" onclick="event.preventDefault(); showScreen(1)">Coaching Proton</a></li>
+                    <li class="breadcrumb-item"><a href="#" onclick="event.preventDefault(); showScreen(2)">Deliverable</a></li>
+                    <li class="breadcrumb-item active">Edit Sesi Coaching</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Sesi Coaching</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6"><div class="mb-3"><label class="form-label fw-semibold text-muted">Tanggal Sesi</label><p class="form-control-plaintext">15 Mei 2026</p></div></div>
+                        <div class="col-md-6"><div class="mb-3"><label class="form-label fw-semibold text-muted">Kompetensi</label><p class="form-control-plaintext">Pemeliharaan Mekanikal</p></div></div>
+                        <div class="col-md-6"><div class="mb-3"><label class="form-label fw-semibold text-muted">Sub Kompetensi</label><p class="form-control-plaintext">Pemeliharaan Static Equipment</p></div></div>
+                        <div class="col-md-6"><div class="mb-3"><label class="form-label fw-semibold text-muted">Deliverable</label><p class="form-control-plaintext">Resume Coaching Bejana Tekan</p></div></div>
+                    </div>
+                    <hr/>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Catatan Coach</label>
+                        <textarea class="form-control" rows="5" readonly>Coachee paham prosedur visual inspection bejana tekan dengan baik, mampu identifikasi tanda-tanda korosi external dan internal. Demonstrasi praktik di V-102 berjalan lancar. Direkomendasikan pendalaman pada interpretasi RT/UT report minggu depan.</textarea>
+                        <div class="form-text">Isi catatan pembinaan, observasi, dan rekomendasi untuk coachee.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Kesimpulan</label>
+                        <select class="form-select" disabled>
+                            <option selected>Kompeten</option>
+                            <option>Perlu Pengembangan</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Result</label>
+                        <select class="form-select" disabled>
+                            <option>Need Improvement</option>
+                            <option>Suitable</option>
+                            <option selected>Good</option>
+                            <option>Excellence</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary demo-disabled"><i class="bi bi-save me-1"></i>Simpan Perubahan</button>
+                        <button type="button" class="btn btn-outline-secondary demo-disabled"><i class="bi bi-x-circle me-1"></i>Batal</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
