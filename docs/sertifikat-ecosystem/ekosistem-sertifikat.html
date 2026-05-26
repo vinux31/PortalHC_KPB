@@ -91,7 +91,33 @@
         </div>
       </div>
     </section>
-    <section id="sec-2"><h2><span class="badge bg-secondary">§2</span> Ekosistem 4-Kotak</h2><p><em>Konten Task 3</em></p></section>
+    <section id="sec-2">
+      <h2><span class="badge bg-secondary">§2</span> Ekosistem 4-Kotak</h2>
+      <p>Ekosistem sertifikat Portal HC terdiri dari 4 komponen utama yang saling terhubung:</p>
+      <div class="mermaid">
+flowchart LR
+    A[Sumber<br/>Assessment Online<br/>Training Manual]
+    B[Penyimpanan<br/>Database Portal HC]
+    C[Status<br/>Aktif / Akan Expired<br/>Expired / Permanent]
+    D[Notifikasi<br/>Pekerja + HC]
+    A --> B
+    B --> C
+    C --> D
+      </div>
+      <dl class="row mt-3">
+        <dt class="col-sm-3">Sumber</dt>
+        <dd class="col-sm-9">2 jalur: <strong>online</strong> (otomatis dari assessment yang dijalani &amp; lulus), atau <strong>manual</strong> (HC upload bukti training external).</dd>
+
+        <dt class="col-sm-3">Penyimpanan</dt>
+        <dd class="col-sm-9">Database aplikasi menyimpan tanggal terbit, tanggal kadaluarsa, nomor sertifikat, dan link file PDF (jika ada).</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">Status <strong>tidak disimpan permanen</strong> — dihitung sistem real-time setiap halaman dibuka, berdasarkan tanggal kadaluarsa + jenis sertifikat.</dd>
+
+        <dt class="col-sm-3">Notifikasi</dt>
+        <dd class="col-sm-9">Sistem kirim notif otomatis 30 hari sebelum sertifikat expired, ke pekerja terkait dan tim HC.</dd>
+      </dl>
+    </section>
     <section id="sec-3"><h2><span class="badge bg-secondary">§3</span> Perjalanan Sertifikat</h2><p><em>Konten Task 4</em></p></section>
     <section id="sec-4"><h2><span class="badge bg-secondary">§4</span> Status & Kapan Berubah</h2><p><em>Konten Task 5</em></p></section>
     <section id="sec-5"><h2><span class="badge bg-secondary">§5</span> Renewal — Kenapa & Bagaimana</h2><p><em>Konten Task 6</em></p></section>
