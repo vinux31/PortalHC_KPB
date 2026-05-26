@@ -423,8 +423,93 @@
         </div>
     </div>
 
-    <!-- ============ MODAL PLACEHOLDERS ============ -->
-    <!-- Modal C1: Submit Evidence (Task 5) -->
+    <!-- ============ MODAL C1: Submit Evidence ============ -->
+    <div class="modal fade" id="modalSubmitEvidence" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Submit Evidence &amp; Coaching Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Deliverable</label>
+                        <div class="border rounded p-2" style="max-height:200px;overflow-y:auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="evDel1" checked>
+                                <label class="form-check-label" for="evDel1" id="modalDeliverableLabel">
+                                    Laporan Inspeksi Mingguan Rotating Equipment
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="evDel2">
+                                <label class="form-check-label" for="evDel2">
+                                    Laporan Alignment Shaft Pompa
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" class="form-control" value="2026-05-15"/>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">Acuan</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Pedoman</label>
+                                <textarea class="form-control" rows="2">Pedoman Pemeliharaan Mekanikal KPB Rev. 4 — Bab 3: Pompa Sentrifugal</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">TKO / TKI / TKPA</label>
+                                <textarea class="form-control" rows="2">TKO-MNT-RTE-001: Inspeksi Mingguan Rotating Equipment</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Best Practice</label>
+                                <textarea class="form-control" rows="2">Pertamina RU Best Practice: Vibration analysis tools (CSI 2140) wajib digunakan saat reading vibrasi pompa kritis</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Dokumen</label>
+                                <textarea class="form-control" rows="2">Form Check-Sheet RTE-CS-2026-05, Logbook Operator Pompa Area 12</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Catatan Coach</label>
+                        <textarea class="form-control" rows="3">Coachee menunjukkan pemahaman baik saat membaca vibration spectrum. Perlu pendalaman pada interpretasi misalignment vs unbalance signature. Direkomendasikan praktik langsung pada P-101 minggu depan.</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kesimpulan</label>
+                        <select class="form-select">
+                            <option value="">-- Pilih --</option>
+                            <option selected>Kompeten secara mandiri</option>
+                            <option>Masih perlu dikembangkan</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Result</label>
+                        <select class="form-select">
+                            <option value="">-- Pilih --</option>
+                            <option>Need Improvement</option>
+                            <option>Suitable</option>
+                            <option selected>Good</option>
+                            <option>Excellence</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File Evidence (opsional, PDF/JPG/PNG, max 10MB)</label>
+                        <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSubmitEvidenceMock">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal C2: Tinjau Deliverable (Task 8) -->
     <!-- Modal C3: Batch HC Approve (Task 11) -->
 
@@ -593,6 +678,26 @@
                 });
             });
         });
+
+        // === MODAL C1 Submit Evidence ===
+        const modalSubmitEv = document.getElementById('modalSubmitEvidence');
+        if (modalSubmitEv) {
+            modalSubmitEv.addEventListener('show.bs.modal', (event) => {
+                const trigger = event.relatedTarget;
+                if (trigger && trigger.dataset.deliverable) {
+                    const label = document.getElementById('modalDeliverableLabel');
+                    if (label) label.textContent = trigger.dataset.deliverable;
+                }
+            });
+            const btn = document.getElementById('btnSubmitEvidenceMock');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const modal = bootstrap.Modal.getInstance(modalSubmitEv);
+                    if (modal) modal.hide();
+                    showToast('Mock: Evidence terkirim — di production akan masuk antrian approval Sr Supervisor', 'success');
+                });
+            }
+        }
 
         // Init
         showScreen(1);
