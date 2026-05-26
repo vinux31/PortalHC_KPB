@@ -60,12 +60,520 @@
       <p class="small text-muted">Versi 2.0 — 2026-05-26 — Hasil merge §9 ekosistem-sertifikat + reformat v1.0 ke audience awam.</p>
     </header>
 
-    <section id="sec-1"><h2><span class="badge bg-secondary">§1</span> Ringkasan</h2><p><em>Konten Task 3</em></p></section>
-    <section id="sec-2"><h2><span class="badge bg-secondary">§2</span> Konteks Benchmark — 9 Platform</h2><p><em>Konten Task 4 + 5</em></p></section>
-    <section id="sec-3"><h2><span class="badge bg-secondary">§3</span> Gap Matrix Konsolidasi</h2><p><em>Konten Task 6</em></p></section>
-    <section id="sec-4"><h2><span class="badge bg-secondary">§4</span> Deep-Dive Top-5 Gap Kritis</h2><p><em>Konten Task 7</em></p></section>
-    <section id="sec-5"><h2><span class="badge bg-secondary">§5</span> Roadmap Rekomendasi 3-Bucket</h2><p><em>Konten Task 8</em></p></section>
-    <section id="sec-6"><h2><span class="badge bg-secondary">§6</span> Sumber Referensi &amp; Cross-Reference</h2><p><em>Konten Task 9</em></p></section>
+    <section id="sec-1">
+      <h2><span class="badge bg-secondary">§1</span> Ringkasan</h2>
+      <p><strong>Dokumen ini memetakan gap dan rekomendasi pengembangan sistem sertifikat Portal HC KPB</strong> dengan membandingkan ke 9 platform benchmark (5 HRIS+LMS enterprise dunia + 4 platform Migas/Energy). Hasil: 50 gap unique (konsolidasi review internal + capability baru), 5 top kritis dengan deep-dive, dan roadmap 3-bucket actionable untuk tim HC.</p>
+      <div class="row text-center my-4 g-3">
+        <div class="col-6 col-md-3">
+          <div class="card h-100"><div class="card-body p-3">
+            <h3 class="mb-0 text-primary">9</h3>
+            <small class="text-muted">Platform Benchmark</small>
+          </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card h-100"><div class="card-body p-3">
+            <h3 class="mb-0 text-primary">50</h3>
+            <small class="text-muted">Gap &amp; Capability</small>
+          </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card h-100"><div class="card-body p-3">
+            <h3 class="mb-0 text-primary">5</h3>
+            <small class="text-muted">Top Kritis Deep-Dive</small>
+          </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card h-100"><div class="card-body p-3">
+            <h3 class="mb-0 text-primary">3</h3>
+            <small class="text-muted">Bucket Roadmap</small>
+          </div></div>
+        </div>
+      </div>
+      <h5 class="mt-4">Cara baca dokumen ini</h5>
+      <ol class="small">
+        <li><strong>§2</strong> kenali dulu 9 platform benchmark (5 HRIS+LMS + 4 Migas) — konteks dari mana gap di-identifikasi</li>
+        <li><strong>§3</strong> scan matrix 50 gap, filter by severity (🔴/🟡/🟢) atau kategori (🏗️🔄✨🔒⚡)</li>
+        <li><strong>§4</strong> deep-dive 5 gap paling kritis — current state, best practice, rekomendasi, effort</li>
+        <li><strong>§5</strong> lihat roadmap 3-bucket: Quick Win (1-3 bulan) / Medium (3-9 bulan) / Long-term (&gt;9 bulan)</li>
+        <li><strong>§6</strong> sumber referensi external (vendor docs + community) + link ke dokumen sertifikat ecosystem lainnya</li>
+      </ol>
+      <p class="small text-muted"><i class="bi bi-info-circle"></i> Setiap gap punya badge ID kecil (mis. <code class="id-badge">G-10 / §9#1</code>) untuk traceability ke dokumen v1.0 executive dan §9 ekosistem-sertifikat sebelumnya.</p>
+    </section>
+
+    <section id="sec-2">
+      <h2><span class="badge bg-secondary">§2</span> Konteks Benchmark — 9 Platform</h2>
+      <p>9 platform benchmark dibagi 2 grup: <strong>5 HRIS+LMS Enterprise</strong> (best practice digital cert mainstream) + <strong>4 platform Industri Migas</strong> (best practice sektor sama).</p>
+
+      <h4 id="sec-2-1" class="mt-4">2.1 HRIS + LMS Enterprise (5 Platform)</h4>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>Workday Learning</strong>
+              <span class="badge bg-primary">HRIS Enterprise</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">Workday Learning terintegrasi langsung dengan modul HRIS, sehingga sertifikat, training, dan kompetensi pekerja terupdate otomatis saat pekerja pindah jabatan atau departemen. Punya skill cloud untuk mapping kompetensi ke jabatan + auto-assign remediation training saat ada gap. Compliance tracking real-time per departemen dengan reminder otomatis pre-expired.</p>
+              <p class="small mb-0"><strong>Relevansi Portal HC:</strong> Pertamina punya ekosistem HR kompleks dengan KKJ per jabatan — pattern HRIS-Learning native Workday ideal untuk integrasi data pekerja.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://www.workday.com/en-us/services/training-certifications.html" target="_blank" rel="noopener">Workday Learning Docs <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>SAP SuccessFactors Learning</strong>
+              <span class="badge bg-primary">HRIS Enterprise</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">SAP SuccessFactors Learning fokus pada compliance enterprise dengan reporting drill-down by population/role/location. Joule AI agent (rilis 1H 2026) bertindak proaktif: identifikasi siapa at-risk, kirim reminder 4 minggu sebelum deadline, dan bundle pending approval jadi action queue siap-pakai untuk manager.</p>
+              <p class="small mb-0"><strong>Relevansi Portal HC:</strong> SAP dipakai luas di BUMN Indonesia termasuk Pertamina — pattern compliance + audit reporting SuccessFactors familiar untuk tim HC.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://news.sap.com/2026/04/sap-successfactors-1h-2026-release/" target="_blank" rel="noopener">SAP SuccessFactors 1H 2026 <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>Cornerstone Learning</strong>
+              <span class="badge bg-success">LMS Dedicated</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">Cornerstone Learning dedicated LMS dengan fokus compliance regulated industry. Audit trail "defensible": setiap interaksi training tercatat dengan timestamp, IP address, dan score — siap untuk inspeksi regulator. Standar 21 CFR Part 11 (life sciences) didukung lewat konfigurasi e-signature + audit trail.</p>
+              <p class="small mb-0"><strong>Relevansi Portal HC:</strong> Industri Migas/Energy = regulated sector. Pattern rigorous audit trail Cornerstone cocok untuk compliance audit Pertamina (BPK, internal audit, regulator).</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://www.cornerstoneondemand.com/solutions/compliance-management/" target="_blank" rel="noopener">Cornerstone Compliance <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>Docebo</strong>
+              <span class="badge bg-info text-dark">Cloud LMS Modern</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">Docebo cloud LMS modern dengan fokus AI + automation. AI otomatis tag skill ke konten saat upload, certification renewal bisa di-trigger user kapan saja (self-service), webhook event untuk skill changes terintegrasi sistem external. AgentHub 2026 satukan AI agent + skill intelligence dalam satu platform.</p>
+              <p class="small mb-0"><strong>Relevansi Portal HC:</strong> Pattern AI auto-tag skill + self-service renewal bisa diadopsi bertahap ke modul CDP/CMP, terutama mapping otomatis KKJ ↔ sertifikat.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://www.docebo.com/learning-network/blog/inspire-2026-announcements/" target="_blank" rel="noopener">Docebo Inspire 2026 <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>TalentLMS</strong>
+              <span class="badge bg-warning text-dark">Mid-Market LMS</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">TalentLMS mid-market LMS dengan fokus simplicity + engagement. Gamification mendalam (point/badge/leaderboard/reward), branded certificate yang bisa di-customize logo + design, automated re-certification flow. UX mobile-first dengan onboarding cepat.</p>
+              <p class="small mb-0"><strong>Relevansi Portal HC:</strong> Pattern gamification + branded certificate bisa naikkan engagement pekerja untuk mandatory training (K3, HSE), terutama kalau ada leaderboard per section.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://www.talentlms.com/features/gamification-lms" target="_blank" rel="noopener">TalentLMS Gamification <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="small text-muted mt-3"><i class="bi bi-calendar3"></i> Sumber: vendor docs + community/blog posts, per riset 2026-05.</p>
+
+      <h4 id="sec-2-2" class="mt-4">2.2 Industri Migas (4 Platform)</h4>
+      <p>4 platform Industri Migas/Energy yang jadi acuan operational excellence + competency framework:</p>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>Shell Learning Academy</strong>
+              <span class="badge bg-dark">Migas</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">Shell Learning Academy gabungkan praktik competence-based via hands-on roles + job tasks + training formal. Kolaborasi dengan PetroSkills Alliance (bersama BP) untuk training oil &amp; gas industri-wide. Punya Graduate Programme 3-tahun dengan job rotation + coaching personal + leadership development.</p>
+              <p class="small mb-0"><strong>Relevansi:</strong> Pola job rotation tracking + coaching pairing formal cocok untuk pengembangan pekerja Pertamina KPB.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://www.shell.com/business-customers/aviation/aviation-consultancy-services/technical-products-and-services/operating-systems/learning-academy.html" target="_blank" rel="noopener">Shell Learning Academy <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>Chevron OEMS</strong>
+              <span class="badge bg-dark">Migas</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">Operational Excellence Management System (launched 2004, updated 2018) — framework manajemen operasional yang mengaitkan kompetensi dengan risiko + safeguards. Pelatihan operator wajib selesai dalam 3 tahun pertama kerja. Verifikasi external oleh Lloyd's Register selaras dengan standar ISO 14001 + ISO 45001.</p>
+              <p class="small mb-0"><strong>Relevansi:</strong> Pola external auditor verification + time-bound mandatory training (rule 3 tahun) layak adopsi.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://www.chevron.com/who-we-are/culture/operational-excellence/oems" target="_blank" rel="noopener">Chevron OEMS <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>ExxonMobil OIMS</strong>
+              <span class="badge bg-dark">Migas</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">Operations Integrity Management System — framework 11 elemen, elemen ke-6 khusus "Personnel and Training". Mengaitkan kompetensi pekerja dengan pencegahan insiden lewat Process Safety Management. Independent verification oleh auditor korporasi internal. Matriks training terdokumentasi per asset (refinery, platform, terminal).</p>
+              <p class="small mb-0"><strong>Relevansi:</strong> Pola linkage kompetensi ↔ risiko proses + matriks training per-asset cocok untuk konteks pengilangan KPB.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://corporate.exxonmobil.com/operations" target="_blank" rel="noopener">ExxonMobil Operations <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>PPSDM Migas (LSP)</strong>
+              <span class="badge bg-success">Domestik</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text small">Lembaga Sertifikasi Profesi (LSP) milik pemerintah Indonesia khusus migas — satu-satunya LSP yang sah untuk uji kompetensi migas. Ada 45 ruang lingkup sertifikasi; bidang hilir/pengilangan mencakup Crude Distilling Unit, Vacuum Distilling Unit, Operasi Boiler, Lab Pengujian. Mengacu SKKNI sesuai Permen ESDM (wajib).</p>
+              <p class="small mb-0"><strong>Relevansi:</strong> Portal HC dapat berperan feeder data ke PPSDM Migas + tracker re-sertifikasi 3-tahun + repositori sertifikat LSP — kritis untuk compliance regulasi Indonesia.</p>
+            </div>
+            <div class="card-footer small">
+              <a href="https://ppsdmmigas.esdm.go.id/" target="_blank" rel="noopener">PPSDM Migas ESDM <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="small text-muted mt-3"><i class="bi bi-info-circle"></i> Detail framework OEMS/OIMS + Permen ESDM regulasi: lihat <code>sertifikat-doc-gap-benchmark-v1.0</code> tag di git history (versi executive).</p>
+    </section>
+
+    <section id="sec-3">
+      <h2><span class="badge bg-secondary">§3</span> Gap Matrix Konsolidasi</h2>
+      <p>Matrix <strong>50 gap unique</strong> (hasil dedup 60 raw: 25 G-* existing + 12 N-* capability + 23 §9.2). 5 kategori: 🏗️ Sistem, 🔄 Flow, ✨ Fitur, 🔒 Compliance, ⚡ Performa. Severity 🔴 Kritis = blocking compliance/audit/workflow. 🟡 Penting = efficiency/UX hit. 🟢 Nice = enhancement.</p>
+      <p class="small text-muted">Badge ID format: <code class="id-badge">G-XX</code> = existing review internal, <code class="id-badge">N-XX</code> = net-new capability dari benchmark, <code class="id-badge">§9#XX</code> = dari §9 ekosistem-sertifikat. Multiple ID = merged dedup.</p>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 3rem;">#</th>
+              <th>Gap / Kapabilitas</th>
+              <th>Kategori</th>
+              <th>Severity</th>
+              <th>Best Practice (Platform)</th>
+              <th>Status Portal HC</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Audit Trail Defensible <code class="id-badge">G-10 / §9#1</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>Cornerstone: defensible audit trail dengan IP + e-signature (21 CFR Part 11)</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>2</td><td>Multi-channel notif + scheduler <code class="id-badge">G-02 + G-09 / §9#4</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>SAP Joule 4-week reminder + Hangfire scheduler</small></td><td><small>sebagian (email + in-app)</small></td></tr>
+            <tr><td>3</td><td>HCM Integration <code class="id-badge">§9#2</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>Workday: native HRIS sync, promosi update training req otomatis</small></td><td><small>belum ada (entry manual)</small></td></tr>
+            <tr><td>4</td><td>Scalable file storage CDN/Blob <code class="id-badge">G-15 / §9#7</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Docebo / Cornerstone: cloud-native blob storage</small></td><td><small>sebagian (file system local)</small></td></tr>
+            <tr><td>5</td><td>SSO/SAML enterprise <code class="id-badge">§9#3</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Workday/SAP: SSO HRIS-native</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>6</td><td>Observability / logging terstruktur <code class="id-badge">§9#5</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Workday: admin dashboard real-time</small></td><td><small>sebagian (file log)</small></td></tr>
+            <tr><td>7</td><td>RBAC granularity per-field <code class="id-badge">§9#8</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>SAP: role-based field masking + redaction</small></td><td><small>sebagian (per-endpoint)</small></td></tr>
+            <tr><td>8</td><td>Backup / DR auto-replicate <code class="id-badge">§9#6</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Enterprise SaaS: auto-replicate region</small></td><td><small>sebagian (DB backup manual)</small></td></tr>
+            <tr><td>9</td><td>Caching Layer Redis/MemoryCache <code class="id-badge">G-11</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Performance enterprise — Redis/MemoryCache</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>10</td><td>Cert PDF Async Generation <code class="id-badge">G-16</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>QuestPDF + background queue async</small></td><td><small>sebagian (synchronous block thread)</small></td></tr>
+            <tr><td>11</td><td>AssessmentSession.CertificateType schema <code class="id-badge">G-25</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Schema symmetry vs TrainingRecord</small></td><td><small>belum ada (asymmetric)</small></td></tr>
+            <tr><td>12</td><td>External Assessor / Proctor Mode role <code class="id-badge">N-12</code></td><td><span class="badge bg-secondary">🏗️ Sistem</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>ISO 17024 clause 9.2 + BNSP framework</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>13</td><td>Self-service renewal + auto-renewal pipeline <code class="id-badge">G-01 + N-03 / §9#9</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>Docebo: user-initiated renewal + Workday: auto-pipeline</small></td><td><small>belum ada (HC only)</small></td></tr>
+            <tr><td>14</td><td>Bulk action (renewal/export/re-issue/mass upload) <code class="id-badge">G-08 / §9#10</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>Cornerstone: auto-reassign mass + recurring</small></td><td><small>belum ada (per-record)</small></td></tr>
+            <tr><td>15</td><td>Approval workflow multi-tier <code class="id-badge">§9#11</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>SAP Joule: guided action queue manager</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>16</td><td>Escalation policy expired un-renewed <code class="id-badge">§9#12</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Workday: auto-escalate ke manager + HRBP</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>17</td><td>Calendar integration Outlook/Google <code class="id-badge">§9#13</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>SuccessFactors: deep calendar event integration</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>18</td><td>Mobile responsive flow ujian online <code class="id-badge">§9#14</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>TalentLMS: mobile-first native UX</small></td><td><small>sebagian (layout responsive, UX limited)</small></td></tr>
+            <tr><td>19</td><td>Offline mode learning content <code class="id-badge">§9#15</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Docebo: mobile offline app</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>20</td><td>Deep linking notif email → page <code class="id-badge">§9#16</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Workday: email → direct context page</small></td><td><small>sebagian (link homepage)</small></td></tr>
+            <tr><td>21</td><td>Renewal History Timeline View <code class="id-badge">G-05</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Visualisasi chain renewal di UI</small></td><td><small>sebagian (chain FK ada, no UI viz)</small></td></tr>
+            <tr><td>22</td><td>Cert Revocation Mechanism <code class="id-badge">G-03</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Accredible/Credly: soft revoke + reason</small></td><td><small>belum ada (hard delete only)</small></td></tr>
+            <tr><td>23</td><td>Peer Endorsement <code class="id-badge">N-05</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Workday Talent + LinkedIn: peer endorse skill</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>24</td><td>Job rotation tracking (3-year graduate) <code class="id-badge">Shell-pattern</code></td><td><span class="badge bg-info text-dark">🔄 Flow</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Shell Learning Academy: graduate programme 3-year</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>25</td><td>QR / Public verification (CRL implementation) <code class="id-badge">G-04 + N-09 / §9#17</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>TalentLMS branded + Accredible public verify</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>26</td><td>Skill graph &amp; competency mapping <code class="id-badge">N-04 / §9#19</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Workday skill cloud + Docebo AI auto-tag</small></td><td><small>sebagian (KKJ tabel, no graph viz)</small></td></tr>
+            <tr><td>27</td><td>Digital signature pada PDF <code class="id-badge">§9#18</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Cornerstone: 21 CFR e-signature config</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>28</td><td>Analytics dashboard real-time drill-down <code class="id-badge">§9#20</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>SAP: reporting drill-down by role/location</small></td><td><small>sebagian (Excel export only)</small></td></tr>
+            <tr><td>29</td><td>AI-recommendation training next-step <code class="id-badge">§9#21</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Docebo AgentHub 2026</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>30</td><td>Gamification badge/level/leaderboard <code class="id-badge">§9#22</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>TalentLMS: 5-mode leaderboard + 8-tier badge</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>31</td><td>External API webhook + LinkedIn import <code class="id-badge">§9#23</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Docebo: webhook event lengkap</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>32</td><td>Cert Template Customization admin <code class="id-badge">G-07</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>QuestPDF editable logo/wording per admin</small></td><td><small>belum ada (hardcode)</small></td></tr>
+            <tr><td>33</td><td>Multi-Language Cert Generation EN+ID <code class="id-badge">N-08</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Workday Learning + Moodle: multi-lang PDF</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>34</td><td>Digital Badge Wallet/Portfolio publik <code class="id-badge">N-06</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Credly Acclaim: shareable URL portfolio</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>35</td><td>CPD Point Accumulation <code class="id-badge">N-11</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>IACET CEU + BNSP CPD framework</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>36</td><td>Open Badges 1EdTech JSON-LD Issuer <code class="id-badge">N-01</code></td><td><span class="badge bg-primary">✨ Fitur</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Moodle Open Badges 2.0/3.0 + W3C VCDM 2.0</small></td><td><small>belum ada (PDF only)</small></td></tr>
+            <tr><td>37</td><td>Cert Revocation List CRL endpoint <code class="id-badge">N-07</code></td><td><span class="badge bg-warning text-dark">🔒 Compliance</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>ISO 17024 clause 9.5 + Accredible CRL</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>38</td><td>Blockchain Credential Verify <code class="id-badge">N-02</code></td><td><span class="badge bg-warning text-dark">🔒 Compliance</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Accredible / Blockcerts (Ethereum/Polygon)</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>39</td><td>Budget Multi-Year Trend chart <code class="id-badge">G-06</code></td><td><span class="badge bg-warning text-dark">🔒 Compliance</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Audit 3-5 tahun trend visualization</small></td><td><small>belum ada (per-tahun only)</small></td></tr>
+            <tr><td>40</td><td>External auditor verification model <code class="id-badge">Chevron-pattern</code></td><td><span class="badge bg-warning text-dark">🔒 Compliance</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Chevron OEMS via Lloyd's Register (LRQA)</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>41</td><td>PSM/HSSE database linkage <code class="id-badge">ExxonMobil-pattern</code></td><td><span class="badge bg-warning text-dark">🔒 Compliance</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>ExxonMobil OIMS element 6 — Personnel &amp; Training</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>42</td><td>LSP PPSDM Migas feeder integration <code class="id-badge">Permen ESDM</code></td><td><span class="badge bg-warning text-dark">🔒 Compliance</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>Permen ESDM SKKNI Migas wajib + LSP PPSDM</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>43</td><td>Mutasi TrainingRecord/AssessmentSession audit <code class="id-badge">G-10 (subset of #1)</code></td><td><span class="badge bg-warning text-dark">🔒 Compliance</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Siapa-apa-kapan track (cross-ref #1)</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>44</td><td>DB Index pada ValidUntil <code class="id-badge">G-13</code></td><td><span class="badge bg-success text-white">⚡ Performa</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Indexed filter WHERE ValidUntil ≤ now+30d</small></td><td><small>belum ada (full scan)</small></td></tr>
+            <tr><td>45</td><td>Rate-Limit Export endpoint <code class="id-badge">G-12</code></td><td><span class="badge bg-success text-white">⚡ Performa</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Throttle cegah OOM saat export besar</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>46</td><td>Soft Delete IsDeleted Flag <code class="id-badge">G-14</code></td><td><span class="badge bg-success text-white">⚡ Performa</span></td><td><span class="badge bg-danger">🔴 Kritis</span></td><td><small>Preserve renewal chain history (no hard delete)</small></td><td><small>sebagian (hard delete masih ada)</small></td></tr>
+            <tr><td>47</td><td>Cycle Detection renewal chain A→B→A <code class="id-badge">G-18</code></td><td><span class="badge bg-success text-white">⚡ Performa</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>Union-Find algorithm + cycle guard</small></td><td><small>belum ada</small></td></tr>
+            <tr><td>48</td><td>Null ValidUntil Ambiguity <code class="id-badge">G-17</code></td><td><span class="badge bg-success text-white">⚡ Performa</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>DeriveStatus disambiguate null vs Permanent</small></td><td><small>bug existing</small></td></tr>
+            <tr><td>49</td><td>Timezone WIB vs UTC <code class="id-badge">G-19</code></td><td><span class="badge bg-success text-white">⚡ Performa</span></td><td><span class="badge bg-warning text-dark">🟡 Penting</span></td><td><small>UtcNow vs ValidUntil WIB selisih 7 jam</small></td><td><small>belum fix</small></td></tr>
+            <tr><td>50</td><td>SEQ Reset Tahunan + boundary inclusive <code class="id-badge">G-20 + G-21</code></td><td><span class="badge bg-success text-white">⚡ Performa</span></td><td><span class="badge bg-success">🟢 Nice</span></td><td><small>Format unique + alert precision boundary</small></td><td><small>sebagian</small></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sec-4">
+      <h2><span class="badge bg-secondary">§4</span> Deep-Dive Top-5 Gap Kritis</h2>
+      <p>5 gap paling kritis dengan deep-dive: kondisi saat ini, best practice external, rekomendasi spesifik, dan estimasi effort.</p>
+      <div class="accordion" id="topGapAccordion">
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="gapHeading1">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gapCollapse1" aria-expanded="false" aria-controls="gapCollapse1">
+              <span class="me-2"><strong>1. Self-Service Renewal Portal</strong></span>
+              <code class="id-badge me-2">G-01 + N-03 / §9#9</code>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-info text-dark">🔄 Flow</span>
+            </button>
+          </h2>
+          <div id="gapCollapse1" class="accordion-collapse collapse" aria-labelledby="gapHeading1" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body">
+              <p><strong>📍 Current State Portal HC:</strong> Renewal sertifikat hanya bisa di-trigger HC/Admin via menu Renewal Certificate di Admin Panel. Pekerja yang sertifikatnya akan expired hanya bisa nunggu notif + tindak lanjut HC. Tidak ada visibility "saya bisa renew sendiri kapan?".</p>
+              <p><strong>🌐 Best Practice External:</strong> <a href="https://help.docebo.com/hc/en-us/articles/22057130562066-Certificates-and-certifications" target="_blank" rel="noopener">Docebo</a> mengizinkan user trigger renewal <strong>kapan saja</strong> (selama status course Complete + cert config allow renewal). Pekerja proaktif, beban HC turun signifikan.</p>
+              <p><strong>💡 Rekomendasi untuk Portal HC:</strong></p>
+              <ul>
+                <li>Tambah menu "Renew Sertifikat Saya" di CMP/CDP untuk peran Coachee</li>
+                <li>Allowlist tipe sertifikat yang boleh self-renew (non-Permanent + IsPassed)</li>
+                <li>Setelah self-renew → trigger workflow approval ke Coach/HC</li>
+                <li>Log audit per self-renew (siapa, kapan, sertifikat apa)</li>
+                <li>Notifikasi otomatis ke Coach saat ada self-renew request menunggu approval</li>
+              </ul>
+              <p class="mb-0"><strong>⚙️ Effort Estimate:</strong> <span class="badge bg-warning text-dark">Medium (3-6 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="gapHeading2">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gapCollapse2" aria-expanded="false" aria-controls="gapCollapse2">
+              <span class="me-2"><strong>2. Public Verification (QR / URL)</strong></span>
+              <code class="id-badge me-2">G-04 + N-09 / §9#17</code>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-primary">✨ Fitur</span>
+            </button>
+          </h2>
+          <div id="gapCollapse2" class="accordion-collapse collapse" aria-labelledby="gapHeading2" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body">
+              <p><strong>📍 Current State Portal HC:</strong> Sertifikat PDF generate dengan nomor format <code>KPB/SEQ/ROMAWI/YYYY</code> tapi tidak ada cara external (rekruter, vendor, BPK) untuk verify keaslian sertifikat. Pihak eksternal harus phone/email HC manual untuk konfirmasi.</p>
+              <p><strong>🌐 Best Practice External:</strong> <a href="https://www.talentlms.com/features/gamification-lms" target="_blank" rel="noopener">TalentLMS</a> branded certificate dengan public URL + verification. Recipient bisa share link, third-party verify status sertifikat real-time tanpa login.</p>
+              <p><strong>💡 Rekomendasi untuk Portal HC:</strong></p>
+              <ul>
+                <li>Generate UUID unik per sertifikat saat issue (kolom baru di tabel)</li>
+                <li>Public endpoint <code>/verify/{uuid}</code> read-only, no authentication</li>
+                <li>Render halaman verify simple: nama pekerja, kompetensi, status, valid until (no detail PII sensitif)</li>
+                <li>Embed QR code di PDF sertifikat → arahkan ke URL verify</li>
+                <li>Rate limit endpoint untuk mencegah enumeration / scraping</li>
+              </ul>
+              <p class="mb-0"><strong>⚙️ Effort Estimate:</strong> <span class="badge bg-success">Quick Win (1-3 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="gapHeading3">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gapCollapse3" aria-expanded="false" aria-controls="gapCollapse3">
+              <span class="me-2"><strong>3. Bulk Action Suite</strong></span>
+              <code class="id-badge me-2">G-08 / §9#10</code>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-info text-dark">🔄 Flow</span>
+            </button>
+          </h2>
+          <div id="gapCollapse3" class="accordion-collapse collapse" aria-labelledby="gapHeading3" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body">
+              <p><strong>📍 Current State Portal HC:</strong> Operasi sertifikat hanya per-record: HC harus klik satu-per-satu untuk renewal, re-issue, atau export individual. Dengan ribuan pekerja Pertamina KPB, ini jadi bottleneck operasional yang menghabiskan waktu HC.</p>
+              <p><strong>🌐 Best Practice External:</strong> <a href="https://www.cornerstoneondemand.com/solutions/compliance-management/" target="_blank" rel="noopener">Cornerstone</a> mendukung auto-reassign mass untuk recurring training + bulk export by population/role/location. Workday auto-enrollment rule menjalankan mass-action tanpa intervensi admin.</p>
+              <p><strong>💡 Rekomendasi untuk Portal HC:</strong></p>
+              <ul>
+                <li>Tambah bulk-checkbox kolom di list CDP Certification Management</li>
+                <li>Bulk renewal action: 1 form input target → ratusan record diproses sekaligus</li>
+                <li>Bulk re-issue PDF (regenerate dengan template baru tanpa ubah data)</li>
+                <li>Bulk export Excel dengan filter advance (status, section, valid range, renewal chain depth)</li>
+                <li>Batch progress indicator + email summary ke HC saat batch selesai</li>
+              </ul>
+              <p class="mb-0"><strong>⚙️ Effort Estimate:</strong> <span class="badge bg-warning text-dark">Medium (3-6 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="gapHeading4">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gapCollapse4" aria-expanded="false" aria-controls="gapCollapse4">
+              <span class="me-2"><strong>4. HCM Integration (Employee Master Sync)</strong></span>
+              <code class="id-badge me-2">§9#2</code>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-secondary">🏗️ Sistem</span>
+            </button>
+          </h2>
+          <div id="gapCollapse4" class="accordion-collapse collapse" aria-labelledby="gapHeading4" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body">
+              <p><strong>📍 Current State Portal HC:</strong> Data pekerja (NIP, nama, section, jabatan) di-entry manual atau di-impor periodik via Excel. Saat pekerja pindah section/jabatan, status sertifikat tidak otomatis ter-update — perlu maintenance manual HC.</p>
+              <p><strong>🌐 Best Practice External:</strong> <a href="https://www.workday.com/en-us/services/training-certifications.html" target="_blank" rel="noopener">Workday Learning</a> HRIS-Learning native — saat pekerja promosi, training requirement otomatis update tanpa admin intervention. Single source of truth untuk data karyawan.</p>
+              <p><strong>💡 Rekomendasi untuk Portal HC:</strong></p>
+              <ul>
+                <li>Integrasi API ke sistem HR Pertamina pusat (SAP HCM atau Oracle HCM)</li>
+                <li>Sync employee master nightly: NIP, jabatan, section, status active/inactive</li>
+                <li>Saat detect pindah section → auto-update RBAC scope + flag sertifikat affected</li>
+                <li>Webhook saat employee inactive → freeze sertifikat (stop generate notif)</li>
+                <li>Log full audit perubahan source-of-truth (apa yang berubah, kapan)</li>
+              </ul>
+              <p class="mb-0"><strong>⚙️ Effort Estimate:</strong> <span class="badge bg-danger">Long-term (&gt;9 bulan, butuh IT Pertamina pusat)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="gapHeading5">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gapCollapse5" aria-expanded="false" aria-controls="gapCollapse5">
+              <span class="me-2"><strong>5. Audit Trail Defensible</strong></span>
+              <code class="id-badge me-2">G-10 / §9#1</code>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-secondary">🏗️ Sistem</span>
+            </button>
+          </h2>
+          <div id="gapCollapse5" class="accordion-collapse collapse" aria-labelledby="gapHeading5" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body">
+              <p><strong>📍 Current State Portal HC:</strong> Aksi di Portal HC ter-log umum via file log aplikasi, tapi tidak ada audit trail per-record yang siap diserahkan ke regulator (BPK, audit internal Pertamina). Sertifikat tidak punya record "siapa edit, kapan, dari IP mana".</p>
+              <p><strong>🌐 Best Practice External:</strong> <a href="https://www.cornerstoneondemand.com/industries/life-sciences/" target="_blank" rel="noopener">Cornerstone Learning</a> implement 21 CFR Part 11 — defensible audit trail dengan timestamp + IP + signature digital, exportable PDF untuk regulator. Setiap event training tercatat permanen.</p>
+              <p><strong>💡 Rekomendasi untuk Portal HC:</strong></p>
+              <ul>
+                <li>Tabel <code>SertifikatAuditLog</code> dedicated: UserId, Action, SertifikatId, OldValue, NewValue, Timestamp, IP, UserAgent</li>
+                <li>Trigger insert log di tiap CRUD sertifikat + renewal + re-issue</li>
+                <li>Endpoint admin export audit trail per-sertifikat ke PDF (BPK-ready)</li>
+                <li>Retention policy ≥ 7 tahun (sesuai regulasi Pertamina)</li>
+                <li>Read-only — no delete/update ke audit table (immutable)</li>
+              </ul>
+              <p class="mb-0"><strong>⚙️ Effort Estimate:</strong> <span class="badge bg-warning text-dark">Medium (3-6 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <p class="small text-muted mt-3"><i class="bi bi-info-circle"></i> Top-5 dipilih berdasarkan impact operasional + frekuensi keluhan HC + benchmark gap. Per riset 2026-05.</p>
+    </section>
+
+    <section id="sec-5">
+      <h2><span class="badge bg-secondary">§5</span> Roadmap Rekomendasi 3-Bucket</h2>
+      <p>Rekomendasi roadmap pengembangan dibagi 3 bucket berdasarkan effort dan dependency:</p>
+      <div class="row g-3">
+
+        <div class="col-md-4">
+          <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white">
+              <strong><i class="bi bi-rocket-takeoff"></i> Quick Win (1-3 bulan)</strong>
+            </div>
+            <div class="card-body">
+              <p class="small text-muted mb-2">Config/UI tweak existing kode, no new arsitektur. Hasil cepat momentum.</p>
+              <ul class="small mb-0">
+                <li><strong>QR verify URL sertifikat</strong> <code class="id-badge">R-02 / §9.4</code> — endpoint public read-only + embed QR di PDF</li>
+                <li><strong>DB Index pada ValidUntil</strong> <code class="id-badge">R-01 / G-13</code> — quick wins query performance ekspirasi check</li>
+                <li><strong>Auto-Email Reminder Expiry</strong> <code class="id-badge">R-03 / G-02</code> — email template + dispatch baseline untuk Hangfire fase berikutnya</li>
+                <li><strong>Rate-Limit Export endpoint</strong> <code class="id-badge">R-04 / G-12</code> — throttle cegah OOM crash export besar</li>
+                <li><strong>Cert Revocation List endpoint</strong> <code class="id-badge">R-05 / N-07</code> — soft revoke + JSON list public</li>
+                <li><strong>Permanent Case-Insensitive</strong> <code class="id-badge">R-06 / G-24</code> — bug fix status derivation</li>
+                <li><strong>Permanent + ValidUntil Validator</strong> <code class="id-badge">R-07 / G-22</code> — bug fix validator data invalid</li>
+                <li><strong>Renewal Cycle Detection (Union-Find)</strong> <code class="id-badge">R-08 / G-18</code> — algoritma detect chain A→B→A</li>
+                <li><strong>Email template polish + deep link</strong> <code class="id-badge">§9.4</code> — link langsung ke renewal/detail page</li>
+                <li><strong>Bulk export filter advance CDP</strong> <code class="id-badge">§9.4</code> — extend Export Excel filter status/section/range</li>
+                <li><strong>Analytics dashboard widget</strong> <code class="id-badge">§9.4</code> — sum/group by status + section di homepage CDP</li>
+                <li><strong>Branded certificate template improvement</strong> <code class="id-badge">§9.4</code> — logo Pertamina KPB + watermark + signature</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark">
+              <strong><i class="bi bi-arrow-up-right-circle"></i> Medium (3-9 bulan)</strong>
+            </div>
+            <div class="card-body">
+              <p class="small text-muted mb-2">New feature, 1-2 controller baru, kemungkinan migration DB.</p>
+              <ul class="small mb-0">
+                <li><strong>Self-Service Renewal Portal pekerja</strong> <code class="id-badge">G-01 + N-03 / §9.4</code> — beban HC turun drastis</li>
+                <li><strong>Hangfire Pipeline + Expiry Automation</strong> <code class="id-badge">R-09 / N-03</code> — daily query + dispatch + auto-create renewal assessment</li>
+                <li><strong>Bulk action UI HC</strong> <code class="id-badge">G-08 / §9.4</code> — mass renewal/re-issue + batch progress indicator</li>
+                <li><strong>Skill graph foundation (KKJ ↔ sertifikat)</strong> <code class="id-badge">N-04 / §9.4</code> — table mapping + visualisasi tree</li>
+                <li><strong>Multi-channel notification (push/SMS)</strong> <code class="id-badge">G-09 + §9.4</code> — Twilio/Firebase untuk SDM lapangan</li>
+                <li><strong>Audit trail defensible (CFR-style)</strong> <code class="id-badge">G-10 / §9.4</code> — tabel dedicated + trigger CRUD + export PDF BPK-ready</li>
+                <li><strong>Soft Delete IsDeleted Flag</strong> <code class="id-badge">G-14</code> — preserve renewal chain history</li>
+                <li><strong>Cert PDF Async Generation</strong> <code class="id-badge">G-16</code> — background queue untuk batch PDF (no thread block)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white">
+              <strong><i class="bi bi-flag"></i> Long-term (&gt;9 bulan)</strong>
+            </div>
+            <div class="card-body">
+              <p class="small text-muted mb-2">Arsitektur baru atau integrasi external system.</p>
+              <ul class="small mb-0">
+                <li><strong>HCM Integration (SAP HCM Pertamina pusat)</strong> <code class="id-badge">§9.4</code> — single source of truth employee master sync</li>
+                <li><strong>SSO/SAML enterprise (Pertamina AD)</strong> <code class="id-badge">§9.4</code> — eliminasi password lokal + audit otomatis</li>
+                <li><strong>Open Badges 1EdTech JSON-LD Issuer</strong> <code class="id-badge">R-10 / N-01</code> — verifiable digital credential standar W3C VCDM 2.0</li>
+                <li><strong>Blockchain Credential Verify</strong> <code class="id-badge">N-02</code> — anchor hash ke blockchain public anti-fraud</li>
+                <li><strong>AI skill recommendation + auto-tag</strong> <code class="id-badge">§9.4</code> — Docebo-pattern ML pipeline atau external API</li>
+                <li><strong>Object storage migration (Blob/S3)</strong> <code class="id-badge">G-15 / §9.4</code> — scalability + DR cloud-native</li>
+                <li><strong>External API webhook + LinkedIn import</strong> <code class="id-badge">§9.4</code> — extensibility ekosistem external</li>
+                <li><strong>LSP PPSDM Migas feeder integration</strong> <code class="id-badge">Permen ESDM</code> — compliance regulasi SKKNI nasional</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <p class="small text-muted mt-3"><i class="bi bi-exclamation-triangle"></i> Estimate awam — verify dengan tim IT sebelum execute. Sequencing dapat berubah berdasarkan resource availability + prioritas Pertamina KPB.</p>
+    </section>
+
+    <section id="sec-6">
+      <h2><span class="badge bg-secondary">§6</span> Sumber Referensi &amp; Cross-Reference</h2>
+
+      <h4 id="sec-6-1" class="mt-3">6.1 Sumber External (Vendor Docs + Community)</h4>
+      <p class="small">Sumber utama yang dicite di §2 Benchmark + §3 Matrix + §4 Top-5 + §5 Roadmap:</p>
+      <ul class="small">
+        <li><a href="https://www.workday.com/en-us/services/training-certifications.html" target="_blank" rel="noopener">Workday — Training &amp; Certifications</a> (vendor docs, HRIS)</li>
+        <li><a href="https://news.sap.com/2026/04/sap-successfactors-1h-2026-release/" target="_blank" rel="noopener">SAP SuccessFactors 1H 2026 Release (Joule AI for Learning)</a> (vendor blog)</li>
+        <li><a href="https://community.sap.com/t5/human-capital-management-blog-posts-by-members/from-tracking-to-acting-strategic-insights-from-the-sap-successfactors/ba-p/14377565" target="_blank" rel="noopener">SAP Community — From Tracking to Acting (Learning 1H 2026)</a> (community)</li>
+        <li><a href="https://www.cornerstoneondemand.com/solutions/compliance-management/" target="_blank" rel="noopener">Cornerstone — Compliance Management Solution</a> (vendor docs)</li>
+        <li><a href="https://www.cornerstoneondemand.com/industries/life-sciences/" target="_blank" rel="noopener">Cornerstone — Validated LMS Life Sciences (21 CFR Part 11)</a> (vendor docs)</li>
+        <li><a href="https://www.docebo.com/learning-network/blog/inspire-2026-announcements/" target="_blank" rel="noopener">Docebo Inspire 2026 — AgentHub &amp; Skills Intelligence</a> (vendor blog)</li>
+        <li><a href="https://www.talentlms.com/features/gamification-lms" target="_blank" rel="noopener">TalentLMS — Gamification Features</a> (vendor docs)</li>
+        <li><a href="https://www.shell.com/business-customers/aviation/aviation-consultancy-services/technical-products-and-services/operating-systems/learning-academy.html" target="_blank" rel="noopener">Shell Learning Academy</a> (industri Migas)</li>
+        <li><a href="https://www.chevron.com/who-we-are/culture/operational-excellence/oems" target="_blank" rel="noopener">Chevron OEMS</a> (industri Migas)</li>
+        <li><a href="https://corporate.exxonmobil.com/operations" target="_blank" rel="noopener">ExxonMobil Operations (OIMS)</a> (industri Migas)</li>
+        <li><a href="https://ppsdmmigas.esdm.go.id/" target="_blank" rel="noopener">PPSDM Migas ESDM (LSP Indonesia)</a> (regulator domestik)</li>
+        <li><a href="https://migas.esdm.go.id/post/permen-esdm-tentang-pemberlakuan-skkni-di-bidang-migas-secara-wajib" target="_blank" rel="noopener">Permen ESDM SKKNI Migas Wajib</a> (regulator domestik)</li>
+      </ul>
+      <p class="small text-muted"><i class="bi bi-shield-check"></i> Semua URL valid per riset 2026-05. Bila vendor mengubah struktur web, link mungkin redirect.</p>
+
+      <h4 id="sec-6-2" class="mt-4">6.2 Cross-Reference Internal</h4>
+      <p class="small">Link ke dokumen lain di folder <code>docs/sertifikat-ecosystem/</code>:</p>
+      <ul class="small">
+        <li><a href="./ekosistem-sertifikat.html"><i class="bi bi-book"></i> ekosistem-sertifikat.html</a> — panduan awam ekosistem sertifikat (§1-§8 dasar struktur + alur)</li>
+        <li><a href="./index.html"><i class="bi bi-code-square"></i> index.html</a> — versi teknis developer (13 endpoint + 9 tabel DB + audit + RBAC matrix)</li>
+        <li><a href="./bug-findings.html"><i class="bi bi-bug"></i> bug-findings.html</a> — detail 16 bug Portal HC + Doc (path-traversal, validasi, edge case)</li>
+      </ul>
+
+      <h4 id="sec-6-3" class="mt-4">6.3 Versi &amp; Acknowledgment</h4>
+      <ul class="small mb-0">
+        <li><strong>Versi 2.0</strong> (2026-05-26) — audience awam HC non-IT, hasil merge §9 ekosistem-sertifikat + reformat v1.0</li>
+        <li><strong>Versi 1.0</strong> (2026-05-26 earlier) — audience executive dengan ICE/Quadrant detail + 10 R-rec code-level. Preserved di git tag <code>sertifikat-doc-gap-benchmark-v1.0</code></li>
+        <li>Generated by Claude Opus 4.7 (1M context) sesi brainstorming + executing-plans skill. Source verified per 2026-05.</li>
+      </ul>
+    </section>
 
     <footer class="text-center text-muted small mt-5 pt-4 border-top">
       <p>Analisa Gap + Benchmark Portal HC KPB — Panduan Awam v2.0 — 2026-05-26<br>
@@ -74,6 +582,24 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Theme toggle script di Task 9 -->
+  <script>
+    const html = document.documentElement;
+    const toggleBtn = document.getElementById('theme-toggle');
+    const icon = toggleBtn.querySelector('i');
+
+    function applyTheme(theme) {
+      html.setAttribute('data-bs-theme', theme);
+      icon.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    }
+
+    const savedTheme = localStorage.getItem('analisa-gap-theme') || 'light';
+    applyTheme(savedTheme);
+
+    toggleBtn.addEventListener('click', () => {
+      const newTheme = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('analisa-gap-theme', newTheme);
+      applyTheme(newTheme);
+    });
+  </script>
 </body>
 </html>
