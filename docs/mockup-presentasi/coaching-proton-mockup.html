@@ -372,7 +372,153 @@
         </div>
         <!-- Layar 2: Detail Pending -->
         <div id="screen-2" class="mockup-screen">
-            <!-- TODO Task 6 -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#" onclick="event.preventDefault(); showScreen(1)">Coaching Proton</a></li>
+                    <li class="breadcrumb-item active">Deliverable</li>
+                </ol>
+            </nav>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-7">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-bottom">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="bi bi-person-lines-fill me-2 text-primary"></i>Detail Coachee &amp; Kompetensi
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3"><small class="text-muted">Coachee</small><div class="fw-semibold">Ahmad Budiman</div></div>
+                            <div class="mb-3"><small class="text-muted">Track</small><div class="fw-semibold">PROTON Maintenance Tahun 1</div></div>
+                            <div class="mb-3"><small class="text-muted">Kompetensi</small><div class="fw-semibold">Pemeliharaan Mekanikal</div></div>
+                            <div class="mb-3"><small class="text-muted">Sub Kompetensi</small><div class="fw-semibold">Pemeliharaan Rotating Equipment</div></div>
+                            <div class="mb-3"><small class="text-muted">Deliverable</small><div class="fw-semibold">Laporan Inspeksi Mingguan Rotating Equipment</div></div>
+                            <div class="mb-3"><small class="text-muted">Anda masuk sebagai</small><div><span class="badge bg-info text-white">Coach</span></div></div>
+                            <div class="small text-muted">
+                                <i class="bi bi-shield-lock me-1"></i>Hak akses: Coachee (data sendiri), Coach, Sr. Supervisor, Section Head (satu seksi), HC/Admin (semua)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="bi bi-diagram-3 me-2 text-primary"></i>Approval Chain
+                            </h6>
+                            <span class="badge bg-primary px-3 py-2">Submitted</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="position-relative ps-4">
+                                <div style="position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:var(--bs-border-color);"></div>
+                                <div class="d-flex align-items-start mb-3 position-relative">
+                                    <i class="bi bi-circle text-secondary position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1;"></i>
+                                    <div>
+                                        <div class="fw-semibold">Sr. Supervisor <span class="badge bg-secondary ms-2">Pending</span></div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start mb-3 position-relative">
+                                    <i class="bi bi-circle text-secondary position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1;"></i>
+                                    <div>
+                                        <div class="fw-semibold">Section Head <span class="badge bg-secondary ms-2">Pending</span></div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start position-relative">
+                                    <i class="bi bi-circle text-secondary position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1;"></i>
+                                    <div>
+                                        <div class="fw-semibold">HC Review <span class="badge bg-secondary ms-2">Pending</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="bi bi-file-earmark-text me-2 text-primary"></i>Evidence Coach
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="bi bi-file-earmark me-2 text-primary"></i>
+                                <strong>Evidence:</strong> Dokumen-Inspeksi-Ahmad-15Mei2026.pdf
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary demo-disabled">
+                                <i class="bi bi-download me-1"></i>Download
+                            </button>
+                        </div>
+                        <div class="mt-1"><small class="text-muted">Diupload: 15 Mei 2026 14:32</small></div>
+                    </div>
+                    <div class="border rounded p-3 mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong><i class="bi bi-person me-1"></i>Eko Wibowo</strong>
+                            <small class="text-muted">15 Mei 2026</small>
+                            <span>
+                                <a href="#" onclick="event.preventDefault(); showScreen(6)" class="btn btn-sm btn-outline-primary me-1" title="Edit Session">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger demo-disabled" title="Hapus Session">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted">Pedoman</td><td>Pedoman Pemeliharaan Mekanikal KPB Rev. 4 — Bab 3: Pompa Sentrifugal</td></tr>
+                            <tr><td class="text-muted">TKO / TKI / TKPA</td><td>TKO-MNT-RTE-001: Inspeksi Mingguan Rotating Equipment</td></tr>
+                            <tr><td class="text-muted">Best Practice</td><td>Pertamina RU Best Practice: Vibration analysis tools (CSI 2140)</td></tr>
+                            <tr><td class="text-muted">Dokumen</td><td>Form Check-Sheet RTE-CS-2026-05, Logbook Operator Pompa Area 12</td></tr>
+                            <tr><td class="text-muted">Catatan Coach</td><td>Coachee menunjukkan pemahaman baik saat membaca vibration spectrum. Perlu pendalaman pada interpretasi misalignment vs unbalance signature.</td></tr>
+                            <tr><td class="text-muted">Kesimpulan</td><td>Kompeten secara mandiri</td></tr>
+                            <tr><td class="text-muted">Result</td><td><span class="badge bg-success">Good</span></td></tr>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-success demo-disabled">
+                            <i class="bi bi-file-pdf me-1"></i>PDF Evidence Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2 text-primary"></i>Riwayat Status</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex align-items-start py-2">
+                            <i class="bi bi-plus-circle text-secondary me-3 mt-1" style="font-size:1.1em"></i>
+                            <div class="flex-grow-1">
+                                <div>Deliverable dibuat</div>
+                                <small class="text-muted">10 Mei 2026 08:00</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-start py-2">
+                            <i class="bi bi-upload text-primary me-3 mt-1" style="font-size:1.1em"></i>
+                            <div class="flex-grow-1">
+                                <div>Evidence diupload oleh Eko Wibowo (Coach)</div>
+                                <small class="text-muted">15 Mei 2026 14:32</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-start py-2">
+                            <i class="bi bi-chat-square-text text-primary me-3 mt-1" style="font-size:1.1em"></i>
+                            <div class="flex-grow-1">
+                                <div>Coaching session oleh Eko Wibowo — Kompeten secara mandiri</div>
+                                <small class="text-muted">15 Mei 2026 14:45</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-outline-secondary mt-3 demo-disabled">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke Coaching Proton
+            </button>
         </div>
         <!-- Layar 3: SrSpv View -->
         <div id="screen-3" class="mockup-screen">
