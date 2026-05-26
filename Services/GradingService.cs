@@ -252,37 +252,10 @@ namespace HcPortal.Services
                 .Where(a => a.AssessmentSessionId == session.Id)
                 .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
 
-            // ---- 5. Buat TrainingRecord (dengan duplicate guard) ----
-            // PPT SC6 (ISS-03 fix): TrainingRecord HANYA dari Post-Test, bukan Pre-Test.
-            // Sertifikat sudah guarded via session.GenerateCertificate=false saat Pre-Test create.
-            var judul = $"Assessment: {session.Title}";
-            bool trainingRecordExists = await _context.TrainingRecords.AnyAsync(t =>
-                t.UserId == session.UserId &&
-                t.Judul == judul &&
-                t.Tanggal == session.Schedule);
-
-            if (!trainingRecordExists && session.AssessmentType != "PreTest")
-            {
-                try
-                {
-                    _context.TrainingRecords.Add(new TrainingRecord
-                    {
-                        UserId = session.UserId,
-                        Judul = judul,
-                        Kategori = session.Category ?? "Assessment",
-                        Tanggal = session.Schedule,
-                        TanggalSelesai = DateTime.UtcNow,
-                        Penyelenggara = "Internal",
-                        Status = isPassed ? "Passed" : "Failed"
-                    });
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException)
-                {
-                    _logger.LogWarning("Duplicate TrainingRecord detected for UserId={UserId}, Judul={Judul}, Tanggal={Tanggal}. Skipping insert.",
-                        session.UserId, judul, session.Schedule);
-                }
-            }
+            // Phase 324 D-01: TrainingRecord auto-create removed.
+            // AssessmentSession (Status=Completed) is sole source for "Assessment Online" row
+            // di /CMP/Records via WorkerDataService.GetUnifiedRecords. Regression dari commit 766011b6
+            // (re-add 2026-04-10) - original removal di 79284609 (2026-03-18).
 
             // ---- 6. Generate NomorSertifikat (jika applicable) ----
             // Kondisi: session.GenerateCertificate && isPassed (T-296-03: retry 3x + WHERE NomorSertifikat == null)
