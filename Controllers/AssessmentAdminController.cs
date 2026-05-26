@@ -2290,8 +2290,6 @@ namespace HcPortal.Controllers
                     logger.LogInformation($"DeleteAssessmentGroup: deleting {allPackages.Count} packages with their questions/options");
                 }
 
-                // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
-
                 foreach (var session in siblings)
                 {
                     _context.AssessmentSessions.Remove(session);
