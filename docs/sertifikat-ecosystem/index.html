@@ -733,6 +733,163 @@ Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
             <li><strong>AS.RenewsSessionId Filter <code>IsPassed=true</code>:</strong> renewal yang failed assessment tidak dihitung sebagai "menggantikan" — semantic correct, tapi bisa mengejutkan jika AS gagal padahal cert lama sudah expired.</li>
           </ul>
         </section>
+
+        <section id="sec-9">
+          <h2><span class="badge bg-secondary">§9</span> Bugs &amp; Issues — Static Audit</h2>
+          <p>Hasil scan 12 pattern dari Grep + Read controller per 2026-05-26. Severity: 🔴 high, 🟡 medium, 🟢 low/verified-ok. Status: Open / Verified / Mitigated.</p>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-high">🔴 HIGH</span> #1 Path Traversal pada SertifikatUrl Upload</span>
+              <span class="path-line">Helpers/FileUploadHelper.cs:37</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Nama file disimpan via <code>safeFileName = $"{timestamp}_{uniqueId}_{file.FileName}"</code>. <code>file.FileName</code> tidak di-sanitasi. Attacker upload file dengan name <code>../../../etc/passwd</code> bisa lolos karena <code>Path.GetExtension</code> di validator tetap return ".passwd" (gagal validasi) atau jika rename ke <code>file.pdf</code> dengan path component, hasil <code>safeFileName</code> = <code>20260526_abc12345_../../wwwroot/somewhere.pdf</code>. <code>Path.Combine(uploadDir, safeFileName)</code> akan resolve <code>..</code> dan keluar dari folder <code>uploads/certificates</code>.</p>
+              <p><strong>Reproduksi:</strong> Upload IFormFile dengan FileName <code>../../web.config</code>. Extension whitelist (.pdf/.jpg/.png) menolak, tapi nama <code>x/../../../sertifikat.pdf</code> lolos validasi extension.</p>
+              <p><strong>Fix:</strong> Tambah <code>Path.GetFileName(file.FileName)</code> untuk strip directory components, atau ganti <code>file.FileName</code> di <code>safeFileName</code> dengan <code>Path.GetExtension(file.FileName)</code> saja (drop original name).</p>
+              <p><strong>Status:</strong> <span class="badge bg-danger">Open</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-med">🟡 MED</span> #2 MIME Type Validation Tidak Ada (Extension-only)</span>
+              <span class="path-line">Helpers/FileUploadHelper.cs:12-24, TrainingAdminController.cs:206-215</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> <code>ValidateCertificateFile</code> hanya cek extension via <code>Path.GetExtension(file.FileName)</code>. Tidak ada validasi MIME type (<code>file.ContentType</code>) atau magic-byte check. Attacker bisa rename <code>evil.exe</code> ke <code>evil.pdf</code> dan upload — file tersimpan di server, tidak dieksekusi tapi membuka attack surface (XSS jika web server serve langsung dengan auto-detect content type, atau RCE jika diproses ulang).</p>
+              <p><strong>Fix:</strong> Tambah magic-byte check (PDF: <code>%PDF</code>, JPG: <code>FF D8 FF</code>, PNG: <code>89 50 4E 47</code>). Atau gunakan library seperti MimeDetective. Set explicit <code>Content-Type: application/octet-stream</code> + <code>Content-Disposition: attachment</code> di endpoint serve sertifikat.</p>
+              <p><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-med">🟡 MED</span> #3 Renewal Cycle Detection Absent</span>
+              <span class="path-line">CDPController.cs:3759-3794, TrainingAdminController.cs:253-265</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Validator di <code>TrainingAdminController:253-265</code> hanya cek "target FK sudah pernah di-renew" (prevent double renewal). Tidak ada deteksi siklus: TR#A.RenewsTrainingId = B; TR#B.RenewsTrainingId = A (atau lebih panjang A→B→C→A). Union-Find di <code>CertificationManagement</code> akan masukkan keduanya ke set "renewed" → keduanya hilang dari dashboard outstanding.</p>
+              <p><strong>Fix:</strong> Tambah graph walk saat insert renewal — traversal hingga visited atau hit cycle. Atau enforce DAG constraint: <code>Tanggal renewal &gt; Tanggal source</code>.</p>
+              <p><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-med">🟡 MED</span> #4 DateTime.Now vs DateTime.UtcNow Mix (Timezone Drift)</span>
+              <span class="path-line">Multi-file (34× Now, 92× UtcNow lintas Controllers)</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Mixed usage di codebase: <code>DateTime.UtcNow</code> dipakai di <code>DeriveCertificateStatus</code>, tapi <code>DateTime.Now</code> sering muncul di <code>CMPController</code> (18×) dan <code>CDPController</code> (8×). Server tz WIB (+7). Sertifikat dengan <code>ValidUntil = 2026-05-26 00:00 WIB</code> jam 23:30 WIB hari sebelumnya: <code>DateTime.UtcNow</code> = 16:30 UTC 2026-05-25. Selisih (ValidUntil - UtcNow).Days bisa salah pembulatan.</p>
+              <p><strong>Fix:</strong> Standardisasi ke <code>DateTime.UtcNow</code> di semua derivasi sertifikat. Konversi input user (WIB) ke UTC saat insert. Atau pakai <code>DateOnly</code> untuk <code>ValidUntil</code> (hilangkan time component).</p>
+              <p><strong>Status:</strong> <span class="badge bg-warning text-dark">Open — perlu audit per-occurrence</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-med">🟡 MED</span> #5 Hard Delete Cascade Orphan FK Renewal</span>
+              <span class="path-line">TrainingAdminController.cs:539, :744; AssessmentAdminController.cs:2136, :2295, :2447</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Endpoint Delete pakai <code>_context.TrainingRecords.Remove(record)</code> dan <code>_context.AssessmentSessions.Remove(session)</code> langsung tanpa check ada record lain yang reference via <code>RenewsTrainingId</code> / <code>RenewsSessionId</code>. Hasil: dangling FK pointer.</p>
+              <p><strong>Reproduksi:</strong> TR#5 punya RenewsTrainingId=3. Admin delete TR#3 → TR#5.RenewsTrainingId masih = 3 (sudah tidak ada). Display renewal history broken.</p>
+              <p><strong>Fix:</strong> Sebelum Remove, query <code>db.TrainingRecords.AnyAsync(t =&gt; t.RenewsTrainingId == id)</code> + <code>db.AssessmentSessions.AnyAsync(a =&gt; a.RenewsTrainingId == id)</code>. Jika ada, blok delete atau set FK ke null (soft delete recommended).</p>
+              <p><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-med">🟡 MED</span> #6 Permanent + ValidUntil Terisi Tidak Divalidasi</span>
+              <span class="path-line">TrainingAdminController.cs (Add/Edit forms)</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Problem:</strong> Form add/edit training tidak cegah kombinasi <code>CertificateType="Permanent"</code> dengan <code>ValidUntil</code> terisi. <code>DeriveCertificateStatus</code> return Permanent (abaikan ValidUntil), tapi data jadi kontradiktif. Bila kemudian CertificateType diganti ke "Annual" (Edit), ValidUntil lama tetap dipakai — bisa salah klasifikasi.</p>
+              <p><strong>Fix:</strong> Server-side validation: <code>if (model.CertificateType == "Permanent" &amp;&amp; model.ValidUntil != null) ModelState.AddModelError(...)</code>. Atau auto-null <code>ValidUntil</code> saat type=Permanent.</p>
+              <p><strong>Status:</strong> <span class="badge bg-warning text-dark">Open</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-low">🟢 VERIFIED-OK</span> #7 Cert Number Generation Race Condition</span>
+              <span class="path-line">Helpers/CertNumberHelper.cs, Services/GradingService.cs:302, :518</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Hipotesis awal:</strong> 2 user submit exam bersamaan → SELECT MAX(SEQ) keduanya return X → INSERT duplicate <code>KPB/X+1/V/2026</code>.</p>
+              <p><strong>Realita:</strong> <span class="badge bg-success">Race handled</span>. DB punya unique index <code>IX_AssessmentSessions_NomorSertifikat</code> (lihat <code>CertNumberHelper.IsDuplicateKeyException</code>:39). <code>GradingService</code> wrap generation dalam <code>try/catch DbUpdateException</code> + retry loop (<code>maxCertAttempts</code> di line 302 + 528). Saat duplicate, retry dengan SEQ baru.</p>
+              <p><strong>Catatan:</strong> SEQ reset per <strong>tahun</strong> (<code>NomorSertifikat.EndsWith($"/{year}")</code> di <code>GetNextSeqAsync:26</code>), bukan per bulan. Format <code>KPB/{seq:D3}/{ROMAN-MONTH}/{YEAR}</code> menunjukkan SEQ continuous lintas-bulan dalam tahun.</p>
+              <p><strong>Status:</strong> <span class="badge bg-success">Mitigated (DB unique + retry)</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-low">🟢 VERIFIED-OK</span> #8 CertificatePdf Authorization Guard</span>
+              <span class="path-line">CMPController.cs:1898-1935</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Hipotesis awal:</strong> Endpoint <code>/CMP/CertificatePdf/{id}</code> dapat bypass authorization via direct id enumeration.</p>
+              <p><strong>Realita:</strong> <span class="badge bg-success">Guard ada</span>. Line 1907-1913 check <code>userId == assessment.UserId</code> OR <code>userRoles.Contains("Admin")</code> OR <code>userRoles.Contains("HC")</code>. Sama dengan <code>/CMP/Certificate</code>. Plus SUB-01 D-06/D-07 guard (Status submitted, PendingGrading branch sebelum check IsPassed/GenerateCertificate).</p>
+              <p><strong>Status:</strong> <span class="badge bg-success">Verified OK</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-low">🟢 VERIFIED-OK</span> #9 Both Renewal FK Mutual Exclusion</span>
+              <span class="path-line">TrainingAdminController.cs:248-251</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Hipotesis awal:</strong> User bisa isi kedua <code>RenewsTrainingId</code> dan <code>RenewsSessionId</code> bersamaan.</p>
+              <p><strong>Realita:</strong> <span class="badge bg-success">Validator ada</span>. Line 248: <code>if (model.RenewsTrainingId.HasValue &amp;&amp; model.RenewsSessionId.HasValue) ModelState.AddModelError("Renewal FK tidak valid: hanya boleh mengisi salah satu...")</code>. Aplikasi-level enforcement.</p>
+              <p><strong>Catatan:</strong> Tidak ada constraint DB CHECK — jika ada path lain yang bypass validator (mis. direct SQL atau seed data), invalid state mungkin tertinggal. Tambah CHECK constraint di migration jika strict.</p>
+              <p><strong>Status:</strong> <span class="badge bg-success">Mitigated (app-level)</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-low">🟢 VERIFIED-OK</span> #10 ValidUntil.Value Null-Safety</span>
+              <span class="path-line">HomeController.cs:103, :111, :197, :206; AssessmentAdminController.cs:676, :705, :751, :779; CMPController.cs:2086</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Pattern Scan:</strong> Akses <code>.ValidUntil.Value</code> ditemukan 9 tempat lintas-controller. Semua di-guard dengan <code>.HasValue</code> precondition (lihat HomeController:103 <code>t.ValidUntil.HasValue &amp;&amp; t.ValidUntil.Value &lt; today</code>) atau dalam konteks renewal model (sourceSession.ValidUntil.Value.AddYears(1) — sumber sudah passed cert sehingga ValidUntil bukan null per business rule).</p>
+              <p><strong>Catatan low-risk:</strong> CMPController:2086 (<code>assessment.ValidUntil.Value.ToString(...)</code>) di PDF generation — saat sampai sini sudah lewat guard <code>!assessment.GenerateCertificate</code> + <code>IsPassed=true</code>, sehingga ValidUntil dijamin terisi <strong>jika</strong> SubmitExam set keduanya bersamaan. Audit minor: pastikan SubmitExam tidak set NomorSertifikat tanpa ValidUntil.</p>
+              <p><strong>Status:</strong> <span class="badge bg-success">Verified OK</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-low">🟢 NOT-FOUND</span> #11 N+1 Query di Renewal Dashboard</span>
+              <span class="path-line">CDPController.cs:3759-3794</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Pattern Scan:</strong> Renewal computation pakai 4 batch query (<code>.Select().ToListAsync()</code>) lalu HashSet union di memory — bukan per-row. Worker info di-Include via <code>.Include(t =&gt; t.User)</code> (assumption per code reading — perlu konfirmasi langsung).</p>
+              <p><strong>Catatan:</strong> Per-request 4 query is konstan, bukan O(n). Risiko bukan N+1 tapi <strong>perf hotspot</strong> (no cache, lihat §16).</p>
+              <p><strong>Status:</strong> <span class="badge bg-success">Not Found — refactor opsional ke cache</span></p>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between flex-wrap">
+              <span><span class="badge severity-low">🟢 NOT-FOUND</span> #12 RBAC Section Scoping Inconsistency</span>
+              <span class="path-line">CMPController, CDPController, WorkerController, AdminController</span>
+            </div>
+            <div class="card-body">
+              <p><strong>Pattern Scan:</strong> Section scoping (<code>Section == user.Section</code> atau <code>HasSectionAccess</code>) ditemukan di 4 controller utama yang sertifikat-related. Tidak ada endpoint sertifikat yang miss scoping (per scan Grep pattern).</p>
+              <p><strong>Catatan:</strong> Audit deeper diperlukan untuk endpoint AJAX (FilterRenewalCertificate, BudgetTrainingBulkUpdate). Direkomendasikan tambah integration test.</p>
+              <p><strong>Status:</strong> <span class="badge bg-success">Not Found (scope: top-level endpoint)</span></p>
+            </div>
+          </div>
+
+          <div class="alert alert-info mt-4">
+            <strong>Ringkasan:</strong> 12 finding. <strong>1 HIGH</strong> (path traversal), <strong>5 MED</strong> (MIME, cycle, timezone, orphan FK, Permanent inconsistency), <strong>6 LOW/Verified-OK</strong>. Prioritas fix: #1 Path Traversal (security), #2 MIME (security), #5 Orphan FK (data integrity).
+          </div>
+        </section>
       </main>
     </div>
   </div>
