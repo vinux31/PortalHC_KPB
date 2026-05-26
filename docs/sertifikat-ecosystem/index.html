@@ -1065,6 +1065,109 @@ Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
             </ol>
           </div>
         </section>
+
+        <section id="sec-12">
+          <h2><span class="badge bg-secondary">§12</span> Glossary</h2>
+          <dl class="row">
+            <dt class="col-sm-3"><code>PROTON</code></dt><dd class="col-sm-9"><strong>Professional Refinery Operations Competency Development</strong> (resmi Pertamina). Naskah video kadang menggunakan gloss "Program Coaching Pekerja" — gloss-only, bukan singkatan formal.</dd>
+            <dt class="col-sm-3"><code>CMP</code></dt><dd class="col-sm-9">Competency Management Platform. Modul utama sertifikat di Portal HC.</dd>
+            <dt class="col-sm-3"><code>CDP</code></dt><dd class="col-sm-9">Coaching Development Platform. Memegang CertificationManagement + Coaching Dashboard.</dd>
+            <dt class="col-sm-3"><code>BP</code></dt><dd class="col-sm-9">Best Practice. Salah satu kategori di Portal HC.</dd>
+            <dt class="col-sm-3"><code>KKJ</code></dt><dd class="col-sm-9">Kelompok Kerja Jabatan.</dd>
+            <dt class="col-sm-3"><code>IHT</code></dt><dd class="col-sm-9">In-House Training (kategori AssessmentSession).</dd>
+            <dt class="col-sm-3"><code>OJT</code></dt><dd class="col-sm-9">On-the-Job Training (kategori).</dd>
+            <dt class="col-sm-3"><code>NSO</code></dt><dd class="col-sm-9">Non-Sertifikat Operator (kontekstual).</dd>
+            <dt class="col-sm-3"><code>OTS</code></dt><dd class="col-sm-9">Operator Training Simulator (kategori AssessmentSession).</dd>
+            <dt class="col-sm-3"><code>KPB</code></dt><dd class="col-sm-9">Kilang Pertamina Balongan. Prefix NomorSertifikat (<code>KPB/SEQ/ROMAN-MONTH/YEAR</code>).</dd>
+            <dt class="col-sm-3"><code>HC</code></dt><dd class="col-sm-9">Human Capital. Role admin level 2 di sistem.</dd>
+            <dt class="col-sm-3"><code>HSSE</code></dt><dd class="col-sm-9">Health, Safety, Security, Environment. "Mandatory HSSE Training" adalah kategori AssessmentCategory.</dd>
+            <dt class="col-sm-3"><code>SubmitExam</code></dt><dd class="col-sm-9">Endpoint <code>POST /CMP/SubmitExam</code> — trigger cert generation untuk assessment yang lulus.</dd>
+            <dt class="col-sm-3"><code>UnifiedTrainingRecord</code></dt><dd class="col-sm-9">ViewModel yang merge TrainingRecord + AssessmentSession untuk display di <code>/CMP/Records</code>.</dd>
+            <dt class="col-sm-3"><code>SertifikatRow</code></dt><dd class="col-sm-9">ViewModel flat untuk CertificationManagement; punya method <code>DeriveCertificateStatus</code>.</dd>
+            <dt class="col-sm-3"><code>Renewal Chain</code></dt><dd class="col-sm-9">Sekuens sertifikat yang saling renew via dual-FK <code>RenewsTrainingId</code>/<code>RenewsSessionId</code>. Latest cert = aktif; lama jadi history.</dd>
+          </dl>
+        </section>
+
+        <section id="sec-13">
+          <h2><span class="badge bg-secondary">§13</span> Migration Timeline — Sertifikat Evolution</h2>
+          <p>Evolusi schema sertifikat berdasarkan EF Core migration files (verified).</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead class="table-dark"><tr><th>Tanggal</th><th>Migration</th><th>Perubahan Sertifikat-Related</th></tr></thead>
+              <tbody>
+                <tr><td>2026-02-09</td><td><code>AddAllEntities</code></td><td>Tabel inti dibuat: TrainingRecord, AssessmentSession.</td></tr>
+                <tr><td>2026-02-14</td><td><code>AddAssessmentResultFields</code></td><td>Score, IsPassed, CompletedAt — fondasi cert generation.</td></tr>
+                <tr><td>2026-02-20</td><td><code>AddTrainingRecordV16Fields</code></td><td>NomorSertifikat, CertificateType, ValidUntil di TrainingRecord. Sertifikat manual mulai bisa di-track.</td></tr>
+                <tr><td>2026-02-20</td><td><code>AddKotaToTrainingRecord</code></td><td>Kolom Kota (lokasi training).</td></tr>
+                <tr><td>2026-03-05</td><td><code>InitialNotifications</code></td><td>Tabel Notification dibuat (fondasi reminder expiry).</td></tr>
+                <tr><td>2026-03-11</td><td><code>AddGenerateCertificateToAssessmentSession</code></td><td>Kolom <code>GenerateCertificate</code> (bool, <strong>default=true</strong>) di AssessmentSession.</td></tr>
+                <tr><td>2026-03-18</td><td><code>AddParentAndSignatoryToAssessmentCategory</code></td><td>Hierarchy <code>ParentId</code> + <code>SignatoryUserId</code>. Cert signatory bisa di-cascade dari parent.</td></tr>
+                <tr><td>2026-03-19</td><td><code>AddRenewalChainFKs</code></td><td><strong>Phase 200</strong> — dual-FK renewal (<code>RenewsTrainingId</code>, <code>RenewsSessionId</code>) di TR + AS, dengan 4 FK constraint cross-table.</td></tr>
+                <tr><td>2026-03-21</td><td><code>CleanupWaitCertificateStatus</code></td><td>Cleanup status sertifikat lama.</td></tr>
+                <tr><td>2026-03-22</td><td><code>CleanupCertTimingAndOrphanTables</code></td><td>Cleanup orphan tables + cert timing fields.</td></tr>
+                <tr><td>—</td><td>Phase 227 CLEN-04</td><td>NomorSertifikat tidak lagi pre-computed; generated saat SubmitExam dengan retry-on-duplicate (CertNumberHelper).</td></tr>
+                <tr><td>—</td><td>Phase 311–313</td><td>HTMX direction + assessment session timer enforcement (TMR-01).</td></tr>
+                <tr><td>—</td><td>Phase 320 (v17.0)</td><td>Assessment Power Tools — export per peserta. Tag <code>v17.0-p320-complete</code>.</td></tr>
+                <tr><td>—</td><td>Phase 321</td><td>Assessment Edit Jawaban Peserta (in progress per MEMORY).</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="sec-14">
+          <h2><span class="badge bg-secondary">§14</span> Test Coverage Map</h2>
+          <p>Playwright + dotnet test coverage untuk flow sertifikat.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead><tr><th>Endpoint / Flow</th><th>Test Ada?</th><th>Lokasi</th><th>Coverage Status</th></tr></thead>
+              <tbody>
+                <tr><td><code>/CMP/Records</code> render + filter</td><td>Partial</td><td><code>tests/playwright/</code> (CMP Guide v1.2 — 8 test PASS per MEMORY)</td><td><span class="badge bg-warning text-dark">Smoke only</span></td></tr>
+                <tr><td><code>/CDP/CertificationManagement</code></td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap</span></td></tr>
+                <tr><td><code>/Admin/RenewalCertificate</code></td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap</span></td></tr>
+                <tr><td><code>/CMP/Certificate/{id}</code> guard chain (Completed/PendingGrading/IsPassed/GenerateCertificate)</td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap critical</span></td></tr>
+                <tr><td><code>/CMP/CertificatePdf/{id}</code> authorization</td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap critical</span></td></tr>
+                <tr><td><code>/CMP/SubmitExam</code> → cert generation</td><td>Partial</td><td>Phase 313 timer test, Phase 317 FLOW K/L/M/N/O di SEED_JOURNAL</td><td><span class="badge bg-warning text-dark">Indirect</span></td></tr>
+                <tr><td>Cert# race condition retry</td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap</span></td></tr>
+                <tr><td>Renewal chain FK insert + validator (mutually exclusive)</td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap</span></td></tr>
+                <tr><td>DeriveCertificateStatus truth table (5 case)</td><td>Tidak (unit test)</td><td>—</td><td><span class="badge bg-danger">Gap</span></td></tr>
+                <tr><td>File upload validation (ext, size)</td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap</span></td></tr>
+                <tr><td>Path traversal upload (#1 finding §9)</td><td>Tidak</td><td>—</td><td><span class="badge bg-danger">Gap security</span></td></tr>
+                <tr><td><code>FinalizeEssayGrading</code> idempotency (Phase 310)</td><td>Ada</td><td>Implied — Phase 310 PATTERNS.md + RESEARCH.md exist</td><td><span class="badge bg-success">Covered (research-backed)</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="alert alert-info mt-3">
+            <strong>Prioritas Tambah Test:</strong>
+            <ol class="mb-0">
+              <li>Path traversal upload (regression untuk fix §9 #1).</li>
+              <li>Certificate/CertificatePdf authorization guard (owner vs Admin vs Forbid).</li>
+              <li>SubmitExam → cert generation full cycle (with + without GenerateCertificate, with + without essay).</li>
+              <li>DeriveCertificateStatus unit test (5 case + boundary days=30).</li>
+              <li>Renewal mutual exclusion validator (FK both filled → ModelStateError).</li>
+            </ol>
+          </div>
+        </section>
+
+        <section id="sec-15">
+          <h2><span class="badge bg-secondary">§15</span> External Dependency</h2>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead><tr><th>Library</th><th>Versi</th><th>Pakai untuk</th><th>Source</th></tr></thead>
+              <tbody>
+                <tr><td>QuestPDF</td><td>cek <code>HcPortal.csproj</code></td><td>Certificate PDF generation di <code>/CMP/CertificatePdf</code></td><td>NuGet</td></tr>
+                <tr><td>ClosedXML</td><td>cek <code>HcPortal.csproj</code></td><td>Export Excel (<code>ExportRecords</code>, <code>ExportSertifikatExcel</code>) + Import Budget</td><td>NuGet</td></tr>
+                <tr><td>EF Core (Microsoft.EntityFrameworkCore.SqlServer)</td><td>—</td><td>ORM utama, Migration runner</td><td>NuGet</td></tr>
+                <tr><td>ASP.NET Identity</td><td>—</td><td>ApplicationUser, Role management</td><td>NuGet (Microsoft.AspNetCore.Identity.EntityFrameworkCore)</td></tr>
+                <tr><td>HTMX</td><td>—</td><td>Lazy-load partial (ManageAssessment tabs, FilterRenewalCertificate). Phase 311 direction.</td><td>CDN/static</td></tr>
+                <tr><td>Bootstrap 5.3 + Bootstrap Icons</td><td>—</td><td>UI Portal HC + dokumentasi ini</td><td>CDN/local</td></tr>
+                <tr><td>Mermaid 10.6.1</td><td>—</td><td>Diagram di file dokumentasi ini saja (bukan webapp)</td><td>CDN</td></tr>
+                <tr><td>highlight.js 11.9</td><td>—</td><td>Code highlighting di file dokumentasi ini saja</td><td>CDN</td></tr>
+                <tr><td>QuestPDF Fonts</td><td>—</td><td>Loaded dari <code>wwwroot/fonts/*.ttf</code> saat CertificatePdf render (graceful fallback line 1952)</td><td>Filesystem</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small text-muted"><strong>Offline note:</strong> Dokumen ini butuh internet untuk render Mermaid + highlight.js + Bootstrap. Webapp Portal HC sendiri tidak terpengaruh — dia menggunakan static assets lokal.</p>
+        </section>
       </main>
     </div>
   </div>
