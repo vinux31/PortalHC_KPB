@@ -947,6 +947,124 @@ Display di UI: latest first (TR#9 active, TR#1+AS#5 jadi history)
             </table>
           </div>
         </section>
+
+        <section id="sec-11">
+          <h2><span class="badge bg-secondary">§11</span> Spec ↔ Code Cross-Check</h2>
+          <p>Klaim dari dokumentasi internal vs realita kode aktual per 2026-05-26. <span class="badge bg-success">✅ Match</span> = klaim akurat. <span class="badge bg-warning text-dark">⚠ Drift</span> = klaim perlu nuance. <span class="badge bg-danger">❌ Mismatch</span> = klaim salah, dokumen perlu update.</p>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead class="table-dark">
+                <tr><th style="width:18%">Sumber</th><th style="width:30%">Klaim</th><th style="width:30%">Realita Kode</th><th style="width:10%">Status</th><th style="width:12%">Rekomendasi</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>CLAUDE.md</code></td>
+                  <td>Lokal → Dev (10.55.3.3) → Prod. Localhost di <code>http://localhost:5277</code>. Migration: tanggung jawab Team IT.</td>
+                  <td>Konsisten. <code>appsettings.json</code> + <code>Properties/launchSettings.json</code> match port. Migration files commit via developer, run via IT (lihat <code>docs/DEV_WORKFLOW.md</code>).</td>
+                  <td><span class="badge bg-success">✅ Match</span></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>CLAUDE.md</code></td>
+                  <td>Seed temporary harus tercatat di <code>docs/SEED_JOURNAL.md</code>, klasifikasi <code>temporary + local-only</code> atau <code>permanent + prod-required</code>.</td>
+                  <td>SEED_JOURNAL aktif (50+ row Mar-May 2026). Tabel sertifikat (TR, AS) sering jadi fixtures Phase 313, 315, 317, dll.</td>
+                  <td><span class="badge bg-success">✅ Match</span></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>docs/DEV_WORKFLOW.md</code></td>
+                  <td>Verifikasi lokal sebelum push: <code>dotnet build</code> + <code>dotnet run</code> + cek DB lokal + Playwright bila ada.</td>
+                  <td>Tests folder ada (<code>tests/e2e/</code>, <code>tests/playwright-report/</code>). MEMORY menyebut sosialisasi-internal-hc v2.2 PASS Playwright. Tapi tidak ada Playwright khusus untuk flow sertifikat (lihat §14).</td>
+                  <td><span class="badge bg-warning text-dark">⚠ Drift</span></td>
+                  <td>Tambah Playwright test cert flow</td>
+                </tr>
+                <tr>
+                  <td><code>docs/SEED_WORKFLOW.md</code></td>
+                  <td>Snapshot DB lokal (<code>sqlcmd BACKUP DATABASE</code>) sebelum insert seed temporary; restore setelah test.</td>
+                  <td>SEED_JOURNAL kolom "Snapshot file" terisi konsisten (<code>HcPortalDB_Dev-matrix-{ts}.bak</code>). Cleanup chain 6-step idempotent disebut multiple kali — pattern reproducible.</td>
+                  <td><span class="badge bg-success">✅ Match</span></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td>Spec design ini (<code>2026-05-26-sertifikat-ecosystem-doc-design.md</code>)</td>
+                  <td>"Tidak ada constraint DB CHECK; mutually exclusive cuma konvensi" (renewal dual-FK).</td>
+                  <td><span class="badge bg-danger">SALAH</span>. Migration <code>20260319001833_AddRenewalChainFKs</code> tambah <strong>4 FK constraint</strong> (TR↔AS bidirectional, FK_TrainingRecords_TrainingRecords_RenewsTrainingId, dll). Delete source TR/AS tanpa cascade → DbUpdateException.</td>
+                  <td><span class="badge bg-danger">❌ Mismatch</span></td>
+                  <td>Update §8 (Renewal Risiko) + §9 #5 (Orphan FK sebenarnya partly mitigated by FK constraint)</td>
+                </tr>
+                <tr>
+                  <td>Memory <code>project_v17.0_assessment_power_tools.md</code></td>
+                  <td>Phase 320 "Assessment Power Tools" tag <code>v17.0-p320-complete</code> di origin/main. Phase 321 5-PLAN ready.</td>
+                  <td>Tag exists di git remote (verifikasi via <code>git tag</code>). Phase 321 PLAN files di <code>.planning/phases/321-assessment-edit-jawaban-peserta/</code>.</td>
+                  <td><span class="badge bg-success">✅ Match</span></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td>Klaim awal (saya, di T2 §1)</td>
+                  <td><code>GenerateCertificate</code> default <code>false</code>.</td>
+                  <td><span class="badge bg-danger">SALAH</span>. Migration <code>20260311012214_AddGenerateCertificateToAssessmentSession</code> set <code>defaultValue: true</code> (existing rows backward compatible).</td>
+                  <td><span class="badge bg-danger">❌ Mismatch</span></td>
+                  <td>Update §2 tabel kolom kunci: default <code>true</code></td>
+                </tr>
+                <tr>
+                  <td>Memory <code>project_312_complete_313_context_ready.md</code></td>
+                  <td>Phase 312 done (kode + 5/5 fix); 313 CONTEXT.md 15 decisions ready.</td>
+                  <td>Phase 313 fixture aktif di SEED_JOURNAL 2026-05-08 (UAT FLOW 313 timer enforcement TMR-01). Migration 313 belum ditemukan dengan grep cepat — kemungkinan tidak butuh schema change.</td>
+                  <td><span class="badge bg-success">✅ Match (Wave 0)</span></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td>Spec <code>2026-05-20-assessment-admin-power-tools-design.md</code> (sosialisasi internal-hc v2.x referenced)</td>
+                  <td>NomorSertifikat format <code>KPB/SEQ/MM/YYYY</code> (interpretasi 2-digit bulan).</td>
+                  <td><code>CertNumberHelper.Build</code> line 21 pakai <code>ToRomanMonth(date.Month)</code> → <strong>Roman numeral</strong> (I, II, ..., XII), bukan 2-digit. Format aktual: <code>KPB/{SEQ:D3}/{ROMAN}/{YYYY}</code>. Contoh: <code>KPB/043/V/2026</code>.</td>
+                  <td><span class="badge bg-warning text-dark">⚠ Drift</span></td>
+                  <td>Konsistenkan istilah di docs HC: "Roman bulan", bukan "MM"</td>
+                </tr>
+                <tr>
+                  <td>Spec ini (§5.1 Records read source)</td>
+                  <td>AssessmentSession filter "Status=Completed" untuk UnifiedTrainingRecord.</td>
+                  <td>Source filter aktual perlu re-check; <code>CMPController.cs:479</code> Records action — flag <code>Status</code> diperoleh dari record. Sertifikat bisa juga dari Status=PendingGrading (dengan cert delayed). Cross-check perlu read controller body.</td>
+                  <td><span class="badge bg-warning text-dark">⚠ Drift</span></td>
+                  <td>Re-verify exact filter di CMPController:479+; update §5.1</td>
+                </tr>
+                <tr>
+                  <td>Migration <code>20260318023131</code> (Signatory)</td>
+                  <td>Spec sebut "Phase 195 (signatory hierarchy)" tambah ParentId + SignatoryUserId.</td>
+                  <td>Migration exists, tambah 2 kolom + 2 FK (ParentId Restrict, SignatoryUserId SetNull). Phase number 195 informational (commit Mar 18, 2026).</td>
+                  <td><span class="badge bg-success">✅ Match</span></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td>Memory <code>reference_singkatan_portal_hc.md</code></td>
+                  <td>PROTON = Professional Refinery Operations Competency Development (resmi).</td>
+                  <td>Konsisten dengan glossary (§12).</td>
+                  <td><span class="badge bg-success">✅ Match</span></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td>Spec ini (§9 #5 Orphan FK)</td>
+                  <td>"Tidak ada FK constraint kemungkinan disengaja".</td>
+                  <td><span class="badge bg-danger">SALAH</span>. Migration <code>20260319001833</code> tambah 4 FK. Delete TR/AS yang di-renewal → DbUpdateException (FK violation, action default = NoAction). Bug aktual: delete handler di <code>TrainingAdminController:539</code> tidak catch DbUpdateException → 500 error ke user.</td>
+                  <td><span class="badge bg-danger">❌ Mismatch (severity-reduced ke MED)</span></td>
+                  <td>§9 #5 update: bug bukan "orphan", tapi "delete tanpa handle FK exception". Severity tetap MED.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="alert alert-warning mt-4">
+            <strong>Action Items dari Cross-Check:</strong>
+            <ol class="mb-0">
+              <li><strong>Update §8 Renewal Risiko:</strong> "FK constraint exist" (bukan "tidak ada"). Bug aktual = delete tidak handle DbUpdateException.</li>
+              <li><strong>Update §2 Tabel Kolom Kunci:</strong> <code>GenerateCertificate</code> default <code>true</code>, bukan <code>false</code>.</li>
+              <li><strong>Update §9 #5:</strong> Re-frame dari "orphan FK" jadi "delete tanpa catch FK exception". Severity tetap MED.</li>
+              <li><strong>Re-verify §5.1 Records filter:</strong> Read body <code>CMPController.cs:479+</code> untuk exact source filter.</li>
+              <li><strong>Konsistensi terminology NomorSertifikat:</strong> Roman numeral bulan, bukan MM 2-digit. Update di docs HC sosialisasi.</li>
+              <li><strong>Tambah Playwright test cert flow:</strong> Submit → Cert → PDF, Renewal flow, Bulk upload. Lihat §14.</li>
+            </ol>
+          </div>
+        </section>
       </main>
     </div>
   </div>
