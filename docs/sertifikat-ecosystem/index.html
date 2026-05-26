@@ -63,6 +63,156 @@
         <section id="sec-0">
           <h1>Sertifikat Ecosystem Documentation</h1>
           <p class="lead text-muted">Portal HC KPB — Technical Reference for Developers</p>
+          <table class="table table-sm table-bordered w-auto">
+            <tbody>
+              <tr><th scope="row">Versi</th><td>v1.0</td></tr>
+              <tr><th scope="row">Tanggal</th><td>2026-05-26</td></tr>
+              <tr><th scope="row">Audience</th><td>Developer (Portal HC KPB)</td></tr>
+              <tr><th scope="row">Scope</th><td>13 endpoint sertifikat-related + 9 tabel DB + audit + gap analysis</td></tr>
+              <tr><th scope="row">Generated</th><td>Claude Opus 4.7 (caveman session, brainstorming skill)</td></tr>
+              <tr><th scope="row">Spec</th><td><code>docs/superpowers/specs/2026-05-26-sertifikat-ecosystem-doc-design.md</code></td></tr>
+              <tr><th scope="row">Plan</th><td><code>docs/superpowers/plans/2026-05-26-sertifikat-ecosystem-doc.md</code></td></tr>
+              <tr><th scope="row">Status</th><td><span class="badge bg-success">Snapshot — live state lihat git log</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small text-muted">Dokumen ini adalah <em>snapshot</em>. Path <code>file:line</code> reference akurat per tanggal di atas. Bila kode di-refactor, lakukan regenerate.</p>
+        </section>
+
+        <section id="sec-1">
+          <h2><span class="badge bg-secondary">§1</span> Executive Summary</h2>
+          <p>Portal HC KPB mengelola sertifikat pekerja melalui <strong>13 endpoint</strong> yang membaca dan menulis dari <strong>9 tabel database</strong>. Sertifikat berasal dari 2 sumber:</p>
+          <ol>
+            <li><strong>Assessment online</strong> — auto-generated saat user lulus exam + flag <code>GenerateCertificate=true</code>. Nomor sertifikat format <code>KPB/{SEQ}/{ROMAN-MM}/{YYYY}</code>.</li>
+            <li><strong>Training manual</strong> — Admin/HC upload bukti sertifikat external. <code>SertifikatUrl</code> menyimpan file path; <code>NomorSertifikat</code> di-input manual.</li>
+          </ol>
+          <p>Status sertifikat di-derivasi runtime dari kombinasi <code>ValidUntil</code> + <code>CertificateType</code> ke 4 nilai: <strong>Aktif / AkanExpired / Expired / Permanent</strong>. Renewal chain ditrack via dual-FK (<code>RenewsTrainingId</code>, <code>RenewsSessionId</code>) yang melintasi kedua tabel sumber. Algoritma Union-Find dipakai untuk membedakan sertifikat yang sudah di-renew dari yang masih outstanding.</p>
+          <p>Modul-modul yang menyentuh sertifikat: <strong>CMP</strong> (Records, BudgetTraining, Certificate, SubmitExam, ExportRecords), <strong>CDP</strong> (CertificationManagement, ExportSertifikatExcel), <strong>Admin/KelolaData</strong> (ManageAssessment, RenewalCertificate, AddTraining/EditTraining), dan <strong>Notification</strong>.</p>
+          <div class="row text-center my-4 g-2">
+            <div class="col"><div class="card"><div class="card-body p-3"><h3 class="mb-0">13</h3><small class="text-muted">Endpoint/Page</small></div></div></div>
+            <div class="col"><div class="card"><div class="card-body p-3"><h3 class="mb-0">9</h3><small class="text-muted">Tabel DB</small></div></div></div>
+            <div class="col"><div class="card"><div class="card-body p-3"><h3 class="mb-0">7</h3><small class="text-muted">State Sertifikat</small></div></div></div>
+            <div class="col"><div class="card"><div class="card-body p-3"><h3 class="mb-0">6</h3><small class="text-muted">Role Level</small></div></div></div>
+            <div class="col"><div class="card"><div class="card-body p-3"><h3 class="mb-0">8</h3><small class="text-muted">Flow Diagram</small></div></div></div>
+            <div class="col"><div class="card"><div class="card-body p-3"><h3 class="mb-0">4</h3><small class="text-muted">Status Sertifikat</small></div></div></div>
+          </div>
+        </section>
+
+        <section id="sec-2">
+          <h2><span class="badge bg-secondary">§2</span> Data Model</h2>
+          <p>9 tabel inti yang terlibat dalam ecosystem sertifikat. Diagram ER di bawah memperlihatkan relasi FK utama termasuk <em>dual-FK renewal chain</em> (TrainingRecord ↔ AssessmentSession).</p>
+
+          <h5 class="mt-4">2.1 ER Diagram (9 Tabel)</h5>
+          <div class="mermaid">
+erDiagram
+    ApplicationUser ||--o{ TrainingRecord : owns
+    ApplicationUser ||--o{ AssessmentSession : owns
+    ApplicationUser ||--o{ Notification : receives
+    ApplicationUser ||--o{ CoachCoacheeMappings : coach
+    ApplicationUser }o--|| OrganizationUnit : section_unit
+    AssessmentCategory ||--o{ AssessmentSession : category
+    AssessmentCategory ||--o{ AssessmentCategory : parent
+    AssessmentCategory }o--o| ApplicationUser : signatory
+    BudgetItem }o--|| ApplicationUser : created_by
+    TrainingRecord ||--o| TrainingRecord : renews_training
+    TrainingRecord ||--o| AssessmentSession : renews_session
+    AssessmentSession ||--o| AssessmentSession : renews_session_self
+    AssessmentSession ||--o| TrainingRecord : renews_training_x
+    AssessmentSession ||--o{ UserPackageAssignment : exam_package
+    UserPackageAssignment }o--|| ApplicationUser : user
+
+    TrainingRecord {
+        int Id PK
+        string UserId FK
+        string Judul
+        string Kategori
+        DateTime Tanggal
+        string SertifikatUrl
+        DateTime ValidUntil
+        string CertificateType
+        string NomorSertifikat
+        int RenewsTrainingId FK
+        int RenewsSessionId FK
+    }
+    AssessmentSession {
+        int Id PK
+        string UserId FK
+        string Title
+        string Category
+        DateTime Schedule
+        string Status
+        bool IsPassed
+        bool GenerateCertificate
+        DateTime ValidUntil
+        string NomorSertifikat
+        int RenewsSessionId FK
+        int RenewsTrainingId FK
+    }
+    AssessmentCategory {
+        int Id PK
+        string Name
+        int ParentId FK
+        string SignatoryUserId FK
+        int DefaultPassPercentage
+    }
+    BudgetItem {
+        int Id PK
+        string Type
+        string Judul
+        int TahunAnggaran
+        decimal EstimasiBiayaTotal
+        decimal RealisasiBiaya
+    }
+    ApplicationUser {
+        string Id PK
+        string Email
+        string FullName
+        string NIP
+        string Section
+        string Unit
+    }
+    Notification {
+        int Id PK
+        string UserId FK
+        string Type
+        bool IsRead
+    }
+    CoachCoacheeMappings {
+        int Id PK
+        string CoachId FK
+        string CoacheeId FK
+        bool IsActive
+    }
+    OrganizationUnit {
+        int Id PK
+        string Name
+        string Type
+    }
+    UserPackageAssignment {
+        int Id PK
+        string UserId FK
+        int AssessmentSessionId FK
+        string ShuffledQuestionIds
+    }
+          </div>
+
+          <h5 class="mt-4">2.2 Tabel Kolom Kunci (Sertifikat-Centric)</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped table-bordered">
+              <thead class="table-dark"><tr><th>Kolom</th><th>Tabel</th><th>Fungsi</th><th>Validasi / Default</th></tr></thead>
+              <tbody>
+                <tr><td><code>ValidUntil</code></td><td>TrainingRecord, AssessmentSession</td><td>Tanggal kadaluarsa sertifikat</td><td>Nullable; null = no expiry (semantik ambigu, lihat §10.3)</td></tr>
+                <tr><td><code>NomorSertifikat</code></td><td>TrainingRecord, AssessmentSession</td><td>ID sertifikat unik</td><td>Auto-gen Assessment: <code>KPB/{SEQ}/{ROMAN-MM}/{YYYY}</code>. Manual untuk Training.</td></tr>
+                <tr><td><code>CertificateType</code></td><td>TrainingRecord</td><td>Jenis sertifikat: Permanent / Annual / 3-Year</td><td>TrainingRecord only. AssessmentSession tidak punya kolom ini.</td></tr>
+                <tr><td><code>GenerateCertificate</code></td><td>AssessmentSession</td><td>Enable cert generation saat lulus</td><td>Boolean, default <code>false</code></td></tr>
+                <tr><td><code>SertifikatUrl</code></td><td>TrainingRecord</td><td>File path bukti upload</td><td>Nullable; relative path ke <code>wwwroot/uploads/...</code></td></tr>
+                <tr><td><code>RenewsTrainingId</code></td><td>TrainingRecord, AssessmentSession</td><td>FK ke TrainingRecord yang di-renew</td><td>Nullable; exclusive dgn <code>RenewsSessionId</code> (konvensi, bukan constraint DB)</td></tr>
+                <tr><td><code>RenewsSessionId</code></td><td>TrainingRecord, AssessmentSession</td><td>FK ke AssessmentSession yang di-renew</td><td>Nullable; exclusive dgn <code>RenewsTrainingId</code></td></tr>
+                <tr><td><code>IsPassed</code></td><td>AssessmentSession</td><td>Hasil pass/fail dari grading</td><td>Nullable boolean; <code>null</code> = belum dinilai (PendingGrading)</td></tr>
+                <tr><td><code>Status</code></td><td>TrainingRecord</td><td>"Passed" / "Valid" / "Expired" / "Failed"</td><td>String, terpisah dari status sertifikat yang di-derivasi runtime</td></tr>
+                <tr><td><code>PassPercentage</code></td><td>AssessmentSession</td><td>Threshold lulus</td><td>Integer, default 70 (dari <code>AssessmentCategory.DefaultPassPercentage</code>)</td></tr>
+              </tbody>
+            </table>
+          </div>
         </section>
       </main>
     </div>
