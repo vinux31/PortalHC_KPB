@@ -17,6 +17,10 @@ status: complete
 - `grep "Competency Development Portal" Views/` → 0 hits
 - `grep "Competency Development Platform" Views/` → 4 hits (CDP/Index ×2 + Home/Index ×2)
 - `dotnet build` → 0 errors, 23 warnings (pre-existing, unrelated)
+- Browser UAT (Playwright `admin@pertamina.com`, localhost:5277) PASS 2026-05-26:
+  - `/Home/Index` card CDP render "Competency Development Platform" + aria-label match
+  - `/CDP/Index` `<title>` browser + h2 heading render "Competency Development Platform"
+  - Screenshot bukti (gitignored): `tests/playwright-report/home-cdp-platform-rename.png` + `cdp-index-platform-rename.png`
 
 ## Out of Scope (left intact)
 - Mockup HTML (`docs/assets/proton-video/cmp-cdp-mockup.html`)
@@ -24,4 +28,4 @@ status: complete
 - Prior journal (`.planning/quick/260317-n4g-*`)
 
 ## Notes
-Konsistensi dengan CMP yang sudah pakai "Competency Management Platform". User belum verifikasi browser localhost — pending UAT manual.
+Konsistensi dengan CMP yang sudah pakai "Competency Management Platform". UAT browser PASS — siap push origin/main + notify IT (NO migration).
