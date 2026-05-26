@@ -519,7 +519,61 @@ quadrantChart
           </ul>
         </section>
 
-        <!-- §7 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-7">
+          <h2><span class="badge bg-secondary">§7</span> ICE Score Table</h2>
+          <p><strong>37 row</strong> (25 existing gap + 12 net-new). Formula: <code>ICE = Impact × Confidence × Ease / 100</code>. Sorted descending. Top 10 highlighted dengan background biru muda. Quadrant assignment per item (lihat <a href="#sec-6">§6</a>).</p>
+
+          <div class="table-responsive mt-3">
+            <table class="table table-sm table-bordered table-hover small">
+              <thead class="table-primary">
+                <tr><th>Rank</th><th>ID</th><th>Item</th><th>Impact (1-10)</th><th>Confidence (%)</th><th>Ease (1-10)</th><th>ICE Score</th><th>Quadrant</th></tr>
+              </thead>
+              <tbody>
+                <tr class="ice-top10"><td>1</td><td>G-13</td><td>DB Index ValidUntil</td><td>8</td><td>95%</td><td>9</td><td><strong>68.4</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>2</td><td>N-09</td><td>QR-Code Dynamic Verify</td><td>7</td><td>90%</td><td>9</td><td><strong>56.7</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>3</td><td>G-02</td><td>Auto-Email Reminder Expiry</td><td>9</td><td>85%</td><td>7</td><td><strong>53.6</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>4</td><td>G-12</td><td>Rate-Limit Export</td><td>7</td><td>90%</td><td>8</td><td><strong>50.4</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>5</td><td>N-07</td><td>Cert Revocation List (CRL)</td><td>7</td><td>85%</td><td>8</td><td><strong>47.6</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>6</td><td>G-24</td><td>Permanent Case-Sensitivity</td><td>6</td><td>95%</td><td>8</td><td><strong>45.6</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>7</td><td>G-22</td><td>Permanent ValidUntil Reject</td><td>6</td><td>90%</td><td>8</td><td><strong>43.2</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>8</td><td>G-18</td><td>Cycle Detection</td><td>7</td><td>85%</td><td>7</td><td><strong>41.6</strong></td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr class="ice-top10"><td>9</td><td>G-09</td><td>Hangfire Scheduler</td><td>9</td><td>80%</td><td>5</td><td><strong>36.0</strong></td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr class="ice-top10"><td>10</td><td>N-03</td><td>Expiry Auto-Renewal Pipeline</td><td>9</td><td>80%</td><td>5</td><td><strong>36.0</strong></td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr><td>11</td><td>G-23</td><td>Dual FK DB CHECK</td><td>6</td><td>85%</td><td>7</td><td>35.7</td><td><span class="badge bg-success">Quick-Win</span></td></tr>
+                <tr><td>12</td><td>G-10</td><td>Audit Log Generic</td><td>9</td><td>75%</td><td>5</td><td>33.8</td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr><td>13</td><td>G-14</td><td>Soft Delete IsDeleted</td><td>8</td><td>80%</td><td>5</td><td>32.0</td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr><td>14</td><td>N-01</td><td>Open Badges Issuer</td><td>8</td><td>75%</td><td>4</td><td>24.0</td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr><td>15</td><td>G-21</td><td>AkanExpired Boundary Inclusive</td><td>3</td><td>85%</td><td>9</td><td>23.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>16</td><td>N-04</td><td>Skill Matrix Integration</td><td>8</td><td>70%</td><td>4</td><td>22.4</td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr><td>17</td><td>G-17</td><td>Null ValidUntil Ambiguity</td><td>5</td><td>85%</td><td>5</td><td>21.3</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>18</td><td>G-19</td><td>Timezone WIB vs UTC</td><td>5</td><td>80%</td><td>5</td><td>20.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>19</td><td>G-04</td><td>Cert Verification Publik QR</td><td>4</td><td>80%</td><td>6</td><td>19.2</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>20</td><td>N-11</td><td>CPD Point Tracker</td><td>6</td><td>70%</td><td>4</td><td>16.8</td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr><td>21</td><td>G-20</td><td>SEQ Reset Tahunan (persepsi)</td><td>2</td><td>90%</td><td>9</td><td>16.2</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>22</td><td>G-05</td><td>Renewal History Timeline View</td><td>5</td><td>80%</td><td>4</td><td>16.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>23</td><td>G-01</td><td>Bulk Renewal Action</td><td>5</td><td>80%</td><td>4</td><td>16.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>24</td><td>G-03</td><td>Cert Revocation Mechanism</td><td>4</td><td>75%</td><td>5</td><td>15.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>25</td><td>G-08</td><td>Mass Upload Renewal Excel</td><td>5</td><td>75%</td><td>4</td><td>15.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>26</td><td>G-16</td><td>Cert PDF Async Generation</td><td>5</td><td>75%</td><td>4</td><td>15.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>27</td><td>N-08</td><td>Multi-Language Cert</td><td>5</td><td>75%</td><td>4</td><td>15.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>28</td><td>G-25</td><td>AssessmentSession.CertificateType</td><td>4</td><td>75%</td><td>5</td><td>15.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>29</td><td>N-10</td><td>SCORM/xAPI Export</td><td>5</td><td>70%</td><td>4</td><td>14.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>30</td><td>G-11</td><td>Caching Layer Redis</td><td>5</td><td>65%</td><td>4</td><td>13.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>31</td><td>G-06</td><td>Budget Multi-Year Trend</td><td>3</td><td>80%</td><td>5</td><td>12.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>32</td><td>N-12</td><td>External Assessor Mode</td><td>6</td><td>65%</td><td>3</td><td>11.7</td><td><span class="badge bg-primary">Big-Bet</span></td></tr>
+                <tr><td>33</td><td>N-05</td><td>Peer Endorsement</td><td>4</td><td>70%</td><td>4</td><td>11.2</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>34</td><td>N-06</td><td>Digital Badge Wallet</td><td>4</td><td>70%</td><td>4</td><td>11.2</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>35</td><td>G-07</td><td>Cert Template Customization</td><td>3</td><td>75%</td><td>4</td><td>9.0</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>36</td><td>G-15</td><td>CDN untuk SertifikatUrl</td><td>3</td><td>70%</td><td>4</td><td>8.4</td><td><span class="badge bg-warning text-dark">Fill-In</span></td></tr>
+                <tr><td>37</td><td>N-02</td><td>Blockchain Credential Verify</td><td>5</td><td>60%</td><td>2</td><td>6.0</td><td><span class="badge bg-secondary">Time-Sink</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="small text-muted">Catatan: Skor ICE baseline subjektif assigned reviewer; adjust di review stakeholder. Quadrant assignment final-locked di <a href="#sec-9">§9 Roadmap</a>.</p>
+        </section>
+
+        <!-- §8 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
