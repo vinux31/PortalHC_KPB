@@ -249,7 +249,94 @@
           <p class="small text-muted">Complexity legend: <span class="badge bg-success">S</span> ≤2 PW · <span class="badge bg-warning text-dark">M</span> 2-5 PW · <span class="badge bg-danger">L</span> ≥5 PW. Effort person-week range, asumsi 1 dev fokus full-time.</p>
         </section>
 
-        <!-- §5 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-5">
+          <h2><span class="badge bg-secondary">§5</span> Industry Benchmark</h2>
+          <p>Tiga kategori benchmark: <strong>Migas/Energi</strong> (sektor sama), <strong>HRIS/LMS umum</strong> (best practice digital cert), <strong>Cert Standar Internasional</strong> (compliance framework). Per vendor: capability snapshot, gap Portal HC vs vendor, citation.</p>
+
+          <h4 class="mt-4">§5.1 — Migas / Energy</h4>
+
+          <div class="alert alert-info">
+            <h6 class="alert-heading"><i class="bi bi-shield-check"></i> Konteks Regulatori Migas Indonesia</h6>
+            <ul class="mb-0 small">
+              <li><strong>Permen ESDM (SKKNI Migas Wajib)</strong> — Badan usaha migas wajib mempekerjakan tenaga yang memiliki sertifikat kompetensi sesuai SKKNI. Acuan untuk uji kompetensi + sertifikasi profesi.</li>
+              <li><strong>LSP PPSDM Migas</strong> — Satu-satunya LSP milik pemerintah untuk migas. 45 ruang lingkup sertifikasi; bidang hilir/pengilangan mencakup Crude Distilling Unit, Vacuum Distilling Unit, Operasi Boiler, Laboratorium Pengujian, dll.</li>
+              <li><strong>BNSP / SKKNI</strong> — Body governing SKKNI nasional, validity sertifikat umumnya 3 tahun.</li>
+              <li><strong>ISO 29001 / 14001 / 45001</strong> — QMS migas mengarahkan competency-based personnel management; relevan ke ExxonMobil OIMS + Chevron OEMS framework.</li>
+            </ul>
+          </div>
+
+          <div class="accordion mt-3" id="acc-migas">
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#mig-shell">Shell Learning Academy + PetroSkills Alliance</button></h2>
+              <div id="mig-shell" class="accordion-collapse collapse show" data-bs-parent="#acc-migas">
+                <div class="accordion-body">
+                  <p><strong>Capability Snapshot:</strong></p>
+                  <ul class="small">
+                    <li>Shell Learning Academy — competence-based programmes via hands-on roles, job tasks, formal training.</li>
+                    <li>PetroSkills Alliance (founded 2001 by Shell + BP + OGCI) — competency-based training industri-wide, scope global.</li>
+                    <li>3-year Graduate Programme dengan job rotation + personalized coaching + leadership development.</li>
+                    <li>Internal cert linked to career progression matrix per role (operator/engineer/manager).</li>
+                  </ul>
+                  <p class="small"><strong>Gap vs Portal HC KPB:</strong> Portal HC sudah role-based RBAC + assessment, tapi belum ada (a) job-rotation tracking, (b) coaching pairing formal mechanism, (c) graduate program flow distinct dari worker eksisting.</p>
+                  <p class="citation">Source: <a href="https://www.shell.com/business-customers/aviation/aviation-consultancy-services/technical-products-and-services/operating-systems/learning-academy.html">shell.com Learning Academy</a> + <a href="https://www.petroskills.com/">petroskills.com</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mig-chevron">Chevron OEMS (Operational Excellence Management System)</button></h2>
+              <div id="mig-chevron" class="accordion-collapse collapse" data-bs-parent="#acc-migas">
+                <div class="accordion-body">
+                  <p><strong>Capability Snapshot:</strong></p>
+                  <ul class="small">
+                    <li>OEMS (launched 2004, updated 2018) — competency tied to risk + assurance + safeguards.</li>
+                    <li>Refinery Formal Operator Training — wajib selesai dalam 3 tahun pertama kerja.</li>
+                    <li>External verification via Lloyd's Register (LRQA) untuk align ISO 14001:2015 + ISO 45001:2018.</li>
+                    <li>OEMS scope: workforce safety, process safety, reliability/integrity, environment, efficiency, security.</li>
+                  </ul>
+                  <p class="small"><strong>Gap vs Portal HC KPB:</strong> Portal HC essay-based assessment ada (CMP). Belum ada (a) external auditor verification model LRQA-style, (b) explicit linkage cert ↔ process safety risk register, (c) time-bound completion mandatory tracking (3-year rule Chevron).</p>
+                  <p class="citation">Source: <a href="https://www.chevron.com/who-we-are/culture/operational-excellence/oems">chevron.com OEMS</a> + <a href="https://richmond.chevron.com/work-with-us/training-programs">richmond.chevron.com Training Programs</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mig-exxon">ExxonMobil OIMS (Operations Integrity Management System)</button></h2>
+              <div id="mig-exxon" class="accordion-collapse collapse" data-bs-parent="#acc-migas">
+                <div class="accordion-body">
+                  <p><strong>Capability Snapshot:</strong></p>
+                  <ul class="small">
+                    <li>OIMS — 11-element framework, element 6 = "Personnel and Training".</li>
+                    <li>Ties competency to incident prevention via PSM (Process Safety Management).</li>
+                    <li>Independent verification by Exxon corporate auditor (internal third-party).</li>
+                    <li>Documented training matrix per asset (refinery, platform, terminal).</li>
+                  </ul>
+                  <p class="small"><strong>Gap vs Portal HC KPB:</strong> Portal HC tidak terhubung dengan PSM/HSSE database (jika ada). Audit log generic (G-10) prerequisite untuk independent verification model OIMS.</p>
+                  <p class="citation">Source: <a href="https://corporate.exxonmobil.com/operations">corporate.exxonmobil.com — Operations</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mig-pertamina">PPSDM Migas (Domestic Reference)</button></h2>
+              <div id="mig-pertamina" class="accordion-collapse collapse" data-bs-parent="#acc-migas">
+                <div class="accordion-body">
+                  <p><strong>Capability Snapshot:</strong></p>
+                  <ul class="small">
+                    <li>LSP PPSDM Migas — body sertifikasi resmi pemerintah Indonesia, 45 ruang lingkup.</li>
+                    <li>Bidang hilir/pengilangan: CDU, VDU, Operasi Boiler, Lab Pengujian, Operasi Blending, dll.</li>
+                    <li>Skema sertifikasi mengacu SKKNI sesuai Permen ESDM (wajib).</li>
+                    <li>Open to public via pelatihan masyarakat + partner perusahaan migas (EMCL, dll.).</li>
+                  </ul>
+                  <p class="small"><strong>Implikasi Portal HC KPB:</strong> Portal HC dapat berperan sebagai (a) feeder data ke LSP PPSDM Migas untuk uji kompetensi eksternal, (b) tracker re-sertifikasi 3-tahun validity, (c) repository sertifikat LSP untuk worker. Integrasi data (CSV export atau API kalau tersedia) = potensial enhancement.</p>
+                  <p class="citation">Source: <a href="https://ppsdmmigas.esdm.go.id/">ppsdmmigas.esdm.go.id</a> + <a href="https://migas.esdm.go.id/post/permen-esdm-tentang-pemberlakuan-skkni-di-bidang-migas-secara-wajib">Permen ESDM SKKNI Migas</a> — access 2026-05-26</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- §5.2 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
