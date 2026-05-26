@@ -552,8 +552,8 @@ Plans:
     6. Smoke test 3 skenario di lokal: (a) no-edits delete OK, (b) 1+ edits delete OK, (c) group campuran delete OK
     7. Tidak ubah schema DB / model / migration / endpoint signature
   - **Risk:** Low | **Effort:** S
-  - **Plans:** 2 plans
-    - [ ] 323-01-PLAN.md — Wave 1 controller cascade patch 3 endpoint (DeleteAssessment + DeleteAssessmentGroup + DeletePrePostGroup) + snapshot preDeleteEditLogsCount + audit description EditLogsCount token (CASCADE-01)
+  - **Plans:** 1/2 plans executed
+    - [x] 323-01-PLAN.md — Wave 1 controller cascade patch 3 endpoint (DeleteAssessment + DeleteAssessmentGroup + DeletePrePostGroup) + snapshot preDeleteEditLogsCount + audit description EditLogsCount token (CASCADE-01)
     - [ ] 323-02-PLAN.md — Wave 2 Playwright E2E spec Phase323_CascadeAssessmentEditLogs 3 test (no-edits / with-edits / group-mixed) + seed SEED_WORKFLOW lifecycle + audit log DB verify + manual UAT 3 skenario + commit + IT notify (CASCADE-01)
   - **Files affected:** `Controllers/AssessmentAdminController.cs` (3 spot) + `tests/e2e/Phase323_CascadeAssessmentEditLogs.spec.ts` (NEW) + `docs/SEED_JOURNAL.md` (append)
 
