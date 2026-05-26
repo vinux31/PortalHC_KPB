@@ -436,6 +436,32 @@ flowchart LR
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Theme toggle + Mermaid init di Task 10 -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+  <script>
+    const html = document.documentElement;
+    const toggleBtn = document.getElementById('theme-toggle');
+    const icon = toggleBtn.querySelector('i');
+
+    function applyTheme(theme) {
+      html.setAttribute('data-bs-theme', theme);
+      icon.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+      mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
+      document.querySelectorAll('.mermaid').forEach((el) => {
+        el.removeAttribute('data-processed');
+        if (!el.dataset.original) el.dataset.original = el.textContent;
+        el.textContent = el.dataset.original;
+      });
+      mermaid.run();
+    }
+
+    const savedTheme = localStorage.getItem('eko-cert-theme') || 'light';
+    applyTheme(savedTheme);
+
+    toggleBtn.addEventListener('click', () => {
+      const newTheme = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('eko-cert-theme', newTheme);
+      applyTheme(newTheme);
+    });
+  </script>
 </body>
 </html>
