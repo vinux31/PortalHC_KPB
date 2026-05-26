@@ -2056,6 +2056,10 @@ namespace HcPortal.Controllers
                 int preDeleteResponseCount = await _context.PackageUserResponses
                     .CountAsync(r => r.AssessmentSessionId == id);
 
+                // PHASE 323: snapshot EditLog count SEBELUM cascade (sama pola preDeleteResponseCount)
+                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
+                    .CountAsync(e => e.AssessmentSessionId == id);
+
                 // PHASE 312 WR-01: re-check responseCount untuk HC tier — kalau berubah dari 0
                 // antara guard dan sini, abort dengan error spesifik (peserta baru menyimpan jawaban).
                 // Admin override tetap bisa lanjut (D-04: Admin tier menerima konsekuensi).
@@ -2067,6 +2071,16 @@ namespace HcPortal.Controllers
                     await tx.RollbackAsync();
                     TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
                     return RedirectToAction("ManageAssessment");
+                }
+
+                // PHASE 323: Delete AssessmentEditLogs (Restrict FK — must be removed before session)
+                var editLogs = await _context.AssessmentEditLogs
+                    .Where(e => e.AssessmentSessionId == id)
+                    .ToListAsync();
+                if (editLogs.Any())
+                {
+                    logger.LogInformation($"Deleting {editLogs.Count} assessment edit logs");
+                    _context.AssessmentEditLogs.RemoveRange(editLogs);
                 }
 
                 // Delete PackageUserResponses (Restrict FK — must be removed before session)
@@ -2124,7 +2138,7 @@ namespace HcPortal.Controllers
                         deleteUser?.Id ?? "",
                         deleteActorName,
                         "DeleteAssessment",
-                        $"Deleted assessment '{assessmentTitle}' [ID={id}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount}",
+                        $"Deleted assessment '{assessmentTitle}' [ID={id}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
                         id,
                         "AssessmentSession");
                 }
