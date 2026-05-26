@@ -2360,6 +2360,10 @@ namespace HcPortal.Controllers
                 int preDeleteResponseCount = await _context.PackageUserResponses
                     .CountAsync(r => groupIds.Contains(r.AssessmentSessionId));
 
+                // PHASE 323: snapshot EditLog count agregat PrePost group
+                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
+                    .CountAsync(e => groupIds.Contains(e.AssessmentSessionId));
+
                 // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
                 if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
                 {
@@ -2369,6 +2373,16 @@ namespace HcPortal.Controllers
                     await tx.RollbackAsync();
                     TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
                     return RedirectToAction("ManageAssessment");
+                }
+
+                // PHASE 323: Delete AssessmentEditLogs untuk semua sessions di Pre-Post group
+                var allEditLogs = await _context.AssessmentEditLogs
+                    .Where(e => groupIds.Contains(e.AssessmentSessionId))
+                    .ToListAsync();
+                if (allEditLogs.Any())
+                {
+                    logger.LogInformation($"DeletePrePostGroup: deleting {allEditLogs.Count} edit logs across {groupIds.Count} sessions (LinkedGroupId={linkedGroupId})");
+                    _context.AssessmentEditLogs.RemoveRange(allEditLogs);
                 }
 
                 // Cascade delete — ikuti pola DeleteAssessmentGroup:
@@ -2417,7 +2431,7 @@ namespace HcPortal.Controllers
                         dpgUser?.Id ?? "",
                         dpgActorName,
                         "DeletePrePostGroup",
-                        $"Deleted Pre-Post group '{groupTitle}' [LinkedGroupId={linkedGroupId}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount}",
+                        $"Deleted Pre-Post group '{groupTitle}' [LinkedGroupId={linkedGroupId}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
                         linkedGroupId,
                         "AssessmentSession");
                 }
