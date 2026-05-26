@@ -166,7 +166,56 @@ flowchart TD
         </div>
       </div>
     </section>
-    <section id="sec-4"><h2><span class="badge bg-secondary">§4</span> Status & Kapan Berubah</h2><p><em>Konten Task 5</em></p></section>
+    <section id="sec-4">
+      <h2><span class="badge bg-secondary">§4</span> Status & Kapan Berubah</h2>
+      <p>Sertifikat punya 4 status yang dihitung sistem secara <strong>otomatis dan real-time</strong>:</p>
+      <div class="row g-3 my-3">
+        <div class="col-md-6">
+          <div class="card status-card status-aktif h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-check-circle-fill text-success"></i> Aktif</h5>
+              <p class="small mb-1"><strong>Kapan:</strong> Sertifikat valid, lebih dari 30 hari menuju tanggal expired.</p>
+              <p class="small mb-1"><strong>Arti:</strong> Pekerja tetap kompeten, semua aman.</p>
+              <p class="small mb-0"><strong>Aksi HC:</strong> Monitor saja, no action.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card status-card status-akan h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-exclamation-triangle-fill text-warning"></i> Akan Expired</h5>
+              <p class="small mb-1"><strong>Kapan:</strong> Kurang dari atau sama dengan 30 hari menuju tanggal expired.</p>
+              <p class="small mb-1"><strong>Arti:</strong> Notifikasi otomatis sudah aktif ke pekerja + HC.</p>
+              <p class="small mb-0"><strong>Aksi HC:</strong> Schedule training/assessment renewal.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card status-card status-expired h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-x-octagon-fill text-danger"></i> Expired</h5>
+              <p class="small mb-1"><strong>Kapan:</strong> Tanggal kadaluarsa sudah lewat.</p>
+              <p class="small mb-1"><strong>Arti:</strong> Kompetensi expired, pekerja perlu renewal segera.</p>
+              <p class="small mb-0"><strong>Aksi HC:</strong> Trigger Renewal Certificate via Admin Panel.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card status-card status-permanent h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-infinity text-info"></i> Permanent</h5>
+              <p class="small mb-1"><strong>Kapan:</strong> Jenis sertifikat di-tag "Permanent" (training tertentu tanpa expiry).</p>
+              <p class="small mb-1"><strong>Arti:</strong> Tidak pernah expired, tidak perlu renewal.</p>
+              <p class="small mb-0"><strong>Aksi HC:</strong> No action.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-light border">
+        <strong><i class="bi bi-lightbulb"></i> Catatan teknis ringan:</strong>
+        Status sertifikat <strong>bukan kolom database</strong> — sistem menghitungnya real-time setiap kali halaman dibuka, berdasarkan tanggal kadaluarsa + jenis sertifikat. Artinya: Anda tidak perlu update status manual; sistem otomatis menggeser sertifikat dari <em>Aktif → Akan Expired → Expired</em> sesuai berjalannya waktu.
+      </div>
+    </section>
     <section id="sec-5"><h2><span class="badge bg-secondary">§5</span> Renewal — Kenapa & Bagaimana</h2><p><em>Konten Task 6</em></p></section>
     <section id="sec-6"><h2><span class="badge bg-secondary">§6</span> Peran & Hak Akses</h2><p><em>Konten Task 7</em></p></section>
     <section id="sec-7"><h2><span class="badge bg-secondary">§7</span> Peta Menu Aplikasi</h2><p><em>Konten Task 8</em></p></section>
