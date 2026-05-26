@@ -468,7 +468,58 @@
           </div>
         </section>
 
-        <!-- §6 — §10 ditambahkan di task selanjutnya -->
+        <section id="sec-6">
+          <h2><span class="badge bg-secondary">§6</span> 2x2 Prioritization Matrix</h2>
+          <p>Visualisasi <strong>top 20 item</strong> by Impact (gabungan §3 + §4). Item ber-Impact rendah hanya di tabel <a href="#sec-7">§7 ICE Score</a>. Sumbu: X=Effort (0=Low → 1=High), Y=Impact (0=Low → 1=High).</p>
+
+          <div class="mermaid">
+quadrantChart
+  title Effort vs Impact — Top 20 Items
+  x-axis Low Effort --> High Effort
+  y-axis Low Impact --> High Impact
+  quadrant-1 Big-Bet
+  quadrant-2 Quick-Win
+  quadrant-3 Fill-In
+  quadrant-4 Time-Sink
+  G-02 Auto-Email Reminder: [0.25, 0.85]
+  G-09 Hangfire Scheduler: [0.55, 0.90]
+  G-10 Audit Log Generic: [0.65, 0.85]
+  G-13 DB Index ValidUntil: [0.10, 0.75]
+  G-14 Soft Delete IsDeleted: [0.55, 0.80]
+  G-12 Rate-Limit Export: [0.15, 0.65]
+  G-18 Cycle Detection: [0.25, 0.70]
+  G-22 Permanent ValidUntil: [0.20, 0.60]
+  G-23 Dual FK CHECK: [0.30, 0.55]
+  G-24 Permanent Case-Sens: [0.10, 0.55]
+  N-01 Open Badges Issuer: [0.80, 0.85]
+  N-02 Blockchain Verify: [0.90, 0.70]
+  N-03 Expiry Auto-Renewal: [0.55, 0.85]
+  N-04 Skill Matrix Integ: [0.75, 0.80]
+  N-07 Cert Revocation List: [0.20, 0.70]
+  N-09 QR-Code Verify: [0.15, 0.70]
+  N-11 CPD Tracker: [0.50, 0.65]
+  N-12 External Assessor: [0.65, 0.55]
+  G-05 Renewal Timeline: [0.40, 0.50]
+  G-16 Async PDF: [0.45, 0.45]
+          </div>
+
+          <div class="row mt-3 g-2">
+            <div class="col-md-3"><div class="card border-success"><div class="card-body py-2 px-3"><span class="badge bg-success">Quick-Win</span> <small>Low effort + High impact — eksekusi dulu</small></div></div></div>
+            <div class="col-md-3"><div class="card border-primary"><div class="card-body py-2 px-3"><span class="badge bg-primary">Big-Bet</span> <small>High effort + High impact — plan kuartal</small></div></div></div>
+            <div class="col-md-3"><div class="card border-warning"><div class="card-body py-2 px-3"><span class="badge bg-warning text-dark">Fill-In</span> <small>Low effort + Low impact — selipan sprint</small></div></div></div>
+            <div class="col-md-3"><div class="card border-secondary"><div class="card-body py-2 px-3"><span class="badge bg-secondary">Time-Sink</span> <small>High effort + Low impact — tolak/defer</small></div></div></div>
+          </div>
+
+          <h5 class="mt-4">Interpretasi Quadrant</h5>
+          <ul class="small">
+            <li><strong>Quick-Win cluster</strong> (kiri-atas): G-02, G-13, G-12, G-22, G-24, N-07, N-09. Eksekusi 3-4 minggu pertama → win cepat untuk momentum stakeholder.</li>
+            <li><strong>Big-Bet cluster</strong> (kanan-atas): G-09, G-10, G-14, N-01, N-04. Investasi 3-6 bulan, prerequisite compliance migas + interoperability long-term.</li>
+            <li><strong>Fill-In</strong> (kiri-bawah): G-05, G-16. Eksekusi when bandwidth tersedia.</li>
+            <li><strong>Time-Sink</strong>: N-02 (Blockchain) — high effort, low immediate impact untuk internal-only refinery. Defer sampai integrasi external partner ada.</li>
+          </ul>
+        </section>
+
+        <!-- §7 — §10 ditambahkan di task selanjutnya -->
 
       </main>
     </div>
