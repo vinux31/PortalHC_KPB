@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flow Sistem Sertifikat — Portal HC KPB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bs-body-bg); }
+    main.content { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    section { scroll-margin-top: 5rem; padding-bottom: 2.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--bs-border-color); }
+    section:last-of-type { border-bottom: none; }
+    h2 { margin-top: 2rem; padding-top: 1rem; }
+    h2 .badge { font-size: 0.7em; vertical-align: middle; }
+    .mini-nav { position: sticky; top: 0; z-index: 1020; background: var(--bs-body-bg); border-bottom: 1px solid var(--bs-border-color); padding: 0.5rem 1rem; }
+    .mini-nav a { color: var(--bs-body-color); text-decoration: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; }
+    .mini-nav a:hover { background: var(--bs-secondary-bg); }
+    .audience-banner { background: var(--bs-info-bg-subtle); border-left: 4px solid var(--bs-info); padding: 1rem; margin: 1.5rem 0; border-radius: 0.25rem; }
+    .mermaid { background: var(--bs-body-bg); padding: 1rem; border-radius: 0.25rem; text-align: center; overflow-x: auto; }
+    .mermaid svg { max-width: 100%; height: auto; }
+    .gap-callout { background: var(--bs-danger-bg-subtle); border-left: 4px solid var(--bs-danger); padding: 1rem; margin: 1rem 0; border-radius: 0.25rem; }
+    .hidden-gap-callout { background: var(--bs-warning-bg-subtle); border-left: 4px solid var(--bs-warning); padding: 1rem; margin: 1rem 0; border-radius: 0.25rem; }
+    .flow-id { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.75rem; opacity: 0.7; }
+    @page { margin: 1.5cm 1.2cm; }
+    @media print {
+      :root { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      body { font-size: 10pt; }
+      .mini-nav, #theme-toggle { display: none !important; }
+      main { padding: 0.5rem !important; max-width: 100% !important; }
+      section { page-break-before: always; border-bottom: none; padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+      section#sec-master { page-break-before: auto; }
+      .audience-banner, .gap-callout, .hidden-gap-callout { break-inside: avoid; }
+      .card { page-break-inside: avoid; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+      a { color: black; text-decoration: underline; }
+      a[href^="http"]:after { content: " (" attr(href) ")"; font-size: 0.7em; word-break: break-all; }
+      a[href^="./"]:after { content: ""; }
+      a[href^="#"]:after { content: ""; }
+      h2 { page-break-after: avoid; font-size: 14pt; }
+      h3, h4, h5 { page-break-after: avoid; }
+      .mermaid svg { max-width: 100% !important; height: auto !important; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="mini-nav d-none d-md-flex justify-content-between align-items-center">
+    <div class="d-flex flex-wrap gap-1">
+      <a href="#sec-master">§0 Master</a>
+      <a href="#sec-a">§A Terbit</a>
+      <a href="#sec-b">§B Grading</a>
+      <a href="#sec-c">§C Status</a>
+      <a href="#sec-d">§D Notif</a>
+      <a href="#sec-e">§E Renewal</a>
+      <a href="#sec-f">§F View</a>
+      <a href="#sec-g">§G Manage</a>
+      <a href="#sec-i">§H+I Verifikasi+Audit</a>
+    </div>
+    <button id="theme-toggle" class="btn btn-sm btn-outline-secondary" title="Toggle dark mode">
+      <i class="bi bi-moon-stars"></i>
+    </button>
+  </nav>
+
+  <main class="content">
+    <header class="mb-4">
+      <h1 class="display-6">Flow Sistem Sertifikat Portal HC KPB</h1>
+      <p class="lead text-muted">Visualisasi 25 flow lengkap — referensi awam untuk Tim HC</p>
+      <div class="audience-banner">
+        <strong><i class="bi bi-info-circle"></i> Dokumen referensi awam untuk Staff HC admin Portal.</strong>
+        Tampilkan semua proses end-to-end sistem sertifikat — siapa trigger, kapan, hasil apa.
+        Companion: <a href="./overview-awam.html"><code>overview-awam.html</code></a> (ringkasan),
+        <a href="./ekosistem-sertifikat.html"><code>ekosistem-sertifikat.html</code></a> (struktur 4-kotak),
+        <a href="./analisa-gap-benchmark.html"><code>analisa-gap-benchmark.html</code></a> (gap detail).
+      </div>
+      <p class="small text-muted">Versi 1.0 — 2026-05-27 — Audit codebase per tanggal ini.</p>
+    </header>
+
+    <section id="sec-master"><h2><span class="badge bg-secondary">§0</span> Master Lifecycle Diagram</h2><p class="text-muted"><em>(Diisi Task 2)</em></p></section>
+    <section id="sec-a"><h2><span class="badge bg-secondary">§A</span> Terbit / Lahir Sertifikat</h2><p class="text-muted"><em>(Diisi Task 3)</em></p></section>
+    <section id="sec-b"><h2><span class="badge bg-secondary">§B</span> Essay Grading Conditional</h2><p class="text-muted"><em>(Diisi Task 4)</em></p></section>
+    <section id="sec-c"><h2><span class="badge bg-secondary">§C</span> Lifecycle Status</h2><p class="text-muted"><em>(Diisi Task 5)</em></p></section>
+    <section id="sec-d"><h2><span class="badge bg-secondary">§D</span> Notifikasi</h2><p class="text-muted"><em>(Diisi Task 6)</em></p></section>
+    <section id="sec-e"><h2><span class="badge bg-secondary">§E</span> Renewal</h2><p class="text-muted"><em>(Diisi Task 7)</em></p></section>
+    <section id="sec-f"><h2><span class="badge bg-secondary">§F</span> View / Read</h2><p class="text-muted"><em>(Diisi Task 8)</em></p></section>
+    <section id="sec-g"><h2><span class="badge bg-secondary">§G</span> Edit / Manage</h2><p class="text-muted"><em>(Diisi Task 9)</em></p></section>
+    <section id="sec-i"><h2><span class="badge bg-secondary">§H+I</span> Verifikasi + Audit</h2><p class="text-muted"><em>(Diisi Task 10)</em></p></section>
+
+    <footer class="text-center text-muted small mt-5 pt-4 border-top">
+      <p class="text-muted"><em>(Footer placeholder — diisi Task 11)</em></p>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    (function () {
+      const html = document.documentElement;
+      const btn = document.getElementById('theme-toggle');
+      const icon = btn.querySelector('i');
+      const stored = localStorage.getItem('flow-sistem-theme');
+
+      function initMermaid(theme) {
+        mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose', flowchart: { useMaxWidth: true, htmlLabels: true } });
+      }
+
+      function renderAllMermaid() {
+        document.querySelectorAll('.mermaid').forEach((el) => {
+          if (el.getAttribute('data-processed') === 'true') {
+            const src = el.getAttribute('data-source') || el.textContent;
+            el.removeAttribute('data-processed');
+            el.innerHTML = src;
+            el.setAttribute('data-source', src);
+          } else {
+            el.setAttribute('data-source', el.textContent);
+          }
+        });
+        mermaid.run({ querySelector: '.mermaid' });
+      }
+
+      if (stored) {
+        html.setAttribute('data-bs-theme', stored);
+        icon.className = stored === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+      }
+      initMermaid(html.getAttribute('data-bs-theme'));
+      renderAllMermaid();
+
+      btn.addEventListener('click', function () {
+        const current = html.getAttribute('data-bs-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-bs-theme', next);
+        icon.className = next === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+        localStorage.setItem('flow-sistem-theme', next);
+        initMermaid(next);
+        renderAllMermaid();
+      });
+    })();
+  </script>
+</body>
+</html>
