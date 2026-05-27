@@ -5,8 +5,11 @@
 using HcPortal.Helpers;
 using HcPortal.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Xunit;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace HcPortal.Tests;
 
@@ -21,6 +24,25 @@ public class FileUploadHelperTests
             Headers = new HeaderDictionary(),
             ContentType = "application/octet-stream"
         };
+    }
+
+    // Test ILogger yang capture LogWarning calls untuk verify D-10 audit trail.
+    private sealed class TestLogger : ILogger
+    {
+        public readonly List<(LogLevel Level, string Message)> Logs = new();
+        IDisposable? ILogger.BeginScope<TState>(TState state) => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, System.Exception? exception, System.Func<TState, System.Exception?, string> formatter)
+        {
+            Logs.Add((logLevel, formatter(state, exception)));
+        }
+    }
+
+    private static string MakeTempDir()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "hcportal-test-" + System.Guid.NewGuid().ToString("N").Substring(0, 8));
+        Directory.CreateDirectory(dir);
+        return dir;
     }
 
     [Fact]
@@ -79,5 +101,90 @@ public class FileUploadHelperTests
         var jpg = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x00, 0x00, 0x00 }; // EXIF variant
         Assert.True(AssessmentConstants.FileValidation.MatchesMagicByte(".jpeg", jpg));
         Assert.True(AssessmentConstants.FileValidation.MatchesMagicByte(".jpg", jpg));
+    }
+
+    // === SaveFileAsync — SC-1 P01 path traversal coverage (D-01 + D-10) ===
+
+    [Fact]
+    public async Task SaveFileAsync_PathTraversalFilename_StripsToFlatNameNoEscape()
+    {
+        // Phase 325 SC-1: simulasi attack filename "../../etc/passwd.pdf" tidak boleh escape uploads dir.
+        var tempRoot = MakeTempDir();
+        try
+        {
+            var pdf = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 };
+            var file = MakeFile("../../malicious.pdf", pdf);
+
+            var url = await FileUploadHelper.SaveFileAsync(file, tempRoot, "uploads");
+
+            Assert.NotNull(url);
+            var uploadsDir = Path.Combine(tempRoot, "uploads");
+            Assert.True(Directory.Exists(uploadsDir), "uploads subdir harus ada");
+
+            var savedFiles = Directory.GetFiles(uploadsDir);
+            Assert.Single(savedFiles);
+
+            var savedName = Path.GetFileName(savedFiles[0]);
+            Assert.DoesNotContain("..", savedName);
+            Assert.DoesNotContain("/", savedName);
+            Assert.DoesNotContain("\\", savedName);
+            Assert.EndsWith("_malicious.pdf", savedName);
+
+            // CRITICAL: tidak ada file yang escape ke parent (tempRoot atau parent-of-tempRoot).
+            var rootFiles = Directory.GetFiles(tempRoot);
+            Assert.Empty(rootFiles);
+        }
+        finally
+        {
+            Directory.Delete(tempRoot, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task SaveFileAsync_PathTraversalFilename_LogsWarningD10()
+    {
+        // Phase 325 D-10: audit trail wajib log Warning saat filename mengandung path component.
+        var tempRoot = MakeTempDir();
+        var logger = new TestLogger();
+        try
+        {
+            var pdf = new byte[] { 0x25, 0x50, 0x44, 0x46 };
+            var file = MakeFile("../../etc/passwd.pdf", pdf);
+
+            await FileUploadHelper.SaveFileAsync(file, tempRoot, "uploads", logger);
+
+            Assert.Contains(logger.Logs, l =>
+                l.Level == LogLevel.Warning &&
+                l.Message.Contains("Path traversal attempt") &&
+                l.Message.Contains("../../etc/passwd.pdf") &&
+                l.Message.Contains("passwd.pdf"));
+        }
+        finally
+        {
+            Directory.Delete(tempRoot, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task SaveFileAsync_NormalFilename_NoWarningLogged()
+    {
+        // Phase 325 D-10: filename normal (tanpa path component) TIDAK trigger LogWarning (avoid log noise).
+        var tempRoot = MakeTempDir();
+        var logger = new TestLogger();
+        try
+        {
+            var pdf = new byte[] { 0x25, 0x50, 0x44, 0x46 };
+            var file = MakeFile("normal.pdf", pdf);
+
+            await FileUploadHelper.SaveFileAsync(file, tempRoot, "uploads", logger);
+
+            Assert.DoesNotContain(logger.Logs, l =>
+                l.Level == LogLevel.Warning &&
+                l.Message.Contains("Path traversal attempt"));
+        }
+        finally
+        {
+            Directory.Delete(tempRoot, recursive: true);
+        }
     }
 }
