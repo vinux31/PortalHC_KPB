@@ -182,7 +182,39 @@ flowchart TB
         </table>
       </div>
     </section>
-    <section id="sec-b"><h2><span class="badge bg-secondary">§B</span> Essay Grading Conditional</h2><p class="text-muted"><em>(Diisi Task 4)</em></p></section>
+    <section id="sec-b">
+      <h2><span class="badge bg-secondary">§B</span> Essay Grading Conditional</h2>
+      <p>Kalau assessment ada soal essay, sertifikat <strong>belum terbit</strong> sebelum HC selesai grading. 2-step proses: <strong>Submit per essay &rarr; Finalize</strong>.</p>
+      <div class="mermaid">
+flowchart LR
+    Start([Coachee selesai assessment]) --> CK{Ada soal essay?}
+    CK -- Tidak --> Direct[Cert otomatis<br/>lihat §A flow #1]
+    CK -- Ya --> PG[Status: PendingGrading]
+    PG --> HC[HC buka grading queue]
+    HC --> Sub[SubmitEssayScore<br/>per essay]
+    Sub --> More{Essay lain<br/>belum dinilai?}
+    More -- Ya --> Sub
+    More -- Tidak --> Fin[FinalizeEssayGrading]
+    Fin --> Eval{IsPassed = true?}
+    Eval -- Ya --> Cert[Sertifikat terbit<br/>GradingService.RegradeAfterEditAsync]
+    Eval -- Tidak --> NoCert[Tidak terbit - Failed]
+
+    style PG fill:#fff3cd
+    style Cert fill:#d4edda
+    style NoCert fill:#f8d7da
+      </div>
+      <h5 class="mt-4">Detail 3 Flow Fase Grading</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Trigger / Endpoint</th><th>Hasil</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Assessment Interim Status: PendingGrading</strong></td><td>Sistem</td><td>Auto saat assessment selesai dengan essay yang belum dinilai</td><td>Status sertifikat tertunda, masuk antrian grading HC</td></tr>
+            <tr><td>2</td><td><strong>HC Submit Essay Score (per essay)</strong></td><td>HC/Admin</td><td>Endpoint <code>SubmitEssayScore</code> via Admin grading queue</td><td>Skor essay tersimpan, status tetap PendingGrading sampai semua essay dinilai</td></tr>
+            <tr><td>3</td><td><strong>HC Finalize Essay Grading</strong></td><td>HC/Admin</td><td>Endpoint <code>FinalizeEssayGrading</code> (rowsAffected-gated audit log)</td><td>Trigger cert generation kalau IsPassed=true (via GradingService.RegradeAfterEditAsync)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="sec-c"><h2><span class="badge bg-secondary">§C</span> Lifecycle Status</h2><p class="text-muted"><em>(Diisi Task 5)</em></p></section>
     <section id="sec-d"><h2><span class="badge bg-secondary">§D</span> Notifikasi</h2><p class="text-muted"><em>(Diisi Task 6)</em></p></section>
     <section id="sec-e"><h2><span class="badge bg-secondary">§E</span> Renewal</h2><p class="text-muted"><em>(Diisi Task 7)</em></p></section>
