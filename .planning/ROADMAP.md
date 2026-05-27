@@ -17,7 +17,7 @@
 - ✅ **v16.0 QA Test Coverage** — Phases 315-319 (shipped 2026-05-12) — [archive](milestones/v16.0-ROADMAP.md)
 - ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 (shipped 2026-05-22, archived 2026-05-23) — [archive](milestones/v17.0-ROADMAP.md)
 - 🚧 **v18.0 Cascade Delete Hardening + Duplicate TR Fix** — Phases 323-324 (started 2026-05-26)
-- 📋 **v19.0 Portal HC Bug Fixes (Sertifikat Ecosystem Audit)** — Phases 325-327 (planned 2026-05-26) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
+- 📋 **v19.0 Portal HC Bug Fixes (Sertifikat Ecosystem Audit)** — Phases 325-328 (planned 2026-05-26) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
 
 ## Phases
 
@@ -602,12 +602,12 @@ Plans:
 
 ---
 
-## v19.0 Portal HC Bug Fixes (Sertifikat Ecosystem Audit) — Phases 325-327
+## v19.0 Portal HC Bug Fixes (Sertifikat Ecosystem Audit) — Phases 325-328
 
-**Source:** `docs/sertifikat-ecosystem/bug-findings.html` — 6 bug Portal HC actionable (1 HIGH + 5 MED)
-**Spec:** `docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md`
-**Strategy:** Sequential strict 325 → 326 → 327, IT promo Dev 1× batch akhir setelah Phase 327 ship
-**Est. total effort:** ~3-4 hari coding + UAT batch akhir
+**Source:** `docs/sertifikat-ecosystem/bug-findings.html` — 6 bug Portal HC actionable (1 HIGH + 5 MED) + Phase 323 deferred audit sweep
+**Spec:** `docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md` + `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` (Phase 328)
+**Strategy:** Sequential strict 325 → 326 → 327 (code fix) + 328 (audit-only, parallel-safe). IT promo Dev 1× batch akhir setelah Phase 327 ship. Phase 328 deliverable RESEARCH.md mungkin spawn fix phase di v20.0.
+**Est. total effort:** ~3-4 hari coding + UAT batch akhir + ~1-2 jam audit Phase 328
 **Started:** Pending v18.0 completion
 
 ### Phase 325: Security Hardening (P01 + P02 + P05 quick patch)
@@ -668,18 +668,37 @@ Plans:
   - **Files affected:** `Models/TrainingRecord.cs` + `Models/AssessmentSession.cs` + `Models/CertificationManagementViewModel.cs` + `Migrations/{ts}_ChangeValidUntilToDateOnly.cs` (NEW) + Razor view minor adjust
   - **Migration:** ✅ `ChangeValidUntilToDateOnly`
 
+### Phase 328: Cascade Audit Sweep — Delete* Endpoints (Audit-Only)
+
+- [ ] **Phase 328: Enumerate + audit Delete* endpoints terhadap 7-dimension cascade-safety checklist**
+  - **Source:** Post-Phase-323 deferred per `323-CONTEXT.md:122` (DeleteCategory/Package/Question/Worker/Training/dll out-of-scope 323)
+  - **Depends on:** Phase 327 (sequential within v19.0); Phase 323 (gold-standard pattern reference)
+  - **Goal:** Enumerate every `Delete*` method di `Controllers/*.cs` + `Services/*.cs` dan audit terhadap 7-dimension cascade-safety checklist (FK risk, file-DB atomicity, audit log, role check, renewal chain null-clear, error handling, transaction wrap). Severity tag per row. Produce `328-RESEARCH.md` deliverable. No code change, no fix phase spawn (potential fix phase di v20.0).
+  - **Success Criteria:**
+    1. RESEARCH.md 9-section deliverable: enumeration table + 7-dim audit per row + severity per row + cross-ref Phase 323 pattern + remediation recommendation
+    2. Coverage: 100% Delete* methods di Controllers/ + Services/ enumerated (grep verified)
+    3. Severity tag distribusi: HIGH/MED/LOW count summary
+    4. No code change committed (audit-only enforcement)
+  - **Risk:** Very Low (read-only) | **Effort:** S (~1-2 jam single session)
+  - **Reference spec:** `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` (commit `02f620be`)
+  - **Files affected:** `.planning/phases/328-cascade-audit-sweep-delete-endpoints/328-RESEARCH.md` (NEW, audit-only)
+  - **Migration:** ❌ Tidak ada
+  - **Plans:** 1 plan
+    - [ ] 328-01-PLAN.md — Enumerate Delete* endpoints + audit 7-dim cascade-safety checklist per row + write 9-section RESEARCH.md (10 task, audit-only, no code change)
+
 #### Coverage Validation v19.0
 
 | Bug | Phase | Status |
 |-----|-------|--------|
-| P01 Path Traversal | 325 | Pending |
-| P02 MIME Magic Byte | 325 | Pending |
+| P01 Path Traversal | 325 | ✅ SHIPPED |
+| P02 MIME Magic Byte | 325 | ✅ SHIPPED |
 | P03 Cycle Detection | 326 | Pending |
 | P04 Timezone DateOnly | 327 | Pending |
-| P05 Hard Delete FK quick patch | 325 | Pending |
+| P05 Hard Delete FK quick patch | 325 | ✅ SHIPPED |
 | P06 Permanent+ValidUntil | 326 | Pending |
+| Cascade audit sweep (N/A, audit-only) | 328 | Pending |
 
-**Active mapped: 6/6 ✓ — Orphans: 0 — Duplicates: 0**
+**Active mapped: 6/6 bug ✓ + 1 audit phase — Orphans: 0 — Duplicates: 0**
 
 ---
 
@@ -705,23 +724,10 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
 
-### Phase 328: Cascade Audit Sweep — Delete* Endpoints (Audit-Only)
-
-**Goal:** Enumerate every `Delete*` method di `Controllers/*.cs` + `Services/*.cs` dan audit terhadap 7-dimension cascade-safety checklist (FK risk, file-DB atomicity, audit log, role check, renewal chain null-clear, error handling, transaction wrap). Severity tag per row. Produce `328-RESEARCH.md` deliverable. No code change, no fix phase spawn.
-
-**Requirements**: Post-Phase-323 deferred items per `.planning/phases/323-fix-cascade-bug-assessmenteditlogs-di-3-endpoint-delete-asse/323-CONTEXT.md:122` ("Audit endpoint delete lain (DeleteCategory, DeletePackage, DeleteQuestion, DeleteWorker, DeleteTraining, dll.) — out-of-scope per REQUIREMENTS.md L32. Milestone berikutnya bisa scope v19.0 Cascade Audit Sweep").
-
-**Depends on:** Phase 323 (gold standard pattern reference)
-**Reference spec:** `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` (commit `02f620be`)
-**Effort estimate:** S (1-2 jam single session, read-only audit)
-**Plans:** 1 plan (planned)
-
-Plans:
-- [ ] 328-01-PLAN.md — Enumerate Delete* endpoints + audit 7-dim cascade-safety checklist per row + write 9-section RESEARCH.md (10 task, audit-only, no code change)
-
 ---
 
-*Roadmap updated: 2026-05-27 (Phase 328 plan generated — 328-01-PLAN.md, 10 task audit-only single wave).*
+*Roadmap updated: 2026-05-27 (Phase 328 promoted dari backlog → v19.0 active, depends on Phase 327; Coverage table updated P01/P02/P05 = SHIPPED).*
+*Prev: 2026-05-27 (Phase 328 plan generated — 328-01-PLAN.md, 10 task audit-only single wave).*
 *Prev: 2026-05-27 (Phase 328 added — Cascade Audit Sweep Delete* endpoints, audit-only, spec commit 02f620be).*
 *Prev: 2026-05-27 (backlog Phase 999.1 Realtime Assessment SignalR added).*
 *Prev: 2026-05-26 (v19.0 planned — 6 bug Portal HC actionable dari sertifikat-ecosystem audit, 3 phase sequential, IT promo batch akhir).*
