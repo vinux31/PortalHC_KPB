@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v18.0
 milestone_name: Cascade Delete Hardening + Duplicate TR Fix
 status: executing
-last_updated: "2026-05-27T05:23:13.411Z"
-last_activity: 2026-05-27 -- Phase 325 planning complete
+last_updated: "2026-05-27T05:40:42.580Z"
+last_activity: 2026-05-27 -- Phase 328 planning complete
 progress:
   total_phases: 2
   completed_phases: 1
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 324 — fix-duplicate-trainingrecord-auto-create-on-assessment-compl
+**Current focus:** Phase 325 — security-hardening-p01-p02-p05
 
 ## Current Position
 
-Phase: 324
-Plan: Not started
+Phase: 325 (security-hardening-p01-p02-p05) — EXECUTING
+Plan: 1 of 5
 Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 325 planning complete
+Last activity: 2026-05-27 -- Phase 328 planning complete
 
 ## Next Action
 
