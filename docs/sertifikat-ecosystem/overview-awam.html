@@ -146,7 +146,100 @@
 
     <section id="sec-gap">
       <h2><span class="badge bg-secondary">§2</span> Gap Utama</h2>
-      <p class="text-muted"><em>(Placeholder — diisi Task 6-7)</em></p>
+
+      <h5>2.1 Apa itu Gap?</h5>
+      <p><strong>Gap</strong> = fitur / proses / kemampuan yang <strong>seharusnya ada</strong> (berdasarkan benchmark 9 platform external — 5 HRIS+LMS enterprise dunia + 4 platform Migas) tapi <strong>belum ada</strong> di Portal HC KPB. Bukan bug — fitur yang belum dikembangkan.</p>
+
+      <h5 class="mt-4">2.2 Top-5 Gap Kritis</h5>
+      <p class="small text-muted">5 gap paling penting dari total 50 gap. Severity 🔴 Kritis = blocking compliance / audit / workflow penting.</p>
+      <div class="accordion" id="topGapAccordion">
+
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gap1">
+              <strong class="me-2">1. Self-Service Renewal Portal</strong>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-info text-dark">🔄 Flow</span>
+            </button>
+          </h2>
+          <div id="gap1" class="accordion-collapse collapse" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body small">
+              <p class="mb-2"><strong>Kondisi sekarang:</strong> Renewal hanya bisa di-trigger HC/Admin via menu Renewal Certificate. Pekerja yang sertifikatnya mau expired hanya bisa menunggu HC bertindak.</p>
+              <p class="mb-2"><strong>Yang seharusnya ada:</strong> Pekerja bisa trigger renewal sendiri (self-service) selama tipe sertifikat memang allow renewal. Beban HC turun, pekerja lebih proaktif.</p>
+              <p class="mb-0"><strong>Effort:</strong> <span class="badge bg-warning text-dark">Medium (3-6 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gap2">
+              <strong class="me-2">2. Public Verification (QR / URL)</strong>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-primary">✨ Fitur</span>
+            </button>
+          </h2>
+          <div id="gap2" class="accordion-collapse collapse" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body small">
+              <p class="mb-2"><strong>Kondisi sekarang:</strong> Sertifikat PDF punya nomor unik tapi tidak ada cara pihak external (rekruter, vendor, auditor) verify keaslian. Mereka harus phone/email HC manual.</p>
+              <p class="mb-2"><strong>Yang seharusnya ada:</strong> QR code di PDF sertifikat → arahkan ke halaman public verify (tanpa login). Third-party bisa cek real-time status sertifikat.</p>
+              <p class="mb-0"><strong>Effort:</strong> <span class="badge bg-success">Quick Win (1-3 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gap3">
+              <strong class="me-2">3. Bulk Action Suite</strong>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-info text-dark">🔄 Flow</span>
+            </button>
+          </h2>
+          <div id="gap3" class="accordion-collapse collapse" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body small">
+              <p class="mb-2"><strong>Kondisi sekarang:</strong> Operasi sertifikat (renewal, re-issue, export) cuma bisa per-record. Dengan ribuan pekerja KPB, HC harus klik satu-per-satu — bottleneck operasional.</p>
+              <p class="mb-2"><strong>Yang seharusnya ada:</strong> Bulk checkbox + bulk action (mass renewal, mass export Excel dengan filter, batch re-issue PDF). 1 form input → ratusan record diproses sekaligus.</p>
+              <p class="mb-0"><strong>Effort:</strong> <span class="badge bg-warning text-dark">Medium (3-6 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gap4">
+              <strong class="me-2">4. HCM Integration (Employee Master Sync)</strong>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-secondary">🏗️ Sistem</span>
+            </button>
+          </h2>
+          <div id="gap4" class="accordion-collapse collapse" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body small">
+              <p class="mb-2"><strong>Kondisi sekarang:</strong> Data pekerja (NIP, jabatan, section) di-entry manual atau impor Excel periodik. Saat pekerja pindah section/jabatan, status sertifikat tidak otomatis update.</p>
+              <p class="mb-2"><strong>Yang seharusnya ada:</strong> Integrasi API ke sistem HR Pertamina pusat (SAP HCM / Oracle HCM). Sync nightly NIP + jabatan + section. Pindah section → auto-update tanpa intervensi HC.</p>
+              <p class="mb-0"><strong>Effort:</strong> <span class="badge bg-danger">Long-term (&gt;9 bulan, butuh koordinasi IT Pertamina pusat)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gap5">
+              <strong class="me-2">5. Audit Trail Defensible</strong>
+              <span class="badge bg-danger me-1">🔴 Kritis</span>
+              <span class="badge bg-secondary">🏗️ Sistem</span>
+            </button>
+          </h2>
+          <div id="gap5" class="accordion-collapse collapse" data-bs-parent="#topGapAccordion">
+            <div class="accordion-body small">
+              <p class="mb-2"><strong>Kondisi sekarang:</strong> Aksi di Portal HC ter-log umum di file log aplikasi, tapi tidak ada audit trail per-sertifikat yang siap diserahkan ke regulator (BPK, audit internal). Tidak ada record "siapa edit, kapan, dari IP mana".</p>
+              <p class="mb-2"><strong>Yang seharusnya ada:</strong> Tabel audit log dedicated per sertifikat: UserId + Action + OldValue + NewValue + Timestamp + IP + UserAgent. Exportable PDF untuk regulator.</p>
+              <p class="mb-0"><strong>Effort:</strong> <span class="badge bg-warning text-dark">Medium (3-6 bulan)</span></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </section>
 
     <footer class="text-center text-muted small mt-5 pt-4 border-top">
