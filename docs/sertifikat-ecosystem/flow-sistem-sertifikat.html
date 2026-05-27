@@ -215,7 +215,34 @@ flowchart LR
         </table>
       </div>
     </section>
-    <section id="sec-c"><h2><span class="badge bg-secondary">§C</span> Lifecycle Status</h2><p class="text-muted"><em>(Diisi Task 5)</em></p></section>
+    <section id="sec-c">
+      <h2><span class="badge bg-secondary">§C</span> Lifecycle Status</h2>
+      <p>Status sertifikat <strong>dihitung sistem real-time</strong>, bukan disimpan di database. Logic di <code>DeriveCertificateStatus</code> berdasarkan <code>ValidUntil</code> + jenis (Permanent atau bukan).</p>
+      <div class="mermaid">
+stateDiagram-v2
+    [*] --> Aktif: Sertifikat terbit
+    Aktif --> AkanExpired: less than 30 hari ke ValidUntil
+    AkanExpired --> Expired: Tanggal ValidUntil lewat
+    AkanExpired --> Aktif: Renewal sukses<br/>(chain link ke baru)
+    Expired --> Aktif: Renewal sukses<br/>(chain link ke baru)
+    Aktif --> Aktif: Edit data sertifikat
+    [*] --> Permanent: Tag jenis Permanent
+    Permanent --> Permanent: No transition
+      </div>
+      <div class="alert alert-light border mt-3">
+        <strong><i class="bi bi-info-circle"></i> Catatan teknis ringan:</strong> Status <strong>bukan kolom database</strong> &mdash; di-derive real-time setiap halaman dibuka. Implikasi: tidak ada cron job yang "menggeser status" &mdash; pure formula. Performa hit minimal karena cuma cek timestamp.
+      </div>
+      <h5 class="mt-4">Detail 2 Flow Fase Status</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Trigger / Logic</th><th>Hasil</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Aktif &rarr; AkanExpired &rarr; Expired</strong> (auto real-time)</td><td>Sistem</td><td><code>DeriveCertificateStatus(ValidUntil, jenis)</code> dihitung tiap render</td><td>Status update tanpa intervensi manual</td></tr>
+            <tr><td>2</td><td><strong>Permanent</strong> (no transition)</td><td>Sistem</td><td>Tag jenis sertifikat Permanent saat input</td><td>Tidak pernah expired, tidak masuk daftar outstanding renewal</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="sec-d"><h2><span class="badge bg-secondary">§D</span> Notifikasi</h2><p class="text-muted"><em>(Diisi Task 6)</em></p></section>
     <section id="sec-e"><h2><span class="badge bg-secondary">§E</span> Renewal</h2><p class="text-muted"><em>(Diisi Task 7)</em></p></section>
     <section id="sec-f"><h2><span class="badge bg-secondary">§F</span> View / Read</h2><p class="text-muted"><em>(Diisi Task 8)</em></p></section>
