@@ -38,6 +38,39 @@ namespace HcPortal.Models
             {
                 ".pdf", ".jpg", ".jpeg", ".png"
             };
+
+            // Phase 325 D-09: Magic byte signatures per extension (lowercase keys).
+            // Value = array of valid byte prefixes (multiple = OR match).
+            // Sumber: docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md §5.2.
+            public static readonly Dictionary<string, byte[][]> MagicBytes = new(StringComparer.OrdinalIgnoreCase)
+            {
+                [".pdf"]  = new[] { new byte[] { 0x25, 0x50, 0x44, 0x46 } },  // %PDF
+                [".jpg"]  = new[] { new byte[] { 0xFF, 0xD8, 0xFF } },         // JFIF/EXIF/SPIFF universal prefix
+                [".jpeg"] = new[] { new byte[] { 0xFF, 0xD8, 0xFF } },         // alias .jpg (share value)
+                [".png"]  = new[] { new byte[] { 0x89, 0x50, 0x4E, 0x47 } }    // PNG signature
+            };
+
+            /// <summary>
+            /// Phase 325 D-09: Cek apakah header byte sequence cocok dengan magic byte signature untuk extension.
+            /// </summary>
+            /// <param name="ext">File extension (lowercase, eg ".pdf")</param>
+            /// <param name="header">Buffer byte hasil baca stream 8-byte awal</param>
+            /// <returns>true kalau header match salah satu prefix terdaftar; false kalau ext tidak terdaftar atau no prefix match</returns>
+            public static bool MatchesMagicByte(string ext, byte[] header)
+            {
+                if (!MagicBytes.TryGetValue(ext, out var prefixes)) return false;
+                foreach (var prefix in prefixes)
+                {
+                    if (header.Length < prefix.Length) continue;
+                    bool match = true;
+                    for (int i = 0; i < prefix.Length; i++)
+                    {
+                        if (header[i] != prefix[i]) { match = false; break; }
+                    }
+                    if (match) return true;
+                }
+                return false;
+            }
         }
 
         // Phase 309 D-05 — top-level helper untuk normalisasi status semantik "submitted"
