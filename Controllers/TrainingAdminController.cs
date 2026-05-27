@@ -252,6 +252,22 @@ namespace HcPortal.Controllers
                 if (srcAlreadyRenewed)
                     ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
             }
+            // P03 (Phase 326 D-01/D-08/D-10): DAG enforcement — tanggal renewal harus > tanggal source (monotonic constraint, strict reject same-day)
+            if (model.RenewsTrainingId.HasValue)
+            {
+                var src = await _context.TrainingRecords.FindAsync(model.RenewsTrainingId.Value);
+                if (src != null && src.Tanggal >= model.Tanggal)
+                    ModelState.AddModelError("", "Tanggal renewal harus lebih besar dari tanggal sertifikat yang di-renew.");
+            }
+            if (model.RenewsSessionId.HasValue)
+            {
+                var srcAs = await _context.AssessmentSessions.FindAsync(model.RenewsSessionId.Value);
+                if (srcAs != null && srcAs.Schedule >= model.Tanggal)
+                    ModelState.AddModelError("", "Tanggal renewal harus lebih besar dari tanggal sertifikat yang di-renew.");
+            }
+            // P06 (Phase 326 D-02/D-03/D-05): Permanent + ValidUntil mutual exclusion (field-level error key=ValidUntil)
+            if (model.CertificateType == "Permanent" && model.ValidUntil != null)
+                ModelState.AddModelError("ValidUntil", "Sertifikat Permanent tidak boleh punya tanggal expired.");
             // Mixed-type bulk validation (per D-11, EDGE-01)
             if (fkMap != null && bulkUserIds != null && bulkUserIds.Count > 1)
             {
@@ -430,7 +446,20 @@ namespace HcPortal.Controllers
                 ValidUntil = record.ValidUntil,
                 CertificateType = record.CertificateType,
                 ExistingSertifikatUrl = record.SertifikatUrl,
+                RenewsTrainingId = record.RenewsTrainingId,
+                RenewsSessionId = record.RenewsSessionId,
             };
+            // Phase 326 D-07: Populate RenewalSourceTitle untuk display read-only di EditTraining view
+            if (model.RenewsTrainingId != null)
+            {
+                var src = await _context.TrainingRecords.FirstOrDefaultAsync(t => t.Id == model.RenewsTrainingId);
+                model.RenewalSourceTitle = src?.Judul ?? "(sertifikat sumber tidak ditemukan)";
+            }
+            else if (model.RenewsSessionId != null)
+            {
+                var srcAs = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == model.RenewsSessionId);
+                model.RenewalSourceTitle = srcAs?.Title ?? "(sertifikat sumber tidak ditemukan)";
+            }
             await SetTrainingCategoryViewBag();
             return View(model);
         }
@@ -449,6 +478,26 @@ namespace HcPortal.Controllers
                 TempData["Error"] = editErr;
                 return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
             }
+
+            // P03 (Phase 326 D-01/D-08/D-10): DAG enforcement — mirror AddTraining
+            if (model.RenewsTrainingId.HasValue)
+            {
+                var src = await _context.TrainingRecords.FindAsync(model.RenewsTrainingId.Value);
+                if (src != null && src.Tanggal >= model.Tanggal)
+                    ModelState.AddModelError("", "Tanggal renewal harus lebih besar dari tanggal sertifikat yang di-renew.");
+            }
+            if (model.RenewsSessionId.HasValue)
+            {
+                var srcAs = await _context.AssessmentSessions.FindAsync(model.RenewsSessionId.Value);
+                if (srcAs != null && srcAs.Schedule >= model.Tanggal)
+                    ModelState.AddModelError("", "Tanggal renewal harus lebih besar dari tanggal sertifikat yang di-renew.");
+            }
+            // P03 Self-renewal guard (Phase 326 D-07 defense kalau form tampering set RenewsTrainingId=model.Id)
+            if (model.RenewsTrainingId.HasValue && model.RenewsTrainingId.Value == model.Id)
+                ModelState.AddModelError("", "Sertifikat tidak boleh renewal dirinya sendiri.");
+            // P06 (Phase 326 D-02/D-03): Permanent + ValidUntil mutual exclusion
+            if (model.CertificateType == "Permanent" && model.ValidUntil != null)
+                ModelState.AddModelError("ValidUntil", "Sertifikat Permanent tidak boleh punya tanggal expired.");
 
             if (!ModelState.IsValid)
             {
@@ -488,6 +537,9 @@ namespace HcPortal.Controllers
             record.NomorSertifikat = model.NomorSertifikat;
             record.ValidUntil = model.ValidUntil;
             record.CertificateType = model.CertificateType;
+            // Phase 326 D-07: Persist renewal FK clear/passthrough (else "Hapus link renewal" button silent ignore)
+            record.RenewsTrainingId = model.RenewsTrainingId;
+            record.RenewsSessionId = model.RenewsSessionId;
 
             await _context.SaveChangesAsync();
 

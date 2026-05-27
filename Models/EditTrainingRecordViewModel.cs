@@ -62,5 +62,10 @@ namespace HcPortal.Models
         // keep the old file if no new file is uploaded; also used by Razor to render
         // the current certificate download link inside the modal.
         public string? ExistingSertifikatUrl { get; set; }
+
+        // Phase 326 D-06: Renewal FK passthrough + display title
+        public int? RenewsTrainingId { get; set; }
+        public int? RenewsSessionId { get; set; }
+        public string? RenewalSourceTitle { get; set; }
     }
 }
