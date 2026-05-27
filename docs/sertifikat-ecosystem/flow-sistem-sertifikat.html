@@ -278,7 +278,43 @@ flowchart TB
         </table>
       </div>
     </section>
-    <section id="sec-e"><h2><span class="badge bg-secondary">§E</span> Renewal</h2><p class="text-muted"><em>(Diisi Task 7)</em></p></section>
+    <section id="sec-e">
+      <h2><span class="badge bg-secondary">§E</span> Renewal</h2>
+      <p>Renewal saat ini <strong>HC-driven only</strong>. Self-service coachee belum ada (gap top kritis #1 di <code>analisa-gap-benchmark</code>). Renewal chain di-link via FK <code>RenewsSessionId</code> / <code>RenewsTrainingId</code>, di-resolve via Union-Find algorithm di <code>CertificateHistory</code> modal.</p>
+      <div class="mermaid">
+flowchart TB
+    Notif[Notif expiry / HC proaktif] --> Menu[HC buka menu<br/>Admin / RenewalCertificate]
+    Menu --> Filter[FilterRenewalCertificate<br/>FilterRenewalCertificateGroup<br/>group by judul]
+    Filter --> Pick[HC pilih sertifikat<br/>per-record klik]
+    Pick --> Form[Form Renewal Certificate]
+    Form --> Trigger[Trigger Training/Assessment Baru]
+    Trigger --> NewCert[Sertifikat Baru terbit<br/>lihat §A]
+    NewCert --> ChainFK[Set FK RenewsSessionId<br/>atau RenewsTrainingId<br/>link ke sertifikat lama]
+    ChainFK --> Hide[Sertifikat lama auto-hide<br/>dari dashboard outstanding]
+    Hide --> History[Bisa di-view di<br/>CertificateHistory modal<br/>Union-Find resolution chain]
+
+    Gap[Self-service Coachee Renewal] -.BELUM ADA.-> NoSelf[Coachee hanya bisa menunggu HC]
+
+    style Gap fill:#fee,stroke:#c00,stroke-dasharray: 5 5
+    style NoSelf fill:#f8d7da
+      </div>
+      <div class="gap-callout">
+        <strong><i class="bi bi-x-circle-fill text-danger"></i> Gap Top Kritis #1 &mdash; Self-Service Renewal</strong>
+        <p class="mb-0 mt-2">Pekerja yang sertifikatnya mau expired hanya bisa menunggu HC bertindak. Tidak ada cara coachee trigger renewal sendiri. Beban HC tinggi, pekerja pasif. Lihat <a href="./analisa-gap-benchmark.html#sec-4"><code>analisa-gap-benchmark.html §4 Top-5 Gap Kritis #1</code></a>.</p>
+      </div>
+      <h5 class="mt-4">Detail 4 Flow Fase Renewal (3 ada + 1 gap)</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Trigger / Endpoint</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>HC-Trigger Renewal Certificate</strong></td><td>HC/Admin</td><td><code>/Admin/RenewalCertificate</code> + Filter + Group by judul</td><td>Ada</td></tr>
+            <tr><td>2</td><td><strong>Renewal Chain Link</strong></td><td>Sistem</td><td>Auto-set FK <code>RenewsSessionId</code> / <code>RenewsTrainingId</code> saat sertifikat baru terbit dari renewal</td><td>Ada</td></tr>
+            <tr><td>3</td><td><strong>Certificate History Modal</strong></td><td>HC/Admin (view)</td><td><code>/Admin/CertificateHistory</code> dengan Union-Find chain resolution</td><td>Ada</td></tr>
+            <tr><td>4</td><td><strong>Self-Service Coachee Renewal</strong></td><td>&mdash; (gap)</td><td>&mdash;</td><td><strong>BELUM ADA</strong> (Gap #1 kritis)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="sec-f"><h2><span class="badge bg-secondary">§F</span> View / Read</h2><p class="text-muted"><em>(Diisi Task 8)</em></p></section>
     <section id="sec-g"><h2><span class="badge bg-secondary">§G</span> Edit / Manage</h2><p class="text-muted"><em>(Diisi Task 9)</em></p></section>
     <section id="sec-i"><h2><span class="badge bg-secondary">§H+I</span> Verifikasi + Audit</h2><p class="text-muted"><em>(Diisi Task 10)</em></p></section>
