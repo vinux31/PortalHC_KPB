@@ -362,7 +362,37 @@ flowchart TB
         </table>
       </div>
     </section>
-    <section id="sec-g"><h2><span class="badge bg-secondary">§G</span> Edit / Manage</h2><p class="text-muted"><em>(Diisi Task 9)</em></p></section>
+    <section id="sec-g">
+      <h2><span class="badge bg-secondary">§G</span> Edit / Manage</h2>
+      <p>HC kelola data sertifikat: 4 aksi utama &mdash; Edit, Delete cascade, Export, Re-issue PDF.</p>
+      <div class="mermaid">
+flowchart LR
+    HC([HC/Admin]) --> Pick{Action?}
+    Pick --> E1[Edit data sertifikat<br/>EditTraining / EditAssessment]
+    Pick --> D1[Delete Training<br/>simple delete + file cleanup]
+    Pick --> D2[Delete Assessment<br/>EXPLICIT cascade<br/>EditLog + Responses<br/>+ Packages + Options]
+    Pick --> EX[Export Excel<br/>CDP/ExportSertifikatExcel<br/>CMP/ExportRecords]
+    Pick --> RI[Re-issue PDF<br/>regenerate tanpa<br/>ubah data]
+
+    D2 --> CertFK[Sertifikat FK<br/>ON DELETE SET NULL<br/>renewal chain preserved]
+    D1 --> File[File PDF<br/>di filesystem dihapus]
+
+    style D2 fill:#fff3cd
+    style CertFK fill:#d4edda
+      </div>
+      <h5 class="mt-4">Detail 4 Flow Fase Manage</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Endpoint</th><th>Side Effect</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>HC Edit Data Sertifikat</strong></td><td>HC/Admin</td><td><code>EditTraining</code> / <code>EditAssessment</code></td><td>Edit nomor/tanggal/link PDF (gap: tidak ada audit trail per-record)</td></tr>
+            <tr><td>2</td><td><strong>Hard Delete + Cascade</strong></td><td>HC/Admin</td><td><code>DeleteTraining</code> (simple + file cleanup) / <code>DeleteAssessment</code> (explicit cascade EditLog + Responses + Packages + Options + status guard)</td><td>Sertifikat FK <code>ON DELETE SET NULL</code> &rarr; renewal chain preserved (Phase 323 cascade hardening)</td></tr>
+            <tr><td>3</td><td><strong>Export Excel</strong></td><td>HC/Admin</td><td><code>/CDP/ExportSertifikatExcel</code>, <code>/CMP/ExportRecords</code></td><td>Excel per-record/filter (gap: tidak ada bulk export advance + rate limit)</td></tr>
+            <tr><td>4</td><td><strong>Re-issue PDF Sertifikat</strong></td><td>HC/Admin</td><td>Regenerate PDF dari template tanpa ubah data DB</td><td>File PDF baru overwrite lama</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="sec-i"><h2><span class="badge bg-secondary">§H+I</span> Verifikasi + Audit</h2><p class="text-muted"><em>(Diisi Task 10)</em></p></section>
 
     <footer class="text-center text-muted small mt-5 pt-4 border-top">
