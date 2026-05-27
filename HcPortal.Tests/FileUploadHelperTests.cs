@@ -64,22 +64,20 @@ public class FileUploadHelperTests
         Assert.Contains("PDF, JPG", err!);
     }
 
-    [Fact(Skip = "TODO Plan 02 D-09: MatchesMagicByte gate belum diimplementasikan di ValidateCertificateFile.")]
+    [Fact]
     public void ValidateCertificateFile_ExeRenamedPdf_ReturnsInvalidMagicByte()
     {
-        // TODO test logic Plan 02 — aktifkan body setelah Plan 02 add magic byte gate
-        // var exe = new byte[] { 0x4D, 0x5A, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00 }; // MZ exe
-        // var (ok, err) = FileUploadHelper.ValidateCertificateFile(MakeFile("malware.pdf", exe));
-        // Assert.False(ok);
-        // Assert.Contains("magic byte", err!);
+        var exe = new byte[] { 0x4D, 0x5A, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00 }; // MZ exe
+        var (ok, err) = FileUploadHelper.ValidateCertificateFile(MakeFile("malware.pdf", exe));
+        Assert.False(ok);
+        Assert.Contains("magic byte", err!);
     }
 
-    [Fact(Skip = "TODO Plan 02 D-09: AssessmentConstants.FileValidation.MatchesMagicByte() belum diimplementasikan.")]
+    [Fact]
     public void MatchesMagicByte_JpegAliasMatchesJpg()
     {
-        // TODO test logic Plan 02 — aktifkan body setelah Plan 02 add MatchesMagicByte helper
-        // var jpg = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x00, 0x00, 0x00 }; // EXIF variant
-        // Assert.True(AssessmentConstants.FileValidation.MatchesMagicByte(".jpeg", jpg));
-        // Assert.True(AssessmentConstants.FileValidation.MatchesMagicByte(".jpg", jpg));
+        var jpg = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x00, 0x00, 0x00 }; // EXIF variant
+        Assert.True(AssessmentConstants.FileValidation.MatchesMagicByte(".jpeg", jpg));
+        Assert.True(AssessmentConstants.FileValidation.MatchesMagicByte(".jpg", jpg));
     }
 }
