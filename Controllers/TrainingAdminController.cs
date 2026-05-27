@@ -509,21 +509,46 @@ namespace HcPortal.Controllers
             var record = await _context.TrainingRecords.FindAsync(id);
             if (record == null) return NotFound();
 
-            if (!string.IsNullOrEmpty(record.SertifikatUrl))
+            try
             {
-                var path = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
-                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+                // Phase 325 P05 D-04/D-11: pre-check referencing rows SEBELUM hapus (UX friendly).
+                // TrainingRecord punya 2 jenis renewal child: TR lain + AS lain. FK column = RenewsTrainingId.
+                var referencingTr = await _context.TrainingRecords
+                    .CountAsync(t => t.RenewsTrainingId == record.Id);
+                var referencingAs = await _context.AssessmentSessions
+                    .CountAsync(a => a.RenewsTrainingId == record.Id);
+
+                if (referencingTr + referencingAs > 0)
+                {
+                    var total = referencingTr + referencingAs;
+                    TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
+                                      + "menggunakan record ini sebagai sumber renewal. "
+                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
+                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+                }
+
+                if (!string.IsNullOrEmpty(record.SertifikatUrl))
+                {
+                    var path = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+                }
+
+                var actor = await _userManager.GetUserAsync(User);
+                _context.TrainingRecords.Remove(record);
+                await _context.SaveChangesAsync();
+
+                if (actor != null)
+                    await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
+                        $"Training record dihapus: {record.Judul}", record.Id, "TrainingRecord");
+
+                TempData["Success"] = "Training record berhasil dihapus.";
             }
-
-            var actor = await _userManager.GetUserAsync(User);
-            _context.TrainingRecords.Remove(record);
-            await _context.SaveChangesAsync();
-
-            if (actor != null)
-                await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
-                    $"Training record dihapus: {record.Judul}", record.Id, "TrainingRecord");
-
-            TempData["Success"] = "Training record berhasil dihapus.";
+            catch (DbUpdateException ex)
+            {
+                // Phase 325 P05 D-05: catch specific DbUpdateException (TOCTOU safety net jika race antara pre-check dan delete).
+                _logger.LogWarning(ex, "Delete failed for TrainingRecord {Id}", record.Id);
+                TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
+            }
             return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
         }
 
@@ -718,17 +743,41 @@ namespace HcPortal.Controllers
             var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == id && s.IsManualEntry);
             if (session == null) return NotFound();
 
-            FileUploadHelper.DeleteFile(_env.WebRootPath, session.ManualSertifikatUrl);
+            try
+            {
+                // Phase 325 P05 D-04/D-11: pre-check referencing rows SEBELUM hapus.
+                // AssessmentSession punya 2 jenis renewal child: TR + AS. FK column = RenewsSessionId (BUKAN RenewsTrainingId — pitfall RESEARCH §Pitfall 2).
+                var referencingTr = await _context.TrainingRecords
+                    .CountAsync(t => t.RenewsSessionId == session.Id);
+                var referencingAs = await _context.AssessmentSessions
+                    .CountAsync(a => a.RenewsSessionId == session.Id);
 
-            var actor = await _userManager.GetUserAsync(User);
-            _context.AssessmentSessions.Remove(session);
-            await _context.SaveChangesAsync();
+                if (referencingTr + referencingAs > 0)
+                {
+                    var total = referencingTr + referencingAs;
+                    TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
+                                      + "menggunakan record ini sebagai sumber renewal. "
+                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
+                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+                }
 
-            if (actor != null)
-                await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
-                    $"Assessment manual dihapus: {session.Title}", session.Id, "AssessmentSession");
+                FileUploadHelper.DeleteFile(_env.WebRootPath, session.ManualSertifikatUrl);
 
-            TempData["Success"] = "Assessment manual berhasil dihapus.";
+                var actor = await _userManager.GetUserAsync(User);
+                _context.AssessmentSessions.Remove(session);
+                await _context.SaveChangesAsync();
+
+                if (actor != null)
+                    await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
+                        $"Assessment manual dihapus: {session.Title}", session.Id, "AssessmentSession");
+
+                TempData["Success"] = "Assessment manual berhasil dihapus.";
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogWarning(ex, "Delete failed for AssessmentSession (manual) {Id}", session.Id);
+                TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
+            }
             return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
         }
 
