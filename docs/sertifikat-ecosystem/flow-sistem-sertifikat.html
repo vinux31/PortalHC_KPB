@@ -131,7 +131,57 @@ flowchart TB
       </div>
       <p class="small text-muted"><i class="bi bi-info-circle"></i> Solid arrow = flow utama. Dotted arrow = cross-cutting (RBAC view, admin manage, compliance).</p>
     </section>
-    <section id="sec-a"><h2><span class="badge bg-secondary">§A</span> Terbit / Lahir Sertifikat</h2><p class="text-muted"><em>(Diisi Task 3)</em></p></section>
+    <section id="sec-a">
+      <h2><span class="badge bg-secondary">§A</span> Terbit / Lahir Sertifikat</h2>
+      <p>Sertifikat lahir dari <strong>3 jalur input</strong> ditambah branching khusus (pre-post test sibling, NOT-terbit). Total <strong>6 flow distinct</strong> di fase ini.</p>
+      <div class="mermaid">
+flowchart TB
+    Start([Pekerja butuh sertifikat])
+    Start --> J1{Jalur input?}
+
+    J1 --> |Assessment online| AO[Coachee jalani Assessment]
+    AO --> AOL{Lulus + Flag<br/>Generate Cert ON?}
+    AOL -- "Ya, no essay" --> AOC[Sertifikat OTOMATIS terbit<br/>Format KPB/SEQ/ROMAWI/YYYY]
+    AOL -- "Ya, ada essay" --> AOE[Status PendingGrading<br/>&rarr; Fase B Essay Grading]
+    AOL -- "Tidak lulus" --> XF[NOT terbit - Failed]
+    AOL -- "Flag OFF" --> XO[NOT terbit - Flag OFF]
+
+    J1 --> |HC Manual Upload| HU[HC AddTraining<br/>EditTraining endpoint]
+    HU --> HUI[Input nomor sertifikat manual<br/>+ upload bukti PDF]
+    HU --> HMA[HC AddManualAssessment<br/>EditManualAssessment]
+    HMA --> HMAI[Input score assessment external<br/>+ upload bukti PDF]
+
+    J1 --> |Bulk Import| BI[HC ImportTraining]
+    BI --> BIE[Upload Excel batch<br/>multi-pekerja sekaligus]
+
+    PP[Pre-Post Test Group]
+    PP --> PPS[Pre + Post coupled<br/>flag GenerateCertificate override]
+
+    AOC --> Done([Sertifikat di database])
+    HUI --> Done
+    HMAI --> Done
+    BIE --> Done
+    PPS --> Done
+
+    style AOC fill:#d4edda
+    style XF fill:#f8d7da
+    style XO fill:#fff3cd
+      </div>
+      <h5 class="mt-4">Detail 6 Flow Fase Terbit</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Trigger / Endpoint</th><th>Hasil</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Assessment Online &rarr; Sertifikat Otomatis</strong></td><td>Coachee + Sistem</td><td>Lulus assessment + flag GenerateCertificate ON + no essay pending &rarr; <code>GradingService.GradeAndCompleteAsync</code></td><td>Sertifikat auto-generate dengan nomor format <code>KPB/SEQ/ROMAWI/YYYY</code></td></tr>
+            <tr><td>2</td><td><strong>HC Upload Bukti Training External</strong></td><td>HC/Admin</td><td>Menu Admin &rarr; AddTraining / EditTraining</td><td>Sertifikat manual entry, nomor input manual, file PDF tersimpan</td></tr>
+            <tr><td>3</td><td><strong>HC Manual Assessment Entry</strong></td><td>HC/Admin</td><td>Menu Admin &rarr; AddManualAssessment / EditManualAssessment</td><td>Assessment external tercatat di sistem + bukti PDF</td></tr>
+            <tr><td>4</td><td><strong>Training Record Bulk Import Excel</strong></td><td>HC/Admin</td><td>Menu Admin &rarr; ImportTraining (upload .xlsx)</td><td>Batch import multi-pekerja sekaligus</td></tr>
+            <tr><td>5</td><td><strong>Pre-Post Test Sibling Link</strong></td><td>Sistem</td><td>Saat assessment group pre/post &rarr; coupling otomatis</td><td>Flag GenerateCertificate override sesuai logic sibling</td></tr>
+            <tr><td>6</td><td><strong>Assessment &rarr; NOT-Terbit (3 alasan)</strong></td><td>Sistem (branch)</td><td>(a) Gagal lulus, (b) Flag OFF, (c) Pending essay grading</td><td>Sertifikat tidak terbit - alasan tertampil di UI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="sec-b"><h2><span class="badge bg-secondary">§B</span> Essay Grading Conditional</h2><p class="text-muted"><em>(Diisi Task 4)</em></p></section>
     <section id="sec-c"><h2><span class="badge bg-secondary">§C</span> Lifecycle Status</h2><p class="text-muted"><em>(Diisi Task 5)</em></p></section>
     <section id="sec-d"><h2><span class="badge bg-secondary">§D</span> Notifikasi</h2><p class="text-muted"><em>(Diisi Task 6)</em></p></section>
