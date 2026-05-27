@@ -1,10 +1,11 @@
 ---
 phase: 326
 slug: validator-hardening-p03-p06
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-27
+reviewed_at: 2026-05-27
 scope: minor-view-tweak
 ---
 
