@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v18.0
 milestone_name: Cascade Delete Hardening + Duplicate TR Fix
-status: executing
-last_updated: "2026-05-27T05:40:42.580Z"
-last_activity: 2026-05-27 -- Phase 328 planning complete
+status: Ready next phase
+last_updated: "2026-05-27T07:57:48.549Z"
+last_activity: 2026-05-27 -- Phase 325 SHIPPED, ALL UAT PASS Playwright MCP browser-verified, ready push origin/main
 progress:
   total_phases: 2
   completed_phases: 1
