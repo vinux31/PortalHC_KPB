@@ -635,7 +635,7 @@ Plans:
 
 ### Phase 326: Validator Hardening (P03 + P06)
 
-- [ ] **Phase 326: Validator hardening Add/Edit Training form**
+- [x] **Phase 326: Validator hardening Add/Edit Training form** — SHIPPED LOCAL 2026-05-27 (commits 718c67b8..cb5d74dc, 6/6 SC PASS Playwright MCP, NOT PUSHED defer Phase 327 batch)
   - **Bug:** P03 (MED cycle detection via DAG enforcement), P06 (MED Permanent + ValidUntil reject)
   - **Depends on:** Phase 325
   - **Goal:** Cegah data kontradiktif tersimpan via form Add/Edit Training. DAG enforcement: tanggal renewal harus > tanggal source (cycle otomatis ditolak via monotonic constraint). Permanent + ValidUntil isi → reject di ModelState.
