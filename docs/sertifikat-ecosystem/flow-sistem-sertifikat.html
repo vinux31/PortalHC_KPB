@@ -243,7 +243,41 @@ stateDiagram-v2
         </table>
       </div>
     </section>
-    <section id="sec-d"><h2><span class="badge bg-secondary">§D</span> Notifikasi</h2><p class="text-muted"><em>(Diisi Task 6)</em></p></section>
+    <section id="sec-d">
+      <h2><span class="badge bg-secondary">§D</span> Notifikasi</h2>
+      <p>Notif expiry sertifikat <strong>bukan cron job</strong> &mdash; di-trigger saat user login lewat <code>HomeController.TriggerCertExpiredNotificationsAsync</code> dengan cache 1-jam + dedup hash. <strong>Implikasi penting:</strong> kalau tidak ada user login dalam window kritis, notif tidak terkirim.</p>
+      <div class="mermaid">
+flowchart TB
+    Login[User login Portal HC] --> Home[HomeController.Index]
+    Home --> Cache{Cache 1-jam<br/>masih valid?}
+    Cache -- Ya --> Skip[Skip - tidak fire notif]
+    Cache -- Tidak --> Trigger[TriggerCertExpiredNotificationsAsync]
+    Trigger --> Scan[Scan sertifikat<br/>ValidUntil less-equal 30 hari]
+    Scan --> Dedup{Sudah pernah<br/>kirim notif?}
+    Dedup -- Ya --> Skip2[Skip - dedup via hash]
+    Dedup -- Tidak --> Send[NotificationService.SendAsync<br/>type CERT_EXPIRED]
+    Send --> Recv[Notif diterima<br/>HC + Admin via email + in-app]
+
+    NoLogin[Tidak ada user login<br/>dalam window kritis] -.-> Miss[Notif TIDAK fire<br/>Hidden gap operasional]
+
+    style Miss fill:#f8d7da,stroke:#c00
+    style NoLogin fill:#fff3cd
+      </div>
+      <div class="hidden-gap-callout">
+        <strong><i class="bi bi-exclamation-triangle-fill text-warning"></i> Hidden Gap Operasional</strong>
+        <p class="mb-1 mt-2">Sistem notif sekarang <strong>passive on-login</strong> &mdash; kalau tidak ada user login dalam jam kritis (mis. weekend / cuti panjang), notif expiry tidak terkirim. Sertifikat bisa lewat expired tanpa pernah ada peringatan.</p>
+        <p class="mb-0"><strong>Rekomendasi:</strong> tambah dedicated scheduler (Hangfire / IHostedService background) untuk decouple notif trigger dari user activity. Lihat <a href="./analisa-gap-benchmark.html#sec-3"><code>analisa-gap-benchmark.html §3 &mdash; Gap #2 Multi-channel notif + scheduler</code></a>.</p>
+      </div>
+      <h5 class="mt-4">Detail 1 Flow Fase Notifikasi</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Trigger / Mekanisme</th><th>Channel</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Cert Expiry Notif &mdash; On-Login Passive Trigger</strong></td><td>Sistem (passive saat user login)</td><td><code>HomeController.TriggerCertExpiredNotificationsAsync</code> dengan cache 1-jam + dedup hash</td><td>Email + in-app, hanya HC + Admin</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="sec-e"><h2><span class="badge bg-secondary">§E</span> Renewal</h2><p class="text-muted"><em>(Diisi Task 7)</em></p></section>
     <section id="sec-f"><h2><span class="badge bg-secondary">§F</span> View / Read</h2><p class="text-muted"><em>(Diisi Task 8)</em></p></section>
     <section id="sec-g"><h2><span class="badge bg-secondary">§G</span> Edit / Manage</h2><p class="text-muted"><em>(Diisi Task 9)</em></p></section>
