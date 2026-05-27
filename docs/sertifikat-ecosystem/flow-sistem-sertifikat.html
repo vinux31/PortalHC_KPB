@@ -393,7 +393,36 @@ flowchart LR
         </table>
       </div>
     </section>
-    <section id="sec-i"><h2><span class="badge bg-secondary">§H+I</span> Verifikasi + Audit</h2><p class="text-muted"><em>(Diisi Task 10)</em></p></section>
+    <section id="sec-i">
+      <h2><span class="badge bg-secondary">§H+I</span> Verifikasi + Audit / Compliance</h2>
+      <p>Fase compliance saat ini <strong>minimal</strong>. External verifikasi belum ada (gap top kritis #2). Audit log hanya per-action sebagian + file log umum aplikasi (gap top kritis #5).</p>
+      <div class="row g-3 my-3">
+        <div class="col-md-6">
+          <div class="gap-callout h-100">
+            <strong><i class="bi bi-x-circle-fill text-danger"></i> Gap Top Kritis #2 &mdash; Public Verify QR/URL</strong>
+            <p class="mb-0 mt-2 small">Sertifikat PDF punya nomor unik tapi <strong>tidak ada cara external</strong> (rekruter, vendor, auditor BPK) verify keaslian. Mereka harus phone/email HC manual.</p>
+            <p class="mb-0 mt-2 small"><a href="./analisa-gap-benchmark.html#sec-4"><i class="bi bi-arrow-right-circle"></i> Detail rekomendasi (QR code + public verify endpoint)</a></p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="gap-callout h-100">
+            <strong><i class="bi bi-x-circle-fill text-danger"></i> Gap Top Kritis #5 &mdash; Audit Trail Defensible</strong>
+            <p class="mb-0 mt-2 small">Aksi di Portal HC ter-log umum di file log aplikasi, tapi <strong>tidak ada audit trail per-sertifikat</strong> yang siap diserahkan ke regulator (BPK, audit internal Pertamina). Tidak ada record "siapa edit, kapan, dari IP mana".</p>
+            <p class="mb-0 mt-2 small"><a href="./analisa-gap-benchmark.html#sec-4"><i class="bi bi-arrow-right-circle"></i> Detail rekomendasi (tabel audit log dedicated)</a></p>
+          </div>
+        </div>
+      </div>
+      <h5 class="mt-4">Detail 2 Flow Fase Verifikasi + Audit</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Mekanisme</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>External Public Verify QR/URL</strong></td><td>&mdash; (gap)</td><td>&mdash;</td><td><strong>BELUM ADA</strong> (Gap #2 kritis)</td></tr>
+            <tr><td>2</td><td><strong>File Log Umum + Per-Action Log</strong></td><td>Sistem</td><td>Application log general + per-action: <code>FinalizeEssayGrading</code> (rowsAffected-gated, Phase 310 D-07), <code>DeleteAssessment</code> / <code>DeleteTraining</code></td><td>Sebagian (gap audit trail defensible per-record)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
     <footer class="text-center text-muted small mt-5 pt-4 border-top">
       <p class="text-muted"><em>(Footer placeholder — diisi Task 11)</em></p>
