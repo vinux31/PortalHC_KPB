@@ -612,26 +612,26 @@ Plans:
 
 ### Phase 325: Security Hardening (P01 + P02 + P05 quick patch)
 
-- [ ] **Phase 325: Security Hardening upload + delete error UX**
+- [x] **Phase 325: Security Hardening upload + delete error UX** ✅ SHIPPED 2026-05-27 (commit range 7069ead2..77a9c375)
   - **Bug:** P01 (HIGH path traversal), P02 (MED MIME magic byte), P05 (MED hard delete FK quick patch)
   - **Depends on:** Phase 324
   - **Goal:** Tutup security gap upload file (path traversal + magic byte validation) + perbaiki UX delete error 500 dengan pre-check referencing + try/catch + TempData error friendly. Soft delete proper defer ke v20.0.
-  - **Success Criteria:**
-    1. Upload `../../test.pdf` via Postman tersimpan di `uploads/certificates/` tanpa keluar folder (P01)
-    2. Upload `.exe` rename `.pdf` ditolak dengan pesan magic byte mismatch (P02)
-    3. Upload PDF/JPG/PNG asli tetap lolos (P02 no false positive)
-    4. Delete TrainingRecord dengan referencing → TempData error display, record tidak terhapus (P05)
-    5. Delete TrainingRecord tanpa referencing → sukses normal (P05 no regression)
-    6. Unit test helper `ValidateCertificateFile` 6 case pass
+  - **Success Criteria:** ALL PASS (browser-verified Playwright MCP + xUnit 10/10)
+    1. ✅ SC-1: `../../malicious.pdf` strip flat di uploads/certificates/ + LogWarning audit (xUnit SaveFileAsync)
+    2. ✅ SC-2: notepad.exe rename .pdf REJECT verbatim "Isi file tidak cocok dengan ekstensi (magic byte mismatch)." (browser)
+    3. ✅ SC-3: PDF + JPG + PNG asli lolos 3/3 (browser)
+    4. ✅ SC-4: Parent A delete BLOCKED "Tidak bisa hapus: 1 sertifikat lain..." (browser + sqlcmd seed child)
+    5. ✅ SC-5: Standalone delete sukses (browser)
+    6. ✅ SC-6: dotnet test 10/10 pass
   - **Risk:** Low | **Effort:** S (~2-3 jam)
-  - **Files affected:** `Helpers/FileUploadHelper.cs` + `Controllers/TrainingAdminController.cs` (line 206-215, 221-233, 459-471, 527-548, 732-753) + `Controllers/AssessmentAdminController.cs` (line 2011-2169) + `Models/AssessmentConstants.cs` + `HcPortal.Tests/` (NEW xUnit project) + `HcPortal.sln`
+  - **Files affected:** `Helpers/FileUploadHelper.cs` + `Controllers/TrainingAdminController.cs` (line 206-215, 221-233, 459-471, 527-548, 732-753) + `Controllers/AssessmentAdminController.cs` (line 2011-2169) + `Models/AssessmentConstants.cs` + `HcPortal.Tests/` (NEW xUnit project) + `HcPortal.sln` + `HcPortal.csproj` (DefaultItemExcludes)
   - **Migration:** ❌ Tidak ada
   - **Plans:** 5 plans
-    - [ ] 325-01-PLAN.md — Wave 0: Bootstrap xUnit project HcPortal.Tests/ + register sln + 6 test stub (4 GREEN + 2 SKIP TODO Plan 02)
-    - [ ] 325-02-PLAN.md — Wave 1: Helper P01 + P02 + AssessmentConstants.MagicBytes + ILogger? opsional + flip 6 test GREEN (D-01/D-02/D-03/D-09/D-10)
-    - [ ] 325-03-PLAN.md — Wave 2: Refactor 3 inline duplicate validation sites di TrainingAdminController (line 206-215/221-233/459-471) → panggil FileUploadHelper (T-325-04 close)
-    - [ ] 325-04-PLAN.md — Wave 2: P05 pre-check + try/catch DbUpdateException di 3 endpoint delete (DeleteTraining + DeleteManualAssessment + DeleteAssessment with RenewsTrainingId vs RenewsSessionId distinction)
-    - [ ] 325-05-PLAN.md — Wave 3: Manual UAT batch (Postman SC-1 + browser SC-2/SC-3 + SEED_WORKFLOW snapshot+restore SC-4/SC-5) + commit + push origin/main
+    - [x] 325-01-PLAN.md — xUnit project HcPortal.Tests/ bootstrap + 5 GREEN + 2 SKIP test
+    - [x] 325-02-PLAN.md — Helper P01 + P02 + AssessmentConstants.MagicBytes + ILogger? opsional + flip 7/7 GREEN
+    - [x] 325-03-PLAN.md — Refactor 3 inline duplicate site di TrainingAdminController → helper
+    - [x] 325-04-PLAN.md — P05 pre-check + catch DbUpdateException di 3 endpoint delete
+    - [x] 325-05-PLAN.md — UAT 5/5 SC PASS (xUnit + Playwright MCP browser)
 
 ### Phase 326: Validator Hardening (P03 + P06)
 

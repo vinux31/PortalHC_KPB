@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 325 — security-hardening-p01-p02-p05
+**Current focus:** Phase 326 — validator-hardening-p03-p06 (next milestone v19.0)
 
 ## Current Position
 
-Phase: 325 (security-hardening-p01-p02-p05) — EXECUTING
-Plan: 1 of 5
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 328 planning complete
+Phase: 325 (security-hardening-p01-p02-p05) — ✅ SHIPPED 2026-05-27 (5/5 plan + 5/5 SC PASS browser-verified)
+Plan: 5 of 5 (complete)
+Status: Ready next phase
+Last activity: 2026-05-27 -- Phase 325 SHIPPED, ALL UAT PASS Playwright MCP browser-verified, ready push origin/main
 
 ## Next Action
 
