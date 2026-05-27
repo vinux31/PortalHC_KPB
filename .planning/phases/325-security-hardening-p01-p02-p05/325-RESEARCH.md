@@ -793,11 +793,11 @@ Per OWASP ASVS 4.0 + 5.0 draft (V12 = Files & Resources):
 | P05 FK column distinction (RenewsTrainingId vs RenewsSessionId) | HIGH | Migration + DbContext + Model triangulated |
 | Magic byte universal prefix | HIGH | Multiple sources + JPEG spec |
 
-### Open Questions (deferred to plan-phase decision)
+### Open Questions (RESOLVED at plan-phase)
 
-1. Refactor 3 TrainingAdminController inline duplicate sites di Phase 325 atau defer? **Recommendation: refactor sekarang** — kalau tidak, P02 bypass-able.
-2. Preserve existing `catch (Exception)` di DeleteAssessment line 2163 + tambah specific `DbUpdateException` di atasnya, atau replace?  **Recommendation: preserve + insert specific catch above.**
-3. SC4/SC5 verify pakai DB snapshot+restore atau cleanup manual? **Recommendation: snapshot per CLAUDE.md SEED_WORKFLOW.**
+1. Refactor 3 TrainingAdminController inline duplicate sites di Phase 325 atau defer? **Recommendation: RESOLVED — refactor sekarang (handled in Plan 03)** — kalau tidak, P02 bypass-able.
+2. Preserve existing `catch (Exception)` di DeleteAssessment line 2163 + tambah specific `DbUpdateException` di atasnya, atau replace? **Recommendation: RESOLVED — preserve + insert specific catch above (Plan 04 Task 2).**
+3. SC4/SC5 verify pakai DB snapshot+restore atau cleanup manual? **Recommendation: RESOLVED — snapshot per CLAUDE.md SEED_WORKFLOW (Plan 05 Task 3).**
 
 ### Ready for Planning
 
