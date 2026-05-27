@@ -76,7 +76,61 @@
       <p class="small text-muted">Versi 1.0 — 2026-05-27 — Audit codebase per tanggal ini.</p>
     </header>
 
-    <section id="sec-master"><h2><span class="badge bg-secondary">§0</span> Master Lifecycle Diagram</h2><p class="text-muted"><em>(Diisi Task 2)</em></p></section>
+    <section id="sec-master">
+      <h2><span class="badge bg-secondary">§0</span> Master Lifecycle Diagram</h2>
+      <p>Diagram berikut overview <strong>8 fase lifecycle sertifikat</strong> di Portal HC KPB. Click section per fase di bawah untuk dive ke detail flow per fase.</p>
+      <div class="mermaid">
+flowchart TB
+    subgraph A["A. TERBIT (6 flow)"]
+      A1[Assessment Online]
+      A2[HC Manual Upload]
+      A3[Bulk Import Excel]
+    end
+    subgraph B["B. ESSAY GRADING (3 flow)"]
+      B1[PendingGrading]
+      B2[Submit + Finalize]
+    end
+    subgraph C["C. STATUS (2 flow)"]
+      C1[Aktif &rarr; AkanExpired &rarr; Expired]
+      C2[Permanent]
+    end
+    subgraph D["D. NOTIFIKASI (1 flow)"]
+      D1[On-Login Passive Trigger]
+    end
+    subgraph E["E. RENEWAL (3 + 1 gap)"]
+      E1[HC-Trigger]
+      E2[Chain Link FK]
+    end
+    subgraph F["F. VIEW (3 flow + RBAC)"]
+      F1[Coachee/HC/Manager view]
+    end
+    subgraph G["G. EDIT / MANAGE (4 flow)"]
+      G1[Edit/Delete/Export/Re-issue]
+    end
+    subgraph HI["H+I. VERIFIKASI + AUDIT (1 gap + 1 flow)"]
+      H1[Internal log]
+      H2[External verify GAP]
+    end
+
+    A --> B
+    A --> C
+    B --> C
+    C --> D
+    D --> E
+    E --> A
+    F -.lihat.-> A
+    F -.lihat.-> C
+    F -.lihat.-> E
+    G -.kelola.-> A
+    G -.kelola.-> C
+    HI -.compliance.-> A
+    HI -.compliance.-> C
+    HI -.compliance.-> E
+
+    style HI fill:#fee,stroke:#c00
+      </div>
+      <p class="small text-muted"><i class="bi bi-info-circle"></i> Solid arrow = flow utama. Dotted arrow = cross-cutting (RBAC view, admin manage, compliance).</p>
+    </section>
     <section id="sec-a"><h2><span class="badge bg-secondary">§A</span> Terbit / Lahir Sertifikat</h2><p class="text-muted"><em>(Diisi Task 3)</em></p></section>
     <section id="sec-b"><h2><span class="badge bg-secondary">§B</span> Essay Grading Conditional</h2><p class="text-muted"><em>(Diisi Task 4)</em></p></section>
     <section id="sec-c"><h2><span class="badge bg-secondary">§C</span> Lifecycle Status</h2><p class="text-muted"><em>(Diisi Task 5)</em></p></section>
