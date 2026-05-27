@@ -562,7 +562,8 @@ Plans:
 
 ### Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion
 
-- [x] **Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion** (completed 2026-05-26)
+- [x] **Phase 324: Fix duplicate TrainingRecord auto-create on assessment completion**
+ (completed 2026-05-26)
   - **REQ:** DUPL-01, DUPL-02, DUPL-03, DUPL-04, DUPL-05
   - **Depends on:** Phase 323
   - **Goal:** Hapus mekanisme auto-create `TrainingRecord` saat session assessment completed di 3 lokasi production (`Services/GradingService.cs:255-285` GradeAndCompleteAsync + `Controllers/AssessmentAdminController.cs:3404-3421` FinalizeEssayGrading + `Services/GradingService.cs:483-567` RegradeAfterEditAsync Pass↔Fail cascade). Resolve regression dari commit `766011b6` (2026-04-10) yang re-introduce auto-create TR setelah commit `79284609` (2026-03-18) menghapusnya — visual duplicate 2 row di `/CMP/Records` hilang. Cleanup data legacy lokal (SEED_WORKFLOW) + IT handoff HTML untuk Dev/Prod cleanup. Subtract phase: NO migration, NO model change, NO schema change.
@@ -623,8 +624,14 @@ Plans:
     5. Delete TrainingRecord tanpa referencing → sukses normal (P05 no regression)
     6. Unit test helper `ValidateCertificateFile` 6 case pass
   - **Risk:** Low | **Effort:** S (~2-3 jam)
-  - **Files affected:** `Helpers/FileUploadHelper.cs` + `Controllers/TrainingAdminController.cs` (line 206-215, 539, 744) + `Controllers/AssessmentAdminController.cs` (line 2136)
+  - **Files affected:** `Helpers/FileUploadHelper.cs` + `Controllers/TrainingAdminController.cs` (line 206-215, 221-233, 459-471, 527-548, 732-753) + `Controllers/AssessmentAdminController.cs` (line 2011-2169) + `Models/AssessmentConstants.cs` + `HcPortal.Tests/` (NEW xUnit project) + `HcPortal.sln`
   - **Migration:** ❌ Tidak ada
+  - **Plans:** 5 plans
+    - [ ] 325-01-PLAN.md — Wave 0: Bootstrap xUnit project HcPortal.Tests/ + register sln + 6 test stub (4 GREEN + 2 SKIP TODO Plan 02)
+    - [ ] 325-02-PLAN.md — Wave 1: Helper P01 + P02 + AssessmentConstants.MagicBytes + ILogger? opsional + flip 6 test GREEN (D-01/D-02/D-03/D-09/D-10)
+    - [ ] 325-03-PLAN.md — Wave 2: Refactor 3 inline duplicate validation sites di TrainingAdminController (line 206-215/221-233/459-471) → panggil FileUploadHelper (T-325-04 close)
+    - [ ] 325-04-PLAN.md — Wave 2: P05 pre-check + try/catch DbUpdateException di 3 endpoint delete (DeleteTraining + DeleteManualAssessment + DeleteAssessment with RenewsTrainingId vs RenewsSessionId distinction)
+    - [ ] 325-05-PLAN.md — Wave 3: Manual UAT batch (Postman SC-1 + browser SC-2/SC-3 + SEED_WORKFLOW snapshot+restore SC-4/SC-5) + commit + push origin/main
 
 ### Phase 326: Validator Hardening (P03 + P06)
 
