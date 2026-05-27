@@ -315,7 +315,53 @@ flowchart TB
         </table>
       </div>
     </section>
-    <section id="sec-f"><h2><span class="badge bg-secondary">§F</span> View / Read</h2><p class="text-muted"><em>(Diisi Task 8)</em></p></section>
+    <section id="sec-f">
+      <h2><span class="badge bg-secondary">§F</span> View / Read</h2>
+      <p>View flow dipengaruhi <strong>role-tier scoping L1-L5</strong>. L5 coachee lihat data sendiri, L4+ HC/Manager/Admin lihat aggregate per Bagian/Unit via <code>BuildSertifikatRowsAsync</code>.</p>
+      <div class="mermaid">
+flowchart TB
+    subgraph Coachee["Coachee (L5)"]
+      C1[CMP/Records<br/>list sertifikat sendiri]
+      C2[CMP/Certificate<br/>view detail + download PDF]
+      C3[RecordsWorkerDetail<br/>own data only]
+    end
+    subgraph HC["HC/Admin (L1-L2)"]
+      H1[CDP/CertificationManagement<br/>dashboard aggregate]
+      H2[FilterCertificationManagement<br/>filter by Bagian/Unit/status]
+      H3[CertificatePdf<br/>download per coachee]
+    end
+    subgraph Manager["Manager/SectionHead (L3-L4)"]
+      M1[CDP/CertificationManagement<br/>scope Bagian/Unit anggota tim]
+      M2[Records<br/>tim section saja]
+    end
+
+    RBAC[Role-Tier Scoping<br/>BuildSertifikatRowsAsync<br/>L1=Admin all, L2=HC all,<br/>L3-L4=Bagian/Unit scope,<br/>L5=own data only]
+
+    RBAC --> Coachee
+    RBAC --> HC
+    RBAC --> Manager
+      </div>
+      <div class="alert alert-info">
+        <strong><i class="bi bi-shield-lock"></i> RBAC Tier (Role-Based Access Control):</strong>
+        <ul class="mb-0 small mt-2">
+          <li><strong>L1 Admin</strong> &mdash; full access semua data</li>
+          <li><strong>L2 HC</strong> &mdash; full access data sertifikat semua coachee</li>
+          <li><strong>L3 Manager / L4 SectionHead</strong> &mdash; scope ke Bagian/Unit tim sendiri</li>
+          <li><strong>L5 Coachee / Coach</strong> &mdash; hanya data sendiri</li>
+        </ul>
+      </div>
+      <h5 class="mt-4">Detail 3 Flow Fase View</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead class="table-dark"><tr><th>#</th><th>Nama Flow</th><th>Aktor</th><th>Endpoint</th><th>Scope</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Certificate View + Download PDF</strong></td><td>Coachee / HC / Admin</td><td><code>CMP/Certificate</code> + <code>CMP/CertificatePdf</code></td><td>Per-record</td></tr>
+            <tr><td>2</td><td><strong>Coachee Records Unified View</strong></td><td>Coachee + HC</td><td><code>CMP/Records</code> + <code>CMP/RecordsWorkerDetail</code> (merge Assessment + Training via <code>WorkerDataService</code>)</td><td>L5: own only, L4+: aggregate</td></tr>
+            <tr><td>3</td><td><strong>HC Dashboard CDP CertificationManagement</strong></td><td>HC / Manager / Admin</td><td><code>/CDP/CertificationManagement</code> + <code>FilterCertificationManagement</code></td><td>L3-L4: Bagian/Unit, L1-L2: all</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="sec-g"><h2><span class="badge bg-secondary">§G</span> Edit / Manage</h2><p class="text-muted"><em>(Diisi Task 9)</em></p></section>
     <section id="sec-i"><h2><span class="badge bg-secondary">§H+I</span> Verifikasi + Audit</h2><p class="text-muted"><em>(Diisi Task 10)</em></p></section>
 
