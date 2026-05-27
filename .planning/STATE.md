@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v18.0
 milestone_name: Cascade Delete Hardening + Duplicate TR Fix
 status: executing
-last_updated: "2026-05-26T13:26:41.092Z"
-last_activity: 2026-05-26
+last_updated: "2026-05-27T05:23:13.411Z"
+last_activity: 2026-05-27 -- Phase 325 planning complete
 progress:
   total_phases: 2
   completed_phases: 1
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 Phase: 324
 Plan: Not started
-Status: Executing Phase 324
-Last activity: 2026-05-26
+Status: Ready to execute
+Last activity: 2026-05-27 -- Phase 325 planning complete
 
 ## Next Action
 
@@ -92,6 +92,7 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - Phase 322 added (2026-05-22): filter-scope-per-tab-manage-assessment — fix double filter di tab Assessment Groups (dev) + filter contamination antar tab (Phase 311 Plan 02 shared filter rollback). Per-tab native filter: Tab 1 (search+kategori+status), Tab 2 (bagian+unit+kategori-training+status+nama/nopeg), Tab 3 sub-tab History masing-masing punya filter client-side (Riwayat Assessment + Riwayat Training).
 - Phase 323 added (2026-05-26): Fix cascade bug AssessmentEditLogs di 3 endpoint delete assessment — Phase 321 oversight di Phase 312 cascade. `AssessmentEditLog` (Phase 321) punya FK Restrict ke `AssessmentSession`, tapi `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup` (Phase 312) tidak cascade hapus. Repro Dev: AssessmentSession Id 1 (0 edit logs) sukses; Id 2+5 (ada edit logs) gagal "Gagal menghapus assessment". Scope: tambah `RemoveRange(AssessmentEditLogs)` block sebelum cascade existing di 3 endpoint di `Controllers/AssessmentAdminController.cs`. Tidak ubah schema/model/migration.
 - Phase 324 added (2026-05-26): Fix duplicate TrainingRecord auto-create on assessment completion — regression dari commit `766011b6` (2026-04-10) yang re-introduce auto-create TrainingRecord di `GradingService.GradeAndCompleteAsync` setelah sebelumnya di-remove oleh `79284609` (2026-03-18) karena "caused duplicate entries in RecordWorkerDetail unified view". Worker submit 1 assessment biasa (non-essay/non-PreTest) → DB store 1 AssessmentSession + 1 TrainingRecord (Judul=`Assessment: {Title}`). `WorkerDataService.GetUnifiedRecords` query keduanya → user lihat 2 row untuk 1 event. Scope: hapus auto-create di `GradingService.cs:255-285`, `AssessmentAdminController.cs:3404-3421` (FinalizeEssayGrading), `GradingService.cs:483-562` (RegradeAfterEditAsync TR cascade); cleanup TR legacy `Judul LIKE 'Assessment:%'` antara 2026-04-10..hari ini (backup DB lokal dulu per SEED_WORKFLOW).
+- Phase 328 added (2026-05-27): Cascade Audit Sweep — Delete* Endpoints (Audit-Only). Post-Phase-323 deferred follow-up per `323-CONTEXT.md:122`. Enumerate semua `Delete*` method di `Controllers/*.cs` + `Services/*.cs`, audit terhadap 7-dim cascade-safety checklist (FK risk, file-DB atomicity, audit log, role check, renewal chain null-clear, error handling, transaction wrap). Severity tag per row (HIGH/MED/LOW). Deliverable `328-RESEARCH.md` only. No code change, no fix phase spawn (separate user decision post-audit). Pre-audit HIGH finding confirmed: renewal chain bug di `DeleteTraining` (`TrainingAdminController.cs:527-548`) + `DeleteManualAssessment` (`:736-756`). Spec: `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` commit `02f620be`.
 
 ## Session Continuity
 

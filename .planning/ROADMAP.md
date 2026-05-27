@@ -705,7 +705,22 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
 
+### Phase 328: Cascade Audit Sweep — Delete* Endpoints (Audit-Only)
+
+**Goal:** Enumerate every `Delete*` method di `Controllers/*.cs` + `Services/*.cs` dan audit terhadap 7-dimension cascade-safety checklist (FK risk, file-DB atomicity, audit log, role check, renewal chain null-clear, error handling, transaction wrap). Severity tag per row. Produce `328-RESEARCH.md` deliverable. No code change, no fix phase spawn.
+
+**Requirements**: Post-Phase-323 deferred items per `.planning/phases/323-fix-cascade-bug-assessmenteditlogs-di-3-endpoint-delete-asse/323-CONTEXT.md:122` ("Audit endpoint delete lain (DeleteCategory, DeletePackage, DeleteQuestion, DeleteWorker, DeleteTraining, dll.) — out-of-scope per REQUIREMENTS.md L32. Milestone berikutnya bisa scope v19.0 Cascade Audit Sweep").
+
+**Depends on:** Phase 323 (gold standard pattern reference)
+**Reference spec:** `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` (commit `02f620be`)
+**Effort estimate:** S (1-2 jam single session, read-only audit)
+**Plans:** 1 plan (planned)
+
+Plans:
+- [ ] 328-01: Enumerate + audit 7-dim per endpoint + write RESEARCH.md (run `/gsd-plan-phase 328` to break down)
+
 ---
 
-*Roadmap updated: 2026-05-27 (backlog Phase 999.1 Realtime Assessment SignalR added).*
+*Roadmap updated: 2026-05-27 (Phase 328 added — Cascade Audit Sweep Delete* endpoints, audit-only, spec commit 02f620be).*
+*Prev: 2026-05-27 (backlog Phase 999.1 Realtime Assessment SignalR added).*
 *Prev: 2026-05-26 (v19.0 planned — 6 bug Portal HC actionable dari sertifikat-ecosystem audit, 3 phase sequential, IT promo batch akhir).*
