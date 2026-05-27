@@ -199,35 +199,23 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("", "Maksimal 20 pekerja per submission.");
             }
 
-            // File validation
+            // Phase 325: pakai FileUploadHelper.ValidateCertificateFile (extension + size + magic byte D-02/D-09).
+            // Sebelumnya inline duplicate — magic byte fix Plan 02 bypass-able tanpa refactor ini (RESEARCH §Pitfall 1).
             string? sertifikatUrl = null;
-            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
-            {
-                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(ext))
-                {
-                    ModelState.AddModelError("CertificateFile", "Hanya file PDF, JPG, dan PNG yang diperbolehkan.");
-                }
-                if (model.CertificateFile.Length > 10 * 1024 * 1024)
-                {
-                    ModelState.AddModelError("CertificateFile", "Ukuran file maksimal 10MB.");
-                }
-            }
+            var (certValid, certErr) = FileUploadHelper.ValidateCertificateFile(model.CertificateFile);
+            if (!certValid)
+                ModelState.AddModelError("CertificateFile", certErr!);
 
-            // Per-worker file validation (all-or-nothing)
+            // Phase 325: per-worker file validation pakai helper (extension + size + magic byte).
             if (hasWorkerCerts)
             {
-                var allowedExts = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
                 foreach (var wc in model.WorkerCerts!)
                 {
-                    if (wc.CertificateFile != null && wc.CertificateFile.Length > 0)
+                    var (wcValid, wcErr) = FileUploadHelper.ValidateCertificateFile(wc.CertificateFile);
+                    if (!wcValid)
                     {
-                        var wcExt = Path.GetExtension(wc.CertificateFile.FileName).ToLowerInvariant();
-                        if (!allowedExts.Contains(wcExt))
-                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} harus berformat PDF, JPG, atau PNG.");
-                        if (wc.CertificateFile.Length > 10 * 1024 * 1024)
-                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} melebihi batas 10MB.");
+                        // Preserve message context "untuk pekerja {UserId}" agar UX tetap informatif siapa yang error.
+                        ModelState.AddModelError("", $"File untuk pekerja {wc.UserId}: {wcErr}");
                     }
                 }
             }
@@ -453,21 +441,13 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> EditTraining(EditTrainingRecordViewModel model)
         {
-            // File validation
-            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            // Phase 325: pakai FileUploadHelper.ValidateCertificateFile (extension + size + magic byte D-02/D-09).
+            // Pattern endpoint ini: TempData + RedirectToAction (bukan ModelState) karena dipanggil dari ManageAssessment redirect-back.
+            var (editValid, editErr) = FileUploadHelper.ValidateCertificateFile(model.CertificateFile);
+            if (!editValid)
             {
-                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(ext))
-                {
-                    TempData["Error"] = "Hanya file PDF, JPG, dan PNG yang diperbolehkan.";
-                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
-                }
-                if (model.CertificateFile.Length > 10 * 1024 * 1024)
-                {
-                    TempData["Error"] = "Ukuran file maksimal 10MB.";
-                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
-                }
+                TempData["Error"] = editErr;
+                return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
             }
 
             if (!ModelState.IsValid)
