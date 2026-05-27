@@ -717,10 +717,11 @@ Plans:
 **Plans:** 1 plan (planned)
 
 Plans:
-- [ ] 328-01: Enumerate + audit 7-dim per endpoint + write RESEARCH.md (run `/gsd-plan-phase 328` to break down)
+- [ ] 328-01-PLAN.md — Enumerate Delete* endpoints + audit 7-dim cascade-safety checklist per row + write 9-section RESEARCH.md (10 task, audit-only, no code change)
 
 ---
 
-*Roadmap updated: 2026-05-27 (Phase 328 added — Cascade Audit Sweep Delete* endpoints, audit-only, spec commit 02f620be).*
+*Roadmap updated: 2026-05-27 (Phase 328 plan generated — 328-01-PLAN.md, 10 task audit-only single wave).*
+*Prev: 2026-05-27 (Phase 328 added — Cascade Audit Sweep Delete* endpoints, audit-only, spec commit 02f620be).*
 *Prev: 2026-05-27 (backlog Phase 999.1 Realtime Assessment SignalR added).*
 *Prev: 2026-05-26 (v19.0 planned — 6 bug Portal HC actionable dari sertifikat-ecosystem audit, 3 phase sequential, IT promo batch akhir).*
