@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- App deploys to IIS Windows only; suppress cross-platform CA1416 noise from LDAP/AD APIs -->
     <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <!-- Exclude sibling test project dari default Compile/Content/None glob (Phase 325-01 D-08 bootstrap xUnit) -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);HcPortal.Tests\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
