@@ -124,6 +124,36 @@
         </div>
     </div>
 
+    @if (Model.RenewsTrainingId.HasValue || Model.RenewsSessionId.HasValue)
+    {
+        <div id="renewalSourceSection" class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-arrow-repeat me-2 text-primary"></i>Renewal Source
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-9">
+                        <label class="form-label fw-bold">Renewal dari</label>
+                        <p class="form-control-plaintext mb-0">
+                            @(Model.RenewalSourceTitle ?? "(sertifikat sumber tidak ditemukan)")
+                        </p>
+                    </div>
+                    <div class="col-md-3 text-md-end">
+                        <button type="button"
+                                class="btn btn-outline-danger btn-sm"
+                                onclick="document.getElementById('RenewsTrainingId').value='';document.getElementById('RenewsSessionId').value='';document.getElementById('renewalSourceSection').style.display='none';return false;">
+                            <i class="bi bi-x-circle me-1"></i>Hapus link renewal
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" id="RenewsTrainingId" name="RenewsTrainingId" value="@Model.RenewsTrainingId" />
+                <input type="hidden" id="RenewsSessionId" name="RenewsSessionId" value="@Model.RenewsSessionId" />
+            </div>
+        </div>
+    }
+
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Data Sertifikat</h5>
@@ -151,6 +181,7 @@
                 <div class="col-md-6">
                     <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai</label>
                     <input asp-for="ValidUntil" type="date" class="form-control" />
+                    <span asp-validation-for="ValidUntil" class="text-danger small"></span>
                 </div>
 
                 <!-- Certificate File Upload -->

@@ -196,6 +196,7 @@
                 <div class="col-md-6">
                     <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Tanggal kedaluwarsa sertifikat. Wajib diisi jika tipe bukan Permanent"></i></label>
                     <input asp-for="ValidUntil" type="date" class="form-control" />
+                    <span asp-validation-for="ValidUntil" class="text-danger small"></span>
                 </div>
 
                 @if (ViewBag.IsRenewalMode == true)
