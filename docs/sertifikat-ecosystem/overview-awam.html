@@ -89,6 +89,17 @@
           </div></div>
         </div>
       </div>
+
+      <h5 class="mt-4">1.2 Perjalanan 1 Sertifikat (Happy Path)</h5>
+      <ol class="small">
+        <li>Pekerja ikut <strong>assessment / training</strong></li>
+        <li><strong>Lulus</strong> → sertifikat terbit (otomatis kalau online, manual kalau external upload HC)</li>
+        <li>Status awal: <strong>Aktif</strong></li>
+        <li>30 hari sebelum tanggal kadaluarsa → status berubah <strong>Akan Expired</strong> + notifikasi keluar ke pekerja + HC</li>
+        <li>Tanggal kadaluarsa lewat tanpa renewal → status <strong>Expired</strong></li>
+        <li>Renewal: HC trigger training/assessment baru → <strong>sertifikat baru</strong> terbit, otomatis terhubung ke sertifikat lama (renewal chain)</li>
+      </ol>
+      <p class="small text-muted"><i class="bi bi-info-circle"></i> Sertifikat <strong>tidak selalu terbit</strong> meskipun pekerja selesai assessment. 3 alasan valid: (1) gagal lulus, (2) flag "Generate Certificate" mati di config assessment, (3) ada soal essay menunggu penilaian HC.</p>
     </section>
 
     <section id="sec-gap">
