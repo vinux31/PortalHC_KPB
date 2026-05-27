@@ -647,8 +647,12 @@ Plans:
     5. Add TR Annual + ValidUntil valid → lolos (P06 no regression)
     6. Edit case: tidak boleh renewal dirinya sendiri (P03 self-renewal check)
   - **Risk:** Low | **Effort:** S (~1-2 jam)
-  - **Files affected:** `Controllers/TrainingAdminController.cs` (Add + Edit POST handler, sekitar line 253-265)
+  - **Files affected:** `Controllers/TrainingAdminController.cs` (Add + Edit POST handler, sekitar line 253-265) + `Models/EditTrainingRecordViewModel.cs` (extend +3 field) + `Views/Admin/EditTraining.cshtml` (section card + span) + `Views/Admin/AddTraining.cshtml` (span)
   - **Migration:** ❌ Tidak ada
+  - **Plans:** 3 plans
+    - [ ] 326-01-PLAN.md — Backend validator (P03 DAG TR+AS branch + self-renewal + P06 Permanent/ValidUntil) di Add+Edit POST + VM extension 3 field
+    - [ ] 326-02-PLAN.md — Razor view tweaks (section card "Renewal Source" + clear button di EditTraining + 2 span asp-validation-for ValidUntil di Edit/Add)
+    - [ ] 326-03-PLAN.md — UAT 6 SC manual repro (browser localhost:5277) + commit + push approval gate
 
 ### Phase 327: Timezone DateOnly Refactor (P04)
 
