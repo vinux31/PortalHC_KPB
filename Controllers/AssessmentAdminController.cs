@@ -2034,6 +2034,23 @@ namespace HcPortal.Controllers
                     return RedirectToAction("ManageAssessment");
                 }
 
+                // Phase 325 P05 D-11: pre-check referencing rows SEBELUM buka tx scope (fail-fast UX friendly).
+                // AssessmentSession punya 2 jenis renewal child: TR + AS. FK column = RenewsSessionId.
+                // Pre-check di luar tx supaya tidak konflik dengan Phase 323 cascade tx (BeginTransactionAsync di bawah).
+                var refTr = await _context.TrainingRecords
+                    .CountAsync(t => t.RenewsSessionId == id);
+                var refAs = await _context.AssessmentSessions
+                    .CountAsync(a => a.RenewsSessionId == id);
+
+                if (refTr + refAs > 0)
+                {
+                    var total = refTr + refAs;
+                    TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
+                                      + "menggunakan record ini sebagai sumber renewal. "
+                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
                 // PHASE 312 WR-01: bungkus guard + cascade dalam transaction agar TOCTOU race
                 // (peserta concurrent POST jawaban antara guard-check dan cascade) dapat ditangani
                 // dengan re-check responseCount dalam transaction, lalu rollback bersih jika race terjadi.
@@ -2158,6 +2175,13 @@ namespace HcPortal.Controllers
 
                 logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle}");
                 TempData["Success"] = $"Assessment '{assessmentTitle}' has been deleted successfully.";
+                return RedirectToAction("ManageAssessment");
+            }
+            catch (DbUpdateException ex)
+            {
+                // Phase 325 P05 D-05: safety net jika race TOCTOU antara pre-check dan tx commit (concurrent insert renewal child).
+                logger.LogWarning(ex, "Delete failed for AssessmentSession {Id}: FK constraint", id);
+                TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
                 return RedirectToAction("ManageAssessment");
             }
             catch (Exception ex)
