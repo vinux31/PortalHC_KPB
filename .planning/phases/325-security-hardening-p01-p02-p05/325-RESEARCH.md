@@ -650,22 +650,22 @@ Phase 325 = pure code changes (no rename, no data migration, no FK schema change
 | A5 | Pre-check `CountAsync` < 50ms terhadap index `IX_*_RenewsTrainingId` walau 10k+ row | Codebase Findings §FK Behavior | LOW — indexed B-tree O(log n). Portal HC current scale ~ratusan TR, scaling headroom besar. |
 | A6 | Existing `outer catch (Exception)` di `DeleteAssessment` line 2163 boleh diapit dengan `catch (DbUpdateException)` baru di atasnya | Spec Drift Check + Pattern 3 | LOW — C# catch clause ordering: specific sebelum general adalah idiom standar. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **TrainingAdminController.cs:206-215 + 221-233 + 459-471 inline duplicate — refactor di Phase 325 atau defer?**
    - What we know: 3 site inline duplicate `allowedExtensions.Contains(ext)` logic + size check. `FileUploadHelper.ValidateCertificateFile` belum dipakai di 3 site ini.
    - What's unclear: Spec §3 P02 list `TrainingAdminController.cs:206-215` saja, tidak mention :221-233 dan :459-471. **Apakah ini scope creep atau bug nyata?**
-   - Recommendation: **Plan harus refactor 3 site jadi panggil `FileUploadHelper.ValidateCertificateFile`** — alasan: kalau tidak, magic byte fix P02 tidak efektif di 3 endpoint Add/Edit Training (Postman test `.exe→.pdf` lolos lewat AddTraining). Plan-phase user dapat di-flag manual untuk konfirmasi sebelum proceed.
+   - Recommendation: **RESOLVED — refactor 3 site jadi panggil `FileUploadHelper.ValidateCertificateFile`** (handled in Plan 03) — alasan: kalau tidak, magic byte fix P02 tidak efektif di 3 endpoint Add/Edit Training (Postman test `.exe→.pdf` lolos lewat AddTraining).
 
 2. **Existing `catch (Exception ex)` di AssessmentAdminController:2163 — preserve atau replace?**
    - What we know: Current outer catch generic `Exception`, log error + TempData "Gagal menghapus assessment".
    - What's unclear: D-05 minta narrow `DbUpdateException`. Tapi non-FK exception (eg, timeout) tetap perlu di-handle.
-   - Recommendation: **Tambah `catch (DbUpdateException)` SEBELUM existing `catch (Exception)`** — preserve generic catch untuk safety, tambah specific friendly message untuk FK case. Plan §Architecture Patterns Pattern 3 sudah snippet.
+   - Recommendation: **RESOLVED — preserve existing catch** (Plan 04 Task 2): tambah `catch (DbUpdateException)` SEBELUM existing `catch (Exception)` — preserve generic catch untuk safety, tambah specific friendly message untuk FK case. Plan §Architecture Patterns Pattern 3 sudah snippet.
 
 3. **Snapshot DB perlu untuk SC4/SC5 atau cukup pakai data existing?**
    - What we know: SC4 butuh TR pair (parent + renewal child). DB lokal kemungkinan sudah punya pair dari testing sesi lain (sertifikat ecosystem testing 2026-05-26).
    - What's unclear: Apakah cleanup data manual lebih simpel daripada snapshot+restore.
-   - Recommendation: **Tetap snapshot+restore per CLAUDE.md §Seed Data Workflow** — workflow audit trail penting, walau cleanup manual mungkin lebih cepat. Defer keputusan ke plan-phase.
+   - Recommendation: **RESOLVED — DB snapshot per SEED_WORKFLOW** (Plan 05 Task 3): tetap snapshot+restore per CLAUDE.md §Seed Data Workflow — workflow audit trail penting, walau cleanup manual mungkin lebih cepat.
 
 ## Environment Availability
 
