@@ -165,7 +165,7 @@ Tambah smoke scenario #7 ke **Smoke Verify Dev**:
 
 **Phase 330** (fix-cascade-med-bundle-delete-category-package-question-orgu) SHIPPED LOCAL.
 
-- **Commit:** `[hash — lihat git log setelah commit Task 3]`
+- **Commit:** `40518631`
 - **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller/service-only fix
 - **Scope:**
   - `Controllers/AssessmentAdminController.cs` — DeleteCategory + DeletePackage + DeleteQuestion: try/catch DbUpdateException + `_auditLog.LogAsync` (DeleteQuestion baru)
