@@ -671,6 +671,15 @@ Plans:
   - **Risk:** Medium (EF migration + multi-view binding) | **Effort:** M (~1 hari)
   - **Files affected:** `Models/TrainingRecord.cs` + `Models/AssessmentSession.cs` + `Models/CertificationManagementViewModel.cs` + `Migrations/{ts}_ChangeValidUntilToDateOnly.cs` (NEW) + Razor view minor adjust
   - **Migration:** ✅ `ChangeValidUntilToDateOnly`
+  - **Plans:** 8 plans
+    - [ ] 327-01-PLAN.md — xUnit baseline CertificateStatusTests 8 case GREEN signature DateTime? existing (Wave 1)
+    - [ ] 327-02-PLAN.md — Entity flip TrainingRecord + AssessmentSession + UnifiedTrainingRecord ValidUntil DateOnly? + computed props DayNumber rewrite (Wave 2)
+    - [ ] 327-03-PLAN.md — 4 input VM + 5 rollup (SertifikatRow + CertificateChainGroup + RenewalGroup + ExpiringSoonItem) flip DateOnly (Wave 3)
+    - [ ] 327-04-PLAN.md — DeriveCertificateStatus signature DateOnly? refactor + test helper Today() return DateOnly + 8/8 GREEN (Wave 4, TDD)
+    - [ ] 327-05-PLAN.md — Cascade fix Controllers/Services: 13 var today + 9 ?? DateOnly.MaxValue + GradingService cast → build sukses + test ≥17 GREEN (Wave 5)
+    - [ ] 327-06-PLAN.md — ImportTraining cast DateOnly Shared Pattern D + Razor TagHelper bug #47628 smoke + conditional [DisplayFormat] retrofit (Wave 6)
+    - [ ] 327-07-PLAN.md — Pre-check sqlcmd + BACKUP + EF migration ChangeValidUntilToDateOnly generate + review + apply lokal + JSON API audit (Wave 7)
+    - [ ] 327-08-PLAN.md — Manual UAT 7 SC + Pitfall 3 JSON tz smoke + Phase 326 regression smoke + IT_NOTIFY_v19.0_batch.md draft + push approval gate (Wave 8)
 
 ### Phase 328: Cascade Audit Sweep — Delete* Endpoints (Audit-Only)
 
