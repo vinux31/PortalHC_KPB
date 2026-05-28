@@ -66,10 +66,12 @@ Compare each endpoint pattern against `Controllers/AssessmentAdminController.Del
 ### D-06 Pre-Audit HIGH Findings (Confirmed)
 
 These 2 are already verified HIGH during brainstorm (acceptance gate #4):
-- `Controllers/TrainingAdminController.cs:527-548` `DeleteTraining` — renewal chain bug + file-DB atomicity broken
-- `Controllers/TrainingAdminController.cs:736-756` `DeleteManualAssessment` — same pattern
+- `Controllers/TrainingAdminController.cs:559` `DeleteTraining` — renewal chain bug + file-DB atomicity broken (drift +32 baris dari Phase 326 validators + Phase 327 DateOnly refactor; original brainstorm cite L527-548)
+- `Controllers/TrainingAdminController.cs:793` `DeleteManualAssessment` — same pattern (drift +57 baris; original brainstorm cite L736-756)
 
 These MUST appear under section 4 (HIGH Findings) with full evidence + repro path + remediation snippet.
+
+**Note untuk auditor:** Re-grep fresh saat audit (line ref di atas dari refresh 2026-05-28). Untuk method body, baca ~20 baris dari signature L559 / L793 ke bawah sampai closing brace.
 
 ### D-07 Deliverable Document Structure (Locked)
 
@@ -105,6 +107,22 @@ This phase does NOT spawn `gsd-phase-researcher`. The brainstorm spec (commit `0
 
 The audit's section 9 (Recommended Next Phases) is a PROPOSAL list, not an auto-spawn instruction. User decides phase fix priority after reading audit. Each fix phase (if pursued) is a separate `/gsd-add-phase` + `/gsd-plan-phase` cycle.
 
+### D-11 Preview/Impact Pattern Noise (Auditor Methodology)
+
+Refresh 2026-05-28: grep `public async.*Delete\w+\(` di Controllers/*.cs + Services/*.cs returns **19 hits** (estimate 15-25 di D-02 valid). Breakdown:
+
+- **14 true delete endpoints** — actual cascade-modifying handlers
+- **5 read-only preview/impact endpoints** — match regex tapi NOT delete operation:
+  - `Controllers/ProtonDataController.cs:559` `SilabusDeletePreview`
+  - `Controllers/ProtonDataController.cs:571` `SubKompetensiDeletePreview`
+  - `Controllers/ProtonDataController.cs:586` `KompetensiDeletePreview`
+  - `Controllers/CoachMappingController.cs:1114` `CoachCoacheeMappingDeletePreview`
+  - `Controllers/AssessmentAdminController.cs:3911` `GetDeleteImpact`
+
+**Auditor MUST include all 19 di Section 3 audit table** (per D-08 acceptance #1 `grep | wc -l == row count`). Tag 5 preview row sebagai severity **NONE** dengan evidence note `"read-only preview/impact — no DB delete, exempt from 7-dim eval"`. Tidak refine grep pattern (preserve acceptance criterion executable check).
+
+**True endpoint count untuk 7-dim eval = 14.**
+
 ### Claude's Discretion
 
 - Exact bash command shape for enumeration (PowerShell vs git-bash) — pick whichever works on Windows shell.
@@ -132,10 +150,10 @@ The audit's section 9 (Recommended Next Phases) is a PROPOSAL list, not an auto-
 - `Services/*.cs` (all services with `_context.Remove`/`RemoveRange`) — Delete* method enumeration scope
 - `Data/ApplicationDbContext.cs` — FK relationship definitions (Restrict/NoAction/Cascade) for D-03 Dim 1 evaluation
 
-### Pre-Audit Evidence (Confirmed HIGH)
-- `Controllers/TrainingAdminController.cs:527-548` — `DeleteTraining` (renewal chain + atomicity bug)
-- `Controllers/TrainingAdminController.cs:736-756` — `DeleteManualAssessment` (same pattern)
-- `Views/Admin/Shared/_TrainingRecordsTab.cshtml:327-349` — UI surface exposing both endpoints (Input Records tab)
+### Pre-Audit Evidence (Confirmed HIGH) — refreshed 2026-05-28 post-Phase-327
+- `Controllers/TrainingAdminController.cs:559` — `DeleteTraining` (renewal chain + atomicity bug) [orig brainstorm 527-548, drift +32 baris]
+- `Controllers/TrainingAdminController.cs:793` — `DeleteManualAssessment` (same pattern) [orig 736-756, drift +57 baris]
+- `Views/Admin/Shared/_TrainingRecordsTab.cshtml:327, 342` — UI surface exposing both endpoints (Input Records tab) [verified 2026-05-28]
 - `Data/ApplicationDbContext.cs:157-165, 220-228` — renewal chain FK NoAction definitions (root cause of D-06)
 
 ### Project Workflow
@@ -171,3 +189,4 @@ The audit's section 9 (Recommended Next Phases) is a PROPOSAL list, not an auto-
 *Phase: 328-cascade-audit-sweep-delete-endpoints*
 *Context gathered: 2026-05-27 via brainstorm + spec → CONTEXT.md generation*
 *Source spec commit: `02f620be`*
+*Refresh 2026-05-28: D-06 + canonical_refs file:line refreshed (drift dari Phase 326+327 edits); D-11 added (preview/impact pattern noise auditor methodology). Phase 327 SHIPPED LOCAL precondition met.*
