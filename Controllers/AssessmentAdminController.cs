@@ -2227,6 +2227,24 @@ namespace HcPortal.Controllers
 
                 var siblingIds = siblings.Select(s => s.Id).ToList();
 
+                // Phase 329 D-02: pre-check renewal chain SEBELUM buka tx scope (fail-fast UX friendly).
+                // Paralel pola Phase 325 P05 DeleteAssessment L2040-2052, substitusi id → siblingIds via Contains.
+                // RenewsSessionId NoAction FK (Data/ApplicationDbContext.cs:220-228) akan throw raw FK 500
+                // di tengah cascade kalau pre-check ini absent.
+                var refTr = await _context.TrainingRecords
+                    .CountAsync(t => t.RenewsSessionId.HasValue && siblingIds.Contains(t.RenewsSessionId.Value));
+                var refAs = await _context.AssessmentSessions
+                    .CountAsync(a => a.RenewsSessionId.HasValue && siblingIds.Contains(a.RenewsSessionId.Value));
+
+                if (refTr + refAs > 0)
+                {
+                    var total = refTr + refAs;
+                    TempData["Error"] = $"Tidak bisa hapus grup: {total} sertifikat lain "
+                                      + "menggunakan salah satu sesi di grup ini sebagai sumber renewal. "
+                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
                 // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
                 using var tx = await _context.Database.BeginTransactionAsync();
 
@@ -2344,6 +2362,14 @@ namespace HcPortal.Controllers
                 TempData["Success"] = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted.";
                 return RedirectToAction("ManageAssessment");
             }
+            catch (DbUpdateException dbEx)
+            {
+                // Phase 329 D-04: safety net TOCTOU race antara pre-check Task 1 dan tx commit
+                // (concurrent insert renewal child setelah pre-check passed). Paralel L2180.
+                logger.LogWarning(dbEx, "DeleteAssessmentGroup FK violation for representative {Id}", id);
+                TempData["Error"] = "Gagal hapus grup: ada constraint database yang dilanggar.";
+                return RedirectToAction("ManageAssessment");
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "DeleteAssessmentGroup error for representative {Id}", id);
@@ -2377,6 +2403,24 @@ namespace HcPortal.Controllers
                 var groupIds = groupSessions.Select(s => s.Id).ToList();
 
                 logger.LogInformation($"DeletePrePostGroup: deleting {groupSessions.Count} sessions for '{groupTitle}' (LinkedGroupId={linkedGroupId})");
+
+                // Phase 329 D-02: pre-check renewal chain SEBELUM buka tx scope (fail-fast UX friendly).
+                // Paralel pola Phase 325 P05 DeleteAssessment L2040-2052, substitusi id → groupIds via Contains.
+                // RenewsSessionId NoAction FK (Data/ApplicationDbContext.cs:220-228) akan throw raw FK 500
+                // di tengah cascade kalau pre-check ini absent.
+                var refTr = await _context.TrainingRecords
+                    .CountAsync(t => t.RenewsSessionId.HasValue && groupIds.Contains(t.RenewsSessionId.Value));
+                var refAs = await _context.AssessmentSessions
+                    .CountAsync(a => a.RenewsSessionId.HasValue && groupIds.Contains(a.RenewsSessionId.Value));
+
+                if (refTr + refAs > 0)
+                {
+                    var total = refTr + refAs;
+                    TempData["Error"] = $"Tidak bisa hapus grup Pre-Post: {total} sertifikat lain "
+                                      + "menggunakan salah satu sesi di grup ini sebagai sumber renewal. "
+                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
+                    return RedirectToAction("ManageAssessment");
+                }
 
                 // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
                 using var tx = await _context.Database.BeginTransactionAsync();
@@ -2492,6 +2536,14 @@ namespace HcPortal.Controllers
                 }
 
                 TempData["Success"] = $"Grup Pre-Post Test '{groupTitle}' dan semua {groupSessions.Count} sesi berhasil dihapus.";
+                return RedirectToAction("ManageAssessment");
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Phase 329 D-04: safety net TOCTOU race antara pre-check Task 2 dan tx commit
+                // (concurrent insert renewal child setelah pre-check passed). Paralel L2180.
+                logger.LogWarning(dbEx, "DeletePrePostGroup FK violation for LinkedGroupId {LinkedGroupId}", linkedGroupId);
+                TempData["Error"] = "Gagal hapus grup Pre-Post: ada constraint database yang dilanggar.";
                 return RedirectToAction("ManageAssessment");
             }
             catch (Exception ex)
