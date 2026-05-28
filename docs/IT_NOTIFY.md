@@ -143,9 +143,27 @@ git revert 7069ead2..77a9c375              # Phase 325 commits
 # rebuild + redeploy
 ```
 
+## Phase 329 Update (2026-05-28)
+
+**Phase 329** (fix-cascade-deleteassessmentgroup-deleteprepostgroup-renewal) SHIPPED LOCAL.
+
+- **Commit:** `aa643bdf` `feat(329): cascade renewal pre-check DeleteAssessmentGroup + DeletePrePostGroup`
+- **Migration flag:** ✅ **TIDAK ADA** — zero schema change, controller-only fix
+- **Scope:** `Controllers/AssessmentAdminController.cs` +52 LoC (pre-check + catch refactor)
+- **Severity fix:** HIGH D5 (renewal chain) di `DeleteAssessmentGroup` + `DeletePrePostGroup`
+- **UAT:** UAT-329-01 ✅ PASS + UAT-329-02 ✅ PASS (Playwright verified 2026-05-28)
+
+Batch v19.0 update: Phase 325 + 326 + 327 + 329 = **4 fix phase** (Phase 328 audit-only, no kode delta).
+
+**Jumlah commit batch update:** ~57 commit total (53 Phase 325+326+327 + 1 Phase 329 + 3 Phase 328 docs-only).
+
+Tambah smoke scenario #7 ke **Smoke Verify Dev**:
+
+**#7 Renewal pre-check group:** Delete grup Assessment yang salah satu session-nya jadi `RenewsSessionId` source → expect redirect ManageAssessment + error banner "Tidak bisa hapus grup: N sertifikat lain..." (BUKAN FK 500 exception page).
+
 ## Order of Operations (CRITICAL)
 
-1. Deploy code dulu (3 phase batch sudah merged di main, pull/checkout latest)
+1. Deploy code dulu (4 phase batch sudah merged di main, pull/checkout latest)
 2. `dotnet build` (atau publish ulang artifact)
 3. Pre-check sqlcmd (Step "Pre-Migration Check")
 4. BACKUP DATABASE (Step "BACKUP DATABASE")
