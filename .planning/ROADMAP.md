@@ -292,7 +292,7 @@ Plans:
     - 314-01-PLAN.md — Repro & RESEARCH.md (root cause documentation)
     - 314-02-PLAN.md — Patch backend + frontend error propagation + smoke test
 
-> **Wave 5 Sequencing:** Phase 312, 313, 314 independen di file level (AssessmentAdminController vs CMPController vs RegenerateToken endpoint) — bisa dikerjakan parallel. Phase 309 di Wave 3 menyerap SUB-01 jadi tidak ada konflik file dengan Wave 5.
+> **Wave 5 Sequencing:** Phase 312, 313, 314 independen di file level (AssessmentAdminController vs CMPController vs RegenerateToken endpoint) — bisa dikerjakan parallel. Phase 309 di Wave 3 di-expand dengan REQ SUB-01 jadi tidak ada konflik file dengan Wave 5.
 
 #### Deferred (menunggu klarifikasi user)
 
@@ -698,7 +698,7 @@ Plans:
   - **Migration:** ❌ Tidak ada
   - **Plans:** 1 plan (shipped)
     - [x] 328-01-PLAN.md — Enumerate Delete* endpoints + audit 7-dim cascade-safety checklist per row + write 9-section RESEARCH.md (10 task, audit-only, no code change) ✅ shipped `41f1eef2`
-  - **RESEARCH commit:** `41f1eef2` (2026-05-28 — 14 mutator endpoint + 5 preview-only, 8 HIGH, 5 MED, 0 LOW)
+  - **RESEARCH commit:** `41f1eef2` (2026-05-28 — 14 endpoint mutator + 5 preview-only, 8 HIGH, 5 MED, 0 LOW)
 
 #### Coverage Validation v19.0
 
@@ -748,9 +748,20 @@ Plans:
 Plans:
 - [x] 329-01-PLAN.md — Pre-check renewal chain DeleteAssessmentGroup + DeletePrePostGroup + DbUpdateException catch refactor (4 task, ~60 LoC delta single controller)
 
+### Phase 330: fix-cascade-med-bundle-delete-category-package-question-orgunit-notification — Fix MED cascade safety: DeleteCategory + DeletePackage + DeleteQuestion + DeleteOrganizationUnit + NotificationService.DeleteAsync. try/catch DbUpdateException + _auditLog.LogAsync di endpoint yang hilang. Source Phase 328 RESEARCH.md §5 MED Findings + §9 proposal #7. Severity MED. Effort S-M (~75 LoC delta 3 file, no migration). Depends on Phase 329.
+
+**Goal:** Bundle-fix 5 MED cascade-safety endpoint: tambah try/catch DbUpdateException dan/atau _auditLog.LogAsync di DeleteCategory, DeletePackage, DeleteQuestion, DeleteOrganizationUnit, NotificationService.DeleteAsync. Mechanical controller-only fix — zero migration, zero schema change.
+**Requirements**: D-02-DeleteCategory, D-03-DeletePackage, D-04-DeleteQuestion, D-05-DeleteOrganizationUnit, D-06-NotificationService
+**Depends on:** Phase 329
+**Plans:** 1 plan
+
+Plans:
+- [ ] 330-01-PLAN.md — 3 task wave: Task 1 (AssessmentAdminController: 3 endpoint) + Task 2 (OrganizationController + NotificationService) + Task 3 (verify + IT_NOTIFY + commit + SUMMARY)
+
 ---
 
-*Roadmap updated: 2026-05-28 (Phase 329 plan generated — 329-01-PLAN.md, 4 task single wave, ~60 LoC delta Controllers/AssessmentAdminController.cs; verbatim D-02 pattern Phase 325 P05).*
+*Roadmap updated: 2026-05-28 (Phase 330 plan generated — 330-01-PLAN.md, 3 task single wave, ~75 LoC delta Controllers/AssessmentAdminController.cs + Controllers/OrganizationController.cs + Services/NotificationService.cs).*
+*Prev: 2026-05-28 (Phase 329 plan generated — 329-01-PLAN.md, 4 task single wave, ~60 LoC delta Controllers/AssessmentAdminController.cs; verbatim D-02 pattern Phase 325 P05).*
 *Prev: 2026-05-28 (Phase 328 RESEARCH.md SHIPPED LOCAL — commit `41f1eef2`, 14 endpoint mutator + 5 preview, 8 HIGH + 5 MED + 0 LOW; 7 next-phase fix proposals di Section 9 PROPOSAL ONLY).*
 *Prev: 2026-05-27 (Phase 328 promoted dari backlog → v19.0 active, depends on Phase 327; Coverage table updated P01/P02/P05 = SHIPPED).*
 *Prev: 2026-05-27 (Phase 328 plan generated — 328-01-PLAN.md, 10 task audit-only single wave).*
