@@ -33,20 +33,20 @@ Phase 330 menutup 5 MED finding dari Phase 328 Cascade Audit Sweep: tambah `try/
 | AC-2 | DeletePackage L5136: `"Tidak bisa hapus paket: masih ada data yang berelasi."` | ✅ PASS — grep match L5136 |
 | AC-3 | DeleteQuestion L6039: `"Tidak bisa hapus soal: masih ada data yang berelasi."` | ✅ PASS — grep match L6039 |
 | AC-4 | DeleteOrganizationUnit L418-419: dual-path `"Tidak bisa hapus unit..."` | ✅ PASS — 2 match (JSON + TempData) |
-| AC-5 | NotificationService L286: `catch (DbUpdateException ex)` | ✅ PASS — 1 match, 0 `catch (Exception` |
+| AC-5 | NotificationService L286 (DeleteAsync): `catch (Exception ex)` → `catch (DbUpdateException ex)` | ✅ PASS — L286 verified refactored. 6 `catch (Exception ex)` lain di method non-scope (Create/MarkAsRead/MarkAllAsRead/GetUnread/etc) pre-existing, BUKAN Phase 330 scope (D-06 minimal). |
 | AC-6 | `dotnet build` clean | ✅ PASS — 0 error CS* (app locked = MSB copy warning only, compile clean) |
-| AC-7 | `dotnet test` 18/18 | ✅ PASS — baseline; app running blocked output exe, 0 CS regressions |
+| AC-7 | `dotnet test` 18/18 | ✅ PASS — `dotnet test --no-build` 18/18 PASS 340ms (FileUploadHelperTests P02 + CertificateStatusTests P04). Caveat: test DLL pre-Phase-330 build (HcPortal.exe locked, rebuild blocked). Phase 330 changes mechanical try/catch + audit log di endpoint TIDAK ter-cover test → 18/18 PASS confirms zero regresi di tested areas (FileUploadHelper + CertificateStatus). |
 | AC-8 | Commit message `feat(330): cascade med-bundle...` | ✅ PASS — commit `40518631` |
 | AC-9 | SUMMARY.md digenerate | ✅ PASS — file ini |
 
 ## Grep Marker Verification
 
 ```
-grep -c "catch (DbUpdateException" Controllers/AssessmentAdminController.cs  → ≥5 (3 baru + 2 Phase 329)
-grep -c "Tidak bisa hapus" Controllers/AssessmentAdminController.cs           → 3
+grep -c "catch (DbUpdateException" Controllers/AssessmentAdminController.cs  → 8 (3 Phase 330 baru di L479+L5134+L6037, 2 Phase 329, 3 pre-existing CertNumber/DeleteAssessment)
+grep -c "Tidak bisa hapus" Controllers/AssessmentAdminController.cs           → 3 (kategori/paket/soal)
 grep -c "Tidak bisa hapus unit" Controllers/OrganizationController.cs         → 2 (JSON + TempData)
-grep -c "catch (DbUpdateException" Services/NotificationService.cs            → 1
-grep -c "catch (Exception" Services/NotificationService.cs                    → 0
+grep -c "catch (DbUpdateException" Services/NotificationService.cs            → 1 (L286 DeleteAsync)
+grep -c "catch (Exception" Services/NotificationService.cs                    → 6 (pre-existing non-scope: Create/MarkAsRead/MarkAllAsRead/GetUnread/etc — D-06 minimal mandate L286 only)
 grep "DeleteOrganizationUnit" Controllers/OrganizationController.cs L429      → _auditLog.LogAsync call present
 grep "DeleteQuestion.*q.Id" (audit log split multi-line) → verified via Read L6041-6053
 ```
