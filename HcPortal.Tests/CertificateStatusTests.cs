@@ -1,6 +1,6 @@
-// Unit test SertifikatRow.DeriveCertificateStatus (Phase 327 P04 — Wave 0 baseline, signature DateTime? existing).
+// Unit test SertifikatRow.DeriveCertificateStatus (Phase 327 P04 — Plan 04 GREEN post signature flip DateOnly?).
 // 8 test case boundary coverage (6 Theory + 2 Fact) per CONTEXT.md D-14 + spec §7.5.
-// Plan 04 akan refactor signature → DateOnly? + helper Today(int offset) sesuaikan.
+// Helper Today(int offset) return DateOnly cocok dengan signature baru.
 
 using System;
 using HcPortal.Models;
@@ -10,10 +10,9 @@ namespace HcPortal.Tests;
 
 public class CertificateStatusTests
 {
-    // Helper: today UTC + offset hari, return DateTime midnight.
-    // Plan 04 akan ubah return DateOnly.
-    private static DateTime Today(int offset) =>
-        DateTime.UtcNow.Date.AddDays(offset);
+    // Helper: today UTC + offset hari, return DateOnly (Plan 04 GREEN post-flip).
+    private static DateOnly Today(int offset) =>
+        DateOnly.FromDateTime(DateTime.UtcNow).AddDays(offset);
 
     [Theory]
     [InlineData(100, "Annual", CertificateStatus.Aktif)]           // > 30 hari = Aktif
