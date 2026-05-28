@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: Portal HC Bug Fixes (Cascade Hardening)
 status: executing
-last_updated: "2026-05-28T13:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 331-335 added to roadmap (5 HIGH cascade hardening proposals from Phase 328 §9)
+last_updated: "2026-05-28T14:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 331 SHIPPED LOCAL (8/8 AC PASS, commit 133f4031)
 progress:
   total_phases: 11
-  completed_phases: 6
-  total_plans: 6
-  completed_plans: 6
-  percent: 55
+  completed_phases: 7
+  total_plans: 7
+  completed_plans: 7
+  percent: 64
 ---
 
 # Project State: Portal HC KPB
@@ -20,23 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 331 ready — 5 HIGH cascade hardening phases (331-335) added to roadmap
+**Current focus:** Phase 332 ready — Bagian file atomicity (HIGH S-M)
 
 ## Current Position
 
-Phase: 331 (fix-cascade-deletetraining-deletemanualassessment-atomicity) — READY TO PLAN
-Plan: 0 of 1
-Status: Phase 331-335 directory + roadmap entry created. Phase 330 SHIPPED LOCAL upstream.
-Last activity: 2026-05-28 -- Phase 331-335 batch-added to roadmap (5 HIGH proposals)
+Phase: 331 (fix-cascade-deletetraining-deletemanualassessment-atomicity) — SHIPPED LOCAL
+Plan: 1 of 1 COMPLETE
+Status: 7/11 phase SHIPPED LOCAL (325-330+331). Next Phase 332.
+Last activity: 2026-05-28 -- Phase 331 SHIPPED LOCAL (8/8 AC PASS, commit 133f4031)
 
 ## Next Action
 
-1. **`/gsd-discuss-phase 331 --auto`** → CONTEXT.md decisions locked (D2+D7 atomicity, pattern Phase 323 D-04 verbatim).
-2. **`/gsd-plan-phase 331 --auto`** → PLAN.md generated.
-3. **`/gsd-execute-phase 331 --interactive --no-transition`** → ship lokal.
-4. Repeat for Phase 332 → 333 → 334 → 335 sequential.
-5. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325+326+327+329+330+331+, ~62+ commit, 1 migration `ChangeValidUntilToDateOnly`).
-3. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
+1. **Phase 332** — `/gsd-discuss-phase 332 --auto` → plan → execute (`fix-cascade-deletebagian-file-atomicity`, HIGH S-M ~50 LoC, pattern Phase 331 reuse).
+2. Repeat for Phase 333 → 334 → 335 sequential.
+3. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325+326+327+329+330+331, ~65 commit, 1 migration `ChangeValidUntilToDateOnly`).
+4. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
 
 ## Deferred Items
 
