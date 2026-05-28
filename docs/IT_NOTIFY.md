@@ -247,7 +247,7 @@ Tambah smoke scenario #11 ke **Smoke Verify Dev**:
 
 **Phase 334** (fix-cascade-deletekompetensi-orphan-evidence-files) SHIPPED LOCAL.
 
-- **Commit:** `[hash — lihat git log setelah Task 2 commit]`
+- **Commit:** `ac66dc55`
 - **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
 - **Scope:**
   - `Controllers/ProtonDataController.cs` — DeleteKompetensi L1516-1640: declare evidencePaths outer tx (List<string>? nullable), populate INSIDE tx Step 2 SEBELUM RemoveRange progresses (loop ProtonDeliverableProgresses + JSON parse EvidencePathHistory inner try/catch warn-only), File.Delete loop POST audit log dengan inner try/catch warn-only per file, refactor catch generic Exception+ex.Message+RollbackAsync → catch DbUpdateException dbEx specific + Exception fallback dengan generic friendly Json messages (NO + ex.Message, NO explicit RollbackAsync)
