@@ -3319,46 +3319,6 @@
   </div>
 </div>
 
-<!-- ================= SLIDE 30: CARA GRADING — HC POV ================= -->
-<div class="slide default-deco" data-slide="30">
-  <div class="slide-header">
-    <div>
-      <div class="section-eyebrow">PART 2 &mdash; ASSESSMENT</div>
-      <h1 class="slide-title">Cara Grading &mdash; <span class="accent">HC POV</span></h1>
-    </div>
-    <div class="slide-badge">30 / 32</div>
-  </div>
-  <div class="slide-body">
-    <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px;">
-      <div style="background: #fff; border: 2px solid var(--teal-dark); border-radius: 10px; padding: 14px 18px;">
-        <h4 style="font-size: 14pt; font-weight: 800; color: var(--teal-dark);">🛠️ HC Grading Workflow</h4>
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
-          <div style="display: flex; gap: 10px; align-items: flex-start;"><div style="background: var(--teal-dark); color: #fff; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10pt;">1</div><div style="font-size: 11pt;">Buka dashboard <strong>Admin Assessment</strong></div></div>
-          <div style="display: flex; gap: 10px; align-items: flex-start;"><div style="background: var(--teal-dark); color: #fff; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10pt;">2</div><div style="font-size: 11pt;">Filter status <span style="background: #fed7aa; color: #9a3412; padding: 2px 8px; border-radius: 8px; font-size: 9.5pt;"><strong>"Menunggu Penilaian"</strong></span></div></div>
-          <div style="display: flex; gap: 10px; align-items: flex-start;"><div style="background: var(--teal-dark); color: #fff; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10pt;">3</div><div style="font-size: 11pt;">Buka jawaban <strong>Essay</strong> coachee</div></div>
-          <div style="display: flex; gap: 10px; align-items: flex-start;"><div style="background: var(--teal-dark); color: #fff; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10pt;">4</div><div style="font-size: 11pt;">Input <code>EssayScore</code> 0..ScoreValue via <strong>Rubrik</strong></div></div>
-          <div style="display: flex; gap: 10px; align-items: flex-start;"><div style="background: var(--teal-dark); color: #fff; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10pt;">5</div><div style="font-size: 11pt;">Finalize session &rarr; trigger <code>CertNumberHelper.Build()</code></div></div>
-          <div style="display: flex; gap: 10px; align-items: flex-start;"><div style="background: var(--green); color: #fff; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10pt;">6</div><div style="font-size: 11pt;">NomorSertifikat auto-generated + retry 3x idempotent</div></div>
-        </div>
-      </div>
-      <div style="background: linear-gradient(135deg, var(--teal-dark), var(--teal)); color: #fff; border-radius: 10px; padding: 14px 18px;">
-        <div style="font-size: 9.5pt; font-weight: 800; letter-spacing: 2px; opacity: 0.9; text-transform: uppercase;">Format NomorSertifikat</div>
-        <div style="font-family: 'Courier New', monospace; font-size: 18pt; font-weight: 800; margin-top: 10px; padding: 10px 14px; background: rgba(255,255,255,0.15); border-radius: 6px; text-align: center;">KPB / {seq:D3} / {Roman} / {Year}</div>
-        <div style="font-size: 10pt; opacity: 0.9; margin-top: 10px; font-weight: 700;">Contoh real:</div>
-        <ul style="font-family: 'Courier New', monospace; font-size: 11.5pt; padding-left: 20px; margin-top: 6px; line-height: 1.7;">
-          <li>KPB/001/V/2026 <span style="font-family: inherit; font-size: 9pt; opacity: 0.8;">&mdash; Mei 2026, cert ke-1</span></li>
-          <li>KPB/042/XII/2026 <span style="font-family: inherit; font-size: 9pt; opacity: 0.8;">&mdash; Des 2026, cert ke-42</span></li>
-          <li>KPB/001/I/2027 <span style="font-family: inherit; font-size: 9pt; opacity: 0.8;">&mdash; Jan 2027, counter reset</span></li>
-        </ul>
-        <div style="font-size: 10pt; opacity: 0.9; margin-top: 10px; font-style: italic;">seq = 3-digit zero-padded sequence per tahun (reset Januari)<br>Roman = bulan Romawi (I&hellip;XII)</div>
-      </div>
-    </div>
-    <div style="background: #f8fafc; border-left: 4px solid var(--green); padding: 10px 16px; border-radius: 4px; font-size: 10pt; color: var(--text);">
-      🔒 <strong>Race-condition safe:</strong> <code>GradingService</code> pakai <code>SetProperty + WHERE NomorSertifikat IS NULL</code> (retry 3x). Concurrent grading tidak duplicate cert.
-    </div>
-  </div>
-</div>
-
 <!-- ================= SLIDE 31: OUTCOME — SERTIFIKAT & COMPETENCYLEVEL ================= -->
 <div class="slide default-deco" data-slide="31">
   <div class="slide-header">
