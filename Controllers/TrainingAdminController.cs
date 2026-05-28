@@ -561,10 +561,17 @@ namespace HcPortal.Controllers
             var record = await _context.TrainingRecords.FindAsync(id);
             if (record == null) return NotFound();
 
+            // Phase 331 D-03: Capture file path SEBELUM Remove (record akan detached post-Remove).
+            string? sertifikatPath = null;
+            if (!string.IsNullOrEmpty(record.SertifikatUrl))
+            {
+                sertifikatPath = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
+            }
+
             try
             {
                 // Phase 325 P05 D-04/D-11: pre-check referencing rows SEBELUM hapus (UX friendly).
-                // TrainingRecord punya 2 jenis renewal child: TR lain + AS lain. FK column = RenewsTrainingId.
+                // Phase 331 D-04: pre-check TETAP di POSISI semula, OUTSIDE tx scope (read-only count, no tx needed).
                 var referencingTr = await _context.TrainingRecords
                     .CountAsync(t => t.RenewsTrainingId == record.Id);
                 var referencingAs = await _context.AssessmentSessions
@@ -579,11 +586,8 @@ namespace HcPortal.Controllers
                     return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
                 }
 
-                if (!string.IsNullOrEmpty(record.SertifikatUrl))
-                {
-                    var path = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
-                }
+                // Phase 331 D-02: tx wrap Remove + SaveChanges + AuditLog. Disposal auto-rollback jika exception escape sebelum CommitAsync.
+                using var tx = await _context.Database.BeginTransactionAsync();
 
                 var actor = await _userManager.GetUserAsync(User);
                 _context.TrainingRecords.Remove(record);
@@ -593,11 +597,22 @@ namespace HcPortal.Controllers
                     await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
                         $"Training record dihapus: {record.Judul}", record.Id, "TrainingRecord");
 
+                await tx.CommitAsync();
+
+                // Phase 331 D-03 + D-05 + D-06: File.Delete POST commit dengan inner try/catch warn-only.
+                // DB sudah committed — kalau File.Delete fail, log warning + biarkan orphan di disk (acceptable, manual cleanup later).
+                if (sertifikatPath != null && System.IO.File.Exists(sertifikatPath))
+                {
+                    try { System.IO.File.Delete(sertifikatPath); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "File.Delete post-commit failed: {Path}", sertifikatPath); }
+                }
+
                 TempData["Success"] = "Training record berhasil dihapus.";
             }
             catch (DbUpdateException ex)
             {
                 // Phase 325 P05 D-05: catch specific DbUpdateException (TOCTOU safety net jika race antara pre-check dan delete).
+                // Phase 331 D-07: preserve verbatim. using var tx disposal auto-rollback — no explicit RollbackAsync needed.
                 _logger.LogWarning(ex, "Delete failed for TrainingRecord {Id}", record.Id);
                 TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
             }
@@ -795,10 +810,14 @@ namespace HcPortal.Controllers
             var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == id && s.IsManualEntry);
             if (session == null) return NotFound();
 
+            // Phase 331 D-03: Capture file URL SEBELUM Remove (session akan detached post-Remove).
+            string? manualSertifikatUrl = session.ManualSertifikatUrl;
+
             try
             {
                 // Phase 325 P05 D-04/D-11: pre-check referencing rows SEBELUM hapus.
                 // AssessmentSession punya 2 jenis renewal child: TR + AS. FK column = RenewsSessionId (BUKAN RenewsTrainingId — pitfall RESEARCH §Pitfall 2).
+                // Phase 331 D-04: pre-check TETAP di POSISI semula, OUTSIDE tx scope (read-only count, no tx needed).
                 var referencingTr = await _context.TrainingRecords
                     .CountAsync(t => t.RenewsSessionId == session.Id);
                 var referencingAs = await _context.AssessmentSessions
@@ -813,7 +832,8 @@ namespace HcPortal.Controllers
                     return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
                 }
 
-                FileUploadHelper.DeleteFile(_env.WebRootPath, session.ManualSertifikatUrl);
+                // Phase 331 D-02: tx wrap Remove + SaveChanges + AuditLog. Disposal auto-rollback jika exception escape sebelum CommitAsync.
+                using var tx = await _context.Database.BeginTransactionAsync();
 
                 var actor = await _userManager.GetUserAsync(User);
                 _context.AssessmentSessions.Remove(session);
@@ -823,10 +843,20 @@ namespace HcPortal.Controllers
                     await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
                         $"Assessment manual dihapus: {session.Title}", session.Id, "AssessmentSession");
 
+                await tx.CommitAsync();
+
+                // Phase 331 D-03 + D-05 + D-06: FileUploadHelper.DeleteFile POST commit dengan inner try/catch warn-only.
+                if (!string.IsNullOrEmpty(manualSertifikatUrl))
+                {
+                    try { FileUploadHelper.DeleteFile(_env.WebRootPath, manualSertifikatUrl); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "FileUploadHelper.DeleteFile post-commit failed: {Url}", manualSertifikatUrl); }
+                }
+
                 TempData["Success"] = "Assessment manual berhasil dihapus.";
             }
             catch (DbUpdateException ex)
             {
+                // Phase 331 D-07: preserve verbatim. using var tx disposal auto-rollback — no explicit RollbackAsync needed.
                 _logger.LogWarning(ex, "Delete failed for AssessmentSession (manual) {Id}", session.Id);
                 TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
             }

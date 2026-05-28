@@ -182,6 +182,26 @@ Tambah smoke scenario #8 ke **Smoke Verify Dev**:
 
 **#8 MED FK friendly error:** Attempt delete Category/Package/Question/OrgUnit yang masih direferensi FK → expect TempData["Error"] friendly message "Tidak bisa hapus {entity}: masih ada data yang berelasi." (BUKAN raw HTTP 500).
 
+## Phase 331 Update (2026-05-28)
+
+**Phase 331** (fix-cascade-deletetraining-deletemanualassessment-atomicity) SHIPPED LOCAL.
+
+- **Commit:** `[hash — lihat git log setelah Task 3 commit]`
+- **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
+- **Scope:**
+  - `Controllers/TrainingAdminController.cs` — DeleteTraining + DeleteManualAssessment: wrap BeginTransactionAsync + reorder File.Delete POST CommitAsync + inner try/catch warn-only (D2+D7 fix)
+- **Severity fix:** HIGH D2 (file-DB atomicity broken) + D7 (no transaction wrap) di 2 endpoint
+- **Source:** Phase 328 RESEARCH.md §4.1 + §4.2 + §9 proposal #1
+- **D5 status:** sudah Phase 325 P05 covered (pre-check renewal L568-580 + L802-805 preserved verbatim)
+
+Batch v19.0 update: Phase 325 + 326 + 327 + 329 + 330 + 331 = **6 fix phase** (Phase 328 audit-only, no kode delta).
+
+**Jumlah commit batch update:** ~65 commit total.
+
+Tambah smoke scenario #9 ke **Smoke Verify Dev**:
+
+**#9 HIGH atomicity DeleteTraining + DeleteManualAssessment:** Trigger DB FK violation midway (e.g., manual SQL INSERT child row antara pre-check dan commit) → expect tx rollback + file sertifikat **TETAP ada di disk** + TempData["Error"] friendly. Tanpa fix Phase 331: file gone tapi row alive = sertifikat rusak.
+
 ## Order of Operations (CRITICAL)
 
 1. Deploy code dulu (4 phase batch sudah merged di main, pull/checkout latest)
