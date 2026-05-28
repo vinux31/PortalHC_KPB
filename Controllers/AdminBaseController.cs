@@ -198,7 +198,7 @@ namespace HcPortal.Controllers
             rows = rows
                 .Where(r => !r.IsRenewed && (r.Status == CertificateStatus.Expired || r.Status == CertificateStatus.AkanExpired))
                 .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
-                .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                .ThenBy(r => r.ValidUntil ?? DateOnly.MaxValue)
                 .ToList();
 
             return rows;

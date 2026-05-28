@@ -186,8 +186,8 @@ namespace HcPortal.Controllers
                 .GroupBy(r => Find(r.RecordType == RecordType.Assessment ? $"AS:{r.SourceId}" : $"TR:{r.SourceId}"))
                 .Select(g =>
                 {
-                    var certs = g.OrderByDescending(c => c.ValidUntil ?? DateTime.MaxValue).ToList();
-                    var oldest = g.OrderBy(c => c.ValidUntil ?? DateTime.MaxValue).First();
+                    var certs = g.OrderByDescending(c => c.ValidUntil ?? DateOnly.MaxValue).ToList();
+                    var oldest = g.OrderBy(c => c.ValidUntil ?? DateOnly.MaxValue).First();
                     var chainTitle = !string.IsNullOrEmpty(oldest.SubKategori) ? oldest.SubKategori
                                    : !string.IsNullOrEmpty(oldest.Kategori) ? oldest.Kategori
                                    : oldest.Judul;
@@ -198,7 +198,7 @@ namespace HcPortal.Controllers
                         LatestValidUntil = certs.First().ValidUntil
                     };
                 })
-                .OrderByDescending(g => g.LatestValidUntil ?? DateTime.MaxValue)
+                .OrderByDescending(g => g.LatestValidUntil ?? DateOnly.MaxValue)
                 .ToList();
 
             ViewBag.Mode = mode;
@@ -260,7 +260,7 @@ namespace HcPortal.Controllers
 
             allRows = allRows
                 .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
-                .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                .ThenBy(r => r.ValidUntil ?? DateOnly.MaxValue)
                 .ToList();
 
             // Group by judul sertifikat
@@ -278,7 +278,7 @@ namespace HcPortal.Controllers
                     AkanExpiredCount = g.Count(r => r.Status == CertificateStatus.AkanExpired),
                     MinValidUntil = g.Min(r => r.ValidUntil)
                 })
-                .OrderBy(g => g.MinValidUntil ?? DateTime.MaxValue)
+                .OrderBy(g => g.MinValidUntil ?? DateOnly.MaxValue)
                 .ToList();
 
             foreach (var group in grouped)
@@ -286,7 +286,7 @@ namespace HcPortal.Controllers
                 var groupRows = allRows
                     .Where(r => string.Equals(r.Judul, group.Judul, StringComparison.OrdinalIgnoreCase))
                     .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
-                    .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                    .ThenBy(r => r.ValidUntil ?? DateOnly.MaxValue)
                     .ToList();
                 var paging = PaginationHelper.Calculate(groupRows.Count, 1, group.PageSize);
                 group.Rows = groupRows.Skip(paging.Skip).Take(paging.Take).ToList();
@@ -336,7 +336,7 @@ namespace HcPortal.Controllers
             var groupRows = allRows
                 .Where(r => string.Equals(r.Judul, judul, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
-                .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                .ThenBy(r => r.ValidUntil ?? DateOnly.MaxValue)
                 .ToList();
 
             var paging = PaginationHelper.Calculate(groupRows.Count, page, 10);
