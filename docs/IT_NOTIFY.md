@@ -202,6 +202,26 @@ Tambah smoke scenario #9 ke **Smoke Verify Dev**:
 
 **#9 HIGH atomicity DeleteTraining + DeleteManualAssessment:** Trigger DB FK violation midway (e.g., manual SQL INSERT child row antara pre-check dan commit) → expect tx rollback + file sertifikat **TETAP ada di disk** + TempData["Error"] friendly. Tanpa fix Phase 331: file gone tapi row alive = sertifikat rusak.
 
+## Phase 332 Update (2026-05-28)
+
+**Phase 332** (fix-cascade-deletebagian-file-atomicity) SHIPPED LOCAL.
+
+- **Commit:** `[hash — lihat git log setelah Task 2 commit]`
+- **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
+- **Scope:**
+  - `Controllers/DocumentAdminController.cs` — DeleteBagian: extract kkjPaths+cpdpPaths SEBELUM tx, wrap BeginTransactionAsync (RemoveRange KKJ+CPDP+Bagian + SaveChanges + AuditLog), 2 File.Delete loops POST CommitAsync dengan inner try/catch warn-only (D2+D6+D7 fix)
+- **Severity fix:** HIGH D2 (file-DB atomicity broken) + D6 (no try/catch DbUpdateException) + D7 (no tx wrap)
+- **Source:** Phase 328 RESEARCH.md §4.7 + §9 proposal #3
+- **Existing preserved:** Pre-check active files BLOCK L289-302 + confirm dialog L308-317 + audit log L353-364 (all OUTSIDE/INSIDE tx per design)
+
+Batch v19.0 update: Phase 325 + 326 + 327 + 329 + 330 + 331 + 332 = **7 fix phase** (Phase 328 audit-only, no kode delta).
+
+**Jumlah commit batch update:** ~68 commit total.
+
+Tambah smoke scenario #10 ke **Smoke Verify Dev**:
+
+**#10 HIGH atomicity DeleteBagian multi-file:** Hapus Bagian dengan 2+ archived KKJ + 1+ archived CPDP, simulasi DB FK violation midway → expect tx rollback + SEMUA file archived **TETAP ada di disk** + Json success=false friendly. Tanpa fix Phase 332: file gone tapi Bagian + KkjFiles row alive = dangling FilePath.
+
 ## Order of Operations (CRITICAL)
 
 1. Deploy code dulu (4 phase batch sudah merged di main, pull/checkout latest)

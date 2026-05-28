@@ -316,52 +316,66 @@ namespace HcPortal.Controllers
                 });
             }
 
+            // Phase 332 D-03: collect file paths SEBELUM tx — string list value-typed safe post-commit
             var archivedKkjFiles = await _context.KkjFiles
                 .Where(f => f.OrganizationUnitId == id && f.IsArchived)
                 .ToListAsync();
-            foreach (var f in archivedKkjFiles)
-            {
-                if (!string.IsNullOrEmpty(f.FilePath))
-                {
-                    var diskPath = Path.Combine(_env.WebRootPath, f.FilePath.TrimStart('/'));
-                    if (System.IO.File.Exists(diskPath))
-                        System.IO.File.Delete(diskPath);
-                }
-            }
-            if (archivedKkjFiles.Any())
-                _context.KkjFiles.RemoveRange(archivedKkjFiles);
+            var kkjPaths = archivedKkjFiles
+                .Where(f => !string.IsNullOrEmpty(f.FilePath))
+                .Select(f => Path.Combine(_env.WebRootPath, f.FilePath.TrimStart('/')))
+                .ToList();
 
             var archivedCpdpFiles = await _context.CpdpFiles
                 .Where(f => f.OrganizationUnitId == id && f.IsArchived)
                 .ToListAsync();
-            foreach (var f in archivedCpdpFiles)
-            {
-                if (!string.IsNullOrEmpty(f.FilePath))
-                {
-                    var diskPath = Path.Combine(_env.WebRootPath, f.FilePath.TrimStart('/'));
-                    if (System.IO.File.Exists(diskPath))
-                        System.IO.File.Delete(diskPath);
-                }
-            }
-            if (archivedCpdpFiles.Any())
-                _context.CpdpFiles.RemoveRange(archivedCpdpFiles);
+            var cpdpPaths = archivedCpdpFiles
+                .Where(f => !string.IsNullOrEmpty(f.FilePath))
+                .Select(f => Path.Combine(_env.WebRootPath, f.FilePath.TrimStart('/')))
+                .ToList();
 
-            _context.OrganizationUnits.Remove(bagianEntity);
-            await _context.SaveChangesAsync();
-
-            // Audit log
-            var currentUser = await _userManager.GetUserAsync(User);
+            // Phase 332 D-02: tx wrap RemoveRange + Remove + SaveChanges + AuditLog. Disposal auto-rollback jika exception escape sebelum CommitAsync.
+            using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
-                var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
-                    ? (currentUser?.FullName ?? "Unknown")
-                    : $"{currentUser.NIP} - {currentUser.FullName}";
-                await _auditLog.LogAsync(
-                    currentUser?.Id ?? "", actorName, "DeleteBagian",
-                    $"Deleted bagian '{bagianEntity.Name}' (ID {id}). Cascaded {totalArchived} archived file(s) (KKJ: {archivedKkjCount}, CPDP: {archivedCpdpCount}).",
-                    id, "OrganizationUnit");
+                if (archivedKkjFiles.Any()) _context.KkjFiles.RemoveRange(archivedKkjFiles);
+                if (archivedCpdpFiles.Any()) _context.CpdpFiles.RemoveRange(archivedCpdpFiles);
+                _context.OrganizationUnits.Remove(bagianEntity);
+                await _context.SaveChangesAsync();
+
+                // Audit log INSIDE tx — preserve existing pattern verbatim
+                var currentUser = await _userManager.GetUserAsync(User);
+                try
+                {
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                        ? (currentUser?.FullName ?? "Unknown")
+                        : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(
+                        currentUser?.Id ?? "", actorName, "DeleteBagian",
+                        $"Deleted bagian '{bagianEntity.Name}' (ID {id}). Cascaded {totalArchived} archived file(s) (KKJ: {archivedKkjCount}, CPDP: {archivedCpdpCount}).",
+                        id, "OrganizationUnit");
+                }
+                catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeleteBagian (bagianId={Id})", id); }
+
+                await tx.CommitAsync();
             }
-            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeleteBagian (bagianId={Id})", id); }
+            catch (DbUpdateException ex)
+            {
+                // Phase 332 D-04: tx auto-rollback via using disposal — no explicit RollbackAsync needed
+                _logger.LogWarning(ex, "Delete failed for Bagian (bagianId={Id})", id);
+                return Json(new { success = false, message = "Gagal hapus bagian: ada constraint database yang dilanggar." });
+            }
+
+            // Phase 332 D-04 + D-07: File.Delete loops POST commit dengan inner try/catch warn-only per file (no break loop)
+            foreach (var path in kkjPaths)
+            {
+                try { if (System.IO.File.Exists(path)) System.IO.File.Delete(path); }
+                catch (Exception ex) { _logger.LogWarning(ex, "File.Delete post-commit failed (KKJ): {Path}", path); }
+            }
+            foreach (var path in cpdpPaths)
+            {
+                try { if (System.IO.File.Exists(path)) System.IO.File.Delete(path); }
+                catch (Exception ex) { _logger.LogWarning(ex, "File.Delete post-commit failed (CPDP): {Path}", path); }
+            }
 
             return Json(new { success = true, message = $"Bagian '{bagianEntity.Name}' berhasil dihapus." });
         }
