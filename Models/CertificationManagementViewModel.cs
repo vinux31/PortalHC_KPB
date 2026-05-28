@@ -50,13 +50,15 @@ public class SertifikatRow
     /// For AssessmentSession rows pass certificateType: null — ValidUntil==null yields Permanent.
     /// Threshold of 30 days matches TrainingRecord.IsExpiringSoon.
     /// </summary>
-    public static CertificateStatus DeriveCertificateStatus(DateTime? validUntil, string? certificateType)
+    public static CertificateStatus DeriveCertificateStatus(DateOnly? validUntil, string? certificateType)
     {
+        // Phase 327 P04 — DateOnly signature + DayNumber arithmetic + UtcNow alignment (D-06, D-09).
         if (certificateType == "Permanent")
             return CertificateStatus.Permanent;
         if (validUntil == null)
             return CertificateStatus.Expired; // non-Permanent with no expiry → treat as expired (needs renewal)
-        var days = (validUntil.Value - DateTime.UtcNow).Days;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var days = validUntil.Value.DayNumber - today.DayNumber;
         if (days < 0) return CertificateStatus.Expired;
         if (days <= 30) return CertificateStatus.AkanExpired;
         return CertificateStatus.Aktif;
