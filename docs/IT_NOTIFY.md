@@ -186,7 +186,7 @@ Tambah smoke scenario #8 ke **Smoke Verify Dev**:
 
 **Phase 331** (fix-cascade-deletetraining-deletemanualassessment-atomicity) SHIPPED LOCAL.
 
-- **Commit:** `[hash — lihat git log setelah Task 3 commit]`
+- **Commit:** `133f4031`
 - **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
 - **Scope:**
   - `Controllers/TrainingAdminController.cs` — DeleteTraining + DeleteManualAssessment: wrap BeginTransactionAsync + reorder File.Delete POST CommitAsync + inner try/catch warn-only (D2+D7 fix)
