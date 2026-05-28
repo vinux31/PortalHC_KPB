@@ -226,7 +226,7 @@ Tambah smoke scenario #10 ke **Smoke Verify Dev**:
 
 **Phase 333** (fix-cascade-deletecoachingsession-file-atomicity) SHIPPED LOCAL.
 
-- **Commit:** `[hash — lihat git log setelah Task 2 commit]`
+- **Commit:** `4faf88a2`
 - **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
 - **Scope:**
   - `Controllers/CDPController.cs` — DeleteCoachingSession L2433-2575: declare pathsToDelete outer tx (List<string>? nullable), move File.Delete loop POST tx.CommitAsync (was inside tx pre-commit), refactor catch generic Exception+throw → catch DbUpdateException specific + Exception fallback dengan friendly TempData (no throw, no explicit RollbackAsync)

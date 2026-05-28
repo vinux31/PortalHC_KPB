@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: Portal HC Bug Fixes (Cascade Hardening)
 status: executing
-last_updated: "2026-05-28T15:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 332 SHIPPED LOCAL (8/8 AC PASS, commit 373e4f29)
+last_updated: "2026-05-28T16:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 333 SHIPPED LOCAL (10/10 AC PASS, commit 4faf88a2)
 progress:
   total_phases: 11
-  completed_phases: 8
-  total_plans: 8
-  completed_plans: 8
-  percent: 73
+  completed_phases: 9
+  total_plans: 9
+  completed_plans: 9
+  percent: 82
 ---
 
 # Project State: Portal HC KPB
@@ -20,20 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 333 ready — CoachingSession file atomicity (HIGH M, complex revert state logic)
+**Current focus:** Phase 334 ready — Kompetensi orphan evidence files (HIGH M, nested SubKompetensi tree + JSON history parse + info leak D6)
 
 ## Current Position
 
-Phase: 332 (fix-cascade-deletebagian-file-atomicity) — SHIPPED LOCAL
+Phase: 333 (fix-cascade-deletecoachingsession-file-atomicity) — SHIPPED LOCAL
 Plan: 1 of 1 COMPLETE
-Status: 8/11 phase SHIPPED LOCAL (325-330+331+332). Next Phase 333.
-Last activity: 2026-05-28 -- Phase 332 SHIPPED LOCAL (8/8 AC PASS, commit 373e4f29)
+Status: 9/11 phase SHIPPED LOCAL (325-333). Next Phase 334.
+Last activity: 2026-05-28 -- Phase 333 SHIPPED LOCAL (10/10 AC PASS, commit 4faf88a2)
 
 ## Next Action
 
-1. **Phase 333** — `/gsd-discuss-phase 333 --auto` → plan → execute (`fix-cascade-deletecoachingsession-file-atomicity`, HIGH M, complex revert state logic, CDPController.cs:2433).
-2. Repeat for Phase 334 → 335 sequential.
-3. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325+326+327+329+330+331+332, ~68 commit, 1 migration `ChangeValidUntilToDateOnly`).
+1. **Phase 334** — `/gsd-discuss-phase 334 --auto` → plan → execute (`fix-cascade-deletekompetensi-orphan-evidence-files`, HIGH M, ProtonDataController.cs:1516, nested tree + JSON parse + info leak).
+2. Phase 335 — DeleteWorker triple-fix (HIGH L, ~200-300 LoC, kompleks UserManager interaction).
+3. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325-333, ~71 commit, 1 migration `ChangeValidUntilToDateOnly`).
 4. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
 
 ## Deferred Items
