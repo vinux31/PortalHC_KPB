@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v18.0
 milestone_name: Cascade Delete Hardening + Duplicate TR Fix
 status: executing
-last_updated: "2026-05-28T08:30:00.000Z"
-last_activity: 2026-05-28 -- Phase 327 (Timezone DateOnly Refactor P04) SHIPPED LOCAL — 8/8 plan + 7/7 SC PASS, IT_NOTIFY draft, pending push approval batch v19.0
+last_updated: "2026-05-28T09:30:25.006Z"
+last_activity: 2026-05-28
 progress:
   total_phases: 2
-  completed_phases: 2
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 6
-  percent: 100
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State: Portal HC KPB
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 327 (Timezone DateOnly Refactor P04) SHIPPED LOCAL — pending push approval / Phase 328 audit next
+**Current focus:** Phase 329 — fix-cascade-deleteassessmentgroup-deleteprepostgroup-renewal
 
 ## Current Position
 
-Phase: 327 (timezone-dateonly-refactor-p04) — SHIPPED LOCAL
-Plan: 8 of 8 (ALL DONE)
-Status: Phase 327 SHIPPED LOCAL — 8/8 plan + 7/7 SC PASS + IT_NOTIFY draft ready. NOT PUSHED (Task 3 user gate).
-Last activity: 2026-05-28 -- Phase 327 SHIPPED LOCAL; UAT 7 SC PASS auto-verified Playwright; Pitfall 3 + Phase 326 regression smoke PASS; PDF endpoint 204 flagged non-blocking
+Phase: 329
+Plan: Not started
+Status: Executing Phase 329
+Last activity: 2026-05-28
 
 ## Next Action
 

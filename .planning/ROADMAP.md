@@ -743,10 +743,10 @@ Plans:
 **Goal:** Pasang pre-check renewal chain (RenewsSessionId di TR+AS count) di DeleteAssessmentGroup + DeletePrePostGroup SEBELUM BeginTransactionAsync — paralel pola Phase 325 P05 DeleteAssessment L2040-2052. Fix HIGH severity D5 fail Phase 328 RESEARCH sec 4.4 + sec 4.5.
 **Requirements**: PHASE-329-D5-FIX-GROUP, PHASE-329-D5-FIX-PREPOST
 **Depends on:** Phase 328
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 329-01-PLAN.md — Pre-check renewal chain DeleteAssessmentGroup + DeletePrePostGroup + DbUpdateException catch refactor (4 task, ~60 LoC delta single controller)
+- [x] 329-01-PLAN.md — Pre-check renewal chain DeleteAssessmentGroup + DeletePrePostGroup + DbUpdateException catch refactor (4 task, ~60 LoC delta single controller)
 
 ---
 
