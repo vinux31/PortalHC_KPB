@@ -23,7 +23,7 @@ namespace HcPortal.Models
         // Training Manual-only fields (null for Assessment rows)
         public string? Penyelenggara { get; set; }
         public string? CertificateType { get; set; }
-        public DateTime? ValidUntil { get; set; }
+        public DateOnly? ValidUntil { get; set; }  // Phase 327 — DateOnly migrasi P04
 
         // Status:
         //   Assessment rows: "Passed" if IsPassed==true, else "Failed"
@@ -37,7 +37,8 @@ namespace HcPortal.Models
         public int SortPriority { get; set; }
 
         // Computed: true only when ValidUntil is in the past — no lookahead window
-        public bool IsExpired => ValidUntil.HasValue && ValidUntil.Value < DateTime.Now;
+        // Phase 327 — DateOnly comparison + UtcNow alignment (D-09, eliminasi 2nd tz bug via UtcNow)
+        public bool IsExpired => ValidUntil.HasValue && ValidUntil.Value < DateOnly.FromDateTime(DateTime.UtcNow);
 
         // TrainingRecord.Id — null for Assessment Online rows; used for Edit/Delete actions
         public int? TrainingRecordId { get; set; }
