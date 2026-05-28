@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: Portal HC Bug Fixes (Cascade Hardening)
 status: executing
-last_updated: "2026-05-28T17:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 334 SHIPPED LOCAL (11/11 AC PASS, commit ac66dc55)
+last_updated: "2026-05-28T18:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 335 SHIPPED LOCAL (12/12 AC PASS, commit c0544107) — v19.0 MILESTONE CLOSE 11/11
 progress:
   total_phases: 11
-  completed_phases: 10
-  total_plans: 10
-  completed_plans: 10
-  percent: 91
+  completed_phases: 11
+  total_plans: 11
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -20,20 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 335 ready — DeleteWorker triple-fix (HIGH L, kompleks UserManager interaction)
+**Current focus:** v19.0 MILESTONE CLOSE — 11/11 phase SHIPPED LOCAL — push batch pending IT availability
 
 ## Current Position
 
-Phase: 334 (fix-cascade-deletekompetensi-orphan-evidence-files) — SHIPPED LOCAL
+Phase: 335 (fix-cascade-deleteworker-renewal-files-tx) — SHIPPED LOCAL (FINAL HIGH)
 Plan: 1 of 1 COMPLETE
-Status: 10/11 phase SHIPPED LOCAL (325-334). Next Phase 335 (final HIGH).
-Last activity: 2026-05-28 -- Phase 334 SHIPPED LOCAL (11/11 AC PASS, commit ac66dc55)
+Status: **11/11 phase v19.0 SHIPPED LOCAL = 100% MILESTONE CLOSE**
+Last activity: 2026-05-28 -- Phase 335 SHIPPED LOCAL (12/12 AC PASS, commit c0544107) — v19.0 MILESTONE CLOSE
 
 ## Next Action
 
-1. **Phase 335** — `/gsd-discuss-phase 335 --auto` → plan → execute (`fix-cascade-deleteworker-renewal-files-tx`, HIGH L ~200-300 LoC, WorkerController.cs:487, triple-dim D2+D5+D7 + UserManager interaction). Solo phase, BUKAN bundle.
-2. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325-334, ~74 commit, 1 migration `ChangeValidUntilToDateOnly`).
-3. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
+1. **Push batch v19.0** — `git push origin main` saat IT available (deliver `docs/IT_NOTIFY.md` ke Tim IT). ~78 commit batch, 1 migration `ChangeValidUntilToDateOnly` (Phase 327).
+2. **Tag v19.0-complete** post-push origin/main.
+3. **/gsd-complete-milestone v19.0** — prep next milestone v20.0 (backlog items: Phase 281/285 paused + EPRV-01 + 293/297/298 undecided).
+4. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
 
 ## Deferred Items
 

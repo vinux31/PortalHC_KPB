@@ -268,7 +268,7 @@ Tambah smoke scenario #12 ke **Smoke Verify Dev**:
 
 **Phase 335** (fix-cascade-deleteworker-renewal-files-tx) SHIPPED LOCAL. **v19.0 milestone 11/11 = 100% close.**
 
-- **Commit:** `[hash — lihat git log setelah Task 3 commit]`
+- **Commit:** `c0544107`
 - **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
 - **Scope:**
   - `Controllers/WorkerController.cs` — DeleteWorker L487-700: triple-fix D2+D5+D7. (D5) Pre-check cross-user renewal SEBELUM tx: 2 count queries (TR + AS) WHERE UserId != id + RenewsXxxId IN user's IDs → block dengan TempData friendly kalau totalCrossRefs > 0. (D2) Collect allFilePaths SEBELUM tx (TR.SertifikatUrl + AS.ManualSertifikatUrl) + INSIDE tx Step ProtonDeliverableProgress (EvidencePath + JSON history parse inner try/catch). (D7) Wrap 9-step RemoveRange + SaveChanges + UserManager.DeleteAsync + audit log + CommitAsync dalam `using var tx = BeginTransactionAsync()`. Identity result.Succeeded == false → early return INSIDE try (using disposal auto-rollback). Catch refactor: DbUpdateException specific + Exception fallback friendly TempData (NO + ex.Message). File.Delete loop POST CommitAsync inner try/catch warn-only per file.
