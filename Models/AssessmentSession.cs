@@ -61,8 +61,9 @@ namespace HcPortal.Models
         /// <summary>
         /// Optional certificate expiry date. Null = certificate has no expiry.
         /// Only relevant when GenerateCertificate = true.
+        /// Phase 327 — DateOnly migrasi P04 (eliminasi tz drift permanen).
         /// </summary>
-        public DateTime? ValidUntil { get; set; }
+        public DateOnly? ValidUntil { get; set; }
 
         /// <summary>
         /// Auto-generated certificate number in format KPB/{SEQ}/{ROMAN-MONTH}/{YEAR}.
