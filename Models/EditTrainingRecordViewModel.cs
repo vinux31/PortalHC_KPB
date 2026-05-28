@@ -50,7 +50,7 @@ namespace HcPortal.Models
 
         [Display(Name = "Berlaku Sampai")]
         [DataType(DataType.Date)]
-        public DateTime? ValidUntil { get; set; }
+        public DateOnly? ValidUntil { get; set; }  // Phase 327 — DateOnly migrasi P04
 
         [Display(Name = "Tipe Sertifikat")]
         public string? CertificateType { get; set; }
