@@ -508,86 +508,160 @@ namespace HcPortal.Controllers
             var userName = user.FullName;
             var userEmail = user.Email;
 
-            // Delete related data that uses Restrict delete behavior
-            // UserResponses (Restrict on AssessmentSession)
+            // Phase 335 D-02: pre-check cross-user renewal SEBELUM tx scope (early return TempData friendly)
+            var userTrainingIds = await _context.TrainingRecords
+                .Where(t => t.UserId == id)
+                .Select(t => t.Id)
+                .ToListAsync();
             var userAssessmentIds = await _context.AssessmentSessions
                 .Where(a => a.UserId == id)
                 .Select(a => a.Id)
                 .ToListAsync();
 
-            if (userAssessmentIds.Any())
+            var crossUserTrReferences = 0;
+            var crossUserAsReferences = 0;
+            if (userTrainingIds.Any() || userAssessmentIds.Any())
             {
-                var packageUserResponses = await _context.PackageUserResponses
-                    .Where(r => userAssessmentIds.Contains(r.AssessmentSessionId))
-                    .ToListAsync();
-                if (packageUserResponses.Any())
-                    _context.PackageUserResponses.RemoveRange(packageUserResponses);
-
-                var packageAssignments = await _context.UserPackageAssignments
-                    .Where(a => userAssessmentIds.Contains(a.AssessmentSessionId))
-                    .ToListAsync();
-                if (packageAssignments.Any())
-                    _context.UserPackageAssignments.RemoveRange(packageAssignments);
+                crossUserTrReferences = await _context.TrainingRecords
+                    .CountAsync(t => t.UserId != id && (
+                        (t.RenewsTrainingId.HasValue && userTrainingIds.Contains(t.RenewsTrainingId.Value)) ||
+                        (t.RenewsSessionId.HasValue && userAssessmentIds.Contains(t.RenewsSessionId.Value))
+                    ));
+                crossUserAsReferences = await _context.AssessmentSessions
+                    .CountAsync(a => a.UserId != id && (
+                        (a.RenewsTrainingId.HasValue && userTrainingIds.Contains(a.RenewsTrainingId.Value)) ||
+                        (a.RenewsSessionId.HasValue && userAssessmentIds.Contains(a.RenewsSessionId.Value))
+                    ));
             }
 
-            // UserCompetencyLevels removed (Phase 227 CLEN-03 — orphan table dropped)
-
-            // ProtonDeliverableProgress (references CoacheeId as string)
-            var protonProgress = await _context.ProtonDeliverableProgresses
-                .Where(p => p.CoacheeId == id)
-                .ToListAsync();
-            if (protonProgress.Any())
-                _context.ProtonDeliverableProgresses.RemoveRange(protonProgress);
-
-            // ProtonFinalAssessments (Restrict on ProtonTrackAssignment — must be deleted before assignments)
-            var protonFinalAssessments = await _context.ProtonFinalAssessments
-                .Where(fa => fa.CoacheeId == id)
-                .ToListAsync();
-            if (protonFinalAssessments.Any())
-                _context.ProtonFinalAssessments.RemoveRange(protonFinalAssessments);
-
-            // ProtonTrackAssignments
-            var protonAssignments = await _context.ProtonTrackAssignments
-                .Where(a => a.CoacheeId == id)
-                .ToListAsync();
-            if (protonAssignments.Any())
-                _context.ProtonTrackAssignments.RemoveRange(protonAssignments);
-
-            // ProtonNotifications
-            var protonNotifs = await _context.ProtonNotifications
-                .Where(n => n.RecipientId == id || n.CoacheeId == id)
-                .ToListAsync();
-            if (protonNotifs.Any())
-                _context.ProtonNotifications.RemoveRange(protonNotifs);
-
-            // CoachCoacheeMappings
-            var coachMappings = await _context.CoachCoacheeMappings
-                .Where(m => m.CoachId == id || m.CoacheeId == id)
-                .ToListAsync();
-            if (coachMappings.Any())
-                _context.CoachCoacheeMappings.RemoveRange(coachMappings);
-
-            // CoachingSessions
-            var coachSessions = await _context.CoachingSessions
-                .Where(s => s.CoachId == id || s.CoacheeId == id)
-                .ToListAsync();
-            if (coachSessions.Any())
-                _context.CoachingSessions.RemoveRange(coachSessions);
-
-            // CoachingLogs
-            var coachLogs = await _context.CoachingLogs
-                .Where(l => l.CoachId == id || l.CoacheeId == id)
-                .ToListAsync();
-            if (coachLogs.Any())
-                _context.CoachingLogs.RemoveRange(coachLogs);
-
-            await _context.SaveChangesAsync();
-
-            // Now delete the user (cascade will handle TrainingRecords, AssessmentSessions, IdpItems)
-            var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
+            var totalCrossRefs = crossUserTrReferences + crossUserAsReferences;
+            if (totalCrossRefs > 0)
             {
-                // Audit log
+                TempData["Error"] = $"Tidak bisa hapus pekerja '{userName}': {totalCrossRefs} sertifikat milik pekerja lain menggunakan sertifikat pekerja ini sebagai sumber renewal. Hapus atau update sertifikat pemakai terlebih dulu.";
+                return RedirectToAction("ManageWorkers");
+            }
+
+            // Phase 335 D-03: collect file paths SEBELUM tx + cascade (TR + AS will detach via UserManager.DeleteAsync cascade)
+            var userTrainingRecords = await _context.TrainingRecords
+                .Where(t => t.UserId == id)
+                .ToListAsync();
+            var userAssessmentSessions = await _context.AssessmentSessions
+                .Where(a => a.UserId == id)
+                .ToListAsync();
+
+            var allFilePaths = new List<string>();
+            foreach (var tr in userTrainingRecords)
+            {
+                if (!string.IsNullOrEmpty(tr.SertifikatUrl)) allFilePaths.Add(tr.SertifikatUrl);
+            }
+            foreach (var asSession in userAssessmentSessions)
+            {
+                if (!string.IsNullOrEmpty(asSession.ManualSertifikatUrl)) allFilePaths.Add(asSession.ManualSertifikatUrl);
+            }
+
+            // Phase 335 D-04: tx wrap 9-step RemoveRange + SaveChanges + UserManager.DeleteAsync + audit log + CommitAsync
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Delete related data that uses Restrict delete behavior
+                // UserResponses (Restrict on AssessmentSession)
+                if (userAssessmentIds.Any())
+                {
+                    var packageUserResponses = await _context.PackageUserResponses
+                        .Where(r => userAssessmentIds.Contains(r.AssessmentSessionId))
+                        .ToListAsync();
+                    if (packageUserResponses.Any())
+                        _context.PackageUserResponses.RemoveRange(packageUserResponses);
+
+                    var packageAssignments = await _context.UserPackageAssignments
+                        .Where(a => userAssessmentIds.Contains(a.AssessmentSessionId))
+                        .ToListAsync();
+                    if (packageAssignments.Any())
+                        _context.UserPackageAssignments.RemoveRange(packageAssignments);
+                }
+
+                // UserCompetencyLevels removed (Phase 227 CLEN-03 — orphan table dropped)
+
+                // ProtonDeliverableProgress (references CoacheeId as string)
+                var protonProgress = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.CoacheeId == id)
+                    .ToListAsync();
+                // Phase 335 D-03: collect EvidencePath + JSON history SEBELUM RemoveRange
+                foreach (var p in protonProgress)
+                {
+                    if (!string.IsNullOrEmpty(p.EvidencePath)) allFilePaths.Add(p.EvidencePath);
+                    if (!string.IsNullOrEmpty(p.EvidencePathHistory))
+                    {
+                        try
+                        {
+                            var history = System.Text.Json.JsonSerializer
+                                .Deserialize<List<string>>(p.EvidencePathHistory) ?? new List<string>();
+                            allFilePaths.AddRange(history);
+                        }
+                        catch (Exception jex)
+                        {
+                            _logger.LogWarning(jex, "Failed to parse EvidencePathHistory for progress {Pid} (DeleteWorker)", p.Id);
+                        }
+                    }
+                }
+                if (protonProgress.Any())
+                    _context.ProtonDeliverableProgresses.RemoveRange(protonProgress);
+
+                // ProtonFinalAssessments (Restrict on ProtonTrackAssignment — must be deleted before assignments)
+                var protonFinalAssessments = await _context.ProtonFinalAssessments
+                    .Where(fa => fa.CoacheeId == id)
+                    .ToListAsync();
+                if (protonFinalAssessments.Any())
+                    _context.ProtonFinalAssessments.RemoveRange(protonFinalAssessments);
+
+                // ProtonTrackAssignments
+                var protonAssignments = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId == id)
+                    .ToListAsync();
+                if (protonAssignments.Any())
+                    _context.ProtonTrackAssignments.RemoveRange(protonAssignments);
+
+                // ProtonNotifications
+                var protonNotifs = await _context.ProtonNotifications
+                    .Where(n => n.RecipientId == id || n.CoacheeId == id)
+                    .ToListAsync();
+                if (protonNotifs.Any())
+                    _context.ProtonNotifications.RemoveRange(protonNotifs);
+
+                // CoachCoacheeMappings
+                var coachMappings = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == id || m.CoacheeId == id)
+                    .ToListAsync();
+                if (coachMappings.Any())
+                    _context.CoachCoacheeMappings.RemoveRange(coachMappings);
+
+                // CoachingSessions
+                var coachSessions = await _context.CoachingSessions
+                    .Where(s => s.CoachId == id || s.CoacheeId == id)
+                    .ToListAsync();
+                if (coachSessions.Any())
+                    _context.CoachingSessions.RemoveRange(coachSessions);
+
+                // CoachingLogs
+                var coachLogs = await _context.CoachingLogs
+                    .Where(l => l.CoachId == id || l.CoacheeId == id)
+                    .ToListAsync();
+                if (coachLogs.Any())
+                    _context.CoachingLogs.RemoveRange(coachLogs);
+
+                await _context.SaveChangesAsync();
+
+                // UserManager.DeleteAsync INSIDE tx — uses same ApplicationDbContext via AddEntityFrameworkStores (Program.cs L47)
+                // Cascade akan handle TrainingRecords, AssessmentSessions, IdpItems
+                var result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded)
+                {
+                    // Phase 335 D-04: Identity error — early return INSIDE try, tx disposal auto-rollback
+                    TempData["Error"] = $"Gagal menghapus user: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+                    return RedirectToAction("ManageWorkers");
+                }
+
+                // Audit log INSIDE tx
                 try
                 {
                     var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
@@ -601,13 +675,38 @@ namespace HcPortal.Controllers
                 }
                 catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeleteWorker (userId={Id})", id); }
 
-                TempData["Success"] = $"User '{userName}' berhasil dihapus dari sistem.";
+                await tx.CommitAsync();
             }
-            else
+            catch (DbUpdateException dbEx)
             {
-                TempData["Error"] = $"Gagal menghapus user: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+                // Phase 335 D-06: using var disposal auto-rollback
+                _logger.LogWarning(dbEx, "DbUpdate failed for DeleteWorker {Id}", id);
+                TempData["Error"] = "Gagal hapus pekerja: ada constraint database yang dilanggar. Pastikan tidak ada data dependen yang belum dibersihkan.";
+                return RedirectToAction("ManageWorkers");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete worker {Id}", id);
+                TempData["Error"] = "Gagal hapus pekerja: terjadi kesalahan internal. Hubungi admin.";
+                return RedirectToAction("ManageWorkers");
             }
 
+            // Phase 335 D-05: File.Delete loop POST CommitAsync — inner try/catch warn-only per file
+            foreach (var relUrl in allFilePaths)
+            {
+                try
+                {
+                    var physical = Path.Combine(_env.WebRootPath,
+                        relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
+                }
+                catch (Exception fex)
+                {
+                    _logger.LogWarning(fex, "File.Delete post-commit failed (Worker file): {Path}", relUrl);
+                }
+            }
+
+            TempData["Success"] = $"User '{userName}' berhasil dihapus dari sistem.";
             return RedirectToAction("ManageWorkers");
         }
 

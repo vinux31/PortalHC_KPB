@@ -264,6 +264,46 @@ Tambah smoke scenario #12 ke **Smoke Verify Dev**:
 
 **#12 HIGH atomicity DeleteKompetensi orphan + D6 info leak:** (a) Hapus Kompetensi yang punya nested SubKompetensi → Deliverable → Progress dengan EvidencePath + EvidencePathHistory multi-file → expect tx commit + audit log success + SEMUA evidence file gone dari disk. (b) Simulasi DB FK violation midway → expect tx rollback + SEMUA file evidence **TETAP ada di disk** + Json success=false generic message TANPA expose `ex.Message` / table names / constraint detail (D6 verify: response body harus generic "Gagal hapus kompetensi: ada constraint database yang dilanggar." atau "...terjadi kesalahan internal. Hubungi admin." — BUKAN exception text leak).
 
+## Phase 335 Update (2026-05-28) — FINAL v19.0 HIGH
+
+**Phase 335** (fix-cascade-deleteworker-renewal-files-tx) SHIPPED LOCAL. **v19.0 milestone 11/11 = 100% close.**
+
+- **Commit:** `[hash — lihat git log setelah Task 3 commit]`
+- **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
+- **Scope:**
+  - `Controllers/WorkerController.cs` — DeleteWorker L487-700: triple-fix D2+D5+D7. (D5) Pre-check cross-user renewal SEBELUM tx: 2 count queries (TR + AS) WHERE UserId != id + RenewsXxxId IN user's IDs → block dengan TempData friendly kalau totalCrossRefs > 0. (D2) Collect allFilePaths SEBELUM tx (TR.SertifikatUrl + AS.ManualSertifikatUrl) + INSIDE tx Step ProtonDeliverableProgress (EvidencePath + JSON history parse inner try/catch). (D7) Wrap 9-step RemoveRange + SaveChanges + UserManager.DeleteAsync + audit log + CommitAsync dalam `using var tx = BeginTransactionAsync()`. Identity result.Succeeded == false → early return INSIDE try (using disposal auto-rollback). Catch refactor: DbUpdateException specific + Exception fallback friendly TempData (NO + ex.Message). File.Delete loop POST CommitAsync inner try/catch warn-only per file.
+- **Severity fix:** HIGH triple-dim (D2 file orphan + D5 cross-user renewal cascade silent failure + D7 partial-write atomicity)
+- **Source:** Phase 328 RESEARCH.md §4.3 + §9 proposal #6
+- **Existing preserved:** Authorization L484-486 + self-deletion guard L491-499 + user lookup L501-506 + 9-step RemoveRange cascade order + Identity error Description display (actionable user-level, NOT info leak)
+- **D-11 UserManager tx assumption:** VERIFIED via Program.cs L47 `AddEntityFrameworkStores<ApplicationDbContext>()` — Identity uses same DbContext via DI scoped lifetime = same tx scope.
+
+Batch v19.0 update: Phase 325-335 = **10 fix phase + 1 audit phase = 11/11 milestone close** (Phase 328 audit-only, no kode delta).
+
+**Jumlah commit batch update:** ~78 commit total final v19.0.
+
+Tambah smoke scenario #13 ke **Smoke Verify Dev**:
+
+**#13 HIGH triple-fix DeleteWorker cross-user + file orphan + tx atomicity:** (a) Worker A punya TR yang jadi RenewsTrainingId source untuk Worker B's TR → hapus Worker A → expect TempData friendly "Tidak bisa hapus pekerja: N sertifikat milik pekerja lain..." + Worker A TETAP exist + Worker B TR TETAP exist. (b) Worker A solo (zero cross-user renewal) dengan SertifikatUrl multi-file + EvidencePath PROTON multi-file → hapus → expect tx commit + Identity DeleteAsync success + Worker A gone dari [Identity Users] + SEMUA file disk gone. (c) Simulasi UserManager.DeleteAsync fail mid-cascade (Identity result.Succeeded=false) → expect early return INSIDE try + tx disposal rollback + SEMUA 9-step RemoveRange data TETAP exist + Worker A TETAP exist + SEMUA file TETAP ada di disk.
+
+## v19.0 MILESTONE CLOSE (2026-05-28)
+
+**Phase 325-335 SHIPPED LOCAL = 11/11 phase 100%**:
+1. Phase 325 Security Hardening P01+P02+P05 ✅
+2. Phase 326 Validator Hardening P03+P06 ✅
+3. Phase 327 Timezone DateOnly Refactor P04 ✅
+4. Phase 328 Cascade Audit Sweep (audit-only) ✅
+5. Phase 329 Cascade Renewal Pre-Check Group ✅
+6. Phase 330 Cascade MED Bundle ✅
+7. Phase 331 DeleteTraining + DeleteManualAssessment atomicity ✅
+8. Phase 332 DeleteBagian file atomicity ✅
+9. Phase 333 DeleteCoachingSession file atomicity ✅
+10. Phase 334 DeleteKompetensi orphan evidence + D6 info leak ✅
+11. Phase 335 DeleteWorker triple-fix (FINAL HIGH) ✅
+
+**Migration required:** YA — `ChangeValidUntilToDateOnly` (Phase 327 only). 2 tabel ALTER COLUMN datetime2 → date.
+**Total commit batch:** ~78 commit di main lokal, NOT pushed.
+**Push gate:** User explicit approval per Phase 327 option-b hold.
+
 ## Order of Operations (CRITICAL)
 
 1. Deploy code dulu (4 phase batch sudah merged di main, pull/checkout latest)
