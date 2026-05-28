@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v18.0
-milestone_name: Cascade Delete Hardening + Duplicate TR Fix
+milestone: v19.0
+milestone_name: Portal HC Bug Fixes (Cascade Hardening)
 status: executing
-last_updated: "2026-05-28T09:48:49.130Z"
-last_activity: 2026-05-28
+last_updated: "2026-05-28T12:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 330 SHIPPED LOCAL (9/9 AC PASS)
 progress:
-  total_phases: 2
-  completed_phases: 1
+  total_phases: 6
+  completed_phases: 6
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -20,21 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 329 — fix-cascade-deleteassessmentgroup-deleteprepostgroup-renewal
+**Current focus:** v19.0 batch push pending IT availability
 
 ## Current Position
 
-Phase: 329
-Plan: Not started
-Status: Executing Phase 329
-Last activity: 2026-05-28
+Phase: 330 (fix-cascade-med-bundle-delete-category-package-question-orgu) — SHIPPED LOCAL
+Plan: 1 of 1 COMPLETE
+Status: v19.0 semua phase SHIPPED LOCAL — menunggu push gate release
+Last activity: 2026-05-28 -- Phase 330 SHIPPED LOCAL (9/9 AC PASS, commit 40518631)
 
 ## Next Action
 
-1. **`/gsd-plan-phase 323`** — break down Phase 323 jadi plan (1-2 task: cascade patch 3 endpoint + smoke test lokal).
-2. **Setelah Phase 323 ship**: notify IT — commit hash + flag NO migration. Retry hapus AssessmentSession Id 2 + Id 5 via UI Admin di Dev.
-3. **Bonus** (optional): SQL one-off untuk hapus 2 record sekarang tanpa tunggu code fix promo (draft script di chat session 2026-05-26).
-4. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
+1. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325+326+327+329+330, ~62 commit, 1 migration `ChangeValidUntilToDateOnly`).
+2. **Phase 331+** — DeleteWorker HIGH bundle (D2 atomicity + D5 renewal cross-user + D7 tx wrap) deferred per Phase 328 §9 row #6.
+3. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
 
 ## Deferred Items
 
