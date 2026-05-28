@@ -2515,6 +2515,8 @@ namespace HcPortal.Controllers
             DateTime? periodeEnd)
         {
             var today = DateTime.UtcNow.AddHours(7).Date;
+            // Phase 327 — DateOnly hybrid: today (DateTime) untuk periodeEnd, todayDate (DateOnly) untuk ValidUntil compare
+            var todayDate = DateOnly.FromDateTime(DateTime.UtcNow);
             periodeEnd ??= today;
             periodeStart ??= periodeEnd.Value.AddYears(-1);
 
@@ -2589,13 +2591,14 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             // Expiring soon query (filter Bagian/Unit saja, bukan kategori)
-            var thirtyDaysFromNow = today.AddDays(30);
+            // Phase 327 — pakai todayDate (DateOnly) untuk ValidUntil compare
+            var thirtyDaysFromNow = todayDate.AddDays(30);
 
             var trainingExpiring = _context.TrainingRecords
                 .Include(t => t.User)
                 .Where(t => t.Status == "Valid"
                     && t.ValidUntil.HasValue
-                    && t.ValidUntil >= today
+                    && t.ValidUntil >= todayDate
                     && t.ValidUntil <= thirtyDaysFromNow);
 
             if (!string.IsNullOrEmpty(bagian))
@@ -2618,7 +2621,7 @@ namespace HcPortal.Controllers
                 .Where(s => s.IsPassed == true
                     && s.GenerateCertificate
                     && s.ValidUntil.HasValue
-                    && s.ValidUntil >= today
+                    && s.ValidUntil >= todayDate
                     && s.ValidUntil <= thirtyDaysFromNow);
 
             if (!string.IsNullOrEmpty(bagian))
@@ -2735,6 +2738,8 @@ namespace HcPortal.Controllers
             DateTime? periodeStart, DateTime? periodeEnd)
         {
             var today = DateTime.UtcNow.AddHours(7).Date;
+            // Phase 327 — DateOnly hybrid: today (DateTime) untuk periodeEnd, todayDate (DateOnly) untuk ValidUntil compare
+            var todayDate = DateOnly.FromDateTime(DateTime.UtcNow);
             periodeEnd ??= today;
             periodeStart ??= periodeEnd.Value.AddYears(-1);
 
@@ -2757,11 +2762,11 @@ namespace HcPortal.Controllers
             var passRate = totalSessions > 0 ? Math.Round((double)passedCount / totalSessions * 100, 1) : 0;
 
             // Expiring certificates count (30 days)
-            var thirtyDays = today.AddDays(30);
+            var thirtyDays = todayDate.AddDays(30);
             var expiringTraining = _context.TrainingRecords.AsNoTracking()
-                .Where(t => t.Status == "Valid" && t.ValidUntil.HasValue && t.ValidUntil >= today && t.ValidUntil <= thirtyDays);
+                .Where(t => t.Status == "Valid" && t.ValidUntil.HasValue && t.ValidUntil >= todayDate && t.ValidUntil <= thirtyDays);
             var expiringSession = _context.AssessmentSessions.AsNoTracking()
-                .Where(s => s.IsPassed == true && s.GenerateCertificate && s.ValidUntil.HasValue && s.ValidUntil >= today && s.ValidUntil <= thirtyDays);
+                .Where(s => s.IsPassed == true && s.GenerateCertificate && s.ValidUntil.HasValue && s.ValidUntil >= todayDate && s.ValidUntil <= thirtyDays);
 
             if (!string.IsNullOrEmpty(bagian))
             {
@@ -2972,7 +2977,8 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> GetExpiringSoonData(
             string? bagian, string? unit, int days = 30)
         {
-            var today = DateTime.UtcNow.AddHours(7).Date;
+            // Phase 327 — DateOnly migrasi P04 (Pattern B)
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var futureDate = today.AddDays(days);
 
             var trainingExpiring = _context.TrainingRecords.AsNoTracking()

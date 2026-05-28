@@ -75,7 +75,8 @@ public class HomeController : Controller
     {
         try
         {
-            var today = DateTime.UtcNow.AddHours(7).Date;
+            // Phase 327 — DateOnly migrasi P04 (Pattern B), method ValidUntil-only
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
             // Renewal chain resolution (same as GetCertAlertCountsAsync)
             var renewedByAsSessionIds = await _context.AssessmentSessions
@@ -161,7 +162,8 @@ public class HomeController : Controller
 
     private async Task<(int expiredCount, int akanExpiredCount)> GetCertAlertCountsAsync()
     {
-        var today = DateTime.UtcNow.AddHours(7).Date;
+        // Phase 327 — DateOnly migrasi P04 (Pattern B), method ValidUntil-only
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var thirtyDaysFromNow = today.AddDays(30);
 
         // Renewal chain resolution: batch lookup (same pattern as AdminController.BuildRenewalRowsAsync)
