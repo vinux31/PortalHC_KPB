@@ -738,6 +738,16 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
 
+### Phase 329: fix-cascade-deleteassessmentgroup-deleteprepostgroup-renewal-precheck — Pasang pre-check renewal chain (RenewsSessionId) di DeleteAssessmentGroup (AssessmentAdminController.cs:2199) + DeletePrePostGroup (AssessmentAdminController.cs:2359) sebelum BeginTransactionAsync, paralel pola Phase 325 P05 DeleteAssessment L2040-2052. Source Phase 328 RESEARCH.md sec 4.4 + sec 4.5 (HIGH D5 fail). Severity HIGH. Effort S (~40 LoC delta 1 controller, no migration). Depends on Phase 328 (audit deliverable).
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 328
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 329 to break down)
+
 ---
 
 *Roadmap updated: 2026-05-28 (Phase 328 RESEARCH.md SHIPPED LOCAL — commit `41f1eef2`, 14 endpoint mutator + 5 preview, 8 HIGH + 5 MED + 0 LOW; 7 next-phase fix proposals di Section 9 PROPOSAL ONLY).*
