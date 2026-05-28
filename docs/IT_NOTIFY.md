@@ -222,6 +222,27 @@ Tambah smoke scenario #10 ke **Smoke Verify Dev**:
 
 **#10 HIGH atomicity DeleteBagian multi-file:** Hapus Bagian dengan 2+ archived KKJ + 1+ archived CPDP, simulasi DB FK violation midway → expect tx rollback + SEMUA file archived **TETAP ada di disk** + Json success=false friendly. Tanpa fix Phase 332: file gone tapi Bagian + KkjFiles row alive = dangling FilePath.
 
+## Phase 333 Update (2026-05-28)
+
+**Phase 333** (fix-cascade-deletecoachingsession-file-atomicity) SHIPPED LOCAL.
+
+- **Commit:** `[hash — lihat git log setelah Task 2 commit]`
+- **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
+- **Scope:**
+  - `Controllers/CDPController.cs` — DeleteCoachingSession L2433-2575: declare pathsToDelete outer tx (List<string>? nullable), move File.Delete loop POST tx.CommitAsync (was inside tx pre-commit), refactor catch generic Exception+throw → catch DbUpdateException specific + Exception fallback dengan friendly TempData (no throw, no explicit RollbackAsync)
+- **Severity fix:** HIGH D2 (file delete inside tx pre-commit) + D6 polish (raw 500 page → friendly TempData)
+- **Source:** Phase 328 RESEARCH.md §4.6 + §9 proposal #4
+- **Existing preserved:** BeginTransactionAsync L2455 + role check + active mapping guard + progress revert state (~13 fields) + RecordStatusHistory + audit log + Status="Approved"/sibling branches
+- **D5 status:** N/A (CoachingSession not in renewal chain per Phase 328 §4.6)
+
+Batch v19.0 update: Phase 325 + 326 + 327 + 329 + 330 + 331 + 332 + 333 = **8 fix phase** (Phase 328 audit-only, no kode delta).
+
+**Jumlah commit batch update:** ~71 commit total.
+
+Tambah smoke scenario #11 ke **Smoke Verify Dev**:
+
+**#11 HIGH atomicity DeleteCoachingSession evidence file:** Hapus CoachingSession terakhir progress (last sibling) yang punya EvidencePath + EvidencePathHistory (multi-file), simulasi DB FK violation di SaveChanges → expect tx rollback + SEMUA evidence file **TETAP ada di disk** + TempData["Error"] friendly. Tanpa fix Phase 333: file evidence gone tapi progress state belum reverted = orphan disk + dangling DB state.
+
 ## Order of Operations (CRITICAL)
 
 1. Deploy code dulu (4 phase batch sudah merged di main, pull/checkout latest)

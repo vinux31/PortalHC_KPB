@@ -2452,6 +2452,10 @@ namespace HcPortal.Controllers
                 }
             }
             var progressId = session.ProtonDeliverableProgressId;
+
+            // Phase 333 D-02: declare pathsToDelete di SCOPE OUTER tx — visible POST CommitAsync untuk File.Delete loop
+            List<string>? pathsToDelete = null;
+
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -2470,7 +2474,8 @@ namespace HcPortal.Controllers
                             .FirstOrDefaultAsync(p => p.Id == progressId.Value);
                         if (progress != null && progress.Status != "Approved")
                         {
-                            var pathsToDelete = new List<string>();
+                            // Phase 333 D-02: build pathsToDelete INSIDE tx (collection only, no actual File.Delete)
+                            pathsToDelete = new List<string>();
                             if (!string.IsNullOrEmpty(progress.EvidencePath))
                                 pathsToDelete.Add(progress.EvidencePath);
                             if (!string.IsNullOrEmpty(progress.EvidencePathHistory))
@@ -2487,20 +2492,7 @@ namespace HcPortal.Controllers
                                 }
                             }
 
-                            foreach (var relUrl in pathsToDelete)
-                            {
-                                try
-                                {
-                                    var physical = Path.Combine(_env.WebRootPath,
-                                        relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                                    if (System.IO.File.Exists(physical))
-                                        System.IO.File.Delete(physical);
-                                }
-                                catch (IOException iox)
-                                {
-                                    _logger.LogWarning(iox, "Failed to delete evidence file {Path}", relUrl);
-                                }
-                            }
+                            // Phase 333 D-02: File.Delete loop DIPINDAH POST CommitAsync (di akhir method).
 
                             progress.EvidencePath = null;
                             progress.EvidenceFileName = null;
@@ -2537,7 +2529,39 @@ namespace HcPortal.Controllers
                     $"Session ID={id} dihapus.{cleanupNote}", id, "CoachingSession");
                 await tx.CommitAsync();
             }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to delete coaching session ID={Id}", id); await tx.RollbackAsync(); throw; }
+            catch (DbUpdateException dbEx)
+            {
+                // Phase 333 D-03: await using disposal auto-rollback — no explicit RollbackAsync
+                _logger.LogWarning(dbEx, "DbUpdate failed for DeleteCoachingSession ID={Id}", id);
+                TempData["Error"] = "Gagal hapus sesi coaching: ada constraint database yang dilanggar.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+            catch (Exception ex)
+            {
+                // Phase 333 D-03: fallback generic — friendly TempData, NO throw, NO explicit RollbackAsync
+                _logger.LogError(ex, "Failed to delete coaching session ID={Id}", id);
+                TempData["Error"] = "Gagal hapus sesi coaching: terjadi kesalahan internal. Hubungi admin.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Phase 333 D-05: File.Delete loop POST CommitAsync — inner try/catch warn-only per file
+            if (pathsToDelete != null && pathsToDelete.Count > 0)
+            {
+                foreach (var relUrl in pathsToDelete)
+                {
+                    try
+                    {
+                        var physical = Path.Combine(_env.WebRootPath,
+                            relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
+                    }
+                    catch (Exception fex)
+                    {
+                        _logger.LogWarning(fex, "File.Delete post-commit failed (CoachingSession evidence): {Path}", relUrl);
+                    }
+                }
+            }
+
             TempData["Success"] = "Sesi coaching berhasil dihapus.";
             return RedirectToAction("Deliverable", new { id = progressId });
         }
