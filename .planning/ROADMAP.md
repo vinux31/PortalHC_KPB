@@ -683,7 +683,7 @@ Plans:
 
 ### Phase 328: Cascade Audit Sweep — Delete* Endpoints (Audit-Only)
 
-- [ ] **Phase 328: Enumerate + audit Delete* endpoints terhadap 7-dimension cascade-safety checklist**
+- [x] **Phase 328: Enumerate + audit Delete* endpoints terhadap 7-dimension cascade-safety checklist** ✅ SHIPPED LOCAL 2026-05-28
   - **Source:** Post-Phase-323 deferred per `323-CONTEXT.md:122` (DeleteCategory/Package/Question/Worker/Training/dll out-of-scope 323)
   - **Depends on:** Phase 327 (sequential within v19.0); Phase 323 (gold-standard pattern reference)
   - **Goal:** Enumerate every `Delete*` method di `Controllers/*.cs` + `Services/*.cs` dan audit terhadap 7-dimension cascade-safety checklist (FK risk, file-DB atomicity, audit log, role check, renewal chain null-clear, error handling, transaction wrap). Severity tag per row. Produce `328-RESEARCH.md` deliverable. No code change, no fix phase spawn (potential fix phase di v20.0).
@@ -696,8 +696,9 @@ Plans:
   - **Reference spec:** `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` (commit `02f620be`)
   - **Files affected:** `.planning/phases/328-cascade-audit-sweep-delete-endpoints/328-RESEARCH.md` (NEW, audit-only)
   - **Migration:** ❌ Tidak ada
-  - **Plans:** 1 plan
-    - [ ] 328-01-PLAN.md — Enumerate Delete* endpoints + audit 7-dim cascade-safety checklist per row + write 9-section RESEARCH.md (10 task, audit-only, no code change)
+  - **Plans:** 1 plan (shipped)
+    - [x] 328-01-PLAN.md — Enumerate Delete* endpoints + audit 7-dim cascade-safety checklist per row + write 9-section RESEARCH.md (10 task, audit-only, no code change) ✅ shipped `41f1eef2`
+  - **RESEARCH commit:** `41f1eef2` (2026-05-28 — 14 mutator endpoint + 5 preview-only, 8 HIGH, 5 MED, 0 LOW)
 
 #### Coverage Validation v19.0
 
@@ -709,7 +710,7 @@ Plans:
 | P04 Timezone DateOnly | 327 | Pending |
 | P05 Hard Delete FK quick patch | 325 | ✅ SHIPPED |
 | P06 Permanent+ValidUntil | 326 | Pending |
-| Cascade audit sweep (N/A, audit-only) | 328 | Pending |
+| Cascade audit sweep (N/A, audit-only) | 328 | ✅ SHIPPED LOCAL |
 
 **Active mapped: 6/6 bug ✓ + 1 audit phase — Orphans: 0 — Duplicates: 0**
 
@@ -739,7 +740,8 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-05-27 (Phase 328 promoted dari backlog → v19.0 active, depends on Phase 327; Coverage table updated P01/P02/P05 = SHIPPED).*
+*Roadmap updated: 2026-05-28 (Phase 328 RESEARCH.md SHIPPED LOCAL — commit `41f1eef2`, 14 endpoint mutator + 5 preview, 8 HIGH + 5 MED + 0 LOW; 7 next-phase fix proposals di Section 9 PROPOSAL ONLY).*
+*Prev: 2026-05-27 (Phase 328 promoted dari backlog → v19.0 active, depends on Phase 327; Coverage table updated P01/P02/P05 = SHIPPED).*
 *Prev: 2026-05-27 (Phase 328 plan generated — 328-01-PLAN.md, 10 task audit-only single wave).*
 *Prev: 2026-05-27 (Phase 328 added — Cascade Audit Sweep Delete* endpoints, audit-only, spec commit 02f620be).*
 *Prev: 2026-05-27 (backlog Phase 999.1 Realtime Assessment SignalR added).*
