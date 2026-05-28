@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: Portal HC Bug Fixes (Cascade Hardening)
 status: executing
-last_updated: "2026-05-28T12:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 330 SHIPPED LOCAL (9/9 AC PASS)
+last_updated: "2026-05-28T13:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 331-335 added to roadmap (5 HIGH cascade hardening proposals from Phase 328 §9)
 progress:
-  total_phases: 6
+  total_phases: 11
   completed_phases: 6
   total_plans: 6
   completed_plans: 6
-  percent: 100
+  percent: 55
 ---
 
 # Project State: Portal HC KPB
@@ -20,19 +20,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v19.0 batch push pending IT availability
+**Current focus:** Phase 331 ready — 5 HIGH cascade hardening phases (331-335) added to roadmap
 
 ## Current Position
 
-Phase: 330 (fix-cascade-med-bundle-delete-category-package-question-orgu) — SHIPPED LOCAL
-Plan: 1 of 1 COMPLETE
-Status: v19.0 semua phase SHIPPED LOCAL — menunggu push gate release
-Last activity: 2026-05-28 -- Phase 330 SHIPPED LOCAL (9/9 AC PASS, commit 40518631)
+Phase: 331 (fix-cascade-deletetraining-deletemanualassessment-atomicity) — READY TO PLAN
+Plan: 0 of 1
+Status: Phase 331-335 directory + roadmap entry created. Phase 330 SHIPPED LOCAL upstream.
+Last activity: 2026-05-28 -- Phase 331-335 batch-added to roadmap (5 HIGH proposals)
 
 ## Next Action
 
-1. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325+326+327+329+330, ~62 commit, 1 migration `ChangeValidUntilToDateOnly`).
-2. **Phase 331+** — DeleteWorker HIGH bundle (D2 atomicity + D5 renewal cross-user + D7 tx wrap) deferred per Phase 328 §9 row #6.
+1. **`/gsd-discuss-phase 331 --auto`** → CONTEXT.md decisions locked (D2+D7 atomicity, pattern Phase 323 D-04 verbatim).
+2. **`/gsd-plan-phase 331 --auto`** → PLAN.md generated.
+3. **`/gsd-execute-phase 331 --interactive --no-transition`** → ship lokal.
+4. Repeat for Phase 332 → 333 → 334 → 335 sequential.
+5. **Push batch v19.0** — saat push lock release (Phase 327 option-b): `git push origin main` → notifikasi IT dengan `docs/IT_NOTIFY.md` (Phase 325+326+327+329+330+331+, ~62+ commit, 1 migration `ChangeValidUntilToDateOnly`).
 3. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
 
 ## Deferred Items
@@ -94,6 +97,11 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 - Phase 329 added (2026-05-28): fix-cascade-deleteassessmentgroup-deleteprepostgroup-renewal-precheck — Pasang pre-check renewal chain (RenewsSessionId) di DeleteAssessmentGroup (AssessmentAdminController.cs:2199) + DeletePrePostGroup (AssessmentAdminController.cs:2359) sebelum BeginTransactionAsync, paralel pola Phase 325 P05 DeleteAssessment L2040-2052. Source Phase 328 RESEARCH.md §4.4 + §4.5 (HIGH D5 fail). Severity HIGH. Effort S (~40 LoC delta 1 controller, no migration). Depends on Phase 328 (audit deliverable).
 - Phase 330 added (2026-05-28): fix-cascade-med-bundle-delete-category-package-question-orgunit-notification — Fix MED cascade safety: DeleteCategory + DeletePackage + DeleteQuestion + DeleteOrganizationUnit (TrainingAdminController) + NotificationService.DeleteAsync. Pre-check FK renewal/child referrer sebelum tx scope. Source Phase 328 RESEARCH.md §9 proposal #7. Severity MED. Effort S-M (~60-80 LoC delta 2 file, no migration). Depends on Phase 329.
 - Phase 328 added (2026-05-27): Cascade Audit Sweep — Delete* Endpoints (Audit-Only). Post-Phase-323 deferred follow-up per `323-CONTEXT.md:122`. Enumerate semua `Delete*` method di `Controllers/*.cs` + `Services/*.cs`, audit terhadap 7-dim cascade-safety checklist (FK risk, file-DB atomicity, audit log, role check, renewal chain null-clear, error handling, transaction wrap). Severity tag per row (HIGH/MED/LOW). Deliverable `328-RESEARCH.md` only. No code change, no fix phase spawn (separate user decision post-audit). Pre-audit HIGH finding confirmed: renewal chain bug di `DeleteTraining` (`TrainingAdminController.cs:527-548`) + `DeleteManualAssessment` (`:736-756`). Spec: `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` commit `02f620be`.
+- Phase 331 added (2026-05-28): fix-cascade-deletetraining-deletemanualassessment-atomicity — DeleteTraining + DeleteManualAssessment (TrainingAdminController.cs:559 + :793): wrap BeginTransactionAsync + move File.Delete POST commit (D2+D7). D5 sudah Phase 325 P05 covered. Source Phase 328 RESEARCH.md §4.1 + §4.2 + §9 proposal #1. Severity HIGH. Effort S-M (~80 LoC delta 1 controller, no migration). Depends on Phase 330.
+- Phase 332 added (2026-05-28): fix-cascade-deletebagian-file-atomicity — DeleteBagian (DocumentAdminController.cs:283): wrap BeginTransactionAsync + move File.Delete L327+L343 POST SaveChanges + try/catch DbUpdateException (D2+D6+D7). Pertahankan pre-check active files BLOCK L289-302. Source Phase 328 RESEARCH.md §4.7 + §9 proposal #3. Severity HIGH. Effort S-M (~50 LoC delta 1 controller, no migration). Depends on Phase 331.
+- Phase 333 added (2026-05-28): fix-cascade-deletecoachingsession-file-atomicity — DeleteCoachingSession (CDPController.cs:2433): move File.Delete loop L2490-2503 (evidence EvidencePath + history) POST tx.CommitAsync L2538 + refactor catch L2540 jangan raw 500 throw (D2 fix + D6 polish). Pertahankan progress state revert logic L2505-2517 + active-mapping guard L2441-2453. Source Phase 328 RESEARCH.md §4.6 + §9 proposal #4. Severity HIGH. Effort M. Depends on Phase 332.
+- Phase 334 added (2026-05-28): fix-cascade-deletekompetensi-orphan-evidence-files — DeleteKompetensi (ProtonDataController.cs:1516): iterate nested SubKompetensi → Deliverable → Progress tree, collect EvidencePath + History (JsonDocument parse), File.Delete POST CommitAsync L1576 + refactor catch L1584 jangan return ex.Message ke client (D2 fix + D6 info leak fix). Pertahankan BeginTransactionAsync L1529. Source Phase 328 RESEARCH.md §4.8 + §9 proposal #5. Severity HIGH. Effort M. Depends on Phase 333.
+- Phase 335 added (2026-05-28): fix-cascade-deleteworker-renewal-files-tx — DeleteWorker (WorkerController.cs:487): triple-fix D2+D5+D7. (D2) Loop TR/AS + Proton progress milik user, collect file paths SertifikatUrl/ManualSertifikatUrl/EvidencePath, File.Delete POST commit. (D5) Pre-check TR/AS user di-referensi sebagai RenewsTrainingId/RenewsSessionId source untuk worker LAIN — cross-user pattern (BUKAN same-user Phase 325 P05) → block atau null-clear. (D7) BeginTransactionAsync wrap full 9-step RemoveRange cascade INCLUDING UserManager.DeleteAsync interaction (Identity store separate SaveChanges path). Solo phase, BUKAN bundle. Manual UAT 5+ scenario. Source Phase 328 RESEARCH.md §4.3 + §9 proposal #6. Severity HIGH. Effort L (~200-300 LoC). Depends on Phase 334.
 
 ## Session Continuity
 

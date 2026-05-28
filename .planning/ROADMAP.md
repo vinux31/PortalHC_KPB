@@ -758,9 +758,45 @@ Plans:
 Plans:
 - [ ] 330-01-PLAN.md — 3 task wave: Task 1 (AssessmentAdminController: 3 endpoint) + Task 2 (OrganizationController + NotificationService) + Task 3 (verify + IT_NOTIFY + commit + SUMMARY)
 
+### Phase 331: fix-cascade-deletetraining-deletemanualassessment-atomicity — DeleteTraining + DeleteManualAssessment: wrap BeginTransactionAsync + move File.Delete POST commit (D2+D7 fix). D5 sudah Phase 325 P05 covered. Source Phase 328 RESEARCH.md §4.1 + §4.2 + §9 proposal #1. Severity HIGH. Effort S-M (~80 LoC delta 1 controller, no migration). Depends on Phase 330.
+
+**Goal:** Fix file-DB atomicity di DeleteTraining (TrainingAdminController.cs:559) + DeleteManualAssessment (TrainingAdminController.cs:793). Loop collect file paths, wrap BeginTransactionAsync, move System.IO.File.Delete / FileUploadHelper.DeleteFile POST CommitAsync. Pattern Phase 323 D2/D7 verbatim reuse. Tidak ubah pre-check renewal (sudah ada Phase 325 P05 L568-580 + L802-805).
+**Requirements**: D-01-DeleteTraining-tx-wrap, D-02-DeleteTraining-file-post-commit, D-03-DeleteManualAssessment-tx-wrap, D-04-DeleteManualAssessment-file-post-commit
+**Depends on:** Phase 330
+**Plans:** TBD (generate via /gsd-plan-phase 331)
+
+### Phase 332: fix-cascade-deletebagian-file-atomicity — DeleteBagian: wrap BeginTransactionAsync + move File.Delete POST commit + try/catch DbUpdateException (D2+D6+D7 fix). Source Phase 328 RESEARCH.md §4.7 + §9 proposal #3. Severity HIGH. Effort S-M (~50 LoC delta 1 controller, no migration). Depends on Phase 331.
+
+**Goal:** Fix file-DB atomicity di DeleteBagian (DocumentAdminController.cs:283). Move archived files File.Delete L327+L343 POST SaveChanges L350. Wrap method dalam BeginTransactionAsync. Refactor try block agar wrap SaveChanges (bukan hanya audit log L354). Tambah catch DbUpdateException friendly TempData. Pattern Phase 323 D2/D7. Tidak ubah pre-check active files BLOCK (L289-302 sudah ada).
+**Requirements**: D-01-DeleteBagian-tx-wrap, D-02-DeleteBagian-file-post-commit, D-03-DeleteBagian-catch-DbUpdateException
+**Depends on:** Phase 331
+**Plans:** TBD (generate via /gsd-plan-phase 332)
+
+### Phase 333: fix-cascade-deletecoachingsession-file-atomicity — DeleteCoachingSession: move evidence File.Delete loop POST tx.CommitAsync (D2 fix) + refactor catch friendly TempData (D6 polish). Source Phase 328 RESEARCH.md §4.6 + §9 proposal #4. Severity HIGH. Effort M (complex revert state logic). Depends on Phase 332.
+
+**Goal:** Fix file-DB atomicity di DeleteCoachingSession (CDPController.cs:2433). Move System.IO.File.Delete loop L2490-2503 (evidence EvidencePath + history files) POST tx.CommitAsync L2538. Refactor catch generic Exception L2540 → catch DbUpdateException + Exception fallback dengan friendly TempData (jangan raw 500 throw). Pertahankan progress state revert logic L2505-2517 + active-mapping guard L2441-2453.
+**Requirements**: D-01-DeleteCoachingSession-file-post-commit, D-02-DeleteCoachingSession-catch-friendly
+**Depends on:** Phase 332
+**Plans:** TBD (generate via /gsd-plan-phase 333)
+
+### Phase 334: fix-cascade-deletekompetensi-orphan-evidence-files — DeleteKompetensi: iterate progresses, collect EvidencePath + History (JSON parse), File.Delete POST commit (D2 fix) + refactor catch jangan expose ex.Message (D6 fix info leak). Source Phase 328 RESEARCH.md §4.8 + §9 proposal #5. Severity HIGH. Effort M (nested tree + JSON parse). Depends on Phase 333.
+
+**Goal:** Fix orphan evidence files + info leak di DeleteKompetensi (ProtonDataController.cs:1516). Iterate nested SubKompetensi → Deliverable → Progress tree, collect EvidencePath dari ProtonDeliverableProgress + JsonDocument parse history files. File.Delete loop POST CommitAsync L1576. Refactor catch L1584 jangan return ex.Message ke client (replace dengan generic friendly TempData). Pertahankan BeginTransactionAsync L1529 yang sudah ada.
+**Requirements**: D-01-DeleteKompetensi-file-post-commit, D-02-DeleteKompetensi-history-json-parse, D-03-DeleteKompetensi-catch-no-info-leak
+**Depends on:** Phase 333
+**Plans:** TBD (generate via /gsd-plan-phase 334)
+
+### Phase 335: fix-cascade-deleteworker-renewal-files-tx — DeleteWorker: pre-check renewal cross-user (D5), file cleanup loop (D2), wrap tx full method termasuk UserManager.DeleteAsync interaction (D7). Source Phase 328 RESEARCH.md §4.3 + §9 proposal #6. Severity HIGH (triple-dim D2+D5+D7). Effort L (~200-300 LoC + integration tests + UAT 5+ scenario). Depends on Phase 334.
+
+**Goal:** Triple-fix DeleteWorker (WorkerController.cs:487). (D2) Loop TR/AS + Proton progress milik user, collect file paths (SertifikatUrl, ManualSertifikatUrl, EvidencePath), File.Delete POST commit. (D5) Pre-check TR/AS milik user yang di-referensi sebagai RenewsTrainingId/RenewsSessionId source untuk worker LAIN (cross-user pattern, BUKAN same-user Phase 325 P05) — block atau null-clear. (D7) BeginTransactionAsync wrap full 9-step RemoveRange cascade INCLUDING UserManager.DeleteAsync interaction (Identity store separate SaveChanges path, careful tx compose). Pattern Phase 323 + Phase 325 P05 extended. Phase ini solo, BUKAN bundle dengan phase lain. Manual UAT 5+ scenario.
+**Requirements**: D-01-DeleteWorker-tx-wrap, D-02-DeleteWorker-file-post-commit, D-03-DeleteWorker-renewal-cross-user-precheck, D-04-DeleteWorker-identity-store-tx-compose
+**Depends on:** Phase 334
+**Plans:** TBD (generate via /gsd-plan-phase 335)
+
 ---
 
-*Roadmap updated: 2026-05-28 (Phase 330 plan generated — 330-01-PLAN.md, 3 task single wave, ~75 LoC delta Controllers/AssessmentAdminController.cs + Controllers/OrganizationController.cs + Services/NotificationService.cs).*
+*Roadmap updated: 2026-05-28 (Phase 331-335 added — 5 HIGH proposal Phase 328 §9 #1+#3+#4+#5+#6 spawned per user batch-create. Phase 331-334 mechanical atomicity, Phase 335 complex worker lifecycle).*
+*Prev: 2026-05-28 (Phase 330 plan generated — 330-01-PLAN.md, 3 task single wave, ~75 LoC delta Controllers/AssessmentAdminController.cs + Controllers/OrganizationController.cs + Services/NotificationService.cs).*
 *Prev: 2026-05-28 (Phase 329 plan generated — 329-01-PLAN.md, 4 task single wave, ~60 LoC delta Controllers/AssessmentAdminController.cs; verbatim D-02 pattern Phase 325 P05).*
 *Prev: 2026-05-28 (Phase 328 RESEARCH.md SHIPPED LOCAL — commit `41f1eef2`, 14 endpoint mutator + 5 preview, 8 HIGH + 5 MED + 0 LOW; 7 next-phase fix proposals di Section 9 PROPOSAL ONLY).*
 *Prev: 2026-05-27 (Phase 328 promoted dari backlog → v19.0 active, depends on Phase 327; Coverage table updated P01/P02/P05 = SHIPPED).*
