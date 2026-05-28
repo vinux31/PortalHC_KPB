@@ -65,7 +65,7 @@ namespace HcPortal.Models
     {
         public string NamaPekerja { get; set; } = "";
         public string NamaSertifikat { get; set; } = "";
-        public DateTime TanggalExpired { get; set; }
+        public DateOnly TanggalExpired { get; set; }  // Phase 327 — DateOnly migrasi P04 (non-nullable rollup)
         public string SectionUnit { get; set; } = "";
     }
 

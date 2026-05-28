@@ -35,7 +35,7 @@ public class SertifikatRow
     public string? SubKategori { get; set; }
     public string? NomorSertifikat { get; set; }
     public DateTime? TanggalTerbit { get; set; }
-    public DateTime? ValidUntil { get; set; }
+    public DateOnly? ValidUntil { get; set; }  // Phase 327 — DateOnly migrasi P04
     public CertificateStatus Status { get; set; }
     public string? SertifikatUrl { get; set; }
 
@@ -71,7 +71,7 @@ public class CertificateChainGroup
 {
     public string ChainTitle { get; set; } = "";
     public List<SertifikatRow> Certificates { get; set; } = new();
-    public DateTime? LatestValidUntil { get; set; }
+    public DateOnly? LatestValidUntil { get; set; }  // Phase 327 — DateOnly migrasi P04
 }
 
 // ============================================================
@@ -105,7 +105,7 @@ public class RenewalGroup
     public int TotalCount { get; set; }
     public int ExpiredCount { get; set; }
     public int AkanExpiredCount { get; set; }
-    public DateTime? MinValidUntil { get; set; }
+    public DateOnly? MinValidUntil { get; set; }  // Phase 327 — DateOnly migrasi P04
     public List<SertifikatRow> Rows { get; set; } = new();
     public int CurrentPage { get; set; } = 1;
     public int TotalPages { get; set; } = 1;
