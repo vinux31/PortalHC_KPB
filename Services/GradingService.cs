@@ -462,7 +462,7 @@ namespace HcPortal.Services
                     .Where(s => s.Id == session.Id)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(r => r.NomorSertifikat, (string?)null)
-                        .SetProperty(r => r.ValidUntil, (DateTime?)null));
+                        .SetProperty(r => r.ValidUntil, (DateOnly?)null));  // Phase 327 — cast DateOnly?
 
                 _logger.LogInformation(
                     "RegradeAfterEditAsync: session {SessionId} flip Pass->Fail - sertifikat dicabut (Phase 324 D-03).",
@@ -485,7 +485,7 @@ namespace HcPortal.Services
                         {
                             var nextSeq = await HcPortal.Helpers.CertNumberHelper.GetNextSeqAsync(_context, certYear);
                             var nomor = HcPortal.Helpers.CertNumberHelper.Build(nextSeq, certNow);
-                            var validUntil = certNow.AddYears(3);
+                            var validUntil = DateOnly.FromDateTime(certNow).AddYears(3);  // Phase 327 — wrap DateOnly
                             var updated = await _context.AssessmentSessions
                                 .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
                                 .ExecuteUpdateAsync(s => s

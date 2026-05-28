@@ -1034,7 +1034,7 @@ namespace HcPortal.Controllers
                                 CompletedAt = parsedDate,
                                 Schedule = parsedDate,
                                 DurationMinutes = 60,
-                                ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? vu : null,
+                                ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? DateOnly.FromDateTime(vu) : (DateOnly?)null,  // Phase 327 — Pattern D cast
                                 SubKategori = string.IsNullOrWhiteSpace(subKategori) ? null : subKategori,
                                 Penyelenggara = string.IsNullOrWhiteSpace(penyelenggara) ? null : penyelenggara,
                                 Kota = string.IsNullOrWhiteSpace(kota) ? null : kota,
@@ -1135,7 +1135,7 @@ namespace HcPortal.Controllers
                             Penyelenggara = penyelenggara,
                             Kota = string.IsNullOrWhiteSpace(kota) ? null : kota,
                             Status = status,
-                            ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? vu : (DateTime?)null,
+                            ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? DateOnly.FromDateTime(vu) : (DateOnly?)null,  // Phase 327 — Pattern D cast
                             NomorSertifikat = nomorSertifikat
                         };
                         _context.TrainingRecords.Add(trainingRecord);
