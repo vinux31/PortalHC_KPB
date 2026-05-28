@@ -1526,6 +1526,9 @@ namespace HcPortal.Controllers
             if (komp == null)
                 return Json(new { success = false, message = "Kompetensi tidak ditemukan." });
 
+            // Phase 334 D-02: declare evidencePaths outer tx — visible POST CommitAsync untuk File.Delete loop
+            List<string>? evidencePaths = null;
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -1556,6 +1559,28 @@ namespace HcPortal.Controllers
                     var progresses = await _context.ProtonDeliverableProgresses
                         .Where(p => progressIds.Contains(p.Id))
                         .ToListAsync();
+
+                    // Phase 334 D-02 + D-03: collect evidence paths SEBELUM RemoveRange (progress object detach post-Remove)
+                    evidencePaths = new List<string>();
+                    foreach (var p in progresses)
+                    {
+                        if (!string.IsNullOrEmpty(p.EvidencePath))
+                            evidencePaths.Add(p.EvidencePath);
+                        if (!string.IsNullOrEmpty(p.EvidencePathHistory))
+                        {
+                            try
+                            {
+                                var history = System.Text.Json.JsonSerializer
+                                    .Deserialize<List<string>>(p.EvidencePathHistory) ?? new List<string>();
+                                evidencePaths.AddRange(history);
+                            }
+                            catch (Exception jex)
+                            {
+                                _logger.LogWarning(jex, "Failed to parse EvidencePathHistory for progress {Pid}", p.Id);
+                            }
+                        }
+                    }
+
                     _context.ProtonDeliverableProgresses.RemoveRange(progresses);
                     await _context.SaveChangesAsync();
                 }
@@ -1579,13 +1604,37 @@ namespace HcPortal.Controllers
                     $"Hard-deleted kompetensi '{komp.NamaKompetensi}' (ID {komp.Id}) with all descendants",
                     targetId: komp.Id, targetType: "ProtonKompetensi");
 
+                // Phase 334 D-05: File.Delete loop POST audit log — inner try/catch warn-only per file
+                if (evidencePaths != null && evidencePaths.Count > 0)
+                {
+                    foreach (var relUrl in evidencePaths)
+                    {
+                        try
+                        {
+                            var physical = Path.Combine(_env.WebRootPath,
+                                relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                            if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
+                        }
+                        catch (Exception fex)
+                        {
+                            _logger.LogWarning(fex, "File.Delete post-commit failed (Kompetensi evidence): {Path}", relUrl);
+                        }
+                    }
+                }
+
                 return Json(new { success = true });
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Phase 334 D-06: using var transaction disposal auto-rollback — no explicit RollbackAsync
+                _logger.LogWarning(dbEx, "DbUpdate failed for DeleteKompetensi {Id}", req.KompetensiId);
+                return Json(new { success = false, message = "Gagal hapus kompetensi: ada constraint database yang dilanggar." });
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                // Phase 334 D-06: fallback generic — NO + ex.Message di response (D6 info leak fix), NO explicit RollbackAsync
                 _logger.LogError(ex, "Failed to delete Kompetensi {Id}", req.KompetensiId);
-                return Json(new { success = false, message = "Gagal menghapus: " + ex.Message });
+                return Json(new { success = false, message = "Gagal hapus kompetensi: terjadi kesalahan internal. Hubungi admin." });
             }
         }
 

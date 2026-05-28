@@ -243,6 +243,27 @@ Tambah smoke scenario #11 ke **Smoke Verify Dev**:
 
 **#11 HIGH atomicity DeleteCoachingSession evidence file:** Hapus CoachingSession terakhir progress (last sibling) yang punya EvidencePath + EvidencePathHistory (multi-file), simulasi DB FK violation di SaveChanges → expect tx rollback + SEMUA evidence file **TETAP ada di disk** + TempData["Error"] friendly. Tanpa fix Phase 333: file evidence gone tapi progress state belum reverted = orphan disk + dangling DB state.
 
+## Phase 334 Update (2026-05-28)
+
+**Phase 334** (fix-cascade-deletekompetensi-orphan-evidence-files) SHIPPED LOCAL.
+
+- **Commit:** `[hash — lihat git log setelah Task 2 commit]`
+- **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
+- **Scope:**
+  - `Controllers/ProtonDataController.cs` — DeleteKompetensi L1516-1640: declare evidencePaths outer tx (List<string>? nullable), populate INSIDE tx Step 2 SEBELUM RemoveRange progresses (loop ProtonDeliverableProgresses + JSON parse EvidencePathHistory inner try/catch warn-only), File.Delete loop POST audit log dengan inner try/catch warn-only per file, refactor catch generic Exception+ex.Message+RollbackAsync → catch DbUpdateException dbEx specific + Exception fallback dengan generic friendly Json messages (NO + ex.Message, NO explicit RollbackAsync)
+- **Severity fix:** HIGH D2 (orphan EvidencePath + EvidencePathHistory files saat cascade delete) + D6 (info leak `ex.Message` ke client di Json error response)
+- **Source:** Phase 328 RESEARCH.md §4.8 + §9 proposal #5
+- **Existing preserved:** using var transaction L1529 + 5-step cascade L1542-1574 (CoachingSessions → Progresses → Deliverables → SubKompetensi → Kompetensi) + audit log L1578-1580 POST commit (D3 positioning out of scope §4.8)
+- **D5 status:** N/A (Kompetensi not in renewal chain)
+
+Batch v19.0 update: Phase 325-334 = **9 fix phase** (Phase 328 audit-only).
+
+**Jumlah commit batch update:** ~74 commit total.
+
+Tambah smoke scenario #12 ke **Smoke Verify Dev**:
+
+**#12 HIGH atomicity DeleteKompetensi orphan + D6 info leak:** (a) Hapus Kompetensi yang punya nested SubKompetensi → Deliverable → Progress dengan EvidencePath + EvidencePathHistory multi-file → expect tx commit + audit log success + SEMUA evidence file gone dari disk. (b) Simulasi DB FK violation midway → expect tx rollback + SEMUA file evidence **TETAP ada di disk** + Json success=false generic message TANPA expose `ex.Message` / table names / constraint detail (D6 verify: response body harus generic "Gagal hapus kompetensi: ada constraint database yang dilanggar." atau "...terjadi kesalahan internal. Hubungi admin." — BUKAN exception text leak).
+
 ## Order of Operations (CRITICAL)
 
 1. Deploy code dulu (4 phase batch sudah merged di main, pull/checkout latest)
