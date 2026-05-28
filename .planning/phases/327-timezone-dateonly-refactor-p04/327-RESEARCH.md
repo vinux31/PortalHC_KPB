@@ -773,22 +773,22 @@ WHERE ValidUntil IS NOT NULL AND CAST(ValidUntil AS TIME) <> '00:00:00';
 | A4 | Default System.Text.Json DateOnly serialization `"yyyy-MM-dd"` ISO **applies even tanpa custom JsonSerializerOptions** | Audit 10 | LOW — per .NET 8 official docs default behavior. Smoke confirm Network tab. |
 | A5 | `DateOnly.AddYears(int)` method exists native | Audit 4 (AssessmentAdminController renewal pre-fill) | NONE — verified via WebSearch [CITED: learn.microsoft.com System.DateOnly] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **JSON timezone shift severity di production**
+1. **JSON timezone shift severity di production** — RESOLVED: Smoke verify pertama via lokal dev (Windows local tz WIB) di Plan 08 Pitfall 3 task (DevTools Network tab + badge "sisa hari" check). Kalau lokal OK, asumsi Dev + Prod sama. Document anomaly di IT_NOTIFY.md kalau ketemu.
    - What we know: Default System.Text.Json serialize `"yyyy-MM-dd"`. JS `new Date("yyyy-MM-dd")` interpret UTC midnight per ECMAScript spec.
-   - What's unclear: Whether physical production server is UTC or WIB-localized — IIS Windows server biasanya local time, which means UtcNow = LocalTime - 7h. JS UTC parse interpret + WIB convert balik bisa cancel out OR shift, tergantung config.
-   - Recommendation: Smoke verify pertama via lokal dev (Windows local tz WIB). Kalau lokal OK, asumsi Dev + Prod sama. Document di IT_NOTIFY.md kalau ada anomaly.
+   - What was unclear: Whether physical production server is UTC or WIB-localized — IIS Windows server biasanya local time, which means UtcNow = LocalTime - 7h. JS UTC parse interpret + WIB convert balik bisa cancel out OR shift, tergantung config.
+   - Resolution path: Plan 08 Task 1 smoke verify lokal; fix di `wwwroot/js/analyticsDashboard.js:852-853` split parse kalau shift confirmed.
 
-2. **Razor TagHelper #47628 bug status di .NET 8.0.418**
+2. **Razor TagHelper #47628 bug status di .NET 8.0.418** — RESOLVED: SMOKE FIRST Plan 06 Task 2 (browser inspect input value attribute). Conditional retrofit `[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]` di Plan 06 Task 3 (4 VM) kalau bug aktif.
    - What we know: Bug filed 2023, workaround `[DisplayFormat]` documented. PR #47957 status unclear.
-   - What's unclear: Apakah bug fix sudah merged + released di .NET 8.0.x latest patch.
-   - Recommendation: SMOKE FIRST Plan 02 browser inspect input value. Don't pre-add `[DisplayFormat]` — only if bug confirmed.
+   - What was unclear: Apakah bug fix sudah merged + released di .NET 8.0.x latest patch.
+   - Resolution path: Smoke-first non-blocking — Plan 06 checkpoint task verify, fallback `[DisplayFormat]` retrofit ready.
 
-3. **DaysUntilExpiry delete vs rewrite**
-   - What we know: Zero call site di production code. CONTEXT.md D-10 default rewrite.
-   - What's unclear: Apakah ada masa depan use case (Razor view future) yang reference.
-   - Recommendation: KEEP rewrite per D-10 (trivial cost). Delete decision defer ke v20.0 audit cleanup.
+3. **DaysUntilExpiry delete vs rewrite** — RESOLVED: KEEP rewrite per D-10 (Plan 02 §1 rewrite DayNumber arithmetic). Delete decision defer v20.0 audit cleanup.
+   - What we know: Zero call site di production code (grep verified Audit 5). CONTEXT.md D-10 default rewrite.
+   - What was unclear: Apakah ada masa depan use case (Razor view future) yang reference.
+   - Resolution path: Trivial rewrite cost; delete defer v20.0 backlog per CONTEXT.md deferred ideas.
 
 ## Environment Availability
 
