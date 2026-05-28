@@ -206,7 +206,7 @@ Tambah smoke scenario #9 ke **Smoke Verify Dev**:
 
 **Phase 332** (fix-cascade-deletebagian-file-atomicity) SHIPPED LOCAL.
 
-- **Commit:** `[hash — lihat git log setelah Task 2 commit]`
+- **Commit:** `373e4f29`
 - **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller-only fix
 - **Scope:**
   - `Controllers/DocumentAdminController.cs` — DeleteBagian: extract kkjPaths+cpdpPaths SEBELUM tx, wrap BeginTransactionAsync (RemoveRange KKJ+CPDP+Bagian + SaveChanges + AuditLog), 2 File.Delete loops POST CommitAsync dengan inner try/catch warn-only (D2+D6+D7 fix)
