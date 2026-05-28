@@ -740,17 +740,18 @@ Plans:
 
 ### Phase 329: fix-cascade-deleteassessmentgroup-deleteprepostgroup-renewal-precheck — Pasang pre-check renewal chain (RenewsSessionId) di DeleteAssessmentGroup (AssessmentAdminController.cs:2199) + DeletePrePostGroup (AssessmentAdminController.cs:2359) sebelum BeginTransactionAsync, paralel pola Phase 325 P05 DeleteAssessment L2040-2052. Source Phase 328 RESEARCH.md sec 4.4 + sec 4.5 (HIGH D5 fail). Severity HIGH. Effort S (~40 LoC delta 1 controller, no migration). Depends on Phase 328 (audit deliverable).
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Pasang pre-check renewal chain (RenewsSessionId di TR+AS count) di DeleteAssessmentGroup + DeletePrePostGroup SEBELUM BeginTransactionAsync — paralel pola Phase 325 P05 DeleteAssessment L2040-2052. Fix HIGH severity D5 fail Phase 328 RESEARCH sec 4.4 + sec 4.5.
+**Requirements**: PHASE-329-D5-FIX-GROUP, PHASE-329-D5-FIX-PREPOST
 **Depends on:** Phase 328
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 329 to break down)
+- [ ] 329-01-PLAN.md — Pre-check renewal chain DeleteAssessmentGroup + DeletePrePostGroup + DbUpdateException catch refactor (4 task, ~60 LoC delta single controller)
 
 ---
 
-*Roadmap updated: 2026-05-28 (Phase 328 RESEARCH.md SHIPPED LOCAL — commit `41f1eef2`, 14 endpoint mutator + 5 preview, 8 HIGH + 5 MED + 0 LOW; 7 next-phase fix proposals di Section 9 PROPOSAL ONLY).*
+*Roadmap updated: 2026-05-28 (Phase 329 plan generated — 329-01-PLAN.md, 4 task single wave, ~60 LoC delta Controllers/AssessmentAdminController.cs; verbatim D-02 pattern Phase 325 P05).*
+*Prev: 2026-05-28 (Phase 328 RESEARCH.md SHIPPED LOCAL — commit `41f1eef2`, 14 endpoint mutator + 5 preview, 8 HIGH + 5 MED + 0 LOW; 7 next-phase fix proposals di Section 9 PROPOSAL ONLY).*
 *Prev: 2026-05-27 (Phase 328 promoted dari backlog → v19.0 active, depends on Phase 327; Coverage table updated P01/P02/P05 = SHIPPED).*
 *Prev: 2026-05-27 (Phase 328 plan generated — 328-01-PLAN.md, 10 task audit-only single wave).*
 *Prev: 2026-05-27 (Phase 328 added — Cascade Audit Sweep Delete* endpoints, audit-only, spec commit 02f620be).*
