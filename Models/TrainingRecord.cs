@@ -40,7 +40,7 @@ namespace HcPortal.Models
         public string? SertifikatUrl { get; set; }
 
         // New fields for certificate expiry tracking
-        public DateTime? ValidUntil { get; set; }  // Certificate validity end date
+        public DateOnly? ValidUntil { get; set; }  // Certificate validity end date (Phase 327 — DateOnly migrasi P04)
         [MaxLength(20)]
         public string? CertificateType { get; set; } // "Permanent", "Annual", "3-Year"
 
@@ -68,13 +68,15 @@ namespace HcPortal.Models
         public int? RenewsSessionId { get; set; }
 
         // Computed property: Returns true if certificate expires within 30 days
+        // Phase 327 — DateOnly DayNumber arithmetic (Pattern A) + UtcNow (D-09)
         public bool IsExpiringSoon
         {
             get
             {
                 if (ValidUntil.HasValue && Status == "Valid")
                 {
-                    var daysUntilExpiry = (ValidUntil.Value - DateTime.UtcNow).Days;
+                    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                    var daysUntilExpiry = ValidUntil.Value.DayNumber - today.DayNumber;
                     return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
                 }
                 return false;
@@ -82,13 +84,15 @@ namespace HcPortal.Models
         }
 
         // Helper property: Days until expiry
+        // Phase 327 — DateOnly DayNumber arithmetic (Pattern A) + UtcNow (D-09)
         public int? DaysUntilExpiry
         {
             get
             {
                 if (ValidUntil.HasValue)
                 {
-                    return (ValidUntil.Value - DateTime.UtcNow).Days;
+                    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                    return ValidUntil.Value.DayNumber - today.DayNumber;
                 }
                 return null;
             }
