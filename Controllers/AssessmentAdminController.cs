@@ -470,9 +470,17 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageCategories");
             }
 
-            _context.AssessmentCategories.Remove(category);
-            await _context.SaveChangesAsync();
-            _cache.Remove(CategoriesCacheKey);  // Phase 311 Plan 03 (D-04 invalidation)
+            try
+            {
+                _context.AssessmentCategories.Remove(category);
+                await _context.SaveChangesAsync();
+                _cache.Remove(CategoriesCacheKey);  // Phase 311 Plan 03 (D-04 invalidation)
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Tidak bisa hapus kategori: masih ada data yang berelasi.";
+                return RedirectToAction("ManageCategories");
+            }
 
             var currentUser = await _userManager.GetUserAsync(User);
             var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
@@ -5119,7 +5127,15 @@ namespace HcPortal.Controllers
             _context.PackageQuestions.RemoveRange(pkg.Questions);
             _context.AssessmentPackages.Remove(pkg);
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Tidak bisa hapus paket: masih ada data yang berelasi.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
 
             try
             {
@@ -6014,7 +6030,27 @@ namespace HcPortal.Controllers
 
             _context.PackageOptions.RemoveRange(q.Options);
             _context.PackageQuestions.Remove(q);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Tidak bisa hapus soal: masih ada data yang berelasi.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            try
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                    ? (currentUser?.FullName ?? "Unknown")
+                    : $"{currentUser.NIP} - {currentUser.FullName}";
+                await _auditLog.LogAsync(currentUser?.Id ?? "", actorName, "DeleteQuestion",
+                    $"Deleted question [ID={q.Id}] from package [ID={packageId}]",
+                    packageId, "PackageQuestion");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeleteQuestion (questionId={Id})", q.Id); }
 
             TempData["Success"] = "Soal berhasil dihapus.";
 

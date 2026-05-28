@@ -283,7 +283,7 @@ namespace HcPortal.Services
 
                 return true;
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
                 _logger.LogWarning(ex, "Failed to delete notification={NotificationId} for user={UserId}", notificationId, userId);
                 return false;

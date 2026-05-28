@@ -407,8 +407,30 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageOrganization");
             }
 
-            _context.OrganizationUnits.Remove(unit);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.OrganizationUnits.Remove(unit);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Tidak bisa hapus unit: masih ada data yang berelasi." });
+                TempData["Error"] = "Tidak bisa hapus unit: masih ada data yang berelasi.";
+                return RedirectToAction("ManageOrganization");
+            }
+
+            try
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                    ? (currentUser?.FullName ?? "Unknown")
+                    : $"{currentUser.NIP} - {currentUser.FullName}";
+                await _auditLog.LogAsync(currentUser?.Id ?? "", actorName, "DeleteOrganizationUnit",
+                    $"Deleted organization unit '{unit.Name}' [ID={unit.Id}] (Level={unit.Level})",
+                    unit.Id, "OrganizationUnit");
+            }
+            catch { /* audit log failure tidak block response */ }
 
             if (IsAjaxRequest())
                 return Json(new { success = true, message = "Unit berhasil dihapus." });

@@ -161,6 +161,27 @@ Tambah smoke scenario #7 ke **Smoke Verify Dev**:
 
 **#7 Renewal pre-check group:** Delete grup Assessment yang salah satu session-nya jadi `RenewsSessionId` source → expect redirect ManageAssessment + error banner "Tidak bisa hapus grup: N sertifikat lain..." (BUKAN FK 500 exception page).
 
+## Phase 330 Update (2026-05-28)
+
+**Phase 330** (fix-cascade-med-bundle-delete-category-package-question-orgu) SHIPPED LOCAL.
+
+- **Commit:** `[hash — lihat git log setelah commit Task 3]`
+- **Migration flag:** ✅ **TIDAK ADA** — zero schema change, zero migration, controller/service-only fix
+- **Scope:**
+  - `Controllers/AssessmentAdminController.cs` — DeleteCategory + DeletePackage + DeleteQuestion: try/catch DbUpdateException + `_auditLog.LogAsync` (DeleteQuestion baru)
+  - `Controllers/OrganizationController.cs` — DeleteOrganizationUnit: try/catch DbUpdateException dual-path (JSON+TempData) + `_auditLog.LogAsync`
+  - `Services/NotificationService.cs` — DeleteAsync: `catch (Exception)` → `catch (DbUpdateException)`
+- **Severity fix:** MED D6 (no try/catch DbUpdateException) + D3 (no audit log) di 5 endpoint
+- **Source:** Phase 328 RESEARCH.md §5 MED Findings + §9 proposal #7
+
+Batch v19.0 update: Phase 325 + 326 + 327 + 329 + 330 = **5 fix phase** (Phase 328 audit-only, no kode delta).
+
+**Jumlah commit batch update:** ~60 commit total.
+
+Tambah smoke scenario #8 ke **Smoke Verify Dev**:
+
+**#8 MED FK friendly error:** Attempt delete Category/Package/Question/OrgUnit yang masih direferensi FK → expect TempData["Error"] friendly message "Tidak bisa hapus {entity}: masih ada data yang berelasi." (BUKAN raw HTTP 500).
+
 ## Order of Operations (CRITICAL)
 
 1. Deploy code dulu (4 phase batch sudah merged di main, pull/checkout latest)
