@@ -78,9 +78,20 @@ Options: option-a (push batch v19.0 sekarang) | option-b (hold for IT availabili
 - `2c7d874f` — docs(327-08): IT_NOTIFY v19.0 batch promo runbook (3 phase + migration)
 - `da58e415` — docs(state): record Phase 327 SHIPPED LOCAL — 8/8 plan + 7/7 SC PASS
 
+## Task 3 Decision — option-b (hold push, wait IT availability)
+
+User selected **option-b**: Hold push origin/main batch v19.0 sampai IT availability confirmed. Reasoning: IT bisa schedule migration apply ke window low-traffic untuk coordinated rollout; risk forget push detail di-mitigate via STATE.md + memory tracking.
+
+**Status pasca-decision:**
+- 52 commit LOKAL `main` (batch v19.0 Phase 325 + 326 + 327) — NOT PUSHED origin/main
+- `docs/IT_NOTIFY.md` siap deliver setelah IT availability confirm
+- Push trigger: user explicit instruction "push approved" + IT confirmed availability window
+
 ## Next Plan
 
-**Phase 327 ALL 8 PLAN COMPLETE.** Next routes:
-- (option-a) Push batch v19.0 → Phase 328 audit
-- (option-b) Hold push → schedule Phase 328 next
-- (option-c) Defer Phase 328 plan-phase first → push 4 phase batch
+**Phase 327 ALL 8 PLAN COMPLETE + Push DEFERRED option-b.**
+
+Routes possible:
+- **Push later** (after IT confirm window): `git push origin main` + deliver `docs/IT_NOTIFY.md`
+- **Continue work** (parallel): `/gsd-plan-phase 328` (audit cascade sweep audit-only S — depends Phase 327)
+- **Combine batch jadi 4 phase** kalau Phase 328 selesai sebelum IT window: push 4 phase sekaligus
