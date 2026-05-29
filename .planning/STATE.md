@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: Portal HC Bug Fixes (Cascade Hardening)
-status: executing
-last_updated: "2026-05-28T18:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 335 SHIPPED LOCAL (12/12 AC PASS, commit c0544107) — v19.0 MILESTONE CLOSE 11/11
+status: v18.0 ARCHIVED 2026-05-29 (tag pending), v19.0 ARCHIVE IN PROGRESS
+last_updated: "2026-05-29T23:00:00+08:00"
+last_activity: 2026-05-29 -- v18.0 milestone archived (Phase 323+324, audit passed retroactively). Next step archive v19.0 (Phase 325-335).
 progress:
   total_phases: 11
   completed_phases: 11
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 Phase: 335 (fix-cascade-deleteworker-renewal-files-tx) — SHIPPED LOCAL (FINAL HIGH)
 Plan: 1 of 1 COMPLETE
 Status: **11/11 phase v19.0 SHIPPED LOCAL = 100% MILESTONE CLOSE**
-Last activity: 2026-05-28 -- Phase 335 SHIPPED LOCAL (12/12 AC PASS, commit c0544107) — v19.0 MILESTONE CLOSE
+Last activity: 2026-05-29
 
 ## Next Action
 

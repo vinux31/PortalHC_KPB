@@ -1,5 +1,61 @@
 # Milestones
 
+## v19.0 Portal HC Bug Fixes (Cascade Hardening) (Shipped Local: 2026-05-28, Audited: 2026-05-29)
+
+**Phases completed:** 11 phases (325-335), 11 plans (multi-plan: Phase 325 has 5, Phase 327 has 8; others 1)
+**Status:** SHIPPED LOCAL, push pending IT availability (bundled v18.0 Phase 324 + v19.0 = ~78 commit batch + 1 migration `ChangeValidUntilToDateOnly`)
+**Audit:** `milestones/v19.0-MILESTONE-AUDIT.md` — status passed (16/16 REQ + 88/88 must-haves verified + integration 7 patterns COHERENT)
+
+**Delivered:** Sertifikat ecosystem audit closure — 6 spec-driven security/validator/timezone fixes (Phase 325-327) + 7 audit-driven cascade hardening fixes (Phase 329-335) following Phase 328 cascade audit sweep recommendation.
+
+**Key accomplishments:**
+
+1. **Security hardening (Phase 325, SEC-01..03 + FOUNDATION + CLOSURE)** — Path traversal sanitize via `Path.GetFileName` (SEC-01), magic byte validation `MatchesMagicByte` 4-key Dictionary + enforce di Add/Edit Training endpoint (SEC-02), DeleteAssessment renewal pre-check pre-tx (SEC-03 gold standard pattern), plus xUnit foundation `HcPortal.Tests/` 10 baseline tests.
+2. **Validator hardening (Phase 326, VAL-01/02)** — DAG cycle prevention validator (RenewsSessionId tidak boleh introduce cycle) + Permanent+ValidUntil contradiction reject validator. EditTrainingRecordViewModel L67-69 separate fields + Razor ValidUntil span.
+3. **Timezone DateOnly refactor (Phase 327, TZ-01)** — `ValidUntil DateTime` → `DateOnly` migration `ChangeValidUntilToDateOnly` 8-plan refactor (entity, migration, ViewModel, Razor, status derivation, EF query, tests, smoke). Permanent tz drift elimination. +8 CertificateStatus tests = 18 baseline carry-forward.
+4. **Cascade audit sweep (Phase 328, CSCD-AUDIT)** — Audit-only phase, zero source code. 14 mutator + 5 preview endpoint diaudit. Classification: 8 HIGH + 5 MED + 0 LOW + 1 NONE (DeleteAssessment gold standard). 7 next-phase fix proposal yang jadi Phase 329-335.
+5. **Cascade hardening 7 endpoint (Phase 329-335, CSCD-01..07)** — Renewal pre-check pattern + DbUpdateException catch + file-capture-before-tx + tx wrap + D6 info-leak fix (NO `+ ex.Message`) di: DeleteAssessmentGroup+PrePostGroup (329), MED Bundle DeleteCategory/Package/Question/OrgUnit/NotifService (330), DeleteTraining+ManualAssessment atomicity (331), DeleteBagian file atomicity (332), DeleteCoachingSession file atomicity (333), DeleteKompetensi orphan evidence + D6 info-leak (334), **DeleteWorker FINAL HIGH triple-fix D2+D5+D7** (335 — MILESTONE CLOSE).
+
+**Patterns established (cross-phase reuse, integration verified COHERENT):**
+- Renewal pre-check pre-tx (Phase 325 P05 → 329/331/335)
+- DbUpdateException catch + friendly TempData (Phase 329 → 330-335)
+- File capture-before-tx + delete post-commit warn-only (Phase 331 → 332-335)
+- D6 info-leak fix NO `+ ex.Message` (Phase 334 CRITICAL → 335)
+- xUnit baseline 10→18 carry-forward (Phase 325 Plan 01 + Phase 327 = consistent 18/18 PASS test count seluruh phase 326-335)
+
+**Tech debt at close:**
+- Push batch ~78 commit pending IT availability (`docs/IT_NOTIFY.md` ready deliver)
+- v16.0 MILESTONES.md entry belum ditambah (backlog housekeeping non-blocker)
+- Nyquist `*-VALIDATION.md` missing semua phase (nyquist_validation likely disabled by design)
+- SUMMARY.md frontmatter `requirements_completed` field tidak ada di 11/11 SUMMARY (workflow §5c expectation — non-blocker, REQ matrix di REQUIREMENTS + VERIFICATION sudah cover)
+
+**Known deferred (carry-over ke v20.0):** 8 carry-over (v13-v15) + Phase 281/285 (v11.2 paused) + 2 todo baru 2026-05-29 (`001-gap-ux-assessment-monitoring`, `002-restore-pretest-ojt-gast-cilacap`).
+
+---
+
+## v18.0 Cascade Delete Hardening + Duplicate TR Fix (Shipped: 2026-05-29)
+
+**Phases completed:** 2 phases (323-324), 5 plans, ~15 tasks
+**Status:** Phase 323 PUSHED tag `v18.0-p323-complete`; Phase 324 SHIPPED LOCAL (bundled push dengan v19.0 batch pending IT availability)
+**Audit:** `milestones/v18.0-MILESTONE-AUDIT.md` — status passed (6/7 shipped + 1 deferred-superseded DUPL-02b)
+
+**Delivered:** Cascade hardening + duplicate TR fix — `AssessmentEditLogs` cascade di 3 endpoint Delete (Phase 323) + hapus auto-create `TrainingRecord` di 3 lokasi production code (Phase 324), plus SQL cleanup script + IT handoff HTML untuk legacy data purge.
+
+**Key accomplishments:**
+
+1. **CASCADE-01 (Phase 323)** — `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup` di `Controllers/AssessmentAdminController.cs` tambah `RemoveRange(AssessmentEditLogs)` sebelum cascade existing. Session dengan edit log history bisa dihapus tanpa FK Restrict 500. Tag `v18.0-p323-complete` PUSHED.
+2. **DUPL-01 (Phase 324)** — Block auto-create `TrainingRecord` dihapus di 3 lokasi: `GradingService.GradeAndCompleteAsync` L255-285, `AssessmentAdminController.FinalizeEssayGrading` L3404-3421, `GradingService.RegradeAfterEditAsync` L483-567. `AssessmentSession` jadi sole source-of-truth row "Assessment Online" di `/CMP/Records`.
+3. **DUPL-02a (Phase 324)** — Playwright E2E spec `tests/e2e/Phase324_NoDuplicateTrainingRecord.spec.ts` 7-scenario skeleton (S1+S2 static-green, S3-S7 skip). Live runtime S1+S2 override → browser MCP equivalent UAT proof.
+4. **DUPL-03 (Phase 324)** — SQL cleanup script `docs/sql/cleanup-2026-05-26-trainingrecord-duplicates.sql` idempotent dengan XACT_ABORT + safety cap 5000. Pre-count 18 → post-count 0 di DB lokal. SEED_JOURNAL.md entry status `cleaned`.
+5. **DUPL-04 (Phase 324)** — IT handoff HTML `docs/DB_HANDOFF_IT_2026-05-26.html` (fork dari template 2026-05-13) — embedded SQL + step ordering (deploy code dulu → cleanup data) + rollback plan.
+6. **DUPL-05 (Phase 324)** — Pre/post-fix screenshots `docs/screenshots/phase324/before-fix.png` + `after-fix.png` + cross-grep audit 0 hit `TrainingRecords.(Add|AddAsync|AddRange)` di scope file.
+
+**Known deferred:** DUPL-02b S3-S7 implementation **deferred-superseded** — Phase 325 pivoted ke v19.0 security hardening, tidak pick up. Skeleton `test.skip(true, "...Phase 325...")` jadi historical placeholder. Re-promote ke v20.0 jika perlu full coverage.
+
+**Tech debt at close:** Phase 324 push pending IT availability (bundled dengan v19.0 batch ~78 commit + 1 migration `ChangeValidUntilToDateOnly` Phase 327).
+
+---
+
 ## v17.0 Assessment Admin Power Tools (Shipped: 2026-05-22)
 
 **Phases completed:** 3 phases (320 + 321 + 322), 11 plans, 84 commits
@@ -66,6 +122,7 @@
 11. **Phase 314 — Fix Regenerate Token Upcoming** (TKN-01): Investigative bug fix — repro → root cause → patch backend defensive + frontend error propagation server JSON ke `alert()` (line 396-419 + 981-1009). Smoke 3 skenario PASS.
 
 **Known Deferred:**
+
 - **EPRV-01** (Preview Essay rubrik/jawaban) — DEFERRED, butuh user verifikasi save/load Rubrik. Due 2026-05-12.
 - Carry-over dari v14.0: Phase 235 UAT (5 items), Phase 247 approval chain UAT (2 TODO), Phase 303 Coach Workload 12-langkah, research gaps Phase 297/298, blocker Phase 293.
 
