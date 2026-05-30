@@ -709,6 +709,159 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
         }
 
+        // =====================================================================
+        // Phase 338 REST-04 (D-04 Hybrid A3): Bulk backfill assessment dari Excel.
+        // Use case: restore historical Cilacap PreTest 30 Mar 2026 (13 peserta)
+        // yang hilang dari Dev DB akibat IT redeploy tanpa backup.
+        // Mechanism: parse Excel → match NIP → insert AssessmentSession dalam
+        // SATU transaction atomic + per-row audit `ManualImport-Backfill` tag.
+        // =====================================================================
+
+        // GET /Admin/BulkBackfill — form upload UI
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult BulkBackfill()
+        {
+            return View();
+        }
+
+        // POST /Admin/BulkBackfillAssessment — REST-04 execute
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        [RequestFormLimits(MultipartBodyLengthLimit = 10 * 1024 * 1024)]
+        public async Task<IActionResult> BulkBackfillAssessment(
+            IFormFile? excel,
+            string title,
+            string category,
+            DateTime completedAt,
+            int? linkedGroupId = null,
+            int durationMinutes = 60,
+            int passPercentage = 70,
+            string auditTag = "ManualImport-Backfill")
+        {
+            if (excel == null || excel.Length == 0)
+            {
+                TempData["Error"] = "File Excel wajib diupload.";
+                return RedirectToAction(nameof(BulkBackfill));
+            }
+            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(category))
+            {
+                TempData["Error"] = "Title + Category wajib diisi.";
+                return RedirectToAction(nameof(BulkBackfill));
+            }
+
+            // Parse Excel: assume header row 1, data row 2+: kolom 1=NIP, kolom 2=Nama (informational), kolom 3=Score
+            var rows = new List<(string NIP, int Score)>();
+            try
+            {
+                using var stream = excel.OpenReadStream();
+                using var workbook = new XLWorkbook(stream);
+                var ws = workbook.Worksheets.First();
+                int lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+                for (int rowIdx = 2; rowIdx <= lastRow; rowIdx++)
+                {
+                    var nipCell = ws.Cell(rowIdx, 1).GetString().Trim();
+                    if (string.IsNullOrEmpty(nipCell)) continue;
+                    int score = 0;
+                    var scoreCell = ws.Cell(rowIdx, 3);
+                    if (scoreCell.TryGetValue<double>(out var d)) score = (int)d;
+                    else if (int.TryParse(scoreCell.GetString().Trim(), out var i)) score = i;
+                    rows.Add((nipCell, score));
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Gagal parse Excel: {ex.Message}";
+                return RedirectToAction(nameof(BulkBackfill));
+            }
+
+            if (rows.Count == 0)
+            {
+                TempData["Error"] = "Tidak ada data terbaca dari Excel (kolom 1=NIP, kolom 3=Score, mulai row 2).";
+                return RedirectToAction(nameof(BulkBackfill));
+            }
+
+            // Lookup UserId per NIP
+            var nips = rows.Select(r => r.NIP).Distinct().ToList();
+            var users = await _context.Users
+                .Where(u => u.NIP != null && nips.Contains(u.NIP))
+                .ToDictionaryAsync(u => u.NIP!);
+
+            var missing = nips.Where(n => !users.ContainsKey(n)).ToList();
+            if (missing.Any())
+            {
+                TempData["Error"] = $"NIP tidak ditemukan di AspNetUsers: {string.Join(", ", missing)}. Insert worker dulu via Admin atau correct NIP di Excel.";
+                return RedirectToAction(nameof(BulkBackfill));
+            }
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor == null) return Forbid();
+
+            int success = 0;
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var addedSessions = new List<AssessmentSession>();
+                foreach (var row in rows)
+                {
+                    var user = users[row.NIP];
+                    var session = new AssessmentSession
+                    {
+                        UserId = user.Id,
+                        Title = title,
+                        Category = category,
+                        Schedule = completedAt.AddHours(-1),
+                        DurationMinutes = durationMinutes,
+                        Status = "Completed",
+                        Progress = 100,
+                        BannerColor = "bg-secondary",
+                        Score = row.Score,
+                        IsPassed = row.Score >= passPercentage,
+                        IsTokenRequired = false,
+                        AccessToken = "BACKFILL",
+                        PassPercentage = passPercentage,
+                        CompletedAt = completedAt,
+                        IsManualEntry = true,
+                        LinkedGroupId = linkedGroupId,
+                        AssessmentType = "Standard",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.AssessmentSessions.Add(session);
+                    addedSessions.Add(session);
+                    success++;
+                }
+                await _context.SaveChangesAsync();
+
+                // Per-row audit (in-tx) — TIDAK pakai _auditLog.LogAsync karena dia SaveChanges internal
+                foreach (var s in addedSessions)
+                {
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        ActorUserId = actor.Id,
+                        ActorName = actor.FullName ?? actor.UserName ?? actor.Id,
+                        ActionType = auditTag.Length > 50 ? auditTag.Substring(0, 50) : auditTag,
+                        Description = $"BulkBackfill insert AssessmentSession Id={s.Id} UserId={s.UserId} NIP={users.First(kv => kv.Value.Id == s.UserId).Key} Score={s.Score} CompletedAt={s.CompletedAt:yyyy-MM-dd} LinkedGroupId={s.LinkedGroupId?.ToString() ?? "null"}",
+                        TargetId = s.Id,
+                        TargetType = "AssessmentSession",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["Success"] = $"Berhasil insert {success} backfill assessment '{title}' dengan tag '{auditTag}'. LinkedGroupId={linkedGroupId?.ToString() ?? "null"}.";
+                return RedirectToAction(nameof(BulkBackfill));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "BulkBackfillAssessment failed for title={Title} category={Category}", title, category);
+                TempData["Error"] = $"Transaction rollback — bulk backfill gagal: {ex.Message}";
+                return RedirectToAction(nameof(BulkBackfill));
+            }
+        }
+
         // GET /Admin/EditManualAssessment/{id}
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
