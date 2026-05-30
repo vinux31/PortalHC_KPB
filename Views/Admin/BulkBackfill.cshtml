@@ -1,0 +1,119 @@
+@{
+    ViewData["Title"] = "Bulk Backfill Assessment (REST-04)";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+            <li class="breadcrumb-item active">Bulk Backfill Assessment</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-cloud-upload"></i> Bulk Backfill Assessment</h2>
+            <p class="text-muted mb-0">Restore historical assessment data (REST-04) — upload Excel berisi NIP + Score peserta.</p>
+        </div>
+    </div>
+
+    @* Phase 338 REST-04: form ini untuk admin restore data Cilacap PreTest 30 Mar 2026 (13 peserta) yang hilang dari Dev DB akibat IT redeploy tanpa backup. *@
+    @* Excel format: kolom 1 = NIP, kolom 3 = Score. Header row 1 ignored. *@
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="alert alert-warning small mb-4">
+                <strong>Penting:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Excel format: kolom 1 = NIP, kolom 2 = Nama (informational), kolom 3 = Score (0-100). Header row 1 di-skip otomatis.</li>
+                    <li>NIP harus sudah ada di AspNetUsers. Bila ada NIP tidak match, transaction batal (all-or-nothing).</li>
+                    <li>Insert dengan tag audit <code>ManualImport-Backfill</code> — transparent traceable di Audit Log.</li>
+                    <li>CompletedAt + Title + Category set manual (non-organic). LinkedGroupId optional untuk pair Pre/Post.</li>
+                    <li>Operasi atomic: ANY error di tengah → rollback semua insert.</li>
+                </ul>
+            </div>
+
+            <form asp-action="BulkBackfillAssessment" method="post" enctype="multipart/form-data" class="row g-3">
+                @Html.AntiForgeryToken()
+
+                <div class="col-12">
+                    <label for="excel" class="form-label fw-semibold">Excel File <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control" id="excel" name="excel" accept=".xlsx,.xls" required>
+                    <div class="form-text">Max 10 MB. Format .xlsx atau .xls.</div>
+                </div>
+
+                <div class="col-md-8">
+                    <label for="title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" required
+                           placeholder="contoh: Pre Test OJT GAST GTO SRU di Unit RU IV Cilacap">
+                    <div class="form-text">Format Phase 336 NAMING-CONVENTION: <code>{Stage} Test {Track} {Lokasi}</code></div>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="category" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="category" name="category" required
+                           value="OJT" placeholder="OJT / IHT / OTS / etc">
+                </div>
+
+                <div class="col-md-4">
+                    <label for="completedAt" class="form-label fw-semibold">CompletedAt <span class="text-danger">*</span></label>
+                    <input type="datetime-local" class="form-control" id="completedAt" name="completedAt" required
+                           value="2026-03-30T09:00">
+                    <div class="form-text">Historical timestamp non-organic.</div>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="linkedGroupId" class="form-label fw-semibold">LinkedGroupId (optional)</label>
+                    <input type="number" class="form-control" id="linkedGroupId" name="linkedGroupId"
+                           placeholder="ID counterpart (Pre/Post pair)">
+                    <div class="form-text">Pair Pre/Post via existing PostTest LinkedGroupId.</div>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="durationMinutes" class="form-label fw-semibold">Duration (min)</label>
+                    <input type="number" class="form-control" id="durationMinutes" name="durationMinutes"
+                           value="60" min="1" max="600">
+                </div>
+
+                <div class="col-md-2">
+                    <label for="passPercentage" class="form-label fw-semibold">Pass %</label>
+                    <input type="number" class="form-control" id="passPercentage" name="passPercentage"
+                           value="70" min="0" max="100">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="auditTag" class="form-label fw-semibold">Audit Tag</label>
+                    <input type="text" class="form-control" id="auditTag" name="auditTag"
+                           value="ManualImport-Backfill" maxlength="50">
+                    <div class="form-text">Max 50 char. Default ManualImport-Backfill (recommended).</div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-primary"
+                            onclick="return confirm('Konfirmasi: jalankan bulk backfill? Operasi atomic — rollback bila ada error.');">
+                        <i class="bi bi-cloud-upload-fill me-2"></i>Execute Backfill
+                    </button>
+                    <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary ms-2">
+                        Batal
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
