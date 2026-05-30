@@ -830,6 +830,20 @@ namespace HcPortal.Controllers
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
 
+            // Phase 338 REST-06 (336-NAMING-CONVENTION-SPEC): Auto-pair LinkedGroupId via title pattern
+            // Hanya untuk standard mode (non PrePost). PrePost mode generate own GroupId di logic existing.
+            if (AssessmentTypeInput != "PrePostTest"
+                && model.LinkedGroupId == null
+                && !string.IsNullOrEmpty(model.Title))
+            {
+                var counterpartId = await TryAutoDetectCounterpartGroup(model.Title, model.Category);
+                if (counterpartId.HasValue)
+                {
+                    model.LinkedGroupId = counterpartId.Value;
+                    TempData["Info"] = $"Auto-paired LinkedGroupId={counterpartId.Value} berdasarkan title pattern '{model.Title}' (336-NAMING-CONVENTION).";
+                }
+            }
+
             // Handle Token Validation
             if (model.IsTokenRequired)
             {
@@ -6566,6 +6580,38 @@ namespace HcPortal.Controllers
             row++;
 
             return row;
+        }
+
+        /// <summary>
+        /// Phase 338 REST-06 (336-NAMING-CONVENTION-SPEC.md): Auto-detect counterpart Pre/Post group
+        /// berdasarkan title pattern `{Pre|Post}Test {rest}`. Return LinkedGroupId existing counterpart bila ada.
+        /// </summary>
+        private async Task<int?> TryAutoDetectCounterpartGroup(string title, string? category)
+        {
+            // Pattern: "PreTest OJT GAST GTO SRU di Unit RU IV Cilacap" atau "Pre Test OJT GAST..."
+            var match = System.Text.RegularExpressions.Regex.Match(
+                title.Trim(),
+                @"^(?<stage>Pre|Post)\s*Test\s+(?<rest>.+)$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            if (!match.Success) return null;
+
+            var stage = match.Groups["stage"].Value;
+            var rest = match.Groups["rest"].Value.Trim();
+            var oppositeStage = stage.Equals("Pre", System.StringComparison.OrdinalIgnoreCase) ? "Post" : "Pre";
+
+            // Search variants: "PreTest" (no space) + "Pre Test" (with space)
+            var counterpartTitleA = $"{oppositeStage}Test {rest}";
+            var counterpartTitleB = $"{oppositeStage} Test {rest}";
+
+            var counterpart = await _context.AssessmentSessions
+                .Where(s => s.Title == counterpartTitleA || s.Title == counterpartTitleB)
+                .Where(s => category == null || s.Category == category)
+                .Where(s => s.LinkedGroupId != null)
+                .Select(s => s.LinkedGroupId)
+                .FirstOrDefaultAsync();
+
+            return counterpart;
         }
 
     }
