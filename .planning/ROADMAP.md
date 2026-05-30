@@ -657,7 +657,10 @@ Plans:
 
 **Requirements**: CMP-01..26 (26 REQ total)
 **Depends on:** Phase 336
-**Plans:** TBD (generate via /gsd-plan-phase 337) — likely 2-3 plan split (filter/data + UX/quality + arch) untuk reduce blast radius
+**Plans:** 3 plans (generated 2026-05-30 via /gsd-plan-phase 337 — 3 wave sequential per D-01)
+- [ ] 337-01-PLAN.md — Wave 1: Filter + Data Integrity (CMP-01..11, 11 REQ, ~4-5 hari, 4 task incl Playwright UAT checkpoint)
+- [ ] 337-02-PLAN.md — Wave 2: UX + Quality (CMP-12..23, 12 REQ, ~2-3 hari, 5 task incl ViewModel refactor + browser smoke checkpoint)
+- [ ] 337-03-PLAN.md — Wave 3: Arch SQL Push-down + Pagination (CMP-24..26, 3 REQ, ~2-3 hari, 4 task incl SQL profile + final UAT checkpoint)
 
 ### Phase 338: cilacap-ux-gap-bundle-excel-bulkpdf-restore-execute — 6 gap UX Cilacap admin Asm Monitoring + restore execute decision dari Phase 336 + guardrail backup hook + DEV_WORKFLOW update. Source: todo `.planning/todos/pending/001-gap-ux-assessment-monitoring.md` + 002. Severity MED-HIGH (Gap #5 enabler + restore execute). Effort M-L (~1 minggu, 5 wave internal).
 
