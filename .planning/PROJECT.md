@@ -34,16 +34,16 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **Current focus:** v20.0 prep — push v18.0+v19.0 batch + complete-milestone v19.0. Backlog: 8 carry-over + Phase 281/285 paused + 2 todo baru (gap-ux + restore-pretest 2026-05-29).
 
-## Current Milestone: v18.0 Cascade Delete Hardening
+## Current Milestone: v20.0 CMP Records Overhaul + Cilacap UX/Restore
 
-**Goal:** Tutup oversight Phase 321 di Phase 312 cascade — `AssessmentEditLog` FK Restrict ke `AssessmentSession` belum di-cascade di 3 endpoint delete; session yang sudah pernah di-edit soal tidak bisa dihapus.
+**Goal:** Tutup 3 PR pending — (1) CMP/Records full overhaul (15 bug + 7 UX + 5 quality + 3 arch), (2) 6 gap UX Cilacap incident discovery (Admin Asm Monitoring + Excel breakdown + BulkPdf), (3) Investigate + restore PreTest OJT GAST Cilacap loss + naming convention + guardrail backup SOP.
 
 **Target features:**
-- Cascade hapus `AssessmentEditLogs` di `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup`
-- Repro + smoke test lokal: session + edit soal + delete → sukses tanpa exception
-- Backward compat — endpoint signature + audit log behavior tidak berubah
+- **Phase 336** (~1-2 hari, investigation): root cause PreTest loss + decide restore strategy A/B/C + naming convention
+- **Phase 337** (~1 minggu+): CMP/Records overhaul — filter silent-fail fix + data integrity + race-safe AJAX + a11y ARIA + ViewModel refactor + SQL push-down + pagination (Approach C Full)
+- **Phase 338** (~1 minggu): Cilacap 6 gap UX + restore execute + guardrail backup hook + DEV_WORKFLOW update
 
-**Started:** 2026-05-26 | **Active REQ:** 1 (CASCADE-01) | **Phases:** 323 (1 phase initial — bisa expand bila ada bug serupa)
+**Started:** 2026-05-30 | **Active REQ:** 39 (CMP-01..26 + CIL-01..06 + REST-01..07) | **Phases:** 336-338 (3 phase sequential strict Opsi 2)
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

@@ -796,7 +796,60 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-05-28 (Phase 331-335 added — 5 HIGH proposal Phase 328 §9 #1+#3+#4+#5+#6 spawned per user batch-create. Phase 331-334 mechanical atomicity, Phase 335 complex worker lifecycle).*
+## v20.0 CMP Records Overhaul + Cilacap UX/Restore (Started: 2026-05-30)
+
+**Goal:** Tutup 3 PR pending — CMP/Records full overhaul (Approach C: 15 bug + 7 UX + 5 quality + 3 arch) + 6 gap UX Cilacap incident discovery + investigate & restore PreTest OJT GAST Cilacap data loss with guardrail backup SOP.
+
+**Plan strategy:** Sequential strict 3-phase (Opsi 2). File overlap matrix verified zero method-level. PR #2 Gap #5 Excel breakdown = enabler PR #3 Option C restore.
+
+**Phases:** 336 (investigation) → 337 (CMP overhaul) → 338 (Cilacap UX + restore execute)
+
+### Phase 336: investigate-pretest-loss-cilacap-restore-strategy — Git archeology AssessmentSession schema 2026-03-30..2026-05-19 + identifikasi migration culprit + decide restore strategy A/B/C + naming convention spec. NO code change, investigation-only. Source: todo `.planning/todos/pending/002-restore-pretest-ojt-gast-cilacap.md` + incident note `2026-05-29-pretest-ojt-gast-cilacap-lost.md`. Severity informational. Effort S (~1-2 hari).
+
+**Goal:** Root cause loss PreTest OJT GAST Cilacap (30 Mar 2026 → hilang dari Dev DB) via git log analysis. Kandidat commit: `b89b6559` (SamePackage), `a7bb443e` (AddAssessmentV14Columns), `569eb0a8` (7 kolom v14.0), `f82bad2e` (Rubrik/Essay), `0dedd7b7` (AddManualAssessment lifecycle). Output: ROOT_CAUSE.md + restore strategy A (re-import manual) / B (skip) / C (tunggu Gap #5 Excel breakdown enabling spider restore) — DECIDED + naming convention "{Pre|Post} Test {Track} {Lokasi}" spec.
+
+**Requirements**: REST-01-investigate-git-log, REST-02-confirm-root-cause, REST-03-decide-restore-strategy
+**Depends on:** Phase 335 (v19.0 close)
+**Plans:** TBD (generate via /gsd-plan-phase 336)
+
+### Phase 337: cmp-records-full-overhaul-filter-data-arch-a11y — Approach C Full overhaul `/CMP/Records` page (My Records + Team View). 15 bug filter+data integrity + 7 UX race+state + 5 quality a11y+VM + 3 arch SQL push-down+pagination. Source: memory `project_cmp_records_audit_2026_05_27.md` (Approach C locked 2026-05-30). Severity HIGH (filter silent-fail browser-verified) + arch. Effort L (~1 minggu+, 3 wave internal).
+
+**Goal:** Full overhaul CMPController.cs Records action L479 + RecordsTeamPartial L740 + Export endpoints L637/690 + WorkerDataService.cs + 3 view (Records.cshtml + RecordsTeam.cshtml + _RecordsTeamBody.cshtml). Wave 1: B-01..B-11 filter+data integrity (CMP-01..11). Wave 2: U-01..U-07 + C-01..C-05 UX+quality (CMP-12..23). Wave 3: A-01..A-03 SQL push-down + pagination Team View (CMP-24..26). Pre-condition: verify file:line drift sejak audit 2026-05-27 (1 commit `c7adcb73` DateOnly sweep CMP+Home).
+
+**Requirements**: CMP-01..26 (26 REQ total)
+**Depends on:** Phase 336
+**Plans:** TBD (generate via /gsd-plan-phase 337) — likely 2-3 plan split (filter/data + UX/quality + arch) untuk reduce blast radius
+
+### Phase 338: cilacap-ux-gap-bundle-excel-bulkpdf-restore-execute — 6 gap UX Cilacap admin Asm Monitoring + restore execute decision dari Phase 336 + guardrail backup hook + DEV_WORKFLOW update. Source: todo `.planning/todos/pending/001-gap-ux-assessment-monitoring.md` + 002. Severity MED-HIGH (Gap #5 enabler + restore execute). Effort M-L (~1 minggu, 5 wave internal).
+
+**Goal:** Wave 1: Gap #1+#2 filter default + search aggregation (AssessmentAdminController ManageAssessment + AssessmentMonitoring) (CIL-01+CIL-02). Wave 2: Gap #3+#4 history drill-down + CMP/Assessment banner role-route (CMPController.cs Assessment action + AssessmentAdminController history) (CIL-03+CIL-04). Wave 3: Gap #5 Excel breakdown +sheet Detail Per Soal + Elemen Teknis (ExcelExportHelper.cs + AssessmentResultsViewModel.cs + ExportAssessmentResults L4077) (CIL-05 HIGH PRIORITY). Wave 4: Restore execute Option dari Phase 336 outcome (REST-04) + Gap #6 BulkExportPdf endpoint ZIP QuestPDF (CIL-06). Wave 5: Guardrail pre-deploy backup SQL Server `.bak` hook + naming convention enforce LinkedGroupId auto-pair admin create form + DEV_WORKFLOW.md update (REST-05..07).
+
+**Requirements**: CIL-01..06 + REST-04..07 (10 REQ total)
+**Depends on:** Phase 337
+**Plans:** TBD (generate via /gsd-plan-phase 338) — likely 3-5 plan split per wave
+
+#### Coverage Validation v20.0
+
+| Bug/Gap/Item | Phase | Status |
+|--------------|-------|--------|
+| REST-01..03 Investigation | 336 | Planning |
+| CMP-01..26 Records Overhaul (Approach C) | 337 | Planning |
+| CIL-01..06 Cilacap UX 6 gap | 338 (W1-3) | Planning |
+| REST-04 Restore execute | 338 (W4) | Planning |
+| REST-05..07 Guardrail + naming + docs | 338 (W5) | Planning |
+
+**Active mapped: 39/39 REQ ✓ — Orphans: 0 — Duplicates: 0 — Carry-over backlog: 8 (deferred ke v21.0+)**
+
+**Cross-phase dependency:**
+- 336 → 338 W4 (restore strategy decision)
+- 337 W3 Gap #5 enables 338 W4 Option C (if chosen)
+- 337 ⊥ 336 (zero overlap, 336 read-only)
+- 337 vs 338 same file CMPController.cs but different methods (Records L479 vs Assessment L195) — safe sequential
+
+---
+
+*Roadmap updated: 2026-05-30 (v20.0 milestone + Phase 336-338 added — 3 PR bundle Opsi 2 sequential strict; 39 REQ CMP-01..26 + CIL-01..06 + REST-01..07; total estimate ~2.5 minggu; locked decision Approach C CMP Records).*
+*Prev: 2026-05-28 (Phase 331-335 added — 5 HIGH proposal Phase 328 §9 #1+#3+#4+#5+#6 spawned per user batch-create. Phase 331-334 mechanical atomicity, Phase 335 complex worker lifecycle).*
 *Prev: 2026-05-28 (Phase 330 plan generated — 330-01-PLAN.md, 3 task single wave, ~75 LoC delta Controllers/AssessmentAdminController.cs + Controllers/OrganizationController.cs + Services/NotificationService.cs).*
 *Prev: 2026-05-28 (Phase 329 plan generated — 329-01-PLAN.md, 4 task single wave, ~60 LoC delta Controllers/AssessmentAdminController.cs; verbatim D-02 pattern Phase 325 P05).*
 *Prev: 2026-05-28 (Phase 328 RESEARCH.md SHIPPED LOCAL — commit `41f1eef2`, 14 endpoint mutator + 5 preview, 8 HIGH + 5 MED + 0 LOW; 7 next-phase fix proposals di Section 9 PROPOSAL ONLY).*

@@ -1,40 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v19.0
-milestone_name: Portal HC Bug Fixes (Cascade Hardening)
-status: v18.0 ARCHIVED 2026-05-29 (tag pending), v19.0 ARCHIVE IN PROGRESS
-last_updated: "2026-05-29T23:00:00+08:00"
-last_activity: 2026-05-29 -- v18.0 milestone archived (Phase 323+324, audit passed retroactively). Next step archive v19.0 (Phase 325-335).
+milestone: v20.0
+milestone_name: CMP Records Overhaul + Cilacap UX/Restore
+status: Active — 3-phase sequential plan locked (Phase 336-338 Opsi 2)
+last_updated: "2026-05-30T11:00:00+08:00"
+last_activity: 2026-05-30 -- v20.0 milestone started. REQUIREMENTS.md filled (39 REQ: CMP-01..26 + CIL-01..06 + REST-01..07). Phase 336-338 added to ROADMAP. v19.0 push masih hold IT availability (~98 commit batch).
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-23)
+See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v19.0 MILESTONE CLOSE — 11/11 phase SHIPPED LOCAL — push batch pending IT availability
+**Current focus:** v20.0 — 3 PR bundle (CMP Records overhaul + Cilacap UX gap + PreTest restore investigation/execute)
 
 ## Current Position
 
-Phase: 335 (fix-cascade-deleteworker-renewal-files-tx) — SHIPPED LOCAL (FINAL HIGH)
-Plan: 1 of 1 COMPLETE
-Status: **11/11 phase v19.0 SHIPPED LOCAL = 100% MILESTONE CLOSE**
-Last activity: 2026-05-29
+Phase: Not started (Phase 336 ready discuss)
+Plan: —
+Status: **v20.0 planning — REQUIREMENTS + ROADMAP defined, Phase 336 next**
+Last activity: 2026-05-30
 
 ## Next Action
 
-1. **Push batch v19.0** — `git push origin main` saat IT available (deliver `docs/IT_NOTIFY.md` ke Tim IT). ~78 commit batch, 1 migration `ChangeValidUntilToDateOnly` (Phase 327).
-2. **Tag v19.0-complete** post-push origin/main.
-3. **/gsd-complete-milestone v19.0** — prep next milestone v20.0 (backlog items: Phase 281/285 paused + EPRV-01 + 293/297/298 undecided).
-4. **Backlog housekeeping (non-blocker)**: v16.0 milestone (Phases 315-319) belum punya entry di `MILESTONES.md` log. Tambah saat sempat.
+1. **`/gsd-discuss-phase 336`** — gather context investigation PreTest loss (paling ringan, ~1-2 hari, hasil feed Phase 338 Wave 4 restore decision).
+2. **Monitor IT availability** untuk push v19.0 batch (~98 commit lokal) — bisa paralel dengan v20.0 work.
+3. **(Optional)** Update `.planning/config.json` `milestone_version: v15.0 → v20.0` (cosmetic, gsd-tools warn unknown key anyway).
+4. **(Backlog housekeeping non-blocker)**: v16.0 milestone (Phases 315-319) + v19.0 (325-335) belum punya entry di `MILESTONES.md` log. Tambah saat /gsd-complete-milestone v19.0.
 
 ## Deferred Items
 
