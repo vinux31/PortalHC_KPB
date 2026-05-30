@@ -2,6 +2,7 @@
 phase: 338-cilacap-ux-gap-bundle-excel-bulkpdf-restore-execute
 type: context
 created: 2026-05-30
+amended: 2026-05-30 (post-research D-03/04/08, OQ-1/2/3 resolved)
 status: locked
 requirements: [CIL-01, CIL-02, CIL-03, CIL-04, CIL-05, CIL-06, REST-04, REST-05, REST-06, REST-07]
 depends_on: [336, 337]
@@ -67,13 +68,23 @@ Phase 338 W5 task: validate Track Master vs DB + enforce `LinkedGroupId` auto-pa
 **Row clickable + Actions column** — `<tr>` seluruh row clickable (cursor pointer + data-href + JS handler ala Plan 337-02 CMP-19 pattern) + tambah kolom Actions dengan ikon link explicit ke `/CMP/Results/{sessionId}`.
 **Why:** Best discoverability + a11y (keyboard + screen reader). Pattern reuse Plan 337-02.
 
-### D-03: CIL-05 Excel "Detail Per Soal" Format
-**Grid per-peserta-per-soal** — kolom dinamis: `No | Nama | NIP | Soal 1 Jawaban | Soal 1 Benar? | Soal 2 Jawaban | Soal 2 Benar? | ... | Score Total`. 1 row per peserta.
-**Why:** Best untuk pivot analysis HC/admin (filter peserta, compare antar soal).
+### D-03 (AMENDED 2026-05-30 post-research): CIL-05 Excel Scope = Aggregate Sheets Baru
+**ADDITIVE: tambah 2 aggregate sheet di awal workbook**, per-peserta sheets EXISTING preserve.
+- Existing (L4077-4444): N sheet per peserta sudah lengkap dengan spider PNG + Elemen Teknis + Detail Jawaban table
+- BARU di awal workbook:
+  - **Sheet "Detail Per Soal"** = Grid per-peserta-per-soal: `No | Nama | NIP | Soal 1 Jawaban | Soal 1 Benar? | Soal 2 Jawaban | Soal 2 Benar? | ... | Score Total`. 1 row per peserta.
+  - **Sheet "Elemen Teknis"** = Matrix peserta x elemen: `Nama | NIP | Elemen 1 Score | Elemen 2 Score | ... | Avg`. 1 row per peserta.
+**Why:** Match Gap #5 intent (todo 001 "tambah sheet kedua + ketiga" = ADD bukan REPLACE). Tidak breaking tool external. Effort kecil (~150 LOC) karena reuse data pre-loaded di L4234-4252. HC dapat scan/pivot semua peserta dalam 1 view tanpa klik-klik 13 sheet.
 
-### D-04: CIL-05 Excel "Elemen Teknis" Format
-**Matrix peserta x elemen** — kolom: `Nama | NIP | Elemen 1 Score | Elemen 2 Score | ... | Avg`. 1 row per peserta. Matches spider chart radar dimensi.
-**Why:** Konsisten dengan spider visualization existing; aggregate analysis ready.
+### D-04 (AMENDED 2026-05-30): REST-04 File Target + Mechanism
+**File target**: `Controllers/TrainingAdminController.cs:638 AddManualAssessment` (BUKAN AssessmentAdminController seperti CONTEXT awal).
+**Mechanism**: **Hybrid A3 — `BulkBackfillAssessment` endpoint baru** di file sama.
+- Input: `IFormFile excel, string auditTag = "ManualImport-Backfill"`
+- Parse Excel `downloads/PreTest-OJT_GAST__GTO__SRU_RU_IV__20260330_Results.xlsx` (13 peserta)
+- Direct EF `AddRange + SaveChangesAsync` dalam **transaction** (atomic, all-or-nothing)
+- Audit log per row dengan `auditTag` prefix
+- Reusable future bulk import (Cilacap atau site lain)
+**Why:** Transactional safety (rollback on error), reusable, audit per row, NO UI overhead 13x submit. Trade-off vs A1 (UI per row): bypass form validation tapi BulkBackfillAssessment endpoint sendiri validate Excel schema sebelum insert.
 
 ### D-05: CIL-06 BulkExportPdf Layout
 **Multi-page lengkap per peserta** — Page 1: cover (nama/nip/score/pass status) + spider chart visualization. Page 2+: jawaban per soal dengan correctness highlight (correct=green, wrong=red).
@@ -85,6 +96,15 @@ Phase 338 W5 task: validate Track Master vs DB + enforce `LinkedGroupId` auto-pa
 2. **Standalone backup script**: `scripts/backup-dev-pre-migration.ps1` PowerShell yang IT jalankan via 1 command (referensikan dari handoff doc)
 3. **DEV_WORKFLOW.md SOP** (REST-07): "Setiap deploy ke Dev/Prod: (1) generate DB_HANDOFF_IT_*.html via template, (2) attach ke IT email + WhatsApp, (3) IT WAJIB jalankan `scripts/backup-dev-pre-migration.ps1` SEBELUM migration"
 **Why:** Existing precedent ada (handoff doc 2026-05-13 sudah BACKUP DATABASE SQL inline). Systematize via template + script standalone supaya konsisten antar deployment, tidak bergantung disiplin tulis doc manual tiap kali.
+
+### D-08 (NEW 2026-05-30 post-research): CIL-05 Sheet Ordering
+**Aggregate sheets FIRST** di workbook order. Sheet 1 = "Detail Per Soal", Sheet 2 = "Elemen Teknis", Sheet 3+ = per-peserta sheets EXISTING.
+**Why:** HC buka workbook langsung lihat overview, drill-down per-peserta sheet di sebelah kanan via tab navigation.
+
+### D-09 (NEW 2026-05-30): CIL-03 Schema Delta
+**Add field `SessionId int?` ke `AllWorkersHistoryRow`** (`Models/AllWorkersHistoryRow.cs`). Non-breaking additive change.
+**Why:** Drill-down `<tr data-href="/CMP/Results/{SessionId}">` butuh sessionId per row. Saat ini AllWorkersHistoryRow tidak expose SessionId.
+**Impact:** GetAllWorkersHistory di WorkerDataService perlu populate SessionId di projection (assessment branch only — training branch null).
 
 ### D-07: Plan Split Structure
 **5 plan per wave** matches ROADMAP entry:
@@ -179,9 +199,10 @@ Phase 338 W5 task: validate Track Master vs DB + enforce `LinkedGroupId` auto-pa
 </threats>
 
 <open_questions>
-- OQ-338-1: CIL-06 spider chart server-side rendering — Playwright headless PNG vs JS client-side base64 capture? **Decide di Plan 04 research** (Claude's discretion based on existing infra).
-- OQ-338-2: REST-04 bulk insert mechanism — SQL script langsung vs loop AddManualAssessment endpoint? **Decide di Plan 04 research** (transactional safety, audit trail consistency).
-- OQ-338-3: CIL-05 PackageUserResponses query optimization — JOIN-heavy query bisa N+1 untuk 50 peserta x 30 soal. **Decide di Plan 03 research** (EF Core single query vs batched).
+**ALL RESOLVED post-research 2026-05-30 — see 338-RESEARCH.md:**
+- ~~OQ-338-1~~ **RESOLVED**: `Helpers/SpiderChartRenderer.cs` (SkiaSharp PNG renderer) sudah ada dari Phase 320. CIL-06 reuse langsung — no Playwright/JS needed.
+- ~~OQ-338-2~~ **RESOLVED**: Hybrid A3 endpoint baru `BulkBackfillAssessment` di TrainingAdminController.cs (see D-04 amendment).
+- ~~OQ-338-3~~ **RESOLVED**: Phase 320 IQueryable composition pattern + existing pre-loaded data L4234-4252 sudah optimal. No N+1.
 </open_questions>
 
 <next_steps>
