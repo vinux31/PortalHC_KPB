@@ -539,3 +539,6 @@ docs/pcp-HCPortal-2026/Risalah Web.pptx
 
 # Session test reports (transient)
 docs/test-reports/
+
+# Runtime download artifacts (test exports, downloaded reports)
+downloads/
