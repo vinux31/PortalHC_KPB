@@ -145,6 +145,7 @@ namespace HcPortal.Services
             var currentRowsRaw = await currentQuery
                 .Select(a => new
                 {
+                    a.Id,   // Phase 338 CIL-03: SessionId untuk drill-down
                     a.UserId,
                     UserFullName = a.User != null ? a.User.FullName : a.UserId,
                     UserNIP = a.User != null ? a.User.NIP : null,
@@ -192,7 +193,8 @@ namespace HcPortal.Services
                     Date          = a.Date,
                     Score         = a.Score,
                     IsPassed      = a.IsPassed,
-                    AttemptNumber = attemptNumber
+                    AttemptNumber = attemptNumber,
+                    SessionId     = a.Id   // Phase 338 CIL-03 D-09: drill-down /CMP/Results/{id}
                 };
             }).ToList();
 

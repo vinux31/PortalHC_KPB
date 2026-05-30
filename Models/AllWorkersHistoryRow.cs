@@ -31,4 +31,10 @@ public class AllWorkersHistoryRow
     // Phase 337 CMP-05: Category + SubCategory for filter parity di ExportRecordsTeamTraining
     public string? Kategori { get; set; }
     public string? SubKategori { get; set; }
+
+    // Phase 338 CIL-03 (D-09): SessionId untuk drill-down /CMP/Results/{id}
+    // Populate hanya di current Completed branch (archivedRows = null karena history pakai
+    // AssessmentAttemptHistory.Id yang BUKAN AssessmentSession.Id — drill-down N/A untuk archived).
+    // Training branch tetap null (training tidak punya session concept).
+    public int? SessionId { get; set; }
 }
