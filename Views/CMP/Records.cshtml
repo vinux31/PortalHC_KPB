@@ -1,20 +1,16 @@
-@model List<HcPortal.Models.UnifiedTrainingRecord>
+@model HcPortal.Models.ViewModels.CMPRecordsViewModel
 @using System.Globalization
-@using Microsoft.AspNetCore.Identity
 @using HcPortal.Models
-@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Training Records";
-    var assessmentCount = Model.Count(x => x.RecordType == "Assessment Online");
-    var trainingCount = Model.Count(x => x.RecordType == "Training Manual");
-    var totalCount = Model.Count;
-
-    // Get current user's role level for Team View tab visibility
-    var currentUser = await UserManager.GetUserAsync(User);
-    var userRoles = await UserManager.GetRolesAsync(currentUser);
-    var userRole = userRoles.FirstOrDefault();
-    var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+    // Phase 337 CMP-21/22/23: consume single-source ViewModel (no @inject UserManager)
+    var unified = Model.UnifiedRecords;
+    var assessmentCount = Model.AssessmentCount;
+    var trainingCount = Model.TrainingCount;
+    var totalCount = Model.TotalCount;
+    var roleLevel = Model.RoleLevel;
+    var yearOptions = Model.YearOptions;
 }
 
 <div class="container-fluid px-4 py-4">
@@ -32,18 +28,20 @@
     </div>
 
     <!-- Tab navigation -->
-    <ul class="nav nav-tabs mb-3" id="recordsTabs">
-        <li class="nav-item">
-            <a class="nav-link active" id="tab-myrecords" data-bs-toggle="tab" href="#pane-myrecords">
-                <i class="bi bi-person me-1"></i>My Records
+    <ul class="nav nav-tabs mb-3" id="recordsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="tab-myrecords" data-bs-toggle="tab" href="#pane-myrecords"
+               role="tab" aria-controls="pane-myrecords" aria-selected="true">
+                <i class="bi bi-person me-1" aria-hidden="true"></i>My Records
                 <span id="totalCountBadge" class="badge bg-info ms-1">@totalCount</span>
             </a>
         </li>
         @if (roleLevel <= 4)
         {
-            <li class="nav-item">
-                <a class="nav-link" id="tab-team" data-bs-toggle="tab" href="#pane-team">
-                    <i class="bi bi-people me-1"></i>Team View
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="tab-team" data-bs-toggle="tab" href="#pane-team"
+                   role="tab" aria-controls="pane-team" aria-selected="false">
+                    <i class="bi bi-people me-1" aria-hidden="true"></i>Team View
                 </a>
             </li>
         }
@@ -51,31 +49,42 @@
 
     <div class="tab-content">
         <!-- My Records Tab (Unified Assessment + Training) -->
-        <div class="tab-pane fade show active" id="pane-myrecords">
+        <div class="tab-pane fade show active" id="pane-myrecords" role="tabpanel" aria-labelledby="tab-myrecords">
             <!-- Search & Filter Bar -->
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="row g-3 align-items-center">
                         <div class="col-12 col-md-6">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan judul...">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan judul..." aria-label="Cari judul training">
                         </div>
-                        <div class="col-12 col-md-3">
-                            <select id="yearFilter" class="form-select">
+                        <div class="col-12 col-md-6">
+                            @* Phase 337 CMP-16: year quick filter button group (3 tahun terakhir + Semua) *@
+                            <div class="btn-group w-100" role="group" aria-label="Filter tahun">
+                                @foreach (var year in yearOptions.Take(3))
+                                {
+                                    <button type="button" class="btn btn-outline-secondary year-quick-btn" data-year-value="@year">@year</button>
+                                }
+                                <button type="button" class="btn btn-outline-secondary year-quick-btn active" data-year-value="">Semua</button>
+                            </div>
+                            @* Hidden select preserve sebagai canonical source (JS read .value) *@
+                            <select id="yearFilter" class="d-none" aria-hidden="true">
                                 <option value="">Semua Tahun</option>
-                                @foreach (var year in Model.Select(r => r.Date.Year).Distinct().OrderByDescending(y => y))
+                                @foreach (var year in yearOptions)
                                 {
                                     <option value="@year">@year</option>
                                 }
                             </select>
                         </div>
-                        <div class="col-12 col-md-3">
+                    </div>
+                    <div class="row g-3 mt-2 align-items-center">
+                        <div class="col-12 col-md-6">
                             <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
-                                <i class="bi bi-x-circle me-1"></i> Reset
+                                <i class="bi bi-x-circle me-1" aria-hidden="true"></i> Reset
                             </button>
                         </div>
-                        <div class="col-12 col-md-3 d-flex align-items-center">
+                        <div class="col-12 col-md-6 d-flex align-items-center">
                             <a href="@Url.Action("ExportRecords", "CMP")" class="btn btn-outline-success w-100">
-                                <i class="bi bi-file-earmark-arrow-down me-2"></i>Export Excel
+                                <i class="bi bi-file-earmark-arrow-down me-2" aria-hidden="true"></i>Export Excel
                             </a>
                         </div>
                     </div>
@@ -148,7 +157,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in Model.OrderByDescending(r => r.Date))
+                                @foreach (var item in unified.OrderByDescending(r => r.Date))
                                 {
                                     var resultsUrl = item.RecordType == "Assessment Online" && item.AssessmentSessionId.HasValue
                                         ? Url.Action("Results", "CMP", new { id = item.AssessmentSessionId.Value })
@@ -156,7 +165,7 @@
                                     <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
                                         data-title="@item.Title.ToLower()" data-year="@item.Date.Year"
                                         data-type="@(item.RecordType == "Assessment Online" ? "assessment" : "training")"
-                                        @(resultsUrl != null ? Html.Raw($"onclick=\"window.location.href='{resultsUrl}'\"") : Html.Raw(""))
+                                        @(resultsUrl != null ? Html.Raw($"data-href=\"{resultsUrl}\" tabindex=\"0\" role=\"link\"") : Html.Raw(""))
                                         style="@(resultsUrl != null ? "cursor:pointer;" : "")">
                                         <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
                                         <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
@@ -214,7 +223,7 @@
                                         </td>
                                     </tr>
                                 }
-                                @if (!Model.Any()) {
+                                @if (!unified.Any()) {
                                     <tr><td colspan="6" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td></tr>
                                 }
                             </tbody>
@@ -227,9 +236,12 @@
         <!-- Team View Tab (Phase 104) -->
         @if (roleLevel <= 4)
         {
-            <div class="tab-pane fade" id="pane-team">
+            <div class="tab-pane fade" id="pane-team" role="tabpanel" aria-labelledby="tab-team">
                 @{
                     var workerList = ViewData["WorkerList"] as List<HcPortal.Models.WorkerTrainingStatus>;
+                    // Phase 337 CMP-21/22: pass RoleLevel + LockedSection via ViewData supaya partial tidak panggil UserManager
+                    ViewData["RoleLevel"] = Model.RoleLevel;
+                    ViewData["LockedSection"] = Model.RoleLevel == 4 ? Model.User.Section : null;
                     if (workerList != null)
                     {
                         @await Html.PartialAsync("RecordsTeam", workerList)
@@ -377,9 +389,70 @@ function filterTable() {
 }
 document.getElementById('searchInput').addEventListener('input', filterTable);
 document.getElementById('yearFilter').addEventListener('change', filterTable);
+
+// Phase 337 CMP-16: year quick filter button group
+document.querySelectorAll('.year-quick-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.year-quick-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('yearFilter').value = btn.dataset.yearValue;
+        filterTable();
+    });
+});
+
 function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('yearFilter').value = '';
+    document.querySelectorAll('.year-quick-btn').forEach(function(b) { b.classList.remove('active'); });
+    var allBtn = document.querySelector('.year-quick-btn[data-year-value=""]');
+    if (allBtn) allBtn.classList.add('active');
+    sessionStorage.removeItem('cmp-records-my-filter');
     filterTable();
 }
+
+// Phase 337 CMP-19: row keyboard nav (replace inline onclick)
+document.querySelectorAll('.training-row[data-href]').forEach(function(row) {
+    row.addEventListener('click', function() { window.location.href = row.dataset.href; });
+    row.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            window.location.href = row.dataset.href;
+        }
+    });
+});
+
+// Phase 337 CMP-20: tab aria-selected toggle dinamis
+document.querySelectorAll('#recordsTabs a[data-bs-toggle="tab"]').forEach(function(tab) {
+    tab.addEventListener('shown.bs.tab', function(e) {
+        document.querySelectorAll('#recordsTabs a[role="tab"]').forEach(function(t) { t.setAttribute('aria-selected', 'false'); });
+        e.target.setAttribute('aria-selected', 'true');
+    });
+});
+
+// Phase 337 CMP-17: persist + restore filter state (sessionStorage)
+function saveMyFilterState() {
+    var state = {
+        search: document.getElementById('searchInput').value,
+        year: document.getElementById('yearFilter').value
+    };
+    sessionStorage.setItem('cmp-records-my-filter', JSON.stringify(state));
+}
+document.getElementById('searchInput').addEventListener('input', saveMyFilterState);
+document.getElementById('yearFilter').addEventListener('change', saveMyFilterState);
+
+document.addEventListener('DOMContentLoaded', function() {
+    var stored = sessionStorage.getItem('cmp-records-my-filter');
+    if (!stored) return;
+    try {
+        var state = JSON.parse(stored);
+        if (state.search) document.getElementById('searchInput').value = state.search;
+        if (state.year) {
+            document.getElementById('yearFilter').value = state.year;
+            document.querySelectorAll('.year-quick-btn').forEach(function(b) {
+                b.classList.toggle('active', b.dataset.yearValue === state.year);
+            });
+        }
+        filterTable();
+    } catch (e) { /* ignore parse error */ }
+});
 </script>
