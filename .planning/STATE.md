@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v20.0
 milestone_name: CMP Records Overhaul + Cilacap UX/Restore
 status: Active — 3-phase sequential plan locked (Phase 336-338 Opsi 2)
-last_updated: "2026-05-30T11:00:00+08:00"
-last_activity: 2026-05-30 -- v20.0 milestone started. REQUIREMENTS.md filled (39 REQ: CMP-01..26 + CIL-01..06 + REST-01..07). Phase 336-338 added to ROADMAP. v19.0 push masih hold IT availability (~98 commit batch).
+last_updated: "2026-05-30T11:30:00+08:00"
+last_activity: 2026-05-30 -- v19.0 milestone COMPLETED + ARCHIVED (11 phase dir 325-335 moved ke .planning/milestones/v19.0-phases/, ROADMAP body collapsed, archive marker added). v20.0 active — REQUIREMENTS.md 39 REQ (CMP-01..26 + CIL-01..06 + REST-01..07). Phase 336-338 ready discuss. v19.0 push (~99 commit batch) masih hold IT availability.
 progress:
   total_phases: 3
   completed_phases: 0
