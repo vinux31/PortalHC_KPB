@@ -522,6 +522,8 @@ null
 # Utility scripts (SQL fix, etc.)
 *.ps1
 *.bat
+# Phase 338 REST-05: allow versioned backup script di scripts/ folder
+!scripts/backup-dev-pre-migration.ps1
 TempDbCheck/
 .superpowers/
 
