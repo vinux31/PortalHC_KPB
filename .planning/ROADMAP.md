@@ -648,7 +648,8 @@ Plans:
 
 **Requirements**: REST-01-investigate-git-log, REST-02-confirm-root-cause, REST-03-decide-restore-strategy
 **Depends on:** Phase 335 (v19.0 close)
-**Plans:** TBD (generate via /gsd-plan-phase 336)
+**Plans:** 1 plan
+- [ ] 336-01-PLAN.md — Investigation 6 task (git log + 13 migration analysis + EnsureCreated/SeedData check + AuditLog elimination + user checkpoint OQ-336-1 + write 3 deliverable doc)
 
 ### Phase 337: cmp-records-full-overhaul-filter-data-arch-a11y — Approach C Full overhaul `/CMP/Records` page (My Records + Team View). 15 bug filter+data integrity + 7 UX race+state + 5 quality a11y+VM + 3 arch SQL push-down+pagination. Source: memory `project_cmp_records_audit_2026_05_27.md` (Approach C locked 2026-05-30). Severity HIGH (filter silent-fail browser-verified) + arch. Effort L (~1 minggu+, 3 wave internal).
 
