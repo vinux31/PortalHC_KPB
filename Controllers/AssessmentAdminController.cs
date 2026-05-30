@@ -4265,6 +4265,13 @@ namespace HcPortal.Controllers
                 .Where(q => packageIds.Contains(q.AssessmentPackageId))
                 .ToListAsync();
 
+            // === Phase 338 CIL-05 (D-03 AMENDED + D-08 ordering): 2 aggregate sheet ADDITIVE ===
+            // Inserted AFTER Summary (sheet 1), BEFORE per-peserta sheets — sheet 2+3.
+            // Reuse pre-loaded data (allResponses, allEtScores, allQuestions) — NO new DB query.
+            // Per-peserta sheets EXISTING preserve (T-338-01 mitigation: tool external tidak break).
+            HcPortal.Helpers.ExcelExportHelper.AddDetailPerSoalSheet(workbook, eligibleSessions, allResponses, allQuestions);
+            HcPortal.Helpers.ExcelExportHelper.AddElemenTeknisSheet(workbook, eligibleSessions, allEtScores);
+
             // === Parallel PNG pre-compute (REQ EXP-08 — <30s untuk 50 peserta) ===
             // CPU-bound rendering paralel; cap concurrency = ProcessorCount supaya tidak starvation thread pool.
             // CONTEXT D-08: ConcurrentDictionary upgrade dari plan literal Dictionary+lock (Claude's Discretion).
