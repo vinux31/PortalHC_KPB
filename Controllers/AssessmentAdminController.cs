@@ -195,7 +195,14 @@ namespace HcPortal.Controllers
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
-            if (string.IsNullOrEmpty(statusFilter))
+            // Phase 338 CIL-01: aggregate counter sebelum filter apply (untuk badge UI)
+            ViewBag.OpenCount     = grouped.Count(g => g.GroupStatus == "Open");
+            ViewBag.UpcomingCount = grouped.Count(g => g.GroupStatus == "Upcoming");
+            ViewBag.ClosedCount   = grouped.Count(g => g.GroupStatus == "Closed");
+
+            // Phase 338 CIL-02: hanya hide Closed default ketika BOTH statusFilter kosong DAN search kosong
+            // (sebelumnya search "Cilacap" return 0 karena Closed di-filter walau user search spesifik)
+            if (string.IsNullOrEmpty(statusFilter) && string.IsNullOrEmpty(search))
                 grouped = grouped.Where(g => g.GroupStatus != "Closed").ToList();
             else if (statusFilter == "Open" || statusFilter == "Upcoming" || statusFilter == "Closed")
                 grouped = grouped.Where(g => g.GroupStatus == statusFilter).ToList();
@@ -2800,9 +2807,15 @@ namespace HcPortal.Controllers
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
+            // Phase 338 CIL-01: aggregate counter sebelum filter apply (untuk badge UI)
+            ViewBag.OpenCount     = grouped.Count(g => g.GroupStatus == "Open");
+            ViewBag.UpcomingCount = grouped.Count(g => g.GroupStatus == "Upcoming");
+            ViewBag.ClosedCount   = grouped.Count(g => g.GroupStatus == "Closed");
+
             // Status filter — applied AFTER grouping (GroupStatus computed from sessions)
             // Default: show Open + Upcoming only (exclude Closed) unless status param is provided
-            if (string.IsNullOrEmpty(status))
+            // Phase 338 CIL-02: hanya hide Closed default ketika BOTH status kosong DAN search kosong
+            if (string.IsNullOrEmpty(status) && string.IsNullOrEmpty(search))
             {
                 grouped = grouped.Where(g => g.GroupStatus != "Closed").ToList();
                 status = "active"; // signal to view that default active filter is on
@@ -2812,6 +2825,7 @@ namespace HcPortal.Controllers
                 grouped = grouped.Where(g => g.GroupStatus == status).ToList();
             }
             // status == "All" → no filter applied
+            // status kosong + search non-empty → no filter (include Closed di hasil search)
 
             ViewBag.SearchTerm = search ?? "";
             ViewBag.SelectedStatus = status;
