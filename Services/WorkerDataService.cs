@@ -87,52 +87,90 @@ namespace HcPortal.Services
                 .ToList();
         }
 
-        // CMP version used as base — includes WorkerId superset fields
-        public async Task<(List<AllWorkersHistoryRow> assessment, List<AllWorkersHistoryRow> training)> GetAllWorkersHistory()
+        // Phase 337 CMP-24: IQueryable composition + Select projection (SQL push-down)
+        // Optional filter params untuk Export endpoints — backward compat call tanpa argumen
+        public async Task<(List<AllWorkersHistoryRow> assessment, List<AllWorkersHistoryRow> training)>
+            GetAllWorkersHistory(
+                IEnumerable<string>? workerIds = null,
+                DateTime? from = null,
+                DateTime? to = null,
+                string? category = null,
+                string? subCategory = null)
         {
-            // --- Assessment history ---
+            var workerIdList = workerIds?.ToList();
+            bool hasWorkerFilter = workerIdList != null;
 
-            // Batch count archived attempts per user+title to avoid N+1
-            var archivedCounts = await _context.AssessmentAttemptHistory
+            // --- Archived assessment history ---
+            var archivedQuery = _context.AssessmentAttemptHistory
                 .AsNoTracking()
+                .AsQueryable();
+
+            if (hasWorkerFilter)
+                archivedQuery = archivedQuery.Where(h => workerIdList!.Contains(h.UserId));
+            if (from.HasValue)
+                archivedQuery = archivedQuery.Where(h =>
+                    (h.CompletedAt ?? h.StartedAt ?? h.ArchivedAt) >= from.Value);
+            if (to.HasValue)
+                archivedQuery = archivedQuery.Where(h =>
+                    (h.CompletedAt ?? h.StartedAt ?? h.ArchivedAt) <= to.Value);
+            // Note: AssessmentAttemptHistory tidak punya Category column — skip cat/subcat filter
+
+            var archivedRows = await archivedQuery
+                .Select(h => new AllWorkersHistoryRow
+                {
+                    WorkerId      = h.UserId,
+                    WorkerName    = h.User != null ? h.User.FullName : h.UserId,
+                    WorkerNIP     = h.User != null ? h.User.NIP : null,
+                    RecordType    = "Assessment Online",
+                    Title         = h.Title,
+                    Date          = h.CompletedAt ?? h.StartedAt ?? h.ArchivedAt,
+                    Score         = h.Score,
+                    IsPassed      = h.IsPassed,
+                    AttemptNumber = h.AttemptNumber
+                })
+                .ToListAsync();
+
+            // --- Current completed sessions ---
+            var currentQuery = _context.AssessmentSessions
+                .AsNoTracking()
+                .Where(a => a.Status == "Completed");
+
+            if (hasWorkerFilter)
+                currentQuery = currentQuery.Where(a => workerIdList!.Contains(a.UserId));
+            if (from.HasValue)
+                currentQuery = currentQuery.Where(a => (a.CompletedAt ?? a.Schedule) >= from.Value);
+            if (to.HasValue)
+                currentQuery = currentQuery.Where(a => (a.CompletedAt ?? a.Schedule) <= to.Value);
+
+            var currentRowsRaw = await currentQuery
+                .Select(a => new
+                {
+                    a.UserId,
+                    UserFullName = a.User != null ? a.User.FullName : a.UserId,
+                    UserNIP = a.User != null ? a.User.NIP : null,
+                    a.Title,
+                    Date = a.CompletedAt ?? a.Schedule,
+                    a.Score,
+                    a.IsPassed
+                })
+                .ToListAsync();
+
+            // archivedCountLookup untuk AttemptNumber (cross-table count, scoped ke workerIds)
+            var archivedCountQuery = _context.AssessmentAttemptHistory
+                .AsNoTracking()
+                .Where(h => h.Title != null);
+            if (hasWorkerFilter)
+                archivedCountQuery = archivedCountQuery.Where(h => workerIdList!.Contains(h.UserId));
+            var archivedCounts = await archivedCountQuery
                 .GroupBy(h => new { h.UserId, h.Title })
                 .Select(g => new { g.Key.UserId, g.Key.Title, Count = g.Count() })
                 .ToListAsync();
-
             var archivedCountLookup = archivedCounts
-                .ToDictionary(x => (x.UserId, x.Title), x => x.Count);
+                .ToDictionary(x => (x.UserId, x.Title!), x => x.Count);
 
-            // Query 1: Archived attempts (AttemptNumber already stored)
-            var archivedAttempts = await _context.AssessmentAttemptHistory
-                .AsNoTracking()
-                .Include(h => h.User)
-                .ToListAsync();
-
-            var assessmentRows = new List<AllWorkersHistoryRow>();
-
-            assessmentRows.AddRange(archivedAttempts.Select(h => new AllWorkersHistoryRow
+            var currentRows = currentRowsRaw.Select(a =>
             {
-                WorkerId      = h.UserId,
-                WorkerName    = h.User?.FullName ?? h.UserId,
-                WorkerNIP     = h.User?.NIP,
-                RecordType    = "Assessment Online",
-                Title         = h.Title,
-                Date          = h.CompletedAt ?? h.StartedAt ?? h.ArchivedAt,
-                Score         = h.Score,
-                IsPassed      = h.IsPassed,
-                AttemptNumber = h.AttemptNumber
-            }));
-
-            // Query 2: Current completed sessions (Attempt # = archived count for that user+title + 1)
-            var currentCompleted = await _context.AssessmentSessions
-                .AsNoTracking()
-                .Include(a => a.User)
-                .Where(a => a.Status == "Completed")
-                .ToListAsync();
-
-            assessmentRows.AddRange(currentCompleted.Select(a =>
-            {
-                // Phase 337 CMP-11: title-null tidak boleh collide ke key "" — default ke 1
+                // Phase 337 CMP-11: title-null tidak collide ke key "" — default ke 1
                 int attemptNumber;
                 if (string.IsNullOrEmpty(a.Title))
                 {
@@ -147,45 +185,53 @@ namespace HcPortal.Services
                 return new AllWorkersHistoryRow
                 {
                     WorkerId      = a.UserId,
-                    WorkerName    = a.User?.FullName ?? a.UserId,
-                    WorkerNIP     = a.User?.NIP,
+                    WorkerName    = a.UserFullName,
+                    WorkerNIP     = a.UserNIP,
                     RecordType    = "Assessment Online",
                     Title         = a.Title ?? "",
-                    Date          = a.CompletedAt ?? a.Schedule,
+                    Date          = a.Date,
                     Score         = a.Score,
                     IsPassed      = a.IsPassed,
                     AttemptNumber = attemptNumber
                 };
-            }));
+            }).ToList();
 
-            // Sort: grouped by title then date descending
-            assessmentRows = assessmentRows
+            var assessmentRows = archivedRows.Concat(currentRows)
                 .OrderBy(r => r.Title)
                 .ThenByDescending(r => r.Date)
                 .ToList();
 
-            // --- Training history ---
-            var trainings = await _context.TrainingRecords
+            // --- Training history (CMP-24 SQL push-down) ---
+            var trainingsQuery = _context.TrainingRecords
                 .AsNoTracking()
-                .Include(t => t.User)
-                .ToListAsync();
+                .AsQueryable();
 
-            var trainingRows = trainings.Select(t => new AllWorkersHistoryRow
-            {
-                WorkerId      = t.UserId,
-                WorkerName    = t.User?.FullName ?? t.UserId,
-                WorkerNIP     = t.User?.NIP,
-                RecordType    = "Manual",
-                Title         = t.Judul ?? "",
-                // PITFALL: TanggalMulai is nullable — must coalesce to Tanggal
-                Date          = t.TanggalMulai ?? t.Tanggal,
-                Penyelenggara = t.Penyelenggara,
-                // Phase 337 CMP-05: include Kategori + SubKategori untuk Export Training filter
-                Kategori      = t.Kategori,
-                SubKategori   = t.SubKategori
-            })
-            .OrderByDescending(r => r.Date)
-            .ToList();
+            if (hasWorkerFilter)
+                trainingsQuery = trainingsQuery.Where(t => workerIdList!.Contains(t.UserId));
+            if (from.HasValue)
+                trainingsQuery = trainingsQuery.Where(t => (t.TanggalMulai ?? t.Tanggal) >= from.Value);
+            if (to.HasValue)
+                trainingsQuery = trainingsQuery.Where(t => (t.TanggalMulai ?? t.Tanggal) <= to.Value);
+            if (!string.IsNullOrEmpty(category))
+                trainingsQuery = trainingsQuery.Where(t => t.Kategori == category);
+            if (!string.IsNullOrEmpty(subCategory))
+                trainingsQuery = trainingsQuery.Where(t => t.SubKategori == subCategory);
+
+            var trainingRows = await trainingsQuery
+                .Select(t => new AllWorkersHistoryRow
+                {
+                    WorkerId      = t.UserId,
+                    WorkerName    = t.User != null ? t.User.FullName : t.UserId,
+                    WorkerNIP     = t.User != null ? t.User.NIP : null,
+                    RecordType    = "Manual",
+                    Title         = t.Judul ?? "",
+                    Date          = t.TanggalMulai ?? t.Tanggal,
+                    Penyelenggara = t.Penyelenggara,
+                    Kategori      = t.Kategori,
+                    SubKategori   = t.SubKategori
+                })
+                .OrderByDescending(r => r.Date)
+                .ToListAsync();
 
             return (assessmentRows, trainingRows);
         }
@@ -195,8 +241,8 @@ namespace HcPortal.Services
         {
             var usersQuery = _context.Users
                 .Where(u => u.IsActive)
-                .Include(u => u.TrainingRecords)
                 .AsQueryable();
+            // Phase 337 CMP-25: HAPUS .Include(TrainingRecords) — load separate dengan SQL date filter
 
             if (!string.IsNullOrEmpty(section))
                 usersQuery = usersQuery.Where(u => u.Section == section);
@@ -214,64 +260,65 @@ namespace HcPortal.Services
             }
 
             var users = await usersQuery.AsNoTracking().ToListAsync();
-
             var userIds = users.Select(u => u.Id).ToList();
-            // Phase 215: batch load all AssessmentSessions for category filter
-            var assessmentSessionsByUser = await _context.AssessmentSessions
-                .AsNoTracking()
-                .Where(a => userIds.Contains(a.UserId))
-                .ToListAsync();
-            var assessmentSessionLookup = assessmentSessionsByUser
-                .GroupBy(a => a.UserId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-            var passedAssessmentLookup = assessmentSessionsByUser
-                .Where(a => a.IsPassed == true)
-                .GroupBy(a => a.UserId)
-                .ToDictionary(g => g.Key, g => g.Count());
 
             bool hasDateFilter = dateFrom.HasValue || dateTo.HasValue;
+
+            // Phase 337 CMP-25: TrainingRecords dengan SQL date filter (composed Where)
+            var trainingsQuery = _context.TrainingRecords
+                .AsNoTracking()
+                .Where(tr => userIds.Contains(tr.UserId));
+            if (dateFrom.HasValue)
+                trainingsQuery = trainingsQuery.Where(tr => (tr.TanggalMulai ?? tr.Tanggal) >= dateFrom.Value);
+            if (dateTo.HasValue)
+                trainingsQuery = trainingsQuery.Where(tr => (tr.TanggalMulai ?? tr.Tanggal) <= dateTo.Value);
+            var trainingsByUser = (await trainingsQuery.ToListAsync())
+                .GroupBy(tr => tr.UserId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Phase 337 CMP-25: AssessmentSessions dengan SQL date filter
+            var sessionsQuery = _context.AssessmentSessions
+                .AsNoTracking()
+                .Where(a => userIds.Contains(a.UserId));
+            if (dateFrom.HasValue)
+                sessionsQuery = sessionsQuery.Where(a => (a.CompletedAt ?? a.Schedule) >= dateFrom.Value);
+            if (dateTo.HasValue)
+                sessionsQuery = sessionsQuery.Where(a => (a.CompletedAt ?? a.Schedule) <= dateTo.Value);
+            var sessionsByUser = (await sessionsQuery.ToListAsync())
+                .GroupBy(a => a.UserId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // passedAssessmentLookup — pakai sessionsByUser bila date filter aktif, else fresh count query
+            Dictionary<string, int> passedAssessmentLookup;
+            if (hasDateFilter)
+            {
+                passedAssessmentLookup = sessionsByUser
+                    .ToDictionary(kv => kv.Key, kv => kv.Value.Count(a => a.IsPassed == true));
+            }
+            else
+            {
+                passedAssessmentLookup = await _context.AssessmentSessions
+                    .AsNoTracking()
+                    .Where(a => userIds.Contains(a.UserId) && a.IsPassed == true)
+                    .GroupBy(a => a.UserId)
+                    .Select(g => new { UserId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.UserId, x => x.Count);
+            }
 
             var workerList = new List<WorkerTrainingStatus>();
 
             foreach (var user in users)
             {
-                var allTrainingRecords = user.TrainingRecords.ToList();
-                var allAssessmentSessions = assessmentSessionLookup.TryGetValue(user.Id, out var allSessions)
-                    ? allSessions : new List<AssessmentSession>();
+                var trainingRecords = trainingsByUser.TryGetValue(user.Id, out var trs)
+                    ? trs : new List<TrainingRecord>();
+                var assessmentSessions = sessionsByUser.TryGetValue(user.Id, out var sess)
+                    ? sess : new List<AssessmentSession>();
 
-                // Apply date range filter to training records and assessment sessions
-                List<TrainingRecord> trainingRecords;
-                List<AssessmentSession> assessmentSessions;
+                // Skip worker if no records fall within date range (CMP-25 — preserve existing semantic)
+                if (hasDateFilter && trainingRecords.Count == 0 && assessmentSessions.Count == 0)
+                    continue;
 
-                if (hasDateFilter)
-                {
-                    trainingRecords = allTrainingRecords.Where(tr =>
-                    {
-                        var effectiveDate = (tr.TanggalMulai ?? tr.Tanggal).Date;
-                        return (dateFrom == null || effectiveDate >= dateFrom.Value.Date)
-                            && (dateTo == null || effectiveDate <= dateTo.Value.Date);
-                    }).ToList();
-
-                    assessmentSessions = allAssessmentSessions.Where(a =>
-                    {
-                        var effectiveDate = (a.CompletedAt ?? a.Schedule).Date;
-                        return (dateFrom == null || effectiveDate >= dateFrom.Value.Date)
-                            && (dateTo == null || effectiveDate <= dateTo.Value.Date);
-                    }).ToList();
-
-                    // Skip worker if no records fall within date range
-                    if (trainingRecords.Count == 0 && assessmentSessions.Count == 0)
-                        continue;
-                }
-                else
-                {
-                    trainingRecords = allTrainingRecords;
-                    assessmentSessions = allAssessmentSessions;
-                }
-
-                int completedAssessments = hasDateFilter
-                    ? assessmentSessions.Count(a => a.IsPassed == true)
-                    : (passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0);
+                int completedAssessments = passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0;
 
                 var totalTrainings = trainingRecords.Count;
                 var completedTrainings = trainingRecords.Count(tr =>
