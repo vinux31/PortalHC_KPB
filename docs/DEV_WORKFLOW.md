@@ -139,4 +139,71 @@ Salin ke deskripsi commit / PR:
 
 ---
 
-*Last updated: 2026-05-07 — initial version.*
+## Pre-Deploy Backup SOP (Phase 338 REST-05/06/07)
+
+**RULE:** Setiap deploy ke Dev (10.55.3.3) atau Prod yang melibatkan migration WAJIB include backup pre-migration. Cilacap PreTest 30 Mar 2026 hilang karena IT redeploy tanpa backup (root cause `336-ROOT_CAUSE.md`). Phase 338 W5 close gap ini.
+
+### Developer steps (sebelum push)
+
+1. Commit code + migration files lokal. Verify build PASS + tests green.
+2. Generate handoff doc dari template:
+   ```bash
+   cp docs/templates/DB_HANDOFF_IT.template.md docs/DB_HANDOFF_IT_$(date +%Y-%m-%d).md
+   # Edit fill placeholder {DATE}, {COMMIT_HASH}, {BRANCH}, {MIGRATION_LIST},
+   # {AFFECTED_TABLES}, {DEVELOPER_NAME}, {DEVELOPER_EMAIL}, {WINDOW_START}, dst
+   ```
+3. Optional: render Markdown→HTML pakai pandoc atau VS Code preview. Send ke IT
+   sebagai `.md` atau `.html`.
+4. Push commit + attach handoff doc ke IT email/WhatsApp notification.
+5. **Wait** IT confirm backup completed sebelum migration apply.
+
+### IT steps (di server)
+
+1. Receive handoff doc dari developer (Markdown atau HTML).
+2. Run backup script (Phase 338 REST-05):
+   ```powershell
+   .\scripts\backup-dev-pre-migration.ps1 `
+       -Server "10.55.3.3" `
+       -Database "HcPortalDB_Dev" `
+       -OutputPath "C:\Backup\HcPortalDB_Dev_pre_$(Get-Date -Format yyyyMMdd_HHmmss).bak"
+   ```
+3. Confirm output backup file size (script auto-print di akhir). Verify > 100 MB
+   (sesuaikan baseline DB size).
+4. Reply developer: "Backup OK, file at `{path}` size `{size}MB`, proceeding migration."
+5. Apply deployment per Section 4 handoff doc:
+   - Stop service → Pull commit → `dotnet ef database update` → Start service → Smoke test.
+6. Bila gagal: rollback via `RESTORE DATABASE` (Section 5 handoff doc) lalu notify developer.
+
+### Automated guardrail (Phase 338 REST-06)
+
+`CreateAssessment` admin form sekarang auto-detect counterpart Pre/Post group via
+title pattern `{Pre|Post}Test {Track} {Lokasi}` (336-NAMING-CONVENTION-SPEC).
+TempData info notify admin saat LinkedGroupId auto-paired — manual override
+allowed via direct field set. Orphan Pre/Post detection awal mencegah pair
+hilang seperti incident Cilacap.
+
+### Reference Files
+
+- Template: [`docs/templates/DB_HANDOFF_IT.template.md`](templates/DB_HANDOFF_IT.template.md)
+- Script: [`scripts/backup-dev-pre-migration.ps1`](../scripts/backup-dev-pre-migration.ps1)
+- Naming spec: [`336-NAMING-CONVENTION-SPEC.md`](../.planning/phases/336-investigate-pretest-loss-cilacap-restore-strategy/336-NAMING-CONVENTION-SPEC.md)
+- Incident root cause: [`336-ROOT_CAUSE.md`](../.planning/phases/336-investigate-pretest-loss-cilacap-restore-strategy/336-ROOT_CAUSE.md)
+- Existing handoff doc precedents: `docs/DB_HANDOFF_IT_2026-05-13.html`, `docs/DB_HANDOFF_IT_2026-05-26.html`
+
+### Lesson Learned (Phase 336 + 338)
+
+Cilacap PreTest 30 Mar 2026 hilang akibat IT pull code GitHub + sync DB tanpa
+backup Dev existing → data Dev (PreTest dibuat langsung di Dev, BUKAN bagian
+package sync) ke-overwrite. Root cause = OPERATIONAL, BUKAN aplikasi bug.
+
+Phase 338 close gap dengan 3 layer guard:
+1. **REST-05**: Template + script systematize backup workflow — IT punya artifact
+   versioned di repo, tidak bergantung disiplin tulis doc manual tiap deploy.
+2. **REST-06**: LinkedGroupId auto-pair di CreateAssessment — detect orphan Pre/Post
+   group AWAL supaya kalau salah satu hilang, sistem indicate inconsistency.
+3. **REST-07**: SOP doc onboarding developer baru — proses tertulis, traceable.
+
+---
+
+*Last updated: 2026-05-30 — Phase 338 REST-05/06/07 backup SOP + LinkedGroupId auto-pair.*
+*Initial version: 2026-05-07.*
