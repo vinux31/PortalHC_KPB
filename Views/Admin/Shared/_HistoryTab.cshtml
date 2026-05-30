@@ -65,14 +65,20 @@
                             <th class="p-3 text-center">Score</th>
                             <th class="p-3 text-center">Pass/Fail</th>
                             <th class="p-3">Tanggal</th>
+                            @* Phase 338 CIL-03: Actions column drill-down *@
+                            <th class="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var row in assessmentHistory)
                         {
-                            <tr class="assessment-history-row"
+                            @* Phase 338 CIL-03: row clickable bila SessionId tersedia (current Completed branch);
+                               archived branch SessionId null \u2192 row tidak clickable, Actions kolom tampil "\u2014" *@
+                            var hasDrillDown = row.SessionId.HasValue;
+                            <tr class="assessment-history-row @(hasDrillDown ? "cil03-row-link" : "")"
                                 data-worker="@row.WorkerName.ToLower() @(row.WorkerNIP?.ToLower() ?? "")"
-                                data-title="@row.Title">
+                                data-title="@row.Title"
+                                @(hasDrillDown ? Html.Raw($"data-href=\"/CMP/Results/{row.SessionId}\" tabindex=\"0\" role=\"link\" aria-label=\"Lihat detail assessment {row.Title} oleh {row.WorkerName}\"") : Html.Raw(""))>
                                 <td class="p-3 fw-semibold">@row.WorkerName</td>
                                 <td class="p-3 text-muted">@(row.WorkerNIP ?? "\u2014")</td>
                                 <td class="p-3"><span class="fw-semibold">@row.Title</span></td>
@@ -97,10 +103,45 @@
                                     { <span class="text-muted">\u2014</span> }
                                 </td>
                                 <td class="p-3">@row.Date.ToString("dd MMM yyyy")</td>
+                                <td class="p-3 text-center">
+                                    @if (hasDrillDown)
+                                    {
+                                        <a href="/CMP/Results/@row.SessionId" class="btn btn-sm btn-outline-primary"
+                                           title="Lihat detail result" aria-label="Lihat detail @row.Title">
+                                            <i class="bi bi-eye"></i> Lihat
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted" title="Archived attempt \u2014 detail tidak tersedia">\u2014</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
+                @* Phase 338 CIL-03: row clickable handler + a11y CSS *@
+                <style>
+                    tr.cil03-row-link { cursor: pointer; }
+                    tr.cil03-row-link:hover { background-color: rgba(13, 110, 253, 0.05); }
+                    tr.cil03-row-link:focus { outline: 2px solid #0d6efd; outline-offset: -2px; }
+                </style>
+                <script>
+                    (function() {
+                        document.querySelectorAll('tr.cil03-row-link[data-href]').forEach(function(row) {
+                            row.addEventListener('click', function(e) {
+                                if (e.target.closest('a, button, input, select')) return;
+                                window.location.href = row.dataset.href;
+                            });
+                            row.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    window.location.href = row.dataset.href;
+                                }
+                            });
+                        });
+                    })();
+                </script>
             </div>
         }
     </div>
