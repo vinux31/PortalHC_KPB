@@ -4464,6 +4464,221 @@ namespace HcPortal.Controllers
             return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
+        // =====================================================================
+        // Phase 338 CIL-06 (D-05): Bulk export per-peserta PDF dalam ZIP.
+        // Reuse SpiderChartRenderer (Phase 320 SkiaSharp) untuk radar chart PNG.
+        // QuestPDF 2026.2.2 generate multi-page PDF per peserta.
+        // T-338-02 DoS mitigation: max 50 peserta per batch.
+        // =====================================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> BulkExportPdf(string title, string category, DateTime scheduleDate)
+        {
+            var sessions = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .Where(s => s.Title == title && s.Category == category && s.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            var eligibleSessions = sessions
+                .Where(s => s.Status != "Cancelled" && (s.CompletedAt != null || s.Score != null))
+                .OrderBy(s => s.User != null ? s.User.FullName : "")
+                .ToList();
+
+            if (eligibleSessions.Count == 0)
+                return NotFound("Tidak ada peserta untuk export PDF.");
+
+            // T-338-02: DoS guard
+            if (eligibleSessions.Count > 50)
+                return BadRequest($"Max 50 peserta per batch. Ditemukan {eligibleSessions.Count}. Filter lebih spesifik via title/category/scheduleDate.");
+
+            var sessionIds = eligibleSessions.Select(s => s.Id).ToList();
+            var allResponses = await _context.PackageUserResponses
+                .Where(r => sessionIds.Contains(r.AssessmentSessionId)).ToListAsync();
+            var allEtScores = await _context.SessionElemenTeknisScores
+                .Where(et => sessionIds.Contains(et.AssessmentSessionId)).ToListAsync();
+            var sessionPackageMap = await _context.UserPackageAssignments
+                .Where(a => sessionIds.Contains(a.AssessmentSessionId))
+                .Select(a => new { a.AssessmentSessionId, a.AssessmentPackageId })
+                .ToListAsync();
+            var packageIds = sessionPackageMap.Select(x => x.AssessmentPackageId).Distinct().ToList();
+            var allQuestions = await _context.PackageQuestions
+                .Include(q => q.Options)
+                .Where(q => packageIds.Contains(q.AssessmentPackageId))
+                .ToListAsync();
+
+            var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
+            var fileName = $"{safeTitle}_{category}_{scheduleDate:yyyyMMdd}_Bundle.zip";
+
+            var memoryStream = new MemoryStream();
+            using (var zipArchive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
+            {
+                foreach (var session in eligibleSessions)
+                {
+                    var pdfBytes = GeneratePerPesertaPdf(session, allResponses, allEtScores, allQuestions, sessionPackageMap, title);
+                    var nameSlug = System.Text.RegularExpressions.Regex.Replace(session.User?.FullName ?? session.UserId, @"[^\w]", "_");
+                    var nip = session.User?.NIP ?? "noNIP";
+                    var entryName = $"{nip}_{nameSlug}_{safeTitle}.pdf";
+                    var entry = zipArchive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Optimal);
+                    using var entryStream = entry.Open();
+                    entryStream.Write(pdfBytes, 0, pdfBytes.Length);
+                }
+            }
+
+            memoryStream.Position = 0;
+            return File(memoryStream, "application/zip", fileName);
+        }
+
+        private byte[] GeneratePerPesertaPdf(
+            AssessmentSession session,
+            List<PackageUserResponse> allResponses,
+            List<SessionElemenTeknisScore> allEtScores,
+            List<PackageQuestion> allQuestions,
+            IEnumerable<dynamic> sessionPackageMap,
+            string title)
+        {
+            var sessionResponses = allResponses.Where(r => r.AssessmentSessionId == session.Id).ToList();
+            var sessionEt = allEtScores
+                .Where(et => et.AssessmentSessionId == session.Id)
+                .OrderBy(et => et.ElemenTeknis)
+                .ToList();
+
+            // Spider chart PNG via Phase 320 SpiderChartRenderer (OQ-338-1 reuse)
+            byte[]? spiderPng = null;
+            if (sessionEt.Count >= 3)
+            {
+                var etData = sessionEt
+                    .Select(e => (e.ElemenTeknis, e.QuestionCount > 0 ? (double)e.CorrectCount / e.QuestionCount * 100 : 0d))
+                    .ToList<(string label, double percentage)>();
+                spiderPng = HcPortal.Helpers.SpiderChartRenderer.RenderRadarPng(etData);
+            }
+
+            // Resolve session questions via package mapping
+            var sessionPkgIds = sessionPackageMap
+                .Where(x => (int)x.AssessmentSessionId == session.Id)
+                .Select(x => (int)x.AssessmentPackageId)
+                .ToList();
+            var sessionQuestions = allQuestions
+                .Where(q => sessionPkgIds.Contains(q.AssessmentPackageId))
+                .OrderBy(q => q.Order).ThenBy(q => q.Id)
+                .ToList();
+
+            return QuestPDF.Fluent.Document.Create(document =>
+            {
+                // Page 1: Cover + Spider Chart
+                document.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, QuestPDF.Infrastructure.Unit.Centimetre);
+                    page.PageColor(QuestPDF.Helpers.Colors.White);
+                    page.DefaultTextStyle(t => t.FontSize(11));
+
+                    page.Header().Column(col =>
+                    {
+                        col.Item().Text("Laporan Hasil Assessment").Bold().FontSize(18).FontColor(QuestPDF.Helpers.Colors.Blue.Darken2);
+                        col.Item().Text(title).FontSize(12).FontColor(QuestPDF.Helpers.Colors.Grey.Darken1);
+                        col.Item().LineHorizontal(1).LineColor(QuestPDF.Helpers.Colors.Grey.Lighten2);
+                    });
+
+                    page.Content().PaddingTop(10).Column(col =>
+                    {
+                        col.Spacing(10);
+
+                        // Peserta info card
+                        col.Item().Border(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(10).Column(c =>
+                        {
+                            c.Item().Text("Informasi Peserta").Bold().FontSize(13);
+                            c.Item().Text(t => { t.Span("Nama: ").Bold(); t.Span(session.User?.FullName ?? "Unknown"); });
+                            c.Item().Text(t => { t.Span("NIP: ").Bold(); t.Span(session.User?.NIP ?? "—"); });
+                            c.Item().Text(t => { t.Span("Tanggal: ").Bold(); t.Span((session.CompletedAt ?? session.Schedule).ToString("dd MMM yyyy")); });
+                            c.Item().Text(t => { t.Span("Skor: ").Bold(); t.Span(session.Score?.ToString() ?? "—").Bold().FontColor(session.IsPassed == true ? QuestPDF.Helpers.Colors.Green.Darken2 : QuestPDF.Helpers.Colors.Red.Darken2); });
+                            c.Item().Text(t => { t.Span("Status: ").Bold(); t.Span(session.IsPassed == true ? "Lulus" : "Tidak Lulus").Bold().FontColor(session.IsPassed == true ? QuestPDF.Helpers.Colors.Green.Darken2 : QuestPDF.Helpers.Colors.Red.Darken2); });
+                        });
+
+                        // Spider chart (kalau tersedia)
+                        if (spiderPng != null && spiderPng.Length > 0)
+                        {
+                            col.Item().PaddingTop(10).Text("Distribusi Skor per Elemen Teknis").Bold().FontSize(13);
+                            col.Item().AlignCenter().Width(350).Image(spiderPng);
+                        }
+                        else if (sessionEt.Any())
+                        {
+                            col.Item().PaddingTop(10).Text("Elemen Teknis (radar membutuhkan ≥3 elemen)").Italic().FontColor(QuestPDF.Helpers.Colors.Grey.Darken1);
+                            foreach (var et in sessionEt)
+                            {
+                                var pct = et.QuestionCount > 0 ? (double)et.CorrectCount / et.QuestionCount * 100 : 0;
+                                col.Item().Text($"• {et.ElemenTeknis}: {Math.Round(pct, 1)}% ({et.CorrectCount}/{et.QuestionCount})");
+                            }
+                        }
+                    });
+
+                    page.Footer().AlignRight().Text(t => { t.CurrentPageNumber(); t.Span(" / "); t.TotalPages(); });
+                });
+
+                // Page 2+: Detail Jawaban per Soal
+                if (sessionQuestions.Count > 0)
+                {
+                    document.Page(page =>
+                    {
+                        page.Size(PageSizes.A4);
+                        page.Margin(2, QuestPDF.Infrastructure.Unit.Centimetre);
+                        page.DefaultTextStyle(t => t.FontSize(10));
+
+                        page.Header().Column(col =>
+                        {
+                            col.Item().Text("Detail Jawaban per Soal").Bold().FontSize(14).FontColor(QuestPDF.Helpers.Colors.Blue.Darken2);
+                            col.Item().Text($"{session.User?.FullName ?? "Unknown"} — {session.User?.NIP ?? "—"}").FontSize(10).FontColor(QuestPDF.Helpers.Colors.Grey.Darken1);
+                            col.Item().LineHorizontal(1).LineColor(QuestPDF.Helpers.Colors.Grey.Lighten2);
+                        });
+
+                        page.Content().PaddingTop(10).Column(col =>
+                        {
+                            col.Spacing(8);
+                            int qNum = 1;
+                            foreach (var q in sessionQuestions)
+                            {
+                                var resp = sessionResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id);
+                                string jawaban = "—";
+                                bool? correct = null;
+
+                                if (resp != null)
+                                {
+                                    if (resp.PackageOptionId.HasValue)
+                                    {
+                                        var opt = q.Options?.FirstOrDefault(o => o.Id == resp.PackageOptionId.Value);
+                                        if (opt != null) { jawaban = opt.OptionText; correct = opt.IsCorrect; }
+                                    }
+                                    else if (!string.IsNullOrEmpty(resp.TextAnswer))
+                                    {
+                                        jawaban = resp.TextAnswer.Length > 300 ? resp.TextAnswer.Substring(0, 300) + "..." : resp.TextAnswer;
+                                        correct = resp.EssayScore.HasValue ? (bool?)(resp.EssayScore.Value >= (q.ScoreValue / 2)) : null;
+                                    }
+                                }
+
+                                var statusColor = correct == true ? QuestPDF.Helpers.Colors.Green.Darken1
+                                                : correct == false ? QuestPDF.Helpers.Colors.Red.Darken1
+                                                : QuestPDF.Helpers.Colors.Grey.Darken1;
+                                var statusText = correct == true ? "✓ Benar" : (correct == false ? "✗ Salah" : "— Pending");
+
+                                col.Item().Border(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(8).Column(c =>
+                                {
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span($"Soal {qNum}: ").Bold();
+                                        t.Span(statusText).FontColor(statusColor).Bold();
+                                    });
+                                    c.Item().PaddingTop(3).Text(q.QuestionText).FontSize(10);
+                                    c.Item().PaddingTop(5).Text(t => { t.Span("Jawaban: ").Bold(); t.Span(jawaban); });
+                                });
+                                qNum++;
+                            }
+                        });
+
+                        page.Footer().AlignRight().Text(t => { t.CurrentPageNumber(); t.Span(" / "); t.TotalPages(); });
+                    });
+                }
+            }).GeneratePdf();
+        }
+
         // --- USER ASSESSMENT HISTORY ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
