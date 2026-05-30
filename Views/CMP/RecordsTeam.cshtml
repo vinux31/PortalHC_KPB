@@ -1,19 +1,13 @@
 @model List<HcPortal.Models.WorkerTrainingStatus>
-@using Microsoft.AspNetCore.Identity
 @using HcPortal.Models
-@inject UserManager<ApplicationUser> UserManager
 
 @{
-    var currentUser = await UserManager.GetUserAsync(User);
-    var userRoles = await UserManager.GetRolesAsync(currentUser);
-    var userRole = userRoles.FirstOrDefault();
-    var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+    // Phase 337 CMP-21/22: consume ViewData dari parent (Records.cshtml) — TIDAK panggil UserManager
+    var roleLevel = (int)(ViewData["RoleLevel"] ?? 5);
+    var lockedSection = ViewData["LockedSection"] as string;
 
     var sectionUnitsJson = ViewBag.SectionUnitsJson as string ?? "{}";
     var allSections = (ViewBag.AllSections as List<string>) ?? new List<string>();
-
-    // For Level 4 (SectionHead, SrSupervisor), lock section to user's section
-    var lockedSection = roleLevel == 4 ? currentUser.Section : null;
 }
 
 <div class="container-fluid p-0">
@@ -112,11 +106,14 @@
         </div>
     </div>
 
-    <!-- Worker Counter -->
+    <!-- Worker Counter + Date Hint (Phase 337 CMP-15) -->
     <div class="mb-3">
         <small class="text-muted">
             Showing <span id="workerCount" class="fw-bold">@Model.Count</span> workers
         </small>
+        <div id="dateFilterHint" class="alert alert-info py-2 mt-2 small" style="display:none" role="status" aria-live="polite">
+            <!-- Diisi JS oleh updateDateHint -->
+        </div>
     </div>
 
     <!-- Loading Indicator -->
@@ -210,92 +207,124 @@ function updateUnitOptions() {
     }
 }
 
-// Phase 215: Populate Sub Category dropdown dependent pada Category
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('categoryFilter').addEventListener('change', function() {
-        var cat = this.value;
-        var subSelect = document.getElementById('subCategoryFilter');
-        subSelect.innerHTML = '<option value="">All Sub Categories</option>';
-        subSelect.disabled = !cat;
-        if (cat && subCategoryMap[cat]) {
-            subCategoryMap[cat].forEach(function(sub) {
-                var opt = document.createElement('option');
-                opt.value = sub;
-                opt.textContent = sub;
-                subSelect.appendChild(opt);
-            });
+// Phase 337 CMP-12/13/15/17 — refactored: AbortController + immediate export sync + date hint + sessionStorage
+let debounceTimer;
+let currentAbortController = null;
+let initialWorkerCount = @Model.Count;
+
+function getFilterState() {
+    return {
+        section: document.getElementById('sectionFilter').value,
+        unit: document.getElementById('unitFilter').value,
+        category: document.getElementById('categoryFilter').value,
+        subCategory: document.getElementById('subCategoryFilter').value,
+        status: document.getElementById('statusFilter').value,
+        dateFrom: document.getElementById('dateFrom').value,
+        dateTo: document.getElementById('dateTo').value
+    };
+}
+
+function saveFilterState() {
+    sessionStorage.setItem('cmp-records-team-filter', JSON.stringify(getFilterState()));
+}
+
+function restoreFilterState() {
+    var stored = sessionStorage.getItem('cmp-records-team-filter');
+    if (!stored) return false;
+    try {
+        var state = JSON.parse(stored);
+        var sectionFilter = document.getElementById('sectionFilter');
+        if (!sectionFilter.disabled && state.section) sectionFilter.value = state.section;
+        if (state.section || sectionFilter.value) updateUnitOptions();
+        if (state.unit) document.getElementById('unitFilter').value = state.unit;
+        if (state.category) {
+            document.getElementById('categoryFilter').value = state.category;
+            // Trigger change handler to populate subCategory dropdown options
+            document.getElementById('categoryFilter').dispatchEvent(new Event('change'));
+            if (state.subCategory) document.getElementById('subCategoryFilter').value = state.subCategory;
         }
-        filterTeamTable();
-    });
-});
+        if (state.status) document.getElementById('statusFilter').value = state.status;
+        if (state.dateFrom) document.getElementById('dateFrom').value = state.dateFrom;
+        if (state.dateTo) document.getElementById('dateTo').value = state.dateTo;
+        return true;
+    } catch (e) { return false; }
+}
 
 function updateExportLinks() {
-    const section = document.getElementById('sectionFilter').value;
-    const unit = document.getElementById('unitFilter').value;
-    const status = document.getElementById('statusFilter').value;
-    const category = document.getElementById('categoryFilter')?.value || '';
-    const subCategory = document.getElementById('subCategoryFilter')?.value || '';
-    const dateFrom = document.getElementById('dateFrom').value;
-    const dateTo = document.getElementById('dateTo').value;
-
+    const s = getFilterState();
     const baseAssessment = '@Url.Action("ExportRecordsTeamAssessment", "CMP")';
     const baseTraining = '@Url.Action("ExportRecordsTeamTraining", "CMP")';
-
     const params = new URLSearchParams();
-    if (section) params.set('section', section);
-    if (unit) params.set('unit', unit);
-    if (status && status !== 'ALL') params.set('statusFilter', status);
-    if (category) params.set('category', category);
-    if (subCategory) params.set('subCategory', subCategory);
-    if (dateFrom) params.set('dateFrom', dateFrom);
-    if (dateTo) params.set('dateTo', dateTo);
-
+    if (s.section) params.set('section', s.section);
+    if (s.unit) params.set('unit', s.unit);
+    if (s.status && s.status !== 'ALL') params.set('statusFilter', s.status);
+    if (s.category) params.set('category', s.category);
+    if (s.subCategory) params.set('subCategory', s.subCategory);
+    if (s.dateFrom) params.set('dateFrom', s.dateFrom);
+    if (s.dateTo) params.set('dateTo', s.dateTo);
     const qs = params.toString();
     document.getElementById('btnExportAssessment').href = baseAssessment + (qs ? '?' + qs : '');
     document.getElementById('btnExportTraining').href = baseTraining + (qs ? '?' + qs : '');
 }
 
-let debounceTimer;
+function updateDateHint(currentCount, state) {
+    var hintEl = document.getElementById('dateFilterHint');
+    if (!hintEl) return;
+    var hasDateFilter = state.dateFrom || state.dateTo;
+    if (hasDateFilter && currentCount < initialWorkerCount) {
+        hintEl.textContent = 'Beberapa worker tidak punya record di rentang tanggal ini — disembunyikan dari list.';
+        hintEl.style.display = '';
+    } else {
+        hintEl.style.display = 'none';
+    }
+}
+
 function filterTeamTable() {
+    // Phase 337 CMP-13: update export links IMMEDIATELY (sebelum debounce)
+    updateExportLinks();
+    // Phase 337 CMP-17: persist state immediately
+    saveFilterState();
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(doFetch, 300);
 }
 
 async function doFetch() {
-    const params = new URLSearchParams();
-    const section = document.getElementById('sectionFilter').value;
-    const unit = document.getElementById('unitFilter').value;
-    const category = document.getElementById('categoryFilter').value;
-    const subCategory = document.getElementById('subCategoryFilter').value;
-    const status = document.getElementById('statusFilter').value;
-    const dateFrom = document.getElementById('dateFrom').value;
-    const dateTo = document.getElementById('dateTo').value;
+    // Phase 337 CMP-12: abort previous in-flight request supaya late response tidak timpa fresh
+    if (currentAbortController) {
+        currentAbortController.abort();
+    }
+    currentAbortController = new AbortController();
 
-    if (section) params.set('section', section);
-    if (unit) params.set('unit', unit);
-    if (category) params.set('category', category);
-    if (subCategory) params.set('subCategory', subCategory);
-    if (status && status !== 'ALL') params.set('statusFilter', status);
-    if (dateFrom) params.set('dateFrom', dateFrom);
-    if (dateTo) params.set('dateTo', dateTo);
+    const params = new URLSearchParams();
+    const s = getFilterState();
+    if (s.section) params.set('section', s.section);
+    if (s.unit) params.set('unit', s.unit);
+    if (s.category) params.set('category', s.category);
+    if (s.subCategory) params.set('subCategory', s.subCategory);
+    if (s.status && s.status !== 'ALL') params.set('statusFilter', s.status);
+    if (s.dateFrom) params.set('dateFrom', s.dateFrom);
+    if (s.dateTo) params.set('dateTo', s.dateTo);
 
     document.getElementById('tableLoadingIndicator').style.display = '';
 
     try {
         const resp = await fetch('@Url.Action("RecordsTeamPartial", "CMP")?' + params.toString(),
-            { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal: currentAbortController.signal });
         if (!resp.ok) throw new Error('Server error');
         const html = await resp.text();
         document.getElementById('workerTableBody').innerHTML = html;
         const count = document.querySelectorAll('#workerTableBody .worker-row').length;
         document.getElementById('workerCount').textContent = count;
+        // Phase 337 CMP-15: date hint
+        updateDateHint(count, s);
     } catch (e) {
+        if (e.name === 'AbortError') return;  // Phase 337 CMP-12: ignore aborted
         document.getElementById('workerTableBody').innerHTML =
             '<tr><td colspan="8" class="text-center text-danger p-4">Gagal memuat data. Coba lagi.</td></tr>';
     } finally {
         document.getElementById('tableLoadingIndicator').style.display = 'none';
+        // Note: updateExportLinks() sudah dipanggil di filterTeamTable head, TIDAK perlu lagi (Phase 337 CMP-13)
     }
-    updateExportLinks();
 }
 
 function resetTeamFilters() {
@@ -314,17 +343,43 @@ function resetTeamFilters() {
     if (isLocked) {
         updateUnitOptions();
     }
+    sessionStorage.removeItem('cmp-records-team-filter');
     filterTeamTable();
-    updateExportLinks();
 }
 
-// Initial setup on page load
+// Phase 215 + Phase 337 CMP-14: SubCategory disabled bila Category tidak punya children
 document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        var cat = this.value;
+        var subSelect = document.getElementById('subCategoryFilter');
+        subSelect.innerHTML = '<option value="">All Sub Categories</option>';
+        var hasChildren = cat && subCategoryMap[cat] && subCategoryMap[cat].length > 0;
+        subSelect.disabled = !hasChildren;
+        if (hasChildren) {
+            subCategoryMap[cat].forEach(function(sub) {
+                var opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subSelect.appendChild(opt);
+            });
+        }
+        filterTeamTable();
+    });
+
     // For L4 locked Bagian, auto-populate units
     var sectionFilter = document.getElementById('sectionFilter');
     if (sectionFilter.disabled && sectionFilter.value) {
         updateUnitOptions();
     }
+
+    // Phase 337 CMP-17: restore filter state (bila ada)
+    if (restoreFilterState()) {
+        // State restored — re-fetch dengan filter (tapi tidak save state lagi, hindari loop)
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(doFetch, 100);
+    }
+
+    // Initial export links sync
     updateExportLinks();
 });
 </script>
