@@ -36,7 +36,7 @@
         <li class="nav-item">
             <a class="nav-link active" id="tab-myrecords" data-bs-toggle="tab" href="#pane-myrecords">
                 <i class="bi bi-person me-1"></i>My Records
-                <span class="badge bg-info ms-1">@totalCount</span>
+                <span id="totalCountBadge" class="badge bg-info ms-1">@totalCount</span>
             </a>
         </li>
         @if (roleLevel <= 4)
@@ -93,7 +93,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-muted mb-1 small">Assessment Online</h6>
-                                    <h3 class="fw-bold mb-0">@assessmentCount</h3>
+                                    <h3 id="assessmentStatCount" class="fw-bold mb-0">@assessmentCount</h3>
                                 </div>
                             </div>
                         </div>
@@ -109,7 +109,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-muted mb-1 small">Training Manual</h6>
-                                    <h3 class="fw-bold mb-0">@trainingCount</h3>
+                                    <h3 id="trainingStatCount" class="fw-bold mb-0">@trainingCount</h3>
                                 </div>
                             </div>
                         </div>
@@ -125,7 +125,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-muted mb-1 small">Total Records</h6>
-                                    <h3 class="fw-bold mb-0">@totalCount</h3>
+                                    <h3 id="totalStatCount" class="fw-bold mb-0">@totalCount</h3>
                                 </div>
                             </div>
                         </div>
@@ -155,6 +155,7 @@
                                         : null;
                                     <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
                                         data-title="@item.Title.ToLower()" data-year="@item.Date.Year"
+                                        data-type="@(item.RecordType == "Assessment Online" ? "assessment" : "training")"
                                         @(resultsUrl != null ? Html.Raw($"onclick=\"window.location.href='{resultsUrl}'\"") : Html.Raw(""))
                                         style="@(resultsUrl != null ? "cursor:pointer;" : "")">
                                         <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
@@ -175,7 +176,7 @@
                                             } else if (item.IsPassed == false) {
                                                 <span class="badge bg-danger">Failed</span>
                                             } else if (!string.IsNullOrEmpty(item.Status)) {
-                                                var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Failed" => "bg-danger", "Expired" => "bg-warning text-dark", _ => "bg-secondary" };
+                                                var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Completed" => "bg-info", "Permanent" => "bg-success", "Failed" => "bg-danger", "Expired" => "bg-warning text-dark", _ => "bg-secondary" };
                                                 <span class="badge @sc">@item.Status</span>
                                             } else {
                                                 <span class="text-muted">—</span>
@@ -183,12 +184,25 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             @if (item.RecordType == "Training Manual") {
-                                                @if (item.ValidUntil.HasValue) {
+                                                @* Phase 337 CMP-08: Permanent badge *@
+                                                @if (item.Status == "Permanent") {
+                                                    <span class="badge bg-success mb-1"><i class="bi bi-infinity me-1"></i>Permanen</span>
+                                                    <br />
+                                                } else if (item.ValidUntil.HasValue) {
                                                     <div>@item.ValidUntil.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</div>
                                                     @if (item.IsExpired) {
                                                         <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
                                                     }
-                                                } else { <span class="text-muted">—</span> }
+                                                }
+                                                @* Phase 337 CMP-07: Training SertifikatUrl link *@
+                                                @if (!string.IsNullOrEmpty(item.SertifikatUrl)) {
+                                                    <a href="@item.SertifikatUrl" target="_blank" rel="noopener"
+                                                       class="btn btn-sm btn-outline-primary mt-1">
+                                                        <i class="bi bi-file-earmark-pdf me-1"></i>Lihat
+                                                    </a>
+                                                } else if (item.Status != "Permanent" && !item.ValidUntil.HasValue) {
+                                                    <span class="text-muted">—</span>
+                                                }
                                             } else if (item.RecordType == "Assessment Online" && item.GenerateCertificate && item.AssessmentSessionId.HasValue) {
                                                 <a asp-action="Certificate" asp-controller="CMP" asp-route-id="@item.AssessmentSessionId.Value"
                                                    class="btn btn-sm btn-outline-primary" target="_blank">
@@ -305,20 +319,45 @@
 </style>
 
 <script>
+// Phase 337 CMP-09: decode HTML entities supaya "&" search match data-title yang Razor-encoded
+function decodeEntities(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.innerHTML = s;
+    return (d.textContent || '').toLowerCase();
+}
+
 // Filter works on My Records tab only
 function filterTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const yearFilter = document.getElementById('yearFilter').value;
     let visibleCount = 0;
+    let visibleAssessment = 0;
+    let visibleTraining = 0;
     document.querySelectorAll('#recordsTable .training-row').forEach(row => {
-        const title = row.getAttribute('data-title');
+        const title = decodeEntities(row.getAttribute('data-title'));
         const year = row.getAttribute('data-year');
+        const type = row.getAttribute('data-type');
         const matchSearch = !searchTerm || title.includes(searchTerm);
         const matchYear = !yearFilter || year === yearFilter;
         const show = matchSearch && matchYear;
         row.style.display = show ? '' : 'none';
-        if (show) visibleCount++;
+        if (show) {
+            visibleCount++;
+            if (type === 'assessment') visibleAssessment++;
+            else if (type === 'training') visibleTraining++;
+        }
     });
+
+    // Phase 337 CMP-10: per-filter counter update real-time
+    var totalBadge = document.getElementById('totalCountBadge');
+    if (totalBadge) totalBadge.textContent = visibleCount;
+    var aStat = document.getElementById('assessmentStatCount');
+    if (aStat) aStat.textContent = visibleAssessment;
+    var tStat = document.getElementById('trainingStatCount');
+    if (tStat) tStat.textContent = visibleTraining;
+    var totalStat = document.getElementById('totalStatCount');
+    if (totalStat) totalStat.textContent = visibleCount;
 
     // Empty state handling
     var emptyRow = document.getElementById('myRecordsEmptyState');
