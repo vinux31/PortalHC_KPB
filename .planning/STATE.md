@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v20.0
 milestone_name: CMP Records Overhaul + Cilacap UX/Restore
-status: Active — 3-phase sequential plan locked (Phase 336-338 Opsi 2)
-last_updated: "2026-05-30T11:30:00+08:00"
-last_activity: 2026-05-30 -- v19.0 milestone COMPLETED + ARCHIVED (11 phase dir 325-335 moved ke .planning/milestones/v19.0-phases/, ROADMAP body collapsed, archive marker added). v20.0 active — REQUIREMENTS.md 39 REQ (CMP-01..26 + CIL-01..06 + REST-01..07). Phase 336-338 ready discuss. v19.0 push (~99 commit batch) masih hold IT availability.
+status: Active — Phase 336 SHIPPED LOCAL (1/3), root cause identified IT redeploy lupa backup, Strategy A re-import locked
+last_updated: "2026-05-30T12:30:00+08:00"
+last_activity: 2026-05-30 -- Phase 336 investigation SHIPPED LOCAL. 4 OQ resolved (NO backup, NO EnsureCreated, silent delete path F-variant IT redeploy, naming backward DEFER). Strategy A re-import via Excel backup user locked. REST-05 backup hook escalated CRITICAL must-have (prevent recurrence). 3 deliverable doc complete (ROOT_CAUSE 193 + RESTORE-DECISION 151 + NAMING-CONVENTION-SPEC 175 baris). Zero source code modified. Phase 337 ready discuss/plan.
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State: Portal HC KPB
@@ -24,15 +24,15 @@ See: .planning/PROJECT.md (updated 2026-05-30)
 
 ## Current Position
 
-Phase: Not started (Phase 336 ready discuss)
-Plan: —
-Status: **v20.0 planning — REQUIREMENTS + ROADMAP defined, Phase 336 next**
+Phase: 336 (investigate-pretest-loss-cilacap-restore-strategy) — **SHIPPED LOCAL** ✅
+Plan: 1 of 1 COMPLETE
+Status: **1/3 phase v20.0 SHIPPED LOCAL = 33%. Root cause confirmed = IT redeploy lupa backup. Strategy A re-import locked.**
 Last activity: 2026-05-30
 
 ## Next Action
 
-1. **`/gsd-discuss-phase 336`** — gather context investigation PreTest loss (paling ringan, ~1-2 hari, hasil feed Phase 338 Wave 4 restore decision).
-2. **Monitor IT availability** untuk push v19.0 batch (~98 commit lokal) — bisa paralel dengan v20.0 work.
+1. **`/gsd-discuss-phase 337`** — CMP Records overhaul Approach C Full (26 REQ, ~1 minggu+). Independent dari Phase 336 (zero file overlap).
+2. **Monitor IT availability** untuk push v19.0+336 batch (~103 commit lokal) — paralel track.
 3. **(Optional)** Update `.planning/config.json` `milestone_version: v15.0 → v20.0` (cosmetic, gsd-tools warn unknown key anyway).
 4. **(Backlog housekeeping non-blocker)**: v16.0 milestone (Phases 315-319) + v19.0 (325-335) belum punya entry di `MILESTONES.md` log. Tambah saat /gsd-complete-milestone v19.0.
 
