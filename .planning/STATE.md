@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v20.0
-milestone_name: CMP Records Overhaul + Cilacap UX/Restore
-status: Active — Phase 336 SHIPPED LOCAL (1/3), root cause identified IT redeploy lupa backup, Strategy A re-import locked
-last_updated: "2026-05-30T12:30:00+08:00"
-last_activity: 2026-05-30 -- Phase 336 investigation SHIPPED LOCAL. 4 OQ resolved (NO backup, NO EnsureCreated, silent delete path F-variant IT redeploy, naming backward DEFER). Strategy A re-import via Excel backup user locked. REST-05 backup hook escalated CRITICAL must-have (prevent recurrence). 3 deliverable doc complete (ROOT_CAUSE 193 + RESTORE-DECISION 151 + NAMING-CONVENTION-SPEC 175 baris). Zero source code modified. Phase 337 ready discuss/plan.
+milestone: v16.0
+milestone_name: QA Test Coverage
+status: executing
+last_updated: "2026-05-30T05:31:20.028Z"
+last_activity: 2026-05-30 -- Phase 337 execution started
 progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 33
+  total_phases: 6
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State: Portal HC KPB
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v20.0 — 3 PR bundle (CMP Records overhaul + Cilacap UX gap + PreTest restore investigation/execute)
+**Current focus:** Phase 337 — cmp-records-full-overhaul-filter-data-arch-a11y
 
 ## Current Position
 
-Phase: 336 (investigate-pretest-loss-cilacap-restore-strategy) — **SHIPPED LOCAL** ✅
-Plan: 1 of 1 COMPLETE
-Status: **1/3 phase v20.0 SHIPPED LOCAL = 33%. Root cause confirmed = IT redeploy lupa backup. Strategy A re-import locked.**
-Last activity: 2026-05-30
+Phase: 337 (cmp-records-full-overhaul-filter-data-arch-a11y) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 337
+Last activity: 2026-05-30 -- Phase 337 execution started
 
 ## Next Action
 
