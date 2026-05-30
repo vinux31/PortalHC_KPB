@@ -48,7 +48,13 @@ namespace HcPortal.Services
                 Title = a.Title,
                 Score = a.Score,
                 IsPassed = a.IsPassed,
-                Status = a.IsPassed == true ? "Passed" : "Failed",
+                // Phase 337 CMP-06: three-way switch (null = Completed, bukan Failed palsu)
+                Status = a.IsPassed switch
+                {
+                    true => "Passed",
+                    false => "Failed",
+                    null => "Completed"
+                },
                 SortPriority = 0,
                 AssessmentSessionId = a.Id,
                 GenerateCertificate = a.GenerateCertificate,
@@ -126,8 +132,18 @@ namespace HcPortal.Services
 
             assessmentRows.AddRange(currentCompleted.Select(a =>
             {
-                var key = (a.UserId, a.Title ?? "");
-                int archived = archivedCountLookup.TryGetValue(key, out var c) ? c : 0;
+                // Phase 337 CMP-11: title-null tidak boleh collide ke key "" — default ke 1
+                int attemptNumber;
+                if (string.IsNullOrEmpty(a.Title))
+                {
+                    attemptNumber = 1;
+                }
+                else
+                {
+                    var key = (a.UserId, a.Title);
+                    int archived = archivedCountLookup.TryGetValue(key, out var c) ? c : 0;
+                    attemptNumber = archived + 1;
+                }
                 return new AllWorkersHistoryRow
                 {
                     WorkerId      = a.UserId,
@@ -138,7 +154,7 @@ namespace HcPortal.Services
                     Date          = a.CompletedAt ?? a.Schedule,
                     Score         = a.Score,
                     IsPassed      = a.IsPassed,
-                    AttemptNumber = archived + 1
+                    AttemptNumber = attemptNumber
                 };
             }));
 
@@ -163,7 +179,10 @@ namespace HcPortal.Services
                 Title         = t.Judul ?? "",
                 // PITFALL: TanggalMulai is nullable — must coalesce to Tanggal
                 Date          = t.TanggalMulai ?? t.Tanggal,
-                Penyelenggara = t.Penyelenggara
+                Penyelenggara = t.Penyelenggara,
+                // Phase 337 CMP-05: include Kategori + SubKategori untuk Export Training filter
+                Kategori      = t.Kategori,
+                SubKategori   = t.SubKategori
             })
             .OrderByDescending(r => r.Date)
             .ToList();
@@ -172,7 +191,7 @@ namespace HcPortal.Services
         }
 
         // Admin version used as base — includes IsActive filter that CMP version is missing
-        public async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+        public async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? subCategory = null)
         {
             var usersQuery = _context.Users
                 .Where(u => u.IsActive)
@@ -284,7 +303,7 @@ namespace HcPortal.Services
                 {
                     bool isCompleted = trainingRecords.Any(r =>
                         !string.IsNullOrEmpty(r.Kategori) &&
-                        r.Kategori.Contains(category, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(r.Kategori, category, StringComparison.OrdinalIgnoreCase) &&
                         (r.Status == "Passed" || r.Status == "Valid" || r.Status == "Permanent")
                     );
                     worker.CompletionPercentage = isCompleted ? 100 : 0;
@@ -299,7 +318,28 @@ namespace HcPortal.Services
                 workerList.Add(worker);
             }
 
-            if (!string.IsNullOrEmpty(statusFilter) && !string.IsNullOrEmpty(category))
+            // Phase 337 CMP-03: Category narrow workerList (bukan hanya set CompletionPercentage)
+            if (!string.IsNullOrEmpty(category))
+            {
+                workerList = workerList.Where(w =>
+                    w.TrainingRecords.Any(t => !string.IsNullOrEmpty(t.Kategori) &&
+                                               string.Equals(t.Kategori, category, StringComparison.OrdinalIgnoreCase))
+                    || w.AssessmentSessions.Any(a => !string.IsNullOrEmpty(a.Category) &&
+                                                      string.Equals(a.Category, category, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            // Phase 337 CMP-02: SubCategory narrow workerList
+            if (!string.IsNullOrEmpty(subCategory))
+            {
+                workerList = workerList.Where(w =>
+                    w.TrainingRecords.Any(t => !string.IsNullOrEmpty(t.SubKategori) &&
+                                               string.Equals(t.SubKategori, subCategory, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            // Phase 337 CMP-01: statusFilter apply mandiri (guard `&& !string.IsNullOrEmpty(category)` dihapus)
+            if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "ALL")
             {
                 if (statusFilter == "Sudah")
                     workerList = workerList.Where(w => w.CompletionPercentage == 100).ToList();
