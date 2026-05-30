@@ -4509,23 +4509,26 @@ namespace HcPortal.Controllers
             var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
             var fileName = $"{safeTitle}_{category}_{scheduleDate:yyyyMMdd}_Bundle.zip";
 
-            var memoryStream = new MemoryStream();
-            using (var zipArchive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
+            byte[] zipBytes;
+            using (var memoryStream = new MemoryStream())
             {
-                foreach (var session in eligibleSessions)
+                using (var zipArchive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
                 {
-                    var pdfBytes = GeneratePerPesertaPdf(session, allResponses, allEtScores, allQuestions, sessionPackageMap, title);
-                    var nameSlug = System.Text.RegularExpressions.Regex.Replace(session.User?.FullName ?? session.UserId, @"[^\w]", "_");
-                    var nip = session.User?.NIP ?? "noNIP";
-                    var entryName = $"{nip}_{nameSlug}_{safeTitle}.pdf";
-                    var entry = zipArchive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Optimal);
-                    using var entryStream = entry.Open();
-                    entryStream.Write(pdfBytes, 0, pdfBytes.Length);
+                    foreach (var session in eligibleSessions)
+                    {
+                        var pdfBytes = GeneratePerPesertaPdf(session, allResponses, allEtScores, allQuestions, sessionPackageMap, title);
+                        var nameSlug = System.Text.RegularExpressions.Regex.Replace(session.User?.FullName ?? session.UserId, @"[^\w]", "_");
+                        var nip = session.User?.NIP ?? "noNIP";
+                        var entryName = $"{nip}_{nameSlug}_{safeTitle}.pdf";
+                        var entry = zipArchive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Optimal);
+                        using var entryStream = entry.Open();
+                        entryStream.Write(pdfBytes, 0, pdfBytes.Length);
+                    }
                 }
+                zipBytes = memoryStream.ToArray();
             }
 
-            memoryStream.Position = 0;
-            return File(memoryStream, "application/zip", fileName);
+            return File(zipBytes, "application/zip", fileName);
         }
 
         private byte[] GeneratePerPesertaPdf(
