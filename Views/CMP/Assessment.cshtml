@@ -50,14 +50,25 @@
         </div>
     </div>
 
+    @* Phase 338 CIL-04: banner role-gated. Admin/HC redirect ke admin history view, worker biasa ke personal Records *@
     <!-- Training Records callout -->
     <div class="alert alert-info d-flex align-items-center gap-2 mb-4" role="alert">
         <i class="bi bi-clock-history fs-5"></i>
         <span>
-            Looking for completed assessments?
-            <a href="@Url.Action("Records", "CMP")" class="alert-link fw-semibold">
-                View your Training Records
-            </a>
+            @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+            {
+                <strong>Tip Admin/HC:</strong> @:Cari completed assessment lain di seluruh user?
+                <a href="/Admin/ManageAssessment?tab=history" class="alert-link fw-semibold">
+                    View admin assessment history
+                </a>
+            }
+            else
+            {
+                @:Looking for completed assessments?
+                <a href="@Url.Action("Records", "CMP")" class="alert-link fw-semibold">
+                    View your Training Records
+                </a>
+            }
         </span>
     </div>
 
