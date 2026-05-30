@@ -27,4 +27,8 @@ public class AllWorkersHistoryRow
 
     // Phase 46: Attempt sequencing for Riwayat Assessment sub-tab
     public int? AttemptNumber { get; set; }
+
+    // Phase 337 CMP-05: Category + SubCategory for filter parity di ExportRecordsTeamTraining
+    public string? Kategori { get; set; }
+    public string? SubKategori { get; set; }
 }

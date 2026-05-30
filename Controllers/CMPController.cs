@@ -634,7 +634,7 @@ namespace HcPortal.Controllers
 
         // Phase 176: Export team assessment records as Excel (filtered by current view params)
         [HttpGet]
-        public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter, string? dateFrom, string? dateTo)
+        public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter, string? category, string? subCategory, string? dateFrom, string? dateTo)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
@@ -654,7 +654,8 @@ namespace HcPortal.Controllers
             var (assessmentRows, _) = await _workerDataService.GetAllWorkersHistory();
 
             // Get filtered worker IDs from GetWorkersInSection (with date range)
-            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, null, search, statusFilter, from, to);
+            // Phase 337: forward category + subCategory supaya workerList consistent dengan UI filter
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory);
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
@@ -687,7 +688,7 @@ namespace HcPortal.Controllers
 
         // Phase 176: Export team training records as Excel (filtered by current view params)
         [HttpGet]
-        public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category, string? dateFrom, string? dateTo)
+        public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category, string? subCategory, string? dateFrom, string? dateTo)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
@@ -707,7 +708,7 @@ namespace HcPortal.Controllers
             var (_, trainingRows) = await _workerDataService.GetAllWorkersHistory();
 
             // Get filtered worker IDs from GetWorkersInSection (with date range)
-            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to);
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory);
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
@@ -716,6 +717,11 @@ namespace HcPortal.Controllers
                 .Where(r => filteredIds.Contains(r.WorkerId))
                 .Where(r => from == null || r.Date.Date >= from.Value.Date)
                 .Where(r => to == null || r.Date.Date <= to.Value.Date)
+                // Phase 337 CMP-05: drop training rows luar Category/SubCategory filter
+                .Where(r => string.IsNullOrEmpty(category) ||
+                            string.Equals(r.Kategori, category, StringComparison.OrdinalIgnoreCase))
+                .Where(r => string.IsNullOrEmpty(subCategory) ||
+                            string.Equals(r.SubKategori, subCategory, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             using var workbook = new XLWorkbook();
@@ -753,7 +759,7 @@ namespace HcPortal.Controllers
             DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
             var workerList = await _workerDataService.GetWorkersInSection(
-                sectionFilter, unit, category, null, statusFilter, from, to);
+                sectionFilter, unit, category, null, statusFilter, from, to, subCategory);
 
             return PartialView("_RecordsTeamBody", workerList);
         }
