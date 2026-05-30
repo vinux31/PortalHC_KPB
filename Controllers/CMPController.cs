@@ -666,20 +666,18 @@ namespace HcPortal.Controllers
             DateTime? from = DateTime.TryParse(dateFrom, out var parsedFrom) ? parsedFrom : null;
             DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
-            var (assessmentRows, _) = await _workerDataService.GetAllWorkersHistory();
-
-            // Get filtered worker IDs from GetWorkersInSection (with date range)
-            // Phase 337: forward category + subCategory supaya workerList consistent dengan UI filter
+            // Phase 337 CMP-24/25: get filtered worker IDs first, then SQL push-down ke GetAllWorkersHistory
             var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory);
-            var filteredIds = filteredWorkers
-                .Select(w => w.WorkerId)
-                .ToHashSet();
+            var filteredIds = filteredWorkers.Select(w => w.WorkerId).ToList();
 
-            var filtered = assessmentRows
-                .Where(r => filteredIds.Contains(r.WorkerId))
-                .Where(r => from == null || r.Date.Date >= from.Value.Date)
-                .Where(r => to == null || r.Date.Date <= to.Value.Date)
-                .ToList();
+            var (assessmentRows, _) = await _workerDataService.GetAllWorkersHistory(
+                workerIds: filteredIds,
+                from: from,
+                to: to,
+                category: null,         // Assessment tidak filter by category column
+                subCategory: null);
+
+            var filtered = assessmentRows;
 
             using var workbook = new XLWorkbook();
             var ws = ExcelExportHelper.CreateSheet(workbook, "Assessment", new[] { "No", "Nama", "NIP", "Judul", "Tanggal", "Skor", "Status", "Attempt" });
@@ -720,24 +718,18 @@ namespace HcPortal.Controllers
             DateTime? from = DateTime.TryParse(dateFrom, out var parsedFrom) ? parsedFrom : null;
             DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
-            var (_, trainingRows) = await _workerDataService.GetAllWorkersHistory();
-
-            // Get filtered worker IDs from GetWorkersInSection (with date range)
+            // Phase 337 CMP-24/25: SQL push-down filter (workerIds + date + category + subCategory)
             var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory);
-            var filteredIds = filteredWorkers
-                .Select(w => w.WorkerId)
-                .ToHashSet();
+            var filteredIds = filteredWorkers.Select(w => w.WorkerId).ToList();
 
-            var filtered = trainingRows
-                .Where(r => filteredIds.Contains(r.WorkerId))
-                .Where(r => from == null || r.Date.Date >= from.Value.Date)
-                .Where(r => to == null || r.Date.Date <= to.Value.Date)
-                // Phase 337 CMP-05: drop training rows luar Category/SubCategory filter
-                .Where(r => string.IsNullOrEmpty(category) ||
-                            string.Equals(r.Kategori, category, StringComparison.OrdinalIgnoreCase))
-                .Where(r => string.IsNullOrEmpty(subCategory) ||
-                            string.Equals(r.SubKategori, subCategory, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var (_, trainingRows) = await _workerDataService.GetAllWorkersHistory(
+                workerIds: filteredIds,
+                from: from,
+                to: to,
+                category: category,
+                subCategory: subCategory);
+
+            var filtered = trainingRows;
 
             using var workbook = new XLWorkbook();
             var ws = ExcelExportHelper.CreateSheet(workbook, "Training", new[] { "No", "Nama", "NIP", "Judul", "Tanggal", "Penyelenggara" });
@@ -756,11 +748,12 @@ namespace HcPortal.Controllers
             var filename = $"RecordsTeam_Training_{DateTime.Now:yyyy-MM-dd}.xlsx";
             return ExcelExportHelper.ToFileResult(workbook, filename, this);
         }
-        // Phase 239: AJAX partial endpoint for date range filter (returns tbody rows)
+        // Phase 239 + 337 CMP-26: AJAX partial endpoint + pagination (numeric pager 20/50/100)
         [HttpGet]
         public async Task<IActionResult> RecordsTeamPartial(
             string? section, string? unit, string? category, string? subCategory,
-            string? statusFilter, string? dateFrom, string? dateTo)
+            string? statusFilter, string? dateFrom, string? dateTo,
+            int page = 1, int pageSize = 20)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
@@ -776,7 +769,21 @@ namespace HcPortal.Controllers
             var workerList = await _workerDataService.GetWorkersInSection(
                 sectionFilter, unit, category, null, statusFilter, from, to, subCategory);
 
-            return PartialView("_RecordsTeamBody", workerList);
+            // Phase 337 CMP-26 (D-02): pageSize whitelist (20/50/100), default 20 untuk invalid
+            var pageSizeValidated = (pageSize == 20 || pageSize == 50 || pageSize == 100) ? pageSize : 20;
+            var paging = HcPortal.Helpers.PaginationHelper.Calculate(workerList.Count, page, pageSizeValidated);
+            var pagedWorkerList = workerList.Skip(paging.Skip).Take(paging.Take).ToList();
+
+            // X-Pagination header untuk JS parse + render pager
+            Response.Headers.Append("X-Pagination", System.Text.Json.JsonSerializer.Serialize(new
+            {
+                paging.CurrentPage,
+                paging.TotalPages,
+                paging.TotalCount,
+                PageSize = paging.Take
+            }));
+
+            return PartialView("_RecordsTeamBody", pagedWorkerList);
         }
 
         // PHASE 198: Import/Edit/Delete Training actions moved to AdminController
