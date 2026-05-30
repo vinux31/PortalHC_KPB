@@ -483,6 +483,21 @@ namespace HcPortal.Controllers
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
+            // Phase 337 CMP-23: memoize year list di controller (sebelumnya hitung inline di view)
+            var yearOptions = unified.Select(r => r.Date.Year).Distinct().OrderByDescending(y => y).ToList();
+
+            // Phase 337 CMP-21/22: encapsulate ke ViewModel single-source roleLevel
+            var vm = new HcPortal.Models.ViewModels.CMPRecordsViewModel
+            {
+                User = user,
+                RoleLevel = roleLevel,
+                UnifiedRecords = unified,
+                AssessmentCount = unified.Count(r => r.RecordType == "Assessment Online"),
+                TrainingCount = unified.Count(r => r.RecordType == "Training Manual"),
+                TotalCount = unified.Count,
+                YearOptions = yearOptions
+            };
+
             // Phase 104: Get worker list for Team View tab (only for users level 1-4)
             if (roleLevel <= 4)
             {
@@ -516,7 +531,7 @@ namespace HcPortal.Controllers
                 ViewBag.AllSections = sectionUnitsDict.Keys.ToList();
             }
 
-            return View("Records", unified);
+            return View("Records", vm);
         }
 
         // Phase 104: Worker Detail page showing unified assessment + training history
