@@ -111,9 +111,24 @@
 </form>
 
 <!-- Stats Badge -->
-<div class="mb-3">
+<div class="mb-3 d-flex align-items-center flex-wrap gap-2">
     <span class="badge bg-secondary fs-6">@totalCount grup assessment</span>
+    @* Phase 338 CIL-01: counter per-status (preserve default Open filter, badge cue Closed exist) *@
+    <span class="badge bg-success" title="Assessment dengan status Open">@(ViewBag.OpenCount ?? 0) Open</span>
+    <span class="badge bg-warning text-dark" title="Assessment dengan status Upcoming">@(ViewBag.UpcomingCount ?? 0) Upcoming</span>
+    <span class="badge bg-secondary cil01-pulse"
+          data-cil01-animate="true"
+          title="Closed assessment (hidden by default — pilih filter 'Closed' atau 'Semua Status' untuk lihat, atau search judul/lokasi spesifik)">
+        @(ViewBag.ClosedCount ?? 0) Closed
+    </span>
 </div>
+<style>
+    .cil01-pulse { animation: cil01-fade 1.5s ease-in-out 1; }
+    @@keyframes cil01-fade {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.08); }
+    }
+</style>
 
 @if (!managementData.Any())
 {
