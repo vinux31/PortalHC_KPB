@@ -145,6 +145,23 @@
                 </table>
             </div>
         </div>
+        @* Phase 337 CMP-26 (D-02): Pagination footer numeric pager 20/50/100 *@
+        <div class="card-footer bg-white">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center">
+                    <label class="form-label small text-muted mb-0 me-2" for="pageSizeSelector">Tampilkan:</label>
+                    <select id="pageSizeSelector" class="form-select form-select-sm" style="width:auto" aria-label="Worker per halaman">
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span class="text-muted small ms-2" id="paginationInfo">Page 1 of 1</span>
+                </div>
+                <nav aria-label="Worker pagination">
+                    <ul class="pagination pagination-sm mb-0" id="paginationNav"></ul>
+                </nav>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -207,10 +224,70 @@ function updateUnitOptions() {
     }
 }
 
-// Phase 337 CMP-12/13/15/17 — refactored: AbortController + immediate export sync + date hint + sessionStorage
+// Phase 337 CMP-12/13/15/17/26 — AbortController + export sync + date hint + sessionStorage + pagination
 let debounceTimer;
 let currentAbortController = null;
 let initialWorkerCount = @Model.Count;
+// Phase 337 CMP-26: pagination state
+let currentPage = 1;
+let currentPageSize = 20;
+
+function savePaginationState() {
+    sessionStorage.setItem('cmp-records-team-pagination',
+        JSON.stringify({ page: currentPage, pageSize: currentPageSize }));
+}
+
+function restorePaginationState() {
+    var stored = sessionStorage.getItem('cmp-records-team-pagination');
+    if (!stored) return;
+    try {
+        var s = JSON.parse(stored);
+        if (s.pageSize === 20 || s.pageSize === 50 || s.pageSize === 100) {
+            currentPageSize = s.pageSize;
+            var sel = document.getElementById('pageSizeSelector');
+            if (sel) sel.value = s.pageSize;
+        }
+        if (s.page && s.page > 0) currentPage = s.page;
+    } catch (e) { /* ignore */ }
+}
+
+function renderPagination(paging) {
+    var nav = document.getElementById('paginationNav');
+    var info = document.getElementById('paginationInfo');
+    if (!nav || !info) return;
+    info.textContent = 'Page ' + paging.CurrentPage + ' dari ' + paging.TotalPages + ' (' + paging.TotalCount + ' workers)';
+    nav.innerHTML = '';
+    if (paging.TotalPages <= 1) return;
+
+    var prevDisabled = paging.CurrentPage <= 1 ? 'disabled' : '';
+    nav.insertAdjacentHTML('beforeend',
+        '<li class="page-item ' + prevDisabled + '"><a class="page-link page-nav" data-page="' + (paging.CurrentPage - 1) + '" href="#" aria-label="Previous">&laquo;</a></li>');
+
+    var start = Math.max(1, paging.CurrentPage - 3);
+    var end = Math.min(paging.TotalPages, start + 6);
+    if (end - start < 6) start = Math.max(1, end - 6);
+    for (var i = start; i <= end; i++) {
+        var active = i === paging.CurrentPage ? 'active' : '';
+        nav.insertAdjacentHTML('beforeend',
+            '<li class="page-item ' + active + '"><a class="page-link page-nav" data-page="' + i + '" href="#">' + i + '</a></li>');
+    }
+
+    var nextDisabled = paging.CurrentPage >= paging.TotalPages ? 'disabled' : '';
+    nav.insertAdjacentHTML('beforeend',
+        '<li class="page-item ' + nextDisabled + '"><a class="page-link page-nav" data-page="' + (paging.CurrentPage + 1) + '" href="#" aria-label="Next">&raquo;</a></li>');
+
+    nav.querySelectorAll('.page-nav').forEach(function(a) {
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (a.parentElement.classList.contains('disabled')) return;
+            var newPage = parseInt(a.dataset.page);
+            if (newPage < 1 || newPage > paging.TotalPages) return;
+            currentPage = newPage;
+            savePaginationState();
+            doFetch();
+        });
+    });
+}
 
 function getFilterState() {
     return {
@@ -280,6 +357,9 @@ function updateDateHint(currentCount, state) {
 }
 
 function filterTeamTable() {
+    // Phase 337 CMP-26: filter change → RESET page ke 1 (UX guard)
+    currentPage = 1;
+    savePaginationState();
     // Phase 337 CMP-13: update export links IMMEDIATELY (sebelum debounce)
     updateExportLinks();
     // Phase 337 CMP-17: persist state immediately
@@ -304,6 +384,9 @@ async function doFetch() {
     if (s.status && s.status !== 'ALL') params.set('statusFilter', s.status);
     if (s.dateFrom) params.set('dateFrom', s.dateFrom);
     if (s.dateTo) params.set('dateTo', s.dateTo);
+    // Phase 337 CMP-26: pagination params
+    params.set('page', currentPage);
+    params.set('pageSize', currentPageSize);
 
     document.getElementById('tableLoadingIndicator').style.display = '';
 
@@ -315,8 +398,20 @@ async function doFetch() {
         document.getElementById('workerTableBody').innerHTML = html;
         const count = document.querySelectorAll('#workerTableBody .worker-row').length;
         document.getElementById('workerCount').textContent = count;
-        // Phase 337 CMP-15: date hint
-        updateDateHint(count, s);
+        // Phase 337 CMP-26: parse X-Pagination header + render pager
+        var pHeader = resp.headers.get('X-Pagination');
+        if (pHeader) {
+            try {
+                var paging = JSON.parse(pHeader);
+                renderPagination(paging);
+                // Use TotalCount sebagai authoritative initialWorkerCount untuk date hint check
+                if (!s.dateFrom && !s.dateTo) initialWorkerCount = paging.TotalCount;
+                updateDateHint(paging.TotalCount, s);
+            } catch (e) { console.warn('pagination parse fail', e); }
+        } else {
+            // Phase 337 CMP-15: date hint (fallback bila no pagination header)
+            updateDateHint(count, s);
+        }
     } catch (e) {
         if (e.name === 'AbortError') return;  // Phase 337 CMP-12: ignore aborted
         document.getElementById('workerTableBody').innerHTML =
@@ -372,14 +467,28 @@ document.addEventListener('DOMContentLoaded', function() {
         updateUnitOptions();
     }
 
-    // Phase 337 CMP-17: restore filter state (bila ada)
-    if (restoreFilterState()) {
-        // State restored — re-fetch dengan filter (tapi tidak save state lagi, hindari loop)
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(doFetch, 100);
+    // Phase 337 CMP-26: wire page size selector + restore pagination state
+    var pageSizeSel = document.getElementById('pageSizeSelector');
+    if (pageSizeSel) {
+        pageSizeSel.addEventListener('change', function() {
+            var v = parseInt(this.value);
+            currentPageSize = (v === 20 || v === 50 || v === 100) ? v : 20;
+            currentPage = 1;  // reset page on size change
+            savePaginationState();
+            doFetch();
+        });
     }
+    restorePaginationState();
+
+    // Phase 337 CMP-17: restore filter state (bila ada)
+    var filterRestored = restoreFilterState();
 
     // Initial export links sync
     updateExportLinks();
+
+    // Phase 337 CMP-26: trigger initial doFetch supaya pagination UI render accurate
+    // (server-side initial render TIDAK include X-Pagination header)
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(doFetch, 100);
 });
 </script>
