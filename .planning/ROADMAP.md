@@ -670,17 +670,27 @@ Plans:
 **Depends on:** Phase 337
 **Plans:** TBD (generate via /gsd-plan-phase 338) — likely 3-5 plan split per wave
 
+### Phase 339: v20.0-gap-closure-orphan-ui-title-validator — Gap closure dari `.planning/v20.0-MILESTONE-AUDIT.md` (2026-06-02): 3 partial REQ dari Phase 338 (CIL-06 orphan endpoint, REST-04 orphan route, REST-06 Title validation missing). Surgical fix: tambah dropdown link `BulkExportPdf` + nav link `BulkBackfill` di `_AssessmentGroupsTab.cshtml`, conditional `ModelState.AddModelError` regex di `CreateAssessment` POST L835. Source: integration checker findings + recheck verified 2026-06-02. Severity HIGH (CIL-06) + MED (REST-04, REST-06). Effort S (~half day, 1 plan 1 wave, 3 task).
+
+**Goal:** Close 3 partial REQ identified oleh /gsd-audit-milestone v20.0. T1: `Views/Admin/Shared/_AssessmentGroupsTab.cshtml` L278+ sibling dropdown-item `<a asp-action="BulkExportPdf">` Export PDF ZIP (CIL-06). T2: same dropdown atau admin sidebar tambah link `/Admin/BulkBackfill` (REST-04). T3: `Controllers/AssessmentAdminController.cs:835-845` tambah conditional regex check `Regex.IsMatch(model.Title, @"^(Pre|Post)\s*Test\s+.+$")` saat `AssessmentTypeInput != "PrePostTest"` + `ModelState.AddModelError("Title", ...)` + verify `<span asp-validation-for="Title">` di `Views/Admin/CreateAssessment.cshtml:188` (REST-06).
+
+**Requirements**: CIL-06 + REST-04 + REST-06 (3 REQ — gap closure)
+**Depends on:** Phase 338 (SHIPPED LOCAL)
+**Plans:** TBD (generate via /gsd-plan-phase 339) — 1 plan 1 wave 3 task
+
 #### Coverage Validation v20.0
 
 | Bug/Gap/Item | Phase | Status |
 |--------------|-------|--------|
-| REST-01..03 Investigation | 336 | Planning |
-| CMP-01..26 Records Overhaul (Approach C) | 337 | Planning |
-| CIL-01..06 Cilacap UX 6 gap | 338 (W1-3) | Planning |
-| REST-04 Restore execute | 338 (W4) | Planning |
-| REST-05..07 Guardrail + naming + docs | 338 (W5) | Planning |
+| REST-01..03 Investigation | 336 | SHIPPED LOCAL |
+| CMP-01..26 Records Overhaul (Approach C) | 337 | SHIPPED LOCAL |
+| CIL-01..05 Cilacap UX 5 gap | 338 (W1-3) | SHIPPED LOCAL |
+| CIL-06 BulkExportPdf endpoint | 338 (W4) | PARTIAL — endpoint OK, **UI link orphan** → Phase 339 T1 |
+| REST-04 Restore execute | 338 (W4) | PARTIAL — endpoint OK, **nav orphan** → Phase 339 T2 |
+| REST-05+REST-07 Guardrail + docs | 338 (W5) | SHIPPED LOCAL |
+| REST-06 Naming convention auto-pair + Title validation | 338 (W5) | PARTIAL — auto-pair OK, **regex validation missing** → Phase 339 T3 |
 
-**Active mapped: 39/39 REQ ✓ — Orphans: 0 — Duplicates: 0 — Carry-over backlog: 8 (deferred ke v21.0+)**
+**Active mapped: 39/39 REQ ✓ — Orphans: 0 — Duplicates: 0 — Carry-over backlog: 8 (deferred ke v21.0+) — Gap closure: 3 partial → Phase 339**
 
 **Cross-phase dependency:**
 - 336 → 338 W4 (restore strategy decision)
@@ -690,7 +700,8 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-05-30 (v20.0 milestone + Phase 336-338 added — 3 PR bundle Opsi 2 sequential strict; 39 REQ CMP-01..26 + CIL-01..06 + REST-01..07; total estimate ~2.5 minggu; locked decision Approach C CMP Records).*
+*Roadmap updated: 2026-06-02 (Phase 339 added — gap closure dari `/gsd-audit-milestone v20.0` 2026-06-02; 3 partial REQ CIL-06+REST-04+REST-06 → orphan UI link + Title regex validator; 1 plan 1 wave 3 task, effort S half day; depends Phase 338).*
+*Prev: 2026-05-30 (v20.0 milestone + Phase 336-338 added — 3 PR bundle Opsi 2 sequential strict; 39 REQ CMP-01..26 + CIL-01..06 + REST-01..07; total estimate ~2.5 minggu; locked decision Approach C CMP Records).*
 *Prev: 2026-05-28 (Phase 331-335 added — 5 HIGH proposal Phase 328 §9 #1+#3+#4+#5+#6 spawned per user batch-create. Phase 331-334 mechanical atomicity, Phase 335 complex worker lifecycle).*
 *Prev: 2026-05-28 (Phase 330 plan generated — 330-01-PLAN.md, 3 task single wave, ~75 LoC delta Controllers/AssessmentAdminController.cs + Controllers/OrganizationController.cs + Services/NotificationService.cs).*
 *Prev: 2026-05-28 (Phase 329 plan generated — 329-01-PLAN.md, 4 task single wave, ~60 LoC delta Controllers/AssessmentAdminController.cs; verbatim D-02 pattern Phase 325 P05).*

@@ -106,12 +106,16 @@ PR#3 invest. PR#1 CMP    PR#2 Cilacap UX + PR#3 restore execute
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| CMP-01..26 | 337 | Planning |
-| CIL-01..06 | 338 (W1-3) | Planning |
-| REST-01..03 | 336 | Planning |
-| REST-04..07 | 338 (W4-5) | Planning |
+| CMP-01..26 | 337 | SHIPPED LOCAL |
+| CIL-01..05 | 338 (W1-3) | SHIPPED LOCAL |
+| CIL-06 | 338 (W4) → **339** | PARTIAL (orphan UI) — gap closure Phase 339 |
+| REST-01..03 | 336 | SHIPPED LOCAL |
+| REST-04 | 338 (W4) → **339** | PARTIAL (orphan nav) — gap closure Phase 339 |
+| REST-05 + REST-07 | 338 (W5) | SHIPPED LOCAL |
+| REST-06 | 338 (W5) → **339** | PARTIAL (Title validator missing) — gap closure Phase 339 |
 
 ---
 
+*Updated: 2026-06-02 — Gap closure post `/gsd-audit-milestone v20.0` (2026-06-02). 3 partial REQ reassigned ke Phase 339: CIL-06 (BulkExportPdf orphan), REST-04 (BulkBackfill orphan), REST-06 (Title `[RegularExpression]` missing — auto-pair OK). Source: `.planning/v20.0-MILESTONE-AUDIT.md` + integration checker findings. Checkboxes tetap `[ ]` (belum dicentang sebelumnya).*
+*Prev: 2026-05-30 — REQ defined for 3-phase Opsi 2 sequential plan (Phase 336-338). Sources: CMP/Records audit memory 2026-05-27 (Approach C locked 2026-05-30) + Cilacap todo 001/002 (2026-05-29).*
 *Created: 2026-05-29 post v18.0 + v19.0 milestone close.*
-*Updated: 2026-05-30 — REQ defined for 3-phase Opsi 2 sequential plan (Phase 336-338). Sources: CMP/Records audit memory 2026-05-27 (Approach C locked 2026-05-30) + Cilacap todo 001/002 (2026-05-29).*
