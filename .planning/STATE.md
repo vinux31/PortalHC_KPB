@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v16.0
-milestone_name: QA Test Coverage
-status: executing
-last_updated: "2026-05-30T05:31:20.028Z"
-last_activity: 2026-05-30 -- Phase 337 execution started
+milestone: v20.0
+milestone_name: PreTest Restore + CMP Records Overhaul + Cilacap UX
+status: shipped-local-awaiting-push
+last_updated: "2026-06-02T00:00:00.000Z"
+last_activity: 2026-06-02 -- Phase 338 SHIPPED LOCAL 10/10 REQ — v20.0 3/3 phases complete, batch push pending
 progress:
-  total_phases: 6
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 6
-  percent: 60
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -20,21 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 337 — cmp-records-full-overhaul-filter-data-arch-a11y
+**Current focus:** Push backlog 146 commit (v19.0 325-335 + v20.0 336-338) + IT_NOTIFY handoff
 
 ## Current Position
 
-Phase: 337 (cmp-records-full-overhaul-filter-data-arch-a11y) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 337
-Last activity: 2026-05-30 -- Phase 337 execution started
+Milestone: v20.0 — 3/3 phases SHIPPED LOCAL (336 PreTest restore + 337 CMP Records overhaul + 338 Cilacap UX)
+Phase 338: SHIPPED LOCAL 10/10 REQ — commit f359a745
+Status: awaiting push origin/main + tag creation
+Last activity: 2026-06-02 -- Phase 338 closed, batch push 146 commit pending user approval
 
 ## Next Action
 
-1. **`/gsd-discuss-phase 337`** — CMP Records overhaul Approach C Full (26 REQ, ~1 minggu+). Independent dari Phase 336 (zero file overlap).
-2. **Monitor IT availability** untuk push v19.0+336 batch (~103 commit lokal) — paralel track.
-3. **(Optional)** Update `.planning/config.json` `milestone_version: v15.0 → v20.0` (cosmetic, gsd-tools warn unknown key anyway).
-4. **(Backlog housekeeping non-blocker)**: v16.0 milestone (Phases 315-319) + v19.0 (325-335) belum punya entry di `MILESTONES.md` log. Tambah saat /gsd-complete-milestone v19.0.
+1. **Push 146 commit batch v19.0+v20.0 → origin/main** (user approved, executing now).
+2. **Deliver IT_NOTIFY.md** ke Team IT post-push — include commit hash + migration flag `ChangeValidUntilToDateOnly` (Phase 327-07).
+3. **`/gsd-complete-milestone v19.0` + `v20.0`** — update MILESTONES.md log (v16.0 + v19.0 + v20.0 belum punya entry).
+4. **(Backlog housekeeping non-blocker)**: refresh `.planning/config.json` `milestone_version` ke v20.0.
 
 ## Deferred Items
 
