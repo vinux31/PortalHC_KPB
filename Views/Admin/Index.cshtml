@@ -271,4 +271,20 @@
         </a>
     </div>
     }
+    @if (User.IsInRole("Admin"))
+    {
+    <div class="col-md-4">
+        <a href="@Url.Action("BulkBackfill", "TrainingAdmin")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-arrow-counterclockwise fs-5 text-warning"></i>
+                        <span class="fw-bold">Bulk Backfill (Restore Lost Data)</span>
+                    </div>
+                    <small class="text-muted">Pulihkan AssessmentSession yang hilang/orphan dari TrainingRecord cadangan (Admin only — emergency restore tool)</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
 </div>
