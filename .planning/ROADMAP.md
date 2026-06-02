@@ -643,7 +643,42 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-06-02 (v20.0 ARCHIVED — milestone close, 39/39 REQ satisfied, 4 phase + 10 plan + 56 commit + 14,768/-323 LOC. Archive: milestones/v20.0-*.md. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev).*
+## v21.0 ManageOrganization Overhaul + Level Label CRUD — Phases 340-344 🚀 ACTIVE
+
+**Status:** Started 2026-06-02. Phase 340 plans generated.
+**Spec:** [docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md](../docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md)
+**Milestone roadmap:** [v21.0-ROADMAP.md](milestones/v21.0-ROADMAP.md) | [v21.0-REQUIREMENTS.md](milestones/v21.0-REQUIREMENTS.md) — 26 REQ
+**Phase range:** 340-344 (5 phase sequential, ~5 hari)
+
+### Phase 340: Foundation — Tabel + Service + Cache
+
+- [ ] **Phase 340: Foundation — OrgLabel Table + Service + Cache + Endpoint**
+  - **REQ:** ORG-LABEL-01, ORG-LABEL-02, ORG-LABEL-03, ORG-LABEL-07
+  - **Depends on:** Tidak ada (foundation, paralel-able dgn Phase 341+342+343 setelah Phase 340 selesai)
+  - **Goal:** Layer dasar yang dipakai phase berikutnya untuk akses label dynamic. Deliverables: (1) Entity `Models/OrganizationLevelLabel.cs` + EF migration `AddOrganizationLevelLabel` (CreateTable only per D-01, NO HasData) + idempotent runtime seed di `Data/SeedData.cs` (3 baris default Level 0/1/2 -> Bagian/Unit/Sub-unit klasifikasi permanent+prod-required). (2) `IOrgLabelService` + `OrgLabelService` Scoped (D-06 captive dep avoid) dgn IMemoryCache no-TTL manual invalidate + fallback `"Level {N}"` (D-07) + reuse `AuditLogService.LogAsync` (D-04 field mapping `OrgLabel-{Add|Update|Delete}`). (3) NEW controller `OrgLabelController` + endpoint `GET /Admin/GetLevelLabels` `[Authorize]` JSON dict (D-03). (4) D-12 SeedData convention fix: `SeedData.cs:90` Level 1->0 + `:99` Level 2->1 (align actual DB 0-indexed + cascade `OrganizationController.AddOrganizationUnit:95`). (5) xUnit `OrgLabelServiceTests` 2 [Fact] (TEST-01 happy + fallback). (6) `docs/DB_HANDOFF_IT_2026-06-03.html` formal handoff IT (D-09).
+  - **Success Criteria:**
+    1. EF migration `AddOrganizationLevelLabel` apply tanpa error + seed default 3 baris hadir di tabel (verified via sqlcmd).
+    2. `OrgLabelService.GetLabel(0..2)` mengembalikan `"Bagian"`, `"Unit"`, `"Sub-unit"`. `GetLabel(99)` mengembalikan fallback `"Level 99"`.
+    3. Endpoint `GET /Admin/GetLevelLabels` mengembalikan JSON dict dari 3 level seed (200 OK authenticated).
+    4. Cache invalidation triggered saat label di-update (verified via service mutation method audit `_cache.Remove` x3).
+    5. `GetMaxUsedLevelAsync()` mengembalikan max level dari OrganizationUnits saat ini (sesuai DB lokal).
+  - **Risk:** Low (pattern terbukti di repo) | **Effort:** S (1 hari, ~600 LoC delta)
+  - **Plans:** 3 plans
+    - [ ] 340-01-PLAN.md — Wave 1 Model + DbContext + Migration + Seed integration + D-12 fix (ORG-LABEL-01, ORG-LABEL-07)
+    - [ ] 340-02-PLAN.md — Wave 2 Service interface + impl + DI Scoped + Controller endpoint (ORG-LABEL-02, ORG-LABEL-03, ORG-LABEL-07)
+    - [ ] 340-03-PLAN.md — Wave 3 xUnit OrgLabelServiceTests + DB_HANDOFF_IT HTML (TEST-01 minimal, ORG-LABEL-01, ORG-LABEL-02)
+  - **Files affected:** `Models/OrganizationLevelLabel.cs` (NEW) + `Data/ApplicationDbContext.cs` (DbSet+Fluent) + `Data/SeedData.cs` (seed method + D-12 fix) + `Migrations/{TIMESTAMP}_AddOrganizationLevelLabel.cs` (NEW) + `Services/IOrgLabelService.cs` (NEW) + `Services/OrgLabelService.cs` (NEW) + `Program.cs` (DI registration) + `Controllers/OrgLabelController.cs` (NEW) + `HcPortal.Tests/HcPortal.Tests.csproj` (InMemory package) + `HcPortal.Tests/OrgLabelServiceTests.cs` (NEW) + `docs/DB_HANDOFF_IT_2026-06-03.html` (NEW)
+  - **Wave structure:** Wave 1 (Plan 01) -> Wave 2 (Plan 02) -> Wave 3 (Plan 03) sequential strict
+
+### Phase 341: Label CRUD Page (planning pending — see v21.0-ROADMAP.md)
+### Phase 342: ManageOrganization Page Fixes (planning pending — see v21.0-ROADMAP.md)
+### Phase 343: Integrasi App-wide (planning pending — see v21.0-ROADMAP.md)
+### Phase 344: Test + UAT (planning pending — see v21.0-ROADMAP.md)
+
+---
+
+*Roadmap updated: 2026-06-02 (Phase 340 plans generated — 3 plan 3 wave sequential strict, 7 task total; Foundation v21.0 P1 milestone start; depends_on=[]; ORG-LABEL-01/02/03/07 mapped; D-12 SeedData convention fix included).*
+*Prev: 2026-06-02 (v20.0 ARCHIVED — milestone close, 39/39 REQ satisfied, 4 phase + 10 plan + 56 commit + 14,768/-323 LOC. Archive: milestones/v20.0-*.md. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev).*
 *Prev: 2026-06-02 (Phase 339 added — gap closure dari `/gsd-audit-milestone v20.0` 2026-06-02; 3 partial REQ CIL-06+REST-04+REST-06 → orphan UI link + Title regex validator; 1 plan 1 wave 3 task, effort S half day; depends Phase 338).*
 *Prev: 2026-05-30 (v20.0 milestone + Phase 336-338 added — 3 PR bundle Opsi 2 sequential strict; 39 REQ CMP-01..26 + CIL-01..06 + REST-01..07; total estimate ~2.5 minggu; locked decision Approach C CMP Records).*
 *Prev: 2026-05-28 (Phase 331-335 added — 5 HIGH proposal Phase 328 §9 #1+#3+#4+#5+#6 spawned per user batch-create. Phase 331-334 mechanical atomicity, Phase 335 complex worker lifecycle).*
