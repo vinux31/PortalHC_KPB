@@ -47,13 +47,15 @@ REQ coverage: ORG-LABEL-01, 02, 03, 07.
 
 ### Audit Log
 
-- **D-04:** Reuse existing `AuditLog` table (`Models/AuditLog.cs`). Phase 340 service expose method `LogLabelChangeAsync(string action, int level, string? oldLabel, string newLabel, string actorUserId, string actorName)` yang insert row dengan:
-  - `Action` = `"OrgLabel-Add"` / `"OrgLabel-Update"` / `"OrgLabel-Delete"`
-  - `EntityType` = `"OrganizationLevelLabel"`
-  - `EntityId` = level as string
-  - `Description` = `"Level {N}: {oldLabel} → {newLabel}"` (Update) / `"Level {N}: '{newLabel}' created"` (Add) / `"Level {N}: '{oldLabel}' deleted"` (Delete)
-  - **Why:** Konsisten dgn pattern `AssessmentAdminController` + `TrainingAdminController` (search `_context.AuditLogs.Add`). Tidak schema bloat. Audit timeline unified.
-  - **How to apply:** Phase 340 implement `LogLabelChangeAsync` method (called by Phase 341 controller, not directly in Phase 340 endpoint). Phase 340 endpoint sendiri read-only — tidak audit.
+- **D-04:** Reuse existing **`AuditLogService`** (`Services/AuditLogService.cs:21` `LogAsync`) instead of direct `_context.AuditLogs.Add`. Inject `AuditLogService` ke `OrgLabelService` constructor. Field mapping ke `AuditLog` schema (`Models/AuditLog.cs`):
+  - `ActorUserId` = current user identity ID
+  - `ActorName` = NIP + FullName (resolved upstream by controller, passed in)
+  - `ActionType` = `"OrgLabel-Add"` / `"OrgLabel-Update"` / `"OrgLabel-Delete"` (`MaxLength(50)` safe, 15-16 char)
+  - `Description` = `"Level {N}: '{oldLabel}' → '{newLabel}'"` (Update) / `"Level {N}: '{newLabel}' created"` (Add) / `"Level {N}: '{oldLabel}' deleted"` (Delete)
+  - `TargetId` = level (int)
+  - `TargetType` = `"OrganizationLevelLabel"` (`MaxLength(100)` safe)
+  - **Why:** `AuditLogService.LogAsync` sudah encapsulate insert + `SaveChangesAsync`. Konsisten dgn pattern existing (CMPController/AssessmentAdminController via DI). Tidak duplicate logic.
+  - **How to apply:** Phase 340 implement `OrgLabelService` mutation methods (`UpdateAsync`/`AddAsync`/`DeleteAsync`) yang call `_auditLog.LogAsync(...)` setelah DB save + cache invalidate. Endpoint `GET /Admin/GetLevelLabels` (Phase 340 deliverable) sendiri read-only — tidak audit. Phase 341 controller forward `actorUserId` + `actorName` ke service method.
 
 ### Migration
 
@@ -83,6 +85,18 @@ REQ coverage: ORG-LABEL-01, 02, 03, 07.
   - `int GetMaxConfiguredLevel()` — `MAX(OrganizationLevelLabels.Level)` cached dgn dict.
   - `int GetMaxUsedLevel()` — `MAX(OrganizationUnits.Level)` live DB query (no cache, dipanggil jarang dari Phase 341 page render).
   - **Why:** Phase 341 page UI butuh `max(used, configured) + 1` untuk render row count. Pisah method jaga semantik jelas.
+
+### Service Scope (Phase 340 vs Phase 341)
+
+- **D-10:** Phase 340 implement **FULL** `IOrgLabelService` interface — semua 7 method (`GetLabel`, `GetAll`, `UpdateAsync`, `AddAsync`, `DeleteAsync`, `GetMaxConfiguredLevel`, `GetMaxUsedLevel`). Mutation method (`UpdateAsync`/`AddAsync`/`DeleteAsync`) **belum dipanggil dari mana-mana di Phase 340** — Phase 341 controller akan consume.
+  - **Why:** Boundary phase clean — Phase 340 = data + service layer complete. Phase 341 = UI consumer + endpoint binding. Bila split mutation di 341, service split antara 2 phase → reasoning lebih sulit. Spec §4.2 list 7 method tanpa pembagian phase.
+  - **How to apply:** Phase 340 implementation include test minimal untuk `GetLabel` happy path + fallback (TEST-01 dari REQ list). Mutation method tested formally di Phase 344. Phase 341 controller tinggal panggil.
+
+### Model Class
+
+- **D-11:** Create `Models/OrganizationLevelLabel.cs` (singular class name, plural table name `OrganizationLevelLabels`). Schema match D-05 + EF Fluent API config (D-05 list HasKey/ValueGeneratedNever/Property MaxLength/HasIndex IsUnique).
+  - **Why:** Convention existing — model class singular (lihat `OrganizationUnit.cs` + `AuditLog.cs`), `DbSet<>` property plural.
+  - **How to apply:** Tambah `public class OrganizationLevelLabel { int Level; string Label; DateTime UpdatedAt; string UpdatedBy; }` di `Models/`. Tambah `public DbSet<OrganizationLevelLabel> OrganizationLevelLabels { get; set; }` di `ApplicationDbContext`. Tambah Fluent config di `OnModelCreating`.
 
 ### DB_HANDOFF_IT
 
@@ -137,7 +151,8 @@ REQ coverage: ORG-LABEL-01, 02, 03, 07.
 
 - **`IMemoryCache` already registered** di `Program.cs` (existing `services.AddMemoryCache()` via standard ASP.NET pipeline). Inject langsung di `OrgLabelService` constructor, tidak perlu register ulang.
 - **`Data/SeedData.cs`** sudah punya `InitializeAsync` chain. Tambah `await SeedOrganizationLevelLabelsAsync(context)` setelah existing `SeedOrganizationUnitsAsync`.
-- **`Models/AuditLog.cs`** dengan `ActorUserId` + `ActorName` + `Action` + `EntityType` + `EntityId` + `Description` fields. Reuse pattern `_context.AuditLogs.Add(new AuditLog { ... })`.
+- **`Services/AuditLogService.cs:21`** `LogAsync(actorUserId, actorName, actionType, description, targetId?, targetType?)` — inject + reuse. JANGAN tulis `_context.AuditLogs.Add` langsung.
+- **`Models/AuditLog.cs`** schema fields: `ActorUserId` + `ActorName` + `ActionType` (MaxLength 50) + `Description` + `TargetId?` + `TargetType?` (MaxLength 100) + `CreatedAt`.
 - **`ApplicationDbContext`** sudah punya banyak `DbSet<>` properties. Tambah `public DbSet<OrganizationLevelLabel> OrganizationLevelLabels { get; set; }`.
 
 ### Established Patterns
