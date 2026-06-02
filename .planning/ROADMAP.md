@@ -18,7 +18,8 @@
 - ✅ **v17.0 Assessment Admin Power Tools** — Phases 320-322 (shipped 2026-05-22, archived 2026-05-23) — [archive](milestones/v17.0-ROADMAP.md)
 - ✅ **v18.0 Cascade Delete Hardening + Duplicate TR Fix** — Phases 323-324 (shipped 2026-05-29) — [archive](milestones/v18.0-ROADMAP.md)
 - ✅ **v19.0 Portal HC Bug Fixes (Cascade Hardening)** — Phases 325-335 (shipped local 2026-05-28, audited 2026-05-29) — [audit](v19.0-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
-- 📋 **v20.0** — TBD (carry-over 8 item + Phase 281/285 paused + 2 todo baru 2026-05-29)
+- ✅ **v20.0 CMP Records Overhaul + Cilacap UX/Restore** — Phases 336-339 (shipped local + archived 2026-06-02, 39/39 REQ) — [archive](milestones/v20.0-ROADMAP.md) — [audit](milestones/v20.0-MILESTONE-AUDIT.md)
+- 🚀 **v21.0 ManageOrganization Overhaul + Level Label CRUD** — Phases 340-344 (active, started 2026-06-02) — [roadmap](milestones/v21.0-ROADMAP.md) — [spec](../docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md)
 
 ## Phases
 

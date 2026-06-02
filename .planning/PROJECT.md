@@ -36,9 +36,21 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **Current focus:** Bundle push pending IT availability. Backlog: 8 carry-over (EPRV-01 + Phase 235/247/281/285/293/297/298/303) + Phase 337+338 live UAT items deferred Dev env + REST-04 KRITIS Cilacap data restore execute Dev DB pending admin trigger.
 
-## Current Milestone: TBD (v21.0 — start via `/gsd-new-milestone`)
+## Current Milestone: v21.0 ManageOrganization Overhaul + Level Label CRUD
 
-**Last milestone shipped:** v20.0 archived 2026-06-02. Fresh REQUIREMENTS.md akan dibuat saat `/gsd-new-milestone` invoked.
+**Goal:** Fix bug page Admin/ManageOrganization + tabel CRUD label tier organisasi (Bagian/Unit/Sub-unit dynamic) + integrasi label seluruh app.
+
+**Target features:**
+- Fix 4 bug + 4 inovasi UX di page ManageOrganization (sort dropdown pre-order, dup-name per-parent, inactive parent visible, escape, level cap, path preview, cascade warning, legend)
+- Tabel `OrganizationLevelLabels` + page `/Admin/ManageOrgLevelLabels` CRUD (role Admin + HC, audit log, auto-detect depth)
+- Integrasi label ke 7 area page (CMP/CDP/Worker/CoachMapping/ProtonData/Renewal/DocumentAdmin)
+
+**Phase range:** 340-344 (5 phases) | **REQ:** 26 | **Effort:** ~5 hari sequential
+
+**Source:**
+- Spec: `docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md`
+- Requirements: `.planning/milestones/v21.0-REQUIREMENTS.md`
+- Roadmap: `.planning/milestones/v21.0-ROADMAP.md`
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

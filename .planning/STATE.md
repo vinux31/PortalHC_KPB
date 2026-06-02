@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v20.0
-milestone_name: CMP Records Overhaul + Cilacap UX/Restore
-status: shipped
-last_updated: "2026-06-02T07:45:00.000Z"
-last_activity: 2026-06-02 -- v20.0 milestone closed + archived (Phase 339 verified 6/6 Playwright UAT)
+milestone: v21.0
+milestone_name: ManageOrganization Overhaul + Level Label CRUD
+status: defining_phases
+last_updated: "2026-06-02T08:30:00.000Z"
+last_activity: 2026-06-02 -- v21.0 milestone started (5 phase 340-344 mapped, spec + requirements + roadmap committed)
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -20,22 +20,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v20.0 ARCHIVED 2026-06-02. Next milestone TBD — start via `/gsd-new-milestone`.
+**Current focus:** v21.0 ManageOrganization Overhaul started 2026-06-02. Next: `/gsd-plan-phase 340`.
 
 ## Current Position
 
-Milestone: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phase + audit PASSED)
-Tag: `v20.0` (lokal, NOT pushed origin)
-Bundle: ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev
-Last shipped phase: 339 (v20.0-gap-closure-orphan-ui-title-validator) — Playwright UAT 5/6 PASS + 1 N/A code-proof
+Milestone: v21.0 🚀 ACTIVE (5 phase 340-344, 26 REQ, ~5 hari sequential)
+Phase: Not started (defining first phase plan)
+Plan: —
+Status: Spec + requirements + roadmap committed. Awaiting first `/gsd-plan-phase 340`.
+Last activity: 2026-06-02 — v21.0 milestone artifacts created
+
+Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phase). Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev.
 
 ## Next Action
 
-1. **Coordinate IT availability** untuk push bundle ~155 commit lokal v19.0+v20.0 ke origin/main + Dev deployment (Phase 339 = NO migration; v19.0 has `ChangeValidUntilToDateOnly` migration — flag IT).
-2. **Post-IT-promo Dev:** Execute Phase 337+338 live UAT items (Phase 337 6 item 6-pillar `/CMP/Records`, Phase 338 7 item Cilacap workflow, **REST-04 KRITIS** BulkBackfillAssessment data restore Cilacap PreTest 30 Mar 2026 di Dev DB).
-3. **`/gsd-new-milestone`** untuk start v21.0 — fresh `.planning/REQUIREMENTS.md` akan dibuat.
-4. **(Optional housekeeping):** `/gsd-validate-phase 336/337/338/339` backfill Nyquist `*-VALIDATION.md` (workflow `nyquist_validation=true` setting still on).
-5. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro).
+1. **`/gsd-plan-phase 340`** — start P1 Foundation (Tabel + Service + Cache, ORG-LABEL-01/02/03/07).
+2. **Carry-over IT promo v19.0+v20.0** — push bundle + Dev migration coordination tetap pending (paralel jalur).
+3. **(Backlog housekeeping non-blocker):** Pre-existing Tom Select UX regression dari v20.0 audit defer ke v21.0 backlog (lihat v20.0-MILESTONE-AUDIT.md tech_debt).
+4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro).
 
 ## Deferred Items
 

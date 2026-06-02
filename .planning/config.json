@@ -1,6 +1,6 @@
 {
-  "milestone_version": "v20.0",
-  "milestone_name": "CMP Records Overhaul + Cilacap UX/Restore",
+  "milestone_version": "v21.0",
+  "milestone_name": "ManageOrganization Overhaul + Level Label CRUD",
   "model_profile": "quality",
   "commit_docs": true,
   "search_gitignored": false,
