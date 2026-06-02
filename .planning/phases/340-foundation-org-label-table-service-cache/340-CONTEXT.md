@@ -98,6 +98,16 @@ REQ coverage: ORG-LABEL-01, 02, 03, 07.
   - **Why:** Convention existing — model class singular (lihat `OrganizationUnit.cs` + `AuditLog.cs`), `DbSet<>` property plural.
   - **How to apply:** Tambah `public class OrganizationLevelLabel { int Level; string Label; DateTime UpdatedAt; string UpdatedBy; }` di `Models/`. Tambah `public DbSet<OrganizationLevelLabel> OrganizationLevelLabels { get; set; }` di `ApplicationDbContext`. Tambah Fluent config di `OnModelCreating`.
 
+### SeedData Convention Fix (post-research)
+
+- **D-12:** Phase 340 **scope creep accepted** — fix bug pre-existing `Data/SeedData.cs:90` + `:99` `Level = 1` (root) + `Level = 2` (child) yang **drift dari actual DB convention**.
+  - **Actual DB convention (verified 2026-06-02 via `sqlcmd HcPortalDB_Dev`):** 0-indexed. Level 0 = 4 rows (root Bagian RFCC/DHT-HMU/NGP/GAST), Level 1 = 17 rows (Unit). Match dgn `OrganizationController.AddOrganizationUnit:95` (parentless → level 0) + cascade `if (unit.Level == 0) → User.Section`.
+  - **Bug:** SeedData.cs hardcoded 1-indexed. Existing Dev DB already 0-indexed (seeded earlier version atau normalized via Phase 293 migration), tapi **fresh deploy baru akan seed Level=1 root → contradict cascade + label semantic**.
+  - **Fix:** Change `SeedData.cs:90` `Level = 1` → `Level = 0`. Change `SeedData.cs:99` `Level = 2` → `Level = 1`. Pure code edit, NO migration (existing DB sudah benar).
+  - **Why:** Aligned dgn actual DB + cascade logic + label seed convention D-01 (Level 0 = Bagian). Prevent future fresh-deploy regression. Phase 340 sudah edit `SeedData.cs` (tambah `SeedOrganizationLevelLabelsAsync`) → 1 task tambahan trivial.
+  - **How to apply:** 1 task di plan akhir Phase 340: edit `Data/SeedData.cs:90+99` dengan 2 line change. Verification: grep `Level = 1` di SeedData.cs zero hits di context root section.
+  - **Researcher Open Q#4 (CRITICAL UNCERTAIN):** RESOLVED via this decision.
+
 ### DB_HANDOFF_IT
 
 - **D-09:** Phase 340 deliverable include `docs/DB_HANDOFF_IT_2026-06-XX.html` generated dari template `docs/templates/DB_HANDOFF_IT.template.md`. Isian:
