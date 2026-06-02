@@ -844,6 +844,16 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // Phase 339 REST-06 (336-NAMING-CONVENTION-SPEC): Validate Title pattern for standard Pre/Post tests
+            if (AssessmentTypeInput != "PrePostTest"
+                && !string.IsNullOrEmpty(model.Title)
+                && !System.Text.RegularExpressions.Regex.IsMatch(model.Title, @"^(Pre|Post)\s*Test\s+.+$"))
+            {
+                ModelState.AddModelError("Title",
+                    "Title harus pola '{Stage} Test {Track} {Lokasi}' (Pre Test atau Post Test diikuti track + lokasi). " +
+                    "Contoh valid: 'Pre Test OJT GAST Cilacap'. Reference: 336-NAMING-CONVENTION-SPEC.");
+            }
+
             // Handle Token Validation
             if (model.IsTokenRequired)
             {
