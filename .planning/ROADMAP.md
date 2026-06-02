@@ -676,7 +676,8 @@ Plans:
 
 **Requirements**: CIL-06 + REST-04 + REST-06 (3 REQ — gap closure)
 **Depends on:** Phase 338 (SHIPPED LOCAL)
-**Plans:** TBD (generate via /gsd-plan-phase 339) — 1 plan 1 wave 3 task
+**Plans:** 1 plan (Wave 1 — autonomous gap closure)
+- [ ] 339-01-PLAN.md — CIL-06 dropdown Bulk Export PDF + REST-04 dual nav (dropdown + Admin Index Section D card) + REST-06 conditional regex validator Title (3 task)
 
 #### Coverage Validation v20.0
 
