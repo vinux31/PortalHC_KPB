@@ -634,74 +634,16 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
 
-## v20.0 CMP Records Overhaul + Cilacap UX/Restore (Started: 2026-05-30)
+## v20.0 CMP Records Overhaul + Cilacap UX/Restore — Phases 336-339 ✅ ARCHIVED
 
-**Goal:** Tutup 3 PR pending — CMP/Records full overhaul (Approach C: 15 bug + 7 UX + 5 quality + 3 arch) + 6 gap UX Cilacap incident discovery + investigate & restore PreTest OJT GAST Cilacap data loss with guardrail backup SOP.
-
-**Plan strategy:** Sequential strict 3-phase (Opsi 2). File overlap matrix verified zero method-level. PR #2 Gap #5 Excel breakdown = enabler PR #3 Option C restore.
-
-**Phases:** 336 (investigation) → 337 (CMP overhaul) → 338 (Cilacap UX + restore execute)
-
-### Phase 336: investigate-pretest-loss-cilacap-restore-strategy — Git archeology AssessmentSession schema 2026-03-30..2026-05-19 + identifikasi migration culprit + decide restore strategy A/B/C + naming convention spec. NO code change, investigation-only. Source: todo `.planning/todos/pending/002-restore-pretest-ojt-gast-cilacap.md` + incident note `2026-05-29-pretest-ojt-gast-cilacap-lost.md`. Severity informational. Effort S (~1-2 hari).
-
-**Goal:** Root cause loss PreTest OJT GAST Cilacap (30 Mar 2026 → hilang dari Dev DB) via git log analysis. Kandidat commit: `b89b6559` (SamePackage), `a7bb443e` (AddAssessmentV14Columns), `569eb0a8` (7 kolom v14.0), `f82bad2e` (Rubrik/Essay), `0dedd7b7` (AddManualAssessment lifecycle). Output: ROOT_CAUSE.md + restore strategy A (re-import manual) / B (skip) / C (tunggu Gap #5 Excel breakdown enabling spider restore) — DECIDED + naming convention "{Pre|Post} Test {Track} {Lokasi}" spec.
-
-**Requirements**: REST-01-investigate-git-log, REST-02-confirm-root-cause, REST-03-decide-restore-strategy
-**Depends on:** Phase 335 (v19.0 close)
-**Plans:** 1/1 plans complete ✅ SHIPPED LOCAL 2026-05-30
-- [x] 336-01-PLAN.md — Investigation 6 task SHIPPED. Root cause: IT redeploy code+DB tanpa backup (path F-variant). Strategy A re-import via Excel backup locked. REST-05 backup hook escalated CRITICAL. 3 deliverable doc: ROOT_CAUSE (193) + RESTORE-DECISION (151) + NAMING-CONVENTION-SPEC (175). Zero source code modified.
-
-### Phase 337: cmp-records-full-overhaul-filter-data-arch-a11y — Approach C Full overhaul `/CMP/Records` page (My Records + Team View). 15 bug filter+data integrity + 7 UX race+state + 5 quality a11y+VM + 3 arch SQL push-down+pagination. Source: memory `project_cmp_records_audit_2026_05_27.md` (Approach C locked 2026-05-30). Severity HIGH (filter silent-fail browser-verified) + arch. Effort L (~1 minggu+, 3 wave internal).
-
-**Goal:** Full overhaul CMPController.cs Records action L479 + RecordsTeamPartial L740 + Export endpoints L637/690 + WorkerDataService.cs + 3 view (Records.cshtml + RecordsTeam.cshtml + _RecordsTeamBody.cshtml). Wave 1: B-01..B-11 filter+data integrity (CMP-01..11). Wave 2: U-01..U-07 + C-01..C-05 UX+quality (CMP-12..23). Wave 3: A-01..A-03 SQL push-down + pagination Team View (CMP-24..26). Pre-condition: verify file:line drift sejak audit 2026-05-27 (1 commit `c7adcb73` DateOnly sweep CMP+Home).
-
-**Requirements**: CMP-01..26 (26 REQ total)
-**Depends on:** Phase 336
-**Plans:** 3 plans (generated 2026-05-30 via /gsd-plan-phase 337 — 3 wave sequential per D-01)
-- [ ] 337-01-PLAN.md — Wave 1: Filter + Data Integrity (CMP-01..11, 11 REQ, ~4-5 hari, 4 task incl Playwright UAT checkpoint)
-- [ ] 337-02-PLAN.md — Wave 2: UX + Quality (CMP-12..23, 12 REQ, ~2-3 hari, 5 task incl ViewModel refactor + browser smoke checkpoint)
-- [ ] 337-03-PLAN.md — Wave 3: Arch SQL Push-down + Pagination (CMP-24..26, 3 REQ, ~2-3 hari, 4 task incl SQL profile + final UAT checkpoint)
-
-### Phase 338: cilacap-ux-gap-bundle-excel-bulkpdf-restore-execute — 6 gap UX Cilacap admin Asm Monitoring + restore execute decision dari Phase 336 + guardrail backup hook + DEV_WORKFLOW update. Source: todo `.planning/todos/pending/001-gap-ux-assessment-monitoring.md` + 002. Severity MED-HIGH (Gap #5 enabler + restore execute). Effort M-L (~1 minggu, 5 wave internal).
-
-**Goal:** Wave 1: Gap #1+#2 filter default + search aggregation (AssessmentAdminController ManageAssessment + AssessmentMonitoring) (CIL-01+CIL-02). Wave 2: Gap #3+#4 history drill-down + CMP/Assessment banner role-route (CMPController.cs Assessment action + AssessmentAdminController history) (CIL-03+CIL-04). Wave 3: Gap #5 Excel breakdown +sheet Detail Per Soal + Elemen Teknis (ExcelExportHelper.cs + AssessmentResultsViewModel.cs + ExportAssessmentResults L4077) (CIL-05 HIGH PRIORITY). Wave 4: Restore execute Option dari Phase 336 outcome (REST-04) + Gap #6 BulkExportPdf endpoint ZIP QuestPDF (CIL-06). Wave 5: Guardrail pre-deploy backup SQL Server `.bak` hook + naming convention enforce LinkedGroupId auto-pair admin create form + DEV_WORKFLOW.md update (REST-05..07).
-
-**Requirements**: CIL-01..06 + REST-04..07 (10 REQ total)
-**Depends on:** Phase 337
-**Plans:** TBD (generate via /gsd-plan-phase 338) — likely 3-5 plan split per wave
-
-### Phase 339: v20.0-gap-closure-orphan-ui-title-validator — Gap closure dari `.planning/v20.0-MILESTONE-AUDIT.md` (2026-06-02): 3 partial REQ dari Phase 338 (CIL-06 orphan endpoint, REST-04 orphan route, REST-06 Title validation missing). Surgical fix: tambah dropdown link `BulkExportPdf` + nav link `BulkBackfill` di `_AssessmentGroupsTab.cshtml`, conditional `ModelState.AddModelError` regex di `CreateAssessment` POST L835. Source: integration checker findings + recheck verified 2026-06-02. Severity HIGH (CIL-06) + MED (REST-04, REST-06). Effort S (~half day, 1 plan 1 wave, 3 task).
-
-**Goal:** Close 3 partial REQ identified oleh /gsd-audit-milestone v20.0. T1: `Views/Admin/Shared/_AssessmentGroupsTab.cshtml` L278+ sibling dropdown-item `<a asp-action="BulkExportPdf">` Export PDF ZIP (CIL-06). T2: same dropdown atau admin sidebar tambah link `/Admin/BulkBackfill` (REST-04). T3: `Controllers/AssessmentAdminController.cs:835-845` tambah conditional regex check `Regex.IsMatch(model.Title, @"^(Pre|Post)\s*Test\s+.+$")` saat `AssessmentTypeInput != "PrePostTest"` + `ModelState.AddModelError("Title", ...)` + verify `<span asp-validation-for="Title">` di `Views/Admin/CreateAssessment.cshtml:188` (REST-06).
-
-**Requirements**: CIL-06 + REST-04 + REST-06 (3 REQ — gap closure)
-**Depends on:** Phase 338 (SHIPPED LOCAL)
-**Plans:** 1 plan (Wave 1 — autonomous gap closure)
-- [ ] 339-01-PLAN.md — CIL-06 dropdown Bulk Export PDF + REST-04 dual nav (dropdown + Admin Index Section D card) + REST-06 conditional regex validator Title (3 task)
-
-#### Coverage Validation v20.0
-
-| Bug/Gap/Item | Phase | Status |
-|--------------|-------|--------|
-| REST-01..03 Investigation | 336 | SHIPPED LOCAL |
-| CMP-01..26 Records Overhaul (Approach C) | 337 | SHIPPED LOCAL |
-| CIL-01..05 Cilacap UX 5 gap | 338 (W1-3) | SHIPPED LOCAL |
-| CIL-06 BulkExportPdf endpoint | 338 (W4) | PARTIAL — endpoint OK, **UI link orphan** → Phase 339 T1 |
-| REST-04 Restore execute | 338 (W4) | PARTIAL — endpoint OK, **nav orphan** → Phase 339 T2 |
-| REST-05+REST-07 Guardrail + docs | 338 (W5) | SHIPPED LOCAL |
-| REST-06 Naming convention auto-pair + Title validation | 338 (W5) | PARTIAL — auto-pair OK, **regex validation missing** → Phase 339 T3 |
-
-**Active mapped: 39/39 REQ ✓ — Orphans: 0 — Duplicates: 0 — Carry-over backlog: 8 (deferred ke v21.0+) — Gap closure: 3 partial → Phase 339**
-
-**Cross-phase dependency:**
-- 336 → 338 W4 (restore strategy decision)
-- 337 W3 Gap #5 enables 338 W4 Option C (if chosen)
-- 337 ⊥ 336 (zero overlap, 336 read-only)
-- 337 vs 338 same file CMPController.cs but different methods (Records L479 vs Assessment L195) — safe sequential
+**Status:** SHIPPED LOCAL 2026-06-02 (push pending IT availability). Audit PASSED 39/39 REQ + 4/4 phase + integration COHERENT.
+**Archive:** [v20.0-ROADMAP.md](milestones/v20.0-ROADMAP.md) | [v20.0-REQUIREMENTS.md](milestones/v20.0-REQUIREMENTS.md) | [v20.0-MILESTONE-AUDIT.md](milestones/v20.0-MILESTONE-AUDIT.md)
+**Highlights:** REST-01..03 (PreTest loss root cause + Strategy A locked) + CMP-01..26 (Records overhaul Approach C: 15 bug + 7 UX + 5 quality + 3 arch SQL push-down + pagination) + CIL-01..06 (6 Cilacap admin UX gap) + REST-04..07 (restore execute + guardrail backup + naming + DEV_WORKFLOW SOP) + Phase 339 gap closure (CIL-06 UI + REST-04 dual nav + REST-06 regex validator).
 
 ---
 
-*Roadmap updated: 2026-06-02 (Phase 339 added — gap closure dari `/gsd-audit-milestone v20.0` 2026-06-02; 3 partial REQ CIL-06+REST-04+REST-06 → orphan UI link + Title regex validator; 1 plan 1 wave 3 task, effort S half day; depends Phase 338).*
+*Roadmap updated: 2026-06-02 (v20.0 ARCHIVED — milestone close, 39/39 REQ satisfied, 4 phase + 10 plan + 56 commit + 14,768/-323 LOC. Archive: milestones/v20.0-*.md. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev).*
+*Prev: 2026-06-02 (Phase 339 added — gap closure dari `/gsd-audit-milestone v20.0` 2026-06-02; 3 partial REQ CIL-06+REST-04+REST-06 → orphan UI link + Title regex validator; 1 plan 1 wave 3 task, effort S half day; depends Phase 338).*
 *Prev: 2026-05-30 (v20.0 milestone + Phase 336-338 added — 3 PR bundle Opsi 2 sequential strict; 39 REQ CMP-01..26 + CIL-01..06 + REST-01..07; total estimate ~2.5 minggu; locked decision Approach C CMP Records).*
 *Prev: 2026-05-28 (Phase 331-335 added — 5 HIGH proposal Phase 328 §9 #1+#3+#4+#5+#6 spawned per user batch-create. Phase 331-334 mechanical atomicity, Phase 335 complex worker lifecycle).*
 *Prev: 2026-05-28 (Phase 330 plan generated — 330-01-PLAN.md, 3 task single wave, ~75 LoC delta Controllers/AssessmentAdminController.cs + Controllers/OrganizationController.cs + Services/NotificationService.cs).*

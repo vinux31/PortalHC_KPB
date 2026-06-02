@@ -32,18 +32,13 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v18.0 shipped** — Cascade Delete Hardening + Duplicate TrainingRecord Fix (phases 323-324): cascade hapus `AssessmentEditLogs` di 3 endpoint Delete + hapus auto-create TrainingRecord di 3 lokasi production code (GradingService + AssessmentAdminController). 323 PUSHED tag v18.0-p323-complete; 324 SHIPPED LOCAL bundle dengan v19.0 push.
 **v19.0 shipped (local) + audit passed** — Portal HC Bug Fixes (Cascade Hardening) (phases 325-335): security hardening (SEC-01..03 path traversal + magic byte + hard delete FK) + validator hardening (VAL-01..02 DAG cycle + Permanent/ValidUntil reject) + DateOnly refactor (TZ-01 ValidUntil tz drift elimination) + cascade audit sweep (CSCD-AUDIT 19 endpoint) + 7 cascade hardening fix (CSCD-01..07 Group/Worker/MED Bundle/Training+ManualAsm/Bagian/CoachingSession/Kompetensi). 16/16 REQ + 86/86 must-haves verified. Push pending IT availability.
 
-**Current focus:** v20.0 prep — push v18.0+v19.0 batch + complete-milestone v19.0. Backlog: 8 carry-over + Phase 281/285 paused + 2 todo baru (gap-ux + restore-pretest 2026-05-29).
+**v20.0 shipped (local) + audit passed + archived (2026-06-02)** — CMP Records Overhaul + Cilacap UX/Restore (phases 336-339): CMP Records full overhaul Approach C (CMP-01..26 — filter integrity + UX race-safe + a11y ARIA + ViewModel + SQL push-down + pagination Team View), 6 Cilacap admin UX gap (CIL-01..06 — filter default + history drill-down + banner role-gated + Excel +2 sheet + BulkExportPdf ZIP), PreTest Cilacap loss investigation Strategy A locked + naming spec (REST-01..03), restore execute BulkBackfill endpoint + guardrail backup hook + DEV_WORKFLOW SOP + auto-pair LinkedGroupId Pre/Post (REST-04..07), Phase 339 gap closure 3 partial REQ (CIL-06 UI link + REST-04 dual nav + REST-06 regex validator). 39/39 REQ satisfied + Playwright MCP UAT 5/6 PASS. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo.
 
-## Current Milestone: v20.0 CMP Records Overhaul + Cilacap UX/Restore
+**Current focus:** Bundle push pending IT availability. Backlog: 8 carry-over (EPRV-01 + Phase 235/247/281/285/293/297/298/303) + Phase 337+338 live UAT items deferred Dev env + REST-04 KRITIS Cilacap data restore execute Dev DB pending admin trigger.
 
-**Goal:** Tutup 3 PR pending — (1) CMP/Records full overhaul (15 bug + 7 UX + 5 quality + 3 arch), (2) 6 gap UX Cilacap incident discovery (Admin Asm Monitoring + Excel breakdown + BulkPdf), (3) Investigate + restore PreTest OJT GAST Cilacap loss + naming convention + guardrail backup SOP.
+## Current Milestone: TBD (v21.0 — start via `/gsd-new-milestone`)
 
-**Target features:**
-- **Phase 336** (~1-2 hari, investigation): root cause PreTest loss + decide restore strategy A/B/C + naming convention
-- **Phase 337** (~1 minggu+): CMP/Records overhaul — filter silent-fail fix + data integrity + race-safe AJAX + a11y ARIA + ViewModel refactor + SQL push-down + pagination (Approach C Full)
-- **Phase 338** (~1 minggu): Cilacap 6 gap UX + restore execute + guardrail backup hook + DEV_WORKFLOW update
-
-**Started:** 2026-05-30 | **Active REQ:** 39 (CMP-01..26 + CIL-01..06 + REST-01..07) | **Phases:** 336-338 (3 phase sequential strict Opsi 2)
+**Last milestone shipped:** v20.0 archived 2026-06-02. Fresh REQUIREMENTS.md akan dibuat saat `/gsd-new-milestone` invoked.
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

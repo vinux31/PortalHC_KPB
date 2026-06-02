@@ -1,5 +1,42 @@
 # Milestones
 
+## v20.0 CMP Records Overhaul + Cilacap UX/Restore (Shipped Local: 2026-06-02, Audited: 2026-06-02)
+
+**Phases completed:** 4 phase (336, 337, 338, 339), 10 plan (Phase 337 has 3 wave plans, Phase 338 has 5 wave plans, Phase 336 + 339 single plan each)
+**Status:** SHIPPED LOCAL, push pending IT availability (bundled v19.0+v20.0 = ~155 commit batch + 0 migration di Phase 339)
+**Audit:** `milestones/v20.0-MILESTONE-AUDIT.md` — status passed (39/39 REQ + 4/4 phase + integration COHERENT post-re-audit setelah Phase 339 closed 3 partial)
+
+**Delivered:** CMP/Records overhaul (Approach C: filter silent-fail fix + data integrity + race-safe AJAX + a11y ARIA + ViewModel refactor + SQL push-down + pagination) + 6 Cilacap admin UX gap closure + PreTest OJT GAST Cilacap data loss investigation (root cause IT operational redeploy, BUKAN bug) + restore strategy A locked + Excel BulkBackfill endpoint + guardrail backup hook + DEV_WORKFLOW.md SOP + Phase 339 gap closure (3 partial REQ tertutup via UI wiring + regex validator).
+
+**Key accomplishments:**
+
+1. **CMP Records Full Overhaul (Phase 337, CMP-01..26)** — 26 REQ in 3 wave: Wave 1 filter + data integrity (CMP-01..11) hapus guard `WorkerDataService.cs:391` + ganti `.Contains()` → `string.Equals OrdinalIgnoreCase` + Sertifikat column rendered + AttemptNumber null-safe. Wave 2 UX + quality (CMP-12..23) AbortController AJAX + tab parity + dead `data-*` removal + keyboard-navigable rows + ARIA tab roles + `CMPRecordsViewModel.cs` refactor (single roleLevel source). Wave 3 arch (CMP-24..26) SQL push-down `GetAllWorkersHistory` 5 optional params + `PaginationHelper.Calculate` Team View.
+
+2. **Cilacap UX 5 Gap Closure (Phase 338 W1-3, CIL-01..05)** — Filter default badge counter Closed (CIL-01) + search aggregation include Closed (CIL-02) + history row drill-down ke `/CMP/Results/{sessionId}` (CIL-03) + admin/HC banner di `/CMP/Assessment` role-gated (CIL-04) + **CIL-05 HIGH PRIORITY**: `ExcelExportHelper.AddDetailPerSoalSheet` + `AddElemenTeknisSheet` di-call `ExportAssessmentResults` L4296-4297.
+
+3. **PreTest Cilacap Investigation (Phase 336, REST-01..03)** — Investigation-only, ZERO source code drift. Schema Evolution Timeline 7 commit ADD-ONLY + Migration Candidate Analysis 13/13 NO CULPRIT. Root cause: IT operational redeploy code+DB tanpa backup (path F-variant), BUKAN bug aplikasi. Strategy A locked (re-import via Excel BulkBackfill). Naming convention spec `{Stage} Test {Track} {Lokasi}` final.
+
+4. **REST-04 Restore Execute + CIL-06 BulkExportPdf (Phase 338-04, REST-04 + CIL-06)** — `BulkExportPdf` endpoint L4499 + `GeneratePerPesertaPdf` L4558 QuestPDF helper. `BulkBackfillAssessment` L733 atomic transaction + AuditLog per row. _Execute Cilacap PreTest 30 Mar 2026 data restore di Dev DB pending IT promo + admin trigger_ (code production-ready).
+
+5. **Guardrail Backup + Naming (Phase 338-05, REST-05..07)** — `scripts/backup-dev-pre-migration.ps1` SQL Server `.bak` hook untuk `AssessmentSessions` + `AssessmentAttemptHistory` + `PackageUserResponses` (REST-05). `docs/templates/DB_HANDOFF_IT.template.md` template komunikasi IT. `TryAutoDetectCounterpartGroup` L6599 auto-pair LinkedGroupId Pre/Post (REST-06). `docs/DEV_WORKFLOW.md` L142+ Pre-Deploy Backup SOP section (REST-07).
+
+6. **Phase 339 Gap Closure** — `/gsd-audit-milestone v20.0` (2026-06-02 morning) identified 3 partial REQ. Phase 339 surgical fix: T1 `_AssessmentGroupsTab.cshtml:283-291` dropdown-item BulkExportPdf + divider + BulkBackfill (CIL-06 + REST-04 dropdown variant). T2 `Views/Admin/Index.cshtml:274-289` Admin-only card BulkBackfill di Section D System (REST-04 primary nav). T3 `AssessmentAdminController.cs:847-855` conditional regex validator + `CreateAssessment.cshtml:193` `<span asp-validation-for="Title">` (REST-06). **D-03 entity safety:** `Models/AssessmentSession.cs:13` UNTOUCHED. Playwright MCP UAT 5/6 PASS + 1 N/A (HC role no-creds, code-proof).
+
+**Patterns established (cross-phase reuse):**
+- Conditional validator guard parity (Phase 338-05 auto-pair → Phase 339 regex validator: same `AssessmentTypeInput != "PrePostTest"` guard)
+- Entity-immutable Validation (Phase 339 D-03: server-side controller validation, NOT entity data annotation, untuk feature scoped ke subset usage)
+- Admin-only nav gate match endpoint (Phase 339 D-02: `@if (User.IsInRole("Admin"))` standalone gate match `[Authorize(Roles="Admin")]` — DISTINCT dari `|| HC` variant)
+- Wave 4 endpoint + Wave 5 wiring split (Phase 338 → 339 reorganization: endpoint logic shipped early, UI wiring afterward via dedicated gap closure phase)
+
+**Tech debt at close (acknowledged, defer):**
+- Push batch ~155 commit lokal v19.0+v20.0 pending IT availability
+- v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (pre-existing tech debt — backlog housekeeping non-blocker)
+- Nyquist `*-VALIDATION.md` MISSING semua 4 phase v20.0 (defer batch `/gsd-validate-phase N`)
+- Phase 337 6 item live UAT 6-pillar `/CMP/Records` + Phase 338 7 item live UAT termasuk REST-04 KRITIS Cilacap data restore execute — pending Dev environment post-IT promo
+- Pre-existing carry-over 8 backlog: EPRV-01 + Phase 235/247/281/285/293/297/298/303
+
+---
+
 ## v19.0 Portal HC Bug Fixes (Cascade Hardening) (Shipped Local: 2026-05-28, Audited: 2026-05-29)
 
 **Phases completed:** 11 phases (325-335), 11 plans (multi-plan: Phase 325 has 5, Phase 327 has 8; others 1)
