@@ -24,6 +24,9 @@ namespace HcPortal.Data
 
             // 3. Seed OrganizationUnits (safety net for fresh deployment)
             await SeedOrganizationUnitsAsync(context);
+
+            // 4. Seed OrganizationLevelLabels — Phase 340 D-01 (permanent + prod-required)
+            await SeedOrganizationLevelLabelsAsync(context);
         }
 
         /// <summary>
@@ -87,7 +90,7 @@ namespace HcPortal.Data
 
             foreach (var section in sections)
             {
-                var parent = new OrganizationUnit { Name = section.Name, Level = 1, DisplayOrder = section.Order, IsActive = true };
+                var parent = new OrganizationUnit { Name = section.Name, Level = 0, DisplayOrder = section.Order, IsActive = true };
                 context.OrganizationUnits.Add(parent);
                 await context.SaveChangesAsync();
 
@@ -96,11 +99,31 @@ namespace HcPortal.Data
                 {
                     context.OrganizationUnits.Add(new OrganizationUnit
                     {
-                        Name = unitName, ParentId = parent.Id, Level = 2, DisplayOrder = unitOrder++, IsActive = true
+                        Name = unitName, ParentId = parent.Id, Level = 1, DisplayOrder = unitOrder++, IsActive = true
                     });
                 }
                 await context.SaveChangesAsync();
             }
+        }
+
+        /// <summary>
+        /// Seed default 3 baris OrganizationLevelLabels (Level 0='Bagian', 1='Unit', 2='Sub-unit').
+        /// Klasifikasi: permanent + prod-required (per docs/SEED_WORKFLOW.md §3, Phase 340 D-01).
+        /// Idempotent — skip bila tabel sudah ada baris (preserve HC custom label).
+        /// </summary>
+        public static async Task SeedOrganizationLevelLabelsAsync(ApplicationDbContext context)
+        {
+            if (await context.OrganizationLevelLabels.AnyAsync())
+                return;
+
+            var defaults = new[]
+            {
+                new OrganizationLevelLabel { Level = 0, Label = "Bagian",   UpdatedAt = DateTime.UtcNow, UpdatedBy = "system" },
+                new OrganizationLevelLabel { Level = 1, Label = "Unit",     UpdatedAt = DateTime.UtcNow, UpdatedBy = "system" },
+                new OrganizationLevelLabel { Level = 2, Label = "Sub-unit", UpdatedAt = DateTime.UtcNow, UpdatedBy = "system" },
+            };
+            context.OrganizationLevelLabels.AddRange(defaults);
+            await context.SaveChangesAsync();
         }
     }
 }
