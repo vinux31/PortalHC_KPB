@@ -232,8 +232,8 @@ else
             <tr>
                 <th>Nama</th>
                 <th>NIP</th>
-                <th>Bagian Penugasan</th>
-                <th>Unit Penugasan</th>
+                <th>@OrgLabels.GetLabel(0) Penugasan</th>
+                <th>@OrgLabels.GetLabel(1) Penugasan</th>
                 <th>Jabatan</th>
                 <th>Proton Track</th>
                 <th>Status</th>
@@ -432,9 +432,9 @@ else
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Bagian Penugasan <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">@OrgLabels.GetLabel(0) Penugasan <span class="text-danger">*</span></label>
                     <select id="assignAssignmentSection" class="form-select" onchange="filterAssignmentUnits('assign')">
-                        <option value="">— Pilih Bagian —</option>
+                        <option value="">— Pilih @OrgLabels.GetLabel(0) —</option>
                         @foreach (var sec in sectionUnits.Keys)
                         {
                             <option value="@sec">@sec</option>
@@ -442,9 +442,9 @@ else
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Unit Penugasan <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">@OrgLabels.GetLabel(1) Penugasan <span class="text-danger">*</span></label>
                     <select id="assignAssignmentUnit" class="form-select">
-                        <option value="">— Pilih Unit —</option>
+                        <option value="">— Pilih @OrgLabels.GetLabel(1) —</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -500,9 +500,9 @@ else
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Bagian Penugasan <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">@OrgLabels.GetLabel(0) Penugasan <span class="text-danger">*</span></label>
                     <select id="editAssignmentSection" class="form-select" onchange="filterAssignmentUnits('edit')">
-                        <option value="">— Pilih Bagian —</option>
+                        <option value="">— Pilih @OrgLabels.GetLabel(0) —</option>
                         @foreach (var sec in sectionUnits.Keys)
                         {
                             <option value="@sec">@sec</option>
@@ -510,9 +510,9 @@ else
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Unit Penugasan <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">@OrgLabels.GetLabel(1) Penugasan <span class="text-danger">*</span></label>
                     <select id="editAssignmentUnit" class="form-select">
-                        <option value="">— Pilih Unit —</option>
+                        <option value="">— Pilih @OrgLabels.GetLabel(1) —</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -647,7 +647,7 @@ else
     function filterAssignmentUnits(prefix) {
         var sectionVal = document.getElementById(prefix + 'AssignmentSection').value;
         var unitSelect = document.getElementById(prefix + 'AssignmentUnit');
-        unitSelect.innerHTML = '<option value="">— Pilih Unit —</option>';
+        unitSelect.innerHTML = '<option value="">— Pilih @OrgLabels.GetLabel(1) —</option>';
         if (sectionVal && sectionUnitsMap[sectionVal]) {
             sectionUnitsMap[sectionVal].forEach(function(u) {
                 var opt = document.createElement('option');

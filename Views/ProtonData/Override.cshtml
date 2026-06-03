@@ -26,15 +26,15 @@
         <h6 class="fw-bold text-muted mb-3"><i class="bi bi-funnel me-1"></i>Filter Override</h6>
         <div class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label fw-semibold">Bagian</label>
+                <label class="form-label fw-semibold">@OrgLabels.GetLabel(0)</label>
                 <select class="form-select" id="overrideBagian">
-                    <option value="">-- Pilih Bagian --</option>
+                    <option value="">-- Pilih @OrgLabels.GetLabel(0) --</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Unit</label>
+                <label class="form-label fw-semibold">@OrgLabels.GetLabel(1)</label>
                 <select class="form-select" id="overrideUnit" disabled>
-                    <option value="">-- Pilih Unit --</option>
+                    <option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -191,7 +191,7 @@
         document.getElementById('overrideBagian').addEventListener('change', function () {
             var bagian = this.value;
             var unitSelect = document.getElementById('overrideUnit');
-            unitSelect.innerHTML = '<option value="">-- Pilih Unit --</option>';
+            unitSelect.innerHTML = '<option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>';
             if (bagian && orgStructure[bagian]) {
                 orgStructure[bagian].forEach(function (u) {
                     var opt = document.createElement('option');
