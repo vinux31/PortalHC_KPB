@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v16.0
 milestone_name: QA Test Coverage
-status: verifying
-last_updated: "2026-06-03T10:41:29.065Z"
-last_activity: 2026-06-03
+status: executing
+last_updated: "2026-06-03T11:31:33.499Z"
+last_activity: 2026-06-03 -- Phase 343 execution started
 progress:
   total_phases: 7
   completed_phases: 7
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 342 — ManageOrganization Page Fixes
+**Current focus:** Phase 343 — integrasi-app-wide
 
 ## Current Position
 
 Milestone: v21.0 🚀 ACTIVE (5 phase 340-344, 26 REQ, ~5 hari sequential)
-Phase: 342
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-03
+Phase: 343 (integrasi-app-wide) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 343
+Last activity: 2026-06-03 -- Phase 343 execution started
 
 Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phase). Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev.
 
