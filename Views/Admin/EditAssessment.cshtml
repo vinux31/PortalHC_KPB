@@ -519,7 +519,7 @@
                                             <th>#</th>
                                             <th>Nama</th>
                                             <th>Email</th>
-                                            <th>Bagian</th>
+                                            <th>@OrgLabels.GetLabel(0)</th>
                                             <th>Status Assessment</th>
                                             <th>Aksi</th>
                                         </tr>
@@ -595,7 +595,7 @@
                         <!-- Section Filter + Search + Controls -->
                         <div class="d-flex gap-2 mb-2 align-items-center flex-wrap">
                             <select id="newSectionFilter" class="form-select form-select-sm" style="max-width: 220px;">
-                                <option value="">Semua Bagian</option>
+                                <option value="">Semua @OrgLabels.GetLabel(0)</option>
                                 @if (ViewBag.Sections != null)
                                 {
                                     foreach (var sec in (List<string>)ViewBag.Sections)
@@ -603,7 +603,7 @@
                                         <option value="@sec">@sec</option>
                                     }
                                 }
-                                <option value="__none__">Lainnya (Tanpa Bagian)</option>
+                                <option value="__none__">Lainnya (Tanpa @OrgLabels.GetLabel(0))</option>
                             </select>
                             <div class="input-group input-group-sm" style="max-width: 300px;">
                                 <input type="text" id="newUserSearchInput" class="form-control" placeholder="Cari berdasarkan nama atau email..." />

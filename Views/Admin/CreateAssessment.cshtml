@@ -261,7 +261,7 @@
                     <div id="normalFilterBar" class="row g-2 mb-3">
                         <div class="col-auto">
                             <select id="sectionFilter" class="form-select form-select-sm" style="max-width:220px;">
-                                <option value="">Semua Bagian</option>
+                                <option value="">Semua @OrgLabels.GetLabel(0)</option>
                                 @if (ViewBag.Sections != null)
                                 {
                                     foreach (var sec in (List<string>)ViewBag.Sections)
@@ -269,7 +269,7 @@
                                         <option value="@sec">@sec</option>
                                     }
                                 }
-                                <option value="__none__">Lainnya (Tanpa Bagian)</option>
+                                <option value="__none__">Lainnya (Tanpa @OrgLabels.GetLabel(0))</option>
                             </select>
                         </div>
                         <div class="col-auto">

@@ -36,10 +36,10 @@
                 @* Bagian selector *@
                 <div class="mb-3">
                     <label for="bagianId" class="form-label fw-semibold">
-                        Pilih Bagian <span class="text-danger">*</span>
+                        Pilih @OrgLabels.GetLabel(0) <span class="text-danger">*</span>
                     </label>
                     <select name="bagianId" id="bagianId" class="form-select" required>
-                        <option value="">-- Pilih Bagian --</option>
+                        <option value="">-- Pilih @OrgLabels.GetLabel(0) --</option>
                         @foreach (var b in bagians.OrderBy(x => x.DisplayOrder))
                         {
                             if (b.Id == selectedBagianId)
