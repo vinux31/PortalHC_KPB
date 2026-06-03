@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v21.0
 milestone_name: ManageOrganization Overhaul + Level Label CRUD
-status: ready_to_execute
-last_updated: "2026-06-02T12:02:02.498Z"
-last_activity: 2026-06-02 -- Phase 340 planning complete (3 plan, checker PASSED iteration 1)
+status: executing
+last_updated: "2026-06-03T02:30:00.000Z"
+last_activity: 2026-06-03 -- Phase 340 SHIPPED LOCAL (3/3 plan, 10 commit e31db3c5..d631a686, 2/2 tests PASS, IT handoff HTML ready)
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 20
 ---
 
 # Project State: Portal HC KPB
@@ -20,22 +20,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v21.0 ManageOrganization Overhaul started 2026-06-02. Next: `/gsd-plan-phase 340`.
+**Current focus:** v21.0 Phase 340 SHIPPED LOCAL — next Phase 341 (Label CRUD Page)
 
 ## Current Position
 
 Milestone: v21.0 🚀 ACTIVE (5 phase 340-344, 26 REQ, ~5 hari sequential)
-Phase: Not started (defining first phase plan)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-02 -- Phase 340 planning complete
+Phase: 340 (Foundation — Tabel + Service + Cache) — ✅ SHIPPED LOCAL 2026-06-03 (3/3 plan)
+Plan: 3 of 3 complete
+Status: Phase 340 closed; ready /gsd-plan-phase 341
+Last activity: 2026-06-03 -- Phase 340 SHIPPED LOCAL, 10 commit e31db3c5..d631a686
 
 Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phase). Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev.
 
+## Phase 340 Closure Snapshot
+
+- **REQ delivered:** ORG-LABEL-01 (tabel + migration + seed) / ORG-LABEL-02 (service + cache) / ORG-LABEL-03 (controller endpoint) / ORG-LABEL-07 (tests + handoff)
+- **Commits (10):** `e31db3c5` entity / `26ecd48a` DbSet+migration / `7e575f38` seed + D-12 fix / `92e20fbe` interface / `3a3aa3b9` service+DI+controller / `a6ba3514` plan02 summary / `43e94655` xUnit tests / `10ba5c5e` IT handoff HTML / `d631a686` plan01+03 summaries
+- **Tests:** `dotnet test HcPortal.Tests` → 20/20 PASS (18 existing + 2 new TEST-01)
+- **Live endpoint:** `GET /Admin/GetLevelLabels` → 200 `{"0":"Bagian","1":"Unit","2":"Sub-unit"}`
+- **IT handoff:** `docs/DB_HANDOFF_IT_2026-06-03.html` ready forward Team IT (commit target now `d631a686`, migration flag YES)
+
 ## Next Action
 
-1. **`/gsd-plan-phase 340`** — start P1 Foundation (Tabel + Service + Cache, ORG-LABEL-01/02/03/07).
-2. **Carry-over IT promo v19.0+v20.0** — push bundle + Dev migration coordination tetap pending (paralel jalur).
+1. **`/gsd-plan-phase 341`** — Label CRUD Page (depends_on 340 cleared).
+2. **Carry-over IT promo v19.0+v20.0+v21.0/340** — push bundle + Dev migration coordination tetap pending (paralel jalur).
 3. **(Backlog housekeeping non-blocker):** Pre-existing Tom Select UX regression dari v20.0 audit defer ke v21.0 backlog (lihat v20.0-MILESTONE-AUDIT.md tech_debt).
 4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro).
 
