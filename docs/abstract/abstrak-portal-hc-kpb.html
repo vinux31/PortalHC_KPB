@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Abstrak — Portal HC KPB</title>
+<style>
+  @page {
+    size: A4;
+    margin: 25mm 22mm 25mm 35mm;
+  }
+  html, body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    line-height: 2;
+    color: #000;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  .page {
+    width: 170mm;
+    margin: 0 auto;
+    padding: 20mm 0;
+    position: relative;
+  }
+  .page-number {
+    text-align: center;
+    font-size: 12pt;
+    margin-bottom: 30pt;
+  }
+  .abstrak-label {
+    text-align: center;
+    font-size: 12pt;
+    margin-bottom: 14pt;
+  }
+  .title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 12pt;
+    letter-spacing: 2pt;
+    text-transform: uppercase;
+    margin-bottom: 28pt;
+  }
+  .body-wrapper {
+    position: relative;
+  }
+  .body-wrapper p.body {
+    margin: 0;
+    text-align: justify;
+    text-indent: 36pt;
+    font-size: 12pt;
+    line-height: 24pt;
+  }
+  .line-numbers {
+    position: absolute;
+    top: 0;
+    left: -32pt;
+    width: 22pt;
+    height: 100%;
+    pointer-events: none;
+  }
+  .line-numbers span {
+    position: absolute;
+    width: 22pt;
+    text-align: right;
+    font-size: 11pt;
+    color: #000;
+    font-family: "Times New Roman", Times, serif;
+  }
+  /* Anchored at line-height (24pt) * (N - 1) where N is the visual line number.
+     line 5  => 24pt * 4  = 96pt
+     line 10 => 24pt * 9  = 216pt
+     line 15 => 24pt * 14 = 336pt
+     line 20 => 24pt * 19 = 456pt
+     line 25 => 24pt * 24 = 576pt */
+  .ln5  { top: 96pt; }
+  .ln10 { top: 216pt; }
+  .ln15 { top: 336pt; }
+  .ln20 { top: 456pt; }
+  .ln25 { top: 576pt; }
+  @media screen {
+    body {
+      background: #e0e0e0;
+      padding: 20px 0;
+    }
+    .page {
+      background: #fff;
+      box-shadow: 0 0 12px rgba(0,0,0,0.2);
+      padding: 25mm 22mm 25mm 35mm;
+      box-sizing: border-box;
+      width: 210mm;
+      min-height: 297mm;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-number">1</div>
+  <div class="abstrak-label">Abstrak</div>
+  <div class="title">SISTEM DIGITAL PROGRAM PENGEMBANGAN KOMPETENSI OPERASI KILANG PROFESIONAL (PROTON)</div>
+
+  <div class="body-wrapper">
+    <div class="line-numbers">
+      <span class="ln5">5</span>
+      <span class="ln10">10</span>
+      <span class="ln15">15</span>
+      <span class="ln20">20</span>
+      <span class="ln25">25</span>
+    </div>
+    <p class="body">Invensi ini berkaitan dengan suatu sistem digital berbasis web (ASP.NET Core MVC) yang mengoperasionalkan program PROTON (<em>Professional Refinery Operations Competency Development</em>), yaitu program pengembangan kompetensi terstruktur berprinsip SMART bagi pekerja kilang minyak pada fase operasi. Program dijalankan pada dua jalur keahlian (Panelman dan Operator) selama tiga tahun berjenjang &mdash; <em>Foundation</em>, Pendalaman, dan <em>Mastery</em> &mdash; melalui dua modul terintegrasi: <em>Competency Management Platform</em> (CMP) menyusun Kebutuhan Kompetensi Jabatan (KKJ), melaksanakan asesmen kompetensi teknis, dan menyepakati Silabus, sedangkan <em>Competency Development Platform</em> (CDP) mengeksekusinya dengan metode <em>blended learning</em>. Pelaksanaan PROTON mengikuti alur enam langkah: (1) penetapan Silabus per jabatan berbasis KKJ dan penugasan <em>coach</em> oleh <em>Human Capital</em>; (2) pengunggahan bukti <em>deliverable</em> oleh <em>coachee</em> via fitur <em>Individual Development Plan</em> (IDP); (3) pencatatan sesi pendampingan via fitur <em>Coaching</em> PROTON berpedoman <em>Coaching Guidance</em> per dimensi kompetensi; (4) persetujuan berlapis oleh <em>Sr Supervisor</em>, <em>Section Head</em>, dan <em>review</em> final <em>Human Capital</em>; (5) <em>Final Assessment</em> berupa ujian pilihan ganda otomatis (Tahun 1&ndash;2) atau wawancara panel (Tahun 3), ambang kelulusan ditetapkan (75); serta (6) perekaman permanen pada Histori PROTON. Setelah lulus, sertifikat digital terbit otomatis dengan masa berlaku dan rantai pembaruan lintas-periode, sehingga status kompetensi dan riwayat pengembangan termutakhirkan secara konsisten. Dengan demikian, invensi mereplikasi program PROTON dalam lingkungan digital yang terstruktur, terukur, dan terlacak.</p>
+  </div>
+</div>
+</body>
+</html>
