@@ -61,6 +61,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<HcPortal.Services.INotificationService, HcPortal.Services.NotificationService>();
 builder.Services.AddScoped<HcPortal.Services.IWorkerDataService, HcPortal.Services.WorkerDataService>();
 
+// Org Label Service — Phase 340 milestone v21.0 (D-06 Scoped, ApplicationDbContext captive prevention)
+builder.Services.AddScoped<HcPortal.Services.IOrgLabelService, HcPortal.Services.OrgLabelService>();
+
 // Auth service — factory delegates based on Authentication:UseActiveDirectory config toggle
 // dev (false) -> LocalAuthService (Identity PasswordHash)
 // prod (true)  -> HybridAuthService (AD for all users, local fallback for admin@pertamina.com)
