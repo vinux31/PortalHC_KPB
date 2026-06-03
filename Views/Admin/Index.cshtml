@@ -51,6 +51,22 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
+        <a href="@Url.Action("ManageOrgLevelLabels", "OrgLabel")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-tags fs-5 text-primary"></i>
+                        <span class="fw-bold">Label Tier Organisasi</span>
+                    </div>
+                    <small class="text-muted">Kelola nama tier organisasi (Bagian/Unit/Sub-unit) tanpa edit kode</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
         <a href="@Url.Action("KkjMatrix", "DocumentAdmin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
