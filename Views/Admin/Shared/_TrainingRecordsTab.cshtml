@@ -34,7 +34,7 @@
             <div class="row g-3 align-items-end">
                 <!-- Dropdown: Bagian -->
                 <div class="col-12 col-md-2">
-                    <label class="form-label fw-bold small">Bagian</label>
+                    <label class="form-label fw-bold small">@OrgLabels.GetLabel(0)</label>
                     <select class="form-select form-select-sm" name="section" id="filterSection"
                             hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
                             hx-trigger="change"
@@ -42,7 +42,7 @@
                             hx-swap="innerHTML"
                             hx-include="closest form"
                             onchange="document.getElementById('filterUnit').value='';">
-                        <option value="">Semua Bagian</option>
+                        <option value="">Semua @OrgLabels.GetLabel(0)</option>
                         @{ var sects = ViewBag.TrainingSections as List<string> ?? new List<string>(); }
                         @foreach (var s in sects)
                         {
@@ -84,14 +84,14 @@
 
                 <!-- Dropdown: Unit -->
                 <div class="col-12 col-md-2">
-                    <label class="form-label fw-bold small">Unit</label>
+                    <label class="form-label fw-bold small">@OrgLabels.GetLabel(1)</label>
                     <select class="form-select form-select-sm" name="unit" id="filterUnit"
                             hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
                             hx-trigger="change"
                             hx-target="closest .htmx-tab-wrapper"
                             hx-swap="innerHTML"
                             hx-include="closest form">
-                        <option value="">Semua Unit</option>
+                        <option value="">Semua @OrgLabels.GetLabel(1)</option>
                         @{ var trainingUnits = ViewBag.TrainingUnits as List<string> ?? new List<string>(); }
                         @foreach (var unitVal in trainingUnits)
                         {
@@ -191,7 +191,7 @@ else
                         <th>Nama</th>
                         <th>Nopeg</th>
                         <th>Jabatan</th>
-                        <th>Unit</th>
+                        <th>@OrgLabels.GetLabel(1)</th>
                         <th>Status Training</th>
                         <th style="width:80px">Aksi</th>
                     </tr>

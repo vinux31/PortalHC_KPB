@@ -129,9 +129,9 @@
             <form method="get" action="@Url.Action("ManageWorkers", "Worker")" id="filterForm">
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-2">
-                        <label class="form-label fw-bold small">Bagian</label>
+                        <label class="form-label fw-bold small">@OrgLabels.GetLabel(0)</label>
                         <select class="form-select form-select-sm" name="sectionFilter" id="sectionFilterSelect" onchange="onBagianChange()">
-                            <option value="">Semua Bagian</option>
+                            <option value="">Semua @OrgLabels.GetLabel(0)</option>
                             @{
                                 var allSections = ViewBag.AllSections as List<string> ?? new List<string>();
                                 foreach (var sec in allSections)
@@ -149,9 +149,9 @@
                         </select>
                     </div>
                     <div class="col-12 col-md-3">
-                        <label class="form-label fw-bold small">Unit</label>
+                        <label class="form-label fw-bold small">@OrgLabels.GetLabel(1)</label>
                         <select class="form-select form-select-sm" name="unitFilter" id="unitFilterSelect" onchange="this.form.submit()">
-                            <option value="">Semua Unit</option>
+                            <option value="">Semua @OrgLabels.GetLabel(1)</option>
                             @{
                                 var allUnits = ViewBag.AllUnits as List<string> ?? new List<string>();
                                 foreach (var unit in allUnits)
@@ -223,8 +223,8 @@
                                 <th class="p-3">Email</th>
                                 <th class="p-3">NIP</th>
                                 <th class="p-3">Jabatan</th>
-                                <th class="p-3">Bagian</th>
-                                <th class="p-3">Unit</th>
+                                <th class="p-3">@OrgLabels.GetLabel(0)</th>
+                                <th class="p-3">@OrgLabels.GetLabel(1)</th>
                                 <th class="p-3 text-center">Role</th>
                                 <th class="p-3 text-center" style="width: 140px;">Aksi</th>
                             </tr>

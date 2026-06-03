@@ -52,9 +52,9 @@
         <div class="card-body">
             <div class="row g-2 align-items-end">
                 <div class="col-md-2">
-                    <label class="form-label small mb-1">Bagian</label>
+                    <label class="form-label small mb-1">@OrgLabels.GetLabel(0)</label>
                     <select id="filter-bagian" class="form-select form-select-sm">
-                        <option value="">Semua Bagian</option>
+                        <option value="">Semua @OrgLabels.GetLabel(0)</option>
                         @foreach (var s in (List<string>)ViewBag.AllBagian)
                         {
                             <option value="@s">@s</option>
@@ -62,9 +62,9 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-1">Unit</label>
+                    <label class="form-label small mb-1">@OrgLabels.GetLabel(1)</label>
                     <select id="filter-unit" class="form-select form-select-sm" disabled>
-                        <option value="">Semua Unit</option>
+                        <option value="">Semua @OrgLabels.GetLabel(1)</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -225,7 +225,7 @@
     // Cascade: Bagian -> Unit
     bagianEl.addEventListener('change', function () {
         var section = bagianEl.value;
-        unitEl.innerHTML = '<option value="">Semua Unit</option>';
+        unitEl.innerHTML = '<option value="">Semua @OrgLabels.GetLabel(1)</option>';
         unitEl.disabled = true;
         if (!section) {
             refreshTable(1);
@@ -272,7 +272,7 @@
 
     resetBtn.addEventListener('click', function () {
         bagianEl.value = '';
-        unitEl.innerHTML = '<option value="">Semua Unit</option>';
+        unitEl.innerHTML = '<option value="">Semua @OrgLabels.GetLabel(1)</option>';
         unitEl.disabled = true;
         categoryEl.value = '';
         subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';

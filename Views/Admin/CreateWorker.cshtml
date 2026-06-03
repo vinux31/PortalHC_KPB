@@ -113,13 +113,13 @@
                     <div class="col-md-6">
                         <label asp-for="Section" class="form-label fw-semibold"></label>
                         <select asp-for="Section" class="form-select" id="sectionSelect">
-                            <option value="">-- Pilih Bagian --</option>
+                            <option value="">-- Pilih @OrgLabels.GetLabel(0) --</option>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Unit" class="form-label fw-semibold"></label>
                         <select asp-for="Unit" class="form-select" id="unitSelect">
-                            <option value="">-- Pilih Unit --</option>
+                            <option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>
                         </select>
                     </div>
                 </div>

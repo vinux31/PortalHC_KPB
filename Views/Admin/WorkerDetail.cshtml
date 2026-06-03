@@ -86,7 +86,7 @@
                                 <td class="fw-semibold">@(Model.Position ?? "-")</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Bagian</td>
+                                <td class="text-muted">@OrgLabels.GetLabel(0)</td>
                                 <td class="fw-semibold">
                                     @if (!string.IsNullOrEmpty(Model.Section))
                                     {
@@ -99,7 +99,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Unit</td>
+                                <td class="text-muted">@OrgLabels.GetLabel(1)</td>
                                 <td class="fw-semibold"><small>@(Model.Unit ?? "-")</small></td>
                             </tr>
                             <tr>
