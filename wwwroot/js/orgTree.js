@@ -5,6 +5,21 @@
 let _flatUnits = [];
 let _expandedIds = new Set();
 
+// Tier label map (D-01: fetch from Phase 340 GetLevelLabels endpoint, client-render)
+let labelMap = null;
+async function fetchLabels() { if (!labelMap) labelMap = await ajaxGet('GetLevelLabels'); }
+function getLabelForLevel(level) { return (labelMap && labelMap[level]) || `Level ${level}`; }
+
+// Legend renderer (ORG-TREE-08 — color swatch + tier label from labelMap)
+function renderLegend() {
+    const host = document.getElementById('org-legend');
+    if (!host || !labelMap) return;
+    const levels = Object.keys(labelMap).map(Number).sort((a, b) => a - b);
+    host.innerHTML = levels.map(lv =>
+        `<span class="org-legend-item"><span class="org-legend-swatch level-${lv <= 5 ? lv : 5}"></span>${escapeHtml(labelMap[lv])}</span>`
+    ).join('');
+}
+
 function getAntiForgeryToken() {
     const input = document.querySelector('input[name="__RequestVerificationToken"]');
     return input ? input.value : '';
@@ -120,7 +135,7 @@ function renderNode(node, level) {
     const dimmed = !node.isActive ? 'style="opacity:0.5"' : '';
 
     const iconClass = level === 0 ? 'bi-building' : level === 1 ? 'bi-diagram-3' : 'bi-gear';
-    const levelClass = level <= 2 ? `level-${level}` : 'level-2';
+    const levelClass = 'level-' + (level <= 5 ? level : 5);
 
     const badge = node.isActive
         ? '<span class="badge rounded-pill bg-success" style="font-size:0.72rem;">Aktif</span>'
@@ -147,7 +162,7 @@ function renderNode(node, level) {
                 <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); openEditModal(${node.id})"><i class="bi bi-pencil me-2"></i>Edit</a></li>
                 <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); doToggle(${node.id})"><i class="bi ${toggleIcon} me-2"></i>${toggleLabel}</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); openDeleteModal(${node.id}, '${escapeHtml(node.name)}', ${hasChildren ? node.children.length : 0})"><i class="bi bi-trash me-2"></i>Hapus</a></li>
+                <li><a class="dropdown-item text-danger js-delete-trigger" href="#" data-id="${node.id}" data-name="${escapeHtml(node.name)}" data-child-count="${hasChildren ? node.children.length : 0}"><i class="bi bi-trash me-2"></i>Hapus</a></li>
             </ul>
         </div>`;
 
@@ -161,6 +176,10 @@ function renderNode(node, level) {
 
     const isExpanded = hasChildren && _expandedIds.has(node.id);
 
+    // Tier badge (ORG-TREE-10, D-03 palette reuse) — sourced from labelMap
+    const tierLabel = getLabelForLevel(level);
+    const tierBadge = `<span class="badge org-tier-badge level-${level <= 5 ? level : 5}">${escapeHtml(tierLabel)}</span>`;
+
     return `
         <li class="tree-node" data-expanded="${isExpanded}" data-id="${node.id}">
             <div class="tree-row d-flex align-items-center gap-2" ${dimmed}>
@@ -169,6 +188,7 @@ function renderNode(node, level) {
                 ${chevron}
                 <div class="org-node-icon ${levelClass}"><i class="bi ${iconClass}"></i></div>
                 <span class="tree-label">${escapeHtml(node.name)}</span>
+                ${tierBadge}
                 ${childCount}
                 ${badge}
                 ${dropdown}
@@ -203,6 +223,7 @@ async function initTree() {
         </div>`;
 
     try {
+        await fetchLabels();
         const flat = await ajaxGet('GetOrganizationTree');
         _flatUnits = flat;
         if (!isRefresh) setDefaultExpandState();
@@ -284,30 +305,82 @@ function getDescendantIds(id) {
     return ids;
 }
 
+// Pre-order DFS flatten (ORG-TREE-01 — parent → descendants → next sibling)
+function flattenTreePreOrder(roots) {
+    const out = [];
+    function walk(node, depth) {
+        out.push({ ...node, depth });
+        (node.children || []).forEach(c => walk(c, depth + 1));
+    }
+    roots.forEach(r => walk(r, 0));
+    return out;
+}
+
 function populateParentDropdown(excludeId) {
     const select = document.getElementById('unitModalParent');
     select.innerHTML = '<option value="">— Tidak ada (root) —</option>';
     const excludeIds = excludeId ? getDescendantIds(excludeId) : new Set();
     if (excludeId) excludeIds.add(excludeId);
 
-    _flatUnits
-        .filter(u => u.isActive && !excludeIds.has(u.id))
-        .sort((a, b) => a.level - b.level || a.displayOrder - b.displayOrder)
+    const roots = buildTree(_flatUnits);
+    flattenTreePreOrder(roots)
+        .filter(u => !excludeIds.has(u.id))          // Pitfall 3: anti-circular (self + descendants)
         .forEach(u => {
-            const indent = '\u00A0'.repeat(u.level * 4);
+            const indent = '\u00A0'.repeat(u.depth * 4);
+            const suffix = u.isActive ? '' : ' (nonaktif)';   // ORG-TREE-03: inactive visible
             const opt = document.createElement('option');
             opt.value = u.id;
-            opt.textContent = indent + u.name;
+            opt.textContent = indent + u.name + suffix;
+            if (!u.isActive) opt.style.color = '#999';
             select.appendChild(opt);
         });
 }
 
 // CRUD modal functions
 
+// Modal title dynamic per tier (ORG-TREE-09) + path breadcrumb (ORG-TREE-06)
+function setModalTitleForParent(parentIdVal) {
+    const parent = parentIdVal ? findUnit(parseInt(parentIdVal)) : null;
+    const childLevel = parent ? parent.level + 1 : 0;
+    const verb = document.getElementById('unitModalId').value ? 'Edit' : 'Tambah';
+    document.getElementById('unitModalLabel').textContent = `${verb} ${getLabelForLevel(childLevel)}`;
+}
+function renderModalPath(parentIdVal) {
+    const el = document.getElementById('unitModalPath');
+    if (!el) return;
+    if (!parentIdVal) { el.textContent = ''; return; }
+    const chain = [];
+    let cur = findUnit(parseInt(parentIdVal));
+    while (cur) { chain.unshift(cur.name); cur = cur.parentId ? findUnit(cur.parentId) : null; }
+    el.textContent = 'Path: ' + chain.join(' → ') + ' → (unit baru di sini)';
+}
+
+// Cascade-confirm modal (ORG-TREE-07, D-02) — resolve true on Lanjut, false on Batal/dismiss
+function showCascadeConfirm(pv) {
+    return new Promise(resolve => {
+        document.getElementById('cascadeUsers').textContent = pv.affectedUsersCount || 0;
+        document.getElementById('cascadeMappings').textContent = pv.affectedMappingsCount || 0;
+        document.getElementById('cascadeKompetensi').textContent = pv.affectedKompetensiCount || 0;
+        document.getElementById('cascadeGuidance').textContent = pv.affectedGuidanceCount || 0;
+        const modalEl = document.getElementById('cascadeConfirmModal');
+        const modal = new bootstrap.Modal(modalEl);
+        const btnProceed = document.getElementById('cascadeConfirmProceed');
+        let settled = false;
+        const onProceed = () => { settled = true; modal.hide(); resolve(true); };
+        const onHidden = () => {
+            btnProceed.removeEventListener('click', onProceed);
+            modalEl.removeEventListener('hidden.bs.modal', onHidden);
+            if (!settled) resolve(false);
+        };
+        btnProceed.addEventListener('click', onProceed);
+        modalEl.addEventListener('hidden.bs.modal', onHidden);
+        modal.show();
+    });
+}
+
 function openAddModal(parentId) {
     document.getElementById('unitModalId').value = '';
     document.getElementById('unitModalName').value = '';
-    document.getElementById('unitModalLabel').textContent = 'Tambah Unit';
     document.getElementById('unitModalSubmit').textContent = 'Tambah';
     document.getElementById('unitModalWarning').classList.add('d-none');
     document.getElementById('unitModalName').classList.remove('is-invalid');
@@ -315,6 +388,8 @@ function openAddModal(parentId) {
     if (parentId) {
         document.getElementById('unitModalParent').value = parentId;
     }
+    setModalTitleForParent(parentId || null);   // ORG-TREE-09 dynamic title
+    renderModalPath(parentId || null);          // ORG-TREE-06 path breadcrumb
     new bootstrap.Modal(document.getElementById('unitModal')).show();
 }
 
@@ -323,12 +398,13 @@ function openEditModal(id) {
     if (!unit) return;
     document.getElementById('unitModalId').value = id;
     document.getElementById('unitModalName').value = unit.name;
-    document.getElementById('unitModalLabel').textContent = 'Edit Unit';
     document.getElementById('unitModalSubmit').textContent = 'Simpan Perubahan';
     document.getElementById('unitModalWarning').classList.add('d-none');
     document.getElementById('unitModalName').classList.remove('is-invalid');
     populateParentDropdown(id);
     document.getElementById('unitModalParent').value = unit.parentId || '';
+    setModalTitleForParent(unit.parentId || '');   // ORG-TREE-09 dynamic title
+    renderModalPath(unit.parentId || '');           // ORG-TREE-06 path breadcrumb
     new bootstrap.Modal(document.getElementById('unitModal')).show();
 }
 
@@ -343,6 +419,18 @@ async function submitUnitModal() {
     }
 
     const isEdit = id !== '';
+
+    // ORG-TREE-07 (D-04): always-call PreviewEditCascade on Edit; modal-if-impact, abort on Batal.
+    if (isEdit) {
+        const pv = await ajaxPost('PreviewEditCascade', { id, name, parentId });
+        const total = (pv.affectedUsersCount || 0) + (pv.affectedMappingsCount || 0)
+                    + (pv.affectedKompetensiCount || 0) + (pv.affectedGuidanceCount || 0);
+        if (total > 0) {
+            const proceed = await showCascadeConfirm(pv);
+            if (!proceed) return;   // user Batal — abort sebelum EditOrganizationUnit
+        }
+    }
+
     const url = isEdit ? 'EditOrganizationUnit' : 'AddOrganizationUnit';
     const data = isEdit
         ? { id: id, name: name, parentId: parentId }
@@ -463,6 +551,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (chevron) chevron.classList.toggle('expanded', expand);
             });
             updateExpandAllButton();
+        });
+    }
+
+    // Delete via event delegation (ORG-TREE-04 — escape-safe data-attribute)
+    container.addEventListener('click', e => {
+        const del = e.target.closest('.js-delete-trigger');
+        if (!del) return;
+        e.preventDefault();
+        openDeleteModal(parseInt(del.dataset.id), del.dataset.name, parseInt(del.dataset.childCount));
+    });
+
+    // Modal parent select → dynamic title + path real-time (ORG-TREE-06/09)
+    const parentSelect = document.getElementById('unitModalParent');
+    if (parentSelect) {
+        parentSelect.addEventListener('change', e => {
+            setModalTitleForParent(e.target.value);
+            renderModalPath(e.target.value);
         });
     }
 });

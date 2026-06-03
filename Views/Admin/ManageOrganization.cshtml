@@ -37,6 +37,26 @@
     .org-node-icon.level-0 { background: rgba(13,110,253,0.1); color: #0d6efd; }
     .org-node-icon.level-1 { background: rgba(102,126,234,0.1); color: #667eea; }
     .org-node-icon.level-2 { background: rgba(13,202,240,0.1); color: #0dcaf0; }
+    .org-node-icon.level-3 { background: rgba(25,135,84,0.1);  color: #198754; }
+    .org-node-icon.level-4 { background: rgba(255,193,7,0.1);  color: #b45309; }
+    .org-node-icon.level-5 { background: rgba(220,53,69,0.1);  color: #dc3545; }
+
+    /* Tier badge (D-03 reuse level palette) */
+    .org-tier-badge { font-size: 0.68rem; font-weight: 600; }
+    .org-tier-badge.level-0 { background: rgba(13,110,253,0.12); color: #0d6efd; }
+    .org-tier-badge.level-1 { background: rgba(102,126,234,0.12); color: #667eea; }
+    .org-tier-badge.level-2 { background: rgba(13,202,240,0.12); color: #0dcaf0; }
+    .org-tier-badge.level-3 { background: rgba(25,135,84,0.12);  color: #198754; }
+    .org-tier-badge.level-4 { background: rgba(255,193,7,0.12);  color: #b45309; }
+    .org-tier-badge.level-5 { background: rgba(220,53,69,0.12);  color: #dc3545; }
+
+    /* Legend (ORG-TREE-08) */
+    .org-legend { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0.5rem 1rem; border-top: 1px solid #f0f0f0; }
+    .org-legend-item { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: #495057; }
+    .org-legend-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    .org-legend-swatch.level-0 { background: #0d6efd; } .org-legend-swatch.level-1 { background: #667eea; }
+    .org-legend-swatch.level-2 { background: #0dcaf0; } .org-legend-swatch.level-3 { background: #198754; }
+    .org-legend-swatch.level-4 { background: #b45309; } .org-legend-swatch.level-5 { background: #dc3545; }
 
     /* Node label */
     .tree-label { font-weight: 600; font-size: 0.88rem; color: #212529; }
@@ -120,6 +140,7 @@
                 <i class="bi bi-grip-vertical"></i> Drag untuk reorder
             </span>
         </div>
+        <div class="org-legend" id="org-legend"><!-- populated by renderLegend() (ORG-TREE-08) --></div>
         <div class="card-body">
             @Html.AntiForgeryToken()
             <div id="org-tree-container">
@@ -150,6 +171,7 @@
                     <select id="unitModalParent" class="form-select">
                         <option value="">— Tidak ada (root) —</option>
                     </select>
+                    <div class="text-muted small mt-1" id="unitModalPath"></div>
                 </div>
                 <div id="unitModalWarning" class="alert alert-warning d-none small"></div>
             </div>
@@ -186,11 +208,43 @@
     </div>
 </div>
 
+<!-- Modal Konfirmasi Dampak Cascade (ORG-TREE-07, D-02) -->
+<div class="modal fade" id="cascadeConfirmModal" tabindex="-1" aria-labelledby="cascadeConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="cascadeConfirmLabel">Konfirmasi Perubahan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Perubahan ini akan mempengaruhi:</p>
+                <ul class="mb-2">
+                    <li><strong id="cascadeUsers">0</strong> user</li>
+                    <li><strong id="cascadeMappings">0</strong> mapping coach-coachee</li>
+                    <li><strong id="cascadeKompetensi">0</strong> kompetensi PROTON</li>
+                    <li><strong id="cascadeGuidance">0</strong> file panduan</li>
+                </ul>
+                <p class="mb-0">Lanjutkan?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning" id="cascadeConfirmProceed">
+                    <i class="bi bi-check-lg me-1"></i>Lanjut Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
     <script src="~/js/shared-toast.js"></script>
     <script src="~/js/orgTree.js" asp-append-version="true"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', initTree);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchLabels();
+            await initTree();
+            renderLegend();
+        });
     </script>
 }
