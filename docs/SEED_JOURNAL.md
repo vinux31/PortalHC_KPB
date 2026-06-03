@@ -124,3 +124,5 @@ Audit trail untuk seed `temporary + local-only`. Lihat [`docs/SEED_WORKFLOW.md`]
 - **Pre-state:** Labels 0=Bagian/1=Unit/2=Sub-unit. Units Level0=4, Level1=17, Level2=0.
 - **Status:** in-progress (restore + tandai cleaned setelah UAT).
 - **Cleaned:** 2026-06-03 RESTORE DATABASE dari snapshot sukses (1906 pages). Labels = 0/1/2 verified. OrgLabel audit rows = 0. UAT 10/10 PASS (5 POST 200, 0 console error). Status: cleaned.
+- **2026-06-03 Plan 03 UAT2 audit:** snapshot HcPortalDB_Dev_pre341uat2.bak (edit Level 0 + Add/Delete Level 3 for audit row inspection). temporary local-only. restore after.
+- **Cleaned (UAT2):** 2026-06-03 RESTORE pre341uat2.bak sukses (1906 pages). Labels=3, OrgLabel audit=0 verified. UAT 3/3 PASS (Coach 403 + 3 audit rows actor=Admin KPB + GET endpoint 200). Status: cleaned.
