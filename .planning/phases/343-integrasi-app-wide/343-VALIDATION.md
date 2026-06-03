@@ -1,8 +1,8 @@
 ---
 phase: 343
 slug: integrasi-app-wide
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-03
 ---
@@ -67,11 +67,11 @@ created: 2026-06-03
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify (`dotnet build` / grep) or manual-only with instructions
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify (build per task)
-- [ ] Wave 0 covers all MISSING references (N/A — none)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify (`dotnet build` / grep) or manual-only with instructions
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify (build per task)
+- [x] Wave 0 covers all MISSING references (N/A — none)
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-03

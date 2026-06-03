@@ -417,16 +417,18 @@ Trace use-case SC2: HC rename "Bagian"→"Direktorat" → cache invalidate → n
 | A4 | DocumentAdmin TempData/Json "Bagian tidak ditemukan" lebih baik SKIP (low-value, minimize risk) sesuai D-02 | Controller Audit | LOW — keputusan ganti/skip; planner bisa override. Bukan kebenaran teknis |
 | A5 | Tidak ada display tier-label di `Views/Shared/Components/*` (ViewComponent) | Pitfall 5 | LOW — grep tidak menemukan match display di Components; tapi ViewComponent punya _ViewImports terpisah jika ada |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **ORG-INTEG-02 pemenuhan: dokumentasi-audit vs minimal-inject?**
    - What we know: SEMUA controller display-bearing string = Excel header / audit body / validation / property interp. Per spec §4.8 itu memang kategori SKIP.
    - What's unclear: Apakah REQ ORG-INTEG-02 butuh ≥1 perubahan controller konkret untuk "dianggap dikerjakan", atau cukup audit yang membuktikan tidak ada actionable target.
    - Recommendation: Dokumentasikan audit sebagai pemenuhan (no actionable REPLACE), dengan opsi DocumentAdminController inject (L106/287/299/315/380) sebagai 1 perubahan konkret bila planner ingin bukti eksplisit. Tanyakan saat plan-check bila ragu.
+   - **RESOLVED (2026-06-03):** Pemenuhan via dokumentasi-audit (`343-AUDIT.md` §5). Semua controller display-bearing string = legit SKIP (export-header/audit-body/validation). DocumentAdminController inject = DEFAULT SKIP per D-02 "minimize over-replace", dicatat sebagai stretch (no actionable). Diterapkan Plan 01 Task 2.
 
 2. **CpdpFiles/KkjMatrix "Tambah/Hapus Bagian" button — REPLACE atau defer?**
    - What we know: User-facing button referensi tier root; tapi ada JS func + toast literal di file sama.
    - Recommendation: REPLACE button visible text (4 occurrence), SKIP JS/toast. Low-medium risk. Planner boleh defer ke "stretch" bila ingin scope minimal.
+   - **RESOLVED (2026-06-03):** REPLACE button visible text (4 occurrence), SKIP JS func + toast literal. Diterapkan Plan 03 Task 3.
 
 ## Environment Availability
 
