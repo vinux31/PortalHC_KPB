@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Handoff IT — Phase 340 — 2026-06-03</title>
+<style>
+:root {
+  --brand: #e30613;
+  --brand-dark: #b8050f;
+  --navy: #1e3a8a;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-alt: #f9fafb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --amber: #f59e0b;
+  --amber-bg: #fef3c7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --info-bg: #eff6ff;
+  --info-border: #3b82f6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 950px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+header.hero {
+  border-top: 6px solid var(--brand);
+  padding: 24px 0 16px;
+  margin-bottom: 8px;
+}
+
+header.hero .badge {
+  display: inline-block;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+header.hero h1 {
+  font-size: 30px;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  padding: 16px 20px;
+  background: var(--bg-alt);
+  border-left: 4px solid var(--navy);
+  border-radius: 4px;
+  margin: 16px 0 32px;
+  font-size: 14px;
+}
+
+.meta-row .meta-item strong {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+h2 {
+  font-size: 22px;
+  margin: 40px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+
+h3 { font-size: 17px; margin: 24px 0 10px; }
+h4 { font-size: 15px; margin: 14px 0 6px; }
+
+p { margin: 0 0 12px; }
+
+code, .mono {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  background: var(--bg-alt);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  border-left: 4px solid var(--brand);
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+pre.sql {
+  background: var(--bg-alt);
+  color: var(--text);
+  border-left-color: var(--navy);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-alt);
+  font-weight: 600;
+  color: var(--text);
+}
+
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+
+ul, ol { margin: 8px 0 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+
+.tag.ok { background: var(--green-bg); color: var(--green); }
+.tag.warn { background: var(--amber-bg); color: #92400e; }
+.tag.danger { background: var(--red-bg); color: var(--red); }
+
+.callout {
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+.callout.info { background: var(--info-bg); border-color: var(--info-border); }
+.callout.warn { background: var(--amber-bg); border-color: var(--amber); }
+.callout.success { background: var(--green-bg); border-color: var(--green); }
+.callout.danger { background: var(--red-bg); border-color: var(--red); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.toc {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 0 0 32px;
+}
+.toc .title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.toc ol { margin: 0; padding-left: 22px; }
+.toc li { margin-bottom: 4px; font-size: 14px; }
+.toc a { color: var(--navy); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tldr {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  margin: 24px 0;
+}
+.tldr .label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.tldr p { margin: 0; font-size: 16px; line-height: 1.5; }
+
+@media print {
+  body { font-size: 11pt; }
+  .container { max-width: 100%; padding: 0; }
+  pre { background: #f4f4f4 !important; color: #000 !important; }
+  pre.sql { background: #f4f4f4 !important; }
+  .toc, header.hero { page-break-after: avoid; }
+  h2 { page-break-after: avoid; page-break-before: auto; }
+  table, pre, .callout { page-break-inside: avoid; }
+  a { color: var(--text); text-decoration: none; }
+  footer { page-break-before: avoid; }
+  @page { size: A4; margin: 18mm 15mm; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <span class="badge">HANDOFF TEAM IT</span>
+  <h1>Phase 340 — OrganizationLevelLabel Foundation</h1>
+  <p class="subtitle">Apa yang IT perlu lakukan untuk apply migration <code>AddOrganizationLevelLabel</code> di DB Dev (<code>10.55.3.3</code>): backup dulu, deploy code, jalankan migration (atau biarkan startup auto-migrate), verifikasi tabel + seed default 3 baris muncul, smoke test endpoint <code>/Admin/GetLevelLabels</code>.</p>
+</header>
+
+<div class="meta-row">
+  <div class="meta-item">
+    <strong>Tanggal</strong>
+    3 Juni 2026
+  </div>
+  <div class="meta-item">
+    <strong>Phase</strong>
+    340 (Foundation — Tabel + Service + Cache)
+  </div>
+  <div class="meta-item">
+    <strong>Milestone</strong>
+    v21.0 ManageOrganization Overhaul
+  </div>
+  <div class="meta-item">
+    <strong>Branch</strong>
+    <code>main</code>
+  </div>
+  <div class="meta-item">
+    <strong>Commit Hash Target</strong>
+    <code>43e94655</code> (Phase 340 final di main lokal)
+  </div>
+  <div class="meta-item">
+    <strong>Migration Pending</strong>
+    <strong style="color: var(--amber);">YES — 1 migration additive (no destructive)</strong>
+  </div>
+  <div class="meta-item">
+    <strong>Developer</strong>
+    Rino
+  </div>
+  <div class="meta-item">
+    <strong>Risk</strong>
+    <span class="tag ok">Low — CREATE TABLE only</span>
+  </div>
+</div>
+
+<div class="tldr">
+  <div class="label">TL;DR</div>
+  <p>IT <code style="background:rgba(255,255,255,0.2); color:#fff;">git pull</code> commit <code style="background:rgba(255,255,255,0.2); color:#fff;">43e94655</code>, backup DB Dev (<code style="background:rgba(255,255,255,0.2); color:#fff;">.bak</code> mandatory), restart IIS app pool. Migration <code style="background:rgba(255,255,255,0.2); color:#fff;">20260603012335_AddOrganizationLevelLabel</code> auto-apply via <code style="background:rgba(255,255,255,0.2); color:#fff;">Database.Migrate()</code> di startup. Seed default 3 baris (<code style="background:rgba(255,255,255,0.2); color:#fff;">Bagian / Unit / Sub-unit</code>) auto-INSERT via <code style="background:rgba(255,255,255,0.2); color:#fff;">SeedData.SeedOrganizationLevelLabelsAsync</code>. Smoke test: GET <code style="background:rgba(255,255,255,0.2); color:#fff;">/Admin/GetLevelLabels</code> → JSON dict 3 entry. <strong>NO data migration, NO ALTER existing tables, NO destructive.</strong></p>
+</div>
+
+<div class="toc">
+  <div class="title">Daftar Isi</div>
+  <ol>
+    <li><a href="#backup">Section 1 — Pre-Deploy Backup (MANDATORY Cilacap SOP)</a></li>
+    <li><a href="#migrations">Section 2 — Migration List</a></li>
+    <li><a href="#tables">Section 3 — Affected Tables + Seed Auto-Runtime</a></li>
+    <li><a href="#checklist">Section 4 — Deploy Checklist (URUTAN WAJIB)</a></li>
+    <li><a href="#verify">Section 5 — Smoke Test Post-Deploy</a></li>
+    <li><a href="#not-needed">Section 6 — Yang TIDAK Perlu IT Lakukan</a></li>
+    <li><a href="#rollback">Section 7 — Rollback Plan</a></li>
+    <li><a href="#refs">Section 8 — File Referensi</a></li>
+  </ol>
+</div>
+
+<h2 id="backup">1. Pre-Deploy Backup (MANDATORY Cilacap SOP)</h2>
+
+<div class="callout danger">
+  <div class="title">Wajib — Tidak Boleh Skip</div>
+  <p>Backup <code>.bak</code> file <strong>WAJIB</strong> sebelum deploy code / apply migration. Per Cilacap SOP root cause Phase 336 — skip backup = no rollback path = high-risk recovery scenario. Tanpa <code>.bak</code> file, Section 7 (Rollback) impossible.</p>
+</div>
+
+<pre class="sql">-- BACKUP DATABASE Dev sebelum deploy code commit 43e94655 + migration apply
+BACKUP DATABASE HcPortalDB_Dev
+TO DISK='C:\Backup\HcPortalDB_Dev.20260603-phase340-pre-migration.bak'
+WITH FORMAT, INIT;</pre>
+
+<p>Verifikasi backup file ter-create + size &gt; 0:</p>
+<pre>dir C:\Backup\HcPortalDB_Dev.20260603-phase340-pre-migration.bak</pre>
+
+<p>Untuk Prod (kapanpun promosi dilakukan), pakai nama DB Prod (e.g. <code>HcPortalDB</code>) dan path backup Prod sesuai SOP IT.</p>
+
+<h2 id="migrations">2. Migration List</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Migration File</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Migrations/20260603012335_AddOrganizationLevelLabel.cs</code></td>
+      <td><span class="tag ok">Additive</span></td>
+      <td>CREATE TABLE <code>OrganizationLevelLabels</code> (Level int PK, Label nvarchar(50), UpdatedAt datetime2, UpdatedBy nvarchar(450)) + CREATE UNIQUE INDEX <code>IX_OrganizationLevelLabels_Label</code> ON Label. NO destructive, NO data migration, NO ALTER existing tables.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <div class="title">Auto-Apply via Database.Migrate()</div>
+  <p>Phase 340 mengikuti pola existing — <code>Database.Migrate()</code> dipanggil di <code>Program.cs:136</code> startup. Cukup deploy code + restart app pool, migration auto-apply ke schema. <strong>IT tidak perlu run <code>dotnet ef database update</code> manual.</strong> Tapi kalau IT prefer explicit run sebelum restart, command:</p>
+  <pre>dotnet ef database update --project HcPortal.csproj --connection "Server=...;Database=HcPortalDB_Dev;..."</pre>
+</div>
+
+<h2 id="tables">3. Affected Tables + Seed Auto-Runtime</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tabel</th>
+      <th>Change</th>
+      <th>Existing Data Impact</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>OrganizationLevelLabels</code></td>
+      <td><span class="tag ok">NEW table</span></td>
+      <td>Zero existing data touched (tabel baru). 3 baris seed auto-INSERT post-migration (lihat callout di bawah).</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout success">
+  <div class="title">Seed Default Auto-Runtime (Tidak Butuh Manual INSERT)</div>
+  <p><code>SeedData.SeedOrganizationLevelLabelsAsync</code> di <code>Program.cs:137</code> akan auto-INSERT 3 baris saat app first startup setelah migration applied:</p>
+  <ul>
+    <li>Level=0 'Bagian'</li>
+    <li>Level=1 'Unit'</li>
+    <li>Level=2 'Sub-unit'</li>
+  </ul>
+  <p><strong>Idempotent</strong> — bila tabel sudah ada baris, skip. Aman re-run berkali-kali. <strong>IT tidak perlu manual INSERT dari script SQL.</strong> Cukup restart app pool setelah deploy code + migration, seed jalan otomatis di startup hook.</p>
+</div>
+
+<p>Verifikasi seed jalan (post-deploy):</p>
+<pre class="sql">SELECT Level, Label, UpdatedAt, UpdatedBy
+FROM OrganizationLevelLabels
+ORDER BY Level;
+-- Expected 3 rows:
+-- 0 | Bagian   | &lt;startup datetime&gt; | system
+-- 1 | Unit     | &lt;startup datetime&gt; | system
+-- 2 | Sub-unit | &lt;startup datetime&gt; | system</pre>
+
+<h2 id="checklist">4. Deploy Checklist (URUTAN WAJIB)</h2>
+
+<div class="callout warn">
+  <div class="title">URUTAN WAJIB — Cegah State Drift</div>
+  <p>Step 1 backup <strong>DULU</strong>, kemudian Step 2 deploy code, baru Step 3 restart app pool. Jangan reverse order — restart sebelum deploy = app start dengan code lama, migration tidak ter-apply.</p>
+</div>
+
+<ol>
+  <li>
+    <strong>Step 1 — BACKUP DB Dev (Section 1):</strong>
+    <p>Execute <code>BACKUP DATABASE</code> ke <code>.bak</code> file. Verifikasi file ter-create. <strong>Mandatory Cilacap SOP.</strong></p>
+  </li>
+  <li>
+    <strong>Step 2 — Deploy code commit <code>43e94655</code>:</strong>
+    <pre>cd /path/to/PortalHC_KPB
+git fetch origin main
+git checkout 43e94655   # atau git pull origin main kalau sudah ada commit terbaru
+# (build step opsional kalau IT pakai published artifact pipeline)
+dotnet publish -c Release -o /path/to/publish</pre>
+  </li>
+  <li>
+    <strong>Step 3 — Restart IIS app pool (atau service equivalent):</strong>
+    <pre>iisreset    # Windows; atau equivalent restart untuk env IT</pre>
+    <p>Saat startup: <code>Database.Migrate()</code> apply migration <code>20260603012335_AddOrganizationLevelLabel</code> → tabel <code>OrganizationLevelLabels</code> ter-create. Kemudian <code>SeedData.InitializeAsync</code> → <code>SeedOrganizationLevelLabelsAsync</code> auto-INSERT 3 baris default.</p>
+  </li>
+  <li>
+    <strong>Step 4 — Verifikasi migration applied:</strong>
+    <pre class="sql">SELECT TOP 3 MigrationId
+FROM __EFMigrationsHistory
+ORDER BY MigrationId DESC;
+-- Expected paling atas: 20260603012335_AddOrganizationLevelLabel</pre>
+  </li>
+  <li>
+    <strong>Step 5 — Verifikasi seed default (Section 3 query):</strong>
+    <p>Run <code>SELECT * FROM OrganizationLevelLabels ORDER BY Level</code> — expect 3 row Bagian / Unit / Sub-unit.</p>
+  </li>
+  <li>
+    <strong>Step 6 — Smoke test endpoint (Section 5):</strong>
+    <p>Navigate <code>http://10.55.3.3/KPB-PortalHC/Admin/GetLevelLabels</code> (sign in admin@pertamina.com first) → JSON dict <code>{ "0": "Bagian", "1": "Unit", "2": "Sub-unit" }</code> returned.</p>
+  </li>
+</ol>
+
+<h2 id="verify">5. Smoke Test Post-Deploy</h2>
+
+<h3>5a. SQL Verify</h3>
+
+<pre class="sql">-- Tabel ada
+SELECT COUNT(*) AS LabelRowCount FROM OrganizationLevelLabels;
+-- Expected: 3
+
+-- Unique index ada
+SELECT name, is_unique
+FROM sys.indexes
+WHERE object_id = OBJECT_ID('OrganizationLevelLabels')
+  AND name = 'IX_OrganizationLevelLabels_Label';
+-- Expected: 1 row, is_unique=1
+
+-- Sanity OrganizationUnits UTUH (tabel existing tidak ter-touch)
+SELECT COUNT(*) AS UnitRowCount FROM OrganizationUnits;
+-- Expected: SAMA dengan pre-deploy count</pre>
+
+<h3>5b. Endpoint Verify via Browser / curl</h3>
+
+<ol>
+  <li>Login admin di <code>http://10.55.3.3/KPB-PortalHC/Account/Login</code> (akun admin@pertamina.com atau setara).</li>
+  <li>Navigate <code>http://10.55.3.3/KPB-PortalHC/Admin/GetLevelLabels</code></li>
+  <li>Assert response body: <code>{"0":"Bagian","1":"Unit","2":"Sub-unit"}</code> (Content-Type: <code>application/json</code>).</li>
+</ol>
+
+<p>Atau via curl (kalau IT sudah punya cookie session):</p>
+<pre>curl -b cookies.txt -i http://10.55.3.3/KPB-PortalHC/Admin/GetLevelLabels
+# HTTP/1.1 200 OK
+# Content-Type: application/json; charset=utf-8
+# Body: {"0":"Bagian","1":"Unit","2":"Sub-unit"}</pre>
+
+<h2 id="not-needed">6. Yang TIDAK Perlu IT Lakukan</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>Status</th>
+      <th>Alasan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Manual INSERT 3 baris seed</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td><code>SeedData.SeedOrganizationLevelLabelsAsync</code> auto-INSERT di startup. Idempotent.</td>
+    </tr>
+    <tr>
+      <td>ALTER existing tables (OrganizationUnits dll)</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Phase 340 = additive only. NO ALTER, NO DROP COLUMN pada tabel existing.</td>
+    </tr>
+    <tr>
+      <td>Restore DB Dev dari lokal</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Data HC (worker, sertifikat, dll) di Dev harus dipertahankan.</td>
+    </tr>
+    <tr>
+      <td>Edit kode di server Dev langsung</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Per CLAUDE.md Golden Rules: dev/code edit hanya di lokal, push origin/main, IT git pull.</td>
+    </tr>
+    <tr>
+      <td>Apply migration tanpa BACKUP dulu</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>BACKUP wajib per Cilacap SOP root cause Phase 336.</td>
+    </tr>
+    <tr>
+      <td>Hapus row OrganizationLevelLabels manual</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Tabel ini source-of-truth label tier organisasi. Mutation hanya via UI Phase 341 (CRUD page) — bukan via DELETE manual SQL.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="rollback">7. Rollback Plan</h2>
+
+<p>Kalau ada masalah post-deploy (mis. startup gagal, migration error, seed unexpected behavior):</p>
+
+<pre class="sql">-- Step A: Stop app pool
+-- (via IIS Manager atau: appcmd stop apppool /apppool.name:"KPB-PortalHC")
+
+-- Step B: Restore DB Dev dari .bak Section 1
+ALTER DATABASE HcPortalDB_Dev SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+RESTORE DATABASE HcPortalDB_Dev
+FROM DISK='C:\Backup\HcPortalDB_Dev.20260603-phase340-pre-migration.bak'
+WITH REPLACE;
+ALTER DATABASE HcPortalDB_Dev SET MULTI_USER;
+
+-- Step C: Revert code ke commit pre-Phase-340 (parent commit)
+-- cd /path/to/PortalHC_KPB && git checkout &lt;PRE_340_COMMIT_HASH&gt;
+-- (Pre-340 parent = commit pre-e31db3c5; pastikan dengan: git log --oneline e31db3c5^1)
+
+-- Step D: Restart app pool</pre>
+
+<div class="callout info">
+  <div class="title">Prerequisite Rollback</div>
+  <p>Rollback hanya feasible kalau <strong>Section 1 BACKUP</strong> dilakukan. Tanpa <code>.bak</code> file, rollback DB impossible. Itulah kenapa Section 1 wajib + tidak boleh skip.</p>
+</div>
+
+<p>Kalau rollback dilakukan, eskalasi ke developer (Rino) untuk investigate root cause.</p>
+
+<h2 id="refs">8. File Referensi</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Models/OrganizationLevelLabel.cs</code></td>
+      <td>Entity class (Plan 01 commit <code>e31db3c5</code>)</td>
+    </tr>
+    <tr>
+      <td><code>Data/ApplicationDbContext.cs</code></td>
+      <td>DbSet + Fluent config (Plan 01 commit <code>26ecd48a</code>)</td>
+    </tr>
+    <tr>
+      <td><code>Migrations/20260603012335_AddOrganizationLevelLabel.cs</code></td>
+      <td>EF migration — CREATE TABLE + CREATE UNIQUE INDEX <code>IX_OrganizationLevelLabels_Label</code> (Plan 01 commit <code>26ecd48a</code>)</td>
+    </tr>
+    <tr>
+      <td><code>Data/SeedData.cs</code></td>
+      <td><code>SeedOrganizationLevelLabelsAsync</code> + D-12 convention fix Level 1→0/2→1 (Plan 01 commit <code>7e575f38</code>)</td>
+    </tr>
+    <tr>
+      <td><code>Services/IOrgLabelService.cs</code></td>
+      <td>Interface 7 method (Plan 02 commit <code>92e20fbe</code>)</td>
+    </tr>
+    <tr>
+      <td><code>Services/OrgLabelService.cs</code></td>
+      <td>Implementation cache + audit + fallback (Plan 02 commit <code>3a3aa3b9</code>)</td>
+    </tr>
+    <tr>
+      <td><code>Controllers/OrgLabelController.cs</code></td>
+      <td>GET <code>/Admin/GetLevelLabels</code> endpoint (Plan 02 commit <code>3a3aa3b9</code>)</td>
+    </tr>
+    <tr>
+      <td><code>HcPortal.Tests/OrgLabelServiceTests.cs</code></td>
+      <td>2 xUnit [Fact] TEST-01 happy + fallback (Plan 03 commit <code>43e94655</code>)</td>
+    </tr>
+    <tr>
+      <td><code>docs/DEV_WORKFLOW.md</code></td>
+      <td>SOP umum Lokal → Dev → Prod workflow</td>
+    </tr>
+    <tr>
+      <td><code>docs/SEED_WORKFLOW.md</code></td>
+      <td>SOP klasifikasi seed + BACKUP/RESTORE pattern (Cilacap SOP)</td>
+    </tr>
+    <tr>
+      <td><code>.planning/phases/340-foundation-org-label-table-service-cache/</code></td>
+      <td>Full planning context (CONTEXT, RESEARCH, 3 PLAN.md + SUMMARY.md per plan)</td>
+    </tr>
+  </tbody>
+</table>
+
+<footer>
+  Disusun oleh Rino — 2026-06-03 — Portal HC KPB Project<br>
+  Tekan <code>Ctrl+P</code> → "Save as PDF" untuk export ke PDF.
+</footer>
+
+</div>
+</body>
+</html>
