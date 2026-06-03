@@ -61,7 +61,7 @@
                     }
                 </ul>
                 <button class="btn btn-sm btn-outline-primary mb-2 flex-shrink-0" onclick="addBagian()">
-                    <i class="bi bi-plus-lg me-1"></i>Tambah Bagian
+                    <i class="bi bi-plus-lg me-1"></i>Tambah @OrgLabels.GetLabel(0)
                 </button>
             </div>
 
@@ -84,7 +84,7 @@
                             <button class="btn btn-sm btn-outline-danger"
                                     onclick="deleteBagian(@bagian.Id, '@bagian.Name')"
                                     title="Hapus bagian">
-                                <i class="bi bi-trash me-1"></i>Hapus Bagian
+                                <i class="bi bi-trash me-1"></i>Hapus @OrgLabels.GetLabel(0)
                             </button>
                         </div>
 
@@ -169,7 +169,7 @@
                 {
                     <div class="p-4 text-center text-muted">
                         <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                        Belum ada bagian. Klik "Tambah Bagian" untuk memulai.
+                        Belum ada bagian. Klik "Tambah @OrgLabels.GetLabel(0)" untuk memulai.
                     </div>
                 }
             </div>

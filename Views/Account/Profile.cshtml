@@ -75,13 +75,13 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <div class="col-sm-4 text-muted small fw-medium">Bagian</div>
+                    <div class="col-sm-4 text-muted small fw-medium">@OrgLabels.GetLabel(0)</div>
                     <div class="col-sm-8">
                         @if (!string.IsNullOrEmpty(Model.Section)) { @Model.Section } else { <span class="text-muted fst-italic">Belum diisi</span> }
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <div class="col-sm-4 text-muted small fw-medium">Unit</div>
+                    <div class="col-sm-4 text-muted small fw-medium">@OrgLabels.GetLabel(1)</div>
                     <div class="col-sm-8">
                         @if (!string.IsNullOrEmpty(Model.Unit)) { @Model.Unit } else { <span class="text-muted fst-italic">Belum diisi</span> }
                     </div>
