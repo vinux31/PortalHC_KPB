@@ -82,7 +82,8 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageOrganization");
             }
 
-            bool duplicate = await _context.OrganizationUnits.AnyAsync(u => u.Name == name.Trim());
+            bool duplicate = await _context.OrganizationUnits
+                .AnyAsync(u => u.Name == name.Trim() && u.ParentId == parentId);
             if (duplicate)
             {
                 if (IsAjaxRequest())
@@ -146,7 +147,8 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageOrganization", new { editId = id });
             }
 
-            bool duplicate = await _context.OrganizationUnits.AnyAsync(u => u.Name == name.Trim() && u.Id != id);
+            bool duplicate = await _context.OrganizationUnits
+                .AnyAsync(u => u.Name == name.Trim() && u.ParentId == parentId && u.Id != id);
             if (duplicate)
             {
                 if (IsAjaxRequest())
@@ -272,6 +274,63 @@ namespace HcPortal.Controllers
                 return Json(new { success = true, message = msg });
             TempData["Success"] = msg;
             return RedirectToAction("ManageOrganization");
+        }
+
+        // POST /Admin/PreviewEditCascade — read-only dampak cascade sebelum apply Edit (ORG-TREE-07)
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PreviewEditCascade(int id, string name, int? parentId)
+        {
+            var unit = await _context.OrganizationUnits.FindAsync(id);
+            if (unit == null) return Json(new { error = "Unit tidak ditemukan." });
+
+            var trimmed = (name ?? "").Trim();
+            bool nameChanged = !string.IsNullOrEmpty(trimmed) && unit.Name != trimmed;
+            bool parentChanged = unit.ParentId != parentId;   // server authoritative (Pitfall 6)
+
+            if (!nameChanged && !parentChanged)
+                return Json(new { nameChanged = false, parentChanged = false });   // D-04 early-return
+
+            int affectedUsers = 0, affectedMappings = 0, affectedKompetensi = 0, affectedGuidance = 0;
+            string oldName = unit.Name;
+
+            if (nameChanged)
+            {
+                if (unit.Level == 0)
+                {
+                    affectedUsers      += await _context.Users.CountAsync(u => u.Section == oldName);
+                    affectedMappings   += await _context.CoachCoacheeMappings.CountAsync(m => m.AssignmentSection == oldName);
+                    affectedKompetensi += await _context.ProtonKompetensiList.CountAsync(k => k.Bagian == oldName);
+                    affectedGuidance   += await _context.CoachingGuidanceFiles.CountAsync(g => g.Bagian == oldName);
+                }
+                else
+                {
+                    affectedUsers      += await _context.Users.CountAsync(u => u.Unit == oldName);
+                    affectedMappings   += await _context.CoachCoacheeMappings.CountAsync(m => m.AssignmentUnit == oldName);
+                    affectedKompetensi += await _context.ProtonKompetensiList.CountAsync(k => k.Unit == oldName);
+                    affectedGuidance   += await _context.CoachingGuidanceFiles.CountAsync(g => g.Unit == oldName);
+                }
+            }
+
+            // A1 FULL-ACCURACY: reparent meng-update KEEMPAT field-pair di EditOrganizationUnit (L249-261),
+            // jadi count KEEMPAT (BUKAN affectedUsers saja seperti spec L433-438) agar preview == actual.
+            if (parentChanged && unit.Level >= 1 && !nameChanged)
+            {
+                affectedUsers      += await _context.Users.CountAsync(u => u.Unit == oldName);
+                affectedMappings   += await _context.CoachCoacheeMappings.CountAsync(m => m.AssignmentUnit == oldName);
+                affectedKompetensi += await _context.ProtonKompetensiList.CountAsync(k => k.Unit == oldName);
+                affectedGuidance   += await _context.CoachingGuidanceFiles.CountAsync(g => g.Unit == oldName);
+            }
+
+            return Json(new {
+                nameChanged,
+                parentChanged,
+                affectedUsersCount = affectedUsers,
+                affectedMappingsCount = affectedMappings,
+                affectedKompetensiCount = affectedKompetensi,
+                affectedGuidanceCount = affectedGuidance
+            });
         }
 
         private async Task<bool> IsDescendantAsync(int nodeId, int targetId)
