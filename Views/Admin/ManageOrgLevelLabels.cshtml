@@ -1,0 +1,229 @@
+@model HcPortal.Models.ViewModels.ManageOrgLevelLabelsViewModel
+@{
+    ViewData["Title"] = "Kelola Label Tier Organisasi";
+}
+
+<div class="container-fluid px-4 py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Label Tier Organisasi</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-tags text-primary me-2"></i>Kelola Label Tier Organisasi</h2>
+            <p class="text-muted mb-0">Ubah nama tampilan tier (Bagian/Unit/Sub-unit/...)</p>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Label ini hanya nama tampilan tier. Mengubah label TIDAK mengubah struktur data atau tier.
+        Cascade backend tetap berlaku berdasarkan level numerik.
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:120px;">Level</th>
+                        <th>Label saat ini</th>
+                        <th style="width:200px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    <tr>
+                        <td>@row.Level</td>
+                        @if (row.Label == null)
+                        {
+                            <td><em class="text-muted">(belum diset)</em></td>
+                            <td>
+                                @if (row.Level == Model.NextAddLevel)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="openAddModal(@row.Level)">
+                                        <i class="bi bi-plus-circle me-1"></i>Tambah
+                                    </button>
+                                }
+                            </td>
+                        }
+                        else
+                        {
+                            <td>@row.Label</td>
+                            <td class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick='openEditModal(@row.Level, @Html.Raw(Json.Serialize(row.Label)))'>
+                                    <i class="bi bi-pencil-square me-1"></i>Edit
+                                </button>
+                                @if (row.CanDelete)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            onclick='confirmDelete(@row.Level, @Html.Raw(Json.Serialize(row.Label)))'>
+                                        <i class="bi bi-trash me-1"></i>Hapus
+                                    </button>
+                                }
+                                else if (row.IsHighest && row.IsUsed)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled
+                                            data-bs-toggle="tooltip" title="Tidak bisa dihapus, masih dipakai unit">
+                                        <i class="bi bi-trash me-1"></i>Hapus
+                                    </button>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div> <!-- end container-fluid -->
+
+<!-- Modal 1: Edit Label -->
+<div class="modal fade" id="labelEditModal" tabindex="-1" aria-labelledby="labelEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="labelEditModalLabel">Edit Label Tier Level</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="labelEditLevel" />
+                <div class="mb-3">
+                    <label class="form-label">Level</label>
+                    <input type="text" class="form-control" id="labelEditLevelDisplay" disabled />
+                </div>
+                <div class="mb-3">
+                    <label for="labelEditValue" class="form-label">Label <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="labelEditValue" maxlength="50" required />
+                    <div class="invalid-feedback">Label tidak boleh kosong.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitEdit()">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Tambah Level -->
+<div class="modal fade" id="labelAddModal" tabindex="-1" aria-labelledby="labelAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="labelAddModalLabel">Tambah Level Tier</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="labelAddLevel" />
+                <div class="mb-3">
+                    <label class="form-label">Level</label>
+                    <input type="text" class="form-control" id="labelAddLevelDisplay" disabled />
+                </div>
+                <div class="mb-3">
+                    <label for="labelAddValue" class="form-label">Label <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="labelAddValue" maxlength="50" required />
+                    <div class="invalid-feedback">Label tidak boleh kosong.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitAdd()">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/shared-toast.js"></script>
+    <script>
+        function getAntiForgeryToken() {
+            const input = document.querySelector('input[name="__RequestVerificationToken"]');
+            return input ? input.value : '';
+        }
+
+        async function ajaxPost(url, data) {
+            const params = new URLSearchParams(data);
+            params.append('__RequestVerificationToken', getAntiForgeryToken());
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params.toString()
+            });
+            return res.json();
+        }
+
+        function openEditModal(level, currentLabel) {
+            document.getElementById('labelEditModalLabel').textContent = `Edit Label Tier Level ${level}`;
+            document.getElementById('labelEditLevel').value = level;
+            document.getElementById('labelEditLevelDisplay').value = level;
+            document.getElementById('labelEditValue').value = currentLabel;
+            new bootstrap.Modal(document.getElementById('labelEditModal')).show();
+        }
+
+        function openAddModal(level) {
+            document.getElementById('labelAddModalLabel').textContent = `Tambah Level Tier ${level}`;
+            document.getElementById('labelAddLevel').value = level;
+            document.getElementById('labelAddLevelDisplay').value = level;
+            document.getElementById('labelAddValue').value = '';
+            new bootstrap.Modal(document.getElementById('labelAddModal')).show();
+        }
+
+        async function submitEdit() {
+            const level = document.getElementById('labelEditLevel').value;
+            const label = document.getElementById('labelEditValue').value.trim();
+            if (!label) { showToast('Label tidak boleh kosong.', 'danger'); return; }
+            if (label.length > 50) { showToast('Label maksimal 50 karakter.', 'danger'); return; }
+            const result = await ajaxPost('/Admin/UpdateLevelLabel', { level, label });
+            if (result.success) {
+                showToast(result.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(result.message, 'danger');
+            }
+        }
+
+        async function submitAdd() {
+            const level = document.getElementById('labelAddLevel').value;
+            const label = document.getElementById('labelAddValue').value.trim();
+            if (!label) { showToast('Label tidak boleh kosong.', 'danger'); return; }
+            if (label.length > 50) { showToast('Label maksimal 50 karakter.', 'danger'); return; }
+            const result = await ajaxPost('/Admin/AddLevelLabel', { level, label });
+            if (result.success) {
+                showToast(result.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(result.message, 'danger');
+            }
+        }
+
+        async function confirmDelete(level, label) {
+            if (!confirm(`Hapus label Level ${level} "${label}"? Tidak bisa diundo.`)) return;
+            const result = await ajaxPost('/Admin/DeleteLevelLabel', { level });
+            if (result.success) {
+                showToast(result.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(result.message, 'danger');
+            }
+        }
+
+        // Init Bootstrap tooltips for disabled delete buttons
+        document.addEventListener('DOMContentLoaded', function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
+        });
+    </script>
+}
