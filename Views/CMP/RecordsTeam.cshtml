@@ -17,11 +17,11 @@
             <div class="row g-3 mb-3">
                 <!-- Row 1: Bagian, Unit, Category, Sub Category -->
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">Bagian</label>
+                    <label class="form-label small text-muted mb-1">@OrgLabels.GetLabel(0)</label>
                     @if (roleLevel == 4 && !string.IsNullOrEmpty(lockedSection))
                     {
                         <select id="sectionFilter" class="form-select" disabled onchange="updateUnitOptions(); filterTeamTable()">
-                            <option value="">Semua Bagian</option>
+                            <option value="">Semua @OrgLabels.GetLabel(0)</option>
                             @foreach (var sec in allSections)
                             {
                                 @if (lockedSection == sec)
@@ -38,7 +38,7 @@
                     else
                     {
                         <select id="sectionFilter" class="form-select" onchange="updateUnitOptions(); filterTeamTable()">
-                            <option value="">Semua Bagian</option>
+                            <option value="">Semua @OrgLabels.GetLabel(0)</option>
                             @foreach (var sec in allSections)
                             {
                                 <option value="@sec">@sec</option>
@@ -47,9 +47,9 @@
                     }
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">Unit</label>
+                    <label class="form-label small text-muted mb-1">@OrgLabels.GetLabel(1)</label>
                     <select id="unitFilter" class="form-select" onchange="filterTeamTable()">
-                        <option value="">Semua Unit</option>
+                        <option value="">Semua @OrgLabels.GetLabel(1)</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
@@ -132,8 +132,8 @@
                             <th class="p-3">Nama</th>
                             <th class="p-3">NIP</th>
                             <th class="p-3">Position</th>
-                            <th class="p-3">Bagian</th>
-                            <th class="p-3">Unit</th>
+                            <th class="p-3">@OrgLabels.GetLabel(0)</th>
+                            <th class="p-3">@OrgLabels.GetLabel(1)</th>
                             <th class="p-3 text-center">Assessment</th>
                             <th class="p-3 text-center">Training</th>
                             <th class="p-3 text-center">Action</th>
@@ -212,7 +212,7 @@ var subCategoryMap = @Html.Raw(ViewBag.SubCategoryMapJson ?? "{}");
 function updateUnitOptions() {
     var sectionVal = document.getElementById('sectionFilter').value;
     var unitSelect = document.getElementById('unitFilter');
-    unitSelect.innerHTML = '<option value="">Semua Unit</option>';
+    unitSelect.innerHTML = '<option value="">Semua @OrgLabels.GetLabel(1)</option>';
 
     if (sectionVal && sectionUnits[sectionVal]) {
         sectionUnits[sectionVal].forEach(function(u) {

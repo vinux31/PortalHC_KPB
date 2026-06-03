@@ -81,9 +81,9 @@
             <div class="collapse show d-md-block" id="filterCollapseBody">
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                        <label for="filterBagian" class="form-label form-label-sm mb-1">Bagian</label>
+                        <label for="filterBagian" class="form-label form-label-sm mb-1">@OrgLabels.GetLabel(0)</label>
                         <select id="filterBagian" class="form-select form-select-sm">
-                            <option value="">Semua Bagian</option>
+                            <option value="">Semua @OrgLabels.GetLabel(0)</option>
                             @foreach (var s in Model.Sections)
                             {
                                 <option value="@s">@s</option>
@@ -91,9 +91,9 @@
                         </select>
                     </div>
                     <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                        <label for="filterUnit" class="form-label form-label-sm mb-1">Unit</label>
+                        <label for="filterUnit" class="form-label form-label-sm mb-1">@OrgLabels.GetLabel(1)</label>
                         <select id="filterUnit" class="form-select form-select-sm" disabled>
-                            <option value="">Semua Unit</option>
+                            <option value="">Semua @OrgLabels.GetLabel(1)</option>
                         </select>
                     </div>
                     <div class="col-12 col-sm-6 col-md-4 col-lg-2">
@@ -540,12 +540,12 @@
                             </div>
                         </div>
                         <div class="mt-4">
-                            <h6 class="fw-semibold">Perbandingan Antar Kelompok (Bagian)</h6>
+                            <h6 class="fw-semibold">Perbandingan Antar Kelompok (@OrgLabels.GetLabel(0))</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>Bagian</th>
+                                            <th>@OrgLabels.GetLabel(0)</th>
                                             <th>Jumlah Pekerja</th>
                                             <th>Avg Pre Score</th>
                                             <th>Avg Post Score</th>
