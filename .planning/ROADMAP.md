@@ -712,6 +712,10 @@ Plans:
   - **Files affected (estimate):** Views di 7 area (CMP/CDP/Worker/CoachMapping/ProtonData/Renewal/DocumentAdmin) + controllers terkait (display string) — confirm scope via audit grep
   - **Risk:** Medium (broad surface 7 area, audit-grep per occurrence ganti-vs-skip decision) | **Effort:** M (~1.5 hari, ORG-INTEG-01/02)
   - **Canonical refs:** `docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md` (integrasi app-wide section) + `.planning/milestones/v21.0-ROADMAP.md` §"Phase 343" + `.planning/milestones/v21.0-REQUIREMENTS.md` ORG-INTEG-01/02
+  - **Plans:** 3 plans (Wave 1: 01 @inject + audit; Wave 2 parallel: 02 CMP/CDP swaps + 03 ProtonData/Admin/Account swaps)
+    - [ ] 343-01-PLAN.md — Global @inject `_ViewImports.cshtml` (D-01) + SC1 audit deliverable 343-AUDIT.md + ORG-INTEG-02 controller verdict (ORG-INTEG-01, ORG-INTEG-02)
+    - [ ] 343-02-PLAN.md — REPLACE swaps CMP (2) + CDP (5 view + 2 partial) → @OrgLabels.GetLabel(N) (ORG-INTEG-01) [depends 343-01]
+    - [ ] 343-03-PLAN.md — REPLACE swaps ProtonData (2) + Admin (13) + Account (2); AMBIGUOUS resolved button-text REPLACE / JS-toast SKIP (ORG-INTEG-01) [depends 343-01]
 ### Phase 344: Test + UAT (planning pending — see v21.0-ROADMAP.md)
 
 ---
