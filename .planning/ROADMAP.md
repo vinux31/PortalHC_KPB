@@ -681,7 +681,20 @@ Plans:
   - **Files affected:** Controllers/OrgLabelController.cs (extend +110 LoC) + Models/ViewModels/ManageOrgLevelLabelsViewModel.cs (NEW ~25 LoC) + Views/Admin/ManageOrgLevelLabels.cshtml (NEW ~210 LoC) + Views/Admin/Index.cshtml (+14 LoC card) + HcPortal.Tests/OrgLabelControllerTests.cs (NEW ~250 LoC)
   - **Wave structure:** Wave 1 (Plan 01) -> Wave 2 (Plan 02 — has checkpoint) -> Wave 3 (Plan 03 — has checkpoint) sequential strict
   - **Risk:** Low (semua pattern verified di codebase via PATTERNS.md 5/5 analog match) | **Effort:** S-M (~1 hari, ~600 LoC delta)
-### Phase 342: ManageOrganization Page Fixes (planning pending — see v21.0-ROADMAP.md)
+### Phase 342: ManageOrganization Page Fixes
+  - **Goal:** Page `Admin/ManageOrganization` clean dari 4 bug + 4 inovasi UX — dropdown induk pre-order DFS, validasi nama per-parent, parent nonaktif visible, modal title + badge + legend dynamic via OrgLabelService, cascade impact preview sebelum edit.
+  - **Requirements:** ORG-TREE-01, ORG-TREE-02, ORG-TREE-03, ORG-TREE-04, ORG-TREE-05, ORG-TREE-06, ORG-TREE-07, ORG-TREE-08, ORG-TREE-09, ORG-TREE-10
+  - **Depends on:** Phase 340 (consume IOrgLabelService GetLabel/GetAll)
+  - **Success criteria:**
+    1. Modal Tambah Unit dropdown induk menampilkan urutan pre-order DFS (parent → keturunannya → sibling), bukan flat per level (ORG-TREE-01).
+    2. Validasi name `Operations` bisa dibuat di 2 Bagian beda; ditolak bila ada di parent yang sama — per-parent unique bukan global (ORG-TREE-02).
+    3. Parent nonaktif tetap muncul di dropdown dengan suffix " (nonaktif)" + grey style; user bisa pilih (ORG-TREE-03).
+    4. Modal title dynamic ("Tambah Bagian"/"Tambah Unit"/"Tambah Sub-unit") + tree row badge per level + legend di card header, sumber OrgLabelService (ORG-TREE-08/09/10).
+    5. Edit nama unit yang punya >0 user terkait → endpoint PreviewEditCascade + modal warning count akurat sebelum aktual submit (ORG-TREE-07).
+    6. Bug fix: openDeleteModal pakai data-name + event delegation (ORG-TREE-04); icon color palette extend level 3-5 cycling (ORG-TREE-05); breadcrumb path real-time on select (ORG-TREE-06).
+  - **Files affected (estimate):** Views/Admin/ManageOrganization.cshtml + wwwroot/js/orgTree.js + Controllers/OrganizationController.cs (per-parent dup validation + PreviewEditCascade endpoint) — confirm via research
+  - **Risk:** Medium (tree DFS ordering + cascade preview query) | **Effort:** M (~1.5 hari, ORG-TREE-01..10)
+  - **Canonical refs:** `docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md` (tree fixes section) + `.planning/milestones/v21.0-ROADMAP.md` §"Phase 342" + `.planning/milestones/v21.0-REQUIREMENTS.md` ORG-TREE-01..10
 ### Phase 343: Integrasi App-wide (planning pending — see v21.0-ROADMAP.md)
 ### Phase 344: Test + UAT (planning pending — see v21.0-ROADMAP.md)
 
