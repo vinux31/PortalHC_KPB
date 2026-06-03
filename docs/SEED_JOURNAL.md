@@ -126,3 +126,7 @@ Audit trail untuk seed `temporary + local-only`. Lihat [`docs/SEED_WORKFLOW.md`]
 - **Cleaned:** 2026-06-03 RESTORE DATABASE dari snapshot sukses (1906 pages). Labels = 0/1/2 verified. OrgLabel audit rows = 0. UAT 10/10 PASS (5 POST 200, 0 console error). Status: cleaned.
 - **2026-06-03 Plan 03 UAT2 audit:** snapshot HcPortalDB_Dev_pre341uat2.bak (edit Level 0 + Add/Delete Level 3 for audit row inspection). temporary local-only. restore after.
 - **Cleaned (UAT2):** 2026-06-03 RESTORE pre341uat2.bak sukses (1906 pages). Labels=3, OrgLabel audit=0 verified. UAT 3/3 PASS (Coach 403 + 3 audit rows actor=Admin KPB + GET endpoint 200). Status: cleaned.
+
+## 2026-06-03 — Phase 342 Plan 02 Task 4 Browser UAT
+- Tujuan: smoke test /Admin/ManageOrganization (DFS dropdown/nonaktif/title/path/cascade/escape/regression). temporary local-only. snapshot pre342uat.bak. restore after.
+- Cleaned: 2026-06-03 RESTORE pre342uat.bak OK. UAT 10/10 PASS (Check 6 N/A no L3 seed). Status: cleaned.

@@ -685,9 +685,9 @@ Plans:
   - **Goal:** Page `Admin/ManageOrganization` clean dari 4 bug + 4 inovasi UX — dropdown induk pre-order DFS, validasi nama per-parent, parent nonaktif visible, modal title + badge + legend dynamic via OrgLabelService, cascade impact preview sebelum edit.
   - **Requirements:** ORG-TREE-01, ORG-TREE-02, ORG-TREE-03, ORG-TREE-04, ORG-TREE-05, ORG-TREE-06, ORG-TREE-07, ORG-TREE-08, ORG-TREE-09, ORG-TREE-10
   - **Depends on:** Phase 340 (consume IOrgLabelService GetLabel/GetAll)
-  - **Plans:** 1/3 plans executed
+  - **Plans:** 2/3 plans executed
     - [x] 342-01-PLAN.md — Wave 1 backend OrganizationController: dup-name per-parent (2 edit) + PreviewEditCascade read-only count A1 full-accuracy (ORG-TREE-02, 07)
-    - [ ] 342-02-PLAN.md — Wave 2 frontend orgTree.js + ManageOrganization.cshtml: pre-order DFS + parent nonaktif + escape + level palette + path + cascade modal + legend + title + badge + browser smoke (ORG-TREE-01, 03, 04, 05, 06, 07, 08, 09, 10)
+    - [x] 342-02-PLAN.md — Wave 2 frontend orgTree.js + ManageOrganization.cshtml: pre-order DFS + parent nonaktif + escape + level palette + path + cascade modal + legend + title + badge + browser smoke (ORG-TREE-01, 03, 04, 05, 06, 07, 08, 09, 10)
     - [ ] 342-03-PLAN.md — Wave 3 xUnit OrganizationControllerTests 6 [Fact] (dup-name per-parent + preview==actual + early-return) + manual UAT 10-skenario (ORG-TREE-02, 07)
   - **Success criteria:**
     1. Modal Tambah Unit dropdown induk menampilkan urutan pre-order DFS (parent → keturunannya → sibling), bukan flat per level (ORG-TREE-01).
