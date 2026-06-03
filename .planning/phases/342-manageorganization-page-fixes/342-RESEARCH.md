@@ -530,14 +530,14 @@ function renderLegend() {
 
 **Catatan:** Semua klaim teknis lain (line number, field name, signature, predikat cascade, test infra) DIVERIFIKASI langsung dari file aktual sesi ini — bukan assumed.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **PreviewEditCascade reparent secondary-field count (A1)**
+1. **PreviewEditCascade reparent secondary-field count (A1)** — RESOLVED: pilih opsi (b) full-accuracy 4 field-pair (Plan 01-T2 A1 DECISION; enforced by Plan 03 preview==actual test).
    - What we know: mutasi aktual Edit reparent (L247-262) update Users+Mappings+Kompetensi+Guidance; spec preview L433-438 hanya count Users.
    - What's unclear: apakah under-report reparent secondary fields acceptable (spec verbatim) atau harus 1:1.
    - Recommendation: lengkapi count (akurasi penuh) + test count==actual; jika planner pilih spec-verbatim, kalibrasi test reparent agar hanya assert Users count.
 
-2. **Legend placement di card-header**
+2. **Legend placement di card-header** — RESOLVED: baris terpisah di bawah card-header row (Plan 02-T3 Step 2).
    - What we know: card-header punya 2 kolom flex (view L114-122): kiri "Hierarki Organisasi" dot, kanan "Drag untuk reorder".
    - What's unclear: legend jadi baris ke-3 di card-header, atau inline di kolom kanan.
    - Recommendation: baris terpisah `<div id="org-legend">` di bawah header row (spec mockup L240-246 menunjukkan legend block terpisah). Claude's discretion.
