@@ -69,7 +69,7 @@
                 <form method="get" action="@Url.Action("PlanIdp","CDP")" id="silabusFilterForm">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">Bagian</label>
+                            <label class="form-label fw-semibold">@OrgLabels.GetLabel(0)</label>
                             @if (isCoachee && !string.IsNullOrEmpty(coacheeBagian))
                             {
                                 <input type="hidden" name="bagian" value="@coacheeBagian" />
@@ -83,15 +83,15 @@
                             else
                             {
                                 <select class="form-select" id="silabusBagian" name="bagian">
-                                    <option value="">-- Pilih Bagian --</option>
+                                    <option value="">-- Pilih @OrgLabels.GetLabel(0) --</option>
                                 </select>
                             }
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">Unit</label>
+                            <label class="form-label fw-semibold">@OrgLabels.GetLabel(1)</label>
                             <select class="form-select" id="silabusUnit" name="unit"
                                     disabled="@(string.IsNullOrEmpty(selectedBagian) ? "disabled" : null)">
-                                <option value="">-- Pilih Unit --</option>
+                                <option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -178,7 +178,7 @@
         bagianSelect.addEventListener('change', function() {
             const bagian = this.value;
             const unitSelect = document.getElementById('silabusUnit');
-            unitSelect.innerHTML = '<option value="">-- Pilih Unit --</option>';
+            unitSelect.innerHTML = '<option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>';
             if (bagian && orgStructure[bagian]) {
                 orgStructure[bagian].forEach(function(u) {
                     const opt = document.createElement('option');

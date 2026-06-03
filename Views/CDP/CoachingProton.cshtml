@@ -97,7 +97,7 @@
         {
             <select name="bagian" class="form-select form-select-sm" style="width:auto;min-width:150px"
                     onchange="onBagianChange(this)">
-                <option value="">Semua Bagian</option>
+                <option value="">Semua @OrgLabels.GetLabel(0)</option>
                 @foreach (var b in allBagian)
                 {
                     if (b == selectedBagian)
@@ -117,7 +117,7 @@
         {
             <select name="unit" id="unitSelect" class="form-select form-select-sm" style="width:auto;min-width:180px"
                     onchange="this.form.submit()">
-                <option value="">Semua Unit</option>
+                <option value="">Semua @OrgLabels.GetLabel(1)</option>
                 @foreach (var u in allUnits)
                 {
                     if (u == selectedUnit)
@@ -1112,7 +1112,7 @@ const unitsByBagian = @Html.Raw(ViewBag.SectionUnitsJson ?? "{}");
 function onBagianChange(select) {
     const unitSelect = document.getElementById('unitSelect');
     if (unitSelect) {
-        unitSelect.innerHTML = '<option value="">Semua Unit</option>';
+        unitSelect.innerHTML = '<option value="">Semua @OrgLabels.GetLabel(1)</option>';
         const bagian = select.value;
         if (bagian && unitsByBagian[bagian]) {
             unitsByBagian[bagian].forEach(u => {

@@ -27,11 +27,11 @@
                     <input type="text" id="searchInput" class="form-control" placeholder="Cari nama atau NIP...">
                 </div>
                 <div class="col-12 col-md-auto">
-                    <label class="form-label small text-muted">Bagian</label>
+                    <label class="form-label small text-muted">@OrgLabels.GetLabel(0)</label>
                     @if (isLocked)
                     {
                         <select id="filterBagian" class="form-select" disabled>
-                            <option value="">Semua Bagian</option>
+                            <option value="">Semua @OrgLabels.GetLabel(0)</option>
                             @foreach (var s in Model.AvailableSections)
                             {
                                 @if (s == lockedSection)
@@ -48,7 +48,7 @@
                     else
                     {
                         <select id="filterBagian" class="form-select">
-                            <option value="">Semua Bagian</option>
+                            <option value="">Semua @OrgLabels.GetLabel(0)</option>
                             @foreach (var s in Model.AvailableSections)
                             {
                                 <option value="@s">@s</option>
@@ -57,9 +57,9 @@
                     }
                 </div>
                 <div class="col-12 col-md-auto">
-                    <label class="form-label small text-muted">Unit</label>
+                    <label class="form-label small text-muted">@OrgLabels.GetLabel(1)</label>
                     <select id="filterUnit" class="form-select">
-                        <option value="">Semua Unit</option>
+                        <option value="">Semua @OrgLabels.GetLabel(1)</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-auto">
@@ -106,7 +106,7 @@
                             <th style="width:50px">No</th>
                             <th>Nama</th>
                             <th>NIP</th>
-                            <th>Unit</th>
+                            <th>@OrgLabels.GetLabel(1)</th>
                             <th>Jalur</th>
                             <th>Progress Proton</th>
                             <th>Status</th>
@@ -231,7 +231,7 @@
 
     function updateUnitOptions() {
         var bagianVal = filterBagian.value;
-        filterUnit.innerHTML = '<option value="">Semua Unit</option>';
+        filterUnit.innerHTML = '<option value="">Semua @OrgLabels.GetLabel(1)</option>';
 
         if (bagianVal && sectionUnits[bagianVal]) {
             sectionUnits[bagianVal].forEach(function(u) {
