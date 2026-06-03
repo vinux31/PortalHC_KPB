@@ -699,7 +699,19 @@ Plans:
   - **Files affected (estimate):** Views/Admin/ManageOrganization.cshtml + wwwroot/js/orgTree.js + Controllers/OrganizationController.cs (per-parent dup validation + PreviewEditCascade endpoint) — confirm via research
   - **Risk:** Medium (tree DFS ordering + cascade preview query) | **Effort:** M (~1.5 hari, ORG-TREE-01..10)
   - **Canonical refs:** `docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md` (tree fixes section) + `.planning/milestones/v21.0-ROADMAP.md` §"Phase 342" + `.planning/milestones/v21.0-REQUIREMENTS.md` ORG-TREE-01..10
-### Phase 343: Integrasi App-wide (planning pending — see v21.0-ROADMAP.md)
+### Phase 343: Integrasi App-wide
+  - **Goal:** Label tier dynamic ter-apply di SEMUA page Portal HC (CMP/CDP/Worker/CoachMapping/ProtonData/Renewal/DocumentAdmin), bukan hanya page ManageOrganization. Setelah label "Bagian" diubah jadi "Direktorat" via page CRUD (Phase 341), label baru muncul app-wide.
+  - **Requirements:** ORG-INTEG-01, ORG-INTEG-02
+  - **Depends on:** Phase 340 (consume IOrgLabelService GetLabel)
+  - **Success criteria:**
+    1. Audit grep `"Bagian"|"Unit"` per file di 7 area target selesai dengan keputusan eksplisit per occurrence (ganti display vs skip audit-log/test/literal).
+    2. Setelah label "Bagian"→"Direktorat" via page CRUD, label baru muncul di minimal 3 page integrasi (CMP filter + Worker form + CDP assignment).
+    3. View Razor pakai `@inject IOrgLabelService` consistent — tidak ada hardcode display string tersisa di 7 area target.
+    4. Audit log message body + literal di xUnit test TETAP string statis "Bagian"/"Unit" (konsistensi debug + deterministik).
+    5. Controller string yang masuk response/TempData/ViewBag (display) dynamic via service; audit/test literal statis (ORG-INTEG-02).
+  - **Files affected (estimate):** Views di 7 area (CMP/CDP/Worker/CoachMapping/ProtonData/Renewal/DocumentAdmin) + controllers terkait (display string) — confirm scope via audit grep
+  - **Risk:** Medium (broad surface 7 area, audit-grep per occurrence ganti-vs-skip decision) | **Effort:** M (~1.5 hari, ORG-INTEG-01/02)
+  - **Canonical refs:** `docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md` (integrasi app-wide section) + `.planning/milestones/v21.0-ROADMAP.md` §"Phase 343" + `.planning/milestones/v21.0-REQUIREMENTS.md` ORG-INTEG-01/02
 ### Phase 344: Test + UAT (planning pending — see v21.0-ROADMAP.md)
 
 ---
