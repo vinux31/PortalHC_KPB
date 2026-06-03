@@ -670,7 +670,17 @@ Plans:
   - **Files affected:** `Models/OrganizationLevelLabel.cs` (NEW) + `Data/ApplicationDbContext.cs` (DbSet+Fluent) + `Data/SeedData.cs` (seed method + D-12 fix) + `Migrations/{TIMESTAMP}_AddOrganizationLevelLabel.cs` (NEW) + `Services/IOrgLabelService.cs` (NEW) + `Services/OrgLabelService.cs` (NEW) + `Program.cs` (DI registration) + `Controllers/OrgLabelController.cs` (NEW) + `HcPortal.Tests/HcPortal.Tests.csproj` (InMemory package) + `HcPortal.Tests/OrgLabelServiceTests.cs` (NEW) + `docs/DB_HANDOFF_IT_2026-06-03.html` (NEW)
   - **Wave structure:** Wave 1 (Plan 01) -> Wave 2 (Plan 02) -> Wave 3 (Plan 03) sequential strict
 
-### Phase 341: Label CRUD Page (planning pending — see v21.0-ROADMAP.md)
+### Phase 341: Label CRUD Page
+  - **Goal:** HC/Admin dapat rename label tier via browser tanpa edit kode atau restart aplikasi (page `/Admin/ManageOrgLevelLabels` Admin+HC CRUD + xUnit + manual UAT).
+  - **Requirements:** ORG-LABEL-04, ORG-LABEL-05, ORG-LABEL-06
+  - **Depends on:** Phase 340 (consume IOrgLabelService 7 methods)
+  - **Plans:** 3 plans
+    - [ ] 341-01-PLAN.md — Wave 1 OrgLabelController 4 actions + DI expansion + View() override + ManageOrgLevelLabelsViewModel POCO (ORG-LABEL-04, 05, 06)
+    - [ ] 341-02-PLAN.md — Wave 2 Razor view Views/Admin/ManageOrgLevelLabels.cshtml + admin card Views/Admin/Index.cshtml + browser smoke UAT (ORG-LABEL-04)
+    - [ ] 341-03-PLAN.md — Wave 3 xUnit OrgLabelControllerTests 7 [Fact] + manual UAT Coach 403 + audit log row inspection (ORG-LABEL-04, 05, 06)
+  - **Files affected:** Controllers/OrgLabelController.cs (extend +110 LoC) + Models/ViewModels/ManageOrgLevelLabelsViewModel.cs (NEW ~25 LoC) + Views/Admin/ManageOrgLevelLabels.cshtml (NEW ~210 LoC) + Views/Admin/Index.cshtml (+14 LoC card) + HcPortal.Tests/OrgLabelControllerTests.cs (NEW ~250 LoC)
+  - **Wave structure:** Wave 1 (Plan 01) -> Wave 2 (Plan 02 — has checkpoint) -> Wave 3 (Plan 03 — has checkpoint) sequential strict
+  - **Risk:** Low (semua pattern verified di codebase via PATTERNS.md 5/5 analog match) | **Effort:** S-M (~1 hari, ~600 LoC delta)
 ### Phase 342: ManageOrganization Page Fixes (planning pending — see v21.0-ROADMAP.md)
 ### Phase 343: Integrasi App-wide (planning pending — see v21.0-ROADMAP.md)
 ### Phase 344: Test + UAT (planning pending — see v21.0-ROADMAP.md)
