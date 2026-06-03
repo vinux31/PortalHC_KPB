@@ -22,6 +22,7 @@ namespace HcPortal.Data
         
         // Master Data (KKJ & CPDP)
         public DbSet<OrganizationUnit> OrganizationUnits { get; set; }
+        public DbSet<OrganizationLevelLabel> OrganizationLevelLabels { get; set; } = null!;
         public DbSet<KkjFile> KkjFiles { get; set; }
         public DbSet<CpdpFile> CpdpFiles { get; set; }
 
@@ -131,6 +132,17 @@ namespace HcPortal.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Phase 340 ORG-LABEL-01 — OrganizationLevelLabel config (D-05, D-11)
+            builder.Entity<OrganizationLevelLabel>(entity =>
+            {
+                entity.HasKey(e => e.Level);
+                entity.Property(e => e.Level).ValueGeneratedNever();
+                entity.Property(e => e.Label).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.UpdatedAt).IsRequired();
+                entity.Property(e => e.UpdatedBy).IsRequired().HasMaxLength(450);
+                entity.HasIndex(e => e.Label).IsUnique();
+            });
 
             // ========== Customize table names ==========
             builder.Entity<ApplicationUser>(entity =>
