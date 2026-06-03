@@ -26,13 +26,13 @@
                 </select>
             </div>
             <div class="col-md-3 col-sm-6">
-                <label class="form-label small fw-semibold">Unit</label>
+                <label class="form-label small fw-semibold">@OrgLabels.GetLabel(1)</label>
                 @{
                     var unitLocked = Model.RoleLevel >= 5;
                     var selectedUnit = Model.LockedUnit ?? Model.FilterUnit;
                 }
                 <select id="protonFilterUnit" class="form-select form-select-sm" @(unitLocked ? "disabled" : "")>
-                    <option value="">Semua Unit</option>
+                    <option value="">Semua @OrgLabels.GetLabel(1)</option>
                     @foreach (var u in Model.AvailableUnits)
                     {
                         if (u == selectedUnit)

@@ -16,8 +16,8 @@
                     @if (Model.RoleLevel <= 4)
                     {
                         <th>Nama</th>
-                        <th class="d-none d-md-table-cell">Bagian</th>
-                        <th class="d-none d-md-table-cell">Unit</th>
+                        <th class="d-none d-md-table-cell">@OrgLabels.GetLabel(0)</th>
+                        <th class="d-none d-md-table-cell">@OrgLabels.GetLabel(1)</th>
                     }
                     <th>Judul</th>
                     <th class="d-none d-md-table-cell">Kategori</th>
