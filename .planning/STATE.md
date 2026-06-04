@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v16.0
 milestone_name: QA Test Coverage
 status: executing
-last_updated: "2026-06-04T00:25:31.583Z"
-last_activity: 2026-06-03
+last_updated: "2026-06-04T01:21:35.774Z"
+last_activity: 2026-06-04 -- Phase 344 planning complete
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
+  total_phases: 9
+  completed_phases: 5
+  total_plans: 22
+  completed_plans: 18
+  percent: 82
 ---
 
 # Project State: Portal HC KPB
@@ -20,17 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 343 — integrasi-app-wide
+**Current focus:** v22.0 Phase 345 — assessment pending-grade display fix (CMP-06 residual)
 
 ## Current Position
 
-Milestone: v21.0 🚀 ACTIVE (5 phase 340-344, 26 REQ, ~5 hari sequential)
-Phase: 343
+Milestone: v22.0 🚀 ACTIVE (1 phase 345, 5 REQ CMP06R-01..05, no migration, ~setengah–1 hari)
+Phase: 345 (planning — 4 plan, plans belum generated)
 Plan: Not started
-Status: Executing Phase 343
-Last activity: 2026-06-03
+Status: Ready to execute
+Last activity: 2026-06-04 -- Phase 344 planning complete
 
-Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phase). Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev.
+Sumber: verifikasi Playwright + code sweep 2026-06-04 — bug Phase 337 CMP-06 (assessment Completed+IsPassed-null salah label "Fail") belum tuntas di 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). Memory: project_cmp06_residual_recordsworkerdetail. Keputusan: label "Menunggu Penilaian" unified, passRate exclude pending.
+
+Paralel outstanding: v21.0 Phase 344 (test+UAT) belum di-plan; v21.0 343 SHIPPED. v19.0+v20.0+v21.0 bundle pending push origin/main + IT promo Dev.
+
+Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phase).
 
 ## Phase 340 Closure Snapshot
 
@@ -42,7 +46,7 @@ Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phas
 
 ## Next Action
 
-1. **`/gsd-plan-phase 341`** — Label CRUD Page (depends_on 340 cleared).
+1. **`/gsd-plan-phase 345`** — generate 4 plan v22.0 (CMP-06 residual fix).
 2. **Carry-over IT promo v19.0+v20.0+v21.0/340** — push bundle + Dev migration coordination tetap pending (paralel jalur).
 3. **(Backlog housekeeping non-blocker):** Pre-existing Tom Select UX regression dari v20.0 audit defer ke v21.0 backlog (lihat v20.0-MILESTONE-AUDIT.md tech_debt).
 4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro).
