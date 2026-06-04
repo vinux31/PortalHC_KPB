@@ -129,10 +129,12 @@
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body">
             <div class="row g-3 align-items-center">
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label for="searchInput" class="form-label small text-muted mb-1">Cari</label>
                     <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan judul...">
                 </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label for="categoryFilter" class="form-label small text-muted mb-1">Kategori</label>
                     <select id="categoryFilter" class="form-select">
                         <option value="">Semua Kategori</option>
                         @{
@@ -145,12 +147,14 @@
                         }
                     </select>
                 </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label for="subCategoryFilter" class="form-label small text-muted mb-1">Sub Kategori</label>
                     <select id="subCategoryFilter" class="form-select" disabled>
                         <option value="">Semua Sub Kategori</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label for="yearFilter" class="form-label small text-muted mb-1">Tahun</label>
                     <select id="yearFilter" class="form-select">
                         <option value="">Semua Tahun</option>
                         @foreach (var year in unifiedRecords.Select(r => r.Date.Year).Distinct().OrderByDescending(y => y))
@@ -159,15 +163,16 @@
                         }
                     </select>
                 </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label for="typeFilter" class="form-label small text-muted mb-1">Tipe</label>
                     <select id="typeFilter" class="form-select">
                         <option value="">Semua Tipe</option>
                         <option value="Assessment Online">Assessment</option>
                         <option value="Training Manual">Training</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-2">
-                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                <div class="col-12 col-sm-6 col-md-2">
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
                         <i class="bi bi-x-circle me-1"></i> Reset
                     </button>
                 </div>
@@ -297,12 +302,12 @@
     </div>
 
     <!-- Training Detail Modal -->
-    <div class="modal fade" id="trainingDetailModal" tabindex="-1">
+    <div class="modal fade" id="trainingDetailModal" tabindex="-1" role="dialog" aria-labelledby="modalTrainingTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalTrainingTitle">Detail Training</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
                     <dl class="row mb-0">
