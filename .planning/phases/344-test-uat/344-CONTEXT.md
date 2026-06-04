@@ -12,7 +12,7 @@ Cakupan requirement: **TEST-01..06 + ORG-INTEG-03**.
 
 Coverage existing yang sudah ada dari 340-343 (hasil scout codebase):
 - `HcPortal.Tests/OrgLabelServiceTests.cs` — 13 [Fact] (GetLabel happy+fallback ✅, Update/Add/Delete, GetMax* helpers)
-- `HcPortal.Tests/OrgLabelControllerTests.cs` — 10 [Fact] (validation: empty/whitespace/toolong/duplicate-across-levels ✅; add non-next-level; delete non-highest/in-use)
+- `HcPortal.Tests/OrgLabelControllerTests.cs` — 7 [Fact] (validation: empty/whitespace/toolong/duplicate-across-levels ✅; add non-next-level; delete non-highest/in-use)
 - `HcPortal.Tests/OrganizationControllerTests.cs` — ada (cek apakah DFS / dup-name per-parent sudah tercover)
 - `tests/e2e/` — 9+ Playwright spec dengan `global.setup.ts` + `global.teardown.ts` + `helpers/` (BELUM ada spec ManageOrg/OrgLabel)
 - xUnit pakai EF InMemory (tidak exercise migration SQL asli)
@@ -23,7 +23,7 @@ Coverage existing yang sudah ada dari 340-343 (hasil scout codebase):
 ## Implementation Decisions
 
 ### Unit Test Scope (TEST-01..04)
-- **D-01:** **Isi gap saja** — pertahankan 23 [Fact] existing (OrgLabelService 13 + OrgLabelController 10), JANGAN rewrite/duplikat. Tambah hanya yang bolong:
+- **D-01:** **Isi gap saja** — pertahankan 26 [Fact] existing (OrgLabelService 13 + OrgLabelController 7 + OrganizationController 6), JANGAN rewrite/duplikat. Tambah hanya yang bolong:
   - TEST-02: test permission denial non-Admin/non-HC (403) di `OrgLabelController` — belum ada di test names existing (validation sudah ✅).
   - TEST-03: pre-order DFS sort correctness untuk tree 3 level + multi-root — verifikasi dulu apakah sudah ada di `OrganizationControllerTests`; kalau belum, tambah.
   - TEST-04: dup-name per-parent (same name OK di parent beda, ditolak di parent sama) — verifikasi dulu di `OrganizationControllerTests` (342 ORG-TREE-02 + 6 [Fact] preview==actual); tambah hanya jika belum.
@@ -42,7 +42,7 @@ Coverage existing yang sudah ada dari 340-343 (hasil scout codebase):
 ### Manual UAT vs Automation (success criteria #4, ORG-INTEG-03)
 - **D-04:** **Maksimalkan Playwright (otomasi 4), manual tipis (1 visual).**
   - Otomasi ke Playwright: (1) HC rename label → cek 7 area, (2) Admin add Bagian baru → title dinamis, (3) "Operations" di 2 Bagian beda OK, (4) nonaktif parent → edit anak pindah parent OK.
-  - Manual tipis: (5) Edit Bagian besar → warning cascade muncul dengan **count benar** (visual judgment akurasi count) + **5 regresi smoke** (tree drag-reorder, toggle active, delete unit, add unit existing flow) per ORG-INTEG-03.
+  - Manual tipis: (5) Edit Bagian besar → warning cascade muncul dengan **count benar** (visual judgment akurasi count) + **4 regresi smoke** (tree drag-reorder, toggle active, delete unit, add unit existing flow) per ORG-INTEG-03.
   - Doc manual = `344-HUMAN-UAT.md` ringkas (checklist item yang gak diotomasi saja), eksekusi user di `http://localhost:5277`.
 
 ### TEST-03 DFS pre-order (decided post-research)
@@ -72,7 +72,7 @@ Coverage existing yang sudah ada dari 340-343 (hasil scout codebase):
 
 ### Test Infra Existing (analog wajib dibaca sebelum nulis test)
 - `HcPortal.Tests/OrgLabelServiceTests.cs` — 13 [Fact] existing (jangan duplikat)
-- `HcPortal.Tests/OrgLabelControllerTests.cs` — 10 [Fact] existing (validation sudah ada)
+- `HcPortal.Tests/OrgLabelControllerTests.cs` — 7 [Fact] existing (validation sudah ada)
 - `HcPortal.Tests/OrganizationControllerTests.cs` — cek DFS + dup-name coverage di sini
 - `tests/e2e/global.setup.ts`, `tests/e2e/global.teardown.ts`, `tests/e2e/helpers/` — pola Playwright + seed
 - `tests/e2e/manage-assessment-filter.spec.ts` — contoh spec admin-page Playwright
@@ -121,3 +121,5 @@ None — diskusi tetap dalam scope Phase 344 (test + UAT v21.0).
 
 *Phase: 344-test-uat*
 *Context gathered: 2026-06-04*
+</content>
+</invoke>
