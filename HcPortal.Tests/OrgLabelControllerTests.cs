@@ -3,6 +3,7 @@
 // Strategy: skip actor-resolution test (UserManager null-substitute) per RESEARCH §Code Examples #7 Option 2.
 // All 7 [Fact] exercise validation rejects that return BEFORE _userManager.GetUserAsync, so null is safe.
 // Happy-path mutation + audit log coverage retained by Phase 340 OrgLabelServiceTests (mutation [Fact]).
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -158,5 +159,34 @@ public class OrgLabelControllerTests
 
         Assert.False(GetSuccess(result));
         Assert.Contains("dipakai", GetMessage(result));
+    }
+
+    // ── TEST-02: permission contract (reflection — pipeline-enforced, not unit-callable) ──
+    // Auth is enforced by the ASP.NET pipeline via [Authorize] attributes, NOT in the controller
+    // body, so a directly-instantiated controller cannot exercise a 403. We assert the attribute
+    // contract via reflection here; the live 403 (incl. a coach POST) is covered in Plan 03 (Playwright).
+    private static AuthorizeAttribute? RolesAttr(string method)
+    {
+        var m = typeof(OrgLabelController).GetMethod(method)!;
+        return m.GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true)
+                .Cast<AuthorizeAttribute>().FirstOrDefault();
+    }
+
+    [Fact] public void ManageOrgLevelLabels_RequiresAdminOrHcRole()
+        => Assert.Equal("Admin, HC", RolesAttr(nameof(OrgLabelController.ManageOrgLevelLabels))!.Roles);
+
+    [Fact] public void UpdateLevelLabel_RequiresAdminOrHcRole()
+        => Assert.Equal("Admin, HC", RolesAttr(nameof(OrgLabelController.UpdateLevelLabel))!.Roles);
+
+    [Fact] public void AddLevelLabel_RequiresAdminOrHcRole()
+        => Assert.Equal("Admin, HC", RolesAttr(nameof(OrgLabelController.AddLevelLabel))!.Roles);
+
+    [Fact] public void DeleteLevelLabel_RequiresAdminOrHcRole()
+        => Assert.Equal("Admin, HC", RolesAttr(nameof(OrgLabelController.DeleteLevelLabel))!.Roles);
+
+    [Fact] public void GetLevelLabels_DoesNotRequireAdminOrHcRole()   // locks ORG-LABEL-03 contract
+    {
+        var attr = RolesAttr(nameof(OrgLabelController.GetLevelLabels));
+        Assert.True(attr is null || string.IsNullOrEmpty(attr.Roles));
     }
 }
