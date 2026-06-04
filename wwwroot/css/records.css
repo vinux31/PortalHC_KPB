@@ -1,0 +1,73 @@
+/* records.css — Phase 347 POL-08: shared styles CMP/Records (My Records), RecordsWorkerDetail, RecordsTeam (partial). Diekstrak verbatim dari <style> inline (zero visual regression). */
+/* Stat Cards */
+.stat-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-card-primary::before { color: #0d6efd; }
+.stat-card-success::before { color: #198754; }
+.stat-card-info::before { color: #0dcaf0; }
+
+.stat-icon {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Enhanced Table */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+/* Smooth Animations */
+.training-row {
+    animation: fadeIn 0.3s ease;
+}
+
+.worker-row {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
