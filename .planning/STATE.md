@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
-last_updated: "2026-06-04T09:34:39.622Z"
+last_updated: "2026-06-04T09:40:05.169Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 13
   completed_phases: 7
   total_plans: 32
-  completed_plans: 29
-  percent: 91
+  completed_plans: 30
+  percent: 94
 ---
 
 # Project State: Portal HC KPB
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-02)
 
 Milestone: v22.0 🚀 ACTIVE (phases 345-349; spec 346/347 + 348/349)
 Phase: 346 (cmp-records-detail-search-logic) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-06-04
 

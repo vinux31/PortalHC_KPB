@@ -43,9 +43,9 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 - [x] **REC-04** 🔐: Extend authz `Results`(2169)+`Certificate`(1815)+`CertificatePdf`(1926): `owner ∥ roleLevel≤3 ∥ (roleLevel==4 && Section non-null && assessment.User.Section==user.Section)`. **PITFALL:** Certificate+CertificatePdf wajib `.Include(a=>a.User)`; ketiga panggil GetCurrentUserRoleLevelAsync. Sekalian fix AUTHZ-01 (tombol Sertifikat dead L3/L4). (D-01/D-06)
 - [x] **REC-05**: Worker Detail modal training tambah row Kategori + SubKategori. (FEAT-1B training info)
 - [x] **REC-06**: Team View search — 1 input + selektor scope (Nama/Training/Keduanya, default Keduanya), server-side. Wire `RecordsTeamPartial`(753)+Export(652/704)+`GetWorkersInSection`(242, tambah `searchScope`; Training=join `TrainingRecords.Judul`; Keduanya=union). updateExportLinks ikut param. (FUG-003/FILTER-001/FILTER-002/FEAT-2, D-05)
-- [ ] **REC-07**: Include PendingGrading di `GetUnifiedRecords`(31)+`GetAllWorkersHistory`(136). **PITFALL:** pakai `AssessmentConstants.AssessmentStatus.PendingGrading` (bukan literal). **Depends Phase 345** (label "Menunggu Penilaian"). (CMP-LOGIC-02/CMP-FILTER-02)
-- [ ] **REC-08**: Team View validasi date range — `dateFrom>dateTo`→warning (extend updateDateHint). (FILTER-006)
-- [ ] **REC-09**: Perjelas makna badge "Assessment" (header/tooltip "Assessment Lulus"). **JANGAN rename** field `CompletedAssessments` (cross-3-file, value LOW). (CMP-FILTER-01, dilunakkan)
+- [x] **REC-07**: Include PendingGrading di `GetUnifiedRecords`(31)+`GetAllWorkersHistory`(136). **PITFALL:** pakai `AssessmentConstants.AssessmentStatus.PendingGrading` (bukan literal). **Depends Phase 345** (label "Menunggu Penilaian"). (CMP-LOGIC-02/CMP-FILTER-02)
+- [x] **REC-08**: Team View validasi date range — `dateFrom>dateTo`→warning (extend updateDateHint). (FILTER-006)
+- [x] **REC-09**: Perjelas makna badge "Assessment" (header/tooltip "Assessment Lulus"). **JANGAN rename** field `CompletedAssessments` (cross-3-file, value LOW). (CMP-FILTER-01, dilunakkan)
 - [ ] **REC-10** ~~Worker Detail category filter server-side~~ — **DROP** (over-eng, data 1 pekerja tak paginated). (FILTER-005)
 
 ## Requirements — Phase 347 (CMP/Records i18n + a11y Polish)
