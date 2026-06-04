@@ -20,7 +20,7 @@
 - ✅ **v19.0 Portal HC Bug Fixes (Cascade Hardening)** — Phases 325-335 (shipped local 2026-05-28, audited 2026-05-29) — [audit](v19.0-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
 - ✅ **v20.0 CMP Records Overhaul + Cilacap UX/Restore** — Phases 336-339 (shipped local + archived 2026-06-02, 39/39 REQ) — [archive](milestones/v20.0-ROADMAP.md) — [audit](milestones/v20.0-MILESTONE-AUDIT.md)
 - 🚀 **v21.0 ManageOrganization Overhaul + Level Label CRUD** — Phases 340-344 (active, started 2026-06-02) — [roadmap](milestones/v21.0-ROADMAP.md) — [spec](../docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md)
-- 🚀 **v22.0 CMP-06 Residual Fix (Assessment Pending-Grade Display)** — Phase 345 (active, started 2026-06-04) — assessment Completed+IsPassed-null tampil "Menunggu Penilaian" di 3 surface kelewat Phase 337 (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf)
+- 🚀 **v22.0 CMP-06 Residual Fix + CMP/Records Enhancement** — Phases 345-347 (active, started 2026-06-04) — 345: assessment Completed+IsPassed-null "Menunggu Penilaian" di 3 surface; 346: detail/search/authz (kolom Aksi + modal training + Lihat Hasil Worker Detail + extend authz Results/Certificate L1-4 + Team search Nama/Training + PendingGrading include); 347: i18n+a11y polish (15 LOW) — [spec](../docs/superpowers/specs/2026-06-04-cmp-records-enhancement-design.md)
 
 ## Phases
 
@@ -722,9 +722,10 @@ Plans:
 
 ---
 
-## v22.0 CMP-06 Residual Fix (Assessment Pending-Grade Display) — Phase 345 🚀 ACTIVE
+## v22.0 CMP-06 Residual Fix + CMP/Records Enhancement — Phases 345-347 🚀 ACTIVE
 
-**Status:** Started 2026-06-04. Requirements `.planning/REQUIREMENTS.md` (CMP06R-01..05).
+**Status:** Started 2026-06-04. Requirements `.planning/REQUIREMENTS.md` (CMP06R-01..05 + REC-01..10 + POL-01..10).
+**Spec 346/347:** `docs/superpowers/specs/2026-06-04-cmp-records-enhancement-design.md` (audit 7-lens, 37 confirmed). Sequential 345→346→347.
 **Goal:** Assessment `Status="Completed"` + `IsPassed==null` (essay belum dinilai) tampil **"Menunggu Penilaian"** di SEMUA surface, bukan "Fail/Failed/Tidak Lulus". Tutup 3 surface kelewat Phase 337 CMP-06 + unify label + fix passRate stats. No migration.
 **Source:** verifikasi Playwright + code sweep 2026-06-04 (memory `project_cmp06_residual_recordsworkerdetail`).
 **Keputusan terkunci:** label "Menunggu Penilaian" (unified); passRate exclude pending.
@@ -750,11 +751,47 @@ Plans:
   - **Files affected:** `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/Records.cshtml` + `Services/WorkerDataService.cs` + `Controllers/AssessmentAdminController.cs` (4737/4744-4745 + 4620-4621 + 2759-2821) + `Controllers/CMPController.cs` (694) + `Models/ReportsDashboardViewModel.cs` + `Views/Admin/UserAssessmentHistory.cshtml` + `HcPortal.Tests/` (NEW) + `tests/e2e/` (NEW)
   - **Wave structure:** 345-01 ∥ 345-02 ∥ 345-03 (region independen) → 345-04 (test, depends all)
 
-**Active mapped: 5/5 ✓ — Orphans: 0 — Duplicates: 0**
+### Phase 346: cmp-records-detail-search-logic
+
+- [ ] **Phase 346: CMP/Records Detail, Search & Logic Fix**
+  - **REQ:** REC-01, REC-02, REC-03, REC-04, REC-05, REC-06, REC-07, REC-08, REC-09 (REC-10 DROP)
+  - **Depends on:** Phase 345 (REC-07 butuh label "Menunggu Penilaian"; REC-01/02/03/05 sentuh `Records.cshtml`+`RecordsWorkerDetail.cshtml` baris berdekatan — sequential)
+  - **Goal:** Pekerja & atasan bisa lihat detail assessment (hasil) + training (modal), Worker Detail buka hasil assessment, Team View search adaptif (Nama/Training/Keduanya), assessment PendingGrading tak hilang.
+  - **Success Criteria:**
+    1. My Records `/CMP/Records` punya kolom "Aksi": Assessment→tombol `Lihat Hasil`→`/CMP/Results`, Training→tombol `Detail`→modal (Penyelenggara/Kota/tgl/No.Sertifikat/Kategori/SubKategori/Status/ValidUntil + PDF); row tetap clickable.
+    2. Worker Detail `/CMP/RecordsWorkerDetail` row Assessment punya tombol `Lihat Hasil`→`/CMP/Results`; modal training tambah Kategori/SubKategori.
+    3. 🔐 `Results`+`Certificate`+`CertificatePdf` authz: owner ∥ L≤3 full ∥ L4 section-scoped (`assessment.User.Section==user.Section`, guard Section non-null). L3/L4 atasan buka hasil tim PASS; L4 beda section + L5/L6 non-owner Forbid.
+    4. Team View search box + selektor scope (Nama/Training/Keduanya, server-side); training-search via join `TrainingRecords.Judul`; export links ikut ke-filter.
+    5. Assessment esai PendingGrading tampil di My Records + export team dengan label "Menunggu Penilaian" (WHERE pakai `AssessmentConstants.AssessmentStatus.PendingGrading`).
+    6. Date range `dateTo<dateFrom`→warning; badge "Assessment" diperjelas (header/tooltip, BUKAN rename field).
+    7. `dotnet build` 0 error + `dotnet test` hijau (authz matrix + search scope + PendingGrading tests) + Playwright UAT PASS.
+  - **Risk:** Medium (REC-04 authz security-sensitive; REC-06 service query) | **Effort:** M-L (no migration)
+  - **Plans:** _belum di-generate_
+  - **Files affected:** `Views/CMP/Records.cshtml` + `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/RecordsTeam.cshtml` + `Controllers/CMPController.cs` (Results 2169, Certificate 1815, CertificatePdf 1926, RecordsTeamPartial 753, Export* 652/704) + `Services/WorkerDataService.cs` (GetUnifiedRecords 28, GetAllWorkersHistory 92, GetWorkersInSection 242) + `Models/WorkerTrainingStatus.cs` + `HcPortal.Tests/` (NEW) + `tests/e2e/` (NEW)
+  - **Pitfalls (spec §):** colspan My Records 6→7 (L227+JS L381); konstanta PendingGrading (bukan literal "PendingGrading"); `.Include(a=>a.User)` di Certificate+CertificatePdf; sequential 345→346→347.
+
+### Phase 347: cmp-records-i18n-a11y-polish
+
+- [ ] **Phase 347: CMP/Records i18n + a11y Polish**
+  - **REQ:** POL-01, POL-02, POL-03, POL-04, POL-05, POL-06, POL-07, POL-08, POL-09, POL-10
+  - **Depends on:** Phase 346 (sequential — sentuh `Records.cshtml`+`RecordsWorkerDetail.cshtml`); koordinasi POL-01 dgn Phase 345 (case null jangan ditimpa)
+  - **Goal:** Konsistensi Bahasa Indonesia + aksesibilitas + DRY pada halaman Records (15 finding LOW).
+  - **Success Criteria:**
+    1. Badge `Passed/Failed`→`Lulus/Tidak Lulus` (case true/false; null tetap "Menunggu Penilaian" dari Phase 345).
+    2. Header `Score`→`Nilai`; `Position`→`Jabatan`; `Section`→`@OrgLabels.GetLabel(0)`; `All Categories/Sub/Types`→`Semua ...`; subtitle Inggris→Indonesia.
+    3. a11y: modal `aria-labelledby`+`role=dialog`+btn-close `aria-label`; label `for=` semua filter (3 view); pagination `aria-current`.
+    4. DRY: `<style>` duplikat (.stat-card/.sticky-header/@keyframes) → 1 file CSS; mobile grid filter responsif; `type="button"` reset.
+    5. `dotnet build` 0 error + no visual regression (Playwright spot-check).
+  - **Risk:** Low | **Effort:** S-M (no migration)
+  - **Plans:** _belum di-generate_
+  - **Files affected:** `Views/CMP/Records.cshtml` + `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/RecordsTeam.cshtml` + `Views/CMP/_RecordsTeamBody.cshtml` + `wwwroot/css/records.css` (NEW)
+
+**Active mapped: 20/20 ✓ (CMP06R-01..05 + REC-01..09 + POL-01..10) — Orphans: 0 — Duplicates: 0 — REC-10 dropped (over-eng) — No migration**
 
 ---
 
-*Roadmap updated: 2026-06-04 (v22.0 added — Phase 345 CMP-06 residual fix, 5 REQ CMP06R-01..05, 4 plan, no migration; sumber Playwright+sweep verify 3 surface kelewat Phase 337).*
+*Roadmap updated: 2026-06-04 (Phase 346+347 added — CMP/Records Enhancement dari audit 7-lens 37 confirmed; 346 fitur+logic REC-01..09 [REC-10 drop] depends 345, 347 i18n+a11y polish POL-01..10 depends 346; sequential strict; no migration; spec 2026-06-04-cmp-records-enhancement-design.md @ 22759cad).*
+*Prev: 2026-06-04 (v22.0 added — Phase 345 CMP-06 residual fix, 5 REQ CMP06R-01..05, 4 plan, no migration; sumber Playwright+sweep verify 3 surface kelewat Phase 337).*
 *Prev: 2026-06-02 (Phase 340 plans generated — 3 plan 3 wave sequential strict, 7 task total; Foundation v21.0 P1 milestone start; depends_on=[]; ORG-LABEL-01/02/03/07 mapped; D-12 SeedData convention fix included).*
 *Prev: 2026-06-02 (v20.0 ARCHIVED — milestone close, 39/39 REQ satisfied, 4 phase + 10 plan + 56 commit + 14,768/-323 LOC. Archive: milestones/v20.0-*.md. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev).*
 *Prev: 2026-06-02 (Phase 339 added — gap closure dari `/gsd-audit-milestone v20.0` 2026-06-02; 3 partial REQ CIL-06+REST-04+REST-06 → orphan UI link + Title regex validator; 1 plan 1 wave 3 task, effort S half day; depends Phase 338).*
