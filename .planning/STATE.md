@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-02)
 ## Current Position
 
 Milestone: v22.0 🚀 ACTIVE (phases 345-349; spec 346/347 + 348/349)
-Phase: 345 (assessment-pending-grade-display-fix) — RESEARCH DONE, awaiting UI-SPEC
+Phase: 345 (assessment-pending-grade-display-fix) — UI-SPEC APPROVED, ready to plan
 Plan: 0 of 4 (plans belum di-generate)
-Status: plan-phase paused @ UI gate — run /gsd-ui-phase 345 then re-run /gsd-plan-phase 345
-Last activity: 2026-06-04 -- Phase 345 research (51ae6bc0) + VALIDATION (7bd08dae) + CONTEXT C-1 fix (b52dc1ef)
+Status: pre-plan artifacts done (CONTEXT+RESEARCH+VALIDATION+UI-SPEC) — run /gsd-plan-phase 345
+Last activity: 2026-06-04 -- Phase 345 UI-SPEC approved 6/6 (462becfd→e2f3356a); research 51ae6bc0 + VALIDATION 7bd08dae
 
 Sumber: verifikasi Playwright + code sweep 2026-06-04 — bug Phase 337 CMP-06 (assessment Completed+IsPassed-null salah label "Fail") belum tuntas di 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). Memory: project_cmp06_residual_recordsworkerdetail. Keputusan: label "Menunggu Penilaian" unified, passRate exclude pending.
 
