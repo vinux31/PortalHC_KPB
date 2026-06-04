@@ -20,6 +20,7 @@
 - ✅ **v19.0 Portal HC Bug Fixes (Cascade Hardening)** — Phases 325-335 (shipped local 2026-05-28, audited 2026-05-29) — [audit](v19.0-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
 - ✅ **v20.0 CMP Records Overhaul + Cilacap UX/Restore** — Phases 336-339 (shipped local + archived 2026-06-02, 39/39 REQ) — [archive](milestones/v20.0-ROADMAP.md) — [audit](milestones/v20.0-MILESTONE-AUDIT.md)
 - 🚀 **v21.0 ManageOrganization Overhaul + Level Label CRUD** — Phases 340-344 (active, started 2026-06-02) — [roadmap](milestones/v21.0-ROADMAP.md) — [spec](../docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md)
+- 🚀 **v22.0 CMP-06 Residual Fix (Assessment Pending-Grade Display)** — Phase 345 (active, started 2026-06-04) — assessment Completed+IsPassed-null tampil "Menunggu Penilaian" di 3 surface kelewat Phase 337 (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf)
 
 ## Phases
 
@@ -721,7 +722,40 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-06-02 (Phase 340 plans generated — 3 plan 3 wave sequential strict, 7 task total; Foundation v21.0 P1 milestone start; depends_on=[]; ORG-LABEL-01/02/03/07 mapped; D-12 SeedData convention fix included).*
+## v22.0 CMP-06 Residual Fix (Assessment Pending-Grade Display) — Phase 345 🚀 ACTIVE
+
+**Status:** Started 2026-06-04. Requirements `.planning/REQUIREMENTS.md` (CMP06R-01..05).
+**Goal:** Assessment `Status="Completed"` + `IsPassed==null` (essay belum dinilai) tampil **"Menunggu Penilaian"** di SEMUA surface, bukan "Fail/Failed/Tidak Lulus". Tutup 3 surface kelewat Phase 337 CMP-06 + unify label + fix passRate stats. No migration.
+**Source:** verifikasi Playwright + code sweep 2026-06-04 (memory `project_cmp06_residual_recordsworkerdetail`).
+**Keputusan terkunci:** label "Menunggu Penilaian" (unified); passRate exclude pending.
+
+### Phase 345: assessment-pending-grade-display-fix
+
+- [ ] **Phase 345: Assessment pending-grade display correctness**
+  - **REQ:** CMP06R-01, CMP06R-02, CMP06R-03, CMP06R-04, CMP06R-05
+  - **Depends on:** Tidak ada (independen v21.0; file beda)
+  - **Goal:** 3-way status (`null→"Menunggu Penilaian"`) di RecordsWorkerDetail + UserAssessmentHistory (ctrl+VM+view+stats) + BulkExportPdf, unify label via GetUnifiedRecords + Records.cshtml, regression test.
+  - **Success Criteria:**
+    1. Sesi Completed+IsPassed-null tampil "Menunggu Penilaian" di `/CMP/RecordsWorkerDetail`, `/Admin/UserAssessmentHistory`, dan PDF `BulkExportPdf` (bukan Fail/Failed/Tidak Lulus).
+    2. My Records `/CMP/Records` konsisten label "Menunggu Penilaian" (ganti "Completed"); sesi graded Pass/Fail tetap normal (no regression).
+    3. `UserAssessmentHistory` passRate exclude pending dari denominator.
+    4. `dotnet build` 0 error (VM `bool`→`bool?` ripple); `dotnet test` hijau + test baru passRate.
+    5. Playwright UAT 3 surface PASS (SEED_WORKFLOW snapshot/restore).
+  - **Risk:** Low | **Effort:** S-M (~setengah–1 hari, no migration)
+  - **Plans:** 1/3 plans executed
+    - [ ] 345-01-PLAN.md — CMP06R-01 + CMP06R-04 + MINOR-A: RecordsWorkerDetail 3-way + GetUnifiedRecords label + Records.cshtml switch + Excel ExportRecords
+    - [ ] 345-02-PLAN.md — CMP06R-02: UserAssessmentHistory VM bool? + ctrl drop ?? false + view 3-way + stats exclude-pending + grup PassedCount
+    - [ ] 345-03-PLAN.md — CMP06R-03: GeneratePerPesertaPdf 3-way "Menunggu Penilaian" + warna netral
+    - [ ] 345-04-PLAN.md — CMP06R-05: xUnit + Playwright UAT 3 surface
+  - **Files affected:** `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/Records.cshtml` + `Services/WorkerDataService.cs` + `Controllers/AssessmentAdminController.cs` (4737/4744-4745 + 4620-4621 + 2759-2821) + `Controllers/CMPController.cs` (694) + `Models/ReportsDashboardViewModel.cs` + `Views/Admin/UserAssessmentHistory.cshtml` + `HcPortal.Tests/` (NEW) + `tests/e2e/` (NEW)
+  - **Wave structure:** 345-01 ∥ 345-02 ∥ 345-03 (region independen) → 345-04 (test, depends all)
+
+**Active mapped: 5/5 ✓ — Orphans: 0 — Duplicates: 0**
+
+---
+
+*Roadmap updated: 2026-06-04 (v22.0 added — Phase 345 CMP-06 residual fix, 5 REQ CMP06R-01..05, 4 plan, no migration; sumber Playwright+sweep verify 3 surface kelewat Phase 337).*
+*Prev: 2026-06-02 (Phase 340 plans generated — 3 plan 3 wave sequential strict, 7 task total; Foundation v21.0 P1 milestone start; depends_on=[]; ORG-LABEL-01/02/03/07 mapped; D-12 SeedData convention fix included).*
 *Prev: 2026-06-02 (v20.0 ARCHIVED — milestone close, 39/39 REQ satisfied, 4 phase + 10 plan + 56 commit + 14,768/-323 LOC. Archive: milestones/v20.0-*.md. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev).*
 *Prev: 2026-06-02 (Phase 339 added — gap closure dari `/gsd-audit-milestone v20.0` 2026-06-02; 3 partial REQ CIL-06+REST-04+REST-06 → orphan UI link + Title regex validator; 1 plan 1 wave 3 task, effort S half day; depends Phase 338).*
 *Prev: 2026-05-30 (v20.0 milestone + Phase 336-338 added — 3 PR bundle Opsi 2 sequential strict; 39 REQ CMP-01..26 + CIL-01..06 + REST-01..07; total estimate ~2.5 minggu; locked decision Approach C CMP Records).*

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v16.0
 milestone_name: QA Test Coverage
 status: executing
-last_updated: "2026-06-04T01:21:35.774Z"
-last_activity: 2026-06-04 -- Phase 344 planning complete
+last_updated: "2026-06-04T01:23:28.831Z"
+last_activity: 2026-06-04 -- Phase 344 execution started
 progress:
-  total_phases: 9
-  completed_phases: 5
-  total_plans: 22
-  completed_plans: 18
-  percent: 82
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 30
+  completed_plans: 30
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v22.0 Phase 345 — assessment pending-grade display fix (CMP-06 residual)
+**Current focus:** Phase 344 — test-uat
 
 ## Current Position
 
 Milestone: v22.0 🚀 ACTIVE (1 phase 345, 5 REQ CMP06R-01..05, no migration, ~setengah–1 hari)
-Phase: 345 (planning — 4 plan, plans belum generated)
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-04 -- Phase 344 planning complete
+Phase: 344 (test-uat) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 344
+Last activity: 2026-06-04 -- Phase 344 execution started
 
 Sumber: verifikasi Playwright + code sweep 2026-06-04 — bug Phase 337 CMP-06 (assessment Completed+IsPassed-null salah label "Fail") belum tuntas di 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). Memory: project_cmp06_residual_recordsworkerdetail. Keputusan: label "Menunggu Penilaian" unified, passRate exclude pending.
 
