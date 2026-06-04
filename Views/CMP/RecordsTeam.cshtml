@@ -152,7 +152,7 @@
                             <th class="p-3">Position</th>
                             <th class="p-3">@OrgLabels.GetLabel(0)</th>
                             <th class="p-3">@OrgLabels.GetLabel(1)</th>
-                            <th class="p-3 text-center">Assessment</th>
+                            <th class="p-3 text-center">Assessment Lulus</th>
                             <th class="p-3 text-center">Training</th>
                             <th class="p-3 text-center">Action</th>
                         </tr>
@@ -371,6 +371,12 @@ function updateExportLinks() {
 function updateDateHint(currentCount, state) {
     var hintEl = document.getElementById('dateFilterHint');
     if (!hintEl) return;
+    // REC-08: inverted range warning (prioritas, early-return)
+    if (state.dateFrom && state.dateTo && state.dateFrom > state.dateTo) {
+        hintEl.textContent = 'Tanggal Awal lebih besar dari Tanggal Akhir — perbaiki rentang.';
+        hintEl.style.display = '';
+        return;
+    }
     var hasDateFilter = state.dateFrom || state.dateTo;
     if (hasDateFilter && currentCount < initialWorkerCount) {
         hintEl.textContent = 'Beberapa worker tidak punya record di rentang tanggal ini — disembunyikan dari list.';
