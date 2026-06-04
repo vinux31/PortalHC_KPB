@@ -185,7 +185,7 @@ public class OrganizationControllerTests
     }
 
     // ── TEST-03: pre-order DFS sort (D-05) — OrgTreePreOrder.BuildPreOrder mirrors orgTree.js ──
-    // Asserts ONLY against the pure helper, NEVER against the flat GetOrganizationTree endpoint
+    // Asserts ONLY against the pure helper, NEVER against the flat tree endpoint output
     // (silent-pass trap). Fixtures are DISCRIMINATING: output != ascending-id-order AND != BFS.
 
     [Fact]
