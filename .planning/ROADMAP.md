@@ -744,8 +744,8 @@ Plans:
     4. `dotnet build` 0 error (VM `bool`→`bool?` ripple); `dotnet test` hijau + test baru passRate.
     5. Playwright UAT 3 surface PASS (SEED_WORKFLOW snapshot/restore).
   - **Risk:** Low | **Effort:** S-M (~setengah–1 hari, no migration)
-  - **Plans:** 4 plans (0 complete) -- generated 2026-06-04
-    - [ ] 345-01-PLAN.md — CMP06R-01 + CMP06R-04 + MINOR-A: RecordsWorkerDetail 3-way + GetUnifiedRecords label + Records.cshtml switch + Excel ExportRecords
+  - **Plans:** 1/4 plans executed
+    - [x] 345-01-PLAN.md — CMP06R-01 + CMP06R-04 + MINOR-A: RecordsWorkerDetail 3-way + GetUnifiedRecords label + Records.cshtml switch + Excel ExportRecords
     - [ ] 345-02-PLAN.md — CMP06R-02: UserAssessmentHistory VM bool? + ctrl drop ?? false + view 3-way + stats exclude-pending + grup PassedCount
     - [ ] 345-03-PLAN.md — CMP06R-03: GeneratePerPesertaPdf 3-way "Menunggu Penilaian" + warna netral
     - [ ] 345-04-PLAN.md — CMP06R-05: xUnit + Playwright UAT 3 surface
