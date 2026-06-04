@@ -55,13 +55,13 @@
                 <div class="col-12 col-md-3">
                     <label class="form-label small text-muted mb-1">Category</label>
                     <select id="categoryFilter" class="form-select" onchange="filterTeamTable()">
-                        <option value="">All Categories</option>
+                        <option value="">Semua Kategori</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label small text-muted mb-1">Sub Category</label>
                     <select id="subCategoryFilter" class="form-select" disabled onchange="filterTeamTable()">
-                        <option value="">All Sub Categories</option>
+                        <option value="">Semua Sub Kategori</option>
                     </select>
                 </div>
             </div>
@@ -149,7 +149,7 @@
                         <tr>
                             <th class="p-3">Nama</th>
                             <th class="p-3">NIP</th>
-                            <th class="p-3">Position</th>
+                            <th class="p-3">Jabatan</th>
                             <th class="p-3">@OrgLabels.GetLabel(0)</th>
                             <th class="p-3">@OrgLabels.GetLabel(1)</th>
                             <th class="p-3 text-center">Assessment Lulus</th>
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('categoryFilter').addEventListener('change', function() {
         var cat = this.value;
         var subSelect = document.getElementById('subCategoryFilter');
-        subSelect.innerHTML = '<option value="">All Sub Categories</option>';
+        subSelect.innerHTML = '<option value="">Semua Sub Kategori</option>';
         var hasChildren = cat && subCategoryMap[cat] && subCategoryMap[cat].length > 0;
         subSelect.disabled = !hasChildren;
         if (hasChildren) {
