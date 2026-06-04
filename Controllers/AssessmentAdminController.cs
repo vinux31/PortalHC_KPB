@@ -2613,12 +2613,17 @@ namespace HcPortal.Controllers
             try
             {
                 var newToken = GenerateSecureToken();
-                // Update ALL sibling sessions in the same group (same Title + Category + Schedule.Date)
-                var siblings = await _context.AssessmentSessions
-                    .Where(a => a.Title == assessment.Title
-                             && a.Category == assessment.Category
-                             && a.Schedule.Date == assessment.Schedule.Date)
-                    .ToListAsync();
+                // MAM-01: Pre-Post route by LinkedGroupId (PostTest bisa beda tanggal — validasi cuma enforce PostSchedule > PreSchedule).
+                // Fallback ke Title+Category+Schedule.Date untuk grup standard.
+                var siblings = assessment.LinkedGroupId != null
+                    ? await _context.AssessmentSessions
+                        .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
+                        .ToListAsync()
+                    : await _context.AssessmentSessions
+                        .Where(a => a.Title == assessment.Title
+                                 && a.Category == assessment.Category
+                                 && a.Schedule.Date == assessment.Schedule.Date)
+                        .ToListAsync();
                 foreach (var sibling in siblings)
                 {
                     sibling.AccessToken = newToken;
@@ -2760,6 +2765,8 @@ namespace HcPortal.Controllers
                         PendingCount = postSubs.Count(a => !a.IsCompleted && !a.IsStarted),
                         InProgressCount = postSubs.Count(a => a.IsStarted && !a.IsCompleted),
                         CancelledCount = g.Count(a => a.Status == "Cancelled"),
+                        // MAM-03: parity standardGroups (L2825). Grading terjadi di Post half — pakai postSubs.
+                        MenungguPenilaianCount = postSubs.Count(a => a.IsMenungguPenilaian),
                         IsTokenRequired = rep.IsTokenRequired,
                         AccessToken = rep.AccessToken ?? "",
                         IsPrePostGroup = true,
