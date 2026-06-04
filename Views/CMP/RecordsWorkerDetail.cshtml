@@ -259,7 +259,9 @@
                                                     data-kota="@(item.Kota ?? "—")"
                                                     data-tanggal-mulai="@(item.TanggalMulai.HasValue ? item.TanggalMulai.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "—")"
                                                     data-tanggal-selesai="@(item.TanggalSelesai.HasValue ? item.TanggalSelesai.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "—")"
-                                                    data-nomor-sertifikat="@(item.NomorSertifikat ?? "—")">
+                                                    data-nomor-sertifikat="@(item.NomorSertifikat ?? "—")"
+                                                    data-kategori="@(item.Kategori ?? "—")"
+                                                    data-subcategory="@(item.SubKategori ?? "—")">
                                                     <i class="bi bi-info-circle me-1"></i>Detail
                                                 </button>
                                                 @if (!string.IsNullOrEmpty(item.SertifikatUrl)) {
@@ -310,6 +312,8 @@
                         <dt class="col-sm-5">Tanggal Mulai</dt><dd class="col-sm-7" id="mdTanggalMulai">—</dd>
                         <dt class="col-sm-5">Tanggal Selesai</dt><dd class="col-sm-7" id="mdTanggalSelesai">—</dd>
                         <dt class="col-sm-5">Nomor Sertifikat</dt><dd class="col-sm-7" id="mdNomorSertifikat">—</dd>
+                        <dt class="col-sm-5">Kategori</dt><dd class="col-sm-7" id="mdKategori">—</dd>
+                        <dt class="col-sm-5">Sub Kategori</dt><dd class="col-sm-7" id="mdSubKategori">—</dd>
                     </dl>
                 </div>
             </div>
@@ -454,5 +458,7 @@ document.getElementById('trainingDetailModal').addEventListener('show.bs.modal',
     document.getElementById('mdTanggalMulai').textContent = btn.dataset.tanggalMulai;
     document.getElementById('mdTanggalSelesai').textContent = btn.dataset.tanggalSelesai;
     document.getElementById('mdNomorSertifikat').textContent = btn.dataset.nomorSertifikat;
+    document.getElementById('mdKategori').textContent = btn.dataset.kategori || '—';
+    document.getElementById('mdSubKategori').textContent = btn.dataset.subcategory || '—';
 });
 </script>
