@@ -17,7 +17,7 @@
             <div class="row g-3 mb-3">
                 <!-- Row 1: Bagian, Unit, Category, Sub Category -->
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">@OrgLabels.GetLabel(0)</label>
+                    <label class="form-label small text-muted mb-1" for="sectionFilter">@OrgLabels.GetLabel(0)</label>
                     @if (roleLevel == 4 && !string.IsNullOrEmpty(lockedSection))
                     {
                         <select id="sectionFilter" class="form-select" disabled onchange="updateUnitOptions(); filterTeamTable()">
@@ -47,19 +47,19 @@
                     }
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">@OrgLabels.GetLabel(1)</label>
+                    <label class="form-label small text-muted mb-1" for="unitFilter">@OrgLabels.GetLabel(1)</label>
                     <select id="unitFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="">Semua @OrgLabels.GetLabel(1)</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">Category</label>
+                    <label class="form-label small text-muted mb-1" for="categoryFilter">Category</label>
                     <select id="categoryFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="">Semua Kategori</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">Sub Category</label>
+                    <label class="form-label small text-muted mb-1" for="subCategoryFilter">Sub Category</label>
                     <select id="subCategoryFilter" class="form-select" disabled onchange="filterTeamTable()">
                         <option value="">Semua Sub Kategori</option>
                     </select>
@@ -68,7 +68,7 @@
             <div class="row g-3">
                 <!-- Row 2: Status, Tanggal Awal, Tanggal Akhir, Reset -->
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">Status</label>
+                    <label class="form-label small text-muted mb-1" for="statusFilter">Status</label>
                     <select id="statusFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="ALL">ALL</option>
                         <option value="Sudah">Sudah</option>
@@ -76,15 +76,15 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">Tanggal Awal</label>
+                    <label class="form-label small text-muted mb-1" for="dateFrom">Tanggal Awal</label>
                     <input type="date" id="dateFrom" class="form-control" onchange="filterTeamTable()">
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted mb-1">Tanggal Akhir</label>
+                    <label class="form-label small text-muted mb-1" for="dateTo">Tanggal Akhir</label>
                     <input type="date" id="dateTo" class="form-control" onchange="filterTeamTable()">
                 </div>
                 <div class="col-12 col-md-3 d-flex align-items-end">
-                    <button class="btn btn-outline-secondary w-100" onclick="resetTeamFilters()">
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="resetTeamFilters()">
                         <i class="bi bi-x-circle me-1"></i>Reset
                     </button>
                 </div>
@@ -286,8 +286,9 @@ function renderPagination(paging) {
     if (end - start < 6) start = Math.max(1, end - 6);
     for (var i = start; i <= end; i++) {
         var active = i === paging.CurrentPage ? 'active' : '';
+        var ariaCur = i === paging.CurrentPage ? ' aria-current="page"' : '';
         nav.insertAdjacentHTML('beforeend',
-            '<li class="page-item ' + active + '"><a class="page-link page-nav" data-page="' + i + '" href="#">' + i + '</a></li>');
+            '<li class="page-item ' + active + '"><a class="page-link page-nav"' + ariaCur + ' data-page="' + i + '" href="#">' + i + '</a></li>');
     }
 
     var nextDisabled = paging.CurrentPage >= paging.TotalPages ? 'disabled' : '';
