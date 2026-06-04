@@ -35,7 +35,7 @@
                 </ol>
             </nav>
             <h2 class="fw-bold mb-1">Worker Training History</h2>
-            <p class="text-muted mb-0">View detailed assessment and training records for team member.</p>
+            <p class="text-muted mb-0">Lihat detail rekam jejak penilaian dan pelatihan anggota tim.</p>
         </div>
         <a asp-action="Records"
            asp-controller="CMP"
@@ -63,11 +63,11 @@
                     <span class="fw-semibold fs-5">@(nip ?? "—")</span>
                 </div>
                 <div class="col-12 col-md-3 mb-2">
-                    <small class="text-muted d-block">Position</small>
+                    <small class="text-muted d-block">Jabatan</small>
                     <span class="fw-semibold">@position</span>
                 </div>
                 <div class="col-12 col-md-3 mb-2">
-                    <small class="text-muted d-block">Section</small>
+                    <small class="text-muted d-block">@OrgLabels.GetLabel(0)</small>
                     <span class="fw-semibold">@workerSection</span>
                 </div>
             </div>
@@ -134,7 +134,7 @@
                 </div>
                 <div class="col-12 col-md-2">
                     <select id="categoryFilter" class="form-select">
-                        <option value="">All Categories</option>
+                        <option value="">Semua Kategori</option>
                         @{
                             var masterCategories = System.Text.Json.JsonSerializer.Deserialize<List<string>>(
                                 (string)(ViewBag.MasterCategoriesJson ?? "[]"));
@@ -147,7 +147,7 @@
                 </div>
                 <div class="col-12 col-md-2">
                     <select id="subCategoryFilter" class="form-select" disabled>
-                        <option value="">All Sub Categories</option>
+                        <option value="">Semua Sub Kategori</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-2">
@@ -161,7 +161,7 @@
                 </div>
                 <div class="col-12 col-md-2">
                     <select id="typeFilter" class="form-select">
-                        <option value="">All Types</option>
+                        <option value="">Semua Tipe</option>
                         <option value="Assessment Online">Assessment</option>
                         <option value="Training Manual">Training</option>
                     </select>
@@ -225,9 +225,9 @@
                                     <td class="p-3 text-center">
                                         @if (item.RecordType == "Assessment Online") {
                                             @if (item.IsPassed == true) {
-                                                <span class="badge bg-success">Passed</span>
+                                                <span class="badge bg-success">Lulus</span>
                                             } else if (item.IsPassed == false) {
-                                                <span class="badge bg-danger">Failed</span>
+                                                <span class="badge bg-danger">Tidak Lulus</span>
                                             } else {
                                                 <span class="badge bg-warning text-dark">@AssessmentConstants.AssessmentStatus.PendingGrading</span>
                                             }
@@ -423,7 +423,7 @@ document.getElementById('searchInput').addEventListener('input', filterTable);
 document.getElementById('categoryFilter').addEventListener('change', function() {
     var cat = this.value;
     var subSelect = document.getElementById('subCategoryFilter');
-    subSelect.innerHTML = '<option value="">All Sub Categories</option>';
+    subSelect.innerHTML = '<option value="">Semua Sub Kategori</option>';
     subSelect.disabled = !cat;
     if (cat && subCategoryMap[cat]) {
         subCategoryMap[cat].forEach(function(sub) {
