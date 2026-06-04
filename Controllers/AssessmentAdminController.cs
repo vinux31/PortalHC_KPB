@@ -4617,8 +4617,15 @@ namespace HcPortal.Controllers
                             c.Item().Text(t => { t.Span("Nama: ").Bold(); t.Span(session.User?.FullName ?? "Unknown"); });
                             c.Item().Text(t => { t.Span("NIP: ").Bold(); t.Span(session.User?.NIP ?? "—"); });
                             c.Item().Text(t => { t.Span("Tanggal: ").Bold(); t.Span((session.CompletedAt ?? session.Schedule).ToString("dd MMM yyyy")); });
-                            c.Item().Text(t => { t.Span("Skor: ").Bold(); t.Span(session.Score?.ToString() ?? "—").Bold().FontColor(session.IsPassed == true ? QuestPDF.Helpers.Colors.Green.Darken2 : QuestPDF.Helpers.Colors.Red.Darken2); });
-                            c.Item().Text(t => { t.Span("Status: ").Bold(); t.Span(session.IsPassed == true ? "Lulus" : "Tidak Lulus").Bold().FontColor(session.IsPassed == true ? QuestPDF.Helpers.Colors.Green.Darken2 : QuestPDF.Helpers.Colors.Red.Darken2); });
+                            // Phase 345 CMP06R-03: 3-way status (null -> Menunggu Penilaian + Orange.Darken2 amber netral)
+                            var statusText = session.IsPassed == true ? "Lulus"
+                                : session.IsPassed == false ? "Tidak Lulus"
+                                : AssessmentConstants.AssessmentStatus.PendingGrading;
+                            var statusColor = session.IsPassed == true ? QuestPDF.Helpers.Colors.Green.Darken2
+                                : session.IsPassed == false ? QuestPDF.Helpers.Colors.Red.Darken2
+                                : QuestPDF.Helpers.Colors.Orange.Darken2;
+                            c.Item().Text(t => { t.Span("Skor: ").Bold(); t.Span(session.Score?.ToString() ?? "—").Bold().FontColor(statusColor); });
+                            c.Item().Text(t => { t.Span("Status: ").Bold(); t.Span(statusText).Bold().FontColor(statusColor); });
                         });
 
                         // Spider chart (kalau tersedia)
