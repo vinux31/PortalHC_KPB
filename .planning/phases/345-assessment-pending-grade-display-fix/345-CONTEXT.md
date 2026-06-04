@@ -28,7 +28,7 @@ Phase ini koreksi tampilan/perhitungan — BUKAN menambah kapabilitas baru.
 - **D-05:** All-pending edge (gradedCount == 0) → `passRate` tampil "—" / "Belum ada penilaian" (hindari "0%" yang menyesatkan).
 - **D-06:** Surface pending: tampilkan indikator ringan "Menunggu Penilaian: N" di area kartu stat (reuse styling kartu/badge existing — bukan kartu besar baru) agar HC sadar ada yang belum dinilai.
 - **D-07 (discretion, planner konfirmasi):** `averageScore` — rekomendasi exclude pending juga (skor belum final); default aman tetap atas graded sessions. Planner putuskan saat plan 345-02.
-- **D-08:** VM ripple — `AssessmentReportItem.IsPassed` `bool`→`bool?` (`Models/ReportsDashboardViewModel.cs`); ctrl drop `?? false` (`AssessmentAdminController.cs:4737`); view 3-way (`UserAssessmentHistory.cshtml:172`). Build harus 0 error setelah nullable ripple.
+- **D-08:** VM ripple — `AssessmentReportItem.IsPassed` `bool`→`bool?`. **⚠ C-1 (research 345-RESEARCH.md):** class `AssessmentReportItem` ada di **`Models/CDPDashboardViewModel.cs:111`**, BUKAN `ReportsDashboardViewModel.cs` (REQUIREMENTS/CONTEXT awal salah file). Plan 345-02 target file yang benar. Ctrl drop `?? false` (`AssessmentAdminController.cs:4737`); view 3-way (`UserAssessmentHistory.cshtml:172`). Build harus 0 error setelah nullable ripple.
 
 ### Fold-in Scope (user: "ikutkan semua sekarang")
 - **D-09:** Include Excel `CMPController.cs:694` ExportRecords `null`→"Menunggu Penilaian".
@@ -86,7 +86,7 @@ Phase ini koreksi tampilan/perhitungan — BUKAN menambah kapabilitas baru.
 
 ### Integration Points
 - `WorkerDataService.GetUnifiedRecords` (service) → feed `Records.cshtml` + `RecordsWorkerDetail.cshtml`.
-- `UserAssessmentHistory` (controller + `ReportsDashboardViewModel.AssessmentReportItem` VM + `UserAssessmentHistory.cshtml` view) — standalone.
+- `UserAssessmentHistory` (controller + `AssessmentReportItem` VM @ `Models/CDPDashboardViewModel.cs:111` [C-1] + `UserAssessmentHistory.cshtml` view) — standalone.
 - `BulkExportPdf`/`GeneratePerPesertaPdf` (`AssessmentAdminController.cs:4620-4621`) — PDF QuestPDF.
 - `CMPController.cs:694` — Excel ExportRecords.
 </code_context>
