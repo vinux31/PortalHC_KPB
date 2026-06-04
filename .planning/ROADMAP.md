@@ -782,7 +782,7 @@ Plans:
 
 ### Phase 347: cmp-records-i18n-a11y-polish
 
-- [ ] **Phase 347: CMP/Records i18n + a11y Polish**
+- [x] **Phase 347: CMP/Records i18n + a11y Polish** (completed 2026-06-04)
   - **REQ:** POL-01, POL-02, POL-03, POL-04, POL-05, POL-06, POL-07, POL-08, POL-09, POL-10
   - **Depends on:** Phase 346 (sequential — sentuh `Records.cshtml`+`RecordsWorkerDetail.cshtml`); koordinasi POL-01 dgn Phase 345 (case null jangan ditimpa)
   - **Goal:** Konsistensi Bahasa Indonesia + aksesibilitas + DRY pada halaman Records (15 finding LOW).
@@ -793,11 +793,11 @@ Plans:
     4. DRY: `<style>` duplikat (.stat-card/.sticky-header/@keyframes) → 1 file CSS; mobile grid filter responsif; `type="button"` reset.
     5. `dotnet build` 0 error + no visual regression (Playwright spot-check).
   - **Risk:** Low | **Effort:** S-M (no migration)
-  - **Plans:** 3/4 plans executed
+  - **Plans:** 4/4 plans complete
     - [x] 347-01-PLAN.md — i18n teks: badge Lulus/Tidak Lulus (null intact) + Nilai/Jabatan/Section(OrgLabels) + Semua Kategori/Sub/Tipe + subtitle ID + label tombol [W1]
     - [x] 347-02-PLAN.md — a11y: modal aria(role/labelledby/Tutup) + label for= semua filter + My Records visible label + grid responsif + type=button reset + pagination aria-current [W2]
     - [x] 347-03-PLAN.md — POL-08 DRY: ekstrak <style> verbatim -> wwwroot/css/records.css + _Layout RenderSection Styles + @section 2 full-page + RecordsTeam partial style-removal-only [W3]
-    - [ ] 347-04-PLAN.md — verifikasi: dotnet build 0-error + grep sweep 10 POL + Playwright spot-check no-visual-regression (no xUnit) [W4]
+    - [x] 347-04-PLAN.md — verifikasi: dotnet build 0-error + grep sweep 10 POL + Playwright spot-check no-visual-regression (no xUnit) [W4]
   - **Wave structure:** W1 [347-01] -> W2 [347-02] -> W3 [347-03] -> W4 [347-04] (serial penuh: ketiga view di-edit bersama di tiap plan, hindari konflik write file)
   - **Files affected:** `Views/CMP/Records.cshtml` + `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/RecordsTeam.cshtml` + `Views/CMP/_RecordsTeamBody.cshtml` + `wwwroot/css/records.css` (NEW)
 
