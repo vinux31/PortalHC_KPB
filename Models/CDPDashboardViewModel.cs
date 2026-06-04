@@ -108,6 +108,6 @@ public class AssessmentReportItem
     public string? UserSection { get; set; }
     public int Score { get; set; }
     public int PassPercentage { get; set; }
-    public bool IsPassed { get; set; }
+    public bool? IsPassed { get; set; } // Phase 345 CMP06R-02 C-1: bool->bool? (preserve pending/null, jangan collapse ke false)
     public DateTime? CompletedAt { get; set; }
 }

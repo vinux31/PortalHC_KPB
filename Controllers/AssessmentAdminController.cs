@@ -4734,16 +4734,13 @@ namespace HcPortal.Controllers
                     UserSection = targetUser.Section,
                     Score = a.Score ?? 0,
                     PassPercentage = a.PassPercentage,
-                    IsPassed = a.IsPassed ?? false,
+                    IsPassed = a.IsPassed, // Phase 345 CMP06R-02: drop ?? false (AssessmentReportItem.IsPassed = bool?, preserve pending)
                     CompletedAt = a.CompletedAt
                 })
                 .ToListAsync();
 
-            // Calculate statistics
-            var totalAssessments = assessments.Count;
-            var passedCount = assessments.Count(a => a.IsPassed);
-            var passRate = totalAssessments > 0 ? passedCount * 100.0 / totalAssessments : 0;
-            var averageScore = totalAssessments > 0 ? assessments.Average(a => (double)a.Score) : 0;
+            // Phase 345 CMP06R-02: stats exclude-pending via helper (D-04 passRate graded denom, D-07 avgScore exclude)
+            var (totalAssessments, gradedCount, pendingCount, passedCount, passRate, averageScore) = ComputeHistoryStats(assessments);
 
             // Build ViewModel
             var viewModel = new UserAssessmentHistoryViewModel
@@ -4757,10 +4754,27 @@ namespace HcPortal.Controllers
                 PassedCount = passedCount,
                 PassRate = passRate,
                 AverageScore = averageScore,
+                GradedCount = gradedCount,
+                PendingCount = pendingCount,
                 Assessments = assessments
             };
 
             return View(viewModel);
+        }
+
+        // Phase 345 CMP06R-02: stats exclude-pending (D-04 passRate graded denom, D-07 avgScore exclude pending).
+        // Static + public untuk unit test (HcPortal.Tests) tanpa instantiate controller (10-dep ctor).
+        public static (int total, int graded, int pending, int passed, double passRate, double averageScore)
+            ComputeHistoryStats(List<AssessmentReportItem> items)
+        {
+            var total = items.Count;
+            var graded = items.Count(a => a.IsPassed != null);
+            var pending = items.Count(a => a.IsPassed == null);
+            var passed = items.Count(a => a.IsPassed == true);
+            var passRate = graded > 0 ? passed * 100.0 / graded : 0;
+            var gradedItems = items.Where(a => a.IsPassed != null).ToList();
+            var averageScore = gradedItems.Count > 0 ? gradedItems.Average(a => (double)a.Score) : 0;
+            return (total, graded, pending, passed, passRate, averageScore);
         }
 
         // GET /Admin/AuditLog

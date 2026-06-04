@@ -65,7 +65,7 @@
                         <div class="col-6">
                             <div class="d-flex flex-column">
                                 <small class="text-muted text-uppercase fw-semibold">Pass Rate</small>
-                                <span class="fw-bold text-success">@Model.PassRate.ToString("F1")%</span>
+                                <span class="fw-bold text-success">@(Model.GradedCount > 0 ? Model.PassRate.ToString("F1") + "%" : "Belum ada penilaian")</span>
                             </div>
                         </div>
                     </div>
@@ -98,8 +98,12 @@
                         <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
                     </div>
                     <h6 class="text-uppercase small mb-2 fw-semibold opacity-75">Pass Rate</h6>
-                    <h2 class="fw-bold mb-0">@Model.PassRate.ToString("F1")%</h2>
+                    <h2 class="fw-bold mb-0">@(Model.GradedCount > 0 ? Model.PassRate.ToString("F1") + "%" : "Belum ada penilaian")</h2>
                     <small class="opacity-75">@Model.PassedCount passed</small>
+                    @if (Model.PendingCount > 0)
+                    {
+                        <div><small class="badge bg-warning text-dark mt-1">@AssessmentConstants.AssessmentStatus.PendingGrading: @Model.PendingCount</small></div>
+                    }
                 </div>
             </div>
         </div>
@@ -169,13 +173,17 @@
                                     <td class="fw-bold">@item.Score</td>
                                     <td>@item.PassPercentage%</td>
                                     <td>
-                                        @if (item.IsPassed)
+                                        @if (item.IsPassed == true)
                                         {
                                             <span class="badge bg-success">Pass</span>
                                         }
-                                        else
+                                        else if (item.IsPassed == false)
                                         {
                                             <span class="badge bg-danger">Fail</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">@AssessmentConstants.AssessmentStatus.PendingGrading</span>
                                         }
                                     </td>
                                     <td>
