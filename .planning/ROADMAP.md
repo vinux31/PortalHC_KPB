@@ -20,7 +20,7 @@
 - ✅ **v19.0 Portal HC Bug Fixes (Cascade Hardening)** — Phases 325-335 (shipped local 2026-05-28, audited 2026-05-29) — [audit](v19.0-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md)
 - ✅ **v20.0 CMP Records Overhaul + Cilacap UX/Restore** — Phases 336-339 (shipped local + archived 2026-06-02, 39/39 REQ) — [archive](milestones/v20.0-ROADMAP.md) — [audit](milestones/v20.0-MILESTONE-AUDIT.md)
 - 🚀 **v21.0 ManageOrganization Overhaul + Level Label CRUD** — Phases 340-344 (active, started 2026-06-02) — [roadmap](milestones/v21.0-ROADMAP.md) — [spec](../docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md)
-- 🚀 **v22.0 CMP-06 Residual Fix + CMP/Records Enhancement** — Phases 345-347 (active, started 2026-06-04) — 345: assessment Completed+IsPassed-null "Menunggu Penilaian" di 3 surface; 346: detail/search/authz (kolom Aksi + modal training + Lihat Hasil Worker Detail + extend authz Results/Certificate L1-4 + Team search Nama/Training + PendingGrading include); 347: i18n+a11y polish (15 LOW) — [spec](../docs/superpowers/specs/2026-06-04-cmp-records-enhancement-design.md)
+- 🚀 **v22.0 CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit** — Phases 345-349 (active, started 2026-06-04) — 345: assessment Completed+IsPassed-null "Menunggu Penilaian" di 3 surface; 346: detail/search/authz (kolom Aksi + modal training + Lihat Hasil Worker Detail + extend authz Results/Certificate L1-4 + Team search Nama/Training + PendingGrading include); 347: i18n+a11y polish (15 LOW); 348: ManageAssessment+Monitoring 13 MED correctness (Pre-Post token/export/badge + essay PendingGrading status + Tab2 struktural + Monitoring filter); 349: 29 LOW polish — [spec 346/347](../docs/superpowers/specs/2026-06-04-cmp-records-enhancement-design.md) · [spec 348/349](../docs/superpowers/specs/2026-06-04-manageassessment-monitoring-audit-design.md)
 
 ## Phases
 
@@ -176,7 +176,7 @@ Full details: [milestones/v14.0-ROADMAP.md](milestones/v14.0-ROADMAP.md) • Req
     11. *(SUB-01)* Worker submit assessment ber-essay tidak menerima popup merah `Error: Assessment not completed yet.` di alur manapun
   - **Risk:** Medium-High | **Effort:** M
   - **Parallel-eligible:** dengan Phase 310
-  - **Plans:** 3/3 plans complete
+  - **Plans:** 4 plans (0 complete) -- generated 2026-06-04
     - 309-01-PLAN.md — WCRT-01 defensive (try-catch, null-safe, fallback signatory)
     - 309-02-PLAN.md — SUB-01 helper + 3 lokasi update + Info branch + Essay items dengan IsEssayPending flag (D-08)
     - 309-03-PLAN.md — GradingService PendingGrading constant refactor (opportunistic SUB-01 OQ#2 — split iter-1; depends_on=[309-02])
@@ -259,7 +259,7 @@ Empat temuan audit lapangan tambahan (29 April 2026). Phase 309 di Wave 3 di-exp
     6. Verifikasi 3 tipe ber-timer: Online, PreTest, PostTest (Manual exclude)
     7. E2E test 6 skenario manual/auto × before-time/at-time/in-grace/after-grace
   - **Risk:** Medium-High | **Effort:** M-L
-  - **Plans:** 3/3 plans complete
+  - **Plans:** 4 plans (0 complete) -- generated 2026-06-04
     - 313-01-PLAN.md — Wave 0 test infrastructure: SQL seed 7 fixture (.planning/seeds/313-timer-fixtures.sql) + FLOW 313 Playwright 7-test RED state + 313-UAT.md 7-step manual checklist (TMR-01)
     - 313-02-PLAN.md — Wave 1 backend: EnsureCanSubmitExamAsync helper + WriteSubmitBlockedAuditAsync + replace LIFE-03 inline block (2-tier branching D-09 + D-15 AssessmentType exclude C-01) (TMR-01)
     - 313-03-PLAN.md — Wave 1 frontend: ExamSummary.cshtml 3-branch button + retry handler D-10/D-11 + StartExam.cshtml modal info-only spinner C-03 + JS timer flow no setTimeout 10s (TMR-01)
@@ -473,7 +473,7 @@ Full details: [milestones/v17.0-ROADMAP.md](milestones/v17.0-ROADMAP.md) • Req
   - **Risk:** Medium (lib baru SkiaSharp, native asset Win32, performance) | **Effort:** M
   - **Dependencies:** Tidak ada (paralel-able dengan Phase 321)
   - **Research:** `320-RESEARCH.md` 12 task breakdown (full code blocks)
-  - **Plans:** 3/3 plans complete
+  - **Plans:** 4 plans (0 complete) -- generated 2026-06-04
     - [x] 320-01-PLAN.md — Helpers foundation: SkiaSharp PackageReference + SpiderChartRenderer.cs + SheetNameSanitizer.cs (EXP-03, EXP-06)
     - [x] 320-02-PLAN.md — Controller refactor: rename Summary + filter eligible + per-peserta loop + ET section + chart embed + Detail Jawaban + Variant B Manual Entry (EXP-01..07)
     - [x] 320-03-PLAN.md — Perf + UAT: Parallel.ForEachAsync PNG pre-compute + Playwright 4-test (Admin/HC/Worker/benchmark) + manual UAT 8-step + tag v17.0-p320-complete (EXP-07, EXP-08)
@@ -675,7 +675,7 @@ Plans:
   - **Goal:** HC/Admin dapat rename label tier via browser tanpa edit kode atau restart aplikasi (page `/Admin/ManageOrgLevelLabels` Admin+HC CRUD + xUnit + manual UAT).
   - **Requirements:** ORG-LABEL-04, ORG-LABEL-05, ORG-LABEL-06
   - **Depends on:** Phase 340 (consume IOrgLabelService 7 methods)
-  - **Plans:** 3/3 plans complete
+  - **Plans:** 4 plans (0 complete) -- generated 2026-06-04
     - [x] 341-01-PLAN.md — Wave 1 OrgLabelController 4 actions + DI expansion + View() override + ManageOrgLevelLabelsViewModel POCO (ORG-LABEL-04, 05, 06)
     - [x] 341-02-PLAN.md — Wave 2 Razor view Views/Admin/ManageOrgLevelLabels.cshtml + admin card Views/Admin/Index.cshtml + browser smoke UAT (ORG-LABEL-04)
     - [x] 341-03-PLAN.md — Wave 3 xUnit OrgLabelControllerTests 7 [Fact] + manual UAT Coach 403 + audit log row inspection (ORG-LABEL-04, 05, 06)
@@ -686,7 +686,7 @@ Plans:
   - **Goal:** Page `Admin/ManageOrganization` clean dari 4 bug + 4 inovasi UX — dropdown induk pre-order DFS, validasi nama per-parent, parent nonaktif visible, modal title + badge + legend dynamic via OrgLabelService, cascade impact preview sebelum edit.
   - **Requirements:** ORG-TREE-01, ORG-TREE-02, ORG-TREE-03, ORG-TREE-04, ORG-TREE-05, ORG-TREE-06, ORG-TREE-07, ORG-TREE-08, ORG-TREE-09, ORG-TREE-10
   - **Depends on:** Phase 340 (consume IOrgLabelService GetLabel/GetAll)
-  - **Plans:** 3/3 plans complete
+  - **Plans:** 4 plans (0 complete) -- generated 2026-06-04
     - [x] 342-01-PLAN.md — Wave 1 backend OrganizationController: dup-name per-parent (2 edit) + PreviewEditCascade read-only count A1 full-accuracy (ORG-TREE-02, 07)
     - [x] 342-02-PLAN.md — Wave 2 frontend orgTree.js + ManageOrganization.cshtml: pre-order DFS + parent nonaktif + escape + level palette + path + cascade modal + legend + title + badge + browser smoke (ORG-TREE-01, 03, 04, 05, 06, 07, 08, 09, 10)
     - [x] 342-03-PLAN.md — Wave 3 xUnit OrganizationControllerTests 6 [Fact] (dup-name per-parent + preview==actual + early-return) + manual UAT 10-skenario (ORG-TREE-02, 07)
@@ -722,10 +722,11 @@ Plans:
 
 ---
 
-## v22.0 CMP-06 Residual Fix + CMP/Records Enhancement — Phases 345-347 🚀 ACTIVE
+## v22.0 CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit — Phases 345-349 🚀 ACTIVE
 
-**Status:** Started 2026-06-04. Requirements `.planning/REQUIREMENTS.md` (CMP06R-01..05 + REC-01..10 + POL-01..10).
+**Status:** Started 2026-06-04. Requirements `.planning/REQUIREMENTS.md` (CMP06R-01..05 + REC-01..10 + POL-01..10 + MAM-01..13 + MAP-01..23).
 **Spec 346/347:** `docs/superpowers/specs/2026-06-04-cmp-records-enhancement-design.md` (audit 7-lens, 37 confirmed). Sequential 345→346→347.
+**Spec 348/349:** `docs/superpowers/specs/2026-06-04-manageassessment-monitoring-audit-design.md` (audit 6×5-lens, 44 confirmed). Sequential 347→348→349.
 **Goal:** Assessment `Status="Completed"` + `IsPassed==null` (essay belum dinilai) tampil **"Menunggu Penilaian"** di SEMUA surface, bukan "Fail/Failed/Tidak Lulus". Tutup 3 surface kelewat Phase 337 CMP-06 + unify label + fix passRate stats. No migration.
 **Source:** verifikasi Playwright + code sweep 2026-06-04 (memory `project_cmp06_residual_recordsworkerdetail`).
 **Keputusan terkunci:** label "Menunggu Penilaian" (unified); passRate exclude pending.
@@ -743,12 +744,12 @@ Plans:
     4. `dotnet build` 0 error (VM `bool`→`bool?` ripple); `dotnet test` hijau + test baru passRate.
     5. Playwright UAT 3 surface PASS (SEED_WORKFLOW snapshot/restore).
   - **Risk:** Low | **Effort:** S-M (~setengah–1 hari, no migration)
-  - **Plans:** 3/3 plans complete
+  - **Plans:** 4 plans (0 complete) -- generated 2026-06-04
     - [ ] 345-01-PLAN.md — CMP06R-01 + CMP06R-04 + MINOR-A: RecordsWorkerDetail 3-way + GetUnifiedRecords label + Records.cshtml switch + Excel ExportRecords
     - [ ] 345-02-PLAN.md — CMP06R-02: UserAssessmentHistory VM bool? + ctrl drop ?? false + view 3-way + stats exclude-pending + grup PassedCount
     - [ ] 345-03-PLAN.md — CMP06R-03: GeneratePerPesertaPdf 3-way "Menunggu Penilaian" + warna netral
     - [ ] 345-04-PLAN.md — CMP06R-05: xUnit + Playwright UAT 3 surface
-  - **Files affected:** `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/Records.cshtml` + `Services/WorkerDataService.cs` + `Controllers/AssessmentAdminController.cs` (4737/4744-4745 + 4620-4621 + 2759-2821) + `Controllers/CMPController.cs` (694) + `Models/ReportsDashboardViewModel.cs` + `Views/Admin/UserAssessmentHistory.cshtml` + `HcPortal.Tests/` (NEW) + `tests/e2e/` (NEW)
+  - **Files affected:** `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/Records.cshtml` + `Services/WorkerDataService.cs` + `Controllers/AssessmentAdminController.cs` (4737/4744-4745 + 4620-4621 + 2759-2821) + `Controllers/CMPController.cs` (694) + `Models/CDPDashboardViewModel.cs` (AssessmentReportItem.IsPassed bool-to-bool?, C-1) + `Models/ReportsDashboardViewModel.cs` (UserAssessmentHistoryViewModel +GradedCount/PendingCount) + `Views/Admin/UserAssessmentHistory.cshtml` + `HcPortal.Tests/` (NEW) + `tests/e2e/` (NEW)
   - **Wave structure:** 345-01 ∥ 345-02 ∥ 345-03 (region independen) → 345-04 (test, depends all)
 
 ### Phase 346: cmp-records-detail-search-logic
@@ -786,11 +787,45 @@ Plans:
   - **Plans:** _belum di-generate_
   - **Files affected:** `Views/CMP/Records.cshtml` + `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/RecordsTeam.cshtml` + `Views/CMP/_RecordsTeamBody.cshtml` + `wwwroot/css/records.css` (NEW)
 
-**Active mapped: 20/20 ✓ (CMP06R-01..05 + REC-01..09 + POL-01..10) — Orphans: 0 — Duplicates: 0 — REC-10 dropped (over-eng) — No migration**
+### Phase 348: manageassessment-monitoring-med-fix
+
+- [ ] **Phase 348: ManageAssessment + Monitoring MED Correctness Fix**
+  - **REQ:** MAM-01, MAM-02, MAM-03, MAM-04, MAM-05, MAM-06, MAM-07, MAM-08, MAM-09, MAM-10, MAM-11, MAM-12, MAM-13
+  - **Depends on:** Phase 347 (sequential v22.0; MAM-04/05 pakai konstanta `AssessmentConstants.AssessmentStatus.PendingGrading` + label dari 345)
+  - **Goal:** Pre-Post group konsisten (token/export/badge), essay pending tak salah-label "Completed", Tab2 empty-state+pagination+filter benar, status-badge match filter, Monitoring filter data-driven (13 finding MED).
+  - **Success Criteria:**
+    1. Pre-Post: RegenerateToken + link Monitoring/Export by LinkedGroupId; badge "X belum dinilai" muncul (MAM-01/02/03).
+    2. Essay PendingGrading tak salah "Completed" di Monitoring Detail (server + live SignalR); CompletedCount/passRate benar (MAM-04/05).
+    3. Tab2: empty-state hidup (skip full-roster), pagination/param benar, delete preserve filter, Status filter jujur (MAM-06/07/08/09).
+    4. Badge status Tab1 = GroupStatus (match filter); dropdown Kategori Monitoring data-driven (buang "Proton"); tooltip Closed jujur; Reshuffle selector scoped (MAM-10/11/12/13).
+    5. `dotnet build` 0 error + xUnit + Playwright UAT per surface.
+  - **Risk:** Medium (logic shared grading/token; initial-load behavior) | **Effort:** L (no migration)
+  - **Plans:** _belum di-generate_
+  - **Files affected:** `AssessmentAdminController.cs` + `CMPController.cs` + `WorkerDataService.cs` + `_AssessmentGroupsTab.cshtml` + `_TrainingRecordsTab.cshtml` + `AssessmentMonitoring.cshtml` + `AssessmentMonitoringDetail.cshtml`
+  - **Dedup:** M4 (Tab3 History PendingGrading) dicakup REC-07/346 — tak diduplikat; tambah Tab3 History ke UAT 346.
+
+### Phase 349: manageassessment-monitoring-low-polish
+
+- [ ] **Phase 349: ManageAssessment + Monitoring LOW Polish**
+  - **REQ:** MAP-01..23 (29 LOW; D-02 semua masuk)
+  - **Depends on:** Phase 348 (sequential — file sama: `_AssessmentGroupsTab`/`AssessmentMonitoring*`/`ManageAssessment.cshtml`)
+  - **Goal:** i18n Monitoring + a11y (aria/chevron) + empty-state/feedback + code-hygiene (dead param, magic-number, dead var).
+  - **Success Criteria:**
+    1. i18n Monitoring Detail Indonesia penuh; "NIP" konsisten History.
+    2. a11y: chevron+aria-label toggle; Tab3 drill-down tanpa ARIA nested.
+    3. Empty-state/feedback: Tab1 filter-aware, Tab3 "no results" message, skeleton match.
+    4. Display nits: Abandoned card, progress bar bisa 100% (exclude Cancelled), "real-time" subtitle, kategori dobel.
+    5. Code-hygiene: magic-number `20` → ViewBag, param mati drop. `dotnet build` 0 error + no visual regression.
+  - **Risk:** Low | **Effort:** M (no migration)
+  - **Plans:** _belum di-generate_
+  - **Files affected:** sama Phase 348 + `ManageAssessment.cshtml` + `_HistoryTab.cshtml`
+
+**Active mapped: 60/60 ✓ (CMP06R-01..05 + REC-01..09 + POL-01..10 + MAM-01..13 + MAP-01..23) — Orphans: 0 — Duplicates: 0 — REC-10 dropped — M4 dedup→REC-07/346 — No migration**
 
 ---
 
-*Roadmap updated: 2026-06-04 (Phase 346+347 added — CMP/Records Enhancement dari audit 7-lens 37 confirmed; 346 fitur+logic REC-01..09 [REC-10 drop] depends 345, 347 i18n+a11y polish POL-01..10 depends 346; sequential strict; no migration; spec 2026-06-04-cmp-records-enhancement-design.md @ 22759cad).*
+*Roadmap updated: 2026-06-04 (Phase 348+349 added — ManageAssessment+Monitoring audit 6×5-lens 44 confirmed [0 HIGH/15 MED/29 LOW]; 348 = 13 MED correctness depends 347, 349 = 29 LOW polish depends 348; sequential strict; M4 dedup→REC-07/346; no migration; spec 2026-06-04-manageassessment-monitoring-audit-design.md).*
+*Prev: 2026-06-04 (Phase 346+347 added — CMP/Records Enhancement dari audit 7-lens 37 confirmed; 346 fitur+logic REC-01..09 [REC-10 drop] depends 345, 347 i18n+a11y polish POL-01..10 depends 346; sequential strict; no migration; spec 2026-06-04-cmp-records-enhancement-design.md @ 22759cad).*
 *Prev: 2026-06-04 (v22.0 added — Phase 345 CMP-06 residual fix, 5 REQ CMP06R-01..05, 4 plan, no migration; sumber Playwright+sweep verify 3 surface kelewat Phase 337).*
 *Prev: 2026-06-02 (Phase 340 plans generated — 3 plan 3 wave sequential strict, 7 task total; Foundation v21.0 P1 milestone start; depends_on=[]; ORG-LABEL-01/02/03/07 mapped; D-12 SeedData convention fix included).*
 *Prev: 2026-06-02 (v20.0 ARCHIVED — milestone close, 39/39 REQ satisfied, 4 phase + 10 plan + 56 commit + 14,768/-323 LOC. Archive: milestones/v20.0-*.md. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo Dev).*
