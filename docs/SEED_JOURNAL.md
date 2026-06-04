@@ -130,3 +130,10 @@ Audit trail untuk seed `temporary + local-only`. Lihat [`docs/SEED_WORKFLOW.md`]
 ## 2026-06-03 — Phase 342 Plan 02 Task 4 Browser UAT
 - Tujuan: smoke test /Admin/ManageOrganization (DFS dropdown/nonaktif/title/path/cascade/escape/regression). temporary local-only. snapshot pre342uat.bak. restore after.
 - Cleaned: 2026-06-03 RESTORE pre342uat.bak OK. UAT 10/10 PASS (Check 6 N/A no L3 seed). Status: cleaned.
+
+## 2026-06-04 — Verifikasi CMP-06 (Completed+IsPassed NULL) Phase 337
+- Tujuan: repro bug "post test Completed tampil Failed/hilang di filter" via Playwright. Klasifikasi: temporary + local-only.
+- Dampak: UPDATE AssessmentSessions Id=126 (PostTest Completed, rino.prasetyo) IsPassed=NULL. Snapshot: C:\Temp\HcPortalDB_Dev_predseed_cmp06.bak.
+- Hasil: My Records (Records.cshtml) FIXED tampil "Completed"; RecordsWorkerDetail.cshtml L226-231 BELUM fix (binary IsPassed->Failed, bypass .Status). Residual CMP-06.
+- Cleaned: 2026-06-04 RESTORE predseed_cmp06.bak OK (1906 pages). Id=126 IsPassed=1 (original), Completed+NULL count=0. Status: cleaned.
+| 2026-06-04 | 315 | temporary + local-only | Assessment matrix discovery test sweep — 7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup/HcPortalDB_Dev-matrix-2026-06-04T01-55-18-690Z.bak | cleaned |
