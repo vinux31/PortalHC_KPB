@@ -239,7 +239,7 @@ namespace HcPortal.Services
         }
 
         // Admin version used as base — includes IsActive filter that CMP version is missing
-        public async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? subCategory = null)
+        public async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? subCategory = null, string? searchScope = null)
         {
             var usersQuery = _context.Users
                 .Where(u => u.IsActive)
@@ -252,7 +252,9 @@ namespace HcPortal.Services
             if (!string.IsNullOrEmpty(unitFilter))
                 usersQuery = usersQuery.Where(u => u.Unit == unitFilter);
 
-            if (!string.IsNullOrEmpty(search))
+            // REC-06 D-07: SQL name pre-narrow HANYA untuk scope "Nama".
+            // "Training"/"Keduanya" di-handle post-load (union) supaya tidak buang training-only match.
+            if (searchScope == "Nama" && !string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
                 usersQuery = usersQuery.Where(u =>
@@ -394,6 +396,24 @@ namespace HcPortal.Services
                     workerList = workerList.Where(w => w.CompletionPercentage == 100).ToList();
                 else if (statusFilter == "Belum")
                     workerList = workerList.Where(w => w.CompletionPercentage != 100).ToList();
+            }
+
+            // REC-06 D-07: Training/Keduanya search = post-load in-memory filter (menyaring worker mana yang muncul; badge count per-worker tetap utuh).
+            if (!string.IsNullOrEmpty(search) && (searchScope == "Training" || searchScope == "Keduanya"))
+            {
+                var searchLower = search.ToLower();
+                workerList = workerList.Where(w =>
+                {
+                    bool trainingMatch = w.TrainingRecords != null &&
+                        w.TrainingRecords.Any(t => !string.IsNullOrEmpty(t.Judul) &&
+                                                   t.Judul.ToLower().Contains(searchLower));
+                    if (searchScope == "Training") return trainingMatch;
+                    // Keduanya: union Nama/NIP OR Training
+                    bool nameMatch =
+                        (!string.IsNullOrEmpty(w.WorkerName) && w.WorkerName.ToLower().Contains(searchLower)) ||
+                        (!string.IsNullOrEmpty(w.NIP) && w.NIP.ToLower().Contains(searchLower));
+                    return nameMatch || trainingMatch;
+                }).ToList();
             }
 
             return workerList;

@@ -11,7 +11,7 @@ namespace HcPortal.Services
             DateTime? to = null,
             string? category = null,
             string? subCategory = null);
-        Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? subCategory = null);
+        Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? subCategory = null, string? searchScope = null);
         Task NotifyIfGroupCompleted(AssessmentSession completedSession);
     }
 }
