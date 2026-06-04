@@ -185,7 +185,7 @@
                                             } else if (item.IsPassed == false) {
                                                 <span class="badge bg-danger">Failed</span>
                                             } else if (!string.IsNullOrEmpty(item.Status)) {
-                                                var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Completed" => "bg-info", "Permanent" => "bg-success", "Failed" => "bg-danger", "Expired" => "bg-warning text-dark", _ => "bg-secondary" };
+                                                var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Completed" => "bg-info", "Permanent" => "bg-success", "Failed" => "bg-danger", "Expired" => "bg-warning text-dark", AssessmentConstants.AssessmentStatus.PendingGrading => "bg-warning text-dark", _ => "bg-secondary" };
                                                 <span class="badge @sc">@item.Status</span>
                                             } else {
                                                 <span class="text-muted">—</span>
