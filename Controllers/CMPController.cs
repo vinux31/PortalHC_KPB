@@ -1822,14 +1822,11 @@ namespace HcPortal.Controllers
 
                 if (assessment == null) return NotFound();
 
-                // Security: Owner, Admin, HC
-                var user = await _userManager.GetUserAsync(User);
+                // REC-04 (D-01/D-09): owner || roleLevel<=3 || (L4 section-scoped, Section non-null)
+                var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
                 if (user == null) return Challenge(); // Force login if session expired
 
-                var userRoles = await _userManager.GetRolesAsync(user);
-                bool isAuthorized = assessment.UserId == user.Id ||
-                                  userRoles.Contains("Admin") ||
-                                  userRoles.Contains("HC");
+                bool isAuthorized = IsResultsAuthorized(assessment.UserId, user.Id, roleLevel, user.Section, assessment.User?.Section);
 
                 if (!isAuthorized) return Forbid();
 
@@ -1931,13 +1928,11 @@ namespace HcPortal.Controllers
 
             if (assessment == null) return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            // REC-04 (D-01/D-09): owner || roleLevel<=3 || (L4 section-scoped, Section non-null)
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return Challenge();
 
-            var userRoles = await _userManager.GetRolesAsync(user);
-            bool isAuthorized = assessment.UserId == user.Id ||
-                                userRoles.Contains("Admin") ||
-                                userRoles.Contains("HC");
+            bool isAuthorized = IsResultsAuthorized(assessment.UserId, user.Id, roleLevel, user.Section, assessment.User?.Section);
             if (!isAuthorized) return Forbid();
 
             // SUB-01 D-06: normalize submitted status (Completed OR PendingGrading)
@@ -2174,13 +2169,10 @@ namespace HcPortal.Controllers
 
             if (assessment == null) return NotFound();
 
-            // Authorization: owner, Admin, or HC
-            var user = await _userManager.GetUserAsync(User);
+            // REC-04 (D-01/D-09): owner || roleLevel<=3 || (L4 section-scoped, Section non-null)
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return Challenge();
-            var userRoles = await _userManager.GetRolesAsync(user);
-            bool isAuthorized = assessment.UserId == user.Id ||
-                                userRoles.Contains("Admin") ||
-                                userRoles.Contains("HC");
+            bool isAuthorized = IsResultsAuthorized(assessment.UserId, user.Id, roleLevel, user.Section, assessment.User?.Section);
             if (!isAuthorized) return Forbid();
 
             // SUB-01 D-06: normalize submitted status (Completed OR PendingGrading)
