@@ -154,6 +154,7 @@
                                     <th class="p-3 text-center">Score</th>
                                     <th class="p-3 text-center">Status</th>
                                     <th class="p-3 text-center">Sertifikat</th>
+                                    <th class="p-3 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -221,10 +222,34 @@
                                                 <span class="text-muted">—</span>
                                             }
                                         </td>
+                                        <td class="p-3 text-center">
+                                            @if (resultsUrl != null) {
+                                                <a href="@resultsUrl" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-bar-chart-line me-1"></i>Lihat Hasil
+                                                </a>
+                                            } else {
+                                                <button type="button" class="btn btn-sm btn-outline-info"
+                                                        data-bs-toggle="modal" data-bs-target="#trainingDetailModal"
+                                                        data-title="@item.Title"
+                                                        data-penyelenggara="@(item.Penyelenggara ?? "—")"
+                                                        data-kota="@(item.Kota ?? "—")"
+                                                        data-tanggal-mulai="@(item.TanggalMulai.HasValue ? item.TanggalMulai.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "—")"
+                                                        data-tanggal-selesai="@(item.TanggalSelesai.HasValue ? item.TanggalSelesai.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "—")"
+                                                        data-nomor-sertifikat="@(item.NomorSertifikat ?? "—")"
+                                                        data-kategori="@(item.Kategori ?? "—")"
+                                                        data-subcategory="@(item.SubKategori ?? "—")"
+                                                        data-status="@(item.Status ?? "—")"
+                                                        data-validuntil="@(item.ValidUntil.HasValue ? item.ValidUntil.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "—")"
+                                                        data-certtype="@(item.CertificateType ?? "—")"
+                                                        data-pdf="@(item.SertifikatUrl ?? "")">
+                                                    <i class="bi bi-info-circle me-1"></i>Detail
+                                                </button>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                                 @if (!unified.Any()) {
-                                    <tr><td colspan="6" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td></tr>
+                                    <tr><td colspan="7" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -378,7 +403,7 @@ function filterTable() {
             var tbody = document.querySelector('#recordsTable tbody');
             var tr = document.createElement('tr');
             tr.id = 'myRecordsEmptyState';
-            tr.innerHTML = '<td colspan="6" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td>';
+            tr.innerHTML = '<td colspan="7" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td>';
             tbody.appendChild(tr);
         } else {
             emptyRow.style.display = '';
