@@ -767,8 +767,8 @@ Plans:
     6. Date range `dateTo<dateFrom`→warning; badge "Assessment" diperjelas (header/tooltip, BUKAN rename field).
     7. `dotnet build` 0 error + `dotnet test` hijau (authz matrix + search scope + PendingGrading tests) + Playwright UAT PASS.
   - **Risk:** Medium (REC-04 authz security-sensitive; REC-06 service query) | **Effort:** M-L (no migration)
-  - **Plans:** 6 plans
-    - [ ] 346-01-PLAN.md — REC-01/02: My Records kolom Aksi + tombol Lihat Hasil + modal training (11 field + PDF) + fix colspan
+  - **Plans:** 1/6 plans executed
+    - [x] 346-01-PLAN.md — REC-01/02: My Records kolom Aksi + tombol Lihat Hasil + modal training (11 field + PDF) + fix colspan
     - [ ] 346-02-PLAN.md — REC-03/05: Worker Detail tombol Lihat Hasil (un-gated sertifikat) + modal Kategori/SubKategori
     - [ ] 346-03-PLAN.md — REC-04 (security): authz 3 action via static IsResultsAuthorized (L<=3 full, L4 section-scoped, guard null) + threat model
     - [ ] 346-04-PLAN.md — REC-06: Team search adaptif (Nama/Training/Keduanya) service+controller+UI/JS + export filter

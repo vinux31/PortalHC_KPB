@@ -37,8 +37,8 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 
 **Source:** audit 7-lens 2026-06-04 (37 confirmed). **Depends Phase 345** (sequential). No migration.
 
-- [ ] **REC-01**: My Records tambah kolom "Aksi" — Assessment→tombol `Lihat Hasil`→`/CMP/Results`, Training→tombol `Detail`→modal; row tetap clickable. **PITFALL:** colspan empty-state 6→7 (`Records.cshtml:227` + JS L381). (FUG-001/FEAT-1A)
-- [ ] **REC-02**: My Records modal detail training (port dari RecordsWorkerDetail + field Kategori/SubKategori/Status/ValidUntil/CertType + tombol PDF). Data dari `UnifiedTrainingRecord` (no controller change). (FUG-001/FEAT-1A, D-04)
+- [x] **REC-01**: My Records tambah kolom "Aksi" — Assessment→tombol `Lihat Hasil`→`/CMP/Results`, Training→tombol `Detail`→modal; row tetap clickable. **PITFALL:** colspan empty-state 6→7 (`Records.cshtml:227` + JS L381). (FUG-001/FEAT-1A)
+- [x] **REC-02**: My Records modal detail training (port dari RecordsWorkerDetail + field Kategori/SubKategori/Status/ValidUntil/CertType + tombol PDF). Data dari `UnifiedTrainingRecord` (no controller change). (FUG-001/FEAT-1A, D-04)
 - [ ] **REC-03**: Worker Detail row Assessment tambah tombol `Lihat Hasil`→`/CMP/Results` (+returnUrl). (FUG-002/FEAT-1B)
 - [ ] **REC-04** 🔐: Extend authz `Results`(2169)+`Certificate`(1815)+`CertificatePdf`(1926): `owner ∥ roleLevel≤3 ∥ (roleLevel==4 && Section non-null && assessment.User.Section==user.Section)`. **PITFALL:** Certificate+CertificatePdf wajib `.Include(a=>a.User)`; ketiga panggil GetCurrentUserRoleLevelAsync. Sekalian fix AUTHZ-01 (tombol Sertifikat dead L3/L4). (D-01/D-06)
 - [ ] **REC-05**: Worker Detail modal training tambah row Kategori + SubKategori. (FEAT-1B training info)
