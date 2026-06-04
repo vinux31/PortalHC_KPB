@@ -48,12 +48,12 @@ namespace HcPortal.Services
                 Title = a.Title,
                 Score = a.Score,
                 IsPassed = a.IsPassed,
-                // Phase 337 CMP-06: three-way switch (null = Completed, bukan Failed palsu)
+                // Phase 345 CMP06R-04: null = Menunggu Penilaian (label-unify dari Phase 337 "Completed")
                 Status = a.IsPassed switch
                 {
                     true => "Passed",
                     false => "Failed",
-                    null => "Completed"
+                    null => AssessmentConstants.AssessmentStatus.PendingGrading
                 },
                 SortPriority = 0,
                 AssessmentSessionId = a.Id,

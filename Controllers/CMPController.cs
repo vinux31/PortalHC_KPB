@@ -691,7 +691,7 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 4).Value = r.Title;
                 ws.Cell(i + 2, 5).Value = r.Date.ToString("yyyy-MM-dd");
                 ws.Cell(i + 2, 6).Value = r.Score?.ToString() ?? "";
-                ws.Cell(i + 2, 7).Value = r.IsPassed == true ? "Passed" : (r.IsPassed == false ? "Failed" : "");
+                ws.Cell(i + 2, 7).Value = r.IsPassed == true ? "Passed" : (r.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading);
                 ws.Cell(i + 2, 8).Value = r.AttemptNumber?.ToString() ?? "";
             }
 
