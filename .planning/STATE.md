@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: verifying
-last_updated: "2026-06-04T12:30:18.684Z"
-last_activity: 2026-06-04
+status: executing
+last_updated: "2026-06-04T13:07:31.846Z"
+last_activity: 2026-06-04 -- Phase 348 planning complete
 progress:
   total_phases: 13
   completed_phases: 9
-  total_plans: 36
+  total_plans: 41
   completed_plans: 35
-  percent: 97
+  percent: 85
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-02)
 Milestone: v22.0 🚀 ACTIVE (phases 345-349; spec 346/347 + 348/349)
 Phase: 999.1
 Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-04
+Status: Ready to execute
+Last activity: 2026-06-04 -- Phase 348 planning complete
 
 Sumber: verifikasi Playwright + code sweep 2026-06-04 — bug Phase 337 CMP-06 (assessment Completed+IsPassed-null salah label "Fail") belum tuntas di 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). Memory: project_cmp06_residual_recordsworkerdetail. Keputusan: label "Menunggu Penilaian" unified, passRate exclude pending.
 
