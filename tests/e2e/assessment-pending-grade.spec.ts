@@ -68,17 +68,18 @@ test.describe('Phase 345 Pending-Grade — badge "Menunggu Penilaian" 3 surface'
   });
 
   test.afterAll(async () => {
-    // Restore di finally — JAMIN DB lokal bersih walau test gagal di tengah.
+    if (!snapshotPath) return;
+    // WR-02: tangkap error restore independen supaya tidak tertutup assertion Layer 4.
+    let restoreError: unknown = null;
     try {
-      if (snapshotPath) await db.restore(snapshotPath);
+      await db.restore(snapshotPath);
       // Restore sukses -> hapus .bak (hindari akumulasi backup tiap re-run). Best-effort.
-      if (snapshotPath) { const fs = await import('node:fs'); try { fs.unlinkSync(snapshotPath); } catch { /* best-effort */ } }
-    } finally {
-      if (snapshotPath) {
-        const remaining = await db.queryScalar("SELECT COUNT(*) FROM AssessmentSessions WHERE Title LIKE '[[]PENDING345]%'");
-        expect(remaining, 'Layer 4: cleanup after restore (DB lokal bersih)').toBe(0);
-      }
-    }
+      const fs = await import('node:fs'); try { fs.unlinkSync(snapshotPath); } catch { /* best-effort */ }
+    } catch (e) { restoreError = e; }
+    // Layer 4: DB lokal bersih (query informational; .bak dipertahankan jika restore gagal).
+    const remaining = await db.queryScalar("SELECT COUNT(*) FROM AssessmentSessions WHERE Title LIKE '[[]PENDING345]%'");
+    if (restoreError) throw restoreError; // surface error restore asli (jangan tertutup assert)
+    expect(remaining, 'Layer 4: cleanup after restore (DB lokal bersih)').toBe(0);
   });
 
   test('Surface 1 — RecordsWorkerDetail: badge amber "Menunggu Penilaian" visible', async ({ page }) => {

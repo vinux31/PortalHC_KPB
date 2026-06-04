@@ -4739,7 +4739,7 @@ namespace HcPortal.Controllers
                     UserName = targetUser.FullName,
                     UserNIP = targetUser.NIP,
                     UserSection = targetUser.Section,
-                    Score = a.Score ?? 0,
+                    Score = a.Score ?? 0, // IN-02: sesi pending organik bisa punya interim score; averageScore exclude pending via ComputeHistoryStats (D-07), jadi ?? 0 di sini tak menyeret rata-rata
                     PassPercentage = a.PassPercentage,
                     IsPassed = a.IsPassed, // Phase 345 CMP06R-02: drop ?? false (AssessmentReportItem.IsPassed = bool?, preserve pending)
                     CompletedAt = a.CompletedAt

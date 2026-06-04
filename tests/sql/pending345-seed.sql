@@ -8,6 +8,12 @@
 --   dinilai HC) untuk UAT badge "Menunggu Penilaian" di 3 surface (RecordsWorkerDetail
 --   + UserAssessmentHistory + BulkExportPdf). Peserta = coachee (rino.prasetyo).
 --
+-- SCOPE (WR-01): state Status='Completed' + IsPassed=NULL ADALAH target Phase 345
+--   (CONTEXT D-03) — sesi yang LOLOS filter GetUnifiedRecords (Status=='Completed') tapi
+--   IsPassed null. Sesi ber-Status='Menunggu Penilaian' MURNI (yang ditulis GradingService)
+--   saat ini di-exclude filter itu = cakupan Phase 346 REC-07, BUKAN 345. Seed ini sengaja
+--   mereproduksi state Phase-345 yang diperbaiki, bukan men-cover REC-07.
+--
 -- Klasifikasi: temporary + local-only. Prefix Title '[PENDING345]' untuk Layer 1
 --   seeded-check + Layer 4 cleanup verify. JANGAN promosikan ke Data/SeedData.cs.
 --
