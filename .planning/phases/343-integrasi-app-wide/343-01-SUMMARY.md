@@ -1,6 +1,7 @@
 ---
 phase: 343-integrasi-app-wide
 plan: 01
+requirements-completed: [ORG-INTEG-01, ORG-INTEG-02]
 subsystem: views-foundation
 tags: [razor, dependency-injection, org-label, audit]
 key-files:

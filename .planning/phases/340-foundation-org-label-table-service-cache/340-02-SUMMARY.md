@@ -3,6 +3,7 @@ phase: 340-foundation-org-label-table-service-cache
 plan: 02
 status: complete
 completed_at: 2026-06-03
+requirements-completed: [ORG-LABEL-02, ORG-LABEL-03, ORG-LABEL-07]
 ---
 
 # Plan 340-02 Summary — Service Layer + Endpoint

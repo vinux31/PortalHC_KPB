@@ -1,6 +1,7 @@
 ---
 phase: 343-integrasi-app-wide
 plan: 04
+requirements-completed: [ORG-INTEG-01]
 subsystem: views-assessment-upload-account
 tags: [razor, org-label, display-swap, assessment, account, ambiguous]
 key-files:

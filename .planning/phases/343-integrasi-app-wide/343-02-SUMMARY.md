@@ -1,6 +1,7 @@
 ---
 phase: 343-integrasi-app-wide
 plan: 02
+requirements-completed: [ORG-INTEG-01]
 subsystem: views-cmp-cdp
 tags: [razor, org-label, display-swap, cmp, cdp]
 key-files:

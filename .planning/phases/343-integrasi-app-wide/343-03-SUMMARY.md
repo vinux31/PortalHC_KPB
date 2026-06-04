@@ -1,6 +1,7 @@
 ---
 phase: 343-integrasi-app-wide
 plan: 03
+requirements-completed: [ORG-INTEG-01]
 subsystem: views-protondata-admin-worker
 tags: [razor, org-label, display-swap, protondata, admin-worker]
 key-files:
