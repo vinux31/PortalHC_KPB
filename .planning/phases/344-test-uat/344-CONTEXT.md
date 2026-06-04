@@ -45,8 +45,16 @@ Coverage existing yang sudah ada dari 340-343 (hasil scout codebase):
   - Manual tipis: (5) Edit Bagian besar → warning cascade muncul dengan **count benar** (visual judgment akurasi count) + **5 regresi smoke** (tree drag-reorder, toggle active, delete unit, add unit existing flow) per ORG-INTEG-03.
   - Doc manual = `344-HUMAN-UAT.md` ringkas (checklist item yang gak diotomasi saja), eksekusi user di `http://localhost:5277`.
 
+### TEST-03 DFS pre-order (decided post-research)
+- **D-05:** Pre-order DFS logic ada di **client-side JS** (`wwwroot/js/orgTree.js` `flattenTreePreOrder` L308-317 + `buildTree` L62-75), bukan C#. Endpoint `GetOrganizationTree` (OrganizationController.cs:61-67) return flat list (Level, DisplayOrder, Name) — BUKAN pre-order.
+- Pilihan user: **extract pure C# helper `BuildPreOrder`** (port logic JS) di production code → unit-test xUnit deterministik (penuhi literal "unit test xUnit") + Playwright assert urutan `<option>` DOM (TEST-06 scenario 2).
+- Konsekuensi disetujui: **boleh sentuh production code** untuk 1 helper kecil C# (mis. `Helpers/OrgTreePreOrder.cs` atau static method di OrganizationController) yang me-mirror algoritma JS. Logic JS UI tetap; helper = sumber kebenaran terverifikasi.
+- JANGAN refactor `GetOrganizationTree` jadi return pre-order (ditolak — scope creep, risiko regresi dropdown). Helper berdiri sendiri, di-test, tidak wajib dipanggil endpoint existing.
+- Test TEST-03: assert helper terhadap tree 3 level + multi-root menghasilkan urutan pre-order yang benar (deterministik).
+
 ### Claude's Discretion
 - Penamaan method test, struktur arrange/act/assert, fixture/helper internal.
+- Lokasi & signature exact C# helper BuildPreOrder (selama pure + testable + tidak ubah endpoint existing).
 - Mekanisme provisioning DB test disposable (xUnit fixture / `IClassFixture` / connection string test config) — selama drop per run dan tidak sentuh DB dev.
 - Detail seed SQL untuk Playwright (via global.setup pattern existing).
 
