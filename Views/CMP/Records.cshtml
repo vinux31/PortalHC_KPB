@@ -151,7 +151,7 @@
                                     <th class="p-3">Tanggal</th>
                                     <th class="p-3">Nama Kegiatan</th>
                                     <th class="p-3 text-center">Tipe</th>
-                                    <th class="p-3 text-center">Score</th>
+                                    <th class="p-3 text-center">Nilai</th>
                                     <th class="p-3 text-center">Status</th>
                                     <th class="p-3 text-center">Sertifikat</th>
                                     <th class="p-3 text-center">Aksi</th>
@@ -182,9 +182,9 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             @if (item.IsPassed == true) {
-                                                <span class="badge bg-success">Passed</span>
+                                                <span class="badge bg-success">Lulus</span>
                                             } else if (item.IsPassed == false) {
-                                                <span class="badge bg-danger">Failed</span>
+                                                <span class="badge bg-danger">Tidak Lulus</span>
                                             } else if (!string.IsNullOrEmpty(item.Status)) {
                                                 var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Completed" => "bg-info", "Permanent" => "bg-success", "Failed" => "bg-danger", "Expired" => "bg-warning text-dark", AssessmentConstants.AssessmentStatus.PendingGrading => "bg-warning text-dark", _ => "bg-secondary" };
                                                 <span class="badge @sc">@item.Status</span>
