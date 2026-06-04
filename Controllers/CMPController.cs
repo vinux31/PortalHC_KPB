@@ -2491,6 +2491,19 @@ namespace HcPortal.Controllers
             return (user, roleLevel);
         }
 
+        // REC-04 (D-09): authz single-source untuk Results/Certificate/CertificatePdf.
+        // owner ∥ roleLevel 1-3 (Admin/HC/L3) ∥ (L4 section-scoped, Section non-null).
+        public static bool IsResultsAuthorized(string? ownerUserId, string currentUserId, int roleLevel, string? currentUserSection, string? ownerSection)
+        {
+            if (ownerUserId == currentUserId) return true;          // owner (coach/coachee self)
+            if (roleLevel is >= 1 and <= 3) return true;            // Admin(1)/HC(2)/Direktur-VP-Manager(3): full
+            if (roleLevel == 4
+                && !string.IsNullOrEmpty(currentUserSection)        // guard: L4 Section null/empty tidak lolos
+                && ownerSection == currentUserSection)              // SectionHead/SrSupervisor: section-scoped
+                return true;
+            return false;                                           // L5/L6 non-owner, L4 beda/null section, roleLevel 0
+        }
+
         /// <summary>
         /// Generate cryptographically secure random token
         /// </summary>
