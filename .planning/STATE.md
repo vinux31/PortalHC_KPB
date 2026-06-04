@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
-last_updated: "2026-06-04T04:55:51.050Z"
-last_activity: 2026-06-04 -- Phase 345 planning complete (plans da839514, checker pass)
+last_updated: "2026-06-04T06:28:14.268Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 13
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 26
-  completed_plans: 21
-  percent: 81
+  completed_plans: 25
+  percent: 96
 ---
 
 # Project State: Portal HC KPB
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 345 — assessment-pending-grade-display-fix
+**Current focus:** Phase 346 — cmp-records-detail-search-logic (Phase 345 COMPLETE)
 
 ## Current Position
 
 Milestone: v22.0 🚀 ACTIVE (phases 345-349; spec 346/347 + 348/349)
-Phase: 345 (assessment-pending-grade-display-fix) — PLANNED (4 plans, 2 waves), verified
-Plan: 4 of 4 generated (345-01∥02∥03 → 04); checker PASSED 12-dim + 8 critical checks
-Status: Ready to execute — run /gsd-execute-phase 345 --interactive
-Last activity: 2026-06-04 -- Phase 345 planning complete (plans da839514, checker pass)
+Phase: 346 (cmp-records-detail-search-logic) — next (Phase 345 COMPLETE)
+Plan: Not started (346 plans belum di-generate)
+Status: Phase 345 SHIPPED LOCAL 4/4 — ready Phase 346
+Last activity: 2026-06-04 -- Phase 345 complete (CMP06R-01..05; verifier 5/5 SC + 1 human-UAT pending PDF; code-review 0 critical)
 
 Sumber: verifikasi Playwright + code sweep 2026-06-04 — bug Phase 337 CMP-06 (assessment Completed+IsPassed-null salah label "Fail") belum tuntas di 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). Memory: project_cmp06_residual_recordsworkerdetail. Keputusan: label "Menunggu Penilaian" unified, passRate exclude pending.
 

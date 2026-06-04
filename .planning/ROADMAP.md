@@ -733,7 +733,7 @@ Plans:
 
 ### Phase 345: assessment-pending-grade-display-fix
 
-- [ ] **Phase 345: Assessment pending-grade display correctness**
+- [x] **Phase 345: Assessment pending-grade display correctness** (completed 2026-06-04)
   - **REQ:** CMP06R-01, CMP06R-02, CMP06R-03, CMP06R-04, CMP06R-05
   - **Depends on:** Tidak ada (independen v21.0; file beda)
   - **Goal:** 3-way status (`null→"Menunggu Penilaian"`) di RecordsWorkerDetail + UserAssessmentHistory (ctrl+VM+view+stats) + BulkExportPdf, unify label via GetUnifiedRecords + Records.cshtml, regression test.
@@ -744,11 +744,11 @@ Plans:
     4. `dotnet build` 0 error (VM `bool`→`bool?` ripple); `dotnet test` hijau + test baru passRate.
     5. Playwright UAT 3 surface PASS (SEED_WORKFLOW snapshot/restore).
   - **Risk:** Low | **Effort:** S-M (~setengah–1 hari, no migration)
-  - **Plans:** 1/4 plans executed
+  - **Plans:** 4/4 plans complete
     - [x] 345-01-PLAN.md — CMP06R-01 + CMP06R-04 + MINOR-A: RecordsWorkerDetail 3-way + GetUnifiedRecords label + Records.cshtml switch + Excel ExportRecords
-    - [ ] 345-02-PLAN.md — CMP06R-02: UserAssessmentHistory VM bool? + ctrl drop ?? false + view 3-way + stats exclude-pending + grup PassedCount
-    - [ ] 345-03-PLAN.md — CMP06R-03: GeneratePerPesertaPdf 3-way "Menunggu Penilaian" + warna netral
-    - [ ] 345-04-PLAN.md — CMP06R-05: xUnit + Playwright UAT 3 surface
+    - [x] 345-02-PLAN.md — CMP06R-02: UserAssessmentHistory VM bool? + ctrl drop ?? false + view 3-way + stats exclude-pending + grup PassedCount
+    - [x] 345-03-PLAN.md — CMP06R-03: GeneratePerPesertaPdf 3-way "Menunggu Penilaian" + warna netral
+    - [x] 345-04-PLAN.md — CMP06R-05: xUnit + Playwright UAT 3 surface
   - **Files affected:** `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/Records.cshtml` + `Services/WorkerDataService.cs` + `Controllers/AssessmentAdminController.cs` (4737/4744-4745 + 4620-4621 + 2759-2821) + `Controllers/CMPController.cs` (694) + `Models/CDPDashboardViewModel.cs` (AssessmentReportItem.IsPassed bool-to-bool?, C-1) + `Models/ReportsDashboardViewModel.cs` (UserAssessmentHistoryViewModel +GradedCount/PendingCount) + `Views/Admin/UserAssessmentHistory.cshtml` + `HcPortal.Tests/` (NEW) + `tests/e2e/` (NEW)
   - **Wave structure:** 345-01 ∥ 345-02 ∥ 345-03 (region independen) → 345-04 (test, depends all)
 
