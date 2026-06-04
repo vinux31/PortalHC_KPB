@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: planning
-last_updated: "2026-06-04T03:02:42.175Z"
-last_activity: 2026-06-04 -- Phase 345 context gathered
+status: executing
+last_updated: "2026-06-04T04:49:55.258Z"
+last_activity: 2026-06-04 -- Phase 345 planning complete
 progress:
   total_phases: 13
   completed_phases: 6
-  total_plans: 22
+  total_plans: 26
   completed_plans: 21
-  percent: 95
+  percent: 81
 ---
 
 # Project State: Portal HC KPB
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 344 — test-uat
+**Current focus:** Phase 345 — assessment-pending-grade-display-fix
 
 ## Current Position
 
 Milestone: v22.0 🚀 ACTIVE (phases 345-349; spec 346/347 + 348/349)
-Phase: 345 (assessment-pending-grade-display-fix) — UI-SPEC APPROVED, ready to plan
-Plan: 0 of 4 (plans belum di-generate)
-Status: pre-plan artifacts done (CONTEXT+RESEARCH+VALIDATION+UI-SPEC) — run /gsd-plan-phase 345
-Last activity: 2026-06-04 -- Phase 345 UI-SPEC approved 6/6 (462becfd→e2f3356a); research 51ae6bc0 + VALIDATION 7bd08dae
+Phase: 345 (assessment-pending-grade-display-fix) — PLANNED (4 plans, 2 waves), verified
+Plan: 4 of 4 generated (345-01∥02∥03 → 04); checker PASSED 12-dim + 8 critical checks
+Status: Ready to execute — run /gsd-execute-phase 345 --interactive
+Last activity: 2026-06-04 -- Phase 345 planning complete (plans da839514, checker pass)
 
 Sumber: verifikasi Playwright + code sweep 2026-06-04 — bug Phase 337 CMP-06 (assessment Completed+IsPassed-null salah label "Fail") belum tuntas di 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). Memory: project_cmp06_residual_recordsworkerdetail. Keputusan: label "Menunggu Penilaian" unified, passRate exclude pending.
 
@@ -46,7 +46,7 @@ Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phas
 
 ## Next Action
 
-1. **`/gsd-plan-phase 345`** — generate 4 plan v22.0 (CMP-06 residual fix).
+1. **`/gsd-execute-phase 345 --interactive`** — eksekusi 4 plan v22.0 (CMP-06 residual fix); pre-plan artifacts (CONTEXT+RESEARCH+VALIDATION+UI-SPEC+PATTERNS) lengkap, checker PASS.
 2. **Carry-over IT promo v19.0+v20.0+v21.0/340** — push bundle + Dev migration coordination tetap pending (paralel jalur).
 3. **(Backlog housekeeping non-blocker):** Pre-existing Tom Select UX regression dari v20.0 audit defer ke v21.0 backlog (lihat v20.0-MILESTONE-AUDIT.md tech_debt).
 4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro).
