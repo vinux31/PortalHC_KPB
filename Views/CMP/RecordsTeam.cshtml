@@ -89,6 +89,24 @@
                     </button>
                 </div>
             </div>
+            <!-- REC-06: Team search + scope selector (Nama/Training/Keduanya) -->
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-md-6">
+                    <label class="form-label small text-muted mb-1" for="teamSearch">Cari</label>
+                    <input type="text" id="teamSearch" class="form-control" placeholder="Cari nama/NIP atau judul training..." oninput="filterTeamTable()" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted mb-1" for="searchScope">Lingkup</label>
+                    <select id="searchScope" class="form-select" onchange="filterTeamTable()">
+                        <option value="Nama">Nama</option>
+                        <option value="Training">Training</option>
+                        <option value="Keduanya" selected>Keduanya</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3 d-flex align-items-end">
+                    <span class="small text-muted">Menyaring worker yang muncul; jumlah badge per worker tetap utuh.</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -297,7 +315,9 @@ function getFilterState() {
         subCategory: document.getElementById('subCategoryFilter').value,
         status: document.getElementById('statusFilter').value,
         dateFrom: document.getElementById('dateFrom').value,
-        dateTo: document.getElementById('dateTo').value
+        dateTo: document.getElementById('dateTo').value,
+        search: document.getElementById('teamSearch').value,
+        searchScope: document.getElementById('searchScope').value
     };
 }
 
@@ -323,6 +343,8 @@ function restoreFilterState() {
         if (state.status) document.getElementById('statusFilter').value = state.status;
         if (state.dateFrom) document.getElementById('dateFrom').value = state.dateFrom;
         if (state.dateTo) document.getElementById('dateTo').value = state.dateTo;
+        if (state.search) document.getElementById('teamSearch').value = state.search;
+        if (state.searchScope) document.getElementById('searchScope').value = state.searchScope;
         return true;
     } catch (e) { return false; }
 }
@@ -339,6 +361,8 @@ function updateExportLinks() {
     if (s.subCategory) params.set('subCategory', s.subCategory);
     if (s.dateFrom) params.set('dateFrom', s.dateFrom);
     if (s.dateTo) params.set('dateTo', s.dateTo);
+    if (s.search) params.set('search', s.search);
+    if (s.searchScope) params.set('searchScope', s.searchScope);
     const qs = params.toString();
     document.getElementById('btnExportAssessment').href = baseAssessment + (qs ? '?' + qs : '');
     document.getElementById('btnExportTraining').href = baseTraining + (qs ? '?' + qs : '');
@@ -384,6 +408,8 @@ async function doFetch() {
     if (s.status && s.status !== 'ALL') params.set('statusFilter', s.status);
     if (s.dateFrom) params.set('dateFrom', s.dateFrom);
     if (s.dateTo) params.set('dateTo', s.dateTo);
+    if (s.search) params.set('search', s.search);
+    if (s.searchScope) params.set('searchScope', s.searchScope);
     // Phase 337 CMP-26: pagination params
     params.set('page', currentPage);
     params.set('pageSize', currentPageSize);
@@ -435,6 +461,8 @@ function resetTeamFilters() {
     document.getElementById('statusFilter').value = 'ALL';
     document.getElementById('dateFrom').value = '';
     document.getElementById('dateTo').value = '';
+    document.getElementById('teamSearch').value = '';
+    document.getElementById('searchScope').value = 'Keduanya';
     if (isLocked) {
         updateUnitOptions();
     }
