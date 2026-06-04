@@ -649,7 +649,7 @@ namespace HcPortal.Controllers
 
         // Phase 176: Export team assessment records as Excel (filtered by current view params)
         [HttpGet]
-        public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter, string? category, string? subCategory, string? dateFrom, string? dateTo)
+        public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter, string? category, string? subCategory, string? dateFrom, string? dateTo, string? searchScope = null)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
@@ -667,7 +667,7 @@ namespace HcPortal.Controllers
             DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
             // Phase 337 CMP-24/25: get filtered worker IDs first, then SQL push-down ke GetAllWorkersHistory
-            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory);
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory, searchScope);
             var filteredIds = filteredWorkers.Select(w => w.WorkerId).ToList();
 
             var (assessmentRows, _) = await _workerDataService.GetAllWorkersHistory(
@@ -701,7 +701,7 @@ namespace HcPortal.Controllers
 
         // Phase 176: Export team training records as Excel (filtered by current view params)
         [HttpGet]
-        public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category, string? subCategory, string? dateFrom, string? dateTo)
+        public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category, string? subCategory, string? dateFrom, string? dateTo, string? searchScope = null)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return RedirectToAction("Login", "Account");
@@ -719,7 +719,7 @@ namespace HcPortal.Controllers
             DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
             // Phase 337 CMP-24/25: SQL push-down filter (workerIds + date + category + subCategory)
-            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory);
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to, subCategory, searchScope);
             var filteredIds = filteredWorkers.Select(w => w.WorkerId).ToList();
 
             var (_, trainingRows) = await _workerDataService.GetAllWorkersHistory(
@@ -753,6 +753,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> RecordsTeamPartial(
             string? section, string? unit, string? category, string? subCategory,
             string? statusFilter, string? dateFrom, string? dateTo,
+            string? search = null, string? searchScope = null,
             int page = 1, int pageSize = 20)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
@@ -767,7 +768,7 @@ namespace HcPortal.Controllers
             DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
             var workerList = await _workerDataService.GetWorkersInSection(
-                sectionFilter, unit, category, null, statusFilter, from, to, subCategory);
+                sectionFilter, unit, category, search, statusFilter, from, to, subCategory, searchScope);
 
             // Phase 337 CMP-26 (D-02): pageSize whitelist (20/50/100), default 20 untuk invalid
             var pageSizeValidated = (pageSize == 20 || pageSize == 50 || pageSize == 100) ? pageSize : 20;
