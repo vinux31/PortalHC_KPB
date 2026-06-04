@@ -4119,14 +4119,15 @@ namespace HcPortal.Controllers
         // --- EXPORT ASSESSMENT RESULTS ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ExportAssessmentResults(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> ExportAssessmentResults(string title, string category, DateTime scheduleDate, int? linkedGroupId = null)
         {
             // Query all sessions in this group (all workers assigned, regardless of completion status)
+            // MAM-02: Pre-Post both-half via linkedGroupId (PostTest bisa beda tanggal); fallback Schedule.Date untuk grup standard.
             var sessions = await _context.AssessmentSessions
                 .Include(a => a.User)
-                .Where(a => a.Title == title
-                         && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date)
+                .Where(a => linkedGroupId != null
+                    ? a.LinkedGroupId == linkedGroupId
+                    : (a.Title == title && a.Category == category && a.Schedule.Date == scheduleDate.Date))
                 .ToListAsync();
 
             if (!sessions.Any())
@@ -4503,11 +4504,14 @@ namespace HcPortal.Controllers
         // =====================================================================
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> BulkExportPdf(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> BulkExportPdf(string title, string category, DateTime scheduleDate, int? linkedGroupId = null)
         {
+            // MAM-02: Pre-Post both-half via linkedGroupId (PostTest bisa beda tanggal); fallback Schedule.Date untuk grup standard.
             var sessions = await _context.AssessmentSessions
                 .Include(s => s.User)
-                .Where(s => s.Title == title && s.Category == category && s.Schedule.Date == scheduleDate.Date)
+                .Where(s => linkedGroupId != null
+                    ? s.LinkedGroupId == linkedGroupId
+                    : (s.Title == title && s.Category == category && s.Schedule.Date == scheduleDate.Date))
                 .ToListAsync();
 
             var eligibleSessions = sessions
