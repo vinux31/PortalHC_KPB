@@ -268,11 +268,19 @@
                                                     </a>
                                                 }
                                             </div>
-                                        } else if (item.GenerateCertificate && item.AssessmentSessionId.HasValue) {
-                                            <a asp-action="Certificate" asp-controller="CMP" asp-route-id="@item.AssessmentSessionId.Value"
-                                               class="btn btn-sm btn-outline-primary" target="_blank">
-                                                <i class="bi bi-award me-1"></i>Sertifikat
-                                            </a>
+                                        } else if (item.RecordType == "Assessment Online" && item.AssessmentSessionId.HasValue) {
+                                            <div class="d-flex gap-1 justify-content-center">
+                                                <a asp-action="Results" asp-controller="CMP" asp-route-id="@item.AssessmentSessionId.Value"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-bar-chart-line me-1"></i>Lihat Hasil
+                                                </a>
+                                                @if (item.GenerateCertificate) {
+                                                    <a asp-action="Certificate" asp-controller="CMP" asp-route-id="@item.AssessmentSessionId.Value"
+                                                       class="btn btn-sm btn-outline-primary" target="_blank">
+                                                        <i class="bi bi-award me-1"></i>Sertifikat
+                                                    </a>
+                                                }
+                                            </div>
                                         } else {
                                             <span class="text-muted">—</span>
                                         }
