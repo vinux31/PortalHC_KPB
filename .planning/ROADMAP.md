@@ -814,8 +814,13 @@ Plans:
     4. Badge status Tab1 = GroupStatus (match filter); dropdown Kategori Monitoring data-driven (buang "Proton"); tooltip Closed jujur; Reshuffle selector scoped (MAM-10/11/12/13).
     5. `dotnet build` 0 error + xUnit + Playwright UAT per surface.
   - **Risk:** Medium (logic shared grading/token; initial-load behavior) | **Effort:** L (no migration)
-  - **Plans:** _belum di-generate_
-  - **Files affected:** `AssessmentAdminController.cs` + `CMPController.cs` + `WorkerDataService.cs` + `_AssessmentGroupsTab.cshtml` + `_TrainingRecordsTab.cshtml` + `AssessmentMonitoring.cshtml` + `AssessmentMonitoringDetail.cshtml`
+  - **Plans:** 5 plans
+    - [ ] 348-01-PLAN.md — Tema A Pre-Post: RegenerateToken LinkedGroupId + Export/PDF both-half + MenungguPenilaianCount (MAM-01/02/03)
+    - [ ] 348-02-PLAN.md — Tema B essay PendingGrading (ISOLASI): status derivation Detail + SignalR workerSubmitted reload + handler view (MAM-04/05)
+    - [ ] 348-03-PLAN.md — Tema C Tab2 struktural: isInitialState + pagination + delete hx-post re-swap + relabel Status Training (MAM-06/07/08/09)
+    - [ ] 348-04-PLAN.md — Tema D/E/F: badge GroupStatus + dropdown Kategori data-driven + tooltip jujur + reshuffle selector (MAM-10/11/12/13)
+    - [ ] 348-05-PLAN.md — Verify gate: dotnet build + xUnit (PaginationHelper/status/initialState) + Playwright UAT 5 SC + checkpoint human-verify
+  - **Files affected:** `AssessmentAdminController.cs` + `CMPController.cs` + `TrainingAdminController.cs` + `_AssessmentGroupsTab.cshtml` + `_TrainingRecordsTab.cshtml` + `AssessmentMonitoring.cshtml` + `AssessmentMonitoringDetail.cshtml` + `HcPortal.Tests`
   - **Dedup:** M4 (Tab3 History PendingGrading) dicakup REC-07/346 — tak diduplikat; tambah Tab3 History ke UAT 346.
 
 ### Phase 349: manageassessment-monitoring-low-polish
