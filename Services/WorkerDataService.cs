@@ -30,7 +30,7 @@ namespace HcPortal.Services
             // Query 1: Completed assessments only
             var assessments = await _context.AssessmentSessions
                 .AsNoTracking()
-                .Where(a => a.UserId == userId && a.Status == "Completed")
+                .Where(a => a.UserId == userId && (a.Status == "Completed" || a.Status == AssessmentConstants.AssessmentStatus.PendingGrading))
                 .ToListAsync();
 
             // Query 2: All training records
@@ -133,7 +133,7 @@ namespace HcPortal.Services
             // --- Current completed sessions ---
             var currentQuery = _context.AssessmentSessions
                 .AsNoTracking()
-                .Where(a => a.Status == "Completed");
+                .Where(a => a.Status == "Completed" || a.Status == AssessmentConstants.AssessmentStatus.PendingGrading);
 
             if (hasWorkerFilter)
                 currentQuery = currentQuery.Where(a => workerIdList!.Contains(a.UserId));
