@@ -754,7 +754,7 @@ Plans:
 
 ### Phase 346: cmp-records-detail-search-logic
 
-- [ ] **Phase 346: CMP/Records Detail, Search & Logic Fix**
+- [x] **Phase 346: CMP/Records Detail, Search & Logic Fix** (completed 2026-06-04)
   - **REQ:** REC-01, REC-02, REC-03, REC-04, REC-05, REC-06, REC-07, REC-08, REC-09 (REC-10 DROP)
   - **Depends on:** Phase 345 (REC-07 butuh label "Menunggu Penilaian"; REC-01/02/03/05 sentuh `Records.cshtml`+`RecordsWorkerDetail.cshtml` baris berdekatan — sequential)
   - **Goal:** Pekerja & atasan bisa lihat detail assessment (hasil) + training (modal), Worker Detail buka hasil assessment, Team View search adaptif (Nama/Training/Keduanya), assessment PendingGrading tak hilang.
@@ -767,13 +767,13 @@ Plans:
     6. Date range `dateTo<dateFrom`→warning; badge "Assessment" diperjelas (header/tooltip, BUKAN rename field).
     7. `dotnet build` 0 error + `dotnet test` hijau (authz matrix + search scope + PendingGrading tests) + Playwright UAT PASS.
   - **Risk:** Medium (REC-04 authz security-sensitive; REC-06 service query) | **Effort:** M-L (no migration)
-  - **Plans:** 5/6 plans executed
+  - **Plans:** 6/6 plans complete
     - [x] 346-01-PLAN.md — REC-01/02: My Records kolom Aksi + tombol Lihat Hasil + modal training (11 field + PDF) + fix colspan
     - [x] 346-02-PLAN.md — REC-03/05: Worker Detail tombol Lihat Hasil (un-gated sertifikat) + modal Kategori/SubKategori
     - [x] 346-03-PLAN.md — REC-04 (security): authz 3 action via static IsResultsAuthorized (L<=3 full, L4 section-scoped, guard null) + threat model
     - [x] 346-04-PLAN.md — REC-06: Team search adaptif (Nama/Training/Keduanya) service+controller+UI/JS + export filter
     - [x] 346-05-PLAN.md — REC-07/08/09: include PendingGrading (konstanta) + date-range warning + relabel Assessment Lulus
-    - [ ] 346-06-PLAN.md — Tests + UAT: xUnit authz matrix 8-case + searchScope + include-pending; Playwright semua surface (+ Tab3 History)
+    - [x] 346-06-PLAN.md — Tests + UAT: xUnit authz matrix 8-case + searchScope + include-pending; Playwright semua surface (+ Tab3 History)
   - **Wave structure:** Wave1 [346-01 || 346-02 || 346-03] -> Wave2 [346-04] -> Wave3 [346-05] -> Wave4 [346-06] (file-cluster serialize: CMPController 03->04; WorkerDataService+RecordsTeam 04->05)
   - **Files affected:** `Views/CMP/Records.cshtml` + `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/RecordsTeam.cshtml` + `Controllers/CMPController.cs` (Results 2169, Certificate 1815, CertificatePdf 1926, RecordsTeamPartial 753, Export* 652/704) + `Services/WorkerDataService.cs` (GetUnifiedRecords 28, GetAllWorkersHistory 92, GetWorkersInSection 242) + `Models/WorkerTrainingStatus.cs` + `HcPortal.Tests/` (NEW) + `tests/e2e/` (NEW)
   - **Pitfalls (spec §):** colspan My Records 6→7 (L227+JS L381); konstanta PendingGrading (bukan literal "PendingGrading"); `.Include(a=>a.User)` di Certificate+CertificatePdf; sequential 345→346→347.
