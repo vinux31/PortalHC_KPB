@@ -722,7 +722,7 @@ Plans:
 
 ---
 
-## v22.0 CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit — Phases 345-349 🚀 ACTIVE
+## 🚧 **v22.0 CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit** — Phases 345-349 🚀 ACTIVE
 
 **Status:** Started 2026-06-04. Requirements `.planning/REQUIREMENTS.md` (CMP06R-01..05 + REC-01..10 + POL-01..10 + MAM-01..13 + MAP-01..23).
 **Spec 346/347:** `docs/superpowers/specs/2026-06-04-cmp-records-enhancement-design.md` (audit 7-lens, 37 confirmed). Sequential 345→346→347.
