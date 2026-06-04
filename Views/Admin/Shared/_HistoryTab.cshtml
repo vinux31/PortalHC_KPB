@@ -100,7 +100,10 @@
                                         { <span class="badge bg-danger">Fail</span> }
                                     }
                                     else
-                                    { <span class="text-muted">\u2014</span> }
+                                    {
+                                        @* MAP-20 fold-in (Phase 346 UAT T-346-UAT-01): null IsPassed = pending -> "Menunggu Penilaian" (amber, konsisten Phase 345) *@
+                                        <span class="badge bg-warning text-dark">@AssessmentConstants.AssessmentStatus.PendingGrading</span>
+                                    }
                                 </td>
                                 <td class="p-3">@row.Date.ToString("dd MMM yyyy")</td>
                                 <td class="p-3 text-center">

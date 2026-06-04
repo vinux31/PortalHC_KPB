@@ -4727,8 +4727,11 @@ namespace HcPortal.Controllers
             }
 
             // Query completed assessments for this user
+            // REC-07 fold-in (Phase 346 UAT finding T-346-UAT-01): include sesi PendingGrading MURNI
+            // (Status="Menunggu Penilaian") supaya muncul di riwayat berlabel "Menunggu Penilaian"
+            // (konsisten GetUnifiedRecords/GetAllWorkersHistory). VM/stats sudah exclude-pending (Phase 345).
             var assessments = await _context.AssessmentSessions
-                .Where(a => a.UserId == userId && a.Status == "Completed")
+                .Where(a => a.UserId == userId && (a.Status == "Completed" || a.Status == AssessmentConstants.AssessmentStatus.PendingGrading))
                 .OrderByDescending(a => a.CompletedAt)
                 .Select(a => new AssessmentReportItem
                 {
