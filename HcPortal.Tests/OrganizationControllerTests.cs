@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Controllers;
 using HcPortal.Data;
+using HcPortal.Helpers;
 using HcPortal.Models;
 using HcPortal.Services;
 using Xunit;
@@ -181,5 +182,53 @@ public class OrganizationControllerTests
         var result = await ctrl.PreviewEditCascade(1, "RFCC", null);   // nama+parent sama (D-04 early-return)
         Assert.False(GetBool(result, "nameChanged"));
         Assert.False(GetBool(result, "parentChanged"));
+    }
+
+    // ── TEST-03: pre-order DFS sort (D-05) — OrgTreePreOrder.BuildPreOrder mirrors orgTree.js ──
+    // Asserts ONLY against the pure helper, NEVER against the flat GetOrganizationTree endpoint
+    // (silent-pass trap). Fixtures are DISCRIMINATING: output != ascending-id-order AND != BFS.
+
+    [Fact]
+    public void PreOrder_RootDisplayOrderOutOfIdOrder_EmitsLowerDisplayOrderRootSubtreeFirst()
+    {
+        // Input is ENDPOINT-ORDERED (Level, DisplayOrder, Name). Root B (id=4) has DisplayOrder=1,
+        // root A (id=1) has DisplayOrder=2 → endpoint emits B's tier-row before A's. Correct
+        // pre-order = [4, 5, 1, 2, 3] (B subtree first). A flat-by-id or unsorted-insertion bug
+        // would yield a different list.
+        //   L0: B(id=4,DO=1), A(id=1,DO=2)
+        //   L1: B1(id=5,parent=4,DO=1), A1(id=2,parent=1,DO=1)
+        //   L2: A1a(id=3,parent=2,DO=1)
+        var flat = new (int, int?, int, string)[]
+        {
+            (4, null, 1, "B"), (1, null, 2, "A"),
+            (5, 4, 1, "B1"),  (2, 1, 1, "A1"),
+            (3, 2, 1, "A1a"),
+        };
+        var built = OrgTreePreOrder.BuildPreOrder(flat);
+        var order = built.Select(x => x.Id).ToList();
+        Assert.Equal(new[] { 4, 5, 1, 2, 3 }, order);   // B, B1, A, A1, A1a
+        Assert.Equal(2, built.Single(x => x.Id == 3).Depth);   // A1a is a grandchild → Depth 2
+    }
+
+    [Fact]
+    public void PreOrder_GrandchildBeforeUncle_ProvesDepthFirstNotBreadthFirst()
+    {
+        // Root R(id=10). R has two children: C1(id=20) and C2(id=30). C1 has a grandchild G(id=5)
+        // whose id is LOWER than uncle C2(id=30). DFS (pre-order) = [10,20,5,30]; BFS = [10,20,30,5];
+        // flat-by-id = [5,10,20,30]. Only the correct DFS helper yields [10,20,5,30].
+        //   L0: R(id=10,DO=1)
+        //   L1: C1(id=20,parent=10,DO=1), C2(id=30,parent=10,DO=2)
+        //   L2: G(id=5,parent=20,DO=1)
+        var flat = new (int, int?, int, string)[]
+        {
+            (10, null, 1, "R"),
+            (20, 10, 1, "C1"), (30, 10, 2, "C2"),
+            (5, 20, 1, "G"),
+        };
+        var built = OrgTreePreOrder.BuildPreOrder(flat);
+        var order = built.Select(x => x.Id).ToList();
+        Assert.Equal(new[] { 10, 20, 5, 30 }, order);   // R, C1, G(grandchild), C2(uncle) — DFS
+        Assert.NotEqual(new[] { 10, 20, 30, 5 }, order); // NOT BFS
+        Assert.Equal(2, built.Single(x => x.Id == 5).Depth);   // grandchild G → Depth 2
     }
 }
