@@ -52,16 +52,16 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 
 **Source:** audit 7-lens 2026-06-04 (15 LOW finding). **Depends Phase 346** (sequential); koordinasi POL-01 dgn Phase 345. No migration.
 
-- [ ] **POL-01**: Badge `Passed/Failed`→`Lulus/Tidak Lulus` (case true/false; null tetap "Menunggu Penilaian" dari Phase 345). (I18N-002)
-- [ ] **POL-02**: Header `Score`→`Nilai` (`Records.cshtml:154`). (I18N-003)
-- [ ] **POL-03**: `Position`→`Jabatan`, `Section`→`@OrgLabels.GetLabel(0)` (RecordsWorkerDetail:66/70 + RecordsTeam:134). (I18N-004/I18N-006)
-- [ ] **POL-04**: `All Categories/Sub/Types`→`Semua ...` + label opsi tipe konsisten (RecordsWorkerDetail+RecordsTeam). (I18N-001/I18N-008)
-- [ ] **POL-05**: Subtitle Inggris RecordsWorkerDetail:38 → Indonesia. (I18N-005)
+- [x] **POL-01**: Badge `Passed/Failed`→`Lulus/Tidak Lulus` (case true/false; null tetap "Menunggu Penilaian" dari Phase 345). (I18N-002)
+- [x] **POL-02**: Header `Score`→`Nilai` (`Records.cshtml:154`). (I18N-003)
+- [x] **POL-03**: `Position`→`Jabatan`, `Section`→`@OrgLabels.GetLabel(0)` (RecordsWorkerDetail:66/70 + RecordsTeam:134). (I18N-004/I18N-006)
+- [x] **POL-04**: `All Categories/Sub/Types`→`Semua ...` + label opsi tipe konsisten (RecordsWorkerDetail+RecordsTeam). (I18N-001/I18N-008)
+- [x] **POL-05**: Subtitle Inggris RecordsWorkerDetail:38 → Indonesia. (I18N-005)
 - [ ] **POL-06**: a11y modal `aria-labelledby`+`role=dialog`+btn-close `aria-label`. (UI-001/UI-002/UI-012)
 - [ ] **POL-07**: Label `for=` semua filter (RecordsTeam+RecordsWorkerDetail) + My Records search visible label. (UI-003/UI-005/UI-006/UI-014)
 - [ ] **POL-08**: DRY — ekstrak `<style>` duplikat 3 view → `wwwroot/css/records.css`. (UI-004)
 - [ ] **POL-09**: Mobile grid filter responsif RecordsWorkerDetail. (UI-009)
-- [ ] **POL-10**: `type="button"` reset + label tombol konsisten Lihat/Sertifikat + pagination `aria-current`. (UI-007/UI-010/UI-011/I18N-009)
+- [x] **POL-10**: `type="button"` reset + label tombol konsisten Lihat/Sertifikat + pagination `aria-current`. (UI-007/UI-010/UI-011/I18N-009)
 
 ## Requirements — Phase 348 (ManageAssessment + Monitoring MED Correctness Fix)
 
