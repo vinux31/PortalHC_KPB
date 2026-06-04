@@ -59,7 +59,7 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 - [x] **POL-05**: Subtitle Inggris RecordsWorkerDetail:38 → Indonesia. (I18N-005)
 - [x] **POL-06**: a11y modal `aria-labelledby`+`role=dialog`+btn-close `aria-label`. (UI-001/UI-002/UI-012)
 - [x] **POL-07**: Label `for=` semua filter (RecordsTeam+RecordsWorkerDetail) + My Records search visible label. (UI-003/UI-005/UI-006/UI-014)
-- [ ] **POL-08**: DRY — ekstrak `<style>` duplikat 3 view → `wwwroot/css/records.css`. (UI-004)
+- [x] **POL-08**: DRY — ekstrak `<style>` duplikat 3 view → `wwwroot/css/records.css`. (UI-004)
 - [x] **POL-09**: Mobile grid filter responsif RecordsWorkerDetail. (UI-009)
 - [x] **POL-10**: `type="button"` reset + label tombol konsisten Lihat/Sertifikat + pagination `aria-current`. (UI-007/UI-010/UI-011/I18N-009)
 
