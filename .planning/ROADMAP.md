@@ -733,7 +733,8 @@ Plans:
 
 ### Phase 345: assessment-pending-grade-display-fix
 
-- [x] **Phase 345: Assessment pending-grade display correctness** (completed 2026-06-04)
+- [x] **Phase 345: Assessment pending-grade display correctness**
+ (completed 2026-06-04)
   - **REQ:** CMP06R-01, CMP06R-02, CMP06R-03, CMP06R-04, CMP06R-05
   - **Depends on:** Tidak ada (independen v21.0; file beda)
   - **Goal:** 3-way status (`null→"Menunggu Penilaian"`) di RecordsWorkerDetail + UserAssessmentHistory (ctrl+VM+view+stats) + BulkExportPdf, unify label via GetUnifiedRecords + Records.cshtml, regression test.
@@ -754,7 +755,8 @@ Plans:
 
 ### Phase 346: cmp-records-detail-search-logic
 
-- [x] **Phase 346: CMP/Records Detail, Search & Logic Fix** (completed 2026-06-04)
+- [x] **Phase 346: CMP/Records Detail, Search & Logic Fix**
+ (completed 2026-06-04)
   - **REQ:** REC-01, REC-02, REC-03, REC-04, REC-05, REC-06, REC-07, REC-08, REC-09 (REC-10 DROP)
   - **Depends on:** Phase 345 (REC-07 butuh label "Menunggu Penilaian"; REC-01/02/03/05 sentuh `Records.cshtml`+`RecordsWorkerDetail.cshtml` baris berdekatan — sequential)
   - **Goal:** Pekerja & atasan bisa lihat detail assessment (hasil) + training (modal), Worker Detail buka hasil assessment, Team View search adaptif (Nama/Training/Keduanya), assessment PendingGrading tak hilang.
@@ -791,7 +793,12 @@ Plans:
     4. DRY: `<style>` duplikat (.stat-card/.sticky-header/@keyframes) → 1 file CSS; mobile grid filter responsif; `type="button"` reset.
     5. `dotnet build` 0 error + no visual regression (Playwright spot-check).
   - **Risk:** Low | **Effort:** S-M (no migration)
-  - **Plans:** _belum di-generate_
+  - **Plans:** 4/4 plans (planned 2026-06-04)
+    - [ ] 347-01-PLAN.md — i18n teks: badge Lulus/Tidak Lulus (null intact) + Nilai/Jabatan/Section(OrgLabels) + Semua Kategori/Sub/Tipe + subtitle ID + label tombol [W1]
+    - [ ] 347-02-PLAN.md — a11y: modal aria(role/labelledby/Tutup) + label for= semua filter + My Records visible label + grid responsif + type=button reset + pagination aria-current [W2]
+    - [ ] 347-03-PLAN.md — POL-08 DRY: ekstrak <style> verbatim -> wwwroot/css/records.css + _Layout RenderSection Styles + @section 2 full-page + RecordsTeam partial style-removal-only [W3]
+    - [ ] 347-04-PLAN.md — verifikasi: dotnet build 0-error + grep sweep 10 POL + Playwright spot-check no-visual-regression (no xUnit) [W4]
+  - **Wave structure:** W1 [347-01] -> W2 [347-02] -> W3 [347-03] -> W4 [347-04] (serial penuh: ketiga view di-edit bersama di tiap plan, hindari konflik write file)
   - **Files affected:** `Views/CMP/Records.cshtml` + `Views/CMP/RecordsWorkerDetail.cshtml` + `Views/CMP/RecordsTeam.cshtml` + `Views/CMP/_RecordsTeamBody.cshtml` + `wwwroot/css/records.css` (NEW)
 
 ### Phase 348: manageassessment-monitoring-med-fix
