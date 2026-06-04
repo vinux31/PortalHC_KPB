@@ -767,11 +767,11 @@ Plans:
     6. Date range `dateTo<dateFrom`→warning; badge "Assessment" diperjelas (header/tooltip, BUKAN rename field).
     7. `dotnet build` 0 error + `dotnet test` hijau (authz matrix + search scope + PendingGrading tests) + Playwright UAT PASS.
   - **Risk:** Medium (REC-04 authz security-sensitive; REC-06 service query) | **Effort:** M-L (no migration)
-  - **Plans:** 3/6 plans executed
+  - **Plans:** 4/6 plans executed
     - [x] 346-01-PLAN.md — REC-01/02: My Records kolom Aksi + tombol Lihat Hasil + modal training (11 field + PDF) + fix colspan
     - [x] 346-02-PLAN.md — REC-03/05: Worker Detail tombol Lihat Hasil (un-gated sertifikat) + modal Kategori/SubKategori
     - [x] 346-03-PLAN.md — REC-04 (security): authz 3 action via static IsResultsAuthorized (L<=3 full, L4 section-scoped, guard null) + threat model
-    - [ ] 346-04-PLAN.md — REC-06: Team search adaptif (Nama/Training/Keduanya) service+controller+UI/JS + export filter
+    - [x] 346-04-PLAN.md — REC-06: Team search adaptif (Nama/Training/Keduanya) service+controller+UI/JS + export filter
     - [ ] 346-05-PLAN.md — REC-07/08/09: include PendingGrading (konstanta) + date-range warning + relabel Assessment Lulus
     - [ ] 346-06-PLAN.md — Tests + UAT: xUnit authz matrix 8-case + searchScope + include-pending; Playwright semua surface (+ Tab3 History)
   - **Wave structure:** Wave1 [346-01 || 346-02 || 346-03] -> Wave2 [346-04] -> Wave3 [346-05] -> Wave4 [346-06] (file-cluster serialize: CMPController 03->04; WorkerDataService+RecordsTeam 04->05)
