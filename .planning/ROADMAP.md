@@ -644,9 +644,9 @@ Plans:
 
 ---
 
-## v21.0 ManageOrganization Overhaul + Level Label CRUD — Phases 340-344 🚀 ACTIVE
+## v21.0 ManageOrganization Overhaul + Level Label CRUD — Phases 340-344 ✅ SHIPPED LOCAL (2026-06-04, push pending IT)
 
-**Status:** Started 2026-06-02. Phase 340 plans generated.
+**Status:** SHIPPED LOCAL 2026-06-04. 5/5 phase, 16 plan complete. Audit passed (26/26 REQ) → `milestones/v21.0-MILESTONE-AUDIT.md`. Tag `v21.0`. Bundle push pending IT. Started 2026-06-02.
 **Spec:** [docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md](../docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md)
 **Milestone roadmap:** [v21.0-ROADMAP.md](milestones/v21.0-ROADMAP.md) | [v21.0-REQUIREMENTS.md](milestones/v21.0-REQUIREMENTS.md) — 26 REQ
 **Phase range:** 340-344 (5 phase sequential, ~5 hari)

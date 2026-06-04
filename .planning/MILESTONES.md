@@ -1,5 +1,36 @@
 # Milestones
 
+## v21.0 ManageOrganization Overhaul + Level Label CRUD (Shipped Local: 2026-06-04, Audited: 2026-06-04)
+
+**Phases completed:** 5 phase (340, 341, 342, 343, 344), 16 plan (340:3, 341:3, 342:3, 343:4, 344:3)
+**Status:** SHIPPED LOCAL, push pending IT availability (bundled v19.0+v20.0+v21.0 + audit/remediation = ~74 commit batch v21.0 leg, e31db3c5..c820f49d; 1 migration `20260603012335_AddOrganizationLevelLabel`)
+**Audit:** `milestones/v21.0-MILESTONE-AUDIT.md` — status passed (26/26 REQ, 5/5 phase, integration 5/5 cross-phase links wired, 0 broken/orphaned). Initial `gaps_found` (Phase 340 missing VERIFICATION.md + empty SUMMARY frontmatter — artifact-only, 0 feature gaps) remediated 2026-06-04.
+
+**Delivered:** Configurable organization tier labels — HC/Admin can rename "Bagian"/"Unit"/"Sub-unit" tiers app-wide via a CRUD page, with the new label propagating to the org tree + 26 integrated views in real time. Plus a hardened ManageOrganization tree (pre-order DFS dropdown, per-parent dup-name, cascade-impact preview, dynamic modal titles) and a full test/UAT layer.
+
+**Key accomplishments:**
+
+1. **Foundation (Phase 340, ORG-LABEL-01/02/03/07)** — `OrganizationLevelLabel` model + EF migration `20260603012335` + idempotent `SeedData.SeedOrganizationLevelLabelsAsync` (0=Bagian/1=Unit/2=Sub-unit, permanent+prod-required). `IOrgLabelService`/`OrgLabelService` (Singleton IMemoryCache no-TTL, manual invalidate, fallback `"Level {N}"`, auto-detect max level+buffer) + `GET /Admin/GetLevelLabels` JSON endpoint. 20/20 tests.
+
+2. **Label CRUD Page (Phase 341, ORG-LABEL-04/05/06)** — `/Admin/ManageOrgLevelLabels` (`[Authorize(Roles="Admin, HC")]`) + 4 actions CRUD with server validation (required/trim/≤50/unique), audit log per mutation, delete-highest-only guard. 38 tests + UAT 10/10 + Coach 403.
+
+3. **ManageOrganization Tree Fixes (Phase 342, ORG-TREE-01..10)** — pre-order DFS dropdown, per-parent dup-name (ORG-TREE-02), inactive-visible "(nonaktif)", data-name escape, color palette L3-5, path breadcrumb, `PreviewEditCascade` impact modal (ORG-TREE-07, 6 [Fact] preview==actual), legend + dynamic modal title + tier badge from `OrgLabelService`. 44 tests + Playwright 10/10.
+
+4. **App-wide Integration (Phase 343, ORG-INTEG-01/02)** — global `@inject IOrgLabelService OrgLabels` in `_ViewImports.cshtml` + 110 `@OrgLabels.GetLabel(N)` calls across 26 views (CMP/CDP/ProtonData/Admin/Worker), replacing hardcoded tier strings. ORG-INTEG-02 = documented audit-only SKIP (controller display strings = Excel headers/audit-log, by design). SC2 Playwright live-verified (rename propagates 3 pages).
+
+5. **Test + UAT (Phase 344, TEST-01..06 + ORG-INTEG-03)** — xUnit 52/52 (incl. disposable real-SQL-Server `OrgLabelMigrationIntegrationTests` TEST-05, `OrgTreePreOrder` DFS helper TEST-03, 5 reflection permission [Fact] TEST-02) + Playwright `manage-org-label.spec.ts` 7 scenarios + manual UAT 5/5 (cascade count SQL-cross-checked). Verifier PASS 5/5. **TDD caught a real null-key bug in the planned DFS helper; adversarial reviewer caught 6 critical the standard checker missed.**
+
+**Patterns established (cross-phase reuse):**
+- Configurable display labels via cached service + global `@inject` (340→343): one source of truth, real-time propagation via cache-invalidate-on-mutation.
+- Client-side label hydration (342): tree JS consumes `GET /Admin/GetLevelLabels` rather than server-injecting, keeping the endpoint as the single label API.
+- Adversarial plan review (344): independent skeptic agent catches false-green/silent-pass traps the structural checker misses (helper-vs-source fidelity, tautological fixtures, matrix-setup coupling, wave races).
+
+**Tech debt at close (acknowledged, defer):**
+- Push batch ~74 commit lokal v21.0 leg (full bundle v19+v20+v21) pending IT availability.
+- Phase 341 Nyquist `*-VALIDATION.md` `nyquist_compliant: false` (PARTIAL) — phase has 38 tests + UAT 10/10; optional `/gsd-validate-phase 341` to flip green (non-blocking).
+- STATE.md frontmatter `milestone: v16.0` stale (parallel-session drift); body reflects v22.0 active.
+- v22.0 (CMP-06 Residual Fix, Phases 345-347) already started in a parallel session — NOT part of v21.0.
+
 ## v20.0 CMP Records Overhaul + Cilacap UX/Restore (Shipped Local: 2026-06-02, Audited: 2026-06-02)
 
 **Phases completed:** 4 phase (336, 337, 338, 339), 10 plan (Phase 337 has 3 wave plans, Phase 338 has 5 wave plans, Phase 336 + 339 single plan each)
