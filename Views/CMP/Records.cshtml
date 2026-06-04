@@ -284,6 +284,38 @@
     </div>
 </div>
 
+<!-- Training Detail Modal (REC-02) -->
+<div class="modal fade" id="trainingDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTrainingTitle">Detail Training</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Nama Kegiatan</dt><dd class="col-sm-7" id="mdTitle">—</dd>
+                    <dt class="col-sm-5">Penyelenggara</dt><dd class="col-sm-7" id="mdPenyelenggara">—</dd>
+                    <dt class="col-sm-5">Kota</dt><dd class="col-sm-7" id="mdKota">—</dd>
+                    <dt class="col-sm-5">Tanggal Mulai</dt><dd class="col-sm-7" id="mdTanggalMulai">—</dd>
+                    <dt class="col-sm-5">Tanggal Selesai</dt><dd class="col-sm-7" id="mdTanggalSelesai">—</dd>
+                    <dt class="col-sm-5">Nomor Sertifikat</dt><dd class="col-sm-7" id="mdNomorSertifikat">—</dd>
+                    <dt class="col-sm-5">Kategori</dt><dd class="col-sm-7" id="mdKategori">—</dd>
+                    <dt class="col-sm-5">Sub Kategori</dt><dd class="col-sm-7" id="mdSubKategori">—</dd>
+                    <dt class="col-sm-5">Status</dt><dd class="col-sm-7" id="mdStatus">—</dd>
+                    <dt class="col-sm-5">Valid Until</dt><dd class="col-sm-7" id="mdValidUntil">—</dd>
+                    <dt class="col-sm-5">Certificate Type</dt><dd class="col-sm-7" id="mdCertType">—</dd>
+                </dl>
+                <div class="mt-3" id="mdPdfWrap" style="display:none;">
+                    <a id="mdPdfLink" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>Lihat Sertifikat
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 /* Stat Cards */
 .stat-card {
@@ -480,4 +512,34 @@ document.addEventListener('DOMContentLoaded', function() {
         filterTable();
     } catch (e) { /* ignore parse error */ }
 });
+
+// REC-02: training detail modal — populate from data-* attrs on Detail button
+var trainingModal = document.getElementById('trainingDetailModal');
+if (trainingModal) {
+    trainingModal.addEventListener('show.bs.modal', function (event) {
+        var btn = event.relatedTarget;
+        if (!btn) return;
+        var d = btn.dataset;
+        document.getElementById('modalTrainingTitle').textContent = d.title || 'Detail Training';
+        document.getElementById('mdTitle').textContent = d.title || '—';
+        document.getElementById('mdPenyelenggara').textContent = d.penyelenggara || '—';
+        document.getElementById('mdKota').textContent = d.kota || '—';
+        document.getElementById('mdTanggalMulai').textContent = d.tanggalMulai || '—';
+        document.getElementById('mdTanggalSelesai').textContent = d.tanggalSelesai || '—';
+        document.getElementById('mdNomorSertifikat').textContent = d.nomorSertifikat || '—';
+        document.getElementById('mdKategori').textContent = d.kategori || '—';
+        document.getElementById('mdSubKategori').textContent = d.subcategory || '—';
+        document.getElementById('mdStatus').textContent = d.status || '—';
+        document.getElementById('mdValidUntil').textContent = d.validuntil || '—';
+        document.getElementById('mdCertType').textContent = d.certtype || '—';
+        var pdfWrap = document.getElementById('mdPdfWrap');
+        var pdfLink = document.getElementById('mdPdfLink');
+        if (d.pdf && d.pdf.length > 0) {
+            pdfLink.href = d.pdf;
+            pdfWrap.style.display = '';
+        } else {
+            pdfWrap.style.display = 'none';
+        }
+    });
+}
 </script>
