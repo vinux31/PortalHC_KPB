@@ -2911,6 +2911,14 @@ namespace HcPortal.Controllers
             ViewBag.SelectedStatus = status;
             ViewBag.SelectedCategory = category ?? "";
 
+            // MAM-11: dropdown Kategori data-driven dari AssessmentCategories aktif (buang hardcode "Proton" phantom).
+            ViewBag.MonitoringCategories = await _context.AssessmentCategories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.Name)
+                .Select(c => c.Name)
+                .ToListAsync();
+
             return View(grouped);
         }
 
