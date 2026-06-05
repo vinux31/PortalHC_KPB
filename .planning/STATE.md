@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: verifying
-last_updated: "2026-06-05T01:27:56.344Z"
+last_updated: "2026-06-05T06:43:47.820Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 13
