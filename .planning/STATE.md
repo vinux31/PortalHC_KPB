@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v23.0
 milestone_name: CMP/Records Search & Filter Consistency Audit
 status: executing
-last_updated: "2026-06-05T13:17:38.113Z"
-last_activity: 2026-06-05 -- Phase 350 planning complete
+last_updated: "2026-06-05T13:22:28.981Z"
+last_activity: 2026-06-05 -- Phase 350 execution started
 progress:
-  total_phases: 2
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 0
-  percent: 0
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State: Portal HC KPB
@@ -20,14 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v23.0 — konsistensi search/filter CMP/Records 3 surface (My Records + Team View + Worker Detail). Roadmap dibuat 2026-06-05; next `/gsd-plan-phase 350`.
+**Current focus:** Phase 350 — Team View Server-Side Search Scope + Export Parity
 
 ## Current Position
 
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 350 (PLANNED — 3 plan / 3 wave @f9905933; checker PASSED 12 dimensi; ready execute)
-Status: Ready to execute
-Last activity: 2026-06-05 -- Phase 350 planning complete (research @aec1e8ba + UI-SPEC @55cc2b90 + VALIDATION @b54d1ee3 + PATTERNS + 3 PLAN @f9905933)
+Phase: 350 (Team View Server-Side Search Scope + Export Parity) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 350
+Last activity: 2026-06-05 -- Phase 350 execution started
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
