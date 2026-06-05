@@ -3341,7 +3341,10 @@ namespace HcPortal.Controllers
                 IsPackageMode  = isPackageMode,
                 PendingCount   = sessionViewModels.Count(s => s.UserStatus == "Not started"),
                 CancelledCount = sessionViewModels.Count(s => s.UserStatus == "Dibatalkan"),
-                InProgressCount = sessionViewModels.Count(s => s.UserStatus == "InProgress")
+                InProgressCount = sessionViewModels.Count(s => s.UserStatus == "InProgress"),
+                // MAP-10: assign AbandonedCount + MenungguPenilaianCount agar Total = jumlah 7 kartu (D-03)
+                AbandonedCount = sessionViewModels.Count(s => s.UserStatus == "Abandoned"),
+                MenungguPenilaianCount = sessionViewModels.Count(s => s.UserStatus == AssessmentConstants.AssessmentStatus.PendingGrading)
             };
 
             model.IsTokenRequired = firstSession.IsTokenRequired;

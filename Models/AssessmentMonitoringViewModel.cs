@@ -20,6 +20,7 @@ namespace HcPortal.Models
 
         // Essay grading badge support (Phase 298-05)
         public int MenungguPenilaianCount { get; set; }
+        public int AbandonedCount { get; set; }          // MAP-10: count "Abandoned" sessions (summary card, Total = sum invariant)
         public int EssayPendingTotal { get; set; }
 
         // Pre-Post Test support (Phase 297)
