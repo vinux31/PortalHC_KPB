@@ -76,10 +76,10 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 - [x] **MAM-07**: Tab2 pagination (Skip/Take + kontrol) atau drop param mati `page/pageSize` (`AssessmentAdminController.cs:245`). (filter)
 - [x] **MAM-08**: Delete Training/ManualAsm preserve filter context — `hx-post` re-swap (`_TrainingRecordsTab.cshtml:327-349`). (function)
 - [x] **MAM-09**: Filter Status Tab2 relabel "Status Training" / lipat passed assessment (`_TrainingRecordsTab.cshtml:107-125` + `WorkerDataService.cs:390`). (ui-design)
-- [ ] **MAM-10**: Badge status baris Tab1 bind `@group.GroupStatus` + case "Closed" (`_AssessmentGroupsTab.cshtml:195-221`). (logic; gabung MED cross-cut + LOW twin)
-- [ ] **MAM-11**: Dropdown Kategori Monitoring data-driven dari `AssessmentCategories` + buang "Proton" phantom (`AssessmentMonitoring.cshtml:125-148`). (filter)
-- [ ] **MAM-12**: Tooltip Closed jujur — buang "lokasi" (`AssessmentMonitoring.cshtml:169`). (content)
-- [ ] **MAM-13**: Selector tombol Reshuffle scoped, jangan bentrok `<tr>` (`AssessmentMonitoringDetail.cshtml:739`). (function)
+- [x] **MAM-10**: Badge status baris Tab1 bind `@group.GroupStatus` + case "Closed" (`_AssessmentGroupsTab.cshtml:195-221`). (logic; gabung MED cross-cut + LOW twin)
+- [x] **MAM-11**: Dropdown Kategori Monitoring data-driven dari `AssessmentCategories` + buang "Proton" phantom (`AssessmentMonitoring.cshtml:125-148`). (filter)
+- [x] **MAM-12**: Tooltip Closed jujur — buang "lokasi" (`AssessmentMonitoring.cshtml:169`). (content)
+- [x] **MAM-13**: Selector tombol Reshuffle scoped, jangan bentrok `<tr>` (`AssessmentMonitoringDetail.cshtml:739`). (function)
 
 ## Requirements — Phase 349 (ManageAssessment + Monitoring LOW Polish)
 
