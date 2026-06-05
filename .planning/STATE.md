@@ -6,11 +6,11 @@ status: executing
 last_updated: "2026-06-05T14:56:38.552Z"
 last_activity: 2026-06-05 -- Phase 351 planning complete
 progress:
-  total_phases: 3
+  total_phases: 2
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 5
-  percent: 83
+  total_plans: 7
+  completed_plans: 3
+  percent: 43
 ---
 
 # Project State: Portal HC KPB
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 350 ✅ SHIPPED LOCAL · Phase 351 CONTEXT ready (--auto) — next `/gsd-plan-phase 351`
+**Current focus:** Phase 351 PLANNED (4 plan / 2 wave) — next `/gsd-execute-phase 351`. Phase 350 ✅ SHIPPED LOCAL.
 
 ## Current Position
 
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 351 (CONTEXT @8cf1ba8e + UI-SPEC approved @b0ddf853; belum di-plan). Phase 350 ✅ COMPLETE (3/3). (parser "next 999.2" = backlog artifact, abaikan)
-Plan: 351 belum di-plan (UI-SPEC done; NEXT /gsd-plan-phase 351 pilih "Research dulu")
-Status: Ready to execute
-Last activity: 2026-06-05 -- Phase 351 planning complete
+Phase: 351 PLANNED (4 plan / 2 wave @a7ce7285; checker PASSED 12 dim + 12 invarian). Phase 350 ✅ COMPLETE (3/3). (parser "next 999.2" = backlog artifact, abaikan)
+Plan: 351 4 plan ready (01 test infra + 02 backend BuildActualCategories ∥ W1 → 03 WorkerDetail + 04 Records ∥ W2 depends 02)
+Status: Ready to execute. Research @71036e03 (SF-07 refined = sessionStorage already complete + hash→tab activator Records.cshtml ~5 baris, NO controller fallback) + UI-SPEC approved @b0ddf853 + VALIDATION @3029f388. Plans @a7ce7285. NEXT /gsd-execute-phase 351 (verifikasi lokal per Develop Workflow; NO push).
+Last activity: 2026-06-05 -- /gsd-plan-phase 351: research + pattern-map + 4 PLAN @a7ce7285, checker PASSED
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
@@ -51,7 +51,7 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 
 ## Next Action
 
-1. **`/clear` lalu `/gsd-plan-phase 351`** — CONTEXT.md ready (@8cf1ba8e, D-01..D-04). Phase 351 Worker Detail + cross-surface (SF-03/04/05/07). SF-04 fix di controller+view (pakai `unifiedRecords` yg sudah di-return) → overlap `WorkerDataService.cs` dgn 350 MINIM (revisi asumsi STATE awal). NO migration. UI hint=yes (counter/empty-state/dropdown — pertimbangkan `/gsd-ui-phase 351` bila mau kontrak visual).
+1. **`/clear` lalu `/gsd-execute-phase 351`** — 4 plan/2 wave. W1: 01 test infra (cmp351-seed off-master + Playwright spec RED) ∥ 02 backend (BuildActualCategories helper + ViewBag.ActualCategoriesJson 2 action + xUnit; authz preserve). W2: 03 WorkerDetail (counter+empty-state SF-03 + Kategori actual SF-04) ∥ 04 Records (Kategori+Tipe parity SF-05 + hash→tab SF-07). 3 traps encoded. Verifikasi lokal `dotnet build`+`dotnet test`+`dotnet run` 5277+Playwright sebelum commit. NO migration. NO push.
 2. **(Opsional) `/gsd-verify-work 350`** — tutup 2 HUMAN-UAT item visual (XLSX content Category drop-archived + badge unchanged) saat dev/IT sempat eyeball; non-blocking, sudah code+automated verified.
 3. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0+v23.0/350** — push bundle ~130+ commit lokal + Dev migration coordination tetap pending (paralel jalur; Phase 350 flag migration = false).
 4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer.
