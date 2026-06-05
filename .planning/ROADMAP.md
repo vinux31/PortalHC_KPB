@@ -618,24 +618,6 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.1: Realtime Assessment SignalR (BACKLOG)
-
-**Goal:** HC monitoring action (reset / forceClose / progress) auto-update worker exam page tanpa reload, plus worker progress live ke HC monitor — eliminasi UX gap real-time 2-arah HC ↔ Worker selama assessment lifecycle.
-
-**Context:**
-- Foundation existing: Phase 302 (`extraTime` SignalR) + Phase 321 (`workerAnswerEdited` broadcast)
-- Tambah event baru: `resetExam`, `forceCloseExam`, `examProgressUpdate`
-- Source todo: `.planning/todos/pending/realtime-assessment.md` (created 2026-03-09, phase-133-checkpoint)
-
-**Requirements:** TBD (perlu scope event list final + grading impact + reconnection strategy + UAT 2-sisi matrix)
-
-**Effort estimate:** M-L (3+ event SignalR + UAT 2-sisi + reconnection handling)
-
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
 ### Phase 999.2: CMP/Records Team View search extend ke Assessment title (BACKLOG)
 
 **Goal:** Search Team View di `CMP/Records` (`searchScope`="Keduanya") ikut mencocokkan judul **assessment**, bukan hanya Nama/NIP + judul Training. User cari nama assessment (mis. "ojt v14.2") → saat ini 0 worker meski worker punya assessment itu.

@@ -1,8 +1,8 @@
 ---
 gsd_state_version: 1.0
-milestone: v22.0
-milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: complete
+milestone: v23.0
+milestone_name: CMP/Records Search & Filter Consistency Audit
+status: planning
 last_updated: "2026-06-05"
 last_activity: 2026-06-05
 progress:
@@ -24,15 +24,14 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 
 ## Current Position
 
-Milestone: v22.0 ✅ CLOSED 2026-06-05 (phases 345-349, 60/60 REQ, audit passed, tag v22.0 lokal)
-Status: Milestone complete — REQUIREMENTS.md archived ke milestones/v22.0-REQUIREMENTS.md; fresh dibuat saat v23.0
-Last activity: 2026-06-05
+Milestone: v23.0 🚧 STARTED 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
+Phase: Not started (audit → defining requirements)
+Status: Audit search/filter CMP/Records 3 surface
+Last activity: 2026-06-05 — Milestone v23.0 started
 
-Bundle push v19.0+v20.0+v21.0+v22.0 pending IT availability + verifikasi lokal lengkap (per CLAUDE.md push = tanggung jawab IT, butuh approval user eksplisit).
+Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
-Backlog siap promote v23.0: Phase 999.1 Realtime Assessment SignalR (M-L) + Phase 999.2 CMP/Records search → Assessment title (S, bug UAT 2026-06-05).
-
-Predecessor: v21.0 ✅ CLOSED 2026-06-04 (26/26 REQ); v20.0 ✅ ARCHIVED 2026-06-02 (39/39 REQ).
+Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v19-v22 NOT PUSHED pending IT.
 
 ## Phase 340 Closure Snapshot
 

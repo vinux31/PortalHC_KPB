@@ -38,13 +38,19 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v22.0 shipped (local) + audit passed (2026-06-05)** — CMP-06 + Assessment/Monitoring Audit Fixes (phases 345-349): tampilan jujur "Menunggu Penilaian" (essay pending-grade) lintas CMP/Records + RecordsWorkerDetail + UserAssessmentHistory + Excel + PDF + Monitoring + ManageAssessment (ganti "Failed"/"Completed"/kosong palsu, passRate & average exclude-pending) + 2-audit sweep ManageAssessment+Monitoring (Pre-Post LinkedGroupId, Tab2 pagination/empty-state, i18n + a11y chevron + 7-kartu summary + exclude-Cancelled progress + search Category). 60/60 REQ + 105/105 xUnit + Playwright UAT + human-verify. 0 migration.
 
-**Current focus:** Antara milestone — v22.0 baru ditutup (2026-06-05). Bundle push v19+v20+v21+v22 pending IT availability + verifikasi lokal lengkap. Next: `/gsd-new-milestone v23.0`.
+**Current focus:** v23.0 CMP/Records Search & Filter Consistency Audit — started 2026-06-05 (audit-driven). Bundle push v19+v20+v21+v22 tetap pending IT availability.
 
-## Next Milestone: belum ditentukan (v23.0)
+## Current Milestone: v23.0 CMP/Records Search & Filter Consistency Audit
 
-v22.0 ditutup 2026-06-05. Milestone berikut dimulai via `/gsd-new-milestone` (questioning → research → requirements → roadmap).
+**Goal:** Konsistensi + kelengkapan perilaku search/filter di seluruh permukaan CMP/Records (My Records + Team View + Worker Detail) — perbaiki gap yang bikin user tak nemu data (mulai dari bug 999.2).
 
-**Backlog siap promote:** Phase 999.1 Realtime Assessment SignalR (M-L: 2-arah HC↔Worker live exam update) + Phase 999.2 CMP/Records Team View search extend ke Assessment title (S: bug UAT 2026-06-05, searchScope "Keduanya" belum cakup judul assessment).
+**Target features:**
+- **Fix 999.2** — Team View search "Keduanya" cakup judul **assessment** (bukan hanya Nama/NIP + judul Training); user cari "ojt v14.2" → ketemu.
+- **Audit search/filter 3 surface** — scope tiap field (Cari + filter Kategori/SubKategori/Status/Tanggal/Tipe/Lingkup), konsistensi cross-surface, edge case (0-match message, scope mismatch, dropdown jujur) → confirmed gaps → fix.
+
+**Pendekatan:** Audit-driven (codebase audit 3 surface dulu → REQ dari confirmed findings → roadmap; pola spec-driven v19/v22). Skip domain-research (audit kode existing, bukan fitur baru).
+
+**Backlog dropped:** Phase 999.1 Realtime Assessment SignalR — di-drop user 2026-06-05 (tidak diprioritaskan).
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 
