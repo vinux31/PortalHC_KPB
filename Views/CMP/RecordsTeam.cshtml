@@ -93,13 +93,13 @@
             <div class="row g-3 mt-1">
                 <div class="col-12 col-md-6">
                     <label class="form-label small text-muted mb-1" for="teamSearch">Cari</label>
-                    <input type="text" id="teamSearch" class="form-control" placeholder="Cari nama/NIP atau judul training..." oninput="filterTeamTable()" />
+                    <input type="text" id="teamSearch" class="form-control" placeholder="Cari nama/NIP, judul training, atau judul assessment..." oninput="filterTeamTable()" />
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label small text-muted mb-1" for="searchScope">Lingkup</label>
                     <select id="searchScope" class="form-select" onchange="filterTeamTable()">
                         <option value="Nama">Nama</option>
-                        <option value="Training">Training</option>
+                        <option value="Training">Judul Kegiatan</option>
                         <option value="Keduanya" selected>Keduanya</option>
                     </select>
                 </div>
