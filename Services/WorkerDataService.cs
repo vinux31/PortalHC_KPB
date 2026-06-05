@@ -407,12 +407,16 @@ namespace HcPortal.Services
                     bool trainingMatch = w.TrainingRecords != null &&
                         w.TrainingRecords.Any(t => !string.IsNullOrEmpty(t.Judul) &&
                                                    t.Judul.ToLower().Contains(searchLower));
-                    if (searchScope == "Training") return trainingMatch;
-                    // Keduanya: union Nama/NIP OR Training
+                    // SF-01: mirror Category-union (:378-380) but match assessment Title (not Category) with .Contains
+                    bool assessmentMatch = w.AssessmentSessions != null &&
+                        w.AssessmentSessions.Any(a => !string.IsNullOrEmpty(a.Title) &&
+                                                      a.Title.ToLower().Contains(searchLower));
+                    if (searchScope == "Training") return trainingMatch || assessmentMatch;
+                    // Keduanya: union Nama/NIP OR Training OR Assessment
                     bool nameMatch =
                         (!string.IsNullOrEmpty(w.WorkerName) && w.WorkerName.ToLower().Contains(searchLower)) ||
                         (!string.IsNullOrEmpty(w.NIP) && w.NIP.ToLower().Contains(searchLower));
-                    return nameMatch || trainingMatch;
+                    return nameMatch || trainingMatch || assessmentMatch;
                 }).ToList();
             }
 
