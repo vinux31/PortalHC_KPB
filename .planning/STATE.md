@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v23.0
 milestone_name: CMP/Records Search & Filter Consistency Audit
-status: Roadmap created — 2 phase 350-351, 7 REQ SF-01..07, sequential strict (file-overlap WorkerDataService.cs)
-last_updated: "2026-06-05T12:38:01.203Z"
-last_activity: 2026-06-05 — ROADMAP.md v23.0 ditulis (2 phase), REQUIREMENTS traceability mapped 7/7, backlog Phase 999.2 promoted → Phase 350
+status: executing
+last_updated: "2026-06-05T13:17:38.113Z"
+last_activity: 2026-06-05 -- Phase 350 planning complete
 progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 5
-  percent: 83
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 ## Current Position
 
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 350 (CONTEXT.md @120a537f + UI-SPEC approved @55cc2b90; belum di-plan)
-Status: Discuss + UI-SPEC 350 DONE. UI-SPEC 6/6 dimensi PASS (text-only micro-copy: dropdown label "Judul Kegiatan" + placeholder + hint verbatim, value internal "Training" preserved). SF-01/02/06 keputusan terkunci: dropdown 3-opsi relabel jujur + predikat assessment-title post-load :402-417 (D-07 utuh) + export Category simetris (drop archived saat Kategori aktif, AttemptHistory no-Category-col) + test xUnit mirror + Playwright UAT Team View. NEXT: /gsd-plan-phase 350 (pilih "Research dulu")
-Last activity: 2026-06-05 — /gsd-ui-phase 350: UI-SPEC.md approved @55cc2b90 (researcher @1fd5b306, checker 6/6 PASS no FLAG)
+Phase: 350 (PLANNED — 3 plan / 3 wave @f9905933; checker PASSED 12 dimensi; ready execute)
+Status: Ready to execute
+Last activity: 2026-06-05 -- Phase 350 planning complete (research @aec1e8ba + UI-SPEC @55cc2b90 + VALIDATION @b54d1ee3 + PATTERNS + 3 PLAN @f9905933)
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
@@ -50,7 +50,7 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 
 ## Next Action
 
-1. **`/clear` lalu `/gsd-plan-phase 350`** — decompose Phase 350 (SF-01/02/06). Input: `.planning/phases/350-team-view-search-scope-export-parity/350-CONTEXT.md` (8 keputusan D-01..D-08, file:line + constraint planner) + spec audit `docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md`.
+1. **`/clear` lalu `/gsd-execute-phase 350`** — execute 3 plan/3 wave (350-01 test scaffold W0 → 350-02 SF-01 predikat + SF-02 copy W1 → 350-03 SF-06 export parity + gate W2, Plan 03 Task 3 = checkpoint human-verify). Per Develop Workflow: `dotnet build` + `dotnet test` + `dotnet run` localhost:5277 + Playwright UAT sebelum commit. NO migration. NO push tanpa instruksi user.
 2. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0** — push bundle ~127+ commit lokal + Dev migration coordination tetap pending (paralel jalur).
 3. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer.
 
