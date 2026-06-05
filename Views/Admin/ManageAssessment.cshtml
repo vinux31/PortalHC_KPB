@@ -15,8 +15,8 @@
     var urlAssessment = $"{urlAssessmentBase}?search={Uri.EscapeDataString(ViewBag.SearchTerm ?? "")}&category={Uri.EscapeDataString(ViewBag.SelectedCategory ?? "")}&statusFilter={Uri.EscapeDataString(ViewBag.SelectedStatus ?? "")}&page={ViewBag.CurrentPage}";
     // Wrapper Tab 2: section + unit + page ONLY (drop overlap — Bug 2 prevention by-design).
     var urlTraining = $"{urlTrainingBase}?section={Uri.EscapeDataString(ViewBag.SelectedSection ?? "")}&unit={Uri.EscapeDataString(ViewBag.SelectedUnit ?? "")}&page={ViewBag.CurrentPage}";
-    // Wrapper Tab 3: page only (Tab 3 client-side filter own).
-    var urlHistory = $"{urlHistoryBase}?page={ViewBag.CurrentPage}";
+    // Wrapper Tab 3: tanpa param server (Tab 3 client-side filter own; MAP-22 drop param mati page/pageSize/statusFilter).
+    var urlHistory = urlHistoryBase;
 }
 
 @Html.AntiForgeryToken()

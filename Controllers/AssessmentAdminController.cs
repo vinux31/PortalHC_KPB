@@ -299,8 +299,9 @@ namespace HcPortal.Controllers
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-        public async Task<IActionResult> ManageAssessmentTab_History(string? search, int page = 1, int pageSize = 20,
-            string? statusFilter = null)
+        // MAP-22: drop param mati page/pageSize/statusFilter (History pakai client-filter, tak paginate server-side).
+        // CATATAN Pitfall 8: ManageAssessmentTab_Training page/pageSize SEKARANG DIPAKAI (MAM-07) — JANGAN drop di sana.
+        public async Task<IActionResult> ManageAssessmentTab_History(string? search)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
@@ -316,8 +317,8 @@ namespace HcPortal.Controllers
 
             sw.Stop();
             _logger.LogInformation(
-                "ManageAssessment perf [tab=history]: elapsed={Ms}ms search_present={SearchPresent} page={Page}",
-                sw.ElapsedMilliseconds, !string.IsNullOrEmpty(search), page);
+                "ManageAssessment perf [tab=history]: elapsed={Ms}ms search_present={SearchPresent}",
+                sw.ElapsedMilliseconds, !string.IsNullOrEmpty(search));
 
             return PartialView("Shared/_HistoryTab", null);
         }
