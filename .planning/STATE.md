@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v23.0
 milestone_name: CMP/Records Search & Filter Consistency Audit
-status: planning
-last_updated: "2026-06-05"
-last_activity: 2026-06-05
+status: Roadmap created — 2 phase 350-351, 7 REQ SF-01..07, sequential strict (file-overlap WorkerDataService.cs)
+last_updated: "2026-06-05T12:38:01.203Z"
+last_activity: 2026-06-05 — ROADMAP.md v23.0 ditulis (2 phase), REQUIREMENTS traceability mapped 7/7, backlog Phase 999.2 promoted → Phase 350
 progress:
-  total_phases: 2
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State: Portal HC KPB
@@ -41,6 +41,7 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 | **351** Worker Detail + Cross-Surface Consistency | 0-match feedback+counter Worker Detail + Kategori match actual-records + paritas My Records↔Worker Detail + back-nav preserve param | SF-03, SF-04, SF-05, SF-07 | 3 MED-LOW | Phase 350 (file-overlap `WorkerDataService.cs`) | yes |
 
 **Audit-informed shaping notes:**
+
 - SF-01/02/06 cohere ke satu fase: semua menyentuh search predicate `WorkerDataService.GetWorkersInSection:402-417` + Team View surface `RecordsTeam.cshtml` + export `CMPController.ExportRecordsTeam*`. SF-06 (export parity) tergantung SF-01 (search assessment-title kembalikan worker benar).
 - SF-03/04/05/07 cohere ke fase kedua: Worker Detail `RecordsWorkerDetail.cshtml` + My Records `Records.cshtml` + `GetUnifiedRecords`.
 - Sequential strict: Phase 351 SF-04 sentuh `GetUnifiedRecords` di `WorkerDataService.cs` yang juga di-touch Phase 350 → hindari konflik write file.
