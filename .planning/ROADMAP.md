@@ -894,7 +894,11 @@ Plans:
   3. Field search/filter di My Records dan Worker Detail konsisten — tidak ada gap "satu surface bisa filter X, satunya tidak" tanpa alasan; user yang melihat data dirinya sendiri tidak lebih miskin alat filter dibanding saat melihat record orang lain.
   4. Tombol "Back to Team View" di Worker Detail kembali ke state Team View yang sama — preserve param filter (`subCategory`, `dateFrom`, `dateTo`, `searchScope`) selain `section`/`unit`/`category`/`statusFilter`/`search` — bukan hanya sebagian.
   5. `dotnet build` 0 error + `dotnet test` hijau (termasuk test pencocokan Kategori actual-records SF-04) + Playwright UAT per surface PASS (My Records + Worker Detail + back-nav round-trip).
-**Plans:** TBD
+**Plans:** 4 plans
+  - [ ] 351-01-PLAN.md — Wave 0 test infra: cmp351-seed.sql (off-master Kategori) + cmp-records-351.spec.ts (SF-03/04/05/07) + SEED_JOURNAL
+  - [ ] 351-02-PLAN.md — Backend: BuildActualCategories helper + ViewBag.ActualCategoriesJson di RecordsWorkerDetail (SF-04) + Records (SF-05) + xUnit; authz preserve
+  - [ ] 351-03-PLAN.md — Worker Detail view: counter + filtered-empty-state (SF-03) + Kategori actual-source (SF-04)
+  - [ ] 351-04-PLAN.md — My Records view: Kategori+Tipe parity + data-category (SF-05) + hash-to-tab activator back-nav (SF-07)
 **UI hint:** yes
 
 **Active mapped: 7/7 ✓ (SF-01..07) — Orphans: 0 — Duplicates: 0 — No migration — Preserves REC-06 D-07**
@@ -904,7 +908,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 350. Team View Search Scope + Export Parity | 3/3 | Complete    | 2026-06-05 |
-| 351. Worker Detail + Cross-Surface Consistency | 0/TBD | Not started | - |
+| 351. Worker Detail + Cross-Surface Consistency | 0/4 | Planned | - |
 
 ### Coverage Validation
 
