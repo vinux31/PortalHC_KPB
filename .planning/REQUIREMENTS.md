@@ -43,6 +43,14 @@ Tidak ada — seluruh 7 temuan audit masuk scope v23.0.
 
 ## Traceability
 
-| REQ-ID | Phase | Status |
-|--------|-------|--------|
-| SF-01..07 | TBD (roadmap) | Pending |
+| REQ-ID | Sev | Phase | Surface | Status |
+|--------|-----|-------|---------|--------|
+| SF-01 | HIGH | Phase 350 | Team View (search predicate) | Pending |
+| SF-02 | MED | Phase 350 | Team View (Lingkup dropdown + placeholder) | Pending |
+| SF-06 | MED | Phase 350 | Team View Export (parity) | Pending |
+| SF-03 | MED | Phase 351 | Worker Detail (0-match + counter) | Pending |
+| SF-04 | MED | Phase 351 | Worker Detail (Kategori actual-match) | Pending |
+| SF-05 | LOW | Phase 351 | My Records ↔ Worker Detail (parity) | Pending |
+| SF-07 | LOW | Phase 351 | Worker Detail → Team View (back-nav state) | Pending |
+
+**Mapped: 7/7 ✓ — Orphans: 0 — Duplicates: 0 — No migration — Preserves REC-06 D-07**

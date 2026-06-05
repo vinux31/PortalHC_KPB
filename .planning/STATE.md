@@ -6,11 +6,11 @@ status: planning
 last_updated: "2026-06-05"
 last_activity: 2026-06-05
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 24
-  completed_plans: 24
-  percent: 100
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -20,37 +20,42 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Antara milestone — v22.0 ditutup 2026-06-05; next `/gsd-new-milestone v23.0`
+**Current focus:** v23.0 — konsistensi search/filter CMP/Records 3 surface (My Records + Team View + Worker Detail). Roadmap dibuat 2026-06-05; next `/gsd-plan-phase 350`.
 
 ## Current Position
 
-Milestone: v23.0 🚧 STARTED 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: Not started (audit → defining requirements)
-Status: Audit search/filter CMP/Records 3 surface
-Last activity: 2026-06-05 — Milestone v23.0 started
+Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
+Phase: 350 (roadmap ready, belum di-plan)
+Status: Roadmap created — 2 phase 350-351, 7 REQ SF-01..07, sequential strict (file-overlap WorkerDataService.cs)
+Last activity: 2026-06-05 — ROADMAP.md v23.0 ditulis (2 phase), REQUIREMENTS traceability mapped 7/7, backlog Phase 999.2 promoted → Phase 350
 
-Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → confirmed gaps. 999.1 Realtime SignalR DROPPED.
+Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
 Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v19-v22 NOT PUSHED pending IT.
 
-## Phase 340 Closure Snapshot
+## v23.0 Phase Map
 
-- **REQ delivered:** ORG-LABEL-01 (tabel + migration + seed) / ORG-LABEL-02 (service + cache) / ORG-LABEL-03 (controller endpoint) / ORG-LABEL-07 (tests + handoff)
-- **Commits (10):** `e31db3c5` entity / `26ecd48a` DbSet+migration / `7e575f38` seed + D-12 fix / `92e20fbe` interface / `3a3aa3b9` service+DI+controller / `a6ba3514` plan02 summary / `43e94655` xUnit tests / `10ba5c5e` IT handoff HTML / `d631a686` plan01+03 summaries
-- **Tests:** `dotnet test HcPortal.Tests` → 20/20 PASS (18 existing + 2 new TEST-01)
-- **Live endpoint:** `GET /Admin/GetLevelLabels` → 200 `{"0":"Bagian","1":"Unit","2":"Sub-unit"}`
-- **IT handoff:** `docs/DB_HANDOFF_IT_2026-06-03.html` ready forward Team IT (commit target now `d631a686`, migration flag YES)
+| Phase | Goal | REQ | Sev | Depends on | UI hint |
+|-------|------|-----|-----|-----------|---------|
+| **350** Team View Search Scope + Export Parity | Search cakup judul Assessment (fix 999.2) + dropdown Lingkup jujur + export WYSIWYG; preserve REC-06 D-07 | SF-01, SF-02, SF-06 | HIGH+MED+MED | — (foundation predicate `GetWorkersInSection`) | yes |
+| **351** Worker Detail + Cross-Surface Consistency | 0-match feedback+counter Worker Detail + Kategori match actual-records + paritas My Records↔Worker Detail + back-nav preserve param | SF-03, SF-04, SF-05, SF-07 | 3 MED-LOW | Phase 350 (file-overlap `WorkerDataService.cs`) | yes |
+
+**Audit-informed shaping notes:**
+- SF-01/02/06 cohere ke satu fase: semua menyentuh search predicate `WorkerDataService.GetWorkersInSection:402-417` + Team View surface `RecordsTeam.cshtml` + export `CMPController.ExportRecordsTeam*`. SF-06 (export parity) tergantung SF-01 (search assessment-title kembalikan worker benar).
+- SF-03/04/05/07 cohere ke fase kedua: Worker Detail `RecordsWorkerDetail.cshtml` + My Records `Records.cshtml` + `GetUnifiedRecords`.
+- Sequential strict: Phase 351 SF-04 sentuh `GetUnifiedRecords` di `WorkerDataService.cs` yang juga di-touch Phase 350 → hindari konflik write file.
+- **Tests folded per phase** (bukan fase verify terpisah, scope kecil): audit menemukan `WorkerDataServiceSearchTests.cs` tak punya test assessment-title → Phase 350 wajib tambah (logic-bearing SF-01/06). Phase 351 tambah test Kategori actual-match (SF-04). Reuse pola v22: xUnit predicate-mirror + Playwright UAT.
+- **No migration** (search/filter predicate + view + export saja).
 
 ## Next Action
 
-1. **`/gsd-execute-phase 345 --interactive`** — eksekusi 4 plan v22.0 (CMP-06 residual fix); pre-plan artifacts (CONTEXT+RESEARCH+VALIDATION+UI-SPEC+PATTERNS) lengkap, checker PASS.
-2. **Carry-over IT promo v19.0+v20.0+v21.0/340** — push bundle + Dev migration coordination tetap pending (paralel jalur).
-3. **(Backlog housekeeping non-blocker):** Pre-existing Tom Select UX regression dari v20.0 audit defer ke v21.0 backlog (lihat v20.0-MILESTONE-AUDIT.md tech_debt).
-4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro).
+1. **`/gsd-plan-phase 350`** — decompose Phase 350 (Team View server-side search scope + export parity, SF-01/02/06). Spec audit `docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md` jadi input CONTEXT.md (file:line per finding tersedia).
+2. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0** — push bundle ~127+ commit lokal + Dev migration coordination tetap pending (paralel jalur).
+3. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer.
 
 ## Deferred Items
 
-### v15.0 Deferred (carry-over ke v16.0+)
+### v15.0 Deferred (carry-over)
 
 | REQ | Item | Status | Due |
 |-----|------|--------|-----|
@@ -62,13 +67,26 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 |----------|------|--------|--------|
 | UAT | Phase 303 Plan 02 Task 3 — Coach Workload 12-langkah human verification | paused-at-checkpoint | HANDOFF.json (2026-04-10) |
 | UAT | Phase 235 — 5 items butuh human verification via browser | pending | STATE.md (prior) |
-| UAT | Phase 247 approval chain — 2 TODO (HC review + resubmit notification) | pending — overlap risk dengan Phase 310 (T9 NotifyIfGroupCompleted) | STATE.md (prior) |
+| UAT | Phase 247 approval chain — 2 TODO (HC review + resubmit notification) | pending | STATE.md (prior) |
 | Research gap | Phase 297 Pre-Post Renewal behavior — keputusan 2 sesi baru otomatis | undecided | v14.0 planning |
 | Research gap | Phase 298 essay max character limit — nvarchar(max) vs nvarchar(2000) | undecided | v14.0 planning |
 | Blocker | Phase 293 `GetSectionUnitsDictAsync` Level 2+ support | undecided | v13.0 carry-over |
 | v11.2 paused | Phase 281 (System Settings) + Phase 285 (Dedicated Impersonation Page) | paused | MILESTONES.md v11.2 |
 
-Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked items.
+### v22.0 Tech Debt (acknowledged at close 2026-06-05)
+
+| Item | Status |
+|------|--------|
+| Push batch v19+v20+v21+v22 (~127 commit leg) pending IT availability | pending |
+| CMP06R-03 PDF env-blocked lokal (QuestPDF 204, Phase 327 known) — code-verified | needs Dev/Prod render-confirm |
+| 348/349 tanpa VERIFICATION.md (human-verify + UAT substantif) | accepted |
+
+### Dropped (v23.0 scope decision)
+
+| Item | Reason | Date |
+|------|--------|------|
+| Phase 999.1 Realtime Assessment SignalR | Tidak diprioritaskan user | 2026-06-05 |
+| Phase 999.2 Team View search → Assessment title | PROMOTED → v23.0 Phase 350 (SF-01/02/06) | 2026-06-05 |
 
 ## Quick Tasks Completed
 
@@ -80,51 +98,32 @@ Total: 7 carry-over deferred items + 1 v15.0 deferred (EPRV-01) = 8 tracked item
 
 ### Decisions (persist across milestones)
 
-- [v14.0 / Phase 296]: GradeFromSavedAnswers dihapus — GradingService adalah satu-satunya source of truth untuk grading
+- [v23.0 / Phase 350]: **REC-06 D-07 invariant LOCKED** — SF-01 search assessment-title HARUS filter di level worker (post-load), badge/count per-worker tetap utuh. Pola sama dgn Category filter `WorkerDataService.cs:373-381` yang sudah union `AssessmentSessions.Any(a => a.Category ...)` — terapkan pola identik untuk `a.Title`. JANGAN ubah ke all-SQL pre-narrow (asimetri Nama-via-SQL vs Training/Assessment-via-post-load disengaja per D-07/audit §3.D).
+- [v23.0 / Phase 350]: Export Team View = WYSIWYG terhadap filter aktif (snapshot saat klik, `RecordsTeam.cshtml:329-346` updateExportLinks) — SF-06 hanya butuh propagasi fix SF-01; assessment row tak punya kolom Category row-level (audit by-design #B), keputusan simetri Category di-dokumentasikan saat plan.
+- [v22.0 cross-milestone]: `AssessmentConstants.AssessmentStatus.PendingGrading` ("Menunggu Penilaian") = single source of truth label lintas 11+ surface; exclude-pending denominator konsisten 3 jalur.
+- [v14.0 / Phase 296]: GradeFromSavedAnswers dihapus — GradingService satu-satunya source of truth grading
 - [v14.0 / Phase 301]: Export endpoints re-query database independen (tidak share state dengan API endpoints)
-- [v14.0 / Phase 302]: A11Y-03 (screen reader) & A11Y-04 (font size controls) di-drop per D-18/D-19
-- [v14.0 / Phase 303]: Chart.js v4 `indexAxis:'y'` untuk horizontal bar (bukan v2 horizontalBar)
-- [v14.0 / Phase 303]: Auto-suggest coach via `data-section` attribute, tanpa server round-trip
 - [v13.0]: SortableJS 1.15.7 via CDN; drag-drop sibling-only (group: false); orgTree.js single JS orchestrator
-- [v12.0]: AdminController dipecah menjadi 8 controller per domain; URL tetap via [Route] attribute
-- [Phase 292]: IsAjaxRequest() sebagai protected method di AdminBaseController; dual-response pattern
-- [v15.0 / Phase 306]: Score editable MC/MA/Essay range 1-100 server-side; AuditLog `EditQuestion-ScoreChange` dengan format `oldScore → newScore (N sessions affected)`; modal warning informasional only (Stored AssessmentSessions.Score di Completed sessions TIDAK auto-recalculate)
-- [v15.0 / Phase 307]: Selectors helper di `tests/e2e/helpers/wizardSelectors.ts` (NEW folder), bukan `tests/helpers/`, untuk separation e2e-specific selectors vs shared utilities
-- [v15.0 / Phase 311]: ManageAssessment performance bottleneck = proxy wifi kantor (bukan backend); HTMX lazy load + AsNoTracking + 2 EF index + IMemoryCache Categories TTL 5min
-- [v15.0 / Phase 313.1]: Helper module `tests/e2e/helpers/exam313.ts` (4 function exports flat); Race-tolerant Tier-2 assertion via `Promise.race`; Tier-1 manual reject TRUE end-to-end TIDAK UI-testable (server-side StartExam redirect ExamSummary)
+- [v12.0]: AdminController dipecah jadi 8 controller per domain; URL tetap via [Route] attribute
+- [v15.0 / Phase 307]: Selectors helper di `tests/e2e/helpers/wizardSelectors.ts` (NEW folder) untuk separation e2e-specific selectors vs shared utilities
+- [v21.0]: Configurable display labels via cached `IOrgLabelService` + global `@inject` di `_ViewImports.cshtml` (real-time propagation via cache-invalidate-on-mutation)
 
 ### Open Blockers/Concerns
 
 - Phase 293 `GetSectionUnitsDictAsync` — hardcoded 2-level, unit Level 2+ tidak muncul di dropdown ManageWorkers secara diam-diam (keputusan masih tertunda)
+- SF-04 (Phase 351) gray-area: perlu audit saat plan apakah nilai `Kategori` record dijamin = master `AssessmentCategories` name. Jika YA → severity turun ke LOW (hanya dead-option cleanup); jika TIDAK (free-text/legacy ada) → butuh build opsi dari distinct `unifiedRecords`. Audit `RecordsWorkerDetail.cshtml:352-353` + opsi `:140-148`.
 
 ### Roadmap Evolution
 
-- Phase 316 added (2026-05-11): Fix SubmitExam page-closed bug + matrix test infra polish — resolve cascade fail dari Phase 315 yang block sentinel S8/S9/S10 verification
-- Phase 317-319 added (2026-05-11): Extend v16.0 dari 2 → 5 phases untuk close exam-type coverage gap (317: MA/Essay/Mixed via HC UI), advanced features (318: PreTest/PostTest, ExamWindowCloseDate, Certificate PDF), admin coverage (319: ManualAssessment, Export, Analytics, CertificationManagement)
-- Phase 322 added (2026-05-22): filter-scope-per-tab-manage-assessment — fix double filter di tab Assessment Groups (dev) + filter contamination antar tab (Phase 311 Plan 02 shared filter rollback). Per-tab native filter: Tab 1 (search+kategori+status), Tab 2 (bagian+unit+kategori-training+status+nama/nopeg), Tab 3 sub-tab History masing-masing punya filter client-side (Riwayat Assessment + Riwayat Training).
-- Phase 323 added (2026-05-26): Fix cascade bug AssessmentEditLogs di 3 endpoint delete assessment — Phase 321 oversight di Phase 312 cascade. `AssessmentEditLog` (Phase 321) punya FK Restrict ke `AssessmentSession`, tapi `DeleteAssessment` / `DeleteAssessmentGroup` / `DeletePrePostGroup` (Phase 312) tidak cascade hapus. Repro Dev: AssessmentSession Id 1 (0 edit logs) sukses; Id 2+5 (ada edit logs) gagal "Gagal menghapus assessment". Scope: tambah `RemoveRange(AssessmentEditLogs)` block sebelum cascade existing di 3 endpoint di `Controllers/AssessmentAdminController.cs`. Tidak ubah schema/model/migration.
-- Phase 324 added (2026-05-26): Fix duplicate TrainingRecord auto-create on assessment completion — regression dari commit `766011b6` (2026-04-10) yang re-introduce auto-create TrainingRecord di `GradingService.GradeAndCompleteAsync` setelah sebelumnya di-remove oleh `79284609` (2026-03-18) karena "caused duplicate entries in RecordWorkerDetail unified view". Worker submit 1 assessment biasa (non-essay/non-PreTest) → DB store 1 AssessmentSession + 1 TrainingRecord (Judul=`Assessment: {Title}`). `WorkerDataService.GetUnifiedRecords` query keduanya → user lihat 2 row untuk 1 event. Scope: hapus auto-create di `GradingService.cs:255-285`, `AssessmentAdminController.cs:3404-3421` (FinalizeEssayGrading), `GradingService.cs:483-562` (RegradeAfterEditAsync TR cascade); cleanup TR legacy `Judul LIKE 'Assessment:%'` antara 2026-04-10..hari ini (backup DB lokal dulu per SEED_WORKFLOW).
-- Phase 329 added (2026-05-28): fix-cascade-deleteassessmentgroup-deleteprepostgroup-renewal-precheck — Pasang pre-check renewal chain (RenewsSessionId) di DeleteAssessmentGroup (AssessmentAdminController.cs:2199) + DeletePrePostGroup (AssessmentAdminController.cs:2359) sebelum BeginTransactionAsync, paralel pola Phase 325 P05 DeleteAssessment L2040-2052. Source Phase 328 RESEARCH.md §4.4 + §4.5 (HIGH D5 fail). Severity HIGH. Effort S (~40 LoC delta 1 controller, no migration). Depends on Phase 328 (audit deliverable).
-- Phase 330 added (2026-05-28): fix-cascade-med-bundle-delete-category-package-question-orgunit-notification — Fix MED cascade safety: DeleteCategory + DeletePackage + DeleteQuestion + DeleteOrganizationUnit (TrainingAdminController) + NotificationService.DeleteAsync. Pre-check FK renewal/child referrer sebelum tx scope. Source Phase 328 RESEARCH.md §9 proposal #7. Severity MED. Effort S-M (~60-80 LoC delta 2 file, no migration). Depends on Phase 329.
-- Phase 328 added (2026-05-27): Cascade Audit Sweep — Delete* Endpoints (Audit-Only). Post-Phase-323 deferred follow-up per `323-CONTEXT.md:122`. Enumerate semua `Delete*` method di `Controllers/*.cs` + `Services/*.cs`, audit terhadap 7-dim cascade-safety checklist (FK risk, file-DB atomicity, audit log, role check, renewal chain null-clear, error handling, transaction wrap). Severity tag per row (HIGH/MED/LOW). Deliverable `328-RESEARCH.md` only. No code change, no fix phase spawn (separate user decision post-audit). Pre-audit HIGH finding confirmed: renewal chain bug di `DeleteTraining` (`TrainingAdminController.cs:527-548`) + `DeleteManualAssessment` (`:736-756`). Spec: `docs/superpowers/specs/2026-05-27-v19.0-cascade-audit-sweep-design.md` commit `02f620be`.
-- Phase 331 added (2026-05-28): fix-cascade-deletetraining-deletemanualassessment-atomicity — DeleteTraining + DeleteManualAssessment (TrainingAdminController.cs:559 + :793): wrap BeginTransactionAsync + move File.Delete POST commit (D2+D7). D5 sudah Phase 325 P05 covered. Source Phase 328 RESEARCH.md §4.1 + §4.2 + §9 proposal #1. Severity HIGH. Effort S-M (~80 LoC delta 1 controller, no migration). Depends on Phase 330.
-- Phase 332 added (2026-05-28): fix-cascade-deletebagian-file-atomicity — DeleteBagian (DocumentAdminController.cs:283): wrap BeginTransactionAsync + move File.Delete L327+L343 POST SaveChanges + try/catch DbUpdateException (D2+D6+D7). Pertahankan pre-check active files BLOCK L289-302. Source Phase 328 RESEARCH.md §4.7 + §9 proposal #3. Severity HIGH. Effort S-M (~50 LoC delta 1 controller, no migration). Depends on Phase 331.
-- Phase 333 added (2026-05-28): fix-cascade-deletecoachingsession-file-atomicity — DeleteCoachingSession (CDPController.cs:2433): move File.Delete loop L2490-2503 (evidence EvidencePath + history) POST tx.CommitAsync L2538 + refactor catch L2540 jangan raw 500 throw (D2 fix + D6 polish). Pertahankan progress state revert logic L2505-2517 + active-mapping guard L2441-2453. Source Phase 328 RESEARCH.md §4.6 + §9 proposal #4. Severity HIGH. Effort M. Depends on Phase 332.
-- Phase 334 added (2026-05-28): fix-cascade-deletekompetensi-orphan-evidence-files — DeleteKompetensi (ProtonDataController.cs:1516): iterate nested SubKompetensi → Deliverable → Progress tree, collect EvidencePath + History (JsonDocument parse), File.Delete POST CommitAsync L1576 + refactor catch L1584 jangan return ex.Message ke client (D2 fix + D6 info leak fix). Pertahankan BeginTransactionAsync L1529. Source Phase 328 RESEARCH.md §4.8 + §9 proposal #5. Severity HIGH. Effort M. Depends on Phase 333.
-- Phase 335 added (2026-05-28): fix-cascade-deleteworker-renewal-files-tx — DeleteWorker (WorkerController.cs:487): triple-fix D2+D5+D7. (D2) Loop TR/AS + Proton progress milik user, collect file paths SertifikatUrl/ManualSertifikatUrl/EvidencePath, File.Delete POST commit. (D5) Pre-check TR/AS user di-referensi sebagai RenewsTrainingId/RenewsSessionId source untuk worker LAIN — cross-user pattern (BUKAN same-user Phase 325 P05) → block atau null-clear. (D7) BeginTransactionAsync wrap full 9-step RemoveRange cascade INCLUDING UserManager.DeleteAsync interaction (Identity store separate SaveChanges path). Solo phase, BUKAN bundle. Manual UAT 5+ scenario. Source Phase 328 RESEARCH.md §4.3 + §9 proposal #6. Severity HIGH. Effort L (~200-300 LoC). Depends on Phase 334.
+- v23.0 added (2026-06-05): CMP/Records Search & Filter Consistency Audit — 2 phase 350-351 dari audit 3-surface (`docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md`, 7 confirmed [1 HIGH/4 MED/2 LOW]). Phase 350 = Team View server-side search scope + export parity (SF-01/02/06, fix 999.2, preserve REC-06 D-07, foundation predicate). Phase 351 = Worker Detail + cross-surface filter consistency (SF-03/04/05/07). Sequential strict (file-overlap `WorkerDataService.cs`). Tests folded per phase (xUnit predicate-mirror + Playwright UAT reuse v22). No migration. Backlog Phase 999.2 promoted → Phase 350; 999.1 SignalR dropped.
 
 ## Session Continuity
 
-Last activity: 2026-05-22 — Phase 322 SHIPPED via /gsd-execute-phase 322 --interactive (Playwright automated UAT). 13 commit total: 6 feat (322-01..06) + 2 fix critical post-UAT discovery (`6ecb7a50` ViewBag null coalesce + `773c970c` wrapper hx-vals → URL migration — HTMX hx-vals inheritance gotcha) + 5 docs (UAT + 3 SUMMARY). UAT 11/12 PASS + 1 N/A (Step 3 pagination — DB lokal 1 grup insufficient; bonus fix verified via code review).
+Last activity: 2026-06-05 — ROADMAP v23.0 dibuat (roadmapper). 2 phase derived dari 7 audit findings:
 
-Phase 322 deliverables:
+- **Phase 350** (Team View): SF-01 HIGH (search predicate `GetWorkersInSection:402-417` tambah `AssessmentSessions.Any(a=>a.Title contains)`) + SF-02 MED (dropdown Lingkup + placeholder jujur `RecordsTeam.cshtml:92-105`) + SF-06 MED (export parity `CMPController.cs:669-680/721-732`). Cohesion: sama search predicate + Team View surface + export. Preserve REC-06 D-07 (worker-level post-load filter, badge count utuh).
+- **Phase 351** (Worker Detail + cross-surface): SF-03 MED (0-match message + counter `RecordsWorkerDetail.cshtml:336-358`, reuse My Records pola) + SF-04 MED (filter Kategori match actual-records `:352-353`, build opsi dari distinct unifiedRecords) + SF-05 LOW (paritas filter My Records `Records.cshtml:54-93` vs Worker Detail `:128-181`) + SF-07 LOW (back-nav preserve subCategory/dateFrom/dateTo/searchScope `:27-47`).
 
-- Bug 1 (double filter Tab 1): FIXED via shell shared form delete
-- Bug 2 (cross-tab contamination): PREVENTED by-design via D-21 Strategy D Hybrid (URL query string per-wrapper, NOT hx-vals which inherits to descendants)
-- Bug 3 (pagination filter state): bonus fix via hx-include=#filterFormAssessment
-- Riwayat Training filter NEW (parity sama Riwayat Assessment)
-- D-10 URL bookmark backward compat preserved
+Files written: ROADMAP.md (v23.0 block appended — milestone list line + Phase Details 350/351 + Progress Table + Coverage Validation + footer log; backlog 999.2 marked PROMOTED; existing milestone history + Backlog section preserved), REQUIREMENTS.md (traceability 7/7 mapped), STATE.md (this file).
 
-Next action: User confirm finishing actions (tag v17.0-p322-complete + push origin/main). v17.0 milestone 3/3 phases SHIPPED — ready /gsd-complete-milestone untuk prep v18.0.
-
-Key learning untuk depan: HTMX hx-vals attribute INHERITS dari ancestor ke descendant HTMX triggers (override descendant form data). Solution wrapper-only params: bake ke hx-get URL query string. Solution user-driven params (form/dropdown): descendant pakai hx-include="closest form" tanpa ancestor hx-vals.
+Next action: `/gsd-plan-phase 350` — spec audit jadi input CONTEXT.md; effort S (SF-01/02) + M (SF-06 keputusan simetri export). Verifikasi lokal `dotnet build` + `dotnet run` localhost:5277 + Playwright per CLAUDE.md Develop Workflow sebelum commit.

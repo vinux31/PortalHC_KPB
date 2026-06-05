@@ -21,6 +21,7 @@
 - ✅ **v20.0 CMP Records Overhaul + Cilacap UX/Restore** — Phases 336-339 (shipped local + archived 2026-06-02, 39/39 REQ) — [archive](milestones/v20.0-ROADMAP.md) — [audit](milestones/v20.0-MILESTONE-AUDIT.md)
 - ✅ **v21.0 ManageOrganization Overhaul + Level Label CRUD** — Phases 340-344 (shipped local + closed 2026-06-04, 26/26 REQ) — [roadmap](milestones/v21.0-ROADMAP.md) — [audit](milestones/v21.0-MILESTONE-AUDIT.md)
 - ✅ **v22.0 CMP-06 + Assessment/Monitoring Audit Fixes** — Phases 345-349 (shipped local + audited 2026-06-05, 60/60 REQ) — [archive](milestones/v22.0-ROADMAP.md) — [audit](milestones/v22.0-MILESTONE-AUDIT.md)
+- 🚧 **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (active 2026-06-05, audit-driven, SF-01..07 / 7 REQ) — [spec](../docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md)
 
 ## Phases
 
@@ -618,7 +619,7 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.2: CMP/Records Team View search extend ke Assessment title (BACKLOG)
+### Phase 999.2: CMP/Records Team View search extend ke Assessment title (PROMOTED -> v23.0 Phase 350, 2026-06-05)
 
 **Goal:** Search Team View di `CMP/Records` (`searchScope`="Keduanya") ikut mencocokkan judul **assessment**, bukan hanya Nama/NIP + judul Training. User cari nama assessment (mis. "ojt v14.2") → saat ini 0 worker meski worker punya assessment itu.
 
@@ -634,7 +635,7 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 **Plans:** 0 plans
 
 Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+- [x] PROMOTED 2026-06-05 -> v23.0 SF-01/SF-02/SF-06 (Phase 350). Decision: extend scope + dropdown Lingkup jujur + export parity; preserve REC-06 D-07. See spec 2026-06-05-cmp-records-search-filter-audit.md.
 
 ## v20.0 CMP Records Overhaul + Cilacap UX/Restore — Phases 336-339 ✅ ARCHIVED
 
@@ -846,6 +847,79 @@ Plans:
   - **Files affected:** sama Phase 348 + `ManageAssessment.cshtml` + `_HistoryTab.cshtml`
 
 **Active mapped: 60/60 ✓ (CMP06R-01..05 + REC-01..09 + POL-01..10 + MAM-01..13 + MAP-01..23) — Orphans: 0 — Duplicates: 0 — REC-10 dropped — M4 dedup→REC-07/346 — No migration**
+
+
+---
+
+## 🚧 **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 🚀 ACTIVE
+
+**Status:** Started 2026-06-05 (audit-driven). Requirements `.planning/REQUIREMENTS.md` (SF-01..07 — 1 HIGH / 4 MED / 2 LOW).
+**Spec/audit:** `docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md` (3 surface audited, 7 confirmed findings, code-verified file:line).
+**Origin:** Backlog Phase 999.2 (bug UAT 2026-06-05: search "ojt v14.2" → 0 worker di Team View "Keduanya"). 999.1 Realtime SignalR DROPPED.
+**Goal:** Konsistensi + kelengkapan perilaku search/filter di seluruh permukaan CMP/Records (My Records + Team View + Worker Detail) — user tak lagi gagal menemukan data yang seharusnya muncul.
+**Keputusan terkunci:** Preserve REC-06 D-07 (Phase 346) — filter di level worker (post-load), badge count per-worker tetap utuh; **no migration** (search/filter predicate + view + export saja).
+
+### Phases
+
+- [ ] **Phase 350: Team View Server-Side Search Scope + Export Parity** — Cari di Team View ikut cakup judul Assessment (fix 999.2) + dropdown Lingkup jujur + export WYSIWYG identik tabel on-screen
+- [ ] **Phase 351: Worker Detail + Cross-Surface Filter Consistency** — 0-match feedback + counter di Worker Detail + filter Kategori match record aktual + paritas My Records ↔ Worker Detail + back-nav preserve param
+
+### Phase Details
+
+### Phase 350: Team View Server-Side Search Scope + Export Parity
+
+**Goal:** HC/admin dapat menemukan worker pemilik **assessment** (bukan hanya Training) saat search di Team View CMP/Records, dengan dropdown "Lingkup" + placeholder yang jujur mencerminkan apa yang dicari, dan tombol Export menghasilkan data identik dengan tabel on-screen. **Preserve REC-06 D-07:** predikat baru memfilter *worker mana yang muncul* di level worker (post-load), badge/count per-worker tetap utuh — tidak menyentuh agregasi per-record.
+**Depends on:** Tidak ada (fase pertama v23.0; foundation predicate `GetWorkersInSection`)
+**Requirements:** SF-01 (HIGH), SF-02 (MED), SF-06 (MED)
+**Success Criteria** (what must be TRUE):
+  1. User cari "ojt v14.2" (judul assessment) di Team View dengan Lingkup "Keduanya" → worker pemilik assessment itu **tampil** (sebelumnya 0 worker). Worker yang hanya cocok via Training tetap muncul (tidak ter-regresi).
+  2. Dropdown "Lingkup" punya opsi yang eksplisit mencakup pencarian Assessment (mis. opsi "Assessment" baru ATAU relabel "Keduanya" = Nama/NIP + Training + Assessment), dan placeholder/label search jujur (tidak lagi "...atau judul training" yang menyesatkan).
+  3. Tombol Export Team View (Assessment + Training) menghasilkan baris **identik** dengan tabel on-screen (WYSIWYG) — search/filter/scope yang sama diterapkan; Export Assessment **tidak kosong** saat user search judul assessment (konsekuensi SF-01).
+  4. Badge count Assessment Lulus / Training per worker **tidak berubah** akibat search (REC-06 D-07 invariant) — search hanya menyaring worker yang muncul, bukan mengubah angka badge.
+  5. `dotnet build` 0 error + `dotnet test` hijau termasuk test predikat baru `GetWorkersInSection` (assessment-title match) yang sebelumnya absen di `WorkerDataServiceSearchTests.cs`.
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 351: Worker Detail + Cross-Surface Filter Consistency
+
+**Goal:** Pekerja & atasan mendapat feedback jelas saat filter Worker Detail tidak menghasilkan baris (0-match), filter Kategori benar-benar mencocokkan kategori record aktual (bukan exact-equals ke master yang bisa miss record legacy/free-text + opsi mati), serta pengalaman filter konsisten antara melihat data sendiri (My Records) vs data pekerja lain (Worker Detail), dan tombol kembali ke Team View mempertahankan seluruh konteks filter.
+**Depends on:** Phase 350 (sequential — SF-04 menyentuh `GetUnifiedRecords` di `WorkerDataService.cs` yang juga di-touch Phase 350 `GetWorkersInSection`; hindari konflik write file)
+**Requirements:** SF-03 (MED), SF-04 (MED), SF-05 (LOW), SF-07 (LOW)
+**Success Criteria** (what must be TRUE):
+  1. Saat client-filter Worker Detail menyembunyikan semua baris (0 match), tampil pesan "Tidak ada hasil untuk filter ini." (`aria-live="polite"`) + counter "Menampilkan X dari Y" yang ikut filter aktif — bukan tabel kosong tanpa keterangan (reuse pola My Records / v22 MAP-07/08).
+  2. Filter Kategori di Worker Detail mencocokkan kategori **record aktual** (assessment + training rows) — record free-text/legacy tetap terfilter benar, dan opsi dropdown tidak menyertakan kategori "mati" (master yang tak punya record).
+  3. Field search/filter di My Records dan Worker Detail konsisten — tidak ada gap "satu surface bisa filter X, satunya tidak" tanpa alasan; user yang melihat data dirinya sendiri tidak lebih miskin alat filter dibanding saat melihat record orang lain.
+  4. Tombol "Back to Team View" di Worker Detail kembali ke state Team View yang sama — preserve param filter (`subCategory`, `dateFrom`, `dateTo`, `searchScope`) selain `section`/`unit`/`category`/`statusFilter`/`search` — bukan hanya sebagian.
+  5. `dotnet build` 0 error + `dotnet test` hijau (termasuk test pencocokan Kategori actual-records SF-04) + Playwright UAT per surface PASS (My Records + Worker Detail + back-nav round-trip).
+**Plans:** TBD
+**UI hint:** yes
+
+**Active mapped: 7/7 ✓ (SF-01..07) — Orphans: 0 — Duplicates: 0 — No migration — Preserves REC-06 D-07**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 350. Team View Search Scope + Export Parity | 0/TBD | Not started | - |
+| 351. Worker Detail + Cross-Surface Consistency | 0/TBD | Not started | - |
+
+### Coverage Validation
+
+| REQ | Sev | Phase | Surface | Status |
+|-----|-----|-------|---------|--------|
+| SF-01 | HIGH | 350 | Team View (search predicate) | Pending |
+| SF-02 | MED | 350 | Team View (Lingkup dropdown + placeholder) | Pending |
+| SF-06 | MED | 350 | Team View Export (parity) | Pending |
+| SF-03 | MED | 351 | Worker Detail (0-match + counter) | Pending |
+| SF-04 | MED | 351 | Worker Detail (Kategori actual-match) | Pending |
+| SF-05 | LOW | 351 | My Records ↔ Worker Detail (parity) | Pending |
+| SF-07 | LOW | 351 | Worker Detail → Team View (back-nav state) | Pending |
+
+**Active mapped: 7/7 ✓ — Orphans: 0 — Duplicates: 0**
+
+---
+
+*Roadmap updated: 2026-06-05 (v23.0 added — CMP/Records Search & Filter Consistency Audit; 2 phase 350-351 dari audit 3-surface 7 confirmed [1 HIGH/4 MED/2 LOW]; 350 = Team View server-side search scope + export parity SF-01/02/06 [fix 999.2, preserve REC-06 D-07], 351 = Worker Detail + cross-surface filter consistency SF-03/04/05/07; sequential strict [file-overlap WorkerDataService.cs]; tests folded per phase [reuse v22 xUnit predicate-mirror + Playwright UAT]; no migration; spec 2026-06-05-cmp-records-search-filter-audit.md; backlog Phase 999.2 promoted → SF-01/02/06; 999.1 SignalR dropped).*
 
 ---
 
