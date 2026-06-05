@@ -1,4 +1,7 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
+    // MAM-08: antiforgery token untuk hx-post delete (dikirim di body __RequestVerificationToken).
+    var antiToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
     var workers = ViewBag.Workers as List<HcPortal.Models.WorkerTrainingStatus> ?? new();
     var selectedSection = ViewBag.SelectedSection as string ?? "";
     var selectedCategory = ViewBag.SelectedCategory as string ?? "";
@@ -163,6 +166,15 @@
 
     </div>
 </div>
+
+@* MAM-08: re-fetch Tab2 saat record dihapus (HX-Trigger recordDeleted dari handler delete).
+   hx-include filterFormTraining bawa filter + isFiltered=true → isInitialState tetap false (tidak balik empty-state). *@
+<div hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
+     hx-trigger="recordDeleted from:body"
+     hx-include="#filterFormTraining"
+     hx-target="closest .htmx-tab-wrapper"
+     hx-swap="innerHTML"
+     style="display:none;"></div>
 
 <!-- Workers List -->
 @if (isInitialState)
@@ -329,14 +341,14 @@ else
                                                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </a>
-                                                                        <form method="post" action="@Url.Action("DeleteTraining", "TrainingAdmin")" class="d-inline">
-                                                                            @Html.AntiForgeryToken()
-                                                                            <input type="hidden" name="id" value="@row.Id" />
-                                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                                                    onclick="return confirm('Hapus training record ini?')">
-                                                                                <i class="bi bi-trash"></i>
-                                                                            </button>
-                                                                        </form>
+                                                                        @* MAM-08: hx-post delete (re-swap Tab2 preserve filter); token di body. *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                                                                hx-post="@Url.Action("DeleteTraining", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"id\": {row.Id}, \"__RequestVerificationToken\": \"{antiToken}\"}}")'
+                                                                                hx-confirm="Hapus training record ini?"
+                                                                                hx-swap="none">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
                                                                     }
                                                                     else
                                                                     {
@@ -344,14 +356,14 @@ else
                                                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </a>
-                                                                        <form method="post" action="@Url.Action("DeleteManualAssessment", "TrainingAdmin")" class="d-inline">
-                                                                            @Html.AntiForgeryToken()
-                                                                            <input type="hidden" name="id" value="@row.Id" />
-                                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                                                    onclick="return confirm('Hapus assessment record ini?')">
-                                                                                <i class="bi bi-trash"></i>
-                                                                            </button>
-                                                                        </form>
+                                                                        @* MAM-08: hx-post delete (re-swap Tab2 preserve filter); token di body. *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                                                                hx-post="@Url.Action("DeleteManualAssessment", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"id\": {row.Id}, \"__RequestVerificationToken\": \"{antiToken}\"}}")'
+                                                                                hx-confirm="Hapus assessment record ini?"
+                                                                                hx-swap="none">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
                                                                     }
                                                                 </div>
                                                             </td>

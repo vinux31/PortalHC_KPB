@@ -553,6 +553,21 @@ namespace HcPortal.Controllers
         }
 
         // POST /Admin/DeleteTraining
+        // MAM-08: HTMX delete dari Tab2 Input Records. Bila request HTMX → set HX-Trigger "recordDeleted"
+        // (view re-fetch Tab2 dgn hx-include filterFormTraining → filter + isFiltered=true preserved,
+        // isInitialState tetap false). Non-HTMX → full-page redirect (perilaku lama).
+        private bool IsHtmxRequest() => Request.Headers.ContainsKey("HX-Request");
+
+        private IActionResult DeleteTabResult()
+        {
+            if (IsHtmxRequest())
+            {
+                Response.Headers["HX-Trigger"] = "recordDeleted";
+                return new EmptyResult();
+            }
+            return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, HC")]
@@ -583,7 +598,7 @@ namespace HcPortal.Controllers
                     TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
                                       + "menggunakan record ini sebagai sumber renewal. "
                                       + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+                    return DeleteTabResult();
                 }
 
                 // Phase 331 D-02: tx wrap Remove + SaveChanges + AuditLog. Disposal auto-rollback jika exception escape sebelum CommitAsync.
@@ -616,7 +631,7 @@ namespace HcPortal.Controllers
                 _logger.LogWarning(ex, "Delete failed for TrainingRecord {Id}", record.Id);
                 TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
             }
-            return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+            return DeleteTabResult();
         }
 
         // --- MANUAL ASSESSMENT ---
@@ -982,7 +997,7 @@ namespace HcPortal.Controllers
                     TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
                                       + "menggunakan record ini sebagai sumber renewal. "
                                       + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+                    return DeleteTabResult();
                 }
 
                 // Phase 331 D-02: tx wrap Remove + SaveChanges + AuditLog. Disposal auto-rollback jika exception escape sebelum CommitAsync.
@@ -1013,7 +1028,7 @@ namespace HcPortal.Controllers
                 _logger.LogWarning(ex, "Delete failed for AssessmentSession (manual) {Id}", session.Id);
                 TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
             }
-            return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+            return DeleteTabResult();
         }
 
         // --- IMPORT TRAINING ---
