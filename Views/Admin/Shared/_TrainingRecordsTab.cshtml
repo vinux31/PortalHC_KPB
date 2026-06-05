@@ -6,6 +6,11 @@
     var selectedStatus = ViewBag.SelectedStatus as string ?? "";
     var searchTerm2 = ViewBag.SearchTerm as string ?? "";
     bool isInitialState = (bool)(ViewBag.IsInitialState ?? true);
+    // MAM-07: pagination state (set di ManageAssessmentTab_Training caller).
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
+    var pageSize = (int)(ViewBag.PageSize ?? 20);
 }
 
 <!-- Tab Header -->
@@ -364,4 +369,85 @@ else
             </table>
         </div>
     </div>
+
+    <!-- MAM-07: Pagination (HTMX, hx-include filterFormTraining untuk preserve filter state) -->
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Training records pagination" class="mt-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    Menampilkan @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, totalCount)) dari @totalCount pekerja
+                </div>
+                <ul class="pagination pagination-sm mb-0">
+                    @{
+                        var paginateAction = Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin");
+                    }
+                    @* First Page *@
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"1"}'
+                                hx-include="#filterFormTraining"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == 1 ? "disabled" : "")>
+                            <i class="bi bi-chevron-double-left"></i>
+                        </button>
+                    </li>
+                    @* Previous Page *@
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"@(currentPage - 1)"}'
+                                hx-include="#filterFormTraining"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == 1 ? "disabled" : "")>
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </li>
+                    @* Page Numbers *@
+                    @{
+                        var startPage = Math.Max(1, currentPage - 2);
+                        var endPage = Math.Min(totalPages, currentPage + 2);
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <button class="page-link" type="button"
+                                        hx-get="@paginateAction"
+                                        hx-vals='{"page":"@i"}'
+                                        hx-include="#filterFormTraining"
+                                        hx-target="closest .htmx-tab-wrapper"
+                                        hx-swap="innerHTML">@i</button>
+                            </li>
+                        }
+                    }
+                    @* Next Page *@
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"@(currentPage + 1)"}'
+                                hx-include="#filterFormTraining"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == totalPages ? "disabled" : "")>
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </li>
+                    @* Last Page *@
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <button class="page-link" type="button"
+                                hx-get="@paginateAction"
+                                hx-vals='{"page":"@totalPages"}'
+                                hx-include="#filterFormTraining"
+                                hx-target="closest .htmx-tab-wrapper"
+                                hx-swap="innerHTML"
+                                @(currentPage == totalPages ? "disabled" : "")>
+                            <i class="bi bi-chevron-double-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    }
 }

@@ -248,7 +248,8 @@ namespace HcPortal.Controllers
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            bool isInitialState = false;
+            // MAM-06: isInitialState turun dari absennya filter (bukan hardcode) → empty-state hidup, skip full-roster.
+            bool isInitialState = IsTrainingInitialState(isFiltered, section, unit, category, statusFilter, search);
             ViewBag.IsInitialState = isInitialState;
             ViewBag.SelectedSection = section;
             ViewBag.SelectedUnit = unit;
@@ -256,11 +257,27 @@ namespace HcPortal.Controllers
             ViewBag.SelectedStatus = statusFilter;
             ViewBag.SearchTerm = search;
 
+            // MAM-07: paginate di caller (pola CMPController.cs:776) — JANGAN ubah GetWorkersInSection signature.
             List<WorkerTrainingStatus> workers;
             if (isInitialState)
+            {
                 workers = new List<WorkerTrainingStatus>();
+                ViewBag.CurrentPage = 1;
+                ViewBag.TotalPages = 1;
+                ViewBag.TotalCount = 0;
+                ViewBag.PageSize = pageSize;
+            }
             else
-                workers = await _workerDataService.GetWorkersInSection(section, unit, category, search, statusFilter);
+            {
+                var fullList = await _workerDataService.GetWorkersInSection(section, unit, category, search, statusFilter);
+                var pageSizeValidated = (pageSize == 20 || pageSize == 50 || pageSize == 100) ? pageSize : 20;
+                var paging = HcPortal.Helpers.PaginationHelper.Calculate(fullList.Count, page, pageSizeValidated);
+                workers = fullList.Skip(paging.Skip).Take(paging.Take).ToList();
+                ViewBag.CurrentPage = paging.CurrentPage;
+                ViewBag.TotalPages = paging.TotalPages;
+                ViewBag.TotalCount = paging.TotalCount;
+                ViewBag.PageSize = paging.Take;
+            }
 
             ViewBag.Workers = workers;
 
@@ -2670,6 +2687,19 @@ namespace HcPortal.Controllers
             if (startedAt != null)
                 return "InProgress";
             return "Not started";
+        }
+
+        // MAM-06: Tab2 Input Records initial-state = TIDAK ada filter aktif. isFiltered hidden field di-post
+        // saat user interaksi filter. Bila initial → skip full-roster query (empty-state "Pilih filter").
+        public static bool IsTrainingInitialState(string? isFiltered, string? section, string? unit,
+            string? category, string? statusFilter, string? search)
+        {
+            return string.IsNullOrEmpty(isFiltered)
+                && string.IsNullOrEmpty(section)
+                && string.IsNullOrEmpty(unit)
+                && string.IsNullOrEmpty(category)
+                && string.IsNullOrEmpty(statusFilter)
+                && string.IsNullOrEmpty(search);
         }
 
         private string GenerateSecureToken(int length = 6)
