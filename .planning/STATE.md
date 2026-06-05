@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 ## Current Position
 
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 350 (roadmap ready, belum di-plan)
-Status: Roadmap created — 2 phase 350-351, 7 REQ SF-01..07, sequential strict (file-overlap WorkerDataService.cs)
-Last activity: 2026-06-05 — ROADMAP.md v23.0 ditulis (2 phase), REQUIREMENTS traceability mapped 7/7, backlog Phase 999.2 promoted → Phase 350
+Phase: 350 (CONTEXT.md ready — 8 keputusan D-01..D-08; belum di-plan)
+Status: Discuss-phase 350 DONE — CONTEXT @120a537f. SF-01/02/06 keputusan terkunci: dropdown 3-opsi relabel jujur ("Judul Kegiatan" = training+assessment title, value internal "Training" preserved) + predikat assessment-title post-load :402-417 (D-07 utuh) + export Category simetris (drop archived saat Kategori aktif, AttemptHistory no-Category-col) + test xUnit mirror + Playwright UAT Team View
+Last activity: 2026-06-05 — /gsd-discuss-phase 350: 4 area dibahas (dropdown+scope / export Category / micro-copy / test), 350-CONTEXT.md + 350-DISCUSSION-LOG.md @120a537f
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
@@ -50,7 +50,7 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 
 ## Next Action
 
-1. **`/gsd-plan-phase 350`** — decompose Phase 350 (Team View server-side search scope + export parity, SF-01/02/06). Spec audit `docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md` jadi input CONTEXT.md (file:line per finding tersedia).
+1. **`/clear` lalu `/gsd-plan-phase 350`** — decompose Phase 350 (SF-01/02/06). Input: `.planning/phases/350-team-view-search-scope-export-parity/350-CONTEXT.md` (8 keputusan D-01..D-08, file:line + constraint planner) + spec audit `docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md`.
 2. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0** — push bundle ~127+ commit lokal + Dev migration coordination tetap pending (paralel jalur).
 3. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer.
 
