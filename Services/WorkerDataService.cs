@@ -152,7 +152,8 @@ namespace HcPortal.Services
                     a.Title,
                     Date = a.CompletedAt ?? a.Schedule,
                     a.Score,
-                    a.IsPassed
+                    a.IsPassed,
+                    a.Category          // SF-06: carry Category for export Category-narrow
                 })
                 .ToListAsync();
 
@@ -194,7 +195,8 @@ namespace HcPortal.Services
                     Score         = a.Score,
                     IsPassed      = a.IsPassed,
                     AttemptNumber = attemptNumber,
-                    SessionId     = a.Id   // Phase 338 CIL-03 D-09: drill-down /CMP/Results/{id}
+                    SessionId     = a.Id,   // Phase 338 CIL-03 D-09: drill-down /CMP/Results/{id}
+                    Kategori      = a.Category   // SF-06: current-session Category (archived stays null — no column)
                 };
             }).ToList();
 
