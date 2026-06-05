@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 350 ✅ SHIPPED LOCAL — next Phase 351 (Worker Detail + cross-surface consistency)
+**Current focus:** Phase 350 ✅ SHIPPED LOCAL · Phase 351 CONTEXT ready (--auto) — next `/gsd-plan-phase 351`
 
 ## Current Position
 
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 350 ✅ COMPLETE (3/3 plan) — next 351 (NOT started; parser "next 999.2" = backlog artifact, abaikan)
-Plan: 350 3/3 shipped lokal
-Status: Phase 350 SHIPPED LOCAL 2026-06-05 — SF-01/02/06 done. 109/109 xUnit + Playwright e2e 2 passed + code-review 0C/0W/2I + verifier 5/5 must-haves. 2 HUMAN-UAT item (XLSX content + badge visual) tracked deferred (user approved close). NOT PUSHED bundle v19-v23.
-Last activity: 2026-06-05 -- /gsd-execute-phase 350 --interactive: 3 plan inline, commits cc9e7e86..15b9eb80 (+ review 1cf6b0c2 + UAT/verif 54dc51ab)
+Phase: 351 (CONTEXT.md ready @8cf1ba8e, --auto, D-01..D-04; belum di-plan). Phase 350 ✅ COMPLETE (3/3). (parser "next 999.2" = backlog artifact, abaikan)
+Plan: 351 belum di-plan
+Status: Phase 351 discuss DONE (--auto). SF-03 mirror My Records counter+empty-state · SF-04 Kategori opsi dari record aktual (bukan master, no GetUnifiedRecords change) · SF-05 +Kategori/Tipe ke My Records paritas · SF-07 sessionStorage-primary (planner verify restore precedence; fallback query-string round-trip). No migration. Phase 350 SHIPPED LOCAL (SF-01/02/06, 109/109 xUnit + Playwright 2 passed + review 0C/0W/2I + verifier 5/5; 2 HUMAN-UAT visual deferred). NOT PUSHED bundle v19-v23.
+Last activity: 2026-06-05 -- /gsd-discuss-phase 351 --auto: 351-CONTEXT.md + DISCUSSION-LOG @8cf1ba8e (stopped before plan-phase per user)
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
@@ -51,7 +51,7 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 
 ## Next Action
 
-1. **`/clear` lalu `/gsd-discuss-phase 351`** (atau `/gsd-plan-phase 351`) — Phase 351 Worker Detail + cross-surface (SF-03/04/05/07). Sequential strict: SF-04 sentuh `GetUnifiedRecords` di `WorkerDataService.cs` (file overlap dgn 350) → 350 harus selesai dulu (✅). NO migration.
+1. **`/clear` lalu `/gsd-plan-phase 351`** — CONTEXT.md ready (@8cf1ba8e, D-01..D-04). Phase 351 Worker Detail + cross-surface (SF-03/04/05/07). SF-04 fix di controller+view (pakai `unifiedRecords` yg sudah di-return) → overlap `WorkerDataService.cs` dgn 350 MINIM (revisi asumsi STATE awal). NO migration. UI hint=yes (counter/empty-state/dropdown — pertimbangkan `/gsd-ui-phase 351` bila mau kontrak visual).
 2. **(Opsional) `/gsd-verify-work 350`** — tutup 2 HUMAN-UAT item visual (XLSX content Category drop-archived + badge unchanged) saat dev/IT sempat eyeball; non-blocking, sudah code+automated verified.
 3. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0+v23.0/350** — push bundle ~130+ commit lokal + Dev migration coordination tetap pending (paralel jalur; Phase 350 flag migration = false).
 4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer.
