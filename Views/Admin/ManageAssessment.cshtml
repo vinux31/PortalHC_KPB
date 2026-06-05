@@ -146,17 +146,21 @@
                 <div class="card bg-light border-0 mb-4">
                     <div class="card-body">
                         <div class="row g-3">
-                            @for (int i = 0; i < 4; i++)
+                            @* MAP-09: 5 filter (section/category/unit/status/search) match _TrainingRecordsTab *@
+                            @for (int i = 0; i < 5; i++)
                             {
                                 <div class="col-md-2"><span class="placeholder col-12" style="height:31px"></span></div>
                             }
                         </div>
                     </div>
                 </div>
+                @* MAP-09: 7 kolom (No/Nama/NIP/Jabatan/Unit/Status Training/Aksi) match thead _TrainingRecordsTab *@
                 @for (int i = 0; i < 5; i++)
                 {
                     <div class="d-flex gap-2 mb-2" style="height:48px">
-                        <span class="placeholder col-3"></span>
+                        <span class="placeholder col-1"></span>
+                        <span class="placeholder col-2"></span>
+                        <span class="placeholder col-2"></span>
                         <span class="placeholder col-2"></span>
                         <span class="placeholder col-2"></span>
                         <span class="placeholder col-2"></span>
@@ -187,13 +191,18 @@
                     <div class="col-md-4"><span class="placeholder col-12" style="height:31px"></span></div>
                     <div class="col-md-4"><span class="placeholder col-12" style="height:31px"></span></div>
                 </div>
+                @* MAP-09: 8 kolom match thead Riwayat Assessment _HistoryTab (max — Training 5 kolom subset) *@
                 @for (int i = 0; i < 4; i++)
                 {
                     <div class="d-flex gap-2 mb-2" style="height:40px">
-                        <span class="placeholder col-3"></span>
-                        <span class="placeholder col-3"></span>
+                        <span class="placeholder col-2"></span>
+                        <span class="placeholder col-1"></span>
+                        <span class="placeholder col-2"></span>
+                        <span class="placeholder col-1"></span>
+                        <span class="placeholder col-1"></span>
                         <span class="placeholder col-2"></span>
                         <span class="placeholder col-2"></span>
+                        <span class="placeholder col-1"></span>
                     </div>
                 }
             </div>
@@ -324,6 +333,13 @@ function filterAssessmentRows() {
         var titleMatch = !titleFilter || title.toLowerCase().includes(titleFilter);
         row.style.display = (workerMatch && titleMatch) ? '' : 'none';
     });
+    // MAP-07/08: counter visible + pesan 0-match (markup di _HistoryTab.cshtml)
+    var visible = 0;
+    rows.forEach(function(row){ if (row.style.display !== 'none') visible++; });
+    var counter = document.getElementById('assessmentVisibleCount');
+    if (counter) counter.textContent = 'Menampilkan ' + visible + ' dari ' + rows.length;
+    var noResult = document.getElementById('assessmentNoResult');
+    if (noResult) noResult.style.display = (visible === 0) ? '' : 'none';
 }
 
 // Phase 322: History tab Riwayat Training client-side filter (parity sama Riwayat Assessment)
@@ -334,6 +350,13 @@ function filterTrainingRows() {
         var worker = row.getAttribute('data-worker') || '';
         row.style.display = (!workerFilter || worker.includes(workerFilter)) ? '' : 'none';
     });
+    // MAP-07/08: counter visible + pesan 0-match (markup di _HistoryTab.cshtml)
+    var visible = 0;
+    rows.forEach(function(row){ if (row.style.display !== 'none') visible++; });
+    var counter = document.getElementById('trainingVisibleCount');
+    if (counter) counter.textContent = 'Menampilkan ' + visible + ' dari ' + rows.length;
+    var noResult = document.getElementById('trainingNoResult');
+    if (noResult) noResult.style.display = (visible === 0) ? '' : 'none';
 }
 </script>
 }

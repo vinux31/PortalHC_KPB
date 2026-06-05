@@ -54,6 +54,8 @@
         }
         else
         {
+            @* MAP-08: counter visible-row (di-update client-filter JS host page) *@
+            <div id="assessmentVisibleCount" class="text-muted small mb-2">Menampilkan @assessmentHistory.Count dari @assessmentHistory.Count</div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="assessmentHistoryTable">
                     <thead class="table-dark">
@@ -122,6 +124,8 @@
                         }
                     </tbody>
                 </table>
+                @* MAP-07: pesan 0-match (toggle display via client-filter JS host page) *@
+                <div id="assessmentNoResult" class="text-center py-4 text-muted" style="display:none;" aria-live="polite">Tidak ada hasil untuk filter ini.</div>
             </div>
         }
     </div>
@@ -147,6 +151,8 @@
         }
         else
         {
+            @* MAP-08: counter visible-row (di-update client-filter JS host page) *@
+            <div id="trainingVisibleCount" class="text-muted small mb-2">Menampilkan @trainingHistory.Count dari @trainingHistory.Count</div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="trainingHistoryTable">
                     <thead class="table-dark">
@@ -172,6 +178,8 @@
                         }
                     </tbody>
                 </table>
+                @* MAP-07: pesan 0-match (toggle display via client-filter JS host page) *@
+                <div id="trainingNoResult" class="text-center py-4 text-muted" style="display:none;" aria-live="polite">Tidak ada hasil untuk filter ini.</div>
             </div>
         }
     </div>
