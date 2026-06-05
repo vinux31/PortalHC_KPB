@@ -836,9 +836,9 @@ Plans:
     4. Display nits: Abandoned card, progress bar bisa 100% (exclude Cancelled), "real-time" subtitle, kategori dobel.
     5. Code-hygiene: magic-number `20` → ViewBag, param mati drop. `dotnet build` 0 error + no visual regression.
   - **Risk:** Low | **Effort:** M (no migration)
-  - **Plans:** 1/5 plans executed
+  - **Plans:** 2/5 plans executed
     - [x] 349-01-PLAN.md — Tab3 History: i18n NIP + drop ARIA nested + 0-match/counter + skeleton (MAP-02/04/07/08/09/20)
-    - [ ] 349-02-PLAN.md — Tab1/Tab2: chevron+aria + empty-state filter-aware/Reset Semua Filter + tri-state/CompletionDisplayText + paging.Take (MAP-03/05/06/18/19/21)
+    - [x] 349-02-PLAN.md — Tab1/Tab2: chevron+aria + empty-state filter-aware/Reset Semua Filter + tri-state/CompletionDisplayText + paging.Take (MAP-03/05/06/18/19/21)
     - [ ] 349-03-PLAN.md — Monitoring list: buang real-time/kategori-dobel + Pre-Post Regenerate Token + TotalCount exclude Cancelled + Status jujur + search Category (MAP-13/14/15/16/17/23)
     - [ ] 349-04-PLAN.md — Monitoring Detail: i18n ID + 7-kartu summary (Abandoned+Pending) + InProgressCount/drop dead var + Akhiri Semua conditional (MAP-01/10/11/12)
     - [ ] 349-05-PLAN.md — MAP-22 drop param mati History + Nyquist test (MAP-13/23) + PHASE GATE (full suite + Playwright UAT 5 SC + browser-verify card-sum/progress-100%) (MAP-13/22/23)
