@@ -678,6 +678,15 @@ namespace HcPortal.Controllers
                 subCategory: null);
 
             var filtered = assessmentRows;
+            if (!string.IsNullOrEmpty(category))
+            {
+                // SF-06 / D-07: current sessions narrowed by Category (case-insensitive);
+                // archived rows (Kategori == null — no Category column) auto-dropped to match on-screen worker-visibility.
+                filtered = assessmentRows.Where(r =>
+                    !string.IsNullOrEmpty(r.Kategori) &&
+                    string.Equals(r.Kategori, category, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
 
             using var workbook = new XLWorkbook();
             var ws = ExcelExportHelper.CreateSheet(workbook, "Assessment", new[] { "No", "Nama", "NIP", "Judul", "Tanggal", "Skor", "Status", "Attempt" });
