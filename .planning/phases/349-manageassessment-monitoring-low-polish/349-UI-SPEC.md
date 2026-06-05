@@ -49,16 +49,17 @@ Exceptions: tidak ada. Skeleton loader (MAP-09) HARUS pakai lebar/jumlah kolom y
 
 ## Typography
 
-Phase ini TIDAK mendeklarasikan font baru — pakai kelas Bootstrap existing pada elemen yang disentuh. Dikunci agar 2 kartu baru (MAP-10) konsisten dengan 5 kartu existing.
+Phase ini TIDAK mendeklarasikan font baru — pakai kelas Bootstrap existing pada elemen yang disentuh. Dikunci agar 2 kartu baru (MAP-10) + empty-state baru konsisten dengan pola existing.
+
+**Tabel ini hanya mengunci elemen BARU/BERUBAH di Phase 349 (2 kartu summary + empty-state). Elemen existing Bootstrap (`<th>`, badge) tidak dideklarasikan ulang — pakai default Bootstrap apa adanya.**
 
 | Role | Size | Weight | Kelas Bootstrap |
 |------|------|--------|-------------|
 | Angka kartu summary | `fs-3` (~1.75rem) | bold (700) | `fs-3 fw-bold text-{color}` |
-| Label kartu summary | `small` (~0.875rem) | regular (400) | `text-muted small` |
-| Header tabel | inherit `<th>` (~1rem) | semibold via `table-dark`/sticky-header | `<th>` |
-| Badge status | `~0.75em` | semibold (Bootstrap badge default) | `badge bg-{color}` |
-| Empty-state heading | `h5` (~1.25rem) | semibold | `h5 text-muted` |
-| Empty-state body | `small` | regular | `text-muted small` |
+| Label kartu summary + empty-state body | `small` (~0.875rem) | regular (400) | `text-muted small` |
+| Empty-state heading | `h5` (~1.25rem) | regular (400) | `h5 text-muted` |
+
+→ 3 ukuran (`fs-3`, `small`, `h5`), 2 berat (bold 700 untuk angka kartu, regular 400 untuk label/body/heading).
 
 Line-height: inherit Bootstrap default (body 1.5). Tidak diubah.
 
@@ -303,7 +304,7 @@ Tidak ada registry pihak ketiga. Tidak ada `components.json`. Gate vetting N/A.
 - [ ] Dimension 1 Copywriting: PASS — string ID di-lock (Monitoring Detail header/kartu, NIP, empty-state, Reset Semua Filter, 0-match, Menampilkan X dari Y)
 - [ ] Dimension 2 Visuals: PASS — 7-kartu set lengkap + skeleton match kolom + chevron rotate match Phase 347
 - [ ] Dimension 3 Color: PASS — status→warna dikunci via konstanta; accent reserved; Abandoned dark, Pending amber
-- [ ] Dimension 4 Typography: PASS — kartu baru match `fs-3 fw-bold` + `text-muted small` existing
+- [ ] Dimension 4 Typography: PASS — 3 ukuran (`fs-3`, `small`, `h5`) + 2 berat (bold 700, regular 400); hanya kunci elemen BARU/BERUBAH (kartu + empty-state), existing Bootstrap default tidak dideklarasi ulang
 - [ ] Dimension 5 Spacing: PASS — pakai utility Bootstrap existing (multiple-of-4), zero token baru
 - [ ] Dimension 6 Registry Safety: PASS — N/A (zero registry, zero dependency baru)
 
