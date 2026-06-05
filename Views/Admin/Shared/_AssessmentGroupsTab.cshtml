@@ -7,13 +7,15 @@
     var assessmentCategories = ViewBag.Categories as List<string> ?? new List<string>();
     var selectedAssessmentCategory = ViewBag.SelectedCategory as string ?? "";
     var selectedAssessmentStatus = ViewBag.SelectedStatus as string ?? "";
+    // MAP-21: baca paging.Take dari ViewBag (drop magic-number 20)
+    var pageSize = (int)(ViewBag.PageSize ?? 20);
 }
 
 <!-- Filter Form (Phase 322 — HTMX inline triggers, scoped to Assessment Groups tab only) -->
 <form id="filterFormAssessment" onsubmit="return false;" class="mb-3">
     <input type="hidden" name="tab" value="assessment" />
     <input type="hidden" name="page" value="1" id="filterPageAssessment" />
-    <input type="hidden" name="pageSize" value="20" />
+    <input type="hidden" name="pageSize" value="@pageSize" />
 
     <!-- Search Row -->
     <div class="row mb-3">
@@ -128,10 +130,14 @@
         0%, 100% { opacity: 1; transform: scale(1); }
         50% { opacity: 0.6; transform: scale(1.08); }
     }
+    /* MAP-03: chevron rotate via CSS [aria-expanded] (Bootstrap auto-set) */
+    .toggle-chevron .chevron-icon { transition: transform 0.2s; }
+    .toggle-chevron[aria-expanded="true"] .chevron-icon { transform: rotate(180deg); }
 </style>
 
 @if (!managementData.Any())
 {
+    var hasActiveFilter = !string.IsNullOrEmpty(selectedAssessmentCategory) || !string.IsNullOrEmpty(selectedAssessmentStatus);
     <!-- Empty State -->
     <div class="card shadow-sm border-0">
         <div class="card-body text-center py-5">
@@ -142,7 +148,17 @@
                 <p class="text-muted small">Coba sesuaikan kata kunci pencarian atau lihat semua assessment.</p>
                 <a asp-action="ManageAssessment" asp-controller="AssessmentAdmin" asp-route-tab="assessment"
                    class="btn btn-sm btn-outline-primary mt-2">
-                    <i class="bi bi-arrow-left me-1"></i> Hapus Pencarian
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Semua Filter
+                </a>
+            }
+            else if (hasActiveFilter)
+            {
+                @* MAP-05: empty-state filter-aware — kategori/status aktif + search kosong (D-02) *@
+                <h5 class="text-muted">Tidak ada assessment untuk filter ini</h5>
+                <p class="text-muted small">Coba ubah atau reset filter untuk melihat assessment lain.</p>
+                <a asp-action="ManageAssessment" asp-controller="AssessmentAdmin" asp-route-tab="assessment"
+                   class="btn btn-sm btn-outline-primary mt-2">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Semua Filter
                 </a>
             }
             else
@@ -177,7 +193,7 @@ else
                 </thead>
                 <tbody>
                     @{
-                        var rowNum = (currentPage - 1) * 20 + 1;
+                        var rowNum = (currentPage - 1) * pageSize + 1;
                     }
                     @foreach (var group in managementData)
                     {
@@ -229,10 +245,12 @@ else
                                 }
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
+                                <button class="btn btn-sm btn-link text-decoration-none p-0 toggle-chevron" type="button"
                                         data-bs-toggle="collapse" data-bs-target="#@collapseId"
-                                        aria-expanded="false" aria-controls="@collapseId">
+                                        aria-expanded="false" aria-controls="@collapseId"
+                                        aria-label="Tampilkan/sembunyikan @userCount peserta">
                                     <i class="bi bi-people me-1"></i>@userCount peserta
+                                    <i class="bi bi-chevron-down chevron-icon ms-1"></i>
                                 </button>
                                 <div class="collapse mt-1" id="@collapseId">
                                     <ul class="list-unstyled small text-muted mb-0">
@@ -363,7 +381,7 @@ else
         <nav aria-label="Assessment pagination" class="mt-4">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="text-muted small">
-                    Menampilkan @((currentPage - 1) * 20 + 1) - @(Math.Min(currentPage * 20, totalCount)) dari @totalCount grup
+                    Menampilkan @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, totalCount)) dari @totalCount grup
                 </div>
                 <ul class="pagination pagination-sm mb-0">
                     @{

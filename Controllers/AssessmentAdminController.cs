@@ -213,6 +213,7 @@ namespace HcPortal.Controllers
             ViewBag.CurrentPage = paging.CurrentPage;
             ViewBag.TotalPages = paging.TotalPages;
             ViewBag.TotalCount = paging.TotalCount;
+            ViewBag.PageSize = paging.Take;   // MAP-21: expose paging.Take (drop magic-number 20 di view)
             ViewBag.SearchTerm = search;
             ViewBag.SelectedCategory = category ?? "";
             ViewBag.SelectedStatus = statusFilter ?? "";

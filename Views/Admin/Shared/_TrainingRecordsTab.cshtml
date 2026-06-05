@@ -16,6 +16,12 @@
     var pageSize = (int)(ViewBag.PageSize ?? 20);
 }
 
+<style>
+    /* MAP-03: chevron rotate via CSS [aria-expanded] (Bootstrap auto-set) */
+    .toggle-chevron .chevron-icon { transition: transform 0.2s; }
+    .toggle-chevron[aria-expanded="true"] .chevron-icon { transform: rotate(180deg); }
+</style>
+
 <!-- Tab Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h5 class="fw-bold mb-0">Input Records</h5>
@@ -236,21 +242,16 @@ else
                             <td><span class="badge bg-light text-dark border">@worker.Position</span></td>
                             <td class="text-muted small">@worker.Unit</td>
                             <td>
-                                @if (worker.TotalTrainings == 0)
-                                {
-                                    <span class="badge bg-secondary">Belum ada</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-info text-dark">@worker.CompletionDisplayText</span>
-                                }
+                                @* MAP-19: selalu render CompletionDisplayText (konsisten, bukan gated "Belum ada") *@
+                                <span class="badge bg-info text-dark">@worker.CompletionDisplayText</span>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary" type="button"
+                                <button class="btn btn-sm btn-outline-primary toggle-chevron" type="button"
                                         data-bs-toggle="collapse" data-bs-target="#@workerCollapseId"
                                         aria-expanded="false" aria-controls="@workerCollapseId"
-                                        title="Lihat Records">
-                                    <i class="bi bi-chevron-down"></i>
+                                        title="Lihat Records"
+                                        aria-label="Tampilkan/sembunyikan rekam jejak @worker.WorkerName">
+                                    <i class="bi bi-chevron-down chevron-icon"></i>
                                 </button>
                             </td>
                         </tr>
@@ -263,7 +264,7 @@ else
                                             .Select(r => new { Type = "Training", Date = r.Tanggal, Title = r.Judul, Detail = r.Penyelenggara ?? "\u2014", Status = r.Status ?? "", ValidUntil = r.ValidUntil, Id = r.Id, Score = (int?)null, IsPassed = (bool?)(r.Status == "Passed" || r.Status == "Valid") });
                                         var assessmentRows = (worker.AssessmentSessions ?? new List<HcPortal.Models.AssessmentSession>())
                                             .Where(a => a.IsManualEntry)
-                                            .Select(a => new { Type = "Assessment", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = a.Score.HasValue ? $"{a.Score} - {(a.IsPassed == true ? "Lulus" : "Tidak Lulus")}" : "\u2014", Status = a.IsPassed == true ? "Passed" : (a.IsPassed == false ? "Failed" : ""), ValidUntil = a.ValidUntil, Id = a.Id, Score = a.Score, IsPassed = a.IsPassed });
+                                            .Select(a => new { Type = "Assessment", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = a.Score.HasValue ? $"{a.Score} - {(a.IsPassed == true ? "Lulus" : a.IsPassed == false ? "Tidak Lulus" : AssessmentConstants.AssessmentStatus.PendingGrading)}" : "\u2014", Status = a.IsPassed == true ? "Passed" : a.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading, ValidUntil = a.ValidUntil, Id = a.Id, Score = a.Score, IsPassed = a.IsPassed });
                                         var allRows = trainingRows.Concat(assessmentRows).OrderByDescending(r => r.Date).ToList();
                                     }
                                     @if (allRows.Count == 0)
@@ -325,6 +326,7 @@ else
                                                                         "Valid" => "bg-primary",
                                                                         "Failed" => "bg-danger",
                                                                         "Expired" => "bg-warning text-dark",
+                                                                        AssessmentConstants.AssessmentStatus.PendingGrading => "bg-warning text-dark",
                                                                         _ => "bg-secondary"
                                                                     };
                                                                 }
