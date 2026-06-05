@@ -85,7 +85,7 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 
 **Source:** audit 6×5-lens 2026-06-04 (29 LOW). **Depends Phase 348** (sequential, file sama). D-02: SEMUA 29 LOW masuk. No migration.
 
-- [ ] **MAP-01**: i18n Monitoring Detail chrome Inggris→Indonesia (header tabel/kartu/back/export). (`AssessmentMonitoringDetail.cshtml`)
+- [x] **MAP-01**: i18n Monitoring Detail chrome Inggris→Indonesia (header tabel/kartu/back/export). (`AssessmentMonitoringDetail.cshtml`)
 - [x] **MAP-02**: Konsistenkan "NIP" vs "Nopeg" History sub-tab → "NIP". (`_HistoryTab.cshtml`)
 - [x] **MAP-03**: Chevron+aria-label toggle collapse Tab1 peserta + Tab2 expand-records.
 - [x] **MAP-04**: Tab3 drill-down hilangkan ARIA nested-interactive (pilih 1 affordance). (`_HistoryTab.cshtml:78-118`)
@@ -94,9 +94,9 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 - [x] **MAP-07**: Tab3 client-filter 0-match → pesan "Tidak ada hasil" +`aria-live`. (`ManageAssessment.cshtml:316-337`)
 - [x] **MAP-08**: Tab3 badge count ikut filter / "Menampilkan X dari Y". (`_HistoryTab.cshtml:13,20`)
 - [x] **MAP-09**: Skeleton loader match kolom asli Tab2 + History. (`ManageAssessment.cshtml:146-199`)
-- [ ] **MAP-10**: Monitor Detail summary tambah "Abandoned" (sum=Total) + sync JS. (`AssessmentMonitoringDetail.cshtml:146-177,1280`)
-- [ ] **MAP-11**: Monitor Detail "In Progress" pakai `Model.InProgressCount`; dead var `completedPct`/`passRatePct` buang/surface. (`AssessmentMonitoringDetail.cshtml:33-39,161`)
-- [ ] **MAP-12**: Monitor Detail "Akhiri Semua Ujian" conditional render + modal wording predikat-identik. (`AssessmentMonitoringDetail.cshtml:196,542`)
+- [x] **MAP-10**: Monitor Detail summary tambah "Abandoned" (sum=Total) + sync JS. (`AssessmentMonitoringDetail.cshtml:146-177,1280`)
+- [x] **MAP-11**: Monitor Detail "In Progress" pakai `Model.InProgressCount`; dead var `completedPct`/`passRatePct` buang/surface. (`AssessmentMonitoringDetail.cshtml:33-39,161`)
+- [x] **MAP-12**: Monitor Detail "Akhiri Semua Ujian" conditional render + modal wording predikat-identik. (`AssessmentMonitoringDetail.cshtml:196,542`)
 - [x] **MAP-13**: Monitor list `TotalCount` exclude Cancelled → progress bisa 100%. (`AssessmentAdminController.cs:2819,2757`)
 - [x] **MAP-14**: Monitor list subtitle buang "real-time". (`AssessmentMonitoring.cshtml:27`)
 - [x] **MAP-15**: Monitor list dropdown Status saat search jangan misrepresent. (`AssessmentMonitoring.cshtml:12,80-87`)
