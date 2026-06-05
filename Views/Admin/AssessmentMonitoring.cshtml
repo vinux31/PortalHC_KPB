@@ -24,7 +24,7 @@
             </ol>
         </nav>
         <h2 class="fw-bold text-dark mb-1"><i class="bi bi-binoculars me-2 text-success"></i>Assessment Monitoring</h2>
-        <p class="text-muted">Pantau progress assessment real-time — status grup, peserta, dan token.</p>
+        <p class="text-muted">Pantau progress assessment — status grup, peserta, dan token.</p>
     </div>
 </div>
 
@@ -72,7 +72,7 @@
                 <div class="col-md-4">
                     <label class="form-label small fw-semibold text-muted mb-1">Cari Assessment</label>
                     <input type="text" name="search" value="@selSearch"
-                           class="form-control" placeholder="Cari nama assessment..." />
+                           class="form-control" placeholder="Cari nama atau kategori assessment..." />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-semibold text-muted mb-1">Status</label>
@@ -253,10 +253,7 @@ else
                     <tr>
                         <td>
                             <a href="@detailUrl" class="fw-semibold text-decoration-none">@group.Title</a>
-                            @if (!string.IsNullOrEmpty(group.Category))
-                            {
-                                <div class="text-muted small">@group.Category</div>
-                            }
+                            @* MAP-16: kategori muted subtitle dihapus (dobel dengan badge kolom Kategori) *@
                             @if (group.IsPrePostGroup)
                             {
                                 <span class="badge bg-primary"><i class="bi bi-arrow-left-right"></i> Pre-Post</span>
@@ -295,35 +292,34 @@ else
                             </div>
                         </td>
                         <td class="text-end">
-                            @if (!group.IsPrePostGroup)
-                            {
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                            type="button"
-                                            data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                        Aksi
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
+                            @* MAP-17 (D-04): dropdown Aksi untuk SEMUA grup termasuk Pre-Post (View Detail + Regenerate Token).
+                               Pre-Post: data-id=RepresentativeId (PreTest rep, punya LinkedGroupId) -> RegenerateToken regen semua siblings (MAM-01). *@
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    Aksi
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="@detailUrl">
+                                            <i class="bi bi-eye me-1"></i>View Detail
+                                        </a>
+                                    </li>
+                                    @if (group.IsTokenRequired)
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <a class="dropdown-item" href="@detailUrl">
-                                                <i class="bi bi-eye me-1"></i>View Detail
-                                            </a>
+                                            <button type="button"
+                                                    class="dropdown-item text-warning btn-regenerate-token"
+                                                    data-id="@group.RepresentativeId">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Regenerate Token
+                                            </button>
                                         </li>
-                                        @if (group.IsTokenRequired)
-                                        {
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <button type="button"
-                                                        class="dropdown-item text-warning btn-regenerate-token"
-                                                        data-id="@group.RepresentativeId">
-                                                    <i class="bi bi-arrow-repeat me-1"></i>Regenerate Token
-                                                </button>
-                                            </li>
-                                        }
-                                    </ul>
-                                </div>
-                            }
+                                    }
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     @if (group.IsPrePostGroup)
