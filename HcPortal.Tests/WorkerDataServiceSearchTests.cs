@@ -121,4 +121,61 @@ public class WorkerDataServiceSearchTests
         var result = await svc.GetUnifiedRecords("u1");
         Assert.Single(result.Where(r => r.RecordType == "Assessment Online"));
     }
+
+    // ── SF-01 / SF-06: assessment-title search (Phase 350) ─────────────────────
+
+    [Fact]
+    public async Task Scope_Training_FiltersByAssessmentTitle()
+    {
+        var svc = MakeService(out var ctx);
+        ctx.Users.AddRange(User("u1", "Budi", "A"), User("u2", "Andi", "A"));
+        var s = Session(1, "u1", "Completed", true); s.Title = "OJT v14.2 Migas";
+        ctx.AssessmentSessions.Add(s);
+        await ctx.SaveChangesAsync();
+        var result = await svc.GetWorkersInSection("A", search: "ojt v14.2", searchScope: "Training");
+        Assert.Single(result);
+        Assert.Equal("u1", result[0].WorkerId);
+    }
+
+    [Fact]
+    public async Task Scope_Keduanya_Union_IncludesAssessment()
+    {
+        var svc = MakeService(out var ctx);
+        ctx.Users.AddRange(User("u1", "Budi", "A"), User("u2", "Andi", "A"));
+        var s = Session(1, "u1", "Completed", true); s.Title = "OJT v14.2 Migas";
+        ctx.AssessmentSessions.Add(s);
+        await ctx.SaveChangesAsync();
+        var ids = (await svc.GetWorkersInSection("A", search: "ojt v14.2", searchScope: "Keduanya"))
+                  .Select(w => w.WorkerId).ToList();
+        Assert.Contains("u1", ids);
+    }
+
+    [Fact]
+    public async Task Search_DoesNotMutate_BadgeCounts_D07()
+    {
+        var svc = MakeService(out var ctx);
+        ctx.Users.Add(User("u1", "Budi", "A"));
+        var s1 = Session(1, "u1", "Completed", true); s1.Title = "OJT v14.2";
+        var s2 = Session(2, "u1", "Completed", true); s2.Title = "Lain";
+        ctx.AssessmentSessions.AddRange(s1, s2);
+        ctx.TrainingRecords.Add(Training(1, "u1", "Training X"));
+        await ctx.SaveChangesAsync();
+        var matched = await svc.GetWorkersInSection("A", search: "ojt", searchScope: "Keduanya");
+        Assert.Single(matched);
+        Assert.Equal(2, matched[0].CompletedAssessments); // both passed, NOT 1 (badge unaffected by search)
+        Assert.Equal(1, matched[0].TotalTrainings);
+    }
+
+    [Fact]
+    public async Task Keduanya_AssessmentTitle_ReturnsWorker_ForExport()
+    {
+        var svc = MakeService(out var ctx);
+        ctx.Users.AddRange(User("u1", "Budi", "A"), User("u2", "Andi", "A"));
+        var s = Session(1, "u1", "Completed", true); s.Title = "OJT v14.2";
+        ctx.AssessmentSessions.Add(s);
+        await ctx.SaveChangesAsync();
+        var ids = (await svc.GetWorkersInSection("A", search: "ojt v14.2", searchScope: "Keduanya"))
+                  .Select(w => w.WorkerId).ToList();
+        Assert.Contains("u1", ids);
+    }
 }
