@@ -636,6 +636,24 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
 
+### Phase 999.2: CMP/Records Team View search extend ke Assessment title (BACKLOG)
+
+**Goal:** Search Team View di `CMP/Records` (`searchScope`="Keduanya") ikut mencocokkan judul **assessment**, bukan hanya Nama/NIP + judul Training. User cari nama assessment (mis. "ojt v14.2") → saat ini 0 worker meski worker punya assessment itu.
+
+**Context:**
+- Ditemukan saat UAT Phase 349 (2026-06-05): search "ojt v14.2" (assessment title) di `CMP/Records` Team View "Keduanya" → "Showing 0 workers".
+- Root cause: `WorkerDataService.GetWorkersInSection` (`Services/WorkerDataService.cs:401-417`) — scope "Keduanya" = union Nama/NIP **OR Training.Judul**, TIDAK termasuk Assessment judul. Desain REC-06 D-07 (Phase 346) sengaja scope Training-only.
+- BUKAN regresi Phase 349 (page Phase 345-347; commit 349 tak sentuh CMPController/GetWorkersInSection).
+
+**Requirements:** TBD (perlu keputusan: extend "Keduanya" jadi Nama/NIP + Training + Assessment, ATAU tambah scope "Assessment" eksplisit di dropdown Lingkup; cek dampak Export Assessment/Training + badge count per-worker tetap utuh per D-07).
+
+**Effort estimate:** S (1 predicate cabang di GetWorkersInSection + opsi dropdown Lingkup + test)
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
 ## v20.0 CMP Records Overhaul + Cilacap UX/Restore — Phases 336-339 ✅ ARCHIVED
 
 **Status:** SHIPPED LOCAL 2026-06-02 (push pending IT availability). Audit PASSED 39/39 REQ + 4/4 phase + integration COHERENT.
