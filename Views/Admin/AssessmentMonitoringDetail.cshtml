@@ -351,7 +351,7 @@
                                                             <button type="button"
                                                                     class="dropdown-item"
                                                                     data-session-id="@session.Id"
-                                                                    onclick="reshuffleWorker(@session.Id)">
+                                                                    onclick="reshuffleWorker(this)">
                                                                 <i class="bi bi-shuffle me-1"></i>Reshuffle
                                                             </button>
                                                         </li>
@@ -736,8 +736,9 @@
     var antiForgeryEl = document.querySelector('#reshuffleForm input[name="__RequestVerificationToken"]');
     var antiForgeryToken = antiForgeryEl ? antiForgeryEl.value : '';
 
-    function reshuffleWorker(sessionId) {
-        var btn = document.querySelector('[data-session-id="' + sessionId + '"]');
+    function reshuffleWorker(btn) {
+        // MAM-13: terima elemen button (this) — hindari querySelector ambigu yang match <tr> duluan.
+        var sessionId = btn.dataset.sessionId;
         var originalHtml = btn.innerHTML;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
         btn.disabled = true;
@@ -865,7 +866,7 @@
             html += '<button type="button"'
                 + ' class="btn btn-outline-primary btn-sm me-1"'
                 + ' data-session-id="' + session.sessionId + '"'
-                + ' onclick="reshuffleWorker(' + session.sessionId + ')"'
+                + ' onclick="reshuffleWorker(this)"'
                 + '><i class="bi bi-shuffle me-1"></i>Reshuffle</button>';
         }
 
