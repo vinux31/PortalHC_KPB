@@ -67,9 +67,9 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 
 **Source:** audit 6×5-lens 2026-06-04 (44 confirmed, 0 HIGH/15 MED/29 LOW). **Depends Phase 347** (sequential; pakai label/konstanta PendingGrading dari 345). No migration. M4 (Tab3 History PendingGrading) **dicakup REC-07/346** — tak diduplikat.
 
-- [ ] **MAM-01**: RegenerateToken match by `LinkedGroupId` untuk Pre-Post (`AssessmentAdminController.cs:2616`) → PostTest token ikut regenerate. (logic)
-- [ ] **MAM-02**: Link Monitoring/Export Pre-Post sadar LinkedGroupId / pecah per-half (`_AssessmentGroupsTab.cshtml:261-285`) → PostTest tak silently di-miss. (logic)
-- [ ] **MAM-03**: `MenungguPenilaianCount = postSubs.Count(IsMenungguPenilaian)` untuk Pre-Post group di AssessmentMonitoring (`AssessmentAdminController.cs:2749-2796`). (logic; gabung finding list+cross-cut)
+- [x] **MAM-01**: RegenerateToken match by `LinkedGroupId` untuk Pre-Post (`AssessmentAdminController.cs:2616`) → PostTest token ikut regenerate. (logic)
+- [x] **MAM-02**: Link Monitoring/Export Pre-Post sadar LinkedGroupId / pecah per-half (`_AssessmentGroupsTab.cshtml:261-285`) → PostTest tak silently di-miss. (logic)
+- [x] **MAM-03**: `MenungguPenilaianCount = postSubs.Count(IsMenungguPenilaian)` untuk Pre-Post group di AssessmentMonitoring (`AssessmentAdminController.cs:2749-2796`). (logic; gabung finding list+cross-cut)
 - [ ] **MAM-04**: Status derivation Detail cek `PendingGrading` SEBELUM `CompletedAt` (`AssessmentAdminController.cs:3229`) → essay-pending tak salah "Completed", CompletedCount/passRate benar. (logic)
 - [ ] **MAM-05**: SignalR `workerSubmitted` jangan push "Completed"+Pass/Fail prematur untuk essay (`CMPController.cs:1767`). (logic)
 - [ ] **MAM-06**: `isInitialState` diturunkan dari absennya filter (`AssessmentAdminController.cs:251`) → empty-state hidup, skip full-roster query. **Koord 322-UAT.** (filter)

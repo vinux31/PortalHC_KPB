@@ -814,8 +814,8 @@ Plans:
     4. Badge status Tab1 = GroupStatus (match filter); dropdown Kategori Monitoring data-driven (buang "Proton"); tooltip Closed jujur; Reshuffle selector scoped (MAM-10/11/12/13).
     5. `dotnet build` 0 error + xUnit + Playwright UAT per surface.
   - **Risk:** Medium (logic shared grading/token; initial-load behavior) | **Effort:** L (no migration)
-  - **Plans:** 5 plans
-    - [ ] 348-01-PLAN.md — Tema A Pre-Post: RegenerateToken LinkedGroupId + Export/PDF both-half + MenungguPenilaianCount (MAM-01/02/03)
+  - **Plans:** 1/5 plans executed
+    - [x] 348-01-PLAN.md — Tema A Pre-Post: RegenerateToken LinkedGroupId + Export/PDF both-half + MenungguPenilaianCount (MAM-01/02/03)
     - [ ] 348-02-PLAN.md — Tema B essay PendingGrading (ISOLASI): status derivation Detail + SignalR workerSubmitted reload + handler view (MAM-04/05)
     - [ ] 348-03-PLAN.md — Tema C Tab2 struktural: isInitialState + pagination + delete hx-post re-swap + relabel Status Training (MAM-06/07/08/09)
     - [ ] 348-04-PLAN.md — Tema D/E/F: badge GroupStatus + dropdown Kategori data-driven + tooltip jujur + reshuffle selector (MAM-10/11/12/13)
