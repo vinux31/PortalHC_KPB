@@ -118,7 +118,7 @@
     <span class="badge bg-warning text-dark" title="Assessment dengan status Upcoming">@(ViewBag.UpcomingCount ?? 0) Upcoming</span>
     <span class="badge bg-secondary cil01-pulse"
           data-cil01-animate="true"
-          title="Closed assessment (hidden by default — pilih filter 'Closed' atau 'Semua Status' untuk lihat, atau search judul/lokasi spesifik)">
+          title="Closed assessment (hidden by default — pilih filter 'Closed' atau 'Semua Status' untuk lihat, atau search judul spesifik)">
         @(ViewBag.ClosedCount ?? 0) Closed
     </span>
 </div>
@@ -192,14 +192,13 @@ else
                             "Assessment Proton"       => "bg-purple",
                             _                         => "bg-secondary"
                         };
-                        var statusBadge = (string)group.Status switch
+                        // MAM-10: bind GroupStatus (derived Open/Upcoming/Closed), bukan rep single-session Status.
+                        var statusBadge = (string)group.GroupStatus switch
                         {
-                            "Open"       => "bg-success",
-                            "Completed"  => "bg-secondary",
-                            "Upcoming"   => "bg-info",
-                            "InProgress" => "bg-warning text-dark",
-                            "Abandoned"  => "bg-dark",
-                            _            => "bg-secondary"
+                            "Open"     => "bg-success",
+                            "Upcoming" => "bg-info",
+                            "Closed"   => "bg-secondary",
+                            _          => "bg-secondary"
                         };
 
                         var collapseId = "users-" + (int)group.RepresentativeId;
@@ -218,7 +217,7 @@ else
                             <td><span class="badge @categoryBadge">@group.Category</span></td>
                             <td>@(((DateTime)group.Schedule).ToString("dd MMM yyyy HH:mm"))</td>
                             <td>@group.DurationMinutes menit</td>
-                            <td><span class="badge @statusBadge">@group.Status</span></td>
+                            <td><span class="badge @statusBadge">@group.GroupStatus</span></td>
                             <td>
                                 @if ((bool)group.IsTokenRequired)
                                 {
