@@ -2653,6 +2653,25 @@ namespace HcPortal.Controllers
         }
 
         // --- PRIVATE HELPERS ---
+
+        // MAM-04: derivasi UserStatus untuk Monitoring Detail. PendingGrading WAJIB dicek pertama —
+        // session ber-essay punya Status="Menunggu Penilaian" + CompletedAt terisi BERSAMAAN,
+        // jadi cek CompletedAt duluan akan salah-map "Completed". Static + pure → testable (xUnit).
+        public static string DeriveUserStatus(string? status, DateTime? completedAt, DateTime? startedAt)
+        {
+            if (status == AssessmentConstants.AssessmentStatus.PendingGrading)
+                return "Menunggu Penilaian";
+            if (completedAt != null)
+                return "Completed";
+            if (status == "Cancelled")
+                return "Dibatalkan";
+            if (status == "Abandoned")
+                return "Abandoned";
+            if (startedAt != null)
+                return "InProgress";
+            return "Not started";
+        }
+
         private string GenerateSecureToken(int length = 6)
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclude ambiguous characters (0, O, 1, I, L)
@@ -3233,17 +3252,8 @@ namespace HcPortal.Controllers
             }
             var sessionViewModels = sessions.Select(a =>
             {
-                string userStatus;
-                if (a.CompletedAt != null)
-                    userStatus = "Completed";
-                else if (a.Status == "Cancelled")
-                    userStatus = "Dibatalkan";
-                else if (a.Status == "Abandoned")
-                    userStatus = "Abandoned";
-                else if (a.StartedAt != null)
-                    userStatus = "InProgress";
-                else
-                    userStatus = "Not started";
+                // MAM-04: PendingGrading dicek SEBELUM CompletedAt (essay-pending punya CompletedAt terisi).
+                string userStatus = DeriveUserStatus(a.Status, a.CompletedAt, a.StartedAt);
 
                 return new MonitoringSessionViewModel
                 {
