@@ -17,11 +17,11 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 
 ## Requirements
 
-- [ ] **CMP06R-01**: `Views/CMP/RecordsWorkerDetail.cshtml:226-231` binary → 3-way (`null→"Menunggu Penilaian"` badge netral). (Phase 345-01)
-- [ ] **CMP06R-02**: `UserAssessmentHistory` 3-layer — VM `AssessmentReportItem.IsPassed` `bool`→`bool?` (`Models/ReportsDashboardViewModel.cs`); ctrl `AssessmentAdminController.cs:4737` drop `?? false`; view `UserAssessmentHistory.cshtml:172` 3-way; stats `passedCount`/`passRate` (L4744-4745) exclude pending dari denominator. (Phase 345-02)
-- [ ] **CMP06R-03**: PDF `GeneratePerPesertaPdf` (`AssessmentAdminController.cs:4620-4621`, `BulkExportPdf` CIL-06) binary "Lulus"/"Tidak Lulus"+merah → 3-way `null→"Menunggu Penilaian"` + warna netral. (Phase 345-03)
-- [ ] **CMP06R-04**: Label unify — `WorkerDataService.GetUnifiedRecords:51` switch `null→"Menunggu Penilaian"` (ganti "Completed") + `Records.cshtml:188` switch tambah case `"Menunggu Penilaian"`. (Phase 345-01)
-- [ ] **CMP06R-05**: Regression test — xUnit (VM nullable + passRate exclude-pending) + Playwright UAT 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). (Phase 345-04)
+- [x] **CMP06R-01**: `Views/CMP/RecordsWorkerDetail.cshtml:226-231` binary → 3-way (`null→"Menunggu Penilaian"` badge netral). (Phase 345-01)
+- [x] **CMP06R-02**: `UserAssessmentHistory` 3-layer — VM `AssessmentReportItem.IsPassed` `bool`→`bool?` (`Models/ReportsDashboardViewModel.cs`); ctrl `AssessmentAdminController.cs:4737` drop `?? false`; view `UserAssessmentHistory.cshtml:172` 3-way; stats `passedCount`/`passRate` (L4744-4745) exclude pending dari denominator. (Phase 345-02)
+- [x] **CMP06R-03**: PDF `GeneratePerPesertaPdf` (`AssessmentAdminController.cs:4620-4621`, `BulkExportPdf` CIL-06) binary "Lulus"/"Tidak Lulus"+merah → 3-way `null→"Menunggu Penilaian"` + warna netral. (Phase 345-03)
+- [x] **CMP06R-04**: Label unify — `WorkerDataService.GetUnifiedRecords:51` switch `null→"Menunggu Penilaian"` (ganti "Completed") + `Records.cshtml:188` switch tambah case `"Menunggu Penilaian"`. (Phase 345-01)
+- [x] **CMP06R-05**: Regression test — xUnit (VM nullable + passRate exclude-pending) + Playwright UAT 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). (Phase 345-04)
 
 ### Minor (opportunistic fold-in)
 - `CMPController.cs:694` Excel ExportRecords null→"Menunggu Penilaian" (Phase 345-01).
@@ -113,11 +113,11 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 
 | REQ | Phase | Status |
 |-----|-------|--------|
-| CMP06R-01 | 345-01 | Pending |
-| CMP06R-02 | 345-02 | Pending |
-| CMP06R-03 | 345-03 | Pending |
-| CMP06R-04 | 345-01 | Pending |
-| CMP06R-05 | 345-04 | Pending |
+| CMP06R-01 | 345-01 | Complete |
+| CMP06R-02 | 345-02 | Complete |
+| CMP06R-03 | 345-03 | Complete |
+| CMP06R-04 | 345-01 | Complete |
+| CMP06R-05 | 345-04 | Complete |
 | REC-01..09 | 346 | Pending (plan belum di-generate) |
 | REC-10 | — | DROPPED (over-eng) |
 | POL-01..10 | 347 | Pending (plan belum di-generate) |

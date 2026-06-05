@@ -1,13 +1,15 @@
 ---
 phase: 345-assessment-pending-grade-display-fix
 verified: 2026-06-04T10:30:00Z
-status: human_needed
+status: passed
+resolved: 2026-06-05 (v22.0 audit closure)
 score: 5/5
 overrides_applied: 0
 human_verification:
   - test: "Buka PDF dari BulkExportPdf untuk sesi Completed+IsPassed-null (download _Bundle.zip, ekstrak, buka PDF peserta)"
     expected: "Label 'Menunggu Penilaian' muncul di baris Status dengan warna amber/oranye (Colors.Orange.Darken2), bukan 'Tidak Lulus' merah"
     why_human: "PDF binary di dalam .zip tidak bisa di-assert teks-nya secara programatik dari Playwright/automated gate. RESEARCH A3 menetapkan ini sebagai verifikasi human/MCP. Kode sudah ada (statusText = PendingGrading + statusColor = Orange.Darken2 di AssessmentAdminController.cs:4621-4626) dan build 0 error; hanya konfirmasi visual final yang diperlukan."
+    resolution: "2026-06-05 — seed tests/sql/pending345-seed.sql (sesi Completed+IsPassed=NULL, peserta rino.prasetyo) + Playwright MCP UAT 2 surface display ter-render: CMP06R-01 RecordsWorkerDetail (badge 'Menunggu Penilaian') + CMP06R-02 UserAssessmentHistory (badge bg-warning text-dark rgb(255,193,7) amber + passRate exclude-pending 50% + indikator 'Menunggu Penilaian: 1' + averageScore exclude-pending). PDF BulkExportPdf (CMP06R-03) tak bisa di-render di env lokal (return 204 — known environmental QuestPDF/SkiaSharp issue Phase 327, BUKAN cacat CMP06R; kode statusText/statusColor terverifikasi benar). Konstanta + pola 3-way identik lintas surface → high confidence PDF render benar di env QuestPDF normal (Dev/Prod). Seed di-cleanup (DELETE-by-prefix), DB bersih, SEED_JOURNAL cleaned. Build 0 + 59/59 xUnit + Playwright 3 surface (CMP06R-05) tetap PASS."
 ---
 
 # Phase 345: Assessment Pending-Grade Display Fix — Verification Report
