@@ -55,6 +55,16 @@ created: 2026-06-05
 
 *Existing xUnit infra (12 file termasuk Phase 348 ManageAssessmentMedFixTests) covers logic-bearing. Mayoritas polish = visual manual-only.*
 
+### Wave 0 gap — DITERIMA SADAR (deliberate trade-off)
+
+Test logic-bearing (`ManageAssessmentLowPolishTests.cs` untuk MAP-13/MAP-23) dibuat di **Wave 5 (Plan 349-05 Task 2)**, SETELAH implementasi di **Wave 3 (Plan 349-03 Task 3)** — bukan TDD murni / bukan Wave 0 sejati. Gap ini **diterima** dengan alasan:
+1. **Per-task `dotnet build` gate** hadir di setiap task (tidak ada 3 consecutive task tanpa verify — sampling continuity terjaga).
+2. **Logika MAP-13/23 ringan** — LINQ predicate (`g.Count(a => a.Status != ...Cancelled)` + `Category.Contains`) + ViewBag, BUKAN service/domain logic baru. Risiko regresi rendah.
+3. **Phase = pure polish** (no migration, no schema, no new behavior) — mayoritas item visual; subset testable kecil.
+4. Test tetap dibuat dalam phase yang sama (Wave 5) + Playwright UAT 5 SC sebagai gate akhir → coverage tercapai sebelum phase close.
+
+`nyquist_compliant: false` di frontmatter sengaja jujur menandai gap ini (bukan kelalaian).
+
 ---
 
 ## Manual-Only Verifications

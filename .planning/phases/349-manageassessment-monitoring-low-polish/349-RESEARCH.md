@@ -455,17 +455,19 @@ placeholder="Cari nama atau kategori assessment..."
 
 **Catatan:** 3 assumption, semua LOW-MED. A2 paling penting — planner/discuss-phase HARUS konfirmasi interpretasi "Total = jumlah semua kartu" (apakah termasuk kartu Menunggu Penilaian).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **MAP-10 — kartu "Menunggu Penilaian" ikut ditambah atau hanya Abandoned?**
+   - **RESOLVED (CONTEXT.md D-03 + UI-SPEC §Summary Card Layout):** Tambah 2 kartu — **Abandoned + Menunggu Penilaian** (set lengkap 7 kartu). Invariant Total Ditugaskan = Selesai + Sedang Mengerjakan + Belum Mulai + Dibatalkan + Abandoned + Menunggu Penilaian. `AbandonedCount` = field ViewModel baru; `MenungguPenilaianCount` sudah ada di ViewModel (L22) tapi belum di-assign di Detail action → tambah assign. JS `updateSummaryFromDOM` tambah cabang Abandoned + PendingGrading. Implementasi di Plan 349-04 Task 2.
    - What we know: D-03 = tambah Abandoned + Total=sum. `DeriveUserStatus` menghasilkan 6 status; essay-pending = bucket ke-6 tak terhitung.
-   - What's unclear: apakah essay-pending session ada di grup yang dimonitor (Total=sum hanya pecah bila ada essay pending).
-   - Recommendation: planner tambah `AbandonedCount` field + assign `MenungguPenilaianCount` di Detail action (saat ini tak di-assign L3320-3336), render 2 kartu (Abandoned + Menunggu Penilaian opsional), JS count keduanya. Bila ingin minimal: Abandoned saja + catat Total=sum hanya akurat tanpa essay-pending.
+   - What's unclear (sebelum resolve): apakah essay-pending session ada di grup yang dimonitor (Total=sum hanya pecah bila ada essay pending).
+   - Recommendation (diadopsi): planner tambah `AbandonedCount` field + assign `MenungguPenilaianCount` di Detail action (saat ini tak di-assign L3320-3336), render 2 kartu (Abandoned + Menunggu Penilaian), JS count keduanya.
 
 2. **MAP-22 — cleanup wiring `urlTraining`/`urlHistory` (ManageAssessment.cshtml:17,19) seberapa jauh?**
+   - **RESOLVED (UI-SPEC §Display Binding MAP-22 + Plan 349-05 Task 1):** Drop param mati di SIGNATURE `ManageAssessmentTab_History` (`page`/`pageSize`/`statusFilter`) + cleanup wiring `urlHistory`. `urlTraining` BIARKAN `page`/`pageSize` (fungsional — Phase 348 MAM-07). Tidak break HTMX (extra URL param di-ignore action tanpa param).
    - What we know: `urlTraining` kirim `page`, `urlHistory` kirim `page`. History action drop `page` → URL param jadi no-op.
-   - What's unclear: apakah hapus `&page=` dari `urlHistory` string interpolation atau biarkan (harmless extra param).
-   - Recommendation: drop param mati di SIGNATURE action (History), cleanup `urlHistory` wiring; `urlTraining` biarkan `page` (fungsional). Tidak break HTMX (URL extra param di-ignore action tanpa param).
+   - What's unclear (sebelum resolve): apakah hapus `&page=` dari `urlHistory` string interpolation atau biarkan (harmless extra param).
+   - Recommendation (diadopsi): drop param mati di SIGNATURE action (History), cleanup `urlHistory` wiring; `urlTraining` biarkan `page` (fungsional).
 
 ## Environment Availability
 
