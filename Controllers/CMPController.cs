@@ -1762,13 +1762,27 @@ namespace HcPortal.Controllers
                     return RedirectToAction("Results", new { id });
                 }
 
+                // MAM-05: GradingService set essay Status=PendingGrading via ExecuteUpdateAsync (bypass change-tracker).
+                // Entity `assessment` tidak ter-update — reload status dari DB untuk tahu apakah essay-pending.
+                var freshStatus = await _context.AssessmentSessions
+                    .Where(s => s.Id == id)
+                    .Select(s => s.Status)
+                    .FirstAsync();
+                bool isPendingGrading = freshStatus == AssessmentConstants.AssessmentStatus.PendingGrading;
+
                 // SignalR push: notify HC monitor group that worker submitted (package path)
                 {
                     var submitBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
-                    var result = finalPercentage >= assessment.PassPercentage ? "Pass" : "Fail";
+                    // MAM-05: essay-pending → result "—" + status "Menunggu Penilaian" (hindari verdict prematur yang flip setelah HC nilai).
+                    var result = isPendingGrading
+                        ? "—"
+                        : (finalPercentage >= assessment.PassPercentage ? "Pass" : "Fail");
+                    var pushStatus = isPendingGrading
+                        ? AssessmentConstants.AssessmentStatus.PendingGrading
+                        : "Completed";
                     int totalQuestionsSubmit = shuffledIds.Count;
                     await _hubContext.Clients.Group($"monitor-{submitBatchKey}").SendAsync("workerSubmitted",
-                        new { sessionId = id, workerName = user.FullName, score = finalPercentage, result, status = "Completed", totalQuestions = totalQuestionsSubmit });
+                        new { sessionId = id, workerName = user.FullName, score = finalPercentage, result, status = pushStatus, totalQuestions = totalQuestionsSubmit });
                 }
 
                 // Activity log: record exam submission (fire-and-forget)
