@@ -4,6 +4,39 @@
 
 ---
 
+## Milestone: v22.0 — CMP-06 + Assessment/Monitoring Audit Fixes
+
+**Shipped:** 2026-06-05 (local) | **Phases:** 5 (345-349) | **Plans:** 24 | **REQ:** 60/60 | **0 migration**
+
+### What Was Built
+Tampilan jujur "Menunggu Penilaian" (essay pending-grade) lintas 6+ surface assessment-records (CMP/Records, RecordsWorkerDetail, UserAssessmentHistory, Excel, PDF, Monitoring) + passRate/average exclude-pending; 2-audit sweep ManageAssessment+Monitoring (Pre-Post LinkedGroupId, Tab2 pagination/empty-state, i18n + a11y chevron + 7-kartu summary invariant + exclude-Cancelled progress + search Category).
+
+### What Worked
+- **Konstanta sebagai single source of truth** (`AssessmentStatus.PendingGrading`) — integration check konfirmasi label konsisten lintas 5 phase tanpa drift bermakna. Audit-driven (6×5-lens + 7-lens) menghasilkan REQ yang tepat-sasaran.
+- **Interactive `/gsd-execute-phase --interactive` konfirmasi-tiap-plan** (348+349) — user kontrol per-plan, deviation tertangkap awal, zero rework. Per-task `dotnet build` + grep-acceptance gate = fast feedback.
+- **Seed-workflow untuk verify yang tak bisa di-assert otomatis** — snapshot + seed prefix + Playwright + DELETE-cleanup + SEED_JOURNAL menutup CMP06R "human_needed" tanpa kotori DB.
+
+### What Was Inefficient
+- **`milestone complete` CLI mis-count phases** — menghitung SEMUA dir di `.planning/phases/` (323/324/340+ un-archived) sebagai v22.0 → "13 phases/46 plans" + accomplishment garbage. Akar: ROADMAP/phases dir tak di-reorganize lintas milestone (v15-v21 flat). Perlu manual fix MILESTONES entry. **Pelajaran: `/gsd-cleanup` arsip phase dir per milestone sebelum close**, atau CLI harus filter by milestone REQ mapping.
+- **PDF (QuestPDF/SkiaSharp) return 204 di env lokal** (Phase 327 known) — blokir verify visual PDF; harus pivot ke 2 surface lain + code-review. Environmental, bukan defect.
+- **VERIFICATION.md absen di 348/349** (interactive mode tak spawn gsd-verifier) → audit flag artifact-gap; human-verify+UAT substantif menutupi.
+
+### Patterns Established
+- **Exclude-pending denominator** konsisten 3 jalur (ComputeHistoryStats passRate + group `IsPassed ?? false` + MAP-10 MenungguPenilaianCount).
+- **7-kartu summary invariant** (Total = jumlah N status bucket) sebagai kontrak UI testable browser.
+- **Drop-gate > else-branch** untuk render kondisional identik (MAP-17 DRY).
+
+### Key Lessons
+- Audit milestone CLI butuh phase-archival rapi; un-archived dir lintas milestone bikin stats salah. Arsip phase dir saat close atau /gsd-cleanup rutin.
+- Verify-via-seed valid untuk surface non-otomatable; tapi cek environmental blocker (QuestPDF 204) dulu sebelum janji full visual verify.
+
+### Cost Observations
+- Model mix: mostly opus (planning/execute) + sonnet (checker/integration/verifier).
+- Sessions: ~beberapa (plan→execute 5 phase→audit→close dalam 1 sesi panjang).
+- Notable: interactive per-plan execution + per-task build gate = zero rework across 24 plans.
+
+---
+
 ## Milestone: v14.0 — Assessment Enhancement
 
 **Shipped:** 2026-04-24

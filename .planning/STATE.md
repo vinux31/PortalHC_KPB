@@ -2,39 +2,37 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: verifying
-last_updated: "2026-06-05T09:53:37.593Z"
+status: complete
+last_updated: "2026-06-05"
 last_activity: 2026-06-05
 progress:
-  total_phases: 14
-  completed_phases: 11
-  total_plans: 46
-  completed_plans: 45
-  percent: 98
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 24
+  completed_plans: 24
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-02)
+See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 349 — manageassessment-monitoring-low-polish
+**Current focus:** Antara milestone — v22.0 ditutup 2026-06-05; next `/gsd-new-milestone v23.0`
 
 ## Current Position
 
-Milestone: v22.0 🚀 ACTIVE (phases 345-349; spec 346/347 + 348/349)
-Phase: 349 (manageassessment-monitoring-low-polish) — EXECUTING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
+Milestone: v22.0 ✅ CLOSED 2026-06-05 (phases 345-349, 60/60 REQ, audit passed, tag v22.0 lokal)
+Status: Milestone complete — REQUIREMENTS.md archived ke milestones/v22.0-REQUIREMENTS.md; fresh dibuat saat v23.0
 Last activity: 2026-06-05
 
-Sumber: verifikasi Playwright + code sweep 2026-06-04 — bug Phase 337 CMP-06 (assessment Completed+IsPassed-null salah label "Fail") belum tuntas di 3 surface (RecordsWorkerDetail + UserAssessmentHistory + BulkExportPdf). Memory: project_cmp06_residual_recordsworkerdetail. Keputusan: label "Menunggu Penilaian" unified, passRate exclude pending.
+Bundle push v19.0+v20.0+v21.0+v22.0 pending IT availability + verifikasi lokal lengkap (per CLAUDE.md push = tanggung jawab IT, butuh approval user eksplisit).
 
-Paralel outstanding: v21.0 Phase 344 (test+UAT) belum di-plan; v21.0 343 SHIPPED. v19.0+v20.0+v21.0 bundle pending push origin/main + IT promo Dev.
+Backlog siap promote v23.0: Phase 999.1 Realtime Assessment SignalR (M-L) + Phase 999.2 CMP/Records search → Assessment title (S, bug UAT 2026-06-05).
 
-Predecessor: v20.0 ✅ SHIPPED LOCAL + ARCHIVED 2026-06-02 (39/39 REQ + 4/4 phase).
+Predecessor: v21.0 ✅ CLOSED 2026-06-04 (26/26 REQ); v20.0 ✅ ARCHIVED 2026-06-02 (39/39 REQ).
 
 ## Phase 340 Closure Snapshot
 
