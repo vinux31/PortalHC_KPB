@@ -1351,8 +1351,14 @@ function eventLabel(eventType, detail) {
             var tds = tr.querySelectorAll('td');
             // Progress (col 1)
             if (tds[1] && data.totalQuestions > 0) tds[1].textContent = data.totalQuestions + '/' + data.totalQuestions;
-            // Status (col 2)
-            if (tds[2]) tds[2].innerHTML = '<span class="badge bg-success">Completed</span>';
+            // Status (col 2) — MAM-05: render dari payload (essay-pending → badge pending, bukan hijau Completed)
+            if (tds[2]) {
+                if (data.status === 'Menunggu Penilaian') {
+                    tds[2].innerHTML = '<span class="badge bg-warning text-dark">Menunggu Penilaian</span>';
+                } else {
+                    tds[2].innerHTML = '<span class="badge bg-success">Completed</span>';
+                }
+            }
             // Score (col 3)
             if (tds[3]) tds[3].textContent = data.score !== null && data.score !== undefined ? data.score + '%' : '\u2014';
             // Result (col 4)
