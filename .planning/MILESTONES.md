@@ -1,5 +1,42 @@
 # Milestones
 
+## v22.0 CMP-06 + Assessment/Monitoring Audit Fixes (Shipped Local: 2026-06-05, Audited: 2026-06-05)
+
+**Phases completed:** 5 phase (345, 346, 347, 348, 349), 24 plan (345:4, 346:6, 347:4, 348:5, 349:5)
+**Status:** SHIPPED LOCAL, push pending IT availability (bundled v19.0+v20.0+v21.0+v22.0; v22.0 leg `47eb8828`..HEAD ~127 commit; **0 migration** — pure fix/polish)
+**Audit:** `milestones/v22.0-MILESTONE-AUDIT.md` — status **passed** (60/60 REQ, 5/5 phase, integration 9/9 E2E flow 0 broken, label "Menunggu Penilaian" konsisten lintas 5 phase via konstanta). CMP06R `human_needed` di-resolve 2026-06-05 (seed `pending345` Completed+IsPassed=NULL + Playwright MCP 2 surface badge amber `bg-warning` rgb(255,193,7); PDF CMP06R-03 env-blocked lokal QuestPDF 204 [Phase 327 known] tapi code-verified — bukan defect).
+
+**Delivered:** Tampilan jujur "Menunggu Penilaian" (essay pending-grade) di seluruh permukaan rekam-jejak assessment (CMP/Records, RecordsWorkerDetail, UserAssessmentHistory, Excel, PDF, Monitoring, ManageAssessment) menggantikan "Failed" merah / "Completed" abu / sel kosong palsu — dengan passRate & averageScore mengeluarkan sesi pending dari denominator. Plus 2-audit sweep ManageAssessment + Assessment Monitoring (Pre-Post LinkedGroupId correctness, Tab2 pagination/empty-state, i18n + a11y chevron + 7-kartu summary + exclude-Cancelled progress + search-by-category).
+
+**Key accomplishments:**
+
+1. **CMP-06 Residual Fix (Phase 345, CMP06R-01..05)** — Sesi `Completed+IsPassed=NULL` (essay submit belum dinilai HC) kini tampil badge amber "Menunggu Penilaian" di RecordsWorkerDetail + Records + UserAssessmentHistory + Excel + PDF (Orange.Darken2), ganti "Failed" merah / "Completed" abu / sel kosong palsu. `ComputeHistoryStats` static helper: passRate + averageScore exclude pending (graded-only denominator), all-pending → "Belum ada penilaian", indikator "Menunggu Penilaian: N". 7 [Fact] xUnit + Playwright 3 surface + seed SEED_WORKFLOW snapshot/restore.
+
+2. **CMP/Records Detail + Search Logic (Phase 346, REC-01..09)** — Team View search scope (Nama / Training / Keduanya) post-load filter (badge count per-worker utuh, REC-06 D-07), training-detail modal, un-gated "Lihat Hasil", `IsResultsAuthorized` static auth helper (Results/Certificate/CertificatePdf, REC-04), REC-07 Tab3 History pending badge via `GetUnifiedRecords`/`GetAllWorkersHistory` WHERE +PendingGrading, inverted date-range hint, header "Assessment Lulus".
+
+3. **CMP/Records i18n + a11y Polish (Phase 347, POL-01..10)** — Bahasa Indonesia (Lulus/Tidak Lulus/Nilai/Jabatan/Semua*) + a11y (modal `role="dialog"`+aria-labelledby+btn-close "Tutup", filter `<label for=>`, grid `col-sm-6`, pagination `aria-current`, reset `type="button"`) + `records.css` DRY union via `_Layout RenderSectionAsync Styles` + `@section`. 76/76 test.
+
+4. **ManageAssessment + Monitoring MED Fix (Phase 348, MAM-01..13)** — Pre-Post RegenerateToken/Export/PDF/badge sadar LinkedGroupId (PostTest beda-tanggal tak ke-miss); essay-pending "Menunggu Penilaian" jujur di Monitoring Detail + tak inflate passRate (root cause `ExecuteUpdateAsync` bypass change-tracker → reload status); Tab2 empty-state + HTMX pagination + hx-post delete preserve filter; badge GroupStatus + dropdown data-driven (Proton phantom hilang) + tooltip jujur + reshuffle scoped. `DeriveUserStatus`/`IsTrainingInitialState` static TDD. 98/98 xUnit + Playwright 9 + human-verify APPROVED.
+
+5. **ManageAssessment + Monitoring LOW Polish (Phase 349, MAP-01..23)** — i18n Monitoring Detail/NIP, a11y chevron-rotate CSS `[aria-expanded]` + aria-label + drop ARIA nested-interactive, empty-state filter-aware + "Reset Semua Filter" + Tab3 0-match aria-live + counter "Menampilkan X dari Y" + skeleton kolom-match, **7-kartu summary Monitoring Detail (invariant Total = jumlah 6 kartu, +Abandoned +Menunggu Penilaian)**, TotalCount exclude Cancelled (progress bisa 100%), Pre-Post Regenerate dropdown, search-by-Category, drop dead-var/param. 105/105 xUnit + Playwright UAT 5 SC + human-verify APPROVED.
+
+**Patterns established / reused (cross-phase):**
+
+- **`AssessmentConstants.AssessmentStatus.PendingGrading` ("Menunggu Penilaian") sebagai single source of truth** lintas 11+ surface (service→controller→view→PDF→Excel) — integration check konfirmasi konsisten, 3 literal-drift LOW non-breaking.
+- **Exclude-pending denominator** konsisten di 3 jalur (CMP/Records passRate, group PassedCount via `IsPassed ?? false`, Detail MenungguPenilaianCount).
+- **Seed-workflow PDF/visual verify** (345 + closure): seed temporary prefix + snapshot + Playwright + DELETE-cleanup + SEED_JOURNAL untuk surface yang tak bisa di-assert otomatis.
+
+**Tech debt / deferred at close (acknowledged):**
+
+- Push batch v22.0 leg ~127 commit (full bundle v19+v20+v21+v22) pending IT availability + verifikasi lokal lengkap.
+- **CMP06R-03 PDF** env-blocked lokal (QuestPDF/SkiaSharp return 204, Phase 327 known) — code-verified, perlu render-confirm di env QuestPDF normal (Dev/Prod).
+- **348/349 tanpa VERIFICATION.md** (diverifikasi human-verify checkpoint + UAT + APPROVED, bukan gsd-verifier) — substantif satisfied.
+- **Nyquist VALIDATION.md** 346/347/348 missing (pure polish, logic-bearing minim) — accepted.
+- Backlog: **Phase 999.2** CMP/Records search extend ke Assessment title (bug user UAT, REC-06 D-07 scope) + 999.1 Realtime SignalR.
+- 3 literal-string drift LOW (`DeriveUserStatus` L2682, `IsMenungguPenilaian` L2771, sub-row CancelledCount) — refactor opsional ke konstanta.
+
+---
+
 ## v21.0 ManageOrganization Overhaul + Level Label CRUD (Shipped Local: 2026-06-04, Audited: 2026-06-04)
 
 **Phases completed:** 5 phase (340, 341, 342, 343, 344), 16 plan (340:3, 341:3, 342:3, 343:4, 344:3)
@@ -21,11 +58,13 @@
 5. **Test + UAT (Phase 344, TEST-01..06 + ORG-INTEG-03)** — xUnit 52/52 (incl. disposable real-SQL-Server `OrgLabelMigrationIntegrationTests` TEST-05, `OrgTreePreOrder` DFS helper TEST-03, 5 reflection permission [Fact] TEST-02) + Playwright `manage-org-label.spec.ts` 7 scenarios + manual UAT 5/5 (cascade count SQL-cross-checked). Verifier PASS 5/5. **TDD caught a real null-key bug in the planned DFS helper; adversarial reviewer caught 6 critical the standard checker missed.**
 
 **Patterns established (cross-phase reuse):**
+
 - Configurable display labels via cached service + global `@inject` (340→343): one source of truth, real-time propagation via cache-invalidate-on-mutation.
 - Client-side label hydration (342): tree JS consumes `GET /Admin/GetLevelLabels` rather than server-injecting, keeping the endpoint as the single label API.
 - Adversarial plan review (344): independent skeptic agent catches false-green/silent-pass traps the structural checker misses (helper-vs-source fidelity, tautological fixtures, matrix-setup coupling, wave races).
 
 **Tech debt at close (acknowledged, defer):**
+
 - Push batch ~74 commit lokal v21.0 leg (full bundle v19+v20+v21) pending IT availability.
 - Phase 341 Nyquist `*-VALIDATION.md` `nyquist_compliant: false` (PARTIAL) — phase has 38 tests + UAT 10/10; optional `/gsd-validate-phase 341` to flip green (non-blocking).
 - STATE.md frontmatter `milestone: v16.0` stale (parallel-session drift); body reflects v22.0 active.
@@ -54,12 +93,14 @@
 6. **Phase 339 Gap Closure** — `/gsd-audit-milestone v20.0` (2026-06-02 morning) identified 3 partial REQ. Phase 339 surgical fix: T1 `_AssessmentGroupsTab.cshtml:283-291` dropdown-item BulkExportPdf + divider + BulkBackfill (CIL-06 + REST-04 dropdown variant). T2 `Views/Admin/Index.cshtml:274-289` Admin-only card BulkBackfill di Section D System (REST-04 primary nav). T3 `AssessmentAdminController.cs:847-855` conditional regex validator + `CreateAssessment.cshtml:193` `<span asp-validation-for="Title">` (REST-06). **D-03 entity safety:** `Models/AssessmentSession.cs:13` UNTOUCHED. Playwright MCP UAT 5/6 PASS + 1 N/A (HC role no-creds, code-proof).
 
 **Patterns established (cross-phase reuse):**
+
 - Conditional validator guard parity (Phase 338-05 auto-pair → Phase 339 regex validator: same `AssessmentTypeInput != "PrePostTest"` guard)
 - Entity-immutable Validation (Phase 339 D-03: server-side controller validation, NOT entity data annotation, untuk feature scoped ke subset usage)
 - Admin-only nav gate match endpoint (Phase 339 D-02: `@if (User.IsInRole("Admin"))` standalone gate match `[Authorize(Roles="Admin")]` — DISTINCT dari `|| HC` variant)
 - Wave 4 endpoint + Wave 5 wiring split (Phase 338 → 339 reorganization: endpoint logic shipped early, UI wiring afterward via dedicated gap closure phase)
 
 **Tech debt at close (acknowledged, defer):**
+
 - Push batch ~155 commit lokal v19.0+v20.0 pending IT availability
 - v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (pre-existing tech debt — backlog housekeeping non-blocker)
 - Nyquist `*-VALIDATION.md` MISSING semua 4 phase v20.0 (defer batch `/gsd-validate-phase N`)
@@ -85,6 +126,7 @@
 5. **Cascade hardening 7 endpoint (Phase 329-335, CSCD-01..07)** — Renewal pre-check pattern + DbUpdateException catch + file-capture-before-tx + tx wrap + D6 info-leak fix (NO `+ ex.Message`) di: DeleteAssessmentGroup+PrePostGroup (329), MED Bundle DeleteCategory/Package/Question/OrgUnit/NotifService (330), DeleteTraining+ManualAssessment atomicity (331), DeleteBagian file atomicity (332), DeleteCoachingSession file atomicity (333), DeleteKompetensi orphan evidence + D6 info-leak (334), **DeleteWorker FINAL HIGH triple-fix D2+D5+D7** (335 — MILESTONE CLOSE).
 
 **Patterns established (cross-phase reuse, integration verified COHERENT):**
+
 - Renewal pre-check pre-tx (Phase 325 P05 → 329/331/335)
 - DbUpdateException catch + friendly TempData (Phase 329 → 330-335)
 - File capture-before-tx + delete post-commit warn-only (Phase 331 → 332-335)
@@ -92,6 +134,7 @@
 - xUnit baseline 10→18 carry-forward (Phase 325 Plan 01 + Phase 327 = consistent 18/18 PASS test count seluruh phase 326-335)
 
 **Tech debt at close:**
+
 - Push batch ~78 commit pending IT availability (`docs/IT_NOTIFY.md` ready deliver)
 - v16.0 MILESTONES.md entry belum ditambah (backlog housekeeping non-blocker)
 - Nyquist `*-VALIDATION.md` missing semua phase (nyquist_validation likely disabled by design)

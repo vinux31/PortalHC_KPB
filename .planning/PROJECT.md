@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v17.0 shipped + archived, 2026-05-23)
+## Current State (v22.0 shipped + audited, 2026-06-05)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -34,23 +34,17 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v20.0 shipped (local) + audit passed + archived (2026-06-02)** — CMP Records Overhaul + Cilacap UX/Restore (phases 336-339): CMP Records full overhaul Approach C (CMP-01..26 — filter integrity + UX race-safe + a11y ARIA + ViewModel + SQL push-down + pagination Team View), 6 Cilacap admin UX gap (CIL-01..06 — filter default + history drill-down + banner role-gated + Excel +2 sheet + BulkExportPdf ZIP), PreTest Cilacap loss investigation Strategy A locked + naming spec (REST-01..03), restore execute BulkBackfill endpoint + guardrail backup hook + DEV_WORKFLOW SOP + auto-pair LinkedGroupId Pre/Post (REST-04..07), Phase 339 gap closure 3 partial REQ (CIL-06 UI link + REST-04 dual nav + REST-06 regex validator). 39/39 REQ satisfied + Playwright MCP UAT 5/6 PASS. Bundle ~155 commit lokal v19.0+v20.0 pending push origin/main + IT promo.
 
-**Current focus:** Bundle push pending IT availability. Backlog: 8 carry-over (EPRV-01 + Phase 235/247/281/285/293/297/298/303) + Phase 337+338 live UAT items deferred Dev env + REST-04 KRITIS Cilacap data restore execute Dev DB pending admin trigger.
+**v21.0 shipped (local) + audit passed + closed (2026-06-04)** — ManageOrganization Overhaul + Level Label CRUD (phases 340-344): configurable org tier labels (Bagian/Unit/Sub-unit rename app-wide via CRUD page + cached `IOrgLabelService` + global `@inject` 110 calls / 26 views) + ManageOrganization tree fixes (pre-order DFS dropdown, per-parent dup-name, cascade-impact preview, dynamic modal). 26/26 REQ + 52/52 xUnit + UAT. 1 migration `AddOrganizationLevelLabel`.
 
-## Current Milestone: v21.0 ManageOrganization Overhaul + Level Label CRUD
+**v22.0 shipped (local) + audit passed (2026-06-05)** — CMP-06 + Assessment/Monitoring Audit Fixes (phases 345-349): tampilan jujur "Menunggu Penilaian" (essay pending-grade) lintas CMP/Records + RecordsWorkerDetail + UserAssessmentHistory + Excel + PDF + Monitoring + ManageAssessment (ganti "Failed"/"Completed"/kosong palsu, passRate & average exclude-pending) + 2-audit sweep ManageAssessment+Monitoring (Pre-Post LinkedGroupId, Tab2 pagination/empty-state, i18n + a11y chevron + 7-kartu summary + exclude-Cancelled progress + search Category). 60/60 REQ + 105/105 xUnit + Playwright UAT + human-verify. 0 migration.
 
-**Goal:** Fix bug page Admin/ManageOrganization + tabel CRUD label tier organisasi (Bagian/Unit/Sub-unit dynamic) + integrasi label seluruh app.
+**Current focus:** Antara milestone — v22.0 baru ditutup (2026-06-05). Bundle push v19+v20+v21+v22 pending IT availability + verifikasi lokal lengkap. Next: `/gsd-new-milestone v23.0`.
 
-**Target features:**
-- Fix 4 bug + 4 inovasi UX di page ManageOrganization (sort dropdown pre-order, dup-name per-parent, inactive parent visible, escape, level cap, path preview, cascade warning, legend)
-- Tabel `OrganizationLevelLabels` + page `/Admin/ManageOrgLevelLabels` CRUD (role Admin + HC, audit log, auto-detect depth)
-- Integrasi label ke 7 area page (CMP/CDP/Worker/CoachMapping/ProtonData/Renewal/DocumentAdmin)
+## Next Milestone: belum ditentukan (v23.0)
 
-**Phase range:** 340-344 (5 phases) | **REQ:** 26 | **Effort:** ~5 hari sequential
+v22.0 ditutup 2026-06-05. Milestone berikut dimulai via `/gsd-new-milestone` (questioning → research → requirements → roadmap).
 
-**Source:**
-- Spec: `docs/superpowers/specs/2026-06-02-manageorganization-overhaul-design.md`
-- Requirements: `.planning/milestones/v21.0-REQUIREMENTS.md`
-- Roadmap: `.planning/milestones/v21.0-ROADMAP.md`
+**Backlog siap promote:** Phase 999.1 Realtime Assessment SignalR (M-L: 2-arah HC↔Worker live exam update) + Phase 999.2 CMP/Records Team View search extend ke Assessment title (S: bug UAT 2026-06-05, searchScope "Keduanya" belum cakup judul assessment).
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 
