@@ -13,8 +13,8 @@
 
 ### Search Scope — Team View (SF-01, SF-02)
 
-- [ ] **SF-01**: Saat HC/admin search di Team View CMP/Records dengan Lingkup "Keduanya" (atau "Training"-extended), worker yang punya **assessment** ber-judul cocok ikut muncul — bukan hanya cocok Nama/NIP + judul Training. (Cari "ojt v14.2" → worker pemilik assessment itu tampil.) Predikat tambah `AssessmentSessions.Any(a => a.Title contains search)` di level worker (post-load) — **preserve REC-06 D-07** (badge count per-worker tetap utuh). `WorkerDataService.GetWorkersInSection:402-417`.
-- [ ] **SF-02**: Dropdown "Lingkup" Team View punya opsi eksplisit yang mencakup pencarian Assessment (mis. "Assessment" atau relabel "Keduanya" = Nama/NIP + Training + Assessment), dan placeholder/label search jujur mencerminkan field yang benar-benar dicari (tidak menyesatkan). `RecordsTeam.cshtml` (Lingkup select + search placeholder).
+- [x] **SF-01**: Saat HC/admin search di Team View CMP/Records dengan Lingkup "Keduanya" (atau "Training"-extended), worker yang punya **assessment** ber-judul cocok ikut muncul — bukan hanya cocok Nama/NIP + judul Training. (Cari "ojt v14.2" → worker pemilik assessment itu tampil.) Predikat tambah `AssessmentSessions.Any(a => a.Title contains search)` di level worker (post-load) — **preserve REC-06 D-07** (badge count per-worker tetap utuh). `WorkerDataService.GetWorkersInSection:402-417`.
+- [x] **SF-02**: Dropdown "Lingkup" Team View punya opsi eksplisit yang mencakup pencarian Assessment (mis. "Assessment" atau relabel "Keduanya" = Nama/NIP + Training + Assessment), dan placeholder/label search jujur mencerminkan field yang benar-benar dicari (tidak menyesatkan). `RecordsTeam.cshtml` (Lingkup select + search placeholder).
 
 ### Search/Filter Feedback & Cross-Surface Consistency (SF-03, SF-05, SF-07)
 
@@ -25,7 +25,7 @@
 ### Filter Correctness & Export Parity (SF-04, SF-06)
 
 - [ ] **SF-04**: Filter Kategori di Worker Detail mencocokkan kategori **record aktual** (assessment + training rows), bukan hanya exact-equals terhadap master `AssessmentCategories` — sehingga record free-text/legacy tetap terfilter benar, dan opsi dropdown tidak menyertakan kategori mati (yang tak punya record). `RecordsWorkerDetail.cshtml` filter Kategori + `GetUnifiedRecords`.
-- [ ] **SF-06**: Export Team View (Assessment + Training) menghasilkan data identik dengan yang tampil di tabel on-screen (WYSIWYG) — terapkan search/filter/scope yang sama; Export Assessment tidak kosong saat user search judul assessment (konsekuensi SF-01), dan baris assessment di-narrow per-Category setara baris training (sheet tidak asimetris). `CMPController.ExportRecordsTeamAssessment/Training` + `GetWorkersInSection`.
+- [x] **SF-06**: Export Team View (Assessment + Training) menghasilkan data identik dengan yang tampil di tabel on-screen (WYSIWYG) — terapkan search/filter/scope yang sama; Export Assessment tidak kosong saat user search judul assessment (konsekuensi SF-01), dan baris assessment di-narrow per-Category setara baris training (sheet tidak asimetris). `CMPController.ExportRecordsTeamAssessment/Training` + `GetWorkersInSection`.
 
 ---
 
@@ -45,9 +45,9 @@ Tidak ada — seluruh 7 temuan audit masuk scope v23.0.
 
 | REQ-ID | Sev | Phase | Surface | Status |
 |--------|-----|-------|---------|--------|
-| SF-01 | HIGH | Phase 350 | Team View (search predicate) | Pending |
-| SF-02 | MED | Phase 350 | Team View (Lingkup dropdown + placeholder) | Pending |
-| SF-06 | MED | Phase 350 | Team View Export (parity) | Pending |
+| SF-01 | HIGH | Phase 350 | Team View (search predicate) | ✅ Complete 2026-06-05 |
+| SF-02 | MED | Phase 350 | Team View (Lingkup dropdown + placeholder) | ✅ Complete 2026-06-05 |
+| SF-06 | MED | Phase 350 | Team View Export (parity) | ✅ Complete 2026-06-05 |
 | SF-03 | MED | Phase 351 | Worker Detail (0-match + counter) | Pending |
 | SF-04 | MED | Phase 351 | Worker Detail (Kategori actual-match) | Pending |
 | SF-05 | LOW | Phase 351 | My Records ↔ Worker Detail (parity) | Pending |
