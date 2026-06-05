@@ -861,7 +861,7 @@ Plans:
 
 ### Phases
 
-- [ ] **Phase 350: Team View Server-Side Search Scope + Export Parity** — Cari di Team View ikut cakup judul Assessment (fix 999.2) + dropdown Lingkup jujur + export WYSIWYG identik tabel on-screen
+- [x] **Phase 350: Team View Server-Side Search Scope + Export Parity** — Cari di Team View ikut cakup judul Assessment (fix 999.2) + dropdown Lingkup jujur + export WYSIWYG identik tabel on-screen (completed 2026-06-05)
 - [ ] **Phase 351: Worker Detail + Cross-Surface Filter Consistency** — 0-match feedback + counter di Worker Detail + filter Kategori match record aktual + paritas My Records ↔ Worker Detail + back-nav preserve param
 
 ### Phase Details
@@ -877,10 +877,10 @@ Plans:
   3. Tombol Export Team View (Assessment + Training) menghasilkan baris **identik** dengan tabel on-screen (WYSIWYG) — search/filter/scope yang sama diterapkan; Export Assessment **tidak kosong** saat user search judul assessment (konsekuensi SF-01).
   4. Badge count Assessment Lulus / Training per worker **tidak berubah** akibat search (REC-06 D-07 invariant) — search hanya menyaring worker yang muncul, bukan mengubah angka badge.
   5. `dotnet build` 0 error + `dotnet test` hijau termasuk test predikat baru `GetWorkersInSection` (assessment-title match) yang sebelumnya absen di `WorkerDataServiceSearchTests.cs`.
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
   - [x] 350-01-PLAN.md — Wave 0 test scaffold: +4 xUnit [Fact] (RED) + cmp350-seed.sql + cmp-records-350.spec.ts (SF-01, SF-06)
-  - [ ] 350-02-PLAN.md — SF-01 predikat assessment-title (post-load, D-07 utuh) + SF-02 micro-copy jujur "Judul Kegiatan" (value tetap) (SF-01, SF-02)
-  - [ ] 350-03-PLAN.md — SF-06 export Category symmetry (project a.Category + controller narrow + drop archived) + phase gate UAT (SF-06)
+  - [x] 350-02-PLAN.md — SF-01 predikat assessment-title (post-load, D-07 utuh) + SF-02 micro-copy jujur "Judul Kegiatan" (value tetap) (SF-01, SF-02)
+  - [x] 350-03-PLAN.md — SF-06 export Category symmetry (project a.Category + controller narrow + drop archived) + phase gate UAT (SF-06)
 **UI hint:** yes
 
 ### Phase 351: Worker Detail + Cross-Surface Filter Consistency
@@ -903,7 +903,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 350. Team View Search Scope + Export Parity | 1/3 | In Progress|  |
+| 350. Team View Search Scope + Export Parity | 3/3 | Complete    | 2026-06-05 |
 | 351. Worker Detail + Cross-Surface Consistency | 0/TBD | Not started | - |
 
 ### Coverage Validation
