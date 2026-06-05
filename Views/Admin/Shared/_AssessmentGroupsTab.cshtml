@@ -257,11 +257,23 @@ else
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>
-                                            <a class="dropdown-item" href="@Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
-                                                <i class="bi bi-binoculars me-2"></i>Monitoring
-                                            </a>
-                                        </li>
+                                        @* MAM-02: Pre-Post → list view (renders both-half Pre+Post), hindari single-date filter yang miss PostTest beda tanggal. *@
+                                        @if ((bool)group.IsPrePostGroup)
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" href="@Url.Action("AssessmentMonitoring", "AssessmentAdmin", new { search = (string)group.Title })">
+                                                    <i class="bi bi-binoculars me-2"></i>Monitoring (Pre &amp; Post)
+                                                </a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" href="@Url.Action("AssessmentMonitoringDetail", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
+                                                    <i class="bi bi-binoculars me-2"></i>Monitoring
+                                                </a>
+                                            </li>
+                                        }
                                         <li>
                                             <a class="dropdown-item" asp-action="EditAssessment" asp-controller="AssessmentAdmin"
                                                asp-route-id="@group.RepresentativeId">
@@ -274,14 +286,15 @@ else
                                                 <i class="bi bi-collection me-2"></i>Manage Packages
                                             </a>
                                         </li>
+                                        @* MAM-02: row Pre-Post kirim linkedGroupId → endpoint query both-half (Pre+Post); standard tetap scheduleDate. *@
                                         <li>
-                                            <a class="dropdown-item" href="@Url.Action("ExportAssessmentResults", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
-                                                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                                            <a class="dropdown-item" href="@Url.Action("ExportAssessmentResults", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd"), linkedGroupId = (bool)group.IsPrePostGroup ? (int?)group.LinkedGroupId : null })">
+                                                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel@((bool)group.IsPrePostGroup ? " (Pre & Post)" : "")
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="@Url.Action("BulkExportPdf", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
-                                                <i class="bi bi-file-zip me-2"></i>Bulk Export PDF (ZIP)
+                                            <a class="dropdown-item" href="@Url.Action("BulkExportPdf", "AssessmentAdmin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd"), linkedGroupId = (bool)group.IsPrePostGroup ? (int?)group.LinkedGroupId : null })">
+                                                <i class="bi bi-file-zip me-2"></i>Bulk Export PDF (ZIP)@((bool)group.IsPrePostGroup ? " (Pre & Post)" : "")
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
