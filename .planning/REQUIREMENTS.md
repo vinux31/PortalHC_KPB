@@ -97,17 +97,17 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 - [ ] **MAP-10**: Monitor Detail summary tambah "Abandoned" (sum=Total) + sync JS. (`AssessmentMonitoringDetail.cshtml:146-177,1280`)
 - [ ] **MAP-11**: Monitor Detail "In Progress" pakai `Model.InProgressCount`; dead var `completedPct`/`passRatePct` buang/surface. (`AssessmentMonitoringDetail.cshtml:33-39,161`)
 - [ ] **MAP-12**: Monitor Detail "Akhiri Semua Ujian" conditional render + modal wording predikat-identik. (`AssessmentMonitoringDetail.cshtml:196,542`)
-- [ ] **MAP-13**: Monitor list `TotalCount` exclude Cancelled → progress bisa 100%. (`AssessmentAdminController.cs:2819,2757`)
-- [ ] **MAP-14**: Monitor list subtitle buang "real-time". (`AssessmentMonitoring.cshtml:27`)
-- [ ] **MAP-15**: Monitor list dropdown Status saat search jangan misrepresent. (`AssessmentMonitoring.cshtml:12,80-87`)
-- [ ] **MAP-16**: Monitor list buang kategori dobel (subtitle vs badge). (`AssessmentMonitoring.cshtml:257-273`)
-- [ ] **MAP-17**: Monitor list Pre-Post token-required → render View Detail / Regenerate (koord MAM-01). (`AssessmentMonitoring.cshtml:298-327`)
+- [x] **MAP-13**: Monitor list `TotalCount` exclude Cancelled → progress bisa 100%. (`AssessmentAdminController.cs:2819,2757`)
+- [x] **MAP-14**: Monitor list subtitle buang "real-time". (`AssessmentMonitoring.cshtml:27`)
+- [x] **MAP-15**: Monitor list dropdown Status saat search jangan misrepresent. (`AssessmentMonitoring.cshtml:12,80-87`)
+- [x] **MAP-16**: Monitor list buang kategori dobel (subtitle vs badge). (`AssessmentMonitoring.cshtml:257-273`)
+- [x] **MAP-17**: Monitor list Pre-Post token-required → render View Detail / Regenerate (koord MAM-01). (`AssessmentMonitoring.cshtml:298-327`)
 - [x] **MAP-18**: Tab2 Detail manual-assessment tri-state `null→"Menunggu Penilaian"`. (`_TrainingRecordsTab.cshtml:249`)
 - [x] **MAP-19**: Tab2 "Belum ada" badge gated combined count / selalu `CompletionDisplayText`. (`_TrainingRecordsTab.cshtml:222-229`)
 - [x] **MAP-20**: Tab3 History cell Pass/Fail badge "Menunggu Penilaian" (depends REC-07/346). (`_HistoryTab.cshtml:102-103`)
 - [x] **MAP-21**: Pagination Tab1 drop magic-number `20` → `paging.Take` via ViewBag. (`_AssessmentGroupsTab.cshtml:16,180,354`) (gabung L4+L28)
 - [ ] **MAP-22**: History/Training drop param mati `pageSize/statusFilter`/no-op `page`. (`AssessmentAdminController.cs:245-305`) (gabung L10+L29)
-- [ ] **MAP-23**: (opsional) Extend search Monitoring ke Category untuk parity. (`AssessmentAdminController.cs:2685-2689`)
+- [x] **MAP-23**: (opsional) Extend search Monitoring ke Category untuk parity. (`AssessmentAdminController.cs:2685-2689`)
 
 ## Coverage Validation
 
