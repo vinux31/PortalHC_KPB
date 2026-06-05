@@ -72,13 +72,12 @@
                     <tbody>
                         @foreach (var row in assessmentHistory)
                         {
-                            @* Phase 338 CIL-03: row clickable bila SessionId tersedia (current Completed branch);
-                               archived branch SessionId null \u2192 row tidak clickable, Actions kolom tampil "\u2014" *@
+                            @* Phase 338 CIL-03 + 349 MAP-04: drill-down via tombol "Lihat" (kolom Actions) saja \u2014
+                               drop ARIA nested-interactive (tr role=link membungkus a). SessionId null (archived) -> "\u2014". *@
                             var hasDrillDown = row.SessionId.HasValue;
-                            <tr class="assessment-history-row @(hasDrillDown ? "cil03-row-link" : "")"
+                            <tr class="assessment-history-row"
                                 data-worker="@row.WorkerName.ToLower() @(row.WorkerNIP?.ToLower() ?? "")"
-                                data-title="@row.Title"
-                                @(hasDrillDown ? Html.Raw($"data-href=\"/CMP/Results/{row.SessionId}\" tabindex=\"0\" role=\"link\" aria-label=\"Lihat detail assessment {row.Title} oleh {row.WorkerName}\"") : Html.Raw(""))>
+                                data-title="@row.Title">
                                 <td class="p-3 fw-semibold">@row.WorkerName</td>
                                 <td class="p-3 text-muted">@(row.WorkerNIP ?? "\u2014")</td>
                                 <td class="p-3"><span class="fw-semibold">@row.Title</span></td>
@@ -123,28 +122,6 @@
                         }
                     </tbody>
                 </table>
-                @* Phase 338 CIL-03: row clickable handler + a11y CSS *@
-                <style>
-                    tr.cil03-row-link { cursor: pointer; }
-                    tr.cil03-row-link:hover { background-color: rgba(13, 110, 253, 0.05); }
-                    tr.cil03-row-link:focus { outline: 2px solid #0d6efd; outline-offset: -2px; }
-                </style>
-                <script>
-                    (function() {
-                        document.querySelectorAll('tr.cil03-row-link[data-href]').forEach(function(row) {
-                            row.addEventListener('click', function(e) {
-                                if (e.target.closest('a, button, input, select')) return;
-                                window.location.href = row.dataset.href;
-                            });
-                            row.addEventListener('keydown', function(e) {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    window.location.href = row.dataset.href;
-                                }
-                            });
-                        });
-                    })();
-                </script>
             </div>
         }
     </div>
@@ -155,7 +132,7 @@
         <div class="row g-2 mb-3 pt-3 px-0">
             <div class="col-md-4">
                 <input type="text" class="form-control form-control-sm"
-                       placeholder="Cari nama pekerja / Nopeg..."
+                       placeholder="Cari nama pekerja / NIP..."
                        id="trainingWorkerFilter" oninput="filterTrainingRows()">
             </div>
         </div>
@@ -175,7 +152,7 @@
                     <thead class="table-dark">
                         <tr>
                             <th class="p-3">Nama Pekerja</th>
-                            <th class="p-3">Nopeg</th>
+                            <th class="p-3">NIP</th>
                             <th class="p-3">Judul / Nama Pelatihan</th>
                             <th class="p-3">Tanggal Mulai</th>
                             <th class="p-3">Penyelenggara</th>
