@@ -825,7 +825,7 @@ Plans:
 
 ### Phase 349: manageassessment-monitoring-low-polish
 
-- [ ] **Phase 349: ManageAssessment + Monitoring LOW Polish**
+- [x] **Phase 349: ManageAssessment + Monitoring LOW Polish** (completed 2026-06-05)
   - **REQ:** MAP-01..23 (29 LOW; D-02 semua masuk)
   - **Depends on:** Phase 348 (sequential — file sama: `_AssessmentGroupsTab`/`AssessmentMonitoring*`/`ManageAssessment.cshtml`)
   - **Goal:** i18n Monitoring + a11y (aria/chevron) + empty-state/feedback + code-hygiene (dead param, magic-number, dead var).
@@ -836,12 +836,12 @@ Plans:
     4. Display nits: Abandoned card, progress bar bisa 100% (exclude Cancelled), "real-time" subtitle, kategori dobel.
     5. Code-hygiene: magic-number `20` → ViewBag, param mati drop. `dotnet build` 0 error + no visual regression.
   - **Risk:** Low | **Effort:** M (no migration)
-  - **Plans:** 4/5 plans executed
+  - **Plans:** 5/5 plans complete
     - [x] 349-01-PLAN.md — Tab3 History: i18n NIP + drop ARIA nested + 0-match/counter + skeleton (MAP-02/04/07/08/09/20)
     - [x] 349-02-PLAN.md — Tab1/Tab2: chevron+aria + empty-state filter-aware/Reset Semua Filter + tri-state/CompletionDisplayText + paging.Take (MAP-03/05/06/18/19/21)
     - [x] 349-03-PLAN.md — Monitoring list: buang real-time/kategori-dobel + Pre-Post Regenerate Token + TotalCount exclude Cancelled + Status jujur + search Category (MAP-13/14/15/16/17/23)
     - [x] 349-04-PLAN.md — Monitoring Detail: i18n ID + 7-kartu summary (Abandoned+Pending) + InProgressCount/drop dead var + Akhiri Semua conditional (MAP-01/10/11/12)
-    - [ ] 349-05-PLAN.md — MAP-22 drop param mati History + Nyquist test (MAP-13/23) + PHASE GATE (full suite + Playwright UAT 5 SC + browser-verify card-sum/progress-100%) (MAP-13/22/23)
+    - [x] 349-05-PLAN.md — MAP-22 drop param mati History + Nyquist test (MAP-13/23) + PHASE GATE (full suite + Playwright UAT 5 SC + browser-verify card-sum/progress-100%) (MAP-13/22/23)
   - **Wave structure:** W1 [349-01] -> W2 [349-02] -> W3 [349-03] -> W4 [349-04] -> W5 [349-05] (serial penuh — overlap AssessmentAdminController.cs di W2/W3/W4/W5 + file partisi sama; D-B sequential strict)
   - **Files affected:** sama Phase 348 + `ManageAssessment.cshtml` + `_HistoryTab.cshtml`
 

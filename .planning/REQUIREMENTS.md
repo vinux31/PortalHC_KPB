@@ -106,7 +106,7 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 - [x] **MAP-19**: Tab2 "Belum ada" badge gated combined count / selalu `CompletionDisplayText`. (`_TrainingRecordsTab.cshtml:222-229`)
 - [x] **MAP-20**: Tab3 History cell Pass/Fail badge "Menunggu Penilaian" (depends REC-07/346). (`_HistoryTab.cshtml:102-103`)
 - [x] **MAP-21**: Pagination Tab1 drop magic-number `20` → `paging.Take` via ViewBag. (`_AssessmentGroupsTab.cshtml:16,180,354`) (gabung L4+L28)
-- [ ] **MAP-22**: History/Training drop param mati `pageSize/statusFilter`/no-op `page`. (`AssessmentAdminController.cs:245-305`) (gabung L10+L29)
+- [x] **MAP-22**: History/Training drop param mati `pageSize/statusFilter`/no-op `page`. (`AssessmentAdminController.cs:245-305`) (gabung L10+L29)
 - [x] **MAP-23**: (opsional) Extend search Monitoring ke Category untuk parity. (`AssessmentAdminController.cs:2685-2689`)
 
 ## Coverage Validation
