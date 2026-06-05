@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v23.0
 milestone_name: CMP/Records Search & Filter Consistency Audit
 status: executing
-last_updated: "2026-06-05T13:55:06.144Z"
-last_activity: 2026-06-05
+last_updated: "2026-06-05T14:56:38.552Z"
+last_activity: 2026-06-05 -- Phase 351 planning complete
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 50
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
 Phase: 351 (CONTEXT @8cf1ba8e + UI-SPEC approved @b0ddf853; belum di-plan). Phase 350 ✅ COMPLETE (3/3). (parser "next 999.2" = backlog artifact, abaikan)
 Plan: 351 belum di-plan (UI-SPEC done; NEXT /gsd-plan-phase 351 pilih "Research dulu")
-Status: Phase 351 discuss DONE (--auto). SF-03 mirror My Records counter+empty-state · SF-04 Kategori opsi dari record aktual (bukan master, no GetUnifiedRecords change) · SF-05 +Kategori/Tipe ke My Records paritas · SF-07 sessionStorage-primary (planner verify restore precedence; fallback query-string round-trip). No migration. Phase 350 SHIPPED LOCAL (SF-01/02/06, 109/109 xUnit + Playwright 2 passed + review 0C/0W/2I + verifier 5/5; 2 HUMAN-UAT visual deferred). NOT PUSHED bundle v19-v23.
-Last activity: 2026-06-05 -- /gsd-ui-phase 351: UI-SPEC approved @b0ddf853 (researcher @1aaf625a; checker 3 PASS/3 FLAG non-blocking APPROVED; 3 load-bearing traps documented: copy no-data-vs-no-match, Tipe value-map data-type=assessment, My Records rows need data-category)
+Status: Ready to execute
+Last activity: 2026-06-05 -- Phase 351 planning complete
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 

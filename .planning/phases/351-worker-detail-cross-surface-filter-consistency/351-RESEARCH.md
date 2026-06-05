@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **SF-07 minimal fix scope: hash→tab activator vs. accept-as-is.**
    - What we know: sessionStorage already preserves + restores all 9 Team filters and `doFetch` applies them (`RecordsTeam.cshtml:495,503`). The inbound link passes only `workerId` (`_RecordsTeamBody.cshtml:35`). `Records.cshtml` has NO `#team`→tab handler.
