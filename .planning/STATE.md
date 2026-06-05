@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 ## Current Position
 
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 350 (CONTEXT.md ready — 8 keputusan D-01..D-08; belum di-plan)
-Status: Discuss-phase 350 DONE — CONTEXT @120a537f. SF-01/02/06 keputusan terkunci: dropdown 3-opsi relabel jujur ("Judul Kegiatan" = training+assessment title, value internal "Training" preserved) + predikat assessment-title post-load :402-417 (D-07 utuh) + export Category simetris (drop archived saat Kategori aktif, AttemptHistory no-Category-col) + test xUnit mirror + Playwright UAT Team View
-Last activity: 2026-06-05 — /gsd-discuss-phase 350: 4 area dibahas (dropdown+scope / export Category / micro-copy / test), 350-CONTEXT.md + 350-DISCUSSION-LOG.md @120a537f
+Phase: 350 (CONTEXT.md @120a537f + UI-SPEC approved @55cc2b90; belum di-plan)
+Status: Discuss + UI-SPEC 350 DONE. UI-SPEC 6/6 dimensi PASS (text-only micro-copy: dropdown label "Judul Kegiatan" + placeholder + hint verbatim, value internal "Training" preserved). SF-01/02/06 keputusan terkunci: dropdown 3-opsi relabel jujur + predikat assessment-title post-load :402-417 (D-07 utuh) + export Category simetris (drop archived saat Kategori aktif, AttemptHistory no-Category-col) + test xUnit mirror + Playwright UAT Team View. NEXT: /gsd-plan-phase 350 (pilih "Research dulu")
+Last activity: 2026-06-05 — /gsd-ui-phase 350: UI-SPEC.md approved @55cc2b90 (researcher @1fd5b306, checker 6/6 PASS no FLAG)
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
