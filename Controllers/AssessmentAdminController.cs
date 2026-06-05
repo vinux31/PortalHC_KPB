@@ -2740,7 +2740,8 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 var lower = search.ToLower();
-                query = query.Where(a => a.Title.ToLower().Contains(lower));
+                query = query.Where(a => a.Title.ToLower().Contains(lower)
+                                      || a.Category.ToLower().Contains(lower));  // MAP-23: extend search ke Category (Nama/NIP TIDAK — list aggregate)
             }
 
             // Category filter
@@ -2808,13 +2809,13 @@ namespace HcPortal.Controllers
                         Category = rep.Category,
                         Schedule = rep.Schedule,
                         GroupStatus = groupStatus,
-                        // D-11: stat gabungan dari Post
-                        TotalCount = postSubs.Count > 0 ? postSubs.Count : preSubs.Count,
+                        // D-11: stat gabungan dari Post. MAP-13: exclude Cancelled (apply ke postSubs/preSubs, bukan g) -> progress bisa 100%.
+                        TotalCount = (postSubs.Count > 0 ? postSubs : preSubs).Count(a => a.Status != AssessmentConstants.AssessmentStatus.Cancelled),
                         CompletedCount = postSubs.Count(a => a.IsCompleted),
                         PassedCount = postSubs.Count(a => a.IsPassed),
                         PendingCount = postSubs.Count(a => !a.IsCompleted && !a.IsStarted),
                         InProgressCount = postSubs.Count(a => a.IsStarted && !a.IsCompleted),
-                        CancelledCount = g.Count(a => a.Status == "Cancelled"),
+                        CancelledCount = g.Count(a => a.Status == AssessmentConstants.AssessmentStatus.Cancelled),
                         // MAM-03: parity standardGroups (L2825). Grading terjadi di Post half — pakai postSubs.
                         MenungguPenilaianCount = postSubs.Count(a => a.IsMenungguPenilaian),
                         IsTokenRequired = rep.IsTokenRequired,
@@ -2873,10 +2874,12 @@ namespace HcPortal.Controllers
                         Category = rep.Category,
                         Schedule = rep.Schedule,
                         GroupStatus = groupStatus,
-                        TotalCount = g.Count(),
+                        // MAP-13: exclude Cancelled -> progress bar bisa 100%; + CancelledCount parity (sebelumnya MISSING di standardGroups).
+                        TotalCount = g.Count(a => a.Status != AssessmentConstants.AssessmentStatus.Cancelled),
                         CompletedCount = g.Count(a => a.IsCompleted),
                         PassedCount = g.Count(a => a.IsPassed),
                         PendingCount = g.Count(a => !a.IsCompleted && !a.IsStarted),
+                        CancelledCount = g.Count(a => a.Status == AssessmentConstants.AssessmentStatus.Cancelled),
                         IsTokenRequired = rep.IsTokenRequired,
                         AccessToken = rep.AccessToken ?? "",
                         MenungguPenilaianCount = g.Count(a => a.IsMenungguPenilaian)
@@ -2905,8 +2908,13 @@ namespace HcPortal.Controllers
             {
                 grouped = grouped.Where(g => g.GroupStatus == status).ToList();
             }
+            else if (string.IsNullOrEmpty(status) && !string.IsNullOrEmpty(search))
+            {
+                // MAP-15: search broaden scope (Closed ikut muncul) -> dropdown jujur "Semua Status".
+                // Tanpa ini view default selStatus="active" (Open+Upcoming) padahal Closed tampil. Tak ubah hasil filter (CIL-02 preserved).
+                status = "All";
+            }
             // status == "All" → no filter applied
-            // status kosong + search non-empty → no filter (include Closed di hasil search)
 
             ViewBag.SearchTerm = search ?? "";
             ViewBag.SelectedStatus = status;
