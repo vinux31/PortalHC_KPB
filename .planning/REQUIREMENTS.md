@@ -86,14 +86,14 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 **Source:** audit 6×5-lens 2026-06-04 (29 LOW). **Depends Phase 348** (sequential, file sama). D-02: SEMUA 29 LOW masuk. No migration.
 
 - [ ] **MAP-01**: i18n Monitoring Detail chrome Inggris→Indonesia (header tabel/kartu/back/export). (`AssessmentMonitoringDetail.cshtml`)
-- [ ] **MAP-02**: Konsistenkan "NIP" vs "Nopeg" History sub-tab → "NIP". (`_HistoryTab.cshtml`)
+- [x] **MAP-02**: Konsistenkan "NIP" vs "Nopeg" History sub-tab → "NIP". (`_HistoryTab.cshtml`)
 - [ ] **MAP-03**: Chevron+aria-label toggle collapse Tab1 peserta + Tab2 expand-records.
-- [ ] **MAP-04**: Tab3 drill-down hilangkan ARIA nested-interactive (pilih 1 affordance). (`_HistoryTab.cshtml:78-118`)
+- [x] **MAP-04**: Tab3 drill-down hilangkan ARIA nested-interactive (pilih 1 affordance). (`_HistoryTab.cshtml:78-118`)
 - [ ] **MAP-05**: Tab1 empty-state filter-aware (kategori/status aktif → bukan "Buat assessment pertama"). (`_AssessmentGroupsTab.cshtml:133-156`)
 - [ ] **MAP-06**: Tab1 "Hapus Pencarian" clear-search-only atau relabel. (`_AssessmentGroupsTab.cshtml:143-146`)
-- [ ] **MAP-07**: Tab3 client-filter 0-match → pesan "Tidak ada hasil" +`aria-live`. (`ManageAssessment.cshtml:316-337`)
-- [ ] **MAP-08**: Tab3 badge count ikut filter / "Menampilkan X dari Y". (`_HistoryTab.cshtml:13,20`)
-- [ ] **MAP-09**: Skeleton loader match kolom asli Tab2 + History. (`ManageAssessment.cshtml:146-199`)
+- [x] **MAP-07**: Tab3 client-filter 0-match → pesan "Tidak ada hasil" +`aria-live`. (`ManageAssessment.cshtml:316-337`)
+- [x] **MAP-08**: Tab3 badge count ikut filter / "Menampilkan X dari Y". (`_HistoryTab.cshtml:13,20`)
+- [x] **MAP-09**: Skeleton loader match kolom asli Tab2 + History. (`ManageAssessment.cshtml:146-199`)
 - [ ] **MAP-10**: Monitor Detail summary tambah "Abandoned" (sum=Total) + sync JS. (`AssessmentMonitoringDetail.cshtml:146-177,1280`)
 - [ ] **MAP-11**: Monitor Detail "In Progress" pakai `Model.InProgressCount`; dead var `completedPct`/`passRatePct` buang/surface. (`AssessmentMonitoringDetail.cshtml:33-39,161`)
 - [ ] **MAP-12**: Monitor Detail "Akhiri Semua Ujian" conditional render + modal wording predikat-identik. (`AssessmentMonitoringDetail.cshtml:196,542`)
@@ -104,7 +104,7 @@ Assessment dengan `Status="Completed"` + `IsPassed == null` (essay submit, belum
 - [ ] **MAP-17**: Monitor list Pre-Post token-required → render View Detail / Regenerate (koord MAM-01). (`AssessmentMonitoring.cshtml:298-327`)
 - [ ] **MAP-18**: Tab2 Detail manual-assessment tri-state `null→"Menunggu Penilaian"`. (`_TrainingRecordsTab.cshtml:249`)
 - [ ] **MAP-19**: Tab2 "Belum ada" badge gated combined count / selalu `CompletionDisplayText`. (`_TrainingRecordsTab.cshtml:222-229`)
-- [ ] **MAP-20**: Tab3 History cell Pass/Fail badge "Menunggu Penilaian" (depends REC-07/346). (`_HistoryTab.cshtml:102-103`)
+- [x] **MAP-20**: Tab3 History cell Pass/Fail badge "Menunggu Penilaian" (depends REC-07/346). (`_HistoryTab.cshtml:102-103`)
 - [ ] **MAP-21**: Pagination Tab1 drop magic-number `20` → `paging.Take` via ViewBag. (`_AssessmentGroupsTab.cshtml:16,180,354`) (gabung L4+L28)
 - [ ] **MAP-22**: History/Training drop param mati `pageSize/statusFilter`/no-op `page`. (`AssessmentAdminController.cs:245-305`) (gabung L10+L29)
 - [ ] **MAP-23**: (opsional) Extend search Monitoring ke Category untuk parity. (`AssessmentAdminController.cs:2685-2689`)
