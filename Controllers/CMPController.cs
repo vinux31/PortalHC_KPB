@@ -498,6 +498,11 @@ namespace HcPortal.Controllers
                 YearOptions = yearOptions
             };
 
+            // Phase 351 SF-05: opsi Kategori My Records dari record AKTUAL (distinct unified.Kategori),
+            // tersedia untuk SEMUA role (di luar block Team-View roleLevel<=4).
+            ViewBag.ActualCategoriesJson = System.Text.Json.JsonSerializer.Serialize(
+                BuildActualCategories(unified));
+
             // Phase 104: Get worker list for Team View tab (only for users level 1-4)
             if (roleLevel <= 4)
             {
@@ -574,9 +579,10 @@ namespace HcPortal.Controllers
                     g => g.First().Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
                 );
             ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
-            ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(
-                allCats.Select(c => c.Name).OrderBy(n => n).ToList()
-            );
+            // Phase 351 SF-04: opsi Kategori dari record AKTUAL (distinct unifiedRecords.Kategori),
+            // bukan master — tampung free-text/legacy + buang opsi mati. SubCategoryMap tetap master.
+            ViewBag.ActualCategoriesJson = System.Text.Json.JsonSerializer.Serialize(
+                BuildActualCategories(unifiedRecords));
 
             var viewModel = new
             {
