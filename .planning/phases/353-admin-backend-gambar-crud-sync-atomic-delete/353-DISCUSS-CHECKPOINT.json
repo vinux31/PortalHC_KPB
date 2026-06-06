@@ -1,0 +1,39 @@
+{
+  "phase": "353",
+  "phase_name": "Admin Backend Gambar (CRUD + Sync + Atomic Delete)",
+  "timestamp": "2026-06-06",
+  "status": "PAUSED mid-discuss — resume via /gsd-discuss-phase 353",
+  "req_ids": ["IMG-01","IMG-02","IMG-03","IMG-05","IMG-06","IMG-07","RND-04","SYN-01","SYN-02"],
+  "areas_selected": ["Layout form upload", "Edit: tampil & hapus/ganti", "Preview sebelum simpan", "Feedback validasi gagal"],
+  "areas_completed": [],
+  "areas_remaining": ["Layout form upload", "Edit: tampil & hapus/ganti", "Preview sebelum simpan", "Feedback validasi gagal"],
+  "decisions": {},
+  "in_progress_area": {
+    "area": "Layout form upload",
+    "state": "user minta visualisasi mockup; 3 opsi disiapkan (A inline kontekstual / B section terpisah / C collapse toggle); user belum pilih. AskUserQuestion preview di-reject saat user minta pause.",
+    "options": {
+      "A": "Gambar soal di bawah textarea + gambar opsi inline tiap baris A-D (file input + thumbnail + x + alt). RECOMMENDED kontekstual.",
+      "B": "Section 'Gambar' terpisah kumpulkan soal + 4 opsi sekaligus di bawah form.",
+      "C": "Collapse toggle '+ Tambah gambar' per soal/opsi, form ringkas default."
+    }
+  },
+  "scout_findings": {
+    "form_view": "Views/Admin/ManagePackageQuestions.cshtml — form server-post asp-action CreateQuestion method=post (TANPA enctype multipart, perlu ditambah multipart/form-data). Opsi fixed A-D (optionA..optionD) input-group radio/checkbox correct L150-163. Teks soal textarea L140. Edit pakai JS prefill via AJAX EditQuestion GET JSON + resetForm.",
+    "preview_view": "Views/Admin/_PreviewQuestion.cshtml — render teks soal L17 + opsi L50-62, BELUM ada gambar (RND-04 = tambah <img> soal+opsi).",
+    "controller": "AssessmentAdminController.cs — CreateQuestion POST ~L6067, EditQuestion GET JSON ~L6196/L6214, EditQuestion POST ~L6241, DeleteQuestion POST ~L6377, SyncPackagesToPost L5337.",
+    "edit_prefill_note": "Browser TAK bisa prefill <input type=file> (security) → edit hanya tampil thumbnail gambar lama + checkbox 'Hapus gambar' + pilih file baru=ganti. JSON EditQuestion GET perlu tambah imagePath+imageAlt (Gap 3)."
+  },
+  "carried_from_352": {
+    "ValidateImageFile": "siap dipanggil (JPG/PNG, 5MB, magic-byte)",
+    "folder": "/uploads/questions/{packageId}/",
+    "SaveFileAsync": "reuse",
+    "sync": "shared-file path (Pre copy pakai path sama, sync tak hapus file fisik)",
+    "atomic_delete": "pola Phase 333 (kumpul path sebelum tx, File.Delete setelah CommitAsync)",
+    "db_columns": "ImagePath/ImageAlt sudah ada di PackageQuestion+PackageOption (migration 352 applied)"
+  },
+  "remaining_questions": {
+    "Edit: tampil & hapus/ganti": "konfirmasi alur thumbnail lama + checkbox hapus + file baru=ganti",
+    "Preview sebelum simpan": "client-side JS thumbnail saat pilih file (sebelum submit) vs cukup preview modal setelah simpan",
+    "Feedback validasi gagal": "pesan error non-image/>5MB di alert atas (TempData) vs inline dekat field"
+  }
+}

@@ -23,11 +23,13 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 
 ## Current Position
 
-Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — Phase 352 ✅ SHIPPED LOCAL 2026-06-06
-Phase: 352 (Data Foundation + Image-Only Upload) — COMPLETE (verifier PASS 6/6)
-Plan: 1 of 1 complete
-Status: Phase 352 done — ready /gsd-discuss-phase 353 (Admin Backend Gambar)
-Last activity: 2026-06-06 — Phase 352 executed (--interactive). Commit 40a8fc2f (feat) + bfcd6c48 (verification). Entity 4 prop nullable + AllowedImageExtensions{jpg,jpeg,png}+MaxImageFileSizeBytes(5MB) + ValidateImageFile + migration AddImageToPackageQuestionAndOption applied lokal HcPortalDB_Dev + 120/120 test. Migration flag=TRUE IT-notify. D-03 override 5MB (bukan 2MB).
+Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — Phase 352 ✅ SHIPPED LOCAL; Phase 353 ⏸ PAUSED mid-discuss 2026-06-06
+Phase: 353 (Admin Backend Gambar) — PAUSED mid-discuss (checkpoint ditulis)
+Plan: — (belum plan; discuss belum selesai)
+Status: ⏸ Resume `/gsd-discuss-phase 353` — checkpoint `.planning/phases/353-admin-backend-gambar-crud-sync-atomic-delete/353-DISCUSS-CHECKPOINT.json`
+Last activity: 2026-06-06 — Phase 353 discuss DIPAUSE. 4 area dipilih (Layout form / Edit tampil-hapus-ganti / Preview sebelum simpan / Feedback validasi), 0 locked. In-progress Area Layout: user minta visualisasi mockup, 3 opsi disiapkan (A inline RECOMMENDED / B section terpisah / C collapse), belum pilih. Scout: form server-post perlu +enctype multipart, opsi fixed A-D, edit JS-prefill (file tak bisa prefill → thumbnail lama+checkbox hapus+file baru=ganti), _PreviewQuestion belum render gambar.
+
+Phase 352 ✅ SHIPPED LOCAL: commit 40a8fc2f (feat) + bfcd6c48 (verif) + 8e13fefa (state). Entity 4 prop nullable + AllowedImageExtensions{jpg,jpeg,png}+MaxImageFileSizeBytes(5MB) + ValidateImageFile + migration AddImageToPackageQuestionAndOption applied lokal HcPortalDB_Dev + 120/120 test. Migration flag=TRUE IT-notify. D-03 override 5MB.
 
 ⚠️ Frontmatter total_phases/status disentuh sesi paralel (Phase 356 Coach×Coachee addon) — jangan andalkan angka frontmatter; v24.0 inti = 4 phase 352-355.
 
