@@ -39,6 +39,15 @@ namespace HcPortal.Models
                 ".pdf", ".jpg", ".jpeg", ".png"
             };
 
+            // Phase 352 IMG-04 / D-03: cap khusus gambar 5MB (BUKAN 10MB cert).
+            public const long MaxImageFileSizeBytes = 5 * 1024 * 1024; // 5MB
+
+            // Phase 352 IMG-04 / D-01/D-02: image-only allowlist (JPG/PNG, termasuk .jpeg) — TANPA .pdf.
+            public static readonly HashSet<string> AllowedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ".jpg", ".jpeg", ".png"
+            };
+
             // Phase 325 D-09: Magic byte signatures per extension (lowercase keys).
             // Value = array of valid byte prefixes (multiple = OR match).
             // Sumber: docs/superpowers/specs/2026-05-26-v19.0-portal-hc-bug-fixes-design.md §5.2.

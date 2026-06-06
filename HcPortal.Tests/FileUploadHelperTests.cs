@@ -103,6 +103,76 @@ public class FileUploadHelperTests
         Assert.True(AssessmentConstants.FileValidation.MatchesMagicByte(".jpg", jpg));
     }
 
+    // === Phase 352 IMG-04 — ValidateImageFile (image-only: JPG/PNG, tolak PDF/non-image, cap 5MB) ===
+
+    [Fact]
+    public void ValidateImageFile_NullFile_ReturnsValid()
+    {
+        var (ok, err) = FileUploadHelper.ValidateImageFile(null);
+        Assert.True(ok);
+        Assert.Null(err);
+    }
+
+    [Fact]
+    public void ValidateImageFile_EmptyFile_ReturnsValid()
+    {
+        var (ok, err) = FileUploadHelper.ValidateImageFile(MakeFile("empty.png", System.Array.Empty<byte>()));
+        Assert.True(ok);
+        Assert.Null(err);
+    }
+
+    [Fact]
+    public void ValidateImageFile_ValidJpg_ReturnsValid()
+    {
+        var jpg = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46 };
+        var (ok, _) = FileUploadHelper.ValidateImageFile(MakeFile("foto.jpg", jpg));
+        Assert.True(ok);
+    }
+
+    [Fact]
+    public void ValidateImageFile_ValidPng_ReturnsValid()
+    {
+        var png = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+        var (ok, _) = FileUploadHelper.ValidateImageFile(MakeFile("diagram.png", png));
+        Assert.True(ok);
+    }
+
+    [Fact]
+    public void ValidateImageFile_ValidJpeg_ReturnsValid()
+    {
+        var jpg = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10, 0x45, 0x78 }; // EXIF variant
+        var (ok, _) = FileUploadHelper.ValidateImageFile(MakeFile("foto.jpeg", jpg));
+        Assert.True(ok);
+    }
+
+    [Fact]
+    public void ValidateImageFile_Pdf_ReturnsInvalidExtension()
+    {
+        var pdf = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 }; // %PDF-1.4
+        var (ok, err) = FileUploadHelper.ValidateImageFile(MakeFile("dok.pdf", pdf));
+        Assert.False(ok);
+        Assert.Contains("JPG", err!);
+    }
+
+    [Fact]
+    public void ValidateImageFile_ExeRenamedPng_ReturnsInvalidMagicByte()
+    {
+        var exe = new byte[] { 0x4D, 0x5A, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00 }; // MZ exe
+        var (ok, err) = FileUploadHelper.ValidateImageFile(MakeFile("malware.png", exe));
+        Assert.False(ok);
+        Assert.Contains("magic byte", err!);
+    }
+
+    [Fact]
+    public void ValidateImageFile_Oversize_ReturnsInvalid()
+    {
+        var big = new byte[5 * 1024 * 1024 + 1];
+        big[0] = 0x89; big[1] = 0x50; big[2] = 0x4E; big[3] = 0x47; // PNG header valid
+        var (ok, err) = FileUploadHelper.ValidateImageFile(MakeFile("big.png", big));
+        Assert.False(ok);
+        Assert.Contains("5MB", err!);
+    }
+
     // === SaveFileAsync — SC-1 P01 path traversal coverage (D-01 + D-10) ===
 
     [Fact]

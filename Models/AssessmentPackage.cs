@@ -56,6 +56,13 @@ namespace HcPortal.Models
         /// <summary>Batas karakter jawaban Essay per soal. Default 2000. Diabaikan untuk MC/MA.</summary>
         public int MaxCharacters { get; set; } = 2000;
 
+        /// <summary>Phase 352 IMG-04: path relatif gambar soal (nullable). Diisi via FileUploadHelper.SaveFileAsync phase 353.</summary>
+        public string? ImagePath { get; set; }
+
+        /// <summary>Phase 352 IMG-04: teks alternatif gambar soal (aksesibilitas), maks 255 char. Nullable.</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string? ImageAlt { get; set; }
+
         // Navigation
         public virtual ICollection<PackageOption> Options { get; set; } = new List<PackageOption>();
     }
@@ -77,5 +84,12 @@ namespace HcPortal.Models
         /// the shuffled position. Grading uses PackageOption.Id exclusively.
         /// </summary>
         public bool IsCorrect { get; set; }
+
+        /// <summary>Phase 352 IMG-04: path relatif gambar opsi (nullable).</summary>
+        public string? ImagePath { get; set; }
+
+        /// <summary>Phase 352 IMG-04: teks alternatif gambar opsi, maks 255 char. Nullable.</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string? ImageAlt { get; set; }
     }
 }
