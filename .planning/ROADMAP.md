@@ -22,6 +22,7 @@
 - ✅ **v21.0 ManageOrganization Overhaul + Level Label CRUD** — Phases 340-344 (shipped local + closed 2026-06-04, 26/26 REQ) — [roadmap](milestones/v21.0-ROADMAP.md) — [audit](milestones/v21.0-MILESTONE-AUDIT.md)
 - ✅ **v22.0 CMP-06 + Assessment/Monitoring Audit Fixes** — Phases 345-349 (shipped local + audited 2026-06-05, 60/60 REQ) — [archive](milestones/v22.0-ROADMAP.md) — [audit](milestones/v22.0-MILESTONE-AUDIT.md)
 - ✅ **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (shipped local + audited 2026-06-06, 7/7 REQ SF-01..07) — [archive](milestones/v23.0-ROADMAP.md) — [audit](milestones/v23.0-MILESTONE-AUDIT.md)
+- 🚧 **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-355 (roadmap created 2026-06-06, revised to 4 phase 2026-06-06, 17 REQ IMG/RND/SYN/TST) — [spec](../docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md)
 
 ## Phases
 
@@ -864,8 +865,10 @@ Plans:
 
 ### Phases
 
-- [x] **Phase 350: Team View Server-Side Search Scope + Export Parity** — Cari di Team View ikut cakup judul Assessment (fix 999.2) + dropdown Lingkup jujur + export WYSIWYG identik tabel on-screen (completed 2026-06-05)
-- [x] **Phase 351: Worker Detail + Cross-Surface Filter Consistency** — 0-match feedback + counter di Worker Detail + filter Kategori match record aktual + paritas My Records ↔ Worker Detail + back-nav preserve param (completed 2026-06-06)
+- [x] **Phase 350: Team View Server-Side Search Scope + Export Parity** — Cari di Team View ikut cakup judul Assessment (fix 999.2) + dropdown Lingkup jujur + export WYSIWYG identik tabel on-screen
+ (completed 2026-06-05)
+- [x] **Phase 351: Worker Detail + Cross-Surface Filter Consistency** — 0-match feedback + counter di Worker Detail + filter Kategori match record aktual + paritas My Records ↔ Worker Detail + back-nav preserve param
+ (completed 2026-06-06)
 
 ### Phase Details
 
@@ -928,6 +931,125 @@ Plans:
 **Active mapped: 7/7 ✓ — Orphans: 0 — Duplicates: 0**
 
 </details>
+
+---
+
+## 🚧 v24.0 Gambar di Soal Assessment (Manage Package) — Phases 352-355 🚀 ACTIVE
+
+**Status:** Roadmap created 2026-06-06 (spec-driven); REVISED 2026-06-06 ke 4 phase (merge old 353 Admin CRUD + 354 Sync/Cleanup → satu Phase 353; renumber kontigu 352-355). NOT YET PLANNED.
+**Spec:** `docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md` (13 sections: 5 brainstorm decisions + 5 code-verified gaps with file:line + best-practice refs).
+**Goal:** Admin bisa melampirkan 1 gambar pada soal assessment + 1 gambar pada tiap pilihan jawaban (MC/MA punya opsi; Essay hanya soal), upload JPG/PNG ≤2MB image-only, dan gambar tampil konsisten di 6 layar tempat soal muncul — dengan integritas data (sinkron Pre→Post shared-file) & file (hapus atomic pola Phase 333).
+**Granularity:** standard (4 phase — dikompresi dari 5 atas pilihan user; old 353+354 di-merge karena keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict).
+**Migration:** 1 (Phase 352 only) — 4 kolom nullable: `PackageQuestions.ImagePath`/`ImageAlt` + `PackageOptions.ImagePath`/`ImageAlt`. Semua phase lain migration=false.
+**Sequencing constraint (file-overlap):** Phase 353 (Admin Backend Gambar — CRUD + Sync + atomic delete) menulis seluruh `AssessmentAdminController.cs` (CRUD ~L6067-6377, Sync L5337, DeleteQuestion L6377, JSON prefill L6214) dalam satu fase kohesif. Phase 354 (Render) menulis `CMPController.cs` + ViewModels + 6 view (jalur file berbeda; dijadwalkan setelah 353 agar shared-file path final). Phase 355 (Test/UAT) cross-cutting.
+**Tests:** incremental folded per phase (xUnit untuk logic-bearing change, pola v22/v23) **plus** Phase 355 dedicated mengkonsolidasi TST-01 (xUnit suite final) + TST-02 (Playwright UAT end-to-end admin→peserta). Pilihan ini sengaja: spec menamai TST-01/02 sebagai REQ eksplisit + UAT Playwright melintasi seluruh stack (admin upload → peserta StartExam → Results) sehingga butuh fase final setelah render siap.
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap phase wajib `dotnet build` + `dotnet run` (localhost:5277) + Playwright bila ada UI sebelum commit. ❌ tidak ada edit di Dev/Prod.
+
+### Phases
+
+- [ ] **Phase 352: Data Foundation + Image-Only Upload** — Migration 4 kolom (PackageQuestion/PackageOption ImagePath+ImageAlt) + entity + helper image-only (Gap 4) + folder konvensi `/uploads/questions/{packageId}/`
+- [ ] **Phase 353: Admin Backend Gambar (CRUD + Sync + Atomic Delete)** — Form upload/alt/replace/remove per soal+opsi + Create/Edit/Delete wiring + JSON prefill edit (Gap 3) + preview admin render (Gap 5) + SyncPackagesToPost shared-file (Gap 1) + hapus file atomic pola Phase 333 (DeleteQuestion/replace)
+- [ ] **Phase 354: Render Gambar di 6 Layar** — 4 ViewModel bawa gambar (Gap 2) + render `<img img-fluid loading=lazy alt>` di StartExam, ExamSummary, Results, _PreviewQuestion, AssessmentMonitoringDetail, EditPesertaAnswers
+- [ ] **Phase 355: Test & UAT** — xUnit konsolidasi (upload valid/invalid + sync copy ImagePath + DeleteQuestion hapus file) + Playwright UAT end-to-end admin upload → peserta lihat StartExam → lihat Results
+
+### Phase Details
+
+### Phase 352: Data Foundation + Image-Only Upload
+**Goal:** Database & infrastruktur upload siap menyimpan gambar soal + opsi dengan aman (image-only, ≤2MB, magic-byte), tanpa merusak data soal lama. Ini fondasi yang dipakai semua phase berikutnya.
+**Depends on:** Tidak ada (fase pertama v24.0)
+**Requirements:** IMG-04
+**Migration:** true (`Add{Name}` — 4 kolom nullable di PackageQuestions + PackageOptions; data lama tetap null/aman)
+**Success Criteria** (what must be TRUE):
+  1. Migration apply bersih di DB lokal — 4 kolom baru muncul (`PackageQuestions.ImagePath`/`ImageAlt`, `PackageOptions.ImagePath`/`ImageAlt`); soal/opsi lama tetap berfungsi dengan nilai gambar null (backward-compatible).
+  2. Entity `PackageQuestion` & `PackageOption` (`Models/AssessmentPackage.cs`) punya property `ImagePath` + `ImageAlt` yang ter-map ke kolom baru.
+  3. `FileUploadHelper` punya mode/overload image-only yang **menerima** JPG/PNG dan **menolak** file non-gambar (mis. PDF/exe) lewat validasi magic-byte — bukan hanya ekstensi.
+  4. Batas ukuran 2 MB ditegakkan untuk upload gambar (file >2MB ditolak dengan pesan jelas); nama file auto-aman (timestamp_GUID + strip direktori, anti path-traversal).
+  5. `dotnet build` 0 error + `dotnet run` localhost:5277 sehat + xUnit hijau termasuk test helper image-only (JPG/PNG accept, PDF reject).
+**Plans:** TBD
+
+### Phase 353: Admin Backend Gambar (CRUD + Sync + Atomic Delete)
+**Goal:** Seluruh sisi admin/backend gambar selesai di satu fase kohesif: admin dapat upload, mengisi alt, mengganti, dan menghapus gambar pada soal + tiap opsi lewat form ManagePackageQuestions (prefill thumbnail saat edit + preview admin render), gambar ikut tersinkron Pre→Post sebagai shared-file, dan file gambar fisik tidak pernah orphan (hapus atomic pola Phase 333). Fase ini sengaja **lebih besar** (gabungan old Phase 353+354) tetapi tetap kohesif karena semuanya menyentuh **satu file controller** `AssessmentAdminController.cs` (CRUD ~L6067-6377, JSON prefill ~L6214, SyncPackagesToPost L5337, DeleteQuestion L6377) dan keduanya memang sequential-strict.
+**Depends on:** Phase 352 (butuh kolom/entity + helper image-only)
+**Migration:** false
+**Requirements:** IMG-01, IMG-02, IMG-03, IMG-05, IMG-06, IMG-07, RND-04, SYN-01, SYN-02
+**Success Criteria** (what must be TRUE):
+  1. Admin dapat upload 1 gambar (JPG/PNG ≤2MB) ke sebuah soal **dan** ke tiap pilihan jawaban (MC/MA) lewat form, tersimpan ke `/uploads/questions/{packageId}/` dengan path tercatat di DB; alt text opsional per gambar (kosong = boleh). Essay: hanya soal (tidak ada opsi).
+  2. Saat edit soal, gambar lama tampil sebagai thumbnail (prefill dari JSON `EditQuestion` GET yang kini membawa `imagePath`+`imageAlt` di level soal & tiap opsi — Gap 3), dan admin dapat mengganti gambar (path baru) **atau** menghapus via checkbox "Hapus gambar" (path di-null-kan).
+  3. Preview admin (`_PreviewQuestion.cshtml`) menampilkan gambar soal **dan** gambar tiap opsi (Gap 5, RND-04) — bukan hanya teks.
+  4. Saat `SamePackage=true` memicu `SyncPackagesToPost`, soal & opsi Post menyalin `ImagePath`+`ImageAlt` dari Pre (Gap 1, SYN-01) — Post merujuk **path file yang sama** (shared-file string copy); sinkron **tidak pernah** membuat/menghapus file fisik (sehingga drop-recreate Post berulang tidak meng-orphan file).
+  5. Saat soal/opsi dihapus (`DeleteQuestion`) atau gambar di-replace via Edit, file gambar fisik (soal + opsi) terhapus secara atomic (SYN-02): path dikumpulkan **sebelum** `BeginTransactionAsync`, `File.Delete` loop **setelah** `CommitAsync` dengan inner try/catch warn-only per file (tidak throw) — pola Phase 333/335.
+  6. Lifecycle file fisik dimiliki paket pemilik (Pre untuk soal yang disinkron; Post untuk soal Post-only); tidak ada double-delete pada shared path saat hanya Post yang dihapus.
+  7. `dotnet build` 0 error + `dotnet run` localhost:5277 + xUnit hijau (`SyncPackagesToPost` menyalin ImagePath+ImageAlt; `DeleteQuestion` menghapus file gambar soal+opsi post-commit; replace menghapus file lama) + Playwright: admin upload gambar soal+opsi → simpan → edit → thumbnail prefill → preview render gambar.
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 354: Render Gambar di 6 Layar
+**Goal:** Gambar soal + opsi tampil konsisten, responsif, dan aman di seluruh 6 layar tempat soal muncul (3 sisi peserta + 3 sisi admin), dengan data mengalir dari DB lewat ViewModel.
+**Depends on:** Phase 353 (shared-file path & kontrak DB final; menulis `CMPController.cs` + ViewModels + 6 view — jalur file beda dari controller admin, tapi dijadwalkan setelah 353 agar shared-file path sudah final & menghindari rework render).
+**Migration:** false
+**Requirements:** RND-01, RND-02, RND-03, RND-05, RND-06, RND-07
+**Success Criteria** (what must be TRUE):
+  1. 4 ViewModel membawa gambar (Gap 2): `ExamQuestionItem`/`ExamOptionItem` (PackageExamViewModel), `QuestionReviewItem`/`OptionReviewItem` (AssessmentResultsViewModel), `EssayGradingItemViewModel` (AssessmentMonitoringViewModel), + item ViewModel untuk ExamSummary & EditPesertaAnswers — dan diisi saat populate (`CMPController` StartExam L1055 & Results L2300; `AssessmentAdminController` essay grading L3401).
+  2. Peserta melihat gambar soal + opsi saat ujian (`StartExam`), di review sebelum submit (`ExamSummary`), dan di halaman pembahasan/hasil (`Results`) — gambar opsi tetap benar meski opsi di-shuffle (sudah aman per spec §8, object-level shuffle).
+  3. Admin melihat gambar soal di halaman nilai essay (`AssessmentMonitoringDetail`) dan gambar soal + opsi saat edit jawaban peserta (`EditPesertaAnswers`).
+  4. Di semua layar gambar tampil responsif: `<img class="img-fluid" loading="lazy" alt="@ImageAlt">` lewat atribut `src` ber-encode (bukan HTML mentah → tak menambah surface XSS), dan di-render **hanya jika** `ImagePath` tidak null (RND-07).
+  5. `dotnet build` 0 error + `dotnet run` localhost:5277 + Playwright per surface: peserta StartExam/ExamSummary/Results + admin Monitoring essay + EditPesertaAnswers menampilkan gambar; responsif di viewport sempit.
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 355: Test & UAT
+**Goal:** Bukti otomatis & manual bahwa fitur gambar bekerja end-to-end dari admin upload sampai peserta melihat di ujian & pembahasan, dengan integritas file & data ter-cover.
+**Depends on:** Phase 354 (render harus siap agar UAT end-to-end bisa dijalankan), Phase 353 (CRUD + sync + cleanup)
+**Migration:** false
+**Requirements:** TST-01, TST-02
+**Success Criteria** (what must be TRUE):
+  1. Suite xUnit (TST-01) lulus mencakup: upload valid (JPG/PNG tersimpan) + invalid (non-image ditolak via magic-byte) + `SyncPackagesToPost` menyalin `ImagePath`/`ImageAlt` Pre→Post + `DeleteQuestion` menghapus file gambar soal+opsi (post-commit) + replace menghapus file lama.
+  2. Playwright UAT (TST-02) lulus alur penuh: admin upload gambar soal + tiap opsi → simpan → peserta `StartExam` melihat gambar soal+opsi (responsif) → peserta `Results` (pembahasan) melihat gambar soal+opsi.
+  3. `dotnet build` 0 error + seluruh suite (`dotnet test`) hijau + UAT dijalankan di localhost:5277 sesuai CLAUDE.md Develop Workflow; tidak ada regresi pada flow ujian existing (MC/MA/Essay tanpa gambar tetap normal).
+**Plans:** TBD
+**UI hint:** yes
+
+**Active mapped: 17/17 ✓ (IMG-01..07, RND-01..07, SYN-01..02, TST-01..02) — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352)**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
+| 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 0/? | Not started | - |
+| 354. Render Gambar di 6 Layar | 0/? | Not started | - |
+| 355. Test & UAT | 0/? | Not started | - |
+
+### Coverage Validation
+
+| REQ | Phase | Surface / Touchpoint | Status |
+|-----|-------|----------------------|--------|
+| IMG-04 | 352 | FileUploadHelper image-only (magic-byte) | Pending |
+| IMG-01 | 353 | CreateQuestion/EditQuestion upload soal | Pending |
+| IMG-02 | 353 | upload tiap opsi (MC/MA) | Pending |
+| IMG-03 | 353 | alt text opsional soal+opsi | Pending |
+| IMG-05 | 353 | ganti gambar (path + atomic file delete) | Pending |
+| IMG-06 | 353 | checkbox hapus gambar (null path) | Pending |
+| IMG-07 | 353 | prefill thumbnail edit (Gap 3 JSON) | Pending |
+| RND-04 | 353 | _PreviewQuestion render soal+opsi (Gap 5) | Pending |
+| SYN-01 | 353 | SyncPackagesToPost shared-file copy (Gap 1) | Pending |
+| SYN-02 | 353 | atomic file delete DeleteQuestion/replace (Phase 333) | Pending |
+| RND-01 | 354 | StartExam render | Pending |
+| RND-02 | 354 | ExamSummary render | Pending |
+| RND-03 | 354 | Results render | Pending |
+| RND-05 | 354 | AssessmentMonitoringDetail (essay) render | Pending |
+| RND-06 | 354 | EditPesertaAnswers render | Pending |
+| RND-07 | 354 | responsive img-fluid+lazy+alt all screens | Pending |
+| TST-01 | 355 | xUnit upload/sync/delete | Pending |
+| TST-02 | 355 | Playwright UAT end-to-end | Pending |
+
+**Active mapped: 17/17 ✓ — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352)**
+
+---
+
+*Roadmap updated: 2026-06-06 (v24.0 REVISED — dikompresi dari 5 phase [352-356] ke 4 phase [352-355] atas pilihan user; old Phase 353 Admin CRUD + old Phase 354 Sync/Cleanup di-MERGE jadi satu Phase 353 "Admin Backend Gambar" karena keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict; renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355. Phase 353 kini memegang 9 REQ [IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02], 7 success criteria. 17/17 REQ tetap mapped, 0 dropped, 0 orphan. Migration tetap Phase 352 only. Next /gsd-plan-phase 352).*
+
+*Prev: 2026-06-06 (v24.0 added — Gambar di Soal Assessment; 5 phase 352-356 derived dari spec 2026-06-06-image-in-assessment-questions-design.md [§12 A-E backbone + file-overlap sequencing]).*
 
 ---
 

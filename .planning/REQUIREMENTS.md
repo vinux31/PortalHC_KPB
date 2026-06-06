@@ -64,11 +64,35 @@
 
 ## Traceability
 
+> Revised 2026-06-06: milestone dikompresi 5 → 4 phase. Old Phase 353 (Admin CRUD) + old Phase 354 (Sync/Cleanup) MERGED → Phase 353 "Admin Backend Gambar". Old 355 Render → 354, old 356 Test/UAT → 355. 17/17 REQ tetap mapped (none dropped); Phase 353 kini memegang 9 REQ.
+
 | REQ | Phase | Status |
 |-----|-------|--------|
-| IMG-01..07 | TBD (roadmapper) | pending |
-| RND-01..07 | TBD (roadmapper) | pending |
-| SYN-01..02 | TBD (roadmapper) | pending |
-| TST-01..02 | TBD (roadmapper) | pending |
+| IMG-04 | Phase 352 | Pending |
+| IMG-01 | Phase 353 | Pending |
+| IMG-02 | Phase 353 | Pending |
+| IMG-03 | Phase 353 | Pending |
+| IMG-05 | Phase 353 | Pending |
+| IMG-06 | Phase 353 | Pending |
+| IMG-07 | Phase 353 | Pending |
+| RND-04 | Phase 353 | Pending |
+| SYN-01 | Phase 353 | Pending |
+| SYN-02 | Phase 353 | Pending |
+| RND-01 | Phase 354 | Pending |
+| RND-02 | Phase 354 | Pending |
+| RND-03 | Phase 354 | Pending |
+| RND-05 | Phase 354 | Pending |
+| RND-06 | Phase 354 | Pending |
+| RND-07 | Phase 354 | Pending |
+| TST-01 | Phase 355 | Pending |
+| TST-02 | Phase 355 | Pending |
 
-_(Diisi roadmapper saat membuat ROADMAP.md.)_
+**Coverage: 17/17 mapped ✓ — Orphans: 0 — Duplicates: 0**
+
+**Phase grouping rationale (4-phase revised):**
+- **Phase 352** (Data Foundation + Image-Only Upload): IMG-04 (helper magic-byte image-only) + migration 4 kolom + entity (fondasi semua phase).
+- **Phase 353** (Admin Backend Gambar — CRUD + Sync + Atomic Delete): IMG-01/02/03/05/06/07 (form upload/alt/replace/remove/prefill) + RND-04 (preview admin, cohere ke form CRUD via `_PreviewQuestion`) + SYN-01 (Gap 1 shared-file Pre→Post) + SYN-02 (atomic file delete pola Phase 333). **Sengaja lebih besar (gabungan old 353+354)** tetapi kohesif: semuanya menyentuh satu file `AssessmentAdminController.cs` (CRUD ~L6067-6377, JSON prefill L6214, SyncPackagesToPost L5337, DeleteQuestion L6377) dan keduanya memang sequential-strict. 9 REQ, 7 success criteria.
+- **Phase 354** (Render): RND-01/02/03/05/06/07 (6 layar + responsive) + Gap 2 ViewModel. Menulis `CMPController.cs` + ViewModels + 6 view. Depends 353 (shared-file path final).
+- **Phase 355** (Test/UAT): TST-01 (xUnit konsolidasi) + TST-02 (Playwright UAT end-to-end). Test logic-bearing tetap di-fold incremental ke 352/353/354; 355 = suite final + UAT lintas-stack.
+
+_(Diisi roadmapper saat membuat ROADMAP.md — 2026-06-06; direvisi 5→4 phase 2026-06-06.)_

@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
-status: defining_requirements
+status: roadmap_complete
 last_updated: "2026-06-06T00:00:00.000Z"
 last_activity: 2026-06-06
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,41 +20,44 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v24.0 Gambar di Soal Assessment — defining requirements → roadmap
+**Current focus:** v24.0 Gambar di Soal Assessment — roadmap REVISED ke 4 phase (352-355), ready to plan Phase 352
 
 ## Current Position
 
-Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — STARTED 2026-06-06
-Phase: Not started (defining requirements)
+Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — ROADMAP COMPLETE (REVISED 4 phase) 2026-06-06
+Phase: Not started (ready /gsd-plan-phase 352)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-06 — Milestone v24.0 started (spec-driven: docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md)
+Status: Roadmap complete — 4 phase derived (dikompresi dari 5), 17/17 REQ mapped
+Last activity: 2026-06-06 — ROADMAP v24.0 DIREVISI (roadmapper). Dikompresi 5 → 4 phase atas pilihan user: old Phase 353 (Admin CRUD) + old Phase 354 (Sync/Cleanup) di-MERGE jadi satu Phase 353 "Admin Backend Gambar" (keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict). Renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355.
 
-Scope: gambar pada soal + opsi (MC/MA/Essay), render 6 layar, sinkron Pre→Post shared-file, hapus file atomic. Phase numbering lanjut dari 351 → mulai 352.
+Scope: gambar pada soal + opsi (MC/MA/Essay), render 6 layar, sinkron Pre→Post shared-file, hapus file atomic (Phase 333). 1 migration (Phase 352, 4 kolom). Phase numbering lanjut dari 351 → 352-355.
 
 Predecessor: v23.0 ✅ CLOSED 2026-06-06 (7/7 REQ SF-01..07, tag v23.0 lokal, archived). v22.0 ✅ CLOSED 2026-06-05. Bundle v19-v23 NOT PUSHED pending IT.
 
-## v23.0 Phase Map
+## v24.0 Phase Map (REVISED 4 phase)
 
-| Phase | Goal | REQ | Sev | Depends on | UI hint |
-|-------|------|-----|-----|-----------|---------|
-| **350** Team View Search Scope + Export Parity | Search cakup judul Assessment (fix 999.2) + dropdown Lingkup jujur + export WYSIWYG; preserve REC-06 D-07 | SF-01, SF-02, SF-06 | HIGH+MED+MED | — (foundation predicate `GetWorkersInSection`) | yes |
-| **351** Worker Detail + Cross-Surface Consistency | 0-match feedback+counter Worker Detail + Kategori match actual-records + paritas My Records↔Worker Detail + back-nav preserve param | SF-03, SF-04, SF-05, SF-07 | 3 MED-LOW | Phase 350 (file-overlap `WorkerDataService.cs`) | yes |
+| Phase | Goal | REQ | Migration | Depends on | UI hint |
+|-------|------|-----|-----------|-----------|---------|
+| **352** Data Foundation + Image-Only Upload | Migration 4 kolom + entity (PackageQuestion/PackageOption ImagePath+ImageAlt) + FileUploadHelper mode image-only (magic-byte, ≤2MB) + folder `/uploads/questions/{packageId}/` | IMG-04 | **true** (4 kolom nullable) | — (fase pertama) | no |
+| **353** Admin Backend Gambar (CRUD + Sync + Atomic Delete) | Form upload/alt/replace/remove per soal+opsi + Create/Edit/Delete wiring + JSON prefill edit (Gap 3) + preview admin render (Gap 5) + SyncPackagesToPost shared-file (Gap 1) + hapus file atomic pola Phase 333 (DeleteQuestion/replace). **MERGED old 353+354** — sengaja lebih besar tapi kohesif (satu file `AssessmentAdminController.cs`). 7 SC. | IMG-01, IMG-02, IMG-03, IMG-05, IMG-06, IMG-07, RND-04, SYN-01, SYN-02 | false | Phase 352 | yes |
+| **354** Render Gambar di 6 Layar | 4 ViewModel bawa gambar (Gap 2) + render img-fluid+lazy+alt di StartExam/ExamSummary/Results/_PreviewQuestion/AssessmentMonitoringDetail/EditPesertaAnswers | RND-01, RND-02, RND-03, RND-05, RND-06, RND-07 | false | Phase 353 (shared-file path final) | yes |
+| **355** Test & UAT | xUnit konsolidasi (upload valid/invalid + sync copy + delete file) + Playwright UAT end-to-end admin→peserta StartExam→Results | TST-01, TST-02 | false | Phase 354, 353 | yes |
 
-**Audit-informed shaping notes:**
+**Roadmap shaping notes (revised):**
 
-- SF-01/02/06 cohere ke satu fase: semua menyentuh search predicate `WorkerDataService.GetWorkersInSection:402-417` + Team View surface `RecordsTeam.cshtml` + export `CMPController.ExportRecordsTeam*`. SF-06 (export parity) tergantung SF-01 (search assessment-title kembalikan worker benar).
-- SF-03/04/05/07 cohere ke fase kedua: Worker Detail `RecordsWorkerDetail.cshtml` + My Records `Records.cshtml` + `GetUnifiedRecords`.
-- Sequential strict: Phase 351 SF-04 sentuh `GetUnifiedRecords` di `WorkerDataService.cs` yang juga di-touch Phase 350 → hindari konflik write file.
-- **Tests folded per phase** (bukan fase verify terpisah, scope kecil): audit menemukan `WorkerDataServiceSearchTests.cs` tak punya test assessment-title → Phase 350 wajib tambah (logic-bearing SF-01/06). Phase 351 tambah test Kategori actual-match (SF-04). Reuse pola v22: xUnit predicate-mirror + Playwright UAT.
-- **No migration** (search/filter predicate + view + export saja).
+- **Kompresi 5 → 4 phase (pilihan user):** Old Phase 353 (Admin CRUD) + old Phase 354 (Sync + Cleanup) di-merge → Phase 353 tunggal "Admin Backend Gambar". Alasan: keduanya menulis file yang sama (`AssessmentAdminController.cs`: CRUD ~L6067-6377, JSON prefill L6214, SyncPackagesToPost L5337, DeleteQuestion L6377) dan sudah sequential-strict — tidak ada keuntungan paralel dari memisahnya. Phase 353 kini memegang 9 REQ + 7 success criteria (CRUD + sync + atomicity). Sengaja lebih besar tetapi kohesif.
+- **Backbone spec §12 (A→E) tetap dihormati**: A=352 (Data&Upload), B+C=353 (Admin CRUD + Sync&Cleanup digabung), D=354 (Render), E=355 (Test). RND-04 (preview admin) tetap di Phase 353 (cohere ke form CRUD via 1 view `_PreviewQuestion`, Gap 5 di alur create/edit).
+- **File-overlap sequencing:** Phase 353 = seluruh sisi backend `AssessmentAdminController.cs` dalam satu fase. Phase 354 menulis `CMPController.cs` (StartExam L1055, Results L2300) + ViewModels + 6 view — jalur berbeda, dijadwalkan setelah 353 agar shared-file path final & menghindari rework render.
+- **1 migration (Phase 352 only):** 4 kolom nullable `PackageQuestions.ImagePath`/`ImageAlt` + `PackageOptions.ImagePath`/`ImageAlt`. Flag migration IT-notify saat shipped. Semua phase lain migration=false.
+- **Tests: hybrid** — logic-bearing test di-fold incremental per phase (352 helper image-only, 353 sync/delete, pola v22/v23), **plus** Phase 355 dedicated mengkonsolidasi TST-01 (xUnit suite final) + TST-02 (Playwright UAT lintas-stack admin upload → peserta StartExam → Results).
+- **Verifikasi lokal wajib (CLAUDE.md Develop Workflow):** tiap phase `dotnet build` + `dotnet run` localhost:5277 + Playwright (bila UI) sebelum commit. ❌ tidak ada edit di Dev/Prod.
 
 ## Next Action
 
-1. **`/clear` lalu `/gsd-new-milestone`** — v23.0 CLOSED; mulai milestone berikutnya (v24.0): questioning → research → requirements → roadmap.
-2. **(Opsional) `/gsd-verify-work 350`** — tutup HUMAN-UAT item visual (XLSX content Category drop-archived + badge unchanged) saat dev/IT sempat eyeball; non-blocking, sudah code+automated verified.
-3. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0+v23.0** — push bundle ~163+ commit lokal + Dev migration coordination tetap pending (Phase 350/351 flag migration = false; v23.0 leg 0 migration).
-4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer. 19 debug session historis belum di-resolve.
+1. **`/gsd-plan-phase 352`** — Data Foundation + Image-Only Upload. Input: spec §4 (data design 4 kolom) + §6 (upload, Gap 4 helper image-only) + §10 (keamanan). Effort S-M. **Migration** (4 kolom nullable) — Seed Workflow tidak relevan (kolom, bukan seed data); snapshot DB lokal sebelum apply migration per kebiasaan. Verifikasi `dotnet build` + `dotnet ef database update` lokal + xUnit helper image-only.
+2. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0+v23.0** — push bundle ~163+ commit lokal + Dev migration coordination tetap pending. v24.0 Phase 352 akan menambah 1 migration baru ke batch (flag IT-notify saat shipped).
+3. **(Opsional) `/gsd-verify-work 350`** — tutup HUMAN-UAT item visual v23.0 (XLSX content) saat dev/IT sempat; non-blocking.
+4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro).
 
 ## Deferred Items
 
@@ -110,9 +113,11 @@ Predecessor: v23.0 ✅ CLOSED 2026-06-06 (7/7 REQ SF-01..07, tag v23.0 lokal, ar
 
 ### Decisions (persist across milestones)
 
-- [v23.0 / Phase 350]: **REC-06 D-07 invariant LOCKED** — SF-01 search assessment-title HARUS filter di level worker (post-load), badge/count per-worker tetap utuh. Pola sama dgn Category filter `WorkerDataService.cs:373-381` yang sudah union `AssessmentSessions.Any(a => a.Category ...)` — terapkan pola identik untuk `a.Title`. JANGAN ubah ke all-SQL pre-narrow (asimetri Nama-via-SQL vs Training/Assessment-via-post-load disengaja per D-07/audit §3.D).
-- [v23.0 / Phase 350]: Export Team View = WYSIWYG terhadap filter aktif (snapshot saat klik, `RecordsTeam.cshtml:329-346` updateExportLinks) — SF-06 hanya butuh propagasi fix SF-01; assessment row tak punya kolom Category row-level (audit by-design #B), keputusan simetri Category di-dokumentasikan saat plan.
-- [v22.0 cross-milestone]: `AssessmentConstants.AssessmentStatus.PendingGrading` ("Menunggu Penilaian") = single source of truth label lintas 11+ surface; exclude-pending denominator konsisten 3 jalur.
+- [v24.0 / spec §8 Gap 1]: **Sinkron Pre→Post gambar = shared-file (string path copy), BUKAN file fisik digandakan.** SyncPackagesToPost drop-recreate seluruh Post tiap edit → kalau gandakan fisik akan terus orphan. Lifecycle file fisik dimiliki paket pemilik (Pre untuk soal disinkron; Post untuk soal Post-only). Sync TIDAK PERNAH buat/hapus file.
+- [v24.0 / spec §9]: **Hapus file gambar pakai pola Phase 333/335** — kumpul path SEBELUM BeginTransactionAsync, File.Delete loop SETELAH CommitAsync, inner try/catch warn-only per file (tidak throw). Berlaku DeleteQuestion + replace gambar via Edit.
+- [v24.0 / spec §5+§8]: **Render gambar via atribut `src` ber-encode Razor (img-fluid + loading=lazy + alt), render hanya jika ImagePath != null** — tidak menambah surface XSS. Perbaikan render bare `@QuestionText`/`@OptionText` existing = keputusan terpisah, OUT OF SCOPE v24.0.
+- [v23.0 / Phase 350]: REC-06 D-07 invariant LOCKED — search assessment-title filter di level worker (post-load), badge/count per-worker utuh.
+- [v22.0 cross-milestone]: `AssessmentConstants.AssessmentStatus.PendingGrading` ("Menunggu Penilaian") = single source of truth label lintas 11+ surface; exclude-pending denominator konsisten.
 - [v14.0 / Phase 296]: GradeFromSavedAnswers dihapus — GradingService satu-satunya source of truth grading
 - [v14.0 / Phase 301]: Export endpoints re-query database independen (tidak share state dengan API endpoints)
 - [v13.0]: SortableJS 1.15.7 via CDN; drag-drop sibling-only (group: false); orgTree.js single JS orchestrator
@@ -122,20 +127,26 @@ Predecessor: v23.0 ✅ CLOSED 2026-06-06 (7/7 REQ SF-01..07, tag v23.0 lokal, ar
 
 ### Open Blockers/Concerns
 
-- Phase 293 `GetSectionUnitsDictAsync` — hardcoded 2-level, unit Level 2+ tidak muncul di dropdown ManageWorkers secara diam-diam (keputusan masih tertunda)
-- SF-04 (Phase 351) gray-area: perlu audit saat plan apakah nilai `Kategori` record dijamin = master `AssessmentCategories` name. Jika YA → severity turun ke LOW (hanya dead-option cleanup); jika TIDAK (free-text/legacy ada) → butuh build opsi dari distinct `unifiedRecords`. Audit `RecordsWorkerDetail.cshtml:352-353` + opsi `:140-148`.
+- [v24.0 / Phase 352] Seed/migration: snapshot DB lokal sebelum `dotnet ef database update` (migration 4 kolom) per kebiasaan; kolom nullable → aman tapi tetap backup.
+- Phase 293 `GetSectionUnitsDictAsync` — hardcoded 2-level, unit Level 2+ tidak muncul di dropdown ManageWorkers (keputusan tertunda)
 
 ### Roadmap Evolution
 
-- v23.0 added (2026-06-05): CMP/Records Search & Filter Consistency Audit — 2 phase 350-351 dari audit 3-surface (`docs/superpowers/specs/2026-06-05-cmp-records-search-filter-audit.md`, 7 confirmed [1 HIGH/4 MED/2 LOW]). Phase 350 = Team View server-side search scope + export parity (SF-01/02/06, fix 999.2, preserve REC-06 D-07, foundation predicate). Phase 351 = Worker Detail + cross-surface filter consistency (SF-03/04/05/07). Sequential strict (file-overlap `WorkerDataService.cs`). Tests folded per phase (xUnit predicate-mirror + Playwright UAT reuse v22). No migration. Backlog Phase 999.2 promoted → Phase 350; 999.1 SignalR dropped.
+- v24.0 REVISED (2026-06-06): dikompresi 5 → 4 phase atas pilihan user. Old Phase 353 (Admin CRUD) + old Phase 354 (Sync/Cleanup) MERGED → Phase 353 "Admin Backend Gambar" (keduanya menulis `AssessmentAdminController.cs` & sequential-strict). Renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355. Phase 353 kini memegang 9 REQ (IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02) + 7 success criteria. 17/17 REQ tetap mapped, 0 dropped, 0 orphan. Migration tetap Phase 352 only.
+- v24.0 added (2026-06-06): Gambar di Soal Assessment (Manage Package) — awalnya 5 phase 352-356 derived dari spec 2026-06-06-image-in-assessment-questions-design.md (spec-driven, 5 brainstorm decisions + 5 code-verified gaps).
+- v23.0 added (2026-06-05): CMP/Records Search & Filter Consistency Audit — 2 phase 350-351 dari audit 3-surface (7 confirmed). Sequential strict (file-overlap WorkerDataService.cs). Tests folded per phase. No migration.
 
 ## Session Continuity
 
-Last activity: 2026-06-05 — ROADMAP v23.0 dibuat (roadmapper). 2 phase derived dari 7 audit findings:
+Last activity: 2026-06-06 — ROADMAP v24.0 DIREVISI (roadmapper) dari 5 phase ke 4 phase:
 
-- **Phase 350** (Team View): SF-01 HIGH (search predicate `GetWorkersInSection:402-417` tambah `AssessmentSessions.Any(a=>a.Title contains)`) + SF-02 MED (dropdown Lingkup + placeholder jujur `RecordsTeam.cshtml:92-105`) + SF-06 MED (export parity `CMPController.cs:669-680/721-732`). Cohesion: sama search predicate + Team View surface + export. Preserve REC-06 D-07 (worker-level post-load filter, badge count utuh).
-- **Phase 351** (Worker Detail + cross-surface): SF-03 MED (0-match message + counter `RecordsWorkerDetail.cshtml:336-358`, reuse My Records pola) + SF-04 MED (filter Kategori match actual-records `:352-353`, build opsi dari distinct unifiedRecords) + SF-05 LOW (paritas filter My Records `Records.cshtml:54-93` vs Worker Detail `:128-181`) + SF-07 LOW (back-nav preserve subCategory/dateFrom/dateTo/searchScope `:27-47`).
+- **Phase 352** (Data Foundation + Image-Only Upload) — UNCHANGED: IMG-04. Migration 4 kolom nullable (PackageQuestions/PackageOptions ImagePath+ImageAlt) + entity `Models/AssessmentPackage.cs` + FileUploadHelper mode image-only (Gap 4, magic-byte JPG/PNG reject PDF) + folder `/uploads/questions/{packageId}/` + cap 2MB. **migration=true.**
+- **Phase 353** (Admin Backend Gambar — MERGED old 353+354): IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02. Form upload/alt/replace/remove per soal+opsi; CreateQuestion POST ~L6067, EditQuestion GET JSON ~L6196 (+imagePath+imageAlt Gap 3 ~L6214) + POST ~L6241, DeleteQuestion ~L6377; preview admin `_PreviewQuestion.cshtml` L45-63 (Gap 5); SyncPackagesToPost L5337 shared-file copy (Gap 1, +ImagePath+ImageAlt soal L5370 + opsi L5379); hapus file atomic pola Phase 333 (DeleteQuestion + replace). Semua di `AssessmentAdminController.cs`. 7 success criteria. depends 352.
+- **Phase 354** (Render 6 layar — was 355): RND-01/02/03/05/06/07. 4 ViewModel bawa gambar (Gap 2: PackageExamViewModel L25/43, AssessmentResultsViewModel L24, AssessmentMonitoringViewModel L73, + ExamSummary/EditPesertaAnswers item) + populate (CMPController StartExam L1055, Results L2300; AssessmentAdminController essay L3401) + render img-fluid+lazy+alt di 6 view. depends 353 (shared-file path final).
+- **Phase 355** (Test/UAT — was 356): TST-01 (xUnit konsolidasi) + TST-02 (Playwright UAT end-to-end). depends 354/353.
 
-Files written: ROADMAP.md (v23.0 block appended — milestone list line + Phase Details 350/351 + Progress Table + Coverage Validation + footer log; backlog 999.2 marked PROMOTED; existing milestone history + Backlog section preserved), REQUIREMENTS.md (traceability 7/7 mapped), STATE.md (this file).
+Kompresi rationale: old 353+354 sama-sama `AssessmentAdminController.cs` (CRUD + Sync L5337 + Delete L6377 + JSON prefill L6214) dan sudah sequential-strict → tidak ada keuntungan paralel; gabung jadi satu fase backend kohesif. Migration hanya Phase 352. Tests hybrid (per-phase folded + dedicated 355).
 
-Next action: `/gsd-plan-phase 350` — spec audit jadi input CONTEXT.md; effort S (SF-01/02) + M (SF-06 keputusan simetri export). Verifikasi lokal `dotnet build` + `dotnet run` localhost:5277 + Playwright per CLAUDE.md Develop Workflow sebelum commit.
+Files written: ROADMAP.md (v24.0 block diganti dengan versi 4-phase 352-355 — milestone list line + Phases checklist + Phase Details 352-355 dengan UI hint + Progress Table + Coverage Validation 17/17 + footer revisi log; existing v1.0-v23.0 history preserved), REQUIREMENTS.md (traceability 17/17 remapped + grouping rationale revised + revision note), STATE.md (this file — frontmatter total_phases=4, v24.0 Phase Map revised, Session Continuity, Next Action).
+
+Next action: `/gsd-plan-phase 352` — Data Foundation + Image-Only Upload. Spec §4+§6+§10 jadi input CONTEXT.md. Effort S-M. **Migration** (snapshot DB lokal sebelum apply). Verifikasi `dotnet build` + `dotnet ef database update` + `dotnet run` localhost:5277 + xUnit helper image-only sebelum commit per CLAUDE.md Develop Workflow.
