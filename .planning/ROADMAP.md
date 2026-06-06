@@ -965,7 +965,8 @@ Plans:
   3. `FileUploadHelper` punya mode/overload image-only yang **menerima** JPG/PNG dan **menolak** file non-gambar (mis. PDF/exe) lewat validasi magic-byte — bukan hanya ekstensi.
   4. Batas ukuran 2 MB ditegakkan untuk upload gambar (file >2MB ditolak dengan pesan jelas); nama file auto-aman (timestamp_GUID + strip direktori, anti path-traversal).
   5. `dotnet build` 0 error + `dotnet run` localhost:5277 sehat + xUnit hijau termasuk test helper image-only (JPG/PNG accept, PDF reject).
-**Plans:** TBD
+**Plans:** 1 plan
+- [ ] 352-01-PLAN.md — Konstanta image-only (AllowedImageExtensions + MaxImageFileSizeBytes 5MB per D-03 override teks 2MB) + ValidateImageFile + 4 entity property (ImagePath/ImageAlt) + migration AddImageToPackageQuestionAndOption + xUnit (IMG-04)
 
 ### Phase 353: Admin Backend Gambar (CRUD + Sync + Atomic Delete)
 **Goal:** Seluruh sisi admin/backend gambar selesai di satu fase kohesif: admin dapat upload, mengisi alt, mengganti, dan menghapus gambar pada soal + tiap opsi lewat form ManagePackageQuestions (prefill thumbnail saat edit + preview admin render), gambar ikut tersinkron Pre→Post sebagai shared-file, dan file gambar fisik tidak pernah orphan (hapus atomic pola Phase 333). Fase ini sengaja **lebih besar** (gabungan old Phase 353+354) tetapi tetap kohesif karena semuanya menyentuh **satu file controller** `AssessmentAdminController.cs` (CRUD ~L6067-6377, JSON prefill ~L6214, SyncPackagesToPost L5337, DeleteQuestion L6377) dan keduanya memang sequential-strict.
