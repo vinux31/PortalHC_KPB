@@ -13,8 +13,8 @@
 
 ### IMG — Upload & Data Gambar
 
-- [ ] **IMG-01**: Admin dapat upload 1 gambar (JPG/PNG, ≤2MB) ke sebuah soal
-- [ ] **IMG-02**: Admin dapat upload 1 gambar (JPG/PNG, ≤2MB) ke tiap pilihan jawaban (MC/MA)
+- [ ] **IMG-01**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke sebuah soal _(2MB→5MB per Phase 352 CONTEXT D-03, 2026-06-06)_
+- [ ] **IMG-02**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke tiap pilihan jawaban (MC/MA)
 - [ ] **IMG-03**: Admin dapat mengisi alt text opsional per gambar (soal & opsi)
 - [ ] **IMG-04**: Sistem menolak file non-gambar (mis. PDF/exe) via validasi magic-byte image-only
 - [ ] **IMG-05**: Admin dapat mengganti gambar yang sudah ada (file lama terhapus dari disk)
