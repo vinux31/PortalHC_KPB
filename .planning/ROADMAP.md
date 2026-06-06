@@ -637,6 +637,29 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 Plans:
 - [x] PROMOTED 2026-06-05 -> v23.0 SF-01/SF-02/SF-06 (Phase 350). Decision: extend scope + dropdown Lingkup jujur + export parity; preserve REC-06 D-07. See spec 2026-06-05-cmp-records-search-filter-audit.md.
 
+### Phase 356: Audit Fix Assign Coach-Coachee (pastikan fungsi Assign benar)
+
+**Goal:** Memastikan fitur HC/Admin Assign Coach×Coachee berfungsi benar — perbaiki 7 temuan audit 2026-06-06 (`Controllers/CoachMappingController.cs`). Independen, jalur file beda dari kerja lain.
+
+**Context:**
+- Asalnya addon off-theme ke v24.0 (dibuat sesi paralel). **v24.0 di-revert 2026-06-06** → entry dipindah ke Backlog (decoupled dari image-work). Tarik ke active milestone via `/gsd-review-backlog` saat siap.
+- Spec code+data-verified lengkap (AF-1..7). Restore dari backup branch `backup/v24.0-pre-revert`.
+
+**Requirements (audit findings AF-1..7):**
+- **AF-1 (HIGH, confirmed):** `GetEligibleCoachees` L1291-1322 bandingkan progress unit-coachee vs total deliverable SEMUA unit track → coachee track multi-unit (terbukti track id=4, 2 unit) tak pernah eligible Assessment Proton. Fix: hitung expected deliverable per-unit coachee.
+- **AF-2 (MED):** batch-assign paksa 1 Section/Unit → AutoCreateProgress salah unit bila coachee beda unit.
+- **AF-3 (MED):** `MarkMappingCompleted` set IsCompleted tapi IsActive tetap true → coachee graduated terblok re-assign. Semantik graduated **OPEN** (D-2 belum final).
+- **AF-4 (LOW-MED):** `Reactivate` korelasi via DeactivatedAt ±5s window rapuh.
+- **AF-5 (LOW):** `ApproveReassignSuggestion` tak kirim notifikasi.
+- **AF-6 (LOW):** pesan error duplikat-coachee generic saat race.
+- **AF-7 (INFO):** progression-warning loop N+1 query.
+
+**Effort estimate:** M (AF-1 eligibility per-unit logic-bearing + xUnit + UAT; AF-2..7 bertahap)
+
+**Spec:** `docs/superpowers/specs/2026-06-06-coach-coachee-assign-audit-fix.md` (AF-1..7 code+data-verified)
+
+**Plans:** 0 plans (run `/gsd-plan-phase 356` setelah dipromote ke milestone aktif)
+
 ## v20.0 CMP Records Overhaul + Cilacap UX/Restore — Phases 336-339 ✅ ARCHIVED
 
 **Status:** SHIPPED LOCAL 2026-06-02 (push pending IT availability). Audit PASSED 39/39 REQ + 4/4 phase + integration COHERENT.
