@@ -187,9 +187,35 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
   </tbody>
 </table>
 
+<h3>2a. Skema tabel baru</h3>
+<p>Migration <code>CREATE TABLE OrganizationLevelLabels</code> + unique index:</p>
+<pre class="sql">-- Kolom: Level int PK, Label nvarchar(50), UpdatedAt datetime2, UpdatedBy nvarchar(450)
+-- + CREATE UNIQUE INDEX IX_OrganizationLevelLabels_Label ON Label
+-- Verify tabel + index ter-create:
+SELECT COUNT(*) AS LabelRowCount FROM OrganizationLevelLabels;   -- Expected: 3
+SELECT name, is_unique FROM sys.indexes
+WHERE object_id = OBJECT_ID('OrganizationLevelLabels')
+  AND name = 'IX_OrganizationLevelLabels_Label';                 -- Expected: 1 row, is_unique=1</pre>
+
+<h3>2b. Seed 3 baris default (auto-runtime, idempotent)</h3>
+<p><code>SeedData.SeedOrganizationLevelLabelsAsync</code> (via <code>InitializeAsync</code>, Program.cs:137) auto-INSERT saat startup pertama setelah migration. Idempotent (skip kalau sudah ada baris). <strong>IT tidak perlu manual INSERT.</strong></p>
+<pre class="sql">SELECT Level, Label, UpdatedAt, UpdatedBy FROM OrganizationLevelLabels ORDER BY Level;
+-- Expected 3 rows:
+-- 0 | Bagian   | &lt;startup datetime&gt; | system
+-- 1 | Unit     | &lt;startup datetime&gt; | system
+-- 2 | Sub-unit | &lt;startup datetime&gt; | system</pre>
+
+<h3>2c. Smoke endpoint label</h3>
+<p>Setelah login admin, navigate <code>http://10.55.3.3/KPB-PortalHC/Admin/GetLevelLabels</code> → JSON <code>{"0":"Bagian","1":"Unit","2":"Sub-unit"}</code> (Content-Type <code>application/json</code>). Atau <code>curl -b cookies.txt -i .../Admin/GetLevelLabels</code> → <code>HTTP 200</code>.</p>
+
+<div class="callout warn">
+  <div class="title">Penting — Label tier (0/1/2) vs data OrganizationUnits</div>
+  <p>Tabel <code>OrganizationLevelLabels</code> ber-key <strong>Level 0/1/2</strong> (Bagian/Unit/Sub-unit, konvensi baru v21). Tapi baris <code>OrganizationUnits</code> existing di DB Dev masih pakai konvensi lama <strong>Level 1/2</strong>. Supaya label ke-map benar, <code>OrganizationUnits.Level</code> WAJIB dinormalisasi → lihat <strong>Section 3 Step 5</strong>. (Catatan: jumlah baris <code>OrganizationUnits</code> TIDAK berubah oleh normalisasi — hanya nilai kolom <code>Level</code> yang digeser −1.)</p>
+</div>
+
 <div class="callout info">
-  <div class="title">Referensi Detail Migration Ini</div>
-  <p>Migration <code>AddOrganizationLevelLabel</code> punya dokumen handoff khusus dari saat dibuat (Phase 340): <code>docs/DB_HANDOFF_IT_2026-06-03.html</code> — baca itu untuk detail tabel + seed + SOP migration.</p>
+  <div class="title">Konsolidasi Dokumen</div>
+  <p>Dokumen ini sudah <strong>menggabungkan</strong> detail handoff Phase 340 (sebelumnya <code>docs/DB_HANDOFF_IT_2026-06-03.html</code>, kini diarsipkan ke <code>docs/archive/</code> dan ditandai superseded). Tidak perlu buka file lain — semua instruksi deploy bundle ada di sini.</p>
 </div>
 
 <h2 id="checklist">3. Checklist IT (URUTAN WAJIB)</h2>
@@ -355,7 +381,7 @@ iisreset</pre>
     <tr><td><code>14e7adc5</code></td><td>Commit target deploy (HEAD bundle v21+v22+v23)</td></tr>
     <tr><td><code>b34f4475</code></td><td>Commit origin sebelumnya (titik rollback code)</td></tr>
     <tr><td><code>Migrations/20260603012335_AddOrganizationLevelLabel.cs</code></td><td>Satu-satunya migration baru di bundle (additive)</td></tr>
-    <tr><td><code>docs/DB_HANDOFF_IT_2026-06-03.html</code></td><td>Handoff detail khusus migration AddOrganizationLevelLabel (Phase 340)</td></tr>
+    <tr><td><code>docs/archive/DB_HANDOFF_IT_2026-06-03.html</code></td><td><span class="tag warn">ARSIP</span> Handoff Phase 340 — superseded, detail sudah digabung ke dokumen ini (Section 2a-2c)</td></tr>
     <tr><td><code>scripts/backup-dev-pre-migration.ps1</code></td><td>Script backup DB Dev pre-deploy (Step 1)</td></tr>
     <tr><td><code>docs/DEV_WORKFLOW.md</code></td><td>SOP umum Lokal → Dev → Prod + migration SOP</td></tr>
     <tr><td><code>Program.cs:136-152</code></td><td>Startup migrate + seed (try/catch — sumber caveat verifikasi Step 4)</td></tr>
