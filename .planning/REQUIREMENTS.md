@@ -18,13 +18,13 @@
 
 ### Search/Filter Feedback & Cross-Surface Consistency (SF-03, SF-05, SF-07)
 
-- [ ] **SF-03**: Saat client-filter Worker Detail menyembunyikan semua baris (0 match), tampil pesan "Tidak ada hasil untuk filter ini." (`aria-live="polite"`) + counter "Menampilkan X dari Y" yang ikut filter aktif — bukan tabel kosong tanpa keterangan. (Reuse pola v22 MAP-07/08.) `RecordsWorkerDetail.cshtml` + filter JS.
-- [ ] **SF-05**: Field search/filter di My Records dan Worker Detail konsisten — scope search selaras + set filter sebanding antar surface data-sendiri vs data-pekerja (tidak ada gap "satu surface bisa filter X, satunya tidak" tanpa alasan). `Records.cshtml` (My Records) vs `RecordsWorkerDetail.cshtml`.
-- [ ] **SF-07**: Tombol "Back to Team View" di Worker Detail kembali ke state Team View yang sama — preserve param filter (`subCategory`, `dateFrom`, `dateTo`, `searchScope`), tidak hanya sebagian. `RecordsWorkerDetail.cshtml` back-link.
+- [x] **SF-03**: Saat client-filter Worker Detail menyembunyikan semua baris (0 match), tampil pesan "Tidak ada hasil untuk filter ini." (`aria-live="polite"`) + counter "Menampilkan X dari Y" yang ikut filter aktif — bukan tabel kosong tanpa keterangan. (Reuse pola v22 MAP-07/08.) `RecordsWorkerDetail.cshtml` + filter JS.
+- [x] **SF-05**: Field search/filter di My Records dan Worker Detail konsisten — scope search selaras + set filter sebanding antar surface data-sendiri vs data-pekerja (tidak ada gap "satu surface bisa filter X, satunya tidak" tanpa alasan). `Records.cshtml` (My Records) vs `RecordsWorkerDetail.cshtml`.
+- [x] **SF-07**: Tombol "Back to Team View" di Worker Detail kembali ke state Team View yang sama — preserve param filter (`subCategory`, `dateFrom`, `dateTo`, `searchScope`), tidak hanya sebagian. `RecordsWorkerDetail.cshtml` back-link.
 
 ### Filter Correctness & Export Parity (SF-04, SF-06)
 
-- [ ] **SF-04**: Filter Kategori di Worker Detail mencocokkan kategori **record aktual** (assessment + training rows), bukan hanya exact-equals terhadap master `AssessmentCategories` — sehingga record free-text/legacy tetap terfilter benar, dan opsi dropdown tidak menyertakan kategori mati (yang tak punya record). `RecordsWorkerDetail.cshtml` filter Kategori + `GetUnifiedRecords`.
+- [x] **SF-04**: Filter Kategori di Worker Detail mencocokkan kategori **record aktual** (assessment + training rows), bukan hanya exact-equals terhadap master `AssessmentCategories` — sehingga record free-text/legacy tetap terfilter benar, dan opsi dropdown tidak menyertakan kategori mati (yang tak punya record). `RecordsWorkerDetail.cshtml` filter Kategori + `GetUnifiedRecords`.
 - [x] **SF-06**: Export Team View (Assessment + Training) menghasilkan data identik dengan yang tampil di tabel on-screen (WYSIWYG) — terapkan search/filter/scope yang sama; Export Assessment tidak kosong saat user search judul assessment (konsekuensi SF-01), dan baris assessment di-narrow per-Category setara baris training (sheet tidak asimetris). `CMPController.ExportRecordsTeamAssessment/Training` + `GetWorkersInSection`.
 
 ---
@@ -48,9 +48,9 @@ Tidak ada — seluruh 7 temuan audit masuk scope v23.0.
 | SF-01 | HIGH | Phase 350 | Team View (search predicate) | ✅ Complete 2026-06-05 |
 | SF-02 | MED | Phase 350 | Team View (Lingkup dropdown + placeholder) | ✅ Complete 2026-06-05 |
 | SF-06 | MED | Phase 350 | Team View Export (parity) | ✅ Complete 2026-06-05 |
-| SF-03 | MED | Phase 351 | Worker Detail (0-match + counter) | Pending |
-| SF-04 | MED | Phase 351 | Worker Detail (Kategori actual-match) | Pending |
-| SF-05 | LOW | Phase 351 | My Records ↔ Worker Detail (parity) | Pending |
-| SF-07 | LOW | Phase 351 | Worker Detail → Team View (back-nav state) | Pending |
+| SF-03 | MED | Phase 351 | Worker Detail (0-match + counter) | ✅ Complete 2026-06-06 |
+| SF-04 | MED | Phase 351 | Worker Detail (Kategori actual-match) | ✅ Complete 2026-06-06 |
+| SF-05 | LOW | Phase 351 | My Records ↔ Worker Detail (parity) | ✅ Complete 2026-06-06 |
+| SF-07 | LOW | Phase 351 | Worker Detail → Team View (back-nav state) | ✅ Complete 2026-06-06 |
 
 **Mapped: 7/7 ✓ — Orphans: 0 — Duplicates: 0 — No migration — Preserves REC-06 D-07**
