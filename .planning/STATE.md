@@ -1,38 +1,38 @@
 ---
 gsd_state_version: 1.0
-milestone: v23.0
-milestone_name: CMP/Records Search & Filter Consistency Audit
-status: milestone_complete
-last_updated: "2026-06-06T01:31:05.580Z"
+milestone: v24.0
+milestone_name: Gambar di Soal Assessment (Manage Package)
+status: defining_requirements
+last_updated: "2026-06-06T00:00:00.000Z"
 last_activity: 2026-06-06
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-05)
+See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning next milestone (v24.0) — `/gsd-new-milestone`
+**Current focus:** v24.0 Gambar di Soal Assessment — defining requirements → roadmap
 
 ## Current Position
 
-Milestone: v23.0 ✅ CLOSED 2026-06-06 — CMP/Records Search & Filter Consistency Audit (7/7 REQ SF-01..07, tag v23.0 lokal, archived)
-Phase: 351 (worker-detail-cross-surface-filter-consistency) — COMPLETE (verifier PASSED 5/5)
-Plan: 4 of 4 complete
-Status: Milestone complete, ready for next
-Last activity: 2026-06-06
+Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — STARTED 2026-06-06
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-06 — Milestone v24.0 started (spec-driven: docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md)
 
-Scope DONE: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + konsistensi search/filter My Records + Team View + Worker Detail → 7 confirmed gaps semua satisfied. 999.1 Realtime SignalR DROPPED.
+Scope: gambar pada soal + opsi (MC/MA/Essay), render 6 layar, sinkron Pre→Post shared-file, hapus file atomic. Phase numbering lanjut dari 351 → mulai 352.
 
-Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v19-v23 NOT PUSHED pending IT.
+Predecessor: v23.0 ✅ CLOSED 2026-06-06 (7/7 REQ SF-01..07, tag v23.0 lokal, archived). v22.0 ✅ CLOSED 2026-06-05. Bundle v19-v23 NOT PUSHED pending IT.
 
 ## v23.0 Phase Map
 

@@ -40,19 +40,20 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v23.0 shipped (local) + audit passed + closed (2026-06-06)** — CMP/Records Search & Filter Consistency Audit (phases 350-351): Team View search cakup judul assessment (fix 999.2, `GetWorkersInSection` predicate, badge D-07 utuh) + dropdown "Lingkup" jujur + export WYSIWYG; Worker Detail 0-match feedback (counter aria-live + empty-state) + filter Kategori dari record aktual (`BuildActualCategories` distinct, ganti master); My Records filter Kategori+Tipe parity (id `my`-prefixed hindari collision Team View) + back-nav `#team` aktifkan tab. 7/7 REQ SF-01..07 + integration 7/7 WIRED + 112/112 xUnit + Playwright 5/5+2/2. 0 migration.
 
-**Current focus:** Planning next milestone (v24.0). Bundle push v19+v20+v21+v22+v23 tetap pending IT availability (~163+ commit lokal, 0 migration v23.0 leg).
+**Current focus:** v24.0 Gambar di Soal Assessment — defining requirements + roadmap. Bundle push v19+v20+v21+v22+v23 tetap pending IT availability (~163+ commit lokal, 0 migration v23.0 leg).
 
-## Current Milestone: v23.0 CMP/Records Search & Filter Consistency Audit
+## Current Milestone: v24.0 Gambar di Soal Assessment (Manage Package)
 
-**Goal:** Konsistensi + kelengkapan perilaku search/filter di seluruh permukaan CMP/Records (My Records + Team View + Worker Detail) — perbaiki gap yang bikin user tak nemu data (mulai dari bug 999.2).
+**Goal:** Admin bisa melampirkan gambar pada soal assessment dan tiap pilihan jawaban (semua tipe MC/MA/Essay), tampil konsisten di seluruh layar tempat soal muncul.
 
 **Target features:**
-- **Fix 999.2** — Team View search "Keduanya" cakup judul **assessment** (bukan hanya Nama/NIP + judul Training); user cari "ojt v14.2" → ketemu.
-- **Audit search/filter 3 surface** — scope tiap field (Cari + filter Kategori/SubKategori/Status/Tanggal/Tipe/Lingkup), konsistensi cross-surface, edge case (0-match message, scope mismatch, dropdown jujur) → confirmed gaps → fix.
+- **Gambar pada soal + opsi** — 1 gambar per soal + 1 gambar per opsi (MC/MA punya opsi; Essay hanya soal), upload JPG/PNG ≤2MB via FileUploadHelper image-only, alt text opsional.
+- **Render konsisten 6 layar** — StartExam, ExamSummary, Results (peserta) + preview admin, AssessmentMonitoringDetail, EditPesertaAnswers (admin).
+- **Integritas data & file** — sinkron gambar saat Pre→Post (shared-file path) + hapus file atomic (pola Phase 333) saat soal/opsi/gambar dihapus.
 
-**Pendekatan:** Audit-driven (codebase audit 3 surface dulu → REQ dari confirmed findings → roadmap; pola spec-driven v19/v22). Skip domain-research (audit kode existing, bukan fitur baru).
+**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md` (5 keputusan brainstorm + 5 gap kode terverifikasi + resolusi). Skip domain-research (best-practice LMS sudah dicatat di spec §13; sisanya reuse pola codebase existing).
 
-**Backlog dropped:** Phase 999.1 Realtime Assessment SignalR — di-drop user 2026-06-05 (tidak diprioritaskan).
+**Catatan scope:** Bulk-import gambar, multi-gambar, edit/crop in-app, image CDN = OUT (lihat spec §3).
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 
