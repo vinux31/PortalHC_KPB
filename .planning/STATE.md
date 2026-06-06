@@ -23,11 +23,13 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 
 ## Current Position
 
-Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — ROADMAP COMPLETE (REVISED 4 phase) 2026-06-06
-Phase: Not started (ready /gsd-plan-phase 352)
-Plan: —
-Status: Roadmap complete — 4 phase derived (dikompresi dari 5), 17/17 REQ mapped
-Last activity: 2026-06-06 — ROADMAP v24.0 DIREVISI (roadmapper). Dikompresi 5 → 4 phase atas pilihan user: old Phase 353 (Admin CRUD) + old Phase 354 (Sync/Cleanup) di-MERGE jadi satu Phase 353 "Admin Backend Gambar" (keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict). Renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355.
+Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — Phase 352 ✅ SHIPPED LOCAL 2026-06-06
+Phase: 352 (Data Foundation + Image-Only Upload) — COMPLETE (verifier PASS 6/6)
+Plan: 1 of 1 complete
+Status: Phase 352 done — ready /gsd-discuss-phase 353 (Admin Backend Gambar)
+Last activity: 2026-06-06 — Phase 352 executed (--interactive). Commit 40a8fc2f (feat) + bfcd6c48 (verification). Entity 4 prop nullable + AllowedImageExtensions{jpg,jpeg,png}+MaxImageFileSizeBytes(5MB) + ValidateImageFile + migration AddImageToPackageQuestionAndOption applied lokal HcPortalDB_Dev + 120/120 test. Migration flag=TRUE IT-notify. D-03 override 5MB (bukan 2MB).
+
+⚠️ Frontmatter total_phases/status disentuh sesi paralel (Phase 356 Coach×Coachee addon) — jangan andalkan angka frontmatter; v24.0 inti = 4 phase 352-355.
 
 Scope: gambar pada soal + opsi (MC/MA/Essay), render 6 layar, sinkron Pre→Post shared-file, hapus file atomic (Phase 333). 1 migration (Phase 352, 4 kolom). Phase numbering lanjut dari 351 → 352-355.
 
