@@ -138,10 +138,11 @@
                     <select id="categoryFilter" class="form-select">
                         <option value="">Semua Kategori</option>
                         @{
-                            var masterCategories = System.Text.Json.JsonSerializer.Deserialize<List<string>>(
-                                (string)(ViewBag.MasterCategoriesJson ?? "[]"));
+                            // Phase 351 SF-04: opsi Kategori dari record AKTUAL (Plan 02 ViewBag.ActualCategoriesJson), bukan master.
+                            var actualCategories = System.Text.Json.JsonSerializer.Deserialize<List<string>>(
+                                (string)(ViewBag.ActualCategoriesJson ?? "[]"));
                         }
-                        @foreach (var cat in masterCategories)
+                        @foreach (var cat in actualCategories)
                         {
                             <option value="@cat">@cat</option>
                         }
@@ -178,6 +179,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Phase 351 SF-03: counter "Menampilkan X dari Y" (aria-live untuk a11y parity My Records) -->
+    <div class="small text-muted mb-2" id="wdRecordCounter" aria-live="polite">
+        Menampilkan @unifiedRecords.Count dari @unifiedRecords.Count
     </div>
 
     <!-- Unified Records Table -->
@@ -340,7 +346,9 @@ function filterTable() {
     const yearFilter = document.getElementById('yearFilter').value;
     const typeFilter = document.getElementById('typeFilter').value.toLowerCase();
 
-    document.querySelectorAll('#recordsTable .training-row').forEach(row => {
+    let visibleCount = 0;
+    const allRows = document.querySelectorAll('#recordsTable .training-row');
+    allRows.forEach(row => {
         const title = row.getAttribute('data-title');
         const year = row.getAttribute('data-year');
         const category = row.getAttribute('data-category');
@@ -353,8 +361,30 @@ function filterTable() {
         const matchSubCategory = !subCategoryFilter || subcategory === subCategoryFilter;
         const matchType = !typeFilter || type === typeFilter;
 
-        row.style.display = (matchSearch && matchYear && matchCategory && matchSubCategory && matchType) ? '' : 'none';
+        const show = matchSearch && matchYear && matchCategory && matchSubCategory && matchType;
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
     });
+
+    // Phase 351 SF-03: counter update
+    var counter = document.getElementById('wdRecordCounter');
+    if (counter) counter.textContent = 'Menampilkan ' + visibleCount + ' dari ' + allRows.length;
+
+    // Phase 351 SF-03: filtered-empty-state (mirror My Records) — string T1 verbatim, BEDA dari server "Belum ada data"
+    var emptyRow = document.getElementById('workerDetailEmptyState');
+    if (visibleCount === 0 && allRows.length > 0) {
+        if (!emptyRow) {
+            var tbody = document.querySelector('#recordsTable tbody');
+            var tr = document.createElement('tr');
+            tr.id = 'workerDetailEmptyState';
+            tr.innerHTML = '<td colspan="7" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Tidak ada hasil untuk filter ini.</td>';
+            tbody.appendChild(tr);
+        } else {
+            emptyRow.style.display = '';
+        }
+    } else if (emptyRow) {
+        emptyRow.style.display = 'none';
+    }
 }
 
 document.getElementById('searchInput').addEventListener('input', filterTable);
