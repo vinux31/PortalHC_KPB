@@ -77,6 +77,32 @@
                             </select>
                         </div>
                     </div>
+                    @* Phase 351 SF-05: filter Kategori (actual-distinct) + Tipe parity dengan Worker Detail *@
+                    <div class="row g-3 mt-2 align-items-center">
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label for="categoryFilter" class="form-label small text-muted mb-1">Kategori</label>
+                            <select id="categoryFilter" class="form-select">
+                                <option value="">Semua Kategori</option>
+                                @{
+                                    var actualCategories = System.Text.Json.JsonSerializer.Deserialize<List<string>>(
+                                        (string)(ViewBag.ActualCategoriesJson ?? "[]"));
+                                }
+                                @foreach (var cat in actualCategories)
+                                {
+                                    <option value="@cat">@cat</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label for="typeFilter" class="form-label small text-muted mb-1">Tipe</label>
+                            <select id="typeFilter" class="form-select">
+                                <option value="">Semua Tipe</option>
+                                @* T2: value SHORT cocok data-type baris (BUKAN "Assessment Online") *@
+                                <option value="assessment">Assessment</option>
+                                <option value="training">Training</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="row g-3 mt-2 align-items-center">
                         <div class="col-12 col-md-6">
                             <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
@@ -166,6 +192,7 @@
                                         : null;
                                     <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
                                         data-title="@item.Title.ToLower()" data-year="@item.Date.Year"
+                                        data-category="@(item.Kategori?.ToLower() ?? "")"
                                         data-type="@(item.RecordType == "Assessment Online" ? "assessment" : "training")"
                                         @(resultsUrl != null ? Html.Raw($"data-href=\"{resultsUrl}\" tabindex=\"0\" role=\"link\"") : Html.Raw(""))
                                         style="@(resultsUrl != null ? "cursor:pointer;" : "")">
@@ -334,16 +361,21 @@ function decodeEntities(s) {
 function filterTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const yearFilter = document.getElementById('yearFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value.toLowerCase();
     let visibleCount = 0;
     let visibleAssessment = 0;
     let visibleTraining = 0;
     document.querySelectorAll('#recordsTable .training-row').forEach(row => {
         const title = decodeEntities(row.getAttribute('data-title'));
         const year = row.getAttribute('data-year');
+        const category = row.getAttribute('data-category');
         const type = row.getAttribute('data-type');
         const matchSearch = !searchTerm || title.includes(searchTerm);
         const matchYear = !yearFilter || year === yearFilter;
-        const show = matchSearch && matchYear;
+        const matchCategory = !categoryFilter || category === categoryFilter;
+        const matchType = !typeFilter || type === typeFilter;
+        const show = matchSearch && matchYear && matchCategory && matchType;
         row.style.display = show ? '' : 'none';
         if (show) {
             visibleCount++;
@@ -380,6 +412,9 @@ function filterTable() {
 }
 document.getElementById('searchInput').addEventListener('input', filterTable);
 document.getElementById('yearFilter').addEventListener('change', filterTable);
+// Phase 351 SF-05: wire Kategori + Tipe
+document.getElementById('categoryFilter').addEventListener('change', filterTable);
+document.getElementById('typeFilter').addEventListener('change', filterTable);
 
 // Phase 337 CMP-16: year quick filter button group
 document.querySelectorAll('.year-quick-btn').forEach(function(btn) {
@@ -394,6 +429,8 @@ document.querySelectorAll('.year-quick-btn').forEach(function(btn) {
 function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('yearFilter').value = '';
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('typeFilter').value = '';
     document.querySelectorAll('.year-quick-btn').forEach(function(b) { b.classList.remove('active'); });
     var allBtn = document.querySelector('.year-quick-btn[data-year-value=""]');
     if (allBtn) allBtn.classList.add('active');
@@ -424,14 +461,25 @@ document.querySelectorAll('#recordsTabs a[data-bs-toggle="tab"]').forEach(functi
 function saveMyFilterState() {
     var state = {
         search: document.getElementById('searchInput').value,
-        year: document.getElementById('yearFilter').value
+        year: document.getElementById('yearFilter').value,
+        category: document.getElementById('categoryFilter').value,
+        type: document.getElementById('typeFilter').value
     };
     sessionStorage.setItem('cmp-records-my-filter', JSON.stringify(state));
 }
 document.getElementById('searchInput').addEventListener('input', saveMyFilterState);
 document.getElementById('yearFilter').addEventListener('change', saveMyFilterState);
+document.getElementById('categoryFilter').addEventListener('change', saveMyFilterState);
+document.getElementById('typeFilter').addEventListener('change', saveMyFilterState);
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Phase 351 SF-07: back-nav #team → aktifkan tab Team View (tanpa klik manual).
+    // RecordsTeam DOMContentLoaded-nya yang memulihkan 9 filter via sessionStorage (tidak disentuh).
+    if (window.location.hash === '#team' || window.location.hash === '#pane-team') {
+        var teamTab = document.getElementById('tab-team');   // ada hanya saat roleLevel <= 4
+        if (teamTab) bootstrap.Tab.getOrCreateInstance(teamTab).show();
+    }
+
     var stored = sessionStorage.getItem('cmp-records-my-filter');
     if (!stored) return;
     try {
@@ -443,6 +491,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 b.classList.toggle('active', b.dataset.yearValue === state.year);
             });
         }
+        if (state.category) document.getElementById('categoryFilter').value = state.category;
+        if (state.type) document.getElementById('typeFilter').value = state.type;
         filterTable();
     } catch (e) { /* ignore parse error */ }
 });
