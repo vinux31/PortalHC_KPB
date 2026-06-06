@@ -3930,6 +3930,16 @@ namespace HcPortal.Controllers
             return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
+        // Phase 351 (SF-04/SF-05): opsi Kategori dari record AKTUAL (distinct unifiedRecords.Kategori),
+        // bukan master AssessmentCategories — menampung kategori free-text/legacy + buang opsi mati.
+        // public static agar reachable dari HcPortal.Tests tanpa InternalsVisibleTo.
+        public static List<string> BuildActualCategories(IEnumerable<HcPortal.Models.UnifiedTrainingRecord> records) =>
+            records.Where(r => !string.IsNullOrEmpty(r.Kategori))
+                   .Select(r => r.Kategori!)
+                   .Distinct(StringComparer.OrdinalIgnoreCase)
+                   .OrderBy(n => n)
+                   .ToList();
+
         private static List<SertifikatGroupRow> BuildSertifikatGroups(List<SertifikatRow> allRows)
         {
             return allRows
