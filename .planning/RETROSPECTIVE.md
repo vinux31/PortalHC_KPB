@@ -4,6 +4,39 @@
 
 ---
 
+## Milestone: v23.0 — CMP/Records Search & Filter Consistency Audit
+
+**Shipped:** 2026-06-06 (local) | **Phases:** 2 (350-351) | **Plans:** 7 | **REQ:** 7/7 SF-01..07 | **0 migration**
+
+### What Was Built
+Konsistensi search & filter lintas 3 surface CMP/Records. Team View search cakup judul assessment (fix bug 999.2, `GetWorkersInSection` predicate, badge per-worker D-07 utuh) + dropdown "Lingkup" jujur + export WYSIWYG (SF-01/02/06). Worker Detail 0-match feedback (counter aria-live + empty-state) + filter Kategori dari record aktual via `BuildActualCategories` (SF-03/04). My Records filter Kategori+Tipe parity + back-nav `#team` tab activator (SF-05/07).
+
+### What Worked
+- **Wave 0 RED Playwright spec sebagai kontrak verifikasi** — spec ditulis dulu menargetkan selector final, hijau setelah view/backend. Menangkap regresi duplicate-id `#categoryFilter` (Team View partial vs My Records) saat wave-gate — strict-mode violation = sinyal jelas, bukan silent bug produksi.
+- **`--interactive` per-plan checkpoint** (konsisten dgn v22.0) — deviation id-rename tertangkap + diperbaiki inline, zero rework. Per-task build+grep gate fast feedback.
+- **Audit 3-source coverage cross-ref** (VERIFICATION + SUMMARY + traceability) menangkap checkbox REQUIREMENTS stale `[ ]` meski VERIFICATION passed → di-sync saat audit.
+- **Pre-close re-check (user-prompted "ada miss?")** menangkap SEED_JOURNAL.md uncommitted (sisa Playwright matrix global-setup) sebelum close.
+
+### What Was Inefficient
+- **`milestone complete` CLI mis-count BERULANG** (sama dgn v22.0 retro) — auto-extract accomplishments ambil dari phase 323/324 lama un-archived, hasilkan "6 plans/0 tasks" + garbage ("Wave 1 SHIP READY", "Conflict:"). Manual fix MILESTONES entry lagi. **Akar belum ditangani: phase dir tak di-arsip per milestone.** Aksi v24.0: `/gsd-cleanup` arsip phase dir v18-v23 sebelum close berikutnya.
+- **`audit-open` CLI crash** (`ReferenceError: output is not defined`) — pre-close artifact audit gagal, fallback manual enumerate deferred. Tooling bug.
+- **Razor runtime-compile tak refresh** view yang diedit pada app running → rename id `#myCategoryFilter` tak ter-render sampai restart `dotnet run`. Wave-gate fail-positif sampai restart.
+
+### Patterns Established
+- **Namespace id per surface** saat partial digabung 1 DOM (`myCategoryFilter` vs Team View `categoryFilter`) — hindari `getElementById` collision. Plan T-trap harus cek duplicate-id lintas partial.
+- **Distinct-actual option source** — opsi dropdown dari record aktual (`unifiedRecords.Kategori`) bukan master; sumber opsi = sumber data-attr → compare exact-equals aman.
+
+### Key Lessons
+- Wave 0 RED contract spec = jaring regresi cross-surface paling efektif (duplicate-id ketangkap otomatis).
+- CLI `milestone complete` TIDAK bisa dipercaya untuk count/accomplishments selama phase dir flat lintas milestone — selalu verify + manual-fix MILESTONES post-CLI.
+
+### Cost Observations
+- Model: opus (executor + planner; verifier sonnet)
+- Sessions: 1 (resume dari pause "/gsd-execute-phase 351 besok")
+- Notable: `--interactive` + Wave 0 spec = zero rework meski 1 deviation signifikan (duplicate-id).
+
+---
+
 ## Milestone: v22.0 — CMP-06 + Assessment/Monitoring Audit Fixes
 
 **Shipped:** 2026-06-05 (local) | **Phases:** 5 (345-349) | **Plans:** 24 | **REQ:** 60/60 | **0 migration**
