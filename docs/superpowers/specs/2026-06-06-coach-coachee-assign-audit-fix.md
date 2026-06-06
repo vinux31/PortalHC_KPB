@@ -89,10 +89,15 @@ return mine.Count == trackDeliverableIds.Count && mine.All(p => p.Status == "App
 
 **Masalah:** Set `IsCompleted=true` tapi **`IsActive` tetap true**. Cek duplikat Assign (L474) & unique-index keduanya key ke `IsActive` (bukan `IsCompleted`) → coachee graduated **tetap "punya coach aktif"** → tak bisa di-assign ulang (mis. siklus/track baru) tanpa Deactivate manual lebih dulu. Juga: tanpa transaksi (single SaveChanges) — minor.
 
-**Keputusan diperlukan (user):**
-- **(i)** Graduated = final, re-assign memang harus Deactivate manual dulu → cukup dokumentasikan + (opsional) pesan UI jelas. ATAU
-- **(ii)** Graduated boleh di-assign lagi → set `IsActive=false` saat MarkCompleted, atau ubah cek duplikat agar abaikan mapping `IsCompleted`.
-- **Default usulan jika user tak menentukan:** (i) — graduated final; tambah hint UI "Coachee graduated, nonaktifkan dulu untuk re-assign". Bungkus MarkCompleted dalam transaksi.
+**KEPUTUSAN USER (2026-06-06): Opsi (ii) — LOCKED.** Graduated bersifat **per-unit**, bukan final global. Coachee yang lulus Tahun 3 untuk unit X **boleh di-assign lagi** oleh HC untuk unit lain (fleksibel, lanjut unit berikutnya).
+
+**Implementasi (LOCKED):**
+- `MarkMappingCompleted` set `IsCompleted=true` **DAN `IsActive=false`** (+ `CompletedAt`, + `EndDate` = waktu completion). Alasan: unique-index `IX_CoachCoacheeMappings_CoacheeId_ActiveUnique` (1 aktif/coachee) HARUS dibebaskan agar mapping baru (unit lain) bisa dibuat. Mapping graduated tetap tersimpan sebagai histori (`IsActive=false, IsCompleted=true`).
+- Bungkus dalam **transaksi** (saat ini single SaveChanges).
+- **Cascade ProtonTrackAssignment**: ikuti pola `CoachCoacheeMappingDeactivate` — deactivate assignment aktif coachee saat graduate (stamp `DeactivatedAt`), supaya assign unit baru memulai fresh (AutoCreateProgress unit baru). Pertahankan histori progress unit lama (jangan hapus).
+- **Tampilan**: mapping graduated muncul saat `showAll=true` dengan badge "Graduated" (IsCompleted). List default (`IsActive` only) tak menampilkannya — wajar, sudah selesai.
+- **Re-assign unit lain**: setelah graduate, coachee kembali ke pool `EligibleCoachees` (karena tak ada mapping aktif) → HC assign lagi dengan AssignmentUnit unit baru + track sesuai. Tidak ada blok.
+- Interaksi AF-1/AF-2: konsisten dengan dimensi **per-unit** — assignment, progress, eligibility, dan graduation semua scoped per unit coachee.
 
 ---
 
@@ -139,7 +144,7 @@ return mine.Count == trackDeliverableIds.Count && mine.All(p => p.Status == "App
 **In-scope:**
 - AF-1 (HIGH) — WAJIB fix + test (eligibility per-unit). Headline.
 - AF-2 (MED) — fix (UI guard rekomendasi A).
-- AF-3 (MED) — keputusan user + implement (default i: final + transaksi + hint).
+- AF-3 (MED) — implement opsi (ii) LOCKED: MarkCompleted set IsActive=false + IsCompleted=true + cascade deactivate assignment + transaksi (graduated per-unit, re-assign unit lain fleksibel).
 - AF-5 (LOW) — notifikasi reassign.
 - AF-6 (LOW) — pesan error duplikat spesifik.
 
@@ -161,7 +166,7 @@ return mine.Count == trackDeliverableIds.Count && mine.All(p => p.Status == "App
 | # | Item | Status |
 |---|------|--------|
 | D-1 | AF-1 fix = eligibility per-unit coachee (bukan total track) | LOCKED |
-| D-2 | AF-3 semantik graduated | **OPEN — butuh user** (default i: final) |
+| D-2 | AF-3 semantik graduated = **per-unit, fleksibel re-assign unit lain** (opsi ii). MarkCompleted set IsActive=false + IsCompleted=true + cascade deactivate assignment + transaksi | **LOCKED (user 2026-06-06)** |
 | D-3 | AF-2 fix = UI guard 1-unit per batch (Opsi A) | proposed, konfirmasi saat plan |
 | D-4 | AF-4 boleh defer jika effort besar | proposed |
 | D-5 | Tahun 3 (tanpa deliverable) tetap semua-eligible by-design | LOCKED (dipertahankan) |
