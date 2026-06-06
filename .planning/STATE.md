@@ -131,6 +131,7 @@ Predecessor: v23.0 ✅ CLOSED 2026-06-06 (7/7 REQ SF-01..07, tag v23.0 lokal, ar
 
 ### Roadmap Evolution
 
+- Phase 356 added (2026-06-06): Audit Fix Assign Coach×Coachee — addon OFF-THEME ke v24.0 atas permintaan user. 7 temuan audit AF-1..7 (CoachMappingController.cs). AF-1 HIGH **confirmed** via query DB: track id=4 punya 2 unit → `GetEligibleCoachees` bandingkan progress unit-coachee vs total deliverable semua-unit → coachee track multi-unit tak pernah eligible Assessment Proton. Independen dari 352-355 (jalur file berbeda). Belum di-plan. Pertimbangkan spec audit dulu.
 - v24.0 REVISED (2026-06-06): dikompresi 5 → 4 phase atas pilihan user. Old Phase 353 (Admin CRUD) + old Phase 354 (Sync/Cleanup) MERGED → Phase 353 "Admin Backend Gambar" (keduanya menulis `AssessmentAdminController.cs` & sequential-strict). Renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355. Phase 353 kini memegang 9 REQ (IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02) + 7 success criteria. 17/17 REQ tetap mapped, 0 dropped, 0 orphan. Migration tetap Phase 352 only.
 - v24.0 added (2026-06-06): Gambar di Soal Assessment (Manage Package) — awalnya 5 phase 352-356 derived dari spec 2026-06-06-image-in-assessment-questions-design.md (spec-driven, 5 brainstorm decisions + 5 code-verified gaps).
 - v23.0 added (2026-06-05): CMP/Records Search & Filter Consistency Audit — 2 phase 350-351 dari audit 3-surface (7 confirmed). Sequential strict (file-overlap WorkerDataService.cs). Tests folded per phase. No migration.

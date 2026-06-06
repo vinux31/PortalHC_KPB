@@ -22,7 +22,7 @@
 - ✅ **v21.0 ManageOrganization Overhaul + Level Label CRUD** — Phases 340-344 (shipped local + closed 2026-06-04, 26/26 REQ) — [roadmap](milestones/v21.0-ROADMAP.md) — [audit](milestones/v21.0-MILESTONE-AUDIT.md)
 - ✅ **v22.0 CMP-06 + Assessment/Monitoring Audit Fixes** — Phases 345-349 (shipped local + audited 2026-06-05, 60/60 REQ) — [archive](milestones/v22.0-ROADMAP.md) — [audit](milestones/v22.0-MILESTONE-AUDIT.md)
 - ✅ **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (shipped local + audited 2026-06-06, 7/7 REQ SF-01..07) — [archive](milestones/v23.0-ROADMAP.md) — [audit](milestones/v23.0-MILESTONE-AUDIT.md)
-- 🚧 **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-355 (roadmap created 2026-06-06, revised to 4 phase 2026-06-06, 17 REQ IMG/RND/SYN/TST) — [spec](../docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md)
+- 🚧 **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-356 (roadmap created 2026-06-06, revised to 4 phase + Phase 356 audit-addon Coach×Coachee 2026-06-06, 17 REQ IMG/RND/SYN/TST + 7 AF) — [spec](../docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md)
 
 ## Phases
 
@@ -934,7 +934,7 @@ Plans:
 
 ---
 
-## 🚧 v24.0 Gambar di Soal Assessment (Manage Package) — Phases 352-355 🚀 ACTIVE
+## 🚧 v24.0 Gambar di Soal Assessment (Manage Package) — Phases 352-356 🚀 ACTIVE
 
 **Status:** Roadmap created 2026-06-06 (spec-driven); REVISED 2026-06-06 ke 4 phase (merge old 353 Admin CRUD + 354 Sync/Cleanup → satu Phase 353; renumber kontigu 352-355). NOT YET PLANNED.
 **Spec:** `docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md` (13 sections: 5 brainstorm decisions + 5 code-verified gaps with file:line + best-practice refs).
@@ -1009,7 +1009,27 @@ Plans:
 **Plans:** TBD
 **UI hint:** yes
 
-**Active mapped: 17/17 ✓ (IMG-01..07, RND-01..07, SYN-01..02, TST-01..02) — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352)**
+### Phase 356: Audit Fix Assign Coach-Coachee (pastikan fungsi assign benar)
+**Goal:** Memastikan fitur HC/Admin Assign Coach×Coachee berfungsi benar — perbaiki 7 temuan audit 2026-06-06 (CoachMappingController.cs). Off-theme dari v24.0 image-work, ditambahkan atas permintaan user.
+**Depends on:** Tidak ada (independen dari 352-355; jalur file berbeda — `CoachMappingController.cs` vs `AssessmentAdminController.cs`/views image). Bisa dikerjakan paralel/kapan saja.
+**Migration:** false (tentatif — F-3 bila pilih ubah skema completed; default tidak)
+**Requirements (audit findings):**
+  - **AF-1 (HIGH, confirmed)**: `GetEligibleCoachees` L1291-1322 bandingkan progress unit-coachee vs total deliverable SEMUA unit track → coachee di track multi-unit (terbukti track id=4, 2 unit) **tak pernah eligible** untuk Assessment Proton. Fix: hitung expected deliverable per-unit coachee.
+  - **AF-2 (MED)**: batch-assign paksa 1 Section/Unit untuk semua coachee → AutoCreateProgress salah unit bila coachee beda unit. Fix: resolve unit per-coachee atau batasi UI 1 unit.
+  - **AF-3 (MED)**: `MarkMappingCompleted` set IsCompleted tapi IsActive tetap true → coachee graduated terblok re-assign (cek duplikat & unique-index key ke IsActive). Putuskan semantik graduated.
+  - **AF-4 (LOW-MED)**: `Reactivate` korelasi assignment via DeactivatedAt ±5s (magic window rapuh).
+  - **AF-5 (LOW)**: `ApproveReassignSuggestion` tak kirim notifikasi (inkonsisten dgn Assign/Edit/Deactivate).
+  - **AF-6 (LOW)**: pesan error duplikat-coachee generic saat race (DB unique-index sudah backstop).
+  - **AF-7 (INFO)**: progression-warning loop N+1 query.
+**Success Criteria** (what must be TRUE):
+  1. Coachee di track multi-unit yang 100% deliverable unit-nya Approved **muncul** di `GetEligibleCoachees` (AF-1) — test dengan track id=4.
+  2. Assign/AutoCreateProgress memakai unit yang benar per coachee (AF-2).
+  3. Semantik graduated (AF-3) ditetapkan + tidak memblok alur re-assign yang sah.
+  4. `dotnet build` 0 error + xUnit untuk logic-bearing fix (eligibility per-unit) + UAT lokal:5277 (CLAUDE.md Develop Workflow).
+**Plans:** TBD (run /gsd-plan-phase 356 — sebelum plan, pertimbangkan tulis spec audit findings)
+**UI hint:** no (mayoritas backend; AF-5 notif + mungkin AF-2 UI)
+
+**Active mapped: 17/17 ✓ (IMG-01..07, RND-01..07, SYN-01..02, TST-01..02) — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352). Phase 356 = addon audit Coach×Coachee (AF-1..7), off-theme, di luar 17 REQ image.**
 
 ### Progress Table
 
@@ -1019,6 +1039,7 @@ Plans:
 | 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 0/? | Not started | - |
 | 354. Render Gambar di 6 Layar | 0/? | Not started | - |
 | 355. Test & UAT | 0/? | Not started | - |
+| 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |
 
 ### Coverage Validation
 
@@ -1047,7 +1068,9 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-06-06 (v24.0 REVISED — dikompresi dari 5 phase [352-356] ke 4 phase [352-355] atas pilihan user; old Phase 353 Admin CRUD + old Phase 354 Sync/Cleanup di-MERGE jadi satu Phase 353 "Admin Backend Gambar" karena keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict; renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355. Phase 353 kini memegang 9 REQ [IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02], 7 success criteria. 17/17 REQ tetap mapped, 0 dropped, 0 orphan. Migration tetap Phase 352 only. Next /gsd-plan-phase 352).*
+*Roadmap updated: 2026-06-06 (Phase 356 added — Audit Fix Assign Coach×Coachee, addon OFF-THEME ke v24.0 atas permintaan user. 7 temuan audit AF-1..7 dari CoachMappingController.cs: AF-1 HIGH confirmed [GetEligibleCoachees bandingkan progress unit-coachee vs total deliverable semua-unit → coachee track multi-unit (track id=4) tak pernah eligible Assessment Proton]. Independen 352-355 [file berbeda]. Pertimbangkan tulis spec audit sebelum /gsd-plan-phase 356.).*
+
+*Prev: 2026-06-06 (v24.0 REVISED — dikompresi dari 5 phase [352-356] ke 4 phase [352-355] atas pilihan user; old Phase 353 Admin CRUD + old Phase 354 Sync/Cleanup di-MERGE jadi satu Phase 353 "Admin Backend Gambar" karena keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict; renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355. Phase 353 kini memegang 9 REQ [IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02], 7 success criteria. 17/17 REQ tetap mapped, 0 dropped, 0 orphan. Migration tetap Phase 352 only. Next /gsd-plan-phase 352).*
 
 *Prev: 2026-06-06 (v24.0 added — Gambar di Soal Assessment; 5 phase 352-356 derived dari spec 2026-06-06-image-in-assessment-questions-design.md [§12 A-E backbone + file-overlap sequencing]).*
 
@@ -1056,8 +1079,6 @@ Plans:
 *Roadmap updated: 2026-06-06 (v23.0 CLOSED — 350+351 shipped local + audited 7/7 SF-01..07, integration 7/7 WIRED; collapsed to archive. NOT PUSHED bundle v19-v23.)*
 
 *Prev: 2026-06-05 (v23.0 added — CMP/Records Search & Filter Consistency Audit; 2 phase 350-351 dari audit 3-surface 7 confirmed [1 HIGH/4 MED/2 LOW]; 350 = Team View server-side search scope + export parity SF-01/02/06 [fix 999.2, preserve REC-06 D-07], 351 = Worker Detail + cross-surface filter consistency SF-03/04/05/07; sequential strict [file-overlap WorkerDataService.cs]; tests folded per phase [reuse v22 xUnit predicate-mirror + Playwright UAT]; no migration; spec 2026-06-05-cmp-records-search-filter-audit.md; backlog Phase 999.2 promoted → SF-01/02/06; 999.1 SignalR dropped).*
-
----
 
 *Roadmap updated: 2026-06-04 (Phase 348+349 added — ManageAssessment+Monitoring audit 6×5-lens 44 confirmed [0 HIGH/15 MED/29 LOW]; 348 = 13 MED correctness depends 347, 349 = 29 LOW polish depends 348; sequential strict; M4 dedup→REC-07/346; no migration; spec 2026-06-04-manageassessment-monitoring-audit-design.md).*
 *Prev: 2026-06-04 (Phase 346+347 added — CMP/Records Enhancement dari audit 7-lens 37 confirmed; 346 fitur+logic REC-01..09 [REC-10 drop] depends 345, 347 i18n+a11y polish POL-01..10 depends 346; sequential strict; no migration; spec 2026-06-04-cmp-records-enhancement-design.md @ 22759cad).*
