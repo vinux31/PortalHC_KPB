@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v23.0
 milestone_name: CMP/Records Search & Filter Consistency Audit
-status: executing
-last_updated: "2026-06-06T00:38:34.176Z"
-last_activity: 2026-06-06 -- Phase 351 execution started
+status: milestone_complete
+last_updated: "2026-06-06T01:31:05.580Z"
+last_activity: 2026-06-06
 progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 5
-  percent: 83
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -20,19 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 351 — worker-detail-cross-surface-filter-consistency
+**Current focus:** Planning next milestone (v24.0) — `/gsd-new-milestone`
 
 ## Current Position
 
-Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 351 (worker-detail-cross-surface-filter-consistency) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 351
-Last activity: 2026-06-06 -- Phase 351 execution started
+Milestone: v23.0 ✅ CLOSED 2026-06-06 — CMP/Records Search & Filter Consistency Audit (7/7 REQ SF-01..07, tag v23.0 lokal, archived)
+Phase: 351 (worker-detail-cross-surface-filter-consistency) — COMPLETE (verifier PASSED 5/5)
+Plan: 4 of 4 complete
+Status: Milestone complete, ready for next
+Last activity: 2026-06-06
 
-Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
+Scope DONE: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + konsistensi search/filter My Records + Team View + Worker Detail → 7 confirmed gaps semua satisfied. 999.1 Realtime SignalR DROPPED.
 
-Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v19-v22 NOT PUSHED pending IT.
+Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v19-v23 NOT PUSHED pending IT.
 
 ## v23.0 Phase Map
 
@@ -51,10 +51,10 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 
 ## Next Action
 
-1. **`/clear` lalu `/gsd-execute-phase 351`** — 4 plan/2 wave. W1: 01 test infra (cmp351-seed off-master + Playwright spec RED) ∥ 02 backend (BuildActualCategories helper + ViewBag.ActualCategoriesJson 2 action + xUnit; authz preserve). W2: 03 WorkerDetail (counter+empty-state SF-03 + Kategori actual SF-04) ∥ 04 Records (Kategori+Tipe parity SF-05 + hash→tab SF-07). 3 traps encoded. Verifikasi lokal `dotnet build`+`dotnet test`+`dotnet run` 5277+Playwright sebelum commit. NO migration. NO push.
-2. **(Opsional) `/gsd-verify-work 350`** — tutup 2 HUMAN-UAT item visual (XLSX content Category drop-archived + badge unchanged) saat dev/IT sempat eyeball; non-blocking, sudah code+automated verified.
-3. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0+v23.0/350** — push bundle ~130+ commit lokal + Dev migration coordination tetap pending (paralel jalur; Phase 350 flag migration = false).
-4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer.
+1. **`/clear` lalu `/gsd-new-milestone`** — v23.0 CLOSED; mulai milestone berikutnya (v24.0): questioning → research → requirements → roadmap.
+2. **(Opsional) `/gsd-verify-work 350`** — tutup HUMAN-UAT item visual (XLSX content Category drop-archived + badge unchanged) saat dev/IT sempat eyeball; non-blocking, sudah code+automated verified.
+3. **Carry-over IT promo v19.0+v20.0+v21.0+v22.0+v23.0** — push bundle ~163+ commit lokal + Dev migration coordination tetap pending (Phase 350/351 flag migration = false; v23.0 leg 0 migration).
+4. **(Backlog housekeeping non-blocker):** v16.0+v17.0+v18.0 MILESTONES.md entries belum ditambah (defer batch retro). Pre-existing Tom Select UX regression dari v20.0 audit defer. 19 debug session historis belum di-resolve.
 
 ## Deferred Items
 
@@ -83,6 +83,15 @@ Predecessor: v22.0 ✅ CLOSED 2026-06-05 (60/60 REQ, tag v22.0 lokal). Bundle v1
 | Push batch v19+v20+v21+v22 (~127 commit leg) pending IT availability | pending |
 | CMP06R-03 PDF env-blocked lokal (QuestPDF 204, Phase 327 known) — code-verified | needs Dev/Prod render-confirm |
 | 348/349 tanpa VERIFICATION.md (human-verify + UAT substantif) | accepted |
+
+### v23.0 Tech Debt (acknowledged at close 2026-06-06)
+
+| Item | Status |
+|------|--------|
+| Phase 350 VERIFICATION human_needed — XLSX export content (archived vs current per-Category) belum di-eyeball lokal:5277 | code + Playwright href/counter verified; needs visual confirm |
+| Phase 351 code review 3 INFO opsional (data-type konvensi 2 surface, deserialize null-coalesce, comparer culture) | accepted |
+| Nyquist artifact-only partial — VALIDATION.md 350/351 frontmatter draft tak di-update post-exec (Wave 0 Playwright hijau) | optional `/gsd-validate-phase 350\|351` sync |
+| Push bundle v19+v20+v21+v22+v23 (~163+ commit) pending IT availability | pending |
 
 ### Dropped (v23.0 scope decision)
 

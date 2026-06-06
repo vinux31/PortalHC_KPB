@@ -1,5 +1,27 @@
 # Milestones
 
+## v23.0 CMP/Records Search & Filter Consistency Audit (Shipped Local: 2026-06-06, Audited: 2026-06-06)
+
+**Phases completed:** 2 phase (350, 351), 7 plan (350:3, 351:4)
+**Status:** SHIPPED LOCAL, push pending IT availability (bundled v19.0+v20.0+v21.0+v22.0+v23.0; v23.0 leg `6c3638b6`..HEAD ~52 commit; **0 migration** — pure fix/view/test)
+**Audit:** `milestones/v23.0-MILESTONE-AUDIT.md` — status **passed** (7/7 REQ SF-01..07, 2/2 phase, integration 7/7 WIRED 0 broken, 2 E2E flow utuh). Nyquist partial (artifact-only: VALIDATION.md draft, Wave 0 spec hijau). Origin: backlog 999.2 (bug "ojt v14.2"→0 worker Team View).
+
+**Delivered:** Konsistensi search & filter lintas 3 surface CMP/Records (My Records, Team View, Worker Detail). Team View search kini mencakup judul assessment (fix bug 999.2 di level predikat, badge per-worker D-07 utuh) + dropdown "Lingkup" jujur + export WYSIWYG. Worker Detail dapat feedback 0-match (counter aria-live + empty-state) + filter Kategori dari record aktual (bukan master, tampung free-text/legacy). My Records dapat paritas filter Kategori+Tipe + back-nav "Back to Team View" mengaktifkan tab Team View dengan restore filter.
+
+**Key accomplishments:**
+
+1. **Team View Server-Side Search Scope + Export Parity (Phase 350, SF-01/02/06)** — `WorkerDataService.GetWorkersInSection` tambah predikat `AssessmentSessions.Any(a => a.Title.Contains(search))` di-OR ke path Training/Keduanya (fix 999.2, badge count per-worker D-07 invariant terjaga). Dropdown "Lingkup" relabel "Judul Kegiatan" + placeholder jujur sebut assessment. Export Assessment WYSIWYG (Category-narrow + archived-drop, non-empty saat search judul assessment). 4 xUnit Fact + Playwright cmp-records-350 2/2.
+
+2. **Worker Detail + Cross-Surface Filter Consistency (Phase 351, SF-03/04/05/07)** — SF-03: `#wdRecordCounter` aria-live "Menampilkan X dari Y" + `#workerDetailEmptyState` ("Tidak ada hasil untuk filter ini.") saat 0-match. SF-04: helper `BuildActualCategories` (distinct-actual unifiedRecords.Kategori) + `ViewBag.ActualCategoriesJson` ganti master di Worker Detail + My Records. SF-05: My Records filter Kategori+Tipe parity (id `myCategoryFilter`/`myTypeFilter` hindari duplicate-id Team View) + `data-category`. SF-07: hash→tab activator (`#team` → `getOrCreateInstance(tab-team).show()`) + sessionStorage restore 9 filter. 3 xUnit + Playwright cmp-records-351 5/5 + regression 346/350 hijau.
+
+**Known deferred (non-blocking, tech debt):**
+- Phase 350 VERIFICATION `human_needed`: XLSX export content (archived vs current per-Category) belum di-eyeball lokal:5277; kode + Playwright href/counter SF-06 verified.
+- Phase 351 code review 3 INFO opsional (data-type konvensi 2 surface, deserialize null-coalesce defensif, comparer culture).
+- Nyquist artifact-only partial: VALIDATION.md 350/351 frontmatter draft tak di-update post-exec (Wave 0 Playwright spec sudah hijau).
+- 19 debug session historis (pre-v23.0, cross-milestone) belum di-resolve.
+
+---
+
 ## v22.0 CMP-06 + Assessment/Monitoring Audit Fixes (Shipped Local: 2026-06-05, Audited: 2026-06-05)
 
 **Phases completed:** 5 phase (345, 346, 347, 348, 349), 24 plan (345:4, 346:6, 347:4, 348:5, 349:5)

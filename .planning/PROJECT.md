@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v22.0 shipped + audited, 2026-06-05)
+## Current State (v23.0 shipped + audited + closed, 2026-06-06)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -38,7 +38,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v22.0 shipped (local) + audit passed (2026-06-05)** — CMP-06 + Assessment/Monitoring Audit Fixes (phases 345-349): tampilan jujur "Menunggu Penilaian" (essay pending-grade) lintas CMP/Records + RecordsWorkerDetail + UserAssessmentHistory + Excel + PDF + Monitoring + ManageAssessment (ganti "Failed"/"Completed"/kosong palsu, passRate & average exclude-pending) + 2-audit sweep ManageAssessment+Monitoring (Pre-Post LinkedGroupId, Tab2 pagination/empty-state, i18n + a11y chevron + 7-kartu summary + exclude-Cancelled progress + search Category). 60/60 REQ + 105/105 xUnit + Playwright UAT + human-verify. 0 migration.
 
-**Current focus:** v23.0 CMP/Records Search & Filter Consistency Audit — started 2026-06-05 (audit-driven). Bundle push v19+v20+v21+v22 tetap pending IT availability.
+**v23.0 shipped (local) + audit passed + closed (2026-06-06)** — CMP/Records Search & Filter Consistency Audit (phases 350-351): Team View search cakup judul assessment (fix 999.2, `GetWorkersInSection` predicate, badge D-07 utuh) + dropdown "Lingkup" jujur + export WYSIWYG; Worker Detail 0-match feedback (counter aria-live + empty-state) + filter Kategori dari record aktual (`BuildActualCategories` distinct, ganti master); My Records filter Kategori+Tipe parity (id `my`-prefixed hindari collision Team View) + back-nav `#team` aktifkan tab. 7/7 REQ SF-01..07 + integration 7/7 WIRED + 112/112 xUnit + Playwright 5/5+2/2. 0 migration.
+
+**Current focus:** Planning next milestone (v24.0). Bundle push v19+v20+v21+v22+v23 tetap pending IT availability (~163+ commit lokal, 0 migration v23.0 leg).
 
 ## Current Milestone: v23.0 CMP/Records Search & Filter Consistency Audit
 
