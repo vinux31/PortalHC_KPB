@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v23.0
 milestone_name: CMP/Records Search & Filter Consistency Audit
 status: executing
-last_updated: "2026-06-05T14:56:38.552Z"
-last_activity: 2026-06-05 -- Phase 351 planning complete
+last_updated: "2026-06-06T00:38:34.176Z"
+last_activity: 2026-06-06 -- Phase 351 execution started
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 3
-  percent: 43
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State: Portal HC KPB
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 351 PLANNED (4 plan / 2 wave) — next `/gsd-execute-phase 351`. Phase 350 ✅ SHIPPED LOCAL.
+**Current focus:** Phase 351 — worker-detail-cross-surface-filter-consistency
 
 ## Current Position
 
 Milestone: v23.0 🚧 ACTIVE 2026-06-05 — CMP/Records Search & Filter Consistency Audit (audit-driven)
-Phase: 351 PLANNED (4 plan / 2 wave @a7ce7285; checker PASSED 12 dim + 12 invarian). Phase 350 ✅ COMPLETE (3/3). (parser "next 999.2" = backlog artifact, abaikan)
-Plan: 351 4 plan ready (01 test infra + 02 backend BuildActualCategories ∥ W1 → 03 WorkerDetail + 04 Records ∥ W2 depends 02)
-Status: ⏸ PAUSED 2026-06-05 (lanjut besok) — RESUME: `/gsd-execute-phase 351`. Boundary bersih (tree clean, semua commit). Ready to execute: Research @71036e03 (SF-07 refined = sessionStorage already complete + hash→tab activator Records.cshtml ~5 baris, NO controller fallback) + UI-SPEC approved @b0ddf853 + VALIDATION @3029f388 + 4 PLAN @a7ce7285 checker PASSED. Verifikasi lokal per Develop Workflow; NO push.
-Last activity: 2026-06-05 -- /gsd-plan-phase 351 selesai (4 PLAN @a7ce7285 checker PASSED); user PAUSE lanjut besok
+Phase: 351 (worker-detail-cross-surface-filter-consistency) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 351
+Last activity: 2026-06-06 -- Phase 351 execution started
 
 Scope: fix 999.2 (Team View search "Keduanya" cakup judul assessment) + audit search/filter My Records + Team View + Worker Detail (scope per field, konsistensi cross-surface, edge case) → 7 confirmed gaps. 999.1 Realtime SignalR DROPPED.
 
