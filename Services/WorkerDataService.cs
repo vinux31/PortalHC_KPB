@@ -254,9 +254,11 @@ namespace HcPortal.Services
             if (!string.IsNullOrEmpty(unitFilter))
                 usersQuery = usersQuery.Where(u => u.Unit == unitFilter);
 
-            // REC-06 D-07: SQL name pre-narrow HANYA untuk scope "Nama".
+            // REC-06 D-07: SQL name pre-narrow untuk scope "Nama".
             // "Training"/"Keduanya" di-handle post-load (union) supaya tidak buang training-only match.
-            if (searchScope == "Nama" && !string.IsNullOrEmpty(search))
+            // H1 fix: scope null/kosong (caller lama spt ManageAssessmentTab_Training) di-treat "Nama"
+            // supaya search tidak ke-drop diam-diam (restore perilaku pra-bundle).
+            if ((string.IsNullOrEmpty(searchScope) || searchScope == "Nama") && !string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
                 usersQuery = usersQuery.Where(u =>

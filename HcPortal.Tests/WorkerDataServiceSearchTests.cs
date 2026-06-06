@@ -92,6 +92,19 @@ public class WorkerDataServiceSearchTests
         Assert.Equal(2, result.Count);
     }
 
+    // H1 regresi: caller lama (ManageAssessmentTab_Training) kirim search TANPA searchScope.
+    // scope null harus di-treat "Nama" → search ke-apply, bukan ke-drop diam-diam.
+    [Fact]
+    public async Task Scope_Null_WithSearch_FiltersByName_H1()
+    {
+        var svc = MakeService(out var ctx);
+        ctx.Users.AddRange(User("u1", "Budi Santoso", "A"), User("u2", "Andi Wijaya", "A"));
+        await ctx.SaveChangesAsync();
+        var result = await svc.GetWorkersInSection("A", search: "budi"); // searchScope null (caller lama)
+        Assert.Single(result);
+        Assert.Equal("u1", result[0].WorkerId);
+    }
+
     // ── REC-07 include PendingGrading ──────────────────────────────────────────
 
     [Fact]
