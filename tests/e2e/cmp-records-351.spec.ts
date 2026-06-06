@@ -95,11 +95,12 @@ test.describe('Phase 351 — Worker Detail + cross-surface filter consistency', 
   test('SF-05 parity — My Records Kategori+Tipe value-map', async ({ page }) => {
     await loginAny(page, 'manager');
     await page.goto('/CMP/Records');
-    await expect(page.locator('#categoryFilter')).toBeVisible();
-    await expect(page.locator('#typeFilter')).toBeVisible();
-    await expect(page.locator('#typeFilter option[value="assessment"]')).toHaveCount(1);
-    await expect(page.locator('#typeFilter option[value="training"]')).toHaveCount(1);
-    await page.selectOption('#typeFilter', 'assessment');
+    // My Records id my-prefixed (Team View partial sudah punya #categoryFilter global — hindari duplicate-id).
+    await expect(page.locator('#myCategoryFilter')).toBeVisible();
+    await expect(page.locator('#myTypeFilter')).toBeVisible();
+    await expect(page.locator('#myTypeFilter option[value="assessment"]')).toHaveCount(1);
+    await expect(page.locator('#myTypeFilter option[value="training"]')).toHaveCount(1);
+    await page.selectOption('#myTypeFilter', 'assessment');
     await page.waitForTimeout(400);
     // T2 guard: baris training hidden, baris assessment tetap visible.
     const trainingRows = page.locator('tr[data-type="training"]:visible');
