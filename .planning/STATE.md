@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
-status: roadmap_complete
-last_updated: "2026-06-06T00:00:00.000Z"
-last_activity: 2026-06-06
+status: completed
+last_updated: "2026-06-06T02:47:06.619Z"
+last_activity: "2026-06-06 — ROADMAP v24.0 DIREVISI (roadmapper). Dikompresi 5 → 4 phase atas pilihan user: old Phase 353 (Admin CRUD) + old Phase 354 (Sync/Cleanup) di-MERGE jadi satu Phase 353 "Admin Backend Gambar" (keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict). Renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355."
 progress:
-  total_phases: 4
+  total_phases: 17
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
