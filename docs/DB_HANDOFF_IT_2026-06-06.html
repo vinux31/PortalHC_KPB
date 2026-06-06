@@ -107,13 +107,13 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
 <header class="hero">
   <span class="badge">HANDOFF TEAM IT</span>
   <h1>Deploy Bundle v21 + v22 + v23 ke Dev — HcPortal KPB</h1>
-  <p class="subtitle">Apa yang IT perlu lakukan untuk menaikkan code terbaru (commit <code>34b10d39</code>) ke server Development (<code>10.55.3.3/KPB-PortalHC</code>): pull, backup DB, deploy, dan 1 migration yang auto-apply saat startup.</p>
+  <p class="subtitle">Apa yang IT perlu lakukan untuk menaikkan code terbaru (commit <code>14e7adc5</code>) ke server Development (<code>10.55.3.3/KPB-PortalHC</code>): pull, backup DB, deploy, dan 1 migration yang auto-apply saat startup.</p>
 </header>
 
 <div class="meta-row">
   <div class="meta-item"><strong>Tanggal</strong> 6 Juni 2026</div>
   <div class="meta-item"><strong>Scope</strong> Bundle v21.0 + v22.0 + v23.0</div>
-  <div class="meta-item"><strong>Commit Hash Target</strong> <code>34b10d39</code></div>
+  <div class="meta-item"><strong>Commit Hash Target</strong> <code>14e7adc5</code></div>
   <div class="meta-item"><strong>Commit Origin Sebelumnya</strong> <code>b34f4475</code></div>
   <div class="meta-item"><strong>Migration Pending</strong> <strong style="color: var(--amber);">1 — AddOrganizationLevelLabel</strong></div>
   <div class="meta-item"><strong>Risk</strong> <span class="tag warn">Medium — bundle multi-milestone, 1 additive migration</span></div>
@@ -121,7 +121,7 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
 
 <div class="tldr">
   <div class="label">TL;DR</div>
-  <p>IT <code>git pull origin main</code> (deploy commit <code>34b10d39</code>) → <strong>BACKUP DB Dev dulu</strong> → restart app. Migration <code>AddOrganizationLevelLabel</code> <strong>auto-apply</strong> saat startup (<code>Database.Migrate()</code>) + seed 3 baris label default (idempotent). Migration <strong>additive (CreateTable saja)</strong>, non-destruktif, aman re-run. <strong>Wajib verifikasi migration benar-benar ter-apply</strong> (lihat Section 3 step e) — startup dibungkus try/catch yang menelan error.</p>
+  <p>IT <code>git pull origin main</code> (deploy commit <code>14e7adc5</code>) → <strong>BACKUP DB Dev dulu</strong> → restart app. Migration <code>AddOrganizationLevelLabel</code> <strong>auto-apply</strong> saat startup (<code>Database.Migrate()</code>) + seed 3 baris label default (idempotent). Migration <strong>additive (CreateTable saja)</strong>, non-destruktif, aman re-run. <strong>Wajib verifikasi migration benar-benar ter-apply</strong> (Section 3 Step 4) — startup dibungkus try/catch yang menelan error. <strong>+ WAJIB cek &amp; normalisasi <code>OrganizationUnits.Level</code></strong> (Section 3 Step 5, H2): data org lama di Dev pakai Level 1/2, kode baru pakai 0/1 — kalau tidak di-normalisasi, label tier salah-map.</p>
 </div>
 
 <div class="toc">
@@ -166,7 +166,7 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
 
 <div class="callout success">
   <div class="title">Validation Lokal Done</div>
-  <p>Developer sudah verifikasi lokal commit <code>34b10d39</code>: <strong><code>dotnet build</code> 0 error + <code>dotnet test</code> 112/112 Passed</strong>, working tree clean. Push ke origin = fast-forward bersih (verified <code>git fetch</code>: ahead/behind 0/294, tak ada konflik).</p>
+  <p>Developer sudah verifikasi lokal commit <code>14e7adc5</code>: <strong><code>dotnet build</code> 0 error + <code>dotnet test</code> 113/113 Passed</strong>, working tree clean. Bundle ini termasuk <strong>fix H1</strong> (regresi search ManageAssessment) hasil deep-audit pre-delivery — detail di <code>docs/AUDIT_PREDELIVERY_2026-06-06.md</code>.</p>
 </div>
 
 <div class="callout info">
@@ -213,11 +213,11 @@ WITH FORMAT, INIT;</pre>
     <p>Konfirmasi backup selesai (share path + size ke developer).</p>
   </li>
   <li>
-    <strong>Step 2 — Pull code commit <code>34b10d39</code>:</strong>
+    <strong>Step 2 — Pull code commit <code>14e7adc5</code>:</strong>
     <pre>cd /path/to/PortalHC_KPB
 git fetch origin main
-git pull origin main   # fast-forward ke 34b10d39</pre>
-    <p>Verifikasi: <code>git rev-parse HEAD</code> = <code>34b10d39</code>.</p>
+git pull origin main   # fast-forward ke 14e7adc5</pre>
+    <p>Verifikasi: <code>git rev-parse HEAD</code> = <code>14e7adc5</code>.</p>
   </li>
   <li>
     <strong>Step 3 — Build / publish + restart:</strong>
@@ -241,7 +241,35 @@ WHERE MigrationId LIKE '%AddOrganizationLevelLabel%';
 -- Expected: 1 row (migration tercatat applied)</pre>
   </li>
   <li>
-    <strong>Step 5 — Smoke test (Section 4):</strong>
+    <strong>Step 5 — ⚠️ NORMALISASI <code>OrganizationUnits.Level</code> (data existing — WAJIB CEK):</strong>
+    <div class="callout danger">
+      <div class="title">Penting — Selisih Data Lama vs Kode Baru (H2)</div>
+      <p>Kode v21 mengubah konvensi level: <strong>Bagian Level 1→0, Unit Level 2→1</strong> (Sub-unit 3→2). Tapi seed <code>OrganizationUnits</code> bersifat <em>idempotent</em> (skip kalau tabel sudah berisi) → <strong>baris organisasi lama di DB Dev TIDAK ikut berubah</strong>, tetap Level 1/2. Akibatnya label tier (<code>OrganizationLevelLabels</code> yang ber-key Level 0/1/2) salah-map: Bagian lama (Level 1) terbaca sebagai "Unit", dan fitur edit/cascade organisasi salah sasaran. Pull code TIDAK memperbaiki data existing — harus di-normalisasi sekali via SQL.</p>
+    </div>
+    <p>(a) CEK distribusi Level dulu:</p>
+    <pre class="sql">SELECT Level, COUNT(*) AS Jml FROM OrganizationUnits GROUP BY Level ORDER BY Level;</pre>
+    <ul>
+      <li>Kalau muncul Level <strong>1 dan 2</strong> (tanpa Level 0) → data lama, <strong>lanjut step (b)</strong>.</li>
+      <li>Kalau sudah ada Level <strong>0</strong> (mis. 0/1/2) → data sudah benar / DB fresh, <strong>SKIP step (b)</strong>.</li>
+    </ul>
+    <p>(b) Normalisasi (jalankan <strong>SEKALI</strong> — guarded, tidak akan double-run / bikin level negatif):</p>
+    <pre class="sql">BEGIN TRANSACTION;
+
+IF NOT EXISTS (SELECT 1 FROM OrganizationUnits WHERE Level = 0)
+   AND EXISTS (SELECT 1 FROM OrganizationUnits WHERE Level >= 1)
+BEGIN
+    UPDATE OrganizationUnits SET Level = Level - 1;
+END
+
+-- verifikasi hasil: harus mulai dari 0
+SELECT Level, COUNT(*) AS Jml FROM OrganizationUnits GROUP BY Level ORDER BY Level;
+
+-- Kalau hasil benar (Level mulai 0) → COMMIT; kalau ragu → ROLLBACK;
+COMMIT;</pre>
+    <p>Guard <code>NOT EXISTS Level=0</code> memastikan UPDATE tidak jalan dua kali. Aman di DB fresh (sudah punya Level 0 → blok di-skip).</p>
+  </li>
+  <li>
+    <strong>Step 6 — Smoke test (Section 4):</strong>
     <p>Jalankan 4 smoke test. Kalau ada yang gagal → eskalasi ke developer (Rino).</p>
   </li>
 </ol>
@@ -324,7 +352,7 @@ iisreset</pre>
     <tr><th>Path / Item</th><th>Purpose</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>34b10d39</code></td><td>Commit target deploy (HEAD bundle v21+v22+v23)</td></tr>
+    <tr><td><code>14e7adc5</code></td><td>Commit target deploy (HEAD bundle v21+v22+v23)</td></tr>
     <tr><td><code>b34f4475</code></td><td>Commit origin sebelumnya (titik rollback code)</td></tr>
     <tr><td><code>Migrations/20260603012335_AddOrganizationLevelLabel.cs</code></td><td>Satu-satunya migration baru di bundle (additive)</td></tr>
     <tr><td><code>docs/DB_HANDOFF_IT_2026-06-03.html</code></td><td>Handoff detail khusus migration AddOrganizationLevelLabel (Phase 340)</td></tr>
