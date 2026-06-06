@@ -1026,7 +1026,8 @@ Plans:
   2. Assign/AutoCreateProgress memakai unit yang benar per coachee (AF-2).
   3. Semantik graduated (AF-3) ditetapkan + tidak memblok alur re-assign yang sah.
   4. `dotnet build` 0 error + xUnit untuk logic-bearing fix (eligibility per-unit) + UAT lokal:5277 (CLAUDE.md Develop Workflow).
-**Plans:** TBD (run /gsd-plan-phase 356 — sebelum plan, pertimbangkan tulis spec audit findings)
+**Spec:** `docs/superpowers/specs/2026-06-06-coach-coachee-assign-audit-fix.md` (AF-1..7 code+data-verified, AF-1 track id=4 4-deliverable/2-unit)
+**Plans:** TBD (run /gsd-plan-phase 356)
 **UI hint:** no (mayoritas backend; AF-5 notif + mungkin AF-2 UI)
 
 **Active mapped: 17/17 ✓ (IMG-01..07, RND-01..07, SYN-01..02, TST-01..02) — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352). Phase 356 = addon audit Coach×Coachee (AF-1..7), off-theme, di luar 17 REQ image.**
