@@ -13,13 +13,13 @@
 
 ### IMG — Upload & Data Gambar
 
-- [ ] **IMG-01**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke sebuah soal _(2MB→5MB per Phase 352 CONTEXT D-03, 2026-06-06)_
-- [ ] **IMG-02**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke tiap pilihan jawaban (MC/MA)
-- [ ] **IMG-03**: Admin dapat mengisi alt text opsional per gambar (soal & opsi)
+- [x] **IMG-01**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke sebuah soal _(2MB→5MB per Phase 352 CONTEXT D-03, 2026-06-06)_
+- [x] **IMG-02**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke tiap pilihan jawaban (MC/MA)
+- [x] **IMG-03**: Admin dapat mengisi alt text opsional per gambar (soal & opsi)
 - [ ] **IMG-04**: Sistem menolak file non-gambar (mis. PDF/exe) via validasi magic-byte image-only
-- [ ] **IMG-05**: Admin dapat mengganti gambar yang sudah ada (file lama terhapus dari disk)
-- [ ] **IMG-06**: Admin dapat menghapus gambar dari soal/opsi (checkbox hapus di form)
-- [ ] **IMG-07**: Saat edit soal, gambar lama tampil (prefill thumbnail) di form admin
+- [x] **IMG-05**: Admin dapat mengganti gambar yang sudah ada (file lama terhapus dari disk)
+- [x] **IMG-06**: Admin dapat menghapus gambar dari soal/opsi (checkbox hapus di form)
+- [x] **IMG-07**: Saat edit soal, gambar lama tampil (prefill thumbnail) di form admin
 
 ### RND — Render di 6 Layar
 
@@ -34,7 +34,7 @@
 ### SYN — Integritas Data & File
 
 - [x] **SYN-01**: Gambar (ImagePath+ImageAlt) ikut tersalin saat sinkron Pre→Post; copy memakai path file yang sama (shared-file), sync tidak membuat/menghapus file fisik
-- [ ] **SYN-02**: File gambar terhapus atomic (kumpul path sebelum tx, File.Delete setelah CommitAsync, pola Phase 333) saat soal/opsi dihapus atau gambar di-replace
+- [x] **SYN-02**: File gambar terhapus atomic (kumpul path sebelum tx, File.Delete setelah CommitAsync, pola Phase 333) saat soal/opsi dihapus atau gambar di-replace
 
 ### TST — Test & UAT
 
@@ -69,15 +69,15 @@
 | REQ | Phase | Status |
 |-----|-------|--------|
 | IMG-04 | Phase 352 | Pending |
-| IMG-01 | Phase 353 | Pending |
-| IMG-02 | Phase 353 | Pending |
-| IMG-03 | Phase 353 | Pending |
-| IMG-05 | Phase 353 | Pending |
-| IMG-06 | Phase 353 | Pending |
-| IMG-07 | Phase 353 | Pending |
+| IMG-01 | Phase 353 | Complete |
+| IMG-02 | Phase 353 | Complete |
+| IMG-03 | Phase 353 | Complete |
+| IMG-05 | Phase 353 | Complete |
+| IMG-06 | Phase 353 | Complete |
+| IMG-07 | Phase 353 | Complete |
 | RND-04 | Phase 353 | Pending |
 | SYN-01 | Phase 353 | Complete |
-| SYN-02 | Phase 353 | Pending |
+| SYN-02 | Phase 353 | Complete |
 | RND-01 | Phase 354 | Pending |
 | RND-02 | Phase 354 | Pending |
 | RND-03 | Phase 354 | Pending |
