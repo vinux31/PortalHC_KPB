@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
-status: completed
-last_updated: "2026-06-06T02:47:06.619Z"
-last_activity: "2026-06-06 — ROADMAP v24.0 DIREVISI (roadmapper). Dikompresi 5 → 4 phase atas pilihan user: old Phase 353 (Admin CRUD) + old Phase 354 (Sync/Cleanup) di-MERGE jadi satu Phase 353 "Admin Backend Gambar" (keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict). Renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355."
+status: planning
+last_updated: "2026-06-08T01:58:42.259Z"
+last_activity: "2026-06-06 — Phase 353 discuss DIPAUSE. 4 area dipilih (Layout form / Edit tampil-hapus-ganti / Preview sebelum simpan / Feedback validasi), 0 locked. In-progress Area Layout: user minta visualisasi mockup, 3 opsi disiapkan (A inline RECOMMENDED / B section terpisah / C collapse), belum pilih. Scout: form server-post perlu +enctype multipart, opsi fixed A-D, edit JS-prefill (file tak bisa prefill → thumbnail lama+checkbox hapus+file baru=ganti), _PreviewQuestion belum render gambar."
 progress:
-  total_phases: 17
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 18
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
