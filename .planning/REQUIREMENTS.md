@@ -29,7 +29,7 @@
 - [x] **RND-04**: Admin melihat gambar soal + opsi di preview saat bikin/edit soal (_PreviewQuestion)
 - [ ] **RND-05**: Admin melihat gambar soal di halaman nilai essay (AssessmentMonitoringDetail)
 - [ ] **RND-06**: Admin melihat gambar soal + opsi saat edit jawaban peserta (EditPesertaAnswers)
-- [ ] **RND-07**: Gambar tampil responsive (img-fluid + loading=lazy + alt) di semua layar
+- [x] **RND-07**: Gambar tampil responsive (img-fluid + loading=lazy + alt) di semua layar
 
 ### SYN — Integritas Data & File
 
@@ -83,7 +83,7 @@
 | RND-03 | Phase 354 | Pending |
 | RND-05 | Phase 354 | Pending |
 | RND-06 | Phase 354 | Pending |
-| RND-07 | Phase 354 | Pending |
+| RND-07 | Phase 354 | Complete |
 | TST-01 | Phase 355 | Pending |
 | TST-02 | Phase 355 | Pending |
 
