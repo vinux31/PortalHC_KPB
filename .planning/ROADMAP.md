@@ -1057,7 +1057,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
-| 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete   | 2026-06-08 |
+| 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete    | 2026-06-08 |
 | 354. Render Gambar di 6 Layar | 0/? | Not started | - |
 | 355. Test & UAT | 0/? | Not started | - |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |
