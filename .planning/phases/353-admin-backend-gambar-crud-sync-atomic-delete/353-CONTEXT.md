@@ -14,7 +14,7 @@ Admin dapat mengelola gambar pada soal assessment dari halaman Manage Package Qu
 - Saat edit, gambar lama tampil sebagai thumbnail (IMG-07)
 - Preview render gambar soal+opsi di `_PreviewQuestion` (RND-04)
 - Sinkron Pre→Post bawa ImagePath+ImageAlt via shared-file (SYN-01)
-- Hapus file gambar atomic pola Phase 333 saat soal/opsi dihapus atau gambar di-replace (SYN-02)
+- Hapus file gambar atomic pola Phase 333 + **reference-count shared-file** saat soal/opsi dihapus (DeleteQuestion), gambar di-replace, atau paket dihapus (DeletePackage) (SYN-02 + D-10/D-11)
 
 Semua menyentuh satu file backend `AssessmentAdminController.cs` (CRUD ~L6067-6377, JSON prefill L6214, SyncPackagesToPost L5337, DeleteQuestion L6377) + view `ManagePackageQuestions.cshtml` + partial `_PreviewQuestion.cshtml`.
 
@@ -48,6 +48,13 @@ Semua menyentuh satu file backend `AssessmentAdminController.cs` (CRUD ~L6067-63
   - Case C — Soal hasil import butuh gambar: admin edit soal via form, tambah gambar (jalur Case A).
   - Case D — Sync Pre→Post: ImagePath+ImageAlt ikut tersalin shared-file (SYN-01).
 - **Lokasi UI form (referensi navigasi):** Admin → Kelola Assessment → EditAssessment → "Kelola Paket Soal" (`ManagePackages`, paket Pre & Post terpisah) → "Kelola Soal" per paket → `ManagePackageQuestions` (form sidebar Tambah/Edit Soal — tempat field gambar Phase 353).
+
+### Atomic File Delete — Shared-File Safe (audit miss, klarifikasi user 2026-06-08)
+- **D-10:** **Reference-count sebelum `File.Delete`** (SYN-02 diperkuat). Karena shared-file (C-03: Pre & Post simpan ImagePath sama → 1 file fisik, banyak baris DB), hapus fisik HANYA boleh kalau path tak dipakai baris lain. Flow:
+  1. Catat `path` dari ImagePath; 2. set ImagePath=null / RemoveRange baris; 3. SaveChanges + CommitAsync; 4. SETELAH commit, hitung `COUNT` baris `PackageQuestion`+`PackageOption` lain yang `ImagePath == path`; 5. `count == 0` → `File.Delete(path)`; `count > 0` → SKIP (masih dipakai Post/lain). Inner try/catch warn-only per file (pola 333).
+  - Berlaku untuk: **DeleteQuestion**, **replace gambar** (ganti file lama), dan **DeletePackage** (D-11).
+- **D-11:** **DeletePackage (L5457) MASUK scope 353** — saat ini RemoveRange soal+opsi (L5484-5486) TANPA hapus file → orphan. Tambah: kumpul semua path SEBELUM tx, ref-count + `File.Delete` SETELAH CommitAsync (pola 333 + D-10). Catatan: DeletePackage auto-sync ke Post (L5518-5524) — ref-count otomatis melindungi file yang masih dishare.
+- **D-12:** **Cascade besar DEFER ke phase terpisah** — `DeleteAssessment` (L2069), `DeleteAssessmentGroup` (L2257), `DeletePrePostGroup` (L2443) hapus session→paket→soal→opsi tapi orphan file gambar. DI LUAR scope 353 (teritori cascade Phase 323/335, tx kompleks). Lihat analisa di `<deferred>`. Orphan sementara diterima sampai phase cleanup dibuat.
 
 ### Carried Forward (locked dari Phase 352 + spec — jangan re-decide)
 - **C-01:** Format JPG/PNG ≤5MB, magic-byte — panggil `FileUploadHelper.ValidateImageFile(IFormFile?)` (sudah ada, Phase 352). 5MB per Phase 352 D-03 (override 2MB spec).
@@ -118,7 +125,21 @@ Semua menyentuh satu file backend `AssessmentAdminController.cs` (CRUD ~L6067-63
 - Server-side resize/kompres gambar → ditolak Phase 352 D-04 (prioritas simpel), tidak akan diangkat.
 - **Gambar via Excel import** (kolom path gambar di xlsx + matching by filename) → di luar scope 353 (D-09). Kalau dibutuhkan kelak, jadi phase/REQ terpisah. Saat ini admin tambah gambar via form (Case C).
 
-None lain — diskusi tetap dalam scope phase.
+### Cascade Image File Cleanup (defer dari D-12 — analisa)
+Saat soal/opsi terhapus lewat cascade besar, file gambar fisik orphan (DB hilang, file tetap di disk). 3 endpoint:
+- `DeleteAssessment` (AssessmentAdminController.cs L2069) — hapus 1 session + paket + soal + opsi + responses (tx kompleks, gold-std cascade Phase 328).
+- `DeleteAssessmentGroup` (L2257) — hapus banyak sibling session sekaligus.
+- `DeletePrePostGroup` (L2443) — hapus pasangan Pre+Post linked.
+
+**Kenapa defer (bukan di 353):**
+1. Ketiganya tx besar multi-entity (teritori hardening Phase 323/325/328/335) — gabung ke 353 membengkakkan scope + risiko regresi cascade.
+2. Wajib pakai ref-count D-10 yang sama (shared-file Pre+Post), TAPI saat DeletePrePostGroup hapus Pre+Post bersamaan, kedua referensi hilang → file benar-benar orphan → aman dihapus. Logika ref-count perlu sadar "semua referensi dalam batch ini ikut terhapus".
+3. Dampak orphan = sampah disk (bukan data corruption / bukan gambar rusak). Severity rendah, bisa ditunda.
+
+**Rekomendasi:** phase cleanup terpisah (mis. v24.x atau backlog 999.x) setelah 353-355 stabil. Reuse helper ref-count D-10 + pola atomic delete 333. Estimasi S-M (3 endpoint, audit-style).
+**Mitigasi sementara:** orphan file menumpuk pelan; bisa dibersihkan manual / script sweep saat phase cleanup.
+
+None lain — diskusi tetap dalam scope phase (kecuali cascade besar yang sengaja di-defer di atas).
 </deferred>
 
 ---
