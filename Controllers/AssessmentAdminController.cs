@@ -5376,10 +5376,14 @@ namespace HcPortal.Controllers
                         ElemenTeknis = q.ElemenTeknis,
                         Rubrik = q.Rubrik,
                         MaxCharacters = q.MaxCharacters,
+                        ImagePath = q.ImagePath,   // SYN-01: shared-file string copy (Pre→Post), no file op
+                        ImageAlt = q.ImageAlt,
                         Options = q.Options.Select(o => new PackageOption
                         {
                             OptionText = o.OptionText,
-                            IsCorrect = o.IsCorrect
+                            IsCorrect = o.IsCorrect,
+                            ImagePath = o.ImagePath, // SYN-01: shared-file string copy
+                            ImageAlt = o.ImageAlt
                         }).ToList()
                     };
                     newPkg.Questions.Add(newQ);
