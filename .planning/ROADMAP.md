@@ -620,6 +620,20 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
+### Phase 999.3: Cascade Image File Cleanup — orphan gambar saat hapus assessment/group (BACKLOG, 2026-06-08)
+
+**Goal:** Hapus file gambar fisik yang orphan saat cascade delete besar menghapus session→paket→soal→opsi. 3 endpoint: `DeleteAssessment` (`AssessmentAdminController.cs` L2069), `DeleteAssessmentGroup` (L2257), `DeletePrePostGroup` (L2443). Saat ini cascade hapus DB tapi biarkan file gambar di disk.
+
+**Context:**
+- Ditemukan saat audit ulang discuss Phase 353 (2026-06-08). Defer dari Phase 353 D-12 (teritori cascade besar Phase 323/325/328/335, tx kompleks — gabung ke 353 membengkakkan scope).
+- Severity **rendah**: dampak = sampah disk (orphan file), BUKAN data corruption / bukan gambar rusak di UI.
+- Reuse helper **reference-count D-10** dari Phase 353 (hapus fisik hanya kalau path tak dipakai baris lain) + pola atomic delete Phase 333 (kumpul path sebelum tx, File.Delete post-commit, inner try/catch warn-only). Nuance: saat DeletePrePostGroup hapus Pre+Post bersamaan, ref-count harus sadar "semua referensi dalam batch ikut terhapus" → file aman dihapus.
+- Depends: **Phase 353** (helper ref-count + pola harus eksis dulu).
+
+**Requirements:** TBD — estimasi S-M (3 endpoint audit-style). Spec acuan: `.planning/phases/353-admin-backend-gambar-crud-sync-atomic-delete/353-CONTEXT.md` bagian `<deferred>`.
+
+---
+
 ### Phase 999.2: CMP/Records Team View search extend ke Assessment title (PROMOTED -> v23.0 Phase 350, 2026-06-05)
 
 **Goal:** Search Team View di `CMP/Records` (`searchScope`="Keduanya") ikut mencocokkan judul **assessment**, bukan hanya Nama/NIP + judul Training. User cari nama assessment (mis. "ojt v14.2") → saat ini 0 worker meski worker punya assessment itu.
