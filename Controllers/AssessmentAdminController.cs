@@ -5469,6 +5469,15 @@ namespace HcPortal.Controllers
 
             int assessmentId = pkg.AssessmentSessionId;
 
+            // D-11 / SYN-02: path-collect SEBELUM cascade RemoveRange (union semua gambar soal+opsi).
+            var imagePathsToDelete = new List<string>();
+            foreach (var qImg in pkg.Questions)
+            {
+                if (!string.IsNullOrEmpty(qImg.ImagePath)) imagePathsToDelete.Add(qImg.ImagePath);
+                foreach (var oImg in qImg.Options)
+                    if (!string.IsNullOrEmpty(oImg.ImagePath)) imagePathsToDelete.Add(oImg.ImagePath);
+            }
+
             var questionIds = pkg.Questions.Select(q => q.Id).ToList();
             if (questionIds.Any())
             {
@@ -5525,6 +5534,23 @@ namespace HcPortal.Controllers
                 if (postSession != null && postSession.SamePackage)
                 {
                     await SyncPackagesToPost(deletedFromSession.Id, postSession.Id);
+                }
+            }
+
+            // D-11 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (Post mungkin di-rebuild share path).
+            foreach (var relUrl in imagePathsToDelete.Distinct())
+            {
+                bool stillUsedQ = await _context.PackageQuestions.AnyAsync(x => x.ImagePath == relUrl);
+                bool stillUsedO = await _context.PackageOptions.AnyAsync(x => x.ImagePath == relUrl);
+                if (stillUsedQ || stillUsedO) continue; // dipakai Post/lain → SKIP
+                try
+                {
+                    var physical = Path.Combine(_env.WebRootPath, relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
+                }
+                catch (Exception fex)
+                {
+                    _logger.LogWarning(fex, "File.Delete post-commit failed (DeletePackage image): {Path}", relUrl);
                 }
             }
 
@@ -6528,6 +6554,12 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
 
+            // SYN-02 / D-10: path-collect SEBELUM RemoveRange (gambar soal + opsi).
+            var imagePathsToDelete = new List<string>();
+            if (!string.IsNullOrEmpty(q.ImagePath)) imagePathsToDelete.Add(q.ImagePath);
+            foreach (var o in q.Options)
+                if (!string.IsNullOrEmpty(o.ImagePath)) imagePathsToDelete.Add(o.ImagePath);
+
             // Remove any responses for this question
             var responses = await _context.PackageUserResponses
                 .Where(r => r.PackageQuestionId == questionId)
@@ -6572,6 +6604,23 @@ namespace HcPortal.Controllers
                     {
                         await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
                     }
+                }
+            }
+
+            // SYN-02 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (warn-only per file).
+            foreach (var relUrl in imagePathsToDelete.Distinct())
+            {
+                bool stillUsedQ = await _context.PackageQuestions.AnyAsync(x => x.ImagePath == relUrl);
+                bool stillUsedO = await _context.PackageOptions.AnyAsync(x => x.ImagePath == relUrl);
+                if (stillUsedQ || stillUsedO) continue; // dipakai Post/lain → SKIP (SC #6)
+                try
+                {
+                    var physical = Path.Combine(_env.WebRootPath, relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
+                }
+                catch (Exception fex)
+                {
+                    _logger.LogWarning(fex, "File.Delete post-commit failed (DeleteQuestion image): {Path}", relUrl);
                 }
             }
 
