@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
 status: executing
-last_updated: "2026-06-08T23:44:11.985Z"
+last_updated: "2026-06-08T23:47:23.628Z"
 last_activity: 2026-06-08 -- Phase 354 execution started
 progress:
   total_phases: 19
   completed_phases: 2
   total_plans: 10
-  completed_plans: 5
-  percent: 50
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State: Portal HC KPB

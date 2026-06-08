@@ -1015,9 +1015,9 @@ Plans:
   3. Admin melihat gambar soal di halaman nilai essay (`AssessmentMonitoringDetail`) dan gambar soal + opsi saat edit jawaban peserta (`EditPesertaAnswers`).
   4. Di semua layar gambar tampil responsif: `<img class="img-fluid" loading="lazy" alt="@ImageAlt">` lewat atribut `src` ber-encode (bukan HTML mentah → tak menambah surface XSS), dan di-render **hanya jika** `ImagePath` tidak null (RND-07).
   5. `dotnet build` 0 error + `dotnet run` localhost:5277 + Playwright per surface: peserta StartExam/ExamSummary/Results + admin Monitoring essay + EditPesertaAnswers menampilkan gambar; responsif di viewport sempit.
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 - [x] 354-01-PLAN.md - Partial reusable _QuestionImage + lightbox modal global (D-04, RND-07) [Wave 1]
-- [ ] 354-02-PLAN.md - 4 ViewModel bawa ImagePath/ImageAlt (Gap 2, L-01) [Wave 1]
+- [x] 354-02-PLAN.md - 4 ViewModel bawa ImagePath/ImageAlt (Gap 2, L-01) [Wave 1]
 - [ ] 354-03-PLAN.md - CMPController populate StartExam+Results+ExamSummary (RND-01/02/03) [Wave 2]
 - [ ] 354-04-PLAN.md - AssessmentAdminController populate essay+EditPeserta (RND-05/06) [Wave 2]
 - [ ] 354-05-PLAN.md - Render 3 view peserta StartExam/ExamSummary/Results + lightbox (RND-01/02/03/07) [Wave 3]
@@ -1065,7 +1065,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
 | 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete    | 2026-06-08 |
-| 354. Render Gambar di 6 Layar | 1/6 | In Progress|  |
+| 354. Render Gambar di 6 Layar | 2/6 | In Progress|  |
 | 355. Test & UAT | 0/? | Not started | - |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |
 
