@@ -126,4 +126,60 @@ public class PackageImageDeleteTests
         Assert.Contains("/uploads/questions/3/q2-a.png", collected);
         Assert.DoesNotContain(null, collected);
     }
+
+    // Mirror of AssessmentAdminController.ApplyOptionImageIntent (D-05 resolution) — keep in sync.
+    // savedNewPath mensimulasikan hasil SaveFileAsync (file baru). newFilePresent=true berarti admin pilih file.
+    private static void ApplyIntent(PackageOption target, bool newFilePresent, string? savedNewPath,
+        string? alt, bool removeChecked, List<string> deleteList)
+    {
+        if (newFilePresent)
+        {
+            if (!string.IsNullOrEmpty(target.ImagePath)) deleteList.Add(target.ImagePath!);
+            target.ImagePath = savedNewPath;
+            target.ImageAlt = alt;        // IGNORE checkbox (file baru menang)
+        }
+        else if (removeChecked)
+        {
+            if (!string.IsNullOrEmpty(target.ImagePath)) deleteList.Add(target.ImagePath!);
+            target.ImagePath = null;
+            target.ImageAlt = null;
+        }
+        else
+        {
+            target.ImageAlt = alt;        // keep gambar
+        }
+    }
+
+    [Fact]
+    public void ReplaceConflict_NewFileWins_OverRemoveCheckbox()
+    {
+        // D-05: file baru DIPILIH + checkbox hapus DICENTANG pada item sama → file baru menang.
+        var target = new PackageOption { OptionText = "A", IsCorrect = true, ImagePath = "/uploads/questions/7/old.jpg", ImageAlt = "lama" };
+        var deleteList = new List<string>();
+
+        ApplyIntent(target, newFilePresent: true, savedNewPath: "/uploads/questions/7/new.jpg",
+            alt: "baru", removeChecked: true, deleteList);
+
+        Assert.Equal("/uploads/questions/7/new.jpg", target.ImagePath);   // path baru menang
+        Assert.NotNull(target.ImagePath);
+        Assert.Contains("/uploads/questions/7/old.jpg", deleteList);       // path lama jadi delete-candidate
+        Assert.Equal("baru", target.ImageAlt);
+    }
+
+    [Fact]
+    public void OptionPreserve_KeepsImagePath_WhenOptionUntouched()
+    {
+        // OQ1: edit teks opsi tanpa file & tanpa checkbox → ImagePath opsi TETAP (tidak hilang).
+        var target = new PackageOption { OptionText = "A", IsCorrect = true, ImagePath = "/uploads/questions/7/keep.jpg", ImageAlt = "tetap" };
+        var deleteList = new List<string>();
+
+        // update text saja (di controller: slot.OptionText/IsCorrect di-set) lalu intent keep:
+        target.OptionText = "A (diedit)";
+        ApplyIntent(target, newFilePresent: false, savedNewPath: null,
+            alt: "tetap", removeChecked: false, deleteList);
+
+        Assert.Equal("/uploads/questions/7/keep.jpg", target.ImagePath);   // gambar TIDAK berubah
+        Assert.Empty(deleteList);                                          // tidak ada delete-candidate
+        Assert.Equal("A (diedit)", target.OptionText);
+    }
 }
