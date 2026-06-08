@@ -53,6 +53,11 @@
                                       title="@item.QuestionText">
                                     @item.QuestionText
                                 </span>
+                                @await Html.PartialAsync("_QuestionImage", new { ImagePath = item.ImagePath, ImageAlt = item.ImageAlt, Cap = 240 })
+                                @foreach (var optImg in item.OptionImages)
+                                {
+                                    @await Html.PartialAsync("_QuestionImage", new { ImagePath = optImg.ImagePath, ImageAlt = optImg.ImageAlt, Cap = 120, AriaContext = "opsi" })
+                                }
                             </td>
                             <td>
                                 @if (item.QuestionType == "MultipleAnswer")
@@ -172,6 +177,8 @@
         </div>
     </form>
 </div>
+
+@await Html.PartialAsync("_ImageLightboxModal")
 
 @section Scripts {
 <script>
