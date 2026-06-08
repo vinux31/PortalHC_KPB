@@ -1,7 +1,8 @@
 ---
 phase: 354
 slug: render-gambar-di-6-layar
-status: draft
+status: approved
+reviewed_at: 2026-06-08
 shadcn_initialized: false
 preset: none
 created: 2026-06-08
@@ -14,6 +15,8 @@ created: 2026-06-08
 > **Stack:** ASP.NET Core MVC + Razor + Bootstrap 5 (server-rendered, BUKAN SPA). shadcn/Tailwind tidak berlaku — pakai utility Bootstrap 5 existing + konvensi proyek. Tidak ada design system baru diperkenalkan.
 >
 > **Sumber kontrak:** 354-CONTEXT.md (D-01..D-04, L-01..L-04 locked), ROADMAP Phase 354 (5 SC), REQUIREMENTS (RND-01/02/03/05/06/07), dan baseline visual kanonik `Views/Admin/_PreviewQuestion.cshtml` (Phase 353, live). 5 layar lain MIRROR baseline ini — anti-drift via 1 partial reusable (D-04).
+>
+> **Catatan otoritas placement opsi (resolusi checker 2026-06-08):** untuk PENEMPATAN gambar opsi, **D-03 (block-bawah-teks) adalah AUTHORITATIVE**. Partial reusable (D-04) = single source of truth penempatan dan **MENGGANTIKAN** pola inline-flex lama di `_PreviewQuestion.cshtml` Phase 353. Baseline `_PreviewQuestion.cshtml` tetap otoritas untuk MARKUP `<img>` (kelas, cap, lazy, alt, render-if-not-null) — TAPI BUKAN untuk layout flex-row inline-samping. Lihat §3.
 
 ---
 
@@ -43,7 +46,7 @@ Satu sumber kebenaran markup `<img>` dipakai 6 layar. Bentuk persis (1 partial p
 | `ImageAlt` | `string?` | ya | Alt text. Boleh null/empty (gambar dekoratif) → `alt=""` (lihat A11y). |
 | `cap` / konteks | enum/int | ya | Menentukan `max-height`: **soal = 240px**, **opsi = 120px** (D-01). Pass param ATAU hardcode per-pemanggilan (diskresi). |
 
-**Markup yang dihasilkan partial (LOCKED — identik baseline `_PreviewQuestion.cshtml:22` & :71):**
+**Markup `<img>` yang dihasilkan partial — MARKUP `<img>` LOCKED, identik baseline `_PreviewQuestion.cshtml:22` & :71 (kelas/cap/lazy/alt/render-if-not-null). Catatan: penempatan/wrapper diatur §3, BUKAN baseline flex-row.**
 
 ```cshtml
 @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
@@ -60,10 +63,9 @@ Satu sumber kebenaran markup `<img>` dipakai 6 layar. Bentuk persis (1 partial p
 }
 ```
 
-> Untuk gambar OPSI: `style="max-height:120px; cursor:pointer"` (cap 120 per D-01) — sisanya identik.
-> `mb-3` pada gambar soal mengikuti baseline; gambar opsi baseline TANPA `mb-3` (di dalam `<label>` list-group-item) — pertahankan kesesuaian per surface.
+> Untuk gambar OPSI: `style="max-height:120px; cursor:pointer"` (cap 120 per D-01). `<img>` opsi WAJIB **block** (`d-block w-100` atau setara) agar pecah dari flex-row — lihat §3. Sisanya identik markup soal.
 
-Beda dari baseline `_PreviewQuestion.cshtml` Phase 353 (yang inline, belum punya lightbox): **tambah** atribut trigger lightbox (`cursor:pointer`, `role="button"`, `tabindex="0"`, `data-bs-toggle`, `data-img-src/alt`, `aria-label`). Ini upgrade markup, bukan markup baru. RND-04 (`_PreviewQuestion`) opsional di-retrofit ke partial sama agar 6 layar benar-benar 1 sumber (diskresi planner; CONTEXT D-04 menyebut "dipakai 6 layar").
+Beda dari baseline `_PreviewQuestion.cshtml` Phase 353 (yang inline-flex, belum punya lightbox): (a) **tambah** atribut trigger lightbox (`cursor:pointer`, `role="button"`, `tabindex="0"`, `data-bs-toggle`, `data-img-src/alt`, `aria-label`); (b) **ubah penempatan opsi** dari inline-samping → block-bawah (§3, D-03 authoritative). Ini upgrade markup + harmonisasi layout, bukan markup baru. RND-04 (`_PreviewQuestion`) di-retrofit ke partial sama agar 6 layar benar-benar 1 sumber (CONTEXT D-04 "dipakai 6 layar") — konsekuensinya gambar opsi `_PreviewQuestion` ikut jadi block-bawah; lihat catatan §3.
 
 ### 2. Lightbox Modal Global (D-02 — 1 instance, reuse 6 layar)
 
@@ -107,9 +109,23 @@ lb?.addEventListener('show.bs.modal', e => {
 | Tutup | Tombol `btn-close` (X), klik backdrop, tombol `Esc` (default Bootstrap) |
 | 1 instance | Satu modal per halaman; `src` di-swap on-click (bukan 1 modal per gambar) |
 
-### 3. Penempatan Gambar Opsi (D-03)
+### 3. Penempatan Gambar Opsi (D-03 — AUTHORITATIVE: block-bawah-teks)
 
-Gambar opsi di **BAWAH** teks opsi, **full block** (bukan layout samping/inline) — mirror `_PreviewQuestion.cshtml:67-73`: gambar disisipkan setelah `<span>@opt.OptionText</span>` di dalam `<label class="list-group-item ...">`. Aman di mobile (tidak sempit). Cap 120px.
+**Kontrak placement (LOCKED):** gambar opsi tampil sebagai **block penuh DI BAWAH teks opsi** — BUKAN inline-samping. D-03 adalah pilihan eksplisit user ("Bawah teks, full block, aman di mobile") dan **menang** atas pola flex-row lama di baseline.
+
+**Klarifikasi sumber otoritas (resolusi checker 2026-06-08):**
+- Baseline `_PreviewQuestion.cshtml:69-72` membungkus `<img>` opsi sebagai **sibling flex-child** di dalam `<label class="list-group-item ... d-flex align-items-center gap-3">` → secara render itu **inline-di-samping** teks. Pola flex-row itu **TIDAK ditiru**.
+- Baseline `_PreviewQuestion.cshtml` adalah otoritas HANYA untuk **markup `<img>`**: kelas `img-fluid rounded border`, cap `max-height` (soal 240 / opsi 120), `loading="lazy"`, `alt`, dan aturan render-if-`ImagePath`-not-null. Otoritas baseline **berhenti di situ** — TIDAK mencakup layout penempatan.
+- Partial reusable (D-04) = **single source of truth penempatan** dan **menggantikan** pola inline-flex Phase 353.
+
+**Mekanisme block-bawah yang DI-LOCK (executor pilih salah satu, A diutamakan):**
+
+- **Mekanisme A (diutamakan — restruktur `<label>`):** ubah `<label class="list-group-item ...">` opsi dari flex-row 1-baris jadi **stack vertikal**: baris atas = `[input] [huruf] [teks opsi]` (boleh tetap `d-flex align-items-center gap-3` UNTUK BARIS ITU saja, bungkus dalam `<div>`), lalu **panggilan partial gambar opsi di-tempatkan SEBAGAI BLOCK TERPISAH DI BAWAH baris teks** (sibling block, bukan flex-child sebaris). Wrapper `<label>` jadi `d-flex flex-column` (atau hilangkan `d-flex` dan biarkan block-flow normal), sehingga gambar jatuh ke bawah penuh-lebar.
+- **Mekanisme B (alternatif minimal — paksa break dalam flex):** pertahankan `<label>` flex existing TAPI paksa `<img>` opsi `class="... d-block w-100"` + `style="max-height:120px"` sehingga `w-100` mengambil 100% lebar dan **wrap ke baris baru di bawah** teks (flex-wrap). WAJIB tambahkan `flex-wrap` pada `<label>` bila pakai B agar img benar-benar turun (bukan menyusut di samping).
+
+> **Kriteria penerimaan placement (untuk checker/auditor):** pada viewport apa pun, gambar opsi muncul di **baris terpisah DI BAWAH** teks opsi dengan lebar penuh kolom opsi, TIDAK pernah berdampingan horizontal dengan teks. Cap visual 120px (tinggi). Aman di mobile (tidak gepeng/sempit).
+
+**Catatan konsistensi `_PreviewQuestion.cshtml` (untuk planner — BUKAN scope baru):** saat `_PreviewQuestion.cshtml` (RND-04) mengadopsi partial bersama (demi 1-sumber lintas 6 surface, D-04), gambar opsinya **ikut berubah jadi block-bawah** menggantikan pola inline-flex Phase 353 saat ini. Ini **diterima & diinginkan** sebagai harmonisasi visual — RND-04 sudah ter-ship fungsional (gambar tampil benar), perubahan ini murni layout-consistency. **BUKAN penambahan scope**, hanya konsekuensi adopsi partial; planner cukup mencatat retrofit ini pada task RND-04.
 
 ---
 
@@ -120,11 +136,12 @@ Skala spacing = utility Bootstrap 5 existing (kelipatan 4px via `$spacer` 1rem=1
 | Token Bootstrap | Value | Usage di fase ini |
 |-----------------|-------|-------------------|
 | `mb-3` | 16px | Margin bawah gambar SOAL (locked, identik baseline `_PreviewQuestion`) |
-| `gap-3` | 16px | Jarak elemen dalam `list-group-item` opsi (existing baseline) |
+| `gap-3` | 16px | Jarak elemen dalam baris teks opsi (`[input] [huruf] [teks]`) — existing |
+| `mt-2` | 8px | Jarak antara baris teks opsi dan gambar opsi block di bawahnya (D-03 placement) |
 | `me-1` / `me-2` | 4px / 8px | Inline icon/badge gap (existing) |
 | `p-0` / `py-2` | 0 / 8px | Card body & alert padding (existing baseline) |
 
-Exceptions: gambar opsi (cap 120px) TANPA `mb-3` di dalam `<label>` — mengikuti baseline Phase 353 (jarak diatur `gap-3` list-group). Tidak ada nilai spacing non-kelipatan-4.
+Exceptions: gambar opsi (cap 120px) sebagai block-bawah memakai `mt-2` (8px) untuk pisah dari teks — bukan `mb-3` baseline lama (baseline lama inline tak butuh margin atas). Tidak ada nilai spacing non-kelipatan-4.
 
 ---
 
@@ -196,14 +213,14 @@ Semua copy WAJIB Bahasa Indonesia (CLAUDE.md). Fase ini render-only — tidak ad
 
 | Surface | Tipe | Gambar Soal | Gambar Opsi | Sumber data (VM) |
 |---------|------|-------------|-------------|------------------|
-| `StartExam.cshtml` (RND-01) | Peserta | ✅ 240px + lightbox | ✅ 120px + lightbox | `ExamQuestionItem`/`ExamOptionItem` |
-| `ExamSummary.cshtml` (RND-02) | Peserta | ✅ 240px + lightbox | ✅ 120px + lightbox | item VM ExamSummary (EditPesertaAnswersViewModel.cs cluster) |
-| `Results.cshtml` (RND-03) | Peserta | ✅ 240px + lightbox | ✅ 120px + lightbox | `QuestionReviewItem`/`OptionReviewItem` |
-| `_PreviewQuestion.cshtml` (RND-04) | Admin | ✅ 240px (live; +lightbox via partial) | ✅ 120px (live) | `PackageQuestion` (entity langsung) |
+| `StartExam.cshtml` (RND-01) | Peserta | ✅ 240px + lightbox | ✅ 120px block-bawah + lightbox | `ExamQuestionItem`/`ExamOptionItem` |
+| `ExamSummary.cshtml` (RND-02) | Peserta | ✅ 240px + lightbox | ✅ 120px block-bawah + lightbox | item VM ExamSummary (EditPesertaAnswersViewModel.cs cluster) |
+| `Results.cshtml` (RND-03) | Peserta | ✅ 240px + lightbox | ✅ 120px block-bawah + lightbox | `QuestionReviewItem`/`OptionReviewItem` |
+| `_PreviewQuestion.cshtml` (RND-04) | Admin | ✅ 240px (live; +lightbox via partial) | ✅ 120px **block-bawah** (retrofit dari inline-flex → konsistensi via partial, lihat §3) | `PackageQuestion` (entity langsung) |
 | `AssessmentMonitoringDetail.cshtml` (RND-05) | Admin | ✅ 240px + lightbox | ❌ **gambar soal SAJA** (essay tak punya opsi, RND-05) | `EssayGradingItemViewModel` |
-| `EditPesertaAnswers.cshtml` (RND-06) | Admin | ✅ 240px + lightbox | ✅ 120px + lightbox | item VM EditPesertaAnswers |
+| `EditPesertaAnswers.cshtml` (RND-06) | Admin | ✅ 240px + lightbox | ✅ 120px block-bawah + lightbox | item VM EditPesertaAnswers |
 
-Semua surface memanggil partial sama (D-04) + 1 modal lightbox global per halaman. Shuffle opsi aman otomatis (L-03, object-level spec §8).
+Semua surface memanggil partial sama (D-04) + 1 modal lightbox global per halaman. Penempatan gambar opsi = block-bawah-teks seragam (§3, D-03). Shuffle opsi aman otomatis (L-03, object-level spec §8).
 
 ---
 
@@ -219,11 +236,11 @@ Tidak ada library lightbox eksternal (D-02 melarang) — reuse Bootstrap modal e
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS — label BI ("Pratinjau Gambar", "Tutup", "Perbesar gambar"), no fabricated alt, no placeholder empty-state
-- [ ] Dimension 2 Visuals: PASS — `img-fluid rounded border`, cap 240/120, lazy, lightbox full-res, opsi di bawah teks
-- [ ] Dimension 3 Color: PASS — tidak ada warna baru, reuse Bootstrap netral
-- [ ] Dimension 4 Typography: PASS — reuse fw-medium/regular existing, 2 weight
-- [ ] Dimension 5 Spacing: PASS — `mb-3`/`gap-3` Bootstrap, kelipatan 4
-- [ ] Dimension 6 Registry Safety: PASS — no third-party, no XSS surface baru, Bootstrap modal existing
+- [x] Dimension 1 Copywriting: PASS — label BI ("Pratinjau Gambar", "Tutup", "Perbesar gambar"), no fabricated alt, no placeholder empty-state
+- [x] Dimension 2 Visuals: PASS — `img-fluid rounded border`, cap 240/120, lazy, lightbox full-res, gambar opsi block-bawah-teks (D-03 authoritative, §3 mekanisme di-lock)
+- [x] Dimension 3 Color: PASS — tidak ada warna baru, reuse Bootstrap netral
+- [x] Dimension 4 Typography: PASS — reuse fw-medium/regular existing, 2 weight
+- [x] Dimension 5 Spacing: PASS — `mb-3`/`gap-3`/`mt-2` Bootstrap, kelipatan 4
+- [x] Dimension 6 Registry Safety: PASS — no third-party, no XSS surface baru, Bootstrap modal existing
 
-**Approval:** pending
+**Approval:** approved (6/6) — flag placement opsi (§3 ambiguity) RESOLVED 2026-06-08: D-03 block-bawah authoritative, baseline `_PreviewQuestion.cshtml` otoritas markup `<img>` saja (bukan flex-layout), partial reusable menggantikan pola inline-flex, mekanisme block-bawah di-lock (A/B), retrofit RND-04 dicatat sebagai konsistensi (bukan scope baru).
