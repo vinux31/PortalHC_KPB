@@ -2988,9 +2988,12 @@ namespace HcPortal.Controllers
                     PackageQuestionId = q.Id,
                     QuestionText = q.QuestionText,
                     QuestionType = q.QuestionType ?? "MultipleChoice",
+                    ImagePath = q.ImagePath,
+                    ImageAlt = q.ImageAlt,
                     Options = q.Options.Select(o => new HcPortal.Models.EditOptionRow
                     {
-                        Id = o.Id, OptionText = o.OptionText, IsCorrect = o.IsCorrect
+                        Id = o.Id, OptionText = o.OptionText, IsCorrect = o.IsCorrect,
+                        ImagePath = o.ImagePath, ImageAlt = o.ImageAlt
                     }).ToList(),
                     SelectedOptionIds = selectedIds,
                     CorrectOptionIds = correctIds,
@@ -3402,7 +3405,9 @@ namespace HcPortal.Controllers
                         Rubrik        = q.Rubrik,
                         TextAnswer    = essayRespMap.TryGetValue(q.Id, out var resp) ? resp.TextAnswer : null,
                         EssayScore    = essayRespMap.TryGetValue(q.Id, out var resp2) ? resp2.EssayScore : null,
-                        ScoreValue    = q.ScoreValue
+                        ScoreValue    = q.ScoreValue,
+                        ImagePath     = q.ImagePath,
+                        ImageAlt      = q.ImageAlt
                     }).ToList();
 
                     essayGradingMap[sess.Id] = items;
