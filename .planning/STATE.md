@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
-status: planning
-last_updated: "2026-06-08T01:58:42.259Z"
-last_activity: "2026-06-06 — Phase 353 discuss DIPAUSE. 4 area dipilih (Layout form / Edit tampil-hapus-ganti / Preview sebelum simpan / Feedback validasi), 0 locked. In-progress Area Layout: user minta visualisasi mockup, 3 opsi disiapkan (A inline RECOMMENDED / B section terpisah / C collapse), belum pilih. Scout: form server-post perlu +enctype multipart, opsi fixed A-D, edit JS-prefill (file tak bisa prefill → thumbnail lama+checkbox hapus+file baru=ganti), _PreviewQuestion belum render gambar."
+status: executing
+last_updated: "2026-06-08T06:05:56.285Z"
+last_activity: 2026-06-08 -- Phase 353 planning complete
 progress:
-  total_phases: 18
+  total_phases: 19
   completed_phases: 1
-  total_plans: 1
+  total_plans: 4
   completed_plans: 1
-  percent: 100
+  percent: 25
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — Phase 352 ✅ SHIPPED LOCAL; Phase 353 ⏸ PAUSED mid-discuss 2026-06-06
 Phase: 353 (Admin Backend Gambar) — PAUSED mid-discuss (checkpoint ditulis)
 Plan: — (belum plan; discuss belum selesai)
-Status: ⏸ Resume `/gsd-discuss-phase 353` — checkpoint `.planning/phases/353-admin-backend-gambar-crud-sync-atomic-delete/353-DISCUSS-CHECKPOINT.json`
-Last activity: 2026-06-06 — Phase 353 discuss DIPAUSE. 4 area dipilih (Layout form / Edit tampil-hapus-ganti / Preview sebelum simpan / Feedback validasi), 0 locked. In-progress Area Layout: user minta visualisasi mockup, 3 opsi disiapkan (A inline RECOMMENDED / B section terpisah / C collapse), belum pilih. Scout: form server-post perlu +enctype multipart, opsi fixed A-D, edit JS-prefill (file tak bisa prefill → thumbnail lama+checkbox hapus+file baru=ganti), _PreviewQuestion belum render gambar.
+Status: Ready to execute
+Last activity: 2026-06-08 -- Phase 353 planning complete
 
 Phase 352 ✅ SHIPPED LOCAL: commit 40a8fc2f (feat) + bfcd6c48 (verif) + 8e13fefa (state). Entity 4 prop nullable + AllowedImageExtensions{jpg,jpeg,png}+MaxImageFileSizeBytes(5MB) + ValidateImageFile + migration AddImageToPackageQuestionAndOption applied lokal HcPortalDB_Dev + 120/120 test. Migration flag=TRUE IT-notify. D-03 override 5MB.
 
