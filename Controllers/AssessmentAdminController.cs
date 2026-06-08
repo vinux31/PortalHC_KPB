@@ -6068,6 +6068,10 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
+        // Truncate alt text ke MaxLength kolom (255) sebelum assign — hindari DbUpdateException (Pitfall 6).
+        private static string? TruncateAlt(string? s, int max)
+            => string.IsNullOrEmpty(s) ? s : (s.Length <= max ? s : s.Substring(0, max));
+
         public async Task<IActionResult> CreateQuestion(
             int packageId,
             string questionText,
@@ -6077,7 +6081,10 @@ namespace HcPortal.Controllers
             string? rubrik,
             int maxCharacters,
             string? optionA, string? optionB, string? optionC, string? optionD,
-            bool correctA, bool correctB, bool correctC, bool correctD)
+            bool correctA, bool correctB, bool correctC, bool correctD,
+            IFormFile? questionImage, string? questionImageAlt,
+            IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
+            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt)
         {
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
@@ -6085,6 +6092,17 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "Tipe soal tidak valid.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // Validate-all image uploads fail-fast (SHARED-3 / D-08). Null file → (true,null).
+            foreach (var f in new[] { questionImage, optionAImage, optionBImage, optionCImage, optionDImage })
+            {
+                var (okImg, errImg) = FileUploadHelper.ValidateImageFile(f);
+                if (!okImg)
+                {
+                    TempData["Error"] = errImg ?? "File harus berupa gambar JPG atau PNG.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
             }
 
             var pkg = await _context.AssessmentPackages
@@ -6119,6 +6137,9 @@ namespace HcPortal.Controllers
 
             int nextOrder = pkg.Questions.Any() ? pkg.Questions.Max(q => q.Order) + 1 : 1;
 
+            // Simpan gambar soal (IMG-01/03). SaveFileAsync null-safe → null bila tak ada file.
+            var qImgUrl = await FileUploadHelper.SaveFileAsync(questionImage, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+
             var newQ = new PackageQuestion
             {
                 AssessmentPackageId = packageId,
@@ -6128,23 +6149,33 @@ namespace HcPortal.Controllers
                 Order = nextOrder,
                 ElemenTeknis = string.IsNullOrWhiteSpace(elemenTeknis) ? null : elemenTeknis.Trim(),
                 Rubrik = questionType == "Essay" ? rubrik?.Trim() : null,
-                MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000
+                MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000,
+                ImagePath = qImgUrl,
+                ImageAlt = TruncateAlt(questionImageAlt, 255)
             };
 
             if (questionType != "Essay")
             {
                 var options = new[]
                 {
-                    (optionA, correctA),
-                    (optionB, correctB),
-                    (optionC, correctC),
-                    (optionD, correctD)
+                    (optionA, correctA, optionAImage, optionAImageAlt),
+                    (optionB, correctB, optionBImage, optionBImageAlt),
+                    (optionC, correctC, optionCImage, optionCImageAlt),
+                    (optionD, correctD, optionDImage, optionDImageAlt)
                 };
-                foreach (var (text, isCorrect) in options)
+                foreach (var (text, isCorrect, oImg, oAlt) in options)
                 {
                     if (!string.IsNullOrWhiteSpace(text))
                     {
-                        newQ.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                        // IMG-02/03: simpan gambar opsi (null-safe).
+                        var oImgUrl = await FileUploadHelper.SaveFileAsync(oImg, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+                        newQ.Options.Add(new PackageOption
+                        {
+                            OptionText = text!.Trim(),
+                            IsCorrect = isCorrect,
+                            ImagePath = oImgUrl,
+                            ImageAlt = TruncateAlt(oAlt, 255)
+                        });
                     }
                 }
             }
