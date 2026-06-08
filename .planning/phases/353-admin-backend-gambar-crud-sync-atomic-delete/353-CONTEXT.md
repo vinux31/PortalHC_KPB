@@ -40,6 +40,15 @@ Semua menyentuh satu file backend `AssessmentAdminController.cs` (CRUD ~L6067-63
 ### Feedback Validasi Gagal
 - **D-08:** Pesan error (file non-image / >5MB, hasil `ValidateImageFile`) ditampilkan via **alert atas `TempData["Error"]`** + form repopulate. Konsisten pola existing `CreateQuestion`/`EditQuestion`. TIDAK pakai inline per-field (hindari client-side validation JS tambahan tanpa pola existing).
 
+### Excel / Paste Import (jalur ImportPackageQuestions — di luar 9 REQ, klarifikasi user 2026-06-08)
+- **D-09:** Excel import (`ImportPackageQuestions`, upload `.xlsx/.xls` ATAU paste teks) **tetap text-only** — TIDAK ditambah kolom gambar di Phase 353. Soal/opsi hasil import → `ImagePath`/`ImageAlt` = NULL. Admin menambah gambar belakangan via edit form (Case C, jalur Case A). Alasan: gambar tak bisa dibawa sel Excel; embed/ekstrak file di xlsx kompleks + di luar 9 REQ. **Keterbatasan terdokumentasi**, bukan bug.
+- **Flow per case (acuan):**
+  - Case A — Tambah soal manual via form: gambar didukung penuh (ValidateImageFile → SaveFileAsync → simpan path).
+  - Case B — Import Excel/paste: text-only, gambar NULL.
+  - Case C — Soal hasil import butuh gambar: admin edit soal via form, tambah gambar (jalur Case A).
+  - Case D — Sync Pre→Post: ImagePath+ImageAlt ikut tersalin shared-file (SYN-01).
+- **Lokasi UI form (referensi navigasi):** Admin → Kelola Assessment → EditAssessment → "Kelola Paket Soal" (`ManagePackages`, paket Pre & Post terpisah) → "Kelola Soal" per paket → `ManagePackageQuestions` (form sidebar Tambah/Edit Soal — tempat field gambar Phase 353).
+
 ### Carried Forward (locked dari Phase 352 + spec — jangan re-decide)
 - **C-01:** Format JPG/PNG ≤5MB, magic-byte — panggil `FileUploadHelper.ValidateImageFile(IFormFile?)` (sudah ada, Phase 352). 5MB per Phase 352 D-03 (override 2MB spec).
 - **C-02:** Folder upload `/uploads/questions/{packageId}/`. Reuse `FileUploadHelper.SaveFileAsync` (auto-create folder, format-agnostic, no resize).
@@ -107,6 +116,7 @@ Semua menyentuh satu file backend `AssessmentAdminController.cs` (CRUD ~L6067-63
 - Render gambar di 6 layar peserta (StartExam/ExamSummary/Results/AssessmentMonitoringDetail/EditPesertaAnswers + _PreviewQuestion sisi peserta) → **Phase 354** (RND-01/02/03/05/06/07).
 - Test xUnit konsolidasi + Playwright UAT end-to-end → **Phase 355** (TST-01/02).
 - Server-side resize/kompres gambar → ditolak Phase 352 D-04 (prioritas simpel), tidak akan diangkat.
+- **Gambar via Excel import** (kolom path gambar di xlsx + matching by filename) → di luar scope 353 (D-09). Kalau dibutuhkan kelak, jadi phase/REQ terpisah. Saat ini admin tambah gambar via form (Case C).
 
 None lain — diskusi tetap dalam scope phase.
 </deferred>
