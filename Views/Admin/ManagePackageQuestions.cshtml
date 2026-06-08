@@ -119,7 +119,7 @@
                     <span class="fw-semibold" id="formTitle">Tambah Soal Baru</span>
                 </div>
                 <div class="card-body">
-                    <form id="questionForm" asp-action="CreateQuestion" asp-controller="AssessmentAdmin" method="post">
+                    <form id="questionForm" asp-action="CreateQuestion" asp-controller="AssessmentAdmin" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="packageId" value="@packageId" />
                         <input type="hidden" id="editQuestionId" name="questionId" value="" />
@@ -141,6 +141,33 @@
                                       rows="3" required placeholder="Tuliskan pertanyaan..."></textarea>
                         </div>
 
+                        <!-- Gambar soal inline (D-01) -->
+                        <div class="mb-3 img-drop" id="questionImgWrap">
+                            <label class="form-label small fw-semibold">Gambar Soal (opsional)</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="img-thumb d-inline-flex align-items-center justify-content-center border rounded bg-light"
+                                      style="width:46px;height:46px;overflow:hidden;flex:0 0 46px">
+                                    <img id="questionImgThumb" src="" alt="" class="d-none" style="width:46px;height:46px;object-fit:cover" />
+                                    <i id="questionImgIcon" class="bi bi-image text-muted"></i>
+                                </span>
+                                <span id="questionImgMeta" class="text-muted flex-grow-1" style="font-size:.72rem">Belum ada gambar</span>
+                                <label class="btn btn-outline-primary btn-sm mb-0" id="questionImgPickBtn">
+                                    Pilih<input type="file" name="questionImage" id="questionImgField" accept="image/png,image/jpeg" hidden />
+                                </label>
+                                <button type="button" class="btn btn-outline-danger btn-sm d-none" id="questionImgClear" aria-label="Hapus gambar ini">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <div class="form-check mt-2 d-none" id="questionRemoveWrap">
+                                <input class="form-check-input" type="checkbox" name="removeQuestionImage" value="true" id="removeQuestionImage" />
+                                <label class="form-check-label small" for="removeQuestionImage">Hapus gambar</label>
+                            </div>
+                            <input type="text" name="questionImageAlt" id="questionImageAlt" class="form-control form-control-sm mt-2"
+                                   placeholder="Teks alternatif (opsional)" />
+                            <div class="form-text">Deskripsi singkat gambar untuk pembaca layar.</div>
+                            <div class="form-text">JPG atau PNG, maksimal 5 MB.</div>
+                        </div>
+
                         <!-- Opsi A-D (MC/MA) -->
                         <div id="optionsSection" class="mb-3">
                             <label class="form-label fw-medium small">Opsi Jawaban</label>
@@ -159,6 +186,27 @@
                                     <span class="input-group-text fw-bold">@letter</span>
                                     <input type="text" class="form-control" name="@name"
                                            id="option_@letter" placeholder="Opsi @letter" />
+                                </div>
+                                <!-- Gambar opsi @letter inline (D-01) -->
+                                <div class="img-drop mb-2 ms-4 d-flex align-items-center gap-2" id="opt@(letter)ImgWrap">
+                                    <span class="img-thumb d-inline-flex align-items-center justify-content-center border rounded bg-light"
+                                          style="width:46px;height:46px;overflow:hidden;flex:0 0 46px">
+                                        <img id="opt@(letter)ImgThumb" src="" alt="" class="d-none" style="width:46px;height:46px;object-fit:cover" />
+                                        <i id="opt@(letter)ImgIcon" class="bi bi-image text-muted"></i>
+                                    </span>
+                                    <span id="opt@(letter)ImgMeta" class="text-muted flex-grow-1" style="font-size:.72rem">Belum ada gambar</span>
+                                    <input type="text" name="@($"option{letter}ImageAlt")" id="opt@(letter)ImageAlt"
+                                           class="form-control form-control-sm" style="max-width:140px" placeholder="Teks alternatif (opsional)" />
+                                    <label class="btn btn-outline-primary btn-sm mb-0" id="opt@(letter)ImgPickBtn">
+                                        Pilih<input type="file" name="@($"option{letter}Image")" id="opt@(letter)ImgField" accept="image/png,image/jpeg" hidden />
+                                    </label>
+                                    <button type="button" class="btn btn-outline-danger btn-sm d-none" id="opt@(letter)ImgClear" aria-label="Hapus gambar opsi @letter">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                    <span class="form-check mb-0 d-none" id="opt@(letter)RemoveWrap">
+                                        <input class="form-check-input" type="checkbox" name="@($"removeOption{letter}Image")" value="true" id="removeOption@(letter)Image" />
+                                        <label class="form-check-label small" for="removeOption@(letter)Image">Hapus</label>
+                                    </span>
                                 </div>
                             }
                             <div class="form-text">Klik radio/checkbox di kiri untuk tandai jawaban benar.</div>
@@ -429,15 +477,117 @@
                     var correctEl = document.getElementById('correct_' + optLetters[i]);
                     if (textEl) textEl.value = opt.optionText || '';
                     if (correctEl) correctEl.checked = opt.isCorrect === true;
+                    // Prefill thumbnail gambar opsi (D-06/IMG-07)
+                    prefillImage(IMAGE_FIELDS[i + 1], opt.imagePath, opt.imageAlt);
                 }
             });
         }
+        // Opsi tak terisi (mis. <4) → reset image field-nya ke create-state
+        for (var k = (data.options ? data.options.length : 0); k < 4; k++) {
+            resetImageField(IMAGE_FIELDS[k + 1]);
+        }
+        // Prefill thumbnail gambar soal (D-06/IMG-07)
+        prefillImage(IMAGE_FIELDS[0], data.imagePath, data.imageAlt);
 
         document.getElementById('submitBtn').innerHTML = '<i class="bi bi-save me-1"></i>Simpan Perubahan';
         document.getElementById('cancelEditBtn').style.display = '';
 
         // Scroll to form
         document.getElementById('questionFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ---- Gambar: FileReader thumbnail instan + prefill edit (D-07a/D-03/IMG-07) ----
+    // prefix: 'question' | 'optA'..'optD'. Field id konvensi: {prefix}ImgThumb/Icon/Meta/Field/Clear, {removeId}.
+    var IMAGE_FIELDS = [
+        { prefix: 'question', removeId: 'removeQuestionImage', removeWrap: 'questionRemoveWrap', pickBtn: 'questionImgPickBtn' },
+        { prefix: 'optA', removeId: 'removeOptionAImage', removeWrap: 'optARemoveWrap', pickBtn: 'optAImgPickBtn' },
+        { prefix: 'optB', removeId: 'removeOptionBImage', removeWrap: 'optBRemoveWrap', pickBtn: 'optBImgPickBtn' },
+        { prefix: 'optC', removeId: 'removeOptionCImage', removeWrap: 'optCRemoveWrap', pickBtn: 'optCImgPickBtn' },
+        { prefix: 'optD', removeId: 'removeOptionDImage', removeWrap: 'optDRemoveWrap', pickBtn: 'optDImgPickBtn' }
+    ];
+
+    function fmtSize(bytes) {
+        var kb = bytes / 1024;
+        return kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb.toFixed(0) + ' KB';
+    }
+
+    function imgEl(prefix, suffix) { return document.getElementById(prefix + suffix); }
+
+    function showThumb(prefix, src, metaText) {
+        var thumb = imgEl(prefix, 'ImgThumb'), icon = imgEl(prefix, 'ImgIcon'),
+            meta = imgEl(prefix, 'ImgMeta'), clear = imgEl(prefix, 'ImgClear');
+        if (thumb) { thumb.src = src; thumb.classList.remove('d-none'); }
+        if (icon) icon.classList.add('d-none');
+        if (meta) meta.textContent = metaText;
+        if (clear) clear.classList.remove('d-none');
+    }
+
+    function emptyThumb(prefix) {
+        var thumb = imgEl(prefix, 'ImgThumb'), icon = imgEl(prefix, 'ImgIcon'),
+            meta = imgEl(prefix, 'ImgMeta'), clear = imgEl(prefix, 'ImgClear'),
+            field = imgEl(prefix, 'ImgField');
+        if (thumb) { thumb.src = ''; thumb.classList.add('d-none'); }
+        if (icon) icon.classList.remove('d-none');
+        if (meta) meta.textContent = 'Belum ada gambar';
+        if (clear) clear.classList.add('d-none');
+        if (field) field.value = '';
+    }
+
+    function wireImageField(cfg) {
+        var field = imgEl(cfg.prefix, 'ImgField');
+        var clear = imgEl(cfg.prefix, 'ImgClear');
+        var removeCb = document.getElementById(cfg.removeId);
+        if (field) {
+            field.addEventListener('change', function () {
+                if (!field.files || !field.files.length) { emptyThumb(cfg.prefix); return; }
+                var file = field.files[0];
+                var reader = new FileReader();
+                reader.onload = function (e) { showThumb(cfg.prefix, e.target.result, file.name + ' · ' + fmtSize(file.size)); };
+                reader.readAsDataURL(file);
+                // Konflik D-05 nicety: file baru → uncheck + disable checkbox hapus (backend tetap otoritatif).
+                if (removeCb) { removeCb.checked = false; removeCb.disabled = true; }
+            });
+        }
+        if (clear) {
+            clear.addEventListener('click', function () {
+                emptyThumb(cfg.prefix);
+                if (removeCb) removeCb.disabled = false;
+            });
+        }
+    }
+
+    function wireAllImageFields() { IMAGE_FIELDS.forEach(wireImageField); }
+    document.addEventListener('DOMContentLoaded', wireAllImageFields);
+
+    // Prefill thumbnail lama saat edit (file input tetap kosong — D-03).
+    function prefillImage(cfg, imagePath, imageAlt) {
+        var altInput = document.getElementById(cfg.prefix === 'question' ? 'questionImageAlt' : cfg.prefix + 'ImageAlt');
+        if (altInput) altInput.value = imageAlt || '';
+        var removeWrap = document.getElementById(cfg.removeWrap);
+        var removeCb = document.getElementById(cfg.removeId);
+        if (removeCb) { removeCb.checked = false; removeCb.disabled = false; }
+        var pickBtn = document.getElementById(cfg.pickBtn);
+        if (imagePath) {
+            showThumb(cfg.prefix, imagePath, 'Gambar tersimpan');
+            if (removeWrap) removeWrap.classList.remove('d-none'); // EDIT-only checkbox tampil
+            if (pickBtn) pickBtn.childNodes[0].nodeValue = 'Ganti';
+        } else {
+            emptyThumb(cfg.prefix);
+            if (removeWrap) removeWrap.classList.add('d-none');
+            if (pickBtn) pickBtn.childNodes[0].nodeValue = 'Pilih';
+        }
+    }
+
+    function resetImageField(cfg) {
+        emptyThumb(cfg.prefix);
+        var altInput = document.getElementById(cfg.prefix === 'question' ? 'questionImageAlt' : cfg.prefix + 'ImageAlt');
+        if (altInput) altInput.value = '';
+        var removeWrap = document.getElementById(cfg.removeWrap);
+        var removeCb = document.getElementById(cfg.removeId);
+        if (removeCb) { removeCb.checked = false; removeCb.disabled = false; }
+        if (removeWrap) removeWrap.classList.add('d-none'); // sembunyikan checkbox saat create
+        var pickBtn = document.getElementById(cfg.pickBtn);
+        if (pickBtn) pickBtn.childNodes[0].nodeValue = 'Pilih';
     }
 
     window.resetForm = function () {
@@ -452,6 +602,8 @@
         applyQTypeSwitch('MultipleChoice');
         document.getElementById('QuestionType').value = 'MultipleChoice';
         document.getElementById('scoreValue').value = 10;
+
+        IMAGE_FIELDS.forEach(resetImageField);
 
         document.getElementById('submitBtn').innerHTML = '<i class="bi bi-plus-circle me-1"></i>Tambah Soal';
         document.getElementById('cancelEditBtn').style.display = 'none';

@@ -16,6 +16,13 @@
         <!-- Teks soal -->
         <p class="fw-medium mb-3">@Model.QuestionText</p>
 
+        @* RND-04: gambar soal (cap 240px), render nothing bila null *@
+        @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
+        {
+            <img src="@Model.ImagePath" alt="@Model.ImageAlt" class="img-fluid rounded border mb-3"
+                 style="max-height:240px" loading="lazy" />
+        }
+
         @if (qtype == "Essay")
         {
             <!-- Essay: textarea disabled -->
@@ -58,6 +65,12 @@
                                style="transform:scale(1.2)" />
                         <span class="fw-medium">@letter.</span>
                         <span>@opt.OptionText</span>
+                        @* RND-04: gambar opsi (cap 120px), render nothing bila null *@
+                        @if (!string.IsNullOrWhiteSpace(opt.ImagePath))
+                        {
+                            <img src="@opt.ImagePath" alt="@opt.ImageAlt" class="img-fluid rounded border"
+                                 style="max-height:120px" loading="lazy" />
+                        }
                     </label>
                 }
             </div>
