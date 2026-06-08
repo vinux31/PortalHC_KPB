@@ -1,0 +1,29 @@
+@* Lightbox modal global — 1 instance per halaman (D-02, Phase 354). src di-swap on-click via JS. *@
+<div class="modal fade" id="imageLightboxModal" tabindex="-1"
+     aria-labelledby="imageLightboxLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageLightboxLabel">Pratinjau Gambar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="imageLightboxImg" src="" alt="" class="img-fluid" />
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    var lb = document.getElementById('imageLightboxModal');
+    if (!lb || lb.dataset.bound === '1') return; // guard: bind sekali walau partial ke-render >1x
+    lb.dataset.bound = '1';
+    lb.addEventListener('show.bs.modal', function (e) {
+      var t = e.relatedTarget;
+      if (!t) return;
+      var img = lb.querySelector('#imageLightboxImg');
+      img.src = t.getAttribute('data-img-src') || '';
+      img.alt = t.getAttribute('data-img-alt') || '';
+    });
+  })();
+</script>
