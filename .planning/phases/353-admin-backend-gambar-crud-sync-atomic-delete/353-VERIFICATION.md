@@ -1,7 +1,8 @@
 ---
 phase: 353-admin-backend-gambar-crud-sync-atomic-delete
 verified: 2026-06-08T06:37:22Z
-status: human_needed
+status: passed
+human_verification_resolved: 353-UAT.md (Claude auto-Playwright 2026-06-08, 3/3 pass — upload e2e + DB + disk + preview render, replace old-file-deleted + OQ1 preserve, remove file-deleted, DeleteQuestion atomic)
 score: 9/9 must-haves verified
 overrides_applied: 0
 deferred:

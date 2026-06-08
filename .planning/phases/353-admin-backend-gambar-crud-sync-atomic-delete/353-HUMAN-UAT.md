@@ -1,14 +1,15 @@
 ---
-status: partial
+status: resolved
 phase: 353-admin-backend-gambar-crud-sync-atomic-delete
 source: [353-VERIFICATION.md]
 started: 2026-06-08
 updated: 2026-06-08
+resolved_by: 353-UAT.md (Claude auto-Playwright 2026-06-08, 3/3 pass)
 ---
 
 ## Current Test
 
-[awaiting human testing — dikonsolidasi Phase 355 Playwright UAT]
+[resolved — 3/3 item terverifikasi e2e via Playwright, lihat 353-UAT.md]
 
 ## Tests
 
