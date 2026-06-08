@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
 status: executing
-last_updated: "2026-06-08T06:05:56.285Z"
-last_activity: 2026-06-08 -- Phase 353 planning complete
+last_updated: "2026-06-08T06:15:04.534Z"
+last_activity: 2026-06-08
 progress:
   total_phases: 19
   completed_phases: 1
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v24.0 Gambar di Soal Assessment — roadmap REVISED ke 4 phase (352-355), ready to plan Phase 352
+**Current focus:** Phase 353 — admin-backend-gambar-crud-sync-atomic-delete
 
 ## Current Position
 
 Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — Phase 352 ✅ SHIPPED LOCAL; Phase 353 ⏸ PAUSED mid-discuss 2026-06-06
-Phase: 353 (Admin Backend Gambar) — PAUSED mid-discuss (checkpoint ditulis)
-Plan: — (belum plan; discuss belum selesai)
+Phase: 353 (admin-backend-gambar-crud-sync-atomic-delete) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-08 -- Phase 353 planning complete
+Last activity: 2026-06-08
 
 Phase 352 ✅ SHIPPED LOCAL: commit 40a8fc2f (feat) + bfcd6c48 (verif) + 8e13fefa (state). Entity 4 prop nullable + AllowedImageExtensions{jpg,jpeg,png}+MaxImageFileSizeBytes(5MB) + ValidateImageFile + migration AddImageToPackageQuestionAndOption applied lokal HcPortalDB_Dev + 120/120 test. Migration flag=TRUE IT-notify. D-03 override 5MB.
 

@@ -995,10 +995,10 @@ Plans:
   5. Saat soal/opsi dihapus (`DeleteQuestion`) atau gambar di-replace via Edit, file gambar fisik (soal + opsi) terhapus secara atomic (SYN-02): path dikumpulkan **sebelum** `BeginTransactionAsync`, `File.Delete` loop **setelah** `CommitAsync` dengan inner try/catch warn-only per file (tidak throw) — pola Phase 333/335.
   6. Lifecycle file fisik dimiliki paket pemilik (Pre untuk soal yang disinkron; Post untuk soal Post-only); tidak ada double-delete pada shared path saat hanya Post yang dihapus.
   7. `dotnet build` 0 error + `dotnet run` localhost:5277 + xUnit hijau (`SyncPackagesToPost` menyalin ImagePath+ImageAlt; `DeleteQuestion` menghapus file gambar soal+opsi post-commit; replace menghapus file lama) + Playwright: admin upload gambar soal+opsi → simpan → edit → thumbnail prefill → preview render gambar.
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 353-01-PLAN.md — Wave 0: test scaffold (SYN-01 sync + D-10 ref-count + D-11 DeletePackage) + SyncPackagesToPost copy ImagePath/ImageAlt (SYN-01)
+- [x] 353-01-PLAN.md — Wave 0: test scaffold (SYN-01 sync + D-10 ref-count + D-11 DeletePackage) + SyncPackagesToPost copy ImagePath/ImageAlt (SYN-01)
 - [ ] 353-02-PLAN.md — Wave 1: CreateQuestion upload + EditQuestion GET prefill JSON + EditQuestion POST replace/remove atomic + OQ1 option-preserve (IMG-01/02/03/05/06/07, SYN-02)
 - [ ] 353-03-PLAN.md — Wave 2: form enctype+field gambar inline + FileReader/prefill JS + _PreviewQuestion render <img> (RND-04) + DeleteQuestion/DeletePackage atomic delete+ref-count (SYN-02, D-11)
 **UI hint:** yes
@@ -1057,7 +1057,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
-| 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 0/? | Not started | - |
+| 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 1/3 | In Progress|  |
 | 354. Render Gambar di 6 Layar | 0/? | Not started | - |
 | 355. Test & UAT | 0/? | Not started | - |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |

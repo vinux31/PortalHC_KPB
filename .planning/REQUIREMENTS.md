@@ -33,7 +33,7 @@
 
 ### SYN — Integritas Data & File
 
-- [ ] **SYN-01**: Gambar (ImagePath+ImageAlt) ikut tersalin saat sinkron Pre→Post; copy memakai path file yang sama (shared-file), sync tidak membuat/menghapus file fisik
+- [x] **SYN-01**: Gambar (ImagePath+ImageAlt) ikut tersalin saat sinkron Pre→Post; copy memakai path file yang sama (shared-file), sync tidak membuat/menghapus file fisik
 - [ ] **SYN-02**: File gambar terhapus atomic (kumpul path sebelum tx, File.Delete setelah CommitAsync, pola Phase 333) saat soal/opsi dihapus atau gambar di-replace
 
 ### TST — Test & UAT
@@ -76,7 +76,7 @@
 | IMG-06 | Phase 353 | Pending |
 | IMG-07 | Phase 353 | Pending |
 | RND-04 | Phase 353 | Pending |
-| SYN-01 | Phase 353 | Pending |
+| SYN-01 | Phase 353 | Complete |
 | SYN-02 | Phase 353 | Pending |
 | RND-01 | Phase 354 | Pending |
 | RND-02 | Phase 354 | Pending |
