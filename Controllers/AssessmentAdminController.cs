@@ -6257,10 +6257,14 @@ namespace HcPortal.Controllers
                     elemenTeknis = q.ElemenTeknis,
                     rubrik = q.Rubrik,
                     maxCharacters = q.MaxCharacters,
+                    imagePath = q.ImagePath,   // D-06 / IMG-07: prefill thumbnail soal
+                    imageAlt = q.ImageAlt,
                     options = q.Options.OrderBy(o => o.Id).Select(o => new
                     {
                         optionText = o.OptionText,
-                        isCorrect = o.IsCorrect
+                        isCorrect = o.IsCorrect,
+                        imagePath = o.ImagePath, // D-06 / IMG-07: prefill thumbnail opsi
+                        imageAlt = o.ImageAlt
                     }).ToList()
                 });
             }
@@ -6283,7 +6287,11 @@ namespace HcPortal.Controllers
             string? rubrik,
             int maxCharacters,
             string? optionA, string? optionB, string? optionC, string? optionD,
-            bool correctA, bool correctB, bool correctC, bool correctD)
+            bool correctA, bool correctB, bool correctC, bool correctD,
+            IFormFile? questionImage, string? questionImageAlt, bool removeQuestionImage,
+            IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
+            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt,
+            bool removeOptionAImage, bool removeOptionBImage, bool removeOptionCImage, bool removeOptionDImage)
         {
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
@@ -6291,6 +6299,17 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "Tipe soal tidak valid.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // Validate-all image uploads fail-fast (SHARED-3 / D-08). Null file → (true,null).
+            foreach (var f in new[] { questionImage, optionAImage, optionBImage, optionCImage, optionDImage })
+            {
+                var (okImg, errImg) = FileUploadHelper.ValidateImageFile(f);
+                if (!okImg)
+                {
+                    TempData["Error"] = errImg ?? "File harus berupa gambar JPG atau PNG.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
             }
 
             var q = await _context.PackageQuestions
@@ -6333,25 +6352,77 @@ namespace HcPortal.Controllers
             q.Rubrik = questionType == "Essay" ? rubrik?.Trim() : null;
             q.MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000;
 
-            // Replace options
-            _context.PackageOptions.RemoveRange(q.Options);
-            q.Options.Clear();
+            // SYN-02 / D-10: kumpul path gambar lama yang harus dihapus fisik SETELAH auto-sync + ref-count.
+            var imagePathsToDelete = new List<string>();
 
-            if (questionType != "Essay")
+            // Resolusi niat gambar SOAL (D-05 file-baru-menang).
+            if (questionImage != null)
             {
-                var options = new[]
+                var savedQImg = await FileUploadHelper.SaveFileAsync(questionImage, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+                if (!string.IsNullOrEmpty(q.ImagePath)) imagePathsToDelete.Add(q.ImagePath!);
+                q.ImagePath = savedQImg;
+                q.ImageAlt = TruncateAlt(questionImageAlt, 255);
+            }
+            else if (removeQuestionImage)
+            {
+                if (!string.IsNullOrEmpty(q.ImagePath)) imagePathsToDelete.Add(q.ImagePath!);
+                q.ImagePath = null;
+                q.ImageAlt = null;
+            }
+            else
+            {
+                q.ImageAlt = TruncateAlt(questionImageAlt, 255);
+            }
+
+            // OQ1: UPDATE-IN-PLACE opsi (jangan RemoveRange membabi-buta → preserve Id + ImagePath).
+            if (questionType == "Essay")
+            {
+                // Essay tidak punya opsi: hapus semua opsi existing + delete-candidate gambarnya.
+                foreach (var oldOpt in q.Options.ToList())
                 {
-                    (optionA, correctA),
-                    (optionB, correctB),
-                    (optionC, correctC),
-                    (optionD, correctD)
-                };
-                foreach (var (text, isCorrect) in options)
+                    if (!string.IsNullOrEmpty(oldOpt.ImagePath)) imagePathsToDelete.Add(oldOpt.ImagePath!);
+                }
+                _context.PackageOptions.RemoveRange(q.Options);
+                q.Options.Clear();
+            }
+            else
+            {
+                var optTexts = new[] { optionA, optionB, optionC, optionD };
+                var optCorrects = new[] { correctA, correctB, correctC, correctD };
+                var optImages = new[] { optionAImage, optionBImage, optionCImage, optionDImage };
+                var optAlts = new[] { optionAImageAlt, optionBImageAlt, optionCImageAlt, optionDImageAlt };
+                var optRemoves = new[] { removeOptionAImage, removeOptionBImage, removeOptionCImage, removeOptionDImage };
+
+                // Urutan SAMA dengan GET JSON (OrderBy o.Id == urutan pembuatan A-D).
+                var existing = q.Options.OrderBy(o => o.Id).ToList();
+
+                for (int i = 0; i < 4; i++)
                 {
-                    if (!string.IsNullOrWhiteSpace(text))
+                    var hasText = !string.IsNullOrWhiteSpace(optTexts[i]);
+                    var slot = i < existing.Count ? existing[i] : null;
+
+                    if (slot != null && hasText)
                     {
-                        q.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                        // UPDATE in-place: text + correct; gambar preserve kecuali image-intent.
+                        slot.OptionText = optTexts[i]!.Trim();
+                        slot.IsCorrect = optCorrects[i];
+                        await ApplyOptionImageIntent(slot, optImages[i], optAlts[i], optRemoves[i], packageId, imagePathsToDelete);
                     }
+                    else if (slot != null && !hasText)
+                    {
+                        // Opsi dihapus (mis. 4→3): remove + delete-candidate gambar.
+                        if (!string.IsNullOrEmpty(slot.ImagePath)) imagePathsToDelete.Add(slot.ImagePath!);
+                        _context.PackageOptions.Remove(slot);
+                        q.Options.Remove(slot);
+                    }
+                    else if (slot == null && hasText)
+                    {
+                        // Opsi baru di posisi i: ADD (oldPath null → hanya save bila ada file).
+                        var newOpt = new PackageOption { OptionText = optTexts[i]!.Trim(), IsCorrect = optCorrects[i] };
+                        await ApplyOptionImageIntent(newOpt, optImages[i], optAlts[i], optRemoves[i], packageId, imagePathsToDelete);
+                        q.Options.Add(newOpt);
+                    }
+                    // slot == null && !hasText → skip (opsi tidak ada & tidak diisi)
                 }
             }
 
@@ -6403,7 +6474,48 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // Ref-count + File.Delete SETELAH auto-sync (SYN-02 / D-10 / OQ2 ordering).
+            // KRITIS: harus setelah SaveChanges DAN auto-sync — agar Post yang share path
+            // sudah ter-update sebelum dicek; ref-count melindungi shared-file (Pre+Post).
+            foreach (var relUrl in imagePathsToDelete.Distinct())
+            {
+                bool stillUsedQ = await _context.PackageQuestions.AnyAsync(x => x.ImagePath == relUrl);
+                bool stillUsedO = await _context.PackageOptions.AnyAsync(x => x.ImagePath == relUrl);
+                if (stillUsedQ || stillUsedO) continue; // masih dipakai baris lain → SKIP (D-10)
+                try
+                {
+                    var physical = Path.Combine(_env.WebRootPath, relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
+                }
+                catch (Exception fex)
+                {
+                    _logger.LogWarning(fex, "File.Delete post-commit failed (question image): {Path}", relUrl);
+                }
+            }
+
             return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        // Resolusi niat gambar OPSI (D-05 file-baru-menang). Menambah oldPath ke deleteList bila replace/remove.
+        private async Task ApplyOptionImageIntent(PackageOption target, IFormFile? newFile, string? alt, bool removeChecked, int packageId, List<string> deleteList)
+        {
+            if (newFile != null)
+            {
+                var saved = await FileUploadHelper.SaveFileAsync(newFile, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+                if (!string.IsNullOrEmpty(target.ImagePath)) deleteList.Add(target.ImagePath!);
+                target.ImagePath = saved;
+                target.ImageAlt = TruncateAlt(alt, 255);   // IGNORE checkbox (file baru menang)
+            }
+            else if (removeChecked)
+            {
+                if (!string.IsNullOrEmpty(target.ImagePath)) deleteList.Add(target.ImagePath!);
+                target.ImagePath = null;
+                target.ImageAlt = null;
+            }
+            else
+            {
+                target.ImageAlt = TruncateAlt(alt, 255);    // keep gambar, alt boleh update
+            }
         }
 
         [HttpPost]
