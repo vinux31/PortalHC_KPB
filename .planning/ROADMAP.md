@@ -962,7 +962,7 @@ Plans:
 ### Phases
 
 - [ ] **Phase 352: Data Foundation + Image-Only Upload** — Migration 4 kolom (PackageQuestion/PackageOption ImagePath+ImageAlt) + entity + helper image-only (Gap 4) + folder konvensi `/uploads/questions/{packageId}/`
-- [ ] **Phase 353: Admin Backend Gambar (CRUD + Sync + Atomic Delete)** — Form upload/alt/replace/remove per soal+opsi + Create/Edit/Delete wiring + JSON prefill edit (Gap 3) + preview admin render (Gap 5) + SyncPackagesToPost shared-file (Gap 1) + hapus file atomic pola Phase 333 (DeleteQuestion/replace)
+- [x] **Phase 353: Admin Backend Gambar (CRUD + Sync + Atomic Delete)** — Form upload/alt/replace/remove per soal+opsi + Create/Edit/Delete wiring + JSON prefill edit (Gap 3) + preview admin render (Gap 5) + SyncPackagesToPost shared-file (Gap 1) + hapus file atomic pola Phase 333 (DeleteQuestion/replace) (completed 2026-06-08)
 - [ ] **Phase 354: Render Gambar di 6 Layar** — 4 ViewModel bawa gambar (Gap 2) + render `<img img-fluid loading=lazy alt>` di StartExam, ExamSummary, Results, _PreviewQuestion, AssessmentMonitoringDetail, EditPesertaAnswers
 - [ ] **Phase 355: Test & UAT** — xUnit konsolidasi (upload valid/invalid + sync copy ImagePath + DeleteQuestion hapus file) + Playwright UAT end-to-end admin upload → peserta lihat StartExam → lihat Results
 
@@ -995,12 +995,12 @@ Plans:
   5. Saat soal/opsi dihapus (`DeleteQuestion`) atau gambar di-replace via Edit, file gambar fisik (soal + opsi) terhapus secara atomic (SYN-02): path dikumpulkan **sebelum** `BeginTransactionAsync`, `File.Delete` loop **setelah** `CommitAsync` dengan inner try/catch warn-only per file (tidak throw) — pola Phase 333/335.
   6. Lifecycle file fisik dimiliki paket pemilik (Pre untuk soal yang disinkron; Post untuk soal Post-only); tidak ada double-delete pada shared path saat hanya Post yang dihapus.
   7. `dotnet build` 0 error + `dotnet run` localhost:5277 + xUnit hijau (`SyncPackagesToPost` menyalin ImagePath+ImageAlt; `DeleteQuestion` menghapus file gambar soal+opsi post-commit; replace menghapus file lama) + Playwright: admin upload gambar soal+opsi → simpan → edit → thumbnail prefill → preview render gambar.
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 353-01-PLAN.md — Wave 0: test scaffold (SYN-01 sync + D-10 ref-count + D-11 DeletePackage) + SyncPackagesToPost copy ImagePath/ImageAlt (SYN-01)
 - [x] 353-02-PLAN.md — Wave 1: CreateQuestion upload + EditQuestion GET prefill JSON + EditQuestion POST replace/remove atomic + OQ1 option-preserve (IMG-01/02/03/05/06/07, SYN-02)
-- [ ] 353-03-PLAN.md — Wave 2: form enctype+field gambar inline + FileReader/prefill JS + _PreviewQuestion render <img> (RND-04) + DeleteQuestion/DeletePackage atomic delete+ref-count (SYN-02, D-11)
+- [x] 353-03-PLAN.md — Wave 2: form enctype+field gambar inline + FileReader/prefill JS + _PreviewQuestion render <img> (RND-04) + DeleteQuestion/DeletePackage atomic delete+ref-count (SYN-02, D-11)
 **UI hint:** yes
 
 ### Phase 354: Render Gambar di 6 Layar
@@ -1057,7 +1057,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
-| 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 2/3 | In Progress|  |
+| 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete   | 2026-06-08 |
 | 354. Render Gambar di 6 Layar | 0/? | Not started | - |
 | 355. Test & UAT | 0/? | Not started | - |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |

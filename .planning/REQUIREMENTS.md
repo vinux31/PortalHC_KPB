@@ -26,7 +26,7 @@
 - [ ] **RND-01**: Peserta melihat gambar soal + opsi saat ujian (StartExam)
 - [ ] **RND-02**: Peserta melihat gambar soal + opsi di review sebelum submit (ExamSummary)
 - [ ] **RND-03**: Peserta melihat gambar soal + opsi di halaman pembahasan/hasil (Results)
-- [ ] **RND-04**: Admin melihat gambar soal + opsi di preview saat bikin/edit soal (_PreviewQuestion)
+- [x] **RND-04**: Admin melihat gambar soal + opsi di preview saat bikin/edit soal (_PreviewQuestion)
 - [ ] **RND-05**: Admin melihat gambar soal di halaman nilai essay (AssessmentMonitoringDetail)
 - [ ] **RND-06**: Admin melihat gambar soal + opsi saat edit jawaban peserta (EditPesertaAnswers)
 - [ ] **RND-07**: Gambar tampil responsive (img-fluid + loading=lazy + alt) di semua layar
@@ -75,7 +75,7 @@
 | IMG-05 | Phase 353 | Complete |
 | IMG-06 | Phase 353 | Complete |
 | IMG-07 | Phase 353 | Complete |
-| RND-04 | Phase 353 | Pending |
+| RND-04 | Phase 353 | Complete |
 | SYN-01 | Phase 353 | Complete |
 | SYN-02 | Phase 353 | Complete |
 | RND-01 | Phase 354 | Pending |
