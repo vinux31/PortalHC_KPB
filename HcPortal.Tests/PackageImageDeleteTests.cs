@@ -151,6 +151,40 @@ public class PackageImageDeleteTests
     }
 
     [Fact]
+    public void RefCount_DeletePackage_SkipsShared_DeletesOrphan()
+    {
+        // D-11: mirror DeletePackage ref-count loop. Path dishare Post → SKIP; orphan (Pre+Post hilang) → delete.
+        var dir = MakeTempDir();
+        try
+        {
+            var shared = Path.Combine(dir, "shared.jpg");
+            var orphan = Path.Combine(dir, "orphan.jpg");
+            File.WriteAllBytes(shared, new byte[] { 1 });
+            File.WriteAllBytes(orphan, new byte[] { 2 });
+
+            // Path-collect dari paket Pre yang dihapus (union soal+opsi).
+            var collected = new List<string> { shared, orphan };
+
+            // Setelah cascade+auto-sync: `shared` masih dipakai opsi Post; `orphan` tidak.
+            var remainingQuestions = new List<PackageQuestion>();
+            var remainingOptions = new List<PackageOption>
+            {
+                new PackageOption { OptionText = "Post", IsCorrect = true, ImagePath = shared }
+            };
+
+            foreach (var relUrl in collected.Distinct())
+                DeleteIfUnreferenced(relUrl, remainingQuestions, remainingOptions);
+
+            Assert.True(File.Exists(shared), "shared harus tetap (D-10 skip, masih dipakai Post).");
+            Assert.False(File.Exists(orphan), "orphan harus terhapus (Pre+Post hilang).");
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ReplaceConflict_NewFileWins_OverRemoveCheckbox()
     {
         // D-05: file baru DIPILIH + checkbox hapus DICENTANG pada item sama → file baru menang.
