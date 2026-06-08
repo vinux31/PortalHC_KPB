@@ -30,6 +30,10 @@ namespace HcPortal.Models
         public bool IsCorrect { get; set; }
         public List<OptionReviewItem> Options { get; set; } = new List<OptionReviewItem>();
         public bool IsEssayPending { get; set; } = false; // Phase 309 OQ#3 D-08 — true saat status PendingGrading dan QuestionType Essay (label "Menunggu Penilaian" di view)
+
+        // RND-03: gambar soal di Results review.
+        public string? ImagePath { get; set; }
+        public string? ImageAlt { get; set; }
     }
 
     public class OptionReviewItem
@@ -37,6 +41,10 @@ namespace HcPortal.Models
         public string OptionText { get; set; } = "";
         public bool IsCorrect { get; set; }
         public bool IsSelected { get; set; }
+
+        // RND-03: gambar opsi di Results review.
+        public string? ImagePath { get; set; }
+        public string? ImageAlt { get; set; }
     }
 
     public class ElemenTeknisScore
