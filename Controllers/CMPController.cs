@@ -1055,7 +1055,9 @@ namespace HcPortal.Controllers
                     var opts = q.Options.OrderBy(o => o.Id).Select(o => new ExamOptionItem
                     {
                         OptionId = o.Id,
-                        OptionText = o.OptionText
+                        OptionText = o.OptionText,
+                        ImagePath = o.ImagePath,
+                        ImageAlt = o.ImageAlt
                     }).ToList();
 
                     examQuestions.Add(new ExamQuestionItem
@@ -1065,7 +1067,9 @@ namespace HcPortal.Controllers
                         DisplayNumber = displayNum++,
                         Options = opts,
                         QuestionType = q.QuestionType ?? "MultipleChoice",
-                        MaxCharacters = q.MaxCharacters > 0 ? q.MaxCharacters : 2000
+                        MaxCharacters = q.MaxCharacters > 0 ? q.MaxCharacters : 2000,
+                        ImagePath = q.ImagePath,
+                        ImageAlt = q.ImageAlt
                     });
                 }
 
@@ -1524,7 +1528,9 @@ namespace HcPortal.Controllers
                             QuestionId = qId,
                             QuestionText = q.QuestionText,
                             QuestionType = qtype,
-                            TextAnswer = textAnswer
+                            TextAnswer = textAnswer,
+                            ImagePath = q.ImagePath,
+                            ImageAlt = q.ImageAlt
                         });
                     }
                     else if (qtype == "MultipleAnswer")
@@ -1547,7 +1553,16 @@ namespace HcPortal.Controllers
                             QuestionId = qId,
                             QuestionText = q.QuestionText,
                             QuestionType = qtype,
-                            SelectedOptionTexts = selectedTexts
+                            SelectedOptionTexts = selectedTexts,
+                            ImagePath = q.ImagePath,
+                            ImageAlt = q.ImageAlt,
+                            OptionImages = q.Options.OrderBy(o => o.Id).Select(o => new ExamSummaryOptionItem
+                            {
+                                OptionId = o.Id,
+                                OptionText = o.OptionText,
+                                ImagePath = o.ImagePath,
+                                ImageAlt = o.ImageAlt
+                            }).ToList()
                         });
                     }
                     else
@@ -1565,7 +1580,16 @@ namespace HcPortal.Controllers
                             QuestionText = q.QuestionText,
                             QuestionType = qtype,
                             SelectedOptionId = selectedOptId,
-                            SelectedOptionText = selectedText
+                            SelectedOptionText = selectedText,
+                            ImagePath = q.ImagePath,
+                            ImageAlt = q.ImageAlt,
+                            OptionImages = q.Options.OrderBy(o => o.Id).Select(o => new ExamSummaryOptionItem
+                            {
+                                OptionId = o.Id,
+                                OptionText = o.OptionText,
+                                ImagePath = o.ImagePath,
+                                ImageAlt = o.ImageAlt
+                            }).ToList()
                         });
                     }
                 }
@@ -2297,11 +2321,15 @@ namespace HcPortal.Controllers
                             UserAnswer = userAnswerText,
                             CorrectAnswer = correctAnswerText,
                             IsCorrect = isCorrect,
+                            ImagePath = question.ImagePath,
+                            ImageAlt = question.ImageAlt,
                             Options = question.Options.Select(o => new OptionReviewItem
                             {
                                 OptionText = o.OptionText,
                                 IsCorrect = o.IsCorrect,
-                                IsSelected = selectedOptionIds.Contains(o.Id)
+                                IsSelected = selectedOptionIds.Contains(o.Id),
+                                ImagePath = o.ImagePath,
+                                ImageAlt = o.ImageAlt
                             }).ToList(),
                             // SUB-01 OQ#3 D-08: Essay items TETAP tampil di review — flag true saat status PendingGrading + QuestionType Essay
                             // (View Razor render label "Menunggu Penilaian" alih-alih correct/incorrect; CONTEXT D-08 lock)
