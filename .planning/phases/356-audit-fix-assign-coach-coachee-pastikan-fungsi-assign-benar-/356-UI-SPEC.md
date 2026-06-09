@@ -1,10 +1,11 @@
 ---
 phase: 356
 slug: audit-fix-assign-coach-coachee
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-09
+reviewed_at: 2026-06-09
 scope: thin-audit-fix
 ---
 
