@@ -172,20 +172,20 @@ public static class GuideContentProvider
         new GuideItem(
             Id: "cmp-tipe-package-question",
             Module: GuideModule.Cmp,
-            Title: "Tipe Soal: Multiple Choice, Multiple Answer, Essay",
+            Title: "Tipe Soal: Single Answer, Multiple Answer, Essay",
             Roles: new[] { RoleGroup.AdminHC },
             Steps: new[]
             {
-                new GuideStep(1, "Multiple Choice (MC)",
+                new GuideStep(1, "Single Answer (SA)",
                     "Soal dengan <b>satu</b> jawaban benar dari beberapa opsi (radio button). Default semua soal lama. Auto-grading instant saat peserta submit."),
                 new GuideStep(2, "Multiple Answer (MA)",
                     "Soal dengan <b>lebih dari satu</b> jawaban benar (checkbox). Peserta harus pilih <i>semua</i> opsi benar untuk dianggap betul — kurang satu = salah. Auto-grading instant. (Feature Phase 296)"),
                 new GuideStep(3, "Essay",
                     "Soal jawaban teks bebas. Field tambahan saat input soal: <b>Rubrik</b> (kunci jawaban referensi internal HC — tidak ditampilkan ke peserta) dan <b>MaxCharacters</b> (default 2000). <b>Grading manual</b> oleh HC — hasil tidak instan, peserta harus tunggu HC nilai."),
                 new GuideStep(4, "Kapan pakai yang mana",
-                    "<b>MC</b> untuk pengetahuan faktual (definisi, prosedur). <b>MA</b> untuk konsep multi-aspek (mis: \"Sebutkan APD yang wajib dipakai\"). <b>Essay</b> untuk analisis, penjelasan, atau studi kasus.")
+                    "<b>SA</b> untuk pengetahuan faktual (definisi, prosedur). <b>MA</b> untuk konsep multi-aspek (mis: \"Sebutkan APD yang wajib dipakai\"). <b>Essay</b> untuk analisis, penjelasan, atau studi kasus.")
             },
-            Keywords: new[] { "tipe soal", "multiple choice", "multiple answer", "essay", "rubrik", "package question", "mc", "ma" }
+            Keywords: new[] { "tipe soal", "single answer", "multiple answer", "essay", "rubrik", "package question", "sa", "ma" }
         ),
         new GuideItem(
             Id: "cmp-cara-buat-assessment",
