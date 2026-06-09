@@ -1106,11 +1106,11 @@ Plans:
   5. Export Excel per-peserta (AssessmentAdminController:4550) sel tipe = "SA"/"MA", bukan "MC"/"MA".
   6. `dotnet build` 0 error + `dotnet test` hijau + Playwright UAT 5 surface (dropdown Manage · badge tabel · StartExam · ExamSummary · EditPeserta) di localhost:5277 (CLAUDE.md Develop Workflow).
 **Spec:** `docs/superpowers/specs/2026-06-09-question-type-naming-single-answer-design.md`
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
   - [x] 357-01-PLAN.md — Wave 0 test lock wording + Grup A helper QuestionTypeLabels (Single/Multiple Answer) [Wave 1]
   - [x] 357-02-PLAN.md — Grup B dropdown/badge/import konsolidasi helper + Excel SA/MA + Grup C hapus dead TrueFalse [Wave 2]
   - [x] 357-03-PLAN.md — Grup D docs: GuideContentProvider + 6 guide HTML + TKI BAB-X (context-aware relabel) [Wave 1]
-  - [ ] 357-04-PLAN.md — Gate build+test+grep+enum DB + Playwright UAT 5 surface + human-verify [Wave 3]
+  - [x] 357-04-PLAN.md — Gate build+test+grep+enum DB + Playwright UAT 5 surface + human-verify [Wave 3]
 **UI hint:** yes (label di view + docs)
 
 **Active mapped: 17/17 ✓ (IMG-01..07, RND-01..07, SYN-01..02, TST-01..02) — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352). Phase 356 = addon audit Coach×Coachee (AF-1..7), Phase 357 = addon relabel tipe soal (LBL-02); keduanya off-theme, di luar 17 REQ image.**
@@ -1124,7 +1124,7 @@ Plans:
 | 354. Render Gambar di 6 Layar | 6/6 | Complete   | 2026-06-09 |
 | 355. Test & UAT | 3/3 | Complete    | 2026-06-09 |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 5/5 | Complete    | 2026-06-09 |
-| 357. Standarisasi Istilah Tipe Soal (addon, off-theme) | 3/4 | In Progress|  |
+| 357. Standarisasi Istilah Tipe Soal (addon, off-theme) | 4/4 | Complete    | 2026-06-09 |
 
 ### Coverage Validation
 
