@@ -965,7 +965,7 @@ Plans:
 - [x] **Phase 353: Admin Backend Gambar (CRUD + Sync + Atomic Delete)** — Form upload/alt/replace/remove per soal+opsi + Create/Edit/Delete wiring + JSON prefill edit (Gap 3) + preview admin render (Gap 5) + SyncPackagesToPost shared-file (Gap 1) + hapus file atomic pola Phase 333 (DeleteQuestion/replace)
  (completed 2026-06-08)
 - [x] **Phase 354: Render Gambar di 6 Layar** — 4 ViewModel bawa gambar (Gap 2) + render `<img img-fluid loading=lazy alt>` di StartExam, ExamSummary, Results, _PreviewQuestion, AssessmentMonitoringDetail, EditPesertaAnswers (completed 2026-06-09)
-- [ ] **Phase 355: Test & UAT** — xUnit konsolidasi (upload valid/invalid + sync copy ImagePath + DeleteQuestion hapus file) + Playwright UAT end-to-end admin upload → peserta lihat StartExam → lihat Results
+- [ ] **Phase 355: Test & UAT** — xUnit konsolidasi (upload valid/invalid + sync copy ImagePath + DeleteQuestion hapus file) + Playwright UAT end-to-end admin upload → peserta lihat StartExam → lihat Results (3 plans)
 
 ### Phase Details
 
@@ -1033,7 +1033,10 @@ Plans:
   1. Suite xUnit (TST-01) lulus mencakup: upload valid (JPG/PNG tersimpan) + invalid (non-image ditolak via magic-byte) + `SyncPackagesToPost` menyalin `ImagePath`/`ImageAlt` Pre→Post + `DeleteQuestion` menghapus file gambar soal+opsi (post-commit) + replace menghapus file lama.
   2. Playwright UAT (TST-02) lulus alur penuh: admin upload gambar soal + tiap opsi → simpan → peserta `StartExam` melihat gambar soal+opsi (responsif) → peserta `Results` (pembahasan) melihat gambar soal+opsi.
   3. `dotnet build` 0 error + seluruh suite (`dotnet test`) hijau + UAT dijalankan di localhost:5277 sesuai CLAUDE.md Develop Workflow; tidak ada regresi pada flow ujian existing (MC/MA/Essay tanpa gambar tetap normal).
-**Plans:** TBD
+**Plans:** 3 plans
+  - [ ] 355-01-PLAN.md — xUnit gap-audit + [Fact] replace-delete-on-disk (TST-01) [Wave 0]
+  - [ ] 355-02-PLAN.md — Playwright spec image-in-assessment + 2 fixtures + helper extend + SEED_JOURNAL (TST-02) [Wave 1]
+  - [ ] 355-03-PLAN.md — Gate build+test+spec-live + baseline regresi + cleanup verify + UAT checkpoint (TST-01/02 SC#3) [Wave 2]
 **UI hint:** yes
 
 ### Phase 356: Audit Fix Assign Coach-Coachee (pastikan fungsi assign benar)
@@ -1057,7 +1060,23 @@ Plans:
 **Plans:** TBD (run /gsd-plan-phase 356)
 **UI hint:** no (mayoritas backend; AF-5 notif + mungkin AF-2 UI)
 
-**Active mapped: 17/17 ✓ (IMG-01..07, RND-01..07, SYN-01..02, TST-01..02) — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352). Phase 356 = addon audit Coach×Coachee (AF-1..7), off-theme, di luar 17 REQ image.**
+### Phase 357: Standarisasi Istilah Tipe Soal (Single Answer / Multiple Answer / Essay)
+**Goal:** Re-label tipe soal jadi trio konsisten "Single Answer / Multiple Answer / Essay" (kata "Answer" konsisten) di semua surface user-facing + jadikan `QuestionTypeLabels.cs` single-source penuh (konsolidasi surface hardcode) + hapus dead code `TrueFalse`. Override editorial Phase 305 ("Single Choice / Multiple Answers"). Off-theme dari v24.0 image-work, ditambahkan atas permintaan user.
+**Depends on:** Tidak ada (independen dari 352-356; jalur file beda — label/helper/docs vs image/coach-mapping). Bisa paralel kapan saja.
+**Migration:** false (DB enum `MultipleChoice`/`MultipleAnswer`/`Essay` TETAP — hanya label UI berubah).
+**Requirements:** LBL-02 (lanjutan LBL-01 Phase 305).
+**Success Criteria** (what must be TRUE):
+  1. Helper `Models/QuestionTypeLabels.cs` `Long()`+`Short()` return wording baru; `BadgeClass()` tak berubah; surface hardcode (ManagePackageQuestions dropdown, EditPesertaAnswers badge via `Short()`, ImportPackageQuestions tombol) konsisten dengan helper.
+  2. `SELECT DISTINCT QuestionType FROM PackageQuestions` masih `MultipleChoice`/`MultipleAnswer`/`Essay` (enum utuh, bukti no-migration); flow ujian existing tanpa regresi.
+  3. Dead code `"TrueFalse"` (CMPController.cs:3389,3624) dihapus tanpa ubah hasil analitik 3 tipe valid.
+  4. Docs user-facing served (6 guide HTML + TKI + GuideContentProvider.cs:175-188 yang masih istilah lama "Multiple Choice/MC") ikut wording baru; abbrev "MC"→"SA", "MA" tetap (S1); grep residual "Single Choice"/"Multiple Answers"/"Multiple Choice"(tipe soal) = 0 di file non-arsip.
+  5. Export Excel per-peserta (AssessmentAdminController:4550) sel tipe = "SA"/"MA", bukan "MC"/"MA".
+  6. `dotnet build` 0 error + `dotnet test` hijau + Playwright UAT 5 surface (dropdown Manage · badge tabel · StartExam · ExamSummary · EditPeserta) di localhost:5277 (CLAUDE.md Develop Workflow).
+**Spec:** `docs/superpowers/specs/2026-06-09-question-type-naming-single-answer-design.md`
+**Plans:** TBD (run /gsd-plan-phase 357)
+**UI hint:** yes (label di view + docs)
+
+**Active mapped: 17/17 ✓ (IMG-01..07, RND-01..07, SYN-01..02, TST-01..02) — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352). Phase 356 = addon audit Coach×Coachee (AF-1..7), Phase 357 = addon relabel tipe soal (LBL-02); keduanya off-theme, di luar 17 REQ image.**
 
 ### Progress Table
 
@@ -1066,8 +1085,9 @@ Plans:
 | 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
 | 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete    | 2026-06-08 |
 | 354. Render Gambar di 6 Layar | 6/6 | Complete   | 2026-06-09 |
-| 355. Test & UAT | 0/? | Not started | - |
+| 355. Test & UAT | 0/3 | Not started | - |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |
+| 357. Standarisasi Istilah Tipe Soal (addon, off-theme) | 0/? | Not started | - |
 
 ### Coverage Validation
 
