@@ -16,7 +16,7 @@
 - [x] **IMG-01**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke sebuah soal _(2MB→5MB per Phase 352 CONTEXT D-03, 2026-06-06)_
 - [x] **IMG-02**: Admin dapat upload 1 gambar (JPG/PNG, ≤5MB) ke tiap pilihan jawaban (MC/MA)
 - [x] **IMG-03**: Admin dapat mengisi alt text opsional per gambar (soal & opsi)
-- [ ] **IMG-04**: Sistem menolak file non-gambar (mis. PDF/exe) via validasi magic-byte image-only
+- [x] **IMG-04**: Sistem menolak file non-gambar (mis. PDF/exe) via validasi magic-byte image-only
 - [x] **IMG-05**: Admin dapat mengganti gambar yang sudah ada (file lama terhapus dari disk)
 - [x] **IMG-06**: Admin dapat menghapus gambar dari soal/opsi (checkbox hapus di form)
 - [x] **IMG-07**: Saat edit soal, gambar lama tampil (prefill thumbnail) di form admin
@@ -68,7 +68,7 @@
 
 | REQ | Phase | Status |
 |-----|-------|--------|
-| IMG-04 | Phase 352 | Pending |
+| IMG-04 | Phase 352 | Complete |
 | IMG-01 | Phase 353 | Complete |
 | IMG-02 | Phase 353 | Complete |
 | IMG-03 | Phase 353 | Complete |
