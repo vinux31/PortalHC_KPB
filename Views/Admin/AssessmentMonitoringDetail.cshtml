@@ -413,6 +413,7 @@
                                             @(essayItem.EssayScore.HasValue ? "Sudah Dinilai" : "Belum Dinilai")
                                         </span>
                                     </div>
+                                    @await Html.PartialAsync("_QuestionImage", new { ImagePath = essayItem.ImagePath, ImageAlt = essayItem.ImageAlt, Cap = 240 })
                                     <div class="border rounded p-3 bg-light mb-2">
                                         <small class="text-muted d-block mb-1">Jawaban Pekerja:</small>
                                         <p class="mb-0">@(essayItem.TextAnswer ?? "(tidak ada jawaban)")</p>
@@ -1225,6 +1226,8 @@ function eventLabel(eventType, detail) {
     }
 }
 </script>
+
+@await Html.PartialAsync("_ImageLightboxModal")
 
 @section Scripts {
 <link rel="stylesheet" href="~/css/assessment-hub.css" />
