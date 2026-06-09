@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
 status: executing
-last_updated: "2026-06-09T01:09:00.206Z"
-last_activity: 2026-06-08 -- Phase 354 execution started
+last_updated: "2026-06-09T01:47:40.363Z"
+last_activity: 2026-06-09 -- Phase 355 planning complete
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 3
-  total_plans: 10
+  total_plans: 13
   completed_plans: 10
-  percent: 100
+  percent: 77
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 Milestone: v24.0 — Gambar di Soal Assessment (Manage Package) — Phase 352 ✅ SHIPPED LOCAL; Phase 353 ⏸ PAUSED mid-discuss 2026-06-06
 Phase: 354 (render-gambar-di-6-layar) — EXECUTING
 Plan: 1 of 6
-Status: Executing Phase 354
-Last activity: 2026-06-08 -- Phase 354 execution started
+Status: Ready to execute
+Last activity: 2026-06-09 -- Phase 355 planning complete
 
 Phase 352 ✅ SHIPPED LOCAL: commit 40a8fc2f (feat) + bfcd6c48 (verif) + 8e13fefa (state). Entity 4 prop nullable + AllowedImageExtensions{jpg,jpeg,png}+MaxImageFileSizeBytes(5MB) + ValidateImageFile + migration AddImageToPackageQuestionAndOption applied lokal HcPortalDB_Dev + 120/120 test. Migration flag=TRUE IT-notify. D-03 override 5MB.
 
