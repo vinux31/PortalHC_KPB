@@ -1313,14 +1313,40 @@ namespace HcPortal.Controllers
                 .Select(p => new { p.CoacheeId, p.ProtonDeliverableId, p.Status })
                 .ToListAsync();
 
-            // Eligible = has exactly trackDeliverableIds.Count Approved progress records
-            var eligibleCoacheeIds = assignedCoacheeIds
-                .Where(id =>
-                {
-                    var mine = progressRecords.Where(p => p.CoacheeId == id).ToList();
-                    return mine.Count == trackDeliverableIds.Count && mine.All(p => p.Status == "Approved");
-                })
-                .ToList();
+            // AF-1 (Phase 356): eligibility dihitung PER-UNIT coachee, bukan total deliverable
+            // semua-unit track. Coachee di track multi-unit (mis. track id=4) hanya punya progress
+            // untuk deliverable unit-nya — membandingkan dengan total semua unit membuatnya tak pernah
+            // eligible. expectedCount per-unit MIRROR PERSIS filter AutoCreateProgressForAssignment.
+            var eligibleCoacheeIds = new List<string>();
+            foreach (var coacheeId in assignedCoacheeIds)
+            {
+                // Resolve unit per-coachee — MIRROR PERSIS AutoCreateProgressForAssignment L1342-1355
+                var assignmentUnit = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoacheeId == coacheeId && m.IsActive)
+                    .Select(m => m.AssignmentUnit)
+                    .FirstOrDefaultAsync();
+                var resolvedUnit = assignmentUnit;
+                if (string.IsNullOrWhiteSpace(resolvedUnit))
+                    resolvedUnit = await _context.Users
+                        .Where(u => u.Id == coacheeId)
+                        .Select(u => u.Unit)
+                        .FirstOrDefaultAsync();
+                if (string.IsNullOrWhiteSpace(resolvedUnit)) continue; // unit tak terselesaikan → tidak eligible
+
+                // expectedCount PER UNIT — filter PERSIS dengan .Trim() di DUA SISI (AutoCreateProgressForAssignment)
+                var expectedCount = await _context.ProtonDeliverableList
+                    .CountAsync(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
+                                  && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim());
+
+                // status progress coachee untuk track ini (reuse progressRecords yang sudah di-batch-load)
+                var myStatuses = progressRecords
+                    .Where(p => p.CoacheeId == coacheeId)
+                    .Select(p => p.Status)
+                    .ToList();
+
+                if (CoacheeEligibilityCalculator.IsEligiblePerUnit(myStatuses, expectedCount))
+                    eligibleCoacheeIds.Add(coacheeId);
+            }
 
             if (!eligibleCoacheeIds.Any()) return Json(new List<object>());
 
