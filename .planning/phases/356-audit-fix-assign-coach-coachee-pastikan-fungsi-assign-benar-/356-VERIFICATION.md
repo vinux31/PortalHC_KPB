@@ -1,9 +1,10 @@
 ---
 phase: 356-audit-fix-assign-coach-coachee
 verified: 2026-06-09T08:05:20Z
-status: human_needed
-score: 7/7 must-haves verified (code-level); awaiting blocking human sign-off
+status: passed
+score: 7/7 must-haves verified (code-level) + UAT executed (Playwright, 6 PASS + 1 code-verified) + user sign-off "approve" 2026-06-09
 overrides_applied: 0
+human_signoff: "approved 2026-06-09 — UAT run by Claude via Playwright MCP @localhost:5277, all behaviors PASS, recorded in 356-HUMAN-UAT.md (status: passed)"
 human_verification:
   - test: "AF-1 e2e (headline) — track id=4 di browser localhost:5277"
     expected: "Coachee Alkylation (deliverable unit 3/3 Approved) MUNCUL di dropdown CreateAssessment kategori Assessment Proton track 4; coachee RFCC 0/1 TIDAK muncul"
