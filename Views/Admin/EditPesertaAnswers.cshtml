@@ -51,6 +51,7 @@
             else { <span class="badge bg-danger">✗ Salah</span> }
           </div>
           <div class="mb-2">@q.QuestionText</div>
+          @await Html.PartialAsync("_QuestionImage", new { ImagePath = q.ImagePath, ImageAlt = q.ImageAlt, Cap = 240 })
 
           @if (q.QuestionType == "Essay")
           {
@@ -73,6 +74,7 @@
                     @opt.OptionText
                     @if (opt.IsCorrect) { <span class="badge bg-success ms-2">Kunci</span> }
                   </label>
+                  @await Html.PartialAsync("_QuestionImage", new { ImagePath = opt.ImagePath, ImageAlt = opt.ImageAlt, Cap = 120, AriaContext = "opsi" })
                 </div>
               }
             </div>
@@ -92,6 +94,7 @@
                     @opt.OptionText
                     @if (opt.IsCorrect) { <span class="badge bg-success ms-2">Kunci</span> }
                   </label>
+                  @await Html.PartialAsync("_QuestionImage", new { ImagePath = opt.ImagePath, ImageAlt = opt.ImageAlt, Cap = 120, AriaContext = "opsi" })
                 </div>
               }
             </div>
@@ -151,6 +154,8 @@
     </div>
   </div>
 </div>
+
+@await Html.PartialAsync("_ImageLightboxModal")
 
 @section Scripts {
   <script src="~/js/edit-peserta-answers.js" asp-append-version="true"></script>
