@@ -13,10 +13,13 @@ findings:
   warning: 2
   info: 3
   total: 5
-status: issues_found
+status: resolved
+resolution: "WR-01 + WR-02 fixed in commit e672a110 (2026-06-09). 3 Info accepted (AF-7 First() = old-code parity; AF-1 N-query acceptable admin-tool; AF-4 deferred to backlog 999.5)."
 ---
 
 # Phase 356: Code Review Report
+
+> **Resolution (2026-06-09, commit `e672a110`):** WR-01 (AF-1 per-unit `myStatuses` scoping) and WR-02 (Edit `ex.Message` leak) both FIXED. Build 0 error + 135/135 tests green. 3 Info findings accepted as-is (AF-7 `First()` non-determinism = verified old-code parity; AF-1 N-query = acceptable for admin-tool dropdown; AF-4 ±5s window = intentionally deferred → backlog Phase 999.5).
 
 **Reviewed:** 2026-06-09
 **Depth:** standard
