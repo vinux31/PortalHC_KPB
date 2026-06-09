@@ -68,6 +68,12 @@ Status website terdiri dari **3 environment** dengan pemegang yang berbeda:
   cd tests
   npx playwright test
   ```
+  > **E2E prasyarat lokal (penting):**
+  > - Sekali setup: `cd tests; npm install` (deps `@playwright/test`/`typescript`) + `npx playwright install chromium` bila "browser not found".
+  > - **Auth lokal:** `appsettings.json` set `Authentication:UseActiveDirectory=true` (siap handoff server Pertamina). Di lokal tak ada server AD → **akun peserta non-admin gagal login** ("Tidak dapat menghubungi server autentikasi"); hanya `admin@pertamina.com` lolos (hybrid fallback). Suite e2e butuh akun seed bisa login lokal (pwd `123456`). Jalankan app dengan AD dimatikan via **env override** (JANGAN edit `appsettings.json`):
+  >   ```bash
+  >   Authentication__UseActiveDirectory=false dotnet run --urls http://localhost:5277
+  >   ```
 
 ### Step 5 — Commit & push
 - Commit message jelas (ikut konvensi `.github/copilot-instructions.md`).

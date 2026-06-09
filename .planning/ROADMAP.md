@@ -634,6 +634,20 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 
 ---
 
+### Phase 999.4: Restore baseline regresi e2e exam — update judul spec lama comply validator naming v20 (BACKLOG, 2026-06-09)
+
+**Goal:** Spec e2e exam lama (`tests/e2e/exam-taking.spec.ts`, `tests/e2e/exam-types.spec.ts`) gagal di pembuatan assessment sehingga tak bisa dipakai sebagai baseline regresi. Update judul assessment yang dibuat spec agar comply validator naming-convention v20.0.
+
+**Context:**
+- Ditemukan saat gate Phase 355 (2026-06-09): `exam-taking.spec.ts` test A1 (HC create assessment) gagal — judul `"Legacy Exam …"` / `"[317-…]"` ditolak validator.
+- Root cause: **Phase 339 REST-06** (`AssessmentAdminController.cs:866-874`) — assessment non-PrePostTest WAJIB judul match `^(Pre|Post)\s*Test\s+.+$` (mis. "Pre Test OJT GAST Cilacap"). Validator ditambah v20.0; spec lama (v16.0) belum di-update → patah sejak v20.
+- **BUKAN regresi Phase 355** (zero production code diubah; 355 = test-only). Selama ini spec exam lama tak di-run sebagai gate.
+- Bukti non-regresi 355 diganti: `tests/e2e/image-in-assessment.spec.ts` jalankan soal MC **tanpa gambar** end-to-end + `dotnet test` 131/131.
+
+**Requirements:** TBD — estimasi S (ganti `uniqueTitle('Legacy Exam')` → pola `Pre Test {track} {lokasi} {uniq}` di helper/spec; cek tak ada cascade ke assertion judul). Acuan: `.planning/phases/355-test-uat/355-03-SUMMARY.md` Deviasi 2.
+
+---
+
 ### Phase 999.2: CMP/Records Team View search extend ke Assessment title (PROMOTED -> v23.0 Phase 350, 2026-06-05)
 
 **Goal:** Search Team View di `CMP/Records` (`searchScope`="Keduanya") ikut mencocokkan judul **assessment**, bukan hanya Nama/NIP + judul Training. User cari nama assessment (mis. "ojt v14.2") → saat ini 0 worker meski worker punya assessment itu.
