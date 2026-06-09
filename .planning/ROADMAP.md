@@ -1033,9 +1033,9 @@ Plans:
   1. Suite xUnit (TST-01) lulus mencakup: upload valid (JPG/PNG tersimpan) + invalid (non-image ditolak via magic-byte) + `SyncPackagesToPost` menyalin `ImagePath`/`ImageAlt` Pre→Post + `DeleteQuestion` menghapus file gambar soal+opsi (post-commit) + replace menghapus file lama.
   2. Playwright UAT (TST-02) lulus alur penuh: admin upload gambar soal + tiap opsi → simpan → peserta `StartExam` melihat gambar soal+opsi (responsif) → peserta `Results` (pembahasan) melihat gambar soal+opsi.
   3. `dotnet build` 0 error + seluruh suite (`dotnet test`) hijau + UAT dijalankan di localhost:5277 sesuai CLAUDE.md Develop Workflow; tidak ada regresi pada flow ujian existing (MC/MA/Essay tanpa gambar tetap normal).
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
   - [x] 355-01-PLAN.md — xUnit gap-audit + [Fact] replace-delete-on-disk (TST-01) [Wave 0]
-  - [ ] 355-02-PLAN.md — Playwright spec image-in-assessment + 2 fixtures + helper extend + SEED_JOURNAL (TST-02) [Wave 1]
+  - [x] 355-02-PLAN.md — Playwright spec image-in-assessment + 2 fixtures + helper extend + SEED_JOURNAL (TST-02) [Wave 1]
   - [ ] 355-03-PLAN.md — Gate build+test+spec-live + baseline regresi + cleanup verify + UAT checkpoint (TST-01/02 SC#3) [Wave 2]
 **UI hint:** yes
 
@@ -1085,7 +1085,7 @@ Plans:
 | 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
 | 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete    | 2026-06-08 |
 | 354. Render Gambar di 6 Layar | 6/6 | Complete   | 2026-06-09 |
-| 355. Test & UAT | 1/3 | In Progress|  |
+| 355. Test & UAT | 2/3 | In Progress|  |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |
 | 357. Standarisasi Istilah Tipe Soal (addon, off-theme) | 0/? | Not started | - |
 
