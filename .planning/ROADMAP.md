@@ -1071,11 +1071,11 @@ Plans:
   3. Semantik graduated (AF-3) ditetapkan + tidak memblok alur re-assign yang sah.
   4. `dotnet build` 0 error + xUnit untuk logic-bearing fix (eligibility per-unit) + UAT lokal:5277 (CLAUDE.md Develop Workflow).
 **Spec:** `docs/superpowers/specs/2026-06-06-coach-coachee-assign-audit-fix.md` (AF-1..7 code+data-verified, AF-1 track id=4 4-deliverable/2-unit)
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
   - [x] 356-01-PLAN.md — AF-1 helper CoacheeEligibilityCalculator + 4 [Fact] + refactor GetEligibleCoachees per-unit [Wave 1]
   - [x] 356-02-PLAN.md — AF-3 MarkMappingCompleted transaksi+IsActive=false+cascade; AF-6 catch duplikat spesifik; AF-4 komentar defer [Wave 2]
   - [x] 356-03-PLAN.md — AF-5 notif reassign 3 recipient; AF-7 batch query progression-warning [Wave 3]
-  - [ ] 356-04-PLAN.md — AF-2 UI guard 1-unit/batch (CoachCoacheeMapping.cshtml) + D-06 badge Graduated [Wave 1]
+  - [x] 356-04-PLAN.md — AF-2 UI guard 1-unit/batch (CoachCoacheeMapping.cshtml) + D-06 badge Graduated [Wave 1]
   - [ ] 356-05-PLAN.md — Gate build+test + UAT track id=4 (SEED_WORKFLOW) + human-verify [Wave 4]
 **UI hint:** no (mayoritas backend; AF-5 notif + mungkin AF-2 UI)
 
@@ -1105,7 +1105,7 @@ Plans:
 | 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete    | 2026-06-08 |
 | 354. Render Gambar di 6 Layar | 6/6 | Complete   | 2026-06-09 |
 | 355. Test & UAT | 3/3 | Complete    | 2026-06-09 |
-| 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 3/5 | In Progress|  |
+| 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 4/5 | In Progress|  |
 | 357. Standarisasi Istilah Tipe Soal (addon, off-theme) | 0/? | Not started | - |
 
 ### Coverage Validation
