@@ -506,32 +506,50 @@ namespace HcPortal.Controllers
                         .FirstOrDefaultAsync();
                     if (prevTrack != null)
                     {
-                        var incompleteCoachees = new List<string>();
-                        foreach (var coacheeId in req.CoacheeIds)
-                        {
-                            // D-11: Skip warning if coachee already has an assignment for this track (reactivated scenario)
-                            var hasExistingAssignment = await _context.ProtonTrackAssignments
-                                .AnyAsync(a => a.CoacheeId == coacheeId
-                                           && a.ProtonTrackId == req.ProtonTrackId.Value);
-                            if (hasExistingAssignment) continue;
+                        // AF-7 (Phase 356): batch pre-load (3 query) menggantikan N+1 loop (~4 query/coachee).
+                        // Output incompleteCoachees IDENTIK — 3 cabang direproduksi persis (zero behavior change).
+                        var coacheeIdsForWarning = req.CoacheeIds;
 
-                            // Check if previous track assignment exists and all progress is Approved
-                            var prevAssignment = await _context.ProtonTrackAssignments
-                                .FirstOrDefaultAsync(a => a.CoacheeId == coacheeId
-                                                       && a.ProtonTrackId == prevTrack.Id);
-                            if (prevAssignment == null)
+                        // (cabang 1) coachee yang SUDAH punya assignment untuk track yang diminta → skip
+                        var hasForRequestedTrack = (await _context.ProtonTrackAssignments
+                            .Where(a => coacheeIdsForWarning.Contains(a.CoacheeId) && a.ProtonTrackId == req.ProtonTrackId.Value)
+                            .Select(a => a.CoacheeId).Distinct().ToListAsync())
+                            .ToHashSet();
+
+                        // (cabang 2) prev-assignment per coachee untuk prevTrack
+                        var prevAssignments = await _context.ProtonTrackAssignments
+                            .Where(a => coacheeIdsForWarning.Contains(a.CoacheeId) && a.ProtonTrackId == prevTrack.Id)
+                            .Select(a => new { a.Id, a.CoacheeId })
+                            .ToListAsync();
+                        var prevByCoachee = prevAssignments
+                            .GroupBy(a => a.CoacheeId)
+                            .ToDictionary(g => g.Key, g => g.First().Id);   // FirstOrDefault-equivalent: ambil satu prev-assignment
+                        var prevAssignmentIds = prevAssignments.Select(a => a.Id).ToList();
+
+                        // (cabang 3) status progress per prev-assignment-id
+                        var progressByAssignment = (await _context.ProtonDeliverableProgresses
+                            .Where(p => prevAssignmentIds.Contains(p.ProtonTrackAssignmentId))
+                            .Select(p => new { p.ProtonTrackAssignmentId, p.Status })
+                            .ToListAsync())
+                            .GroupBy(p => p.ProtonTrackAssignmentId)
+                            .ToDictionary(g => g.Key, g => g.Select(x => x.Status).ToList());
+
+                        var incompleteCoachees = new List<string>();
+                        foreach (var coacheeId in coacheeIdsForWarning)
+                        {
+                            if (hasForRequestedTrack.Contains(coacheeId)) continue;          // cabang 1: skip (reactivated scenario)
+
+                            if (!prevByCoachee.TryGetValue(coacheeId, out var prevId))
                             {
-                                incompleteCoachees.Add(coacheeId);
+                                incompleteCoachees.Add(coacheeId);                           // cabang 2: prev null → incomplete
                                 continue;
                             }
 
-                            var prevProgressCount = await _context.ProtonDeliverableProgresses
-                                .CountAsync(p => p.ProtonTrackAssignmentId == prevAssignment.Id);
-                            var allApproved = prevProgressCount > 0 && !await _context.ProtonDeliverableProgresses
-                                .AnyAsync(p => p.ProtonTrackAssignmentId == prevAssignment.Id
-                                           && p.Status != "Approved");
+                            var statuses = progressByAssignment.TryGetValue(prevId, out var s) ? s : new List<string>();
+                            var prevProgressCount = statuses.Count;
+                            var allApproved = prevProgressCount > 0 && statuses.All(st => st == "Approved");
                             if (!allApproved)
-                                incompleteCoachees.Add(coacheeId);
+                                incompleteCoachees.Add(coacheeId);                           // cabang 3: not-all-approved → incomplete
                         }
 
                         // D-09: Warning only — return warning response if incomplete and user hasn't confirmed
