@@ -21,7 +21,7 @@
 import { test, expect } from '@playwright/test';
 import * as db from '../helpers/dbSnapshot';
 import { login } from '../helpers/auth';
-import { createAssessmentViaWizard, createDefaultPackage, addQuestionViaForm, submitExamTwoStep } from './helpers/examTypes';
+import { createAssessmentViaWizard, createDefaultPackage, addQuestionViaForm } from './helpers/examTypes';
 import * as path from 'node:path';
 
 const Q_IMG = path.resolve(__dirname, '../fixtures/q-image.jpg');
@@ -71,7 +71,9 @@ test.describe('Phase 355 — gambar di soal assessment (UAT end-to-end)', () => 
   // ── TEST 1: admin upload gambar soal + opsi via FORM NYATA ────────────────
   test('admin upload gambar soal + opsi via form (setInputFiles)', async ({ page }) => {
     test.setTimeout(120_000);
-    assessmentTitle = `[355-IMG] UAT ${Date.now()}`;
+    // Title WAJIB pola naming-convention Phase 336/339 (AssessmentAdminController.cs:866-874):
+    // standard assessment non-PrePostTest harus match ^(Pre|Post)\s*Test\s+.+$ .
+    assessmentTitle = `Pre Test OJT IMG355 ${Date.now()}`;
     await login(page, 'admin');
 
     await createAssessmentViaWizard(page, {
@@ -147,7 +149,7 @@ test.describe('Phase 355 — gambar di soal assessment (UAT end-to-end)', () => 
     await optImg.click();
     await expect(page.locator('#imageLightboxModal')).toBeVisible({ timeout: 5_000 });
     expect(await optRadio.isChecked()).toBe(false);          // radio TIDAK ke-toggle
-    await page.keyboard.press('Escape');                     // tutup lightbox (Bootstrap)
+    await page.locator('#imageLightboxModal .btn-close[data-bs-dismiss="modal"]').click(); // tutup lightbox
     await expect(page.locator('#imageLightboxModal')).toBeHidden({ timeout: 5_000 });
 
     // --- Guard null-branch (D-06): soal TANPA gambar tidak render <img> ---
@@ -157,12 +159,24 @@ test.describe('Phase 355 — gambar di soal assessment (UAT end-to-end)', () => 
     // --- Jawab kedua soal (radio pertama tiap qcard) supaya submit lolos (ExamSummary unanswered=0) ---
     for (const qc of [qcardImg, qcardNoImg]) {
       await qc.locator('input.exam-radio').first().check({ force: true });
-      await page.waitForTimeout(600); // SignalR auto-save
     }
+    // Pastikan kedua jawaban ter-register + SignalR auto-save settle sebelum review
+    // (reviewSubmitBtn menunda submit sampai pendingSaves=0 → cegah nav telat).
+    await expect(page.locator('#answeredProgress')).toContainText('2/2', { timeout: 10_000 });
+    await page.waitForTimeout(2_000);
 
     // --- RND-03: Results (pembahasan) render gambar soal + opsi ---
-    await submitExamTwoStep(page);
-    await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
+    // StartExam → ExamSummary (POST #examForm → redirect /CMP/ExamSummary/{id})
+    await Promise.all([
+      page.waitForURL(/\/CMP\/ExamSummary\/\d+/, { timeout: 30_000 }),
+      page.click('#reviewSubmitBtn'),
+    ]);
+    // ExamSummary → Results (confirm dialog "Kumpulkan Ujian")
+    page.once('dialog', (d) => d.accept());
+    await Promise.all([
+      page.waitForURL(/\/CMP\/Results\/\d+/, { timeout: 30_000 }),
+      page.click('button[type="submit"]:has-text("Kumpulkan")'),
+    ]);
     await expect(page.locator(`img.question-image-zoom[data-img-alt="${Q_IMG_ALT}"]`).first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator(`img.question-image-zoom[data-img-alt="${OPT_IMG_ALT}"]`).first()).toBeVisible();
   });
