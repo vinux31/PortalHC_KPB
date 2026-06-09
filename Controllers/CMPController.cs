@@ -3386,7 +3386,7 @@ namespace HcPortal.Controllers
 
                 // Distractor analysis (RPT-03) — hanya untuk MC/TF
                 var distractors = new List<DistractorRow>();
-                if (questionType == "MultipleChoice" || questionType == "TrueFalse")
+                if (questionType == "MultipleChoice")
                 {
                     var options = question.Options?.ToList() ?? new List<PackageOption>();
                     foreach (var opt in options)
@@ -3621,7 +3621,7 @@ namespace HcPortal.Controllers
                 var question = group.First().PackageQuestion;
                 if (question == null) continue;
                 var questionType = question.QuestionType ?? "MultipleChoice";
-                if (questionType != "MultipleChoice" && questionType != "TrueFalse") continue;
+                if (questionType != "MultipleChoice") continue;
 
                 var options = question.Options?.ToList() ?? new List<PackageOption>();
                 foreach (var opt in options)

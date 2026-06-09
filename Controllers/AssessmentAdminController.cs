@@ -4547,7 +4547,7 @@ namespace HcPortal.Controllers
 
                         ws.Cell(currentRow, 1).Value = no++;
                         ws.Cell(currentRow, 2).Value = q.QuestionText;
-                        ws.Cell(currentRow, 3).Value = tipe == "MultipleChoice" ? "MC" : "MA";
+                        ws.Cell(currentRow, 3).Value = tipe == "MultipleChoice" ? "SA" : "MA";
                         ws.Cell(currentRow, 4).Value = jawabanText;
                         ws.Cell(currentRow, 5).Value = correctText;
                         ws.Cell(currentRow, 6).Value = correct ? "✓" : "✗";
