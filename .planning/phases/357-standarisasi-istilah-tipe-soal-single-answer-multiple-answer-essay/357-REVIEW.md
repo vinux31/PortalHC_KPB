@@ -18,9 +18,12 @@ findings:
   info: 2
   total: 2
 status: clean
+resolution: "0 crit/0 warn. IN-01 CLOSED (DB query COUNT QuestionType='TrueFalse' = 0 → dead-code removal safe). IN-02 ACCEPTED (user 2026-06-09 chose option B: retire legacy guide search keywords 'multiple choice'/'mc', no re-add). No code change needed."
 ---
 
 # Phase 357: Code Review Report
+
+> **Resolution (2026-06-09):** Status clean. IN-01 closed — verified `SELECT COUNT(*) FROM PackageQuestions WHERE QuestionType='TrueFalse'` = 0, so the dead-branch removal cannot change analytics. IN-02 accepted by user (option B) — legacy guide search keywords intentionally retired; no alias re-added.
 
 **Reviewed:** 2026-06-09
 **Depth:** standard
