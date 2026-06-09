@@ -620,6 +620,18 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
             }
+            catch (DbUpdateException dbEx) when (
+                dbEx.InnerException?.Message.Contains("IX_CoachCoacheeMappings_CoacheeId_ActiveUnique") == true
+                || dbEx.InnerException?.Message.Contains("2601") == true
+                || dbEx.InnerException?.Message.Contains("2627") == true)
+            {
+                // AF-6 (Phase 356): race duplikat coachee melanggar unique-index → pesan ramah spesifik.
+                // KEAMANAN: jangan expose dbEx.Message mentah; detail hanya ke logger.
+                _logger.LogWarning(dbEx, "Assign race: coachee already has active coach (unique-index violation)");
+                await tx.RollbackAsync();
+                return Json(new { success = false,
+                    message = "Coachee sudah memiliki coach aktif untuk unit ini. Nonaktifkan mapping lama terlebih dahulu." });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CoachCoacheeMappingAssign failed (CoachId={CoachId}, Coachees={Count})",
@@ -1008,6 +1020,12 @@ namespace HcPortal.Controllers
             // FIX-01: Only reactivate assignments that were deactivated as part of this mapping's deactivation event.
             // We correlate by DeactivatedAt timestamp (within 5 seconds of originalEndDate) to avoid restoring
             // assignments that were independently deactivated for other reasons.
+            // AF-4 (Phase 356, DEFER ke backlog): korelasi assignment via DeactivatedAt dalam window ±5 detik
+            // adalah asumsi rapuh — assignment yang dinonaktifkan secara independen dalam window yang sama bisa
+            // ikut ter-restore. FIX-01 sudah memitigasi salah-restore untuk skenario umum. Fix proper memerlukan
+            // kolom korelasi eksplisit (mis. DeactivatedByMappingEventId) yang butuh migration; di-defer agar
+            // Phase 356 tetap 0-migration (leg v24 belum di-push). Promote via /gsd-add-backlog bila volume
+            // reactivate / track multi-unit meningkat. JANGAN ubah logic window di phase ini.
             List<ProtonTrackAssignment> inactiveAssignments;
             if (originalEndDate.HasValue)
             {
