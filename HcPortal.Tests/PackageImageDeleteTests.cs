@@ -201,6 +201,37 @@ public class PackageImageDeleteTests
     }
 
     [Fact]
+    public void Replace_NewFileWins_DeletesOldFileOnDisk()
+    {
+        // SYN-02 replace: gap D-02 — bukti file LAMA benar di-File.Delete dari disk
+        // (bukan sekadar masuk delete-candidate list seperti ReplaceConflict di atas).
+        var dir = MakeTempDir();
+        try
+        {
+            var oldPath = Path.Combine(dir, "old.jpg");
+            var newPath = Path.Combine(dir, "new.jpg");
+            File.WriteAllBytes(oldPath, new byte[] { 1 });
+            File.WriteAllBytes(newPath, new byte[] { 2 });
+
+            var target = new PackageOption { OptionText = "A", IsCorrect = true, ImagePath = oldPath };
+            var deleteList = new List<string>();
+            ApplyIntent(target, newFilePresent: true, savedNewPath: newPath,
+                alt: "baru", removeChecked: false, deleteList);
+
+            // Tidak ada baris lain memuat oldPath → harus dihapus on disk.
+            var remainingQ = new List<PackageQuestion>();
+            var remainingO = new List<PackageOption> { target }; // target kini menunjuk newPath
+            foreach (var p in deleteList.Distinct())
+                DeleteIfUnreferenced(p, remainingQ, remainingO);
+
+            Assert.False(File.Exists(oldPath), "file LAMA harus terhapus on disk (SYN-02 replace).");
+            Assert.True(File.Exists(newPath), "file BARU harus tetap ada.");
+            Assert.Equal(newPath, target.ImagePath);
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
     public void OptionPreserve_KeepsImagePath_WhenOptionUntouched()
     {
         // OQ1: edit teks opsi tanpa file & tanpa checkbox → ImagePath opsi TETAP (tidak hilang).
