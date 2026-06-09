@@ -813,7 +813,8 @@ namespace HcPortal.Controllers
             {
                 await tx.RollbackAsync();
                 _logger.LogError(ex, "CoachCoacheeMappingEdit failed for mapping {MappingId}; rolled back", req.MappingId);
-                return Json(new { success = false, message = $"Gagal menyimpan perubahan: {ex.Message}" });
+                // WR-02: jangan bocorkan ex.Message mentah ke admin UI — detail hanya ke logger (selaras AF-6).
+                return Json(new { success = false, message = "Gagal menyimpan perubahan. Operasi dibatalkan." });
             }
 
             // Post-commit: now that the DB change is durable, delete evidence folders on disk.
@@ -1398,14 +1399,21 @@ namespace HcPortal.Controllers
                         .FirstOrDefaultAsync();
                 if (string.IsNullOrWhiteSpace(resolvedUnit)) continue; // unit tak terselesaikan → tidak eligible
 
-                // expectedCount PER UNIT — filter PERSIS dengan .Trim() di DUA SISI (AutoCreateProgressForAssignment)
-                var expectedCount = await _context.ProtonDeliverableList
-                    .CountAsync(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
-                                  && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim());
+                // WR-01: expectedCount + myStatuses keduanya PER-UNIT (sumbu perbandingan identik).
+                // Ambil deliverable-id unit coachee (filter PERSIS .Trim() dua sisi seperti
+                // AutoCreateProgressForAssignment), lalu scope status progress HANYA ke deliverable unit itu.
+                // Mencegah false-negative bila coachee punya histori progress lintas-unit (AF-3 graduate +
+                // re-assign unit lain mempertahankan histori progress unit lama per D-04).
+                var unitDeliverableIds = await _context.ProtonDeliverableList
+                    .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
+                             && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
+                    .Select(d => d.Id)
+                    .ToListAsync();
+                var expectedCount = unitDeliverableIds.Count;
 
-                // status progress coachee untuk track ini (reuse progressRecords yang sudah di-batch-load)
+                // status progress coachee — DI-SCOPE ke deliverable unit (bukan semua deliverable track)
                 var myStatuses = progressRecords
-                    .Where(p => p.CoacheeId == coacheeId)
+                    .Where(p => p.CoacheeId == coacheeId && unitDeliverableIds.Contains(p.ProtonDeliverableId))
                     .Select(p => p.Status)
                     .ToList();
 
