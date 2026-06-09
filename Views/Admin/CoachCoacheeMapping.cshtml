@@ -304,27 +304,27 @@ else
                                         onclick="openEditModal(@coachee.Id, '@coachee.CoachId', 0, '@coachee.StartDate.ToString("yyyy-MM-dd")', '@coachee.CoacheeName', '@coachee.AssignmentSection', '@coachee.AssignmentUnit')">
                                     <i class="bi bi-pencil"></i> Edit
                                 </button>
-                                @if (coachee.IsActive)
+                                @* D-06 (Phase 356): cek IsCompleted DULU. Setelah AF-3 set IsActive=false saat
+                                   graduate, mapping graduated harus tetap tampil badge "Graduated" (saat showAll),
+                                   bukan tombol "Aktifkan" yang menyesatkan. *@
+                                @if (coachee.IsCompleted)
+                                {
+                                    <span class="badge bg-info"><i class="bi bi-award me-1"></i>Graduated</span>
+                                }
+                                else if (coachee.IsActive)
                                 {
                                     <button class="btn btn-sm btn-outline-danger"
                                             onclick="confirmDeactivate(@coachee.Id, '@coachee.CoacheeName')">
                                         <i class="bi bi-x-circle"></i> Nonaktifkan
                                     </button>
-                                    @if (!coachee.IsCompleted)
-                                    {
-                                        <form method="post" asp-action="MarkMappingCompleted" asp-controller="CoachMapping" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="mappingId" value="@coachee.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-info"
-                                                    onclick="return confirm('Tandai coachee ini sebagai graduated?')">
-                                                <i class="bi bi-award"></i> Graduated
-                                            </button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-info"><i class="bi bi-award me-1"></i>Graduated</span>
-                                    }
+                                    <form method="post" asp-action="MarkMappingCompleted" asp-controller="CoachMapping" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="mappingId" value="@coachee.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-info"
+                                                onclick="return confirm('Tandai coachee ini sebagai graduated?')">
+                                            <i class="bi bi-award"></i> Graduated
+                                        </button>
+                                    </form>
                                 }
                                 else
                                 {
