@@ -23,12 +23,12 @@
 
 ### RND — Render di 6 Layar
 
-- [ ] **RND-01**: Peserta melihat gambar soal + opsi saat ujian (StartExam)
-- [ ] **RND-02**: Peserta melihat gambar soal + opsi di review sebelum submit (ExamSummary)
-- [ ] **RND-03**: Peserta melihat gambar soal + opsi di halaman pembahasan/hasil (Results)
+- [x] **RND-01**: Peserta melihat gambar soal + opsi saat ujian (StartExam)
+- [x] **RND-02**: Peserta melihat gambar soal + opsi di review sebelum submit (ExamSummary)
+- [x] **RND-03**: Peserta melihat gambar soal + opsi di halaman pembahasan/hasil (Results)
 - [x] **RND-04**: Admin melihat gambar soal + opsi di preview saat bikin/edit soal (_PreviewQuestion)
-- [ ] **RND-05**: Admin melihat gambar soal di halaman nilai essay (AssessmentMonitoringDetail)
-- [ ] **RND-06**: Admin melihat gambar soal + opsi saat edit jawaban peserta (EditPesertaAnswers)
+- [x] **RND-05**: Admin melihat gambar soal di halaman nilai essay (AssessmentMonitoringDetail)
+- [x] **RND-06**: Admin melihat gambar soal + opsi saat edit jawaban peserta (EditPesertaAnswers)
 - [x] **RND-07**: Gambar tampil responsive (img-fluid + loading=lazy + alt) di semua layar
 
 ### SYN — Integritas Data & File
@@ -78,11 +78,11 @@
 | RND-04 | Phase 353 | Complete |
 | SYN-01 | Phase 353 | Complete |
 | SYN-02 | Phase 353 | Complete |
-| RND-01 | Phase 354 | Pending |
-| RND-02 | Phase 354 | Pending |
-| RND-03 | Phase 354 | Pending |
-| RND-05 | Phase 354 | Pending |
-| RND-06 | Phase 354 | Pending |
+| RND-01 | Phase 354 | Complete |
+| RND-02 | Phase 354 | Complete |
+| RND-03 | Phase 354 | Complete |
+| RND-05 | Phase 354 | Complete |
+| RND-06 | Phase 354 | Complete |
 | RND-07 | Phase 354 | Complete |
 | TST-01 | Phase 355 | Pending |
 | TST-02 | Phase 355 | Pending |
