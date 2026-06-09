@@ -40,9 +40,11 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v23.0 shipped (local) + audit passed + closed (2026-06-06)** — CMP/Records Search & Filter Consistency Audit (phases 350-351): Team View search cakup judul assessment (fix 999.2, `GetWorkersInSection` predicate, badge D-07 utuh) + dropdown "Lingkup" jujur + export WYSIWYG; Worker Detail 0-match feedback (counter aria-live + empty-state) + filter Kategori dari record aktual (`BuildActualCategories` distinct, ganti master); My Records filter Kategori+Tipe parity (id `my`-prefixed hindari collision Team View) + back-nav `#team` aktifkan tab. 7/7 REQ SF-01..07 + integration 7/7 WIRED + 112/112 xUnit + Playwright 5/5+2/2. 0 migration.
 
-**Current focus:** v24.0 Gambar di Soal Assessment — defining requirements + roadmap. Bundle push v19+v20+v21+v22+v23 tetap pending IT availability (~163+ commit lokal, 0 migration v23.0 leg).
+**v24.0 shipped (local) + audit passed + closed (2026-06-09)** — Gambar di Soal Assessment (phases 352-357): admin lampirkan gambar pada soal + opsi assessment (image-only ≤5MB magic-byte, alt text) via ManagePackageQuestions CRUD + render konsisten 6 layar (responsive+lightbox) + integritas file (sync Pre→Post shared-file + hapus atomic pola Phase 333). Plus 2 addon off-theme: Phase 356 Audit Fix Assign Coach×Coachee (6 fix AF-1..7, eligibility per-unit HIGH; AF-4→backlog) + Phase 357 standarisasi istilah tipe soal "Single/Multiple Answer" (QuestionTypeLabels single-source + hapus dead TrueFalse). 25/25 REQ + integration 17/17 WIRED + 143/143 xUnit + Playwright UAT. 1 migration (Phase 352 image columns); 353-357 = 0 migration. Archive: `milestones/v24.0-*`.
 
-## Current Milestone: v24.0 Gambar di Soal Assessment (Manage Package)
+**Current focus:** Planning next milestone. Bundle push v19-v23 sudah ke IT (2026-06-06); **v24.0 (352-357) belum push** — branch ITHandoff (ahead origin/main baseline v23.0 `650cfeb4`, sync 5 commit dulu sebelum merge). Backlog open: 999.3 cascade-image-cleanup, 999.4 e2e-baseline, 999.5 coach-test-hardening.
+
+## Previous Milestone: v24.0 Gambar di Soal Assessment (Manage Package)
 
 **Goal:** Admin bisa melampirkan gambar pada soal assessment dan tiap pilihan jawaban (semua tipe MC/MA/Essay), tampil konsisten di seluruh layar tempat soal muncul.
 

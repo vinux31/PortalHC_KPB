@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v24.0
 milestone_name: Gambar di Soal Assessment (Manage Package)
 status: executing
-last_updated: "2026-06-09T11:37:19.674Z"
+last_updated: "2026-06-09T12:00:05.271Z"
 last_activity: 2026-06-09
 progress:
   total_phases: 22

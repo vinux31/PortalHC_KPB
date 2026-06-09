@@ -1,5 +1,28 @@
 # Milestones
 
+## v24.0 Gambar di Soal Assessment (Shipped Local: 2026-06-09, Audited: 2026-06-09)
+
+**Phases completed:** 6 phases (352–357), 22 plans, ~23 tasks
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (ahead of origin/main baseline v23.0 `650cfeb4`; sync 5 origin/main commits before merge). v19–v23 already delivered to IT 2026-06-06.
+**Audit:** `milestones/v24.0-MILESTONE-AUDIT.md` — status **passed** (25/25 REQ, 6/6 phases, integration 17/17 WIRED 0 broken, 4/4 E2E flows). Stale IMG-04 checkbox corrected during audit.
+
+**Delivered:** Admin dapat melampirkan gambar pada soal assessment + tiap opsi jawaban (image-only ≤5MB magic-byte, alt text), tampil konsisten di 6 layar, dengan integritas file (sync Pre→Post shared-file + hapus atomic). Plus 2 addon off-theme: audit-fix Assign Coach×Coachee + standarisasi istilah tipe soal.
+
+**Key accomplishments:**
+
+1. **Data Foundation + Image-Only Upload (Phase 352)** — entity + migration `AddImageToPackageQuestionAndOption` (4 kolom ImagePath/ImageAlt), `FileUploadHelper.ValidateImageFile` magic-byte image-only (tolak non-gambar, ≤5MB), AssessmentConstants. IMG-04.
+2. **Admin Backend Gambar — CRUD + Sync + Atomic Delete (Phase 353)** — upload/alt/replace/remove gambar soal+opsi di ManagePackageQuestions (prefill thumbnail) + sync Pre→Post shared-file + hapus file atomic ref-count (pola Phase 333, no orphan). IMG-01/02/03/05/06/07, RND-04, SYN-01/02.
+3. **Render Gambar di 6 Layar (Phase 354)** — gambar tampil di StartExam/ExamSummary/Results (peserta) + _PreviewQuestion/AssessmentMonitoringDetail/EditPesertaAnswers (admin), responsive img-fluid+lazy + lightbox via `_QuestionImage`/`_ImageLightboxModal`. RND-01/02/03/05/06/07. (2 bug Playwright-caught: RuntimeBinderException @model dynamic + label-toggle radio.)
+4. **Test & UAT (Phase 355)** — xUnit (FileUploadHelper, replace-deletes-old, sync) + Playwright e2e image-in-assessment upload→render end-to-end. TST-01/02.
+5. **Audit Fix Assign Coach×Coachee (Phase 356, addon off-theme)** — 6 fix CoachMappingController: AF-1 (HIGH) eligibility per-unit coachee (track multi-unit), AF-3 graduate per-unit (IsActive=false+cascade), AF-2 UI guard 1-unit/batch, AF-5 notif reassign, AF-6 pesan duplikat spesifik, AF-7 batch query. Helper `CoacheeEligibilityCalculator` + xUnit. AF-4 deferred → backlog 999.5. Code review caught WR-01 (cross-unit eligibility false-negative) FIXED.
+6. **Standarisasi Istilah Tipe Soal (Phase 357, addon off-theme)** — re-label "Single Answer / Multiple Answer / Essay" (override Phase 305) di semua surface; `QuestionTypeLabels.cs` single-source penuh + hapus dead code TrueFalse. DB enum tetap (no-migration). LBL-02.
+
+**Migration:** 1 (Phase 352 `AddImageToPackageQuestionAndOption`). Phases 353-357 = 0 migration.
+
+**Known deferred (non-blocking, tracked):** AF-4 reactivate-window → 999.5; nyquist VALIDATION frontmatter not flipped 353/356/357 (tests green); RND-02 ExamSummary live-verified (354) not in 355 Playwright; backlog 999.3/999.4/999.5. PDF panduan regen = manual user.
+
+---
+
 ## v23.0 CMP/Records Search & Filter Consistency Audit (Shipped Local: 2026-06-06, Audited: 2026-06-06)
 
 **Phases completed:** 2 phase (350, 351), 7 plan (350:3, 351:4)
@@ -15,6 +38,7 @@
 2. **Worker Detail + Cross-Surface Filter Consistency (Phase 351, SF-03/04/05/07)** — SF-03: `#wdRecordCounter` aria-live "Menampilkan X dari Y" + `#workerDetailEmptyState` ("Tidak ada hasil untuk filter ini.") saat 0-match. SF-04: helper `BuildActualCategories` (distinct-actual unifiedRecords.Kategori) + `ViewBag.ActualCategoriesJson` ganti master di Worker Detail + My Records. SF-05: My Records filter Kategori+Tipe parity (id `myCategoryFilter`/`myTypeFilter` hindari duplicate-id Team View) + `data-category`. SF-07: hash→tab activator (`#team` → `getOrCreateInstance(tab-team).show()`) + sessionStorage restore 9 filter. 3 xUnit + Playwright cmp-records-351 5/5 + regression 346/350 hijau.
 
 **Known deferred (non-blocking, tech debt):**
+
 - Phase 350 VERIFICATION `human_needed`: XLSX export content (archived vs current per-Category) belum di-eyeball lokal:5277; kode + Playwright href/counter SF-06 verified.
 - Phase 351 code review 3 INFO opsional (data-type konvensi 2 surface, deserialize null-coalesce defensif, comparer culture).
 - Nyquist artifact-only partial: VALIDATION.md 350/351 frontmatter draft tak di-update post-exec (Wave 0 Playwright spec sudah hijau).
