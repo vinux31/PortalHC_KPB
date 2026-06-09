@@ -46,7 +46,7 @@
         <div class="card-body">
           <div class="mb-2">
             <strong>Soal @idx</strong>
-            <span class="badge bg-secondary">@(q.QuestionType == "MultipleChoice" ? "MC" : q.QuestionType == "MultipleAnswer" ? "MA" : "Essay")</span>
+            <span class="badge bg-secondary">@QuestionTypeLabels.Short(q.QuestionType)</span>
             @if (q.IsCurrentCorrect) { <span class="badge bg-success">✓ Benar</span> }
             else { <span class="badge bg-danger">✗ Salah</span> }
           </div>
