@@ -31,11 +31,16 @@
 }
 @if (!string.IsNullOrWhiteSpace(imagePath))
 {
+    @* onclick preventDefault: bila <img> berada di dalam <label> (mis. opsi StartExam),
+       klik gambar akan mengaktifkan label→control (toggle radio/checkbox) + auto-save.
+       preventDefault membatalkan label-activation; modal tetap terbuka (Bootstrap pakai
+       listener data-api sendiri, tak bergantung default action). No-op di surface non-label. *@
     <img src="@imagePath" alt="@imageAlt"
          class="img-fluid rounded border mb-3 question-image-zoom@(isOption ? " d-block w-100 mt-2 mb-0" : "")"
          style="max-height:@(cap)px; cursor:pointer"
          loading="lazy"
          role="button" tabindex="0"
+         onclick="event.preventDefault();"
          data-bs-toggle="modal" data-bs-target="#imageLightboxModal"
          data-img-src="@imagePath" data-img-alt="@imageAlt"
          aria-label="@ariaLabel" />
