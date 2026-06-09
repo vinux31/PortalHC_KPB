@@ -45,7 +45,7 @@ Keseluruhan:
 Buat 1 helper idempotent: `(coacheeId, protonTrackId, createdById, origin, notes) → create ProtonFinalAssessment jika belum ada` (hormati duplicate-check `ProtonTrackAssignmentId`). Resolve assignment aktif via `(CoacheeId, ProtonTrackId, IsActive)`. `CompetencyLevelGranted` di-set 0 (dormant, A-3). Set `Origin` (A-M9, lihat 4.8).
 
 Dipanggil dari:
-- `GradingService.GradeAsync` (worker submit) — saat `isPassed` & session Proton (ada `ProtonTrackId`). `Origin="Exam"`.
+- `GradingService.GradeAndCompleteAsync` (`GradingService.cs:49`, worker submit) — saat `isPassed` & session Proton (ada `ProtonTrackId`). `Origin="Exam"`. *(Catatan: GradingService sekarang belum baca `ProtonTrackId`; A-4 menambah pembacaan + guard A-M11.)*
 - `GradingService.RegradeAfterEditAsync` (re-grade, L420-516):
   - `!wasPassed && isPassed` (jadi lulus, L471) → **create** penanda `Origin="Exam"`.
   - `wasPassed && !isPassed` (jadi gagal, L458) → **HAPUS** penanda **HANYA jika `Origin=="Exam"`** (penanda Bypass/Interview kebal — A-M9). *(A-M1)*

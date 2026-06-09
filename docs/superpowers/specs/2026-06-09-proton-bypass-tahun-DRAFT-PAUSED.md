@@ -1,5 +1,8 @@
 # Proton Bypass Tahun — DRAFT (PAUSED)
 
+> **⚠️ SUPERSEDED 2026-06-09** oleh `2026-06-09-proton-bypass-tahun-design.md` (spec final).
+> File ini = arsip draft. Pakai spec final untuk implementasi.
+
 > **STATUS: PAUSED 2026-06-09.** Diskusi bypass dijeda karena ketemu gap fondasi
 > (logic kelulusan Proton belum konsisten). **Diskusi A (fondasi) dikerjakan dulu.**
 > Bypass ini DEPENDS ON hasil Diskusi A. Lanjutkan brainstorm bypass setelah A selesai.
