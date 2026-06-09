@@ -282,6 +282,9 @@
     </div>
 </div>
 
+@* Lightbox host: _PreviewQuestion di-inject via AJAX ke #previewModalBody, jadi modal lightbox + JS harus hadir di host page ini (Phase 354 RND-04) *@
+@await Html.PartialAsync("_ImageLightboxModal")
+
 <!-- Edit Warning Modal -->
 <div class="modal fade" id="editTypeWarningModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
