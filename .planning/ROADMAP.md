@@ -648,6 +648,20 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 
 ---
 
+### Phase 999.5: Test-hardening Coach×Coachee — AF-3 graduate e2e + AF-6 race (BACKLOG, 2026-06-09)
+
+**Goal:** Tutup kedalaman test opsional Phase 356 yang tak bisa di-e2e saat UAT karena keterbatasan data lokal (1 coach, coachee Tahun-1, race tak reprodusibel single-thread). Kode sudah verified 3 cara; ini menambah coverage otomatis.
+
+**Context:**
+- Ditemukan saat UAT Phase 356 (2026-06-09, Claude Playwright @5277). 5/6 fix terbukti fungsional + AF-6 code-verified. Non-blocking — goal phase tercapai.
+- **AF-3 full graduate flow** (klik tombol "Graduated" pada coachee Tahun-3 complete → MarkMappingCompleted commit + cascade deactivate): belum di-e2e (Rino = Tahun-1; butuh fixture Tahun-3: deliverable approved + ProtonFinalAssessment). Logic sudah verified via build + struktur transaksi grep + D-06 badge render + re-assignability (state-sim). Opsi tutup: (a) seed fixture Tahun-3 + Playwright e2e, atau (b) xUnit integration `MarkMappingCompletedTests` InMemory DbContext (pola `OrganizationControllerTests`) — lock IsActive=false + cascade DeactivatedAt + histori utuh tanpa fixture berat.
+- **AF-6 race duplikat** (catch `DbUpdateException` unique-index): tak bisa direproduksi single-thread (pre-check `CoachCoacheeMappingAssign` L474 tangkap duplikat sebelum insert). Catch+pesan+no-leak sudah grep-verified. Opsi tutup: concurrency harness (2 request paralel) — rapuh, prioritas rendah.
+- Opsional Wave-0 dari `356-VALIDATION.md` (MarkMappingCompletedTests + AF-7 parity regression test) juga belum dibuat (ditandai "opsional" sejak plan).
+
+**Requirements:** TBD — estimasi S-M. Acuan: `.planning/phases/356-audit-fix-assign-coach-coachee-pastikan-fungsi-assign-benar-/356-05-SUMMARY.md` (Temuan 4) + `356-VALIDATION.md` Wave-0 opsional. Rekomendasi mulai dari (b) xUnit AF-3 integration (nilai tinggi, effort rendah).
+
+---
+
 ### Phase 999.2: CMP/Records Team View search extend ke Assessment title (PROMOTED -> v23.0 Phase 350, 2026-06-05)
 
 **Goal:** Search Team View di `CMP/Records` (`searchScope`="Keduanya") ikut mencocokkan judul **assessment**, bukan hanya Nama/NIP + judul Training. User cari nama assessment (mis. "ojt v14.2") → saat ini 0 worker meski worker punya assessment itu.
