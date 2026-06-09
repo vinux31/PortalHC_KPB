@@ -1707,6 +1707,31 @@ namespace HcPortal.Controllers
             });
 
             await _context.SaveChangesAsync();
+
+            // AF-5 (Phase 356): notifikasi reassign 3 recipient (warn-only, mirror Deactivate COACH-03)
+            try
+            {
+                var oldCoach   = await _context.Users.FindAsync(oldCoachId);
+                var newCoach   = await _context.Users.FindAsync(newCoachId);
+                var coacheeUsr = await _context.Users.FindAsync(mapping.CoacheeId);
+                var coacheeName  = coacheeUsr?.FullName ?? coacheeUsr?.UserName ?? mapping.CoacheeId;
+                var newCoachName = newCoach?.FullName ?? newCoach?.UserName ?? newCoachId;
+
+                await _notificationService.SendAsync(oldCoachId, "COACH_REASSIGNED",
+                    "Penugasan Coaching Dialihkan",
+                    $"Penugasan coaching Anda dengan {coacheeName} telah dialihkan ke coach lain.",
+                    "/CDP/CoachingProton");
+                await _notificationService.SendAsync(newCoachId, "COACH_REASSIGNED",
+                    "Coach Ditunjuk",
+                    $"Anda ditunjuk sebagai coach untuk {coacheeName}.",
+                    "/CDP/CoachingProton");
+                await _notificationService.SendAsync(mapping.CoacheeId, "COACH_REASSIGNED",
+                    "Coach Anda Berubah",
+                    $"Coach Anda telah diganti menjadi {newCoachName}.",
+                    "/CDP/CoachingProton");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
+
             return Json(new { success = true });
         }
 
