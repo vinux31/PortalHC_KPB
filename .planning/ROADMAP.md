@@ -1085,7 +1085,7 @@ Plans:
 | 352. Data Foundation + Image-Only Upload | 0/? | Not started | - |
 | 353. Admin Backend Gambar (CRUD + Sync + Atomic Delete) | 3/3 | Complete    | 2026-06-08 |
 | 354. Render Gambar di 6 Layar | 6/6 | Complete   | 2026-06-09 |
-| 355. Test & UAT | 3/3 | Complete   | 2026-06-09 |
+| 355. Test & UAT | 3/3 | Complete    | 2026-06-09 |
 | 356. Audit Fix Assign Coach-Coachee (addon, off-theme) | 0/? | Not started | - |
 | 357. Standarisasi Istilah Tipe Soal (addon, off-theme) | 0/? | Not started | - |
 

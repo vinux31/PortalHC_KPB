@@ -38,8 +38,8 @@
 
 ### TST — Test & UAT
 
-- [ ] **TST-01**: xUnit cover upload valid (JPG/PNG tersimpan) + invalid (non-image ditolak) + SyncPackagesToPost menyalin ImagePath + DeleteQuestion menghapus file gambar
-- [ ] **TST-02**: Playwright UAT — admin upload gambar soal+opsi → peserta lihat di StartExam → lihat di Results (pembahasan)
+- [x] **TST-01**: xUnit cover upload valid (JPG/PNG tersimpan) + invalid (non-image ditolak) + SyncPackagesToPost menyalin ImagePath + DeleteQuestion menghapus file gambar
+- [x] **TST-02**: Playwright UAT — admin upload gambar soal+opsi → peserta lihat di StartExam → lihat di Results (pembahasan)
 
 ---
 
@@ -84,8 +84,8 @@
 | RND-05 | Phase 354 | Complete |
 | RND-06 | Phase 354 | Complete |
 | RND-07 | Phase 354 | Complete |
-| TST-01 | Phase 355 | Pending |
-| TST-02 | Phase 355 | Pending |
+| TST-01 | Phase 355 | Complete |
+| TST-02 | Phase 355 | Complete |
 
 **Coverage: 17/17 mapped ✓ — Orphans: 0 — Duplicates: 0**
 
