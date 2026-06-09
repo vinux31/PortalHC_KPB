@@ -1096,16 +1096,45 @@ namespace HcPortal.Controllers
                 TempData["Error"] = "Tahun 3 belum selesai — semua deliverable harus Approved dan final assessment harus ada.";
                 return RedirectToAction("CoachCoacheeMapping");
             }
-            mapping.IsCompleted = true;
-            mapping.CompletedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-            var actorName = string.IsNullOrWhiteSpace(user.NIP)
-                ? (user.FullName ?? "Unknown")
-                : $"{user.NIP} - {user.FullName}";
-            await _auditLog.LogAsync(user.Id, actorName, "MarkMappingCompleted",
-                $"Mapping ID={mappingId} ditandai graduated. CoacheeId={mapping.CoacheeId}", mappingId, "CoachCoacheeMapping");
-            TempData["Success"] = "Coachee berhasil ditandai sebagai graduated.";
-            return RedirectToAction("CoachCoacheeMapping");
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                mapping.IsCompleted = true;
+                mapping.CompletedAt = DateTime.UtcNow;
+                mapping.IsActive = false;            // AF-3 D-03: bebaskan unique-index IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
+                mapping.EndDate = DateTime.UtcNow;   // AF-3 D-03: tandai akhir mapping graduated
+
+                // AF-3 D-04: cascade deactivate ProtonTrackAssignment aktif coachee (mirror Deactivate L930-940).
+                // Stamp DeactivatedAt (pola FIX-01); JANGAN hapus histori progress (BUKAN RemoveRange).
+                var deactivationTime = mapping.EndDate.Value;
+                var activeAssignments = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                    .ToListAsync();
+                foreach (var a in activeAssignments)
+                {
+                    a.IsActive = false;
+                    a.DeactivatedAt = deactivationTime;
+                }
+                int cascadeCount = activeAssignments.Count;
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var actorName = string.IsNullOrWhiteSpace(user.NIP)
+                    ? (user.FullName ?? "Unknown")
+                    : $"{user.NIP} - {user.FullName}";
+                await _auditLog.LogAsync(user.Id, actorName, "MarkMappingCompleted",
+                    $"Mapping ID={mappingId} ditandai graduated (IsActive=false). CoacheeId={mapping.CoacheeId} — {cascadeCount} ProtonTrackAssignment juga dinonaktifkan", mappingId, "CoachCoacheeMapping");
+                TempData["Success"] = "Coachee berhasil ditandai sebagai graduated.";
+                return RedirectToAction("CoachCoacheeMapping");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "MarkMappingCompleted transaction failed for mapping {Id}", mappingId);
+                TempData["Error"] = "Operasi gagal. Semua perubahan dibatalkan.";
+                return RedirectToAction("CoachCoacheeMapping");
+            }
         }
 
         // GET /Admin/CoachCoacheeMappingDeletePreview
