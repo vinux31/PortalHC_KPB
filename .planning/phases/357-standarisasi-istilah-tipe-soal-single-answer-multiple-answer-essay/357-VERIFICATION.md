@@ -1,9 +1,10 @@
 ---
 phase: 357-standarisasi-istilah-tipe-soal-single-answer-multiple-answer-essay
 verified: 2026-06-09T00:00:00Z
-status: human_needed
-score: 6/6 must-haves verified (automated) — 3 surface + Excel visual confirmation pending human
+status: passed
+score: 6/6 must-haves verified (automated) + UAT (2 surface browser + 3 code-verified single-source) + user sign-off "approved" 2026-06-09
 overrides_applied: 0
+human_signoff: "approved 2026-06-09 — UAT via Playwright @5277 (dropdown+badge browser-verified), recorded in 357-HUMAN-UAT.md (status: passed)"
 human_verification:
   - test: "EditPesertaAnswers badge tipe soal (sesi peserta yang sudah submit)"
     expected: "Badge berbunyi 'Single Answer' / 'Multiple Answer' / 'Essay' (BUKAN 'MC'/'MA')"
