@@ -42,7 +42,19 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v24.0 shipped (local) + audit passed + closed (2026-06-09)** — Gambar di Soal Assessment (phases 352-357): admin lampirkan gambar pada soal + opsi assessment (image-only ≤5MB magic-byte, alt text) via ManagePackageQuestions CRUD + render konsisten 6 layar (responsive+lightbox) + integritas file (sync Pre→Post shared-file + hapus atomic pola Phase 333). Plus 2 addon off-theme: Phase 356 Audit Fix Assign Coach×Coachee (6 fix AF-1..7, eligibility per-unit HIGH; AF-4→backlog) + Phase 357 standarisasi istilah tipe soal "Single/Multiple Answer" (QuestionTypeLabels single-source + hapus dead TrueFalse). 25/25 REQ + integration 17/17 WIRED + 143/143 xUnit + Playwright UAT. 1 migration (Phase 352 image columns); 353-357 = 0 migration. Archive: `milestones/v24.0-*`.
 
-**Current focus:** Planning next milestone. Bundle push v19-v23 sudah ke IT (2026-06-06); **v24.0 (352-357) belum push** — branch ITHandoff (ahead origin/main baseline v23.0 `650cfeb4`, sync 5 commit dulu sebelum merge). Backlog open: 999.3 cascade-image-cleanup, 999.4 e2e-baseline, 999.5 coach-test-hardening.
+**Current focus:** v25.0 Proton Kelulusan & Bypass — requirements + roadmap defined (4 phase 358-361), ready `/gsd-plan-phase 358`. Bundle push v19-v23 sudah ke IT (2026-06-06); **v24.0 (352-357) belum push** — branch ITHandoff (ahead origin/main baseline v23.0 `650cfeb4`, sync 5 commit dulu sebelum merge).
+
+## Current Milestone: v25.0 Proton Kelulusan & Bypass
+
+**Goal:** Bikin logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa), lalu tambah fitur Bypass Tahun (admin/HC pindahin coachee antar tahun/track/unit dengan alasan + audit).
+
+**Target features:**
+- **Completion Logic (fondasi, fase 358-359)** — exam Tahun 1/2 lulus → terbit `ProtonFinalAssessment` (sekarang cuma interview Tahun 3 = BUG); helper bersama `EnsureProtonFinalAssessment`; gate deliverable-100%→final dipaksa **server-side** + gate antar-tahun keras; Tahun 3 deliverable data-driven; graduation gate; matikan level (dormant); backfill data lama; kolom `Origin`.
+- **Bypass Tahun (fase 360-361)** — admin pindahin coachee antar tahun/track/unit (4 closure mode CL-A/B(a)/B(b)/C, |Δtahun|≤1), tabel `PendingProtonBypass` + konfirmasi HC (OQ-1 Opsi B), notif `PROTON_BYPASS_READY`, redesign page Override jadi 2 tab + wizard 3-langkah.
+
+**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md` (A) + `docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md` (B). **B depends A** — implement + verify A dulu.
+
+**Scope note:** Audit Tab1 Override Deliverable + undo bypass executed = OUT (backlog). **2 migration** (Origin di 358, PendingProtonBypass di 360) — notify IT keduanya.
 
 ## Previous Milestone: v24.0 Gambar di Soal Assessment (Manage Package)
 

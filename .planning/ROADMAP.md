@@ -23,8 +23,35 @@
 - ✅ **v22.0 CMP-06 + Assessment/Monitoring Audit Fixes** — Phases 345-349 (shipped local + audited 2026-06-05, 60/60 REQ) — [archive](milestones/v22.0-ROADMAP.md) — [audit](milestones/v22.0-MILESTONE-AUDIT.md)
 - ✅ **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (shipped local + audited 2026-06-06, 7/7 REQ SF-01..07) — [archive](milestones/v23.0-ROADMAP.md) — [audit](milestones/v23.0-MILESTONE-AUDIT.md)
 - ✅ **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-357 (shipped local 2026-06-09, audited passed; 6 phase, 22 plan, 25/25 REQ; full detail → [milestones/v24.0-ROADMAP.md](milestones/v24.0-ROADMAP.md))
+- 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-361 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md))
 
 ## Phases
+
+### 🚧 v25.0 Proton Kelulusan & Bypass (Phases 358-361) — ACTIVE
+
+**Goal:** Logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa) lalu fitur Bypass Tahun. **B (bypass) depends A (completion)** — implement+verify A dulu. Sequential strict 358→359→360→361 (file-overlap GradingService 358+360, AssessmentAdminController 358+359). 2 migration (`Origin` 358, `PendingProtonBypass` 360).
+
+- [ ] **Phase 358: Penanda Kelulusan (fondasi A)** — Origin+migration#1 + helper `ProtonCompletionService` + wire GradingService (exam lulus + re-grade flip Pass↔Fail) + refactor SubmitInterviewResults ke helper + backfill data lama (cek 100%). → exam Tahun 1/2 lulus tercatat "Lulus" (fix bug). REQ: PCOMP-01..05. Migration=true. Depends: —
+  - SC1: Exam Proton Tahun 1/2 lulus → dashboard CDP/HistoriProton menandai "Lulus".
+  - SC2: Re-grade Pass→Fail hapus penanda Origin="Exam"; penanda Bypass/Interview tidak terhapus.
+  - SC3: Interview Tahun 3 tetap terbit penanda (Origin="Interview") via helper bersama.
+  - SC4: Backfill bikin penanda untuk exam Tahun 1/2 lama yang lulus + deliverable 100%.
+- [ ] **Phase 359: Gate Berurutan + Cleanup (A)** — ProtonYearGate + gate eligibility server-side (CreateAssessment) + gate antar-tahun + Tahun 3 data-driven + graduation gate + matikan tampilan level. REQ: PCOMP-06..10. Migration=false. Depends: 358
+  - SC1: POST CreateAssessment Proton tolak worker belum 100% deliverable (server-side, bukan cuma JS).
+  - SC2: Tahun N tidak eligible kalau Tahun N-1 belum lulus.
+  - SC3: "Mark graduated" diblok kalau Tahun 3 belum lulus.
+  - SC4: Halaman CDP/HistoriProton render tanpa kolom level + tanpa grafik tren, tanpa error.
+- [ ] **Phase 360: Bypass Backend (B)** — migration#2 `PendingProtonBypass` + closure CL-A/B(a)/B(b)/C + notif `PROTON_BYPASS_READY` (GradingService hook) + coach handling (E15) + bootstrap-by-unit + 6 endpoint (BypassList/PendingList/Detail/Save/Confirm/CancelPending). REQ: PBYP-01..07. Migration=true. Depends: 358 (helper+Origin), 359 (gate-exempt)
+  - SC1: Bypass CL-A/B(a)/C eksekusi instan (deactivate asal + create target + bootstrap + audit).
+  - SC2: Bypass CL-B(b) bikin pending "Menunggu"; exam lulus → "Siap" + notif HC; konfirmasi → pindah.
+  - SC3: Batal pending auto-cancel exam (belum-kerjakan→hapus, sudah-lulus→pertahankan hasil).
+  - SC4: Bypass exempt gate antar-tahun; coach mapping aktif lama dideactivate sebelum create baru.
+- [ ] **Phase 361: Bypass UI (B)** — Tab2 "Bypass Tahun" + wizard 3-langkah + panel "Menunggu Konfirmasi" + notif deep-link + e2e UAT. REQ: PBYP-08..10. Migration=false. Depends: 360
+  - SC1: Page Override 2 tab; Tab1 existing tak berubah; Tab2 wizard Tujuan→Closure→Detail.
+  - SC2: Panel pending tampil + `[Konfirmasi]`/`[Batal]`; notif deep-link buka Tab2 pending.
+  - SC3: UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
+
+#### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan.
 
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
