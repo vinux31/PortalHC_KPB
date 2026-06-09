@@ -118,4 +118,10 @@ export const questionFormSelectors = {
   cancelEditBtn: '#cancelEditBtn',
   optionA: '#option_A', optionB: '#option_B', optionC: '#option_C', optionD: '#option_D',
   correctA: '#correct_A', correctB: '#correct_B', correctC: '#correct_C', correctD: '#correct_D',
+  // Phase 355 — image upload fields (Views/Admin/ManagePackageQuestions.cshtml:145-211, hidden file inputs)
+  questionImgField: '#questionImgField',
+  questionImageAlt: '#questionImageAlt',
+  removeQuestionImage: '#removeQuestionImage',
+  optAImgField: '#optAImgField', optBImgField: '#optBImgField', optCImgField: '#optCImgField', optDImgField: '#optDImgField',
+  optAImageAlt: '#optAImageAlt', optBImageAlt: '#optBImageAlt', optCImageAlt: '#optCImageAlt', optDImageAlt: '#optDImageAlt',
 } as const;

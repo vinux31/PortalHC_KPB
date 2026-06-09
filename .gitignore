@@ -507,6 +507,8 @@ test.txt
 !sosialisasi-portalhc/assets/ppt-images/*.png
 !docs/sosialisasi-screenshots/*.png
 !docs/pcp-HCPortal-2026/**/*.png
+!tests/fixtures/*.png
+!tests/fixtures/*.jpg
 *.db
 *.db-shm
 *.db-wal

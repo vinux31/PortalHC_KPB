@@ -150,8 +150,27 @@ export async function createDefaultPackage(page: Page, packageName = 'Paket A'):
  * @param page HC user page (sudah login)
  * @param packageId target package ID
  * @param q QuestionInput discriminated union
+ * @param images Phase 355 (opsional) — path fixture gambar soal + tiap opsi (setInputFiles pada hidden file input)
  */
-export async function addQuestionViaForm(page: Page, packageId: number, q: QuestionInput): Promise<void> {
+export interface QuestionImages {
+  question?: string;
+  questionAlt?: string;
+  optionA?: string;
+  optionB?: string;
+  optionC?: string;
+  optionD?: string;
+  optionAAlt?: string;
+  optionBAlt?: string;
+  optionCAlt?: string;
+  optionDAlt?: string;
+}
+
+export async function addQuestionViaForm(
+  page: Page,
+  packageId: number,
+  q: QuestionInput,
+  images?: QuestionImages
+): Promise<void> {
   // Action route: [Route("Admin/[action]")] on AssessmentAdminController → /Admin/ManagePackageQuestions?packageId={N}
   // (RESEARCH said `/Admin/ManageQuestions` — verified salah 2026-05-11; actual action name `ManagePackageQuestions`.)
   await page.goto(`/Admin/ManagePackageQuestions?packageId=${packageId}`);
@@ -200,6 +219,19 @@ export async function addQuestionViaForm(page: Page, packageId: number, q: Quest
       }
     }
   }
+
+  // Phase 355 — upload gambar soal + tiap opsi via hidden file input (setInputFiles).
+  // Bersyarat: hanya bila path fixture disuplai. File input hidden → setInputFiles tetap bekerja.
+  if (images?.question) { await page.setInputFiles(questionFormSelectors.questionImgField, images.question); }
+  if (images?.questionAlt) { await page.fill(questionFormSelectors.questionImageAlt, images.questionAlt); }
+  if (images?.optionA) { await page.setInputFiles(questionFormSelectors.optAImgField, images.optionA); }
+  if (images?.optionAAlt) { await page.fill(questionFormSelectors.optAImageAlt, images.optionAAlt); }
+  if (images?.optionB) { await page.setInputFiles(questionFormSelectors.optBImgField, images.optionB); }
+  if (images?.optionBAlt) { await page.fill(questionFormSelectors.optBImageAlt, images.optionBAlt); }
+  if (images?.optionC) { await page.setInputFiles(questionFormSelectors.optCImgField, images.optionC); }
+  if (images?.optionCAlt) { await page.fill(questionFormSelectors.optCImageAlt, images.optionCAlt); }
+  if (images?.optionD) { await page.setInputFiles(questionFormSelectors.optDImgField, images.optionD); }
+  if (images?.optionDAlt) { await page.fill(questionFormSelectors.optDImageAlt, images.optionDAlt); }
 
   await page.fill(questionFormSelectors.scoreValue, String(q.score));
   await page.locator(questionFormSelectors.submitBtn).click();
