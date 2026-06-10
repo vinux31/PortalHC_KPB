@@ -43,6 +43,29 @@
       "export": ["none"],
       "dataSource": "ProtonKompetensiList, ProtonTracks, CoachingGuidanceFiles, ProtonTrackAssignments, GetSectionUnitsDictAsync (shared dep - sumber bug filter Dev kalau OrganizationUnits belum normalisasi)",
       "gaps": []
+    },
+    {
+      "id": "cdp-coachingproton",
+      "name": "Coaching PROTON (core)",
+      "route": "/CDP/CoachingProton?coacheeId&bagian&unit&trackType&tahun&page",
+      "action": "CDPController.CoachingProton",
+      "view": "Views/CDP/CoachingProton.cshtml",
+      "purpose": "Halaman inti monitoring deliverable PROTON: scope per-role, approval 3-tier (SrSpv>SectionHead>HC), upload/submit evidence, batch action.",
+      "flow": { "from": ["Hub CDP kartu #2"], "to": ["/CDP/Deliverable/{id}", "ExportBottleneckReport", "ExportCoachingTracking", "ExportWorkloadSummary"], "back": "tombol Kembali + breadcrumb" },
+      "roles": "Scope per RoleLevel: <=3 HC/Admin/Direktur/VP/Manager (semua coachee) | 4 SectionHead/SrSpv (section) | 5 Coach (coachee ter-map) | 6 Coachee (own, banner NoActiveAssignment). Aksi gated: approve/reject=RolesReviewerAndAbove, HCReview=HC,Admin, upload/submit/edit/delete/export=RolesCoachAndAbove",
+      "filters": ["Bagian", "Unit (cascade)", "Coachee", "Track (Panelman/Operator)", "Tahun (1-3)", "Cari kompetensi (search)", "Reset"],
+      "table": { "columns": ["[checkbox select-all]", "Coachee", "Kompetensi", "Sub Kompetensi", "Deliverable", "Evidence", "Approval Sr.Spv", "Approval Section Head", "Approval HC", "Detail"], "source": "ProtonProgress join ProtonTrackAssignment (scoped), paginated" },
+      "actions": [
+        { "label": "Review (HC)", "endpoint": "/CDP/HCReviewFromProgress + HCReviewDeliverable [HC,Admin]" },
+        { "label": "Approve/Reject (modal)", "endpoint": "/CDP/ApproveFromProgress + RejectFromProgress + ApproveDeliverable + RejectDeliverable [RolesReviewerAndAbove]" },
+        { "label": "Upload/Submit evidence", "endpoint": "/CDP/UploadEvidence + SubmitEvidenceWithCoaching [RolesCoachAndAbove]" },
+        { "label": "Lihat Detail", "endpoint": "/CDP/Deliverable/{id}" },
+        { "label": "Batch (checkbox select-all)", "endpoint": "client + BatchHCApprove [HC,Admin]" }
+      ],
+      "modals": ["Review HC modal", "Approve/Reject modal", "Upload evidence modal", "Panel 'Antrian Review HC' (queue Submitted)"],
+      "export": ["Bottleneck Report (Excel)", "Coaching Tracking (Excel)", "Workload Summary (Excel)"],
+      "dataSource": "ProtonProgress, ProtonTrackAssignments, CoachCoacheeMappings, Users, GetAllSectionsAsync",
+      "gaps": []
     }
   ],
   "gaps": [],
