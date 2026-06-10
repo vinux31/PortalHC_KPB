@@ -1,9 +1,11 @@
 ---
 phase: 359-gate-berurutan-cleanup-a
 verified: 2026-06-10T04:36:34Z
-status: human_needed
+human_verified: 2026-06-10T05:05:00Z
+status: passed
 score: 5/5 must-haves verified
 overrides_applied: 0
+human_verification_result: 4/4 PASS — Playwright MCP @ localhost:5277 (lihat 359-HUMAN-UAT.md)
 human_verification:
   - test: "Buat Assessment Proton (POST CreateAssessment) untuk campuran worker eligible + tak-100% deliverable + Tahun N-1 belum lulus @ localhost:5277 (AD lokal off)"
     expected: "Hanya worker eligible dapat session; banner Warning menyebut jumlah di-skip + alasan (X belum 100% deliverable, Y Tahun sebelumnya belum lulus); semua tak-eligible → 0 session tanpa transaksi terbuka"
@@ -23,8 +25,8 @@ human_verification:
 
 **Phase Goal:** Paksa gate eligibility Proton di server (deliverable 100% + Tahun N-1 lulus), data-driven Tahun 3, graduation gate, dan matikan tampilan `CompetencyLevelGranted` (dormant).
 **Verified:** 2026-06-10T04:36:34Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Status:** passed — human UAT 4/4 PASS (Playwright MCP @ localhost:5277, 2026-06-10T05:05Z, lihat `359-HUMAN-UAT.md`)
+**Re-verification:** Yes — status updated human_needed → passed setelah human UAT selesai
 
 ## Goal Achievement
 
@@ -35,8 +37,8 @@ human_verification:
 | 1 | POST CreateAssessment Proton tolak worker belum 100% deliverable (server-side, bukan cuma JS) | ✓ VERIFIED | `AssessmentAdminController.cs:1336-1392` pre-pass server-side: `IsEligiblePerUnit(myStatuses, unitDeliverableIds.Count)` (:1387) memfilter `eligibleUserIds`; loop session iterasi `eligibleUserIds` (:1414-1416). Empty-result guard return View sebelum `BeginTransactionAsync` (:1396-1409 vs :1458). Bukan filter JS — re-validate tiap `uid`. |
 | 2 | Tahun N tidak eligible kalau Tahun N-1 belum lulus (`ProtonYearGate`) | ✓ VERIFIED | Predikat pure `ProtonYearGate.IsAllowed` (`ProtonCompletionService.cs:120-131`) + bridge `IsPrevYearPassedAsync` (:107-112, reuse `GetPassedYearsAsync`). Dikonsumsi di CreateAssessment (:1368) DAN CoachMapping assign (:538-540 hard-block :544-548). Penanda-based (D-03), bukan deliverable-Approved. 6 [Fact] + 1 integration 7/7 hijau. |
 | 3 | "Mark graduated" diblok kalau Tahun 3 belum lulus | ✓ VERIFIED | `CoachMappingController.cs:1117-1122` — `IsYearCompletedAsync(tahun3Assignment.Id)` (= `allApproved && hasFinalAssessment`, :1083-1093) memblok dengan pesan S2 (:1120). `IsCompleted = true` hanya di :1126 (single-door, 1 match grep) setelah gate. |
-| 4 | Halaman CDP/HistoriProton render tanpa kolom level + tanpa grafik tren, tanpa error | ✓ VERIFIED (statis) / ? human (render) | 0 orphan binding: `CDPDashboardViewModel.cs`/`HistoriProtonDetailViewModel.cs` 0 match level/trend; `CDPController.cs` 0 match `CompetencyLevelGranted/trendValues/trendLabels/scopedCompletedAssessments`; 3 view 0 match `CompetencyLevel/protonTrendChart/Level @/Competency Level/no data`. Badge "Status Proton: Lulus/Belum Lulus" (`_CoacheeDashboardPartial.cshtml:43-50`). Entity DB `ProtonFinalAssessment.CompetencyLevelGranted` tetap dormant (`ProtonModels.cs:220`). Render bebas-error → human. |
-| 5 | `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277 | ✓ VERIFIED (build+test) / ? human (UAT) | `dotnet build` = 0 Warning / 0 Error. `dotnet test --filter Category!=Integration` = 148/148 pass. `dotnet test --filter ProtonYearGate` = 7/7 (6 pure + 1 real-SQL integration). UAT lokal:5277 = HUMAN (Playwright). |
+| 4 | Halaman CDP/HistoriProton render tanpa kolom level + tanpa grafik tren, tanpa error | ✓ VERIFIED (statis + human UAT render PASS) | 0 orphan binding: `CDPDashboardViewModel.cs`/`HistoriProtonDetailViewModel.cs` 0 match level/trend; `CDPController.cs` 0 match `CompetencyLevelGranted/trendValues/trendLabels/scopedCompletedAssessments`; 3 view 0 match `CompetencyLevel/protonTrendChart/Level @/Competency Level/no data`. Badge "Status Proton: Lulus/Belum Lulus" (`_CoacheeDashboardPartial.cshtml:43-50`). Entity DB `ProtonFinalAssessment.CompetencyLevelGranted` tetap dormant (`ProtonModels.cs:220`). Render bebas-error → human. |
+| 5 | `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277 | ✓ VERIFIED (build+test+UAT 4/4 PASS) | `dotnet build` = 0 Warning / 0 Error. `dotnet test --filter Category!=Integration` = 148/148 pass. `dotnet test --filter ProtonYearGate` = 7/7 (6 pure + 1 real-SQL integration). UAT lokal:5277 = HUMAN (Playwright). |
 
 **Score:** 5/5 truths verified (automated portions). UAT-lokal portion of SC4/SC5 routed to human verification per phase notes.
 
@@ -85,7 +87,7 @@ human_verification:
 | `dotnet build` 0 error | `dotnet build` | Build succeeded, 0 Warning / 0 Error | ✓ PASS |
 | Pure cross-year predicate logic | `dotnet test --filter ProtonYearGate` | 7/7 pass (6 pure + 1 integration real-SQL) | ✓ PASS |
 | Full unit suite (no regression) | `dotnet test --filter "Category!=Integration"` | 148/148 pass, 0 failed | ✓ PASS |
-| CDP/gate runtime render @5277 | (server + browser) | — | ? SKIP → human verification |
+| CDP/gate runtime render @5277 | Playwright MCP @ localhost:5277 (AD off) | 4/4 PASS — gate skip-summary + hard-block + graduation + render (359-HUMAN-UAT.md) | ✓ PASS |
 
 ### Requirements Coverage
 
@@ -111,12 +113,14 @@ human_verification:
 
 All findings Info-level (matches 359-REVIEW.md: 0 critical / 0 warning / 4 info). None block goal achievement.
 
-### Human Verification Required
+### Human Verification — COMPLETED (4/4 PASS)
 
-1. **CreateAssessment Proton gate (skip-summary)** — Buat Assessment Proton untuk campuran worker eligible / tak-100% / Tahun N-1 belum lulus @ localhost:5277 (AD lokal off). Expected: hanya eligible dapat session; banner Warning sebut jumlah di-skip + alasan; semua tak-eligible → 0 session tanpa transaksi.
-2. **CoachMapping cross-year hard-block** — Assign Tahun 2 untuk coachee yang Tahun 1 belum lulus. Expected: JSON success=false pesan S2; tidak ada "Tetap lanjutkan?"; assign Tahun 1 sukses.
-3. **Graduation gate** — Mark graduated worker Tahun 3 belum lulus (Error S2, IsCompleted tak diset) vs Tahun 3 lulus (sukses + cascade).
-4. **CDP/Histori render** — Dashboard CDP, view supervisor/HC, HistoriProtonDetail @5277: badge Lulus/Belum Lulus tanpa angka, tanpa grafik tren/placeholder, tanpa blok Level Kompetensi, semua render tanpa error 500.
+Dieksekusi 2026-06-10T04:40–05:05Z via Playwright MCP @ localhost:5277 (AD off), seed via SEED_WORKFLOW (snapshot/restore, journal cleaned). Detail lengkap: `359-HUMAN-UAT.md`.
+
+1. **CreateAssessment Proton gate (skip-summary)** — ✅ PASS. UI Step 2 hanya tampilkan coachee eligible; server-side gate diuji manual POST bypass JS → banner "1 session dibuat, 1 di-skip" + alasan; DB cross-check 1 session eligible / 0 tak-eligible.
+2. **CoachMapping cross-year hard-block** — ✅ PASS. JSON `success=false` pesan S2 tanpa field `warning`; re-test `ConfirmProgressionWarning:true` TETAP blocked (escape mati, T-359-07).
+3. **Graduation gate** — ✅ PASS. Tahun 3 belum lulus → banner Error S2; DB cross-check `IsCompleted=0`, `IsActive=1` tak berubah.
+4. **CDP/Histori render** — ✅ PASS. Badge tanpa angka, trend chart hilang (canvas=0), HistoriProtonDetail tanpa "Level Kompetensi", render tanpa error 500. (Non-blocking: doughnut kosong saat load = Chart.js race pre-existing G-01, sudah di-fix Phase 362 — bukan regresi 359.)
 
 ### Gaps Summary
 
@@ -127,9 +131,10 @@ No gaps. All 5 roadmap success criteria are satisfied at the code/build/test lev
 - CompetencyLevelGranted display + trend chart fully pruned across ViewModels, controller, and 3 views with no orphan bindings; DB column intentionally dormant (D-12, no migration).
 - `dotnet build` = 0/0; unit suite 148/148; ProtonYearGate suite 7/7 (incl. real-SQL integration).
 
-Status is `human_needed` (not `passed`) solely because the runtime UAT portion of SC4 (browser render free of error) and SC5 (UAT lokal:5277 via Playwright) cannot be verified programmatically and require human/browser confirmation per the phase notes. No item FAILED.
+Status `passed` — porsi runtime UAT SC4/SC5 telah diverifikasi human UAT 4/4 PASS (Playwright MCP @5277, `359-HUMAN-UAT.md`). No item FAILED.
 
 ---
 
 _Verified: 2026-06-10T04:36:34Z_
 _Verifier: Claude (gsd-verifier)_
+_Human UAT: 2026-06-10T05:05:00Z — 4/4 PASS (Playwright MCP @ localhost:5277)_
