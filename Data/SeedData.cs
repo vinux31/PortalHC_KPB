@@ -180,5 +180,70 @@ namespace HcPortal.Data
                 logger.LogError(ex, "SeedProtonTracks: error tak terduga, dilewati.");
             }
         }
+
+        /// <summary>
+        /// Self-heal: recompute OrganizationUnits.Level dari kedalaman tree (root=0, anak=induk+1).
+        /// UPDATE hanya baris yang Level-nya beda → idempotent, no-op kalau sudah konsisten.
+        /// Baris orphan/cycle (tak terjangkau dari root) di-skip + log warning (decision A).
+        /// Atomik via satu SaveChangesAsync. Hanya ubah kolom Level — tak tambah/hapus baris.
+        /// </summary>
+        public static async Task NormalizeOrganizationLevelsAsync(ApplicationDbContext context, ILogger logger)
+        {
+            try
+            {
+                var all = await context.OrganizationUnits.ToListAsync();
+                if (all.Count == 0) return;
+
+                var childrenByParent = all
+                    .Where(u => u.ParentId.HasValue)
+                    .GroupBy(u => u.ParentId!.Value)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                // BFS dari root → depth
+                var depth = new Dictionary<int, int>();
+                var queue = new Queue<OrganizationUnit>();
+                foreach (var root in all.Where(u => u.ParentId == null))
+                {
+                    depth[root.Id] = 0;
+                    queue.Enqueue(root);
+                }
+                while (queue.Count > 0)
+                {
+                    var node = queue.Dequeue();
+                    if (!childrenByParent.TryGetValue(node.Id, out var kids)) continue;
+                    foreach (var kid in kids)
+                    {
+                        if (depth.ContainsKey(kid.Id)) continue; // cycle guard / sudah dikunjungi
+                        depth[kid.Id] = depth[node.Id] + 1;
+                        queue.Enqueue(kid);
+                    }
+                }
+
+                var orphans = all.Where(u => !depth.ContainsKey(u.Id)).ToList();
+                if (orphans.Count > 0)
+                    logger.LogWarning("NormalizeOrgLevels: {Count} unit orphan/unreachable di-skip. Ids: {Ids}",
+                        orphans.Count, string.Join(",", orphans.Select(o => o.Id)));
+
+                var changed = all.Where(u => depth.ContainsKey(u.Id) && u.Level != depth[u.Id]).ToList();
+                if (changed.Count == 0)
+                {
+                    logger.LogInformation("NormalizeOrgLevels: 0 baris diubah (sudah konsisten), {Orphan} orphan.", orphans.Count);
+                    return;
+                }
+
+                foreach (var u in changed) u.Level = depth[u.Id];
+                await context.SaveChangesAsync();   // satu save → atomik (EF implicit transaction)
+                logger.LogInformation("NormalizeOrgLevels: {Count} baris dinormalisasi, {Orphan} orphan di-skip.",
+                    changed.Count, orphans.Count);
+            }
+            catch (DbUpdateException ex)
+            {
+                logger.LogError(ex, "NormalizeOrgLevels: SaveChanges gagal, dilewati (data tak berubah).");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "NormalizeOrgLevels: error tak terduga, dilewati.");
+            }
+        }
     }
 }
