@@ -53,6 +53,61 @@
 
 #### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan.
 
+### Phase 358: Penanda Kelulusan (fondasi A)
+**Goal:** Logic kelulusan Proton konsisten — exam Tahun 1/2 yang lulus ikut menerbitkan penanda `ProtonFinalAssessment` (dulu cuma interview Tahun 3), via helper tunggal `ProtonCompletionService` dipanggil dari GradingService (exam lulus + re-grade flip Pass↔Fail) dan SubmitInterviewResults; plus backfill data lama. Fix bug "exam Tahun 1/2 lulus tak tercatat Lulus".
+**Depends on:** Tidak ada (fondasi milestone v25.0). Phase 359/360/361 depend ke phase ini.
+**Migration:** true (migration#1 `Origin` di `ProtonFinalAssessment` — nullable `[MaxLength(20)]`; baris lama di-set "Interview").
+**Requirements:** PCOMP-01..05
+**Success Criteria** (what must be TRUE):
+  1. Exam Proton Tahun 1/2 lulus → dashboard CDP/HistoriProton menandai "Lulus" (penanda `Origin="Exam"` terbit).
+  2. Re-grade Pass→Fail hapus penanda `Origin="Exam"` saja; penanda Bypass/Interview TIDAK terhapus. Fail→Pass terbit ulang.
+  3. Interview Tahun 3 tetap terbit penanda (`Origin="Interview"`) via helper bersama (perilaku lama tak berubah).
+  4. Backfill 1x idempotent bikin penanda untuk exam Tahun 1/2 lama yang lulus + deliverable 100%.
+  5. `dotnet build` 0 error + `dotnet test` hijau (unit + integration `ProtonCompletionService`) + UAT lokal:5277 (CLAUDE.md Develop Workflow).
+**Spec:** `docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md` (Diskusi A)
+**Plan draft:** `docs/superpowers/plans/2026-06-09-proton-completion-logic.md` (Task 1/3/4/5/10 → Phase 358; Task 6-9 → Phase 359; Task 2 helper `ProtonYearGate` = ambiguous 358/359)
+**UI hint:** no (backend + 1 endpoint backfill; display-off ditunda Phase 359)
+
+### Phase 359: Gate Berurutan + Cleanup (A)
+**Goal:** Paksa gate eligibility Proton di server (deliverable 100% + Tahun N-1 lulus), data-driven Tahun 3, graduation gate, dan matikan tampilan `CompetencyLevelGranted` (dormant).
+**Depends on:** Phase 358 (helper `ProtonCompletionService.GetPassedYearsAsync` + `Origin`).
+**Migration:** false
+**Requirements:** PCOMP-06..10
+**Success Criteria** (what must be TRUE):
+  1. POST CreateAssessment Proton tolak worker belum 100% deliverable (server-side, bukan cuma JS).
+  2. Tahun N tidak eligible kalau Tahun N-1 belum lulus (`ProtonYearGate`).
+  3. "Mark graduated" diblok kalau Tahun 3 belum lulus.
+  4. Halaman CDP/HistoriProton render tanpa kolom level + tanpa grafik tren, tanpa error.
+  5. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277.
+**Spec:** `docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md` (Diskusi A)
+**UI hint:** yes (display-off level + grafik tren di view CDP)
+
+### Phase 360: Bypass Backend (B)
+**Goal:** Backend fitur Bypass Tahun — tabel `PendingProtonBypass`, 4 closure mode (CL-A/B(a)/B(b)/C), notif `PROTON_BYPASS_READY` (hook GradingService), coach handling (E15), bootstrap-by-unit, 6 endpoint.
+**Depends on:** Phase 358 (helper+`Origin`), Phase 359 (gate-exempt logic).
+**Migration:** true (migration#2 `PendingProtonBypass`).
+**Requirements:** PBYP-01..07
+**Success Criteria** (what must be TRUE):
+  1. Bypass CL-A/B(a)/C eksekusi instan (deactivate asal + create target + bootstrap + audit).
+  2. Bypass CL-B(b) bikin pending "Menunggu"; exam lulus → "Siap" + notif HC; konfirmasi → pindah.
+  3. Batal pending auto-cancel exam (belum-kerjakan→hapus, sudah-lulus→pertahankan hasil).
+  4. Bypass exempt gate antar-tahun; coach mapping aktif lama dideactivate sebelum create baru.
+  5. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277.
+**Spec:** `docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md` (Diskusi B)
+**UI hint:** no (backend; UI di Phase 361)
+
+### Phase 361: Bypass UI (B)
+**Goal:** UI Bypass Tahun — Tab2 "Bypass Tahun" + wizard 3-langkah + panel "Menunggu Konfirmasi" + notif deep-link + e2e UAT.
+**Depends on:** Phase 360.
+**Migration:** false
+**Requirements:** PBYP-08..10
+**Success Criteria** (what must be TRUE):
+  1. Page Override 2 tab; Tab1 existing tak berubah; Tab2 wizard Tujuan→Closure→Detail.
+  2. Panel pending tampil + `[Konfirmasi]`/`[Batal]`; notif deep-link buka Tab2 pending.
+  3. UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
+**Spec:** `docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md` (Diskusi B)
+**UI hint:** yes (Tab2 wizard + panel pending)
+
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
 
