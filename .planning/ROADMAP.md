@@ -57,7 +57,7 @@
 **Goal:** Logic kelulusan Proton konsisten — exam Tahun 1/2 yang lulus ikut menerbitkan penanda `ProtonFinalAssessment` (dulu cuma interview Tahun 3), via helper tunggal `ProtonCompletionService` dipanggil dari GradingService (exam lulus + re-grade flip Pass↔Fail) dan SubmitInterviewResults; plus backfill data lama. Fix bug "exam Tahun 1/2 lulus tak tercatat Lulus".
 **Depends on:** Tidak ada (fondasi milestone v25.0). Phase 359/360/361 depend ke phase ini.
 **Migration:** true (migration#1 `Origin` di `ProtonFinalAssessment` — nullable `[MaxLength(20)]`; baris lama di-set "Interview").
-**Requirements:** PCOMP-01..05
+**Requirements:** PCOMP-01, PCOMP-02, PCOMP-03, PCOMP-04, PCOMP-05
 **Success Criteria** (what must be TRUE):
   1. Exam Proton Tahun 1/2 lulus → dashboard CDP/HistoriProton menandai "Lulus" (penanda `Origin="Exam"` terbit).
   2. Re-grade Pass→Fail hapus penanda `Origin="Exam"` saja; penanda Bypass/Interview TIDAK terhapus. Fail→Pass terbit ulang.
@@ -72,7 +72,7 @@
 **Goal:** Paksa gate eligibility Proton di server (deliverable 100% + Tahun N-1 lulus), data-driven Tahun 3, graduation gate, dan matikan tampilan `CompetencyLevelGranted` (dormant).
 **Depends on:** Phase 358 (helper `ProtonCompletionService.GetPassedYearsAsync` + `Origin`).
 **Migration:** false
-**Requirements:** PCOMP-06..10
+**Requirements:** PCOMP-06, PCOMP-07, PCOMP-08, PCOMP-09, PCOMP-10
 **Success Criteria** (what must be TRUE):
   1. POST CreateAssessment Proton tolak worker belum 100% deliverable (server-side, bukan cuma JS).
   2. Tahun N tidak eligible kalau Tahun N-1 belum lulus (`ProtonYearGate`).
@@ -86,7 +86,7 @@
 **Goal:** Backend fitur Bypass Tahun — tabel `PendingProtonBypass`, 4 closure mode (CL-A/B(a)/B(b)/C), notif `PROTON_BYPASS_READY` (hook GradingService), coach handling (E15), bootstrap-by-unit, 6 endpoint.
 **Depends on:** Phase 358 (helper+`Origin`), Phase 359 (gate-exempt logic).
 **Migration:** true (migration#2 `PendingProtonBypass`).
-**Requirements:** PBYP-01..07
+**Requirements:** PBYP-01, PBYP-02, PBYP-03, PBYP-04, PBYP-05, PBYP-06, PBYP-07
 **Success Criteria** (what must be TRUE):
   1. Bypass CL-A/B(a)/C eksekusi instan (deactivate asal + create target + bootstrap + audit).
   2. Bypass CL-B(b) bikin pending "Menunggu"; exam lulus → "Siap" + notif HC; konfirmasi → pindah.
@@ -100,7 +100,7 @@
 **Goal:** UI Bypass Tahun — Tab2 "Bypass Tahun" + wizard 3-langkah + panel "Menunggu Konfirmasi" + notif deep-link + e2e UAT.
 **Depends on:** Phase 360.
 **Migration:** false
-**Requirements:** PBYP-08..10
+**Requirements:** PBYP-08, PBYP-09, PBYP-10
 **Success Criteria** (what must be TRUE):
   1. Page Override 2 tab; Tab1 existing tak berubah; Tab2 wizard Tujuan→Closure→Detail.
   2. Panel pending tampil + `[Konfirmasi]`/`[Batal]`; notif deep-link buka Tab2 pending.
