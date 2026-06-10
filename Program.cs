@@ -56,6 +56,9 @@ builder.Services.AddScoped<HcPortal.Services.GradingService>();
 // Proton completion service — Phase 358 PCOMP-03: single-source penanda kelulusan Proton
 builder.Services.AddScoped<HcPortal.Services.ProtonCompletionService>();
 
+// Proton bypass service — Phase 360 PBYP-02: orkestrator Bypass Tahun (DI satu arah, tanpa GradingService)
+builder.Services.AddScoped<HcPortal.Services.ProtonBypassService>();
+
 // Impersonation service — Phase 283
 builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 builder.Services.AddHttpContextAccessor();
