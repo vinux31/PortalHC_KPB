@@ -101,6 +101,67 @@
       "dataSource": "ProtonDeliverableProgresses, ProtonFinalAssessments, ProtonTrackAssignments",
       "liveNote": "CONSOLE ERROR live: 'ReferenceError: Chart is not defined' @ Dashboard:560 -> Chart.js tak ter-load, 2 chart ('Competency Level Granted Over Time' + 'Deliverable Status') TIDAK render. Caught Playwright runtime (grep/build tak deteksi). Chart 'Competency Level Granted' = fitur yang v25.0 A-3 matikan (dormant).",
       "gaps": []
+    },
+    {
+      "id": "cdp-deliverable",
+      "name": "Deliverable detail",
+      "route": "/CDP/Deliverable/{id}",
+      "action": "CDPController.Deliverable",
+      "view": "Views/CDP/Deliverable.cshtml",
+      "purpose": "Detail 1 deliverable: info coachee/kompetensi, approval chain 3-tier, evidence coach (+coaching session), riwayat status timeline.",
+      "flow": { "from": ["CoachingProton 'Lihat Detail'", "Dashboard drill"], "to": ["/CDP/EditCoachingSession/{id}", "DownloadEvidence", "DownloadEvidencePdf"], "back": "breadcrumb+tombol 'Kembali ke IDP Plan' (KE PlanIdp, BUKAN ke CoachingProton asal)" },
+      "roles": "Coachee (own) | L1-3 full | L4 section-scoped (Forbid lintas section) | L5 Coach (mapped) | else Forbid",
+      "filters": [],
+      "table": { "columns": ["Approval Chain: Sr.Supervisor/Section Head/HC Review (status)", "Evidence rows: Pedoman/TKO-TKI/Best Practice/Dokumen/Catatan Coach/Kesimpulan/Result"], "source": "ProtonDeliverableProgress + ProtonDeliverable hierarchy + coaching session" },
+      "actions": [
+        { "label": "Edit coaching session (icon)", "endpoint": "/CDP/EditCoachingSession/{id} [RolesCoachAndAbove]" },
+        { "label": "Hapus session (icon)", "endpoint": "/CDP/DeleteCoachingSession [RolesCoachAndAbove]" },
+        { "label": "Download evidence", "endpoint": "/CDP/DownloadEvidence?progressId={id}" },
+        { "label": "PDF Evidence Report", "endpoint": "/CDP/DownloadEvidencePdf?progressId={id}" }
+      ],
+      "modals": [],
+      "export": ["PDF Evidence Report"],
+      "dataSource": "ProtonDeliverableProgresses (Include ProtonDeliverable>SubKompetensi>Kompetensi>Track)",
+      "liveNote": "Breadcrumb='IDP Plan / Deliverable' + tombol balik ke PlanIdp, tapi entry sebenarnya dari CoachingProton/Dashboard -> drill balik tak ke asal (calon flow gap). Display 'Kesimpulan: Kompeten secara mandiri' vs opsi Edit dropdown 'Kompeten'/'Perlu Pengembangan' (calon label inkonsistensi).",
+      "gaps": []
+    },
+    {
+      "id": "cdp-historiprotondetail",
+      "name": "Histori Detail",
+      "route": "/CDP/HistoriProtonDetail?userId={id}",
+      "action": "CDPController.HistoriProtonDetail",
+      "view": "Views/CDP/HistoriProtonDetail.cshtml",
+      "purpose": "Detail riwayat PROTON 1 pekerja: bio + accordion per Tahun (status + drill).",
+      "flow": { "from": ["HistoriProton 'Lihat Riwayat'", "Coachee auto-redirect dari HistoriProton"], "to": [], "back": "breadcrumb + 'Kembali ke Daftar' (HistoriProton)" },
+      "roles": "L<=3 semua | L4 same-section (Forbid lain) | L5 mapped (Forbid lain) | L>=6 own only (Forbid lain)",
+      "filters": [],
+      "table": { "columns": ["Bio: Nama/NIP/Jalur/Unit/Section", "Accordion per Tahun (status Dalam Proses/Lulus/...)"], "source": "ProtonTrackAssignments + ProtonFinalAssessments per tahun" },
+      "actions": [{ "label": "Expand Tahun (accordion)", "endpoint": "client-side" }],
+      "modals": [],
+      "export": ["none"],
+      "dataSource": "Users + ProtonTrackAssignments + ProtonFinalAssessments + progresses",
+      "liveNote": "Live: 'Tahun 1' muncul DUA kali keduanya 'Dalam Proses' (kemungkinan 2 assignment tahun sama / duplikat) = calon data-integrity gap. Tahun 2/3 tak tampil (no assignment).",
+      "gaps": []
+    },
+    {
+      "id": "cdp-editcoachingsession",
+      "name": "Edit Coaching Session",
+      "route": "/CDP/EditCoachingSession/{id}",
+      "action": "CDPController.EditCoachingSession (GET+POST)",
+      "view": "Views/CDP/EditCoachingSession.cshtml",
+      "purpose": "Edit catatan/kesimpulan/result 1 sesi coaching yang sudah ada.",
+      "flow": { "from": ["Deliverable detail (icon edit)"], "to": [], "back": "breadcrumb (Coaching Proton/Deliverable) + tombol Batal (Deliverable/{id})" },
+      "roles": "RolesCoachAndAbove (Coach/SrSpv/SectionHead/HC/Admin)",
+      "filters": [],
+      "table": { "columns": ["read-only: Tanggal/Kompetensi/Sub/Deliverable", "editable: Catatan Coach (textarea), Kesimpulan (Kompeten/Perlu Pengembangan), Result (Need Improvement/Suitable/Good/Excellence)"], "source": "coaching session record" },
+      "actions": [
+        { "label": "Simpan Perubahan", "endpoint": "POST /CDP/EditCoachingSession/{id} [RolesCoachAndAbove]" },
+        { "label": "Batal", "endpoint": "/CDP/Deliverable/{id}" }
+      ],
+      "modals": [],
+      "export": ["none"],
+      "dataSource": "ProtonCoachingSession / progress record",
+      "gaps": []
     }
   ],
   "gaps": [],
