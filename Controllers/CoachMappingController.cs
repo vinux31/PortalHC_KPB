@@ -1446,50 +1446,10 @@ namespace HcPortal.Controllers
                 return warnings;
             }
 
-            var deliverableIds = await _context.ProtonDeliverableList
-                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
-                         && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
-                .Select(d => d.Id)
-                .ToListAsync();
-
-            if (!deliverableIds.Any())
-            {
-                var trackName = await _context.ProtonTracks
-                    .Where(t => t.Id == protonTrackId)
-                    .Select(t => t.DisplayName)
-                    .FirstOrDefaultAsync() ?? protonTrackId.ToString();
-                warnings.Add($"Tidak ada deliverable untuk unit {resolvedUnit} di track {trackName}.");
-                return warnings;
-            }
-
-            var progresses = deliverableIds.Select(dId => new ProtonDeliverableProgress
-            {
-                CoacheeId = coacheeId,
-                ProtonDeliverableId = dId,
-                ProtonTrackAssignmentId = assignmentId,
-                Status = "Pending",
-                CreatedAt = DateTime.UtcNow
-            }).ToList();
-
-            _context.ProtonDeliverableProgresses.AddRange(progresses);
-            await _context.SaveChangesAsync(); // flush to get IDs for StatusHistory
-
-            // D-17: Insert initial "Pending" StatusHistory for each new progress
-            foreach (var p in progresses)
-            {
-                _context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
-                {
-                    ProtonDeliverableProgressId = p.Id,
-                    StatusType = "Pending",
-                    ActorId = "system",
-                    ActorName = "System",
-                    ActorRole = "System",
-                    Timestamp = DateTime.UtcNow
-                });
-            }
-            await _context.SaveChangesAsync();
-
-            return warnings;
+            // Phase 360 (PBYP-05): filter + insert diekstrak ke helper parametrik (unit eksplisit,
+            // guard anti-dobel B-06). Resolve unit (mapping → fallback User.Unit) tetap di sini.
+            return await ProtonDeliverableBootstrap.CreateProgressAsync(
+                _context, assignmentId, protonTrackId, coacheeId, resolvedUnit);
         }
 
         /// <summary>
