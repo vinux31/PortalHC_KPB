@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using HcPortal.Models;
 
 namespace HcPortal.Data
@@ -8,7 +9,7 @@ namespace HcPortal.Data
     /// Seed data untuk roles, admin bootstrap, dan organization units.
     /// Semua method idempotent dan production-safe.
     /// </summary>
-    public static class SeedData
+    public class SeedData
     {
         public static async Task InitializeAsync(IServiceProvider serviceProvider, Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment)
         {
@@ -124,6 +125,60 @@ namespace HcPortal.Data
             };
             context.OrganizationLevelLabels.AddRange(defaults);
             await context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Self-heal: pastikan 6 ProtonTrack master ada (Panelman/Operator × Tahun 1-3).
+        /// Insert-if-missing by (TrackType,TahunKe) — idempotent, preserve existing.
+        /// Track aslinya di-seed migration CreateProtonTrackTable (sekali); ini bikin tahan-banting
+        /// kalau baris hilang (mis. restore DB). Tak memperbaiki ref ProtonTrackId lama yang dangling.
+        /// </summary>
+        public static async Task SeedProtonTracksAsync(ApplicationDbContext context, ILogger logger)
+        {
+            try
+            {
+                var expected = new[]
+                {
+                    new ProtonTrack { TrackType = "Panelman", TahunKe = "Tahun 1", DisplayName = "Panelman - Tahun 1", Urutan = 1 },
+                    new ProtonTrack { TrackType = "Panelman", TahunKe = "Tahun 2", DisplayName = "Panelman - Tahun 2", Urutan = 2 },
+                    new ProtonTrack { TrackType = "Panelman", TahunKe = "Tahun 3", DisplayName = "Panelman - Tahun 3", Urutan = 3 },
+                    new ProtonTrack { TrackType = "Operator", TahunKe = "Tahun 1", DisplayName = "Operator - Tahun 1", Urutan = 4 },
+                    new ProtonTrack { TrackType = "Operator", TahunKe = "Tahun 2", DisplayName = "Operator - Tahun 2", Urutan = 5 },
+                    new ProtonTrack { TrackType = "Operator", TahunKe = "Tahun 3", DisplayName = "Operator - Tahun 3", Urutan = 6 },
+                };
+
+                // Pre-check orphan (log saja — tidak diperbaiki, lihat spec Non-Goals)
+                var orphanKomp = await context.ProtonKompetensiList
+                    .CountAsync(k => !context.ProtonTracks.Any(t => t.Id == k.ProtonTrackId));
+                var orphanAssign = await context.ProtonTrackAssignments
+                    .CountAsync(a => !context.ProtonTracks.Any(t => t.Id == a.ProtonTrackId));
+                if (orphanKomp > 0 || orphanAssign > 0)
+                    logger.LogWarning("SeedProtonTracks: orphan ProtonTrackId — Kompetensi={K}, Assignment={A} (pre-existing, tak diperbaiki).",
+                        orphanKomp, orphanAssign);
+
+                var existingKeys = await context.ProtonTracks
+                    .Select(t => new { t.TrackType, t.TahunKe }).ToListAsync();
+                var existingSet = new HashSet<string>(existingKeys.Select(k => $"{k.TrackType}|{k.TahunKe}"));
+
+                var missing = expected.Where(e => !existingSet.Contains($"{e.TrackType}|{e.TahunKe}")).ToList();
+                if (missing.Count == 0)
+                {
+                    logger.LogInformation("SeedProtonTracks: 6 track sudah lengkap, no-op.");
+                    return;
+                }
+
+                context.ProtonTracks.AddRange(missing);
+                await context.SaveChangesAsync();   // satu save → atomik (EF implicit transaction)
+                logger.LogInformation("SeedProtonTracks: {Count} track di-seed.", missing.Count);
+            }
+            catch (DbUpdateException ex)
+            {
+                logger.LogError(ex, "SeedProtonTracks: SaveChanges gagal, dilewati (data tak berubah).");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "SeedProtonTracks: error tak terduga, dilewati.");
+            }
         }
     }
 }
