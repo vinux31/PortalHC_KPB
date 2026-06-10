@@ -1161,6 +1161,8 @@ namespace HcPortal.Controllers
 
                 // Proton exam metadata — look up TahunKe from ProtonTrack
                 string? protonTahunKe = null;
+                string? protonTrackType = null;
+                int protonUrutan = 0;
                 if (model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue)
                 {
                     var protonTrack = await _context.ProtonTracks.FindAsync(model.ProtonTrackId.Value);
@@ -1185,6 +1187,8 @@ namespace HcPortal.Controllers
                         return View("CreateAssessment", model);
                     }
                     protonTahunKe = protonTrack.TahunKe;
+                    protonTrackType = protonTrack.TrackType;
+                    protonUrutan = protonTrack.Urutan;
                 }
 
                 // Phase 227 CLEN-04: NomorSertifikat is now generated in SubmitExam (when IsPassed=true).
@@ -1329,12 +1333,71 @@ namespace HcPortal.Controllers
                 }
                 // else: flow standard existing continues below...
 
+                // Phase 359 (PCOMP-06/07/08) — gate eligibility server-side untuk Assessment Proton.
+                // BUKAN all-or-nothing (D-01): worker tak-eligible di-SKIP, eligible tetap dapat session.
+                var eligibleUserIds = new List<string>(UserIds);
+                int gateSkippedNotHundred = 0, gateSkippedPrevYear = 0;
+                if (model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue && model.ProtonTrackId.Value > 0)
+                {
+                    int protonTrackId = model.ProtonTrackId.Value;
+                    string trackType = protonTrackType ?? "";
+                    // prevTahunKe = TahunKe track dgn TrackType sama & Urutan-1; null jika Urutan<=1 (Tahun 1).
+                    string? prevTahunKe = protonUrutan > 1
+                        ? await _context.ProtonTracks
+                            .Where(t => t.TrackType == trackType && t.Urutan == protonUrutan - 1)
+                            .Select(t => t.TahunKe).FirstOrDefaultAsync()
+                        : null;
+
+                    // Deliverable track (D-08 fallback): jika kosong → skip cek 100% (interview-only/transisi).
+                    var trackDeliverableIds = await _context.ProtonKompetensiList
+                        .Where(k => k.ProtonTrackId == protonTrackId)
+                        .SelectMany(k => k.SubKompetensiList)
+                        .SelectMany(s => s.Deliverables)
+                        .Select(d => d.Id)
+                        .ToListAsync();
+                    bool trackHasDeliverables = trackDeliverableIds.Any();
+
+                    // Renewal: tetap WAJIB lewat gate 100% (D-07), TAPI cross-year prereq di-exempt
+                    // (renewal = perpanjangan tahun yang SUDAH dilewati).
+                    bool isRenewal = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue;
+
+                    var filtered = new List<string>();
+                    foreach (var uid in UserIds)
+                    {
+                        // (a) Cross-year gate (D-03/D-07): penanda Tahun N-1 (kecuali renewal).
+                        if (!isRenewal && !await _protonCompletionService.IsPrevYearPassedAsync(uid, trackType, prevTahunKe))
+                        {
+                            gateSkippedPrevYear++; continue;
+                        }
+                        // (b) Deliverable 100% per-unit (D-02). Fallback: track 0 deliverable → eligible (D-08).
+                        if (trackHasDeliverables)
+                        {
+                            var resolvedUnit = await _context.CoachCoacheeMappings
+                                .Where(m => m.CoacheeId == uid && m.IsActive).Select(m => m.AssignmentUnit).FirstOrDefaultAsync();
+                            if (string.IsNullOrWhiteSpace(resolvedUnit))
+                                resolvedUnit = await _context.Users.Where(u => u.Id == uid).Select(u => u.Unit).FirstOrDefaultAsync();
+                            if (string.IsNullOrWhiteSpace(resolvedUnit)) { gateSkippedNotHundred++; continue; }
+                            var unitDeliverableIds = await _context.ProtonDeliverableList
+                                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
+                                         && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
+                                .Select(d => d.Id).ToListAsync();
+                            var myStatuses = await _context.ProtonDeliverableProgresses
+                                .Where(p => p.CoacheeId == uid && unitDeliverableIds.Contains(p.ProtonDeliverableId))
+                                .Select(p => p.Status).ToListAsync();
+                            if (!CoacheeEligibilityCalculator.IsEligiblePerUnit(myStatuses, unitDeliverableIds.Count))
+                            { gateSkippedNotHundred++; continue; }
+                        }
+                        filtered.Add(uid);
+                    }
+                    eligibleUserIds = filtered;
+                }
+
                 // Create all sessions in memory first
                 var sessions = new List<AssessmentSession>();
 
-                for (int i = 0; i < UserIds.Count; i++)
+                for (int i = 0; i < eligibleUserIds.Count; i++)
                 {
-                    var userId = UserIds[i];
+                    var userId = eligibleUserIds[i];
                     var session = new AssessmentSession
                     {
                         Title = model.Title,
