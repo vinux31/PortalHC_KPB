@@ -19,17 +19,21 @@ namespace HcPortal.Services
         private readonly IWorkerDataService _workerDataService;
         private readonly ILogger<GradingService> _logger;
         private readonly ProtonCompletionService _protonCompletionService;
+        private readonly ProtonBypassService _protonBypassService;
 
         public GradingService(
             ApplicationDbContext context,
             IWorkerDataService workerDataService,
             ILogger<GradingService> logger,
-            ProtonCompletionService protonCompletionService)
+            ProtonCompletionService protonCompletionService,
+            ProtonBypassService protonBypassService)
         {
             _context = context;
             _workerDataService = workerDataService;
             _logger = logger;
             _protonCompletionService = protonCompletionService;
+            // Satu arah grading → bypass (Open Q3): ProtonBypassService TIDAK inject GradingService.
+            _protonBypassService = protonBypassService;
         }
 
         /// <summary>
@@ -306,6 +310,8 @@ namespace HcPortal.Services
                 await _protonCompletionService.EnsureAsync(
                     session.UserId, session.ProtonTrackId.Value, session.CreatedBy ?? "",
                     "Exam", $"Exam Proton lulus (skor {finalPercentage}%).");
+                // §7 titik 1: exam CL-B(b) lulus → pending Menunggu→Siap + notif HC (no-tx, idempotent).
+                await _protonBypassService.MarkPendingReadyIfAnyAsync(session.Id);
             }
 
             return true;
@@ -482,8 +488,13 @@ namespace HcPortal.Services
 
                 // PCOMP-02 (D-06/A-M9): flip Pass→Fail hapus penanda HANYA Origin="Exam" (Bypass/Interview kebal).
                 // Guard TANPA isPassed (cabang ini isPassed==false): hapus = saat gagal.
+                // W-09: braced — hook WAJIB di dalam guard Proton (T-360-35).
                 if (session.Category == "Assessment Proton" && session.ProtonTrackId.HasValue)
+                {
                     await _protonCompletionService.RemoveExamOriginAsync(session.UserId, session.ProtonTrackId.Value);
+                    // §7 titik 3 (D-15): re-grade Pass→Fail → pending Siap balik Menunggu (no-tx).
+                    await _protonBypassService.RevertPendingToMenungguAsync(session.Id);
+                }
             }
             else if (!wasPassed && isPassed)
             {
@@ -528,10 +539,15 @@ namespace HcPortal.Services
                     session.Id);
 
                 // PCOMP-01/02 (D-06): flip Fail→Pass terbit penanda Origin="Exam" (guard D-05).
+                // W-09: braced — hook WAJIB di dalam guard Proton (T-360-35).
                 if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId.HasValue)
+                {
                     await _protonCompletionService.EnsureAsync(
                         session.UserId, session.ProtonTrackId.Value, session.CreatedBy ?? "",
                         "Exam", $"Re-grade Fail→Pass (skor {newPct}%).");
+                    // §7 titik 2: re-grade Fail→Pass → pending Menunggu→Siap + notif HC (no-tx).
+                    await _protonBypassService.MarkPendingReadyIfAnyAsync(session.Id);
+                }
             }
             // Pass->Pass, Fail->Fail: no cascade
 
