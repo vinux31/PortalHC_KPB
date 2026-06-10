@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v25.0
 milestone_name: Proton Kelulusan & Bypass
 status: executing
-last_updated: "2026-06-10T11:57:08.614Z"
+last_updated: "2026-06-10T12:15:39.006Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 21
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 ## Current Position
 
 Milestone: v25.0 — Proton Kelulusan & Bypass (6 phase 358-363; 358/359/362 shipped local)
-Phase: 360 (bypass-backend-b) — EXECUTING
-Plan: 6 of 8
+Phase: 363
+Plan: Not started
 Status: Ready to execute
 Last activity: 2026-06-10
 

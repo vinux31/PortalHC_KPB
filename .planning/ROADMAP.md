@@ -41,7 +41,7 @@
   - SC2: Tahun N tidak eligible kalau Tahun N-1 belum lulus.
   - SC3: "Mark graduated" diblok kalau Tahun 3 belum lulus.
   - SC4: Halaman CDP/HistoriProton render tanpa kolom level + tanpa grafik tren, tanpa error.
-- [ ] **Phase 360: Bypass Backend (B)** — migration#2 `PendingProtonBypass` + closure CL-A/B(a)/B(b)/C + notif `PROTON_BYPASS_READY` (GradingService hook) + coach handling (E15) + bootstrap-by-unit + 6 endpoint (BypassList/PendingList/Detail/Save/Confirm/CancelPending). REQ: PBYP-01..07. Migration=true. Depends: 358 (helper+Origin), 359 (gate-exempt)
+- [x] **Phase 360: Bypass Backend (B)** — migration#2 `PendingProtonBypass` + closure CL-A/B(a)/B(b)/C + notif `PROTON_BYPASS_READY` (GradingService hook) + coach handling (E15) + bootstrap-by-unit + 6 endpoint (BypassList/PendingList/Detail/Save/Confirm/CancelPending). REQ: PBYP-01..07. Migration=true. Depends: 358 (helper+Origin), 359 (gate-exempt) (completed 2026-06-10)
   - SC1: Bypass CL-A/B(a)/C eksekusi instan (deactivate asal + create target + bootstrap + audit).
   - SC2: Bypass CL-B(b) bikin pending "Menunggu"; exam lulus → "Siap" + notif HC; konfirmasi → pindah.
   - SC3: Batal pending auto-cancel exam (belum-kerjakan→hapus, sudah-lulus→pertahankan hasil).
@@ -155,7 +155,7 @@ Plans:
   5. Triase T5-T10 tuntas: tiap item fix ATAU ditandai by-design dengan alasan tercatat.
   6. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277 (CLAUDE.md Develop Workflow).
 **UI hint:** minimal (mayoritas backend/notif; T5 sentuh view HistoriProton)
-**Plans:** 0 plans
+**Plans:** 8/8 plans complete
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 363 to break down)
