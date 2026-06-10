@@ -67,6 +67,12 @@
 **Spec:** `docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md` (Diskusi A)
 **Plan draft:** `docs/superpowers/plans/2026-06-09-proton-completion-logic.md` (Task 1/3/4/5/10 → Phase 358; Task 6-9 → Phase 359; Task 2 helper `ProtonYearGate` = ambiguous 358/359)
 **UI hint:** no (backend + 1 endpoint backfill; display-off ditunda Phase 359)
+**Plans:** 4 plans (3 waves)
+Plans:
+- [ ] 358-01-PLAN.md — Migration Origin + model field + test fixture scaffold (PCOMP-04)
+- [ ] 358-02-PLAN.md — ProtonCompletionService (single-source) + DI + [Fact] (PCOMP-02/03)
+- [ ] 358-03-PLAN.md — Wire GradingService (completion hook + 2 re-grade flip) (PCOMP-01/02)
+- [ ] 358-04-PLAN.md — AssessmentAdminController: interview refactor + essay defensive hook + backfill endpoint (PCOMP-03/05)
 
 ### Phase 359: Gate Berurutan + Cleanup (A)
 **Goal:** Paksa gate eligibility Proton di server (deliverable 100% + Tahun N-1 lulus), data-driven Tahun 3, graduation gate, dan matikan tampilan `CompetencyLevelGranted` (dormant).
@@ -1079,8 +1085,10 @@ Plans:
 - [ ] **Phase 352: Data Foundation + Image-Only Upload** — Migration 4 kolom (PackageQuestion/PackageOption ImagePath+ImageAlt) + entity + helper image-only (Gap 4) + folder konvensi `/uploads/questions/{packageId}/`
 - [x] **Phase 353: Admin Backend Gambar (CRUD + Sync + Atomic Delete)** — Form upload/alt/replace/remove per soal+opsi + Create/Edit/Delete wiring + JSON prefill edit (Gap 3) + preview admin render (Gap 5) + SyncPackagesToPost shared-file (Gap 1) + hapus file atomic pola Phase 333 (DeleteQuestion/replace)
  (completed 2026-06-08)
-- [x] **Phase 354: Render Gambar di 6 Layar** — 4 ViewModel bawa gambar (Gap 2) + render `<img img-fluid loading=lazy alt>` di StartExam, ExamSummary, Results, _PreviewQuestion, AssessmentMonitoringDetail, EditPesertaAnswers (completed 2026-06-09)
-- [x] **Phase 355: Test & UAT** — xUnit konsolidasi (upload valid/invalid + sync copy ImagePath + DeleteQuestion hapus file) + Playwright UAT end-to-end admin upload → peserta lihat StartExam → lihat Results (3 plans) (completed 2026-06-09)
+- [x] **Phase 354: Render Gambar di 6 Layar** — 4 ViewModel bawa gambar (Gap 2) + render `<img img-fluid loading=lazy alt>` di StartExam, ExamSummary, Results, _PreviewQuestion, AssessmentMonitoringDetail, EditPesertaAnswers
+ (completed 2026-06-09)
+- [x] **Phase 355: Test & UAT** — xUnit konsolidasi (upload valid/invalid + sync copy ImagePath + DeleteQuestion hapus file) + Playwright UAT end-to-end admin upload → peserta lihat StartExam → lihat Results (3 plans)
+ (completed 2026-06-09)
 
 ### Phase Details
 
