@@ -15,6 +15,11 @@
         bcAction = "CoachingProton";
         bcLabel = "Coaching Proton";
     }
+    else if (refererBc.Contains("/CDP/Dashboard", StringComparison.OrdinalIgnoreCase))
+    {
+        bcAction = "Dashboard";
+        bcLabel = "Dashboard";
+    }
 }
 @* Breadcrumb — simplified to 2 levels *@
 <nav aria-label="breadcrumb" class="mb-3">
@@ -456,6 +461,11 @@ else
     {
         backUrl2 = Url.Action("CoachingProton")!;
         backText2 = "Kembali ke Coaching Proton";
+    }
+    else if (referer2.Contains("/CDP/Dashboard", StringComparison.OrdinalIgnoreCase))
+    {
+        backUrl2 = Url.Action("Dashboard")!;
+        backText2 = "Kembali ke Dashboard";
     }
     else if (referer2.Contains("/ProtonData", StringComparison.OrdinalIgnoreCase))
     {
