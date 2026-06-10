@@ -23,11 +23,11 @@
 - ✅ **v22.0 CMP-06 + Assessment/Monitoring Audit Fixes** — Phases 345-349 (shipped local + audited 2026-06-05, 60/60 REQ) — [archive](milestones/v22.0-ROADMAP.md) — [audit](milestones/v22.0-MILESTONE-AUDIT.md)
 - ✅ **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (shipped local + audited 2026-06-06, 7/7 REQ SF-01..07) — [archive](milestones/v23.0-ROADMAP.md) — [audit](milestones/v23.0-MILESTONE-AUDIT.md)
 - ✅ **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-357 (shipped local 2026-06-09, audited passed; 6 phase, 22 plan, 25/25 REQ; full detail → [milestones/v24.0-ROADMAP.md](milestones/v24.0-ROADMAP.md))
-- 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-366 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP + 362 polish + 363 audit-fix T1-T10 + 364-366 promoted backlog 2026-06-10; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md))
+- 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-368 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP + 362 polish + 363 audit-fix T1-T10 + 364-366 promoted backlog 2026-06-10 + 367-368 delete-records overhaul 2026-06-10; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md) + [C delete-records](../docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md))
 
 ## Phases
 
-### 🚧 v25.0 Proton Kelulusan & Bypass (Phases 358-366) — ACTIVE
+### 🚧 v25.0 Proton Kelulusan & Bypass (Phases 358-368) — ACTIVE
 
 **Goal:** Logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa) lalu fitur Bypass Tahun. **B (bypass) depends A (completion)** — implement+verify A dulu. Sequential strict 358→359→360→361 (file-overlap GradingService 358+360, AssessmentAdminController 358+359). 2 migration (`Origin` 358, `PendingProtonBypass` 360).
 
@@ -55,8 +55,10 @@
 - [ ] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10)
 - [ ] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
 - [ ] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10)
+- [ ] **Phase 367: Delete Records Cascade Overhaul** — hapus 100% sampai akar: cascade engine renewal rekursif + preview konfirmasi (no blocker) + UI HTMX jujur + assessment online deletable dari tab Input Records + guard duplikat 3 pintu input + fix badge/over-match/file/reset-guard. Temuan #1-12, #14-20 spec C. Migration=false. Depends: 366 (file-overlap 3 endpoint Delete* AssessmentAdminController) (added 2026-06-10)
+- [ ] **Phase 368: Delete Records Hygiene Lanjutan** — edit atomic file replace + reset bersihkan ET scores + audit log ImportTraining + dedup CertificationManagement CMP/CDP + validasi Renews*Id + rename label BulkBackfill + one-time cleanup AttemptHistory orphan legacy. Temuan #21-27 spec C. Migration=false. Depends: 367 (file-overlap TrainingAdminController/ResetAssessment) (added 2026-06-10)
 
-#### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan. Phase 364-366 = test/cleanup promoted dari backlog (no new product REQ; acuan masing-masing di section phase).
+#### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan. Phase 364-366 = test/cleanup promoted dari backlog; Phase 367-368 = delete-records overhaul dari brainstorm 2026-06-10 (27 temuan in-scope, spec C — no new product REQ-ID, acuan spec).
 
 ### Phase 358: Penanda Kelulusan (fondasi A)
 **Goal:** Logic kelulusan Proton konsisten — exam Tahun 1/2 yang lulus ikut menerbitkan penanda `ProtonFinalAssessment` (dulu cuma interview Tahun 3), via helper tunggal `ProtonCompletionService` dipanggil dari GradingService (exam lulus + re-grade flip Pass↔Fail) dan SubmitInterviewResults; plus backfill data lama. Fix bug "exam Tahun 1/2 lulus tak tercatat Lulus".
@@ -196,6 +198,29 @@ Plans:
   4. `dotnet build` 0 error + `dotnet test` hijau + UAT @5277: hapus assessment bergambar → file fisik ikut bersih; hapus salah satu Pre/Post yang share gambar → file selamat.
 **UI hint:** no (backend cleanup)
 **Plans:** 0 plans — TBD (run /gsd-plan-phase 366)
+
+### Phase 367: Delete Records Cascade Overhaul
+**Goal:** Admin bisa hapus record worker (training / assessment manual / assessment ONLINE) dari tab Input Records sampai 100% bersih — cascade rekursif seluruh turunan renewal lintas `TrainingRecords`↔`AssessmentSessions` + semua artefak per node (EditLogs, PackageUserResponses, AttemptHistory, UserPackageAssignments, Packages+Q+O, notifikasi lonceng, penanda Proton `Origin='Exam'`, PendingProtonBypass, `LinkedSessionId` pasangan, file sertifikat) — dengan preview konfirmasi (bukan blokir) dan UI HTMX jujur (gagal ≠ sukses). Asal: brainstorm 2026-06-10 (repro live lokal + kasus Rino @Dev). Spec C: `docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md` — temuan **#1-12, #14-20**.
+**Depends on:** Phase 366 (file-overlap: 366 pasang image-cleanup helper di `DeleteAssessment`/`DeleteAssessmentGroup`/`DeletePrePostGroup` — 367 merombak pre-check + file-cert di 3 endpoint yang sama; plan 367 WAJIB preserve helper image 366). **Koordinasi 360/361 (Bypass):** cleanup `PendingProtonBypasses` saat session dihapus = **soft-cancel** (`Status='Dibatalkan'` + ResolvedAt, konsisten spec bypass §8.1) — BUKAN hard-delete row; Phase 361 (UI panel pending) belum jalan, sinkron saat planning.
+**Migration:** false.
+**Requirements:** Temuan #1-12 + #14-20 spec C (§3.1 cascade engine, §3.2 endpoint+UI, §3.3 item ber-tag [367]).
+**Success Criteria** (what must be TRUE):
+  1. Hapus record apa pun dari tab Input Records → DB 100% bersih: node + seluruh turunan renewal lintas tabel + semua artefak — assert per tabel via integration test real-SQL; transaction rollback utuh saat exception.
+  2. Preview konfirmasi menampilkan daftar persis korban cascade (+ kandidat mirror legacy heuristik judul/tanggal ±1 hari, checkbox opt-out) sebelum eksekusi; tidak ada jalur blokir tersisa (pre-check renewal tab 1 + tab 2 jadi preview).
+  3. UI HTMX jujur: gagal → pesan merah langsung di tab (`recordDeleteFailed`), sukses → sinyal sukses; repro seed renewal-chain via Playwright PASS dua arah (sukses & gagal).
+  4. Assessment online worker (termasuk >7 hari, kasus Rino) tampil di tab Input Records dengan badge pembeda + bisa dihapus tuntas.
+  5. Guard duplikat di AddManualAssessment/ImportTraining/BulkBackfill tolak kombinasi user+judul+tanggal existing; badge count tidak kontradiksi dengan list; DeleteAssessmentGroup tidak menyapu Pre/Post/manual di luar scope tampilan; ResetAssessment tolak session IsManualEntry.
+**UI hint:** yes (modal preview, badge + tombol hapus online di tab 2, flash di partial).
+**Plans:** 0 plans — TBD (run /gsd-plan-phase 367)
+
+### Phase 368: Delete Records Hygiene Lanjutan
+**Goal:** Sisa temuan **#21-27** spec C di alur tetangga: EditTraining + EditManualAssessment replace file atomik (save-baru → commit → hapus-lama post-commit, pola fase 331) · ResetAssessment bersihkan `SessionElemenTeknisScores` (ET analytics stale) · ImportTraining audit log + `AssessmentType` konstanta + `GenerateCertificate=isPassed` · CertificationManagement CMP+CDP GroupBy dedup (samakan AdminBase) · EditTraining validasi `Renews*Id` (wajib exist + same-user) · BulkBackfill rename label "Bulk Import Nilai (Excel)" + `AssessmentType` konstanta · one-time cleanup AttemptHistory orphan legacy.
+**Depends on:** Phase 367 (file-overlap `TrainingAdminController.cs` + `ResetAssessment` di `AssessmentAdminController.cs`).
+**Migration:** false.
+**Requirements:** Temuan #21-27 spec C (§3.3 item ber-tag [368]); detail test difinalkan saat planning 368.
+**Success Criteria:** TBD saat plan (turunan langsung spec §3.3; minimal: [Fact] replace-file atomic ala Phase 355 `Replace_NewFileWins`, retake pasca-reset menghasilkan ET scores baru, import ter-audit-log).
+**UI hint:** minor (rename label BulkBackfill).
+**Plans:** 0 plans — TBD (run /gsd-plan-phase 368)
 
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
@@ -1354,29 +1379,11 @@ Plans:
 
 </details>
 
-### Phase 367: Delete Records Cascade Overhaul — hapus 100% sampai akar (cascade renewal + UI jujur + online di Input Records)
-
-**Goal:** Admin bisa hapus record worker (training/assessment manual/assessment ONLINE) dari tab Input Records sampai 100% bersih — cascade rekursif seluruh turunan renewal lintas TrainingRecords↔AssessmentSessions + semua artefak (AttemptHistory, EditLogs, Responses, Assignments, Packages, notifikasi lonceng, penanda Proton Origin='Exam', PendingProtonBypass, LinkedSessionId pasangan, file sertifikat) — dengan preview konfirmasi (bukan blokir) dan UI HTMX jujur (gagal ≠ sukses). Spec: `docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md` (temuan #1-20 + N14-N20).
-**Requirements**: Cascade engine (preview+execute, 1 tx, cycle guard) · tab 2 tampilkan+hapus session online (tutup gap filter 7-hari tab 1) · pre-check renewal blocker → preview (tab 2 + tab 1) · HX-Trigger sukses/gagal dibedakan + flash di partial · guard duplikat AddManualAssessment/ImportTraining/BulkBackfill · fix badge count 2 formula · fix DeleteAssessmentGroup over-match sibling · file fisik manual session ikut terhapus di tab 1 · guard IsManualEntry di ResetAssessment · mirror legacy heuristik di preview (opt-out) · migration=FALSE
-**Depends on:** Phase 366
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd-plan-phase 367 to break down)
-
-### Phase 368: Delete Records Hygiene Lanjutan — edit atomic file + reset ET scores + audit import + dedup cert + validasi renewal ID
-
-**Goal:** Sisa temuan re-check #2 di alur tetangga (spec sama, temuan N21-N26/27): EditTraining+EditManualAssessment replace file atomik (save-baru→commit→hapus-lama post-commit, pola fase 331) · ResetAssessment bersihkan SessionElemenTeknisScores (ET analytics stale) · ImportTraining audit log + AssessmentType konstanta + GenerateCertificate=isPassed · CertificationManagement CMP/CDP GroupBy dedup (samakan AdminBase) · EditTraining validasi Renews*Id (exist + same-user) · BulkBackfill rename label + AssessmentType konstanta · cleanup one-time AttemptHistory orphan legacy (opsional). Spec: `docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md`.
-**Requirements**: TBD saat planning · migration=FALSE
-**Depends on:** Phase 367
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd-plan-phase 368 to break down)
-
 ---
 
-*Roadmap updated: 2026-06-10 (Backlog review — promoted 3: 999.4 → Phase 364 [restore baseline e2e exam, test-only, zero overlap, bisa paralel], 999.5 → Phase 365 [AF-3 xUnit MarkMappingCompletedTests, scope opsi (b) saja — varian e2e/race tetap backlog karena bersinggungan 363 T3], 999.3 → Phase 366 [cascade image cleanup, depends 363 line-stability; scope dikoreksi: ekstrak helper baru, TIDAK ada helper produksi dari 353]. Verifikasi adversarial 4-agent 12-klaim sebelum promote; line drift dicatat di tiap entry. v25.0 jadi Phases 358-366.)*
+*Roadmap updated: 2026-06-10 (Phase 367+368 added — Delete Records Cascade Overhaul + Hygiene Lanjutan, dari brainstorm kasus "hapus assessment Input Records sukses palsu / worker masih lihat" [repro live lokal + kasus Rino @Dev]. 28 temuan total terverifikasi adversarial 2x → 27 in-scope [367: #1-12,#14-20 cascade+preview+online+UI-jujur; 368: #21-27 hygiene], 1 impersonate → backlog 999.6. Spec C: 2026-06-10-delete-input-records-full-cascade-design.md. 367 depends 366 [file-overlap 3 endpoint Delete*], 368 depends 367. Koordinasi: PendingProtonBypass soft-cancel selaras spec bypass §8.1. v25.0 jadi Phases 358-368.)*
+
+*Prev: 2026-06-10 (Backlog review — promoted 3: 999.4 → Phase 364 [restore baseline e2e exam, test-only, zero overlap, bisa paralel], 999.5 → Phase 365 [AF-3 xUnit MarkMappingCompletedTests, scope opsi (b) saja — varian e2e/race tetap backlog karena bersinggungan 363 T3], 999.3 → Phase 366 [cascade image cleanup, depends 363 line-stability; scope dikoreksi: ekstrak helper baru, TIDAK ada helper produksi dari 353]. Verifikasi adversarial 4-agent 12-klaim sebelum promote; line drift dicatat di tiap entry. v25.0 jadi Phases 358-366.)*
 
 *Prev: 2026-06-10 (Phase 363 added — Audit Fix Alur PROTON, 10 temuan T1-T10 dari verifikasi adversarial alur PROTON end-to-end [9-agent workflow vs kode]: 3 HIGH [T1 notif allApproved miss `ApproveFromProgress`, T2 reject chain divergen HCApprovalStatus survive, T3 loophole year-gate reaktivasi assignment], 4 MED, 3 LOW. Detail `.planning/phases/363-audit-fix-alur-proton-temuan-verifikasi-t1-t10/363-FINDINGS.md`. Depends 362 [file-overlap CDPController]; T3 koordinasi exempt hook Phase 360. Pertimbangkan /gsd-discuss-phase 363 untuk lock keputusan T3/T4/T5 sebelum plan.)*
 

@@ -6,7 +6,9 @@
 
 ---
 
-## 1. Masalah (29 temuan, terverifikasi adversarial + repro live)
+## 1. Masalah (28 temuan, terverifikasi adversarial + repro live)
+
+> **Catatan penomoran:** total temuan proses brainstorm = 28 (13 batch-1 + 15 batch-2 re-check). Tabel di bawah berisi **26 baris** karena: **#13 (bug Impersonate)** dipindah ke "Di luar scope" (backlog 999.6) — nomornya sengaja dikosongkan agar referensi stabil; dan temuan "label BulkBackfill menyesatkan" **di-merge ke baris #14** (satu paket BulkBackfill). In-scope milestone = **27 temuan**: Phase 367 = #1-12 + #14-20, Phase 368 = #21-27.
 
 ### A. Akar kasus "hapus berhasil tapi masih ada"
 
@@ -58,7 +60,7 @@
 Impersonate "view as X" menampilkan data admin asli (`CMPController.cs:2535-2542` resolve principal asli; `ImpersonationMiddleware.cs:111-142` hanya isi HttpContext.Items).
 
 ### Terverifikasi AMAN (tidak perlu diubah)
-Authorization `Admin, HC` + ValidateAntiForgeryToken pada kedua endpoint delete tab 2; file delete tab 2 sudah pola fase 331 (capture pre-Remove, File.Delete post-commit warn-only); cleanup parity DeleteAssessmentGroup/DeletePrePostGroup = gold standard.
+Authorization `Admin, HC` + ValidateAntiForgeryToken pada kedua endpoint delete tab 2; file delete tab 2 sudah pola fase 331 (capture pre-Remove, File.Delete post-commit warn-only); cleanup parity DeleteAssessmentGroup/DeletePrePostGroup = gold standard (aspek kebersihan artefak per-session — seleksi sibling yang over-match tetap temuan #18).
 
 ---
 
@@ -77,36 +79,46 @@ Authorization `Admin, HC` + ValidateAntiForgeryToken pada kedua endpoint delete 
 - Input: node awal (TrainingRecord ATAU AssessmentSession). Traversal BFS rekursif anak renewal lintas dua tabel, guard cycle (HashSet visited).
 - **Preview mode**: kembalikan pohon (jenis, Id, judul, tanggal, pemilik) tanpa mutasi — dipakai modal konfirmasi.
 - **Execute mode**: satu transaction; per node:
-  - AssessmentSession: RemoveRange `AssessmentEditLogs`, `PackageUserResponses`, `AssessmentAttemptHistory` (by SessionId), `UserPackageAssignments`, `AssessmentPackages`+Questions+Options (blueprint gold standard `AssessmentAdminController.cs:2270-2329`); null-clear `LinkedSessionId` pasangan; cleanup `PendingProtonBypasses` (LinkedAssessmentSessionId == Id → batalkan/hapus pending); bila Category Proton → `RemoveExamOriginAsync`; kumpulkan path file sertifikat manual (`ManualSertifikatUrl`).
+  - AssessmentSession: RemoveRange `AssessmentEditLogs`, `PackageUserResponses`, `AssessmentAttemptHistory` (by SessionId), `UserPackageAssignments`, `AssessmentPackages`+Questions+Options (blueprint gold standard `AssessmentAdminController.cs:2270-2329` — parity, tanpa nomor temuan); null-clear `LinkedSessionId` pasangan; `PendingProtonBypasses` ber-LinkedAssessmentSessionId == Id → **soft-cancel** (`Status='Dibatalkan'` + `ResolvedAt`, konsisten lifecycle spec bypass 2026-06-09 §8.1 — JANGAN hard-delete row, jejak audit dipertahankan; koordinasi Phase 361 UI pending saat planning); bila Category Proton → `RemoveExamOriginAsync`; kumpulkan path file sertifikat manual (`ManualSertifikatUrl`).
   - TrainingRecord: kumpulkan path `SertifikatUrl`.
   - Keduanya: hapus `UserNotifications` terkait (matching ActionUrl), Remove node.
 - AuditLog 1 entri per operasi: aktor, node akar, jumlah + daftar Id turunan.
 - File.Delete POST-commit, inner try/catch warn-only (pola fase 331-334).
-- **Mirror legacy (temuan 15)**: preview menampilkan kandidat mirror via heuristik (`TrainingRecords` user sama dengan `Judul == session.Title` ATAU `Judul == "Assessment: " + Title`, tanggal ± sama) dengan checkbox opsional "ikut hapus" — default tercentang, admin bisa kecualikan. Heuristik TIDAK auto-hapus tanpa tampil di preview.
+- **Mirror legacy (temuan 15)**: preview menampilkan kandidat mirror via heuristik (`TrainingRecords` user sama dengan `Judul == session.Title` ATAU `Judul == "Assessment: " + Title`, tanggal **±1 hari**) dengan checkbox opsional "ikut hapus" — default tercentang, admin bisa kecualikan. Heuristik TIDAK auto-hapus tanpa tampil di preview.
+- **Notifikasi (keputusan §2.3)**: pola ActionUrl yang dianggap menunjuk entitas terhapus diinventarisir saat planning (minimal `/CMP/Results/{id}`, `/CMP/Certificate/{id}`; pola TrainingRecord menyusul dari inventaris) — "konservatif" = hanya hapus yang match rute eksak, ragu = biarkan.
 
 ### 3.2 Endpoint & UI tab Input Records
 - `GET DeletePreview(type, id)` → partial modal daftar korban cascade.
 - `POST DeleteTraining` / `DeleteManualAssessment` direfactor pakai cascade engine; pre-check renewal lama DIHAPUS (digantikan preview).
-- Endpoint baru `POST DeleteWorkerSession` (online, gate `!IsManualEntry` dihilangkan — satu endpoint generik boleh) dengan cascade sama; guard role `Admin, HC` + antiforgery.
+- Hapus session online: **refactor `DeleteManualAssessment` jadi endpoint per-session generik** (gate `IsManualEntry` dihapus; satu endpoint melayani manual + online) dengan cascade sama; guard role `Admin, HC` + antiforgery. (Bukan endpoint baru terpisah — hindari duplikasi.)
 - `_TrainingRecordsTab.cshtml`: tampilkan SEMUA session worker (manual + online, badge "Assessment Online" / "Assessment Manual") + tombol hapus per baris; render blok flash error/sukses DI DALAM partial; HX-Trigger dibedakan `recordDeleted` vs `recordDeleteFailed` (payload pesan).
 - Tab 1 (DeleteAssessment/Group/PrePost): pre-check renewal fase 325/329 diubah dari blocker → konfirmasi cascade yang sama (konsisten kebijakan no-blocker).
 
-### 3.3 Fix tetangga (masuk fase ini per keputusan user "masukkan semua")
-- **Badge count** (16, 17): satu formula dengan list — definisikan eksplisit (count = jumlah baris yang tampil di tab per jenis), atau label diubah jujur. Pilih saat planning; acceptance: badge == jumlah baris list.
-- **DeleteAssessmentGroup over-match** (18): sibling query tambah filter `LinkedGroupId == null && AssessmentType bukan PreTest/PostTest && !IsManualEntry` (samakan scope dengan baris yang ditampilkan tab 1 `:155-156`).
-- **File fisik tab 1** (19): ketiga endpoint delete tab 1 ikut kumpulkan + hapus file sertifikat manual session post-commit.
-- **ResetAssessment** (20): guard `IsManualEntry` → tolak dengan pesan; (22): reset ikut RemoveRange `SessionElemenTeknisScores`; (23): reset/hapus bersihkan AttemptHistory terkait sudah tercakup cascade; orphan legacy dibersihkan one-time di plan terpisah (script/endpoint admin sekali jalan, opsional).
-- **Guard duplikat** (12, 14): AddManualAssessment, ImportTraining, BulkBackfill — cek `UserId + Title/Judul + Tanggal` existing → tolak/skip dengan laporan per baris (import: kolom status "duplikat — dilewati").
-- **Edit atomic file** (21): EditTraining + EditManualAssessment ikuti pola fase 331 — simpan file baru dulu, SaveChanges, baru hapus file lama post-commit warn-only.
-- **ImportTraining** (24): tambah `_auditLog.LogAsync` per operasi import (ringkasan) + `AssessmentType = AssessmentConstants.AssessmentType.Manual` + `GenerateCertificate = isPassed`.
-- **CertificationManagement dedup** (25): CMP + CDP pakai GroupBy ala AdminBase (atau refactor panggil helper AdminBase).
-- **EditTraining renewal validation** (26): Renews*Id wajib exist + UserId sama dengan record yang diedit; selain itu → ModelState error.
-- **BulkBackfill** (14, 27): guard duplikat + set `AssessmentType` konstanta Manual + rename label UI "Bulk Import Nilai (Excel)" agar tidak menyesatkan.
+### 3.3 Fix tetangga (masuk milestone ini — tag [367]/[368] = fase pengerjaan)
+- **[367] Badge count** (16, 17): satu formula dengan list — definisikan eksplisit (count = jumlah baris yang tampil di tab per jenis), atau label diubah jujur. Pilih saat planning; acceptance (netral-opsi): **angka badge dan isi list tidak boleh saling kontradiksi menurut label yang ditampilkan**.
+- **[367] DeleteAssessmentGroup over-match** (18): sibling query tambah filter `LinkedGroupId == null && AssessmentType bukan PreTest/PostTest && !IsManualEntry` (samakan scope dengan baris yang ditampilkan tab 1 `:155-156`).
+- **[367] File fisik tab 1** (19): ketiga endpoint delete tab 1 ikut kumpulkan + hapus file sertifikat manual session post-commit.
+- **[367] ResetAssessment guard** (20): guard `IsManualEntry` → tolak dengan pesan.
+- **[367] Guard duplikat** (12 + bagian guard dari 14): AddManualAssessment, ImportTraining, **BulkBackfill** — cek `UserId + Title/Judul + Tanggal` existing → tolak/skip dengan laporan per baris (import/backfill: kolom status "duplikat — dilewati").
+- **[368] Edit atomic file** (21): EditTraining + EditManualAssessment ikuti pola fase 331 — simpan file baru dulu, SaveChanges, baru hapus file lama post-commit warn-only.
+- **[368] Reset ET scores** (22): ResetAssessment ikut RemoveRange `SessionElemenTeknisScores`.
+- **[367/368] AttemptHistory** (23): pembersihan saat delete sudah tercakup cascade engine [367]; **orphan legacy dibersihkan one-time** via script/endpoint admin sekali-jalan [368] — DIPUTUSKAN MASUK (bukan opsional).
+- **[368] ImportTraining** (24): tambah `_auditLog.LogAsync` per operasi import (ringkasan) + `AssessmentType = AssessmentConstants.AssessmentType.Manual` + `GenerateCertificate = isPassed`.
+- **[368] CertificationManagement dedup** (25): CMP + CDP pakai GroupBy ala AdminBase (atau refactor panggil helper AdminBase — pilih saat planning 368).
+- **[368] EditTraining renewal validation** (26): Renews*Id wajib exist + UserId sama dengan record yang diedit; selain itu → ModelState error.
+- **[368] BulkBackfill kosmetik** (27 + bagian label dari 14): set `AssessmentType` konstanta Manual + rename label UI "Bulk Import Nilai (Excel)". Residu #27 yang DI-ACCEPT by design: sesi hasil backfill memang identitas baru (Id baru, `IsManualEntry=true`) — bukan replika sesi asli, tidak diperbaiki.
+
+### 3.3b Pembagian fase (kontrak untuk planner)
+- **Phase 367 — Cascade Overhaul:** temuan **#1-12, #14-20** = §3.1 cascade engine penuh + §3.2 endpoint/UI + item §3.3 ber-tag [367] (badge, over-match grup, file tab 1, reset guard, guard duplikat 3 pintu termasuk BulkBackfill).
+- **Phase 368 — Hygiene Lanjutan:** temuan **#21-27** = item §3.3 ber-tag [368] (edit atomic, reset ET, one-time AttemptHistory legacy, import audit, dedup cert, validasi renewal ID, BulkBackfill kosmetik).
+- Planner 367 TIDAK menarik item [368] (file-overlap `TrainingAdminController.cs` dikelola via depends 368→367), dan sebaliknya.
 
 ### 3.4 Testing
-- Unit: cascade engine (traversal multi-level, lintas tabel, cycle guard, preview == execute set), guard duplikat, badge formula.
-- Integration real-SQL (pola fase 360): cascade execute menghapus semua artefak (assert per tabel), notifikasi terhapus, penanda Proton tercabut, transaction rollback saat exception.
-- UAT Playwright @5277 (pola fase 359/362): repro skenario seed (induk+anak renewal) → preview menampilkan anak → hapus → DB bersih → worker view bersih; skenario gagal → pesan merah tampil di tab; sesi online >7 hari tampil + terhapus dari tab 2.
+- Unit: cascade engine (traversal multi-level, lintas tabel, cycle guard, **preview set == execute set**), guard duplikat (3 pintu), badge formula, heuristik mirror (match/non-match ±1 hari), filter sibling DeleteAssessmentGroup (#18), guard Reset IsManualEntry (#20).
+- Integration real-SQL (pola fase 360): cascade execute menghapus semua artefak (**assert eksplisit per tabel**, termasuk `PendingProtonBypasses` jadi `Status='Dibatalkan'` — bukan hilang — dan `LinkedSessionId` pasangan jadi NULL), notifikasi terhapus, penanda Proton tercabut, **AuditLog 1 entri berisi daftar turunan**, transaction rollback utuh saat exception.
+- File fisik: [Fact] file sertifikat terhapus post-commit (#19) — preseden Phase 355 `Replace_NewFileWins_DeletesOldFileOnDisk`.
+- UAT Playwright @5277 (pola fase 359/362): repro skenario seed (induk+anak renewal) → preview menampilkan anak + kandidat mirror (checkbox) → hapus → DB bersih → worker view bersih; skenario gagal → pesan merah tampil di tab; sesi online >7 hari tampil + terhapus dari tab 2.
+- Item [368] (#21-27): detail test difinalkan saat planning 368 — minimal [Fact] replace-file atomic (#21), retake pasca-reset menghasilkan ET scores baru (#22), import ter-audit-log (#24).
 - Seed Workflow wajib (snapshot → seed → restore + journal).
 
 ### 3.5 Out of scope
