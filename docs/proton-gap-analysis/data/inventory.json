@@ -162,6 +162,29 @@
       "export": ["none"],
       "dataSource": "ProtonCoachingSession / progress record",
       "gaps": []
+    },
+    {
+      "id": "cdp-certmanagement",
+      "name": "Certification Management",
+      "route": "/CDP/CertificationManagement?page",
+      "action": "CDPController.CertificationManagement",
+      "view": "Views/CDP/CertificationManagement.cshtml",
+      "purpose": "Daftar semua sertifikat pelatihan+asesmen pekerja (gabungan Training+Assessment) dengan status validitas + renewal.",
+      "flow": { "from": ["Admin/Home dashboard (BUKAN hub CDP)"], "to": ["/CMP/CertificatePdf/{id}", "modal riwayat sertifikat"], "back": "tombol 'Kembali ke CDP'" },
+      "roles": "BuildSertifikatRowsAsync(l5OwnDataOnly:true) - L5 own only, lain scoped. Export Excel gated Admin,HC (ExportSertifikatExcel)",
+      "filters": ["Bagian", "Unit (cascade)", "Status (Aktif/Akan Expired/Expired/Permanent)", "Kategori (OJT/IHT/Training Licencor/OTS/Mandatory HSSE/Assessment Proton)", "Sub Kategori (cascade)", "Reset", "toggle Tampilkan Riwayat Renewal"],
+      "table": { "columns": ["No", "Nama", "Bagian", "Unit", "Judul", "Kategori", "Sub Kategori", "Nomor Sertifikat", "Tgl Terbit", "Valid Until", "Tipe", "Status", "Aksi(PDF)"], "source": "BuildSertifikatRowsAsync gabung Training + Assessment cert, paginated PaginationHelper" },
+      "actions": [
+        { "label": "Export Excel", "endpoint": "href=# -> JS -> /CDP/ExportSertifikatExcel [Admin,HC]" },
+        { "label": "Lihat riwayat sertifikat (nama)", "endpoint": "href=# -> modal JS" },
+        { "label": "PDF cert", "endpoint": "/CMP/CertificatePdf/{id}" },
+        { "label": "Filter (AJAX)", "endpoint": "/CDP/FilterCertificationManagement" }
+      ],
+      "modals": ["Modal riwayat sertifikat per pekerja"],
+      "export": ["Export Excel (Admin,HC)"],
+      "dataSource": "Training + Assessment certs (BuildSertifikatRowsAsync), AssessmentCategories, GetSectionUnitsDictAsync",
+      "liveNote": "Export Excel + link nama pakai href=# (JS-driven) - perlu verifikasi handler tak dead. Renewal toggle in-page (modul renewal out-of-scope analisa).",
+      "gaps": []
     }
   ],
   "gaps": [],
