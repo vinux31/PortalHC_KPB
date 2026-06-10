@@ -1117,7 +1117,7 @@ namespace HcPortal.Controllers
             bool tahun3Complete = await IsYearCompletedAsync(tahun3Assignment.Id);
             if (!tahun3Complete)
             {
-                TempData["Error"] = "Tahun 3 belum selesai — semua deliverable harus Approved dan final assessment harus ada.";
+                TempData["Error"] = "Tidak bisa menandai lulus (graduated): Tahun 3 belum lulus untuk pekerja ini.";
                 return RedirectToAction("CoachCoacheeMapping");
             }
             using var transaction = await _context.Database.BeginTransactionAsync();
