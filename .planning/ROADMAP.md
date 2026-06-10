@@ -1354,6 +1354,26 @@ Plans:
 
 </details>
 
+### Phase 367: Delete Records Cascade Overhaul — hapus 100% sampai akar (cascade renewal + UI jujur + online di Input Records)
+
+**Goal:** Admin bisa hapus record worker (training/assessment manual/assessment ONLINE) dari tab Input Records sampai 100% bersih — cascade rekursif seluruh turunan renewal lintas TrainingRecords↔AssessmentSessions + semua artefak (AttemptHistory, EditLogs, Responses, Assignments, Packages, notifikasi lonceng, penanda Proton Origin='Exam', PendingProtonBypass, LinkedSessionId pasangan, file sertifikat) — dengan preview konfirmasi (bukan blokir) dan UI HTMX jujur (gagal ≠ sukses). Spec: `docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md` (temuan #1-20 + N14-N20).
+**Requirements**: Cascade engine (preview+execute, 1 tx, cycle guard) · tab 2 tampilkan+hapus session online (tutup gap filter 7-hari tab 1) · pre-check renewal blocker → preview (tab 2 + tab 1) · HX-Trigger sukses/gagal dibedakan + flash di partial · guard duplikat AddManualAssessment/ImportTraining/BulkBackfill · fix badge count 2 formula · fix DeleteAssessmentGroup over-match sibling · file fisik manual session ikut terhapus di tab 1 · guard IsManualEntry di ResetAssessment · mirror legacy heuristik di preview (opt-out) · migration=FALSE
+**Depends on:** Phase 366
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 367 to break down)
+
+### Phase 368: Delete Records Hygiene Lanjutan — edit atomic file + reset ET scores + audit import + dedup cert + validasi renewal ID
+
+**Goal:** Sisa temuan re-check #2 di alur tetangga (spec sama, temuan N21-N26/27): EditTraining+EditManualAssessment replace file atomik (save-baru→commit→hapus-lama post-commit, pola fase 331) · ResetAssessment bersihkan SessionElemenTeknisScores (ET analytics stale) · ImportTraining audit log + AssessmentType konstanta + GenerateCertificate=isPassed · CertificationManagement CMP/CDP GroupBy dedup (samakan AdminBase) · EditTraining validasi Renews*Id (exist + same-user) · BulkBackfill rename label + AssessmentType konstanta · cleanup one-time AttemptHistory orphan legacy (opsional). Spec: `docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md`.
+**Requirements**: TBD saat planning · migration=FALSE
+**Depends on:** Phase 367
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 368 to break down)
+
 ---
 
 *Roadmap updated: 2026-06-10 (Backlog review — promoted 3: 999.4 → Phase 364 [restore baseline e2e exam, test-only, zero overlap, bisa paralel], 999.5 → Phase 365 [AF-3 xUnit MarkMappingCompletedTests, scope opsi (b) saja — varian e2e/race tetap backlog karena bersinggungan 363 T3], 999.3 → Phase 366 [cascade image cleanup, depends 363 line-stability; scope dikoreksi: ekstrak helper baru, TIDAK ada helper produksi dari 353]. Verifikasi adversarial 4-agent 12-klaim sebelum promote; line drift dicatat di tiap entry. v25.0 jadi Phases 358-366.)*
