@@ -19,6 +19,8 @@ Status website terdiri dari **3 environment** dengan pemegang yang berbeda:
 > **Sumber URL lokal:** `Properties/launchSettings.json` (profile `HcPortal`).
 > **Sumber connection string:** `appsettings.Development.json` & `appsettings.Production.json` — **jangan commit credential** ke repo.
 
+> ⚠️ **Catatan istilah "dev" (hindari ambigu):** `http://localhost:5277` = tier **Lokal**, walau runtime-nya `ASPNETCORE_ENVIRONMENT=Development`. Tier **Development** = server IT `10.55.3.3`, mesin beda. **Jangan tulis "dev localhost:5277"** — pakai **"Lokal"** untuk `5277` dan **"Dev"** untuk `10.55.3.3`.
+
 ---
 
 ## 2. Aturan Utama (Golden Rules)
@@ -211,5 +213,6 @@ Phase 338 close gap dengan 3 layer guard:
 
 ---
 
-*Last updated: 2026-05-30 — Phase 338 REST-05/06/07 backup SOP + LinkedGroupId auto-pair.*
+*Last updated: 2026-06-09 — konvensi istilah "dev": Lokal=localhost:5277, Dev=10.55.3.3 (Section 1).*
+*2026-05-30 — Phase 338 REST-05/06/07 backup SOP + LinkedGroupId auto-pair.*
 *Initial version: 2026-05-07.*
