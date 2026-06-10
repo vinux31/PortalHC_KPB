@@ -434,5 +434,43 @@ namespace HcPortal.Services
                 return new BypassResult(false, "Gagal membuat rencana bypass. Operasi dibatalkan."); // D6: tanpa ex.Message
             }
         }
+
+        /// <summary>
+        /// Hook GradingService §7 (exam linked lulus): flip pending Menunggu→Siap + notif
+        /// PROTON_BYPASS_READY ke InitiatedById (HC inisiator, BUKAN worker — T-360-13).
+        /// TANPA transaksi (Pitfall 4 — jalan di hot-path grading); flip atomik via
+        /// ExecuteUpdateAsync WHERE Status guard, idempotent + aman dipanggil berkali-kali.
+        /// Eksekusi pindah TETAP di HC (plan 05), bukan di sini.
+        /// </summary>
+        public async Task<bool> MarkPendingReadyIfAnyAsync(int sessionId)
+        {
+            var pending = await _context.PendingProtonBypasses
+                .FirstOrDefaultAsync(p => p.LinkedAssessmentSessionId == sessionId && p.Status == "Menunggu");
+            if (pending == null) return false;
+
+            var rows = await _context.PendingProtonBypasses
+                .Where(p => p.Id == pending.Id && p.Status == "Menunggu")
+                .ExecuteUpdateAsync(p => p.SetProperty(x => x.Status, "Siap")); // atomik flip
+            if (rows == 0) return false; // sudah diproses request lain
+
+            var workerName = await _context.Users
+                .Where(u => u.Id == pending.CoacheeId)
+                .Select(u => u.FullName)
+                .FirstOrDefaultAsync() ?? pending.CoacheeId;
+            await _notificationService.SendByTemplateAsync(pending.InitiatedById, "PROTON_BYPASS_READY",
+                new Dictionary<string, object> { ["PendingId"] = pending.Id, ["WorkerName"] = workerName });
+            return true;
+        }
+
+        /// <summary>
+        /// Hook re-grade Pass→Fail (D-15): pending "Siap" balik "Menunggu". TANPA transaksi
+        /// (hot-path grading). Worker belum pindah (Opsi B) → aman, tak ada rollback assignment.
+        /// </summary>
+        public async Task RevertPendingToMenungguAsync(int sessionId)
+        {
+            await _context.PendingProtonBypasses
+                .Where(p => p.LinkedAssessmentSessionId == sessionId && p.Status == "Siap")
+                .ExecuteUpdateAsync(p => p.SetProperty(x => x.Status, "Menunggu"));
+        }
     }
 }
