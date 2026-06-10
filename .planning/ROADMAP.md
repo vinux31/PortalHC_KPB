@@ -91,7 +91,7 @@ Plans:
 Plans:
 - [x] 359-01-PLAN.md — Helper gate antar-tahun (ProtonYearGate predikat pure + IsPrevYearPassedAsync) + [Fact]
 - [x] 359-02-PLAN.md — CreateAssessment gate eligibility server-side (100% + cross-year + Tahun3 fallback + skip-summary)
-- [ ] 359-03-PLAN.md — CoachMapping cross-year hard-block (penanda-based, drop warning escape) + graduation gate align
+- [x] 359-03-PLAN.md — CoachMapping cross-year hard-block (penanda-based, drop warning escape) + graduation gate align
 - [ ] 359-04-PLAN.md — Matikan tampilan level + grafik tren (prune ViewModel/controller/3 view, badge Lulus tanpa angka)
 
 ### Phase 360: Bypass Backend (B)
