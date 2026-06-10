@@ -269,5 +269,170 @@ namespace HcPortal.Services
                 return new BypassResult(false, "Gagal eksekusi bypass. Operasi dibatalkan."); // D6: tanpa ex.Message
             }
         }
+
+        /// <summary>
+        /// Entry point bypass SEMUA mode (spec §5): E8 (B-04) + validasi pure + D-10, lalu dispatch —
+        /// CL-B(b) → jalur pending (ExecutePendingBypassAsync §5.2), lainnya → eksekusi instan §5.1.
+        /// </summary>
+        public async Task<BypassResult> BypassSaveAsync(BypassRequest req)
+        {
+            // E8 (B-04): worker WAJIB punya TEPAT 1 assignment aktif — dicek di entry SEBELUM dispatch.
+            // Tanpa ini worker dobel-assignment bisa bikin pending CL-B(b) yang saat Confirm hanya
+            // cek source masih aktif → berakhir 2 assignment aktif, mematahkan jaminan E8.
+            var activeAssignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == req.CoacheeId && a.IsActive)
+                .ToListAsync();
+            int activeCount = activeAssignments.Count;
+            if (activeCount != 1)
+                return new BypassResult(false, $"Worker punya {activeCount} assignment aktif (harus tepat 1).");
+            var source = activeAssignments[0];
+            if (source.ProtonTrackId != req.SourceProtonTrackId)
+                return new BypassResult(false, "Assignment aktif worker tidak sesuai track asal yang dipilih.");
+
+            // Resolve flag → validasi pure §5 (validator B-03 menjamin CL-A wajib SourceComplete+SourceHasFinal).
+            var sourceTrack = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == req.SourceProtonTrackId);
+            var targetTrack = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == req.TargetProtonTrackId);
+            if (sourceTrack == null || targetTrack == null)
+                return new BypassResult(false, "Track asal/tujuan tidak ditemukan.");
+            var sourceStatuses = await _context.ProtonDeliverableProgresses
+                .Where(p => p.ProtonTrackAssignmentId == source.Id)
+                .Select(p => p.Status)
+                .ToListAsync();
+            bool sourceComplete = sourceStatuses.Count > 0 && sourceStatuses.All(s => s == "Approved");
+            bool sourceHasFinal = await _context.ProtonFinalAssessments
+                .AnyAsync(fa => fa.ProtonTrackAssignmentId == source.Id);
+
+            var (valid, message) = BypassValidator.Validate(new BypassValidationInput(
+                req.Reason, source.ProtonTrackId, req.TargetProtonTrackId,
+                sourceTrack.Urutan, targetTrack.Urutan, req.Mode, sourceComplete, sourceHasFinal));
+            if (!valid)
+                return new BypassResult(false, message);
+
+            // D-10: BLOK DOBEL PENDING — semua mode, SEBELUM eksekusi.
+            bool hasActivePending = await _context.PendingProtonBypasses
+                .AnyAsync(p => p.CoacheeId == req.CoacheeId && (p.Status == "Menunggu" || p.Status == "Siap"));
+            if (hasActivePending)
+                return new BypassResult(false, "Worker sudah punya rencana bypass aktif. Selesaikan/batalkan dulu.");
+
+            return req.Mode == "CL-B(b)"
+                ? await ExecutePendingBypassAsync(req)
+                : await ExecuteInstantBypassAsync(req);
+        }
+
+        /// <summary>
+        /// §5.2 — jalur pending CL-B(b) (buat-tunggu): force-approve deliverable source (D-13, TANPA
+        /// terbit penanda — penanda terbit oleh GradingService saat exam bare lulus, Origin="Exam"),
+        /// buat AssessmentSession BARE tanpa paket (D-01), insert PendingProtonBypass "Menunggu".
+        /// 1 transaksi all-or-nothing (D-09).
+        /// </summary>
+        public async Task<BypassResult> ExecutePendingBypassAsync(BypassRequest req)
+        {
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var source = await _context.ProtonTrackAssignments
+                    .FirstOrDefaultAsync(a => a.CoacheeId == req.CoacheeId && a.IsActive
+                                           && a.ProtonTrackId == req.SourceProtonTrackId);
+                if (source == null)
+                {
+                    await tx.RollbackAsync();
+                    return new BypassResult(false, "Assignment aktif worker tidak sesuai track asal yang dipilih.");
+                }
+
+                var sourceTrack = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == req.SourceProtonTrackId);
+                if (sourceTrack == null)
+                {
+                    await tx.RollbackAsync();
+                    return new BypassResult(false, "Track asal tidak ditemukan.");
+                }
+
+                var hcUser = await _context.Users
+                    .Where(u => u.Id == req.InitiatedById)
+                    .Select(u => new { u.FullName, u.UserName })
+                    .FirstOrDefaultAsync();
+                var hcName = !string.IsNullOrWhiteSpace(hcUser?.FullName)
+                    ? hcUser!.FullName
+                    : (hcUser?.UserName ?? req.InitiatedById);
+                var workerName = await _context.Users
+                    .Where(u => u.Id == req.CoacheeId)
+                    .Select(u => u.FullName)
+                    .FirstOrDefaultAsync() ?? req.CoacheeId;
+
+                // [force-approve deliverable source] (D-13) — pola sama CL-B(a) §5.1.
+                var progresses = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.ProtonTrackAssignmentId == source.Id)
+                    .ToListAsync();
+                foreach (var p in progresses)
+                {
+                    p.Status = "Approved";
+                    p.ApprovedAt = DateTime.UtcNow;
+                    p.ApprovedById = req.InitiatedById;
+                    p.HCApprovalStatus = "Reviewed";
+                    _context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
+                    {
+                        ProtonDeliverableProgressId = p.Id,
+                        StatusType = "Bypassed-AutoApprove",
+                        ActorId = req.InitiatedById,
+                        ActorName = hcName,
+                        ActorRole = "HC",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // [buat AssessmentSession bare] — TANPA paket soal + TANPA assignment paket (D-01);
+                // HC lampirkan paket via Kelola Assessment (D-02).
+                var bareSession = new AssessmentSession
+                {
+                    UserId = req.CoacheeId,      // B-05/W-06: per-worker key — tanpa ini worker tak pernah lihat exam
+                    AssessmentType = "Standard", // B-05: kolom DB NOT NULL (ISS-04) — NULL → SqlException 515
+                    Category = "Assessment Proton",
+                    ProtonTrackId = req.SourceProtonTrackId,
+                    TahunKe = $"Tahun {sourceTrack.Urutan}",
+                    Title = $"Bypass Exam Tahun {sourceTrack.Urutan} — {workerName}",
+                    Schedule = DateTime.Now,
+                    DurationMinutes = req.DurationMinutes ?? 60,
+                    PassPercentage = 70,
+                    Status = "Upcoming",
+                    GenerateCertificate = true,
+                    CreatedBy = req.InitiatedById,
+                    IsTokenRequired = false
+                };
+                _context.AssessmentSessions.Add(bareSession);
+                await _context.SaveChangesAsync(); // flush → bareSession.Id
+
+                // [insert pending] — TANPA field Mode (W-05): jalur ini selalu CL-B(b) by construction.
+                var pending = new PendingProtonBypass
+                {
+                    CoacheeId = req.CoacheeId,
+                    SourceProtonTrackId = req.SourceProtonTrackId,
+                    TargetProtonTrackId = req.TargetProtonTrackId,
+                    TargetUnit = req.TargetUnit,
+                    TargetCoachId = req.TargetCoachId,
+                    Reason = req.Reason,
+                    LinkedAssessmentSessionId = bareSession.Id,
+                    Status = "Menunggu",
+                    InitiatedById = req.InitiatedById,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.PendingProtonBypasses.Add(pending);
+
+                await _auditLog.LogAsync(req.InitiatedById, hcName, "ProtonBypass",
+                    $"Bypass CL-B(b) pending {req.CoacheeId}: track {req.SourceProtonTrackId}→{req.TargetProtonTrackId}, unit {req.TargetUnit}, exam session #{bareSession.Id}. Alasan: {req.Reason}",
+                    targetType: "PendingProtonBypass");
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return new BypassResult(true,
+                    "Sesi exam dibuat — lampirkan paket soal di Kelola Assessment sebelum worker bisa ujian.",
+                    PendingId: pending.Id, ShowAttachPackageReminder: true); // D-02 reminder
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ExecutePendingBypassAsync gagal Coachee={CoacheeId}", req.CoacheeId);
+                await tx.RollbackAsync();
+                return new BypassResult(false, "Gagal membuat rencana bypass. Operasi dibatalkan."); // D6: tanpa ex.Message
+            }
+        }
     }
 }
