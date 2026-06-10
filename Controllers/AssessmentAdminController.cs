@@ -1392,6 +1392,22 @@ namespace HcPortal.Controllers
                     eligibleUserIds = filtered;
                 }
 
+                // Phase 359 (D-01) — empty-result guard: semua pekerja di-skip → JANGAN buka transaksi.
+                if (model.Category == "Assessment Proton" && eligibleUserIds.Count == 0)
+                {
+                    TempData["Warning"] = $"0 session dibuat. Semua {UserIds.Count} pekerja di-skip. Alasan: {gateSkippedNotHundred} belum 100% deliverable, {gateSkippedPrevYear} Tahun sebelumnya belum lulus.";
+                    var usersReload = await _context.Users
+                        .Where(u => u.IsActive)
+                        .OrderBy(u => u.FullName)
+                        .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
+                        .ToListAsync();
+                    ViewBag.Users = usersReload;
+                    ViewBag.SelectedUserIds = UserIds ?? new List<string>();
+                    ViewBag.Sections = await _context.GetAllSectionsAsync();
+                    ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+                    return View("CreateAssessment", model);
+                }
+
                 // Create all sessions in memory first
                 var sessions = new List<AssessmentSession>();
 
@@ -1513,6 +1529,34 @@ namespace HcPortal.Controllers
                             UserName = assignedUser.FullName ?? session.UserId,
                             UserEmail = assignedUser.Email ?? ""
                         });
+                    }
+
+                    // Phase 359 (S1) — skip-summary Proton banner (_Layout), setelah commit sukses.
+                    // Pisah dari popup TempData["CreatedAssessment"]; tidak menggandakan pesan non-Proton.
+                    if (model.Category == "Assessment Proton")
+                    {
+                        int gateSkippedTotal = gateSkippedNotHundred + gateSkippedPrevYear;
+                        if (gateSkippedTotal == 0)
+                            TempData["Success"] = $"{eligibleUserIds.Count} session berhasil dibuat.";
+                        else
+                            TempData["Warning"] = $"{eligibleUserIds.Count} session dibuat, {gateSkippedTotal} di-skip. Alasan: {gateSkippedNotHundred} belum 100% deliverable, {gateSkippedPrevYear} Tahun sebelumnya belum lulus.";
+
+                        // Audit warn-only bila ada skip (TIDAK boleh memutus operasi).
+                        if (gateSkippedTotal > 0)
+                        {
+                            try
+                            {
+                                var gateActor = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
+                                await _auditLog.LogAsync(
+                                    currentUser?.Id ?? "",
+                                    gateActor,
+                                    "CreateAssessment_GateSkip",
+                                    $"Gate Proton '{model.Title}': {eligibleUserIds.Count} dibuat, {gateSkippedNotHundred} belum 100% deliverable, {gateSkippedPrevYear} Tahun sebelumnya belum lulus.",
+                                    sessions.FirstOrDefault()?.Id,
+                                    "AssessmentSession");
+                            }
+                            catch (Exception auditEx) { _logger.LogWarning(auditEx, "Audit gate-skip logging failed (non-blocking)"); }
+                        }
                     }
                 }
                 catch
