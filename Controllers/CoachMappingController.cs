@@ -16,6 +16,7 @@ namespace HcPortal.Controllers
     {
         private readonly ILogger<CoachMappingController> _logger;
         private readonly INotificationService _notificationService;
+        private readonly ProtonCompletionService _protonCompletionService;
 
         public CoachMappingController(
             ApplicationDbContext context,
@@ -23,11 +24,13 @@ namespace HcPortal.Controllers
             AuditLogService auditLog,
             IWebHostEnvironment env,
             ILogger<CoachMappingController> logger,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ProtonCompletionService protonCompletionService)
             : base(context, userManager, auditLog, env)
         {
             _logger = logger;
             _notificationService = notificationService;
+            _protonCompletionService = protonCompletionService;
         }
 
         // Override View resolution to use Views/Admin/ folder
@@ -516,48 +519,32 @@ namespace HcPortal.Controllers
                             .Select(a => a.CoacheeId).Distinct().ToListAsync())
                             .ToHashSet();
 
-                        // (cabang 2) prev-assignment per coachee untuk prevTrack
-                        var prevAssignments = await _context.ProtonTrackAssignments
-                            .Where(a => coacheeIdsForWarning.Contains(a.CoacheeId) && a.ProtonTrackId == prevTrack.Id)
-                            .Select(a => new { a.Id, a.CoacheeId })
-                            .ToListAsync();
-                        var prevByCoachee = prevAssignments
-                            .GroupBy(a => a.CoacheeId)
-                            .ToDictionary(g => g.Key, g => g.First().Id);   // FirstOrDefault-equivalent: ambil satu prev-assignment
-                        var prevAssignmentIds = prevAssignments.Select(a => a.Id).ToList();
-
-                        // (cabang 3) status progress per prev-assignment-id
-                        var progressByAssignment = (await _context.ProtonDeliverableProgresses
-                            .Where(p => prevAssignmentIds.Contains(p.ProtonTrackAssignmentId))
-                            .Select(p => new { p.ProtonTrackAssignmentId, p.Status })
-                            .ToListAsync())
-                            .GroupBy(p => p.ProtonTrackAssignmentId)
-                            .ToDictionary(g => g.Key, g => g.Select(x => x.Status).ToList());
-
+                        // Phase 359 (PCOMP-07/D-03) — "Tahun N-1 lulus" = ADA PENANDA (GetPassedYearsAsync),
+                        // BUKAN sekadar progress Approved. Konsisten dengan gate CreateAssessment (Plan 02).
+                        // (cabang 2/3 lama berbasis progress Approved di-ganti penanda-based.)
                         var incompleteCoachees = new List<string>();
                         foreach (var coacheeId in coacheeIdsForWarning)
                         {
-                            if (hasForRequestedTrack.Contains(coacheeId)) continue;          // cabang 1: skip (reactivated scenario)
+                            if (hasForRequestedTrack.Contains(coacheeId)) continue;          // cabang 1: reactivated → skip (UNCHANGED)
 
-                            if (!prevByCoachee.TryGetValue(coacheeId, out var prevId))
-                            {
-                                incompleteCoachees.Add(coacheeId);                           // cabang 2: prev null → incomplete
-                                continue;
-                            }
+                            // D-06/D-07 exempt point (disiapkan logis; full bypass = Phase 360):
+                            //   request bypass-origin ATAU renewal → JANGAN blok cross-year.
+                            //   Assign normal Phase 359 tidak punya flag bypass/renewal → exempt = false.
+                            bool isExemptFromCrossYear = false; // Phase 360 isi: req bypass-origin || renewal
+                            if (isExemptFromCrossYear) continue;
 
-                            var statuses = progressByAssignment.TryGetValue(prevId, out var s) ? s : new List<string>();
-                            var prevProgressCount = statuses.Count;
-                            var allApproved = prevProgressCount > 0 && statuses.All(st => st == "Approved");
-                            if (!allApproved)
-                                incompleteCoachees.Add(coacheeId);                           // cabang 3: not-all-approved → incomplete
+                            // prevTrack.TahunKe = TahunKe tahun sebelumnya (mis. "Tahun 1"); cek penanda
+                            // untuk (coachee, TrackType). Tahun 1 tidak masuk blok ini (prevTrack == null di :507).
+                            bool prevPassed = await _protonCompletionService
+                                .IsPrevYearPassedAsync(coacheeId, requestedTrack.TrackType, prevTrack.TahunKe);
+                            if (!prevPassed) incompleteCoachees.Add(coacheeId);
                         }
 
-                        // D-09: Warning only — return warning response if incomplete and user hasn't confirmed
-                        if (incompleteCoachees.Any() && !req.ConfirmProgressionWarning)
+                        // D-05: HARD-BLOCK cross-year — tanpa escape ConfirmProgressionWarning (drop warning-override).
+                        if (incompleteCoachees.Any())
                         {
-                            return Json(new { success = false, warning = true,
-                                message = $"{incompleteCoachees.Count} coachee belum menyelesaikan {prevTrack.DisplayName}. Tetap lanjutkan?",
-                                incompleteCount = incompleteCoachees.Count });
+                            return Json(new { success = false,
+                                message = $"Tidak bisa assign {requestedTrack.TahunKe}: {prevTrack.TahunKe} ({requestedTrack.TrackType}) belum lulus untuk {incompleteCoachees.Count} coachee." });
                         }
                     }
                 }
