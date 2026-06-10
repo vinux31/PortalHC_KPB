@@ -534,6 +534,71 @@ namespace HcPortal.Services
         }
 
         /// <summary>
+        /// §8.1 — HC batal pending SEBELUM pindah: set Dibatalkan atomik (anti klik-dobel) +
+        /// auto-cancel exam linked per status worker (I-06: branch dari pending.Status, BUKAN
+        /// query paket). Force-approve deliverable source TETAP (jejak history — HC rapikan via
+        /// Tab1 bila perlu). 1 transaksi.
+        /// </summary>
+        public async Task<BypassResult> CancelPendingAsync(int pendingId, string hcId, string hcName)
+        {
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var pending = await _context.PendingProtonBypasses.FindAsync(pendingId);
+                if (pending == null || (pending.Status != "Menunggu" && pending.Status != "Siap"))
+                {
+                    await tx.RollbackAsync();
+                    return new BypassResult(false, "Pending tidak bisa dibatalkan (status tidak valid).");
+                }
+
+                // Simpan status SEBELUM update — ExecuteUpdate meng-overwrite.
+                bool workerLulus = pending.Status == "Siap"; // Siap = exam linked sudah lulus
+                var linkedId = pending.LinkedAssessmentSessionId;
+
+                // Atomik set Dibatalkan (anti klik-dobel, pola D-12).
+                var rows = await _context.PendingProtonBypasses
+                    .Where(p => p.Id == pendingId && (p.Status == "Menunggu" || p.Status == "Siap"))
+                    .ExecuteUpdateAsync(p => p.SetProperty(x => x.Status, "Dibatalkan")
+                                              .SetProperty(x => x.ResolvedAt, DateTime.UtcNow));
+                if (rows == 0)
+                {
+                    await tx.RollbackAsync();
+                    return new BypassResult(false, "Pending sudah diproses.");
+                }
+
+                if (workerLulus)
+                {
+                    // PERTAHANKAN hasil exam — worker beneran lulus, penanda Origin="Exam" sah
+                    // (T-360-17). JANGAN sentuh session; hanya rencana pindah yang batal.
+                }
+                else
+                {
+                    // Worker BELUM lulus (pending "Menunggu"). W-03 GUARD: cancel sesi HANYA bila
+                    // belum Completed — worker kerjakan-tapi-GAGAL → Status="Completed" (IsPassed=false)
+                    // adalah jejak sah (spec §11 MISS-2), JANGAN overwrite "Dibatalkan".
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == linkedId && s.Status != "Completed")
+                        .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "Dibatalkan"));
+                }
+                // Force-approve deliverable source TIDAK di-revert (spec §8.1).
+
+                await _auditLog.LogAsync(hcId, hcName, "ProtonBypass",
+                    $"Batal pending bypass #{pendingId} {pending.CoacheeId}: track {pending.SourceProtonTrackId}→{pending.TargetProtonTrackId}. Worker lulus: {workerLulus}.",
+                    targetType: "PendingProtonBypass");
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                return new BypassResult(true, "Rencana bypass dibatalkan.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CancelPendingAsync gagal Pending={PendingId}", pendingId);
+                await tx.RollbackAsync();
+                return new BypassResult(false, "Gagal membatalkan rencana bypass. Operasi dibatalkan."); // D6
+            }
+        }
+
+        /// <summary>
         /// Hook GradingService §7 (exam linked lulus): flip pending Menunggu→Siap + notif
         /// PROTON_BYPASS_READY ke InitiatedById (HC inisiator, BUKAN worker — T-360-13).
         /// TANPA transaksi (Pitfall 4 — jalan di hot-path grading); flip atomik via
