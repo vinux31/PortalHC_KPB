@@ -460,4 +460,171 @@ public class ProtonBypassServiceTests : IClassFixture<ProtonCompletionFixture>
         // TIDAK ada pending dibuat.
         Assert.Equal(0, await ctx.PendingProtonBypasses.CountAsync(p => p.CoacheeId == coachee));
     }
+
+    // ===== Plan 05: ConfirmBypassAsync §5.3 + CancelPendingAsync §8.1 =====
+
+    /// <summary>Set linked exam lulus (Completed+IsPassed) + flip pending Siap + terbit penanda Origin="Exam".</summary>
+    private static async Task<ProtonTrackAssignment> MakePendingSiapLulusAsync(
+        ApplicationDbContext ctx, ProtonBypassService svc, PendingProtonBypass pending)
+    {
+        var session = await ctx.AssessmentSessions.FindAsync(pending.LinkedAssessmentSessionId);
+        session!.IsPassed = true;
+        session.Status = "Completed";
+        await ctx.SaveChangesAsync();
+        Assert.True(await svc.MarkPendingReadyIfAnyAsync(pending.LinkedAssessmentSessionId)); // → Siap
+        // Flip via ExecuteUpdateAsync bypass change tracker — reload supaya FindAsync (ctx sama
+        // di test; produksi context per-request fresh) lihat Status="Siap".
+        await ctx.Entry(pending).ReloadAsync();
+        var source = await ctx.ProtonTrackAssignments.SingleAsync(
+            a => a.CoacheeId == pending.CoacheeId && a.ProtonTrackId == pending.SourceProtonTrackId && a.IsActive);
+        ctx.ProtonFinalAssessments.Add(new ProtonFinalAssessment
+        {
+            CoacheeId = pending.CoacheeId, CreatedById = "grading", ProtonTrackAssignmentId = source.Id,
+            Status = "Completed", Origin = "Exam", CompletedAt = DateTime.UtcNow
+        });
+        await ctx.SaveChangesAsync();
+        return source;
+    }
+
+    [Fact]
+    public async Task Confirm_HappyPath_Pindah_Selesai()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"cfm-{Guid.NewGuid():N}";
+        var notif = new FakeNotificationService();
+        var svc = NewBypassSvc(ctx, notif);
+        var pending = await SeedPendingViaSaveAsync(ctx, coachee, notif);
+        var t2 = pending.TargetProtonTrackId;
+        await SeedDeliverablesAsync(ctx, t2, $"U-{coachee[..8]}", 2); // deliverable target utk bootstrap W-02
+        var source = await MakePendingSiapLulusAsync(ctx, svc, pending);
+
+        var result = await svc.ConfirmBypassAsync(pending.Id, "hc2", "HC Dua");
+
+        Assert.True(result.Success, result.Message);
+        var freshPending = await ctx.PendingProtonBypasses.AsNoTracking().SingleAsync(p => p.Id == pending.Id);
+        Assert.Equal("Selesai", freshPending.Status);
+        Assert.NotNull(freshPending.ResolvedAt);
+        // Source inactive, target aktif Origin="Bypass".
+        var freshSource = await ctx.ProtonTrackAssignments.AsNoTracking().SingleAsync(a => a.Id == source.Id);
+        Assert.False(freshSource.IsActive);
+        var target = await ctx.ProtonTrackAssignments.AsNoTracking()
+            .SingleAsync(a => a.CoacheeId == coachee && a.IsActive);
+        Assert.Equal(t2, target.ProtonTrackId);
+        Assert.Equal("Bypass", target.Origin);
+        // Linked session TIDAK "Dibatalkan" — bukti kelulusan dipertahankan (T-360-17).
+        var linked = await ctx.AssessmentSessions.AsNoTracking().SingleAsync(s => s.Id == pending.LinkedAssessmentSessionId);
+        Assert.NotEqual("Dibatalkan", linked.Status);
+        // W-02: bootstrap target — progress tahun tujuan dibuat.
+        Assert.Equal(2, await ctx.ProtonDeliverableProgresses.CountAsync(p => p.ProtonTrackAssignmentId == target.Id));
+        // TANPA re-create penanda: penanda source tetap 1 (Origin="Exam").
+        Assert.Equal(1, await ctx.ProtonFinalAssessments.CountAsync(fa => fa.ProtonTrackAssignmentId == source.Id));
+    }
+
+    [Fact]
+    public async Task Confirm_Stale_AssignmentBerubah_Tolak()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"stale-{Guid.NewGuid():N}";
+        var notif = new FakeNotificationService();
+        var svc = NewBypassSvc(ctx, notif);
+        var pending = await SeedPendingViaSaveAsync(ctx, coachee, notif);
+        var source = await MakePendingSiapLulusAsync(ctx, svc, pending);
+        // D-11: worker dipindah manual — assignment asal sudah TIDAK aktif.
+        source.IsActive = false;
+        await ctx.SaveChangesAsync();
+
+        var result = await svc.ConfirmBypassAsync(pending.Id, "hc2", "HC Dua");
+
+        Assert.False(result.Success);
+        var freshPending = await ctx.PendingProtonBypasses.AsNoTracking().SingleAsync(p => p.Id == pending.Id);
+        Assert.Equal("Siap", freshPending.Status); // tak pindah, pending tetap Siap
+    }
+
+    [Fact]
+    public async Task Confirm_DobelKlik_Atomik_PindahSekali()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"dobel-{Guid.NewGuid():N}";
+        var notif = new FakeNotificationService();
+        var svc = NewBypassSvc(ctx, notif);
+        var pending = await SeedPendingViaSaveAsync(ctx, coachee, notif);
+        var t2 = pending.TargetProtonTrackId;
+        await SeedDeliverablesAsync(ctx, t2, $"U-{coachee[..8]}", 2);
+        await MakePendingSiapLulusAsync(ctx, svc, pending);
+
+        var r1 = await svc.ConfirmBypassAsync(pending.Id, "hc2", "HC Dua");
+        var r2 = await svc.ConfirmBypassAsync(pending.Id, "hc3", "HC Tiga");
+
+        // D-12: hanya SATU yang sukses — pindah jalan sekali.
+        Assert.True(r1.Success ^ r2.Success, $"r1={r1.Success} r2={r2.Success}");
+        Assert.Equal(1, await ctx.ProtonTrackAssignments.AsNoTracking()
+            .CountAsync(a => a.CoacheeId == coachee && a.ProtonTrackId == t2)); // target tak dobel
+        Assert.Equal(1, await ctx.ProtonTrackAssignments.AsNoTracking()
+            .CountAsync(a => a.CoacheeId == coachee && a.IsActive)); // tetap 1 aktif (E8 terjaga)
+    }
+
+    [Fact]
+    public async Task Cancel_BelumKerjakan_CancelExam()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"cnl1-{Guid.NewGuid():N}";
+        var notif = new FakeNotificationService();
+        var pending = await SeedPendingViaSaveAsync(ctx, coachee, notif); // Menunggu, session Upcoming
+
+        var result = await NewBypassSvc(ctx, notif).CancelPendingAsync(pending.Id, "hc2", "HC Dua");
+
+        Assert.True(result.Success, result.Message);
+        var freshPending = await ctx.PendingProtonBypasses.AsNoTracking().SingleAsync(p => p.Id == pending.Id);
+        Assert.Equal("Dibatalkan", freshPending.Status);
+        Assert.NotNull(freshPending.ResolvedAt);
+        // Sesi exam belum dikerjakan → auto-cancel (PBYP-06).
+        var linked = await ctx.AssessmentSessions.AsNoTracking().SingleAsync(s => s.Id == pending.LinkedAssessmentSessionId);
+        Assert.Equal("Dibatalkan", linked.Status);
+    }
+
+    [Fact]
+    public async Task Cancel_SudahLulus_PertahankanHasil()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"cnl2-{Guid.NewGuid():N}";
+        var notif = new FakeNotificationService();
+        var svc = NewBypassSvc(ctx, notif);
+        var pending = await SeedPendingViaSaveAsync(ctx, coachee, notif);
+        var source = await MakePendingSiapLulusAsync(ctx, svc, pending); // Siap + penanda Exam
+
+        var result = await svc.CancelPendingAsync(pending.Id, "hc2", "HC Dua");
+
+        Assert.True(result.Success, result.Message);
+        var freshPending = await ctx.PendingProtonBypasses.AsNoTracking().SingleAsync(p => p.Id == pending.Id);
+        Assert.Equal("Dibatalkan", freshPending.Status);
+        // Worker lulus → hasil exam DIPERTAHANKAN (penanda Origin="Exam" sah).
+        var linked = await ctx.AssessmentSessions.AsNoTracking().SingleAsync(s => s.Id == pending.LinkedAssessmentSessionId);
+        Assert.NotEqual("Dibatalkan", linked.Status);
+        Assert.Equal(1, await ctx.ProtonFinalAssessments.CountAsync(
+            fa => fa.ProtonTrackAssignmentId == source.Id && fa.Origin == "Exam"));
+    }
+
+    [Fact]
+    public async Task Cancel_SudahKerjakanGagal_SessionTetapCompleted()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"cnl3-{Guid.NewGuid():N}";
+        var notif = new FakeNotificationService();
+        var pending = await SeedPendingViaSaveAsync(ctx, coachee, notif);
+        // Worker kerjakan exam tapi GAGAL: Completed + IsPassed=false → pending TETAP Menunggu (MISS-2).
+        var session = await ctx.AssessmentSessions.FindAsync(pending.LinkedAssessmentSessionId);
+        session!.IsPassed = false;
+        session.Status = "Completed";
+        await ctx.SaveChangesAsync();
+
+        var result = await NewBypassSvc(ctx, notif).CancelPendingAsync(pending.Id, "hc2", "HC Dua");
+
+        Assert.True(result.Success, result.Message);
+        var freshPending = await ctx.PendingProtonBypasses.AsNoTracking().SingleAsync(p => p.Id == pending.Id);
+        Assert.Equal("Dibatalkan", freshPending.Status);
+        // W-03: session Completed-gagal TIDAK di-overwrite "Dibatalkan" — jejak dipertahankan.
+        var linked = await ctx.AssessmentSessions.AsNoTracking().SingleAsync(s => s.Id == pending.LinkedAssessmentSessionId);
+        Assert.Equal("Completed", linked.Status);
+        Assert.False(linked.IsPassed);
+    }
 }
