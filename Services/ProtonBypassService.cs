@@ -328,8 +328,10 @@ namespace HcPortal.Services
                     AssessmentType = "Standard", // B-05: kolom DB NOT NULL (ISS-04) — NULL → SqlException 515
                     Category = "Assessment Proton",
                     ProtonTrackId = req.SourceProtonTrackId,
-                    TahunKe = $"Tahun {sourceTrack.Urutan}",
-                    Title = $"Bypass Exam Tahun {sourceTrack.Urutan} — {workerName}",
+                    // TahunKe dari track (mis. "Tahun 1") — BUKAN Urutan (global 1-6 lintas TrackType;
+                    // Operator Tahun 1 punya Urutan=4, ketahuan saat UAT plan 08).
+                    TahunKe = sourceTrack.TahunKe ?? $"Tahun {sourceTrack.Urutan}",
+                    Title = $"Bypass Exam {sourceTrack.TahunKe ?? "Proton"} — {workerName}",
                     Schedule = DateTime.Now,
                     DurationMinutes = req.DurationMinutes ?? 60,
                     PassPercentage = 70,

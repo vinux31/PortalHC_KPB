@@ -1596,7 +1596,8 @@ namespace HcPortal.Controllers
             {
                 success = true,
                 sourceTrackId = source.ProtonTrackId,
-                sourceTahun = track.Urutan,
+                sourceTahun = track.Urutan,        // Urutan global (1-6 lintas TrackType) — untuk Δ≤1
+                sourceTahunKe = track.TahunKe,     // label tahun (mis. "Tahun 1") — untuk display UI
                 sourceComplete,
                 sourceHasFinal,
                 eligibleModes
