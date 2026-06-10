@@ -93,8 +93,14 @@
 
 <!-- Per-coachee Progress Table -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-transparent border-0 fw-semibold pt-3">
-        <i class="bi bi-table me-2 text-primary"></i>Team Deliverable Progress
+    <div class="card-header bg-transparent border-0 pt-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span class="fw-semibold"><i class="bi bi-table me-2 text-primary"></i>Team Deliverable Progress</span>
+        <div class="d-flex gap-2">
+            <input type="text" id="dashTableSearch" class="form-control form-control-sm" style="max-width: 220px;" placeholder="Cari nama / track...">
+            <a id="dashExportBtn" href="@Url.Action("ExportDashboardProgress", "CDP")" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+            </a>
+        </div>
     </div>
     <div class="card-body p-0">
         @if (Model.CoacheeRows.Any())
@@ -265,6 +271,35 @@
         initProtonCharts();
     } else {
         window.addEventListener('load', initProtonCharts);
+    }
+
+    // G-10: client-side filter tabel Team Deliverable Progress
+    var dashSearch = document.getElementById('dashTableSearch');
+    if (dashSearch) {
+        dashSearch.addEventListener('input', function () {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('table tbody tr').forEach(function (tr) {
+                var name = (tr.children[1] ? tr.children[1].textContent : '').toLowerCase();
+                var track = (tr.children[2] ? tr.children[2].textContent : '').toLowerCase();
+                tr.style.display = (name.indexOf(q) > -1 || track.indexOf(q) > -1) ? '' : 'none';
+            });
+        });
+    }
+    // G-04: export bawa nilai filter aktif
+    var dashExport = document.getElementById('dashExportBtn');
+    if (dashExport) {
+        dashExport.addEventListener('click', function () {
+            var p = new URLSearchParams();
+            var s = document.getElementById('protonFilterSection');
+            var u = document.getElementById('protonFilterUnit');
+            var c = document.getElementById('protonFilterCategory');
+            var t = document.getElementById('protonFilterTrack');
+            if (s && s.value) p.set('section', s.value);
+            if (u && u.value) p.set('unit', u.value);
+            if (c && c.value) p.set('category', c.value);
+            if (t && t.value) p.set('track', t.value);
+            this.href = '@Url.Action("ExportDashboardProgress", "CDP")' + (p.toString() ? ('?' + p.toString()) : '');
+        });
     }
 })();
 </script>
