@@ -1,7 +1,30 @@
 {
   "generatedAt": "2026-06-10",
   "module": "PROTON",
-  "pages": [],
+  "pages": [
+    {
+      "id": "cdp-index",
+      "name": "Hub CDP",
+      "route": "/CDP/Index",
+      "action": "CDPController.Index",
+      "view": "Views/CDP/Index.cshtml",
+      "purpose": "Halaman hub Competency Development Platform — 4 kartu navigasi ke fitur PROTON inti.",
+      "flow": { "from": ["Menu atas 'CDP' (_Layout)", "Home/Index kartu 'Buka CDP'"], "to": ["/CDP/PlanIdp", "/CDP/CoachingProton", "/CDP/HistoriProton", "/CDP/Dashboard"] },
+      "roles": "Coachee (class [Authorize] any-auth)",
+      "filters": [],
+      "table": { "columns": [], "source": "none" },
+      "actions": [
+        { "label": "Lihat Dokumen", "endpoint": "/CDP/PlanIdp" },
+        { "label": "Proton Coaching", "endpoint": "/CDP/CoachingProton" },
+        { "label": "Lihat Riwayat", "endpoint": "/CDP/HistoriProton" },
+        { "label": "Lihat Dashboard", "endpoint": "/CDP/Dashboard" }
+      ],
+      "modals": [],
+      "export": ["none"],
+      "dataSource": "none (return View() statis, tanpa model)",
+      "gaps": []
+    }
+  ],
   "gaps": [],
   "executiveSummary": { "totalGaps": 0, "bySeverity": {}, "top5": [] },
   "roadmap": []
