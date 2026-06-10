@@ -23,6 +23,26 @@
       "export": ["none"],
       "dataSource": "none (return View() statis, tanpa model)",
       "gaps": []
+    },
+    {
+      "id": "cdp-planidp",
+      "name": "Plan IDP / Silabus",
+      "route": "/CDP/PlanIdp?bagian&unit&trackId",
+      "action": "CDPController.PlanIdp",
+      "view": "Views/CDP/PlanIdp.cshtml",
+      "purpose": "Lihat silabus kurikulum PROTON (kompetensi>sub>deliverable) + dokumen coaching guidance per Bagian/Unit/Track.",
+      "flow": { "from": ["Hub CDP kartu #1"], "to": ["GuidanceDownload (file)"], "back": "breadcrumb CDP" },
+      "roles": "Coachee (locked ke bagian assignment) | L4 SectionHead/SrSpv (locked ke section) | Coach (guidance per coachee-map) | HC/Admin (semua)",
+      "filters": ["Bagian (RFCC/DHT-HMU/NGP/GAST)", "Unit (cascade dari Bagian)", "Track (Panelman/Operator x Tahun1-3)"],
+      "table": { "columns": ["No", "Kompetensi", "SubKompetensi", "Deliverable", "Target"], "source": "ProtonKompetensiList > SubKompetensiList > Deliverables (render JS setelah Muat Data, butuh 3 filter set)" },
+      "actions": [
+        { "label": "Muat Data", "endpoint": "client-side (render dari SilabusRowsJson)" },
+        { "label": "Download guidance", "endpoint": "/CDP/GuidanceDownload?id={id}" }
+      ],
+      "modals": ["Tab Coaching Guidance (tree Bagian>Unit>TrackType>TahunKe)"],
+      "export": ["none"],
+      "dataSource": "ProtonKompetensiList, ProtonTracks, CoachingGuidanceFiles, ProtonTrackAssignments, GetSectionUnitsDictAsync (shared dep - sumber bug filter Dev kalau OrganizationUnits belum normalisasi)",
+      "gaps": []
     }
   ],
   "gaps": [],
