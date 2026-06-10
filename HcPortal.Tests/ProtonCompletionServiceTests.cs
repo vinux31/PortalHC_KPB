@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using HcPortal.Data;
 using HcPortal.Models;
+using HcPortal.Services;
 using Xunit;
 
 namespace HcPortal.Tests;
@@ -101,5 +103,80 @@ public class ProtonCompletionServiceTests : IClassFixture<ProtonCompletionFixtur
         var nullOrigin = await ctx.ProtonFinalAssessments.Where(x => x.Origin == null).ToListAsync();
         Assert.Single(nullOrigin);
         Assert.Null(nullOrigin[0].Origin);
+    }
+
+    // DB shared antar-fact dalam fixture → tiap fact pakai coacheeId unik untuk isolasi.
+    private static ProtonCompletionService NewSvc(ApplicationDbContext ctx)
+        => new ProtonCompletionService(ctx, NullLogger<ProtonCompletionService>.Instance);
+
+    private async Task<int> TrackIdAsync(ApplicationDbContext ctx, string trackType, string tahunKe)
+        => (await ctx.ProtonTracks.FirstAsync(t => t.TrackType == trackType && t.TahunKe == tahunKe)).Id;
+
+    private async Task<ProtonTrackAssignment> SeedAssignmentAsync(ApplicationDbContext ctx, string coacheeId, int trackId, bool active = true)
+    {
+        var a = new ProtonTrackAssignment { CoacheeId = coacheeId, AssignedById = "hc", ProtonTrackId = trackId, IsActive = active };
+        ctx.ProtonTrackAssignments.Add(a);
+        await ctx.SaveChangesAsync();
+        return a;
+    }
+
+    [Fact]
+    public async Task EnsureAsync_Idempotent()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"idem-{Guid.NewGuid():N}";
+        var trackId = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var asg = await SeedAssignmentAsync(ctx, coachee, trackId);
+        var svc = NewSvc(ctx);
+
+        Assert.True(await svc.EnsureAsync(coachee, trackId, "hc", "Exam", "t"));
+        Assert.False(await svc.EnsureAsync(coachee, trackId, "hc", "Exam", "t"));
+        Assert.Single(ctx.ProtonFinalAssessments.Where(fa => fa.ProtonTrackAssignmentId == asg.Id));
+    }
+
+    [Fact]
+    public async Task EnsureAsync_NoAssignment_ReturnsFalse()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"noasg-{Guid.NewGuid():N}";
+        var trackId = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var svc = NewSvc(ctx);
+
+        Assert.False(await svc.EnsureAsync(coachee, trackId, "hc", "Exam", "t"));
+        Assert.Empty(ctx.ProtonFinalAssessments.Where(fa => fa.CoacheeId == coachee));
+    }
+
+    [Fact]
+    public async Task RemoveExamOrigin_SelektifExamOnly()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"rmexam-{Guid.NewGuid():N}";
+        var trackExam = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var trackBypass = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+        var a1 = await SeedAssignmentAsync(ctx, coachee, trackExam);
+        var a2 = await SeedAssignmentAsync(ctx, coachee, trackBypass);
+        ctx.ProtonFinalAssessments.Add(new ProtonFinalAssessment { CoacheeId = coachee, CreatedById = "hc", ProtonTrackAssignmentId = a1.Id, Status = "Completed", Origin = "Exam", CompletedAt = DateTime.UtcNow });
+        ctx.ProtonFinalAssessments.Add(new ProtonFinalAssessment { CoacheeId = coachee, CreatedById = "hc", ProtonTrackAssignmentId = a2.Id, Status = "Completed", Origin = "Bypass", CompletedAt = DateTime.UtcNow });
+        await ctx.SaveChangesAsync();
+        var svc = NewSvc(ctx);
+
+        Assert.True(await svc.RemoveExamOriginAsync(coachee, trackExam));
+        Assert.Empty(ctx.ProtonFinalAssessments.Where(fa => fa.CoacheeId == coachee && fa.Origin == "Exam"));
+        Assert.NotEmpty(ctx.ProtonFinalAssessments.Where(fa => fa.CoacheeId == coachee && fa.Origin == "Bypass"));
+    }
+
+    [Fact]
+    public async Task GetPassedYears_MatchTrackType()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"passed-{Guid.NewGuid():N}";
+        var trackId = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var asg = await SeedAssignmentAsync(ctx, coachee, trackId);
+        ctx.ProtonFinalAssessments.Add(new ProtonFinalAssessment { CoacheeId = coachee, CreatedById = "hc", ProtonTrackAssignmentId = asg.Id, Status = "Completed", Origin = "Exam", CompletedAt = DateTime.UtcNow });
+        await ctx.SaveChangesAsync();
+        var svc = NewSvc(ctx);
+
+        Assert.Contains("Tahun 1", await svc.GetPassedYearsAsync(coachee, "Operator"));
+        Assert.Empty(await svc.GetPassedYearsAsync(coachee, "Panelman"));
     }
 }
