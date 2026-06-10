@@ -373,7 +373,6 @@ namespace HcPortal.Controllers
             var finalAssessment = await _context.ProtonFinalAssessments
                 .FirstOrDefaultAsync(fa => fa.ProtonTrackAssignmentId == activeAssignmentId);
 
-            subModel.CompetencyLevelGranted = finalAssessment?.CompetencyLevelGranted;
             subModel.CurrentStatus = finalAssessment != null ? "Completed" : "In Progress";
 
             return subModel;
@@ -538,8 +537,7 @@ namespace HcPortal.Controllers
                     Submitted = progresses.Count(p => p.Status == "Submitted"),
                     Rejected = progresses.Count(p => p.Status == "Rejected"),
                     Active = progresses.Count(p => p.Status == "Pending"),
-                    HasFinalAssessment = finalAssessment != null,
-                    CompetencyLevelGranted = finalAssessment?.CompetencyLevelGranted
+                    HasFinalAssessment = finalAssessment != null
                 });
             }
             coacheeRows = coacheeRows.OrderBy(r => r.CoacheeName).ToList();
@@ -569,28 +567,6 @@ namespace HcPortal.Controllers
                 var deliverableName = bp.ProtonDeliverable?.NamaDeliverable ?? $"#{bp.ProtonDeliverableId}";
                 bottleneckLabels.Add($"{coacheeName} - {deliverableName}");
                 bottleneckValues.Add((int)(now - bp.SubmittedAt!.Value).TotalDays);
-            }
-
-            // Trend chart: competency level granted grouped by month
-            var scopedCompletedAssessments = finalAssessments
-                .Where(fa => fa.CompletedAt.HasValue)
-                .OrderBy(fa => fa.CompletedAt)
-                .ToList();
-
-            List<string> trendLabels = new();
-            List<double> trendValues = new();
-
-            if (scopedCompletedAssessments.Any())
-            {
-                var grouped = scopedCompletedAssessments
-                    .GroupBy(fa => new { fa.CompletedAt!.Value.Year, fa.CompletedAt!.Value.Month })
-                    .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month);
-
-                foreach (var g in grouped)
-                {
-                    trendLabels.Add($"{g.Key.Year}-{g.Key.Month:D2}");
-                    trendValues.Add(Math.Round(g.Average(fa => (double)fa.CompetencyLevelGranted), 2));
-                }
             }
 
             // Doughnut chart: status distribution
@@ -624,8 +600,6 @@ namespace HcPortal.Controllers
                 PendingHCReviews = pendingHC,
                 CompletedCoachees = finalAssessmentDict.Count,
                 CoacheeRows = coacheeRows,
-                TrendLabels = trendLabels,
-                TrendValues = trendValues,
                 StatusLabels = statusLabels,
                 StatusData = statusData,
                 // DIFF-03: Bottleneck chart data
@@ -3514,7 +3488,6 @@ namespace HcPortal.Controllers
                     Unit = targetUser.Unit ?? "",
                     CoachName = coachName,
                     Status = yearComplete ? "Lulus" : "Dalam Proses",
-                    CompetencyLevel = hasAssessment ? fa!.CompetencyLevelGranted : null,
                     StartDate = a.AssignedAt,
                     EndDate = hasAssessment ? fa!.CompletedAt : null
                 };
