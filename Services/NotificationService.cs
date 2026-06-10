@@ -47,6 +47,14 @@ namespace HcPortal.Services
                     ActionUrlTemplate = "/CMP/AssessmentResults/{AssessmentId}"
                 },
 
+                // Proton Bypass Tahun (Phase 360 — PBYP-03)
+                ["PROTON_BYPASS_READY"] = new NotificationTemplate
+                {
+                    Title = "Bypass Siap Diselesaikan",
+                    MessageTemplate = "Exam bypass {WorkerName} lulus — siap dikonfirmasi pindah tahun.",
+                    ActionUrlTemplate = "/ProtonData/Override?tab=bypass&pending={PendingId}"
+                },
+
                 // Coaching Proton Notifications (Phase 102)
                 ["COACH_ASSIGNED"] = new NotificationTemplate
                 {

@@ -42,6 +42,9 @@ namespace HcPortal.Data
         public DbSet<ProtonNotification> ProtonNotifications { get; set; }
         public DbSet<ProtonFinalAssessment> ProtonFinalAssessments { get; set; }
 
+        // Proton Bypass Tahun (Phase 360 — PBYP-01)
+        public DbSet<PendingProtonBypass> PendingProtonBypasses { get; set; }
+
         // Proton Track (Phase 33 — normalized track entity)
         public DbSet<ProtonTrack> ProtonTracks { get; set; }
 
@@ -412,6 +415,14 @@ namespace HcPortal.Data
                 entity.HasIndex(fa => new { fa.CoacheeId, fa.Status });
                 // Phase 236 COMP-01: unique constraint per D-01
                 entity.HasIndex(fa => fa.ProtonTrackAssignmentId).IsUnique();
+            });
+
+            // PendingProtonBypass indexes (Phase 360 — PBYP-01).
+            // Index NON-unique: blok dobel pending (D-10) = app-level check, bukan DB constraint.
+            builder.Entity<PendingProtonBypass>(entity =>
+            {
+                entity.HasIndex(p => new { p.CoacheeId, p.Status })
+                    .HasDatabaseName("IX_PendingProtonBypasses_CoacheeId_Status");
             });
 
             // ProtonNotification indexes (Phase 6)

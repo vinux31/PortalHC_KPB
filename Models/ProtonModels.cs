@@ -81,6 +81,9 @@ public class ProtonTrackAssignment
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
     /// <summary>Set when deactivated via mapping cascade. Used to correlate assignments with their deactivation event for safe reactivation.</summary>
     public DateTime? DeactivatedAt { get; set; }
+    /// <summary>Phase 360 (D-04) — penanda exempt cross-year: null = Normal (tidak exempt), "Bypass" = stempel permanen. Nilai hanya {null, "Bypass"}; baris lama = null, TANPA backfill.</summary>
+    [MaxLength(20)]
+    public string? Origin { get; set; }
 }
 
 /// <summary>
@@ -226,4 +229,21 @@ public class ProtonFinalAssessment
     public string? Origin { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
+}
+
+/// <summary>Phase 360 (PBYP-01) — rencana bypass tahun tertunda. Lifecycle Status: Menunggu→Siap→Selesai|Dibatalkan. 12 kolom spec §6 (tanpa Mode — pending hanya untuk CL-B(b)).</summary>
+public class PendingProtonBypass
+{
+    public int Id { get; set; }
+    public string CoacheeId { get; set; } = "";            // worker, no FK constraint
+    public int SourceProtonTrackId { get; set; }           // track asal (ditutup)
+    public int TargetProtonTrackId { get; set; }           // track tujuan
+    public string TargetUnit { get; set; } = "";           // unit tujuan dari form (E7)
+    public string? TargetCoachId { get; set; }             // coach tujuan; null = pertahankan (M-5/D-16)
+    public string Reason { get; set; } = "";               // alasan wajib
+    public int LinkedAssessmentSessionId { get; set; }     // exam source-year yang dipantau
+    public string Status { get; set; } = "Menunggu";       // Menunggu | Siap | Selesai | Dibatalkan
+    public string InitiatedById { get; set; } = "";        // HC/admin inisiator (tujuan notif)
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ResolvedAt { get; set; }              // saat Selesai/Dibatalkan
 }
