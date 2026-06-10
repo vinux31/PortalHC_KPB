@@ -28,6 +28,7 @@ namespace HcPortal.Controllers
         private readonly IWorkerDataService _workerDataService;
         private readonly GradingService _gradingService;
         private readonly ProtonCompletionService _protonCompletionService;
+        private readonly ProtonBypassService _protonBypassService;
 
         public AssessmentAdminController(
             ApplicationDbContext context,
@@ -40,7 +41,8 @@ namespace HcPortal.Controllers
             IHubContext<AssessmentHub> hubContext,
             IWorkerDataService workerDataService,
             GradingService gradingService,
-            ProtonCompletionService protonCompletionService)
+            ProtonCompletionService protonCompletionService,
+            ProtonBypassService protonBypassService)
             : base(context, userManager, auditLog, env)
         {
             _cache = cache;
@@ -50,6 +52,7 @@ namespace HcPortal.Controllers
             _workerDataService = workerDataService;
             _gradingService = gradingService;
             _protonCompletionService = protonCompletionService;
+            _protonBypassService = protonBypassService;
         }
 
         // Override View resolution to use Views/Admin/ folder (controller name is AssessmentAdmin, but views stay in Admin/)
@@ -3761,6 +3764,9 @@ namespace HcPortal.Controllers
                 await _protonCompletionService.EnsureAsync(
                     session.UserId, session.ProtonTrackId.Value, currentUser?.Id ?? "",
                     "Exam", $"Essay Proton finalisasi lulus (skor {finalPercentage}%).");
+                // §7 titik 4 (Pitfall 2): essay early-return tak lewat hook GradeAndCompleteAsync →
+                // flip pending CL-B(b) Menunggu→Siap + notif HC di sini. Idempotent (guard rowsAffected).
+                await _protonBypassService.MarkPendingReadyIfAnyAsync(session.Id);
             }
 
             // 6. Reload session untuk NotifyIfGroupCompleted
