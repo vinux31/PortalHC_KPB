@@ -1,4 +1,4 @@
-# Phase 360: Bypass Backend (B) - Research
+﻿# Phase 360: Bypass Backend (B) - Research
 
 **Researched:** 2026-06-10
 **Domain:** ASP.NET Core 8 MVC backend — EF Core migration + domain service + GradingService hook + 6 controller endpoint (fitur Bypass Tahun Proton)
@@ -369,18 +369,20 @@ if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId
 | A3 | Notif `PROTON_BYPASS_READY` pakai `INotificationService.SendByTemplateAsync` (registered DI `:64`) yang dipakai existing | Pattern 5 | Jika GradingService belum inject INotificationService, perlu tambah ke ctor — verifikasi saat planning |
 | A4 | EF CLI 10.0.3 vs package 8.0.0 tidak bikin migration korup (terbukti migration #1 sukses) | Standard Stack | Rendah — migration#1 (Origin) sukses 2026-06-10 dengan toolchain sama |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Definisi konkret "cancel exam aktif S" (D-14/E5)**
+> B-02 (review): ketiga pertanyaan di bawah TELAH DISELESAIKAN di level planning. Marker RESOLVED inline per pertanyaan.
+
+1. **Definisi konkret "cancel exam aktif S" (D-14/E5)** [RESOLVED: set AssessmentSession.Status="Dibatalkan" -- non-completable + reversible; scope Category="Assessment Proton" && ProtonTrackId==source && UserId==worker && Status!="Completed", EXCLUDE LinkedAssessmentSessionId saat confirm CL-B(b); Plan 03 D-14 + Plan 05 W-03 guard]
    - What we know: spec minta auto-cancel exam in-progress source-year saat instan, kecuali sesi bare CL-B(b).
    - What's unclear: "cancel" = set `Status`? hapus session? hapus `UserPackageAssignment`? Kode belum punya operasi ini eksplisit.
    - Recommendation: Planner tetapkan = set `Status` ke nilai non-completable (mis. "Dibatalkan"/sejenis yang sudah dikenal sistem) ATAU hapus `UserPackageAssignment` agar worker tak bisa lanjut; pilih yang minimal + reversible. Konfirmasi ke user bila ambigu. Scope query: `Category="Assessment Proton" && ProtonTrackId==source && UserId==worker && Status` belum Completed, EXCLUDE `LinkedAssessmentSessionId` CL-B(b).
 
-2. **Default jadwal/durasi/KKM sesi bare CL-B(b)** (Claude's Discretion)
+2. **Default jadwal/durasi/KKM sesi bare CL-B(b)** (Claude's Discretion) [RESOLVED: DurationMinutes=req.DurationMinutes ?? 60, PassPercentage=70, Schedule=DateTime.Now, Status="Upcoming", GenerateCertificate=true; PLUS B-05 UserId=req.CoacheeId + AssessmentType="Standard" WAJIB (DB NOT NULL); Plan 04 baked defaults]
    - What we know: D-01 sesi tanpa paket; HC pasang paket di Kelola Assessment (step 2).
    - Recommendation: Planner set default minimal sane (`DurationMinutes` dari form atau default 60; `PassPercentage` 70 default proyek `AssessmentSession.cs:30`; `Schedule` = now/+1 hari). Field bisa di-edit HC saat pasang paket. Konsisten D-01.
 
-3. **`GradingService` ctor menambah dependency `ProtonBypassService`** — apakah ada risiko circular DI?
+3. **`GradingService` ctor menambah dependency `ProtonBypassService`** — apakah ada risiko circular DI? [RESOLVED: dependency SATU ARAH GradingService -> ProtonBypassService; ProtonBypassService TIDAK inject GradingService; dotnet build verifikasi no-cycle; Plan 06 hook + Plan 03 ctor]
    - What we know: `ProtonBypassService` inject `ProtonCompletionService`+`NotificationService`+`AuditLog`+`Context`. `GradingService` inject `ProtonCompletionService`+`ProtonBypassService`.
    - What's unclear: `ProtonBypassService` TIDAK boleh inject `GradingService` (akan circular).
    - Recommendation: Pastikan dependency satu arah (GradingService → ProtonBypassService, bukan sebaliknya). Hook method tidak butuh GradingService.
