@@ -36,7 +36,7 @@
   - SC2: Re-grade Pass→Fail hapus penanda Origin="Exam"; penanda Bypass/Interview tidak terhapus.
   - SC3: Interview Tahun 3 tetap terbit penanda (Origin="Interview") via helper bersama.
   - SC4: Backfill bikin penanda untuk exam Tahun 1/2 lama yang lulus + deliverable 100%.
-- [ ] **Phase 359: Gate Berurutan + Cleanup (A)** — ProtonYearGate + gate eligibility server-side (CreateAssessment) + gate antar-tahun + Tahun 3 data-driven + graduation gate + matikan tampilan level. REQ: PCOMP-06..10. Migration=false. Depends: 358
+- [x] **Phase 359: Gate Berurutan + Cleanup (A)** — ProtonYearGate + gate eligibility server-side (CreateAssessment) + gate antar-tahun + Tahun 3 data-driven + graduation gate + matikan tampilan level. REQ: PCOMP-06..10. Migration=false. Depends: 358 (completed 2026-06-10)
   - SC1: POST CreateAssessment Proton tolak worker belum 100% deliverable (server-side, bukan cuma JS).
   - SC2: Tahun N tidak eligible kalau Tahun N-1 belum lulus.
   - SC3: "Mark graduated" diblok kalau Tahun 3 belum lulus.
@@ -87,7 +87,7 @@ Plans:
   5. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277.
 **Spec:** `docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md` (Diskusi A)
 **UI hint:** yes (display-off level + grafik tren di view CDP)
-**Plans:** 4 plans (2 waves)
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 359-01-PLAN.md — Helper gate antar-tahun (ProtonYearGate predikat pure + IsPrevYearPassedAsync) + [Fact]
 - [x] 359-02-PLAN.md — CreateAssessment gate eligibility server-side (100% + cross-year + Tahun3 fallback + skip-summary)
