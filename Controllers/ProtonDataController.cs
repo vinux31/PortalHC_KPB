@@ -76,6 +76,24 @@ namespace HcPortal.Controllers
         public string OverrideReason { get; set; } = "";
     }
 
+    // Phase 360 (PBYP-07) — request bypass tahun (spec §10).
+    public class BypassSaveRequest
+    {
+        public string CoacheeId { get; set; } = "";
+        public int SourceProtonTrackId { get; set; }
+        public int TargetProtonTrackId { get; set; }
+        public string TargetUnit { get; set; } = "";
+        public string? TargetCoachId { get; set; }
+        public string Reason { get; set; } = "";
+        public string Mode { get; set; } = "";       // CL-A | CL-B(a) | CL-B(b) | CL-C
+        public int? DurationMinutes { get; set; }
+    }
+
+    public class BypassPendingActionRequest
+    {
+        public int PendingId { get; set; }
+    }
+
     [Authorize(Roles = "Admin,HC")]
     public class ProtonDataController : Controller
     {
@@ -84,19 +102,22 @@ namespace HcPortal.Controllers
         private readonly AuditLogService _auditLog;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<ProtonDataController> _logger;
+        private readonly ProtonBypassService _protonBypassService;
 
         public ProtonDataController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             AuditLogService auditLog,
             IWebHostEnvironment env,
-            ILogger<ProtonDataController> logger)
+            ILogger<ProtonDataController> logger,
+            ProtonBypassService protonBypassService)
         {
             _context = context;
             _userManager = userManager;
             _auditLog = auditLog;
             _env = env;
             _logger = logger;
+            _protonBypassService = protonBypassService;
         }
 
         // GET: /ProtonData/StatusData
@@ -1471,6 +1492,190 @@ namespace HcPortal.Controllers
                 targetId: progress.Id, targetType: "ProtonDeliverableProgress");
 
             return Json(new { success = true });
+        }
+
+        // ===== Phase 360 (PBYP-07) — Bypass Tahun (spec §10, Tab2) =====
+
+        // GET: /ProtonData/BypassList?bagian=&unit=&trackId= — tabel worker untuk Tab2.
+        [HttpGet]
+        public async Task<IActionResult> BypassList(string? bagian, string? unit, int? trackId)
+        {
+            var query = from a in _context.ProtonTrackAssignments
+                        join u in _context.Users on a.CoacheeId equals u.Id
+                        join t in _context.ProtonTracks on a.ProtonTrackId equals t.Id
+                        where a.IsActive
+                        select new { a, u, t };
+            if (!string.IsNullOrWhiteSpace(bagian)) query = query.Where(x => x.u.Section == bagian);
+            if (!string.IsNullOrWhiteSpace(unit)) query = query.Where(x => x.u.Unit == unit);
+            if (trackId.HasValue) query = query.Where(x => x.a.ProtonTrackId == trackId.Value);
+
+            var rows = await query
+                .OrderBy(x => x.u.FullName)
+                .Select(x => new
+                {
+                    coacheeId = x.a.CoacheeId,
+                    nama = x.u.FullName ?? x.u.UserName ?? x.a.CoacheeId,
+                    trackId = x.t.Id,
+                    trackAktif = x.t.DisplayName,
+                    progressApproved = _context.ProtonDeliverableProgresses
+                        .Count(p => p.ProtonTrackAssignmentId == x.a.Id && p.Status == "Approved"),
+                    progressTotal = _context.ProtonDeliverableProgresses
+                        .Count(p => p.ProtonTrackAssignmentId == x.a.Id),
+                    finalAda = _context.ProtonFinalAssessments
+                        .Any(fa => fa.ProtonTrackAssignmentId == x.a.Id)
+                })
+                .ToListAsync();
+
+            return Json(rows);
+        }
+
+        // GET: /ProtonData/BypassPendingList — panel "Menunggu Konfirmasi" (pending selalu CL-B(b), W-05).
+        [HttpGet]
+        public async Task<IActionResult> BypassPendingList()
+        {
+            var rows = await (from p in _context.PendingProtonBypasses
+                              where p.Status == "Menunggu" || p.Status == "Siap"
+                              join u in _context.Users on p.CoacheeId equals u.Id into uj
+                              from u in uj.DefaultIfEmpty()
+                              join ts in _context.ProtonTracks on p.SourceProtonTrackId equals ts.Id
+                              join tt in _context.ProtonTracks on p.TargetProtonTrackId equals tt.Id
+                              join s in _context.AssessmentSessions on p.LinkedAssessmentSessionId equals s.Id into sj
+                              from s in sj.DefaultIfEmpty()
+                              orderby p.CreatedAt descending
+                              select new
+                              {
+                                  id = p.Id,
+                                  coacheeId = p.CoacheeId,
+                                  nama = u != null ? (u.FullName ?? u.UserName ?? p.CoacheeId) : p.CoacheeId,
+                                  sourceTrack = ts.DisplayName,
+                                  targetTrack = tt.DisplayName,
+                                  targetUnit = p.TargetUnit,
+                                  status = p.Status,
+                                  hasilExam = s != null ? s.IsPassed : null,
+                                  createdAt = p.CreatedAt
+                              }).ToListAsync();
+
+            return Json(rows);
+        }
+
+        // GET: /ProtonData/BypassDetail?coacheeId=X — state worker untuk wizard (mode mana yang boleh).
+        [HttpGet]
+        public async Task<IActionResult> BypassDetail(string coacheeId)
+        {
+            if (string.IsNullOrWhiteSpace(coacheeId))
+                return Json(new { success = false, message = "CoacheeId wajib diisi." });
+
+            var assignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == coacheeId && a.IsActive)
+                .ToListAsync();
+            if (assignments.Count != 1)
+                return Json(new { success = false, message = $"Worker punya {assignments.Count} assignment aktif (harus tepat 1)." });
+            var source = assignments[0];
+
+            var track = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == source.ProtonTrackId);
+            if (track == null)
+                return Json(new { success = false, message = "Track aktif tidak ditemukan." });
+
+            var statuses = await _context.ProtonDeliverableProgresses
+                .Where(p => p.ProtonTrackAssignmentId == source.Id)
+                .Select(p => p.Status)
+                .ToListAsync();
+            bool sourceComplete = statuses.Count > 0 && statuses.All(s => s == "Approved");
+            bool sourceHasFinal = await _context.ProtonFinalAssessments
+                .AnyAsync(fa => fa.ProtonTrackAssignmentId == source.Id);
+
+            // B-03 (spec §4/§5): CL-A WAJIB complete && final (BUKAN complete saja — worker 100%
+            // deliverable tanpa penanda diarahkan CL-B(a)); CL-B(a)/(b) hanya bila final belum ada (D-D);
+            // CL-C selalu boleh (turun/koreksi).
+            var eligibleModes = new List<string>();
+            if (sourceComplete && sourceHasFinal) eligibleModes.Add("CL-A");
+            if (!sourceHasFinal) { eligibleModes.Add("CL-B(a)"); eligibleModes.Add("CL-B(b)"); }
+            eligibleModes.Add("CL-C");
+
+            return Json(new
+            {
+                success = true,
+                sourceTrackId = source.ProtonTrackId,
+                sourceTahun = track.Urutan,
+                sourceComplete,
+                sourceHasFinal,
+                eligibleModes
+            });
+        }
+
+        // POST: /ProtonData/BypassSave — entry semua mode bypass (delegasi ProtonBypassService).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BypassSave([FromBody] BypassSaveRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // V5: validasi server-side — jangan percaya form UI Phase 361.
+            if (string.IsNullOrWhiteSpace(req.CoacheeId))
+                return Json(new { success = false, message = "Worker wajib dipilih." });
+            if (string.IsNullOrWhiteSpace(req.Reason))
+                return Json(new { success = false, message = "Alasan wajib diisi." });
+            var validModes = new[] { "CL-A", "CL-B(a)", "CL-B(b)", "CL-C" };
+            if (!validModes.Contains(req.Mode))
+                return Json(new { success = false, message = "Mode tidak valid." });
+
+            var bypassReq = new BypassRequest(req.CoacheeId, req.SourceProtonTrackId,
+                req.TargetProtonTrackId, req.TargetUnit, req.TargetCoachId, req.Reason,
+                req.Mode, req.DurationMinutes, user.Id);
+            var result = await _protonBypassService.BypassSaveAsync(bypassReq);
+
+            if (result.ShowAttachPackageReminder)
+                TempData["Warning"] = result.Message;  // D-02 (W-12): reminder lampirkan paket
+
+            await _auditLog.LogAsync(user.Id, user.FullName ?? user.UserName ?? user.Id, "ProtonBypassSave",
+                $"BypassSave {req.Mode} coachee {req.CoacheeId}: track {req.SourceProtonTrackId}→{req.TargetProtonTrackId}. Alasan: {req.Reason}",
+                targetType: "PendingProtonBypass");
+
+            // D6: result.Message dari service (ramah, tanpa ex.Message).
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message,
+                pendingId = result.PendingId,
+                showAttachPackageReminder = result.ShowAttachPackageReminder
+            });
+        }
+
+        // POST: /ProtonData/BypassConfirm — §5.3 HC konfirmasi pindah setelah exam lulus.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BypassConfirm([FromBody] BypassPendingActionRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var result = await _protonBypassService.ConfirmBypassAsync(
+                req.PendingId, user.Id, user.FullName ?? user.UserName ?? user.Id);
+
+            await _auditLog.LogAsync(user.Id, user.FullName ?? user.UserName ?? user.Id, "ProtonBypassConfirm",
+                $"BypassConfirm pending #{req.PendingId}: {(result.Success ? "berhasil" : result.Message)}",
+                targetId: req.PendingId, targetType: "PendingProtonBypass");
+
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        // POST: /ProtonData/BypassCancelPending — §8.1 HC batal pending sebelum pindah.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BypassCancelPending([FromBody] BypassPendingActionRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var result = await _protonBypassService.CancelPendingAsync(
+                req.PendingId, user.Id, user.FullName ?? user.UserName ?? user.Id);
+
+            await _auditLog.LogAsync(user.Id, user.FullName ?? user.UserName ?? user.Id, "ProtonBypassCancel",
+                $"BypassCancelPending pending #{req.PendingId}: {(result.Success ? "dibatalkan" : result.Message)}",
+                targetId: req.PendingId, targetType: "PendingProtonBypass");
+
+            return Json(new { success = result.Success, message = result.Message });
         }
 
         // GET: /ProtonData/GetKompetensiCascadeInfo?id=X
