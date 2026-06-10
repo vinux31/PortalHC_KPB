@@ -16,6 +16,7 @@ namespace HcPortal.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            var logger = serviceProvider.GetRequiredService<ILogger<SeedData>>();
 
             // 1. Create Roles (always — needed in all environments)
             await CreateRolesAsync(roleManager);
@@ -26,8 +27,14 @@ namespace HcPortal.Data
             // 3. Seed OrganizationUnits (safety net for fresh deployment)
             await SeedOrganizationUnitsAsync(context);
 
+            // 3b. F1 self-heal — normalisasi Level org by tree-depth (idempotent, runs all envs)
+            await NormalizeOrganizationLevelsAsync(context, logger);
+
             // 4. Seed OrganizationLevelLabels — Phase 340 D-01 (permanent + prod-required)
             await SeedOrganizationLevelLabelsAsync(context);
+
+            // 5. F2 self-heal — re-seed 6 ProtonTrack master (idempotent)
+            await SeedProtonTracksAsync(context, logger);
         }
 
         /// <summary>
