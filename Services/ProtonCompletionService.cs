@@ -99,6 +99,17 @@ namespace HcPortal.Services
                          .Distinct()
                          .ToListAsync();
         }
+
+        /// <summary>
+        /// Phase 359 (PCOMP-07/D-03) — true bila prevTahunKe (mis. "Tahun 1") sudah lulus untuk coachee+trackType.
+        /// prevTahunKe == null (Tahun 1) → true. Reuse GetPassedYearsAsync (no-gate) lalu delegasi ke ProtonYearGate.IsAllowed.
+        /// </summary>
+        public async Task<bool> IsPrevYearPassedAsync(string coacheeId, string trackType, string? prevTahunKe)
+        {
+            if (string.IsNullOrWhiteSpace(prevTahunKe)) return true;
+            var passed = await GetPassedYearsAsync(coacheeId, trackType);
+            return ProtonYearGate.IsAllowed(prevTahunKe, passed);
+        }
     }
 
     /// <summary>
