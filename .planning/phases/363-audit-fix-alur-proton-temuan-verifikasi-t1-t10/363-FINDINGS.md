@@ -29,7 +29,7 @@
 
 ### T2 — Reject chain divergen (HIGH)
 - `RejectDeliverable` (L1022-1037): Status="Rejected" + reset SrSpv+SH+HC ke "Pending" + null semua approver ID/timestamp.
-- `RejectFromProgress` (L2054-2071): hanya set role penolak "Rejected" + overall Status="Rejected" — approval co-signer & `HCApprovalStatus` TIDAK direset.
+- `RejectFromProgress` (signature L2018, behavior L2054-2071): hanya set role penolak "Rejected" + overall Status="Rejected" — approval co-signer & `HCApprovalStatus` TIDAK direset.
 - Reset susulan saat resubmit (`UploadEvidence` wasRejected L1297-1308; `SubmitEvidenceWithCoaching` L2270-2279) hanya cover SrSpv+SH — **HCApprovalStatus "Reviewed" tidak pernah direset di jalur ini** → HC review menempel di evidence yang sudah ditolak+diganti.
 - Fix arah: samakan perilaku — RejectFromProgress reset full chain seperti RejectDeliverable (atau keputusan eksplisit kenapa beda).
 

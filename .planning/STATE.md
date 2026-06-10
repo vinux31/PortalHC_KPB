@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 359 — gate-berurutan-cleanup-a
+**Current focus:** Phase 360 (bypass backend, belum diplan) / Phase 363 (audit fix T1-T10, belum diplan)
 
 ## Current Position
 
-Milestone: v25.0 — Proton Kelulusan & Bypass (4 phase 358-361)
-Phase: 360
+Milestone: v25.0 — Proton Kelulusan & Bypass (6 phase 358-363; 358/359/362 shipped local)
+Phase: 360 (next sequential) — Phase 363 added 2026-06-10 (audit fix, depends 362)
 Plan: Not started
-Status: Phase complete — ready for verification
+Status: 358+359+362 shipped local; 360/361/363 belum diplan
 Last activity: 2026-06-10
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-357, 25/25 REQ, archive milestones/v24.0-*). Bundle v19-v23 sudah ke IT; v24.0 belum push (branch ITHandoff).
@@ -40,6 +40,8 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-3
 | **359** Gate Berurutan + Cleanup (A) | ProtonYearGate + gate eligibility server-side (CreateAssessment) + gate antar-tahun + Tahun 3 data-driven + graduation gate + matikan tampilan level | PCOMP-06..10 | false | 358 | yes |
 | **360** Bypass Backend (B) | migration `PendingProtonBypass` + closure CL-A/B(a)/B(b)/C + notif `PROTON_BYPASS_READY` (GradingService hook) + coach handling (E15) + bootstrap-by-unit + 6 endpoint | PBYP-01..07 | **true** (`PendingProtonBypass`) | 358 (helper+Origin), 359 (gate-exempt logical) | partial |
 | **361** Bypass UI (B) | Tab2 redesign + wizard 3-langkah + panel pending + notif deep-link + e2e UAT | PBYP-08..10 | false | 360 | yes |
+| **362** PROTON CDP Polish ✅ | 6 gap UI/nav/role dari gap-analysis (G-01/04/05/09/10/12) — SHIPPED LOCAL 2026-06-10 | gap-analysis G-* | false | — | yes |
+| **363** Audit Fix Alur PROTON | 10 temuan T1-T10 verifikasi adversarial (3 HIGH: notif allApproved miss, reject divergen, loophole gate reaktivasi) — `363-FINDINGS.md` | T1-T10 | false | 362 (file-overlap CDPController); T3 koordinasi 360 | minimal |
 
 **Roadmap shaping notes:**
 

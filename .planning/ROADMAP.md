@@ -1293,7 +1293,9 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-06-06 (Phase 356 added — Audit Fix Assign Coach×Coachee, addon OFF-THEME ke v24.0 atas permintaan user. 7 temuan audit AF-1..7 dari CoachMappingController.cs: AF-1 HIGH confirmed [GetEligibleCoachees bandingkan progress unit-coachee vs total deliverable semua-unit → coachee track multi-unit (track id=4) tak pernah eligible Assessment Proton]. Independen 352-355 [file berbeda]. Pertimbangkan tulis spec audit sebelum /gsd-plan-phase 356.).*
+*Roadmap updated: 2026-06-10 (Phase 363 added — Audit Fix Alur PROTON, 10 temuan T1-T10 dari verifikasi adversarial alur PROTON end-to-end [9-agent workflow vs kode]: 3 HIGH [T1 notif allApproved miss `ApproveFromProgress`, T2 reject chain divergen HCApprovalStatus survive, T3 loophole year-gate reaktivasi assignment], 4 MED, 3 LOW. Detail `.planning/phases/363-audit-fix-alur-proton-temuan-verifikasi-t1-t10/363-FINDINGS.md`. Depends 362 [file-overlap CDPController]; T3 koordinasi exempt hook Phase 360. Pertimbangkan /gsd-discuss-phase 363 untuk lock keputusan T3/T4/T5 sebelum plan.)*
+
+*Prev: 2026-06-06 (Phase 356 added — Audit Fix Assign Coach×Coachee, addon OFF-THEME ke v24.0 atas permintaan user. 7 temuan audit AF-1..7 dari CoachMappingController.cs: AF-1 HIGH confirmed [GetEligibleCoachees bandingkan progress unit-coachee vs total deliverable semua-unit → coachee track multi-unit (track id=4) tak pernah eligible Assessment Proton]. Independen 352-355 [file berbeda]. Pertimbangkan tulis spec audit sebelum /gsd-plan-phase 356.).*
 
 *Prev: 2026-06-06 (v24.0 REVISED — dikompresi dari 5 phase [352-356] ke 4 phase [352-355] atas pilihan user; old Phase 353 Admin CRUD + old Phase 354 Sync/Cleanup di-MERGE jadi satu Phase 353 "Admin Backend Gambar" karena keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict; renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355. Phase 353 kini memegang 9 REQ [IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02], 7 success criteria. 17/17 REQ tetap mapped, 0 dropped, 0 orphan. Migration tetap Phase 352 only. Next /gsd-plan-phase 352).*
 
