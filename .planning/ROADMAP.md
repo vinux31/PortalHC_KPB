@@ -23,11 +23,11 @@
 - ✅ **v22.0 CMP-06 + Assessment/Monitoring Audit Fixes** — Phases 345-349 (shipped local + audited 2026-06-05, 60/60 REQ) — [archive](milestones/v22.0-ROADMAP.md) — [audit](milestones/v22.0-MILESTONE-AUDIT.md)
 - ✅ **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (shipped local + audited 2026-06-06, 7/7 REQ SF-01..07) — [archive](milestones/v23.0-ROADMAP.md) — [audit](milestones/v23.0-MILESTONE-AUDIT.md)
 - ✅ **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-357 (shipped local 2026-06-09, audited passed; 6 phase, 22 plan, 25/25 REQ; full detail → [milestones/v24.0-ROADMAP.md](milestones/v24.0-ROADMAP.md))
-- 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-363 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP + 362 polish + 363 audit-fix T1-T10; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md))
+- 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-366 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP + 362 polish + 363 audit-fix T1-T10 + 364-366 promoted backlog 2026-06-10; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md))
 
 ## Phases
 
-### 🚧 v25.0 Proton Kelulusan & Bypass (Phases 358-363) — ACTIVE
+### 🚧 v25.0 Proton Kelulusan & Bypass (Phases 358-366) — ACTIVE
 
 **Goal:** Logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa) lalu fitur Bypass Tahun. **B (bypass) depends A (completion)** — implement+verify A dulu. Sequential strict 358→359→360→361 (file-overlap GradingService 358+360, AssessmentAdminController 358+359). 2 migration (`Origin` 358, `PendingProtonBypass` 360).
 
@@ -52,8 +52,11 @@
   - SC3: UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
 - [x] **Phase 362: PROTON CDP Polish** — 6 gap UI/nav/role dari gap-analysis (G-01/04/05/09/10/12). Migration=false. Depends: — (SHIPPED LOCAL 2026-06-10)
 - [ ] **Phase 363: Audit Fix Alur PROTON (T1-T10)** — 10 temuan verifikasi adversarial alur PROTON: notif allApproved miss, reject divergen, loophole gate reaktivasi, penanda silent-miss, dead branch, asimetri ValidUntil, drift FromProgress. Migration=false. Depends: 362 (file-overlap CDPController)
+- [ ] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10)
+- [ ] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
+- [ ] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10)
 
-#### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan.
+#### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan. Phase 364-366 = test/cleanup promoted dari backlog (no new product REQ; acuan masing-masing di section phase).
 
 ### Phase 358: Penanda Kelulusan (fondasi A)
 **Goal:** Logic kelulusan Proton konsisten — exam Tahun 1/2 yang lulus ikut menerbitkan penanda `ProtonFinalAssessment` (dulu cuma interview Tahun 3), via helper tunggal `ProtonCompletionService` dipanggil dari GradingService (exam lulus + re-grade flip Pass↔Fail) dan SubmitInterviewResults; plus backfill data lama. Fix bug "exam Tahun 1/2 lulus tak tercatat Lulus".
@@ -156,6 +159,43 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 363 to break down)
+
+### Phase 364: Restore Baseline Regresi e2e Exam (promoted backlog 999.4)
+**Goal:** 2 spec e2e exam lama (`tests/e2e/exam-taking.spec.ts`, `tests/e2e/exam-types.spec.ts`) jalan lagi sebagai baseline regresi — judul assessment yang dibuat spec comply validator naming REST-06 v20.0 (saat ini ditolak di langkah create → seluruh spec patah sejak v20).
+**Depends on:** Tidak ada (test-only; zero overlap file dengan 358-363 — verified 2026-06-10; bisa paralel kapan saja).
+**Migration:** false (zero kode produksi).
+**Requirements:** test-only, no product REQ. Acuan: `.planning/phases/355-test-uat/355-03-SUMMARY.md` Deviasi 2.
+**Success Criteria** (what must be TRUE):
+  1. Judul assessment yang dibuat kedua spec lolos validator REST-06 (`AssessmentAdminController.cs:869-877`, regex `^(Pre|Post)\s*Test\s+.+$` di :872 — case-SENSITIVE, prefix harus persis "Pre Test"/"Post Test").
+  2. Fix per-flow, bukan ganti buta: flow mode PrePostTest (mis. `[318-P]` exam-types :860) exempt validator — cek dulu mana yang benar-benar patah.
+  3. Auto-pair Phase 338 (`TryAutoDetectCounterpartGroup` :7111, IgnoreCase) tidak salah-pasang LinkedGroupId — `uniqueTitle` timestamp dipertahankan di judul.
+  4. Kedua spec PASS penuh @localhost:5277 (atau failure tersisa terdokumentasi bukan-karena-judul).
+**UI hint:** no (test-only)
+**Plans:** 0 plans — TBD (run /gsd-plan-phase 364)
+
+### Phase 365: Test-hardening Coach×Coachee — AF-3 xUnit (promoted backlog 999.5)
+**Goal:** Lock perilaku graduate `MarkMappingCompleted` (`CoachMappingController.cs:1103`) dengan xUnit `MarkMappingCompletedTests` (scope opsi (b) dari backlog — nilai tinggi, effort rendah, tanpa fixture berat): IsCompleted=true + lock IsActive=false (AF-3 D-03) + cascade deactivate ProtonTrackAssignment + DeactivatedAt (AF-3 D-04) + histori utuh.
+**Depends on:** Tidak ada — ortogonal 363 T3 (T3 sentuh `CoachCoacheeMappingAssign` :516-528; `MarkMappingCompleted` :1103 endpoint terpisah, verified 2026-06-10). Varian e2e re-assign-after-graduate + race harness AF-6 (butuh fixture Tahun-2+) TETAP di backlog — itu yang berisiko rework vs T3.
+**Migration:** false (test-only, zero kode produksi).
+**Requirements:** test-only, no product REQ. Acuan: `.planning/phases/356-audit-fix-assign-coach-coachee-pastikan-fungsi-assign-benar-/356-05-SUMMARY.md` (Temuan 4) + `356-VALIDATION.md` Wave-0 opsional.
+**Success Criteria** (what must be TRUE):
+  1. `MarkMappingCompletedTests` hijau — InMemory DbContext pola `OrganizationControllerTests`: graduate set IsCompleted=true + IsActive=false; cascade assignment aktif → IsActive=false + DeactivatedAt; histori/audit utuh; coachee re-assignable pasca-graduate.
+  2. Suite penuh `dotnet test` hijau; zero file produksi berubah (git diff Controllers/ Services/ kosong).
+**UI hint:** no (test-only)
+**Plans:** 0 plans — TBD (run /gsd-plan-phase 365)
+
+### Phase 366: Cascade Image File Cleanup (promoted backlog 999.3)
+**Goal:** Hapus file gambar fisik orphan saat cascade delete besar — `DeleteAssessment` (:2184), `DeleteAssessmentGroup` (:2372), `DeletePrePostGroup` (:2558) di `AssessmentAdminController.cs` saat ini RemoveRange Questions/Options dari DB tanpa sentuh file di `wwwroot/uploads/questions/{packageId}`.
+**Depends on:** Phase 363 (line stability `AssessmentAdminController.cs` — 363 T9/T10 + 360-06 Task2 sentuh file sama, method beda). Scope DIKOREKSI hasil verifikasi adversarial 2026-06-10: **tidak ada helper produksi** — Phase 353 memilih pola inline (duplikasi 3x), `DeleteIfUnreferenced` hanya mirror di test project.
+**Migration:** false.
+**Requirements:** TBD saat plan. Acuan: `.planning/phases/353-admin-backend-gambar-crud-sync-atomic-delete/353-CONTEXT.md` bagian `<deferred>`.
+**Success Criteria** (what must be TRUE):
+  1. Helper baru diekstrak (mis. `DeleteImageFilesIfUnreferencedAsync(IEnumerable<string> paths)`) dari 3 call-site inline existing (DeletePackage :5755 / EditQuestion POST :6718 / DeleteQuestion :6825); 3 call-site lama pakai helper, perilaku tak berubah (ref-count `AnyAsync` PackageQuestions+PackageOptions → File.Delete warn-only).
+  2. 3 method Delete* target: kumpul ImagePath `Distinct()` SEBELUM RemoveRange, eksekusi hapus file SETELAH `tx.CommitAsync` (3 method ber-transaction — pola Phase 333); ref-count sadar batch (semua referensi dalam batch ikut terhapus → file aman dihapus).
+  3. Gambar yang masih direferensikan soal/opsi di luar batch TIDAK terhapus (shared-path Pre↔Post v24.0).
+  4. `dotnet build` 0 error + `dotnet test` hijau + UAT @5277: hapus assessment bergambar → file fisik ikut bersih; hapus salah satu Pre/Post yang share gambar → file selamat.
+**UI hint:** no (backend cleanup)
+**Plans:** 0 plans — TBD (run /gsd-plan-phase 366)
 
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
@@ -751,7 +791,9 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.3: Cascade Image File Cleanup — orphan gambar saat hapus assessment/group (BACKLOG, 2026-06-08)
+### Phase 999.3: Cascade Image File Cleanup — orphan gambar saat hapus assessment/group (PROMOTED -> v25.0 Phase 366, 2026-06-10)
+
+**Promoted:** 2026-06-10 -> Phase 366 (dir `999.3-*` di-rename `366-*`). Scope dikoreksi hasil verifikasi adversarial: TIDAK ada helper ref-count produksi (Phase 353 pilih inline 3x — `353-01-PLAN.md:174-175`); Phase 366 ekstrak helper baru dulu. Line drift: Delete* kini :2184/:2372/:2558 (bukan L2069/L2257/L2443).
 
 **Goal:** Hapus file gambar fisik yang orphan saat cascade delete besar menghapus session→paket→soal→opsi. 3 endpoint: `DeleteAssessment` (`AssessmentAdminController.cs` L2069), `DeleteAssessmentGroup` (L2257), `DeletePrePostGroup` (L2443). Saat ini cascade hapus DB tapi biarkan file gambar di disk.
 
@@ -765,7 +807,9 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 
 ---
 
-### Phase 999.4: Restore baseline regresi e2e exam — update judul spec lama comply validator naming v20 (BACKLOG, 2026-06-09)
+### Phase 999.4: Restore baseline regresi e2e exam — update judul spec lama comply validator naming v20 (PROMOTED -> v25.0 Phase 364, 2026-06-10)
+
+**Promoted:** 2026-06-10 -> Phase 364. Verifikasi 2026-06-10: validator kini `AssessmentAdminController.cs:869-877` (regex :872, case-SENSITIVE; catatan lama 866-874 stale); fix per-flow (flow mode PrePostTest mis. `[318-P]` exempt validator); waspadai auto-pair Phase 338 (:7111) saat judul jadi "Pre Test ...".
 
 **Goal:** Spec e2e exam lama (`tests/e2e/exam-taking.spec.ts`, `tests/e2e/exam-types.spec.ts`) gagal di pembuatan assessment sehingga tak bisa dipakai sebagai baseline regresi. Update judul assessment yang dibuat spec agar comply validator naming-convention v20.0.
 
@@ -779,7 +823,9 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 
 ---
 
-### Phase 999.5: Test-hardening Coach×Coachee — AF-3 graduate e2e + AF-6 race (BACKLOG, 2026-06-09)
+### Phase 999.5: Test-hardening Coach×Coachee — AF-3 graduate e2e + AF-6 race (PARTIAL PROMOTED -> v25.0 Phase 365, 2026-06-10)
+
+**Promoted:** 2026-06-10 -> Phase 365, scope opsi (b) xUnit `MarkMappingCompletedTests` SAJA (ortogonal 363 T3 — verified). **TETAP BACKLOG:** varian (a) e2e Playwright re-assign-after-graduate + race harness AF-6 fixture Tahun-2+ — keduanya bersinggungan jalur T3 (`CoachCoacheeMappingAssign` :516-528), tunggu 363 selesai.
 
 **Goal:** Tutup kedalaman test opsional Phase 356 yang tak bisa di-e2e saat UAT karena keterbatasan data lokal (1 coach, coachee Tahun-1, race tak reprodusibel single-thread). Kode sudah verified 3 cara; ini menambah coverage otomatis.
 
@@ -1293,7 +1339,9 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-06-10 (Phase 363 added — Audit Fix Alur PROTON, 10 temuan T1-T10 dari verifikasi adversarial alur PROTON end-to-end [9-agent workflow vs kode]: 3 HIGH [T1 notif allApproved miss `ApproveFromProgress`, T2 reject chain divergen HCApprovalStatus survive, T3 loophole year-gate reaktivasi assignment], 4 MED, 3 LOW. Detail `.planning/phases/363-audit-fix-alur-proton-temuan-verifikasi-t1-t10/363-FINDINGS.md`. Depends 362 [file-overlap CDPController]; T3 koordinasi exempt hook Phase 360. Pertimbangkan /gsd-discuss-phase 363 untuk lock keputusan T3/T4/T5 sebelum plan.)*
+*Roadmap updated: 2026-06-10 (Backlog review — promoted 3: 999.4 → Phase 364 [restore baseline e2e exam, test-only, zero overlap, bisa paralel], 999.5 → Phase 365 [AF-3 xUnit MarkMappingCompletedTests, scope opsi (b) saja — varian e2e/race tetap backlog karena bersinggungan 363 T3], 999.3 → Phase 366 [cascade image cleanup, depends 363 line-stability; scope dikoreksi: ekstrak helper baru, TIDAK ada helper produksi dari 353]. Verifikasi adversarial 4-agent 12-klaim sebelum promote; line drift dicatat di tiap entry. v25.0 jadi Phases 358-366.)*
+
+*Prev: 2026-06-10 (Phase 363 added — Audit Fix Alur PROTON, 10 temuan T1-T10 dari verifikasi adversarial alur PROTON end-to-end [9-agent workflow vs kode]: 3 HIGH [T1 notif allApproved miss `ApproveFromProgress`, T2 reject chain divergen HCApprovalStatus survive, T3 loophole year-gate reaktivasi assignment], 4 MED, 3 LOW. Detail `.planning/phases/363-audit-fix-alur-proton-temuan-verifikasi-t1-t10/363-FINDINGS.md`. Depends 362 [file-overlap CDPController]; T3 koordinasi exempt hook Phase 360. Pertimbangkan /gsd-discuss-phase 363 untuk lock keputusan T3/T4/T5 sebelum plan.)*
 
 *Prev: 2026-06-06 (Phase 356 added — Audit Fix Assign Coach×Coachee, addon OFF-THEME ke v24.0 atas permintaan user. 7 temuan audit AF-1..7 dari CoachMappingController.cs: AF-1 HIGH confirmed [GetEligibleCoachees bandingkan progress unit-coachee vs total deliverable semua-unit → coachee track multi-unit (track id=4) tak pernah eligible Assessment Proton]. Independen 352-355 [file berbeda]. Pertimbangkan tulis spec audit sebelum /gsd-plan-phase 356.).*
 
