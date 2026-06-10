@@ -40,6 +40,23 @@ public class NormalizeOrganizationLevelsTests
     }
 
     [Fact]
+    public async Task InactiveNodes_NormalizedByStructuralDepth_NotSkipped()
+    {
+        // Level is a structural property (depth), independent of IsActive — inactive units must still be normalized.
+        using var ctx = NewCtx();
+        var inactiveRoot = new OrganizationUnit { Name = "OldBagian", ParentId = null, Level = 1, IsActive = false };
+        ctx.OrganizationUnits.Add(inactiveRoot);
+        await ctx.SaveChangesAsync();
+        ctx.OrganizationUnits.Add(new OrganizationUnit { Name = "InactiveUnit", ParentId = inactiveRoot.Id, Level = 2, IsActive = false });
+        await ctx.SaveChangesAsync();
+
+        await SeedData.NormalizeOrganizationLevelsAsync(ctx, new CapturingLogger<SeedData>());
+
+        Assert.Equal(0, ctx.OrganizationUnits.Single(u => u.Name == "OldBagian").Level);
+        Assert.Equal(1, ctx.OrganizationUnits.Single(u => u.Name == "InactiveUnit").Level);
+    }
+
+    [Fact]
     public async Task AlreadyCorrect_NoChange()
     {
         using var ctx = NewCtx();
