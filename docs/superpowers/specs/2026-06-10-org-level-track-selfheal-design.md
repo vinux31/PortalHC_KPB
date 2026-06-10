@@ -82,7 +82,7 @@ Algoritma:
 3. BFS dari root (`ParentId == null`), set depth: root=0, anak=parent+1. Pakai `visited` set.
 4. **Orphan/cycle handling (decision A):** baris yang tak terjangkau dari root manapun (ParentId nunjuk baris hilang, atau ada cycle) → **lewati, log `LogWarning`** dengan **count + daftar Id**. Jangan crash, jangan ubah. **Konsekuensi (eksplisit):** ini = *normalisasi parsial* — subtree yang terjangkau dirapikan, baris orphan dibiarkan apa adanya. Wajar (org orphan nyaris mustahil krn FK self-ref), tapi kalau log nunjuk orphan → flag di handoff IT buat remediasi manual.
 5. Kumpulkan baris yang `computedDepth != Level`. Kalau kosong → no-op, return (skip transaction).
-6. **Bungkus transaction:** `BeginTransactionAsync` → set Level in-memory baris-baris itu → `SaveChangesAsync` → `CommitAsync`. `catch (DbUpdateException)` → `RollbackAsync` + log. **Hanya ubah kolom Level. Tidak tambah/hapus baris.** (Atomik: kalau gagal di tengah, rollback — bukan setengah-normalisasi.)
+6. **Atomik via single-save:** set Level in-memory SEMUA baris yang beda, lalu **satu** `SaveChangesAsync` (EF bungkus single-save dalam implicit transaction → all-or-nothing otomatis). Bungkus `catch (DbUpdateException)` → log + biarkan (single-save gagal = auto-rollback, tak ada baris berubah). **Hanya ubah kolom Level. Tidak tambah/hapus baris.** _(Explicit `BeginTransactionAsync` TIDAK dipakai: redundant untuk satu SaveChanges + tak didukung provider InMemory di test.)_
 7. Log `LogInformation`: jumlah baris dinormalisasi + jumlah orphan di-skip.
 
 Idempotensi: run kedua → semua sudah match depth → 0 update → no-op (tak buka transaction). **Tak thrash tiap startup.**
@@ -111,7 +111,7 @@ Algoritma:
 1. Load existing keys `(TrackType, TahunKe)` dari `ProtonTracks`.
 2. **Pre-check orphan (log saja):** hitung baris anak yang `ProtonTrackId` tak match track manapun (mis. `ProtonTrackId = 0` sisa default migration Step 9, atau nunjuk Id track yang sudah hilang) di `ProtonKompetensiList` + `ProtonTrackAssignment`. Kalau ada → `LogWarning` count (data orphan pre-existing — **tidak diperbaiki di sini**, lihat Non-Goals).
 3. Untuk tiap expected yang **belum ada** key-nya → `Add`. Kalau kosong (6 sudah ada) → no-op, return.
-4. **Bungkus transaction:** `BeginTransactionAsync` → `AddRange` track yang hilang → `SaveChangesAsync` → `CommitAsync`. `catch (DbUpdateException)` → `RollbackAsync` + log.
+4. **Atomik via single-save:** `AddRange` track yang hilang → **satu** `SaveChangesAsync` (implicit transaction → atomik). Bungkus `catch (DbUpdateException)` → log + biarkan. _(Tanpa explicit `BeginTransactionAsync`, alasan sama F1.)_
 5. Log `LogInformation` jumlah track di-insert (0 = sudah lengkap).
 
 Insert-if-missing (bukan overwrite) → preserve baris existing apa adanya. Cek key di app-level (langkah 1) = penjaga utama anti-duplikat; unique constraint `AK_ProtonTracks_TrackType_TahunKe` (migration L28 + `ApplicationDbContext.cs:339` `.IsUnique()`) = backstop. Identity `Id` di-generate DB → track yang di-reseed dapat **Id baru** (lihat Non-Goals: ref lama tak di-relink).
@@ -182,7 +182,7 @@ Gate: `dotnet build` 0 error + `dotnet test` semua pass (existing + baru).
 | Orphan/cycle bikin loop tak henti | `visited` set di BFS; orphan di-skip + log |
 | F2 duplikat track | Insert-if-missing by unique (TrackType,TahunKe); unique constraint DB sebagai backstop |
 | Salah benerin data prod yang sengaja beda | Org: depth = sumber kebenaran struktural (tak ada kasus sah Level≠depth). Track: insert-missing-only, tak overwrite existing |
-| F1/F2 gagal di tengah → DB inkonsisten | `BeginTransactionAsync`+Commit; gagal → `RollbackAsync` (atomik, bukan setengah jalan) |
+| F1/F2 gagal di tengah → DB inkonsisten | Satu `SaveChangesAsync` per method (EF implicit transaction → all-or-nothing); `catch(DbUpdateException)` log. Explicit tx tak perlu (redundant + InMemory test tak support) |
 | Anak track orphan (`ProtonTrackId=0`/Id hilang) sisa hapus track | Pre-check log (langkah F2-2); FK silabus=Cascade & assignment=Restrict → via EF tak bisa orphan, orphan cuma dari restore/raw SQL. F2 re-create master saja, ref lama tak di-relink (non-goal, sudah dangling sblm fix) |
 | Mutasi data Prod tanpa approval eksplisit | Sengaja jalan semua env (Prod legacy 1-based sama); no-op kalau bersih; tiap mutasi di-log buat visibilitas. Backup pre-deploy = jaring rollback |
 | Track hilang lagi pasca-seed | Tak ada code path hapus `ProtonTracks` (terverifikasi grep — no `.Remove`); penyebab kemungkinan restore DB. Self-heal jalan tiap boot → recurrence auto-koreksi saat restart berikut |
@@ -202,6 +202,6 @@ Tidak ada yang blocking. Semua decision sudah locked:
 
 48 finding (33 CONFIRMED_OK, 9 MISS, 6 RISK). **Kunci: lens F1 Level-dependency = 12 cek, 0 miss, 0 risk** → normalisasi `Level` tak merusak behavior existing manapun (tree label depth-based; tak ada view yang "kebetulan benar" gara-gara Level salah).
 
-**Diterima → masuk spec ini:** target struktural (bukan `{0:8,1:18}` tetap) §3.2; transaction wrapping F1/F2 §3.2/§3.3; logger final §3.1; orphan child-FK pre-check + non-goal ref-relink §2/§3.3; all-env Prod eksplisit §3.1; partial-norm clarification §3.2; test Dev-split-brain double-run + orphan §4; handoff queries+rollback §6; risk rows §7.
+**Diterima → masuk spec ini:** target struktural (bukan `{0:8,1:18}` tetap) §3.2; atomicity F1/F2 via single-save EF implicit-tx (bukan explicit BeginTransaction — redundant + InMemory-incompatible) §3.2/§3.3; logger final §3.1; orphan child-FK pre-check + non-goal ref-relink §2/§3.3; all-env Prod eksplisit §3.1; partial-norm clarification §3.2; test Dev-split-brain double-run + orphan §4; handoff queries+rollback §6; risk rows §7.
 
 **Ditolak (over-engineering / tak relevan):** env-guard Prod (ngalahin tujuan self-heal); retry/backoff/health-endpoint (restart idempotent = recovery alami); pre-flight verify unique constraint (cek app-level cukup); full audit-log mechanism orphan (WARN log + flag handoff cukup).
