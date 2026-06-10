@@ -1365,7 +1365,12 @@ namespace HcPortal.Controllers
                     foreach (var uid in UserIds)
                     {
                         // (a) Cross-year gate (D-03/D-07): penanda Tahun N-1 (kecuali renewal).
-                        if (!isRenewal && !await _protonCompletionService.IsPrevYearPassedAsync(uid, trackType, prevTahunKe))
+                        // Phase 360 (D-06a/A-M4): assignment ber-Origin="Bypass" exempt cek cross-year prereq.
+                        bool isBypassAssignment = await _context.ProtonTrackAssignments
+                            .AnyAsync(a => a.CoacheeId == uid && a.ProtonTrackId == protonTrackId
+                                        && a.IsActive && a.Origin == "Bypass");
+                        if (!isRenewal && !isBypassAssignment
+                            && !await _protonCompletionService.IsPrevYearPassedAsync(uid, trackType, prevTahunKe))
                         {
                             gateSkippedPrevYear++; continue;
                         }

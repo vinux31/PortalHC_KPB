@@ -527,10 +527,14 @@ namespace HcPortal.Controllers
                         {
                             if (hasForRequestedTrack.Contains(coacheeId)) continue;          // cabang 1: reactivated → skip (UNCHANGED)
 
-                            // D-06/D-07 exempt point (disiapkan logis; full bypass = Phase 360):
-                            //   request bypass-origin ATAU renewal → JANGAN blok cross-year.
-                            //   Assign normal Phase 359 tidak punya flag bypass/renewal → exempt = false.
-                            bool isExemptFromCrossYear = false; // Phase 360 isi: req bypass-origin || renewal
+                            // Phase 360 (D-06b): assignment AKTIF ber-Origin="Bypass" untuk track yang diminta → exempt cross-year.
+                            // CATATAN (W-07/I-08): cabang 1 (:516-528, hasForRequestedTrack TANPA filter IsActive) sudah men-skip
+                            // coachee bypass lebih dulu, jadi predikat ini bersifat DEFENSE-IN-DEPTH (kalau cabang 1 di-refactor /
+                            // suatu saat memfilter IsActive, exempt ini tetap menjaga semantik D-06b). Cabang 1 SENGAJA dipertahankan
+                            // apa adanya (tanpa filter IsActive) — JANGAN ubah cabang 1. Renewal exempt = session-based TERPISAH (D-07).
+                            bool isExemptFromCrossYear = await _context.ProtonTrackAssignments
+                                .AnyAsync(a => a.CoacheeId == coacheeId && a.ProtonTrackId == requestedTrack.Id
+                                            && a.IsActive && a.Origin == "Bypass");
                             if (isExemptFromCrossYear) continue;
 
                             // prevTrack.TahunKe = TahunKe tahun sebelumnya (mis. "Tahun 1"); cek penanda
