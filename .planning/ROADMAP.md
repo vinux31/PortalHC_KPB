@@ -791,6 +791,23 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
+### Phase 999.6: Bug Impersonate — identitas impersonated tidak dipakai query worker surfaces (BACKLOG)
+
+**Goal:** [Captured for future planning] Impersonate "view as user X" menampilkan data milik admin asli, bukan user yang di-impersonate — banner "Anda melihat sebagai X" menyesatkan.
+
+**Context:**
+- Bukti live 2026-06-10 @5277: impersonate Iwan → `/CMP/Records` tampil 2 assessment online MILIK ADMIN (AssessmentSessions Id 157 + 66, UserId admin@pertamina.com), Training Manual=0 padahal Iwan punya 3 TrainingRecords. `CMPController.Records:481` pakai `GetCurrentUserRoleLevelAsync()` → resolve user asli, bukan identitas impersonated.
+- Kemungkinan menimpa semua surface ber-`GetCurrentUserRoleLevelAsync`/`_userManager.GetUserAsync(User)` — perlu audit cakupan (Records, Assessment, Home progress, dst).
+- Ditemukan saat brainstorm delete Input Records (lihat spec delete-input-records full-cascade).
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.3: Cascade Image File Cleanup — orphan gambar saat hapus assessment/group (PROMOTED -> v25.0 Phase 366, 2026-06-10)
 
 **Promoted:** 2026-06-10 -> Phase 366 (dir `999.3-*` di-rename `366-*`). Scope dikoreksi hasil verifikasi adversarial: TIDAK ada helper ref-count produksi (Phase 353 pilih inline 3x — `353-01-PLAN.md:174-175`); Phase 366 ekstrak helper baru dulu. Line drift: Delete* kini :2184/:2372/:2558 (bukan L2069/L2257/L2443).
