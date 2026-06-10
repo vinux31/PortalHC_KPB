@@ -198,6 +198,7 @@
 
 <script>
 (function () {
+    function initProtonCharts() {
     @if (Model.StatusData.Any(d => d > 0))
     {
         <text>
@@ -258,6 +259,12 @@
             });
         }
         </text>
+    }
+    }
+    if (typeof Chart !== 'undefined') {
+        initProtonCharts();
+    } else {
+        window.addEventListener('load', initProtonCharts);
     }
 })();
 </script>
