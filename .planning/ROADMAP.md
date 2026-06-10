@@ -120,6 +120,23 @@ Plans:
 **Spec:** `docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md` (Diskusi B)
 **UI hint:** yes (Tab2 wizard + panel pending)
 
+### Phase 362: PROTON CDP Polish
+**Goal:** Tutup 6 gap UI/navigasi/role PROTON dari gap-analysis (G-01 chart race, G-04 Dashboard export, G-05 Deliverable back, G-09 CertMgmt breadcrumb, G-10 Dashboard search, G-12 export gating) — di luar kelulusan/bypass (358-361).
+**Depends on:** Tidak ada (independen dari 358-361; file beda).
+**Migration:** false
+**Requirements:** gap-analysis G-01/G-04/G-05/G-09/G-10/G-12 (`docs/proton-gap-analysis/`)
+**Success Criteria** (what must be TRUE):
+  1. Dashboard chart "Deliverable Status" render tanpa console error (G-01).
+  2. Dashboard punya Export Excel + search tabel (G-04/G-10).
+  3. Deliverable breadcrumb/back ke page asal termasuk Dashboard (G-05).
+  4. CertManagement breadcrumb/back ke Kelola Data/Admin (G-09).
+  5. Coach bisa ExportHistoriProton (RolesCoachAndAbove) (G-12).
+  6. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277. Migration none.
+**Spec:** `docs/superpowers/specs/2026-06-10-proton-cdp-polish-design.md`
+**Plan:** `docs/superpowers/plans/2026-06-10-proton-cdp-polish.md`
+**UI hint:** no (polish view existing)
+**Status:** SHIPPED LOCAL 2026-06-10 (6/6 UAT PASS, 156/156 test, no migration)
+
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
 
