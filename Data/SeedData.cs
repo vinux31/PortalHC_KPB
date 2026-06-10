@@ -27,6 +27,11 @@ namespace HcPortal.Data
 
             // 4. Seed OrganizationLevelLabels — Phase 340 D-01 (permanent + prod-required)
             await SeedOrganizationLevelLabelsAsync(context);
+
+            // 5. Seed ProtonTracks (safety net — sebelumnya hanya di-seed via migration
+            //    CreateProtonTrackTable; kalau migration tak jalan / baris terhapus, dropdown
+            //    Track + StatusData ProtonData kosong. Idempotent, production-safe.)
+            await SeedProtonTracksAsync(context);
         }
 
         /// <summary>
@@ -123,6 +128,39 @@ namespace HcPortal.Data
                 new OrganizationLevelLabel { Level = 2, Label = "Sub-unit", UpdatedAt = DateTime.UtcNow, UpdatedBy = "system" },
             };
             context.OrganizationLevelLabels.AddRange(defaults);
+            await context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Seed 6 baris ProtonTrack master (Panelman/Operator × Tahun 1/2/3).
+        /// Klasifikasi: permanent + prod-required. Sumber kebenaran sama dengan migration
+        /// 20260223060707_CreateProtonTrackTable Step 5; ini safety-net agar tabel auto-isi
+        /// tiap startup bila kosong (mis. migration tak ter-apply / baris terhapus di Dev).
+        /// Idempotent — skip bila tabel sudah ada baris.
+        /// DisplayName + Urutan dibangun konsisten: "TrackType - TahunKe", urut Panelman 1-3 lalu Operator 4-6.
+        /// </summary>
+        public static async Task SeedProtonTracksAsync(ApplicationDbContext context)
+        {
+            if (await context.ProtonTracks.AnyAsync())
+                return;
+
+            var trackTypes = new[] { "Panelman", "Operator" };
+            var tahunList = new[] { "Tahun 1", "Tahun 2", "Tahun 3" };
+
+            int urutan = 1;
+            foreach (var trackType in trackTypes)
+            {
+                foreach (var tahunKe in tahunList)
+                {
+                    context.ProtonTracks.Add(new ProtonTrack
+                    {
+                        TrackType = trackType,
+                        TahunKe = tahunKe,
+                        DisplayName = $"{trackType} - {tahunKe}",
+                        Urutan = urutan++
+                    });
+                }
+            }
             await context.SaveChangesAsync();
         }
     }
