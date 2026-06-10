@@ -3,14 +3,13 @@ gsd_state_version: 1.0
 milestone: v25.0
 milestone_name: Proton Kelulusan & Bypass
 status: planning
-last_updated: "2026-06-09"
-last_activity: 2026-06-09
+last_updated: "2026-06-10T01:07:55.677Z"
+last_activity: 2026-06-09 — Milestone v25.0 started
 progress:
-  total_phases: 4
+  total_phases: 16
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -42,6 +41,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-3
 | **361** Bypass UI (B) | Tab2 redesign + wizard 3-langkah + panel pending + notif deep-link + e2e UAT | PBYP-08..10 | false | 360 | yes |
 
 **Roadmap shaping notes:**
+
 - Dua spec final: A (`...-proton-completion-logic-design.md`) + B (`...-proton-bypass-tahun-design.md`). B depends A → implement+verify A dulu.
 - **Split A → 2 fase** sesuai pola granular proyek: 358 penanda (fix bug "Tahun 1/2 gak pernah Lulus", shippable sendiri) + 359 gate (urutan dipaksa + UI bersih).
 - **Split B → 2 fase**: 360 backend (migration+logic+endpoint) + 361 frontend (Tab2 wizard). SEMUA 6 endpoint di 360; 361 murni UI.
