@@ -27,6 +27,7 @@ namespace HcPortal.Controllers
         private readonly IHubContext<AssessmentHub> _hubContext;
         private readonly IWorkerDataService _workerDataService;
         private readonly GradingService _gradingService;
+        private readonly ProtonCompletionService _protonCompletionService;
 
         public AssessmentAdminController(
             ApplicationDbContext context,
@@ -38,7 +39,8 @@ namespace HcPortal.Controllers
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
             IWorkerDataService workerDataService,
-            GradingService gradingService)
+            GradingService gradingService,
+            ProtonCompletionService protonCompletionService)
             : base(context, userManager, auditLog, env)
         {
             _cache = cache;
@@ -47,6 +49,7 @@ namespace HcPortal.Controllers
             _hubContext = hubContext;
             _workerDataService = workerDataService;
             _gradingService = gradingService;
+            _protonCompletionService = protonCompletionService;
         }
 
         // Override View resolution to use Views/Admin/ folder (controller name is AssessmentAdmin, but views stay in Admin/)
@@ -3637,6 +3640,17 @@ namespace HcPortal.Controllers
                 _logger.LogWarning(ex, "FinalizeEssayGrading: audit log failed for session {SessionId}", sessionId);
             }
 
+            // 5c. PCOMP-01 D-05a (defensive): Proton essay lulus → penanda Origin="Exam".
+            // Praktis idle (Proton tak ada essay di data sekarang) tapi nutup celah hasEssay early-return
+            // di GradingService.GradeAndCompleteAsync (RESEARCH Pitfall 1) yang lewati hook penanda.
+            // EnsureAsync idempotent → aman walau Hook A juga terbit.
+            if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId.HasValue)
+            {
+                await _protonCompletionService.EnsureAsync(
+                    session.UserId, session.ProtonTrackId.Value, currentUser?.Id ?? "",
+                    "Exam", $"Essay Proton finalisasi lulus (skor {finalPercentage}%).");
+            }
+
             // 6. Reload session untuk NotifyIfGroupCompleted
             var updatedSession = await _context.AssessmentSessions.FindAsync(sessionId);
             if (updatedSession != null)
@@ -3737,34 +3751,18 @@ namespace HcPortal.Controllers
             // [PROTON-06 FIX] Create ProtonFinalAssessment when interview passes so that
             // HistoriProton and CoachingProton dashboard correctly reflect completion status.
             var actorForFix = await _userManager.GetUserAsync(User);
+            // PCOMP-03 (D-07): refactor inline-create → single-source helper ProtonCompletionService.
+            // EnsureAsync share _context scoped yang sama (SaveChanges internal) → idempotent, tidak dobel.
             if (isPassed && session.ProtonTrackId.HasValue)
             {
-                var assignment = await _context.ProtonTrackAssignments
-                    .FirstOrDefaultAsync(a => a.CoacheeId == session.UserId
-                                           && a.ProtonTrackId == session.ProtonTrackId.Value
-                                           && a.IsActive);
-                if (assignment != null)
-                {
-                    // Avoid duplicate: only create if none exists for this assignment
-                    var alreadyExists = await _context.ProtonFinalAssessments
-                        .AnyAsync(fa => fa.ProtonTrackAssignmentId == assignment.Id);
-                    if (!alreadyExists)
-                    {
-                        _context.ProtonFinalAssessments.Add(new ProtonFinalAssessment
-                        {
-                            CoacheeId = session.UserId,
-                            CreatedById = actorForFix?.Id ?? "",
-                            ProtonTrackAssignmentId = assignment.Id,
-                            Status = "Completed",
-                            CompetencyLevelGranted = 0, // Interview track does not grant a numeric level
-                            Notes = $"Interview Tahun 3 lulus. Assessor: {dto.Judges}",
-                            CreatedAt = DateTime.UtcNow,
-                            CompletedAt = DateTime.UtcNow
-                        });
-                    }
-                }
+                await _protonCompletionService.EnsureAsync(
+                    session.UserId, session.ProtonTrackId.Value, actorForFix?.Id ?? "",
+                    "Interview", $"Interview Tahun 3 lulus. Assessor: {dto.Judges}");
             }
 
+            // Simpan perubahan session (InterviewResultsJson/IsPassed/Status di-set di memory di atas).
+            // EnsureAsync sudah flush bila penanda dibuat; SaveChanges ini jaga session tetap tersimpan
+            // walau EnsureAsync skip/return false (Pitfall 2 — urutan terjaga).
             await _context.SaveChangesAsync();
 
             // Audit log
@@ -3788,6 +3786,106 @@ namespace HcPortal.Controllers
                 category = returnCategory ?? session.Category,
                 scheduleDate = returnDate ?? session.Schedule.Date.ToString("yyyy-MM-dd")
             });
+        }
+
+        // --- BACKFILL PENANDA PROTON (PCOMP-05) ---
+        // Maintenance admin-only 1x idempotent: terbitkan penanda Origin="Exam" untuk exam Proton
+        // Tahun 1/2 LAMA yang lulus + deliverable 100% (A-M10 resolve, D-08 enforce 100%).
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BackfillProtonPenanda()
+        {
+            int created = 0, alreadyExists = 0, notEligible = 0, skipped = 0;
+            try
+            {
+                // 1. Semua exam Proton Tahun 1/2 yang lulus + selesai.
+                var exams = await _context.AssessmentSessions
+                    .Where(s => s.Category == "Assessment Proton"
+                             && s.IsPassed == true
+                             && s.ProtonTrackId.HasValue
+                             && (s.TahunKe == "Tahun 1" || s.TahunKe == "Tahun 2")
+                             && s.CompletedAt != null)
+                    .ToListAsync();
+
+                foreach (var exam in exams)
+                {
+                    // 2. Resolve assignment A-M10 (BUKAN EnsureAsync — Pitfall 3): tanpa filter IsActive
+                    //    (bisa inactive & >1), AssignedAt <= exam.CompletedAt (Pitfall 4: pakai exam.CompletedAt).
+                    var assignment = await _context.ProtonTrackAssignments
+                        .Where(a => a.CoacheeId == exam.UserId
+                                 && a.ProtonTrackId == exam.ProtonTrackId!.Value
+                                 && a.AssignedAt <= exam.CompletedAt!.Value)
+                        .OrderByDescending(a => a.AssignedAt)
+                        .FirstOrDefaultAsync();
+                    if (assignment == null)
+                    {
+                        skipped++;
+                        _logger.LogInformation("BackfillProtonPenanda: skip exam {Id} — tidak ada assignment match.", exam.Id);
+                        continue;
+                    }
+
+                    // 3. Idempotent: lewati bila penanda untuk assignment ini sudah ada.
+                    if (await _context.ProtonFinalAssessments.AnyAsync(fa => fa.ProtonTrackAssignmentId == assignment.Id))
+                    {
+                        alreadyExists++;
+                        continue;
+                    }
+
+                    // 4. ENFORCE deliverable 100% (D-08): count>0 + semua Approved (setara IsEligiblePerUnit assignment-scoped).
+                    var statuses = await _context.ProtonDeliverableProgresses
+                        .Where(p => p.ProtonTrackAssignmentId == assignment.Id)
+                        .Select(p => p.Status)
+                        .ToListAsync();
+                    if (statuses.Count == 0 || !statuses.All(s => s == "Approved"))
+                    {
+                        notEligible++;
+                        continue;
+                    }
+
+                    // 5. Create penanda manual (Origin="Exam", CompletedAt=exam.CompletedAt).
+                    _context.ProtonFinalAssessments.Add(new ProtonFinalAssessment
+                    {
+                        CoacheeId = exam.UserId,
+                        CreatedById = (await _userManager.GetUserAsync(User))?.Id ?? "",
+                        ProtonTrackAssignmentId = assignment.Id,
+                        Status = "Completed",
+                        CompetencyLevelGranted = 0,
+                        Origin = "Exam",
+                        Notes = $"Backfill exam {exam.TahunKe} lulus.",
+                        CreatedAt = DateTime.UtcNow,
+                        CompletedAt = exam.CompletedAt
+                    });
+                    created++;
+                }
+
+                if (created > 0)
+                    await _context.SaveChangesAsync();
+
+                // 7. Audit (warn-only — kegagalan audit tidak boleh break).
+                try
+                {
+                    var actor = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
+                    await _auditLog.LogAsync(actor?.Id ?? "", actorName, "BackfillProtonPenanda",
+                        $"Backfill: {created} dibuat, {alreadyExists} sudah ada, {notEligible} belum 100%, {skipped} tanpa assignment",
+                        0, "ProtonFinalAssessment");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "BackfillProtonPenanda: audit log gagal.");
+                }
+
+                TempData["Success"] = $"Backfill selesai: {created} penanda dibuat, {alreadyExists} dilewati, {notEligible} belum 100%, {skipped} tanpa assignment.";
+            }
+            catch (Exception ex)
+            {
+                // No info-leak (Phase 334 D6): detail ke log, pesan generik ke user.
+                _logger.LogError(ex, "BackfillProtonPenanda gagal.");
+                TempData["Error"] = "Backfill penanda Proton gagal. Cek log untuk detail.";
+            }
+
+            return RedirectToAction("ManageAssessment");
         }
 
         // --- RESET ASSESSMENT ---
