@@ -252,6 +252,52 @@
       "dataSource": "Excel parse -> ProtonKompetensiList/SubKompetensi/Deliverable upsert",
       "liveNote": "Proses Import disabled sampai file dipilih (guard OK).",
       "gaps": []
+    },
+    {
+      "id": "coachmapping-coachcoachee",
+      "name": "Coach×Coachee Mapping",
+      "route": "/Admin/CoachCoacheeMapping?search&section&showAll&page",
+      "action": "CoachMappingController.CoachCoacheeMapping",
+      "view": "Views/Admin/CoachCoacheeMapping.cshtml",
+      "purpose": "Admin assign coach ke coachee + ProtonTrackAssignment (bagian/unit/jabatan/track), grouped per coach, plus graduation.",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": [], "back": "breadcrumb Kelola Data" },
+      "roles": "Admin (AdminBaseController, route Admin/[action])",
+      "filters": ["Seksi", "Cari (nama coach/coachee)", "checkbox Tampilkan Semua (termasuk non-aktif)", "page (20/pg)"],
+      "table": { "columns": ["Nama", "NIP", "Bagian Penugasan", "Unit Penugasan", "Jabatan", "Proton Track", "Status", "Mulai", "Coachee Aktif", "Aksi"], "source": "CoachCoacheeMappings + ProtonTrackAssignments + Users (grouped per coach)" },
+      "actions": [
+        { "label": "Tambah Mapping", "endpoint": "modal -> POST /Admin/CoachCoacheeMappingAssign" },
+        { "label": "Edit", "endpoint": "modal -> POST /Admin/CoachCoacheeMappingEdit" },
+        { "label": "Nonaktifkan/Reactivate", "endpoint": "/Admin/CoachCoacheeMappingDeactivate + Reactivate (+ ActiveAssignmentCount/SessionCount/DeletePreview/Delete)" },
+        { "label": "Graduated", "endpoint": "mark graduated (gate Tahun3 lulus - relevan v25.0 PCOMP-08)" },
+        { "label": "Import/Export/Template", "endpoint": "/Admin/ImportCoachCoacheeMapping + CoachCoacheeMappingExport + DownloadMappingImportTemplate" }
+      ],
+      "modals": ["Tambah Mapping", "Edit Mapping", "Import Excel", "Delete preview"],
+      "export": ["Export Excel", "Download Template"],
+      "dataSource": "CoachCoacheeMappings, ProtonTrackAssignments, Users",
+      "liveNote": "Overlap audit Phase 356 (AF-1..7, eligibility per-unit). Tombol 'Graduated' = graduation gate (v25.0 ingin gate Tahun3 lulus). Aksi Nonaktifkan/Graduated tanpa modal konfirmasi terlihat (cek UX gap).",
+      "gaps": []
+    },
+    {
+      "id": "coachmapping-workload",
+      "name": "Coach Workload",
+      "route": "/Admin/CoachWorkload?section",
+      "action": "CoachMappingController.CoachWorkload",
+      "view": "Views/Admin/CoachWorkload.cshtml",
+      "purpose": "Monitoring distribusi beban coach (rasio coachee/coach) + threshold overload + saran penyeimbangan.",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": [], "back": "breadcrumb Kelola Data" },
+      "roles": "Admin (AdminBaseController)",
+      "filters": ["Section", "Filter", "Reset"],
+      "table": { "columns": ["Nama Coach", "Section", "Jumlah Coachee", "Daftar Coachee (Lihat)", "Status (Normal/Mendekati/Overloaded)"], "source": "CoachCoacheeMappings agregat per coach" },
+      "actions": [
+        { "label": "Set Threshold", "endpoint": "modal -> POST /Admin/SetWorkloadThreshold(maxCoachees, warningThreshold)" },
+        { "label": "Export Excel", "endpoint": "/Admin/ExportCoachWorkload" },
+        { "label": "Lihat daftar coachee", "endpoint": "modal/expand" }
+      ],
+      "modals": ["Set Threshold", "Lihat daftar coachee"],
+      "export": ["Export Excel"],
+      "dataSource": "CoachCoacheeMappings, Users, workload threshold setting",
+      "liveNote": "Ada 'Grafik Beban Coach' (legend Normal/Mendekati Batas/Overloaded) - cek apakah pakai Chart.js (sama lib yang gagal di Dashboard) - tak ada console error di crawl ini, tapi perlu verifikasi render grafik.",
+      "gaps": []
     }
   ],
   "gaps": [],
