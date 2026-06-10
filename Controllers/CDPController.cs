@@ -307,6 +307,55 @@ namespace HcPortal.Controllers
         }
 
         // ============================================================
+        // Phase 362: Export Dashboard Team Deliverable Progress (G-04)
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)]
+        public async Task<IActionResult> ExportDashboardProgress(string? section, string? unit, string? category, string? track)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
+
+            // Server-side enforcement sama seperti FilterCoachingProton (scope role)
+            int roleLevel = UserRoles.GetRoleLevel(userRole);
+            if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
+            else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
+
+            var (model, _) = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
+            var rows = model.CoacheeRows;
+
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Team Progress");
+            var headers = new[] { "No.", "Name", "Track", "Tahun", "Progress", "Approved", "Pending", "Rejected", "Status" };
+            for (int c = 0; c < headers.Length; c++) ws.Cell(1, c + 1).Value = headers[c];
+            ws.Row(1).Style.Font.Bold = true;
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var r = rows[i];
+                int row = i + 2;
+                ws.Cell(row, 1).Value = i + 1;
+                ws.Cell(row, 2).Value = r.CoacheeName;
+                ws.Cell(row, 3).Value = r.TrackType ?? "";
+                ws.Cell(row, 4).Value = r.TahunKe ?? "";
+                ws.Cell(row, 5).Value = r.ProgressPercent;
+                ws.Cell(row, 6).Value = r.Approved;
+                ws.Cell(row, 7).Value = r.Submitted;
+                ws.Cell(row, 8).Value = r.Rejected;
+                ws.Cell(row, 9).Value = r.HasFinalAssessment ? "Lulus" : (r.TotalDeliverables == 0 ? "No track" : "In Progress");
+            }
+            ws.Columns().AdjustToContents();
+
+            using var ms = new MemoryStream();
+            wb.SaveAs(ms);
+            return File(ms.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"TeamDeliverableProgress_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+        }
+
+        // ============================================================
         // Phase 121: Cascade options endpoint — returns units for section
         // ============================================================
         [HttpGet]
