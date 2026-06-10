@@ -24,11 +24,11 @@
 ### PBYP — Proton Bypass Tahun (fase 360-361)
 
 - [ ] **PBYP-01**: Tabel `PendingProtonBypass` (migration #2) menyimpan rencana bypass tertunda (lifecycle Menunggu→Siap→Selesai/Dibatalkan).
-- [ ] **PBYP-02**: Bypass mendukung 4 closure mode — CL-A (lulus instan), CL-B(a) (input manual instan), CL-B(b) (buat assessment, tunggu lulus), CL-C (tinggalkan); validasi |Δtahun|≤1 + 1-assignment-aktif.
-- [ ] **PBYP-03**: Exam CL-B(b) yang lulus memicu pending→"Siap" + notif `PROTON_BYPASS_READY` ke HC inisiator (GradingService flip flag, BUKAN auto-pindah).
+- [x] **PBYP-02**: Bypass mendukung 4 closure mode — CL-A (lulus instan), CL-B(a) (input manual instan), CL-B(b) (buat assessment, tunggu lulus), CL-C (tinggalkan); validasi |Δtahun|≤1 + 1-assignment-aktif.
+- [x] **PBYP-03**: Exam CL-B(b) yang lulus memicu pending→"Siap" + notif `PROTON_BYPASS_READY` ke HC inisiator (GradingService flip flag, BUKAN auto-pindah).
 - [ ] **PBYP-04**: Bypass menangani coach — deactivate mapping aktif lama lalu create baru (constraint filtered-unique E15); HC bisa ganti coach via dropdown.
 - [ ] **PBYP-05**: Bootstrap deliverable target pakai Unit dari form bypass (bukan dari mapping).
-- [ ] **PBYP-06**: HC bisa batal pending sebelum pindah (auto-cancel exam: belum-dikerjakan→hapus, sudah-lulus→pertahankan hasil).
+- [x] **PBYP-06**: HC bisa batal pending sebelum pindah (auto-cancel exam: belum-dikerjakan→hapus, sudah-lulus→pertahankan hasil).
 - [ ] **PBYP-07**: 6 endpoint bypass (`BypassList`, `BypassPendingList`, `BypassDetail`, `BypassSave`, `BypassConfirm`, `BypassCancelPending`) `[Authorize(Admin,HC)]` + AntiForgery + audit.
 - [ ] **PBYP-08**: Page Override jadi 2 tab — Tab1 existing (tak diubah) + Tab2 "Bypass Tahun" dengan wizard 3-langkah (Tujuan → Closure mode → Detail+alasan).
 - [ ] **PBYP-09**: Panel "Menunggu Konfirmasi" di Tab2 + notif deep-link `/ProtonData/Override?tab=bypass&pending={id}` + 1-klik konfirmasi pindah.
