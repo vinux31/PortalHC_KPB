@@ -3289,7 +3289,7 @@ namespace HcPortal.Controllers
 
         // GET /CDP/ExportHistoriProton
         [HttpGet]
-        [Authorize(Roles = UserRoles.RolesReviewerAndAbove)]
+        [Authorize(Roles = UserRoles.RolesCoachAndAbove)] // Phase 362 G-12: seragam dgn export Coaching
         public async Task<IActionResult> ExportHistoriProton(
             string? search, string? section, string? unit, string? jalur, string? status)
         {
