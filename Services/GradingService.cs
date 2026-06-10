@@ -18,15 +18,18 @@ namespace HcPortal.Services
         private readonly ApplicationDbContext _context;
         private readonly IWorkerDataService _workerDataService;
         private readonly ILogger<GradingService> _logger;
+        private readonly ProtonCompletionService _protonCompletionService;
 
         public GradingService(
             ApplicationDbContext context,
             IWorkerDataService workerDataService,
-            ILogger<GradingService> logger)
+            ILogger<GradingService> logger,
+            ProtonCompletionService protonCompletionService)
         {
             _context = context;
             _workerDataService = workerDataService;
             _logger = logger;
+            _protonCompletionService = protonCompletionService;
         }
 
         /// <summary>
@@ -296,6 +299,15 @@ namespace HcPortal.Services
             // ---- 7. Notifikasi grup completion ----
             await _workerDataService.NotifyIfGroupCompleted(session);
 
+            // ---- 8. PCOMP-01 (D-06): exam Proton lulus → penanda Origin="Exam" (guard D-05) ----
+            // Cabang hasEssay (L190-227) early-return TIDAK lewat sini → di-cover defensive hook FinalizeEssayGrading (Plan 04, D-05a).
+            if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId.HasValue)
+            {
+                await _protonCompletionService.EnsureAsync(
+                    session.UserId, session.ProtonTrackId.Value, session.CreatedBy ?? "",
+                    "Exam", $"Exam Proton lulus (skor {finalPercentage}%).");
+            }
+
             return true;
         }
 
@@ -467,6 +479,11 @@ namespace HcPortal.Services
                 _logger.LogInformation(
                     "RegradeAfterEditAsync: session {SessionId} flip Pass->Fail - sertifikat dicabut (Phase 324 D-03).",
                     session.Id);
+
+                // PCOMP-02 (D-06/A-M9): flip Pass→Fail hapus penanda HANYA Origin="Exam" (Bypass/Interview kebal).
+                // Guard TANPA isPassed (cabang ini isPassed==false): hapus = saat gagal.
+                if (session.Category == "Assessment Proton" && session.ProtonTrackId.HasValue)
+                    await _protonCompletionService.RemoveExamOriginAsync(session.UserId, session.ProtonTrackId.Value);
             }
             else if (!wasPassed && isPassed)
             {
@@ -509,6 +526,12 @@ namespace HcPortal.Services
                 _logger.LogInformation(
                     "RegradeAfterEditAsync: session {SessionId} flip Fail->Pass - sertifikat dibuat (jika applicable, Phase 324 D-03).",
                     session.Id);
+
+                // PCOMP-01/02 (D-06): flip Fail→Pass terbit penanda Origin="Exam" (guard D-05).
+                if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId.HasValue)
+                    await _protonCompletionService.EnsureAsync(
+                        session.UserId, session.ProtonTrackId.Value, session.CreatedBy ?? "",
+                        "Exam", $"Re-grade Fail→Pass (skor {newPct}%).");
             }
             // Pass->Pass, Fail->Fail: no cascade
 
