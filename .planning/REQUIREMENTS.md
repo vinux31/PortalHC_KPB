@@ -19,7 +19,7 @@
 - [x] **PCOMP-07**: Gate antar-tahun keras — assign/eligible Tahun N diblok kalau Tahun N-1 (TrackType sama) belum lulus (bypass exempt).
 - [x] **PCOMP-08**: Tahun 3 deliverable data-driven — kalau silabus Tahun 3 ada deliverable, gate 100% berlaku (Tahun 3 final tetap interview).
 - [x] **PCOMP-09**: Tombol "Mark graduated" diblok kalau Tahun 3 belum lulus.
-- [ ] **PCOMP-10**: Tampilan `CompetencyLevelGranted` + grafik tren dimatikan (kolom DB dibiarkan dormant, tidak di-drop).
+- [x] **PCOMP-10**: Tampilan `CompetencyLevelGranted` + grafik tren dimatikan (kolom DB dibiarkan dormant, tidak di-drop).
 
 ### PBYP — Proton Bypass Tahun (fase 360-361)
 
