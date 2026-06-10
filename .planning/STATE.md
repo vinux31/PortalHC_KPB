@@ -120,6 +120,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-3
 
 ### Roadmap Evolution
 
+- Phase 363 added (2026-06-10): Audit Fix Alur PROTON — 10 temuan (T1-T10) dari verifikasi adversarial alur PROTON end-to-end (workflow 9 agent vs kode). 3 HIGH: T1 notif allApproved miss di ApproveFromProgress, T2 reject chain divergen (HCApprovalStatus survive rejection), T3 loophole year-gate jalur reaktivasi assignment. Detail+evidence: `.planning/phases/363-audit-fix-alur-proton-temuan-verifikasi-t1-t10/363-FINDINGS.md`. Depends 362 (file-overlap CDPController); T3 koordinasi dgn exempt hook Phase 360.
 - v25.0 added (2026-06-09): Proton Kelulusan & Bypass — 4 phase 358-361 dari 2 spec brainstorm (A completion-logic + B bypass-tahun). Diskusi A nemu gap: `ProtonFinalAssessment` cuma terbit interview Tahun 3 → Tahun 1/2 gak pernah "Lulus" (BUG). B depends A. Split A→2 (penanda/gate), B→2 (backend/UI) sesuai pola granular.
 - v24.0 shipped+closed (2026-06-09): Gambar di Soal Assessment, phases 352-357.
 

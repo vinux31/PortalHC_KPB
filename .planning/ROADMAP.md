@@ -23,11 +23,11 @@
 - ✅ **v22.0 CMP-06 + Assessment/Monitoring Audit Fixes** — Phases 345-349 (shipped local + audited 2026-06-05, 60/60 REQ) — [archive](milestones/v22.0-ROADMAP.md) — [audit](milestones/v22.0-MILESTONE-AUDIT.md)
 - ✅ **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (shipped local + audited 2026-06-06, 7/7 REQ SF-01..07) — [archive](milestones/v23.0-ROADMAP.md) — [audit](milestones/v23.0-MILESTONE-AUDIT.md)
 - ✅ **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-357 (shipped local 2026-06-09, audited passed; 6 phase, 22 plan, 25/25 REQ; full detail → [milestones/v24.0-ROADMAP.md](milestones/v24.0-ROADMAP.md))
-- 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-361 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md))
+- 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-363 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP + 362 polish + 363 audit-fix T1-T10; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md))
 
 ## Phases
 
-### 🚧 v25.0 Proton Kelulusan & Bypass (Phases 358-361) — ACTIVE
+### 🚧 v25.0 Proton Kelulusan & Bypass (Phases 358-363) — ACTIVE
 
 **Goal:** Logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa) lalu fitur Bypass Tahun. **B (bypass) depends A (completion)** — implement+verify A dulu. Sequential strict 358→359→360→361 (file-overlap GradingService 358+360, AssessmentAdminController 358+359). 2 migration (`Origin` 358, `PendingProtonBypass` 360).
 
@@ -50,6 +50,8 @@
   - SC1: Page Override 2 tab; Tab1 existing tak berubah; Tab2 wizard Tujuan→Closure→Detail.
   - SC2: Panel pending tampil + `[Konfirmasi]`/`[Batal]`; notif deep-link buka Tab2 pending.
   - SC3: UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
+- [x] **Phase 362: PROTON CDP Polish** — 6 gap UI/nav/role dari gap-analysis (G-01/04/05/09/10/12). Migration=false. Depends: — (SHIPPED LOCAL 2026-06-10)
+- [ ] **Phase 363: Audit Fix Alur PROTON (T1-T10)** — 10 temuan verifikasi adversarial alur PROTON: notif allApproved miss, reject divergen, loophole gate reaktivasi, penanda silent-miss, dead branch, asimetri ValidUntil, drift FromProgress. Migration=false. Depends: 362 (file-overlap CDPController)
 
 #### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan.
 
@@ -136,6 +138,24 @@ Plans:
 **Plan:** `docs/superpowers/plans/2026-06-10-proton-cdp-polish.md`
 **UI hint:** no (polish view existing)
 **Status:** SHIPPED LOCAL 2026-06-10 (6/6 UAT PASS, 156/156 test, no migration)
+
+### Phase 363: Audit Fix Alur PROTON (temuan verifikasi T1-T10)
+**Goal:** Tutup 10 temuan verifikasi adversarial alur PROTON end-to-end (2026-06-10, 9-agent workflow vs kode): bug notif allApproved, perilaku reject divergen antar endpoint duplikat (Deliverable-page vs FromProgress), loophole year-gate jalur reaktivasi, penanda silent-miss saat assignment nonaktif, dead branch HistoriProton, asimetri ValidUntil, drift race-guard/EvidencePathHistory.
+**Depends on:** Phase 362 (shipped; file-overlap CDPController.cs). Independen 360/361 — TAPI T3 (loophole gate reaktivasi) bersinggungan exempt hook Phase 360 (`CoachMappingController.cs:516-534`) → kalau 360 dieksekusi duluan, koordinasikan.
+**Migration:** false (fix logic/notif/UI, tanpa schema)
+**Requirements:** T1-T10 — detail + evidence file:line di `.planning/phases/363-audit-fix-alur-proton-temuan-verifikasi-t1-t10/363-FINDINGS.md`
+**Success Criteria** (what must be TRUE):
+  1. Approve deliverable TERAKHIR via modal CoachingProton (`ApproveFromProgress`) → notif HC `COACH_ALL_COMPLETE` tetap terbit, paritas dengan `ApproveDeliverable` (T1).
+  2. Reject via modal CoachingProton (`RejectFromProgress`) reset chain approval konsisten dengan `RejectDeliverable` — termasuk `HCApprovalStatus` tidak survive rejection (T2).
+  3. Reaktivasi assignment cross-year tidak lagi lolos year gate tanpa cek — atau exempt eksplisit + terdokumentasi sebagai keputusan (T3).
+  4. Lulus exam saat assignment nonaktif tidak silent-miss — perilaku diputuskan & diimplementasi (terbitkan penanda / surface warning ke admin) (T4).
+  5. Triase T5-T10 tuntas: tiap item fix ATAU ditandai by-design dengan alasan tercatat.
+  6. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277 (CLAUDE.md Develop Workflow).
+**UI hint:** minimal (mayoritas backend/notif; T5 sentuh view HistoriProton)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 363 to break down)
 
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
@@ -1278,8 +1298,6 @@ Plans:
 *Prev: 2026-06-06 (v24.0 REVISED — dikompresi dari 5 phase [352-356] ke 4 phase [352-355] atas pilihan user; old Phase 353 Admin CRUD + old Phase 354 Sync/Cleanup di-MERGE jadi satu Phase 353 "Admin Backend Gambar" karena keduanya menulis `AssessmentAdminController.cs` & sudah sequential-strict; renumber kontigu: old 355 Render → 354, old 356 Test/UAT → 355. Phase 353 kini memegang 9 REQ [IMG-01/02/03/05/06/07 + RND-04 + SYN-01/02], 7 success criteria. 17/17 REQ tetap mapped, 0 dropped, 0 orphan. Migration tetap Phase 352 only. Next /gsd-plan-phase 352).*
 
 *Prev: 2026-06-06 (v24.0 added — Gambar di Soal Assessment; 5 phase 352-356 derived dari spec 2026-06-06-image-in-assessment-questions-design.md [§12 A-E backbone + file-overlap sequencing]).*
-
----
 
 *Roadmap updated: 2026-06-06 (v23.0 CLOSED — 350+351 shipped local + audited 7/7 SF-01..07, integration 7/7 WIRED; collapsed to archive. NOT PUSHED bundle v19-v23.)*
 
