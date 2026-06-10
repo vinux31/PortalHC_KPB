@@ -99,7 +99,7 @@
       "modals": [],
       "export": ["none"],
       "dataSource": "ProtonDeliverableProgresses, ProtonFinalAssessments, ProtonTrackAssignments",
-      "liveNote": "CONSOLE ERROR live: 'ReferenceError: Chart is not defined' @ Dashboard:560 -> Chart.js tak ter-load, 2 chart ('Competency Level Granted Over Time' + 'Deliverable Status') TIDAK render. Caught Playwright runtime (grep/build tak deteksi). Chart 'Competency Level Granted' = fitur yang v25.0 A-3 matikan (dormant).",
+      "liveNote": "CONSOLE ERROR live: 'ReferenceError: Chart is not defined' @ Dashboard:560. KOREKSI re-check: chart.js SEBENARNYA ter-load (script cdn.jsdelivr.net/npm/chart.js ada, window.Chart defined saat eval). Akar = init chart @:560 jalan SEBELUM chart.js parse (race/urutan script) -> canvas 'protonStatusChart' (Deliverable Status) tak pernah digambar. Bandingkan: CoachWorkload Chart.js + canvas render NORMAL (0 error). Chart 'Competency Level Granted' juga kosong-data ('No final assessments') + dormant v25.0 A-3.",
       "gaps": []
     },
     {
@@ -183,7 +183,7 @@
       "modals": ["Modal riwayat sertifikat per pekerja"],
       "export": ["Export Excel (Admin,HC)"],
       "dataSource": "Training + Assessment certs (BuildSertifikatRowsAsync), AssessmentCategories, GetSectionUnitsDictAsync",
-      "liveNote": "Export Excel + link nama pakai href=# (JS-driven) - perlu verifikasi handler tak dead. Renewal toggle in-page (modul renewal out-of-scope analisa).",
+      "liveNote": "Export Excel + link nama pakai href=# tapi KOREKSI re-check: Export punya onclick='exportExcel(event)' + link nama class='btn-history' data-worker-id (delegated handler) -> handler ADA, tak dead (G-11 dibatalkan). Renewal toggle in-page (modul renewal out-of-scope).",
       "gaps": []
     },
     {
@@ -274,7 +274,7 @@
       "modals": ["Tambah Mapping", "Edit Mapping", "Import Excel", "Delete preview"],
       "export": ["Export Excel", "Download Template"],
       "dataSource": "CoachCoacheeMappings, ProtonTrackAssignments, Users",
-      "liveNote": "Overlap audit Phase 356 (AF-1..7, eligibility per-unit). Tombol 'Graduated' = graduation gate (v25.0 ingin gate Tahun3 lulus). Aksi Nonaktifkan/Graduated tanpa modal konfirmasi terlihat (cek UX gap).",
+      "liveNote": "Overlap audit Phase 356 (AF-1..7, eligibility per-unit). Tombol 'Graduated' = graduation gate (v25.0 ingin gate Tahun3 lulus). KOREKSI re-check: Nonaktifkan punya confirmDeactivate() modal + Graduated punya confirm('Tandai...graduated?') dialog -> konfirmasi ADA (G-07 dibatalkan).",
       "gaps": []
     },
     {
@@ -304,8 +304,8 @@
     {
       "id": "G-01", "lens": "dead-feature", "severity": "high",
       "pages": ["cdp-dashboard"],
-      "title": "Chart.js tak ter-load — 2 grafik Dashboard mati total",
-      "detail": "Live Playwright: 'ReferenceError: Chart is not defined' @ Dashboard:560. Grafik 'Competency Level Granted Over Time' + 'Deliverable Status' tak render (area kosong). Grep/build tak deteksi (runtime JS). Catatan: chart 'Competency Level Granted' memang akan dimatikan v25.0 A-3, tapi 'Deliverable Status' fitur valid yang rusak."
+      "title": "Grafik 'Deliverable Status' Dashboard mati — init chart jalan sebelum Chart.js siap (race)",
+      "detail": "Live Playwright: 'ReferenceError: Chart is not defined' @ Dashboard:560. KOREKSI re-check: chart.js TER-LOAD (script ada, window.Chart defined saat di-eval), tapi inline init @:560 eksekusi SEBELUM chart.js selesai parse -> error -> canvas 'protonStatusChart' (Deliverable Status) tak digambar. Bukan 'chart.js tak ada'. Bukti pembanding: CoachWorkload pakai Chart.js + canvas render NORMAL (0 console error). Grep/build tak deteksi (runtime). Chart 'Competency Level Granted' juga kosong (dormant v25.0 A-3)."
     },
     {
       "id": "G-02", "lens": "data-integrity", "severity": "high",
@@ -338,12 +338,6 @@
       "detail": "Live: accordion 'Tahun 1' muncul 2x dengan status sama 'Dalam Proses'. Indikasi 2 ProtonTrackAssignment tahun sama / kurang dedup di view. Membingungkan + indikasi data assignment tak bersih."
     },
     {
-      "id": "G-07", "lens": "ux", "severity": "medium",
-      "pages": ["coachmapping-coachcoachee"],
-      "title": "Aksi Nonaktifkan/Graduated tanpa konfirmasi terlihat",
-      "detail": "Tombol 'Nonaktifkan' + 'Graduated' di baris mapping = aksi ubah-status penting (graduated bahkan menutup track). Tak terlihat modal konfirmasi sebelum eksekusi. Risiko salah-klik. Perlu verifikasi handler JS apakah ada confirm()."
-    },
-    {
       "id": "G-08", "lens": "role-mismatch", "severity": "medium",
       "pages": ["coachmapping-coachcoachee"],
       "title": "Tombol 'Graduated' belum dipastikan gated oleh kelulusan Tahun 3",
@@ -362,12 +356,6 @@
       "detail": "CoachingProton (Cari kompetensi), HistoriProton (Cari nama/NIP), CoachCoacheeMapping (Cari) punya search box; Dashboard tidak. Minor konsistensi UX."
     },
     {
-      "id": "G-11", "lens": "dead-feature", "severity": "low",
-      "pages": ["cdp-certmanagement"],
-      "title": "CertManagement: Export Excel & link nama pakai href=#",
-      "detail": "Export Excel + link 'Lihat riwayat sertifikat' pakai href='#' (handler JS). Perlu verifikasi runtime handler benar memanggil ExportSertifikatExcel / buka modal (potensi dead kalau JS gagal). Belum dikonfirmasi klik live."
-    },
-    {
       "id": "G-12", "lens": "role-mismatch", "severity": "low",
       "pages": ["cdp-historiproton", "cdp-coachingproton"],
       "title": "Gating export tak seragam: Coach bisa export Coaching tapi tidak Histori",
@@ -375,23 +363,22 @@
     }
   ],
   "executiveSummary": {
-    "totalGaps": 12,
-    "bySeverity": { "critical": 0, "high": 3, "medium": 5, "low": 4 },
+    "totalGaps": 10,
+    "bySeverity": { "critical": 0, "high": 3, "medium": 4, "low": 3 },
     "addressedByV25": ["G-03", "G-08"],
+    "refutedOnRecheck": ["G-07 (Nonaktifkan/Graduated punya konfirmasi)", "G-11 (Export/link CertMgmt punya handler)"],
     "top5": ["G-01", "G-02", "G-03", "G-04", "G-05"]
   },
   "roadmap": [
-    { "gapId": "G-01", "fix": "Load Chart.js (CDN/bundle) di Dashboard + guard init; pisahkan dari chart 'Competency Level Granted' yang akan dimatikan v25.0", "effort": "M", "priority": 1, "bucket": "Terjadwal" },
+    { "fix": "Perbaiki urutan script Dashboard: pastikan chart.js dimuat SEBELUM init @:560, atau bungkus init di DOMContentLoaded/window.onload (chart.js sudah ada, bukan masalah load). Pisahkan dari chart 'Competency Level Granted' yang dimatikan v25.0", "gapId": "G-01", "effort": "S", "priority": 1, "bucket": "Quick win" },
     { "gapId": "G-02", "fix": "Perbaiki StatusData(): isi count Silabus/Guidance per bagian + .fail() handling; verifikasi agregasi GetSectionUnitsDictAsync", "effort": "M", "priority": 2, "bucket": "Terjadwal" },
     { "gapId": "G-03", "fix": "Implementasi v25.0 Phase 358 (ProtonCompletionService penanda Exam) + backfill", "effort": "L", "priority": 3, "bucket": "v25.0 (sudah direncanakan)" },
     { "gapId": "G-04", "fix": "Tambah tombol Export Excel di Dashboard (reuse pola HistoriProton)", "effort": "S", "priority": 4, "bucket": "Quick win" },
     { "gapId": "G-05", "fix": "Tombol/breadcrumb balik Deliverable pakai referrer (CoachingProton/Dashboard) bukan hardcode PlanIdp", "effort": "S", "priority": 5, "bucket": "Quick win" },
     { "gapId": "G-06", "fix": "Dedup assignment per tahun di HistoriProtonDetail (group by TahunKe) + cek data assignment ganda", "effort": "M", "priority": 6, "bucket": "Terjadwal" },
-    { "gapId": "G-07", "fix": "Tambah modal/confirm() sebelum Nonaktifkan + Graduated", "effort": "S", "priority": 7, "bucket": "Quick win" },
     { "gapId": "G-08", "fix": "Gate Graduated by Tahun3 lulus (v25.0 PCOMP-08 Phase 359)", "effort": "M", "priority": 8, "bucket": "v25.0 (sudah direncanakan)" },
     { "gapId": "G-09", "fix": "Sesuaikan breadcrumb+tombol balik CertManagement ke Admin (atau tambah kartu Cert di hub CDP)", "effort": "S", "priority": 9, "bucket": "Quick win" },
     { "gapId": "G-10", "fix": "Tambah search box di Dashboard (opsional, konsistensi)", "effort": "S", "priority": 10, "bucket": "Quick win" },
-    { "gapId": "G-11", "fix": "Verifikasi/klik live handler Export Excel + link nama CertManagement; ganti href=# -> action bila perlu", "effort": "S", "priority": 11, "bucket": "Quick win" },
     { "gapId": "G-12", "fix": "Tinjau desain gating export Histori vs Coaching; seragamkan kalau memang Coach harus bisa lihat histori coachee-nya", "effort": "S", "priority": 12, "bucket": "Quick win" }
   ]
 }
