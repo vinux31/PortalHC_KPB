@@ -221,6 +221,9 @@ public class ProtonFinalAssessment
     /// <summary>Nullable — HC selects competency from KKJ dropdown. No nav property to avoid cascade conflicts.</summary>
     public int? KkjMatrixItemId { get; set; }
     public string? Notes { get; set; }
+    /// <summary>Pembeda jalur penanda: "Exam" | "Interview" | "Bypass". Null pada baris pre-358 (di-seed migration → "Interview").</summary>
+    [MaxLength(20)]
+    public string? Origin { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
 }
