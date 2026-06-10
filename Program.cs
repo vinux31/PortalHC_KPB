@@ -53,6 +53,9 @@ builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 // Grading service — Phase 296 D-01: concrete class + DI (sama seperti AuditLogService)
 builder.Services.AddScoped<HcPortal.Services.GradingService>();
 
+// Proton completion service — Phase 358 PCOMP-03: single-source penanda kelulusan Proton
+builder.Services.AddScoped<HcPortal.Services.ProtonCompletionService>();
+
 // Impersonation service — Phase 283
 builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 builder.Services.AddHttpContextAccessor();
