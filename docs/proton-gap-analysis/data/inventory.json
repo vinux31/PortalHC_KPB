@@ -185,6 +185,73 @@
       "dataSource": "Training + Assessment certs (BuildSertifikatRowsAsync), AssessmentCategories, GetSectionUnitsDictAsync",
       "liveNote": "Export Excel + link nama pakai href=# (JS-driven) - perlu verifikasi handler tak dead. Renewal toggle in-page (modul renewal out-of-scope analisa).",
       "gaps": []
+    },
+    {
+      "id": "protondata-index",
+      "name": "Master Silabus (ProtonData/Index)",
+      "route": "/ProtonData/Index?bagian&unit&trackId&showInactive",
+      "action": "ProtonDataController.Index",
+      "view": "Views/ProtonData/Index.cshtml",
+      "purpose": "Admin/HC kelola silabus PROTON (kompetensi>sub>deliverable CRUD) + coaching guidance file per Bagian/Unit/Track + tab Status ringkasan.",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": ["/ProtonData/ImportSilabus"], "back": "via Admin" },
+      "roles": "Admin,HC (class-level [Authorize])",
+      "filters": ["Bagian", "Unit (cascade)", "Track", "showInactive toggle"],
+      "table": { "columns": ["Tab Status: Bagian | Silabus | Guidance", "Tab Silabus: editable grid kompetensi/sub/deliverable/target", "Tab Guidance: file list per Bagian>Unit>Track"], "source": "ProtonKompetensiList/SubKompetensi/Deliverable + CoachingGuidanceFiles, StatusData AJAX" },
+      "actions": [
+        { "label": "Simpan silabus", "endpoint": "POST /ProtonData/SilabusSave [Admin,HC]" },
+        { "label": "Hapus/Deactivate/Reactivate silabus", "endpoint": "/ProtonData/SilabusDelete + SilabusDeactivate + SilabusReactivate (+ *DeletePreview)" },
+        { "label": "Export/Template silabus", "endpoint": "/ProtonData/ExportSilabus + DownloadSilabusTemplate" },
+        { "label": "Guidance upload/replace/delete", "endpoint": "/ProtonData/GuidanceUpload + GuidanceReplace + GuidanceDelete + GuidanceList" }
+      ],
+      "modals": ["3 tab (Status/Silabus/Coaching Guidance)", "delete-preview konfirmasi cascade"],
+      "export": ["ExportSilabus (Excel)", "DownloadSilabusTemplate"],
+      "dataSource": "ProtonKompetensiList, ProtonSubKompetensi, ProtonDeliverable, CoachingGuidanceFiles, StatusData()",
+      "liveNote": "Tab Status: baris RFCC/DHT-HMU/NGP/GAST muncul tapi sel Silabus+Guidance KOSONG (tak ada count/badge) walau data silabus ada (terlihat di PlanIdp). Calon data-integrity/dead-display gap (cocok temuan memory 'StatusData status bolong'). Awalnya stuck 'Memuat...' lalu render kosong.",
+      "gaps": []
+    },
+    {
+      "id": "protondata-override",
+      "name": "Override Progress (ProtonData/Override)",
+      "route": "/ProtonData/Override",
+      "action": "ProtonDataController.Override",
+      "view": "Views/ProtonData/Override.cshtml",
+      "purpose": "Admin/HC override status progress deliverable coachee manual (mis. fix rejected / pending HC nyangkut).",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": [], "back": "tombol 'Kembali ke Kelola Data' (/Admin)" },
+      "roles": "Admin,HC (class-level)",
+      "filters": ["Bagian", "Unit (cascade)", "Track", "Status Filter (Semua/Hanya Rejected/Hanya Pending HC)", "Muat Data"],
+      "table": { "columns": ["(AJAX OverrideList render setelah pilih 3 filter)"], "source": "ProtonDeliverableProgresses + OverrideDetail" },
+      "actions": [
+        { "label": "Muat Data", "endpoint": "/ProtonData/OverrideList (AJAX)" },
+        { "label": "Detail + Save override", "endpoint": "/ProtonData/OverrideDetail + OverrideSave [Admin,HC]" },
+        { "label": "Delete kompetensi", "endpoint": "/ProtonData/DeleteKompetensi + GetKompetensiCascadeInfo" }
+      ],
+      "modals": ["Override detail modal"],
+      "export": ["none"],
+      "dataSource": "ProtonDeliverableProgresses",
+      "liveNote": "Judul page 'Deliverable Progress Override' (spec keliru sebut 'Override Silabus'). Muat Data disabled sampai 3 filter dipilih.",
+      "gaps": []
+    },
+    {
+      "id": "protondata-importsilabus",
+      "name": "Import Silabus (ProtonData/ImportSilabus)",
+      "route": "/ProtonData/ImportSilabus",
+      "action": "ProtonDataController.ImportSilabus (GET+POST)",
+      "view": "Views/ProtonData/ImportSilabus.cshtml",
+      "purpose": "Admin/HC bulk tambah/update silabus via upload Excel (template + drag-drop).",
+      "flow": { "from": ["ProtonData/Index"], "to": [], "back": "breadcrumb + tombol Kembali (ProtonData/Index)" },
+      "roles": "Admin,HC (class-level)",
+      "filters": [],
+      "table": { "columns": ["Doc 'Format Kolom Template': Bagian/Unit/Track (Info auto), Kompetensi/SubKompetensi/Deliverable (Wajib), Target (Opsional)"], "source": "none (form upload)" },
+      "actions": [
+        { "label": "Download Template", "endpoint": "/ProtonData/DownloadSilabusTemplate" },
+        { "label": "Proses Import (upload .xlsx)", "endpoint": "POST /ProtonData/ImportSilabus [Admin,HC]" },
+        { "label": "Batal", "endpoint": "/ProtonData/Index" }
+      ],
+      "modals": ["dropzone drag-drop .xlsx"],
+      "export": ["DownloadSilabusTemplate"],
+      "dataSource": "Excel parse -> ProtonKompetensiList/SubKompetensi/Deliverable upsert",
+      "liveNote": "Proses Import disabled sampai file dipilih (guard OK).",
+      "gaps": []
     }
   ],
   "gaps": [],
