@@ -300,7 +300,98 @@
       "gaps": []
     }
   ],
-  "gaps": [],
-  "executiveSummary": { "totalGaps": 0, "bySeverity": {}, "top5": [] },
-  "roadmap": []
+  "gaps": [
+    {
+      "id": "G-01", "lens": "dead-feature", "severity": "high",
+      "pages": ["cdp-dashboard"],
+      "title": "Chart.js tak ter-load — 2 grafik Dashboard mati total",
+      "detail": "Live Playwright: 'ReferenceError: Chart is not defined' @ Dashboard:560. Grafik 'Competency Level Granted Over Time' + 'Deliverable Status' tak render (area kosong). Grep/build tak deteksi (runtime JS). Catatan: chart 'Competency Level Granted' memang akan dimatikan v25.0 A-3, tapi 'Deliverable Status' fitur valid yang rusak."
+    },
+    {
+      "id": "G-02", "lens": "data-integrity", "severity": "high",
+      "pages": ["protondata-index"],
+      "title": "Tab Status ProtonData: sel Silabus/Guidance kosong walau data ada",
+      "detail": "Live: baris RFCC/DHT-HMU/NGP/GAST muncul tapi kolom Silabus & Guidance KOSONG (tanpa count/badge), padahal silabus terlihat di PlanIdp. Admin tak bisa lihat coverage silabus/guidance per bagian. Cocok temuan memory 'StatusData status bolong'; kemungkinan terkait agregasi GetSectionUnitsDictAsync."
+    },
+    {
+      "id": "G-03", "lens": "data-integrity", "severity": "high",
+      "pages": ["cdp-historiproton", "cdp-historiprotondetail"],
+      "title": "Exam Tahun 1/2 lulus tak pernah berstatus 'Lulus'",
+      "detail": "Status 'Lulus' bergantung ProtonFinalAssessment yang (pra-v25.0) cuma terbit lewat interview Tahun 3 -> exam Tahun 1/2 yang lulus tak tercatat Lulus. SUDAH DIALAMATKAN milestone v25.0 Phase 358 (penanda kelulusan via ProtonCompletionService). Dicatat agar tak dobel-hitung."
+    },
+    {
+      "id": "G-04", "lens": "konsistensi", "severity": "medium",
+      "pages": ["cdp-dashboard"],
+      "title": "Dashboard satu-satunya page monitoring tanpa export",
+      "detail": "CoachingProton (3 export), HistoriProton (Export Excel), CertificationManagement (Export Excel), CoachWorkload (Export Excel) semua punya export. Dashboard tidak. Inkonsisten untuk page agregat yang justru paling layak di-export."
+    },
+    {
+      "id": "G-05", "lens": "flow-buntu", "severity": "medium",
+      "pages": ["cdp-deliverable"],
+      "title": "Deliverable: tombol/breadcrumb balik ke PlanIdp, bukan ke page asal",
+      "detail": "Entry Deliverable dari CoachingProton 'Lihat Detail' atau Dashboard drill, tapi breadcrumb='IDP Plan / Deliverable' + tombol 'Kembali ke IDP Plan'. User dibuang ke PlanIdp (page beda konteks), bukan kembali ke daftar coaching asal."
+    },
+    {
+      "id": "G-06", "lens": "data-integrity", "severity": "medium",
+      "pages": ["cdp-historiprotondetail"],
+      "title": "HistoriProtonDetail: 'Tahun 1' tampil dobel (keduanya Dalam Proses)",
+      "detail": "Live: accordion 'Tahun 1' muncul 2x dengan status sama 'Dalam Proses'. Indikasi 2 ProtonTrackAssignment tahun sama / kurang dedup di view. Membingungkan + indikasi data assignment tak bersih."
+    },
+    {
+      "id": "G-07", "lens": "ux", "severity": "medium",
+      "pages": ["coachmapping-coachcoachee"],
+      "title": "Aksi Nonaktifkan/Graduated tanpa konfirmasi terlihat",
+      "detail": "Tombol 'Nonaktifkan' + 'Graduated' di baris mapping = aksi ubah-status penting (graduated bahkan menutup track). Tak terlihat modal konfirmasi sebelum eksekusi. Risiko salah-klik. Perlu verifikasi handler JS apakah ada confirm()."
+    },
+    {
+      "id": "G-08", "lens": "role-mismatch", "severity": "medium",
+      "pages": ["coachmapping-coachcoachee"],
+      "title": "Tombol 'Graduated' belum dipastikan gated oleh kelulusan Tahun 3",
+      "detail": "Graduation seharusnya hanya boleh kalau Tahun 3 lulus. SUDAH masuk scope v25.0 (PCOMP-08 graduation gate Phase 359). Dicatat agar tak dobel-hitung; verifikasi state guard saat ini."
+    },
+    {
+      "id": "G-09", "lens": "flow-buntu", "severity": "low",
+      "pages": ["cdp-certmanagement"],
+      "title": "CertificationManagement: entry dari Admin tapi breadcrumb/exit ke CDP",
+      "detail": "Dicapai dari Admin/Home dashboard, tapi breadcrumb 'CDP / Certification Management' + tombol 'Kembali ke CDP' -> /CDP/Index (hub yang TIDAK punya kartu ke Cert). Lingkar navigasi tak konsisten dengan entry."
+    },
+    {
+      "id": "G-10", "lens": "konsistensi", "severity": "low",
+      "pages": ["cdp-dashboard"],
+      "title": "Dashboard tanpa search, page sejenis punya",
+      "detail": "CoachingProton (Cari kompetensi), HistoriProton (Cari nama/NIP), CoachCoacheeMapping (Cari) punya search box; Dashboard tidak. Minor konsistensi UX."
+    },
+    {
+      "id": "G-11", "lens": "dead-feature", "severity": "low",
+      "pages": ["cdp-certmanagement"],
+      "title": "CertManagement: Export Excel & link nama pakai href=#",
+      "detail": "Export Excel + link 'Lihat riwayat sertifikat' pakai href='#' (handler JS). Perlu verifikasi runtime handler benar memanggil ExportSertifikatExcel / buka modal (potensi dead kalau JS gagal). Belum dikonfirmasi klik live."
+    },
+    {
+      "id": "G-12", "lens": "role-mismatch", "severity": "low",
+      "pages": ["cdp-historiproton", "cdp-coachingproton"],
+      "title": "Gating export tak seragam: Coach bisa export Coaching tapi tidak Histori",
+      "detail": "ExportProgress/Bottleneck/CoachingTracking gated RolesCoachAndAbove (Coach boleh), tapi ExportHistoriProton gated RolesReviewerAndAbove (Coach tidak boleh). Bisa intentional, tapi inkonsisten — perlu konfirmasi desain."
+    }
+  ],
+  "executiveSummary": {
+    "totalGaps": 12,
+    "bySeverity": { "critical": 0, "high": 3, "medium": 5, "low": 4 },
+    "addressedByV25": ["G-03", "G-08"],
+    "top5": ["G-01", "G-02", "G-03", "G-04", "G-05"]
+  },
+  "roadmap": [
+    { "gapId": "G-01", "fix": "Load Chart.js (CDN/bundle) di Dashboard + guard init; pisahkan dari chart 'Competency Level Granted' yang akan dimatikan v25.0", "effort": "M", "priority": 1, "bucket": "Terjadwal" },
+    { "gapId": "G-02", "fix": "Perbaiki StatusData(): isi count Silabus/Guidance per bagian + .fail() handling; verifikasi agregasi GetSectionUnitsDictAsync", "effort": "M", "priority": 2, "bucket": "Terjadwal" },
+    { "gapId": "G-03", "fix": "Implementasi v25.0 Phase 358 (ProtonCompletionService penanda Exam) + backfill", "effort": "L", "priority": 3, "bucket": "v25.0 (sudah direncanakan)" },
+    { "gapId": "G-04", "fix": "Tambah tombol Export Excel di Dashboard (reuse pola HistoriProton)", "effort": "S", "priority": 4, "bucket": "Quick win" },
+    { "gapId": "G-05", "fix": "Tombol/breadcrumb balik Deliverable pakai referrer (CoachingProton/Dashboard) bukan hardcode PlanIdp", "effort": "S", "priority": 5, "bucket": "Quick win" },
+    { "gapId": "G-06", "fix": "Dedup assignment per tahun di HistoriProtonDetail (group by TahunKe) + cek data assignment ganda", "effort": "M", "priority": 6, "bucket": "Terjadwal" },
+    { "gapId": "G-07", "fix": "Tambah modal/confirm() sebelum Nonaktifkan + Graduated", "effort": "S", "priority": 7, "bucket": "Quick win" },
+    { "gapId": "G-08", "fix": "Gate Graduated by Tahun3 lulus (v25.0 PCOMP-08 Phase 359)", "effort": "M", "priority": 8, "bucket": "v25.0 (sudah direncanakan)" },
+    { "gapId": "G-09", "fix": "Sesuaikan breadcrumb+tombol balik CertManagement ke Admin (atau tambah kartu Cert di hub CDP)", "effort": "S", "priority": 9, "bucket": "Quick win" },
+    { "gapId": "G-10", "fix": "Tambah search box di Dashboard (opsional, konsistensi)", "effort": "S", "priority": 10, "bucket": "Quick win" },
+    { "gapId": "G-11", "fix": "Verifikasi/klik live handler Export Excel + link nama CertManagement; ganti href=# -> action bila perlu", "effort": "S", "priority": 11, "bucket": "Quick win" },
+    { "gapId": "G-12", "fix": "Tinjau desain gating export Histori vs Coaching; seragamkan kalau memang Coach harus bisa lihat histori coachee-nya", "effort": "S", "priority": 12, "bucket": "Quick win" }
+  ]
 }
