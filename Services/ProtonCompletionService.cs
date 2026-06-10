@@ -100,4 +100,22 @@ namespace HcPortal.Services
                          .ToListAsync();
         }
     }
+
+    /// <summary>
+    /// Phase 359 (PCOMP-07) — predikat MURNI gate antar-tahun Proton. Tanpa DbContext/IO.
+    /// "Tahun N-1 lulus" = TahunKe N-1 ada di daftar passedYears (penanda ProtonFinalAssessment),
+    /// BUKAN sekadar deliverable Approved (D-03). Tahun 1 (prevTahunKe == null) selalu diizinkan.
+    /// </summary>
+    public static class ProtonYearGate
+    {
+        /// <param name="prevTahunKe">TahunKe tahun sebelumnya (mis. "Tahun 1"); null = tidak ada prasyarat (Tahun 1).</param>
+        /// <param name="passedYears">Daftar TahunKe yang sudah ber-penanda (hasil GetPassedYearsAsync).</param>
+        public static bool IsAllowed(string? prevTahunKe, IEnumerable<string>? passedYears)
+        {
+            if (string.IsNullOrWhiteSpace(prevTahunKe)) return true; // Tahun 1 — no prereq (D-03)
+            if (passedYears == null) return false;
+            var needle = prevTahunKe.Trim();
+            return passedYears.Any(y => !string.IsNullOrWhiteSpace(y) && y.Trim() == needle);
+        }
+    }
 }
