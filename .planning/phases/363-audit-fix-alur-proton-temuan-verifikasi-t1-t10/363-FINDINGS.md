@@ -75,6 +75,7 @@
 - Backfill enforce 100% deliverable Approved (D-08, L3943-3951) tapi tidak cek tahun sebelumnya lulus.
 - Argumen by-design: backfill = tambal data historis pre-Phase 358 yang lulus exam beneran; year gate justru baru bermakna setelah penanda lengkap.
 - Fix arah: kemungkinan besar dokumentasi by-design saja; konfirmasi saat planning.
+- **RESOLVED by-design (D-13, Phase 363-05):** dikonfirmasi by-design — komentar eksplisit ditambahkan di blok enforce-100% BackfillProtonPenanda (`AssessmentAdminController.cs`), nol perubahan logic.
 
 ## Konteks Pendukung (hasil verifikasi, relevan untuk planning)
 

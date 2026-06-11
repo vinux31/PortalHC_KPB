@@ -1351,6 +1351,9 @@ namespace HcPortal.Controllers
                             .Where(t => t.TrackType == trackType && t.Urutan == protonUrutan - 1)
                             .Select(t => t.TahunKe).FirstOrDefaultAsync()
                         : null;
+                    // T9/D-12: log-only — Urutan<=1 prevTahunKe==null itu normal (Tahun 1, tanpa prasyarat)
+                    if (protonUrutan > 1 && prevTahunKe == null)
+                        _logger.LogWarning("CreateAssessment gate: prevTahunKe null padahal protonUrutan={Urutan} > 1 (TrackType={TrackType}) — Urutan tidak kontigu. Cross-year gate dilewati untuk track ini.", protonUrutan, trackType);
 
                     // Deliverable track (D-08 fallback): jika kosong → skip cek 100% (interview-only/transisi).
                     var trackDeliverableIds = await _context.ProtonKompetensiList
@@ -3965,6 +3968,9 @@ namespace HcPortal.Controllers
                     }
 
                     // 4. ENFORCE deliverable 100% (D-08): count>0 + semua Approved (setara IsEligiblePerUnit assignment-scoped).
+                    //    T10/D-13 (by-design): Backfill SENGAJA tanpa year-gate — menambal data historis
+                    //    pre-Phase 358 yang lulus exam sungguhan; year-gate baru bermakna setelah penanda
+                    //    lengkap. Enforce 100% deliverable Approved tetap berlaku.
                     var statuses = await _context.ProtonDeliverableProgresses
                         .Where(p => p.ProtonTrackAssignmentId == assignment.Id)
                         .Select(p => p.Status)
