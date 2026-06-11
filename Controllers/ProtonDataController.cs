@@ -1549,6 +1549,8 @@ namespace HcPortal.Controllers
                               join tt in _context.ProtonTracks on p.TargetProtonTrackId equals tt.Id
                               join s in _context.AssessmentSessions on p.LinkedAssessmentSessionId equals s.Id into sj
                               from s in sj.DefaultIfEmpty()
+                              join c in _context.Users on p.TargetCoachId equals c.Id into cj
+                              from c in cj.DefaultIfEmpty()
                               orderby p.CreatedAt descending
                               select new
                               {
@@ -1560,7 +1562,13 @@ namespace HcPortal.Controllers
                                   targetUnit = p.TargetUnit,
                                   status = p.Status,
                                   hasilExam = s != null ? s.IsPassed : null,
-                                  createdAt = p.CreatedAt
+                                  createdAt = p.CreatedAt,
+                                  // ===== NEW (D-18) — nama kolom VERIFIED real =====
+                                  skorExam = s != null ? s.Score : (int?)null,        // AssessmentSession.Score (int?)
+                                  tanggalExam = s != null ? s.CompletedAt : null,     // AssessmentSession.CompletedAt (DateTime?)
+                                  reason = p.Reason,                                  // PendingProtonBypass.Reason
+                                  targetCoachId = p.TargetCoachId,                    // string?
+                                  targetCoachNama = c != null ? (c.FullName ?? c.UserName) : null
                               }).ToListAsync();
 
             return Json(rows);
