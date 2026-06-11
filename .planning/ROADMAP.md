@@ -79,6 +79,44 @@
 
 #### Coverage v26.0: URG-01 → 369; URG-02 → 370; URG-03 → 371. 0 orphan. Catatan koordinasi: 371 memindahkan separuh "tampil+badge" dari 367 SC4 — 367 fokus delete cascade (lihat catatan di Phase 367).
 
+### Phase 369: Sync H1 Search-Drop Fix main → ITHandoff
+**Goal:** Fix H1 (`14e7adc5` di main: `GetWorkersInSection` treat searchScope null/kosong sebagai "Nama" supaya SQL name pre-narrow tetap jalan untuk caller lama) tersinkron ke branch ITHandoff — search nama di Tab Input Records tidak lagi diabaikan diam-diam.
+**Depends on:** Tidak ada — `Services/WorkerDataService.cs` + `HcPortal.Tests/WorkerDataServiceSearchTests.cs` tidak disentuh phase 363-368 (verified 2026-06-11); cherry-pick clean (merge-tree). Bisa jalan paralel kapan saja.
+**Migration:** false
+**Requirements:** URG-01
+**Success Criteria** (what must be TRUE):
+  1. `WorkerDataService.cs` guard pre-narrow = `(string.IsNullOrEmpty(searchScope) || searchScope == "Nama") && !string.IsNullOrEmpty(search)` — identik dengan main `14e7adc5`.
+  2. Test regresi `Scope_Null_WithSearch_FiltersByName_H1` ada + hijau; full suite `dotnet test` hijau.
+  3. UAT @5277: Tab Input Records search nama/NIP memfilter list (bukan balikin semua row).
+**UI hint:** no (service-layer 1 guard)
+**Plans:** 0 plans — TBD
+
+### Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)
+**Goal:** Tampilan default Tab Assessment (`ManageAssessmentTab_Assessment`) + `AssessmentMonitoring` menampilkan SEMUA sesi tanpa batas umur — filter `sevenDaysAgo` dihapus sepenuhnya; helper `ApplySevenDayWindow` (quick task 260611-m9r) di-retire/disederhanakan + test disesuaikan. Keputusan user 2026-06-11: "7 hari jadi tanpa batas".
+**Depends on:** Phase 363 SHIP dulu — plan 363-05 menyentuh `AssessmentAdminController.cs` (dieksekusi sesi paralel); hindari konflik file lintas sesi.
+**Migration:** false
+**Requirements:** URG-02
+**Success Criteria** (what must be TRUE):
+  1. Tab Assessment + Monitoring TANPA search menampilkan sesi lama >7 hari (window hilang); filter status default "Aktif (Open/Upcoming)" + hide-Closed CIL-02 TETAP berlaku.
+  2. Behavior search quick task 260611-m9r tidak regresi (search tetap menjangkau semua sesi).
+  3. Trade-off tercatat & diterima user: sesi Open/InProgress terbengkalai lama ikut tampil di default (lokal: 12 InProgress + 9 Open legacy); perf aman skala saat ini (58 row lokal, in-memory grouping).
+  4. `dotnet build` 0 error + full suite hijau + UAT @5277 (default view + search + pagination).
+**UI hint:** no (query-layer; view tak berubah)
+**Plans:** 0 plans — TBD
+
+### Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)
+**Goal:** Longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266` — AssessmentSessions online (IsManualEntry=false) ikut tampil per worker di Tab Input Records dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"). Visibility-only: TANPA tombol hapus untuk online (delete cascade = scope Phase 367).
+**Depends on:** Tidak ada (view-only). **Koordinasi:** selesaikan SEBELUM `/gsd-plan-phase 367` — 367 SC4 build aksi hapus di atas badge ini (anotasi pull-forward di entry Phase 367).
+**Migration:** false
+**Requirements:** URG-03
+**Success Criteria** (what must be TRUE):
+  1. Expand worker di Tab Input Records menampilkan sesi online (termasuk >7 hari, kasus Rino) dengan badge "Assessment Online".
+  2. Record manual existing render tak berubah; aksi edit/hapus manual tetap; sesi online TANPA aksi hapus (menunggu 367).
+  3. Empty-state copy disesuaikan (tidak lagi menyiratkan "hanya record manual").
+  4. `dotnet build` 0 error + full suite hijau + UAT @5277: worker dengan Post Test OJT online lama terlihat recordnya.
+**UI hint:** yes (badge + baris baru di expand table)
+**Plans:** 0 plans — TBD
+
 ### Phase 358: Penanda Kelulusan (fondasi A)
 **Goal:** Logic kelulusan Proton konsisten — exam Tahun 1/2 yang lulus ikut menerbitkan penanda `ProtonFinalAssessment` (dulu cuma interview Tahun 3), via helper tunggal `ProtonCompletionService` dipanggil dari GradingService (exam lulus + re-grade flip Pass↔Fail) dan SubmitInterviewResults; plus backfill data lama. Fix bug "exam Tahun 1/2 lulus tak tercatat Lulus".
 **Depends on:** Tidak ada (fondasi milestone v25.0). Phase 359/360/361 depend ke phase ini.
