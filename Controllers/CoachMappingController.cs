@@ -507,15 +507,20 @@ namespace HcPortal.Controllers
                         .Where(t => t.TrackType == requestedTrack.TrackType
                                  && t.Urutan == requestedTrack.Urutan - 1)
                         .FirstOrDefaultAsync();
+                    // T9/D-12: log-only — Urutan=1 prevTrack==null itu normal (Tahun 1, tanpa prasyarat)
+                    if (requestedTrack.Urutan > 1 && prevTrack == null)
+                        _logger.LogWarning("CoachCoacheeMappingAssign: prev-track null padahal Urutan={Urutan} > 1 (TrackType={TrackType}) — Urutan tidak kontigu di master ProtonTracks. Gate untuk track ini dilewati.", requestedTrack.Urutan, requestedTrack.TrackType);
                     if (prevTrack != null)
                     {
                         // AF-7 (Phase 356): batch pre-load (3 query) menggantikan N+1 loop (~4 query/coachee).
                         // Output incompleteCoachees IDENTIK — 3 cabang direproduksi persis (zero behavior change).
                         var coacheeIdsForWarning = req.CoacheeIds;
 
-                        // (cabang 1) coachee yang SUDAH punya assignment untuk track yang diminta → skip
-                        var hasForRequestedTrack = (await _context.ProtonTrackAssignments
-                            .Where(a => coacheeIdsForWarning.Contains(a.CoacheeId) && a.ProtonTrackId == req.ProtonTrackId.Value)
+                        // (cabang 1) Phase 363-05 (T3/D-05): skip HANYA coachee yang SUDAH AKTIF untuk track
+                        // yang diminta (true no-op). Dulu tanpa filter IsActive — assignment INACTIVE ikut
+                        // ter-skip, sehingga reaktivasi cross-year (:597-606) lolos tanpa year-gate (loophole T3).
+                        var activeForRequestedTrack = (await _context.ProtonTrackAssignments
+                            .Where(a => coacheeIdsForWarning.Contains(a.CoacheeId) && a.ProtonTrackId == req.ProtonTrackId.Value && a.IsActive)
                             .Select(a => a.CoacheeId).Distinct().ToListAsync())
                             .ToHashSet();
 
@@ -525,20 +530,28 @@ namespace HcPortal.Controllers
                         var incompleteCoachees = new List<string>();
                         foreach (var coacheeId in coacheeIdsForWarning)
                         {
-                            if (hasForRequestedTrack.Contains(coacheeId)) continue;          // cabang 1: reactivated → skip (UNCHANGED)
+                            if (activeForRequestedTrack.Contains(coacheeId)) continue;       // cabang 1: sudah AKTIF → no-op, skip gate
 
-                            // Phase 360 (D-06b): assignment AKTIF ber-Origin="Bypass" untuk track yang diminta → exempt cross-year.
-                            // CATATAN (W-07/I-08): cabang 1 (:516-528, hasForRequestedTrack TANPA filter IsActive) sudah men-skip
-                            // coachee bypass lebih dulu, jadi predikat ini bersifat DEFENSE-IN-DEPTH (kalau cabang 1 di-refactor /
-                            // suatu saat memfilter IsActive, exempt ini tetap menjaga semantik D-06b). Cabang 1 SENGAJA dipertahankan
-                            // apa adanya (tanpa filter IsActive) — JANGAN ubah cabang 1. Renewal exempt = session-based TERPISAH (D-07).
+                            // Phase 360 (D-06b) + 363-05: exempt bypass dua lapis.
+                            // Desain baru (T3/D-05/D-06, rekonsiliasi 360 W-07/I-08): cabang 1 kini memfilter IsActive,
+                            // jadi kandidat REAKTIVASI (inactive) ikut turun ke gate; bypass tetap exempt baik aktif
+                            // (isExemptFromCrossYear) maupun inactive (reactExempt — stempel permanen, konsisten 360 D-04).
+                            // Renewal exempt = session-based TERPISAH (D-07).
                             bool isExemptFromCrossYear = await _context.ProtonTrackAssignments
                                 .AnyAsync(a => a.CoacheeId == coacheeId && a.ProtonTrackId == requestedTrack.Id
                                             && a.IsActive && a.Origin == "Bypass");
                             if (isExemptFromCrossYear) continue;
 
+                            // T3/D-06: reaktivasi-candidate (punya assignment INACTIVE utk track diminta, akan direaktivasi :597-606)
+                            //          exempt bila inactive assignment ber-Origin="Bypass" (stempel permanen, konsisten 360 D-04).
+                            bool reactExempt = await _context.ProtonTrackAssignments
+                                .AnyAsync(a => a.CoacheeId == coacheeId && a.ProtonTrackId == requestedTrack.Id
+                                            && !a.IsActive && a.Origin == "Bypass");
+                            if (reactExempt) continue;
+
                             // prevTrack.TahunKe = TahunKe tahun sebelumnya (mis. "Tahun 1"); cek penanda
                             // untuk (coachee, TrackType). Tahun 1 tidak masuk blok ini (prevTrack == null di :507).
+                            // Kandidat reaktivasi non-bypass kini ikut dicek di sini (T3 fix).
                             bool prevPassed = await _protonCompletionService
                                 .IsPrevYearPassedAsync(coacheeId, requestedTrack.TrackType, prevTrack.TahunKe);
                             if (!prevPassed) incompleteCoachees.Add(coacheeId);
