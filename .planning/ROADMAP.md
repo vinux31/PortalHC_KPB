@@ -246,7 +246,10 @@ Plans:
   3. Auto-pair Phase 338 (`TryAutoDetectCounterpartGroup` :7111, IgnoreCase) tidak salah-pasang LinkedGroupId — `uniqueTitle` timestamp dipertahankan di judul.
   4. Kedua spec PASS penuh @localhost:5277 (atau failure tersisa terdokumentasi bukan-karena-judul).
 **UI hint:** no (test-only)
-**Plans:** 0 plans — TBD (run /gsd-plan-phase 364)
+**Plans:** 3 plans (sequential — same 2 files, 3 waves)
+- [ ] 364-01-PLAN.md — Baseline diagnosa (D-10): run kedua spec as-is @5277, klasifikasi failure per-flow (TITLE vs NON-TITLE)
+- [ ] 364-02-PLAN.md — Edit 21 judul standard-create jadi prefix "Pre Test" (D-01..D-04) + asersi DB LinkedGroupId IS NULL FLOW K (D-11/SC#3)
+- [ ] 364-03-PLAN.md — Triage drift (fix-in-test D-05 / test.fixme D-06) + gate D-15 (2 spec @5277 + dotnet test) + SEED_JOURNAL + SUMMARY
 
 ### Phase 365: Test-hardening Coach×Coachee — AF-3 xUnit (promoted backlog 999.5)
 **Goal:** Lock perilaku graduate `MarkMappingCompleted` (`CoachMappingController.cs:1103`) dengan xUnit `MarkMappingCompletedTests` (scope opsi (b) dari backlog — nilai tinggi, effort rendah, tanpa fixture berat): IsCompleted=true + lock IsActive=false (AF-3 D-03) + cascade deactivate ProtonTrackAssignment + DeactivatedAt (AF-3 D-04) + histori utuh.
