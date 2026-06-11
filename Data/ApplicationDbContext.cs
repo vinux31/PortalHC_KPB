@@ -418,11 +418,17 @@ namespace HcPortal.Data
             });
 
             // PendingProtonBypass indexes (Phase 360 — PBYP-01).
-            // Index NON-unique: blok dobel pending (D-10) = app-level check, bukan DB constraint.
+            // WR-01 (review 360): blok dobel pending (D-10) DITEGAKKAN di DB via filtered unique
+            // index (pola IX_CoachCoacheeMappings_CoacheeId_ActiveUnique / E15) — app-level check
+            // di BypassSaveAsync jalan DI LUAR tx ExecutePendingBypassAsync (TOCTOU dobel-klik HC).
             builder.Entity<PendingProtonBypass>(entity =>
             {
                 entity.HasIndex(p => new { p.CoacheeId, p.Status })
                     .HasDatabaseName("IX_PendingProtonBypasses_CoacheeId_Status");
+                entity.HasIndex(p => p.CoacheeId)
+                    .IsUnique()
+                    .HasFilter("[Status] IN (N'Menunggu', N'Siap')")
+                    .HasDatabaseName("IX_PendingProtonBypasses_CoacheeId_ActiveUnique");
             });
 
             // ProtonNotification indexes (Phase 6)

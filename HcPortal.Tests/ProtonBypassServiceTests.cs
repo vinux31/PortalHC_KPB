@@ -424,6 +424,60 @@ public class ProtonBypassServiceTests : IClassFixture<ProtonCompletionFixture>
     }
 
     [Fact]
+    public async Task D10_RaceDobelPending_UniqueIndexTolakRequestKedua()
+    {
+        // WR-01 (review 360): simulasi race dobel-klik — dua request konkuren sama-sama lolos
+        // cek D-10 (AnyAsync di BypassSaveAsync, DI LUAR tx) lalu sama-sama insert. Request kedua
+        // WAJIB ditolak filtered unique index IX_PendingProtonBypasses_CoacheeId_ActiveUnique.
+        await using var ctx1 = new ApplicationDbContext(_fixture.Options);
+        await using var ctx2 = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"race-{Guid.NewGuid():N}";
+        await SeedUserAsync(ctx1, coachee);
+        var t1 = await TrackIdAsync(ctx1, "Operator", "Tahun 1");
+        var t2 = await TrackIdAsync(ctx1, "Operator", "Tahun 2");
+        var source = await SeedAssignmentAsync(ctx1, coachee, t1);
+        var dels = await SeedDeliverablesAsync(ctx1, t1, $"U-{coachee[..8]}", 2);
+        await SeedProgressAsync(ctx1, coachee, source.Id, dels, "Submitted");
+        var req = Req(coachee, t1, t2, "CL-B(b)", targetUnit: $"U-{coachee[..8]}");
+
+        // Langsung ExecutePendingBypassAsync (melewati cek D-10 BypassSaveAsync) = kondisi race.
+        var first = await NewBypassSvc(ctx1).ExecutePendingBypassAsync(req);
+        var second = await NewBypassSvc(ctx2).ExecutePendingBypassAsync(req);
+
+        Assert.True(first.Success, first.Message);
+        Assert.False(second.Success);
+        Assert.Contains("rencana bypass aktif", second.Message);
+        // Tetap 1 pending + 1 bare session — insert kedua rollback all-or-nothing (tanpa yatim).
+        await using var verify = new ApplicationDbContext(_fixture.Options);
+        Assert.Equal(1, await verify.PendingProtonBypasses.CountAsync(p => p.CoacheeId == coachee));
+        Assert.Equal(1, await verify.AssessmentSessions.CountAsync(
+            s => s.UserId == coachee && s.Category == "Assessment Proton"));
+    }
+
+    [Fact]
+    public async Task D10_SetelahDibatalkan_BolehBuatPendingBaru()
+    {
+        // WR-01 guard filter: unique index hanya mengunci status AKTIF (Menunggu/Siap) —
+        // pending Dibatalkan/Selesai TIDAK memblokir rencana bypass baru.
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"reuse-{Guid.NewGuid():N}";
+        var notif = new FakeNotificationService();
+        var svc = NewBypassSvc(ctx, notif);
+        var pending = await SeedPendingViaSaveAsync(ctx, coachee, notif);
+        var cancel = await svc.CancelPendingAsync(pending.Id, "hc2", "HC Dua");
+        Assert.True(cancel.Success, cancel.Message);
+
+        var t1 = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var t2 = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+        var result = await svc.BypassSaveAsync(Req(coachee, t1, t2, "CL-B(b)", targetUnit: $"U-{coachee[..8]}"));
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(2, await ctx.PendingProtonBypasses.CountAsync(p => p.CoacheeId == coachee));
+        Assert.Equal(1, await ctx.PendingProtonBypasses.CountAsync(
+            p => p.CoacheeId == coachee && p.Status == "Menunggu"));
+    }
+
+    [Fact]
     public async Task MarkPendingReady_NoTransaction_SafeRepeat()
     {
         await using var ctx = new ApplicationDbContext(_fixture.Options);

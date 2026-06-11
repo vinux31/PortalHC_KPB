@@ -370,6 +370,15 @@ namespace HcPortal.Services
                     "Sesi exam dibuat — lampirkan paket soal di Kelola Assessment sebelum worker bisa ujian.",
                     PendingId: pending.Id, ShowAttachPackageReminder: true); // D-02 reminder
             }
+            catch (DbUpdateException dbEx) when (
+                dbEx.InnerException?.Message.Contains("IX_PendingProtonBypasses_CoacheeId_ActiveUnique") == true)
+            {
+                // WR-01: race dobel-klik — cek D-10 di BypassSaveAsync jalan di luar tx ini (TOCTOU),
+                // request kedua ditangkap filtered unique index di DB. Rollback = bare session ikut batal.
+                _logger.LogWarning(dbEx, "ExecutePendingBypassAsync dobel-pending unique-index violation Coachee={CoacheeId}", req.CoacheeId);
+                await tx.RollbackAsync();
+                return new BypassResult(false, "Worker sudah punya rencana bypass aktif."); // D6: tanpa ex.Message
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ExecutePendingBypassAsync gagal Coachee={CoacheeId}", req.CoacheeId);
