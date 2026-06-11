@@ -636,5 +636,506 @@
                 .replace(/"/g, '&quot;');
         }
     })();
+
+    // ====== Shared helpers Tab2 (Pitfall 1: tidak ada toast global di _Layout) ======
+    function showToast(message, variant) {
+        var bg = { success: 'text-bg-success', danger: 'text-bg-danger', warning: 'text-bg-warning', info: 'text-bg-warning' }[variant] || 'text-bg-secondary';
+        var el = document.createElement('div');
+        el.className = 'toast align-items-center ' + bg + ' border-0 show position-fixed top-0 end-0 m-3';
+        el.style.zIndex = '2000';
+        el.setAttribute('role', 'alert');
+        el.innerHTML = '<div class="d-flex"><div class="toast-body"></div>'
+            + '<button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close"></button></div>';
+        el.querySelector('.toast-body').textContent = message;
+        el.querySelector('.btn-close').addEventListener('click', function () { el.remove(); });
+        // Stack toasts: offset by jumlah toast aktif
+        var existing = document.querySelectorAll('.toast.position-fixed').length;
+        el.style.marginTop = (existing * 70 + 16) + 'px';
+        document.body.appendChild(el);
+        setTimeout(function () { el.remove(); }, 4000);
+    }
+
+    // ====== Tab2: Bypass Tahun ======
+    (function () {
+        function escB(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+        function getToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]').value;
+        }
+        function fmtTanggal(iso) {
+            if (!iso) return '—';
+            var d = new Date(iso);
+            if (isNaN(d)) return '—';
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        var pendingRows = [];      // cache BypassPendingList untuk modal + deep-link stale check
+        var workerRows = [];       // cache BypassList untuk search client-side
+        var tab2Loaded = false;
+        var wizState = null;       // { coacheeId, nama, sourceTrackId, sourceTahun, sourceTahunKe, eligibleModes, step, mode, targetTrackId, targetTahunKe }
+
+        var MODE_INFO = {
+            'CL-A':    { title: 'CL-A — Lulus (sudah ada)', desc: 'Tahun asal komplit normal. Pindah instan dengan penanda kelulusan yang sudah ada.', ineligible: 'CL-A butuh semua deliverable approved + penanda final ada.' },
+            'CL-B(a)': { title: 'CL-B(a) — Input manual', desc: 'Offline assessment sudah jalan. Force-approve deliverable + terbitkan penanda, pindah instan.', ineligible: 'CL-B hanya tersedia bila penanda final tahun asal belum ada.' },
+            'CL-B(b)': { title: 'CL-B(b) — Buat assessment baru', desc: 'Buat sesi exam tahun asal. Worker pindah SETELAH exam dinilai lulus (menunggu konfirmasi).', ineligible: 'CL-B hanya tersedia bila penanda final tahun asal belum ada.' },
+            'CL-C':    { title: 'CL-C — Tinggalkan', desc: 'Demosi/koreksi/ganti track. Tutup tahun asal tanpa nilai, pindah instan.', ineligible: '' }
+        };
+        var MODE_WARNING = {
+            'CL-A':    'Worker dipindahkan instan dengan penanda kelulusan yang sudah ada.',
+            'CL-B(a)': 'Deliverable akan di-force-approve dan penanda kelulusan diterbitkan tanpa nilai exam.',
+            'CL-B(b)': 'Sesi exam dibuat tanpa paket soal. Worker baru pindah setelah exam dinilai lulus.',
+            'CL-C':    'Worker dipindahkan tanpa nilai (demosi/koreksi). Tidak ada penanda kelulusan.'
+        };
+
+        // --- Cascade filter Tab2 (D-14, reuse orgStructure) ---
+        function populateBagian(selectEl) {
+            Object.keys(orgStructure).forEach(function (section) {
+                var opt = document.createElement('option');
+                opt.value = section;
+                opt.textContent = section;
+                selectEl.appendChild(opt);
+            });
+        }
+        populateBagian(document.getElementById('bypassBagian'));
+        populateBagian(document.getElementById('wizTargetBagian'));
+
+        function wireCascade(bagianId, unitId, onChange) {
+            document.getElementById(bagianId).addEventListener('change', function () {
+                var bagian = this.value;
+                var unitSelect = document.getElementById(unitId);
+                unitSelect.innerHTML = '<option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>';
+                if (bagian && orgStructure[bagian]) {
+                    orgStructure[bagian].forEach(function (u) {
+                        var opt = document.createElement('option');
+                        opt.value = u;
+                        opt.textContent = u;
+                        unitSelect.appendChild(opt);
+                    });
+                }
+                unitSelect.disabled = !bagian;
+                if (onChange) onChange();
+            });
+            document.getElementById(unitId).addEventListener('change', function () {
+                if (onChange) onChange();
+            });
+        }
+
+        wireCascade('bypassBagian', 'bypassUnit', function () {
+            var hasUnit = !!document.getElementById('bypassUnit').value;
+            var trackSelect = document.getElementById('bypassTrack');
+            trackSelect.disabled = !hasUnit;
+            if (!hasUnit) trackSelect.value = '';
+            document.getElementById('btnLoadBypass').disabled = !trackSelect.value;
+        });
+        document.getElementById('bypassTrack').addEventListener('change', function () {
+            document.getElementById('btnLoadBypass').disabled = !this.value;
+        });
+        wireCascade('wizTargetBagian', 'wizTargetUnit', function () { validateStep(); });
+
+        // --- Panel pending (D-13/D-16/D-17) ---
+        async function loadPendingPanel() {
+            var container = document.getElementById('pendingPanelContainer');
+            try {
+                var resp = await fetch(appUrl('/ProtonData/BypassPendingList'));
+                pendingRows = await resp.json(); // BARE ARRAY
+            } catch (err) {
+                container.innerHTML = '<div class="alert alert-danger mb-0">Terjadi kesalahan jaringan. Silakan coba lagi.</div>';
+                return;
+            }
+            document.getElementById('pendingCount').textContent = pendingRows.length;
+            if (!pendingRows.length) {
+                container.innerHTML = '<div class="text-muted small">Tidak ada bypass menunggu konfirmasi.</div>';
+                return;
+            }
+            var html = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead class="table-light"><tr>'
+                + '<th>Nama Pekerja</th><th>Perpindahan</th><th>Unit Tujuan</th><th>Status</th><th>Dibuat</th><th class="text-end">Aksi</th>'
+                + '</tr></thead><tbody>';
+            pendingRows.forEach(function (p) {
+                var badge = p.status === 'Siap'
+                    ? '<span class="badge bg-success">Siap Dikonfirmasi</span>'
+                    : '<span class="badge bg-warning text-dark">Menunggu Exam</span>';
+                var aksi = '';
+                if (p.status === 'Siap') {
+                    aksi += '<button class="btn btn-success btn-sm me-1 btn-pending-view" data-pending-id="' + p.id + '"><i class="bi bi-eye me-1"></i>Lihat &amp; Konfirmasi</button>';
+                }
+                aksi += '<button class="btn btn-outline-danger btn-sm btn-pending-cancel" data-pending-id="' + p.id + '"><i class="bi bi-x-circle me-1"></i>Batal</button>';
+                html += '<tr>'
+                    + '<td class="fw-semibold">' + escB(p.nama) + '</td>'
+                    + '<td>' + escB(p.sourceTrack) + ' <i class="bi bi-arrow-right mx-1"></i> ' + escB(p.targetTrack) + '</td>'
+                    + '<td>' + escB(p.targetUnit) + '</td>'
+                    + '<td>' + badge + '</td>'
+                    + '<td>' + fmtTanggal(p.createdAt) + '</td>'
+                    + '<td class="text-end">' + aksi + '</td>'
+                    + '</tr>';
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        // --- Tabel worker (D-15) ---
+        async function loadBypassWorkers() {
+            var bagian = document.getElementById('bypassBagian').value;
+            var unit = document.getElementById('bypassUnit').value;
+            var trackId = document.getElementById('bypassTrack').value;
+            var container = document.getElementById('bypassTableContainer');
+            container.innerHTML = '<div class="text-center py-4"><span class="spinner-border text-primary"></span></div>';
+            try {
+                var url = appUrl('/ProtonData/BypassList?bagian=' + encodeURIComponent(bagian)
+                    + '&unit=' + encodeURIComponent(unit)
+                    + '&trackId=' + encodeURIComponent(trackId));
+                var resp = await fetch(url);
+                workerRows = await resp.json(); // BARE ARRAY
+                renderWorkerTable();
+            } catch (err) {
+                container.innerHTML = '<div class="alert alert-danger">Terjadi kesalahan jaringan. Silakan coba lagi.</div>';
+            }
+        }
+
+        function renderWorkerTable() {
+            var container = document.getElementById('bypassTableContainer');
+            var keyword = (document.getElementById('bypassSearch').value || '').toLowerCase();
+            var rows = workerRows.filter(function (w) {
+                return !keyword || (w.nama || '').toLowerCase().indexOf(keyword) !== -1;
+            });
+            if (!rows.length) {
+                container.innerHTML = '<div class="alert alert-info">Tidak ada pekerja untuk filter ini.</div>';
+                return;
+            }
+            var html = '<div class="table-responsive"><table class="table table-sm table-bordered align-middle mb-0">'
+                + '<thead class="table-light"><tr>'
+                + '<th>Nama Pekerja</th><th>Track Aktif</th><th class="text-center">Progress</th><th class="text-center">Final</th><th class="text-end">Aksi</th>'
+                + '</tr></thead><tbody>';
+            rows.forEach(function (w) {
+                var finalBadge = w.finalAda
+                    ? '<span class="badge bg-success"><i class="bi bi-check-lg"></i></span>'
+                    : '<span class="badge bg-secondary">—</span>';
+                html += '<tr>'
+                    + '<td class="fw-semibold">' + escB(w.nama) + '</td>'
+                    + '<td>' + escB(w.trackAktif) + '</td>'
+                    + '<td class="text-center">' + w.progressApproved + '/' + w.progressTotal + '</td>'
+                    + '<td class="text-center">' + finalBadge + '</td>'
+                    + '<td class="text-end"><button class="btn btn-outline-primary btn-sm btn-bypass-open" data-coachee-id="' + escB(w.coacheeId) + '" data-nama="' + escB(w.nama) + '"><i class="bi bi-arrow-left-right me-1"></i>Bypass</button></td>'
+                    + '</tr>';
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        document.getElementById('btnLoadBypass').addEventListener('click', loadBypassWorkers);
+        document.getElementById('bypassSearch').addEventListener('input', function () {
+            if (workerRows.length) renderWorkerTable();
+        });
+
+        // --- Wizard state machine (D-01/D-02/D-03/D-10) ---
+        var wizModal = null;
+
+        document.getElementById('bypassTableContainer').addEventListener('click', async function (e) {
+            var btn = e.target.closest('.btn-bypass-open');
+            if (!btn) return;
+            var coacheeId = btn.dataset.coacheeId;
+            try {
+                var resp = await fetch(appUrl('/ProtonData/BypassDetail?coacheeId=' + encodeURIComponent(coacheeId)));
+                var data = await resp.json();
+                if (!data.success) {
+                    showToast(data.message || 'Gagal memuat detail worker.', 'danger');
+                    return;
+                }
+                wizState = {
+                    coacheeId: coacheeId,
+                    nama: btn.dataset.nama,
+                    sourceTrackId: data.sourceTrackId,
+                    sourceTahun: data.sourceTahun,
+                    sourceTahunKe: data.sourceTahunKe,
+                    sourceComplete: data.sourceComplete,
+                    sourceHasFinal: data.sourceHasFinal,
+                    eligibleModes: data.eligibleModes || [],
+                    step: 1, mode: null, targetTrackId: null, targetTahunKe: null
+                };
+                openWizard();
+            } catch (err) {
+                showToast('Terjadi kesalahan jaringan. Silakan coba lagi.', 'danger');
+            }
+        });
+
+        function openWizard() {
+            document.getElementById('wizWorkerName').textContent = wizState.nama;
+            document.getElementById('wizSourceInfo').innerHTML =
+                '<span class="fw-semibold">Track aktif:</span> ' + escB(wizState.sourceTahunKe || '')
+                + (wizState.sourceComplete ? ' · <span class="text-success">deliverable komplit</span>' : ' · <span class="text-muted">deliverable belum komplit</span>')
+                + (wizState.sourceHasFinal ? ' · <span class="text-success">penanda final ada</span>' : ' · <span class="text-muted">penanda final belum ada</span>');
+            document.getElementById('wizTargetTrack').value = '';
+            document.getElementById('wizTargetTrackError').textContent = '';
+            document.getElementById('wizTargetBagian').value = '';
+            document.getElementById('wizTargetUnit').innerHTML = '<option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>';
+            document.getElementById('wizTargetUnit').disabled = true;
+            document.getElementById('wizCoach').value = '';
+            document.getElementById('wizReason').value = '';
+            gotoStep(1);
+            wizModal = new bootstrap.Modal(document.getElementById('bypassWizardModal'));
+            wizModal.show();
+        }
+
+        function gotoStep(n) {
+            wizState.step = n;
+            [1, 2, 3].forEach(function (i) {
+                document.getElementById('wizStep' + i).classList.toggle('d-none', i !== n);
+                var ind = document.querySelector('#wizStepIndicator [data-step="' + i + '"]');
+                ind.className = i === n ? 'fw-semibold' : 'text-muted';
+                ind.querySelector('.badge').className = 'badge rounded-circle me-1 ' + (i === n ? 'bg-primary' : 'bg-secondary');
+            });
+            document.getElementById('wizBack').disabled = n === 1;
+            document.getElementById('wizNext').classList.toggle('d-none', n === 3);
+            document.getElementById('wizSubmit').classList.toggle('d-none', n !== 3);
+            if (n === 2) renderModeCards();
+            if (n === 3) buildRecap();
+            validateStep();
+        }
+
+        function validateStep() {
+            if (!wizState) return;
+            var ok = false;
+            if (wizState.step === 1) {
+                var sel = document.getElementById('wizTargetTrack');
+                var errEl = document.getElementById('wizTargetTrackError');
+                errEl.textContent = '';
+                if (sel.value) {
+                    var opt = sel.options[sel.selectedIndex];
+                    var urutan = parseInt(opt.dataset.urutan);
+                    if (parseInt(sel.value) === wizState.sourceTrackId) {
+                        errEl.textContent = 'Track tujuan sama dengan track aktif — tidak diperbolehkan.';
+                    } else if (Math.abs(urutan - wizState.sourceTahun) > 1) {
+                        errEl.textContent = 'Perpindahan maksimal 1 tahun. Pilih track yang berdekatan.';
+                    } else {
+                        wizState.targetTrackId = parseInt(sel.value);
+                        wizState.targetTahunKe = opt.dataset.tahunke;
+                        wizState.targetTrackName = opt.textContent;
+                        ok = true;
+                    }
+                }
+            } else if (wizState.step === 2) {
+                ok = !!wizState.mode;
+            } else if (wizState.step === 3) {
+                ok = !!document.getElementById('wizTargetUnit').value
+                    && !!document.getElementById('wizReason').value.trim();
+            }
+            document.getElementById('wizNext').disabled = !ok && wizState.step < 3;
+            document.getElementById('wizSubmit').disabled = !ok;
+            return ok;
+        }
+
+        function renderModeCards() {
+            var container = document.getElementById('wizModeCards');
+            var html = '';
+            ['CL-A', 'CL-B(a)', 'CL-B(b)', 'CL-C'].forEach(function (m) {
+                var info = MODE_INFO[m];
+                var eligible = wizState.eligibleModes.indexOf(m) !== -1;
+                var checked = wizState.mode === m ? ' checked' : '';
+                html += '<div class="col-md-6">'
+                    + '<label class="card h-100 ' + (eligible ? 'cursor-pointer' : 'opacity-50') + '" style="cursor:' + (eligible ? 'pointer' : 'not-allowed') + ';">'
+                    + '<div class="card-body py-2 px-3">'
+                    + '<div class="form-check">'
+                    + '<input class="form-check-input wiz-mode-radio" type="radio" name="wizMode" value="' + m + '"' + (eligible ? '' : ' disabled') + checked + '>'
+                    + '<span class="fw-semibold ms-1">' + info.title + '</span>'
+                    + '</div>'
+                    + '<div class="small text-muted mt-1">' + info.desc + '</div>'
+                    + (eligible ? '' : '<div class="small text-muted fst-italic mt-1"><i class="bi bi-info-circle me-1"></i>' + info.ineligible + '</div>')
+                    + '</div></label></div>';
+            });
+            container.innerHTML = html;
+            container.querySelectorAll('.wiz-mode-radio').forEach(function (r) {
+                r.addEventListener('change', function () {
+                    wizState.mode = this.value;
+                    validateStep();
+                });
+            });
+        }
+
+        function buildRecap() {
+            var unit = document.getElementById('wizTargetUnit').value;
+            var coachSel = document.getElementById('wizCoach');
+            var coachLabel = coachSel.value ? coachSel.options[coachSel.selectedIndex].textContent : 'Pertahankan coach saat ini';
+            var reason = document.getElementById('wizReason').value.trim();
+            document.getElementById('wizRecap').innerHTML =
+                '<div class="row g-1">'
+                + '<div class="col-4 fw-semibold">Pekerja</div><div class="col-8">' + escB(wizState.nama) + '</div>'
+                + '<div class="col-4 fw-semibold">Perpindahan</div><div class="col-8">' + escB(wizState.sourceTahunKe || '') + ' <i class="bi bi-arrow-right mx-1"></i> ' + escB(wizState.targetTahunKe || '') + ' (' + escB(wizState.targetTrackName || '') + ')</div>'
+                + '<div class="col-4 fw-semibold">Closure Mode</div><div class="col-8">' + escB(wizState.mode || '—') + '</div>'
+                + '<div class="col-4 fw-semibold">Unit Tujuan</div><div class="col-8">' + (unit ? escB(unit) : '<span class="text-danger">belum dipilih</span>') + '</div>'
+                + '<div class="col-4 fw-semibold">Coach</div><div class="col-8">' + escB(coachLabel) + '</div>'
+                + '<div class="col-4 fw-semibold">Alasan</div><div class="col-8">' + (reason ? escB(reason) : '<span class="text-danger">belum diisi</span>') + '</div>'
+                + '</div>';
+            document.getElementById('wizWarning').innerHTML = wizState.mode
+                ? '<div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle me-1"></i>' + MODE_WARNING[wizState.mode] + '</div>'
+                : '';
+        }
+
+        document.getElementById('wizNext').addEventListener('click', function () {
+            if (validateStep() && wizState.step < 3) gotoStep(wizState.step + 1);
+        });
+        document.getElementById('wizBack').addEventListener('click', function () {
+            if (wizState.step > 1) gotoStep(wizState.step - 1);
+        });
+        ['wizTargetTrack', 'wizTargetUnit', 'wizCoach'].forEach(function (id) {
+            document.getElementById(id).addEventListener('change', function () {
+                validateStep();
+                if (wizState && wizState.step === 3) buildRecap();
+            });
+        });
+        document.getElementById('wizReason').addEventListener('input', function () {
+            validateStep();
+            if (wizState && wizState.step === 3) buildRecap();
+        });
+
+        // --- Submit wizard (D-04/D-09/D-21) ---
+        document.getElementById('wizSubmit').addEventListener('click', async function () {
+            if (!validateStep()) return;
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+            try {
+                var payload = {
+                    CoacheeId: wizState.coacheeId,
+                    SourceProtonTrackId: wizState.sourceTrackId,
+                    TargetProtonTrackId: wizState.targetTrackId,
+                    TargetUnit: document.getElementById('wizTargetUnit').value,
+                    TargetCoachId: document.getElementById('wizCoach').value || null,
+                    Reason: document.getElementById('wizReason').value.trim(),
+                    Mode: wizState.mode,
+                    DurationMinutes: null
+                };
+                var resp = await fetch(appUrl('/ProtonData/BypassSave'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                    body: JSON.stringify(payload)
+                });
+                var data = await resp.json();
+                if (data.success) {
+                    wizModal.hide();
+                    showToast(data.message || 'Bypass berhasil diproses.', 'success');
+                    if (data.showAttachPackageReminder) {
+                        showToast('Sesi exam dibuat — lampirkan paket soal di Kelola Assessment sebelum pekerja bisa ujian.', 'warning');
+                    }
+                    await loadPendingPanel();
+                    if (workerRows.length) await loadBypassWorkers();
+                } else {
+                    showToast(data.message || 'Gagal menyimpan bypass.', 'danger');
+                }
+            } catch (err) {
+                showToast('Terjadi kesalahan jaringan. Silakan coba lagi.', 'danger');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Jalankan Bypass';
+        });
+
+        // --- Modal Lihat & Konfirmasi (D-18/D-19/D-20) ---
+        var confirmModal = null;
+        var confirmPendingId = null;
+
+        function openConfirmModal(pendingId) {
+            var p = pendingRows.find(function (x) { return x.id === pendingId; });
+            if (!p) return;
+            confirmPendingId = pendingId;
+            var hasil = p.hasilExam === true
+                ? '<span class="text-success fw-semibold">Lulus</span>'
+                : (p.hasilExam === false ? '<span class="text-danger fw-semibold">Gagal</span>' : '<span class="text-muted">Belum dinilai</span>');
+            document.getElementById('confirmModalBody').innerHTML =
+                '<div class="row g-1 small">'
+                + '<div class="col-4 fw-semibold">Pekerja</div><div class="col-8">' + escB(p.nama) + '</div>'
+                + '<div class="col-4 fw-semibold">Perpindahan</div><div class="col-8">' + escB(p.sourceTrack) + ' <i class="bi bi-arrow-right mx-1"></i> ' + escB(p.targetTrack) + '</div>'
+                + '<div class="col-4 fw-semibold">Unit Tujuan</div><div class="col-8">' + escB(p.targetUnit) + '</div>'
+                + '<div class="col-4 fw-semibold">Coach Tujuan</div><div class="col-8">' + (p.targetCoachNama ? escB(p.targetCoachNama) : 'Pertahankan coach saat ini') + '</div>'
+                + '<div class="col-4 fw-semibold">Alasan</div><div class="col-8">' + escB(p.reason) + '</div>'
+                + '<div class="col-4 fw-semibold">Hasil Exam</div><div class="col-8">' + hasil + (p.skorExam != null ? ' (skor ' + p.skorExam + ')' : '') + '</div>'
+                + '<div class="col-4 fw-semibold">Tanggal Exam</div><div class="col-8">' + fmtTanggal(p.tanggalExam) + '</div>'
+                + '<div class="col-4 fw-semibold">Status</div><div class="col-8">' + (p.status === 'Siap' ? '<span class="badge bg-success">Siap Dikonfirmasi</span>' : '<span class="badge bg-warning text-dark">Menunggu Exam</span>') + '</div>'
+                + '</div>';
+            document.getElementById('confirmBtnGo').classList.toggle('d-none', p.status !== 'Siap');
+            confirmModal = new bootstrap.Modal(document.getElementById('bypassConfirmModal'));
+            confirmModal.show();
+        }
+
+        async function postPendingAction(fullUrl, pendingId, btn, busyLabel, idleHtml) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>' + busyLabel;
+            try {
+                var resp = await fetch(fullUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                    body: JSON.stringify({ PendingId: pendingId })
+                });
+                var data = await resp.json();
+                if (data.success) {
+                    showToast(data.message || 'Berhasil diproses.', 'success');
+                } else {
+                    showToast(data.message || 'Gagal memproses.', 'danger');
+                }
+            } catch (err) {
+                showToast('Terjadi kesalahan jaringan. Silakan coba lagi.', 'danger');
+            }
+            btn.disabled = false;
+            btn.innerHTML = idleHtml;
+            if (confirmModal) confirmModal.hide();
+            await loadPendingPanel(); // D-20: state terbaru langsung kelihatan
+            if (workerRows.length) await loadBypassWorkers();
+        }
+
+        document.getElementById('confirmBtnGo').addEventListener('click', function () {
+            postPendingAction(appUrl('/ProtonData/BypassConfirm'), confirmPendingId, this,
+                'Memproses...', '<i class="bi bi-check2-circle me-1"></i>Konfirmasi Pindah');
+        });
+        document.getElementById('confirmBtnCancel').addEventListener('click', function () {
+            if (!confirm('Batalkan rencana bypass? Exam yang belum dikerjakan akan dihapus.')) return;
+            postPendingAction(appUrl('/ProtonData/BypassCancelPending'), confirmPendingId, this,
+                'Membatalkan...', '<i class="bi bi-x-circle me-1"></i>Batal');
+        });
+
+        document.getElementById('pendingPanelContainer').addEventListener('click', function (e) {
+            var viewBtn = e.target.closest('.btn-pending-view');
+            if (viewBtn) {
+                openConfirmModal(parseInt(viewBtn.dataset.pendingId));
+                return;
+            }
+            var cancelBtn = e.target.closest('.btn-pending-cancel');
+            if (cancelBtn) {
+                if (!confirm('Batalkan rencana bypass? Exam yang belum dikerjakan akan dihapus.')) return;
+                postPendingAction(appUrl('/ProtonData/BypassCancelPending'), parseInt(cancelBtn.dataset.pendingId), cancelBtn,
+                    'Membatalkan...', '<i class="bi bi-x-circle me-1"></i>Batal');
+            }
+        });
+
+        // --- Tab activation + deep-link (D-05/D-06/D-07/D-08) ---
+        document.getElementById('tab-bypass').addEventListener('shown.bs.tab', function () {
+            history.replaceState(null, '', appUrl('/ProtonData/Override?tab=bypass'));
+            if (!tab2Loaded) {
+                tab2Loaded = true;
+                loadPendingPanel();
+            }
+        });
+        document.getElementById('tab-deliverable').addEventListener('shown.bs.tab', function () {
+            history.replaceState(null, '', appUrl('/ProtonData/Override?tab=deliverable'));
+        });
+
+        (async function handleDeepLink() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('tab') !== 'bypass') return;
+            new bootstrap.Tab(document.getElementById('tab-bypass')).show();
+            tab2Loaded = true;
+            await loadPendingPanel();
+            var pendingId = parseInt(params.get('pending'));
+            if (!pendingId) return;
+            var found = pendingRows.find(function (x) { return x.id === pendingId; });
+            if (found) {
+                openConfirmModal(pendingId); // D-05: 1-klik dari lonceng ke aksi
+            } else {
+                showToast('Pending bypass sudah diproses atau tidak ditemukan.', 'info'); // D-06
+            }
+        })();
+    })();
 </script>
 }
