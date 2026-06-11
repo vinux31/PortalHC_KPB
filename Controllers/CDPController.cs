@@ -1364,6 +1364,10 @@ namespace HcPortal.Controllers
                 progress.ShApprovalStatus = "Pending";
                 progress.ShApprovedById = null;
                 progress.ShApprovedAt = null;
+                // Phase 363-02 (D-03 belt-and-braces): HC review basi tidak boleh survive resubmit
+                progress.HCApprovalStatus = "Pending";
+                progress.HCReviewedById = null;
+                progress.HCReviewedAt = null;
                 progress.RejectedAt = null;
                 progress.RejectionReason = null;
                 RecordStatusHistory(progress.Id, "Approval Reset", user.Id, user.FullName, "Coach");
@@ -2035,31 +2039,15 @@ namespace HcPortal.Controllers
             if (coacheeUser == null || coacheeUser.Section != user.Section)
                 return Json(new { success = false, message = "Tidak dapat menyetujui deliverable dari seksi berbeda." });
 
+            // Phase 363-02 (T1/T7): state mutation via shared core — race-guard D-10 +
+            // allApproved kini aktif di jalur modal, paritas penuh dengan ApproveDeliverable
             var now = DateTime.UtcNow;
-            if (isSrSpv)
-            {
-                progress.SrSpvApprovalStatus = "Approved";
-                progress.SrSpvApprovedById = user.Id;
-                progress.SrSpvApprovedAt = now;
-            }
-            else
-            {
-                progress.ShApprovalStatus = "Approved";
-                progress.ShApprovedById = user.Id;
-                progress.ShApprovedAt = now;
-            }
+            var (ok, error, allApproved) = await ApproveDeliverableCoreAsync(
+                _context, progressId, user.Id, user.FullName, userRole, isSrSpv, isSH);
+            if (!ok) return Json(new { success = false, message = error });
 
-            // Set overall status to Approved
-            progress.Status = "Approved";
-            progress.ApprovedAt = now;
-            progress.ApprovedById = user.Id;
-
-            // Phase 117: Record status history
-            string approveStatusType = isSrSpv ? "SrSpv Approved" : "SH Approved";
-            string approveActorRole = isSrSpv ? "Sr. Supervisor" : "Section Head";
-            RecordStatusHistory(progress.Id, approveStatusType, user.Id, user.FullName, approveActorRole);
-
-            await _context.SaveChangesAsync();
+            // D-02 paritas: notif coach/coachee + COACH_ALL_COMPLETE HC saat allApproved (T1)
+            await DispatchApproveNotificationsAsync(progress, allApproved);
 
             var approverName = user.FullName ?? user.UserName ?? user.Id;
             var approvedAtLocal = now.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"));
@@ -2068,7 +2056,8 @@ namespace HcPortal.Controllers
             {
                 success = true,
                 message = "Deliverable berhasil disetujui.",
-                newStatus = isSrSpv ? progress.SrSpvApprovalStatus : progress.ShApprovalStatus,
+                newStatus = "Approved",
+                allApproved,
                 approverName,
                 approvedAt = approvedAtLocal
             });
@@ -2090,9 +2079,6 @@ namespace HcPortal.Controllers
             if (!UserRoles.HasSectionAccess(roleLevel))
                 return Json(new { success = false, message = "Akses tidak diizinkan." });
 
-            bool isSrSpv = userRole == UserRoles.SrSupervisor;
-            bool isSH = userRole == UserRoles.SectionHead;
-
             if (string.IsNullOrWhiteSpace(rejectionReason))
                 return Json(new { success = false, message = "Alasan penolakan tidak boleh kosong." });
 
@@ -2113,40 +2099,23 @@ namespace HcPortal.Controllers
             if (coacheeUser == null || coacheeUser.Section != user.Section)
                 return Json(new { success = false, message = "Tidak dapat menolak deliverable dari seksi berbeda." });
 
+            // Phase 363-02 (T2): full chain reset via shared core — HCApprovalStatus ikut
+            // ter-reset; anomali lama (set SrSpvApprovedById/At saat reject) dihapus
             var now = DateTime.UtcNow;
-            if (isSrSpv)
-            {
-                progress.SrSpvApprovalStatus = "Rejected";
-                progress.SrSpvApprovedById = user.Id;
-                progress.SrSpvApprovedAt = now;
-            }
-            else
-            {
-                progress.ShApprovalStatus = "Rejected";
-                progress.ShApprovedById = user.Id;
-                progress.ShApprovedAt = now;
-            }
-
-            // Rejection takes precedence — overall status becomes Rejected
-            progress.Status = "Rejected";
-            progress.RejectionReason = rejectionReason;
-            progress.RejectedAt = now;
-
-            // Phase 117: Record status history
-            string rejectStatusType = isSrSpv ? "SrSpv Rejected" : "SH Rejected";
-            string rejectActorRole = isSrSpv ? "Sr. Supervisor" : "Section Head";
-            RecordStatusHistory(progress.Id, rejectStatusType, user.Id, user.FullName, rejectActorRole, rejectionReason);
-
-            await _context.SaveChangesAsync();
+            var (ok, error) = await RejectDeliverableCoreAsync(
+                _context, progressId, user.Id, user.FullName, userRole, rejectionReason);
+            if (!ok) return Json(new { success = false, message = error });
 
             var approverName = user.FullName ?? user.UserName ?? user.Id;
             var approvedAtLocal = now.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"));
 
+            // Pitfall 2: pasca full-reset per-role status = "Pending" — JSON WAJIB bawa
+            // status OVERALL "Rejected" supaya badge modal tampil Ditolak, bukan Pending
             return Json(new
             {
                 success = true,
                 message = "Deliverable ditolak.",
-                newStatus = isSrSpv ? progress.SrSpvApprovalStatus : progress.ShApprovalStatus,
+                newStatus = "Rejected",
                 approverName,
                 approvedAt = approvedAtLocal
             });
@@ -2337,6 +2306,10 @@ namespace HcPortal.Controllers
                     progress.ShApprovalStatus = "Pending";
                     progress.ShApprovedById = null;
                     progress.ShApprovedAt = null;
+                    // Phase 363-02 (D-03 belt-and-braces): HC review basi tidak boleh survive resubmit
+                    progress.HCApprovalStatus = "Pending";
+                    progress.HCReviewedById = null;
+                    progress.HCReviewedAt = null;
                     RecordStatusHistory(progress.Id, "Approval Reset", user.Id, user.FullName, "Coach");
                 }
 
