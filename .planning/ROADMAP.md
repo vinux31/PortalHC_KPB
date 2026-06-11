@@ -52,7 +52,7 @@
   - SC2: Panel pending tampil + `[Konfirmasi]`/`[Batal]`; notif deep-link buka Tab2 pending.
   - SC3: UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
 - [x] **Phase 362: PROTON CDP Polish** — 6 gap UI/nav/role dari gap-analysis (G-01/04/05/09/10/12). Migration=false. Depends: — (SHIPPED LOCAL 2026-06-10)
-- [ ] **Phase 363: Audit Fix Alur PROTON (T1-T10)** — 10 temuan verifikasi adversarial alur PROTON: notif allApproved miss, reject divergen, loophole gate reaktivasi, penanda silent-miss, dead branch, asimetri ValidUntil, drift FromProgress. Migration=false. Depends: 362 (file-overlap CDPController)
+- [x] **Phase 363: Audit Fix Alur PROTON (T1-T10)** — 10 temuan verifikasi adversarial alur PROTON: notif allApproved miss, reject divergen, loophole gate reaktivasi, penanda silent-miss, dead branch, asimetri ValidUntil, drift FromProgress. Migration=false. Depends: 362 (file-overlap CDPController) (completed 2026-06-11)
 - [ ] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10)
 - [ ] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
 - [ ] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10)
@@ -223,7 +223,7 @@ Plans:
   5. Triase T5-T10 tuntas: tiap item fix ATAU ditandai by-design dengan alasan tercatat.
   6. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277 (CLAUDE.md Develop Workflow).
 **UI hint:** minimal (mayoritas backend/notif; T5 sentuh view HistoriProton)
-**Plans:** 7 plans (4 waves)
+**Plans:** 7/7 plans complete
 
 Plans:
 - [x] 363-01-PLAN.md — Pin parity tests + extract approve/reject cores; rewire gold-standard endpoints (T1/T2/T7 foundation). Wave 1.
