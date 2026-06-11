@@ -746,12 +746,12 @@
                 pendingRows = await resp.json(); // BARE ARRAY
             } catch (err) {
                 container.innerHTML = '<div class="alert alert-danger mb-0">Terjadi kesalahan jaringan. Silakan coba lagi.</div>';
-                return;
+                return false; // WR-01: deep-link JANGAN simpulkan "sudah diproses" saat fetch gagal
             }
             document.getElementById('pendingCount').textContent = pendingRows.length;
             if (!pendingRows.length) {
                 container.innerHTML = '<div class="text-muted small">Tidak ada bypass menunggu konfirmasi.</div>';
-                return;
+                return true; // load sukses (0 pending) — deep-link stale check tetap valid
             }
             var html = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead class="table-light"><tr>'
                 + '<th>Nama Pekerja</th><th>Perpindahan</th><th>Unit Tujuan</th><th>Status</th><th>Dibuat</th><th class="text-end">Aksi</th>'
@@ -776,6 +776,7 @@
             });
             html += '</tbody></table></div>';
             container.innerHTML = html;
+            return true;
         }
 
         // --- Tabel worker (D-15) ---
@@ -1126,7 +1127,8 @@
             if (params.get('tab') !== 'bypass') return;
             new bootstrap.Tab(document.getElementById('tab-bypass')).show();
             tab2Loaded = true;
-            await loadPendingPanel();
+            var loadOk = await loadPendingPanel();
+            if (!loadOk) return; // WR-01: fetch gagal — error sudah tampil di panel, jangan klaim stale
             var pendingId = parseInt(params.get('pending'));
             if (!pendingId) return;
             var found = pendingRows.find(function (x) { return x.id === pendingId; });
