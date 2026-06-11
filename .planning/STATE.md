@@ -57,6 +57,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-3
 
 1. **`/gsd-plan-phase 358`** — Penanda Kelulusan. Input: spec A §4.1/4.7/4.8 + plan `docs/superpowers/plans/2026-06-09-proton-completion-logic.md` (Task 1,3,4,5,10). **Migration** (`Origin`) — snapshot DB lokal sebelum apply. Verifikasi build + ef update + xUnit.
 2. **Carry-over IT promo** — v24.0 (352-357) belum push (branch ITHandoff). v25.0 nambah 2 migration ke batch.
+3. **🚨 v26.0 URGENT queued (369-371)** — lihat ROADMAP v26.0 (added 2026-06-11). 369 sync H1 bisa langsung (independen); 370 window-unlimited TUNGGU 363 ship (file-overlap AssessmentAdminController 363-05); 371 Input Records visibility SEBELUM plan 367.
 
 ## Deferred Items
 

@@ -24,6 +24,7 @@
 - ✅ **v23.0 CMP/Records Search & Filter Consistency Audit** — Phases 350-351 (shipped local + audited 2026-06-06, 7/7 REQ SF-01..07) — [archive](milestones/v23.0-ROADMAP.md) — [audit](milestones/v23.0-MILESTONE-AUDIT.md)
 - ✅ **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-357 (shipped local 2026-06-09, audited passed; 6 phase, 22 plan, 25/25 REQ; full detail → [milestones/v24.0-ROADMAP.md](milestones/v24.0-ROADMAP.md))
 - 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-368 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP + 362 polish + 363 audit-fix T1-T10 + 364-366 promoted backlog 2026-06-10 + 367-368 delete-records overhaul 2026-06-10; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md) + [C delete-records](../docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md))
+- 🚨 **v26.0 Urgent — Search & Records Visibility** — Phases 369-371 (added 2026-06-11 URGENT; lanjutan investigasi "Post Test OJT tak bisa dicari" + quick task 260611-m9r; REQ URG-01..03; 0 migration; interleave dengan sisa v25.0 sesuai dependency per-phase)
 
 ## Phases
 
@@ -59,6 +60,24 @@
 - [ ] **Phase 368: Delete Records Hygiene Lanjutan** — edit atomic file replace + reset bersihkan ET scores + audit log ImportTraining + dedup CertificationManagement CMP/CDP + validasi Renews*Id + rename label BulkBackfill + one-time cleanup AttemptHistory orphan legacy. Temuan #21-27 spec C. Migration=false. Depends: 367 (file-overlap TrainingAdminController/ResetAssessment) (added 2026-06-10)
 
 #### Coverage v25.0: 20/20 REQ mapped (PCOMP-01..10 → 358/359; PBYP-01..10 → 360/361). 0 orphan. Phase 364-366 = test/cleanup promoted dari backlog; Phase 367-368 = delete-records overhaul dari brainstorm 2026-06-10 (27 temuan in-scope, spec C — no new product REQ-ID, acuan spec).
+
+### 🚨 v26.0 Urgent — Search & Records Visibility (Phases 369-371) — URGENT
+
+**Goal:** Tutup sisa blind-spot "data ada tapi tak terlihat/tak tercari di UI" hasil investigasi Post Test OJT 2026-06-11 (lanjutan quick task `260611-m9r` yang sudah bikin search tembus window). Urgent atas permintaan user — boleh interleave dengan sisa v25.0, TAPI hormati dependency per-phase di bawah (file-overlap). 0 migration.
+
+- [ ] **Phase 369: Sync H1 Search-Drop Fix main → ITHandoff** — cherry-pick `14e7adc5` (GetWorkersInSection: searchScope null/kosong di-treat "Nama" supaya search tidak ke-drop diam-diam) + test regresi `Scope_Null_WithSearch_FiltersByName_H1`. REQ: URG-01. Migration=false. Depends: — (independen; `Services/WorkerDataService.cs` + `HcPortal.Tests/WorkerDataServiceSearchTests.cs` TIDAK disentuh phase 363-368; cherry-pick diverifikasi clean 2026-06-11 via merge-tree)
+  - SC1: `WorkerDataService.cs:259` punya guard `(string.IsNullOrEmpty(searchScope) || searchScope == "Nama")` identik dengan main.
+  - SC2: Test H1 hijau + full suite hijau; UAT Tab Input Records search nama @5277 memfilter (bukan diabaikan).
+- [ ] **Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)** — hilangkan filter `sevenDaysAgo` sepenuhnya dari `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` (default view tampilkan SEMUA sesi, bukan 7 hari terakhir; helper `ApplySevenDayWindow` quick task 260611-m9r di-retire/disederhanakan + test disesuaikan). REQ: URG-02. Migration=false. Depends: **363 ship dulu** (363-05 sentuh `AssessmentAdminController.cs` — sedang dieksekusi; hindari konflik file lintas sesi)
+  - SC1: Tab Assessment + Monitoring tanpa search menampilkan sesi lama >7 hari (filter status default "Aktif (Open/Upcoming)" + hide-Closed CIL-02 TETAP — bukan dihapus).
+  - SC2: Search behavior quick task 260611-m9r tidak regresi; test suite penuh hijau; UAT @5277.
+  - SC3: Trade-off tercatat: sesi Open/InProgress terbengkalai lama ikut tampil di default (lokal: 12 InProgress + 9 Open legacy) — diterima user 2026-06-11; perf aman di skala saat ini (58 row lokal, in-memory grouping).
+- [ ] **Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)** — longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266`: tampilkan juga AssessmentSessions online (IsManualEntry=false) per worker dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"); tombol hapus untuk online TIDAK di sini (delete cascade tetap Phase 367). REQ: URG-03. Migration=false. Depends: — (view-only; selesaikan SEBELUM plan 367 — 367 SC4 build di atas badge ini; koordinasi spec C)
+  - SC1: Expand worker di Tab Input Records menampilkan sesi online (termasuk >7 hari, kasus Rino) dengan badge pembeda.
+  - SC2: Record manual existing tak berubah render; aksi edit/hapus manual tetap; sesi online TANPA aksi hapus (placeholder menunggu 367).
+  - SC3: Test + UAT @5277: worker dengan post test OJT online lama terlihat recordnya.
+
+#### Coverage v26.0: URG-01 → 369; URG-02 → 370; URG-03 → 371. 0 orphan. Catatan koordinasi: 371 memindahkan separuh "tampil+badge" dari 367 SC4 — 367 fokus delete cascade (lihat catatan di Phase 367).
 
 ### Phase 358: Penanda Kelulusan (fondasi A)
 **Goal:** Logic kelulusan Proton konsisten — exam Tahun 1/2 yang lulus ikut menerbitkan penanda `ProtonFinalAssessment` (dulu cuma interview Tahun 3), via helper tunggal `ProtonCompletionService` dipanggil dari GradingService (exam lulus + re-grade flip Pass↔Fail) dan SubmitInterviewResults; plus backfill data lama. Fix bug "exam Tahun 1/2 lulus tak tercatat Lulus".
@@ -220,7 +239,7 @@ Plans:
   1. Hapus record apa pun dari tab Input Records → DB 100% bersih: node + seluruh turunan renewal lintas tabel + semua artefak — assert per tabel via integration test real-SQL; transaction rollback utuh saat exception.
   2. Preview konfirmasi menampilkan daftar persis korban cascade (+ kandidat mirror legacy heuristik judul/tanggal ±1 hari, checkbox opt-out) sebelum eksekusi; tidak ada jalur blokir tersisa (pre-check renewal tab 1 + tab 2 jadi preview).
   3. UI HTMX jujur: gagal → pesan merah langsung di tab (`recordDeleteFailed`), sukses → sinyal sukses; repro seed renewal-chain via Playwright PASS dua arah (sukses & gagal).
-  4. Assessment online worker (termasuk >7 hari, kasus Rino) tampil di tab Input Records dengan badge pembeda + bisa dihapus tuntas.
+  4. Assessment online worker (termasuk >7 hari, kasus Rino) tampil di tab Input Records dengan badge pembeda + bisa dihapus tuntas. **(Update 2026-06-11: bagian "tampil + badge" di-pull-forward ke Phase 371 v26.0 — saat planning 367, build aksi hapus di atas badge 371, fokus 367 = delete cascade.)**
   5. Guard duplikat di AddManualAssessment/ImportTraining/BulkBackfill tolak kombinasi user+judul+tanggal existing; badge count tidak kontradiksi dengan list; DeleteAssessmentGroup tidak menyapu Pre/Post/manual di luar scope tampilan; ResetAssessment tolak session IsManualEntry.
 **UI hint:** yes (modal preview, badge + tombol hapus online di tab 2, flash di partial).
 **Plans:** 0 plans — TBD (run /gsd-plan-phase 367)
