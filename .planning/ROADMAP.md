@@ -105,7 +105,8 @@ Plans:
   3. Trade-off tercatat & diterima user: sesi Open/InProgress terbengkalai lama ikut tampil di default (lokal: 12 InProgress + 9 Open legacy); perf aman skala saat ini (58 row lokal, in-memory grouping).
   4. `dotnet build` 0 error + full suite hijau + UAT @5277 (default view + search + pagination).
 **UI hint:** no (query-layer; view tak berubah)
-**Plans:** 0 plans — TBD
+**Plans:** 1 plan
+  - [ ] 370-01-PLAN.md — hapus window 7-hari (2 method + helper ApplySevenDayWindow) + AsNoTracking Monitoring + git rm test file (atomic) + UAT @5277
 
 ### Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)
 **Goal:** Longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266` — AssessmentSessions online (IsManualEntry=false) ikut tampil per worker di Tab Input Records dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"). Visibility-only: TANPA tombol hapus untuk online (delete cascade = scope Phase 367).
