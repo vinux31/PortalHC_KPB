@@ -229,7 +229,7 @@ Plans:
 - [x] 363-04-PLAN.md — GradingService drop hardcoded ValidUntil regrade Fail->Pass (T6). Wave 1.
 - [x] 363-05-PLAN.md — CoachMapping reactivation year-gate + reactExempt + T9 log-warn (2 titik) + T10 by-design (T3/T9/T10). Wave 2.
 - [x] 363-06-PLAN.md — HistoriProton+Export "Belum Mulai" + AppendEvidencePathHistory shared helper (T5/T8). Wave 3.
-- [ ] 363-07-PLAN.md — Full suite + UAT @5277 checkpoint (T1/T2/T3/T5/T6) + SEED snapshot/restore. Wave 4.
+- [x] 363-07-PLAN.md — Full suite + UAT @5277 checkpoint (T1/T2/T3/T5/T6) + SEED snapshot/restore. Wave 4.
 
 ### Phase 364: Restore Baseline Regresi e2e Exam (promoted backlog 999.4)
 **Goal:** 2 spec e2e exam lama (`tests/e2e/exam-taking.spec.ts`, `tests/e2e/exam-types.spec.ts`) jalan lagi sebagai baseline regresi — judul assessment yang dibuat spec comply validator naming REST-06 v20.0 (saat ini ditolak di langkah create → seluruh spec patah sejak v20).
