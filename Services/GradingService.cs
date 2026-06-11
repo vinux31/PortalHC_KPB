@@ -513,12 +513,11 @@ namespace HcPortal.Services
                         {
                             var nextSeq = await HcPortal.Helpers.CertNumberHelper.GetNextSeqAsync(_context, certYear);
                             var nomor = HcPortal.Helpers.CertNumberHelper.Build(nextSeq, certNow);
-                            var validUntil = DateOnly.FromDateTime(certNow).AddYears(3);  // Phase 327 — wrap DateOnly
+                            // T6/D-10: ValidUntil mengikuti setup sesi HC (paritas GradeAndCompleteAsync) — TIDAK di-hardcode di sini.
                             var updated = await _context.AssessmentSessions
                                 .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
                                 .ExecuteUpdateAsync(s => s
-                                    .SetProperty(r => r.NomorSertifikat, nomor)
-                                    .SetProperty(r => r.ValidUntil, validUntil));
+                                    .SetProperty(r => r.NomorSertifikat, nomor));
                             if (updated > 0) certSaved = true;
                         }
                         catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && HcPortal.Helpers.CertNumberHelper.IsDuplicateKeyException(ex))
