@@ -19,13 +19,19 @@ namespace HcPortal.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ProtonCompletionService> _logger;
+        private readonly INotificationService _notificationService;
+        private readonly AuditLogService _auditLog;
 
         public ProtonCompletionService(
             ApplicationDbContext context,
-            ILogger<ProtonCompletionService> logger)
+            ILogger<ProtonCompletionService> logger,
+            INotificationService notificationService,
+            AuditLogService auditLog)
         {
             _context = context;
             _logger = logger;
+            _notificationService = notificationService;
+            _auditLog = auditLog;
         }
 
         /// <summary>
@@ -40,6 +46,33 @@ namespace HcPortal.Services
             if (assignment == null)
             {
                 _logger.LogWarning("ProtonCompletion.EnsureAsync: tidak ada assignment aktif untuk Coachee={CoacheeId} Track={TrackId} (Origin={Origin}). Penanda tidak dibuat.", coacheeId, protonTrackId, origin);
+
+                // Phase 363-03 (T4/D-08): miss TIDAK boleh silent — surface ke audit + bell HC.
+                // Filter IsActive di atas TETAP strict (D-07: deaktivasi = keputusan sengaja admin,
+                // tidak ada auto-penanda); idempotent already-exists branch di bawah TIDAK surface (Pitfall 3).
+                await _auditLog.LogAsync("system", "system/grading", "PROTON_PENANDA_MISS",
+                    $"Lulus exam tapi tidak ada assignment aktif — Coachee={coacheeId}, Track={protonTrackId}, Origin={origin}. Gunakan BackfillProtonPenanda untuk menambal.",
+                    protonTrackId, "ProtonTrackAssignment");
+
+                var hcIds = await _context.Users
+                    .Where(u => u.RoleLevel == 2 && u.IsActive)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+                // Dedup by exact message (pola CreateHCNotificationAsync D-14): broadcast hanya ke HC.
+                var expectedMessage = $"Penanda Proton terlewat — Coachee={coacheeId}, Track={protonTrackId}, Origin={origin}. Jalankan BackfillProtonPenanda.";
+                foreach (var hcId in hcIds)
+                {
+                    bool alreadyNotified = await _context.UserNotifications
+                        .AnyAsync(n => n.UserId == hcId && n.Type == "PROTON_PENANDA_MISS" && n.Message == expectedMessage);
+                    if (alreadyNotified) continue;
+
+                    await _notificationService.SendAsync(
+                        hcId,
+                        "PROTON_PENANDA_MISS",
+                        "Penanda Proton terlewat",
+                        expectedMessage,
+                        "/Admin/ManageAssessment");
+                }
                 return false;
             }
 
