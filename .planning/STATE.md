@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v25.0
 milestone_name: Proton Kelulusan & Bypass
 status: executing
-last_updated: "2026-06-11T08:10:08.913Z"
-last_activity: 2026-06-11 -- Phase 363 planning complete
+last_updated: "2026-06-11T08:13:16.523Z"
+last_activity: 2026-06-11 -- Phase 363 execution started
 progress:
   total_phases: 23
   completed_phases: 4
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 361 — Bypass UI (B)
+**Current focus:** Phase 363 — audit-fix-alur-proton-temuan-verifikasi-t1-t10
 
 ## Current Position
 
 Milestone: v25.0 — Proton Kelulusan & Bypass (6 phase 358-363; 358/359/362 shipped local)
-Phase: 361 (Bypass UI (B)) — EXECUTING
-Plan: 1 of 4
-Status: Ready to execute
-Last activity: 2026-06-11 -- Phase 363 planning complete
+Phase: 363 (audit-fix-alur-proton-temuan-verifikasi-t1-t10) — EXECUTING
+Plan: 1 of 7
+Status: Executing Phase 363
+Last activity: 2026-06-11 -- Phase 363 execution started
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-357, 25/25 REQ, archive milestones/v24.0-*). Bundle v19-v23 sudah ke IT; v24.0 belum push (branch ITHandoff).
 
@@ -97,6 +97,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-3
 | Date | Slug | Description |
 |------|------|-------------|
 | 2026-05-26 | cdp-portal-platform-rename | Rename CDP label "Competency Development Portal" → "Platform" (parity dgn CMP). |
+| 2026-06-11 | [260611-m9r-fix-search-blind-spot-7-day-window-searc](./quick/260611-m9r-fix-search-blind-spot-7-day-window-searc/) | Search non-empty skip window 7-hari di Tab Assessment + AssessmentMonitoring (helper `ApplySevenDayWindow`, preseden CIL-02) — Post Test OJT >7 hari kini bisa dicari. Commit `c8ba81ad`+`f25dff99`, test 214/214, UAT Playwright 2/2 PASS. Migration=FALSE. |
 
 ## Accumulated Context
 
