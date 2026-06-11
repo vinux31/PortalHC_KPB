@@ -166,7 +166,7 @@ Plans:
 **Plans:** 7 plans (4 waves)
 
 Plans:
-- [ ] 363-01-PLAN.md — Pin parity tests + extract approve/reject cores; rewire gold-standard endpoints (T1/T2/T7 foundation). Wave 1.
+- [x] 363-01-PLAN.md — Pin parity tests + extract approve/reject cores; rewire gold-standard endpoints (T1/T2/T7 foundation). Wave 1.
 - [ ] 363-02-PLAN.md — Wire ApproveFromProgress/RejectFromProgress through cores + notif parity + resubmit HC reset (T1/T2/T7). Wave 2.
 - [ ] 363-03-PLAN.md — ProtonCompletionService surface penanda miss (audit + notif HC) + ctor + 3 test ctors (T4). Wave 1.
 - [ ] 363-04-PLAN.md — GradingService drop hardcoded ValidUntil regrade Fail->Pass (T6). Wave 1.
