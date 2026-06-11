@@ -12,7 +12,9 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v23.0 shipped + audited + closed, 2026-06-06)
+## Current State (v25.0 in progress — Phase 363 complete, 2026-06-11)
+
+**Phase 363 complete (2026-06-11)** — Audit Fix Alur PROTON T1-T10: drift approve/reject mati struktural (shared cores), gate reaktivasi cross-year tertutup, penanda miss surfaced, ValidUntil parity, Belum Mulai + evidence history; 228/228 test, UAT live approved, verifier 10/10.
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
