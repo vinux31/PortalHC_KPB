@@ -187,7 +187,7 @@ Plans:
 Plans:
 - [x] 363-01-PLAN.md — Pin parity tests + extract approve/reject cores; rewire gold-standard endpoints (T1/T2/T7 foundation). Wave 1.
 - [x] 363-02-PLAN.md — Wire ApproveFromProgress/RejectFromProgress through cores + notif parity + resubmit HC reset (T1/T2/T7). Wave 2.
-- [ ] 363-03-PLAN.md — ProtonCompletionService surface penanda miss (audit + notif HC) + ctor + 3 test ctors (T4). Wave 1.
+- [x] 363-03-PLAN.md — ProtonCompletionService surface penanda miss (audit + notif HC) + ctor + 3 test ctors (T4). Wave 1.
 - [ ] 363-04-PLAN.md — GradingService drop hardcoded ValidUntil regrade Fail->Pass (T6). Wave 1.
 - [ ] 363-05-PLAN.md — CoachMapping reactivation year-gate + reactExempt + T9 log-warn (2 titik) + T10 by-design (T3/T9/T10). Wave 2.
 - [ ] 363-06-PLAN.md — HistoriProton+Export "Belum Mulai" + AppendEvidencePathHistory shared helper (T5/T8). Wave 3.
