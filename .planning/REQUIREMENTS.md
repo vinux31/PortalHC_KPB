@@ -40,7 +40,7 @@
 
 ### URG — Search & Records Visibility (fase 369-371)
 
-- [ ] **URG-01**: Fix H1 search-drop (`14e7adc5` main) tersinkron ke ITHandoff — `GetWorkersInSection` searchScope null/kosong di-treat "Nama" (search tidak diabaikan diam-diam) + test regresi hijau.
+- [x] **URG-01**: Fix H1 search-drop (`14e7adc5` main) tersinkron ke ITHandoff — `GetWorkersInSection` searchScope null/kosong di-treat "Nama" (search tidak diabaikan diam-diam) + test regresi hijau. (Phase 369 SHIPPED LOCAL 2026-06-11, cherry-pick `5210e4d4`)
 - [ ] **URG-02**: Window 7-hari dihapus dari tampilan default `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` — semua sesi tampil tanpa batas umur (filter status default "Aktif" + hide-Closed CIL-02 tetap; search behavior quick 260611-m9r tidak regresi).
 - [ ] **URG-03**: Sesi assessment online (IsManualEntry=false) tampil di tab Input Records per worker dengan badge pembeda "Assessment Online" — visibility-only, aksi hapus tetap scope Phase 367.
 

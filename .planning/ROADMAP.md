@@ -65,7 +65,7 @@
 
 **Goal:** Tutup sisa blind-spot "data ada tapi tak terlihat/tak tercari di UI" hasil investigasi Post Test OJT 2026-06-11 (lanjutan quick task `260611-m9r` yang sudah bikin search tembus window). Urgent atas permintaan user — boleh interleave dengan sisa v25.0, TAPI hormati dependency per-phase di bawah (file-overlap). 0 migration.
 
-- [ ] **Phase 369: Sync H1 Search-Drop Fix main → ITHandoff** — cherry-pick `14e7adc5` (GetWorkersInSection: searchScope null/kosong di-treat "Nama" supaya search tidak ke-drop diam-diam) + test regresi `Scope_Null_WithSearch_FiltersByName_H1`. REQ: URG-01. Migration=false. Depends: — (independen; `Services/WorkerDataService.cs` + `HcPortal.Tests/WorkerDataServiceSearchTests.cs` TIDAK disentuh phase 363-368; cherry-pick diverifikasi clean 2026-06-11 via merge-tree)
+- [x] **Phase 369: Sync H1 Search-Drop Fix main → ITHandoff** — cherry-pick `14e7adc5` (GetWorkersInSection: searchScope null/kosong di-treat "Nama" supaya search tidak ke-drop diam-diam) + test regresi `Scope_Null_WithSearch_FiltersByName_H1`. REQ: URG-01. Migration=false. Depends: — (SHIPPED LOCAL 2026-06-11 — commit cherry-pick `5210e4d4`, verifier 5/5, review CLEAN, test 229/229, UAT Playwright 7→1)
   - SC1: `WorkerDataService.cs:259` punya guard `(string.IsNullOrEmpty(searchScope) || searchScope == "Nama")` identik dengan main.
   - SC2: Test H1 hijau + full suite hijau; UAT Tab Input Records search nama @5277 memfilter (bukan diabaikan).
 - [ ] **Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)** — hilangkan filter `sevenDaysAgo` sepenuhnya dari `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` (default view tampilkan SEMUA sesi, bukan 7 hari terakhir; helper `ApplySevenDayWindow` quick task 260611-m9r di-retire/disederhanakan + test disesuaikan). REQ: URG-02. Migration=false. Depends: **363 ship dulu** (363-05 sentuh `AssessmentAdminController.cs` — sedang dieksekusi; hindari konflik file lintas sesi)
@@ -89,7 +89,10 @@
   2. Test regresi `Scope_Null_WithSearch_FiltersByName_H1` ada + hijau; full suite `dotnet test` hijau.
   3. UAT @5277: Tab Input Records search nama/NIP memfilter list (bukan balikin semua row).
 **UI hint:** no (service-layer 1 guard)
-**Plans:** 0 plans — TBD
+**Status:** SHIPPED LOCAL 2026-06-11 — cherry-pick `5210e4d4` (-x dari `14e7adc5`), verifier 5/5 PASSED, code review CLEAN (0c/0w/1i), test 229/229, UAT live GAST search "Rino" 7→1 row
+**Plans:** 1/1 plans complete
+Plans:
+- [x] 369-01-PLAN.md — Cherry-pick -x 14e7adc5 + verifikasi guard/build/test + UAT live
 
 ### Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)
 **Goal:** Tampilan default Tab Assessment (`ManageAssessmentTab_Assessment`) + `AssessmentMonitoring` menampilkan SEMUA sesi tanpa batas umur — filter `sevenDaysAgo` dihapus sepenuhnya; helper `ApplySevenDayWindow` (quick task 260611-m9r) di-retire/disederhanakan + test disesuaikan. Keputusan user 2026-06-11: "7 hari jadi tanpa batas".
