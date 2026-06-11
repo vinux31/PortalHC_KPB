@@ -861,112 +861,18 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            // Get track info for ordering
-            var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
-            int trackId = kompetensi?.ProtonTrackId ?? 0;
+            // Phase 363-01: state mutation lives in the shared core (D-01 anti-drift seam)
+            var (ok, error, allApproved) = await ApproveDeliverableCoreAsync(
+                _context, progressId, user.Id, user.FullName, userRole ?? "", isSrSpv, isSH);
 
-            // Set per-role approval fields
-            if (userRole == UserRoles.SrSupervisor)
+            if (!ok)
             {
-                progress.SrSpvApprovalStatus = "Approved";
-                progress.SrSpvApprovedById = user.Id;
-                progress.SrSpvApprovedAt = DateTime.UtcNow;
-            }
-            else if (userRole == UserRoles.SectionHead)
-            {
-                progress.ShApprovalStatus = "Approved";
-                progress.ShApprovedById = user.Id;
-                progress.ShApprovedAt = DateTime.UtcNow;
-            }
-
-            // Race condition guard — reload fresh status before write (D-10)
-            var freshStatus = await _context.ProtonDeliverableProgresses
-                .Where(p => p.Id == progressId)
-                .Select(p => new { p.Status, p.SrSpvApprovalStatus, p.ShApprovalStatus })
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (freshStatus == null) return NotFound();
-
-            // Re-check: apakah role ini masih bisa approve berdasarkan state terkini di DB?
-            bool stillCanApprove = freshStatus.Status == "Submitted" ||
-                (freshStatus.Status == "Approved" && (
-                    (isSrSpv && freshStatus.SrSpvApprovalStatus != "Approved") ||
-                    (isSH && freshStatus.ShApprovalStatus != "Approved")));
-
-            if (!stillCanApprove)
-            {
-                TempData["Error"] = "Deliverable sudah diproses oleh approver lain.";
+                if (error == "Deliverable tidak ditemukan.") return NotFound();
+                TempData["Error"] = error;
                 return RedirectToAction("CoachingProton");
             }
 
-            // Set overall approval fields (in memory, before SaveChangesAsync)
-            progress.Status = "Approved";
-            progress.ApprovedAt = DateTime.UtcNow;
-            progress.ApprovedById = user.Id;
-
-            // Load ALL progress records for this coachee's track (for all-approved check only)
-            var allProgresses = await _context.ProtonDeliverableProgresses
-                .Include(p => p.ProtonDeliverable)
-                    .ThenInclude(d => d!.ProtonSubKompetensi)
-                        .ThenInclude(s => s!.ProtonKompetensi)
-                .Where(p => p.CoacheeId == progress.CoacheeId)
-                .ToListAsync();
-
-            var orderedProgresses = allProgresses
-                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrackId == trackId)
-                .OrderBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0)
-                .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
-                .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
-                .ToList();
-
-            // Phase 65: No more sequential unlock — Locked/Active statuses removed
-
-            // Phase 117: Record status history
-            string approveStatusType = isSrSpv ? "SrSpv Approved" : "SH Approved";
-            string approveActorRole = isSrSpv ? "Sr. Supervisor" : "Section Head";
-            RecordStatusHistory(progress.Id, approveStatusType, user.Id, user.FullName, approveActorRole);
-
-            // Check all-approved: use in-memory state (current record already set to "Approved" above)
-            bool allApproved = orderedProgresses.All(p => p.Status == "Approved");
-
-            await _context.SaveChangesAsync();
-
-            // COACH-05: Notify coach and coachee on approval
-            try
-            {
-                var approveMapping = await _context.CoachCoacheeMappings
-                    .FirstOrDefaultAsync(m => m.CoacheeId == progress.CoacheeId && m.IsActive);
-                var approveCoachee = await _context.Users
-                    .Where(u => u.Id == progress.CoacheeId)
-                    .Select(u => new { u.FullName, u.UserName })
-                    .FirstOrDefaultAsync();
-                var approveCoacheeName = approveCoachee?.FullName ?? approveCoachee?.UserName ?? progress.CoacheeId;
-
-                if (approveMapping != null)
-                {
-                    await _notificationService.SendAsync(
-                        approveMapping.CoachId,
-                        "COACH_EVIDENCE_APPROVED",
-                        "Deliverable Disetujui",
-                        $"Deliverable {approveCoacheeName} telah disetujui",
-                        "/CDP/CoachingProton"
-                    );
-                }
-                await _notificationService.SendAsync(
-                    progress.CoacheeId,
-                    "COACH_EVIDENCE_APPROVED",
-                    "Deliverable Disetujui",
-                    "Deliverable Anda telah disetujui",
-                    "/CDP/CoachingProton"
-                );
-            }
-            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
-
-            if (allApproved)
-            {
-                await CreateHCNotificationAsync(progress.CoacheeId);
-            }
+            await DispatchApproveNotificationsAsync(progress, allApproved);
 
             TempData["Success"] = "Deliverable berhasil disetujui.";
             return RedirectToAction("Deliverable", new { id = progressId });
@@ -1018,31 +924,16 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            // Set rejection fields
-            progress.Status = "Rejected";
-            progress.RejectedAt = DateTime.UtcNow;
-            progress.RejectionReason = rejectionReason;
-            progress.ApprovedById = null;
-            progress.ApprovedAt = null;
+            // Phase 363-01: state mutation lives in the shared core (D-01 anti-drift seam)
+            var (ok, error) = await RejectDeliverableCoreAsync(
+                _context, progressId, user.Id, user.FullName, userRole ?? "", rejectionReason);
 
-            // Reset all approval chain fields
-            progress.SrSpvApprovalStatus = "Pending";
-            progress.SrSpvApprovedById = null;
-            progress.SrSpvApprovedAt = null;
-            progress.ShApprovalStatus = "Pending";
-            progress.ShApprovedById = null;
-            progress.ShApprovedAt = null;
-            progress.HCApprovalStatus = "Pending";
-            progress.HCReviewedById = null;
-            progress.HCReviewedAt = null;
-
-            // Phase 117: Record rejection history
-            bool isSrSpvReject = userRole == UserRoles.SrSupervisor;
-            string rejectStatusType = isSrSpvReject ? "SrSpv Rejected" : "SH Rejected";
-            string rejectActorRole = isSrSpvReject ? "Sr. Supervisor" : "Section Head";
-            RecordStatusHistory(progress.Id, rejectStatusType, user.Id, user.FullName, rejectActorRole, rejectionReason);
-
-            await _context.SaveChangesAsync();
+            if (!ok)
+            {
+                if (error == "Deliverable tidak ditemukan.") return NotFound();
+                TempData["Error"] = error;
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
 
             // COACH-06: Notify coach and coachee on rejection
             try
@@ -1077,6 +968,177 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Deliverable berhasil ditolak.";
             return RedirectToAction("Deliverable", new { id = progressId });
+        }
+
+        // ============================================================
+        // Phase 363-01: Approve/Reject domain cores (D-01 anti-drift seam)
+        // Static + context-only deps → directly testable via real-SQL fixture
+        // (public static: project has no InternalsVisibleTo — CMPController:3969 convention).
+        // Endpoint-specific concerns (authz, section-check, input guard, response
+        // shaping) stay in the endpoints — cores own STATE MUTATION only.
+        // ============================================================
+
+        public static async Task<(bool ok, string? error, bool allApproved)> ApproveDeliverableCoreAsync(
+            ApplicationDbContext context, int progressId,
+            string actorId, string actorName, string actorRole, bool isSrSpv, bool isSH)
+        {
+            // Load progress with full Include chain (trackId needed for all-approved scoping)
+            var progress = await context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+
+            if (progress == null) return (false, "Deliverable tidak ditemukan.", false);
+
+            // Get track info for ordering
+            var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
+            int trackId = kompetensi?.ProtonTrackId ?? 0;
+
+            // Set per-role approval fields
+            if (isSrSpv)
+            {
+                progress.SrSpvApprovalStatus = "Approved";
+                progress.SrSpvApprovedById = actorId;
+                progress.SrSpvApprovedAt = DateTime.UtcNow;
+            }
+            else if (isSH)
+            {
+                progress.ShApprovalStatus = "Approved";
+                progress.ShApprovedById = actorId;
+                progress.ShApprovedAt = DateTime.UtcNow;
+            }
+
+            // Race condition guard — reload fresh status before write (D-10)
+            var freshStatus = await context.ProtonDeliverableProgresses
+                .Where(p => p.Id == progressId)
+                .Select(p => new { p.Status, p.SrSpvApprovalStatus, p.ShApprovalStatus })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (freshStatus == null) return (false, "Deliverable tidak ditemukan.", false);
+
+            // Re-check: apakah role ini masih bisa approve berdasarkan state terkini di DB?
+            bool stillCanApprove = freshStatus.Status == "Submitted" ||
+                (freshStatus.Status == "Approved" && (
+                    (isSrSpv && freshStatus.SrSpvApprovalStatus != "Approved") ||
+                    (isSH && freshStatus.ShApprovalStatus != "Approved")));
+
+            if (!stillCanApprove)
+            {
+                return (false, "Deliverable sudah diproses oleh approver lain.", false);
+            }
+
+            // Set overall approval fields (in memory, before SaveChangesAsync)
+            progress.Status = "Approved";
+            progress.ApprovedAt = DateTime.UtcNow;
+            progress.ApprovedById = actorId;
+
+            // Load ALL progress records for this coachee's track (for all-approved check only)
+            var allProgresses = await context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .Where(p => p.CoacheeId == progress.CoacheeId)
+                .ToListAsync();
+
+            var orderedProgresses = allProgresses
+                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrackId == trackId)
+                .OrderBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0)
+                .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
+                .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
+                .ToList();
+
+            // Phase 117: Record status history
+            string approveStatusType = isSrSpv ? "SrSpv Approved" : "SH Approved";
+            string approveActorRole = isSrSpv ? "Sr. Supervisor" : "Section Head";
+            AddDeliverableStatusHistory(context, progress.Id, approveStatusType, actorId, actorName, approveActorRole);
+
+            // Check all-approved: use in-memory state (current record already set to "Approved" above)
+            bool allApproved = orderedProgresses.All(p => p.Status == "Approved");
+
+            await context.SaveChangesAsync();
+
+            return (true, null, allApproved);
+        }
+
+        public static async Task<(bool ok, string? error)> RejectDeliverableCoreAsync(
+            ApplicationDbContext context, int progressId,
+            string actorId, string actorName, string actorRole, string rejectionReason)
+        {
+            var progress = await context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+
+            if (progress == null) return (false, "Deliverable tidak ditemukan.");
+
+            // Set rejection fields — reject NEVER sets an approver-id (RejectFromProgress
+            // anomaly :2057-2059 is intentionally NOT replicated here)
+            progress.Status = "Rejected";
+            progress.RejectedAt = DateTime.UtcNow;
+            progress.RejectionReason = rejectionReason;
+            progress.ApprovedById = null;
+            progress.ApprovedAt = null;
+
+            // Reset all approval chain fields — full reset INCLUDING HC (D-03/T2)
+            progress.SrSpvApprovalStatus = "Pending";
+            progress.SrSpvApprovedById = null;
+            progress.SrSpvApprovedAt = null;
+            progress.ShApprovalStatus = "Pending";
+            progress.ShApprovedById = null;
+            progress.ShApprovedAt = null;
+            progress.HCApprovalStatus = "Pending";
+            progress.HCReviewedById = null;
+            progress.HCReviewedAt = null;
+
+            // Phase 117: Record rejection history
+            bool isSrSpvReject = actorRole == UserRoles.SrSupervisor;
+            string rejectStatusType = isSrSpvReject ? "SrSpv Rejected" : "SH Rejected";
+            string rejectActorRole = isSrSpvReject ? "Sr. Supervisor" : "Section Head";
+            AddDeliverableStatusHistory(context, progress.Id, rejectStatusType, actorId, actorName, rejectActorRole, rejectionReason);
+
+            await context.SaveChangesAsync();
+
+            return (true, null);
+        }
+
+        // Phase 363-01: shared notif dispatch — both approve endpoints call this after their core succeeds
+        private async Task DispatchApproveNotificationsAsync(ProtonDeliverableProgress progress, bool allApproved)
+        {
+            // COACH-05: Notify coach and coachee on approval
+            try
+            {
+                var approveMapping = await _context.CoachCoacheeMappings
+                    .FirstOrDefaultAsync(m => m.CoacheeId == progress.CoacheeId && m.IsActive);
+                var approveCoachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.FullName, u.UserName })
+                    .FirstOrDefaultAsync();
+                var approveCoacheeName = approveCoachee?.FullName ?? approveCoachee?.UserName ?? progress.CoacheeId;
+
+                if (approveMapping != null)
+                {
+                    await _notificationService.SendAsync(
+                        approveMapping.CoachId,
+                        "COACH_EVIDENCE_APPROVED",
+                        "Deliverable Disetujui",
+                        $"Deliverable {approveCoacheeName} telah disetujui",
+                        "/CDP/CoachingProton"
+                    );
+                }
+                await _notificationService.SendAsync(
+                    progress.CoacheeId,
+                    "COACH_EVIDENCE_APPROVED",
+                    "Deliverable Disetujui",
+                    "Deliverable Anda telah disetujui",
+                    "/CDP/CoachingProton"
+                );
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
+
+            if (allApproved)
+            {
+                await CreateHCNotificationAsync(progress.CoacheeId);
+            }
         }
 
         private async Task NotifyReviewersAsync(string coacheeId, string coacheeName)
@@ -3556,18 +3618,26 @@ namespace HcPortal.Controllers
         }
 
         // ===== Phase 117: Status History Helper =====
-        private void RecordStatusHistory(int progressId, string statusType, string actorId, string actorName, string actorRole, string? rejectionReason = null)
+        // Phase 363-01: insert body lives in the static helper so the approve/reject
+        // cores and all existing instance callers share ONE insert path
+        public static void AddDeliverableStatusHistory(ApplicationDbContext context,
+            int progressId, string statusType, string actorId, string actorName, string actorRole, string? reason = null)
         {
-            _context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
+            context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
             {
                 ProtonDeliverableProgressId = progressId,
                 StatusType = statusType,
                 ActorId = actorId,
                 ActorName = actorName,
                 ActorRole = actorRole,
-                RejectionReason = rejectionReason,
+                RejectionReason = reason,
                 Timestamp = DateTime.UtcNow
             });
+        }
+
+        private void RecordStatusHistory(int progressId, string statusType, string actorId, string actorName, string actorRole, string? rejectionReason = null)
+        {
+            AddDeliverableStatusHistory(_context, progressId, statusType, actorId, actorName, actorRole, rejectionReason);
         }
 
         // ============================================================
