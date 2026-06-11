@@ -1338,15 +1338,8 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Deliverable", new { id = progressId });
             }
 
-            // D-02: Simpan path lama ke history sebelum overwrite
-            if (!string.IsNullOrEmpty(progress.EvidencePath))
-            {
-                var pathHistory = string.IsNullOrEmpty(progress.EvidencePathHistory)
-                    ? new List<string>()
-                    : System.Text.Json.JsonSerializer.Deserialize<List<string>>(progress.EvidencePathHistory) ?? new List<string>();
-                pathHistory.Add(progress.EvidencePath);
-                progress.EvidencePathHistory = System.Text.Json.JsonSerializer.Serialize(pathHistory);
-            }
+            // D-02: Simpan path lama ke history sebelum overwrite (Phase 363-06: via helper shared, T8 anti-drift)
+            AppendEvidencePathHistory(progress);
 
             // Update progress record
             progress.EvidencePath = evidenceUrl;
@@ -2322,6 +2315,9 @@ namespace HcPortal.Controllers
                     Directory.CreateDirectory(uploadFolder);
                     var filePath = Path.Combine(uploadFolder, evidenceSafeFileName);
                     await System.IO.File.WriteAllBytesAsync(filePath, evidenceBytes);
+                    // Phase 363-06 (T8/D-11): append path lama ke history SEBELUM overwrite — paritas
+                    // UploadEvidence; file fisik lama TETAP (E10 keep-evidence, tanpa File.Delete).
+                    AppendEvidencePathHistory(progress);
                     progress.EvidencePath = $"/uploads/evidence/{progress.Id}/{evidenceSafeFileName}";
                     progress.EvidenceFileName = evidenceFileName;
                 }
@@ -3302,6 +3298,9 @@ namespace HcPortal.Controllers
                 });
             }
 
+            // Phase 363-06 (T5/D-09): baris "Belum Mulai" — mapping aktif tanpa assignment (helper shared dgn Export)
+            workers.AddRange(await BuildBelumMulaiRowsAsync(userLevel, user, coacheeIdsWithAssignments));
+
             // Sort by Nama A-Z (default)
             workers = workers.OrderBy(w => w.Nama).ToList();
 
@@ -3451,6 +3450,10 @@ namespace HcPortal.Controllers
                 });
             }
 
+            // Phase 363-06 (T5/D-09 + Pitfall 5): baris "Belum Mulai" identik dgn HistoriProton (helper shared);
+            // filter status generik di bawah otomatis menerima nilai "Belum Mulai".
+            workers.AddRange(await BuildBelumMulaiRowsAsync(userLevel, user, coacheeIdsWithAssignments));
+
             workers = workers.OrderBy(w => w.Nama).ToList();
 
             // Apply filters
@@ -3492,6 +3495,60 @@ namespace HcPortal.Controllers
             }
 
             return ExcelExportHelper.ToFileResult(workbook, $"histori_proton_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
+        // Phase 363-06 (T5/D-09): coachee ber-CoachCoacheeMapping AKTIF tanpa ProtonTrackAssignment
+        // → baris "Belum Mulai" (badge + filter view sudah siap sejak awal, baru reachable sekarang).
+        // SATU helper dipakai HistoriProton DAN ExportHistoriProton (Pitfall 5 anti-drift);
+        // role-scoping mengikuti cabang Level <=3 / 4 / 5 yang sama dengan baris assignment.
+        private async Task<List<HistoriProtonWorkerRow>> BuildBelumMulaiRowsAsync(
+            int userLevel, ApplicationUser user, List<string> coacheeIdsWithAssignments)
+        {
+            List<string> activeMappingCoacheeIds;
+            if (userLevel <= 3) // HC/Admin/Direktur/VP/Manager — semua mapping aktif
+            {
+                activeMappingCoacheeIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.IsActive)
+                    .Select(m => m.CoacheeId).Distinct().ToListAsync();
+            }
+            else if (userLevel == 4) // SectionHead/SrSpv — mapping aktif coachee se-section
+            {
+                activeMappingCoacheeIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.IsActive)
+                    .Join(_context.Users, m => m.CoacheeId, u => u.Id, (m, u) => new { m.CoacheeId, u.Section })
+                    .Where(x => x.Section == user.Section)
+                    .Select(x => x.CoacheeId).Distinct().ToListAsync();
+            }
+            else // Level 5 (Coach) — mapping aktif milik coach ini
+            {
+                activeMappingCoacheeIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Select(m => m.CoacheeId).Distinct().ToListAsync();
+            }
+
+            var belumMulaiIds = activeMappingCoacheeIds.Except(coacheeIdsWithAssignments).ToList();
+            if (belumMulaiIds.Count == 0) return new List<HistoriProtonWorkerRow>();
+
+            var belumMulaiUsers = await _context.Users
+                .Where(u => belumMulaiIds.Contains(u.Id) && u.IsActive)
+                .ToListAsync();
+
+            return belumMulaiUsers.Select(u => new HistoriProtonWorkerRow
+            {
+                UserId = u.Id,
+                Nama = u.FullName,
+                NIP = u.NIP ?? "",
+                Section = u.Section ?? "",
+                Unit = u.Unit ?? "",
+                Jalur = "",
+                Tahun1Done = false,
+                Tahun2Done = false,
+                Tahun3Done = false,
+                Tahun1InProgress = false,
+                Tahun2InProgress = false,
+                Tahun3InProgress = false,
+                Status = "Belum Mulai"
+            }).ToList();
         }
 
         public async Task<IActionResult> HistoriProtonDetail(string userId)
@@ -3611,6 +3668,21 @@ namespace HcPortal.Controllers
         private void RecordStatusHistory(int progressId, string statusType, string actorId, string actorName, string actorRole, string? rejectionReason = null)
         {
             AddDeliverableStatusHistory(_context, progressId, statusType, actorId, actorName, actorRole, rejectionReason);
+        }
+
+        // Phase 363-06 (T8/D-11): SATU implementasi append EvidencePathHistory untuk kedua jalur
+        // evidence (UploadEvidence + SubmitEvidenceWithCoaching) — drift mati struktural.
+        // No-op bila EvidencePath kosong; tidak pernah menghapus file fisik (E10 keep-evidence).
+        // public static: proyek tanpa InternalsVisibleTo (konvensi sama dgn core 363-01).
+        public static void AppendEvidencePathHistory(ProtonDeliverableProgress progress)
+        {
+            if (string.IsNullOrEmpty(progress.EvidencePath)) return;
+
+            var pathHistory = string.IsNullOrEmpty(progress.EvidencePathHistory)
+                ? new List<string>()
+                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(progress.EvidencePathHistory) ?? new List<string>();
+            pathHistory.Add(progress.EvidencePath);
+            progress.EvidencePathHistory = System.Text.Json.JsonSerializer.Serialize(pathHistory);
         }
 
         // ============================================================
