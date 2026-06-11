@@ -36,6 +36,16 @@
 
 ---
 
+## v26.0 Requirements (URGENT — added 2026-06-11, interleave dengan sisa v25.0)
+
+### URG — Search & Records Visibility (fase 369-371)
+
+- [ ] **URG-01**: Fix H1 search-drop (`14e7adc5` main) tersinkron ke ITHandoff — `GetWorkersInSection` searchScope null/kosong di-treat "Nama" (search tidak diabaikan diam-diam) + test regresi hijau.
+- [ ] **URG-02**: Window 7-hari dihapus dari tampilan default `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` — semua sesi tampil tanpa batas umur (filter status default "Aktif" + hide-Closed CIL-02 tetap; search behavior quick 260611-m9r tidak regresi).
+- [ ] **URG-03**: Sesi assessment online (IsManualEntry=false) tampil di tab Input Records per worker dengan badge pembeda "Assessment Online" — visibility-only, aksi hapus tetap scope Phase 367.
+
+---
+
 ## Out of Scope (v25.0)
 
 - **Audit/improve Tab1 Override Deliverable** — ditunda (Tab1 belum tulis `DeliverableStatusHistory`, belum warning un-approve penanda-Lulus, belum `RejectedById`). → backlog.
@@ -52,5 +62,8 @@
 | PCOMP-06,07,08,09,10 | 359 |
 | PBYP-01,02,03,04,05,06,07 | 360 |
 | PBYP-08,09,10 | 361 |
+| URG-01 | 369 (v26.0) |
+| URG-02 | 370 (v26.0) |
+| URG-03 | 371 (v26.0) |
 
-20 REQ → 4 phase, 100% mapped.
+v25.0: 20 REQ → 4 phase, 100% mapped. v26.0: 3 REQ → 3 phase, 100% mapped.
