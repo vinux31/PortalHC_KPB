@@ -163,4 +163,99 @@ public class ProtonApproveRejectParityTests : IClassFixture<ProtonCompletionFixt
         Assert.False(allApproved);
         Assert.Contains("diproses oleh approver lain", error!);
     }
+
+    /// <summary>
+    /// Phase 363-02 (D-03) — replika predikat blok reset resubmit (UploadEvidence wasRejected
+    /// :1359-1374 / SubmitEvidenceWithCoaching isResubmit :2336-2351) termasuk HC reset baru.
+    /// Pola 2 predikat-replikasi: blok terkubur di controller, tak bisa dipanggil tanpa HTTP context.
+    /// </summary>
+    private static void ApplyResubmitReset(ProtonDeliverableProgress progress)
+    {
+        progress.Status = "Submitted";
+        progress.SubmittedAt = DateTime.UtcNow;
+        progress.SrSpvApprovalStatus = "Pending";
+        progress.SrSpvApprovedById = null;
+        progress.SrSpvApprovedAt = null;
+        progress.ShApprovalStatus = "Pending";
+        progress.ShApprovedById = null;
+        progress.ShApprovedAt = null;
+        progress.HCApprovalStatus = "Pending";
+        progress.HCReviewedById = null;
+        progress.HCReviewedAt = null;
+    }
+
+    [Fact]
+    public async Task Reject_ThenResubmit_HCStatusBackToPending()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"par-{Guid.NewGuid():N}";
+        var ids = await SeedProgressChainAsync(ctx, coachee, new[] { "Submitted" });
+
+        var (ok, _) = await CDPController.RejectDeliverableCoreAsync(
+            ctx, ids[0], "srspv-1", "Sr Spv Satu", UserRoles.SrSupervisor, "Perbaiki evidence");
+        Assert.True(ok);
+
+        // Simulasi row basi pre-fix: HC "Reviewed" menempel pada row Rejected (T2 legacy state).
+        var stale = await ctx.ProtonDeliverableProgresses.FirstAsync(p => p.Id == ids[0]);
+        stale.HCApprovalStatus = "Reviewed";
+        stale.HCReviewedById = "hc-stale";
+        stale.HCReviewedAt = DateTime.UtcNow;
+        await ctx.SaveChangesAsync();
+
+        // Resubmit (wasRejected=true) → reset blok termasuk HC (D-03 belt-and-braces).
+        Assert.Equal("Rejected", stale.Status);
+        ApplyResubmitReset(stale);
+        await ctx.SaveChangesAsync();
+
+        await using var verify = new ApplicationDbContext(_fixture.Options);
+        var p = await verify.ProtonDeliverableProgresses.AsNoTracking().FirstAsync(x => x.Id == ids[0]);
+        Assert.Equal("Submitted", p.Status);
+        Assert.Equal("Pending", p.HCApprovalStatus);
+        Assert.Null(p.HCReviewedById);
+        Assert.Null(p.HCReviewedAt);
+        Assert.Equal("Pending", p.SrSpvApprovalStatus);
+        Assert.Equal("Pending", p.ShApprovalStatus);
+    }
+
+    [Fact]
+    public async Task FromProgress_And_Deliverable_RejectCore_ProduceIdenticalEndState()
+    {
+        // Phase 363-02 paritas: halaman Deliverable DAN modal CoachingProton (FromProgress)
+        // memanggil core yang sama — input identik wajib menghasilkan end-state identik.
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coacheeA = $"par-{Guid.NewGuid():N}";
+        var coacheeB = $"par-{Guid.NewGuid():N}";
+        var idsA = await SeedProgressChainAsync(ctx, coacheeA, new[] { "Submitted" });
+        var idsB = await SeedProgressChainAsync(ctx, coacheeB, new[] { "Submitted" });
+
+        foreach (var id in new[] { idsA[0], idsB[0] })
+        {
+            var seeded = await ctx.ProtonDeliverableProgresses.FirstAsync(p => p.Id == id);
+            seeded.SrSpvApprovalStatus = "Approved"; seeded.SrSpvApprovedById = "srspv-x"; seeded.SrSpvApprovedAt = DateTime.UtcNow;
+            seeded.HCApprovalStatus = "Reviewed"; seeded.HCReviewedById = "hc-x"; seeded.HCReviewedAt = DateTime.UtcNow;
+        }
+        await ctx.SaveChangesAsync();
+
+        var (okA, _) = await CDPController.RejectDeliverableCoreAsync(
+            ctx, idsA[0], "sh-1", "Sect Head Satu", UserRoles.SectionHead, "Alasan sama");
+        var (okB, _) = await CDPController.RejectDeliverableCoreAsync(
+            ctx, idsB[0], "sh-1", "Sect Head Satu", UserRoles.SectionHead, "Alasan sama");
+        Assert.True(okA);
+        Assert.True(okB);
+
+        await using var verify = new ApplicationDbContext(_fixture.Options);
+        var a = await verify.ProtonDeliverableProgresses.AsNoTracking().FirstAsync(x => x.Id == idsA[0]);
+        var b = await verify.ProtonDeliverableProgresses.AsNoTracking().FirstAsync(x => x.Id == idsB[0]);
+        foreach (var p in new[] { a, b })
+        {
+            Assert.Equal("Rejected", p.Status);
+            Assert.Equal("Pending", p.SrSpvApprovalStatus);
+            Assert.Null(p.SrSpvApprovedById);
+            Assert.Equal("Pending", p.ShApprovalStatus);
+            Assert.Null(p.ShApprovedById);
+            Assert.Equal("Pending", p.HCApprovalStatus);
+            Assert.Null(p.HCReviewedById);
+            Assert.Equal("Alasan sama", p.RejectionReason);
+        }
+    }
 }
