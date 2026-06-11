@@ -995,21 +995,9 @@ namespace HcPortal.Controllers
             var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
             int trackId = kompetensi?.ProtonTrackId ?? 0;
 
-            // Set per-role approval fields
-            if (isSrSpv)
-            {
-                progress.SrSpvApprovalStatus = "Approved";
-                progress.SrSpvApprovedById = actorId;
-                progress.SrSpvApprovedAt = DateTime.UtcNow;
-            }
-            else if (isSH)
-            {
-                progress.ShApprovalStatus = "Approved";
-                progress.ShApprovedById = actorId;
-                progress.ShApprovedAt = DateTime.UtcNow;
-            }
-
-            // Race condition guard — reload fresh status before write (D-10)
+            // Race condition guard — reload fresh status SEBELUM mutasi apa pun (D-10).
+            // Guard membaca nilai fresh AsNoTracking dari DB (bukan state in-memory),
+            // jadi memindahkan mutasi ke bawah guard tidak mengubah semantik (WR-01).
             var freshStatus = await context.ProtonDeliverableProgresses
                 .Where(p => p.Id == progressId)
                 .Select(p => new { p.Status, p.SrSpvApprovalStatus, p.ShApprovalStatus })
@@ -1027,6 +1015,22 @@ namespace HcPortal.Controllers
             if (!stillCanApprove)
             {
                 return (false, "Deliverable sudah diproses oleh approver lain.", false);
+            }
+
+            // Set per-role approval fields — SETELAH race-guard (WR-01: entity tracked
+            // tidak boleh dirty saat core early-return tanpa SaveChangesAsync, supaya
+            // caller masa depan yang SaveChanges pasca-gagal tidak mem-persist approval parsial)
+            if (isSrSpv)
+            {
+                progress.SrSpvApprovalStatus = "Approved";
+                progress.SrSpvApprovedById = actorId;
+                progress.SrSpvApprovedAt = DateTime.UtcNow;
+            }
+            else if (isSH)
+            {
+                progress.ShApprovalStatus = "Approved";
+                progress.ShApprovedById = actorId;
+                progress.ShApprovedAt = DateTime.UtcNow;
             }
 
             // Set overall approval fields (in memory, before SaveChangesAsync)
