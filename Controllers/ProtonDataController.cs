@@ -239,6 +239,14 @@ namespace HcPortal.Controllers
             var sectionUnitsDictOverride = await _context.GetSectionUnitsDictAsync();
             ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictOverride);
 
+            // D-12 (Pitfall 2 Opsi A): daftar coach untuk dropdown wizard step 3.
+            // Pola persis CoachMappingController.cs:146-149. Coach opsional, default "Pertahankan coach saat ini".
+            var coachRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coach);
+            ViewBag.AllCoaches = coachRoleUsers
+                .Where(u => u.IsActive)
+                .OrderBy(u => u.FullName)
+                .ToList();
+
             return View();
         }
 
