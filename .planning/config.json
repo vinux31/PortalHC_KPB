@@ -27,5 +27,10 @@
   "hooks": {
     "context_warnings": true
   },
-  "parallelization": true
+  "parallelization": true,
+  "manager": {
+    "flags": {
+      "discuss": "--auto"
+    }
+  }
 }
