@@ -126,6 +126,88 @@ public class ProtonBypassServiceTests : IClassFixture<ProtonCompletionFixture>
     }
 
     [Fact]
+    public async Task CL_BSatuA_ForceApprove_SkipYangSudahApproved_ProvenanceUtuh()
+    {
+        // WR-03 (review 360): force-approve D-13 hanya menyentuh progress BELUM Approved —
+        // approval sah coach (ApprovedById/ApprovedAt) tidak ditimpa, tanpa history bising.
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"wr03a-{Guid.NewGuid():N}";
+        var t1 = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var t2 = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+        var source = await SeedAssignmentAsync(ctx, coachee, t1);
+        var dels = await SeedDeliverablesAsync(ctx, t1, $"U-{coachee[..8]}", 2);
+        var approvedAt = DateTime.UtcNow.AddDays(-30);
+        var pApproved = new ProtonDeliverableProgress
+        {
+            CoacheeId = coachee, ProtonDeliverableId = dels[0], ProtonTrackAssignmentId = source.Id,
+            Status = "Approved", ApprovedById = "coach-asli", ApprovedAt = approvedAt, CreatedAt = DateTime.UtcNow
+        };
+        var pSubmitted = new ProtonDeliverableProgress
+        {
+            CoacheeId = coachee, ProtonDeliverableId = dels[1], ProtonTrackAssignmentId = source.Id,
+            Status = "Submitted", CreatedAt = DateTime.UtcNow
+        };
+        ctx.ProtonDeliverableProgresses.AddRange(pApproved, pSubmitted);
+        await ctx.SaveChangesAsync();
+
+        var result = await NewBypassSvc(ctx).ExecuteInstantBypassAsync(
+            Req(coachee, t1, t2, "CL-B(a)", targetUnit: $"U-{coachee[..8]}"));
+
+        Assert.True(result.Success, result.Message);
+        // Yang sudah Approved sah: provenance coach UTUH + TANPA history Bypassed-AutoApprove.
+        var freshApproved = await ctx.ProtonDeliverableProgresses.AsNoTracking().SingleAsync(p => p.Id == pApproved.Id);
+        Assert.Equal("Approved", freshApproved.Status);
+        Assert.Equal("coach-asli", freshApproved.ApprovedById);
+        Assert.Equal(approvedAt, freshApproved.ApprovedAt!.Value, TimeSpan.FromSeconds(1));
+        Assert.False(await ctx.DeliverableStatusHistories.AnyAsync(
+            h => h.ProtonDeliverableProgressId == pApproved.Id && h.StatusType == "Bypassed-AutoApprove"));
+        // Yang BELUM Approved: tetap di-force-approve HC + history D-13.
+        var freshSubmitted = await ctx.ProtonDeliverableProgresses.AsNoTracking().SingleAsync(p => p.Id == pSubmitted.Id);
+        Assert.Equal("Approved", freshSubmitted.Status);
+        Assert.Equal("hc-init", freshSubmitted.ApprovedById);
+        Assert.True(await ctx.DeliverableStatusHistories.AnyAsync(
+            h => h.ProtonDeliverableProgressId == pSubmitted.Id && h.StatusType == "Bypassed-AutoApprove"));
+    }
+
+    [Fact]
+    public async Task CL_BSatuB_ForceApprove_SkipYangSudahApproved()
+    {
+        // WR-03 lokasi kedua: jalur pending CL-B(b) §5.2 — progress Approved sah tak disentuh.
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"wr03b-{Guid.NewGuid():N}";
+        await SeedUserAsync(ctx, coachee);
+        var t1 = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var t2 = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+        var source = await SeedAssignmentAsync(ctx, coachee, t1);
+        var dels = await SeedDeliverablesAsync(ctx, t1, $"U-{coachee[..8]}", 2);
+        var pApproved = new ProtonDeliverableProgress
+        {
+            CoacheeId = coachee, ProtonDeliverableId = dels[0], ProtonTrackAssignmentId = source.Id,
+            Status = "Approved", ApprovedById = "coach-asli", ApprovedAt = DateTime.UtcNow.AddDays(-7),
+            CreatedAt = DateTime.UtcNow
+        };
+        var pSubmitted = new ProtonDeliverableProgress
+        {
+            CoacheeId = coachee, ProtonDeliverableId = dels[1], ProtonTrackAssignmentId = source.Id,
+            Status = "Submitted", CreatedAt = DateTime.UtcNow
+        };
+        ctx.ProtonDeliverableProgresses.AddRange(pApproved, pSubmitted);
+        await ctx.SaveChangesAsync();
+
+        var result = await NewBypassSvc(ctx).BypassSaveAsync(
+            Req(coachee, t1, t2, "CL-B(b)", targetUnit: $"U-{coachee[..8]}"));
+
+        Assert.True(result.Success, result.Message);
+        var freshApproved = await ctx.ProtonDeliverableProgresses.AsNoTracking().SingleAsync(p => p.Id == pApproved.Id);
+        Assert.Equal("coach-asli", freshApproved.ApprovedById); // provenance coach utuh
+        Assert.False(await ctx.DeliverableStatusHistories.AnyAsync(
+            h => h.ProtonDeliverableProgressId == pApproved.Id && h.StatusType == "Bypassed-AutoApprove"));
+        var freshSubmitted = await ctx.ProtonDeliverableProgresses.AsNoTracking().SingleAsync(p => p.Id == pSubmitted.Id);
+        Assert.Equal("Approved", freshSubmitted.Status);
+        Assert.Equal("hc-init", freshSubmitted.ApprovedById);
+    }
+
+    [Fact]
     public async Task CL_A_PindahInstan()
     {
         await using var ctx = new ApplicationDbContext(_fixture.Options);

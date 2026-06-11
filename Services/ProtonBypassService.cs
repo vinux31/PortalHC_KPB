@@ -155,11 +155,14 @@ namespace HcPortal.Services
                 //     CL-C: tinggalkan tanpa nilai → no-op.
                 if (req.Mode == "CL-B(a)")
                 {
-                    // Force-approve SEMUA progress source (pola OverrideSave) + history per progress (D-13).
+                    // Force-approve progress source yang BELUM Approved (pola OverrideSave) + history
+                    // per progress (D-13). WR-03 (review 360): progress yang SUDAH Approved sah oleh
+                    // coach JANGAN disentuh — provenance ApprovedById/ApprovedAt dipertahankan,
+                    // tanpa history Bypassed-AutoApprove bising untuk baris yang tidak berubah.
                     var progresses = await _context.ProtonDeliverableProgresses
                         .Where(p => p.ProtonTrackAssignmentId == source.Id)
                         .ToListAsync();
-                    foreach (var p in progresses)
+                    foreach (var p in progresses.Where(p => p.Status != "Approved"))
                     {
                         p.Status = "Approved";
                         p.ApprovedAt = DateTime.UtcNow;
@@ -300,10 +303,11 @@ namespace HcPortal.Services
                     .FirstOrDefaultAsync() ?? req.CoacheeId;
 
                 // [force-approve deliverable source] (D-13) — pola sama CL-B(a) §5.1.
+                // WR-03 (review 360): skip yang SUDAH Approved — provenance coach dipertahankan.
                 var progresses = await _context.ProtonDeliverableProgresses
                     .Where(p => p.ProtonTrackAssignmentId == source.Id)
                     .ToListAsync();
-                foreach (var p in progresses)
+                foreach (var p in progresses.Where(p => p.Status != "Approved"))
                 {
                     p.Status = "Approved";
                     p.ApprovedAt = DateTime.UtcNow;
