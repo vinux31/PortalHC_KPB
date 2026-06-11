@@ -131,7 +131,7 @@ Plans:
 - [x] 361-01-PLAN.md — Backend prep: ViewBag.AllCoaches di Override() + extend BypassPendingList select (D-18). Wave 1.
 - [x] 361-02-PLAN.md — SQL fixture worker multi-state (CL-A/CL-B/final/pending E5) + SEED_JOURNAL entry. Wave 1.
 - [x] 361-03-PLAN.md — UI Tab2 lengkap: 2-tab shell (Tab1 utuh) + panel pending + filter/worker table + wizard 3-langkah + confirm modal + showToast + deep-link JS. Wave 2.
-- [ ] 361-04-PLAN.md — e2e spec committed proton-bypass.spec.ts + UAT live MCP (checkpoint) + SEED_JOURNAL cleaned. Wave 3.
+- [x] 361-04-PLAN.md — e2e spec committed proton-bypass.spec.ts + UAT live MCP (checkpoint) + SEED_JOURNAL cleaned. Wave 3.
 
 ### Phase 362: PROTON CDP Polish
 **Goal:** Tutup 6 gap UI/navigasi/role PROTON dari gap-analysis (G-01 chart race, G-04 Dashboard export, G-05 Deliverable back, G-09 CertMgmt breadcrumb, G-10 Dashboard search, G-12 export gating) — di luar kelulusan/bypass (358-361).
