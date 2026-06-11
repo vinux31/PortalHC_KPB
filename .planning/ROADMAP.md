@@ -119,7 +119,9 @@ Plans:
   3. Empty-state copy disesuaikan (tidak lagi menyiratkan "hanya record manual").
   4. `dotnet build` 0 error + full suite hijau + UAT @5277: worker dengan Post Test OJT online lama terlihat recordnya.
 **UI hint:** yes (badge + baris baru di expand table)
-**Plans:** 0 plans — TBD
+**Plans:** 1 plan (1 wave)
+Plans:
+- [ ] 371-01-PLAN.md — onlineRows projection + badge "Assessment Online" + status 6-way + Lihat hasil (CMP/Results) + empty-state copy (URG-03)
 
 ### Phase 358: Penanda Kelulusan (fondasi A)
 **Goal:** Logic kelulusan Proton konsisten — exam Tahun 1/2 yang lulus ikut menerbitkan penanda `ProtonFinalAssessment` (dulu cuma interview Tahun 3), via helper tunggal `ProtonCompletionService` dipanggil dari GradingService (exam lulus + re-grade flip Pass↔Fail) dan SubmitInterviewResults; plus backfill data lama. Fix bug "exam Tahun 1/2 lulus tak tercatat Lulus".
