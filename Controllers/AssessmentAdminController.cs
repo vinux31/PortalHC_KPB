@@ -116,10 +116,11 @@ namespace HcPortal.Controllers
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
             // Phase 311 Plan 03: AsNoTracking di chain start read-only partial action (PATTERNS Cross-cutting Pattern 2)
+            // Quick fix (260611-m9r): window 7-hari via helper — di-skip saat search non-empty (cari sesi lama >7 hari).
             var managementQuery = _context.AssessmentSessions
                 .AsNoTracking()
-                .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
                 .AsQueryable();
+            managementQuery = ApplySevenDayWindow(managementQuery, search, sevenDaysAgo);
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -2809,6 +2810,18 @@ namespace HcPortal.Controllers
             return "Not started";
         }
 
+        // Quick fix (260611-m9r): window 7-hari hanya berlaku saat search KOSONG.
+        // Search eksplisit dari user mengalahkan penyempitan default (preseden CIL-02 Phase 338),
+        // supaya assessment lama (>7 hari, mis. Post Test OJT) bisa ditemukan via search.
+        // Static + pure → testable (xUnit) via LINQ-to-Objects.
+        public static IQueryable<AssessmentSession> ApplySevenDayWindow(
+            IQueryable<AssessmentSession> query, string? search, DateTime cutoff)
+        {
+            if (string.IsNullOrEmpty(search))
+                return query.Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= cutoff);
+            return query;
+        }
+
         // MAM-06: Tab2 Input Records initial-state = TIDAK ada filter aktif. isFiltered hidden field di-post
         // saat user interaksi filter. Bila initial → skip full-roster query (empty-state "Pilih filter").
         public static bool IsTrainingInitialState(string? isFiltered, string? section, string? unit,
@@ -2846,14 +2859,15 @@ namespace HcPortal.Controllers
             string? status,
             string? category)
         {
-            // 7-day window — same as ManageAssessment
-            // 90-review: 7-day window is intentional for monitoring view; Abandoned sessions with no ExamWindowCloseDate
-            // fall back to Schedule for the window check and naturally age out after 7 days (expected behavior).
+            // 7-day window — same as ManageAssessment.
+            // Quick fix (260611-m9r): window HANYA saat search kosong. Saat search non-empty,
+            // window di-skip supaya assessment lama (>7 hari) bisa ditemukan via search.
+            // Abandoned sessions tanpa ExamWindowCloseDate fallback ke Schedule untuk cek window
+            // (relevan hanya saat search kosong).
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
-            var query = _context.AssessmentSessions
-                .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
-                .AsQueryable();
+            var query = _context.AssessmentSessions.AsQueryable();
+            query = ApplySevenDayWindow(query, search, sevenDaysAgo);
 
             // Text search by title
             if (!string.IsNullOrEmpty(search))
