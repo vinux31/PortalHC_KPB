@@ -68,7 +68,7 @@
 - [x] **Phase 369: Sync H1 Search-Drop Fix main → ITHandoff** — cherry-pick `14e7adc5` (GetWorkersInSection: searchScope null/kosong di-treat "Nama" supaya search tidak ke-drop diam-diam) + test regresi `Scope_Null_WithSearch_FiltersByName_H1`. REQ: URG-01. Migration=false. Depends: — (SHIPPED LOCAL 2026-06-11 — commit cherry-pick `5210e4d4`, verifier 5/5, review CLEAN, test 229/229, UAT Playwright 7→1)
   - SC1: `WorkerDataService.cs:259` punya guard `(string.IsNullOrEmpty(searchScope) || searchScope == "Nama")` identik dengan main.
   - SC2: Test H1 hijau + full suite hijau; UAT Tab Input Records search nama @5277 memfilter (bukan diabaikan).
-- [ ] **Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)** — hilangkan filter `sevenDaysAgo` sepenuhnya dari `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` (default view tampilkan SEMUA sesi, bukan 7 hari terakhir; helper `ApplySevenDayWindow` quick task 260611-m9r di-retire/disederhanakan + test disesuaikan). REQ: URG-02. Migration=false. Depends: **363 ship dulu** (363-05 sentuh `AssessmentAdminController.cs` — sedang dieksekusi; hindari konflik file lintas sesi)
+- [x] **Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)** — hilangkan filter `sevenDaysAgo` sepenuhnya dari `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` (default view tampilkan SEMUA sesi, bukan 7 hari terakhir; helper `ApplySevenDayWindow` quick task 260611-m9r di-retire/disederhanakan + test disesuaikan). REQ: URG-02. Migration=false. Depends: **363 ship dulu** (363-05 sentuh `AssessmentAdminController.cs` — sedang dieksekusi; hindari konflik file lintas sesi) (completed 2026-06-11)
   - SC1: Tab Assessment + Monitoring tanpa search menampilkan sesi lama >7 hari (filter status default "Aktif (Open/Upcoming)" + hide-Closed CIL-02 TETAP — bukan dihapus).
   - SC2: Search behavior quick task 260611-m9r tidak regresi; test suite penuh hijau; UAT @5277.
   - SC3: Trade-off tercatat: sesi Open/InProgress terbengkalai lama ikut tampil di default (lokal: 12 InProgress + 9 Open legacy) — diterima user 2026-06-11; perf aman di skala saat ini (58 row lokal, in-memory grouping).
@@ -105,8 +105,8 @@ Plans:
   3. Trade-off tercatat & diterima user: sesi Open/InProgress terbengkalai lama ikut tampil di default (lokal: 12 InProgress + 9 Open legacy); perf aman skala saat ini (58 row lokal, in-memory grouping).
   4. `dotnet build` 0 error + full suite hijau + UAT @5277 (default view + search + pagination).
 **UI hint:** no (query-layer; view tak berubah)
-**Plans:** 1 plan
-  - [ ] 370-01-PLAN.md — hapus window 7-hari (2 method + helper ApplySevenDayWindow) + AsNoTracking Monitoring + git rm test file (atomic) + UAT @5277
+**Plans:** 1/1 plans complete
+  - [x] 370-01-PLAN.md — hapus window 7-hari (2 method + helper ApplySevenDayWindow) + AsNoTracking Monitoring + git rm test file (atomic) + UAT @5277
 
 ### Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)
 **Goal:** Longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266` — AssessmentSessions online (IsManualEntry=false) ikut tampil per worker di Tab Input Records dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"). Visibility-only: TANPA tombol hapus untuk online (delete cascade = scope Phase 367).
