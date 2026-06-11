@@ -161,4 +161,85 @@ public class ProtonYearGateIntegrationTests : IClassFixture<ProtonCompletionFixt
         var svc = NewSvc(ctx);
         Assert.True(await SkippedByCrossYearGateAsync(ctx, svc, coachee, t2, "Operator", "Tahun 1"));
     }
+
+    // ===== Phase 363-05 — gate reaktivasi T3/D-05/D-06 =====
+    // Replika BYTE-IDENTIK gate pre-tx CoachCoacheeMappingAssign pasca-refine
+    // (CoachMappingController: active-skip → active-bypass-exempt → reactExempt inactive-bypass →
+    // IsPrevYearPassedAsync). Kelemahan pola predikat-replikasi: menguji COPY logic, bukan controller
+    // asli — jaga sinkron manual bila gate diubah (konvensi file ini, lihat SkippedByCrossYearGateAsync).
+
+    /// <summary>True bila coachee KEBLOK gate reaktivasi (masuk incompleteCoachees → hard-block).</summary>
+    private static async Task<bool> ReactivationBlockedAsync(
+        ApplicationDbContext ctx, ProtonCompletionService svc,
+        string uid, int requestedTrackId, string trackType, string? prevTahunKe)
+    {
+        // cabang 1 (refined): sudah AKTIF untuk track diminta → no-op, skip gate
+        bool alreadyActive = await ctx.ProtonTrackAssignments
+            .AnyAsync(a => a.CoacheeId == uid && a.ProtonTrackId == requestedTrackId && a.IsActive);
+        if (alreadyActive) return false;
+
+        // exempt 1: assignment AKTIF Origin="Bypass" (D-06b)
+        bool isExemptFromCrossYear = await ctx.ProtonTrackAssignments
+            .AnyAsync(a => a.CoacheeId == uid && a.ProtonTrackId == requestedTrackId
+                        && a.IsActive && a.Origin == "Bypass");
+        if (isExemptFromCrossYear) return false;
+
+        // exempt 2 (T3/D-06): kandidat reaktivasi INACTIVE ber-Origin="Bypass" (stempel permanen)
+        bool reactExempt = await ctx.ProtonTrackAssignments
+            .AnyAsync(a => a.CoacheeId == uid && a.ProtonTrackId == requestedTrackId
+                        && !a.IsActive && a.Origin == "Bypass");
+        if (reactExempt) return false;
+
+        // gate: penanda Tahun N-1 (D-05 hard-block bila false)
+        return !await svc.IsPrevYearPassedAsync(uid, trackType, prevTahunKe);
+    }
+
+    [Fact]
+    public async Task Reactivation_InactiveNonBypass_NoPrevYear_Blocked()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"react-{Guid.NewGuid():N}";
+        var t2 = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+
+        // Loophole T3: assignment Tahun 2 INACTIVE (Origin=null), tanpa penanda Tahun 1.
+        // Pra-fix: cabang-1 tanpa filter IsActive men-skip → reaktivasi lolos gate. Pasca-fix: KEBLOK.
+        ctx.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+        { CoacheeId = coachee, AssignedById = "hc", ProtonTrackId = t2, IsActive = false, Origin = null });
+        await ctx.SaveChangesAsync();
+
+        var svc = NewSvc(ctx);
+        Assert.True(await ReactivationBlockedAsync(ctx, svc, coachee, t2, "Operator", "Tahun 1"));
+    }
+
+    [Fact]
+    public async Task Reactivation_InactiveBypass_Exempt()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"react-{Guid.NewGuid():N}";
+        var t2 = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+
+        // D-06: inactive Origin="Bypass" = stempel permanen (konsisten 360 D-04) → exempt gate reaktivasi.
+        ctx.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+        { CoacheeId = coachee, AssignedById = "hc", ProtonTrackId = t2, IsActive = false, Origin = "Bypass" });
+        await ctx.SaveChangesAsync();
+
+        var svc = NewSvc(ctx);
+        Assert.False(await ReactivationBlockedAsync(ctx, svc, coachee, t2, "Operator", "Tahun 1"));
+    }
+
+    [Fact]
+    public async Task Reactivation_ActiveAssignment_SkipsGate()
+    {
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"react-{Guid.NewGuid():N}";
+        var t2 = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+
+        // Regresi: assignment SUDAH AKTIF (tanpa penanda) tetap tidak pernah diblok (status quo no-op).
+        ctx.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+        { CoacheeId = coachee, AssignedById = "hc", ProtonTrackId = t2, IsActive = true, Origin = null });
+        await ctx.SaveChangesAsync();
+
+        var svc = NewSvc(ctx);
+        Assert.False(await ReactivationBlockedAsync(ctx, svc, coachee, t2, "Operator", "Tahun 1"));
+    }
 }
