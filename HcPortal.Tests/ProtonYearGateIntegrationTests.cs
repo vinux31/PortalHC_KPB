@@ -24,7 +24,8 @@ public class ProtonYearGateIntegrationTests : IClassFixture<ProtonCompletionFixt
     }
 
     private static ProtonCompletionService NewSvc(ApplicationDbContext ctx)
-        => new ProtonCompletionService(ctx, NullLogger<ProtonCompletionService>.Instance);
+        => new ProtonCompletionService(ctx, NullLogger<ProtonCompletionService>.Instance,
+               new FakeNotificationService(), new AuditLogService(ctx));
 
     private async Task<int> TrackIdAsync(ApplicationDbContext ctx, string trackType, string tahunKe)
         => (await ctx.ProtonTracks.FirstAsync(t => t.TrackType == trackType && t.TahunKe == tahunKe)).Id;

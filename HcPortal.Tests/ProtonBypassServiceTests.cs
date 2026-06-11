@@ -24,27 +24,17 @@ public class ProtonBypassServiceTests : IClassFixture<ProtonCompletionFixture>
         _fixture = fixture;
     }
 
-    private sealed class FakeNotificationService : INotificationService
-    {
-        public List<(string UserId, string Type)> Sent { get; } = new();
-        public Task<bool> SendAsync(string userId, string type, string title, string message, string? actionUrl = null)
-        { Sent.Add((userId, type)); return Task.FromResult(true); }
-        public Task<List<UserNotification>> GetAsync(string userId, int count = 50)
-            => Task.FromResult(new List<UserNotification>());
-        public Task<bool> MarkAsReadAsync(int notificationId, string userId) => Task.FromResult(true);
-        public Task<int> MarkAllAsReadAsync(string userId) => Task.FromResult(0);
-        public Task<int> GetUnreadCountAsync(string userId) => Task.FromResult(0);
-        public Task<bool> SendByTemplateAsync(string userId, string type, Dictionary<string, object>? context = null)
-        { Sent.Add((userId, type)); return Task.FromResult(true); }
-        public Task<bool> DeleteAsync(int notificationId, string userId) => Task.FromResult(true);
-    }
+    // FakeNotificationService di-lift ke HcPortal.Tests/FakeNotificationService.cs (Phase 363-03)
 
     private static ProtonBypassService NewBypassSvc(ApplicationDbContext ctx, FakeNotificationService? notif = null)
-        => new(ctx,
-               new ProtonCompletionService(ctx, NullLogger<ProtonCompletionService>.Instance),
-               notif ?? new FakeNotificationService(),
+    {
+        var fake = notif ?? new FakeNotificationService();
+        return new(ctx,
+               new ProtonCompletionService(ctx, NullLogger<ProtonCompletionService>.Instance, fake, new AuditLogService(ctx)),
+               fake,
                new AuditLogService(ctx),
                NullLogger<ProtonBypassService>.Instance);
+    }
 
     private static async Task<int> TrackIdAsync(ApplicationDbContext ctx, string trackType, string tahunKe)
         => (await ctx.ProtonTracks.FirstAsync(t => t.TrackType == trackType && t.TahunKe == tahunKe)).Id;
