@@ -30,9 +30,9 @@
 - [x] **PBYP-05**: Bootstrap deliverable target pakai Unit dari form bypass (bukan dari mapping).
 - [x] **PBYP-06**: HC bisa batal pending sebelum pindah (auto-cancel exam: belum-dikerjakan→hapus, sudah-lulus→pertahankan hasil).
 - [x] **PBYP-07**: 6 endpoint bypass (`BypassList`, `BypassPendingList`, `BypassDetail`, `BypassSave`, `BypassConfirm`, `BypassCancelPending`) `[Authorize(Admin,HC)]` + AntiForgery + audit.
-- [ ] **PBYP-08**: Page Override jadi 2 tab — Tab1 existing (tak diubah) + Tab2 "Bypass Tahun" dengan wizard 3-langkah (Tujuan → Closure mode → Detail+alasan).
-- [ ] **PBYP-09**: Panel "Menunggu Konfirmasi" di Tab2 + notif deep-link `/ProtonData/Override?tab=bypass&pending={id}` + 1-klik konfirmasi pindah.
-- [ ] **PBYP-10**: UAT end-to-end bypass (4 closure mode + pending konfirmasi + batal + re-grade fail).
+- [x] **PBYP-08**: Page Override jadi 2 tab — Tab1 existing (tak diubah) + Tab2 "Bypass Tahun" dengan wizard 3-langkah (Tujuan → Closure mode → Detail+alasan).
+- [x] **PBYP-09**: Panel "Menunggu Konfirmasi" di Tab2 + notif deep-link `/ProtonData/Override?tab=bypass&pending={id}` + 1-klik konfirmasi pindah.
+- [x] **PBYP-10**: UAT end-to-end bypass (4 closure mode + pending konfirmasi + batal + re-grade fail).
 
 ---
 
