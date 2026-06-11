@@ -163,10 +163,16 @@ Plans:
   5. Triase T5-T10 tuntas: tiap item fix ATAU ditandai by-design dengan alasan tercatat.
   6. `dotnet build` 0 error + `dotnet test` hijau + UAT lokal:5277 (CLAUDE.md Develop Workflow).
 **UI hint:** minimal (mayoritas backend/notif; T5 sentuh view HistoriProton)
-**Plans:** 8/8 plans complete
+**Plans:** 7 plans (4 waves)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 363 to break down)
+- [ ] 363-01-PLAN.md — Pin parity tests + extract approve/reject cores; rewire gold-standard endpoints (T1/T2/T7 foundation). Wave 1.
+- [ ] 363-02-PLAN.md — Wire ApproveFromProgress/RejectFromProgress through cores + notif parity + resubmit HC reset (T1/T2/T7). Wave 2.
+- [ ] 363-03-PLAN.md — ProtonCompletionService surface penanda miss (audit + notif HC) + ctor + 3 test ctors (T4). Wave 1.
+- [ ] 363-04-PLAN.md — GradingService drop hardcoded ValidUntil regrade Fail->Pass (T6). Wave 1.
+- [ ] 363-05-PLAN.md — CoachMapping reactivation year-gate + reactExempt + T9 log-warn (2 titik) + T10 by-design (T3/T9/T10). Wave 2.
+- [ ] 363-06-PLAN.md — HistoriProton+Export "Belum Mulai" + AppendEvidencePathHistory shared helper (T5/T8). Wave 3.
+- [ ] 363-07-PLAN.md — Full suite + UAT @5277 checkpoint (T1/T2/T3/T5/T6) + SEED snapshot/restore. Wave 4.
 
 ### Phase 364: Restore Baseline Regresi e2e Exam (promoted backlog 999.4)
 **Goal:** 2 spec e2e exam lama (`tests/e2e/exam-taking.spec.ts`, `tests/e2e/exam-types.spec.ts`) jalan lagi sebagai baseline regresi — judul assessment yang dibuat spec comply validator naming REST-06 v20.0 (saat ini ditolak di langkah create → seluruh spec patah sejak v20).
