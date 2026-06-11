@@ -449,9 +449,12 @@ namespace HcPortal.Services
                     IsActive = true
                 });
             }
-            else if (mappingLama != null
+            else if (mappingLama != null && !string.IsNullOrWhiteSpace(req.TargetUnit)
                      && (mappingLama.AssignmentUnit ?? "").Trim() != req.TargetUnit.Trim())
             {
+                // WR-02 guard defensif: TargetUnit kosong JANGAN menimpa unit mapping aktif jadi ""
+                // (merusak resolve unit gate 100% W-04/W-08/W-10) — lapisan service melindungi
+                // semua caller (BypassSave sudah validasi V5, ConfirmBypassAsync baca dari pending).
                 // D-16b (review #2) — KEEP COACH + GANTI UNIT: jangan deactivate/recreate (D-16, E15 aman).
                 // Update unit mapping supaya gate 100% (resolve unit dari active mapping) konsisten
                 // dengan bootstrap unit-FORM (W-04/W-08/W-10).

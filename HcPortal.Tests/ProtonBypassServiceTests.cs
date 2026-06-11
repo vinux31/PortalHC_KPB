@@ -268,6 +268,31 @@ public class ProtonBypassServiceTests : IClassFixture<ProtonCompletionFixture>
     }
 
     [Fact]
+    public async Task KeepCoach_TargetUnitKosong_MappingTidakDikorupsi()
+    {
+        // WR-02 (review 360): guard defensif D-16b — TargetUnit kosong TIDAK boleh menimpa
+        // AssignmentUnit mapping coach aktif jadi string kosong (merusak resolve unit gate 100%).
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var coachee = $"wr02-{Guid.NewGuid():N}";
+        var t1 = await TrackIdAsync(ctx, "Operator", "Tahun 1");
+        var t2 = await TrackIdAsync(ctx, "Operator", "Tahun 2");
+        await SeedAssignmentAsync(ctx, coachee, t1);
+        var unitLama = $"U-WR02-{coachee[..6]}";
+        var mapping = new CoachCoacheeMapping
+        { CoacheeId = coachee, CoachId = "coach-keep", AssignmentUnit = unitLama, IsActive = true, StartDate = DateTime.UtcNow };
+        ctx.CoachCoacheeMappings.Add(mapping);
+        await ctx.SaveChangesAsync();
+
+        var result = await NewBypassSvc(ctx).ExecuteInstantBypassAsync(
+            Req(coachee, t1, t2, "CL-C", targetUnit: "", targetCoachId: null));
+
+        Assert.True(result.Success, result.Message); // bootstrap di-skip (warning saja), bypass jalan
+        await ctx.Entry(mapping).ReloadAsync();
+        Assert.True(mapping.IsActive);
+        Assert.Equal(unitLama, mapping.AssignmentUnit); // unit mapping TIDAK tertimpa kosong
+    }
+
+    [Fact]
     public async Task CL_C_TurunKeTrackPernahDijalani_CountProgressTetapN()
     {
         await using var ctx = new ApplicationDbContext(_fixture.Options);

@@ -1617,6 +1617,10 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Worker wajib dipilih." });
             if (string.IsNullOrWhiteSpace(req.Reason))
                 return Json(new { success = false, message = "Alasan wajib diisi." });
+            // WR-02 (review 360): TargetUnit kosong = bootstrap deliverable skip + cabang D-16b
+            // bisa menimpa AssignmentUnit mapping coach aktif jadi string kosong.
+            if (string.IsNullOrWhiteSpace(req.TargetUnit))
+                return Json(new { success = false, message = "Unit tujuan wajib diisi." });
             var validModes = new[] { "CL-A", "CL-B(a)", "CL-B(b)", "CL-C" };
             if (!validModes.Contains(req.Mode))
                 return Json(new { success = false, message = "Mode tidak valid." });
