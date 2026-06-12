@@ -34,7 +34,7 @@ test.describe('smoke wave-0 (verify RESEARCH A4 + A5 assumptions)', () => {
 
   test('W0.1 — HC create assessment + 3 MC questions distinct text', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    smokeTitle = uniqueTitle('[317-SMOKE-W0] Order Verify');
+    smokeTitle = uniqueTitle('Pre Test [317-SMOKE-W0] Order Verify');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title: smokeTitle,
@@ -188,7 +188,7 @@ test.describe('FLOW K — MA Full Cycle', () => {
 
   test('K1 — HC creates assessment via wizard', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-K] MA Exam');
+    title = uniqueTitle('Pre Test [317-K] MA Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title,
@@ -204,6 +204,12 @@ test.describe('FLOW K — MA Full Cycle', () => {
     const href = await page.locator('#modal-manage-btn').getAttribute('href');
     expect(href).toMatch(/\/Admin\/ManagePackages(?:\/|\?assessmentId=)\d+/);
     assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    // SC#3 / D-11 — auto-pair Phase 338 (TryAutoDetectCounterpartGroup) must NOT mis-set LinkedGroupId.
+    // uniqueTitle timestamp makes the "Post Test <rest>" counterpart impossible -> LinkedGroupId stays NULL.
+    const linkedNull = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND LinkedGroupId IS NULL`
+    );
+    expect(linkedNull).toBe(1);
   });
 
   test('K2 — HC navigates ManagePackages → createDefaultPackage', async ({ page }) => {
@@ -307,7 +313,7 @@ test.describe('FLOW L — Essay Full Cycle + HC Grading', () => {
 
   test('L1 — HC creates Essay assessment via wizard', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-L] Essay Exam');
+    title = uniqueTitle('Pre Test [317-L] Essay Exam');
     category = 'IHT';
     scheduleDate = today();
     await login(page, 'hc');
@@ -432,7 +438,7 @@ test.describe('FLOW M — Mixed (MC+MA+Essay) Full Cycle', () => {
 
   test('M1 — HC creates Mixed assessment via wizard', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-M] Mixed Exam');
+    title = uniqueTitle('Pre Test [317-M] Mixed Exam');
     category = 'OJT';
     scheduleDate = today();
     await login(page, 'hc');
@@ -585,7 +591,7 @@ test.describe('FLOW N — AllowAnswerReview=false negative assertion', () => {
 
   test('N1 — HC creates assessment with AllowAnswerReview=false + 1 MC', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-N] NoReview Exam');
+    title = uniqueTitle('Pre Test [317-N] NoReview Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title,
@@ -687,7 +693,7 @@ test.describe('FLOW O — AddExtraTime SignalR real-time', () => {
 
   test('O1 — HC creates assessment (duration 30 min)', async ({ page }) => {
     test.setTimeout(FLOW_O_TIMEOUT_MS);
-    title = uniqueTitle('[317-O] ExtraTime Exam');
+    title = uniqueTitle('Pre Test [317-O] ExtraTime Exam');
     category = 'OJT';
     scheduleDate = today();
     await login(page, 'hc');
@@ -1062,7 +1068,7 @@ test.describe('FLOW Q — ExamWindowCloseDate Reject', () => {
 
   test('Q1 — HC creates assessment with yesterday EWCD (past window)', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[318-Q] EWCD Past Exam');
+    title = uniqueTitle('Pre Test [318-Q] EWCD Past Exam');
     await login(page, 'hc');
     // Wizard reject schedule-in-past — pakai today early-time untuk schedule + EWCD.
     // EWCD=today 00:02 sudah lewat di WIB time saat run → guard CMPController:863 trigger.
@@ -1148,7 +1154,7 @@ test.describe('FLOW R — Certificate PDF Download + NomorSertifikat', () => {
 
   test('R1 — HC creates assessment with GenerateCertificate=true', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[318-R] Cert Exam');
+    title = uniqueTitle('Pre Test [318-R] Cert Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title,
@@ -1275,7 +1281,7 @@ test.describe('FLOW S — AllowAnswerReview True vs False Paired Comparison', ()
 
   test('S1 — HC creates assessment A (allowAnswerReview=true) + package + MC question', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    titleTrue = uniqueTitle('[318-S-TRUE] Review Exam');
+    titleTrue = uniqueTitle('Pre Test [318-S-TRUE] Review Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title: titleTrue,
@@ -1361,7 +1367,7 @@ test.describe('FLOW S — AllowAnswerReview True vs False Paired Comparison', ()
 
   test('S4 — HC creates assessment B (allowAnswerReview=false) + package + MC question', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    titleFalse = uniqueTitle('[318-S-FALSE] NoReview Exam');
+    titleFalse = uniqueTitle('Pre Test [318-S-FALSE] NoReview Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title: titleFalse,

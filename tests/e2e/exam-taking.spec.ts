@@ -32,7 +32,7 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
   let assessmentId: number;
 
   test('A1 - HC creates assessment for coachee', async ({ page }) => {
-    title = uniqueTitle('Legacy Exam');
+    title = uniqueTitle('Pre Test Legacy Exam');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -313,7 +313,7 @@ test.describe('Flow B: Token-Protected Exam', () => {
   let title: string;
 
   test('B1 - HC creates token-required assessment', async ({ page }) => {
-    title = uniqueTitle('Token Exam');
+    title = uniqueTitle('Pre Test Token Exam');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -399,7 +399,7 @@ test.describe('Flow C: Force Close & Close Early', () => {
   let assessmentId: number;
 
   test('C1 - HC creates assessment with questions for 2 workers', async ({ page }) => {
-    title = uniqueTitle('ForceClose Exam');
+    title = uniqueTitle('Pre Test ForceClose Exam');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -545,7 +545,7 @@ test.describe('Flow D: Package-Based Exam', () => {
   let assessmentId: number;
 
   test('D1 - HC creates assessment for worker', async ({ page }) => {
-    title = uniqueTitle('Package Exam');
+    title = uniqueTitle('Pre Test Package Exam');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -699,7 +699,7 @@ test.describe('Flow E: Proton Tahun 3 Interview', () => {
   let title: string;
 
   test('E1 - HC creates Assessment Proton Tahun 3', async ({ page }) => {
-    title = uniqueTitle('Proton T3 Interview');
+    title = uniqueTitle('Pre Test Proton T3 Interview');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -830,7 +830,7 @@ test.describe('Flow F: Multiple Workers Same Assessment', () => {
   let assessmentId: number;
 
   test('F1 - HC creates assessment for 2 workers with questions', async ({ page }) => {
-    title = uniqueTitle('Multi Worker');
+    title = uniqueTitle('Pre Test Multi Worker');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -960,7 +960,7 @@ test.describe('Flow G: Exam Timer Expired', () => {
   let assessmentId: number;
 
   test('G1 - HC creates 1-minute assessment with question', async ({ page }) => {
-    title = uniqueTitle('Timer Expired');
+    title = uniqueTitle('Pre Test Timer Expired');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -1054,7 +1054,7 @@ test.describe('Flow H: Real-Time Monitoring', () => {
   let assessmentId: number;
 
   test('H1 - HC creates assessment with question', async ({ page }) => {
-    title = uniqueTitle('RealTime Mon');
+    title = uniqueTitle('Pre Test RealTime Mon');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -1288,7 +1288,7 @@ test.describe('Flow I: Edit Assessment', () => {
   let editedTitle: string;
 
   test('I1 - HC creates assessment', async ({ page }) => {
-    title = uniqueTitle('EditTest');
+    title = uniqueTitle('Pre Test EditTest');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
@@ -1401,7 +1401,7 @@ test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
   let assessmentId: number;
 
   test('J1 - HC creates assessment with question', async ({ page }) => {
-    title = uniqueTitle('Abandon Test');
+    title = uniqueTitle('Pre Test Abandon Test');
     await login(page, 'hc');
     await page.goto('/Admin/CreateAssessment');
 
