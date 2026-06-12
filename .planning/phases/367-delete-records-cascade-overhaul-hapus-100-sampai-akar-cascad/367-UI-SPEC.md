@@ -1,10 +1,12 @@
 ---
 phase: 367
 slug: delete-records-cascade-overhaul
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-12
+reviewed_at: 2026-06-12
+dimensions_passed: 6/6
 ---
 
 # Phase 367 — UI Design Contract
