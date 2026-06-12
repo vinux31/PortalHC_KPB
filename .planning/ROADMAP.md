@@ -287,7 +287,7 @@ Plans:
 **Plans:** 3 plans (3 waves)
 Plans:
 - [x] 366-01-PLAN.md — Ekstrak helper static ImageFileCleanup + swap 3 call-site inline (perilaku identik, SC#1)
-- [ ] 366-02-PLAN.md — Pasang helper di 3 cascade Delete* (collect-before + post-commit AnyAsync, SC#2/#3)
+- [x] 366-02-PLAN.md — Pasang helper di 3 cascade Delete* (collect-before + post-commit AnyAsync, SC#2/#3)
 - [ ] 366-03-PLAN.md — Integration test real-SQL (orphan bersih + shared selamat) + rekonsiliasi mirror D-04 + UAT @5277 (SC#4)
 
 ### Phase 367: Delete Records Cascade Overhaul
