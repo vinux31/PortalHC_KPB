@@ -21,7 +21,8 @@ public class RecordCascadeServiceTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         ctx = new ApplicationDbContext(options);
-        return new RecordCascadeDeleteService(ctx, NullLogger<RecordCascadeDeleteService>.Instance);
+        // null-substitute: traversal/preview tak deref _protonCompletion/_auditLog/_env.
+        return new RecordCascadeDeleteService(ctx, NullLogger<RecordCascadeDeleteService>.Instance, null!, null!, null!);
     }
 
     private static AssessmentSession Session(int id, int? renewsSession = null, int? renewsTraining = null) =>

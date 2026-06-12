@@ -23,7 +23,8 @@ public class MirrorHeuristicTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         ctx = new ApplicationDbContext(options);
-        return new RecordCascadeDeleteService(ctx, NullLogger<RecordCascadeDeleteService>.Instance);
+        // null-substitute: BuildPreviewAsync/FindMirrorCandidates tak deref _protonCompletion/_auditLog/_env.
+        return new RecordCascadeDeleteService(ctx, NullLogger<RecordCascadeDeleteService>.Instance, null!, null!, null!);
     }
 
     // session root (no renewal children) — agar TR yang muncul di preview = murni kandidat mirror.
