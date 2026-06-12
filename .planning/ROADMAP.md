@@ -302,7 +302,16 @@ Plans:
   4. Assessment online worker (termasuk >7 hari, kasus Rino) tampil di tab Input Records dengan badge pembeda + bisa dihapus tuntas. **(Update 2026-06-11: bagian "tampil + badge" di-pull-forward ke Phase 371 v26.0 — saat planning 367, build aksi hapus di atas badge 371, fokus 367 = delete cascade.)**
   5. Guard duplikat di AddManualAssessment/ImportTraining/BulkBackfill tolak kombinasi user+judul+tanggal existing; badge count tidak kontradiksi dengan list; DeleteAssessmentGroup tidak menyapu Pre/Post/manual di luar scope tampilan; ResetAssessment tolak session IsManualEntry.
 **UI hint:** yes (modal preview, badge + tombol hapus online di tab 2, flash di partial).
-**Plans:** 0 plans — TBD (run /gsd-plan-phase 367)
+**Plans:** 8 plans (5 waves)
+Plans:
+- [ ] 367-01-PLAN.md — Cascade engine: traversal BFS lintas tabel + cycle guard + BuildPreviewAsync read-only + mirror heuristik ±1 hari + DI (§3.1, #15). Wave 1
+- [ ] 367-02-PLAN.md — Cascade engine: ExecuteAsync 1-tx parity gold-standard + 4 delta (LinkedSessionId/soft-cancel/RemoveExamOrigin/notif) + file cert + audit + integration real-SQL (#5/#6/#8/#9/#10/#11/#19/L-04/L-08). Wave 2
+- [ ] 367-03-PLAN.md — Badge recompute = baris tampil per jenis (#16/#17, D-01). Wave 1
+- [ ] 367-04-PLAN.md — DeleteAssessmentGroup sibling filter no over-match (#18) + ResetAssessment guard IsManualEntry (#20). Wave 1
+- [ ] 367-05-PLAN.md — 3 endpoint tab 1: file cert post-commit (#19) + pre-check renewal BLOKIR → cascade no-blocker (L-03) + preserve image 366. Wave 3
+- [ ] 367-06-PLAN.md — TrainingAdminController: honesty split (L-06/#1) + DeleteManualAssessment generik (L-07/#3/#4) + DeleteTraining cascade (L-03/#2) + GET DeletePreview + partial modal. Wave 3
+- [ ] 367-07-PLAN.md — Guard duplikat EXACT 3 pintu: AddManual reject / Import+BulkBackfill skip-with-report (#12/#14, D-02). Wave 4
+- [ ] 367-08-PLAN.md — UI _TrainingRecordsTab: tombol hapus online + rewire 3 tombol ke modal preview + flash jujur S3 (#3/L-06) + Playwright UAT dual-path (SC1-SC4). Wave 5 (checkpoint)
 
 ### Phase 368: Delete Records Hygiene Lanjutan
 **Goal:** Sisa temuan **#21-27** spec C di alur tetangga: EditTraining + EditManualAssessment replace file atomik (save-baru → commit → hapus-lama post-commit, pola fase 331) · ResetAssessment bersihkan `SessionElemenTeknisScores` (ET analytics stale) · ImportTraining audit log + `AssessmentType` konstanta + `GenerateCertificate=isPassed` · CertificationManagement CMP+CDP GroupBy dedup (samakan AdminBase) · EditTraining validasi `Renews*Id` (wajib exist + same-user) · BulkBackfill rename label "Bulk Import Nilai (Excel)" + `AssessmentType` konstanta · one-time cleanup AttemptHistory orphan legacy.
