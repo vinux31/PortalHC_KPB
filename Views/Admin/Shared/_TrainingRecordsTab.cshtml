@@ -260,17 +260,52 @@ else
                             <td colspan="7" class="p-0">
                                 <div class="p-3 bg-light border-top border-bottom">
                                     @{
+                                        // Phase 371 (URG-03): derivasi status online 6-way meniru DeriveUserStatus
+                                        // (AssessmentAdminController:2799) + lapis IsPassed->Lulus/Tidak + warna (D-03).
+                                        // URUTAN CEK KRITIS: PendingGrading PERTAMA (essay punya CompletedAt terisi bersamaan).
+                                        string OnlineLabel(HcPortal.Models.AssessmentSession a)
+                                        {
+                                            if (a.Status == AssessmentConstants.AssessmentStatus.PendingGrading) return "Menunggu Penilaian";
+                                            if (a.CompletedAt != null) return a.IsPassed == true ? "Lulus" : "Tidak Lulus";
+                                            if (a.Status == "Cancelled") return "Dibatalkan";
+                                            if (a.Status == "Abandoned") return "Abandoned";
+                                            if (a.StartedAt != null) return "Sedang Dikerjakan";
+                                            return "Belum Mulai"; // Open + Upcoming jatuh ke sini (Pitfall 3)
+                                        }
+                                        string OnlineClass(string label) => label switch
+                                        {
+                                            "Lulus" => "bg-success",
+                                            "Tidak Lulus" => "bg-danger",
+                                            "Menunggu Penilaian" => "bg-warning text-dark",
+                                            "Sedang Dikerjakan" => "bg-primary",
+                                            "Dibatalkan" => "bg-dark",
+                                            "Abandoned" => "bg-dark",
+                                            _ => "bg-secondary" // Belum Mulai
+                                        };
+                                        string ManualStatusClass(string s) => s switch
+                                        {
+                                            "Passed" => "bg-success",
+                                            "Valid" => "bg-primary",
+                                            "Failed" => "bg-danger",
+                                            "Expired" => "bg-warning text-dark",
+                                            AssessmentConstants.AssessmentStatus.PendingGrading => "bg-warning text-dark",
+                                            _ => "bg-secondary"
+                                        };
+
                                         var trainingRows = (worker.TrainingRecords ?? new List<HcPortal.Models.TrainingRecord>())
-                                            .Select(r => new { Type = "Training", Date = r.Tanggal, Title = r.Judul, Detail = r.Penyelenggara ?? "\u2014", Status = r.Status ?? "", ValidUntil = r.ValidUntil, Id = r.Id, Score = (int?)null, IsPassed = (bool?)(r.Status == "Passed" || r.Status == "Valid") });
+                                            .Select(r => new { Type = "Training", Date = r.Tanggal, Title = r.Judul, Detail = r.Penyelenggara ?? "\u2014", Status = r.Status ?? "", StatusClass = ManualStatusClass(r.Status ?? ""), ValidUntil = r.ValidUntil, Id = r.Id, IsOnline = false, CanViewResult = false });
                                         var assessmentRows = (worker.AssessmentSessions ?? new List<HcPortal.Models.AssessmentSession>())
                                             .Where(a => a.IsManualEntry)
-                                            .Select(a => new { Type = "Assessment", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = a.Score.HasValue ? $"{a.Score} - {(a.IsPassed == true ? "Lulus" : a.IsPassed == false ? "Tidak Lulus" : AssessmentConstants.AssessmentStatus.PendingGrading)}" : "\u2014", Status = a.IsPassed == true ? "Passed" : a.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading, ValidUntil = a.ValidUntil, Id = a.Id, Score = a.Score, IsPassed = a.IsPassed });
-                                        var allRows = trainingRows.Concat(assessmentRows).OrderByDescending(r => r.Date).ToList();
+                                            .Select(a => new { Type = "Assessment", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = a.Score.HasValue ? $"{a.Score} - {(a.IsPassed == true ? "Lulus" : a.IsPassed == false ? "Tidak Lulus" : AssessmentConstants.AssessmentStatus.PendingGrading)}" : "\u2014", Status = a.IsPassed == true ? "Passed" : a.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading, StatusClass = ManualStatusClass(a.IsPassed == true ? "Passed" : a.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading), ValidUntil = a.ValidUntil, Id = a.Id, IsOnline = false, CanViewResult = false });
+                                        var onlineRows = (worker.AssessmentSessions ?? new List<HcPortal.Models.AssessmentSession>())
+                                            .Where(a => !a.IsManualEntry)
+                                            .Select(a => new { Type = "AssessmentOnline", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = (a.CompletedAt != null && a.Score.HasValue) ? $"{a.Score}" : "\u2014", Status = OnlineLabel(a), StatusClass = OnlineClass(OnlineLabel(a)), ValidUntil = a.ValidUntil, Id = a.Id, IsOnline = true, CanViewResult = (a.Status == AssessmentConstants.AssessmentStatus.PendingGrading || a.CompletedAt != null) });
+                                        var allRows = trainingRows.Concat(assessmentRows).Concat(onlineRows).OrderByDescending(r => r.Date).ToList();
                                     }
                                     @if (allRows.Count == 0)
                                     {
                                         <div class="text-center py-3 text-muted">
-                                            <i class="bi bi-inbox me-2"></i>Belum ada record manual untuk pekerja ini.
+                                            <i class="bi bi-inbox me-2"></i>Belum ada record untuk pekerja ini.
                                             <a href="@Url.Action("AddTraining", "TrainingAdmin")" class="btn btn-sm btn-primary ms-3">
                                                 <i class="bi bi-plus-lg me-1"></i>Tambah Training
                                             </a>
@@ -311,6 +346,10 @@ else
                                                                 {
                                                                     <span class="badge bg-success">Training Manual</span>
                                                                 }
+                                                                else if (row.Type == "AssessmentOnline")
+                                                                {
+                                                                    <span class="badge bg-secondary">Assessment Online</span>
+                                                                }
                                                                 else
                                                                 {
                                                                     <span class="badge bg-info text-white">Assessment Manual</span>
@@ -319,25 +358,26 @@ else
                                                             <td class="fw-semibold small">@row.Title</td>
                                                             <td class="small text-muted">@row.Detail</td>
                                                             <td>
-                                                                @{
-                                                                    var statusClass = row.Status switch
-                                                                    {
-                                                                        "Passed" => "bg-success",
-                                                                        "Valid" => "bg-primary",
-                                                                        "Failed" => "bg-danger",
-                                                                        "Expired" => "bg-warning text-dark",
-                                                                        AssessmentConstants.AssessmentStatus.PendingGrading => "bg-warning text-dark",
-                                                                        _ => "bg-secondary"
-                                                                    };
-                                                                }
-                                                                <span class="badge @statusClass">@(string.IsNullOrEmpty(row.Status) ? "\u2014" : row.Status)</span>
+                                                                <span class="badge @row.StatusClass">@(string.IsNullOrEmpty(row.Status) ? "\u2014" : row.Status)</span>
                                                             </td>
                                                             <td class="small">
                                                                 @(row.ValidUntil.HasValue ? row.ValidUntil.Value.ToString("dd MMM yyyy") : "\u2014")
                                                             </td>
                                                             <td>
                                                                 <div class="d-flex gap-1">
-                                                                    @if (row.Type == "Training")
+                                                                    @if (row.IsOnline)
+                                                                    {
+                                                                        @* Phase 371 (D-02): online read-only. Lihat hasil HANYA Completed/Menunggu Penilaian.
+                                                                           NO Edit, NO Hapus (placeholder Phase 367 — extension point cascade delete). *@
+                                                                        @if (row.CanViewResult)
+                                                                        {
+                                                                            <a href="@Url.Action("Results", "CMP", new { id = row.Id })"
+                                                                               class="btn btn-sm btn-outline-info" title="Lihat hasil" target="_blank">
+                                                                                <i class="bi bi-eye"></i>
+                                                                            </a>
+                                                                        }
+                                                                    }
+                                                                    else if (row.Type == "Training")
                                                                     {
                                                                         <a href="@Url.Action("EditTraining", "TrainingAdmin", new { id = row.Id })"
                                                                            class="btn btn-sm btn-outline-primary" title="Edit">
