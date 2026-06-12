@@ -72,7 +72,7 @@
   - SC1: Tab Assessment + Monitoring tanpa search menampilkan sesi lama >7 hari (filter status default "Aktif (Open/Upcoming)" + hide-Closed CIL-02 TETAP — bukan dihapus).
   - SC2: Search behavior quick task 260611-m9r tidak regresi; test suite penuh hijau; UAT @5277.
   - SC3: Trade-off tercatat: sesi Open/InProgress terbengkalai lama ikut tampil di default (lokal: 12 InProgress + 9 Open legacy) — diterima user 2026-06-11; perf aman di skala saat ini (58 row lokal, in-memory grouping).
-- [ ] **Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)** — longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266`: tampilkan juga AssessmentSessions online (IsManualEntry=false) per worker dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"); tombol hapus untuk online TIDAK di sini (delete cascade tetap Phase 367). REQ: URG-03. Migration=false. Depends: — (view-only; selesaikan SEBELUM plan 367 — 367 SC4 build di atas badge ini; koordinasi spec C)
+- [x] **Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)** — longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266`: tampilkan juga AssessmentSessions online (IsManualEntry=false) per worker dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"); tombol hapus untuk online TIDAK di sini (delete cascade tetap Phase 367). REQ: URG-03. Migration=false. Depends: — (view-only; selesaikan SEBELUM plan 367 — 367 SC4 build di atas badge ini; koordinasi spec C) (completed 2026-06-12)
   - SC1: Expand worker di Tab Input Records menampilkan sesi online (termasuk >7 hari, kasus Rino) dengan badge pembeda.
   - SC2: Record manual existing tak berubah render; aksi edit/hapus manual tetap; sesi online TANPA aksi hapus (placeholder menunggu 367).
   - SC3: Test + UAT @5277: worker dengan post test OJT online lama terlihat recordnya.
@@ -119,7 +119,7 @@ Plans:
   3. Empty-state copy disesuaikan (tidak lagi menyiratkan "hanya record manual").
   4. `dotnet build` 0 error + full suite hijau + UAT @5277: worker dengan Post Test OJT online lama terlihat recordnya.
 **UI hint:** yes (badge + baris baru di expand table)
-**Plans:** 1 plan (1 wave)
+**Plans:** 1/1 plans complete
 Plans:
 - [x] 371-01-PLAN.md — onlineRows projection + badge "Assessment Online" + status 6-way + Lihat hasil (CMP/Results) + empty-state copy (URG-03)
 
