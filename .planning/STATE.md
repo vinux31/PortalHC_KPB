@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v25.0
 milestone_name: Proton Kelulusan & Bypass
 status: executing
-last_updated: "2026-06-11T13:30:44.598Z"
-last_activity: 2026-06-11 -- Phase 371 planning complete
+last_updated: "2026-06-12T00:32:20.322Z"
+last_activity: 2026-06-12 -- Phase 371 execution started
 progress:
   total_phases: 19
   completed_phases: 13
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 370 — Hapus Window 7-Hari (Tampilan Default Tanpa Batas)
+**Current focus:** Phase 371 — sesi-online-tampil-di-tab-input-records-visibility-only
 
 ## Current Position
 
 Milestone: v25.0 — Proton Kelulusan & Bypass (6 phase 358-363; 358/359/362 shipped local)
-Phase: 370
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-11 -- Phase 371 planning complete
+Phase: 371 (sesi-online-tampil-di-tab-input-records-visibility-only) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 371
+Last activity: 2026-06-12 -- Phase 371 execution started
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-357, 25/25 REQ, archive milestones/v24.0-*). Bundle v19-v23 sudah ke IT; v24.0 belum push (branch ITHandoff).
 
