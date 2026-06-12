@@ -37,12 +37,14 @@
   - SC2: Re-grade Pass→Fail hapus penanda Origin="Exam"; penanda Bypass/Interview tidak terhapus.
   - SC3: Interview Tahun 3 tetap terbit penanda (Origin="Interview") via helper bersama.
   - SC4: Backfill bikin penanda untuk exam Tahun 1/2 lama yang lulus + deliverable 100%.
-- [x] **Phase 359: Gate Berurutan + Cleanup (A)** — ProtonYearGate + gate eligibility server-side (CreateAssessment) + gate antar-tahun + Tahun 3 data-driven + graduation gate + matikan tampilan level. REQ: PCOMP-06..10. Migration=false. Depends: 358 (completed 2026-06-10)
+- [x] **Phase 359: Gate Berurutan + Cleanup (A)** — ProtonYearGate + gate eligibility server-side (CreateAssessment) + gate antar-tahun + Tahun 3 data-driven + graduation gate + matikan tampilan level. REQ: PCOMP-06..10. Migration=false. Depends: 358
+ (completed 2026-06-10)
   - SC1: POST CreateAssessment Proton tolak worker belum 100% deliverable (server-side, bukan cuma JS).
   - SC2: Tahun N tidak eligible kalau Tahun N-1 belum lulus.
   - SC3: "Mark graduated" diblok kalau Tahun 3 belum lulus.
   - SC4: Halaman CDP/HistoriProton render tanpa kolom level + tanpa grafik tren, tanpa error.
-- [x] **Phase 360: Bypass Backend (B)** — migration#2 `PendingProtonBypass` + closure CL-A/B(a)/B(b)/C + notif `PROTON_BYPASS_READY` (GradingService hook) + coach handling (E15) + bootstrap-by-unit + 6 endpoint (BypassList/PendingList/Detail/Save/Confirm/CancelPending). REQ: PBYP-01..07. Migration=true. Depends: 358 (helper+Origin), 359 (gate-exempt) (completed 2026-06-10)
+- [x] **Phase 360: Bypass Backend (B)** — migration#2 `PendingProtonBypass` + closure CL-A/B(a)/B(b)/C + notif `PROTON_BYPASS_READY` (GradingService hook) + coach handling (E15) + bootstrap-by-unit + 6 endpoint (BypassList/PendingList/Detail/Save/Confirm/CancelPending). REQ: PBYP-01..07. Migration=true. Depends: 358 (helper+Origin), 359 (gate-exempt)
+ (completed 2026-06-10)
   - SC1: Bypass CL-A/B(a)/C eksekusi instan (deactivate asal + create target + bootstrap + audit).
   - SC2: Bypass CL-B(b) bikin pending "Menunggu"; exam lulus → "Siap" + notif HC; konfirmasi → pindah.
   - SC3: Batal pending auto-cancel exam (belum-kerjakan→hapus, sudah-lulus→pertahankan hasil).
@@ -52,8 +54,10 @@
   - SC2: Panel pending tampil + `[Konfirmasi]`/`[Batal]`; notif deep-link buka Tab2 pending.
   - SC3: UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
 - [x] **Phase 362: PROTON CDP Polish** — 6 gap UI/nav/role dari gap-analysis (G-01/04/05/09/10/12). Migration=false. Depends: — (SHIPPED LOCAL 2026-06-10)
-- [x] **Phase 363: Audit Fix Alur PROTON (T1-T10)** — 10 temuan verifikasi adversarial alur PROTON: notif allApproved miss, reject divergen, loophole gate reaktivasi, penanda silent-miss, dead branch, asimetri ValidUntil, drift FromProgress. Migration=false. Depends: 362 (file-overlap CDPController) (completed 2026-06-11)
-- [x] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10) (completed 2026-06-12)
+- [x] **Phase 363: Audit Fix Alur PROTON (T1-T10)** — 10 temuan verifikasi adversarial alur PROTON: notif allApproved miss, reject divergen, loophole gate reaktivasi, penanda silent-miss, dead branch, asimetri ValidUntil, drift FromProgress. Migration=false. Depends: 362 (file-overlap CDPController)
+ (completed 2026-06-11)
+- [x] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10)
+ (completed 2026-06-12)
 - [ ] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
 - [ ] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10)
 - [ ] **Phase 367: Delete Records Cascade Overhaul** — hapus 100% sampai akar: cascade engine renewal rekursif + preview konfirmasi (no blocker) + UI HTMX jujur + assessment online deletable dari tab Input Records + guard duplikat 3 pintu input + fix badge/over-match/file/reset-guard. Temuan #1-12, #14-20 spec C. Migration=false. Depends: 366 (file-overlap 3 endpoint Delete* AssessmentAdminController) (added 2026-06-10)
@@ -68,11 +72,13 @@
 - [x] **Phase 369: Sync H1 Search-Drop Fix main → ITHandoff** — cherry-pick `14e7adc5` (GetWorkersInSection: searchScope null/kosong di-treat "Nama" supaya search tidak ke-drop diam-diam) + test regresi `Scope_Null_WithSearch_FiltersByName_H1`. REQ: URG-01. Migration=false. Depends: — (SHIPPED LOCAL 2026-06-11 — commit cherry-pick `5210e4d4`, verifier 5/5, review CLEAN, test 229/229, UAT Playwright 7→1)
   - SC1: `WorkerDataService.cs:259` punya guard `(string.IsNullOrEmpty(searchScope) || searchScope == "Nama")` identik dengan main.
   - SC2: Test H1 hijau + full suite hijau; UAT Tab Input Records search nama @5277 memfilter (bukan diabaikan).
-- [x] **Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)** — hilangkan filter `sevenDaysAgo` sepenuhnya dari `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` (default view tampilkan SEMUA sesi, bukan 7 hari terakhir; helper `ApplySevenDayWindow` quick task 260611-m9r di-retire/disederhanakan + test disesuaikan). REQ: URG-02. Migration=false. Depends: **363 ship dulu** (363-05 sentuh `AssessmentAdminController.cs` — sedang dieksekusi; hindari konflik file lintas sesi) (completed 2026-06-11)
+- [x] **Phase 370: Hapus Window 7-Hari (Tampilan Default Tanpa Batas)** — hilangkan filter `sevenDaysAgo` sepenuhnya dari `ManageAssessmentTab_Assessment` + `AssessmentMonitoring` (default view tampilkan SEMUA sesi, bukan 7 hari terakhir; helper `ApplySevenDayWindow` quick task 260611-m9r di-retire/disederhanakan + test disesuaikan). REQ: URG-02. Migration=false. Depends: **363 ship dulu** (363-05 sentuh `AssessmentAdminController.cs` — sedang dieksekusi; hindari konflik file lintas sesi)
+ (completed 2026-06-11)
   - SC1: Tab Assessment + Monitoring tanpa search menampilkan sesi lama >7 hari (filter status default "Aktif (Open/Upcoming)" + hide-Closed CIL-02 TETAP — bukan dihapus).
   - SC2: Search behavior quick task 260611-m9r tidak regresi; test suite penuh hijau; UAT @5277.
   - SC3: Trade-off tercatat: sesi Open/InProgress terbengkalai lama ikut tampil di default (lokal: 12 InProgress + 9 Open legacy) — diterima user 2026-06-11; perf aman di skala saat ini (58 row lokal, in-memory grouping).
-- [x] **Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)** — longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266`: tampilkan juga AssessmentSessions online (IsManualEntry=false) per worker dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"); tombol hapus untuk online TIDAK di sini (delete cascade tetap Phase 367). REQ: URG-03. Migration=false. Depends: — (view-only; selesaikan SEBELUM plan 367 — 367 SC4 build di atas badge ini; koordinasi spec C) (completed 2026-06-12)
+- [x] **Phase 371: Sesi Online Tampil di Tab Input Records (visibility-only)** — longgarkan filter `IsManualEntry` di `_TrainingRecordsTab.cshtml:266`: tampilkan juga AssessmentSessions online (IsManualEntry=false) per worker dengan badge pembeda "Assessment Online" (vs "Assessment Manual"/"Training Manual"); tombol hapus untuk online TIDAK di sini (delete cascade tetap Phase 367). REQ: URG-03. Migration=false. Depends: — (view-only; selesaikan SEBELUM plan 367 — 367 SC4 build di atas badge ini; koordinasi spec C)
+ (completed 2026-06-12)
   - SC1: Expand worker di Tab Input Records menampilkan sesi online (termasuk >7 hari, kasus Rino) dengan badge pembeda.
   - SC2: Record manual existing tak berubah render; aksi edit/hapus manual tetap; sesi online TANPA aksi hapus (placeholder menunggu 367).
   - SC3: Test + UAT @5277: worker dengan post test OJT online lama terlihat recordnya.
@@ -262,7 +268,10 @@ Plans:
   1. `MarkMappingCompletedTests` hijau — InMemory DbContext pola `OrganizationControllerTests`: graduate set IsCompleted=true + IsActive=false; cascade assignment aktif → IsActive=false + DeactivatedAt; histori/audit utuh; coachee re-assignable pasca-graduate.
   2. Suite penuh `dotnet test` hijau; zero file produksi berubah (git diff Controllers/ Services/ kosong).
 **UI hint:** no (test-only)
-**Plans:** 0 plans — TBD (run /gsd-plan-phase 365)
+**Plans:** 2 plans (2 waves)
+Plans:
+- [ ] 365-01-PLAN.md — Extract static core MarkMappingCompletedCore + static IsYearCompletedAsync + thin wrapper + ROADMAP SC#2 amend + parity (build/full suite hijau) — Wave 1
+- [ ] 365-02-PLAN.md — MarkMappingCompletedTests.cs (seed Tahun-3-complete helper + 6 [Fact] real-SQL AF-3 lock) + dotnet test hijau — Wave 2 (depends 365-01)
 
 ### Phase 366: Cascade Image File Cleanup (promoted backlog 999.3)
 **Goal:** Hapus file gambar fisik orphan saat cascade delete besar — `DeleteAssessment` (:2184), `DeleteAssessmentGroup` (:2372), `DeletePrePostGroup` (:2558) di `AssessmentAdminController.cs` saat ini RemoveRange Questions/Options dari DB tanpa sentuh file di `wwwroot/uploads/questions/{packageId}`.
