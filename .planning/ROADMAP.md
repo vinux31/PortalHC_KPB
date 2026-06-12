@@ -898,6 +898,40 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
+### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (BACKLOG)
+
+**Goal:** [Captured Phase 364, 2026-06-12] `exam-taking.spec.ts` Flow A–J semua `test.fixme` — flat-form create usang. `/Admin/CreateAssessment` kini wizard 4-langkah (`1.Kategori`→`2.Peserta[disabled]`→`3.Settings`→`4.Konfirmasi`); worker checkbox `display:none` di step 2. Title sudah prefixed `Pre Test ` (REST-06 comply) tapi flow tak bisa jalan tanpa navigasi wizard.
+
+**Context:**
+- Bukti: snapshot A1 @5277 2026-06-12 (Plan 364-01/02). Pola benar ada di `tests/e2e/helpers/examTypes.ts` `createAssessmentViaWizard` (exam-types pakai ini → restored).
+- Scope: rewrite 10 create flow exam-taking pakai wizard-nav. Per-flow beda config (Token/ForceClose/Package/Proton-T3-interview/Multi-worker/Timer). Flow E Proton T3 PLUS risiko drift v25.0 (358-363) — re-check form interview/Tahun-3.
+- Env: app WAJIB jalan `lpc:` shared-memory conn override sampai SQLBrowser lokal dibenahi (lihat 364-03-SUMMARY).
+- Harness: pin `workers: 1` di `tests/playwright.config.ts` (multi-file default 2 worker = pecah isolasi DB shared).
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
+### Phase 999.8: Bug essay finalize — session.Score=0 padahal sudah dinilai (BACKLOG)
+
+**Goal:** [Captured Phase 364, 2026-06-12] Finalize grading essay-only TIDAK mengagregasi skor manual ke `AssessmentSessions.Score`. exam-types L6 `test.fixme`: HC nilai essay 80 + finalize (L5 PASS, badge "Sudah Dinilai") tapi `Score`=0. MA auto-grade (K5) tulis kolom yang sama = 100 OK → spesifik jalur essay.
+
+**Context:**
+- Bukti: `exam-types.spec.ts` L6 (FLOW L) single-worker run 2026-06-12. M5 (mixed MC+MA+essay) PASS single-worker (essay 30 ter-hitung) — jadi inkonsistensi essay-only vs mixed perlu didiagnosa.
+- Suspect: `GradingService` finalize path / hook Phase 358 (Proton completion). Produksi TIDAK diubah di Phase 364 (D-06).
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.6: Bug Impersonate — identitas impersonated tidak dipakai query worker surfaces (BACKLOG)
 
 **Goal:** [Captured for future planning] Impersonate "view as user X" menampilkan data milik admin asli, bukan user yang di-impersonate — banner "Anda melihat sebagai X" menyesatkan.
