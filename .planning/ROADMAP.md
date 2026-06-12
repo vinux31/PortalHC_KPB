@@ -268,10 +268,10 @@ Plans:
   1. `MarkMappingCompletedTests` hijau — real-SQL `ProtonCompletionFixture` (D-04, enforce filtered unique index `IX_CoachCoacheeMappings_CoacheeId_ActiveUnique`): graduate set IsCompleted=true + IsActive=false + CompletedAt/EndDate; cascade assignment aktif → IsActive=false + DeactivatedAt; histori progress utuh; coachee re-assignable pasca-graduate.
   2. Refactor behavior-preserving + parity-locked; `Controllers/CoachMappingController.cs` disentuh (extract static core `MarkMappingCompletedCore` + static `IsYearCompletedAsync` + thin wrapper), zero behavior change dibuktikan via core test hijau + `dotnet test` full suite hijau + `dotnet build` 0 error; `git diff Services/` tetap kosong; migration=false.
 **UI hint:** no (test-only)
-**Plans:** 2 plans (2 waves)
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 365-01-PLAN.md — Extract static core MarkMappingCompletedCore + static IsYearCompletedAsync + thin wrapper + ROADMAP SC#2 amend + parity (build/full suite hijau) — Wave 1
-- [ ] 365-02-PLAN.md — MarkMappingCompletedTests.cs (seed Tahun-3-complete helper + 6 [Fact] real-SQL AF-3 lock) + dotnet test hijau — Wave 2 (depends 365-01)
+- [x] 365-01-PLAN.md — Extract static core MarkMappingCompletedCore + static IsYearCompletedAsync + thin wrapper + ROADMAP SC#2 amend + parity (build/full suite hijau) — Wave 1
+- [x] 365-02-PLAN.md — MarkMappingCompletedTests.cs (seed Tahun-3-complete helper + 7 [Fact] real-SQL AF-3 lock) + dotnet test hijau — Wave 2 (depends 365-01)
 
 ### Phase 366: Cascade Image File Cleanup (promoted backlog 999.3)
 **Goal:** Hapus file gambar fisik orphan saat cascade delete besar — `DeleteAssessment` (:2184), `DeleteAssessmentGroup` (:2372), `DeletePrePostGroup` (:2558) di `AssessmentAdminController.cs` saat ini RemoveRange Questions/Options dari DB tanpa sentuh file di `wwwroot/uploads/questions/{packageId}`.
