@@ -265,8 +265,8 @@ Plans:
 **Migration:** false (test-only, zero kode produksi).
 **Requirements:** test-only, no product REQ. Acuan: `.planning/phases/356-audit-fix-assign-coach-coachee-pastikan-fungsi-assign-benar-/356-05-SUMMARY.md` (Temuan 4) + `356-VALIDATION.md` Wave-0 opsional.
 **Success Criteria** (what must be TRUE):
-  1. `MarkMappingCompletedTests` hijau — InMemory DbContext pola `OrganizationControllerTests`: graduate set IsCompleted=true + IsActive=false; cascade assignment aktif → IsActive=false + DeactivatedAt; histori/audit utuh; coachee re-assignable pasca-graduate.
-  2. Suite penuh `dotnet test` hijau; zero file produksi berubah (git diff Controllers/ Services/ kosong).
+  1. `MarkMappingCompletedTests` hijau — real-SQL `ProtonCompletionFixture` (D-04, enforce filtered unique index `IX_CoachCoacheeMappings_CoacheeId_ActiveUnique`): graduate set IsCompleted=true + IsActive=false + CompletedAt/EndDate; cascade assignment aktif → IsActive=false + DeactivatedAt; histori progress utuh; coachee re-assignable pasca-graduate.
+  2. Refactor behavior-preserving + parity-locked; `Controllers/CoachMappingController.cs` disentuh (extract static core `MarkMappingCompletedCore` + static `IsYearCompletedAsync` + thin wrapper), zero behavior change dibuktikan via core test hijau + `dotnet test` full suite hijau + `dotnet build` 0 error; `git diff Services/` tetap kosong; migration=false.
 **UI hint:** no (test-only)
 **Plans:** 2 plans (2 waves)
 Plans:

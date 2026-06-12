@@ -1096,20 +1096,64 @@ namespace HcPortal.Controllers
             }
         }
 
-        // Phase 236 COMP-04: completion criteria helper per D-13
-        private async Task<bool> IsYearCompletedAsync(int assignmentId)
+        // Phase 236 COMP-04 + Phase 365 D-05: static agar core callable tanpa instance controller. Logika NOL berubah (_context -> ctx).
+        private static async Task<bool> IsYearCompletedAsync(ApplicationDbContext ctx, int assignmentId)
         {
-            var progresses = await _context.ProtonDeliverableProgresses
+            var progresses = await ctx.ProtonDeliverableProgresses
                 .Where(p => p.ProtonTrackAssignmentId == assignmentId)
                 .ToListAsync();
             if (!progresses.Any()) return false;
             bool allApproved = progresses.All(p => p.Status == "Approved");
-            bool hasFinalAssessment = await _context.ProtonFinalAssessments
+            bool hasFinalAssessment = await ctx.ProtonFinalAssessments
                 .AnyAsync(fa => fa.ProtonTrackAssignmentId == assignmentId);
             return allApproved && hasFinalAssessment;
         }
 
-        // Phase 236 COMP-04: Mark mapping as completed/graduated per D-15
+        // Phase 365 D-01/D-02: static core graduate (pola 363 CDPController.ApproveDeliverableCoreAsync).
+        // Guard + mutasi + cascade + SaveChanges di core; NO transaksi di core (D-02 -> wrapper).
+        // not-found & guard return (false, error, 0). OQ-1: SaveChangesAsync di core (dalam scope transaksi wrapper).
+        public static async Task<(bool ok, string? error, int cascadeCount)> MarkMappingCompletedCore(
+            ApplicationDbContext context, int mappingId)
+        {
+            var mapping = await context.CoachCoacheeMappings.FindAsync(mappingId);
+            if (mapping == null) return (false, "Mapping tidak ditemukan.", 0);   // OQ-2: not-found di core
+
+            // Validate: coachee harus punya semua tahun completed
+            var assignments = await context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                .ToListAsync();
+            var tahun3Assignment = assignments
+                .FirstOrDefault(a => a.ProtonTrack != null && a.ProtonTrack.TahunKe == "Tahun 3");
+            if (tahun3Assignment == null)
+                return (false, "Coachee belum memiliki assignment Tahun 3.", 0);   // token "Tahun 3"
+
+            bool tahun3Complete = await IsYearCompletedAsync(context, tahun3Assignment.Id);
+            if (!tahun3Complete)
+                return (false, "Tidak bisa menandai lulus (graduated): Tahun 3 belum lulus untuk pekerja ini.", 0);  // token "belum lulus"
+
+            // MUTASI (verbatim dari produksi lama)
+            mapping.IsCompleted = true;
+            mapping.CompletedAt = DateTime.UtcNow;
+            mapping.IsActive = false;            // AF-3 D-03: bebaskan unique-index IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
+            mapping.EndDate = DateTime.UtcNow;   // AF-3 D-03: tandai akhir mapping graduated
+
+            // AF-3 D-04: cascade deactivate ProtonTrackAssignment aktif coachee. Stamp DeactivatedAt; JANGAN hapus histori (BUKAN RemoveRange).
+            // Reuse list 'assignments' di atas (predikat CoacheeId+IsActive identik dengan query kedua produksi lama) -> cascadeCount identik.
+            var deactivationTime = mapping.EndDate.Value;
+            foreach (var a in assignments)
+            {
+                a.IsActive = false;
+                a.DeactivatedAt = deactivationTime;
+            }
+            int cascadeCount = assignments.Count;
+
+            await context.SaveChangesAsync();    // OQ-1: SaveChanges di core (dalam scope transaksi wrapper)
+            return (true, null, cascadeCount);
+        }
+
+        // Phase 236 COMP-04: Mark mapping as completed/graduated per D-15.
+        // Phase 365 D-03: wrapper tipis — resolve-user + transaksi + audit + redirect; logika di MarkMappingCompletedCore.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, HC")]
@@ -1117,55 +1161,26 @@ namespace HcPortal.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
-            var mapping = await _context.CoachCoacheeMappings.FindAsync(mappingId);
-            if (mapping == null) return NotFound();
-            // Validate: coachee harus punya semua tahun completed
-            var assignments = await _context.ProtonTrackAssignments
-                .Include(a => a.ProtonTrack)
-                .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
-                .ToListAsync();
-            var tahun3Assignment = assignments
-                .FirstOrDefault(a => a.ProtonTrack != null && a.ProtonTrack.TahunKe == "Tahun 3");
-            if (tahun3Assignment == null)
-            {
-                TempData["Error"] = "Coachee belum memiliki assignment Tahun 3.";
-                return RedirectToAction("CoachCoacheeMapping");
-            }
-            bool tahun3Complete = await IsYearCompletedAsync(tahun3Assignment.Id);
-            if (!tahun3Complete)
-            {
-                TempData["Error"] = "Tidak bisa menandai lulus (graduated): Tahun 3 belum lulus untuk pekerja ini.";
-                return RedirectToAction("CoachCoacheeMapping");
-            }
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                mapping.IsCompleted = true;
-                mapping.CompletedAt = DateTime.UtcNow;
-                mapping.IsActive = false;            // AF-3 D-03: bebaskan unique-index IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
-                mapping.EndDate = DateTime.UtcNow;   // AF-3 D-03: tandai akhir mapping graduated
-
-                // AF-3 D-04: cascade deactivate ProtonTrackAssignment aktif coachee (mirror Deactivate L930-940).
-                // Stamp DeactivatedAt (pola FIX-01); JANGAN hapus histori progress (BUKAN RemoveRange).
-                var deactivationTime = mapping.EndDate.Value;
-                var activeAssignments = await _context.ProtonTrackAssignments
-                    .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
-                    .ToListAsync();
-                foreach (var a in activeAssignments)
+                var (ok, error, cascadeCount) = await MarkMappingCompletedCore(_context, mappingId);   // D-01 seam
+                if (!ok)
                 {
-                    a.IsActive = false;
-                    a.DeactivatedAt = deactivationTime;
+                    await transaction.RollbackAsync();
+                    if (error == "Mapping tidak ditemukan.") return NotFound();   // OQ-2: core error -> NotFound (pola 363)
+                    TempData["Error"] = error;
+                    return RedirectToAction("CoachCoacheeMapping");
                 }
-                int cascadeCount = activeAssignments.Count;
-
-                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
+                var mapping = await _context.CoachCoacheeMappings.FindAsync(mappingId);   // re-read (tracked) untuk CoacheeId di pesan audit
                 var actorName = string.IsNullOrWhiteSpace(user.NIP)
                     ? (user.FullName ?? "Unknown")
                     : $"{user.NIP} - {user.FullName}";
                 await _auditLog.LogAsync(user.Id, actorName, "MarkMappingCompleted",
-                    $"Mapping ID={mappingId} ditandai graduated (IsActive=false). CoacheeId={mapping.CoacheeId} — {cascadeCount} ProtonTrackAssignment juga dinonaktifkan", mappingId, "CoachCoacheeMapping");
+                    $"Mapping ID={mappingId} ditandai graduated (IsActive=false). CoacheeId={mapping?.CoacheeId} — {cascadeCount} ProtonTrackAssignment juga dinonaktifkan", mappingId, "CoachCoacheeMapping");
                 TempData["Success"] = "Coachee berhasil ditandai sebagai graduated.";
                 return RedirectToAction("CoachCoacheeMapping");
             }
