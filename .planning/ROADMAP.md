@@ -288,7 +288,7 @@ Plans:
 Plans:
 - [x] 366-01-PLAN.md — Ekstrak helper static ImageFileCleanup + swap 3 call-site inline (perilaku identik, SC#1)
 - [x] 366-02-PLAN.md — Pasang helper di 3 cascade Delete* (collect-before + post-commit AnyAsync, SC#2/#3)
-- [ ] 366-03-PLAN.md — Integration test real-SQL (orphan bersih + shared selamat) + rekonsiliasi mirror D-04 + UAT @5277 (SC#4)
+- [x] 366-03-PLAN.md — Integration test real-SQL (orphan bersih + shared selamat) + rekonsiliasi mirror D-04 + UAT @5277 (SC#4)
 
 ### Phase 367: Delete Records Cascade Overhaul
 **Goal:** Admin bisa hapus record worker (training / assessment manual / assessment ONLINE) dari tab Input Records sampai 100% bersih — cascade rekursif seluruh turunan renewal lintas `TrainingRecords`↔`AssessmentSessions` + semua artefak per node (EditLogs, PackageUserResponses, AttemptHistory, UserPackageAssignments, Packages+Q+O, notifikasi lonceng, penanda Proton `Origin='Exam'`, PendingProtonBypass, `LinkedSessionId` pasangan, file sertifikat) — dengan preview konfirmasi (bukan blokir) dan UI HTMX jujur (gagal ≠ sukses). Asal: brainstorm 2026-06-10 (repro live lokal + kasus Rino @Dev). Spec C: `docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md` — temuan **#1-12, #14-20**.
