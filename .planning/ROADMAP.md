@@ -59,7 +59,7 @@
 - [x] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10)
  (completed 2026-06-12)
 - [ ] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
-- [ ] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10)
+- [x] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10) (completed 2026-06-12)
 - [ ] **Phase 367: Delete Records Cascade Overhaul** — hapus 100% sampai akar: cascade engine renewal rekursif + preview konfirmasi (no blocker) + UI HTMX jujur + assessment online deletable dari tab Input Records + guard duplikat 3 pintu input + fix badge/over-match/file/reset-guard. Temuan #1-12, #14-20 spec C. Migration=false. Depends: 366 (file-overlap 3 endpoint Delete* AssessmentAdminController) (added 2026-06-10)
 - [ ] **Phase 368: Delete Records Hygiene Lanjutan** — edit atomic file replace + reset bersihkan ET scores + audit log ImportTraining + dedup CertificationManagement CMP/CDP + validasi Renews*Id + rename label BulkBackfill + one-time cleanup AttemptHistory orphan legacy. Temuan #21-27 spec C. Migration=false. Depends: 367 (file-overlap TrainingAdminController/ResetAssessment) (added 2026-06-10)
 
@@ -284,7 +284,7 @@ Plans:
   3. Gambar yang masih direferensikan soal/opsi di luar batch TIDAK terhapus (shared-path Pre↔Post v24.0).
   4. `dotnet build` 0 error + `dotnet test` hijau + UAT @5277: hapus assessment bergambar → file fisik ikut bersih; hapus salah satu Pre/Post yang share gambar → file selamat.
 **UI hint:** no (backend cleanup)
-**Plans:** 3 plans (3 waves)
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 366-01-PLAN.md — Ekstrak helper static ImageFileCleanup + swap 3 call-site inline (perilaku identik, SC#1)
 - [x] 366-02-PLAN.md — Pasang helper di 3 cascade Delete* (collect-before + post-commit AnyAsync, SC#2/#3)
