@@ -70,6 +70,9 @@ builder.Services.AddScoped<HcPortal.Services.IWorkerDataService, HcPortal.Servic
 // Org Label Service — Phase 340 milestone v21.0 (D-06 Scoped, ApplicationDbContext captive prevention)
 builder.Services.AddScoped<HcPortal.Services.IOrgLabelService, HcPortal.Services.OrgLabelService>();
 
+// Record cascade delete service — Phase 367: cascade hapus record worker (preview + execute) lintas renewal
+builder.Services.AddScoped<HcPortal.Services.RecordCascadeDeleteService>();
+
 // Auth service — factory delegates based on Authentication:UseActiveDirectory config toggle
 // dev (false) -> LocalAuthService (Identity PasswordHash)
 // prod (true)  -> HybridAuthService (AD for all users, local fallback for admin@pertamina.com)
