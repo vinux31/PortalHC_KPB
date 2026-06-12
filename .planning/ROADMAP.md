@@ -53,7 +53,7 @@
   - SC3: UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
 - [x] **Phase 362: PROTON CDP Polish** — 6 gap UI/nav/role dari gap-analysis (G-01/04/05/09/10/12). Migration=false. Depends: — (SHIPPED LOCAL 2026-06-10)
 - [x] **Phase 363: Audit Fix Alur PROTON (T1-T10)** — 10 temuan verifikasi adversarial alur PROTON: notif allApproved miss, reject divergen, loophole gate reaktivasi, penanda silent-miss, dead branch, asimetri ValidUntil, drift FromProgress. Migration=false. Depends: 362 (file-overlap CDPController) (completed 2026-06-11)
-- [ ] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10)
+- [x] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10) (completed 2026-06-12)
 - [ ] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
 - [ ] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10)
 - [ ] **Phase 367: Delete Records Cascade Overhaul** — hapus 100% sampai akar: cascade engine renewal rekursif + preview konfirmasi (no blocker) + UI HTMX jujur + assessment online deletable dari tab Input Records + guard duplikat 3 pintu input + fix badge/over-match/file/reset-guard. Temuan #1-12, #14-20 spec C. Migration=false. Depends: 366 (file-overlap 3 endpoint Delete* AssessmentAdminController) (added 2026-06-10)
@@ -248,10 +248,10 @@ Plans:
   3. Auto-pair Phase 338 (`TryAutoDetectCounterpartGroup` :7111, IgnoreCase) tidak salah-pasang LinkedGroupId — `uniqueTitle` timestamp dipertahankan di judul.
   4. Kedua spec PASS penuh @localhost:5277 (atau failure tersisa terdokumentasi bukan-karena-judul).
 **UI hint:** no (test-only)
-**Plans:** 3 plans (sequential — same 2 files, 3 waves)
-- [ ] 364-01-PLAN.md — Baseline diagnosa (D-10): run kedua spec as-is @5277, klasifikasi failure per-flow (TITLE vs NON-TITLE)
-- [ ] 364-02-PLAN.md — Edit 21 judul standard-create jadi prefix "Pre Test" (D-01..D-04) + asersi DB LinkedGroupId IS NULL FLOW K (D-11/SC#3)
-- [ ] 364-03-PLAN.md — Triage drift (fix-in-test D-05 / test.fixme D-06) + gate D-15 (2 spec @5277 + dotnet test) + SEED_JOURNAL + SUMMARY
+**Plans:** 3/3 plans complete
+- [x] 364-01-PLAN.md — Baseline diagnosa (D-10): run kedua spec as-is @5277, klasifikasi failure per-flow (TITLE vs NON-TITLE)
+- [x] 364-02-PLAN.md — Edit 21 judul standard-create jadi prefix "Pre Test" (D-01..D-04) + asersi DB LinkedGroupId IS NULL FLOW K (D-11/SC#3)
+- [x] 364-03-PLAN.md — Triage drift (fix-in-test D-05 / test.fixme D-06) + gate D-15 (2 spec @5277 + dotnet test) + SEED_JOURNAL + SUMMARY
 
 ### Phase 365: Test-hardening Coach×Coachee — AF-3 xUnit (promoted backlog 999.5)
 **Goal:** Lock perilaku graduate `MarkMappingCompleted` (`CoachMappingController.cs:1103`) dengan xUnit `MarkMappingCompletedTests` (scope opsi (b) dari backlog — nilai tinggi, effort rendah, tanpa fixture berat): IsCompleted=true + lock IsActive=false (AF-3 D-03) + cascade deactivate ProtonTrackAssignment + DeactivatedAt (AF-3 D-04) + histori utuh.
