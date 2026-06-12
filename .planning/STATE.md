@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v25.0
 milestone_name: Proton Kelulusan & Bypass
 status: executing
-last_updated: "2026-06-12T01:48:27.184Z"
-last_activity: 2026-06-12
+last_updated: "2026-06-12T02:47:44.410Z"
+last_activity: 2026-06-12 -- Phase 366 execution started
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 14
-  total_plans: 55
-  completed_plans: 52
-  percent: 95
+  total_plans: 58
+  completed_plans: 54
+  percent: 93
 ---
 
 # Project State: Portal HC KPB
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 371 — sesi-online-tampil-di-tab-input-records-visibility-only
+**Current focus:** Phase 366 — cascade-image-file-cleanup-orphan-gambar-deleteassessment-gr
 
 ## Current Position
 
 Milestone: v25.0 — Proton Kelulusan & Bypass (6 phase 358-363; 358/359/362 shipped local)
-Phase: 371
-Plan: Not started
-Status: Executing Phase 371
-Last activity: 2026-06-12
+Phase: 366 (cascade-image-file-cleanup-orphan-gambar-deleteassessment-gr) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 366
+Last activity: 2026-06-12 -- Phase 366 execution started
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-357, 25/25 REQ, archive milestones/v24.0-*). Bundle v19-v23 sudah ke IT; v24.0 belum push (branch ITHandoff).
 
