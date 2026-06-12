@@ -5761,21 +5761,7 @@ namespace HcPortal.Controllers
             }
 
             // D-11 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (Post mungkin di-rebuild share path).
-            foreach (var relUrl in imagePathsToDelete.Distinct())
-            {
-                bool stillUsedQ = await _context.PackageQuestions.AnyAsync(x => x.ImagePath == relUrl);
-                bool stillUsedO = await _context.PackageOptions.AnyAsync(x => x.ImagePath == relUrl);
-                if (stillUsedQ || stillUsedO) continue; // dipakai Post/lain → SKIP
-                try
-                {
-                    var physical = Path.Combine(_env.WebRootPath, relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
-                }
-                catch (Exception fex)
-                {
-                    _logger.LogWarning(fex, "File.Delete post-commit failed (DeletePackage image): {Path}", relUrl);
-                }
-            }
+            await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeletePackage image");
 
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
@@ -6726,21 +6712,7 @@ namespace HcPortal.Controllers
             // Ref-count + File.Delete SETELAH auto-sync (SYN-02 / D-10 / OQ2 ordering).
             // KRITIS: harus setelah SaveChanges DAN auto-sync — agar Post yang share path
             // sudah ter-update sebelum dicek; ref-count melindungi shared-file (Pre+Post).
-            foreach (var relUrl in imagePathsToDelete.Distinct())
-            {
-                bool stillUsedQ = await _context.PackageQuestions.AnyAsync(x => x.ImagePath == relUrl);
-                bool stillUsedO = await _context.PackageOptions.AnyAsync(x => x.ImagePath == relUrl);
-                if (stillUsedQ || stillUsedO) continue; // masih dipakai baris lain → SKIP (D-10)
-                try
-                {
-                    var physical = Path.Combine(_env.WebRootPath, relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
-                }
-                catch (Exception fex)
-                {
-                    _logger.LogWarning(fex, "File.Delete post-commit failed (question image): {Path}", relUrl);
-                }
-            }
+            await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "question image");
 
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
@@ -6831,21 +6803,7 @@ namespace HcPortal.Controllers
             }
 
             // SYN-02 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (warn-only per file).
-            foreach (var relUrl in imagePathsToDelete.Distinct())
-            {
-                bool stillUsedQ = await _context.PackageQuestions.AnyAsync(x => x.ImagePath == relUrl);
-                bool stillUsedO = await _context.PackageOptions.AnyAsync(x => x.ImagePath == relUrl);
-                if (stillUsedQ || stillUsedO) continue; // dipakai Post/lain → SKIP (SC #6)
-                try
-                {
-                    var physical = Path.Combine(_env.WebRootPath, relUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    if (System.IO.File.Exists(physical)) System.IO.File.Delete(physical);
-                }
-                catch (Exception fex)
-                {
-                    _logger.LogWarning(fex, "File.Delete post-commit failed (DeleteQuestion image): {Path}", relUrl);
-                }
-            }
+            await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeleteQuestion image");
 
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
