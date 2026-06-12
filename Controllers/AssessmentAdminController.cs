@@ -2315,6 +2315,14 @@ namespace HcPortal.Controllers
                     .Include(p => p.Questions).ThenInclude(q => q.Options)
                     .Where(p => p.AssessmentSessionId == id)
                     .ToListAsync();
+                // Phase 366: kumpul ImagePath Distinct SEBELUM RemoveRange (atomic Phase 333).
+                var imagePaths = packages
+                    .SelectMany(p => p.Questions)
+                    .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .Select(p => p!)
+                    .Distinct()
+                    .ToList();
                 if (packages.Any())
                 {
                     foreach (var pkg in packages)
@@ -2332,6 +2340,10 @@ namespace HcPortal.Controllers
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
+
+                // Phase 366: hapus file gambar orphan SETELAH commit (atomic Phase 333). Post-commit
+                // AnyAsync auto-sadar batch + shared Pre/Post selamat (D-05). logger lokal (BUKAN _logger).
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeleteAssessment image");
 
                 // Audit log
                 try
@@ -2498,6 +2510,14 @@ namespace HcPortal.Controllers
                     .Include(p => p.Questions).ThenInclude(q => q.Options)
                     .Where(p => siblingIds.Contains(p.AssessmentSessionId))
                     .ToListAsync();
+                // Phase 366: kumpul ImagePath Distinct SEBELUM RemoveRange (multi-sibling batch).
+                var imagePaths = allPackages
+                    .SelectMany(p => p.Questions)
+                    .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .Select(p => p!)
+                    .Distinct()
+                    .ToList();
                 if (allPackages.Any())
                 {
                     foreach (var pkg in allPackages)
@@ -2517,6 +2537,9 @@ namespace HcPortal.Controllers
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
+
+                // Phase 366: hapus file gambar orphan SETELAH commit. logger lokal method ini.
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeleteAssessmentGroup image");
 
                 // Audit log
                 try
@@ -2678,6 +2701,14 @@ namespace HcPortal.Controllers
                     .Include(p => p.Questions).ThenInclude(q => q.Options)
                     .Where(p => groupIds.Contains(p.AssessmentSessionId))
                     .ToListAsync();
+                // Phase 366 / SC#3: kumpul ImagePath Distinct SEBELUM RemoveRange (Pre+Post 1 batch).
+                var imagePaths = allPackages
+                    .SelectMany(p => p.Questions)
+                    .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .Select(p => p!)
+                    .Distinct()
+                    .ToList();
                 if (allPackages.Any())
                 {
                     foreach (var pkg in allPackages)
@@ -2694,6 +2725,10 @@ namespace HcPortal.Controllers
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
+
+                // Phase 366 / SC#3: Pre+Post dihapus 1 batch → shared path tak lagi direferensikan
+                // baris mana pun → AnyAsync false → file dihapus benar (D-05). logger lokal (:2565).
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeletePrePostGroup image");
 
                 // Audit log
                 try
