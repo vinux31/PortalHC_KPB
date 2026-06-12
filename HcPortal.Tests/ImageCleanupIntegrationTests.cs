@@ -66,6 +66,10 @@ public class ImageCleanupFixture : IAsyncLifetime
     }
 }
 
+// Isolasi: kedua [Fact] berbagi 1 DB disposable (IClassFixture) TAPI tiap test memakai relUrl
+// unik (orphan.jpg vs shared.jpg), session/paket/soal sendiri, dan temp-webroot sendiri (MakeTempWebRoot
+// per test) — jadi tak ada cross-test contamination meski rows persist antar Fact. Pakai DbContext baru
+// per test (await using). Bila kelak butuh isolasi DB penuh, ganti IClassFixture → IAsyncLifetime per-test.
 [Trait("Category", "Integration")]
 public class ImageCleanupIntegrationTests : IClassFixture<ImageCleanupFixture>
 {

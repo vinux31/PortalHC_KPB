@@ -2727,7 +2727,8 @@ namespace HcPortal.Controllers
                 await tx.CommitAsync();
 
                 // Phase 366 / SC#3: Pre+Post dihapus 1 batch → shared path tak lagi direferensikan
-                // baris mana pun → AnyAsync false → file dihapus benar (D-05). logger lokal (:2565).
+                // baris mana pun → AnyAsync false → file dihapus benar (D-05). logger = variabel lokal
+                // method ini (GetRequiredService<ILogger<...>>), BUKAN field _logger.
                 await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeletePrePostGroup image");
 
                 // Audit log
