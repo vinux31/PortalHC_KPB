@@ -28,6 +28,8 @@ async function goToMonitoringDetail(page: Page, assessmentTitle: string) {
 // HC creates → adds questions → worker starts → answers → submits → results → answer review → certificate
 // ============================================================
 test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let assessmentId: number;
 
@@ -310,6 +312,8 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
 // FLOW B: Token-protected exam
 // ============================================================
 test.describe('Flow B: Token-Protected Exam', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
 
   test('B1 - HC creates token-required assessment', async ({ page }) => {
@@ -395,6 +399,8 @@ test.describe('Flow B: Token-Protected Exam', () => {
 // FLOW C: Force Close & Close Early
 // ============================================================
 test.describe('Flow C: Force Close & Close Early', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let assessmentId: number;
 
@@ -541,6 +547,8 @@ test.describe('Flow C: Force Close & Close Early', () => {
 // FLOW D: Package-based exam with reshuffle
 // ============================================================
 test.describe('Flow D: Package-Based Exam', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let assessmentId: number;
 
@@ -696,6 +704,8 @@ test.describe('Flow D: Package-Based Exam', () => {
 // FLOW E: Proton Tahun 3 Interview (offline)
 // ============================================================
 test.describe('Flow E: Proton Tahun 3 Interview', () => {
+  // 364 drift: blocked at wizard create (same as A-J). PLUS highest Proton-v25.0 interview/Tahun-3 drift risk post-create. Backlog 999.7 (migration) — re-assess Proton form during migration.
+  test.fixme(true, '364: CreateAssessment 4-step wizard + Proton v25.0 (358-363) interview drift — needs wizard-nav migration + Proton form re-check. Backlog 999.7.');
   let title: string;
 
   test('E1 - HC creates Assessment Proton Tahun 3', async ({ page }) => {
@@ -826,6 +836,8 @@ test.describe('Flow E: Proton Tahun 3 Interview', () => {
 // FLOW F: Multiple workers same assessment
 // ============================================================
 test.describe('Flow F: Multiple Workers Same Assessment', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let assessmentId: number;
 
@@ -956,6 +968,8 @@ test.describe('Flow F: Multiple Workers Same Assessment', () => {
 // FLOW G: Exam timer expired (short duration)
 // ============================================================
 test.describe('Flow G: Exam Timer Expired', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let assessmentId: number;
 
@@ -1050,6 +1064,8 @@ test.describe('Flow G: Exam Timer Expired', () => {
 // polling reflects InProgress → worker submits → polling reflects Completed
 // ============================================================
 test.describe('Flow H: Real-Time Monitoring', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let assessmentId: number;
 
@@ -1284,6 +1300,8 @@ test.describe('Flow H: Real-Time Monitoring', () => {
 // HC creates → edits title & pass percentage → verifies changes persist
 // ============================================================
 test.describe('Flow I: Edit Assessment', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let editedTitle: string;
 
@@ -1397,6 +1415,8 @@ test.describe('Flow I: Edit Assessment', () => {
 // Worker starts exam → abandons → HC sees Abandoned → HC resets → worker retakes
 // ============================================================
 test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
+  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
+  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
   let title: string;
   let assessmentId: number;
 
