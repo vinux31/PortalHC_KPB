@@ -268,14 +268,18 @@ Plans:
 **Goal:** Hapus file gambar fisik orphan saat cascade delete besar — `DeleteAssessment` (:2184), `DeleteAssessmentGroup` (:2372), `DeletePrePostGroup` (:2558) di `AssessmentAdminController.cs` saat ini RemoveRange Questions/Options dari DB tanpa sentuh file di `wwwroot/uploads/questions/{packageId}`.
 **Depends on:** Phase 363 (line stability `AssessmentAdminController.cs` — 363 T9/T10 + 360-06 Task2 sentuh file sama, method beda). Scope DIKOREKSI hasil verifikasi adversarial 2026-06-10: **tidak ada helper produksi** — Phase 353 memilih pola inline (duplikasi 3x), `DeleteIfUnreferenced` hanya mirror di test project.
 **Migration:** false.
-**Requirements:** TBD saat plan. Acuan: `.planning/phases/353-admin-backend-gambar-crud-sync-atomic-delete/353-CONTEXT.md` bagian `<deferred>`.
+**Requirements:** Tidak ada product REQ-ID (SC-derived). Tag: SC1-helper-extract, SC2-cascade-install, SC3-shared-survive, SC4-test-uat. Acuan: 366-CONTEXT.md (D-01..D-06) + 366-PATTERNS.md.
 **Success Criteria** (what must be TRUE):
   1. Helper baru diekstrak (mis. `DeleteImageFilesIfUnreferencedAsync(IEnumerable<string> paths)`) dari 3 call-site inline existing (DeletePackage :5755 / EditQuestion POST :6718 / DeleteQuestion :6825); 3 call-site lama pakai helper, perilaku tak berubah (ref-count `AnyAsync` PackageQuestions+PackageOptions → File.Delete warn-only).
   2. 3 method Delete* target: kumpul ImagePath `Distinct()` SEBELUM RemoveRange, eksekusi hapus file SETELAH `tx.CommitAsync` (3 method ber-transaction — pola Phase 333); ref-count sadar batch (semua referensi dalam batch ikut terhapus → file aman dihapus).
   3. Gambar yang masih direferensikan soal/opsi di luar batch TIDAK terhapus (shared-path Pre↔Post v24.0).
   4. `dotnet build` 0 error + `dotnet test` hijau + UAT @5277: hapus assessment bergambar → file fisik ikut bersih; hapus salah satu Pre/Post yang share gambar → file selamat.
 **UI hint:** no (backend cleanup)
-**Plans:** 0 plans — TBD (run /gsd-plan-phase 366)
+**Plans:** 3 plans (3 waves)
+Plans:
+- [ ] 366-01-PLAN.md — Ekstrak helper static ImageFileCleanup + swap 3 call-site inline (perilaku identik, SC#1)
+- [ ] 366-02-PLAN.md — Pasang helper di 3 cascade Delete* (collect-before + post-commit AnyAsync, SC#2/#3)
+- [ ] 366-03-PLAN.md — Integration test real-SQL (orphan bersih + shared selamat) + rekonsiliasi mirror D-04 + UAT @5277 (SC#4)
 
 ### Phase 367: Delete Records Cascade Overhaul
 **Goal:** Admin bisa hapus record worker (training / assessment manual / assessment ONLINE) dari tab Input Records sampai 100% bersih — cascade rekursif seluruh turunan renewal lintas `TrainingRecords`↔`AssessmentSessions` + semua artefak per node (EditLogs, PackageUserResponses, AttemptHistory, UserPackageAssignments, Packages+Q+O, notifikasi lonceng, penanda Proton `Origin='Exam'`, PendingProtonBypass, `LinkedSessionId` pasangan, file sertifikat) — dengan preview konfirmasi (bukan blokir) dan UI HTMX jujur (gagal ≠ sukses). Asal: brainstorm 2026-06-10 (repro live lokal + kasus Rino @Dev). Spec C: `docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md` — temuan **#1-12, #14-20**.
