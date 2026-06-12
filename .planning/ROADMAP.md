@@ -304,7 +304,7 @@ Plans:
 **UI hint:** yes (modal preview, badge + tombol hapus online di tab 2, flash di partial).
 **Plans:** 8 plans (5 waves)
 Plans:
-- [ ] 367-01-PLAN.md — Cascade engine: traversal BFS lintas tabel + cycle guard + BuildPreviewAsync read-only + mirror heuristik ±1 hari + DI (§3.1, #15). Wave 1
+- [x] 367-01-PLAN.md — Cascade engine: traversal BFS lintas tabel + cycle guard + BuildPreviewAsync read-only + mirror heuristik ±1 hari + DI (§3.1, #15). Wave 1
 - [ ] 367-02-PLAN.md — Cascade engine: ExecuteAsync 1-tx parity gold-standard + 4 delta (LinkedSessionId/soft-cancel/RemoveExamOrigin/notif) + file cert + audit + integration real-SQL (#5/#6/#8/#9/#10/#11/#19/L-04/L-08). Wave 2
 - [ ] 367-03-PLAN.md — Badge recompute = baris tampil per jenis (#16/#17, D-01). Wave 1
 - [ ] 367-04-PLAN.md — DeleteAssessmentGroup sibling filter no over-match (#18) + ResetAssessment guard IsManualEntry (#20). Wave 1
