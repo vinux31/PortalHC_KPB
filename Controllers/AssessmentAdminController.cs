@@ -2382,6 +2382,19 @@ namespace HcPortal.Controllers
             }
         }
 
+        // #18 Phase 367: predikat sibling grup standard online — single-source dipakai query EF DeleteAssessmentGroup
+        // + diuji SiblingFilterTests. Samakan scope dgn mgStandardSessions (LinkedGroupId==null): bukan Pre/Post group,
+        // bukan PreTest/PostTest, bukan assessment manual (cegah over-deletion ke luar scope tampilan tab 1).
+        public static System.Linq.Expressions.Expression<Func<AssessmentSession, bool>> StandardGroupSiblingPredicate(
+            string title, string category, DateTime scheduleDate)
+            => a => a.Title == title
+                    && a.Category == category
+                    && a.Schedule.Date == scheduleDate
+                    && a.LinkedGroupId == null
+                    && a.AssessmentType != "PreTest"
+                    && a.AssessmentType != "PostTest"
+                    && !a.IsManualEntry;
+
         // --- DELETE ASSESSMENT GROUP ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -2405,12 +2418,10 @@ namespace HcPortal.Controllers
 
                 var scheduleDate = rep.Schedule.Date;
 
-                // Find all siblings (same Title + Category + Schedule.Date)
+                // Find all siblings (same Title + Category + Schedule.Date) — #18 Phase 367: filter scope grup standard
+                // (LinkedGroupId==null && bukan Pre/Post && !manual) supaya tidak menyapu sesi di luar tampilan tab 1.
                 var siblings = await _context.AssessmentSessions
-                    .Where(a =>
-                        a.Title == rep.Title &&
-                        a.Category == rep.Category &&
-                        a.Schedule.Date == scheduleDate)
+                    .Where(StandardGroupSiblingPredicate(rep.Title, rep.Category, scheduleDate))
                     .ToListAsync();
 
                 logger.LogInformation($"DeleteAssessmentGroup: deleting {siblings.Count} sessions for '{rep.Title}'");
@@ -4044,6 +4055,10 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageAssessment");
         }
 
+        // #20 Phase 367: record manual tak punya jawaban untuk di-reset (reset hanya untuk sesi online).
+        // Single-source: dipakai guard ResetAssessment di bawah + diuji ResetGuardTests.
+        public static bool IsResettable(AssessmentSession assessment) => !assessment.IsManualEntry;
+
         // --- RESET ASSESSMENT ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -4054,6 +4069,17 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (assessment == null) return NotFound();
+
+            // #20 Phase 367: tolak reset assessment manual — gunakan Edit untuk ubah atau Hapus untuk menghapus record.
+            if (!IsResettable(assessment))
+            {
+                TempData["Error"] = "Assessment manual tidak dapat di-reset. Gunakan Edit untuk mengubah, atau Hapus untuk menghapus record.";
+                return RedirectToAction("AssessmentMonitoringDetail", new {
+                    title = assessment.Title,
+                    category = assessment.Category,
+                    scheduleDate = assessment.Schedule.Date.ToString("yyyy-MM-dd")
+                });
+            }
 
             // D-17: Block reset Pre jika Post sudah Completed
             if (assessment.AssessmentType == "PreTest" && assessment.LinkedSessionId.HasValue)
