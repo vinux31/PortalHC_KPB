@@ -193,7 +193,7 @@ var imagePaths = packages
 Then AFTER `:2334` (`await tx.CommitAsync();`), before the audit-log try-block at `:2337`:
 
 ```csharp
-await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePaths, "DeleteAssessment image");
+await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeleteAssessment image");
 ```
 
 > **Atomicity (Phase 333) — why post-commit:** the file delete runs AFTER `CommitAsync` so a file-system
