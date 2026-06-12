@@ -31,6 +31,12 @@ public class PackageImageDeleteTests
         => questions.Any(q => q.ImagePath == path) || options.Any(o => o.ImagePath == path);
 
     // Atomic delete loop SHARED-2: File.Delete hanya bila count == 0, inner try/catch warn-only.
+    //
+    // Phase 366 (D-04): mirror in-memory ini DIPERTAHANKAN HANYA sebagai fast logic-contract test
+    // (tak butuh SQL), BUKAN implementasi paralel. Production source of truth:
+    // Helpers/ImageFileCleanup.cs. Integration coverage: ImageCleanupIntegrationTests.cs
+    // (real-SQL, exercise helper produksi end-to-end). Kalau ubah kontrak ref-count, ubah helper
+    // produksi + integration test dulu — mirror ini ikut, jangan jadi sumber-kebenaran kedua.
     private static void DeleteIfUnreferenced(string path, IEnumerable<PackageQuestion> remainingQ, IEnumerable<PackageOption> remainingO)
     {
         if (PathStillReferenced(remainingQ, remainingO, path)) return; // SKIP — masih dipakai
