@@ -3969,6 +3969,15 @@ namespace HcPortal.Controllers
             if (assignment != null)
                 _context.UserPackageAssignments.Remove(assignment);
 
+            // #22 D-07: bersihkan ET scores stale agar retake regenerasi ET BARU
+            // (cegah unique-index violation di GradingService yang ditelan catch → analitik stale).
+            // SEBELUM SaveChangesAsync di bawah → ter-flush dalam batch yang sama. TANPA transaksi baru.
+            var etScores = await _context.SessionElemenTeknisScores
+                .Where(e => e.AssessmentSessionId == id)
+                .ToListAsync();
+            if (etScores.Any())
+                _context.SessionElemenTeknisScores.RemoveRange(etScores);
+
             // 3. Reset session state to Open via status-guarded ExecuteUpdateAsync
             // (Cancelled is the only status that is NOT resettable — guard prevents double-reset race)
             await _context.SaveChangesAsync(); // flush archive + delete operations first
