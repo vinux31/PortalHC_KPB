@@ -173,6 +173,9 @@
     </div>
 </div>
 
+@* Phase 367 (08) S3: flash jujur sukses/gagal in-partial (di atas re-fetch listener); diisi JS dari HX-Trigger. *@
+<div id="records-flash" aria-live="polite"></div>
+
 @* MAM-08: re-fetch Tab2 saat record dihapus (HX-Trigger recordDeleted dari handler delete).
    hx-include filterFormTraining bawa filter + isFiltered=true → isInitialState tetap false (tidak balik empty-state). *@
 <div hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
@@ -367,8 +370,7 @@ else
                                                                 <div class="d-flex gap-1">
                                                                     @if (row.IsOnline)
                                                                     {
-                                                                        @* Phase 371 (D-02): online read-only. Lihat hasil HANYA Completed/Menunggu Penilaian.
-                                                                           NO Edit, NO Hapus (placeholder Phase 367 — extension point cascade delete). *@
+                                                                        @* Phase 371: online read-only (Lihat hasil HANYA Completed/Menunggu). Phase 367 IC-3: + Hapus cascade. NO Edit. *@
                                                                         @if (row.CanViewResult)
                                                                         {
                                                                             <a href="@Url.Action("Results", "CMP", new { id = row.Id })"
@@ -376,6 +378,15 @@ else
                                                                                 <i class="bi bi-eye"></i>
                                                                             </a>
                                                                         }
+                                                                        @* Phase 367 IC-3/IC-1: tombol hapus online → GET DeletePreview modal (type=session). *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                                title="Hapus sesi online ini (beserta turunannya)" aria-label="Hapus sesi online ini (beserta turunannya)"
+                                                                                hx-get="@Url.Action("DeletePreview", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"type\": \"session\", \"id\": {row.Id}}}")'
+                                                                                hx-target="#cascade-preview-body" hx-swap="innerHTML"
+                                                                                data-bs-toggle="modal" data-bs-target="#cascadePreviewModal">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
                                                                     }
                                                                     else if (row.Type == "Training")
                                                                     {
@@ -383,12 +394,13 @@ else
                                                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </a>
-                                                                        @* MAM-08: hx-post delete (re-swap Tab2 preserve filter); token di body. *@
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                                                hx-post="@Url.Action("DeleteTraining", "TrainingAdmin")"
-                                                                                hx-vals='@Html.Raw($"{{\"id\": {row.Id}, \"__RequestVerificationToken\": \"{antiToken}\"}}")'
-                                                                                hx-confirm="Hapus training record ini?"
-                                                                                hx-swap="none">
+                                                                        @* Phase 367 IC-1: GET DeletePreview → modal cascade (BUKAN hx-post langsung; hx-confirm native dihapus, D-03). *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                                title="Hapus training record ini" aria-label="Hapus training record ini"
+                                                                                hx-get="@Url.Action("DeletePreview", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"type\": \"training\", \"id\": {row.Id}}}")'
+                                                                                hx-target="#cascade-preview-body" hx-swap="innerHTML"
+                                                                                data-bs-toggle="modal" data-bs-target="#cascadePreviewModal">
                                                                             <i class="bi bi-trash"></i>
                                                                         </button>
                                                                     }
@@ -398,12 +410,13 @@ else
                                                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </a>
-                                                                        @* MAM-08: hx-post delete (re-swap Tab2 preserve filter); token di body. *@
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                                                hx-post="@Url.Action("DeleteManualAssessment", "TrainingAdmin")"
-                                                                                hx-vals='@Html.Raw($"{{\"id\": {row.Id}, \"__RequestVerificationToken\": \"{antiToken}\"}}")'
-                                                                                hx-confirm="Hapus assessment record ini?"
-                                                                                hx-swap="none">
+                                                                        @* Phase 367 IC-1: GET DeletePreview → modal cascade (BUKAN hx-post langsung; hx-confirm native dihapus, D-03). *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                                title="Hapus assessment record ini" aria-label="Hapus assessment record ini"
+                                                                                hx-get="@Url.Action("DeletePreview", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"type\": \"session\", \"id\": {row.Id}}}")'
+                                                                                hx-target="#cascade-preview-body" hx-swap="innerHTML"
+                                                                                data-bs-toggle="modal" data-bs-target="#cascadePreviewModal">
                                                                             <i class="bi bi-trash"></i>
                                                                         </button>
                                                                     }
@@ -505,3 +518,74 @@ else
         </nav>
     }
 }
+
+@* Phase 367 (08) S1: modal shell cascade preview (reuse pola deleteAssessmentModal). Body diisi partial _CascadePreviewModal via GET DeletePreview. *@
+<div class="modal fade" id="cascadePreviewModal" tabindex="-1" aria-labelledby="cascadePreviewModalLabel" aria-hidden="true" role="alertdialog">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-semibold" id="cascadePreviewModalLabel">
+                    <i class="bi bi-trash3 me-2"></i>Konfirmasi Hapus — Cascade
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body" id="cascade-preview-body" aria-live="polite">
+                <div class="text-center py-3" role="status">
+                    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                    Memuat daftar data yang akan terhapus…
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Phase 367 (08) S3/IC-2: flash JUJUR sukses/gagal. Baca HX-Trigger header LANGSUNG dari xhr supaya respons
+    // gagal (HTTP 400 dari DeleteTabFailure) tetap tertangkap (HTMX tak dispatch event kustom utk 4xx).
+    (function () {
+        // Flash sukses TERTUNDA (survive re-fetch tab via sessionStorage) — jalan tiap partial load.
+        try {
+            if (sessionStorage.getItem('recordDeletedFlash')) {
+                sessionStorage.removeItem('recordDeletedFlash');
+                var fe = document.getElementById('records-flash');
+                if (fe) fe.innerHTML = '<div class="alert alert-success alert-dismissible fade show" role="alert"><i class="bi bi-check-circle-fill me-2"></i>Record beserta turunannya berhasil dihapus.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button></div>';
+            }
+        } catch (e) { }
+
+        if (window.__recordsFlashBound) return;   // bind listener SEKALI (partial re-render berkali-kali)
+        window.__recordsFlashBound = true;
+
+        function cleanupModal() {
+            var modalEl = document.getElementById('cascadePreviewModal');
+            if (modalEl) { var m = bootstrap.Modal.getInstance(modalEl); if (m) m.hide(); }
+            // bersihkan orphan backdrop bila DOM modal ke-swap mid-animation (re-fetch tab)
+            setTimeout(function () {
+                document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+            }, 350);
+        }
+        function renderFlash(kind, text, icon) {
+            var el = document.getElementById('records-flash');
+            if (!el) return;
+            el.innerHTML = '<div class="alert alert-' + kind + ' alert-dismissible fade show" role="alert">'
+                + '<i class="bi ' + icon + ' me-2"></i>' + text
+                + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button></div>';
+        }
+        document.body.addEventListener('htmx:afterRequest', function (e) {
+            var xhr = e.detail && e.detail.xhr; if (!xhr) return;
+            var trig = xhr.getResponseHeader('HX-Trigger'); if (!trig) return;
+            if (trig.indexOf('recordDeleteFailed') !== -1) {
+                var pesan = 'Terjadi kesalahan.';
+                try { var o = JSON.parse(trig); if (o.recordDeleteFailed && o.recordDeleteFailed.pesan) pesan = o.recordDeleteFailed.pesan; } catch (err) { }
+                cleanupModal();
+                renderFlash('danger', 'Gagal menghapus: ' + pesan + '.', 'bi-exclamation-triangle-fill');   // NEVER hijau saat gagal (#1)
+            } else if (trig.indexOf('recordDeleted') !== -1) {
+                cleanupModal();
+                try { sessionStorage.setItem('recordDeletedFlash', '1'); } catch (er) { }
+                // re-fetch tab ditangani hidden div (recordDeleted from:body); flash sukses render saat partial re-load.
+            }
+        });
+    })();
+</script>
