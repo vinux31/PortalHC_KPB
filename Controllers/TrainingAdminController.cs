@@ -906,7 +906,7 @@ namespace HcPortal.Controllers
                         CompletedAt = completedAt,
                         IsManualEntry = true,
                         LinkedGroupId = linkedGroupId,
-                        AssessmentType = "Standard",
+                        AssessmentType = AssessmentConstants.AssessmentType.Manual, // #27: konstanta (bukan literal "Standard")
                         CreatedAt = DateTime.UtcNow
                     };
                     _context.AssessmentSessions.Add(session);
@@ -1329,7 +1329,7 @@ namespace HcPortal.Controllers
                                 CertificateType = string.IsNullOrWhiteSpace(certificateType) ? null : certificateType,
                                 Status = "Completed",
                                 IsManualEntry = true,
-                                GenerateCertificate = true,
+                                GenerateCertificate = isPassed, // #24: hanya lulus dapat sertifikat (bukan unconditional true)
                                 CreatedAt = DateTime.UtcNow,
                                 Progress = 0,
                                 BannerColor = "bg-primary",
@@ -1339,7 +1339,7 @@ namespace HcPortal.Controllers
                                 AccessToken = "",
                                 HasManualGrading = false,
                                 SamePackage = false,
-                                AssessmentType = ""
+                                AssessmentType = AssessmentConstants.AssessmentType.Manual // #24: konstanta (bukan literal kosong)
                             };
                             _context.AssessmentSessions.Add(session);
                             await _context.SaveChangesAsync();
@@ -1445,6 +1445,17 @@ namespace HcPortal.Controllers
                 _logger.LogError(ex, "Failed to read Excel import file for training");
                 TempData["Error"] = $"Gagal memproses file: {ex.Message}";
                 return View(new List<HcPortal.Models.ImportTrainingResult>());
+            }
+
+            // #24: audit log ringkasan 1 entri (bukan per-row) di akhir import.
+            var importActor = await _userManager.GetUserAsync(User);
+            if (importActor != null)
+            {
+                int ok   = results.Count(r => r.Status == "Success");
+                int skip = results.Count(r => r.Status == "Skip");
+                int err  = results.Count(r => r.Status == "Error");
+                await _auditLog.LogAsync(importActor.Id, importActor.FullName ?? importActor.UserName ?? importActor.Id,
+                    "ImportTraining", $"Import: {ok} sukses, {skip} skip, {err} error.", null, "AssessmentSession");
             }
 
             return View(results);
