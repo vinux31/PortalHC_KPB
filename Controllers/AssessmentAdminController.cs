@@ -5107,7 +5107,14 @@ namespace HcPortal.Controllers
                 _context.UserPackageAssignments.Remove(currentAssignment);
 
             var rng = Random.Shared;
-            var shuffledIds = BuildCrossPackageAssignment(packages, rng);
+            // Phase 373: rebuild via ShuffleEngine respecting BOTH flags. Worker index from the SAME
+            // sibling set/order as StartExam (Title+Category+Schedule.Date, sorted — SQL has no guaranteed
+            // order), so OFF≥2 keeps each worker on a stable package. ON = canonical core algorithm.
+            var sortedSiblingIds = siblingSessionIds.OrderBy(x => x).ToList();
+            int workerIndex = sortedSiblingIds.IndexOf(sessionId);
+            var shuffledIds = ShuffleEngine.BuildQuestionAssignment(packages, assessment.ShuffleQuestions, workerIndex, rng);
+            var assignedQuestions = packages.SelectMany(p => p.Questions).Where(q => shuffledIds.Contains(q.Id));
+            var optDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, assessment.ShuffleOptions, rng);
             var sentinelPackage = packages.First();
 
             var newAssignment = new UserPackageAssignment
@@ -5116,7 +5123,7 @@ namespace HcPortal.Controllers
                 AssessmentPackageId = sentinelPackage.Id,
                 UserId = assessment.UserId,
                 ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(shuffledIds),
-                ShuffledOptionIdsPerQuestion = "{}"
+                ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(optDict)   // Phase 373: fix bug (was hard-coded "{}")
             };
             _context.UserPackageAssignments.Add(newAssignment);
 
@@ -5156,6 +5163,8 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Assessment group not found." });
 
             var siblingSessionIds = sessions.Select(s => s.Id).ToList();
+            // Phase 373: stable worker-index basis — sorted once; same sibling set as StartExam (OQ#1 parity).
+            var sortedSiblingIds = siblingSessionIds.OrderBy(x => x).ToList();
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
@@ -5198,7 +5207,12 @@ namespace HcPortal.Controllers
                 }
 
                 existingAssignments.TryGetValue(session.Id, out var existingAssignment);
-                var sessionShuffledIds = BuildCrossPackageAssignment(packages, rng);
+                // Phase 373: rebuild via ShuffleEngine respecting BOTH flags (per-session, flags uniform
+                // post-Phase-372 propagation but read per session for correctness). Worker index stable.
+                int workerIndex = sortedSiblingIds.IndexOf(session.Id);
+                var sessionShuffledIds = ShuffleEngine.BuildQuestionAssignment(packages, session.ShuffleQuestions, workerIndex, rng);
+                var assignedQuestions = packages.SelectMany(p => p.Questions).Where(q => sessionShuffledIds.Contains(q.Id));
+                var optDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, session.ShuffleOptions, rng);
                 var sentinelPackage = packages.First();
 
                 if (existingAssignment != null)
@@ -5210,7 +5224,7 @@ namespace HcPortal.Controllers
                     AssessmentPackageId = sentinelPackage.Id,
                     UserId = session.UserId,
                     ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(sessionShuffledIds),
-                    ShuffledOptionIdsPerQuestion = "{}"
+                    ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(optDict)   // Phase 373: fix bug (was hard-coded "{}")
                 });
 
                 results.Add(new { name = userName, status = $"Reshuffled (cross-package, {packages.Count} paket)" });
@@ -5236,163 +5250,9 @@ namespace HcPortal.Controllers
             return Json(new { success = true, results, reshuffledCount });
         }
 
-        #region Helper Methods
-
-        private static void Shuffle<T>(List<T> list, Random rng)
-        {
-            for (int i = list.Count - 1; i > 0; i--)
-            {
-                int j = rng.Next(i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
-            }
-        }
-
-        private static List<int> BuildCrossPackageAssignment(List<AssessmentPackage> packages, Random rng)
-        {
-            if (packages.Count == 0)
-                return new List<int>();
-
-            // Single package: shuffle question order so each worker sees a unique sequence
-            if (packages.Count == 1)
-            {
-                var singlePackageQuestions = packages[0].Questions;
-                if (singlePackageQuestions == null || !singlePackageQuestions.Any())
-                    return new List<int>();
-                var singlePackageIds = singlePackageQuestions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
-                Shuffle(singlePackageIds, rng);
-                return singlePackageIds;
-            }
-
-            // Safety fallback: use minimum question count across packages (edge case per user decision)
-            int K = packages.Min(p => p.Questions.Count);
-            if (K == 0)
-                return new List<int>();
-
-            // Collect all questions across all packages with their package index
-            var allQuestions = packages.SelectMany((p, pIdx) =>
-                p.Questions.Select(q => new { Question = q, PackageIndex = pIdx })).ToList();
-
-            // Identify distinct ET groups (non-null ElemenTeknis values across all packages)
-            var etGroups = allQuestions
-                .Where(x => !string.IsNullOrWhiteSpace(x.Question.ElemenTeknis))
-                .Select(x => x.Question.ElemenTeknis!)
-                .Distinct()
-                .ToList();
-
-            // Fallback: if no questions have ElemenTeknis, use original slot-list algorithm
-            if (etGroups.Count == 0)
-            {
-                // No ElemenTeknis data — fall back to original slot-list distribution
-                int N0 = packages.Count;
-                int baseCount0 = K / N0;
-                int remainder0 = K % N0;
-                var remainderIndices0 = Enumerable.Range(0, N0)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder0)
-                    .ToHashSet();
-                var slots0 = new List<int>();
-                for (int i = 0; i < N0; i++)
-                {
-                    int count = baseCount0 + (remainderIndices0.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots0.Add(i);
-                }
-                Shuffle(slots0, rng);
-                var pkgCounter0 = new int[N0];
-                var fallbackIds = new List<int>();
-                var orderedQuestions0 = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
-                for (int pos = 0; pos < K; pos++)
-                {
-                    int pkgIdx = slots0[pos];
-                    var question = orderedQuestions0[pkgIdx][pkgCounter0[pkgIdx]];
-                    pkgCounter0[pkgIdx]++;
-                    fallbackIds.Add(question.Id);
-                }
-                return fallbackIds;
-            }
-
-            // ET-aware distribution
-            var selectedIds = new HashSet<int>();
-            var selectedList = new List<int>();
-
-            // Phase 1 — Guarantee one question per ET group (best-effort, capped at K)
-            // NULL ElemenTeknis questions are excluded from Phase 1 (they participate in Phase 2 only)
-            foreach (var etGroup in etGroups)
-            {
-                if (selectedIds.Count >= K) break;
-
-                var candidates = allQuestions
-                    .Where(x => x.Question.ElemenTeknis == etGroup && !selectedIds.Contains(x.Question.Id))
-                    .Select(x => x.Question.Id)
-                    .ToList();
-
-                Shuffle(candidates, rng);
-                if (candidates.Count > 0)
-                {
-                    int picked = candidates[0];
-                    selectedIds.Add(picked);
-                    selectedList.Add(picked);
-                }
-            }
-
-            // Phase 2 — Fill remaining quota with balanced package distribution
-            int remaining = K - selectedIds.Count;
-            if (remaining > 0)
-            {
-                int N = packages.Count;
-                var orderedByPackage = packages
-                    .Select(p => p.Questions.OrderBy(q => q.Order)
-                        .Where(q => !selectedIds.Contains(q.Id))
-                        .ToList())
-                    .ToList();
-
-                // Build slot list for remaining slots using balanced distribution
-                int baseCount = remaining / N;
-                int remainder = remaining % N;
-                var remainderIndices = Enumerable.Range(0, N)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder)
-                    .ToHashSet();
-
-                var slots = new List<int>();
-                for (int i = 0; i < N; i++)
-                {
-                    int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots.Add(i);
-                }
-                Shuffle(slots, rng);
-
-                var pkgCounter = new int[N];
-                var pkgAvailable = orderedByPackage.Select(q => q.Count).ToArray();
-
-                foreach (int pkgIdx in slots)
-                {
-                    // Find a package with available unselected questions
-                    int targetPkg = pkgIdx;
-                    if (pkgCounter[targetPkg] >= pkgAvailable[targetPkg])
-                    {
-                        // Redistribute: find any package with remaining questions
-                        targetPkg = -1;
-                        for (int i = 0; i < N; i++)
-                        {
-                            if (pkgCounter[i] < pkgAvailable[i]) { targetPkg = i; break; }
-                        }
-                        if (targetPkg == -1) break; // All packages exhausted
-                    }
-                    var q = orderedByPackage[targetPkg][pkgCounter[targetPkg]];
-                    pkgCounter[targetPkg]++;
-                    selectedIds.Add(q.Id);
-                    selectedList.Add(q.Id);
-                }
-            }
-
-            // Phase 3 — Fisher-Yates shuffle the combined list
-            Shuffle(selectedList, rng);
-            return selectedList;
-        }
-
-        #endregion
+        // Phase 373: the local Shuffle + cross-package distribution helpers moved to
+        // Helpers/ShuffleEngine.cs (single source of truth — the canonical CMPController algorithm).
+        // Both reshuffle endpoints now delegate to the shared ShuffleEngine core.
 
         // Question Management (Admin) region removed in Phase 227 (CLEN-02) — ManageQuestions/AddQuestion/DeleteQuestion
         // were legacy-only actions. Assessment questions are now managed via Package Management.
