@@ -63,6 +63,21 @@ public class SertifikatRow
         if (days <= 30) return CertificateStatus.AkanExpired;
         return CertificateStatus.Aktif;
     }
+
+    /// <summary>
+    /// #25 (D-03): child-category Name → parent Name lookup dengan GroupBy-dedup (cegah ArgumentException/500
+    /// pada duplicate child Name lintas parent berbeda). Single-source dikonsumsi CMP + CDP (anti-drift) —
+    /// home NETRAL di SertifikatRow (CMP/CDP plain Controller, bukan turunan AdminBaseController).
+    /// </summary>
+    public static Dictionary<string, string> BuildParentNameLookup(IEnumerable<(int Id, string Name, int? ParentId)> categories)
+    {
+        var list = categories as IList<(int Id, string Name, int? ParentId)> ?? categories.ToList();
+        var byId = list.ToDictionary(c => c.Id);
+        return list
+            .Where(c => c.ParentId != null && byId.ContainsKey(c.ParentId.Value))
+            .GroupBy(c => c.Name)
+            .ToDictionary(g => g.Key, g => byId[g.First().ParentId!.Value].Name);
+    }
 }
 
 // ============================================================
