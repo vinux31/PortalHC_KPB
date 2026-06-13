@@ -123,6 +123,11 @@
   2. Buat assessment baru via form → flag tersimpan sesuai centang (default ON), tervalidasi di DB; tidak kena EF bool-false trap.
   3. Ubah toggle di satu session (EditAssessment) → semua sibling grup ikut (pola propagasi `foreach`).
 **UI hint:** yes (2 toggle `form-check form-switch` di wizard Langkah 3 Grup B + 2 baris status di summary Langkah 4 — kontrak di `372-UI-SPEC.md`)
+**Plans:** 3 plans (2 waves)
+Plans:
+- [ ] 372-01-PLAN.md — entity 2 kolom + Fluent + migration AddShuffleTogglesToAssessmentSession [BLOCKING] + Wave 0 test stubs + SHUF-01 real-SQL backfill (Wave 1)
+- [ ] 372-02-PLAN.md — controller set flag 6 write-site + 2 foreach propagate + SHUF-02/03 test real-SQL (Wave 2)
+- [ ] 372-03-PLAN.md — wizard 2 toggle Langkah 3 + summary Langkah 4 + populateSummary JS + UAT smoke (Wave 2)
 
 ### Phase 373: Shuffle Engine (read logic + reshuffle)
 **Goal:** `CMPController.StartExam` gerbang flag saat bangun `UserPackageAssignment` + ekstrak core pure (testable tanpa DB): Acak Soal ON=existing (1 paket acak / ≥2 sampling K); OFF+1 paket=urut `q.Order`; OFF+≥2 paket=round-robin **index-session-stabil** 1 paket/worker + guard paket kosong; Acak Pilihan independen (ON dict / OFF "{}"); resume stale-count guard deterministik; cleanup komentar stale `CMPController.cs:1054`; `ReshufflePackage`/`ReshuffleAll` hormati KEDUA flag (fix bug existing opsi hard-code "{}").
