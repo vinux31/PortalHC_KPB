@@ -126,7 +126,7 @@
 **Plans:** 3 plans (2 waves)
 Plans:
 - [x] 372-01-PLAN.md — entity 2 kolom + Fluent + migration AddShuffleTogglesToAssessmentSession [BLOCKING] + Wave 0 test stubs + SHUF-01 real-SQL backfill (Wave 1)
-- [ ] 372-02-PLAN.md — controller set flag 6 write-site + 2 foreach propagate + SHUF-02/03 test real-SQL (Wave 2)
+- [x] 372-02-PLAN.md — controller set flag 6 write-site + 2 foreach propagate + SHUF-02/03 test real-SQL (Wave 2)
 - [ ] 372-03-PLAN.md — wizard 2 toggle Langkah 3 + summary Langkah 4 + populateSummary JS + UAT smoke (Wave 2)
 
 ### Phase 373: Shuffle Engine (read logic + reshuffle)
