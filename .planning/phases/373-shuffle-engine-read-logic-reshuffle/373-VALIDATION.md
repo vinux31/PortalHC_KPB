@@ -1,11 +1,12 @@
 ---
 phase: 373
 slug: shuffle-engine-read-logic-reshuffle
-status: planned
+status: validated
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-13
 updated: 2026-06-13
+audited: 2026-06-13
 ---
 
 # Phase 373 — Validation Strategy
@@ -44,16 +45,16 @@ updated: 2026-06-13
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 373-01-T1 | 01 | 1 | SHUF-04 | T-373-02 | ON 1 paket acak (seed-stabil) + ON ≥2 sampling K-min ET-balanced (CMPController CANONICAL Phase 2 per-ET, moved verbatim) | unit (pure) | `dotnet test --filter ~ShuffleEngine` | ❌→W0 (373-01-T2) | ⬜ pending |
-| 373-01-T1 | 01 | 1 | SHUF-05 | — | OFF 1 paket → urut `q.Order`, identik semua worker (no rng) | unit (pure) | idem | ❌→W0 | ⬜ pending |
-| 373-01-T1 | 01 | 1 | SHUF-06 | T-373-01 (DivByZero) | OFF ≥2 → worker[i]=`pkgWithQ[i % count]` paket UTUH urut Order; index stabil on append; guard paket kosong SEBELUM modulo | unit (pure) | idem | ❌→W0 | ⬜ pending |
-| 373-01-T1 | 01 | 1 | SHUF-07 | — | ON → optionDict non-kosong; OFF → empty (→ `"{}"`); independen dari ShuffleQuestions | unit (pure) | idem | ❌→W0 | ⬜ pending |
-| 373-01-T2 | 01 | 1 | SHUF-04/05/06/07/08 | T-373-01 | **Wave-0 test file** `ShuffleEngineTests.cs` — proves all engine modes + determinism (call 2× → identical) + empty-package guard + flag independence | unit (pure) | `dotnet test --filter ~ShuffleEngine` | ✅ created here | ⬜ pending |
-| 373-02-T1 | 02 | 2 | SHUF-04/05/06/07/08 | T-373-04/06/07 | StartExam delegates to core gated on both flags; worker index from `OrderBy(Id)`; auth/ownership + stale-count guard preserved | unit (pure, via core) + build + manual smoke | `dotnet test --filter ~ShuffleEngine` + `dotnet build` | reuses 373-01-T2 | ⬜ pending |
-| 373-02-T2 | 02 | 2 | SHUF-15 | — | Stale comment `CMPController.cs:1054` removed + local dup methods deleted | grep (verifier) | `rg "option shuffle removed" Controllers/CMPController.cs` → 0 | N/A | ⬜ pending |
-| 373-03-T1 | 03 | 2 | SHUF-09 | T-373-08/09/10/12 | Reshuffle (both endpoints) delegate to core, respect both flags, fix `"{}"`; `[Authorize]`+AntiForgery+"Not started/Abandoned" guard + audit-log preserved | build + grep (controls present) | `dotnet build` + `rg` controls | reuses 373-03-T3 | ⬜ pending |
-| 373-03-T2 | 03 | 2 | SHUF-09 | — | DIVERGENT `BuildCrossPackageAssignment` (per-package) + local `Shuffle<T>` deleted from AssessmentAdminController | grep (verifier) | `rg "private static List<int> BuildCrossPackageAssignment" Controllers/AssessmentAdminController.cs` → 0 | N/A | ⬜ pending |
-| 373-03-T3 | 03 | 2 | SHUF-09 | T-373-11 | **Wave-0 regression** `ShuffleReshuffleTests.cs` — optDict serialize ≠ `"{}"` when ShuffleOptions ON; `== "{}"` when OFF (closes hard-coded `"{}"` bug) | unit (pure) | `dotnet test --filter ~ShuffleReshuffle` | ✅ created here | ⬜ pending |
+| 373-01-T1 | 01 | 1 | SHUF-04 | T-373-02 | ON 1 paket acak (seed-stabil) + ON ≥2 sampling K-min ET-balanced (CMPController CANONICAL Phase 2 per-ET, moved verbatim) | unit (pure) | `dotnet test --filter ~ShuffleEngine` | ✅ W0 done | ✅ green |
+| 373-01-T1 | 01 | 1 | SHUF-05 | — | OFF 1 paket → urut `q.Order`, identik semua worker (no rng) | unit (pure) | idem | ✅ W0 done | ✅ green |
+| 373-01-T1 | 01 | 1 | SHUF-06 | T-373-01 (DivByZero) | OFF ≥2 → worker[i]=`pkgWithQ[i % count]` paket UTUH urut Order; index stabil on append; guard paket kosong SEBELUM modulo | unit (pure) | idem | ✅ W0 done | ✅ green |
+| 373-01-T1 | 01 | 1 | SHUF-07 | — | ON → optionDict non-kosong; OFF → empty (→ `"{}"`); independen dari ShuffleQuestions | unit (pure) | idem | ✅ W0 done | ✅ green |
+| 373-01-T2 | 01 | 1 | SHUF-04/05/06/07/08 | T-373-01 | **Wave-0 test file** `ShuffleEngineTests.cs` — proves all engine modes + determinism (call 2× → identical) + empty-package guard + flag independence | unit (pure) | `dotnet test --filter ~ShuffleEngine` | ✅ created here | ✅ green |
+| 373-02-T1 | 02 | 2 | SHUF-04/05/06/07/08 | T-373-04/06/07 | StartExam delegates to core gated on both flags; worker index from `OrderBy(Id)`; auth/ownership + stale-count guard preserved | unit (pure, via core) + build + manual smoke | `dotnet test --filter ~ShuffleEngine` + `dotnet build` | reuses 373-01-T2 | ✅ green |
+| 373-02-T2 | 02 | 2 | SHUF-15 | — | Stale comment `CMPController.cs:1054` removed + local dup methods deleted | grep (verifier) | `rg "option shuffle removed" Controllers/CMPController.cs` → 0 | N/A | ✅ green |
+| 373-03-T1 | 03 | 2 | SHUF-09 | T-373-08/09/10/12 | Reshuffle (both endpoints) delegate to core, respect both flags, fix `"{}"`; `[Authorize]`+AntiForgery+"Not started/Abandoned" guard + audit-log preserved | build + grep (controls present) | `dotnet build` + `rg` controls | reuses 373-03-T3 | ✅ green |
+| 373-03-T2 | 03 | 2 | SHUF-09 | — | DIVERGENT `BuildCrossPackageAssignment` (per-package) + local `Shuffle<T>` deleted from AssessmentAdminController | grep (verifier) | `rg "private static List<int> BuildCrossPackageAssignment" Controllers/AssessmentAdminController.cs` → 0 | N/A | ✅ green |
+| 373-03-T3 | 03 | 2 | SHUF-09 | T-373-11 | **Wave-0 regression** `ShuffleReshuffleTests.cs` — optDict serialize ≠ `"{}"` when ShuffleOptions ON; `== "{}"` when OFF (closes hard-coded `"{}"` bug) | unit (pure) | `dotnet test --filter ~ShuffleReshuffle` | ✅ created here | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -87,4 +88,25 @@ updated: 2026-06-13
 - [x] Feedback latency < 90s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** planner-approved 2026-06-13 (pending execution)
+**Approval:** planner-approved 2026-06-13; **execution-validated 2026-06-13** (all automated verifications green post-execution)
+
+---
+
+## Validation Audit 2026-06-13
+
+Retroactive Nyquist audit (State A) after phase execution. Live-ran `dotnet test --filter "FullyQualifiedName~Shuffle"` → **23/23 Passed, 0 failures (26s)**. Cross-referenced 7 requirements against committed test files + grep verifiers.
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 7 (SHUF-04/05/06/07/08/09/15) |
+| COVERED | 7 |
+| Gaps found (MISSING/PARTIAL) | 0 |
+| Resolved (new tests generated) | 0 (none needed) |
+| Escalated to manual-only | 0 |
+
+**Coverage map (confirmed green):**
+- SHUF-04/05/06/07/08 → `HcPortal.Tests/ShuffleEngineTests.cs` (14 pure unit, no DB) — commit `dda188f5`
+- SHUF-09 → `HcPortal.Tests/ShuffleReshuffleTests.cs` (2 [Fact] regression, optDict ≠ `"{}"` ON / `== "{}"` OFF) — commit `f8e70e0a`
+- SHUF-15 → grep verifier `rg "option shuffle removed" Controllers/CMPController.cs` → 0 (structural, not unit-testable)
+
+**Verdict:** Phase 373 is **Nyquist-compliant**. No tests generated (zero gaps). Live exam/DB visual behavior (toggle effect, render) remains intentional manual-only / full Playwright = Phase 375 — not a coverage gap.
