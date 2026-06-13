@@ -4154,9 +4154,9 @@ namespace HcPortal.Controllers
                 .Select(c => new { c.Id, c.Name, c.ParentId })
                 .ToListAsync();
             var categoryById = allCategories.ToDictionary(c => c.Id);
-            var categoryNameLookup = allCategories
-                .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
-                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+            // #25: GroupBy-dedup via helper shared (cegah ArgumentException/500 pada duplicate child Name lintas parent).
+            var categoryNameLookup = SertifikatRow.BuildParentNameLookup(
+                allCategories.Select(c => (c.Id, c.Name, c.ParentId)));
 
             var assessmentAnon = await asQuery
                 .Select(a => new
