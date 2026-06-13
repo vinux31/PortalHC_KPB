@@ -953,6 +953,12 @@ namespace HcPortal.Controllers
                 .Select(s => s.Id)
                 .ToListAsync();
 
+            // Phase 373: stable worker index for OFF≥2 round-robin. SQL Server does not guarantee
+            // row order without ORDER BY (Pitfall 2), so sort in-memory; this same sibling set + order
+            // must match the reshuffle endpoints for cross-call determinism (OQ#1). ON-path ignores it.
+            var sortedSiblingIds = siblingSessionIds.OrderBy(x => x).ToList();
+            int workerIndex = sortedSiblingIds.IndexOf(id);
+
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
@@ -974,19 +980,18 @@ namespace HcPortal.Controllers
                 {
                     var rng = Random.Shared;
 
-                    // Build cross-package ShuffledQuestionIds (per user decision: slot-list algorithm)
-                    var shuffledIds = BuildCrossPackageAssignment(packages, rng);
+                    // Phase 373: build ShuffledQuestionIds via the shared ShuffleEngine, gated on the
+                    // per-assessment flag (propagated from the assessment's own session in Phase 372).
+                    // ON = canonical existing behavior; OFF = deterministic (1 paket urut / ≥2 paket 1 paket utuh per worker).
+                    var shuffledIds = ShuffleEngine.BuildQuestionAssignment(
+                        packages, assessment.ShuffleQuestions, workerIndex, rng);
 
-                    // Build option shuffle: per question, randomize A/B/C/D option order
-                    // Stored as Dictionary<questionId, List<optionId>> serialized to JSON
-                    var optionShuffleDict = new Dictionary<int, List<int>>();
-                    var questionsForOptionShuffle = packages.SelectMany(p => p.Questions).ToList();
-                    foreach (var q in questionsForOptionShuffle)
-                    {
-                        var optionIds = q.Options.Select(o => o.Id).ToList();
-                        Shuffle(optionIds, rng);
-                        optionShuffleDict[q.Id] = optionIds;
-                    }
+                    // Option shuffle gated on ShuffleOptions (independent flag). OFF → empty dict →
+                    // serializes "{}" → view falls back to DB option order. Only the assigned questions need entries.
+                    var assignedQuestions = packages.SelectMany(p => p.Questions)
+                        .Where(q => shuffledIds.Contains(q.Id));
+                    var optionShuffleDict = ShuffleEngine.BuildOptionShuffle(
+                        assignedQuestions, assessment.ShuffleOptions, rng);
 
                     // Sentinel: store first package ID (no schema change — AssessmentPackageId still required by FK)
                     var sentinelPackage = packages.First();
@@ -1051,7 +1056,8 @@ namespace HcPortal.Controllers
                 {
                     if (!allPackageQuestions.TryGetValue(qId, out var q)) continue;
 
-                    // Options in original DB order — option shuffle removed per user decision
+                    // Options in DB order here (base list); per-user reorder applied in view via
+                    // ViewBag.OptionShuffle when ShuffleOptions=ON. OFF stores "{}" → view falls back to this DB order.
                     var opts = q.Options.OrderBy(o => o.Id).Select(o => new ExamOptionItem
                     {
                         OptionId = o.Id,
@@ -1206,159 +1212,6 @@ namespace HcPortal.Controllers
 
             TempData["Info"] = "Ujian telah dibatalkan. Hubungi HC jika Anda ingin mengulang.";
             return RedirectToAction("Assessment");
-        }
-
-        // Helper: Fisher-Yates shuffle
-        private static void Shuffle<T>(List<T> list, Random rng)
-        {
-            for (int i = list.Count - 1; i > 0; i--)
-            {
-                int j = rng.Next(i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
-            }
-        }
-
-        /// <summary>
-        /// Builds a cross-package ShuffledQuestionIds list using the ET-aware distribution algorithm.
-        /// For 1 package: returns all questions shuffled (ET coverage is inherent).
-        /// For N packages: Phase 1 guarantees at least one question per ElemenTeknis group (best-effort),
-        /// Phase 2 fills remaining quota with balanced package distribution,
-        /// Phase 3 Fisher-Yates shuffles the combined list.
-        /// Falls back to original slot-list algorithm when no questions have ElemenTeknis data.
-        /// All packages must be loaded with .Include(p => p.Questions) — questions ordered by q.Order.
-        /// </summary>
-        private static List<int> BuildCrossPackageAssignment(List<AssessmentPackage> packages, Random rng)
-        {
-            if (packages.Count == 0)
-                return new List<int>();
-
-            // Single package: shuffle question order so each worker sees a unique sequence
-            if (packages.Count == 1)
-            {
-                var singlePackageQuestions = packages[0].Questions;
-                if (singlePackageQuestions == null || !singlePackageQuestions.Any())
-                    return new List<int>();
-                var singlePackageIds = singlePackageQuestions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
-                Shuffle(singlePackageIds, rng);
-                return singlePackageIds;
-            }
-
-            // Safety fallback: use minimum question count across packages (edge case per user decision)
-            int K = packages.Min(p => p.Questions.Count);
-            if (K == 0)
-                return new List<int>();
-
-            // Collect all questions across all packages with their package index
-            var allQuestions = packages.SelectMany((p, pIdx) =>
-                p.Questions.Select(q => new { Question = q, PackageIndex = pIdx })).ToList();
-
-            // Identify distinct ET groups (non-null ElemenTeknis values across all packages)
-            var etGroups = allQuestions
-                .Where(x => !string.IsNullOrWhiteSpace(x.Question.ElemenTeknis))
-                .Select(x => x.Question.ElemenTeknis!)
-                .Distinct()
-                .ToList();
-
-            // Fallback: if no questions have ElemenTeknis, use original slot-list algorithm
-            if (etGroups.Count == 0)
-            {
-                // No ElemenTeknis data — fall back to original slot-list distribution
-                int N0 = packages.Count;
-                int baseCount0 = K / N0;
-                int remainder0 = K % N0;
-                var remainderIndices0 = Enumerable.Range(0, N0)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder0)
-                    .ToHashSet();
-                var slots0 = new List<int>();
-                for (int i = 0; i < N0; i++)
-                {
-                    int count = baseCount0 + (remainderIndices0.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots0.Add(i);
-                }
-                Shuffle(slots0, rng);
-                var pkgCounter0 = new int[N0];
-                var fallbackIds = new List<int>();
-                var orderedQuestions0 = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
-                for (int pos = 0; pos < K; pos++)
-                {
-                    int pkgIdx = slots0[pos];
-                    var question = orderedQuestions0[pkgIdx][pkgCounter0[pkgIdx]];
-                    pkgCounter0[pkgIdx]++;
-                    fallbackIds.Add(question.Id);
-                }
-                return fallbackIds;
-            }
-
-            // ET-aware distribution
-            var selectedIds = new HashSet<int>();
-            var selectedList = new List<int>();
-
-            // Phase 1 — Guarantee one question per ET group (best-effort, capped at K)
-            // NULL ElemenTeknis questions are excluded from Phase 1 (they participate in Phase 2 only)
-            foreach (var etGroup in etGroups)
-            {
-                if (selectedIds.Count >= K) break;
-
-                var candidates = allQuestions
-                    .Where(x => x.Question.ElemenTeknis == etGroup && !selectedIds.Contains(x.Question.Id))
-                    .Select(x => x.Question.Id)
-                    .ToList();
-
-                Shuffle(candidates, rng);
-                if (candidates.Count > 0)
-                {
-                    int picked = candidates[0];
-                    selectedIds.Add(picked);
-                    selectedList.Add(picked);
-                }
-            }
-
-            // Phase 2 — Fill remaining quota with balanced ET distribution (round-robin per-ET)
-            int remaining = K - selectedIds.Count;
-            if (remaining > 0)
-            {
-                int M = etGroups.Count;
-                int basePerET = remaining / M;
-                int extraCount = remaining % M;
-                var extraETs = etGroups.OrderBy(_ => rng.Next()).Take(extraCount).ToHashSet();
-
-                foreach (var et in etGroups)
-                {
-                    int quota = basePerET + (extraETs.Contains(et) ? 1 : 0);
-                    var etCandidates = allQuestions
-                        .Where(x => x.Question.ElemenTeknis == et && !selectedIds.Contains(x.Question.Id))
-                        .Select(x => x.Question.Id)
-                        .ToList();
-                    Shuffle(etCandidates, rng);
-                    int toTake = Math.Min(quota, etCandidates.Count);
-                    foreach (var id in etCandidates.Take(toTake))
-                    {
-                        selectedIds.Add(id);
-                        selectedList.Add(id);
-                    }
-                }
-
-                // Fallback: jika masih kurang (ET kehabisan soal), ambil dari NULL-ET atau sisa soal manapun
-                if (selectedIds.Count < K)
-                {
-                    var fallbackCandidates = allQuestions
-                        .Where(x => !selectedIds.Contains(x.Question.Id))
-                        .Select(x => x.Question.Id)
-                        .ToList();
-                    Shuffle(fallbackCandidates, rng);
-                    foreach (var id in fallbackCandidates.Take(K - selectedIds.Count))
-                    {
-                        selectedIds.Add(id);
-                        selectedList.Add(id);
-                    }
-                }
-            }
-
-            // Phase 3 — Fisher-Yates shuffle the combined list
-            Shuffle(selectedList, rng);
-            return selectedList;
         }
 
         // Helper: extract A/B/C/D from common Correct-column formats
