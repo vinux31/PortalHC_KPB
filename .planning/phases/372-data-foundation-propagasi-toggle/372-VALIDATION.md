@@ -1,9 +1,9 @@
 ---
 phase: 372
 slug: data-foundation-propagasi-toggle
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-13
 ---
 
@@ -41,8 +41,8 @@ created: 2026-06-13
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 372-01-T3 | 01 | 1 | SHUF-01 | — | migration backfill: baris omit kolom shuffle → DB DEFAULT 1 (mekanisme backfill baris lama); + round-trip false/true | integration (real-SQL) `ShuffleMigrationTests` | `dotnet test --filter ~ShuffleMigration` | ✅ | ✅ green (2/2) |
-| {planner fills} | | | SHUF-02 | — | assessment baru via form → flag tersimpan sesuai centang (default ON), tak kena EF bool-false trap; semua write-site `new AssessmentSession` set eksplisit | integration (real-SQL) | `dotnet test --filter ~Shuffle` | ❌ W0 | ⬜ pending |
-| {planner fills} | | | SHUF-03 | — | ubah toggle EditAssessment → semua sibling grup ikut (foreach propagate) | integration (real-SQL) | `dotnet test --filter ~Shuffle` | ❌ W0 | ⬜ pending |
+| 372-02-T2 | 02 | 2 | SHUF-02 | T-372-04/05 | assessment baru via form → flag persist sesuai centang (ON default / OFF eksplisit / independen), tak kena EF bool-false trap; 8 write-site controller di-cover anchored-insertion + grep≥8 + build | integration (real-SQL) `ShuffleCreatePersistenceTests` (3/3) | `dotnet test --filter ~ShuffleCreate` | ✅ | ✅ green (3/3) |
+| 372-02-T2 | 02 | 2 | SHUF-03 | T-372-06 | ubah toggle EditAssessment → semua sibling grup ikut (standard 3-sibling + Pre-Post), persist ke setiap baris | integration (real-SQL) `ShufflePropagationTests` (2/2) | `dotnet test --filter ~ShufflePropagation` | ✅ | ✅ green (2/2) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
