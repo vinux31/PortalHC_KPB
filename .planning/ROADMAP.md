@@ -102,7 +102,8 @@
   - SC3: Acak Soal OFF + ≥2 paket → tiap worker 1 paket utuh deterministik (index-session-stabil), seimbang, tahan resume/reshuffle; paket kosong di-skip.
   - SC4: Acak Pilihan ON/OFF independen dari Acak Soal; OFF → view urutan DB.
   - SC5: Reshuffle hormati flag (incl. opsi diacak saat ShuffleOptions ON — bug lama fixed).
-- [x] **Phase 374: UI ManagePackages + Lock + Pre/Post** — 2 toggle di header `ManagePackages` (aktif walau `SamePackage` lock isi paket) + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate sibling) + lock toggle saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup) + warning non-blocking (multi-paket+Acak Soal OFF+ukuran paket beda) + reminder visual Pre OFF↔Post ON (no auto-cascade) + hide toggle untuk Proton Tahun 3 / Manual entry. REQ: SHUF-10..14. Migration=false. Depends: 373 (file-overlap v25.0 AssessmentAdminController) (completed 2026-06-13)
+- [x] **Phase 374: UI ManagePackages + Lock + Pre/Post** — 2 toggle di header `ManagePackages` (aktif walau `SamePackage` lock isi paket) + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate sibling) + lock toggle saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup) + warning non-blocking (multi-paket+Acak Soal OFF+ukuran paket beda) + reminder visual Pre OFF↔Post ON (no auto-cascade) + hide toggle untuk Proton Tahun 3 / Manual entry. REQ: SHUF-10..14. Migration=false. Depends: 373 (file-overlap v25.0 AssessmentAdminController)
+ (completed 2026-06-13)
   - SC1: Toggle tampil & bisa diubah di ManagePackages (Pre & Post), tetap aktif walau SamePackage lock paket.
   - SC2: Toggle read-only saat sudah ada peserta mulai; perubahan ditolak server-side.
   - SC3: Warning ukuran-paket-beda muncul (non-blocking) saat multi-paket + Acak Soal OFF.
@@ -168,11 +169,16 @@ Plans:
 **Goal:** xUnit core semua mode (ON 1/≥2, OFF 1/≥2 round-robin determinisme, guard paket kosong, opsi ON/OFF) + test migration default + propagasi sibling + lock guard + reshuffle flag; Playwright UAT toggle ON/OFF + lock + reminder Pre/Post + warning.
 **Depends on:** Phase 374.
 **Migration:** false
-**Requirements:** SHUF-16
+**Requirements:** SHUF-16, SHUF-15 (folded — verify+close)
 **Success Criteria** (what must be TRUE):
   1. Suite xUnit hijau termasuk core shuffle semua mode + determinisme round-robin.
   2. UAT @5277: toggle ON/OFF berefek di exam (urutan soal & opsi), lock & reminder & warning tampil benar.
 **UI hint:** yes (Playwright UAT visual)
+**Plans:** 3 plans (2 waves)
+Plans:
+- [ ] 375-01-PLAN.md — consolidation [Theory] mode-matrix sweep (di atas 27 test) + full suite hijau (SC#1) + SHUF-15 verify CMPController clean [Wave 1]
+- [ ] 375-02-PLAN.md — Playwright shuffle.spec.ts 5 skenario ManagePackages (card render+save-PRG, lock, reminder Pre/Post, warning live-JS, hide) [Wave 1]
+- [ ] 375-03-PLAN.md — manual exam-diff 2 peserta SC#2 (D-03a) + seed snapshot/RESTORE + 375-HUMAN-UAT.md + human-verify checkpoint [Wave 2]
 
 ### Phase 369: Sync H1 Search-Drop Fix main → ITHandoff
 **Goal:** Fix H1 (`14e7adc5` di main: `GetWorkersInSection` treat searchScope null/kosong sebagai "Nama" supaya SQL name pre-narrow tetap jalan untuk caller lama) tersinkron ke branch ITHandoff — search nama di Tab Input Records tidak lagi diabaikan diam-diam.
