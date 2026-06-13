@@ -512,17 +512,35 @@ namespace HcPortal.Controllers
             var record = await _context.TrainingRecords.FindAsync(model.Id);
             if (record == null) return NotFound();
 
-            // Handle file upload — replace old file if new file provided
+            // #26 D-04/D-05: validasi Renews*Id (exist + same-user) HANYA saat field renewal BERUBAH (toleran legacy).
+            // Posisi: setelah FindAsync (butuh record.UserId + Renews*Id LAMA), sebelum assign L541-542 menimpa nilai lama.
+            if (model.RenewsTrainingId != record.RenewsTrainingId && model.RenewsTrainingId.HasValue)
+            {
+                var srcTr = await _context.TrainingRecords.FindAsync(model.RenewsTrainingId.Value);
+                if (srcTr == null || srcTr.UserId != record.UserId)
+                    ModelState.AddModelError("", "Sertifikat renewal tidak ditemukan atau bukan milik peserta ini.");
+            }
+            if (model.RenewsSessionId != record.RenewsSessionId && model.RenewsSessionId.HasValue)
+            {
+                var srcAsRenew = await _context.AssessmentSessions.FindAsync(model.RenewsSessionId.Value);
+                if (srcAsRenew == null || srcAsRenew.UserId != record.UserId)
+                    ModelState.AddModelError("", "Sesi renewal tidak ditemukan atau bukan milik peserta ini.");
+            }
+            if (!ModelState.IsValid)
+            {
+                var renewalError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Data tidak valid.";
+                TempData["Error"] = renewalError;
+                return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+            }
+
+            // #21 D-06: atomic replace — capture LAMA, save baru; hapus lama POST-commit (setelah SaveChanges, lihat bawah).
+            string? oldSertifikatUrl = null;
             if (model.CertificateFile != null && model.CertificateFile.Length > 0)
             {
-                if (!string.IsNullOrEmpty(record.SertifikatUrl))
-                {
-                    var oldPath = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
-                }
-
+                oldSertifikatUrl = record.SertifikatUrl;  // capture sebelum overwrite
                 var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
                 if (uploadedUrl != null) record.SertifikatUrl = uploadedUrl;
+                else oldSertifikatUrl = null; // upload gagal → JANGAN hapus lama (file lama utuh)
             }
 
             record.Judul = model.Judul;
@@ -542,6 +560,13 @@ namespace HcPortal.Controllers
             record.RenewsSessionId = model.RenewsSessionId;
 
             await _context.SaveChangesAsync();
+
+            // #21 D-06: hapus file LAMA POST-commit warn-only, hanya jika upload baru sukses (oldSertifikatUrl != null).
+            if (!string.IsNullOrEmpty(oldSertifikatUrl) && oldSertifikatUrl != record.SertifikatUrl)
+            {
+                try { FileUploadHelper.DeleteFile(_env.WebRootPath, oldSertifikatUrl); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Gagal hapus file sertifikat lama post-commit (EditTraining): {Url}", oldSertifikatUrl); }
+            }
 
             var actor = await _userManager.GetUserAsync(User);
             if (actor != null)
@@ -979,11 +1004,14 @@ namespace HcPortal.Controllers
             var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == model.Id && s.IsManualEntry);
             if (session == null) return NotFound();
 
+            // #21 D-06: atomic replace — capture LAMA, save baru; hapus lama POST-commit (setelah SaveChanges, lihat bawah).
+            string? oldManualUrl = null;
             if (model.CertificateFile != null && model.CertificateFile.Length > 0)
             {
-                FileUploadHelper.DeleteFile(_env.WebRootPath, session.ManualSertifikatUrl);
+                oldManualUrl = session.ManualSertifikatUrl;  // capture sebelum overwrite
                 var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
                 if (uploadedUrl != null) session.ManualSertifikatUrl = uploadedUrl;
+                else oldManualUrl = null; // upload gagal → JANGAN hapus lama
             }
 
             session.Title = model.Title;
@@ -1002,6 +1030,13 @@ namespace HcPortal.Controllers
             session.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            // #21 D-06: hapus file LAMA POST-commit warn-only, hanya jika upload baru sukses (oldManualUrl != null).
+            if (!string.IsNullOrEmpty(oldManualUrl) && oldManualUrl != session.ManualSertifikatUrl)
+            {
+                try { FileUploadHelper.DeleteFile(_env.WebRootPath, oldManualUrl); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Gagal hapus file sertifikat lama post-commit (EditManualAssessment): {Url}", oldManualUrl); }
+            }
 
             var actor = await _userManager.GetUserAsync(User);
             if (actor != null)
