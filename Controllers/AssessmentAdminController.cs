@@ -1225,6 +1225,8 @@ namespace HcPortal.Controllers
                             Status = "Upcoming",
                             PassPercentage = model.PassPercentage,
                             AllowAnswerReview = model.AllowAnswerReview,
+                            ShuffleQuestions = model.ShuffleQuestions,
+                            ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
                             AccessToken = model.AccessToken,
                             GenerateCertificate = false,  // D-20: Pre TIDAK generate sertifikat
@@ -1259,6 +1261,8 @@ namespace HcPortal.Controllers
                                 Status = "Upcoming",
                                 PassPercentage = model.PassPercentage,
                                 AllowAnswerReview = model.AllowAnswerReview,
+                                ShuffleQuestions = model.ShuffleQuestions,
+                                ShuffleOptions = model.ShuffleOptions,
                                 IsTokenRequired = model.IsTokenRequired,
                                 AccessToken = model.AccessToken,
                                 GenerateCertificate = model.GenerateCertificate, // D-21: pilihan HC
@@ -1436,6 +1440,8 @@ namespace HcPortal.Controllers
                         AccessToken = model.AccessToken,
                         PassPercentage = model.PassPercentage,
                         AllowAnswerReview = model.AllowAnswerReview,
+                        ShuffleQuestions = model.ShuffleQuestions,
+                        ShuffleOptions = model.ShuffleOptions,
                         GenerateCertificate = model.GenerateCertificate,
                         ExamWindowCloseDate = model.ExamWindowCloseDate,
                         ValidUntil = model.ValidUntil,
@@ -1800,6 +1806,8 @@ namespace HcPortal.Controllers
                     s.Category = model.Category;
                     s.PassPercentage = model.PassPercentage;
                     s.AllowAnswerReview = model.AllowAnswerReview;
+                    s.ShuffleQuestions = model.ShuffleQuestions;
+                    s.ShuffleOptions = model.ShuffleOptions;
                     s.IsTokenRequired = model.IsTokenRequired;
                     s.AccessToken = model.IsTokenRequired ? (model.AccessToken ?? s.AccessToken ?? "") : "";
                     s.UpdatedAt = DateTime.UtcNow;
@@ -1902,6 +1910,8 @@ namespace HcPortal.Controllers
                             Status = "Upcoming",
                             PassPercentage = model.PassPercentage,
                             AllowAnswerReview = model.AllowAnswerReview,
+                            ShuffleQuestions = model.ShuffleQuestions,
+                            ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
                             AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
                             GenerateCertificate = false,
@@ -1921,6 +1931,8 @@ namespace HcPortal.Controllers
                             Status = "Upcoming",
                             PassPercentage = model.PassPercentage,
                             AllowAnswerReview = model.AllowAnswerReview,
+                            ShuffleQuestions = model.ShuffleQuestions,
+                            ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
                             AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
                             GenerateCertificate = model.GenerateCertificate,
@@ -2025,6 +2037,8 @@ namespace HcPortal.Controllers
                 sibling.AccessToken = newToken;
                 sibling.PassPercentage = model.PassPercentage;
                 sibling.AllowAnswerReview = model.AllowAnswerReview;
+                sibling.ShuffleQuestions = model.ShuffleQuestions;
+                sibling.ShuffleOptions = model.ShuffleOptions;
                 sibling.GenerateCertificate = model.GenerateCertificate;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
                 sibling.UpdatedAt = now;
@@ -2120,6 +2134,8 @@ namespace HcPortal.Controllers
                                 AccessToken = savedAssessment.AccessToken,
                                 PassPercentage = savedAssessment.PassPercentage,
                                 AllowAnswerReview = savedAssessment.AllowAnswerReview,
+                                ShuffleQuestions = savedAssessment.ShuffleQuestions,
+                                ShuffleOptions = savedAssessment.ShuffleOptions,
                                 GenerateCertificate = savedAssessment.GenerateCertificate,
                                 ExamWindowCloseDate = savedAssessment.ExamWindowCloseDate,
                                 Progress = 0,
