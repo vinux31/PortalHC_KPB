@@ -1009,6 +1009,43 @@ Plans:
 
 ---
 
+### Phase 999.9: Label residu "Backfill/Restore" di UI BulkBackfill — kosmetik (BACKLOG)
+
+**Goal:** [Captured Phase 368 UAT, 2026-06-13] Heading/breadcrumb/h2/card-label BulkBackfill sudah jadi "Bulk Import Nilai (Excel)" (shipped 368-02 #27), TAPI masih ada wording lama "Backfill"/"Restore" di 3 tempat. Polish ringan kosmetik label-only (no logic).
+
+**Context:**
+- Bukti UAT browser @5277 2026-06-13 (368-04-SUMMARY temuan #1):
+  - (1) Tombol **"Execute Backfill"** di `Views/Admin/BulkBackfill.cshtml`.
+  - (2) `<small>` subtitle card Admin Index **"Pulihkan AssessmentSession... emergency restore tool"** di `Views/Admin/Index.cshtml` (label `<span>` sudah benar, subtitle belum).
+  - (3) Default Audit Tag **"ManualImport-Backfill"** (textbox + audit value).
+- Scope #27 di 368 = heading/breadcrumb/h2/card-label saja (semua PASS) — item ini di luar acceptance plan, sengaja tidak disentuh.
+- Risiko: audit tag "ManualImport-Backfill" mungkin dipakai filter/laporan existing — cek sebelum rename (jangan putus jejak audit historis).
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
+### Phase 999.10: CMP CertificationManagement orphaned route → 500 view-not-found (BACKLOG)
+
+**Goal:** [Captured Phase 368 UAT, 2026-06-13] `GET /CMP/CertificationManagement` (direct-URL) → **500 "view 'CertificationManagement' was not found"**. `Views/CMP/CertificationManagement.cshtml` tidak ada (hanya `Views/CDP/CertificationManagement.cshtml`). Action `CMPController.CertificationManagement` = duplikat orphaned ("dipindah dari CDP" per komentar L3760); entry point asli `Views/CMP/Index.cshtml:98` route ke **CDP**, bukan CMP.
+
+**Context:**
+- Bukti UAT browser @5277 2026-06-13 (368-04-SUMMARY temuan #2). PRE-EXISTING — BUKAN regresi Phase 368: perubahan #25 = 1 baris LINQ (`BuildParentNameLookup`), `git diff` 368 = 0 `.cshtml` disentuh; view-not-found tak mungkin disebabkan LINQ. Callsite #25 di CMP tetap ter-eksekusi (capai `return View` tanpa ArgumentException).
+- Path nyata CDP CertificationManagement render OK (8 sertifikat, no 500) — dedup #25 terbukti jalan.
+- Opsi fix: (a) hapus action `CMPController.CertificationManagement` + helper rows orphaned bila benar-benar dead, ATAU (b) ubah jadi `RedirectToAction("CertificationManagement","CDP")`, ATAU (c) tambah view CMP bila memang mau dua entry point. Pilih saat planning — audit dulu apakah ada link/test lain yang menunjuk route CMP.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.3: Cascade Image File Cleanup — orphan gambar saat hapus assessment/group (PROMOTED -> v25.0 Phase 366, 2026-06-10)
 
 **Promoted:** 2026-06-10 -> Phase 366 (dir `999.3-*` di-rename `366-*`). Scope dikoreksi hasil verifikasi adversarial: TIDAK ada helper ref-count produksi (Phase 353 pilih inline 3x — `353-01-PLAN.md:174-175`); Phase 366 ekstrak helper baru dulu. Line drift: Delete* kini :2184/:2372/:2558 (bukan L2069/L2257/L2443).
