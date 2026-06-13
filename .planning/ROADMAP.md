@@ -141,6 +141,11 @@ Plans:
   4. Acak Pilihan ON/OFF independen dari Acak Soal; OFF → view urutan DB.
   5. Reshuffle hormati flag (incl. opsi diacak saat ShuffleOptions ON — bug lama fixed).
 **UI hint:** no (read-logic/engine; extract pure core, no view change)
+**Plans:** 3 plans (2 waves)
+Plans:
+- [ ] 373-01-PLAN.md — Pure core `Helpers/ShuffleEngine.cs` (ON canonical + OFF filter-then-modulo + BuildOptionShuffle + Shuffle<T>) + Wave-0 `ShuffleEngineTests.cs` (SHUF-04/05/06/07/08) [Wave 1]
+- [ ] 373-02-PLAN.md — Wire `CMPController.StartExam` to core (flag-gated + stable worker-index OrderBy(Id)) + fix stale comment :1054 (SHUF-15) + delete local dup [Wave 2]
+- [ ] 373-03-PLAN.md — Wire `ReshufflePackage`/`ReshuffleAll` to core + fix `"{}"` bug (SHUF-09) + delete divergent dup + `ShuffleReshuffleTests.cs` regression [Wave 2]
 
 ### Phase 374: UI ManagePackages + Lock + Pre/Post
 **Goal:** 2 toggle di header `ManagePackages` (aktif walau `SamePackage` lock isi paket) + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate sibling) + lock toggle saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup) + warning non-blocking (multi-paket+Acak Soal OFF+ukuran paket beda) + reminder visual Pre OFF↔Post ON (no auto-cascade) + hide toggle untuk Proton Tahun 3 / Manual entry.
