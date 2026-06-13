@@ -1,10 +1,11 @@
 ---
 phase: 374
 slug: ui-managepackages-lock-pre-post
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-13
+reviewed_at: 2026-06-13
 ---
 
 # Phase 374 — UI Design Contract
