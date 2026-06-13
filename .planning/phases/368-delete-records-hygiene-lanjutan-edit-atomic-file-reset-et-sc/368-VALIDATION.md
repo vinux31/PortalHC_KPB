@@ -1,10 +1,11 @@
 ---
 phase: 368
 slug: delete-records-hygiene-lanjutan-edit-atomic-file-reset-et-sc
-status: planned
+status: validated
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-13
+updated: 2026-06-13
 ---
 
 # Phase 368 — Validation Strategy
@@ -22,7 +23,7 @@ created: 2026-06-13
 | **Config file** | `HcPortal.Tests/HcPortal.Tests.csproj` |
 | **Quick run command** | `dotnet test HcPortal.Tests --filter "Category!=Integration"` (SQL-less, ~1s) |
 | **Full suite command** | `dotnet test HcPortal.Tests` (termasuk integration real-SQL @localhost\SQLEXPRESS) |
-| **Baseline saat ini** | post-367: quick 209/209, full 290/290 |
+| **Baseline saat ini** | **post-368: quick 215/215, full 306/306** (re-verified eksekusi 2026-06-13; +18 [Fact]/[Theory] lintas 4 plan) |
 | **Estimated runtime** | quick ~1-2s; real-SQL integration tambah disposable-DB per fixture |
 
 ---
@@ -42,17 +43,17 @@ created: 2026-06-13
 
 | Task ID | Plan | Wave | Requirement (#temuan) | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|------------------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| P01-T1 | 01 | 1 | #21 | T-368-02/03 | atomic replace: new-wins, metadata-only keep, upload-fail keep (V12 confined webroot) | [Fact] file-on-disk (temp-dir, pola 355) | `dotnet test HcPortal.Tests --filter "EditAtomicFile"` | ❌→ Task1 create | ⬜ pending |
-| P01-T2 | 01 | 1 | #21, #26 | T-368-01/02/03/04 | EditTraining+EditManualAssessment atomic + same-user renewal check (IDOR), pesan generik | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "Category!=Integration"` | ✅ (controller) | ⬜ pending |
-| P01-T3 | 01 | 1 | #26 | T-368-01 | cross-user invalid / non-existent invalid / same-user valid | integration real-SQL | `dotnet test HcPortal.Tests --filter "RenewalValidation"` | ❌→ Task3 create | ⬜ pending |
-| P02-T1 | 02 | 2 | #24, #27 | T-368-08 | Manual konstanta + GenerateCertificate=isPassed + audit ImportTraining; label swap | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "Category!=Integration"` | ✅ (controller+views) | ⬜ pending |
-| P02-T2 | 02 | 2 | #23 | T-368-05/06/07/08/09 | GET preview-count + POST [Authorize Admin]+[CSRF] + orphan SEMPIT + audit + idempotent | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "Category!=Integration"` | ✅ (controller+view) | ⬜ pending |
-| P02-T3 | 02 | 2 | #23, #24 | T-368-07/08 | orphan preview=2 → execute → re-run=0 idempotent; #24 field+audit persist | integration real-SQL | `dotnet test HcPortal.Tests --filter "OrphanCleanup\|ImportTrainingAudit"` | ❌→ Task3 create | ⬜ pending |
-| P03-T1 | 03 | 1 | #22 | T-368-10 | cleanup ET → retake re-insert ElemenTeknis sama tanpa unique-violation → fresh | integration real-SQL | `dotnet test HcPortal.Tests --filter "ResetEtCleanup"` | ❌→ Task1 create | ⬜ pending |
-| P03-T2 | 03 | 1 | #22 | T-368-10/11 | RemoveRange ET sebelum SaveChanges; no new transaction; filter AssessmentSessionId==id | build + filter + grep | `dotnet build; dotnet test HcPortal.Tests --filter "ResetEtCleanup"` | ✅ (controller) | ⬜ pending |
-| P04-T1 | 04 | 2 | #25 | T-368-12 | helper GroupBy-dedup; duplicate child Name tidak throw; lookup benar | unit [Fact] (no DB) | `dotnet build; dotnet test HcPortal.Tests --filter "ParentNameLookup"` | ❌→ Task1 create | ⬜ pending |
-| P04-T2 | 04 | 2 | #25 | T-368-12/13 | CMP+CDP konsumsi helper shared; 0 ToDictionary(c=>c.Name); 0 inline GroupBy | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "ParentNameLookup"` | ✅ (controllers) | ⬜ pending |
-| P04-T3 | 04 | 2 | #23, #27, #25 | T-368-05..12 | UAT browser: #23 preview→execute→idempotent (Seed Workflow), #27 label, #25 no-500 | MANUAL (checkpoint) + full suite | `dotnet test HcPortal.Tests` (otomatis pendukung) | n/a | ⬜ pending |
+| P01-T1 | 01 | 1 | #21 | T-368-02/03 | atomic replace: new-wins, metadata-only keep, upload-fail keep (V12 confined webroot) | [Fact] file-on-disk (temp-dir, pola 355) | `dotnet test HcPortal.Tests --filter "EditAtomicFile"` | ✅ `EditAtomicFileTests.cs` | ✅ green (3 [Fact], SUMMARY 01) |
+| P01-T2 | 01 | 1 | #21, #26 | T-368-01/02/03/04 | EditTraining+EditManualAssessment atomic + same-user renewal check (IDOR), pesan generik | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "Category!=Integration"` | ✅ (controller) | ✅ green (212/212 quick, SUMMARY 01) |
+| P01-T3 | 01 | 1 | #26 | T-368-01 | cross-user invalid / non-existent invalid / same-user valid | integration real-SQL | `dotnet test HcPortal.Tests --filter "RenewalValidation"` | ✅ `RenewalValidationTests.cs` | ✅ green (3 [Fact] real-SQL, SUMMARY 01) |
+| P02-T1 | 02 | 2 | #24, #27 | T-368-08 | Manual konstanta + GenerateCertificate=isPassed + audit ImportTraining; label swap | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "Category!=Integration"` | ✅ (controller+views) | ✅ green (greps + 212 quick, SUMMARY 02) |
+| P02-T2 | 02 | 2 | #23 | T-368-05/06/07/08/09 | GET preview-count + POST [Authorize Admin]+[CSRF] + orphan SEMPIT + audit + idempotent | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "Category!=Integration"` | ✅ (controller+view) | ✅ green (greps + build, SUMMARY 02; UAT P04-T3) |
+| P02-T3 | 02 | 2 | #23, #24 | T-368-07/08 | orphan preview=2 → execute → re-run=0 idempotent; #24 field+audit persist | integration real-SQL | `dotnet test HcPortal.Tests --filter "OrphanCleanup\|ImportTrainingAudit"` | ✅ `OrphanCleanupTests.cs`, `ImportTrainingAuditTests.cs` | ✅ green (4 [Fact]/[Theory] real-SQL, SUMMARY 02) |
+| P03-T1 | 03 | 1 | #22 | T-368-10 | cleanup ET → retake re-insert ElemenTeknis sama tanpa unique-violation → fresh | integration real-SQL | `dotnet test HcPortal.Tests --filter "ResetEtCleanup"` | ✅ `ResetEtScoreTests.cs` | ✅ green (3 [Fact] real-SQL incl unique-index bukti, SUMMARY 03) |
+| P03-T2 | 03 | 1 | #22 | T-368-10/11 | RemoveRange ET sebelum SaveChanges; no new transaction; filter AssessmentSessionId==id | build + filter + grep | `dotnet build; dotnet test HcPortal.Tests --filter "ResetEtCleanup"` | ✅ (controller) | ✅ green (greps + 212 quick, SUMMARY 03) |
+| P04-T1 | 04 | 2 | #25 | T-368-12 | helper GroupBy-dedup; duplicate child Name tidak throw; lookup benar | unit [Fact] (no DB) | `dotnet build; dotnet test HcPortal.Tests --filter "ParentNameLookup"` | ✅ `CertDedupTests.cs` | ✅ green (3 [Fact] unit, SUMMARY 04) |
+| P04-T2 | 04 | 2 | #25 | T-368-12/13 | CMP+CDP konsumsi helper shared; 0 ToDictionary(c=>c.Name); 0 inline GroupBy | build + quick suite + grep | `dotnet build; dotnet test HcPortal.Tests --filter "ParentNameLookup"` | ✅ (controllers) | ✅ green (greps + 215/215 quick, SUMMARY 04) |
+| P04-T3 | 04 | 2 | #23, #27, #25 | T-368-05..12 | UAT browser: #23 preview→execute→idempotent (Seed Workflow), #27 label, #25 no-500 | MANUAL (checkpoint) + full suite | `dotnet test HcPortal.Tests` (otomatis pendukung) | ✅ UAT browser @5277 | ✅ green (UAT 3/3 PASS: #23 DB-verified idempotent + #27 label + #25 no-500; full suite 306/306; Seed Workflow journal cleaned, SUMMARY 04) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -93,4 +94,27 @@ created: 2026-06-13
 - [x] Feedback latency < 60s (filtered runs)
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** planned — per-task map terisi 2026-06-13. `wave_0_complete` di-set true saat 5 test file dibuat + hijau di eksekusi.
+**Approval:** ✅ VALIDATED (post-execution audit 2026-06-13) — 11 task COVERED + green; `wave_0_complete: true` (6 test file dibuat + hijau); `nyquist_compliant: true`.
+
+---
+
+## Validation Audit 2026-06-13
+
+State A audit — rekonsiliasi VALIDATION.md (planner-filled, status ⬜/❌-create) terhadap artefak eksekusi (4 SUMMARY) + verifikasi disk + re-run suite + UAT browser.
+
+| Metric | Count |
+|--------|-------|
+| Tasks di Per-Task Map | 11 (10 auto + 1 checkpoint UAT) |
+| Gaps found (MISSING) | 0 |
+| COVERED (green) | 11 |
+| Resolved (auditor-filled) | 0 (semua test dibuat saat eksekusi TDD) |
+| Escalated to Manual-Only | 0 (UAT P04-T3 sudah PASS browser) |
+
+**Bukti:**
+- 6/6 file test ADA di disk: `EditAtomicFileTests.cs`, `RenewalValidationTests.cs`, `OrphanCleanupTests.cs`, `ImportTrainingAuditTests.cs`, `ResetEtScoreTests.cs`, `CertDedupTests.cs`.
+- Full suite eksekusi: **306/306** (215 quick + 91 integration real-SQL); +18 [Fact]/[Theory] baru.
+- UAT P04-T3 (Manual-Only checkpoint) PASS browser @5277: #23 preview=3→execute→idempotent DB-verified (orphan=0, non-orphan 5 utuh, audit logged) + #27 label + #25 CDP no-500. Seed Workflow journal `cleaned`.
+- Spec §3.4 minimal ter-cover: [Fact] replace-file atomic (#21) ✅, retake-after-reset ET fresh (#22) ✅, import audit-logged (#24) ✅.
+- Migration=FALSE seluruh phase; 0 regresi.
+
+**Hasil:** Phase 368 NYQUIST-COMPLIANT. Zero gap — auditor (gsd-nyquist-auditor) tidak di-spawn.
