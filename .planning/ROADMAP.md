@@ -102,7 +102,7 @@
   - SC3: Acak Soal OFF + ≥2 paket → tiap worker 1 paket utuh deterministik (index-session-stabil), seimbang, tahan resume/reshuffle; paket kosong di-skip.
   - SC4: Acak Pilihan ON/OFF independen dari Acak Soal; OFF → view urutan DB.
   - SC5: Reshuffle hormati flag (incl. opsi diacak saat ShuffleOptions ON — bug lama fixed).
-- [ ] **Phase 374: UI ManagePackages + Lock + Pre/Post** — 2 toggle di header `ManagePackages` (aktif walau `SamePackage` lock isi paket) + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate sibling) + lock toggle saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup) + warning non-blocking (multi-paket+Acak Soal OFF+ukuran paket beda) + reminder visual Pre OFF↔Post ON (no auto-cascade) + hide toggle untuk Proton Tahun 3 / Manual entry. REQ: SHUF-10..14. Migration=false. Depends: 373 (file-overlap v25.0 AssessmentAdminController)
+- [x] **Phase 374: UI ManagePackages + Lock + Pre/Post** — 2 toggle di header `ManagePackages` (aktif walau `SamePackage` lock isi paket) + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate sibling) + lock toggle saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup) + warning non-blocking (multi-paket+Acak Soal OFF+ukuran paket beda) + reminder visual Pre OFF↔Post ON (no auto-cascade) + hide toggle untuk Proton Tahun 3 / Manual entry. REQ: SHUF-10..14. Migration=false. Depends: 373 (file-overlap v25.0 AssessmentAdminController) (completed 2026-06-13)
   - SC1: Toggle tampil & bisa diubah di ManagePackages (Pre & Post), tetap aktif walau SamePackage lock paket.
   - SC2: Toggle read-only saat sudah ada peserta mulai; perubahan ditolak server-side.
   - SC3: Warning ukuran-paket-beda muncul (non-blocking) saat multi-paket + Acak Soal OFF.
@@ -158,7 +158,7 @@ Plans:
   3. Warning ukuran-paket-beda muncul (non-blocking) saat multi-paket + Acak Soal OFF.
   4. Reminder muncul di Post bila Pre OFF tapi Post masih ON; tidak ada auto-cascade.
 **UI hint:** yes (toggle header ManagePackages + lock state + warning + reminder Pre/Post)
-**Plans:** 3 plans (3 waves)
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 374-01-PLAN.md — Pure helper ShuffleToggleRules (lock/hide/warning) + Wave 0 tests (lock-guard reject/accept + propagate sibling) [Wave 1]
 - [x] 374-02-PLAN.md — Endpoint UpdateShuffleSettings (guard+propagate+audit+PRG) + ManagePackages GET ViewBag enrich (lock/hide/Pre-state) [Wave 2]

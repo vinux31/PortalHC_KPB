@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v25.0
 milestone_name: Proton Kelulusan & Bypass
 status: executing
-last_updated: "2026-06-13T14:05:15.043Z"
-last_activity: 2026-06-13 -- Phase 374 execution started
+last_updated: "2026-06-13T14:09:38.998Z"
+last_activity: 2026-06-13
 progress:
   total_phases: 25
   completed_phases: 22
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 ## Current Position
 
 Milestone: v25.0 — Proton Kelulusan & Bypass (6 phase 358-363; 358/359/362 shipped local)
-Phase: 374 (ui-managepackages-lock-pre-post) — EXECUTING
-Plan: 1 of 3
+Phase: 374
+Plan: Not started
 Status: Executing Phase 374
-Last activity: 2026-06-13 -- Phase 374 execution started
+Last activity: 2026-06-13
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-357, 25/25 REQ, archive milestones/v24.0-*). Bundle v19-v23 sudah ke IT; v24.0 belum push (branch ITHandoff).
 
