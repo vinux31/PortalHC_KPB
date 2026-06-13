@@ -359,7 +359,7 @@ Plans:
 **Plans:** 4 plans (2 waves)
 
 Plans:
-- [ ] 368-01-PLAN.md — EditTraining+EditManualAssessment atomic file replace (#21) + EditTraining renewal validation (#26). Wave 1
+- [x] 368-01-PLAN.md — EditTraining+EditManualAssessment atomic file replace (#21) + EditTraining renewal validation (#26). Wave 1
 - [ ] 368-02-PLAN.md — ImportTraining audit+konstanta (#24) + BulkBackfill konstanta+label (#27) + CleanupAttemptHistory endpoint+view (#23). Wave 2 (depends 01, file-overlap TrainingAdminController)
 - [ ] 368-03-PLAN.md — ResetAssessment RemoveRange SessionElemenTeknisScores (#22). Wave 1
 - [ ] 368-04-PLAN.md — CertificationManagement dedup helper shared + CMP/CDP rewire (#25) + UAT human-verify fase 368 (checkpoint). Wave 2 (depends 02)
