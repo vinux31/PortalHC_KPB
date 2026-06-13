@@ -1,10 +1,11 @@
 ---
 phase: 374
 slug: ui-managepackages-lock-pre-post
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-13
+updated: 2026-06-13
 ---
 
 # Phase 374 — Validation Strategy
@@ -76,11 +77,32 @@ created: 2026-06-13
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies (render-conditional explicitly manual → Phase 375)
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (SHUF-10 propagate + SHUF-11 lock-guard)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s (Shuffle subset)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (render-conditional explicitly manual → Phase 375)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (SHUF-10 propagate + SHUF-11 lock-guard)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s (Shuffle subset)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-13
+
+---
+
+## Validation Audit 2026-06-13
+
+| Metric | Count |
+|--------|-------|
+| Requirements | 5 (SHUF-10..14) |
+| Gaps found | 0 actionable |
+| Resolved (automated) | 4 decision-logic (SHUF-10/11/12/14) |
+| Manual-only (justified) | 3 render-conditional (SHUF-13 reminder + SHUF-12/14 visibility) |
+| Escalated | 0 |
+
+**Coverage map (tests delivered, all green — full suite 347/347):**
+- SHUF-10 → `ShuffleUpdateEndpointTests.UpdateShuffleSettings_PropagatesToAllSiblings` (real-SQL) — COVERED
+- SHUF-11 → `ShuffleLockGuardTests` ×3 (real-SQL guard reject/allow) + `ShuffleToggleRulesTests.Lock_OrLogic` ×4 — COVERED
+- SHUF-12 → `ShuffleToggleRulesTests.Warning_Predicate` ×5 (logic) — COVERED; live render visibility → manual (Playwright 375)
+- SHUF-14 → `ShuffleToggleRulesTests.Hide_ProtonTahun3OrManual` ×5 (logic) — COVERED; @if render → manual (Playwright 375)
+- SHUF-13 → reminder Pre/Post saved-state render-conditional — MANUAL-ONLY (Razor-runtime, Playwright 375); browser UAT scenario 5 PASS
+
+**Rationale manual-only:** Render-conditional (Razor `@if` + live-JS DOM) tidak layak unit-test (brittle — RESEARCH Pitfall, anti-pattern). Di-defer ke Phase 375 (SHUF-16 Playwright UAT) by design. Semua sudah browser-verified 7/7 UAT 2026-06-13. Decision-logic 100% automated (18 test). Nyquist-compliant: render-conditional punya justifikasi manual-only eksplisit, tidak ada gap auto-fillable yang dilewati diam-diam.
