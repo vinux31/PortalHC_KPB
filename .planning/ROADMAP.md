@@ -127,7 +127,7 @@
 Plans:
 - [x] 372-01-PLAN.md — entity 2 kolom + Fluent + migration AddShuffleTogglesToAssessmentSession [BLOCKING] + Wave 0 test stubs + SHUF-01 real-SQL backfill (Wave 1)
 - [x] 372-02-PLAN.md — controller set flag 6 write-site + 2 foreach propagate + SHUF-02/03 test real-SQL (Wave 2)
-- [ ] 372-03-PLAN.md — wizard 2 toggle Langkah 3 + summary Langkah 4 + populateSummary JS + UAT smoke (Wave 2)
+- [x] 372-03-PLAN.md — wizard 2 toggle Langkah 3 + summary Langkah 4 + populateSummary JS + UAT smoke (Wave 2)
 
 ### Phase 373: Shuffle Engine (read logic + reshuffle)
 **Goal:** `CMPController.StartExam` gerbang flag saat bangun `UserPackageAssignment` + ekstrak core pure (testable tanpa DB): Acak Soal ON=existing (1 paket acak / ≥2 sampling K); OFF+1 paket=urut `q.Order`; OFF+≥2 paket=round-robin **index-session-stabil** 1 paket/worker + guard paket kosong; Acak Pilihan independen (ON dict / OFF "{}"); resume stale-count guard deterministik; cleanup komentar stale `CMPController.cs:1054`; `ReshufflePackage`/`ReshuffleAll` hormati KEDUA flag (fix bug existing opsi hard-code "{}").
