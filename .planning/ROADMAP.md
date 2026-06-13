@@ -158,6 +158,11 @@ Plans:
   3. Warning ukuran-paket-beda muncul (non-blocking) saat multi-paket + Acak Soal OFF.
   4. Reminder muncul di Post bila Pre OFF tapi Post masih ON; tidak ada auto-cascade.
 **UI hint:** yes (toggle header ManagePackages + lock state + warning + reminder Pre/Post)
+**Plans:** 3 plans (3 waves)
+Plans:
+- [ ] 374-01-PLAN.md — Pure helper ShuffleToggleRules (lock/hide/warning) + Wave 0 tests (lock-guard reject/accept + propagate sibling) [Wave 1]
+- [ ] 374-02-PLAN.md — Endpoint UpdateShuffleSettings (guard+propagate+audit+PRG) + ManagePackages GET ViewBag enrich (lock/hide/Pre-state) [Wave 2]
+- [ ] 374-03-PLAN.md — Card Pengacakan (2 toggle + Simpan + lock/warning/reminder alert) + live JS + UAT browser [Wave 3]
 
 ### Phase 375: Test & UAT
 **Goal:** xUnit core semua mode (ON 1/≥2, OFF 1/≥2 round-robin determinisme, guard paket kosong, opsi ON/OFF) + test migration default + propagasi sibling + lock guard + reshuffle flag; Playwright UAT toggle ON/OFF + lock + reminder Pre/Post + warning.
