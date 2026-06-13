@@ -25,6 +25,7 @@
 - ✅ **v24.0 Gambar di Soal Assessment (Manage Package)** — Phases 352-357 (shipped local 2026-06-09, audited passed; 6 phase, 22 plan, 25/25 REQ; full detail → [milestones/v24.0-ROADMAP.md](milestones/v24.0-ROADMAP.md))
 - 🚧 **v25.0 Proton Kelulusan & Bypass** — Phases 358-368 (roadmap 2026-06-09; 20 REQ PCOMP/PBYP + 362 polish + 363 audit-fix T1-T10 + 364-366 promoted backlog 2026-06-10 + 367-368 delete-records overhaul 2026-06-10; 2 migration; spec [A](../docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md) + [B](../docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md) + [C delete-records](../docs/superpowers/specs/2026-06-10-delete-input-records-full-cascade-design.md))
 - 🚨 **v26.0 Urgent — Search & Records Visibility** — Phases 369-371 (added 2026-06-11 URGENT; lanjutan investigasi "Post Test OJT tak bisa dicari" + quick task 260611-m9r; REQ URG-01..03; 0 migration; interleave dengan sisa v25.0 sesuai dependency per-phase)
+- 🔜 **v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan)** — Phases 372-375 (added 2026-06-13; brainstorm toggle ON/OFF 2 sistem acak [soal + pilihan] scope per-assessment di ManagePackages; REQ SHUF-01..16; 1 migration `AddShuffleTogglesToAssessmentSession`; spec [shuffle-toggle](../docs/superpowers/specs/2026-06-13-shuffle-toggle-design.md)). ⚠️ **FILE-OVERLAP dengan v25.0 AKTIF** — JANGAN plan/execute sebelum koordinasi sesi v25.0 (372/374 sentuh `AssessmentAdminController.cs`, 373 sentuh `CMPController.cs` = file yang sama dipakai 367/368).
 
 ## Phases
 
@@ -310,7 +311,7 @@ Plans:
 - [x] 367-04-PLAN.md — DeleteAssessmentGroup sibling filter no over-match (#18) + ResetAssessment guard IsManualEntry (#20). Wave 1
 - [x] 367-05-PLAN.md — 3 endpoint tab 1: file cert post-commit (#19) + pre-check renewal BLOKIR → cascade no-blocker (L-03) + preserve image 366. Wave 3
 - [x] 367-06-PLAN.md — TrainingAdminController: honesty split (L-06/#1) + DeleteManualAssessment generik (L-07/#3/#4) + DeleteTraining cascade (L-03/#2) + GET DeletePreview + partial modal. Wave 3
-- [ ] 367-07-PLAN.md — Guard duplikat EXACT 3 pintu: AddManual reject / Import+BulkBackfill skip-with-report (#12/#14, D-02). Wave 4
+- [x] 367-07-PLAN.md — Guard duplikat EXACT 3 pintu: AddManual reject / Import+BulkBackfill skip-with-report (#12/#14, D-02). Wave 4
 - [ ] 367-08-PLAN.md — UI _TrainingRecordsTab: tombol hapus online + rewire 3 tombol ke modal preview + flash jujur S3 (#3/L-06) + Playwright UAT dual-path (SC1-SC4). Wave 5 (checkpoint)
 
 ### Phase 368: Delete Records Hygiene Lanjutan
