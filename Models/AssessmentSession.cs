@@ -35,6 +35,12 @@ namespace HcPortal.Models
         [Display(Name = "Terbitkan Sertifikat")]
         public bool GenerateCertificate { get; set; } = false;
 
+        [Display(Name = "Acak Soal")]
+        public bool ShuffleQuestions { get; set; } = true;
+
+        [Display(Name = "Acak Pilihan Jawaban")]
+        public bool ShuffleOptions { get; set; } = true;
+
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? StartedAt { get; set; }

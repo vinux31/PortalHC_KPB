@@ -213,6 +213,8 @@ namespace HcPortal.Data
                 // Default values
                 entity.Property(a => a.PassPercentage).HasDefaultValue(70);
                 entity.Property(a => a.AllowAnswerReview).HasDefaultValue(true);
+                entity.Property(a => a.ShuffleQuestions).HasDefaultValue(true);
+                entity.Property(a => a.ShuffleOptions).HasDefaultValue(true);
                 entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
                 // AssessmentSession: Proton exam fields (Phase 53)
