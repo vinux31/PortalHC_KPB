@@ -2206,8 +2206,8 @@ namespace HcPortal.Controllers
                 var assessmentTitle = assessment.Title;
                 logger.LogInformation($"Attempting to delete assessment {id}: {assessmentTitle}");
 
-                // D-19: Block delete individual jika bagian Pre-Post group
-                if (assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest")
+                // D-19: Block delete individual jika bagian Pre-Post group (shared IsPrePostSession — single-source tab-1/tab-2)
+                if (IsPrePostSession(assessment))
                 {
                     TempData["Error"] = "Sesi ini bagian dari grup Pre-Post Test. Gunakan 'Hapus Grup' untuk menghapus keduanya.";
                     return RedirectToAction("ManageAssessment");
@@ -2599,41 +2599,8 @@ namespace HcPortal.Controllers
             }
         }
 
-        // ============================================================
-        // Phase 367 (05): helper cascade tab 1 — image SOAL (Opsi B) + cert (#19)
-        // ============================================================
-
-        // Phase 366/367: kumpul ImagePath SOAL (Question + Option) Distinct utk daftar session node cascade
-        // (Opsi B — engine TIDAK sentuh image SOAL; endpoint yang bersihkan, termasuk turunan renewal).
-        private async Task<List<string>> CollectQuestionImagePathsAsync(IReadOnlyCollection<int> sessionIds)
-        {
-            if (sessionIds.Count == 0) return new List<string>();
-            var packages = await _context.AssessmentPackages
-                .Include(p => p.Questions).ThenInclude(q => q.Options)
-                .Where(p => sessionIds.Contains(p.AssessmentSessionId))
-                .ToListAsync();
-            return packages
-                .SelectMany(p => p.Questions)
-                .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
-                .Where(p => !string.IsNullOrEmpty(p))
-                .Select(p => p!)
-                .Distinct()
-                .ToList();
-        }
-
-        // #19/L-08: hapus file sertifikat manual fisik POST-commit, warn-only per file (confined webroot V12).
-        private void DeleteCertFiles(IEnumerable<string> certUrls, ILogger logger)
-        {
-            foreach (var url in certUrls.Where(u => !string.IsNullOrEmpty(u)).Distinct())
-            {
-                try
-                {
-                    var path = System.IO.Path.Combine(_env.WebRootPath, url.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
-                    if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
-                }
-                catch (Exception ex) { logger.LogWarning(ex, "Cert File.Delete post-commit failed: {Url}", url); }
-            }
-        }
+        // Phase 367: helper cascade (CollectQuestionImagePathsAsync, DeleteCertFiles) dipindah ke
+        // AdminBaseController (single-source tab-1 + tab-2; lihat AdminBaseController.cs).
 
         // --- REGENERATE TOKEN ---
         [HttpPost("{id:int}")]
