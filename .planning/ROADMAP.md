@@ -160,7 +160,7 @@ Plans:
 **UI hint:** yes (toggle header ManagePackages + lock state + warning + reminder Pre/Post)
 **Plans:** 3 plans (3 waves)
 Plans:
-- [ ] 374-01-PLAN.md — Pure helper ShuffleToggleRules (lock/hide/warning) + Wave 0 tests (lock-guard reject/accept + propagate sibling) [Wave 1]
+- [x] 374-01-PLAN.md — Pure helper ShuffleToggleRules (lock/hide/warning) + Wave 0 tests (lock-guard reject/accept + propagate sibling) [Wave 1]
 - [ ] 374-02-PLAN.md — Endpoint UpdateShuffleSettings (guard+propagate+audit+PRG) + ManagePackages GET ViewBag enrich (lock/hide/Pre-state) [Wave 2]
 - [ ] 374-03-PLAN.md — Card Pengacakan (2 toggle + Simpan + lock/warning/reminder alert) + live JS + UAT browser [Wave 3]
 
