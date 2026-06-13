@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v25.0
 milestone_name: Proton Kelulusan & Bypass
 status: executing
-last_updated: "2026-06-13T07:06:50.043Z"
-last_activity: 2026-06-13
+last_updated: "2026-06-13T07:45:54.281Z"
+last_activity: 2026-06-13 -- Phase 368 planning complete
 progress:
   total_phases: 20
   completed_phases: 18
-  total_plans: 68
+  total_plans: 72
   completed_plans: 68
-  percent: 100
+  percent: 94
 ---
 
 # Project State: Portal HC KPB
@@ -28,7 +28,7 @@ Milestone: v25.0 — Proton Kelulusan & Bypass (6 phase 358-363; 358/359/362 shi
 Phase: 367 (delete-records-cascade-overhaul) — EXECUTING
 Plan: 5 of 8
 Status: Ready to execute
-Last activity: 2026-06-13
+Last activity: 2026-06-13 -- Phase 368 planning complete
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + audited + closed 2026-06-09 (phases 352-357, 25/25 REQ, archive milestones/v24.0-*). Bundle v19-v23 sudah ke IT; v24.0 belum push (branch ITHandoff).
 
