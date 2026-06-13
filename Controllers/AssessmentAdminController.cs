@@ -5250,6 +5250,68 @@ namespace HcPortal.Controllers
             return Json(new { success = true, results, reshuffledCount });
         }
 
+        // Phase 374 SHUF-10/11: explicit-save shuffle toggle endpoint (PRG + server lock guard + propagate sibling + audit).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateShuffleSettings(int assessmentId, bool shuffleQuestions, bool shuffleOptions)
+        {
+            var assessment = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(a => a.Id == assessmentId);
+            if (assessment == null) return NotFound();
+
+            // Sibling group — key identik StartExam/Reshuffle/EditAssessment (spec §5).
+            var siblingSessionIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title &&
+                            s.Category == assessment.Category &&
+                            s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            // Defense-in-depth (D-04a / SHUF-11): re-cek lock server-side.
+            bool anyStarted = await _context.AssessmentSessions
+                .AnyAsync(s => siblingSessionIds.Contains(s.Id) && s.StartedAt != null);
+            bool anyAssignment = await _context.UserPackageAssignments
+                .AnyAsync(a => siblingSessionIds.Contains(a.AssessmentSessionId));
+
+            if (ShuffleToggleRules.IsShuffleLocked(anyStarted, anyAssignment))
+            {
+                TempData["Error"] = "Pengaturan pengacakan tidak dapat diubah karena sudah ada peserta yang memulai ujian.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            // Propagate ke SEMUA sibling grup (pola EditAssessment foreach).
+            var siblings = await _context.AssessmentSessions
+                .Where(s => siblingSessionIds.Contains(s.Id))
+                .ToListAsync();
+            var now = DateTime.UtcNow;
+            foreach (var sibling in siblings)
+            {
+                sibling.ShuffleQuestions = shuffleQuestions;
+                sibling.ShuffleOptions   = shuffleOptions;
+                sibling.UpdatedAt = now;
+            }
+            await _context.SaveChangesAsync();
+
+            // Audit try/catch warn-only (pola ReshufflePackage/ReshuffleAll).
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorNameStr,
+                    "UpdateShuffleSettings",
+                    $"Set Acak Soal={shuffleQuestions}, Acak Pilihan={shuffleOptions} for assessment '{assessment.Title}' [grup {siblingSessionIds.Count} sesi]",
+                    assessmentId,
+                    "AssessmentSession");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for UpdateShuffleSettings (assessmentId={Id})", assessmentId); }
+
+            TempData["Success"] = "Pengaturan pengacakan berhasil disimpan.";
+            return RedirectToAction("ManagePackages", new { assessmentId });
+        }
+
         // Phase 373: the local Shuffle + cross-package distribution helpers moved to
         // Helpers/ShuffleEngine.cs (single source of truth — the canonical CMPController algorithm).
         // Both reshuffle endpoints now delegate to the shared ShuffleEngine core.
@@ -5319,6 +5381,49 @@ namespace HcPortal.Controllers
 
             // SamePackage lock: jika Post-Test dengan SamePackage=true, lock editing
             ViewBag.IsSamePackageLocked = isPostSession && assessment.SamePackage;
+
+            // === Phase 374: Shuffle toggle state ===
+            var shufSiblingIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title &&
+                            s.Category == assessment.Category &&
+                            s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            bool shufAnyStarted = await _context.AssessmentSessions
+                .AnyAsync(s => shufSiblingIds.Contains(s.Id) && s.StartedAt != null);
+            bool shufAnyAssignment = await _context.UserPackageAssignments
+                .AnyAsync(a => shufSiblingIds.Contains(a.AssessmentSessionId));
+
+            ViewBag.ShuffleQuestions = assessment.ShuffleQuestions;   // saved state -> render checked
+            ViewBag.ShuffleOptions   = assessment.ShuffleOptions;
+            ViewBag.IsShuffleLocked = ShuffleToggleRules.IsShuffleLocked(shufAnyStarted, shufAnyAssignment);
+            ViewBag.HideShuffleToggle = ShuffleToggleRules.ShouldHideShuffleToggle(
+                assessment.Category, assessment.TahunKe, assessment.IsManualEntry);
+
+            // Warning §9 precondition: jumlah paket-ber-soal + mismatch ukuran (mirror view L70-81).
+            var pkgWithQuestions = packages.Where(p => p.Questions.Any()).ToList();
+            int packagesWithQuestions = pkgWithQuestions.Count;
+            bool hasMismatch = false;
+            if (packagesWithQuestions > 0)
+            {
+                int refCount = pkgWithQuestions[0].Questions.Count;
+                hasMismatch = pkgWithQuestions.Any(p => p.Questions.Count != refCount);
+            }
+            ViewBag.PackagesWithQuestions = packagesWithQuestions;
+            ViewBag.HasSizeMismatch = hasMismatch;
+            ViewBag.ShowSizeMismatchWarning = ShuffleToggleRules.ShouldShowSizeMismatchWarning(
+                packagesWithQuestions, assessment.ShuffleQuestions, hasMismatch);
+
+            // Reminder Pre/Post (opsi Z, SHUF-13): Post page only, saved-state Pre via LinkedSessionId.
+            if (isPostSession && assessment.LinkedSessionId.HasValue)
+            {
+                var preShuffle = await _context.AssessmentSessions
+                    .Where(s => s.Id == assessment.LinkedSessionId.Value)
+                    .Select(s => (bool?)s.ShuffleQuestions)
+                    .FirstOrDefaultAsync();
+                ViewBag.PreShuffleQuestions = preShuffle;   // null bila Pre tak ada
+            }
 
             return View();
         }
