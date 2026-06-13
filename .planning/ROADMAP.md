@@ -346,9 +346,23 @@ Plans:
 **Depends on:** Phase 367 (file-overlap `TrainingAdminController.cs` + `ResetAssessment` di `AssessmentAdminController.cs`).
 **Migration:** false.
 **Requirements:** Temuan #21-27 spec C (§3.3 item ber-tag [368]); detail test difinalkan saat planning 368.
-**Success Criteria:** TBD saat plan (turunan langsung spec §3.3; minimal: [Fact] replace-file atomic ala Phase 355 `Replace_NewFileWins`, retake pasca-reset menghasilkan ET scores baru, import ter-audit-log).
-**UI hint:** minor (rename label BulkBackfill).
-**Plans:** 0 plans — TBD (run /gsd-plan-phase 368)
+**Success Criteria** (turunan spec §3.3; minimal terpenuhi):
+- SC1 (#21): EditTraining + EditManualAssessment atomik — upload baru sukses hapus file lama post-commit; upload gagal / metadata-only → file lama utuh. [Fact] replace-file ala Phase 355.
+- SC2 (#22): retake pasca-reset menghasilkan ET scores baru (RemoveRange `SessionElemenTeknisScores` di cleanup ResetAssessment, no unique-violation). Integration real-SQL.
+- SC3 (#23): endpoint admin idempotent — preview-count → execute + audit → re-run=0; admin-gated + CSRF; orphan SEMPIT (SessionId dangling). Integration + UAT browser.
+- SC4 (#24): ImportTraining ter-audit-log (ringkasan) + `AssessmentType=Manual` + `GenerateCertificate=isPassed`.
+- SC5 (#25): CMP+CDP CertificationManagement GroupBy-dedup via helper shared (`SertifikatRow.BuildParentNameLookup`) → tidak 500 pada duplicate child Name; anti-drift single-source.
+- SC6 (#26): EditTraining tolak `Renews*Id` invalid (tak exist/beda user) saat field berubah; legacy edit field-lain lolos.
+- SC7 (#27): BulkBackfill `AssessmentType=Manual` konstanta + label UI "Bulk Import Nilai (Excel)" di 3 view.
+- SC8: migration=false (zero schema change) + full test suite hijau (baseline post-367 + ≥5 test file baru).
+**UI hint:** minor (rename label BulkBackfill + view CleanupAttemptHistory baru #23).
+**Plans:** 4 plans (2 waves)
+
+Plans:
+- [ ] 368-01-PLAN.md — EditTraining+EditManualAssessment atomic file replace (#21) + EditTraining renewal validation (#26). Wave 1
+- [ ] 368-02-PLAN.md — ImportTraining audit+konstanta (#24) + BulkBackfill konstanta+label (#27) + CleanupAttemptHistory endpoint+view (#23). Wave 2 (depends 01, file-overlap TrainingAdminController)
+- [ ] 368-03-PLAN.md — ResetAssessment RemoveRange SessionElemenTeknisScores (#22). Wave 1
+- [ ] 368-04-PLAN.md — CertificationManagement dedup helper shared + CMP/CDP rewire (#25) + UAT human-verify fase 368 (checkpoint). Wave 2 (depends 02)
 
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
