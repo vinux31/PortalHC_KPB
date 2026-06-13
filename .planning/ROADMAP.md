@@ -309,7 +309,7 @@ Plans:
 - [x] 367-03-PLAN.md — Badge recompute = baris tampil per jenis (#16/#17, D-01). Wave 1
 - [x] 367-04-PLAN.md — DeleteAssessmentGroup sibling filter no over-match (#18) + ResetAssessment guard IsManualEntry (#20). Wave 1
 - [x] 367-05-PLAN.md — 3 endpoint tab 1: file cert post-commit (#19) + pre-check renewal BLOKIR → cascade no-blocker (L-03) + preserve image 366. Wave 3
-- [ ] 367-06-PLAN.md — TrainingAdminController: honesty split (L-06/#1) + DeleteManualAssessment generik (L-07/#3/#4) + DeleteTraining cascade (L-03/#2) + GET DeletePreview + partial modal. Wave 3
+- [x] 367-06-PLAN.md — TrainingAdminController: honesty split (L-06/#1) + DeleteManualAssessment generik (L-07/#3/#4) + DeleteTraining cascade (L-03/#2) + GET DeletePreview + partial modal. Wave 3
 - [ ] 367-07-PLAN.md — Guard duplikat EXACT 3 pintu: AddManual reject / Import+BulkBackfill skip-with-report (#12/#14, D-02). Wave 4
 - [ ] 367-08-PLAN.md — UI _TrainingRecordsTab: tombol hapus online + rewire 3 tombol ke modal preview + flash jujur S3 (#3/L-06) + Playwright UAT dual-path (SC1-SC4). Wave 5 (checkpoint)
 
