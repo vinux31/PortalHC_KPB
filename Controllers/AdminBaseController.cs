@@ -258,5 +258,12 @@ namespace HcPortal.Controllers
                 return true;
             return await _context.PackageUserResponses.AnyAsync(r => cascadeSessionIds.Contains(r.AssessmentSessionId));
         }
+
+        // #12/#14 D-02: predikat duplikat manual EXACT (UserId+Title+CompletedAt — BUKAN ±1 hari mirror #15).
+        // Single-source 3 pintu input (AddManual reject + Import/BulkBackfill skip) + DuplicateGuardTests (zero drift, pola 04).
+        // re-entry tanggal beda = LOLOS (CompletedAt exact); cegah false-positive (Pitfall 7).
+        public static System.Linq.Expressions.Expression<Func<AssessmentSession, bool>> ManualDuplicatePredicate(
+            string userId, string title, DateTime? completedAt)
+            => s => s.UserId == userId && s.Title == title && s.CompletedAt == completedAt && s.IsManualEntry;
     }
 }

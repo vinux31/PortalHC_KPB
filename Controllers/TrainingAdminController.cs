@@ -688,6 +688,19 @@ namespace HcPortal.Controllers
                 return View(model);
             }
 
+            // #12 D-02: guard duplikat EXACT (UserId+Title+CompletedAt manual, shared ManualDuplicatePredicate) per worker
+            // → REJECT submit bila ada dup (re-entry tanggal beda LOLOS, Pitfall 7). Pre-loop SEBELUM simpan file/Add (no partial-save).
+            foreach (var wc in model.WorkerCerts!)
+            {
+                if (await _context.AssessmentSessions.AnyAsync(ManualDuplicatePredicate(wc.UserId, model.Title, model.CompletedAt)))
+                {
+                    ModelState.AddModelError("", $"Duplikat: assessment '{model.Title}' untuk pekerja {wc.UserId} pada tanggal {model.CompletedAt:dd MMM yyyy} sudah ada.");
+                    await PopulateWorkersViewBag();
+                    await SetTrainingCategoryViewBag();
+                    return View(model);
+                }
+            }
+
             var currentUserId = (await _userManager.GetUserAsync(User))?.Id;
 
             foreach (var wc in model.WorkerCerts!)
@@ -827,9 +840,27 @@ namespace HcPortal.Controllers
             try
             {
                 var addedSessions = new List<AssessmentSession>();
+
+                // #14 D-02: pre-load existing keys (EXACT manual; title+completedAt KONSTAN utk batch ini → key = UserId)
+                // + intra-batch dedup (2 baris NIP sama dalam 1 file → baris kedua skip). seenInBatch karena AnyAsync TAK
+                // lihat row uncommitted dalam tx (1 SaveChanges di akhir). EXACT: CompletedAt == (BUKAN ±1 hari, Pitfall 7).
+                var relevantUserIds = users.Values.Select(u => u.Id).ToList();
+                var existingUserIds = (await _context.AssessmentSessions
+                    .Where(s => s.IsManualEntry && s.Title == title && s.CompletedAt == completedAt && relevantUserIds.Contains(s.UserId))
+                    .Select(s => s.UserId)
+                    .ToListAsync()).ToHashSet();
+                var seenInBatch = new HashSet<string>();
+                var skippedNips = new List<string>();
+
                 foreach (var row in rows)
                 {
                     var user = users[row.NIP];
+                    // duplikat — dilewati (DB existing ATAU intra-batch); JANGAN increment success
+                    if (existingUserIds.Contains(user.Id) || !seenInBatch.Add(user.Id))
+                    {
+                        skippedNips.Add(row.NIP);
+                        continue;
+                    }
                     var session = new AssessmentSession
                     {
                         UserId = user.Id,
@@ -874,7 +905,8 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["Success"] = $"Berhasil insert {success} backfill assessment '{title}' dengan tag '{auditTag}'. LinkedGroupId={linkedGroupId?.ToString() ?? "null"}.";
+                TempData["Success"] = $"Berhasil insert {success} backfill assessment '{title}' dengan tag '{auditTag}'. LinkedGroupId={linkedGroupId?.ToString() ?? "null"}."
+                    + (skippedNips.Count > 0 ? $" {skippedNips.Count} duplikat dilewati: {string.Join(", ", skippedNips)}." : "");
                 return RedirectToAction(nameof(BulkBackfill));
             }
             catch (Exception ex)
@@ -1228,6 +1260,16 @@ namespace HcPortal.Controllers
 
                         bool isPassed = lulusStr.Equals("Ya", StringComparison.OrdinalIgnoreCase);
                         int? score = int.TryParse(scoreStr, out var s) ? s : null;
+
+                        // #12 D-02: guard duplikat EXACT (UserId+Title+CompletedAt manual, shared predicate) → SKIP-with-report.
+                        // Branch ini SaveChanges per-row → AnyAsync sudah lihat row sebelumnya yg di-Add (intra-batch ter-cover).
+                        if (await _context.AssessmentSessions.AnyAsync(ManualDuplicatePredicate(targetUser.Id, judul, parsedDate)))
+                        {
+                            result.Status = "Skip";
+                            result.Message = "duplikat — dilewati";
+                            results.Add(result);
+                            continue;
+                        }
 
                         try
                         {
