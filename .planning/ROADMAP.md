@@ -176,7 +176,7 @@ Plans:
 **UI hint:** yes (Playwright UAT visual)
 **Plans:** 3 plans (2 waves)
 Plans:
-- [ ] 375-01-PLAN.md — consolidation [Theory] mode-matrix sweep (di atas 27 test) + full suite hijau (SC#1) + SHUF-15 verify CMPController clean [Wave 1]
+- [x] 375-01-PLAN.md — consolidation [Theory] mode-matrix sweep (di atas 27 test) + full suite hijau (SC#1) + SHUF-15 verify CMPController clean [Wave 1]
 - [ ] 375-02-PLAN.md — Playwright shuffle.spec.ts 5 skenario ManagePackages (card render+save-PRG, lock, reminder Pre/Post, warning live-JS, hide) [Wave 1]
 - [ ] 375-03-PLAN.md — manual exam-diff 2 peserta SC#2 (D-03a) + seed snapshot/RESTORE + 375-HUMAN-UAT.md + human-verify checkpoint [Wave 2]
 
