@@ -2189,6 +2189,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> DeleteAssessment(int id)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
 
             try
             {
@@ -2212,149 +2213,71 @@ namespace HcPortal.Controllers
                     return RedirectToAction("ManageAssessment");
                 }
 
-                // Phase 325 P05 D-11: pre-check referencing rows SEBELUM buka tx scope (fail-fast UX friendly).
-                // AssessmentSession punya 2 jenis renewal child: TR + AS. FK column = RenewsSessionId.
-                // Pre-check di luar tx supaya tidak konflik dengan Phase 323 cascade tx (BeginTransactionAsync di bawah).
-                var refTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsSessionId == id);
-                var refAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsSessionId == id);
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 325) DIBALIK → cascade penuh via engine
+                // (turunan renewal IKUT terhapus, parity tab 2 — fix kasus Rino #3). Engine hapus DB
+                // (root + turunan) + artefak per node + cert per node + audit (1-tx, preview==execute).
+                // Image SOAL (Opsi B) + #19 cert = ranah endpoint: collect SEBELUM engine, hapus file POST engine (warn-only).
 
-                if (refTr + refAs > 0)
-                {
-                    var total = refTr + refAs;
-                    TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
-                                      + "menggunakan record ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment");
-                }
+                // Cascade node ids (root + turunan renewal) = SAMA dgn yg dihapus engine (CollectCascadeIds).
+                var cascadeNodes = await cascade.CollectCascadeIds("session", id);
+                var cascadeSessionIds = cascadeNodes.Where(n => n.Type == "session").Select(n => n.Id).ToList();
 
-                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction agar TOCTOU race
-                // (peserta concurrent POST jawaban antara guard-check dan cascade) dapat ditangani
-                // dengan re-check responseCount dalam transaction, lalu rollback bersih jika race terjadi.
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Image SOAL SEMUA session node (engine Opsi B tak sentuh image SOAL → cegah orphan turunan).
+                var imagePaths = await CollectQuestionImagePathsAsync(cascadeSessionIds);
 
-                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
+                // Load SELURUH session cascade (root + turunan) utk: (a) gate izin HC atas SEMUA node, (b) cert.
+                var cascadeSessions = await _context.AssessmentSessions
+                    .Where(a => cascadeSessionIds.Contains(a.Id)).ToListAsync();
+
+                // #19: file sertifikat manual semua session node (engine juga hapus — idempotent File.Exists).
+                var certPaths = cascadeSessions
+                    .Where(s => !string.IsNullOrEmpty(s.ManualSertifikatUrl))
+                    .Select(s => s.ManualSertifikatUrl!)
+                    .ToList();
+
+                // Snapshot audit
+                string preDeleteStatus = assessment.Status;
+                int preDeleteResponseCount = await _context.PackageUserResponses
+                    .CountAsync(r => cascadeSessionIds.Contains(r.AssessmentSessionId));
+
+                // Actor untuk audit (engine + endpoint)
+                var actorUser = await _userManager.GetUserAsync(User);
+                var actorId = actorUser?.Id ?? "";
+                var actorName = string.IsNullOrWhiteSpace(actorUser?.NIP) ? (actorUser?.FullName ?? "Unknown") : $"{actorUser.NIP} - {actorUser.FullName}";
+
+                // PHASE 312 role-tier guard (D-04, T-312-01) — gate izin HC atas SELURUH set cascade (root + turunan),
+                // BUKAN cuma root. Fix temuan kritis 367-05: cegah HC menghapus turunan Completed/ber-jawaban via
+                // ancestor (engine tak punya role guard). EnsureCanDeleteAsync read-only; Admin override tetap lewat.
+                // Diposisikan paling akhir SEBELUM engine → window TOCTOU minimal (no in-tx re-check; residual diterima).
                 var blockResult = await EnsureCanDeleteAsync(
                     "DeleteAssessment",
                     id,
                     "AssessmentSession",
-                    new List<AssessmentSession> { assessment });
-                if (blockResult != null)
+                    cascadeSessions);
+                if (blockResult != null) return blockResult;
+
+                var result = await cascade.ExecuteAsync("session", id, Enumerable.Empty<int>(), actorId, actorName);
+                if (!result.Success)
                 {
-                    await tx.RollbackAsync();
-                    return blockResult;
-                }
-
-                // PHASE 312: capture pre-delete snapshot SEBELUM cascade (assessment.Status hilang post-SaveChanges)
-                string preDeleteStatus = assessment.Status;
-                int preDeleteResponseCount = await _context.PackageUserResponses
-                    .CountAsync(r => r.AssessmentSessionId == id);
-
-                // PHASE 323: snapshot EditLog count SEBELUM cascade (sama pola preDeleteResponseCount)
-                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
-                    .CountAsync(e => e.AssessmentSessionId == id);
-
-                // PHASE 312 WR-01: re-check responseCount untuk HC tier — kalau berubah dari 0
-                // antara guard dan sini, abort dengan error spesifik (peserta baru menyimpan jawaban).
-                // Admin override tetap bisa lanjut (D-04: Admin tier menerima konsekuensi).
-                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
-                {
-                    logger.LogWarning(
-                        "DeleteAssessment race detected: responseCount changed to {Count} for Id={Id} between guard and cascade",
-                        preDeleteResponseCount, id);
-                    await tx.RollbackAsync();
-                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
+                    TempData["Error"] = result.ErrorMessage ?? "Gagal menghapus assessment. Silakan coba lagi.";
                     return RedirectToAction("ManageAssessment");
                 }
 
-                // PHASE 323: Delete AssessmentEditLogs (Restrict FK — must be removed before session)
-                var editLogs = await _context.AssessmentEditLogs
-                    .Where(e => e.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (editLogs.Any())
-                {
-                    logger.LogInformation($"Deleting {editLogs.Count} assessment edit logs");
-                    _context.AssessmentEditLogs.RemoveRange(editLogs);
-                }
-
-                // Delete PackageUserResponses (Restrict FK — must be removed before session)
-                var pkgResponses = await _context.PackageUserResponses
-                    .Where(r => r.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (pkgResponses.Any())
-                {
-                    logger.LogInformation($"Deleting {pkgResponses.Count} package user responses");
-                    _context.PackageUserResponses.RemoveRange(pkgResponses);
-                }
-
-                // Delete AssessmentAttemptHistory rows (no FK — orphaned if not removed)
-                var attemptHistory = await _context.AssessmentAttemptHistory
-                    .Where(h => h.SessionId == id)
-                    .ToListAsync();
-                if (attemptHistory.Any())
-                {
-                    logger.LogInformation($"Deleting {attemptHistory.Count} attempt history records");
-                    _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
-                }
-
-                // PHASE 323: Delete UserPackageAssignments (Restrict FK to AssessmentPackage — must be removed before packages)
-                // Comment lama "cascade-deleted by SessionId" salah: FK AssessmentPackageId Restrict fire saat Package dihapus duluan
-                var pkgAssignments = await _context.UserPackageAssignments
-                    .Where(a => a.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (pkgAssignments.Any())
-                {
-                    logger.LogInformation($"Deleting {pkgAssignments.Count} user package assignments");
-                    _context.UserPackageAssignments.RemoveRange(pkgAssignments);
-                }
-
-                // Explicit cleanup: AssessmentPackages + nested Questions + Options
-                // (DB may cascade, but explicit removal prevents ordering issues)
-                var packages = await _context.AssessmentPackages
-                    .Include(p => p.Questions).ThenInclude(q => q.Options)
-                    .Where(p => p.AssessmentSessionId == id)
-                    .ToListAsync();
-                // Phase 366: kumpul ImagePath Distinct SEBELUM RemoveRange (atomic Phase 333).
-                var imagePaths = packages
-                    .SelectMany(p => p.Questions)
-                    .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
-                    .Where(p => !string.IsNullOrEmpty(p))
-                    .Select(p => p!)
-                    .Distinct()
-                    .ToList();
-                if (packages.Any())
-                {
-                    foreach (var pkg in packages)
-                    {
-                        foreach (var q in pkg.Questions)
-                            _context.PackageOptions.RemoveRange(q.Options);
-                        _context.PackageQuestions.RemoveRange(pkg.Questions);
-                    }
-                    _context.AssessmentPackages.RemoveRange(packages);
-                    logger.LogInformation($"Deleting {packages.Count} packages with their questions/options");
-                }
-
-                // Finally delete the assessment itself
-                _context.AssessmentSessions.Remove(assessment);
-
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                // Phase 366: hapus file gambar orphan SETELAH commit (atomic Phase 333). Post-commit
-                // AnyAsync auto-sadar batch + shared Pre/Post selamat (D-05). logger lokal (BUKAN _logger).
+                // Phase 366: hapus file gambar SOAL orphan POST cascade. Post-commit AnyAsync auto-sadar batch +
+                // shared Pre/Post selamat (D-05). logger lokal (BUKAN _logger).
                 await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeleteAssessment image");
 
-                // Audit log
+                // #19: hapus file sertifikat manual fisik POST-commit, warn-only (confined webroot V12).
+                DeleteCertFiles(certPaths, logger);
+
+                // Audit log endpoint (konteks aksi user-facing; engine juga catat CascadeDelete detail)
                 try
                 {
-                    var deleteUser = await _userManager.GetUserAsync(User);
-                    var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
                     await _auditLog.LogAsync(
-                        deleteUser?.Id ?? "",
-                        deleteActorName,
+                        actorId,
+                        actorName,
                         "DeleteAssessment",
-                        $"Deleted assessment '{assessmentTitle}' [ID={id}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
+                        $"Deleted assessment '{assessmentTitle}' [ID={id}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} CascadeDeleted={result.DeletedCount}",
                         id,
                         "AssessmentSession");
                 }
@@ -2363,7 +2286,7 @@ namespace HcPortal.Controllers
                     logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessment {Id}", id);
                 }
 
-                logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle}");
+                logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle} (cascade {result.DeletedCount} record)");
                 TempData["Success"] = $"Assessment '{assessmentTitle}' has been deleted successfully.";
                 return RedirectToAction("ManageAssessment");
             }
@@ -2402,6 +2325,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> DeleteAssessmentGroup(int id)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
 
             try
             {
@@ -2426,142 +2350,85 @@ namespace HcPortal.Controllers
 
                 logger.LogInformation($"DeleteAssessmentGroup: deleting {siblings.Count} sessions for '{rep.Title}'");
 
-                var siblingIds = siblings.Select(s => s.Id).ToList();
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 329) DIBALIK → cascade penuh PER SIBLING via engine
+                // (turunan renewal IKUT terhapus, parity tab 2). Engine = 1-tx per sibling (atomik per-sibling,
+                // BUKAN 1-tx semua sibling — trade-off engine-route). Image SOAL (Opsi B) + #19 cert = ranah endpoint.
 
-                // Phase 329 D-02: pre-check renewal chain SEBELUM buka tx scope (fail-fast UX friendly).
-                // Paralel pola Phase 325 P05 DeleteAssessment L2040-2052, substitusi id → siblingIds via Contains.
-                // RenewsSessionId NoAction FK (Data/ApplicationDbContext.cs:220-228) akan throw raw FK 500
-                // di tengah cascade kalau pre-check ini absent.
-                var refTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsSessionId.HasValue && siblingIds.Contains(t.RenewsSessionId.Value));
-                var refAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsSessionId.HasValue && siblingIds.Contains(a.RenewsSessionId.Value));
+                // Cascade node ids SEMUA sibling (root + turunan renewal). CollectCascadeIds = traversal SAMA dgn ExecuteAsync.
+                var allCascadeSessionIds = new HashSet<int>();
+                foreach (var sib in siblings)
+                    foreach (var node in await cascade.CollectCascadeIds("session", sib.Id))
+                        if (node.Type == "session") allCascadeSessionIds.Add(node.Id);
 
-                if (refTr + refAs > 0)
-                {
-                    var total = refTr + refAs;
-                    TempData["Error"] = $"Tidak bisa hapus grup: {total} sertifikat lain "
-                                      + "menggunakan salah satu sesi di grup ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment");
-                }
+                // Image SOAL Distinct semua node (engine Opsi B tak sentuh image SOAL → cegah orphan turunan).
+                var imagePaths = await CollectQuestionImagePathsAsync(allCascadeSessionIds);
 
-                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Load SELURUH session cascade (sibling + turunan) utk: (a) gate izin HC atas SEMUA node, (b) cert.
+                var cascadeSessions = await _context.AssessmentSessions
+                    .Where(a => allCascadeSessionIds.Contains(a.Id)).ToListAsync();
 
-                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
+                // #19: file sertifikat manual per session node (engine juga hapus — idempotent). Map id→url supaya
+                // saat partial failure cert HANYA dihapus utk sesi yg BENAR-BENAR ter-commit (deletedSet) — cegah
+                // hapus cert sesi yg masih ada (DeleteCertFiles tak punya ref-check, beda dgn ImageFileCleanup).
+                var certById = cascadeSessions
+                    .Where(s => !string.IsNullOrEmpty(s.ManualSertifikatUrl))
+                    .ToDictionary(s => s.Id, s => s.ManualSertifikatUrl!);
+
+                // Snapshot audit agregat
+                string preDeleteStatus = string.Join(" / ", siblings.GroupBy(s => s.Status).Select(g => $"{g.Count()} {g.Key}"));
+                int preDeleteResponseCount = await _context.PackageUserResponses
+                    .CountAsync(r => allCascadeSessionIds.Contains(r.AssessmentSessionId));
+                int preDeleteSessionCount = siblings.Count;
+
+                // Actor untuk audit (engine + endpoint)
+                var actorUser = await _userManager.GetUserAsync(User);
+                var actorId = actorUser?.Id ?? "";
+                var actorName = string.IsNullOrWhiteSpace(actorUser?.NIP) ? (actorUser?.FullName ?? "Unknown") : $"{actorUser.NIP} - {actorUser.FullName}";
+
+                // PHASE 312 role-tier guard — gate izin HC atas SELURUH set cascade (sibling + turunan), BUKAN cuma
+                // sibling (fix temuan kritis 367-05: cegah HC hapus turunan Completed/ber-jawaban via engine). Last
+                // SEBELUM loop → window TOCTOU minimal. Admin override tetap lewat.
                 var blockResult = await EnsureCanDeleteAsync(
                     "DeleteAssessmentGroup",
                     id,
                     "AssessmentSession",
-                    siblings);
-                if (blockResult != null)
+                    cascadeSessions);
+                if (blockResult != null) return blockResult;
+
+                // Cascade per sibling UNIK (skip yg sudah ikut cascade sibling lain via deletedSet — cegah dobel).
+                // Engine 1-tx per sibling → bila sibling ke-N gagal, sibling 1..N-1 SUDAH commit. JANGAN early-return
+                // sebelum cleanup: file gambar/cert sibling yg sudah commit harus dibersihkan (cegah orphan, fix MED).
+                int totalDeleted = 0;
+                var deletedSet = new HashSet<int>();
+                bool partialFailure = false;
+                int? failedSiblingId = null;
+                foreach (var sib in siblings)
                 {
-                    await tx.RollbackAsync();
-                    return blockResult;
-                }
-
-                // PHASE 312: capture pre-delete aggregated snapshot SEBELUM cascade
-                string preDeleteStatus = string.Join(" / ", siblings.GroupBy(s => s.Status).Select(g => $"{g.Count()} {g.Key}"));
-                int preDeleteResponseCount = await _context.PackageUserResponses
-                    .CountAsync(r => siblingIds.Contains(r.AssessmentSessionId));
-                int preDeleteSessionCount = siblings.Count;
-
-                // PHASE 323: snapshot EditLog count agregat semua siblings
-                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
-                    .CountAsync(e => siblingIds.Contains(e.AssessmentSessionId));
-
-                // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
-                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
-                {
-                    logger.LogWarning(
-                        "DeleteAssessmentGroup race detected: responseCount changed to {Count} for RepId={Id} between guard and cascade",
-                        preDeleteResponseCount, id);
-                    await tx.RollbackAsync();
-                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
-                    return RedirectToAction("ManageAssessment");
-                }
-
-                // PHASE 323: Delete AssessmentEditLogs untuk semua siblings (Restrict FK)
-                var allEditLogs = await _context.AssessmentEditLogs
-                    .Where(e => siblingIds.Contains(e.AssessmentSessionId))
-                    .ToListAsync();
-                if (allEditLogs.Any())
-                {
-                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allEditLogs.Count} edit logs across {siblingIds.Count} sessions");
-                    _context.AssessmentEditLogs.RemoveRange(allEditLogs);
-                }
-
-                // Delete PackageUserResponses for all siblings (Restrict FK — must be removed before sessions)
-                var allPkgResponses = await _context.PackageUserResponses
-                    .Where(r => siblingIds.Contains(r.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgResponses.Any())
-                    _context.PackageUserResponses.RemoveRange(allPkgResponses);
-
-                // Delete AssessmentAttemptHistory for all siblings (no FK — orphaned if not removed)
-                var allAttemptHistory = await _context.AssessmentAttemptHistory
-                    .Where(h => siblingIds.Contains(h.SessionId))
-                    .ToListAsync();
-                if (allAttemptHistory.Any())
-                    _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
-
-                // PHASE 323: Delete UserPackageAssignments untuk semua siblings (Restrict FK to AssessmentPackage)
-                var allPkgAssignments = await _context.UserPackageAssignments
-                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgAssignments.Any())
-                {
-                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allPkgAssignments.Count} user package assignments across {siblingIds.Count} sessions");
-                    _context.UserPackageAssignments.RemoveRange(allPkgAssignments);
-                }
-
-                // Explicit cleanup: AssessmentPackages + nested Questions + Options for all siblings
-                var allPackages = await _context.AssessmentPackages
-                    .Include(p => p.Questions).ThenInclude(q => q.Options)
-                    .Where(p => siblingIds.Contains(p.AssessmentSessionId))
-                    .ToListAsync();
-                // Phase 366: kumpul ImagePath Distinct SEBELUM RemoveRange (multi-sibling batch).
-                var imagePaths = allPackages
-                    .SelectMany(p => p.Questions)
-                    .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
-                    .Where(p => !string.IsNullOrEmpty(p))
-                    .Select(p => p!)
-                    .Distinct()
-                    .ToList();
-                if (allPackages.Any())
-                {
-                    foreach (var pkg in allPackages)
+                    if (deletedSet.Contains(sib.Id)) continue;
+                    var r = await cascade.ExecuteAsync("session", sib.Id, Enumerable.Empty<int>(), actorId, actorName);
+                    if (!r.Success)
                     {
-                        foreach (var q in pkg.Questions)
-                            _context.PackageOptions.RemoveRange(q.Options);
-                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                        partialFailure = true;
+                        failedSiblingId = sib.Id;
+                        break;
                     }
-                    _context.AssessmentPackages.RemoveRange(allPackages);
-                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allPackages.Count} packages with their questions/options");
+                    totalDeleted += r.DeletedCount;
+                    foreach (var sid in r.DeletedSessionIds) deletedSet.Add(sid);
                 }
 
-                foreach (var session in siblings)
-                {
-                    _context.AssessmentSessions.Remove(session);
-                }
-
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                // Phase 366: hapus file gambar orphan SETELAH commit. logger lokal method ini.
+                // Cleanup file SELALU jalan utk sibling yg SUDAH commit (post-commit AnyAsync self-correct: hanya file
+                // tak-direferensikan baris tersisa yg dihapus). Aman walau partialFailure.
                 await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeleteAssessmentGroup image");
+                DeleteCertFiles(deletedSet.Where(certById.ContainsKey).Select(d => certById[d]), logger);
 
-                // Audit log
+                // Audit endpoint SELALU ditulis (refleksi hasil AKTUAL totalDeleted, partial-aware — fix MED repudiation).
                 try
                 {
-                    var dgUser = await _userManager.GetUserAsync(User);
-                    var dgActorName = string.IsNullOrWhiteSpace(dgUser?.NIP) ? (dgUser?.FullName ?? "Unknown") : $"{dgUser.NIP} - {dgUser.FullName}";
                     await _auditLog.LogAsync(
-                        dgUser?.Id ?? "",
-                        dgActorName,
-                        "DeleteAssessmentGroup",
-                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) [RepId={id}] SessionCount={preDeleteSessionCount} Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
+                        actorId,
+                        actorName,
+                        partialFailure ? "DeleteAssessmentGroupPartial" : "DeleteAssessmentGroup",
+                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) [RepId={id}] SessionCount={preDeleteSessionCount} Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} CascadeDeleted={totalDeleted}{(partialFailure ? $" PARTIAL FailedAt={failedSiblingId}" : "")}",
                         id,
                         "AssessmentSession");
                 }
@@ -2570,7 +2437,14 @@ namespace HcPortal.Controllers
                     logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentGroup {Id}", id);
                 }
 
-                logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}'");
+                if (partialFailure)
+                {
+                    logger.LogWarning("DeleteAssessmentGroup partial: deleted {Count} record before failing at sibling {SibId}", totalDeleted, failedSiblingId);
+                    TempData["Error"] = $"Sebagian sesi sudah dihapus ({totalDeleted} record), proses berhenti pada salah satu sesi. Silakan refresh halaman dan ulangi untuk sisa.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
+                logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}' (cascade {totalDeleted} record)");
                 TempData["Success"] = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted.";
                 return RedirectToAction("ManageAssessment");
             }
@@ -2597,6 +2471,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> DeletePrePostGroup(int linkedGroupId)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
 
             try
             {
@@ -2612,152 +2487,97 @@ namespace HcPortal.Controllers
                 }
 
                 var groupTitle = groupSessions.First().Title;
-                var groupIds = groupSessions.Select(s => s.Id).ToList();
 
                 logger.LogInformation($"DeletePrePostGroup: deleting {groupSessions.Count} sessions for '{groupTitle}' (LinkedGroupId={linkedGroupId})");
 
-                // Phase 329 D-02: pre-check renewal chain SEBELUM buka tx scope (fail-fast UX friendly).
-                // Paralel pola Phase 325 P05 DeleteAssessment L2040-2052, substitusi id → groupIds via Contains.
-                // RenewsSessionId NoAction FK (Data/ApplicationDbContext.cs:220-228) akan throw raw FK 500
-                // di tengah cascade kalau pre-check ini absent.
-                var refTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsSessionId.HasValue && groupIds.Contains(t.RenewsSessionId.Value));
-                var refAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsSessionId.HasValue && groupIds.Contains(a.RenewsSessionId.Value));
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 329) DIBALIK → cascade penuh PER SESI via engine
+                // (turunan renewal IKUT terhapus). Engine handle #8 LinkedSessionId null-clear pasangan Pre/Post.
+                // Atomik per-sesi (trade-off engine-route). Image SOAL (Opsi B) + #19 cert = ranah endpoint.
 
-                if (refTr + refAs > 0)
-                {
-                    var total = refTr + refAs;
-                    TempData["Error"] = $"Tidak bisa hapus grup Pre-Post: {total} sertifikat lain "
-                                      + "menggunakan salah satu sesi di grup ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment");
-                }
+                // Cascade node ids SEMUA sesi group (root + turunan renewal). CollectCascadeIds = traversal SAMA dgn ExecuteAsync.
+                var allCascadeSessionIds = new HashSet<int>();
+                foreach (var gs in groupSessions)
+                    foreach (var node in await cascade.CollectCascadeIds("session", gs.Id))
+                        if (node.Type == "session") allCascadeSessionIds.Add(node.Id);
 
-                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Image SOAL Distinct semua node (engine Opsi B tak sentuh image SOAL → cegah orphan turunan).
+                var imagePaths = await CollectQuestionImagePathsAsync(allCascadeSessionIds);
 
-                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
-                var blockResult = await EnsureCanDeleteAsync(
-                    "DeletePrePostGroup",
-                    linkedGroupId,
-                    "AssessmentSession",
-                    groupSessions);
-                if (blockResult != null)
-                {
-                    await tx.RollbackAsync();
-                    return blockResult;
-                }
+                // Load SELURUH session cascade (sesi group + turunan) utk: (a) gate izin HC atas SEMUA node, (b) cert.
+                var cascadeSessions = await _context.AssessmentSessions
+                    .Where(a => allCascadeSessionIds.Contains(a.Id)).ToListAsync();
 
-                // PHASE 312: capture per-session breakdown SEBELUM cascade (Q3 RESOLVED)
-                // Field: AssessmentType per Models/AssessmentSession.cs:154 (values "PreTest" | "PostTest" | null)
+                // #19: file sertifikat manual per session node (map id→url; partial failure hapus cert hanya sesi commit).
+                var certById = cascadeSessions
+                    .Where(s => !string.IsNullOrEmpty(s.ManualSertifikatUrl))
+                    .ToDictionary(s => s.Id, s => s.ManualSertifikatUrl!);
+
+                // Snapshot audit (breakdown Pre/Post) — AssessmentType per Models/AssessmentSession.cs
                 var preSession = groupSessions.FirstOrDefault(s => s.AssessmentType == "PreTest");
                 var postSession = groupSessions.FirstOrDefault(s => s.AssessmentType == "PostTest");
                 string preDeleteStatus = $"PreTest:{preSession?.Status ?? "-"},PostTest:{postSession?.Status ?? "-"}";
                 int preDeleteResponseCount = await _context.PackageUserResponses
-                    .CountAsync(r => groupIds.Contains(r.AssessmentSessionId));
+                    .CountAsync(r => allCascadeSessionIds.Contains(r.AssessmentSessionId));
 
-                // PHASE 323: snapshot EditLog count agregat PrePost group
-                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
-                    .CountAsync(e => groupIds.Contains(e.AssessmentSessionId));
+                // Actor
+                var actorUser = await _userManager.GetUserAsync(User);
+                var actorId = actorUser?.Id ?? "";
+                var actorName = string.IsNullOrWhiteSpace(actorUser?.NIP) ? (actorUser?.FullName ?? "Unknown") : $"{actorUser.NIP} - {actorUser.FullName}";
 
-                // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
-                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
+                // PHASE 312 role-tier guard — gate izin HC atas SELURUH set cascade (sesi group + turunan), BUKAN cuma
+                // sesi group (fix temuan kritis 367-05). Last SEBELUM loop → window TOCTOU minimal. Admin override lewat.
+                var blockResult = await EnsureCanDeleteAsync(
+                    "DeletePrePostGroup",
+                    linkedGroupId,
+                    "AssessmentSession",
+                    cascadeSessions);
+                if (blockResult != null) return blockResult;
+
+                // Cascade per sesi UNIK (engine handle #8 null-clear pasangan; skip yg sudah ikut cascade lain).
+                // 1-tx per sesi → bila gagal di tengah, sesi sebelumnya SUDAH commit: JANGAN early-return sebelum cleanup.
+                int totalDeleted = 0;
+                var deletedSet = new HashSet<int>();
+                bool partialFailure = false;
+                int? failedSessionId = null;
+                foreach (var gs in groupSessions)
                 {
-                    logger.LogWarning(
-                        "DeletePrePostGroup race detected: responseCount changed to {Count} for LinkedGroupId={Id} between guard and cascade",
-                        preDeleteResponseCount, linkedGroupId);
-                    await tx.RollbackAsync();
-                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
-                    return RedirectToAction("ManageAssessment");
-                }
-
-                // PHASE 323: Delete AssessmentEditLogs untuk semua sessions di Pre-Post group
-                var allEditLogs = await _context.AssessmentEditLogs
-                    .Where(e => groupIds.Contains(e.AssessmentSessionId))
-                    .ToListAsync();
-                if (allEditLogs.Any())
-                {
-                    logger.LogInformation($"DeletePrePostGroup: deleting {allEditLogs.Count} edit logs across {groupIds.Count} sessions (LinkedGroupId={linkedGroupId})");
-                    _context.AssessmentEditLogs.RemoveRange(allEditLogs);
-                }
-
-                // Cascade delete — ikuti pola DeleteAssessmentGroup:
-                // 1. PackageUserResponses
-                var allPkgResponses = await _context.PackageUserResponses
-                    .Where(r => groupIds.Contains(r.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgResponses.Any())
-                    _context.PackageUserResponses.RemoveRange(allPkgResponses);
-
-                // 2. AssessmentAttemptHistory
-                var allAttemptHistory = await _context.AssessmentAttemptHistory
-                    .Where(h => groupIds.Contains(h.SessionId))
-                    .ToListAsync();
-                if (allAttemptHistory.Any())
-                    _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
-
-                // PHASE 323: 2b. UserPackageAssignments untuk semua sessions Pre-Post group (Restrict FK to AssessmentPackage)
-                var allPkgAssignments = await _context.UserPackageAssignments
-                    .Where(a => groupIds.Contains(a.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgAssignments.Any())
-                {
-                    logger.LogInformation($"DeletePrePostGroup: deleting {allPkgAssignments.Count} user package assignments across {groupIds.Count} sessions (LinkedGroupId={linkedGroupId})");
-                    _context.UserPackageAssignments.RemoveRange(allPkgAssignments);
-                }
-
-                // 3. Packages + Questions + Options
-                var allPackages = await _context.AssessmentPackages
-                    .Include(p => p.Questions).ThenInclude(q => q.Options)
-                    .Where(p => groupIds.Contains(p.AssessmentSessionId))
-                    .ToListAsync();
-                // Phase 366 / SC#3: kumpul ImagePath Distinct SEBELUM RemoveRange (Pre+Post 1 batch).
-                var imagePaths = allPackages
-                    .SelectMany(p => p.Questions)
-                    .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
-                    .Where(p => !string.IsNullOrEmpty(p))
-                    .Select(p => p!)
-                    .Distinct()
-                    .ToList();
-                if (allPackages.Any())
-                {
-                    foreach (var pkg in allPackages)
+                    if (deletedSet.Contains(gs.Id)) continue;
+                    var r = await cascade.ExecuteAsync("session", gs.Id, Enumerable.Empty<int>(), actorId, actorName);
+                    if (!r.Success)
                     {
-                        foreach (var q in pkg.Questions)
-                            _context.PackageOptions.RemoveRange(q.Options);
-                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                        partialFailure = true;
+                        failedSessionId = gs.Id;
+                        break;
                     }
-                    _context.AssessmentPackages.RemoveRange(allPackages);
+                    totalDeleted += r.DeletedCount;
+                    foreach (var sid in r.DeletedSessionIds) deletedSet.Add(sid);
                 }
 
-                // 4. Sessions
-                _context.AssessmentSessions.RemoveRange(groupSessions);
-
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                // Phase 366 / SC#3: Pre+Post dihapus 1 batch → shared path tak lagi direferensikan
-                // baris mana pun → AnyAsync false → file dihapus benar (D-05). logger = variabel lokal
-                // method ini (GetRequiredService<ILogger<...>>), BUKAN field _logger.
+                // Cleanup file SELALU jalan utk sesi yg SUDAH commit (post-commit AnyAsync self-correct). Aman walau partial.
                 await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeletePrePostGroup image");
+                DeleteCertFiles(deletedSet.Where(certById.ContainsKey).Select(d => certById[d]), logger);
 
-                // Audit log
+                // Audit endpoint SELALU ditulis (refleksi hasil AKTUAL, partial-aware — fix MED repudiation).
                 try
                 {
-                    var dpgUser = await _userManager.GetUserAsync(User);
-                    var dpgActorName = string.IsNullOrWhiteSpace(dpgUser?.NIP) ? (dpgUser?.FullName ?? "Unknown") : $"{dpgUser.NIP} - {dpgUser.FullName}";
                     await _auditLog.LogAsync(
-                        dpgUser?.Id ?? "",
-                        dpgActorName,
-                        "DeletePrePostGroup",
-                        $"Deleted Pre-Post group '{groupTitle}' [LinkedGroupId={linkedGroupId}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
+                        actorId,
+                        actorName,
+                        partialFailure ? "DeletePrePostGroupPartial" : "DeletePrePostGroup",
+                        $"Deleted Pre-Post group '{groupTitle}' [LinkedGroupId={linkedGroupId}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} CascadeDeleted={totalDeleted}{(partialFailure ? $" PARTIAL FailedAt={failedSessionId}" : "")}",
                         linkedGroupId,
                         "AssessmentSession");
                 }
                 catch (Exception auditEx)
                 {
                     logger.LogWarning(auditEx, "Audit log write failed for DeletePrePostGroup {LinkedGroupId}", linkedGroupId);
+                }
+
+                if (partialFailure)
+                {
+                    logger.LogWarning("DeletePrePostGroup partial: deleted {Count} record before failing at session {SibId}", totalDeleted, failedSessionId);
+                    TempData["Error"] = $"Sebagian sesi sudah dihapus ({totalDeleted} record), proses berhenti. Silakan refresh halaman dan ulangi untuk sisa.";
+                    return RedirectToAction("ManageAssessment");
                 }
 
                 TempData["Success"] = $"Grup Pre-Post Test '{groupTitle}' dan semua {groupSessions.Count} sesi berhasil dihapus.";
@@ -2776,6 +2596,42 @@ namespace HcPortal.Controllers
                 logger.LogError(ex, "DeletePrePostGroup error for LinkedGroupId {LinkedGroupId}", linkedGroupId);
                 TempData["Error"] = "Gagal menghapus grup Pre-Post Test. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
+            }
+        }
+
+        // ============================================================
+        // Phase 367 (05): helper cascade tab 1 — image SOAL (Opsi B) + cert (#19)
+        // ============================================================
+
+        // Phase 366/367: kumpul ImagePath SOAL (Question + Option) Distinct utk daftar session node cascade
+        // (Opsi B — engine TIDAK sentuh image SOAL; endpoint yang bersihkan, termasuk turunan renewal).
+        private async Task<List<string>> CollectQuestionImagePathsAsync(IReadOnlyCollection<int> sessionIds)
+        {
+            if (sessionIds.Count == 0) return new List<string>();
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions).ThenInclude(q => q.Options)
+                .Where(p => sessionIds.Contains(p.AssessmentSessionId))
+                .ToListAsync();
+            return packages
+                .SelectMany(p => p.Questions)
+                .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
+                .Where(p => !string.IsNullOrEmpty(p))
+                .Select(p => p!)
+                .Distinct()
+                .ToList();
+        }
+
+        // #19/L-08: hapus file sertifikat manual fisik POST-commit, warn-only per file (confined webroot V12).
+        private void DeleteCertFiles(IEnumerable<string> certUrls, ILogger logger)
+        {
+            foreach (var url in certUrls.Where(u => !string.IsNullOrEmpty(u)).Distinct())
+            {
+                try
+                {
+                    var path = System.IO.Path.Combine(_env.WebRootPath, url.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+                }
+                catch (Exception ex) { logger.LogWarning(ex, "Cert File.Delete post-commit failed: {Url}", url); }
             }
         }
 
