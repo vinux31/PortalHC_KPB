@@ -113,6 +113,52 @@
 
 #### Coverage v27.0: 16/16 REQ mapped (SHUF-01..03 → 372; SHUF-04..09,15 → 373; SHUF-10..14 → 374; SHUF-16 → 375). 0 orphan. 1 migration (372). Append-only — STATE.md tetap v25.0; koordinasi file-overlap wajib sebelum eksekusi.
 
+### Phase 372: Data Foundation + Propagasi Toggle
+**Goal:** Pondasi data Shuffle Toggle — 2 kolom `ShuffleQuestions`/`ShuffleOptions` (bool) di `AssessmentSession` + migration#1 (`AddShuffleTogglesToAssessmentSession`, `bit NOT NULL DEFAULT 1` → baris lama ON dua-duanya) + set eksplisit dari form di 3 loop CreateAssessment POST (standard/Pre/Post, hindari EF bool-false trap) + propagate ke sibling di EditAssessment POST + 2 toggle di wizard `CreateAssessment.cshtml` Langkah 3 Grup B (default checked) + status di summary Langkah 4. Engine baca/reshuffle = Phase 373; UI ManagePackages/lock = Phase 374.
+**Depends on:** Tidak ada untuk eksekusi (367/368 keduanya sudah SHIPPED LOCAL — file-overlap `AssessmentAdminController.cs` lega). Sequential strict v27.0: 372 fondasi untuk 373.
+**Migration:** true (migration#1 `AddShuffleTogglesToAssessmentSession` — 2 kolom `bit NOT NULL DEFAULT 1`)
+**Requirements:** SHUF-01, SHUF-02, SHUF-03
+**Success Criteria** (what must be TRUE):
+  1. Migration jalan; assessment LAMA → kedua flag `true` (perilaku existing tak berubah).
+  2. Buat assessment baru via form → flag tersimpan sesuai centang (default ON), tervalidasi di DB; tidak kena EF bool-false trap.
+  3. Ubah toggle di satu session (EditAssessment) → semua sibling grup ikut (pola propagasi `foreach`).
+**UI hint:** yes (2 toggle `form-check form-switch` di wizard Langkah 3 Grup B + 2 baris status di summary Langkah 4 — kontrak di `372-UI-SPEC.md`)
+
+### Phase 373: Shuffle Engine (read logic + reshuffle)
+**Goal:** `CMPController.StartExam` gerbang flag saat bangun `UserPackageAssignment` + ekstrak core pure (testable tanpa DB): Acak Soal ON=existing (1 paket acak / ≥2 sampling K); OFF+1 paket=urut `q.Order`; OFF+≥2 paket=round-robin **index-session-stabil** 1 paket/worker + guard paket kosong; Acak Pilihan independen (ON dict / OFF "{}"); resume stale-count guard deterministik; cleanup komentar stale `CMPController.cs:1054`; `ReshufflePackage`/`ReshuffleAll` hormati KEDUA flag (fix bug existing opsi hard-code "{}").
+**Depends on:** Phase 372 (butuh kolom flag). File-overlap v25.0 `CMPController.cs`.
+**Migration:** false
+**Requirements:** SHUF-04, SHUF-05, SHUF-06, SHUF-07, SHUF-08, SHUF-09, SHUF-15
+**Success Criteria** (what must be TRUE):
+  1. Acak Soal ON tak berubah (1 paket urutan acak; ≥2 paket sampling K + acak).
+  2. Acak Soal OFF + 1 paket → semua peserta soal & urutan identik (`q.Order`).
+  3. Acak Soal OFF + ≥2 paket → tiap worker 1 paket utuh deterministik (index-session-stabil), seimbang, tahan resume/reshuffle; paket kosong di-skip.
+  4. Acak Pilihan ON/OFF independen dari Acak Soal; OFF → view urutan DB.
+  5. Reshuffle hormati flag (incl. opsi diacak saat ShuffleOptions ON — bug lama fixed).
+**UI hint:** no (read-logic/engine; extract pure core, no view change)
+
+### Phase 374: UI ManagePackages + Lock + Pre/Post
+**Goal:** 2 toggle di header `ManagePackages` (aktif walau `SamePackage` lock isi paket) + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate sibling) + lock toggle saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup) + warning non-blocking (multi-paket+Acak Soal OFF+ukuran paket beda) + reminder visual Pre OFF↔Post ON (no auto-cascade) + hide toggle untuk Proton Tahun 3 / Manual entry.
+**Depends on:** Phase 373. File-overlap v25.0 `AssessmentAdminController.cs`.
+**Migration:** false
+**Requirements:** SHUF-10, SHUF-11, SHUF-12, SHUF-13, SHUF-14
+**Success Criteria** (what must be TRUE):
+  1. Toggle tampil & bisa diubah di ManagePackages (Pre & Post), tetap aktif walau SamePackage lock paket.
+  2. Toggle read-only saat sudah ada peserta mulai; perubahan ditolak server-side.
+  3. Warning ukuran-paket-beda muncul (non-blocking) saat multi-paket + Acak Soal OFF.
+  4. Reminder muncul di Post bila Pre OFF tapi Post masih ON; tidak ada auto-cascade.
+**UI hint:** yes (toggle header ManagePackages + lock state + warning + reminder Pre/Post)
+
+### Phase 375: Test & UAT
+**Goal:** xUnit core semua mode (ON 1/≥2, OFF 1/≥2 round-robin determinisme, guard paket kosong, opsi ON/OFF) + test migration default + propagasi sibling + lock guard + reshuffle flag; Playwright UAT toggle ON/OFF + lock + reminder Pre/Post + warning.
+**Depends on:** Phase 374.
+**Migration:** false
+**Requirements:** SHUF-16
+**Success Criteria** (what must be TRUE):
+  1. Suite xUnit hijau termasuk core shuffle semua mode + determinisme round-robin.
+  2. UAT @5277: toggle ON/OFF berefek di exam (urutan soal & opsi), lock & reminder & warning tampil benar.
+**UI hint:** yes (Playwright UAT visual)
+
 ### Phase 369: Sync H1 Search-Drop Fix main → ITHandoff
 **Goal:** Fix H1 (`14e7adc5` di main: `GetWorkersInSection` treat searchScope null/kosong sebagai "Nama" supaya SQL name pre-narrow tetap jalan untuk caller lama) tersinkron ke branch ITHandoff — search nama di Tab Input Records tidak lagi diabaikan diam-diam.
 **Depends on:** Tidak ada — `Services/WorkerDataService.cs` + `HcPortal.Tests/WorkerDataServiceSearchTests.cs` tidak disentuh phase 363-368 (verified 2026-06-11); cherry-pick clean (merge-tree). Bisa jalan paralel kapan saja.
