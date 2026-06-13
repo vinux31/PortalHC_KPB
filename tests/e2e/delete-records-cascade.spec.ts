@@ -39,16 +39,16 @@ test.describe('Phase 367 — hapus cascade tab Input Records (UAT)', () => {
     snapshotPath = `${dir}/HcPortalDB_Dev-pre367-${ts}.bak`;
     await db.backup(snapshotPath);
 
-    workerId = await db.queryString(`SELECT TOP 1 Id FROM AspNetUsers WHERE Email='${WORKER_EMAIL}'`);
+    workerId = await db.queryString(`SELECT TOP 1 Id FROM Users WHERE Email='${WORKER_EMAIL}'`);
 
     // Induk = assessment MANUAL (IsManualEntry=1) Completed → tampil di tab Input Records (manual branch).
     indukId = await db.queryScalar(`
       SET NOCOUNT ON;
       INSERT INTO AssessmentSessions (UserId, Title, Category, Status, AccessToken, Schedule, CompletedAt,
-        IsManualEntry, IsPassed, GenerateCertificate, AssessmentType, DurationMinutes, Progress, PassPercentage,
+        IsManualEntry, IsPassed, GenerateCertificate, AssessmentType, DurationMinutes, Progress, BannerColor, PassPercentage,
         IsTokenRequired, HasManualGrading, SamePackage, AllowAnswerReview, ElapsedSeconds, Score, CreatedAt)
       VALUES ('${workerId}', '${INDUK_TITLE}', 'Test', 'Completed', '', '2026-01-01', '2026-01-01',
-        1, 1, 1, 'Manual', 60, 100, 70, 0, 0, 0, 1, 0, 90, GETUTCDATE());
+        1, 1, 1, 'Manual', 60, 100, 'bg-secondary', 70, 0, 0, 0, 1, 0, 90, GETUTCDATE());
       SELECT CAST(SCOPE_IDENTITY() AS INT);`);
 
     // Anak = TrainingRecord yang me-renew induk (RenewsSessionId) → turunan cascade (L-03 IKUT terhapus).
@@ -62,10 +62,10 @@ test.describe('Phase 367 — hapus cascade tab Input Records (UAT)', () => {
     onlineId = await db.queryScalar(`
       SET NOCOUNT ON;
       INSERT INTO AssessmentSessions (UserId, Title, Category, Status, AccessToken, Schedule, CompletedAt,
-        IsManualEntry, IsPassed, GenerateCertificate, AssessmentType, DurationMinutes, Progress, PassPercentage,
+        IsManualEntry, IsPassed, GenerateCertificate, AssessmentType, DurationMinutes, Progress, BannerColor, PassPercentage,
         IsTokenRequired, HasManualGrading, SamePackage, AllowAnswerReview, ElapsedSeconds, Score, CreatedAt)
       VALUES ('${workerId}', '${ONLINE_TITLE}', 'Test', 'Completed', '', DATEADD(day,-30,GETDATE()), DATEADD(day,-30,GETDATE()),
-        0, 1, 1, 'Standard', 60, 100, 70, 0, 0, 0, 1, 0, 88, GETUTCDATE());
+        0, 1, 1, 'Standard', 60, 100, 'bg-secondary', 70, 0, 0, 0, 1, 0, 88, GETUTCDATE());
       SELECT CAST(SCOPE_IDENTITY() AS INT);`);
   });
 
@@ -78,29 +78,28 @@ test.describe('Phase 367 — hapus cascade tab Input Records (UAT)', () => {
   async function openWorkerTab(page: import('@playwright/test').Page) {
     await login(page, 'admin');
     await page.goto('/Admin/ManageAssessment?tab=training');
-    // filter cari worker (form filterFormTraining) — fallback: search by NIP/nama. Pakai search box bila ada.
-    const search = page.locator('#filterFormTraining input[name="search"], input[name="search"]').first();
-    if (await search.count()) {
-      await search.fill('iwan');
-      await search.press('Enter');
-      await page.waitForTimeout(1500);
-    }
-    // expand worker (chevron toggle) yang punya nama mengandung Iwan
-    const row = page.locator('tr', { hasText: 'Iwan' }).first();
-    await row.locator('button.toggle-chevron').click();
-    await page.waitForTimeout(800);
+    // tab Input Records lazy-load HTMX — tunggu filter form render
+    const search = page.getByPlaceholder('Cari nama atau nopeg');
+    await search.waitFor({ state: 'visible', timeout: 20_000 });
+    await search.click();
+    await search.pressSequentially('iwan', { delay: 80 });   // keyup per-char → trigger HTMX debounced filter (fill saja flaky)
+    // expand worker Iwan (chevron toggle, aria-label "Tampilkan/sembunyikan rekam jejak ...")
+    const toggle = page.getByRole('button', { name: /Tampilkan\/sembunyikan rekam jejak/ }).first();
+    await toggle.waitFor({ state: 'visible', timeout: 15_000 });
+    await toggle.click();
+    await page.waitForTimeout(1200);
   }
 
   test('SC4 + SC2 + SC1 — online tampil + preview cascade + hapus sukses (DB bersih, flash hijau)', async ({ page }) => {
     await openWorkerTab(page);
 
     // SC4: online (Rino, >7hari) tampil dengan badge "Assessment Online" + tombol hapus
-    const onlineRow = page.locator('tr', { hasText: ONLINE_TITLE }).first();
+    const onlineRow = page.locator('table.table-sm tr').filter({ hasText: ONLINE_TITLE }).first();
     await expect(onlineRow).toBeVisible();
     await expect(onlineRow.locator('.btn-outline-danger')).toBeVisible();
 
     // SC2: klik hapus INDUK manual → modal preview cascade (induk + turunan), BUKAN blokir
-    const indukRow = page.locator('tr', { hasText: INDUK_TITLE }).first();
+    const indukRow = page.locator('table.table-sm tr').filter({ hasText: INDUK_TITLE }).first();
     await indukRow.locator('.btn-outline-danger').click();
     const modal = page.locator('#cascadePreviewModal');
     await expect(modal).toBeVisible();
@@ -120,7 +119,7 @@ test.describe('Phase 367 — hapus cascade tab Input Records (UAT)', () => {
 
   test('SC4 — hapus online >7hari (kasus Rino) tuntas dari DB', async ({ page }) => {
     await openWorkerTab(page);
-    const onlineRow = page.locator('tr', { hasText: ONLINE_TITLE }).first();
+    const onlineRow = page.locator('table.table-sm tr').filter({ hasText: ONLINE_TITLE }).first();
     await onlineRow.locator('.btn-outline-danger').click();
     const modal = page.locator('#cascadePreviewModal');
     await expect(modal).toBeVisible();

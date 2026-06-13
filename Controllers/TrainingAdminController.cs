@@ -579,7 +579,9 @@ namespace HcPortal.Controllers
         {
             if (IsHtmxRequest())
             {
-                Response.StatusCode = StatusCodes.Status400BadRequest;
+                // Phase 367 (08, UAT-fix): respons 200 (BUKAN 400) supaya HTMX MEN-DISPATCH event DOM
+                // `recordDeleteFailed` (HTMX tak dispatch event kustom utk 4xx + header HX-Trigger tak andal
+                // dibaca xhr.getResponseHeader). Sinyal jujur = event + flash MERAH (bukan HTTP status). #1.
                 Response.Headers["HX-Trigger"] = BuildRecordDeleteFailedTrigger(pesan);
                 return new EmptyResult();
             }

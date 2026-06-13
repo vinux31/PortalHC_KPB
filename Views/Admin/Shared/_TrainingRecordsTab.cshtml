@@ -540,19 +540,12 @@ else
 </div>
 
 <script>
-    // Phase 367 (08) S3/IC-2: flash JUJUR sukses/gagal. Baca HX-Trigger header LANGSUNG dari xhr supaya respons
-    // gagal (HTTP 400 dari DeleteTabFailure) tetap tertangkap (HTMX tak dispatch event kustom utk 4xx).
+    // Phase 367 (08) S3/IC-2: flash JUJUR sukses/gagal via event DOM HTMX (recordDeleted / recordDeleteFailed).
+    // Header HX-Trigger TAK andal dibaca xhr.getResponseHeader di app ini (verified UAT 367-08) → pakai event dispatch HTMX.
     (function () {
-        // Flash sukses TERTUNDA (survive re-fetch tab via sessionStorage) — jalan tiap partial load.
-        try {
-            if (sessionStorage.getItem('recordDeletedFlash')) {
-                sessionStorage.removeItem('recordDeletedFlash');
-                var fe = document.getElementById('records-flash');
-                if (fe) fe.innerHTML = '<div class="alert alert-success alert-dismissible fade show" role="alert"><i class="bi bi-check-circle-fill me-2"></i>Record beserta turunannya berhasil dihapus.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button></div>';
-            }
-        } catch (e) { }
-
-        if (window.__recordsFlashBound) return;   // bind listener SEKALI (partial re-render berkali-kali)
+        // Body-level listener (bind SEKALI; persist lintas re-fetch tab — TIDAK bergantung swapped-script re-exec,
+        // karena HTMX tak selalu re-run <script> di konten innerHTML-swap. Verified UAT 367-08).
+        if (window.__recordsFlashBound) return;
         window.__recordsFlashBound = true;
 
         function cleanupModal() {
@@ -573,18 +566,22 @@ else
                 + '<i class="bi ' + icon + ' me-2"></i>' + text
                 + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button></div>';
         }
-        document.body.addEventListener('htmx:afterRequest', function (e) {
-            var xhr = e.detail && e.detail.xhr; if (!xhr) return;
-            var trig = xhr.getResponseHeader('HX-Trigger'); if (!trig) return;
-            if (trig.indexOf('recordDeleteFailed') !== -1) {
-                var pesan = 'Terjadi kesalahan.';
-                try { var o = JSON.parse(trig); if (o.recordDeleteFailed && o.recordDeleteFailed.pesan) pesan = o.recordDeleteFailed.pesan; } catch (err) { }
-                cleanupModal();
-                renderFlash('danger', 'Gagal menghapus: ' + pesan + '.', 'bi-exclamation-triangle-fill');   // NEVER hijau saat gagal (#1)
-            } else if (trig.indexOf('recordDeleted') !== -1) {
-                cleanupModal();
-                try { sessionStorage.setItem('recordDeletedFlash', '1'); } catch (er) { }
-                // re-fetch tab ditangani hidden div (recordDeleted from:body); flash sukses render saat partial re-load.
+        // Sukses = event 'recordDeleted' (SAMA yg memicu hidden re-fetch div → ANDAL).
+        document.body.addEventListener('recordDeleted', function () {
+            cleanupModal();
+            window.__recordDeletedPending = true;   // flash hijau dirender afterSettle (setelah re-fetch tab settle)
+        });
+        // Gagal = event 'recordDeleteFailed' (payload {pesan}); DeleteTabFailure respons 200 supaya event ter-dispatch (4xx tak).
+        document.body.addEventListener('recordDeleteFailed', function (e) {
+            var pesan = (e.detail && e.detail.pesan) ? e.detail.pesan : 'Terjadi kesalahan.';
+            cleanupModal();
+            renderFlash('danger', 'Gagal menghapus: ' + pesan + '.', 'bi-exclamation-triangle-fill');   // NEVER hijau saat gagal (#1)
+        });
+        // Re-fetch tab selesai → render flash sukses TERTUNDA. Body listener persist (tak butuh swapped-script re-exec).
+        document.body.addEventListener('htmx:afterSettle', function () {
+            if (window.__recordDeletedPending) {
+                window.__recordDeletedPending = false;
+                renderFlash('success', 'Record beserta turunannya berhasil dihapus.', 'bi-check-circle-fill');
             }
         });
     })();
