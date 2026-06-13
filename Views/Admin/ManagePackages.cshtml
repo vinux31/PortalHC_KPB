@@ -80,6 +80,57 @@
         string modeLabel = isMultiPackage ? $"Multi-Package ({packages.Count} paket)" : "Single Package";
     }
 
+    @* Phase 374: Card Pengacakan Soal & Jawaban (SHUF-10/11/12/13/14). Render dari ViewBag (Plan 02). *@
+    @if (ViewBag.HideShuffleToggle != true)
+    {
+        bool isShuffleLocked = ViewBag.IsShuffleLocked == true;
+        bool sqChecked = ViewBag.ShuffleQuestions == true;
+        bool soChecked = ViewBag.ShuffleOptions == true;
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-shuffle text-primary me-1"></i>Pengacakan Soal &amp; Jawaban</h5>
+            </div>
+            <div class="card-body">
+                @if (isShuffleLocked)
+                {
+                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                        <i class="bi bi-lock-fill me-2 fs-5"></i>
+                        <div>
+                            <strong>Pengaturan pengacakan terkunci.</strong>
+                            Sudah ada peserta yang memulai ujian, sehingga pengaturan Acak Soal dan Acak Pilihan Jawaban tidak dapat diubah lagi untuk menjaga keadilan ujian.
+                        </div>
+                    </div>
+                }
+                <form method="post" asp-action="UpdateShuffleSettings" asp-controller="AssessmentAdmin">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="assessmentId" value="@ViewBag.AssessmentId" />
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="shuffleQuestions" id="shuffleQuestions" value="true" @(sqChecked ? "checked" : "") @(isShuffleLocked ? "disabled" : "") />
+                        <label class="form-check-label" for="shuffleQuestions">Acak Soal</label>
+                    </div>
+                    <div class="form-text text-muted mb-3">Saat aktif, urutan dan pemilihan soal diacak berbeda untuk setiap peserta — sehingga peserta yang duduk berdekatan kecil kemungkinan mendapat soal yang sama urutannya. Saat nonaktif, semua peserta mendapat soal yang sama dengan urutan yang sama persis (urutan asli sesuai paket soal).</div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="shuffleOptions" id="shuffleOptions" value="true" @(soChecked ? "checked" : "") @(isShuffleLocked ? "disabled" : "") />
+                        <label class="form-check-label" for="shuffleOptions">Acak Pilihan Jawaban</label>
+                    </div>
+                    <div class="form-text text-muted mb-3">Saat aktif, urutan pilihan jawaban (A, B, C, D) diacak berbeda di setiap soal untuk tiap peserta — jawaban benar tetap dinilai dengan benar, hanya posisinya yang berpindah. Saat nonaktif, urutan pilihan jawaban tampil sama untuk semua peserta sesuai urutan yang tersimpan di sistem.</div>
+                    @if (ViewBag.IsPostSession == true && ViewBag.PreShuffleQuestions == false && sqChecked)
+                    {
+                        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+                            <i class="bi bi-question-circle me-2"></i>
+                            <div>Pre diatur OFF, Post masih ON — sengaja?</div>
+                        </div>
+                    }
+                    <div id="shuffleSizeWarning" class="alert alert-warning d-flex align-items-center mb-3 @(ViewBag.ShowSizeMismatchWarning == true ? "" : "d-none")" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <div>Jumlah soal antar paket berbeda — nilai maksimal &amp; pass% bisa tak setara antar peserta.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" @(isShuffleLocked ? "disabled" : "")><i class="bi bi-save me-1"></i>Simpan Pengaturan</button>
+                </form>
+            </div>
+        </div>
+    }
+
     <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -268,5 +319,22 @@
                 : 'Hapus ' + pkgName + ' dan semua pertanyaannya?';
             return confirm(msg);
         }
+    </script>
+    <script>
+        // Phase 374 SHUF-12: warning §9 live recompute saat flip Acak Soal (precondition dari ViewBag, Pitfall 4 opsi b).
+        (function () {
+            var sq = document.getElementById('shuffleQuestions');
+            var warn = document.getElementById('shuffleSizeWarning');
+            if (!sq || !warn) return;
+            var hasMismatch = @((ViewBag.HasSizeMismatch == true) ? "true" : "false");
+            var multiPkg = @(((int)(ViewBag.PackagesWithQuestions ?? 0)) >= 2 ? "true" : "false");
+            function recompute() {
+                // Muncul bila: >=2 paket-ber-soal AND Acak Soal OFF (state saat ini) AND ukuran beda.
+                var show = multiPkg && hasMismatch && !sq.checked;
+                warn.classList.toggle('d-none', !show);
+            }
+            sq.addEventListener('change', recompute);
+            recompute(); // page load
+        })();
     </script>
 }
