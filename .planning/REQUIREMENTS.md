@@ -46,6 +46,35 @@
 
 ---
 
+## v27.0 Requirements (added 2026-06-13 APPEND-ONLY — STATE.md tetap v25.0)
+
+**Milestone goal:** HC bisa ON/OFF dua sistem pengacakan independen (Acak Soal + Acak Pilihan) per-assessment lewat halaman ManagePackages. Default ON dua-duanya (perilaku existing tak berubah).
+
+**Spec:** `docs/superpowers/specs/2026-06-13-shuffle-toggle-design.md`
+
+> ⚠️ File-overlap dengan v25.0 aktif (`AssessmentAdminController.cs`, `CMPController.cs`). Koordinasi sebelum `/gsd-plan-phase 372`.
+
+### SHUF — Shuffle Toggle (fase 372-375)
+
+- [ ] **SHUF-01**: Kolom `ShuffleQuestions` + `ShuffleOptions` (bool) di `AssessmentSession`; migration `defaultValue:true` → baris lama ON dua-duanya. [372]
+- [ ] **SHUF-02**: Form CreateAssessment set kedua flag eksplisit (default checked) di SEMUA loop create (standard/Pre/Post) — hindari EF bool-false trap pada assessment baru. [372]
+- [ ] **SHUF-03**: Ubah toggle propagate ke semua sibling grup (pola `foreach` EditAssessment POST). [372]
+- [ ] **SHUF-04**: Acak Soal ON = perilaku existing (1 paket: acak urutan; ≥2 paket: sampling K lintas paket + ET-balanced + acak). [373]
+- [ ] **SHUF-05**: Acak Soal OFF + 1 paket = semua soal, urutan `q.Order` (semua peserta identik). [373]
+- [ ] **SHUF-06**: Acak Soal OFF + ≥2 paket = distribusi 1 paket utuh/worker, round-robin **index-session-stabil** (`paket[posisi % jumlahPaketBerSoal]`), urutan `q.Order`, guard paket kosong. [373]
+- [ ] **SHUF-07**: Acak Pilihan independen dari Acak Soal — ON bangun `optionShuffleDict`, OFF simpan `"{}"` (view fallback DB order). [373]
+- [ ] **SHUF-08**: Resume stale-count guard deterministik untuk mode OFF (rekomputasi konsisten via index-stabil). [373]
+- [ ] **SHUF-09**: `ReshufflePackage`/`ReshuffleAll` hormati `ShuffleQuestions` DAN `ShuffleOptions` (fix bug existing hard-code opsi `"{}"`). [373]
+- [ ] **SHUF-10**: Toggle UI di header ManagePackages, aktif walau `SamePackage` lock isi paket; endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate). [374]
+- [ ] **SHUF-11**: Lock toggle (read-only + guard server-side) saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup). [374]
+- [ ] **SHUF-12**: Warning non-blocking saat multi-paket + Acak Soal OFF + jumlah soal antar paket berbeda (nilai/pass% tak setara). [374]
+- [ ] **SHUF-13**: Reminder visual di Post bila Pre OFF tapi Post ON (cek via `LinkedSessionId`); no auto-cascade, no hidden state (opsi Z). [374]
+- [ ] **SHUF-14**: Sembunyikan toggle untuk Proton Tahun 3 / Manual entry (bukan ujian online berbasis paket). [374]
+- [ ] **SHUF-15**: Cleanup komentar stale `CMPController.cs:1054` ("option shuffle removed" — sekarang digerbang `ShuffleOptions`). [373]
+- [ ] **SHUF-16**: Test — xUnit core semua mode + migration default + propagasi + lock + reshuffle flag; Playwright UAT toggle/lock/reminder/warning. [375]
+
+---
+
 ## Out of Scope (v25.0)
 
 - **Audit/improve Tab1 Override Deliverable** — ditunda (Tab1 belum tulis `DeliverableStatusHistory`, belum warning un-approve penanda-Lulus, belum `RejectedById`). → backlog.
