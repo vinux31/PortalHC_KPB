@@ -28,7 +28,13 @@ import * as db from '../helpers/dbSnapshot';
 import { login } from '../helpers/auth';
 import { createAssessmentViaWizard, createDefaultPackage, addQuestionViaForm } from './helpers/examTypes';
 
-const today = () => new Date().toISOString().slice(0, 10);
+// Jadwal WAJIB di masa depan (server tolak "Schedule date cannot be in the past").
+// Pakai besok 00:01 supaya selalu valid berapa pun jam run. ManagePackages render tak peduli jadwal.
+const futureDate = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+};
 
 let snapshotPath: string;
 
@@ -42,12 +48,13 @@ async function execSql(sql: string): Promise<number> {
 
 // login admin + wizard-create 1 assessment standard + arrive di /Admin/ManagePackages.
 // Return assessmentId (di-parse dari query string URL setelah dismiss success modal).
-async function createAssessmentArriveMP(page: Page, title: string): Promise<number> {
-  await login(page, 'admin');
+// doLogin=false untuk create kedua dalam SATU test (page sudah authenticated → /Account/Login redirect, no email field).
+async function createAssessmentArriveMP(page: Page, title: string, doLogin = true): Promise<number> {
+  if (doLogin) await login(page, 'admin');
   await createAssessmentViaWizard(page, {
     title,
     category: 'OJT',
-    scheduleDate: today(),
+    scheduleDate: futureDate(),
     scheduleTime: '00:01',
     durationMinutes: 60,
     passPercentage: 50,
@@ -123,7 +130,8 @@ test.describe('Phase 375 — Shuffle Toggle ManagePackages (UAT e2e)', () => {
     await s.saveBtn.click();
     await page.waitForLoadState('networkidle');
     // Endpoint UpdateShuffleSettings → TempData["Success"] → RedirectToAction (PRG).
-    await expect(page.locator('.alert-success', { hasText: 'berhasil disimpan' })).toBeVisible();
+    // .first() — page punya 2 alert-success simultan (global toast + inline TempData) → hindari strict-mode (pola examTypes.ts:243).
+    await expect(page.locator('.alert-success', { hasText: 'berhasil disimpan' }).first()).toBeVisible();
   });
 
   // ── Scenario 2: lock — peserta started → banner + switch & saveBtn disabled ──
@@ -148,7 +156,8 @@ test.describe('Phase 375 — Shuffle Toggle ManagePackages (UAT e2e)', () => {
     // Pre session (akan di-set ShuffleQuestions=0).
     const preId = await createAssessmentArriveMP(page, `Pre Test OJT SHUF375 S3PRE ${Date.now()}`);
     // Post session (akan di-link ke Pre + ShuffleQuestions=1 + AssessmentType=PostTest).
-    const postId = await createAssessmentArriveMP(page, `Post Test OJT SHUF375 S3POST ${Date.now()}`);
+    // doLogin=false — sudah login dari create Pre di atas (same page/context).
+    const postId = await createAssessmentArriveMP(page, `Post Test OJT SHUF375 S3POST ${Date.now()}`, false);
 
     // Saved-state untuk reminder cond (view:117 — IsPostSession && PreShuffleQuestions==false && sqChecked):
     await execSql(`UPDATE AssessmentSessions SET ShuffleQuestions = 0 WHERE Id = ${preId}`);
@@ -179,7 +188,17 @@ test.describe('Phase 375 — Shuffle Toggle ManagePackages (UAT e2e)', () => {
     await addQuestionViaForm(page, pkgA, { type: 'MultipleChoice', text: 'S4 A1', options: ['A', 'B', 'C', 'D'], correctIndex: 0, score: 50 });
     await addQuestionViaForm(page, pkgA, { type: 'MultipleChoice', text: 'S4 A2', options: ['A', 'B', 'C', 'D'], correctIndex: 0, score: 50 });
     await gotoMP(page, id);
-    const pkgB = await createDefaultPackage(page, 'Paket B');
+
+    // Buat Paket B inline (BUKAN createDefaultPackage — helper pakai .first() → kembalikan pkgA saat ada 2 paket).
+    // Extract pkgB id dari link ManagePackageQuestions yang BUKAN pkgA.
+    await page.locator('input[name="packageName"]').fill('Paket B');
+    await page.locator('button[type="submit"]:has-text("Create Package")').click();
+    await page.waitForLoadState('networkidle');
+    const pkgIds = await page.locator('a[href*="ManagePackageQuestions"]').evaluateAll(
+      (els) => els.map((e) => parseInt(new URL((e as HTMLAnchorElement).href).searchParams.get('packageId') ?? '0', 10))
+    );
+    const pkgB = pkgIds.find((x) => x > 0 && x !== pkgA);
+    if (!pkgB) throw new Error(`S4: gagal extract pkgB id (ids=${pkgIds.join(',')}, pkgA=${pkgA})`);
     await addQuestionViaForm(page, pkgB, { type: 'MultipleChoice', text: 'S4 B1', options: ['A', 'B', 'C', 'D'], correctIndex: 0, score: 50 });
     await gotoMP(page, id);
 
