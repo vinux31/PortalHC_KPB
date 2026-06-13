@@ -40,7 +40,7 @@ created: 2026-06-13
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| {planner fills} | | | SHUF-01 | — | migration backfill: baris lama kedua flag `true` | integration (real-SQL) | `dotnet test --filter ~Shuffle` | ❌ W0 | ⬜ pending |
+| 372-01-T3 | 01 | 1 | SHUF-01 | — | migration backfill: baris omit kolom shuffle → DB DEFAULT 1 (mekanisme backfill baris lama); + round-trip false/true | integration (real-SQL) `ShuffleMigrationTests` | `dotnet test --filter ~ShuffleMigration` | ✅ | ✅ green (2/2) |
 | {planner fills} | | | SHUF-02 | — | assessment baru via form → flag tersimpan sesuai centang (default ON), tak kena EF bool-false trap; semua write-site `new AssessmentSession` set eksplisit | integration (real-SQL) | `dotnet test --filter ~Shuffle` | ❌ W0 | ⬜ pending |
 | {planner fills} | | | SHUF-03 | — | ubah toggle EditAssessment → semua sibling grup ikut (foreach propagate) | integration (real-SQL) | `dotnet test --filter ~Shuffle` | ❌ W0 | ⬜ pending |
 
