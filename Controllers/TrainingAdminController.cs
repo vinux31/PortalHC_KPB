@@ -789,6 +789,45 @@ namespace HcPortal.Controllers
             return View();
         }
 
+        // #23 D-01/D-02: one-time cleanup orphan AssessmentAttemptHistory legacy (SessionId dangling —
+        // sesi induk sudah terhapus pra-cascade-engine 367). Endpoint admin idempotent (preview → execute + audit),
+        // via UI per-environment, TANPA edit DB langsung (Dev Workflow). Migration=false.
+
+        // GET /Admin/CleanupAttemptHistory — preview-count orphan (read-only)
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CleanupAttemptHistory()
+        {
+            int orphanCount = await _context.AssessmentAttemptHistory
+                .Where(h => !_context.AssessmentSessions.Any(s => s.Id == h.SessionId))
+                .CountAsync();
+            ViewData["OrphanCount"] = orphanCount;
+            return View();
+        }
+
+        // POST /Admin/CleanupAttemptHistoryExecute — hapus orphan + audit (destructive → CSRF + admin)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CleanupAttemptHistoryExecute()
+        {
+            var orphanQuery = _context.AssessmentAttemptHistory
+                .Where(h => !_context.AssessmentSessions.Any(s => s.Id == h.SessionId));
+            var rows = await orphanQuery.ToListAsync();
+            int deleted = rows.Count;
+            if (deleted > 0)
+            {
+                _context.AssessmentAttemptHistory.RemoveRange(rows);
+                await _context.SaveChangesAsync();
+                var actor = await _userManager.GetUserAsync(User);
+                if (actor != null)
+                    await _auditLog.LogAsync(actor.Id, actor.FullName ?? actor.UserName ?? actor.Id,
+                        "CleanupAttemptHistory", $"Hapus {deleted} orphan AttemptHistory (SessionId dangling).", null, "AssessmentAttemptHistory");
+            }
+            TempData["Success"] = $"Selesai: {deleted} orphan AttemptHistory dihapus.";
+            return RedirectToAction(nameof(CleanupAttemptHistory));
+        }
+
         // POST /Admin/BulkBackfillAssessment — REST-04 execute
         [HttpPost]
         [ValidateAntiForgeryToken]
