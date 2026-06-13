@@ -50,8 +50,8 @@ created: 2026-06-13
 
 ## Wave 0 Requirements
 
-- [ ] Test file(s) untuk shuffle data-foundation — pola gold-standard real-SQL fixture (`ProtonCompletionFixture` / `OrgLabelMigrationIntegrationTests`), disposable `HcPortalDB_Test_<guid>` + `MigrateAsync` (InMemory bypass migration DDL — TIDAK valid untuk SHUF-01 default backfill).
-- [ ] Stubs untuk SHUF-01 (migration default), SHUF-02 (form persist + EF bool trap semua write-site), SHUF-03 (sibling propagation).
+- [x] Test file(s) untuk shuffle data-foundation — pola gold-standard real-SQL fixture (`ProtonCompletionFixture` / `OrgLabelMigrationIntegrationTests`), disposable `HcPortalDB_Test_<guid>` + `MigrateAsync` (InMemory bypass migration DDL — TIDAK valid untuk SHUF-01 default backfill). → `ShuffleMigrationFixture` (dedicated disposable) + reuse `ProtonCompletionFixture` untuk SHUF-02/03.
+- [x] Stubs untuk SHUF-01 (migration default), SHUF-02 (form persist + EF bool trap semua write-site), SHUF-03 (sibling propagation). → terisi penuh Plan 02 (7 [Fact], 0 stub tersisa).
 
 *Planner finalizes exact file paths from RESEARCH.md Validation Architecture (3 file test Wave 0 teridentifikasi).*
 
@@ -69,11 +69,29 @@ created: 2026-06-13
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (0 MISSING — SHUF-01/02/03 semua COVERED)
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s (suite shuffle filter ~1s)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-06-13 — 7/7 shuffle tests green on real SQL, 0 gaps
+
+---
+
+## Validation Audit 2026-06-13
+
+Audit ulang (State A): VALIDATION.md sudah ada + `nyquist_compliant: true`. Cross-reference 3 file test vs 3 requirement + live run.
+
+| Metric | Count |
+|--------|-------|
+| Requirements (SHUF-01/02/03) | 3 |
+| COVERED (green) | 3 |
+| Gaps found (MISSING/PARTIAL) | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Live run:** `dotnet test --filter "FullyQualifiedName~Shuffle"` → `Failed: 0, Passed: 7, Skipped: 0` (~1s). SHUF-01=2 (`ShuffleMigrationTests`), SHUF-02=3 (`ShuffleCreatePersistenceTests`), SHUF-03=2 (`ShufflePropagationTests`). Semua real-SQL disposable DB.
+
+**Catatan audit:** `grep -c "[Fact]"` di `ShuffleMigrationTests.cs` → 3, tapi 1 hit = literal `[Fact]` di komentar (baris isolasi). Test count nyata = 2 (sesuai map). Bukan diskrepansi. Tidak ada gap → tak spawn `gsd-nyquist-auditor`.
