@@ -74,7 +74,8 @@
 **Goal:** `GET /CMP/CertificationManagement` tak 500; redirect CDP canonical / hapus action orphan + dead helper (audit dulu link/test ke route CMP).
 **Depends on:** — (promote backlog 999.10)
 **UI hint:** no (routing/controller fix)
-**Plans:** TBD (`/gsd-plan-phase 378`)
+**Plans:** 1 plan (1 wave)
+- [ ] 378-01-PLAN.md — Thin-redirect CMP→CDP (D-01/D-02) + hapus cluster dead cert-mgmt + 2 orphan builder (D-03/D-04, re-grep defensif) + tighten e2e Y0 assert (D-06) + cleanup partial dead (D-05)
 
 ### Phase 379: Migrate exam-taking e2e to wizard
 **Goal:** 10 create flow `exam-taking.spec.ts` migrasi flat-form → wizard 4-langkah, suite hijau (cover essay).
