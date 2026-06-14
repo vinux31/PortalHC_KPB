@@ -3,13 +3,19 @@
 
 @{
     ViewData["Title"] = "Home";
-    var names = Model.CurrentUser.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var names = Model.CurrentUser?.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     var initials = names?.Length >= 2
         ? $"{names[0][0]}{names[^1][0]}"
         : names?.Length == 1 ? $"{names[0][0]}" : "?";
 }
 
 <link rel="stylesheet" href="~/css/home.css" />
+
+@* Phase 377 (D-03): impersonate mode-role → CurrentUser null; data progress/events kosong + hint. *@
+@if (Model.CurrentUser == null)
+{
+    <div class="alert alert-info" role="status">Pilih user spesifik untuk melihat data progress &amp; events.</div>
+}
 
 <div class="hero-section mb-4">
     <div class="hero-content">
@@ -21,16 +27,16 @@
                     </div>
                     <div>
                         <h1 class="hero-greeting fs-1 mb-2">
-                            @Model.Greeting, @Model.CurrentUser.FullName!
+                            @Model.Greeting, @(Model.CurrentUser?.FullName ?? "Pengguna")!
                         </h1>
                         <p class="hero-subtitle fs-5 mb-0">
                             <span class="hero-badge">
                                 <i class="fas fa-briefcase"></i>
-                                @(Model.CurrentUser.Position ?? "Staff")
+                                @(Model.CurrentUser?.Position ?? "Staff")
                             </span>
                             <span class="hero-badge ms-2">
                                 <i class="fas fa-building"></i>
-                                @(Model.CurrentUser.Unit ?? "N/A")
+                                @(Model.CurrentUser?.Unit ?? "N/A")
                             </span>
                         </p>
                     </div>

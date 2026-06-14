@@ -35,15 +35,27 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Challenge();
+        // Phase 377 (D-05/SC3): fold split-brain — effective user X untuk progress/events (bukan admin asli, akar bug).
+        var (effUser, decision) = await _impersonationService.GetEffectiveUserAsync(_userManager);
+        ApplicationUser? user;
+        if (decision == EffectiveUserDecision.UseRealUser)
+        {
+            user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();   // genuinely not logged in (SC4 identik)
+        }
+        else
+        {
+            user = effUser;   // TargetUser = X; RoleModeEmpty = null (D-03)
+        }
 
-        var upcomingEvents = await GetUpcomingEvents(user.Id);
-        var progress = await GetProgress(user.Id);
+        // D-03: mode-role → userId "" → 0 record (JANGAN data admin).
+        var userId = user?.Id ?? "";
+        var upcomingEvents = await GetUpcomingEvents(userId);
+        var progress = await GetProgress(userId);
 
         var viewModel = new DashboardHomeViewModel
         {
-            CurrentUser = user,
+            CurrentUser = user,   // null saat mode-role → view null-safe (tak tampil identitas admin)
             Greeting = GetTimeBasedGreeting(),
             UpcomingEvents = upcomingEvents,
             Progress = progress

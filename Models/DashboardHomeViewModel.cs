@@ -2,7 +2,8 @@ namespace HcPortal.Models
 {
     public class DashboardHomeViewModel
     {
-        public ApplicationUser CurrentUser { get; set; } = null!;
+        // Phase 377 (D-03): nullable — mode-role → null (view null-safe, tak tampil identitas admin).
+        public ApplicationUser? CurrentUser { get; set; }
         public string Greeting { get; set; } = string.Empty;
         public List<UpcomingEventViewModel> UpcomingEvents { get; set; } = new();
         public ProgressViewModel Progress { get; set; } = new();
