@@ -48,7 +48,7 @@
   - SC1: Audit konfirmasi tak ada link/test produktif yang butuh view CMP (entry asli route ke CDP).
   - SC2: `GET /CMP/CertificationManagement` tak lagi 500 (redirect CDP / 404 bersih bila action dihapus).
   - SC3: Path CDP CertificationManagement tetap render OK — no regression.
-- [ ] **Phase 379: Migrate exam-taking e2e to wizard** — migrasi 10 create flow (A-J `.fixme`) di `tests/e2e/exam-taking.spec.ts` dari flat-form usang ke wizard CreateAssessment 4-langkah; suite hijau (`--workers=1`), cover flow essay yg disentuh 376. REQ: E2E-01. Migration=false. Depends: 376 (promote backlog 999.7)
+- [x] **Phase 379: Migrate exam-taking e2e to wizard** — migrasi 10 create flow (A-J `.fixme`) di `tests/e2e/exam-taking.spec.ts` dari flat-form usang ke wizard CreateAssessment 4-langkah; suite hijau (`--workers=1`), cover flow essay yg disentuh 376. REQ: E2E-01. Migration=false. Depends: 376 (promote backlog 999.7) (completed 2026-06-14)
   - SC1: 10 flow (A-J) pakai wizard CreateAssessment (flat-form `.fixme` dihapus).
   - SC2: Suite `exam-taking.spec.ts` hijau (`--workers=1`).
   - SC3: Flow essay ter-cover (sinergi regression GRADE-01).
@@ -87,7 +87,7 @@
 **Goal:** 10 create flow `exam-taking.spec.ts` migrasi flat-form → wizard 4-langkah, suite hijau (cover essay).
 **Depends on:** 376 (promote backlog 999.7)
 **UI hint:** no (e2e test infra)
-**Plans:** 6 plans (6 waves — single-file constraint exam-taking.spec.ts memaksa sekuensial)
+**Plans:** 6/6 plans complete
 - [x] 379-01-PLAN.md — Wave-0 prep: extend helper additive (token/proton/paste) + 3 Open Q verify + seed ProtonTrack T3 + smoke
 - [x] 379-02-PLAN.md — Migrasi Flow A/B/C (import block + wizard create + token + multi-worker)
 - [x] 379-03-PLAN.md — Migrasi Flow D/E (paste-import + Proton T3 interview PENUH, no test.skip — D-02)
