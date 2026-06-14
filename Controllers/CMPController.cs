@@ -3644,35 +3644,6 @@ namespace HcPortal.Controllers
                    .OrderBy(n => n)
                    .ToList();
 
-        private static List<SertifikatGroupRow> BuildSertifikatGroups(List<SertifikatRow> allRows)
-        {
-            return allRows
-                .GroupBy(r => r.Judul)
-                .Select(g => new SertifikatGroupRow
-                {
-                    Judul = g.Key,
-                    Kategori = g.First().Kategori,
-                    SubKategori = g.First().SubKategori,
-                    JumlahWorker = g.Select(r => r.WorkerId).Distinct().Count()
-                })
-                .OrderBy(g => g.Judul)
-                .ToList();
-        }
-
-        private static SertifikatGroupViewModel BuildGroupViewModel(List<SertifikatGroupRow> groups, int roleLevel)
-        {
-            return new SertifikatGroupViewModel
-            {
-                TotalCount = groups.Count,
-                MandatoryCount = groups.Count(g => string.Equals(g.Kategori, "Mandatory HSSE Training", StringComparison.OrdinalIgnoreCase)
-                                                 || string.Equals(g.Kategori, "MANDATORY", StringComparison.OrdinalIgnoreCase)),
-                NonMandatoryCount = groups.Count(g => string.Equals(g.Kategori, "NON MANDATORY", StringComparison.OrdinalIgnoreCase)),
-                OjtCount = groups.Count(g => string.Equals(g.Kategori, "OJT", StringComparison.OrdinalIgnoreCase)),
-                IhtCount = groups.Count(g => string.Equals(g.Kategori, "IHT", StringComparison.OrdinalIgnoreCase)),
-                RoleLevel = roleLevel
-            };
-        }
-
         private static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
         {
             if (string.IsNullOrWhiteSpace(raw)) return "-";
