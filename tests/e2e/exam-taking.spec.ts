@@ -1220,51 +1220,28 @@ test.describe('Flow I: Edit Assessment', () => {
 // Worker starts exam → abandons → HC sees Abandoned → HC resets → worker retakes
 // ============================================================
 test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
-  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
-  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
+  // Phase 379 — migrasi wizard+package; abandon/reset lifecycle SURVIVE; fixme dihapus.
   let title: string;
   let assessmentId: number;
+  let packageId: number;
 
   test('J1 - HC creates assessment with question', async ({ page }) => {
     title = uniqueTitle('Pre Test Abandon Test');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
-    await expect(page.locator('#selectedCountBadge')).toContainText('1 selected');
-
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'OJT');
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    await page.fill('#DurationMinutes', '30');
-    await page.fill('#PassPercentage', '50');
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
-
-    // Add question
-    await page.goto('/Admin/ManageAssessment');
-    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
-    await searchInput.fill(title);
-    await searchInput.press('Enter');
+    await createAssessmentViaWizard(page, {
+      title, category: 'OJT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 50, allowAnswerReview: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
     await page.waitForLoadState('networkidle');
-    await page.locator('button.dropdown-toggle').first().click();
-    await page.locator('a[href*="ManageQuestions"]').first().click();
-    await page.waitForLoadState('networkidle');
-    const url = page.url();
-    assessmentId = parseInt(url.match(/ManageQuestions\/(\d+)|id=(\d+)/)!.slice(1).find(Boolean)!);
-
-    await page.fill('textarea[name="question_text"]', 'Abandon test question?');
-    await page.locator('input[name="options"]').nth(0).fill('A');
-    await page.locator('input[name="options"]').nth(1).fill('B');
-    await page.locator('input[name="options"]').nth(2).fill('C');
-    await page.locator('input[name="options"]').nth(3).fill('D');
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Abandon test question?',
+      options: ['A', 'B', 'C', 'D'], correctIndex: 0, score: 100,
+    });
   });
 
   test('J2 - Worker starts exam', async ({ page }) => {
@@ -1280,14 +1257,21 @@ test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
 
   test('J3 - Worker abandons exam', async ({ page }) => {
     await login(page, 'coachee');
-    await page.goto(`/CMP/StartExam/${assessmentId}`);
+    await page.goto('/CMP/Assessment');
 
-    // If on the exam page, click the abandon button
-    // The abandon form is hidden, triggered by confirmAbandon()
-    // We'll trigger it by accepting the dialog and submitting the form
+    // Phase 379 — resume InProgress exam (J2 sudah start) lalu abandon
+    const card = page.locator('.assessment-card', { hasText: title });
+    await card.locator('a:has-text("Resume")').click();
+    await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
+    const resumeModal = page.locator('#resumeConfirmModal');
+    await resumeModal.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => {});
+    if (await resumeModal.isVisible().catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click();
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
+    }
+
+    // Abandon: trigger via Keluar button atau submit #abandonForm langsung
     page.once('dialog', d => d.accept());
-
-    // Find the abandon/exit button (usually a link or button calling confirmAbandon)
     const abandonBtn = page.locator('button:has-text("Keluar"), a:has-text("Keluar"), button:has-text("Abandon"), a:has-text("Abandon")').first();
     if (await abandonBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
       // Disable beforeunload to prevent blocking
@@ -1363,14 +1347,16 @@ test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
     await page.locator(`text=${title}`).first().click();
     await page.waitForLoadState('networkidle');
 
-    const resetBtn = page.locator('form[action*="ResetAssessment"] button').first();
-    await expect(resetBtn).toBeVisible({ timeout: 3_000 });
+    // Phase 379 — Reset ada di dropdown kebab per-sesi (buka dulu, lalu confirm).
+    const kebab = page.locator('button[aria-label^="Aksi lain"]').first();
+    await expect(kebab).toBeVisible({ timeout: 5_000 });
+    await kebab.click();
+    const resetBtn = page.locator('form[action*="ResetAssessment"] button[type="submit"]').first();
     page.once('dialog', d => d.accept());
     await resetBtn.click();
     await page.waitForLoadState('networkidle');
-
     // Should now show Not started
-    await expect(page.locator('body')).toContainText(/Not started|Success/i);
+    await expect(page.locator('body')).toContainText(/Not started|Success|Berhasil/i);
   });
 
   test('J7 - Worker can retake after reset', async ({ page }) => {
@@ -1384,20 +1370,23 @@ test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
     const startBtn = card.locator('.btn-start-standard');
     await expect(startBtn).toBeVisible();
 
-    // Start, answer, and submit
+    // Start, answer, and submit (Phase 379 — label shuffle-safe + Kumpulkan Ujian / Nilai Anda)
     page.once('dialog', d => d.accept());
     await startBtn.click();
     await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
 
-    await page.locator('.exam-radio').first().click({ force: true });
-    await page.waitForTimeout(500);
+    await page.locator('[id^="qcard_"]').first().locator('label[id^="lbl_"]').first().click();
+    await page.waitForTimeout(700);
 
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
     await page.locator('#reviewSubmitBtn').click();
     await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
     page.once('dialog', d => d.accept());
-    await page.click('button:has-text("Submit Exam")');
+    const kumpulkanBtn = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkanBtn).toBeEnabled({ timeout: 10_000 });
+    await kumpulkanBtn.click();
     await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
-    await expect(page.locator('body')).toContainText('Your Score');
+    await expect(page.locator('body')).toContainText('Nilai Anda');
   });
 
   test('J8 - Cleanup: delete abandon test assessment', async ({ page }) => {
@@ -1407,13 +1396,20 @@ test.describe('Flow J: Abandon Exam & Reset Recovery', () => {
     await searchInput.fill(title);
     await searchInput.press('Enter');
     await page.waitForLoadState('networkidle');
-    const dropdown = page.locator('button.dropdown-toggle').first();
-    if (await dropdown.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      autoConfirm(page);
-      await dropdown.click();
-      await page.waitForTimeout(500);
-      await page.locator('text=Hapus Grup').first().click();
-      await page.waitForURL('**/ManageAssessment**', { timeout: 10_000 });
+    // Phase 379 — best-effort cleanup (teardown RESTORE = safety net).
+    const row = page.locator('tr', { hasText: title }).first();
+    const kebab = row.locator('button.dropdown-toggle').first();
+    if (await kebab.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await kebab.click();
+      const hapusBtn = page.locator('button:has-text("Hapus Grup")').first();
+      if (await hapusBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await hapusBtn.click();
+        const confirmBtn = page.locator('#deleteAssessmentModal.show button[type="submit"], #deleteAssessmentModal.show button:has-text("Hapus")').first();
+        if (await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+          await confirmBtn.click();
+          await page.waitForLoadState('networkidle');
+        }
+      }
     }
   });
 });
