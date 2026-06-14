@@ -2,6 +2,13 @@ import { test, expect, Page } from '@playwright/test';
 import { login } from '../helpers/auth';
 import { uniqueTitle, today, autoConfirm } from '../helpers/utils';
 import { clickResumeForFixture, assertTier1Reject, assertTier2Reject, assertSubmitSuccess } from './helpers/exam313';
+// Phase 379 — helper wizard kanonik (ganti flat-form create/question usang) + DB assert.
+import {
+  createAssessmentViaWizard, createDefaultPackage, addQuestionViaForm,
+  importQuestionsViaPaste, submitExamTwoStep, checkMAOptionsForQuestion,
+  fillEssayAnswer, gradeSingleEssaySession, type QuestionInput,
+} from './helpers/examTypes';
+import * as db from '../helpers/dbSnapshot';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -28,91 +35,49 @@ async function goToMonitoringDetail(page: Page, assessmentTitle: string) {
 // HC creates → adds questions → worker starts → answers → submits → results → answer review → certificate
 // ============================================================
 test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
-  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
-  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
+  // Phase 379 — migrasi wizard+package (fixme 364/999.7 dihapus). Create/QADD via helper kanonik.
   let title: string;
   let assessmentId: number;
+  let packageId: number;
 
   test('A1 - HC creates assessment for coachee', async ({ page }) => {
     title = uniqueTitle('Pre Test Legacy Exam');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    // Select Rino
-    await page.locator('.user-check-item[data-email="rino.prasetyo@pertamina.com"] input.user-checkbox').check({ force: true });
-    await expect(page.locator('#selectedCountBadge')).toContainText('1 selected');
-
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'OJT');
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    await page.fill('#DurationMinutes', '30');
-    await page.fill('#PassPercentage', '60');
-    // Enable answer review and certificate
-    await page.locator('#AllowAnswerReview').check();
-    await page.locator('#GenerateCertificate').check();
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
+    await createAssessmentViaWizard(page, {
+      title, category: 'OJT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 60,
+      allowAnswerReview: true,        // A9 answer-review butuh true
+      generateCertificate: true,      // A10 cert butuh true
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
   });
 
-  test('A2 - HC navigates to ManageQuestions', async ({ page }) => {
+  test('A2 - HC creates package', async ({ page }) => {
     await login(page, 'hc');
-    await page.goto('/Admin/ManageAssessment');
-    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
-    await searchInput.fill(title);
-    await searchInput.press('Enter');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
     await page.waitForLoadState('networkidle');
-
-    await page.locator('button.dropdown-toggle').first().click();
-    await page.locator('a[href*="ManageQuestions"]').first().click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('h2')).toContainText('Manage Questions');
-
-    const url = page.url();
-    const match = url.match(/ManageQuestions\/(\d+)|id=(\d+)/);
-    expect(match).toBeTruthy();
-    assessmentId = parseInt((match![1] || match![2]));
+    packageId = await createDefaultPackage(page);
   });
 
   test('A3 - HC adds 3 questions', async ({ page }) => {
     await login(page, 'hc');
-    await page.goto(`/Admin/ManageQuestions?id=${assessmentId}`);
-
-    // Q1 correct=A
-    await page.fill('textarea[name="question_text"]', 'Apa kepanjangan OJT?');
-    await page.locator('input[name="options"]').nth(0).fill('On the Job Training');
-    await page.locator('input[name="options"]').nth(1).fill('Online Job Test');
-    await page.locator('input[name="options"]').nth(2).fill('Operation Job Task');
-    await page.locator('input[name="options"]').nth(3).fill('Operational Job Training');
-    await page.locator('input[name="correct_option_index"][value="0"]').check();
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
-
-    // Q2 correct=B
-    await page.fill('textarea[name="question_text"]', 'Berapa lama durasi OJT standar?');
-    await page.locator('input[name="options"]').nth(0).fill('1 bulan');
-    await page.locator('input[name="options"]').nth(1).fill('3 bulan');
-    await page.locator('input[name="options"]').nth(2).fill('6 bulan');
-    await page.locator('input[name="options"]').nth(3).fill('12 bulan');
-    await page.locator('input[name="correct_option_index"][value="1"]').check();
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
-
-    // Q3 correct=C
-    await page.fill('textarea[name="question_text"]', 'Siapa penanggung jawab OJT?');
-    await page.locator('input[name="options"]').nth(0).fill('Direktur');
-    await page.locator('input[name="options"]').nth(1).fill('VP');
-    await page.locator('input[name="options"]').nth(2).fill('Supervisor');
-    await page.locator('input[name="options"]').nth(3).fill('Admin');
-    await page.locator('input[name="correct_option_index"][value="2"]').check();
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
-
-    await expect(page.locator('text=Daftar Soal (3)')).toBeVisible();
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Apa kepanjangan OJT?',
+      options: ['On the Job Training', 'Online Job Test', 'Operation Job Task', 'Operational Job Training'],
+      correctIndex: 0, score: 100,
+    });
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Berapa lama durasi OJT standar?',
+      options: ['1 bulan', '3 bulan', '6 bulan', '12 bulan'],
+      correctIndex: 1, score: 100,
+    });
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Siapa penanggung jawab OJT?',
+      options: ['Direktur', 'VP', 'Supervisor', 'Admin'],
+      correctIndex: 2, score: 100,
+    });
   });
 
   test('A4 - Worker sees assessment in My Assessments', async ({ page }) => {
@@ -144,11 +109,13 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
     await card.locator('a:has-text("Resume")').click();
     await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
 
-    // Handle resume modal
+    // Handle resume modal (Phase 379 — muncul async pasca-load StartExam, static backdrop intercepts pointer).
+    // Tunggu modal show (resume SELALU memicu) lalu dismiss + assert hidden sebelum jawab.
     const resumeModal = page.locator('#resumeConfirmModal');
-    if (await resumeModal.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await resumeModal.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => {});
+    if (await resumeModal.isVisible().catch(() => false)) {
       await page.locator('#resumeConfirmBtn').click();
-      await page.waitForTimeout(500);
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
     }
 
     // Answer each question
@@ -159,12 +126,12 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
     for (let i = 0; i < qCount; i++) {
       const qCard = questionCards.nth(i);
       const qText = await qCard.locator('h6, .fw-bold').first().textContent() ?? '';
-      let correctIdx = 0;
-      if (qText.includes('durasi')) correctIdx = 1;
-      if (qText.includes('penanggung jawab')) correctIdx = 2;
-
-      await qCard.locator('.exam-radio').nth(correctIdx).click({ force: true });
-      await page.waitForTimeout(500);
+      // Phase 379 — shuffle opsi (Phase 372-375 default ON) acak posisi → pilih label by TEXT jawaban benar (bukan positional nth).
+      let correctText = 'On the Job Training';
+      if (qText.includes('durasi')) correctText = '3 bulan';
+      if (qText.includes('penanggung jawab')) correctText = 'Supervisor';
+      await qCard.locator('label[id^="lbl_"]').filter({ hasText: correctText }).first().click();
+      await page.waitForTimeout(700);
     }
 
     await expect(page.locator('#answeredProgress')).toContainText(`${qCount}/${qCount}`);
@@ -178,19 +145,22 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
     await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
 
     const resumeModal = page.locator('#resumeConfirmModal');
-    if (await resumeModal.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await resumeModal.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => {});
+    if (await resumeModal.isVisible().catch(() => false)) {
       await page.locator('#resumeConfirmBtn').click();
-      await page.waitForTimeout(500);
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
     }
 
-    // Go to summary
+    // Go to summary (Phase 379 — ExamSummary kini Bahasa Indonesia: "Tinjau Jawaban" + "Kumpulkan Ujian")
     await page.locator('#reviewSubmitBtn').click();
     await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
-    await expect(page.locator('body')).toContainText('Submit Exam');
+    await expect(page.locator('body')).toContainText(/Kumpulkan Ujian|Tinjau Jawaban/);
 
     // Submit
     page.once('dialog', d => d.accept());
-    await page.click('button:has-text("Submit Exam")');
+    const kumpulkanBtn = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkanBtn).toBeEnabled({ timeout: 10_000 });
+    await kumpulkanBtn.click();
     await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
   });
 
@@ -204,9 +174,10 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
     await historyRow.locator('a').first().click();
     await page.waitForURL('**/CMP/Results/**', { timeout: 10_000 });
 
-    await expect(page.locator('body')).toContainText('Your Score');
+    // Phase 379 — Results Bahasa Indonesia: "Nilai Anda" + "@Score%" + badge "LULUS"
+    await expect(page.locator('body')).toContainText('Nilai Anda');
     await expect(page.locator('body')).toContainText('100%');
-    await expect(page.locator('body')).toContainText('PASSED');
+    await expect(page.locator('body')).toContainText('LULUS');
   });
 
   test('A9 - Answer review is visible on Results page', async ({ page }) => {
@@ -216,8 +187,8 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
     await historyRow.locator('a').first().click();
     await page.waitForURL('**/CMP/Results/**', { timeout: 10_000 });
 
-    // AllowAnswerReview was enabled, so question review section should exist
-    await expect(page.locator('body')).toContainText(/Answer Review|Review Jawaban|correct/i);
+    // AllowAnswerReview enabled → section "Tinjauan Jawaban" (Phase 379 — Bahasa Indonesia)
+    await expect(page.locator('body')).toContainText(/Tinjauan Jawaban|Jawaban Benar/i);
   });
 
   test('A10 - Certificate is accessible for passed assessment', async ({ page }) => {
@@ -272,13 +243,14 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
     await login(page, 'hc');
     await goToMonitoringDetail(page, title);
 
-    const resetBtn = page.locator('form[action*="ResetAssessment"] button').first();
-    if (await resetBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      page.once('dialog', d => d.accept());
-      await resetBtn.click();
-      await page.waitForLoadState('networkidle');
-      await expect(page.locator('body')).toContainText(/Not started|Belum dimulai/i);
-    }
+    // Phase 379 — tombol Reset ada di dropdown ⋮ per-sesi (buka dropdown dulu, lalu confirm dialog).
+    const kebab = page.locator('button[aria-label^="Aksi lain"]').first();
+    await expect(kebab).toBeVisible({ timeout: 5_000 });
+    await kebab.click();
+    const resetBtn = page.locator('form[action*="ResetAssessment"] button[type="submit"]').first();
+    page.once('dialog', d => d.accept());
+    await resetBtn.click();
+    await page.waitForLoadState('networkidle');
   });
 
   test('A14 - Worker sees reset assessment as Open again', async ({ page }) => {
