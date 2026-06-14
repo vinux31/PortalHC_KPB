@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v28.0
 milestone_name: Assessment & Records Bug Fixes
-status: Executing Phase 376
-last_updated: "2026-06-14T04:34:56.865Z"
+status: Ready to execute
+last_updated: "2026-06-14T04:50:30.416Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 16
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_phases: 1
+  total_plans: 10
+  completed_plans: 3
+  percent: 30
 ---
 
 # Project State: Portal HC KPB
