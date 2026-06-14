@@ -37,8 +37,9 @@ namespace HcPortal.Controllers
         private readonly INotificationService _notificationService;
         private readonly ILogger<CDPController> _logger;
         private readonly AuditLogService _auditLog;
+        private readonly ImpersonationService _impersonationService;   // Phase 377 (Pitfall 2): CDP belum inject — wajib untuk resolver
 
-        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env, INotificationService notificationService, ILogger<CDPController> logger, AuditLogService auditLog)
+        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env, INotificationService notificationService, ILogger<CDPController> logger, AuditLogService auditLog, ImpersonationService impersonationService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -47,6 +48,7 @@ namespace HcPortal.Controllers
             _notificationService = notificationService;
             _logger = logger;
             _auditLog = auditLog;
+            _impersonationService = impersonationService;
         }
 
         public IActionResult Index()
@@ -3693,12 +3695,24 @@ namespace HcPortal.Controllers
         // Phase 186: Role-Scoped Certificate Data Helpers
         // ============================================================
 
-        private async Task<(ApplicationUser User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
+        // Phase 377 (D-05): seragam dengan CMP — nullable + impersonation-aware (konsumsi GetEffectiveUserAsync).
+        private async Task<(ApplicationUser? User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
-            var userRoles = await _userManager.GetRolesAsync(user!);
-            var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
-            return (user!, roleLevel);
+            var (effUser, decision) = await _impersonationService.GetEffectiveUserAsync(_userManager);
+
+            if (decision == EffectiveUserDecision.UseRealUser)
+            {
+                var real = await _userManager.GetUserAsync(User);
+                if (real == null) return (null, 0);
+                var realRoles = await _userManager.GetRolesAsync(real);
+                return (real, UserRoles.GetRoleLevel(realRoles.FirstOrDefault() ?? ""));
+            }
+            if (decision == EffectiveUserDecision.RoleModeEmpty)
+                return (null, _impersonationService.GetEffectiveRoleLevel() ?? 0);
+            if (effUser == null) return (null, 0);
+            var effLevel = _impersonationService.GetEffectiveRoleLevel()
+                           ?? UserRoles.GetRoleLevel((await _userManager.GetRolesAsync(effUser)).FirstOrDefault() ?? "");
+            return (effUser, effLevel);
         }
 
         public async Task<IActionResult> CertificationManagement(int page = 1)
@@ -3737,7 +3751,9 @@ namespace HcPortal.Controllers
                 .OrderBy(c => c.SortOrder)
                 .Select(c => c.Name)
                 .ToListAsync();
-            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User.Section;
+            // Phase 377: nullable resolver → null-guard (mode-role → null, tak bocor section admin, D-03/T-377-16).
+            var (cmUser, _) = await GetCurrentUserRoleLevelAsync();
+            ViewBag.UserBagian = cmUser?.Section;
             return View(vm);
         }
 
@@ -3857,6 +3873,9 @@ namespace HcPortal.Controllers
         private async Task<(List<SertifikatRow> rows, int roleLevel)> BuildSertifikatRowsAsync(bool l5OwnDataOnly = false)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+            // Phase 377 (D-03/T-377-13): mode-role / null → effective user null → 0 row (kosong, BUKAN admin/all-cert).
+            // Null-safe: cegah NRE pada user.Section/user.Id di scoping bawah.
+            if (user == null) return (new List<SertifikatRow>(), roleLevel);
 
             // Build scoped user ID list based on role level
             List<string>? scopedUserIds;
