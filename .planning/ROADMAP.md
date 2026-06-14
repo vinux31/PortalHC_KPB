@@ -1334,7 +1334,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 380. Admin/Engine Integrity | 0/? | Not started | - |
+| 380. Admin/Engine Integrity | 2/2 | Complete    | 2026-06-14 |
 | 381. Worker Entry (StartExam integrity) | 3/3 | Complete    | 2026-06-14 |
 | 382. Grading / Lifecycle / Cert | 3/3 | Complete    | 2026-06-14 |
 
