@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ringkasan Milestone v29.0 — Perbaikan Ujian Online Portal HC KPB</title>
+<style>
+  :root{
+    --merah:#E4002B; --biru:#00558C; --biru-muda:#0a7abf; --hijau:#1a9e57;
+    --abu:#5b6470; --abu-muda:#eef1f5; --garis:#e2e7ee; --kuning:#f6a609;
+    --teks:#1d242e; --putih:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;color:var(--teks);
+    background:#f4f6f9;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+
+  /* Header */
+  header{background:linear-gradient(135deg,var(--biru) 0%,#003e66 100%);color:#fff;padding:46px 0 40px}
+  header .wrap{display:flex;flex-direction:column;gap:14px}
+  .pill{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    padding:5px 14px;border-radius:30px;font-size:13px;font-weight:600;letter-spacing:.3px;width:max-content}
+  header h1{font-size:31px;line-height:1.25;font-weight:700;max-width:760px}
+  header p.sub{font-size:17px;opacity:.92;max-width:720px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .meta span{font-size:13px;background:rgba(255,255,255,.12);padding:4px 11px;border-radius:6px}
+
+  /* Status bar */
+  .statusbar{background:var(--hijau);color:#fff;padding:14px 0;font-weight:600}
+  .statusbar .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:15.5px}
+  .statusbar .tick{background:#fff;color:var(--hijau);width:26px;height:26px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+
+  section{padding:38px 0}
+  section.alt{background:#fff;border-top:1px solid var(--garis);border-bottom:1px solid var(--garis)}
+  h2{font-size:23px;color:var(--biru);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  h2 .num{background:var(--merah);color:#fff;font-size:14px;width:28px;height:28px;border-radius:7px;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
+  .lead{color:var(--abu);font-size:16px;margin-bottom:22px;max-width:760px}
+
+  /* Angka kunci */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:#fff;border:1px solid var(--garis);border-radius:12px;padding:18px;text-align:center}
+  .kpi .big{font-size:30px;font-weight:800;color:var(--biru)}
+  .kpi .lbl{font-size:13px;color:var(--abu);margin-top:3px}
+  .kpi.ok .big{color:var(--hijau)}
+
+  /* Grup perbaikan */
+  .grup{background:#fff;border:1px solid var(--garis);border-left:5px solid var(--biru-muda);
+    border-radius:10px;padding:20px 22px;margin-bottom:18px}
+  .grup h3{font-size:18px;color:var(--biru);margin-bottom:4px}
+  .grup .tag{font-size:12.5px;color:var(--abu);margin-bottom:14px}
+  .row{display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid var(--garis);padding:13px 0}
+  .row:last-child{padding-bottom:0}
+  .row .judul{font-weight:600;font-size:15px;margin-bottom:7px;display:flex;gap:8px;align-items:flex-start}
+  .row .judul .kode{background:var(--abu-muda);color:var(--biru);font-size:11px;font-weight:700;
+    padding:2px 7px;border-radius:5px;flex:0 0 auto;margin-top:2px}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ba .box{border-radius:8px;padding:10px 12px;font-size:14px}
+  .ba .sebelum{background:#fdecec;border:1px solid #f6c9c9}
+  .ba .sesudah{background:#e8f6ee;border:1px solid #bfe6cf}
+  .ba .box b{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+  .ba .sebelum b{color:var(--merah)}
+  .ba .sesudah b{color:var(--hijau)}
+
+  /* Alur */
+  .flow{display:flex;flex-direction:column;gap:0}
+  .step{display:flex;gap:16px;align-items:flex-start;position:relative;padding-bottom:18px}
+  .step:not(:last-child)::before{content:"";position:absolute;left:17px;top:36px;bottom:0;width:2px;background:var(--garis)}
+  .step .dot{width:36px;height:36px;border-radius:50%;background:var(--biru);color:#fff;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:15px;z-index:1}
+  .step .isi{padding-top:4px}
+  .step .isi b{font-size:15.5px}
+  .step .isi p{font-size:14px;color:var(--abu);margin-top:2px}
+
+  /* Catatan */
+  .note{background:#fff8ea;border:1px solid #f3dca0;border-left:5px solid var(--kuning);
+    border-radius:10px;padding:16px 20px;margin-bottom:14px}
+  .note h4{color:#9a6c00;font-size:15.5px;margin-bottom:4px}
+  .note p{font-size:14.5px;color:#6b5a32}
+  .note.green{background:#edf8f1;border-color:#bfe6cf;border-left-color:var(--hijau)}
+  .note.green h4{color:var(--hijau)}
+  .note.green p{color:#2f5d44}
+
+  footer{background:#1d242e;color:#aeb6c2;padding:26px 0;font-size:13.5px;text-align:center}
+  footer b{color:#fff}
+
+  @media(max-width:720px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .ba{grid-template-columns:1fr}
+    header h1{font-size:25px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="pill">MILESTONE v29.0 · Portal HC KPB</span>
+    <h1>Perbaikan Ujian Online: Pekerja Bisa Ujian &amp; Lulus dengan Benar</h1>
+    <p class="sub">Milestone ini adalah hasil <b>audit</b> terhadap sistem assessment (ujian online). Tujuannya satu: memastikan pekerja bisa mengerjakan ujian dari awal sampai dapat sertifikat — tanpa nilai salah, tanpa gagal palsu, tanpa celah keamanan.</p>
+    <div class="meta">
+      <span>📅 Audit selesai: 15 Juni 2026</span>
+      <span>🧩 3 Fase (380 · 381 · 382)</span>
+      <span>✅ 11 Perbaikan</span>
+      <span>🗄️ Tanpa perubahan struktur database</span>
+    </div>
+  </div>
+</header>
+
+<div class="statusbar">
+  <div class="wrap">
+    <span class="tick">✓</span>
+    <span>HASIL AUDIT: LOLOS — 11 dari 11 perbaikan terbukti benar &amp; saling terhubung. Tidak ada masalah yang menghambat.</span>
+  </div>
+</div>
+
+<!-- 1. Angka kunci -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">1</span> Hasil Audit Singkat</h2>
+    <p class="lead">Empat angka yang merangkum kondisi sistem ujian setelah milestone ini.</p>
+    <div class="kpis">
+      <div class="kpi ok"><div class="big">11/11</div><div class="lbl">Perbaikan terbukti benar</div></div>
+      <div class="kpi ok"><div class="big">415</div><div class="lbl">Tes otomatis lolos (0 gagal)</div></div>
+      <div class="kpi ok"><div class="big">100%</div><div class="lbl">Celah keamanan ditutup</div></div>
+      <div class="kpi ok"><div class="big">0</div><div class="lbl">Masalah penghalang</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Apa yang diperbaiki -->
+<section class="alt">
+  <div class="wrap">
+    <h2><span class="num">2</span> Apa Saja yang Diperbaiki?</h2>
+    <p class="lead">11 perbaikan dikelompokkan menjadi 3 tahap perjalanan pekerja saat ujian: <b>Masuk ujian → Mengerjakan &amp; mengirim → Nilai &amp; sertifikat</b>. Setiap baris menunjukkan kondisi <span style="color:var(--merah);font-weight:600">sebelum</span> dan <span style="color:var(--hijau);font-weight:600">sesudah</span> perbaikan.</p>
+
+    <!-- Grup A -->
+    <div class="grup">
+      <h3>🔑 A. Saat Pekerja Masuk Ujian</h3>
+      <div class="tag">Fase 380 &amp; 381 — supaya pekerja masuk ke ujian yang benar</div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-01</span> Ujian tidak lagi tampil kosong / gagal palsu</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Bila ada paket soal kosong di antara paket berisi (acak soal aktif), pekerja bisa dapat ujian kosong → otomatis dinilai 0 / gagal palsu.</div>
+          <div class="box sesudah"><b>Sesudah</b>Paket kosong dilewati; pekerja selalu dapat soal. Bila semua paket kosong, ujian diblokir dengan pesan "hubungi Admin/HC" — bukan gagal palsu.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-02</span> Token ujian tetap berfungsi walau huruf besar/kecil berbeda</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Bila admin mengubah token dan tersimpan huruf kecil, pekerja gagal masuk ("token tidak valid").</div>
+          <div class="box sesudah"><b>Sesudah</b>Token dicocokkan tanpa peduli besar/kecil huruf, dan selalu disimpan huruf besar. Pekerja tetap bisa masuk.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-03</span> Penambahan waktu ujian aman &amp; dibatasi</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Penambahan waktu ujian tidak dibatasi siapa yang boleh dan berapa banyak — berisiko disalahgunakan.</div>
+          <div class="box sesudah"><b>Sesudah</b>Hanya Admin/HC yang boleh menambah waktu, dan total tambahan dibatasi (tidak melebihi durasi asli ujian).</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-04</span> Soal Pre-test &amp; Post-test tidak tercampur</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Bila Pre-test dan Post-test dijadwalkan di hari yang sama, soalnya bisa tercampur.</div>
+          <div class="box sesudah"><b>Sesudah</b>Pekerja hanya menerima paket ujian yang sedang dikerjakan — Pre tetap Pre, Post tetap Post.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-05</span> Admin yang "mengintip" tidak merusak ujian pekerja</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Saat admin membuka/menyamar (impersonate) ujian pekerja, bisa tak sengaja "memulai" ujian, membakar sisa waktu, atau mengunci urutan soal pekerja.</div>
+          <div class="box sesudah"><b>Sesudah</b>Admin yang membuka ujian pekerja hanya bisa melihat (read-only) — tidak mengubah status, waktu, atau acakan soal pekerja.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grup B -->
+    <div class="grup" style="border-left-color:var(--kuning)">
+      <h3>✍️ B. Saat Pekerja Mengerjakan &amp; Mengirim</h3>
+      <div class="tag">Fase 382 — supaya jawaban &amp; waktu dihitung jujur</div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-06</span> Nilai dihitung dari jawaban TERAKHIR</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Bila pekerja membuka 2 tab dan menjawab berbeda, nilai bisa dihitung dari jawaban basi/duplikat.</div>
+          <div class="box sesudah"><b>Sesudah</b>Nilai selalu memakai jawaban final terbaru — satu jawaban resmi per soal.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-09</span> Batas waktu ujian Normal benar-benar ditegakkan</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Batas waktu tidak ditegakkan untuk ujian Normal; pengiriman yang jauh telat bisa tetap diterima.</div>
+          <div class="box sesudah"><b>Sesudah</b>Waktu dihitung di server (bukan dari sinyal browser yang bisa dipalsukan); pengiriman telat ditolak, tepat waktu diterima.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-10</span> Gerbang token tidak bisa dilewati</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Ujian ber-token bisa diselesaikan dengan melewati pengecekan token (langsung menyimpan/mengirim jawaban).</div>
+          <div class="box sesudah"><b>Sesudah</b>Menyimpan jawaban dan mengirim ujian ikut memeriksa token — tidak bisa di-bypass.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grup C -->
+    <div class="grup" style="border-left-color:var(--hijau)">
+      <h3>🏅 C. Nilai, Kelulusan &amp; Sertifikat</h3>
+      <div class="tag">Fase 382 — supaya hasil &amp; sertifikat benar dan tahan gangguan</div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-07</span> Ujian batal tidak bisa "dihidupkan" jadi lulus</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Ujian yang sudah dibatalkan/ditinggalkan bisa diubah menjadi "lulus" + terbit sertifikat.</div>
+          <div class="box sesudah"><b>Sesudah</b>Ujian batal/ditinggalkan tidak bisa berubah jadi lulus; tidak ada sertifikat palsu.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-08</span> Hasil yang sudah lulus tidak bisa hilang</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Hasil yang sudah selesai/lulus bisa tertimpa atau hilang karena perintah "tinggalkan ujian" yang datang telat.</div>
+          <div class="box sesudah"><b>Sesudah</b>Hasil yang sudah selesai terkunci; perintah telat ditolak; hasil &amp; sertifikat tetap aman.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="judul"><span class="kode">WSE-11</span> Sertifikat tanpa masa berlaku tampil "Aktif", bukan "Expired"</div>
+        <div class="ba">
+          <div class="box sebelum"><b>Sebelum</b>Sertifikat lulus yang tidak punya tanggal kedaluwarsa bisa salah tampil "Expired".</div>
+          <div class="box sesudah"><b>Sesudah</b>Tampil "Aktif/Permanen" secara konsisten di semua layar: dashboard, lencana (badge), dan notifikasi.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Alur sekarang -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">3</span> Bagaimana Alur Ujian Sekarang?</h2>
+    <p class="lead">Setelah perbaikan, perjalanan pekerja dari mulai ujian sampai dapat sertifikat berjalan mulus — setiap langkah tersambung dan saling menjaga. Audit memastikan <b>11 sambungan antar-bagian semuanya terhubung</b>, tanpa ada yang putus.</p>
+    <div class="flow">
+      <div class="step"><div class="dot">1</div><div class="isi"><b>Admin menyiapkan ujian</b><p>Atur paket soal, token, dan tambahan waktu — dengan batas yang aman.</p></div></div>
+      <div class="step"><div class="dot">2</div><div class="isi"><b>Pekerja masuk &amp; dapat soal yang benar</b><p>Paket tidak kosong, Pre/Post tidak tercampur, token berfungsi, dan tidak rusak oleh admin yang mengintip.</p></div></div>
+      <div class="step"><div class="dot">3</div><div class="isi"><b>Pekerja mengerjakan dalam batas waktu</b><p>Jawaban tersimpan; token &amp; waktu diperiksa di setiap langkah.</p></div></div>
+      <div class="step"><div class="dot">4</div><div class="isi"><b>Pekerja mengirim ujian</b><p>Hanya diterima bila masih dalam waktu &amp; token valid; sinyal palsu dari browser diabaikan.</p></div></div>
+      <div class="step"><div class="dot">5</div><div class="isi"><b>Nilai dihitung dari jawaban final</b><p>Tanpa jawaban basi/duplikat — nilai yang tampil = nilai yang tersimpan.</p></div></div>
+      <div class="step"><div class="dot">6</div><div class="isi"><b>Kelulusan &amp; sertifikat terbit</b><p>Hanya untuk ujian yang benar-benar selesai (bukan yang dibatalkan); hasil terkunci aman.</p></div></div>
+      <div class="step"><div class="dot">7</div><div class="isi"><b>Sertifikat tampil "Aktif" di mana-mana</b><p>Dashboard, lencana, dan notifikasi menampilkan status yang sama &amp; benar.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Catatan -->
+<section class="alt">
+  <div class="wrap">
+    <h2><span class="num">4</span> Catatan &amp; Tindak Lanjut</h2>
+    <p class="lead">Tidak ada masalah yang menghambat. Berikut beberapa catatan kecil yang tercatat saat audit.</p>
+
+    <div class="note green">
+      <h4>✓ Keamanan &amp; pengujian aman</h4>
+      <p>Semua ancaman keamanan yang diperiksa sudah ditutup, dan 415 tes otomatis berjalan hijau (0 gagal). Sistem tidak butuh perubahan struktur database.</p>
+    </div>
+
+    <div class="note">
+      <h4>⏳ 1 hal perlu dicek mata manusia (bukan penghalang)</h4>
+      <p>Tampilan sertifikat "Aktif/Permanen" di layar dashboard perlu dilihat sekilas langsung di browser untuk memastikan tampilannya pas. Kebenaran datanya sendiri sudah dipastikan otomatis lewat pengujian — jadi ini hanya konfirmasi visual, tidak menghambat.</p>
+    </div>
+
+    <div class="note">
+      <h4>🔧 1 perbaikan kecil opsional (kasus jarang)</h4>
+      <p>Pada situasi salah-setting (Pre-test berisi tapi Post-test dibiarkan kosong di hari sama), pekerja akan diarahkan keluar dengan pesan ramah — aman, bukan gagal palsu. Bisa dirapikan lebih lanjut bila diperlukan.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>Milestone v29.0 — Assessment E2E Worker-Success Fix</b><br>
+    Portal HC KPB · Audit 15 Juni 2026 · Status: LOLOS (11/11) · Tanpa migration database<br>
+    <span style="opacity:.7">Dokumen ringkasan untuk tim HC — bahasa awam. Detail teknis: <code>.planning/v29.0-MILESTONE-AUDIT.md</code></span>
+  </div>
+</footer>
+
+</body>
+</html>
