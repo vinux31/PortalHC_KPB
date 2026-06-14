@@ -79,6 +79,15 @@ namespace HcPortal.Services
                 .Where(r => r.AssessmentSessionId == session.Id)
                 .ToListAsync();
 
+            // SAVE-01 (D-01): final answer per soal (last-write-wins by SubmittedAt) — in-memory pada list
+            // yang sudah ToListAsync (aman, A1). Tanpa ini FirstOrDefault tanpa ORDER BY bisa ambil baris
+            // BASI saat ada response duplikat (race multi-tab) → Score salah.
+            // MC/single-answer only — MultipleAnswer dibaca penuh (multi-row), JANGAN masuk dedupe ini.
+            var finalByQuestion = allResponses
+                .Where(r => r.PackageOptionId.HasValue)
+                .GroupBy(r => r.PackageQuestionId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.SubmittedAt).First());
+
             int totalScore = 0;
             int maxScore = 0;
 
@@ -93,8 +102,8 @@ namespace HcPortal.Services
                 switch (q.QuestionType ?? "MultipleChoice")
                 {
                     case "MultipleChoice":
-                        var mcResponse = allResponses
-                            .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                        // SAVE-01 (D-01): baca jawaban FINAL per soal (dedupe by SubmittedAt) — bukan baris arbitrer.
+                        var mcResponse = finalByQuestion.TryGetValue(q.Id, out var fr) ? fr : null;
                         if (mcResponse != null)
                         {
                             var selectedOption = q.Options.FirstOrDefault(o => o.Id == mcResponse.PackageOptionId!.Value);
@@ -148,8 +157,8 @@ namespace HcPortal.Services
                     switch (q.QuestionType ?? "MultipleChoice")
                     {
                         case "MultipleChoice":
-                            var etMcResponse = allResponses
-                                .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                            // SAVE-01 (D-01): ET MC scoring juga baca jawaban FINAL per soal (dedupe).
+                            var etMcResponse = finalByQuestion.TryGetValue(q.Id, out var efr) ? efr : null;
                             if (etMcResponse != null)
                             {
                                 var sel = q.Options.FirstOrDefault(o => o.Id == etMcResponse.PackageOptionId!.Value);
