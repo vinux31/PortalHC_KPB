@@ -361,69 +361,36 @@ test.describe('Flow B: Token-Protected Exam', () => {
 // FLOW C: Force Close & Close Early
 // ============================================================
 test.describe('Flow C: Force Close & Close Early', () => {
-  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
-  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
+  // Phase 379 — migrasi wizard+package, 2 worker (rino+iwan3); fixme 364/999.7 dihapus.
   let title: string;
   let assessmentId: number;
+  let packageId: number;
 
   test('C1 - HC creates assessment with questions for 2 workers', async ({ page }) => {
     title = uniqueTitle('Pre Test ForceClose Exam');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    // Select Rino + Iwan
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
-    await page.locator('.user-check-item', { hasText: 'iwan3' }).locator('input').click({ force: true });
-    await expect(page.locator('#selectedCountBadge')).toContainText('2 selected');
-
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'OJT');
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    await page.fill('#DurationMinutes', '30');
-    await page.fill('#PassPercentage', '60');
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
+    await createAssessmentViaWizard(page, {
+      title, category: 'OJT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 60, allowAnswerReview: false,
+      participantEmails: ['rino.prasetyo@pertamina.com', 'iwan3@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
   });
 
-  test('C2 - HC adds questions via ManageQuestions', async ({ page }) => {
+  test('C2 - HC adds questions via package', async ({ page }) => {
     await login(page, 'hc');
-    await page.goto('/Admin/ManageAssessment');
-    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
-    await searchInput.fill(title);
-    await searchInput.press('Enter');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
     await page.waitForLoadState('networkidle');
-
-    await page.locator('button.dropdown-toggle').first().click();
-    await page.locator('a[href*="ManageQuestions"]').first().click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('h2')).toContainText('Manage Questions');
-
-    const url = page.url();
-    assessmentId = parseInt(url.match(/ManageQuestions\/(\d+)|id=(\d+)/)!.slice(1).find(Boolean)!);
-
-    // Add 2 questions
-    await page.fill('textarea[name="question_text"]', 'Q1 ForceClose test?');
-    await page.locator('input[name="options"]').nth(0).fill('Jawaban A');
-    await page.locator('input[name="options"]').nth(1).fill('Jawaban B');
-    await page.locator('input[name="options"]').nth(2).fill('Jawaban C');
-    await page.locator('input[name="options"]').nth(3).fill('Jawaban D');
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
-
-    await page.fill('textarea[name="question_text"]', 'Q2 ForceClose test?');
-    await page.locator('input[name="options"]').nth(0).fill('Jawaban A');
-    await page.locator('input[name="options"]').nth(1).fill('Jawaban B');
-    await page.locator('input[name="options"]').nth(2).fill('Jawaban C');
-    await page.locator('input[name="options"]').nth(3).fill('Jawaban D');
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
-
-    await expect(page.locator('text=Daftar Soal (2)')).toBeVisible();
+    packageId = await createDefaultPackage(page);
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Q1 ForceClose test?',
+      options: ['Jawaban A', 'Jawaban B', 'Jawaban C', 'Jawaban D'], correctIndex: 0, score: 100,
+    });
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Q2 ForceClose test?',
+      options: ['Jawaban A', 'Jawaban B', 'Jawaban C', 'Jawaban D'], correctIndex: 0, score: 100,
+    });
   });
 
   test('C3 - Worker1 starts exam (becomes InProgress)', async ({ page }) => {
@@ -441,15 +408,15 @@ test.describe('Flow C: Force Close & Close Early', () => {
     await login(page, 'hc');
     await goToMonitoringDetail(page, title);
 
-    // Find ForceClose button for the InProgress session
-    const forceCloseBtn = page.locator('form[action*="ForceCloseAssessment"] button').first();
-    if (await forceCloseBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      page.once('dialog', d => d.accept());
-      await forceCloseBtn.click();
-      await page.waitForLoadState('networkidle');
-    }
-    // Session should now show Completed with score 0
-    await expect(page.locator('body')).toContainText(/Completed|0%/);
+    // Phase 379 — force-close sesi InProgress = "Akhiri Ujian" (AkhiriUjian) di dropdown ⋮ sesi tsb.
+    // Hanya sesi InProgress yang punya form AkhiriUjian → buka dropdown yang memuatnya.
+    const akhiriDropdown = page.locator('div.dropdown', { has: page.locator('form[action*="AkhiriUjian"]') }).first();
+    await akhiriDropdown.locator('button[aria-label^="Aksi lain"]').click();
+    page.once('dialog', d => d.accept());
+    await page.locator('form[action*="AkhiriUjian"] button[type="submit"]').first().click();
+    await page.waitForLoadState('networkidle');
+    // Session should now show Completed (auto-graded score 0 — worker tak menjawab)
+    await expect(page.locator('body')).toContainText(/Completed|Selesai|0%/);
   });
 
   test('C5 - HC uses Close Early for remaining sessions', async ({ page }) => {
