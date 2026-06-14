@@ -32,6 +32,11 @@ export interface CreateAssessmentOpts {
   participantEmails: string[]; // ['rino.prasetyo@pertamina.com']
   ewcdDate?: string;
   ewcdTime?: string;
+  // Phase 379 — additive (D-04: JANGAN ubah field existing). Token (Flow B) + Proton T3 (Flow E).
+  isTokenRequired?: boolean;   // default false; STEP 3 check #IsTokenRequired
+  accessToken?: string;        // 6-char alfanumerik; jika kosong + isTokenRequired → klik Generate
+  protonTrackId?: number;      // value option #protonTrackSelect (alternatif protonTrackTahun)
+  protonTrackTahun?: 'Tahun 1' | 'Tahun 2' | 'Tahun 3'; // pilih option by data-tahun (lebih robust)
 }
 
 /**
@@ -55,6 +60,20 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
   await page.locator(wizardSelectors.step1).waitFor({ state: 'visible' });
   await page.selectOption(wizardSelectors.category, opts.category);
   await page.fill(wizardSelectors.title, opts.title);
+
+  // Phase 379 (Flow E) — Proton T3: pilih track saat Category='Assessment Proton'.
+  // Section #protonFieldsSection di-show oleh JS saat category Proton dipilih (CreateAssessment.cshtml:947,1277). Additive.
+  if (opts.protonTrackTahun || opts.protonTrackId) {
+    await page.locator(wizardSelectors.protonFieldsSection).waitFor({ state: 'visible', timeout: 5_000 });
+    if (opts.protonTrackTahun) {
+      const opt = page.locator(`${wizardSelectors.protonTrackSelect} option[data-tahun="${opts.protonTrackTahun}"]`).first();
+      const val = await opt.getAttribute('value');
+      await page.selectOption(wizardSelectors.protonTrackSelect, val!);
+    } else if (opts.protonTrackId) {
+      await page.selectOption(wizardSelectors.protonTrackSelect, String(opts.protonTrackId));
+    }
+  }
+
   await page.locator(wizardSelectors.btnNext1).click();
 
   // STEP 2 — Peserta selection
@@ -93,6 +112,19 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
   if (opts.generateCertificate) {
     await page.locator(wizardSelectors.generateCertificate).check();
   }
+
+  // Phase 379 (Flow B) — Token wajib + access token. Markup current #tokenSection (CreateAssessment.cshtml:506-514). Additive.
+  if (opts.isTokenRequired) {
+    await page.locator(wizardSelectors.isTokenRequired).check();
+    await page.locator(wizardSelectors.tokenSection).waitFor({ state: 'visible', timeout: 5_000 });
+    if (opts.accessToken) {
+      await page.fill(wizardSelectors.accessToken, opts.accessToken);
+    } else {
+      // generateToken() global onclick (CreateAssessment.cshtml:513,851) — auto-fill #AccessToken
+      await page.locator('button:has-text("Generate"), button[onclick*="generateToken"]').first().click();
+    }
+  }
+
   await page.locator(wizardSelectors.btnNext3).click();
 
   // STEP 4 — Summary + Submit
@@ -135,6 +167,33 @@ export async function createDefaultPackage(page: Page, packageName = 'Paket A'):
     throw new Error(`createDefaultPackage: unable to extract packageId from href="${href}"`);
   }
   return parseInt(match[1], 10);
+}
+
+/**
+ * Phase 379 (Flow D3) — import soal ke package via paste-from-Excel tab.
+ *
+ * Source: Views/Admin/ImportPackageQuestions.cshtml (verified 2026-06-14).
+ *  - Route: GET/POST `/Admin/ImportPackageQuestions?packageId={id}`.
+ *  - Paste textarea ada di TAB kedua (#paste-pane) — default tab = "Upload Excel File" (#file-pane).
+ *    WAJIB klik #paste-tab dulu supaya textarea[name="pasteText"] interactable.
+ *  - Format kolom CURRENT = 9 kolom TSV: Pertanyaan | Opsi A-D | Jawaban Benar | Elemen Teknis | QuestionType | Rubrik
+ *    (DRIFT dari 6-kolom lama; caller bertanggung jawab format tsvRows). MC = QuestionType kosong/MultipleChoice.
+ *  - Submit "Import from Paste" → redirect balik ke ManagePackages + TempData.Success.
+ *
+ * @param page HC user page (sudah login)
+ * @param packageId target package ID
+ * @param tsvRows baris TSV (\n-separated; \t antar kolom) sesuai format 9-kolom di atas
+ */
+export async function importQuestionsViaPaste(page: Page, packageId: number, tsvRows: string): Promise<void> {
+  await page.goto(`/Admin/ImportPackageQuestions?packageId=${packageId}`);
+  await page.waitForLoadState('networkidle');
+
+  // Aktifkan tab "Paste from Excel" (default aktif = Upload Excel File)
+  await page.locator('#paste-tab').click();
+  const pane = page.locator('#paste-pane');
+  await pane.locator('textarea[name="pasteText"]').fill(tsvRows);
+  await pane.locator('button[type="submit"]').click();
+  await page.waitForLoadState('networkidle');
 }
 
 /**

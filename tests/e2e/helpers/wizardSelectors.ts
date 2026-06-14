@@ -68,6 +68,12 @@ export const wizardSelectors = {
   accessToken: '#AccessToken',
   validUntil: '#ValidUntil',
 
+  // Phase 379 — additive (markup current; JANGAN refactor existing key). Verified 2026-06-14.
+  // Source: CreateAssessment.cshtml token #tokenSection:509; proton #protonFieldsSection:210, #protonTrackSelect:219 (opsi data-tahun:225)
+  tokenSection: '#tokenSection',                 // Step 3 — token panel (gantikan drift lama #tokenInputContainer)
+  protonFieldsSection: '#protonFieldsSection',   // Step 1 — show saat Category='Assessment Proton'
+  protonTrackSelect: '#protonTrackSelect',       // Step 1 — name=ProtonTrackId; opsi punya data-tahun
+
   // Submit modal
   successModal: '#successModal',
   modalManageBtn: '#modal-manage-btn',
