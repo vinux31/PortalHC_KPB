@@ -1,5 +1,8 @@
 import { test, expect, Page } from '@playwright/test';
 import { login } from '../helpers/auth';
+import { tomorrow } from '../helpers/utils';
+import { createAssessmentViaWizard, createDefaultPackage, addQuestionViaForm } from './helpers/examTypes';
+import * as db from '../helpers/dbSnapshot';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -275,5 +278,96 @@ test.describe('Impersonation — Admin Features', () => {
     await expect(page.locator('body')).toContainText('Pilih user spesifik', { timeout: 10_000 });
 
     await stopImpersonation(page);
+  });
+});
+
+// ==========================================================
+// Phase 381 WSE-05 (OPS-01/TOK-03) — StartExam impersonate read-only.
+// Admin impersonate worker X buka StartExam X (Open/StartedAt-null/non-token) → ZERO mutasi DB.
+// Stop impersonate + worker asli StartExam → BARU saat itu StartedAt ter-set + assignment (SC#3).
+// SignalR workerStarted absence diverifikasi via 3 DB-assert (broadcast di-gate sama, RESEARCH A4).
+// ==========================================================
+test.describe('Phase 381 WSE-05 — StartExam impersonate read-only', () => {
+  test('WSE-05: impersonate StartExam no-mutation, then deferred-start on real worker', async ({ page }) => {
+    // Setup: HC create Standard assessment milik worker (coachee) + paket berisi 1 soal.
+    await login(page, 'hc');
+    const title = `Pre Test OJT IMP381 ${Date.now()}`; // 336-NAMING-CONVENTION: '{Stage} Test {Track} {Lokasi}'
+    await createAssessmentViaWizard(page, {
+      title,
+      category: 'OJT',
+      scheduleDate: tomorrow(), // future → lolos validasi "not in past"; Status nanti di-force Open via SQL
+      scheduleTime: '00:01',
+      durationMinutes: 30,
+      passPercentage: 60,
+      allowAnswerReview: true,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    const sessionId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    expect(sessionId).toBeGreaterThan(0);
+
+    await page.goto(`/Admin/ManagePackages?assessmentId=${sessionId}`);
+    await page.waitForLoadState('networkidle');
+    const pkg = await createDefaultPackage(page, 'Paket IMP 381');
+    await addQuestionViaForm(page, pkg, {
+      type: 'MultipleChoice',
+      text: 'IMP-Q1 soal impersonate',
+      options: ['A', 'B', 'C', 'D'],
+      correctIndex: 0,
+      score: 100,
+    });
+
+    // Precondition: Status='Open', StartedAt=null (kombinasi yang tak bisa dihasilkan worker-GET).
+    const updated = await db.queryScalar(
+      `UPDATE AssessmentSessions SET Status='Open' WHERE Id=${sessionId}; SELECT @@ROWCOUNT;`
+    );
+    expect(updated).toBe(1);
+
+    // Admin impersonate worker X → buka StartExam X → ASSERT no mutation.
+    await page.context().clearCookies(); // switch HC → admin (Logout = POST-only; clear cookie)
+    await login(page, 'admin');
+    const target = await resolveUser(page, 'rino', 'Rino');
+    await startUser(page, 'rino', target);
+    const impResp = await page.goto(`/CMP/StartExam/${sessionId}`);
+    await page.waitForLoadState('networkidle');
+
+    // D-06 preview render (auto-cover T3 Bagian A): admin lihat soal read-only TANPA 500/NRE.
+    // In-memory assignment (vm.AssignmentId=0) harus feed view tanpa RuntimeBinderException (lesson 354/355).
+    expect(impResp?.status() ?? 0).toBeLessThan(400);
+    await expect(page.locator('[id^="qcard_"]').first()).toBeVisible({ timeout: 10_000 });
+
+    expect(
+      await db.queryScalar(
+        `SELECT CASE WHEN StartedAt IS NULL THEN 1 ELSE 0 END FROM AssessmentSessions WHERE Id=${sessionId}`
+      )
+    ).toBe(1); // StartedAt tetap null
+    expect(
+      await db.queryScalar(`SELECT COUNT(*) FROM AssessmentSessions WHERE Id=${sessionId} AND Status='Open'`)
+    ).toBe(1); // Status tetap Open
+    expect(
+      await db.queryScalar(`SELECT COUNT(*) FROM UserPackageAssignments WHERE AssessmentSessionId=${sessionId}`)
+    ).toBe(0); // tak ada assignment dibuat (broadcast workerStarted di-gate sama → tak fire)
+
+    await stopImpersonation(page);
+
+    // Worker asli login → StartExam → BARU saat itu StartedAt ter-set + 1 assignment (SC#3 deferred-start).
+    await page.context().clearCookies(); // kembali ke admin → clear cookie sebelum login worker asli
+    await login(page, 'coachee');
+    await page.goto(`/CMP/StartExam/${sessionId}`);
+    await page.waitForLoadState('networkidle');
+    const resumeModal = page.locator('#resumeConfirmModal');
+    await resumeModal.waitFor({ state: 'visible', timeout: 5_000 }).catch(() => {});
+    if (await resumeModal.isVisible().catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click().catch(() => {});
+    }
+
+    expect(
+      await db.queryScalar(
+        `SELECT CASE WHEN StartedAt IS NOT NULL THEN 1 ELSE 0 END FROM AssessmentSessions WHERE Id=${sessionId}`
+      )
+    ).toBe(1); // StartedAt ter-set setelah worker asli
+    expect(
+      await db.queryScalar(`SELECT COUNT(*) FROM UserPackageAssignments WHERE AssessmentSessionId=${sessionId}`)
+    ).toBe(1); // 1 assignment ter-persist
   });
 });

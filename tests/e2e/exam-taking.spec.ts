@@ -1,12 +1,12 @@
 import { test, expect, Page } from '@playwright/test';
 import { login } from '../helpers/auth';
-import { uniqueTitle, today, autoConfirm } from '../helpers/utils';
+import { uniqueTitle, today, tomorrow, autoConfirm } from '../helpers/utils';
 import { clickResumeForFixture, assertTier1Reject, assertTier2Reject, assertSubmitSuccess } from './helpers/exam313';
 // Phase 379 — helper wizard kanonik (ganti flat-form create/question usang) + DB assert.
 import {
   createAssessmentViaWizard, createDefaultPackage, addQuestionViaForm,
   importQuestionsViaPaste, submitExamTwoStep, checkMAOptionsForQuestion,
-  fillEssayAnswer, gradeSingleEssaySession, type QuestionInput,
+  fillEssayAnswer, gradeSingleEssaySession, createPrePostAssessmentViaWizard, type QuestionInput,
 } from './helpers/examTypes';
 import * as db from '../helpers/dbSnapshot';
 
@@ -1838,6 +1838,88 @@ test.describe('Flow M: Token Lowercase Heal (WSE-02)', () => {
         await page.waitForLoadState('networkidle');
       }
     }
+  });
+});
+
+// ============================================================
+// Phase 381 WSE-04 — PrePost same-day pool isolation (entry assertion)
+// Pre & Post same-day TIDAK saling memungut paket. StartExam sesi Pre → HANYA soal paket Pre.
+// Full pass/grade = acceptance pasca-Phase 382 (DEFERRED — bukan gate phase ini).
+// ============================================================
+test.describe('Phase 381 WSE-04 — PrePost same-day pool isolation', () => {
+  test('WSE-04: StartExam Pre same-day returns ONLY Pre package questions (Post not mixed)', async ({ page }) => {
+    // 1. HC create PrePost same-day group (1 peserta = coachee), Pre & Post schedule SAMA hari.
+    await login(page, 'hc');
+    const title = uniqueTitle('Phase381 PrePost');
+    const ewcd = `${tomorrow()}T23:59`;
+    const { preIds, postIds } = await createPrePostAssessmentViaWizard(page, {
+      title,
+      category: 'OJT',
+      preSchedule: `${today()}T00:01`,
+      preDurationMinutes: 30,
+      preExamWindowCloseDate: ewcd,
+      postSchedule: `${today()}T00:02`,
+      postDurationMinutes: 30,
+      postExamWindowCloseDate: ewcd,
+      passPercentage: 60,
+      allowAnswerReview: true,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+      samePackage: false,
+    });
+    const preId = preIds[0];
+    const postId = postIds[0];
+    expect(preId).toBeGreaterThan(0);
+    expect(postId).toBeGreaterThan(0);
+
+    // 2. Paket Pre: 3 soal distinct PRE-Q1..3.
+    await page.goto(`/Admin/ManagePackages?assessmentId=${preId}`);
+    await page.waitForLoadState('networkidle');
+    const prePkg = await createDefaultPackage(page, 'Paket Pre 381');
+    for (let i = 1; i <= 3; i++) {
+      await addQuestionViaForm(page, prePkg, {
+        type: 'MultipleChoice',
+        text: `PRE-Q${i} pertanyaan pre nomor ${i}`,
+        options: ['A', 'B', 'C', 'D'],
+        correctIndex: 0,
+        score: 100,
+      });
+    }
+
+    // 3. Paket Post: 2 soal distinct POST-Q1..2.
+    await page.goto(`/Admin/ManagePackages?assessmentId=${postId}`);
+    await page.waitForLoadState('networkidle');
+    const postPkg = await createDefaultPackage(page, 'Paket Post 381');
+    for (let i = 1; i <= 2; i++) {
+      await addQuestionViaForm(page, postPkg, {
+        type: 'MultipleChoice',
+        text: `POST-Q${i} pertanyaan post nomor ${i}`,
+        options: ['A', 'B', 'C', 'D'],
+        correctIndex: 0,
+        score: 100,
+      });
+    }
+
+    // 4. Worker StartExam sesi Pre → pool HARUS = paket Pre saja (3 soal), BUKAN gabungan Pre+Post (5).
+    await page.context().clearCookies(); // switch HC → worker (Logout = POST-only; clear cookie utk re-auth)
+    await login(page, 'coachee');
+    await page.goto(`/CMP/StartExam/${preId}`);
+    const resumeModal = page.locator('#resumeConfirmModal');
+    await resumeModal.waitFor({ state: 'visible', timeout: 5_000 }).catch(() => {});
+    if (await resumeModal.isVisible().catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click();
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
+    }
+
+    const qcards = page.locator('[id^="qcard_"]');
+    await expect(qcards.first()).toBeVisible({ timeout: 10_000 });
+    expect(await qcards.count()).toBe(3); // WSE-04: Pre-only (bukan 5 = Pre+Post)
+
+    const allText = await qcards.allInnerTexts();
+    const joined = allText.join(' \n ');
+    expect(joined).toContain('PRE-Q');
+    expect(joined).not.toContain('POST-Q'); // Post TIDAK tercampur
+
+    // DEFERRED pasca-382: full pass/grade (Score/Lulus) — phase 381 = entry-pool assertion only.
   });
 });
 
