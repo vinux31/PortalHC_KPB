@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v28.0
 milestone_name: Assessment & Records Bug Fixes
-status: ready_to_plan
-last_updated: "2026-06-14T03:24:08.748Z"
-last_activity: 2026-06-14 — Joint safe-close v25.0+v26.0+v27.0 (semua audited PASSED + hygiene flip). 6 arsip dibuat, ROADMAP collapse 3 one-liner, REQUIREMENTS split+hapus, 3 tag git lokal. Phase 375 (v27 terakhir) closed+secured+validated sesi ini.
+status: Executing Phase 376
+last_updated: "2026-06-14T03:59:42.343Z"
+last_activity: 2026-06-14
 progress:
   total_phases: 16
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,10 +20,12 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v28.0 Assessment & Records Bug Fixes — roadmap ready, next plan Phase 376 (started 2026-06-14)
+**Current focus:** Phase 376 — Fix Essay-Only Score Aggregation
 
 ## Current Position
 
+Phase: 376 (Fix Essay-Only Score Aggregation) — EXECUTING
+Plan: 1 of 3
 **Milestone v28.0** — roadmap created (4 phase 376-379, 6 REQ mapped). Ready to plan. Phase: 376 (not started). 4 bug promote backlog: 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E). 0 migration. No research (bug-fix).
 
 **Next:** `/gsd-plan-phase 376` (atau `/gsd-discuss-phase 376` — 376 & 377 butuh diagnose/audit dulu). Phase 376/377/378 independent; 379 depends 376.
@@ -110,6 +113,6 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ## Session Continuity
 
-Last activity: 2026-06-14 — Joint safe-close v25.0+v26.0+v27.0 (semua audited PASSED + hygiene flip). 6 arsip dibuat, ROADMAP collapse 3 one-liner, REQUIREMENTS split+hapus, 3 tag git lokal. Phase 375 (v27 terakhir) closed+secured+validated sesi ini.
+Last activity: 2026-06-14
 
 Next action: **Push IT** (bundle v24-v27, 3 migration) ATAU `/gsd-new-milestone` untuk siklus berikut. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
