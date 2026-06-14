@@ -13,6 +13,11 @@ namespace HcPortal.Services
     }
 
     /// <summary>
+    /// Keputusan identitas efektif saat impersonasi (Phase 377 — D-03/D-04/SC2/SC4).
+    /// </summary>
+    public enum EffectiveUserDecision { UseRealUser, RoleModeEmpty, TargetUser }
+
+    /// <summary>
     /// Manages impersonation session state. Admin can impersonate a role or a specific user.
     /// </summary>
     public class ImpersonationService
@@ -132,6 +137,45 @@ namespace HcPortal.Services
             // mode == "user": resolve from context items
             var ctx = _httpContextAccessor.HttpContext;
             return ctx?.Items["ImpersonateTargetSelectedView"]?.ToString();
+        }
+
+        /// <summary>
+        /// Pure decision (Phase 377 D-05): terjemahkan state impersonasi → keputusan identitas efektif.
+        /// Fail-closed: mode-role / target-null → RoleModeEmpty (BUKAN admin asli). Diuji ImpersonationIdentityTests.
+        /// </summary>
+        public static EffectiveUserDecision ResolveEffectiveUserDecision(
+            bool isImpersonating, bool isExpired, string? mode, string? targetUserId)
+        {
+            if (!isImpersonating || isExpired) return EffectiveUserDecision.UseRealUser; // SC4 + V3 expiry
+            if (mode == "role") return EffectiveUserDecision.RoleModeEmpty;              // D-03
+            if (mode == "user")
+                return string.IsNullOrEmpty(targetUserId)
+                    ? EffectiveUserDecision.RoleModeEmpty                                 // D-04 trigger, fail-closed
+                    : EffectiveUserDecision.TargetUser;                                  // SC2
+            return EffectiveUserDecision.UseRealUser;                                     // mode tak dikenal → aman
+        }
+
+        /// <summary>
+        /// Effective target user-id: X.Id saat TargetUser, null saat UseRealUser/RoleModeEmpty (D-05 single-source).
+        /// </summary>
+        public string? GetEffectiveTargetUserId()
+        {
+            var decision = ResolveEffectiveUserDecision(IsImpersonating(), IsExpired(), GetMode(), GetTargetUserId());
+            return decision == EffectiveUserDecision.TargetUser ? GetTargetUserId() : null;
+        }
+
+        /// <summary>
+        /// Resolve ApplicationUser efektif. UserManager = parameter (service tak inject UserManager).
+        /// Caller branch by Decision: UseRealUser → resolve real principal (SC4); RoleModeEmpty → kosong+hint (D-03);
+        /// TargetUser → user X (sudah di-resolve). target==null (D-04) di-handle middleware sebelum controller — fail-closed, jangan admin.
+        /// </summary>
+        public async System.Threading.Tasks.Task<(HcPortal.Models.ApplicationUser? User, EffectiveUserDecision Decision)> GetEffectiveUserAsync(
+            Microsoft.AspNetCore.Identity.UserManager<HcPortal.Models.ApplicationUser> userManager)
+        {
+            var decision = ResolveEffectiveUserDecision(IsImpersonating(), IsExpired(), GetMode(), GetTargetUserId());
+            if (decision != EffectiveUserDecision.TargetUser) return (null, decision);
+            var target = await userManager.FindByIdAsync(GetTargetUserId()!);
+            return (target, EffectiveUserDecision.TargetUser);
         }
     }
 }
