@@ -1,6 +1,6 @@
 {
-  "milestone_version": "v21.0",
-  "milestone_name": "ManageOrganization Overhaul + Level Label CRUD",
+  "milestone_version": null,
+  "milestone_name": null,
   "model_profile": "quality",
   "commit_docs": true,
   "search_gitignored": false,
