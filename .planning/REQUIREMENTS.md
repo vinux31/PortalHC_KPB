@@ -12,9 +12,9 @@
 
 ### Phase 380 (A) — Admin/Engine Integrity (worker bisa MULAI dgn soal+token benar)
 
-- [ ] **WSE-01**: Worker tetap menerima set soal non-kosong saat satu paket sibling kosong + shuffle ON (default). *(SHF-01, BLOCKER, v27-baru. `Helpers/ShuffleEngine.cs` ON-path filter paket kosong sebelum hitung K — mirror OFF-path.)*
-- [ ] **WSE-02**: Worker dgn ujian Pre/Post token-required bisa masuk pakai token setelah admin meng-edit token (tersimpan uppercase). *(TOK-01, BLOCKER. `AssessmentAdminController.EditAssessment` Pre/Post branch `.ToUpper()` di 3 titik tulis token.)*
-- [ ] **WSE-03**: Hanya Admin/HC yang boleh memberi extra time ujian, dan total extra time dibatasi. *(RST-01 HIGH-security + RST-04 cap. `AddExtraTime` tambah `[Authorize(Roles="Admin,HC")]` + ceiling.)*
+- [x] **WSE-01**: Worker tetap menerima set soal non-kosong saat satu paket sibling kosong + shuffle ON (default). *(SHF-01, BLOCKER, v27-baru. `Helpers/ShuffleEngine.cs` ON-path filter paket kosong sebelum hitung K — mirror OFF-path.)*
+- [x] **WSE-02**: Worker dgn ujian Pre/Post token-required bisa masuk pakai token setelah admin meng-edit token (tersimpan uppercase). *(TOK-01, BLOCKER. `AssessmentAdminController.EditAssessment` Pre/Post branch `.ToUpper()` di 3 titik tulis token.)*
+- [x] **WSE-03**: Hanya Admin/HC yang boleh memberi extra time ujian, dan total extra time dibatasi. *(RST-01 HIGH-security + RST-04 cap. `AddExtraTime` tambah `[Authorize(Roles="Admin,HC")]` + ceiling.)*
 
 ### Phase 381 (B) — Worker Entry (StartExam integrity) — depends A
 
@@ -51,9 +51,9 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| WSE-01 | 380 | pending |
-| WSE-02 | 380 | pending |
-| WSE-03 | 380 | pending |
+| WSE-01 | 380 | Complete |
+| WSE-02 | 380 | Complete |
+| WSE-03 | 380 | Complete |
 | WSE-04 | 381 | Complete |
 | WSE-05 | 381 | Complete |
 | WSE-06 | 382 | Complete |
