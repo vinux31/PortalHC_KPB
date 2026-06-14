@@ -20,7 +20,7 @@
 
 ### CMPRT — CMP Routing Hygiene (dari 999.10)
 
-- [ ] **CMPRT-01**: `GET /CMP/CertificationManagement` (direct-URL) tidak lagi mengembalikan 500 "view not found" — redirect ke route CDP canonical ATAU hapus action orphan `CMPController.CertificationManagement` + helper rows dead (audit dulu apakah ada link/test yang menunjuk route CMP).
+- [x] **CMPRT-01**: `GET /CMP/CertificationManagement` (direct-URL) tidak lagi mengembalikan 500 "view not found" — redirect ke route CDP canonical ATAU hapus action orphan `CMPController.CertificationManagement` + helper rows dead (audit dulu apakah ada link/test yang menunjuk route CMP).
 
 ### E2E — Exam-Taking Test Coverage (dari 999.7)
 
@@ -50,7 +50,7 @@
 | GRADE-02 | 376 | Complete |
 | IMP-01 | 377 | pending |
 | IMP-02 | 377 | pending |
-| CMPRT-01 | 378 | pending |
+| CMPRT-01 | 378 | Complete |
 | E2E-01 | 379 | pending |
 
 **Coverage:** 6/6 REQ mapped → 4 phase (376-379). 0 orphan.

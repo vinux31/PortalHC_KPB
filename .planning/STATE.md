@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v28.0
 milestone_name: Assessment & Records Bug Fixes
-status: Ready to execute
-last_updated: "2026-06-14T04:50:30.416Z"
+status: Phase complete — ready for verification
+last_updated: "2026-06-14T05:15:59.232Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 16
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 3
-  percent: 30
+  completed_plans: 4
+  percent: 40
 ---
 
 # Project State: Portal HC KPB
@@ -20,12 +20,12 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 376 — Fix Essay-Only Score Aggregation
+**Current focus:** Phase 378 — Fix CMP CertificationManagement Route 500
 
 ## Current Position
 
-Phase: 376 (Fix Essay-Only Score Aggregation) — EXECUTING
-Plan: 1 of 3
+Phase: 378 (Fix CMP CertificationManagement Route 500) — EXECUTING
+Plan: 1 of 1
 **Milestone v28.0** — roadmap created (4 phase 376-379, 6 REQ mapped). Ready to plan. Phase: 376 (not started). 4 bug promote backlog: 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E). 0 migration. No research (bug-fix).
 
 **Next:** `/gsd-plan-phase 376` (atau `/gsd-discuss-phase 376` — 376 & 377 butuh diagnose/audit dulu). Phase 376/377/378 independent; 379 depends 376.
