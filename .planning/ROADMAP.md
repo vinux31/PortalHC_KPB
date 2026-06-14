@@ -44,7 +44,7 @@
   - SC2: Impersonate user X → `/CMP/Records` tampil data X (assessment + training), bukan admin.
   - SC3: Assessment + Home progress juga resolve X saat impersonasi aktif.
   - SC4: Mode normal (non-impersonate) tak berubah — no regression.
-- [ ] **Phase 378: Fix CMP CertificationManagement Route 500** — `GET /CMP/CertificationManagement` (direct-URL) → 500 view-not-found (orphan; `Views/CMP/CertificationManagement.cshtml` tak ada, entry asli route ke CDP). Audit link/test ke route CMP, lalu redirect ke CDP canonical ATAU hapus action orphan `CMPController.CertificationManagement` + helper rows dead. REQ: CMPRT-01. Migration=false. Depends: — (promote backlog 999.10)
+- [x] **Phase 378: Fix CMP CertificationManagement Route 500** — `GET /CMP/CertificationManagement` (direct-URL) → 500 view-not-found (orphan; `Views/CMP/CertificationManagement.cshtml` tak ada, entry asli route ke CDP). Audit link/test ke route CMP, lalu redirect ke CDP canonical ATAU hapus action orphan `CMPController.CertificationManagement` + helper rows dead. REQ: CMPRT-01. Migration=false. Depends: — (promote backlog 999.10) (completed 2026-06-14)
   - SC1: Audit konfirmasi tak ada link/test produktif yang butuh view CMP (entry asli route ke CDP).
   - SC2: `GET /CMP/CertificationManagement` tak lagi 500 (redirect CDP / 404 bersih bila action dihapus).
   - SC3: Path CDP CertificationManagement tetap render OK — no regression.
@@ -80,7 +80,7 @@
 **Goal:** `GET /CMP/CertificationManagement` tak 500; redirect CDP canonical / hapus action orphan + dead helper (audit dulu link/test ke route CMP).
 **Depends on:** — (promote backlog 999.10)
 **UI hint:** no (routing/controller fix)
-**Plans:** 1 plan (1 wave)
+**Plans:** 1/1 plans complete
 - [x] 378-01-PLAN.md — Thin-redirect CMP→CDP (D-01/D-02) + hapus cluster dead cert-mgmt + 2 orphan builder (D-03/D-04, re-grep defensif) + tighten e2e Y0 assert (D-06) + cleanup partial dead (D-05)
 
 ### Phase 379: Migrate exam-taking e2e to wizard
