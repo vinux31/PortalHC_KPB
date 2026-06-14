@@ -1051,7 +1051,7 @@ test.describe('Flow H: Real-Time Monitoring', () => {
     await expect(page.locator('a:has-text("View Results")').first()).toBeVisible();
 
     // Phase 379 (D-03) — "Submit Assessment" hidden saat semua Completed (polling auto-refresh).
-    // GANTI waitForTimeout(12_000) → auto-retry assert (resolve segera saat poll update DOM).
+    // GANTI sleep-buta 12 detik → auto-retry assert (resolve segera saat poll update DOM).
     const closeBtn = page.locator('#closeEarlyBtn');
     if (await closeBtn.count() > 0) {
       await expect(closeBtn).toBeHidden({ timeout: 15_000 });
