@@ -848,7 +848,7 @@ namespace HcPortal.Controllers
         // Both sides Trim()+ToUpper() so a legacy LOWERCASE stored token (admin edited lowercase) still
         // matches the (client-uppercased) input — auto-heals at read-time, zero DB touch. Pure → unit-testable.
         public static bool AccessTokenMatches(string? stored, string? input)
-            => (stored ?? "").Trim().ToUpper() == (input ?? "").Trim().ToUpper();
+            => (stored ?? "").Trim().ToUpperInvariant() == (input ?? "").Trim().ToUpperInvariant();
 
         // API: Verify Token for Assessment
         [HttpPost]
