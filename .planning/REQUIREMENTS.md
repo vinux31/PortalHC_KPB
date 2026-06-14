@@ -25,9 +25,9 @@
 
 - [x] **WSE-06**: Nilai worker single-answer dihitung dari jawaban FINAL tersimpan (tanpa baris duplikat/stale). *(SAVE-01. Filtered-unique-index PackageUserResponse single-answer [MIGRATION] atau dedupe last-write-wins; grading ORDER BY.)*
 - [x] **WSE-07**: Percobaan Abandoned/Cancelled tak bisa di-resurrect jadi hasil Completed-lulus + sertifikat. *(STAT-01. Guard grading + SubmitExam exclude Abandoned/Cancelled.)*
-- [ ] **WSE-08**: Hasil Completed/graded tak ketimpa/hilang oleh AbandonExam telat. *(STAT-02. ExecuteUpdate ber-guard `Where(Status==InProgress||Open)`.)*
-- [ ] **WSE-09**: Batas waktu ditegakkan untuk ujian Normal ("Standard"); submit telat ditolak. *(TMR-01 + TMR-02 client-flag + TMR-03 auto-submit-token. `EnsureCanSubmitExamAsync` cakup Standard.)*
-- [ ] **WSE-10**: Ujian token-required tak bisa diselesaikan dgn mem-bypass gate token (SaveAnswer/SubmitExam). *(TOK-02. Gate `StartedAt != null` di SaveAnswer/SubmitExam.)*
+- [x] **WSE-08**: Hasil Completed/graded tak ketimpa/hilang oleh AbandonExam telat. *(STAT-02. ExecuteUpdate ber-guard `Where(Status==InProgress||Open)`.)*
+- [x] **WSE-09**: Batas waktu ditegakkan untuk ujian Normal ("Standard"); submit telat ditolak. *(TMR-01 + TMR-02 client-flag + TMR-03 auto-submit-token. `EnsureCanSubmitExamAsync` cakup Standard.)*
+- [x] **WSE-10**: Ujian token-required tak bisa diselesaikan dgn mem-bypass gate token (SaveAnswer/SubmitExam). *(TOK-02. Gate `StartedAt != null` di SaveAnswer/SubmitExam.)*
 - [ ] **WSE-11**: Sertifikat worker lulus tanpa tanggal kedaluwarsa tampil konsisten "aktif" di semua surface (dashboard/badge/notif). *(CERT-01. Satukan definisi `ValidUntil==null` di `DeriveCertificateStatus` + HomeController + Renewal/CDP.)*
 
 ---
@@ -58,9 +58,9 @@
 | WSE-05 | 381 | Complete |
 | WSE-06 | 382 | Complete |
 | WSE-07 | 382 | Complete |
-| WSE-08 | 382 | pending |
-| WSE-09 | 382 | pending |
-| WSE-10 | 382 | pending |
+| WSE-08 | 382 | Complete |
+| WSE-09 | 382 | Complete |
+| WSE-10 | 382 | Complete |
 | WSE-11 | 382 | pending |
 
 **Coverage:** 11/11 mapped. (Filled/verified by roadmap + execution.)

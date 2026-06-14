@@ -1326,7 +1326,7 @@ Plans:
   5. Worker LULUS normal/PostTest single-answer dengan generateCertificate=true tapi ValidUntil dibiarkan kosong menampilkan status kredensial KONSISTEN di semua surface — Results LULUS+NomorSertifikat+PDF, dashboard CMP/CDP/Renewal "Aktif/Permanen" (BUKAN Expired), badge Home & notifikasi tidak undercount/kontradiktif. *(E2E scenario 12 — CERT-01)*
 **Plans**: 3 plans
   - [x] 382-01-PLAN.md — WSE-06 SAVE-01 dedupe-read + WSE-07 STAT-01 guard (GradingService) + const Abandoned (Wave 1)
-  - [ ] 382-02-PLAN.md — WSE-06/07/08/09/10 CMPController coherent single-stream (SubmitExam SAVE-01+STAT-01+TOK-02+TMR-02, AbandonExam STAT-02, EnsureCanSubmit TMR-01/03, SaveAnswer TOK-02) (Wave 2, depends 382-01)
+  - [x] 382-02-PLAN.md — WSE-06/07/08/09/10 CMPController coherent single-stream (SubmitExam SAVE-01+STAT-01+TOK-02+TMR-02, AbandonExam STAT-02, EnsureCanSubmit TMR-01/03, SaveAnswer TOK-02) (Wave 2, depends 382-01)
   - [ ] 382-03-PLAN.md — WSE-11 CERT-01 single-source null→Aktif + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync (Wave 3, depends 382-02)
 **UI hint**: yes
 
@@ -1336,7 +1336,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 380. Admin/Engine Integrity | 0/? | Not started | - |
 | 381. Worker Entry (StartExam integrity) | 3/3 | Complete    | 2026-06-14 |
-| 382. Grading / Lifecycle / Cert (MIGRATION) | 1/3 | In Progress|  |
+| 382. Grading / Lifecycle / Cert (MIGRATION) | 2/3 | In Progress|  |
 
 ### Coverage Validation v29.0
 
