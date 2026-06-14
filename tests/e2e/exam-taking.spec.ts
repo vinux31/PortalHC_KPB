@@ -1636,3 +1636,136 @@ test.describe('Flow K: Essay Full Cycle + Score Aggregation (GRADE-01)', () => {
   });
 });
 
+// ============================================================
+// FLOW L: Empty package + shuffle ON (WSE-01 / SHF-01, scenario #6)
+// HC creates assessment (shuffle ON default) → 2 packages, one filled one EMPTY →
+// worker must still receive the filled package's questions (NOT 0) → Score > 0 (NOT 0% Fail palsu).
+// Pre-fix: ON-path K=Min(filled,0)=0 → worker dapat 0 soal → submit → maxScore=0 → 0% Fail.
+// Selectable via -g "empty".
+// ============================================================
+test.describe('Flow L: Empty Package + Shuffle ON (WSE-01)', () => {
+  let title: string;
+  const category = 'OJT';
+  let scheduleDate: string;
+  let assessmentId: number;
+  let filledPackageId: number;
+  let sessionId: number;
+  // Correct option texts — globally unique so a hasText label click selects the right answer
+  // regardless of shuffle (question + option order). Distractors deliberately non-overlapping.
+  const correctTexts = ['Jawaban Benar Alfa', 'Jawaban Benar Beta', 'Jawaban Benar Gamma'];
+
+  test('L1 — HC creates assessment (shuffle ON default, no token)', async ({ page }) => {
+    title = uniqueTitle('Pre Test [380-L] Empty Package Shuffle ON');
+    scheduleDate = today();
+    await login(page, 'hc');
+    // NOTE: do NOT disable shuffle — ShuffleQuestions defaults ON (v27.0); that is exactly the WSE-01 path.
+    await createAssessmentViaWizard(page, {
+      title, category, scheduleDate, scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 60, allowAnswerReview: true,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+  });
+
+  test('L2 — HC creates 2 packages (Paket A filled, Paket B left EMPTY)', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    filledPackageId = await createDefaultPackage(page, 'Paket A'); // will get questions
+    await createDefaultPackage(page, 'Paket B');                  // stays EMPTY (0 questions)
+  });
+
+  test('L3 — HC adds 3 MC questions to Paket A only (Paket B empty)', async ({ page }) => {
+    await login(page, 'hc');
+    await addQuestionViaForm(page, filledPackageId, {
+      type: 'MultipleChoice', text: '[380-L] Soal 1 — pilih jawaban benar Alfa',
+      options: [correctTexts[0], 'Salah A1', 'Salah A2', 'Salah A3'], correctIndex: 0, score: 100,
+    });
+    await addQuestionViaForm(page, filledPackageId, {
+      type: 'MultipleChoice', text: '[380-L] Soal 2 — pilih jawaban benar Beta',
+      options: ['Salah B1', correctTexts[1], 'Salah B2', 'Salah B3'], correctIndex: 1, score: 100,
+    });
+    await addQuestionViaForm(page, filledPackageId, {
+      type: 'MultipleChoice', text: '[380-L] Soal 3 — pilih jawaban benar Gamma',
+      options: ['Salah C1', 'Salah C2', correctTexts[2], 'Salah C3'], correctIndex: 2, score: 100,
+    });
+  });
+
+  test('L4 — Worker starts: gets questions > 0 from filled package (NOT empty)', async ({ page }) => {
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', d => d.accept());
+    await card.locator('.btn-start-standard, a:has-text("Mulai"), a:has-text("Start")').first().click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+    sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+
+    await expect(page.locator('#examHeader')).toBeVisible({ timeout: 10_000 });
+    // WSE-01 core assertion: worker received the filled package's 3 questions, NOT 0 (pre-fix K=Min=0).
+    const questions = page.locator('[id^="qcard_"]');
+    expect(await questions.count()).toBe(3);
+  });
+
+  test('L5 — Worker answers correctly + submits → Score > 0 (NOT 0% Fail palsu)', async ({ page }) => {
+    test.setTimeout(120_000);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await card.locator('a:has-text("Resume"), .btn-start-standard').first().click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+
+    const resumeModal = page.locator('#resumeConfirmModal');
+    await resumeModal.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => {});
+    if (await resumeModal.isVisible().catch(() => false)) {
+      await page.locator('#resumeConfirmBtn').click();
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
+    }
+
+    // Click each correct option by its globally-unique text (shuffle-safe).
+    for (const text of correctTexts) {
+      await page.locator('label[id^="lbl_"]', { hasText: text }).first().click();
+      await page.waitForTimeout(500);
+    }
+
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
+    await page.locator('#reviewSubmitBtn').click();
+    await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
+    page.once('dialog', d => d.accept());
+    const kumpulkanBtn = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkanBtn).toBeEnabled({ timeout: 10_000 });
+    await kumpulkanBtn.click();
+    await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
+
+    // DB-assert: Score > 0 (all-correct → 100) and session Completed. Pre-fix would be 0 (0 questions graded).
+    const score = await db.queryScalar(`SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${sessionId}`);
+    expect(score).toBeGreaterThan(0);
+    const completed = await db.queryScalar(`SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${sessionId} AND Status = 'Completed'`);
+    expect(completed).toBe(1);
+  });
+
+  test('L6 — Cleanup: HC deletes assessment', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageAssessment');
+    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
+    await searchInput.fill(title);
+    await searchInput.press('Enter');
+    await page.waitForLoadState('networkidle');
+    const row = page.locator('tr', { hasText: title }).first();
+    const kebab = row.locator('button.dropdown-toggle').first();
+    if (await kebab.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await kebab.click();
+      const hapusBtn = page.locator('button:has-text("Hapus Grup"), button:has-text("Hapus")').first();
+      if (await hapusBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await hapusBtn.click();
+        const confirmBtn = page.locator('#deleteAssessmentModal.show button[type="submit"], #deleteAssessmentModal.show button:has-text("Hapus")').first();
+        if (await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+          await confirmBtn.click();
+          await page.waitForLoadState('networkidle');
+        }
+      }
+    }
+  });
+});
+

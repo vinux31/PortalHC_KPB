@@ -959,6 +959,29 @@ namespace HcPortal.Controllers
 
             // Mark InProgress on first load only (idempotent — skip if already started)
             bool justStarted = assessment.StartedAt == null;
+
+            // WSE-01 (D-05): paket ADA tapi SEMUA kosong → blokir SEBELUM tulis StartedAt/Status/assignment/SignalR.
+            // Cegah 0% Fail palsu (worker submit ujian 0 soal → maxScore=0, auto-grade Fail tanpa recourse).
+            // Kasus "zero paket" (tak ada paket sama sekali) tetap ditangani else di bawah (~:1198).
+            if (justStarted)
+            {
+                var preCheckSiblingIds = await _context.AssessmentSessions
+                    .Where(s => s.Title == assessment.Title &&
+                                s.Category == assessment.Category &&
+                                s.Schedule.Date == assessment.Schedule.Date)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+                bool anyPackages = await _context.AssessmentPackages
+                    .AnyAsync(p => preCheckSiblingIds.Contains(p.AssessmentSessionId));
+                bool anyWithQuestions = anyPackages && await _context.AssessmentPackages
+                    .AnyAsync(p => preCheckSiblingIds.Contains(p.AssessmentSessionId) && p.Questions.Any());
+                if (anyPackages && !anyWithQuestions)
+                {
+                    TempData["Error"] = "Ujian belum siap — belum ada soal pada paket. Silakan hubungi Admin atau HC.";
+                    return RedirectToAction("Assessment");
+                }
+            }
+
             if (justStarted)
             {
                 assessment.Status = "InProgress";
