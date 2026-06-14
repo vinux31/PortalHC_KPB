@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: executing
-last_updated: "2026-06-14T18:02:57.547Z"
-last_activity: 2026-06-14
+status: "Plan 382-03 SHIPPED LOCAL (WSE-11 CERT-01 null→Aktif single-source + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync). Phase 382 closed; v29.0 (380-382) full delivery."
+last_updated: "2026-06-14T18:31:50.752Z"
+last_activity: "2026-06-14 -- 382-03 done (CERT-01 helper flip + CertAlertConsistency; e2e #8/#9/#11/#12 18/18 green; #10 delegasi xUnit GradingDedupe; full xUnit 415/415; migration=false VERIFIED [ef add → 0 diff])"
 progress:
   total_phases: 21
   completed_phases: 0
@@ -23,16 +23,16 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 382 (grading-lifecycle-cert) — EXECUTING
-Plan: 3 of 3
-Status: Plan 382-02 SHIPPED LOCAL (WSE-06..10 CMPController-side) — next plan 382-03 (CERT-01, +1 migration)
-Last activity: 2026-06-14 -- 382-02 done (SubmitExam coherent SAVE-01/STAT-01/TOK-02/TMR-02 + AbandonExam STAT-02 atomic + EnsureCanSubmit TMR-01/03; 16 fact baru; suite 411/411; migration=false)
+Phase: 382 (grading-lifecycle-cert) — ✅ ALL PLANS SHIPPED LOCAL (3/3)
+Plan: 3 of 3 — DONE
+Status: Plan 382-03 SHIPPED LOCAL (WSE-11 CERT-01 null→Aktif single-source + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync). Phase 382 closed; v29.0 (380-382) full delivery.
+Last activity: 2026-06-14 -- 382-03 done (CERT-01 helper flip + CertAlertConsistency; e2e #8/#9/#11/#12 18/18 green; #10 delegasi xUnit GradingDedupe; full xUnit 415/415; migration=false VERIFIED [ef add → 0 diff])
 
-**v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (+1 migration). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.
+**v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (0 migration — D-01 dedupe). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.
 
 **Next:** `/gsd-plan-phase 380` (roadmap sudah di-tulis; phases LOCKED). Eksekusi SERI 380→381→382 (semua sentuh CMPController.cs, no paralel).
 
-**v28.0 carry (push IT):** ✅ Push v24-v28 ke `origin/ITHandoff` DONE (HEAD `bb8c04ed`). Sisa: notify IT 2 migration (PendingProtonBypass+index/360, ShuffleToggles/372) → IT promosi Dev/Prod. v29.0 akan +1 migration (filtered-index PackageUserResponse/382).
+**v28.0 carry (push IT):** ✅ Push v24-v28 ke `origin/ITHandoff` DONE (HEAD `bb8c04ed`). Sisa: notify IT 2 migration (PendingProtonBypass+index/360, ShuffleToggles/372) → IT promosi Dev/Prod. **v29.0 = 0 migration baru** (D-01-IMPACT: SAVE-01 dedupe last-write-wins, BUKAN filtered-index — diverifikasi `dotnet ef migrations add` → 0 model diff; tak perlu notify IT migration untuk v29.0).
 
 Predecessor: v25.0 + v26.0 + v27.0 + v28.0 SHIPPED LOCAL + audited PASSED + closed 2026-06-14 (v25/26/27 joint safe-close; v28.0 manual append-only).
 
@@ -97,6 +97,9 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ### Decisions (persist across milestones)
 
+- [v29.0 / CERT-01 (382-03)]: `DeriveCertificateStatus(null ValidUntil, null/non-Permanent)` → **Aktif** (BUKAN Expired) — cert lulus tanpa kedaluwarsa = Aktif/Permanen. Single-source helper; consumer (AdminBase worklist L200, Renewal+CDP tally) ikut otomatis via Status enum — TIDAK diedit (Pattern 7). HomeController badge/notif sudah filter `ValidUntil.HasValue` (null sudah excluded, tak drift). Test lama `_ReturnsExpired` di-REWRITE → `_ReturnsAktif`; +`CertAlertConsistencyTests` (lock null-cert tak masuk tally Expired/AkanExpired).
+- [v29.0 / 382 / D-01-IMPACT]: SAVE-01 = dedupe last-write-wins in-memory (ORDER BY SubmittedAt desc), **NO migration** (PackageUserResponse tak punya diskriminator QuestionType → filtered unique index tak feasible). Diverifikasi `dotnet ef migrations add _verify_382` → empty Up/Down (0 model diff), lalu dihapus. **v29.0 = 0 migration baru. Tidak perlu notify IT migration untuk milestone ini.**
+- [v29.0 / e2e date helper (382-03)]: [Rule 3 fix] `tests/helpers/utils.ts` today/tomorrow/yesterday — UTC `toISOString()` → komponen tanggal LOKAL. Server validasi `Schedule < DateTime.Today` (waktu LOKAL); di TZ UTC+8 dini hari, tanggal UTC = kemarin-lokal → create assessment ditolak "Schedule date cannot be in the past". Shared helper, semua e2e flow ikut benar.
 - [v29.0 / SAVE-01 (382-01)]: GradingService MC scoring baca jawaban FINAL per soal via `finalByQuestion` (last-write-wins by `SubmittedAt`, in-memory pada list yg sudah ToListAsync); `MultipleAnswer` TIDAK ter-dedupe (multi-row by design).
 - [v29.0 / STAT-01 (382-01)]: `GradeAndCompleteAsync` guard NOT IN (Completed,Abandoned,Cancelled,PendingGrading) di KEDUA branch (non-essay+essay), rowsAffected==0→false; const `AssessmentStatus.Abandoned` ditambah (single-source). Test grading pakai real-SQL disposable fixture (`Category=Integration`) — `ExecuteUpdateAsync` tak didukung EF8 InMemory.
 - [v29.0 / STAT-02 (382-02)]: `AbandonExam` jadi single atomic guarded `ExecuteUpdateAsync` WHERE (Id && UserId==owner && (InProgress||Open)) + rowsAffected==0 reject — TOCTOU dihapus, ownership di WHERE (anti-race + anti-spoof). SubmitExam SAVE-01 GroupBy `OrderByDescending(SubmittedAt).First()` (push==stored Score) + STAT-01 early guard terminal-set + audit.
@@ -117,11 +120,11 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 ### Open Blockers/Concerns
 
 - ✅ **999.8 essay-grading** (RESOLVED v28.0/Phase 376): bug TAK reproduce di code current (fixed incidental v27.0 Phase 373). Hardening: helper `AssessmentScoreAggregator` + endpoint `RecomputeEssayScores` (prod-repair historis pasca-deploy bila ada baris Score=0 lama).
-- [push] 3 migration (Origin, PendingProtonBypass+index, ShuffleToggles) — notify IT flag migration saat push; 360+372 di delta unpushed. (v28.0 = 0 migration.)
+- [push] 3 migration (Origin, PendingProtonBypass+index, ShuffleToggles) — notify IT flag migration saat push; 360+372 di delta unpushed. (v28.0 = 0 migration; **v29.0 = 0 migration** — D-01-IMPACT dedupe, tak ada migration baru untuk flag.)
 - ✅ Phase 293 `GetSectionUnitsDictAsync` hardcoded 2-level — accepted-OK (user 2026-06-14; org 2-level cukup, buka bila butuh >2 level).
 
 ## Session Continuity
 
-Last activity: 2026-06-14 — Stopped at: Completed 382-02-PLAN.md
+Last activity: 2026-06-14 — Stopped at: Completed 382-03-PLAN.md (Phase 382 ALL plans SHIPPED LOCAL)
 
-Next action: **`/gsd-execute-phase 382` plan 03** (CERT-01 `DeriveCertificateStatus` ValidUntil=null → Aktif/Permanen + filtered-unique-index PackageUserResponse single-answer migration → notify IT). 382-01 + 382-02 SHIPPED LOCAL (NOT PUSHED, migration=false). Setelah 382-03 tuntas: v29.0 full → secure/validate/UAT, lalu push IT (+1 migration flag). JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
+Next action: **v29.0 (380-382) full delivery → secure/validate/UAT, lalu push IT.** 382-01/02/03 SHIPPED LOCAL (NOT PUSHED). **v29.0 = 0 migration baru** (D-01-IMPACT dedupe — TIDAK perlu flag migration baru saat push; sisa flag-IT cuma carry 360/372). Catatan: Phase 380 belum SHIPPED di STATE counter (paralel) — cek status 380 sebelum close v29.0. Saran: `/gsd-secure-phase 382` lalu `/gsd-verify-work 382`. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).

@@ -27,7 +27,7 @@
 - ✅ **v26.0 Urgent — Search & Records Visibility** — Phases 369-371 (shipped local + audited PASSED 2026-06-12, 3/3 REQ URG-01..03; 0 migration; NOT PUSHED) — [archive](milestones/v26.0-ROADMAP.md) — [audit](v26.0-MILESTONE-AUDIT.md)
 - ✅ **v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan)** — Phases 372-375 (shipped local + audited PASSED 2026-06-14, 16/16 REQ SHUF-01..16; 1 migration AddShuffleTogglesToAssessmentSession; NOT PUSHED) — [archive](milestones/v27.0-ROADMAP.md) — [audit](v27.0-MILESTONE-AUDIT.md)
 - ✅ **v28.0 Assessment & Records Bug Fixes** — Phases 376-379 (shipped local + audited PASSED 2026-06-14, 6/6 REQ GRADE/IMP/CMPRT/E2E; 0 migration; NOT PUSHED) — [archive](milestones/v28.0-ROADMAP.md) — [audit](v28.0-MILESTONE-AUDIT.md)
-- 🚀 **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (🚀 ACTIVE, started 2026-06-14; 11 REQ WSE-01..11; SEQUENTIAL A→B→C; 1 migration filtered-unique-index PackageUserResponse @ Phase 382 — notify IT) — audit-driven [docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md](../docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md)
+- 🚀 **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (🚀 ACTIVE, started 2026-06-14; 11 REQ WSE-01..11; SEQUENTIAL A→B→C; **0 migration** — SAVE-01 = dedupe last-write-wins, BUKAN filtered-index; tak perlu notify IT migration, D-01-IMPACT) — audit-driven [docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md](../docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md)
 
 ## Phases
 
@@ -1269,7 +1269,7 @@ Plans:
 
 **Eksekusi:** 3 phase **SEQUENTIAL** (380→381→382), merge A→B→C. **No paralel / no worktree** — ketiganya menyentuh `Controllers/CMPController.cs` (soft same-file overlap = merge-conflict hazard). Dependensi: 381 depends 380, 382 depends 381.
 
-**Migration:** hanya Phase 382 (1×) — filtered-unique-index `PackageUserResponses(AssessmentSessionId,PackageQuestionId)` terbatas tipe single-answer. Notify IT dengan commit hash + flag migration (developer TIDAK promosi DB Dev/Prod per DEV_WORKFLOW). Kontingensi: bila tak ada diskriminator QuestionType di tabel response, pakai dedupe last-write-wins (ORDER BY SubmittedAt desc) — NO migration.
+**Migration:** **0 (NOL)** untuk seluruh v29.0 — SAVE-01 ternyata pakai dedupe last-write-wins in-memory (ORDER BY SubmittedAt desc), BUKAN filtered-unique-index (PackageUserResponse tak punya diskriminator QuestionType → filtered index tak feasible; D-01-IMPACT, diverifikasi `dotnet ef migrations add` → 0 model diff). **TIDAK perlu notify IT migration untuk milestone ini.** Phase 380/381/382 semua migration=false.
 
 **Scope OUT (eksplisit):** Proton (eligibility/year-gate/bypass/Tahun3/coach-mapping), Essay grading lifecycle, Multi-answer grading, Admin data-governance (manual/bulk entry, cascade-delete, category CRUD, cert renewal chain), UI/visual audit pass. **Defer backlog:** RES-02 (display-drift X/Y vs Score%), GRD-02 (empty-MA SetEquals LOW).
 
@@ -1277,7 +1277,7 @@ Plans:
 
 - [ ] **Phase 380 (A): Admin/Engine Integrity** — Worker bisa MULAI ujian dengan set soal & token yang benar (SHF-01 paket kosong tak menzerokan, TOK-01 token Pre/Post uppercase, RST-01/04 authz+cap AddExtraTime). Migration=false. Depends: none.
 - [x] **Phase 381 (B): Worker Entry (StartExam integrity)** — Worker masuk ujian dengan paket benar (Pre/Post tak tercampur) tanpa state-nya dirusak impersonasi (NEW-same-day-PrePost, OPS-01/TOK-03 write-on-GET guard). Migration=false. Depends: Phase 380. (completed 2026-06-14)
-- [ ] **Phase 382 (C): Grading / Lifecycle / Cert** — Nilai, kelulusan, dan sertifikat worker benar & tahan-race (SAVE-01, STAT-01/02, TMR-01/02/03, TOK-02, CERT-01). **Migration=TRUE** (notify IT). Depends: Phase 381.
+- [x] **Phase 382 (C): Grading / Lifecycle / Cert** — Nilai, kelulusan, dan sertifikat worker benar & tahan-race (SAVE-01, STAT-01/02, TMR-01/02/03, TOK-02, CERT-01). **Migration=false** (D-01-IMPACT — dedupe, tak perlu notify IT migration). Depends: Phase 381. (completed 2026-06-14)
 
 ### Phase Details
 
@@ -1316,10 +1316,10 @@ Plans:
 **Goal**: Nilai, kelulusan, dan sertifikat worker single-answer benar & tahan-race — grading baca jawaban final tanpa baris duplikat, sesi Abandoned/Cancelled tak bisa di-resurrect, hasil graded tak ketimpa abandon telat, timer Normal ditegakkan, gate token tak bisa di-bypass via save/submit, dan cert ValidUntil=null tampil konsisten "aktif".
 **Depends on**: Phase 381 (sequential pada axis CMPController.cs — hindari rebase churn; migration SAVE-01 harus migration TERBARU di tree; satu notifikasi IT migration cukup, setelah phase ini)
 **Requirements**: WSE-06 (SAVE-01), WSE-07 (STAT-01), WSE-08 (STAT-02), WSE-09 (TMR-01 + TMR-02 + TMR-03), WSE-10 (TOK-02), WSE-11 (CERT-01)
-**Files**: `Controllers/CMPController.cs` (SaveAnswer 348-417, SubmitExam 1523-1724 + StartedAt-gate TOK-02, AbandonExam 1220-1248 ExecuteUpdate ber-guard, EnsureCanSubmitExamAsync 4382-4444 cakup Standard, cert region), `Services/GradingService.cs` (guard 238-246 & 202-211 exclude Abandoned/Cancelled/PendingGrading; FirstOrDefault → ORDER BY), `Data/ApplicationDbContext.cs` + new migration (filtered-unique-index), `Models/CertificationManagementViewModel.cs` (DeriveCertificateStatus null-semantics 58-59), `Controllers/HomeController.cs` (badge GetCertAlertCountsAsync 215 + notif TriggerCertExpiredNotificationsAsync 124)
-**Migration**: TRUE — re-introduksi FILTERED unique index `PackageUserResponses(AssessmentSessionId,PackageQuestionId)` terbatas single-answer (jangan unique penuh: akan memecah MultipleAnswer banyak-baris). **Kontingensi:** bila tak ada diskriminator QuestionType di tabel response (HasFilter EF tak bisa referensi joined table), pakai raw-SQL filtered index ATAU dedupe last-write-wins (ORDER BY SubmittedAt desc, NO migration). Putuskan saat planning. **Notify IT 1×** (commit hash + flag) setelah phase.
+**Files**: `Controllers/CMPController.cs` (SaveAnswer 348-417, SubmitExam 1523-1724 + StartedAt-gate TOK-02, AbandonExam 1220-1248 ExecuteUpdate ber-guard, EnsureCanSubmitExamAsync 4382-4444 cakup Standard, cert region), `Services/GradingService.cs` (guard 238-246 & 202-211 exclude Abandoned/Cancelled/PendingGrading; FirstOrDefault → ORDER BY), `Models/CertificationManagementViewModel.cs` (DeriveCertificateStatus null-semantics 58-59), `Controllers/HomeController.cs` (badge GetCertAlertCountsAsync 215 + notif TriggerCertExpiredNotificationsAsync 124)
+**Migration**: false — SAVE-01 = dedupe last-write-wins in-memory (PackageUserResponse TAK punya diskriminator QuestionType → filtered unique index tak feasible). Read-final di GradingService (`finalByQuestion` ORDER BY SubmittedAt desc) + SubmitExam GroupBy OrderByDescending. TIDAK ada migration; TIDAK perlu notify IT migration untuk phase ini. (D-01-IMPACT — diverifikasi: `dotnet ef migrations add _verify_382` → empty Up/Down, 0 model diff)
 **Success Criteria** (what must be TRUE for the worker):
-  1. Nilai worker single-answer dihitung dari jawaban FINAL tersimpan — dua SaveAnswer konkuren (multi-tab) untuk (sesi,soal) sama dengan opsi berbeda menghasilkan TEPAT SATU baris PackageUserResponse final, grading memakai opsi final (Score benar, bukan opsi basi). *(E2E scenario 10 — SAVE-01 concurrent)*
+  1. Nilai worker single-answer dihitung dari jawaban FINAL tersimpan — dua SaveAnswer konkuren (multi-tab) untuk (sesi,soal) sama dengan opsi berbeda → grading memakai opsi FINAL via dedupe read-final (ORDER BY SubmittedAt desc last-write-wins, NO filtered unique index), Score benar (bukan opsi basi). *(E2E scenario 10 — SAVE-01 concurrent; delegasi ke xUnit GradingDedupeTests real-SQL)*
   2. Percobaan yang sudah di-Abandon worker atau di-Cancel HC TIDAK bisa di-resurrect: POST SubmitExam ke sesi Abandoned/Cancelled ditolak, sesi tidak berubah jadi Completed-lulus, tidak ada sertifikat terbit. *(E2E scenario 8 — STAT-01 anti-resurrection)*
   3. Hasil yang sudah Completed/graded/LULUS tidak hilang oleh AbandonExam telat: panggilan AbandonExam pada sesi Completed ditolak (rowsAffected==0), Status tetap Completed, hasil/cert tetap tampil di Results/Records. *(E2E scenario 9 — STAT-02)*
   4. Batas waktu ditegakkan untuk ujian Normal ("Standard"): submit manual jauh-telat (StartedAt mundur) ditolak (Tier-1/Tier-2 + audit SubmitExamBlocked), sedangkan submit dalam-waktu tetap diterima; ujian token-required tak bisa diselesaikan dengan mem-bypass gate token di SaveAnswer/SubmitExam. *(E2E scenario 11 — TMR-01; + TOK-02 StartedAt-gate)*
@@ -1327,7 +1327,7 @@ Plans:
 **Plans**: 3 plans
   - [x] 382-01-PLAN.md — WSE-06 SAVE-01 dedupe-read + WSE-07 STAT-01 guard (GradingService) + const Abandoned (Wave 1)
   - [x] 382-02-PLAN.md — WSE-06/07/08/09/10 CMPController coherent single-stream (SubmitExam SAVE-01+STAT-01+TOK-02+TMR-02, AbandonExam STAT-02, EnsureCanSubmit TMR-01/03, SaveAnswer TOK-02) (Wave 2, depends 382-01)
-  - [ ] 382-03-PLAN.md — WSE-11 CERT-01 single-source null→Aktif + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync (Wave 3, depends 382-02)
+  - [x] 382-03-PLAN.md — WSE-11 CERT-01 single-source null→Aktif + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync (Wave 3, depends 382-02)
 **UI hint**: yes
 
 ### Progress Table
@@ -1336,7 +1336,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 380. Admin/Engine Integrity | 0/? | Not started | - |
 | 381. Worker Entry (StartExam integrity) | 3/3 | Complete    | 2026-06-14 |
-| 382. Grading / Lifecycle / Cert (MIGRATION) | 2/3 | In Progress|  |
+| 382. Grading / Lifecycle / Cert | 3/3 | Complete    | 2026-06-14 |
 
 ### Coverage Validation v29.0
 
@@ -1347,18 +1347,20 @@ Plans:
 | WSE-03 | 380 | RST-01 + RST-04 | AddExtraTime [Authorize Admin,HC] + cap | Pending |
 | WSE-04 | 381 | NEW-same-day-PrePost | StartExam sibling query filter AssessmentType/LinkedGroupId | Pending |
 | WSE-05 | 381 | OPS-01 + TOK-03 | StartExam GET write-on-GET if(!IsImpersonating()) | Pending |
-| WSE-06 | 382 | SAVE-01 | filtered-unique-index PackageUserResponse / grading ORDER BY | Pending |
-| WSE-07 | 382 | STAT-01 | grading + SubmitExam exclude Abandoned/Cancelled | Pending |
-| WSE-08 | 382 | STAT-02 | AbandonExam ExecuteUpdate guard Where(InProgress∥Open) | Pending |
-| WSE-09 | 382 | TMR-01 + TMR-02 + TMR-03 | EnsureCanSubmitExamAsync cakup Standard | Pending |
-| WSE-10 | 382 | TOK-02 | token gate StartedAt!=null di SaveAnswer/SubmitExam | Pending |
-| WSE-11 | 382 | CERT-01 | DeriveCertificateStatus + HomeController badge/notif konsisten | Pending |
+| WSE-06 | 382 | SAVE-01 | grading dedupe read-final ORDER BY SubmittedAt (NO migration) | ✅ Done |
+| WSE-07 | 382 | STAT-01 | grading + SubmitExam exclude Abandoned/Cancelled | ✅ Done |
+| WSE-08 | 382 | STAT-02 | AbandonExam ExecuteUpdate guard Where(InProgress∥Open) | ✅ Done |
+| WSE-09 | 382 | TMR-01 + TMR-02 + TMR-03 | EnsureCanSubmitExamAsync cakup Standard | ✅ Done |
+| WSE-10 | 382 | TOK-02 | token gate StartedAt!=null di SaveAnswer/SubmitExam | ✅ Done |
+| WSE-11 | 382 | CERT-01 | DeriveCertificateStatus null→Aktif + HomeController badge/notif konsisten | ✅ Done |
 
-**Active mapped: 11/11 ✓ — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 382). Defer backlog: RES-02, GRD-02.**
+**Active mapped: 11/11 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration (Phase 382 = dedupe, D-01-IMPACT). Defer backlog: RES-02, GRD-02.**
 
 ---
 
-*Roadmap updated: 2026-06-13 (v27.0 Shuffle Toggle added APPEND-ONLY — Phases 372-375, REQ SHUF-01..16, 1 migration. Dari brainstorm 2026-06-13: toggle ON/OFF 2 sistem acak independen [Acak Soal + Acak Pilihan] scope per-assessment, UI di ManagePackages. Keputusan kunci: default ON dua-duanya [data lama tak berubah]; OFF multi-paket = distribusi 1 paket/worker round-robin index-session-stabil; Acak Pilihan independen; Pre/Post reminder no-cascade [opsi Z]; SamePackage tak dipindah. Temuan: komentar `CMPController.cs:1054` stale [opsi sebenarnya AKTIF via e6ddffd6]; bug existing reshuffle hard-code opsi "{}". Spec: 2026-06-13-shuffle-toggle-design.md @ fe07b223. ⚠️ STATE.md SENGAJA TIDAK disentuh — sesi lain executing v25.0 Phase 367; /gsd-new-milestone vanilla DIBATALKAN [Step5 timpa STATE.md + Step6 phases-clear hapus dir v25.0]. File-overlap v25.0 [AssessmentAdminController/CMPController] → koordinasi sebelum plan 372.)*
+*Roadmap updated: 2026-06-14 (Phase 382 Migration flipped TRUE→false per D-01-IMPACT — SAVE-01 dedupe last-write-wins [ORDER BY SubmittedAt desc in-memory], BUKAN filtered-unique-index [PackageUserResponse tak punya diskriminator QuestionType]. Diverifikasi `dotnet ef migrations add _verify_382` → empty Up/Down [0 model diff], lalu dihapus. v29.0 total = 0 migration baru → TIDAK perlu notify IT migration untuk milestone ini. Phase 382 SHIPPED LOCAL [3/3 plan, WSE-06..11], full xUnit 415/415, e2e #8-12 acceptance 18/18 green. ROADMAP+STATE diselaraskan.)*
+
+*Prev: 2026-06-13 (v27.0 Shuffle Toggle added APPEND-ONLY — Phases 372-375, REQ SHUF-01..16, 1 migration. Dari brainstorm 2026-06-13: toggle ON/OFF 2 sistem acak independen [Acak Soal + Acak Pilihan] scope per-assessment, UI di ManagePackages. Keputusan kunci: default ON dua-duanya [data lama tak berubah]; OFF multi-paket = distribusi 1 paket/worker round-robin index-session-stabil; Acak Pilihan independen; Pre/Post reminder no-cascade [opsi Z]; SamePackage tak dipindah. Temuan: komentar `CMPController.cs:1054` stale [opsi sebenarnya AKTIF via e6ddffd6]; bug existing reshuffle hard-code opsi "{}". Spec: 2026-06-13-shuffle-toggle-design.md @ fe07b223. ⚠️ STATE.md SENGAJA TIDAK disentuh — sesi lain executing v25.0 Phase 367; /gsd-new-milestone vanilla DIBATALKAN [Step5 timpa STATE.md + Step6 phases-clear hapus dir v25.0]. File-overlap v25.0 [AssessmentAdminController/CMPController] → koordinasi sebelum plan 372.)*
 
 *Prev: 2026-06-10 (Phase 367+368 added — Delete Records Cascade Overhaul + Hygiene Lanjutan, dari brainstorm kasus "hapus assessment Input Records sukses palsu / worker masih lihat" [repro live lokal + kasus Rino @Dev]. 28 temuan total terverifikasi adversarial 2x → 27 in-scope [367: #1-12,#14-20 cascade+preview+online+UI-jujur; 368: #21-27 hygiene], 1 impersonate → backlog 999.6. Spec C: 2026-06-10-delete-input-records-full-cascade-design.md. 367 depends 366 [file-overlap 3 endpoint Delete*], 368 depends 367. Koordinasi: PendingProtonBypass soft-cancel selaras spec bypass §8.1. v25.0 jadi Phases 358-368.)*
 
