@@ -1,8 +1,8 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between_milestones
+milestone: v28.0
+milestone_name: Assessment & Records Bug Fixes
+status: defining_requirements
 last_updated: "2026-06-14T00:00:00.000Z"
 last_activity: 2026-06-14
 progress:
@@ -20,11 +20,13 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** — (between milestones; v25/v26/v27 shipped+closed 2026-06-14)
+**Current focus:** v28.0 Assessment & Records Bug Fixes — defining requirements (started 2026-06-14)
 
 ## Current Position
 
-**No active milestone.** v25.0 + v26.0 + v27.0 SHIPPED LOCAL + audited PASSED + closed (joint safe-close) 2026-06-14.
+**Milestone v28.0** — defining requirements (4 bug promote dari backlog: 999.8 essay GRADE, 999.6 impersonate IMP, 999.10 route CMPRT, 999.7 e2e E2E). Phase 376+ (lanjut dari 375). No research (bug-fix).
+
+Predecessor: v25.0 + v26.0 + v27.0 SHIPPED LOCAL + audited PASSED + closed (joint safe-close) 2026-06-14 (archive `milestones/v2{5,6,7}.0-*`).
 
 | Milestone | Phases | REQ | Audit | Archive |
 |-----------|--------|-----|-------|---------|

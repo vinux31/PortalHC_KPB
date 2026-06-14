@@ -1,6 +1,6 @@
 {
-  "milestone_version": null,
-  "milestone_name": null,
+  "milestone_version": "v28.0",
+  "milestone_name": "Assessment & Records Bug Fixes",
   "model_profile": "quality",
   "commit_docs": true,
   "search_gitignored": false,

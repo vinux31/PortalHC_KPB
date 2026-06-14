@@ -12,9 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (between milestones — v25/v26/v27 shipped+closed 2026-06-14)
+## Current Milestone: v28.0 Assessment & Records Bug Fixes (started 2026-06-14)
 
-**v25.0 + v26.0 + v27.0 SHIPPED LOCAL + audited PASSED + closed (joint safe-close) 2026-06-14.** Tidak ada milestone aktif. Bundle v24-v27 NOT PUSHED (branch ITHandoff); 3 migration (Origin, PendingProtonBypass+index, ShuffleToggles) wajib flag IT saat push. Next: push IT atau `/gsd-new-milestone` (kandidat backlog: 999.8 essay-grading prod bug HIGH).
+**Goal:** Fix 4 bug fungsional outstanding di domain assessment & records (promote dari backlog 999.x).
+
+**Target:**
+- **999.8 → GRADE** — essay-only finalize biarkan `AssessmentSessions.Score=0` walau dinilai (HIGH suspected prod bug; diagnose-first).
+- **999.6 → IMP** — impersonate identity tak dipakai query worker surfaces (cross-surface audit + fix).
+- **999.10 → CMPRT** — `GET /CMP/CertificationManagement` → 500 view-not-found (orphan; redirect/hapus).
+- **999.7 → E2E** — migrasi 10 create flow `exam-taking.spec.ts` ke wizard 4-langkah (regression net, cover flow essay).
+
+**Konteks:** lanjut phase 376+; bug-fix (no research); local-only sampai push IT (numpuk di atas bundle v24-v27, 3 migration). v25/v26/v27 shipped+audited+closed 2026-06-14 (archive `milestones/v2{5,6,7}.0-*`).
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
