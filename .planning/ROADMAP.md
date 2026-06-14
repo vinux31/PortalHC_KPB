@@ -34,7 +34,7 @@
 
 **Goal:** Fix 4 bug fungsional outstanding di domain assessment & records (promote backlog 999.x): grading essay (HIGH), impersonasi identity, routing CMP orphan, migrasi test net exam-taking. 0 migration. Bug-fix codebase existing (no research). Local-only sampai push IT.
 
-- [ ] **Phase 376: Fix Essay-Only Score Aggregation** — diagnose root cause (GradingService finalize path vs hook Proton completion 358) lalu fix agregasi skor manual essay ke `AssessmentSessions.Score` (saat ini Score=0 walau HC nilai+finalize, badge "Sudah Dinilai") + konsisten dgn jalur mixed + regression test (xUnit + e2e `exam-types.spec.ts` L6 unfixme). REQ: GRADE-01,02. Migration=false. Depends: — (promote backlog 999.8)
+- [x] **Phase 376: Fix Essay-Only Score Aggregation** ✅ SHIPPED LOCAL 2026-06-14 — diagnose-first menemukan bug TAK reproduce (fixed incidental v27.0 Phase 373); reframed (Option 1): regression-lock + hardening forward path (helper `AssessmentScoreAggregator` D-02/D-04) + endpoint `RecomputeEssayScores` (prod-repair historis, D-03 Score+IsPassed only). 361/361 test + integration 3/3 + e2e FLOW L 7/7. REQ: GRADE-01,02. Migration=false. NOT PUSHED. Depends: — (promote backlog 999.8)
   - SC1: Repro lokal essay-only finalize → `Score=0` dikonfirmasi + root cause teridentifikasi (finalize path vs Proton hook).
   - SC2: HC nilai essay-only + finalize → `AssessmentSessions.Score` = agregasi skor manual (bukan 0).
   - SC3: Jalur mixed (MC+MA+essay) `Score` tetap benar — no regression.

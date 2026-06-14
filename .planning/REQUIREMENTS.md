@@ -10,8 +10,8 @@
 
 ### GRADE — Assessment Grading Correctness (dari 999.8)
 
-- [ ] **GRADE-01**: Finalize assessment essay-only mengagregasi skor manual essay ke `AssessmentSessions.Score` (saat ini `Score=0` walau HC nilai + finalize, badge "Sudah Dinilai"). Diagnose root cause dulu (GradingService finalize path vs hook Proton completion Phase 358) sebelum fix.
-- [ ] **GRADE-02**: Agregasi skor konsisten antara jalur essay-only dan mixed (MC+MA+essay) — regression test xUnit/e2e kedua jalur (mixed `Score` sudah benar, essay-only tidak).
+- [x] **GRADE-01**: Finalize assessment essay-only mengagregasi skor manual essay ke `AssessmentSessions.Score` (saat ini `Score=0` walau HC nilai + finalize, badge "Sudah Dinilai"). Diagnose root cause dulu (GradingService finalize path vs hook Proton completion Phase 358) sebelum fix.
+- [x] **GRADE-02**: Agregasi skor konsisten antara jalur essay-only dan mixed (MC+MA+essay) — regression test xUnit/e2e kedua jalur (mixed `Score` sudah benar, essay-only tidak).
 
 ### IMP — Impersonation Identity Correctness (dari 999.6)
 
@@ -46,8 +46,8 @@
 
 | REQ | Phase | Status |
 |-----|-------|--------|
-| GRADE-01 | 376 | pending |
-| GRADE-02 | 376 | pending |
+| GRADE-01 | 376 | Complete |
+| GRADE-02 | 376 | Complete |
 | IMP-01 | 377 | pending |
 | IMP-02 | 377 | pending |
 | CMPRT-01 | 378 | pending |
