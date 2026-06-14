@@ -92,11 +92,11 @@
 
 > ⚠️ **KOORDINASI PARALEL v25.0:** v27.0 menyentuh `AssessmentAdminController.cs` (CreateAssessment/EditAssessment/ManagePackages/Reshuffle*) dan `CMPController.cs` (StartExam) — file yang SAMA dipakai v25.0 Phase 367/368 (sedang/akan dieksekusi sesi lain). JANGAN `/gsd-plan-phase 372+` sebelum 367/368 ship atau koordinasi merge, untuk hindari konflik lintas-sesi. Roadmap ini append-only — STATE.md tetap v25.0.
 
-- [ ] **Phase 372: Data Foundation + Propagasi Toggle** — 2 kolom `ShuffleQuestions`/`ShuffleOptions` di `AssessmentSession` + migration#1 (`defaultValue:true` → baris lama ON) + set eksplisit dari form di 3 loop CreateAssessment POST (standard/Pre/Post, hindari EF bool-false trap) + propagate ke sibling di EditAssessment POST + toggle di wizard `CreateAssessment.cshtml` Step 3 (default checked). REQ: SHUF-01..03. Migration=true. Depends: — (file-overlap v25.0 AssessmentAdminController)
+- [x] **Phase 372: Data Foundation + Propagasi Toggle** — 2 kolom `ShuffleQuestions`/`ShuffleOptions` di `AssessmentSession` + migration#1 (`defaultValue:true` → baris lama ON) + set eksplisit dari form di 3 loop CreateAssessment POST (standard/Pre/Post, hindari EF bool-false trap) + propagate ke sibling di EditAssessment POST + toggle di wizard `CreateAssessment.cshtml` Step 3 (default checked). REQ: SHUF-01..03. Migration=true. Depends: — (file-overlap v25.0 AssessmentAdminController)
   - SC1: Migration jalan; assessment LAMA → kedua flag `true` (perilaku existing tak berubah).
   - SC2: Buat assessment baru via form → flag tersimpan sesuai centang (default ON), tervalidasi di DB.
   - SC3: Ubah toggle di satu session → semua sibling grup ikut (pola propagasi EditAssessment).
-- [ ] **Phase 373: Shuffle Engine (read logic + reshuffle)** — `CMPController.StartExam` gerbang flag saat bangun `UserPackageAssignment` + ekstrak core pure (testable tanpa DB): Acak Soal ON=existing (1 paket acak / ≥2 sampling K); OFF+1 paket=urut `q.Order`; OFF+≥2 paket=round-robin **index-session-stabil** 1 paket/worker + guard paket kosong; Acak Pilihan independen (ON dict / OFF "{}"); resume stale-count guard deterministik; cleanup komentar stale `CMPController.cs:1054`; `ReshufflePackage`/`ReshuffleAll` hormati KEDUA flag (fix bug existing opsi hard-code "{}"). REQ: SHUF-04..09, SHUF-15. Migration=false. Depends: 372 (file-overlap v25.0 CMPController)
+- [x] **Phase 373: Shuffle Engine (read logic + reshuffle)** — `CMPController.StartExam` gerbang flag saat bangun `UserPackageAssignment` + ekstrak core pure (testable tanpa DB): Acak Soal ON=existing (1 paket acak / ≥2 sampling K); OFF+1 paket=urut `q.Order`; OFF+≥2 paket=round-robin **index-session-stabil** 1 paket/worker + guard paket kosong; Acak Pilihan independen (ON dict / OFF "{}"); resume stale-count guard deterministik; cleanup komentar stale `CMPController.cs:1054`; `ReshufflePackage`/`ReshuffleAll` hormati KEDUA flag (fix bug existing opsi hard-code "{}"). REQ: SHUF-04..09, SHUF-15. Migration=false. Depends: 372 (file-overlap v25.0 CMPController)
   - SC1: Acak Soal ON tak berubah (1 paket urutan acak; ≥2 paket sampling K + acak).
   - SC2: Acak Soal OFF + 1 paket → semua peserta soal & urutan identik (`q.Order`).
   - SC3: Acak Soal OFF + ≥2 paket → tiap worker 1 paket utuh deterministik (index-session-stabil), seimbang, tahan resume/reshuffle; paket kosong di-skip.
@@ -108,7 +108,7 @@
   - SC2: Toggle read-only saat sudah ada peserta mulai; perubahan ditolak server-side.
   - SC3: Warning ukuran-paket-beda muncul (non-blocking) saat multi-paket + Acak Soal OFF.
   - SC4: Reminder muncul di Post bila Pre OFF tapi Post masih ON; tidak ada auto-cascade.
-- [ ] **Phase 375: Test & UAT** — xUnit core semua mode (ON 1/≥2, OFF 1/≥2 round-robin determinisme, guard paket kosong, opsi ON/OFF) + test migration default + propagasi sibling + lock guard + reshuffle flag; Playwright UAT toggle ON/OFF + lock + reminder Pre/Post + warning. REQ: SHUF-16. Migration=false. Depends: 374
+- [x] **Phase 375: Test & UAT** — xUnit core semua mode (ON 1/≥2, OFF 1/≥2 round-robin determinisme, guard paket kosong, opsi ON/OFF) + test migration default + propagasi sibling + lock guard + reshuffle flag; Playwright UAT toggle ON/OFF + lock + reminder Pre/Post + warning. REQ: SHUF-16. Migration=false. Depends: 374
   - SC1: Suite xUnit hijau termasuk core shuffle semua mode + determinisme round-robin.
   - SC2: UAT @5277: toggle ON/OFF berefek di exam (urutan soal & opsi), lock & reminder & warning tampil benar.
 
