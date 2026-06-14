@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: verifying
-last_updated: "2026-06-14T17:01:16.542Z"
+status: executing
+last_updated: "2026-06-14T17:37:50.941Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 21
@@ -19,14 +19,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 381 — Worker Entry (StartExam integrity)
+**Current focus:** Phase 382 — grading-lifecycle-cert
 
 ## Current Position
 
-Phase: 999.7
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-14
+Phase: 382 (grading-lifecycle-cert) — EXECUTING
+Plan: 2 of 3
+Status: Plan 382-01 SHIPPED LOCAL (WSE-06/WSE-07 GradingService-side) — next plan 382-02
+Last activity: 2026-06-14 -- 382-01 done (dedupe-read + anti-resurrection guard, 4 facts GREEN, suite 395/395, migration=false)
 
 **v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (+1 migration). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.
 
@@ -97,6 +97,8 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ### Decisions (persist across milestones)
 
+- [v29.0 / SAVE-01 (382-01)]: GradingService MC scoring baca jawaban FINAL per soal via `finalByQuestion` (last-write-wins by `SubmittedAt`, in-memory pada list yg sudah ToListAsync); `MultipleAnswer` TIDAK ter-dedupe (multi-row by design).
+- [v29.0 / STAT-01 (382-01)]: `GradeAndCompleteAsync` guard NOT IN (Completed,Abandoned,Cancelled,PendingGrading) di KEDUA branch (non-essay+essay), rowsAffected==0→false; const `AssessmentStatus.Abandoned` ditambah (single-source). Test grading pakai real-SQL disposable fixture (`Category=Integration`) — `ExecuteUpdateAsync` tak didukung EF8 InMemory.
 - [v27.0 / SHUF]: Shuffle Toggle 2 sistem independen (Acak Soal + Acak Pilihan) per-assessment, default ON dua-duanya (data lama tak berubah); engine pure `Helpers/ShuffleEngine.cs` (ON canonical / OFF q.Order / OFF≥2 round-robin `workerIndex%count` guard); exam-effect manual-only by design (D-03, anti-brittle).
 - [v25.0 / A-2]: Approve deliverable Proton cuma L4 (Sr SPV **atau** SH; 1 approver cukup). HC = final review, BUKAN approver deliverable.
 - [v25.0 / A-3]: `CompetencyLevelGranted` dimatikan — `ProtonFinalAssessment` = penanda "Lulus/Selesai" murni. Kolom dormant (tidak di-drop).
