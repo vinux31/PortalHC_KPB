@@ -6863,6 +6863,12 @@ namespace HcPortal.Controllers
 
         #region Extra Time (Phase 302)
 
+        // WSE-03 (RST-04 / D-03): per-session cap — total extra time tak boleh melebihi durasi asli ujian.
+        // Pure predicate (single source for the AddExtraTime cap gate) → unit-testable tanpa controller.
+        // Task 1 RED stub below (no cap today) — corrected in Task 4.
+        public static bool ExtraTimeWithinCap(int currentExtra, int requestMinutes, int durationMinutes)
+            => true;
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddExtraTime(int assessmentId, int minutes)

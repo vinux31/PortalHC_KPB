@@ -844,6 +844,13 @@ namespace HcPortal.Controllers
             return trainingRecords;
         }
 
+        // WSE-02 (D-01a): defensive both-sides token compare — single source for the VerifyToken gate.
+        // Both sides Trim()+ToUpper() so a legacy LOWERCASE stored token (admin edited lowercase) still
+        // matches the (client-uppercased) input — auto-heals at read-time, zero DB touch. Pure → unit-testable.
+        // Task 1 RED stub below (current single-side bug) — corrected in Task 2.
+        public static bool AccessTokenMatches(string? stored, string? input)
+            => stored == (input ?? "").ToUpper();
+
         // API: Verify Token for Assessment
         [HttpPost]
         [ValidateAntiForgeryToken]
