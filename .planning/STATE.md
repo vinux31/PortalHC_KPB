@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: executing
-last_updated: "2026-06-14T16:14:44.110Z"
+status: verifying
+last_updated: "2026-06-14T16:53:53.894Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 21
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md
 
 Phase: 381 (Worker Entry (StartExam integrity)) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-14
 
 **v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (+1 migration). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.

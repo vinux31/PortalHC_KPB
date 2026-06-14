@@ -1276,7 +1276,7 @@ Plans:
 ### Phases
 
 - [ ] **Phase 380 (A): Admin/Engine Integrity** — Worker bisa MULAI ujian dengan set soal & token yang benar (SHF-01 paket kosong tak menzerokan, TOK-01 token Pre/Post uppercase, RST-01/04 authz+cap AddExtraTime). Migration=false. Depends: none.
-- [ ] **Phase 381 (B): Worker Entry (StartExam integrity)** — Worker masuk ujian dengan paket benar (Pre/Post tak tercampur) tanpa state-nya dirusak impersonasi (NEW-same-day-PrePost, OPS-01/TOK-03 write-on-GET guard). Migration=false. Depends: Phase 380.
+- [x] **Phase 381 (B): Worker Entry (StartExam integrity)** — Worker masuk ujian dengan paket benar (Pre/Post tak tercampur) tanpa state-nya dirusak impersonasi (NEW-same-day-PrePost, OPS-01/TOK-03 write-on-GET guard). Migration=false. Depends: Phase 380. (completed 2026-06-14)
 - [ ] **Phase 382 (C): Grading / Lifecycle / Cert** — Nilai, kelulusan, dan sertifikat worker benar & tahan-race (SAVE-01, STAT-01/02, TMR-01/02/03, TOK-02, CERT-01). **Migration=TRUE** (notify IT). Depends: Phase 381.
 
 ### Phase Details
@@ -1309,7 +1309,7 @@ Plans:
 **Plans**: 3 plans
   - [x] 381-01-PLAN.md — WSE-04 shared type-aware sibling helper (D-09) + unit tests + rewire StartExam/ReshufflePackage/ReshuffleAll (Wave 1)
   - [x] 381-02-PLAN.md — WSE-05 write-on-GET impersonation guard 3 write-site + in-memory preview D-06 (Wave 2, depends 381-01)
-  - [ ] 381-03-PLAN.md — E2E #4 PrePost pool-only + #7 impersonate read-only + UAT render/migration:false gate (Wave 3, depends 381-01/02)
+  - [x] 381-03-PLAN.md — E2E #4 PrePost pool-only + #7 impersonate read-only + UAT render/migration:false gate (Wave 3, depends 381-01/02)
 **UI hint**: yes
 
 ### Phase 382: Grading / Lifecycle / Cert
@@ -1335,7 +1335,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 380. Admin/Engine Integrity | 0/? | Not started | - |
-| 381. Worker Entry (StartExam integrity) | 2/3 | In Progress|  |
+| 381. Worker Entry (StartExam integrity) | 3/3 | Complete   | 2026-06-14 |
 | 382. Grading / Lifecycle / Cert (MIGRATION) | 0/? | Not started | - |
 
 ### Coverage Validation v29.0
