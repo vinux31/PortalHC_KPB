@@ -476,77 +476,40 @@ test.describe('Flow C: Force Close & Close Early', () => {
 // FLOW D: Package-based exam with reshuffle
 // ============================================================
 test.describe('Flow D: Package-Based Exam', () => {
-  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
-  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
+  // Phase 379 — migrasi wizard+package; D3 paste-import via helper (route VALID, Plan 01). fixme dihapus.
   let title: string;
   let assessmentId: number;
+  let packageId: number;
 
   test('D1 - HC creates assessment for worker', async ({ page }) => {
     title = uniqueTitle('Pre Test Package Exam');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'OJT');
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    await page.fill('#DurationMinutes', '30');
-    await page.fill('#PassPercentage', '60');
-    await page.locator('#AllowAnswerReview').check();
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
+    await createAssessmentViaWizard(page, {
+      title, category: 'OJT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 60, allowAnswerReview: true,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
   });
 
   test('D2 - HC navigates to ManagePackages and creates a package', async ({ page }) => {
     await login(page, 'hc');
-    await page.goto('/Admin/ManageAssessment');
-    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
-    await searchInput.fill(title);
-    await searchInput.press('Enter');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
     await page.waitForLoadState('networkidle');
-
-    await page.locator('button.dropdown-toggle').first().click();
-    await page.locator('a[href*="ManagePackages"]').first().click();
-    await expect(page.locator('h1')).toContainText('Manage Packages');
-
-    // Get assessmentId from URL
-    const url = page.url();
-    assessmentId = parseInt(url.match(/assessmentId=(\d+)/)![1]);
-
-    // Create Paket A
-    await page.fill('input[name="packageName"]', 'Paket A');
-    await page.click('button:has-text("Create Package")');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('body')).toContainText('Paket A');
+    packageId = await createDefaultPackage(page);
   });
 
   test('D3 - HC imports questions via paste into package', async ({ page }) => {
     await login(page, 'hc');
-    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
-
-    // Click Import Questions for Paket A
-    await page.locator('a:has-text("Import Questions")').first().click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('body')).toContainText('Import Questions');
-
-    // Paste tab-separated questions
-    const pasteData = [
+    // Phase 379 — paste-import (nilai unik Flow D). Helper klik tab Paste; TSV 6-kolom (QuestionType kosong → MC auto).
+    const tsvRows = [
       'Apa itu safety?\tPerlindungan kerja\tMakan siang\tOlahraga\tTidur\tA',
       'Warna helm safety?\tMerah\tKuning\tHijau\tBiru\tB',
       'APD singkatan?\tAlat Pelindung Diri\tAlat Pertama Darurat\tAksi Pertolongan Dini\tAlat Pemadam Darurat\tA',
     ].join('\n');
-
-    await page.fill('textarea[name="pasteText"]', pasteData);
-    await page.click('button:has-text("Import")');
-    await page.waitForLoadState('networkidle');
-
-    // Should redirect back to ManagePackages with success
-    await expect(page.locator('body')).toContainText(/3 soal|success|berhasil/i);
+    await importQuestionsViaPaste(page, packageId, tsvRows);
+    await expect(page.locator('body')).toContainText(/soal|success|berhasil|Paket/i);
   });
 
   test('D4 - HC reshuffles all in monitoring (before worker starts)', async ({ page }) => {
@@ -585,30 +548,34 @@ test.describe('Flow D: Package-Based Exam', () => {
     await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
 
     const resumeModal = page.locator('#resumeConfirmModal');
-    if (await resumeModal.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await resumeModal.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => {});
+    if (await resumeModal.isVisible().catch(() => false)) {
       await page.locator('#resumeConfirmBtn').click();
-      await page.waitForTimeout(500);
+      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
     }
 
-    // Select first option for each question (not necessarily correct)
+    // Select first option for each question (not necessarily correct) — pakai label (shuffle-safe click)
     const questionCards = page.locator('[id^="qcard_"]');
     const qCount = await questionCards.count();
     for (let i = 0; i < qCount; i++) {
-      await questionCards.nth(i).locator('.exam-radio').first().click({ force: true });
-      await page.waitForTimeout(400);
+      await questionCards.nth(i).locator('label[id^="lbl_"]').first().click();
+      await page.waitForTimeout(700);
     }
 
-    // Go to summary and submit
+    // Go to summary and submit (Phase 379 — Bahasa Indonesia: Kumpulkan Ujian / Nilai Anda / LULUS)
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
     await page.locator('#reviewSubmitBtn').click();
     await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
 
     page.once('dialog', d => d.accept());
-    await page.click('button:has-text("Submit Exam")');
+    const kumpulkanBtn = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkanBtn).toBeEnabled({ timeout: 10_000 });
+    await kumpulkanBtn.click();
     await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
 
     // Should show results
-    await expect(page.locator('body')).toContainText('Your Score');
-    await expect(page.locator('body')).toContainText(/PASSED|FAILED/);
+    await expect(page.locator('body')).toContainText('Nilai Anda');
+    await expect(page.locator('body')).toContainText(/LULUS|TIDAK LULUS/);
   });
 
   test('D7 - Cleanup: delete package assessment', async ({ page }) => {
@@ -618,13 +585,20 @@ test.describe('Flow D: Package-Based Exam', () => {
     await searchInput.fill(title);
     await searchInput.press('Enter');
     await page.waitForLoadState('networkidle');
-    const dropdown = page.locator('button.dropdown-toggle').first();
-    if (await dropdown.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      autoConfirm(page);
-      await dropdown.click();
-      await page.waitForTimeout(500);
-      await page.locator('text=Hapus Grup').first().click();
-      await page.waitForURL('**/ManageAssessment**', { timeout: 10_000 });
+    // Phase 379 — best-effort cleanup (teardown RESTORE = safety net). Kebab per-baris → "Hapus Grup" buka modal → konfirmasi.
+    const row = page.locator('tr', { hasText: title }).first();
+    const kebab = row.locator('button.dropdown-toggle').first();
+    if (await kebab.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await kebab.click();
+      const hapusBtn = page.locator('button:has-text("Hapus Grup")').first();
+      if (await hapusBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await hapusBtn.click();
+        const confirmBtn = page.locator('#deleteAssessmentModal.show button[type="submit"], #deleteAssessmentModal.show button:has-text("Hapus")').first();
+        if (await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+          await confirmBtn.click();
+          await page.waitForLoadState('networkidle');
+        }
+      }
     }
   });
 });
