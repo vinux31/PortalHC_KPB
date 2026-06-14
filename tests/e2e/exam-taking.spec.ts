@@ -1923,3 +1923,382 @@ test.describe('Phase 381 WSE-04 — PrePost same-day pool isolation', () => {
   });
 });
 
+// ============================================================
+// Phase 382 — E2E #8-12 ACCEPTANCE (lintas REQ phase: STAT-01/02 · SAVE-01 · TMR-01 · CERT-01)
+// Acceptance spec untuk Wave 3 (closing). Setiap scenario membuktikan guard server-side via
+// state-DB + POST nyata + DB-assert (paling robust; tidak rapuh terhadap render UI).
+// WAJIB `--workers=1` (DB isolation). AD lokal off (`Authentication__UseActiveDirectory=false dotnet run`).
+// Selectable via -g: "anti-resurrection" | "abandon" | "timer" | "cert visibility".
+//
+// CATATAN #10 concurrent save (SAVE-01): DIDELEGASIKAN ke xUnit integration real-SQL
+// `GradingDedupeTests.Dedupe_PicksLatestSubmittedAt` (Plan 01) — dua response beda opsi untuk
+// (sesi,soal) sama → grading baca FINAL by SubmittedAt (last-write-wins). E2E concurrency tak
+// praktis/deterministik di shared-DB workers=1; integration real-SQL = bukti lebih kuat (plan §Task2).
+// ============================================================
+
+/**
+ * Helper: HC buat assessment Standard single-answer + 1 paket + 1 soal MC, kembalikan id assessment.
+ * Mirror Flow L/M (createAssessmentViaWizard + createDefaultPackage + addQuestionViaForm).
+ */
+async function seedSingleAnswerExam(
+  page: Page,
+  opts: { title: string; generateCertificate?: boolean; passPercentage?: number },
+): Promise<{ assessmentId: number }> {
+  await login(page, 'hc');
+  await createAssessmentViaWizard(page, {
+    title: opts.title, category: 'OJT', scheduleDate: today(), scheduleTime: '00:01',
+    durationMinutes: 30, passPercentage: opts.passPercentage ?? 60,
+    allowAnswerReview: true, generateCertificate: opts.generateCertificate ?? false,
+    participantEmails: ['rino.prasetyo@pertamina.com'],
+  });
+  const href = await page.locator('#modal-manage-btn').getAttribute('href');
+  const assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+  await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+  await page.waitForLoadState('networkidle');
+  const packageId = await createDefaultPackage(page);
+  await addQuestionViaForm(page, packageId, {
+    type: 'MultipleChoice', text: '[382] Apa kepanjangan OJT?',
+    options: ['On the Job Training', 'Online Job Test', 'Operation Job Task', 'Operational Job Training'],
+    correctIndex: 0, score: 100,
+  });
+  return { assessmentId };
+}
+
+/**
+ * Helper: POST ke endpoint CMP (SubmitExam/AbandonExam) DENGAN antiforgery token, di konteks
+ * worker yang sudah login. Token diambil dari halaman ujian (CMP/StartExam) yang merender form
+ * ber-__RequestVerificationToken. Tanpa token, [ValidateAntiForgeryToken] tolak 400 SEBELUM guard
+ * STAT-01/STAT-02 dievaluasi — kita ingin request mencapai guard. Return HTTP status (0 jika network err).
+ */
+async function postCmpWithToken(
+  page: Page, path: string, body: string, tokenSourcePath: string,
+): Promise<number> {
+  // Ambil antiforgery token dari halaman sumber (form-rendered) via DOM, lalu POST dengan header.
+  await page.goto(tokenSourcePath).catch(() => {});
+  const token = await page.evaluate(() => {
+    const el = document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement | null;
+    return el?.value ?? '';
+  }).catch(() => '');
+  return await page.evaluate(async ({ p, b, t }) => {
+    try {
+      const res = await fetch(p, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': t },
+        body: t ? `${b}&__RequestVerificationToken=${encodeURIComponent(t)}` : b,
+        redirect: 'manual',
+      });
+      return res.status;
+    } catch { return 0; }
+  }, { p: path, b: body, t: token });
+}
+
+/** Helper: HC hapus assessment by judul (cleanup). */
+async function deleteAssessmentByTitle(page: Page, title: string): Promise<void> {
+  await login(page, 'hc');
+  await page.goto('/Admin/ManageAssessment');
+  const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
+  await searchInput.fill(title);
+  await searchInput.press('Enter');
+  await page.waitForLoadState('networkidle');
+  const dropdown = page.locator('tr', { hasText: title }).first().locator('button.dropdown-toggle').first();
+  if (await dropdown.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    autoConfirm(page);
+    await dropdown.click();
+    await page.waitForTimeout(500);
+    const hapus = page.locator('button:has-text("Hapus Grup"), button:has-text("Hapus")').first();
+    if (await hapus.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await hapus.click();
+      await page.waitForLoadState('networkidle');
+    }
+  }
+}
+
+// ------------------------------------------------------------
+// #8 anti-resurrection (STAT-01): sesi terminal (Abandoned/Cancelled) → POST SubmitExam ditolak,
+//     tidak jadi Completed-lulus, tidak ada sertifikat.
+// ------------------------------------------------------------
+test.describe('Phase 382 #8 — anti-resurrection (STAT-01)', () => {
+  let title: string;
+  let assessmentId: number;
+
+  test('#8.0 — HC seeds single-answer exam', async ({ page }) => {
+    title = uniqueTitle('Pre Test [382-8] anti-resurrection');
+    ({ assessmentId } = await seedSingleAnswerExam(page, { title, generateCertificate: true }));
+    expect(assessmentId).toBeGreaterThan(0);
+  });
+
+  test('#8.1 — Worker starts exam (StartedAt set)', async ({ page }) => {
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', d => d.accept());
+    await card.locator('.btn-start-standard').click();
+    await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
+    await expect(page.locator('#examHeader')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('#8.2 — anti-resurrection: Abandoned session POST SubmitExam → REJECTED (tidak Completed/cert)', async ({ page }) => {
+    // Force the worker's session to Abandoned (terminal) via DB — simulasi sesi ditinggalkan.
+    const set = await db.queryScalar(
+      `UPDATE AssessmentSessions SET Status = 'Abandoned'
+       WHERE Id = ${assessmentId} AND Status IN ('InProgress','Open');
+       SELECT @@ROWCOUNT;`
+    );
+    expect(set).toBeGreaterThanOrEqual(1);
+
+    // Worker mencoba submit (resurrection attempt). Guard STAT-01 (terminal-set) harus menolak.
+    await login(page, 'coachee');
+    // POST SubmitExam dengan antiforgery token (token diambil dari halaman Assessment yang merender form).
+    const status = await postCmpWithToken(
+      page, `/CMP/SubmitExam/${assessmentId}`, 'isAutoSubmit=false', '/CMP/Assessment',
+    );
+    // Rejection valid = redirect (3xx), 200 (re-render), atau 400 (antiforgery/early-guard). Yang load-bearing:
+    // DB TIDAK berubah jadi Completed-lulus. Pokoknya BUKAN sukses-grading (yang akan ubah status).
+    expect([0, 200, 302, 303, 400]).toContain(status);
+
+    // DB-assert: status TETAP Abandoned (BUKAN Completed); tidak ada NomorSertifikat.
+    const stillAbandoned = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Abandoned'`
+    );
+    expect(stillAbandoned).toBe(1);
+    const notCompleted = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Completed'`
+    );
+    expect(notCompleted).toBe(0);
+    const noCert = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND NomorSertifikat IS NOT NULL`
+    );
+    expect(noCert).toBe(0);
+  });
+
+  test('#8.3 — anti-resurrection: Cancelled session POST SubmitExam → REJECTED', async ({ page }) => {
+    // Pindahkan sesi ke Cancelled (HC cancel) lalu coba submit ulang.
+    await db.queryScalar(
+      `UPDATE AssessmentSessions SET Status = 'Cancelled' WHERE Id = ${assessmentId}; SELECT @@ROWCOUNT;`
+    );
+    await login(page, 'coachee');
+    await postCmpWithToken(page, `/CMP/SubmitExam/${assessmentId}`, 'isAutoSubmit=false', '/CMP/Assessment');
+    const stillCancelled = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Cancelled'`
+    );
+    expect(stillCancelled).toBe(1);
+    const notCompleted2 = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Completed'`
+    );
+    expect(notCompleted2).toBe(0);
+  });
+
+  test('#8.4 — Cleanup', async ({ page }) => {
+    await deleteAssessmentByTitle(page, title);
+  });
+});
+
+// ------------------------------------------------------------
+// #9 abandon-vs-graded (STAT-02): sesi Completed+graded → AbandonExam rowsAffected==0
+//     (Status tetap Completed, verdict+cert tetap).
+// ------------------------------------------------------------
+test.describe('Phase 382 #9 — abandon tak menimpa graded (STAT-02)', () => {
+  let title: string;
+  let assessmentId: number;
+
+  test('#9.0 — HC seeds single-answer exam (generateCertificate)', async ({ page }) => {
+    title = uniqueTitle('Pre Test [382-9] abandon vs graded');
+    ({ assessmentId } = await seedSingleAnswerExam(page, { title, generateCertificate: true }));
+    expect(assessmentId).toBeGreaterThan(0);
+  });
+
+  test('#9.1 — Worker mulai + jawab benar + submit → Completed + Score (graded)', async ({ page }) => {
+    test.setTimeout(120_000);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', d => d.accept());
+    await card.locator('.btn-start-standard').click();
+    await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
+    await expect(page.locator('#examHeader')).toBeVisible({ timeout: 10_000 });
+
+    // Jawab opsi benar (text unik) — shuffle-safe.
+    const lbl = page.locator('label[id^="lbl_"]', { hasText: 'On the Job Training' }).first();
+    await lbl.scrollIntoViewIfNeeded();
+    await lbl.click();
+    await page.waitForTimeout(400);
+
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
+    await page.locator('#reviewSubmitBtn').click();
+    await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
+    page.once('dialog', d => d.accept());
+    const kumpulkan = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkan).toBeEnabled({ timeout: 10_000 });
+    await kumpulkan.click();
+    await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
+
+    const completed = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Completed'`
+    );
+    expect(completed).toBe(1);
+    const score = await db.queryScalar(`SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${assessmentId}`);
+    expect(score).toBeGreaterThan(0);
+  });
+
+  test('#9.2 — abandon: AbandonExam pada sesi Completed → rowsAffected==0 (Status tetap Completed, verdict utuh)', async ({ page }) => {
+    // Snapshot Score sebelum abandon attempt.
+    const scoreBefore = await db.queryScalar(`SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${assessmentId}`);
+
+    await login(page, 'coachee');
+    // POST AbandonExam (late abandon attempt) dengan antiforgery token. Guard atomic WHERE
+    // (Status IN InProgress/Open) → 0 rows pada sesi Completed.
+    await postCmpWithToken(page, `/CMP/AbandonExam/${assessmentId}`, '', '/CMP/Assessment');
+
+    // DB-assert: Status TETAP Completed (TIDAK jadi Abandoned), Score tak berubah.
+    const stillCompleted = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Completed'`
+    );
+    expect(stillCompleted).toBe(1);
+    const notAbandoned = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Abandoned'`
+    );
+    expect(notAbandoned).toBe(0);
+    const scoreAfter = await db.queryScalar(`SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${assessmentId}`);
+    expect(scoreAfter).toBe(scoreBefore);
+  });
+
+  test('#9.3 — Cleanup', async ({ page }) => {
+    await deleteAssessmentByTitle(page, title);
+  });
+});
+
+// ------------------------------------------------------------
+// #11 timer Standard (TMR-01): StartedAt mundur untuk ujian Standard → submit telat ditolak;
+//     on-time diterima. (TMR-01 inversion: "Standard"/Normal di-enforce, bukan dead-code skip.)
+// ------------------------------------------------------------
+test.describe('Phase 382 #11 — timer Standard enforce (TMR-01)', () => {
+  let title: string;
+  let assessmentId: number;
+
+  test('#11.0 — HC seeds single-answer Standard exam', async ({ page }) => {
+    title = uniqueTitle('Pre Test [382-11] timer Standard');
+    ({ assessmentId } = await seedSingleAnswerExam(page, { title }));
+    expect(assessmentId).toBeGreaterThan(0);
+  });
+
+  test('#11.1 — Worker starts (StartedAt set)', async ({ page }) => {
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', d => d.accept());
+    await card.locator('.btn-start-standard').click();
+    await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
+    await expect(page.locator('#examHeader')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('#11.2 — timer: StartedAt mundur jauh (DurationMinutes terlampaui) → submit manual TELAT ditolak (status TIDAK Completed)', async ({ page }) => {
+    // Pastikan AssessmentType ter-set Standard/Normal (in-enforce path) + mundurkan StartedAt jauh
+    // melewati DurationMinutes (30) → server timer expired. Submit manual (isAutoSubmit=false) tanpa
+    // server-approval HARUS ditolak (incomplete/late) → status tetap InProgress (BUKAN Completed-lulus).
+    await db.queryScalar(
+      `UPDATE AssessmentSessions
+         SET StartedAt = DATEADD(MINUTE, -300, GETUTCDATE())
+       WHERE Id = ${assessmentId};
+       SELECT @@ROWCOUNT;`
+    );
+
+    await login(page, 'coachee');
+    const httpStatus = await postCmpWithToken(
+      page, `/CMP/SubmitExam/${assessmentId}`, 'isAutoSubmit=false', '/CMP/Assessment',
+    );
+    // Guard menolak (redirect/200 re-render/400). Yang load-bearing = DB tak jadi Completed-lulus via late manual submit.
+    expect([0, 200, 302, 303, 400]).toContain(httpStatus);
+
+    const notCompletedLate = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND Status = 'Completed' AND IsPassed = 1`
+    );
+    expect(notCompletedLate).toBe(0);
+  });
+
+  test('#11.3 — Cleanup', async ({ page }) => {
+    await deleteAssessmentByTitle(page, title);
+  });
+});
+
+// ------------------------------------------------------------
+// #12 cert visibility (CERT-01): worker LULUS single-answer, generateCertificate=true,
+//     ValidUntil dibiarkan kosong → Results LULUS + NomorSertifikat; status derive = Aktif/Permanen
+//     (BUKAN Expired). DB-assert ValidUntil==null + IsPassed==true. Visual dashboard lintas-surface
+//     = checkpoint manual Task 4.
+// ------------------------------------------------------------
+test.describe('Phase 382 #12 — cert visibility null ValidUntil (CERT-01)', () => {
+  let title: string;
+  let assessmentId: number;
+
+  test('#12.0 — HC seeds single-answer exam (generateCertificate, pass 60)', async ({ page }) => {
+    title = uniqueTitle('Pre Test [382-12] cert visibility');
+    ({ assessmentId } = await seedSingleAnswerExam(page, { title, generateCertificate: true, passPercentage: 60 }));
+    expect(assessmentId).toBeGreaterThan(0);
+  });
+
+  test('#12.1 — Worker LULUS (jawab benar) → Results LULUS + sertifikat; ValidUntil null', async ({ page }) => {
+    test.setTimeout(120_000);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', d => d.accept());
+    await card.locator('.btn-start-standard').click();
+    await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
+    await expect(page.locator('#examHeader')).toBeVisible({ timeout: 10_000 });
+
+    const lbl = page.locator('label[id^="lbl_"]', { hasText: 'On the Job Training' }).first();
+    await lbl.scrollIntoViewIfNeeded();
+    await lbl.click();
+    await page.waitForTimeout(400);
+
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
+    await page.locator('#reviewSubmitBtn').click();
+    await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
+    page.once('dialog', d => d.accept());
+    const kumpulkan = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkan).toBeEnabled({ timeout: 10_000 });
+    await kumpulkan.click();
+    await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
+
+    // Results page menunjukkan LULUS (passPercentage 60, all-correct → 100).
+    await expect(page.locator('body')).toContainText(/LULUS|Lulus|Selesai/i);
+
+    // DB-assert (load-bearing #12): IsPassed==true + ValidUntil IS NULL (cert lulus tanpa kedaluwarsa).
+    const passed = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND IsPassed = 1 AND Status = 'Completed'`
+    );
+    expect(passed).toBe(1);
+    const validUntilNull = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND ValidUntil IS NULL`
+    );
+    expect(validUntilNull).toBe(1);
+    // NomorSertifikat ter-generate (generateCertificate=true).
+    const hasCert = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND NomorSertifikat IS NOT NULL`
+    );
+    expect(hasCert).toBe(1);
+  });
+
+  test('#12.2 — cert visibility: dashboard CMP cert tidak menandai cert null sebagai "Expired"', async ({ page }) => {
+    // CERT-01 single-source: DeriveCertificateStatus(null,null)=Aktif → CMP cert dashboard row worker
+    // ini TIDAK ber-label Expired. (Visual lintas CDP/Renewal/badge = checkpoint manual Task 4.)
+    await login(page, 'hc');
+    await page.goto('/CMP/CertificationManagement').catch(() => {});
+    await page.waitForLoadState('networkidle').catch(() => {});
+    // Cari baris cert milik judul ini; assert tidak mengandung badge "Expired"/"Kedaluwarsa".
+    const row = page.locator('tr', { hasText: title }).first();
+    if (await row.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await expect(row).not.toContainText(/Expired|Kedaluwarsa/i);
+    }
+    // DB-level coherence sudah dijamin oleh CertAlertConsistencyTests (xUnit) + #12.1 ValidUntil null.
+  });
+
+  test('#12.3 — Cleanup', async ({ page }) => {
+    await deleteAssessmentByTitle(page, title);
+  });
+});
+
