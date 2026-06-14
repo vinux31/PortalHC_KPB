@@ -989,7 +989,8 @@ namespace HcPortal.Controllers
                 }
             }
 
-            if (justStarted)
+            // WSE-05/D-04 (OPS-01/TOK-03): write-on-GET guard, mirror 911-917 — JANGAN tulis state worker saat impersonate.
+            if (justStarted && !_impersonationService.IsImpersonating())
             {
                 assessment.Status = "InProgress";
                 assessment.StartedAt = DateTime.UtcNow;
@@ -997,7 +998,8 @@ namespace HcPortal.Controllers
             }
 
             // SignalR push: notify HC monitor group that worker started (only on first entry)
-            if (justStarted)
+            // WSE-05/D-04 (OPS-01/TOK-03): broadcast+log hanya saat worker asli mulai (bukan impersonate).
+            if (justStarted && !_impersonationService.IsImpersonating())
             {
                 var startBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
                 await _hubContext.Clients.Group($"monitor-{startBatchKey}").SendAsync("workerStarted",
@@ -1070,20 +1072,26 @@ namespace HcPortal.Controllers
                     };
                     // Record question count for stale-question detection on resume (RESUME-03 safety net)
                     assignment.SavedQuestionCount = shuffledIds.Count;
-                    _context.UserPackageAssignments.Add(assignment);
-                    try
+
+                    // WSE-05/D-06: saat impersonate, JANGAN persist — object in-memory cukup feed view (preview read-only).
+                    // Worker asli StartExam nanti → assignment baru ter-create & persist normal (SC#3 deferred-start).
+                    if (!_impersonationService.IsImpersonating())
                     {
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (DbUpdateException)
-                    {
-                        // Race condition: another request already created the assignment (double-click/duplicate tab)
-                        // Reload the existing assignment and continue
-                        _context.ChangeTracker.Clear();
-                        assignment = await _context.UserPackageAssignments
-                            .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
-                        if (assignment == null)
-                            throw; // genuinely unexpected — rethrow
+                        _context.UserPackageAssignments.Add(assignment);
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (DbUpdateException)
+                        {
+                            // Race condition: another request already created the assignment (double-click/duplicate tab)
+                            // Reload the existing assignment and continue
+                            _context.ChangeTracker.Clear();
+                            assignment = await _context.UserPackageAssignments
+                                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+                            if (assignment == null)
+                                throw; // genuinely unexpected — rethrow
+                        }
                     }
                 }
 
