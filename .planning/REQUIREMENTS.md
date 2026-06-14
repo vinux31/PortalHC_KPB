@@ -19,7 +19,7 @@
 ### Phase 381 (B) — Worker Entry (StartExam integrity) — depends A
 
 - [x] **WSE-04**: Worker yang mengerjakan Pre/Post same-day menerima HANYA paket ujian itu (Pre & Post tak tercampur). *(NEW-same-day-PrePost. `CMPController.StartExam` sibling query + filter `AssessmentType`/LinkedGroupId.)*
-- [ ] **WSE-05**: Admin yang impersonate/membuka ujian worker TIDAK memulai ujian atau membakar waktu/mengunci shuffle worker. *(OPS-01 + TOK-03. Wrap semua write-on-GET StartExam dgn `if(!IsImpersonating())`.)*
+- [x] **WSE-05**: Admin yang impersonate/membuka ujian worker TIDAK memulai ujian atau membakar waktu/mengunci shuffle worker. *(OPS-01 + TOK-03. Wrap semua write-on-GET StartExam dgn `if(!IsImpersonating())`.)*
 
 ### Phase 382 (C) — Grading / Lifecycle / Cert (nilai & hasil benar) — depends B · **MIGRATION**
 
@@ -55,7 +55,7 @@
 | WSE-02 | 380 | pending |
 | WSE-03 | 380 | pending |
 | WSE-04 | 381 | Complete |
-| WSE-05 | 381 | pending |
+| WSE-05 | 381 | Complete |
 | WSE-06 | 382 | pending |
 | WSE-07 | 382 | pending |
 | WSE-08 | 382 | pending |
