@@ -1535,3 +1535,104 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// ============================================================
+// FLOW K (BARU, Phase 379 D-01): Essay Full Cycle + Score Aggregation (GRADE-01)
+// Bukti hidup fix GRADE-01 Phase 376 di suite exam-taking: wizard essay → worker fillEssayAnswer →
+// HC grade 80 + finalize → ASSERT AssessmentSessions.Score === 80 (BUKAN 0) via DB-scalar (bukan UI badge).
+// Port pola exam-types.spec.ts:305-428 (FLOW L), marker [379-K].
+// ============================================================
+test.describe('Flow K: Essay Full Cycle + Score Aggregation (GRADE-01)', () => {
+  let title: string;
+  const category = 'IHT';
+  let scheduleDate: string;
+  let assessmentId: number;
+  let packageId: number;
+  let sessionId: number;
+  const Q_MARKER = '[379-K] Essay GRADE-01 regression';
+
+  test('K1 — HC creates Essay assessment via wizard', async ({ page }) => {
+    title = uniqueTitle('Pre Test [379-K] Essay');
+    scheduleDate = today();
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title, category, scheduleDate, scheduleTime: '00:01',
+      durationMinutes: 60, passPercentage: 70, allowAnswerReview: true,
+      generateCertificate: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+  });
+
+  test('K2 — HC navigates ManagePackages → createDefaultPackage', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+  });
+
+  test('K3 — HC adds 1 Essay question', async ({ page }) => {
+    await login(page, 'hc');
+    await addQuestionViaForm(page, packageId, {
+      type: 'Essay',
+      text: `${Q_MARKER} — Jelaskan peran OJT dalam pengembangan kompetensi pekerja (min. 100 kata).`,
+      rubrik: 'Penilaian: kelengkapan jawaban + relevansi teori OJT + struktur paragraf. Skor 0-100.',
+      maxCharacters: 2000,
+      score: 100,
+    });
+  });
+
+  test('K4 — Worker fills essay + submits → PendingGrading', async ({ page }) => {
+    test.setTimeout(120_000);
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    page.once('dialog', (d) => d.accept());
+    await card
+      .locator('a:has-text("Mulai"), a:has-text("Start"), .btn-start-standard, a:has-text("Resume")')
+      .first()
+      .click();
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+
+    await page.waitForFunction(
+      () => {
+        const w = window as unknown as { assessmentHub?: { state?: string } };
+        return w.assessmentHub?.state === 'Connected';
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+
+    sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
+
+    const qCard = page.locator('[id^="qcard_"]').filter({ hasText: Q_MARKER });
+    await expect(qCard).toHaveCount(1);
+    await fillEssayAnswer(
+      page,
+      qCard,
+      'OJT (On-the-Job Training) adalah metode pembelajaran terstruktur di tempat kerja yang ' +
+        'menggabungkan teori dengan praktek nyata: transfer pengetahuan coach→coachee, pengasahan ' +
+        'keterampilan teknis lewat observasi langsung, penilaian berbasis kinerja aktual, feedback ' +
+        'loop real-time, dan building muscle memory melalui pengulangan operasional. (E2E [379-K] GRADE-01)'
+    );
+    await submitExamTwoStep(page);
+  });
+
+  test('K5 — HC grades essay 80 + finalize', async ({ page }) => {
+    test.setTimeout(120_000);
+    await login(page, 'hc');
+    await gradeSingleEssaySession(page, { title, category, scheduleDate, sessionId, score: 80 });
+  });
+
+  test('K6 — DB assert Score aggregated (GRADE-01: NOT 0)', async () => {
+    // Phase 376 GRADE-01: essay-only finalize agregasi EssayScore manual → AssessmentSessions.Score.
+    // Assert via DB-scalar (BUKAN UI badge "Sudah Dinilai") supaya buktikan agregasi numerik (D-01).
+    const score = await db.queryScalar(`SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${sessionId}`);
+    expect(score).toBe(80); // bukan 0 → fix 376 terbukti e2e di suite exam-taking
+    const completed = await db.queryScalar(`SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${sessionId} AND Status = 'Completed'`);
+    expect(completed).toBe(1);
+  });
+});
+
