@@ -1743,6 +1743,14 @@ namespace HcPortal.Controllers
                     return RedirectToAction("Results", new { id });
                 }
 
+                // TMR-03 (WSE-09 / T-382-10): konsumsi AutoSubmitToken HANYA setelah grading sukses (one-shot).
+                // EnsureCanSubmitExamAsync sengaja TIDAK remove token (TempData.Keep) → bila grading sempat gagal
+                // (DB hiccup), retry masih punya token (tak permanent-reject). Di sini grading sudah commit sukses.
+                if (ShouldConsumeAutoSubmitToken(graded))
+                {
+                    TempData.Remove($"AutoSubmitToken_{id}");
+                }
+
                 // MAM-05: GradingService set essay Status=PendingGrading via ExecuteUpdateAsync (bypass change-tracker).
                 // Entity `assessment` tidak ter-update — reload status dari DB untuk tahu apakah essay-pending.
                 var freshStatus = await _context.AssessmentSessions
@@ -4442,14 +4450,13 @@ namespace HcPortal.Controllers
         /// <summary>
         /// TMR-01: apakah timer submit di-enforce untuk AssessmentType ini.
         /// BLOCKLIST — skip HANYA Manual / null / kosong; selain itu (Standard/Online/PreTest/PostTest) di-enforce.
-        /// STUB (Wave 0): masih meniru BUG allowlist (Standard di-skip) → di-fix Task 4.
+        /// TMR-01 (WSE-09 / T-382-07): inversi dari allowlist lama (yg meninggalkan "Standard" tak ter-enforce = dead code).
         /// </summary>
         public static bool ShouldEnforceSubmitTimer(string? assessmentType)
         {
-            // STUB RED — perilaku BUG saat ini (allowlist): hanya Online/PreTest/PostTest yg enforce, Standard skip.
-            return assessmentType == AssessmentConstants.AssessmentType.Online
-                || assessmentType == AssessmentConstants.AssessmentType.PreTest
-                || assessmentType == AssessmentConstants.AssessmentType.PostTest;
+            // Skip guard HANYA untuk Manual / null / kosong; sisanya (termasuk literal "Standard") di-enforce.
+            return !(assessmentType == AssessmentConstants.AssessmentType.Manual
+                || string.IsNullOrEmpty(assessmentType));
         }
 
         public enum SubmitTimerDecision { Pass, BlockNoGrace, BlockGrace }
@@ -4478,14 +4485,10 @@ namespace HcPortal.Controllers
         }
 
         /// <summary>
-        /// TMR-03: apakah AutoSubmitToken boleh dikonsumsi (di-remove). HANYA pada grading sukses.
-        /// STUB (Wave 0): selalu true (model bug konsumsi tanpa syarat) → di-fix Task 4.
+        /// TMR-03 (WSE-09 / T-382-10): apakah AutoSubmitToken boleh dikonsumsi (di-remove). HANYA pada grading sukses.
+        /// Bila grading gagal (DB hiccup), token TIDAK dikonsumsi → retry aman (tak permanent-reject).
         /// </summary>
-        public static bool ShouldConsumeAutoSubmitToken(bool gradingSucceeded)
-        {
-            // STUB RED — meniru perilaku bug (konsumsi pre-grading / tanpa syarat sukses).
-            return true;
-        }
+        public static bool ShouldConsumeAutoSubmitToken(bool gradingSucceeded) => gradingSucceeded;
         // ================================================================================
 
         private async Task<IActionResult?> EnsureCanSubmitExamAsync(
@@ -4494,11 +4497,10 @@ namespace HcPortal.Controllers
             string? autoSubmitToken,
             int sessionId)
         {
-            // D-15 / C-01: Manual type exclude via explicit field check (defense-in-depth).
-            // Field di model adalah `AssessmentType` (Models/AssessmentSession.cs:154 verified).
-            if (assessment.AssessmentType != AssessmentConstants.AssessmentType.Online &&
-                assessment.AssessmentType != AssessmentConstants.AssessmentType.PreTest &&
-                assessment.AssessmentType != AssessmentConstants.AssessmentType.PostTest)
+            // TMR-01 (WSE-09 / T-382-07): enforce untuk Standard/Online/PreTest/PostTest; skip HANYA Manual/null.
+            // Sebelumnya allowlist (Online/PreTest/PostTest) → "Standard" jatuh ke skip = dead code (timer tak ditegakkan).
+            // Logika blocklist dipusatkan di pure helper ShouldEnforceSubmitTimer (anti-drift, ter-uji unit).
+            if (!ShouldEnforceSubmitTimer(assessment.AssessmentType))
             {
                 return null; // Manual / null AssessmentType — skip guard
             }
@@ -4507,7 +4509,7 @@ namespace HcPortal.Controllers
             if (!assessment.StartedAt.HasValue) return null;
 
             // Phase 313 WR-02 fix: gunakan satuan dan operator yang konsisten — detik integer, ≥.
-            // Selaras dengan ExamSummary GET (line 1542) dan SubmitExam awal (line 1585).
+            // Selaras dengan ExamSummary GET dan SubmitExam awal.
             var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
             int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0);
             double elapsedSec = elapsed.TotalSeconds;
@@ -4516,8 +4518,10 @@ namespace HcPortal.Controllers
 
             // Phase 313 CR-01 fix: server-side token validation menggantikan trust client `isAutoSubmit`.
             // Token = one-shot Guid yang di-issue di ExamSummary GET saat timerExpired=true (TempData).
-            // Validate + consume di sini: kalau token cocok → request datang dari path auto-submit yang sah.
             // Kalau attacker spoof `isAutoSubmit=true` via DevTools tanpa token valid, Tier-1 tetap reject.
+            // TMR-03 (Pitfall 3): JANGAN remove token di sini (pre-grading). Konsumsi ditunda ke SubmitExam
+            // success path (setelah GradeAndCompleteAsync sukses) supaya retry pasca-DB-hiccup tidak permanent-reject.
+            // TempData.Keep dipanggil supaya token bertahan ke request berikutnya bila pass (read tak meng-clear).
             bool serverApprovedAutoSubmit = false;
             var tempKey = $"AutoSubmitToken_{sessionId}";
             var expectedToken = TempData[tempKey] as string;
@@ -4527,13 +4531,14 @@ namespace HcPortal.Controllers
             {
                 serverApprovedAutoSubmit = true;
             }
-            // TempData accessed-and-cleared (one-shot semantics): pastikan token tidak bisa dipakai ulang.
-            TempData.Remove(tempKey);
+            // Pertahankan token (peek semantics) — konsumsi hanya di success path (TMR-03).
+            TempData.Keep(tempKey);
 
-            // Tier 1 (Phase 313 NEW + CR-01 hardening): manual reject tanpa grace (D-09 strict 0-grace).
-            // Reject kalau elapsed > allowed DAN tidak ada server-approved auto-submit token.
-            // Client `isAutoSubmitClientHint` TIDAK lagi sufficient — harus dibarengi token sah.
-            if (elapsedSec >= allowedSec && !serverApprovedAutoSubmit)
+            // Keputusan tier (pure helper, ter-uji unit). D-05: on-time auto-submit (server-approved) tetap Pass.
+            var decision = EvaluateSubmitTimerDecision(elapsedSec, allowedSec, graceLimitSec, serverApprovedAutoSubmit);
+
+            // Tier 1 (Phase 313 NEW + CR-01 hardening): manual reject tanpa grace (D-09 strict 0-grace) + audit.
+            if (decision == SubmitTimerDecision.BlockNoGrace)
             {
                 await WriteSubmitBlockedAuditAsync(assessment, elapsed, allowedMinutes);
                 // D-01 explanatory message — Bahasa Indonesia per CLAUDE.md.
@@ -4543,13 +4548,13 @@ namespace HcPortal.Controllers
 
             // Tier 2 (existing LIFE-03 preserved): auto reject setelah grace.
             // D-06: TIDAK tulis AuditLog Blocked entry untuk Tier 2 (scope minimal, hanya tier-1 yang baru).
-            if (elapsedSec >= graceLimitSec)
+            if (decision == SubmitTimerDecision.BlockGrace)
             {
                 TempData["Error"] = "Waktu ujian Anda telah habis. Pengiriman jawaban tidak dapat diproses.";
                 return RedirectToAction("StartExam", new { id = assessment.Id });
             }
 
-            return null; // Pass — caller lanjut grading flow.
+            return null; // Pass — caller lanjut grading flow (token belum dikonsumsi, di-remove pasca-grading).
         }
 
         /// <summary>
