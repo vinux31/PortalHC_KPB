@@ -21,14 +21,14 @@
 - [x] **WSE-04**: Worker yang mengerjakan Pre/Post same-day menerima HANYA paket ujian itu (Pre & Post tak tercampur). *(NEW-same-day-PrePost. `CMPController.StartExam` sibling query + filter `AssessmentType`/LinkedGroupId.)*
 - [x] **WSE-05**: Admin yang impersonate/membuka ujian worker TIDAK memulai ujian atau membakar waktu/mengunci shuffle worker. *(OPS-01 + TOK-03. Wrap semua write-on-GET StartExam dgn `if(!IsImpersonating())`.)*
 
-### Phase 382 (C) — Grading / Lifecycle / Cert (nilai & hasil benar) — depends B · **MIGRATION**
+### Phase 382 (C) — Grading / Lifecycle / Cert (nilai & hasil benar) — depends B · no-migration (dedupe last-write-wins)
 
 - [x] **WSE-06**: Nilai worker single-answer dihitung dari jawaban FINAL tersimpan (tanpa baris duplikat/stale). *(SAVE-01. Filtered-unique-index PackageUserResponse single-answer [MIGRATION] atau dedupe last-write-wins; grading ORDER BY.)*
 - [x] **WSE-07**: Percobaan Abandoned/Cancelled tak bisa di-resurrect jadi hasil Completed-lulus + sertifikat. *(STAT-01. Guard grading + SubmitExam exclude Abandoned/Cancelled.)*
 - [x] **WSE-08**: Hasil Completed/graded tak ketimpa/hilang oleh AbandonExam telat. *(STAT-02. ExecuteUpdate ber-guard `Where(Status==InProgress||Open)`.)*
 - [x] **WSE-09**: Batas waktu ditegakkan untuk ujian Normal ("Standard"); submit telat ditolak. *(TMR-01 + TMR-02 client-flag + TMR-03 auto-submit-token. `EnsureCanSubmitExamAsync` cakup Standard.)*
 - [x] **WSE-10**: Ujian token-required tak bisa diselesaikan dgn mem-bypass gate token (SaveAnswer/SubmitExam). *(TOK-02. Gate `StartedAt != null` di SaveAnswer/SubmitExam.)*
-- [ ] **WSE-11**: Sertifikat worker lulus tanpa tanggal kedaluwarsa tampil konsisten "aktif" di semua surface (dashboard/badge/notif). *(CERT-01. Satukan definisi `ValidUntil==null` di `DeriveCertificateStatus` + HomeController + Renewal/CDP.)*
+- [x] **WSE-11**: Sertifikat worker lulus tanpa tanggal kedaluwarsa tampil konsisten "aktif" di semua surface (dashboard/badge/notif). *(CERT-01. Satukan definisi `ValidUntil==null` di `DeriveCertificateStatus` + HomeController + Renewal/CDP.)*
 
 ---
 
@@ -61,6 +61,6 @@
 | WSE-08 | 382 | Complete |
 | WSE-09 | 382 | Complete |
 | WSE-10 | 382 | Complete |
-| WSE-11 | 382 | pending |
+| WSE-11 | 382 | Complete |
 
 **Coverage:** 11/11 mapped. (Filled/verified by roadmap + execution.)
