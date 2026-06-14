@@ -607,7 +607,7 @@ test.describe('Flow D: Package-Based Exam', () => {
 // FLOW E: Proton Tahun 3 Interview (offline)
 // ============================================================
 test.describe('Flow E: Proton Tahun 3 Interview', () => {
-  // Phase 379 — migrasi PENUH (D-02): wizard + proton extension Plan 01; test.skip + fixme DIHAPUS (ProtonTrack T3 ada, W0-1=2).
+  // Phase 379 — migrasi PENUH (D-02): wizard + proton extension Plan 01; skip-Proton + fixme DIHAPUS (ProtonTrack T3 ada, W0-1=2).
   let title: string;
   let assessmentId: number;
 
