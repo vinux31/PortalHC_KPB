@@ -1291,7 +1291,9 @@ Plans:
   1. Worker memulai ujian dengan ≥2 paket sibling dimana SATU paket kosong + shuffle ON (default) dan tetap menerima set soal NON-kosong dari paket berisi (BUKAN 0 soal / bukan auto-grade 0% Fail). *(E2E scenario 6 — SHF-01 multi-package empty)*
   2. Worker dengan ujian Pre/Post token-required bisa masuk pakai token setelah admin meng-edit token mengetik huruf kecil (tersimpan uppercase → VerifyToken cocok, BUKAN "Token tidak valid"), lalu menyelesaikan Pre single-answer dan Post (ter-gate Pre) bisa diakses. *(E2E scenario 5 — TOK-01 token uppercase)*
   3. Hanya Admin/HC yang dapat memberi extra time pada ujian worker (role lain ditolak), dan total extra time per sesi dibatasi cap (tidak bisa ditumpuk tanpa batas). *(RST-01 authz + RST-04 cap)*
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 380-01-PLAN.md — WSE-01 SHF-01 ShuffleEngine ON-path empty-package filter + StartExam all-empty guard (Wave 1)
+  - [ ] 380-02-PLAN.md — WSE-02 TOK-01 token defensive compare + uppercase-write & WSE-03 RST-01/04 AddExtraTime authz + cap (Wave 2, depends 380-01)
 **UI hint**: yes
 
 ### Phase 381: Worker Entry (StartExam integrity)
