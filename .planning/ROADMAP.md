@@ -68,7 +68,13 @@
 **Goal:** Surface worker-data resolve identitas user di-impersonate (bukan admin); audit + fix semua call-site `GetCurrentUserRoleLevelAsync`/`GetUserAsync(User)`.
 **Depends on:** — (promote backlog 999.6)
 **UI hint:** no (backend query identity resolution)
-**Plans:** TBD (`/gsd-plan-phase 377`)
+**Plans:** 6 plans (3 waves)
+- [ ] 377-01-PLAN.md — Audit-first: materialize 377-AUDIT.md (SC1/D-07) + Wave-0 pure-logic resolver test (RED)
+- [ ] 377-02-PLAN.md — Fondasi: effective-user resolver ImpersonationService (D-05) + middleware D-04 fail-closed
+- [ ] 377-03-PLAN.md — CMP impersonation-aware: resolver rewrite + 3 bypass surface + D-03 hint + StartExam write-on-GET guard (SC2)
+- [ ] 377-04-PLAN.md — CDP impersonation-aware: inject ImpersonationService (Pitfall 2) + resolver nullable + null-guard caller (SC3)
+- [ ] 377-05-PLAN.md — Home/Index effective user + fold split-brain L53 (SC3)
+- [ ] 377-06-PLAN.md — Integrasi: e2e SC2/SC3 + ResultsAuthorization fidelity (D-01) + seed + full regression gate + UAT (SC4)
 
 ### Phase 378: Fix CMP CertificationManagement Route 500
 **Goal:** `GET /CMP/CertificationManagement` tak 500; redirect CDP canonical / hapus action orphan + dead helper (audit dulu link/test ke route CMP).
