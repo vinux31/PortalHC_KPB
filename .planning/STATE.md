@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v28.0
 milestone_name: Assessment & Records Bug Fixes
-status: Milestone complete
-last_updated: "2026-06-14T08:33:55.300Z"
+status: between_milestones
+last_updated: "2026-06-14T09:53:33Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 16
@@ -20,37 +20,35 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 379 — migrate-exam-taking-e2e-to-wizard
+**Current focus:** Between milestones — v28.0 CLOSED 2026-06-14. Planning next cycle / push IT.
 
 ## Current Position
 
-Phase: 379
-Plan: Not started
-**Milestone v28.0** — roadmap created (4 phase 376-379, 6 REQ mapped). Ready to plan. Phase: 376 (not started). 4 bug promote backlog: 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E). 0 migration. No research (bug-fix).
+**BETWEEN MILESTONES.** v28.0 SHIPPED LOCAL + audited PASSED + closed (manual append-only) 2026-06-14. Archive `milestones/v28.0-{ROADMAP,REQUIREMENTS}.md`, audit `v28.0-MILESTONE-AUDIT.md` (root), tag `v28.0` (lokal). REQUIREMENTS.md dihapus dari root (fresh saat `/gsd-new-milestone`).
 
-**Next:** `/gsd-plan-phase 376` (atau `/gsd-discuss-phase 376` — 376 & 377 butuh diagnose/audit dulu). Phase 376/377/378 independent; 379 depends 376.
+**Next:** `/gsd-new-milestone` (mulai siklus berikut) ATAU **Push IT** (bundle v24-v28 ke ITHandoff). Phase dir 352-379 tetap di `phases/` aktif (pola v24; cleanup via `/gsd-cleanup` nanti).
 
-Predecessor: v25.0 + v26.0 + v27.0 SHIPPED LOCAL + audited PASSED + closed (joint safe-close) 2026-06-14 (archive `milestones/v2{5,6,7}.0-*`).
+Predecessor: v25.0 + v26.0 + v27.0 + v28.0 SHIPPED LOCAL + audited PASSED + closed 2026-06-14 (v25/26/27 joint safe-close; v28.0 manual append-only).
 
 | Milestone | Phases | REQ | Audit | Archive |
 |-----------|--------|-----|-------|---------|
 | v25.0 Proton Kelulusan & Bypass | 358-368 | 20/20 PCOMP/PBYP | PASSED | milestones/v25.0-ROADMAP.md |
 | v26.0 Urgent Search & Records Visibility | 369-371 | 3/3 URG | PASSED | milestones/v26.0-ROADMAP.md |
 | v27.0 Shuffle Toggle | 372-375 | 16/16 SHUF | PASSED | milestones/v27.0-ROADMAP.md |
-
-REQUIREMENTS.md di-split ke 3 arsip + dihapus dari root (fresh saat `/gsd-new-milestone`). Phase dir 358-375 tetap di `phases/` aktif (pola v24; cleanup via `/gsd-cleanup` nanti).
+| v28.0 Assessment & Records Bug Fixes | 376-379 | 6/6 GRADE/IMP/CMPRT/E2E | PASSED | milestones/v28.0-ROADMAP.md |
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ## Next Action
 
-1. **Push IT** (prioritas handoff) — bundle v24-v27 belum push (branch ITHandoff, ahead origin/ITHandoff). **3 migration** wajib flag IT: `Origin` (358), `PendingProtonBypass`+filtered-index (360), `AddShuffleTogglesToAssessmentSession` (372). Catatan: migration 358 sudah di origin/ITHandoff; 360+372 di delta unpushed.
-2. **`/gsd-new-milestone`** — mulai milestone berikut (recreate REQUIREMENTS.md). Kandidat backlog: 999.8 essay-grading prod bug (HIGH), 999.10 CMP route 500, 999.6 impersonate, 999.9 label kosmetik.
-3. **`/gsd-cleanup`** — arsipkan phase dir 358-375 dari `phases/` aktif (opsional, kapan saja).
+1. **Push IT** (prioritas handoff) — bundle v24-v28 belum push (branch ITHandoff, ahead origin/ITHandoff). **3 migration** wajib flag IT: `Origin` (358), `PendingProtonBypass`+filtered-index (360), `AddShuffleTogglesToAssessmentSession` (372). v28.0 = 0 migration. Catatan: migration 358 sudah di origin/ITHandoff; 360+372 di delta unpushed.
+2. **`/gsd-new-milestone`** — mulai milestone berikut (recreate REQUIREMENTS.md). Kandidat backlog tersisa: 999.9 label kosmetik (LOW). (999.8/999.6/999.10/999.7 SUDAH ditutup di v28.0.)
+3. **`/gsd-cleanup`** — arsipkan phase dir 352-379 dari `phases/` aktif (opsional, kapan saja).
 
 ## Tag Git (lokal, belum push)
 
 - `v25.0`, `v26.0`, `v27.0` — dibuat saat joint-close 2026-06-14. Push bareng bundle ke IT.
+- `v28.0` — dibuat saat manual close 2026-06-14. Push bareng bundle ke IT.
 
 ## Deferred Items
 
@@ -76,17 +74,15 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 | Item | Reason |
 |------|--------|
-| 999.8 essay-grading prod bug (Score=0 walau grade+finalize) | SUSPECTED PRODUCTION BUG, domain assessment — prioritas audit/fix |
-| 999.10 /CMP/CertificationManagement 500 view-not-found | pre-existing, route orphan |
-| 999.6 impersonate identity tak dipakai query worker surfaces | dari brainstorm delete-records batch-1 |
-| 999.9 label residu "Backfill/Restore" di UI BulkBackfill | kosmetik |
-| 999.7 e2e exam-taking migrasi 10 flow ke wizard | flat-form usang |
+| 999.9 label residu "Backfill/Restore" di UI BulkBackfill | kosmetik (LOW) |
+
+> ✅ Ditutup di v28.0 (2026-06-14): 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E).
 
 ### Push pending IT
 
 | Item | Status |
 |------|--------|
-| Push bundle v24-v27 (3 migration: Origin, PendingProtonBypass+index, ShuffleToggles) | pending IT availability; branch ITHandoff NOT PUSHED |
+| Push bundle v24-v28 (3 migration: Origin, PendingProtonBypass+index, ShuffleToggles; v28.0=0 migration) | pending IT availability; branch ITHandoff NOT PUSHED |
 
 ## Accumulated Context
 
@@ -107,12 +103,12 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ### Open Blockers/Concerns
 
-- **999.8 SUSPECTED PRODUCTION BUG** (essay-grading): essay-only finalize biarkan `AssessmentSessions.Score=0` walau grade(80)+finalize. Belum didiagnosis (produksi tak disentuh). Sinyal domain assessment — prioritaskan.
-- [push] 3 migration (Origin, PendingProtonBypass+index, ShuffleToggles) — notify IT flag migration saat push; 360+372 di delta unpushed.
+- ✅ **999.8 essay-grading** (RESOLVED v28.0/Phase 376): bug TAK reproduce di code current (fixed incidental v27.0 Phase 373). Hardening: helper `AssessmentScoreAggregator` + endpoint `RecomputeEssayScores` (prod-repair historis pasca-deploy bila ada baris Score=0 lama).
+- [push] 3 migration (Origin, PendingProtonBypass+index, ShuffleToggles) — notify IT flag migration saat push; 360+372 di delta unpushed. (v28.0 = 0 migration.)
 - Phase 293 `GetSectionUnitsDictAsync` — hardcoded 2-level (keputusan tertunda).
 
 ## Session Continuity
 
 Last activity: 2026-06-14
 
-Next action: **Push IT** (bundle v24-v27, 3 migration) ATAU `/gsd-new-milestone` untuk siklus berikut. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
+Next action: **Push IT** (bundle v24-v28, 3 migration) ATAU `/gsd-new-milestone` untuk siklus berikut. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).

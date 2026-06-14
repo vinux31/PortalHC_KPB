@@ -1,5 +1,24 @@
 # Milestones
 
+## v28.0 Assessment & Records Bug Fixes (Shipped Local: 2026-06-14, Audited: 2026-06-14)
+
+**Phases completed:** 4 phase (376-379), 16 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v28). 0 migration.
+**Audit:** `v28.0-MILESTONE-AUDIT.md` — status **passed** (6/6 REQ GRADE/IMP/CMPRT/E2E, 4/4 phase, integration PASS 0-orphan/0-broken, 4/4 nyquist compliant, 3/3 E2E flow).
+
+**Delivered:** Fix 4 bug fungsional outstanding domain assessment & records (promote backlog 999.8/999.6/999.10/999.7): grading essay-only Score aggregation, impersonasi identity lintas worker-data surfaces, routing CMP orphan 500, migrasi net e2e exam-taking ke wizard.
+
+**Key accomplishments:**
+
+1. **Fix Essay-Only Score Aggregation (Phase 376, GRADE-01,02)** — diagnose-first: bug TAK reproduce (fixed incidental v27.0 Phase 373). Reframe Option 1 → helper pure `AssessmentScoreAggregator.Compute` (kill-drift, D-02/D-04) wired ke `FinalizeEssayGrading` forward + endpoint `RecomputeEssayScores` (prod-repair historis, Admin idempotent, D-03 Score+IsPassed only). 361/361 + integration 3/3 + e2e FLOW L Score=80 ×3.
+2. **Impersonation Identity Across Surfaces (Phase 377, IMP-01,02)** — akar bug 999.6 (impersonate X → worker-data tampil admin) fixed. Resolver single-source `ImpersonationService.GetEffectiveUserAsync` (D-05) + middleware D-04 fail-closed; CMP/CDP/Home konsumsi; D-03 mode-role hint + StartExam write-on-GET guard. 377-AUDIT.md (11 in-scope call-site). xUnit 372/372 + e2e 13/13 + UAT browser 7/7 live (Records Iwan 6 record). SECURED 25/25 + VALIDATED nyquist 0-gap.
+3. **Fix CMP CertificationManagement Route 500 (Phase 378, CMPRT-01)** — `CMPController.CertificationManagement` redirect 302 → CDP canonical (was View→500 orphan). Hapus 6 method dead + 2 builder orphan (KEEP `BuildSertifikatRowsAsync`: caller `ExportSertifikatDetailExcel`). build exit 0 + e2e Y0 redirect→CDP 200. VERIFICATION 6/6.
+4. **Migrate exam-taking e2e to wizard (Phase 379, E2E-01)** — 10 create flow (A-J) flat-form→wizard 4-langkah + layer PACKAGE; 10 `test.fixme`→0; +Flow K BARU essay DB-assert Score===80 (cover sinergi GRADE-01). Suite 75 passed / 7 skipped / 0 failed (`--workers=1`). Helper extension additive (D-04), test-infra only (0 prod code).
+
+**Migration:** 0. **Known deferred (non-blocker):** 377 live exam-transition impersonation guard (butuh fixture Upcoming-due); 378 2 item Info code-review; `CMPController.DokumenKkj` section filter pre-existing out-scope. **NOT PUSHED** — bundle v24-v28 pending IT (3 migration carry dari milestone lama: Origin/358, PendingProtonBypass+index/360, ShuffleToggles/372).
+
+---
+
 ## v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan) (Shipped Local: 2026-06-14, Audited: 2026-06-14)
 
 **Phases completed:** 4 phase (372-375), 12 plan
