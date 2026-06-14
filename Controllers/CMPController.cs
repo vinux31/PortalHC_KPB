@@ -1270,18 +1270,23 @@ namespace HcPortal.Controllers
             if (assessment.UserId != user.Id)
                 return Forbid();
 
-            // Only abandon if currently InProgress (idempotent guard)
-            if (assessment.Status != "InProgress" && assessment.Status != "Open")
+            // STAT-02 (WSE-08 / T-382-05/06): transisi atomic ber-guard — GANTI TOCTOU lama
+            // (read-check status lalu SaveChanges) yang bisa di-race oleh grading/force-close.
+            // Ownership (UserId) DIPERTAHANKAN di WHERE (Pitfall 2) → atomic + spoof-proof.
+            // Guard (InProgress||Open): sesi sudah Completed/Abandoned/Cancelled/Menunggu Penilaian → 0 baris,
+            // verdict graded TIDAK ter-overwrite (StartedAt juga tak disentuh — kolom tak di-SET).
+            var rowsAffected = await _context.AssessmentSessions
+                .Where(a => a.Id == id && a.UserId == user.Id
+                    && (a.Status == S.InProgress || a.Status == S.Open))
+                .ExecuteUpdateAsync(a => a
+                    .SetProperty(x => x.Status, S.Abandoned)
+                    .SetProperty(x => x.UpdatedAt, DateTime.UtcNow));
+
+            if (rowsAffected == 0)
             {
-                TempData["Error"] = "Sesi ujian ini tidak dapat dibatalkan dalam status saat ini.";
+                TempData["Error"] = "Sesi ujian ini tidak dapat dibatalkan karena sudah selesai atau dinilai.";
                 return RedirectToAction("Assessment");
             }
-
-            // Mark Abandoned — keep StartedAt so HC can see when the exam was started
-            assessment.Status = "Abandoned";
-            assessment.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
 
             TempData["Info"] = "Ujian telah dibatalkan. Hubungi HC jika Anda ingin mengulang.";
             return RedirectToAction("Assessment");
