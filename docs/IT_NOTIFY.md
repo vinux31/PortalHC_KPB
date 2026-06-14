@@ -329,3 +329,40 @@ Tambah smoke scenario #13 ke **Smoke Verify Dev**:
 
 Developer: rino (asistensme@gmail.com)
 Repo: https://github.com/vinux31/PortalHC_KPB
+
+---
+
+# IT Notify — Phase 376 (v28.0): Fix Essay-Only Score Aggregation
+
+**Tanggal:** 2026-06-14
+**Milestone:** v28.0 — Assessment & Records Bug Fixes
+**Status:** SHIPPED LOCAL — bundle bareng v24-v27 (belum push). Branch `ITHandoff`.
+
+## TL;DR untuk IT
+
+- **Migration:** ❌ **FALSE — tanpa migrasi / no schema change.** Recompute = DML repair via endpoint, BUKAN EF migration. TIDAK perlu `dotnet ef database update` untuk fase ini.
+- **Ringkasan:** Bug grading essay-only (`AssessmentSessions.Score=0` walau HC nilai + finalize). **Diagnose-first menemukan bug sudah ke-fix incidental oleh v27.0 Phase 373** (shuffle rewrite) — forward path code current sudah benar (`Score=80`). Fase ini: (a) regression-lock + hardening forward path, (b) tambah endpoint **recompute** untuk repair baris HISTORIS yang sudah terlanjur `Score=0` di prod.
+- **KENAPA penting untuk prod:** Prod masih jalan code LAMA (bundle v24-v27 belum di-deploy). Sesi essay-only yang di-finalize di prod SEBELUM deploy bundle = `Score=0` (rusak). Setelah deploy bundle, jalankan endpoint recompute untuk perbaiki baris-baris itu.
+- **Commit kunci:** `203aa6d6` (forward wire helper) + `87329dc8` (endpoint RecomputeEssayScores). Diagnose: `46998257`.
+
+## Endpoint Recompute — yang IT lakukan SETELAH deploy bundle
+
+- **Endpoint:** `POST /Admin/RecomputeEssayScores` — gated **Admin-only** (`[Authorize(Roles="Admin")]`) + antiforgery.
+- **Eksekusi di DB Dev/Prod = tanggung jawab IT** (CLAUDE.md — developer hanya verifikasi lokal). Sudah di-test lokal (integration real-SQL 3/3 + e2e FLOW L 7/7).
+- **Idempotent:** hanya sentuh baris kandidat — `Status='Completed' AND HasManualGrading=1 AND (Score IS NULL OR Score=0)` + semua essay sudah dinilai. Aman dijalankan berulang (run kedua = no-op).
+- **Set Score + IsPassed ONLY (D-03):** TIDAK menerbitkan sertifikat / penanda Proton / notifikasi / TrainingRecord retroaktif. Status TIDAK diubah.
+- **Catatan D-03:** Sertifikat untuk baris repaired yang lulus TIDAK auto-terbit; bila perlu, HC re-trigger per-orang manual.
+
+## Langkah verifikasi pra-eksekusi (saran IT)
+
+1. Count kandidat dulu:
+   ```sql
+   SELECT COUNT(*) FROM AssessmentSessions
+   WHERE Status='Completed' AND HasManualGrading=1 AND (Score IS NULL OR Score=0);
+   ```
+2. `BACKUP DATABASE` (SOP standar).
+3. Login Admin -> `POST /Admin/RecomputeEssayScores` (trigger via UI button bila ada, atau form POST). Headless POST cukup.
+4. Cek `TempData` response (`{repaired} diperbaiki, {skipped} dilewati, {alreadyOk} sudah benar`) + audit log entry `RecomputeEssayScores`.
+5. Re-run query count kandidat -> harus berkurang (idempotent, aman re-run).
+
+JANGAN edit DB langsung dengan UPDATE manual — gunakan endpoint (auditable + logika agregasi identik forward path, anti-drift).
