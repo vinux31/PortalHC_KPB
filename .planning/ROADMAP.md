@@ -90,7 +90,7 @@
 **Plans:** 6 plans (6 waves — single-file constraint exam-taking.spec.ts memaksa sekuensial)
 - [x] 379-01-PLAN.md — Wave-0 prep: extend helper additive (token/proton/paste) + 3 Open Q verify + seed ProtonTrack T3 + smoke
 - [x] 379-02-PLAN.md — Migrasi Flow A/B/C (import block + wizard create + token + multi-worker)
-- [ ] 379-03-PLAN.md — Migrasi Flow D/E (paste-import + Proton T3 interview PENUH, no test.skip — D-02)
+- [x] 379-03-PLAN.md — Migrasi Flow D/E (paste-import + Proton T3 interview PENUH, no test.skip — D-02)
 - [ ] 379-04-PLAN.md — Migrasi Flow F/G/H (multi-worker + timer deterministik + monitoring no sleep-buta — D-03)
 - [ ] 379-05-PLAN.md — Migrasi Flow I/J + Flow K BARU essay (DB-assert Score teragregasi — D-01/GRADE-01)
 - [ ] 379-06-PLAN.md — Gate: full green run --workers=1 (bukti D-03) + seed restore + VALIDATION sign-off
