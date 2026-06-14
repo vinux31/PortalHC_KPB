@@ -2036,25 +2036,21 @@ test.describe('FLOW X — CertificationManagement CDP Variant', () => {
  * Deferred ke milestone berikutnya — tidak di-cover di FLOW Y.
  *
  * Tested di FLOW Y:
- * - Y0: Gap 2 CMP variant CertMgmt status (confirm bukan 500 lagi atau document)
+ * - Y0: Gap 2 /CMP/CertificationManagement redirect 302 ke CDP canonical (Phase 378, tak lagi 500)
  * - Y1-Y2: Gap 4 Pagination di /CDP/CertificationManagement
  * - Y3-Y4: Gap 5 Bulk Import (Training records, /Admin/ImportTraining + template download)
  * - Y5-Y6: Gap 6 Analytics drill-down (GetFailRateDrillDown shape + per-employee)
  */
 test.describe('FLOW Y — Gap Closure Smoke', () => {
-  test('Y0 — /CMP/CertificationManagement status documenting (Gap 2)', async ({ page }) => {
+  test('Y0 — /CMP/CertificationManagement redirects to CDP canonical (Gap 2)', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
     await login(page, 'hc');
-    const response = await page.goto('/CMP/CertificationManagement').catch(() => null);
-    const status = response?.status() ?? 0;
-    // eslint-disable-next-line no-console
-    console.log(`[Y0] /CMP/CertificationManagement status=${status} — 500=bug masih ada (CDP variant workaround OK), 200=sudah fixed, 404=route absent`);
-    // Just verify endpoint reachable (response object exists). NO assertion on status — pure documenting.
-    expect(response).not.toBeNull();
-    if (status === 500) {
-      // eslint-disable-next-line no-console
-      console.log('[Y0] CONFIRMED: CMP variant masih 500 — Phase 319 D-319-05 CDP variant lock ter-justified. Documented sbg deferred.');
-    }
+    // Phase 378 (CMPRT-01): action CMP orphan diubah jadi redirect 302 ke CDP canonical.
+    // page.goto mengikuti redirect → response = halaman CDP final (bukan lagi 500 view-not-found).
+    const response = await page.goto('/CMP/CertificationManagement');
+    expect(response?.status()).toBe(200);
+    expect(response?.status()).not.toBe(500);
+    expect(page.url()).toContain('/CDP/CertificationManagement');
   });
 
   test('Y1 — Pagination Page 1 default load (Gap 4)', async ({ page }) => {
