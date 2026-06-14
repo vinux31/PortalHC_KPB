@@ -99,3 +99,15 @@ Phase 375 **IS** the Test & UAT phase for the v27.0 shuffle toggle (closes the r
 - SHUF-16 exam-effect visual → MANUAL-ONLY (D-03 Razor/JS runtime); 375-HUMAN-UAT B1/B2/B3 live-verified 3/3 + screenshot
 
 **Rationale manual-only:** Exam-taking VISUAL order-diff = Razor/JS runtime render — automated order-diff permanen ditolak by design (D-03, brittle anti-pattern). Engine logic yang menghasilkan diff = 100% automated (19 test, determinism semua mode). ManagePackages render-conditional (yang 374 tandai manual) kini automated via Playwright. Nyquist-compliant: tiap behavior punya automated coverage di mana feasible; satu-satunya manual-only punya justifikasi eksplisit (D-03) + diperkuat automated engine test + di-verifikasi otomatis 2026-06-14 (dotnet test 352/352 + adversarial 6 confirmed/0 refuted). Tidak ada gap auto-fillable yang dilewati diam-diam.
+
+---
+
+## Validation Audit 2026-06-14 (re-audit, State A)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 (sudah compliant) |
+| Escalated | 0 |
+
+Re-run `gsd-validate-phase 375` (State A audit existing). Test files unchanged & present: `ShuffleModeMatrixTests.cs` (5 case), `ShuffleEngineTests.cs` (14 case), `tests/e2e/shuffle.spec.ts` (5 skenario). Coverage tidak drift — `nyquist_compliant: true` dipertahankan. Tidak ada gap baru.
