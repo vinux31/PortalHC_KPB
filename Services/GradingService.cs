@@ -2,6 +2,7 @@ using HcPortal.Data;
 using HcPortal.Helpers;
 using HcPortal.Models;
 using Microsoft.EntityFrameworkCore;
+using S = HcPortal.Models.AssessmentConstants.AssessmentStatus;  // Phase 382 STAT-01 — guard pakai konstanta (v22.0 discipline)
 
 namespace HcPortal.Services
 {
@@ -208,8 +209,12 @@ namespace HcPortal.Services
                 // Interim score = hanya dari MC + MA (Essay skor 0)
                 int interimPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
+                // STAT-01 (D-02): selain Completed/PendingGrading (yang sudah dijaga), TOLAK juga commit
+                // PendingGrading pada sesi terminal Abandoned/Cancelled (tak boleh di-resurrect).
                 var essayRowsAffected = await _context.AssessmentSessions
-                    .Where(s => s.Id == session.Id && s.Status != AssessmentConstants.AssessmentStatus.Completed && s.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
+                    .Where(s => s.Id == session.Id
+                        && s.Status != S.Completed && s.Status != S.PendingGrading
+                        && s.Status != S.Abandoned && s.Status != S.Cancelled)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(r => r.Score, interimPercentage)
                         .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.PendingGrading)
@@ -243,12 +248,16 @@ namespace HcPortal.Services
             }
 
             // ---- 3b. Non-essay flow: status "Completed" (existing logic) ----
-            // ExecuteUpdateAsync dengan WHERE Status != "Completed" sebagai status guard (D-04)
+            // STAT-01 (D-02): guard diperluas dari `!= "Completed"` ke terminal/non-resurrectable set.
+            // Tanpa ini sesi Abandoned/Cancelled/PendingGrading bisa di-resurrect jadi Completed-lulus + cert.
+            // rowsAffected==0 → return false (branch di bawah, SUDAH ADA — kini juga tangkap resurrection blocked).
             var rowsAffected = await _context.AssessmentSessions
-                .Where(s => s.Id == session.Id && s.Status != "Completed")
+                .Where(s => s.Id == session.Id
+                    && s.Status != S.Completed && s.Status != S.Abandoned
+                    && s.Status != S.Cancelled && s.Status != S.PendingGrading)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(r => r.Score, finalPercentage)
-                    .SetProperty(r => r.Status, "Completed")
+                    .SetProperty(r => r.Status, S.Completed)
                     .SetProperty(r => r.Progress, 100)
                     .SetProperty(r => r.IsPassed, isPassed)
                     .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
