@@ -3524,45 +3524,39 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Masih ada Essay yang belum dinilai" });
 
             // 2. Recalculate total score (MC + MA auto + Essay manual)
-            var allQuestions = await _context.PackageQuestions
-                .Include(q => q.Options)
-                .Where(q => shuffledIds.Contains(q.Id))
-                .ToListAsync();
+            // Phase 376 D-06: derivasi question-set ROBUST. shuffledIds biasanya terisi (fixed v27.0 Phase 373),
+            // tapi bila kosong (root-cause historis H1 — ShuffledQuestionIds malformed/empty pra-v27) → fallback
+            // derive dari PackageUserResponses session supaya agregasi tidak collapse ke maxScore=0 → Score=0.
+            List<PackageQuestion> allQuestions;
+            if (shuffledIds.Count > 0)
+            {
+                allQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => shuffledIds.Contains(q.Id))
+                    .ToListAsync();
+            }
+            else
+            {
+                _logger.LogWarning("FinalizeEssayGrading: shuffledIds kosong session {SessionId} — fallback derive question-set dari PackageUserResponses (D-06).", sessionId);
+                var respQIds = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == sessionId)
+                    .Select(r => r.PackageQuestionId).Distinct().ToListAsync();
+                allQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => respQIds.Contains(q.Id))
+                    .ToListAsync();
+            }
             var allResponses = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == sessionId)
                 .ToListAsync();
 
-            int totalScore = 0;
-            int maxScore = 0;
-            foreach (var q in allQuestions)
-            {
-                maxScore += q.ScoreValue;
-                switch (q.QuestionType ?? "MultipleChoice")
-                {
-                    case "MultipleChoice":
-                        var mcResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
-                        if (mcResp != null)
-                        {
-                            var opt = q.Options.FirstOrDefault(o => o.Id == mcResp.PackageOptionId!.Value);
-                            if (opt != null && opt.IsCorrect) totalScore += q.ScoreValue;
-                        }
-                        break;
-                    case "MultipleAnswer":
-                        var maSelected = allResponses
-                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
-                            .Select(r => r.PackageOptionId!.Value).ToHashSet();
-                        var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
-                        if (maSelected.SetEquals(maCorrect)) totalScore += q.ScoreValue;
-                        break;
-                    case "Essay":
-                        var essayResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id);
-                        if (essayResp?.EssayScore.HasValue == true) totalScore += essayResp.EssayScore.Value;
-                        break;
-                }
-            }
-
-            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-            bool isPassed = finalPercentage >= session.PassPercentage;
+            // Phase 376 D-02/D-04: agregasi via helper murni AssessmentScoreAggregator (kill-drift —
+            // sama persis dengan RecomputeEssayScores Plan 03). Formula D-04 di-port verbatim di helper.
+            var agg = AssessmentScoreAggregator.Compute(allQuestions, allResponses, session.PassPercentage);
+            if (agg.MaxScore == 0)
+                _logger.LogWarning("FinalizeEssayGrading: maxScore=0 session {SessionId} — anomali data, Score fallback 0 (D-05).", sessionId);
+            int finalPercentage = agg.Percentage;
+            bool isPassed = agg.IsPassed;
 
             // 3. Update session: Completed + final score + IsPassed (T-298-16 replay guard via WHERE clause)
             // D-06 / D-07 — capture rowsAffected, gate semua side-effect (audit + cert + notif)
