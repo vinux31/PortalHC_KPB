@@ -51,6 +51,7 @@ Phase 375 = **test/UAT-only**. No production code, endpoints, schema, or migrati
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-06-14 | 3 | 3 | 0 | Claude (gsd-secure-phase, evidence-direct: threats_open=0 → no auditor spawn per workflow Step 3) |
+| 2026-06-14 (re-audit) | 3 | 3 | 0 | Claude (gsd-secure-phase re-run, State A): mitigasi unchanged — `dbSnapshot.ts` non-localhost guard present, `shuffle.spec.ts` 5 beforeAll/afterAll BACKUP/RESTORE, SEED_JOURNAL 375 still `cleaned` (matrix=0, 58 baseline). No drift. |
 
 Verification evidence:
 - T-375-02 mitigation present in source: `tests/helpers/dbSnapshot.ts` localhost-guard (throw on non-localhost `-S` host) + `tests/e2e/shuffle.spec.ts` BACKUP/RESTORE in `beforeAll`/`afterAll`.
