@@ -688,56 +688,32 @@ test.describe('Flow E: Proton Tahun 3 Interview', () => {
 // FLOW F: Multiple workers same assessment
 // ============================================================
 test.describe('Flow F: Multiple Workers Same Assessment', () => {
-  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
-  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
+  // Phase 379 — migrasi wizard+package, 2 worker (rino+iwan3); fixme dihapus.
   let title: string;
   let assessmentId: number;
+  let packageId: number;
 
   test('F1 - HC creates assessment for 2 workers with questions', async ({ page }) => {
     title = uniqueTitle('Pre Test Multi Worker');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
-    await page.locator('.user-check-item', { hasText: 'iwan3' }).locator('input').click({ force: true });
-    await expect(page.locator('#selectedCountBadge')).toContainText('2 selected');
-
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'OJT');
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    await page.fill('#DurationMinutes', '30');
-    await page.fill('#PassPercentage', '50');
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
+    await createAssessmentViaWizard(page, {
+      title, category: 'OJT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 50, allowAnswerReview: false,
+      participantEmails: ['rino.prasetyo@pertamina.com', 'iwan3@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
   });
 
   test('F2 - HC adds questions', async ({ page }) => {
     await login(page, 'hc');
-    await page.goto('/Admin/ManageAssessment');
-    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
-    await searchInput.fill(title);
-    await searchInput.press('Enter');
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
     await page.waitForLoadState('networkidle');
-
-    await page.locator('button.dropdown-toggle').first().click();
-    await page.locator('a[href*="ManageQuestions"]').first().click();
-    await page.waitForLoadState('networkidle');
-    const url = page.url();
-    assessmentId = parseInt(url.match(/ManageQuestions\/(\d+)|id=(\d+)/)!.slice(1).find(Boolean)!);
-
-    // Add 1 question
-    await page.fill('textarea[name="question_text"]', 'Multi worker question?');
-    await page.locator('input[name="options"]').nth(0).fill('Benar');
-    await page.locator('input[name="options"]').nth(1).fill('Salah');
-    await page.locator('input[name="options"]').nth(2).fill('Mungkin');
-    await page.locator('input[name="options"]').nth(3).fill('Tidak tahu');
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Multi worker question?',
+      options: ['Benar', 'Salah', 'Mungkin', 'Tidak tahu'], correctIndex: 0, score: 100,
+    });
   });
 
   test('F3 - Worker1 (coachee) takes exam', async ({ page }) => {
@@ -749,17 +725,20 @@ test.describe('Flow F: Multiple Workers Same Assessment', () => {
     await card.locator('.btn-start-standard').click();
     await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
 
-    // Answer first option
-    await page.locator('.exam-radio').first().click({ force: true });
-    await page.waitForTimeout(500);
+    // Answer first option (label shuffle-safe)
+    await page.locator('[id^="qcard_"]').first().locator('label[id^="lbl_"]').first().click();
+    await page.waitForTimeout(700);
 
-    // Submit
+    // Submit (Phase 379 — Kumpulkan Ujian / Nilai Anda)
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
     await page.locator('#reviewSubmitBtn').click();
     await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
     page.once('dialog', d => d.accept());
-    await page.click('button:has-text("Submit Exam")');
+    const kumpulkanBtn = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkanBtn).toBeEnabled({ timeout: 10_000 });
+    await kumpulkanBtn.click();
     await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
-    await expect(page.locator('body')).toContainText('Your Score');
+    await expect(page.locator('body')).toContainText('Nilai Anda');
   });
 
   test('F4 - Worker2 (coachee2) takes same exam', async ({ page }) => {
@@ -776,16 +755,19 @@ test.describe('Flow F: Multiple Workers Same Assessment', () => {
     await card.locator('.btn-start-standard').click();
     await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
 
-    // Answer first option
-    await page.locator('.exam-radio').first().click({ force: true });
-    await page.waitForTimeout(500);
+    // Answer first option (label shuffle-safe)
+    await page.locator('[id^="qcard_"]').first().locator('label[id^="lbl_"]').first().click();
+    await page.waitForTimeout(700);
 
+    await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
     await page.locator('#reviewSubmitBtn').click();
     await page.waitForURL('**/CMP/ExamSummary**', { timeout: 15_000 });
     page.once('dialog', d => d.accept());
-    await page.click('button:has-text("Submit Exam")');
+    const kumpulkanBtn = page.locator('button:has-text("Kumpulkan Ujian")').first();
+    await expect(kumpulkanBtn).toBeEnabled({ timeout: 10_000 });
+    await kumpulkanBtn.click();
     await page.waitForURL('**/CMP/Results/**', { timeout: 15_000 });
-    await expect(page.locator('body')).toContainText('Your Score');
+    await expect(page.locator('body')).toContainText('Nilai Anda');
   });
 
   test('F5 - HC sees both workers completed in monitoring', async ({ page }) => {
@@ -805,13 +787,20 @@ test.describe('Flow F: Multiple Workers Same Assessment', () => {
     await searchInput.fill(title);
     await searchInput.press('Enter');
     await page.waitForLoadState('networkidle');
-    const dropdown = page.locator('button.dropdown-toggle').first();
-    if (await dropdown.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      autoConfirm(page);
-      await dropdown.click();
-      await page.waitForTimeout(500);
-      await page.locator('text=Hapus Grup').first().click();
-      await page.waitForURL('**/ManageAssessment**', { timeout: 10_000 });
+    // Phase 379 — best-effort cleanup (teardown RESTORE = safety net). Kebab per-baris → Hapus Grup → modal konfirmasi.
+    const row = page.locator('tr', { hasText: title }).first();
+    const kebab = row.locator('button.dropdown-toggle').first();
+    if (await kebab.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await kebab.click();
+      const hapusBtn = page.locator('button:has-text("Hapus Grup")').first();
+      if (await hapusBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await hapusBtn.click();
+        const confirmBtn = page.locator('#deleteAssessmentModal.show button[type="submit"], #deleteAssessmentModal.show button:has-text("Hapus")').first();
+        if (await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+          await confirmBtn.click();
+          await page.waitForLoadState('networkidle');
+        }
+      }
     }
   });
 });
