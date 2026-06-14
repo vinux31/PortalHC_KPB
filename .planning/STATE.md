@@ -3,14 +3,13 @@ gsd_state_version: 1.0
 milestone: v28.0
 milestone_name: Assessment & Records Bug Fixes
 status: ready_to_plan
-last_updated: "2026-06-14T00:00:00.000Z"
-last_activity: 2026-06-14
+last_updated: "2026-06-14T03:24:08.748Z"
+last_activity: 2026-06-14 — Joint safe-close v25.0+v26.0+v27.0 (semua audited PASSED + hygiene flip). 6 arsip dibuat, ROADMAP collapse 3 one-liner, REQUIREMENTS split+hapus, 3 tag git lokal. Phase 375 (v27 terakhir) closed+secured+validated sesi ini.
 progress:
-  total_phases: 4
+  total_phases: 16
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
