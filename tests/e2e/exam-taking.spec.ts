@@ -607,60 +607,22 @@ test.describe('Flow D: Package-Based Exam', () => {
 // FLOW E: Proton Tahun 3 Interview (offline)
 // ============================================================
 test.describe('Flow E: Proton Tahun 3 Interview', () => {
-  // 364 drift: blocked at wizard create (same as A-J). PLUS highest Proton-v25.0 interview/Tahun-3 drift risk post-create. Backlog 999.7 (migration) — re-assess Proton form during migration.
-  test.fixme(true, '364: CreateAssessment 4-step wizard + Proton v25.0 (358-363) interview drift — needs wizard-nav migration + Proton form re-check. Backlog 999.7.');
+  // Phase 379 — migrasi PENUH (D-02): wizard + proton extension Plan 01; test.skip + fixme DIHAPUS (ProtonTrack T3 ada, W0-1=2).
   let title: string;
+  let assessmentId: number;
 
   test('E1 - HC creates Assessment Proton Tahun 3', async ({ page }) => {
     title = uniqueTitle('Pre Test Proton T3 Interview');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'Assessment Proton');
-    await page.waitForTimeout(500);
-
-    // Proton fields should appear
-    const protonSection = page.locator('#protonFieldsSection');
-    await expect(protonSection).toBeVisible();
-
-    // Select Tahun 3 track
-    const trackSelect = page.locator('#protonTrackSelect');
-    const options = trackSelect.locator('option');
-    const optCount = await options.count();
-
-    // Find a Tahun 3 option
-    let tahun3Found = false;
-    for (let i = 0; i < optCount; i++) {
-      const text = await options.nth(i).textContent() ?? '';
-      if (text.includes('Tahun 3')) {
-        await trackSelect.selectOption({ index: i });
-        tahun3Found = true;
-        break;
-      }
-    }
-
-    if (!tahun3Found) {
-      // Skip rest if no Tahun 3 track available
-      test.skip(true, 'No Tahun 3 ProtonTrack available');
-      return;
-    }
-
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    // Tahun 3 might auto-hide duration
-    const durationField = page.locator('#DurationMinutes');
-    if (await durationField.isVisible().catch(() => false)) {
-      await durationField.fill('0');
-    }
-    await page.fill('#PassPercentage', '60');
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
+    await createAssessmentViaWizard(page, {
+      title, category: 'Assessment Proton', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 0,             // Tahun 3 offline interview (Duration field di-hide wizard)
+      passPercentage: 60, allowAnswerReview: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+      protonTrackTahun: 'Tahun 3',    // extension Plan 01: pilih track by data-tahun
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
   });
 
   test('E2 - Worker sees interview badge (no Start button)', async ({ page }) => {
@@ -679,42 +641,22 @@ test.describe('Flow E: Proton Tahun 3 Interview', () => {
 
   test('E3 - HC submits interview results', async ({ page }) => {
     await login(page, 'hc');
-    await page.goto('/Admin/AssessmentMonitoring');
+    await goToMonitoringDetail(page, title);
 
-    const link = page.locator(`text=${title}`).first();
-    if (!(await link.isVisible({ timeout: 3_000 }).catch(() => false))) {
-      test.skip(true, 'Assessment not found in monitoring');
-      return;
-    }
-    await link.click();
-    await page.waitForLoadState('networkidle');
-
-    // Interview form should be visible
+    // Phase 379 (D-02) — interview form Proton T3 re-check vs controller v25.0 (judges/aspect_*/notes/isPassed + antiforgery auto).
     const interviewForm = page.locator('form[action*="SubmitInterviewResults"]').first();
-    if (await interviewForm.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      // Fill judges
-      await interviewForm.locator('input[name="judges"]').fill('Dr. Andi, Ir. Budi');
-
-      // Fill aspect scores (select 4=Sangat Baik for all)
-      const aspectSelects = interviewForm.locator('select[name^="aspect_"]');
-      const selectCount = await aspectSelects.count();
-      for (let i = 0; i < selectCount; i++) {
-        await aspectSelects.nth(i).selectOption('4');
-      }
-
-      // Fill notes
-      await interviewForm.locator('textarea[name="notes"]').fill('E2E Test - kandidat menunjukkan kompetensi yang baik.');
-
-      // Mark as passed
-      await interviewForm.locator('input[name="isPassed"]').check();
-
-      // Submit
-      await interviewForm.locator('button[type="submit"]').click();
-      await page.waitForLoadState('networkidle');
-
-      // Should show Lulus badge
-      await expect(page.locator('body')).toContainText(/Lulus|Completed/);
+    await expect(interviewForm).toBeVisible({ timeout: 8_000 });
+    await interviewForm.locator('input[name="judges"]').fill('Dr. Andi, Ir. Budi');
+    const aspectSelects = interviewForm.locator('select[name^="aspect_"]');
+    const selectCount = await aspectSelects.count();
+    for (let i = 0; i < selectCount; i++) {
+      await aspectSelects.nth(i).selectOption('4');
     }
+    await interviewForm.locator('textarea[name="notes"]').fill('E2E Test - kandidat menunjukkan kompetensi yang baik.');
+    await interviewForm.locator('input[name="isPassed"]').check();
+    await interviewForm.locator('button[type="submit"]').click();
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('body')).toContainText(/Lulus|Completed|berhasil/i);
   });
 
   test('E4 - Cleanup: delete Proton assessment', async ({ page }) => {
@@ -724,13 +666,20 @@ test.describe('Flow E: Proton Tahun 3 Interview', () => {
     await searchInput.fill(title);
     await searchInput.press('Enter');
     await page.waitForLoadState('networkidle');
-    const dropdown = page.locator('button.dropdown-toggle').first();
-    if (await dropdown.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      autoConfirm(page);
-      await dropdown.click();
-      await page.waitForTimeout(500);
-      await page.locator('text=Hapus Grup').first().click();
-      await page.waitForURL('**/ManageAssessment**', { timeout: 10_000 });
+    // Best-effort cleanup (teardown RESTORE = safety net) — pola robust D7.
+    const row = page.locator('tr', { hasText: title }).first();
+    const kebab = row.locator('button.dropdown-toggle').first();
+    if (await kebab.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await kebab.click();
+      const hapusBtn = page.locator('button:has-text("Hapus Grup")').first();
+      if (await hapusBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await hapusBtn.click();
+        const confirmBtn = page.locator('#deleteAssessmentModal.show button[type="submit"], #deleteAssessmentModal.show button:has-text("Hapus")').first();
+        if (await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+          await confirmBtn.click();
+          await page.waitForLoadState('networkidle');
+        }
+      }
     }
   });
 });

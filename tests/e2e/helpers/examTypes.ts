@@ -78,17 +78,25 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
 
   // STEP 2 — Peserta selection
   await page.locator(wizardSelectors.step2).waitFor({ state: 'visible', timeout: 5_000 });
+  // Phase 379 — proton: coachee eligible di-render AJAX ke #protonUserCheckboxContainer (TANPA data-email);
+  // standard di #userCheckboxContainer (punya data-email). Scope fallback ke container relevan supaya tak
+  // klik item hidden di container yang lain.
+  const isProtonCreate = !!(opts.protonTrackTahun || opts.protonTrackId);
+  const participantContainer = isProtonCreate ? '#protonUserCheckboxContainer' : '#userCheckboxContainer';
   for (const email of opts.participantEmails) {
     const attrSelector = `${wizardSelectors.userCheckItem}[data-email="${email}"] ${wizardSelectors.userCheckbox}`;
     try {
+      if (isProtonCreate) throw new Error('proton: text-based fallback (item tanpa data-email)');
       await page.locator(attrSelector).check({ timeout: 3_000 });
     } catch {
-      // Fallback A7 mitigation — text-based selector dengan email local-part
+      // Fallback A7 mitigation — text-based local-part, di-scope ke container relevan
       const localPart = email.split('@')[0];
-      const fallback = page.locator(`${wizardSelectors.userCheckItem}:has-text("${localPart}") ${wizardSelectors.userCheckbox}`);
-      // eslint-disable-next-line no-console
-      console.warn(`[examTypes] attribute selector failed for ${email}, falling back to text-based`);
-      await fallback.first().check();
+      const fallback = page.locator(`${participantContainer} ${wizardSelectors.userCheckItem}`)
+        .filter({ hasText: localPart })
+        .locator(wizardSelectors.userCheckbox)
+        .first();
+      await fallback.waitFor({ state: 'visible', timeout: 8_000 });
+      await fallback.check();
     }
   }
   await page.locator(wizardSelectors.btnNext2).click();
@@ -97,11 +105,16 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
   await page.locator(wizardSelectors.step3).waitFor({ state: 'visible', timeout: 5_000 });
   await page.fill(wizardSelectors.schedDateInput, opts.scheduleDate);
   await page.fill(wizardSelectors.schedTimeInput, opts.scheduleTime ?? '00:01');
-  await page.fill(wizardSelectors.durationMinutes, String(opts.durationMinutes));
+  // Phase 379 — Proton Tahun 3 hide Duration + PassPercentage (CreateAssessment.cshtml:1636-1648). Fill hanya bila field visible.
+  if (await page.locator(wizardSelectors.durationMinutes).isVisible().catch(() => false)) {
+    await page.fill(wizardSelectors.durationMinutes, String(opts.durationMinutes));
+  }
   await page.fill(wizardSelectors.ewcdDateInput, opts.ewcdDate ?? opts.scheduleDate);
   await page.fill(wizardSelectors.ewcdTimeInput, opts.ewcdTime ?? '23:59');
   await page.selectOption(wizardSelectors.status, 'Open');
-  await page.fill(wizardSelectors.passPercentage, String(opts.passPercentage));
+  if (await page.locator(wizardSelectors.passPercentage).isVisible().catch(() => false)) {
+    await page.fill(wizardSelectors.passPercentage, String(opts.passPercentage));
+  }
 
   // AllowAnswerReview default = TRUE (per CreateAssessmentController Add() get default + asp-for binding)
   if (opts.allowAnswerReview) {
