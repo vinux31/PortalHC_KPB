@@ -18,6 +18,7 @@ using HcPortal.Helpers;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using QuestPDF.Drawing;
+using S = HcPortal.Models.AssessmentConstants.AssessmentStatus; // Phase 382 — single-source status label
 
 namespace HcPortal.Controllers
 {
@@ -1580,15 +1581,23 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            // Prevent re-submission of completed assessments
-            if (assessment.Status == "Completed")
+            // STAT-01 (WSE-07 / T-382-04): tolak resurrection sesi terminal via SubmitExam.
+            // Sebelumnya guard hanya `== "Completed"` → sesi Abandoned/Cancelled/PendingGrading bisa
+            // di-POST ulang jadi Completed-lulus + sertifikat. Perluas ke seluruh terminal set + audit.
+            if (assessment.Status == S.Completed || assessment.Status == S.Abandoned
+                || assessment.Status == S.Cancelled || assessment.Status == S.PendingGrading)
             {
-                TempData["Error"] = "This assessment has already been completed.";
+                // Reuse WriteSubmitBlockedAuditAsync (try/catch-swallow di dalam helper) — audit jangan block.
+                await WriteSubmitBlockedAuditAsync(assessment, TimeSpan.Zero, 0);
+                TempData["Error"] = "Sesi ujian ini sudah berakhir dan tidak dapat dikirim ulang.";
                 return RedirectToAction("Assessment");
             }
 
-            // ---- Block incomplete submission (Phase 272) ----
-            // Allow incomplete if: (a) isAutoSubmit from client, OR (b) server timer expired
+            // ---- Block incomplete submission (Phase 272 + Phase 382 TMR-02 / T-382-08) ----
+            // serverTimerExpired di-hitung SERVER-SIDE = otoritas. Client `isAutoSubmit` (raw flag, bisa
+            // di-spoof via DevTools) TIDAK lagi boleh jadi SATU-SATUNYA jalan lolos gate incomplete:
+            // submit incomplete hanya di-izinkan ketika waktu BENAR-BENAR habis (serverTimerExpired).
+            // Submit on-time yang lengkap tetap lolos (answeredCount==totalQuestions, tak masuk branch ini).
             bool serverTimerExpired = false;
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
@@ -1597,7 +1606,7 @@ namespace HcPortal.Controllers
                 serverTimerExpired = elapsed >= allowed;
             }
 
-            if (!isAutoSubmit && !serverTimerExpired)
+            if (!serverTimerExpired)
             {
                 var pkgAssign = await _context.UserPackageAssignments
                     .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
@@ -1658,9 +1667,12 @@ namespace HcPortal.Controllers
                 var allExistingResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
                     .ToListAsync();
+                // SAVE-01 (Pitfall 1): pilih baris FINAL per soal (OrderByDescending SubmittedAt) supaya
+                // push Score (SignalR) == Score GradingService (yang juga baca FINAL). Tanpa OrderBy,
+                // .First() bisa pilih baris basi/duplikat (race multi-tab) → divergen.
                 var existingResponses = allExistingResponses
                     .GroupBy(r => r.PackageQuestionId)
-                    .ToDictionary(g => g.Key, g => g.First());
+                    .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.SubmittedAt).First());
 
                 foreach (var qId in shuffledIds)
                 {
