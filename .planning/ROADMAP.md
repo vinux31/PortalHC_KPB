@@ -178,7 +178,7 @@ Plans:
 Plans:
 - [x] 375-01-PLAN.md — consolidation [Theory] mode-matrix sweep (di atas 27 test) + full suite hijau (SC#1) + SHUF-15 verify CMPController clean [Wave 1]
 - [x] 375-02-PLAN.md — Playwright shuffle.spec.ts 5 skenario ManagePackages (card render+save-PRG, lock, reminder Pre/Post, warning live-JS, hide) [Wave 1]
-- [ ] 375-03-PLAN.md — manual exam-diff 2 peserta SC#2 (D-03a) + seed snapshot/RESTORE + 375-HUMAN-UAT.md + human-verify checkpoint [Wave 2]
+- [x] 375-03-PLAN.md — manual exam-diff 2 peserta SC#2 (D-03a) + seed snapshot/RESTORE + 375-HUMAN-UAT.md + human-verify checkpoint [Wave 2]
 
 ### Phase 369: Sync H1 Search-Drop Fix main → ITHandoff
 **Goal:** Fix H1 (`14e7adc5` di main: `GetWorkersInSection` treat searchScope null/kosong sebagai "Nama" supaya SQL name pre-narrow tetap jalan untuk caller lama) tersinkron ke branch ITHandoff — search nama di Tab Input Records tidak lagi diabaikan diam-diam.
