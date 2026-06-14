@@ -28,11 +28,13 @@ public class CertificateStatusTests
         Assert.Equal(expected, result);
     }
 
+    // Phase 382 CERT-01 (D-08): cert lulus tanpa kedaluwarsa (ValidUntil=null, certificateType non-Permanent)
+    // = Aktif/Permanen (BUKAN Expired). Single-source flip — consumer ikut via Status enum. REWRITE dari _ReturnsExpired.
     [Fact]
-    public void DeriveCertificateStatus_NullValidUntil_NonPermanent_ReturnsExpired()
+    public void DeriveCertificateStatus_NullValidUntil_NonPermanent_ReturnsAktif()
     {
         var result = SertifikatRow.DeriveCertificateStatus(null, null);
-        Assert.Equal(CertificateStatus.Expired, result);
+        Assert.Equal(CertificateStatus.Aktif, result);
     }
 
     [Fact]

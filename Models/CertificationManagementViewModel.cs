@@ -47,8 +47,9 @@ public class SertifikatRow
 
     /// <summary>
     /// Derives certificate status from ValidUntil and CertificateType.
-    /// For AssessmentSession rows pass certificateType: null — ValidUntil==null yields Permanent.
-    /// Threshold of 30 days matches TrainingRecord.IsExpiringSoon.
+    /// For AssessmentSession rows pass certificateType: null — ValidUntil==null (cert lulus tanpa
+    /// kedaluwarsa) yields Aktif (Permanen secara efektif), BUKAN Expired (Phase 382 CERT-01 / D-08).
+    /// certificateType "Permanent" tetap yields Permanent. Threshold 30 hari = TrainingRecord.IsExpiringSoon.
     /// </summary>
     public static CertificateStatus DeriveCertificateStatus(DateOnly? validUntil, string? certificateType)
     {
@@ -56,7 +57,7 @@ public class SertifikatRow
         if (certificateType == "Permanent")
             return CertificateStatus.Permanent;
         if (validUntil == null)
-            return CertificateStatus.Expired; // non-Permanent with no expiry → treat as expired (needs renewal)
+            return CertificateStatus.Aktif; // CERT-01 (D-08): cert lulus tanpa kedaluwarsa = Aktif/Permanen (BUKAN Expired) — single-source, semua consumer ikut via Status enum
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var days = validUntil.Value.DayNumber - today.DayNumber;
         if (days < 0) return CertificateStatus.Expired;
