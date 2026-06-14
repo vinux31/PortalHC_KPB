@@ -46,11 +46,11 @@
 
 | REQ | Phase | Status |
 |-----|-------|--------|
-| GRADE-01 | TBD | pending |
-| GRADE-02 | TBD | pending |
-| IMP-01 | TBD | pending |
-| IMP-02 | TBD | pending |
-| CMPRT-01 | TBD | pending |
-| E2E-01 | TBD | pending |
+| GRADE-01 | 376 | pending |
+| GRADE-02 | 376 | pending |
+| IMP-01 | 377 | pending |
+| IMP-02 | 377 | pending |
+| CMPRT-01 | 378 | pending |
+| E2E-01 | 379 | pending |
 
-_(Diisi oleh roadmapper.)_
+**Coverage:** 6/6 REQ mapped → 4 phase (376-379). 0 orphan.

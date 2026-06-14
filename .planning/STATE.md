@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v28.0
 milestone_name: Assessment & Records Bug Fixes
-status: defining_requirements
+status: ready_to_plan
 last_updated: "2026-06-14T00:00:00.000Z"
 last_activity: 2026-06-14
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,11 +20,13 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v28.0 Assessment & Records Bug Fixes — defining requirements (started 2026-06-14)
+**Current focus:** v28.0 Assessment & Records Bug Fixes — roadmap ready, next plan Phase 376 (started 2026-06-14)
 
 ## Current Position
 
-**Milestone v28.0** — defining requirements (4 bug promote dari backlog: 999.8 essay GRADE, 999.6 impersonate IMP, 999.10 route CMPRT, 999.7 e2e E2E). Phase 376+ (lanjut dari 375). No research (bug-fix).
+**Milestone v28.0** — roadmap created (4 phase 376-379, 6 REQ mapped). Ready to plan. Phase: 376 (not started). 4 bug promote backlog: 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E). 0 migration. No research (bug-fix).
+
+**Next:** `/gsd-plan-phase 376` (atau `/gsd-discuss-phase 376` — 376 & 377 butuh diagnose/audit dulu). Phase 376/377/378 independent; 379 depends 376.
 
 Predecessor: v25.0 + v26.0 + v27.0 SHIPPED LOCAL + audited PASSED + closed (joint safe-close) 2026-06-14 (archive `milestones/v2{5,6,7}.0-*`).
 

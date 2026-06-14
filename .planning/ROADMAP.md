@@ -26,8 +26,58 @@
 - ✅ **v25.0 Proton Kelulusan & Bypass** — Phases 358-368 (shipped local + audited PASSED 2026-06-14, 20/20 REQ PCOMP/PBYP; 11 phase, 2 migration; NOT PUSHED) — [archive](milestones/v25.0-ROADMAP.md) — [audit](v25.0-MILESTONE-AUDIT.md)
 - ✅ **v26.0 Urgent — Search & Records Visibility** — Phases 369-371 (shipped local + audited PASSED 2026-06-12, 3/3 REQ URG-01..03; 0 migration; NOT PUSHED) — [archive](milestones/v26.0-ROADMAP.md) — [audit](v26.0-MILESTONE-AUDIT.md)
 - ✅ **v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan)** — Phases 372-375 (shipped local + audited PASSED 2026-06-14, 16/16 REQ SHUF-01..16; 1 migration AddShuffleTogglesToAssessmentSession; NOT PUSHED) — [archive](milestones/v27.0-ROADMAP.md) — [audit](v27.0-MILESTONE-AUDIT.md)
+- 🚧 **v28.0 Assessment & Records Bug Fixes** — Phases 376-379 (started 2026-06-14; 4 bug promote backlog 999.8/999.6/999.10/999.7; 6 REQ GRADE/IMP/CMPRT/E2E; 0 migration) — [requirements](REQUIREMENTS.md)
 
 ## Phases
+
+### 🚧 v28.0 Assessment & Records Bug Fixes (Phases 376-379) — ACTIVE
+
+**Goal:** Fix 4 bug fungsional outstanding di domain assessment & records (promote backlog 999.x): grading essay (HIGH), impersonasi identity, routing CMP orphan, migrasi test net exam-taking. 0 migration. Bug-fix codebase existing (no research). Local-only sampai push IT.
+
+- [ ] **Phase 376: Fix Essay-Only Score Aggregation** — diagnose root cause (GradingService finalize path vs hook Proton completion 358) lalu fix agregasi skor manual essay ke `AssessmentSessions.Score` (saat ini Score=0 walau HC nilai+finalize, badge "Sudah Dinilai") + konsisten dgn jalur mixed + regression test (xUnit + e2e `exam-types.spec.ts` L6 unfixme). REQ: GRADE-01,02. Migration=false. Depends: — (promote backlog 999.8)
+  - SC1: Repro lokal essay-only finalize → `Score=0` dikonfirmasi + root cause teridentifikasi (finalize path vs Proton hook).
+  - SC2: HC nilai essay-only + finalize → `AssessmentSessions.Score` = agregasi skor manual (bukan 0).
+  - SC3: Jalur mixed (MC+MA+essay) `Score` tetap benar — no regression.
+  - SC4: Regression test hijau kedua jalur (essay-only + mixed).
+- [ ] **Phase 377: Impersonation Identity Across Surfaces** — audit cakupan semua call-site `GetCurrentUserRoleLevelAsync` / `_userManager.GetUserAsync(User)` lintas controller lalu fix supaya surface worker-data (CMP/Records, Assessment, Home progress) resolve identitas user di-impersonate, bukan admin asli (banner "Anda melihat sebagai X" jujur). REQ: IMP-01,02. Migration=false. Depends: — (promote backlog 999.6)
+  - SC1: Audit hasilkan peta semua call-site relevan worker-data yang abaikan impersonasi.
+  - SC2: Impersonate user X → `/CMP/Records` tampil data X (assessment + training), bukan admin.
+  - SC3: Assessment + Home progress juga resolve X saat impersonasi aktif.
+  - SC4: Mode normal (non-impersonate) tak berubah — no regression.
+- [ ] **Phase 378: Fix CMP CertificationManagement Route 500** — `GET /CMP/CertificationManagement` (direct-URL) → 500 view-not-found (orphan; `Views/CMP/CertificationManagement.cshtml` tak ada, entry asli route ke CDP). Audit link/test ke route CMP, lalu redirect ke CDP canonical ATAU hapus action orphan `CMPController.CertificationManagement` + helper rows dead. REQ: CMPRT-01. Migration=false. Depends: — (promote backlog 999.10)
+  - SC1: Audit konfirmasi tak ada link/test produktif yang butuh view CMP (entry asli route ke CDP).
+  - SC2: `GET /CMP/CertificationManagement` tak lagi 500 (redirect CDP / 404 bersih bila action dihapus).
+  - SC3: Path CDP CertificationManagement tetap render OK — no regression.
+- [ ] **Phase 379: Migrate exam-taking e2e to wizard** — migrasi 10 create flow (A-J `.fixme`) di `tests/e2e/exam-taking.spec.ts` dari flat-form usang ke wizard CreateAssessment 4-langkah; suite hijau (`--workers=1`), cover flow essay yg disentuh 376. REQ: E2E-01. Migration=false. Depends: 376 (promote backlog 999.7)
+  - SC1: 10 flow (A-J) pakai wizard CreateAssessment (flat-form `.fixme` dihapus).
+  - SC2: Suite `exam-taking.spec.ts` hijau (`--workers=1`).
+  - SC3: Flow essay ter-cover (sinergi regression GRADE-01).
+
+#### Coverage v28.0: 6/6 REQ mapped (GRADE-01,02 → 376; IMP-01,02 → 377; CMPRT-01 → 378; E2E-01 → 379). 0 orphan. 0 migration. Promote backlog 999.8/999.6/999.10/999.7.
+
+### Phase 376: Fix Essay-Only Score Aggregation
+**Goal:** Essay-only assessment finalize mengagregasi skor manual ke `AssessmentSessions.Score` (fix Score=0 walau dinilai); konsisten dgn jalur mixed. Diagnose root cause dulu.
+**Depends on:** — (promote backlog 999.8)
+**UI hint:** no (backend grading logic; no view change)
+**Plans:** TBD (`/gsd-plan-phase 376`)
+
+### Phase 377: Impersonation Identity Across Surfaces
+**Goal:** Surface worker-data resolve identitas user di-impersonate (bukan admin); audit + fix semua call-site `GetCurrentUserRoleLevelAsync`/`GetUserAsync(User)`.
+**Depends on:** — (promote backlog 999.6)
+**UI hint:** no (backend query identity resolution)
+**Plans:** TBD (`/gsd-plan-phase 377`)
+
+### Phase 378: Fix CMP CertificationManagement Route 500
+**Goal:** `GET /CMP/CertificationManagement` tak 500; redirect CDP canonical / hapus action orphan + dead helper (audit dulu link/test ke route CMP).
+**Depends on:** — (promote backlog 999.10)
+**UI hint:** no (routing/controller fix)
+**Plans:** TBD (`/gsd-plan-phase 378`)
+
+### Phase 379: Migrate exam-taking e2e to wizard
+**Goal:** 10 create flow `exam-taking.spec.ts` migrasi flat-form → wizard 4-langkah, suite hijau (cover essay).
+**Depends on:** 376 (promote backlog 999.7)
+**UI hint:** no (e2e test infra)
+**Plans:** TBD (`/gsd-plan-phase 379`)
 
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
@@ -623,7 +673,7 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (BACKLOG)
+### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (PROMOTED -> v28.0 Phase 379, 2026-06-14)
 
 **Goal:** [Captured Phase 364, 2026-06-12] `exam-taking.spec.ts` Flow A–J semua `test.fixme` — flat-form create usang. `/Admin/CreateAssessment` kini wizard 4-langkah (`1.Kategori`→`2.Peserta[disabled]`→`3.Settings`→`4.Konfirmasi`); worker checkbox `display:none` di step 2. Title sudah prefixed `Pre Test ` (REST-06 comply) tapi flow tak bisa jalan tanpa navigasi wizard.
 
@@ -641,7 +691,7 @@ Plans:
 
 ---
 
-### Phase 999.8: Bug essay finalize — session.Score=0 padahal sudah dinilai (BACKLOG)
+### Phase 999.8: Bug essay finalize — session.Score=0 padahal sudah dinilai (PROMOTED -> v28.0 Phase 376, 2026-06-14)
 
 **Goal:** [Captured Phase 364, 2026-06-12] Finalize grading essay-only TIDAK mengagregasi skor manual ke `AssessmentSessions.Score`. exam-types L6 `test.fixme`: HC nilai essay 80 + finalize (L5 PASS, badge "Sudah Dinilai") tapi `Score`=0. MA auto-grade (K5) tulis kolom yang sama = 100 OK → spesifik jalur essay.
 
@@ -657,7 +707,7 @@ Plans:
 
 ---
 
-### Phase 999.6: Bug Impersonate — identitas impersonated tidak dipakai query worker surfaces (BACKLOG)
+### Phase 999.6: Bug Impersonate — identitas impersonated tidak dipakai query worker surfaces (PROMOTED -> v28.0 Phase 377, 2026-06-14)
 
 **Goal:** [Captured for future planning] Impersonate "view as user X" menampilkan data milik admin asli, bukan user yang di-impersonate — banner "Anda melihat sebagai X" menyesatkan.
 
@@ -694,7 +744,7 @@ Plans:
 
 ---
 
-### Phase 999.10: CMP CertificationManagement orphaned route → 500 view-not-found (BACKLOG)
+### Phase 999.10: CMP CertificationManagement orphaned route → 500 view-not-found (PROMOTED -> v28.0 Phase 378, 2026-06-14)
 
 **Goal:** [Captured Phase 368 UAT, 2026-06-13] `GET /CMP/CertificationManagement` (direct-URL) → **500 "view 'CertificationManagement' was not found"**. `Views/CMP/CertificationManagement.cshtml` tidak ada (hanya `Views/CDP/CertificationManagement.cshtml`). Action `CMPController.CertificationManagement` = duplikat orphaned ("dipindah dari CDP" per komentar L3760); entry point asli `Views/CMP/Index.cshtml:98` route ke **CDP**, bukan CMP.
 
