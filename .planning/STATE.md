@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 
 **BETWEEN MILESTONES.** v28.0 SHIPPED LOCAL + audited PASSED + closed (manual append-only) 2026-06-14. Archive `milestones/v28.0-{ROADMAP,REQUIREMENTS}.md`, audit `v28.0-MILESTONE-AUDIT.md` (root), tag `v28.0` (lokal). REQUIREMENTS.md dihapus dari root (fresh saat `/gsd-new-milestone`).
 
-**Next:** `/gsd-new-milestone` (mulai siklus berikut) ATAU **Push IT** (bundle v24-v28 ke ITHandoff). Phase dir 352-379 tetap di `phases/` aktif (pola v24; cleanup via `/gsd-cleanup` nanti).
+**Next:** `/gsd-new-milestone` (mulai siklus berikut). ✅ Push IT SUDAH DILAKUKAN 2026-06-14 (branch + tag v24-v28 di `origin/ITHandoff`, HEAD `bb8c04ed`). Phase dir 352-379 SUDAH diarsipkan ke `milestones/vXX.0-phases/` (cleanup done). Sisa: notify IT (2 migration flag) + IT promosi ke Dev/Prod.
 
 Predecessor: v25.0 + v26.0 + v27.0 + v28.0 SHIPPED LOCAL + audited PASSED + closed 2026-06-14 (v25/26/27 joint safe-close; v28.0 manual append-only).
 
@@ -41,14 +41,13 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ## Next Action
 
-1. **Push IT** (prioritas handoff) — bundle v24-v28 belum push (branch ITHandoff, ahead origin/ITHandoff). **3 migration** wajib flag IT: `Origin` (358), `PendingProtonBypass`+filtered-index (360), `AddShuffleTogglesToAssessmentSession` (372). v28.0 = 0 migration. Catatan: migration 358 sudah di origin/ITHandoff; 360+372 di delta unpushed.
+1. ✅ **Push IT — DONE 2026-06-14.** Branch `ITHandoff` (454 commit) + tag `v24-v28.0` pushed ke `origin/ITHandoff` (remote=local, synced). HEAD `bb8c04ed`. **Sisa = NOTIFY IT**: 2 migration baru wajib flag — `PendingProtonBypass`+filtered-index (360) + `AddShuffleTogglesToAssessmentSession` (372). `Origin` (358) sudah lama di remote. v28.0 = 0 migration. IT lalu apply migration di DB Dev + promosi server Dev (10.55.3.3)/Prod (tanggung jawab IT, bukan dev).
 2. **`/gsd-new-milestone`** — mulai milestone berikut (recreate REQUIREMENTS.md). Kandidat backlog tersisa: 999.9 label kosmetik (LOW). (999.8/999.6/999.10/999.7 SUDAH ditutup di v28.0.)
-3. **`/gsd-cleanup`** — arsipkan phase dir 352-379 dari `phases/` aktif (opsional, kapan saja).
+3. ✅ **Cleanup — DONE 2026-06-14.** Phase dir 352-379 (27 dir, v24-v28) sudah dipindah ke `milestones/vXX.0-phases/`. Sisa di `phases/`: cuma backlog 999.6/999.9/999.10.
 
-## Tag Git (lokal, belum push)
+## Tag Git
 
-- `v25.0`, `v26.0`, `v27.0` — dibuat saat joint-close 2026-06-14. Push bareng bundle ke IT.
-- `v28.0` — dibuat saat manual close 2026-06-14. Push bareng bundle ke IT.
+- `v24.0`, `v25.0`, `v26.0`, `v27.0`, `v28.0` — ✅ PUSHED ke `origin/ITHandoff` 2026-06-14.
 
 ## Deferred Items
 
@@ -80,11 +79,13 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 > ✅ Ditutup di v28.0 (2026-06-14): 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E).
 
-### Push pending IT
+### Push IT — ✅ DONE 2026-06-14
 
 | Item | Status |
 |------|--------|
-| Push bundle v24-v28 (3 migration: Origin, PendingProtonBypass+index, ShuffleToggles; v28.0=0 migration) | pending IT availability; branch ITHandoff NOT PUSHED |
+| Push bundle v24-v28 ke `origin/ITHandoff` (branch + 5 tag) | ✅ PUSHED 2026-06-14, HEAD `bb8c04ed`, remote synced |
+| Notify IT — 2 migration baru (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ PENDING — kasih commit hash + flag ke IT |
+| IT apply migration DB Dev + promosi server Dev (10.55.3.3)/Prod | ⏳ tanggung jawab IT (bukan dev) |
 
 ## Accumulated Context
 
@@ -113,4 +114,4 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 Last activity: 2026-06-14
 
-Next action: **Push IT** (bundle v24-v28, 3 migration) ATAU `/gsd-new-milestone` untuk siklus berikut. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
+Next action: ✅ Push IT DONE (v24-v28 di `origin/ITHandoff`, HEAD `bb8c04ed`). Sisa: notify IT 2 migration (360+372) → IT promosi Dev/Prod. Lalu `/gsd-new-milestone` untuk siklus berikut. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
