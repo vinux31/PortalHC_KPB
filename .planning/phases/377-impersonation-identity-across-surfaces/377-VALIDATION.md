@@ -1,10 +1,11 @@
 ---
 phase: 377
 slug: impersonation-identity-across-surfaces
-status: draft
+status: verified
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-14
+validated: 2026-06-14
 ---
 
 # Phase 377 — Validation Strategy
@@ -61,11 +62,11 @@ created: 2026-06-14
 
 ## Wave 0 Requirements
 
-- [ ] Test stub untuk resolver effective-user (IMP-01/02) — pure-logic seam (no Moq, pola proyek) → `377-01-02` (`ImpersonationIdentityTests.cs`, RED)
-- [ ] e2e: extend `tests/e2e/impersonation.spec.ts` (IMP-02 flow) → assert `/CMP/Records` tampil data X → `377-06-02`
-- [ ] Fixture: skenario impersonate mode=user (X valid), mode=role (no user), target-null (D-04) → matriks `377-01-02` (pure-logic) + seed `377-06-01`
+- [x] Test stub untuk resolver effective-user (IMP-01/02) — pure-logic seam (no Moq, pola proyek) → `377-01-02` (`ImpersonationIdentityTests.cs`, RED→GREEN)
+- [x] e2e: extend `tests/e2e/impersonation.spec.ts` (IMP-02 flow) → assert `/CMP/Records` tampil data X → `377-06-02` (13/13 GREEN)
+- [x] Fixture: skenario impersonate mode=user (X valid), mode=role (no user), target-null (D-04) → matriks `377-01-02` (pure-logic) + seed `377-06-01`
 
-*Wave 0 RED test = `377-01-02`; menjadi GREEN setelah `377-02-01` (Plan 02) merged. `wave_0_complete` jadi true hanya setelah eksekusi meng-GREEN-kan RED test ini.*
+*Wave 0 RED test = `377-01-02`; GREEN setelah `377-02-01` (Plan 02) merged. **`wave_0_complete: true` 2026-06-14** — ImpersonationIdentityTests GREEN (audit re-run 22/22 Impersonation+ResultsAuth).*
 
 ---
 
@@ -90,4 +91,16 @@ created: 2026-06-14
 - [x] Feedback latency < 60s (xUnit quick filter)
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** plans nyquist-compliant at plan level (setiap task punya `<automated>` atau Wave-0 dep). `wave_0_complete` tetap false sampai eksekusi meng-GREEN-kan RED test 377-01-02.
+**Approval:** NYQUIST-COMPLIANT (verified 2026-06-14). Setiap task punya `<automated>` verify; 377-06-03 = manual checkpoint by-design (Manual-Only). Wave-0 RED 377-01-02 sudah GREEN.
+
+---
+
+## Validation Audit 2026-06-14
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+State A audit (post-execution). Semua 12 task-row file present (verified ls). Filtered re-run `dotnet test --filter "Impersonation|ResultsAuthorization"` → **22/22 PASS** (ImpersonationIdentity 7 + ResultsAuthorization 15), 0 fail — Wave-0 RED→GREEN dikonfirmasi. Full suite 372/372 + e2e 13/13 per SUMMARY. Tidak ada gap MISSING/PARTIAL; tidak perlu spawn nyquist-auditor. 1 manual-only by-design (377-06-03 UAT checkpoint, sudah 7/7 live di verify-work inline).
