@@ -3609,31 +3609,11 @@ namespace HcPortal.Controllers
             return Json(subCategories);
         }
 
-        // ============================================================
-        // CertificationManagement — dipindah dari CDPController
-        // ============================================================
-
-        public async Task<IActionResult> CertificationManagement(int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-
-            var groups = BuildSertifikatGroups(allRows);
-
-            var vm = BuildGroupViewModel(groups, roleLevel);
-
-            var paging = PaginationHelper.Calculate(groups.Count, page, vm.PageSize);
-            vm.Groups = groups.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
-
-            ViewBag.AllCategories = await _context.AssessmentCategories
-                .Where(c => c.ParentId == null && c.IsActive)
-                .OrderBy(c => c.SortOrder)
-                .Select(c => c.Name)
-                .ToListAsync();
-
-            return View(vm);
-        }
+        // CertificationManagement: route lama /CMP/CertificationManagement.
+        // Entry produktif (Views/CMP/Index.cshtml) menunjuk action CDP canonical;
+        // view CMP tak pernah ada sehingga dulu 500. Redirect 302 ke CDP (Phase 378, CMPRT-01).
+        public IActionResult CertificationManagement()
+            => RedirectToAction("CertificationManagement", "CDP");
 
         [HttpGet]
         public async Task<IActionResult> FilterCertificationManagement(
