@@ -62,7 +62,7 @@
 **Plans:** 3 plans (3 waves)
 - [x] 376-01-PLAN.md — Diagnose-first (SC1 repro + root cause) + Wave-0 test scaffold (unit RED + e2e L6 un-fixme)
 - [x] 376-02-PLAN.md — Helper agregasi murni (D-02/D-04) + fix forward FinalizeEssayGrading robust derivation (SC2/SC3)
-- [ ] 376-03-PLAN.md — Endpoint recompute idempotent (D-01/D-03) + integration real-SQL + IT handoff note
+- [x] 376-03-PLAN.md — Endpoint recompute idempotent (D-01/D-03) + integration real-SQL + IT handoff note
 
 ### Phase 377: Impersonation Identity Across Surfaces
 **Goal:** Surface worker-data resolve identitas user di-impersonate (bukan admin); audit + fix semua call-site `GetCurrentUserRoleLevelAsync`/`GetUserAsync(User)`.
