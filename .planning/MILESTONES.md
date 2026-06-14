@@ -1,5 +1,62 @@
 # Milestones
 
+## v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan) (Shipped Local: 2026-06-14, Audited: 2026-06-14)
+
+**Phases completed:** 4 phase (372-375), 12 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v27). 1 migration `AddShuffleTogglesToAssessmentSession` (defaultValue:true) — applied DB lokal, flag IT.
+**Audit:** `v27.0-MILESTONE-AUDIT.md` — status **passed** (16/16 REQ SHUF-01..16, 4/4 phase, integration 5/5 wired, 4/4 threats_open:0, 4/4 nyquist, build 352/352 + shuffle 46/46 live).
+
+**Delivered:** HC bisa ON/OFF dua sistem pengacakan independen (Acak Soal + Acak Pilihan) per-assessment via ManagePackages. Default ON dua-duanya (data lama tak berubah).
+
+**Key accomplishments:**
+
+1. **Data Foundation + Propagasi (Phase 372, SHUF-01..03)** — 2 kolom `ShuffleQuestions`/`ShuffleOptions` di `AssessmentSession` + migration defaultValue:true + set eksplisit 3 loop CreateAssessment (hindari EF bool-false trap) + propagate sibling EditAssessment + toggle wizard Step 3.
+2. **Shuffle Engine read-logic + reshuffle (Phase 373, SHUF-04..09,15)** — pure `Helpers/ShuffleEngine.cs` (ON canonical / OFF q.Order / OFF≥2 round-robin `workerIndex%count` index-stabil + guard paket kosong / opsi dict-or-"{}") wired ke `CMPController.StartExam` + fix bug SHUF-09 (`ReshufflePackage`/`ReshuffleAll` hard-code "{}" tereliminasi) + cleanup komentar stale.
+3. **UI ManagePackages + Lock + Pre/Post (Phase 374, SHUF-10..14)** — 2 toggle header + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate) + lock saat peserta mulai + warning ukuran-paket-beda + reminder Pre/Post + hide Proton Th3/Manual. Helper `ShuffleToggleRules`. VERIFICATION 9/9 + UAT browser 7/7.
+4. **Test & UAT (Phase 375, SHUF-16)** — `ShuffleModeMatrixTests` + `ShuffleEngineTests` (19 shuffle xUnit, suite 352/352) + `shuffle.spec.ts` 5/5 ManagePackages + exam-diff manual 3/3 live (B1 soal beda, B2 opsi beda, B3 OFF round-robin). Checkpoint di-approve via verifikasi otomatis (dotnet test + 7-skeptik adversarial).
+
+**Migration:** 1 (Phase 372). **Known deferred:** exam-effect VISUAL order-diff manual-only by design (D-03); NOT PUSHED.
+
+---
+
+## v26.0 Urgent — Search & Records Visibility (Shipped Local: 2026-06-12, Audited: 2026-06-12)
+
+**Phases completed:** 3 phase (369-371), 3 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v27). 0 migration.
+**Audit:** `v26.0-MILESTONE-AUDIT.md` — status **passed** (3/3 REQ URG-01..03, 3/3 phase, integration 3/3, security 3/3, nyquist 3/3).
+
+**Delivered:** Fix urgent search & records visibility — sinkron H1 search-drop main→ITHandoff + hapus window 7-hari (tampilan default tanpa batas) + sesi online tampil di Tab Input Records (visibility-only).
+
+**Key accomplishments:**
+
+1. **Sync H1 Search-Drop Fix (Phase 369, URG-01)** — port `GetWorkersInSection` treat searchScope null/kosong sebagai "Nama" (commit `14e7adc5` main) ke ITHandoff — search nama Tab Input Records tak lagi diabaikan diam-diam.
+2. **Hapus Window 7-Hari (Phase 370, URG-02)** — tampilan default tanpa batas window 7-hari (Post Test OJT >7 hari kini tampil).
+3. **Sesi Online di Tab Input Records (Phase 371, URG-03)** — view-only `_TrainingRecordsTab.cshtml` online tampil + badge.
+
+**Migration:** 0. **Known deferred:** NOT PUSHED.
+
+---
+
+## v25.0 Proton Kelulusan & Bypass (Shipped Local: 2026-06-13, Audited: 2026-06-13, re-audited 2026-06-14)
+
+**Phases completed:** 11 phase (358-368), ~38 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v27). 2 migration (`Origin` 358 + `PendingProtonBypass`+filtered-index 360) — applied DB lokal, flag IT (Origin sudah di origin/ITHandoff; PendingProtonBypass+index di delta unpushed).
+**Audit:** `v25.0-MILESTONE-AUDIT.md` — status **passed** (20/20 REQ PCOMP/PBYP, 10/11 full-artifact [362 no-dir, shipped per ROADMAP], integration 5/5 wired, 0 blocker). Re-audit 2026-06-14: 0 drift.
+
+**Delivered:** Logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda "Lulus" + gate berurutan dipaksa) + fitur Bypass Tahun, plus delete-records cascade overhaul + polish + test-hardening.
+
+**Key accomplishments:**
+
+1. **Penanda Kelulusan fondasi A (Phase 358, PCOMP-01..05)** — kolom `Origin` + `ProtonCompletionService` (helper bersama exam/interview/bypass) + wire GradingService (exam lulus + re-grade flip) + backfill. Fix bug exam Tahun 1/2 tak pernah "Lulus".
+2. **Gate Berurutan + Cleanup A (Phase 359, PCOMP-06..10)** — `ProtonYearGate` + gate eligibility server-side CreateAssessment + gate antar-tahun + graduation gate + matikan tampilan level.
+3. **Bypass Backend B (Phase 360, PBYP-01..07)** — migration `PendingProtonBypass` + 4 closure mode (CL-A/B(a)/B(b)/C) + notif `PROTON_BYPASS_READY` + coach handling + 6 endpoint.
+4. **Bypass UI B (Phase 361, PBYP-08..10)** — Tab2 wizard 3-langkah + panel pending + notif deep-link + e2e UAT 6/6.
+5. **Phase 362-368** — 362 PROTON CDP Polish (6 gap, no GSD dir) + 363 Audit Fix Alur PROTON T1-T10 + 364 restore e2e baseline + 365 test-harden Coach×Coachee AF-3 + 366 cascade image cleanup + 367 delete-records cascade overhaul (27 temuan) + 368 delete-records hygiene lanjutan.
+
+**Migration:** 2 (Origin 358 + PendingProtonBypass 360). **Known deferred:** 362 no formal GSD verification (shipped per ROADMAP claim); 999.8 essay-grading suspected prod bug → backlog; NOT PUSHED.
+
+---
+
 ## v24.0 Gambar di Soal Assessment (Shipped Local: 2026-06-09, Audited: 2026-06-09)
 
 **Phases completed:** 6 phases (352–357), 22 plans, ~23 tasks

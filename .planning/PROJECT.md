@@ -12,9 +12,9 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v25.0 in progress — Phase 363 complete, 2026-06-11)
+## Current State (between milestones — v25/v26/v27 shipped+closed 2026-06-14)
 
-**Phase 363 complete (2026-06-11)** — Audit Fix Alur PROTON T1-T10: drift approve/reject mati struktural (shared cores), gate reaktivasi cross-year tertutup, penanda miss surfaced, ValidUntil parity, Belum Mulai + evidence history; 228/228 test, UAT live approved, verifier 10/10.
+**v25.0 + v26.0 + v27.0 SHIPPED LOCAL + audited PASSED + closed (joint safe-close) 2026-06-14.** Tidak ada milestone aktif. Bundle v24-v27 NOT PUSHED (branch ITHandoff); 3 migration (Origin, PendingProtonBypass+index, ShuffleToggles) wajib flag IT saat push. Next: push IT atau `/gsd-new-milestone` (kandidat backlog: 999.8 essay-grading prod bug HIGH).
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -43,6 +43,12 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v23.0 shipped (local) + audit passed + closed (2026-06-06)** — CMP/Records Search & Filter Consistency Audit (phases 350-351): Team View search cakup judul assessment (fix 999.2, `GetWorkersInSection` predicate, badge D-07 utuh) + dropdown "Lingkup" jujur + export WYSIWYG; Worker Detail 0-match feedback (counter aria-live + empty-state) + filter Kategori dari record aktual (`BuildActualCategories` distinct, ganti master); My Records filter Kategori+Tipe parity (id `my`-prefixed hindari collision Team View) + back-nav `#team` aktifkan tab. 7/7 REQ SF-01..07 + integration 7/7 WIRED + 112/112 xUnit + Playwright 5/5+2/2. 0 migration.
 
 **v24.0 shipped (local) + audit passed + closed (2026-06-09)** — Gambar di Soal Assessment (phases 352-357): admin lampirkan gambar pada soal + opsi assessment (image-only ≤5MB magic-byte, alt text) via ManagePackageQuestions CRUD + render konsisten 6 layar (responsive+lightbox) + integritas file (sync Pre→Post shared-file + hapus atomic pola Phase 333). Plus 2 addon off-theme: Phase 356 Audit Fix Assign Coach×Coachee (6 fix AF-1..7, eligibility per-unit HIGH; AF-4→backlog) + Phase 357 standarisasi istilah tipe soal "Single/Multiple Answer" (QuestionTypeLabels single-source + hapus dead TrueFalse). 25/25 REQ + integration 17/17 WIRED + 143/143 xUnit + Playwright UAT. 1 migration (Phase 352 image columns); 353-357 = 0 migration. Archive: `milestones/v24.0-*`.
+
+**v25.0 shipped (local) + audit passed + closed (2026-06-14, re-audited)** — Proton Kelulusan & Bypass (phases 358-368): penanda kelulusan exam Tahun 1/2 (`Origin` + `ProtonCompletionService` helper bersama) + gate berurutan server-side (`ProtonYearGate`) + Bypass Tahun (4 closure mode + `PendingProtonBypass` + 6 endpoint + Tab2 wizard) + delete-records cascade overhaul (367/368, 27 temuan) + polish/audit/test (362-366). 20/20 REQ PCOMP/PBYP + integration 5/5. 2 migration (Origin, PendingProtonBypass+index). Archive: `milestones/v25.0-*`.
+
+**v26.0 shipped (local) + audit passed + closed (2026-06-14)** — Urgent Search & Records Visibility (phases 369-371): sync H1 search-drop main→ITHandoff (URG-01) + hapus window 7-hari (URG-02) + sesi online di Tab Input Records visibility-only (URG-03). 3/3 REQ. 0 migration. Archive: `milestones/v26.0-*`.
+
+**v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
 **Current focus:** v25.0 Proton Kelulusan & Bypass — Phase 358 (penanda kelulusan), 359 (gate berurutan), 360 (Bypass Backend B — complete 2026-06-10: PendingProtonBypass migration#2 + ProtonBypassService 4 closure mode + pending lifecycle + 4 hook grading + 6 endpoint + gate exempt Origin="Bypass"; verifier 5/5 PASS + UAT 6/6 live; PBYP-01..07 done), 362 (CDP polish) SHIPPED LOCAL. Tersisa: 361 (UI Bypass) + 363 (audit fix alur PROTON T1-T10, belum diplan). Bundle push v19-v23 sudah ke IT (2026-06-06); **v24.0+v25.0 belum push** — branch ITHandoff, migration#2 flag untuk IT.
 
