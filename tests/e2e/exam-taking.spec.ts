@@ -1692,7 +1692,8 @@ test.describe('Flow L: Empty Package + Shuffle ON (WSE-01)', () => {
     });
   });
 
-  test('L4 — Worker starts: gets questions > 0 from filled package (NOT empty)', async ({ page }) => {
+  test('L4 — Worker starts → 3 questions → answers correct → Score > 0 (NOT 0% Fail palsu)', async ({ page }) => {
+    test.setTimeout(120_000);
     await login(page, 'coachee');
     await page.goto('/CMP/Assessment');
     const card = page.locator('.assessment-card', { hasText: title }).first();
@@ -1705,28 +1706,14 @@ test.describe('Flow L: Empty Package + Shuffle ON (WSE-01)', () => {
     await expect(page.locator('#examHeader')).toBeVisible({ timeout: 10_000 });
     // WSE-01 core assertion: worker received the filled package's 3 questions, NOT 0 (pre-fix K=Min=0).
     const questions = page.locator('[id^="qcard_"]');
-    expect(await questions.count()).toBe(3);
-  });
+    await expect(questions).toHaveCount(3, { timeout: 10_000 });
 
-  test('L5 — Worker answers correctly + submits → Score > 0 (NOT 0% Fail palsu)', async ({ page }) => {
-    test.setTimeout(120_000);
-    await login(page, 'coachee');
-    await page.goto('/CMP/Assessment');
-    const card = page.locator('.assessment-card', { hasText: title }).first();
-    await card.locator('a:has-text("Resume"), .btn-start-standard').first().click();
-    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
-
-    const resumeModal = page.locator('#resumeConfirmModal');
-    await resumeModal.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => {});
-    if (await resumeModal.isVisible().catch(() => false)) {
-      await page.locator('#resumeConfirmBtn').click();
-      await expect(resumeModal).not.toBeVisible({ timeout: 5_000 });
-    }
-
-    // Click each correct option by its globally-unique text (shuffle-safe).
+    // Answer each correct option by its globally-unique text (shuffle-safe) — same page context, no re-navigate.
     for (const text of correctTexts) {
-      await page.locator('label[id^="lbl_"]', { hasText: text }).first().click();
-      await page.waitForTimeout(500);
+      const lbl = page.locator('label[id^="lbl_"]', { hasText: text }).first();
+      await lbl.scrollIntoViewIfNeeded();
+      await lbl.click();
+      await page.waitForTimeout(400);
     }
 
     await expect(page.locator('#reviewSubmitBtn')).toBeEnabled({ timeout: 10_000 });
