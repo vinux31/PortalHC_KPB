@@ -27,6 +27,7 @@
 - ✅ **v26.0 Urgent — Search & Records Visibility** — Phases 369-371 (shipped local + audited PASSED 2026-06-12, 3/3 REQ URG-01..03; 0 migration; NOT PUSHED) — [archive](milestones/v26.0-ROADMAP.md) — [audit](v26.0-MILESTONE-AUDIT.md)
 - ✅ **v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan)** — Phases 372-375 (shipped local + audited PASSED 2026-06-14, 16/16 REQ SHUF-01..16; 1 migration AddShuffleTogglesToAssessmentSession; NOT PUSHED) — [archive](milestones/v27.0-ROADMAP.md) — [audit](v27.0-MILESTONE-AUDIT.md)
 - ✅ **v28.0 Assessment & Records Bug Fixes** — Phases 376-379 (shipped local + audited PASSED 2026-06-14, 6/6 REQ GRADE/IMP/CMPRT/E2E; 0 migration; NOT PUSHED) — [archive](milestones/v28.0-ROADMAP.md) — [audit](v28.0-MILESTONE-AUDIT.md)
+- 🚀 **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (🚀 ACTIVE, started 2026-06-14; 11 REQ WSE-01..11; SEQUENTIAL A→B→C; 1 migration filtered-unique-index PackageUserResponse @ Phase 382 — notify IT) — audit-driven [docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md](../docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md)
 
 ## Phases
 
@@ -1257,6 +1258,95 @@ Plans:
 **Active mapped: 17/17 ✓ — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 352)**
 
 </details>
+
+---
+
+## 🚀 v29.0 Assessment E2E Worker-Success Fix — Phases 380-382 — ACTIVE (started 2026-06-14)
+
+**Milestone goal:** Worker bisa ujian + lulus end-to-end untuk assessment **Normal + PrePost**, soal **single-answer**, **NON-Proton**.
+
+**Source:** `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md` (audit-driven, verdict awal **CONDITIONAL** — happy-path umum jalan; show-stopper di luar happy-path). Lensa: kerjaan v25-v28 belum-audit (shuffle toggle, impersonation).
+
+**Eksekusi:** 3 phase **SEQUENTIAL** (380→381→382), merge A→B→C. **No paralel / no worktree** — ketiganya menyentuh `Controllers/CMPController.cs` (soft same-file overlap = merge-conflict hazard). Dependensi: 381 depends 380, 382 depends 381.
+
+**Migration:** hanya Phase 382 (1×) — filtered-unique-index `PackageUserResponses(AssessmentSessionId,PackageQuestionId)` terbatas tipe single-answer. Notify IT dengan commit hash + flag migration (developer TIDAK promosi DB Dev/Prod per DEV_WORKFLOW). Kontingensi: bila tak ada diskriminator QuestionType di tabel response, pakai dedupe last-write-wins (ORDER BY SubmittedAt desc) — NO migration.
+
+**Scope OUT (eksplisit):** Proton (eligibility/year-gate/bypass/Tahun3/coach-mapping), Essay grading lifecycle, Multi-answer grading, Admin data-governance (manual/bulk entry, cascade-delete, category CRUD, cert renewal chain), UI/visual audit pass. **Defer backlog:** RES-02 (display-drift X/Y vs Score%), GRD-02 (empty-MA SetEquals LOW).
+
+### Phases
+
+- [ ] **Phase 380 (A): Admin/Engine Integrity** — Worker bisa MULAI ujian dengan set soal & token yang benar (SHF-01 paket kosong tak menzerokan, TOK-01 token Pre/Post uppercase, RST-01/04 authz+cap AddExtraTime). Migration=false. Depends: none.
+- [ ] **Phase 381 (B): Worker Entry (StartExam integrity)** — Worker masuk ujian dengan paket benar (Pre/Post tak tercampur) tanpa state-nya dirusak impersonasi (NEW-same-day-PrePost, OPS-01/TOK-03 write-on-GET guard). Migration=false. Depends: Phase 380.
+- [ ] **Phase 382 (C): Grading / Lifecycle / Cert** — Nilai, kelulusan, dan sertifikat worker benar & tahan-race (SAVE-01, STAT-01/02, TMR-01/02/03, TOK-02, CERT-01). **Migration=TRUE** (notify IT). Depends: Phase 381.
+
+### Phase Details
+
+### Phase 380: Admin/Engine Integrity
+**Goal**: Worker bisa MULAI ujian dengan set soal & token yang benar — paket kosong tak lagi menzerokan seluruh batch, token Pre/Post yang di-edit admin tetap bisa dipakai worker, dan pemberian extra time terbatas pada Admin/HC dengan cap.
+**Depends on**: Nothing (first phase v29.0; continues from Phase 379)
+**Requirements**: WSE-01 (SHF-01), WSE-02 (TOK-01), WSE-03 (RST-01 + RST-04)
+**Files**: `Helpers/ShuffleEngine.cs` (ON-path filter paket kosong sebelum hitung K, mirror OFF-path 53-57), `Controllers/AssessmentAdminController.cs` (Pre/Post token `.ToUpper()` di 3 titik tulis 1812/1916/1937; `AddExtraTime` `[Authorize(Roles="Admin,HC")]` + cap total extra time)
+**Migration**: false
+**Success Criteria** (what must be TRUE for the worker):
+  1. Worker memulai ujian dengan ≥2 paket sibling dimana SATU paket kosong + shuffle ON (default) dan tetap menerima set soal NON-kosong dari paket berisi (BUKAN 0 soal / bukan auto-grade 0% Fail). *(E2E scenario 6 — SHF-01 multi-package empty)*
+  2. Worker dengan ujian Pre/Post token-required bisa masuk pakai token setelah admin meng-edit token mengetik huruf kecil (tersimpan uppercase → VerifyToken cocok, BUKAN "Token tidak valid"), lalu menyelesaikan Pre single-answer dan Post (ter-gate Pre) bisa diakses. *(E2E scenario 5 — TOK-01 token uppercase)*
+  3. Hanya Admin/HC yang dapat memberi extra time pada ujian worker (role lain ditolak), dan total extra time per sesi dibatasi cap (tidak bisa ditumpuk tanpa batas). *(RST-01 authz + RST-04 cap)*
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 381: Worker Entry (StartExam integrity)
+**Goal**: Worker masuk ujian dengan paket yang benar — Pre & Post yang dijadwalkan same-day tidak saling memungut paket, dan admin yang membuka/impersonate ujian worker tidak memulai ujian atau membakar waktu/mengunci shuffle worker.
+**Depends on**: Phase 380 (SHF-01 ShuffleEngine fix wajib landing dulu — StartExam Phase 381 meng-CONSUME `ShuffleEngine.BuildQuestionAssignment`; tanpa fix engine, regression test entry "≥2 paket, satu kosong → hasil non-kosong" akan FAIL)
+**Requirements**: WSE-04 (NEW-same-day-PrePost), WSE-05 (OPS-01 + TOK-03)
+**Files**: `Controllers/CMPController.cs` — `StartExam` GET (sibling query 982-1000 tambah filter `AssessmentType`/LinkedGroupId; bungkus SEMUA write-on-GET 961-967 StartedAt+InProgress+SignalR workerStarted dan 1012-1056 create UserPackageAssignment dengan `if(!IsImpersonating())`, mirror precedent Phase 377 line 905) + `VerifyToken`
+**Migration**: false
+**Success Criteria** (what must be TRUE for the worker):
+  1. Worker yang mengerjakan Pre/Post yang dijadwalkan same-day menerima HANYA paket ujian itu — saat StartExam sesi Pre, jumlah & teks soal == paket Pre saja (Post tidak tercampur), dan sebaliknya untuk sesi Post. *(E2E scenario 4 — PrePost same-day; assertion entry-pool only di phase ini, full pass/grade jadi acceptance test pasca-382)*
+  2. Admin yang impersonate worker X lalu membuka StartExam ujian X (Open, StartedAt==null, non-token) TIDAK menimbulkan mutasi DB: `AssessmentSession.StartedAt` tetap null, Status tetap Open, tidak ada `UserPackageAssignment` dibuat, tidak ada SignalR `workerStarted`. *(E2E scenario 7 — OPS-01/TOK-03 impersonasi read-only)*
+  3. Setelah impersonasi dihentikan dan worker X login sungguhan lalu StartExam, BARU saat itu `StartedAt` ter-set (timer worker mulai dari nol, set shuffle X tidak terkunci lebih awal). *(E2E scenario 7 lanjutan)*
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 382: Grading / Lifecycle / Cert
+**Goal**: Nilai, kelulusan, dan sertifikat worker single-answer benar & tahan-race — grading baca jawaban final tanpa baris duplikat, sesi Abandoned/Cancelled tak bisa di-resurrect, hasil graded tak ketimpa abandon telat, timer Normal ditegakkan, gate token tak bisa di-bypass via save/submit, dan cert ValidUntil=null tampil konsisten "aktif".
+**Depends on**: Phase 381 (sequential pada axis CMPController.cs — hindari rebase churn; migration SAVE-01 harus migration TERBARU di tree; satu notifikasi IT migration cukup, setelah phase ini)
+**Requirements**: WSE-06 (SAVE-01), WSE-07 (STAT-01), WSE-08 (STAT-02), WSE-09 (TMR-01 + TMR-02 + TMR-03), WSE-10 (TOK-02), WSE-11 (CERT-01)
+**Files**: `Controllers/CMPController.cs` (SaveAnswer 348-417, SubmitExam 1523-1724 + StartedAt-gate TOK-02, AbandonExam 1220-1248 ExecuteUpdate ber-guard, EnsureCanSubmitExamAsync 4382-4444 cakup Standard, cert region), `Services/GradingService.cs` (guard 238-246 & 202-211 exclude Abandoned/Cancelled/PendingGrading; FirstOrDefault → ORDER BY), `Data/ApplicationDbContext.cs` + new migration (filtered-unique-index), `Models/CertificationManagementViewModel.cs` (DeriveCertificateStatus null-semantics 58-59), `Controllers/HomeController.cs` (badge GetCertAlertCountsAsync 215 + notif TriggerCertExpiredNotificationsAsync 124)
+**Migration**: TRUE — re-introduksi FILTERED unique index `PackageUserResponses(AssessmentSessionId,PackageQuestionId)` terbatas single-answer (jangan unique penuh: akan memecah MultipleAnswer banyak-baris). **Kontingensi:** bila tak ada diskriminator QuestionType di tabel response (HasFilter EF tak bisa referensi joined table), pakai raw-SQL filtered index ATAU dedupe last-write-wins (ORDER BY SubmittedAt desc, NO migration). Putuskan saat planning. **Notify IT 1×** (commit hash + flag) setelah phase.
+**Success Criteria** (what must be TRUE for the worker):
+  1. Nilai worker single-answer dihitung dari jawaban FINAL tersimpan — dua SaveAnswer konkuren (multi-tab) untuk (sesi,soal) sama dengan opsi berbeda menghasilkan TEPAT SATU baris PackageUserResponse final, grading memakai opsi final (Score benar, bukan opsi basi). *(E2E scenario 10 — SAVE-01 concurrent)*
+  2. Percobaan yang sudah di-Abandon worker atau di-Cancel HC TIDAK bisa di-resurrect: POST SubmitExam ke sesi Abandoned/Cancelled ditolak, sesi tidak berubah jadi Completed-lulus, tidak ada sertifikat terbit. *(E2E scenario 8 — STAT-01 anti-resurrection)*
+  3. Hasil yang sudah Completed/graded/LULUS tidak hilang oleh AbandonExam telat: panggilan AbandonExam pada sesi Completed ditolak (rowsAffected==0), Status tetap Completed, hasil/cert tetap tampil di Results/Records. *(E2E scenario 9 — STAT-02)*
+  4. Batas waktu ditegakkan untuk ujian Normal ("Standard"): submit manual jauh-telat (StartedAt mundur) ditolak (Tier-1/Tier-2 + audit SubmitExamBlocked), sedangkan submit dalam-waktu tetap diterima; ujian token-required tak bisa diselesaikan dengan mem-bypass gate token di SaveAnswer/SubmitExam. *(E2E scenario 11 — TMR-01; + TOK-02 StartedAt-gate)*
+  5. Worker LULUS normal/PostTest single-answer dengan generateCertificate=true tapi ValidUntil dibiarkan kosong menampilkan status kredensial KONSISTEN di semua surface — Results LULUS+NomorSertifikat+PDF, dashboard CMP/CDP/Renewal "Aktif/Permanen" (BUKAN Expired), badge Home & notifikasi tidak undercount/kontradiktif. *(E2E scenario 12 — CERT-01)*
+**Plans**: TBD
+**UI hint**: yes
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 380. Admin/Engine Integrity | 0/? | Not started | - |
+| 381. Worker Entry (StartExam integrity) | 0/? | Not started | - |
+| 382. Grading / Lifecycle / Cert (MIGRATION) | 0/? | Not started | - |
+
+### Coverage Validation v29.0
+
+| REQ | Phase | Audit Ref | Touchpoint | Status |
+|-----|-------|-----------|------------|--------|
+| WSE-01 | 380 | SHF-01 | ShuffleEngine ON-path filter paket kosong | Pending |
+| WSE-02 | 380 | TOK-01 | AssessmentAdminController Pre/Post token .ToUpper() ×3 | Pending |
+| WSE-03 | 380 | RST-01 + RST-04 | AddExtraTime [Authorize Admin,HC] + cap | Pending |
+| WSE-04 | 381 | NEW-same-day-PrePost | StartExam sibling query filter AssessmentType/LinkedGroupId | Pending |
+| WSE-05 | 381 | OPS-01 + TOK-03 | StartExam GET write-on-GET if(!IsImpersonating()) | Pending |
+| WSE-06 | 382 | SAVE-01 | filtered-unique-index PackageUserResponse / grading ORDER BY | Pending |
+| WSE-07 | 382 | STAT-01 | grading + SubmitExam exclude Abandoned/Cancelled | Pending |
+| WSE-08 | 382 | STAT-02 | AbandonExam ExecuteUpdate guard Where(InProgress∥Open) | Pending |
+| WSE-09 | 382 | TMR-01 + TMR-02 + TMR-03 | EnsureCanSubmitExamAsync cakup Standard | Pending |
+| WSE-10 | 382 | TOK-02 | token gate StartedAt!=null di SaveAnswer/SubmitExam | Pending |
+| WSE-11 | 382 | CERT-01 | DeriveCertificateStatus + HomeController badge/notif konsisten | Pending |
+
+**Active mapped: 11/11 ✓ — Orphans: 0 — Duplicates: 0 — 1 migration (Phase 382). Defer backlog: RES-02, GRD-02.**
 
 ---
 

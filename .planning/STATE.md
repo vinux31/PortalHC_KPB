@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v29.0
 milestone_name: Assessment E2E Worker-Success Fix
-status: defining_requirements
-last_updated: "2026-06-14T12:00:00Z"
+status: roadmap_complete
+last_updated: "2026-06-14T13:00:00Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 3
@@ -20,18 +20,18 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v29.0 Assessment E2E Worker-Success Fix — defining requirements/roadmap (started 2026-06-14).
+**Current focus:** v29.0 Assessment E2E Worker-Success Fix — roadmap created (Phases 380-382), ready to plan (started 2026-06-14).
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap complete — awaiting plan)
 Plan: —
-Status: Defining requirements → roadmap
-Last activity: 2026-06-14 — Milestone v29.0 started (3 phase 380-382 sequential A→B→C, audit-driven from `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`).
+Status: Roadmap created → ready to plan Phase 380
+Last activity: 2026-06-14 — v29.0 ROADMAP.md written (3 phase 380-382 SEQUENTIAL A→B→C, 11 REQ WSE-01..11, 2-5 success criteria/phase grounded di E2E scenario 1-12). Coverage 11/11 mapped, 0 orphan. Audit-driven from `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`.
 
 **v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (+1 migration). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.
 
-**Next:** `/gsd-plan-phase 380` setelah roadmap di-approve.
+**Next:** `/gsd-plan-phase 380` (roadmap sudah di-tulis; phases LOCKED). Eksekusi SERI 380→381→382 (semua sentuh CMPController.cs, no paralel).
 
 **v28.0 carry (push IT):** ✅ Push v24-v28 ke `origin/ITHandoff` DONE (HEAD `bb8c04ed`). Sisa: notify IT 2 migration (PendingProtonBypass+index/360, ShuffleToggles/372) → IT promosi Dev/Prod. v29.0 akan +1 migration (filtered-index PackageUserResponse/382).
 
