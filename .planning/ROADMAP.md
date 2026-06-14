@@ -74,7 +74,7 @@
 - [x] 377-03-PLAN.md — CMP impersonation-aware: resolver rewrite + 3 bypass surface + D-03 hint + StartExam write-on-GET guard (SC2)
 - [x] 377-04-PLAN.md — CDP impersonation-aware: inject ImpersonationService (Pitfall 2) + resolver nullable + null-guard caller (SC3)
 - [x] 377-05-PLAN.md — Home/Index effective user + fold split-brain L53 (SC3)
-- [ ] 377-06-PLAN.md — Integrasi: e2e SC2/SC3 + ResultsAuthorization fidelity (D-01) + seed + full regression gate + UAT (SC4)
+- [x] 377-06-PLAN.md — Integrasi: e2e SC2/SC3 + ResultsAuthorization fidelity (D-01) + seed + full regression gate + UAT (SC4)
 
 ### Phase 378: Fix CMP CertificationManagement Route 500
 **Goal:** `GET /CMP/CertificationManagement` tak 500; redirect CDP canonical / hapus action orphan + dead helper (audit dulu link/test ke route CMP).
