@@ -1,8 +1,8 @@
 ---
 phase: 381
 slug: worker-entry-startexam-integrity
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-14
 ---
@@ -39,13 +39,16 @@ created: 2026-06-14
 
 > Diisi planner per task. Signal kunci per Success Criterion (lihat RESEARCH §Validation Architecture):
 
-| Success Criterion | Requirement | Secure/Correct Behavior | Test Type | Observable Signal |
-|-------------------|-------------|-------------------------|-----------|-------------------|
-| SC#1 entry-pool Pre/Post (#4) | WSE-04 | StartExam sesi Pre → question set == paket Pre saja; Post tak tercampur | integration + e2e | jumlah & teks soal == paket type-sendiri; assignment ShuffledQuestionIds ⊆ paket type itu |
-| Determinisme StartExam==reshuffle | WSE-04 | sibling-set + workerIndex identik antara StartExam & ReshufflePackage/ReshuffleAll | unit | helper kembalikan list+order sama untuk input sama (mirror `SiblingFilterTests`) |
-| Type-aware legacy safety (D-09) | WSE-04 | Standard/''/null tak terpecah; hanya Pre/Post diisolasi | unit | grup non-PrePost utuh; Pre↔Pre, Post↔Post |
-| SC#2 impersonate read-only (#7) | WSE-05 | impersonate buka Open StartedAt==null → no mutation | integration + e2e | StartedAt==null, Status=="Open", 0 UserPackageAssignment, 0 SignalR workerStarted, 0 ExamActivityLog "started" |
-| SC#3 deferred-start (#7 lanjutan) | WSE-05 | stop impersonate + worker login asli → StartExam → StartedAt ter-set | integration + e2e | StartedAt != null SETELAH worker asli; assignment ter-create persist |
+| Plan/Task | Success Criterion | Requirement | Automated Verify | Observable Signal |
+|-----------|-------------------|-------------|------------------|-------------------|
+| 381-01 T1 | Type-aware legacy safety (D-09) | WSE-04 | `dotnet test --filter ~SiblingPrePostFilter` | Pre↔Pre, Post↔Post; Standard/''/null satu grup (5 [Fact]) |
+| 381-01 T2 | Determinisme StartExam==reshuffle | WSE-04 | `dotnet test --filter ~SiblingDeterminism` | OrderBy(x=>x).IndexOf(id) identik untuk set sama |
+| 381-01 T3 | Reshuffle type-aware (no regression) | WSE-04 | `dotnet build` + `dotnet test HcPortal.Tests` | build 0 err; full xUnit hijau |
+| 381-02 T1 | Guard write-site 1+2 (no mutasi impersonate) | WSE-05 | `dotnet build` | guard `justStarted && !IsImpersonating()` ≥2× |
+| 381-02 T2 | Guard write-site 3 + in-memory preview (D-06) | WSE-05 | `dotnet build` + `dotnet test HcPortal.Tests` | persist ter-guard; build hijau; no regression |
+| 381-03 T1 | SC#1 entry-pool Pre/Post (#4) | WSE-04 | `npx playwright test exam-taking -g "WSE-04" --workers=1` | jumlah & teks soal == paket type-sendiri |
+| 381-03 T2 | SC#2 + SC#3 impersonate read-only (#7) | WSE-05 | `npx playwright test impersonation -g "WSE-05" --workers=1` | StartedAt null→set, 0→1 UserPackageAssignment via queryScalar |
+| 381-03 T3 | Preview render + migration:false (manual) | WSE-05 | checkpoint:human-verify (manual — render runtime + `dotnet ef migrations add`) | no NRE/500; migration body kosong + removed |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,9 +56,12 @@ created: 2026-06-14
 
 ## Wave 0 Requirements
 
-- [ ] Test file/fixture untuk sibling-helper determinism (analog `HcPortal.Tests/SiblingFilterTests.cs` / `ShuffleReshuffleTests.cs`)
-- [ ] Integration fixture impersonate-no-mutation (analog `ImpersonationIdentityTests.cs`)
-- [ ] e2e: extend `tests/e2e/exam-taking.spec.ts` (#4 PrePost same-day pool-only) + `impersonation.spec.ts` (#7 read-only) pakai helper `examTypes.ts` + `dbSnapshot`
+> Tertutup di 381-01 (unit RED-first) + 381-03 (e2e extend). Tak ada framework baru.
+
+- [x] Test sibling-helper filter (`HcPortal.Tests/SiblingPrePostFilterTests.cs`) — 381-01 Task 1 (RED-first)
+- [x] Test sibling determinism (`HcPortal.Tests/SiblingDeterminismTests.cs`) — 381-01 Task 2 (RED-first)
+- [x] e2e: extend `tests/e2e/exam-taking.spec.ts` (#4 PrePost same-day pool-only) — 381-03 Task 1
+- [x] e2e: extend `tests/e2e/impersonation.spec.ts` (#7 read-only + deferred-start, dbSnapshot) — 381-03 Task 2
 
 *Catatan: harness existing menutup mayoritas; tak ada framework baru. Local e2e SQL quirks: SQLBrowser + `--workers=1` + AD off (`Authentication__UseActiveDirectory=false dotnet run`).*
 
@@ -65,7 +71,8 @@ created: 2026-06-14
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Preview soal saat impersonate render (vm.AssignmentId=0, D-06) | WSE-05 | Razor dynamic runtime — grep+build tak cukup (lesson Phase 354) | Playwright headed: impersonate worker X → StartExam ujian Open belum-mulai → assert halaman render soal tanpa NRE/500; DB assert no-mutation |
+| Preview soal saat impersonate render (vm.AssignmentId=0, D-06) | WSE-05 | Razor dynamic runtime — grep+build tak cukup (lesson Phase 354) | 381-03 Task 3 Bagian A: Playwright/manual headed — impersonate worker X → StartExam ujian Open belum-mulai → halaman render soal tanpa NRE/500; DB assert no-mutation |
+| migration: false (zero schema diff) | WSE-04/05 | EF scaffold inspeksi — perlu eksekusi `dotnet ef migrations add` lalu remove | 381-03 Task 3 Bagian B: `dotnet ef migrations add` → body kosong → `migrations remove --force` → git status bersih |
 
 *Selain itu: semua behavior punya automated verification.*
 
@@ -73,11 +80,11 @@ created: 2026-06-14
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (T3 = checkpoint:human-verify, manual-only justified)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify (T1/T2 auto setiap plan; T3 checkpoint)
+- [x] Wave 0 covers all MISSING references (sibling/determinism unit + e2e #4/#7)
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s (xUnit quick command)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** planner — 2026-06-14

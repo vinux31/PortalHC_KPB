@@ -1306,7 +1306,10 @@ Plans:
   1. Worker yang mengerjakan Pre/Post yang dijadwalkan same-day menerima HANYA paket ujian itu — saat StartExam sesi Pre, jumlah & teks soal == paket Pre saja (Post tidak tercampur), dan sebaliknya untuk sesi Post. *(E2E scenario 4 — PrePost same-day; assertion entry-pool only di phase ini, full pass/grade jadi acceptance test pasca-382)*
   2. Admin yang impersonate worker X lalu membuka StartExam ujian X (Open, StartedAt==null, non-token) TIDAK menimbulkan mutasi DB: `AssessmentSession.StartedAt` tetap null, Status tetap Open, tidak ada `UserPackageAssignment` dibuat, tidak ada SignalR `workerStarted`. *(E2E scenario 7 — OPS-01/TOK-03 impersonasi read-only)*
   3. Setelah impersonasi dihentikan dan worker X login sungguhan lalu StartExam, BARU saat itu `StartedAt` ter-set (timer worker mulai dari nol, set shuffle X tidak terkunci lebih awal). *(E2E scenario 7 lanjutan)*
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 381-01-PLAN.md — WSE-04 shared type-aware sibling helper (D-09) + unit tests + rewire StartExam/ReshufflePackage/ReshuffleAll (Wave 1)
+  - [ ] 381-02-PLAN.md — WSE-05 write-on-GET impersonation guard 3 write-site + in-memory preview D-06 (Wave 2, depends 381-01)
+  - [ ] 381-03-PLAN.md — E2E #4 PrePost pool-only + #7 impersonate read-only + UAT render/migration:false gate (Wave 3, depends 381-01/02)
 **UI hint**: yes
 
 ### Phase 382: Grading / Lifecycle / Cert
