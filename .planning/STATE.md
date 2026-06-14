@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v28.0
 milestone_name: Assessment & Records Bug Fixes
-status: Executing Phase 379
-last_updated: "2026-06-14T06:47:03.434Z"
+status: Ready to execute
+last_updated: "2026-06-14T07:04:34.160Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 16
   completed_phases: 3
   total_plans: 16
-  completed_plans: 10
-  percent: 63
+  completed_plans: 11
+  percent: 69
 ---
 
 # Project State: Portal HC KPB
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 379 (migrate-exam-taking-e2e-to-wizard) — EXECUTING
-Plan: 1 of 6
+Plan: 2 of 6
 **Milestone v28.0** — roadmap created (4 phase 376-379, 6 REQ mapped). Ready to plan. Phase: 376 (not started). 4 bug promote backlog: 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E). 0 migration. No research (bug-fix).
 
 **Next:** `/gsd-plan-phase 376` (atau `/gsd-discuss-phase 376` — 376 & 377 butuh diagnose/audit dulu). Phase 376/377/378 independent; 379 depends 376.
