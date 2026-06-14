@@ -10,11 +10,11 @@
 
 ### PCOMP — Proton Completion Logic (fase 358-359)
 
-- [ ] **PCOMP-01**: Exam Proton Tahun 1/2 yang lulus otomatis menerbitkan penanda `ProtonFinalAssessment` (dashboard menandai "Lulus").
-- [ ] **PCOMP-02**: Re-grade exam Proton dari Pass→Fail menghapus penanda yang ber-`Origin="Exam"` (penanda Bypass/Interview kebal).
-- [ ] **PCOMP-03**: Pembuatan/penghapusan penanda lewat satu helper bersama `ProtonCompletionService.EnsureProtonFinalAssessment` (dipakai jalur exam, interview, bypass).
-- [ ] **PCOMP-04**: Kolom `Origin` (Exam/Interview/Bypass) ditambah di `ProtonFinalAssessment` (migration #1; baris lama → "Interview").
-- [ ] **PCOMP-05**: Backfill 1x — penanda terbit untuk exam Tahun 1/2 lama yang sudah lulus + deliverable 100% (idempotent).
+- [x] **PCOMP-01**: Exam Proton Tahun 1/2 yang lulus otomatis menerbitkan penanda `ProtonFinalAssessment` (dashboard menandai "Lulus").
+- [x] **PCOMP-02**: Re-grade exam Proton dari Pass→Fail menghapus penanda yang ber-`Origin="Exam"` (penanda Bypass/Interview kebal).
+- [x] **PCOMP-03**: Pembuatan/penghapusan penanda lewat satu helper bersama `ProtonCompletionService.EnsureProtonFinalAssessment` (dipakai jalur exam, interview, bypass).
+- [x] **PCOMP-04**: Kolom `Origin` (Exam/Interview/Bypass) ditambah di `ProtonFinalAssessment` (migration #1; baris lama → "Interview").
+- [x] **PCOMP-05**: Backfill 1x — penanda terbit untuk exam Tahun 1/2 lama yang sudah lulus + deliverable 100% (idempotent).
 - [x] **PCOMP-06**: Gate eligibility divalidasi **server-side** di POST CreateAssessment (deliverable 100% + Tahun N-1 lulus), bukan cuma filter JS.
 - [x] **PCOMP-07**: Gate antar-tahun keras — assign/eligible Tahun N diblok kalau Tahun N-1 (TrackType sama) belum lulus (bypass exempt).
 - [x] **PCOMP-08**: Tahun 3 deliverable data-driven — kalau silabus Tahun 3 ada deliverable, gate 100% berlaku (Tahun 3 final tetap interview).

@@ -1,10 +1,12 @@
 ---
 phase: 358
 slug: penanda-kelulusan-fondasi-a
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-10
+updated: 2026-06-14
+hygiene_note: "Frontmatter flipped 2026-06-14 (post-exec) — kerja faktanya hijau: integration 5/5 real-SQL + suite 148/148, VERIFICATION 5/5 must-haves. Frontmatter ini template pre-exec yg lupa di-flip. Per-task map body biarkan apa adanya (snapshot rencana)."
 ---
 
 # Phase 358 — Validation Strategy

@@ -1,10 +1,12 @@
 ---
 phase: 361
 slug: bypass-ui-b
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-11
+updated: 2026-06-14
+hygiene_note: "Frontmatter flipped 2026-06-14 (post-exec) — kerja faktanya hijau: e2e proton-bypass.spec.ts 6/6 PASS live + VERIFICATION 12/12. Frontmatter ini template pre-exec yg lupa di-flip. Per-task map body biarkan apa adanya (snapshot rencana)."
 ---
 
 # Phase 361 — Validation Strategy

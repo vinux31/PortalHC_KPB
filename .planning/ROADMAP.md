@@ -33,7 +33,7 @@
 
 **Goal:** Logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa) lalu fitur Bypass Tahun. **B (bypass) depends A (completion)** — implement+verify A dulu. Sequential strict 358→359→360→361 (file-overlap GradingService 358+360, AssessmentAdminController 358+359). 2 migration (`Origin` 358, `PendingProtonBypass` 360).
 
-- [ ] **Phase 358: Penanda Kelulusan (fondasi A)** — Origin+migration#1 + helper `ProtonCompletionService` + wire GradingService (exam lulus + re-grade flip Pass↔Fail) + refactor SubmitInterviewResults ke helper + backfill data lama (cek 100%). → exam Tahun 1/2 lulus tercatat "Lulus" (fix bug). REQ: PCOMP-01..05. Migration=true. Depends: —
+- [x] **Phase 358: Penanda Kelulusan (fondasi A)** — Origin+migration#1 + helper `ProtonCompletionService` + wire GradingService (exam lulus + re-grade flip Pass↔Fail) + refactor SubmitInterviewResults ke helper + backfill data lama (cek 100%). → exam Tahun 1/2 lulus tercatat "Lulus" (fix bug). REQ: PCOMP-01..05. Migration=true. Depends: —
   - SC1: Exam Proton Tahun 1/2 lulus → dashboard CDP/HistoriProton menandai "Lulus".
   - SC2: Re-grade Pass→Fail hapus penanda Origin="Exam"; penanda Bypass/Interview tidak terhapus.
   - SC3: Interview Tahun 3 tetap terbit penanda (Origin="Interview") via helper bersama.
@@ -50,7 +50,7 @@
   - SC2: Bypass CL-B(b) bikin pending "Menunggu"; exam lulus → "Siap" + notif HC; konfirmasi → pindah.
   - SC3: Batal pending auto-cancel exam (belum-kerjakan→hapus, sudah-lulus→pertahankan hasil).
   - SC4: Bypass exempt gate antar-tahun; coach mapping aktif lama dideactivate sebelum create baru.
-- [ ] **Phase 361: Bypass UI (B)** — Tab2 "Bypass Tahun" + wizard 3-langkah + panel "Menunggu Konfirmasi" + notif deep-link + e2e UAT. REQ: PBYP-08..10. Migration=false. Depends: 360
+- [x] **Phase 361: Bypass UI (B)** — Tab2 "Bypass Tahun" + wizard 3-langkah + panel "Menunggu Konfirmasi" + notif deep-link + e2e UAT. REQ: PBYP-08..10. Migration=false. Depends: 360
   - SC1: Page Override 2 tab; Tab1 existing tak berubah; Tab2 wizard Tujuan→Closure→Detail.
   - SC2: Panel pending tampil + `[Konfirmasi]`/`[Batal]`; notif deep-link buka Tab2 pending.
   - SC3: UAT e2e 4 closure mode + pending konfirmasi + batal + re-grade fail PASS.
@@ -59,7 +59,7 @@
  (completed 2026-06-11)
 - [x] **Phase 364: Restore Baseline Regresi e2e Exam** — update judul assessment di `exam-taking.spec.ts` + `exam-types.spec.ts` comply validator REST-06 → 2 spec baseline regresi hidup lagi. Test-only. Migration=false. Depends: — (promoted backlog 999.4, 2026-06-10)
  (completed 2026-06-12)
-- [ ] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
+- [x] **Phase 365: Test-hardening Coach×Coachee (AF-3 xUnit)** — `MarkMappingCompletedTests` lock perilaku graduate (scope opsi (b); varian e2e re-assign-after-graduate + race harness AF-6 tetap backlog). Test-only. Migration=false. Depends: — (promoted backlog 999.5, 2026-06-10)
 - [x] **Phase 366: Cascade Image File Cleanup** — ekstrak helper ref-count dari 3 call-site inline Phase 353 + pasang di DeleteAssessment/DeleteAssessmentGroup/DeletePrePostGroup (hapus gambar orphan). Migration=false. Depends: 363 (line stability AssessmentAdminController) (promoted backlog 999.3, 2026-06-10) (completed 2026-06-12)
 - [x] **Phase 367: Delete Records Cascade Overhaul** — hapus 100% sampai akar: cascade engine renewal rekursif + preview konfirmasi (no blocker) + UI HTMX jujur + assessment online deletable dari tab Input Records + guard duplikat 3 pintu input + fix badge/over-match/file/reset-guard. Temuan #1-12, #14-20 spec C. Migration=false. Depends: 366 (file-overlap 3 endpoint Delete* AssessmentAdminController) (added 2026-06-10) (SHIPPED LOCAL: 8/8 plan, UAT 3/3, SECURITY 32/32 threats_open:0, VALIDATION 16/16 nyquist gaps:0, NOT PUSHED)
 - [x] **Phase 368: Delete Records Hygiene Lanjutan** — edit atomic file replace + reset bersihkan ET scores + audit log ImportTraining + dedup CertificationManagement CMP/CDP + validasi Renews*Id + rename label BulkBackfill + one-time cleanup AttemptHistory orphan legacy. Temuan #21-27 spec C. Migration=false. Depends: 367 (file-overlap TrainingAdminController/ResetAssessment) (added 2026-06-10) (SHIPPED LOCAL 2026-06-13: 4/4 plan, UAT 3/3, SECURITY 13/13 threats_open:0, VALIDATION 11/11 nyquist gaps:0, full suite 306/306, NOT PUSHED)
@@ -144,9 +144,9 @@ Plans:
 **UI hint:** no (read-logic/engine; extract pure core, no view change)
 **Plans:** 3 plans (2 waves)
 Plans:
-- [ ] 373-01-PLAN.md — Pure core `Helpers/ShuffleEngine.cs` (ON canonical + OFF filter-then-modulo + BuildOptionShuffle + Shuffle<T>) + Wave-0 `ShuffleEngineTests.cs` (SHUF-04/05/06/07/08) [Wave 1]
-- [ ] 373-02-PLAN.md — Wire `CMPController.StartExam` to core (flag-gated + stable worker-index OrderBy(Id)) + fix stale comment :1054 (SHUF-15) + delete local dup [Wave 2]
-- [ ] 373-03-PLAN.md — Wire `ReshufflePackage`/`ReshuffleAll` to core + fix `"{}"` bug (SHUF-09) + delete divergent dup + `ShuffleReshuffleTests.cs` regression [Wave 2]
+- [x] 373-01-PLAN.md — Pure core `Helpers/ShuffleEngine.cs` (ON canonical + OFF filter-then-modulo + BuildOptionShuffle + Shuffle<T>) + Wave-0 `ShuffleEngineTests.cs` (SHUF-04/05/06/07/08) [Wave 1]
+- [x] 373-02-PLAN.md — Wire `CMPController.StartExam` to core (flag-gated + stable worker-index OrderBy(Id)) + fix stale comment :1054 (SHUF-15) + delete local dup [Wave 2]
+- [x] 373-03-PLAN.md — Wire `ReshufflePackage`/`ReshuffleAll` to core + fix `"{}"` bug (SHUF-09) + delete divergent dup + `ShuffleReshuffleTests.cs` regression [Wave 2]
 
 ### Phase 374: UI ManagePackages + Lock + Pre/Post
 **Goal:** 2 toggle di header `ManagePackages` (aktif walau `SamePackage` lock isi paket) + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate sibling) + lock toggle saat ada peserta mulai (`StartedAt!=null` ATAU ada `UserPackageAssignment` grup) + warning non-blocking (multi-paket+Acak Soal OFF+ukuran paket beda) + reminder visual Pre OFF↔Post ON (no auto-cascade) + hide toggle untuk Proton Tahun 3 / Manual entry.
