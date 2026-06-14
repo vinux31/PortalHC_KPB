@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: planning
-last_updated: "2026-06-14T14:10:57.104Z"
-last_activity: 2026-06-14 — v29.0 ROADMAP.md written (3 phase 380-382 SEQUENTIAL A→B→C, 11 REQ WSE-01..11, 2-5 success criteria/phase grounded di E2E scenario 1-12). Coverage 11/11 mapped, 0 orphan. Audit-driven from `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`.
+status: executing
+last_updated: "2026-06-14T14:14:22.108Z"
+last_activity: 2026-06-14 -- Phase 380 planning complete
 progress:
   total_phases: 21
   completed_phases: 0
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md
 
 Phase: Not started (roadmap complete — awaiting plan)
 Plan: —
-Status: Roadmap created → ready to plan Phase 380
-Last activity: 2026-06-14 — v29.0 ROADMAP.md written (3 phase 380-382 SEQUENTIAL A→B→C, 11 REQ WSE-01..11, 2-5 success criteria/phase grounded di E2E scenario 1-12). Coverage 11/11 mapped, 0 orphan. Audit-driven from `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`.
+Status: Ready to execute
+Last activity: 2026-06-14 -- Phase 380 planning complete
 
 **v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (+1 migration). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.
 
