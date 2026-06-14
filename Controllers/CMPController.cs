@@ -4418,6 +4418,59 @@ namespace HcPortal.Controllers
         /// AssessmentType Manual / null di-skip (D-15 defense-in-depth).
         /// Returns IActionResult kalau reject (caller `return` value), atau null kalau pass (caller lanjut).
         /// </summary>
+        // ==================== Phase 382 PURE DECISION HELPERS (Wave 0) ====================
+        // Konvensi repo: CMPController ber-ctor 14-dep → uji lewat pure static helper (lihat VerifyTokenTests.cs).
+        // Helper = sumber kebenaran tunggal; controller mendelegasikan ke helper (anti-drift, pola Phase 380/363).
+
+        /// <summary>
+        /// TMR-01: apakah timer submit di-enforce untuk AssessmentType ini.
+        /// BLOCKLIST — skip HANYA Manual / null / kosong; selain itu (Standard/Online/PreTest/PostTest) di-enforce.
+        /// STUB (Wave 0): masih meniru BUG allowlist (Standard di-skip) → di-fix Task 4.
+        /// </summary>
+        public static bool ShouldEnforceSubmitTimer(string? assessmentType)
+        {
+            // STUB RED — perilaku BUG saat ini (allowlist): hanya Online/PreTest/PostTest yg enforce, Standard skip.
+            return assessmentType == AssessmentConstants.AssessmentType.Online
+                || assessmentType == AssessmentConstants.AssessmentType.PreTest
+                || assessmentType == AssessmentConstants.AssessmentType.PostTest;
+        }
+
+        public enum SubmitTimerDecision { Pass, BlockNoGrace, BlockGrace }
+
+        /// <summary>
+        /// Keputusan tier timer (pure). Tier-1 (BlockNoGrace) bila elapsed≥allowed tanpa server-approved token;
+        /// Tier-2 (BlockGrace) bila elapsed≥grace; selain itu Pass. Server-approved auto-submit (D-05) selalu Pass
+        /// hingga grace.
+        /// </summary>
+        public static SubmitTimerDecision EvaluateSubmitTimerDecision(
+            double elapsedSec, double allowedSec, double graceSec, bool serverApprovedAutoSubmit)
+        {
+            if (elapsedSec >= graceSec) return SubmitTimerDecision.BlockGrace;
+            if (elapsedSec >= allowedSec && !serverApprovedAutoSubmit) return SubmitTimerDecision.BlockNoGrace;
+            return SubmitTimerDecision.Pass;
+        }
+
+        /// <summary>
+        /// TOK-02: apakah handler harus menolak karena belum lewat lobby token.
+        /// STUB (Wave 0): selalu false (gate belum ada) → di-fix Task 5.
+        /// </summary>
+        public static bool ShouldGateMissingStart(bool isTokenRequired, DateTime? startedAt)
+        {
+            // STUB RED — gate belum ditegakkan.
+            return false;
+        }
+
+        /// <summary>
+        /// TMR-03: apakah AutoSubmitToken boleh dikonsumsi (di-remove). HANYA pada grading sukses.
+        /// STUB (Wave 0): selalu true (model bug konsumsi tanpa syarat) → di-fix Task 4.
+        /// </summary>
+        public static bool ShouldConsumeAutoSubmitToken(bool gradingSucceeded)
+        {
+            // STUB RED — meniru perilaku bug (konsumsi pre-grading / tanpa syarat sukses).
+            return true;
+        }
+        // ================================================================================
+
         private async Task<IActionResult?> EnsureCanSubmitExamAsync(
             AssessmentSession assessment,
             bool isAutoSubmitClientHint,
