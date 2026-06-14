@@ -1008,11 +1008,12 @@ namespace HcPortal.Controllers
             }
 
             // Packages are attached to the representative session (the one HC used when clicking "Packages"),
-            // so search across all sibling sessions (same Title + Category + Schedule.Date).
+            // so search across all sibling sessions. WSE-04 (D-01/D-09): type-aware isolation via shared
+            // helper — Pre/Post same-day tak saling memungut paket; Standard/''/null tetap satu grup.
+            // Helper dipakai IDENTIK di ReshufflePackage + ReshuffleAll → workerIndex konsisten (Phase 373).
             var siblingSessionIds = await _context.AssessmentSessions
-                .Where(s => s.Title == assessment.Title &&
-                            s.Category == assessment.Category &&
-                            s.Schedule.Date == assessment.Schedule.Date)
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                 .Select(s => s.Id)
                 .ToListAsync();
 
