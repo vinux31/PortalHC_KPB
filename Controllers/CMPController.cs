@@ -368,6 +368,11 @@ namespace HcPortal.Controllers
             if (session.Status == "Completed" || session.Status == "Abandoned" || session.Status == "Cancelled")
                 return Json(new { success = false, error = "Session already closed" });
 
+            // TOK-02 (WSE-10 / T-382-09): sesi token-required tapi belum lewat lobby token (StartedAt==null)
+            // tak boleh menyimpan jawaban (bypass proctoring). StartExam set StartedAt hanya setelah VerifyToken.
+            if (ShouldGateMissingStart(session.IsTokenRequired, session.StartedAt))
+                return Json(new { success = false, error = "Ujian belum dimulai. Masukkan token melalui halaman ujian." });
+
             // Atomic upsert: update existing row, or insert if none exists
             var updatedCount = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId)
@@ -1584,6 +1589,14 @@ namespace HcPortal.Controllers
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
             {
                 return Forbid();
+            }
+
+            // TOK-02 (WSE-10 / T-382-09): gate bersama STAT-01 di awal handler, SEBELUM mutasi. Sesi token-required
+            // yang belum lewat lobby token (StartedAt==null) tak boleh submit/grading (bypass proctoring).
+            if (ShouldGateMissingStart(assessment.IsTokenRequired, assessment.StartedAt))
+            {
+                TempData["Error"] = "Ujian belum dimulai. Masukkan token melalui halaman ujian.";
+                return RedirectToAction("Assessment");
             }
 
             // STAT-01 (WSE-07 / T-382-04): tolak resurrection sesi terminal via SubmitExam.
@@ -4475,14 +4488,12 @@ namespace HcPortal.Controllers
         }
 
         /// <summary>
-        /// TOK-02: apakah handler harus menolak karena belum lewat lobby token.
-        /// STUB (Wave 0): selalu false (gate belum ada) → di-fix Task 5.
+        /// TOK-02 (WSE-10 / T-382-09): apakah handler harus menolak karena belum lewat lobby token.
+        /// StartedAt di-set HANYA setelah VerifyToken sukses (StartExam) → token-required && StartedAt==null
+        /// = proxy "belum lewat lobby token" → reject. Sesi non-token (IsTokenRequired=false) tak pernah ter-gate.
         /// </summary>
         public static bool ShouldGateMissingStart(bool isTokenRequired, DateTime? startedAt)
-        {
-            // STUB RED — gate belum ditegakkan.
-            return false;
-        }
+            => isTokenRequired && startedAt == null;
 
         /// <summary>
         /// TMR-03 (WSE-09 / T-382-10): apakah AutoSubmitToken boleh dikonsumsi (di-remove). HANYA pada grading sukses.
