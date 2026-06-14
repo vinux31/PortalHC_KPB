@@ -37,6 +37,17 @@ OUT (dikunci roadmap): Proton, essay, multi-answer, grading/lifecycle/cert (→ 
 - **D-06:** Saat impersonate **dan** `assignment == null`: build `ShuffledQuestionIds` + `optionShuffleDict` **DI MEMORI** (panggil `ShuffleEngine.BuildQuestionAssignment/BuildOptionShuffle` seperti biasa) **tanpa** `_context.UserPackageAssignments.Add` / `SaveChangesAsync`. Admin melihat **preview soal read-only**, zero mutasi DB. Saat worker asli login & `StartExam` → assignment baru ter-create & persist normal (timer mulai dari nol, set shuffle X tak terkunci lebih awal — **SC#3**).
 - **D-07:** Block **stale-question-check** (`1065`) tak terpengaruh — sudah dijaga `assessment.StartedAt != null`; saat impersonate-belum-mulai `StartedAt` null → block tak fire. Tak perlu perubahan tambahan.
 
+### Research clarifications (post-RESEARCH `357d7a7f` — koreksi D-01/D-02/D-03)
+- **D-08 (koreksi D-03 — scope helper):** Riset mengoreksi: hanya **2 endpoint reshuffle asli** yang ada — `ReshufflePackage` (`AssessmentAdminController.cs:~5160`) & `ReshuffleAll` (`~5248`). Site `~5359` = `UpdateShuffleSettings`, `~5481` = `ManagePackages` → keduanya **lock-detection** (cek apakah shuffle terkunci karena worker mulai), BUKAN round-robin. Helper sibling + filter AssessmentType **HANYA** diterapkan ke **StartExam GET + ReshufflePackage + ReshuffleAll** (jaga determinisme workerIndex). `UpdateShuffleSettings` & `ManagePackages` **DIBIARKAN unfiltered** (lock tetap group-wide) — di luar scope WSE-04, hindari ubah semantik lock v27.
+- **D-09 (koreksi D-01 — semantik filter, aman-legacy):** Filter pakai semantik **type-aware isolation**, BUKAN kesetaraan ketat. Hanya `PreTest`/`PostTest` yang diisolasi; `Standard`/`""`/`null` dikelompokkan bersama sebagai non-PrePost (tak pernah terpecah). Bukti lokal: 3 sesi `AssessmentType=''` ada; 2 grup mixed (`ojt v14.2`, `UAT v14 PrePost`) keduanya Pre/Post sah (bukan Standard+blank). Semantik ini = zero behavior-change untuk non-PrePost + aman thd data legacy Prod tak terlihat. Bentuk:
+  ```
+  bool isPrePost = assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest";
+  // ...Title && Category && Schedule.Date &&
+  ( isPrePost
+      ? s.AssessmentType == assessment.AssessmentType            // Pre↔Pre, Post↔Post
+      : (s.AssessmentType != "PreTest" && s.AssessmentType != "PostTest") )  // non-PrePost satu grup
+  ```
+
 ### Claude's Discretion
 - Nama/signature/lokasi helper sibling (`GetSiblingSessionIds`, private method vs util bersama) — selama dipakai **identik** StartExam + reshuffle.
 - Stabilitas RNG preview impersonasi: assignment in-memory akan re-shuffle tiap reload (acak beda per refresh). Boleh pakai seed stabil (mis. derive dari `id`) agar preview konsisten, atau biarkan acak — preview saja, tak memengaruhi worker.
