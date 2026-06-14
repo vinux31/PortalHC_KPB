@@ -199,8 +199,8 @@ namespace HcPortal.Controllers
             if (pageSize < 1) pageSize = 20;
             if (pageSize > 100) pageSize = 100;  // Max 100 per page
 
-            // Get current user
-            var user = await _userManager.GetUserAsync(User);
+            // Get current user — Phase 377: effective user (impersonate user X → assessment X; mode-role → kosong, bukan admin).
+            var (user, _) = await GetCurrentUserRoleLevelAsync();
             var userId = user?.Id ?? "";
 
             // ========== PERSONAL VIEW: worker's own assessments ==========
@@ -629,8 +629,15 @@ namespace HcPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportRecords()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+            // Phase 377: route ke effective user (impersonate user X → export records X, D-01).
+            var (user, _) = await GetCurrentUserRoleLevelAsync();
+            if (user == null)
+            {
+                // mode-role / genuinely-null → tak ada data personal untuk diekspor (D-03 konsisten).
+                if (_impersonationService.IsImpersonating() && _impersonationService.GetMode() == "role")
+                    return RedirectToAction("Records");
+                return Challenge();
+            }
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
@@ -885,7 +892,8 @@ namespace HcPortal.Controllers
 
             if (assessment == null) return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            // Phase 377: route authz ke effective user (impersonate user X → owner-check pakai X.Id).
+            var (user, _) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return Challenge();
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
                 return Forbid();
@@ -893,9 +901,13 @@ namespace HcPortal.Controllers
             // Auto-transition: Upcoming → Open when scheduled date+time has arrived in WIB (persisted to DB)
             if (assessment.Status == "Upcoming" && assessment.Schedule <= DateTime.UtcNow.AddHours(7))
             {
-                assessment.Status = "Open";
-                assessment.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
+                // Phase 377 (Pitfall 3 / T-377-09): write-on-GET guard — JANGAN tulis DB saat impersonasi (read-only invariant).
+                if (!_impersonationService.IsImpersonating())
+                {
+                    assessment.Status = "Open";
+                    assessment.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
             }
 
             // Time gate: block access if assessment is still Upcoming (scheduled time not yet reached)
