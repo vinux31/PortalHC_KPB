@@ -1769,3 +1769,88 @@ test.describe('Flow L: Empty Package + Shuffle ON (WSE-01)', () => {
   });
 });
 
+// ============================================================
+// FLOW M: Token lowercase heal (WSE-02 / TOK-01, scenario #5)
+// HC creates token-required exam → stored AccessToken forced LOWERCASE (simulating the legacy
+// admin-edited-lowercase bug state) → worker types the token (client uppercases) → VerifyToken's
+// defensive both-sides compare (D-01a) heals it → worker ENTERS (not "Token tidak valid").
+// Pre-fix: single-side compare `stored != input.ToUpper()` → lowercase stored never matches → locked out.
+// Selectable via -g "token".
+// ============================================================
+test.describe('Flow M: Token Lowercase Heal (WSE-02)', () => {
+  let title: string;
+  let assessmentId: number;
+  const TOKEN = 'ABC23X';
+  const tokenLower = TOKEN.toLowerCase();
+
+  test('M1 — HC creates token-required exam with package + question', async ({ page }) => {
+    title = uniqueTitle('Pre Test [380-M] Token Lowercase Heal');
+    await login(page, 'hc');
+    await createAssessmentViaWizard(page, {
+      title, category: 'IHT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 70, allowAnswerReview: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+      isTokenRequired: true, accessToken: TOKEN,   // stored UPPERCASE by CreateAssessment
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    const packageId = await createDefaultPackage(page);
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: '[380-M] Soal token heal?',
+      options: ['Jawaban A', 'Jawaban B', 'Jawaban C', 'Jawaban D'], correctIndex: 0, score: 100,
+    });
+  });
+
+  test('M2 — Force stored AccessToken to LOWERCASE (simulate legacy edited-lowercase bug)', async () => {
+    // Reproduce the pre-fix data state: token stored lowercase (admin had edited it lowercase before D-01b).
+    const rows = await db.queryScalar(
+      `UPDATE AssessmentSessions SET AccessToken = '${tokenLower}' WHERE Id = ${assessmentId}; SELECT @@ROWCOUNT;`
+    );
+    expect(rows).toBeGreaterThanOrEqual(1);
+    const stored = await db.queryString(`SELECT AccessToken FROM AssessmentSessions WHERE Id = ${assessmentId}`);
+    expect(stored).toBe(tokenLower); // confirm bug state set
+  });
+
+  test('M3 — Worker enters with token despite lowercase storage (defensive compare heals)', async ({ page }) => {
+    await login(page, 'coachee');
+    await page.goto('/CMP/Assessment');
+    const card = page.locator('.assessment-card', { hasText: title }).first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
+    await card.locator('.btn-start-token').click();
+
+    const modal = page.locator('.modal.show');
+    await expect(modal).toBeVisible({ timeout: 5_000 });
+    // Type lowercase; client force-uppercases (Assessment.cshtml:757) → 'ABC23X'.
+    await page.locator('#tokenInput').fill(tokenLower);
+    await page.locator('#btnVerify').click();
+
+    // Defensive compare: ('abc23x').Trim().ToUpper() == ('ABC23X').Trim().ToUpper() → SUCCESS → StartExam.
+    await page.waitForURL(/\/CMP\/StartExam\/\d+/, { timeout: 15_000 });
+    await expect(page.locator('#examHeader')).toBeVisible({ timeout: 10_000 });
+    // No "Token tidak valid" error surfaced.
+    await expect(page.locator('body')).not.toContainText('Token tidak valid');
+  });
+
+  test('M4 — Cleanup: HC deletes token assessment', async ({ page }) => {
+    await login(page, 'hc');
+    await page.goto('/Admin/ManageAssessment');
+    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
+    await searchInput.fill(title);
+    await searchInput.press('Enter');
+    await page.waitForLoadState('networkidle');
+    const dropdown = page.locator('tr', { hasText: title }).first().locator('button.dropdown-toggle').first();
+    if (await dropdown.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      autoConfirm(page);
+      await dropdown.click();
+      await page.waitForTimeout(500);
+      const hapus = page.locator('button:has-text("Hapus Grup"), button:has-text("Hapus")').first();
+      if (await hapus.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await hapus.click();
+        await page.waitForLoadState('networkidle');
+      }
+    }
+  });
+});
+

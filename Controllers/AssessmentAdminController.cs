@@ -6873,11 +6873,11 @@ namespace HcPortal.Controllers
 
         // WSE-03 (RST-04 / D-03): per-session cap — total extra time tak boleh melebihi durasi asli ujian.
         // Pure predicate (single source for the AddExtraTime cap gate) → unit-testable tanpa controller.
-        // Task 1 RED stub below (no cap today) — corrected in Task 4.
         public static bool ExtraTimeWithinCap(int currentExtra, int requestMinutes, int durationMinutes)
-            => true;
+            => currentExtra + requestMinutes <= durationMinutes;
 
         [HttpPost]
+        [Authorize(Roles = "Admin, HC")]      // WSE-03 / RST-01 — exact sibling string (ResetAssessment :3998), "Admin, HC" WITH space
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddExtraTime(int assessmentId, int minutes)
         {
@@ -6907,6 +6907,15 @@ namespace HcPortal.Controllers
 
             if (!sessions.Any())
                 return Json(new { success = false, message = "Tidak ada peserta aktif." });
+
+            // RST-04 cap (D-03): total extra time per-sesi ≤ durasi asli. Reject-whole-batch (atomic, JSON contract — Pitfall 5).
+            foreach (var session in sessions)
+            {
+                var currentExtra = session.ExtraTimeMinutes ?? 0;
+                if (!ExtraTimeWithinCap(currentExtra, minutes, session.DurationMinutes))
+                    return Json(new { success = false,
+                        message = $"Total tambahan waktu tidak boleh melebihi durasi ujian ({session.DurationMinutes} menit). Saat ini sudah +{currentExtra} menit." });
+            }
 
             foreach (var session in sessions)
             {
