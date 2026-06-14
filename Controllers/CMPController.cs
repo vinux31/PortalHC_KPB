@@ -479,7 +479,28 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> Records(string? section, string? unit, string? category, string? search, string? statusFilter, string? isFiltered)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
-            if (user == null) return RedirectToAction("Login", "Account");
+            if (user == null)
+            {
+                // D-03 (Phase 377 Option A): impersonate mode-role → render KOSONG + hint, BUKAN redirect Login (Pitfall 1)
+                // dan BUKAN identitas/data admin (User=null — leak identitas dilarang). Selain itu (genuinely null) → Login.
+                if (_impersonationService.IsImpersonating() && _impersonationService.GetMode() == "role")
+                {
+                    ViewBag.ImpersonateRoleHint = "Pilih user spesifik untuk melihat data worker.";
+                    ViewBag.ActualCategoriesJson = "[]";
+                    var emptyVm = new HcPortal.Models.ViewModels.CMPRecordsViewModel
+                    {
+                        User = null,
+                        RoleLevel = roleLevel,
+                        UnifiedRecords = new List<HcPortal.Models.UnifiedTrainingRecord>(),
+                        AssessmentCount = 0,
+                        TrainingCount = 0,
+                        TotalCount = 0,
+                        YearOptions = new List<int>()
+                    };
+                    return View("Records", emptyVm);
+                }
+                return RedirectToAction("Login", "Account");
+            }
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
@@ -2385,13 +2406,31 @@ namespace HcPortal.Controllers
         /// Returns (user, roleLevel) for the current authenticated user.
         /// Extracts the repeated role-scoping pattern used across multiple actions.
         /// </summary>
+        // Phase 377 (D-05 single-source): impersonation-aware. Konsumsi resolver ImpersonationService.GetEffectiveUserAsync.
+        // UseRealUser → user asli (SC4 identik); RoleModeEmpty → (null, effective role-level) caller render kosong+hint (D-03);
+        // TargetUser → user efektif X (full-fidelity D-01). ~9 caller self-read terfix otomatis di hulu.
         private async Task<(ApplicationUser? User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return (null, 0);
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
-            return (user, roleLevel);
+            var (effUser, decision) = await _impersonationService.GetEffectiveUserAsync(_userManager);
+
+            // SC4: non-impersonate (atau expired) → identik perilaku hari ini.
+            if (decision == EffectiveUserDecision.UseRealUser)
+            {
+                var real = await _userManager.GetUserAsync(User);
+                if (real == null) return (null, 0);
+                var realRoles = await _userManager.GetRolesAsync(real);
+                return (real, UserRoles.GetRoleLevel(realRoles.FirstOrDefault() ?? ""));
+            }
+
+            // D-03: mode role → user null (caller render kosong+hint); role-level efektif tetap untuk gating UI.
+            if (decision == EffectiveUserDecision.RoleModeEmpty)
+                return (null, _impersonationService.GetEffectiveRoleLevel() ?? 0);
+
+            // mode user (TargetUser): effUser = X (defensif null = D-04, middleware sudah redirect).
+            if (effUser == null) return (null, 0);
+            var effLevel = _impersonationService.GetEffectiveRoleLevel()
+                           ?? UserRoles.GetRoleLevel((await _userManager.GetRolesAsync(effUser)).FirstOrDefault() ?? "");
+            return (effUser, effLevel);
         }
 
         // REC-04 (D-09): authz single-source untuk Results/Certificate/CertificatePdf.
