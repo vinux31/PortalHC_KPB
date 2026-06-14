@@ -59,7 +59,10 @@
 **Goal:** Essay-only assessment finalize mengagregasi skor manual ke `AssessmentSessions.Score` (fix Score=0 walau dinilai); konsisten dgn jalur mixed. Diagnose root cause dulu.
 **Depends on:** — (promote backlog 999.8)
 **UI hint:** no (backend grading logic; no view change)
-**Plans:** TBD (`/gsd-plan-phase 376`)
+**Plans:** 3 plans (3 waves)
+- [ ] 376-01-PLAN.md — Diagnose-first (SC1 repro + root cause) + Wave-0 test scaffold (unit RED + e2e L6 un-fixme)
+- [ ] 376-02-PLAN.md — Helper agregasi murni (D-02/D-04) + fix forward FinalizeEssayGrading robust derivation (SC2/SC3)
+- [ ] 376-03-PLAN.md — Endpoint recompute idempotent (D-01/D-03) + integration real-SQL + IT handoff note
 
 ### Phase 377: Impersonation Identity Across Surfaces
 **Goal:** Surface worker-data resolve identitas user di-impersonate (bukan admin); audit + fix semua call-site `GetCurrentUserRoleLevelAsync`/`GetUserAsync(User)`.
