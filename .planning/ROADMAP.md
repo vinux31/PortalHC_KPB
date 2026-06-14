@@ -1321,7 +1321,10 @@ Plans:
   3. Hasil yang sudah Completed/graded/LULUS tidak hilang oleh AbandonExam telat: panggilan AbandonExam pada sesi Completed ditolak (rowsAffected==0), Status tetap Completed, hasil/cert tetap tampil di Results/Records. *(E2E scenario 9 — STAT-02)*
   4. Batas waktu ditegakkan untuk ujian Normal ("Standard"): submit manual jauh-telat (StartedAt mundur) ditolak (Tier-1/Tier-2 + audit SubmitExamBlocked), sedangkan submit dalam-waktu tetap diterima; ujian token-required tak bisa diselesaikan dengan mem-bypass gate token di SaveAnswer/SubmitExam. *(E2E scenario 11 — TMR-01; + TOK-02 StartedAt-gate)*
   5. Worker LULUS normal/PostTest single-answer dengan generateCertificate=true tapi ValidUntil dibiarkan kosong menampilkan status kredensial KONSISTEN di semua surface — Results LULUS+NomorSertifikat+PDF, dashboard CMP/CDP/Renewal "Aktif/Permanen" (BUKAN Expired), badge Home & notifikasi tidak undercount/kontradiktif. *(E2E scenario 12 — CERT-01)*
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 382-01-PLAN.md — WSE-06 SAVE-01 dedupe-read + WSE-07 STAT-01 guard (GradingService) + const Abandoned (Wave 1)
+  - [ ] 382-02-PLAN.md — WSE-06/07/08/09/10 CMPController coherent single-stream (SubmitExam SAVE-01+STAT-01+TOK-02+TMR-02, AbandonExam STAT-02, EnsureCanSubmit TMR-01/03, SaveAnswer TOK-02) (Wave 2, depends 382-01)
+  - [ ] 382-03-PLAN.md — WSE-11 CERT-01 single-source null→Aktif + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync (Wave 3, depends 382-02)
 **UI hint**: yes
 
 ### Progress Table
