@@ -69,11 +69,11 @@
 **Depends on:** — (promote backlog 999.6)
 **UI hint:** no (backend query identity resolution)
 **Plans:** 6 plans (3 waves)
-- [ ] 377-01-PLAN.md — Audit-first: materialize 377-AUDIT.md (SC1/D-07) + Wave-0 pure-logic resolver test (RED)
-- [ ] 377-02-PLAN.md — Fondasi: effective-user resolver ImpersonationService (D-05) + middleware D-04 fail-closed
-- [ ] 377-03-PLAN.md — CMP impersonation-aware: resolver rewrite + 3 bypass surface + D-03 hint + StartExam write-on-GET guard (SC2)
-- [ ] 377-04-PLAN.md — CDP impersonation-aware: inject ImpersonationService (Pitfall 2) + resolver nullable + null-guard caller (SC3)
-- [ ] 377-05-PLAN.md — Home/Index effective user + fold split-brain L53 (SC3)
+- [x] 377-01-PLAN.md — Audit-first: materialize 377-AUDIT.md (SC1/D-07) + Wave-0 pure-logic resolver test (RED)
+- [x] 377-02-PLAN.md — Fondasi: effective-user resolver ImpersonationService (D-05) + middleware D-04 fail-closed
+- [x] 377-03-PLAN.md — CMP impersonation-aware: resolver rewrite + 3 bypass surface + D-03 hint + StartExam write-on-GET guard (SC2)
+- [x] 377-04-PLAN.md — CDP impersonation-aware: inject ImpersonationService (Pitfall 2) + resolver nullable + null-guard caller (SC3)
+- [x] 377-05-PLAN.md — Home/Index effective user + fold split-brain L53 (SC3)
 - [ ] 377-06-PLAN.md — Integrasi: e2e SC2/SC3 + ResultsAuthorization fidelity (D-01) + seed + full regression gate + UAT (SC4)
 
 ### Phase 378: Fix CMP CertificationManagement Route 500
@@ -87,8 +87,13 @@
 **Goal:** 10 create flow `exam-taking.spec.ts` migrasi flat-form → wizard 4-langkah, suite hijau (cover essay).
 **Depends on:** 376 (promote backlog 999.7)
 **UI hint:** no (e2e test infra)
-**Plans:** TBD (`/gsd-plan-phase 379`)
-
+**Plans:** 6 plans (6 waves — single-file constraint exam-taking.spec.ts memaksa sekuensial)
+- [ ] 379-01-PLAN.md — Wave-0 prep: extend helper additive (token/proton/paste) + 3 Open Q verify + seed ProtonTrack T3 + smoke
+- [ ] 379-02-PLAN.md — Migrasi Flow A/B/C (import block + wizard create + token + multi-worker)
+- [ ] 379-03-PLAN.md — Migrasi Flow D/E (paste-import + Proton T3 interview PENUH, no test.skip — D-02)
+- [ ] 379-04-PLAN.md — Migrasi Flow F/G/H (multi-worker + timer deterministik + monitoring no sleep-buta — D-03)
+- [ ] 379-05-PLAN.md — Migrasi Flow I/J + Flow K BARU essay (DB-assert Score teragregasi — D-01/GRADE-01)
+- [ ] 379-06-PLAN.md — Gate: full green run --workers=1 (bukti D-03) + seed restore + VALIDATION sign-off
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
 
