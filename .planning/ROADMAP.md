@@ -1335,7 +1335,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 380. Admin/Engine Integrity | 0/? | Not started | - |
-| 381. Worker Entry (StartExam integrity) | 3/3 | Complete   | 2026-06-14 |
+| 381. Worker Entry (StartExam integrity) | 3/3 | Complete    | 2026-06-14 |
 | 382. Grading / Lifecycle / Cert (MIGRATION) | 0/? | Not started | - |
 
 ### Coverage Validation v29.0
