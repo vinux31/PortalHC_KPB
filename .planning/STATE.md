@@ -1,16 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v29.0
-milestone_name: Assessment E2E Worker-Success Fix
-status: roadmap_complete
-last_updated: "2026-06-14T13:00:00Z"
-last_activity: 2026-06-14
+milestone: v22.0
+milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
+status: planning
+last_updated: "2026-06-14T13:42:26.901Z"
+last_activity: 2026-06-14 — v29.0 ROADMAP.md written (3 phase 380-382 SEQUENTIAL A→B→C, 11 REQ WSE-01..11, 2-5 success criteria/phase grounded di E2E scenario 1-12). Coverage 11/11 mapped, 0 orphan. Audit-driven from `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`.
 progress:
-  total_phases: 3
+  total_phases: 24
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
