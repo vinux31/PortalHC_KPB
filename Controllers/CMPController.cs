@@ -847,9 +847,8 @@ namespace HcPortal.Controllers
         // WSE-02 (D-01a): defensive both-sides token compare — single source for the VerifyToken gate.
         // Both sides Trim()+ToUpper() so a legacy LOWERCASE stored token (admin edited lowercase) still
         // matches the (client-uppercased) input — auto-heals at read-time, zero DB touch. Pure → unit-testable.
-        // Task 1 RED stub below (current single-side bug) — corrected in Task 2.
         public static bool AccessTokenMatches(string? stored, string? input)
-            => stored == (input ?? "").ToUpper();
+            => (stored ?? "").Trim().ToUpper() == (input ?? "").Trim().ToUpper();
 
         // API: Verify Token for Assessment
         [HttpPost]
@@ -880,7 +879,8 @@ namespace HcPortal.Controllers
                 return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
             }
 
-            if (string.IsNullOrEmpty(token) || assessment.AccessToken != token.ToUpper())
+            // WSE-02 (D-01a): defensive both-sides compare (auto-heal legacy lowercase-stored tokens).
+            if (string.IsNullOrEmpty(token) || !AccessTokenMatches(assessment.AccessToken, token))
             {
                 return Json(new { success = false, message = "Token tidak valid. Silakan periksa dan coba lagi." });
             }

@@ -1792,6 +1792,13 @@ namespace HcPortal.Controllers
                     return RedirectToAction("EditAssessment", new { id });
                 }
 
+                // WSE-02 (D-01b): normalize token uppercase for Pre/Post writes (mirror CreateAssessment :1104-1108).
+                // This branch returns at :ManageAssessment before the single-mode uppercase, so it is the only
+                // normalization the Pre/Post path gets. Defensive compare (D-01a) heals existing rows; this keeps new writes clean.
+                string normalizedToken = (model.IsTokenRequired && !string.IsNullOrWhiteSpace(model.AccessToken))
+                    ? model.AccessToken.ToUpper()
+                    : "";
+
                 var allGroupSessions = await _context.AssessmentSessions
                     .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
                     .ToListAsync();
@@ -1809,7 +1816,8 @@ namespace HcPortal.Controllers
                     s.ShuffleQuestions = model.ShuffleQuestions;
                     s.ShuffleOptions = model.ShuffleOptions;
                     s.IsTokenRequired = model.IsTokenRequired;
-                    s.AccessToken = model.IsTokenRequired ? (model.AccessToken ?? s.AccessToken ?? "") : "";
+                    // D-01b: store uppercase; preserve fallback-to-existing when model supplies no token (do NOT wipe).
+                    s.AccessToken = model.IsTokenRequired ? (normalizedToken != "" ? normalizedToken : (s.AccessToken ?? "")) : "";
                     s.UpdatedAt = DateTime.UtcNow;
                 }
 
@@ -1913,7 +1921,7 @@ namespace HcPortal.Controllers
                             ShuffleQuestions = model.ShuffleQuestions,
                             ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
-                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            AccessToken = model.IsTokenRequired ? normalizedToken : "",
                             GenerateCertificate = false,
                             UserId = newUserId,
                             AssessmentType = "PreTest",
@@ -1934,7 +1942,7 @@ namespace HcPortal.Controllers
                             ShuffleQuestions = model.ShuffleQuestions,
                             ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
-                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            AccessToken = model.IsTokenRequired ? normalizedToken : "",
                             GenerateCertificate = model.GenerateCertificate,
                             ValidUntil = model.ValidUntil,
                             UserId = newUserId,
