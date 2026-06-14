@@ -39,7 +39,7 @@
   - SC2: HC nilai essay-only + finalize → `AssessmentSessions.Score` = agregasi skor manual (bukan 0).
   - SC3: Jalur mixed (MC+MA+essay) `Score` tetap benar — no regression.
   - SC4: Regression test hijau kedua jalur (essay-only + mixed).
-- [ ] **Phase 377: Impersonation Identity Across Surfaces** — audit cakupan semua call-site `GetCurrentUserRoleLevelAsync` / `_userManager.GetUserAsync(User)` lintas controller lalu fix supaya surface worker-data (CMP/Records, Assessment, Home progress) resolve identitas user di-impersonate, bukan admin asli (banner "Anda melihat sebagai X" jujur). REQ: IMP-01,02. Migration=false. Depends: — (promote backlog 999.6)
+- [x] **Phase 377: Impersonation Identity Across Surfaces** ✅ SHIPPED LOCAL 2026-06-14 — audit cakupan semua call-site `GetCurrentUserRoleLevelAsync` / `_userManager.GetUserAsync(User)` lintas controller lalu fix supaya surface worker-data (CMP/Records, Assessment, Home progress) resolve identitas user di-impersonate, bukan admin asli (banner "Anda melihat sebagai X" jujur). Resolver single-source (D-05) + middleware D-04 fail-closed; 6/6 plan; xUnit 372/372 + e2e 13/13 + UAT 7/7 live (akar bug 999.6 fixed). SECURED 25/25 + VALIDATED nyquist 0-gap. REQ: IMP-01,02. Migration=false. NOT PUSHED. Depends: — (promote backlog 999.6) (completed 2026-06-14)
   - SC1: Audit hasilkan peta semua call-site relevan worker-data yang abaikan impersonasi.
   - SC2: Impersonate user X → `/CMP/Records` tampil data X (assessment + training), bukan admin.
   - SC3: Assessment + Home progress juga resolve X saat impersonasi aktif.
