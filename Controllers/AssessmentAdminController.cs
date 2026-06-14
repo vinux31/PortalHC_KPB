@@ -5186,10 +5186,11 @@ namespace HcPortal.Controllers
             if (userStatus != "Not started" && userStatus != "Abandoned")
                 return Json(new { success = false, message = "Hanya peserta yang belum mulai atau sesi yang ditinggalkan yang dapat di-reshuffle." });
 
+            // WSE-04 (D-01/D-09): type-aware sibling isolation via shared helper — paritas dgn StartExam.
+            // siblingSessionIds kini type-filtered → packages query (di bawah) ikut type-aware otomatis.
             var siblingSessionIds = await _context.AssessmentSessions
-                .Where(s => s.Title == assessment.Title &&
-                            s.Category == assessment.Category &&
-                            s.Schedule.Date == assessment.Schedule.Date)
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                 .Select(s => s.Id)
                 .ToListAsync();
 
@@ -5266,8 +5267,13 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Assessment group not found." });
 
             var siblingSessionIds = sessions.Select(s => s.Id).ToList();
-            // Phase 373: stable worker-index basis — sorted once; same sibling set as StartExam (OQ#1 parity).
-            var sortedSiblingIds = siblingSessionIds.OrderBy(x => x).ToList();
+            // WSE-04 (D-08/D-09): determinisme + isolasi type-aware. workerIndex tiap session dihitung
+            // terhadap sibling-set TYPE-nya sendiri (Pre↔Pre, Post↔Post, non-PrePost satu grup) — IDENTIK
+            // dengan StartExam yang kini type-filtered (Phase 373 parity). Group sekali in-memory, no extra query.
+            static string SiblingKey(string? t) => (t == "PreTest" || t == "PostTest") ? t : "__NONPREPOST__";
+            var sortedByKey = sessions
+                .GroupBy(s => SiblingKey(s.AssessmentType))
+                .ToDictionary(g => g.Key, g => g.Select(s => s.Id).OrderBy(x => x).ToList());
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
@@ -5310,13 +5316,24 @@ namespace HcPortal.Controllers
                 }
 
                 existingAssignments.TryGetValue(session.Id, out var existingAssignment);
-                // Phase 373: rebuild via ShuffleEngine respecting BOTH flags (per-session, flags uniform
-                // post-Phase-372 propagation but read per session for correctness). Worker index stable.
-                int workerIndex = sortedSiblingIds.IndexOf(session.Id);
-                var sessionShuffledIds = ShuffleEngine.BuildQuestionAssignment(packages, session.ShuffleQuestions, workerIndex, rng);
-                var assignedQuestions = packages.SelectMany(p => p.Questions).Where(q => sessionShuffledIds.Contains(q.Id));
+                // Phase 373 + WSE-04: rebuild via ShuffleEngine respecting BOTH flags (per-session). workerIndex
+                // DAN packages dihitung type-aware (Pre/Post tak campur) — IDENTIK dengan StartExam.
+                var siblingKey = SiblingKey(session.AssessmentType);
+                var typeSiblingIds = sortedByKey[siblingKey];
+                int workerIndex = typeSiblingIds.IndexOf(session.Id);
+                var sessionPackages = packages
+                    .Where(p => typeSiblingIds.Contains(p.AssessmentSessionId))
+                    .OrderBy(p => p.PackageNumber)
+                    .ToList();
+                if (!sessionPackages.Any())
+                {
+                    results.Add(new { name = userName, status = "Dilewati — belum ada paket untuk tipe ujian ini" });
+                    continue;
+                }
+                var sessionShuffledIds = ShuffleEngine.BuildQuestionAssignment(sessionPackages, session.ShuffleQuestions, workerIndex, rng);
+                var assignedQuestions = sessionPackages.SelectMany(p => p.Questions).Where(q => sessionShuffledIds.Contains(q.Id));
                 var optDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, session.ShuffleOptions, rng);
-                var sentinelPackage = packages.First();
+                var sentinelPackage = sessionPackages.First();
 
                 if (existingAssignment != null)
                     _context.UserPackageAssignments.Remove(existingAssignment);
@@ -5330,7 +5347,7 @@ namespace HcPortal.Controllers
                     ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(optDict)   // Phase 373: fix bug (was hard-coded "{}")
                 });
 
-                results.Add(new { name = userName, status = $"Reshuffled (cross-package, {packages.Count} paket)" });
+                results.Add(new { name = userName, status = $"Reshuffled (cross-package, {sessionPackages.Count} paket)" });
                 reshuffledCount++;
             }
 
