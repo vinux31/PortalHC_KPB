@@ -809,53 +809,32 @@ test.describe('Flow F: Multiple Workers Same Assessment', () => {
 // FLOW G: Exam timer expired (short duration)
 // ============================================================
 test.describe('Flow G: Exam Timer Expired', () => {
-  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
-  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
+  // Phase 379 — migrasi wizard+package, timer 1-menit; deterministik (D-03); fixme dihapus.
   let title: string;
   let assessmentId: number;
+  let packageId: number;
 
   test('G1 - HC creates 1-minute assessment with question', async ({ page }) => {
     title = uniqueTitle('Pre Test Timer Expired');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'OJT');
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    await page.fill('#DurationMinutes', '1'); // 1 minute only
-    await page.fill('#PassPercentage', '50');
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
-
-    // Add question
-    await page.goto('/Admin/ManageAssessment');
-    const searchInput = page.getByPlaceholder('Cari berdasarkan judul,');
-    await searchInput.fill(title);
-    await searchInput.press('Enter');
+    await createAssessmentViaWizard(page, {
+      title, category: 'OJT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 1, passPercentage: 50, allowAnswerReview: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
     await page.waitForLoadState('networkidle');
-    await page.locator('button.dropdown-toggle').first().click();
-    await page.locator('a[href*="ManageQuestions"]').first().click();
-    await page.waitForLoadState('networkidle');
-    const url = page.url();
-    assessmentId = parseInt(url.match(/ManageQuestions\/(\d+)|id=(\d+)/)!.slice(1).find(Boolean)!);
-
-    await page.fill('textarea[name="question_text"]', 'Timer test question?');
-    await page.locator('input[name="options"]').nth(0).fill('A');
-    await page.locator('input[name="options"]').nth(1).fill('B');
-    await page.locator('input[name="options"]').nth(2).fill('C');
-    await page.locator('input[name="options"]').nth(3).fill('D');
-    await page.click('button:has-text("Tambah Soal")');
-    await page.waitForLoadState('networkidle');
+    packageId = await createDefaultPackage(page);
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Timer test question?',
+      options: ['A', 'B', 'C', 'D'], correctIndex: 0, score: 100,
+    });
   });
 
-  test('G2 - Worker starts exam and timer is visible', async ({ page }) => {
-    test.setTimeout(120_000); // Extended timeout for this test
+  test('G2 - Worker starts exam and timer expires (deterministic)', async ({ page }) => {
+    test.setTimeout(120_000);
 
     await login(page, 'coachee');
     await page.goto('/CMP/Assessment');
@@ -864,21 +843,24 @@ test.describe('Flow G: Exam Timer Expired', () => {
     page.once('dialog', d => d.accept());
     await card.locator('.btn-start-standard').click();
     await page.waitForURL('**/CMP/StartExam/**', { timeout: 15_000 });
+    const sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)![1], 10);
 
     // Timer should be visible and counting down
     await expect(page.locator('#examTimer')).toBeVisible();
 
-    // Wait for timer to expire (1 min + buffer)
-    // The exam should auto-submit or show expired modal
-    await page.waitForTimeout(70_000); // Wait 70 seconds
+    // Phase 379 (D-03) — event-driven timer-expiry (W0-3 #examExpiredModal ADA): resolve SEGERA saat
+    // expired (modal .show ATAU auto-submit ke Results), BUKAN waitForTimeout(70_000) sleep-buta.
+    await page.waitForFunction(() => {
+      const modal = document.querySelector('#examExpiredModal');
+      const modalShown = modal !== null && modal.classList.contains('show');
+      return modalShown || /\/CMP\/Results\//.test(location.href);
+    }, undefined, { timeout: 90_000 });
 
-    // Should either redirect to results, show expired modal, or auto-submit
-    const expiredModal = page.locator('#examExpiredModal');
+    // Outcome assert (modal expired ATAU Results ATAU DB Status Completed/Abandoned)
     const onResults = page.url().includes('Results');
-    const onAssessment = page.url().includes('Assessment');
-    const modalVisible = await expiredModal.isVisible().catch(() => false);
-
-    expect(onResults || onAssessment || modalVisible).toBeTruthy();
+    const modalVisible = await page.locator('#examExpiredModal').isVisible().catch(() => false);
+    const dbDone = await db.queryScalar(`SELECT COUNT(*) FROM AssessmentSessions WHERE Id=${sessionId} AND Status IN ('Completed','Abandoned')`).catch(() => 0);
+    expect(onResults || modalVisible || dbDone >= 1).toBeTruthy();
   });
 
   test('G3 - Cleanup: delete timer assessment', async ({ page }) => {
@@ -888,13 +870,20 @@ test.describe('Flow G: Exam Timer Expired', () => {
     await searchInput.fill(title);
     await searchInput.press('Enter');
     await page.waitForLoadState('networkidle');
-    const dropdown = page.locator('button.dropdown-toggle').first();
-    if (await dropdown.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      autoConfirm(page);
-      await dropdown.click();
-      await page.waitForTimeout(500);
-      await page.locator('text=Hapus Grup').first().click();
-      await page.waitForURL('**/ManageAssessment**', { timeout: 10_000 });
+    // Phase 379 — best-effort cleanup (teardown RESTORE = safety net).
+    const row = page.locator('tr', { hasText: title }).first();
+    const kebab = row.locator('button.dropdown-toggle').first();
+    if (await kebab.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await kebab.click();
+      const hapusBtn = page.locator('button:has-text("Hapus Grup")').first();
+      if (await hapusBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await hapusBtn.click();
+        const confirmBtn = page.locator('#deleteAssessmentModal.show button[type="submit"], #deleteAssessmentModal.show button:has-text("Hapus")').first();
+        if (await confirmBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+          await confirmBtn.click();
+          await page.waitForLoadState('networkidle');
+        }
+      }
     }
   });
 });
