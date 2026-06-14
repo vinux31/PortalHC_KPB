@@ -284,38 +284,28 @@ test.describe('Flow A: Legacy Exam Full Lifecycle', () => {
 // FLOW B: Token-protected exam
 // ============================================================
 test.describe('Flow B: Token-Protected Exam', () => {
-  // 364 drift: CreateAssessment kini wizard 4-langkah (era Phase 317/319), flat-form create usang — butuh migrasi wizard-nav. Backlog 999.7.
-  test.fixme(true, '364: CreateAssessment now a 4-step wizard; flat-form create obsolete — needs wizard-nav migration. Backlog 999.7.');
+  // Phase 379 — migrasi wizard + token extension Plan 01 (fixme 364/999.7 dihapus).
+  // Token exam tetap butuh 1 soal supaya worker melihat kartu startable (btn-start-token).
   let title: string;
 
   test('B1 - HC creates token-required assessment', async ({ page }) => {
     title = uniqueTitle('Pre Test Token Exam');
     await login(page, 'hc');
-    await page.goto('/Admin/CreateAssessment');
-
-    await page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input').click({ force: true });
-    await page.fill('#Title', title);
-    await page.selectOption('#Category', 'IHT');
-    await page.fill('#ScheduleDate', today());
-    await page.fill('#ScheduleTime', '00:01');
-    await page.fill('#DurationMinutes', '30');
-    await page.fill('#PassPercentage', '70');
-
-    // Enable token
-    await page.locator('#IsTokenRequired').check();
-    await page.waitForTimeout(300);
-    // Token input should appear
-    await expect(page.locator('#tokenInputContainer')).toBeVisible();
-    // Generate token
-    await page.click('button:has-text("Generate")');
-    const tokenValue = await page.locator('#AccessToken').inputValue();
-    expect(tokenValue.length).toBe(6);
-
-    await page.click('#submitBtn');
-    await page.waitForTimeout(3_000);
-    const success = await page.locator('#successModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    const alert = await page.locator('.alert-success').isVisible().catch(() => false);
-    expect(success || alert).toBeTruthy();
+    await createAssessmentViaWizard(page, {
+      title, category: 'IHT', scheduleDate: today(), scheduleTime: '00:01',
+      durationMinutes: 30, passPercentage: 70, allowAnswerReview: false,
+      participantEmails: ['rino.prasetyo@pertamina.com'],
+      isTokenRequired: true,          // extension Plan 01 — accessToken kosong → helper klik Generate (6-char)
+    });
+    const href = await page.locator('#modal-manage-btn').getAttribute('href');
+    const assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    await page.goto(`/Admin/ManagePackages?assessmentId=${assessmentId}`);
+    await page.waitForLoadState('networkidle');
+    const packageId = await createDefaultPackage(page);
+    await addQuestionViaForm(page, packageId, {
+      type: 'MultipleChoice', text: 'Soal token test?',
+      options: ['Jawaban A', 'Jawaban B', 'Jawaban C', 'Jawaban D'], correctIndex: 0, score: 100,
+    });
   });
 
   test('B2 - Worker sees token-required badge on assessment', async ({ page }) => {
