@@ -3888,6 +3888,107 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageAssessment");
         }
 
+        // --- RECOMPUTE ESSAY SCORES (GRADE-01 — repair baris historis) ---
+        // Phase 376: maintenance admin-only idempotent. Repair sesi essay-only yang di-finalize saat bug
+        // pra-v27 aktif (Score=0 walau dinilai+finalize — lihat 376-DIAGNOSE.md). Reuse AssessmentScoreAggregator
+        // (D-02 kill-drift, math identik forward path) — set Score + IsPassed ONLY (D-03: NO cert/Proton/notif/
+        // TrainingRecord retroaktif). Eksekusi di DB Dev/Prod = tanggung jawab IT (CLAUDE.md); developer verifikasi lokal.
+        [HttpPost]
+        [Authorize(Roles = "Admin")]              // mass-repair → Admin-only (lebih ketat dari "Admin, HC", BulkBackfill precedent)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecomputeEssayScores()
+        {
+            int repaired = 0, skipped = 0, alreadyOk = 0;
+            try
+            {
+                // Kandidat: Completed + manual grading + Score belum terisi benar (0/null). Predicate 376-DIAGNOSE.md.
+                var candidateIds = await _context.AssessmentSessions
+                    .Where(s => s.Status == AssessmentConstants.AssessmentStatus.Completed
+                             && s.HasManualGrading
+                             && (s.Score == null || s.Score == 0))
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
+                foreach (var candId in candidateIds)
+                {
+                    var session = await _context.AssessmentSessions.FindAsync(candId);
+                    if (session == null) { skipped++; continue; }
+
+                    var packageAssignment = await _context.UserPackageAssignments
+                        .FirstOrDefaultAsync(a => a.AssessmentSessionId == candId);
+                    if (packageAssignment == null) { skipped++; continue; }
+
+                    var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+
+                    // Derivasi question-set ROBUST (sama persis FinalizeEssayGrading, D-06).
+                    List<PackageQuestion> allQuestions;
+                    if (shuffledIds.Count > 0)
+                    {
+                        allQuestions = await _context.PackageQuestions.Include(q => q.Options)
+                            .Where(q => shuffledIds.Contains(q.Id)).ToListAsync();
+                    }
+                    else
+                    {
+                        var respQIds = await _context.PackageUserResponses
+                            .Where(r => r.AssessmentSessionId == candId)
+                            .Select(r => r.PackageQuestionId).Distinct().ToListAsync();
+                        allQuestions = await _context.PackageQuestions.Include(q => q.Options)
+                            .Where(q => respQIds.Contains(q.Id)).ToListAsync();
+                    }
+
+                    var allResponses = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == candId).ToListAsync();
+
+                    // Skip bila ada essay belum dinilai (EssayScore null) — jangan tulis skor parsial.
+                    var essayQIds = allQuestions
+                        .Where(q => (q.QuestionType ?? "MultipleChoice") == "Essay")
+                        .Select(q => q.Id).ToHashSet();
+                    if (essayQIds.Count > 0 && allResponses.Any(r => essayQIds.Contains(r.PackageQuestionId) && r.EssayScore == null))
+                    {
+                        skipped++; continue;
+                    }
+
+                    var agg = AssessmentScoreAggregator.Compute(allQuestions, allResponses, session.PassPercentage);
+                    if (agg.MaxScore == 0)
+                    {
+                        _logger.LogWarning("RecomputeEssayScores: maxScore=0 session {SessionId} — skip (anomali data, D-05).", candId);
+                        skipped++; continue;
+                    }
+
+                    // Idempotent: Score + IsPassed ONLY (D-03). WHERE-guard Score 0/null → run kedua = no-op.
+                    var rows = await _context.AssessmentSessions
+                        .Where(s => s.Id == candId && (s.Score == null || s.Score == 0))
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.Score, agg.Percentage)
+                            .SetProperty(r => r.IsPassed, agg.IsPassed));
+                    if (rows > 0) repaired++; else alreadyOk++;
+                }
+
+                // Audit warn-only (kegagalan audit tidak boleh break).
+                try
+                {
+                    var actor = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
+                    await _auditLog.LogAsync(actor?.Id ?? "", actorName, "RecomputeEssayScores",
+                        $"Recompute essay-only: {repaired} diperbaiki, {skipped} dilewati, {alreadyOk} sudah benar", 0, "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "RecomputeEssayScores: audit log gagal.");
+                }
+
+                TempData["Success"] = $"Recompute selesai: {repaired} skor diperbaiki, {skipped} dilewati, {alreadyOk} sudah benar.";
+            }
+            catch (Exception ex)
+            {
+                // No info-leak (Phase 334 D6): detail ke log, pesan generik ke user.
+                _logger.LogError(ex, "RecomputeEssayScores gagal.");
+                TempData["Error"] = "Recompute skor essay gagal. Cek log untuk detail.";
+            }
+
+            return RedirectToAction("ManageAssessment");
+        }
+
         // #20 Phase 367: record manual tak punya jawaban untuk di-reset (reset hanya untuk sesi online).
         // Single-source: dipakai guard ResetAssessment di bawah + diuji ResetGuardTests.
         public static bool IsResettable(AssessmentSession assessment) => !assessment.IsManualEntry;
