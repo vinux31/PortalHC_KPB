@@ -190,4 +190,25 @@ public class ShuffleEngineTests
         var second = ShuffleEngine.BuildQuestionAssignment(packages, false, 1, new Random());
         Assert.Equal(first, second);
     }
+
+    // ---- WSE-01 (SHF-01 / D-04): ON-path empty-package filter (mirror OFF-path :53-57) ----
+
+    [Fact] // WSE-01: ON-path, 2 packages one empty → worker gets the filled package's questions (NOT empty)
+    public void On_MultiPackage_OneEmpty_ReturnsFilledPackageQuestions()
+    {
+        var p1 = Pkg(1, (10, 1, null), (11, 2, null), (12, 3, null)); // 3 questions
+        var p2 = Pkg(2);                                              // EMPTY
+        var packages = new List<AssessmentPackage> { p1, p2 };
+        var result = ShuffleEngine.BuildQuestionAssignment(packages, shuffleQuestions: true, workerIndex: 0, rng: new Random(42));
+        Assert.NotEmpty(result);                                       // BUG: currently returns [] (K=Min=0)
+        Assert.Equal(new HashSet<int> { 10, 11, 12 }, result.ToHashSet());
+    }
+
+    [Fact] // D-05 engine half: ON-path, all packages empty → engine returns empty (controller blocks)
+    public void On_AllPackagesEmpty_ReturnsEmpty()
+    {
+        var packages = new List<AssessmentPackage> { Pkg(1), Pkg(2) };
+        var result = ShuffleEngine.BuildQuestionAssignment(packages, shuffleQuestions: true, workerIndex: 0, rng: new Random(42));
+        Assert.Empty(result);
+    }
 }
