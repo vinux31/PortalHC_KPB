@@ -93,6 +93,15 @@ namespace HcPortal.Helpers
             if (packages.Count == 0)
                 return new List<int>();
 
+            // WSE-01 (SHF-01 / D-04): filter empty packages BEFORE Count==1 / K=Min — mirror OFF-path :53-57.
+            // So "2 paket, satu kosong" collapses into the single-package shuffle (worker dapat paket berisi)
+            // dan K=packages.Min(...) tak pernah 0 (cegah batch-wide 0% Fail palsu).
+            packages = packages
+                .Where(p => p.Questions != null && p.Questions.Count > 0)
+                .OrderBy(p => p.PackageNumber)
+                .ToList();
+            if (packages.Count == 0) return new List<int>();
+
             // Single package: shuffle question order so each worker sees a unique sequence
             if (packages.Count == 1)
             {
