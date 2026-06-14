@@ -12,17 +12,20 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v28.0 Assessment & Records Bug Fixes (started 2026-06-14)
+## Current Milestone: v29.0 Assessment E2E Worker-Success Fix (started 2026-06-14)
 
-**Goal:** Fix 4 bug fungsional outstanding di domain assessment & records (promote dari backlog 999.x).
+**Goal:** Worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton).
 
-**Target:**
-- **999.8 → GRADE** — essay-only finalize biarkan `AssessmentSessions.Score=0` walau dinilai (HIGH suspected prod bug; diagnose-first).
-- **999.6 → IMP** — impersonate identity tak dipakai query worker surfaces (cross-surface audit + fix).
-- **999.10 → CMPRT** — `GET /CMP/CertificationManagement` → 500 view-not-found (orphan; redirect/hapus).
-- **999.7 → E2E** — migrasi 10 create flow `exam-taking.spec.ts` ke wizard 4-langkah (regression net, cover flow essay).
+**Target features (3 phase SEQUENTIAL 380→381→382, merge A→B→C):**
+- **Phase 380 (A) Admin/Engine integrity** — WSE-01 paket kosong + shuffle ON tak menzerokan worker (SHF-01), WSE-02 token Pre/Post uppercase saat edit (TOK-01), WSE-03 authz + cap AddExtraTime (RST-01/04). Migration=false.
+- **Phase 381 (B) Worker entry** — WSE-04 same-day Pre/Post paket tak tercampur, WSE-05 impersonasi/StartExam GET tak memulai/membakar waktu worker (OPS-01/TOK-03). Migration=false. Depends A.
+- **Phase 382 (C) Grading/lifecycle/cert** — WSE-06 grade dari jawaban final no-dup (SAVE-01), WSE-07/08 lifecycle tahan-race (STAT-01/02), WSE-09 timer Standard ditegakkan (TMR-01/02/03), WSE-10 token gate save/submit (TOK-02), WSE-11 cert ValidUntil=null konsisten (CERT-01). Migration=TRUE (1× notify IT). Depends B.
 
-**Konteks:** lanjut phase 376+; bug-fix (no research); local-only sampai push IT (numpuk di atas bundle v24-v27, 3 migration). v25/v26/v27 shipped+audited+closed 2026-06-14 (archive `milestones/v2{5,6,7}.0-*`).
+**Pendekatan:** Audit-driven (bukan research). Sumber: `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md` (verdict CONDITIONAL — happy-path umum jalan; 3 show-stopper di luar). Lensa khusus: kerjaan v25-v28 belum-audit (shuffle toggle, impersonation).
+
+**Scope note:** Proton, essay, multi-answer, admin data-governance = OUT. Defer backlog: RES-02, GRD-02. **1 migration** (filtered-unique-index PackageUserResponse single-answer di Phase 382) — notify IT. Eksekusi seri (no paralel/worktree) — semua sentuh `CMPController.cs`.
+
+**v28.0 shipped (local) + audit passed + closed (2026-06-14)** — Assessment & Records Bug Fixes (phases 376-379): fix essay-only Score aggregation (`AssessmentScoreAggregator` + `RecomputeEssayScores`) + impersonation identity lintas worker-data surfaces (`ImpersonationService.GetEffectiveUserAsync` + middleware) + CMP CertificationManagement route 500→redirect CDP + migrasi e2e exam-taking ke wizard (10 flow + Flow K essay). 6/6 REQ GRADE/IMP/CMPRT/E2E + 372/372 xUnit. 0 migration. Archive: `milestones/v28.0-*`.
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.

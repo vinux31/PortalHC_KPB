@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v28.0
-milestone_name: Assessment & Records Bug Fixes
-status: between_milestones
-last_updated: "2026-06-14T09:53:33Z"
+milestone: v29.0
+milestone_name: Assessment E2E Worker-Success Fix
+status: defining_requirements
+last_updated: "2026-06-14T12:00:00Z"
 last_activity: 2026-06-14
 progress:
-  total_phases: 16
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -20,13 +20,20 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Between milestones — v28.0 CLOSED 2026-06-14. Planning next cycle / push IT.
+**Current focus:** v29.0 Assessment E2E Worker-Success Fix — defining requirements/roadmap (started 2026-06-14).
 
 ## Current Position
 
-**BETWEEN MILESTONES.** v28.0 SHIPPED LOCAL + audited PASSED + closed (manual append-only) 2026-06-14. Archive `milestones/v28.0-{ROADMAP,REQUIREMENTS}.md`, audit `v28.0-MILESTONE-AUDIT.md` (root), tag `v28.0` (lokal). REQUIREMENTS.md dihapus dari root (fresh saat `/gsd-new-milestone`).
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements → roadmap
+Last activity: 2026-06-14 — Milestone v29.0 started (3 phase 380-382 sequential A→B→C, audit-driven from `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`).
 
-**Next:** `/gsd-new-milestone` (mulai siklus berikut). ✅ Push IT SUDAH DILAKUKAN 2026-06-14 (branch + tag v24-v28 di `origin/ITHandoff`, HEAD `bb8c04ed`). Phase dir 352-379 SUDAH diarsipkan ke `milestones/vXX.0-phases/` (cleanup done). Sisa: notify IT (2 migration flag) + IT promosi ke Dev/Prod.
+**v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (+1 migration). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.
+
+**Next:** `/gsd-plan-phase 380` setelah roadmap di-approve.
+
+**v28.0 carry (push IT):** ✅ Push v24-v28 ke `origin/ITHandoff` DONE (HEAD `bb8c04ed`). Sisa: notify IT 2 migration (PendingProtonBypass+index/360, ShuffleToggles/372) → IT promosi Dev/Prod. v29.0 akan +1 migration (filtered-index PackageUserResponse/382).
 
 Predecessor: v25.0 + v26.0 + v27.0 + v28.0 SHIPPED LOCAL + audited PASSED + closed 2026-06-14 (v25/26/27 joint safe-close; v28.0 manual append-only).
 
