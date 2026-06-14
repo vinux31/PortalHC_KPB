@@ -92,7 +92,7 @@
 - [x] 379-02-PLAN.md — Migrasi Flow A/B/C (import block + wizard create + token + multi-worker)
 - [x] 379-03-PLAN.md — Migrasi Flow D/E (paste-import + Proton T3 interview PENUH, no test.skip — D-02)
 - [x] 379-04-PLAN.md — Migrasi Flow F/G/H (multi-worker + timer deterministik + monitoring no sleep-buta — D-03)
-- [ ] 379-05-PLAN.md — Migrasi Flow I/J + Flow K BARU essay (DB-assert Score teragregasi — D-01/GRADE-01)
+- [x] 379-05-PLAN.md — Migrasi Flow I/J + Flow K BARU essay (DB-assert Score teragregasi — D-01/GRADE-01)
 - [ ] 379-06-PLAN.md — Gate: full green run --workers=1 (bukti D-03) + seed restore + VALIDATION sign-off
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
