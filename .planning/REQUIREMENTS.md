@@ -28,7 +28,7 @@ Batch polish **7 REQ** (1 MED + 6 LOW) dari register readiness — tidak mengham
 - [x] **PXF-08** (F-06, LOW): Nomor sertifikat jalur finalize essay pakai **retry-loop + log** (samakan GradingService 3×) — hilangkan single-attempt + catch silent yang bisa loloskan lulus tanpa nomor cert.
 - [x] **PXF-09** (F-19, LOW): Excel BulkExport "Detail Jawaban" **menampilkan skor/teks essay** yang sudah dinilai (bukan selalu "—"). (Sheet "Detail Jawaban" `~4828`, BEDA dari "Detail Per Soal" yang ditangani 386.)
 - [x] **PXF-10** (F-13, LOW): `FinalizeEssayGrading` **broadcast monitor group** agar tab admin lain tidak stale s/d refresh.
-- [ ] **PXF-11** (F-11, LOW): a11y — gambar opsi Results/ExamSummary sertakan **label huruf A/B/C/D** pada `AriaContext` (`Results.cshtml:388`).
+- [x] **PXF-11** (F-11, LOW): a11y — gambar opsi Results/ExamSummary sertakan **label huruf A/B/C/D** pada `AriaContext` (`Results.cshtml:388`).
 - [x] **PXF-12** (F-20, LOW): `SubmitExam` upsert MC **tidak menimpa jawaban tersimpan jadi null** bila soal tak ada di form answers (data-loss laten).
 - [x] **PXF-13** (F-22, LOW): `Hub.SaveTextAnswer` **guard timer-expired** (samakan `SaveMultipleAnswer:205-212`) — essay tak bisa ditulis lewat batas waktu.
 

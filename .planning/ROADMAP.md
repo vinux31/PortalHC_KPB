@@ -113,7 +113,7 @@ See .planning/MILESTONES.md for full history.
 **Plans:** 4 plans
   - [x] 387-01-PLAN.md — AssessmentAdminController.cs: PXF-06 guard + PXF-08 cert retry + PXF-09 essay cell + PXF-10 monitor broadcast (Wave 1)
   - [x] 387-02-PLAN.md — Participant write-path guards: PXF-12 MC no null-overwrite + PXF-13 SaveTextAnswer timer (Wave 1)
-  - [ ] 387-03-PLAN.md — PXF-11 aria huruf opsi A/B/C/D (Results + ExamSummary) (Wave 1)
+  - [x] 387-03-PLAN.md — PXF-11 aria huruf opsi A/B/C/D (Results + ExamSummary) (Wave 1)
   - [ ] 387-04-PLAN.md — Verifikasi: unit PXF-06/09/12 + Playwright PXF-11 + checkpoint manual PXF-08/10/13 (Wave 2)
 **UI hint:** yes
 
@@ -125,7 +125,7 @@ See .planning/MILESTONES.md for full history.
 |-------|----------------|--------|-----------|
 | 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete    | 2026-06-15 |
 | 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 6/6 | Complete    | 2026-06-15 |
-| 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 2/4 | In Progress|  |
+| 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 3/4 | In Progress|  |
 
 ### Coverage Validation
 
