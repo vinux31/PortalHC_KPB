@@ -6455,6 +6455,18 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
+            // Phase 386 PXF-02 (F-DEV-01) — option-presence validation (≥2 ber-teks + checked-correct must be ber-teks).
+            // Shared helper (kill-drift with EditQuestion). correctCount gate above is UNCHANGED.
+            var (optOk, optErr) = QuestionOptionValidator.ValidateQuestionOptions(
+                questionType,
+                new[] { optionA, optionB, optionC, optionD },
+                new[] { correctA, correctB, correctC, correctD });
+            if (!optOk)
+            {
+                TempData["Error"] = optErr;
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
             int nextOrder = pkg.Questions.Any() ? pkg.Questions.Max(q => q.Order) + 1 : 1;
 
             // Simpan gambar soal (IMG-01/03). SaveFileAsync null-safe → null bila tak ada file.
@@ -6659,6 +6671,18 @@ namespace HcPortal.Controllers
             if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
             {
                 TempData["Error"] = "Rubrik wajib diisi untuk soal Essay.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // Phase 386 PXF-02 (F-DEV-01) — option-presence validation (≥2 ber-teks + checked-correct must be ber-teks).
+            // Shared helper (kill-drift with CreateQuestion). correctCount gate above is UNCHANGED.
+            var (optOk, optErr) = QuestionOptionValidator.ValidateQuestionOptions(
+                questionType,
+                new[] { optionA, optionB, optionC, optionD },
+                new[] { correctA, correctB, correctC, correctD });
+            if (!optOk)
+            {
+                TempData["Error"] = optErr;
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
