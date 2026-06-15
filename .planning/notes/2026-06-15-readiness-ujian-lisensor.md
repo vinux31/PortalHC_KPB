@@ -100,6 +100,20 @@ render gambar struktur Razor OK, monitoring SignalR push tahan ≤30 tanpa N+1).
 
 **Catatan F-09 (penting):** verifier read-only, **belum** konfirmasi browser Dev (tak boleh akses Dev). Analisis kuat (PathBase di `appsettings.json:9` tak di-override Development; leading-slash bypass) → keyakinan tinggi reproduce. **WAJIB UAT browser 1× di `http://10.55.3.3/KPB-PortalHC` layar StartExam bergambar sebelum ujian.**
 
+### Verifikasi browser DI DEV (2026-06-15) — assessment nyata `GLADI LISENSOR`
+
+Dijalankan langsung di `http://10.55.3.3/KPB-PortalHC` (login Admin KPB, assessment buatan user, sessionId=30, packageId=10, 4 soal). Hasil:
+
+**F-09 — CONFIRMED HARD (HIGH, exam-blocking soal bergambar).** Soal "Komponen ini berfungsi sebagai?" (Single, ada gambar) → gambar **404**. Network: `GET http://10.55.3.3/uploads/questions/10/...download.jpg → 404`. URL **drop prefix `/KPB-PortalHC`** (semua resource lain pakai prefix → 200). Screenshot = ikon gambar rusak. **Prediksi sweep tepat.** Fix = `_QuestionImage` src PathBase-aware + re-deploy IT.
+
+**F-DEV-01 — NEW (HIGH, exam-blocking SEMUA submit).** Soal 3 "Pilih simbol APD yang benar" (Single Answer, 10 poin) **tersimpan dengan 0 opsi** (edit form: A/B/C/D semua kosong, tanpa teks & tanpa gambar; preview tanpa opsi; exam render `<div class="list-group"></div>` kosong). Akibat: peserta **tak bisa jawab** → ExamSummary "1 soal belum dijawab" → tombol **"Kumpulkan Ujian" DISABLED permanen** (incomplete-gate tak pernah clear) → **seluruh ujian tak bisa di-submit manual**. Akar = **validasi create/edit soal tak mewajibkan ≥1 opsi** (idealnya ≥2 + ≥1 benar) untuk tipe Single/Multiple. is_logic_bug. Fix lokal (tambah validasi server+client) + re-deploy. **Lebih berbahaya dari kelihatannya: 1 soal salah-konfig membekukan submit untuk SEMUA peserta.**
+
+**F-01 — confirmed visual (MED).** Soal MA "Pilih semua yang benar", tanpa warn "sebagian = 0".
+
+**Positif terverifikasi di Dev:** token jalan (AAC4EX), exam load, **SignalR Live + autosave "saved" jalan**, Acak Pilihan relabel by-identity benar (pilih Avtur/Bensin/Solar → summary canonical "A,C,D"), monitoring detail + Access Token tampil, menu Aksi grup lengkap. Lifecycle **submit→grade→cert BELUM ter-test** (ke-blok F-DEV-01).
+
+> ⚠️ State Dev: sesi admin (id=30) **InProgress nyangkut** (tak bisa submit). Untuk lanjut smoke: soal 3 harus diberi opsi (user fix data di admin) ATAU matikan soal 3. Aku TIDAK ubah data Dev.
+
 ## Fakta scoring terverifikasi (2026-06-15)
 
 - Lulus: `percentage >= PassPercentage`; **default 70%** per-assessment (`AssessmentSession.cs:29`).
