@@ -92,7 +92,7 @@ See .planning/MILESTONES.md for full history.
 **Plans:** 4 plans
 - [x] 384-01-PLAN.md — Wave 0 test infra: SQL seed fixture session essay-pending + Playwright FLOW 384 spec (RED/fixme) (UIG-04)
 - [x] 384-02-PLAN.md — Wave 1: EssayGradingPageViewModel + GET action EssayGrading (authz Admin/HC, clone builder) + view EssayGrading.cshtml + extract essay-grading.js (D-09 in-place + D-10 read-only) (UIG-02, UIG-03)
-- [ ] 384-03-PLAN.md — Wave 2: refactor AssessmentMonitoringDetail — ganti blok inline :381-481 jadi tabel worker-list + tombol Tinjau Essay + hapus handler essay dead (UIG-01)
+- [x] 384-03-PLAN.md — Wave 2: refactor AssessmentMonitoringDetail — ganti blok inline :381-481 jadi tabel worker-list + tombol Tinjau Essay + hapus handler essay dead (UIG-01)
 - [ ] 384-04-PLAN.md — Wave 3: aktifkan e2e FLOW 384 hijau (round-trip) + UAT manual checkpoint (UIG-04)
 **UI hint:** yes
 
@@ -103,7 +103,7 @@ See .planning/MILESTONES.md for full history.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 383. Essay Grading Correctness + Test (Fase 1) | 4/4 | Complete   | 2026-06-15 |
-| 384. Monitoring Essay Grading UI Refactor (Fase 2) | 2/4 | In Progress|  |
+| 384. Monitoring Essay Grading UI Refactor (Fase 2) | 3/4 | In Progress|  |
 
 ### Coverage Validation
 

@@ -28,7 +28,7 @@ status: active
 
 ### Phase 384 (Fase 2) — Refactor UI Monitoring Penilaian Essay (poin 1) · backend unchanged, no-migration
 
-- [ ] **UIG-01**: Halaman Monitoring (`AssessmentMonitoringDetail`) menampilkan **tabel list worker** (kolom: Worker/NIP, jumlah essay belum dinilai, status) menggantikan blok essay inline yang panjang (`:381-481`).
+- [x] **UIG-01**: Halaman Monitoring (`AssessmentMonitoringDetail`) menampilkan **tabel list worker** (kolom: Worker/NIP, jumlah essay belum dinilai, status) menggantikan blok essay inline yang panjang (`:381-481`).
 - [x] **UIG-02**: Tiap baris worker punya tombol "Tinjau Essay" (kanan) yang membuka **page penilaian essay per-worker** terpisah.
 - [x] **UIG-03**: Page penilaian essay per-worker me-reuse endpoint existing `SubmitEssayScore` + `FinalizeEssayGrading` (backend TIDAK diubah) + `EssayGradingItemViewModel`; tombol "Selesaikan Penilaian" ada di page ini.
 - [ ] **UIG-04**: Playwright e2e — list worker render, "Tinjau Essay" navigasi ke page, beri skor + Selesaikan Penilaian round-trip sukses.
@@ -59,7 +59,7 @@ status: active
 | ECG-04 | 383 | Complete |
 | ECG-05 | 383 | Complete |
 | ECG-06 | 383 | Complete |
-| UIG-01 | 384 | Pending |
+| UIG-01 | 384 | Complete |
 | UIG-02 | 384 | Complete |
 | UIG-03 | 384 | Complete |
 | UIG-04 | 384 | Pending |
