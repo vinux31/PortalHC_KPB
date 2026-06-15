@@ -5097,24 +5097,14 @@ namespace HcPortal.Controllers
                             int qNum = 1;
                             foreach (var q in sessionQuestions)
                             {
-                                var resp = sessionResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id);
-                                string jawaban = "—";
-                                bool? correct = null;
-
-                                if (resp != null)
-                                {
-                                    if (resp.PackageOptionId.HasValue)
-                                    {
-                                        var opt = q.Options?.FirstOrDefault(o => o.Id == resp.PackageOptionId.Value);
-                                        if (opt != null) { jawaban = opt.OptionText; correct = opt.IsCorrect; }
-                                    }
-                                    else if (!string.IsNullOrEmpty(resp.TextAnswer))
-                                    {
-                                        jawaban = resp.TextAnswer.Length > 300 ? resp.TextAnswer.Substring(0, 300) + "..." : resp.TextAnswer;
-                                        // Phase 383 ECG-05/D-03 unify: PDF essay correctness via IsQuestionCorrect (essay > 0; null = pending) — sama dengan web Results.
-                                        correct = AssessmentScoreAggregator.IsQuestionCorrect(q, sessionResponses.Where(r => r.PackageQuestionId == q.Id));
-                                    }
-                                }
+                                // Phase 386 PXF-05 (F-17 D-09/D-10) — label + answer cell via shared display helpers
+                                // untuk SEMUA tipe soal. MA kini di-label all-or-nothing (SetEquals via IsQuestionCorrect)
+                                // dan kolom "Jawaban" me-list SEMUA opsi terpilih (BuildAnswerCell join ", "). MC tetap
+                                // byte-identik (single OptionText / IsCorrect). Essay tetap pakai IsQuestionCorrect (>0).
+                                // Compute (scoring engine) TIDAK disentuh — display-path saja (D-11).
+                                var responsesForQ = sessionResponses.Where(r => r.PackageQuestionId == q.Id).ToList();
+                                bool? correct = AssessmentScoreAggregator.IsQuestionCorrect(q, responsesForQ);   // D-09 — ALL types
+                                string jawaban = AssessmentScoreAggregator.BuildAnswerCell(q, responsesForQ);    // D-10 — MA joins all selected
 
                                 var statusColor = correct == true ? QuestPDF.Helpers.Colors.Green.Darken1
                                                 : correct == false ? QuestPDF.Helpers.Colors.Red.Darken1
