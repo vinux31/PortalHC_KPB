@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
 status: Executing Phase 386
-stopped_at: Completed 386-01-PLAN.md
-last_updated: "2026-06-15T14:40:25.836Z"
+stopped_at: Completed 386-02-PLAN.md
+last_updated: "2026-06-15T14:49:01.714Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 24
   completed_phases: 1
   total_plans: 12
-  completed_plans: 3
-  percent: 25
+  completed_plans: 4
+  percent: 33
 ---
 
 # Project State: Portal HC KPB
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 386 (assessmentadmincontroller-hardening) — EXECUTING
-Plan: 2 of 6 (386-01 Wave-0 RED scaffolds DONE — 5 test files + 1 authz extend, 0 production code, build RED only on Wave-1 helpers ValidateQuestionOptions/BuildAnswerCell)
+Plan: 3 of 6 (386-02 Wave-1 pure helpers DONE — `QuestionOptionValidator.ValidateQuestionOptions` (PXF-02, file baru `Helpers/QuestionOptionValidator.cs`) + `AssessmentScoreAggregator.BuildAnswerCell` (PXF-05, beside IsQuestionCorrect, MA join ", "). OptionValidationTests + PdfAnswerCellTests + IsQuestionCorrect 24/24 GREEN; full build 0 error; 0 controller/view touched; 0 migration. Commits d7a49dc3 + 85ce39e1. Wave-0 386-01 RED scaffolds tetap DONE)
 
 **MILESTONE v31.0 STARTED — Hotfix Pra-Ujian Lisensor (urgent, acara ~2026-06-17).** 5 temuan must-fix dari readiness audit gladi-bersih E2E 2026-06-15 (register final adversarial-verified: `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` — 3 HIGH · 5 MED · 7 LOW; 5 dipromote ke PXF-01..05). Ujian lisensor: SA+MA+Essay+soal bergambar, ≤30 peserta, PDF per-peserta = bukti resmi. Target: 1 bundle → 1 deploy IT sebelum hari-H. **0 migration** (semua fix view/controller/validasi). Pendekatan: hotfix langsung (skip domain-research).
 
@@ -134,6 +134,7 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audit
 
 ### Decisions (persist across milestones)
 
+- [v31.0 / 386-02 Wave-1 GREEN]: 2 helper pure EF-free dibuat → 24/24 test GREEN (OptionValidation 7 + PdfAnswerCell 6 + IsQuestionCorrect regression). (1) `Helpers/QuestionOptionValidator.cs` namespace `HcPortal.Helpers` — `ValidateQuestionOptions(type, texts, corrects)`: Essay/non-opsi bypass; MC/MA wajib ≥2 opsi ber-teks (D-01) + tiap opsi correct wajib ber-teks (D-03); ber-teks=!IsNullOrWhiteSpace (D-02). TIDAK menyalin correctCount gate (tetap di controller L6440-6456). **Pesan error LOCKED untuk Wave 2:** `"{Short} membutuhkan minimal 2 opsi jawaban yang berisi teks."` + `"Opsi yang ditandai sebagai jawaban benar harus berisi teks ({Short})."`. (2) `AssessmentScoreAggregator.BuildAnswerCell` (di samping IsQuestionCorrect, **Compute+IsQuestionCorrect body tak berubah, D-11**): MA join SEMUA OptionText terpilih urut Id `.OrderBy(o=>o.Id)` separator `", "` (D-10 preseden Excel L4860); MC OptionText tunggal; Essay truncate 300+`"..."` (L5083); kosong=`"—"`. Wave 2 wire ke CreateQuestion+EditQuestion; Wave 4 wire ke PDF/Excel. Commits d7a49dc3 + 85ce39e1; 0 migration; 0 controller/view touched.
 - [v31.0 / 386-01 Wave-0 RED]: TDD-RED scaffold 6 test files dulu (PXF-02/04/05) sebelum kode produksi. MA answer-cell join **LOCKED = ", " (comma-space, D-10 preseden Excel)** — Wave 1 `BuildAnswerCell` WAJIB match. 4 mirror count-builder encode predikat BARU `!IsNullOrWhiteSpace(TextAnswer) && EssayScore==null` (Wave 3 menyamakan 4 production site ke mirror, drift-guard cite L3308/L3500/L3547/L3620). Build RED HANYA pada Wave-1 helper `QuestionOptionValidator.ValidateQuestionOptions` (file baru) + `AssessmentScoreAggregator.BuildAnswerCell` (method baru). 0 production code. e2e gated `test.fixme`.
 - [v31.0 / phasing]: 3 REQ yang menyentuh `Controllers/AssessmentAdminController.cs` (PXF-02 CreateQuestion/EditQuestion, PXF-04 EssayGrading pending-count, PXF-05 BulkExportPdf/GeneratePerPesertaPdf) **digabung satu fase (386)** untuk menjamin nol konflik write paralel. PXF-01 (`_QuestionImage.cshtml`) + PXF-03 (`StartExam.cshtml`) file-disjoint → Phase 385.
 - [v30.0 / ECG-06 (383-04)]: Regression lock poin 2 (Simpan/Selesaikan essay) tanpa ubah kode produksi (D-05); 5 test mirror-data-level di `EssayFinalizeRecomputeTests.cs`; full suite 440/440. Migration guard `dotnet ef add _verify_383` = 0 model diff.
@@ -155,6 +156,6 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audit
 
 Last activity: 2026-06-15
 
-Stopped at: Completed 386-01-PLAN.md
+Stopped at: Completed 386-02-PLAN.md
 
 Next action: **`/gsd-plan-phase 385`** (PXF-01 gambar PathBase + PXF-03 flush essay; file view, paralel-aman) lalu **`/gsd-plan-phase 386`** (PXF-02/04/05; satu file `AssessmentAdminController.cs`). Urgent (acara ~2026-06-17): target 1 bundle → 1 push → notify IT re-deploy. Tiap fase verify lokal (`dotnet build`+`dotnet run` localhost:5277 + Playwright/unit per REQ) sebelum commit. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
