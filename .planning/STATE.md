@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v29.0
-milestone_name: Assessment E2E Worker-Success Fix
-status: "between_milestones — v29.0 (380-382) CLOSED 2026-06-15 (audited PASSED 11/11 WSE) + PUSHED origin/ITHandoff. Planning next cycle."
+milestone: v30.0
+milestone_name: Essay Grading Correctness + Monitoring UI Refactor
+status: "Defining requirements/roadmap — v30.0 started 2026-06-15 (phases 383-384). Predecessor v29.0 CLOSED + PUSHED origin/ITHandoff."
 last_updated: "2026-06-15T00:00:00.000Z"
 last_activity: 2026-06-15
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,15 +19,17 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Between milestones — v29.0 CLOSED 2026-06-15 (shipped local + audited PASSED + PUSHED origin/ITHandoff). Planning next cycle.
+**Current focus:** v30.0 Essay Grading Correctness + Monitoring UI Refactor (phases 383-384) — started 2026-06-15. Defining requirements → roadmap.
 
 ## Current Position
 
-**BETWEEN MILESTONES.** v29.0 "Assessment E2E Worker-Success Fix" (phases 380-382, 11 REQ WSE-01..11) SHIPPED LOCAL + audited PASSED (2026-06-15) + manual append-only close + PUSHED origin/ITHandoff (tag `v29.0`). Archive: `milestones/v29.0-ROADMAP.md` + `milestones/v29.0-REQUIREMENTS.md`. Audit: `v29.0-MILESTONE-AUDIT.md` (REQ 11/11, phases 3/3, integration 11/11 WIRED, flows 10/10). Plain-language summary: `docs/milestone-v29.0/index.html`. **0 migration** (SAVE-01 dedupe last-write-wins, BUKAN filtered-index). Phase dirs 380/381/382 diarsip ke `milestones/v29.0-phases/`.
+**MILESTONE v30.0 STARTED.** Essay Grading Correctness + Monitoring UI Refactor (phases 383-384, 10 REQ ECG-01..06 + UIG-01..04). Driven by user bug report 2026-06-15: `CMP/Results` shows "Nilai Anda 100%" but "(4/6 benar)" — essays graded fully correct are counted wrong in the X/Y count, Elemen Teknis, Tinjauan Jawaban badge, and PDF export. Root cause (workflow-verified multi-agent): two divergent paths in `CMPController.Results()` — score% is essay-aware (Path A via `AssessmentScoreAggregator`), but count/ET/Tinjauan recompute inline with option-matching only (Path B, no Essay branch). Closes deferred backlog **RES-02** + **GRD-02**.
 
-**1 item PENDING (non-blocker):** CERT-01 konfirmasi visual human (dashboard cert ValidUntil=null tampil "Aktif" — DB-coherence sudah otomatis via CertAlertConsistencyTests + e2e #12). 1 finding LOW I-1 (WSE-01 pre-check non-type-aware → kasus salah-konfig Pre-isi/Post-kosong → redirect aman, bukan Fail palsu) — follow-up opsional.
+**Plan:** Fase 1 (383) = centralized helper `AssessmentScoreAggregator.IsQuestionCorrect` (bool?, essay Benar=`EssayScore>0`, null=pending) wired to 3 sites + PDF unify + regression tests (poin 2 Simpan/Selesaikan already correct, locked by test). Fase 2 (384) = Monitoring essay UI refactor → worker-list table + "Tinjau Essay" per-worker page (backend endpoints unchanged). **0 migration**, read/display-path only, Pass/Fail untouched.
 
-**Next:** `/gsd-new-milestone` untuk siklus berikut, ATAU promote backlog 999.9 (label kosmetik LOW). 999.6/999.10 masih di `phases/` (backlog).
+**Spec:** `docs/superpowers/specs/2026-06-15-essay-grading-correctness-design.md` (brainstorming-approved 2026-06-15).
+
+**Next:** `/gsd-plan-phase 383` (after roadmap committed) — fix bug first (isolated hotfix), then phase 384.
 
 Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 SHIPPED LOCAL + audited PASSED + closed (v25/26/27 joint safe-close 2026-06-14; v28.0 manual append-only 2026-06-14; v29.0 manual append-only 2026-06-15).
 

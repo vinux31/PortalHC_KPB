@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State: Between Milestones (v29.0 closed 2026-06-15)
+## Current State: v30.0 Essay Grading Correctness + Monitoring UI Refactor — started 2026-06-15
 
 **v29.0 shipped (local) + audit passed + closed + PUSHED origin/ITHandoff (2026-06-15)** — Assessment E2E Worker-Success Fix (phases 380-382): worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton). WSE-01/02/03 admin/engine integrity (ShuffleEngine empty-package filter + token uppercase heal + AddExtraTime authz/cap), WSE-04/05 worker entry (type-aware Pre/Post sibling + impersonation read-only guard), WSE-06..11 grading/lifecycle/cert (dedupe read-final + anti-resurrection + abandon-guard + timer Standard + token-gate + cert null→Aktif). 11/11 REQ + 415/415 xUnit + integration 11/11 WIRED. **0 migration** (SAVE-01 dedupe last-write-wins, bukan filtered-index). Archive: `milestones/v29.0-*`. Summary awam (HC): `docs/milestone-v29.0/index.html`. Pending non-blocker: CERT-01 konfirmasi visual + I-1 type-aware pre-check (opsional).
 
@@ -52,32 +52,19 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v25.0 Proton Kelulusan & Bypass — Phase 358 (penanda kelulusan), 359 (gate berurutan), 360 (Bypass Backend B — complete 2026-06-10: PendingProtonBypass migration#2 + ProtonBypassService 4 closure mode + pending lifecycle + 4 hook grading + 6 endpoint + gate exempt Origin="Bypass"; verifier 5/5 PASS + UAT 6/6 live; PBYP-01..07 done), 362 (CDP polish) SHIPPED LOCAL. Tersisa: 361 (UI Bypass) + 363 (audit fix alur PROTON T1-T10, belum diplan). Bundle push v19-v23 sudah ke IT (2026-06-06); **v24.0+v25.0 belum push** — branch ITHandoff, migration#2 flag untuk IT.
+**Current focus:** v30.0 Essay Grading Correctness + Monitoring UI Refactor (phases 383-384). Fix bug user 2026-06-15 (`CMP/Results` 100% tapi 4/6 — essay yg dinilai benar tetap dihitung salah di count/Elemen Teknis/Tinjauan/PDF) lewat helper correctness terpusat, lalu rapikan UI penilaian essay Monitoring. **0 migration.** v29.0 PUSHED origin/ITHandoff; carry-migration IT (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
 
-## Current Milestone: v25.0 Proton Kelulusan & Bypass
+## Current Milestone: v30.0 Essay Grading Correctness + Monitoring UI Refactor
 
-**Goal:** Bikin logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa), lalu tambah fitur Bypass Tahun (admin/HC pindahin coachee antar tahun/track/unit dengan alasan + audit).
-
-**Target features:**
-- **Completion Logic (fondasi, fase 358-359)** — exam Tahun 1/2 lulus → terbit `ProtonFinalAssessment` (sekarang cuma interview Tahun 3 = BUG); helper bersama `EnsureProtonFinalAssessment`; gate deliverable-100%→final dipaksa **server-side** + gate antar-tahun keras; Tahun 3 deliverable data-driven; graduation gate; matikan level (dormant); backfill data lama; kolom `Origin`.
-- **Bypass Tahun (fase 360-361)** — admin pindahin coachee antar tahun/track/unit (4 closure mode CL-A/B(a)/B(b)/C, |Δtahun|≤1), tabel `PendingProtonBypass` + konfirmasi HC (OQ-1 Opsi B), notif `PROTON_BYPASS_READY`, redesign page Override jadi 2 tab + wizard 3-langkah.
-
-**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md` (A) + `docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md` (B). **B depends A** — implement + verify A dulu.
-
-**Scope note:** Audit Tab1 Override Deliverable + undo bypass executed = OUT (backlog). **2 migration** (Origin di 358, PendingProtonBypass di 360) — notify IT keduanya.
-
-## Previous Milestone: v24.0 Gambar di Soal Assessment (Manage Package)
-
-**Goal:** Admin bisa melampirkan gambar pada soal assessment dan tiap pilihan jawaban (semua tipe MC/MA/Essay), tampil konsisten di seluruh layar tempat soal muncul.
+**Goal:** Hasil assessment menampilkan soal essay yang sudah dinilai HC secara benar (count "X/Y benar", Elemen Teknis, Tinjauan Jawaban, PDF) lewat satu helper correctness terpusat — menutup bug user 2026-06-15 + backlog RES-02/GRD-02 — lalu rapikan UI penilaian essay di Monitoring jadi tabel list worker + page "Tinjau Essay" per-worker.
 
 **Target features:**
-- **Gambar pada soal + opsi** — 1 gambar per soal + 1 gambar per opsi (MC/MA punya opsi; Essay hanya soal), upload JPG/PNG ≤2MB via FileUploadHelper image-only, alt text opsional.
-- **Render konsisten 6 layar** — StartExam, ExamSummary, Results (peserta) + preview admin, AssessmentMonitoringDetail, EditPesertaAnswers (admin).
-- **Integritas data & file** — sinkron gambar saat Pre→Post (shared-file path) + hapus file atomic (pola Phase 333) saat soal/opsi/gambar dihapus.
+- **Essay Correctness Fix (Fase 1, phase 383)** — helper `AssessmentScoreAggregator.IsQuestionCorrect` (bool?, essay Benar=`EssayScore>0`, null=pending) dipakai di 3 titik `CMPController.Results` (count/ET/Tinjauan) + PDF export (unify threshold ke `>0`). Plus regression test Simpan Skor + Selesaikan Penilaian (poin 2, sudah benar — dikunci test). Read-path only.
+- **Monitoring Essay UI Refactor (Fase 2, phase 384)** — ganti blok essay inline panjang di `AssessmentMonitoringDetail` jadi tabel list worker (status + jumlah belum dinilai) + tombol "Tinjau Essay" → page penilaian per-worker (reuse endpoint `SubmitEssayScore`/`FinalizeEssayGrading`, backend tak diubah).
 
-**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md` (5 keputusan brainstorm + 5 gap kode terverifikasi + resolusi). Skip domain-research (best-practice LMS sudah dicatat di spec §13; sisanya reuse pola codebase existing).
+**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-15-essay-grading-correctness-design.md` (root cause workflow-verified multi-agent + 5 keputusan brainstorm). Skip domain-research (bug fix + UI refactor codebase existing, reuse pola `AssessmentScoreAggregator` Phase 376).
 
-**Catatan scope:** Bulk-import gambar, multi-gambar, edit/crop in-app, image CDN = OUT (lihat spec §3).
+**Scope note:** Rubric editor / partial-credit weighting + bulk essay grading + migration = OUT. **0 migration** (read/display-path only; `EssayScore` sudah ada + terisi). Pass/Fail tak disentuh (derive dari Score% yg sudah benar).
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 
