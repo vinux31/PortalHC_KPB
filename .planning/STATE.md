@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v30.0
 milestone_name: Essay Grading Correctness + Monitoring UI Refactor
-status: "Defining requirements/roadmap — v30.0 started 2026-06-15 (phases 383-384). Predecessor v29.0 CLOSED + PUSHED origin/ITHandoff."
+status: "Roadmap created (v30.0 ROADMAP.md written 2026-06-15, 10/10 REQ mapped, 0 orphan) — v30.0 started 2026-06-15 (phases 383-384). Predecessor v29.0 CLOSED + PUSHED origin/ITHandoff."
 last_updated: "2026-06-15T00:00:00.000Z"
 last_activity: 2026-06-15
 progress:
@@ -46,7 +46,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 ## Next Action
 
 1. ✅ **v29.0 PUSHED — 2026-06-15.** Branch `ITHandoff` + tag `v29.0` pushed ke `origin/ITHandoff`. **v29.0 = 0 migration baru** (SAVE-01 dedupe, BUKAN filtered-index — tak perlu flag migration baru ke IT). **Sisa NOTIFY IT (carry-over lama):** 2 migration `PendingProtonBypass`+filtered-index (360) + `AddShuffleTogglesToAssessmentSession` (372) → IT apply DB Dev + promosi server Dev (10.55.3.3)/Prod.
-2. **`/gsd-new-milestone`** — mulai milestone berikut (recreate REQUIREMENTS.md). Kandidat backlog tersisa: 999.9 label kosmetik (LOW). (999.8/999.6/999.10/999.7 ditutup v28.0.)
+2. **`/gsd-plan-phase 383`** -- ROADMAP.md v30.0 sudah ditulis (10/10 REQ mapped, 0 orphan, 0 migration). Mulai planning Phase 383 (Fase 1 hotfix correctness, ships first), lalu Phase 384 (Fase 2 UI Monitoring).
 3. **Opsional v29.0 follow-up:** CERT-01 konfirmasi visual browser (1 UAT pixel) + I-1 type-aware pre-check (1-line). Non-blocker.
 
 ## Tag Git
@@ -135,6 +135,6 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ## Session Continuity
 
-Last activity: 2026-06-15 — v29.0 manual append-only close + PUSHED origin/ITHandoff (auto-chain pasca-382: secure 12/12 → validate 415/415 → verify [pakai hasil sesi lain, 1 PENDING] → audit PASSED 11/11 → HTML awam → close → push).
+Last activity: 2026-06-15 -- v30.0 ROADMAP.md created (phases 383-384, 10/10 REQ ECG/UIG mapped, 0 orphan, 0 migration). REQUIREMENTS.md traceability already populated. STATE updated.
 
-Next action: **Notify IT** (carry migration 360/372; v29.0 = 0 migration baru) ATAU `/gsd-new-milestone` untuk siklus berikut. Opsional v29.0 follow-up: CERT-01 visual UAT + I-1 type-aware pre-check. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
+Next action: **`/gsd-plan-phase 383`** (Fase 1 hotfix correctness, ships first; lalu 384 UI Monitoring). Pending non-blocker: notify IT carry migration 360/372 (v30.0 = 0 migration baru). JANGAN edit DB/kode Dev/Prod (CLAUDE.md).

@@ -28,6 +28,7 @@
 - ✅ **v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan)** — Phases 372-375 (shipped local + audited PASSED 2026-06-14, 16/16 REQ SHUF-01..16; 1 migration AddShuffleTogglesToAssessmentSession; NOT PUSHED) — [archive](milestones/v27.0-ROADMAP.md) — [audit](v27.0-MILESTONE-AUDIT.md)
 - ✅ **v28.0 Assessment & Records Bug Fixes** — Phases 376-379 (shipped local + audited PASSED 2026-06-14, 6/6 REQ GRADE/IMP/CMPRT/E2E; 0 migration; NOT PUSHED) — [archive](milestones/v28.0-ROADMAP.md) — [audit](v28.0-MILESTONE-AUDIT.md)
 - ✅ **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (shipped local + audited PASSED 2026-06-15, 11/11 REQ WSE-01..11; 0 migration; NOT PUSHED) — [archive](milestones/v29.0-ROADMAP.md) — [audit](v29.0-MILESTONE-AUDIT.md)
+- 🚧 **v30.0 Essay Grading Correctness + Monitoring UI Refactor** — Phases 383-384 (ACTIVE, started 2026-06-15; 10 REQ ECG-01..06 + UIG-01..04; **0 migration**; menutup backlog RES-02 + GRD-02) — [spec](../docs/superpowers/specs/2026-06-15-essay-grading-correctness-design.md)
 
 ## Phases
 
@@ -37,6 +38,84 @@
 See .planning/MILESTONES.md for full history.
 
 </details>
+
+## 🚧 v30.0 Essay Grading Correctness + Monitoring UI Refactor — Phases 383-384 — ACTIVE (started 2026-06-15)
+
+**Status:** Roadmap created 2026-06-15 (spec-driven). NOT YET PLANNED.
+**Spec:** `docs/superpowers/specs/2026-06-15-essay-grading-correctness-design.md` (root cause workflow-verified multi-agent + 5 brainstorm decisions D-01..D-05, code-verified file:line).
+**Source bug:** User report 2026-06-15 — `CMP/Results/166` setelah semua essay dinilai penuh benar menampilkan "Nilai Anda 100%" tapi "(4/6 benar)"; Elemen Teknis hitung essay salah; Tinjauan Jawaban beri badge merah "Salah" pada essay. Mengonfirmasi backlog **RES-02** (display-drift X/Y vs Score%) + menyentuh **GRD-02** (empty-MA SetEquals non-empty guard LOW).
+**Goal:** Hasil assessment menampilkan soal essay yang sudah dinilai HC secara benar (count "X/Y benar", Elemen Teknis, Tinjauan Jawaban badge, PDF export) lewat satu helper correctness terpusat — lalu rapikan UI penilaian essay di Monitoring jadi tabel list worker + page "Tinjau Essay" per-worker.
+**Granularity:** standard (2 phase — sesuai pemecahan spec §D-05: Fase 1 hotfix correctness isolated, Fase 2 refactor UI decoupled).
+**Migration:** **false (kedua phase)** — `EssayScore` sudah ada di `PackageUserResponse` + terisi; perbaikan murni read/display-path. Tidak ada schema/backfill/write. Pass/Fail tak disentuh (derive dari Score% yang sudah benar via Path A `AssessmentScoreAggregator.Compute`).
+**Keputusan terkunci (brainstorm 2026-06-15):** D-01 fix shape = helper pure terpusat (bukan patch inline, kill-drift pola Phase 363/365/376); D-02 essay "Benar" = `EssayScore > 0`, `==0` Salah, `null` pending; D-03 PDF unify ke `> 0` (selaras web Results); D-04 no migration; D-05 split 2 phase (hotfix dulu, UI kemudian).
+**Ship order:** Phase 383 (isolated hotfix) → build/test/run verify → push → notify IT → Phase 384.
+**Backlog ditutup:** RES-02 (ECG-02) + GRD-02 (ECG-01 MA non-empty guard).
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap phase wajib `dotnet build` + `dotnet test` + `dotnet run` (localhost:5277) + Playwright bila ada UI sebelum commit. ❌ tidak ada edit di Dev/Prod.
+
+### Phases
+
+- [ ] **Phase 383: Essay Grading Correctness + Test (Fase 1)** — Helper terpusat `IsQuestionCorrect` (essay `>0`) dipakai di 3 titik `CMPController.Results` + PDF export → count/Elemen Teknis/Tinjauan/PDF konsisten dengan "Nilai Anda" %; plus regression test kunci Simpan Skor + Selesaikan Penilaian. Read-path only, 0 migration. Hotfix, ships first.
+- [ ] **Phase 384: Monitoring Essay Grading UI Refactor (Fase 2)** — Ganti blok essay inline panjang di `AssessmentMonitoringDetail` jadi tabel list worker (status + jumlah belum dinilai) + tombol "Tinjau Essay" → page penilaian essay per-worker (reuse endpoint `SubmitEssayScore`/`FinalizeEssayGrading` + `EssayGradingItemViewModel`, backend tak diubah). 0 migration.
+
+### Phase Details
+
+### Phase 383: Essay Grading Correctness + Test (Fase 1)
+**Goal:** Hasil assessment (`CMP/Results`) menampilkan soal essay yang sudah dinilai HC secara benar di SELURUH permukaan display — count "(X/Y benar)", breakdown Elemen Teknis, badge Tinjauan Jawaban, dan PDF export — dengan satu helper correctness terpusat (single source of truth, essay Benar = `EssayScore > 0`), menghilangkan drift dua-jalur yang menyebabkan "Nilai Anda 100%" tapi "(4/6 benar)". Logic Simpan Skor + Selesaikan Penilaian (poin 2) yang sudah benar dikunci dengan regression test tanpa ubah kode. Read/display-path only.
+**Depends on:** Tidak ada (melanjutkan dari Phase 382 v29.0; isolated hotfix, ships first).
+**Migration:** false (read/display-path only; `EssayScore` sudah ada + terisi)
+**Requirements:** ECG-01, ECG-02, ECG-03, ECG-04, ECG-05, ECG-06
+**Files:** `Helpers/AssessmentScoreAggregator.cs` (helper pure baru `IsQuestionCorrect`, EF-free, unit-testable) · `Controllers/CMPController.cs` (Results 3 titik: count review-on ~2258-2271 + review-off ~2304-2327, Elemen Teknis ~2336-2369, IsEssayPending ~2299-2300, Tinjauan TextAnswer) · `Controllers/AssessmentAdminController.cs` (PDF export essay correctness ~5017 unify ke `>0`) · test project (unit + regression)
+**Success Criteria** (what must be TRUE):
+  1. Sesi assessment dengan campuran MC + 2 essay yang **dinilai penuh benar** di `CMP/Results` menampilkan count "(6/6 benar)" (essay ikut dihitung) — bukan "(4/6 benar)" — di kedua jalur (answer-review ON `~2258-2271` + review OFF `~2304-2327`); mereproduksi & menutup gejala `CMP/Results/166`. *(ECG-01, ECG-02 — closes RES-02)*
+  2. Breakdown "Elemen Teknis" (`~2336-2369`) menghitung soal essay sesuai nilai HC (essay benar dihitung benar di elemennya, tidak lagi selalu salah). *(ECG-03)*
+  3. Badge "Tinjauan Jawaban" per-soal essay menampilkan **Benar** (hijau) untuk essay bernilai `>0` dan **Salah** untuk `=0` setelah finalize (bukan selalu merah "Salah"); essay yang belum dinilai (`EssayScore==null`) menampilkan "Menunggu Penilaian" terlepas status sesi; teks jawaban essay (`TextAnswer`) tampil di baris review. *(ECG-04)*
+  4. PDF export hasil (`AssessmentAdminController.cs:~5017`) memakai helper `IsQuestionCorrect` yang sama (essay `>0`, threshold lama `>=ScoreValue/2` diselaraskan) — web Results & PDF konsisten satu aturan. *(ECG-05 — D-03 unify)*
+  5. `dotnet build` 0 error + `dotnet test` hijau termasuk: unit test `IsQuestionCorrect` (MC benar/salah/tak-jawab, MA exact/partial/superset/kosong non-empty guard GRD-02, Essay `>0` Benar/`=0` Salah/`null` pending) + regression sesi N MC + 2 graded essay (`CorrectAnswers == N+2`) + regression kunci `SubmitEssayScore` persist+authz & `FinalizeEssayGrading` recompute-incl-essay + idempotent (tanpa ubah kode); MC/MA behavior tak berubah (helper replikasi logic inline byte-for-byte). *(ECG-01, ECG-06)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 384: Monitoring Essay Grading UI Refactor (Fase 2)
+**Goal:** Halaman Monitoring penilaian essay (`Views/Admin/AssessmentMonitoringDetail.cshtml`) mengganti blok essay inline panjang per worker (`:381-481`) dengan tabel list worker yang ringkas (status + jumlah essay belum dinilai) + tombol "Tinjau Essay" yang membuka page penilaian essay per-worker terpisah, sehingga HC menilai essay per-worker dengan alur yang rapi — tanpa mengubah backend (reuse endpoint POST `SubmitEssayScore` + `FinalizeEssayGrading` + `EssayGradingItemViewModel`).
+**Depends on:** Phase 383 (recommended-first per ship order/D-05; secara teknis decoupled — jalur file berbeda [view Monitoring + 1 GET action] vs Phase 383 [helper + Results count/ET/Tinjauan + PDF]).
+**Migration:** false (backend endpoints unchanged; view + 1 GET action + reuse)
+**Requirements:** UIG-01, UIG-02, UIG-03, UIG-04
+**Files:** `Views/Admin/AssessmentMonitoringDetail.cshtml` (ganti blok inline ~381-481 jadi tabel list worker + tombol "Tinjau Essay") · new GET action di controller (per-worker essay grading page, mis. `EssayGrading?sessionId=...`) + new view · new ViewModel worker-list · reuse POST `SubmitEssayScore`/`FinalizeEssayGrading` + `EssayGradingItemViewModel` (`Models/AssessmentMonitoringViewModel.cs:73-86`) · Playwright e2e
+**Success Criteria** (what must be TRUE):
+  1. Halaman Monitoring (`AssessmentMonitoringDetail`) menampilkan **tabel list worker** (kolom: Worker/NIP, jumlah essay belum dinilai, status [Selesai / N belum dinilai]) menggantikan blok essay inline panjang `:381-481`. *(UIG-01)*
+  2. Tiap baris worker punya tombol "Tinjau Essay" (kanan) yang membuka **page penilaian essay per-worker** terpisah (GET action baru, mis. `EssayGrading?sessionId=...`). *(UIG-02)*
+  3. Page penilaian essay per-worker me-reuse endpoint existing `SubmitEssayScore` + `FinalizeEssayGrading` (backend TIDAK diubah) + `EssayGradingItemViewModel`; "Simpan Skor" mem-persist nilai dan tombol "Selesaikan Penilaian" ada + berfungsi di page ini. *(UIG-03)*
+  4. `dotnet build` 0 error + Playwright e2e (localhost:5277, CLAUDE.md Develop Workflow): list worker render → klik "Tinjau Essay" navigasi ke page per-worker → beri skor (Simpan Skor) + Selesaikan Penilaian round-trip sukses. *(UIG-04 — Razor dynamic → Playwright runtime wajib, pelajaran Phase 354)*
+**Plans:** TBD
+**UI hint:** yes
+
+**Active mapped: 10/10 ✓ (ECG-01..06 → 383, UIG-01..04 → 384) — Orphans: 0 — Duplicates: 0 — 0 migration (kedua phase) — Menutup backlog RES-02 + GRD-02.**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 383. Essay Grading Correctness + Test (Fase 1) | 0/? | Not started | - |
+| 384. Monitoring Essay Grading UI Refactor (Fase 2) | 0/? | Not started | - |
+
+### Coverage Validation
+
+| REQ | Phase | Surface / Touchpoint | Status |
+|-----|-------|----------------------|--------|
+| ECG-01 | 383 | `AssessmentScoreAggregator.IsQuestionCorrect` helper (MC/MA/Essay, bool?) — GRD-02 MA non-empty guard | Pending |
+| ECG-02 | 383 | `CMPController.Results` count "(X/Y benar)" 2 jalur (~2258-2271 + ~2304-2327) — RES-02 | Pending |
+| ECG-03 | 383 | `CMPController.Results` Elemen Teknis breakdown (~2336-2369) | Pending |
+| ECG-04 | 383 | `CMPController.Results` Tinjauan Jawaban badge essay + TextAnswer + pending | Pending |
+| ECG-05 | 383 | `AssessmentAdminController` PDF export essay correctness (~5017) unify `>0` | Pending |
+| ECG-06 | 383 | Regression test `SubmitEssayScore` + `FinalizeEssayGrading` (lock, no code change) | Pending |
+| UIG-01 | 384 | `AssessmentMonitoringDetail.cshtml` tabel list worker (ganti inline :381-481) | Pending |
+| UIG-02 | 384 | Tombol "Tinjau Essay" per-worker + GET action page baru | Pending |
+| UIG-03 | 384 | Page per-worker reuse `SubmitEssayScore`/`FinalizeEssayGrading` + `EssayGradingItemViewModel` | Pending |
+| UIG-04 | 384 | Playwright e2e list→tinjau→skor→selesaikan round-trip | Pending |
+
+**Active mapped: 10/10 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration — Closes RES-02 + GRD-02**
+
+---
+
 
 <details>
 <summary>⏸️ v11.2 Admin Platform Enhancement (Phases 281-285) — PAUSED</summary>
