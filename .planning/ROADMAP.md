@@ -110,7 +110,11 @@ See .planning/MILESTONES.md for full history.
   3. Excel BulkExport "Detail Jawaban" menampilkan skor/teks essay yang sudah dinilai (bukan "—"). *(PXF-09)*
   4. `FinalizeEssayGrading` broadcast ke monitor group; gambar opsi Results/ExamSummary punya label huruf A/B/C/D; `SubmitExam` MC tak menimpa jawaban tersimpan jadi null; `Hub.SaveTextAnswer` menolak tulis pasca timer-expired. *(PXF-10, PXF-11, PXF-12, PXF-13)*
   5. `dotnet build` 0 error + `dotnet test` hijau (unit PXF-06/09/12) + Playwright a11y PXF-11 + `dotnet run` localhost:5277 verify. 1 push → notify IT re-deploy (kedua, pasca-acara). *(semua 7 REQ)*
-**Plans:** TBD
+**Plans:** 4 plans
+  - [ ] 387-01-PLAN.md — AssessmentAdminController.cs: PXF-06 guard + PXF-08 cert retry + PXF-09 essay cell + PXF-10 monitor broadcast (Wave 1)
+  - [ ] 387-02-PLAN.md — Participant write-path guards: PXF-12 MC no null-overwrite + PXF-13 SaveTextAnswer timer (Wave 1)
+  - [ ] 387-03-PLAN.md — PXF-11 aria huruf opsi A/B/C/D (Results + ExamSummary) (Wave 1)
+  - [ ] 387-04-PLAN.md — Verifikasi: unit PXF-06/09/12 + Playwright PXF-11 + checkpoint manual PXF-08/10/13 (Wave 2)
 **UI hint:** yes
 
 **Active mapped: 14/14 ✓ (PXF-01 + PXF-03 → 385; PXF-02 + PXF-04 + PXF-05 + PXF-07 + PXF-14 → 386; PXF-06/08/09/10/11/12/13 → 387) — Orphans: 0 — Duplicates: 0 — 0 migration (ketiga phase) — file-overlap aman (Phase 387 depends 386; tak menyentuh ExcelExportHelper.cs).**
@@ -121,7 +125,7 @@ See .planning/MILESTONES.md for full history.
 |-------|----------------|--------|-----------|
 | 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete    | 2026-06-15 |
 | 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 0/6 | Planned | - |
-| 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 0/TBD | Not started | - |
+| 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 0/4 | Planned | - |
 
 ### Coverage Validation
 
