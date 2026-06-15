@@ -380,4 +380,23 @@ public class EssaySubmitFinalizeAuthzTests
             Assert.Contains("HC", authz!.Roles ?? "");           // role HC terkunci
         }
     }
+
+    // ---- Phase 386 PXF-04 D-08 lock — status-guard edit TIDAK boleh drop [Authorize]/[ValidateAntiForgeryToken] ----
+    // Saat Wave 3 menambah status-guard di SubmitEssayScore (tolak non-PendingGrading), atribut security
+    // WAJIB tetap utuh. Pure (reflection, no DB) → selalu jalan tanpa SQLEXPRESS.
+    [Fact]
+    public void SubmitEssayScore_RetainsAuthorizeAfterStatusGuardEdit()  // T-386-AUTHZ
+    {
+        var t = typeof(HcPortal.Controllers.AssessmentAdminController);
+        var m = t.GetMethods().First(x => x.Name == "SubmitEssayScore");
+
+        var authz = m.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true)
+            .Cast<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>().FirstOrDefault();
+        Assert.NotNull(authz);                                   // [Authorize] tetap ada
+        Assert.Contains("Admin", authz!.Roles ?? "");
+        Assert.Contains("HC", authz!.Roles ?? "");
+
+        var antiForgery = m.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute), true);
+        Assert.NotEmpty(antiForgery);                            // [ValidateAntiForgeryToken] tetap ada
+    }
 }
