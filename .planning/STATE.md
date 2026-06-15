@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v30.0
-milestone_name: Essay Grading Correctness + Monitoring UI Refactor
-status: v30.0 milestone complete
-stopped_at: Completed 383-04-PLAN.md (ECG-06 regression lock; 5 test, 440/440 full suite, 0 migration)
-last_updated: "2026-06-15T04:37:55.839Z"
+milestone: v31.0
+milestone_name: Hotfix Pra-Ujian Lisensor
+status: v31.0 started — defining roadmap
+stopped_at: Milestone v31.0 dibuat (5 PXF dari readiness audit); roadmap pending
+last_updated: "2026-06-15T12:00:00.000Z"
 last_activity: 2026-06-15
 progress:
-  total_phases: 21
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
