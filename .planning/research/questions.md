@@ -17,7 +17,17 @@ monitoring. Lihat `.planning/notes/2026-06-15-readiness-ujian-lisensor.md`.
   tanda tangan — terbit otomatis setelah lulus?
 - [ ] **Bank soal realistis sudah ada?** Atau perlu seed soal contoh (4 jenis + gambar)
   untuk gladi-bersih? Klasifikasi seed temporary + local-only.
-- [ ] **Aturan kelulusan lisensor** (passing score, bobot essay vs pilihan, partial credit
-  Multiple Answer) sudah fix & sesuai requirement lisensor?
-- [ ] **Multiple Answer scoring** = partial atau all-or-nothing untuk lisensor? Konfirmasi
-  ke business sebelum verifikasi.
+- [x] **Aturan kelulusan lisensor — passing score.** ✅ JAWAB 2026-06-15: pakai **70%**
+  (default kode `AssessmentSession.PassPercentage=70`, per-assessment configurable).
+  Lulus iff `percentage >= PassPercentage`. Skor akhir = `totalScore/maxScore×100` integer
+  truncate; tiap soal kontribusi = `ScoreValue`-nya (linear, tanpa weighting per-tipe).
+  TODO verifikasi: assessment lisensor yang dibuat benar set PassPercentage=70.
+- [x] **Multiple Answer scoring** ✅ JAWAB 2026-06-15: kode = **ALL-OR-NOTHING**
+  (`maSelected.SetEquals(maCorrect)`, `Helpers/AssessmentScoreAggregator.cs:50`). Subset /
+  ada salah / extra = **0**; hanya jawaban PERSIS semua-benar dapat poin penuh. Dibuktikan
+  4 unit test skenario benar={A,C,D} di `HcPortal.Tests/AssessmentScoreAggregatorTests.cs`
+  (10/10 PASS). **DECISION PENDING (business):** apakah all-or-nothing OK untuk lisensor,
+  atau mau **partial credit** (2/3 benar → 66% poin)? Kalau partial → GAP requirement = ubah
+  kode (temuan, bukan auto-fix).
+- [ ] **Essay** dinilai manual HC 0..ScoreValue (default 10/soal), ditambah ke total saat
+  finalize. Konfirmasi: rubrik/bobot essay lisensor sudah fix?
