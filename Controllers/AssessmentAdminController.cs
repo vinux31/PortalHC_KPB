@@ -3306,13 +3306,17 @@ namespace HcPortal.Controllers
             if (manualGradingSessionIds.Any())
             {
                 // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
-                var essayPendingRaw = await _context.PackageUserResponses
-                    .Where(r => manualGradingSessionIds.Contains(r.AssessmentSessionId) && !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null)
+                // Whitespace dievaluasi in-memory (IsNullOrWhiteSpace) agar identik dgn .NET: SQL Server
+                // LTRIM/RTRIM hanya trim spasi (bukan tab/newline) → parity 4 surface terjamin (D-06a).
+                var essayUngradedRows = await _context.PackageUserResponses
+                    .Where(r => manualGradingSessionIds.Contains(r.AssessmentSessionId) && r.EssayScore == null)
                     .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
-                        r => r.PackageQuestionId, q => q.Id, (r, q) => r.AssessmentSessionId)
-                    .GroupBy(sid => sid)
-                    .Select(g => new { SessionId = g.Key, Count = g.Count() })
+                        r => r.PackageQuestionId, q => q.Id, (r, q) => new { r.AssessmentSessionId, r.TextAnswer })
                     .ToListAsync();
+                var essayPendingRaw = essayUngradedRows
+                    .Where(x => !string.IsNullOrWhiteSpace(x.TextAnswer))   // EssayScore==null sudah difilter server-side
+                    .GroupBy(x => x.AssessmentSessionId)
+                    .Select(g => new { SessionId = g.Key, Count = g.Count() });
                 foreach (var item in essayPendingRaw)
                     essayPendingCountMap[item.SessionId] = item.Count;
             }
@@ -3566,11 +3570,14 @@ namespace HcPortal.Controllers
 
             // 5. Cek berapa Essay masih pending
             // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
-            var pendingCount = await _context.PackageUserResponses
-                .Where(r => r.AssessmentSessionId == sessionId)
+            // Whitespace dievaluasi in-memory (IsNullOrWhiteSpace) agar identik dgn .NET: SQL Server
+            // LTRIM/RTRIM hanya trim spasi (bukan tab/newline) → parity 4 surface terjamin (D-06a).
+            var pendingTextAnswers = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId && r.EssayScore == null)
                 .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
-                    r => r.PackageQuestionId, q => q.Id, (r, q) => r)
-                .CountAsync(r => !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null);
+                    r => r.PackageQuestionId, q => q.Id, (r, q) => r.TextAnswer)
+                .ToListAsync();
+            var pendingCount = pendingTextAnswers.Count(t => !string.IsNullOrWhiteSpace(t));   // EssayScore==null sudah difilter server-side
 
             return Json(new { success = true, pendingCount, allGraded = pendingCount == 0 });
         }

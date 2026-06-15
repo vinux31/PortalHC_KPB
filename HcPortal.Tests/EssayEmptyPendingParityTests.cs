@@ -115,19 +115,19 @@ public class EssayEmptyPendingParityTests : IClassFixture<EssayFinalizeRecompute
     // 4 mirror count-builders — encode predikat BARU (fixed). Drift-guard WAJIB tiap builder.
     // ============================================================================================
 
-    // Mirror SITE 4 (Monitoring, L3308-3314): EF Join Essay + GroupBy SessionId + Where predikat.
-    // DRIFT-GUARD: bila body controller site 4 (L3308-3314) berubah, perbarui mirror ini.
+    // Mirror SITE 4 (Monitoring, L3308-3318): EF filter EssayScore==null + Join Essay (server-side),
+    // lalu whitespace IsNullOrWhiteSpace in-memory + GroupBy SessionId. Whitespace WAJIB in-memory:
+    // SQL Server LTRIM/RTRIM hanya trim spasi (bukan tab/newline) → server-side IsNullOrWhiteSpace
+    // divergen dari .NET. Production menyelaraskan dgn evaluasi whitespace in-memory (parity 4 surface).
+    // DRIFT-GUARD: bila body controller site 4 (L3308-3318) berubah, perbarui mirror ini.
     private static async Task<int> MonitoringPendingCountAsync(ApplicationDbContext ctx, int sessionId)
     {
-        var raw = await ctx.PackageUserResponses
-            .Where(r => r.AssessmentSessionId == sessionId
-                        && !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null)   // PREDIKAT BARU
+        var rows = await ctx.PackageUserResponses
+            .Where(r => r.AssessmentSessionId == sessionId && r.EssayScore == null)   // EssayScore==null server-side
             .Join(ctx.PackageQuestions.Where(q => q.QuestionType == "Essay"),
-                r => r.PackageQuestionId, q => q.Id, (r, q) => r.AssessmentSessionId)
-            .GroupBy(sid => sid)
-            .Select(g => new { SessionId = g.Key, Count = g.Count() })
+                r => r.PackageQuestionId, q => q.Id, (r, q) => r.TextAnswer)
             .ToListAsync();
-        return raw.FirstOrDefault()?.Count ?? 0;
+        return rows.Count(t => !string.IsNullOrWhiteSpace(t));   // whitespace in-memory (predikat BARU, semantik .NET)
     }
 
     // Mirror SITE 1 (Page, L3500): in-memory atas EssayGradingItemViewModel-shaped (question-domain).
@@ -151,15 +151,18 @@ public class EssayEmptyPendingParityTests : IClassFixture<EssayFinalizeRecompute
         return items.Count(i => !string.IsNullOrWhiteSpace(i.TextAnswer) && i.EssayScore == null);   // PREDIKAT BARU
     }
 
-    // Mirror SITE 3 (Submit, L3547-3551): EF Join Essay + CountAsync predikat.
-    // DRIFT-GUARD: bila body controller site 3 (L3547-3551) berubah, perbarui mirror ini.
+    // Mirror SITE 3 (Submit, L3547-3556): EF filter EssayScore==null + Join Essay (server-side),
+    // lalu whitespace IsNullOrWhiteSpace in-memory (alasan sama Site 4 — LTRIM/RTRIM SQL Server
+    // tak trim tab/newline). Production menyelaraskan dgn evaluasi whitespace in-memory.
+    // DRIFT-GUARD: bila body controller site 3 (L3547-3556) berubah, perbarui mirror ini.
     private static async Task<int> SubmitPendingCountAsync(ApplicationDbContext ctx, int sessionId)
     {
-        return await ctx.PackageUserResponses
-            .Where(r => r.AssessmentSessionId == sessionId)
+        var texts = await ctx.PackageUserResponses
+            .Where(r => r.AssessmentSessionId == sessionId && r.EssayScore == null)   // EssayScore==null server-side
             .Join(ctx.PackageQuestions.Where(q => q.QuestionType == "Essay"),
-                r => r.PackageQuestionId, q => q.Id, (r, q) => r)
-            .CountAsync(r => !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null);   // PREDIKAT BARU
+                r => r.PackageQuestionId, q => q.Id, (r, q) => r.TextAnswer)
+            .ToListAsync();
+        return texts.Count(t => !string.IsNullOrWhiteSpace(t));   // whitespace in-memory (predikat BARU, semantik .NET)
     }
 
     // Mirror SITE 2 (Finalize gate, L3620): in-memory atas essayResponses list .Count predikat.
