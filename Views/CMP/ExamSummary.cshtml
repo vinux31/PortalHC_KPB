@@ -54,9 +54,12 @@
                                     @item.QuestionText
                                 </span>
                                 @await Html.PartialAsync("_QuestionImage", new { ImagePath = item.ImagePath, ImageAlt = item.ImageAlt, Cap = 240 })
-                                @foreach (var optImg in item.OptionImages)
+                                @{ string[] letters = { "A", "B", "C", "D" }; }
+                                @for (int oi = 0; oi < item.OptionImages.Count; oi++)
                                 {
-                                    @await Html.PartialAsync("_QuestionImage", new { ImagePath = optImg.ImagePath, ImageAlt = optImg.ImageAlt, Cap = 120, AriaContext = "opsi" })
+                                    var optImg = item.OptionImages[oi];
+                                    var letter = oi < letters.Length ? letters[oi] : (oi + 1).ToString();
+                                    @await Html.PartialAsync("_QuestionImage", new { ImagePath = optImg.ImagePath, ImageAlt = optImg.ImageAlt, Cap = 120, AriaContext = "opsi " + letter })
                                 }
                             </td>
                             <td>
