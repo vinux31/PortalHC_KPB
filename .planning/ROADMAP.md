@@ -74,7 +74,7 @@ See .planning/MILESTONES.md for full history.
 **Plans:** 4 plans
 - [x] 383-01-PLAN.md — Helper terpusat `IsQuestionCorrect` (bool?, MC/MA byte-for-byte, Essay >0) + unit test (ECG-01; closes GRD-02)
 - [ ] 383-02-PLAN.md — Wire CMPController.Results 3 titik + IsEssayPending (D-06) + D-07 TextAnswer + blok view Results.cshtml + regression count==N+2 (ECG-02/03/04; closes RES-02)
-- [ ] 383-03-PLAN.md — PDF export unify ke `IsQuestionCorrect` (essay >0, D-03) di AssessmentAdminController (ECG-05)
+- [x] 383-03-PLAN.md — PDF export unify ke `IsQuestionCorrect` (essay >0, D-03) di AssessmentAdminController (ECG-05)
 - [ ] 383-04-PLAN.md — Regression real-SQL lock SubmitEssayScore persist+range+authz & FinalizeEssayGrading recompute-incl-essay+idempotent, no code change (ECG-06)
 **UI hint:** yes
 
@@ -98,7 +98,7 @@ See .planning/MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 383. Essay Grading Correctness + Test (Fase 1) | 1/4 | In Progress|  |
+| 383. Essay Grading Correctness + Test (Fase 1) | 2/4 | In Progress|  |
 | 384. Monitoring Essay Grading UI Refactor (Fase 2) | 0/? | Not started | - |
 
 ### Coverage Validation
