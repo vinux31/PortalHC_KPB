@@ -3451,6 +3451,73 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
+        // --- ESSAY GRADING PAGE per-worker (Phase 384 UIG-02/03) ---
+        // GET action BARU (append sebelah AssessmentMonitoringDetail). Clone single-session essay
+        // loader dari builder "Essay grading items per session". Backend POST endpoint TAK diubah.
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EssayGrading(
+            int sessionId, string title, string category, DateTime scheduleDate, string? assessmentType = null)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == sessionId);
+            if (session == null || !session.HasManualGrading)
+            {
+                TempData["Error"] = "Sesi penilaian essay tidak ditemukan.";
+                return RedirectToAction("AssessmentMonitoringDetail",
+                    new { title, category, scheduleDate, assessmentType });
+            }
+
+            // CLONE single-session essay loader (dari builder "Essay grading items per session" di AssessmentMonitoringDetail)
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == session.Id);
+            var items = new List<EssayGradingItemViewModel>();
+            if (assignment != null)
+            {
+                var shuffled = assignment.GetShuffledQuestionIds();
+                var essayQs = await _context.PackageQuestions
+                    .Where(q => shuffled.Contains(q.Id) && q.QuestionType == "Essay")
+                    .ToListAsync();
+                var essayRespMap = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == session.Id &&
+                           essayQs.Select(q => q.Id).Contains(r.PackageQuestionId))
+                    .ToDictionaryAsync(r => r.PackageQuestionId);
+                items = essayQs.Select((q, idx) => new EssayGradingItemViewModel
+                {
+                    QuestionId    = q.Id,
+                    DisplayNumber = idx + 1,
+                    QuestionText  = q.QuestionText ?? "",
+                    Rubrik        = q.Rubrik,
+                    TextAnswer    = essayRespMap.TryGetValue(q.Id, out var resp) ? resp.TextAnswer : null,
+                    EssayScore    = essayRespMap.TryGetValue(q.Id, out var resp2) ? resp2.EssayScore : null,
+                    ScoreValue    = q.ScoreValue,
+                    ImagePath     = q.ImagePath,
+                    ImageAlt      = q.ImageAlt
+                }).ToList();
+            }
+
+            var essayPendingCount = items.Count(i => i.EssayScore == null);
+            var isFinalized = session.Status == AssessmentConstants.AssessmentStatus.Completed
+                              && !string.IsNullOrEmpty(session.NomorSertifikat);
+
+            var model = new EssayGradingPageViewModel
+            {
+                SessionId         = session.Id,
+                UserFullName      = session.User?.FullName ?? "(Nama tidak tersedia)",
+                UserNIP           = session.User?.NIP ?? "",
+                EssayPendingCount = essayPendingCount,
+                IsFinalized       = isFinalized,
+                CompletedAt       = session.CompletedAt,
+                EssayItems        = items,
+                Title             = title,
+                Category          = category,
+                ScheduleDate      = scheduleDate.ToString("yyyy-MM-dd"),
+                AssessmentType    = assessmentType
+            };
+            return View(model);
+        }
+
         // --- SUBMIT ESSAY SCORE (Phase 298-05, D-15/D-16) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
