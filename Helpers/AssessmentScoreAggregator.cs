@@ -96,5 +96,45 @@ namespace HcPortal.Helpers
                 }
             }
         }
+
+        /// <summary>
+        /// Phase 386 PXF-05 (F-17/F-DEV-02 D-10) — display string for the "Jawaban" cell, shared by PDF
+        /// (GeneratePerPesertaPdf) AND Excel (AddDetailPerSoalSheet). Pure, EF-free, unit-testable.
+        ///   MA   -> join ALL selected OptionText in option-Id order, ", " separator (mirror Excel L4860-4861).
+        ///   MC   -> single selected OptionText.
+        ///   Essay-> TextAnswer truncated to 300 chars + "..." (mirror PDF L5083).
+        ///   none -> "—" (em dash U+2014).
+        /// Wired into PDF/Excel export paths in Wave 4 (kill-drift, single source of display truth alongside
+        /// IsQuestionCorrect). Does NOT touch Compute or IsQuestionCorrect (D-11 — scoring/correctness untouched).
+        /// </summary>
+        public static string BuildAnswerCell(PackageQuestion q, IEnumerable<PackageUserResponse> responsesForQ)
+        {
+            var list = responsesForQ as IList<PackageUserResponse> ?? responsesForQ.ToList();
+            switch (q.QuestionType ?? "MultipleChoice")
+            {
+                case "Essay":
+                {
+                    var essay = list.FirstOrDefault(r => r.PackageQuestionId == q.Id);
+                    var txt = essay?.TextAnswer;
+                    if (string.IsNullOrEmpty(txt)) return "—";
+                    return txt.Length > 300 ? txt.Substring(0, 300) + "..." : txt;
+                }
+                case "MultipleAnswer":
+                {
+                    var selectedIds = list.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
+                                          .Select(r => r.PackageOptionId!.Value).ToHashSet();
+                    var joined = string.Join(", ",
+                        q.Options.Where(o => selectedIds.Contains(o.Id)).OrderBy(o => o.Id).Select(o => o.OptionText));
+                    return string.IsNullOrEmpty(joined) ? "—" : joined;
+                }
+                default: // MultipleChoice
+                {
+                    var resp = list.FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                    if (resp == null) return "—";
+                    var opt = q.Options.FirstOrDefault(o => o.Id == resp.PackageOptionId!.Value);
+                    return opt?.OptionText ?? "—";
+                }
+            }
+        }
     }
 }
