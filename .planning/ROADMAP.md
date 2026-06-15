@@ -89,7 +89,11 @@ See .planning/MILESTONES.md for full history.
   2. Tiap baris worker punya tombol "Tinjau Essay" (kanan) yang membuka **page penilaian essay per-worker** terpisah (GET action baru, mis. `EssayGrading?sessionId=...`). *(UIG-02)*
   3. Page penilaian essay per-worker me-reuse endpoint existing `SubmitEssayScore` + `FinalizeEssayGrading` (backend TIDAK diubah) + `EssayGradingItemViewModel`; "Simpan Skor" mem-persist nilai dan tombol "Selesaikan Penilaian" ada + berfungsi di page ini. *(UIG-03)*
   4. `dotnet build` 0 error + Playwright e2e (localhost:5277, CLAUDE.md Develop Workflow): list worker render → klik "Tinjau Essay" navigasi ke page per-worker → beri skor (Simpan Skor) + Selesaikan Penilaian round-trip sukses. *(UIG-04 — Razor dynamic → Playwright runtime wajib, pelajaran Phase 354)*
-**Plans:** TBD
+**Plans:** 4 plans
+- [ ] 384-01-PLAN.md — Wave 0 test infra: SQL seed fixture session essay-pending + Playwright FLOW 384 spec (RED/fixme) (UIG-04)
+- [ ] 384-02-PLAN.md — Wave 1: EssayGradingPageViewModel + GET action EssayGrading (authz Admin/HC, clone builder) + view EssayGrading.cshtml + extract essay-grading.js (D-09 in-place + D-10 read-only) (UIG-02, UIG-03)
+- [ ] 384-03-PLAN.md — Wave 2: refactor AssessmentMonitoringDetail — ganti blok inline :381-481 jadi tabel worker-list + tombol Tinjau Essay + hapus handler essay dead (UIG-01)
+- [ ] 384-04-PLAN.md — Wave 3: aktifkan e2e FLOW 384 hijau (round-trip) + UAT manual checkpoint (UIG-04)
 **UI hint:** yes
 
 **Active mapped: 10/10 ✓ (ECG-01..06 → 383, UIG-01..04 → 384) — Orphans: 0 — Duplicates: 0 — 0 migration (kedua phase) — Menutup backlog RES-02 + GRD-02.**
@@ -99,7 +103,7 @@ See .planning/MILESTONES.md for full history.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 383. Essay Grading Correctness + Test (Fase 1) | 3/4 | In Progress|  |
-| 384. Monitoring Essay Grading UI Refactor (Fase 2) | 0/? | Not started | - |
+| 384. Monitoring Essay Grading UI Refactor (Fase 2) | 0/4 | Not started | - |
 
 ### Coverage Validation
 
