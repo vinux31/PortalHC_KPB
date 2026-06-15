@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ringkasan Pekerjaan v25–v29 — Portal HC KPB</title>
+<title>Ringkasan Pekerjaan v25–v30 — Portal HC KPB</title>
 <style>
   :root{
     --merah:#E4002B; --biru:#00558C; --biru-muda:#0a7abf; --hijau:#1a9e57;
@@ -99,6 +99,19 @@
     .kpis{grid-template-columns:repeat(2,1fr)}
     header h1{font-size:25px}
   }
+
+  /* Export PDF / cetak */
+  @media print{
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{background:#fff;font-size:12px}
+    .wrap{max-width:100%;padding:0 12px}
+    .docnav,.cta{display:none !important}
+    header{padding:22px 0}
+    section{padding:16px 0}
+    h2{break-after:avoid;page-break-after:avoid}
+    .ms,.kpi,.note,.hasil,.kpis{break-inside:avoid;page-break-inside:avoid}
+    a[href]{color:inherit;text-decoration:none}
+  }
 </style>
 </head>
 <body>
@@ -106,12 +119,12 @@
 <header>
   <div class="wrap">
     <span class="pill">RINGKASAN PEKERJAAN · Portal HC KPB</span>
-    <h1>Apa Saja yang Dikerjakan di v25 sampai v29</h1>
-    <p class="sub">Lima rangkaian perbaikan portal (milestone <b>v25.0–v29.0</b>) sepanjang Juni 2026. Dokumen ini merangkum — dengan bahasa sederhana — apa yang dikerjakan tiap milestone dan hasilnya, supaya tim HC punya gambaran utuh tanpa istilah teknis.</p>
+    <h1>Apa Saja yang Dikerjakan di v25 sampai v30</h1>
+    <p class="sub">Enam rangkaian perbaikan portal (milestone <b>v25.0–v30.0</b>) sepanjang Juni 2026, ditambah satu perbaikan mendesak di luar milestone. Dokumen ini merangkum — dengan bahasa sederhana — apa yang dikerjakan tiap milestone dan hasilnya, supaya tim HC punya gambaran utuh tanpa istilah teknis.</p>
     <div class="meta">
       <span>📅 Periode: Juni 2026</span>
-      <span>🧩 5 Milestone · 25 Fase</span>
-      <span>🔧 56 Perbaikan</span>
+      <span>🧩 6 Milestone · 27 Fase</span>
+      <span>🔧 66 Perbaikan</span>
       <span>✅ Semua lolos audit</span>
     </div>
   </div>
@@ -120,7 +133,7 @@
 <div class="statusbar">
   <div class="wrap">
     <span class="tick">✓</span>
-    <span>Kelima milestone sudah SELESAI &amp; LOLOS AUDIT — setiap perbaikan terbukti benar dan saling terhubung.</span>
+    <span>Keenam milestone sudah SELESAI &amp; LOLOS AUDIT — setiap perbaikan terbukti benar dan saling terhubung.</span>
   </div>
 </div>
 
@@ -136,11 +149,11 @@
 <section>
   <div class="wrap">
     <h2><span class="num">1</span> Gambaran Singkat</h2>
-    <p class="lead">Empat angka yang merangkum total pekerjaan lima milestone ini.</p>
+    <p class="lead">Empat angka yang merangkum total pekerjaan enam milestone ini.</p>
     <div class="kpis">
-      <div class="kpi"><div class="big">5</div><div class="lbl">Milestone selesai (v25–v29)</div></div>
-      <div class="kpi"><div class="big">25</div><div class="lbl">Fase pengerjaan</div></div>
-      <div class="kpi ok"><div class="big">56</div><div class="lbl">Perbaikan terbukti benar</div></div>
+      <div class="kpi"><div class="big">6</div><div class="lbl">Milestone selesai (v25–v30)</div></div>
+      <div class="kpi"><div class="big">27</div><div class="lbl">Fase pengerjaan</div></div>
+      <div class="kpi ok"><div class="big">66</div><div class="lbl">Perbaikan terbukti benar</div></div>
       <div class="kpi ok"><div class="big">100%</div><div class="lbl">Lolos audit (0 penghalang)</div></div>
     </div>
   </div>
@@ -260,6 +273,46 @@
         <span class="bdg">Detail awam tersedia: docs/milestone-v29.0/index.html</span>
       </div>
     </div>
+
+    <!-- v30 -->
+    <div class="ms" style="border-left-color:var(--biru)">
+      <div class="top">
+        <span class="ver">v30.0</span>
+        <div class="htxt">
+          <h3>Nilai Esai Tampil Benar &amp; Halaman "Tinjau Essay"</h3>
+          <div class="sub">Tema: rapikan tampilan nilai esai + halaman penilaian esai per-pekerja · 2 fase (383–384)</div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Nilai esai tampil konsisten benar.</b> Dulu hasil ujian esai bisa tampil "100%" tapi tertulis "(4/6 benar)" dan Tinjauan Jawaban menandai esai yang sudah dinilai sebagai merah "Salah". Sekarang skor, jumlah benar, dan tinjauan saling cocok — esai yang sudah dinilai tampil "Benar".</li>
+        <li><b>Halaman "Tinjau Essay" per-pekerja.</b> Penilaian esai di Monitoring dirapikan menjadi tabel daftar pekerja; tiap pekerja punya halaman tinjau esai sendiri yang lebih ringkas dan mudah dibaca.</li>
+      </ul>
+      <div class="hasil"><b>Hasil:</b><span>10 dari 10 perbaikan lolos audit. Nilai esai yang tampil = nilai yang tersimpan, dan penilaian esai jadi lebih rapi.</span></div>
+      <div class="badges">
+        <span class="bdg">2 fase</span>
+        <span class="bdg nodb">Tanpa ubah database</span>
+      </div>
+    </div>
+
+    <!-- Pekerjaan tambahan (di luar milestone) -->
+    <div class="ms" style="border-left:5px dashed var(--abu);background:#fafbfc">
+      <div class="top">
+        <span class="ver" style="background:var(--abu)">HOTFIX</span>
+        <div class="htxt">
+          <h3>Judul Assessment Fleksibel &amp; Cek Duplikat</h3>
+          <div class="sub">Pekerjaan tambahan mendesak · di luar siklus milestone · 15 Juni 2026</div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Judul ujian tidak lagi dipaksa pola "Pre/Post Test".</b> Aturan lama memblokir semua judul yang tidak berpola Pre/Post — termasuk judul sah seperti "Training Lisensor SRU". Sekarang judul bebas sesuai kebutuhan.</li>
+        <li><b>Tombol "Cek Judul" + peringatan double-sertifikat.</b> Sebelum membuat ujian, HC bisa mengecek apakah judul sudah pernah dipakai. Bila kembar, muncul peringatan dan centang konfirmasi — mencegah pekerja dapat sertifikat ganda tanpa sengaja.</li>
+      </ul>
+      <div class="hasil"><b>Hasil:</b><span>Lolos uji (420/420 tes + uji alur). Judul lebih fleksibel sekaligus terlindung dari duplikasi.</span></div>
+      <div class="badges">
+        <span class="bdg">Di luar milestone</span>
+        <span class="bdg nodb">Tanpa ubah database</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -276,7 +329,7 @@
 
     <div class="note">
       <h4>🗄️ Sebagian mengubah struktur database</h4>
-      <p>v25.0 (2 perubahan) dan v27.0 (1 perubahan) menambah kolom/tabel data. Penerapan perubahan ini ke server adalah tanggung jawab Tim IT saat promosi — bukan langkah yang dilakukan tim HC. v26.0, v28.0, dan v29.0 tidak mengubah struktur database.</p>
+      <p>v25.0 (2 perubahan) dan v27.0 (1 perubahan) menambah kolom/tabel data. Penerapan perubahan ini ke server adalah tanggung jawab Tim IT saat promosi — bukan langkah yang dilakukan tim HC. v26.0, v28.0, v29.0, v30.0, dan perbaikan tambahan (hotfix judul) tidak mengubah struktur database.</p>
     </div>
 
     <div class="note">
@@ -296,8 +349,8 @@
 
 <footer>
   <div class="wrap">
-    <b>Ringkasan Pekerjaan Milestone v25.0–v29.0</b><br>
-    Portal HC KPB · Periode Juni 2026 · Status: Semua LOLOS AUDIT (56 perbaikan)<br>
+    <b>Ringkasan Pekerjaan Milestone v25.0–v30.0</b><br>
+    Portal HC KPB · Periode Juni 2026 · Status: Semua LOLOS AUDIT (66 perbaikan + 1 hotfix)<br>
     <span style="opacity:.7">Dokumen ringkasan untuk tim HC — bahasa awam. Detail teknis ada di <code>.planning/milestones/</code>.</span>
   </div>
 </footer>

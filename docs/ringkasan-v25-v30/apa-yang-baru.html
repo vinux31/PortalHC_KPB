@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apa yang Baru di Portal HC KPB — v25–v29</title>
+<title>Apa yang Baru di Portal HC KPB — v25–v30</title>
 <style>
   :root{
     --merah:#E4002B; --biru:#00558C; --biru-muda:#0a7abf; --hijau:#1a9e57;
@@ -99,6 +99,19 @@
     .ba{grid-template-columns:1fr}
     header h1{font-size:25px}
   }
+
+  /* Export PDF / cetak */
+  @media print{
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{background:#fff;font-size:12px}
+    .wrap{max-width:100%;padding:0 12px}
+    .docnav,.cta{display:none !important}
+    header{padding:22px 0}
+    section{padding:16px 0}
+    h2{break-after:avoid;page-break-after:avoid}
+    .fitur,.alur-blok,.note,.step,.ba,.ba .box{break-inside:avoid;page-break-inside:avoid}
+    a[href]{color:inherit;text-decoration:none}
+  }
 </style>
 </head>
 <body>
@@ -107,9 +120,9 @@
   <div class="wrap">
     <span class="pill">PEMBERITAHUAN SISTEM · Portal HC KPB</span>
     <h1>Apa yang Baru — Fitur, Fasilitas &amp; Alur Baru</h1>
-    <p class="sub">Rangkuman hal-hal baru hasil milestone <b>v25.0–v29.0</b> yang berdampak ke cara kerja sehari-hari — disusun untuk <b>disosialisasikan tim HC</b> ke admin dan pekerja. Hanya yang terlihat/terasa oleh pengguna; perbaikan internal yang tak kelihatan tidak dimasukkan.</p>
+    <p class="sub">Rangkuman hal-hal baru hasil milestone <b>v25.0–v30.0</b> (plus satu perbaikan tambahan) yang berdampak ke cara kerja sehari-hari — disusun untuk <b>disosialisasikan tim HC</b> ke admin dan pekerja. Hanya yang terlihat/terasa oleh pengguna; perbaikan internal yang tak kelihatan tidak dimasukkan.</p>
     <div class="meta">
-      <span>🆕 5 Fasilitas/Fitur baru</span>
+      <span>🆕 8 Fasilitas/Fitur baru</span>
       <span>🔀 3 Alur yang berubah</span>
       <span>👥 Untuk admin &amp; pekerja</span>
     </div>
@@ -204,6 +217,51 @@
       </div>
       <div class="dimana">📍 <b>Lokasi:</b> Dashboard CDP / Histori PROTON; aturan berlaku otomatis saat membuat assessment PROTON.</div>
     </div>
+
+    <!-- Tinjau Essay per-pekerja -->
+    <div class="fitur" style="border-left-color:var(--biru)">
+      <div class="head">
+        <span class="ic">📝</span>
+        <h3>Halaman "Tinjau Essay" per-Pekerja</h3>
+        <span class="ver">v30.0</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Penilaian esai bertumpuk di dalam halaman detail Monitoring — panjang dan sulit dibaca saat banyak peserta.</div>
+        <div class="box kini"><b>Sekarang</b>Monitoring menampilkan tabel daftar pekerja; klik "Tinjau Essay" membuka halaman penilaian khusus per pekerja yang ringkas. Nilai bisa disimpan/difinalisasi langsung tanpa muat ulang, dan yang sudah final tampil terkunci.</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Monitoring Assessment → kolom esai → "Tinjau Essay" (halaman <code>/Admin/EssayGrading</code>).</div>
+    </div>
+
+    <!-- Nilai esai tampil benar -->
+    <div class="fitur" style="border-left-color:var(--biru)">
+      <div class="head">
+        <span class="ic">🎯</span>
+        <h3>Nilai Esai Tampil Konsisten Benar</h3>
+        <span class="ver">v30.0</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin &amp; Pekerja</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Hasil ujian esai bisa tampil "Nilai 100%" tapi tertulis "(4/6 benar)", hitungan Elemen Teknis meleset, dan Tinjauan Jawaban menandai esai yang sudah dinilai sebagai merah "Salah".</div>
+        <div class="box kini"><b>Sekarang</b>Skor, jumlah benar, Elemen Teknis, dan Tinjauan Jawaban saling cocok. Esai yang sudah dinilai (nilai &gt; 0) tampil hijau "Benar"; yang belum dinilai tampil "Menunggu Penilaian".</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Halaman Hasil ujian (CMP/Results) — tampilan skor &amp; tinjauan jawaban.</div>
+    </div>
+
+    <!-- Cek Judul + judul bebas -->
+    <div class="fitur" style="border-left-color:var(--abu)">
+      <div class="head">
+        <span class="ic">🔎</span>
+        <h3>Cek Judul Assessment &amp; Judul Bebas</h3>
+        <span class="ver" style="color:var(--abu)">Tambahan</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Judul ujian dipaksa berpola "Pre/Post Test ..." — judul sah lain (mis. "Training Lisensor SRU") ikut tertolak. Tidak ada cara cek apakah judul sudah pernah dipakai, sehingga risiko sertifikat ganda.</div>
+        <div class="box kini"><b>Sekarang</b>Judul bebas sesuai kebutuhan. Ada tombol "Cek Judul" untuk melihat apakah judul sudah dipakai (beserta kategori, tanggal, jumlah peserta). Bila kembar, muncul peringatan + centang konfirmasi sebelum tetap membuat.</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Wizard Buat Assessment — Langkah 1 (kolom Judul: tombol "Cek Judul").</div>
+    </div>
   </div>
 </section>
 
@@ -276,7 +334,7 @@
 
     <div class="cta">
       <div class="t">
-        <b>📋 Ingin lihat seluruh pekerjaan v25–v29?</b>
+        <b>📋 Ingin lihat seluruh pekerjaan v25–v30?</b>
         <p>Ringkasan apa yang dikerjakan tiap milestone dan hasilnya.</p>
       </div>
       <a href="index.html">Buka Ringkasan →</a>
@@ -286,7 +344,7 @@
 
 <footer>
   <div class="wrap">
-    <b>Apa yang Baru di Portal HC KPB — v25.0 sampai v29.0</b><br>
+    <b>Apa yang Baru di Portal HC KPB — v25.0 sampai v30.0</b><br>
     Portal HC KPB · Periode Juni 2026 · Bahan sosialisasi tim HC<br>
     <span style="opacity:.7">Hanya perubahan yang terlihat/terasa pengguna. Ringkasan lengkap: <code>index.html</code>.</span>
   </div>
