@@ -26,8 +26,11 @@ monitoring. Lihat `.planning/notes/2026-06-15-readiness-ujian-lisensor.md`.
   (`maSelected.SetEquals(maCorrect)`, `Helpers/AssessmentScoreAggregator.cs:50`). Subset /
   ada salah / extra = **0**; hanya jawaban PERSIS semua-benar dapat poin penuh. Dibuktikan
   4 unit test skenario benar={A,C,D} di `HcPortal.Tests/AssessmentScoreAggregatorTests.cs`
-  (10/10 PASS). **DECISION PENDING (business):** apakah all-or-nothing OK untuk lisensor,
-  atau mau **partial credit** (2/3 benar → 66% poin)? Kalau partial → GAP requirement = ubah
-  kode (temuan, bukan auto-fix).
+  (10/10 PASS). **DECISION 2026-06-15 (user, setelah diskusi trade-off): PERTAHANKAN
+  all-or-nothing** — standar lisensor sah + sudah ter-deploy/ter-test; ubah ke partial
+  menjelang ujian = risiko ke kode v30 yang baru stabil (pecah asumsi biner Benar/Salah di
+  scoring+display+PDF+monitoring). Partial credit (skema B net-penalti / C per-opsi) =
+  milestone PASCA-ujian bila diinginkan. **CHECKPOINT readiness turunan:** verifikasi UI
+  exam beri peringatan ke worker "pilih SEMUA jawaban benar — jawaban sebagian bernilai 0".
 - [ ] **Essay** dinilai manual HC 0..ScoreValue (default 10/soal), ditambah ke total saat
   finalize. Konfirmasi: rubrik/bobot essay lisensor sudah fix?

@@ -68,6 +68,25 @@ bukan diff.
 - AD lokal: `Authentication__UseActiveDirectory=false` saat `dotnet run` (Phase 355 lesson).
 - Admin login lokal: `admin@pertamina.com` (reference_dev_credentials).
 
+## Temuan (report-first log)
+
+> Format: ID | tingkat | deskripsi | fix lokal? | re-deploy IT? | status. Tak ada auto-fix.
+
+- **F-01 — MED (UX/komunikasi).** UI exam (`Views/CMP/StartExam.cshtml:122`) kasih tahu
+  worker MA "Pilih semua yang benar" TAPI tak ada peringatan jawaban sebagian / ada salah =
+  **0 poin** (all-or-nothing). Tak ada banner aturan poin di mana pun view exam (cek penuh
+  StartExam.cshtml). Risiko lisensor high-stakes: worker kira ada partial credit → sengketa
+  nilai. **Bukan bug logika** — scoring all-or-nothing benar (`AssessmentScoreAggregator.cs:50`,
+  10/10 test PASS). Gap komunikasi. **Fix lokal?** Ya, tambah 1 baris teks peringatan di L122
+  (low risk). **Re-deploy IT?** Ya (perubahan view). **Status:** PENDING keputusan user.
+
+## Fakta scoring terverifikasi (2026-06-15)
+
+- Lulus: `percentage >= PassPercentage`; **default 70%** per-assessment (`AssessmentSession.cs:29`).
+- Skor: `totalScore/maxScore×100` integer truncate (`AssessmentScoreAggregator.cs:58`); tiap soal = `ScoreValue`-nya.
+- MC: 1 opsi benar = poin. MA: **all-or-nothing** `SetEquals` (DECISION user: pertahankan). Essay: manual HC 0..ScoreValue.
+- 14 unit test `AssessmentScoreAggregatorTests` PASS (termasuk 4 skenario MA benar={A,C,D}).
+
 ## Next
 
 - Eksekusi = **verifikasi browser/UAT (report-first)**, BUKAN GSD phase — ini test UI,
