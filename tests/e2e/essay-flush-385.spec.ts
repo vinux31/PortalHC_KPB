@@ -36,7 +36,14 @@ import { createAssessmentViaWizard, createDefaultPackage, addQuestionViaForm } f
 const ESSAY_TEXT = 'Jawaban essay 385 flush keystroke terakhir wajib tersimpan utuh tanpa hilang saat submit langsung';
 const Q_ESSAY_TEXT = 'Soal essay 385 flush sebelum submit';
 
-const today = () => new Date().toISOString().slice(0, 10);
+// LOCAL date (NOT toISOString/UTC) — server validates Schedule against DateTime.Today (local).
+// UTC slice fails daily in WIB after local-midnight while UTC is still the prior day → false "past date".
+const today = () => {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+};
 
 let snapshotPath: string;
 let assessmentTitle: string;
