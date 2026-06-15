@@ -114,6 +114,47 @@ Dijalankan langsung di `http://10.55.3.3/KPB-PortalHC` (login Admin KPB, assessm
 
 > ⚠️ State Dev: sesi admin (id=30) **InProgress nyangkut** (tak bisa submit). Untuk lanjut smoke: soal 3 harus diberi opsi (user fix data di admin) ATAU matikan soal 3. Aku TIDAK ubah data Dev.
 
+### RE-CHECK adversarial 2026-06-15 (wf_cc0dd4b7) — REGISTER FINAL
+
+4 lane re-verifikasi. Koreksi + temuan baru. **Register di bawah MENGGANTIKAN yang lama.**
+
+**Koreksi:**
+- **F-DEV-01 dampak dikoreksi:** BUKAN "ujian tak bisa selesai total". Manual "Kumpulkan" memang disabled permanen, TAPI **timer-expiry auto-submit tetap fire** (`examForm.submit()` bypass gate saat `serverTimerExpired=true`, CMPController:1619-1653) → ujian SELESAI saat timeout, soal 0-opsi auto-0. Tetap HIGH (peserta terjebak nunggu timeout, tak bisa submit awal, kehilangan poin soal cacat). Root cause: CreateQuestion/EditQuestion (`AssessmentAdminController.cs:6440/6647`) validasi `correctCount` tapi **tak validasi jumlah opsi ber-teks** — opsi cuma ditambah `if(!IsNullOrWhiteSpace(text))`.
+- **F-01 severity MED → LOW** (murni UX, backend all-or-nothing benar).
+- **REFUTE:** Import Excel TAK bisa hasilkan 0-opsi (wajib A-D terisi) → F-DEV-01 eksklusif jalur form manual. Tak ada surface PathBase lain selain F-09 (cert pakai `~/` PathBase-aware; PDF = download server-side).
+
+**Temuan BARU:**
+- **F-21 (HIGH, exam-blocker, essay):** Jawaban Essay HANYA tersimpan via SignalR **debounce 2 detik, tanpa flush saat submit/blur**. Timer habis → `examForm.submit()` langsung tanpa flush → teks essay ~2 detik terakhir **HILANG** (ExamSummary baca dari DB). Lebih buruk: gate incomplete hitung "terjawab" dari baris DB → peserta yang **sudah ngetik** essay tapi baris belum ke-save bisa **ditolak submit** "Masih ada N soal belum dijawab" di menit akhir. `Views/CMP/StartExam.cshtml:903-911,472-484,980-1001`. **Lisensor ada essay → relevan.**
+- **F-17 (MED):** `BulkExportPdf` (PDF per-peserta) menilai soal **Multiple Answer SALAH** — baca 1 baris response (`FirstOrDefault`), tandai Benar/Salah by 1 opsi, BUKAN `SetEquals`. PDF bukti lisensor mis-label soal MA. `AssessmentAdminController.cs:5070-5086`.
+- **F-18 (MED):** Export PDF & Excel resolve soal dari **semua soal paket (`AssessmentPackageId`)** bukan `ShuffledQuestionIds` → salah/hilang soal saat **≥2 paket + Acak Soal ON**. Single-paket aman. `AssessmentAdminController.cs:4984/4801`.
+- **F-19 (LOW):** Excel "Detail Jawaban" (BulkExport) essay selalu "—" (tak pernah tampil skor/teks walau sudah dinilai). `AssessmentAdminController.cs:4828-4838`.
+- **F-20 (LOW):** `SubmitExam` upsert MC bisa **timpa jawaban tersimpan jadi null** bila soal tak ada di form answers (data-loss laten; happy-path terlindungi). `CMPController.cs:1712-1716`.
+- **F-22 (LOW):** `Hub.SaveTextAnswer` tak ada guard timer-expired (beda dari `SaveMultipleAnswer`) → essay bisa ditulis lewat batas waktu. `Hubs/AssessmentHub.cs:134-182`.
+
+**Positif diverifikasi SOLID (bukan bug):** scoring-on-submit (grading by `PackageOption.Id`, dedup, MA SetEquals, essay→PendingGrading); cert generation (GradingService retry 3x + unique index, QuestPDF guard); shuffle TIDAK pengaruhi skor; concurrency ≤30 aman (Reshuffle/Akhiri/AddExtraTime skip InProgress, broadcast benar); timer resume server-authoritative + auto-submit token one-shot; double-submit ter-guard. **INFO:** Acak Soal multi-paket = tiap peserta dapat K=min(soal) **sampel** (by-design, bukan semua soal — operator lisensor wajib sadar).
+
+#### Register final actionable: 3 HIGH · 5 MED · 7 LOW
+
+| ID | Sev | Temuan | Lokasi | blocker |
+|----|-----|--------|--------|---------|
+| F-09 | HIGH | Gambar broken di Dev (PathBase) | `_QuestionImage.cshtml:38` | ✅ confirmed Dev |
+| F-DEV-01 | HIGH | Soal 0-opsi (validasi kurang) → submit awal mati, auto-0 saat timeout | `AssessmentAdminController.cs:6440/6647` | ✅ confirmed Dev |
+| F-21 | HIGH | Essay ~2s terakhir hilang + reject submit menit akhir | `StartExam.cshtml:903/472/980` | code |
+| F-02 | MED | Excel matrix label essay drift (`≥SV/2` vs `>0`) | `ExcelExportHelper.cs:110` | — |
+| F-03 | MED | Edit essay pasca-finalize desync Score | `AssessmentAdminController.cs:3525` | — |
+| F-04 | MED | Essay kosong → dead-end finalize | `AssessmentAdminController.cs:3500` | — |
+| F-17 | MED | PDF per-peserta mis-label MA (no SetEquals) | `AssessmentAdminController.cs:5070` | — |
+| F-18 | MED | Export soal by-paket bukan ShuffledQuestionIds (≥2 paket) | `AssessmentAdminController.cs:4984/4801` | — |
+| F-01 | LOW | UI MA tanpa warn "sebagian=0" | `StartExam.cshtml:122` | — |
+| F-06 | LOW | Cert nomor no-retry (essay finalize) | `AssessmentAdminController.cs:3697` | — |
+| F-11 | LOW | a11y aria opsi | `Results.cshtml:388` | — |
+| F-13 | LOW | Finalize tak broadcast monitor | `AssessmentAdminController.cs:3753` | — |
+| F-19 | LOW | Excel BulkExport essay selalu "—" | `AssessmentAdminController.cs:4828` | — |
+| F-20 | LOW | SubmitExam MC null-overwrite laten | `CMPController.cs:1712` | — |
+| F-22 | LOW | SaveTextAnswer tanpa guard timer | `Hubs/AssessmentHub.cs:134` | — |
+
+Semua **0 migration**. Fix = view/controller/validasi + re-deploy IT.
+
 ## Fakta scoring terverifikasi (2026-06-15)
 
 - Lulus: `percentage >= PassPercentage`; **default 70%** per-assessment (`AssessmentSession.cs:29`).
