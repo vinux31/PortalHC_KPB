@@ -283,4 +283,101 @@ public class EssayFinalizeRecomputeTests : IClassFixture<EssayFinalizeRecomputeF
         var trCount = await verify.TrainingRecords.CountAsync(t => t.UserId == userId);
         Assert.Equal(0, trCount);                                     // NO TrainingRecord baru (D-03)
     }
+
+    // ============================================================================================
+    // ECG-06 Plan 04 — FinalizeEssayGrading lock (recompute essay-aware + idempotent)
+    // Mirror AssessmentAdminController.FinalizeEssayGrading (L3499+). NO production code change (D-05).
+    // ============================================================================================
+
+    // Mirror FinalizeEssayGrading write-step (AssessmentAdminController.cs:3593-3599):
+    // ExecuteUpdateAsync dengan WHERE Status==PendingGrading → idempotent (re-run saat Completed = 0 baris).
+    // Returns rowsAffected. Drift-guard: cerminkan guard + Compute essay-aware controller.
+    private static async Task<int> MirrorFinalizeWriteAsync(ApplicationDbContext ctx, int sessionId)
+    {
+        var session = await ctx.AssessmentSessions.FindAsync(sessionId);
+        if (session == null) return 0;
+        // D-03 LOCKED — no-op kalau sudah Completed (mirror L3506); idempotent re-run path.
+        if (session.Status == AssessmentConstants.AssessmentStatus.Completed) return 0;
+        if (session.Status != AssessmentConstants.AssessmentStatus.PendingGrading) return 0; // mirror L3524
+        var agg = await ForwardAggregateAsync(ctx, sessionId);                                // essay-aware Compute (L3585)
+        // mirror L3593-3599: WHERE Id && Status==PendingGrading (replay guard) → SetProperty Score/Status/IsPassed
+        return await ctx.AssessmentSessions
+            .Where(s => s.Id == sessionId && s.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(r => r.Score, agg.Percentage)
+                .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.Completed)
+                .SetProperty(r => r.IsPassed, agg.IsPassed)
+                .SetProperty(r => r.CompletedAt, DateTime.UtcNow));
+    }
+
+    // ---- ECG-06 (A): Finalize recompute INCLUDES essay → Score essay-aware, bukan 0 ----
+    [Fact]
+    public async Task Finalize_Recompute_IncludesEssayScore()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // essay dinilai 80, sesi PendingGrading, Score awal 0 → finalize harus set 80 (essay ikut dihitung)
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 0, essayScore: 80,
+            status: AssessmentConstants.AssessmentStatus.PendingGrading);
+
+        var agg = await ForwardAggregateAsync(ctx, sessionId);
+        Assert.Equal(80, agg.Percentage);   // essay-aware recompute (bukan 0 — akar bug essay diabaikan)
+        Assert.True(agg.IsPassed);
+
+        var rows = await MirrorFinalizeWriteAsync(ctx, sessionId);
+        Assert.Equal(1, rows);              // finalize menulis 1 baris (PendingGrading → Completed)
+
+        await using var verify = NewCtx();
+        var s = (await verify.AssessmentSessions.FindAsync(sessionId))!;
+        Assert.Equal(80, s.Score);                                                   // Score di-set essay-aware
+        Assert.True(s.IsPassed);
+        Assert.Equal(AssessmentConstants.AssessmentStatus.Completed, s.Status);      // status finalize
+    }
+
+    // ---- ECG-06 (B): Finalize idempotent — no-op saat sudah Completed (D-03), no double-count ----
+    [Fact]
+    public async Task Finalize_NoOp_WhenAlreadyCompleted()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // sesi sudah Completed Score=80 (sudah pernah di-finalize)
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 80, essayScore: 80,
+            status: AssessmentConstants.AssessmentStatus.Completed);
+        var before = (await ctx.AssessmentSessions.FindAsync(sessionId))!.Score;
+
+        // re-finalize → D-03 no-op (WHERE Status==PendingGrading tak match) → 0 baris, tak double-count
+        var rows = await MirrorFinalizeWriteAsync(ctx, sessionId);
+        Assert.Equal(0, rows);             // idempotent: tak ada write ulang
+
+        await using var verify = NewCtx();
+        var after = (await verify.AssessmentSessions.FindAsync(sessionId))!.Score;
+        Assert.Equal(before, after);       // Score tidak berubah oleh re-finalize
+        Assert.Equal(80, after);
+
+        // re-aggregate konsisten → re-finalize seandainya jalan akan hasilkan nilai sama (idempotent value)
+        var agg = await ForwardAggregateAsync(ctx, sessionId);
+        Assert.Equal(80, agg.Percentage);
+    }
+}
+
+// ============================================================================================
+// ECG-06 (C) — Authz lock via reflection (RESEARCH OQ#3). Pure (no DB) — selalu jalan tanpa SQLEXPRESS.
+// Mirror data-level TIDAK eksekusi [Authorize]; reflection-assert mengunci atribut di method controller.
+// ============================================================================================
+public class EssaySubmitFinalizeAuthzTests
+{
+    [Fact]
+    public void SubmitAndFinalize_RequireAdminHcAuthorize()  // V4 ASVS / T-383-07
+    {
+        var t = typeof(HcPortal.Controllers.AssessmentAdminController);
+        foreach (var name in new[] { "SubmitEssayScore", "FinalizeEssayGrading" })
+        {
+            var m = t.GetMethods().First(x => x.Name == name);   // hindari ambiguitas overload
+            var authz = m.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true)
+                .Cast<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>().FirstOrDefault();
+            Assert.NotNull(authz);                               // ada [Authorize]
+            Assert.Contains("Admin", authz!.Roles ?? "");        // role Admin terkunci
+            Assert.Contains("HC", authz!.Roles ?? "");           // role HC terkunci
+        }
+    }
 }
