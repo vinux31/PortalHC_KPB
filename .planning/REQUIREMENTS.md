@@ -24,10 +24,10 @@ Batch polish **7 REQ** (1 MED + 6 LOW) dari register readiness — tidak mengham
 
 > **Reconcile 2026-06-15 (plan-phase 387):** PXF-07 (F-02) + PXF-14 (F-DEV-02) **dipindahkan ke Phase 386** — plan `386-05` Task 2 sudah me-rewrite seluruh blok `ExcelExportHelper.cs:83-128` (`AddDetailPerSoalSheet`) ke helper `IsQuestionCorrect` (essay `>0` → fix F-02) + `BuildAnswerCell` (MA SetEquals → fix F-DEV-02), D-13 fold. Mempertahankannya di 387 = dua fase menulis blok sama. Phase 387 menyusut 9 → 7 REQ.
 
-- [ ] **PXF-06** (F-03, MED): `SubmitEssayScore` **guard status** — edit skor essay pasca-Completed/Failed tidak men-desync `Score`/`IsPassed` tersimpan (block atau recompute). Saat ini save `EssayScore` langsung tanpa cek `session.Status`.
-- [ ] **PXF-08** (F-06, LOW): Nomor sertifikat jalur finalize essay pakai **retry-loop + log** (samakan GradingService 3×) — hilangkan single-attempt + catch silent yang bisa loloskan lulus tanpa nomor cert.
-- [ ] **PXF-09** (F-19, LOW): Excel BulkExport "Detail Jawaban" **menampilkan skor/teks essay** yang sudah dinilai (bukan selalu "—"). (Sheet "Detail Jawaban" `~4828`, BEDA dari "Detail Per Soal" yang ditangani 386.)
-- [ ] **PXF-10** (F-13, LOW): `FinalizeEssayGrading` **broadcast monitor group** agar tab admin lain tidak stale s/d refresh.
+- [x] **PXF-06** (F-03, MED): `SubmitEssayScore` **guard status** — edit skor essay pasca-Completed/Failed tidak men-desync `Score`/`IsPassed` tersimpan (block atau recompute). Saat ini save `EssayScore` langsung tanpa cek `session.Status`.
+- [x] **PXF-08** (F-06, LOW): Nomor sertifikat jalur finalize essay pakai **retry-loop + log** (samakan GradingService 3×) — hilangkan single-attempt + catch silent yang bisa loloskan lulus tanpa nomor cert.
+- [x] **PXF-09** (F-19, LOW): Excel BulkExport "Detail Jawaban" **menampilkan skor/teks essay** yang sudah dinilai (bukan selalu "—"). (Sheet "Detail Jawaban" `~4828`, BEDA dari "Detail Per Soal" yang ditangani 386.)
+- [x] **PXF-10** (F-13, LOW): `FinalizeEssayGrading` **broadcast monitor group** agar tab admin lain tidak stale s/d refresh.
 - [ ] **PXF-11** (F-11, LOW): a11y — gambar opsi Results/ExamSummary sertakan **label huruf A/B/C/D** pada `AriaContext` (`Results.cshtml:388`).
 - [ ] **PXF-12** (F-20, LOW): `SubmitExam` upsert MC **tidak menimpa jawaban tersimpan jadi null** bila soal tak ada di form answers (data-loss laten).
 - [ ] **PXF-13** (F-22, LOW): `Hub.SaveTextAnswer` **guard timer-expired** (samakan `SaveMultipleAnswer:205-212`) — essay tak bisa ditulis lewat batas waktu.
