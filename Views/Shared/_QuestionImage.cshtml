@@ -1,0 +1,47 @@
+@model object
+@*
+    Partial reusable render gambar soal/opsi (D-04 anti-drift, Phase 354).
+    Single source of truth markup <img> + trigger lightbox — dipakai 6 surface.
+    Pemanggil: @await Html.PartialAsync("_QuestionImage", new { ImagePath = ..., ImageAlt = ..., Cap = 240, AriaContext = "..." })
+      - Cap 240 = gambar SOAL (default). Cap <= 120 = gambar OPSI (block-bawah D-03).
+      - AriaContext OPSIONAL (boleh tidak dikirim).
+    Render NOTHING bila ImagePath null/whitespace (L-02, no placeholder).
+
+    CATATAN: akses properti via reflection (BUKAN dynamic member access) — anonymous object
+    yang tidak punya properti (mis. call soal tanpa AriaContext) melempar RuntimeBinderException
+    bila diakses lewat `Model?.Prop`. Reflection null-safe untuk properti yang absen.
+*@
+@functions {
+    static string? Str(object? m, string prop) => m?.GetType().GetProperty(prop)?.GetValue(m) as string;
+    static int IntOr(object? m, string prop, int def)
+    {
+        var v = m?.GetType().GetProperty(prop)?.GetValue(m);
+        return v is int i ? i : def;
+    }
+}
+@{
+    string? imagePath = Str(Model, "ImagePath");
+    string? imageAlt = Str(Model, "ImageAlt");
+    int cap = IntOr(Model, "Cap", 240);
+    string? ariaContext = Str(Model, "AriaContext");
+    bool isOption = cap <= 120;
+    string ariaLabel = string.IsNullOrWhiteSpace(imageAlt)
+        ? (string.IsNullOrWhiteSpace(ariaContext) ? "Perbesar gambar" : "Perbesar gambar " + ariaContext)
+        : "Perbesar gambar: " + imageAlt;
+}
+@if (!string.IsNullOrWhiteSpace(imagePath))
+{
+    @* onclick preventDefault: bila <img> berada di dalam <label> (mis. opsi StartExam),
+       klik gambar akan mengaktifkan label→control (toggle radio/checkbox) + auto-save.
+       preventDefault membatalkan label-activation; modal tetap terbuka (Bootstrap pakai
+       listener data-api sendiri, tak bergantung default action). No-op di surface non-label. *@
+    <img src="@imagePath" alt="@imageAlt"
+         class="img-fluid rounded border mb-3 question-image-zoom@(isOption ? " d-block w-100 mt-2 mb-0" : "")"
+         style="max-height:@(cap)px; cursor:pointer"
+         loading="lazy"
+         role="button" tabindex="0"
+         onclick="event.preventDefault();"
+         data-bs-toggle="modal" data-bs-target="#imageLightboxModal"
+         data-img-src="@imagePath" data-img-alt="@imageAlt"
+         aria-label="@ariaLabel" />
+}

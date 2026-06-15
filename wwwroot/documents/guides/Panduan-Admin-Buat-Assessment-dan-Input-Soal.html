@@ -254,7 +254,7 @@
 <h3>Kolom Tambahan (v2.0)</h3>
 <table>
   <tr><th>Kolom</th><th>Keterangan</th><th>Wajib?</th></tr>
-  <tr><td><strong>QuestionType</strong></td><td>Tipe soal: <code>MC</code> (Multiple Choice, default), <code>MA</code> (Multiple Answer), <code>Essay</code></td><td>Opsional (default MC)</td></tr>
+  <tr><td><strong>QuestionType</strong></td><td>Tipe soal: <code>SA</code> (Single Answer, default), <code>MA</code> (Multiple Answer), <code>Essay</code></td><td>Opsional (default SA)</td></tr>
   <tr><td><strong>Rubrik</strong></td><td>Khusus Essay &mdash; kunci jawaban referensi internal HC (tidak ditampilkan ke peserta)</td><td>Opsional (Essay only)</td></tr>
   <tr><td><strong>MaxCharacters</strong></td><td>Khusus Essay &mdash; batas karakter jawaban (default 2000)</td><td>Opsional (Essay only)</td></tr>
 </table>
@@ -326,13 +326,13 @@
 
 <!-- BAGIAN F: TIPE SOAL DETAIL (NEW v2.0) -->
 <div class="page-break"></div>
-<h2>F. Tipe Soal Detail (MC, MA, Essay)</h2>
+<h2>F. Tipe Soal Detail (SA, MA, Essay)</h2>
 
 <p>Sistem mendukung tiga tipe soal. Pilih tipe saat input soal via Excel kolom <code>QuestionType</code> atau form manual.</p>
 
-<h3>F.1 Multiple Choice (MC)</h3>
+<h3>F.1 Single Answer (SA)</h3>
 <ul>
-  <li>Default semua soal lama (null = MC untuk backward compat).</li>
+  <li>Default semua soal lama (null = SA untuk backward compat).</li>
   <li>Satu jawaban benar dari 4&ndash;5 opsi (radio button di UI peserta).</li>
   <li>Auto-grading instan saat peserta submit.</li>
   <li>Format Excel Correct: huruf opsi benar (mis: <code>B</code>).</li>

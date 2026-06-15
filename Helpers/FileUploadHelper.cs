@@ -39,6 +39,35 @@ namespace HcPortal.Helpers
         }
 
         /// <summary>
+        /// Phase 352 IMG-04 / D-01..D-05: Validasi upload gambar soal/opsi — JPG/PNG saja (tolak PDF/non-image),
+        /// cap 5MB, magic-byte reuse. Mirror ValidateCertificateFile; read&lt;3 guard + stream.Position=0 dipertahankan identik.
+        /// </summary>
+        public static (bool IsValid, string? Error) ValidateImageFile(IFormFile? file)
+        {
+            if (file == null || file.Length == 0) return (true, null);
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AssessmentConstants.FileValidation.AllowedImageExtensions.Contains(ext))
+                return (false, "Hanya file gambar JPG dan PNG yang diperbolehkan.");
+
+            if (file.Length > AssessmentConstants.FileValidation.MaxImageFileSizeBytes)
+                return (false, "Ukuran gambar maksimal 5MB.");
+
+            using var stream = file.OpenReadStream();
+            var header = new byte[8];
+            var read = stream.Read(header, 0, 8);
+            stream.Position = 0; // reset agar SaveFileAsync tetap dapat full stream
+
+            if (read < 3)
+                return (false, "Isi file tidak cocok dengan ekstensi (magic byte mismatch).");
+
+            if (!AssessmentConstants.FileValidation.MatchesMagicByte(ext, header))
+                return (false, "Isi file tidak cocok dengan ekstensi (magic byte mismatch).");
+
+            return (true, null);
+        }
+
+        /// <summary>
         /// Phase 325 D-01/D-10: Save file ke wwwroot/{subFolder}, strip directory component dari filename (path traversal),
         /// log warning kalau original filename mengandung path component (audit trail).
         /// Returns relative URL, atau null kalau file null/empty.

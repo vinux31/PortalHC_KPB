@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Handoff IT — Fix ProtonTracks Dev — 2026-06-10</title>
+<style>
+:root {
+  --brand: #e30613;
+  --brand-dark: #b8050f;
+  --navy: #1e3a8a;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-alt: #f9fafb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --amber: #f59e0b;
+  --amber-bg: #fef3c7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --info-bg: #eff6ff;
+  --info-border: #3b82f6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 950px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+header.hero {
+  border-top: 6px solid var(--brand);
+  padding: 24px 0 16px;
+  margin-bottom: 8px;
+}
+
+header.hero .badge {
+  display: inline-block;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+header.hero h1 {
+  font-size: 30px;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  padding: 16px 20px;
+  background: var(--bg-alt);
+  border-left: 4px solid var(--navy);
+  border-radius: 4px;
+  margin: 16px 0 32px;
+  font-size: 14px;
+}
+
+.meta-row .meta-item strong {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+h2 {
+  font-size: 22px;
+  margin: 40px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+
+h3 { font-size: 17px; margin: 24px 0 10px; }
+h4 { font-size: 15px; margin: 14px 0 6px; }
+
+p { margin: 0 0 12px; }
+
+code, .mono {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  background: var(--bg-alt);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  border-left: 4px solid var(--brand);
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+pre.sql {
+  background: var(--bg-alt);
+  color: var(--text);
+  border-left-color: var(--navy);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-alt);
+  font-weight: 600;
+  color: var(--text);
+}
+
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+
+ul, ol { margin: 8px 0 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+
+.tag.ok { background: var(--green-bg); color: var(--green); }
+.tag.warn { background: var(--amber-bg); color: #92400e; }
+.tag.danger { background: var(--red-bg); color: var(--red); }
+
+.callout {
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+.callout.info { background: var(--info-bg); border-color: var(--info-border); }
+.callout.warn { background: var(--amber-bg); border-color: var(--amber); }
+.callout.success { background: var(--green-bg); border-color: var(--green); }
+.callout.danger { background: var(--red-bg); border-color: var(--red); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.toc {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 0 0 32px;
+}
+.toc .title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.toc ol { margin: 0; padding-left: 22px; }
+.toc li { margin-bottom: 4px; font-size: 14px; }
+.toc a { color: var(--navy); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tldr {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  margin: 24px 0;
+}
+.tldr .label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.tldr p { margin: 0; font-size: 16px; line-height: 1.5; }
+.tldr code { background: rgba(255,255,255,0.2); color: #fff; }
+
+@media print {
+  body { font-size: 11pt; }
+  .container { max-width: 100%; padding: 0; }
+  pre { background: #f4f4f4 !important; color: #000 !important; }
+  pre.sql { background: #f4f4f4 !important; }
+  .toc, header.hero { page-break-after: avoid; }
+  h2 { page-break-after: avoid; page-break-before: auto; }
+  table, pre, .callout { page-break-inside: avoid; }
+  a { color: var(--text); text-decoration: none; }
+  footer { page-break-before: avoid; }
+  @page { size: A4; margin: 18mm 15mm; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <span class="badge">HANDOFF TEAM IT</span>
+  <h1>Fix ProtonTracks Kosong di DB Dev</h1>
+  <p class="subtitle">Halaman <code>ProtonData/Index</code> (Silabus &amp; Coaching Guidance) di Dev (<code>10.55.3.3</code>) tampil rusak — 3 tab kosong. Akar: tabel master <code>ProtonTracks</code> di DB Dev kosong (0 baris). Aksi IT: <strong>backup penuh → jalankan 1 SQL idempotent untuk isi 6 baris track → verifikasi</strong>. Tanpa deploy code, tanpa migration.</p>
+</header>
+
+<div class="meta-row">
+  <div class="meta-item">
+    <strong>Tanggal</strong>
+    10 Juni 2026
+  </div>
+  <div class="meta-item">
+    <strong>Environment</strong>
+    Dev (<code>10.55.3.3</code>) — DB <code>HcPortalDB_Dev</code>
+  </div>
+  <div class="meta-item">
+    <strong>Tipe Aksi</strong>
+    Data fix manual (SQL) — bukan deploy code
+  </div>
+  <div class="meta-item">
+    <strong>Migration</strong>
+    <strong style="color: var(--green);">TIDAK ADA (NONE)</strong>
+  </div>
+  <div class="meta-item">
+    <strong>Risk</strong>
+    <span class="tag ok">Low — INSERT additive idempotent</span>
+  </div>
+  <div class="meta-item">
+    <strong>Estimasi</strong>
+    ~5 menit (di luar backup)
+  </div>
+  <div class="meta-item">
+    <strong>Developer</strong>
+    Rino (asistensme@gmail.com)
+  </div>
+</div>
+
+<div class="tldr">
+  <div class="label">TL;DR</div>
+  <p>IT: (1) <code>BACKUP DATABASE HcPortalDB_Dev</code> penuh ke <code>.bak</code> (wajib). (2) Jalankan 1 query <code>MERGE</code> di Section 4 untuk INSERT 6 baris <code>ProtonTracks</code> (Panelman/Operator × Tahun 1/2/3). (3) Verifikasi <code>SELECT COUNT(*) FROM ProtonTracks</code> = 6 + smoke buka <code>ProtonData/Index</code> tab Status terisi + dropdown Track ada 6 pilihan. <strong>Idempotent</strong> (aman diulang, tidak dobel), <strong>additive</strong> (tidak menyentuh/menghapus data lain), <strong>tanpa deploy code, tanpa migration.</strong></p>
+</div>
+
+<div class="callout danger" id="langkah" style="border-left-width:5px;">
+  <div class="title">▶ Langkah Eksekusi — Ikuti Berurutan</div>
+  <ol style="margin-bottom:0;">
+    <li><strong>Backup dulu</strong> — jalankan <code>BACKUP DATABASE</code> penuh (Section 2). WAJIB, tidak boleh skip.</li>
+    <li><strong>Cek kondisi (gate)</strong> — jalankan 2 query diagnostik (Section 3). Kalau <code>COUNT(*) ProtonTracks = 0</code> → lanjut langkah 3. Kalau sudah <code>6</code> → <strong>STOP</strong>, lapor developer (tidak perlu fix).</li>
+    <li><strong>Jalankan fix</strong> — copy &amp; run 1 query <code>MERGE</code> (Section 4). Idempotent + additive.</li>
+    <li><strong>Verifikasi</strong> — hasil <code>SELECT</code> harus 6 baris (Section 5a) + buka halaman ProtonData, cek tab Status &amp; dropdown Track terisi (Section 5b). Tidak perlu restart app.</li>
+    <li><strong>Lapor</strong> — isi tabel <strong>Log Pengerjaan IT</strong> (Section 8) + kabari developer (Rino).</li>
+  </ol>
+</div>
+
+<div class="callout info">
+  <div class="title">Posisi Dokumen Ini</div>
+  <p>Handoff terakhir ke Team IT = <code>DB_HANDOFF_IT_2026-06-06.html</code> (Bundle v21+v22+v23). Dokumen ini adalah perbaikan database berikutnya — berdiri sendiri, hanya 1 SQL data.</p>
+</div>
+
+<div class="toc">
+  <div class="title">Daftar Isi</div>
+  <ol>
+    <li><a href="#langkah">★ Langkah Eksekusi (Ringkas, Urut)</a></li>
+    <li><a href="#konteks">Section 1 — Konteks Masalah (Ringkas)</a></li>
+    <li><a href="#backup">Section 2 — Pre-Fix Backup (MANDATORY)</a></li>
+    <li><a href="#diag">Section 3 — Diagnostik Pra-Fix (capture root cause)</a></li>
+    <li><a href="#fix">Section 4 — SQL Fix (Jalankan Ini)</a></li>
+    <li><a href="#verify">Section 5 — Verifikasi Post-Fix</a></li>
+    <li><a href="#not-needed">Section 6 — Yang TIDAK Perlu IT Lakukan</a></li>
+    <li><a href="#rollback">Section 7 — Rollback Plan</a></li>
+    <li><a href="#log">Section 8 — Log Pengerjaan IT (isi saat selesai)</a></li>
+  </ol>
+</div>
+
+<h2 id="konteks">1. Konteks Masalah (Ringkas)</h2>
+
+<p>User lapor halaman <code>ProtonData/Index</code> (menu Silabus &amp; Coaching Guidance) di Dev rusak: tab <strong>Status</strong> kosong, filter <strong>Silabus</strong> &amp; <strong>Coaching Guidance</strong> + tombol Muat Data tidak jalan.</p>
+
+<p>Hasil investigasi LIVE (2026-06-10):</p>
+
+<table>
+  <thead>
+    <tr><th>Komponen</th><th>Status Dev</th><th>Keterangan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Data organisasi (<code>OrganizationUnits</code>)</td>
+      <td><span class="tag ok">SUDAH OK</span></td>
+      <td>Dropdown Bagian terisi 8 (RFCC/DHT-HMU/NGP/GAST/LAB/OM/UTL II/HC), cascade Bagian→Unit jalan. (Normalisasi org sebelumnya sudah diperbaiki IT — terima kasih.)</td>
+    </tr>
+    <tr>
+      <td>Dropdown <strong>Track</strong></td>
+      <td><span class="tag danger">KOSONG</span></td>
+      <td>Hanya placeholder "-- Pilih Track --", 0 pilihan, di semua tab.</td>
+    </tr>
+    <tr>
+      <td>Endpoint <code>/ProtonData/StatusData</code></td>
+      <td><span class="tag danger">[] kosong</span></td>
+      <td>HTTP 200 OK tapi body <code>[]</code> (0 baris). Lokal sehat = 102 baris (17 unit × 6 track).</td>
+    </tr>
+    <tr>
+      <td>Tabel <code>ProtonTracks</code> (akar)</td>
+      <td><span class="tag danger">0 baris</span></td>
+      <td>Tabel ada (schema OK, FK jalan, halaman tidak error) tapi <strong>baris seed-nya hilang</strong>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <div class="title">Kenapa 3 tab ikut rusak padahal cuma 1 tabel kosong?</div>
+  <p>Ketiga tab (Status, Silabus, Coaching Guidance) sama-sama membaca daftar Track dari tabel <code>ProtonTracks</code>. Kalau tabel itu kosong, dropdown Track jadi kosong dan tabel Status tidak punya baris untuk ditampilkan. Jadi <strong>1 tabel kosong = 3 gejala</strong>. Isi 6 baris track → ketiganya normal lagi.</p>
+</div>
+
+<p><strong>Kenapa kosong?</strong> <code>ProtonTracks</code> seharusnya di-seed lewat migration <code>20260223060707_CreateProtonTrackTable</code> (Step 5, MERGE 6 baris). Schema-nya ada di Dev, tapi 6 baris datanya tidak ada — kemungkinan migration history menandai "applied" tapi baris terhapus, atau DB di-restore dari snapshot tanpa data seed. Section 3 mengkonfirmasi penyebabnya.</p>
+
+<h2 id="backup">2. Pre-Fix Backup (MANDATORY)</h2>
+
+<div class="callout danger">
+  <div class="title">Wajib — Tidak Boleh Skip</div>
+  <p>Backup <code>.bak</code> penuh <strong>WAJIB</strong> sebelum menjalankan SQL apapun. Per Cilacap SOP root cause Phase 336 — skip backup = tidak ada jalur rollback. Tanpa <code>.bak</code>, Section 7 (Rollback) tidak mungkin.</p>
+</div>
+
+<pre class="sql">-- Backup penuh DB Dev SEBELUM jalankan fix SQL
+BACKUP DATABASE HcPortalDB_Dev
+TO DISK = N'C:\Backup\HcPortalDB_Dev.20260610-protontracks-pre-fix.bak'
+WITH FORMAT, INIT, COMPRESSION,
+     NAME = N'HcPortalDB_Dev Pre-ProtonTracks-Fix Full Backup',
+     STATS = 10;</pre>
+
+<p>Verifikasi file ter-create + size wajar (&gt; baseline DB; jauh lebih kecil = mungkin corrupt):</p>
+<pre>dir C:\Backup\HcPortalDB_Dev.20260610-protontracks-pre-fix.bak</pre>
+
+<p><strong>Tool:</strong> SSMS atau <code>sqlcmd -S &lt;server&gt;\&lt;instance&gt; -d HcPortalDB_Dev -E</code>. Semua SQL di dokumen ini dijalankan via tool yang sama. <strong>Sesuaikan path</strong> <code>C:\Backup\...</code> dengan lokasi backup standar SOP IT.</p>
+
+<h2 id="diag">3. Diagnostik Pra-Fix (capture root cause)</h2>
+
+<p>Jalankan dulu untuk konfirmasi akar (sekalian dokumentasi kenapa kosong):</p>
+
+<pre class="sql">-- (a) Konfirmasi tabel benar-benar kosong (harusnya 6, kalau 0 = bug terkonfirmasi)
+SELECT COUNT(*) AS ProtonTrackCount FROM ProtonTracks;
+
+-- (b) Cek apakah migration seed tercatat sebagai applied
+SELECT MigrationId
+FROM __EFMigrationsHistory
+WHERE MigrationId LIKE '%CreateProtonTrackTable%';</pre>
+
+<table>
+  <thead>
+    <tr><th>Hasil (a) Count</th><th>Hasil (b) History</th><th>Interpretasi</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>Ada 1 baris</td>
+      <td>Migration tercatat applied tapi baris seed hilang (terhapus / restore tanpa data). <strong>Lanjut Section 4</strong> — SQL MERGE isi ulang.</td>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>Kosong (tidak ada)</td>
+      <td>Migration belum ter-apply di Dev. SQL MERGE Section 4 tetap menambal data sekarang; akar lebih dalam (deploy/migration belum jalan) — <strong>info ke developer (Rino)</strong>.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Ada</td>
+      <td>Tabel sudah terisi. Tidak perlu fix — eskalasi ke developer (gejala lain).</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <div class="title">Gate Keputusan</div>
+  <p>Lanjut ke <strong>Section 4 (fix)</strong> HANYA bila hasil <code>COUNT(*) ProtonTracks = 0</code>. Bila hasilnya sudah <code>6</code> → <strong>STOP</strong>: tabel sudah benar, lapor developer (kemungkinan masalah lain).</p>
+</div>
+
+<h2 id="fix">4. SQL Fix (Jalankan Ini)</h2>
+
+<div class="callout success">
+  <div class="title">Aman</div>
+  <p>Query ini <strong>idempotent</strong> (pakai <code>MERGE ... WHEN NOT MATCHED</code> — baris yang sudah ada di-skip, tidak dobel) dan <strong>additive</strong> (hanya INSERT, tidak UPDATE/DELETE data lain). Sumber kebenaran identik dengan migration <code>20260223060707_CreateProtonTrackTable</code> Step 5.</p>
+</div>
+
+<pre class="sql">-- Isi 6 baris master ProtonTracks (Panelman/Operator × Tahun 1/2/3)
+WITH ExpectedTracks AS (
+    SELECT 'Panelman' AS TrackType, 'Tahun 1' AS TahunKe, 'Panelman - Tahun 1' AS DisplayName, 1 AS Urutan
+    UNION ALL SELECT 'Panelman', 'Tahun 2', 'Panelman - Tahun 2', 2
+    UNION ALL SELECT 'Panelman', 'Tahun 3', 'Panelman - Tahun 3', 3
+    UNION ALL SELECT 'Operator', 'Tahun 1', 'Operator - Tahun 1', 4
+    UNION ALL SELECT 'Operator', 'Tahun 2', 'Operator - Tahun 2', 5
+    UNION ALL SELECT 'Operator', 'Tahun 3', 'Operator - Tahun 3', 6
+)
+MERGE INTO ProtonTracks pt
+USING ExpectedTracks et ON pt.TrackType = et.TrackType AND pt.TahunKe = et.TahunKe
+WHEN NOT MATCHED THEN
+    INSERT (TrackType, TahunKe, DisplayName, Urutan)
+    VALUES (et.TrackType, et.TahunKe, et.DisplayName, et.Urutan);</pre>
+
+<h2 id="verify">5. Verifikasi Post-Fix</h2>
+
+<h3>5a. SQL Verify</h3>
+
+<pre class="sql">SELECT Id, TrackType, TahunKe, DisplayName, Urutan
+FROM ProtonTracks
+ORDER BY Urutan;
+-- Expected: 6 baris
+-- Panelman - Tahun 1 (Urutan 1), Panelman - Tahun 2 (2), Panelman - Tahun 3 (3),
+-- Operator - Tahun 1 (4), Operator - Tahun 2 (5), Operator - Tahun 3 (6)</pre>
+
+<div class="callout info">
+  <div class="title">Tidak Perlu Restart App</div>
+  <p>Ini perubahan data murni — tabel dibaca per-request. Begitu 6 baris masuk, halaman langsung normal pada refresh berikutnya. <strong>Tidak perlu restart IIS / app pool.</strong></p>
+</div>
+
+<h3>5b. Smoke Test via Browser</h3>
+
+<ol>
+  <li>Login admin di <code>http://10.55.3.3/KPB-PortalHC/Account/Login</code>.</li>
+  <li>Buka <code>http://10.55.3.3/KPB-PortalHC/ProtonData/Index</code>.</li>
+  <li>Tab <strong>Status</strong>: tabel terisi baris Bagian (RFCC, DHT-HMU, NGP, GAST, dst) — bukan kosong / bukan stuck "Memuat...".</li>
+  <li>Tab <strong>Silabus</strong>: dropdown <strong>Track</strong> berisi 6 pilihan (Panelman/Operator × Tahun 1/2/3). Pilih Bagian → Unit → Track → tombol <strong>Muat Data</strong> aktif.</li>
+</ol>
+
+<h2 id="not-needed">6. Yang TIDAK Perlu IT Lakukan</h2>
+
+<table>
+  <thead>
+    <tr><th>Action</th><th>Status</th><th>Alasan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Jalankan migration / <code>dotnet ef database update</code></td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Tidak ada migration baru. Schema <code>ProtonTracks</code> sudah ada di Dev.</td>
+    </tr>
+    <tr>
+      <td>UPDATE / DELETE baris ProtonTracks existing</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>SQL Section 4 hanya INSERT yang belum ada (<code>WHEN NOT MATCHED</code>). Jangan ubah/hapus manual.</td>
+    </tr>
+    <tr>
+      <td>Restore DB Dev dari lokal</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Data HC Dev (worker, sertifikat, progress) harus dipertahankan.</td>
+    </tr>
+    <tr>
+      <td>Edit kode di server Dev langsung</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>Per CLAUDE.md: edit kode hanya di lokal → push → IT promo.</td>
+    </tr>
+    <tr>
+      <td>Jalankan SQL tanpa BACKUP dulu</td>
+      <td><span class="tag danger">JANGAN</span></td>
+      <td>BACKUP wajib (Section 2) per Cilacap SOP.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="rollback">7. Rollback Plan</h2>
+
+<p>SQL Section 4 hanya menambah 6 baris baru, risiko ~nol. Tapi bila perlu balik total:</p>
+
+<h4>Opsi A — Hapus hanya 6 baris yang baru di-insert (presisi)</h4>
+<pre class="sql">-- Hanya jika perlu undo fix ini secara spesifik
+DELETE FROM ProtonTracks
+WHERE TrackType IN ('Panelman','Operator')
+  AND TahunKe IN ('Tahun 1','Tahun 2','Tahun 3');</pre>
+<div class="callout warn">
+  <div class="title">Hati-hati FK</div>
+  <p>Bila sudah ada data anak yang mereferensi baris ini (<code>ProtonKompetensiList</code> / <code>ProtonTrackAssignments</code> via <code>ProtonTrackId</code>), DELETE bisa kena FK constraint. Dalam skenario fix ini tabel tadinya kosong, jadi normalnya belum ada anak — tapi cek dulu bila ragu. Kalau kena FK, pakai Opsi B.</p>
+</div>
+
+<h4>Opsi B — Restore backup penuh (Section 2)</h4>
+<pre class="sql">USE master;
+ALTER DATABASE HcPortalDB_Dev SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+RESTORE DATABASE HcPortalDB_Dev
+FROM DISK = N'C:\Backup\HcPortalDB_Dev.20260610-protontracks-pre-fix.bak'
+WITH REPLACE;
+ALTER DATABASE HcPortalDB_Dev SET MULTI_USER;</pre>
+
+<p>Setelah rollback, eskalasi ke developer (Rino) dengan timestamp + pesan error.</p>
+
+<h2 id="log">8. Log Pengerjaan IT (isi saat selesai)</h2>
+
+<p>Centang tiap langkah saat selesai, lalu kirim balik dokumen ini (atau ringkasannya) ke developer.</p>
+
+<table>
+  <thead>
+    <tr><th>Langkah</th><th>Status</th><th>Waktu</th><th>Catatan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1. Backup <code>.bak</code> dibuat (Section 2)</td>
+      <td>☐ OK / ☐ GAGAL</td>
+      <td></td>
+      <td>Path: __________ Size: ______</td>
+    </tr>
+    <tr>
+      <td>2. Diagnostik — Count awal (Section 3)</td>
+      <td>☐ 0 / ☐ 6 / ☐ lain</td>
+      <td></td>
+      <td>History tercatat? ☐ Ya / ☐ Tidak</td>
+    </tr>
+    <tr>
+      <td>3. SQL MERGE dijalankan (Section 4)</td>
+      <td>☐ OK / ☐ SKIP / ☐ GAGAL</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>4. Verifikasi — Count akhir = 6 (Section 5a)</td>
+      <td>☐ OK / ☐ GAGAL</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>5. Smoke ProtonData — Status + Track terisi (Section 5b)</td>
+      <td>☐ OK / ☐ GAGAL</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Rollback (bila perlu, Section 7)</td>
+      <td>☐ YA / ☐ TIDAK</td>
+      <td></td>
+      <td>Alasan: __________</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Signoff IT:</strong> ____________________________ &nbsp;&nbsp; <strong>Tanggal:</strong> ______________</p>
+
+<footer>
+  Disusun oleh Rino — 2026-06-10 — Portal HC KPB Project<br>
+  Repo: https://github.com/vinux31/PortalHC_KPB · Tekan <code>Ctrl+P</code> → "Save as PDF" untuk export.
+</footer>
+
+</div>
+</body>
+</html>

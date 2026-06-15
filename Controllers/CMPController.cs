@@ -18,6 +18,7 @@ using HcPortal.Helpers;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using QuestPDF.Drawing;
+using S = HcPortal.Models.AssessmentConstants.AssessmentStatus; // Phase 382 — single-source status label
 
 namespace HcPortal.Controllers
 {
@@ -199,8 +200,8 @@ namespace HcPortal.Controllers
             if (pageSize < 1) pageSize = 20;
             if (pageSize > 100) pageSize = 100;  // Max 100 per page
 
-            // Get current user
-            var user = await _userManager.GetUserAsync(User);
+            // Get current user — Phase 377: effective user (impersonate user X → assessment X; mode-role → kosong, bukan admin).
+            var (user, _) = await GetCurrentUserRoleLevelAsync();
             var userId = user?.Id ?? "";
 
             // ========== PERSONAL VIEW: worker's own assessments ==========
@@ -367,6 +368,11 @@ namespace HcPortal.Controllers
             if (session.Status == "Completed" || session.Status == "Abandoned" || session.Status == "Cancelled")
                 return Json(new { success = false, error = "Session already closed" });
 
+            // TOK-02 (WSE-10 / T-382-09): sesi token-required tapi belum lewat lobby token (StartedAt==null)
+            // tak boleh menyimpan jawaban (bypass proctoring). StartExam set StartedAt hanya setelah VerifyToken.
+            if (ShouldGateMissingStart(session.IsTokenRequired, session.StartedAt))
+                return Json(new { success = false, error = "Ujian belum dimulai. Masukkan token melalui halaman ujian." });
+
             // Atomic upsert: update existing row, or insert if none exists
             var updatedCount = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId)
@@ -479,7 +485,28 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> Records(string? section, string? unit, string? category, string? search, string? statusFilter, string? isFiltered)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
-            if (user == null) return RedirectToAction("Login", "Account");
+            if (user == null)
+            {
+                // D-03 (Phase 377 Option A): impersonate mode-role → render KOSONG + hint, BUKAN redirect Login (Pitfall 1)
+                // dan BUKAN identitas/data admin (User=null — leak identitas dilarang). Selain itu (genuinely null) → Login.
+                if (_impersonationService.IsImpersonating() && _impersonationService.GetMode() == "role")
+                {
+                    ViewBag.ImpersonateRoleHint = "Pilih user spesifik untuk melihat data worker.";
+                    ViewBag.ActualCategoriesJson = "[]";
+                    var emptyVm = new HcPortal.Models.ViewModels.CMPRecordsViewModel
+                    {
+                        User = null,
+                        RoleLevel = roleLevel,
+                        UnifiedRecords = new List<HcPortal.Models.UnifiedTrainingRecord>(),
+                        AssessmentCount = 0,
+                        TrainingCount = 0,
+                        TotalCount = 0,
+                        YearOptions = new List<int>()
+                    };
+                    return View("Records", emptyVm);
+                }
+                return RedirectToAction("Login", "Account");
+            }
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
@@ -608,8 +635,15 @@ namespace HcPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportRecords()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+            // Phase 377: route ke effective user (impersonate user X → export records X, D-01).
+            var (user, _) = await GetCurrentUserRoleLevelAsync();
+            if (user == null)
+            {
+                // mode-role / genuinely-null → tak ada data personal untuk diekspor (D-03 konsisten).
+                if (_impersonationService.IsImpersonating() && _impersonationService.GetMode() == "role")
+                    return RedirectToAction("Records");
+                return Challenge();
+            }
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
@@ -816,6 +850,12 @@ namespace HcPortal.Controllers
             return trainingRecords;
         }
 
+        // WSE-02 (D-01a): defensive both-sides token compare — single source for the VerifyToken gate.
+        // Both sides Trim()+ToUpper() so a legacy LOWERCASE stored token (admin edited lowercase) still
+        // matches the (client-uppercased) input — auto-heals at read-time, zero DB touch. Pure → unit-testable.
+        public static bool AccessTokenMatches(string? stored, string? input)
+            => (stored ?? "").Trim().ToUpperInvariant() == (input ?? "").Trim().ToUpperInvariant();
+
         // API: Verify Token for Assessment
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -845,7 +885,8 @@ namespace HcPortal.Controllers
                 return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
             }
 
-            if (string.IsNullOrEmpty(token) || assessment.AccessToken != token.ToUpper())
+            // WSE-02 (D-01a): defensive both-sides compare (auto-heal legacy lowercase-stored tokens).
+            if (string.IsNullOrEmpty(token) || !AccessTokenMatches(assessment.AccessToken, token))
             {
                 return Json(new { success = false, message = "Token tidak valid. Silakan periksa dan coba lagi." });
             }
@@ -864,7 +905,8 @@ namespace HcPortal.Controllers
 
             if (assessment == null) return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            // Phase 377: route authz ke effective user (impersonate user X → owner-check pakai X.Id).
+            var (user, _) = await GetCurrentUserRoleLevelAsync();
             if (user == null) return Challenge();
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
                 return Forbid();
@@ -872,9 +914,13 @@ namespace HcPortal.Controllers
             // Auto-transition: Upcoming → Open when scheduled date+time has arrived in WIB (persisted to DB)
             if (assessment.Status == "Upcoming" && assessment.Schedule <= DateTime.UtcNow.AddHours(7))
             {
-                assessment.Status = "Open";
-                assessment.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
+                // Phase 377 (Pitfall 3 / T-377-09): write-on-GET guard — JANGAN tulis DB saat impersonasi (read-only invariant).
+                if (!_impersonationService.IsImpersonating())
+                {
+                    assessment.Status = "Open";
+                    assessment.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
             }
 
             // Time gate: block access if assessment is still Upcoming (scheduled time not yet reached)
@@ -926,7 +972,31 @@ namespace HcPortal.Controllers
 
             // Mark InProgress on first load only (idempotent — skip if already started)
             bool justStarted = assessment.StartedAt == null;
+
+            // WSE-01 (D-05): paket ADA tapi SEMUA kosong → blokir SEBELUM tulis StartedAt/Status/assignment/SignalR.
+            // Cegah 0% Fail palsu (worker submit ujian 0 soal → maxScore=0, auto-grade Fail tanpa recourse).
+            // Kasus "zero paket" (tak ada paket sama sekali) tetap ditangani else di bawah (~:1198).
             if (justStarted)
+            {
+                var preCheckSiblingIds = await _context.AssessmentSessions
+                    .Where(s => s.Title == assessment.Title &&
+                                s.Category == assessment.Category &&
+                                s.Schedule.Date == assessment.Schedule.Date)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+                bool anyPackages = await _context.AssessmentPackages
+                    .AnyAsync(p => preCheckSiblingIds.Contains(p.AssessmentSessionId));
+                bool anyWithQuestions = anyPackages && await _context.AssessmentPackages
+                    .AnyAsync(p => preCheckSiblingIds.Contains(p.AssessmentSessionId) && p.Questions.Any());
+                if (anyPackages && !anyWithQuestions)
+                {
+                    TempData["Error"] = "Ujian belum siap — belum ada soal pada paket. Silakan hubungi Admin atau HC.";
+                    return RedirectToAction("Assessment");
+                }
+            }
+
+            // WSE-05/D-04 (OPS-01/TOK-03): write-on-GET guard, mirror 911-917 — JANGAN tulis state worker saat impersonate.
+            if (justStarted && !_impersonationService.IsImpersonating())
             {
                 assessment.Status = "InProgress";
                 assessment.StartedAt = DateTime.UtcNow;
@@ -934,7 +1004,8 @@ namespace HcPortal.Controllers
             }
 
             // SignalR push: notify HC monitor group that worker started (only on first entry)
-            if (justStarted)
+            // WSE-05/D-04 (OPS-01/TOK-03): broadcast+log hanya saat worker asli mulai (bukan impersonate).
+            if (justStarted && !_impersonationService.IsImpersonating())
             {
                 var startBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
                 await _hubContext.Clients.Group($"monitor-{startBatchKey}").SendAsync("workerStarted",
@@ -945,13 +1016,20 @@ namespace HcPortal.Controllers
             }
 
             // Packages are attached to the representative session (the one HC used when clicking "Packages"),
-            // so search across all sibling sessions (same Title + Category + Schedule.Date).
+            // so search across all sibling sessions. WSE-04 (D-01/D-09): type-aware isolation via shared
+            // helper — Pre/Post same-day tak saling memungut paket; Standard/''/null tetap satu grup.
+            // Helper dipakai IDENTIK di ReshufflePackage + ReshuffleAll → workerIndex konsisten (Phase 373).
             var siblingSessionIds = await _context.AssessmentSessions
-                .Where(s => s.Title == assessment.Title &&
-                            s.Category == assessment.Category &&
-                            s.Schedule.Date == assessment.Schedule.Date)
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                 .Select(s => s.Id)
                 .ToListAsync();
+
+            // Phase 373: stable worker index for OFF≥2 round-robin. SQL Server does not guarantee
+            // row order without ORDER BY (Pitfall 2), so sort in-memory; this same sibling set + order
+            // must match the reshuffle endpoints for cross-call determinism (OQ#1). ON-path ignores it.
+            var sortedSiblingIds = siblingSessionIds.OrderBy(x => x).ToList();
+            int workerIndex = sortedSiblingIds.IndexOf(id);
 
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
@@ -974,19 +1052,18 @@ namespace HcPortal.Controllers
                 {
                     var rng = Random.Shared;
 
-                    // Build cross-package ShuffledQuestionIds (per user decision: slot-list algorithm)
-                    var shuffledIds = BuildCrossPackageAssignment(packages, rng);
+                    // Phase 373: build ShuffledQuestionIds via the shared ShuffleEngine, gated on the
+                    // per-assessment flag (propagated from the assessment's own session in Phase 372).
+                    // ON = canonical existing behavior; OFF = deterministic (1 paket urut / ≥2 paket 1 paket utuh per worker).
+                    var shuffledIds = ShuffleEngine.BuildQuestionAssignment(
+                        packages, assessment.ShuffleQuestions, workerIndex, rng);
 
-                    // Build option shuffle: per question, randomize A/B/C/D option order
-                    // Stored as Dictionary<questionId, List<optionId>> serialized to JSON
-                    var optionShuffleDict = new Dictionary<int, List<int>>();
-                    var questionsForOptionShuffle = packages.SelectMany(p => p.Questions).ToList();
-                    foreach (var q in questionsForOptionShuffle)
-                    {
-                        var optionIds = q.Options.Select(o => o.Id).ToList();
-                        Shuffle(optionIds, rng);
-                        optionShuffleDict[q.Id] = optionIds;
-                    }
+                    // Option shuffle gated on ShuffleOptions (independent flag). OFF → empty dict →
+                    // serializes "{}" → view falls back to DB option order. Only the assigned questions need entries.
+                    var assignedQuestions = packages.SelectMany(p => p.Questions)
+                        .Where(q => shuffledIds.Contains(q.Id));
+                    var optionShuffleDict = ShuffleEngine.BuildOptionShuffle(
+                        assignedQuestions, assessment.ShuffleOptions, rng);
 
                     // Sentinel: store first package ID (no schema change — AssessmentPackageId still required by FK)
                     var sentinelPackage = packages.First();
@@ -1001,20 +1078,26 @@ namespace HcPortal.Controllers
                     };
                     // Record question count for stale-question detection on resume (RESUME-03 safety net)
                     assignment.SavedQuestionCount = shuffledIds.Count;
-                    _context.UserPackageAssignments.Add(assignment);
-                    try
+
+                    // WSE-05/D-06: saat impersonate, JANGAN persist — object in-memory cukup feed view (preview read-only).
+                    // Worker asli StartExam nanti → assignment baru ter-create & persist normal (SC#3 deferred-start).
+                    if (!_impersonationService.IsImpersonating())
                     {
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (DbUpdateException)
-                    {
-                        // Race condition: another request already created the assignment (double-click/duplicate tab)
-                        // Reload the existing assignment and continue
-                        _context.ChangeTracker.Clear();
-                        assignment = await _context.UserPackageAssignments
-                            .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
-                        if (assignment == null)
-                            throw; // genuinely unexpected — rethrow
+                        _context.UserPackageAssignments.Add(assignment);
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (DbUpdateException)
+                        {
+                            // Race condition: another request already created the assignment (double-click/duplicate tab)
+                            // Reload the existing assignment and continue
+                            _context.ChangeTracker.Clear();
+                            assignment = await _context.UserPackageAssignments
+                                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+                            if (assignment == null)
+                                throw; // genuinely unexpected — rethrow
+                        }
                     }
                 }
 
@@ -1051,11 +1134,14 @@ namespace HcPortal.Controllers
                 {
                     if (!allPackageQuestions.TryGetValue(qId, out var q)) continue;
 
-                    // Options in original DB order — option shuffle removed per user decision
+                    // Options in DB order here (base list); per-user reorder applied in view via
+                    // ViewBag.OptionShuffle when ShuffleOptions=ON. OFF stores "{}" → view falls back to this DB order.
                     var opts = q.Options.OrderBy(o => o.Id).Select(o => new ExamOptionItem
                     {
                         OptionId = o.Id,
-                        OptionText = o.OptionText
+                        OptionText = o.OptionText,
+                        ImagePath = o.ImagePath,
+                        ImageAlt = o.ImageAlt
                     }).ToList();
 
                     examQuestions.Add(new ExamQuestionItem
@@ -1065,7 +1151,9 @@ namespace HcPortal.Controllers
                         DisplayNumber = displayNum++,
                         Options = opts,
                         QuestionType = q.QuestionType ?? "MultipleChoice",
-                        MaxCharacters = q.MaxCharacters > 0 ? q.MaxCharacters : 2000
+                        MaxCharacters = q.MaxCharacters > 0 ? q.MaxCharacters : 2000,
+                        ImagePath = q.ImagePath,
+                        ImageAlt = q.ImageAlt
                     });
                 }
 
@@ -1187,174 +1275,26 @@ namespace HcPortal.Controllers
             if (assessment.UserId != user.Id)
                 return Forbid();
 
-            // Only abandon if currently InProgress (idempotent guard)
-            if (assessment.Status != "InProgress" && assessment.Status != "Open")
+            // STAT-02 (WSE-08 / T-382-05/06): transisi atomic ber-guard — GANTI TOCTOU lama
+            // (read-check status lalu SaveChanges) yang bisa di-race oleh grading/force-close.
+            // Ownership (UserId) DIPERTAHANKAN di WHERE (Pitfall 2) → atomic + spoof-proof.
+            // Guard (InProgress||Open): sesi sudah Completed/Abandoned/Cancelled/Menunggu Penilaian → 0 baris,
+            // verdict graded TIDAK ter-overwrite (StartedAt juga tak disentuh — kolom tak di-SET).
+            var rowsAffected = await _context.AssessmentSessions
+                .Where(a => a.Id == id && a.UserId == user.Id
+                    && (a.Status == S.InProgress || a.Status == S.Open))
+                .ExecuteUpdateAsync(a => a
+                    .SetProperty(x => x.Status, S.Abandoned)
+                    .SetProperty(x => x.UpdatedAt, DateTime.UtcNow));
+
+            if (rowsAffected == 0)
             {
-                TempData["Error"] = "Sesi ujian ini tidak dapat dibatalkan dalam status saat ini.";
+                TempData["Error"] = "Sesi ujian ini tidak dapat dibatalkan karena sudah selesai atau dinilai.";
                 return RedirectToAction("Assessment");
             }
 
-            // Mark Abandoned — keep StartedAt so HC can see when the exam was started
-            assessment.Status = "Abandoned";
-            assessment.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
             TempData["Info"] = "Ujian telah dibatalkan. Hubungi HC jika Anda ingin mengulang.";
             return RedirectToAction("Assessment");
-        }
-
-        // Helper: Fisher-Yates shuffle
-        private static void Shuffle<T>(List<T> list, Random rng)
-        {
-            for (int i = list.Count - 1; i > 0; i--)
-            {
-                int j = rng.Next(i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
-            }
-        }
-
-        /// <summary>
-        /// Builds a cross-package ShuffledQuestionIds list using the ET-aware distribution algorithm.
-        /// For 1 package: returns all questions shuffled (ET coverage is inherent).
-        /// For N packages: Phase 1 guarantees at least one question per ElemenTeknis group (best-effort),
-        /// Phase 2 fills remaining quota with balanced package distribution,
-        /// Phase 3 Fisher-Yates shuffles the combined list.
-        /// Falls back to original slot-list algorithm when no questions have ElemenTeknis data.
-        /// All packages must be loaded with .Include(p => p.Questions) — questions ordered by q.Order.
-        /// </summary>
-        private static List<int> BuildCrossPackageAssignment(List<AssessmentPackage> packages, Random rng)
-        {
-            if (packages.Count == 0)
-                return new List<int>();
-
-            // Single package: shuffle question order so each worker sees a unique sequence
-            if (packages.Count == 1)
-            {
-                var singlePackageQuestions = packages[0].Questions;
-                if (singlePackageQuestions == null || !singlePackageQuestions.Any())
-                    return new List<int>();
-                var singlePackageIds = singlePackageQuestions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
-                Shuffle(singlePackageIds, rng);
-                return singlePackageIds;
-            }
-
-            // Safety fallback: use minimum question count across packages (edge case per user decision)
-            int K = packages.Min(p => p.Questions.Count);
-            if (K == 0)
-                return new List<int>();
-
-            // Collect all questions across all packages with their package index
-            var allQuestions = packages.SelectMany((p, pIdx) =>
-                p.Questions.Select(q => new { Question = q, PackageIndex = pIdx })).ToList();
-
-            // Identify distinct ET groups (non-null ElemenTeknis values across all packages)
-            var etGroups = allQuestions
-                .Where(x => !string.IsNullOrWhiteSpace(x.Question.ElemenTeknis))
-                .Select(x => x.Question.ElemenTeknis!)
-                .Distinct()
-                .ToList();
-
-            // Fallback: if no questions have ElemenTeknis, use original slot-list algorithm
-            if (etGroups.Count == 0)
-            {
-                // No ElemenTeknis data — fall back to original slot-list distribution
-                int N0 = packages.Count;
-                int baseCount0 = K / N0;
-                int remainder0 = K % N0;
-                var remainderIndices0 = Enumerable.Range(0, N0)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder0)
-                    .ToHashSet();
-                var slots0 = new List<int>();
-                for (int i = 0; i < N0; i++)
-                {
-                    int count = baseCount0 + (remainderIndices0.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots0.Add(i);
-                }
-                Shuffle(slots0, rng);
-                var pkgCounter0 = new int[N0];
-                var fallbackIds = new List<int>();
-                var orderedQuestions0 = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
-                for (int pos = 0; pos < K; pos++)
-                {
-                    int pkgIdx = slots0[pos];
-                    var question = orderedQuestions0[pkgIdx][pkgCounter0[pkgIdx]];
-                    pkgCounter0[pkgIdx]++;
-                    fallbackIds.Add(question.Id);
-                }
-                return fallbackIds;
-            }
-
-            // ET-aware distribution
-            var selectedIds = new HashSet<int>();
-            var selectedList = new List<int>();
-
-            // Phase 1 — Guarantee one question per ET group (best-effort, capped at K)
-            // NULL ElemenTeknis questions are excluded from Phase 1 (they participate in Phase 2 only)
-            foreach (var etGroup in etGroups)
-            {
-                if (selectedIds.Count >= K) break;
-
-                var candidates = allQuestions
-                    .Where(x => x.Question.ElemenTeknis == etGroup && !selectedIds.Contains(x.Question.Id))
-                    .Select(x => x.Question.Id)
-                    .ToList();
-
-                Shuffle(candidates, rng);
-                if (candidates.Count > 0)
-                {
-                    int picked = candidates[0];
-                    selectedIds.Add(picked);
-                    selectedList.Add(picked);
-                }
-            }
-
-            // Phase 2 — Fill remaining quota with balanced ET distribution (round-robin per-ET)
-            int remaining = K - selectedIds.Count;
-            if (remaining > 0)
-            {
-                int M = etGroups.Count;
-                int basePerET = remaining / M;
-                int extraCount = remaining % M;
-                var extraETs = etGroups.OrderBy(_ => rng.Next()).Take(extraCount).ToHashSet();
-
-                foreach (var et in etGroups)
-                {
-                    int quota = basePerET + (extraETs.Contains(et) ? 1 : 0);
-                    var etCandidates = allQuestions
-                        .Where(x => x.Question.ElemenTeknis == et && !selectedIds.Contains(x.Question.Id))
-                        .Select(x => x.Question.Id)
-                        .ToList();
-                    Shuffle(etCandidates, rng);
-                    int toTake = Math.Min(quota, etCandidates.Count);
-                    foreach (var id in etCandidates.Take(toTake))
-                    {
-                        selectedIds.Add(id);
-                        selectedList.Add(id);
-                    }
-                }
-
-                // Fallback: jika masih kurang (ET kehabisan soal), ambil dari NULL-ET atau sisa soal manapun
-                if (selectedIds.Count < K)
-                {
-                    var fallbackCandidates = allQuestions
-                        .Where(x => !selectedIds.Contains(x.Question.Id))
-                        .Select(x => x.Question.Id)
-                        .ToList();
-                    Shuffle(fallbackCandidates, rng);
-                    foreach (var id in fallbackCandidates.Take(K - selectedIds.Count))
-                    {
-                        selectedIds.Add(id);
-                        selectedList.Add(id);
-                    }
-                }
-            }
-
-            // Phase 3 — Fisher-Yates shuffle the combined list
-            Shuffle(selectedList, rng);
-            return selectedList;
         }
 
         // Helper: extract A/B/C/D from common Correct-column formats
@@ -1524,7 +1464,9 @@ namespace HcPortal.Controllers
                             QuestionId = qId,
                             QuestionText = q.QuestionText,
                             QuestionType = qtype,
-                            TextAnswer = textAnswer
+                            TextAnswer = textAnswer,
+                            ImagePath = q.ImagePath,
+                            ImageAlt = q.ImageAlt
                         });
                     }
                     else if (qtype == "MultipleAnswer")
@@ -1547,7 +1489,16 @@ namespace HcPortal.Controllers
                             QuestionId = qId,
                             QuestionText = q.QuestionText,
                             QuestionType = qtype,
-                            SelectedOptionTexts = selectedTexts
+                            SelectedOptionTexts = selectedTexts,
+                            ImagePath = q.ImagePath,
+                            ImageAlt = q.ImageAlt,
+                            OptionImages = q.Options.OrderBy(o => o.Id).Select(o => new ExamSummaryOptionItem
+                            {
+                                OptionId = o.Id,
+                                OptionText = o.OptionText,
+                                ImagePath = o.ImagePath,
+                                ImageAlt = o.ImageAlt
+                            }).ToList()
                         });
                     }
                     else
@@ -1565,7 +1516,16 @@ namespace HcPortal.Controllers
                             QuestionText = q.QuestionText,
                             QuestionType = qtype,
                             SelectedOptionId = selectedOptId,
-                            SelectedOptionText = selectedText
+                            SelectedOptionText = selectedText,
+                            ImagePath = q.ImagePath,
+                            ImageAlt = q.ImageAlt,
+                            OptionImages = q.Options.OrderBy(o => o.Id).Select(o => new ExamSummaryOptionItem
+                            {
+                                OptionId = o.Id,
+                                OptionText = o.OptionText,
+                                ImagePath = o.ImagePath,
+                                ImageAlt = o.ImageAlt
+                            }).ToList()
                         });
                     }
                 }
@@ -1631,15 +1591,31 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            // Prevent re-submission of completed assessments
-            if (assessment.Status == "Completed")
+            // TOK-02 (WSE-10 / T-382-09): gate bersama STAT-01 di awal handler, SEBELUM mutasi. Sesi token-required
+            // yang belum lewat lobby token (StartedAt==null) tak boleh submit/grading (bypass proctoring).
+            if (ShouldGateMissingStart(assessment.IsTokenRequired, assessment.StartedAt))
             {
-                TempData["Error"] = "This assessment has already been completed.";
+                TempData["Error"] = "Ujian belum dimulai. Masukkan token melalui halaman ujian.";
                 return RedirectToAction("Assessment");
             }
 
-            // ---- Block incomplete submission (Phase 272) ----
-            // Allow incomplete if: (a) isAutoSubmit from client, OR (b) server timer expired
+            // STAT-01 (WSE-07 / T-382-04): tolak resurrection sesi terminal via SubmitExam.
+            // Sebelumnya guard hanya `== "Completed"` → sesi Abandoned/Cancelled/PendingGrading bisa
+            // di-POST ulang jadi Completed-lulus + sertifikat. Perluas ke seluruh terminal set + audit.
+            if (assessment.Status == S.Completed || assessment.Status == S.Abandoned
+                || assessment.Status == S.Cancelled || assessment.Status == S.PendingGrading)
+            {
+                // Reuse WriteSubmitBlockedAuditAsync (try/catch-swallow di dalam helper) — audit jangan block.
+                await WriteSubmitBlockedAuditAsync(assessment, TimeSpan.Zero, 0);
+                TempData["Error"] = "Sesi ujian ini sudah berakhir dan tidak dapat dikirim ulang.";
+                return RedirectToAction("Assessment");
+            }
+
+            // ---- Block incomplete submission (Phase 272 + Phase 382 TMR-02 / T-382-08) ----
+            // serverTimerExpired di-hitung SERVER-SIDE = otoritas. Client `isAutoSubmit` (raw flag, bisa
+            // di-spoof via DevTools) TIDAK lagi boleh jadi SATU-SATUNYA jalan lolos gate incomplete:
+            // submit incomplete hanya di-izinkan ketika waktu BENAR-BENAR habis (serverTimerExpired).
+            // Submit on-time yang lengkap tetap lolos (answeredCount==totalQuestions, tak masuk branch ini).
             bool serverTimerExpired = false;
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
@@ -1648,7 +1624,7 @@ namespace HcPortal.Controllers
                 serverTimerExpired = elapsed >= allowed;
             }
 
-            if (!isAutoSubmit && !serverTimerExpired)
+            if (!serverTimerExpired)
             {
                 var pkgAssign = await _context.UserPackageAssignments
                     .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
@@ -1709,9 +1685,12 @@ namespace HcPortal.Controllers
                 var allExistingResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
                     .ToListAsync();
+                // SAVE-01 (Pitfall 1): pilih baris FINAL per soal (OrderByDescending SubmittedAt) supaya
+                // push Score (SignalR) == Score GradingService (yang juga baca FINAL). Tanpa OrderBy,
+                // .First() bisa pilih baris basi/duplikat (race multi-tab) → divergen.
                 var existingResponses = allExistingResponses
                     .GroupBy(r => r.PackageQuestionId)
-                    .ToDictionary(g => g.Key, g => g.First());
+                    .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.SubmittedAt).First());
 
                 foreach (var qId in shuffledIds)
                 {
@@ -1775,6 +1754,14 @@ namespace HcPortal.Controllers
                     // Race: AkhiriUjian already completed this session — inform user and redirect to results
                     TempData["Info"] = "Ujian Anda sudah diakhiri oleh pengawas.";
                     return RedirectToAction("Results", new { id });
+                }
+
+                // TMR-03 (WSE-09 / T-382-10): konsumsi AutoSubmitToken HANYA setelah grading sukses (one-shot).
+                // EnsureCanSubmitExamAsync sengaja TIDAK remove token (TempData.Keep) → bila grading sempat gagal
+                // (DB hiccup), retry masih punya token (tak permanent-reject). Di sini grading sudah commit sukses.
+                if (ShouldConsumeAutoSubmitToken(graded))
+                {
+                    TempData.Remove($"AutoSubmitToken_{id}");
                 }
 
                 // MAM-05: GradingService set essay Status=PendingGrading via ExecuteUpdateAsync (bypass change-tracker).
@@ -2297,11 +2284,15 @@ namespace HcPortal.Controllers
                             UserAnswer = userAnswerText,
                             CorrectAnswer = correctAnswerText,
                             IsCorrect = isCorrect,
+                            ImagePath = question.ImagePath,
+                            ImageAlt = question.ImageAlt,
                             Options = question.Options.Select(o => new OptionReviewItem
                             {
                                 OptionText = o.OptionText,
                                 IsCorrect = o.IsCorrect,
-                                IsSelected = selectedOptionIds.Contains(o.Id)
+                                IsSelected = selectedOptionIds.Contains(o.Id),
+                                ImagePath = o.ImagePath,
+                                ImageAlt = o.ImageAlt
                             }).ToList(),
                             // SUB-01 OQ#3 D-08: Essay items TETAP tampil di review — flag true saat status PendingGrading + QuestionType Essay
                             // (View Razor render label "Menunggu Penilaian" alih-alih correct/incorrect; CONTEXT D-08 lock)
@@ -2504,13 +2495,31 @@ namespace HcPortal.Controllers
         /// Returns (user, roleLevel) for the current authenticated user.
         /// Extracts the repeated role-scoping pattern used across multiple actions.
         /// </summary>
+        // Phase 377 (D-05 single-source): impersonation-aware. Konsumsi resolver ImpersonationService.GetEffectiveUserAsync.
+        // UseRealUser → user asli (SC4 identik); RoleModeEmpty → (null, effective role-level) caller render kosong+hint (D-03);
+        // TargetUser → user efektif X (full-fidelity D-01). ~9 caller self-read terfix otomatis di hulu.
         private async Task<(ApplicationUser? User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return (null, 0);
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
-            return (user, roleLevel);
+            var (effUser, decision) = await _impersonationService.GetEffectiveUserAsync(_userManager);
+
+            // SC4: non-impersonate (atau expired) → identik perilaku hari ini.
+            if (decision == EffectiveUserDecision.UseRealUser)
+            {
+                var real = await _userManager.GetUserAsync(User);
+                if (real == null) return (null, 0);
+                var realRoles = await _userManager.GetRolesAsync(real);
+                return (real, UserRoles.GetRoleLevel(realRoles.FirstOrDefault() ?? ""));
+            }
+
+            // D-03: mode role → user null (caller render kosong+hint); role-level efektif tetap untuk gating UI.
+            if (decision == EffectiveUserDecision.RoleModeEmpty)
+                return (null, _impersonationService.GetEffectiveRoleLevel() ?? 0);
+
+            // mode user (TargetUser): effUser = X (defensif null = D-04, middleware sudah redirect).
+            if (effUser == null) return (null, 0);
+            var effLevel = _impersonationService.GetEffectiveRoleLevel()
+                           ?? UserRoles.GetRoleLevel((await _userManager.GetRolesAsync(effUser)).FirstOrDefault() ?? "");
+            return (effUser, effLevel);
         }
 
         // REC-04 (D-09): authz single-source untuk Results/Certificate/CertificatePdf.
@@ -3358,7 +3367,7 @@ namespace HcPortal.Controllers
 
                 // Distractor analysis (RPT-03) — hanya untuk MC/TF
                 var distractors = new List<DistractorRow>();
-                if (questionType == "MultipleChoice" || questionType == "TrueFalse")
+                if (questionType == "MultipleChoice")
                 {
                     var options = question.Options?.ToList() ?? new List<PackageOption>();
                     foreach (var opt in options)
@@ -3593,7 +3602,7 @@ namespace HcPortal.Controllers
                 var question = group.First().PackageQuestion;
                 if (question == null) continue;
                 var questionType = question.QuestionType ?? "MultipleChoice";
-                if (questionType != "MultipleChoice" && questionType != "TrueFalse") continue;
+                if (questionType != "MultipleChoice") continue;
 
                 var options = question.Options?.ToList() ?? new List<PackageOption>();
                 foreach (var opt in options)
@@ -3702,194 +3711,11 @@ namespace HcPortal.Controllers
                 $"GainScore_{assessmentGroupId}_{DateTime.Now:yyyyMMdd}.xlsx", this);
         }
 
-        // ============================================================
-        // Cascade helpers for CertificationManagement filters
-        // ============================================================
-
-        [HttpGet]
-        public async Task<IActionResult> GetCascadeOptions(string? section)
-        {
-            var units = string.IsNullOrEmpty(section) ? new List<string>() : await _context.GetUnitsForSectionAsync(section);
-            return Json(new { units });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetSubCategories(string? category)
-        {
-            if (string.IsNullOrEmpty(category))
-                return Json(new List<string>());
-
-            var subCategories = await _context.AssessmentCategories
-                .Where(c => c.ParentId != null && c.Parent!.Name == category && c.IsActive)
-                .OrderBy(c => c.SortOrder)
-                .Select(c => c.Name)
-                .ToListAsync();
-
-            return Json(subCategories);
-        }
-
-        // ============================================================
-        // CertificationManagement — dipindah dari CDPController
-        // ============================================================
-
-        public async Task<IActionResult> CertificationManagement(int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-
-            var groups = BuildSertifikatGroups(allRows);
-
-            var vm = BuildGroupViewModel(groups, roleLevel);
-
-            var paging = PaginationHelper.Calculate(groups.Count, page, vm.PageSize);
-            vm.Groups = groups.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
-
-            ViewBag.AllCategories = await _context.AssessmentCategories
-                .Where(c => c.ParentId == null && c.IsActive)
-                .OrderBy(c => c.SortOrder)
-                .Select(c => c.Name)
-                .ToListAsync();
-
-            return View(vm);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> FilterCertificationManagement(
-            string? category = null,
-            string? subCategory = null,
-            string? search = null,
-            int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-
-            var groups = BuildSertifikatGroups(allRows);
-
-            if (!string.IsNullOrEmpty(category))
-                groups = groups.Where(g => g.Kategori == category).ToList();
-            if (!string.IsNullOrEmpty(subCategory))
-                groups = groups.Where(g => g.SubKategori == subCategory).ToList();
-            if (!string.IsNullOrEmpty(search))
-                groups = groups.Where(g => g.Judul.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            var vm = BuildGroupViewModel(groups, roleLevel);
-
-            var paging = PaginationHelper.Calculate(groups.Count, page, vm.PageSize);
-            vm.Groups = groups.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
-
-            return PartialView("Shared/_SertifikatGroupTablePartial", vm);
-        }
-
-        public async Task<IActionResult> CertificationManagementDetail(string judul, int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-            var filtered = allRows.Where(r => r.Judul == judul).ToList();
-
-            var first = filtered.FirstOrDefault();
-            var vm = new SertifikatDetailViewModel
-            {
-                Judul = judul,
-                Kategori = first?.Kategori,
-                SubKategori = first?.SubKategori,
-                TotalCount = filtered.Count,
-                AktifCount = filtered.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = filtered.Count(r => r.Status == CertificateStatus.AkanExpired),
-                ExpiredCount = filtered.Count(r => r.Status == CertificateStatus.Expired),
-                PermanentCount = filtered.Count(r => r.Status == CertificateStatus.Permanent),
-                RoleLevel = roleLevel
-            };
-
-            var paging = PaginationHelper.Calculate(filtered.Count, page, vm.PageSize);
-            vm.Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
-
-            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
-            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
-            ViewBag.AllBagian = sectionUnitsDict.Keys.ToList();
-            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User!.Section;
-
-            return View(vm);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> FilterCertificationManagementDetail(
-            string judul,
-            string? bagian = null,
-            string? unit = null,
-            string? status = null,
-            int page = 1)
-        {
-            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-            var filtered = allRows.Where(r => r.Judul == judul).ToList();
-
-            if (!string.IsNullOrEmpty(bagian))
-                filtered = filtered.Where(r => r.Bagian == bagian).ToList();
-            if (!string.IsNullOrEmpty(unit))
-                filtered = filtered.Where(r => r.Unit == unit).ToList();
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
-                filtered = filtered.Where(r => r.Status == st).ToList();
-
-            var pageSize = 20;
-            var paging = PaginationHelper.Calculate(filtered.Count, page, pageSize);
-
-            var vm = new CertificationManagementViewModel
-            {
-                Rows = filtered.Skip(paging.Skip).Take(paging.Take).ToList(),
-                TotalCount = filtered.Count,
-                AktifCount = filtered.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = filtered.Count(r => r.Status == CertificateStatus.AkanExpired),
-                ExpiredCount = filtered.Count(r => r.Status == CertificateStatus.Expired),
-                PermanentCount = filtered.Count(r => r.Status == CertificateStatus.Permanent),
-                CurrentPage = paging.CurrentPage,
-                TotalPages = paging.TotalPages,
-                PageSize = pageSize,
-                RoleLevel = roleLevel
-            };
-
-            return PartialView("Shared/_CertificationManagementTablePartial", vm);
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ExportSertifikatExcel(
-            string? category = null,
-            string? subCategory = null,
-            string? search = null)
-        {
-            var (allRows, _) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
-
-            var groups = BuildSertifikatGroups(allRows);
-
-            if (!string.IsNullOrEmpty(category))
-                groups = groups.Where(g => g.Kategori == category).ToList();
-            if (!string.IsNullOrEmpty(subCategory))
-                groups = groups.Where(g => g.SubKategori == subCategory).ToList();
-            if (!string.IsNullOrEmpty(search))
-                groups = groups.Where(g => g.Judul.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            using var workbook = new XLWorkbook();
-            var ws = ExcelExportHelper.CreateSheet(workbook, "Sertifikat", new[]
-            {
-                "No", "Nama Sertifikat", "Kategori", "Sub Kategori", "Jumlah Worker"
-            });
-
-            for (int i = 0; i < groups.Count; i++)
-            {
-                var g = groups[i];
-                var row = i + 2;
-                ws.Cell(row, 1).Value = i + 1;
-                ws.Cell(row, 2).Value = g.Judul;
-                ws.Cell(row, 3).Value = g.Kategori ?? "";
-                ws.Cell(row, 4).Value = g.SubKategori ?? "";
-                ws.Cell(row, 5).Value = g.JumlahWorker;
-            }
-
-            var fileName = $"Sertifikat_Grouped_{DateTime.Now:yyyy-MM-dd}.xlsx";
-            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
-        }
+        // CertificationManagement: route lama /CMP/CertificationManagement.
+        // Entry produktif (Views/CMP/Index.cshtml) menunjuk action CDP canonical;
+        // view CMP tak pernah ada sehingga dulu 500. Redirect 302 ke CDP (Phase 378, CMPRT-01).
+        public IActionResult CertificationManagement()
+            => RedirectToAction("CertificationManagement", "CDP");
 
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
@@ -3945,35 +3771,6 @@ namespace HcPortal.Controllers
                    .Distinct(StringComparer.OrdinalIgnoreCase)
                    .OrderBy(n => n)
                    .ToList();
-
-        private static List<SertifikatGroupRow> BuildSertifikatGroups(List<SertifikatRow> allRows)
-        {
-            return allRows
-                .GroupBy(r => r.Judul)
-                .Select(g => new SertifikatGroupRow
-                {
-                    Judul = g.Key,
-                    Kategori = g.First().Kategori,
-                    SubKategori = g.First().SubKategori,
-                    JumlahWorker = g.Select(r => r.WorkerId).Distinct().Count()
-                })
-                .OrderBy(g => g.Judul)
-                .ToList();
-        }
-
-        private static SertifikatGroupViewModel BuildGroupViewModel(List<SertifikatGroupRow> groups, int roleLevel)
-        {
-            return new SertifikatGroupViewModel
-            {
-                TotalCount = groups.Count,
-                MandatoryCount = groups.Count(g => string.Equals(g.Kategori, "Mandatory HSSE Training", StringComparison.OrdinalIgnoreCase)
-                                                 || string.Equals(g.Kategori, "MANDATORY", StringComparison.OrdinalIgnoreCase)),
-                NonMandatoryCount = groups.Count(g => string.Equals(g.Kategori, "NON MANDATORY", StringComparison.OrdinalIgnoreCase)),
-                OjtCount = groups.Count(g => string.Equals(g.Kategori, "OJT", StringComparison.OrdinalIgnoreCase)),
-                IhtCount = groups.Count(g => string.Equals(g.Kategori, "IHT", StringComparison.OrdinalIgnoreCase)),
-                RoleLevel = roleLevel
-            };
-        }
 
         private static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
         {
@@ -4126,9 +3923,9 @@ namespace HcPortal.Controllers
                 .Select(c => new { c.Id, c.Name, c.ParentId })
                 .ToListAsync();
             var categoryById = allCategories.ToDictionary(c => c.Id);
-            var categoryNameLookup = allCategories
-                .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
-                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+            // #25: GroupBy-dedup via helper shared (cegah ArgumentException/500 pada duplicate child Name lintas parent).
+            var categoryNameLookup = SertifikatRow.BuildParentNameLookup(
+                allCategories.Select(c => (c.Id, c.Name, c.ParentId)));
 
             var assessmentAnon = await asQuery
                 .Select(a => new
@@ -4659,17 +4456,62 @@ namespace HcPortal.Controllers
         /// AssessmentType Manual / null di-skip (D-15 defense-in-depth).
         /// Returns IActionResult kalau reject (caller `return` value), atau null kalau pass (caller lanjut).
         /// </summary>
+        // ==================== Phase 382 PURE DECISION HELPERS (Wave 0) ====================
+        // Konvensi repo: CMPController ber-ctor 14-dep → uji lewat pure static helper (lihat VerifyTokenTests.cs).
+        // Helper = sumber kebenaran tunggal; controller mendelegasikan ke helper (anti-drift, pola Phase 380/363).
+
+        /// <summary>
+        /// TMR-01: apakah timer submit di-enforce untuk AssessmentType ini.
+        /// BLOCKLIST — skip HANYA Manual / null / kosong; selain itu (Standard/Online/PreTest/PostTest) di-enforce.
+        /// TMR-01 (WSE-09 / T-382-07): inversi dari allowlist lama (yg meninggalkan "Standard" tak ter-enforce = dead code).
+        /// </summary>
+        public static bool ShouldEnforceSubmitTimer(string? assessmentType)
+        {
+            // Skip guard HANYA untuk Manual / null / kosong; sisanya (termasuk literal "Standard") di-enforce.
+            return !(assessmentType == AssessmentConstants.AssessmentType.Manual
+                || string.IsNullOrEmpty(assessmentType));
+        }
+
+        public enum SubmitTimerDecision { Pass, BlockNoGrace, BlockGrace }
+
+        /// <summary>
+        /// Keputusan tier timer (pure). Tier-1 (BlockNoGrace) bila elapsed≥allowed tanpa server-approved token;
+        /// Tier-2 (BlockGrace) bila elapsed≥grace; selain itu Pass. Server-approved auto-submit (D-05) selalu Pass
+        /// hingga grace.
+        /// </summary>
+        public static SubmitTimerDecision EvaluateSubmitTimerDecision(
+            double elapsedSec, double allowedSec, double graceSec, bool serverApprovedAutoSubmit)
+        {
+            if (elapsedSec >= graceSec) return SubmitTimerDecision.BlockGrace;
+            if (elapsedSec >= allowedSec && !serverApprovedAutoSubmit) return SubmitTimerDecision.BlockNoGrace;
+            return SubmitTimerDecision.Pass;
+        }
+
+        /// <summary>
+        /// TOK-02 (WSE-10 / T-382-09): apakah handler harus menolak karena belum lewat lobby token.
+        /// StartedAt di-set HANYA setelah VerifyToken sukses (StartExam) → token-required && StartedAt==null
+        /// = proxy "belum lewat lobby token" → reject. Sesi non-token (IsTokenRequired=false) tak pernah ter-gate.
+        /// </summary>
+        public static bool ShouldGateMissingStart(bool isTokenRequired, DateTime? startedAt)
+            => isTokenRequired && startedAt == null;
+
+        /// <summary>
+        /// TMR-03 (WSE-09 / T-382-10): apakah AutoSubmitToken boleh dikonsumsi (di-remove). HANYA pada grading sukses.
+        /// Bila grading gagal (DB hiccup), token TIDAK dikonsumsi → retry aman (tak permanent-reject).
+        /// </summary>
+        public static bool ShouldConsumeAutoSubmitToken(bool gradingSucceeded) => gradingSucceeded;
+        // ================================================================================
+
         private async Task<IActionResult?> EnsureCanSubmitExamAsync(
             AssessmentSession assessment,
             bool isAutoSubmitClientHint,
             string? autoSubmitToken,
             int sessionId)
         {
-            // D-15 / C-01: Manual type exclude via explicit field check (defense-in-depth).
-            // Field di model adalah `AssessmentType` (Models/AssessmentSession.cs:154 verified).
-            if (assessment.AssessmentType != AssessmentConstants.AssessmentType.Online &&
-                assessment.AssessmentType != AssessmentConstants.AssessmentType.PreTest &&
-                assessment.AssessmentType != AssessmentConstants.AssessmentType.PostTest)
+            // TMR-01 (WSE-09 / T-382-07): enforce untuk Standard/Online/PreTest/PostTest; skip HANYA Manual/null.
+            // Sebelumnya allowlist (Online/PreTest/PostTest) → "Standard" jatuh ke skip = dead code (timer tak ditegakkan).
+            // Logika blocklist dipusatkan di pure helper ShouldEnforceSubmitTimer (anti-drift, ter-uji unit).
+            if (!ShouldEnforceSubmitTimer(assessment.AssessmentType))
             {
                 return null; // Manual / null AssessmentType — skip guard
             }
@@ -4678,7 +4520,7 @@ namespace HcPortal.Controllers
             if (!assessment.StartedAt.HasValue) return null;
 
             // Phase 313 WR-02 fix: gunakan satuan dan operator yang konsisten — detik integer, ≥.
-            // Selaras dengan ExamSummary GET (line 1542) dan SubmitExam awal (line 1585).
+            // Selaras dengan ExamSummary GET dan SubmitExam awal.
             var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
             int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0);
             double elapsedSec = elapsed.TotalSeconds;
@@ -4687,8 +4529,10 @@ namespace HcPortal.Controllers
 
             // Phase 313 CR-01 fix: server-side token validation menggantikan trust client `isAutoSubmit`.
             // Token = one-shot Guid yang di-issue di ExamSummary GET saat timerExpired=true (TempData).
-            // Validate + consume di sini: kalau token cocok → request datang dari path auto-submit yang sah.
             // Kalau attacker spoof `isAutoSubmit=true` via DevTools tanpa token valid, Tier-1 tetap reject.
+            // TMR-03 (Pitfall 3): JANGAN remove token di sini (pre-grading). Konsumsi ditunda ke SubmitExam
+            // success path (setelah GradeAndCompleteAsync sukses) supaya retry pasca-DB-hiccup tidak permanent-reject.
+            // TempData.Keep dipanggil supaya token bertahan ke request berikutnya bila pass (read tak meng-clear).
             bool serverApprovedAutoSubmit = false;
             var tempKey = $"AutoSubmitToken_{sessionId}";
             var expectedToken = TempData[tempKey] as string;
@@ -4698,13 +4542,14 @@ namespace HcPortal.Controllers
             {
                 serverApprovedAutoSubmit = true;
             }
-            // TempData accessed-and-cleared (one-shot semantics): pastikan token tidak bisa dipakai ulang.
-            TempData.Remove(tempKey);
+            // Pertahankan token (peek semantics) — konsumsi hanya di success path (TMR-03).
+            TempData.Keep(tempKey);
 
-            // Tier 1 (Phase 313 NEW + CR-01 hardening): manual reject tanpa grace (D-09 strict 0-grace).
-            // Reject kalau elapsed > allowed DAN tidak ada server-approved auto-submit token.
-            // Client `isAutoSubmitClientHint` TIDAK lagi sufficient — harus dibarengi token sah.
-            if (elapsedSec >= allowedSec && !serverApprovedAutoSubmit)
+            // Keputusan tier (pure helper, ter-uji unit). D-05: on-time auto-submit (server-approved) tetap Pass.
+            var decision = EvaluateSubmitTimerDecision(elapsedSec, allowedSec, graceLimitSec, serverApprovedAutoSubmit);
+
+            // Tier 1 (Phase 313 NEW + CR-01 hardening): manual reject tanpa grace (D-09 strict 0-grace) + audit.
+            if (decision == SubmitTimerDecision.BlockNoGrace)
             {
                 await WriteSubmitBlockedAuditAsync(assessment, elapsed, allowedMinutes);
                 // D-01 explanatory message — Bahasa Indonesia per CLAUDE.md.
@@ -4714,13 +4559,13 @@ namespace HcPortal.Controllers
 
             // Tier 2 (existing LIFE-03 preserved): auto reject setelah grace.
             // D-06: TIDAK tulis AuditLog Blocked entry untuk Tier 2 (scope minimal, hanya tier-1 yang baru).
-            if (elapsedSec >= graceLimitSec)
+            if (decision == SubmitTimerDecision.BlockGrace)
             {
                 TempData["Error"] = "Waktu ujian Anda telah habis. Pengiriman jawaban tidak dapat diproses.";
                 return RedirectToAction("StartExam", new { id = assessment.Id });
             }
 
-            return null; // Pass — caller lanjut grading flow.
+            return null; // Pass — caller lanjut grading flow (token belum dikonsumsi, di-remove pasca-grading).
         }
 
         /// <summary>

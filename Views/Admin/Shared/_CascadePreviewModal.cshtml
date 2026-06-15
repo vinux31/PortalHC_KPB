@@ -1,0 +1,67 @@
+@using HcPortal.Services
+@model List<RecordCascadeDeleteService.CascadeNode>
+@*
+    Phase 367 (06) S1 — isi body modal preview cascade (tree korban + mirror checkbox + Hapus Semua).
+    Read-only render dari GET DeletePreview. Bootstrap utility only (ZERO CSS baru, UI-SPEC §Design System).
+    Shell modal di partial tab (_TrainingRecordsTab, plan 08). Semua copy Bahasa Indonesia (Copywriting Contract).
+*@
+@{
+    var root = Model.FirstOrDefault(n => n.IsRoot);
+    var rootType = root?.Type ?? "session";
+    var rootId = root?.Id ?? 0;
+    var victims = Model.Where(n => !n.IsMirrorCandidate).ToList();
+    var mirrors = Model.Where(n => n.IsMirrorCandidate).ToList();
+    // L-07: tab-2 generik — session (manual+online) → DeleteManualAssessment; training → DeleteTraining.
+    var deleteAction = rootType == "training" ? "DeleteTraining" : "DeleteManualAssessment";
+}
+
+<p class="fw-semibold mb-2">Data berikut akan dihapus permanen — termasuk seluruh turunan pembaruan (renewal):</p>
+
+<ul class="list-group mb-3">
+    @foreach (var n in victims)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span class="small">
+                <span class="fw-semibold">@n.Title</span>
+                · @n.Date.ToString("dd MMM yyyy")
+                · <span class="badge @(n.Type == "training" ? "bg-success" : "bg-secondary")">@(n.Type == "training" ? "Training" : "Assessment")</span>
+                · @n.OwnerName
+            </span>
+            <span class="badge @(n.IsRoot ? "bg-info text-dark" : "bg-secondary")">@(n.IsRoot ? "Induk" : "Turunan renewal")</span>
+        </li>
+    }
+</ul>
+
+@if (victims.Count <= 1)
+{
+    <p class="text-muted small mb-3">Hanya record ini yang akan terhapus (tidak ada turunan renewal).</p>
+}
+
+<form hx-post="@Url.Action(deleteAction, "TrainingAdmin")" hx-swap="none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@rootId" />
+
+    @if (mirrors.Count > 0)
+    {
+        <p class="fw-semibold mb-2">Kemungkinan duplikat lama (mirror) — periksa sebelum hapus:</p>
+        <div class="mb-3">
+            @foreach (var m in mirrors)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="mirrorTrainingIds" value="@m.Id" id="mirror-@m.Id" checked>
+                    <label class="form-check-label small" for="mirror-@m.Id">Ikut hapus: @m.Title · @m.Date.ToString("dd MMM yyyy")</label>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span>Tindakan ini tidak dapat dibatalkan.</span>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Hapus Semua</button>
+    </div>
+</form>

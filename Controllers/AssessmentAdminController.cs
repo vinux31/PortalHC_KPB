@@ -27,6 +27,8 @@ namespace HcPortal.Controllers
         private readonly IHubContext<AssessmentHub> _hubContext;
         private readonly IWorkerDataService _workerDataService;
         private readonly GradingService _gradingService;
+        private readonly ProtonCompletionService _protonCompletionService;
+        private readonly ProtonBypassService _protonBypassService;
 
         public AssessmentAdminController(
             ApplicationDbContext context,
@@ -38,7 +40,9 @@ namespace HcPortal.Controllers
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
             IWorkerDataService workerDataService,
-            GradingService gradingService)
+            GradingService gradingService,
+            ProtonCompletionService protonCompletionService,
+            ProtonBypassService protonBypassService)
             : base(context, userManager, auditLog, env)
         {
             _cache = cache;
@@ -47,6 +51,8 @@ namespace HcPortal.Controllers
             _hubContext = hubContext;
             _workerDataService = workerDataService;
             _gradingService = gradingService;
+            _protonCompletionService = protonCompletionService;
+            _protonBypassService = protonBypassService;
         }
 
         // Override View resolution to use Views/Admin/ folder (controller name is AssessmentAdmin, but views stay in Admin/)
@@ -107,12 +113,11 @@ namespace HcPortal.Controllers
             string? category = null, string? statusFilter = null)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
-            // Phase 311 Plan 03: AsNoTracking di chain start read-only partial action (PATTERNS Cross-cutting Pattern 2)
+            // Phase 370 (URG-02): window 7-hari dihapus — tampilan default tanpa batas umur.
+            // Phase 311 Plan 03: AsNoTracking di chain start read-only partial action.
             var managementQuery = _context.AssessmentSessions
                 .AsNoTracking()
-                .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
@@ -1158,6 +1163,8 @@ namespace HcPortal.Controllers
 
                 // Proton exam metadata — look up TahunKe from ProtonTrack
                 string? protonTahunKe = null;
+                string? protonTrackType = null;
+                int protonUrutan = 0;
                 if (model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue)
                 {
                     var protonTrack = await _context.ProtonTracks.FindAsync(model.ProtonTrackId.Value);
@@ -1182,6 +1189,8 @@ namespace HcPortal.Controllers
                         return View("CreateAssessment", model);
                     }
                     protonTahunKe = protonTrack.TahunKe;
+                    protonTrackType = protonTrack.TrackType;
+                    protonUrutan = protonTrack.Urutan;
                 }
 
                 // Phase 227 CLEN-04: NomorSertifikat is now generated in SubmitExam (when IsPassed=true).
@@ -1216,6 +1225,8 @@ namespace HcPortal.Controllers
                             Status = "Upcoming",
                             PassPercentage = model.PassPercentage,
                             AllowAnswerReview = model.AllowAnswerReview,
+                            ShuffleQuestions = model.ShuffleQuestions,
+                            ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
                             AccessToken = model.AccessToken,
                             GenerateCertificate = false,  // D-20: Pre TIDAK generate sertifikat
@@ -1250,6 +1261,8 @@ namespace HcPortal.Controllers
                                 Status = "Upcoming",
                                 PassPercentage = model.PassPercentage,
                                 AllowAnswerReview = model.AllowAnswerReview,
+                                ShuffleQuestions = model.ShuffleQuestions,
+                                ShuffleOptions = model.ShuffleOptions,
                                 IsTokenRequired = model.IsTokenRequired,
                                 AccessToken = model.AccessToken,
                                 GenerateCertificate = model.GenerateCertificate, // D-21: pilihan HC
@@ -1326,12 +1339,95 @@ namespace HcPortal.Controllers
                 }
                 // else: flow standard existing continues below...
 
+                // Phase 359 (PCOMP-06/07/08) — gate eligibility server-side untuk Assessment Proton.
+                // BUKAN all-or-nothing (D-01): worker tak-eligible di-SKIP, eligible tetap dapat session.
+                var eligibleUserIds = new List<string>(UserIds);
+                int gateSkippedNotHundred = 0, gateSkippedPrevYear = 0;
+                if (model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue && model.ProtonTrackId.Value > 0)
+                {
+                    int protonTrackId = model.ProtonTrackId.Value;
+                    string trackType = protonTrackType ?? "";
+                    // prevTahunKe = TahunKe track dgn TrackType sama & Urutan-1; null jika Urutan<=1 (Tahun 1).
+                    string? prevTahunKe = protonUrutan > 1
+                        ? await _context.ProtonTracks
+                            .Where(t => t.TrackType == trackType && t.Urutan == protonUrutan - 1)
+                            .Select(t => t.TahunKe).FirstOrDefaultAsync()
+                        : null;
+                    // T9/D-12: log-only — Urutan<=1 prevTahunKe==null itu normal (Tahun 1, tanpa prasyarat)
+                    if (protonUrutan > 1 && prevTahunKe == null)
+                        _logger.LogWarning("CreateAssessment gate: prevTahunKe null padahal protonUrutan={Urutan} > 1 (TrackType={TrackType}) — Urutan tidak kontigu. Cross-year gate dilewati untuk track ini.", protonUrutan, trackType);
+
+                    // Deliverable track (D-08 fallback): jika kosong → skip cek 100% (interview-only/transisi).
+                    var trackDeliverableIds = await _context.ProtonKompetensiList
+                        .Where(k => k.ProtonTrackId == protonTrackId)
+                        .SelectMany(k => k.SubKompetensiList)
+                        .SelectMany(s => s.Deliverables)
+                        .Select(d => d.Id)
+                        .ToListAsync();
+                    bool trackHasDeliverables = trackDeliverableIds.Any();
+
+                    // Renewal: tetap WAJIB lewat gate 100% (D-07), TAPI cross-year prereq di-exempt
+                    // (renewal = perpanjangan tahun yang SUDAH dilewati).
+                    bool isRenewal = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue;
+
+                    var filtered = new List<string>();
+                    foreach (var uid in UserIds)
+                    {
+                        // (a) Cross-year gate (D-03/D-07): penanda Tahun N-1 (kecuali renewal).
+                        // Phase 360 (D-06a/A-M4): assignment ber-Origin="Bypass" exempt cek cross-year prereq.
+                        bool isBypassAssignment = await _context.ProtonTrackAssignments
+                            .AnyAsync(a => a.CoacheeId == uid && a.ProtonTrackId == protonTrackId
+                                        && a.IsActive && a.Origin == "Bypass");
+                        if (!isRenewal && !isBypassAssignment
+                            && !await _protonCompletionService.IsPrevYearPassedAsync(uid, trackType, prevTahunKe))
+                        {
+                            gateSkippedPrevYear++; continue;
+                        }
+                        // (b) Deliverable 100% per-unit (D-02). Fallback: track 0 deliverable → eligible (D-08).
+                        if (trackHasDeliverables)
+                        {
+                            var resolvedUnit = await _context.CoachCoacheeMappings
+                                .Where(m => m.CoacheeId == uid && m.IsActive).Select(m => m.AssignmentUnit).FirstOrDefaultAsync();
+                            if (string.IsNullOrWhiteSpace(resolvedUnit))
+                                resolvedUnit = await _context.Users.Where(u => u.Id == uid).Select(u => u.Unit).FirstOrDefaultAsync();
+                            if (string.IsNullOrWhiteSpace(resolvedUnit)) { gateSkippedNotHundred++; continue; }
+                            var unitDeliverableIds = await _context.ProtonDeliverableList
+                                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
+                                         && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
+                                .Select(d => d.Id).ToListAsync();
+                            var myStatuses = await _context.ProtonDeliverableProgresses
+                                .Where(p => p.CoacheeId == uid && unitDeliverableIds.Contains(p.ProtonDeliverableId))
+                                .Select(p => p.Status).ToListAsync();
+                            if (!CoacheeEligibilityCalculator.IsEligiblePerUnit(myStatuses, unitDeliverableIds.Count))
+                            { gateSkippedNotHundred++; continue; }
+                        }
+                        filtered.Add(uid);
+                    }
+                    eligibleUserIds = filtered;
+                }
+
+                // Phase 359 (D-01) — empty-result guard: semua pekerja di-skip → JANGAN buka transaksi.
+                if (model.Category == "Assessment Proton" && eligibleUserIds.Count == 0)
+                {
+                    TempData["Warning"] = $"0 session dibuat. Semua {UserIds.Count} pekerja di-skip. Alasan: {gateSkippedNotHundred} belum 100% deliverable, {gateSkippedPrevYear} Tahun sebelumnya belum lulus.";
+                    var usersReload = await _context.Users
+                        .Where(u => u.IsActive)
+                        .OrderBy(u => u.FullName)
+                        .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
+                        .ToListAsync();
+                    ViewBag.Users = usersReload;
+                    ViewBag.SelectedUserIds = UserIds ?? new List<string>();
+                    ViewBag.Sections = await _context.GetAllSectionsAsync();
+                    ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+                    return View("CreateAssessment", model);
+                }
+
                 // Create all sessions in memory first
                 var sessions = new List<AssessmentSession>();
 
-                for (int i = 0; i < UserIds.Count; i++)
+                for (int i = 0; i < eligibleUserIds.Count; i++)
                 {
-                    var userId = UserIds[i];
+                    var userId = eligibleUserIds[i];
                     var session = new AssessmentSession
                     {
                         Title = model.Title,
@@ -1344,6 +1440,8 @@ namespace HcPortal.Controllers
                         AccessToken = model.AccessToken,
                         PassPercentage = model.PassPercentage,
                         AllowAnswerReview = model.AllowAnswerReview,
+                        ShuffleQuestions = model.ShuffleQuestions,
+                        ShuffleOptions = model.ShuffleOptions,
                         GenerateCertificate = model.GenerateCertificate,
                         ExamWindowCloseDate = model.ExamWindowCloseDate,
                         ValidUntil = model.ValidUntil,
@@ -1447,6 +1545,34 @@ namespace HcPortal.Controllers
                             UserName = assignedUser.FullName ?? session.UserId,
                             UserEmail = assignedUser.Email ?? ""
                         });
+                    }
+
+                    // Phase 359 (S1) — skip-summary Proton banner (_Layout), setelah commit sukses.
+                    // Pisah dari popup TempData["CreatedAssessment"]; tidak menggandakan pesan non-Proton.
+                    if (model.Category == "Assessment Proton")
+                    {
+                        int gateSkippedTotal = gateSkippedNotHundred + gateSkippedPrevYear;
+                        if (gateSkippedTotal == 0)
+                            TempData["Success"] = $"{eligibleUserIds.Count} session berhasil dibuat.";
+                        else
+                            TempData["Warning"] = $"{eligibleUserIds.Count} session dibuat, {gateSkippedTotal} di-skip. Alasan: {gateSkippedNotHundred} belum 100% deliverable, {gateSkippedPrevYear} Tahun sebelumnya belum lulus.";
+
+                        // Audit warn-only bila ada skip (TIDAK boleh memutus operasi).
+                        if (gateSkippedTotal > 0)
+                        {
+                            try
+                            {
+                                var gateActor = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
+                                await _auditLog.LogAsync(
+                                    currentUser?.Id ?? "",
+                                    gateActor,
+                                    "CreateAssessment_GateSkip",
+                                    $"Gate Proton '{model.Title}': {eligibleUserIds.Count} dibuat, {gateSkippedNotHundred} belum 100% deliverable, {gateSkippedPrevYear} Tahun sebelumnya belum lulus.",
+                                    sessions.FirstOrDefault()?.Id,
+                                    "AssessmentSession");
+                            }
+                            catch (Exception auditEx) { _logger.LogWarning(auditEx, "Audit gate-skip logging failed (non-blocking)"); }
+                        }
                     }
                 }
                 catch
@@ -1666,6 +1792,13 @@ namespace HcPortal.Controllers
                     return RedirectToAction("EditAssessment", new { id });
                 }
 
+                // WSE-02 (D-01b): normalize token uppercase for Pre/Post writes (mirror CreateAssessment :1104-1108).
+                // This branch returns at :ManageAssessment before the single-mode uppercase, so it is the only
+                // normalization the Pre/Post path gets. Defensive compare (D-01a) heals existing rows; this keeps new writes clean.
+                string normalizedToken = (model.IsTokenRequired && !string.IsNullOrWhiteSpace(model.AccessToken))
+                    ? model.AccessToken.ToUpper()
+                    : "";
+
                 var allGroupSessions = await _context.AssessmentSessions
                     .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
                     .ToListAsync();
@@ -1680,8 +1813,11 @@ namespace HcPortal.Controllers
                     s.Category = model.Category;
                     s.PassPercentage = model.PassPercentage;
                     s.AllowAnswerReview = model.AllowAnswerReview;
+                    s.ShuffleQuestions = model.ShuffleQuestions;
+                    s.ShuffleOptions = model.ShuffleOptions;
                     s.IsTokenRequired = model.IsTokenRequired;
-                    s.AccessToken = model.IsTokenRequired ? (model.AccessToken ?? s.AccessToken ?? "") : "";
+                    // D-01b: store uppercase; preserve fallback-to-existing when model supplies no token (do NOT wipe).
+                    s.AccessToken = model.IsTokenRequired ? (normalizedToken != "" ? normalizedToken : (s.AccessToken ?? "")) : "";
                     s.UpdatedAt = DateTime.UtcNow;
                 }
 
@@ -1782,8 +1918,10 @@ namespace HcPortal.Controllers
                             Status = "Upcoming",
                             PassPercentage = model.PassPercentage,
                             AllowAnswerReview = model.AllowAnswerReview,
+                            ShuffleQuestions = model.ShuffleQuestions,
+                            ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
-                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            AccessToken = model.IsTokenRequired ? normalizedToken : "",
                             GenerateCertificate = false,
                             UserId = newUserId,
                             AssessmentType = "PreTest",
@@ -1801,8 +1939,10 @@ namespace HcPortal.Controllers
                             Status = "Upcoming",
                             PassPercentage = model.PassPercentage,
                             AllowAnswerReview = model.AllowAnswerReview,
+                            ShuffleQuestions = model.ShuffleQuestions,
+                            ShuffleOptions = model.ShuffleOptions,
                             IsTokenRequired = model.IsTokenRequired,
-                            AccessToken = model.IsTokenRequired ? (model.AccessToken ?? "") : "",
+                            AccessToken = model.IsTokenRequired ? normalizedToken : "",
                             GenerateCertificate = model.GenerateCertificate,
                             ValidUntil = model.ValidUntil,
                             UserId = newUserId,
@@ -1905,6 +2045,8 @@ namespace HcPortal.Controllers
                 sibling.AccessToken = newToken;
                 sibling.PassPercentage = model.PassPercentage;
                 sibling.AllowAnswerReview = model.AllowAnswerReview;
+                sibling.ShuffleQuestions = model.ShuffleQuestions;
+                sibling.ShuffleOptions = model.ShuffleOptions;
                 sibling.GenerateCertificate = model.GenerateCertificate;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
                 sibling.UpdatedAt = now;
@@ -2000,6 +2142,8 @@ namespace HcPortal.Controllers
                                 AccessToken = savedAssessment.AccessToken,
                                 PassPercentage = savedAssessment.PassPercentage,
                                 AllowAnswerReview = savedAssessment.AllowAnswerReview,
+                                ShuffleQuestions = savedAssessment.ShuffleQuestions,
+                                ShuffleOptions = savedAssessment.ShuffleOptions,
                                 GenerateCertificate = savedAssessment.GenerateCertificate,
                                 ExamWindowCloseDate = savedAssessment.ExamWindowCloseDate,
                                 Progress = 0,
@@ -2069,6 +2213,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> DeleteAssessment(int id)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
 
             try
             {
@@ -2085,144 +2230,78 @@ namespace HcPortal.Controllers
                 var assessmentTitle = assessment.Title;
                 logger.LogInformation($"Attempting to delete assessment {id}: {assessmentTitle}");
 
-                // D-19: Block delete individual jika bagian Pre-Post group
-                if (assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest")
+                // D-19: Block delete individual jika bagian Pre-Post group (shared IsPrePostSession — single-source tab-1/tab-2)
+                if (IsPrePostSession(assessment))
                 {
                     TempData["Error"] = "Sesi ini bagian dari grup Pre-Post Test. Gunakan 'Hapus Grup' untuk menghapus keduanya.";
                     return RedirectToAction("ManageAssessment");
                 }
 
-                // Phase 325 P05 D-11: pre-check referencing rows SEBELUM buka tx scope (fail-fast UX friendly).
-                // AssessmentSession punya 2 jenis renewal child: TR + AS. FK column = RenewsSessionId.
-                // Pre-check di luar tx supaya tidak konflik dengan Phase 323 cascade tx (BeginTransactionAsync di bawah).
-                var refTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsSessionId == id);
-                var refAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsSessionId == id);
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 325) DIBALIK → cascade penuh via engine
+                // (turunan renewal IKUT terhapus, parity tab 2 — fix kasus Rino #3). Engine hapus DB
+                // (root + turunan) + artefak per node + cert per node + audit (1-tx, preview==execute).
+                // Image SOAL (Opsi B) + #19 cert = ranah endpoint: collect SEBELUM engine, hapus file POST engine (warn-only).
 
-                if (refTr + refAs > 0)
-                {
-                    var total = refTr + refAs;
-                    TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
-                                      + "menggunakan record ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment");
-                }
+                // Cascade node ids (root + turunan renewal) = SAMA dgn yg dihapus engine (CollectCascadeIds).
+                var cascadeNodes = await cascade.CollectCascadeIds("session", id);
+                var cascadeSessionIds = cascadeNodes.Where(n => n.Type == "session").Select(n => n.Id).ToList();
 
-                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction agar TOCTOU race
-                // (peserta concurrent POST jawaban antara guard-check dan cascade) dapat ditangani
-                // dengan re-check responseCount dalam transaction, lalu rollback bersih jika race terjadi.
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Image SOAL SEMUA session node (engine Opsi B tak sentuh image SOAL → cegah orphan turunan).
+                var imagePaths = await CollectQuestionImagePathsAsync(cascadeSessionIds);
 
-                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
+                // Load SELURUH session cascade (root + turunan) utk: (a) gate izin HC atas SEMUA node, (b) cert.
+                var cascadeSessions = await _context.AssessmentSessions
+                    .Where(a => cascadeSessionIds.Contains(a.Id)).ToListAsync();
+
+                // #19: file sertifikat manual semua session node (engine juga hapus — idempotent File.Exists).
+                var certPaths = cascadeSessions
+                    .Where(s => !string.IsNullOrEmpty(s.ManualSertifikatUrl))
+                    .Select(s => s.ManualSertifikatUrl!)
+                    .ToList();
+
+                // Snapshot audit
+                string preDeleteStatus = assessment.Status;
+                int preDeleteResponseCount = await _context.PackageUserResponses
+                    .CountAsync(r => cascadeSessionIds.Contains(r.AssessmentSessionId));
+
+                // Actor untuk audit (engine + endpoint)
+                var actorUser = await _userManager.GetUserAsync(User);
+                var actorId = actorUser?.Id ?? "";
+                var actorName = string.IsNullOrWhiteSpace(actorUser?.NIP) ? (actorUser?.FullName ?? "Unknown") : $"{actorUser.NIP} - {actorUser.FullName}";
+
+                // PHASE 312 role-tier guard (D-04, T-312-01) — gate izin HC atas SELURUH set cascade (root + turunan),
+                // BUKAN cuma root. Fix temuan kritis 367-05: cegah HC menghapus turunan Completed/ber-jawaban via
+                // ancestor (engine tak punya role guard). EnsureCanDeleteAsync read-only; Admin override tetap lewat.
+                // Diposisikan paling akhir SEBELUM engine → window TOCTOU minimal (no in-tx re-check; residual diterima).
                 var blockResult = await EnsureCanDeleteAsync(
                     "DeleteAssessment",
                     id,
                     "AssessmentSession",
-                    new List<AssessmentSession> { assessment });
-                if (blockResult != null)
+                    cascadeSessions);
+                if (blockResult != null) return blockResult;
+
+                var result = await cascade.ExecuteAsync("session", id, Enumerable.Empty<int>(), actorId, actorName);
+                if (!result.Success)
                 {
-                    await tx.RollbackAsync();
-                    return blockResult;
-                }
-
-                // PHASE 312: capture pre-delete snapshot SEBELUM cascade (assessment.Status hilang post-SaveChanges)
-                string preDeleteStatus = assessment.Status;
-                int preDeleteResponseCount = await _context.PackageUserResponses
-                    .CountAsync(r => r.AssessmentSessionId == id);
-
-                // PHASE 323: snapshot EditLog count SEBELUM cascade (sama pola preDeleteResponseCount)
-                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
-                    .CountAsync(e => e.AssessmentSessionId == id);
-
-                // PHASE 312 WR-01: re-check responseCount untuk HC tier — kalau berubah dari 0
-                // antara guard dan sini, abort dengan error spesifik (peserta baru menyimpan jawaban).
-                // Admin override tetap bisa lanjut (D-04: Admin tier menerima konsekuensi).
-                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
-                {
-                    logger.LogWarning(
-                        "DeleteAssessment race detected: responseCount changed to {Count} for Id={Id} between guard and cascade",
-                        preDeleteResponseCount, id);
-                    await tx.RollbackAsync();
-                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
+                    TempData["Error"] = result.ErrorMessage ?? "Gagal menghapus assessment. Silakan coba lagi.";
                     return RedirectToAction("ManageAssessment");
                 }
 
-                // PHASE 323: Delete AssessmentEditLogs (Restrict FK — must be removed before session)
-                var editLogs = await _context.AssessmentEditLogs
-                    .Where(e => e.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (editLogs.Any())
-                {
-                    logger.LogInformation($"Deleting {editLogs.Count} assessment edit logs");
-                    _context.AssessmentEditLogs.RemoveRange(editLogs);
-                }
+                // Phase 366: hapus file gambar SOAL orphan POST cascade. Post-commit AnyAsync auto-sadar batch +
+                // shared Pre/Post selamat (D-05). logger lokal (BUKAN _logger).
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeleteAssessment image");
 
-                // Delete PackageUserResponses (Restrict FK — must be removed before session)
-                var pkgResponses = await _context.PackageUserResponses
-                    .Where(r => r.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (pkgResponses.Any())
-                {
-                    logger.LogInformation($"Deleting {pkgResponses.Count} package user responses");
-                    _context.PackageUserResponses.RemoveRange(pkgResponses);
-                }
+                // #19: hapus file sertifikat manual fisik POST-commit, warn-only (confined webroot V12).
+                DeleteCertFiles(certPaths, logger);
 
-                // Delete AssessmentAttemptHistory rows (no FK — orphaned if not removed)
-                var attemptHistory = await _context.AssessmentAttemptHistory
-                    .Where(h => h.SessionId == id)
-                    .ToListAsync();
-                if (attemptHistory.Any())
-                {
-                    logger.LogInformation($"Deleting {attemptHistory.Count} attempt history records");
-                    _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
-                }
-
-                // PHASE 323: Delete UserPackageAssignments (Restrict FK to AssessmentPackage — must be removed before packages)
-                // Comment lama "cascade-deleted by SessionId" salah: FK AssessmentPackageId Restrict fire saat Package dihapus duluan
-                var pkgAssignments = await _context.UserPackageAssignments
-                    .Where(a => a.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (pkgAssignments.Any())
-                {
-                    logger.LogInformation($"Deleting {pkgAssignments.Count} user package assignments");
-                    _context.UserPackageAssignments.RemoveRange(pkgAssignments);
-                }
-
-                // Explicit cleanup: AssessmentPackages + nested Questions + Options
-                // (DB may cascade, but explicit removal prevents ordering issues)
-                var packages = await _context.AssessmentPackages
-                    .Include(p => p.Questions).ThenInclude(q => q.Options)
-                    .Where(p => p.AssessmentSessionId == id)
-                    .ToListAsync();
-                if (packages.Any())
-                {
-                    foreach (var pkg in packages)
-                    {
-                        foreach (var q in pkg.Questions)
-                            _context.PackageOptions.RemoveRange(q.Options);
-                        _context.PackageQuestions.RemoveRange(pkg.Questions);
-                    }
-                    _context.AssessmentPackages.RemoveRange(packages);
-                    logger.LogInformation($"Deleting {packages.Count} packages with their questions/options");
-                }
-
-                // Finally delete the assessment itself
-                _context.AssessmentSessions.Remove(assessment);
-
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                // Audit log
+                // Audit log endpoint (konteks aksi user-facing; engine juga catat CascadeDelete detail)
                 try
                 {
-                    var deleteUser = await _userManager.GetUserAsync(User);
-                    var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
                     await _auditLog.LogAsync(
-                        deleteUser?.Id ?? "",
-                        deleteActorName,
+                        actorId,
+                        actorName,
                         "DeleteAssessment",
-                        $"Deleted assessment '{assessmentTitle}' [ID={id}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
+                        $"Deleted assessment '{assessmentTitle}' [ID={id}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} CascadeDeleted={result.DeletedCount}",
                         id,
                         "AssessmentSession");
                 }
@@ -2231,7 +2310,7 @@ namespace HcPortal.Controllers
                     logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessment {Id}", id);
                 }
 
-                logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle}");
+                logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle} (cascade {result.DeletedCount} record)");
                 TempData["Success"] = $"Assessment '{assessmentTitle}' has been deleted successfully.";
                 return RedirectToAction("ManageAssessment");
             }
@@ -2250,6 +2329,19 @@ namespace HcPortal.Controllers
             }
         }
 
+        // #18 Phase 367: predikat sibling grup standard online — single-source dipakai query EF DeleteAssessmentGroup
+        // + diuji SiblingFilterTests. Samakan scope dgn mgStandardSessions (LinkedGroupId==null): bukan Pre/Post group,
+        // bukan PreTest/PostTest, bukan assessment manual (cegah over-deletion ke luar scope tampilan tab 1).
+        public static System.Linq.Expressions.Expression<Func<AssessmentSession, bool>> StandardGroupSiblingPredicate(
+            string title, string category, DateTime scheduleDate)
+            => a => a.Title == title
+                    && a.Category == category
+                    && a.Schedule.Date == scheduleDate
+                    && a.LinkedGroupId == null
+                    && a.AssessmentType != "PreTest"
+                    && a.AssessmentType != "PostTest"
+                    && !a.IsManualEntry;
+
         // --- DELETE ASSESSMENT GROUP ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -2257,6 +2349,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> DeleteAssessmentGroup(int id)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
 
             try
             {
@@ -2273,141 +2366,93 @@ namespace HcPortal.Controllers
 
                 var scheduleDate = rep.Schedule.Date;
 
-                // Find all siblings (same Title + Category + Schedule.Date)
+                // Find all siblings (same Title + Category + Schedule.Date) — #18 Phase 367: filter scope grup standard
+                // (LinkedGroupId==null && bukan Pre/Post && !manual) supaya tidak menyapu sesi di luar tampilan tab 1.
                 var siblings = await _context.AssessmentSessions
-                    .Where(a =>
-                        a.Title == rep.Title &&
-                        a.Category == rep.Category &&
-                        a.Schedule.Date == scheduleDate)
+                    .Where(StandardGroupSiblingPredicate(rep.Title, rep.Category, scheduleDate))
                     .ToListAsync();
 
                 logger.LogInformation($"DeleteAssessmentGroup: deleting {siblings.Count} sessions for '{rep.Title}'");
 
-                var siblingIds = siblings.Select(s => s.Id).ToList();
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 329) DIBALIK → cascade penuh PER SIBLING via engine
+                // (turunan renewal IKUT terhapus, parity tab 2). Engine = 1-tx per sibling (atomik per-sibling,
+                // BUKAN 1-tx semua sibling — trade-off engine-route). Image SOAL (Opsi B) + #19 cert = ranah endpoint.
 
-                // Phase 329 D-02: pre-check renewal chain SEBELUM buka tx scope (fail-fast UX friendly).
-                // Paralel pola Phase 325 P05 DeleteAssessment L2040-2052, substitusi id → siblingIds via Contains.
-                // RenewsSessionId NoAction FK (Data/ApplicationDbContext.cs:220-228) akan throw raw FK 500
-                // di tengah cascade kalau pre-check ini absent.
-                var refTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsSessionId.HasValue && siblingIds.Contains(t.RenewsSessionId.Value));
-                var refAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsSessionId.HasValue && siblingIds.Contains(a.RenewsSessionId.Value));
+                // Cascade node ids SEMUA sibling (root + turunan renewal). CollectCascadeIds = traversal SAMA dgn ExecuteAsync.
+                var allCascadeSessionIds = new HashSet<int>();
+                foreach (var sib in siblings)
+                    foreach (var node in await cascade.CollectCascadeIds("session", sib.Id))
+                        if (node.Type == "session") allCascadeSessionIds.Add(node.Id);
 
-                if (refTr + refAs > 0)
-                {
-                    var total = refTr + refAs;
-                    TempData["Error"] = $"Tidak bisa hapus grup: {total} sertifikat lain "
-                                      + "menggunakan salah satu sesi di grup ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment");
-                }
+                // Image SOAL Distinct semua node (engine Opsi B tak sentuh image SOAL → cegah orphan turunan).
+                var imagePaths = await CollectQuestionImagePathsAsync(allCascadeSessionIds);
 
-                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Load SELURUH session cascade (sibling + turunan) utk: (a) gate izin HC atas SEMUA node, (b) cert.
+                var cascadeSessions = await _context.AssessmentSessions
+                    .Where(a => allCascadeSessionIds.Contains(a.Id)).ToListAsync();
 
-                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
+                // #19: file sertifikat manual per session node (engine juga hapus — idempotent). Map id→url supaya
+                // saat partial failure cert HANYA dihapus utk sesi yg BENAR-BENAR ter-commit (deletedSet) — cegah
+                // hapus cert sesi yg masih ada (DeleteCertFiles tak punya ref-check, beda dgn ImageFileCleanup).
+                var certById = cascadeSessions
+                    .Where(s => !string.IsNullOrEmpty(s.ManualSertifikatUrl))
+                    .ToDictionary(s => s.Id, s => s.ManualSertifikatUrl!);
+
+                // Snapshot audit agregat
+                string preDeleteStatus = string.Join(" / ", siblings.GroupBy(s => s.Status).Select(g => $"{g.Count()} {g.Key}"));
+                int preDeleteResponseCount = await _context.PackageUserResponses
+                    .CountAsync(r => allCascadeSessionIds.Contains(r.AssessmentSessionId));
+                int preDeleteSessionCount = siblings.Count;
+
+                // Actor untuk audit (engine + endpoint)
+                var actorUser = await _userManager.GetUserAsync(User);
+                var actorId = actorUser?.Id ?? "";
+                var actorName = string.IsNullOrWhiteSpace(actorUser?.NIP) ? (actorUser?.FullName ?? "Unknown") : $"{actorUser.NIP} - {actorUser.FullName}";
+
+                // PHASE 312 role-tier guard — gate izin HC atas SELURUH set cascade (sibling + turunan), BUKAN cuma
+                // sibling (fix temuan kritis 367-05: cegah HC hapus turunan Completed/ber-jawaban via engine). Last
+                // SEBELUM loop → window TOCTOU minimal. Admin override tetap lewat.
                 var blockResult = await EnsureCanDeleteAsync(
                     "DeleteAssessmentGroup",
                     id,
                     "AssessmentSession",
-                    siblings);
-                if (blockResult != null)
+                    cascadeSessions);
+                if (blockResult != null) return blockResult;
+
+                // Cascade per sibling UNIK (skip yg sudah ikut cascade sibling lain via deletedSet — cegah dobel).
+                // Engine 1-tx per sibling → bila sibling ke-N gagal, sibling 1..N-1 SUDAH commit. JANGAN early-return
+                // sebelum cleanup: file gambar/cert sibling yg sudah commit harus dibersihkan (cegah orphan, fix MED).
+                int totalDeleted = 0;
+                var deletedSet = new HashSet<int>();
+                bool partialFailure = false;
+                int? failedSiblingId = null;
+                foreach (var sib in siblings)
                 {
-                    await tx.RollbackAsync();
-                    return blockResult;
-                }
-
-                // PHASE 312: capture pre-delete aggregated snapshot SEBELUM cascade
-                string preDeleteStatus = string.Join(" / ", siblings.GroupBy(s => s.Status).Select(g => $"{g.Count()} {g.Key}"));
-                int preDeleteResponseCount = await _context.PackageUserResponses
-                    .CountAsync(r => siblingIds.Contains(r.AssessmentSessionId));
-                int preDeleteSessionCount = siblings.Count;
-
-                // PHASE 323: snapshot EditLog count agregat semua siblings
-                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
-                    .CountAsync(e => siblingIds.Contains(e.AssessmentSessionId));
-
-                // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
-                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
-                {
-                    logger.LogWarning(
-                        "DeleteAssessmentGroup race detected: responseCount changed to {Count} for RepId={Id} between guard and cascade",
-                        preDeleteResponseCount, id);
-                    await tx.RollbackAsync();
-                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
-                    return RedirectToAction("ManageAssessment");
-                }
-
-                // PHASE 323: Delete AssessmentEditLogs untuk semua siblings (Restrict FK)
-                var allEditLogs = await _context.AssessmentEditLogs
-                    .Where(e => siblingIds.Contains(e.AssessmentSessionId))
-                    .ToListAsync();
-                if (allEditLogs.Any())
-                {
-                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allEditLogs.Count} edit logs across {siblingIds.Count} sessions");
-                    _context.AssessmentEditLogs.RemoveRange(allEditLogs);
-                }
-
-                // Delete PackageUserResponses for all siblings (Restrict FK — must be removed before sessions)
-                var allPkgResponses = await _context.PackageUserResponses
-                    .Where(r => siblingIds.Contains(r.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgResponses.Any())
-                    _context.PackageUserResponses.RemoveRange(allPkgResponses);
-
-                // Delete AssessmentAttemptHistory for all siblings (no FK — orphaned if not removed)
-                var allAttemptHistory = await _context.AssessmentAttemptHistory
-                    .Where(h => siblingIds.Contains(h.SessionId))
-                    .ToListAsync();
-                if (allAttemptHistory.Any())
-                    _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
-
-                // PHASE 323: Delete UserPackageAssignments untuk semua siblings (Restrict FK to AssessmentPackage)
-                var allPkgAssignments = await _context.UserPackageAssignments
-                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgAssignments.Any())
-                {
-                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allPkgAssignments.Count} user package assignments across {siblingIds.Count} sessions");
-                    _context.UserPackageAssignments.RemoveRange(allPkgAssignments);
-                }
-
-                // Explicit cleanup: AssessmentPackages + nested Questions + Options for all siblings
-                var allPackages = await _context.AssessmentPackages
-                    .Include(p => p.Questions).ThenInclude(q => q.Options)
-                    .Where(p => siblingIds.Contains(p.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPackages.Any())
-                {
-                    foreach (var pkg in allPackages)
+                    if (deletedSet.Contains(sib.Id)) continue;
+                    var r = await cascade.ExecuteAsync("session", sib.Id, Enumerable.Empty<int>(), actorId, actorName);
+                    if (!r.Success)
                     {
-                        foreach (var q in pkg.Questions)
-                            _context.PackageOptions.RemoveRange(q.Options);
-                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                        partialFailure = true;
+                        failedSiblingId = sib.Id;
+                        break;
                     }
-                    _context.AssessmentPackages.RemoveRange(allPackages);
-                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allPackages.Count} packages with their questions/options");
+                    totalDeleted += r.DeletedCount;
+                    foreach (var sid in r.DeletedSessionIds) deletedSet.Add(sid);
                 }
 
-                foreach (var session in siblings)
-                {
-                    _context.AssessmentSessions.Remove(session);
-                }
+                // Cleanup file SELALU jalan utk sibling yg SUDAH commit (post-commit AnyAsync self-correct: hanya file
+                // tak-direferensikan baris tersisa yg dihapus). Aman walau partialFailure.
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeleteAssessmentGroup image");
+                DeleteCertFiles(deletedSet.Where(certById.ContainsKey).Select(d => certById[d]), logger);
 
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                // Audit log
+                // Audit endpoint SELALU ditulis (refleksi hasil AKTUAL totalDeleted, partial-aware — fix MED repudiation).
                 try
                 {
-                    var dgUser = await _userManager.GetUserAsync(User);
-                    var dgActorName = string.IsNullOrWhiteSpace(dgUser?.NIP) ? (dgUser?.FullName ?? "Unknown") : $"{dgUser.NIP} - {dgUser.FullName}";
                     await _auditLog.LogAsync(
-                        dgUser?.Id ?? "",
-                        dgActorName,
-                        "DeleteAssessmentGroup",
-                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) [RepId={id}] SessionCount={preDeleteSessionCount} Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
+                        actorId,
+                        actorName,
+                        partialFailure ? "DeleteAssessmentGroupPartial" : "DeleteAssessmentGroup",
+                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) [RepId={id}] SessionCount={preDeleteSessionCount} Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} CascadeDeleted={totalDeleted}{(partialFailure ? $" PARTIAL FailedAt={failedSiblingId}" : "")}",
                         id,
                         "AssessmentSession");
                 }
@@ -2416,7 +2461,14 @@ namespace HcPortal.Controllers
                     logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentGroup {Id}", id);
                 }
 
-                logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}'");
+                if (partialFailure)
+                {
+                    logger.LogWarning("DeleteAssessmentGroup partial: deleted {Count} record before failing at sibling {SibId}", totalDeleted, failedSiblingId);
+                    TempData["Error"] = $"Sebagian sesi sudah dihapus ({totalDeleted} record), proses berhenti pada salah satu sesi. Silakan refresh halaman dan ulangi untuk sisa.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
+                logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}' (cascade {totalDeleted} record)");
                 TempData["Success"] = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted.";
                 return RedirectToAction("ManageAssessment");
             }
@@ -2443,6 +2495,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> DeletePrePostGroup(int linkedGroupId)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AssessmentAdminController>>();
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
 
             try
             {
@@ -2458,139 +2511,97 @@ namespace HcPortal.Controllers
                 }
 
                 var groupTitle = groupSessions.First().Title;
-                var groupIds = groupSessions.Select(s => s.Id).ToList();
 
                 logger.LogInformation($"DeletePrePostGroup: deleting {groupSessions.Count} sessions for '{groupTitle}' (LinkedGroupId={linkedGroupId})");
 
-                // Phase 329 D-02: pre-check renewal chain SEBELUM buka tx scope (fail-fast UX friendly).
-                // Paralel pola Phase 325 P05 DeleteAssessment L2040-2052, substitusi id → groupIds via Contains.
-                // RenewsSessionId NoAction FK (Data/ApplicationDbContext.cs:220-228) akan throw raw FK 500
-                // di tengah cascade kalau pre-check ini absent.
-                var refTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsSessionId.HasValue && groupIds.Contains(t.RenewsSessionId.Value));
-                var refAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsSessionId.HasValue && groupIds.Contains(a.RenewsSessionId.Value));
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 329) DIBALIK → cascade penuh PER SESI via engine
+                // (turunan renewal IKUT terhapus). Engine handle #8 LinkedSessionId null-clear pasangan Pre/Post.
+                // Atomik per-sesi (trade-off engine-route). Image SOAL (Opsi B) + #19 cert = ranah endpoint.
 
-                if (refTr + refAs > 0)
-                {
-                    var total = refTr + refAs;
-                    TempData["Error"] = $"Tidak bisa hapus grup Pre-Post: {total} sertifikat lain "
-                                      + "menggunakan salah satu sesi di grup ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return RedirectToAction("ManageAssessment");
-                }
+                // Cascade node ids SEMUA sesi group (root + turunan renewal). CollectCascadeIds = traversal SAMA dgn ExecuteAsync.
+                var allCascadeSessionIds = new HashSet<int>();
+                foreach (var gs in groupSessions)
+                    foreach (var node in await cascade.CollectCascadeIds("session", gs.Id))
+                        if (node.Type == "session") allCascadeSessionIds.Add(node.Id);
 
-                // PHASE 312 WR-01: bungkus guard + cascade dalam transaction (TOCTOU mitigation)
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Image SOAL Distinct semua node (engine Opsi B tak sentuh image SOAL → cegah orphan turunan).
+                var imagePaths = await CollectQuestionImagePathsAsync(allCascadeSessionIds);
 
-                // PHASE 312: role-tier guard (D-04, T-312-01) — sisip pre-cascade
-                var blockResult = await EnsureCanDeleteAsync(
-                    "DeletePrePostGroup",
-                    linkedGroupId,
-                    "AssessmentSession",
-                    groupSessions);
-                if (blockResult != null)
-                {
-                    await tx.RollbackAsync();
-                    return blockResult;
-                }
+                // Load SELURUH session cascade (sesi group + turunan) utk: (a) gate izin HC atas SEMUA node, (b) cert.
+                var cascadeSessions = await _context.AssessmentSessions
+                    .Where(a => allCascadeSessionIds.Contains(a.Id)).ToListAsync();
 
-                // PHASE 312: capture per-session breakdown SEBELUM cascade (Q3 RESOLVED)
-                // Field: AssessmentType per Models/AssessmentSession.cs:154 (values "PreTest" | "PostTest" | null)
+                // #19: file sertifikat manual per session node (map id→url; partial failure hapus cert hanya sesi commit).
+                var certById = cascadeSessions
+                    .Where(s => !string.IsNullOrEmpty(s.ManualSertifikatUrl))
+                    .ToDictionary(s => s.Id, s => s.ManualSertifikatUrl!);
+
+                // Snapshot audit (breakdown Pre/Post) — AssessmentType per Models/AssessmentSession.cs
                 var preSession = groupSessions.FirstOrDefault(s => s.AssessmentType == "PreTest");
                 var postSession = groupSessions.FirstOrDefault(s => s.AssessmentType == "PostTest");
                 string preDeleteStatus = $"PreTest:{preSession?.Status ?? "-"},PostTest:{postSession?.Status ?? "-"}";
                 int preDeleteResponseCount = await _context.PackageUserResponses
-                    .CountAsync(r => groupIds.Contains(r.AssessmentSessionId));
+                    .CountAsync(r => allCascadeSessionIds.Contains(r.AssessmentSessionId));
 
-                // PHASE 323: snapshot EditLog count agregat PrePost group
-                int preDeleteEditLogsCount = await _context.AssessmentEditLogs
-                    .CountAsync(e => groupIds.Contains(e.AssessmentSessionId));
+                // Actor
+                var actorUser = await _userManager.GetUserAsync(User);
+                var actorId = actorUser?.Id ?? "";
+                var actorName = string.IsNullOrWhiteSpace(actorUser?.NIP) ? (actorUser?.FullName ?? "Unknown") : $"{actorUser.NIP} - {actorUser.FullName}";
 
-                // PHASE 312 WR-01: re-check responseCount untuk HC tier (Admin override lanjut)
-                if (!User.IsInRole("Admin") && preDeleteResponseCount > 0)
+                // PHASE 312 role-tier guard — gate izin HC atas SELURUH set cascade (sesi group + turunan), BUKAN cuma
+                // sesi group (fix temuan kritis 367-05). Last SEBELUM loop → window TOCTOU minimal. Admin override lewat.
+                var blockResult = await EnsureCanDeleteAsync(
+                    "DeletePrePostGroup",
+                    linkedGroupId,
+                    "AssessmentSession",
+                    cascadeSessions);
+                if (blockResult != null) return blockResult;
+
+                // Cascade per sesi UNIK (engine handle #8 null-clear pasangan; skip yg sudah ikut cascade lain).
+                // 1-tx per sesi → bila gagal di tengah, sesi sebelumnya SUDAH commit: JANGAN early-return sebelum cleanup.
+                int totalDeleted = 0;
+                var deletedSet = new HashSet<int>();
+                bool partialFailure = false;
+                int? failedSessionId = null;
+                foreach (var gs in groupSessions)
                 {
-                    logger.LogWarning(
-                        "DeletePrePostGroup race detected: responseCount changed to {Count} for LinkedGroupId={Id} between guard and cascade",
-                        preDeleteResponseCount, linkedGroupId);
-                    await tx.RollbackAsync();
-                    TempData["Error"] = "Peserta baru menyimpan jawaban sesaat sebelum penghapusan. Silakan refresh halaman dan coba lagi.";
-                    return RedirectToAction("ManageAssessment");
-                }
-
-                // PHASE 323: Delete AssessmentEditLogs untuk semua sessions di Pre-Post group
-                var allEditLogs = await _context.AssessmentEditLogs
-                    .Where(e => groupIds.Contains(e.AssessmentSessionId))
-                    .ToListAsync();
-                if (allEditLogs.Any())
-                {
-                    logger.LogInformation($"DeletePrePostGroup: deleting {allEditLogs.Count} edit logs across {groupIds.Count} sessions (LinkedGroupId={linkedGroupId})");
-                    _context.AssessmentEditLogs.RemoveRange(allEditLogs);
-                }
-
-                // Cascade delete — ikuti pola DeleteAssessmentGroup:
-                // 1. PackageUserResponses
-                var allPkgResponses = await _context.PackageUserResponses
-                    .Where(r => groupIds.Contains(r.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgResponses.Any())
-                    _context.PackageUserResponses.RemoveRange(allPkgResponses);
-
-                // 2. AssessmentAttemptHistory
-                var allAttemptHistory = await _context.AssessmentAttemptHistory
-                    .Where(h => groupIds.Contains(h.SessionId))
-                    .ToListAsync();
-                if (allAttemptHistory.Any())
-                    _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
-
-                // PHASE 323: 2b. UserPackageAssignments untuk semua sessions Pre-Post group (Restrict FK to AssessmentPackage)
-                var allPkgAssignments = await _context.UserPackageAssignments
-                    .Where(a => groupIds.Contains(a.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPkgAssignments.Any())
-                {
-                    logger.LogInformation($"DeletePrePostGroup: deleting {allPkgAssignments.Count} user package assignments across {groupIds.Count} sessions (LinkedGroupId={linkedGroupId})");
-                    _context.UserPackageAssignments.RemoveRange(allPkgAssignments);
-                }
-
-                // 3. Packages + Questions + Options
-                var allPackages = await _context.AssessmentPackages
-                    .Include(p => p.Questions).ThenInclude(q => q.Options)
-                    .Where(p => groupIds.Contains(p.AssessmentSessionId))
-                    .ToListAsync();
-                if (allPackages.Any())
-                {
-                    foreach (var pkg in allPackages)
+                    if (deletedSet.Contains(gs.Id)) continue;
+                    var r = await cascade.ExecuteAsync("session", gs.Id, Enumerable.Empty<int>(), actorId, actorName);
+                    if (!r.Success)
                     {
-                        foreach (var q in pkg.Questions)
-                            _context.PackageOptions.RemoveRange(q.Options);
-                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                        partialFailure = true;
+                        failedSessionId = gs.Id;
+                        break;
                     }
-                    _context.AssessmentPackages.RemoveRange(allPackages);
+                    totalDeleted += r.DeletedCount;
+                    foreach (var sid in r.DeletedSessionIds) deletedSet.Add(sid);
                 }
 
-                // 4. Sessions
-                _context.AssessmentSessions.RemoveRange(groupSessions);
+                // Cleanup file SELALU jalan utk sesi yg SUDAH commit (post-commit AnyAsync self-correct). Aman walau partial.
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, logger, imagePaths, "DeletePrePostGroup image");
+                DeleteCertFiles(deletedSet.Where(certById.ContainsKey).Select(d => certById[d]), logger);
 
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                // Audit log
+                // Audit endpoint SELALU ditulis (refleksi hasil AKTUAL, partial-aware — fix MED repudiation).
                 try
                 {
-                    var dpgUser = await _userManager.GetUserAsync(User);
-                    var dpgActorName = string.IsNullOrWhiteSpace(dpgUser?.NIP) ? (dpgUser?.FullName ?? "Unknown") : $"{dpgUser.NIP} - {dpgUser.FullName}";
                     await _auditLog.LogAsync(
-                        dpgUser?.Id ?? "",
-                        dpgActorName,
-                        "DeletePrePostGroup",
-                        $"Deleted Pre-Post group '{groupTitle}' [LinkedGroupId={linkedGroupId}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} EditLogsCount={preDeleteEditLogsCount}",
+                        actorId,
+                        actorName,
+                        partialFailure ? "DeletePrePostGroupPartial" : "DeletePrePostGroup",
+                        $"Deleted Pre-Post group '{groupTitle}' [LinkedGroupId={linkedGroupId}] Status={preDeleteStatus} ResponseCount={preDeleteResponseCount} CascadeDeleted={totalDeleted}{(partialFailure ? $" PARTIAL FailedAt={failedSessionId}" : "")}",
                         linkedGroupId,
                         "AssessmentSession");
                 }
                 catch (Exception auditEx)
                 {
                     logger.LogWarning(auditEx, "Audit log write failed for DeletePrePostGroup {LinkedGroupId}", linkedGroupId);
+                }
+
+                if (partialFailure)
+                {
+                    logger.LogWarning("DeletePrePostGroup partial: deleted {Count} record before failing at session {SibId}", totalDeleted, failedSessionId);
+                    TempData["Error"] = $"Sebagian sesi sudah dihapus ({totalDeleted} record), proses berhenti. Silakan refresh halaman dan ulangi untuk sisa.";
+                    return RedirectToAction("ManageAssessment");
                 }
 
                 TempData["Success"] = $"Grup Pre-Post Test '{groupTitle}' dan semua {groupSessions.Count} sesi berhasil dihapus.";
@@ -2611,6 +2622,9 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageAssessment");
             }
         }
+
+        // Phase 367: helper cascade (CollectQuestionImagePathsAsync, DeleteCertFiles) dipindah ke
+        // AdminBaseController (single-source tab-1 + tab-2; lihat AdminBaseController.cs).
 
         // --- REGENERATE TOKEN ---
         [HttpPost("{id:int}")]
@@ -2728,13 +2742,10 @@ namespace HcPortal.Controllers
             string? status,
             string? category)
         {
-            // 7-day window — same as ManageAssessment
-            // 90-review: 7-day window is intentional for monitoring view; Abandoned sessions with no ExamWindowCloseDate
-            // fall back to Schedule for the window check and naturally age out after 7 days (expected behavior).
-            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
-
+            // Phase 370 (URG-02): window 7-hari dihapus — tampilan default tanpa batas umur.
+            // D-05: .AsNoTracking() — read-only method (no SaveChanges), selaras Tab Assessment Phase 311.
             var query = _context.AssessmentSessions
-                .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
+                .AsNoTracking()
                 .AsQueryable();
 
             // Text search by title
@@ -2988,9 +2999,12 @@ namespace HcPortal.Controllers
                     PackageQuestionId = q.Id,
                     QuestionText = q.QuestionText,
                     QuestionType = q.QuestionType ?? "MultipleChoice",
+                    ImagePath = q.ImagePath,
+                    ImageAlt = q.ImageAlt,
                     Options = q.Options.Select(o => new HcPortal.Models.EditOptionRow
                     {
-                        Id = o.Id, OptionText = o.OptionText, IsCorrect = o.IsCorrect
+                        Id = o.Id, OptionText = o.OptionText, IsCorrect = o.IsCorrect,
+                        ImagePath = o.ImagePath, ImageAlt = o.ImageAlt
                     }).ToList(),
                     SelectedOptionIds = selectedIds,
                     CorrectOptionIds = correctIds,
@@ -3402,7 +3416,9 @@ namespace HcPortal.Controllers
                         Rubrik        = q.Rubrik,
                         TextAnswer    = essayRespMap.TryGetValue(q.Id, out var resp) ? resp.TextAnswer : null,
                         EssayScore    = essayRespMap.TryGetValue(q.Id, out var resp2) ? resp2.EssayScore : null,
-                        ScoreValue    = q.ScoreValue
+                        ScoreValue    = q.ScoreValue,
+                        ImagePath     = q.ImagePath,
+                        ImageAlt      = q.ImageAlt
                     }).ToList();
 
                     essayGradingMap[sess.Id] = items;
@@ -3516,45 +3532,39 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Masih ada Essay yang belum dinilai" });
 
             // 2. Recalculate total score (MC + MA auto + Essay manual)
-            var allQuestions = await _context.PackageQuestions
-                .Include(q => q.Options)
-                .Where(q => shuffledIds.Contains(q.Id))
-                .ToListAsync();
+            // Phase 376 D-06: derivasi question-set ROBUST. shuffledIds biasanya terisi (fixed v27.0 Phase 373),
+            // tapi bila kosong (root-cause historis H1 — ShuffledQuestionIds malformed/empty pra-v27) → fallback
+            // derive dari PackageUserResponses session supaya agregasi tidak collapse ke maxScore=0 → Score=0.
+            List<PackageQuestion> allQuestions;
+            if (shuffledIds.Count > 0)
+            {
+                allQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => shuffledIds.Contains(q.Id))
+                    .ToListAsync();
+            }
+            else
+            {
+                _logger.LogWarning("FinalizeEssayGrading: shuffledIds kosong session {SessionId} — fallback derive question-set dari PackageUserResponses (D-06).", sessionId);
+                var respQIds = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == sessionId)
+                    .Select(r => r.PackageQuestionId).Distinct().ToListAsync();
+                allQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => respQIds.Contains(q.Id))
+                    .ToListAsync();
+            }
             var allResponses = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == sessionId)
                 .ToListAsync();
 
-            int totalScore = 0;
-            int maxScore = 0;
-            foreach (var q in allQuestions)
-            {
-                maxScore += q.ScoreValue;
-                switch (q.QuestionType ?? "MultipleChoice")
-                {
-                    case "MultipleChoice":
-                        var mcResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
-                        if (mcResp != null)
-                        {
-                            var opt = q.Options.FirstOrDefault(o => o.Id == mcResp.PackageOptionId!.Value);
-                            if (opt != null && opt.IsCorrect) totalScore += q.ScoreValue;
-                        }
-                        break;
-                    case "MultipleAnswer":
-                        var maSelected = allResponses
-                            .Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue)
-                            .Select(r => r.PackageOptionId!.Value).ToHashSet();
-                        var maCorrect = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
-                        if (maSelected.SetEquals(maCorrect)) totalScore += q.ScoreValue;
-                        break;
-                    case "Essay":
-                        var essayResp = allResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id);
-                        if (essayResp?.EssayScore.HasValue == true) totalScore += essayResp.EssayScore.Value;
-                        break;
-                }
-            }
-
-            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-            bool isPassed = finalPercentage >= session.PassPercentage;
+            // Phase 376 D-02/D-04: agregasi via helper murni AssessmentScoreAggregator (kill-drift —
+            // sama persis dengan RecomputeEssayScores Plan 03). Formula D-04 di-port verbatim di helper.
+            var agg = AssessmentScoreAggregator.Compute(allQuestions, allResponses, session.PassPercentage);
+            if (agg.MaxScore == 0)
+                _logger.LogWarning("FinalizeEssayGrading: maxScore=0 session {SessionId} — anomali data, Score fallback 0 (D-05).", sessionId);
+            int finalPercentage = agg.Percentage;
+            bool isPassed = agg.IsPassed;
 
             // 3. Update session: Completed + final score + IsPassed (T-298-16 replay guard via WHERE clause)
             // D-06 / D-07 — capture rowsAffected, gate semua side-effect (audit + cert + notif)
@@ -3630,6 +3640,20 @@ namespace HcPortal.Controllers
             {
                 // Audit failure tidak boleh break primary flow (precedent Phase 306 D-10)
                 _logger.LogWarning(ex, "FinalizeEssayGrading: audit log failed for session {SessionId}", sessionId);
+            }
+
+            // 5c. PCOMP-01 D-05a (defensive): Proton essay lulus → penanda Origin="Exam".
+            // Praktis idle (Proton tak ada essay di data sekarang) tapi nutup celah hasEssay early-return
+            // di GradingService.GradeAndCompleteAsync (RESEARCH Pitfall 1) yang lewati hook penanda.
+            // EnsureAsync idempotent → aman walau Hook A juga terbit.
+            if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId.HasValue)
+            {
+                await _protonCompletionService.EnsureAsync(
+                    session.UserId, session.ProtonTrackId.Value, currentUser?.Id ?? "",
+                    "Exam", $"Essay Proton finalisasi lulus (skor {finalPercentage}%).");
+                // §7 titik 4 (Pitfall 2): essay early-return tak lewat hook GradeAndCompleteAsync →
+                // flip pending CL-B(b) Menunggu→Siap + notif HC di sini. Idempotent (guard rowsAffected).
+                await _protonBypassService.MarkPendingReadyIfAnyAsync(session.Id);
             }
 
             // 6. Reload session untuk NotifyIfGroupCompleted
@@ -3732,34 +3756,18 @@ namespace HcPortal.Controllers
             // [PROTON-06 FIX] Create ProtonFinalAssessment when interview passes so that
             // HistoriProton and CoachingProton dashboard correctly reflect completion status.
             var actorForFix = await _userManager.GetUserAsync(User);
+            // PCOMP-03 (D-07): refactor inline-create → single-source helper ProtonCompletionService.
+            // EnsureAsync share _context scoped yang sama (SaveChanges internal) → idempotent, tidak dobel.
             if (isPassed && session.ProtonTrackId.HasValue)
             {
-                var assignment = await _context.ProtonTrackAssignments
-                    .FirstOrDefaultAsync(a => a.CoacheeId == session.UserId
-                                           && a.ProtonTrackId == session.ProtonTrackId.Value
-                                           && a.IsActive);
-                if (assignment != null)
-                {
-                    // Avoid duplicate: only create if none exists for this assignment
-                    var alreadyExists = await _context.ProtonFinalAssessments
-                        .AnyAsync(fa => fa.ProtonTrackAssignmentId == assignment.Id);
-                    if (!alreadyExists)
-                    {
-                        _context.ProtonFinalAssessments.Add(new ProtonFinalAssessment
-                        {
-                            CoacheeId = session.UserId,
-                            CreatedById = actorForFix?.Id ?? "",
-                            ProtonTrackAssignmentId = assignment.Id,
-                            Status = "Completed",
-                            CompetencyLevelGranted = 0, // Interview track does not grant a numeric level
-                            Notes = $"Interview Tahun 3 lulus. Assessor: {dto.Judges}",
-                            CreatedAt = DateTime.UtcNow,
-                            CompletedAt = DateTime.UtcNow
-                        });
-                    }
-                }
+                await _protonCompletionService.EnsureAsync(
+                    session.UserId, session.ProtonTrackId.Value, actorForFix?.Id ?? "",
+                    "Interview", $"Interview Tahun 3 lulus. Assessor: {dto.Judges}");
             }
 
+            // Simpan perubahan session (InterviewResultsJson/IsPassed/Status di-set di memory di atas).
+            // EnsureAsync sudah flush bila penanda dibuat; SaveChanges ini jaga session tetap tersimpan
+            // walau EnsureAsync skip/return false (Pitfall 2 — urutan terjaga).
             await _context.SaveChangesAsync();
 
             // Audit log
@@ -3785,6 +3793,214 @@ namespace HcPortal.Controllers
             });
         }
 
+        // --- BACKFILL PENANDA PROTON (PCOMP-05) ---
+        // Maintenance admin-only 1x idempotent: terbitkan penanda Origin="Exam" untuk exam Proton
+        // Tahun 1/2 LAMA yang lulus + deliverable 100% (A-M10 resolve, D-08 enforce 100%).
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BackfillProtonPenanda()
+        {
+            int created = 0, alreadyExists = 0, notEligible = 0, skipped = 0;
+            try
+            {
+                // 1. Semua exam Proton Tahun 1/2 yang lulus + selesai.
+                var exams = await _context.AssessmentSessions
+                    .Where(s => s.Category == "Assessment Proton"
+                             && s.IsPassed == true
+                             && s.ProtonTrackId.HasValue
+                             && (s.TahunKe == "Tahun 1" || s.TahunKe == "Tahun 2")
+                             && s.CompletedAt != null)
+                    .ToListAsync();
+
+                foreach (var exam in exams)
+                {
+                    // 2. Resolve assignment A-M10 (BUKAN EnsureAsync — Pitfall 3): tanpa filter IsActive
+                    //    (bisa inactive & >1), AssignedAt <= exam.CompletedAt (Pitfall 4: pakai exam.CompletedAt).
+                    var assignment = await _context.ProtonTrackAssignments
+                        .Where(a => a.CoacheeId == exam.UserId
+                                 && a.ProtonTrackId == exam.ProtonTrackId!.Value
+                                 && a.AssignedAt <= exam.CompletedAt!.Value)
+                        .OrderByDescending(a => a.AssignedAt)
+                        .FirstOrDefaultAsync();
+                    if (assignment == null)
+                    {
+                        skipped++;
+                        _logger.LogInformation("BackfillProtonPenanda: skip exam {Id} — tidak ada assignment match.", exam.Id);
+                        continue;
+                    }
+
+                    // 3. Idempotent: lewati bila penanda untuk assignment ini sudah ada.
+                    if (await _context.ProtonFinalAssessments.AnyAsync(fa => fa.ProtonTrackAssignmentId == assignment.Id))
+                    {
+                        alreadyExists++;
+                        continue;
+                    }
+
+                    // 4. ENFORCE deliverable 100% (D-08): count>0 + semua Approved (setara IsEligiblePerUnit assignment-scoped).
+                    //    T10/D-13 (by-design): Backfill SENGAJA tanpa year-gate — menambal data historis
+                    //    pre-Phase 358 yang lulus exam sungguhan; year-gate baru bermakna setelah penanda
+                    //    lengkap. Enforce 100% deliverable Approved tetap berlaku.
+                    var statuses = await _context.ProtonDeliverableProgresses
+                        .Where(p => p.ProtonTrackAssignmentId == assignment.Id)
+                        .Select(p => p.Status)
+                        .ToListAsync();
+                    if (statuses.Count == 0 || !statuses.All(s => s == "Approved"))
+                    {
+                        notEligible++;
+                        continue;
+                    }
+
+                    // 5. Create penanda manual (Origin="Exam", CompletedAt=exam.CompletedAt).
+                    _context.ProtonFinalAssessments.Add(new ProtonFinalAssessment
+                    {
+                        CoacheeId = exam.UserId,
+                        CreatedById = (await _userManager.GetUserAsync(User))?.Id ?? "",
+                        ProtonTrackAssignmentId = assignment.Id,
+                        Status = "Completed",
+                        CompetencyLevelGranted = 0,
+                        Origin = "Exam",
+                        Notes = $"Backfill exam {exam.TahunKe} lulus.",
+                        CreatedAt = DateTime.UtcNow,
+                        CompletedAt = exam.CompletedAt
+                    });
+                    created++;
+                }
+
+                if (created > 0)
+                    await _context.SaveChangesAsync();
+
+                // 7. Audit (warn-only — kegagalan audit tidak boleh break).
+                try
+                {
+                    var actor = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
+                    await _auditLog.LogAsync(actor?.Id ?? "", actorName, "BackfillProtonPenanda",
+                        $"Backfill: {created} dibuat, {alreadyExists} sudah ada, {notEligible} belum 100%, {skipped} tanpa assignment",
+                        0, "ProtonFinalAssessment");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "BackfillProtonPenanda: audit log gagal.");
+                }
+
+                TempData["Success"] = $"Backfill selesai: {created} penanda dibuat, {alreadyExists} dilewati, {notEligible} belum 100%, {skipped} tanpa assignment.";
+            }
+            catch (Exception ex)
+            {
+                // No info-leak (Phase 334 D6): detail ke log, pesan generik ke user.
+                _logger.LogError(ex, "BackfillProtonPenanda gagal.");
+                TempData["Error"] = "Backfill penanda Proton gagal. Cek log untuk detail.";
+            }
+
+            return RedirectToAction("ManageAssessment");
+        }
+
+        // --- RECOMPUTE ESSAY SCORES (GRADE-01 — repair baris historis) ---
+        // Phase 376: maintenance admin-only idempotent. Repair sesi essay-only yang di-finalize saat bug
+        // pra-v27 aktif (Score=0 walau dinilai+finalize — lihat 376-DIAGNOSE.md). Reuse AssessmentScoreAggregator
+        // (D-02 kill-drift, math identik forward path) — set Score + IsPassed ONLY (D-03: NO cert/Proton/notif/
+        // TrainingRecord retroaktif). Eksekusi di DB Dev/Prod = tanggung jawab IT (CLAUDE.md); developer verifikasi lokal.
+        [HttpPost]
+        [Authorize(Roles = "Admin")]              // mass-repair → Admin-only (lebih ketat dari "Admin, HC", BulkBackfill precedent)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecomputeEssayScores()
+        {
+            int repaired = 0, skipped = 0, alreadyOk = 0;
+            try
+            {
+                // Kandidat: Completed + manual grading + Score belum terisi benar (0/null). Predicate 376-DIAGNOSE.md.
+                var candidateIds = await _context.AssessmentSessions
+                    .Where(s => s.Status == AssessmentConstants.AssessmentStatus.Completed
+                             && s.HasManualGrading
+                             && (s.Score == null || s.Score == 0))
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
+                foreach (var candId in candidateIds)
+                {
+                    var session = await _context.AssessmentSessions.FindAsync(candId);
+                    if (session == null) { skipped++; continue; }
+
+                    var packageAssignment = await _context.UserPackageAssignments
+                        .FirstOrDefaultAsync(a => a.AssessmentSessionId == candId);
+                    if (packageAssignment == null) { skipped++; continue; }
+
+                    var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+
+                    // Derivasi question-set ROBUST (sama persis FinalizeEssayGrading, D-06).
+                    List<PackageQuestion> allQuestions;
+                    if (shuffledIds.Count > 0)
+                    {
+                        allQuestions = await _context.PackageQuestions.Include(q => q.Options)
+                            .Where(q => shuffledIds.Contains(q.Id)).ToListAsync();
+                    }
+                    else
+                    {
+                        var respQIds = await _context.PackageUserResponses
+                            .Where(r => r.AssessmentSessionId == candId)
+                            .Select(r => r.PackageQuestionId).Distinct().ToListAsync();
+                        allQuestions = await _context.PackageQuestions.Include(q => q.Options)
+                            .Where(q => respQIds.Contains(q.Id)).ToListAsync();
+                    }
+
+                    var allResponses = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == candId).ToListAsync();
+
+                    // Skip bila ada essay belum dinilai (EssayScore null) — jangan tulis skor parsial.
+                    var essayQIds = allQuestions
+                        .Where(q => (q.QuestionType ?? "MultipleChoice") == "Essay")
+                        .Select(q => q.Id).ToHashSet();
+                    if (essayQIds.Count > 0 && allResponses.Any(r => essayQIds.Contains(r.PackageQuestionId) && r.EssayScore == null))
+                    {
+                        skipped++; continue;
+                    }
+
+                    var agg = AssessmentScoreAggregator.Compute(allQuestions, allResponses, session.PassPercentage);
+                    if (agg.MaxScore == 0)
+                    {
+                        _logger.LogWarning("RecomputeEssayScores: maxScore=0 session {SessionId} — skip (anomali data, D-05).", candId);
+                        skipped++; continue;
+                    }
+
+                    // Idempotent: Score + IsPassed ONLY (D-03). WHERE-guard Score 0/null → run kedua = no-op.
+                    var rows = await _context.AssessmentSessions
+                        .Where(s => s.Id == candId && (s.Score == null || s.Score == 0))
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.Score, agg.Percentage)
+                            .SetProperty(r => r.IsPassed, agg.IsPassed));
+                    if (rows > 0) repaired++; else alreadyOk++;
+                }
+
+                // Audit warn-only (kegagalan audit tidak boleh break).
+                try
+                {
+                    var actor = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
+                    await _auditLog.LogAsync(actor?.Id ?? "", actorName, "RecomputeEssayScores",
+                        $"Recompute essay-only: {repaired} diperbaiki, {skipped} dilewati, {alreadyOk} sudah benar", 0, "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "RecomputeEssayScores: audit log gagal.");
+                }
+
+                TempData["Success"] = $"Recompute selesai: {repaired} skor diperbaiki, {skipped} dilewati, {alreadyOk} sudah benar.";
+            }
+            catch (Exception ex)
+            {
+                // No info-leak (Phase 334 D6): detail ke log, pesan generik ke user.
+                _logger.LogError(ex, "RecomputeEssayScores gagal.");
+                TempData["Error"] = "Recompute skor essay gagal. Cek log untuk detail.";
+            }
+
+            return RedirectToAction("ManageAssessment");
+        }
+
+        // #20 Phase 367: record manual tak punya jawaban untuk di-reset (reset hanya untuk sesi online).
+        // Single-source: dipakai guard ResetAssessment di bawah + diuji ResetGuardTests.
+        public static bool IsResettable(AssessmentSession assessment) => !assessment.IsManualEntry;
+
         // --- RESET ASSESSMENT ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -3795,6 +4011,17 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (assessment == null) return NotFound();
+
+            // #20 Phase 367: tolak reset assessment manual — gunakan Edit untuk ubah atau Hapus untuk menghapus record.
+            if (!IsResettable(assessment))
+            {
+                TempData["Error"] = "Assessment manual tidak dapat di-reset. Gunakan Edit untuk mengubah, atau Hapus untuk menghapus record.";
+                return RedirectToAction("AssessmentMonitoringDetail", new {
+                    title = assessment.Title,
+                    category = assessment.Category,
+                    scheduleDate = assessment.Schedule.Date.ToString("yyyy-MM-dd")
+                });
+            }
 
             // D-17: Block reset Pre jika Post sudah Completed
             if (assessment.AssessmentType == "PreTest" && assessment.LinkedSessionId.HasValue)
@@ -3860,6 +4087,15 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
             if (assignment != null)
                 _context.UserPackageAssignments.Remove(assignment);
+
+            // #22 D-07: bersihkan ET scores stale agar retake regenerasi ET BARU
+            // (cegah unique-index violation di GradingService yang ditelan catch → analitik stale).
+            // SEBELUM SaveChangesAsync di bawah → ter-flush dalam batch yang sama. TANPA transaksi baru.
+            var etScores = await _context.SessionElemenTeknisScores
+                .Where(e => e.AssessmentSessionId == id)
+                .ToListAsync();
+            if (etScores.Any())
+                _context.SessionElemenTeknisScores.RemoveRange(etScores);
 
             // 3. Reset session state to Open via status-guarded ExecuteUpdateAsync
             // (Cancelled is the only status that is NOT resettable — guard prevents double-reset race)
@@ -4542,7 +4778,7 @@ namespace HcPortal.Controllers
 
                         ws.Cell(currentRow, 1).Value = no++;
                         ws.Cell(currentRow, 2).Value = q.QuestionText;
-                        ws.Cell(currentRow, 3).Value = tipe == "MultipleChoice" ? "MC" : "MA";
+                        ws.Cell(currentRow, 3).Value = tipe == "MultipleChoice" ? "SA" : "MA";
                         ws.Cell(currentRow, 4).Value = jawabanText;
                         ws.Cell(currentRow, 5).Value = correctText;
                         ws.Cell(currentRow, 6).Value = correct ? "✓" : "✗";
@@ -4950,10 +5186,11 @@ namespace HcPortal.Controllers
             if (userStatus != "Not started" && userStatus != "Abandoned")
                 return Json(new { success = false, message = "Hanya peserta yang belum mulai atau sesi yang ditinggalkan yang dapat di-reshuffle." });
 
+            // WSE-04 (D-01/D-09): type-aware sibling isolation via shared helper — paritas dgn StartExam.
+            // siblingSessionIds kini type-filtered → packages query (di bawah) ikut type-aware otomatis.
             var siblingSessionIds = await _context.AssessmentSessions
-                .Where(s => s.Title == assessment.Title &&
-                            s.Category == assessment.Category &&
-                            s.Schedule.Date == assessment.Schedule.Date)
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                 .Select(s => s.Id)
                 .ToListAsync();
 
@@ -4974,7 +5211,14 @@ namespace HcPortal.Controllers
                 _context.UserPackageAssignments.Remove(currentAssignment);
 
             var rng = Random.Shared;
-            var shuffledIds = BuildCrossPackageAssignment(packages, rng);
+            // Phase 373: rebuild via ShuffleEngine respecting BOTH flags. Worker index from the SAME
+            // sibling set/order as StartExam (Title+Category+Schedule.Date, sorted — SQL has no guaranteed
+            // order), so OFF≥2 keeps each worker on a stable package. ON = canonical core algorithm.
+            var sortedSiblingIds = siblingSessionIds.OrderBy(x => x).ToList();
+            int workerIndex = sortedSiblingIds.IndexOf(sessionId);
+            var shuffledIds = ShuffleEngine.BuildQuestionAssignment(packages, assessment.ShuffleQuestions, workerIndex, rng);
+            var assignedQuestions = packages.SelectMany(p => p.Questions).Where(q => shuffledIds.Contains(q.Id));
+            var optDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, assessment.ShuffleOptions, rng);
             var sentinelPackage = packages.First();
 
             var newAssignment = new UserPackageAssignment
@@ -4983,7 +5227,7 @@ namespace HcPortal.Controllers
                 AssessmentPackageId = sentinelPackage.Id,
                 UserId = assessment.UserId,
                 ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(shuffledIds),
-                ShuffledOptionIdsPerQuestion = "{}"
+                ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(optDict)   // Phase 373: fix bug (was hard-coded "{}")
             };
             _context.UserPackageAssignments.Add(newAssignment);
 
@@ -5023,6 +5267,13 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Assessment group not found." });
 
             var siblingSessionIds = sessions.Select(s => s.Id).ToList();
+            // WSE-04 (D-08/D-09): determinisme + isolasi type-aware. workerIndex tiap session dihitung
+            // terhadap sibling-set TYPE-nya sendiri (Pre↔Pre, Post↔Post, non-PrePost satu grup) — IDENTIK
+            // dengan StartExam yang kini type-filtered (Phase 373 parity). Group sekali in-memory, no extra query.
+            static string SiblingKey(string? t) => (t == "PreTest" || t == "PostTest") ? t : "__NONPREPOST__";
+            var sortedByKey = sessions
+                .GroupBy(s => SiblingKey(s.AssessmentType))
+                .ToDictionary(g => g.Key, g => g.Select(s => s.Id).OrderBy(x => x).ToList());
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
@@ -5065,8 +5316,24 @@ namespace HcPortal.Controllers
                 }
 
                 existingAssignments.TryGetValue(session.Id, out var existingAssignment);
-                var sessionShuffledIds = BuildCrossPackageAssignment(packages, rng);
-                var sentinelPackage = packages.First();
+                // Phase 373 + WSE-04: rebuild via ShuffleEngine respecting BOTH flags (per-session). workerIndex
+                // DAN packages dihitung type-aware (Pre/Post tak campur) — IDENTIK dengan StartExam.
+                var siblingKey = SiblingKey(session.AssessmentType);
+                var typeSiblingIds = sortedByKey[siblingKey];
+                int workerIndex = typeSiblingIds.IndexOf(session.Id);
+                var sessionPackages = packages
+                    .Where(p => typeSiblingIds.Contains(p.AssessmentSessionId))
+                    .OrderBy(p => p.PackageNumber)
+                    .ToList();
+                if (!sessionPackages.Any())
+                {
+                    results.Add(new { name = userName, status = "Dilewati — belum ada paket untuk tipe ujian ini" });
+                    continue;
+                }
+                var sessionShuffledIds = ShuffleEngine.BuildQuestionAssignment(sessionPackages, session.ShuffleQuestions, workerIndex, rng);
+                var assignedQuestions = sessionPackages.SelectMany(p => p.Questions).Where(q => sessionShuffledIds.Contains(q.Id));
+                var optDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, session.ShuffleOptions, rng);
+                var sentinelPackage = sessionPackages.First();
 
                 if (existingAssignment != null)
                     _context.UserPackageAssignments.Remove(existingAssignment);
@@ -5077,10 +5344,10 @@ namespace HcPortal.Controllers
                     AssessmentPackageId = sentinelPackage.Id,
                     UserId = session.UserId,
                     ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(sessionShuffledIds),
-                    ShuffledOptionIdsPerQuestion = "{}"
+                    ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(optDict)   // Phase 373: fix bug (was hard-coded "{}")
                 });
 
-                results.Add(new { name = userName, status = $"Reshuffled (cross-package, {packages.Count} paket)" });
+                results.Add(new { name = userName, status = $"Reshuffled (cross-package, {sessionPackages.Count} paket)" });
                 reshuffledCount++;
             }
 
@@ -5103,163 +5370,71 @@ namespace HcPortal.Controllers
             return Json(new { success = true, results, reshuffledCount });
         }
 
-        #region Helper Methods
-
-        private static void Shuffle<T>(List<T> list, Random rng)
+        // Phase 374 SHUF-10/11: explicit-save shuffle toggle endpoint (PRG + server lock guard + propagate sibling + audit).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateShuffleSettings(int assessmentId, bool shuffleQuestions, bool shuffleOptions)
         {
-            for (int i = list.Count - 1; i > 0; i--)
+            var assessment = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(a => a.Id == assessmentId);
+            if (assessment == null) return NotFound();
+
+            // Sibling group — key identik StartExam/Reshuffle/EditAssessment (spec §5).
+            var siblingSessionIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title &&
+                            s.Category == assessment.Category &&
+                            s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            // Defense-in-depth (D-04a / SHUF-11): re-cek lock server-side.
+            bool anyStarted = await _context.AssessmentSessions
+                .AnyAsync(s => siblingSessionIds.Contains(s.Id) && s.StartedAt != null);
+            bool anyAssignment = await _context.UserPackageAssignments
+                .AnyAsync(a => siblingSessionIds.Contains(a.AssessmentSessionId));
+
+            if (ShuffleToggleRules.IsShuffleLocked(anyStarted, anyAssignment))
             {
-                int j = rng.Next(i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
+                TempData["Error"] = "Pengaturan pengacakan tidak dapat diubah karena sudah ada peserta yang memulai ujian.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
             }
+
+            // Propagate ke SEMUA sibling grup (pola EditAssessment foreach).
+            var siblings = await _context.AssessmentSessions
+                .Where(s => siblingSessionIds.Contains(s.Id))
+                .ToListAsync();
+            var now = DateTime.UtcNow;
+            foreach (var sibling in siblings)
+            {
+                sibling.ShuffleQuestions = shuffleQuestions;
+                sibling.ShuffleOptions   = shuffleOptions;
+                sibling.UpdatedAt = now;
+            }
+            await _context.SaveChangesAsync();
+
+            // Audit try/catch warn-only (pola ReshufflePackage/ReshuffleAll).
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorNameStr,
+                    "UpdateShuffleSettings",
+                    $"Set Acak Soal={shuffleQuestions}, Acak Pilihan={shuffleOptions} for assessment '{assessment.Title}' [grup {siblingSessionIds.Count} sesi]",
+                    assessmentId,
+                    "AssessmentSession");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for UpdateShuffleSettings (assessmentId={Id})", assessmentId); }
+
+            TempData["Success"] = "Pengaturan pengacakan berhasil disimpan.";
+            return RedirectToAction("ManagePackages", new { assessmentId });
         }
 
-        private static List<int> BuildCrossPackageAssignment(List<AssessmentPackage> packages, Random rng)
-        {
-            if (packages.Count == 0)
-                return new List<int>();
-
-            // Single package: shuffle question order so each worker sees a unique sequence
-            if (packages.Count == 1)
-            {
-                var singlePackageQuestions = packages[0].Questions;
-                if (singlePackageQuestions == null || !singlePackageQuestions.Any())
-                    return new List<int>();
-                var singlePackageIds = singlePackageQuestions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
-                Shuffle(singlePackageIds, rng);
-                return singlePackageIds;
-            }
-
-            // Safety fallback: use minimum question count across packages (edge case per user decision)
-            int K = packages.Min(p => p.Questions.Count);
-            if (K == 0)
-                return new List<int>();
-
-            // Collect all questions across all packages with their package index
-            var allQuestions = packages.SelectMany((p, pIdx) =>
-                p.Questions.Select(q => new { Question = q, PackageIndex = pIdx })).ToList();
-
-            // Identify distinct ET groups (non-null ElemenTeknis values across all packages)
-            var etGroups = allQuestions
-                .Where(x => !string.IsNullOrWhiteSpace(x.Question.ElemenTeknis))
-                .Select(x => x.Question.ElemenTeknis!)
-                .Distinct()
-                .ToList();
-
-            // Fallback: if no questions have ElemenTeknis, use original slot-list algorithm
-            if (etGroups.Count == 0)
-            {
-                // No ElemenTeknis data — fall back to original slot-list distribution
-                int N0 = packages.Count;
-                int baseCount0 = K / N0;
-                int remainder0 = K % N0;
-                var remainderIndices0 = Enumerable.Range(0, N0)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder0)
-                    .ToHashSet();
-                var slots0 = new List<int>();
-                for (int i = 0; i < N0; i++)
-                {
-                    int count = baseCount0 + (remainderIndices0.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots0.Add(i);
-                }
-                Shuffle(slots0, rng);
-                var pkgCounter0 = new int[N0];
-                var fallbackIds = new List<int>();
-                var orderedQuestions0 = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
-                for (int pos = 0; pos < K; pos++)
-                {
-                    int pkgIdx = slots0[pos];
-                    var question = orderedQuestions0[pkgIdx][pkgCounter0[pkgIdx]];
-                    pkgCounter0[pkgIdx]++;
-                    fallbackIds.Add(question.Id);
-                }
-                return fallbackIds;
-            }
-
-            // ET-aware distribution
-            var selectedIds = new HashSet<int>();
-            var selectedList = new List<int>();
-
-            // Phase 1 — Guarantee one question per ET group (best-effort, capped at K)
-            // NULL ElemenTeknis questions are excluded from Phase 1 (they participate in Phase 2 only)
-            foreach (var etGroup in etGroups)
-            {
-                if (selectedIds.Count >= K) break;
-
-                var candidates = allQuestions
-                    .Where(x => x.Question.ElemenTeknis == etGroup && !selectedIds.Contains(x.Question.Id))
-                    .Select(x => x.Question.Id)
-                    .ToList();
-
-                Shuffle(candidates, rng);
-                if (candidates.Count > 0)
-                {
-                    int picked = candidates[0];
-                    selectedIds.Add(picked);
-                    selectedList.Add(picked);
-                }
-            }
-
-            // Phase 2 — Fill remaining quota with balanced package distribution
-            int remaining = K - selectedIds.Count;
-            if (remaining > 0)
-            {
-                int N = packages.Count;
-                var orderedByPackage = packages
-                    .Select(p => p.Questions.OrderBy(q => q.Order)
-                        .Where(q => !selectedIds.Contains(q.Id))
-                        .ToList())
-                    .ToList();
-
-                // Build slot list for remaining slots using balanced distribution
-                int baseCount = remaining / N;
-                int remainder = remaining % N;
-                var remainderIndices = Enumerable.Range(0, N)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder)
-                    .ToHashSet();
-
-                var slots = new List<int>();
-                for (int i = 0; i < N; i++)
-                {
-                    int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots.Add(i);
-                }
-                Shuffle(slots, rng);
-
-                var pkgCounter = new int[N];
-                var pkgAvailable = orderedByPackage.Select(q => q.Count).ToArray();
-
-                foreach (int pkgIdx in slots)
-                {
-                    // Find a package with available unselected questions
-                    int targetPkg = pkgIdx;
-                    if (pkgCounter[targetPkg] >= pkgAvailable[targetPkg])
-                    {
-                        // Redistribute: find any package with remaining questions
-                        targetPkg = -1;
-                        for (int i = 0; i < N; i++)
-                        {
-                            if (pkgCounter[i] < pkgAvailable[i]) { targetPkg = i; break; }
-                        }
-                        if (targetPkg == -1) break; // All packages exhausted
-                    }
-                    var q = orderedByPackage[targetPkg][pkgCounter[targetPkg]];
-                    pkgCounter[targetPkg]++;
-                    selectedIds.Add(q.Id);
-                    selectedList.Add(q.Id);
-                }
-            }
-
-            // Phase 3 — Fisher-Yates shuffle the combined list
-            Shuffle(selectedList, rng);
-            return selectedList;
-        }
-
-        #endregion
+        // Phase 373: the local Shuffle + cross-package distribution helpers moved to
+        // Helpers/ShuffleEngine.cs (single source of truth — the canonical CMPController algorithm).
+        // Both reshuffle endpoints now delegate to the shared ShuffleEngine core.
 
         // Question Management (Admin) region removed in Phase 227 (CLEN-02) — ManageQuestions/AddQuestion/DeleteQuestion
         // were legacy-only actions. Assessment questions are now managed via Package Management.
@@ -5327,6 +5502,49 @@ namespace HcPortal.Controllers
             // SamePackage lock: jika Post-Test dengan SamePackage=true, lock editing
             ViewBag.IsSamePackageLocked = isPostSession && assessment.SamePackage;
 
+            // === Phase 374: Shuffle toggle state ===
+            var shufSiblingIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title &&
+                            s.Category == assessment.Category &&
+                            s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            bool shufAnyStarted = await _context.AssessmentSessions
+                .AnyAsync(s => shufSiblingIds.Contains(s.Id) && s.StartedAt != null);
+            bool shufAnyAssignment = await _context.UserPackageAssignments
+                .AnyAsync(a => shufSiblingIds.Contains(a.AssessmentSessionId));
+
+            ViewBag.ShuffleQuestions = assessment.ShuffleQuestions;   // saved state -> render checked
+            ViewBag.ShuffleOptions   = assessment.ShuffleOptions;
+            ViewBag.IsShuffleLocked = ShuffleToggleRules.IsShuffleLocked(shufAnyStarted, shufAnyAssignment);
+            ViewBag.HideShuffleToggle = ShuffleToggleRules.ShouldHideShuffleToggle(
+                assessment.Category, assessment.TahunKe, assessment.IsManualEntry);
+
+            // Warning §9 precondition: jumlah paket-ber-soal + mismatch ukuran (mirror view L70-81).
+            var pkgWithQuestions = packages.Where(p => p.Questions.Any()).ToList();
+            int packagesWithQuestions = pkgWithQuestions.Count;
+            bool hasMismatch = false;
+            if (packagesWithQuestions > 0)
+            {
+                int refCount = pkgWithQuestions[0].Questions.Count;
+                hasMismatch = pkgWithQuestions.Any(p => p.Questions.Count != refCount);
+            }
+            ViewBag.PackagesWithQuestions = packagesWithQuestions;
+            ViewBag.HasSizeMismatch = hasMismatch;
+            ViewBag.ShowSizeMismatchWarning = ShuffleToggleRules.ShouldShowSizeMismatchWarning(
+                packagesWithQuestions, assessment.ShuffleQuestions, hasMismatch);
+
+            // Reminder Pre/Post (opsi Z, SHUF-13): Post page only, saved-state Pre via LinkedSessionId.
+            if (isPostSession && assessment.LinkedSessionId.HasValue)
+            {
+                var preShuffle = await _context.AssessmentSessions
+                    .Where(s => s.Id == assessment.LinkedSessionId.Value)
+                    .Select(s => (bool?)s.ShuffleQuestions)
+                    .FirstOrDefaultAsync();
+                ViewBag.PreShuffleQuestions = preShuffle;   // null bila Pre tak ada
+            }
+
             return View();
         }
 
@@ -5376,10 +5594,14 @@ namespace HcPortal.Controllers
                         ElemenTeknis = q.ElemenTeknis,
                         Rubrik = q.Rubrik,
                         MaxCharacters = q.MaxCharacters,
+                        ImagePath = q.ImagePath,   // SYN-01: shared-file string copy (Pre→Post), no file op
+                        ImageAlt = q.ImageAlt,
                         Options = q.Options.Select(o => new PackageOption
                         {
                             OptionText = o.OptionText,
-                            IsCorrect = o.IsCorrect
+                            IsCorrect = o.IsCorrect,
+                            ImagePath = o.ImagePath, // SYN-01: shared-file string copy
+                            ImageAlt = o.ImageAlt
                         }).ToList()
                     };
                     newPkg.Questions.Add(newQ);
@@ -5465,6 +5687,15 @@ namespace HcPortal.Controllers
 
             int assessmentId = pkg.AssessmentSessionId;
 
+            // D-11 / SYN-02: path-collect SEBELUM cascade RemoveRange (union semua gambar soal+opsi).
+            var imagePathsToDelete = new List<string>();
+            foreach (var qImg in pkg.Questions)
+            {
+                if (!string.IsNullOrEmpty(qImg.ImagePath)) imagePathsToDelete.Add(qImg.ImagePath);
+                foreach (var oImg in qImg.Options)
+                    if (!string.IsNullOrEmpty(oImg.ImagePath)) imagePathsToDelete.Add(oImg.ImagePath);
+            }
+
             var questionIds = pkg.Questions.Select(q => q.Id).ToList();
             if (questionIds.Any())
             {
@@ -5523,6 +5754,9 @@ namespace HcPortal.Controllers
                     await SyncPackagesToPost(deletedFromSession.Id, postSession.Id);
                 }
             }
+
+            // D-11 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (Post mungkin di-rebuild share path).
+            await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeletePackage image");
 
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
@@ -6064,6 +6298,10 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
+        // Truncate alt text ke MaxLength kolom (255) sebelum assign — hindari DbUpdateException (Pitfall 6).
+        private static string? TruncateAlt(string? s, int max)
+            => string.IsNullOrEmpty(s) ? s : (s.Length <= max ? s : s.Substring(0, max));
+
         public async Task<IActionResult> CreateQuestion(
             int packageId,
             string questionText,
@@ -6073,7 +6311,10 @@ namespace HcPortal.Controllers
             string? rubrik,
             int maxCharacters,
             string? optionA, string? optionB, string? optionC, string? optionD,
-            bool correctA, bool correctB, bool correctC, bool correctD)
+            bool correctA, bool correctB, bool correctC, bool correctD,
+            IFormFile? questionImage, string? questionImageAlt,
+            IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
+            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt)
         {
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
@@ -6081,6 +6322,17 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "Tipe soal tidak valid.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // Validate-all image uploads fail-fast (SHARED-3 / D-08). Null file → (true,null).
+            foreach (var f in new[] { questionImage, optionAImage, optionBImage, optionCImage, optionDImage })
+            {
+                var (okImg, errImg) = FileUploadHelper.ValidateImageFile(f);
+                if (!okImg)
+                {
+                    TempData["Error"] = errImg ?? "File harus berupa gambar JPG atau PNG.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
             }
 
             var pkg = await _context.AssessmentPackages
@@ -6115,6 +6367,9 @@ namespace HcPortal.Controllers
 
             int nextOrder = pkg.Questions.Any() ? pkg.Questions.Max(q => q.Order) + 1 : 1;
 
+            // Simpan gambar soal (IMG-01/03). SaveFileAsync null-safe → null bila tak ada file.
+            var qImgUrl = await FileUploadHelper.SaveFileAsync(questionImage, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+
             var newQ = new PackageQuestion
             {
                 AssessmentPackageId = packageId,
@@ -6124,23 +6379,33 @@ namespace HcPortal.Controllers
                 Order = nextOrder,
                 ElemenTeknis = string.IsNullOrWhiteSpace(elemenTeknis) ? null : elemenTeknis.Trim(),
                 Rubrik = questionType == "Essay" ? rubrik?.Trim() : null,
-                MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000
+                MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000,
+                ImagePath = qImgUrl,
+                ImageAlt = TruncateAlt(questionImageAlt, 255)
             };
 
             if (questionType != "Essay")
             {
                 var options = new[]
                 {
-                    (optionA, correctA),
-                    (optionB, correctB),
-                    (optionC, correctC),
-                    (optionD, correctD)
+                    (optionA, correctA, optionAImage, optionAImageAlt),
+                    (optionB, correctB, optionBImage, optionBImageAlt),
+                    (optionC, correctC, optionCImage, optionCImageAlt),
+                    (optionD, correctD, optionDImage, optionDImageAlt)
                 };
-                foreach (var (text, isCorrect) in options)
+                foreach (var (text, isCorrect, oImg, oAlt) in options)
                 {
                     if (!string.IsNullOrWhiteSpace(text))
                     {
-                        newQ.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                        // IMG-02/03: simpan gambar opsi (null-safe).
+                        var oImgUrl = await FileUploadHelper.SaveFileAsync(oImg, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+                        newQ.Options.Add(new PackageOption
+                        {
+                            OptionText = text!.Trim(),
+                            IsCorrect = isCorrect,
+                            ImagePath = oImgUrl,
+                            ImageAlt = TruncateAlt(oAlt, 255)
+                        });
                     }
                 }
             }
@@ -6222,10 +6487,14 @@ namespace HcPortal.Controllers
                     elemenTeknis = q.ElemenTeknis,
                     rubrik = q.Rubrik,
                     maxCharacters = q.MaxCharacters,
+                    imagePath = q.ImagePath,   // D-06 / IMG-07: prefill thumbnail soal
+                    imageAlt = q.ImageAlt,
                     options = q.Options.OrderBy(o => o.Id).Select(o => new
                     {
                         optionText = o.OptionText,
-                        isCorrect = o.IsCorrect
+                        isCorrect = o.IsCorrect,
+                        imagePath = o.ImagePath, // D-06 / IMG-07: prefill thumbnail opsi
+                        imageAlt = o.ImageAlt
                     }).ToList()
                 });
             }
@@ -6248,7 +6517,11 @@ namespace HcPortal.Controllers
             string? rubrik,
             int maxCharacters,
             string? optionA, string? optionB, string? optionC, string? optionD,
-            bool correctA, bool correctB, bool correctC, bool correctD)
+            bool correctA, bool correctB, bool correctC, bool correctD,
+            IFormFile? questionImage, string? questionImageAlt, bool removeQuestionImage,
+            IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
+            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt,
+            bool removeOptionAImage, bool removeOptionBImage, bool removeOptionCImage, bool removeOptionDImage)
         {
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
@@ -6256,6 +6529,17 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "Tipe soal tidak valid.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // Validate-all image uploads fail-fast (SHARED-3 / D-08). Null file → (true,null).
+            foreach (var f in new[] { questionImage, optionAImage, optionBImage, optionCImage, optionDImage })
+            {
+                var (okImg, errImg) = FileUploadHelper.ValidateImageFile(f);
+                if (!okImg)
+                {
+                    TempData["Error"] = errImg ?? "File harus berupa gambar JPG atau PNG.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
             }
 
             var q = await _context.PackageQuestions
@@ -6298,25 +6582,77 @@ namespace HcPortal.Controllers
             q.Rubrik = questionType == "Essay" ? rubrik?.Trim() : null;
             q.MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000;
 
-            // Replace options
-            _context.PackageOptions.RemoveRange(q.Options);
-            q.Options.Clear();
+            // SYN-02 / D-10: kumpul path gambar lama yang harus dihapus fisik SETELAH auto-sync + ref-count.
+            var imagePathsToDelete = new List<string>();
 
-            if (questionType != "Essay")
+            // Resolusi niat gambar SOAL (D-05 file-baru-menang).
+            if (questionImage != null)
             {
-                var options = new[]
+                var savedQImg = await FileUploadHelper.SaveFileAsync(questionImage, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+                if (!string.IsNullOrEmpty(q.ImagePath)) imagePathsToDelete.Add(q.ImagePath!);
+                q.ImagePath = savedQImg;
+                q.ImageAlt = TruncateAlt(questionImageAlt, 255);
+            }
+            else if (removeQuestionImage)
+            {
+                if (!string.IsNullOrEmpty(q.ImagePath)) imagePathsToDelete.Add(q.ImagePath!);
+                q.ImagePath = null;
+                q.ImageAlt = null;
+            }
+            else
+            {
+                q.ImageAlt = TruncateAlt(questionImageAlt, 255);
+            }
+
+            // OQ1: UPDATE-IN-PLACE opsi (jangan RemoveRange membabi-buta → preserve Id + ImagePath).
+            if (questionType == "Essay")
+            {
+                // Essay tidak punya opsi: hapus semua opsi existing + delete-candidate gambarnya.
+                foreach (var oldOpt in q.Options.ToList())
                 {
-                    (optionA, correctA),
-                    (optionB, correctB),
-                    (optionC, correctC),
-                    (optionD, correctD)
-                };
-                foreach (var (text, isCorrect) in options)
+                    if (!string.IsNullOrEmpty(oldOpt.ImagePath)) imagePathsToDelete.Add(oldOpt.ImagePath!);
+                }
+                _context.PackageOptions.RemoveRange(q.Options);
+                q.Options.Clear();
+            }
+            else
+            {
+                var optTexts = new[] { optionA, optionB, optionC, optionD };
+                var optCorrects = new[] { correctA, correctB, correctC, correctD };
+                var optImages = new[] { optionAImage, optionBImage, optionCImage, optionDImage };
+                var optAlts = new[] { optionAImageAlt, optionBImageAlt, optionCImageAlt, optionDImageAlt };
+                var optRemoves = new[] { removeOptionAImage, removeOptionBImage, removeOptionCImage, removeOptionDImage };
+
+                // Urutan SAMA dengan GET JSON (OrderBy o.Id == urutan pembuatan A-D).
+                var existing = q.Options.OrderBy(o => o.Id).ToList();
+
+                for (int i = 0; i < 4; i++)
                 {
-                    if (!string.IsNullOrWhiteSpace(text))
+                    var hasText = !string.IsNullOrWhiteSpace(optTexts[i]);
+                    var slot = i < existing.Count ? existing[i] : null;
+
+                    if (slot != null && hasText)
                     {
-                        q.Options.Add(new PackageOption { OptionText = text!.Trim(), IsCorrect = isCorrect });
+                        // UPDATE in-place: text + correct; gambar preserve kecuali image-intent.
+                        slot.OptionText = optTexts[i]!.Trim();
+                        slot.IsCorrect = optCorrects[i];
+                        await ApplyOptionImageIntent(slot, optImages[i], optAlts[i], optRemoves[i], packageId, imagePathsToDelete);
                     }
+                    else if (slot != null && !hasText)
+                    {
+                        // Opsi dihapus (mis. 4→3): remove + delete-candidate gambar.
+                        if (!string.IsNullOrEmpty(slot.ImagePath)) imagePathsToDelete.Add(slot.ImagePath!);
+                        _context.PackageOptions.Remove(slot);
+                        q.Options.Remove(slot);
+                    }
+                    else if (slot == null && hasText)
+                    {
+                        // Opsi baru di posisi i: ADD (oldPath null → hanya save bila ada file).
+                        var newOpt = new PackageOption { OptionText = optTexts[i]!.Trim(), IsCorrect = optCorrects[i] };
+                        await ApplyOptionImageIntent(newOpt, optImages[i], optAlts[i], optRemoves[i], packageId, imagePathsToDelete);
+                        q.Options.Add(newOpt);
+                    }
+                    // slot == null && !hasText → skip (opsi tidak ada & tidak diisi)
                 }
             }
 
@@ -6368,7 +6704,34 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // Ref-count + File.Delete SETELAH auto-sync (SYN-02 / D-10 / OQ2 ordering).
+            // KRITIS: harus setelah SaveChanges DAN auto-sync — agar Post yang share path
+            // sudah ter-update sebelum dicek; ref-count melindungi shared-file (Pre+Post).
+            await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "question image");
+
             return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        // Resolusi niat gambar OPSI (D-05 file-baru-menang). Menambah oldPath ke deleteList bila replace/remove.
+        private async Task ApplyOptionImageIntent(PackageOption target, IFormFile? newFile, string? alt, bool removeChecked, int packageId, List<string> deleteList)
+        {
+            if (newFile != null)
+            {
+                var saved = await FileUploadHelper.SaveFileAsync(newFile, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+                if (!string.IsNullOrEmpty(target.ImagePath)) deleteList.Add(target.ImagePath!);
+                target.ImagePath = saved;
+                target.ImageAlt = TruncateAlt(alt, 255);   // IGNORE checkbox (file baru menang)
+            }
+            else if (removeChecked)
+            {
+                if (!string.IsNullOrEmpty(target.ImagePath)) deleteList.Add(target.ImagePath!);
+                target.ImagePath = null;
+                target.ImageAlt = null;
+            }
+            else
+            {
+                target.ImageAlt = TruncateAlt(alt, 255);    // keep gambar, alt boleh update
+            }
         }
 
         [HttpPost]
@@ -6380,6 +6743,12 @@ namespace HcPortal.Controllers
                 .Include(q => q.Options)
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
+
+            // SYN-02 / D-10: path-collect SEBELUM RemoveRange (gambar soal + opsi).
+            var imagePathsToDelete = new List<string>();
+            if (!string.IsNullOrEmpty(q.ImagePath)) imagePathsToDelete.Add(q.ImagePath);
+            foreach (var o in q.Options)
+                if (!string.IsNullOrEmpty(o.ImagePath)) imagePathsToDelete.Add(o.ImagePath);
 
             // Remove any responses for this question
             var responses = await _context.PackageUserResponses
@@ -6427,6 +6796,9 @@ namespace HcPortal.Controllers
                     }
                 }
             }
+
+            // SYN-02 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (warn-only per file).
+            await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeleteQuestion image");
 
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
@@ -6516,7 +6888,13 @@ namespace HcPortal.Controllers
 
         #region Extra Time (Phase 302)
 
+        // WSE-03 (RST-04 / D-03): per-session cap — total extra time tak boleh melebihi durasi asli ujian.
+        // Pure predicate (single source for the AddExtraTime cap gate) → unit-testable tanpa controller.
+        public static bool ExtraTimeWithinCap(int currentExtra, int requestMinutes, int durationMinutes)
+            => currentExtra + requestMinutes <= durationMinutes;
+
         [HttpPost]
+        [Authorize(Roles = "Admin, HC")]      // WSE-03 / RST-01 — exact sibling string (ResetAssessment :3998), "Admin, HC" WITH space
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddExtraTime(int assessmentId, int minutes)
         {
@@ -6546,6 +6924,15 @@ namespace HcPortal.Controllers
 
             if (!sessions.Any())
                 return Json(new { success = false, message = "Tidak ada peserta aktif." });
+
+            // RST-04 cap (D-03): total extra time per-sesi ≤ durasi asli. Reject-whole-batch (atomic, JSON contract — Pitfall 5).
+            foreach (var session in sessions)
+            {
+                var currentExtra = session.ExtraTimeMinutes ?? 0;
+                if (!ExtraTimeWithinCap(currentExtra, minutes, session.DurationMinutes))
+                    return Json(new { success = false,
+                        message = $"Total tambahan waktu tidak boleh melebihi durasi ujian ({session.DurationMinutes} menit). Saat ini sudah +{currentExtra} menit." });
+            }
 
             foreach (var session in sessions)
             {

@@ -88,13 +88,6 @@
                                                             <small class="text-muted d-block">Coach</small>
                                                             <span>@(string.IsNullOrEmpty(node.CoachName) ? "-" : node.CoachName)</span>
                                                         </div>
-                                                        @if (node.CompetencyLevel.HasValue)
-                                                        {
-                                                            <div class="col-sm-6">
-                                                                <small class="text-muted d-block">Level Kompetensi</small>
-                                                                <span>@node.CompetencyLevel</span>
-                                                            </div>
-                                                        }
                                                         <div class="col-sm-6">
                                                             <small class="text-muted d-block">Tanggal Mulai</small>
                                                             <span>@node.StartDate.ToString("dd MMM yyyy")</span>

@@ -512,17 +512,35 @@ namespace HcPortal.Controllers
             var record = await _context.TrainingRecords.FindAsync(model.Id);
             if (record == null) return NotFound();
 
-            // Handle file upload — replace old file if new file provided
+            // #26 D-04/D-05: validasi Renews*Id (exist + same-user) HANYA saat field renewal BERUBAH (toleran legacy).
+            // Posisi: setelah FindAsync (butuh record.UserId + Renews*Id LAMA), sebelum assign L541-542 menimpa nilai lama.
+            if (model.RenewsTrainingId != record.RenewsTrainingId && model.RenewsTrainingId.HasValue)
+            {
+                var srcTr = await _context.TrainingRecords.FindAsync(model.RenewsTrainingId.Value);
+                if (srcTr == null || srcTr.UserId != record.UserId)
+                    ModelState.AddModelError("", "Sertifikat renewal tidak ditemukan atau bukan milik peserta ini.");
+            }
+            if (model.RenewsSessionId != record.RenewsSessionId && model.RenewsSessionId.HasValue)
+            {
+                var srcAsRenew = await _context.AssessmentSessions.FindAsync(model.RenewsSessionId.Value);
+                if (srcAsRenew == null || srcAsRenew.UserId != record.UserId)
+                    ModelState.AddModelError("", "Sesi renewal tidak ditemukan atau bukan milik peserta ini.");
+            }
+            if (!ModelState.IsValid)
+            {
+                var renewalError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Data tidak valid.";
+                TempData["Error"] = renewalError;
+                return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+            }
+
+            // #21 D-06: atomic replace — capture LAMA, save baru; hapus lama POST-commit (setelah SaveChanges, lihat bawah).
+            string? oldSertifikatUrl = null;
             if (model.CertificateFile != null && model.CertificateFile.Length > 0)
             {
-                if (!string.IsNullOrEmpty(record.SertifikatUrl))
-                {
-                    var oldPath = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
-                }
-
+                oldSertifikatUrl = record.SertifikatUrl;  // capture sebelum overwrite
                 var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
                 if (uploadedUrl != null) record.SertifikatUrl = uploadedUrl;
+                else oldSertifikatUrl = null; // upload gagal → JANGAN hapus lama (file lama utuh)
             }
 
             record.Judul = model.Judul;
@@ -543,6 +561,13 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
 
+            // #21 D-06: hapus file LAMA POST-commit warn-only, hanya jika upload baru sukses (oldSertifikatUrl != null).
+            if (!string.IsNullOrEmpty(oldSertifikatUrl) && oldSertifikatUrl != record.SertifikatUrl)
+            {
+                try { FileUploadHelper.DeleteFile(_env.WebRootPath, oldSertifikatUrl); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Gagal hapus file sertifikat lama post-commit (EditTraining): {Url}", oldSertifikatUrl); }
+            }
+
             var actor = await _userManager.GetUserAsync(User);
             if (actor != null)
                 await _auditLog.LogAsync(actor.Id, actor.FullName, "Update",
@@ -558,14 +583,45 @@ namespace HcPortal.Controllers
         // isInitialState tetap false). Non-HTMX → full-page redirect (perilaku lama).
         private bool IsHtmxRequest() => Request.Headers.ContainsKey("HX-Request");
 
-        private IActionResult DeleteTabResult()
+        // Phase 367 (06) L-06: honest HTMX trigger — nilai static testable (pola 04 anti-drift, fix #1 sukses-palsu).
+        public const string RecordDeletedTrigger = "recordDeleted";
+        public static string BuildRecordDeleteFailedTrigger(string pesan)
+            => System.Text.Json.JsonSerializer.Serialize(new { recordDeleteFailed = new { pesan } });
+
+        // Sukses → HX-Trigger recordDeleted (200). Non-HTMX → redirect (perilaku lama).
+        private IActionResult DeleteTabSuccess()
         {
             if (IsHtmxRequest())
             {
-                Response.Headers["HX-Trigger"] = "recordDeleted";
+                Response.Headers["HX-Trigger"] = RecordDeletedTrigger;
                 return new EmptyResult();
             }
             return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+        }
+
+        // Gagal → HX-Trigger recordDeleteFailed + payload pesan GENERIK (V7, no ex.Message) + HTTP 400 (L-06/#1).
+        private IActionResult DeleteTabFailure(string pesan)
+        {
+            if (IsHtmxRequest())
+            {
+                // Phase 367 (08, UAT-fix): respons 200 (BUKAN 400) supaya HTMX MEN-DISPATCH event DOM
+                // `recordDeleteFailed` (HTMX tak dispatch event kustom utk 4xx + header HX-Trigger tak andal
+                // dibaca xhr.getResponseHeader). Sinyal jujur = event + flash MERAH (bukan HTTP status). #1.
+                Response.Headers["HX-Trigger"] = BuildRecordDeleteFailedTrigger(pesan);
+                return new EmptyResult();
+            }
+            TempData["Error"] = pesan;
+            return RedirectToAction("ManageAssessment", "AssessmentAdmin", new { tab = "training" });
+        }
+
+        // mirrorTrainingIds dari form (checkbox opt-out mirror legacy #15) — divalidasi server-side milik-user di engine (V5/IDOR).
+        private List<int> ParseMirrorTrainingIds()
+        {
+            var ids = new List<int>();
+            if (!Request.HasFormContentType) return ids;
+            foreach (var v in Request.Form["mirrorTrainingIds"])
+                if (int.TryParse(v, out var n)) ids.Add(n);
+            return ids;
         }
 
         [HttpPost]
@@ -573,65 +629,45 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> DeleteTraining(int id)
         {
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
             var record = await _context.TrainingRecords.FindAsync(id);
             if (record == null) return NotFound();
 
-            // Phase 331 D-03: Capture file path SEBELUM Remove (record akan detached post-Remove).
-            string? sertifikatPath = null;
-            if (!string.IsNullOrEmpty(record.SertifikatUrl))
-            {
-                sertifikatPath = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
-            }
-
             try
             {
-                // Phase 325 P05 D-04/D-11: pre-check referencing rows SEBELUM hapus (UX friendly).
-                // Phase 331 D-04: pre-check TETAP di POSISI semula, OUTSIDE tx scope (read-only count, no tx needed).
-                var referencingTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsTrainingId == record.Id);
-                var referencingAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsTrainingId == record.Id);
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 325/331) DIBALIK → cascade penuh via engine
+                // (turunan renewal IKUT terhapus). Engine hapus DB (root training + turunan) + cert per node + audit (1-tx).
+                var nodes = await cascade.CollectCascadeIds("training", id);
+                var cascadeSessionIds = nodes.Where(n => n.Type == "session").Select(n => n.Id).ToList();
 
-                if (referencingTr + referencingAs > 0)
-                {
-                    var total = referencingTr + referencingAs;
-                    TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
-                                      + "menggunakan record ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return DeleteTabResult();
-                }
+                // HC-tier guard (konsisten tab-1, shared CascadeHasCompletedOrAnsweredAsync): non-Admin diblok bila ADA
+                // node cascade session Completed/ber-jawaban — cegah HC hapus data peserta via ancestor. Admin override.
+                if (!User.IsInRole("Admin") && await CascadeHasCompletedOrAnsweredAsync(cascadeSessionIds))
+                    return DeleteTabFailure("Tidak bisa menghapus: ada sesi yang sudah Completed atau berisi jawaban peserta. Hubungi Admin.");
 
-                // Phase 331 D-02: tx wrap Remove + SaveChanges + AuditLog. Disposal auto-rollback jika exception escape sebelum CommitAsync.
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Image SOAL (Opsi B) turunan session — collect SEBELUM engine (engine tak sentuh image SOAL).
+                var imagePaths = await CollectQuestionImagePathsAsync(cascadeSessionIds);
 
                 var actor = await _userManager.GetUserAsync(User);
-                _context.TrainingRecords.Remove(record);
-                await _context.SaveChangesAsync();
+                var result = await cascade.ExecuteAsync("training", id, ParseMirrorTrainingIds(), actor?.Id ?? "", actor?.FullName ?? "Unknown");
+                if (!result.Success)
+                    return DeleteTabFailure(result.ErrorMessage ?? "Gagal menghapus record. Silakan coba lagi.");
 
-                if (actor != null)
-                    await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
-                        $"Training record dihapus: {record.Judul}", record.Id, "TrainingRecord");
+                // Image SOAL cleanup POST cascade (D-05 AnyAsync). Cert per node sudah dihapus engine.
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePaths, "DeleteTraining image");
 
-                await tx.CommitAsync();
-
-                // Phase 331 D-03 + D-05 + D-06: File.Delete POST commit dengan inner try/catch warn-only.
-                // DB sudah committed — kalau File.Delete fail, log warning + biarkan orphan di disk (acceptable, manual cleanup later).
-                if (sertifikatPath != null && System.IO.File.Exists(sertifikatPath))
-                {
-                    try { System.IO.File.Delete(sertifikatPath); }
-                    catch (Exception ex) { _logger.LogWarning(ex, "File.Delete post-commit failed: {Path}", sertifikatPath); }
-                }
-
-                TempData["Success"] = "Training record berhasil dihapus.";
+                return DeleteTabSuccess();
             }
             catch (DbUpdateException ex)
             {
-                // Phase 325 P05 D-05: catch specific DbUpdateException (TOCTOU safety net jika race antara pre-check dan delete).
-                // Phase 331 D-07: preserve verbatim. using var tx disposal auto-rollback — no explicit RollbackAsync needed.
-                _logger.LogWarning(ex, "Delete failed for TrainingRecord {Id}", record.Id);
-                TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
+                _logger.LogWarning(ex, "Delete failed for TrainingRecord {Id}", id);
+                return DeleteTabFailure("Gagal hapus: ada constraint database yang dilanggar.");
             }
-            return DeleteTabResult();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting TrainingRecord {Id}", id);
+                return DeleteTabFailure("Gagal menghapus record. Silakan coba lagi.");
+            }
         }
 
         // --- MANUAL ASSESSMENT ---
@@ -677,6 +713,19 @@ namespace HcPortal.Controllers
                 await PopulateWorkersViewBag();
                 await SetTrainingCategoryViewBag();
                 return View(model);
+            }
+
+            // #12 D-02: guard duplikat EXACT (UserId+Title+CompletedAt manual, shared ManualDuplicatePredicate) per worker
+            // → REJECT submit bila ada dup (re-entry tanggal beda LOLOS, Pitfall 7). Pre-loop SEBELUM simpan file/Add (no partial-save).
+            foreach (var wc in model.WorkerCerts!)
+            {
+                if (await _context.AssessmentSessions.AnyAsync(ManualDuplicatePredicate(wc.UserId, model.Title, model.CompletedAt)))
+                {
+                    ModelState.AddModelError("", $"Duplikat: assessment '{model.Title}' untuk pekerja {wc.UserId} pada tanggal {model.CompletedAt:dd MMM yyyy} sudah ada.");
+                    await PopulateWorkersViewBag();
+                    await SetTrainingCategoryViewBag();
+                    return View(model);
+                }
             }
 
             var currentUserId = (await _userManager.GetUserAsync(User))?.Id;
@@ -738,6 +787,45 @@ namespace HcPortal.Controllers
         public IActionResult BulkBackfill()
         {
             return View();
+        }
+
+        // #23 D-01/D-02: one-time cleanup orphan AssessmentAttemptHistory legacy (SessionId dangling —
+        // sesi induk sudah terhapus pra-cascade-engine 367). Endpoint admin idempotent (preview → execute + audit),
+        // via UI per-environment, TANPA edit DB langsung (Dev Workflow). Migration=false.
+
+        // GET /Admin/CleanupAttemptHistory — preview-count orphan (read-only)
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CleanupAttemptHistory()
+        {
+            int orphanCount = await _context.AssessmentAttemptHistory
+                .Where(h => !_context.AssessmentSessions.Any(s => s.Id == h.SessionId))
+                .CountAsync();
+            ViewData["OrphanCount"] = orphanCount;
+            return View();
+        }
+
+        // POST /Admin/CleanupAttemptHistoryExecute — hapus orphan + audit (destructive → CSRF + admin)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CleanupAttemptHistoryExecute()
+        {
+            var orphanQuery = _context.AssessmentAttemptHistory
+                .Where(h => !_context.AssessmentSessions.Any(s => s.Id == h.SessionId));
+            var rows = await orphanQuery.ToListAsync();
+            int deleted = rows.Count;
+            if (deleted > 0)
+            {
+                _context.AssessmentAttemptHistory.RemoveRange(rows);
+                await _context.SaveChangesAsync();
+                var actor = await _userManager.GetUserAsync(User);
+                if (actor != null)
+                    await _auditLog.LogAsync(actor.Id, actor.FullName ?? actor.UserName ?? actor.Id,
+                        "CleanupAttemptHistory", $"Hapus {deleted} orphan AttemptHistory (SessionId dangling).", null, "AssessmentAttemptHistory");
+            }
+            TempData["Success"] = $"Selesai: {deleted} orphan AttemptHistory dihapus.";
+            return RedirectToAction(nameof(CleanupAttemptHistory));
         }
 
         // POST /Admin/BulkBackfillAssessment — REST-04 execute
@@ -818,9 +906,27 @@ namespace HcPortal.Controllers
             try
             {
                 var addedSessions = new List<AssessmentSession>();
+
+                // #14 D-02: pre-load existing keys (EXACT manual; title+completedAt KONSTAN utk batch ini → key = UserId)
+                // + intra-batch dedup (2 baris NIP sama dalam 1 file → baris kedua skip). seenInBatch karena AnyAsync TAK
+                // lihat row uncommitted dalam tx (1 SaveChanges di akhir). EXACT: CompletedAt == (BUKAN ±1 hari, Pitfall 7).
+                var relevantUserIds = users.Values.Select(u => u.Id).ToList();
+                var existingUserIds = (await _context.AssessmentSessions
+                    .Where(s => s.IsManualEntry && s.Title == title && s.CompletedAt == completedAt && relevantUserIds.Contains(s.UserId))
+                    .Select(s => s.UserId)
+                    .ToListAsync()).ToHashSet();
+                var seenInBatch = new HashSet<string>();
+                var skippedNips = new List<string>();
+
                 foreach (var row in rows)
                 {
                     var user = users[row.NIP];
+                    // duplikat — dilewati (DB existing ATAU intra-batch); JANGAN increment success
+                    if (existingUserIds.Contains(user.Id) || !seenInBatch.Add(user.Id))
+                    {
+                        skippedNips.Add(row.NIP);
+                        continue;
+                    }
                     var session = new AssessmentSession
                     {
                         UserId = user.Id,
@@ -839,7 +945,7 @@ namespace HcPortal.Controllers
                         CompletedAt = completedAt,
                         IsManualEntry = true,
                         LinkedGroupId = linkedGroupId,
-                        AssessmentType = "Standard",
+                        AssessmentType = AssessmentConstants.AssessmentType.Manual, // #27: konstanta (bukan literal "Standard")
                         CreatedAt = DateTime.UtcNow
                     };
                     _context.AssessmentSessions.Add(session);
@@ -865,7 +971,8 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["Success"] = $"Berhasil insert {success} backfill assessment '{title}' dengan tag '{auditTag}'. LinkedGroupId={linkedGroupId?.ToString() ?? "null"}.";
+                TempData["Success"] = $"Berhasil insert {success} backfill assessment '{title}' dengan tag '{auditTag}'. LinkedGroupId={linkedGroupId?.ToString() ?? "null"}."
+                    + (skippedNips.Count > 0 ? $" {skippedNips.Count} duplikat dilewati: {string.Join(", ", skippedNips)}." : "");
                 return RedirectToAction(nameof(BulkBackfill));
             }
             catch (Exception ex)
@@ -936,11 +1043,14 @@ namespace HcPortal.Controllers
             var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == model.Id && s.IsManualEntry);
             if (session == null) return NotFound();
 
+            // #21 D-06: atomic replace — capture LAMA, save baru; hapus lama POST-commit (setelah SaveChanges, lihat bawah).
+            string? oldManualUrl = null;
             if (model.CertificateFile != null && model.CertificateFile.Length > 0)
             {
-                FileUploadHelper.DeleteFile(_env.WebRootPath, session.ManualSertifikatUrl);
+                oldManualUrl = session.ManualSertifikatUrl;  // capture sebelum overwrite
                 var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
                 if (uploadedUrl != null) session.ManualSertifikatUrl = uploadedUrl;
+                else oldManualUrl = null; // upload gagal → JANGAN hapus lama
             }
 
             session.Title = model.Title;
@@ -960,6 +1070,13 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
 
+            // #21 D-06: hapus file LAMA POST-commit warn-only, hanya jika upload baru sukses (oldManualUrl != null).
+            if (!string.IsNullOrEmpty(oldManualUrl) && oldManualUrl != session.ManualSertifikatUrl)
+            {
+                try { FileUploadHelper.DeleteFile(_env.WebRootPath, oldManualUrl); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Gagal hapus file sertifikat lama post-commit (EditManualAssessment): {Url}", oldManualUrl); }
+            }
+
             var actor = await _userManager.GetUserAsync(User);
             if (actor != null)
                 await _auditLog.LogAsync(actor.Id, actor.FullName, "Update",
@@ -975,60 +1092,61 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> DeleteManualAssessment(int id)
         {
-            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == id && s.IsManualEntry);
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
+            // L-07: gate `&& s.IsManualEntry` DIHAPUS → endpoint generik (manual + online, #3/#4). authz preserved di atas.
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == id);
             if (session == null) return NotFound();
 
-            // Phase 331 D-03: Capture file URL SEBELUM Remove (session akan detached post-Remove).
-            string? manualSertifikatUrl = session.ManualSertifikatUrl;
+            // D-19 (parity tab-1, shared IsPrePostSession): sesi Pre/Post tak boleh dihapus satuan (orphan pasangan) —
+            // pakai hapus grup Pre-Post (tab-1). Pasca L-07 generik, filter IsManualEntry lama tak lagi jadi guard implisit.
+            if (IsPrePostSession(session))
+                return DeleteTabFailure("Sesi ini bagian dari grup Pre-Post Test. Gunakan hapus grup Pre-Post untuk menghapus keduanya.");
 
             try
             {
-                // Phase 325 P05 D-04/D-11: pre-check referencing rows SEBELUM hapus.
-                // AssessmentSession punya 2 jenis renewal child: TR + AS. FK column = RenewsSessionId (BUKAN RenewsTrainingId — pitfall RESEARCH §Pitfall 2).
-                // Phase 331 D-04: pre-check TETAP di POSISI semula, OUTSIDE tx scope (read-only count, no tx needed).
-                var referencingTr = await _context.TrainingRecords
-                    .CountAsync(t => t.RenewsSessionId == session.Id);
-                var referencingAs = await _context.AssessmentSessions
-                    .CountAsync(a => a.RenewsSessionId == session.Id);
+                // Phase 367 L-03: pre-check renewal BLOKIR (fase 325/331) DIBALIK → cascade penuh via engine
+                // (turunan renewal IKUT terhapus, fix kasus Rino #3). RenewsSessionId child (Pitfall 2) ditangani engine.
+                var nodes = await cascade.CollectCascadeIds("session", id);
+                var cascadeSessionIds = nodes.Where(n => n.Type == "session").Select(n => n.Id).ToList();
 
-                if (referencingTr + referencingAs > 0)
-                {
-                    var total = referencingTr + referencingAs;
-                    TempData["Error"] = $"Tidak bisa hapus: {total} sertifikat lain "
-                                      + "menggunakan record ini sebagai sumber renewal. "
-                                      + "Hapus atau update sertifikat pemakai terlebih dulu.";
-                    return DeleteTabResult();
-                }
+                // HC-tier guard (konsisten tab-1, shared): non-Admin diblok bila ADA node cascade Completed/ber-jawaban. Admin override.
+                if (!User.IsInRole("Admin") && await CascadeHasCompletedOrAnsweredAsync(cascadeSessionIds))
+                    return DeleteTabFailure("Tidak bisa menghapus: ada sesi yang sudah Completed atau berisi jawaban peserta. Hubungi Admin.");
 
-                // Phase 331 D-02: tx wrap Remove + SaveChanges + AuditLog. Disposal auto-rollback jika exception escape sebelum CommitAsync.
-                using var tx = await _context.Database.BeginTransactionAsync();
+                // Image SOAL (Opsi B) semua session node — collect SEBELUM engine.
+                var imagePaths = await CollectQuestionImagePathsAsync(cascadeSessionIds);
 
                 var actor = await _userManager.GetUserAsync(User);
-                _context.AssessmentSessions.Remove(session);
-                await _context.SaveChangesAsync();
+                var result = await cascade.ExecuteAsync("session", id, ParseMirrorTrainingIds(), actor?.Id ?? "", actor?.FullName ?? "Unknown");
+                if (!result.Success)
+                    return DeleteTabFailure(result.ErrorMessage ?? "Gagal menghapus record. Silakan coba lagi.");
 
-                if (actor != null)
-                    await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
-                        $"Assessment manual dihapus: {session.Title}", session.Id, "AssessmentSession");
+                await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePaths, "DeleteManualAssessment image");
 
-                await tx.CommitAsync();
-
-                // Phase 331 D-03 + D-05 + D-06: FileUploadHelper.DeleteFile POST commit dengan inner try/catch warn-only.
-                if (!string.IsNullOrEmpty(manualSertifikatUrl))
-                {
-                    try { FileUploadHelper.DeleteFile(_env.WebRootPath, manualSertifikatUrl); }
-                    catch (Exception ex) { _logger.LogWarning(ex, "FileUploadHelper.DeleteFile post-commit failed: {Url}", manualSertifikatUrl); }
-                }
-
-                TempData["Success"] = "Assessment manual berhasil dihapus.";
+                return DeleteTabSuccess();
             }
             catch (DbUpdateException ex)
             {
-                // Phase 331 D-07: preserve verbatim. using var tx disposal auto-rollback — no explicit RollbackAsync needed.
-                _logger.LogWarning(ex, "Delete failed for AssessmentSession (manual) {Id}", session.Id);
-                TempData["Error"] = "Gagal hapus: ada constraint database yang dilanggar.";
+                _logger.LogWarning(ex, "Delete failed for AssessmentSession {Id}", id);
+                return DeleteTabFailure("Gagal hapus: ada constraint database yang dilanggar.");
             }
-            return DeleteTabResult();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting AssessmentSession {Id}", id);
+                return DeleteTabFailure("Gagal menghapus record. Silakan coba lagi.");
+            }
+        }
+
+        // GET /Admin/DeletePreview — partial modal daftar korban cascade (read-only, L-03 konfirmasi via preview).
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> DeletePreview(string type, int id)
+        {
+            if (type != "training" && type != "session") return BadRequest();  // V5 whitelist
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
+            var nodes = await cascade.BuildPreviewAsync(type, id);  // ZERO mutasi (read-only)
+            if (nodes == null || nodes.Count == 0) return NotFound();
+            return PartialView("~/Views/Admin/Shared/_CascadePreviewModal.cshtml", nodes);
         }
 
         // --- IMPORT TRAINING ---
@@ -1219,6 +1337,16 @@ namespace HcPortal.Controllers
                         bool isPassed = lulusStr.Equals("Ya", StringComparison.OrdinalIgnoreCase);
                         int? score = int.TryParse(scoreStr, out var s) ? s : null;
 
+                        // #12 D-02: guard duplikat EXACT (UserId+Title+CompletedAt manual, shared predicate) → SKIP-with-report.
+                        // Branch ini SaveChanges per-row → AnyAsync sudah lihat row sebelumnya yg di-Add (intra-batch ter-cover).
+                        if (await _context.AssessmentSessions.AnyAsync(ManualDuplicatePredicate(targetUser.Id, judul, parsedDate)))
+                        {
+                            result.Status = "Skip";
+                            result.Message = "duplikat — dilewati";
+                            results.Add(result);
+                            continue;
+                        }
+
                         try
                         {
                             var session = new AssessmentSession
@@ -1240,7 +1368,7 @@ namespace HcPortal.Controllers
                                 CertificateType = string.IsNullOrWhiteSpace(certificateType) ? null : certificateType,
                                 Status = "Completed",
                                 IsManualEntry = true,
-                                GenerateCertificate = true,
+                                GenerateCertificate = isPassed, // #24: hanya lulus dapat sertifikat (bukan unconditional true)
                                 CreatedAt = DateTime.UtcNow,
                                 Progress = 0,
                                 BannerColor = "bg-primary",
@@ -1250,7 +1378,7 @@ namespace HcPortal.Controllers
                                 AccessToken = "",
                                 HasManualGrading = false,
                                 SamePackage = false,
-                                AssessmentType = ""
+                                AssessmentType = AssessmentConstants.AssessmentType.Manual // #24: konstanta (bukan literal kosong)
                             };
                             _context.AssessmentSessions.Add(session);
                             await _context.SaveChangesAsync();
@@ -1356,6 +1484,17 @@ namespace HcPortal.Controllers
                 _logger.LogError(ex, "Failed to read Excel import file for training");
                 TempData["Error"] = $"Gagal memproses file: {ex.Message}";
                 return View(new List<HcPortal.Models.ImportTrainingResult>());
+            }
+
+            // #24: audit log ringkasan 1 entri (bukan per-row) di akhir import.
+            var importActor = await _userManager.GetUserAsync(User);
+            if (importActor != null)
+            {
+                int ok   = results.Count(r => r.Status == "Success");
+                int skip = results.Count(r => r.Status == "Skip");
+                int err  = results.Count(r => r.Status == "Error");
+                await _auditLog.LogAsync(importActor.Id, importActor.FullName ?? importActor.UserName ?? importActor.Id,
+                    "ImportTraining", $"Import: {ok} sukses, {skip} skip, {err} error.", null, "AssessmentSession");
             }
 
             return View(results);

@@ -1,5 +1,122 @@
 # Milestones
 
+## v29.0 Assessment E2E Worker-Success Fix (Shipped Local: 2026-06-15, Audited: 2026-06-15)
+
+**Phases completed:** 3 phase (380-382), 8 plan
+**Status:** SHIPPED LOCAL + PUSHED `origin/ITHandoff` 2026-06-15 (tag `v29.0`). **0 migration**.
+**Audit:** `v29.0-MILESTONE-AUDIT.md` — status **passed** (11/11 REQ WSE-01..11, 3/3 phase, integration 11/11 seam WIRED [build 0 err, 58/58 cross-seam unit, no clobber CMPController seri A→B→C], 10/10 E2E flow). Security threats_open:0 (380 7/7, 382 12/12). Full suite 415/415.
+
+**Delivered:** Worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton). Audit-driven (`docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`, verdict awal CONDITIONAL). 3 phase SEQUENTIAL merge A→B→C (semua sentuh `CMPController.cs`).
+
+**Key accomplishments:**
+
+1. **Admin/Engine Integrity (Phase 380, WSE-01,02,03)** — WSE-01 SHF-01 `ShuffleEngine` ON-path empty-package filter + StartExam all-empty guard (paket kosong tak menzerokan worker / no 0% Fail palsu); WSE-02 TOK-01 `AccessTokenMatches` both-sides ToUpperInvariant heal + EditAssessment uppercase-write 3 sites (token edit-admin tetap dipakai worker); WSE-03 RST-01/04 `AddExtraTime` `[Authorize(Roles="Admin,HC")]` + cap atomic. xUnit 384/384, SECURED 7/7, UAT 5/5 (live e2e Flow L+M 10/10).
+2. **Worker Entry / StartExam integrity (Phase 381, WSE-04,05)** — WSE-04 NEW-same-day-PrePost shared type-aware sibling helper (`SiblingSessionQuery`, filter AssessmentType/LinkedGroupId) + rewire StartExam/ReshufflePackage/ReshuffleAll (Pre/Post tak tercampur); WSE-05 OPS-01/TOK-03 write-on-GET impersonation guard 3 write-site + in-memory preview (admin impersonate = read-only, tak memulai/membakar waktu/mengunci shuffle). 381-VERIFICATION + e2e #4/#7.
+3. **Grading / Lifecycle / Cert (Phase 382, WSE-06..11)** — WSE-06 SAVE-01 dedupe read-final (GradingService `finalByQuestion` ORDER BY SubmittedAt desc + SubmitExam GroupBy mirror); WSE-07 STAT-01 anti-resurrection guard kedua branch + const Abandoned; WSE-08 STAT-02 AbandonExam atomic ExecuteUpdate (ownership-in-WHERE, anti-race+anti-spoof); WSE-09 TMR-01 blocklist-invert + TMR-02 server-timer authority + TMR-03 token-on-success; WSE-10 TOK-02 StartedAt-gate SaveAnswer+SubmitExam; WSE-11 CERT-01 `DeriveCertificateStatus` null→Aktif single-source. xUnit 415/415, e2e #8-12 acceptance, SECURED 12/12, nyquist-compliant.
+
+**Migration:** 0 (D-01-IMPACT — SAVE-01 dedupe last-write-wins, BUKAN filtered-index; `dotnet ef migrations add _verify_382` → 0 model diff). **Known deferred (non-blocker):** CERT-01 konfirmasi visual human (DB-coherence sudah otomatis); 1 finding LOW I-1 (WSE-01 pre-check non-type-aware → redirect aman); RES-02/GRD-02 backlog. **Notify IT:** v29.0 = 0 migration baru (carry lama 360/372 masih pending IT). Plain-language summary: `docs/milestone-v29.0/index.html`.
+
+---
+
+## v28.0 Assessment & Records Bug Fixes (Shipped Local: 2026-06-14, Audited: 2026-06-14)
+
+**Phases completed:** 4 phase (376-379), 16 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v28). 0 migration.
+**Audit:** `v28.0-MILESTONE-AUDIT.md` — status **passed** (6/6 REQ GRADE/IMP/CMPRT/E2E, 4/4 phase, integration PASS 0-orphan/0-broken, 4/4 nyquist compliant, 3/3 E2E flow).
+
+**Delivered:** Fix 4 bug fungsional outstanding domain assessment & records (promote backlog 999.8/999.6/999.10/999.7): grading essay-only Score aggregation, impersonasi identity lintas worker-data surfaces, routing CMP orphan 500, migrasi net e2e exam-taking ke wizard.
+
+**Key accomplishments:**
+
+1. **Fix Essay-Only Score Aggregation (Phase 376, GRADE-01,02)** — diagnose-first: bug TAK reproduce (fixed incidental v27.0 Phase 373). Reframe Option 1 → helper pure `AssessmentScoreAggregator.Compute` (kill-drift, D-02/D-04) wired ke `FinalizeEssayGrading` forward + endpoint `RecomputeEssayScores` (prod-repair historis, Admin idempotent, D-03 Score+IsPassed only). 361/361 + integration 3/3 + e2e FLOW L Score=80 ×3.
+2. **Impersonation Identity Across Surfaces (Phase 377, IMP-01,02)** — akar bug 999.6 (impersonate X → worker-data tampil admin) fixed. Resolver single-source `ImpersonationService.GetEffectiveUserAsync` (D-05) + middleware D-04 fail-closed; CMP/CDP/Home konsumsi; D-03 mode-role hint + StartExam write-on-GET guard. 377-AUDIT.md (11 in-scope call-site). xUnit 372/372 + e2e 13/13 + UAT browser 7/7 live (Records Iwan 6 record). SECURED 25/25 + VALIDATED nyquist 0-gap.
+3. **Fix CMP CertificationManagement Route 500 (Phase 378, CMPRT-01)** — `CMPController.CertificationManagement` redirect 302 → CDP canonical (was View→500 orphan). Hapus 6 method dead + 2 builder orphan (KEEP `BuildSertifikatRowsAsync`: caller `ExportSertifikatDetailExcel`). build exit 0 + e2e Y0 redirect→CDP 200. VERIFICATION 6/6.
+4. **Migrate exam-taking e2e to wizard (Phase 379, E2E-01)** — 10 create flow (A-J) flat-form→wizard 4-langkah + layer PACKAGE; 10 `test.fixme`→0; +Flow K BARU essay DB-assert Score===80 (cover sinergi GRADE-01). Suite 75 passed / 7 skipped / 0 failed (`--workers=1`). Helper extension additive (D-04), test-infra only (0 prod code).
+
+**Migration:** 0. **Known deferred (non-blocker):** 377 live exam-transition impersonation guard (butuh fixture Upcoming-due); 378 2 item Info code-review; `CMPController.DokumenKkj` section filter pre-existing out-scope. **NOT PUSHED** — bundle v24-v28 pending IT (3 migration carry dari milestone lama: Origin/358, PendingProtonBypass+index/360, ShuffleToggles/372).
+
+---
+
+## v27.0 Shuffle Toggle (Acak Soal & Acak Pilihan) (Shipped Local: 2026-06-14, Audited: 2026-06-14)
+
+**Phases completed:** 4 phase (372-375), 12 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v27). 1 migration `AddShuffleTogglesToAssessmentSession` (defaultValue:true) — applied DB lokal, flag IT.
+**Audit:** `v27.0-MILESTONE-AUDIT.md` — status **passed** (16/16 REQ SHUF-01..16, 4/4 phase, integration 5/5 wired, 4/4 threats_open:0, 4/4 nyquist, build 352/352 + shuffle 46/46 live).
+
+**Delivered:** HC bisa ON/OFF dua sistem pengacakan independen (Acak Soal + Acak Pilihan) per-assessment via ManagePackages. Default ON dua-duanya (data lama tak berubah).
+
+**Key accomplishments:**
+
+1. **Data Foundation + Propagasi (Phase 372, SHUF-01..03)** — 2 kolom `ShuffleQuestions`/`ShuffleOptions` di `AssessmentSession` + migration defaultValue:true + set eksplisit 3 loop CreateAssessment (hindari EF bool-false trap) + propagate sibling EditAssessment + toggle wizard Step 3.
+2. **Shuffle Engine read-logic + reshuffle (Phase 373, SHUF-04..09,15)** — pure `Helpers/ShuffleEngine.cs` (ON canonical / OFF q.Order / OFF≥2 round-robin `workerIndex%count` index-stabil + guard paket kosong / opsi dict-or-"{}") wired ke `CMPController.StartExam` + fix bug SHUF-09 (`ReshufflePackage`/`ReshuffleAll` hard-code "{}" tereliminasi) + cleanup komentar stale.
+3. **UI ManagePackages + Lock + Pre/Post (Phase 374, SHUF-10..14)** — 2 toggle header + endpoint POST `UpdateShuffleSettings` (`[Authorize(Admin,HC)]`+AntiForgery+audit+propagate) + lock saat peserta mulai + warning ukuran-paket-beda + reminder Pre/Post + hide Proton Th3/Manual. Helper `ShuffleToggleRules`. VERIFICATION 9/9 + UAT browser 7/7.
+4. **Test & UAT (Phase 375, SHUF-16)** — `ShuffleModeMatrixTests` + `ShuffleEngineTests` (19 shuffle xUnit, suite 352/352) + `shuffle.spec.ts` 5/5 ManagePackages + exam-diff manual 3/3 live (B1 soal beda, B2 opsi beda, B3 OFF round-robin). Checkpoint di-approve via verifikasi otomatis (dotnet test + 7-skeptik adversarial).
+
+**Migration:** 1 (Phase 372). **Known deferred:** exam-effect VISUAL order-diff manual-only by design (D-03); NOT PUSHED.
+
+---
+
+## v26.0 Urgent — Search & Records Visibility (Shipped Local: 2026-06-12, Audited: 2026-06-12)
+
+**Phases completed:** 3 phase (369-371), 3 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v27). 0 migration.
+**Audit:** `v26.0-MILESTONE-AUDIT.md` — status **passed** (3/3 REQ URG-01..03, 3/3 phase, integration 3/3, security 3/3, nyquist 3/3).
+
+**Delivered:** Fix urgent search & records visibility — sinkron H1 search-drop main→ITHandoff + hapus window 7-hari (tampilan default tanpa batas) + sesi online tampil di Tab Input Records (visibility-only).
+
+**Key accomplishments:**
+
+1. **Sync H1 Search-Drop Fix (Phase 369, URG-01)** — port `GetWorkersInSection` treat searchScope null/kosong sebagai "Nama" (commit `14e7adc5` main) ke ITHandoff — search nama Tab Input Records tak lagi diabaikan diam-diam.
+2. **Hapus Window 7-Hari (Phase 370, URG-02)** — tampilan default tanpa batas window 7-hari (Post Test OJT >7 hari kini tampil).
+3. **Sesi Online di Tab Input Records (Phase 371, URG-03)** — view-only `_TrainingRecordsTab.cshtml` online tampil + badge.
+
+**Migration:** 0. **Known deferred:** NOT PUSHED.
+
+---
+
+## v25.0 Proton Kelulusan & Bypass (Shipped Local: 2026-06-13, Audited: 2026-06-13, re-audited 2026-06-14)
+
+**Phases completed:** 11 phase (358-368), ~38 plan
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (bundle v24-v27). 2 migration (`Origin` 358 + `PendingProtonBypass`+filtered-index 360) — applied DB lokal, flag IT (Origin sudah di origin/ITHandoff; PendingProtonBypass+index di delta unpushed).
+**Audit:** `v25.0-MILESTONE-AUDIT.md` — status **passed** (20/20 REQ PCOMP/PBYP, 10/11 full-artifact [362 no-dir, shipped per ROADMAP], integration 5/5 wired, 0 blocker). Re-audit 2026-06-14: 0 drift.
+
+**Delivered:** Logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda "Lulus" + gate berurutan dipaksa) + fitur Bypass Tahun, plus delete-records cascade overhaul + polish + test-hardening.
+
+**Key accomplishments:**
+
+1. **Penanda Kelulusan fondasi A (Phase 358, PCOMP-01..05)** — kolom `Origin` + `ProtonCompletionService` (helper bersama exam/interview/bypass) + wire GradingService (exam lulus + re-grade flip) + backfill. Fix bug exam Tahun 1/2 tak pernah "Lulus".
+2. **Gate Berurutan + Cleanup A (Phase 359, PCOMP-06..10)** — `ProtonYearGate` + gate eligibility server-side CreateAssessment + gate antar-tahun + graduation gate + matikan tampilan level.
+3. **Bypass Backend B (Phase 360, PBYP-01..07)** — migration `PendingProtonBypass` + 4 closure mode (CL-A/B(a)/B(b)/C) + notif `PROTON_BYPASS_READY` + coach handling + 6 endpoint.
+4. **Bypass UI B (Phase 361, PBYP-08..10)** — Tab2 wizard 3-langkah + panel pending + notif deep-link + e2e UAT 6/6.
+5. **Phase 362-368** — 362 PROTON CDP Polish (6 gap, no GSD dir) + 363 Audit Fix Alur PROTON T1-T10 + 364 restore e2e baseline + 365 test-harden Coach×Coachee AF-3 + 366 cascade image cleanup + 367 delete-records cascade overhaul (27 temuan) + 368 delete-records hygiene lanjutan.
+
+**Migration:** 2 (Origin 358 + PendingProtonBypass 360). **Known deferred:** 362 no formal GSD verification (shipped per ROADMAP claim); 999.8 essay-grading suspected prod bug → backlog; NOT PUSHED.
+
+---
+
+## v24.0 Gambar di Soal Assessment (Shipped Local: 2026-06-09, Audited: 2026-06-09)
+
+**Phases completed:** 6 phases (352–357), 22 plans, ~23 tasks
+**Status:** SHIPPED LOCAL, NOT PUSHED — branch `ITHandoff` (ahead of origin/main baseline v23.0 `650cfeb4`; sync 5 origin/main commits before merge). v19–v23 already delivered to IT 2026-06-06.
+**Audit:** `milestones/v24.0-MILESTONE-AUDIT.md` — status **passed** (25/25 REQ, 6/6 phases, integration 17/17 WIRED 0 broken, 4/4 E2E flows). Stale IMG-04 checkbox corrected during audit.
+
+**Delivered:** Admin dapat melampirkan gambar pada soal assessment + tiap opsi jawaban (image-only ≤5MB magic-byte, alt text), tampil konsisten di 6 layar, dengan integritas file (sync Pre→Post shared-file + hapus atomic). Plus 2 addon off-theme: audit-fix Assign Coach×Coachee + standarisasi istilah tipe soal.
+
+**Key accomplishments:**
+
+1. **Data Foundation + Image-Only Upload (Phase 352)** — entity + migration `AddImageToPackageQuestionAndOption` (4 kolom ImagePath/ImageAlt), `FileUploadHelper.ValidateImageFile` magic-byte image-only (tolak non-gambar, ≤5MB), AssessmentConstants. IMG-04.
+2. **Admin Backend Gambar — CRUD + Sync + Atomic Delete (Phase 353)** — upload/alt/replace/remove gambar soal+opsi di ManagePackageQuestions (prefill thumbnail) + sync Pre→Post shared-file + hapus file atomic ref-count (pola Phase 333, no orphan). IMG-01/02/03/05/06/07, RND-04, SYN-01/02.
+3. **Render Gambar di 6 Layar (Phase 354)** — gambar tampil di StartExam/ExamSummary/Results (peserta) + _PreviewQuestion/AssessmentMonitoringDetail/EditPesertaAnswers (admin), responsive img-fluid+lazy + lightbox via `_QuestionImage`/`_ImageLightboxModal`. RND-01/02/03/05/06/07. (2 bug Playwright-caught: RuntimeBinderException @model dynamic + label-toggle radio.)
+4. **Test & UAT (Phase 355)** — xUnit (FileUploadHelper, replace-deletes-old, sync) + Playwright e2e image-in-assessment upload→render end-to-end. TST-01/02.
+5. **Audit Fix Assign Coach×Coachee (Phase 356, addon off-theme)** — 6 fix CoachMappingController: AF-1 (HIGH) eligibility per-unit coachee (track multi-unit), AF-3 graduate per-unit (IsActive=false+cascade), AF-2 UI guard 1-unit/batch, AF-5 notif reassign, AF-6 pesan duplikat spesifik, AF-7 batch query. Helper `CoacheeEligibilityCalculator` + xUnit. AF-4 deferred → backlog 999.5. Code review caught WR-01 (cross-unit eligibility false-negative) FIXED.
+6. **Standarisasi Istilah Tipe Soal (Phase 357, addon off-theme)** — re-label "Single Answer / Multiple Answer / Essay" (override Phase 305) di semua surface; `QuestionTypeLabels.cs` single-source penuh + hapus dead code TrueFalse. DB enum tetap (no-migration). LBL-02.
+
+**Migration:** 1 (Phase 352 `AddImageToPackageQuestionAndOption`). Phases 353-357 = 0 migration.
+
+**Known deferred (non-blocking, tracked):** AF-4 reactivate-window → 999.5; nyquist VALIDATION frontmatter not flipped 353/356/357 (tests green); RND-02 ExamSummary live-verified (354) not in 355 Playwright; backlog 999.3/999.4/999.5. PDF panduan regen = manual user.
+
+---
+
 ## v23.0 CMP/Records Search & Filter Consistency Audit (Shipped Local: 2026-06-06, Audited: 2026-06-06)
 
 **Phases completed:** 2 phase (350, 351), 7 plan (350:3, 351:4)
@@ -15,6 +132,7 @@
 2. **Worker Detail + Cross-Surface Filter Consistency (Phase 351, SF-03/04/05/07)** — SF-03: `#wdRecordCounter` aria-live "Menampilkan X dari Y" + `#workerDetailEmptyState` ("Tidak ada hasil untuk filter ini.") saat 0-match. SF-04: helper `BuildActualCategories` (distinct-actual unifiedRecords.Kategori) + `ViewBag.ActualCategoriesJson` ganti master di Worker Detail + My Records. SF-05: My Records filter Kategori+Tipe parity (id `myCategoryFilter`/`myTypeFilter` hindari duplicate-id Team View) + `data-category`. SF-07: hash→tab activator (`#team` → `getOrCreateInstance(tab-team).show()`) + sessionStorage restore 9 filter. 3 xUnit + Playwright cmp-records-351 5/5 + regression 346/350 hijau.
 
 **Known deferred (non-blocking, tech debt):**
+
 - Phase 350 VERIFICATION `human_needed`: XLSX export content (archived vs current per-Category) belum di-eyeball lokal:5277; kode + Playwright href/counter SF-06 verified.
 - Phase 351 code review 3 INFO opsional (data-type konvensi 2 surface, deserialize null-coalesce defensif, comparer culture).
 - Nyquist artifact-only partial: VALIDATION.md 350/351 frontmatter draft tak di-update post-exec (Wave 0 Playwright spec sudah hijau).

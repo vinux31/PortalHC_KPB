@@ -4,6 +4,40 @@
 
 ---
 
+## Milestone: v24.0 — Gambar di Soal Assessment (Manage Package)
+
+**Shipped:** 2026-06-09 (local) | **Phases:** 6 (352–357) | **Plans:** 22
+
+### What Was Built
+Gambar pada soal + opsi assessment: upload image-only (≤5MB magic-byte) + alt text, CRUD admin di ManagePackageQuestions, render konsisten 6 layar (responsive + lightbox), sync Pre→Post shared-file, hapus file atomic (pola Phase 333, no orphan). Plus 2 addon off-theme: Phase 356 audit-fix Assign Coach×Coachee (6 fix AF-1..7, eligibility per-unit HIGH) + Phase 357 standarisasi istilah tipe soal "Single/Multiple Answer" (single-source helper + hapus dead TrueFalse).
+
+### What Worked
+- **Spec-driven discuss** (352-355 dari satu design spec; 356/357 dari audit spec file:line) → planning mulus, checker PASS iterasi awal.
+- **Code review menangkap bug yang UAT lewatkan** (356 WR-01: eligibility cross-unit false-negative dari interaksi AF-1+AF-3; data UAT single-unit tak ekspos). Review = safety net nyata.
+- **Single-source helper** (QuestionTypeLabels 357, _QuestionImage partial 354) → 1 ubah propagate banyak surface; UAT 2-surface cukup buktikan rendering.
+- **Playwright runtime UAT** wajib untuk Razor dynamic (354 RuntimeBinderException + label-toggle bug — build+grep tak deteksi).
+
+### What Was Inefficient
+- **Dev-server lock** (`dotnet run` lokal pegang HcPortal.dll/.exe) berulang blok `dotnet build` (MSB3027/3021, bukan CS error) — harus stop dev server tiap build gate. Lesson: hentikan dev server sebelum sesi execute.
+- **CLI milestone-complete mis-count + garbage accomplishments** (recurring): phases 7 vs 6, accomplishments = deviation tags ("[Rule 1 - Bug]"/"[Discretion]"). Manual fix MILESTONES.md tiap close. Pola sama v21/v23.
+- **Stale traceability checkbox** (IMG-04 `[ ]` Pending padahal satisfied) — audit yang nangkap.
+
+### Patterns Established
+- Off-theme addon di dalam milestone image (356/357) — independen jalur file, paralel-able, di-audit terpisah tapi 1 milestone.
+- UAT proportional: surface helper-driven cukup 2 browser-verified + sisanya code-verified (single-source).
+- sqlcmd butuh `-C` (trust ODBC18 cert) + `-I` (QUOTED_IDENTIFIER untuk UPDATE tabel filtered-index).
+
+### Key Lessons
+- Code review SETELAH UAT tetap wajib — UAT data lokal sering tak ekspos edge (cross-unit, race).
+- Razor `@model dynamic`/binding WAJIB Playwright runtime; grep+build tak cukup.
+- CLI milestone-complete output JANGAN dipercaya mentah — verify count + rewrite accomplishments manual.
+
+### Cost Observations
+- Model mix: mayoritas opus (orchestrator + planner + executor inline), sonnet (checker/reviewer/verifier/integration).
+- Eksekusi --interactive inline (bukan subagent) untuk 356+357 → lower overhead, kontrol per-task.
+
+---
+
 ## Milestone: v23.0 — CMP/Records Search & Filter Consistency Audit
 
 **Shipped:** 2026-06-06 (local) | **Phases:** 2 (350-351) | **Plans:** 7 | **REQ:** 7/7 SF-01..07 | **0 migration**

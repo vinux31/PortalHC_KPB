@@ -38,6 +38,10 @@ namespace HcPortal.Models
 
         /// <summary>Batas karakter untuk soal Essay. Default 2000.</summary>
         public int MaxCharacters { get; set; } = 2000;
+
+        // RND-01: gambar soal (StartExam). Diisi controller dari PackageQuestion.ImagePath/ImageAlt.
+        public string? ImagePath { get; set; }
+        public string? ImageAlt { get; set; }
     }
 
     public class ExamOptionItem
@@ -45,6 +49,10 @@ namespace HcPortal.Models
         public int OptionId { get; set; }           // PackageOption.Id or AssessmentOption.Id
         public string OptionText { get; set; } = "";
         // Display letter (A/B/C/D) is assigned at render time by position index, NOT stored here
+
+        // RND-01: gambar opsi (StartExam). Diisi controller dari PackageOption.ImagePath/ImageAlt.
+        public string? ImagePath { get; set; }
+        public string? ImageAlt { get; set; }
     }
 
     public class ExamSummaryItem
@@ -67,11 +75,30 @@ namespace HcPortal.Models
         /// <summary>Jawaban teks untuk soal Essay.</summary>
         public string? TextAnswer { get; set; }
 
+        // RND-02: gambar soal di ExamSummary. Diisi controller (Plan 03) dari q.ImagePath/ImageAlt.
+        public string? ImagePath { get; set; }
+        public string? ImageAlt { get; set; }
+
+        // RND-02: carrier opsi-dengan-gambar untuk render block-bawah di ExamSummary.
+        // Diisi controller (Plan 03) dari q.Options. ExamSummaryItem text-only → list terpisah.
+        public List<ExamSummaryOptionItem> OptionImages { get; set; } = new();
+
         public bool IsAnswered =>
             (QuestionType == "Essay")
                 ? !string.IsNullOrWhiteSpace(TextAnswer)
                 : (QuestionType == "MultipleAnswer")
                     ? SelectedOptionTexts.Any()
                     : SelectedOptionId.HasValue;
+    }
+
+    /// <summary>
+    /// Carrier opsi-dengan-gambar untuk render gambar opsi block-bawah di ExamSummary (RND-02).
+    /// </summary>
+    public class ExamSummaryOptionItem
+    {
+        public int OptionId { get; set; }
+        public string OptionText { get; set; } = "";
+        public string? ImagePath { get; set; }
+        public string? ImageAlt { get; set; }
     }
 }

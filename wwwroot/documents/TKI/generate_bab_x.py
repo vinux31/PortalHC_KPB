@@ -53,7 +53,7 @@ OUTLINE = {
                 ("USER", "Klik tombol \"Mulai\" pada paket yang hendak dikerjakan.", None),
                 ("USER", "Baca instruksi dan ketentuan, lalu klik \"Setuju & Mulai\".", None),
                 ("USER", "Kerjakan soal satu per satu. Timer berjalan di pojok kanan atas.", None),
-                ("USER", "Tipe soal yang tersedia: (1) Single Choice; (2) Multiple Answers; (3) Essay; (4) Mix.", None),
+                ("USER", "Tipe soal yang tersedia: (1) Single Answer; (2) Multiple Answer; (3) Essay; (4) Mix.", None),
                 ("USER", "Gunakan tombol \"Sebelumnya\" / \"Selanjutnya\" untuk navigasi antar soal.", None),
                 ("USER", "Bila seluruh soal telah dijawab, klik \"Submit\". Sistem meminta konfirmasi.", None),
                 ("USER", "Sistem menyimpan jawaban, melakukan auto-grading untuk tipe non-essay, lalu menampilkan halaman Ringkasan Ujian.", None),
@@ -178,7 +178,7 @@ OUTLINE = {
             ]),
             ("4.3 Import Soal via Excel", [
                 ("HC", "Masuk ke detail paket assessment > klik \"Import Soal Excel\".", None),
-                ("HC", "Download template sesuai tipe: Essay / Multiple Answers / Mix (lihat Lampiran I).", None),
+                ("HC", "Download template sesuai tipe: Essay / Multiple Answer / Mix (lihat Lampiran I).", None),
                 ("HC", "Isi template, upload, lakukan preview, lalu konfirmasi.", None),
                 ("HC", "Klik \"Preview Paket\" untuk melihat tampilan akhir sebelum di-assign ke peserta.", None),
             ]),
@@ -302,7 +302,7 @@ INDIKATOR = [
 ]
 
 LAMPIRAN = [
-    "Lampiran I — Template Excel Import Soal (Essay / Multiple Answers / Mix)",
+    "Lampiran I — Template Excel Import Soal (Essay / Multiple Answer / Mix)",
     "Lampiran II — Template Excel Import Worker",
     "Lampiran III — Template Excel Import Training",
     "Lampiran IV — Template Excel Import Silabus PROTON",

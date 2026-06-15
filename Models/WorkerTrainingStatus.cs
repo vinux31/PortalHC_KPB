@@ -50,10 +50,15 @@ namespace HcPortal.Models
         // Phase 215: assessment session list for category filter in Team View
         public List<AssessmentSession> AssessmentSessions { get; set; } = new List<AssessmentSession>();
 
-        // Computed display string: "5 completed (3 assessments + 2 trainings)"
-        // CompletedTrainings counts Status == "Passed" || Status == "Valid" (set in GetWorkersInSection)
+        // Phase 367 (#16/#17, D-01 RECOMPUTE): badge tab Input Records = jumlah baris yang BENAR-BENAR tampil
+        // per jenis — SEMUA AssessmentSessions (manual + online) + SEMUA TrainingRecords — sumber data IDENTIK
+        // dengan proyeksi baris partial (_TrainingRecordsTab: trainingRows + assessmentRows + onlineRows), jadi
+        // angka badge == jumlah baris dan tak kontradiksi. Sebelumnya pakai CompletedAssessments (IsPassed) +
+        // CompletedTrainings (Passed/Valid/Permanent) yang lebih kecil dari baris tampil → bikin admin bingung
+        // dan stale pasca cascade delete. CompletedAssessments/CompletedTrainings DIPERTAHANKAN apa adanya
+        // (dipakai _RecordsTeamBody.cshtml + WorkerDataServiceSearchTests — JANGAN diubah).
         public string CompletionDisplayText =>
-            $"{CompletedAssessments + CompletedTrainings} completed " +
-            $"({CompletedAssessments} assessments + {CompletedTrainings} trainings)";
+            $"{AssessmentSessions.Count + TrainingRecords.Count} record " +
+            $"({AssessmentSessions.Count} assessment + {TrainingRecords.Count} training)";
     }
 }

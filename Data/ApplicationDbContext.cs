@@ -42,6 +42,9 @@ namespace HcPortal.Data
         public DbSet<ProtonNotification> ProtonNotifications { get; set; }
         public DbSet<ProtonFinalAssessment> ProtonFinalAssessments { get; set; }
 
+        // Proton Bypass Tahun (Phase 360 — PBYP-01)
+        public DbSet<PendingProtonBypass> PendingProtonBypasses { get; set; }
+
         // Proton Track (Phase 33 — normalized track entity)
         public DbSet<ProtonTrack> ProtonTracks { get; set; }
 
@@ -210,6 +213,8 @@ namespace HcPortal.Data
                 // Default values
                 entity.Property(a => a.PassPercentage).HasDefaultValue(70);
                 entity.Property(a => a.AllowAnswerReview).HasDefaultValue(true);
+                entity.Property(a => a.ShuffleQuestions).HasDefaultValue(true);
+                entity.Property(a => a.ShuffleOptions).HasDefaultValue(true);
                 entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
                 // AssessmentSession: Proton exam fields (Phase 53)
@@ -412,6 +417,20 @@ namespace HcPortal.Data
                 entity.HasIndex(fa => new { fa.CoacheeId, fa.Status });
                 // Phase 236 COMP-01: unique constraint per D-01
                 entity.HasIndex(fa => fa.ProtonTrackAssignmentId).IsUnique();
+            });
+
+            // PendingProtonBypass indexes (Phase 360 — PBYP-01).
+            // WR-01 (review 360): blok dobel pending (D-10) DITEGAKKAN di DB via filtered unique
+            // index (pola IX_CoachCoacheeMappings_CoacheeId_ActiveUnique / E15) — app-level check
+            // di BypassSaveAsync jalan DI LUAR tx ExecutePendingBypassAsync (TOCTOU dobel-klik HC).
+            builder.Entity<PendingProtonBypass>(entity =>
+            {
+                entity.HasIndex(p => new { p.CoacheeId, p.Status })
+                    .HasDatabaseName("IX_PendingProtonBypasses_CoacheeId_Status");
+                entity.HasIndex(p => p.CoacheeId)
+                    .IsUnique()
+                    .HasFilter("[Status] IN (N'Menunggu', N'Siap')")
+                    .HasDatabaseName("IX_PendingProtonBypasses_CoacheeId_ActiveUnique");
             });
 
             // ProtonNotification indexes (Phase 6)

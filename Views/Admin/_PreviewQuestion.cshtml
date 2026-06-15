@@ -16,6 +16,9 @@
         <!-- Teks soal -->
         <p class="fw-medium mb-3">@Model.QuestionText</p>
 
+        @* RND-04: gambar soal (cap 240px) via partial bersama (D-04 konsistensi Phase 354) *@
+        @await Html.PartialAsync("_QuestionImage", new { ImagePath = Model.ImagePath, ImageAlt = Model.ImageAlt, Cap = 240 })
+
         @if (qtype == "Essay")
         {
             <!-- Essay: textarea disabled -->
@@ -51,13 +54,17 @@
                 {
                     var opt = options[i];
                     var letter = i < letters.Length ? letters[i] : (i + 1).ToString();
-                    <label class="list-group-item list-group-item-action d-flex align-items-center gap-3">
-                        <input class="form-check-input mt-0"
-                               type="@(qtype == "MultipleAnswer" ? "checkbox" : "radio")"
-                               disabled
-                               style="transform:scale(1.2)" />
-                        <span class="fw-medium">@letter.</span>
-                        <span>@opt.OptionText</span>
+                    <label class="list-group-item list-group-item-action d-flex flex-column">
+                        <div class="d-flex align-items-center gap-3">
+                            <input class="form-check-input mt-0"
+                                   type="@(qtype == "MultipleAnswer" ? "checkbox" : "radio")"
+                                   disabled
+                                   style="transform:scale(1.2)" />
+                            <span class="fw-medium">@letter.</span>
+                            <span>@opt.OptionText</span>
+                        </div>
+                        @* RND-04: gambar opsi (cap 120px, block-bawah) via partial bersama (D-04, §3) *@
+                        @await Html.PartialAsync("_QuestionImage", new { ImagePath = opt.ImagePath, ImageAlt = opt.ImageAlt, Cap = 120, AriaContext = "opsi " + letter })
                     </label>
                 }
             </div>

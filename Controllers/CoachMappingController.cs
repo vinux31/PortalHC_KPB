@@ -16,6 +16,7 @@ namespace HcPortal.Controllers
     {
         private readonly ILogger<CoachMappingController> _logger;
         private readonly INotificationService _notificationService;
+        private readonly ProtonCompletionService _protonCompletionService;
 
         public CoachMappingController(
             ApplicationDbContext context,
@@ -23,11 +24,13 @@ namespace HcPortal.Controllers
             AuditLogService auditLog,
             IWebHostEnvironment env,
             ILogger<CoachMappingController> logger,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ProtonCompletionService protonCompletionService)
             : base(context, userManager, auditLog, env)
         {
             _logger = logger;
             _notificationService = notificationService;
+            _protonCompletionService = protonCompletionService;
         }
 
         // Override View resolution to use Views/Admin/ folder
@@ -504,42 +507,61 @@ namespace HcPortal.Controllers
                         .Where(t => t.TrackType == requestedTrack.TrackType
                                  && t.Urutan == requestedTrack.Urutan - 1)
                         .FirstOrDefaultAsync();
+                    // T9/D-12: log-only — Urutan=1 prevTrack==null itu normal (Tahun 1, tanpa prasyarat)
+                    if (requestedTrack.Urutan > 1 && prevTrack == null)
+                        _logger.LogWarning("CoachCoacheeMappingAssign: prev-track null padahal Urutan={Urutan} > 1 (TrackType={TrackType}) — Urutan tidak kontigu di master ProtonTracks. Gate untuk track ini dilewati.", requestedTrack.Urutan, requestedTrack.TrackType);
                     if (prevTrack != null)
                     {
+                        // AF-7 (Phase 356): batch pre-load (3 query) menggantikan N+1 loop (~4 query/coachee).
+                        // Output incompleteCoachees IDENTIK — 3 cabang direproduksi persis (zero behavior change).
+                        var coacheeIdsForWarning = req.CoacheeIds;
+
+                        // (cabang 1) Phase 363-05 (T3/D-05): skip HANYA coachee yang SUDAH AKTIF untuk track
+                        // yang diminta (true no-op). Dulu tanpa filter IsActive — assignment INACTIVE ikut
+                        // ter-skip, sehingga reaktivasi cross-year (:597-606) lolos tanpa year-gate (loophole T3).
+                        var activeForRequestedTrack = (await _context.ProtonTrackAssignments
+                            .Where(a => coacheeIdsForWarning.Contains(a.CoacheeId) && a.ProtonTrackId == req.ProtonTrackId.Value && a.IsActive)
+                            .Select(a => a.CoacheeId).Distinct().ToListAsync())
+                            .ToHashSet();
+
+                        // Phase 359 (PCOMP-07/D-03) — "Tahun N-1 lulus" = ADA PENANDA (GetPassedYearsAsync),
+                        // BUKAN sekadar progress Approved. Konsisten dengan gate CreateAssessment (Plan 02).
+                        // (cabang 2/3 lama berbasis progress Approved di-ganti penanda-based.)
                         var incompleteCoachees = new List<string>();
-                        foreach (var coacheeId in req.CoacheeIds)
+                        foreach (var coacheeId in coacheeIdsForWarning)
                         {
-                            // D-11: Skip warning if coachee already has an assignment for this track (reactivated scenario)
-                            var hasExistingAssignment = await _context.ProtonTrackAssignments
-                                .AnyAsync(a => a.CoacheeId == coacheeId
-                                           && a.ProtonTrackId == req.ProtonTrackId.Value);
-                            if (hasExistingAssignment) continue;
+                            if (activeForRequestedTrack.Contains(coacheeId)) continue;       // cabang 1: sudah AKTIF → no-op, skip gate
 
-                            // Check if previous track assignment exists and all progress is Approved
-                            var prevAssignment = await _context.ProtonTrackAssignments
-                                .FirstOrDefaultAsync(a => a.CoacheeId == coacheeId
-                                                       && a.ProtonTrackId == prevTrack.Id);
-                            if (prevAssignment == null)
-                            {
-                                incompleteCoachees.Add(coacheeId);
-                                continue;
-                            }
+                            // Phase 360 (D-06b) + 363-05: exempt bypass dua lapis.
+                            // Desain baru (T3/D-05/D-06, rekonsiliasi 360 W-07/I-08): cabang 1 kini memfilter IsActive,
+                            // jadi kandidat REAKTIVASI (inactive) ikut turun ke gate; bypass tetap exempt baik aktif
+                            // (isExemptFromCrossYear) maupun inactive (reactExempt — stempel permanen, konsisten 360 D-04).
+                            // Renewal exempt = session-based TERPISAH (D-07).
+                            bool isExemptFromCrossYear = await _context.ProtonTrackAssignments
+                                .AnyAsync(a => a.CoacheeId == coacheeId && a.ProtonTrackId == requestedTrack.Id
+                                            && a.IsActive && a.Origin == "Bypass");
+                            if (isExemptFromCrossYear) continue;
 
-                            var prevProgressCount = await _context.ProtonDeliverableProgresses
-                                .CountAsync(p => p.ProtonTrackAssignmentId == prevAssignment.Id);
-                            var allApproved = prevProgressCount > 0 && !await _context.ProtonDeliverableProgresses
-                                .AnyAsync(p => p.ProtonTrackAssignmentId == prevAssignment.Id
-                                           && p.Status != "Approved");
-                            if (!allApproved)
-                                incompleteCoachees.Add(coacheeId);
+                            // T3/D-06: reaktivasi-candidate (punya assignment INACTIVE utk track diminta, akan direaktivasi :597-606)
+                            //          exempt bila inactive assignment ber-Origin="Bypass" (stempel permanen, konsisten 360 D-04).
+                            bool reactExempt = await _context.ProtonTrackAssignments
+                                .AnyAsync(a => a.CoacheeId == coacheeId && a.ProtonTrackId == requestedTrack.Id
+                                            && !a.IsActive && a.Origin == "Bypass");
+                            if (reactExempt) continue;
+
+                            // prevTrack.TahunKe = TahunKe tahun sebelumnya (mis. "Tahun 1"); cek penanda
+                            // untuk (coachee, TrackType). Tahun 1 tidak masuk blok ini (prevTrack == null di :507).
+                            // Kandidat reaktivasi non-bypass kini ikut dicek di sini (T3 fix).
+                            bool prevPassed = await _protonCompletionService
+                                .IsPrevYearPassedAsync(coacheeId, requestedTrack.TrackType, prevTrack.TahunKe);
+                            if (!prevPassed) incompleteCoachees.Add(coacheeId);
                         }
 
-                        // D-09: Warning only — return warning response if incomplete and user hasn't confirmed
-                        if (incompleteCoachees.Any() && !req.ConfirmProgressionWarning)
+                        // D-05: HARD-BLOCK cross-year — tanpa escape ConfirmProgressionWarning (drop warning-override).
+                        if (incompleteCoachees.Any())
                         {
-                            return Json(new { success = false, warning = true,
-                                message = $"{incompleteCoachees.Count} coachee belum menyelesaikan {prevTrack.DisplayName}. Tetap lanjutkan?",
-                                incompleteCount = incompleteCoachees.Count });
+                            return Json(new { success = false,
+                                message = $"Tidak bisa assign {requestedTrack.TahunKe}: {prevTrack.TahunKe} ({requestedTrack.TrackType}) belum lulus untuk {incompleteCoachees.Count} coachee." });
                         }
                     }
                 }
@@ -619,6 +641,18 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
+            }
+            catch (DbUpdateException dbEx) when (
+                dbEx.InnerException?.Message.Contains("IX_CoachCoacheeMappings_CoacheeId_ActiveUnique") == true
+                || dbEx.InnerException?.Message.Contains("2601") == true
+                || dbEx.InnerException?.Message.Contains("2627") == true)
+            {
+                // AF-6 (Phase 356): race duplikat coachee melanggar unique-index → pesan ramah spesifik.
+                // KEAMANAN: jangan expose dbEx.Message mentah; detail hanya ke logger.
+                _logger.LogWarning(dbEx, "Assign race: coachee already has active coach (unique-index violation)");
+                await tx.RollbackAsync();
+                return Json(new { success = false,
+                    message = "Coachee sudah memiliki coach aktif untuk unit ini. Nonaktifkan mapping lama terlebih dahulu." });
             }
             catch (Exception ex)
             {
@@ -783,7 +817,8 @@ namespace HcPortal.Controllers
             {
                 await tx.RollbackAsync();
                 _logger.LogError(ex, "CoachCoacheeMappingEdit failed for mapping {MappingId}; rolled back", req.MappingId);
-                return Json(new { success = false, message = $"Gagal menyimpan perubahan: {ex.Message}" });
+                // WR-02: jangan bocorkan ex.Message mentah ke admin UI — detail hanya ke logger (selaras AF-6).
+                return Json(new { success = false, message = "Gagal menyimpan perubahan. Operasi dibatalkan." });
             }
 
             // Post-commit: now that the DB change is durable, delete evidence folders on disk.
@@ -1008,6 +1043,12 @@ namespace HcPortal.Controllers
             // FIX-01: Only reactivate assignments that were deactivated as part of this mapping's deactivation event.
             // We correlate by DeactivatedAt timestamp (within 5 seconds of originalEndDate) to avoid restoring
             // assignments that were independently deactivated for other reasons.
+            // AF-4 (Phase 356, DEFER ke backlog): korelasi assignment via DeactivatedAt dalam window ±5 detik
+            // adalah asumsi rapuh — assignment yang dinonaktifkan secara independen dalam window yang sama bisa
+            // ikut ter-restore. FIX-01 sudah memitigasi salah-restore untuk skenario umum. Fix proper memerlukan
+            // kolom korelasi eksplisit (mis. DeactivatedByMappingEventId) yang butuh migration; di-defer agar
+            // Phase 356 tetap 0-migration (leg v24 belum di-push). Promote via /gsd-add-backlog bila volume
+            // reactivate / track multi-unit meningkat. JANGAN ubah logic window di phase ini.
             List<ProtonTrackAssignment> inactiveAssignments;
             if (originalEndDate.HasValue)
             {
@@ -1055,20 +1096,64 @@ namespace HcPortal.Controllers
             }
         }
 
-        // Phase 236 COMP-04: completion criteria helper per D-13
-        private async Task<bool> IsYearCompletedAsync(int assignmentId)
+        // Phase 236 COMP-04 + Phase 365 D-05: static agar core callable tanpa instance controller. Logika NOL berubah (_context -> ctx).
+        private static async Task<bool> IsYearCompletedAsync(ApplicationDbContext ctx, int assignmentId)
         {
-            var progresses = await _context.ProtonDeliverableProgresses
+            var progresses = await ctx.ProtonDeliverableProgresses
                 .Where(p => p.ProtonTrackAssignmentId == assignmentId)
                 .ToListAsync();
             if (!progresses.Any()) return false;
             bool allApproved = progresses.All(p => p.Status == "Approved");
-            bool hasFinalAssessment = await _context.ProtonFinalAssessments
+            bool hasFinalAssessment = await ctx.ProtonFinalAssessments
                 .AnyAsync(fa => fa.ProtonTrackAssignmentId == assignmentId);
             return allApproved && hasFinalAssessment;
         }
 
-        // Phase 236 COMP-04: Mark mapping as completed/graduated per D-15
+        // Phase 365 D-01/D-02: static core graduate (pola 363 CDPController.ApproveDeliverableCoreAsync).
+        // Guard + mutasi + cascade + SaveChanges di core; NO transaksi di core (D-02 -> wrapper).
+        // not-found & guard return (false, error, 0). OQ-1: SaveChangesAsync di core (dalam scope transaksi wrapper).
+        public static async Task<(bool ok, string? error, int cascadeCount)> MarkMappingCompletedCore(
+            ApplicationDbContext context, int mappingId)
+        {
+            var mapping = await context.CoachCoacheeMappings.FindAsync(mappingId);
+            if (mapping == null) return (false, "Mapping tidak ditemukan.", 0);   // OQ-2: not-found di core
+
+            // Validate: coachee harus punya semua tahun completed
+            var assignments = await context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                .ToListAsync();
+            var tahun3Assignment = assignments
+                .FirstOrDefault(a => a.ProtonTrack != null && a.ProtonTrack.TahunKe == "Tahun 3");
+            if (tahun3Assignment == null)
+                return (false, "Coachee belum memiliki assignment Tahun 3.", 0);   // token "Tahun 3"
+
+            bool tahun3Complete = await IsYearCompletedAsync(context, tahun3Assignment.Id);
+            if (!tahun3Complete)
+                return (false, "Tidak bisa menandai lulus (graduated): Tahun 3 belum lulus untuk pekerja ini.", 0);  // token "belum lulus"
+
+            // MUTASI (verbatim dari produksi lama)
+            mapping.IsCompleted = true;
+            mapping.CompletedAt = DateTime.UtcNow;
+            mapping.IsActive = false;            // AF-3 D-03: bebaskan unique-index IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
+            mapping.EndDate = DateTime.UtcNow;   // AF-3 D-03: tandai akhir mapping graduated
+
+            // AF-3 D-04: cascade deactivate ProtonTrackAssignment aktif coachee. Stamp DeactivatedAt; JANGAN hapus histori (BUKAN RemoveRange).
+            // Reuse list 'assignments' di atas (predikat CoacheeId+IsActive identik dengan query kedua produksi lama) -> cascadeCount identik.
+            var deactivationTime = mapping.EndDate.Value;
+            foreach (var a in assignments)
+            {
+                a.IsActive = false;
+                a.DeactivatedAt = deactivationTime;
+            }
+            int cascadeCount = assignments.Count;
+
+            await context.SaveChangesAsync();    // OQ-1: SaveChanges di core (dalam scope transaksi wrapper)
+            return (true, null, cascadeCount);
+        }
+
+        // Phase 236 COMP-04: Mark mapping as completed/graduated per D-15.
+        // Phase 365 D-03: wrapper tipis — resolve-user + transaksi + audit + redirect; logika di MarkMappingCompletedCore.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, HC")]
@@ -1076,36 +1161,36 @@ namespace HcPortal.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
-            var mapping = await _context.CoachCoacheeMappings.FindAsync(mappingId);
-            if (mapping == null) return NotFound();
-            // Validate: coachee harus punya semua tahun completed
-            var assignments = await _context.ProtonTrackAssignments
-                .Include(a => a.ProtonTrack)
-                .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
-                .ToListAsync();
-            var tahun3Assignment = assignments
-                .FirstOrDefault(a => a.ProtonTrack != null && a.ProtonTrack.TahunKe == "Tahun 3");
-            if (tahun3Assignment == null)
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                TempData["Error"] = "Coachee belum memiliki assignment Tahun 3.";
+                var (ok, error, cascadeCount) = await MarkMappingCompletedCore(_context, mappingId);   // D-01 seam
+                if (!ok)
+                {
+                    await transaction.RollbackAsync();
+                    if (error == "Mapping tidak ditemukan.") return NotFound();   // OQ-2: core error -> NotFound (pola 363)
+                    TempData["Error"] = error;
+                    return RedirectToAction("CoachCoacheeMapping");
+                }
+                await transaction.CommitAsync();
+
+                var mapping = await _context.CoachCoacheeMappings.FindAsync(mappingId);   // re-read (tracked) untuk CoacheeId di pesan audit
+                var actorName = string.IsNullOrWhiteSpace(user.NIP)
+                    ? (user.FullName ?? "Unknown")
+                    : $"{user.NIP} - {user.FullName}";
+                await _auditLog.LogAsync(user.Id, actorName, "MarkMappingCompleted",
+                    $"Mapping ID={mappingId} ditandai graduated (IsActive=false). CoacheeId={mapping?.CoacheeId} — {cascadeCount} ProtonTrackAssignment juga dinonaktifkan", mappingId, "CoachCoacheeMapping");
+                TempData["Success"] = "Coachee berhasil ditandai sebagai graduated.";
                 return RedirectToAction("CoachCoacheeMapping");
             }
-            bool tahun3Complete = await IsYearCompletedAsync(tahun3Assignment.Id);
-            if (!tahun3Complete)
+            catch (Exception ex)
             {
-                TempData["Error"] = "Tahun 3 belum selesai — semua deliverable harus Approved dan final assessment harus ada.";
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "MarkMappingCompleted transaction failed for mapping {Id}", mappingId);
+                TempData["Error"] = "Operasi gagal. Semua perubahan dibatalkan.";
                 return RedirectToAction("CoachCoacheeMapping");
             }
-            mapping.IsCompleted = true;
-            mapping.CompletedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-            var actorName = string.IsNullOrWhiteSpace(user.NIP)
-                ? (user.FullName ?? "Unknown")
-                : $"{user.NIP} - {user.FullName}";
-            await _auditLog.LogAsync(user.Id, actorName, "MarkMappingCompleted",
-                $"Mapping ID={mappingId} ditandai graduated. CoacheeId={mapping.CoacheeId}", mappingId, "CoachCoacheeMapping");
-            TempData["Success"] = "Coachee berhasil ditandai sebagai graduated.";
-            return RedirectToAction("CoachCoacheeMapping");
         }
 
         // GET /Admin/CoachCoacheeMappingDeletePreview
@@ -1313,14 +1398,47 @@ namespace HcPortal.Controllers
                 .Select(p => new { p.CoacheeId, p.ProtonDeliverableId, p.Status })
                 .ToListAsync();
 
-            // Eligible = has exactly trackDeliverableIds.Count Approved progress records
-            var eligibleCoacheeIds = assignedCoacheeIds
-                .Where(id =>
-                {
-                    var mine = progressRecords.Where(p => p.CoacheeId == id).ToList();
-                    return mine.Count == trackDeliverableIds.Count && mine.All(p => p.Status == "Approved");
-                })
-                .ToList();
+            // AF-1 (Phase 356): eligibility dihitung PER-UNIT coachee, bukan total deliverable
+            // semua-unit track. Coachee di track multi-unit (mis. track id=4) hanya punya progress
+            // untuk deliverable unit-nya — membandingkan dengan total semua unit membuatnya tak pernah
+            // eligible. expectedCount per-unit MIRROR PERSIS filter AutoCreateProgressForAssignment.
+            var eligibleCoacheeIds = new List<string>();
+            foreach (var coacheeId in assignedCoacheeIds)
+            {
+                // Resolve unit per-coachee — MIRROR PERSIS AutoCreateProgressForAssignment L1342-1355
+                var assignmentUnit = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoacheeId == coacheeId && m.IsActive)
+                    .Select(m => m.AssignmentUnit)
+                    .FirstOrDefaultAsync();
+                var resolvedUnit = assignmentUnit;
+                if (string.IsNullOrWhiteSpace(resolvedUnit))
+                    resolvedUnit = await _context.Users
+                        .Where(u => u.Id == coacheeId)
+                        .Select(u => u.Unit)
+                        .FirstOrDefaultAsync();
+                if (string.IsNullOrWhiteSpace(resolvedUnit)) continue; // unit tak terselesaikan → tidak eligible
+
+                // WR-01: expectedCount + myStatuses keduanya PER-UNIT (sumbu perbandingan identik).
+                // Ambil deliverable-id unit coachee (filter PERSIS .Trim() dua sisi seperti
+                // AutoCreateProgressForAssignment), lalu scope status progress HANYA ke deliverable unit itu.
+                // Mencegah false-negative bila coachee punya histori progress lintas-unit (AF-3 graduate +
+                // re-assign unit lain mempertahankan histori progress unit lama per D-04).
+                var unitDeliverableIds = await _context.ProtonDeliverableList
+                    .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
+                             && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
+                    .Select(d => d.Id)
+                    .ToListAsync();
+                var expectedCount = unitDeliverableIds.Count;
+
+                // status progress coachee — DI-SCOPE ke deliverable unit (bukan semua deliverable track)
+                var myStatuses = progressRecords
+                    .Where(p => p.CoacheeId == coacheeId && unitDeliverableIds.Contains(p.ProtonDeliverableId))
+                    .Select(p => p.Status)
+                    .ToList();
+
+                if (CoacheeEligibilityCalculator.IsEligiblePerUnit(myStatuses, expectedCount))
+                    eligibleCoacheeIds.Add(coacheeId);
+            }
 
             if (!eligibleCoacheeIds.Any()) return Json(new List<object>());
 
@@ -1360,50 +1478,10 @@ namespace HcPortal.Controllers
                 return warnings;
             }
 
-            var deliverableIds = await _context.ProtonDeliverableList
-                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
-                         && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
-                .Select(d => d.Id)
-                .ToListAsync();
-
-            if (!deliverableIds.Any())
-            {
-                var trackName = await _context.ProtonTracks
-                    .Where(t => t.Id == protonTrackId)
-                    .Select(t => t.DisplayName)
-                    .FirstOrDefaultAsync() ?? protonTrackId.ToString();
-                warnings.Add($"Tidak ada deliverable untuk unit {resolvedUnit} di track {trackName}.");
-                return warnings;
-            }
-
-            var progresses = deliverableIds.Select(dId => new ProtonDeliverableProgress
-            {
-                CoacheeId = coacheeId,
-                ProtonDeliverableId = dId,
-                ProtonTrackAssignmentId = assignmentId,
-                Status = "Pending",
-                CreatedAt = DateTime.UtcNow
-            }).ToList();
-
-            _context.ProtonDeliverableProgresses.AddRange(progresses);
-            await _context.SaveChangesAsync(); // flush to get IDs for StatusHistory
-
-            // D-17: Insert initial "Pending" StatusHistory for each new progress
-            foreach (var p in progresses)
-            {
-                _context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
-                {
-                    ProtonDeliverableProgressId = p.Id,
-                    StatusType = "Pending",
-                    ActorId = "system",
-                    ActorName = "System",
-                    ActorRole = "System",
-                    Timestamp = DateTime.UtcNow
-                });
-            }
-            await _context.SaveChangesAsync();
-
-            return warnings;
+            // Phase 360 (PBYP-05): filter + insert diekstrak ke helper parametrik (unit eksplisit,
+            // guard anti-dobel B-06). Resolve unit (mapping → fallback User.Unit) tetap di sini.
+            return await ProtonDeliverableBootstrap.CreateProgressAsync(
+                _context, assignmentId, protonTrackId, coacheeId, resolvedUnit);
         }
 
         /// <summary>
@@ -1634,6 +1712,31 @@ namespace HcPortal.Controllers
             });
 
             await _context.SaveChangesAsync();
+
+            // AF-5 (Phase 356): notifikasi reassign 3 recipient (warn-only, mirror Deactivate COACH-03)
+            try
+            {
+                var oldCoach   = await _context.Users.FindAsync(oldCoachId);
+                var newCoach   = await _context.Users.FindAsync(newCoachId);
+                var coacheeUsr = await _context.Users.FindAsync(mapping.CoacheeId);
+                var coacheeName  = coacheeUsr?.FullName ?? coacheeUsr?.UserName ?? mapping.CoacheeId;
+                var newCoachName = newCoach?.FullName ?? newCoach?.UserName ?? newCoachId;
+
+                await _notificationService.SendAsync(oldCoachId, "COACH_REASSIGNED",
+                    "Penugasan Coaching Dialihkan",
+                    $"Penugasan coaching Anda dengan {coacheeName} telah dialihkan ke coach lain.",
+                    "/CDP/CoachingProton");
+                await _notificationService.SendAsync(newCoachId, "COACH_REASSIGNED",
+                    "Coach Ditunjuk",
+                    $"Anda ditunjuk sebagai coach untuk {coacheeName}.",
+                    "/CDP/CoachingProton");
+                await _notificationService.SendAsync(mapping.CoacheeId, "COACH_REASSIGNED",
+                    "Coach Anda Berubah",
+                    $"Coach Anda telah diganti menjadi {newCoachName}.",
+                    "/CDP/CoachingProton");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
+
             return Json(new { success = true });
         }
 

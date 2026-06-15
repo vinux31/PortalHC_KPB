@@ -1,0 +1,41 @@
+-- ============================================================================
+-- Phase 377 — Impersonation e2e fixtures (SC2/SC3)
+-- Tujuan: e2e impersonate user X → /CMP/Records, /Home, /CMP/Assessment tampil DATA X (bukan admin).
+-- Klasifikasi: temporary + local-only (SEED_WORKFLOW.md). JANGAN promosikan ke Data/SeedData.cs.
+-- Tabel tersentuh (HANYA bila blok OPTIONAL dijalankan): TrainingRecords, AssessmentSessions.
+--
+-- STRATEGI = REUSE > INSERT.
+-- Target X = Iwan (iwan3@pertamina.com, Id 66227777-1974-43ca-8bdd-e5586fa4a5b8, Section GAST) —
+-- user akar bug LIVE 999.6. Verifikasi 2026-06-14 (DB lokal HcPortalDB_Dev):
+--   Iwan : AssessmentSessions(Completed)=4, TrainingRecords=2 ('Pelatihan K3 Dasar','Training Test 2')
+--   admin: TrainingRecords=0
+-- => Differensial deterministik: impersonate Iwan → /CMP/Records memuat 'Pelatihan K3 Dasar';
+--    admin TIDAK punya training. e2e assert text 'Pelatihan K3 Dasar' = bukti data X (bukan admin).
+-- => Data existing CUKUP untuk SC2/SC3. INSERT TIDAK dijalankan (no DB mutation, no snapshot needed).
+--
+-- ============================================================================
+-- VERIFY (read-only — jalankan ini untuk konfirmasi precondition e2e):
+-- ============================================================================
+-- SELECT (SELECT COUNT(*) FROM TrainingRecords WHERE UserId='66227777-1974-43ca-8bdd-e5586fa4a5b8') AS IwanTrainings,
+--        (SELECT COUNT(*) FROM TrainingRecords WHERE UserId=(SELECT Id FROM Users WHERE Email='admin@pertamina.com')) AS AdminTrainings,
+--        (SELECT COUNT(*) FROM TrainingRecords WHERE UserId='66227777-1974-43ca-8bdd-e5586fa4a5b8' AND Judul='Pelatihan K3 Dasar') AS HasMarker;
+-- Expect: IwanTrainings>=2, AdminTrainings=0, HasMarker=1.
+--
+-- ============================================================================
+-- OPTIONAL FALLBACK (HANYA bila precondition di atas gagal, mis. data Iwan terhapus):
+-- Idempotent (NOT EXISTS guard). WAJIB snapshot DB dulu (SEED_WORKFLOW §5.1 BACKUP) sebelum run.
+-- ============================================================================
+-- IF NOT EXISTS (SELECT 1 FROM TrainingRecords WHERE UserId='66227777-1974-43ca-8bdd-e5586fa4a5b8' AND Judul='Pelatihan K3 Dasar')
+-- BEGIN
+--     INSERT INTO TrainingRecords (UserId, Judul, Penyelenggara, Kota, TanggalMulai, TanggalSelesai, CreatedAt)
+--     VALUES ('66227777-1974-43ca-8bdd-e5586fa4a5b8', 'Pelatihan K3 Dasar', '[377-FIXTURE] HC', 'Balikpapan', GETUTCDATE(), GETUTCDATE(), GETUTCDATE());
+-- END;
+-- (AssessmentSessions: Iwan sudah punya 4 Completed — tak perlu insert. Bila perlu marker:
+--  INSERT INTO AssessmentSessions (UserId, Title, Status, ...) VALUES ('66227777-...', '[377-FIXTURE] Asm', 'Completed', ...);)
+--
+-- ============================================================================
+-- CLEANUP (HANYA bila OPTIONAL FALLBACK di-INSERT — hapus marker [377-FIXTURE]; FK-respecting):
+-- ============================================================================
+-- DELETE FROM TrainingRecords WHERE Penyelenggara = '[377-FIXTURE] HC';
+-- DELETE FROM AssessmentSessions WHERE Title LIKE '[[]377-FIXTURE]%';
+-- (Preferred cleanup pasca-e2e: RESTORE DB dari snapshot global.setup — lihat tests/e2e/global.teardown.ts.)

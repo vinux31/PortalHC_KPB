@@ -22,6 +22,11 @@ public class ResultsAuthorizationTests
     [InlineData("u1", "x",  5, "A", "A", false)]   // L5 Coach non-owner (T-346-03)
     [InlineData("u1", "x",  6, "A", "A", false)]   // L6 Coachee non-owner (T-346-03)
     [InlineData("u1", "x",  0, "A", "A", false)]   // roleLevel 0 (no-role/error) ditolak (T-346-05)
+    // Phase 377 (D-01) impersonate-fidelity: "impersonate X = act as X for read" — ownership pakai currentUserId=X.Id, roleLevel=X.level.
+    [InlineData("X", "X", 6, "A", "A", true)]      // impersonate X(L6 Coachee) lihat data-X (owner) -> OK (SC2)
+    [InlineData("Y", "X", 6, "A", "A", false)]     // impersonate X(L6) lihat data-Y (non-owner) -> Forbid (T-377-23 fidelity)
+    [InlineData("Y", "X", 4, "A", "A", true)]      // impersonate X(L4 SectionHead) lihat data-Y same-section -> OK
+    [InlineData("Y", "X", 4, "A", "B", false)]     // impersonate X(L4) lihat data-Y beda-section -> Forbid
     public void IsResultsAuthorized_Matrix(string owner, string cur, int lvl, string? curSec, string? ownSec, bool expected)
         => Assert.Equal(expected, CMPController.IsResultsAuthorized(owner, cur, lvl, curSec, ownSec));
 }

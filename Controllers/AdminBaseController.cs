@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using HcPortal.Models;
 using HcPortal.Data;
 using HcPortal.Services;
@@ -203,5 +204,66 @@ namespace HcPortal.Controllers
 
             return rows;
         }
+
+        // ============================================================
+        // Phase 367: shared cascade-delete endpoint helpers (tab-1 AssessmentAdmin + tab-2 TrainingAdmin)
+        // ============================================================
+
+        // Image SOAL (Question+Option ImagePath) Distinct utk daftar session node cascade (Opsi B — engine TIDAK
+        // sentuh image SOAL; endpoint yang bersihkan, termasuk turunan renewal). Single-source: 3 endpoint tab-1 + tab-2.
+        protected async Task<List<string>> CollectQuestionImagePathsAsync(IReadOnlyCollection<int> sessionIds)
+        {
+            if (sessionIds.Count == 0) return new List<string>();
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions).ThenInclude(q => q.Options)
+                .Where(p => sessionIds.Contains(p.AssessmentSessionId))
+                .ToListAsync();
+            return packages
+                .SelectMany(p => p.Questions)
+                .SelectMany(q => new[] { q.ImagePath }.Concat(q.Options.Select(o => o.ImagePath)))
+                .Where(p => !string.IsNullOrEmpty(p))
+                .Select(p => p!)
+                .Distinct()
+                .ToList();
+        }
+
+        // #19/L-08: hapus file sertifikat manual fisik POST-commit, warn-only per file (confined webroot V12).
+        // TANPA ref-check DB — caller WAJIB scope ke node yg BENAR-BENAR ter-commit (cegah hapus cert sesi surviving).
+        protected void DeleteCertFiles(IEnumerable<string> certUrls, ILogger logger)
+        {
+            foreach (var url in certUrls.Where(u => !string.IsNullOrEmpty(u)).Distinct())
+            {
+                try
+                {
+                    var path = System.IO.Path.Combine(_env.WebRootPath, url.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+                }
+                catch (Exception ex) { logger.LogWarning(ex, "Cert File.Delete post-commit failed: {Url}", url); }
+            }
+        }
+
+        // D-19 (Phase 312/367): sesi Pre/Post (pasangan gain-score via LinkedSessionId) TAK boleh dihapus SATUAN
+        // (orphan pasangan) — arahkan ke hapus grup Pre-Post. Single-source: tab-1 DeleteAssessment + tab-2
+        // DeleteManualAssessment generik. Engine #8 hanya null-clear pasangan, BUKAN cascade pasangan.
+        public static bool IsPrePostSession(AssessmentSession session)
+            => session.AssessmentType == "PreTest" || session.AssessmentType == "PostTest";
+
+        // Phase 367 (06): predikat HC-tier — true bila ADA node cascade (session) Status=="Completed" ATAU ber-jawaban
+        // peserta. Single-source proteksi data peserta atas FULL cascade set: tab-1 EnsureCanDeleteAsync (entity list,
+        // semantik identik) + tab-2 DeleteTraining/DeleteManualAssessment (id set). HC diblok bila true; Admin override di caller.
+        protected async Task<bool> CascadeHasCompletedOrAnsweredAsync(IReadOnlyCollection<int> cascadeSessionIds)
+        {
+            if (cascadeSessionIds.Count == 0) return false;
+            if (await _context.AssessmentSessions.AnyAsync(s => cascadeSessionIds.Contains(s.Id) && s.Status == "Completed"))
+                return true;
+            return await _context.PackageUserResponses.AnyAsync(r => cascadeSessionIds.Contains(r.AssessmentSessionId));
+        }
+
+        // #12/#14 D-02: predikat duplikat manual EXACT (UserId+Title+CompletedAt — BUKAN ±1 hari mirror #15).
+        // Single-source 3 pintu input (AddManual reject + Import/BulkBackfill skip) + DuplicateGuardTests (zero drift, pola 04).
+        // re-entry tanggal beda = LOLOS (CompletedAt exact); cegah false-positive (Pitfall 7).
+        public static System.Linq.Expressions.Expression<Func<AssessmentSession, bool>> ManualDuplicatePredicate(
+            string userId, string title, DateTime? completedAt)
+            => s => s.UserId == userId && s.Title == title && s.CompletedAt == completedAt && s.IsManualEntry;
     }
 }

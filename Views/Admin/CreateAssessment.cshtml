@@ -517,6 +517,22 @@
                                         <span asp-validation-for="AccessToken" class="text-danger"></span>
                                     </div>
                                 </div>
+                                <!-- Pengacakan Soal & Jawaban (Phase 372 SHUF) -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">
+                                        <i class="bi bi-shuffle text-primary me-1"></i>Pengacakan Soal &amp; Jawaban
+                                    </label>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" asp-for="ShuffleQuestions" id="ShuffleQuestions" />
+                                        <label class="form-check-label" for="ShuffleQuestions">Acak Soal</label>
+                                    </div>
+                                    <div class="form-text text-muted mb-2">Saat aktif, urutan dan pemilihan soal diacak berbeda untuk setiap peserta — sehingga peserta yang duduk berdekatan kecil kemungkinan mendapat soal yang sama urutannya. Saat nonaktif, semua peserta mendapat soal yang sama dengan urutan yang sama persis (urutan asli sesuai paket soal).</div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" asp-for="ShuffleOptions" id="ShuffleOptions" />
+                                        <label class="form-check-label" for="ShuffleOptions">Acak Pilihan Jawaban</label>
+                                    </div>
+                                    <div class="form-text text-muted">Saat aktif, urutan pilihan jawaban (A, B, C, D) diacak berbeda di setiap soal untuk tiap peserta — jawaban benar tetap dinilai dengan benar, hanya posisinya yang berpindah. Saat nonaktif, urutan pilihan jawaban tampil sama untuk semua peserta sesuai urutan yang tersimpan di sistem.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -657,6 +673,8 @@
                                     <dt class="col-sm-4">Tutup Ujian</dt><dd class="col-sm-8" id="summary-ewcd"></dd>
                                     <dt class="col-sm-4">Token</dt><dd class="col-sm-8" id="summary-token"></dd>
                                     <dt class="col-sm-4">Pass Percentage</dt><dd class="col-sm-8" id="summary-pass"></dd>
+                                    <dt class="col-sm-4">Acak Soal</dt><dd class="col-sm-8" id="summary-shuffle-questions"></dd>
+                                    <dt class="col-sm-4">Acak Pilihan Jawaban</dt><dd class="col-sm-8" id="summary-shuffle-options"></dd>
                                     <dt class="col-sm-4">Valid Until</dt><dd class="col-sm-8" id="summary-validuntil"></dd>
                                 </dl>
                             </div>
@@ -692,6 +710,8 @@
                                     <dt class="col-sm-4">Status</dt><dd class="col-sm-8">Upcoming</dd>
                                     <dt class="col-sm-4">Token</dt><dd class="col-sm-8" id="summary-ppt-token"></dd>
                                     <dt class="col-sm-4">Pass Percentage</dt><dd class="col-sm-8" id="summary-ppt-pass"></dd>
+                                    <dt class="col-sm-4">Acak Soal</dt><dd class="col-sm-8" id="summary-ppt-shuffle-questions"></dd>
+                                    <dt class="col-sm-4">Acak Pilihan Jawaban</dt><dd class="col-sm-8" id="summary-ppt-shuffle-options"></dd>
                                     <dt class="col-sm-4">Paket Soal Sama</dt><dd class="col-sm-8" id="summary-ppt-samepackage"></dd>
                                     <dt class="col-sm-4">Valid Until</dt><dd class="col-sm-8" id="summary-ppt-validuntil"></dd>
                                 </dl>
@@ -1125,6 +1145,14 @@ function generateToken() {
             el = document.getElementById('summary-ppt-pass');
             if (el) el.textContent = (passEl && passEl.value) ? passEl.value + '%' : '-';
 
+            // Phase 372 SHUF — 1 pasang toggle berlaku Pre & Post (D-04): baca input yang sama.
+            var sqElP = document.getElementById('ShuffleQuestions');
+            var summSQP = document.getElementById('summary-ppt-shuffle-questions');
+            if (summSQP) summSQP.textContent = (sqElP && sqElP.checked) ? 'Aktif (ON)' : 'Nonaktif (OFF)';
+            var soElP = document.getElementById('ShuffleOptions');
+            var summSOP = document.getElementById('summary-ppt-shuffle-options');
+            if (summSOP) summSOP.textContent = (soElP && soElP.checked) ? 'Aktif (ON)' : 'Nonaktif (OFF)';
+
             var samePackageEl = document.getElementById('samePackageCheck');
             el = document.getElementById('summary-ppt-samepackage');
             if (el) el.textContent = (samePackageEl && samePackageEl.checked) ? 'Ya' : 'Tidak';
@@ -1165,6 +1193,14 @@ function generateToken() {
             var passEl = document.getElementById('PassPercentage');
             var summPass = document.getElementById('summary-pass');
             if (summPass) summPass.textContent = (passEl && passEl.value) ? (passEl.value + '%') : '-';
+
+            // Phase 372 SHUF — status ON/OFF (teks polos, bukan badge).
+            var sqEl = document.getElementById('ShuffleQuestions');
+            var summSQ = document.getElementById('summary-shuffle-questions');
+            if (summSQ) summSQ.textContent = (sqEl && sqEl.checked) ? 'Aktif (ON)' : 'Nonaktif (OFF)';
+            var soEl = document.getElementById('ShuffleOptions');
+            var summSO = document.getElementById('summary-shuffle-options');
+            if (summSO) summSO.textContent = (soEl && soEl.checked) ? 'Aktif (ON)' : 'Nonaktif (OFF)';
 
             var validUntilEl = document.getElementById('ValidUntil');
             var summValidUntil = document.getElementById('summary-validuntil');

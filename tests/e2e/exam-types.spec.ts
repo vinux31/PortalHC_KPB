@@ -34,7 +34,7 @@ test.describe('smoke wave-0 (verify RESEARCH A4 + A5 assumptions)', () => {
 
   test('W0.1 — HC create assessment + 3 MC questions distinct text', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    smokeTitle = uniqueTitle('[317-SMOKE-W0] Order Verify');
+    smokeTitle = uniqueTitle('Pre Test [317-SMOKE-W0] Order Verify');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title: smokeTitle,
@@ -188,7 +188,7 @@ test.describe('FLOW K — MA Full Cycle', () => {
 
   test('K1 — HC creates assessment via wizard', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-K] MA Exam');
+    title = uniqueTitle('Pre Test [317-K] MA Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title,
@@ -204,6 +204,12 @@ test.describe('FLOW K — MA Full Cycle', () => {
     const href = await page.locator('#modal-manage-btn').getAttribute('href');
     expect(href).toMatch(/\/Admin\/ManagePackages(?:\/|\?assessmentId=)\d+/);
     assessmentId = parseInt(href!.match(/(?:\/|assessmentId=)(\d+)/)![1], 10);
+    // SC#3 / D-11 — auto-pair Phase 338 (TryAutoDetectCounterpartGroup) must NOT mis-set LinkedGroupId.
+    // uniqueTitle timestamp makes the "Post Test <rest>" counterpart impossible -> LinkedGroupId stays NULL.
+    const linkedNull = await db.queryScalar(
+      `SELECT COUNT(*) FROM AssessmentSessions WHERE Id = ${assessmentId} AND LinkedGroupId IS NULL`
+    );
+    expect(linkedNull).toBe(1);
   });
 
   test('K2 — HC navigates ManagePackages → createDefaultPackage', async ({ page }) => {
@@ -307,7 +313,7 @@ test.describe('FLOW L — Essay Full Cycle + HC Grading', () => {
 
   test('L1 — HC creates Essay assessment via wizard', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-L] Essay Exam');
+    title = uniqueTitle('Pre Test [317-L] Essay Exam');
     category = 'IHT';
     scheduleDate = today();
     await login(page, 'hc');
@@ -404,6 +410,10 @@ test.describe('FLOW L — Essay Full Cycle + HC Grading', () => {
   });
 
   test('L6 — Worker scores 80 (DB-based verify per SURF-317-A workaround)', async () => {
+    // Phase 376 GRADE-01: essay-only finalize aggregates manual EssayScore into AssessmentSessions.Score.
+    // Was 364-fixme'd (Score=0 regression); root-caused in 376-DIAGNOSE.md as the pre-v27 ShuffledQuestionIds
+    // malformed/empty bug (H1) — fixed incidentally by v27.0 Phase 373 ShuffleEngine rewrite. This test now
+    // passes and stands as the regression guard locking the corrected behavior.
     test.setTimeout(FLOW_TIMEOUT_MS);
     const score = await db.queryScalar(
       `SELECT ISNULL(Score, -1) FROM AssessmentSessions WHERE Id = ${sessionId}`
@@ -432,7 +442,7 @@ test.describe('FLOW M — Mixed (MC+MA+Essay) Full Cycle', () => {
 
   test('M1 — HC creates Mixed assessment via wizard', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-M] Mixed Exam');
+    title = uniqueTitle('Pre Test [317-M] Mixed Exam');
     category = 'OJT';
     scheduleDate = today();
     await login(page, 'hc');
@@ -585,7 +595,7 @@ test.describe('FLOW N — AllowAnswerReview=false negative assertion', () => {
 
   test('N1 — HC creates assessment with AllowAnswerReview=false + 1 MC', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[317-N] NoReview Exam');
+    title = uniqueTitle('Pre Test [317-N] NoReview Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title,
@@ -687,7 +697,7 @@ test.describe('FLOW O — AddExtraTime SignalR real-time', () => {
 
   test('O1 — HC creates assessment (duration 30 min)', async ({ page }) => {
     test.setTimeout(FLOW_O_TIMEOUT_MS);
-    title = uniqueTitle('[317-O] ExtraTime Exam');
+    title = uniqueTitle('Pre Test [317-O] ExtraTime Exam');
     category = 'OJT';
     scheduleDate = today();
     await login(page, 'hc');
@@ -1062,7 +1072,7 @@ test.describe('FLOW Q — ExamWindowCloseDate Reject', () => {
 
   test('Q1 — HC creates assessment with yesterday EWCD (past window)', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[318-Q] EWCD Past Exam');
+    title = uniqueTitle('Pre Test [318-Q] EWCD Past Exam');
     await login(page, 'hc');
     // Wizard reject schedule-in-past — pakai today early-time untuk schedule + EWCD.
     // EWCD=today 00:02 sudah lewat di WIB time saat run → guard CMPController:863 trigger.
@@ -1148,7 +1158,7 @@ test.describe('FLOW R — Certificate PDF Download + NomorSertifikat', () => {
 
   test('R1 — HC creates assessment with GenerateCertificate=true', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    title = uniqueTitle('[318-R] Cert Exam');
+    title = uniqueTitle('Pre Test [318-R] Cert Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title,
@@ -1275,7 +1285,7 @@ test.describe('FLOW S — AllowAnswerReview True vs False Paired Comparison', ()
 
   test('S1 — HC creates assessment A (allowAnswerReview=true) + package + MC question', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    titleTrue = uniqueTitle('[318-S-TRUE] Review Exam');
+    titleTrue = uniqueTitle('Pre Test [318-S-TRUE] Review Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title: titleTrue,
@@ -1361,7 +1371,7 @@ test.describe('FLOW S — AllowAnswerReview True vs False Paired Comparison', ()
 
   test('S4 — HC creates assessment B (allowAnswerReview=false) + package + MC question', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    titleFalse = uniqueTitle('[318-S-FALSE] NoReview Exam');
+    titleFalse = uniqueTitle('Pre Test [318-S-FALSE] NoReview Exam');
     await login(page, 'hc');
     await createAssessmentViaWizard(page, {
       title: titleFalse,
@@ -2026,25 +2036,21 @@ test.describe('FLOW X — CertificationManagement CDP Variant', () => {
  * Deferred ke milestone berikutnya — tidak di-cover di FLOW Y.
  *
  * Tested di FLOW Y:
- * - Y0: Gap 2 CMP variant CertMgmt status (confirm bukan 500 lagi atau document)
+ * - Y0: Gap 2 /CMP/CertificationManagement redirect 302 ke CDP canonical (Phase 378, tak lagi 500)
  * - Y1-Y2: Gap 4 Pagination di /CDP/CertificationManagement
  * - Y3-Y4: Gap 5 Bulk Import (Training records, /Admin/ImportTraining + template download)
  * - Y5-Y6: Gap 6 Analytics drill-down (GetFailRateDrillDown shape + per-employee)
  */
 test.describe('FLOW Y — Gap Closure Smoke', () => {
-  test('Y0 — /CMP/CertificationManagement status documenting (Gap 2)', async ({ page }) => {
+  test('Y0 — /CMP/CertificationManagement redirects to CDP canonical (Gap 2)', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
     await login(page, 'hc');
-    const response = await page.goto('/CMP/CertificationManagement').catch(() => null);
-    const status = response?.status() ?? 0;
-    // eslint-disable-next-line no-console
-    console.log(`[Y0] /CMP/CertificationManagement status=${status} — 500=bug masih ada (CDP variant workaround OK), 200=sudah fixed, 404=route absent`);
-    // Just verify endpoint reachable (response object exists). NO assertion on status — pure documenting.
-    expect(response).not.toBeNull();
-    if (status === 500) {
-      // eslint-disable-next-line no-console
-      console.log('[Y0] CONFIRMED: CMP variant masih 500 — Phase 319 D-319-05 CDP variant lock ter-justified. Documented sbg deferred.');
-    }
+    // Phase 378 (CMPRT-01): action CMP orphan diubah jadi redirect 302 ke CDP canonical.
+    // page.goto mengikuti redirect → response = halaman CDP final (bukan lagi 500 view-not-found).
+    const response = await page.goto('/CMP/CertificationManagement');
+    expect(response?.status()).toBe(200);
+    expect(response?.status()).not.toBe(500);
+    expect(page.url()).toContain('/CDP/CertificationManagement');
   });
 
   test('Y1 — Pagination Page 1 default load (Gap 4)', async ({ page }) => {

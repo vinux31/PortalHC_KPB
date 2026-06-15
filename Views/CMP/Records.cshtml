@@ -27,6 +27,12 @@
         <p class="text-muted mb-0">Rekam jejak pelatihan teknis, sertifikasi, dan pembelajaran mandiri.</p>
     </div>
 
+    @* Phase 377 (D-03): impersonate mode-role → tampil kosong + hint (bukan data/identitas admin). *@
+    @if (ViewBag.ImpersonateRoleHint != null)
+    {
+        <div class="alert alert-info" role="status">@ViewBag.ImpersonateRoleHint</div>
+    }
+
     <!-- Tab navigation -->
     <ul class="nav nav-tabs mb-3" id="recordsTabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -295,7 +301,7 @@
                     var workerList = ViewData["WorkerList"] as List<HcPortal.Models.WorkerTrainingStatus>;
                     // Phase 337 CMP-21/22: pass RoleLevel + LockedSection via ViewData supaya partial tidak panggil UserManager
                     ViewData["RoleLevel"] = Model.RoleLevel;
-                    ViewData["LockedSection"] = Model.RoleLevel == 4 ? Model.User.Section : null;
+                    ViewData["LockedSection"] = Model.RoleLevel == 4 ? Model.User?.Section : null;
                     if (workerList != null)
                     {
                         @await Html.PartialAsync("RecordsTeam", workerList)

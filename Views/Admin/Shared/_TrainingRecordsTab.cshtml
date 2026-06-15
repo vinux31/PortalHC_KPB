@@ -173,6 +173,9 @@
     </div>
 </div>
 
+@* Phase 367 (08) S3: flash jujur sukses/gagal in-partial (di atas re-fetch listener); diisi JS dari HX-Trigger. *@
+<div id="records-flash" aria-live="polite"></div>
+
 @* MAM-08: re-fetch Tab2 saat record dihapus (HX-Trigger recordDeleted dari handler delete).
    hx-include filterFormTraining bawa filter + isFiltered=true → isInitialState tetap false (tidak balik empty-state). *@
 <div hx-get="@Url.Action("ManageAssessmentTab_Training", "AssessmentAdmin")"
@@ -260,17 +263,52 @@ else
                             <td colspan="7" class="p-0">
                                 <div class="p-3 bg-light border-top border-bottom">
                                     @{
+                                        // Phase 371 (URG-03): derivasi status online 6-way meniru DeriveUserStatus
+                                        // (AssessmentAdminController:2799) + lapis IsPassed->Lulus/Tidak + warna (D-03).
+                                        // URUTAN CEK KRITIS: PendingGrading PERTAMA (essay punya CompletedAt terisi bersamaan).
+                                        string OnlineLabel(HcPortal.Models.AssessmentSession a)
+                                        {
+                                            if (a.Status == AssessmentConstants.AssessmentStatus.PendingGrading) return "Menunggu Penilaian";
+                                            if (a.CompletedAt != null) return a.IsPassed == true ? "Lulus" : "Tidak Lulus";
+                                            if (a.Status == "Cancelled") return "Dibatalkan";
+                                            if (a.Status == "Abandoned") return "Abandoned";
+                                            if (a.StartedAt != null) return "Sedang Dikerjakan";
+                                            return "Belum Mulai"; // Open + Upcoming jatuh ke sini (Pitfall 3)
+                                        }
+                                        string OnlineClass(string label) => label switch
+                                        {
+                                            "Lulus" => "bg-success",
+                                            "Tidak Lulus" => "bg-danger",
+                                            "Menunggu Penilaian" => "bg-warning text-dark",
+                                            "Sedang Dikerjakan" => "bg-primary",
+                                            "Dibatalkan" => "bg-dark",
+                                            "Abandoned" => "bg-dark",
+                                            _ => "bg-secondary" // Belum Mulai
+                                        };
+                                        string ManualStatusClass(string s) => s switch
+                                        {
+                                            "Passed" => "bg-success",
+                                            "Valid" => "bg-primary",
+                                            "Failed" => "bg-danger",
+                                            "Expired" => "bg-warning text-dark",
+                                            AssessmentConstants.AssessmentStatus.PendingGrading => "bg-warning text-dark",
+                                            _ => "bg-secondary"
+                                        };
+
                                         var trainingRows = (worker.TrainingRecords ?? new List<HcPortal.Models.TrainingRecord>())
-                                            .Select(r => new { Type = "Training", Date = r.Tanggal, Title = r.Judul, Detail = r.Penyelenggara ?? "\u2014", Status = r.Status ?? "", ValidUntil = r.ValidUntil, Id = r.Id, Score = (int?)null, IsPassed = (bool?)(r.Status == "Passed" || r.Status == "Valid") });
+                                            .Select(r => new { Type = "Training", Date = r.Tanggal, Title = r.Judul, Detail = r.Penyelenggara ?? "\u2014", Status = r.Status ?? "", StatusClass = ManualStatusClass(r.Status ?? ""), ValidUntil = r.ValidUntil, Id = r.Id, IsOnline = false, CanViewResult = false });
                                         var assessmentRows = (worker.AssessmentSessions ?? new List<HcPortal.Models.AssessmentSession>())
                                             .Where(a => a.IsManualEntry)
-                                            .Select(a => new { Type = "Assessment", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = a.Score.HasValue ? $"{a.Score} - {(a.IsPassed == true ? "Lulus" : a.IsPassed == false ? "Tidak Lulus" : AssessmentConstants.AssessmentStatus.PendingGrading)}" : "\u2014", Status = a.IsPassed == true ? "Passed" : a.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading, ValidUntil = a.ValidUntil, Id = a.Id, Score = a.Score, IsPassed = a.IsPassed });
-                                        var allRows = trainingRows.Concat(assessmentRows).OrderByDescending(r => r.Date).ToList();
+                                            .Select(a => new { Type = "Assessment", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = a.Score.HasValue ? $"{a.Score} - {(a.IsPassed == true ? "Lulus" : a.IsPassed == false ? "Tidak Lulus" : AssessmentConstants.AssessmentStatus.PendingGrading)}" : "\u2014", Status = a.IsPassed == true ? "Passed" : a.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading, StatusClass = ManualStatusClass(a.IsPassed == true ? "Passed" : a.IsPassed == false ? "Failed" : AssessmentConstants.AssessmentStatus.PendingGrading), ValidUntil = a.ValidUntil, Id = a.Id, IsOnline = false, CanViewResult = false });
+                                        var onlineRows = (worker.AssessmentSessions ?? new List<HcPortal.Models.AssessmentSession>())
+                                            .Where(a => !a.IsManualEntry)
+                                            .Select(a => new { Type = "AssessmentOnline", Date = a.CompletedAt ?? a.Schedule, Title = a.Title, Detail = (a.CompletedAt != null && a.Score.HasValue) ? $"{a.Score}" : "\u2014", Status = OnlineLabel(a), StatusClass = OnlineClass(OnlineLabel(a)), ValidUntil = a.ValidUntil, Id = a.Id, IsOnline = true, CanViewResult = (a.Status == AssessmentConstants.AssessmentStatus.PendingGrading || a.CompletedAt != null) });
+                                        var allRows = trainingRows.Concat(assessmentRows).Concat(onlineRows).OrderByDescending(r => r.Date).ToList();
                                     }
                                     @if (allRows.Count == 0)
                                     {
                                         <div class="text-center py-3 text-muted">
-                                            <i class="bi bi-inbox me-2"></i>Belum ada record manual untuk pekerja ini.
+                                            <i class="bi bi-inbox me-2"></i>Belum ada record untuk pekerja ini.
                                             <a href="@Url.Action("AddTraining", "TrainingAdmin")" class="btn btn-sm btn-primary ms-3">
                                                 <i class="bi bi-plus-lg me-1"></i>Tambah Training
                                             </a>
@@ -311,6 +349,10 @@ else
                                                                 {
                                                                     <span class="badge bg-success">Training Manual</span>
                                                                 }
+                                                                else if (row.Type == "AssessmentOnline")
+                                                                {
+                                                                    <span class="badge bg-secondary">Assessment Online</span>
+                                                                }
                                                                 else
                                                                 {
                                                                     <span class="badge bg-info text-white">Assessment Manual</span>
@@ -319,36 +361,46 @@ else
                                                             <td class="fw-semibold small">@row.Title</td>
                                                             <td class="small text-muted">@row.Detail</td>
                                                             <td>
-                                                                @{
-                                                                    var statusClass = row.Status switch
-                                                                    {
-                                                                        "Passed" => "bg-success",
-                                                                        "Valid" => "bg-primary",
-                                                                        "Failed" => "bg-danger",
-                                                                        "Expired" => "bg-warning text-dark",
-                                                                        AssessmentConstants.AssessmentStatus.PendingGrading => "bg-warning text-dark",
-                                                                        _ => "bg-secondary"
-                                                                    };
-                                                                }
-                                                                <span class="badge @statusClass">@(string.IsNullOrEmpty(row.Status) ? "\u2014" : row.Status)</span>
+                                                                <span class="badge @row.StatusClass">@(string.IsNullOrEmpty(row.Status) ? "\u2014" : row.Status)</span>
                                                             </td>
                                                             <td class="small">
                                                                 @(row.ValidUntil.HasValue ? row.ValidUntil.Value.ToString("dd MMM yyyy") : "\u2014")
                                                             </td>
                                                             <td>
                                                                 <div class="d-flex gap-1">
-                                                                    @if (row.Type == "Training")
+                                                                    @if (row.IsOnline)
+                                                                    {
+                                                                        @* Phase 371: online read-only (Lihat hasil HANYA Completed/Menunggu). Phase 367 IC-3: + Hapus cascade. NO Edit. *@
+                                                                        @if (row.CanViewResult)
+                                                                        {
+                                                                            <a href="@Url.Action("Results", "CMP", new { id = row.Id })"
+                                                                               class="btn btn-sm btn-outline-info" title="Lihat hasil" target="_blank">
+                                                                                <i class="bi bi-eye"></i>
+                                                                            </a>
+                                                                        }
+                                                                        @* Phase 367 IC-3/IC-1: tombol hapus online → GET DeletePreview modal (type=session). *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                                title="Hapus sesi online ini (beserta turunannya)" aria-label="Hapus sesi online ini (beserta turunannya)"
+                                                                                hx-get="@Url.Action("DeletePreview", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"type\": \"session\", \"id\": {row.Id}}}")'
+                                                                                hx-target="#cascade-preview-body" hx-swap="innerHTML"
+                                                                                data-bs-toggle="modal" data-bs-target="#cascadePreviewModal">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
+                                                                    }
+                                                                    else if (row.Type == "Training")
                                                                     {
                                                                         <a href="@Url.Action("EditTraining", "TrainingAdmin", new { id = row.Id })"
                                                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </a>
-                                                                        @* MAM-08: hx-post delete (re-swap Tab2 preserve filter); token di body. *@
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                                                hx-post="@Url.Action("DeleteTraining", "TrainingAdmin")"
-                                                                                hx-vals='@Html.Raw($"{{\"id\": {row.Id}, \"__RequestVerificationToken\": \"{antiToken}\"}}")'
-                                                                                hx-confirm="Hapus training record ini?"
-                                                                                hx-swap="none">
+                                                                        @* Phase 367 IC-1: GET DeletePreview → modal cascade (BUKAN hx-post langsung; hx-confirm native dihapus, D-03). *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                                title="Hapus training record ini" aria-label="Hapus training record ini"
+                                                                                hx-get="@Url.Action("DeletePreview", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"type\": \"training\", \"id\": {row.Id}}}")'
+                                                                                hx-target="#cascade-preview-body" hx-swap="innerHTML"
+                                                                                data-bs-toggle="modal" data-bs-target="#cascadePreviewModal">
                                                                             <i class="bi bi-trash"></i>
                                                                         </button>
                                                                     }
@@ -358,12 +410,13 @@ else
                                                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </a>
-                                                                        @* MAM-08: hx-post delete (re-swap Tab2 preserve filter); token di body. *@
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                                                hx-post="@Url.Action("DeleteManualAssessment", "TrainingAdmin")"
-                                                                                hx-vals='@Html.Raw($"{{\"id\": {row.Id}, \"__RequestVerificationToken\": \"{antiToken}\"}}")'
-                                                                                hx-confirm="Hapus assessment record ini?"
-                                                                                hx-swap="none">
+                                                                        @* Phase 367 IC-1: GET DeletePreview → modal cascade (BUKAN hx-post langsung; hx-confirm native dihapus, D-03). *@
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                                title="Hapus assessment record ini" aria-label="Hapus assessment record ini"
+                                                                                hx-get="@Url.Action("DeletePreview", "TrainingAdmin")"
+                                                                                hx-vals='@Html.Raw($"{{\"type\": \"session\", \"id\": {row.Id}}}")'
+                                                                                hx-target="#cascade-preview-body" hx-swap="innerHTML"
+                                                                                data-bs-toggle="modal" data-bs-target="#cascadePreviewModal">
                                                                             <i class="bi bi-trash"></i>
                                                                         </button>
                                                                     }
@@ -465,3 +518,71 @@ else
         </nav>
     }
 }
+
+@* Phase 367 (08) S1: modal shell cascade preview (reuse pola deleteAssessmentModal). Body diisi partial _CascadePreviewModal via GET DeletePreview. *@
+<div class="modal fade" id="cascadePreviewModal" tabindex="-1" aria-labelledby="cascadePreviewModalLabel" aria-hidden="true" role="alertdialog">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-semibold" id="cascadePreviewModalLabel">
+                    <i class="bi bi-trash3 me-2"></i>Konfirmasi Hapus — Cascade
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body" id="cascade-preview-body" aria-live="polite">
+                <div class="text-center py-3" role="status">
+                    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                    Memuat daftar data yang akan terhapus…
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Phase 367 (08) S3/IC-2: flash JUJUR sukses/gagal via event DOM HTMX (recordDeleted / recordDeleteFailed).
+    // Header HX-Trigger TAK andal dibaca xhr.getResponseHeader di app ini (verified UAT 367-08) → pakai event dispatch HTMX.
+    (function () {
+        // Body-level listener (bind SEKALI; persist lintas re-fetch tab — TIDAK bergantung swapped-script re-exec,
+        // karena HTMX tak selalu re-run <script> di konten innerHTML-swap. Verified UAT 367-08).
+        if (window.__recordsFlashBound) return;
+        window.__recordsFlashBound = true;
+
+        function cleanupModal() {
+            var modalEl = document.getElementById('cascadePreviewModal');
+            if (modalEl) { var m = bootstrap.Modal.getInstance(modalEl); if (m) m.hide(); }
+            // bersihkan orphan backdrop bila DOM modal ke-swap mid-animation (re-fetch tab)
+            setTimeout(function () {
+                document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+            }, 350);
+        }
+        function renderFlash(kind, text, icon) {
+            var el = document.getElementById('records-flash');
+            if (!el) return;
+            el.innerHTML = '<div class="alert alert-' + kind + ' alert-dismissible fade show" role="alert">'
+                + '<i class="bi ' + icon + ' me-2"></i>' + text
+                + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button></div>';
+        }
+        // Sukses = event 'recordDeleted' (SAMA yg memicu hidden re-fetch div → ANDAL).
+        document.body.addEventListener('recordDeleted', function () {
+            cleanupModal();
+            window.__recordDeletedPending = true;   // flash hijau dirender afterSettle (setelah re-fetch tab settle)
+        });
+        // Gagal = event 'recordDeleteFailed' (payload {pesan}); DeleteTabFailure respons 200 supaya event ter-dispatch (4xx tak).
+        document.body.addEventListener('recordDeleteFailed', function (e) {
+            var pesan = (e.detail && e.detail.pesan) ? e.detail.pesan : 'Terjadi kesalahan.';
+            cleanupModal();
+            renderFlash('danger', 'Gagal menghapus: ' + pesan + '.', 'bi-exclamation-triangle-fill');   // NEVER hijau saat gagal (#1)
+        });
+        // Re-fetch tab selesai → render flash sukses TERTUNDA. Body listener persist (tak butuh swapped-script re-exec).
+        document.body.addEventListener('htmx:afterSettle', function () {
+            if (window.__recordDeletedPending) {
+                window.__recordDeletedPending = false;
+                renderFlash('success', 'Record beserta turunannya berhasil dihapus.', 'bi-check-circle-fill');
+            }
+        });
+    })();
+</script>

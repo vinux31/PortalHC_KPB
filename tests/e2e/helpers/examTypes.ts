@@ -32,6 +32,11 @@ export interface CreateAssessmentOpts {
   participantEmails: string[]; // ['rino.prasetyo@pertamina.com']
   ewcdDate?: string;
   ewcdTime?: string;
+  // Phase 379 — additive (D-04: JANGAN ubah field existing). Token (Flow B) + Proton T3 (Flow E).
+  isTokenRequired?: boolean;   // default false; STEP 3 check #IsTokenRequired
+  accessToken?: string;        // 6-char alfanumerik; jika kosong + isTokenRequired → klik Generate
+  protonTrackId?: number;      // value option #protonTrackSelect (alternatif protonTrackTahun)
+  protonTrackTahun?: 'Tahun 1' | 'Tahun 2' | 'Tahun 3'; // pilih option by data-tahun (lebih robust)
 }
 
 /**
@@ -55,21 +60,43 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
   await page.locator(wizardSelectors.step1).waitFor({ state: 'visible' });
   await page.selectOption(wizardSelectors.category, opts.category);
   await page.fill(wizardSelectors.title, opts.title);
+
+  // Phase 379 (Flow E) — Proton T3: pilih track saat Category='Assessment Proton'.
+  // Section #protonFieldsSection di-show oleh JS saat category Proton dipilih (CreateAssessment.cshtml:947,1277). Additive.
+  if (opts.protonTrackTahun || opts.protonTrackId) {
+    await page.locator(wizardSelectors.protonFieldsSection).waitFor({ state: 'visible', timeout: 5_000 });
+    if (opts.protonTrackTahun) {
+      const opt = page.locator(`${wizardSelectors.protonTrackSelect} option[data-tahun="${opts.protonTrackTahun}"]`).first();
+      const val = await opt.getAttribute('value');
+      await page.selectOption(wizardSelectors.protonTrackSelect, val!);
+    } else if (opts.protonTrackId) {
+      await page.selectOption(wizardSelectors.protonTrackSelect, String(opts.protonTrackId));
+    }
+  }
+
   await page.locator(wizardSelectors.btnNext1).click();
 
   // STEP 2 — Peserta selection
   await page.locator(wizardSelectors.step2).waitFor({ state: 'visible', timeout: 5_000 });
+  // Phase 379 — proton: coachee eligible di-render AJAX ke #protonUserCheckboxContainer (TANPA data-email);
+  // standard di #userCheckboxContainer (punya data-email). Scope fallback ke container relevan supaya tak
+  // klik item hidden di container yang lain.
+  const isProtonCreate = !!(opts.protonTrackTahun || opts.protonTrackId);
+  const participantContainer = isProtonCreate ? '#protonUserCheckboxContainer' : '#userCheckboxContainer';
   for (const email of opts.participantEmails) {
     const attrSelector = `${wizardSelectors.userCheckItem}[data-email="${email}"] ${wizardSelectors.userCheckbox}`;
     try {
+      if (isProtonCreate) throw new Error('proton: text-based fallback (item tanpa data-email)');
       await page.locator(attrSelector).check({ timeout: 3_000 });
     } catch {
-      // Fallback A7 mitigation — text-based selector dengan email local-part
+      // Fallback A7 mitigation — text-based local-part, di-scope ke container relevan
       const localPart = email.split('@')[0];
-      const fallback = page.locator(`${wizardSelectors.userCheckItem}:has-text("${localPart}") ${wizardSelectors.userCheckbox}`);
-      // eslint-disable-next-line no-console
-      console.warn(`[examTypes] attribute selector failed for ${email}, falling back to text-based`);
-      await fallback.first().check();
+      const fallback = page.locator(`${participantContainer} ${wizardSelectors.userCheckItem}`)
+        .filter({ hasText: localPart })
+        .locator(wizardSelectors.userCheckbox)
+        .first();
+      await fallback.waitFor({ state: 'visible', timeout: 8_000 });
+      await fallback.check();
     }
   }
   await page.locator(wizardSelectors.btnNext2).click();
@@ -78,11 +105,16 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
   await page.locator(wizardSelectors.step3).waitFor({ state: 'visible', timeout: 5_000 });
   await page.fill(wizardSelectors.schedDateInput, opts.scheduleDate);
   await page.fill(wizardSelectors.schedTimeInput, opts.scheduleTime ?? '00:01');
-  await page.fill(wizardSelectors.durationMinutes, String(opts.durationMinutes));
+  // Phase 379 — Proton Tahun 3 hide Duration + PassPercentage (CreateAssessment.cshtml:1636-1648). Fill hanya bila field visible.
+  if (await page.locator(wizardSelectors.durationMinutes).isVisible().catch(() => false)) {
+    await page.fill(wizardSelectors.durationMinutes, String(opts.durationMinutes));
+  }
   await page.fill(wizardSelectors.ewcdDateInput, opts.ewcdDate ?? opts.scheduleDate);
   await page.fill(wizardSelectors.ewcdTimeInput, opts.ewcdTime ?? '23:59');
   await page.selectOption(wizardSelectors.status, 'Open');
-  await page.fill(wizardSelectors.passPercentage, String(opts.passPercentage));
+  if (await page.locator(wizardSelectors.passPercentage).isVisible().catch(() => false)) {
+    await page.fill(wizardSelectors.passPercentage, String(opts.passPercentage));
+  }
 
   // AllowAnswerReview default = TRUE (per CreateAssessmentController Add() get default + asp-for binding)
   if (opts.allowAnswerReview) {
@@ -93,6 +125,19 @@ export async function createAssessmentViaWizard(page: Page, opts: CreateAssessme
   if (opts.generateCertificate) {
     await page.locator(wizardSelectors.generateCertificate).check();
   }
+
+  // Phase 379 (Flow B) — Token wajib + access token. Markup current #tokenSection (CreateAssessment.cshtml:506-514). Additive.
+  if (opts.isTokenRequired) {
+    await page.locator(wizardSelectors.isTokenRequired).check();
+    await page.locator(wizardSelectors.tokenSection).waitFor({ state: 'visible', timeout: 5_000 });
+    if (opts.accessToken) {
+      await page.fill(wizardSelectors.accessToken, opts.accessToken);
+    } else {
+      // generateToken() global onclick (CreateAssessment.cshtml:513,851) — auto-fill #AccessToken
+      await page.locator('button:has-text("Generate"), button[onclick*="generateToken"]').first().click();
+    }
+  }
+
   await page.locator(wizardSelectors.btnNext3).click();
 
   // STEP 4 — Summary + Submit
@@ -138,6 +183,33 @@ export async function createDefaultPackage(page: Page, packageName = 'Paket A'):
 }
 
 /**
+ * Phase 379 (Flow D3) — import soal ke package via paste-from-Excel tab.
+ *
+ * Source: Views/Admin/ImportPackageQuestions.cshtml (verified 2026-06-14).
+ *  - Route: GET/POST `/Admin/ImportPackageQuestions?packageId={id}`.
+ *  - Paste textarea ada di TAB kedua (#paste-pane) — default tab = "Upload Excel File" (#file-pane).
+ *    WAJIB klik #paste-tab dulu supaya textarea[name="pasteText"] interactable.
+ *  - Format kolom CURRENT = 9 kolom TSV: Pertanyaan | Opsi A-D | Jawaban Benar | Elemen Teknis | QuestionType | Rubrik
+ *    (DRIFT dari 6-kolom lama; caller bertanggung jawab format tsvRows). MC = QuestionType kosong/MultipleChoice.
+ *  - Submit "Import from Paste" → redirect balik ke ManagePackages + TempData.Success.
+ *
+ * @param page HC user page (sudah login)
+ * @param packageId target package ID
+ * @param tsvRows baris TSV (\n-separated; \t antar kolom) sesuai format 9-kolom di atas
+ */
+export async function importQuestionsViaPaste(page: Page, packageId: number, tsvRows: string): Promise<void> {
+  await page.goto(`/Admin/ImportPackageQuestions?packageId=${packageId}`);
+  await page.waitForLoadState('networkidle');
+
+  // Aktifkan tab "Paste from Excel" (default aktif = Upload Excel File)
+  await page.locator('#paste-tab').click();
+  const pane = page.locator('#paste-pane');
+  await pane.locator('textarea[name="pasteText"]').fill(tsvRows);
+  await pane.locator('button[type="submit"]').click();
+  await page.waitForLoadState('networkidle');
+}
+
+/**
  * HC add 1 question via ManagePackageQuestions right-pane form.
  *
  * Pattern source: Views/Admin/ManagePackageQuestions.cshtml lines 117-458 (verified 2026-05-11).
@@ -150,8 +222,27 @@ export async function createDefaultPackage(page: Page, packageName = 'Paket A'):
  * @param page HC user page (sudah login)
  * @param packageId target package ID
  * @param q QuestionInput discriminated union
+ * @param images Phase 355 (opsional) — path fixture gambar soal + tiap opsi (setInputFiles pada hidden file input)
  */
-export async function addQuestionViaForm(page: Page, packageId: number, q: QuestionInput): Promise<void> {
+export interface QuestionImages {
+  question?: string;
+  questionAlt?: string;
+  optionA?: string;
+  optionB?: string;
+  optionC?: string;
+  optionD?: string;
+  optionAAlt?: string;
+  optionBAlt?: string;
+  optionCAlt?: string;
+  optionDAlt?: string;
+}
+
+export async function addQuestionViaForm(
+  page: Page,
+  packageId: number,
+  q: QuestionInput,
+  images?: QuestionImages
+): Promise<void> {
   // Action route: [Route("Admin/[action]")] on AssessmentAdminController → /Admin/ManagePackageQuestions?packageId={N}
   // (RESEARCH said `/Admin/ManageQuestions` — verified salah 2026-05-11; actual action name `ManagePackageQuestions`.)
   await page.goto(`/Admin/ManagePackageQuestions?packageId=${packageId}`);
@@ -200,6 +291,19 @@ export async function addQuestionViaForm(page: Page, packageId: number, q: Quest
       }
     }
   }
+
+  // Phase 355 — upload gambar soal + tiap opsi via hidden file input (setInputFiles).
+  // Bersyarat: hanya bila path fixture disuplai. File input hidden → setInputFiles tetap bekerja.
+  if (images?.question) { await page.setInputFiles(questionFormSelectors.questionImgField, images.question); }
+  if (images?.questionAlt) { await page.fill(questionFormSelectors.questionImageAlt, images.questionAlt); }
+  if (images?.optionA) { await page.setInputFiles(questionFormSelectors.optAImgField, images.optionA); }
+  if (images?.optionAAlt) { await page.fill(questionFormSelectors.optAImageAlt, images.optionAAlt); }
+  if (images?.optionB) { await page.setInputFiles(questionFormSelectors.optBImgField, images.optionB); }
+  if (images?.optionBAlt) { await page.fill(questionFormSelectors.optBImageAlt, images.optionBAlt); }
+  if (images?.optionC) { await page.setInputFiles(questionFormSelectors.optCImgField, images.optionC); }
+  if (images?.optionCAlt) { await page.fill(questionFormSelectors.optCImageAlt, images.optionCAlt); }
+  if (images?.optionD) { await page.setInputFiles(questionFormSelectors.optDImgField, images.optionD); }
+  if (images?.optionDAlt) { await page.fill(questionFormSelectors.optDImageAlt, images.optionDAlt); }
 
   await page.fill(questionFormSelectors.scoreValue, String(q.score));
   await page.locator(questionFormSelectors.submitBtn).click();

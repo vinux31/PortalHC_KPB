@@ -12,7 +12,11 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v23.0 shipped + audited + closed, 2026-06-06)
+## Current State: Between Milestones (v29.0 closed 2026-06-15)
+
+**v29.0 shipped (local) + audit passed + closed + PUSHED origin/ITHandoff (2026-06-15)** — Assessment E2E Worker-Success Fix (phases 380-382): worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton). WSE-01/02/03 admin/engine integrity (ShuffleEngine empty-package filter + token uppercase heal + AddExtraTime authz/cap), WSE-04/05 worker entry (type-aware Pre/Post sibling + impersonation read-only guard), WSE-06..11 grading/lifecycle/cert (dedupe read-final + anti-resurrection + abandon-guard + timer Standard + token-gate + cert null→Aktif). 11/11 REQ + 415/415 xUnit + integration 11/11 WIRED. **0 migration** (SAVE-01 dedupe last-write-wins, bukan filtered-index). Archive: `milestones/v29.0-*`. Summary awam (HC): `docs/milestone-v29.0/index.html`. Pending non-blocker: CERT-01 konfirmasi visual + I-1 type-aware pre-check (opsional).
+
+**v28.0 shipped (local) + audit passed + closed (2026-06-14)** — Assessment & Records Bug Fixes (phases 376-379): fix essay-only Score aggregation (`AssessmentScoreAggregator` + `RecomputeEssayScores`) + impersonation identity lintas worker-data surfaces (`ImpersonationService.GetEffectiveUserAsync` + middleware) + CMP CertificationManagement route 500→redirect CDP + migrasi e2e exam-taking ke wizard (10 flow + Flow K essay). 6/6 REQ GRADE/IMP/CMPRT/E2E + 372/372 xUnit. 0 migration. Archive: `milestones/v28.0-*`.
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -40,19 +44,40 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v23.0 shipped (local) + audit passed + closed (2026-06-06)** — CMP/Records Search & Filter Consistency Audit (phases 350-351): Team View search cakup judul assessment (fix 999.2, `GetWorkersInSection` predicate, badge D-07 utuh) + dropdown "Lingkup" jujur + export WYSIWYG; Worker Detail 0-match feedback (counter aria-live + empty-state) + filter Kategori dari record aktual (`BuildActualCategories` distinct, ganti master); My Records filter Kategori+Tipe parity (id `my`-prefixed hindari collision Team View) + back-nav `#team` aktifkan tab. 7/7 REQ SF-01..07 + integration 7/7 WIRED + 112/112 xUnit + Playwright 5/5+2/2. 0 migration.
 
-**Current focus:** Planning next milestone (v24.0). Bundle push v19+v20+v21+v22+v23 tetap pending IT availability (~163+ commit lokal, 0 migration v23.0 leg).
+**v24.0 shipped (local) + audit passed + closed (2026-06-09)** — Gambar di Soal Assessment (phases 352-357): admin lampirkan gambar pada soal + opsi assessment (image-only ≤5MB magic-byte, alt text) via ManagePackageQuestions CRUD + render konsisten 6 layar (responsive+lightbox) + integritas file (sync Pre→Post shared-file + hapus atomic pola Phase 333). Plus 2 addon off-theme: Phase 356 Audit Fix Assign Coach×Coachee (6 fix AF-1..7, eligibility per-unit HIGH; AF-4→backlog) + Phase 357 standarisasi istilah tipe soal "Single/Multiple Answer" (QuestionTypeLabels single-source + hapus dead TrueFalse). 25/25 REQ + integration 17/17 WIRED + 143/143 xUnit + Playwright UAT. 1 migration (Phase 352 image columns); 353-357 = 0 migration. Archive: `milestones/v24.0-*`.
 
-## Current Milestone: v23.0 CMP/Records Search & Filter Consistency Audit
+**v25.0 shipped (local) + audit passed + closed (2026-06-14, re-audited)** — Proton Kelulusan & Bypass (phases 358-368): penanda kelulusan exam Tahun 1/2 (`Origin` + `ProtonCompletionService` helper bersama) + gate berurutan server-side (`ProtonYearGate`) + Bypass Tahun (4 closure mode + `PendingProtonBypass` + 6 endpoint + Tab2 wizard) + delete-records cascade overhaul (367/368, 27 temuan) + polish/audit/test (362-366). 20/20 REQ PCOMP/PBYP + integration 5/5. 2 migration (Origin, PendingProtonBypass+index). Archive: `milestones/v25.0-*`.
 
-**Goal:** Konsistensi + kelengkapan perilaku search/filter di seluruh permukaan CMP/Records (My Records + Team View + Worker Detail) — perbaiki gap yang bikin user tak nemu data (mulai dari bug 999.2).
+**v26.0 shipped (local) + audit passed + closed (2026-06-14)** — Urgent Search & Records Visibility (phases 369-371): sync H1 search-drop main→ITHandoff (URG-01) + hapus window 7-hari (URG-02) + sesi online di Tab Input Records visibility-only (URG-03). 3/3 REQ. 0 migration. Archive: `milestones/v26.0-*`.
+
+**v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
+
+**Current focus:** v25.0 Proton Kelulusan & Bypass — Phase 358 (penanda kelulusan), 359 (gate berurutan), 360 (Bypass Backend B — complete 2026-06-10: PendingProtonBypass migration#2 + ProtonBypassService 4 closure mode + pending lifecycle + 4 hook grading + 6 endpoint + gate exempt Origin="Bypass"; verifier 5/5 PASS + UAT 6/6 live; PBYP-01..07 done), 362 (CDP polish) SHIPPED LOCAL. Tersisa: 361 (UI Bypass) + 363 (audit fix alur PROTON T1-T10, belum diplan). Bundle push v19-v23 sudah ke IT (2026-06-06); **v24.0+v25.0 belum push** — branch ITHandoff, migration#2 flag untuk IT.
+
+## Current Milestone: v25.0 Proton Kelulusan & Bypass
+
+**Goal:** Bikin logic kelulusan Proton konsisten (exam Tahun 1/2 terbit penanda + gate berurutan dipaksa), lalu tambah fitur Bypass Tahun (admin/HC pindahin coachee antar tahun/track/unit dengan alasan + audit).
 
 **Target features:**
-- **Fix 999.2** — Team View search "Keduanya" cakup judul **assessment** (bukan hanya Nama/NIP + judul Training); user cari "ojt v14.2" → ketemu.
-- **Audit search/filter 3 surface** — scope tiap field (Cari + filter Kategori/SubKategori/Status/Tanggal/Tipe/Lingkup), konsistensi cross-surface, edge case (0-match message, scope mismatch, dropdown jujur) → confirmed gaps → fix.
+- **Completion Logic (fondasi, fase 358-359)** — exam Tahun 1/2 lulus → terbit `ProtonFinalAssessment` (sekarang cuma interview Tahun 3 = BUG); helper bersama `EnsureProtonFinalAssessment`; gate deliverable-100%→final dipaksa **server-side** + gate antar-tahun keras; Tahun 3 deliverable data-driven; graduation gate; matikan level (dormant); backfill data lama; kolom `Origin`.
+- **Bypass Tahun (fase 360-361)** — admin pindahin coachee antar tahun/track/unit (4 closure mode CL-A/B(a)/B(b)/C, |Δtahun|≤1), tabel `PendingProtonBypass` + konfirmasi HC (OQ-1 Opsi B), notif `PROTON_BYPASS_READY`, redesign page Override jadi 2 tab + wizard 3-langkah.
 
-**Pendekatan:** Audit-driven (codebase audit 3 surface dulu → REQ dari confirmed findings → roadmap; pola spec-driven v19/v22). Skip domain-research (audit kode existing, bukan fitur baru).
+**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-09-proton-completion-logic-design.md` (A) + `docs/superpowers/specs/2026-06-09-proton-bypass-tahun-design.md` (B). **B depends A** — implement + verify A dulu.
 
-**Backlog dropped:** Phase 999.1 Realtime Assessment SignalR — di-drop user 2026-06-05 (tidak diprioritaskan).
+**Scope note:** Audit Tab1 Override Deliverable + undo bypass executed = OUT (backlog). **2 migration** (Origin di 358, PendingProtonBypass di 360) — notify IT keduanya.
+
+## Previous Milestone: v24.0 Gambar di Soal Assessment (Manage Package)
+
+**Goal:** Admin bisa melampirkan gambar pada soal assessment dan tiap pilihan jawaban (semua tipe MC/MA/Essay), tampil konsisten di seluruh layar tempat soal muncul.
+
+**Target features:**
+- **Gambar pada soal + opsi** — 1 gambar per soal + 1 gambar per opsi (MC/MA punya opsi; Essay hanya soal), upload JPG/PNG ≤2MB via FileUploadHelper image-only, alt text opsional.
+- **Render konsisten 6 layar** — StartExam, ExamSummary, Results (peserta) + preview admin, AssessmentMonitoringDetail, EditPesertaAnswers (admin).
+- **Integritas data & file** — sinkron gambar saat Pre→Post (shared-file path) + hapus file atomic (pola Phase 333) saat soal/opsi/gambar dihapus.
+
+**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-06-image-in-assessment-questions-design.md` (5 keputusan brainstorm + 5 gap kode terverifikasi + resolusi). Skip domain-research (best-practice LMS sudah dicatat di spec §13; sisanya reuse pola codebase existing).
+
+**Catatan scope:** Bulk-import gambar, multi-gambar, edit/crop in-app, image CDN = OUT (lihat spec §3).
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 

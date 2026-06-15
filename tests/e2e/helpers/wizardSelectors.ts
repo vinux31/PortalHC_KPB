@@ -68,6 +68,12 @@ export const wizardSelectors = {
   accessToken: '#AccessToken',
   validUntil: '#ValidUntil',
 
+  // Phase 379 — additive (markup current; JANGAN refactor existing key). Verified 2026-06-14.
+  // Source: CreateAssessment.cshtml token #tokenSection:509; proton #protonFieldsSection:210, #protonTrackSelect:219 (opsi data-tahun:225)
+  tokenSection: '#tokenSection',                 // Step 3 — token panel (gantikan drift lama #tokenInputContainer)
+  protonFieldsSection: '#protonFieldsSection',   // Step 1 — show saat Category='Assessment Proton'
+  protonTrackSelect: '#protonTrackSelect',       // Step 1 — name=ProtonTrackId; opsi punya data-tahun
+
   // Submit modal
   successModal: '#successModal',
   modalManageBtn: '#modal-manage-btn',
@@ -118,4 +124,10 @@ export const questionFormSelectors = {
   cancelEditBtn: '#cancelEditBtn',
   optionA: '#option_A', optionB: '#option_B', optionC: '#option_C', optionD: '#option_D',
   correctA: '#correct_A', correctB: '#correct_B', correctC: '#correct_C', correctD: '#correct_D',
+  // Phase 355 — image upload fields (Views/Admin/ManagePackageQuestions.cshtml:145-211, hidden file inputs)
+  questionImgField: '#questionImgField',
+  questionImageAlt: '#questionImageAlt',
+  removeQuestionImage: '#removeQuestionImage',
+  optAImgField: '#optAImgField', optBImgField: '#optBImgField', optCImgField: '#optCImgField', optDImgField: '#optDImgField',
+  optAImageAlt: '#optAImageAlt', optBImageAlt: '#optBImageAlt', optCImageAlt: '#optCImageAlt', optDImageAlt: '#optDImageAlt',
 } as const;

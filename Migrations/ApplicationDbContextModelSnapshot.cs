@@ -482,6 +482,16 @@ namespace HcPortal.Migrations
                     b.Property<int?>("Score")
                         .HasColumnType("int");
 
+                    b.Property<bool>("ShuffleOptions")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ShuffleQuestions")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
 
@@ -1306,6 +1316,13 @@ namespace HcPortal.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ImageAlt")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
 
@@ -1335,6 +1352,13 @@ namespace HcPortal.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ElemenTeknis")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageAlt")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MaxCharacters")
@@ -1400,6 +1424,65 @@ namespace HcPortal.Migrations
                     b.HasIndex("AssessmentSessionId", "PackageQuestionId");
 
                     b.ToTable("PackageUserResponses");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.PendingProtonBypass", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CoacheeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InitiatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LinkedAssessmentSessionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SourceProtonTrackId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TargetCoachId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TargetProtonTrackId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetUnit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoacheeId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PendingProtonBypasses_CoacheeId_ActiveUnique")
+                        .HasFilter("[Status] IN (N'Menunggu', N'Siap')");
+
+                    b.HasIndex("CoacheeId", "Status")
+                        .HasDatabaseName("IX_PendingProtonBypasses_CoacheeId_Status");
+
+                    b.ToTable("PendingProtonBypasses");
                 });
 
             modelBuilder.Entity("HcPortal.Models.ProtonDeliverable", b =>
@@ -1557,6 +1640,10 @@ namespace HcPortal.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Origin")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("ProtonTrackAssignmentId")
                         .HasColumnType("int");
@@ -1744,6 +1831,10 @@ namespace HcPortal.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Origin")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("ProtonTrackId")
                         .HasColumnType("int");

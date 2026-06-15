@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mockup Layout Form Gambar — Phase 353 (Manage Package Questions)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+<style>
+  :root { --pertamina-blue:#0a4d8c; --pertamina-green:#1a936f; }
+  body { background:#eef1f5; font-size:.9rem; color:#212529; }
+  .mock-head { background:linear-gradient(135deg,var(--pertamina-blue),#0c6bbf); color:#fff; }
+  .mock-head h1 { font-size:1.25rem; font-weight:700; margin:0; }
+  .opt-card { background:#fff; border:1px solid #dee2e6; border-radius:.6rem; overflow:hidden; height:100%; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+  .opt-card .opt-title { background:#f8f9fa; border-bottom:2px solid var(--pertamina-blue); padding:.6rem .9rem; }
+  .opt-card .opt-title .badge { font-size:.7rem; }
+  .opt-body { padding:1rem; }
+  .form-label.small { font-weight:600; font-size:.78rem; margin-bottom:.25rem; }
+  .img-drop { border:1.5px dashed #b6c2cf; border-radius:.45rem; padding:.5rem .65rem; background:#f6f9fc; display:flex; align-items:center; gap:.55rem; }
+  .img-drop.has-img { border-style:solid; border-color:var(--pertamina-green); background:#f1faf6; }
+  .thumb { width:46px; height:46px; border-radius:.35rem; object-fit:cover; flex:0 0 auto; border:1px solid #ced4da; }
+  .thumb-ph { width:46px; height:46px; border-radius:.35rem; background:#e2e8f0; display:flex; align-items:center; justify-content:center; color:#94a3b8; flex:0 0 auto; }
+  .img-drop .meta { font-size:.72rem; line-height:1.15; color:#6c757d; min-width:0; }
+  .img-drop .meta b { color:#198754; }
+  .opt-row { background:#fff; }
+  .collapse-trigger { font-size:.74rem; color:var(--pertamina-blue); text-decoration:none; white-space:nowrap; }
+  .collapse-trigger:hover { text-decoration:underline; }
+  .pro { color:#198754; } .con { color:#b02a37; }
+  .pc-list { font-size:.78rem; margin:0; padding-left:1.1rem; }
+  .pc-list li { margin-bottom:.15rem; }
+  .rec-ribbon { position:absolute; top:10px; right:-34px; transform:rotate(45deg); background:var(--pertamina-green); color:#fff; font-size:.62rem; font-weight:700; padding:2px 38px; box-shadow:0 1px 4px rgba(0,0,0,.2); }
+  .section-box { border:1px solid #e2e8f0; border-radius:.45rem; padding:.7rem .8rem; background:#fbfdff; }
+  .section-box > .sb-title { font-size:.72rem; font-weight:700; color:var(--pertamina-blue); text-transform:uppercase; letter-spacing:.03em; margin-bottom:.55rem; }
+  .legend-note { font-size:.78rem; }
+  .opt-pos { position:relative; }
+  .mini-divider { border-top:1px dashed #dde3ea; margin:.7rem 0; }
+</style>
+</head>
+<body>
+
+<div class="mock-head py-3 mb-4 shadow-sm">
+  <div class="container-xl d-flex align-items-center gap-3">
+    <i class="bi bi-image-fill fs-3"></i>
+    <div>
+      <h1>Mockup Layout Form Gambar di Soal Assessment</h1>
+      <div class="small opacity-75">Phase 353 — Manage Package Questions · 3 opsi penempatan input gambar (soal + opsi A-D)</div>
+    </div>
+  </div>
+</div>
+
+<div class="container-xl pb-5">
+
+  <div class="alert alert-light border d-flex gap-2 align-items-start legend-note mb-4">
+    <i class="bi bi-info-circle-fill text-primary mt-1"></i>
+    <div>
+      Ketiga opsi memakai komponen real Portal HC (Bootstrap 5.3). Yang berbeda hanya <b>di mana field upload gambar diletakkan</b>.
+      Field, validasi, sync, dan hapus-file identik di semua opsi. Thumbnail hijau = simulasi gambar sudah terpilih.
+      Bandingkan lalu pilih A / B / C.
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ============ OPSI A: INLINE ============ -->
+    <div class="col-lg-4">
+      <div class="opt-card opt-pos">
+        <div class="rec-ribbon">REKOMENDASI</div>
+        <div class="opt-title">
+          <span class="badge text-bg-success">A</span>
+          <span class="fw-bold ms-1">Inline Kontekstual</span>
+          <div class="small text-muted mt-1">Gambar nempel langsung ke item-nya</div>
+        </div>
+        <div class="opt-body">
+          <div class="mb-3">
+            <label class="form-label small">Tipe Soal</label>
+            <select class="form-select form-select-sm"><option>Single Choice (1 jawaban benar)</option></select>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small">Teks Soal <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" rows="2">Komponen mana yang ditunjuk panah pada diagram pompa berikut?</textarea>
+          </div>
+          <!-- gambar soal inline -->
+          <div class="img-drop has-img mb-3">
+            <img src="https://placehold.co/80x80/0a4d8c/fff?text=Pompa" class="thumb" alt="">
+            <div class="meta flex-grow-1">
+              <b><i class="bi bi-check-circle-fill"></i> diagram-pompa.png</b><br>1.2 MB · alt: "Diagram pompa sentrifugal"
+            </div>
+            <button class="btn btn-outline-danger btn-sm py-0 px-1"><i class="bi bi-x-lg"></i></button>
+          </div>
+
+          <label class="form-label small">Opsi Jawaban</label>
+          <!-- A -->
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio" checked></div>
+            <span class="input-group-text fw-bold">A</span>
+            <input type="text" class="form-control" value="Impeller">
+          </div>
+          <div class="img-drop has-img mb-2">
+            <img src="https://placehold.co/80x80/1a936f/fff?text=A" class="thumb" alt="">
+            <div class="meta flex-grow-1"><b>impeller.jpg</b> · 340 KB</div>
+            <button class="btn btn-outline-danger btn-sm py-0 px-1"><i class="bi bi-x-lg"></i></button>
+          </div>
+          <!-- B -->
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">B</span>
+            <input type="text" class="form-control" value="Casing">
+          </div>
+          <div class="img-drop mb-2">
+            <div class="thumb-ph"><i class="bi bi-image"></i></div>
+            <div class="meta flex-grow-1">Belum ada gambar</div>
+            <label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label>
+          </div>
+          <!-- C -->
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">C</span>
+            <input type="text" class="form-control" value="Shaft">
+          </div>
+          <div class="img-drop mb-2">
+            <div class="thumb-ph"><i class="bi bi-image"></i></div>
+            <div class="meta flex-grow-1">Belum ada gambar</div>
+            <label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label>
+          </div>
+          <!-- D -->
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">D</span>
+            <input type="text" class="form-control" value="Bearing">
+          </div>
+          <div class="img-drop mb-3">
+            <div class="thumb-ph"><i class="bi bi-image"></i></div>
+            <div class="meta flex-grow-1">Belum ada gambar</div>
+            <label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label>
+          </div>
+
+          <div class="mini-divider"></div>
+          <ul class="pc-list">
+            <li class="pro"><i class="bi bi-plus-circle"></i> Konteks paling jelas — gambar nempel ke soal/opsi-nya</li>
+            <li class="pro"><i class="bi bi-plus-circle"></i> Tak perlu cocokkan A-D manual</li>
+            <li class="con"><i class="bi bi-dash-circle"></i> Form jadi lebih panjang vertikal</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPSI B: SECTION TERPISAH ============ -->
+    <div class="col-lg-4">
+      <div class="opt-card">
+        <div class="opt-title">
+          <span class="badge text-bg-primary">B</span>
+          <span class="fw-bold ms-1">Section Terpisah</span>
+          <div class="small text-muted mt-1">Semua upload dikumpulkan 1 blok</div>
+        </div>
+        <div class="opt-body">
+          <div class="mb-3">
+            <label class="form-label small">Tipe Soal</label>
+            <select class="form-select form-select-sm"><option>Single Choice (1 jawaban benar)</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Teks Soal <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" rows="2">Komponen mana yang ditunjuk panah pada diagram pompa berikut?</textarea>
+          </div>
+
+          <label class="form-label small">Opsi Jawaban</label>
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio" checked></div>
+            <span class="input-group-text fw-bold">A</span><input type="text" class="form-control" value="Impeller">
+          </div>
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">B</span><input type="text" class="form-control" value="Casing">
+          </div>
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">C</span><input type="text" class="form-control" value="Shaft">
+          </div>
+          <div class="input-group input-group-sm mb-3">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">D</span><input type="text" class="form-control" value="Bearing">
+          </div>
+
+          <div class="section-box mb-3">
+            <div class="sb-title"><i class="bi bi-images me-1"></i>Gambar (opsional)</div>
+            <div class="img-drop has-img mb-2">
+              <img src="https://placehold.co/80x80/0a4d8c/fff?text=Pompa" class="thumb" alt="">
+              <div class="meta flex-grow-1"><b>Soal</b> · diagram-pompa.png</div>
+              <button class="btn btn-outline-danger btn-sm py-0 px-1"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="img-drop has-img mb-2">
+              <img src="https://placehold.co/80x80/1a936f/fff?text=A" class="thumb" alt="">
+              <div class="meta flex-grow-1"><b>Opsi A</b> · impeller.jpg</div>
+              <button class="btn btn-outline-danger btn-sm py-0 px-1"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="img-drop mb-2">
+              <div class="thumb-ph"><i class="bi bi-image"></i></div>
+              <div class="meta flex-grow-1"><b>Opsi B</b> · belum ada</div>
+              <label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label>
+            </div>
+            <div class="img-drop mb-2">
+              <div class="thumb-ph"><i class="bi bi-image"></i></div>
+              <div class="meta flex-grow-1"><b>Opsi C</b> · belum ada</div>
+              <label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label>
+            </div>
+            <div class="img-drop">
+              <div class="thumb-ph"><i class="bi bi-image"></i></div>
+              <div class="meta flex-grow-1"><b>Opsi D</b> · belum ada</div>
+              <label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label>
+            </div>
+          </div>
+
+          <ul class="pc-list">
+            <li class="pro"><i class="bi bi-plus-circle"></i> Bagian atas form tetap ringkas/familiar</li>
+            <li class="pro"><i class="bi bi-plus-circle"></i> Semua gambar terlihat sekaligus</li>
+            <li class="con"><i class="bi bi-dash-circle"></i> Admin harus cocokkan "Opsi A" ke baris A manual</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPSI C: COLLAPSE TOGGLE ============ -->
+    <div class="col-lg-4">
+      <div class="opt-card">
+        <div class="opt-title">
+          <span class="badge text-bg-secondary">C</span>
+          <span class="fw-bold ms-1">Collapse Toggle</span>
+          <div class="small text-muted mt-1">Field upload muncul saat diklik</div>
+        </div>
+        <div class="opt-body">
+          <div class="mb-3">
+            <label class="form-label small">Tipe Soal</label>
+            <select class="form-select form-select-sm"><option>Single Choice (1 jawaban benar)</option></select>
+          </div>
+
+          <div class="mb-1">
+            <label class="form-label small">Teks Soal <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" rows="2">Komponen mana yang ditunjuk panah pada diagram pompa berikut?</textarea>
+          </div>
+          <!-- soal: terbuka (sudah ada gambar) -->
+          <div class="mb-3">
+            <a class="collapse-trigger" data-bs-toggle="collapse" href="#cSoal"><i class="bi bi-dash-square"></i> Gambar soal</a>
+            <div class="collapse show" id="cSoal">
+              <div class="img-drop has-img mt-1">
+                <img src="https://placehold.co/80x80/0a4d8c/fff?text=Pompa" class="thumb" alt="">
+                <div class="meta flex-grow-1"><b>diagram-pompa.png</b> · 1.2 MB</div>
+                <button class="btn btn-outline-danger btn-sm py-0 px-1"><i class="bi bi-x-lg"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <label class="form-label small">Opsi Jawaban</label>
+          <!-- A terbuka -->
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio" checked></div>
+            <span class="input-group-text fw-bold">A</span><input type="text" class="form-control" value="Impeller">
+            <a class="btn btn-outline-secondary btn-sm collapse-trigger d-flex align-items-center" data-bs-toggle="collapse" href="#cA"><i class="bi bi-image"></i></a>
+          </div>
+          <div class="collapse show" id="cA">
+            <div class="img-drop has-img mb-2">
+              <img src="https://placehold.co/80x80/1a936f/fff?text=A" class="thumb" alt="">
+              <div class="meta flex-grow-1"><b>impeller.jpg</b></div>
+              <button class="btn btn-outline-danger btn-sm py-0 px-1"><i class="bi bi-x-lg"></i></button>
+            </div>
+          </div>
+          <!-- B C D tertutup -->
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">B</span><input type="text" class="form-control" value="Casing">
+            <a class="btn btn-outline-secondary btn-sm collapse-trigger d-flex align-items-center" data-bs-toggle="collapse" href="#cB"><i class="bi bi-plus-lg"></i></a>
+          </div>
+          <div class="collapse" id="cB"><div class="img-drop mb-2"><div class="thumb-ph"><i class="bi bi-image"></i></div><div class="meta flex-grow-1">Belum ada</div><label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label></div></div>
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">C</span><input type="text" class="form-control" value="Shaft">
+            <a class="btn btn-outline-secondary btn-sm collapse-trigger d-flex align-items-center" data-bs-toggle="collapse" href="#cC"><i class="bi bi-plus-lg"></i></a>
+          </div>
+          <div class="collapse" id="cC"><div class="img-drop mb-2"><div class="thumb-ph"><i class="bi bi-image"></i></div><div class="meta flex-grow-1">Belum ada</div><label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label></div></div>
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-text"><input class="form-check-input mt-0" type="radio"></div>
+            <span class="input-group-text fw-bold">D</span><input type="text" class="form-control" value="Bearing">
+            <a class="btn btn-outline-secondary btn-sm collapse-trigger d-flex align-items-center" data-bs-toggle="collapse" href="#cD"><i class="bi bi-plus-lg"></i></a>
+          </div>
+          <div class="collapse" id="cD"><div class="img-drop mb-2"><div class="thumb-ph"><i class="bi bi-image"></i></div><div class="meta flex-grow-1">Belum ada</div><label class="btn btn-outline-primary btn-sm py-0 px-2">Pilih</label></div></div>
+
+          <div class="mini-divider"></div>
+          <ul class="pc-list">
+            <li class="pro"><i class="bi bi-plus-circle"></i> Form paling ringkas saat soal tanpa gambar</li>
+            <li class="con"><i class="bi bi-dash-circle"></i> Butuh klik ekstra tiap mau tambah gambar</li>
+            <li class="con"><i class="bi bi-dash-circle"></i> JS show/hide paling banyak (toggle + state)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+
+  <div class="card mt-4 border-0 shadow-sm">
+    <div class="card-body">
+      <h2 class="h6 fw-bold text-primary"><i class="bi bi-clipboard-check me-1"></i>Ringkasan perbandingan</h2>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle mb-0" style="font-size:.8rem">
+          <thead class="table-light">
+            <tr><th>Kriteria</th><th class="text-success">A Inline</th><th class="text-primary">B Section</th><th class="text-secondary">C Collapse</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Konteks gambar↔item</td><td class="text-success fw-bold">Paling jelas</td><td>Manual cocokkan</td><td>Jelas (saat dibuka)</td></tr>
+            <tr><td>Keringkasan form default</td><td>Panjang</td><td>Sedang</td><td class="fw-bold">Paling ringkas</td></tr>
+            <tr><td>Jumlah klik admin</td><td class="fw-bold">Paling sedikit</td><td>Sedikit</td><td>Paling banyak</td></tr>
+            <tr><td>Kompleksitas JS</td><td>Sedang</td><td class="fw-bold">Paling rendah</td><td>Paling tinggi</td></tr>
+            <tr><td>Effort implementasi</td><td>Sedang</td><td class="fw-bold">Rendah</td><td>Tinggi</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3 small text-muted"><i class="bi bi-stars text-success"></i> Rekomendasi: <b>Opsi A (Inline)</b> — konteks paling jelas untuk admin, klik paling sedikit, sesuai pola form existing yang sudah punya struktur per-baris A-D.</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

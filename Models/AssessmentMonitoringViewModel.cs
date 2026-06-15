@@ -79,5 +79,9 @@ namespace HcPortal.Models
         public string? TextAnswer { get; set; }
         public int? EssayScore { get; set; }
         public int ScoreValue { get; set; }
+
+        // RND-05: gambar SOAL saja (essay tak punya opsi). Diisi controller dari PackageQuestion.ImagePath/ImageAlt.
+        public string? ImagePath { get; set; }
+        public string? ImageAlt { get; set; }
     }
 }

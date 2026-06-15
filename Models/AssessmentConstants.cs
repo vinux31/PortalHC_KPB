@@ -18,6 +18,7 @@ namespace HcPortal.Models
             public const string PendingGrading = "Menunggu Penilaian"; // Phase 309 D-04 — set by GradingService L199 untuk session ber-essay
             public const string InProgress = "InProgress"; // Phase 310 WR-04 — peserta sedang mengerjakan ujian
             public const string Cancelled = "Cancelled";   // Phase 310 WR-04 — session dibatalkan
+            public const string Abandoned = "Abandoned";   // Phase 382 STAT-01/02 — single-source label (sebelumnya literal di CMPController.AbandonExam)
         }
 
         public static class CertificateType
@@ -37,6 +38,15 @@ namespace HcPortal.Models
             public static readonly HashSet<string> AllowedCertificateExtensions = new(StringComparer.OrdinalIgnoreCase)
             {
                 ".pdf", ".jpg", ".jpeg", ".png"
+            };
+
+            // Phase 352 IMG-04 / D-03: cap khusus gambar 5MB (BUKAN 10MB cert).
+            public const long MaxImageFileSizeBytes = 5 * 1024 * 1024; // 5MB
+
+            // Phase 352 IMG-04 / D-01/D-02: image-only allowlist (JPG/PNG, termasuk .jpeg) — TANPA .pdf.
+            public static readonly HashSet<string> AllowedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ".jpg", ".jpeg", ".png"
             };
 
             // Phase 325 D-09: Magic byte signatures per extension (lowercase keys).

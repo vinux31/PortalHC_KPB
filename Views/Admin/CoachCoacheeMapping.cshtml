@@ -304,27 +304,27 @@ else
                                         onclick="openEditModal(@coachee.Id, '@coachee.CoachId', 0, '@coachee.StartDate.ToString("yyyy-MM-dd")', '@coachee.CoacheeName', '@coachee.AssignmentSection', '@coachee.AssignmentUnit')">
                                     <i class="bi bi-pencil"></i> Edit
                                 </button>
-                                @if (coachee.IsActive)
+                                @* D-06 (Phase 356): cek IsCompleted DULU. Setelah AF-3 set IsActive=false saat
+                                   graduate, mapping graduated harus tetap tampil badge "Graduated" (saat showAll),
+                                   bukan tombol "Aktifkan" yang menyesatkan. *@
+                                @if (coachee.IsCompleted)
+                                {
+                                    <span class="badge bg-info"><i class="bi bi-award me-1"></i>Graduated</span>
+                                }
+                                else if (coachee.IsActive)
                                 {
                                     <button class="btn btn-sm btn-outline-danger"
                                             onclick="confirmDeactivate(@coachee.Id, '@coachee.CoacheeName')">
                                         <i class="bi bi-x-circle"></i> Nonaktifkan
                                     </button>
-                                    @if (!coachee.IsCompleted)
-                                    {
-                                        <form method="post" asp-action="MarkMappingCompleted" asp-controller="CoachMapping" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="mappingId" value="@coachee.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-info"
-                                                    onclick="return confirm('Tandai coachee ini sebagai graduated?')">
-                                                <i class="bi bi-award"></i> Graduated
-                                            </button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-info"><i class="bi bi-award me-1"></i>Graduated</span>
-                                    }
+                                    <form method="post" asp-action="MarkMappingCompleted" asp-controller="CoachMapping" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="mappingId" value="@coachee.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-info"
+                                                onclick="return confirm('Tandai coachee ini sebagai graduated?')">
+                                            <i class="bi bi-award"></i> Graduated
+                                        </button>
+                                    </form>
                                 }
                                 else
                                 {
@@ -429,6 +429,9 @@ else
                         {
                             <p class="text-muted small mb-0">Tidak ada coachee yang tersedia (semua sudah memiliki coach aktif).</p>
                         }
+                    </div>
+                    <div id="coacheeUnitConstraintHint" class="form-text text-muted" style="display:none;">
+                        Satu batch assign hanya untuk satu unit. Coachee dari unit lain dinonaktifkan — kosongkan pilihan untuk berganti unit.
                     </div>
                 </div>
                 <div class="mb-3">
@@ -681,7 +684,28 @@ else
 
     function updateAssignmentDefaults() {
         var checked = document.querySelectorAll('.coachee-checkbox:checked');
-        if (checked.length === 0) return;
+        var hint = document.getElementById('coacheeUnitConstraintHint');
+
+        // AF-2 (Phase 356): RESET saat tak ada centang — re-enable semua, hilangkan text-muted, sembunyikan hint
+        if (checked.length === 0) {
+            document.querySelectorAll('#coacheeChecklist .coachee-item').forEach(function (item) {
+                item.querySelector('.coachee-checkbox').disabled = false;
+                item.classList.remove('text-muted');
+            });
+            if (hint) hint.style.display = 'none';
+            return;
+        }
+
+        // AF-2 guard: kunci unit dari centang pertama, disable checkbox coachee unit berbeda.
+        // HANYA toggle disabled + text-muted; JANGAN sentuh style.display (milik filterCoacheesBySection).
+        var lockedUnit = checked[0].closest('.coachee-item').getAttribute('data-unit') || '';
+        document.querySelectorAll('#coacheeChecklist .coachee-item').forEach(function (item) {
+            var cb = item.querySelector('.coachee-checkbox');
+            var sameUnit = (item.getAttribute('data-unit') || '') === lockedUnit;
+            cb.disabled = !sameUnit && !cb.checked;            // JANGAN disable yang sudah dicentang
+            item.classList.toggle('text-muted', !sameUnit && !cb.checked);
+        });
+        if (hint) hint.style.display = '';
 
         var sections = new Set();
         var units = new Set();
@@ -720,6 +744,14 @@ else
 
         if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
         if (coacheeIds.length === 0) { alert('Pilih minimal satu coachee.'); return; }
+        // AF-2 backstop: tolak submit bila >1 unit terpilih (sabuk pengaman race manipulasi DOM)
+        var selectedUnits = new Set(
+            Array.from(document.querySelectorAll('.coachee-checkbox:checked'))
+                 .map(cb => cb.closest('.coachee-item').getAttribute('data-unit') || ''));
+        if (selectedUnits.size > 1) {
+            alert('Satu batch assign hanya untuk satu unit. Kosongkan pilihan dan pilih ulang dari satu unit saja.');
+            return;
+        }
         if (!assignmentSection) { alert('Pilih Bagian Penugasan.'); return; }
         if (!assignmentUnit) { alert('Pilih Unit Penugasan.'); return; }
 

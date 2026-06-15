@@ -53,6 +53,12 @@ builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 // Grading service — Phase 296 D-01: concrete class + DI (sama seperti AuditLogService)
 builder.Services.AddScoped<HcPortal.Services.GradingService>();
 
+// Proton completion service — Phase 358 PCOMP-03: single-source penanda kelulusan Proton
+builder.Services.AddScoped<HcPortal.Services.ProtonCompletionService>();
+
+// Proton bypass service — Phase 360 PBYP-02: orkestrator Bypass Tahun (DI satu arah, tanpa GradingService)
+builder.Services.AddScoped<HcPortal.Services.ProtonBypassService>();
+
 // Impersonation service — Phase 283
 builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 builder.Services.AddHttpContextAccessor();
@@ -63,6 +69,9 @@ builder.Services.AddScoped<HcPortal.Services.IWorkerDataService, HcPortal.Servic
 
 // Org Label Service — Phase 340 milestone v21.0 (D-06 Scoped, ApplicationDbContext captive prevention)
 builder.Services.AddScoped<HcPortal.Services.IOrgLabelService, HcPortal.Services.OrgLabelService>();
+
+// Record cascade delete service — Phase 367: cascade hapus record worker (preview + execute) lintas renewal
+builder.Services.AddScoped<HcPortal.Services.RecordCascadeDeleteService>();
 
 // Auth service — factory delegates based on Authentication:UseActiveDirectory config toggle
 // dev (false) -> LocalAuthService (Identity PasswordHash)

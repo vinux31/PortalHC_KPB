@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PROTON Gap Analysis — Portal HC KPB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body{background:#f5f6f8}
+    .badge.sev-critical{background:#dc3545}.badge.sev-high{background:#fd7e14}
+    .badge.sev-medium{background:#ffc107;color:#212529}.badge.sev-low{background:#6c757d}
+    .lens-badge{font-size:.7rem;font-weight:500}
+    section{scroll-margin-top:70px}
+    .stat-card{border:0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .stat-num{font-size:2rem;font-weight:700;line-height:1}
+    .flow-tier{border:1px solid #dee2e6;border-radius:.5rem;padding:.5rem .75rem;background:#fff;display:inline-block;margin:.25rem;font-size:.85rem}
+    .flow-arrow{color:#adb5bd;font-size:1.2rem;vertical-align:middle}
+    .matrix td,.matrix th{text-align:center;font-size:.8rem;vertical-align:middle}
+    .matrix td.name{text-align:left;white-space:nowrap}
+    .yes{color:#198754;font-weight:700}.no{color:#dee2e6}
+    .gap-card{border-left:4px solid #ccc}
+    .gap-card.sev-critical{border-left-color:#dc3545}.gap-card.sev-high{border-left-color:#fd7e14}
+    .gap-card.sev-medium{border-left-color:#ffc107}.gap-card.sev-low{border-left-color:#6c757d}
+    h2.sec{font-size:1.3rem;border-bottom:2px solid #e9ecef;padding-bottom:.4rem;margin-bottom:1rem}
+    .small-muted{font-size:.8rem;color:#6c757d}
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-dark sticky-top">
+    <div class="container">
+      <span class="navbar-brand"><i class="bi bi-diagram-3"></i> PROTON Gap Analysis</span>
+      <span class="navbar-text text-light small d-none d-md-inline">Portal HC KPB · inventaris 14 page + 6 lensa · 2026-06-10</span>
+    </div>
+  </nav>
+  <main class="container my-4">
+    <section id="executive-summary" class="mb-5"></section>
+    <section id="flow-diagram" class="mb-5"></section>
+    <section id="consistency-matrix" class="mb-5"></section>
+    <section id="gap-panel" class="mb-5"></section>
+    <section id="roadmap" class="mb-5"></section>
+    <section id="page-accordion" class="mb-5"></section>
+  </main>
+  <footer class="container text-muted small py-4 border-top">
+    Generated dari inventaris kode (read-only) + crawl Playwright live @localhost:5277 · sumber data embedded dari <code>data/inventory.json</code> · metode: spec <code>docs/superpowers/specs/2026-06-09-proton-gap-analysis-design.md</code>
+  </footer>
+
+  <script>const DATA = {
+  "generatedAt": "2026-06-10",
+  "module": "PROTON",
+  "pages": [
+    {
+      "id": "cdp-index",
+      "name": "Hub CDP",
+      "route": "/CDP/Index",
+      "action": "CDPController.Index",
+      "view": "Views/CDP/Index.cshtml",
+      "purpose": "Halaman hub Competency Development Platform — 4 kartu navigasi ke fitur PROTON inti.",
+      "flow": { "from": ["Menu atas 'CDP' (_Layout)", "Home/Index kartu 'Buka CDP'"], "to": ["/CDP/PlanIdp", "/CDP/CoachingProton", "/CDP/HistoriProton", "/CDP/Dashboard"] },
+      "roles": "Coachee (class [Authorize] any-auth)",
+      "filters": [],
+      "table": { "columns": [], "source": "none" },
+      "actions": [
+        { "label": "Lihat Dokumen", "endpoint": "/CDP/PlanIdp" },
+        { "label": "Proton Coaching", "endpoint": "/CDP/CoachingProton" },
+        { "label": "Lihat Riwayat", "endpoint": "/CDP/HistoriProton" },
+        { "label": "Lihat Dashboard", "endpoint": "/CDP/Dashboard" }
+      ],
+      "modals": [],
+      "export": ["none"],
+      "dataSource": "none (return View() statis, tanpa model)",
+      "gaps": []
+    },
+    {
+      "id": "cdp-planidp",
+      "name": "Plan IDP / Silabus",
+      "route": "/CDP/PlanIdp?bagian&unit&trackId",
+      "action": "CDPController.PlanIdp",
+      "view": "Views/CDP/PlanIdp.cshtml",
+      "purpose": "Lihat silabus kurikulum PROTON (kompetensi>sub>deliverable) + dokumen coaching guidance per Bagian/Unit/Track.",
+      "flow": { "from": ["Hub CDP kartu #1"], "to": ["GuidanceDownload (file)"], "back": "breadcrumb CDP" },
+      "roles": "Coachee (locked ke bagian assignment) | L4 SectionHead/SrSpv (locked ke section) | Coach (guidance per coachee-map) | HC/Admin (semua)",
+      "filters": ["Bagian (RFCC/DHT-HMU/NGP/GAST)", "Unit (cascade dari Bagian)", "Track (Panelman/Operator x Tahun1-3)"],
+      "table": { "columns": ["No", "Kompetensi", "SubKompetensi", "Deliverable", "Target"], "source": "ProtonKompetensiList > SubKompetensiList > Deliverables (render JS setelah Muat Data, butuh 3 filter set)" },
+      "actions": [
+        { "label": "Muat Data", "endpoint": "client-side (render dari SilabusRowsJson)" },
+        { "label": "Download guidance", "endpoint": "/CDP/GuidanceDownload?id={id}" }
+      ],
+      "modals": ["Tab Coaching Guidance (tree Bagian>Unit>TrackType>TahunKe)"],
+      "export": ["none"],
+      "dataSource": "ProtonKompetensiList, ProtonTracks, CoachingGuidanceFiles, ProtonTrackAssignments, GetSectionUnitsDictAsync (shared dep - sumber bug filter Dev kalau OrganizationUnits belum normalisasi)",
+      "gaps": []
+    },
+    {
+      "id": "cdp-coachingproton",
+      "name": "Coaching PROTON (core)",
+      "route": "/CDP/CoachingProton?coacheeId&bagian&unit&trackType&tahun&page",
+      "action": "CDPController.CoachingProton",
+      "view": "Views/CDP/CoachingProton.cshtml",
+      "purpose": "Halaman inti monitoring deliverable PROTON: scope per-role, approval 3-tier (SrSpv>SectionHead>HC), upload/submit evidence, batch action.",
+      "flow": { "from": ["Hub CDP kartu #2"], "to": ["/CDP/Deliverable/{id}", "ExportBottleneckReport", "ExportCoachingTracking", "ExportWorkloadSummary"], "back": "tombol Kembali + breadcrumb" },
+      "roles": "Scope per RoleLevel: <=3 HC/Admin/Direktur/VP/Manager (semua coachee) | 4 SectionHead/SrSpv (section) | 5 Coach (coachee ter-map) | 6 Coachee (own, banner NoActiveAssignment). Aksi gated: approve/reject=RolesReviewerAndAbove, HCReview=HC,Admin, upload/submit/edit/delete/export=RolesCoachAndAbove",
+      "filters": ["Bagian", "Unit (cascade)", "Coachee", "Track (Panelman/Operator)", "Tahun (1-3)", "Cari kompetensi (search)", "Reset"],
+      "table": { "columns": ["[checkbox select-all]", "Coachee", "Kompetensi", "Sub Kompetensi", "Deliverable", "Evidence", "Approval Sr.Spv", "Approval Section Head", "Approval HC", "Detail"], "source": "ProtonProgress join ProtonTrackAssignment (scoped), paginated" },
+      "actions": [
+        { "label": "Review (HC)", "endpoint": "/CDP/HCReviewFromProgress + HCReviewDeliverable [HC,Admin]" },
+        { "label": "Approve/Reject (modal)", "endpoint": "/CDP/ApproveFromProgress + RejectFromProgress + ApproveDeliverable + RejectDeliverable [RolesReviewerAndAbove]" },
+        { "label": "Upload/Submit evidence", "endpoint": "/CDP/UploadEvidence + SubmitEvidenceWithCoaching [RolesCoachAndAbove]" },
+        { "label": "Lihat Detail", "endpoint": "/CDP/Deliverable/{id}" },
+        { "label": "Batch (checkbox select-all)", "endpoint": "client + BatchHCApprove [HC,Admin]" }
+      ],
+      "modals": ["Review HC modal", "Approve/Reject modal", "Upload evidence modal", "Panel 'Antrian Review HC' (queue Submitted)"],
+      "export": ["Bottleneck Report (Excel)", "Coaching Tracking (Excel)", "Workload Summary (Excel)"],
+      "dataSource": "ProtonProgress, ProtonTrackAssignments, CoachCoacheeMappings, Users, GetAllSectionsAsync",
+      "gaps": []
+    },
+    {
+      "id": "cdp-historiproton",
+      "name": "Proton History",
+      "route": "/CDP/HistoriProton",
+      "action": "CDPController.HistoriProton",
+      "view": "Views/CDP/HistoriProton.cshtml",
+      "purpose": "Daftar pekerja PROTON + status kelulusan per tahun (Tahun 1/2/3 badge) + progress, drill ke detail riwayat.",
+      "flow": { "from": ["Hub CDP kartu #3"], "to": ["/CDP/HistoriProtonDetail?userId={id}"], "back": "breadcrumb CDP", "note": "Coachee (L6) auto-redirect ke HistoriProtonDetail sendiri" },
+      "roles": "Scope per level (<=3 semua, 4 section, 5 coach-map, 6 redirect own). Export gated RolesReviewerAndAbove",
+      "filters": ["Cari (nama/NIP)", "Bagian", "Unit (cascade)", "Jalur (Panelman/Operator)", "Status (Lulus/Dalam Proses/Belum Mulai)", "Reset"],
+      "table": { "columns": ["No", "Nama", "NIP", "Unit", "Jalur", "Progress Proton (badge Tahun 1/2/3)", "Status", "Aksi"], "source": "ProtonTrackAssignments + ProtonFinalAssessments + ProtonDeliverableProgresses" },
+      "actions": [{ "label": "Lihat Riwayat", "endpoint": "/CDP/HistoriProtonDetail?userId={id}" }],
+      "modals": [],
+      "export": ["Export Excel (/CDP/ExportHistoriProton, RolesReviewerAndAbove)"],
+      "dataSource": "ProtonTrackAssignments, ProtonFinalAssessments (penanda Lulus - relevan bug v25.0 Tahun1/2), ProtonDeliverableProgresses, Users",
+      "gaps": []
+    },
+    {
+      "id": "cdp-dashboard",
+      "name": "Proton Dashboard",
+      "route": "/CDP/Dashboard",
+      "action": "CDPController.Dashboard",
+      "view": "Views/CDP/Dashboard.cshtml",
+      "purpose": "Dashboard monitoring agregat PROTON: stat coachee/approval/completed + 2 chart + tabel progress tim. Coachee lihat sub-model sendiri.",
+      "flow": { "from": ["Hub CDP kartu #4"], "to": ["(filter AJAX FilterCoachingProton/GetCascadeOptions/GetSubCategories)"], "back": "breadcrumb CDP" },
+      "roles": "Coachee branch (BuildCoacheeSubModelAsync) vs non-Coachee progress branch (BuildProtonProgressSubModelAsync scoped per role)",
+      "filters": ["Section", "Unit (cascade)", "Kategori", "Track", "Reset"],
+      "table": { "columns": ["No.", "Name", "Track", "Progress", "Approved", "Pending", "Rejected", "Status"], "source": "ProtonDeliverableProgresses agregat per coachee (Team Deliverable Progress)" },
+      "actions": [],
+      "modals": [],
+      "export": ["none"],
+      "dataSource": "ProtonDeliverableProgresses, ProtonFinalAssessments, ProtonTrackAssignments",
+      "liveNote": "CONSOLE ERROR live: 'ReferenceError: Chart is not defined' @ Dashboard:560. KOREKSI re-check: chart.js SEBENARNYA ter-load (script cdn.jsdelivr.net/npm/chart.js ada, window.Chart defined saat eval). Akar = init chart @:560 jalan SEBELUM chart.js parse (race/urutan script) -> canvas 'protonStatusChart' (Deliverable Status) tak pernah digambar. Bandingkan: CoachWorkload Chart.js + canvas render NORMAL (0 error). Chart 'Competency Level Granted' juga kosong-data ('No final assessments') + dormant v25.0 A-3.",
+      "gaps": []
+    },
+    {
+      "id": "cdp-deliverable",
+      "name": "Deliverable detail",
+      "route": "/CDP/Deliverable/{id}",
+      "action": "CDPController.Deliverable",
+      "view": "Views/CDP/Deliverable.cshtml",
+      "purpose": "Detail 1 deliverable: info coachee/kompetensi, approval chain 3-tier, evidence coach (+coaching session), riwayat status timeline.",
+      "flow": { "from": ["CoachingProton 'Lihat Detail'", "Dashboard drill"], "to": ["/CDP/EditCoachingSession/{id}", "DownloadEvidence", "DownloadEvidencePdf"], "back": "breadcrumb+tombol 'Kembali ke IDP Plan' (KE PlanIdp, BUKAN ke CoachingProton asal)" },
+      "roles": "Coachee (own) | L1-3 full | L4 section-scoped (Forbid lintas section) | L5 Coach (mapped) | else Forbid",
+      "filters": [],
+      "table": { "columns": ["Approval Chain: Sr.Supervisor/Section Head/HC Review (status)", "Evidence rows: Pedoman/TKO-TKI/Best Practice/Dokumen/Catatan Coach/Kesimpulan/Result"], "source": "ProtonDeliverableProgress + ProtonDeliverable hierarchy + coaching session" },
+      "actions": [
+        { "label": "Edit coaching session (icon)", "endpoint": "/CDP/EditCoachingSession/{id} [RolesCoachAndAbove]" },
+        { "label": "Hapus session (icon)", "endpoint": "/CDP/DeleteCoachingSession [RolesCoachAndAbove]" },
+        { "label": "Download evidence", "endpoint": "/CDP/DownloadEvidence?progressId={id}" },
+        { "label": "PDF Evidence Report", "endpoint": "/CDP/DownloadEvidencePdf?progressId={id}" }
+      ],
+      "modals": [],
+      "export": ["PDF Evidence Report"],
+      "dataSource": "ProtonDeliverableProgresses (Include ProtonDeliverable>SubKompetensi>Kompetensi>Track)",
+      "liveNote": "Breadcrumb='IDP Plan / Deliverable' + tombol balik ke PlanIdp, tapi entry sebenarnya dari CoachingProton/Dashboard -> drill balik tak ke asal (calon flow gap). Display 'Kesimpulan: Kompeten secara mandiri' vs opsi Edit dropdown 'Kompeten'/'Perlu Pengembangan' (calon label inkonsistensi).",
+      "gaps": []
+    },
+    {
+      "id": "cdp-historiprotondetail",
+      "name": "Histori Detail",
+      "route": "/CDP/HistoriProtonDetail?userId={id}",
+      "action": "CDPController.HistoriProtonDetail",
+      "view": "Views/CDP/HistoriProtonDetail.cshtml",
+      "purpose": "Detail riwayat PROTON 1 pekerja: bio + accordion per Tahun (status + drill).",
+      "flow": { "from": ["HistoriProton 'Lihat Riwayat'", "Coachee auto-redirect dari HistoriProton"], "to": [], "back": "breadcrumb + 'Kembali ke Daftar' (HistoriProton)" },
+      "roles": "L<=3 semua | L4 same-section (Forbid lain) | L5 mapped (Forbid lain) | L>=6 own only (Forbid lain)",
+      "filters": [],
+      "table": { "columns": ["Bio: Nama/NIP/Jalur/Unit/Section", "Accordion per Tahun (status Dalam Proses/Lulus/...)"], "source": "ProtonTrackAssignments + ProtonFinalAssessments per tahun" },
+      "actions": [{ "label": "Expand Tahun (accordion)", "endpoint": "client-side" }],
+      "modals": [],
+      "export": ["none"],
+      "dataSource": "Users + ProtonTrackAssignments + ProtonFinalAssessments + progresses",
+      "liveNote": "Live: 'Tahun 1' muncul DUA kali keduanya 'Dalam Proses' (kemungkinan 2 assignment tahun sama / duplikat) = calon data-integrity gap. Tahun 2/3 tak tampil (no assignment).",
+      "gaps": []
+    },
+    {
+      "id": "cdp-editcoachingsession",
+      "name": "Edit Coaching Session",
+      "route": "/CDP/EditCoachingSession/{id}",
+      "action": "CDPController.EditCoachingSession (GET+POST)",
+      "view": "Views/CDP/EditCoachingSession.cshtml",
+      "purpose": "Edit catatan/kesimpulan/result 1 sesi coaching yang sudah ada.",
+      "flow": { "from": ["Deliverable detail (icon edit)"], "to": [], "back": "breadcrumb (Coaching Proton/Deliverable) + tombol Batal (Deliverable/{id})" },
+      "roles": "RolesCoachAndAbove (Coach/SrSpv/SectionHead/HC/Admin)",
+      "filters": [],
+      "table": { "columns": ["read-only: Tanggal/Kompetensi/Sub/Deliverable", "editable: Catatan Coach (textarea), Kesimpulan (Kompeten/Perlu Pengembangan), Result (Need Improvement/Suitable/Good/Excellence)"], "source": "coaching session record" },
+      "actions": [
+        { "label": "Simpan Perubahan", "endpoint": "POST /CDP/EditCoachingSession/{id} [RolesCoachAndAbove]" },
+        { "label": "Batal", "endpoint": "/CDP/Deliverable/{id}" }
+      ],
+      "modals": [],
+      "export": ["none"],
+      "dataSource": "ProtonCoachingSession / progress record",
+      "gaps": []
+    },
+    {
+      "id": "cdp-certmanagement",
+      "name": "Certification Management",
+      "route": "/CDP/CertificationManagement?page",
+      "action": "CDPController.CertificationManagement",
+      "view": "Views/CDP/CertificationManagement.cshtml",
+      "purpose": "Daftar semua sertifikat pelatihan+asesmen pekerja (gabungan Training+Assessment) dengan status validitas + renewal.",
+      "flow": { "from": ["Admin/Home dashboard (BUKAN hub CDP)"], "to": ["/CMP/CertificatePdf/{id}", "modal riwayat sertifikat"], "back": "tombol 'Kembali ke CDP'" },
+      "roles": "BuildSertifikatRowsAsync(l5OwnDataOnly:true) - L5 own only, lain scoped. Export Excel gated Admin,HC (ExportSertifikatExcel)",
+      "filters": ["Bagian", "Unit (cascade)", "Status (Aktif/Akan Expired/Expired/Permanent)", "Kategori (OJT/IHT/Training Licencor/OTS/Mandatory HSSE/Assessment Proton)", "Sub Kategori (cascade)", "Reset", "toggle Tampilkan Riwayat Renewal"],
+      "table": { "columns": ["No", "Nama", "Bagian", "Unit", "Judul", "Kategori", "Sub Kategori", "Nomor Sertifikat", "Tgl Terbit", "Valid Until", "Tipe", "Status", "Aksi(PDF)"], "source": "BuildSertifikatRowsAsync gabung Training + Assessment cert, paginated PaginationHelper" },
+      "actions": [
+        { "label": "Export Excel", "endpoint": "href=# -> JS -> /CDP/ExportSertifikatExcel [Admin,HC]" },
+        { "label": "Lihat riwayat sertifikat (nama)", "endpoint": "href=# -> modal JS" },
+        { "label": "PDF cert", "endpoint": "/CMP/CertificatePdf/{id}" },
+        { "label": "Filter (AJAX)", "endpoint": "/CDP/FilterCertificationManagement" }
+      ],
+      "modals": ["Modal riwayat sertifikat per pekerja"],
+      "export": ["Export Excel (Admin,HC)"],
+      "dataSource": "Training + Assessment certs (BuildSertifikatRowsAsync), AssessmentCategories, GetSectionUnitsDictAsync",
+      "liveNote": "Export Excel + link nama pakai href=# tapi KOREKSI re-check: Export punya onclick='exportExcel(event)' + link nama class='btn-history' data-worker-id (delegated handler) -> handler ADA, tak dead (G-11 dibatalkan). Renewal toggle in-page (modul renewal out-of-scope).",
+      "gaps": []
+    },
+    {
+      "id": "protondata-index",
+      "name": "Master Silabus (ProtonData/Index)",
+      "route": "/ProtonData/Index?bagian&unit&trackId&showInactive",
+      "action": "ProtonDataController.Index",
+      "view": "Views/ProtonData/Index.cshtml",
+      "purpose": "Admin/HC kelola silabus PROTON (kompetensi>sub>deliverable CRUD) + coaching guidance file per Bagian/Unit/Track + tab Status ringkasan.",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": ["/ProtonData/ImportSilabus"], "back": "via Admin" },
+      "roles": "Admin,HC (class-level [Authorize])",
+      "filters": ["Bagian", "Unit (cascade)", "Track", "showInactive toggle"],
+      "table": { "columns": ["Tab Status: Bagian | Silabus | Guidance", "Tab Silabus: editable grid kompetensi/sub/deliverable/target", "Tab Guidance: file list per Bagian>Unit>Track"], "source": "ProtonKompetensiList/SubKompetensi/Deliverable + CoachingGuidanceFiles, StatusData AJAX" },
+      "actions": [
+        { "label": "Simpan silabus", "endpoint": "POST /ProtonData/SilabusSave [Admin,HC]" },
+        { "label": "Hapus/Deactivate/Reactivate silabus", "endpoint": "/ProtonData/SilabusDelete + SilabusDeactivate + SilabusReactivate (+ *DeletePreview)" },
+        { "label": "Export/Template silabus", "endpoint": "/ProtonData/ExportSilabus + DownloadSilabusTemplate" },
+        { "label": "Guidance upload/replace/delete", "endpoint": "/ProtonData/GuidanceUpload + GuidanceReplace + GuidanceDelete + GuidanceList" }
+      ],
+      "modals": ["3 tab (Status/Silabus/Coaching Guidance)", "delete-preview konfirmasi cascade"],
+      "export": ["ExportSilabus (Excel)", "DownloadSilabusTemplate"],
+      "dataSource": "ProtonKompetensiList, ProtonSubKompetensi, ProtonDeliverable, CoachingGuidanceFiles, StatusData()",
+      "liveNote": "Tab Status: baris RFCC/DHT-HMU/NGP/GAST muncul tapi sel Silabus+Guidance KOSONG (tak ada count/badge) walau data silabus ada (terlihat di PlanIdp). Calon data-integrity/dead-display gap (cocok temuan memory 'StatusData status bolong'). Awalnya stuck 'Memuat...' lalu render kosong.",
+      "gaps": []
+    },
+    {
+      "id": "protondata-override",
+      "name": "Override Progress (ProtonData/Override)",
+      "route": "/ProtonData/Override",
+      "action": "ProtonDataController.Override",
+      "view": "Views/ProtonData/Override.cshtml",
+      "purpose": "Admin/HC override status progress deliverable coachee manual (mis. fix rejected / pending HC nyangkut).",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": [], "back": "tombol 'Kembali ke Kelola Data' (/Admin)" },
+      "roles": "Admin,HC (class-level)",
+      "filters": ["Bagian", "Unit (cascade)", "Track", "Status Filter (Semua/Hanya Rejected/Hanya Pending HC)", "Muat Data"],
+      "table": { "columns": ["(AJAX OverrideList render setelah pilih 3 filter)"], "source": "ProtonDeliverableProgresses + OverrideDetail" },
+      "actions": [
+        { "label": "Muat Data", "endpoint": "/ProtonData/OverrideList (AJAX)" },
+        { "label": "Detail + Save override", "endpoint": "/ProtonData/OverrideDetail + OverrideSave [Admin,HC]" },
+        { "label": "Delete kompetensi", "endpoint": "/ProtonData/DeleteKompetensi + GetKompetensiCascadeInfo" }
+      ],
+      "modals": ["Override detail modal"],
+      "export": ["none"],
+      "dataSource": "ProtonDeliverableProgresses",
+      "liveNote": "Judul page 'Deliverable Progress Override' (spec keliru sebut 'Override Silabus'). Muat Data disabled sampai 3 filter dipilih.",
+      "gaps": []
+    },
+    {
+      "id": "protondata-importsilabus",
+      "name": "Import Silabus (ProtonData/ImportSilabus)",
+      "route": "/ProtonData/ImportSilabus",
+      "action": "ProtonDataController.ImportSilabus (GET+POST)",
+      "view": "Views/ProtonData/ImportSilabus.cshtml",
+      "purpose": "Admin/HC bulk tambah/update silabus via upload Excel (template + drag-drop).",
+      "flow": { "from": ["ProtonData/Index"], "to": [], "back": "breadcrumb + tombol Kembali (ProtonData/Index)" },
+      "roles": "Admin,HC (class-level)",
+      "filters": [],
+      "table": { "columns": ["Doc 'Format Kolom Template': Bagian/Unit/Track (Info auto), Kompetensi/SubKompetensi/Deliverable (Wajib), Target (Opsional)"], "source": "none (form upload)" },
+      "actions": [
+        { "label": "Download Template", "endpoint": "/ProtonData/DownloadSilabusTemplate" },
+        { "label": "Proses Import (upload .xlsx)", "endpoint": "POST /ProtonData/ImportSilabus [Admin,HC]" },
+        { "label": "Batal", "endpoint": "/ProtonData/Index" }
+      ],
+      "modals": ["dropzone drag-drop .xlsx"],
+      "export": ["DownloadSilabusTemplate"],
+      "dataSource": "Excel parse -> ProtonKompetensiList/SubKompetensi/Deliverable upsert",
+      "liveNote": "Proses Import disabled sampai file dipilih (guard OK).",
+      "gaps": []
+    },
+    {
+      "id": "coachmapping-coachcoachee",
+      "name": "Coach×Coachee Mapping",
+      "route": "/Admin/CoachCoacheeMapping?search&section&showAll&page",
+      "action": "CoachMappingController.CoachCoacheeMapping",
+      "view": "Views/Admin/CoachCoacheeMapping.cshtml",
+      "purpose": "Admin assign coach ke coachee + ProtonTrackAssignment (bagian/unit/jabatan/track), grouped per coach, plus graduation.",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": [], "back": "breadcrumb Kelola Data" },
+      "roles": "Admin (AdminBaseController, route Admin/[action])",
+      "filters": ["Seksi", "Cari (nama coach/coachee)", "checkbox Tampilkan Semua (termasuk non-aktif)", "page (20/pg)"],
+      "table": { "columns": ["Nama", "NIP", "Bagian Penugasan", "Unit Penugasan", "Jabatan", "Proton Track", "Status", "Mulai", "Coachee Aktif", "Aksi"], "source": "CoachCoacheeMappings + ProtonTrackAssignments + Users (grouped per coach)" },
+      "actions": [
+        { "label": "Tambah Mapping", "endpoint": "modal -> POST /Admin/CoachCoacheeMappingAssign" },
+        { "label": "Edit", "endpoint": "modal -> POST /Admin/CoachCoacheeMappingEdit" },
+        { "label": "Nonaktifkan/Reactivate", "endpoint": "/Admin/CoachCoacheeMappingDeactivate + Reactivate (+ ActiveAssignmentCount/SessionCount/DeletePreview/Delete)" },
+        { "label": "Graduated", "endpoint": "mark graduated (gate Tahun3 lulus - relevan v25.0 PCOMP-08)" },
+        { "label": "Import/Export/Template", "endpoint": "/Admin/ImportCoachCoacheeMapping + CoachCoacheeMappingExport + DownloadMappingImportTemplate" }
+      ],
+      "modals": ["Tambah Mapping", "Edit Mapping", "Import Excel", "Delete preview"],
+      "export": ["Export Excel", "Download Template"],
+      "dataSource": "CoachCoacheeMappings, ProtonTrackAssignments, Users",
+      "liveNote": "Overlap audit Phase 356 (AF-1..7, eligibility per-unit). Tombol 'Graduated' = graduation gate (v25.0 ingin gate Tahun3 lulus). KOREKSI re-check: Nonaktifkan punya confirmDeactivate() modal + Graduated punya confirm('Tandai...graduated?') dialog -> konfirmasi ADA (G-07 dibatalkan).",
+      "gaps": []
+    },
+    {
+      "id": "coachmapping-workload",
+      "name": "Coach Workload",
+      "route": "/Admin/CoachWorkload?section",
+      "action": "CoachMappingController.CoachWorkload",
+      "view": "Views/Admin/CoachWorkload.cshtml",
+      "purpose": "Monitoring distribusi beban coach (rasio coachee/coach) + threshold overload + saran penyeimbangan.",
+      "flow": { "from": ["Admin/Home (Kelola Data)"], "to": [], "back": "breadcrumb Kelola Data" },
+      "roles": "Admin (AdminBaseController)",
+      "filters": ["Section", "Filter", "Reset"],
+      "table": { "columns": ["Nama Coach", "Section", "Jumlah Coachee", "Daftar Coachee (Lihat)", "Status (Normal/Mendekati/Overloaded)"], "source": "CoachCoacheeMappings agregat per coach" },
+      "actions": [
+        { "label": "Set Threshold", "endpoint": "modal -> POST /Admin/SetWorkloadThreshold(maxCoachees, warningThreshold)" },
+        { "label": "Export Excel", "endpoint": "/Admin/ExportCoachWorkload" },
+        { "label": "Lihat daftar coachee", "endpoint": "modal/expand" }
+      ],
+      "modals": ["Set Threshold", "Lihat daftar coachee"],
+      "export": ["Export Excel"],
+      "dataSource": "CoachCoacheeMappings, Users, workload threshold setting",
+      "liveNote": "Ada 'Grafik Beban Coach' (legend Normal/Mendekati Batas/Overloaded) - cek apakah pakai Chart.js (sama lib yang gagal di Dashboard) - tak ada console error di crawl ini, tapi perlu verifikasi render grafik.",
+      "gaps": []
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-01", "lens": "dead-feature", "severity": "high",
+      "pages": ["cdp-dashboard"],
+      "title": "Grafik 'Deliverable Status' Dashboard mati — init chart jalan sebelum Chart.js siap (race)",
+      "detail": "Live Playwright: 'ReferenceError: Chart is not defined' @ Dashboard:560. KOREKSI re-check: chart.js TER-LOAD (script ada, window.Chart defined saat di-eval), tapi inline init @:560 eksekusi SEBELUM chart.js selesai parse -> error -> canvas 'protonStatusChart' (Deliverable Status) tak digambar. Bukan 'chart.js tak ada'. Bukti pembanding: CoachWorkload pakai Chart.js + canvas render NORMAL (0 console error). Grep/build tak deteksi (runtime). Chart 'Competency Level Granted' juga kosong (dormant v25.0 A-3)."
+    },
+    {
+      "id": "G-02", "lens": "data-integrity", "severity": "high",
+      "pages": ["protondata-index"],
+      "title": "Tab Status ProtonData: sel Silabus/Guidance kosong walau data ada",
+      "detail": "Live: baris RFCC/DHT-HMU/NGP/GAST muncul tapi kolom Silabus & Guidance KOSONG (tanpa count/badge), padahal silabus terlihat di PlanIdp. Admin tak bisa lihat coverage silabus/guidance per bagian. Cocok temuan memory 'StatusData status bolong'; kemungkinan terkait agregasi GetSectionUnitsDictAsync."
+    },
+    {
+      "id": "G-03", "lens": "data-integrity", "severity": "high",
+      "pages": ["cdp-historiproton", "cdp-historiprotondetail"],
+      "title": "Exam Tahun 1/2 lulus tak pernah berstatus 'Lulus'",
+      "detail": "Status 'Lulus' bergantung ProtonFinalAssessment yang (pra-v25.0) cuma terbit lewat interview Tahun 3 -> exam Tahun 1/2 yang lulus tak tercatat Lulus. SUDAH DIALAMATKAN milestone v25.0 Phase 358 (penanda kelulusan via ProtonCompletionService). Dicatat agar tak dobel-hitung."
+    },
+    {
+      "id": "G-04", "lens": "konsistensi", "severity": "medium",
+      "pages": ["cdp-dashboard"],
+      "title": "Dashboard satu-satunya page monitoring tanpa export",
+      "detail": "CoachingProton (3 export), HistoriProton (Export Excel), CertificationManagement (Export Excel), CoachWorkload (Export Excel) semua punya export. Dashboard tidak. Inkonsisten untuk page agregat yang justru paling layak di-export."
+    },
+    {
+      "id": "G-05", "lens": "flow-buntu", "severity": "medium",
+      "pages": ["cdp-deliverable"],
+      "title": "Deliverable: tombol/breadcrumb balik ke PlanIdp, bukan ke page asal",
+      "detail": "Entry Deliverable dari CoachingProton 'Lihat Detail' atau Dashboard drill, tapi breadcrumb='IDP Plan / Deliverable' + tombol 'Kembali ke IDP Plan'. User dibuang ke PlanIdp (page beda konteks), bukan kembali ke daftar coaching asal."
+    },
+    {
+      "id": "G-06", "lens": "data-integrity", "severity": "medium",
+      "pages": ["cdp-historiprotondetail"],
+      "title": "HistoriProtonDetail: 'Tahun 1' tampil dobel (keduanya Dalam Proses)",
+      "detail": "Live: accordion 'Tahun 1' muncul 2x dengan status sama 'Dalam Proses'. Indikasi 2 ProtonTrackAssignment tahun sama / kurang dedup di view. Membingungkan + indikasi data assignment tak bersih."
+    },
+    {
+      "id": "G-08", "lens": "role-mismatch", "severity": "medium",
+      "pages": ["coachmapping-coachcoachee"],
+      "title": "Tombol 'Graduated' belum dipastikan gated oleh kelulusan Tahun 3",
+      "detail": "Graduation seharusnya hanya boleh kalau Tahun 3 lulus. SUDAH masuk scope v25.0 (PCOMP-08 graduation gate Phase 359). Dicatat agar tak dobel-hitung; verifikasi state guard saat ini."
+    },
+    {
+      "id": "G-09", "lens": "flow-buntu", "severity": "low",
+      "pages": ["cdp-certmanagement"],
+      "title": "CertificationManagement: entry dari Admin tapi breadcrumb/exit ke CDP",
+      "detail": "Dicapai dari Admin/Home dashboard, tapi breadcrumb 'CDP / Certification Management' + tombol 'Kembali ke CDP' -> /CDP/Index (hub yang TIDAK punya kartu ke Cert). Lingkar navigasi tak konsisten dengan entry."
+    },
+    {
+      "id": "G-10", "lens": "konsistensi", "severity": "low",
+      "pages": ["cdp-dashboard"],
+      "title": "Dashboard tanpa search, page sejenis punya",
+      "detail": "CoachingProton (Cari kompetensi), HistoriProton (Cari nama/NIP), CoachCoacheeMapping (Cari) punya search box; Dashboard tidak. Minor konsistensi UX."
+    },
+    {
+      "id": "G-12", "lens": "role-mismatch", "severity": "low",
+      "pages": ["cdp-historiproton", "cdp-coachingproton"],
+      "title": "Gating export tak seragam: Coach bisa export Coaching tapi tidak Histori",
+      "detail": "ExportProgress/Bottleneck/CoachingTracking gated RolesCoachAndAbove (Coach boleh), tapi ExportHistoriProton gated RolesReviewerAndAbove (Coach tidak boleh). Bisa intentional, tapi inkonsisten — perlu konfirmasi desain."
+    }
+  ],
+  "executiveSummary": {
+    "totalGaps": 10,
+    "bySeverity": { "critical": 0, "high": 3, "medium": 4, "low": 3 },
+    "addressedByV25": ["G-03", "G-08"],
+    "refutedOnRecheck": ["G-07 (Nonaktifkan/Graduated punya konfirmasi)", "G-11 (Export/link CertMgmt punya handler)"],
+    "top5": ["G-01", "G-02", "G-03", "G-04", "G-05"]
+  },
+  "roadmap": [
+    { "fix": "Perbaiki urutan script Dashboard: pastikan chart.js dimuat SEBELUM init @:560, atau bungkus init di DOMContentLoaded/window.onload (chart.js sudah ada, bukan masalah load). Pisahkan dari chart 'Competency Level Granted' yang dimatikan v25.0", "gapId": "G-01", "effort": "S", "priority": 1, "bucket": "Quick win" },
+    { "gapId": "G-02", "fix": "Perbaiki StatusData(): isi count Silabus/Guidance per bagian + .fail() handling; verifikasi agregasi GetSectionUnitsDictAsync", "effort": "M", "priority": 2, "bucket": "Terjadwal" },
+    { "gapId": "G-03", "fix": "Implementasi v25.0 Phase 358 (ProtonCompletionService penanda Exam) + backfill", "effort": "L", "priority": 3, "bucket": "v25.0 (sudah direncanakan)" },
+    { "gapId": "G-04", "fix": "Tambah tombol Export Excel di Dashboard (reuse pola HistoriProton)", "effort": "S", "priority": 4, "bucket": "Quick win" },
+    { "gapId": "G-05", "fix": "Tombol/breadcrumb balik Deliverable pakai referrer (CoachingProton/Dashboard) bukan hardcode PlanIdp", "effort": "S", "priority": 5, "bucket": "Quick win" },
+    { "gapId": "G-06", "fix": "Dedup assignment per tahun di HistoriProtonDetail (group by TahunKe) + cek data assignment ganda", "effort": "M", "priority": 6, "bucket": "Terjadwal" },
+    { "gapId": "G-08", "fix": "Gate Graduated by Tahun3 lulus (v25.0 PCOMP-08 Phase 359)", "effort": "M", "priority": 8, "bucket": "v25.0 (sudah direncanakan)" },
+    { "gapId": "G-09", "fix": "Sesuaikan breadcrumb+tombol balik CertManagement ke Admin (atau tambah kartu Cert di hub CDP)", "effort": "S", "priority": 9, "bucket": "Quick win" },
+    { "gapId": "G-10", "fix": "Tambah search box di Dashboard (opsional, konsistensi)", "effort": "S", "priority": 10, "bucket": "Quick win" },
+    { "gapId": "G-12", "fix": "Tinjau desain gating export Histori vs Coaching; seragamkan kalau memang Coach harus bisa lihat histori coachee-nya", "effort": "S", "priority": 12, "bucket": "Quick win" }
+  ]
+};</script>
+  <script>
+    const SEV_ORDER = {critical:0, high:1, medium:2, low:3};
+    const SEV_LABEL = {critical:'Critical', high:'High', medium:'Medium', low:'Low'};
+    const pageById = Object.fromEntries(DATA.pages.map(p => [p.id, p]));
+    const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const sevBadge = s => `<span class="badge sev-${s}">${SEV_LABEL[s]}</span>`;
+
+    // 1. Executive summary
+    (function(){
+      const e = DATA.executiveSummary;
+      const cards = [
+        ['Total Gap', e.totalGaps, 'secondary'],
+        ['Critical', e.bySeverity.critical, 'danger'],
+        ['High', e.bySeverity.high, 'warning'],
+        ['Medium', e.bySeverity.medium, 'warning'],
+        ['Low', e.bySeverity.low, 'secondary']
+      ].map(([l,n,c]) => `<div class="col"><div class="card stat-card text-center p-3"><div class="stat-num text-${c}">${n}</div><div class="small-muted">${l}</div></div></div>`).join('');
+      const top5 = e.top5.map(id => {
+        const g = DATA.gaps.find(x=>x.id===id);
+        return `<li class="mb-1">${sevBadge(g.severity)} <strong>${esc(g.title)}</strong> <span class="small-muted">(${g.id} · ${g.pages.map(p=>esc(pageById[p]?.name||p)).join(', ')})</span></li>`;
+      }).join('');
+      const v25 = (e.addressedByV25||[]).join(', ');
+      document.getElementById('executive-summary').innerHTML =
+        `<h2 class="sec"><i class="bi bi-clipboard-data"></i> Ringkasan Eksekutif</h2>
+         <div class="row g-3 mb-3 row-cols-2 row-cols-md-5">${cards}</div>
+         <div class="card p-3"><h6 class="mb-2"><i class="bi bi-exclamation-triangle text-warning"></i> Top 5 Gap Prioritas</h6><ol class="mb-2 ps-3">${top5}</ol>
+         <p class="small-muted mb-0"><i class="bi bi-info-circle"></i> ${esc(v25)} sudah masuk scope milestone v25.0 (Proton Kelulusan & Bypass) — tak dihitung sebagai pekerjaan baru.</p></div>`;
+    })();
+
+    // 2. Flow diagram (text/box tiers)
+    (function(){
+      const box = (id) => { const p = pageById[id]; return p?`<span class="flow-tier">${esc(p.name)}</span>`:''; };
+      const html =
+        `<h2 class="sec"><i class="bi bi-signpost-split"></i> Flow 3-Tier + Branch</h2>
+         <div class="card p-3">
+           <div class="mb-2"><strong>Tier-0 Menu:</strong> <span class="flow-tier bg-light">Navbar "CDP"</span> <span class="flow-arrow">→</span> ${box('cdp-index')}</div>
+           <div class="mb-2"><strong>Tier-1 Hub (4 kartu):</strong> ${box('cdp-planidp')} ${box('cdp-coachingproton')} ${box('cdp-historiproton')} ${box('cdp-dashboard')}</div>
+           <div class="mb-2"><strong>Tier-2 Drill:</strong> CoachingProton/Dashboard <span class="flow-arrow">→</span> ${box('cdp-deliverable')} <span class="flow-arrow">→</span> ${box('cdp-editcoachingsession')}; HistoriProton <span class="flow-arrow">→</span> ${box('cdp-historiprotondetail')}</div>
+           <hr>
+           <div class="mb-2"><strong>Branch Admin (dari Kelola Data/Home):</strong> ${box('cdp-certmanagement')} ${box('protondata-index')} ${box('protondata-override')} ${box('protondata-importsilabus')}</div>
+           <div class="mb-0"><strong>Branch Setup (Admin):</strong> ${box('coachmapping-coachcoachee')} ${box('coachmapping-workload')}</div>
+           <p class="small-muted mt-2 mb-0"><i class="bi bi-exclamation-circle text-warning"></i> Anomali flow: Deliverable balik ke PlanIdp (bukan asal) — lihat G-05. CertManagement entry Admin tapi exit ke CDP — lihat G-09.</p>
+         </div>`;
+      document.getElementById('flow-diagram').innerHTML = html;
+    })();
+
+    // 3. Consistency matrix
+    (function(){
+      const has = (v) => (Array.isArray(v)?v.length>0 && !(v.length===1 && (v[0]==='none')) : !!v);
+      const rows = DATA.pages.map(p => {
+        const filter = has(p.filters);
+        const table = p.table && has(p.table.columns);
+        const exp = has(p.export);
+        const modal = has(p.modals);
+        const cell = b => b?'<td class="yes">✓</td>':'<td class="no">·</td>';
+        return `<tr><td class="name">${esc(p.name)}<br><span class="small-muted">${esc(p.route)}</span></td>${cell(filter)}${cell(table)}${cell(exp)}${cell(modal)}<td class="small-muted">${esc(p.roles).slice(0,40)}</td></tr>`;
+      }).join('');
+      document.getElementById('consistency-matrix').innerHTML =
+        `<h2 class="sec"><i class="bi bi-grid-3x3"></i> Matrix Konsistensi</h2>
+         <div class="card p-2"><div class="table-responsive"><table class="table table-sm table-hover matrix mb-0">
+           <thead><tr><th class="name">Page</th><th>Filter</th><th>Tabel</th><th>Export</th><th>Modal</th><th>Role</th></tr></thead>
+           <tbody>${rows}</tbody></table></div>
+           <p class="small-muted mt-2 mb-1 px-2">Kolom kosong (·) di page sejenis = kandidat gap konsistensi. Cth: Dashboard tanpa Export/Search (G-04/G-10).</p></div>`;
+    })();
+
+    // 4. Gap panel (grouped by severity)
+    (function(){
+      const order = ['critical','high','medium','low'];
+      let html = `<h2 class="sec"><i class="bi bi-bug"></i> Panel Temuan Gap (6 Lensa)</h2>`;
+      order.forEach(sev => {
+        const gs = DATA.gaps.filter(g=>g.severity===sev);
+        if(!gs.length) return;
+        html += `<h6 class="mt-3 mb-2">${sevBadge(sev)} <span class="text-muted">(${gs.length})</span></h6>`;
+        html += gs.map(g => `
+          <div class="card gap-card sev-${g.severity} mb-2 p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><span class="badge bg-dark me-1">${g.id}</span><strong>${esc(g.title)}</strong></div>
+              <span class="badge bg-info-subtle text-info-emphasis lens-badge">${esc(g.lens)}</span>
+            </div>
+            <div class="small-muted mt-1">Page: ${g.pages.map(p=>esc(pageById[p]?.name||p)).join(', ')}</div>
+            <div class="mt-2">${esc(g.detail)}</div>
+          </div>`).join('');
+      });
+      document.getElementById('gap-panel').innerHTML = html;
+    })();
+
+    // 5. Roadmap (grouped by bucket)
+    (function(){
+      const buckets = [...new Set(DATA.roadmap.map(r=>r.bucket))];
+      let html = `<h2 class="sec"><i class="bi bi-map"></i> Roadmap Rekomendasi</h2>`;
+      buckets.forEach(b => {
+        const rs = DATA.roadmap.filter(r=>r.bucket===b).sort((a,c)=>a.priority-c.priority);
+        const rows = rs.map(r => {
+          const g = DATA.gaps.find(x=>x.id===r.gapId);
+          return `<tr><td><span class="badge bg-dark">${r.gapId}</span></td><td>${g?sevBadge(g.severity):''}</td><td>${esc(r.fix)}</td><td class="text-center"><span class="badge bg-secondary">${r.effort}</span></td><td class="text-center">${r.priority}</td></tr>`;
+        }).join('');
+        html += `<h6 class="mt-3 mb-2"><i class="bi bi-flag"></i> ${esc(b)}</h6>
+          <div class="card p-2"><div class="table-responsive"><table class="table table-sm mb-0">
+          <thead><tr><th>Gap</th><th>Sev</th><th>Usulan Fix</th><th class="text-center">Effort</th><th class="text-center">Prio</th></tr></thead>
+          <tbody>${rows}</tbody></table></div></div>`;
+      });
+      html += `<p class="small-muted mt-2">Effort: S = &lt;½ hari · M = ½–2 hari · L = &gt;2 hari.</p>`;
+      document.getElementById('roadmap').innerHTML = html;
+    })();
+
+    // 6. Page accordion (inventaris detail)
+    (function(){
+      const arr = (v,empty='—') => (Array.isArray(v)&&v.length&&!(v.length===1&&v[0]==='none'))?v.map(esc).join(', '):empty;
+      const items = DATA.pages.map((p,i) => {
+        const gapsHere = DATA.gaps.filter(g=>g.pages.includes(p.id));
+        const actions = (p.actions||[]).map(a=>`<li><strong>${esc(a.label)}</strong> → <code>${esc(a.endpoint)}</code></li>`).join('') || '<li class="small-muted">—</li>';
+        const tableCols = p.table && p.table.columns ? arr(p.table.columns) : '—';
+        const flow = `dari: ${arr(p.flow?.from)} <span class="flow-arrow">→</span> ke: ${arr(p.flow?.to)}${p.flow?.back?` <span class="small-muted">(balik: ${esc(p.flow.back)})</span>`:''}`;
+        const live = p.liveNote?`<div class="alert alert-warning py-2 px-2 small mt-2 mb-0"><i class="bi bi-eye"></i> <strong>Live:</strong> ${esc(p.liveNote)}</div>`:'';
+        const gapBadges = gapsHere.map(g=>`<span class="badge sev-${g.severity} me-1">${g.id}</span>`).join('');
+        return `
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acc${i}">
+              <span class="me-2">${esc(p.name)}</span><code class="small me-2">${esc(p.route)}</code> ${gapBadges}
+            </button>
+          </h2>
+          <div id="acc${i}" class="accordion-collapse collapse" data-bs-parent="#page-accordion-inner">
+            <div class="accordion-body">
+              <p class="mb-1"><strong>Purpose:</strong> ${esc(p.purpose)}</p>
+              <p class="mb-1"><strong>Action/View:</strong> <code>${esc(p.action)}</code> · <code>${esc(p.view)}</code></p>
+              <p class="mb-1"><strong>Flow:</strong> ${flow}</p>
+              <p class="mb-1"><strong>Role:</strong> ${esc(p.roles)}</p>
+              <p class="mb-1"><strong>Filter:</strong> ${arr(p.filters)}</p>
+              <p class="mb-1"><strong>Tabel:</strong> ${tableCols}${p.table&&p.table.source?` <span class="small-muted">(src: ${esc(p.table.source)})</span>`:''}</p>
+              <p class="mb-1"><strong>Aksi/Endpoint:</strong></p><ul class="mb-1">${actions}</ul>
+              <p class="mb-1"><strong>Modal:</strong> ${arr(p.modals)}</p>
+              <p class="mb-1"><strong>Export:</strong> ${arr(p.export)}</p>
+              <p class="mb-1"><strong>Data source:</strong> <span class="small-muted">${esc(p.dataSource)}</span></p>
+              ${live}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      document.getElementById('page-accordion').innerHTML =
+        `<h2 class="sec"><i class="bi bi-list-columns"></i> Inventaris 14 Page (detail)</h2>
+         <div class="accordion" id="page-accordion-inner">${items}</div>`;
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

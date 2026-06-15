@@ -71,7 +71,7 @@ namespace HcPortal.Middleware
             if (method == "GET" || method == "HEAD")
             {
                 // Set context items and continue
-                await SetContextItems(context, impersonationService);
+                if (!await SetContextItems(context, impersonationService)) return; // D-04: target null → sudah redirect
                 await _next(context);
                 return;
             }
@@ -104,11 +104,12 @@ namespace HcPortal.Middleware
             }
 
             // Whitelisted write — allow
-            await SetContextItems(context, impersonationService);
+            if (!await SetContextItems(context, impersonationService)) return; // D-04: target null → sudah redirect
             await _next(context);
         }
 
-        private static async Task SetContextItems(HttpContext context, ImpersonationService service)
+        // Returns true = lanjut normal; false = sudah Stop+redirect (D-04), caller WAJIB return (short-circuit _next).
+        private static async Task<bool> SetContextItems(HttpContext context, ImpersonationService service)
         {
             context.Items["IsImpersonating"] = true;
             context.Items["ImpersonateMode"] = service.GetMode();
@@ -133,16 +134,28 @@ namespace HcPortal.Middleware
                 {
                     var userManager = context.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
                     var targetUser = await userManager.FindByIdAsync(targetUserId);
-                    if (targetUser != null)
+                    if (targetUser == null)
                     {
-                        var roles = await userManager.GetRolesAsync(targetUser);
-                        var primaryRole = roles.FirstOrDefault() ?? "Coachee";
-                        context.Items["ImpersonateTargetRole"] = primaryRole;
-                        context.Items["ImpersonateTargetRoleLevel"] = UserRoles.GetRoleLevel(primaryRole);
-                        context.Items["ImpersonateTargetSelectedView"] = targetUser.SelectedView;
+                        // D-04 (Phase 377): impersonated user terhapus/null → fail-closed.
+                        // Stop sesi + redirect SEBELUM controller (JANGAN lanjut dengan identitas admin asli).
+                        // Konsisten dengan pola auto-expire (InvokeAsync L56-66).
+                        service.Stop();
+                        var tempDataFactory = context.RequestServices.GetRequiredService<ITempDataDictionaryFactory>();
+                        var tempData = tempDataFactory.GetTempData(context);
+                        tempData["ErrorMessage"] = "User yang di-impersonate tidak ditemukan.";
+                        context.Response.Redirect("/Admin/Index");
+                        return false;
                     }
+
+                    var roles = await userManager.GetRolesAsync(targetUser);
+                    var primaryRole = roles.FirstOrDefault() ?? "Coachee";
+                    context.Items["ImpersonateTargetRole"] = primaryRole;
+                    context.Items["ImpersonateTargetRoleLevel"] = UserRoles.GetRoleLevel(primaryRole);
+                    context.Items["ImpersonateTargetSelectedView"] = targetUser.SelectedView;
                 }
             }
+
+            return true;
         }
     }
 }

@@ -2,6 +2,7 @@ using HcPortal.Data;
 using HcPortal.Helpers;
 using HcPortal.Models;
 using Microsoft.EntityFrameworkCore;
+using S = HcPortal.Models.AssessmentConstants.AssessmentStatus;  // Phase 382 STAT-01 — guard pakai konstanta (v22.0 discipline)
 
 namespace HcPortal.Services
 {
@@ -18,15 +19,22 @@ namespace HcPortal.Services
         private readonly ApplicationDbContext _context;
         private readonly IWorkerDataService _workerDataService;
         private readonly ILogger<GradingService> _logger;
+        private readonly ProtonCompletionService _protonCompletionService;
+        private readonly ProtonBypassService _protonBypassService;
 
         public GradingService(
             ApplicationDbContext context,
             IWorkerDataService workerDataService,
-            ILogger<GradingService> logger)
+            ILogger<GradingService> logger,
+            ProtonCompletionService protonCompletionService,
+            ProtonBypassService protonBypassService)
         {
             _context = context;
             _workerDataService = workerDataService;
             _logger = logger;
+            _protonCompletionService = protonCompletionService;
+            // Satu arah grading → bypass (Open Q3): ProtonBypassService TIDAK inject GradingService.
+            _protonBypassService = protonBypassService;
         }
 
         /// <summary>
@@ -72,6 +80,15 @@ namespace HcPortal.Services
                 .Where(r => r.AssessmentSessionId == session.Id)
                 .ToListAsync();
 
+            // SAVE-01 (D-01): final answer per soal (last-write-wins by SubmittedAt) — in-memory pada list
+            // yang sudah ToListAsync (aman, A1). Tanpa ini FirstOrDefault tanpa ORDER BY bisa ambil baris
+            // BASI saat ada response duplikat (race multi-tab) → Score salah.
+            // MC/single-answer only — MultipleAnswer dibaca penuh (multi-row), JANGAN masuk dedupe ini.
+            var finalByQuestion = allResponses
+                .Where(r => r.PackageOptionId.HasValue)
+                .GroupBy(r => r.PackageQuestionId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.SubmittedAt).First());
+
             int totalScore = 0;
             int maxScore = 0;
 
@@ -86,8 +103,8 @@ namespace HcPortal.Services
                 switch (q.QuestionType ?? "MultipleChoice")
                 {
                     case "MultipleChoice":
-                        var mcResponse = allResponses
-                            .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                        // SAVE-01 (D-01): baca jawaban FINAL per soal (dedupe by SubmittedAt) — bukan baris arbitrer.
+                        var mcResponse = finalByQuestion.TryGetValue(q.Id, out var fr) ? fr : null;
                         if (mcResponse != null)
                         {
                             var selectedOption = q.Options.FirstOrDefault(o => o.Id == mcResponse.PackageOptionId!.Value);
@@ -141,8 +158,8 @@ namespace HcPortal.Services
                     switch (q.QuestionType ?? "MultipleChoice")
                     {
                         case "MultipleChoice":
-                            var etMcResponse = allResponses
-                                .FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                            // SAVE-01 (D-01): ET MC scoring juga baca jawaban FINAL per soal (dedupe).
+                            var etMcResponse = finalByQuestion.TryGetValue(q.Id, out var efr) ? efr : null;
                             if (etMcResponse != null)
                             {
                                 var sel = q.Options.FirstOrDefault(o => o.Id == etMcResponse.PackageOptionId!.Value);
@@ -192,8 +209,12 @@ namespace HcPortal.Services
                 // Interim score = hanya dari MC + MA (Essay skor 0)
                 int interimPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
+                // STAT-01 (D-02): selain Completed/PendingGrading (yang sudah dijaga), TOLAK juga commit
+                // PendingGrading pada sesi terminal Abandoned/Cancelled (tak boleh di-resurrect).
                 var essayRowsAffected = await _context.AssessmentSessions
-                    .Where(s => s.Id == session.Id && s.Status != AssessmentConstants.AssessmentStatus.Completed && s.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
+                    .Where(s => s.Id == session.Id
+                        && s.Status != S.Completed && s.Status != S.PendingGrading
+                        && s.Status != S.Abandoned && s.Status != S.Cancelled)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(r => r.Score, interimPercentage)
                         .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.PendingGrading)
@@ -227,12 +248,16 @@ namespace HcPortal.Services
             }
 
             // ---- 3b. Non-essay flow: status "Completed" (existing logic) ----
-            // ExecuteUpdateAsync dengan WHERE Status != "Completed" sebagai status guard (D-04)
+            // STAT-01 (D-02): guard diperluas dari `!= "Completed"` ke terminal/non-resurrectable set.
+            // Tanpa ini sesi Abandoned/Cancelled/PendingGrading bisa di-resurrect jadi Completed-lulus + cert.
+            // rowsAffected==0 → return false (branch di bawah, SUDAH ADA — kini juga tangkap resurrection blocked).
             var rowsAffected = await _context.AssessmentSessions
-                .Where(s => s.Id == session.Id && s.Status != "Completed")
+                .Where(s => s.Id == session.Id
+                    && s.Status != S.Completed && s.Status != S.Abandoned
+                    && s.Status != S.Cancelled && s.Status != S.PendingGrading)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(r => r.Score, finalPercentage)
-                    .SetProperty(r => r.Status, "Completed")
+                    .SetProperty(r => r.Status, S.Completed)
                     .SetProperty(r => r.Progress, 100)
                     .SetProperty(r => r.IsPassed, isPassed)
                     .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
@@ -295,6 +320,17 @@ namespace HcPortal.Services
 
             // ---- 7. Notifikasi grup completion ----
             await _workerDataService.NotifyIfGroupCompleted(session);
+
+            // ---- 8. PCOMP-01 (D-06): exam Proton lulus → penanda Origin="Exam" (guard D-05) ----
+            // Cabang hasEssay (L190-227) early-return TIDAK lewat sini → di-cover defensive hook FinalizeEssayGrading (Plan 04, D-05a).
+            if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId.HasValue)
+            {
+                await _protonCompletionService.EnsureAsync(
+                    session.UserId, session.ProtonTrackId.Value, session.CreatedBy ?? "",
+                    "Exam", $"Exam Proton lulus (skor {finalPercentage}%).");
+                // §7 titik 1: exam CL-B(b) lulus → pending Menunggu→Siap + notif HC (no-tx, idempotent).
+                await _protonBypassService.MarkPendingReadyIfAnyAsync(session.Id);
+            }
 
             return true;
         }
@@ -467,6 +503,16 @@ namespace HcPortal.Services
                 _logger.LogInformation(
                     "RegradeAfterEditAsync: session {SessionId} flip Pass->Fail - sertifikat dicabut (Phase 324 D-03).",
                     session.Id);
+
+                // PCOMP-02 (D-06/A-M9): flip Pass→Fail hapus penanda HANYA Origin="Exam" (Bypass/Interview kebal).
+                // Guard TANPA isPassed (cabang ini isPassed==false): hapus = saat gagal.
+                // W-09: braced — hook WAJIB di dalam guard Proton (T-360-35).
+                if (session.Category == "Assessment Proton" && session.ProtonTrackId.HasValue)
+                {
+                    await _protonCompletionService.RemoveExamOriginAsync(session.UserId, session.ProtonTrackId.Value);
+                    // §7 titik 3 (D-15): re-grade Pass→Fail → pending Siap balik Menunggu (no-tx).
+                    await _protonBypassService.RevertPendingToMenungguAsync(session.Id);
+                }
             }
             else if (!wasPassed && isPassed)
             {
@@ -485,12 +531,11 @@ namespace HcPortal.Services
                         {
                             var nextSeq = await HcPortal.Helpers.CertNumberHelper.GetNextSeqAsync(_context, certYear);
                             var nomor = HcPortal.Helpers.CertNumberHelper.Build(nextSeq, certNow);
-                            var validUntil = DateOnly.FromDateTime(certNow).AddYears(3);  // Phase 327 — wrap DateOnly
+                            // T6/D-10: ValidUntil mengikuti setup sesi HC (paritas GradeAndCompleteAsync) — TIDAK di-hardcode di sini.
                             var updated = await _context.AssessmentSessions
                                 .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
                                 .ExecuteUpdateAsync(s => s
-                                    .SetProperty(r => r.NomorSertifikat, nomor)
-                                    .SetProperty(r => r.ValidUntil, validUntil));
+                                    .SetProperty(r => r.NomorSertifikat, nomor));
                             if (updated > 0) certSaved = true;
                         }
                         catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && HcPortal.Helpers.CertNumberHelper.IsDuplicateKeyException(ex))
@@ -509,6 +554,17 @@ namespace HcPortal.Services
                 _logger.LogInformation(
                     "RegradeAfterEditAsync: session {SessionId} flip Fail->Pass - sertifikat dibuat (jika applicable, Phase 324 D-03).",
                     session.Id);
+
+                // PCOMP-01/02 (D-06): flip Fail→Pass terbit penanda Origin="Exam" (guard D-05).
+                // W-09: braced — hook WAJIB di dalam guard Proton (T-360-35).
+                if (session.Category == "Assessment Proton" && isPassed && session.ProtonTrackId.HasValue)
+                {
+                    await _protonCompletionService.EnsureAsync(
+                        session.UserId, session.ProtonTrackId.Value, session.CreatedBy ?? "",
+                        "Exam", $"Re-grade Fail→Pass (skor {newPct}%).");
+                    // §7 titik 2: re-grade Fail→Pass → pending Menunggu→Siap + notif HC (no-tx).
+                    await _protonBypassService.MarkPendingReadyIfAnyAsync(session.Id);
+                }
             }
             // Pass->Pass, Fail->Fail: no cascade
 

@@ -25,7 +25,6 @@ public class CoacheeDashboardSubModel
     public int TotalDeliverables { get; set; }
     public int ApprovedDeliverables { get; set; }
     public int ActiveDeliverables { get; set; }
-    public int? CompetencyLevelGranted { get; set; }   // from ProtonFinalAssessment
     public string CurrentStatus { get; set; } = "";    // "In Progress" / "Completed"
 }
 
@@ -44,10 +43,6 @@ public class ProtonProgressSubModel
 
     // Per-coachee flat table (sorted by name)
     public List<CoacheeProgressRow> CoacheeRows { get; set; } = new();
-
-    // Chart: competency level granted trend (line chart)
-    public List<string> TrendLabels { get; set; } = new();   // e.g. ["2025-10", "2025-11"]
-    public List<double> TrendValues { get; set; } = new();   // avg CompetencyLevelGranted per month
 
     // Chart: deliverable status distribution (doughnut)
     public List<string> StatusLabels { get; set; } = new();
@@ -87,7 +82,6 @@ public class CoacheeProgressRow
     public int Rejected { get; set; }
     public int Active { get; set; }
     public bool HasFinalAssessment { get; set; }
-    public int? CompetencyLevelGranted { get; set; }
 
     public string ProgressPercent => TotalDeliverables > 0
         ? $"{(int)((double)Approved / TotalDeliverables * 100)}%"

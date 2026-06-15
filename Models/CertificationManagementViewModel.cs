@@ -47,8 +47,9 @@ public class SertifikatRow
 
     /// <summary>
     /// Derives certificate status from ValidUntil and CertificateType.
-    /// For AssessmentSession rows pass certificateType: null — ValidUntil==null yields Permanent.
-    /// Threshold of 30 days matches TrainingRecord.IsExpiringSoon.
+    /// For AssessmentSession rows pass certificateType: null — ValidUntil==null (cert lulus tanpa
+    /// kedaluwarsa) yields Aktif (Permanen secara efektif), BUKAN Expired (Phase 382 CERT-01 / D-08).
+    /// certificateType "Permanent" tetap yields Permanent. Threshold 30 hari = TrainingRecord.IsExpiringSoon.
     /// </summary>
     public static CertificateStatus DeriveCertificateStatus(DateOnly? validUntil, string? certificateType)
     {
@@ -56,12 +57,27 @@ public class SertifikatRow
         if (certificateType == "Permanent")
             return CertificateStatus.Permanent;
         if (validUntil == null)
-            return CertificateStatus.Expired; // non-Permanent with no expiry → treat as expired (needs renewal)
+            return CertificateStatus.Aktif; // CERT-01 (D-08): cert lulus tanpa kedaluwarsa = Aktif/Permanen (BUKAN Expired) — single-source, semua consumer ikut via Status enum
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var days = validUntil.Value.DayNumber - today.DayNumber;
         if (days < 0) return CertificateStatus.Expired;
         if (days <= 30) return CertificateStatus.AkanExpired;
         return CertificateStatus.Aktif;
+    }
+
+    /// <summary>
+    /// #25 (D-03): child-category Name → parent Name lookup dengan GroupBy-dedup (cegah ArgumentException/500
+    /// pada duplicate child Name lintas parent berbeda). Single-source dikonsumsi CMP + CDP (anti-drift) —
+    /// home NETRAL di SertifikatRow (CMP/CDP plain Controller, bukan turunan AdminBaseController).
+    /// </summary>
+    public static Dictionary<string, string> BuildParentNameLookup(IEnumerable<(int Id, string Name, int? ParentId)> categories)
+    {
+        var list = categories as IList<(int Id, string Name, int? ParentId)> ?? categories.ToList();
+        var byId = list.ToDictionary(c => c.Id);
+        return list
+            .Where(c => c.ParentId != null && byId.ContainsKey(c.ParentId.Value))
+            .GroupBy(c => c.Name)
+            .ToDictionary(g => g.Key, g => byId[g.First().ParentId!.Value].Name);
     }
 }
 
