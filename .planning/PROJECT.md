@@ -12,7 +12,9 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State: v30.0 Essay Grading Correctness + Monitoring UI Refactor — started 2026-06-15
+## Current State: v30.0 Essay Grading Correctness + Monitoring UI Refactor — SHIPPED + closed 2026-06-15
+
+**v30.0 shipped (local) + audit passed + closed (2026-06-15)** — Essay Grading Correctness + Monitoring UI Refactor (phases 383-384): (Fase 1/383) helper terpusat `AssessmentScoreAggregator.IsQuestionCorrect` (essay Benar=`EssayScore>0`, null=pending) di 3 titik `CMPController.Results` (count/Elemen Teknis/Tinjauan) + PDF export → fix bug "Nilai Anda 100% tapi 4/6 benar" + regression lock Submit/Finalize EssayScore; (Fase 2/384) blok essay inline Monitoring → tabel worker-list + page per-worker `/Admin/EssayGrading` (D-09 in-place, D-10 read-only), backend tak diubah. 10/10 REQ (ECG-01..06 + UIG-01..04) + audit PASSED (integration 3/3 flows) + e2e FLOW 384 4/4 + UAT approved + suite 422/422. **0 migration** (read/display-path; `EssayScore` sudah ada+terisi). Menutup backlog RES-02 + GRD-02. Archive: `milestones/v30.0-*`. **NOT PUSHED** (branch ITHandoff).
 
 **v29.0 shipped (local) + audit passed + closed + PUSHED origin/ITHandoff (2026-06-15)** — Assessment E2E Worker-Success Fix (phases 380-382): worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton). WSE-01/02/03 admin/engine integrity (ShuffleEngine empty-package filter + token uppercase heal + AddExtraTime authz/cap), WSE-04/05 worker entry (type-aware Pre/Post sibling + impersonation read-only guard), WSE-06..11 grading/lifecycle/cert (dedupe read-final + anti-resurrection + abandon-guard + timer Standard + token-gate + cert null→Aktif). 11/11 REQ + 415/415 xUnit + integration 11/11 WIRED. **0 migration** (SAVE-01 dedupe last-write-wins, bukan filtered-index). Archive: `milestones/v29.0-*`. Summary awam (HC): `docs/milestone-v29.0/index.html`. Pending non-blocker: CERT-01 konfirmasi visual + I-1 type-aware pre-check (opsional).
 
@@ -52,9 +54,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v30.0 Essay Grading Correctness + Monitoring UI Refactor (phases 383-384). Fix bug user 2026-06-15 (`CMP/Results` 100% tapi 4/6 — essay yg dinilai benar tetap dihitung salah di count/Elemen Teknis/Tinjauan/PDF) lewat helper correctness terpusat, lalu rapikan UI penilaian essay Monitoring. **0 migration.** v29.0 PUSHED origin/ITHandoff; carry-migration IT (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
+**Current focus:** v30.0 CLOSED 2026-06-15 (audit PASSED, tagged). **Next:** push v30.0 (branch ITHandoff + tag) ke origin + notify IT (migration=FALSE), lalu `/gsd-new-milestone`. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
 
-## Current Milestone: v30.0 Essay Grading Correctness + Monitoring UI Refactor
+## Current Milestone: v30.0 Essay Grading Correctness + Monitoring UI Refactor — ✅ SHIPPED + CLOSED 2026-06-15
 
 **Goal:** Hasil assessment menampilkan soal essay yang sudah dinilai HC secara benar (count "X/Y benar", Elemen Teknis, Tinjauan Jawaban, PDF) lewat satu helper correctness terpusat — menutup bug user 2026-06-15 + backlog RES-02/GRD-02 — lalu rapikan UI penilaian essay di Monitoring jadi tabel list worker + page "Tinjau Essay" per-worker.
 
@@ -923,4 +925,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-05-11 after Phase 316 close (v16.0 in progress — Phase 315 + 316 shipped, GAP-315-1/2/3 closed empirically via triple-defense Playwright infrastructure)*
+*Last updated: 2026-06-15 after v30.0 milestone close (Essay Grading Correctness + Monitoring UI Refactor, phases 383-384, 10/10 REQ, 0 migration, audit PASSED)*

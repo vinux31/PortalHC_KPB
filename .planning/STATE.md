@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v30.0
 milestone_name: Essay Grading Correctness + Monitoring UI Refactor
-status: Milestone complete
+status: v30.0 milestone complete
 stopped_at: Completed 383-04-PLAN.md (ECG-06 regression lock; 5 test, 440/440 full suite, 0 migration)
-last_updated: "2026-06-15T04:25:21.495Z"
+last_updated: "2026-06-15T04:37:55.839Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 21
@@ -55,9 +55,9 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ## Next Action
 
-1. ✅ **v29.0 PUSHED — 2026-06-15.** Branch `ITHandoff` + tag `v29.0` pushed ke `origin/ITHandoff`. **v29.0 = 0 migration baru** (SAVE-01 dedupe, BUKAN filtered-index — tak perlu flag migration baru ke IT). **Sisa NOTIFY IT (carry-over lama):** 2 migration `PendingProtonBypass`+filtered-index (360) + `AddShuffleTogglesToAssessmentSession` (372) → IT apply DB Dev + promosi server Dev (10.55.3.3)/Prod.
-2. **`/gsd-plan-phase 383`** -- ROADMAP.md v30.0 sudah ditulis (10/10 REQ mapped, 0 orphan, 0 migration). Mulai planning Phase 383 (Fase 1 hotfix correctness, ships first), lalu Phase 384 (Fase 2 UI Monitoring).
-3. **Opsional v29.0 follow-up:** CERT-01 konfirmasi visual browser (1 UAT pixel) + I-1 type-aware pre-check (1-line). Non-blocker.
+1. ✅ **v30.0 CLOSED 2026-06-15** — milestone audit PASSED (10/10 REQ, 2/2 phases, integration 3/3 flows), archived + tagged `v30.0`. 0 migration kedua phase.
+2. **Push v30.0 (branch `ITHandoff` + tag `v30.0`) ke `origin/ITHandoff`** + notify IT (flag **migration=FALSE** untuk v30.0; carry-over lama 360/372 masih pending).
+3. **`/gsd-new-milestone`** untuk mulai milestone berikut (questioning → research → requirements → roadmap).
 
 ## Tag Git
 
@@ -92,7 +92,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 |------|--------|
 | CERT-01 konfirmasi visual human (dashboard cert null tampil "Aktif") | PENDING — DB-coherence sudah otomatis (CertAlertConsistencyTests + e2e #12); cuma pixel check |
 | I-1 WSE-01 pre-check non-type-aware (kasus salah-konfig Pre-isi/Post-kosong) | follow-up opsional — redirect aman, bukan Fail palsu |
-| RES-02 (display-drift X/Y vs Score%) · GRD-02 (empty-MA SetEquals LOW) | backlog (deferred saat planning v29.0) |
+| RES-02 (display-drift X/Y vs Score%) · GRD-02 (empty-MA SetEquals LOW) | ✅ CLOSED v30.0 — RES-02→ECG-02, GRD-02→ECG-01 MA non-empty guard |
 
 ### Backlog aktif (belum dipromote)
 
@@ -101,6 +101,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 | 999.9 label residu "Backfill/Restore" di UI BulkBackfill | kosmetik (LOW) |
 | 999.6 impersonate identity (dir tersisa) | sudah ditutup fungsional v28.0/377; dir backlog tinggal |
 | 999.10 route CMP (dir tersisa) | sudah ditutup v28.0/378; dir backlog tinggal |
+| 43 quick-task todo (audit-open, semua status `[missing]`) | acknowledged deferred saat v30.0 close 2026-06-15 — backlog project-wide lama (todo file ada, artifact hilang), bukan deliverable v30.0; pola sama close v25-v29 |
 
 > ✅ Ditutup di v28.0 (2026-06-14): 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E).
 
@@ -110,6 +111,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 |------|--------|
 | Push bundle v24-v28 ke `origin/ITHandoff` (branch + 5 tag) | ✅ PUSHED 2026-06-14, HEAD `bb8c04ed` |
 | Push v29.0 (branch + tag `v29.0`) ke `origin/ITHandoff` | ✅ PUSHED 2026-06-15 |
+| Push v30.0 (branch `ITHandoff` + tag `v30.0`) ke `origin/ITHandoff` | ⏳ PENDING — v30.0 = 0 migration baru |
 | Notify IT — 2 migration carry (`PendingProtonBypass`+index/360, `ShuffleToggles`/372). **v29.0 = 0 migration baru.** | ⏳ PENDING — kasih commit hash + flag ke IT |
 | IT apply migration DB Dev + promosi server Dev (10.55.3.3)/Prod | ⏳ tanggung jawab IT (bukan dev) |
 

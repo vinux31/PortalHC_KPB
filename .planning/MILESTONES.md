@@ -1,5 +1,21 @@
 # Milestones
 
+## v30.0 Essay Grading Correctness + Monitoring UI Refactor (Shipped: 2026-06-15)
+
+**Phases completed:** 2 phases, 8 plans, 15 tasks
+
+**Key accomplishments:**
+
+- Helper murni `AssessmentScoreAggregator.IsQuestionCorrect(q, responsesForQ) -> bool?` sebagai single source of truth correctness per-soal (MC/MA byte-for-byte DISPLAY-path + cabang Essay baru `EssayScore>0`), dikunci 11 unit test pure tanpa DB — fondasi kill-drift bug "Nilai Anda 100% tapi 4/6 benar".
+- CMPController.Results count/Elemen-Teknis/Tinjauan-badge + Results.cshtml kini essay-aware lewat helper IsQuestionCorrect — soal essay yang dinilai HC dihitung Benar di seluruh surface web Results (count 6/6, bukan 4/6), plus teks jawaban essay worker tampil di baris Tinjauan.
+- 1. [Rule 1 - Bug] Fixed test cross-session question leak (shared fixture DB)
+- SQL seed fixture session essay-pending package-aware + spec Playwright FLOW 384 (4 test RED/fixme) dengan harness snapshot→seed→restore — kontrak e2e dikunci sebelum UI dibangun.
+- GET /Admin/EssayGrading + view per-worker (clone kartu essay byte-for-byte) + essay-grading.js dengan finalize D-09 in-place + D-10 read-only — reuse backend POST tanpa ubah, authz Admin/HC.
+- Blok essay inline (stacked cards per-worker) diganti tabel worker-list ringkas 4-kolom dengan badge status 3-state + tombol "Tinjau Essay" → page per-worker; handler AJAX essay dead dihapus.
+- e2e FLOW 384 (UIG-04) dijalankan HIJAU 4/4 runtime (round-trip list→Tinjau Essay→Simpan Skor→Selesaikan→Selesai in-place + read-only persisted) + UAT manual browser approved; DB di-restore, journal cleaned.
+
+---
+
 ## v29.0 Assessment E2E Worker-Success Fix (Shipped Local: 2026-06-15, Audited: 2026-06-15)
 
 **Phases completed:** 3 phase (380-382), 8 plan
