@@ -56,13 +56,14 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 ## Next Action
 
 1. ✅ **v30.0 CLOSED 2026-06-15** — milestone audit PASSED (10/10 REQ, 2/2 phases, integration 3/3 flows), archived + tagged `v30.0`. 0 migration kedua phase.
-2. **Push v30.0 (branch `ITHandoff` + tag `v30.0`) ke `origin/ITHandoff`** + notify IT (flag **migration=FALSE** untuk v30.0; carry-over lama 360/372 masih pending).
+2. ✅ **Push v30.0 PUSHED 2026-06-15** — branch `ITHandoff` (`1a29865e..fe8c5ffe`) + tag `v30.0` → `origin/ITHandoff`. **Sisa NOTIFY IT:** flag **migration=FALSE** v30.0 (HEAD `fe8c5ffe`); carry-over lama 360/372 masih pending.
 3. **`/gsd-new-milestone`** untuk mulai milestone berikut (questioning → research → requirements → roadmap).
 
 ## Tag Git
 
 - `v24.0`, `v25.0`, `v26.0`, `v27.0`, `v28.0` — ✅ PUSHED ke `origin/ITHandoff` 2026-06-14.
 - `v29.0` — ✅ dibuat saat manual close 2026-06-15 + PUSHED `origin/ITHandoff`. Annotated (Assessment E2E Worker-Success Fix, 380-382, 11/11 REQ, 0 migration).
+- `v30.0` — ✅ dibuat + PUSHED `origin/ITHandoff` 2026-06-15. Annotated (Essay Grading Correctness + Monitoring UI Refactor, 383-384, 10/10 REQ, 0 migration).
 
 ## Deferred Items
 
@@ -111,7 +112,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 |------|--------|
 | Push bundle v24-v28 ke `origin/ITHandoff` (branch + 5 tag) | ✅ PUSHED 2026-06-14, HEAD `bb8c04ed` |
 | Push v29.0 (branch + tag `v29.0`) ke `origin/ITHandoff` | ✅ PUSHED 2026-06-15 |
-| Push v30.0 (branch `ITHandoff` + tag `v30.0`) ke `origin/ITHandoff` | ⏳ PENDING — v30.0 = 0 migration baru |
+| Push v30.0 (branch `ITHandoff` + tag `v30.0`) ke `origin/ITHandoff` | ✅ PUSHED 2026-06-15, HEAD `fe8c5ffe` |
 | Notify IT — 2 migration carry (`PendingProtonBypass`+index/360, `ShuffleToggles`/372). **v29.0 = 0 migration baru.** | ⏳ PENDING — kasih commit hash + flag ke IT |
 | IT apply migration DB Dev + promosi server Dev (10.55.3.3)/Prod | ⏳ tanggung jawab IT (bukan dev) |
 
