@@ -84,4 +84,24 @@ namespace HcPortal.Models
         public string? ImagePath { get; set; }
         public string? ImageAlt { get; set; }
     }
+
+    /// <summary>
+    /// ViewModel page penilaian essay per-worker (Phase 384 UIG-02/03). Membungkus identitas single session +
+    /// essay items + flag finalized (D-10) + 4 nav param untuk back-link ke AssessmentMonitoringDetail (Pitfall 3).
+    /// </summary>
+    public class EssayGradingPageViewModel
+    {
+        public int SessionId { get; set; }
+        public string UserFullName { get; set; } = "";
+        public string UserNIP { get; set; } = "";
+        public int EssayPendingCount { get; set; }
+        public bool IsFinalized { get; set; }
+        public DateTime? CompletedAt { get; set; }
+        public List<EssayGradingItemViewModel> EssayItems { get; set; } = new();
+        // 4 nav param back-link (tz-safe: ScheduleDate string yyyy-MM-dd)
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string ScheduleDate { get; set; } = "";
+        public string? AssessmentType { get; set; }
+    }
 }
