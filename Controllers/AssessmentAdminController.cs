@@ -3546,6 +3546,21 @@ namespace HcPortal.Controllers
             if (score < 0 || score > question.ScoreValue)
                 return Json(new { success = false, message = $"Skor harus antara 0 dan {question.ScoreValue}" });
 
+            // 2a. PXF-06 anti-tamper: edit skor essay pasca-finalize SUDAH ditolak oleh status-guard Phase 386 D-08
+            //     di atas (`Status != PendingGrading` → reject), sehingga guard `Status == Completed` eksplisit
+            //     redundant. Yang ditutup di sini adalah 2 celah hardening tertunda (386-REVIEW WR-01 + WR-02)
+            //     yang diperkenalkan oleh upsert D-08 (penciptaan baris baru tanpa validasi tipe/kepemilikan).
+            // 2b. WR-01 (386-REVIEW) — questionId WAJIB tipe Essay. Tanpa ini upsert bisa membuat baris EssayScore
+            //     pada soal MC/MA (korupsi skor: aggregator menjumlah EssayScore via case Essay).
+            if (question.QuestionType != "Essay")
+                return Json(new { success = false, message = "Soal ini bukan tipe Essay." });
+            // 2c. WR-02 (386-REVIEW) — questionId WAJIB milik sesi ini (cross-session tampering guard). Rantai nav
+            //     terverifikasi: PackageQuestion.AssessmentPackage.AssessmentSessionId == sessionId.
+            var ownsQuestion = await _context.PackageQuestions
+                .AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId);
+            if (!ownsQuestion)
+                return Json(new { success = false, message = "Soal bukan milik sesi ini." });
+
             // 3. UPSERT (Phase 386 PXF-04 D-08) — baris essay kosong tak ada → buat baru (TextAnswer null) lalu skor;
             //    mengganti dead-end "Jawaban tidak ditemukan" agar HC tetap bisa menilai essay yang dikosongkan peserta.
             var response = await _context.PackageUserResponses
