@@ -15,7 +15,7 @@
 - [x] **PXF-01** (F-09, HIGH): Gambar pada soal & pilihan **tampil benar** saat aplikasi dijalankan di sub-path (`/KPB-PortalHC` di Dev/Prod) — `<img src>` resolusi PathBase-aware, tidak 404. Berlaku di semua layar render gambar (StartExam, ExamSummary, Results, grading). Confirmed broken di Dev (404, prefix drop).
 - [x] **PXF-02** (F-DEV-01, HIGH): Admin **tidak bisa menyimpan** soal tipe Single/Multiple Answer **tanpa opsi jawaban** — `CreateQuestion` & `EditQuestion` menolak (validasi ≥1 opsi ber-teks, idealnya ≥2 dengan ≥1 benar) dengan pesan jelas, sehingga tak ada soal cacat yang memblokir submit ujian.
 - [x] **PXF-03** (F-21, HIGH): Jawaban **essay tersimpan utuh** saat peserta submit / pindah halaman / waktu habis — di-flush sebelum form dikirim (tidak menunggu debounce 2 detik), sehingga keystroke terakhir tidak hilang dan peserta yang sudah mengisi essay tidak ditolak submit "belum dijawab".
-- [ ] **PXF-04** (F-04, MED): HC **bisa menyelesaikan penilaian** assessment walau peserta **mengosongkan essay** (tanpa baris jawaban) — hitungan pending konsisten antar surface, tombol "Selesaikan Penilaian" muncul, tidak dead-end (essay kosong = 0 poin otomatis).
+- [x] **PXF-04** (F-04, MED): HC **bisa menyelesaikan penilaian** assessment walau peserta **mengosongkan essay** (tanpa baris jawaban) — hitungan pending konsisten antar surface, tombol "Selesaikan Penilaian" muncul, tidak dead-end (essay kosong = 0 poin otomatis).
 - [x] **PXF-05** (F-17, MED): **PDF bukti per-peserta** menandai soal **Multiple Answer benar/salah secara akurat** (all-or-nothing / SetEquals, baca semua opsi terpilih) — konsisten dengan penilaian web/Excel, karena PDF dipakai sebagai bukti/arsip resmi lisensor.
 
 ### Post-Lisensor Polish — Phase 387, dikerjakan PASCA-acara
@@ -59,7 +59,7 @@ Batch polish **7 REQ** (1 MED + 6 LOW) dari register readiness — tidak mengham
 | PXF-01 | F-09 | Phase 385 | Pending |
 | PXF-03 | F-21 | Phase 385 | Pending |
 | PXF-02 | F-DEV-01 | Phase 386 | Done |
-| PXF-04 | F-04 | Phase 386 | Pending |
+| PXF-04 | F-04 | Phase 386 | Done |
 | PXF-05 | F-17 | Phase 386 | Pending |
 | PXF-07 | F-02 | Phase 386 | Pending |
 | PXF-14 | F-DEV-02 | Phase 386 | Pending |
