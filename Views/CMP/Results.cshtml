@@ -353,8 +353,11 @@
 
                             <!-- Options List -->
                             <div class="list-group">
-                                @foreach (var option in question.Options)
+                                @{ string[] letters = { "A", "B", "C", "D" }; }
+                                @for (int oi = 0; oi < question.Options.Count; oi++)
                                 {
+                                    var option = question.Options[oi];
+                                    var letter = oi < letters.Length ? letters[oi] : (oi + 1).ToString();
                                     var itemClass = "";
                                     var icon = "";
 
@@ -385,7 +388,7 @@
                                                 <small class="ms-auto text-muted">(Jawaban Benar)</small>
                                             }
                                         </div>
-                                        @await Html.PartialAsync("_QuestionImage", new { ImagePath = option.ImagePath, ImageAlt = option.ImageAlt, Cap = 120, AriaContext = "opsi" })
+                                        @await Html.PartialAsync("_QuestionImage", new { ImagePath = option.ImagePath, ImageAlt = option.ImageAlt, Cap = 120, AriaContext = "opsi " + letter })
                                     </div>
                                 }
                             </div>
