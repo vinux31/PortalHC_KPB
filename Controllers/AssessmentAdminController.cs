@@ -3609,7 +3609,11 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FinalizeEssayGrading(int sessionId)
         {
-            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            // Phase 387 PXF-10 (REVIEW WR-01): eager-load User agar broadcast workerSubmitted
+            // mengirim nama peserta asli (bukan "Unknown"). Cermin analog workerAnswerEdited (Include User).
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
             if (session == null)
                 return Json(new { success = false, message = "Session tidak ditemukan." });
 
