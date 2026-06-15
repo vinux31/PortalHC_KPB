@@ -2255,19 +2255,10 @@ namespace HcPortal.Controllers
                         var correctOptions = question.Options.Where(o => o.IsCorrect).ToList();
                         var selectedOptions = question.Options.Where(o => selectedOptionIds.Contains(o.Id)).ToList();
 
-                        bool isCorrect;
-                        if ((question.QuestionType ?? "MultipleChoice") == "MultipleAnswer")
-                        {
-                            // MA: exact-match all correct, none-incorrect
-                            var correctIds = correctOptions.Select(o => o.Id).ToHashSet();
-                            isCorrect = selectedOptionIds.Count > 0 && correctIds.SetEquals(selectedOptionIds);
-                        }
-                        else
-                        {
-                            // MC / Essay path: single selection
-                            var single = selectedOptions.FirstOrDefault();
-                            isCorrect = single != null && single.IsCorrect;
-                        }
+                        // ECG-02/04 (Phase 383): correctness via helper terpusat IsQuestionCorrect (kill-drift).
+                        // verdict: true=Benar (correctCount++), false=Salah, null=essay pending (badge via IsEssayPending).
+                        var verdict = AssessmentScoreAggregator.IsQuestionCorrect(question, userResponses);
+                        bool isCorrect = verdict == true;
                         if (isCorrect) correctCount++;
 
                         var userAnswerText = selectedOptions.Any()
@@ -2276,6 +2267,14 @@ namespace HcPortal.Controllers
                         var correctAnswerText = correctOptions.Any()
                             ? string.Join(", ", correctOptions.Select(o => o.OptionText))
                             : "N/A";
+
+                        // D-07: essay tak punya Options → tampilkan TextAnswer worker + label "Dinilai manual"
+                        bool isEssay = (question.QuestionType ?? "MultipleChoice") == "Essay";
+                        if (isEssay)
+                        {
+                            userAnswerText = userResponses.FirstOrDefault(r => r.PackageQuestionId == qId)?.TextAnswer;
+                            correctAnswerText = "Dinilai manual";
+                        }
 
                         questionReviews.Add(new QuestionReviewItem
                         {
@@ -2294,35 +2293,22 @@ namespace HcPortal.Controllers
                                 ImagePath = o.ImagePath,
                                 ImageAlt = o.ImageAlt
                             }).ToList(),
-                            // SUB-01 OQ#3 D-08: Essay items TETAP tampil di review — flag true saat status PendingGrading + QuestionType Essay
-                            // (View Razor render label "Menunggu Penilaian" alih-alih correct/incorrect; CONTEXT D-08 lock)
-                            IsEssayPending = (assessment.Status == AssessmentConstants.AssessmentStatus.PendingGrading
-                                             && (question.QuestionType ?? "MultipleChoice") == "Essay")
+                            // D-06 (Phase 383): correctness-based pending, independen status sesi — graded essay di sesi
+                            // Completed render Benar/Salah; essay tanpa EssayScore (verdict==null) selalu "Menunggu Penilaian".
+                            IsEssayPending = (question.QuestionType ?? "MultipleChoice") == "Essay"
+                                             && AssessmentScoreAggregator.IsQuestionCorrect(question, userResponses) == null
                         });
                     }
                 }
                 else
                 {
-                    // Count correct even when review disabled (SURF-317-A: MA-aware)
+                    // ECG-02 (Phase 383): count correct even when review disabled, via helper terpusat (essay-aware).
+                    // Guard Count==0 lama DIHAPUS — essay (no option) tak boleh di-skip; helper handle internal.
                     foreach (var qId in orderedQuestionIds)
                     {
                         if (!questionLookup.TryGetValue(qId, out var question)) continue;
-                        var selectedIds = responseLookup[qId]
-                            .Where(r => r.PackageOptionId != null)
-                            .Select(r => r.PackageOptionId!.Value)
-                            .ToHashSet();
-                        if (selectedIds.Count == 0) continue;
-
-                        if ((question.QuestionType ?? "MultipleChoice") == "MultipleAnswer")
-                        {
-                            var correctIds = question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
-                            if (correctIds.SetEquals(selectedIds)) correctCount++;
-                        }
-                        else
-                        {
-                            var selectedOpt = question.Options.FirstOrDefault(o => selectedIds.Contains(o.Id));
-                            if (selectedOpt != null && selectedOpt.IsCorrect) correctCount++;
-                        }
+                        if (AssessmentScoreAggregator.IsQuestionCorrect(question, responseLookup[qId].ToList()) == true)
+                            correctCount++;
                     }
                 }
 
@@ -2340,22 +2326,9 @@ namespace HcPortal.Controllers
                         .Select(g =>
                         {
                             var total = g.Count();
+                            // ECG-03 (Phase 383): Elemen Teknis hitung essay sesuai nilai HC via helper terpusat (essay-aware).
                             var correct = g.Count(q =>
-                            {
-                                // SURF-317-A fix: MA-aware aggregation
-                                var selectedIds = responseLookup[q.Id]
-                                    .Where(r => r.PackageOptionId != null)
-                                    .Select(r => r.PackageOptionId!.Value)
-                                    .ToHashSet();
-                                if (selectedIds.Count == 0) return false;
-                                if ((q.QuestionType ?? "MultipleChoice") == "MultipleAnswer")
-                                {
-                                    var correctIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
-                                    return correctIds.SetEquals(selectedIds);
-                                }
-                                var sel = q.Options.FirstOrDefault(o => selectedIds.Contains(o.Id));
-                                return sel != null && sel.IsCorrect;
-                            });
+                                AssessmentScoreAggregator.IsQuestionCorrect(q, responseLookup[q.Id].ToList()) == true);
                             return new ElemenTeknisScore
                             {
                                 Name = g.Key,
