@@ -58,7 +58,7 @@ Batch polish **7 REQ** (1 MED + 6 LOW) dari register readiness — tidak mengham
 |--------|--------|-------|--------|
 | PXF-01 | F-09 | Phase 385 | Pending |
 | PXF-03 | F-21 | Phase 385 | Pending |
-| PXF-02 | F-DEV-01 | Phase 386 | Pending |
+| PXF-02 | F-DEV-01 | Phase 386 | Done |
 | PXF-04 | F-04 | Phase 386 | Pending |
 | PXF-05 | F-17 | Phase 386 | Pending |
 | PXF-07 | F-02 | Phase 386 | Pending |
