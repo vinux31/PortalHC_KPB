@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
-status: Ready to execute
+status: Executing Phase 385
 stopped_at: Phase 386 context gathered
-last_updated: "2026-06-15T13:06:20.096Z"
+last_updated: "2026-06-15T14:30:00.000Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 23
@@ -21,25 +21,26 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 385 — exam-taking-and-image-render-hotfix (PXF-01 + PXF-03)
+**Current focus:** Phase 385 — exam-taking-image-render-hotfix
 
 ## Current Position
 
-Phase: 385
-Plan: not started
+Phase: 385 (exam-taking-image-render-hotfix) — EXECUTING
+Plan: 1 of 2
 
 **MILESTONE v31.0 STARTED — Hotfix Pra-Ujian Lisensor (urgent, acara ~2026-06-17).** 5 temuan must-fix dari readiness audit gladi-bersih E2E 2026-06-15 (register final adversarial-verified: `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` — 3 HIGH · 5 MED · 7 LOW; 5 dipromote ke PXF-01..05). Ujian lisensor: SA+MA+Essay+soal bergambar, ≤30 peserta, PDF per-peserta = bukti resmi. Target: 1 bundle → 1 deploy IT sebelum hari-H. **0 migration** (semua fix view/controller/validasi). Pendekatan: hotfix langsung (skip domain-research).
 
-**Roadmap v31.0 (2 fase, penomoran LANJUT dari v30.0 phase terakhir 384):**
+**Roadmap v31.0 (3 fase, penomoran LANJUT dari v30.0 phase terakhir 384):**
 
 | Phase | Goal (ringkas) | REQ | File |
 |-------|----------------|-----|------|
 | **385 Exam-Taking & Image Render Hotfix** | Gambar soal/opsi tampil di sub-path `/KPB-PortalHC` (PathBase-aware) + essay flush saat submit/blur/timeout | PXF-01, PXF-03 | `Views/Shared/_QuestionImage.cshtml`, `Views/CMP/StartExam.cshtml` (+ mungkin `CMPController.cs`) |
 | **386 AssessmentAdminController Hardening** | Validasi soal ≥1 opsi + essay kosong tak dead-end finalize + PDF MA SetEquals akurat | PXF-02, PXF-04, PXF-05 | `Controllers/AssessmentAdminController.cs` |
+| **387 Post-Lisensor Assessment Polish** (PASCA-acara, depends 386) | 9 temuan polish: guard SubmitEssayScore status, Excel essay label + MA SetEquals, cert nomor retry, BulkExport essay skor/teks, broadcast monitor, aria opsi huruf, SubmitExam no null-overwrite, SaveTextAnswer guard timer | PXF-06..14 | `AssessmentAdminController.cs`, `ExcelExportHelper.cs`, `Results.cshtml`, `CMPController.cs`, `AssessmentHub.cs` |
 
-**File-overlap (kunci phasing):** PXF-02 + PXF-04 + PXF-05 semua di `AssessmentAdminController.cs` → **digabung Phase 386** (satu fase = nol konflik write paralel). PXF-01 + PXF-03 di file view berbeda → Phase 385 (file-disjoint dari 386 → boleh paralel jika diinginkan).
+**File-overlap (kunci phasing):** PXF-02 + PXF-04 + PXF-05 semua di `AssessmentAdminController.cs` → **digabung Phase 386**. PXF-01 + PXF-03 file view berbeda → Phase 385. Phase 387 (PXF-06..14) = polish pasca-acara, **depends 386** (PXF-06/08/09/10 juga di `AssessmentAdminController.cs`); deploy IT KEDUA terpisah dari bundle urgent. Semua 0 migration.
 
-**Coverage:** 5/5 PXF ter-map ✓ — Orphans: 0 — Duplicates: 0.
+**Coverage:** 14/14 PXF ter-map ✓ — Orphans: 0 — Duplicates: 0. (385-386 = 5 must-fix pra-acara; 387 = 9 polish pasca-acara, ditambah 2026-06-15 dari FUTURE + F-DEV-02.)
 
 **Plan:** Not started
 

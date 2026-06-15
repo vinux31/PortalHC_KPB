@@ -156,7 +156,7 @@ Dijalankan langsung di `http://10.55.3.3/KPB-PortalHC` (login Admin KPB, assessm
 
 Semua **0 migration**. Fix = view/controller/validasi + re-deploy IT.
 
-> **Catatan F-DEV-02 (2026-06-15):** ditemukan oleh workflow adversarial-verify CONTEXT Phase 386 (4 agen). Surface MA-mislabel KEDUA selain F-17 (PDF per-peserta). Beda file (`Helpers/ExcelExportHelper.cs`, bukan controller) → OUT scope Phase 386 single-file, TAPI ekspor resmi lisensor juga. **Keputusan owner perlu:** fix bareng PXF-05 (perluas scope) atau Future. Excel per-session path `AssessmentAdminController.cs:4857-4863` SUDAH benar (SetEquals) — bukan ini.
+> **Catatan F-DEV-02 (2026-06-15):** ditemukan oleh workflow adversarial-verify CONTEXT Phase 386 (4 agen). Surface MA-mislabel KEDUA selain F-17 (PDF per-peserta). Beda file (`Helpers/ExcelExportHelper.cs`, bukan controller) → OUT scope Phase 386 single-file, TAPI ekspor resmi lisensor juga. **Keputusan owner perlu:** fix bareng PXF-05 (perluas scope) atau Future. Excel per-session path `AssessmentAdminController.cs:4857-4863` SUDAH benar (SetEquals) — bukan ini. **→ DIPUTUS 2026-06-15: jadi PXF-14 di Phase 387** (same-method dengan PXF-07/F-02 di `ExcelExportHelper.cs:78-115` → satu kali edit).
 
 ### TRIASE 2-HARI (acara ~2026-06-17; komposisi SA+MA+Essay+GAMBAR; PDF per-peserta = bukti RESMI)
 
@@ -170,7 +170,7 @@ Konfirmasi user 2026-06-15: ujian **ada soal bergambar** + **PDF bukti resmi** �
 - **F-17** (MED) PDF per-peserta nilai MA pakai SetEquals (bukan FirstOrDefault) — PDF resmi.
 - **F-18 KONDISIONAL:** wajib HANYA jika pakai >1 paket. Mitigasi: **pakai 1 paket** → skip.
 
-**FUTURE (pasca-acara):** F-02, F-03, F-01, F-06, F-11, F-13, F-19, F-20, F-22.
+**FUTURE (pasca-acara):** ~~F-02, F-03, F-06, F-11, F-13, F-19, F-20, F-22~~ → **DIPROMOSIKAN ke Phase 387 v31.0** (PXF-06..14, + F-DEV-02 same-file fold) per keputusan user 2026-06-15. Tersisa FUTURE benar-benar OUT: **F-01** (UX MA-warn, mitigasi briefing).
 
 **Mitigasi operasional (lakukan walau sudah fix):** 1 paket soal; cek tiap soal punya opsi; briefing peserta (MA all-or-nothing, jangan kosongkan essay, tunggu sebelum Kumpulkan).
 
