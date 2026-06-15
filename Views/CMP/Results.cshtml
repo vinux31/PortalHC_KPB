@@ -389,6 +389,18 @@
                                     </div>
                                 }
                             </div>
+
+                            @* D-07 (Phase 383): soal essay tak punya Options → render teks jawaban worker (Pitfall 1). *@
+                            @if (!question.Options.Any() && !string.IsNullOrEmpty(question.UserAnswer))
+                            {
+                                <div class="list-group">
+                                    <div class="list-group-item">
+                                        <small class="text-muted d-block">Jawaban Anda:</small>
+                                        <span>@question.UserAnswer</span>
+                                        <small class="text-muted d-block mt-2">@question.CorrectAnswer</small>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     }
                 </div>

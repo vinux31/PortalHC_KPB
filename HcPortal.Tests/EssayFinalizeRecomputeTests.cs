@@ -148,6 +148,77 @@ public class EssayFinalizeRecomputeTests : IClassFixture<EssayFinalizeRecomputeF
         return (repaired, skipped, alreadyOk);
     }
 
+    // ---- ECG-06 Plan 04: mirror SubmitEssayScore core (AssessmentAdminController.cs:3460-3477) ----
+    // Mirror data-level (precedent file ini — hindari ctor 12-dep controller). Lock: persist EssayScore +
+    // range guard `score < 0 || score > question.ScoreValue` (controller L3472). Returns (success, message).
+    // Drift-guard: bila body controller berubah, test ini harus diperbarui agar tetap mencerminkan L3460-3477.
+    private static async Task<(bool success, string? message)> MirrorSubmitEssayScoreAsync(
+        ApplicationDbContext ctx, int sessionId, int questionId, int score)
+    {
+        // 1. Load response (mirror L3461-3464)
+        var response = await ctx.PackageUserResponses
+            .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+        if (response == null) return (false, "Jawaban tidak ditemukan");
+        // 2. Load question untuk validasi ScoreValue (mirror L3467-3469)
+        var question = await ctx.PackageQuestions.FindAsync(questionId);
+        if (question == null) return (false, "Soal tidak ditemukan");
+        // 3. Range guard (mirror L3472)
+        if (score < 0 || score > question.ScoreValue) return (false, $"Skor harus antara 0 dan {question.ScoreValue}");
+        // 4. Persist EssayScore (mirror L3476-3477)
+        response.EssayScore = score;
+        await ctx.SaveChangesAsync();
+        return (true, null);
+    }
+
+    // Ambil 1 PackageQuestion milik session tertentu (fixture = shared DB; FirstAsync global tak aman).
+    private static async Task<PackageQuestion> QuestionOfSessionAsync(ApplicationDbContext ctx, int sessionId)
+    {
+        var pkgIds = await ctx.AssessmentPackages
+            .Where(p => p.AssessmentSessionId == sessionId).Select(p => p.Id).ToListAsync();
+        return await ctx.PackageQuestions.FirstAsync(q => pkgIds.Contains(q.AssessmentPackageId));
+    }
+
+    // ---- ECG-06: SubmitEssayScore persist EssayScore saat skor dalam range (lock L3476-3477) ----
+    [Fact]
+    public async Task SubmitEssayScore_Persists_WhenInRange()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 0, essayScore: 0,
+            status: AssessmentConstants.AssessmentStatus.PendingGrading, scoreValue: 100);
+        // scope ke session ini (fixture shared DB — jangan ambil FirstAsync global)
+        var q = await QuestionOfSessionAsync(ctx, sessionId);
+
+        var (ok, _) = await MirrorSubmitEssayScoreAsync(ctx, sessionId, q.Id, 80);
+
+        Assert.True(ok);
+        await using var verify = NewCtx();
+        var resp = await verify.PackageUserResponses.FirstAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == q.Id);
+        Assert.Equal(80, resp.EssayScore);   // persisted ke DB
+    }
+
+    // ---- ECG-06: range guard menolak skor di luar 0..ScoreValue (lock L3472, T-298-13 / V5 ASVS) ----
+    [Fact]
+    public async Task SubmitEssayScore_Rejects_WhenOutOfRange()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 0, essayScore: 0,
+            status: AssessmentConstants.AssessmentStatus.PendingGrading, scoreValue: 100);
+        // scope ke session ini (fixture shared DB — jangan ambil FirstAsync global)
+        var q = await QuestionOfSessionAsync(ctx, sessionId);
+
+        var (okHigh, _) = await MirrorSubmitEssayScoreAsync(ctx, sessionId, q.Id, 150);  // > ScoreValue
+        var (okNeg, _)  = await MirrorSubmitEssayScoreAsync(ctx, sessionId, q.Id, -5);   // < 0
+
+        Assert.False(okHigh);
+        Assert.False(okNeg);
+        // tak boleh ter-persist: EssayScore tetap nilai awal (0), bukan 150/-5
+        await using var verify = NewCtx();
+        var resp = await verify.PackageUserResponses.FirstAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == q.Id);
+        Assert.Equal(0, resp.EssayScore);
+    }
+
     // ---- GRADE-02: forward aggregation essay-only → Score ≠ 0 ----
     [Fact]
     public async Task Forward_EssayOnly_ScoreNotZero()
@@ -211,5 +282,102 @@ public class EssayFinalizeRecomputeTests : IClassFixture<EssayFinalizeRecomputeF
         Assert.Equal(AssessmentConstants.AssessmentStatus.Completed, s.Status);  // Status TIDAK berubah
         var trCount = await verify.TrainingRecords.CountAsync(t => t.UserId == userId);
         Assert.Equal(0, trCount);                                     // NO TrainingRecord baru (D-03)
+    }
+
+    // ============================================================================================
+    // ECG-06 Plan 04 — FinalizeEssayGrading lock (recompute essay-aware + idempotent)
+    // Mirror AssessmentAdminController.FinalizeEssayGrading (L3499+). NO production code change (D-05).
+    // ============================================================================================
+
+    // Mirror FinalizeEssayGrading write-step (AssessmentAdminController.cs:3593-3599):
+    // ExecuteUpdateAsync dengan WHERE Status==PendingGrading → idempotent (re-run saat Completed = 0 baris).
+    // Returns rowsAffected. Drift-guard: cerminkan guard + Compute essay-aware controller.
+    private static async Task<int> MirrorFinalizeWriteAsync(ApplicationDbContext ctx, int sessionId)
+    {
+        var session = await ctx.AssessmentSessions.FindAsync(sessionId);
+        if (session == null) return 0;
+        // D-03 LOCKED — no-op kalau sudah Completed (mirror L3506); idempotent re-run path.
+        if (session.Status == AssessmentConstants.AssessmentStatus.Completed) return 0;
+        if (session.Status != AssessmentConstants.AssessmentStatus.PendingGrading) return 0; // mirror L3524
+        var agg = await ForwardAggregateAsync(ctx, sessionId);                                // essay-aware Compute (L3585)
+        // mirror L3593-3599: WHERE Id && Status==PendingGrading (replay guard) → SetProperty Score/Status/IsPassed
+        return await ctx.AssessmentSessions
+            .Where(s => s.Id == sessionId && s.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(r => r.Score, agg.Percentage)
+                .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.Completed)
+                .SetProperty(r => r.IsPassed, agg.IsPassed)
+                .SetProperty(r => r.CompletedAt, DateTime.UtcNow));
+    }
+
+    // ---- ECG-06 (A): Finalize recompute INCLUDES essay → Score essay-aware, bukan 0 ----
+    [Fact]
+    public async Task Finalize_Recompute_IncludesEssayScore()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // essay dinilai 80, sesi PendingGrading, Score awal 0 → finalize harus set 80 (essay ikut dihitung)
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 0, essayScore: 80,
+            status: AssessmentConstants.AssessmentStatus.PendingGrading);
+
+        var agg = await ForwardAggregateAsync(ctx, sessionId);
+        Assert.Equal(80, agg.Percentage);   // essay-aware recompute (bukan 0 — akar bug essay diabaikan)
+        Assert.True(agg.IsPassed);
+
+        var rows = await MirrorFinalizeWriteAsync(ctx, sessionId);
+        Assert.Equal(1, rows);              // finalize menulis 1 baris (PendingGrading → Completed)
+
+        await using var verify = NewCtx();
+        var s = (await verify.AssessmentSessions.FindAsync(sessionId))!;
+        Assert.Equal(80, s.Score);                                                   // Score di-set essay-aware
+        Assert.True(s.IsPassed);
+        Assert.Equal(AssessmentConstants.AssessmentStatus.Completed, s.Status);      // status finalize
+    }
+
+    // ---- ECG-06 (B): Finalize idempotent — no-op saat sudah Completed (D-03), no double-count ----
+    [Fact]
+    public async Task Finalize_NoOp_WhenAlreadyCompleted()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // sesi sudah Completed Score=80 (sudah pernah di-finalize)
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 80, essayScore: 80,
+            status: AssessmentConstants.AssessmentStatus.Completed);
+        var before = (await ctx.AssessmentSessions.FindAsync(sessionId))!.Score;
+
+        // re-finalize → D-03 no-op (WHERE Status==PendingGrading tak match) → 0 baris, tak double-count
+        var rows = await MirrorFinalizeWriteAsync(ctx, sessionId);
+        Assert.Equal(0, rows);             // idempotent: tak ada write ulang
+
+        await using var verify = NewCtx();
+        var after = (await verify.AssessmentSessions.FindAsync(sessionId))!.Score;
+        Assert.Equal(before, after);       // Score tidak berubah oleh re-finalize
+        Assert.Equal(80, after);
+
+        // re-aggregate konsisten → re-finalize seandainya jalan akan hasilkan nilai sama (idempotent value)
+        var agg = await ForwardAggregateAsync(ctx, sessionId);
+        Assert.Equal(80, agg.Percentage);
+    }
+}
+
+// ============================================================================================
+// ECG-06 (C) — Authz lock via reflection (RESEARCH OQ#3). Pure (no DB) — selalu jalan tanpa SQLEXPRESS.
+// Mirror data-level TIDAK eksekusi [Authorize]; reflection-assert mengunci atribut di method controller.
+// ============================================================================================
+public class EssaySubmitFinalizeAuthzTests
+{
+    [Fact]
+    public void SubmitAndFinalize_RequireAdminHcAuthorize()  // V4 ASVS / T-383-07
+    {
+        var t = typeof(HcPortal.Controllers.AssessmentAdminController);
+        foreach (var name in new[] { "SubmitEssayScore", "FinalizeEssayGrading" })
+        {
+            var m = t.GetMethods().First(x => x.Name == name);   // hindari ambiguitas overload
+            var authz = m.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true)
+                .Cast<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>().FirstOrDefault();
+            Assert.NotNull(authz);                               // ada [Authorize]
+            Assert.Contains("Admin", authz!.Roles ?? "");        // role Admin terkunci
+            Assert.Contains("HC", authz!.Roles ?? "");           // role HC terkunci
+        }
     }
 }

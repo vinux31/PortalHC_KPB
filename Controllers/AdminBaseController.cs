@@ -265,5 +265,31 @@ namespace HcPortal.Controllers
         public static System.Linq.Expressions.Expression<Func<AssessmentSession, bool>> ManualDuplicatePredicate(
             string userId, string title, DateTime? completedAt)
             => s => s.UserId == userId && s.Title == title && s.CompletedAt == completedAt && s.IsManualEntry;
+
+        // ── Title duplicate detection (judul-fleksibel-cek-duplikat, 2026-06-15) ──
+        // Normalisasi kanonik judul: trim + collapse whitespace + lowercase (pola NormalizePackageText:6268).
+        public static string NormalizeTitleForDup(string? s)
+            => System.Text.RegularExpressions.Regex.Replace((s ?? "").Trim(), @"\s+", " ").ToLowerInvariant();
+
+        // Satu assessment = grup distinct (Title, Category, Schedule.Date) — konsisten dgn grouping sistem
+        // (AssessmentAdminController.cs:179, :2870). Match by judul ternormalisasi LINTAS kategori.
+        public record TitleDuplicateMatch(string Category, DateTime Tanggal, int Peserta);
+
+        public static async Task<List<TitleDuplicateMatch>> FindTitleDuplicatesAsync(
+            ApplicationDbContext ctx, string? title)
+        {
+            var norm = NormalizeTitleForDup(title);
+            if (norm.Length == 0) return new List<TitleDuplicateMatch>();
+            // GroupBy distinct dulu (jumlah grup terbatas), normalisasi+banding di memory
+            // (normalizer C#-only, tak EF-translatable).
+            var groups = await ctx.AssessmentSessions
+                .GroupBy(a => new { a.Title, a.Category, Date = a.Schedule.Date })
+                .Select(g => new { g.Key.Title, g.Key.Category, g.Key.Date, Peserta = g.Count() })
+                .ToListAsync();
+            return groups
+                .Where(g => NormalizeTitleForDup(g.Title) == norm)
+                .Select(g => new TitleDuplicateMatch(g.Category, g.Date, g.Peserta))
+                .ToList();
+        }
     }
 }

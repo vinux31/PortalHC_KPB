@@ -185,12 +185,28 @@
                             <label asp-for="Title" class="form-label fw-bold">
                                 Judul Assessment <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="Title" class="form-control" id="Title" placeholder="Masukkan judul assessment" maxlength="255" oninput="document.getElementById('titleCounter').textContent=this.value.length+'/255'" />
+                            <div class="input-group">
+                                <input asp-for="Title" class="form-control" id="Title" placeholder="Masukkan judul assessment" maxlength="255" oninput="document.getElementById('titleCounter').textContent=this.value.length+'/255'" />
+                                <button type="button" class="btn btn-outline-secondary" id="btnCheckTitle"
+                                        data-check-url="@Url.Action("CheckTitleAvailability", "AssessmentAdmin")">
+                                    <i class="bi bi-search me-1"></i>Cek Judul
+                                </button>
+                            </div>
                             <div class="d-flex justify-content-between">
                                 <div class="invalid-feedback">Judul assessment wajib diisi.</div>
                                 <small class="text-muted" id="titleCounter">0/255</small>
                             </div>
                             <span asp-validation-for="Title" class="text-danger small"></span>
+                            <div id="titleCheckResult" class="mt-2" style="display:none;"></div>
+                            @if ((bool?)ViewBag.DuplicateTitleWarning == true)
+                            {
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="ConfirmDuplicateTitle" value="true" id="confirmDuplicateTitle">
+                                    <label class="form-check-label text-warning fw-semibold" for="confirmDuplicateTitle">
+                                        Tetap buat walau judul kembar
+                                    </label>
+                                </div>
+                            }
                         </div>
 
                         <!-- Assessment Type (Standard / Pre-Post Test) -->
@@ -1229,6 +1245,42 @@ function generateToken() {
     document.getElementById('btnNext3').addEventListener('click', function() {
         if (validateStep(3)) goToStep(4);
     });
+
+    // ---- Event: Cek Judul (duplicate check) ----
+    var btnCheckTitle = document.getElementById('btnCheckTitle');
+    if (btnCheckTitle) {
+        btnCheckTitle.addEventListener('click', function () {
+            var title = (document.getElementById('Title').value || '').trim();
+            var box = document.getElementById('titleCheckResult');
+            box.style.display = 'block';
+            if (!title) {
+                box.innerHTML = '<div class="alert alert-secondary py-2 mb-0">Isi judul dulu sebelum cek.</div>';
+                return;
+            }
+            btnCheckTitle.disabled = true;
+            box.innerHTML = '<div class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>Mengecek...</div>';
+            var url = btnCheckTitle.getAttribute('data-check-url') + '?title=' + encodeURIComponent(title);
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.exists) {
+                        box.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-1"></i>Aman — judul belum dipakai.</div>';
+                    } else {
+                        var rows = (data.matches || []).map(function (m) {
+                            var d = m.tanggal ? new Date(m.tanggal).toLocaleDateString('id-ID') : '-';
+                            return '<li>' + m.category + ' &middot; ' + d + ' &middot; ' + m.peserta + ' peserta</li>';
+                        }).join('');
+                        box.innerHTML = '<div class="alert alert-warning py-2 mb-0">'
+                            + '<i class="bi bi-exclamation-triangle me-1"></i>Judul dipakai di ' + data.groupCount + ' assessment:'
+                            + '<ul class="mb-0 mt-1">' + rows + '</ul></div>';
+                    }
+                })
+                .catch(function () {
+                    box.innerHTML = '<div class="alert alert-danger py-2 mb-0">Gagal cek judul. Coba lagi.</div>';
+                })
+                .finally(function () { btnCheckTitle.disabled = false; });
+        });
+    }
 
     // ---- Event: Sebelumnya buttons ----
     document.getElementById('btnPrev2').addEventListener('click', function() { goToStep(1); });

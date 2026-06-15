@@ -839,6 +839,21 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
+        // GET /Admin/CheckTitleAvailability?title=... — cek judul assessment sudah dipakai (cegah double sertifikat).
+        // judul-fleksibel-cek-duplikat (2026-06-15). Read-only → tanpa antiforgery.
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CheckTitleAvailability(string title)
+        {
+            var matches = await FindTitleDuplicatesAsync(_context, title);
+            return Json(new
+            {
+                exists = matches.Count > 0,
+                groupCount = matches.Count,
+                matches = matches.Select(m => new { category = m.Category, tanggal = m.Tanggal, peserta = m.Peserta })
+            });
+        }
+
         // POST: Process form submission (multi-user)
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -849,7 +864,8 @@ namespace HcPortal.Controllers
             string? AssessmentTypeInput = null,
             DateTime? PreSchedule = null, int? PreDurationMinutes = null, DateTime? PreExamWindowCloseDate = null,
             DateTime? PostSchedule = null, int? PostDurationMinutes = null, DateTime? PostExamWindowCloseDate = null,
-            bool SamePackage = false)
+            bool SamePackage = false,
+            bool ConfirmDuplicateTitle = false)
         {
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
@@ -866,16 +882,6 @@ namespace HcPortal.Controllers
                     model.LinkedGroupId = counterpartId.Value;
                     TempData["Info"] = $"Auto-paired LinkedGroupId={counterpartId.Value} berdasarkan title pattern '{model.Title}' (336-NAMING-CONVENTION).";
                 }
-            }
-
-            // Phase 339 REST-06 (336-NAMING-CONVENTION-SPEC): Validate Title pattern for standard Pre/Post tests
-            if (AssessmentTypeInput != "PrePostTest"
-                && !string.IsNullOrEmpty(model.Title)
-                && !System.Text.RegularExpressions.Regex.IsMatch(model.Title, @"^(Pre|Post)\s*Test\s+.+$"))
-            {
-                ModelState.AddModelError("Title",
-                    "Title harus pola '{Stage} Test {Track} {Lokasi}' (Pre Test atau Post Test diikuti track + lokasi). " +
-                    "Contoh valid: 'Pre Test OJT GAST Cilacap'. Reference: 336-NAMING-CONVENTION-SPEC.");
             }
 
             // Handle Token Validation
@@ -979,6 +985,22 @@ namespace HcPortal.Controllers
             if (isRenewalModePost && !model.ValidUntil.HasValue)
             {
                 ModelState.AddModelError("ValidUntil", "Tanggal expired sertifikat wajib diisi untuk renewal.");
+            }
+
+            // judul-fleksibel-cek-duplikat (2026-06-15): soft-block judul kembar (cegah double sertifikat).
+            // Berlaku standard + PrePost. Skip renewal (judul sengaja reuse sertifikat asal). Override via konfirmasi.
+            if (!string.IsNullOrWhiteSpace(model.Title)
+                && !isRenewalModePost
+                && !ConfirmDuplicateTitle)
+            {
+                var dupMatches = await FindTitleDuplicatesAsync(_context, model.Title);
+                if (dupMatches.Count > 0)
+                {
+                    ModelState.AddModelError("Title",
+                        $"Judul '{model.Title}' sudah dipakai di {dupMatches.Count} assessment. " +
+                        "Centang konfirmasi di bawah untuk tetap membuat dengan judul sama.");
+                    ViewBag.DuplicateTitleWarning = true;
+                }
             }
 
             // XOR validation: hanya satu renewal FK yang boleh diisi
@@ -3429,6 +3451,73 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
+        // --- ESSAY GRADING PAGE per-worker (Phase 384 UIG-02/03) ---
+        // GET action BARU (append sebelah AssessmentMonitoringDetail). Clone single-session essay
+        // loader dari builder "Essay grading items per session". Backend POST endpoint TAK diubah.
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EssayGrading(
+            int sessionId, string title, string category, DateTime scheduleDate, string? assessmentType = null)
+        {
+            var session = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == sessionId);
+            if (session == null || !session.HasManualGrading)
+            {
+                TempData["Error"] = "Sesi penilaian essay tidak ditemukan.";
+                return RedirectToAction("AssessmentMonitoringDetail",
+                    new { title, category, scheduleDate, assessmentType });
+            }
+
+            // CLONE single-session essay loader (dari builder "Essay grading items per session" di AssessmentMonitoringDetail)
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == session.Id);
+            var items = new List<EssayGradingItemViewModel>();
+            if (assignment != null)
+            {
+                var shuffled = assignment.GetShuffledQuestionIds();
+                var essayQs = await _context.PackageQuestions
+                    .Where(q => shuffled.Contains(q.Id) && q.QuestionType == "Essay")
+                    .ToListAsync();
+                var essayRespMap = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == session.Id &&
+                           essayQs.Select(q => q.Id).Contains(r.PackageQuestionId))
+                    .ToDictionaryAsync(r => r.PackageQuestionId);
+                items = essayQs.Select((q, idx) => new EssayGradingItemViewModel
+                {
+                    QuestionId    = q.Id,
+                    DisplayNumber = idx + 1,
+                    QuestionText  = q.QuestionText ?? "",
+                    Rubrik        = q.Rubrik,
+                    TextAnswer    = essayRespMap.TryGetValue(q.Id, out var resp) ? resp.TextAnswer : null,
+                    EssayScore    = essayRespMap.TryGetValue(q.Id, out var resp2) ? resp2.EssayScore : null,
+                    ScoreValue    = q.ScoreValue,
+                    ImagePath     = q.ImagePath,
+                    ImageAlt      = q.ImageAlt
+                }).ToList();
+            }
+
+            var essayPendingCount = items.Count(i => i.EssayScore == null);
+            var isFinalized = session.Status == AssessmentConstants.AssessmentStatus.Completed
+                              && !string.IsNullOrEmpty(session.NomorSertifikat);
+
+            var model = new EssayGradingPageViewModel
+            {
+                SessionId         = session.Id,
+                UserFullName      = session.User?.FullName ?? "(Nama tidak tersedia)",
+                UserNIP           = session.User?.NIP ?? "",
+                EssayPendingCount = essayPendingCount,
+                IsFinalized       = isFinalized,
+                CompletedAt       = session.CompletedAt,
+                EssayItems        = items,
+                Title             = title,
+                Category          = category,
+                ScheduleDate      = scheduleDate.ToString("yyyy-MM-dd"),
+                AssessmentType    = assessmentType
+            };
+            return View(model);
+        }
+
         // --- SUBMIT ESSAY SCORE (Phase 298-05, D-15/D-16) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -4992,7 +5081,8 @@ namespace HcPortal.Controllers
                                     else if (!string.IsNullOrEmpty(resp.TextAnswer))
                                     {
                                         jawaban = resp.TextAnswer.Length > 300 ? resp.TextAnswer.Substring(0, 300) + "..." : resp.TextAnswer;
-                                        correct = resp.EssayScore.HasValue ? (bool?)(resp.EssayScore.Value >= (q.ScoreValue / 2)) : null;
+                                        // Phase 383 ECG-05/D-03 unify: PDF essay correctness via IsQuestionCorrect (essay > 0; null = pending) — sama dengan web Results.
+                                        correct = AssessmentScoreAggregator.IsQuestionCorrect(q, sessionResponses.Where(r => r.PackageQuestionId == q.Id));
                                     }
                                 }
 

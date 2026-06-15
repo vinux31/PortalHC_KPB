@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apa yang Baru di Portal HC KPB — v25–v29</title>
+<style>
+  :root{
+    --merah:#E4002B; --biru:#00558C; --biru-muda:#0a7abf; --hijau:#1a9e57;
+    --abu:#5b6470; --abu-muda:#eef1f5; --garis:#e2e7ee; --kuning:#f6a609;
+    --teks:#1d242e; --putih:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;color:var(--teks);
+    background:#f4f6f9;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+
+  /* Header */
+  header{background:linear-gradient(135deg,#0a7abf 0%,#00558C 100%);color:#fff;padding:46px 0 40px}
+  header .wrap{display:flex;flex-direction:column;gap:14px}
+  .pill{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    padding:5px 14px;border-radius:30px;font-size:13px;font-weight:600;letter-spacing:.3px;width:max-content}
+  header h1{font-size:31px;line-height:1.25;font-weight:700;max-width:780px}
+  header p.sub{font-size:17px;opacity:.92;max-width:740px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .meta span{font-size:13px;background:rgba(255,255,255,.12);padding:4px 11px;border-radius:6px}
+
+  /* Nav antar-dokumen */
+  .docnav{background:#fff;border-bottom:1px solid var(--garis);padding:11px 0}
+  .docnav .wrap{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:14px}
+  .docnav a{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--biru);
+    border:1px solid var(--garis);background:#fff;padding:7px 14px;border-radius:8px;font-weight:600}
+  .docnav a.aktif{background:var(--biru);color:#fff;border-color:var(--biru)}
+  .docnav a:hover{border-color:var(--biru-muda)}
+  .docnav span.lbl{color:var(--abu);font-weight:600}
+
+  section{padding:38px 0}
+  section.alt{background:#fff;border-top:1px solid var(--garis);border-bottom:1px solid var(--garis)}
+  h2{font-size:23px;color:var(--biru);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  h2 .num{background:var(--merah);color:#fff;font-size:14px;width:28px;height:28px;border-radius:7px;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
+  .lead{color:var(--abu);font-size:16px;margin-bottom:22px;max-width:780px}
+
+  /* Kartu fitur baru */
+  .fitur{background:#fff;border:1px solid var(--garis);border-left:5px solid var(--biru-muda);
+    border-radius:12px;padding:20px 22px;margin-bottom:18px}
+  .fitur .head{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+  .fitur .ic{font-size:24px;flex:0 0 auto}
+  .fitur h3{font-size:18px;color:var(--teks)}
+  .fitur .ver{font-size:11.5px;font-weight:700;color:var(--biru);background:var(--abu-muda);
+    padding:2px 9px;border-radius:20px}
+  .fitur .who{font-size:12.5px;color:var(--abu);margin-bottom:13px}
+  .fitur .who b{color:var(--merah)}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ba .box{border-radius:8px;padding:11px 13px;font-size:14px}
+  .ba .dulu{background:#fdecec;border:1px solid #f6c9c9}
+  .ba .kini{background:#e8f6ee;border:1px solid #bfe6cf}
+  .ba .box b{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+  .ba .dulu b{color:var(--merah)}
+  .ba .kini b{color:var(--hijau)}
+  .fitur .dimana{margin-top:12px;font-size:13.5px;background:#eef6ff;border:1px solid #cfe4f7;
+    border-radius:8px;padding:9px 13px;color:var(--biru)}
+  .fitur .dimana b{color:var(--biru)}
+
+  /* Alur */
+  .flow{display:flex;flex-direction:column;gap:0;margin-top:6px}
+  .step{display:flex;gap:16px;align-items:flex-start;position:relative;padding-bottom:18px}
+  .step:not(:last-child)::before{content:"";position:absolute;left:17px;top:36px;bottom:0;width:2px;background:var(--garis)}
+  .step .dot{width:36px;height:36px;border-radius:50%;background:var(--biru);color:#fff;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:15px;z-index:1}
+  .step .isi{padding-top:4px}
+  .step .isi b{font-size:15.5px}
+  .step .isi p{font-size:14px;color:var(--abu);margin-top:2px}
+
+  .alur-blok{background:#fff;border:1px solid var(--garis);border-radius:12px;padding:20px 24px;margin-bottom:18px}
+  .alur-blok h3{font-size:18px;color:var(--biru);margin-bottom:4px}
+  .alur-blok .sub{font-size:13.5px;color:var(--abu);margin-bottom:14px}
+
+  /* Catatan sosialisasi */
+  .note{background:#fff8ea;border:1px solid #f3dca0;border-left:5px solid var(--kuning);
+    border-radius:10px;padding:16px 20px;margin-bottom:14px}
+  .note h4{color:#9a6c00;font-size:15.5px;margin-bottom:4px}
+  .note p{font-size:14.5px;color:#6b5a32}
+  .note.blue{background:#eef6ff;border-color:#cfe4f7;border-left-color:var(--biru-muda)}
+  .note.blue h4{color:var(--biru)}
+  .note.blue p{color:#21506f}
+
+  .cta{background:#1d242e;color:#fff;border-radius:12px;
+    padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .cta .t b{font-size:17px}
+  .cta .t p{font-size:14px;opacity:.85;margin-top:2px}
+  .cta a{background:var(--biru-muda);color:#fff;text-decoration:none;font-weight:700;padding:11px 20px;
+    border-radius:9px;font-size:14.5px;white-space:nowrap}
+
+  footer{background:#1d242e;color:#aeb6c2;padding:26px 0;font-size:13.5px;text-align:center}
+  footer b{color:#fff}
+
+  @media(max-width:720px){
+    .ba{grid-template-columns:1fr}
+    header h1{font-size:25px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="pill">PEMBERITAHUAN SISTEM · Portal HC KPB</span>
+    <h1>Apa yang Baru — Fitur, Fasilitas &amp; Alur Baru</h1>
+    <p class="sub">Rangkuman hal-hal baru hasil milestone <b>v25.0–v29.0</b> yang berdampak ke cara kerja sehari-hari — disusun untuk <b>disosialisasikan tim HC</b> ke admin dan pekerja. Hanya yang terlihat/terasa oleh pengguna; perbaikan internal yang tak kelihatan tidak dimasukkan.</p>
+    <div class="meta">
+      <span>🆕 5 Fasilitas/Fitur baru</span>
+      <span>🔀 3 Alur yang berubah</span>
+      <span>👥 Untuk admin &amp; pekerja</span>
+    </div>
+  </div>
+</header>
+
+<div class="docnav">
+  <div class="wrap">
+    <span class="lbl">Dokumen:</span>
+    <a href="index.html">📋 Ringkasan Pekerjaan</a>
+    <a class="aktif" href="apa-yang-baru.html">🆕 Apa yang Baru (Fitur &amp; Alur)</a>
+  </div>
+</div>
+
+<!-- A. Fitur & Fasilitas Baru -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">A</span> Fitur &amp; Fasilitas Baru</h2>
+    <p class="lead">Hal baru yang sekarang tersedia di portal. Tiap kartu menunjukkan kondisi <span style="color:var(--merah);font-weight:600">dulu</span> dan <span style="color:var(--hijau);font-weight:600">sekarang</span>, plus di mana menemukannya.</p>
+
+    <!-- Bypass Tahun -->
+    <div class="fitur" style="border-left-color:#0a7abf">
+      <div class="head">
+        <span class="ic">🔁</span>
+        <h3>Bypass Tahun PROTON</h3>
+        <span class="ver">v25.0</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Tidak ada cara resmi memindahkan pekerja antar tahun PROTON — harus menunggu jalur normal atau diakali manual.</div>
+        <div class="box kini"><b>Sekarang</b>HC bisa memindahkan pekerja ke tahun lain lewat wizard "Bypass Tahun" — dengan pilihan mode, konfirmasi, dan catatan audit. Ada panel "Menunggu Konfirmasi" untuk kasus yang menunggu hasil ujian.</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Halaman Override PROTON → tab "Bypass Tahun".</div>
+    </div>
+
+    <!-- Toggle Acak -->
+    <div class="fitur" style="border-left-color:var(--kuning)">
+      <div class="head">
+        <span class="ic">🎲</span>
+        <h3>Tombol Acak Soal &amp; Acak Pilihan</h3>
+        <span class="ver">v27.0</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Pengacakan soal selalu menyala dan tidak bisa dimatikan; tidak ada kendali per ujian.</div>
+        <div class="box kini"><b>Sekarang</b>Ada dua sakelar terpisah — "Acak Soal" dan "Acak Pilihan Jawaban" — yang bisa di-ON/OFF per ujian. Default tetap ON. Sakelar otomatis terkunci begitu ada peserta mulai mengerjakan.</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Halaman Kelola Paket (ManagePackages) bagian atas, dan saat membuat ujian (wizard Langkah 3).</div>
+    </div>
+
+    <!-- Hitung ulang esai -->
+    <div class="fitur" style="border-left-color:#0a7abf">
+      <div class="head">
+        <span class="ic">🧮</span>
+        <h3>Alat Hitung-Ulang Nilai Esai</h3>
+        <span class="ver">v28.0</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Ujian esai-saja kadang menampilkan nilai 0 walau sudah dinilai, dan data lama yang terlanjur salah sulit dirapikan.</div>
+        <div class="box kini"><b>Sekarang</b>Nilai esai terhitung benar otomatis ke depan. Untuk data lama, tersedia tombol "Hitung Ulang Nilai Esai" yang aman dijalankan (hanya memperbaiki nilai &amp; status lulus).</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Menu admin assessment (dipakai sekali untuk merapikan data lama bila perlu).</div>
+    </div>
+
+    <!-- Records visibility -->
+    <div class="fitur" style="border-left-color:var(--hijau)">
+      <div class="head">
+        <span class="ic">👁️</span>
+        <h3>Rekam Online Terlihat di Tab Input Records</h3>
+        <span class="ver">v26.0</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Tab Input Records hanya menampilkan rekam manual; sesi ujian online tidak muncul. Daftar sesi juga dibatasi 7 hari terakhir, dan pencarian nama kadang tak berfungsi.</div>
+        <div class="box kini"><b>Sekarang</b>Sesi ujian online ikut tampil per pekerja dengan badge "Assessment Online". Daftar tidak lagi dibatasi 7 hari (sesi lama ikut terlihat), dan pencarian nama/NIP berfungsi andal.</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Tab Input Records, dan Tab Assessment / Monitoring.</div>
+    </div>
+
+    <!-- Kelulusan otomatis + gate -->
+    <div class="fitur" style="border-left-color:var(--merah)">
+      <div class="head">
+        <span class="ic">✅</span>
+        <h3>Kelulusan PROTON Otomatis + Gerbang Berurutan</h3>
+        <span class="ver">v25.0</span>
+      </div>
+      <div class="who">Untuk: <b>HC / Admin &amp; Pekerja</b></div>
+      <div class="ba">
+        <div class="box dulu"><b>Dulu</b>Hanya wawancara Tahun 3 yang menandai "Lulus". Exam Tahun 1/2 yang lulus tidak tercatat, dan pekerja bisa diarahkan ke tahun berikutnya walau tahun sebelumnya belum tuntas.</div>
+        <div class="box kini"><b>Sekarang</b>Exam Tahun 1 &amp; 2 yang lulus otomatis tercatat "Lulus" di dashboard. Pekerja hanya bisa lanjut ke tahun berikutnya bila tahun sebelumnya sudah lulus (dijaga sistem).</div>
+      </div>
+      <div class="dimana">📍 <b>Lokasi:</b> Dashboard CDP / Histori PROTON; aturan berlaku otomatis saat membuat assessment PROTON.</div>
+    </div>
+  </div>
+</section>
+
+<!-- B. Alur yang Berubah -->
+<section class="alt">
+  <div class="wrap">
+    <h2><span class="num">B</span> Alur yang Berubah</h2>
+    <p class="lead">Tiga alur kerja yang sekarang berjalan berbeda dari sebelumnya. Penting dipahami HC saat mendampingi pekerja.</p>
+
+    <!-- Alur ujian online -->
+    <div class="alur-blok">
+      <h3>🧭 Alur Ujian Online Sekarang</h3>
+      <div class="sub">Setelah perbaikan v29.0 — perjalanan pekerja dari masuk ujian sampai dapat sertifikat. Tiap langkah kini saling menjaga.</div>
+      <div class="flow">
+        <div class="step"><div class="dot">1</div><div class="isi"><b>Admin menyiapkan ujian</b><p>Atur paket soal, token, dan tambahan waktu — dengan batas yang aman (hanya Admin/HC).</p></div></div>
+        <div class="step"><div class="dot">2</div><div class="isi"><b>Pekerja masuk &amp; dapat soal yang benar</b><p>Paket tidak kosong, Pre/Post tidak tercampur, token berfungsi, dan tidak rusak walau admin "mengintip".</p></div></div>
+        <div class="step"><div class="dot">3</div><div class="isi"><b>Pekerja mengerjakan dalam batas waktu</b><p>Jawaban tersimpan; token &amp; waktu diperiksa di setiap langkah.</p></div></div>
+        <div class="step"><div class="dot">4</div><div class="isi"><b>Pekerja mengirim ujian</b><p>Hanya diterima bila masih dalam waktu &amp; token valid; sinyal palsu dari browser diabaikan.</p></div></div>
+        <div class="step"><div class="dot">5</div><div class="isi"><b>Nilai dihitung dari jawaban final</b><p>Tanpa jawaban basi/duplikat — nilai yang tampil = nilai yang tersimpan.</p></div></div>
+        <div class="step"><div class="dot">6</div><div class="isi"><b>Kelulusan &amp; sertifikat terbit</b><p>Hanya untuk ujian yang benar-benar selesai (bukan yang dibatalkan); hasil terkunci aman.</p></div></div>
+        <div class="step"><div class="dot">7</div><div class="isi"><b>Sertifikat tampil "Aktif" di mana-mana</b><p>Dashboard, lencana, dan notifikasi menampilkan status yang sama &amp; benar.</p></div></div>
+      </div>
+    </div>
+
+    <!-- Alur PROTON -->
+    <div class="alur-blok">
+      <h3>🪜 Alur PROTON: Gerbang Berurutan &amp; Bypass</h3>
+      <div class="sub">Cara kelulusan PROTON dijaga sekarang.</div>
+      <div class="flow">
+        <div class="step"><div class="dot">1</div><div class="isi"><b>Tahun dikerjakan berurutan</b><p>Pekerja menyelesaikan Tahun 1 dulu. Exam lulus → otomatis tercatat "Lulus".</p></div></div>
+        <div class="step"><div class="dot">2</div><div class="isi"><b>Gerbang antar-tahun</b><p>Tahun berikutnya baru terbuka bila tahun sebelumnya lulus — dijaga sistem, tidak bisa diakali dari tampilan.</p></div></div>
+        <div class="step"><div class="dot">3</div><div class="isi"><b>Bila perlu pengecualian → Bypass</b><p>HC bisa memindahkan pekerja antar tahun lewat fitur Bypass Tahun (dengan konfirmasi &amp; audit), termasuk kasus yang menunggu hasil ujian.</p></div></div>
+        <div class="step"><div class="dot">4</div><div class="isi"><b>Tamat setelah Tahun 3</b><p>"Mark graduated" hanya bisa setelah Tahun 3 benar-benar lulus.</p></div></div>
+      </div>
+    </div>
+
+    <!-- Impersonate -->
+    <div class="alur-blok">
+      <h3>🎭 "Menyamar" (Impersonate) Kini Menampilkan Data yang Benar</h3>
+      <div class="sub">Perubahan penting saat admin membuka portal sebagai pekerja lain.</div>
+      <div class="flow">
+        <div class="step"><div class="dot">1</div><div class="isi"><b>Admin pilih "lihat sebagai" pekerja X</b><p>Banner "Anda melihat sebagai X" tampil jujur.</p></div></div>
+        <div class="step"><div class="dot">2</div><div class="isi"><b>Semua layar menampilkan data X</b><p>Sertifikat, riwayat training, progress, dan assessment yang tampil adalah milik X — bukan data admin. (Sebelumnya bisa tercampur data admin.)</p></div></div>
+        <div class="step"><div class="dot">3</div><div class="isi"><b>Mengintip tidak merusak ujian X</b><p>Admin yang membuka ujian pekerja hanya melihat (read-only) — tidak memulai ujian, membakar waktu, atau mengunci urutan soal pekerja.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- C. Catatan sosialisasi -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">C</span> Catatan untuk Sosialisasi</h2>
+    <p class="lead">Poin singkat yang baik diingatkan ke admin dan pekerja.</p>
+
+    <div class="note blue">
+      <h4>👩‍💼 Untuk Admin / HC</h4>
+      <p>Saat mematikan "Acak Soal" dengan 2+ paket, tiap pekerja tetap mendapat 1 paket utuh secara adil. Atur token dengan huruf bebas (besar/kecil) — sistem mencocokkan tanpa peduli kapitalisasi. Sakelar acak terkunci begitu ada peserta mulai, jadi setel sebelum ujian dibuka.</p>
+    </div>
+
+    <div class="note blue">
+      <h4>🧑‍🔧 Untuk Pekerja</h4>
+      <p>Jika ujian tampak kosong atau token ditolak, itu sekarang dicegah sistem; bila tetap terjadi, hubungi Admin/HC (bukan kegagalan otomatis). Sertifikat yang tidak punya tanggal kedaluwarsa akan tampil "Aktif/Permanen" — bukan "Expired".</p>
+    </div>
+
+    <div class="note">
+      <h4>⏳ Satu hal menunggu konfirmasi visual (bukan penghalang)</h4>
+      <p>Tampilan sertifikat "Aktif/Permanen" di dashboard perlu dilihat sekilas langsung di browser untuk memastikan tampilannya pas. Kebenaran datanya sudah dipastikan otomatis lewat pengujian.</p>
+    </div>
+
+    <div class="cta">
+      <div class="t">
+        <b>📋 Ingin lihat seluruh pekerjaan v25–v29?</b>
+        <p>Ringkasan apa yang dikerjakan tiap milestone dan hasilnya.</p>
+      </div>
+      <a href="index.html">Buka Ringkasan →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>Apa yang Baru di Portal HC KPB — v25.0 sampai v29.0</b><br>
+    Portal HC KPB · Periode Juni 2026 · Bahan sosialisasi tim HC<br>
+    <span style="opacity:.7">Hanya perubahan yang terlihat/terasa pengguna. Ringkasan lengkap: <code>index.html</code>.</span>
+  </div>
+</footer>
+
+</body>
+</html>

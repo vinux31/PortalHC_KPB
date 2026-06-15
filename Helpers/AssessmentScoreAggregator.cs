@@ -58,5 +58,43 @@ namespace HcPortal.Helpers
             int percentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;   // D-04 LOCKED
             return new ScoreAggregateResult(totalScore, maxScore, percentage, percentage >= passPercentage);
         }
+
+        /// <summary>
+        /// Phase 383 ECG-01 — Per-question correctness untuk DISPLAY (count "(X/Y benar)", Elemen Teknis,
+        /// Tinjauan badge, PDF export). bool?: true=Benar, false=Salah, null=essay belum dinilai (pending).
+        /// Single source of truth (kill-drift Phase 363/365/376) — JANGAN recompute correctness inline lagi.
+        /// MC/MA me-mirror DISPLAY-path inline CMPController.Results (L2259-2324) byte-for-byte:
+        ///   - MultipleChoice: benar iff satu-satunya opsi terpilih ber-IsCorrect; 0 terpilih → false.
+        ///   - MultipleAnswer: selected.Count > 0 &amp;&amp; selected.SetEquals(correct) — non-empty guard (GRD-02).
+        ///     (SetEquals simetris: ≡ correct.SetEquals(selected) di inline L2263.)
+        ///   - Essay (D-02): EssayScore.HasValue ? EssayScore.Value > 0 : null.
+        /// Pure: hanya System.Linq + HcPortal.Models, sinkron, EF-free, unit-testable. Tidak menyentuh Compute (D-04 formula LOCKED).
+        /// </summary>
+        public static bool? IsQuestionCorrect(PackageQuestion q, IEnumerable<PackageUserResponse> responsesForQ)
+        {
+            var list = responsesForQ as IList<PackageUserResponse> ?? responsesForQ.ToList();
+            switch (q.QuestionType ?? "MultipleChoice")
+            {
+                case "MultipleAnswer":
+                {
+                    var selected = list.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue).Select(r => r.PackageOptionId!.Value).ToHashSet();
+                    var correct  = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                    return selected.Count > 0 && selected.SetEquals(correct);   // GRD-02 non-empty guard
+                }
+                case "Essay":
+                {
+                    var essay = list.FirstOrDefault(r => r.PackageQuestionId == q.Id);
+                    if (essay?.EssayScore.HasValue != true) return null;        // pending
+                    return essay.EssayScore.Value > 0;                          // D-02
+                }
+                default: // MultipleChoice
+                {
+                    var sel = list.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue).Select(r => r.PackageOptionId!.Value).ToHashSet();
+                    if (sel.Count == 0) return false;
+                    var opt = q.Options.FirstOrDefault(o => sel.Contains(o.Id));
+                    return opt != null && opt.IsCorrect;
+                }
+            }
+        }
     }
 }
