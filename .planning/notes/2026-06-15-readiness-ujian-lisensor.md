@@ -155,6 +155,24 @@ Dijalankan langsung di `http://10.55.3.3/KPB-PortalHC` (login Admin KPB, assessm
 
 Semua **0 migration**. Fix = view/controller/validasi + re-deploy IT.
 
+### TRIASE 2-HARI (acara ~2026-06-17; komposisi SA+MA+Essay+GAMBAR; PDF per-peserta = bukti RESMI)
+
+Konfirmasi user 2026-06-15: ujian **ada soal bergambar** + **PDF bukti resmi** → F-09 & F-17 masuk wajib.
+
+**HARUS DIPERBAIKI (1× deploy):**
+- **F-09** (HIGH) gambar PathBase — ada soal bergambar → wajib.
+- **F-DEV-01** (HIGH) validasi soal wajib ≥1 opsi (+ cek manual soal saat setup).
+- **F-21** (HIGH) flush essay saat submit/blur (jangan tunggu debounce 2s).
+- **F-04** (MED) essay kosong → dead-end finalize; samakan hitung pending.
+- **F-17** (MED) PDF per-peserta nilai MA pakai SetEquals (bukan FirstOrDefault) — PDF resmi.
+- **F-18 KONDISIONAL:** wajib HANYA jika pakai >1 paket. Mitigasi: **pakai 1 paket** → skip.
+
+**FUTURE (pasca-acara):** F-02, F-03, F-01, F-06, F-11, F-13, F-19, F-20, F-22.
+
+**Mitigasi operasional (lakukan walau sudah fix):** 1 paket soal; cek tiap soal punya opsi; briefing peserta (MA all-or-nothing, jangan kosongkan essay, tunggu sebelum Kumpulkan).
+
+**Semua 0 migration.** Fix = view/controller/validasi → 1 push → IT re-deploy.
+
 ## Fakta scoring terverifikasi (2026-06-15)
 
 - Lulus: `percentage >= PassPercentage`; **default 70%** per-assessment (`AssessmentSession.cs:29`).
