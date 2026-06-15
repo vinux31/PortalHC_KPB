@@ -24,7 +24,7 @@ status: active
 - [x] **ECG-03**: Breakdown "Elemen Teknis" (`CMPController.cs:~2336-2369`) menghitung soal essay sesuai nilai HC (tidak lagi selalu salah).
 - [x] **ECG-04**: Badge "Tinjauan Jawaban" per-soal menampilkan Benar/Salah essay sesuai nilai (bukan selalu "Salah" merah) setelah finalize; essay belum dinilai tampil "Menunggu Penilaian" (pending) terlepas status sesi. Teks jawaban essay (`TextAnswer`) tampil di baris review.
 - [x] **ECG-05**: PDF export hasil (`AssessmentAdminController.cs:~5017`) memakai helper `IsQuestionCorrect` yang sama (essay `>0`) — web Results & PDF konsisten (D-03 unify, threshold lama `>=ScoreValue/2` diselaraskan ke `>0`).
-- [ ] **ECG-06**: Regression test mengunci logic Simpan Skor + Selesaikan Penilaian (poin 2, sudah benar — tanpa ubah kode): `SubmitEssayScore` persist `EssayScore` + authz; `FinalizeEssayGrading` recompute score termasuk essay + idempotent.
+- [x] **ECG-06**: Regression test mengunci logic Simpan Skor + Selesaikan Penilaian (poin 2, sudah benar — tanpa ubah kode): `SubmitEssayScore` persist `EssayScore` + authz; `FinalizeEssayGrading` recompute score termasuk essay + idempotent.
 
 ### Phase 384 (Fase 2) — Refactor UI Monitoring Penilaian Essay (poin 1) · backend unchanged, no-migration
 
@@ -58,7 +58,7 @@ status: active
 | ECG-03 | 383 | Complete |
 | ECG-04 | 383 | Complete |
 | ECG-05 | 383 | Complete |
-| ECG-06 | 383 | Pending |
+| ECG-06 | 383 | Complete |
 | UIG-01 | 384 | Pending |
 | UIG-02 | 384 | Pending |
 | UIG-03 | 384 | Pending |

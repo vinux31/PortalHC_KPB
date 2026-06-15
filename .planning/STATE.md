@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v30.0
 milestone_name: Essay Grading Correctness + Monitoring UI Refactor
 status: Executing Phase 383
-stopped_at: "383-02 autonomous tasks DONE (controller rewire f6f4ed43 + view/test 7f5d560a; build 0 error, non-Integration 318/318). Task 3 = checkpoint human-verify UAT runtime PENDING (sesi 166)."
-last_updated: "2026-06-15T02:57:30Z"
+stopped_at: Completed 383-04-PLAN.md (ECG-06 regression lock; 5 test, 440/440 full suite, 0 migration)
+last_updated: "2026-06-15T03:16:47.212Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 21
-  completed_phases: 0
-  total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 4
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -25,12 +25,13 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 383 (Essay Grading Correctness + Test (Fase 1)) — EXECUTING
-Plan: 02 ⏸ CHECKPOINT (autonomous tasks DONE; Task 3 human-verify PENDING). 01 + 03 ✅ DONE. 04 belum dieksekusi.
+Phase: 383 (Essay Grading Correctness + Test (Fase 1)) — ALL 4 PLANS DONE (ready verify/close)
+Plan: 04 ✅ DONE. 01 + 02 (Task 3 UAT approved) + 03 ✅ DONE. Phase 383 lengkap.
 
 - Plan 01 ✅ DONE — helper `IsQuestionCorrect` + 11 unit test, RED→GREEN, commits 32e49942/adf247d5.
-- Plan 02 ⏸ CHECKPOINT — 2 task autonomous DONE: `CMPController.Results` 4 site rewire ke `IsQuestionCorrect` + IsEssayPending D-06 broaden + D-07 essay UserAnswer=TextAnswer (commit f6f4ed43); blok Razor render teks essay di `Results.cshtml` + regression `ResultsEssayCorrectnessTests` count==6/ET-counts-essay (commit 7f5d560a). build 0 error, non-Integration 318/318. **Task 3 = checkpoint human-verify UAT runtime PENDING** — `dotnet run` → `CMP/Results/166` (sesi lokal CONFIRMED ADA: Completed/Score100/AllowReview=1/2-essay-graded EssayScore=10): cek count essay-aware + badge essay hijau "Benar" + teks "Jawaban Anda" tampil + ET hitung essay. **JANGAN self-approve.**
-- Plan 03 ✅ DONE (wave 2, paralel-aman dgn 02 — file beda) — PDF export essay correctness `GeneratePerPesertaPdf` di-unify ke `IsQuestionCorrect` (essay >0, null pending); threshold lama `>= ScoreValue/2` dihapus (ECG-05/D-03). commit 145f08fe; build 0 error, suite non-Integration 314/314.
+- Plan 02 ✅ DONE — `CMPController.Results` 4 site rewire ke `IsQuestionCorrect` + IsEssayPending D-06 broaden + D-07 essay UserAnswer=TextAnswer (commit f6f4ed43); blok Razor render teks essay + regression `ResultsEssayCorrectnessTests` (commit 7f5d560a). **Task 3 UAT APPROVED via browser** (commit 83d30dfa — CMP/Results/166 tampil 6/6, essay Soal 5/6 hijau Benar + teks jawaban + ET 6/6).
+- Plan 03 ✅ DONE (wave 2) — PDF export essay correctness `GeneratePerPesertaPdf` di-unify ke `IsQuestionCorrect` (essay >0, null pending); threshold lama `>= ScoreValue/2` dihapus (ECG-05/D-03). commit 145f08fe.
+- Plan 04 ✅ DONE (wave 3) — ECG-06 regression lock: `SubmitEssayScore` (persist + range guard) + `FinalizeEssayGrading` (recompute essay-aware + idempotent no-op Completed) via mirror-data-level + authz `[Authorize(Roles=Admin,HC)]` reflection-assert. **NO production code change (D-05** — controller hash identik baseline). 5 test baru di `EssayFinalizeRecomputeTests.cs` (real-SQL fixture, SQLEXPRESS tersedia). **full suite 440/440 incl Integration.** Migration guard: `dotnet ef add _verify_383` = 0 model diff (D-04 no-migration). commits 24e44cb4/158a9f03.
 
 **MILESTONE v30.0 STARTED.** Essay Grading Correctness + Monitoring UI Refactor (phases 383-384, 10 REQ ECG-01..06 + UIG-01..04). Driven by user bug report 2026-06-15: `CMP/Results` shows "Nilai Anda 100%" but "(4/6 benar)" — essays graded fully correct are counted wrong in the X/Y count, Elemen Teknis, Tinjauan Jawaban badge, and PDF export. Root cause (workflow-verified multi-agent): two divergent paths in `CMPController.Results()` — score% is essay-aware (Path A via `AssessmentScoreAggregator`), but count/ET/Tinjauan recompute inline with option-matching only (Path B, no Essay branch). Closes deferred backlog **RES-02** + **GRD-02**.
 
@@ -116,6 +117,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ### Decisions (persist across milestones)
 
+- [v30.0 / ECG-06 (383-04)]: Regression lock poin 2 (Simpan/Selesaikan essay) **tanpa ubah kode produksi (D-05)** — `Controllers/AssessmentAdminController.cs` hash identik baseline pasca-plan. 5 test baru di `HcPortal.Tests/EssayFinalizeRecomputeTests.cs` via **mirror-data-level** (precedent file ini — hindari ctor 12-dep controller): (1) `SubmitEssayScore` persist `EssayScore` + range guard `score<0||>ScoreValue` (mirror L3460-3477, T-298-13/V5); (2) `FinalizeEssayGrading` recompute **essay-aware** via `Compute` (Score=80 bukan 0) + **idempotent** no-op saat `Status==Completed` (mirror WHERE-guard `ExecuteUpdateAsync` L3593-3599 → re-run 0 baris, no double-count, D-03/T-383-09); (3) **authz `[Authorize(Roles="Admin, HC")]` kedua action dikunci via reflection-assert** (class pure `EssaySubmitFinalizeAuthzTests`, no DB — `GetMethods().First()` hindari overload-ambiguity; T-383-07/V4 — **BUKAN known gap**, RESEARCH OQ#3 resolved). Helper `QuestionOfSessionAsync` ([Rule 1 fix] scope soal ke session — `FirstAsync` global ambil soal milik test lain di fixture shared-DB). real-SQL disposable fixture (`Category=Integration`); SQLEXPRESS tersedia → integration jalan penuh. **full suite 440/440** (incl Integration). Migration guard: `dotnet ef migrations add _verify_383 --no-build` = empty Up/Down (0 model diff) → **D-04 0 migration baru** (plan test-only, zero model/DbContext change); orphan files dihapus, tree clean. commits 24e44cb4 (Submit) / 158a9f03 (Finalize+authz).
 - [v30.0 / ECG-02/03/04 (383-02)]: `CMPController.Results` 4 call-site di-unify ke `AssessmentScoreAggregator.IsQuestionCorrect` (kill-drift): review-on correctness (verdict==true→correctCount++), `IsEssayPending` broadened (D-06: essay && verdict==null, **independen status sesi** — graded essay di sesi Completed render Benar/Salah, ungraded selalu "Menunggu Penilaian"), review-off count, Elemen Teknis predicate. **Guard `selectedIds.Count == 0` (yang men-skip essay tanpa PackageOptionId) DIHAPUS** di review-off + ET — itu akar bug "(4/6 benar)". **D-07:** essay `UserAnswer = TextAnswer` worker + `CorrectAnswer = "Dinilai manual"` + blok Razor BARU di `Results.cshtml` me-render `question.UserAnswer` (Pitfall 1: view sebelumnya tak pernah merujuk UserAnswer → set controller saja tak tampil). Regression pure-unit `ResultsEssayCorrectnessTests` (4 fact: count==6, ET counts essay, zero=Salah, null=pending). commits f6f4ed43 (controller) / 7f5d560a (view+test); build 0 error, non-Integration 318/318. **Task 3 = checkpoint human-verify UAT runtime PENDING** (sesi 166 lokal ada: Completed/Score100/AllowReview=1/2-essay-graded EssayScore=10 + TextAnswer "Refinery"/"Alkylation").
 - [v30.0 / ECG-01 (383-01)]: Helper `AssessmentScoreAggregator.IsQuestionCorrect(q, responsesForQ) -> bool?` = single source correctness per-soal (true=Benar/false=Salah/null=essay pending). MC/MA mirror DISPLAY-path inline `CMPController.Results` (L2259-2324) byte-for-byte; cabang Essay baru `EssayScore.HasValue ? Value>0 : null` (D-02). **MA non-empty guard `selected.Count > 0 && SetEquals` sengaja BEDA dari `Compute` (scoring-path tanpa guard)** — display vs scoring concern terpisah (RESEARCH Pitfall 5); closes GRD-02. Pure/static/EF-free, 11 unit test no-DB hijau. `Compute` D-04 formula TIDAK diubah. Fondasi: consumer (3 site CMPController + PDF + View D-07) di Plan 02/03/04.
 - [v30.0 / ECG-05 / D-03 (383-03)]: PDF export essay correctness di `AssessmentAdminController.GeneratePerPesertaPdf` (L5018) di-unify ke `AssessmentScoreAggregator.IsQuestionCorrect(q, sessionResponses.Where(r => r.PackageQuestionId == q.Id))` (essay `>0` → Benar, `==0` → Salah, null → Pending). **Threshold lama `EssayScore >= ScoreValue/2` DIHAPUS** — perubahan behavior PDF DISENGAJA agar PDF & web Results pakai satu aturan (kill-drift, tak bisa divergen lagi). `statusColor`/`statusText` + truncate 300 char dipertahankan; `SubmitEssayScore`/`FinalizeEssayGrading` TAK disentuh (D-05 lock-only, Plan 04). Render QuestPDF/SkiaSharp bisa env-blocked lokal (Phase 327) → code-verify cukup (aturan dikunci 11 unit test Plan 01). commit 145f08fe; build 0 error, suite non-Integration 314/314.
@@ -149,6 +151,6 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 Last activity: 2026-06-15
 
-Stopped at: 383-02 autonomous tasks DONE (controller rewire f6f4ed43 + view/test 7f5d560a; build 0 error, non-Integration 318/318). **Task 3 = checkpoint human-verify UAT runtime PENDING.**
+Stopped at: Completed 383-04-PLAN.md (ECG-06 regression lock; 5 test, 440/440 full suite, 0 migration)
 
-Next action: **UAT runtime 383-02 Task 3 (human-verify, JANGAN self-approve)** — `dotnet run` (set `Authentication__UseActiveDirectory=false` bila perlu login lokal) → login `admin@pertamina.com` → buka `http://localhost:5277/CMP/Results/166` (sesi lokal CONFIRMED ADA: Completed, Score 100, AllowAnswerReview=1, 2 essay graded EssayScore=10 + TextAnswer "Refinery"/"Alkylation"). Verifikasi: (a) count header essay-aware (bukan men-skip 2 essay); (b) badge Tinjauan 2 soal essay hijau "Benar"; (c) baris essay tampil "Jawaban Anda: {teks}" + "Dinilai manual"; (d) Elemen Teknis hitung essay benar. Ketik "approved" bila benar. TIDAK perlu seed (pakai sesi 166 existing, 0 perubahan DB). Setelah approved: lanjut Plan 383-04 (regression ECG-06 Submit/Finalize lock). Pending non-blocker: notify IT carry migration 360/372 (v30.0 = 0 migration baru). JANGAN edit DB/kode Dev/Prod (CLAUDE.md). Catatan: dev server lokal di-stop saat build test — restart `dotnet run` bila perlu UAT.
+Next action: **Phase 383 SELESAI (4/4 plan DONE)** — `/gsd-verify-work 383` (verifikasi ECG-01..06 closure) lalu lanjut Phase 384 (Fase 2 Monitoring essay UI, UIG-01..04; plan 384-01/02 sudah ada). Plan 04 ECG-06: 5 test regression lock di `EssayFinalizeRecomputeTests.cs` (Submit persist+range, Finalize recompute-essay-aware+idempotent, authz reflection) — full suite 440/440 incl Integration, NO production change (D-05), 0 migration (D-04 guard PASSED). Pending non-blocker: notify IT carry migration 360/372 (v30.0 = 0 migration baru). JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
