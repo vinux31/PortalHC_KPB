@@ -5014,7 +5014,8 @@ namespace HcPortal.Controllers
                                     else if (!string.IsNullOrEmpty(resp.TextAnswer))
                                     {
                                         jawaban = resp.TextAnswer.Length > 300 ? resp.TextAnswer.Substring(0, 300) + "..." : resp.TextAnswer;
-                                        correct = resp.EssayScore.HasValue ? (bool?)(resp.EssayScore.Value >= (q.ScoreValue / 2)) : null;
+                                        // Phase 383 ECG-05/D-03 unify: PDF essay correctness via IsQuestionCorrect (essay > 0; null = pending) — sama dengan web Results.
+                                        correct = AssessmentScoreAggregator.IsQuestionCorrect(q, sessionResponses.Where(r => r.PackageQuestionId == q.Id));
                                     }
                                 }
 
