@@ -6,7 +6,9 @@
 <domain>
 ## Phase Boundary
 
-Bereskan **9 temuan readiness sisa** (PXF-06..14: 2 MED + 6 LOW + 1 MED same-file fold) dari register gladi-bersih E2E 2026-06-15 — kategori: correctness label/export, data-integrity exam-taking, a11y/monitoring. Tidak menghambat hari-H ujian lisensor; dikerjakan **PASCA-acara** sebagai deploy IT **kedua** (terpisah dari bundle urgent Phase 385-386).
+Bereskan **7 temuan readiness sisa** (PXF-06, 08, 09, 10, 11, 12, 13: 1 MED + 6 LOW) dari register gladi-bersih E2E 2026-06-15 — kategori: correctness label/export, data-integrity exam-taking, a11y/monitoring. Tidak menghambat hari-H ujian lisensor; dikerjakan **PASCA-acara** sebagai deploy IT **kedua** (terpisah dari bundle urgent Phase 385-386).
+
+> **Reconcile 2026-06-15 (plan-phase):** PXF-07 (F-02) + PXF-14 (F-DEV-02) **DIPINDAH ke Phase 386** — plan `386-05` Task 2 sudah me-rewrite seluruh blok `Helpers/ExcelExportHelper.cs:83-128` (`AddDetailPerSoalSheet`) ke `IsQuestionCorrect` (essay `>0` = fix F-02) + `BuildAnswerCell` (MA SetEquals = fix F-DEV-02, D-13 fold). Mempertahankannya di 387 = dua fase menulis blok sama. Phase 387 menyusut 9 → 7 REQ; D-04 + D-05 di bawah DIBATALKAN (lihat catatan).
 
 **Depends on Phase 386** (PXF-06/08/09/10 menyentuh `Controllers/AssessmentAdminController.cs` yang sama → kerjakan setelah 386 selesai untuk hindari konflik write). **0 migration.** Satu fase sekuensial.
 
@@ -29,14 +31,14 @@ Bereskan **9 temuan readiness sisa** (PXF-06..14: 2 MED + 6 LOW + 1 MED same-fil
 - **D-03:** **Retry 3× + log + surface ke HC.** Match pola `GradingService` (retry-loop 3× dengan unique-index). Bila tetap gagal setelah retry → log error + kembalikan pesan ke HC (mis. "Nomor sertifikat gagal dibuat, coba lagi"). HC sadar; hapus catch silent yang bisa loloskan lulus tanpa nomor cert tanpa siapa pun tahu.
 
 ### Mekanis (locked oleh carry-forward, Claude's Discretion pada detail)
-- **D-04 (PXF-07 F-02):** Excel "Detail Per Soal" label essay pakai helper kanonik `IsQuestionCorrect` (`>0`), bukan `EssayScore >= ScoreValue/2`. Konsisten dengan v30.0.
-- **D-05 (PXF-14 F-DEV-02):** Di method/file yang SAMA (`ExcelExportHelper.cs:78-115`), nilai soal Multiple Answer dengan `SetEquals` (baca SEMUA opsi terpilih, bukan `FirstOrDefault` 1-baris). **Fold satu kali edit blok 78-115 bersama PXF-07.**
-- **D-06 (PXF-09 F-19):** Excel BulkExport "Detail Jawaban" tampilkan skor/teks essay yang sudah dinilai (bukan selalu "—").
+- ~~**D-04 (PXF-07 F-02)**~~ **DIBATALKAN** — dipindah ke Phase 386 (386-05 Task 2 rewrite `AddDetailPerSoalSheet` ke `IsQuestionCorrect` essay `>0`). Bukan scope 387.
+- ~~**D-05 (PXF-14 F-DEV-02)**~~ **DIBATALKAN** — dipindah ke Phase 386 (386-05 Task 2 `BuildAnswerCell` MA SetEquals, D-13 fold). Bukan scope 387.
+- **D-06 (PXF-09 F-19):** Excel BulkExport "Detail Jawaban" tampilkan skor/teks essay yang sudah dinilai (bukan selalu "—"). **Sheet "Detail Jawaban" (`AssessmentAdminController.cs:~4797/4828`) BEDA dari "Detail Per Soal" yang ditangani 386 — pastikan tak salah surface.**
 - **D-07 (PXF-10 F-13):** `FinalizeEssayGrading` broadcast ke monitor group — ikuti pola SignalR broadcast yang sudah ada di flow monitoring (Claude pilih event/group yang konsisten).
 - **D-08 (PXF-11 F-11):** Gambar opsi Results/ExamSummary sertakan label huruf A/B/C/D pada `AriaContext` — derive huruf dari urutan/index opsi (Claude's discretion implementasi).
 
 ### Verifikasi
-- **D-09:** **Proporsional (pasca-acara).** Unit test untuk yang ada logika scoring/label: **PXF-06, PXF-07, PXF-09, PXF-12, PXF-14**. `dotnet build` 0 error + `dotnet run` localhost:5277. **Playwright HANYA PXF-11** (a11y render butuh runtime Razor — pelajaran Phase 354). LOW lain (PXF-08/10/13) cukup unit/manual + build. Bukan full-e2e semua.
+- **D-09:** **Proporsional (pasca-acara).** Unit test untuk yang ada logika: **PXF-06** (guard status), **PXF-09** (essay skor/teks display), **PXF-12** (MC no null-overwrite). `dotnet build` 0 error + `dotnet run` localhost:5277. **Playwright HANYA PXF-11** (a11y render butuh runtime Razor — pelajaran Phase 354). LOW lain (PXF-08/10/13) cukup unit/manual + build. Bukan full-e2e semua. (PXF-07/14 sudah pindah 386 — unit test-nya ikut 386.)
 
 ### Folded Todos
 Tidak ada todo difold. (Match `2026-06-11-one-time-cleanup-data-test...` = false-positive keyword, tidak relevan → lihat Deferred.)
@@ -56,11 +58,10 @@ Tidak ada todo difold. (Match `2026-06-11-one-time-cleanup-data-test...` = false
 
 ### Pola kode acuan (verified live session ini)
 - `Controllers/AssessmentAdminController.cs` — `SubmitEssayScore` (~3525, tambah guard status, D-01), `FinalizeEssayGrading` (~3566+: cert nomor ~3697 retry D-03, broadcast monitor ~3753 D-07), BulkExport "Detail Jawaban" (~4797/4828, essay skor/teks D-06).
-- `Helpers/ExcelExportHelper.cs:78-115` — blok "Detail Per Soal" (essay label ~111 D-04 + MA SetEquals ~83 D-05, satu edit).
 - `Hubs/AssessmentHub.cs` — `SaveTextAnswer:134` (tambah guard, D-02) vs `SaveMultipleAnswer:188` guard timer di `:205-212` (POLA ACUAN).
 - `Controllers/CMPController.cs:1712` — `SubmitExam` upsert MC (D-02 no null-overwrite).
 - `Views/CMP/Results.cshtml:388` — `_QuestionImage` partial call `AriaContext="opsi"` (D-08 tambah huruf).
-- Pola scoring kanonik: helper `IsQuestionCorrect` (essay `>0`) + MA `SetEquals` — v30.0 (lihat register "Fakta scoring terverifikasi").
+- ~~`Helpers/ExcelExportHelper.cs`~~ — TIDAK lagi scope 387 (PXF-07/14 pindah ke Phase 386). JANGAN sentuh dari 387.
 </canonical_refs>
 
 <code_context>
@@ -69,12 +70,12 @@ Tidak ada todo difold. (Match `2026-06-11-one-time-cleanup-data-test...` = false
 ### Reusable Assets
 - `SaveMultipleAnswer:205-212` guard timer-expired = pola siap-tiru untuk `SaveTextAnswer` (PXF-13).
 - `GradingService` retry-loop 3× + unique-index = pola siap-tiru untuk cert nomor essay (PXF-08).
-- Helper `IsQuestionCorrect` (kanonik `>0`) + `SetEquals` MA = sudah dipakai jalur web/Excel-per-session; tinggal diterapkan ke surface Excel "Detail Per Soal" (PXF-07/14) & BulkExport (PXF-09).
+- Helper `IsQuestionCorrect` (kanonik `>0`) = pola siap-tiru untuk BulkExport "Detail Jawaban" essay (PXF-09). (Surface "Detail Per Soal" + per-peserta PDF = scope Phase 386, bukan 387.)
 - Pola SignalR broadcast monitoring sudah ada di flow lain (PXF-10 ikut pola).
 
 ### Established Patterns
 - Status sesi: `Open` / `InProgress` / `Upcoming` / `Completed` (+ `PendingGrading` di alur essay). Guard PXF-06 harus bedakan terminal-finalized vs window-grading (D-01a).
-- `ExcelExportHelper.cs:78-115` satu blok foreach soal → PXF-07 + PXF-14 satu kali edit (hindari dua pass file sama).
+- `Helpers/ExcelExportHelper.cs` di-handle Phase 386 (386-05) — Phase 387 TIDAK menyentuh file ini.
 
 ### Integration Points
 - PXF-06/08/09/10 di `AssessmentAdminController.cs` → **depends Phase 386** (file-overlap, sekuensial setelah 386).
@@ -85,7 +86,7 @@ Tidak ada todo difold. (Match `2026-06-11-one-time-cleanup-data-test...` = false
 ## Specific Ideas
 
 - PXF-06 BLOCK pakai pesan Bahasa Indonesia jelas ke HC; jangan diam.
-- PXF-07 + PXF-14 = satu edit blok `ExcelExportHelper.cs:78-115` (jangan dipecah dua plan terpisah yang menulis blok sama).
+- PXF-09 = surface "Detail Jawaban" (`:~4828`), JANGAN tertukar dengan "Detail Per Soal" (scope 386).
 - Verifikasi pasca-acara proporsional: jangan over-engineer e2e untuk LOW yang sudah ter-cover unit (D-09).
 </specifics>
 

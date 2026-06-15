@@ -57,7 +57,7 @@ See .planning/MILESTONES.md for full history.
 
 - [ ] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration.
 - [ ] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration.
-- [ ] **Phase 387: Post-Lisensor Assessment Polish (PXF-06..14)** — Batch 9 temuan sisa pasca-acara (2 MED + 6 LOW + 1 MED same-file): guard `SubmitEssayScore` status (PXF-06), Excel "Detail Per Soal" label essay kanonik (PXF-07) + MA SetEquals (PXF-14), cert nomor retry+log (PXF-08), Excel BulkExport essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration.
+- [ ] **Phase 387: Post-Lisensor Assessment Polish (7 REQ)** — Batch sisa pasca-acara (1 MED + 6 LOW): guard `SubmitEssayScore` status (PXF-06), cert nomor retry+log (PXF-08), Excel BulkExport "Detail Jawaban" essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). **PXF-07 + PXF-14 dipindah ke Phase 386** (386-05 sudah rewrite `ExcelExportHelper.cs:83-128`). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration.
 
 ### Phase Details
 
@@ -99,22 +99,21 @@ See .planning/MILESTONES.md for full history.
 **UI hint:** yes
 
 ### Phase 387: Post-Lisensor Assessment Polish
-**Goal:** Bereskan 9 temuan readiness sisa (2 MED + 6 LOW + 1 MED same-file fold) yang tidak menghambat hari-H tapi mengganggu akurasi arsip/export & UX — dalam satu fase polish sekuensial pasca-acara: (a) `SubmitEssayScore` guard status agar edit skor essay pasca-finalize tak men-desync `Score`/`IsPassed`; (b) Excel "Detail Per Soal" label essay pakai helper kanonik `>0` + soal Multiple Answer dinilai SetEquals (bukan `FirstOrDefault` 1-baris); (c) nomor sertifikat jalur finalize essay retry-loop + log; (d) Excel BulkExport "Detail Jawaban" tampil skor/teks essay; (e) `FinalizeEssayGrading` broadcast monitor group; (f) a11y aria opsi sertakan huruf A/B/C/D; (g) `SubmitExam` MC upsert tak timpa jawaban jadi null; (h) `Hub.SaveTextAnswer` guard timer-expired.
-**Depends on:** **Phase 386** (PXF-06/08/09/10 menyentuh `AssessmentAdminController.cs` yang sama → kerjakan setelah 386 selesai untuk hindari konflik write). PXF-07+PXF-14 same-method `ExcelExportHelper.cs` (fold satu edit). Sisanya file-disjoint.
+**Goal:** Bereskan 7 temuan readiness sisa (1 MED + 6 LOW) yang tidak menghambat hari-H tapi mengganggu akurasi arsip/export & UX — dalam satu fase polish sekuensial pasca-acara: (a) `SubmitEssayScore` guard status agar edit skor essay pasca-finalize tak men-desync `Score`/`IsPassed`; (b) nomor sertifikat jalur finalize essay retry-loop + log; (c) Excel BulkExport "Detail Jawaban" tampil skor/teks essay; (d) `FinalizeEssayGrading` broadcast monitor group; (e) a11y aria opsi sertakan huruf A/B/C/D; (f) `SubmitExam` MC upsert tak timpa jawaban jadi null; (g) `Hub.SaveTextAnswer` guard timer-expired. **PXF-07 (F-02) + PXF-14 (F-DEV-02) dipindah ke Phase 386** (386-05 rewrite `ExcelExportHelper.cs:83-128`).
+**Depends on:** **Phase 386** (PXF-06/08/09/10 menyentuh `AssessmentAdminController.cs` yang sama → kerjakan setelah 386 selesai untuk hindari konflik write). Sisanya file-disjoint.
 **Migration:** false (murni view/controller/hub/validasi/display; tidak ada schema/write DB)
-**Requirements:** PXF-06, PXF-07, PXF-08, PXF-09, PXF-10, PXF-11, PXF-12, PXF-13, PXF-14
-**Files:** `Controllers/AssessmentAdminController.cs` — `SubmitEssayScore ~3525` (guard `session.Status`), `FinalizeEssayGrading ~3566+` cert nomor `~3697` (retry+log) & broadcast monitor `~3753`, BulkExport "Detail Jawaban" `~4797/4828` (essay skor/teks) · `Helpers/ExcelExportHelper.cs ~78-115` (essay label kanonik `~111` + MA SetEquals `~83`, satu blok) · `Views/CMP/Results.cshtml ~388` (aria huruf opsi) · `Controllers/CMPController.cs ~1712` (MC upsert no null-overwrite) · `Hubs/AssessmentHub.cs ~134` (SaveTextAnswer guard timer, contoh `SaveMultipleAnswer ~205-212`) · unit test (PXF-06/07/09/12/14) + Playwright (PXF-11 a11y render).
+**Requirements:** PXF-06, PXF-08, PXF-09, PXF-10, PXF-11, PXF-12, PXF-13
+**Files:** `Controllers/AssessmentAdminController.cs` — `SubmitEssayScore ~3525` (guard `session.Status`), `FinalizeEssayGrading ~3566+` cert nomor `~3697` (retry+log) & broadcast monitor `~3753`, BulkExport "Detail Jawaban" `~4797/4828` (essay skor/teks) · `Views/CMP/Results.cshtml ~388` (aria huruf opsi) · `Controllers/CMPController.cs ~1712` (MC upsert no null-overwrite) · `Hubs/AssessmentHub.cs ~134` (SaveTextAnswer guard timer, contoh `SaveMultipleAnswer ~205-212`) · unit test (PXF-06/09/12) + Playwright (PXF-11 a11y render). **TIDAK menyentuh `ExcelExportHelper.cs` (scope 386).**
 **Success Criteria** (what must be TRUE):
-  1. Edit skor essay setelah sesi Completed/Failed tidak meninggalkan `Score`/`IsPassed` basi (guard / recompute). *(PXF-06)*
-  2. Excel "Detail Per Soal" memberi label essay Benar/Salah kanonik (`>0`) & soal Multiple Answer dinilai all-or-nothing SetEquals (membaca semua opsi terpilih). *(PXF-07, PXF-14)*
-  3. Nomor sertifikat jalur finalize essay retry + log (tak loloskan lulus tanpa nomor karena collision silent). *(PXF-08)*
-  4. Excel BulkExport "Detail Jawaban" menampilkan skor/teks essay yang sudah dinilai (bukan "—"). *(PXF-09)*
-  5. `FinalizeEssayGrading` broadcast ke monitor group; gambar opsi Results/ExamSummary punya label huruf A/B/C/D; `SubmitExam` MC tak menimpa jawaban tersimpan jadi null; `Hub.SaveTextAnswer` menolak tulis pasca timer-expired. *(PXF-10, PXF-11, PXF-12, PXF-13)*
-  6. `dotnet build` 0 error + `dotnet test` hijau (unit PXF-06/07/09/12/14) + Playwright a11y PXF-11 + `dotnet run` localhost:5277 verify. 1 push → notify IT re-deploy (kedua, pasca-acara). *(semua PXF-06..14)*
+  1. Edit skor essay setelah sesi terminal/finalized (Completed/Failed) ditolak/guarded — tidak meninggalkan `Score`/`IsPassed` basi; saat window grading (`PendingGrading`) tetap jalan normal. *(PXF-06)*
+  2. Nomor sertifikat jalur finalize essay retry + log (tak loloskan lulus tanpa nomor karena collision silent). *(PXF-08)*
+  3. Excel BulkExport "Detail Jawaban" menampilkan skor/teks essay yang sudah dinilai (bukan "—"). *(PXF-09)*
+  4. `FinalizeEssayGrading` broadcast ke monitor group; gambar opsi Results/ExamSummary punya label huruf A/B/C/D; `SubmitExam` MC tak menimpa jawaban tersimpan jadi null; `Hub.SaveTextAnswer` menolak tulis pasca timer-expired. *(PXF-10, PXF-11, PXF-12, PXF-13)*
+  5. `dotnet build` 0 error + `dotnet test` hijau (unit PXF-06/09/12) + Playwright a11y PXF-11 + `dotnet run` localhost:5277 verify. 1 push → notify IT re-deploy (kedua, pasca-acara). *(semua 7 REQ)*
 **Plans:** TBD
 **UI hint:** yes
 
-**Active mapped: 14/14 ✓ (PXF-01 + PXF-03 → 385, PXF-02 + PXF-04 + PXF-05 → 386, PXF-06..14 → 387) — Orphans: 0 — Duplicates: 0 — 0 migration (ketiga phase) — file-overlap aman (PXF di AssessmentAdminController.cs sequential dalam fase; Phase 387 depends 386).**
+**Active mapped: 14/14 ✓ (PXF-01 + PXF-03 → 385; PXF-02 + PXF-04 + PXF-05 + PXF-07 + PXF-14 → 386; PXF-06/08/09/10/11/12/13 → 387) — Orphans: 0 — Duplicates: 0 — 0 migration (ketiga phase) — file-overlap aman (Phase 387 depends 386; tak menyentuh ExcelExportHelper.cs).**
 
 ### Progress Table
 
@@ -122,7 +121,7 @@ See .planning/MILESTONES.md for full history.
 |-------|----------------|--------|-----------|
 | 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete   | 2026-06-15 |
 | 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 0/6 | Planned | - |
-| 387. Post-Lisensor Assessment Polish (PXF-06..14) | 0/TBD | Not started | - |
+| 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 0/TBD | Not started | - |
 
 ### Coverage Validation
 
@@ -132,18 +131,18 @@ See .planning/MILESTONES.md for full history.
 | PXF-03 | F-21 | 385 | `Views/CMP/StartExam.cshtml` flush essay sebelum submit/blur/timeout + gate incomplete | Pending |
 | PXF-02 | F-DEV-01 | 386 | `AssessmentAdminController.cs` CreateQuestion/EditQuestion validasi ≥1 opsi ber-teks | Pending |
 | PXF-04 | F-04 | 386 | `AssessmentAdminController.cs` EssayGrading/SubmitEssayScore pending-count essay kosong | Pending |
-| PXF-05 | F-17 + F-DEV-02 | 386 | `AssessmentAdminController.cs` GeneratePerPesertaPdf + `Helpers/ExcelExportHelper.cs:83` AddDetailPerSoalSheet MA SetEquals via `IsQuestionCorrect`+`BuildAnswerCell` (D-13 fold) | Pending |
+| PXF-05 | F-17 | 386 | `AssessmentAdminController.cs` GeneratePerPesertaPdf MA SetEquals via `IsQuestionCorrect`+`BuildAnswerCell` | Pending |
+| PXF-07 | F-02 | 386 | `Helpers/ExcelExportHelper.cs:83-128` AddDetailPerSoalSheet essay label kanonik `>0` via `IsQuestionCorrect` (386-05 Task 2) | Pending |
+| PXF-14 | F-DEV-02 | 386 | `Helpers/ExcelExportHelper.cs:83-128` AddDetailPerSoalSheet MA SetEquals via `BuildAnswerCell` (386-05 Task 2, D-13 fold) | Pending |
 | PXF-06 | F-03 | 387 | `AssessmentAdminController.cs` SubmitEssayScore guard `session.Status` | Pending |
-| PXF-07 | F-02 | 387 | `ExcelExportHelper.cs:111` label essay kanonik `>0` | Pending |
 | PXF-08 | F-06 | 387 | `AssessmentAdminController.cs:3697` cert nomor retry+log | Pending |
-| PXF-09 | F-19 | 387 | `AssessmentAdminController.cs:4828` Excel BulkExport essay skor/teks | Pending |
+| PXF-09 | F-19 | 387 | `AssessmentAdminController.cs:4828` Excel BulkExport "Detail Jawaban" essay skor/teks | Pending |
 | PXF-10 | F-13 | 387 | `AssessmentAdminController.cs:3753` FinalizeEssayGrading broadcast monitor | Pending |
 | PXF-11 | F-11 | 387 | `Views/CMP/Results.cshtml:388` aria opsi huruf A/B/C/D | Pending |
 | PXF-12 | F-20 | 387 | `CMPController.cs:1712` SubmitExam MC no null-overwrite | Pending |
 | PXF-13 | F-22 | 387 | `Hubs/AssessmentHub.cs:134` SaveTextAnswer guard timer | Pending |
-| PXF-14 | F-DEV-02 | 387 | `ExcelExportHelper.cs:83` MA SetEquals (same-method PXF-07) | Pending |
 
-**Active mapped: 14/14 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration — 385-386 closes F-09/F-DEV-01/F-21/F-04/F-17 (must-fix); 387 closes F-03/F-02/F-06/F-19/F-13/F-11/F-20/F-22/F-DEV-02 (polish pasca-acara)**
+**Active mapped: 14/14 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration — 385 closes F-09/F-21; 386 closes F-DEV-01/F-04/F-17/F-02/F-DEV-02 (7 REQ); 387 closes F-03/F-06/F-19/F-13/F-11/F-20/F-22 (7 REQ polish pasca-acara)**
 
 </details>
 
