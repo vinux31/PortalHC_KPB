@@ -366,3 +366,55 @@ Repo: https://github.com/vinux31/PortalHC_KPB
 5. Re-run query count kandidat -> harus berkurang (idempotent, aman re-run).
 
 JANGAN edit DB langsung dengan UPDATE manual — gunakan endpoint (auditable + logika agregasi identik forward path, anti-drift).
+
+---
+
+# IT Notify — BUNDLE v24-v30 PUSHED ke origin/main (2026-06-15)
+
+**Tanggal:** 2026-06-15
+**Cakupan:** v24.0 → v30.0 (semua milestone yang sebelumnya tertahan di branch `ITHandoff`)
+**Status:** ✅ **PUSHED** — `origin/main` sudah berisi seluruh bundle. Branch: `main`.
+**Repo:** https://github.com/vinux31/PortalHC_KPB
+**Merge commit terbaru di main:** `e5f342e5`
+
+## TL;DR untuk IT
+
+- **Apa ini:** Hasil kerja v24-v30 di-merge dari branch `ITHandoff` ke `main` lalu di-push. `origin/main` kini = versi terbaru untuk deploy.
+- **Migration flag:** ✅ **MIGRATION REQUIRED — 5 migration** (akumulasi v24-v27; v28/v29/v30 = 0 migration).
+- **Cara apply:** **OTOMATIS saat app start.** `Program.cs:145` panggil `context.Database.Migrate()` → EF apply semua migration pending begitu build baru dijalankan. IT **tidak perlu** `dotnet ef database update` manual (boleh, tapi tak wajib). **WAJIB BACKUP DB dulu.**
+- **Verifikasi lokal:** `dotnet build` 0 error · `dotnet test` 450 passed / 0 failed.
+
+## 5 Migration (urut apply by timestamp)
+
+| # | Migration | Milestone | Perubahan skema |
+|---|-----------|-----------|-----------------|
+| 1 | `20260606030844_AddImageToPackageQuestionAndOption` | v24.0 | Kolom Image pada PackageQuestion + PackageOption (gambar di soal) |
+| 2 | `20260610014907_AddOriginToProtonFinalAssessment` | v25.0 | Kolom `Origin` di ProtonFinalAssessment (penanda kelulusan) |
+| 3 | `20260610094950_AddPendingProtonBypassAndAssignmentOrigin` | v25.0 | Tabel PendingProtonBypass + kolom Origin di assignment |
+| 4 | `20260611001939_AddPendingProtonBypassActiveUniqueIndex` | v25.0 | Filtered unique index (1 bypass aktif/koachee) |
+| 5 | `20260613095102_AddShuffleTogglesToAssessmentSession` | v27.0 | 2 kolom shuffle toggle di AssessmentSession |
+
+## Order of Operations (CRITICAL)
+
+1. `BACKUP DATABASE` (SOP standar — capture path .bak untuk rollback).
+2. Deploy build dari `origin/main` (pull/checkout `main`, publish ulang artifact).
+3. Start app → `context.Database.Migrate()` apply 5 migration otomatis (cek log startup).
+4. (Opsional) Post-verify schema: kolom Image / Origin / shuffle toggle + tabel PendingProtonBypass ada.
+5. Restart IIS / Kestrel pool.
+6. **SETELAH deploy:** jalankan `POST /Admin/RecomputeEssayScores` (Admin-only, idempotent) untuk perbaiki baris essay historis `Score=0` — lihat section Phase 376 di atas.
+
+## Self-heal seed otomatis (info, bukan aksi)
+
+Startup juga jalankan self-heal idempotent (aman, no-op kalau data sudah benar):
+- **F1 NormalizeOrganizationLevels** — recompute `OrganizationUnits.Level` by tree-depth (fix split-brain Level Dev).
+- **F2 SeedProtonTracks** — insert-if-missing 6 ProtonTrack master (fix dropdown Track / StatusData kosong).
+
+## Catatan
+
+- v28.0 (assessment/records bugfix) + v29.0 (WSE) + v30.0 (essay grading correctness + monitoring UI refactor) = **0 migration**, code-only.
+- v30.0 menambah endpoint `GET /Admin/EssayGrading` (page per-worker monitoring essay) + unify IsQuestionCorrect lintas Results/PDF.
+- Tag rilis `v24.0`–`v30.0` sudah ada di origin.
+
+## Contact
+
+Repo: https://github.com/vinux31/PortalHC_KPB · Branch: `main` · Commit: `e5f342e5`
