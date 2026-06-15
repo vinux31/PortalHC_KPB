@@ -88,7 +88,14 @@ See .planning/MILESTONES.md for full history.
   2. HC bisa menyelesaikan penilaian assessment walau peserta **mengosongkan essay** (tanpa baris jawaban): hitungan pending konsisten antara Monitoring dan page EssayGrading, tombol "Selesaikan Penilaian" muncul (tidak disembunyikan), tidak dead-end, dan essay kosong dinilai 0 poin otomatis (bukan error "Jawaban tidak ditemukan"). *(PXF-04 — closes F-04)*
   3. PDF bukti per-peserta (`GeneratePerPesertaPdf`/`BulkExportPdf`) menandai soal **Multiple Answer** Benar/Salah secara akurat dengan aturan all-or-nothing `SetEquals` (membaca SEMUA opsi terpilih, bukan 1 baris `FirstOrDefault`) — label PDF konsisten dengan penilaian web/Excel. *(PXF-05 — closes F-17)*
   4. `dotnet build` 0 error + `dotnet test` hijau termasuk: unit test validasi opsi (soal Single/Multiple 0-opsi ditolak, ≥1 opsi ber-teks diterima); unit test pending-count essay kosong (basis hitung Monitoring == page EssayGrading, tombol Selesaikan muncul); unit test PDF MA SetEquals (benar={A,C,D} ⇒ Benar, partial/superset ⇒ Salah). Plus Playwright untuk PXF-02 (admin ditolak simpan soal 0-opsi) + PXF-04 (HC finalize sesi dengan essay kosong). *(PXF-02, PXF-04, PXF-05)*
-**Plans:** TBD
+**Scope note (D-13 fold):** F-DEV-02 = `Helpers/ExcelExportHelper.cs:83` `AddDetailPerSoalSheet` MA mislabel (FirstOrDefault 1-baris) DI-FOLD ke PXF-05 (keputusan owner 2026-06-15) → diperbaiki di Phase 386 (Plan 05) pakai helper sama `IsQuestionCorrect`+`BuildAnswerCell`. **Konsekuensi: PXF-14 (Excel MA SetEquals `~83`) Phase 387 kini DITUTUP oleh Phase 386 — planner 387 jangan duplikasi (cek sisa PXF-07 essay-label `~111` saja).**
+**Plans:** 6 plans (6 waves)
+- [ ] 386-01-PLAN.md — Wave 0 scaffold 6 test files RED (OptionValidation/EssayEmptyPendingParity/PdfAnswerCell + 2 e2e) + extend authz/antiforgery lock (PXF-02/04/05)
+- [ ] 386-02-PLAN.md — Wave 1 extract pure helpers `ValidateQuestionOptions` (PXF-02) + `BuildAnswerCell` (PXF-05) → unit GREEN
+- [ ] 386-03-PLAN.md — Wave 2 wire PXF-02 validasi ke CreateQuestion + EditQuestion (controller edit 1/3)
+- [ ] 386-04-PLAN.md — Wave 3 PXF-04 predikat tunggal 4 titik + SubmitEssayScore upsert + status-guard (T-386-AUTHZ) (controller edit 2/3)
+- [ ] 386-05-PLAN.md — Wave 4 PXF-05 wire GeneratePerPesertaPdf + fold ExcelExportHelper AddDetailPerSoalSheet (D-13) (controller edit 3/3)
+- [ ] 386-06-PLAN.md — Wave 5 e2e GREEN + full suite + manual UAT checkpoint (PXF-02/04/05)
 **UI hint:** yes
 
 ### Phase 387: Post-Lisensor Assessment Polish
@@ -114,7 +121,7 @@ See .planning/MILESTONES.md for full history.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 0/2 | Not started | - |
-| 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 0/TBD | Not started | - |
+| 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 0/6 | Planned | - |
 | 387. Post-Lisensor Assessment Polish (PXF-06..14) | 0/TBD | Not started | - |
 
 ### Coverage Validation
@@ -125,7 +132,7 @@ See .planning/MILESTONES.md for full history.
 | PXF-03 | F-21 | 385 | `Views/CMP/StartExam.cshtml` flush essay sebelum submit/blur/timeout + gate incomplete | Pending |
 | PXF-02 | F-DEV-01 | 386 | `AssessmentAdminController.cs` CreateQuestion/EditQuestion validasi ≥1 opsi ber-teks | Pending |
 | PXF-04 | F-04 | 386 | `AssessmentAdminController.cs` EssayGrading/SubmitEssayScore pending-count essay kosong | Pending |
-| PXF-05 | F-17 | 386 | `AssessmentAdminController.cs` BulkExportPdf/GeneratePerPesertaPdf MA SetEquals | Pending |
+| PXF-05 | F-17 + F-DEV-02 | 386 | `AssessmentAdminController.cs` GeneratePerPesertaPdf + `Helpers/ExcelExportHelper.cs:83` AddDetailPerSoalSheet MA SetEquals via `IsQuestionCorrect`+`BuildAnswerCell` (D-13 fold) | Pending |
 | PXF-06 | F-03 | 387 | `AssessmentAdminController.cs` SubmitEssayScore guard `session.Status` | Pending |
 | PXF-07 | F-02 | 387 | `ExcelExportHelper.cs:111` label essay kanonik `>0` | Pending |
 | PXF-08 | F-06 | 387 | `AssessmentAdminController.cs:3697` cert nomor retry+log | Pending |
