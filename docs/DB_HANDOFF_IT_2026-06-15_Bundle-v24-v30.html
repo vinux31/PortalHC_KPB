@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Handoff IT — Deploy Bundle v24–v30 ke Dev HcPortal KPB (2026-06-15)</title>
+<style>
+:root {
+  --brand: #e30613;
+  --brand-dark: #b8050f;
+  --navy: #1e3a8a;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-alt: #f9fafb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --amber: #f59e0b;
+  --amber-bg: #fef3c7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --info-bg: #eff6ff;
+  --info-border: #3b82f6;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.6; color: var(--text);
+  background: #ffffff; margin: 0; padding: 0;
+}
+.container { max-width: 950px; margin: 0 auto; padding: 32px; }
+header.hero { border-top: 6px solid var(--brand); padding: 24px 0 16px; margin-bottom: 8px; }
+header.hero .badge {
+  display: inline-block; background: var(--brand); color: #fff; font-size: 12px;
+  font-weight: 600; padding: 4px 10px; border-radius: 3px; letter-spacing: 0.5px; margin-bottom: 12px;
+}
+header.hero h1 { font-size: 30px; margin: 0 0 6px; color: var(--text); }
+header.hero .subtitle { font-size: 16px; color: var(--muted); margin: 0; }
+.meta-row {
+  display: flex; flex-wrap: wrap; gap: 16px 32px; padding: 16px 20px;
+  background: var(--bg-alt); border-left: 4px solid var(--navy); border-radius: 4px;
+  margin: 16px 0 32px; font-size: 14px;
+}
+.meta-row .meta-item strong {
+  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--muted); margin-bottom: 2px;
+}
+h2 { font-size: 22px; margin: 40px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 17px; margin: 24px 0 10px; }
+h4 { font-size: 15px; margin: 14px 0 6px; }
+p { margin: 0 0 12px; }
+code, .mono {
+  font-family: Consolas, "Courier New", monospace; font-size: 13px;
+  background: var(--bg-alt); padding: 2px 6px; border-radius: 3px;
+}
+pre {
+  font-family: Consolas, "Courier New", monospace; font-size: 12.5px;
+  background: #1e293b; color: #e2e8f0; padding: 14px 18px; border-radius: 6px;
+  overflow-x: auto; border-left: 4px solid var(--brand); margin: 12px 0; line-height: 1.5;
+}
+pre.sql { background: var(--bg-alt); color: var(--text); border-left-color: var(--navy); }
+table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--bg-alt); font-weight: 600; color: var(--text); }
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+ul, ol { margin: 8px 0 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.3px; vertical-align: middle; }
+.tag.ok { background: var(--green-bg); color: var(--green); }
+.tag.warn { background: var(--amber-bg); color: #92400e; }
+.tag.danger { background: var(--red-bg); color: var(--red); }
+.callout { padding: 14px 18px; margin: 16px 0; border-radius: 6px; border-left: 4px solid; }
+.callout.info { background: var(--info-bg); border-color: var(--info-border); }
+.callout.warn { background: var(--amber-bg); border-color: var(--amber); }
+.callout.success { background: var(--green-bg); border-color: var(--green); }
+.callout.danger { background: var(--red-bg); border-color: var(--red); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.toc { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin: 0 0 32px; }
+.toc .title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
+.toc ol { margin: 0; padding-left: 22px; }
+.toc li { margin-bottom: 4px; font-size: 14px; }
+.toc a { color: var(--navy); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+.tldr { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%); color: #fff; padding: 20px 24px; border-radius: 8px; margin: 24px 0; }
+.tldr .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; margin-bottom: 6px; }
+.tldr p { margin: 0; font-size: 16px; line-height: 1.5; }
+.tldr code { background: rgba(255,255,255,0.2); color: #fff; }
+@media print {
+  body { font-size: 11pt; }
+  .container { max-width: 100%; padding: 0; }
+  pre { background: #f4f4f4 !important; color: #000 !important; }
+  pre.sql { background: #f4f4f4 !important; }
+  .toc, header.hero { page-break-after: avoid; }
+  h2 { page-break-after: avoid; page-break-before: auto; }
+  table, pre, .callout { page-break-inside: avoid; }
+  a { color: var(--text); text-decoration: none; }
+  footer { page-break-before: avoid; }
+  @page { size: A4; margin: 18mm 15mm; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <span class="badge">HANDOFF TEAM IT</span>
+  <h1>Deploy Bundle v24 – v30 ke Dev — HcPortal KPB</h1>
+  <p class="subtitle">Apa yang IT perlu lakukan untuk menaikkan code terbaru (<code>origin/main</code> = <code>c55c7886</code>, code merge <code>e5f342e5</code>) ke server Development (<code>10.55.3.3/KPB-PortalHC</code>): pull, BACKUP DB, deploy, dan <strong>5 migration yang auto-apply</strong> saat startup. Bonus: 2 self-heal data Dev (ProtonTracks + Level org) jalan otomatis saat app start.</p>
+</header>
+
+<div class="meta-row">
+  <div class="meta-item"><strong>Tanggal</strong> 15 Juni 2026</div>
+  <div class="meta-item"><strong>Scope</strong> Bundle v24.0 → v30.0</div>
+  <div class="meta-item"><strong>Deploy target</strong> <code>c55c7886</code> (code = <code>e5f342e5</code>)</div>
+  <div class="meta-item"><strong>Baseline Dev sebelumnya</strong> <code>14e7adc5</code> (bundle v21–v23, sudah ter-deploy)</div>
+  <div class="meta-item"><strong>Migration Pending</strong> <strong style="color: var(--amber);">5 — auto-apply</strong></div>
+  <div class="meta-item"><strong>Risk</strong> <span class="tag warn">Medium — bundle multi-milestone, 5 additive migration</span></div>
+  <div class="meta-item"><strong>Validasi lokal</strong> build 0 error · test 450 passed</div>
+  <div class="meta-item"><strong>Developer</strong> Rino (asistensme@gmail.com)</div>
+</div>
+
+<div class="tldr">
+  <div class="label">TL;DR</div>
+  <p>IT <code>git pull origin main</code> (deploy <code>c55c7886</code>) → <strong>BACKUP DB Dev dulu (WAJIB)</strong> → build/publish + restart app. <strong>5 migration auto-apply</strong> saat startup (<code>Program.cs:145 Database.Migrate()</code>) — semua <strong>additive, non-destruktif</strong>. Startup juga jalankan <strong>2 self-heal idempotent</strong> (F1 normalize Level org + F2 isi ulang ProtonTracks). <strong>WAJIB verifikasi migration & data benar-benar ter-apply</strong> (Section 3 Step 4–5) — startup dibungkus <code>try/catch</code> yang <strong>menelan error</strong>. <strong>Setelah deploy</strong>: jalankan <code>POST /Admin/RecomputeEssayScores</code> (Admin-only, idempotent) untuk repair baris essay historis <code>Score=0</code>.</p>
+</div>
+
+<div class="callout danger" id="langkah" style="border-left-width:5px;">
+  <div class="title">▶ Langkah Eksekusi — Ikuti Berurutan</div>
+  <ol style="margin-bottom:0;">
+    <li><strong>Backup dulu</strong> — <code>BACKUP DATABASE</code> penuh (Section 3 Step 1). WAJIB, tidak boleh skip.</li>
+    <li><strong>Pull code</strong> <code>c55c7886</code> dari <code>origin/main</code> + build/publish + restart (Step 2–3).</li>
+    <li><strong>Verifikasi 5 migration ter-apply</strong> — jangan percaya "app jalan" saja, startup menelan error (Step 4).</li>
+    <li><strong>Verifikasi self-heal data</strong> — ProtonTracks = 6 baris + Level org mulai 0. Kalau gagal → SQL cadangan Section 4 (Step 5).</li>
+    <li><strong>Post-deploy</strong> — jalankan <code>POST /Admin/RecomputeEssayScores</code> (Section 5).</li>
+    <li><strong>Smoke test</strong> per milestone (Section 6), lalu isi <strong>Log Pengerjaan IT</strong> (Section 9) + kabari developer (Rino).</li>
+  </ol>
+</div>
+
+<div class="callout info">
+  <div class="title">Posisi Dokumen Ini</div>
+  <p>Handoff terakhir ke Team IT = <code>DB_HANDOFF_IT_2026-06-06.html</code> (Bundle v21+v22+v23, commit <code>14e7adc5</code> — <strong>sudah ter-deploy di Dev</strong>). Dokumen ini = bundle <strong>berikutnya</strong> (v24–v30) di atas baseline itu. Catatan: draft lama <code>DB_HANDOFF_IT_2026-06-10_ProtonTracks-Dev-Fix.html</code> (perbaikan manual ProtonTracks) <strong>tidak jadi dikirim</strong> — isinya sudah diserap ke dokumen ini sebagai self-heal otomatis + SQL cadangan (Section 4), dan diarsipkan ke <code>docs/archive/</code>.</p>
+</div>
+
+<div class="toc">
+  <div class="title">Daftar Isi</div>
+  <ol>
+    <li><a href="#langkah">★ Langkah Eksekusi (Ringkas, Urut)</a></li>
+    <li><a href="#context">Section 1 — Context: Apa yang Di-deliver (v24–v30)</a></li>
+    <li><a href="#migration">Section 2 — 5 Migration Detail</a></li>
+    <li><a href="#checklist">Section 3 — Checklist IT (URUTAN WAJIB)</a></li>
+    <li><a href="#selfheal">Section 4 — Self-heal Data Dev + SQL Cadangan (F1 &amp; F2)</a></li>
+    <li><a href="#recompute">Section 5 — Post-Deploy: Recompute Skor Essay</a></li>
+    <li><a href="#verify">Section 6 — Verifikasi Post-Deploy (Smoke Test)</a></li>
+    <li><a href="#not-needed">Section 7 — Yang TIDAK Perlu IT Lakukan</a></li>
+    <li><a href="#rollback">Section 8 — Rollback Plan</a></li>
+    <li><a href="#log">Section 9 — Log Pengerjaan IT (isi saat selesai)</a></li>
+    <li><a href="#refs">Section 10 — File Referensi</a></li>
+  </ol>
+</div>
+
+<h2 id="context">1. Context — Apa yang Di-deliver (v24 → v30)</h2>
+
+<p>Bundle ini = hasil kerja 7 milestone yang sebelumnya tertahan di branch <code>ITHandoff</code>, kini sudah di-merge ke <code>main</code> dan di-push. <code>origin/main</code> kini = <code>c55c7886</code> (commit teratas hanya menambah dokumen <code>docs/IT_NOTIFY.md</code>; code identik dengan merge commit <code>e5f342e5</code>). Semua <em>shipped-local + audited</em>.</p>
+
+<table>
+  <thead>
+    <tr><th>Milestone</th><th>Isi (ringkas)</th><th>Migration</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>v24.0</strong></td>
+      <td>Gambar di Assessment — render gambar pada soal &amp; opsi pilihan (admin CRUD upload/sync/atomic-delete)</td>
+      <td><span class="tag warn">1</span></td>
+    </tr>
+    <tr>
+      <td><strong>v25.0</strong></td>
+      <td>PROTON — Bypass Tahun (backend + UI), penanda kelulusan (Origin), sequential gate server-side, audit-fix alur T1–T10, cascade delete hardening</td>
+      <td><span class="tag warn">3</span></td>
+    </tr>
+    <tr>
+      <td><strong>v26.0</strong></td>
+      <td>Search &amp; Visibility — Training Records tab badge (view-only), search tembus window 7-hari di tab Assessment + Monitoring</td>
+      <td><span class="tag ok">NONE</span></td>
+    </tr>
+    <tr>
+      <td><strong>v27.0</strong></td>
+      <td>Shuffle Toggle — 2 toggle (Acak Soal + Acak Pilihan) per-assessment, default ON</td>
+      <td><span class="tag warn">1</span></td>
+    </tr>
+    <tr>
+      <td><strong>v28.0</strong></td>
+      <td>Assessment &amp; Records Bug Fixes — essay-only score aggregation, impersonation identity, CMP route 500 fix</td>
+      <td><span class="tag ok">NONE</span></td>
+    </tr>
+    <tr>
+      <td><strong>v29.0</strong></td>
+      <td>WSE — grading/lifecycle/cert integrity (admin/engine integrity + grading lifecycle hardening)</td>
+      <td><span class="tag ok">NONE</span></td>
+    </tr>
+    <tr>
+      <td><strong>v30.0</strong></td>
+      <td>Essay Grading Correctness + Monitoring UI refactor (page <code>/Admin/EssayGrading</code> per-worker, unify <code>IsQuestionCorrect</code>) + Judul Assessment fleksibel &amp; Cek Duplikat</td>
+      <td><span class="tag ok">NONE</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout success">
+  <div class="title">Validation Lokal Done</div>
+  <p>Developer sudah verifikasi lokal: <strong><code>dotnet build</code> 0 error + <code>dotnet test</code> 450 Passed / 0 Failed</strong>, working tree clean. Tag rilis <code>v24.0</code>–<code>v30.0</code> sudah ada di origin.</p>
+</div>
+
+<div class="callout info">
+  <div class="title">Total Migration Bundle = 5</div>
+  <p>Hanya milestone v24, v25, dan v27 yang menambah migration (1 + 3 + 1 = <strong>5</strong>). v26, v28, v29, v30 = code-only (zero schema change). Detail tiap migration di Section 2.</p>
+</div>
+
+<h2 id="migration">2. 5 Migration Detail (urut apply by timestamp)</h2>
+
+<p>Semua migration <strong>additive &amp; non-destruktif</strong> di <code>Up()</code> (tidak ada <code>DROP TABLE</code>/<code>DROP COLUMN</code>, tidak ada data loss). Auto-apply saat startup (<code>Program.cs:145 context.Database.Migrate()</code>).</p>
+
+<table>
+  <thead>
+    <tr><th>#</th><th>Migration</th><th>Milestone</th><th>Operasi skema</th><th>Catatan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><code>20260606030844_AddImageToPackageQuestionAndOption</code></td>
+      <td>v24</td>
+      <td>AddColumn ×4: <code>PackageQuestions.ImagePath</code> + <code>.ImageAlt</code>, <code>PackageOptions.ImagePath</code> + <code>.ImageAlt</code> (semua nullable)</td>
+      <td>Pending di Dev (baseline <code>14e7adc5</code> belum punya migration ini) — EF apply normal saat startup. Idempotent: kalau kolom entah bagaimana sudah ada, EF skip via <code>__EFMigrationsHistory</code>.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><code>20260610014907_AddOriginToProtonFinalAssessment</code></td>
+      <td>v25</td>
+      <td>AddColumn <code>ProtonFinalAssessments.Origin</code> (nvarchar(20), nullable) + backfill data</td>
+      <td>Ada 1 DML: <code>UPDATE ... SET Origin='Interview' WHERE Origin IS NULL</code> (idempotent, tandai record pra-358 sebagai Tahun-3/Interview).</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><code>20260610094950_AddPendingProtonBypassAndAssignmentOrigin</code></td>
+      <td>v25</td>
+      <td>CreateTable <code>PendingProtonBypasses</code> + AddColumn <code>ProtonTrackAssignments.Origin</code> + index <code>IX_..._CoacheeId_Status</code></td>
+      <td>Tabel baru kosong (tidak ada seed). Additive murni.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><code>20260611001939_AddPendingProtonBypassActiveUniqueIndex</code></td>
+      <td>v25</td>
+      <td>CreateIndex <code>IX_..._CoacheeId_ActiveUnique</code> — <strong>filtered unique</strong> (filter <code>Status IN ('Menunggu','Siap')</code>)</td>
+      <td>Guard anti-double-bypass: maks 1 bypass aktif per coachee. Index-only.</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><code>20260613095102_AddShuffleTogglesToAssessmentSession</code></td>
+      <td>v27</td>
+      <td>AddColumn ×2: <code>AssessmentSessions.ShuffleQuestions</code> + <code>.ShuffleOptions</code> (bit, NOT NULL, <strong>default <code>true</code></strong>)</td>
+      <td>Kolom NOT NULL tapi pakai server <code>defaultValue=true</code> → baris existing auto-terisi. <strong>Tidak perlu langkah data manual.</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <div class="title">Cara Apply = Otomatis (jangan apply manual)</div>
+  <p>Kelima migration auto-apply saat app start via <code>Program.cs:145 context.Database.Migrate()</code>. EF cek <code>__EFMigrationsHistory</code> — yang sudah pernah apply di-skip (no-op), jadi <strong>aman walau ada yang partial (mis. migration #1)</strong>. IT <strong>tidak perlu</strong> <code>dotnet ef database update</code> manual (boleh, tapi tak wajib). Yang WAJIB: <strong>verifikasi</strong> (Step 4).</p>
+</div>
+
+<h2 id="checklist">3. Checklist IT (URUTAN WAJIB)</h2>
+
+<div class="callout warn">
+  <div class="title">URUTAN WAJIB — Backup Dulu</div>
+  <p>BACKUP DB Dev <strong>SEBELUM</strong> deploy. Pelajaran insiden Cilacap 30 Mar 2026 (redeploy tanpa backup → data PreTest hilang). Tanpa <code>.bak</code>, rollback impossible.</p>
+</div>
+
+<ol>
+  <li>
+    <strong>Step 1 — BACKUP DB Dev (WAJIB):</strong>
+    <pre class="sql">BACKUP DATABASE HcPortalDB_Dev
+TO DISK = N'C:\Backup\HcPortalDB_Dev_pre_20260615_bundle-v24-v30.bak'
+WITH FORMAT, INIT, COMPRESSION,
+     NAME = N'HcPortalDB_Dev Pre-Bundle-v24-v30 Full Backup',
+     STATS = 10;</pre>
+    <p>Verifikasi file ter-create + size wajar. Share path + size ke developer. (Atau pakai <code>scripts\backup-dev-pre-migration.ps1</code> sesuai SOP.)</p>
+  </li>
+  <li>
+    <strong>Step 2 — Pull code <code>c55c7886</code>:</strong>
+    <pre>cd /path/to/PortalHC_KPB
+git fetch origin main
+git pull origin main   # fast-forward ke c55c7886</pre>
+    <p>Verifikasi: <code>git rev-parse HEAD</code> = <code>c55c7886</code>. (Commit teratas docs-only; code = <code>e5f342e5</code>.)</p>
+  </li>
+  <li>
+    <strong>Step 3 — Build / publish + restart:</strong>
+    <pre>dotnet build    # atau dotnet publish -c Release sesuai SOP deploy IT
+iisreset        # restart IIS app pool (atau equivalent Kestrel)</pre>
+    <p>Saat app start → 5 migration auto-apply + self-heal (F1/F2) jalan.</p>
+  </li>
+  <li>
+    <strong>Step 4 — ⚠️ VERIFIKASI 5 migration ter-apply (JANGAN skip):</strong>
+    <div class="callout danger">
+      <div class="title">Penting — Startup Menelan Error</div>
+      <p>Blok startup dibungkus <code>try/catch</code> (<code>Program.cs:142-161</code>) yang <strong>menelan error</strong> — app tetap start walau migration / seed GAGAL. Jadi "app jalan" ≠ "migration sukses". WAJIB cek DB langsung.</p>
+    </div>
+    <pre class="sql">-- Harus mengembalikan 5 baris (kelima migration tercatat applied)
+SELECT MigrationId FROM __EFMigrationsHistory
+WHERE MigrationId IN (
+  '20260606030844_AddImageToPackageQuestionAndOption',
+  '20260610014907_AddOriginToProtonFinalAssessment',
+  '20260610094950_AddPendingProtonBypassAndAssignmentOrigin',
+  '20260611001939_AddPendingProtonBypassActiveUniqueIndex',
+  '20260613095102_AddShuffleTogglesToAssessmentSession'
+)
+ORDER BY MigrationId;
+-- Expected: 5 baris</pre>
+    <p>(Opsional) cek skema benar-benar berubah:</p>
+    <pre class="sql">-- Tabel baru v25 ada?
+SELECT COUNT(*) AS TabelBypassAda FROM sys.tables WHERE name = 'PendingProtonBypasses'; -- 1
+-- Kolom shuffle v27 ada?
+SELECT COUNT(*) AS KolomShuffle FROM sys.columns
+WHERE object_id = OBJECT_ID('AssessmentSessions')
+  AND name IN ('ShuffleQuestions','ShuffleOptions'); -- 2</pre>
+    <p>Kalau < 5 baris history → migration gagal. Cek log startup (cari <code>"An error occurred while seeding the database"</code>) + eskalasi developer (Rino).</p>
+  </li>
+  <li>
+    <strong>Step 5 — VERIFIKASI self-heal data Dev (ProtonTracks + Level):</strong>
+    <p>Self-heal jalan otomatis saat start (lihat Section 4). Cek hasilnya:</p>
+    <pre class="sql">-- (a) ProtonTracks harus 6 baris (Panelman/Operator x Tahun 1/2/3)
+SELECT COUNT(*) AS ProtonTrackCount FROM ProtonTracks;   -- Expected: 6
+
+-- (b) Level org harus mulai dari 0 (bukan 1)
+SELECT Level, COUNT(*) AS Jml FROM OrganizationUnits GROUP BY Level ORDER BY Level;
+-- Expected: Level terkecil = 0</pre>
+    <p>Kalau (a) ≠ 6 atau (b) tidak mulai 0 → self-heal gagal (kemungkinan startup menelan error). <strong>Jalankan SQL cadangan di Section 4.</strong></p>
+  </li>
+  <li>
+    <strong>Step 6 — Post-deploy: recompute skor essay (Section 5):</strong>
+    <p>Jalankan <code>POST /Admin/RecomputeEssayScores</code> untuk repair baris essay historis <code>Score=0</code>.</p>
+  </li>
+  <li>
+    <strong>Step 7 — Smoke test (Section 6):</strong>
+    <p>Cek surface utama tiap milestone. Kalau ada yang gagal → eskalasi developer (Rino).</p>
+  </li>
+</ol>
+
+<h2 id="selfheal">4. Self-heal Data Dev + SQL Cadangan (F1 &amp; F2)</h2>
+
+<div class="callout success">
+  <div class="title">Otomatis — Idempotent</div>
+  <p>Saat app start, <code>SeedData.InitializeAsync</code> (<code>Program.cs:146</code>) menjalankan 2 self-heal idempotent (aman, no-op kalau data sudah benar). <strong>Normalnya IT cukup deploy — keduanya beres sendiri.</strong> SQL manual di bawah hanya <strong>cadangan</strong> kalau verifikasi Step 5 menunjukkan self-heal GAGAL (karena startup menelan error).</p>
+</div>
+
+<h3>F1 — Normalize Level Organisasi</h3>
+<p><code>NormalizeOrganizationLevelsAsync</code> (<code>Data/SeedData.cs:197</code>) menghitung ulang <code>OrganizationUnits.Level</code> berdasar kedalaman pohon (root = 0, anak = induk + 1), lalu hanya UPDATE baris yang levelnya beda. Idempotent, tidak menambah/hapus baris — hanya geser nilai kolom <code>Level</code>. Memperbaiki "split-brain" Level di Dev (data lama pakai 1/2, kode baru pakai 0/1).</p>
+
+<h4>SQL cadangan F1 (jalankan HANYA bila Step 5b tidak mulai dari 0)</h4>
+<div class="callout warn">
+  <div class="title">Pakai recompute-by-depth — JANGAN blanket <code>Level = Level - 1</code></div>
+  <p>SQL ini meniru persis logika kode (<code>NormalizeOrganizationLevelsAsync</code>, BFS tree-depth). Jangan pakai geser <code>Level - 1</code> blanket: kalau Dev "split-brain" (sebagian unit sudah Level 0, sebagian masih 1/2), geser -1 justru <strong>merusak yang sudah benar</strong>. Recompute-by-depth menghitung kedalaman tiap node dari root, jadi aman untuk kondisi campur.</p>
+</div>
+<pre class="sql">BEGIN TRANSACTION;
+
+-- Recompute Level = kedalaman pohon (root ParentId IS NULL = 0, anak = induk + 1)
+;WITH Tree AS (
+    SELECT Id, 0 AS Depth
+    FROM OrganizationUnits
+    WHERE ParentId IS NULL
+    UNION ALL
+    SELECT ou.Id, t.Depth + 1
+    FROM OrganizationUnits ou
+    INNER JOIN Tree t ON ou.ParentId = t.Id
+)
+UPDATE ou
+SET ou.Level = t.Depth
+FROM OrganizationUnits ou
+INNER JOIN Tree t ON ou.Id = t.Id
+WHERE ou.Level <> t.Depth;     -- hanya baris yang beda (idempotent)
+
+-- verifikasi: Level terkecil harus 0
+SELECT Level, COUNT(*) AS Jml FROM OrganizationUnits GROUP BY Level ORDER BY Level;
+
+-- Kalau benar (mulai 0) → COMMIT; kalau ragu → ROLLBACK;
+COMMIT;</pre>
+<p>Idempotent (hanya UPDATE baris yang Level-nya beda). Unit orphan (tak terjangkau dari root) tidak tersentuh — sama dgn perilaku kode. Bila tabel sangat dalam dan kena batas rekursi, tambah <code>OPTION (MAXRECURSION 1000)</code> di akhir <code>UPDATE</code>; bila terindikasi cycle (error rekursi), eskalasi developer.</p>
+
+<h3>F2 — Isi Ulang ProtonTracks</h3>
+<p><code>SeedProtonTracksAsync</code> (<code>Data/SeedData.cs:143</code>) memastikan 6 baris master Track ada (Panelman/Operator × Tahun 1/2/3). Logikanya <strong>insert-missing per-key</strong> (bukan all-or-nothing): tabel kosong → isi 6; tabel partial → top-up yang hilang. Memperbaiki dropdown Track kosong + <code>StatusData</code> <code>[]</code> di Dev.</p>
+
+<div class="callout warn">
+  <div class="title">Catatan — Self-heal TIDAK repair FK orphan</div>
+  <p>F2 hanya INSERT baris Track yang hilang; ia <strong>tidak</strong> menyambung ulang data anak lama (<code>ProtonKompetensiList</code>/<code>ProtonTrackAssignments</code>) yang menunjuk <code>ProtonTrackId</code> yang sudah terhapus — baris Track baru dapat Id baru. Dalam kasus Dev (tabel tadinya kosong) normalnya belum ada anak, jadi aman. Kalau ragu / ada gejala, eskalasi developer.</p>
+</div>
+
+<h4>SQL cadangan F2 (jalankan HANYA bila Step 5a ≠ 6)</h4>
+<pre class="sql">-- Idempotent + additive: MERGE WHEN NOT MATCHED (baris existing di-skip, tidak dobel)
+WITH ExpectedTracks AS (
+    SELECT 'Panelman' AS TrackType, 'Tahun 1' AS TahunKe, 'Panelman - Tahun 1' AS DisplayName, 1 AS Urutan
+    UNION ALL SELECT 'Panelman', 'Tahun 2', 'Panelman - Tahun 2', 2
+    UNION ALL SELECT 'Panelman', 'Tahun 3', 'Panelman - Tahun 3', 3
+    UNION ALL SELECT 'Operator', 'Tahun 1', 'Operator - Tahun 1', 4
+    UNION ALL SELECT 'Operator', 'Tahun 2', 'Operator - Tahun 2', 5
+    UNION ALL SELECT 'Operator', 'Tahun 3', 'Operator - Tahun 3', 6
+)
+MERGE INTO ProtonTracks pt
+USING ExpectedTracks et ON pt.TrackType = et.TrackType AND pt.TahunKe = et.TahunKe
+WHEN NOT MATCHED THEN
+    INSERT (TrackType, TahunKe, DisplayName, Urutan)
+    VALUES (et.TrackType, et.TahunKe, et.DisplayName, et.Urutan);
+
+-- verifikasi
+SELECT Id, TrackType, TahunKe, DisplayName, Urutan FROM ProtonTracks ORDER BY Urutan;  -- Expected: 6 baris</pre>
+
+<div class="callout info">
+  <div class="title">Tidak Perlu Restart App Setelah SQL Cadangan</div>
+  <p>Kedua tabel dibaca per-request. Begitu data benar, halaman normal pada refresh berikutnya. Tidak perlu restart IIS / app pool.</p>
+</div>
+
+<h2 id="recompute">5. Post-Deploy: Recompute Skor Essay</h2>
+
+<p>Prod/Dev yang masih jalan code lama bisa punya sesi <strong>essay-only</strong> yang sudah di-finalize tapi <code>Score=0</code> (bug grading lama, sudah ke-fix di forward path bundle ini). Endpoint recompute memperbaiki baris historis itu.</p>
+
+<table>
+  <tbody>
+    <tr><th>Endpoint</th><td><code>POST /Admin/RecomputeEssayScores</code></td></tr>
+    <tr><th>Authz</th><td><code>[Authorize(Roles="Admin")]</code> + <code>[ValidateAntiForgeryToken]</code> (Admin-only)</td></tr>
+    <tr><th>Idempotent</th><td>Ya — hanya sentuh kandidat <code>Status='Completed' AND HasManualGrading=1 AND (Score IS NULL OR Score=0)</code> yang semua essay-nya sudah dinilai. Run kedua = no-op.</td></tr>
+    <tr><th>Dampak</th><td>Set <code>Score</code> + <code>IsPassed</code> SAJA (D-03). TIDAK menerbitkan sertifikat / penanda Proton / notifikasi / TrainingRecord retroaktif. Status tidak diubah.</td></tr>
+  </tbody>
+</table>
+
+<h4>Langkah</h4>
+<ol>
+  <li>Count kandidat dulu:
+    <pre class="sql">SELECT COUNT(*) AS Kandidat FROM AssessmentSessions
+WHERE Status='Completed' AND HasManualGrading=1 AND (Score IS NULL OR Score=0);</pre>
+  </li>
+  <li>Login Admin → trigger <code>POST /Admin/RecomputeEssayScores</code> (tombol UI bila ada, atau form POST / headless POST).</li>
+  <li>Cek TempData response: <code>{repaired} diperbaiki, {skipped} dilewati, {alreadyOk} sudah benar</code> + audit log entry <code>RecomputeEssayScores</code>.</li>
+  <li>Re-run query count → harus berkurang (idempotent, aman re-run).</li>
+</ol>
+
+<div class="callout warn">
+  <div class="title">Jangan UPDATE Manual</div>
+  <p>JANGAN repair <code>Score</code> dengan <code>UPDATE</code> manual — gunakan endpoint (auditable + logika agregasi identik forward path, anti-drift). Sertifikat untuk baris repaired yang lulus TIDAK auto-terbit; bila perlu, HC re-trigger per-orang manual.</p>
+</div>
+
+<h2 id="verify">6. Verifikasi Post-Deploy (Smoke Test)</h2>
+
+<p>Login di <code>http://10.55.3.3/KPB-PortalHC</code> (akun admin/HC), cek surface utama tiap milestone:</p>
+
+<table>
+  <thead>
+    <tr><th>#</th><th>Surface</th><th>Expected</th><th>Milestone</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Assessment — gambar di soal</td>
+      <td>Soal/opsi yang punya gambar render gambarnya (admin bisa upload/hapus gambar di Manage Packages)</td>
+      <td>v24</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>PROTON — Silabus &amp; Coaching Guidance</td>
+      <td>Dropdown Track terisi 6 pilihan; tab Status terisi; fitur Bypass Tahun &amp; sequential gate jalan</td>
+      <td>v25</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Records / Monitoring search</td>
+      <td>Search di tab Assessment + Monitoring tembus window 7-hari; Training Records tab badge tampil</td>
+      <td>v26</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Manage Assessment — Shuffle toggle</td>
+      <td>2 toggle (Acak Soal + Acak Pilihan) per-assessment muncul, default ON; saat ujian urutan teracak sesuai toggle</td>
+      <td>v27</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Essay grading + Monitoring</td>
+      <td>Essay yang sudah dinilai tampil skor benar (bukan 0); page <code>/Admin/EssayGrading</code> per-worker load; impersonation identity benar</td>
+      <td>v28/v29/v30</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Assessment — Judul fleksibel + Cek Duplikat</td>
+      <td>Buat assessment dengan judul bebas (tanpa pola kaku); tombol Cek Judul mendeteksi duplikat</td>
+      <td>v30</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Health umum</td>
+      <td>Login/logout OK, navigasi utama tidak error 500, halaman utama load</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Smoke ALL PASS → IT promo Prod ulang prosedur sama (BACKUP, deploy, verifikasi migration, verifikasi self-heal, recompute essay, smoke).</p>
+
+<h2 id="not-needed">7. Yang TIDAK Perlu IT Lakukan</h2>
+
+<table>
+  <thead>
+    <tr><th>Action</th><th>Status</th><th>Alasan</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Apply migration manual (<code>dotnet ef database update</code>)</td><td><span class="tag danger">TIDAK WAJIB</span></td><td>Auto-apply via startup <code>Database.Migrate()</code>. Cukup verifikasi (Step 4). Boleh dijalankan kalau mau eksplisit, tapi tidak wajib.</td></tr>
+    <tr><td>ALTER TABLE / DROP COLUMN manual</td><td><span class="tag danger">JANGAN</span></td><td>Semua migration additive (CreateTable/AddColumn/CreateIndex). Tidak ada perubahan skema manual.</td></tr>
+    <tr><td>Langkah data manual untuk kolom shuffle</td><td><span class="tag danger">JANGAN</span></td><td>Migration #5 pakai server <code>defaultValue=true</code> → baris existing auto-terisi.</td></tr>
+    <tr><td>UPDATE manual <code>Score</code> essay</td><td><span class="tag danger">JANGAN</span></td><td>Pakai endpoint <code>RecomputeEssayScores</code> (Section 5) — auditable + anti-drift.</td></tr>
+    <tr><td>SQL self-heal (Section 4) kalau verifikasi sudah OK</td><td><span class="tag danger">JANGAN</span></td><td>SQL Section 4 hanya cadangan — jalankan HANYA bila Step 5 menunjukkan self-heal gagal.</td></tr>
+    <tr><td>Edit kode / DB di server Dev langsung</td><td><span class="tag danger">JANGAN</span></td><td>Golden Rule CLAUDE.md: edit hanya di lokal → push → IT pull.</td></tr>
+    <tr><td>Restore DB Dev dari lokal developer</td><td><span class="tag danger">JANGAN</span></td><td>Data HC di Dev (worker/sertifikat/progress) harus dipertahankan.</td></tr>
+    <tr><td>Deploy tanpa BACKUP dulu</td><td><span class="tag danger">JANGAN</span></td><td>Backup wajib untuk rollback safety (Step 1 + Section 8).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="rollback">8. Rollback Plan</h2>
+
+<p>Kalau deploy gagal (migration error / regresi fungsi):</p>
+
+<pre class="sql">-- 1. Restore DB dari .bak Step 1
+USE master;
+ALTER DATABASE HcPortalDB_Dev SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+RESTORE DATABASE HcPortalDB_Dev
+FROM DISK = N'C:\Backup\HcPortalDB_Dev_pre_20260615_bundle-v24-v30.bak'
+WITH REPLACE;
+ALTER DATABASE HcPortalDB_Dev SET MULTI_USER;</pre>
+
+<pre># 2. Revert code ke baseline sebelumnya (bundle v21-v23)
+git checkout 14e7adc5
+iisreset</pre>
+
+<div class="callout info">
+  <div class="title">Prerequisite Rollback</div>
+  <p>Rollback DB hanya feasible kalau <strong>Step 1 BACKUP</strong> dilakukan. Setelah rollback, eskalasi ke developer (Rino) dengan timestamp + pesan error.</p>
+</div>
+
+<h2 id="log">9. Log Pengerjaan IT (isi saat selesai)</h2>
+
+<p>Centang tiap langkah saat selesai, lalu kirim balik dokumen ini (atau ringkasannya) ke developer.</p>
+
+<table>
+  <thead>
+    <tr><th>Langkah</th><th>Status</th><th>Waktu</th><th>Catatan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1. Backup <code>.bak</code> dibuat (Step 1)</td>
+      <td>☐ OK / ☐ GAGAL</td>
+      <td></td>
+      <td>Path: __________ Size: ______</td>
+    </tr>
+    <tr>
+      <td>2. Pull <code>c55c7886</code> + build + restart (Step 2–3)</td>
+      <td>☐ OK / ☐ GAGAL</td>
+      <td></td>
+      <td>HEAD: __________</td>
+    </tr>
+    <tr>
+      <td>3. Verifikasi 5 migration applied (Step 4)</td>
+      <td>☐ 5 / ☐ lain</td>
+      <td></td>
+      <td>History count: ______</td>
+    </tr>
+    <tr>
+      <td>4. Verifikasi self-heal — ProtonTracks=6 + Level mulai 0 (Step 5)</td>
+      <td>☐ OK / ☐ pakai SQL cadangan</td>
+      <td></td>
+      <td>ProtonTracks: ____ Level min: ____</td>
+    </tr>
+    <tr>
+      <td>5. Recompute skor essay (Section 5)</td>
+      <td>☐ OK / ☐ SKIP</td>
+      <td></td>
+      <td>repaired/skipped/alreadyOk: ____ / ____ / ____</td>
+    </tr>
+    <tr>
+      <td>6. Smoke test 7 surface (Section 6)</td>
+      <td>☐ ALL PASS / ☐ ada gagal</td>
+      <td></td>
+      <td>Gagal di #: ______</td>
+    </tr>
+    <tr>
+      <td>Rollback (bila perlu, Section 8)</td>
+      <td>☐ YA / ☐ TIDAK</td>
+      <td></td>
+      <td>Alasan: __________</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Signoff IT:</strong> ____________________________ &nbsp;&nbsp; <strong>Tanggal:</strong> ______________</p>
+
+<h2 id="refs">10. File Referensi</h2>
+
+<table>
+  <thead>
+    <tr><th>Path / Item</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>c55c7886</code></td><td>Commit target deploy (HEAD <code>origin/main</code>; docs di atas code merge)</td></tr>
+    <tr><td><code>e5f342e5</code></td><td>Merge commit code bundle v24–v30 (identik isi code dengan <code>c55c7886</code>)</td></tr>
+    <tr><td><code>14e7adc5</code></td><td>Baseline Dev sebelumnya (bundle v21–v23) — titik rollback code</td></tr>
+    <tr><td><code>Migrations/2026061*.cs</code> (5 file)</td><td>5 migration bundle (Section 2). Semua additive.</td></tr>
+    <tr><td><code>Program.cs:138-162</code></td><td>Startup migrate + seed (try/catch — sumber caveat verifikasi Step 4)</td></tr>
+    <tr><td><code>Data/SeedData.cs:143 / :197</code></td><td>F2 <code>SeedProtonTracksAsync</code> / F1 <code>NormalizeOrganizationLevelsAsync</code> (self-heal Section 4)</td></tr>
+    <tr><td><code>Controllers/AssessmentAdminController.cs</code> → <code>RecomputeEssayScores</code></td><td>Endpoint recompute skor essay (Section 5)</td></tr>
+    <tr><td><code>docs/IT_NOTIFY.md</code></td><td>Catatan notify markdown (sumber konten, section "BUNDLE v24-v30 PUSHED")</td></tr>
+    <tr><td><code>docs/DEV_WORKFLOW.md</code></td><td>SOP umum Lokal → Dev → Prod + migration SOP</td></tr>
+    <tr><td><code>docs/archive/DB_HANDOFF_IT_2026-06-10_ProtonTracks-Dev-Fix.html</code></td><td><span class="tag warn">ARSIP</span> Draft lama (tak jadi dikirim) — diserap ke Section 4 dokumen ini</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  Disusun oleh Rino — 2026-06-15 — Portal HC KPB Project<br>
+  Repo: https://github.com/vinux31/PortalHC_KPB · Tekan <code>Ctrl+P</code> → "Save as PDF" untuk export.
+</footer>
+
+</div>
+</body>
+</html>
