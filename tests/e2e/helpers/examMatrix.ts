@@ -250,9 +250,19 @@ export async function gradeEssaysAsHc(pageHc: Page, cfg: ScenarioConfig): Promis
     { scenario: cfg, step: 'hc-grade-essays', severity: 'major', page: pageHc },
     async () => {
       for (const sessionId of sessionIds) {
+        // Phase 384 UIG-02: grading UI dipindah dari inline AssessmentMonitoringDetail ke
+        // page per-worker /Admin/EssayGrading?sessionId=... (selector identik). Navigasi per-session.
+        const egUrl = new URL('/Admin/EssayGrading', baseUrl);
+        egUrl.searchParams.set('sessionId', String(sessionId));
+        egUrl.searchParams.set('title', cfg.title);
+        egUrl.searchParams.set('category', cfg.category);
+        egUrl.searchParams.set('scheduleDate', cfg.scheduleDate);
+        await pageHc.goto(egUrl.toString());
+        await pageHc.waitForLoadState('networkidle', { timeout: 10_000 });
+
         for (const q of essayQs) {
           // Target input + button via [data-session-id] + [data-question-id] — precise, no nth().
-          // Both attributes present per Views/Admin/AssessmentMonitoringDetail.cshtml:402-407.
+          // Both attributes present per Views/Admin/EssayGrading.cshtml (Phase 384, selector clone).
           const scoreInput = pageHc.locator(
             `input.essay-score-input[data-question-id="${q.id}"][data-session-id="${sessionId}"]`
           );

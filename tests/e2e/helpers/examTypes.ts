@@ -465,12 +465,15 @@ export async function gradeSingleEssaySession(
     score: number;
   }
 ): Promise<void> {
+  // Phase 384 UIG-02: grading UI dipindah dari inline AssessmentMonitoringDetail ke
+  // page per-worker /Admin/EssayGrading?sessionId=... (selector identik di page baru).
   const params = new URLSearchParams({
+    sessionId: String(opts.sessionId),
     title: opts.title,
     category: opts.category,
     scheduleDate: opts.scheduleDate,
   });
-  await pageHc.goto(`/Admin/AssessmentMonitoringDetail?${params.toString()}`);
+  await pageHc.goto(`/Admin/EssayGrading?${params.toString()}`);
   await pageHc.waitForLoadState('networkidle');
 
   // Find all essay-score-input untuk session ini (scoped by data-session-id)
@@ -509,7 +512,8 @@ export async function gradeSingleEssaySession(
   pageHc.once('dialog', (dialog) => dialog.accept());
   await finalizeBtn.click();
 
-  // Success normal → location.reload() (line 1402). Wait networkidle setelah reload.
+  // Phase 384 D-09: finalize sukses → update IN-PLACE (no location.reload, URL tetap /EssayGrading).
+  // networkidle resolve setelah fetch FinalizeEssayGrading settle (tanpa navigasi).
   await pageHc.waitForLoadState('networkidle');
 }
 
