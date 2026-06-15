@@ -152,8 +152,11 @@ Dijalankan langsung di `http://10.55.3.3/KPB-PortalHC` (login Admin KPB, assessm
 | F-19 | LOW | Excel BulkExport essay selalu "—" | `AssessmentAdminController.cs:4828` | — |
 | F-20 | LOW | SubmitExam MC null-overwrite laten | `CMPController.cs:1712` | — |
 | F-22 | LOW | SaveTextAnswer tanpa guard timer | `Hubs/AssessmentHub.cs:134` | — |
+| F-DEV-02 | MED | **(BARU, ditemukan saat verify CONTEXT Phase 386, 2026-06-15)** Excel "Detail Per Soal" (Summary export, beda dari F-02) salah-label MA + jawaban tak lengkap — `FirstOrDefault` 1-row, bukan SetEquals (bug-class sama F-17 tapi di Excel) | `Helpers/ExcelExportHelper.cs:83` (dipanggil `AssessmentAdminController.cs:4690`) | — |
 
 Semua **0 migration**. Fix = view/controller/validasi + re-deploy IT.
+
+> **Catatan F-DEV-02 (2026-06-15):** ditemukan oleh workflow adversarial-verify CONTEXT Phase 386 (4 agen). Surface MA-mislabel KEDUA selain F-17 (PDF per-peserta). Beda file (`Helpers/ExcelExportHelper.cs`, bukan controller) → OUT scope Phase 386 single-file, TAPI ekspor resmi lisensor juga. **Keputusan owner perlu:** fix bareng PXF-05 (perluas scope) atau Future. Excel per-session path `AssessmentAdminController.cs:4857-4863` SUDAH benar (SetEquals) — bukan ini.
 
 ### TRIASE 2-HARI (acara ~2026-06-17; komposisi SA+MA+Essay+GAMBAR; PDF per-peserta = bukti RESMI)
 
