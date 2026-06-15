@@ -3526,23 +3526,42 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitEssayScore(int sessionId, int questionId, int score)
         {
-            // 1. Load response
-            var response = await _context.PackageUserResponses
-                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
-            if (response == null)
-                return Json(new { success = false, message = "Jawaban tidak ditemukan" });
+            // 1. STATUS-GUARD (Phase 386 PXF-04 D-08, T-386-AUTHZ HIGH) — penilaian hanya saat PendingGrading.
+            //    Tanpa guard ini, upsert akan MEMPERLEBAR F-03: HC bisa membuat+menilai baris pada sesi
+            //    Completed → divergen Score/IsPassed yang memberi PDF lisensi resmi. Cermin FinalizeEssayGrading:3591.
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null)
+                return Json(new { success = false, message = "Session tidak ditemukan" });
+            if (session.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
+                return Json(new { success = false, message = "Penilaian hanya bisa dilakukan saat status Menunggu Penilaian." });
 
-            // 2. Load question untuk validasi ScoreValue
+            // 2. Load question + validasi skor range (T-298-13) — WAJIB sebelum upsert agar skor invalid tak pernah membuat baris.
             var question = await _context.PackageQuestions.FindAsync(questionId);
             if (question == null)
                 return Json(new { success = false, message = "Soal tidak ditemukan" });
-
-            // 3. Validasi skor range (T-298-13)
             if (score < 0 || score > question.ScoreValue)
                 return Json(new { success = false, message = $"Skor harus antara 0 dan {question.ScoreValue}" });
 
-            // 4. Save EssayScore
-            response.EssayScore = score;
+            // 3. UPSERT (Phase 386 PXF-04 D-08) — baris essay kosong tak ada → buat baru (TextAnswer null) lalu skor;
+            //    mengganti dead-end "Jawaban tidak ditemukan" agar HC tetap bisa menilai essay yang dikosongkan peserta.
+            var response = await _context.PackageUserResponses
+                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+            if (response == null)
+            {
+                response = new PackageUserResponse
+                {
+                    AssessmentSessionId = sessionId,
+                    PackageQuestionId = questionId,
+                    PackageOptionId = null,
+                    TextAnswer = null,
+                    EssayScore = score
+                };
+                _context.PackageUserResponses.Add(response);
+            }
+            else
+            {
+                response.EssayScore = score;
+            }
             await _context.SaveChangesAsync();
 
             // 5. Cek berapa Essay masih pending
