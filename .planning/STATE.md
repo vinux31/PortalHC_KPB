@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
-status: Ready to execute
-stopped_at: Phase 387 context gathered
-last_updated: "2026-06-15T14:32:16.003Z"
+status: Executing Phase 386
+stopped_at: Completed 386-01-PLAN.md
+last_updated: "2026-06-15T14:40:25.836Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 24
   completed_phases: 1
   total_plans: 12
-  completed_plans: 2
-  percent: 17
+  completed_plans: 3
+  percent: 25
 ---
 
 # Project State: Portal HC KPB
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 386 (assessmentadmincontroller-hardening) — EXECUTING
-Plan: 1 of 6
+Plan: 2 of 6 (386-01 Wave-0 RED scaffolds DONE — 5 test files + 1 authz extend, 0 production code, build RED only on Wave-1 helpers ValidateQuestionOptions/BuildAnswerCell)
 
 **MILESTONE v31.0 STARTED — Hotfix Pra-Ujian Lisensor (urgent, acara ~2026-06-17).** 5 temuan must-fix dari readiness audit gladi-bersih E2E 2026-06-15 (register final adversarial-verified: `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` — 3 HIGH · 5 MED · 7 LOW; 5 dipromote ke PXF-01..05). Ujian lisensor: SA+MA+Essay+soal bergambar, ≤30 peserta, PDF per-peserta = bukti resmi. Target: 1 bundle → 1 deploy IT sebelum hari-H. **0 migration** (semua fix view/controller/validasi). Pendekatan: hotfix langsung (skip domain-research).
 
@@ -134,6 +134,7 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audit
 
 ### Decisions (persist across milestones)
 
+- [v31.0 / 386-01 Wave-0 RED]: TDD-RED scaffold 6 test files dulu (PXF-02/04/05) sebelum kode produksi. MA answer-cell join **LOCKED = ", " (comma-space, D-10 preseden Excel)** — Wave 1 `BuildAnswerCell` WAJIB match. 4 mirror count-builder encode predikat BARU `!IsNullOrWhiteSpace(TextAnswer) && EssayScore==null` (Wave 3 menyamakan 4 production site ke mirror, drift-guard cite L3308/L3500/L3547/L3620). Build RED HANYA pada Wave-1 helper `QuestionOptionValidator.ValidateQuestionOptions` (file baru) + `AssessmentScoreAggregator.BuildAnswerCell` (method baru). 0 production code. e2e gated `test.fixme`.
 - [v31.0 / phasing]: 3 REQ yang menyentuh `Controllers/AssessmentAdminController.cs` (PXF-02 CreateQuestion/EditQuestion, PXF-04 EssayGrading pending-count, PXF-05 BulkExportPdf/GeneratePerPesertaPdf) **digabung satu fase (386)** untuk menjamin nol konflik write paralel. PXF-01 (`_QuestionImage.cshtml`) + PXF-03 (`StartExam.cshtml`) file-disjoint → Phase 385.
 - [v30.0 / ECG-06 (383-04)]: Regression lock poin 2 (Simpan/Selesaikan essay) tanpa ubah kode produksi (D-05); 5 test mirror-data-level di `EssayFinalizeRecomputeTests.cs`; full suite 440/440. Migration guard `dotnet ef add _verify_383` = 0 model diff.
 - [v30.0 / ECG-01..05]: helper terpusat `AssessmentScoreAggregator.IsQuestionCorrect` (essay `>0`=Benar, `=0`=Salah, `null`=pending) dipakai di `CMPController.Results` 4 site + PDF export `GeneratePerPesertaPdf` (kill-drift). MA non-empty guard `selected.Count>0 && SetEquals` (display-path, beda dari scoring `Compute`).
@@ -154,6 +155,6 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audit
 
 Last activity: 2026-06-15
 
-Stopped at: Phase 387 context gathered
+Stopped at: Completed 386-01-PLAN.md
 
 Next action: **`/gsd-plan-phase 385`** (PXF-01 gambar PathBase + PXF-03 flush essay; file view, paralel-aman) lalu **`/gsd-plan-phase 386`** (PXF-02/04/05; satu file `AssessmentAdminController.cs`). Urgent (acara ~2026-06-17): target 1 bundle → 1 push → notify IT re-deploy. Tiap fase verify lokal (`dotnet build`+`dotnet run` localhost:5277 + Playwright/unit per REQ) sebelum commit. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
