@@ -148,6 +148,77 @@ public class EssayFinalizeRecomputeTests : IClassFixture<EssayFinalizeRecomputeF
         return (repaired, skipped, alreadyOk);
     }
 
+    // ---- ECG-06 Plan 04: mirror SubmitEssayScore core (AssessmentAdminController.cs:3460-3477) ----
+    // Mirror data-level (precedent file ini — hindari ctor 12-dep controller). Lock: persist EssayScore +
+    // range guard `score < 0 || score > question.ScoreValue` (controller L3472). Returns (success, message).
+    // Drift-guard: bila body controller berubah, test ini harus diperbarui agar tetap mencerminkan L3460-3477.
+    private static async Task<(bool success, string? message)> MirrorSubmitEssayScoreAsync(
+        ApplicationDbContext ctx, int sessionId, int questionId, int score)
+    {
+        // 1. Load response (mirror L3461-3464)
+        var response = await ctx.PackageUserResponses
+            .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+        if (response == null) return (false, "Jawaban tidak ditemukan");
+        // 2. Load question untuk validasi ScoreValue (mirror L3467-3469)
+        var question = await ctx.PackageQuestions.FindAsync(questionId);
+        if (question == null) return (false, "Soal tidak ditemukan");
+        // 3. Range guard (mirror L3472)
+        if (score < 0 || score > question.ScoreValue) return (false, $"Skor harus antara 0 dan {question.ScoreValue}");
+        // 4. Persist EssayScore (mirror L3476-3477)
+        response.EssayScore = score;
+        await ctx.SaveChangesAsync();
+        return (true, null);
+    }
+
+    // Ambil 1 PackageQuestion milik session tertentu (fixture = shared DB; FirstAsync global tak aman).
+    private static async Task<PackageQuestion> QuestionOfSessionAsync(ApplicationDbContext ctx, int sessionId)
+    {
+        var pkgIds = await ctx.AssessmentPackages
+            .Where(p => p.AssessmentSessionId == sessionId).Select(p => p.Id).ToListAsync();
+        return await ctx.PackageQuestions.FirstAsync(q => pkgIds.Contains(q.AssessmentPackageId));
+    }
+
+    // ---- ECG-06: SubmitEssayScore persist EssayScore saat skor dalam range (lock L3476-3477) ----
+    [Fact]
+    public async Task SubmitEssayScore_Persists_WhenInRange()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 0, essayScore: 0,
+            status: AssessmentConstants.AssessmentStatus.PendingGrading, scoreValue: 100);
+        // scope ke session ini (fixture shared DB — jangan ambil FirstAsync global)
+        var q = await QuestionOfSessionAsync(ctx, sessionId);
+
+        var (ok, _) = await MirrorSubmitEssayScoreAsync(ctx, sessionId, q.Id, 80);
+
+        Assert.True(ok);
+        await using var verify = NewCtx();
+        var resp = await verify.PackageUserResponses.FirstAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == q.Id);
+        Assert.Equal(80, resp.EssayScore);   // persisted ke DB
+    }
+
+    // ---- ECG-06: range guard menolak skor di luar 0..ScoreValue (lock L3472, T-298-13 / V5 ASVS) ----
+    [Fact]
+    public async Task SubmitEssayScore_Rejects_WhenOutOfRange()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedEssayOnlyAsync(ctx, userId, score: 0, essayScore: 0,
+            status: AssessmentConstants.AssessmentStatus.PendingGrading, scoreValue: 100);
+        // scope ke session ini (fixture shared DB — jangan ambil FirstAsync global)
+        var q = await QuestionOfSessionAsync(ctx, sessionId);
+
+        var (okHigh, _) = await MirrorSubmitEssayScoreAsync(ctx, sessionId, q.Id, 150);  // > ScoreValue
+        var (okNeg, _)  = await MirrorSubmitEssayScoreAsync(ctx, sessionId, q.Id, -5);   // < 0
+
+        Assert.False(okHigh);
+        Assert.False(okNeg);
+        // tak boleh ter-persist: EssayScore tetap nilai awal (0), bukan 150/-5
+        await using var verify = NewCtx();
+        var resp = await verify.PackageUserResponses.FirstAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == q.Id);
+        Assert.Equal(0, resp.EssayScore);
+    }
+
     // ---- GRADE-02: forward aggregation essay-only → Score ≠ 0 ----
     [Fact]
     public async Task Forward_EssayOnly_ScoreNotZero()
