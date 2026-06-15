@@ -1349,6 +1349,18 @@ Plans:
 
 </details>
 
+### Phase 385: E2E Gladi-Bersih Verifikasi Assessment Lisensor Standard (post-v30, report-first)
+
+**Goal:** Verifikasi E2E satu ujian lisensor realistis end-to-end (tipe standard, 4 jenis soal: Single + Multiple + Essay + soal bergambar, ≤30 peserta serentak) di code yang baru deploy IT — semua jalur scoring auto + grading essay manual → skor akhir → lulus/tidak → sertifikat lisensor terbit + monitoring admin real-time. **REPORT-FIRST:** temuan bug/error/issue diklasifikasi (HIGH/MED/LOW, butuh fix lokal?, butuh re-deploy IT?) dan dilaporkan ke user untuk keputusan — TANPA auto-fix. Output = checklist readiness PASS/FAIL + daftar temuan terklasifikasi.
+**Requirements**: TBD (sumber: .planning/notes/2026-06-15-readiness-ujian-lisensor.md)
+**Depends on:** v30.0 deployed ke Dev (tidak ada dependency struktural kode)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 385 to break down)
+
+> ⚠️ Nomor dikoreksi 350 → 385 (gsd-tools `phase add` hitung max dari dir on-disk = 349 karena phase lama sudah di-archive; max logis sebenarnya 384). 2026-06-15.
+
 ---
 
 *Roadmap updated: 2026-06-14 (Phase 382 Migration flipped TRUE→false per D-01-IMPACT — SAVE-01 dedupe last-write-wins [ORDER BY SubmittedAt desc in-memory], BUKAN filtered-unique-index [PackageUserResponse tak punya diskriminator QuestionType]. Diverifikasi `dotnet ef migrations add _verify_382` → empty Up/Down [0 model diff], lalu dihapus. v29.0 total = 0 migration baru → TIDAK perlu notify IT migration untuk milestone ini. Phase 382 SHIPPED LOCAL [3/3 plan, WSE-06..11], full xUnit 415/415, e2e #8-12 acceptance 18/18 green. ROADMAP+STATE diselaraskan.)*
