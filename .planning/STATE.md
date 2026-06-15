@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
-status: v31.0 roadmap created — pending plan
+status: Ready to execute
 stopped_at: Phase 386 context gathered
-last_updated: "2026-06-15T12:58:19.866Z"
+last_updated: "2026-06-15T13:06:20.096Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 23
