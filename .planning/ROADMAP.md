@@ -55,7 +55,7 @@ See .planning/MILESTONES.md for full history.
 ### Phases
 
 - [ ] **Phase 383: Essay Grading Correctness + Test (Fase 1)** — Helper terpusat `IsQuestionCorrect` (essay `>0`) dipakai di 3 titik `CMPController.Results` + PDF export → count/Elemen Teknis/Tinjauan/PDF konsisten dengan "Nilai Anda" %; plus regression test kunci Simpan Skor + Selesaikan Penilaian. Read-path only, 0 migration. Hotfix, ships first.
-- [ ] **Phase 384: Monitoring Essay Grading UI Refactor (Fase 2)** — Ganti blok essay inline panjang di `AssessmentMonitoringDetail` jadi tabel list worker (status + jumlah belum dinilai) + tombol "Tinjau Essay" → page penilaian essay per-worker (reuse endpoint `SubmitEssayScore`/`FinalizeEssayGrading` + `EssayGradingItemViewModel`, backend tak diubah). 0 migration.
+- [x] **Phase 384: Monitoring Essay Grading UI Refactor (Fase 2)** — Ganti blok essay inline panjang di `AssessmentMonitoringDetail` jadi tabel list worker (status + jumlah belum dinilai) + tombol "Tinjau Essay" → page penilaian essay per-worker (reuse endpoint `SubmitEssayScore`/`FinalizeEssayGrading` + `EssayGradingItemViewModel`, backend tak diubah). 0 migration. (completed 2026-06-15)
 
 ### Phase Details
 
@@ -89,7 +89,7 @@ See .planning/MILESTONES.md for full history.
   2. Tiap baris worker punya tombol "Tinjau Essay" (kanan) yang membuka **page penilaian essay per-worker** terpisah (GET action baru, mis. `EssayGrading?sessionId=...`). *(UIG-02)*
   3. Page penilaian essay per-worker me-reuse endpoint existing `SubmitEssayScore` + `FinalizeEssayGrading` (backend TIDAK diubah) + `EssayGradingItemViewModel`; "Simpan Skor" mem-persist nilai dan tombol "Selesaikan Penilaian" ada + berfungsi di page ini. *(UIG-03)*
   4. `dotnet build` 0 error + Playwright e2e (localhost:5277, CLAUDE.md Develop Workflow): list worker render → klik "Tinjau Essay" navigasi ke page per-worker → beri skor (Simpan Skor) + Selesaikan Penilaian round-trip sukses. *(UIG-04 — Razor dynamic → Playwright runtime wajib, pelajaran Phase 354)*
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 - [x] 384-01-PLAN.md — Wave 0 test infra: SQL seed fixture session essay-pending + Playwright FLOW 384 spec (RED/fixme) (UIG-04)
 - [x] 384-02-PLAN.md — Wave 1: EssayGradingPageViewModel + GET action EssayGrading (authz Admin/HC, clone builder) + view EssayGrading.cshtml + extract essay-grading.js (D-09 in-place + D-10 read-only) (UIG-02, UIG-03)
 - [x] 384-03-PLAN.md — Wave 2: refactor AssessmentMonitoringDetail — ganti blok inline :381-481 jadi tabel worker-list + tombol Tinjau Essay + hapus handler essay dead (UIG-01)
@@ -103,7 +103,7 @@ See .planning/MILESTONES.md for full history.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 383. Essay Grading Correctness + Test (Fase 1) | 4/4 | Complete   | 2026-06-15 |
-| 384. Monitoring Essay Grading UI Refactor (Fase 2) | 4/4 | Complete   | 2026-06-15 |
+| 384. Monitoring Essay Grading UI Refactor (Fase 2) | 4/4 | Complete    | 2026-06-15 |
 
 ### Coverage Validation
 

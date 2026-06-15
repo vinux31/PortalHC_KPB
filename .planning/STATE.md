@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v30.0
 milestone_name: Essay Grading Correctness + Monitoring UI Refactor
-status: Executing Phase 384
+status: Milestone complete
 stopped_at: Completed 383-04-PLAN.md (ECG-06 regression lock; 5 test, 440/440 full suite, 0 migration)
-last_updated: "2026-06-15T04:13:21.062Z"
+last_updated: "2026-06-15T04:25:21.495Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 21
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 384 (monitoring-essay-grading-ui-refactor-fase-2) — EXECUTING
+Phase: 384
 Plan: 1 of 4
 
 - Plan 01 ✅ DONE — helper `IsQuestionCorrect` + 11 unit test, RED→GREEN, commits 32e49942/adf247d5.
@@ -35,7 +35,7 @@ Plan: 1 of 4
 
 **MILESTONE v30.0 STARTED.** Essay Grading Correctness + Monitoring UI Refactor (phases 383-384, 10 REQ ECG-01..06 + UIG-01..04). Driven by user bug report 2026-06-15: `CMP/Results` shows "Nilai Anda 100%" but "(4/6 benar)" — essays graded fully correct are counted wrong in the X/Y count, Elemen Teknis, Tinjauan Jawaban badge, and PDF export. Root cause (workflow-verified multi-agent): two divergent paths in `CMPController.Results()` — score% is essay-aware (Path A via `AssessmentScoreAggregator`), but count/ET/Tinjauan recompute inline with option-matching only (Path B, no Essay branch). Closes deferred backlog **RES-02** + **GRD-02**.
 
-**Plan:** Fase 1 (383) = centralized helper `AssessmentScoreAggregator.IsQuestionCorrect` (bool?, essay Benar=`EssayScore>0`, null=pending) wired to 3 sites + PDF unify + regression tests (poin 2 Simpan/Selesaikan already correct, locked by test). Fase 2 (384) = Monitoring essay UI refactor → worker-list table + "Tinjau Essay" per-worker page (backend endpoints unchanged). **0 migration**, read/display-path only, Pass/Fail untouched.
+**Plan:** Not started
 
 **Spec:** `docs/superpowers/specs/2026-06-15-essay-grading-correctness-design.md` (brainstorming-approved 2026-06-15).
 
