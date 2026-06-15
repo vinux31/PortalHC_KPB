@@ -77,7 +77,7 @@ namespace HcPortal.Helpers
             {
                 case "MultipleAnswer":
                 {
-                    var selected = list.Where(r => r.PackageOptionId.HasValue).Select(r => r.PackageOptionId!.Value).ToHashSet();
+                    var selected = list.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue).Select(r => r.PackageOptionId!.Value).ToHashSet();
                     var correct  = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
                     return selected.Count > 0 && selected.SetEquals(correct);   // GRD-02 non-empty guard
                 }
@@ -89,7 +89,7 @@ namespace HcPortal.Helpers
                 }
                 default: // MultipleChoice
                 {
-                    var sel = list.Where(r => r.PackageOptionId.HasValue).Select(r => r.PackageOptionId!.Value).ToHashSet();
+                    var sel = list.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue).Select(r => r.PackageOptionId!.Value).ToHashSet();
                     if (sel.Count == 0) return false;
                     var opt = q.Options.FirstOrDefault(o => sel.Contains(o.Id));
                     return opt != null && opt.IsCorrect;
