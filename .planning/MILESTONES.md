@@ -1,5 +1,26 @@
 # Milestones
 
+## v31.0 Hotfix Pra-Ujian Lisensor (Shipped: 2026-06-15)
+
+**Phases completed:** 6 phases, 12 plans, 28 tasks
+
+**Key accomplishments:**
+
+- `_QuestionImage.cshtml` render `<img src>` + lightbox `data-img-src` via `Url.Content("~"+path)` → gambar soal/opsi tidak lagi 404 di sub-path `/KPB-PortalHC` (Dev/Prod), e2e terbukti load 200 + naturalWidth>0.
+- `StartExam.cshtml` flush jawaban essay (invoke SaveTextAnswer + await) sebelum submit/changePage + save-on-blur + timeout best-effort → keystroke ~2 detik terakhir tidak hilang dan peserta sudah-ketik tidak ditolak "belum dijawab"; e2e terbukti TextAnswer tersimpan utuh (97/97 char) di DB sebelum gate.
+- 6 RED/skip-gated test scaffolds (xUnit + Playwright) that lock PXF-02 option validation, PXF-04 essay-empty finalize count-parity, and PXF-05 PDF MA answer-cell contracts before any production code — project builds RED only on the two Wave-1 helper symbols.
+- Two pure EF-free helpers — `QuestionOptionValidator.ValidateQuestionOptions` (PXF-02 option-presence) and `AssessmentScoreAggregator.BuildAnswerCell` (PXF-05 answer-cell with ', ' MA join) — that turn the Wave-0 RED unit tests GREEN (24/24) without touching any controller, view, or scoring logic.
+- Wired the Wave-1 pure helper `QuestionOptionValidator.ValidateQuestionOptions` into BOTH `CreateQuestion` and `EditQuestion(POST)` in `AssessmentAdminController.cs` — an admin/HC can no longer save a Single/Multiple Answer question with <2 text options nor with a checked-correct option that has no text, closing the F-DEV-01 exam-freeze class at config-time. Single shared rule across Create + Edit (no drift); correctCount gate, copy-path, and importer untouched; 0 migration.
+- Closes F-04 (essay-empty dead-end) by applying the single pending predicate `!string.IsNullOrWhiteSpace(TextAnswer) && EssayScore == null` byte-identical at all 4 count surfaces, plus making `SubmitEssayScore` a defensive upsert guarded by a mandatory `Status == PendingGrading` check — with a Rule-1 correction moving whitespace evaluation in-memory at the 2 EF sites so SQL Server's tab/newline blind spot can't re-introduce count divergence.
+- Both official-evidence export surfaces — the per-peserta PDF (`GeneratePerPesertaPdf`, F-17) and the Excel "Detail Per Soal" sheet (`AddDetailPerSoalSheet`, F-DEV-02) — now route their "Jawaban" cell through `BuildAnswerCell` and their Benar/Salah label through `IsQuestionCorrect`, so Multiple Answer is labeled all-or-nothing (SetEquals) and lists every selected option on BOTH surfaces identically; scoring engine untouched, 0 migration.
+- The two Wave-0 e2e specs (PXF-02 option-validation reject, PXF-04 essay-empty finalize round-trip) were un-gated and greened against the running app with self-contained SQL seeds, the full dotnet test suite passed 474/474 with a 0-error build, and a live browser UAT APPROVED the byte-rendered official per-peserta PDF + Excel "Detail Jawaban" Multiple-Answer all-or-nothing labels (F-17 / F-DEV-02 proof), the PXF-02 server reject banner, and the PXF-04 EssayGrading finalize surface — closing Phase 386 (PXF-02 + PXF-04 + PXF-05) with 0 migration.
+- SubmitEssayScore type+ownership hardening (WR-01/WR-02), cert-number retry 3x + certError surface (PXF-08), monitor workerSubmitted broadcast (PXF-10), dan Excel "Detail Jawaban" essay cell tampil jawaban+skor nyata (PXF-09) — semua in-place edit ke AssessmentAdminController.cs, 0 migration.
+- Two server-authoritative write guards: SubmitExam no longer nulls a SignalR-saved MC answer absent from the form (PXF-12), and Hub.SaveTextAnswer rejects + logs post-timer essay writes (PXF-13), mirroring SaveMultipleAnswer.
+- Option images on Results.cshtml and ExamSummary.cshtml now expose per-letter aria context (opsi A / opsi B / opsi C / opsi D) by converting each plain foreach into an indexed for loop, mirroring the verbatim letters[oi] derivation from StartExam.cshtml.
+- Proportional verification (D-09) untuk Phase 387: 8 xUnit Integration facts (disposable real-SQL) untuk PXF-06/09/12 + 1 Playwright a11y spec PXF-11 (2 surface) + manual browser/SignalR/DB sign-off PXF-08/10/13 — semua PASS, fast suite 347/347 GREEN, build 0 error, 0 migration.
+
+---
+
 ## v30.0 Essay Grading Correctness + Monitoring UI Refactor (Shipped: 2026-06-15)
 
 **Phases completed:** 2 phases, 8 plans, 15 tasks

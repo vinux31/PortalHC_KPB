@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
-status: Ready to plan
+status: v31.0 milestone complete
 stopped_at: "Completed 387-04-PLAN.md (**Phase 387 COMPLETE** — verifikasi proporsional D-09: 8 xUnit Integration facts PXF-06/09/12 disposable real-SQL + Playwright a11y PXF-11 2-surface 3/3 + browser/SignalR/DB manual PXF-08/10/13 APPROVED [cert KPB/005/VI/2026 + workerSubmitted live + timer A/B]; fast suite 347/347 GREEN + build 0 error + 0 migration; commits `46bd422d` test / `3b4db3a2` test; SEED_JOURNAL CLEANED 0 residue)"
-last_updated: "2026-06-15T17:39:54.040Z"
+last_updated: "2026-06-15T18:13:57.925Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 24
