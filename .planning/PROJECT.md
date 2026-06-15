@@ -12,18 +12,9 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v29.0 Assessment E2E Worker-Success Fix (started 2026-06-14)
+## Current State: Between Milestones (v29.0 closed 2026-06-15)
 
-**Goal:** Worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton).
-
-**Target features (3 phase SEQUENTIAL 380→381→382, merge A→B→C):**
-- **Phase 380 (A) Admin/Engine integrity** — WSE-01 paket kosong + shuffle ON tak menzerokan worker (SHF-01), WSE-02 token Pre/Post uppercase saat edit (TOK-01), WSE-03 authz + cap AddExtraTime (RST-01/04). Migration=false.
-- **Phase 381 (B) Worker entry** — WSE-04 same-day Pre/Post paket tak tercampur, WSE-05 impersonasi/StartExam GET tak memulai/membakar waktu worker (OPS-01/TOK-03). Migration=false. Depends A.
-- **Phase 382 (C) Grading/lifecycle/cert** — WSE-06 grade dari jawaban final no-dup (SAVE-01), WSE-07/08 lifecycle tahan-race (STAT-01/02), WSE-09 timer Standard ditegakkan (TMR-01/02/03), WSE-10 token gate save/submit (TOK-02), WSE-11 cert ValidUntil=null konsisten (CERT-01). Migration=TRUE (1× notify IT). Depends B.
-
-**Pendekatan:** Audit-driven (bukan research). Sumber: `docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md` (verdict CONDITIONAL — happy-path umum jalan; 3 show-stopper di luar). Lensa khusus: kerjaan v25-v28 belum-audit (shuffle toggle, impersonation).
-
-**Scope note:** Proton, essay, multi-answer, admin data-governance = OUT. Defer backlog: RES-02, GRD-02. **1 migration** (filtered-unique-index PackageUserResponse single-answer di Phase 382) — notify IT. Eksekusi seri (no paralel/worktree) — semua sentuh `CMPController.cs`.
+**v29.0 shipped (local) + audit passed + closed + PUSHED origin/ITHandoff (2026-06-15)** — Assessment E2E Worker-Success Fix (phases 380-382): worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton). WSE-01/02/03 admin/engine integrity (ShuffleEngine empty-package filter + token uppercase heal + AddExtraTime authz/cap), WSE-04/05 worker entry (type-aware Pre/Post sibling + impersonation read-only guard), WSE-06..11 grading/lifecycle/cert (dedupe read-final + anti-resurrection + abandon-guard + timer Standard + token-gate + cert null→Aktif). 11/11 REQ + 415/415 xUnit + integration 11/11 WIRED. **0 migration** (SAVE-01 dedupe last-write-wins, bukan filtered-index). Archive: `milestones/v29.0-*`. Summary awam (HC): `docs/milestone-v29.0/index.html`. Pending non-blocker: CERT-01 konfirmasi visual + I-1 type-aware pre-check (opsional).
 
 **v28.0 shipped (local) + audit passed + closed (2026-06-14)** — Assessment & Records Bug Fixes (phases 376-379): fix essay-only Score aggregation (`AssessmentScoreAggregator` + `RecomputeEssayScores`) + impersonation identity lintas worker-data surfaces (`ImpersonationService.GetEffectiveUserAsync` + middleware) + CMP CertificationManagement route 500→redirect CDP + migrasi e2e exam-taking ke wizard (10 flow + Flow K essay). 6/6 REQ GRADE/IMP/CMPRT/E2E + 372/372 xUnit. 0 migration. Archive: `milestones/v28.0-*`.
 

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v22.0
-milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: "Plan 382-03 SHIPPED LOCAL (WSE-11 CERT-01 null→Aktif single-source + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync). Phase 382 closed; v29.0 (380-382) full delivery."
-last_updated: "2026-06-14T18:44:13.760Z"
-last_activity: 2026-06-14
+milestone: v29.0
+milestone_name: Assessment E2E Worker-Success Fix
+status: "between_milestones — v29.0 (380-382) CLOSED 2026-06-15 (audited PASSED 11/11 WSE) + PUSHED origin/ITHandoff. Planning next cycle."
+last_updated: "2026-06-15T00:00:00.000Z"
+last_activity: 2026-06-15
 progress:
-  total_phases: 21
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State: Portal HC KPB
@@ -19,22 +19,17 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 382 — grading-lifecycle-cert
+**Current focus:** Between milestones — v29.0 CLOSED 2026-06-15 (shipped local + audited PASSED + PUSHED origin/ITHandoff). Planning next cycle.
 
 ## Current Position
 
-Phase: 999.7
-Plan: Not started
-Status: Plan 382-03 SHIPPED LOCAL (WSE-11 CERT-01 null→Aktif single-source + e2e #8-12 acceptance + Migration=false guard + ROADMAP/STATE sync). Phase 382 closed; v29.0 (380-382) full delivery.
-Last activity: 2026-06-14
+**BETWEEN MILESTONES.** v29.0 "Assessment E2E Worker-Success Fix" (phases 380-382, 11 REQ WSE-01..11) SHIPPED LOCAL + audited PASSED (2026-06-15) + manual append-only close + PUSHED origin/ITHandoff (tag `v29.0`). Archive: `milestones/v29.0-ROADMAP.md` + `milestones/v29.0-REQUIREMENTS.md`. Audit: `v29.0-MILESTONE-AUDIT.md` (REQ 11/11, phases 3/3, integration 11/11 WIRED, flows 10/10). Plain-language summary: `docs/milestone-v29.0/index.html`. **0 migration** (SAVE-01 dedupe last-write-wins, BUKAN filtered-index). Phase dirs 380/381/382 diarsip ke `milestones/v29.0-phases/`.
 
-**v29.0 scope:** worker bisa ujian+lulus E2E (Normal+PrePost single-answer NON-Proton). 11 REQ WSE-01..11. Phase 380(A) admin/engine integrity · 381(B) worker entry · 382(C) grading/lifecycle/cert (0 migration — D-01 dedupe). Eksekusi SERI. Defer backlog RES-02/GRD-02. OUT: Proton/essay/multi-answer/admin-data-gov.
+**1 item PENDING (non-blocker):** CERT-01 konfirmasi visual human (dashboard cert ValidUntil=null tampil "Aktif" — DB-coherence sudah otomatis via CertAlertConsistencyTests + e2e #12). 1 finding LOW I-1 (WSE-01 pre-check non-type-aware → kasus salah-konfig Pre-isi/Post-kosong → redirect aman, bukan Fail palsu) — follow-up opsional.
 
-**Next:** `/gsd-plan-phase 380` (roadmap sudah di-tulis; phases LOCKED). Eksekusi SERI 380→381→382 (semua sentuh CMPController.cs, no paralel).
+**Next:** `/gsd-new-milestone` untuk siklus berikut, ATAU promote backlog 999.9 (label kosmetik LOW). 999.6/999.10 masih di `phases/` (backlog).
 
-**v28.0 carry (push IT):** ✅ Push v24-v28 ke `origin/ITHandoff` DONE (HEAD `bb8c04ed`). Sisa: notify IT 2 migration (PendingProtonBypass+index/360, ShuffleToggles/372) → IT promosi Dev/Prod. **v29.0 = 0 migration baru** (D-01-IMPACT: SAVE-01 dedupe last-write-wins, BUKAN filtered-index — diverifikasi `dotnet ef migrations add` → 0 model diff; tak perlu notify IT migration untuk v29.0).
-
-Predecessor: v25.0 + v26.0 + v27.0 + v28.0 SHIPPED LOCAL + audited PASSED + closed 2026-06-14 (v25/26/27 joint safe-close; v28.0 manual append-only).
+Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 SHIPPED LOCAL + audited PASSED + closed (v25/26/27 joint safe-close 2026-06-14; v28.0 manual append-only 2026-06-14; v29.0 manual append-only 2026-06-15).
 
 | Milestone | Phases | REQ | Audit | Archive |
 |-----------|--------|-----|-------|---------|
@@ -42,22 +37,24 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 SHIPPED LOCAL + audited PASSED + clos
 | v26.0 Urgent Search & Records Visibility | 369-371 | 3/3 URG | PASSED | milestones/v26.0-ROADMAP.md |
 | v27.0 Shuffle Toggle | 372-375 | 16/16 SHUF | PASSED | milestones/v27.0-ROADMAP.md |
 | v28.0 Assessment & Records Bug Fixes | 376-379 | 6/6 GRADE/IMP/CMPRT/E2E | PASSED | milestones/v28.0-ROADMAP.md |
+| v29.0 Assessment E2E Worker-Success Fix | 380-382 | 11/11 WSE | PASSED | milestones/v29.0-ROADMAP.md |
 
 Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ## Next Action
 
-1. ✅ **Push IT — DONE 2026-06-14.** Branch `ITHandoff` (454 commit) + tag `v24-v28.0` pushed ke `origin/ITHandoff` (remote=local, synced). HEAD `bb8c04ed`. **Sisa = NOTIFY IT**: 2 migration baru wajib flag — `PendingProtonBypass`+filtered-index (360) + `AddShuffleTogglesToAssessmentSession` (372). `Origin` (358) sudah lama di remote. v28.0 = 0 migration. IT lalu apply migration di DB Dev + promosi server Dev (10.55.3.3)/Prod (tanggung jawab IT, bukan dev).
-2. **`/gsd-new-milestone`** — mulai milestone berikut (recreate REQUIREMENTS.md). Kandidat backlog tersisa: 999.9 label kosmetik (LOW). (999.8/999.6/999.10/999.7 SUDAH ditutup di v28.0.)
-3. ✅ **Cleanup — DONE 2026-06-14.** Phase dir 352-379 (27 dir, v24-v28) sudah dipindah ke `milestones/vXX.0-phases/`. Sisa di `phases/`: cuma backlog 999.6/999.9/999.10.
+1. ✅ **v29.0 PUSHED — 2026-06-15.** Branch `ITHandoff` + tag `v29.0` pushed ke `origin/ITHandoff`. **v29.0 = 0 migration baru** (SAVE-01 dedupe, BUKAN filtered-index — tak perlu flag migration baru ke IT). **Sisa NOTIFY IT (carry-over lama):** 2 migration `PendingProtonBypass`+filtered-index (360) + `AddShuffleTogglesToAssessmentSession` (372) → IT apply DB Dev + promosi server Dev (10.55.3.3)/Prod.
+2. **`/gsd-new-milestone`** — mulai milestone berikut (recreate REQUIREMENTS.md). Kandidat backlog tersisa: 999.9 label kosmetik (LOW). (999.8/999.6/999.10/999.7 ditutup v28.0.)
+3. **Opsional v29.0 follow-up:** CERT-01 konfirmasi visual browser (1 UAT pixel) + I-1 type-aware pre-check (1-line). Non-blocker.
 
 ## Tag Git
 
 - `v24.0`, `v25.0`, `v26.0`, `v27.0`, `v28.0` — ✅ PUSHED ke `origin/ITHandoff` 2026-06-14.
+- `v29.0` — ✅ dibuat saat manual close 2026-06-15 + PUSHED `origin/ITHandoff`. Annotated (Assessment E2E Worker-Success Fix, 380-382, 11/11 REQ, 0 migration).
 
 ## Deferred Items
 
-> ✅ **ACCEPTED OK 2026-06-14** (keputusan user): semua carry-over v11.2/v13/v14/v15 di bawah = **phase lama, dianggap OK / non-blocking** (kode sudah ship + jalan; tak ada bug report di milestone v16-v28). Bukan pekerjaan tertunda aktif. Tetap dicatat sebagai histori, bukan TODO. Buka lagi hanya bila muncul bug/kebutuhan nyata.
+> ✅ **ACCEPTED OK 2026-06-14** (keputusan user): semua carry-over v11.2/v13/v14/v15 di bawah = **phase lama, dianggap OK / non-blocking** (kode sudah ship + jalan; tak ada bug report di milestone v16-v29). Bukan pekerjaan tertunda aktif. Tetap dicatat sebagai histori, bukan TODO. Buka lagi hanya bila muncul bug/kebutuhan nyata.
 
 ### v15.0 Deferred (carry-over) — ACCEPTED OK
 
@@ -77,20 +74,31 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 | Blocker | Phase 293 `GetSectionUnitsDictAsync` Level 2+ support | accepted-OK (org 2-level cukup; buka bila butuh >2 level) | v13.0 carry-over |
 | v11.2 paused | Phase 281 (System Settings) + Phase 285 (Dedicated Impersonation Page) | accepted-OK (closed-early, non-blocking) | MILESTONES.md v11.2 |
 
+### v29.0 Deferred / Pending (non-blocker)
+
+| Item | Status |
+|------|--------|
+| CERT-01 konfirmasi visual human (dashboard cert null tampil "Aktif") | PENDING — DB-coherence sudah otomatis (CertAlertConsistencyTests + e2e #12); cuma pixel check |
+| I-1 WSE-01 pre-check non-type-aware (kasus salah-konfig Pre-isi/Post-kosong) | follow-up opsional — redirect aman, bukan Fail palsu |
+| RES-02 (display-drift X/Y vs Score%) · GRD-02 (empty-MA SetEquals LOW) | backlog (deferred saat planning v29.0) |
+
 ### Backlog aktif (belum dipromote)
 
 | Item | Reason |
 |------|--------|
 | 999.9 label residu "Backfill/Restore" di UI BulkBackfill | kosmetik (LOW) |
+| 999.6 impersonate identity (dir tersisa) | sudah ditutup fungsional v28.0/377; dir backlog tinggal |
+| 999.10 route CMP (dir tersisa) | sudah ditutup v28.0/378; dir backlog tinggal |
 
 > ✅ Ditutup di v28.0 (2026-06-14): 999.8 essay→376 (GRADE), 999.6 impersonate→377 (IMP), 999.10 route→378 (CMPRT), 999.7 e2e→379 (E2E).
 
-### Push IT — ✅ DONE 2026-06-14
+### Push IT
 
 | Item | Status |
 |------|--------|
-| Push bundle v24-v28 ke `origin/ITHandoff` (branch + 5 tag) | ✅ PUSHED 2026-06-14, HEAD `bb8c04ed`, remote synced |
-| Notify IT — 2 migration baru (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ PENDING — kasih commit hash + flag ke IT |
+| Push bundle v24-v28 ke `origin/ITHandoff` (branch + 5 tag) | ✅ PUSHED 2026-06-14, HEAD `bb8c04ed` |
+| Push v29.0 (branch + tag `v29.0`) ke `origin/ITHandoff` | ✅ PUSHED 2026-06-15 |
+| Notify IT — 2 migration carry (`PendingProtonBypass`+index/360, `ShuffleToggles`/372). **v29.0 = 0 migration baru.** | ⏳ PENDING — kasih commit hash + flag ke IT |
 | IT apply migration DB Dev + promosi server Dev (10.55.3.3)/Prod | ⏳ tanggung jawab IT (bukan dev) |
 
 ## Accumulated Context
@@ -120,11 +128,11 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 ### Open Blockers/Concerns
 
 - ✅ **999.8 essay-grading** (RESOLVED v28.0/Phase 376): bug TAK reproduce di code current (fixed incidental v27.0 Phase 373). Hardening: helper `AssessmentScoreAggregator` + endpoint `RecomputeEssayScores` (prod-repair historis pasca-deploy bila ada baris Score=0 lama).
-- [push] 3 migration (Origin, PendingProtonBypass+index, ShuffleToggles) — notify IT flag migration saat push; 360+372 di delta unpushed. (v28.0 = 0 migration; **v29.0 = 0 migration** — D-01-IMPACT dedupe, tak ada migration baru untuk flag.)
+- [push] Carry migration (Origin, PendingProtonBypass+index/360, ShuffleToggles/372) — notify IT flag migration; 360+372 di delta yang sudah di remote. **v28.0 = 0 migration; v29.0 = 0 migration** (D-01-IMPACT dedupe, tak ada migration baru untuk flag).
 - ✅ Phase 293 `GetSectionUnitsDictAsync` hardcoded 2-level — accepted-OK (user 2026-06-14; org 2-level cukup, buka bila butuh >2 level).
 
 ## Session Continuity
 
-Last activity: 2026-06-14 — Stopped at: Completed 382-03-PLAN.md (Phase 382 ALL plans SHIPPED LOCAL)
+Last activity: 2026-06-15 — v29.0 manual append-only close + PUSHED origin/ITHandoff (auto-chain pasca-382: secure 12/12 → validate 415/415 → verify [pakai hasil sesi lain, 1 PENDING] → audit PASSED 11/11 → HTML awam → close → push).
 
-Next action: **v29.0 (380-382) full delivery → secure/validate/UAT, lalu push IT.** 382-01/02/03 SHIPPED LOCAL (NOT PUSHED). **v29.0 = 0 migration baru** (D-01-IMPACT dedupe — TIDAK perlu flag migration baru saat push; sisa flag-IT cuma carry 360/372). Catatan: Phase 380 belum SHIPPED di STATE counter (paralel) — cek status 380 sebelum close v29.0. Saran: `/gsd-secure-phase 382` lalu `/gsd-verify-work 382`. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
+Next action: **Notify IT** (carry migration 360/372; v29.0 = 0 migration baru) ATAU `/gsd-new-milestone` untuk siklus berikut. Opsional v29.0 follow-up: CERT-01 visual UAT + I-1 type-aware pre-check. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).

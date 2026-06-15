@@ -1,5 +1,23 @@
 # Milestones
 
+## v29.0 Assessment E2E Worker-Success Fix (Shipped Local: 2026-06-15, Audited: 2026-06-15)
+
+**Phases completed:** 3 phase (380-382), 8 plan
+**Status:** SHIPPED LOCAL + PUSHED `origin/ITHandoff` 2026-06-15 (tag `v29.0`). **0 migration**.
+**Audit:** `v29.0-MILESTONE-AUDIT.md` — status **passed** (11/11 REQ WSE-01..11, 3/3 phase, integration 11/11 seam WIRED [build 0 err, 58/58 cross-seam unit, no clobber CMPController seri A→B→C], 10/10 E2E flow). Security threats_open:0 (380 7/7, 382 12/12). Full suite 415/415.
+
+**Delivered:** Worker bisa ujian + lulus end-to-end untuk assessment Normal + PrePost soal single-answer (NON-Proton). Audit-driven (`docs/assessment-audit/2026-06-14-E2E-worker-success-FOCUS.md`, verdict awal CONDITIONAL). 3 phase SEQUENTIAL merge A→B→C (semua sentuh `CMPController.cs`).
+
+**Key accomplishments:**
+
+1. **Admin/Engine Integrity (Phase 380, WSE-01,02,03)** — WSE-01 SHF-01 `ShuffleEngine` ON-path empty-package filter + StartExam all-empty guard (paket kosong tak menzerokan worker / no 0% Fail palsu); WSE-02 TOK-01 `AccessTokenMatches` both-sides ToUpperInvariant heal + EditAssessment uppercase-write 3 sites (token edit-admin tetap dipakai worker); WSE-03 RST-01/04 `AddExtraTime` `[Authorize(Roles="Admin,HC")]` + cap atomic. xUnit 384/384, SECURED 7/7, UAT 5/5 (live e2e Flow L+M 10/10).
+2. **Worker Entry / StartExam integrity (Phase 381, WSE-04,05)** — WSE-04 NEW-same-day-PrePost shared type-aware sibling helper (`SiblingSessionQuery`, filter AssessmentType/LinkedGroupId) + rewire StartExam/ReshufflePackage/ReshuffleAll (Pre/Post tak tercampur); WSE-05 OPS-01/TOK-03 write-on-GET impersonation guard 3 write-site + in-memory preview (admin impersonate = read-only, tak memulai/membakar waktu/mengunci shuffle). 381-VERIFICATION + e2e #4/#7.
+3. **Grading / Lifecycle / Cert (Phase 382, WSE-06..11)** — WSE-06 SAVE-01 dedupe read-final (GradingService `finalByQuestion` ORDER BY SubmittedAt desc + SubmitExam GroupBy mirror); WSE-07 STAT-01 anti-resurrection guard kedua branch + const Abandoned; WSE-08 STAT-02 AbandonExam atomic ExecuteUpdate (ownership-in-WHERE, anti-race+anti-spoof); WSE-09 TMR-01 blocklist-invert + TMR-02 server-timer authority + TMR-03 token-on-success; WSE-10 TOK-02 StartedAt-gate SaveAnswer+SubmitExam; WSE-11 CERT-01 `DeriveCertificateStatus` null→Aktif single-source. xUnit 415/415, e2e #8-12 acceptance, SECURED 12/12, nyquist-compliant.
+
+**Migration:** 0 (D-01-IMPACT — SAVE-01 dedupe last-write-wins, BUKAN filtered-index; `dotnet ef migrations add _verify_382` → 0 model diff). **Known deferred (non-blocker):** CERT-01 konfirmasi visual human (DB-coherence sudah otomatis); 1 finding LOW I-1 (WSE-01 pre-check non-type-aware → redirect aman); RES-02/GRD-02 backlog. **Notify IT:** v29.0 = 0 migration baru (carry lama 360/372 masih pending IT). Plain-language summary: `docs/milestone-v29.0/index.html`.
+
+---
+
 ## v28.0 Assessment & Records Bug Fixes (Shipped Local: 2026-06-14, Audited: 2026-06-14)
 
 **Phases completed:** 4 phase (376-379), 16 plan
