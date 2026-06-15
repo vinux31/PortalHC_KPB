@@ -48,10 +48,15 @@ Temuan readiness severity lebih rendah / mitigatable / report-cosmetic, ditunda 
 
 | REQ-ID | Temuan | Phase | Status |
 |--------|--------|-------|--------|
-| PXF-01 | F-09 | TBD | Pending |
-| PXF-02 | F-DEV-01 | TBD | Pending |
-| PXF-03 | F-21 | TBD | Pending |
-| PXF-04 | F-04 | TBD | Pending |
-| PXF-05 | F-17 | TBD | Pending |
+| PXF-01 | F-09 | Phase 385 | Pending |
+| PXF-03 | F-21 | Phase 385 | Pending |
+| PXF-02 | F-DEV-01 | Phase 386 | Pending |
+| PXF-04 | F-04 | Phase 386 | Pending |
+| PXF-05 | F-17 | Phase 386 | Pending |
 
-*Diisi oleh roadmap (phase mapping).*
+**Coverage: 5/5 ter-map ✓ — Orphans: 0 — Duplicates: 0.**
+
+**Phase mapping (roadmap 2026-06-15):**
+- **Phase 385 — Exam-Taking & Image Render Hotfix:** PXF-01 (`_QuestionImage.cshtml` PathBase-aware), PXF-03 (`StartExam.cshtml` flush essay). File view berbeda dari Phase 386 → file-disjoint, aman paralel.
+- **Phase 386 — AssessmentAdminController Hardening:** PXF-02 + PXF-04 + PXF-05. Ketiga REQ menyentuh `Controllers/AssessmentAdminController.cs` → **digabung satu fase** untuk hindari konflik write paralel.
+- Penomoran fase LANJUT dari v30.0 (phase terakhir = 384). Semua **0 migration**.

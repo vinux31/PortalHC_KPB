@@ -29,6 +29,7 @@
 - ✅ **v28.0 Assessment & Records Bug Fixes** — Phases 376-379 (shipped local + audited PASSED 2026-06-14, 6/6 REQ GRADE/IMP/CMPRT/E2E; 0 migration; NOT PUSHED) — [archive](milestones/v28.0-ROADMAP.md) — [audit](v28.0-MILESTONE-AUDIT.md)
 - ✅ **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (shipped local + audited PASSED 2026-06-15, 11/11 REQ WSE-01..11; 0 migration; NOT PUSHED) — [archive](milestones/v29.0-ROADMAP.md) — [audit](v29.0-MILESTONE-AUDIT.md)
 - ✅ **v30.0 Essay Grading Correctness + Monitoring UI Refactor** — Phases 383-384 (shipped local + audited PASSED 2026-06-15, 10/10 REQ ECG-01..06 + UIG-01..04; **0 migration**; menutup backlog RES-02 + GRD-02; NOT PUSHED) — [archive](milestones/v30.0-ROADMAP.md) — [audit](milestones/v30.0-MILESTONE-AUDIT.md)
+- 🚧 **v31.0 Hotfix Pra-Ujian Lisensor** — Phases 385-386 (STARTED 2026-06-15, urgent acara ~2026-06-17, 5 REQ PXF-01..05; **0 migration**; target 1 bundle → 1 deploy IT) — [requirements](REQUIREMENTS.md) — [readiness register](notes/2026-06-15-readiness-ujian-lisensor.md)
 
 ## Phases
 
@@ -38,6 +39,79 @@
 See .planning/MILESTONES.md for full history.
 
 </details>
+
+<details open>
+<summary>🚧 v31.0 Hotfix Pra-Ujian Lisensor (Phases 385-386) — STARTED 2026-06-15 — <a href="REQUIREMENTS.md">requirements</a> — <a href="notes/2026-06-15-readiness-ujian-lisensor.md">readiness register</a></summary>
+
+**Status:** Roadmap created 2026-06-15 (hotfix-driven, skip domain-research). NOT YET PLANNED.
+**Source:** Readiness audit gladi-bersih E2E 2026-06-15 — register temuan final adversarial-verified di `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` (3 HIGH · 5 MED · 7 LOW; 5 must-fix dipromote ke PXF-01..05, sisanya Future/Out).
+**Goal:** Perbaiki 5 temuan readiness yang menghambat ujian lisensor real (~2026-06-17) dalam 1 bundle deploy — sebelum hari-H. Ujian: SA+MA+Essay+soal bergambar, ≤30 peserta, PDF per-peserta = bukti resmi lisensor.
+**Granularity:** standard, dikompresi untuk hotfix urgent (2 fase — pengelompokan by file-overlap: 1 fase view/exam-taking [file view berbeda, paralel-aman], 1 fase `AssessmentAdminController.cs` [3 REQ satu file → satu fase = nol konflik write paralel]).
+**Migration:** **false (kedua phase)** — semua fix murni view / controller / validasi. Tidak ada schema/backfill/write DB.
+**Konteks kunci (urgent, 2 hari):** target 1 push → IT re-deploy ke Dev sebelum hari-H. Pendekatan: hotfix langsung. Mitigasi operasional (lakukan walau sudah fix): pakai 1 paket soal, cek tiap soal punya opsi, briefing peserta (MA all-or-nothing, jangan kosongkan essay, tunggu sebelum Kumpulkan).
+**Scope note:** FUTURE (OUT milestone ini, pasca-acara): F-02, F-03, F-01, F-06, F-11, F-13, F-19, F-20, F-22. F-18 kondisional (hanya jika >1 paket; mitigasi: pakai 1 paket → skip). 0 fitur baru / refactor besar.
+**File-overlap (WAJIB hindari konflik write paralel):** PXF-02 + PXF-04 + PXF-05 **semua di `Controllers/AssessmentAdminController.cs`** → digabung 1 fase (Phase 386). PXF-01 (`Views/Shared/_QuestionImage.cshtml`) + PXF-03 (`Views/CMP/StartExam.cshtml` + mungkin `CMPController.cs`) di file berbeda → Phase 385 (no overlap dengan 386 → boleh paralel jika diinginkan).
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap fase wajib `dotnet build` + `dotnet run` (localhost:5277) sebelum commit. PXF-01 verify via URL prefix `/KPB-PortalHC` lokal + Playwright; PXF-02/03/04 unit test + Playwright; PXF-05 unit test. Semua → 1 push → notify IT re-deploy. ❌ tidak ada edit di Dev/Prod.
+
+### Phases
+
+- [ ] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration.
+- [ ] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration.
+
+### Phase Details
+
+### Phase 385: Exam-Taking & Image Render Hotfix
+**Goal:** Peserta ujian lisensor bisa (a) melihat gambar pada soal & opsi saat aplikasi jalan di sub-path Dev/Prod (`/KPB-PortalHC`) tanpa 404, dan (b) submit ujian dengan jawaban essay tersimpan utuh — keystroke terakhir di-flush sebelum form dikirim (submit / pindah halaman / waktu habis), sehingga essay tidak hilang ~2 detik terakhir dan peserta yang sudah mengisi essay tidak ditolak "belum dijawab" di menit akhir. Dua perbaikan di file view berbeda (`_QuestionImage.cshtml` + `StartExam.cshtml`), terpisah dari `AssessmentAdminController.cs` (Phase 386) sehingga tak ada konflik write.
+**Depends on:** Tidak ada (melanjutkan dari Phase 384 v30.0; file-disjoint dari Phase 386 → boleh dikerjakan paralel).
+**Migration:** false (murni view + JS exam-taking; tidak ada schema/write DB)
+**Requirements:** PXF-01, PXF-03
+**Files:** `Views/Shared/_QuestionImage.cshtml` (src PathBase-aware — wrap `Url.Content("~" + path)` ganti `src="@imagePath"` leading-slash yang bypass PathBase) · `Views/CMP/StartExam.cshtml` (flush essay sebelum `examForm.submit()` + on blur; ~903-911 debounce, ~472-484 gate incomplete, ~980-1001 submit/timer-expiry) · kemungkinan `Controllers/CMPController.cs` (jika gate incomplete perlu menerima essay terakhir) · Playwright e2e (image render via URL prefix + essay flush-on-submit)
+**Success Criteria** (what must be TRUE):
+  1. Layar StartExam (dan permukaan render gambar lain: ExamSummary, Results, grading) menampilkan gambar soal & opsi tanpa 404 saat aplikasi diakses lewat sub-path `/KPB-PortalHC` — `<img src>` resolusi PathBase-aware (prefix tidak di-drop). Confirmed broken di Dev (F-09 CONFIRMED HARD: `GET .../uploads/questions/... → 404`, prefix hilang). *(PXF-01)*
+  2. Saat peserta menekan "Kumpulkan Ujian" / pindah halaman / timer habis (auto-submit), teks essay terbaru di-flush ke server SEBELUM form dikirim — keystroke ~2 detik terakhir tidak hilang (tidak menunggu debounce 2s). *(PXF-03)*
+  3. Peserta yang SUDAH mengetik jawaban essay tidak ditolak submit dengan pesan "Masih ada N soal belum dijawab" akibat baris DB belum tersimpan — gate incomplete menghitung essay yang sudah terisi sebagai terjawab. *(PXF-03)*
+  4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright e2e: (a) soal bergambar render via URL prefix `/KPB-PortalHC` (load 200, bukan 404 / ikon rusak) — UAT browser 1× di `http://10.55.3.3/KPB-PortalHC` layar StartExam bergambar sebelum ujian; (b) ketik essay → submit langsung tanpa jeda → ExamSummary/DB berisi teks essay lengkap (flush sukses). *(PXF-01, PXF-03 — Razor + JS runtime → Playwright wajib, pelajaran Phase 354)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 386: AssessmentAdminController Hardening
+**Goal:** Tiga perbaikan correctness/lifecycle di `Controllers/AssessmentAdminController.cs` (satu fase = satu file = nol konflik write paralel): (a) admin tidak bisa menyimpan soal Single/Multiple Answer tanpa opsi jawaban (CreateQuestion/EditQuestion menolak, validasi ≥1 opsi ber-teks) sehingga tak ada soal cacat yang membekukan submit ujian; (b) HC bisa menyelesaikan penilaian walau peserta mengosongkan essay (hitungan pending konsisten antar surface, tombol "Selesaikan Penilaian" muncul, tidak dead-end, essay kosong = 0 poin otomatis); (c) PDF bukti per-peserta menandai soal Multiple Answer benar/salah akurat (SetEquals all-or-nothing, baca semua opsi terpilih) — konsisten dengan penilaian web/Excel, karena PDF = bukti/arsip resmi lisensor.
+**Depends on:** Tidak ada secara logika (file-disjoint dari Phase 385). **Ketiga REQ menyentuh `AssessmentAdminController.cs` yang sama → WAJIB satu fase / sequential-strict (no konflik write paralel antar PXF di dalam fase ini).**
+**Migration:** false (murni validasi controller + hitung pending + scoring PDF display; tidak ada schema/write DB)
+**Requirements:** PXF-02, PXF-04, PXF-05
+**Files:** `Controllers/AssessmentAdminController.cs` — CreateQuestion `~6440`/EditQuestion `~6647` (tambah validasi jumlah opsi ber-teks ≥1, idealnya ≥2 + ≥1 benar, untuk tipe Single/Multiple; pesan jelas) · EssayGrading/SubmitEssayScore `~3500` + FinalizeEssayGrading pending-count (samakan basis hitung essay kosong: monitoring row-based vs page EssayGrading; essay kosong = baris 0 poin / "siap finalize") · BulkExportPdf `~5070-5086` / GeneratePerPesertaPdf (ganti `FirstOrDefault` → `SetEquals` baca semua response opsi MA) · unit test (validasi opsi, pending-count essay kosong, MA SetEquals PDF). Opsional tambah validasi client-side di view CreateQuestion/EditQuestion.
+**Success Criteria** (what must be TRUE):
+  1. Admin yang mencoba menyimpan soal tipe Single/Multiple Answer **tanpa opsi jawaban** (semua A/B/C/D kosong) DITOLAK oleh `CreateQuestion` & `EditQuestion` dengan pesan jelas (validasi ≥1 opsi ber-teks, idealnya ≥2 dengan ≥1 benar) — tidak ada soal 0-opsi tersimpan yang membekukan submit ujian semua peserta. *(PXF-02 — closes F-DEV-01)*
+  2. HC bisa menyelesaikan penilaian assessment walau peserta **mengosongkan essay** (tanpa baris jawaban): hitungan pending konsisten antara Monitoring dan page EssayGrading, tombol "Selesaikan Penilaian" muncul (tidak disembunyikan), tidak dead-end, dan essay kosong dinilai 0 poin otomatis (bukan error "Jawaban tidak ditemukan"). *(PXF-04 — closes F-04)*
+  3. PDF bukti per-peserta (`GeneratePerPesertaPdf`/`BulkExportPdf`) menandai soal **Multiple Answer** Benar/Salah secara akurat dengan aturan all-or-nothing `SetEquals` (membaca SEMUA opsi terpilih, bukan 1 baris `FirstOrDefault`) — label PDF konsisten dengan penilaian web/Excel. *(PXF-05 — closes F-17)*
+  4. `dotnet build` 0 error + `dotnet test` hijau termasuk: unit test validasi opsi (soal Single/Multiple 0-opsi ditolak, ≥1 opsi ber-teks diterima); unit test pending-count essay kosong (basis hitung Monitoring == page EssayGrading, tombol Selesaikan muncul); unit test PDF MA SetEquals (benar={A,C,D} ⇒ Benar, partial/superset ⇒ Salah). Plus Playwright untuk PXF-02 (admin ditolak simpan soal 0-opsi) + PXF-04 (HC finalize sesi dengan essay kosong). *(PXF-02, PXF-04, PXF-05)*
+**Plans:** TBD
+**UI hint:** yes
+
+**Active mapped: 5/5 ✓ (PXF-01 + PXF-03 → 385, PXF-02 + PXF-04 + PXF-05 → 386) — Orphans: 0 — Duplicates: 0 — 0 migration (kedua phase) — file-overlap aman (3 REQ AssessmentAdminController.cs digabung di Phase 386).**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 0/TBD | Not started | - |
+| 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 0/TBD | Not started | - |
+
+### Coverage Validation
+
+| REQ | Temuan | Phase | Surface / Touchpoint | Status |
+|-----|--------|-------|----------------------|--------|
+| PXF-01 | F-09 | 385 | `Views/Shared/_QuestionImage.cshtml` img src PathBase-aware (sub-path `/KPB-PortalHC`) | Pending |
+| PXF-03 | F-21 | 385 | `Views/CMP/StartExam.cshtml` flush essay sebelum submit/blur/timeout + gate incomplete | Pending |
+| PXF-02 | F-DEV-01 | 386 | `AssessmentAdminController.cs` CreateQuestion/EditQuestion validasi ≥1 opsi ber-teks | Pending |
+| PXF-04 | F-04 | 386 | `AssessmentAdminController.cs` EssayGrading/SubmitEssayScore pending-count essay kosong | Pending |
+| PXF-05 | F-17 | 386 | `AssessmentAdminController.cs` BulkExportPdf/GeneratePerPesertaPdf MA SetEquals | Pending |
+
+**Active mapped: 5/5 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration — Closes F-09/F-DEV-01/F-21/F-04/F-17 (must-fix readiness)**
+
+</details>
+
+---
 
 <details>
 <summary>✅ v30.0 Essay Grading Correctness + Monitoring UI Refactor (Phases 383-384) — SHIPPED 2026-06-15 — <a href="milestones/v30.0-ROADMAP.md">archive</a> — <a href="milestones/v30.0-MILESTONE-AUDIT.md">audit</a></summary>
