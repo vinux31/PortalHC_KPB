@@ -1,10 +1,11 @@
 ---
 phase: 384
 slug: monitoring-essay-grading-ui-refactor-fase-2
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-15
+reviewed_at: 2026-06-15
 ---
 
 # Phase 384 — UI Design Contract
