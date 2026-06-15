@@ -70,5 +70,9 @@ bukan diff.
 
 ## Next
 
-- Phase verifikasi E2E gladi-bersih (lihat ROADMAP / research questions).
-- Open unknown belum dijawab → `.planning/research/questions.md`.
+- Eksekusi = **verifikasi browser/UAT (report-first)**, BUKAN GSD phase — ini test UI,
+  bukan kerjaan building kode. (Phase 385 sempat dibuat lalu dibatalkan 2026-06-15.)
+- Jalankan via sesi browser Playwright langsung (pakai checklist note ini) atau
+  `/gsd-verify-work`.
+- Jawab open unknown dulu → `.planning/research/questions.md` (terutama tanggal ujian +
+  aturan kelulusan/scoring).

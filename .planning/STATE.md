@@ -120,7 +120,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ### Roadmap Evolution
 
-- Phase 385 added (2026-06-15, /gsd-explore): **E2E Gladi-Bersih Verifikasi Assessment Lisensor Standard** — verifikasi readiness ujian lisensor real (tipe standard, ≤30 peserta, 4 jenis soal + gambar, full lifecycle + monitoring), **report-first** (no auto-fix; bug diklasifikasi → user putuskan fix + re-deploy IT). ⚠️ Nomor dikoreksi manual 350 → 385 (gsd-tools `phase add` hitung max dari dir on-disk = 349 karena phase lama sudah di-archive; max logis sebenarnya 384). Sumber: `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` + `.planning/research/questions.md`.
+- Phase 385 DIBATALKAN (2026-06-15): sempat dibuat via /gsd-explore lalu **dihapus** — readiness ujian lisensor = verifikasi browser/UAT (report-first), bukan kerjaan building kode, jadi tak butuh phase. Scope tetap hidup di `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` (checklist) + `.planning/research/questions.md` (unknown). Eksekusi via sesi browser Playwright langsung / `/gsd-verify-work`.
 
 ### Decisions (persist across milestones)
 
