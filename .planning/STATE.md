@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v30.0
 milestone_name: Essay Grading Correctness + Monitoring UI Refactor
-status: "Roadmap created (v30.0 ROADMAP.md written 2026-06-15, 10/10 REQ mapped, 0 orphan) — v30.0 started 2026-06-15 (phases 383-384). Predecessor v29.0 CLOSED + PUSHED origin/ITHandoff."
-last_updated: "2026-06-15T00:00:00.000Z"
+status: Executing Phase 383
+last_updated: "2026-06-15T02:41:45.871Z"
 last_activity: 2026-06-15
 progress:
-  total_phases: 2
+  total_phases: 21
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State: Portal HC KPB
@@ -19,10 +20,12 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v30.0 Essay Grading Correctness + Monitoring UI Refactor (phases 383-384) — started 2026-06-15. Defining requirements → roadmap.
+**Current focus:** Phase 383 — Essay Grading Correctness + Test (Fase 1)
 
 ## Current Position
 
+Phase: 383 (Essay Grading Correctness + Test (Fase 1)) — EXECUTING
+Plan: 2 of 4 (Plan 01 ✅ DONE — helper `IsQuestionCorrect` + 11 unit test, RED→GREEN, commits 32e49942/adf247d5)
 **MILESTONE v30.0 STARTED.** Essay Grading Correctness + Monitoring UI Refactor (phases 383-384, 10 REQ ECG-01..06 + UIG-01..04). Driven by user bug report 2026-06-15: `CMP/Results` shows "Nilai Anda 100%" but "(4/6 benar)" — essays graded fully correct are counted wrong in the X/Y count, Elemen Teknis, Tinjauan Jawaban badge, and PDF export. Root cause (workflow-verified multi-agent): two divergent paths in `CMPController.Results()` — score% is essay-aware (Path A via `AssessmentScoreAggregator`), but count/ET/Tinjauan recompute inline with option-matching only (Path B, no Essay branch). Closes deferred backlog **RES-02** + **GRD-02**.
 
 **Plan:** Fase 1 (383) = centralized helper `AssessmentScoreAggregator.IsQuestionCorrect` (bool?, essay Benar=`EssayScore>0`, null=pending) wired to 3 sites + PDF unify + regression tests (poin 2 Simpan/Selesaikan already correct, locked by test). Fase 2 (384) = Monitoring essay UI refactor → worker-list table + "Tinjau Essay" per-worker page (backend endpoints unchanged). **0 migration**, read/display-path only, Pass/Fail untouched.
@@ -107,6 +110,7 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ### Decisions (persist across milestones)
 
+- [v30.0 / ECG-01 (383-01)]: Helper `AssessmentScoreAggregator.IsQuestionCorrect(q, responsesForQ) -> bool?` = single source correctness per-soal (true=Benar/false=Salah/null=essay pending). MC/MA mirror DISPLAY-path inline `CMPController.Results` (L2259-2324) byte-for-byte; cabang Essay baru `EssayScore.HasValue ? Value>0 : null` (D-02). **MA non-empty guard `selected.Count > 0 && SetEquals` sengaja BEDA dari `Compute` (scoring-path tanpa guard)** — display vs scoring concern terpisah (RESEARCH Pitfall 5); closes GRD-02. Pure/static/EF-free, 11 unit test no-DB hijau. `Compute` D-04 formula TIDAK diubah. Fondasi: consumer (3 site CMPController + PDF + View D-07) di Plan 02/03/04.
 - [v29.0 / CERT-01 (382-03)]: `DeriveCertificateStatus(null ValidUntil, null/non-Permanent)` → **Aktif** (BUKAN Expired) — cert lulus tanpa kedaluwarsa = Aktif/Permanen. Single-source helper; consumer (AdminBase worklist L200, Renewal+CDP tally) ikut otomatis via Status enum — TIDAK diedit (Pattern 7). HomeController badge/notif sudah filter `ValidUntil.HasValue` (null sudah excluded, tak drift). Test lama `_ReturnsExpired` di-REWRITE → `_ReturnsAktif`; +`CertAlertConsistencyTests` (lock null-cert tak masuk tally Expired/AkanExpired).
 - [v29.0 / 382 / D-01-IMPACT]: SAVE-01 = dedupe last-write-wins in-memory (ORDER BY SubmittedAt desc), **NO migration** (PackageUserResponse tak punya diskriminator QuestionType → filtered unique index tak feasible). Diverifikasi `dotnet ef migrations add _verify_382` → empty Up/Down (0 model diff), lalu dihapus. **v29.0 = 0 migration baru. Tidak perlu notify IT migration untuk milestone ini.**
 - [v29.0 / e2e date helper (382-03)]: [Rule 3 fix] `tests/helpers/utils.ts` today/tomorrow/yesterday — UTC `toISOString()` → komponen tanggal LOKAL. Server validasi `Schedule < DateTime.Today` (waktu LOKAL); di TZ UTC+8 dini hari, tanggal UTC = kemarin-lokal → create assessment ditolak "Schedule date cannot be in the past". Shared helper, semua e2e flow ikut benar.
@@ -135,6 +139,8 @@ Predecessor: v24.0 ✅ SHIPPED LOCAL + closed 2026-06-09 (352-357, 25/25 REQ).
 
 ## Session Continuity
 
-Last activity: 2026-06-15 -- v30.0 ROADMAP.md created (phases 383-384, 10/10 REQ ECG/UIG mapped, 0 orphan, 0 migration). REQUIREMENTS.md traceability already populated. STATE updated.
+Last activity: 2026-06-15
 
-Next action: **`/gsd-plan-phase 383`** (Fase 1 hotfix correctness, ships first; lalu 384 UI Monitoring). Pending non-blocker: notify IT carry migration 360/372 (v30.0 = 0 migration baru). JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
+Stopped at: Completed 383-01-PLAN.md (helper `IsQuestionCorrect` + 11 unit test, RED→GREEN; commits 32e49942/adf247d5; build 0 error, suite non-Integration 314/314).
+
+Next action: **Execute Plan 383-02** — rewire 3 site `CMPController.Results` (count review-on/off + Elemen Teknis) + broaden `IsEssayPending` (D-06) ke `IsQuestionCorrect`. Lalu 03 (PDF unify D-03/ECG-05) + 04 (View D-07 + regression ECG-06). Pending non-blocker: notify IT carry migration 360/372 (v30.0 = 0 migration baru). JANGAN edit DB/kode Dev/Prod (CLAUDE.md). Catatan: dev server lokal (HcPortal.exe) di-stop saat build test — restart `dotnet run` bila perlu UAT.

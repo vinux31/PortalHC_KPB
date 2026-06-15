@@ -19,7 +19,7 @@ status: active
 
 ### Phase 383 (Fase 1) — Essay Grading Correctness + Test (poin 2 & 3) · no-migration, read-path only
 
-- [ ] **ECG-01**: Helper terpusat `AssessmentScoreAggregator.IsQuestionCorrect(question, responses)` menentukan benar/salah per-soal untuk display (MC/MA/Essay), `bool?` (null=essay belum dinilai/pending). Essay Benar = `EssayScore > 0`, `EssayScore==0` = Salah (D-02). MC/MA replikasi logic inline existing byte-for-byte (kill-drift, pure/EF-free/unit-testable). *(Closes GRD-02 — MA non-empty guard.)*
+- [x] **ECG-01**: Helper terpusat `AssessmentScoreAggregator.IsQuestionCorrect(question, responses)` menentukan benar/salah per-soal untuk display (MC/MA/Essay), `bool?` (null=essay belum dinilai/pending). Essay Benar = `EssayScore > 0`, `EssayScore==0` = Salah (D-02). MC/MA replikasi logic inline existing byte-for-byte (kill-drift, pure/EF-free/unit-testable). *(Closes GRD-02 — MA non-empty guard.)*
 - [ ] **ECG-02**: Hitungan "(X/Y benar)" di `CMP/Results` menyertakan soal essay yang dinilai benar — di kedua jalur (answer-review ON `CMPController.cs:~2258-2271` + review OFF `~2304-2327`). *(Closes RES-02.)*
 - [ ] **ECG-03**: Breakdown "Elemen Teknis" (`CMPController.cs:~2336-2369`) menghitung soal essay sesuai nilai HC (tidak lagi selalu salah).
 - [ ] **ECG-04**: Badge "Tinjauan Jawaban" per-soal menampilkan Benar/Salah essay sesuai nilai (bukan selalu "Salah" merah) setelah finalize; essay belum dinilai tampil "Menunggu Penilaian" (pending) terlepas status sesi. Teks jawaban essay (`TextAnswer`) tampil di baris review.
@@ -53,7 +53,7 @@ status: active
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| ECG-01 | 383 | Pending |
+| ECG-01 | 383 | Complete |
 | ECG-02 | 383 | Pending |
 | ECG-03 | 383 | Pending |
 | ECG-04 | 383 | Pending |

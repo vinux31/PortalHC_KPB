@@ -72,7 +72,7 @@ See .planning/MILESTONES.md for full history.
   4. PDF export hasil (`AssessmentAdminController.cs:~5017`) memakai helper `IsQuestionCorrect` yang sama (essay `>0`, threshold lama `>=ScoreValue/2` diselaraskan) — web Results & PDF konsisten satu aturan. *(ECG-05 — D-03 unify)*
   5. `dotnet build` 0 error + `dotnet test` hijau termasuk: unit test `IsQuestionCorrect` (MC benar/salah/tak-jawab, MA exact/partial/superset/kosong non-empty guard GRD-02, Essay `>0` Benar/`=0` Salah/`null` pending) + regression sesi N MC + 2 graded essay (`CorrectAnswers == N+2`) + regression kunci `SubmitEssayScore` persist+authz & `FinalizeEssayGrading` recompute-incl-essay + idempotent (tanpa ubah kode); MC/MA behavior tak berubah (helper replikasi logic inline byte-for-byte). *(ECG-01, ECG-06)*
 **Plans:** 4 plans
-- [ ] 383-01-PLAN.md — Helper terpusat `IsQuestionCorrect` (bool?, MC/MA byte-for-byte, Essay >0) + unit test (ECG-01; closes GRD-02)
+- [x] 383-01-PLAN.md — Helper terpusat `IsQuestionCorrect` (bool?, MC/MA byte-for-byte, Essay >0) + unit test (ECG-01; closes GRD-02)
 - [ ] 383-02-PLAN.md — Wire CMPController.Results 3 titik + IsEssayPending (D-06) + D-07 TextAnswer + blok view Results.cshtml + regression count==N+2 (ECG-02/03/04; closes RES-02)
 - [ ] 383-03-PLAN.md — PDF export unify ke `IsQuestionCorrect` (essay >0, D-03) di AssessmentAdminController (ECG-05)
 - [ ] 383-04-PLAN.md — Regression real-SQL lock SubmitEssayScore persist+range+authz & FinalizeEssayGrading recompute-incl-essay+idempotent, no code change (ECG-06)
@@ -98,7 +98,7 @@ See .planning/MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 383. Essay Grading Correctness + Test (Fase 1) | 0/4 | Planned | - |
+| 383. Essay Grading Correctness + Test (Fase 1) | 1/4 | In Progress|  |
 | 384. Monitoring Essay Grading UI Refactor (Fase 2) | 0/? | Not started | - |
 
 ### Coverage Validation
