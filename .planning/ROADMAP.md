@@ -55,7 +55,7 @@ See .planning/MILESTONES.md for full history.
 
 ### Phases
 
-- [ ] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration.
+- [x] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration. (completed 2026-06-15)
 - [ ] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration.
 - [ ] **Phase 387: Post-Lisensor Assessment Polish (7 REQ)** — Batch sisa pasca-acara (1 MED + 6 LOW): guard `SubmitEssayScore` status (PXF-06), cert nomor retry+log (PXF-08), Excel BulkExport "Detail Jawaban" essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). **PXF-07 + PXF-14 dipindah ke Phase 386** (386-05 sudah rewrite `ExcelExportHelper.cs:83-128`). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration.
 
@@ -72,7 +72,7 @@ See .planning/MILESTONES.md for full history.
   2. Saat peserta menekan "Kumpulkan Ujian" / pindah halaman / timer habis (auto-submit), teks essay terbaru di-flush ke server SEBELUM form dikirim — keystroke ~2 detik terakhir tidak hilang (tidak menunggu debounce 2s). *(PXF-03)*
   3. Peserta yang SUDAH mengetik jawaban essay tidak ditolak submit dengan pesan "Masih ada N soal belum dijawab" akibat baris DB belum tersimpan — gate incomplete menghitung essay yang sudah terisi sebagai terjawab. *(PXF-03)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright e2e: (a) soal bergambar render via URL prefix `/KPB-PortalHC` (load 200, bukan 404 / ikon rusak) — UAT browser 1× di `http://10.55.3.3/KPB-PortalHC` layar StartExam bergambar sebelum ujian; (b) ketik essay → submit langsung tanpa jeda → ExamSummary/DB berisi teks essay lengkap (flush sukses). *(PXF-01, PXF-03 — Razor + JS runtime → Playwright wajib, pelajaran Phase 354)*
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 - [x] 385-01-PLAN.md — Gambar PathBase-aware di `_QuestionImage.cshtml` (Url.Content src + lightbox) + Playwright e2e via URL ber-prefix (PXF-01)
 - [x] 385-02-PLAN.md — Flush essay sebelum submit/blur/changePage + timeout best-effort di `StartExam.cshtml` + Playwright essay-flush e2e (PXF-03)
 **UI hint:** yes
@@ -119,7 +119,7 @@ See .planning/MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete   | 2026-06-15 |
+| 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete    | 2026-06-15 |
 | 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 0/6 | Planned | - |
 | 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 0/TBD | Not started | - |
 

@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
-status: Ready to execute
+status: Ready to plan
 stopped_at: Phase 387 context gathered
-last_updated: "2026-06-15T13:52:58.212Z"
+last_updated: "2026-06-15T14:20:51.209Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 24
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 385 (exam-taking-image-render-hotfix) — EXECUTING
+Phase: 386
 Plan: 1 of 2
 
 **MILESTONE v31.0 STARTED — Hotfix Pra-Ujian Lisensor (urgent, acara ~2026-06-17).** 5 temuan must-fix dari readiness audit gladi-bersih E2E 2026-06-15 (register final adversarial-verified: `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` — 3 HIGH · 5 MED · 7 LOW; 5 dipromote ke PXF-01..05). Ujian lisensor: SA+MA+Essay+soal bergambar, ≤30 peserta, PDF per-peserta = bukti resmi. Target: 1 bundle → 1 deploy IT sebelum hari-H. **0 migration** (semua fix view/controller/validasi). Pendekatan: hotfix langsung (skip domain-research).
