@@ -3740,19 +3740,36 @@ namespace HcPortal.Controllers
             // AssessmentSession sole source-of-truth untuk Records page display.
 
             // 5. Generate sertifikat jika applicable (same pattern as GradingService)
+            // PXF-08: retry 3x saat collision nomor + LogError pada kegagalan persisten (jangan silent-pass cert un-numbered).
             if (session.GenerateCertificate && isPassed)
             {
                 var certNow = DateTime.Now;
                 int certYear = certNow.Year;
-                try
+                int certAttempts = 0;
+                const int maxCertAttempts = 3;
+                bool certSaved = false;
+                while (!certSaved && certAttempts < maxCertAttempts)
                 {
-                    var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                    await _context.AssessmentSessions
-                        .Where(s => s.Id == sessionId && s.NomorSertifikat == null)
-                        .ExecuteUpdateAsync(s => s
-                            .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
+                    certAttempts++;
+                    try
+                    {
+                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                        await _context.AssessmentSessions
+                            .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
+                            .ExecuteUpdateAsync(s => s
+                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
+                        certSaved = true;
+                    }
+                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
+                    {
+                        // Retry dengan sequence baru
+                    }
                 }
-                catch (DbUpdateException) { /* race-condition: cert number sudah diambil thread lain — skip */ }
+                if (!certSaved)
+                {
+                    _logger.LogError("Failed to generate certificate number for SessionId={SessionId} after {MaxAttempts} attempts due to repeated collisions.",
+                        session.Id, maxCertAttempts);
+                }
             }
 
             // 5b. Audit log (Phase 310 D-07) — gated by rowsAffected > 0 (di-skip otomatis kalau race lost karena early return di atas)
@@ -3795,12 +3812,30 @@ namespace HcPortal.Controllers
             if (updatedSession != null)
                 await _workerDataService.NotifyIfGroupCompleted(updatedSession);
 
+            // PXF-10: broadcast completion ke grup monitor agar tab Monitoring update tanpa refresh.
+            // session.Schedule scalar DateTime (no Include); session.User nav → null-safe via FindAsync.
+            // Fire-and-forget — tidak boleh break primary finalize flow.
+            var fbatchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+            await _hubContext.Clients.Group($"monitor-{fbatchKey}").SendAsync("workerSubmitted", new
+            {
+                sessionId,
+                workerName = session.User?.FullName ?? "Unknown",
+                score = finalPercentage,
+                result = isPassed ? "Pass" : "Fail",
+                status = AssessmentConstants.AssessmentStatus.Completed,
+                nomorSertifikat = updatedSession?.NomorSertifikat
+            });
+
+            // PXF-08: surface kegagalan cert ke HC (lulus + GenerateCertificate tapi NomorSertifikat masih kosong).
+            var certError = (session.GenerateCertificate && isPassed && string.IsNullOrEmpty(updatedSession?.NomorSertifikat))
+                ? "Nomor sertifikat gagal dibuat, coba lagi." : null;
             return Json(new
             {
                 success = true,
                 score = finalPercentage,
                 isPassed,
-                nomorSertifikat = updatedSession?.NomorSertifikat
+                nomorSertifikat = updatedSession?.NomorSertifikat,
+                certError
             });
         }
 
