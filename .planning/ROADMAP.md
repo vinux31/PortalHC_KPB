@@ -73,8 +73,8 @@ See .planning/MILESTONES.md for full history.
   3. Peserta yang SUDAH mengetik jawaban essay tidak ditolak submit dengan pesan "Masih ada N soal belum dijawab" akibat baris DB belum tersimpan — gate incomplete menghitung essay yang sudah terisi sebagai terjawab. *(PXF-03)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright e2e: (a) soal bergambar render via URL prefix `/KPB-PortalHC` (load 200, bukan 404 / ikon rusak) — UAT browser 1× di `http://10.55.3.3/KPB-PortalHC` layar StartExam bergambar sebelum ujian; (b) ketik essay → submit langsung tanpa jeda → ExamSummary/DB berisi teks essay lengkap (flush sukses). *(PXF-01, PXF-03 — Razor + JS runtime → Playwright wajib, pelajaran Phase 354)*
 **Plans:** 2 plans
-- [ ] 385-01-PLAN.md — Gambar PathBase-aware di `_QuestionImage.cshtml` (Url.Content src + lightbox) + Playwright e2e via URL ber-prefix (PXF-01)
-- [ ] 385-02-PLAN.md — Flush essay sebelum submit/blur/changePage + timeout best-effort di `StartExam.cshtml` + Playwright essay-flush e2e (PXF-03)
+- [x] 385-01-PLAN.md — Gambar PathBase-aware di `_QuestionImage.cshtml` (Url.Content src + lightbox) + Playwright e2e via URL ber-prefix (PXF-01)
+- [x] 385-02-PLAN.md — Flush essay sebelum submit/blur/changePage + timeout best-effort di `StartExam.cshtml` + Playwright essay-flush e2e (PXF-03)
 **UI hint:** yes
 
 ### Phase 386: AssessmentAdminController Hardening
@@ -120,7 +120,7 @@ See .planning/MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 0/2 | Not started | - |
+| 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete   | 2026-06-15 |
 | 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 0/6 | Planned | - |
 | 387. Post-Lisensor Assessment Polish (PXF-06..14) | 0/TBD | Not started | - |
 

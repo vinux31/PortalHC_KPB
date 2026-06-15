@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
 status: Executing Phase 385
-stopped_at: Phase 386 context gathered
-last_updated: "2026-06-15T14:30:00.000Z"
+stopped_at: Completed 385 (PXF-01 + PXF-03), e2e 5/5 PASS
+last_updated: "2026-06-15T13:51:02.970Z"
 last_activity: 2026-06-15
 progress:
-  total_phases: 23
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 0
-  percent: 0
+  total_phases: 24
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State: Portal HC KPB
@@ -154,6 +154,6 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audit
 
 Last activity: 2026-06-15
 
-Stopped at: Phase 386 context gathered
+Stopped at: Completed 385 (PXF-01 + PXF-03), e2e 5/5 PASS
 
 Next action: **`/gsd-plan-phase 385`** (PXF-01 gambar PathBase + PXF-03 flush essay; file view, paralel-aman) lalu **`/gsd-plan-phase 386`** (PXF-02/04/05; satu file `AssessmentAdminController.cs`). Urgent (acara ~2026-06-17): target 1 bundle → 1 push → notify IT re-deploy. Tiap fase verify lokal (`dotnet build`+`dotnet run` localhost:5277 + Playwright/unit per REQ) sebelum commit. JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
