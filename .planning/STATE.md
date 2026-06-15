@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v30.0
 milestone_name: Essay Grading Correctness + Monitoring UI Refactor
-status: Executing Phase 383
+status: Executing Phase 384
 stopped_at: Completed 383-04-PLAN.md (ECG-06 regression lock; 5 test, 440/440 full suite, 0 migration)
-last_updated: "2026-06-15T03:16:47.212Z"
+last_updated: "2026-06-15T03:40:23.173Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 21
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
-  percent: 50
+  completed_plans: 5
+  percent: 63
 ---
 
 # Project State: Portal HC KPB
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 383 — Essay Grading Correctness + Test (Fase 1)
+**Current focus:** Phase 384 — monitoring-essay-grading-ui-refactor-fase-2
 
 ## Current Position
 
-Phase: 383 (Essay Grading Correctness + Test (Fase 1)) — ALL 4 PLANS DONE (ready verify/close)
-Plan: 04 ✅ DONE. 01 + 02 (Task 3 UAT approved) + 03 ✅ DONE. Phase 383 lengkap.
+Phase: 384 (monitoring-essay-grading-ui-refactor-fase-2) — EXECUTING
+Plan: 1 of 4
 
 - Plan 01 ✅ DONE — helper `IsQuestionCorrect` + 11 unit test, RED→GREEN, commits 32e49942/adf247d5.
 - Plan 02 ✅ DONE — `CMPController.Results` 4 site rewire ke `IsQuestionCorrect` + IsEssayPending D-06 broaden + D-07 essay UserAnswer=TextAnswer (commit f6f4ed43); blok Razor render teks essay + regression `ResultsEssayCorrectnessTests` (commit 7f5d560a). **Task 3 UAT APPROVED via browser** (commit 83d30dfa — CMP/Results/166 tampil 6/6, essay Soal 5/6 hijau Benar + teks jawaban + ET 6/6).
