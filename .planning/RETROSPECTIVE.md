@@ -4,6 +4,40 @@
 
 ---
 
+## Milestone: v30.0 — Essay Grading Correctness + Monitoring UI Refactor
+
+**Shipped:** 2026-06-15 (local; NOT pushed)
+**Phases:** 2 (383-384) | **Plans:** 8 | **REQ:** 10/10 (ECG-01..06 + UIG-01..04) | **Migration:** 0
+
+### What Was Built
+- **Fase 1 (383):** Helper pure `AssessmentScoreAggregator.IsQuestionCorrect(q, responses) → bool?` (single source of truth correctness per-soal; essay Benar=`EssayScore>0`, null=pending) di 3 titik `CMPController.Results` (count/Elemen Teknis/Tinjauan) + PDF export. Fix bug user "Nilai Anda 100% tapi 4/6 benar" (essay dinilai benar dihitung salah). Regression lock Submit/Finalize EssayScore tanpa ubah kode. Read/display-path only.
+- **Fase 2 (384):** Refactor UI Monitoring penilaian essay — blok inline numpuk → tabel worker-list ringkas (badge 3-state) + page per-worker `/Admin/EssayGrading` ("Tinjau Essay") reuse endpoint POST existing (backend 0 ubah). D-09 finalize in-place (no reload) + D-10 read-only finalized.
+
+### What Worked
+- **Helper terpusat kill-drift** (pola Phase 363/365/376) — satu `IsQuestionCorrect` jadi single source; web Results + PDF tak bisa divergen lagi. MC/MA mirror display-path byte-for-byte (no behavior change), cabang Essay baru.
+- **Test-infra-first (Wave 0)** di 384 — spec Playwright RED/fixme + seed dikunci SEBELUM UI dibangun → executor punya target perilaku jelas (selector/route/flow).
+- **Adversarial verification workflow** (ultracode) menangkap regression HIGH yang regression-gate unit suite + verifier tunggal LEWATKAN: 2 helper e2e lama (`examMatrix.ts`/`examTypes.ts`) masih target page lama setelah markup dipindah. Di-fix sebelum close.
+- **UAT human-verify checkpoint** (384-04) — no self-approve; user approve 8-langkah browser.
+
+### What Was Inefficient
+- **UIG-04 test design bug** — versi awal mengulang save+finalize, tapi serial shared-seed sudah finalize di test sebelumnya → input disabled → fill timeout. Fix: fold D-09 ke UIG-03, UIG-04 jadi verifikasi read-only persisted. Pelajaran: serial e2e dengan seed-session tunggal → state carry antar-test, desain assertion sesuai urutan.
+- **Collateral test-helper drift** — memindahkan markup UI (384-03) memutus helper e2e di luar phase. Pelajaran: grep cross-suite selector usage SEBELUM hapus/pindah markup bersama.
+
+### Patterns Established
+- e2e essay round-trip: seed PendingGrading + `GenerateCertificate=1` → finalize terbitkan cert → state finalized read-only testable dalam 1 fixture.
+- D-09 in-place finalize: `finalizeInPlace()` (disable input/tombol) ganti `location.reload()` → URL stabil, test-friendly.
+
+### Key Lessons
+- Bug "display vs scoring drift" → fix di SATU helper display-path, jangan patch tiap call-site (akar drift = 2 jalur recompute terpisah).
+- Adversarial review (correctness + security + skeptic-verify) menangkap collateral regression yang gate deterministik (build/unit) tak lihat — worth the spend untuk milestone close.
+
+### Cost Observations
+- Model mix: ~100% opus (interactive execute-phase + audit + verification workflow).
+- Workflow: 1 verification workflow (4 agents, ~314k subagent tokens) + 1 integration-checker agent.
+- Notable: interactive mode (no per-plan subagent) untuk 01-03 hemat token vs full subagent spawn; workflow dipakai hanya untuk verifikasi adversarial.
+
+---
+
 ## Milestone: v24.0 — Gambar di Soal Assessment (Manage Package)
 
 **Shipped:** 2026-06-09 (local) | **Phases:** 6 (352–357) | **Plans:** 22
