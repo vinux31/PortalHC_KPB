@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ringkasan Pekerjaan v25–v29 — Portal HC KPB</title>
+<style>
+  :root{
+    --merah:#E4002B; --biru:#00558C; --biru-muda:#0a7abf; --hijau:#1a9e57;
+    --abu:#5b6470; --abu-muda:#eef1f5; --garis:#e2e7ee; --kuning:#f6a609;
+    --teks:#1d242e; --putih:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;color:var(--teks);
+    background:#f4f6f9;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+
+  /* Header */
+  header{background:linear-gradient(135deg,var(--biru) 0%,#003e66 100%);color:#fff;padding:46px 0 40px}
+  header .wrap{display:flex;flex-direction:column;gap:14px}
+  .pill{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    padding:5px 14px;border-radius:30px;font-size:13px;font-weight:600;letter-spacing:.3px;width:max-content}
+  header h1{font-size:31px;line-height:1.25;font-weight:700;max-width:780px}
+  header p.sub{font-size:17px;opacity:.92;max-width:740px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .meta span{font-size:13px;background:rgba(255,255,255,.12);padding:4px 11px;border-radius:6px}
+
+  /* Status bar */
+  .statusbar{background:var(--hijau);color:#fff;padding:14px 0;font-weight:600}
+  .statusbar .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:15.5px}
+  .statusbar .tick{background:#fff;color:var(--hijau);width:26px;height:26px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+
+  /* Nav antar-dokumen */
+  .docnav{background:#fff;border-bottom:1px solid var(--garis);padding:11px 0}
+  .docnav .wrap{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:14px}
+  .docnav a{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--biru);
+    border:1px solid var(--garis);background:#fff;padding:7px 14px;border-radius:8px;font-weight:600}
+  .docnav a.aktif{background:var(--biru);color:#fff;border-color:var(--biru)}
+  .docnav a:hover{border-color:var(--biru-muda)}
+
+  section{padding:38px 0}
+  section.alt{background:#fff;border-top:1px solid var(--garis);border-bottom:1px solid var(--garis)}
+  h2{font-size:23px;color:var(--biru);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  h2 .num{background:var(--merah);color:#fff;font-size:14px;width:28px;height:28px;border-radius:7px;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
+  .lead{color:var(--abu);font-size:16px;margin-bottom:22px;max-width:780px}
+
+  /* Angka kunci */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:#fff;border:1px solid var(--garis);border-radius:12px;padding:18px;text-align:center}
+  .kpi .big{font-size:30px;font-weight:800;color:var(--biru)}
+  .kpi .lbl{font-size:13px;color:var(--abu);margin-top:3px}
+  .kpi.ok .big{color:var(--hijau)}
+
+  /* Kartu milestone */
+  .ms{background:#fff;border:1px solid var(--garis);border-left:5px solid var(--biru-muda);
+    border-radius:12px;padding:22px 24px;margin-bottom:20px}
+  .ms .top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .ms .ver{background:var(--biru);color:#fff;font-size:14px;font-weight:800;letter-spacing:.3px;
+    padding:7px 13px;border-radius:9px;flex:0 0 auto}
+  .ms .htxt h3{font-size:19px;color:var(--teks);line-height:1.3}
+  .ms .htxt .sub{font-size:13.5px;color:var(--abu);margin-top:2px}
+  .ms ul{list-style:none;display:flex;flex-direction:column;gap:9px;margin:4px 0 16px}
+  .ms li{position:relative;padding-left:26px;font-size:15px}
+  .ms li::before{content:"";position:absolute;left:2px;top:8px;width:9px;height:9px;border-radius:50%;
+    background:var(--biru-muda)}
+  .ms li b{color:var(--teks)}
+  .ms .hasil{background:#edf8f1;border:1px solid #bfe6cf;border-radius:9px;padding:11px 14px;
+    font-size:14.5px;color:#2f5d44;display:flex;gap:9px;align-items:flex-start}
+  .ms .hasil b{color:var(--hijau)}
+  .ms .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+  .ms .bdg{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid var(--garis);
+    color:var(--abu);background:var(--abu-muda)}
+  .ms .bdg.db{background:#fff4e6;border-color:#f3dca0;color:#9a6c00}
+  .ms .bdg.nodb{background:#eef6ff;border-color:#cfe4f7;color:var(--biru)}
+
+  /* Catatan */
+  .note{background:#fff8ea;border:1px solid #f3dca0;border-left:5px solid var(--kuning);
+    border-radius:10px;padding:16px 20px;margin-bottom:14px}
+  .note h4{color:#9a6c00;font-size:15.5px;margin-bottom:4px}
+  .note p{font-size:14.5px;color:#6b5a32}
+  .note.green{background:#edf8f1;border-color:#bfe6cf;border-left-color:var(--hijau)}
+  .note.green h4{color:var(--hijau)}
+  .note.green p{color:#2f5d44}
+
+  /* CTA ke file 2 */
+  .cta{background:linear-gradient(135deg,#0a7abf 0%,#00558C 100%);color:#fff;border-radius:12px;
+    padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .cta .t b{font-size:17px}
+  .cta .t p{font-size:14px;opacity:.9;margin-top:2px}
+  .cta a{background:#fff;color:var(--biru);text-decoration:none;font-weight:700;padding:11px 20px;
+    border-radius:9px;font-size:14.5px;white-space:nowrap}
+
+  footer{background:#1d242e;color:#aeb6c2;padding:26px 0;font-size:13.5px;text-align:center}
+  footer b{color:#fff}
+
+  @media(max-width:720px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    header h1{font-size:25px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="pill">RINGKASAN PEKERJAAN · Portal HC KPB</span>
+    <h1>Apa Saja yang Dikerjakan di v25 sampai v29</h1>
+    <p class="sub">Lima rangkaian perbaikan portal (milestone <b>v25.0–v29.0</b>) sepanjang Juni 2026. Dokumen ini merangkum — dengan bahasa sederhana — apa yang dikerjakan tiap milestone dan hasilnya, supaya tim HC punya gambaran utuh tanpa istilah teknis.</p>
+    <div class="meta">
+      <span>📅 Periode: Juni 2026</span>
+      <span>🧩 5 Milestone · 25 Fase</span>
+      <span>🔧 56 Perbaikan</span>
+      <span>✅ Semua lolos audit</span>
+    </div>
+  </div>
+</header>
+
+<div class="statusbar">
+  <div class="wrap">
+    <span class="tick">✓</span>
+    <span>Kelima milestone sudah SELESAI &amp; LOLOS AUDIT — setiap perbaikan terbukti benar dan saling terhubung.</span>
+  </div>
+</div>
+
+<div class="docnav">
+  <div class="wrap">
+    <span style="color:var(--abu);font-weight:600">Dokumen:</span>
+    <a class="aktif" href="index.html">📋 Ringkasan Pekerjaan</a>
+    <a href="apa-yang-baru.html">🆕 Apa yang Baru (Fitur &amp; Alur)</a>
+  </div>
+</div>
+
+<!-- 1. Angka kunci -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">1</span> Gambaran Singkat</h2>
+    <p class="lead">Empat angka yang merangkum total pekerjaan lima milestone ini.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="big">5</div><div class="lbl">Milestone selesai (v25–v29)</div></div>
+      <div class="kpi"><div class="big">25</div><div class="lbl">Fase pengerjaan</div></div>
+      <div class="kpi ok"><div class="big">56</div><div class="lbl">Perbaikan terbukti benar</div></div>
+      <div class="kpi ok"><div class="big">100%</div><div class="lbl">Lolos audit (0 penghalang)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Per milestone -->
+<section class="alt">
+  <div class="wrap">
+    <h2><span class="num">2</span> Apa yang Dikerjakan, per Milestone</h2>
+    <p class="lead">Tiap milestone punya satu tema besar. Di bawah ini ringkasan pekerjaan utamanya dan hasilnya. Tanda <span class="bdg db" style="display:inline-block;padding:2px 8px">Ubah database</span> berarti ada perubahan struktur data yang perlu diterapkan oleh Tim IT saat naik ke server.</p>
+
+    <!-- v25 -->
+    <div class="ms" style="border-left-color:#0a7abf">
+      <div class="top">
+        <span class="ver">v25.0</span>
+        <div class="htxt">
+          <h3>PROTON: Kelulusan Otomatis &amp; Pindah Tahun</h3>
+          <div class="sub">Tema: merapikan logika kelulusan PROTON + fitur pemindahan tahun · 11 fase (358–368)</div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Kelulusan exam tercatat otomatis.</b> Exam PROTON Tahun 1 &amp; 2 yang lulus kini langsung tercatat "Lulus" di dashboard — sebelumnya hanya wawancara Tahun 3 yang tercatat.</li>
+        <li><b>Gerbang berurutan dipaksa.</b> Pekerja tidak bisa loncat ke tahun berikutnya sebelum tahun sebelumnya lulus (dijaga di server, bukan sekadar tampilan).</li>
+        <li><b>Fitur baru "Bypass Tahun".</b> HC bisa memindahkan pekerja antar tahun PROTON, lengkap dengan konfirmasi dan catatan audit.</li>
+        <li><b>Hapus data lebih bersih.</b> Penghapusan rekam menjangkau sampai ke akar (tidak menyisakan data yatim); sesi ujian online bisa dihapus dari Tab Input Records; file gambar tak terpakai ikut dibersihkan.</li>
+        <li><b>Audit alur PROTON.</b> Menutup 10 celah pada notifikasi, penolakan, dan gerbang reaktivasi.</li>
+      </ul>
+      <div class="hasil"><b>Hasil:</b><span>20 dari 20 perbaikan lolos audit. Fondasi PROTON jadi konsisten dan aman.</span></div>
+      <div class="badges">
+        <span class="bdg">11 fase</span>
+        <span class="bdg db">2× Ubah database (Penanda kelulusan &amp; Bypass)</span>
+      </div>
+    </div>
+
+    <!-- v26 -->
+    <div class="ms" style="border-left-color:var(--hijau)">
+      <div class="top">
+        <span class="ver">v26.0</span>
+        <div class="htxt">
+          <h3>Data Lebih Mudah Dicari &amp; Terlihat</h3>
+          <div class="sub">Tema: tutup blind-spot "data ada tapi tak terlihat / tak tercari" · 3 fase (369–371)</div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Pencarian nama/NIP tidak lagi hilang diam-diam.</b> Di Tab Input Records, ketik nama → daftar benar-benar tersaring (dulu kadang diabaikan tanpa pesan).</li>
+        <li><b>Tampilan tak lagi dibatasi 7 hari.</b> Daftar sesi assessment menampilkan semua sesi, termasuk yang lama — bukan cuma seminggu terakhir.</li>
+        <li><b>Sesi ujian online muncul di Tab Input Records.</b> Tiap pekerja kini terlihat sesi online-nya, dengan badge pembeda "Assessment Online" vs manual.</li>
+      </ul>
+      <div class="hasil"><b>Hasil:</b><span>3 dari 3 perbaikan lolos audit. Data lama yang "tersembunyi" kini kembali terlihat.</span></div>
+      <div class="badges">
+        <span class="bdg">3 fase</span>
+        <span class="bdg nodb">Tanpa ubah database</span>
+      </div>
+    </div>
+
+    <!-- v27 -->
+    <div class="ms" style="border-left-color:var(--kuning)">
+      <div class="top">
+        <span class="ver">v27.0</span>
+        <div class="htxt">
+          <h3>Acak Soal &amp; Pilihan Bisa Diatur HC</h3>
+          <div class="sub">Tema: kontrol pengacakan ujian per-assessment · 4 fase (372–375)</div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Dua tombol acak terpisah.</b> HC bisa ON/OFF "Acak Soal" dan "Acak Pilihan Jawaban" secara independen, lewat halaman Kelola Paket dan saat membuat ujian.</li>
+        <li><b>Default tetap ON.</b> Ujian lama tidak berubah perilakunya. Tombol terkunci otomatis begitu ada peserta mulai mengerjakan.</li>
+        <li><b>Pembagian paket adil saat acak dimatikan.</b> Bila Acak Soal OFF dengan 2+ paket, tiap pekerja dapat 1 paket utuh secara merata dan stabil.</li>
+      </ul>
+      <div class="hasil"><b>Hasil:</b><span>16 dari 16 perbaikan lolos audit. HC kini bebas mengatur pengacakan sesuai kebutuhan ujian.</span></div>
+      <div class="badges">
+        <span class="bdg">4 fase</span>
+        <span class="bdg db">1× Ubah database (Setelan acak)</span>
+      </div>
+    </div>
+
+    <!-- v28 -->
+    <div class="ms" style="border-left-color:#0a7abf">
+      <div class="top">
+        <span class="ver">v28.0</span>
+        <div class="htxt">
+          <h3>Nilai Esai, Identitas "Menyamar" &amp; Rapi-rapi</h3>
+          <div class="sub">Tema: perbaikan empat bug fungsional yang tertunda · 4 fase (376–379)</div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Nilai ujian esai-saja terhitung benar.</b> Tidak lagi muncul nilai 0 padahal sudah dinilai. Disertai alat "Hitung Ulang Nilai Esai" untuk merapikan data lama.</li>
+        <li><b>"Menyamar" (impersonate) menampilkan data yang benar.</b> Saat admin membuka portal sebagai pekerja X, layar menampilkan data pekerja X — bukan data admin.</li>
+        <li><b>Halaman sertifikat CMP tidak lagi error.</b> Alamat yang sebelumnya memunculkan error 500 kini diarahkan ke halaman sertifikat yang benar.</li>
+        <li><b>Tes otomatis ujian disegarkan.</b> Rangkaian pengujian alur ujian (E2E) diperbarui agar tetap relevan dengan tampilan terkini.</li>
+      </ul>
+      <div class="hasil"><b>Hasil:</b><span>6 dari 6 perbaikan lolos audit. Bug yang lama menggantung akhirnya tuntas.</span></div>
+      <div class="badges">
+        <span class="bdg">4 fase</span>
+        <span class="bdg nodb">Tanpa ubah database</span>
+      </div>
+    </div>
+
+    <!-- v29 -->
+    <div class="ms" style="border-left-color:var(--merah)">
+      <div class="top">
+        <span class="ver">v29.0</span>
+        <div class="htxt">
+          <h3>Ujian Online Benar dari Masuk sampai Sertifikat</h3>
+          <div class="sub">Tema: audit menyeluruh perjalanan pekerja saat ujian · 3 fase (380–382)</div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Masuk ujian yang benar.</b> Paket tidak kosong, token tetap jalan walau beda huruf besar/kecil, soal Pre-test &amp; Post-test tidak tercampur, dan admin yang "mengintip" tidak merusak ujian pekerja.</li>
+        <li><b>Pengerjaan &amp; pengiriman jujur.</b> Nilai diambil dari jawaban terakhir, batas waktu ditegakkan di server, dan gerbang token tidak bisa dilewati.</li>
+        <li><b>Hasil &amp; sertifikat aman.</b> Ujian batal tidak bisa "dihidupkan" jadi lulus, hasil lulus terkunci, dan sertifikat tanpa masa berlaku tampil "Aktif" — bukan "Expired".</li>
+      </ul>
+      <div class="hasil"><b>Hasil:</b><span>11 dari 11 perbaikan lolos audit. Pekerja bisa ujian sampai dapat sertifikat tanpa nilai salah atau gagal palsu.</span></div>
+      <div class="badges">
+        <span class="bdg">3 fase</span>
+        <span class="bdg nodb">Tanpa ubah database</span>
+        <span class="bdg">Detail awam tersedia: docs/milestone-v29.0/index.html</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Catatan -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">3</span> Catatan Penting</h2>
+    <p class="lead">Beberapa hal yang baik diketahui tim HC.</p>
+
+    <div class="note green">
+      <h4>✓ Semua sudah teruji</h4>
+      <p>Setiap milestone melewati audit kualitas dan rangkaian tes otomatis sampai hijau (0 gagal). Tidak ada masalah yang menghambat penggunaan.</p>
+    </div>
+
+    <div class="note">
+      <h4>🗄️ Sebagian mengubah struktur database</h4>
+      <p>v25.0 (2 perubahan) dan v27.0 (1 perubahan) menambah kolom/tabel data. Penerapan perubahan ini ke server adalah tanggung jawab Tim IT saat promosi — bukan langkah yang dilakukan tim HC. v26.0, v28.0, dan v29.0 tidak mengubah struktur database.</p>
+    </div>
+
+    <div class="note">
+      <h4>📄 Ingin tahu yang baru buat pengguna?</h4>
+      <p>Dokumen kedua merangkum fitur baru, fasilitas baru, dan alur yang berubah — khusus untuk disosialisasikan ke admin dan pekerja. Lihat tombol di bawah.</p>
+    </div>
+
+    <div class="cta">
+      <div class="t">
+        <b>🆕 Apa yang Baru di Portal HC KPB</b>
+        <p>Fitur baru · fasilitas baru · alur yang berubah — bahan sosialisasi.</p>
+      </div>
+      <a href="apa-yang-baru.html">Buka Dokumen →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>Ringkasan Pekerjaan Milestone v25.0–v29.0</b><br>
+    Portal HC KPB · Periode Juni 2026 · Status: Semua LOLOS AUDIT (56 perbaikan)<br>
+    <span style="opacity:.7">Dokumen ringkasan untuk tim HC — bahasa awam. Detail teknis ada di <code>.planning/milestones/</code>.</span>
+  </div>
+</footer>
+
+</body>
+</html>
