@@ -60,6 +60,14 @@ function monitoringUrl(): string {
     + '&scheduleDate=' + scheduleDate;
 }
 
+// Build URL page per-worker /Admin/EssayGrading.
+function essayGradingUrl(): string {
+  return `/Admin/EssayGrading?sessionId=${sessionId}`
+    + '&title=' + encodeURIComponent(title)
+    + '&category=' + encodeURIComponent(category)
+    + '&scheduleDate=' + scheduleDate;
+}
+
 test.describe.configure({ mode: 'serial' });
 
 test.describe('FLOW 384 — Monitoring Essay UI Refactor (UIG-04)', () => {
@@ -111,7 +119,7 @@ test.describe('FLOW 384 — Monitoring Essay UI Refactor (UIG-04)', () => {
   });
 
   // RED: di-skip via test.fixme — UI dibangun Wave 1 (Plan 02/03). Plan 04 ganti `test.fixme(` → `test(`.
-  test.fixme('UIG-01 tabel worker-list render + badge pending', async ({ page }) => {
+  test('UIG-01 tabel worker-list render + badge pending', async ({ page }) => {
     await loginAny(page, 'admin');
     await page.goto(monitoringUrl());
     await expect(page.locator(SEL.reviewLink).first()).toBeVisible();
@@ -120,7 +128,7 @@ test.describe('FLOW 384 — Monitoring Essay UI Refactor (UIG-04)', () => {
     ).toBeVisible();
   });
 
-  test.fixme('UIG-02 Tinjau Essay navigasi ke page per-worker', async ({ page }) => {
+  test('UIG-02 Tinjau Essay navigasi ke page per-worker', async ({ page }) => {
     await loginAny(page, 'admin');
     await page.goto(monitoringUrl());
     await Promise.all([
@@ -131,12 +139,9 @@ test.describe('FLOW 384 — Monitoring Essay UI Refactor (UIG-04)', () => {
     await expect(page.locator(SEL.essayCard).first()).toBeVisible();
   });
 
-  test.fixme('UIG-03 Simpan Skor + Selesaikan round-trip', async ({ page }) => {
+  test('UIG-03 Simpan Skor + Selesaikan round-trip + D-09 in-place', async ({ page }) => {
     await loginAny(page, 'admin');
-    await page.goto(`/Admin/EssayGrading?sessionId=${sessionId}`
-      + '&title=' + encodeURIComponent(title)
-      + '&category=' + encodeURIComponent(category)
-      + '&scheduleDate=' + scheduleDate);
+    await page.goto(essayGradingUrl());
 
     // Simpan Skor (AJAX) — isi skor penuh lalu klik.
     await page.locator(SEL.scoreInput).first().fill('10');
@@ -153,29 +158,21 @@ test.describe('FLOW 384 — Monitoring Essay UI Refactor (UIG-04)', () => {
       page.waitForResponse(res => res.url().includes('/Admin/FinalizeEssayGrading') && res.status() === 200),
       page.locator(SEL.finalizeBtn).first().click(),
     ]);
-  });
 
-  test.fixme('UIG-04 D-09 in-place "Selesai", URL tetap /EssayGrading', async ({ page }) => {
-    await loginAny(page, 'admin');
-    await page.goto(`/Admin/EssayGrading?sessionId=${sessionId}`
-      + '&title=' + encodeURIComponent(title)
-      + '&category=' + encodeURIComponent(category)
-      + '&scheduleDate=' + scheduleDate);
-
-    await page.locator(SEL.scoreInput).first().fill('10');
-    await Promise.all([
-      page.waitForResponse(res => res.url().includes('/Admin/SubmitEssayScore') && res.status() === 200),
-      page.locator(SEL.saveBtn).first().click(),
-    ]);
-
-    page.on('dialog', d => d.accept());
-    await Promise.all([
-      page.waitForResponse(res => res.url().includes('/Admin/FinalizeEssayGrading') && res.status() === 200),
-      page.locator(SEL.finalizeBtn).first().click(),
-    ]);
-
-    // D-09: TETAP di page per-worker (BUKAN redirect/reload ke monitoring) + input disabled in-place.
+    // D-09: TETAP di page per-worker (BUKAN redirect/reload ke monitoring) + input disabled IN-PLACE.
     expect(page.url()).toContain('/EssayGrading');
     await expect(page.locator(SEL.scoreInput).first()).toBeDisabled();
+  });
+
+  // Setelah UIG-03 finalize (serial, seed session sama), buka ULANG page → render READ-ONLY (D-10) persisted.
+  test('UIG-04 finalized read-only persisted (D-10) + URL /EssayGrading', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto(essayGradingUrl());
+
+    // Session sudah Completed+NomorSertifikat (cert dari finalize UIG-03) → IsFinalized → read-only.
+    expect(page.url()).toContain('/EssayGrading');
+    await expect(page.locator(SEL.scoreInput).first()).toBeDisabled();
+    // D-10: tombol "Simpan Skor" hilang saat finalized.
+    await expect(page.locator(SEL.saveBtn)).toHaveCount(0);
   });
 });
