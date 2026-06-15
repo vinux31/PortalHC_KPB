@@ -839,6 +839,21 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
+        // GET /Admin/CheckTitleAvailability?title=... — cek judul assessment sudah dipakai (cegah double sertifikat).
+        // judul-fleksibel-cek-duplikat (2026-06-15). Read-only → tanpa antiforgery.
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CheckTitleAvailability(string title)
+        {
+            var matches = await FindTitleDuplicatesAsync(_context, title);
+            return Json(new
+            {
+                exists = matches.Count > 0,
+                groupCount = matches.Count,
+                matches = matches.Select(m => new { category = m.Category, tanggal = m.Tanggal, peserta = m.Peserta })
+            });
+        }
+
         // POST: Process form submission (multi-user)
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -849,7 +864,8 @@ namespace HcPortal.Controllers
             string? AssessmentTypeInput = null,
             DateTime? PreSchedule = null, int? PreDurationMinutes = null, DateTime? PreExamWindowCloseDate = null,
             DateTime? PostSchedule = null, int? PostDurationMinutes = null, DateTime? PostExamWindowCloseDate = null,
-            bool SamePackage = false)
+            bool SamePackage = false,
+            bool ConfirmDuplicateTitle = false)
         {
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
@@ -866,16 +882,6 @@ namespace HcPortal.Controllers
                     model.LinkedGroupId = counterpartId.Value;
                     TempData["Info"] = $"Auto-paired LinkedGroupId={counterpartId.Value} berdasarkan title pattern '{model.Title}' (336-NAMING-CONVENTION).";
                 }
-            }
-
-            // Phase 339 REST-06 (336-NAMING-CONVENTION-SPEC): Validate Title pattern for standard Pre/Post tests
-            if (AssessmentTypeInput != "PrePostTest"
-                && !string.IsNullOrEmpty(model.Title)
-                && !System.Text.RegularExpressions.Regex.IsMatch(model.Title, @"^(Pre|Post)\s*Test\s+.+$"))
-            {
-                ModelState.AddModelError("Title",
-                    "Title harus pola '{Stage} Test {Track} {Lokasi}' (Pre Test atau Post Test diikuti track + lokasi). " +
-                    "Contoh valid: 'Pre Test OJT GAST Cilacap'. Reference: 336-NAMING-CONVENTION-SPEC.");
             }
 
             // Handle Token Validation
@@ -979,6 +985,22 @@ namespace HcPortal.Controllers
             if (isRenewalModePost && !model.ValidUntil.HasValue)
             {
                 ModelState.AddModelError("ValidUntil", "Tanggal expired sertifikat wajib diisi untuk renewal.");
+            }
+
+            // judul-fleksibel-cek-duplikat (2026-06-15): soft-block judul kembar (cegah double sertifikat).
+            // Berlaku standard + PrePost. Skip renewal (judul sengaja reuse sertifikat asal). Override via konfirmasi.
+            if (!string.IsNullOrWhiteSpace(model.Title)
+                && !isRenewalModePost
+                && !ConfirmDuplicateTitle)
+            {
+                var dupMatches = await FindTitleDuplicatesAsync(_context, model.Title);
+                if (dupMatches.Count > 0)
+                {
+                    ModelState.AddModelError("Title",
+                        $"Judul '{model.Title}' sudah dipakai di {dupMatches.Count} assessment. " +
+                        "Centang konfirmasi di bawah untuk tetap membuat dengan judul sama.");
+                    ViewBag.DuplicateTitleWarning = true;
+                }
             }
 
             // XOR validation: hanya satu renewal FK yang boleh diisi
