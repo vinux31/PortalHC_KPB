@@ -94,7 +94,7 @@ See .planning/MILESTONES.md for full history.
 - [x] 386-02-PLAN.md — Wave 1 extract pure helpers `ValidateQuestionOptions` (PXF-02) + `BuildAnswerCell` (PXF-05) → unit GREEN
 - [x] 386-03-PLAN.md — Wave 2 wire PXF-02 validasi ke CreateQuestion + EditQuestion (controller edit 1/3)
 - [x] 386-04-PLAN.md — Wave 3 PXF-04 predikat tunggal 4 titik + SubmitEssayScore upsert + status-guard (T-386-AUTHZ) (controller edit 2/3)
-- [ ] 386-05-PLAN.md — Wave 4 PXF-05 wire GeneratePerPesertaPdf + fold ExcelExportHelper AddDetailPerSoalSheet (D-13) (controller edit 3/3)
+- [x] 386-05-PLAN.md — Wave 4 PXF-05 wire GeneratePerPesertaPdf + fold ExcelExportHelper AddDetailPerSoalSheet (D-13) (controller edit 3/3)
 - [ ] 386-06-PLAN.md — Wave 5 e2e GREEN + full suite + manual UAT checkpoint (PXF-02/04/05)
 **UI hint:** yes
 
@@ -124,7 +124,7 @@ See .planning/MILESTONES.md for full history.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete    | 2026-06-15 |
-| 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 4/6 | In Progress|  |
+| 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 5/6 | In Progress|  |
 | 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 0/4 | Planned | - |
 
 ### Coverage Validation
