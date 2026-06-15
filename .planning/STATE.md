@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
-status: In progress
-stopped_at: Completed 387-04-PLAN.md (Phase 387 COMPLETE — verifikasi proporsional D-09: 8 xUnit Integration facts PXF-06/09/12 + Playwright a11y PXF-11 2-surface 3/3 + browser/SignalR/DB manual PXF-08/10/13 APPROVED; fast suite 347/347, build 0 error, 0 migration; commits 46bd422d test / 3b4db3a2 test)
-last_updated: "2026-06-16T00:00:00.000Z"
-last_activity: 2026-06-16
+status: Ready to plan
+stopped_at: "Completed 387-04-PLAN.md (**Phase 387 COMPLETE** — verifikasi proporsional D-09: 8 xUnit Integration facts PXF-06/09/12 disposable real-SQL + Playwright a11y PXF-11 2-surface 3/3 + browser/SignalR/DB manual PXF-08/10/13 APPROVED [cert KPB/005/VI/2026 + workerSubmitted live + timer A/B]; fast suite 347/347 GREEN + build 0 error + 0 migration; commits `46bd422d` test / `3b4db3a2` test; SEED_JOURNAL CLEANED 0 residue)"
+last_updated: "2026-06-15T17:39:54.040Z"
+last_activity: 2026-06-15
 progress:
   total_phases: 24
   completed_phases: 3
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 387 **COMPLETE** (4/4 plans — 7 REQ PXF-06/08/09/10/11/12/13 closed; 0 migration)
+Phase: 999.7
 
 Plan: 4 of 4 (387-04 **DONE** — verifikasi proporsional D-09 + Phase 387 CLOSE. **Task 1 (xUnit PXF-06/09/12):** `HcPortal.Tests/PostLisensorPolishTests.cs` baru — disposable `HcPortalDB_Test_{guid}` fixture (`IAsyncLifetime`, `[Trait Category=Integration]`, `HcPortalDB_Dev` tak disentuh), 8 facts positive+negative: PXF-06 guard status (Completed reject / PendingGrading allow), PXF-09 essay cell (graded→"Skor: X/Y", blank→"Tidak dijawab", null→"Belum dinilai"), PXF-12 MC upsert (absent question→PackageOptionId UNCHANGED, present→updates) → **8/8 PASS**. **Task 2 (Playwright PXF-11):** `tests/e2e/aria-opsi-387.spec.ts` baru — assert option-image `aria-label` berisi "opsi A" di RUNTIME pada KEDUA surface (Results + ExamSummary) → **3/3 PASS** `--workers=1` (D-09 a11y Razor dinamis, lesson Phase 354). **Task 3 (checkpoint human-verify — APPROVED):** PXF-08/10/13 (LOW tanpa controller/hub harness) diverifikasi MANUAL via browser+SignalR+DB (localhost:5277, AD-off, shared-memory SQL; snapshot→mutate→RESTORE per CLAUDE.md Seed Workflow, SEED_JOURNAL CLEANED, 0 residue): **PXF-08** finalize sesi 169 → `NomorSertifikat`="KPB/005/VI/2026" ter-assign (retry-loop persist), session→Completed, no certError saat sukses; **PXF-10** klien SignalR JoinMonitor batchKey "TEST E2E Campur 2026-06-15|OJT|2026-06-15" → terima event `workerSubmitted` live `{sessionId:169, score:100, result:Pass, status:Completed}` tanpa refresh; **PXF-13** A/B `SaveTextAnswer`: StartedAt=2020+Dur=1min(EXPIRED)→tulis DITOLAK TextAnswer unchanged, StartedAt=now+Dur=60min→tulis SUKSES. Semua mutasi di-RESTORE dari `C:\Temp .bak`. Verif: fast suite `dotnet test --filter Category!=Integration` **347/347 GREEN** + build 0 error + 0 migration. Commits `46bd422d` (Task1 unit) / `3b4db3a2` (Task2 Playwright); Task 3 verify-only no-commit. **Phase 387 SELESAI.** Sisa: deploy IT KEDUA pasca-acara (gabung → push `origin/ITHandoff` → notify IT flag migration=FALSE; ❌ JANGAN edit Dev/Prod).)
 
@@ -177,11 +177,13 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audit
 
 ## Session Continuity
 
-Last activity: 2026-06-16
+Last activity: 2026-06-15
 
 Stopped at: Completed 387-04-PLAN.md (**Phase 387 COMPLETE** — verifikasi proporsional D-09: 8 xUnit Integration facts PXF-06/09/12 disposable real-SQL + Playwright a11y PXF-11 2-surface 3/3 + browser/SignalR/DB manual PXF-08/10/13 APPROVED [cert KPB/005/VI/2026 + workerSubmitted live + timer A/B]; fast suite 347/347 GREEN + build 0 error + 0 migration; commits `46bd422d` test / `3b4db3a2` test; SEED_JOURNAL CLEANED 0 residue)
 
 Next action: **v31.0 SELESAI lokal — Phase 385 + 386 + 387 ketiganya COMPLETE + verified** (385+386 = must-fix pra-ujian; 387 = Post-Lisensor Polish 7 REQ pasca-acara). Sisa handoff (CLAUDE.md Develop Workflow):
+
 1. **Bundle URGENT (pra-ujian):** push 385+386 ke `origin/ITHandoff` + notify IT (commit hash HEAD + flag migration=FALSE) → IT re-deploy Dev (10.55.3.3) + **UAT browser PXF-01** (gambar sub-path `/KPB-PortalHC`, open blocker — lokal no-repro) sebelum hari-H ~2026-06-17.
 2. **Bundle 387 (PASCA-acara, deploy IT KEDUA terpisah):** Phase 387 (PXF-06/08/09/10/11/12/13) gabung → push `origin/ITHandoff` (BUKAN sekarang — keputusan developer) → notify IT flag migration=FALSE.
+
 ❌ JANGAN edit DB/kode Dev/Prod (Develop Workflow). Carry lama migration (PendingProtonBypass+index/360, ShuffleToggles/372) tetap pending — v31.0 = 0 migration baru. Pasca-handoff: `/gsd-verify-phase 387` atau `/gsd-new-milestone`.
