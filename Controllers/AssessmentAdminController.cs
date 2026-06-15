@@ -4907,12 +4907,16 @@ namespace HcPortal.Controllers
 
                         if (tipe == "Essay")
                         {
+                            // PXF-09: tampilkan jawaban teks peserta + skor essay (bukan placeholder "—").
+                            var essayResp = sessionResp.FirstOrDefault(r => r.PackageQuestionId == q.Id);
                             ws.Cell(currentRow, 1).Value = no++;
                             ws.Cell(currentRow, 2).Value = q.QuestionText;
                             ws.Cell(currentRow, 3).Value = "Essay";
-                            ws.Cell(currentRow, 4).Value = "Essay – manual grading (lihat Penilaian Essay)";
-                            ws.Cell(currentRow, 5).Value = "—";
-                            ws.Cell(currentRow, 6).Value = "—";
+                            ws.Cell(currentRow, 4).Value = string.IsNullOrWhiteSpace(essayResp?.TextAnswer) ? "Tidak dijawab" : essayResp.TextAnswer;
+                            ws.Cell(currentRow, 5).Value = "—"; // essay: tidak ada "jawaban benar" deterministik
+                            ws.Cell(currentRow, 6).Value = essayResp?.EssayScore.HasValue == true
+                                ? $"Skor: {essayResp.EssayScore}/{q.ScoreValue}"
+                                : "Belum dinilai";
                             currentRow++;
                             continue;
                         }
