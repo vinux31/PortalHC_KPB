@@ -54,7 +54,7 @@ See .planning/MILESTONES.md for full history.
 
 ### Phases
 
-- [ ] **Phase 383: Essay Grading Correctness + Test (Fase 1)** — Helper terpusat `IsQuestionCorrect` (essay `>0`) dipakai di 3 titik `CMPController.Results` + PDF export → count/Elemen Teknis/Tinjauan/PDF konsisten dengan "Nilai Anda" %; plus regression test kunci Simpan Skor + Selesaikan Penilaian. Read-path only, 0 migration. Hotfix, ships first.
+- [x] **Phase 383: Essay Grading Correctness + Test (Fase 1)** — Helper terpusat `IsQuestionCorrect` (essay `>0`) dipakai di 3 titik `CMPController.Results` + PDF export → count/Elemen Teknis/Tinjauan/PDF konsisten dengan "Nilai Anda" %; plus regression test kunci Simpan Skor + Selesaikan Penilaian. Read-path only, 0 migration. Hotfix, ships first. (completed 2026-06-15)
 - [x] **Phase 384: Monitoring Essay Grading UI Refactor (Fase 2)** — Ganti blok essay inline panjang di `AssessmentMonitoringDetail` jadi tabel list worker (status + jumlah belum dinilai) + tombol "Tinjau Essay" → page penilaian essay per-worker (reuse endpoint `SubmitEssayScore`/`FinalizeEssayGrading` + `EssayGradingItemViewModel`, backend tak diubah). 0 migration. (completed 2026-06-15)
 
 ### Phase Details
