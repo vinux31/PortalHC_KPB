@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v31.0
 milestone_name: Hotfix Pra-Ujian Lisensor
-status: Phase 386 COMPLETE — v31.0 bundle (385+386) siap push + notify IT
-stopped_at: Completed 386-06-PLAN.md (Phase 386 COMPLETE — PXF-02/04/05 closed, browser UAT 4/4 APPROVED, 0 migration)
-last_updated: "2026-06-16T00:00:00.000Z"
-last_activity: 2026-06-16
+status: Ready to plan
+stopped_at: Completed 386-06-PLAN.md (Phase 386 COMPLETE — PXF-02/04/05 closed end-to-end unit+e2e+manual, browser UAT 4/4 APPROVED, dotnet test 474/474 + e2e 3/3, 0 migration; commit Task 1 `87112ad4`)
+last_updated: "2026-06-15T16:17:07.750Z"
+last_activity: 2026-06-15
 progress:
   total_phases: 24
   completed_phases: 2
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 386 (assessmentadmincontroller-hardening) — **COMPLETE** (6/6 plans)
+Phase: 387
 Plan: 6 of 6 (386-06 Wave-5 verify/e2e + UAT browser **DONE** — un-gate 2 e2e spec Wave-0 (`test.fixme` dilepas) + reconcile ke perilaku ter-wire: `option-validation-386.spec.ts` submit Single Answer all-opsi-kosong → assert pesan LOCKED `/minimal 2 opsi.*berisi teks/i` di `.alert-danger` + soal malformed TIDAK ter-persist; `essay-empty-finalize-386.spec.ts` drive sesi PendingGrading + ≥1 essay kosong → "Selesaikan Penilaian" → finalize bersih tanpa "Jawaban tidak ditemukan". Tiap spec **self-contained** via seed SQL idempotent (`tests/sql/option-validation-386-seed.sql` + `tests/sql/essay-empty-finalize-386-seed.sql`, dicatat `docs/SEED_JOURNAL.md` temporary+local-only). Gate fase: `dotnet build` 0 error + `dotnet test` **474/474 GREEN** + e2e `--workers=1` **3/3 PASS**. **Browser UAT 4/4 APPROVED** (localhost:5277, AD-off, shared-memory SQL): (1) PDF per-peserta sesi 118 — MA all-or-nothing via `IsQuestionCorrect`+`BuildAnswerCell`, Soal 9 partial {Impeller} dari {Impeller,Volute,Shaft} → SALAH = **F-17 proof**; (2) Excel "Detail Jawaban" sheet byte-identik label dgn PDF = **F-DEV-02 proof** (kedua surface route ke 1 helper bersama); (3) PXF-02 reject banner "Single Answer membutuhkan minimal 2 opsi jawaban yang berisi teks." pkg50 count 20→20 = **F-DEV-01 closed**; (4) PXF-04 EssayGrading sesi 118 — 4 essay + Skor + "Selesaikan Penilaian" tampil (behavior covered e2e 3/3 + parity unit 6/6). DB lokal bersih, no seed tersisa. Commit Task 1 `87112ad4` (test); Task 2/3 verify-only. **PXF-02 + PXF-04 + PXF-05 CLOSED end-to-end (unit+e2e+manual); 0 migration. Phase 386 SELESAI.** Sisa: gabung dgn Phase 385 (complete) → 1 push `origin/ITHandoff` → notify IT re-deploy Dev (flag migration=FALSE) sebelum hari-H ~2026-06-17.)
 
 Plan-LAMA: 6 of 6 (386-05 Wave-4 PXF-05 DONE — 2 surface bukti-resmi export di-route ke helper display bersama. **PDF** `GeneratePerPesertaPdf` (Controllers/AssessmentAdminController.cs, loop "Detail Jawaban per Soal"): blok single-row `FirstOrDefault` MA-mislabel diganti `responsesForQ = Where(PackageQuestionId==q.Id).ToList()` → `bool? correct = IsQuestionCorrect(q, responsesForQ)` (SEMUA tipe, MA all-or-nothing SetEquals) + `string jawaban = BuildAnswerCell(q, responsesForQ)` (MA join ", " SEMUA opsi terpilih); statusColor/statusText (✓ Benar/✗ Salah/— Pending) + render QuestPDF UTUH byte-identik; MC byte-identik; Essay sudah pakai helper. **Excel** `ExcelExportHelper.AddDetailPerSoalSheet` (F-DEV-02 D-13 folded): blok `var response = FirstOrDefault(...)` + `if (response==null){...}else{...}` diganti `responsesForQ = Where(SessionId && q.Id).ToList()` → BuildAnswerCell + IsQuestionCorrect; cell 2-kolom (Jawaban + ✓/✗/— warna Green/Red) UTUH. **Unifikasi label essay Excel (intentional D-13):** `EssayScore >= ScoreValue/2` lama → `> 0` (v30.0 canonical) = sama dgn PDF + web Results. **Compute (scoring engine) 0 diff** di AssessmentScoreAggregator.cs (git-verified, D-11 — display-path saja). Tak perlu `using` baru (ExcelExportHelper sudah namespace HcPortal.Helpers). Verif: build 0 error; grep single-row mislabel 0× di kedua file; pure suite 347/347 GREEN (incl PdfAnswerCellTests + IsQuestionCorrect regression); 0 migration. Commits 85861b69 (PDF) + bb058f1b (Excel). **PXF-05 CLOSED.** e2e tetap `test.fixme` (un-skip Plan 06). Sisa: 386-06 (verify/e2e + UAT browser PDF/Excel). Predecessor: 386-04 PXF-04 + 386-03 PXF-02 + 386-02 helper + 386-01 RED DONE.
@@ -165,7 +165,7 @@ Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audit
 
 ## Session Continuity
 
-Last activity: 2026-06-16
+Last activity: 2026-06-15
 
 Stopped at: Completed 386-06-PLAN.md (Phase 386 COMPLETE — PXF-02/04/05 closed end-to-end unit+e2e+manual, browser UAT 4/4 APPROVED, dotnet test 474/474 + e2e 3/3, 0 migration; commit Task 1 `87112ad4`)
 

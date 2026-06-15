@@ -56,7 +56,7 @@ See .planning/MILESTONES.md for full history.
 ### Phases
 
 - [x] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration. (completed 2026-06-15)
-- [ ] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration.
+- [x] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration. (completed 2026-06-15)
 - [ ] **Phase 387: Post-Lisensor Assessment Polish (7 REQ)** — Batch sisa pasca-acara (1 MED + 6 LOW): guard `SubmitEssayScore` status (PXF-06), cert nomor retry+log (PXF-08), Excel BulkExport "Detail Jawaban" essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). **PXF-07 + PXF-14 dipindah ke Phase 386** (386-05 sudah rewrite `ExcelExportHelper.cs:83-128`). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration.
 
 ### Phase Details
@@ -89,7 +89,7 @@ See .planning/MILESTONES.md for full history.
   3. PDF bukti per-peserta (`GeneratePerPesertaPdf`/`BulkExportPdf`) menandai soal **Multiple Answer** Benar/Salah secara akurat dengan aturan all-or-nothing `SetEquals` (membaca SEMUA opsi terpilih, bukan 1 baris `FirstOrDefault`) — label PDF konsisten dengan penilaian web/Excel. *(PXF-05 — closes F-17)*
   4. `dotnet build` 0 error + `dotnet test` hijau termasuk: unit test validasi opsi (soal Single/Multiple 0-opsi ditolak, ≥1 opsi ber-teks diterima); unit test pending-count essay kosong (basis hitung Monitoring == page EssayGrading, tombol Selesaikan muncul); unit test PDF MA SetEquals (benar={A,C,D} ⇒ Benar, partial/superset ⇒ Salah). Plus Playwright untuk PXF-02 (admin ditolak simpan soal 0-opsi) + PXF-04 (HC finalize sesi dengan essay kosong). *(PXF-02, PXF-04, PXF-05)*
 **Scope note (D-13 fold):** F-DEV-02 = `Helpers/ExcelExportHelper.cs:83` `AddDetailPerSoalSheet` MA mislabel (FirstOrDefault 1-baris) DI-FOLD ke PXF-05 (keputusan owner 2026-06-15) → diperbaiki di Phase 386 (Plan 05) pakai helper sama `IsQuestionCorrect`+`BuildAnswerCell`. **Konsekuensi: PXF-14 (Excel MA SetEquals `~83`) Phase 387 kini DITUTUP oleh Phase 386 — planner 387 jangan duplikasi (cek sisa PXF-07 essay-label `~111` saja).**
-**Plans:** 6 plans (6 waves)
+**Plans:** 6/6 plans complete
 - [x] 386-01-PLAN.md — Wave 0 scaffold 6 test files RED (OptionValidation/EssayEmptyPendingParity/PdfAnswerCell + 2 e2e) + extend authz/antiforgery lock (PXF-02/04/05)
 - [x] 386-02-PLAN.md — Wave 1 extract pure helpers `ValidateQuestionOptions` (PXF-02) + `BuildAnswerCell` (PXF-05) → unit GREEN
 - [x] 386-03-PLAN.md — Wave 2 wire PXF-02 validasi ke CreateQuestion + EditQuestion (controller edit 1/3)
@@ -124,7 +124,7 @@ See .planning/MILESTONES.md for full history.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 385. Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03) | 2/2 | Complete    | 2026-06-15 |
-| 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 6/6 | Complete   | 2026-06-15 |
+| 386. AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05) | 6/6 | Complete    | 2026-06-15 |
 | 387. Post-Lisensor Assessment Polish (7 REQ: PXF-06/08/09/10/11/12/13) | 0/4 | Planned | - |
 
 ### Coverage Validation
