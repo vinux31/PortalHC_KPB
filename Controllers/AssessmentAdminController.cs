@@ -3305,8 +3305,9 @@ namespace HcPortal.Controllers
                 .ToList();
             if (manualGradingSessionIds.Any())
             {
+                // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
                 var essayPendingRaw = await _context.PackageUserResponses
-                    .Where(r => manualGradingSessionIds.Contains(r.AssessmentSessionId) && r.EssayScore == null)
+                    .Where(r => manualGradingSessionIds.Contains(r.AssessmentSessionId) && !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null)
                     .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
                         r => r.PackageQuestionId, q => q.Id, (r, q) => r.AssessmentSessionId)
                     .GroupBy(sid => sid)
@@ -3497,7 +3498,8 @@ namespace HcPortal.Controllers
                 }).ToList();
             }
 
-            var essayPendingCount = items.Count(i => i.EssayScore == null);
+            // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
+            var essayPendingCount = items.Count(i => !string.IsNullOrWhiteSpace(i.TextAnswer) && i.EssayScore == null);
             var isFinalized = session.Status == AssessmentConstants.AssessmentStatus.Completed
                               && !string.IsNullOrEmpty(session.NomorSertifikat);
 
@@ -3544,11 +3546,12 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             // 5. Cek berapa Essay masih pending
+            // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
             var pendingCount = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == sessionId)
                 .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
                     r => r.PackageQuestionId, q => q.Id, (r, q) => r)
-                .CountAsync(r => r.EssayScore == null);
+                .CountAsync(r => !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null);
 
             return Json(new { success = true, pendingCount, allGraded = pendingCount == 0 });
         }
@@ -3617,7 +3620,8 @@ namespace HcPortal.Controllers
                        essayQuestions.Select(q => q.Id).Contains(r.PackageQuestionId))
                 .ToListAsync();
 
-            if (essayResponses.Any(r => r.EssayScore == null))
+            // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
+            if (essayResponses.Any(r => !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null))
                 return Json(new { success = false, message = "Masih ada Essay yang belum dinilai" });
 
             // 2. Recalculate total score (MC + MA auto + Essay manual)
