@@ -63,13 +63,13 @@ Batch polish **7 REQ** (1 MED + 6 LOW) dari register readiness — tidak mengham
 | PXF-05 | F-17 | Phase 386 | Pending |
 | PXF-07 | F-02 | Phase 386 | Pending |
 | PXF-14 | F-DEV-02 | Phase 386 | Pending |
-| PXF-06 | F-03 | Phase 387 | Pending |
-| PXF-08 | F-06 | Phase 387 | Pending |
-| PXF-09 | F-19 | Phase 387 | Pending |
-| PXF-10 | F-13 | Phase 387 | Pending |
-| PXF-11 | F-11 | Phase 387 | Pending |
-| PXF-12 | F-20 | Phase 387 | Pending |
-| PXF-13 | F-22 | Phase 387 | Pending |
+| PXF-06 | F-03 | Phase 387 | Done |
+| PXF-08 | F-06 | Phase 387 | Done |
+| PXF-09 | F-19 | Phase 387 | Done |
+| PXF-10 | F-13 | Phase 387 | Done |
+| PXF-11 | F-11 | Phase 387 | Done |
+| PXF-12 | F-20 | Phase 387 | Done |
+| PXF-13 | F-22 | Phase 387 | Done |
 
 **Coverage: 14/14 ter-map ✓ — Orphans: 0 — Duplicates: 0.** (Phase 386 = 5 REQ: PXF-02/04/05 + PXF-07/14 reconcile; Phase 387 = 7 REQ.)
 

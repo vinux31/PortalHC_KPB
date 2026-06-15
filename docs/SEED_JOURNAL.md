@@ -241,3 +241,12 @@ Audit trail untuk seed `temporary + local-only`. Lihat [`docs/SEED_WORKFLOW.md`]
 | 2026-06-15 | 315 | temporary + local-only | Assessment matrix discovery test sweep — 7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup/HcPortalDB_Dev-matrix-2026-06-15T17-02-03-306Z.bak | cleaned |
 | 2026-06-15 | 315 | temporary + local-only | Assessment matrix discovery test sweep — 7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup/HcPortalDB_Dev-matrix-2026-06-15T17-03-43-916Z.bak | cleaned |
 | 2026-06-15 | 315 | temporary + local-only | Assessment matrix discovery test sweep — 7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup/HcPortalDB_Dev-matrix-2026-06-15T17-05-27-676Z.bak | cleaned |
+
+## 2026-06-16 — PXF-08/10/13 browser UAT (Phase 387) [temporary, local-only]
+- Tujuan: verifikasi via browser PXF-08 (cert retry/surface) + PXF-10 (monitor broadcast) + PXF-13 (timer guard).
+- Klasifikasi: temporary + local-only.
+- Snapshot: C:\Temp\HcPortalDB_Dev_pxf387_011209.bak (BACKUP sebelum mutasi).
+- Mutasi: session 169 -> Status='Menunggu Penilaian', GenerateCertificate=1, NomorSertifikat/IsPassed/Score=NULL (untuk finalize PXF-08/10). PXF-13: session admin-owned InProgress expired (terpisah).
+- Restore: RESTORE dari .bak setelah test; tandai cleaned.
+- Status: in-progress
+- Status: CLEANED (RESTORE OK 2026-06-16, 169 + Q802 reverted, 0 residue). Hasil: PXF-08 cert KPB/005/VI/2026 assigned; PXF-10 workerSubmitted broadcast diterima live (sessionId 169 Pass Completed); PXF-13 timer A/B (expired ditolak, valid ditulis). Backup C:\Temp\HcPortalDB_Dev_pxf387_011209.bak boleh dihapus.
