@@ -80,6 +80,26 @@ bukan diff.
   10/10 test PASS). Gap komunikasi. **Fix lokal?** Ya, tambah 1 baris teks peringatan di L122
   (low risk). **Re-deploy IT?** Ya (perubahan view). **Status:** PENDING keputusan user.
 
+### Sweep multi-agent 2026-06-15 (4 area, adversarial-verified) — wf_d1fe62d4
+
+Inti tiap area **bekerja benar secara kode** (essay v30 kill-drift OK, sertifikat gate IsPassed OK,
+render gambar struktur Razor OK, monitoring SignalR push tahan ≤30 tanpa N+1). Temuan:
+
+| ID | Sev | Area | Lokasi | Masalah | bug? | fix lokal | re-deploy |
+|----|-----|------|--------|---------|------|-----------|-----------|
+| **F-09** | **HIGH** | gambar | `_QuestionImage.cshtml:38` | `src="@imagePath"` leading-slash `/uploads/..` **bypass PathBase `/KPB-PortalHC`** → gambar soal+opsi **broken di Dev** (404). Lokal no-repro (no PathBase). e2e tak nangkap (cek regex src, bukan load). **Exam-blocking utk soal bergambar** | ✅ | ✅ wrap `Url.Content("~"+path)` | ✅ + UAT browser Dev |
+| **F-02** | MED | essay | `ExcelExportHelper.cs:110` | Excel "Detail Per Soal" pakai aturan essay lama `>= ScoreValue/2` vs helper `>0` → label "Benar/Salah" kontradiksi web/PDF utk skor parsial 1..(SV/2−1). Bukan scoring, label only | ✅ | ✅ ganti ke `IsQuestionCorrect` | ✅ |
+| **F-03** | MED | essay | `AssessmentAdminController.cs:3525` | `SubmitEssayScore` tanpa status-guard → edit skor essay pasca-Completed (sesi gagal / no-cert) ubah count/ET live tapi `Score`/`IsPassed` tersimpan basi → divergen di 1 halaman. Re-finalize no-op | ✅ | ✅ guard status / recompute | ✅ |
+| **F-04** | MED | essay | `AssessmentAdminController.cs:3500` | Essay dikosongkan worker (no response row) → pending-count beda antara monitoring (row-based, =0 "siap") vs page EssayGrading (hitung pending>0 → tombol Selesaikan disembunyikan) + HC tak bisa nilai essay kosong ("Jawaban tidak ditemukan") = **dead-end finalize**. Data benar (0 poin) tapi UI macet. Realistis (worker skip essay) | ✅ | ✅ samakan basis hitung / buat row 0 | ✅ |
+| **F-06** | LOW | cert | `AssessmentAdminController.cs:3697` | Generate nomor cert essay **single-attempt no-retry** (vs GradingService 3x), catch telan semua `DbUpdateException` silent. Collision multi-HC → lulus tanpa nomor cert, no log. Komentar "same pattern" salah | ✅ | ✅ retry-loop+log | ✅ |
+| **F-13** | LOW | monitoring | `AssessmentAdminController.cs:3753` | `FinalizeEssayGrading` tak broadcast monitor group → tab admin LAIN yang buka monitoring detail stale s/d refresh. 1-operator ≈ nihil | ✗ UX | opsional | opsional |
+| **F-11** | LOW | gambar | `Results.cshtml:388` | Gambar opsi di Results/ExamSummary `AriaContext="opsi"` tanpa huruf A/B/C/D (a11y minor) | ✗ | opsional | opsional |
+| F-05/07/08/10/12/14/15/16 | INFO | — | — | catatan (essay >0=hijau by-design; cert seq 1-tabel; baris cert no-nomor by-design; monitoring detail no-image; daftar item wajib UAT browser; no polling fallback SignalR; index monitoring statis; **verifikasi positif push tahan ≤30 no-N+1**) | ✗ | — | — |
+
+**Status semua: PENDING keputusan user (batch).** Plus F-01 (MED, UI tak warn MA partial=0) dari sebelumnya.
+
+**Catatan F-09 (penting):** verifier read-only, **belum** konfirmasi browser Dev (tak boleh akses Dev). Analisis kuat (PathBase di `appsettings.json:9` tak di-override Development; leading-slash bypass) → keyakinan tinggi reproduce. **WAJIB UAT browser 1× di `http://10.55.3.3/KPB-PortalHC` layar StartExam bergambar sebelum ujian.**
+
 ## Fakta scoring terverifikasi (2026-06-15)
 
 - Lulus: `percentage >= PassPercentage`; **default 70%** per-assessment (`AssessmentSession.cs:29`).
