@@ -1711,8 +1711,11 @@ namespace HcPortal.Controllers
                         // Upsert MC answer only
                         if (existingResponses.TryGetValue(q.Id, out var existingResponse))
                         {
-                            existingResponse.PackageOptionId = selectedOptId;
-                            existingResponse.SubmittedAt = DateTime.UtcNow;
+                            if (answers.ContainsKey(q.Id)) // guard: jangan null-overwrite jawaban tersimpan untuk soal absent di form
+                            {
+                                existingResponse.PackageOptionId = selectedOptId;
+                                existingResponse.SubmittedAt = DateTime.UtcNow;
+                            }
                         }
                         else if (selectedOptId.HasValue)
                         {

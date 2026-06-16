@@ -103,7 +103,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     finalizeInPlace();
                 } else if (data.success) {
                     // D-09 — finalize sukses pertama: update IN-PLACE ke "Selesai", TANPA location.reload / redirect.
-                    showAlert('success', 'bi-check-circle-fill', '<strong>Berhasil:</strong> Penilaian telah diselesaikan.');
+                    var smsg = 'Penilaian telah diselesaikan.';
+                    if (data.nomorSertifikat) {
+                        smsg += ' Nomor sertifikat: ' + data.nomorSertifikat + '.';
+                    }
+                    if (data.certError) {
+                        // PXF-08 — nomor sertifikat gagal dibuat (retry-loop habis): tampilkan sebagai
+                        // peringatan, bukan sukses polos, supaya HC tahu untuk coba lagi (cert = bukti resmi).
+                        showAlert('warning', 'bi-exclamation-triangle-fill', '<strong>Selesai, tapi perhatikan:</strong> ' + smsg + ' ' + data.certError);
+                    } else {
+                        showAlert('success', 'bi-check-circle-fill', '<strong>Berhasil:</strong> ' + smsg);
+                    }
                     finalizeInPlace();
                 } else {
                     // Phase 310 D-04 — error spesifik per status, inline alert

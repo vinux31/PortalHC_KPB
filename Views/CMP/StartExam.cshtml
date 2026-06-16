@@ -478,6 +478,9 @@ else
                 submitted = true; // set flag SEBELUM modal show — prevent visibilitychange listener race re-trigger.
                 var timeupModal = new bootstrap.Modal(document.getElementById('timeUpWarningModal'));
                 timeupModal.show();
+                // F-21 (PXF-03) D-03: timeout = best-effort flush essay TANPA await (jangan tunda deadline).
+                // Submit fire segera; flush jalan paralel.
+                try { flushEssay(); } catch (e) { /* best-effort, jangan blokir deadline */ }
                 // Fire submit immediate — modal tetap visible during POST -> ExamSummary chain.
                 document.getElementById('examForm').submit();
             }
@@ -867,6 +870,7 @@ else
 
     // -------- Textarea input listener (Essay — debounce 2 detik) --------
     var essayTimers = {};
+    var essayInFlight = new Set();   // F-21 (PXF-03): qId essay yang request SaveTextAnswer-nya sedang berjalan
     document.querySelectorAll('.exam-essay').forEach(function(ta) {
         ta.addEventListener('input', function() {
             const qId = this.dataset.questionId;
@@ -910,14 +914,54 @@ else
                 updateNetworkBadge('saved');
             }, 2000);
         });
+
+        // F-21 (PXF-03) D-02: save-on-blur — saat fokus keluar textarea, simpan langsung
+        // (tidak menunggu debounce 2s). essayInFlight terisi → guard pre-submit/changePage menunggu.
+        ta.addEventListener('blur', function() {
+            var qId = this.dataset.questionId;
+            if (essayTimers[qId]) { clearTimeout(essayTimers[qId]); delete essayTimers[qId]; }
+            if (window.assessmentHub && window.assessmentHub.state === 'Connected') {
+                essayInFlight.add(String(qId)); var self = this;
+                window.assessmentHub.invoke('SaveTextAnswer', SESSION_ID, parseInt(qId), self.value)
+                    .then(function() { showSaveIndicator(qId, 'saved'); updateNetworkBadge('saved'); })
+                    .catch(function(err) { console.warn('blur SaveTextAnswer failed:', err); })
+                    .finally(function() { essayInFlight.delete(String(qId)); });
+            }
+        });
     });
+
+    // F-21 (PXF-03) D-03: flush SEMUA essay pending segera (bukan tunggu debounce 2s).
+    // Clear timer pending tiap textarea, invoke SaveTextAnswer langsung, lacak via essayInFlight,
+    // kembalikan Promise.all yang resolve saat SEMUA save selesai (untuk di-await pre-submit/changePage).
+    function flushEssay() {
+        var promises = [];
+        document.querySelectorAll('.exam-essay').forEach(function(ta) {
+            var qId = ta.dataset.questionId;
+            if (essayTimers[qId]) { clearTimeout(essayTimers[qId]); delete essayTimers[qId]; }
+            if (window.assessmentHub && window.assessmentHub.state === 'Connected') {
+                essayInFlight.add(String(qId));
+                var p = window.assessmentHub.invoke('SaveTextAnswer', SESSION_ID, parseInt(qId), ta.value)
+                    .then(function() { showSaveIndicator(qId, 'saved'); updateNetworkBadge('saved'); })
+                    .catch(function(err) { console.warn('flushEssay SaveTextAnswer failed:', err); })
+                    .finally(function() { essayInFlight.delete(String(qId)); });
+                promises.push(p);
+            }
+        });
+        return Promise.all(promises);
+    }
+
+    // F-21 (PXF-03) D-04: guard pre-submit/changePage menunggu MC (pendingSaves/inFlightSaves)
+    // DAN essay (essayInFlight). Function declaration → hoisted, aman dipanggil di mana pun.
+    function hasPendingSaves() {
+        return Object.keys(pendingSaves).length > 0 || inFlightSaves.size > 0 || essayInFlight.size > 0;
+    }
 
     // -------- Page switching --------
     function changePage(newPage, skipScroll) {
         if (newPage < 0 || newPage >= TOTAL_PAGES) return;
 
-        // Check for pending saves
-        if (Object.keys(pendingSaves).length > 0 || inFlightSaves.size > 0) {
+        // Check for pending saves (MC + essay — F-21 D-04 via hasPendingSaves)
+        if (hasPendingSaves()) {
             // Disable nav buttons while waiting
             document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
                 b.disabled = true;
@@ -933,7 +977,7 @@ else
             }, SAVE_TIMEOUT_MS);
 
             var navPoll = setInterval(function() {
-                if (Object.keys(pendingSaves).length === 0 && inFlightSaves.size === 0) {
+                if (!hasPendingSaves()) {
                     clearInterval(navPoll);
                     clearTimeout(navTimeout);
                     document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn, #mobilePrevBtn, #mobileNextBtn, #mobileSubmitBtn').forEach(function(b) {
@@ -978,7 +1022,10 @@ else
     var reviewBtn = document.getElementById('reviewSubmitBtn');
     if (reviewBtn) {
         reviewBtn.addEventListener('click', function(e) {
-            if (Object.keys(pendingSaves).length > 0 || inFlightSaves.size > 0) {
+            // F-21 (PXF-03) D-04: flush essay terbaru SEBELUM submit (keystroke ~2s terakhir tak hilang),
+            // lalu tunggu MC + essay (hasPendingSaves) ter-flush sebelum examForm.submit().
+            try { flushEssay(); } catch (e2) { /* best-effort */ }
+            if (hasPendingSaves()) {
                 e.preventDefault();
                 reviewBtn.disabled = true;
 
@@ -989,7 +1036,7 @@ else
                 }, SAVE_TIMEOUT_MS);
 
                 var rPoll = setInterval(function() {
-                    if (Object.keys(pendingSaves).length === 0 && inFlightSaves.size === 0) {
+                    if (!hasPendingSaves()) {
                         clearInterval(rPoll);
                         clearTimeout(rTimeout);
                         reviewBtn.disabled = false;

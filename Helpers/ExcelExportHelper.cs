@@ -41,8 +41,11 @@ namespace HcPortal.Helpers
         /// <summary>
         /// Phase 338 CIL-05 (D-03 AMENDED): Sheet "Detail Per Soal" — grid per-peserta-per-soal.
         /// Header dinamis berdasarkan PackageQuestion list (urut by Order). 1 row per peserta.
-        /// Resolve answer via PackageOption.OptionText (MC) atau TextAnswer (Essay) atau "—".
-        /// Derive IsCorrect dari PackageOption.IsCorrect (MC) atau EssayScore >= ScoreValue/2 (Essay grade).
+        /// Phase 386 PXF-05 (F-DEV-02 D-13): Jawaban + Benar? di-derive lewat helper bersama
+        /// AssessmentScoreAggregator.BuildAnswerCell (MC single / MA join ", " SEMUA opsi terpilih / Essay truncate / "—")
+        /// dan IsQuestionCorrect (MC IsCorrect; MA all-or-nothing SetEquals; Essay > 0; pending = null) —
+        /// SAMA dengan PDF GeneratePerPesertaPdf + web Results (kill-drift). Catatan: label Essay kini > 0
+        /// (unifikasi v30.0 canonical) menggantikan EssayScore >= ScoreValue/2 yang lama (intentional, D-13).
         /// </summary>
         public static void AddDetailPerSoalSheet(
             XLWorkbook workbook,
@@ -80,48 +83,25 @@ namespace HcPortal.Helpers
                 int c = 4;
                 foreach (var q in sortedQuestions)
                 {
-                    var response = responses.FirstOrDefault(r =>
-                        r.AssessmentSessionId == session.Id && r.PackageQuestionId == q.Id);
+                    // Phase 386 PXF-05 (F-DEV-02 D-13) — Jawaban + Benar? via helper bersama (SAMA dengan PDF).
+                    // MA multi-row: lewatkan SEMUA response (session, q) ke helper supaya all-or-nothing (SetEquals)
+                    // + list semua opsi terpilih. No-response: BuildAnswerCell -> "—", IsQuestionCorrect -> false (MC/MA)
+                    // / null (Essay pending). Essay kini di-label > 0 (unifikasi v30.0, ganti >= ScoreValue/2 lama).
+                    var responsesForQ = responses
+                        .Where(r => r.AssessmentSessionId == session.Id && r.PackageQuestionId == q.Id)
+                        .ToList();
+                    string jawabanText = AssessmentScoreAggregator.BuildAnswerCell(q, responsesForQ);   // D-10/D-13
+                    bool? isCorrect = AssessmentScoreAggregator.IsQuestionCorrect(q, responsesForQ);    // D-09/D-13
 
-                    if (response == null)
-                    {
-                        ws.Cell(rowIdx, c++).Value = "—";
-                        ws.Cell(rowIdx, c++).Value = "—";
-                    }
-                    else
-                    {
-                        string jawabanText = "—";
-                        bool? isCorrect = null;
+                    ws.Cell(rowIdx, c++).Value = jawabanText;
 
-                        if (response.PackageOptionId.HasValue)
-                        {
-                            var selectedOption = q.Options?.FirstOrDefault(o => o.Id == response.PackageOptionId.Value);
-                            if (selectedOption != null)
-                            {
-                                jawabanText = selectedOption.OptionText ?? "—";
-                                isCorrect = selectedOption.IsCorrect;
-                            }
-                        }
-                        else if (!string.IsNullOrEmpty(response.TextAnswer))
-                        {
-                            jawabanText = response.TextAnswer.Length > 200
-                                ? response.TextAnswer.Substring(0, 200) + "..."
-                                : response.TextAnswer;
-                            isCorrect = response.EssayScore.HasValue
-                                ? (bool?)(response.EssayScore.Value >= (q.ScoreValue / 2))
-                                : null;
-                        }
-
-                        ws.Cell(rowIdx, c++).Value = jawabanText;
-
-                        string benar = isCorrect == true ? "✓"
-                                     : (isCorrect == false ? "✗" : "—");
-                        var cell = ws.Cell(rowIdx, c++);
-                        cell.Value = benar;
-                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        if (isCorrect == true) cell.Style.Font.FontColor = XLColor.Green;
-                        else if (isCorrect == false) cell.Style.Font.FontColor = XLColor.Red;
-                    }
+                    string benar = isCorrect == true ? "✓"
+                                 : (isCorrect == false ? "✗" : "—");
+                    var cell = ws.Cell(rowIdx, c++);
+                    cell.Value = benar;
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    if (isCorrect == true) cell.Style.Font.FontColor = XLColor.Green;
+                    else if (isCorrect == false) cell.Style.Font.FontColor = XLColor.Red;
                 }
                 ws.Cell(rowIdx, c).Value = session.Score ?? 0;
                 rowIdx++;

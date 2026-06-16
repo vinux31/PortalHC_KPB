@@ -109,6 +109,50 @@ public class AssessmentScoreAggregatorTests
         Assert.Equal(0, result.Percentage);
     }
 
+    // ============================================================================
+    // SKENARIO USER 2026-06-15 (readiness lisensor) — MA benar = {A,C,D}.
+    // Soal punya 4 opsi: A=10, B=11(SALAH), C=12, D=13. correct={10,12,13}, ScoreValue=100, pass=70.
+    // Buktikan ALL-OR-NOTHING (SetEquals): hanya jawaban PERSIS {A,C,D} dapat poin penuh; selain itu 0.
+    // ============================================================================
+    private static PackageQuestion MaACD() =>
+        Q(1, "MultipleAnswer", 100, (10, true), (11, false), (12, true), (13, true));
+
+    [Fact] // jawab PERSIS A,C,D → 100% (lulus)
+    public void MA_ACD_ExactAllThree_FullScore()
+    {
+        var r = AssessmentScoreAggregator.Compute(new[] { MaACD() },
+            new[] { Resp(1, 10), Resp(1, 12), Resp(1, 13) }, passPercentage: 70);
+        Assert.Equal(100, r.TotalScore);
+        Assert.Equal(100, r.Percentage);
+        Assert.True(r.IsPassed);
+    }
+
+    [Fact] // jawab A,C saja (kurang D) → 0
+    public void MA_ACD_PartialAC_Zero()
+    {
+        var r = AssessmentScoreAggregator.Compute(new[] { MaACD() },
+            new[] { Resp(1, 10), Resp(1, 12) }, passPercentage: 70);
+        Assert.Equal(0, r.TotalScore);
+        Assert.Equal(0, r.Percentage);
+        Assert.False(r.IsPassed);
+    }
+
+    [Fact] // jawab A saja → 0
+    public void MA_ACD_OnlyA_Zero()
+    {
+        var r = AssessmentScoreAggregator.Compute(new[] { MaACD() },
+            new[] { Resp(1, 10) }, passPercentage: 70);
+        Assert.Equal(0, r.Percentage);
+    }
+
+    [Fact] // jawab A,C,D + B (semua benar + 1 salah) → 0
+    public void MA_ACD_AllCorrectPlusWrongB_Zero()
+    {
+        var r = AssessmentScoreAggregator.Compute(new[] { MaACD() },
+            new[] { Resp(1, 10), Resp(1, 11), Resp(1, 12), Resp(1, 13) }, passPercentage: 70);
+        Assert.Equal(0, r.Percentage);
+    }
+
     // ---- empty questions: 0%, no throw (guard kosong) ----
     [Fact]
     public void EmptyQuestions_ReturnsZero_NoThrow()

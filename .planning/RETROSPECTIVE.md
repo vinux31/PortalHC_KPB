@@ -4,6 +4,33 @@
 
 ---
 
+## Milestone: v31.0 — Hotfix Pra-Ujian Lisensor
+
+**Shipped:** 2026-06-16 (local; NOT pushed)
+**Phases:** 3 (385, 386, 387) | **Plans:** 12 | **REQ:** 14/14 PXF-01..14 | **0 migration**
+
+### What Was Built
+Pra-ujian-lisensor hardening lintas alur assessment SA+MA+Essay+soal-bergambar: (385) gambar soal/opsi PathBase-aware di sub-path `/KPB-PortalHC` + essay flush sebelum submit/blur/timeout; (386) validasi opsi soal (tolak SA/MA tanpa opsi ber-teks) + essay-kosong tetap bisa di-finalize + PDF/Excel MA all-or-nothing (SetEquals) via shared `IsQuestionCorrect`+`BuildAnswerCell`; (387 pasca-acara) SubmitEssayScore guards (type/ownership/status), cert nomor retry+log+surface, Excel essay cell, monitor broadcast, aria opsi huruf, SubmitExam MC no-null-overwrite, SaveTextAnswer timer guard.
+
+### What Worked
+- File-overlap phasing (PXF-02/04/05 + 07/14 digabung 386 krn semua `AssessmentAdminController.cs`) → nol konflik write.
+- Shared display helpers (`IsQuestionCorrect`/`BuildAnswerCell`) dipakai PDF + Excel + web → kill-drift label MA/essay lintas surface resmi.
+- Proportional verification (D-09): unit untuk logika, Playwright untuk a11y render runtime, manual untuk SignalR/cert/timer.
+
+### What Was Inefficient
+- Phase 385 (hotfix) ship tanpa VERIFICATION.md (pakai UAT.md) dan tanpa VALIDATION.md → di-backfill saat auto-close.
+- PXF-07/PXF-14 di-fold ke 386 tapi tak ditandai di SUMMARY `requirements-completed` frontmatter → traceability doc-gap.
+- PXF-08 `certError` dikirim controller tapi consumer JS (`essay-grading.js`) tak membacanya → gap baru ketahuan saat integration-check audit (di-fix inline `3005733d`).
+
+### Key Lessons
+- Auto-close lintas-sesi: tunggu signature repo benar-benar diam (HEAD + tracked + untracked) sebelum ambil alih — VERIFICATION/REVIEW bisa muncul untracked setelah commit terakhir (verifier/reviewer agent jalan tanpa commit).
+- Integration check menangkap contract-drift yang phase-verify lewatkan: controller mengirim field, client tak konsumsi.
+
+### Cost Observations
+- v31.0 close dijalankan full-auto (1 sesi) sesudah execute 387 di sesi lain; secure+validate+verify+audit+complete+cleanup+HTML berantai.
+
+---
+
 ## Milestone: v30.0 — Essay Grading Correctness + Monitoring UI Refactor
 
 **Shipped:** 2026-06-15 (local; NOT pushed)

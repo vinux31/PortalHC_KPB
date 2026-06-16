@@ -3305,13 +3305,18 @@ namespace HcPortal.Controllers
                 .ToList();
             if (manualGradingSessionIds.Any())
             {
-                var essayPendingRaw = await _context.PackageUserResponses
+                // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
+                // Whitespace dievaluasi in-memory (IsNullOrWhiteSpace) agar identik dgn .NET: SQL Server
+                // LTRIM/RTRIM hanya trim spasi (bukan tab/newline) → parity 4 surface terjamin (D-06a).
+                var essayUngradedRows = await _context.PackageUserResponses
                     .Where(r => manualGradingSessionIds.Contains(r.AssessmentSessionId) && r.EssayScore == null)
                     .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
-                        r => r.PackageQuestionId, q => q.Id, (r, q) => r.AssessmentSessionId)
-                    .GroupBy(sid => sid)
-                    .Select(g => new { SessionId = g.Key, Count = g.Count() })
+                        r => r.PackageQuestionId, q => q.Id, (r, q) => new { r.AssessmentSessionId, r.TextAnswer })
                     .ToListAsync();
+                var essayPendingRaw = essayUngradedRows
+                    .Where(x => !string.IsNullOrWhiteSpace(x.TextAnswer))   // EssayScore==null sudah difilter server-side
+                    .GroupBy(x => x.AssessmentSessionId)
+                    .Select(g => new { SessionId = g.Key, Count = g.Count() });
                 foreach (var item in essayPendingRaw)
                     essayPendingCountMap[item.SessionId] = item.Count;
             }
@@ -3497,7 +3502,8 @@ namespace HcPortal.Controllers
                 }).ToList();
             }
 
-            var essayPendingCount = items.Count(i => i.EssayScore == null);
+            // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
+            var essayPendingCount = items.Count(i => !string.IsNullOrWhiteSpace(i.TextAnswer) && i.EssayScore == null);
             var isFinalized = session.Status == AssessmentConstants.AssessmentStatus.Completed
                               && !string.IsNullOrEmpty(session.NomorSertifikat);
 
@@ -3524,31 +3530,69 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitEssayScore(int sessionId, int questionId, int score)
         {
-            // 1. Load response
-            var response = await _context.PackageUserResponses
-                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
-            if (response == null)
-                return Json(new { success = false, message = "Jawaban tidak ditemukan" });
+            // 1. STATUS-GUARD (Phase 386 PXF-04 D-08, T-386-AUTHZ HIGH) — penilaian hanya saat PendingGrading.
+            //    Tanpa guard ini, upsert akan MEMPERLEBAR F-03: HC bisa membuat+menilai baris pada sesi
+            //    Completed → divergen Score/IsPassed yang memberi PDF lisensi resmi. Cermin FinalizeEssayGrading:3591.
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null)
+                return Json(new { success = false, message = "Session tidak ditemukan" });
+            if (session.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
+                return Json(new { success = false, message = "Penilaian hanya bisa dilakukan saat status Menunggu Penilaian." });
 
-            // 2. Load question untuk validasi ScoreValue
+            // 2. Load question + validasi skor range (T-298-13) — WAJIB sebelum upsert agar skor invalid tak pernah membuat baris.
             var question = await _context.PackageQuestions.FindAsync(questionId);
             if (question == null)
                 return Json(new { success = false, message = "Soal tidak ditemukan" });
-
-            // 3. Validasi skor range (T-298-13)
             if (score < 0 || score > question.ScoreValue)
                 return Json(new { success = false, message = $"Skor harus antara 0 dan {question.ScoreValue}" });
 
-            // 4. Save EssayScore
-            response.EssayScore = score;
+            // 2a. PXF-06 anti-tamper: edit skor essay pasca-finalize SUDAH ditolak oleh status-guard Phase 386 D-08
+            //     di atas (`Status != PendingGrading` → reject), sehingga guard `Status == Completed` eksplisit
+            //     redundant. Yang ditutup di sini adalah 2 celah hardening tertunda (386-REVIEW WR-01 + WR-02)
+            //     yang diperkenalkan oleh upsert D-08 (penciptaan baris baru tanpa validasi tipe/kepemilikan).
+            // 2b. WR-01 (386-REVIEW) — questionId WAJIB tipe Essay. Tanpa ini upsert bisa membuat baris EssayScore
+            //     pada soal MC/MA (korupsi skor: aggregator menjumlah EssayScore via case Essay).
+            if (question.QuestionType != "Essay")
+                return Json(new { success = false, message = "Soal ini bukan tipe Essay." });
+            // 2c. WR-02 (386-REVIEW) — questionId WAJIB milik sesi ini (cross-session tampering guard). Rantai nav
+            //     terverifikasi: PackageQuestion.AssessmentPackage.AssessmentSessionId == sessionId.
+            var ownsQuestion = await _context.PackageQuestions
+                .AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId);
+            if (!ownsQuestion)
+                return Json(new { success = false, message = "Soal bukan milik sesi ini." });
+
+            // 3. UPSERT (Phase 386 PXF-04 D-08) — baris essay kosong tak ada → buat baru (TextAnswer null) lalu skor;
+            //    mengganti dead-end "Jawaban tidak ditemukan" agar HC tetap bisa menilai essay yang dikosongkan peserta.
+            var response = await _context.PackageUserResponses
+                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+            if (response == null)
+            {
+                response = new PackageUserResponse
+                {
+                    AssessmentSessionId = sessionId,
+                    PackageQuestionId = questionId,
+                    PackageOptionId = null,
+                    TextAnswer = null,
+                    EssayScore = score
+                };
+                _context.PackageUserResponses.Add(response);
+            }
+            else
+            {
+                response.EssayScore = score;
+            }
             await _context.SaveChangesAsync();
 
             // 5. Cek berapa Essay masih pending
-            var pendingCount = await _context.PackageUserResponses
-                .Where(r => r.AssessmentSessionId == sessionId)
+            // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
+            // Whitespace dievaluasi in-memory (IsNullOrWhiteSpace) agar identik dgn .NET: SQL Server
+            // LTRIM/RTRIM hanya trim spasi (bukan tab/newline) → parity 4 surface terjamin (D-06a).
+            var pendingTextAnswers = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId && r.EssayScore == null)
                 .Join(_context.PackageQuestions.Where(q => q.QuestionType == "Essay"),
-                    r => r.PackageQuestionId, q => q.Id, (r, q) => r)
-                .CountAsync(r => r.EssayScore == null);
+                    r => r.PackageQuestionId, q => q.Id, (r, q) => r.TextAnswer)
+                .ToListAsync();
+            var pendingCount = pendingTextAnswers.Count(t => !string.IsNullOrWhiteSpace(t));   // EssayScore==null sudah difilter server-side
 
             return Json(new { success = true, pendingCount, allGraded = pendingCount == 0 });
         }
@@ -3565,7 +3609,11 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FinalizeEssayGrading(int sessionId)
         {
-            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            // Phase 387 PXF-10 (REVIEW WR-01): eager-load User agar broadcast workerSubmitted
+            // mengirim nama peserta asli (bukan "Unknown"). Cermin analog workerAnswerEdited (Include User).
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
             if (session == null)
                 return Json(new { success = false, message = "Session tidak ditemukan." });
 
@@ -3617,7 +3665,8 @@ namespace HcPortal.Controllers
                        essayQuestions.Select(q => q.Id).Contains(r.PackageQuestionId))
                 .ToListAsync();
 
-            if (essayResponses.Any(r => r.EssayScore == null))
+            // Phase 386 PXF-04 D-06 — single pending predicate (byte-identical 4 sites)
+            if (essayResponses.Any(r => !string.IsNullOrWhiteSpace(r.TextAnswer) && r.EssayScore == null))
                 return Json(new { success = false, message = "Masih ada Essay yang belum dinilai" });
 
             // 2. Recalculate total score (MC + MA auto + Essay manual)
@@ -3695,19 +3744,36 @@ namespace HcPortal.Controllers
             // AssessmentSession sole source-of-truth untuk Records page display.
 
             // 5. Generate sertifikat jika applicable (same pattern as GradingService)
+            // PXF-08: retry 3x saat collision nomor + LogError pada kegagalan persisten (jangan silent-pass cert un-numbered).
             if (session.GenerateCertificate && isPassed)
             {
                 var certNow = DateTime.Now;
                 int certYear = certNow.Year;
-                try
+                int certAttempts = 0;
+                const int maxCertAttempts = 3;
+                bool certSaved = false;
+                while (!certSaved && certAttempts < maxCertAttempts)
                 {
-                    var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                    await _context.AssessmentSessions
-                        .Where(s => s.Id == sessionId && s.NomorSertifikat == null)
-                        .ExecuteUpdateAsync(s => s
-                            .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
+                    certAttempts++;
+                    try
+                    {
+                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                        await _context.AssessmentSessions
+                            .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
+                            .ExecuteUpdateAsync(s => s
+                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
+                        certSaved = true;
+                    }
+                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
+                    {
+                        // Retry dengan sequence baru
+                    }
                 }
-                catch (DbUpdateException) { /* race-condition: cert number sudah diambil thread lain — skip */ }
+                if (!certSaved)
+                {
+                    _logger.LogError("Failed to generate certificate number for SessionId={SessionId} after {MaxAttempts} attempts due to repeated collisions.",
+                        session.Id, maxCertAttempts);
+                }
             }
 
             // 5b. Audit log (Phase 310 D-07) — gated by rowsAffected > 0 (di-skip otomatis kalau race lost karena early return di atas)
@@ -3750,12 +3816,30 @@ namespace HcPortal.Controllers
             if (updatedSession != null)
                 await _workerDataService.NotifyIfGroupCompleted(updatedSession);
 
+            // PXF-10: broadcast completion ke grup monitor agar tab Monitoring update tanpa refresh.
+            // session.Schedule scalar DateTime (no Include); session.User nav → null-safe via FindAsync.
+            // Fire-and-forget — tidak boleh break primary finalize flow.
+            var fbatchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+            await _hubContext.Clients.Group($"monitor-{fbatchKey}").SendAsync("workerSubmitted", new
+            {
+                sessionId,
+                workerName = session.User?.FullName ?? "Unknown",
+                score = finalPercentage,
+                result = isPassed ? "Pass" : "Fail",
+                status = AssessmentConstants.AssessmentStatus.Completed,
+                nomorSertifikat = updatedSession?.NomorSertifikat
+            });
+
+            // PXF-08: surface kegagalan cert ke HC (lulus + GenerateCertificate tapi NomorSertifikat masih kosong).
+            var certError = (session.GenerateCertificate && isPassed && string.IsNullOrEmpty(updatedSession?.NomorSertifikat))
+                ? "Nomor sertifikat gagal dibuat, coba lagi." : null;
             return Json(new
             {
                 success = true,
                 score = finalPercentage,
                 isPassed,
-                nomorSertifikat = updatedSession?.NomorSertifikat
+                nomorSertifikat = updatedSession?.NomorSertifikat,
+                certError
             });
         }
 
@@ -4827,12 +4911,16 @@ namespace HcPortal.Controllers
 
                         if (tipe == "Essay")
                         {
+                            // PXF-09: tampilkan jawaban teks peserta + skor essay (bukan placeholder "—").
+                            var essayResp = sessionResp.FirstOrDefault(r => r.PackageQuestionId == q.Id);
                             ws.Cell(currentRow, 1).Value = no++;
                             ws.Cell(currentRow, 2).Value = q.QuestionText;
                             ws.Cell(currentRow, 3).Value = "Essay";
-                            ws.Cell(currentRow, 4).Value = "Essay – manual grading (lihat Penilaian Essay)";
-                            ws.Cell(currentRow, 5).Value = "—";
-                            ws.Cell(currentRow, 6).Value = "—";
+                            ws.Cell(currentRow, 4).Value = string.IsNullOrWhiteSpace(essayResp?.TextAnswer) ? "Tidak dijawab" : essayResp.TextAnswer;
+                            ws.Cell(currentRow, 5).Value = "—"; // essay: tidak ada "jawaban benar" deterministik
+                            ws.Cell(currentRow, 6).Value = essayResp?.EssayScore.HasValue == true
+                                ? $"Skor: {essayResp.EssayScore}/{q.ScoreValue}"
+                                : "Belum dinilai";
                             currentRow++;
                             continue;
                         }
@@ -5067,24 +5155,14 @@ namespace HcPortal.Controllers
                             int qNum = 1;
                             foreach (var q in sessionQuestions)
                             {
-                                var resp = sessionResponses.FirstOrDefault(r => r.PackageQuestionId == q.Id);
-                                string jawaban = "—";
-                                bool? correct = null;
-
-                                if (resp != null)
-                                {
-                                    if (resp.PackageOptionId.HasValue)
-                                    {
-                                        var opt = q.Options?.FirstOrDefault(o => o.Id == resp.PackageOptionId.Value);
-                                        if (opt != null) { jawaban = opt.OptionText; correct = opt.IsCorrect; }
-                                    }
-                                    else if (!string.IsNullOrEmpty(resp.TextAnswer))
-                                    {
-                                        jawaban = resp.TextAnswer.Length > 300 ? resp.TextAnswer.Substring(0, 300) + "..." : resp.TextAnswer;
-                                        // Phase 383 ECG-05/D-03 unify: PDF essay correctness via IsQuestionCorrect (essay > 0; null = pending) — sama dengan web Results.
-                                        correct = AssessmentScoreAggregator.IsQuestionCorrect(q, sessionResponses.Where(r => r.PackageQuestionId == q.Id));
-                                    }
-                                }
+                                // Phase 386 PXF-05 (F-17 D-09/D-10) — label + answer cell via shared display helpers
+                                // untuk SEMUA tipe soal. MA kini di-label all-or-nothing (SetEquals via IsQuestionCorrect)
+                                // dan kolom "Jawaban" me-list SEMUA opsi terpilih (BuildAnswerCell join ", "). MC tetap
+                                // byte-identik (single OptionText / IsCorrect). Essay tetap pakai IsQuestionCorrect (>0).
+                                // Compute (scoring engine) TIDAK disentuh — display-path saja (D-11).
+                                var responsesForQ = sessionResponses.Where(r => r.PackageQuestionId == q.Id).ToList();
+                                bool? correct = AssessmentScoreAggregator.IsQuestionCorrect(q, responsesForQ);   // D-09 — ALL types
+                                string jawaban = AssessmentScoreAggregator.BuildAnswerCell(q, responsesForQ);    // D-10 — MA joins all selected
 
                                 var statusColor = correct == true ? QuestPDF.Helpers.Colors.Green.Darken1
                                                 : correct == false ? QuestPDF.Helpers.Colors.Red.Darken1
@@ -6455,6 +6533,18 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
+            // Phase 386 PXF-02 (F-DEV-01) — option-presence validation (≥2 ber-teks + checked-correct must be ber-teks).
+            // Shared helper (kill-drift with EditQuestion). correctCount gate above is UNCHANGED.
+            var (optOk, optErr) = QuestionOptionValidator.ValidateQuestionOptions(
+                questionType,
+                new[] { optionA, optionB, optionC, optionD },
+                new[] { correctA, correctB, correctC, correctD });
+            if (!optOk)
+            {
+                TempData["Error"] = optErr;
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
             int nextOrder = pkg.Questions.Any() ? pkg.Questions.Max(q => q.Order) + 1 : 1;
 
             // Simpan gambar soal (IMG-01/03). SaveFileAsync null-safe → null bila tak ada file.
@@ -6659,6 +6749,18 @@ namespace HcPortal.Controllers
             if (questionType == "Essay" && string.IsNullOrWhiteSpace(rubrik))
             {
                 TempData["Error"] = "Rubrik wajib diisi untuk soal Essay.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // Phase 386 PXF-02 (F-DEV-01) — option-presence validation (≥2 ber-teks + checked-correct must be ber-teks).
+            // Shared helper (kill-drift with CreateQuestion). correctCount gate above is UNCHANGED.
+            var (optOk, optErr) = QuestionOptionValidator.ValidateQuestionOptions(
+                questionType,
+                new[] { optionA, optionB, optionC, optionD },
+                new[] { correctA, correctB, correctC, correctD });
+            if (!optOk)
+            {
+                TempData["Error"] = optErr;
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 

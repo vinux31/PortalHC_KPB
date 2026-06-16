@@ -148,6 +148,18 @@ namespace HcPortal.Hubs
                 return;
             }
 
+            // T-298-08: Validasi timer belum expired (server-side check, memperhitungkan ExtraTimeMinutes)
+            if (session.StartedAt.HasValue && session.DurationMinutes > 0)
+            {
+                var elapsed = (DateTime.UtcNow - session.StartedAt.Value).TotalSeconds;
+                var allowed = (session.DurationMinutes + (session.ExtraTimeMinutes ?? 0)) * 60;
+                if (elapsed > allowed)
+                {
+                    _logger.LogWarning("SaveTextAnswer: timer expired for session {SessionId}", sessionId);
+                    return;
+                }
+            }
+
             // T-298-09: Ambil MaxCharacters dari soal untuk truncate server-side
             var question = await db.PackageQuestions
                 .Where(q => q.Id == questionId)
