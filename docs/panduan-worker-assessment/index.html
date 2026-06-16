@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panduan Mengikuti Assessment - Portal HC KPB</title>
+<style>
+  :root{
+    --ink:#1c2530;
+    --soft-ink:#4a5563;
+    --muted:#6b7785;
+    --line:#e3e8ee;
+    --bg:#eef1f5;
+    --card:#ffffff;
+    --accent:#0a6ebd;
+    --accent-dark:#075a9b;
+    --accent-soft:#eaf4fb;
+    --green:#157a3a; --green-bg:#e9f6ee;
+    --blue:#1559a8;  --blue-bg:#eaf1fb;
+    --amber:#8a5a00; --amber-bg:#fdf4e3;
+    --grey:#5c6670;  --grey-bg:#eef0f2;
+    --red:#b02a2f;   --red-bg:#fcecec;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    color:var(--ink); line-height:1.65; margin:0;
+    background:var(--bg); font-size:17px;
+  }
+  .sheet{ max-width:760px; margin:0 auto; padding:28px 22px 64px; }
+
+  /* ---------- HEADER ---------- */
+  .hero{
+    background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+    color:#fff; border-radius:18px; padding:30px 30px 28px; margin-bottom:14px;
+  }
+  .hero .tag{
+    font-size:13px; letter-spacing:.12em; text-transform:uppercase;
+    opacity:.9; font-weight:600; margin:0 0 8px;
+  }
+  .hero h1{ font-size:30px; line-height:1.2; margin:0 0 10px; }
+  .hero p{ margin:0; font-size:16px; opacity:.95; }
+
+  .intro{
+    background:var(--card); border-radius:14px; padding:20px 24px;
+    margin-bottom:26px; font-size:16px; color:var(--soft-ink);
+    border:1px solid var(--line);
+  }
+  .intro p{ margin:0; }
+
+  /* ---------- SECTION TITLE ---------- */
+  .section-title{
+    font-size:14px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--accent); margin:34px 0 14px; display:flex; align-items:center; gap:10px;
+  }
+  .section-title::after{ content:""; flex:1; height:2px; background:var(--line); border-radius:2px; }
+
+  /* ---------- PREP CHECKLIST ---------- */
+  .prep{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:8px 24px; margin-bottom:8px;
+  }
+  .prep .row{ display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .prep .row:last-child{ border-bottom:none; }
+  .prep .tick{
+    flex:0 0 26px; height:26px; border:2px solid var(--accent); border-radius:7px;
+  }
+  .prep .row p{ margin:0; }
+
+  /* ---------- STEP CARD ---------- */
+  .step{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:22px 24px 20px; margin:16px 0;
+    box-shadow:0 1px 2px rgba(20,40,60,.04);
+  }
+  .step-head{ display:flex; align-items:center; gap:16px; margin-bottom:6px; }
+  .step-num{
+    flex:0 0 auto; width:46px; height:46px; border-radius:14px;
+    background:var(--accent-soft); color:var(--accent);
+    font-size:22px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .step-head h2{ font-size:20px; margin:0; line-height:1.25; }
+  .step-body{ margin-top:6px; }
+  .step-body p{ margin:8px 0; }
+  .step-body ol, .step-body ul{ margin:8px 0; padding-left:22px; }
+  .step-body li{ margin:7px 0; }
+  .step-body ul ul, .step-body ol ul{ margin:4px 0; }
+
+  /* big centered URL */
+  .url-box{
+    text-align:center; background:var(--accent-soft); border:1px dashed #aad0ea;
+    border-radius:12px; padding:14px; margin:14px 0;
+  }
+  .url-box .url{
+    font-family:Consolas,"Courier New",monospace; font-size:19px; font-weight:700;
+    color:var(--accent-dark); word-break:break-all;
+  }
+  kbd{
+    font-family:Consolas,monospace; background:#2a3340; color:#fff;
+    border-radius:5px; padding:1px 8px; font-size:14px;
+  }
+
+  /* ---------- STATUS LIST ---------- */
+  .status-list{ display:flex; flex-direction:column; gap:10px; margin:12px 0; }
+  .status-row{ display:flex; align-items:flex-start; gap:14px; }
+  .badge{
+    flex:0 0 auto; min-width:118px; text-align:center;
+    font-size:13px; font-weight:700; border-radius:30px; padding:5px 10px; border:1.5px solid;
+  }
+  .b-green{ color:var(--green); background:var(--green-bg); border-color:#bce0c8; }
+  .b-blue{  color:var(--blue);  background:var(--blue-bg);  border-color:#bdd3f1; }
+  .b-amber{ color:var(--amber); background:var(--amber-bg); border-color:#ecd5a4; }
+  .b-grey{  color:var(--grey);  background:var(--grey-bg);  border-color:#cfd4d9; }
+  .b-red{   color:var(--red);   background:var(--red-bg);   border-color:#e7b6b8; }
+  .status-row p{ margin:2px 0; }
+
+  /* ---------- CALLOUT ---------- */
+  .callout{ border-radius:12px; padding:14px 16px 14px 18px; margin:14px 0; font-size:15.5px; }
+  .callout strong{ display:block; margin-bottom:3px; font-size:15.5px; }
+  .c-tip{ background:var(--accent-soft); border-left:5px solid var(--accent); }
+  .c-warn{ background:var(--amber-bg); border-left:5px solid var(--amber); }
+  .c-stop{ background:var(--red-bg); border-left:5px solid var(--red); }
+  .small{ font-size:14px; color:var(--muted); }
+
+  /* ---------- FAQ ---------- */
+  .faq-item{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:14px 18px; margin:10px 0;
+  }
+  .faq-item .q{ font-weight:700; margin:0 0 4px; }
+  .faq-item .a{ margin:0; color:var(--soft-ink); font-size:15.5px; }
+
+  /* ---------- KEY NOTES ---------- */
+  .keybox{
+    background:var(--accent-dark); color:#fff; border-radius:16px;
+    padding:24px 26px; margin:30px 0 10px;
+  }
+  .keybox h3{ margin:0 0 12px; font-size:18px; }
+  .keybox ul{ margin:0; padding:0; list-style:none; }
+  .keybox li{ padding:8px 0 8px 28px; position:relative; border-bottom:1px solid rgba(255,255,255,.15); }
+  .keybox li:last-child{ border-bottom:none; }
+  .keybox li::before{ content:"\2714"; position:absolute; left:0; top:8px; opacity:.9; }
+
+  footer{ margin-top:26px; text-align:center; font-size:13px; color:var(--muted); }
+
+  /* ---------- PRINT ---------- */
+  @page{ size:A4; margin:12mm; }
+  @media print{
+    body{ background:#fff; font-size:11.5pt; color:#000; }
+    .sheet{ max-width:none; padding:0; }
+
+    /* Hero & keybox: teks gelap + border, supaya tetap terbaca walau
+       "Background graphics" dimatikan saat Ctrl+P / Save as PDF. */
+    .hero{
+      background:#fff !important; color:var(--ink); border-radius:0;
+      border:2px solid var(--accent); border-bottom-width:5px; padding:18px 20px;
+    }
+    .hero .tag{ color:var(--accent); opacity:1; }
+    .hero h1{ color:var(--accent-dark); }
+    .hero p{ color:var(--ink); opacity:1; }
+
+    .keybox{
+      background:#fff !important; color:var(--ink); border:2px solid var(--accent);
+    }
+    .keybox h3{ color:var(--accent-dark); }
+    .keybox li{ border-bottom:1px solid var(--line); }
+    .keybox li::before{ color:var(--accent); opacity:1; }
+
+    .step, .faq-item, .prep, .intro, .keybox, .callout, .url-box,
+    .status-row, .step-head{
+      page-break-inside:avoid;
+    }
+    .step, .faq-item, .prep, .intro{ box-shadow:none; }
+    .section-title{ page-break-after:avoid; }
+
+    /* Komponen yang masih perlu warna latar dipaksa tetap tercetak. */
+    .step-num, .badge{
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    a{ color:#000; text-decoration:none; }
+  }
+  @media (max-width:520px){
+    body{ font-size:16px; }
+    .hero h1{ font-size:24px; }
+    .badge{ min-width:100px; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="tag">Portal HC KPB &middot; Panduan Worker</p>
+    <h1>Cara Mengikuti Assessment</h1>
+    <p>Langkah demi langkah &mdash; dari menyalakan koneksi sampai melihat hasil &amp; sertifikat.</p>
+  </div>
+
+  <div class="intro">
+    <p>Panduan untuk Anda yang <strong>baru pertama kali</strong> mengikuti assessment di Portal HC KPB. Assessment sudah dibuatkan tim HC dan ditugaskan ke akun Anda. Ikuti langkah berikut berurutan &mdash; tidak perlu pengalaman teknis.</p>
+  </div>
+
+  <!-- PERSIAPAN -->
+  <div class="section-title">Yang Perlu Disiapkan</div>
+  <div class="prep">
+    <div class="row"><span class="tick"></span><p>Komputer / laptop yang terhubung internet.</p></div>
+    <div class="row"><span class="tick"></span><p>Aplikasi <strong>Virtual Intranet Access</strong> (VPN untuk masuk jaringan internal Pertamina).</p></div>
+    <div class="row"><span class="tick"></span><p><strong>Email</strong> dan <strong>password</strong> login Anda.</p></div>
+    <div class="row"><span class="tick"></span><p><strong>Kode / Token assessment</strong> dari HC &mdash; hanya jika assessment meminta token (Langkah 6).</p></div>
+  </div>
+  <div class="callout c-tip">
+    <strong>Belum punya akun / lupa password?</strong>
+    Hubungi tim HC / admin. Akun dibuat oleh HC; Anda tidak bisa mendaftar sendiri.
+  </div>
+
+  <!-- LANGKAH -->
+  <div class="section-title">Langkah Demi Langkah</div>
+
+  <!-- 1 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">1</span><h2>Nyalakan Koneksi Intranet (VPN)</h2></div>
+    <div class="step-body">
+      <ol>
+        <li>Buka aplikasi <strong>Virtual Intranet Access</strong>.</li>
+        <li>Login sesuai akun VPN Anda.</li>
+        <li>Tunggu sampai status <strong>Connected / Terhubung</strong>.</li>
+      </ol>
+      <div class="callout c-warn">
+        <strong>Penting</strong>
+        Website hanya bisa dibuka bila VPN terhubung. Kalau halaman tidak terbuka, cek dulu koneksi VPN ini.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">2</span><h2>Buka Website Portal HC</h2></div>
+    <div class="step-body">
+      <p>Buka browser (Chrome / Edge), ketik alamat ini, lalu tekan <kbd>Enter</kbd>:</p>
+      <div class="url-box"><span class="url">http://10.55.3.3/KPB-PortalHC</span></div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">3</span><h2>Login ke Akun Anda</h2></div>
+    <div class="step-body">
+      <ol>
+        <li>Masukkan <strong>Email</strong> Anda.</li>
+        <li>Masukkan <strong>Password</strong> Anda.</li>
+        <li>Klik <strong>Login / Masuk</strong>.</li>
+      </ol>
+      <p class="small">Gagal login? Periksa huruf besar/kecil. Tetap gagal &rarr; hubungi HC/admin.</p>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">4</span><h2>Buka Menu Assessment</h2></div>
+    <div class="step-body">
+      <p>Dari menu navigasi, buka halaman <strong>Assessment</strong>. Di sini muncul semua assessment yang <strong>perlu Anda kerjakan</strong>.</p>
+      <p class="small">Assessment yang sudah selesai tidak lagi tampil di daftar ini.</p>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">5</span><h2>Pilih Assessment &amp; Pahami Warna Status</h2></div>
+    <div class="step-body">
+      <div class="status-list">
+        <div class="status-row"><span class="badge b-green">Bisa Mulai</span><p>Siap dikerjakan sekarang. Tombol <strong>Mulai</strong> aktif.</p></div>
+        <div class="status-row"><span class="badge b-blue">Upcoming</span><p>Belum waktunya. Tunggu jadwal tiba.</p></div>
+        <div class="status-row"><span class="badge b-amber">In Progress</span><p>Sedang/tertunda. Tekan <strong>Lanjutkan</strong>.</p></div>
+        <div class="status-row"><span class="badge b-grey">Completed</span><p>Sudah selesai. Tidak perlu dikerjakan lagi.</p></div>
+      </div>
+      <div class="callout c-tip">
+        <strong>Pre-Test &amp; Post-Test</strong>
+        Kerjakan <strong>Pre-Test dulu sampai selesai</strong>. Post-Test baru terbuka setelahnya.
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">6</span><h2>Mulai Assessment (Token Bila Diminta)</h2></div>
+    <div class="step-body">
+      <ol>
+        <li>Klik <strong>Mulai</strong> pada assessment berstatus hijau.</li>
+        <li>Jika muncul permintaan <strong>Kode Akses / Token</strong> (ikon gembok 🔐):
+          <ul>
+            <li>Masukkan token dari HC.</li>
+            <li>Klik <strong>Verifikasi / Lanjut</strong>.</li>
+          </ul>
+        </li>
+        <li>Jika tidak diminta token, Anda langsung masuk ke soal.</li>
+      </ol>
+      <div class="callout c-warn">
+        <strong>Token salah?</strong>
+        Muncul pesan &ldquo;Token tidak valid&rdquo;. Ketik ulang dengan teliti, atau minta token yang benar ke HC.
+      </div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">7</span><h2>Kerjakan Soal</h2></div>
+    <div class="step-body">
+      <p>Jenis soal yang mungkin muncul:</p>
+      <ul>
+        <li><strong>Pilihan 1 jawaban</strong> &mdash; klik 1 lingkaran.</li>
+        <li><strong>Pilihan banyak jawaban</strong> &mdash; centang lebih dari satu kotak.</li>
+        <li><strong>Essay</strong> &mdash; ketik jawaban di kolom teks.</li>
+      </ul>
+      <p>Berpindah soal:</p>
+      <ul>
+        <li>Tombol <strong>Sebelumnya / Berikutnya</strong> untuk pindah halaman.</li>
+        <li>Nomor soal di samping bisa diklik. Nomor <strong>hijau = sudah dijawab</strong>.</li>
+      </ul>
+      <div class="callout c-tip">
+        <strong>Jawaban tersimpan otomatis</strong>
+        Tidak ada tombol &ldquo;Simpan&rdquo;. Jika halaman ter-refresh atau koneksi sempat putus, jawaban tetap aman &mdash; tinggal lanjutkan.
+      </div>
+      <div class="callout c-warn">
+        <strong>Perhatikan waktu (timer)</strong>
+        Waktu tetap berjalan walau browser ditutup. Jika habis, ujian <strong>otomatis dikumpulkan</strong>. Jangan menunda terlalu lama.
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">8</span><h2>Periksa Jawaban Sebelum Mengumpulkan</h2></div>
+    <div class="step-body">
+      <ol>
+        <li>Klik <strong>Review / Periksa Jawaban</strong>.</li>
+        <li>Muncul ringkasan semua soal &amp; jawaban Anda.</li>
+        <li>Baris <strong style="color:var(--red);">merah = belum dijawab</strong>. Klik <strong>Kembali ke Ujian</strong> untuk melengkapi.</li>
+      </ol>
+      <p class="small">Tombol kumpulkan aktif setelah semua soal terjawab (kecuali waktu habis).</p>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">9</span><h2>Kumpulkan (Submit) Ujian</h2></div>
+    <div class="step-body">
+      <ol>
+        <li>Klik <strong>Kumpulkan Ujian</strong>.</li>
+        <li>Pada konfirmasi, klik <strong>Ya / Kumpulkan</strong>.</li>
+      </ol>
+      <div class="callout c-stop">
+        <strong>Tidak bisa dibatalkan</strong>
+        Setelah dikumpulkan, jawaban tidak dapat diubah. Pastikan sudah yakin.
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">10</span><h2>Lihat Hasil</h2></div>
+    <div class="step-body">
+      <p>Setelah submit, halaman hasil langsung tampil:</p>
+      <div class="status-list">
+        <div class="status-row"><span class="badge b-green">LULUS</span><p>Selamat, nilai memenuhi batas kelulusan.</p></div>
+        <div class="status-row"><span class="badge b-red">TIDAK LULUS</span><p>Nilai belum memenuhi. Pelajari kembali materinya.</p></div>
+        <div class="status-row"><span class="badge b-grey">MENUNGGU PENILAIAN</span><p>Ada soal essay yang dinilai manual HC. Nilai &amp; sertifikat muncul setelah HC selesai menilai.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">11</span><h2>Unduh Sertifikat</h2></div>
+    <div class="step-body">
+      <ol>
+        <li>Jika <strong>LULUS</strong> dan tersedia sertifikat, muncul tombol <strong>Download / Lihat Sertifikat</strong>.</li>
+        <li>Klik untuk membuka, lalu simpan / cetak (PDF).</li>
+      </ol>
+      <p class="small">Jika status masih &ldquo;Menunggu Penilaian&rdquo;, sertifikat tersedia setelah HC menilai essay.</p>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="section-title">Kalau Ada Masalah</div>
+  <div class="faq-item"><p class="q">Website tidak mau terbuka</p><p class="a">Cek koneksi <strong>Virtual Intranet Access</strong> (VPN) &mdash; harus Connected. Periksa juga alamat <strong>http://10.55.3.3/KPB-PortalHC</strong> sudah benar.</p></div>
+  <div class="faq-item"><p class="q">Tidak bisa login / lupa password</p><p class="a">Periksa email &amp; password. Tetap gagal &rarr; hubungi HC / admin untuk reset.</p></div>
+  <div class="faq-item"><p class="q">Assessment tidak muncul di daftar</p><p class="a">Mungkin belum ditugaskan, belum waktunya (Upcoming), atau sudah selesai. Hubungi HC.</p></div>
+  <div class="faq-item"><p class="q">Token tidak valid</p><p class="a">Ketik ulang dengan teliti. Minta token yang benar ke HC.</p></div>
+  <div class="faq-item"><p class="q">Waktu habis saat mengerjakan</p><p class="a">Ujian otomatis dikumpulkan. Jawaban yang sudah diisi tetap dihitung.</p></div>
+  <div class="faq-item"><p class="q">Tidak sengaja keluar / &ldquo;Keluar Ujian&rdquo;</p><p class="a">Jika sesi menjadi tidak bisa dilanjutkan, hubungi HC untuk mereset sesi ujian Anda.</p></div>
+
+  <!-- KEY NOTES -->
+  <div class="keybox">
+    <h3>Catatan Penting</h3>
+    <ul>
+      <li><strong>Waktu berjalan di server.</strong> Menutup browser tidak menghentikan timer.</li>
+      <li><strong>Jawaban tersimpan otomatis</strong> &mdash; aman walau koneksi sempat putus.</li>
+      <li><strong>Submit bersifat final</strong> &mdash; tidak bisa diubah.</li>
+      <li><strong>Satu akun untuk satu orang.</strong> Jangan bagikan login.</li>
+      <li><strong>Butuh bantuan?</strong> Hubungi tim HC / admin.</li>
+    </ul>
+  </div>
+
+  <footer>Portal HC KPB &mdash; Panduan Worker Mengikuti Assessment &middot; Lingkungan Development</footer>
+
+</div>
+</body>
+</html>
