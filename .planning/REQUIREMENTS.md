@@ -19,9 +19,9 @@
 
 ### Perbaikan Halaman CreateWorker (WRKR) — fitur 1.2
 
-- [ ] **WRKR-01**: HC/Admin dapat **mengetik** field "Nama Lengkap" dan "Email" di `/Admin/CreateWorker` di **semua environment** (termasuk saat `Authentication:UseActiveDirectory=true` di Dev/Prod) — field tidak lagi `readonly`, AD auth tetap aktif, sehingga halaman dapat dipakai membuat pekerja baru.
-- [ ] **WRKR-02**: Field Email memvalidasi format email (`type="email"`) dan setiap field menampilkan **pesan validasi inline per-field** (Nama Lengkap, Email, Jabatan, Directorate, Bagian, Unit) — bukan hanya muncul di ringkasan error atas halaman.
-- [ ] **WRKR-03**: **Semua field** di `/Admin/CreateWorker` berfungsi end-to-end terverifikasi runtime — NIP, Tanggal Bergabung, Jabatan, Directorate, cascade Bagian→Unit, Role (default + level), Password/Konfirmasi (mode lokal) / info auto-generate (mode AD) — dan HC dapat menyelesaikan **submission membuat pekerja baru dengan sukses** (record tersimpan, redirect ke daftar pekerja).
+- [x] **WRKR-01**: HC/Admin dapat **mengetik** field "Nama Lengkap" dan "Email" di `/Admin/CreateWorker` di **semua environment** (termasuk saat `Authentication:UseActiveDirectory=true` di Dev/Prod) — field tidak lagi `readonly`, AD auth tetap aktif, sehingga halaman dapat dipakai membuat pekerja baru.
+- [x] **WRKR-02**: Field Email memvalidasi format email (`type="email"`) dan setiap field menampilkan **pesan validasi inline per-field** (Nama Lengkap, Email, Jabatan, Directorate, Bagian, Unit) — bukan hanya muncul di ringkasan error atas halaman.
+- [x] **WRKR-03**: **Semua field** di `/Admin/CreateWorker` berfungsi end-to-end terverifikasi runtime — NIP, Tanggal Bergabung, Jabatan, Directorate, cascade Bagian→Unit, Role (default + level), Password/Konfirmasi (mode lokal) / info auto-generate (mode AD) — dan HC dapat menyelesaikan **submission membuat pekerja baru dengan sukses** (record tersimpan, redirect ke daftar pekerja).
 
 ---
 
@@ -49,9 +49,9 @@
 | PART-02 | Phase 391 | Complete |
 | PART-03 | Phase 391 | Complete |
 | PART-04 | Phase 391 | Complete |
-| WRKR-01 | Phase 392 | pending |
-| WRKR-02 | Phase 392 | pending |
-| WRKR-03 | Phase 392 | pending |
+| WRKR-01 | Phase 392 | Complete |
+| WRKR-02 | Phase 392 | Complete |
+| WRKR-03 | Phase 392 | Complete |
 
 **Coverage: 7/7 v1 requirements mapped ✓ — Orphans: 0 — Duplicates: 0**
 

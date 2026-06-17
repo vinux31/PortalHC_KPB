@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.0
 milestone_name: Manajemen Peserta
 status: executing
-stopped_at: Phase 392 UI-SPEC approved
-last_updated: "2026-06-17T05:17:11.380Z"
+stopped_at: Completed 392-02-PLAN.md
+last_updated: "2026-06-17T07:17:56.702Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 23
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 391 — Penambahan Peserta Fleksibel saat Ujian Berjalan
+**Current focus:** Phase 392 — Perbaikan CreateWorker + Audit Field
 
 ## Current Position
 
-Phase: 392
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-17
+Phase: 392 (Perbaikan CreateWorker + Audit Field) — ✅ COMPLETE (2/2 plans)
+Plan: 2 of 2 (done)
+Status: Phase 392 complete — WRKR-01/02/03 closed; ready for `/gsd-verify-work` + notify IT (migration=FALSE)
+Last activity: 2026-06-17 — Phase 392 Plan 02 e2e verification GREEN (3/3), worker self-cleaned
 
 **Milestone v32.0 Manajemen Peserta** — Phases 391-392 (LANJUT dari v31.0 phase terakhir 387; tidak reset ke 1). 0 migration. Branch main. 7/7 REQ mapped (0 orphan, 0 duplikat).
 
@@ -39,7 +39,9 @@ Dua fase file-disjoint & independen → boleh dikerjakan paralel.
 
 ## Next Action
 
-Roadmap v32.0 approved → mulai planning. **Next: `/gsd-plan-phase 391`** (atau `/gsd-discuss-phase 391`). Phase 392 bisa di-plan paralel (file-disjoint). Tiap fase: `dotnet build` + `dotnet run` (localhost:5277) + Playwright lokal sebelum commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ tidak ada edit di Dev/Prod (CLAUDE.md Develop Workflow).
+Phase 392 SELESAI (WRKR-01/02/03 closed; Plan 01 `0d788e8a` view fix + Plan 02 `840fab21` e2e verify). **Next: `/gsd-verify-work` Phase 392** lalu notify IT (commit hash + flag migration=FALSE). Phase 391 (Penambahan Peserta Fleksibel) masih bisa di-plan/execute paralel (file-disjoint). Tiap fase: `dotnet build` + `dotnet run` (localhost:5277) + Playwright lokal sebelum commit → branch main → notify IT. ❌ tidak ada edit di Dev/Prod (CLAUDE.md Develop Workflow).
+
+⚠️ **Catatan env e2e (Plan 02):** app TIDAK pakai runtime Razor compilation (`AddControllersWithViews` tanpa `AddRazorRuntimeCompilation`) → view embedded saat build. Untuk verifikasi e2e perubahan view, WAJIB jalankan build/app dari **main working tree** (bukan worktree sibling `PortalHC_KPB-ITHandoff` yang pre-Plan-01). Carry DEF-392-01 (shared `initFormLoading` disable tombol pada submit-divalidasi-gagal — infra bersama, future phase).
 
 ## Tag Git
 
@@ -115,6 +117,7 @@ Roadmap v32.0 approved → mulai planning. **Next: `/gsd-plan-phase 391`** (atau
 
 ### Decisions (persist across milestones)
 
+- [v32.0 / 392-02 WRKR-03 — PHASE 392 CLOSE]: Playwright e2e (`tests/e2e/createworker-392.spec.ts`, AD-off, `--workers=1`) **GREEN 3/3** (setup + TEST A static guard + TEST B runtime) buktikan `/Admin/CreateWorker` usable runtime: field `#FullName`/`#Email` bisa diketik (tidak readonly), `#Email` `type="email"`, `window.jQuery.validator` ter-load (D-05 client-side aktif via `_ValidationScriptsPartial` di `@section Scripts`), `.field-validation-error` span muncul saat submit invalid (tetap di CreateWorker), cascade Bagian→Unit bangun opsi Unit runtime, create sukses (redirect ManageWorkers + Success flash "berhasil" + baris DB). **TEST A** static source-grep guard: CreateWorker.cshtml TAK punya `readonly=`/`bg-light` (editable di AD mode BY CONSTRUCTION — tutup bug readonly-AD yang run AD-off tak bisa exercise, Pitfall F-NEW-04) + `type="email"` + `_ValidationScriptsPartial` ada. **Teardown** self-cleaning `afterAll` (jalan walau gagal) via `DeleteWorker` POST (anti-forgery token + Identity cascade roles) → verifikasi `SELECT COUNT(*) FROM Users WHERE Email LIKE 'e2e-cw-%@local.test'` = **0** (0 residu, 0 orphan role); SEED_JOURNAL Phase 392 → CLEANED. **DEVIASI Rule 3 (blocking env-correction):** app awal di :5277 ternyata dari **worktree SIBLING `PortalHC_KPB-ITHandoff`** (branch ITHandoff HEAD `f648cc00`, BUKAN ancestor Plan-01 `0d788e8a`) → CreateWorker.cshtml-nya masih `readonly="@(isAdMode?...)"` + tanpa validation scripts → `jQuery.validator` undefined → TEST B gagal. Root cause: app pakai `AddControllersWithViews()` **tanpa** `AddRazorRuntimeCompilation` (no `RuntimeCompilation` package) → **view embedded saat build**, edit/commit `.cshtml` tak pengaruhi binary stale/sibling. Resolusi: `dotnet build HcPortal.csproj` (0 error) main-tree → stop app ITHandoff → run `HcPortal.exe` main-tree :5277 AD-off (DB SQLEXPRESS sama) → `_ValidationScriptsPartial` ter-serve SETELAH jQuery + `validator===true` → spec hijau. **DEF-392-01 (deferred, deferred-items.md):** `wwwroot/js/shared-loading.js` `initFormLoading` men-disable tombol submit pada submit yang DIBATALKAN validasi (preventDefault tak hentikan listener native lain) → tombol nyangkut disabled; infra bersama pra-existing (`8c504bc3`), OUT OF SCOPE view-only 392 → spec reload halaman antara fase validasi & create (bukan masking). **Scope-lock D-08:** `git diff --quiet -- Controllers/WorkerController.cs Models/ManageUserViewModel.cs Views/Admin/EditWorker.cshtml` = `ZERO_DIFF_OK`; `dotnet build` 0 error; `dotnet test --filter Category!=Integration` **347/347 GREEN** (no regression, baseline sama Phase 387); **0 migration**. Commit `840fab21` (test). **PHASE 392 SELESAI** (2/2 plans; WRKR-01/02/03 closed: Plan 01 `0d788e8a` view + Plan 02 `840fab21` e2e). **Handoff:** push `main` + notify IT flag migration=FALSE. ❌ JANGAN edit Dev/Prod. **Lesson:** verifikasi e2e perubahan VIEW pada app tanpa runtime-compilation WAJIB build+run dari working tree yang benar (binary stale/sibling diam-diam membatalkan verifikasi runtime).
 - [v32.0 / phasing]: 2 fitur file-disjoint & independen (1.1 `AssessmentAdminController.cs` BULK ASSIGN; 1.2 `Views/Admin/CreateWorker.cshtml` view-only) → split alami 2 fase (391 + 392), boleh paralel. Konteks: `AssessmentSession` = per-peserta (tambah peserta = INSERT sesi baru, BUKAN tabel join). `/Admin/CreateWorker` = buat akun pegawai (`ApplicationUser`), BUKAN peserta assessment. PART-02 fix = jangan biarkan guard `Completed` (L1992) salah-blokir penambahan saat grup masih aktif/window terbuka (BUKAN hapus guard total — hard-block penambahan saat InProgress = OUT, keputusan user fleksibel). PART-03 = notice informatif ganti `TempData["Warning"]` kosmetik. 0 migration.
 - [v31.0 / 387-04 verifikasi proporsional D-09 — PHASE 387 CLOSE]: 3 jalur verifikasi sesuai kedalaman tiap fix (unit untuk logic, Playwright untuk a11y render runtime, manual untuk SignalR/cert/timer LOW tanpa harness). **Task 1** `HcPortal.Tests/PostLisensorPolishTests.cs` (baru) — fixture disposable `HcPortalDB_Test_{guid}` (`IAsyncLifetime` MigrateAsync→EnsureDeletedAsync, `[Trait Category=Integration]` di-exclude fast suite, `HcPortalDB_Dev` TAK disentuh — T-387-09 mitigasi), logika guard/cell direplikasi data-level PERSIS seperti controller (pola SubmitResurrectionTests): PXF-06 guard status (`S.Completed` reject / `S.PendingGrading` allow EssayScore), PXF-09 essay cell (`"Skor: X/Y"` / `"Tidak dijawab"` / `"Belum dinilai"`), PXF-12 `answers.ContainsKey` absent→PackageOptionId unchanged. 8 facts positive+negative → **8/8 PASS**. **Task 2** `tests/e2e/aria-opsi-387.spec.ts` (baru) — assert `aria-label` berisi "opsi A" RUNTIME di Results + ExamSummary (D-09 MANDATORY: a11y Razor dinamis, grep+build INSUFFICIENT — lesson Phase 354) → **3/3 PASS** `--workers=1`. **Task 3 checkpoint human-verify — APPROVED** (T-387-10 mitigasi: 3 LOW tanpa harness verified manual): browser+SignalR+DB localhost:5277 AD-off shared-memory SQL; snapshot→mutate→RESTORE `C:\Temp .bak` per CLAUDE.md Seed Workflow, `docs/SEED_JOURNAL.md` CLEANED 0 residue. **PXF-08** finalize sesi 169 "TEST E2E Campur 2026-06-15" (essay 10/10, GenerateCertificate=1, IsPassed) → `NomorSertifikat`="KPB/005/VI/2026" ter-assign (retry-loop generate+persist), session→Completed, no certError saat sukses (dikonfirmasi DB 2× finalize). **PXF-10** klien SignalR `/hubs/assessment` JoinMonitor batchKey tepat "TEST E2E Campur 2026-06-15|OJT|2026-06-15" → grup monitor terima `workerSubmitted` live `{sessionId:169, workerName:"Admin KPB", score:100, result:"Pass", status:"Completed"}` tanpa refresh (percobaan-1 meleset hanya karena Title ber-suffix tanggal → re-join key tepat tertangkap bersih). **PXF-13** A/B `SaveTextAnswer` sesi admin-owned: (A) StartedAt=2020+Dur=1min EXPIRED→tulis DITOLAK TextAnswer UNCHANGED; (B) StartedAt=now+Dur=60min NOT expired→tulis SUKSES — guard mirror verbatim `SaveMultipleAnswer`. Semua mutasi (sesi 169 + responses) di-RESTORE; SEED_JOURNAL CLEANED. **PXF-06 fact=guard status** menyelaraskan redirect 387-01 (WR-01/WR-02 sudah cover build+grep di 387-01). Verif fase: fast suite **347/347 GREEN** + build 0 error + 0 migration; `HcPortalDB_Dev` untouched. Commits `46bd422d` (Task1 unit) + `3b4db3a2` (Task2 Playwright); Task 3 verify-only. **No deviation.** **PHASE 387 SELESAI** (4/4 plans; 7 REQ PXF-06/08/09/10/11/12/13 closed; 0 migration). **Handoff:** deploy IT KEDUA pasca-acara terpisah dari bundle 385+386 — gabung → push `origin/ITHandoff` (BUKAN sekarang, keputusan developer) → notify IT flag migration=FALSE. ❌ JANGAN edit Dev/Prod.
 - [v31.0 / 387-03 PXF-11 aria opsi huruf A/B/C/D]: a11y polish 2 surface review (file-disjoint dari Plan 01/02, wave 1, no overlap `AssessmentAdminController.cs`/`CMPController.cs`/`AssessmentHub.cs`). Kedua loop opsi yang sebelumnya `@foreach` tanpa index var diubah ke indexed `@for` agar bisa derive huruf, lalu satu-satunya perubahan markup lain = string `AriaContext` partial `_QuestionImage`. **Results.cshtml** (Options List ~L356-391): `@foreach (var option in question.Options)` → `@{ string[] letters = { "A","B","C","D" }; } @for (int oi = 0; oi < question.Options.Count; oi++) { var option = question.Options[oi]; var letter = oi < letters.Length ? letters[oi] : (oi + 1).ToString(); ... AriaContext = "opsi " + letter }`. Markup per-opsi (itemClass success/danger, icon check/x, OptionText span, `(Jawaban Anda)`/`(Jawaban Benar)` label) + blok essay-fallback `!question.Options.Any() && !IsNullOrEmpty(UserAnswer)` UTUH. **ExamSummary.cshtml** (~L57-63): `@foreach (var optImg in item.OptionImages)` → indexed `@for` + `var optImg = item.OptionImages[oi]` + letter; `AriaContext = "opsi " + letter`. Partial gambar-SOAL `Cap = 240` (L56, no AriaContext) TIDAK disentuh (git-diff verified — hanya context line). **Pilihan `for` vs `Select((o,i))`:** kedua koleksi adalah `List<T>` (`question.Options`=`List<OptionReviewItem>`, `item.OptionImages`=`List<ExamSummaryOptionItem>`) → indexable `[oi]`, jadi pakai indexed-`for` (TIRU TEPAT `StartExam.cshtml:125/134/148`, diff lebih kecil dari projection). **`letters` scope:** grep konfirmasi tak ada deklarasi `string[] letters` sebelumnya di kedua view → deklarasi 1× per loop aman (no Razor duplicate-var error). `_QuestionImage` baca `AriaContext` via reflection + render NOTHING saat `ImagePath` null → huruf hanya muncul pada opsi yang punya gambar. Verif: `dotnet build HcPortal.csproj` 0 error per task + grep acceptance PASS + `git diff` ExamSummary konfirmasi Cap=240 partial unchanged; 0 migration; no deletion. Commits `77f0f57f` (Task1 Results) + `5cef4e81` (Task2 ExamSummary). **D-09 MANDATORY (defer Plan 04):** PXF-11 butuh Playwright runtime assert `aria-label` berisi huruf di KEDUA surface (a11y render = Razor dinamis, grep+build INSUFFICIENT — lesson Phase 354). **PXF-11 code-complete; 0 migration.** Next: 387-04 (test/e2e PXF-11 + PXF-12).
@@ -138,6 +141,6 @@ Roadmap v32.0 approved → mulai planning. **Next: `/gsd-plan-phase 391`** (atau
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 392 UI-SPEC approved
+Stopped at: Completed 392-02-PLAN.md
 
 Next action: **`/gsd-plan-phase 391`** (Penambahan Peserta Fleksibel saat Ujian Berjalan) — atau `/gsd-discuss-phase 391`. Phase 392 (Perbaikan CreateWorker) bisa di-plan paralel (file-disjoint). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).

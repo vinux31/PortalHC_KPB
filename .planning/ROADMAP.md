@@ -83,8 +83,8 @@
   3. SEMUA field di `/Admin/CreateWorker` terverifikasi runtime berfungsi end-to-end — NIP, Tanggal Bergabung, Jabatan, Directorate, cascade Bagian→Unit, Role (default + level), Password/Konfirmasi (mode lokal) / info auto-generate (mode AD) — dan HC dapat menyelesaikan **submission membuat pekerja baru dengan sukses** (record tersimpan, redirect ke daftar pekerja). *(WRKR-03)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright e2e: field Nama/Email bisa diketik (mode AD), validasi inline muncul per-field, cascade Bagian→Unit berfungsi, dan create submission sukses (record tersimpan + redirect). Controller/model 0 diff (git-verified, view-only). *(WRKR-01, WRKR-02, WRKR-03 — Razor + cascade JS runtime → Playwright wajib, pelajaran Phase 354)*
 **Plans:** 2 plans
-- [ ] 392-01-PLAN.md — Edit view CreateWorker.cshtml: buka kunci Nama/Email (hapus readonly+bg-light) + reword teks info AD + type=email + 4 span validasi org + @section Scripts _ValidationScriptsPartial (WRKR-01, WRKR-02)
-- [ ] 392-02-PLAN.md — Playwright e2e AD-off (editable+type=email+cascade+create sukses) + source-grep guard readonly/bg-light + git-diff 0-diff controller/model + SEED_JOURNAL (WRKR-03), depends 392-01
+- [x] 392-01-PLAN.md — Edit view CreateWorker.cshtml: buka kunci Nama/Email (hapus readonly+bg-light) + reword teks info AD + type=email + 4 span validasi org + @section Scripts _ValidationScriptsPartial (WRKR-01, WRKR-02)
+- [x] 392-02-PLAN.md — Playwright e2e AD-off (editable+type=email+cascade+create sukses) + source-grep guard readonly/bg-light + git-diff 0-diff controller/model + SEED_JOURNAL (WRKR-03), depends 392-01
 **UI hint:** yes
 
 **Active mapped: 7/7 ✓ (PART-01 + PART-02 + PART-03 + PART-04 → 391; WRKR-01 + WRKR-02 + WRKR-03 → 392) — Orphans: 0 — Duplicates: 0 — 0 migration (kedua phase) — file-disjoint (391 ↔ 392 boleh paralel).**
@@ -94,7 +94,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 2/2 | Complete    | 2026-06-17 |
-| 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 0/2 | Not started | - |
+| 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 2/2 | Complete   | 2026-06-17 |
 
 ### Coverage Validation
 
