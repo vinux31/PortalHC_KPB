@@ -1374,6 +1374,24 @@ Plans:
 
 </details>
 
+### Phase 391: Fix Import Excel button auto-enable on CoachCoacheeMapping (view-only)
+
+**Goal:** The "Upload & Proses" button (`#btnImportMapping`) in the Import Excel modal on `/Admin/CoachCoacheeMapping` becomes enabled as soon as a file is selected, so admins can import via the normal UI. Today it never enables (import unusable via UI).
+
+**Root cause (found Phase 390 live UAT C7, deferred per user):** in `Views/Admin/CoachCoacheeMapping.cshtml` (`@section Scripts`, ~line 1038) the change listener `document.getElementById('importMappingFile')?.addEventListener('change', …)` is registered BEFORE `#importMappingFile` (~line 1059, in the import modal lower in the same section) exists in the DOM → optional-chaining `?.` no-ops → listener never attaches → `#btnImportMapping` stays `disabled` forever. **Pre-existing** (identical at `7548c6d0~1`, before phase 389; not a 389 regression).
+
+**Fix (view-only):** convert to event delegation on `document` (`document.addEventListener('change', e => { if (e.target.id==='importMappingFile') document.getElementById('btnImportMapping').disabled = !e.target.files.length; })`) OR wrap the listener registration in `DOMContentLoaded`. Single file: `Views/Admin/CoachCoacheeMapping.cshtml`.
+
+**Verify:** Playwright @ localhost (`Authentication__UseActiveDirectory=false`, `--workers=1`) — open Import Excel modal → choose `tests/fixtures/import-mapping-390.xlsx` → assert `#btnImportMapping` becomes enabled. Plus the existing 389 spec stays green.
+
+**Requirements**: DSN-07 (new — import-button enable parity fix)
+**Depends on:** Phase 390
+**Migration:** false (pure view/JS edit; 0 backend, 0 controller, 0 migration — LOCKED)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 391 to break down)
+
 ---
 
 ## ✅ v24.0 Gambar di Soal Assessment (Manage Package) — Phases 352-357 — SHIPPED LOCAL 2026-06-09
