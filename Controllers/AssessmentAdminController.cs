@@ -2158,7 +2158,7 @@ namespace HcPortal.Controllers
                                 Category = savedAssessment.Category,
                                 Schedule = savedAssessment.Schedule,
                                 DurationMinutes = savedAssessment.DurationMinutes,
-                                Status = savedAssessment.Status,
+                                Status = DeriveReadyStatus(savedAssessment.Schedule, savedAssessment.ExamWindowCloseDate),
                                 BannerColor = savedAssessment.BannerColor,
                                 IsTokenRequired = savedAssessment.IsTokenRequired,
                                 AccessToken = savedAssessment.AccessToken,
@@ -2226,6 +2226,17 @@ namespace HcPortal.Controllers
             }
 
             return RedirectToAction("ManageAssessment");
+        }
+
+        // Phase 391 D-01: derive status siap-mulai untuk sesi peserta baru.
+        // Mirror CMPController.StartExam L915 (WIB = UTC+7). Schedule = WIB-local naive.
+        private static string DeriveReadyStatus(DateTime schedule, DateTime? examWindowCloseDate)
+        {
+            var nowWib = DateTime.UtcNow.AddHours(7);
+            // Jadwal sudah tiba → Open; belum → Upcoming.
+            if (schedule <= nowWib)
+                return AssessmentConstants.AssessmentStatus.Open;
+            return AssessmentConstants.AssessmentStatus.Upcoming;
         }
 
         // --- DELETE ASSESSMENT ---
