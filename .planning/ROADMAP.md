@@ -78,7 +78,10 @@
   3. Sesi essay yang di-inject berakhir `Status=Completed` (bukan tertinggal "Menunggu Penilaian") setelah `EssayScore` di-set + `FinalizeEssayGrading` dipanggil — diverifikasi xUnit. *(INJ-01 — risiko spec §13)*
   4. Setiap sesi inject ditulis `IsManualEntry=true` dan menghasilkan satu entri AuditLog `ActionType="ManualInject"` berisi actor, NIP, sessionId, dan skor — diverifikasi xUnit (count entri = jumlah sesi). *(INJ-02)*
   5. `dotnet build` 0 error + `dotnet test` hijau (xUnit di atas); `dotnet ef migrations add _verify` → 0 model diff (konfirmasi 0 migration). *(INJ-01, INJ-02)*
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — sequential, single service+test file shared)
+- [ ] 393-01-PLAN.md — Wave 0: DTO kontrak + service skeleton + DI + xUnit Integration fixture/stub (interface-first)
+- [ ] 393-02-PLAN.md — InjectAssessmentService penuh: pre-flight reject-all + dedup cert-aware + tx atomic + reuse grading + essay finalize + cert backdate + audit
+- [ ] 393-03-PLAN.md — 5 fact SC1..SC5 (byte-identik / atomic / essay-Completed / audit count / cert policy) + 0-migration gate
 
 ### Phase 394: Page + Setup Room + authoring soal
 **Goal:** HC/Admin dapat membuka page inject baru dari Kelola Data, mengatur room inject seperti membuat assessment online, menulis soal lengkap, memilih pekerja penerima, dan memilih mode sertifikat — semua dalam satu alur berlangkah tanpa akses DB.
