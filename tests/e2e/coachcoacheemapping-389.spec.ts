@@ -187,4 +187,103 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
     await expect(page.locator('#assignModal')).toBeVisible();
   });
 
+  // V-10 (DSN-06* smoke — full parity Phase 390): Edit → #editModal visible + #editCoacheeName ter-set
+  // (bukti openEditModal 7-arg jalan).
+  test('V-10 edit modal', async ({ page }) => {
+    const header0 = page.locator('.card.shadow-sm .card-header').first();
+    test.skip((await header0.count()) === 0, 'no coach group data — tak ada card untuk dibuka');
+    await header0.click();
+    await expect(page.locator('#collapse-0')).toBeVisible();
+
+    const editBtn = page.locator('#collapse-0 button:has-text("Edit")').first();
+    test.skip((await editBtn.count()) === 0, 'no coachee row — Edit dikunci data; full parity Phase 390');
+    await editBtn.click();
+    await expect(page.locator('#editModal')).toBeVisible();
+    await expect(page.locator('#editCoacheeName')).not.toHaveValue('');
+  });
+
+  // V-11 (DSN-06* smoke — full parity Phase 390): Hapus → #deleteModal terbuka + tombol submit "Hapus".
+  // Row-removal tr[data-mapping-id] penuh = Phase 390.
+  test('V-11 delete hapus row', async ({ page }) => {
+    const header0 = page.locator('.card.shadow-sm .card-header').first();
+    test.skip((await header0.count()) === 0, 'no coach group data — tak ada card untuk dibuka');
+    await header0.click();
+    await expect(page.locator('#collapse-0')).toBeVisible();
+
+    const hapusBtn = page.locator('#collapse-0 button:has-text("Hapus")').first();
+    test.skip((await hapusBtn.count()) === 0, 'no deletable row — mutasi penuh = Phase 390');
+    await hapusBtn.click();
+    await expect(page.locator('#deleteModal')).toBeVisible();
+    // tombol submit "Hapus" dalam modal ada
+    await expect(page.locator('#deleteModal button:has-text("Hapus")')).toHaveCount(1);
+  });
+
+  // V-12 (DSN-06* smoke — full parity Phase 390): aksi branch — baris IsCompleted (badge Graduated) TIDAK
+  // menampilkan tombol "Aktifkan" (cek IsCompleted DULU, Phase 356 D-06). Setiap baris punya tombol "Edit".
+  test('V-12 aksi branch', async ({ page }) => {
+    const header0 = page.locator('.card.shadow-sm .card-header').first();
+    test.skip((await header0.count()) === 0, 'no coach group data — tak ada card untuk dibuka');
+    await header0.click();
+    await expect(page.locator('#collapse-0')).toBeVisible();
+
+    const rows = page.locator('#collapse-0 tr[data-mapping-id]');
+    const rowCount = await rows.count();
+    test.skip(rowCount === 0, 'no coachee row — aksi branch dikunci data; full parity Phase 390');
+
+    // struktural: setiap baris punya tombol Edit
+    for (let i = 0; i < rowCount; i++) {
+      await expect(rows.nth(i).locator('button:has-text("Edit")')).toHaveCount(1);
+    }
+
+    // baris Graduated (IsCompleted) tak boleh punya tombol "Aktifkan" (D-06 dicek sebelum IsActive)
+    const graduatedRows = page.locator('#collapse-0 tr[data-mapping-id]', { has: page.locator('.badge:has-text("Graduated")') });
+    const gCount = await graduatedRows.count();
+    test.skip(gCount === 0, 'no graduated row — branch IsCompleted dikunci data; full parity Phase 390');
+    for (let i = 0; i < gCount; i++) {
+      await expect(graduatedRows.nth(i).locator('button:has-text("Aktifkan")')).toHaveCount(0);
+    }
+  });
+
+  // V-13 (DSN-06* smoke — full parity Phase 390): AJAX via appUrl — route intercept
+  // **/Admin/CoachCoacheeMappingDeletePreview* terkena saat confirmDelete (bukti appUrl sub-path, tak 404).
+  test('V-13 ajax appUrl subpath', async ({ page }) => {
+    const header0 = page.locator('.card.shadow-sm .card-header').first();
+    test.skip((await header0.count()) === 0, 'no coach group data — tak ada card untuk dibuka');
+    await header0.click();
+    await expect(page.locator('#collapse-0')).toBeVisible();
+
+    const hapusBtn = page.locator('#collapse-0 button:has-text("Hapus")').first();
+    test.skip((await hapusBtn.count()) === 0, 'no deletable row — confirmDelete dikunci data; full parity Phase 390');
+
+    let hit = false;
+    let hitPath = '';
+    await page.route('**/Admin/CoachCoacheeMappingDeletePreview*', route => {
+      hit = true;
+      hitPath = route.request().url();
+      route.continue();
+    });
+
+    await hapusBtn.click();
+    await expect(page.locator('#deleteModal')).toBeVisible();
+    // beri waktu fetch appUrl jalan
+    await expect.poll(() => hit, { timeout: 10_000 }).toBe(true);
+    expect(hitPath).toContain('/Admin/CoachCoacheeMappingDeletePreview');
+  });
+
+  // V-14 (DSN-06* smoke — full parity Phase 390): filter Seksi + submit "Cari" → URL section= (resetPageAndSubmit).
+  test('V-14 filter pagination', async ({ page }) => {
+    const select = page.locator('select[name="section"]');
+    const optionValues = await select.locator('option').evaluateAll(
+      (opts) => opts.map((o) => (o as HTMLOptionElement).value).filter((v) => v !== ''),
+    );
+    test.skip(optionValues.length === 0, 'no section options to filter — full parity Phase 390');
+
+    await select.selectOption(optionValues[0]);
+    await Promise.all([
+      page.waitForURL(/section=/, { timeout: 15_000 }),
+      page.getByRole('button', { name: 'Cari' }).click(),
+    ]);
+    expect(page.url()).toContain('section=');
+  });
+
 });
