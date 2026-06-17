@@ -1988,8 +1988,10 @@ namespace HcPortal.Controllers
             }
             // --- End Pre-Post branch ---
 
-            // Prevent editing completed assessments (optional - you can remove this if needed)
-            if (assessment.Status == "Completed")
+            // Phase 391 D-02: izinkan penambahan peserta meski sesi representatif Completed (selama grup masih aktif/window terbuka).
+            // Guard Completed hanya blokir EDIT murni (tanpa penambahan peserta).
+            bool hasAddition = NewUserIds != null && NewUserIds.Count > 0;
+            if (assessment.Status == AssessmentConstants.AssessmentStatus.Completed && !hasAddition)
             {
                 TempData["Error"] = "Cannot edit completed assessments.";
                 return RedirectToAction("ManageAssessment");
@@ -2057,6 +2059,8 @@ namespace HcPortal.Controllers
             var now = DateTime.UtcNow;
             foreach (var sibling in siblings)
             {
+                // Phase 391 D-03: sesi sedang berjalan (StartedAt set, belum selesai) → jangan sentuh field volatil apa pun (lindungi timer & integritas ujian).
+                if (sibling.StartedAt != null && sibling.CompletedAt == null) continue;
                 sibling.Title = model.Title;
                 sibling.Category = model.Category;
                 sibling.Schedule = model.Schedule;
