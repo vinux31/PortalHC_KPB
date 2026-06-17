@@ -67,7 +67,7 @@
   3. Saat HC menambah peserta ke assessment yang ada peserta `InProgress`, sistem menampilkan **notice informatif** (bernuansa informasi, bukan peringatan kesan-error) yang menjelaskan bahwa peserta baru tetap bisa ditambah walau ujian sedang berjalan — menggantikan warning kosmetik yang ambigu. *(PART-03)*
   4. Automated regression test mengunci perilaku: (a) penambahan saat ada `InProgress` berhasil, (b) peserta baru ber-status siap-mulai (Open/Upcoming, BUKAN InProgress / warisi induk per D-01), (c) jawaban/sesi peserta existing tidak ter-overwrite oleh proses BULK ASSIGN; `dotnet build` 0 error + `dotnet test` hijau (+ Playwright bila notice UX di-cover). *(PART-04)*
 **Plans:** 2 plans
-- [ ] 391-01-PLAN.md — Controller logic D-01..D-05: helper DeriveReadyStatus + guard Completed berbasis penambahan + skip sesi berjalan + notice Info (PART-01/02/03)
+- [x] 391-01-PLAN.md — Controller logic D-01..D-05: helper DeriveReadyStatus + guard Completed berbasis penambahan + skip sesi berjalan + notice Info (PART-01/02/03)
 - [ ] 391-02-PLAN.md — Regression test xUnit integration real-SQL 4 facts a/b/c/d (PART-04), depends 391-01
 **UI hint:** yes
 
@@ -91,7 +91,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 0/2 | Not started | - |
+| 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 1/2 | In Progress|  |
 | 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 0/? | Not started | - |
 
 ### Coverage Validation
