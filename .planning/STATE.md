@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v32.2
-milestone_name: Inject Hasil Assessment Manual
-status: ready_to_plan
-stopped_at: Roadmap v32.2 created (393-398) — ready to plan Phase 393
-last_updated: "2026-06-17T08:05:00.000Z"
-last_activity: 2026-06-17
+milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
+status: Roadmap v32.2 created (393-398, 13/13 REQ INJ-01..13, 100% coverage) — ready `/gsd-plan-phase 393`
+stopped_at: Phase 393 context gathered
+last_updated: "2026-06-17T08:44:59.885Z"
+last_activity: 2026-06-17 — Milestone v32.2 roadmap created
 progress:
-  total_phases: 6
+  total_phases: 29
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -140,6 +139,6 @@ Milestone v32.2 baru dibuat — define requirements → roadmap. **Next: tulis R
 
 Last activity: 2026-06-17
 
-Stopped at: Completed 392-02-PLAN.md
+Stopped at: Phase 393 context gathered
 
 Next action: milestone v32.2 — selesaikan REQUIREMENTS.md (INJ-*) + roadmap (393-398), lalu **`/gsd-discuss-phase 393`** atau **`/gsd-plan-phase 393`** (Backend core inject). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
