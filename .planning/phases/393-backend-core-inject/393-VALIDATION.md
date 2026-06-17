@@ -1,10 +1,11 @@
 ---
 phase: 393
 slug: backend-core-inject
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-17
+updated: 2026-06-17
 ---
 
 # Phase 393 — Validation Strategy
@@ -43,11 +44,11 @@ created: 2026-06-17
 
 | Task ID | Plan | Wave | Requirement | SC | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|----|-----------------|-----------|-------------------|-------------|--------|
-| 393-01-01 | 01 | 1 | INJ-01 | SC1 | Grading byte-identik online (MC/MA/Essay): Score/IsPassed/SessionElemenTeknisScore identik vs jalur online untuk input sama | integration | `dotnet test --filter "FullyQualifiedName~InjectAssessment&Category=Integration"` | ❌ W0 | ⬜ pending |
-| 393-01-02 | 01 | 1 | INJ-01 | SC2 | NIP invalid / error mid-batch → rollback total (0 sesi tertulis); pre-flight invalid → 0 tulisan + per-row error | integration | `dotnet test --filter "FullyQualifiedName~InjectAtomic"` | ❌ W0 | ⬜ pending |
-| 393-01-03 | 01 | 1 | INJ-01 | SC3 | Sesi essay ber-EssayScore → Status=Completed (bukan PendingGrading) setelah finalize-block; backdate CompletedAt ter-preserve pasca-grade (pitfall: grading overwrite ke UtcNow) | integration | `dotnet test --filter "FullyQualifiedName~InjectEssayCompleted"` | ❌ W0 | ⬜ pending |
-| 393-01-04 | 01 | 1 | INJ-02 | SC4 | Tiap sesi sukses → IsManualEntry=true + 1 AuditLog ActionType="ManualInject" (count=jumlah sesi sukses); skip/reject ActionType terpisah (tak menggembungkan count ManualInject) | integration | `dotnet test --filter "FullyQualifiedName~InjectAudit"` | ❌ W0 | ⬜ pending |
-| 393-01-05 | 01 | 1 | INJ-01/02 | SC5 | Cert auto pakai backdate (D-12: KPB/seq/ROMAN-bulan-ujian/tahun-ujian); cert suppress bila !IsPassed (D-08); cert manual collision → reject (D-09); EssayScore di luar 0..ScoreValue → invalid (D-07); tanggal > hari ini → invalid (D-06) | integration | `dotnet test --filter "FullyQualifiedName~InjectCertPolicy"` | ❌ W0 | ⬜ pending |
+| 393-01-01 | 01 | 1 | INJ-01 | SC1 | Grading byte-identik online (MC/MA/Essay): Score/IsPassed/SessionElemenTeknisScore identik vs jalur online untuk input sama | integration | `dotnet test --filter "FullyQualifiedName~InjectAssessment&Category=Integration"` | ✅ | ✅ green |
+| 393-01-02 | 01 | 1 | INJ-01 | SC2 | NIP invalid / error mid-batch → rollback total (0 sesi tertulis); pre-flight invalid → 0 tulisan + per-row error | integration | `dotnet test --filter "FullyQualifiedName~InjectAtomic"` | ✅ | ✅ green |
+| 393-01-03 | 01 | 1 | INJ-01 | SC3 | Sesi essay ber-EssayScore → Status=Completed (bukan PendingGrading) setelah finalize-block; backdate CompletedAt ter-preserve pasca-grade (pitfall: grading overwrite ke UtcNow) | integration | `dotnet test --filter "FullyQualifiedName~InjectEssayCompleted"` | ✅ | ✅ green |
+| 393-01-04 | 01 | 1 | INJ-02 | SC4 | Tiap sesi sukses → IsManualEntry=true + 1 AuditLog ActionType="ManualInject" (count=jumlah sesi sukses); skip/reject ActionType terpisah (tak menggembungkan count ManualInject) | integration | `dotnet test --filter "FullyQualifiedName~InjectAudit"` | ✅ | ✅ green |
+| 393-01-05 | 01 | 1 | INJ-01/02 | SC5 | Cert auto pakai backdate (D-12: KPB/seq/ROMAN-bulan-ujian/tahun-ujian); cert suppress bila !IsPassed (D-08); cert manual collision → reject (D-09); EssayScore di luar 0..ScoreValue → invalid (D-07); tanggal > hari ini → invalid (D-06) | integration | `dotnet test --filter "FullyQualifiedName~InjectCertPolicy"` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,9 +56,9 @@ created: 2026-06-17
 
 ## Wave 0 Requirements
 
-- [ ] `HcPortal.Tests/InjectAssessmentServiceTests.cs` — test class (disposable real-SQL fixture `IAsyncLifetime`, `[Trait("Category","Integration")]`, real `GradingService` wiring per `SubmitResurrectionTests.cs:68-76`) — stubs for SC1..SC5
-- [ ] Shared fixture/builder helper untuk authored package (PackageQuestion MC/MA/Essay + PackageOption + ScoreValue + ElemenTeknis) reusable lintas fact
-- [ ] Konfirmasi `HcPortalDB_Dev` TIDAK disentuh (fixture pakai DB `HcPortalDB_Test_{guid}` lalu EnsureDeletedAsync) — T-pattern Phase 387
+- [x] `HcPortal.Tests/InjectAssessmentServiceTests.cs` — test class (disposable real-SQL fixture `IAsyncLifetime`, `[Trait("Category","Integration")]`, real `GradingService` wiring per `SubmitResurrectionTests.cs:68-76`) — 6 fact assertion nyata SC1..SC5 (Plan 03)
+- [x] Shared fixture/builder helper authored package (`BuildSampleRequest`/`OneMcQuestion`/`LoadGradedAsync` — PackageQuestion MC/MA/Essay + PackageOption + ScoreValue + ElemenTeknis) reusable lintas fact
+- [x] `HcPortalDB_Dev` TIDAK disentuh — fixture pakai `HcPortalDB_Test_{guid}` + `EnsureDeletedAsync` (verified gsd-verifier runtime spot-check)
 
 *xUnit + HcPortal.Tests sudah ada — tak perlu install framework.*
 
@@ -67,7 +68,7 @@ created: 2026-06-17
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| 0-migration confirm | INJ-01/02 | EF model-diff bukan unit test | `dotnet ef migrations add _verify` → assert "No changes" / 0 diff → discard migration file (git clean) |
+| 0-migration confirm ✅ DONE | INJ-01/02 | EF model-diff bukan unit test | `dotnet ef migrations add _verify` → **Up()/Down() kosong (0 model diff)** → removed + snapshot restored (2026-06-17) |
 
 *Sisanya: semua perilaku phase punya verifikasi otomatis xUnit Integration. Visibility /CMP/Records + /CMP/Results = ranah Phase 398 E2E (bukan 393).*
 
@@ -75,11 +76,25 @@ created: 2026-06-17
 
 ## Validation Sign-Off
 
-- [ ] Semua task punya `<automated>` verify atau Wave 0 dependency
-- [ ] Sampling continuity: tak ada 3 task beruntun tanpa automated verify
-- [ ] Wave 0 cover semua reference MISSING (test class + fixture)
-- [ ] Tak ada watch-mode flag
-- [ ] Feedback latency < 240s (full Integration)
-- [ ] `nyquist_compliant: true` di-set di frontmatter (saat plan-checker lulus)
+- [x] Semua task punya `<automated>` verify atau Wave 0 dependency
+- [x] Sampling continuity: tak ada 3 task beruntun tanpa automated verify
+- [x] Wave 0 cover semua reference MISSING (test class + fixture) — terisi Plan 03
+- [x] Tak ada watch-mode flag
+- [x] Feedback latency < 240s (full Integration ~2 min)
+- [x] `nyquist_compliant: true` di-set di frontmatter
 
-**Approval:** pending
+**Approval:** ✅ COMPLIANT 2026-06-17
+
+---
+
+## Validation Audit 2026-06-17
+
+| Metric | Count |
+|--------|-------|
+| Requirements (SC) | 5 |
+| Gaps found | 0 |
+| COVERED (automated) | 5 (SC1..SC5) |
+| Resolved | 0 (no gaps — tests written + green di Plan 03) |
+| Escalated / manual-only | 1 (0-migration confirm — DONE) |
+
+**Evidence:** 6 fact xUnit Integration (`InjectAssessment_ByteIdentik`/`_PartialMA` SC1, `InjectAtomic` SC2, `InjectEssayCompleted` SC3, `InjectAudit` SC4, `InjectCertPolicy` SC5) — combined run **6/6 PASS** real SQLEXPRESS; full suite **492/492**; 0-migration confirmed. State A audit: no gaps, no auditor spawn needed (workflow Step 3). nyquist_compliant=true.
