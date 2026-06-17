@@ -102,6 +102,9 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
     await header0.click();
     await expect(body0).toBeVisible();
     expect(await header0.getAttribute('aria-expanded')).toBe('true');
+    // Tunggu transisi Bootstrap collapse SELESAI (class show, bukan collapsing) sebelum klik ke-2.
+    // Klik saat masih .collapsing akan dibalik Bootstrap → flaky. Phase 354 lesson: assert state stabil.
+    await expect(body0).toHaveClass(/(^|\s)show(\s|$)/);
 
     await header0.click();
     await expect(body0).not.toBeVisible();
@@ -149,14 +152,17 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
     await expect(page.locator('#' + controls)).toHaveCount(1);
 
     // keyboard: Enter buka, Space toggle
+    const ctrlBody = page.locator('#' + controls);
     await header0.focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('#' + controls)).toBeVisible();
+    await expect(ctrlBody).toBeVisible();
     expect(await header0.getAttribute('aria-expanded')).toBe('true');
+    // Tunggu transisi collapse selesai (.show stabil) sebelum toggle ke-2 — hindari race .collapsing.
+    await expect(ctrlBody).toHaveClass(/(^|\s)show(\s|$)/);
 
     await header0.focus();
     await page.keyboard.press('Space');
-    await expect(page.locator('#' + controls)).not.toBeVisible();
+    await expect(ctrlBody).not.toBeVisible();
     expect(await header0.getAttribute('aria-expanded')).toBe('false');
   });
 
@@ -199,7 +205,9 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
     test.skip((await editBtn.count()) === 0, 'no coachee row — Edit dikunci data; full parity Phase 390');
     await editBtn.click();
     await expect(page.locator('#editModal')).toBeVisible();
-    await expect(page.locator('#editCoacheeName')).not.toHaveValue('');
+    // #editCoacheeName = <p class="form-control-plaintext"> (bukan input); openEditModal set .textContent.
+    // Bukti openEditModal 7-arg jalan: nama coachee ter-isi (text non-kosong).
+    await expect(page.locator('#editCoacheeName')).not.toHaveText('');
   });
 
   // V-11 (DSN-06* smoke — full parity Phase 390): Hapus → #deleteModal terbuka + tombol submit "Hapus".
