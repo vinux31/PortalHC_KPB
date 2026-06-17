@@ -1084,6 +1084,40 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
+### Phase 999.11: WR-01 PendingGrading edit-guard gap di EditAssessment (BACKLOG, LOW, pre-existing)
+
+**Goal:** [Captured dari adversarial re-check v32.0, 2026-06-17 — ref `.planning/v32.0-MILESTONE-AUDIT.md`] Guard pure-edit di `Controllers/AssessmentAdminController.cs:1998` cuma blokir `Status == Completed`, BUKAN `PendingGrading`. Pure-edit (NewUserIds kosong) pada assessment yg sesi representatifnya `PendingGrading` (essay menunggu nilai, di-set `GradingService.cs:220`) lolos guard → admin bisa ubah Title/Schedule/Duration/PassPercentage saat grading masih berjalan.
+
+**Context:**
+- Pre-exists Phase 391 (gap sama sejak string-literal lama `"Completed"`); BUKAN regresi v32.0. Jalur penambahan-peserta (target v32.0) TAK terdampak.
+- Sibling WR-01 review-finding: WR-02 sudah di-fix (commit `e5edb09a`), WR-01 belum (tak ada `391-REVIEW-FIX.md`). Sumber: `391-REVIEW.md` (issues_found, 0 critical).
+- Fix: ganti cek `== Completed` dgn helper `AssessmentConstants.IsAssessmentSubmitted(status)` (cover `Completed || PendingGrading`) + regression test lock "pure-edit PendingGrading DITOLAK". Wajib `dotnet build` + `dotnet test` + `dotnet run` gate (CLAUDE.md Develop Workflow). 0 migration. Off-theme dari v32.2 Inject.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
+### Phase 999.12: Regression test 391 — ganti replica tautologis dgn WebApplicationFactory (BACKLOG, MED, test-infra)
+
+**Goal:** [Captured dari adversarial re-check v32.0, 2026-06-17 — ref `.planning/v32.0-MILESTONE-AUDIT.md`] `HcPortal.Tests/FlexibleParticipantAddTests.cs` tak pernah panggil controller (no `WebApplicationFactory`) — fact (a)/(d) tautologis utk klaim "add berhasil / tak terblokir" (seed sesi via EF langsung, bypass guard L1998). Helper test `WindowAllowsAddition` TANPA padanan produksi → fact (d) = `Assert.True(true)`. Replica drift dari produksi (tak set `AssessmentType`, pakai literal bukan `model.*`) → tak deteksi bug `AssessmentType`-NULL yg justru muncul di Dev (fixed `34f102b0`).
+
+**Context:**
+- BUKAN bug produksi — perilaku produksi benar (build+fast 347/347 + integration 4/4 GREEN, guard statically-verified, human-UAT cover e2e, fact b/c genuine). Murni penguatan test agar regresi guard/window tertangkap.
+- Pola replica systemic (sama di `ShufflePropagationTests` Phase 372) — pertimbangkan sweep test-infra lebih luas.
+- Fix: integration test berbasis `WebApplicationFactory` yg benar-benar drive `EditAssessment` lewat controller; hapus helper fiktif `WindowAllowsAddition`. 0 migration. Off-theme dari v32.2 Inject.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (PROMOTED -> v28.0 Phase 379, 2026-06-14)
 
 **Goal:** [Captured Phase 364, 2026-06-12] `exam-taking.spec.ts` Flow A–J semua `test.fixme` — flat-form create usang. `/Admin/CreateAssessment` kini wizard 4-langkah (`1.Kategori`→`2.Peserta[disabled]`→`3.Settings`→`4.Konfirmasi`); worker checkbox `display:none` di step 2. Title sudah prefixed `Pre Test ` (REST-06 comply) tapi flow tak bisa jalan tanpa navigasi wizard.
