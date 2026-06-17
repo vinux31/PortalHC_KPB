@@ -1,9 +1,8 @@
-// Phase 393 INJ-01/02 — Wave 0 test-infra (Plan 01). Kelas test Integration + fixture disposable
-// real-SQL + factory real GradingService + seed helper + 5 STUB fact (SC1..SC5).
+// Phase 393 INJ-01/02 — Kelas test Integration + fixture disposable real-SQL + factory real
+// GradingService + seed helper + 5 fact assertion nyata (SC1..SC5).
 //
-// Plan 01 SENGAJA hanya menetapkan KONTRAK: 5 fact ini HIJAU sebagai placeholder build-only
-// (Assert.True(true)), BUKAN RED. Plan 03 mengganti body dengan assertion nyata yang mengunci
-// SC1..SC5 (read-after-commit, byte-identik vs AssessmentScoreAggregator.Compute).
+// Plan 01 menetapkan KONTRAK (fixture + 5 fact placeholder); Plan 03 mengisi assertion nyata yang
+// mengunci SC1..SC5 (read-after-commit, byte-identik vs AssessmentScoreAggregator.Compute).
 //
 // Fixture pakai disposable DB HcPortalDB_Test_{guid} + EnsureDeletedAsync. DB lokal HcPortalDB_Dev
 // TAK tersentuh (VALIDATION Wave 0 req #3). [Trait Category=Integration] → skip via "Category!=Integration".
@@ -156,8 +155,8 @@ public class InjectAssessmentServiceTests : IClassFixture<InjectAssessmentFixtur
         };
     }
 
-    // ---- 5 STUB fact (nama WAJIB match filter VALIDATION.md FullyQualifiedName~). ----
-    // Plan 03 mengganti body dengan assertion nyata SC1..SC5.
+    // ---- 5 fact assertion nyata (nama WAJIB match filter VALIDATION.md FullyQualifiedName~). ----
+    // SC1..SC5: seed InjectRequest → InjectBatchAsync → verifikasi DB read-after-commit.
 
     // ---- Helper: load questions(+options) + responses persisted untuk satu sesi (scope sessionId — caveat shared-DB) ----
     private static async Task<(List<PackageQuestion> questions, List<PackageUserResponse> responses)>
@@ -398,12 +397,66 @@ public class InjectAssessmentServiceTests : IClassFixture<InjectAssessmentFixtur
         Assert.Equal(backdate.Date, s.CompletedAt!.Value.Date);
     }
 
-    // SC4 — audit ActionType ManualInject terhitung benar per-session (D-11).
+    // SC4 — audit ActionType "ManualInject" count = jumlah sesi sukses (D-11); skip ActionType terpisah.
     [Fact]
     public async Task InjectAudit_ManualInjectCountPerSession()
     {
-        await Task.CompletedTask;
-        Assert.True(true, "STUB — diisi Plan 03");
+        var nipA = "INJ-SC4a-" + Guid.NewGuid().ToString("N")[..6];
+        var nipB = "INJ-SC4b-" + Guid.NewGuid().ToString("N")[..6];
+        var nipC = "INJ-SC4c-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, nipA); await SeedUserAsync(seed, nipB); await SeedUserAsync(seed, nipC); }
+
+        var title = "Inject SC4 " + Guid.NewGuid().ToString("N")[..6];
+        var date = new DateTime(2026, 4, 20);
+        InjectRequest BuildReq(IEnumerable<string> nips) => new()
+        {
+            Title = title, Category = "IHT", AssessmentType = "Standard", CompletedAt = date,
+            PassPercentage = 70, CertMode = InjectCertMode.None,
+            Questions = OneMcQuestion(),
+            Workers = nips.Select(n => new InjectWorkerSpec
+            {
+                Nip = n, Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } }
+            }).ToList()
+        };
+
+        // Inject 3 pekerja sukses
+        var result = await NewInjectService(NewCtx()).InjectBatchAsync(BuildReq(new[] { nipA, nipB, nipC }), "test-actor-id", "Test Actor");
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(3, result.SuccessSessionIds.Count);
+        var sessionIds = result.SuccessSessionIds;
+
+        await using (var verify = NewCtx())
+        {
+            // count "ManualInject" == N (scope ke sesi batch ini)
+            var manualInjectLogs = await verify.AuditLogs
+                .Where(a => a.ActionType == "ManualInject" && a.TargetId != null && sessionIds.Contains(a.TargetId.Value))
+                .ToListAsync();
+            Assert.Equal(3, manualInjectLogs.Count);
+            Assert.All(manualInjectLogs, log =>
+            {
+                Assert.NotNull(log.TargetId);
+                Assert.Contains("NIP", log.Description);
+                Assert.Equal("AssessmentSession", log.TargetType);
+            });
+        }
+
+        // Inject ke-2: nipA duplikat (judul+kategori+tanggal sama) + nipD baru → skip nipA, sukses nipD
+        var nipD = "INJ-SC4d-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, nipD); }
+        var result2 = await NewInjectService(NewCtx()).InjectBatchAsync(BuildReq(new[] { nipA, nipD }), "test-actor-id", "Test Actor");
+
+        Assert.Contains(nipA, result2.SkippedNips);          // nipA di-skip (duplikat)
+        Assert.Single(result2.SuccessSessionIds);            // hanya nipD ter-inject (nipA di-skip)
+
+        await using (var verify = NewCtx())
+        {
+            // skip pakai ActionType TERPISAH "ManualInjectSkipped" (BUKAN "ManualInject")
+            var skipForA = await verify.AuditLogs.CountAsync(a => a.ActionType == "ManualInjectSkipped" && a.Description.Contains(nipA));
+            Assert.True(skipForA >= 1);
+            // count "ManualInject" untuk nipA TETAP 1 (skip TIDAK menggembungkan count — D-11 ActionType bersih)
+            var injectForA = await verify.AuditLogs.CountAsync(a => a.ActionType == "ManualInject" && a.Description.Contains("NIP=" + nipA));
+            Assert.Equal(1, injectForA);
+        }
     }
 
     // SC5 — kebijakan cert/validasi: backdate (D-12) / suppress (D-08) / manual collision (D-09) /
