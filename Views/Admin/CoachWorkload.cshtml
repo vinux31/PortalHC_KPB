@@ -13,6 +13,17 @@
     int overloadedCount = (int)(ViewBag.OverloadedCount ?? 0);
 }
 
+<style>
+    .legend-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+</style>
+
 @Html.AntiForgeryToken()
 
 <!-- Breadcrumb -->
@@ -90,7 +101,7 @@
             <div class="card-body text-center py-3">
                 <div class="fs-2 fw-bold text-primary">@avgRatio.ToString("F1")</div>
                 <div class="text-muted small">Rata-rata Rasio</div>
-                <div class="text-muted" style="font-size:11px;">coachee/coach</div>
+                <div class="text-muted small">coachee/coach</div>
             </div>
         </div>
     </div>
@@ -101,7 +112,7 @@
                     @overloadedCount
                     @if (overloadedCount > 0)
                     {
-                        <span class="badge bg-danger ms-1" style="font-size:12px;">!</span>
+                        <span class="badge bg-danger ms-1 small">!</span>
                     }
                 </div>
                 <div class="text-muted small">Coach Overloaded</div>
@@ -111,24 +122,29 @@
 </div>
 
 @* Filter Bar *@
-<form method="get" class="d-flex gap-2 mb-4">
-    <select name="section" class="form-select" style="max-width: 300px;">
-        <option value="">Semua Section</option>
-        @foreach (var s in sections)
-        {
-            @if (sectionFilter == s)
-            {
-                <option value="@s" selected>@s</option>
-            }
-            else
-            {
-                <option value="@s">@s</option>
-            }
-        }
-    </select>
-    <button type="submit" class="btn btn-primary">Filter</button>
-    <a href="@Url.Action("CoachWorkload")" class="btn btn-outline-secondary">Reset</a>
-</form>
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold"><i class="bi bi-funnel me-2"></i>Filter</div>
+    <div class="card-body">
+        <form method="get" class="d-flex gap-2">
+            <select name="section" class="form-select" style="max-width: 300px;">
+                <option value="">Semua Section</option>
+                @foreach (var s in sections)
+                {
+                    @if (sectionFilter == s)
+                    {
+                        <option value="@s" selected>@s</option>
+                    }
+                    else
+                    {
+                        <option value="@s">@s</option>
+                    }
+                }
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="@Url.Action("CoachWorkload")" class="btn btn-outline-secondary">Reset</a>
+        </form>
+    </div>
+</div>
 
 @if (!workloadRows.Any() && string.IsNullOrEmpty(sectionFilter))
 {
@@ -153,10 +169,10 @@ else
             <div style="max-height: 300px; overflow-y: auto;">
                 <canvas id="workloadChart" style="min-height: 150px;"></canvas>
             </div>
-            <div class="d-flex gap-4 mt-3 flex-wrap" style="font-size: 0.85rem;">
-                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#198754;margin-right:6px;vertical-align:middle;"></span>Normal</span>
-                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffc107;margin-right:6px;vertical-align:middle;"></span>Mendekati Batas</span>
-                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc3545;margin-right:6px;vertical-align:middle;"></span>Overloaded</span>
+            <div class="d-flex gap-4 mt-3 flex-wrap small">
+                <span><span class="legend-dot" style="background:#198754;"></span>Normal</span>
+                <span><span class="legend-dot" style="background:#ffc107;"></span>Mendekati Batas</span>
+                <span><span class="legend-dot" style="background:#dc3545;"></span>Overloaded</span>
             </div>
         </div>
     </div>
@@ -226,50 +242,54 @@ else
 }
 
 @* Saran Penyeimbangan *@
-<h5 class="mb-2">Saran Penyeimbangan</h5>
-@if (!reassignSuggestions.Any())
-{
-    <div class="alert alert-success">
-        <i class="bi bi-check-circle me-2"></i>Tidak ada saran penyeimbangan saat ini. Semua coach memiliki beban yang seimbang.
-    </div>
-}
-else
-{
-    foreach (var sug in reassignSuggestions)
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold"><i class="bi bi-arrow-left-right me-2"></i>Saran Penyeimbangan</div>
+    @if (!reassignSuggestions.Any())
     {
-        <div class="card shadow-sm mb-3 suggestion-card" id="sug-@sug.MappingId">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>@sug.CoacheeName</strong>
-                        <span class="text-muted small ms-2">(@sug.CoacheeSection)</span>
-                        <div class="text-muted small mt-1">
-                            Dari <span class="fw-bold text-danger">@sug.FromCoachName</span>
-                            &rarr; ke <span class="fw-bold text-success">@sug.ToCoachName</span>
-                        </div>
-                    </div>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary btn-sm approve-btn"
-                                    data-mapping-id="@sug.MappingId"
-                                    data-new-coach-id="@sug.ToCoachId"
-                                    data-coachee-name="@sug.CoacheeName"
-                                    data-from-coach="@sug.FromCoachName"
-                                    data-to-coach="@sug.ToCoachName">
-                                <i class="bi bi-check-circle me-1"></i>Setujui Saran
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm skip-btn"
-                                    data-mapping-id="@sug.MappingId">
-                                <i class="bi bi-x-circle me-1"></i>Lewati Saran
-                            </button>
-                        </div>
-                    }
-                </div>
+        <div class="card-body">
+            <div class="alert alert-success mb-0">
+                <i class="bi bi-check-circle me-2"></i>Tidak ada saran penyeimbangan saat ini. Semua coach memiliki beban yang seimbang.
             </div>
         </div>
     }
-}
+    else
+    {
+        <div class="list-group list-group-flush">
+            @foreach (var sug in reassignSuggestions)
+            {
+                <div class="list-group-item suggestion-card" id="sug-@sug.MappingId">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@sug.CoacheeName</strong>
+                            <span class="text-muted small ms-2">(@sug.CoacheeSection)</span>
+                            <div class="text-muted small mt-1">
+                                Dari <span class="fw-bold text-danger">@sug.FromCoachName</span>
+                                &rarr; ke <span class="fw-bold text-success">@sug.ToCoachName</span>
+                            </div>
+                        </div>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm approve-btn"
+                                        data-mapping-id="@sug.MappingId"
+                                        data-new-coach-id="@sug.ToCoachId"
+                                        data-coachee-name="@sug.CoacheeName"
+                                        data-from-coach="@sug.FromCoachName"
+                                        data-to-coach="@sug.ToCoachName">
+                                    <i class="bi bi-check-circle me-1"></i>Setujui Saran
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm skip-btn"
+                                        data-mapping-id="@sug.MappingId">
+                                    <i class="bi bi-x-circle me-1"></i>Lewati Saran
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
 
 @* Modal Set Threshold *@
 @if (User.IsInRole("Admin"))
