@@ -1848,6 +1848,8 @@ namespace HcPortal.Controllers
                 {
                     foreach (var s in preGroup)
                     {
+                        // Phase 391 D-03 (Pre-Post): jangan ubah jadwal/durasi sesi yang sedang berjalan (lindungi timer).
+                        if (s.StartedAt != null && s.CompletedAt == null) continue;
                         s.Schedule = PreSchedule.Value;
                         if (PreDurationMinutes.HasValue) s.DurationMinutes = PreDurationMinutes.Value;
                         s.ExamWindowCloseDate = PreExamWindowCloseDate;
@@ -1857,6 +1859,8 @@ namespace HcPortal.Controllers
                 {
                     foreach (var s in postGroup)
                     {
+                        // Phase 391 D-03 (Pre-Post): jangan ubah jadwal/durasi sesi yang sedang berjalan (lindungi timer).
+                        if (s.StartedAt != null && s.CompletedAt == null) continue;
                         s.Schedule = PostSchedule.Value;
                         if (PostDurationMinutes.HasValue) s.DurationMinutes = PostDurationMinutes.Value;
                         s.ExamWindowCloseDate = PostExamWindowCloseDate;
@@ -2085,7 +2089,9 @@ namespace HcPortal.Controllers
                     && s.StartedAt != null && s.CompletedAt == null);
             if (hasInProgress)
             {
-                TempData["Warning"] = "Perhatian: Ada peserta yang sedang mengerjakan ujian. Perubahan Title/Category/Schedule tidak akan berlaku untuk sesi yang sedang berjalan.";
+                TempData["Info"] = "Ada peserta yang sedang mengerjakan ujian. " +
+                    "Peserta baru tetap dapat ditambahkan dan langsung mulai selama waktu ujian masih terbuka. " +
+                    "Sesi peserta yang sedang berjalan tidak terpengaruh perubahan.";
             }
 
             // Fetch actor info before try block so it is available for both edit and bulk-assign audit calls
