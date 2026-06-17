@@ -17,6 +17,7 @@ test.describe.configure({ mode: 'serial' });
 
 const TS = Date.now();
 const EMAIL = `e2e-cw-${TS}@local.test`;
+const EMAIL_SQL = EMAIL.replace(/'/g, "''"); // WR-01: escape single-quote (defensif; EMAIL = konstanta alfanumerik, no-op untuk nilai ini)
 const FULLNAME = `E2E CreateWorker ${TS}`;
 let workerId = '';
 
@@ -101,7 +102,7 @@ test.describe('Phase 392 — /Admin/CreateWorker usable + audited', () => {
     await expect(page.locator('.alert').filter({ hasText: /berhasil/i }).first()).toBeVisible({ timeout: 10_000 });
 
     // DB assert + resolve workerId untuk teardown.
-    workerId = await db.queryString(`SELECT TOP 1 Id FROM Users WHERE Email='${EMAIL}'`);
+    workerId = await db.queryString(`SELECT TOP 1 Id FROM Users WHERE Email='${EMAIL_SQL}'`);
     expect(workerId).toBeTruthy();
   });
 });
@@ -110,7 +111,7 @@ test.describe('Phase 392 — /Admin/CreateWorker usable + audited', () => {
 test.afterAll(async ({ browser }) => {
   try {
     if (!workerId) {
-      workerId = await db.queryString(`SELECT TOP 1 Id FROM Users WHERE Email='${EMAIL}'`).catch(() => '');
+      workerId = await db.queryString(`SELECT TOP 1 Id FROM Users WHERE Email='${EMAIL_SQL}'`).catch(() => '');
     }
     if (!workerId) return;
     const page = await browser.newPage();
@@ -123,7 +124,7 @@ test.afterAll(async ({ browser }) => {
       await page.request.post('/Admin/DeleteWorker', {
         form: { id: workerId, __RequestVerificationToken: token! },
       });
-      const remaining = await db.queryScalar(`SELECT COUNT(*) FROM Users WHERE Email='${EMAIL}'`).catch(() => 0);
+      const remaining = await db.queryScalar(`SELECT COUNT(*) FROM Users WHERE Email='${EMAIL_SQL}'`).catch(() => 0);
       if (remaining !== 0) {
         console.warn(`[teardown] worker ${EMAIL} masih ada (count=${remaining}) — cek manual.`);
       }
