@@ -1035,8 +1035,10 @@ else
         .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
 
-    document.getElementById('importMappingFile')?.addEventListener('change', function() {
-        document.getElementById('btnImportMapping').disabled = !this.files.length;
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('importMappingFile')?.addEventListener('change', function() {
+            document.getElementById('btnImportMapping').disabled = !this.files.length;
+        });
     });
 </script>
 
