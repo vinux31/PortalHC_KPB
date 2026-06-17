@@ -15,9 +15,9 @@ Requirements untuk milestone v32.1. Tiap REQ map ke satu phase.
 
 ### Desain — Coach-Coachee Mapping (DSN)
 
-- [ ] **DSN-01**: Admin/HC melihat daftar mapping coach-coachee sebagai **accordion card per coach** — header tiap card menampilkan avatar inisial coach, nama coach, section, dan badge jumlah coachee aktif dengan warna mengikuti ambang beban (hijau normal / kuning mendekati / merah overload, konsisten dengan logika badge yang sudah ada).
-- [ ] **DSN-02**: Admin/HC dapat mengklik header card coach untuk **membuka/menutup** daftar coachee (tabel/list mini di dalam card). Semua kolom data coachee yang ada saat ini (Nama, NIP, Bagian/Unit penugasan, Jabatan, Proton Track, Status, Mulai, Aksi) tetap tampil.
-- [ ] **DSN-03**: Toolbar header halaman tampil **rapi & konsisten** (gaya/ukuran tombol Download Template / Import / Export / Tambah Mapping diseragamkan) dan **dead-code `onclick` sampah dihapus** pada tombol "Tambah Mapping" tanpa mengubah fungsi tombol.
+- [x] **DSN-01**: Admin/HC melihat daftar mapping coach-coachee sebagai **accordion card per coach** — header tiap card menampilkan avatar inisial coach, nama coach, section, dan badge jumlah coachee aktif dengan warna mengikuti ambang beban (hijau normal / kuning mendekati / merah overload, konsisten dengan logika badge yang sudah ada).
+- [x] **DSN-02**: Admin/HC dapat mengklik header card coach untuk **membuka/menutup** daftar coachee (tabel/list mini di dalam card). Semua kolom data coachee yang ada saat ini (Nama, NIP, Bagian/Unit penugasan, Jabatan, Proton Track, Status, Mulai, Aksi) tetap tampil.
+- [x] **DSN-03**: Toolbar header halaman tampil **rapi & konsisten** (gaya/ukuran tombol Download Template / Import / Export / Tambah Mapping diseragamkan) dan **dead-code `onclick` sampah dihapus** pada tombol "Tambah Mapping" tanpa mengubah fungsi tombol.
 
 ### Desain — Coach Workload (DSN)
 
@@ -53,9 +53,9 @@ Diisi saat pembuatan roadmap.
 | LBL-03 | Phase 388 | Pending |
 | DSN-04 | Phase 388 | Pending |
 | DSN-05 | Phase 388 | Pending |
-| DSN-01 | Phase 389 | Pending |
-| DSN-02 | Phase 389 | Pending |
-| DSN-03 | Phase 389 | Pending |
+| DSN-01 | Phase 389 | Complete |
+| DSN-02 | Phase 389 | Complete |
+| DSN-03 | Phase 389 | Complete |
 | DSN-06 | Phase 390 | Pending |
 
 **Coverage:**

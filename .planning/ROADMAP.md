@@ -90,7 +90,7 @@ See .planning/MILESTONES.md for full history.
   4. Behavior parity terjaga (verifikasi runtime): tombol Edit (modal `openEditModal`), Nonaktifkan (`confirmDeactivate`), Graduated (`MarkMappingCompleted` form), Aktifkan (`reactivateMapping`), Hapus (`confirmDelete`), badge "Graduated", filter Seksi + Cari + "Tampilkan Semua", pagination — semuanya berfungsi sama seperti sebelum redesign.
   5. `dotnet build` 0 error + `dotnet run` (localhost:5277) + **Playwright runtime** (lesson Phase 354: grep+build tak cukup): card collapse buka/tutup OK, modal assign/edit muncul, AJAX reactivate/deactivate/delete pakai `appUrl()`+RequestVerificationToken (tak hardcode path, tak 404 di sub-path).
 **Plans:** 2 plans
-- [ ] 389-01-PLAN.md — Wave 0 spec Playwright parity `coachcoacheemapping-389.spec.ts` (V-01..V-14, DSN-01/02/03 + smoke DSN-06) (Wave 1)
+- [x] 389-01-PLAN.md — Wave 0 spec Playwright parity `coachcoacheemapping-389.spec.ts` (V-01..V-14, DSN-01/02/03 + smoke DSN-06) (Wave 1)
 - [ ] 389-02-PLAN.md — Rewrite markup: toolbar seragam DSN-03 + accordion card per coach + collapse mini-table DSN-01/02 + chevron style + fill/run spec + checkpoint UAT (Wave 2)
 **UI hint:** yes
 
@@ -114,7 +114,7 @@ See .planning/MILESTONES.md for full history.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 388. Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04/05) | 2/2 | Complete   | 2026-06-17 |
-| 389. CoachCoacheeMapping Redesign — Accordion Card (DSN-01/02/03) | 0/2 | Planned | - |
+| 389. CoachCoacheeMapping Redesign — Accordion Card (DSN-01/02/03) | 1/2 | In Progress|  |
 | 390. Test & UAT Behavior Parity (DSN-06) | 0/? | Not started | - |
 
 ### Coverage Validation

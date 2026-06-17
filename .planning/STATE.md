@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
 status: executing
-stopped_at: Phase 389 UI-SPEC approved
-last_updated: "2026-06-17T04:37:12.186Z"
-last_activity: 2026-06-17 -- Phase 389 planning complete
+stopped_at: Completed 389-01-PLAN.md (spec parity 14 test V-01..V-14)
+last_updated: "2026-06-17T04:47:59.185Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 24
   completed_phases: 1
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 388 — Label Hasil + CoachWorkload Polish
+**Current focus:** Phase 389 — CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)
 
 ## Current Position
 
-Phase: 388 (Label Hasil + CoachWorkload Polish) — EXECUTING
-Plan: 1 of 2
+Phase: 389 (CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 389 planning complete
+Last activity: 2026-06-17
 
 ## Next Action
 
@@ -83,6 +83,7 @@ Constraint global: behavior parity WAJIB, 0 backend, 0 migration, 0 controller. 
 
 ### Decisions (persist across milestones)
 
+- [v32.1 / 389-01 spec parity]: `tests/e2e/coachcoacheemapping-389.spec.ts` 14-test (V-01..V-14) ditulis test-first terhadap markup accordion TARGET (Nyquist safeguard, Phase 354 lesson). `--list` parse OK = deliverable Wave 1; full-green sengaja ditunda ke Plan 02 (markup masih tabel → RED itu BENAR). Tiap test ber-`test.skip` data-guard (RED-aman pra-Plan 02; full mutation parity assign/import/export/row-removal = Phase 390). Kontrak halaman: V-14 submit btn = "Cari" (bukan "Filter" spt sibling 388); V-13 `expect.poll(()=>hit)` utk async `fetch(appUrl('/Admin/CoachCoacheeMappingDeletePreview'))`; V-07 a11y header (role=button-or-BUTTON + aria-controls + keyboard Enter/Space). Grep-label byte-cocok 389-VALIDATION.md → enable `-g` sampling per task di Plan 02. Commits 190b2b19 (V-01..V-09) + 275b3a42 (V-10..V-14).
 - [v32.1 roadmap / phases 388-390]: 3 phase derived by file-overlap + risk — 388 (LBL-03 Results + DSN-04/05 CoachWorkload polish, DISJOINT low-risk), 389 (DSN-01/02/03 CoachCoacheeMapping accordion card opsi "B", RISK TERTINGGI), 390 (DSN-06 Test & UAT parity penutup). 7/7 REQ mapped, 0 orphan/duplicate, 0 migration. Arah desain terkunci: accordion card per coach (header avatar inisial+nama+section+badge beban warna-ikut-threshold existing >=8 merah / >=5 kuning / else info) + CoachWorkload polish-only. Risiko utama = behavior regression modal/AJAX/collapse.
 - [v31.0 Hotfix Pra-Ujian Lisensor / phases 385-387]: 14/14 PXF closed, 0 migration. Pattern kunci: shared display helper `AssessmentScoreAggregator.IsQuestionCorrect` + `BuildAnswerCell` (MA all-or-nothing SetEquals, essay Benar=`>0`) dipakai 1× lintas web Results + PDF + Excel (kill-drift); essay PathBase-aware sub-path `/KPB-PortalHC`; predikat pending essay TUNGGAL `!IsNullOrWhiteSpace(TextAnswer) && EssayScore==null` byte-identik 4 surface; aria opsi huruf A/B/C/D (lesson: a11y Razor dinamis WAJIB Playwright runtime assert, grep+build INSUFFICIENT — Phase 354). MERGED→main 7ea6c81e, UAT Dev full-lifecycle PASS 2026-06-16.
 - [v30.0 / ECG]: helper terpusat `AssessmentScoreAggregator.IsQuestionCorrect` (essay `>0`=Benar, `=0`=Salah, `null`=pending) di `CMPController.Results` 4 site + PDF export (kill-drift). MA non-empty guard display-path beda dari scoring `Compute`.
@@ -111,6 +112,6 @@ Constraint global: behavior parity WAJIB, 0 backend, 0 migration, 0 controller. 
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 389 UI-SPEC approved
+Stopped at: Completed 389-01-PLAN.md (spec parity 14 test V-01..V-14)
 
 Next action: `/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish). Lalu 389 (CoachCoacheeMapping redesign), 390 (Test & UAT parity). Approve roadmap dulu bila perlu review user.
