@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
 status: executing
-stopped_at: Phase 390 planned (2 plans, 2 waves)
-last_updated: "2026-06-17T06:30:00.000Z"
-last_activity: 2026-06-17
+stopped_at: Phase 390 UI-SPEC approved
+last_updated: "2026-06-17T07:29:11.988Z"
+last_activity: 2026-06-17 -- Phase 390 execution started
 progress:
   total_phases: 24
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 389 — CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)
+**Current focus:** Phase 390 — test-uat-behavior-parity-dsn-06
 
 ## Current Position
 
-Phase: 390 (Test & UAT Behavior Parity (DSN-06)) — PLANNED (2 plans, 2 waves)
-Plan: 0 of 2
-Status: Ready to execute (gate: 389-02 shipped aa377982 + dotnet build green = Plan 01 Task 1)
-Last activity: 2026-06-17
+Phase: 390 (test-uat-behavior-parity-dsn-06) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 390
+Last activity: 2026-06-17 -- Phase 390 execution started
 
 ## Next Action
 
