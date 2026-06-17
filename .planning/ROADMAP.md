@@ -73,7 +73,9 @@ See .planning/MILESTONES.md for full history.
   3. Di `/Admin/CoachWorkload`, heading **"Saran Penyeimbangan"** + isinya (alert "seimbang" atau daftar suggestion-card) terbungkus dalam card konsisten (bukan `<h5>` telanjang menempel di body).
   4. Tidak ada lagi inline `style="font-size:11px/12px/..."` magic-number di `CoachWorkload.cshtml` (dipindah ke kelas/util Bootstrap mis. `.small`/`.fs-*` atau kelas `@section Styles` lokal); spacing antar section diselaraskan (gunakan util margin Bootstrap konsisten `mb-4`).
   5. `dotnet build` 0 error + `dotnet run` (localhost:5277): halaman Results + CoachWorkload render benar, angka summary/chart/threshold + warna badge status (Normal/Mendekati/Overloaded) IDENTIK dengan sebelum perubahan.
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 388-01-PLAN.md — LBL-03 label "Batas Nilai Kelulusan" di Results.cshtml + UAT (Wave 1)
+- [ ] 388-02-PLAN.md — DSN-04 card framing (filter + Saran->list-group) + DSN-05 cleanup inline font-size/legend-dot di CoachWorkload.cshtml + Playwright parity + UAT (Wave 1)
 **UI hint:** yes
 
 ### Phase 389: CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)
@@ -109,7 +111,7 @@ See .planning/MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 388. Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04/05) | 0/? | Not started | - |
+| 388. Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04/05) | 0/2 | Not started | - |
 | 389. CoachCoacheeMapping Redesign — Accordion Card (DSN-01/02/03) | 0/? | Not started | - |
 | 390. Test & UAT Behavior Parity (DSN-06) | 0/? | Not started | - |
 
