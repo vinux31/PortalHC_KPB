@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v31.0
-milestone_name: Hotfix Pra-Ujian Lisensor
-status: v31.0 milestone complete
-stopped_at: "Completed 387-04-PLAN.md (**Phase 387 COMPLETE** — verifikasi proporsional D-09: 8 xUnit Integration facts PXF-06/09/12 disposable real-SQL + Playwright a11y PXF-11 2-surface 3/3 + browser/SignalR/DB manual PXF-08/10/13 APPROVED [cert KPB/005/VI/2026 + workerSubmitted live + timer A/B]; fast suite 347/347 GREEN + build 0 error + 0 migration; commits `46bd422d` test / `3b4db3a2` test; SEED_JOURNAL CLEANED 0 residue)"
-last_updated: "2026-06-15T18:13:57.925Z"
-last_activity: 2026-06-15
+milestone: v32.0
+milestone_name: Manajemen Peserta
+status: Defining requirements
+stopped_at: "v32.0 Manajemen Peserta started 2026-06-17 — defining requirements + roadmap (phases 388-389: CreateWorker field fix + audit, penambahan peserta fleksibel saat ujian berjalan)"
+last_updated: "2026-06-17T00:00:00.000Z"
+last_activity: 2026-06-17
 progress:
-  total_phases: 24
-  completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,63 +21,24 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v31.0 bundle (385+386) selesai lokal — siap 1 push `origin/ITHandoff` + notify IT re-deploy Dev (migration=FALSE) sebelum hari-H
+**Current focus:** v32.0 Manajemen Peserta — defining requirements + roadmap (phases 388-389: CreateWorker field fix + audit, penambahan peserta fleksibel saat ujian berjalan)
 
 ## Current Position
 
-Phase: 999.7
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-17 — Milestone v32.0 Manajemen Peserta started
 
-Plan: 4 of 4 (387-04 **DONE** — verifikasi proporsional D-09 + Phase 387 CLOSE. **Task 1 (xUnit PXF-06/09/12):** `HcPortal.Tests/PostLisensorPolishTests.cs` baru — disposable `HcPortalDB_Test_{guid}` fixture (`IAsyncLifetime`, `[Trait Category=Integration]`, `HcPortalDB_Dev` tak disentuh), 8 facts positive+negative: PXF-06 guard status (Completed reject / PendingGrading allow), PXF-09 essay cell (graded→"Skor: X/Y", blank→"Tidak dijawab", null→"Belum dinilai"), PXF-12 MC upsert (absent question→PackageOptionId UNCHANGED, present→updates) → **8/8 PASS**. **Task 2 (Playwright PXF-11):** `tests/e2e/aria-opsi-387.spec.ts` baru — assert option-image `aria-label` berisi "opsi A" di RUNTIME pada KEDUA surface (Results + ExamSummary) → **3/3 PASS** `--workers=1` (D-09 a11y Razor dinamis, lesson Phase 354). **Task 3 (checkpoint human-verify — APPROVED):** PXF-08/10/13 (LOW tanpa controller/hub harness) diverifikasi MANUAL via browser+SignalR+DB (localhost:5277, AD-off, shared-memory SQL; snapshot→mutate→RESTORE per CLAUDE.md Seed Workflow, SEED_JOURNAL CLEANED, 0 residue): **PXF-08** finalize sesi 169 → `NomorSertifikat`="KPB/005/VI/2026" ter-assign (retry-loop persist), session→Completed, no certError saat sukses; **PXF-10** klien SignalR JoinMonitor batchKey "TEST E2E Campur 2026-06-15|OJT|2026-06-15" → terima event `workerSubmitted` live `{sessionId:169, score:100, result:Pass, status:Completed}` tanpa refresh; **PXF-13** A/B `SaveTextAnswer`: StartedAt=2020+Dur=1min(EXPIRED)→tulis DITOLAK TextAnswer unchanged, StartedAt=now+Dur=60min→tulis SUKSES. Semua mutasi di-RESTORE dari `C:\Temp .bak`. Verif: fast suite `dotnet test --filter Category!=Integration` **347/347 GREEN** + build 0 error + 0 migration. Commits `46bd422d` (Task1 unit) / `3b4db3a2` (Task2 Playwright); Task 3 verify-only no-commit. **Phase 387 SELESAI.** Sisa: deploy IT KEDUA pasca-acara (gabung → push `origin/ITHandoff` → notify IT flag migration=FALSE; ❌ JANGAN edit Dev/Prod).)
+**Milestone v32.0 Manajemen Peserta** (lanjut dari v31.0 phase terakhir 387; expected phases 388-389). 0 migration. Branch ITHandoff.
+- **1.1 Penambahan peserta fleksibel saat ujian berjalan** — pastikan tambah peserta saat ada `InProgress` tetap jalan + tutup edge guard `Completed` sesi representatif + perjelas notice UX + regression test. File: `AssessmentAdminController.cs` (EditAssessment BULK ASSIGN L2114-2226, guard L1992, warning L2077-2085) + view/monitoring.
+- **1.2 Perbaiki /Admin/CreateWorker + audit field** — buka kunci Nama/Email (readonly krn AD mode) + type=email + validation span; verifikasi runtime SEMUA field berfungsi + create submission sukses. File: `Views/Admin/CreateWorker.cshtml` (view-only; controller/model tak diubah).
 
-Plan-LAMA: 3 of 4 (387-03 **DONE** — PXF-11 a11y aria opsi huruf A/B/C/D di 2 surface review (file-disjoint dari Plan 01/02, wave 1). **Results.cshtml** (Options List ~L356): `@foreach (var option in question.Options)` diubah jadi indexed `@for (int oi = 0; oi < question.Options.Count; oi++)` + `var option = question.Options[oi]` + `var letter = oi < letters.Length ? letters[oi] : (oi + 1).ToString()`; partial `_QuestionImage` `AriaContext = "opsi"` → `AriaContext = "opsi " + letter`. SEMUA markup per-opsi (itemClass/icon/OptionText/`(Jawaban Anda)`/`(Jawaban Benar)`) + blok essay-fallback `!question.Options.Any()` UTUH. **ExamSummary.cshtml** (OptionImages ~L57): `@foreach (var optImg in item.OptionImages)` → indexed `@for (int oi = 0; oi < item.OptionImages.Count; oi++)` + `var optImg = item.OptionImages[oi]` + letter derivation; `AriaContext = "opsi " + letter`. Partial gambar-SOAL `Cap = 240` (L56) TIDAK disentuh (git-diff verified). `letters[]` dideklarasi 1× per loop (grep konfirmasi tak ada deklarasi `letters` sebelumnya di kedua view → no Razor redeclare). Keduanya TIRU verbatim `StartExam.cshtml:125/134/148`. Efek: screen-reader dengar "opsi A / opsi B / opsi C / opsi D" bukan "opsi" undifferentiated; `_QuestionImage` render NOTHING bila ImagePath null → huruf hanya muncul pada opsi bergambar. Verif: `dotnet build HcPortal.csproj` 0 error (Razor compile) per task + grep acceptance PASS (AriaContext+letter di kedua file; indexed for; no residual static `AriaContext = "opsi"`; `(Jawaban Benar)` preserved; Cap=240 unchanged); 0 migration; no file deletion. Commits `77f0f57f` (Task1 Results) / `5cef4e81` (Task2 ExamSummary). **D-09 MANDATORY:** Playwright runtime assert `aria-label` berisi huruf di KEDUA surface di-defer Plan 04 (Razor dinamis — grep+build tak cukup, lesson Phase 354). **Next: 387-04** (test/e2e PXF-11 a11y + PXF-12 absent-MC-no-nullify).)
-
-Plan-LAMA: 2 of 4 (387-02 **DONE** — Participant write-path data-integrity guards, 2 REQ in-place edit di file disjoint dari Plan 01/03: **PXF-12** (`Controllers/CMPController.cs` `SubmitExam` MC upsert ~L1712) bungkus assignment `existingResponse.PackageOptionId`/`SubmittedAt` dengan guard `answers.ContainsKey(q.Id)` (reuse self-analog L1703 bentuk ternary) → soal MC absent dari form submit TIDAK lagi null-overwrite jawaban yang sudah ter-autosave via SignalR (T-387-05); cabang MA + Essay untouch. **PXF-13** (`Hubs/AssessmentHub.cs` `SaveTextAnswer` ~L151) sisip guard timer-expiry VERBATIM dari sibling `SaveMultipleAnswer:205-215` (hanya ganti log string) — tulis essay pasca-timer ditolak + `_logger.LogWarning("SaveTextAnswer: timer expired for session {SessionId}")`, memperhitungkan `ExtraTimeMinutes` (T-387-06/07); literal `"InProgress"` L144 tak diubah. Verif: `dotnet build` 0 error + fast suite `dotnet test --filter Category!=Integration` **347/347 GREEN** (no regression) + grep acceptance per-task PASS (`ContainsKey` di L1714 dalam blok TryGetValue; `elapsed > allowed` 2× = SaveText+SaveMultiple; log string L158) + `git diff` konfirmasi MA branch unchanged; 0 migration. Commits `b457f57c` (PXF-12) / `0cd566ae` (PXF-13). Unit test eksplisit PXF-12 (real-SQL Integration) di-defer Plan 04 per plan `<verification>`. **Next: 387-03** (view aria PXF-11, no file-overlap) + 387-04 (test).)
-
-Plan-LAMA: 1 of 4 (387-01 **DONE** — Post-Lisensor AssessmentAdminController polish, 4 REQ in-place edit: **PXF-06 redirect** (orchestrator-directed) tutup 2 gap hardening tertunda 386-REVIEW di `SubmitEssayScore` — WR-01 (`question.QuestionType != "Essay"` → "Soal ini bukan tipe Essay.") + WR-02 ownership (`AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId)` → "Soal bukan milik sesi ini."); guard `Status == Completed` plan REDUNDANT karena guard 386 D-08 `Status != PendingGrading` (L3539) sudah tolak edit pasca-finalize — must_have PXF-06 tetap terpenuhi. **PXF-08** cert nomor retry 3x saat collision + `_logger.LogError` pada kegagalan persisten (ganti silent `catch (DbUpdateException) {}` lama, port verbatim GradingService:287-318) + surface `certError = "Nomor sertifikat gagal dibuat, coba lagi."` ke final JSON. **PXF-10** broadcast `workerSubmitted` ke grup `monitor-{batchKey}` setelah `NotifyIfGroupCompleted` (fire-and-forget, tab Monitoring update tanpa refresh; `session.Schedule` scalar/`session.User?.FullName` null-safe). **PXF-09** Excel BulkExport "Detail Jawaban" essay branch (~L4912, SURFACE GUARD D-06 — BUKAN ExcelExportHelper.cs) tampil `essayResp.TextAnswer` (kol 4, atau "Tidak dijawab") + `"Skor: X/Y"`/"Belum dinilai" (kol 6) ganti placeholder "—". Verif: `dotnet build` 0 error + fast suite `dotnet test --filter Category!=Integration` **347/347 GREEN** + grep acceptance per-task PASS + ExcelExportHelper.cs untouched; 0 migration. Commits `9ccd9a17` (Task1 WR-01/WR-02) / `3b4ce043` (Task2 PXF-08/10) / `c459c047` (Task3 PXF-09). Unit test eksplisit PXF-06/PXF-09 (real-SQL Integration) di-defer Plan 04. **Next: 387-02 / 387-03** (view/CMPController/AssessmentHub, no file-overlap) + 387-04 (test).)
-
-Plan-LAMA: 6 of 6 (386-06 Wave-5 verify/e2e + UAT browser **DONE** — un-gate 2 e2e spec Wave-0 (`test.fixme` dilepas) + reconcile ke perilaku ter-wire: `option-validation-386.spec.ts` submit Single Answer all-opsi-kosong → assert pesan LOCKED `/minimal 2 opsi.*berisi teks/i` di `.alert-danger` + soal malformed TIDAK ter-persist; `essay-empty-finalize-386.spec.ts` drive sesi PendingGrading + ≥1 essay kosong → "Selesaikan Penilaian" → finalize bersih tanpa "Jawaban tidak ditemukan". Tiap spec **self-contained** via seed SQL idempotent (`tests/sql/option-validation-386-seed.sql` + `tests/sql/essay-empty-finalize-386-seed.sql`, dicatat `docs/SEED_JOURNAL.md` temporary+local-only). Gate fase: `dotnet build` 0 error + `dotnet test` **474/474 GREEN** + e2e `--workers=1` **3/3 PASS**. **Browser UAT 4/4 APPROVED** (localhost:5277, AD-off, shared-memory SQL): (1) PDF per-peserta sesi 118 — MA all-or-nothing via `IsQuestionCorrect`+`BuildAnswerCell`, Soal 9 partial {Impeller} dari {Impeller,Volute,Shaft} → SALAH = **F-17 proof**; (2) Excel "Detail Jawaban" sheet byte-identik label dgn PDF = **F-DEV-02 proof** (kedua surface route ke 1 helper bersama); (3) PXF-02 reject banner "Single Answer membutuhkan minimal 2 opsi jawaban yang berisi teks." pkg50 count 20→20 = **F-DEV-01 closed**; (4) PXF-04 EssayGrading sesi 118 — 4 essay + Skor + "Selesaikan Penilaian" tampil (behavior covered e2e 3/3 + parity unit 6/6). DB lokal bersih, no seed tersisa. Commit Task 1 `87112ad4` (test); Task 2/3 verify-only. **PXF-02 + PXF-04 + PXF-05 CLOSED end-to-end (unit+e2e+manual); 0 migration. Phase 386 SELESAI.** Sisa: gabung dgn Phase 385 (complete) → 1 push `origin/ITHandoff` → notify IT re-deploy Dev (flag migration=FALSE) sebelum hari-H ~2026-06-17.)
-
-Plan-LAMA: 6 of 6 (386-05 Wave-4 PXF-05 DONE — 2 surface bukti-resmi export di-route ke helper display bersama. **PDF** `GeneratePerPesertaPdf` (Controllers/AssessmentAdminController.cs, loop "Detail Jawaban per Soal"): blok single-row `FirstOrDefault` MA-mislabel diganti `responsesForQ = Where(PackageQuestionId==q.Id).ToList()` → `bool? correct = IsQuestionCorrect(q, responsesForQ)` (SEMUA tipe, MA all-or-nothing SetEquals) + `string jawaban = BuildAnswerCell(q, responsesForQ)` (MA join ", " SEMUA opsi terpilih); statusColor/statusText (✓ Benar/✗ Salah/— Pending) + render QuestPDF UTUH byte-identik; MC byte-identik; Essay sudah pakai helper. **Excel** `ExcelExportHelper.AddDetailPerSoalSheet` (F-DEV-02 D-13 folded): blok `var response = FirstOrDefault(...)` + `if (response==null){...}else{...}` diganti `responsesForQ = Where(SessionId && q.Id).ToList()` → BuildAnswerCell + IsQuestionCorrect; cell 2-kolom (Jawaban + ✓/✗/— warna Green/Red) UTUH. **Unifikasi label essay Excel (intentional D-13):** `EssayScore >= ScoreValue/2` lama → `> 0` (v30.0 canonical) = sama dgn PDF + web Results. **Compute (scoring engine) 0 diff** di AssessmentScoreAggregator.cs (git-verified, D-11 — display-path saja). Tak perlu `using` baru (ExcelExportHelper sudah namespace HcPortal.Helpers). Verif: build 0 error; grep single-row mislabel 0× di kedua file; pure suite 347/347 GREEN (incl PdfAnswerCellTests + IsQuestionCorrect regression); 0 migration. Commits 85861b69 (PDF) + bb058f1b (Excel). **PXF-05 CLOSED.** e2e tetap `test.fixme` (un-skip Plan 06). Sisa: 386-06 (verify/e2e + UAT browser PDF/Excel). Predecessor: 386-04 PXF-04 + 386-03 PXF-02 + 386-02 helper + 386-01 RED DONE.
-
-Plan-LAMA: 5 of 6 (386-04 Wave-3 PXF-04 DONE — predikat pending essay TUNGGAL `!IsNullOrWhiteSpace(TextAnswer) && EssayScore==null` di 4 surface byte-identik `Controllers/AssessmentAdminController.cs` (SITE1 page L3506, SITE2 finalize-gate L3650, SITE3 SubmitEssayScore L3580, SITE4 Monitoring L3308-3321) → tutup F-04 essay-empty dead-end. `SubmitEssayScore` jadi defensive UPSERT (buat row bila absen, TextAnswer=null) ganti dead-end "Jawaban tidak ditemukan" + status-guard WAJIB tolak `Status != PendingGrading` (D-08, T-386-AUTHZ HIGH, tutup F-03 widening); attributes `[HttpPost]/[Authorize Admin,HC]/[ValidateAntiForgeryToken]` UTUH. **Rule-1 fix saat Task 3:** RESEARCH L60 keliru asumsi `IsNullOrWhiteSpace` translate ke `=N''` — probe SQL Server EF Core 8 buktikan LTRIM/RTRIM/TRIM TAK trim tab/newline → server-side IsNullOrWhiteSpace divergen .NET utk TextAnswer=`\t\n`. Solusi: 2 EF site (SITE3+SITE4) filter `EssayScore==null`+Join Essay server-side, materialize TextAnswer, lalu `IsNullOrWhiteSpace` IN-MEMORY (predikat logis tetap byte-identik 4 surface; hanya titik-eval whitespace geser server→memori). 2 EF mirror di `EssayEmptyPendingParityTests` diselaraskan. Parity 6/6 GREEN (incl varian `\t\n`) + authz 2/2 + suite 474/474; 0 migration. Commits 6efd0294/79132809/866917b6. **PXF-04 CLOSED.** Predecessor: 386-03 PXF-02 + 386-02 helper + 386-01 RED DONE. Sisa: 386-05 (PXF-05 PDF MA SetEquals) + 386-06 (verify/e2e))
-
-**MILESTONE v31.0 STARTED — Hotfix Pra-Ujian Lisensor (urgent, acara ~2026-06-17).** 5 temuan must-fix dari readiness audit gladi-bersih E2E 2026-06-15 (register final adversarial-verified: `.planning/notes/2026-06-15-readiness-ujian-lisensor.md` — 3 HIGH · 5 MED · 7 LOW; 5 dipromote ke PXF-01..05). Ujian lisensor: SA+MA+Essay+soal bergambar, ≤30 peserta, PDF per-peserta = bukti resmi. Target: 1 bundle → 1 deploy IT sebelum hari-H. **0 migration** (semua fix view/controller/validasi). Pendekatan: hotfix langsung (skip domain-research).
-
-**Roadmap v31.0 (3 fase, penomoran LANJUT dari v30.0 phase terakhir 384):**
-
-| Phase | Goal (ringkas) | REQ | File |
-|-------|----------------|-----|------|
-| **385 Exam-Taking & Image Render Hotfix** | Gambar soal/opsi tampil di sub-path `/KPB-PortalHC` (PathBase-aware) + essay flush saat submit/blur/timeout | PXF-01, PXF-03 | `Views/Shared/_QuestionImage.cshtml`, `Views/CMP/StartExam.cshtml` (+ mungkin `CMPController.cs`) |
-| **386 AssessmentAdminController Hardening** | Validasi soal ≥1 opsi + essay kosong tak dead-end finalize + PDF MA SetEquals akurat | PXF-02, PXF-04, PXF-05 | `Controllers/AssessmentAdminController.cs` |
-| **387 Post-Lisensor Assessment Polish** (PASCA-acara, depends 386) | 9 temuan polish: guard SubmitEssayScore status, Excel essay label + MA SetEquals, cert nomor retry, BulkExport essay skor/teks, broadcast monitor, aria opsi huruf, SubmitExam no null-overwrite, SaveTextAnswer guard timer | PXF-06..14 | `AssessmentAdminController.cs`, `ExcelExportHelper.cs`, `Results.cshtml`, `CMPController.cs`, `AssessmentHub.cs` |
-
-**File-overlap (kunci phasing):** PXF-02 + PXF-04 + PXF-05 semua di `AssessmentAdminController.cs` → **digabung Phase 386**. PXF-01 + PXF-03 file view berbeda → Phase 385. Phase 387 (PXF-06..14) = polish pasca-acara, **depends 386** (PXF-06/08/09/10 juga di `AssessmentAdminController.cs`); deploy IT KEDUA terpisah dari bundle urgent. Semua 0 migration.
-
-**Coverage:** 14/14 PXF ter-map ✓ — Orphans: 0 — Duplicates: 0. (385-386 = 5 must-fix pra-acara; 387 = 9 polish pasca-acara, ditambah 2026-06-15 dari FUTURE + F-DEV-02.)
-
-**Plan:** Not started
-
-**Next:** `/gsd-plan-phase 385` (lalu `/gsd-plan-phase 386`). Tiap fase: `dotnet build` + `dotnet run` (localhost:5277) + verifikasi (PXF-01 via URL prefix `/KPB-PortalHC` lokal + Playwright; PXF-02/03/04 unit test + Playwright; PXF-05 unit test) sebelum commit → 1 push → notify IT re-deploy. ❌ tidak ada edit di Dev/Prod (CLAUDE.md Develop Workflow). Mitigasi operasional saat ujian (walau sudah fix): 1 paket soal, cek tiap soal punya opsi, briefing peserta.
-
-Predecessor: v25.0 + v26.0 + v27.0 + v28.0 + v29.0 + v30.0 SHIPPED LOCAL + audited PASSED + closed. v29/v30 PUSHED `origin/ITHandoff` + tag (`v29.0`/`v30.0`).
-
-| Milestone | Phases | REQ | Audit | Archive |
-|-----------|--------|-----|-------|---------|
-| v25.0 Proton Kelulusan & Bypass | 358-368 | 20/20 PCOMP/PBYP | PASSED | milestones/v25.0-ROADMAP.md |
-| v26.0 Urgent Search & Records Visibility | 369-371 | 3/3 URG | PASSED | milestones/v26.0-ROADMAP.md |
-| v27.0 Shuffle Toggle | 372-375 | 16/16 SHUF | PASSED | milestones/v27.0-ROADMAP.md |
-| v28.0 Assessment & Records Bug Fixes | 376-379 | 6/6 GRADE/IMP/CMPRT/E2E | PASSED | milestones/v28.0-ROADMAP.md |
-| v29.0 Assessment E2E Worker-Success Fix | 380-382 | 11/11 WSE | PASSED | milestones/v29.0-ROADMAP.md |
-| v30.0 Essay Grading Correctness + Monitoring UI Refactor | 383-384 | 10/10 ECG/UIG | PASSED | milestones/v30.0-ROADMAP.md |
+(Penomoran phase final + success criteria ditentukan roadmapper.)
 
 ## Next Action
 
-**Phase 385 + Phase 386 KEDUANYA COMPLETE + verified lokal.** v31.0 must-fix pra-ujian (PXF-01..05) selesai. Sisa langkah handoff (CLAUDE.md Develop Workflow):
-
-1. **Push 1× ke `origin/ITHandoff`** — gabung bundle Phase 385 (PXF-01 img PathBase + PXF-03 essay flush) + Phase 386 (PXF-02 validasi opsi + PXF-04 essay kosong finalize + PXF-05 PDF/Excel MA SetEquals). _Belum dipush oleh developer per instruksi._
-2. **Notify IT** — kasih commit hash HEAD + **flag migration = FALSE** (v31.0 = 0 migration baru; carry lama `PendingProtonBypass`+index/360 & `ShuffleToggles`/372 tetap pending).
-3. **IT re-deploy Dev (10.55.3.3)** sebelum hari-H ujian lisensor (~2026-06-17) + **UAT browser PXF-01** (gambar di sub-path `/KPB-PortalHC` — open blocker, lokal no-repro tanpa PathBase). ❌ tidak ada edit kode/DB di Dev/Prod (CLAUDE.md Develop Workflow).
-4. (Pasca-acara) **`/gsd-execute-phase 387`** — Phase 387 Post-Lisensor Assessment Polish (PXF-06..14, `depends_on: 386` kini unblocked; plans 387-01/02/03 sudah ada) = deploy IT KEDUA terpisah.
+Defining requirements → roadmap (in progress via `/gsd-new-milestone`). Setelah roadmap approved: `/gsd-plan-phase <N>` (atau `/gsd-discuss-phase <N>`). Tiap fase: `dotnet build` + Playwright lokal sebelum commit → push `origin/ITHandoff` → notify IT (migration=FALSE). ❌ tidak ada edit di Dev/Prod (CLAUDE.md Develop Workflow).
 
 ## Tag Git
 
