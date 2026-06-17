@@ -123,3 +123,16 @@ State A (existing VALIDATION.md audited). Spec `coachcoacheemapping-389.spec.ts`
 | Escalated | 0 |
 
 **Verdict:** PARTIAL by design. No MISSING tests — every requirement has a parse-able runtime assertion. V-05/11/12/13 skip only on the data-guard precondition (≥2 coaches / disposable rows) and go green automatically once Phase 390 seeds disposable data. No `gsd-nyquist-auditor` spawn required (auto-filling would duplicate Phase 390 scope + require temp seed, contradicting the phase deferral decision).
+
+### Live re-run confirmation 2026-06-17 (port 5270)
+
+Re-validated against a **fresh live app build** (5277 occupied by a stale `dotnet` PID 15480; launched current HEAD on free port **5270** via `Authentication__UseActiveDirectory=false` + `Server=lpc:Lenovo\SQLEXPRESS` shared-mem override). `playwright.config.ts` made `E2E_BASE_URL`-overridable (backward-compatible, defaults 5277).
+
+```
+E2E_BASE_URL=http://localhost:5270 npx playwright test coachcoacheemapping-389 --workers=1
+→ 11 passed (10 V + setup) / 4 skipped / 0 FAILED (46.2s)
+```
+
+- `dotnet build` → 0 error (25 pre-existing nullable warnings).
+- Green: V-01/02/03/04/06/07/08/09/10/14. Skipped (data-guard): V-05/11/12/13. **Identical to 389-02-SUMMARY** — result reproducible on a clean build.
+- DB integrity: globalSetup BACKUP → matrix seed (Layer 1 OK 18/10/30/80) → globalTeardown RESTORE (Layer 4 OK = 0 matrix rows) → SEED_JOURNAL `active`→`cleaned` → snapshot deleted. Local DB verified clean post-run (0 matrix rows, state file removed). No seed pollution.
