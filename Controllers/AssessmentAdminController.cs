@@ -2161,23 +2161,26 @@ namespace HcPortal.Controllers
                                 return RedirectToAction("ManageAssessment");
                             }
 
-                            // Build new sessions (editUser already fetched at outer scope)
+                            // Build new sessions (editUser already fetched at outer scope).
+                            // Phase 391 (review WR-02): source dari `model` (config yang BARU disubmit) + `newToken` (ter-normalisasi),
+                            // BUKAN `savedAssessment` re-load — re-load bisa stale bila sesi representatif InProgress (di-skip D-03 edit-loop),
+                            // sehingga peserta baru akan mewarisi Schedule/Duration lama. model = sumber kebenaran config grup terkini.
                             var newSessions = filteredNewUserIds.Select(uid => new AssessmentSession
                             {
-                                Title = savedAssessment.Title,
-                                Category = savedAssessment.Category,
-                                Schedule = savedAssessment.Schedule,
-                                DurationMinutes = savedAssessment.DurationMinutes,
-                                Status = DeriveReadyStatus(savedAssessment.Schedule, savedAssessment.ExamWindowCloseDate),
-                                BannerColor = savedAssessment.BannerColor,
-                                IsTokenRequired = savedAssessment.IsTokenRequired,
-                                AccessToken = savedAssessment.AccessToken,
-                                PassPercentage = savedAssessment.PassPercentage,
-                                AllowAnswerReview = savedAssessment.AllowAnswerReview,
-                                ShuffleQuestions = savedAssessment.ShuffleQuestions,
-                                ShuffleOptions = savedAssessment.ShuffleOptions,
-                                GenerateCertificate = savedAssessment.GenerateCertificate,
-                                ExamWindowCloseDate = savedAssessment.ExamWindowCloseDate,
+                                Title = model.Title,
+                                Category = model.Category,
+                                Schedule = model.Schedule,
+                                DurationMinutes = model.DurationMinutes,
+                                Status = DeriveReadyStatus(model.Schedule, model.ExamWindowCloseDate),
+                                BannerColor = model.BannerColor,
+                                IsTokenRequired = model.IsTokenRequired,
+                                AccessToken = newToken,
+                                PassPercentage = model.PassPercentage,
+                                AllowAnswerReview = model.AllowAnswerReview,
+                                ShuffleQuestions = model.ShuffleQuestions,
+                                ShuffleOptions = model.ShuffleOptions,
+                                GenerateCertificate = model.GenerateCertificate,
+                                ExamWindowCloseDate = model.ExamWindowCloseDate,
                                 Progress = 0,
                                 UserId = uid,
                                 CreatedBy = editUser?.Id
