@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
-status: Defining requirements
-stopped_at: "Milestone v32.1 started — PROJECT.md updated, defining requirements"
+status: Roadmap created
+stopped_at: "Roadmap created — Phases 388-390 (7/7 REQ mapped, 0 migration). Ready to plan Phase 388."
 last_updated: "2026-06-17T00:00:00.000Z"
 last_activity: 2026-06-17
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,24 +21,25 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.1 Perbaikan Teks & Desain STARTED 2026-06-17 (branch ITHandoff; main pegang v32.0). Pure UI/teks polish 3 surface — LBL-03 + DSN-01..05, 0 backend, 0 migration.
+**Current focus:** v32.1 Perbaikan Teks & Desain — roadmap created 2026-06-17 (branch ITHandoff; main pegang v32.0). 3 phase (388-390), 7 REQ LBL-03 + DSN-01..06, pure UI/teks 3 surface, 0 backend, 0 migration.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap created, Phases 388-390 defined)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-17 — Milestone v32.1 started
+Status: Roadmap created — ready to plan Phase 388
+Last activity: 2026-06-17 — Roadmap v32.1 created (7/7 REQ mapped, 0 orphan, 0 duplicate, 0 migration)
 
 ## Next Action
 
-Selesaikan REQUIREMENTS.md (LBL-03 + DSN-01..05) → roadmapper (mulai Phase 388) → `/gsd-plan-phase 388`.
+`/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish — LBL-03 + DSN-04 + DSN-05).
 
-Scope terkunci (brainstorm + visual-companion):
-- **LBL-03** label "Nilai Kelulusan" → "Batas Nilai Kelulusan" (`Views/CMP/Results.cshtml:60`)
-- **DSN-01/02/03** CoachCoacheeMapping → accordion card per coach (B) + toolbar rapi + hapus dead-onclick
-- **DSN-04/05** CoachWorkload polish-only (filter+heading ke card, bersihkan inline style)
-- Constraint: behavior parity, 0 backend, 0 migration.
+Urutan fase v32.1:
+- **Phase 388** — LBL-03 (`Results.cshtml` label "Batas Nilai Kelulusan") + DSN-04/05 (CoachWorkload polish: filter+heading→card, hapus inline font-size, spacing). File DISJOINT, low-risk.
+- **Phase 389** — DSN-01/02/03 (CoachCoacheeMapping → accordion card per coach + toolbar seragam + hapus dead-onclick). RISK TERTINGGI (behavior regression modal/AJAX/collapse). File terisolasi → boleh paralel dgn 388.
+- **Phase 390** — DSN-06 (Test & UAT behavior parity penutup; depends 388 + 389).
+
+Constraint global: behavior parity WAJIB, 0 backend, 0 migration, 0 controller. Verifikasi tiap phase: dotnet build + dotnet run (localhost:5277) + Playwright + UAT browser. Arah desain terkunci (brainstorm + visual-companion). 1 deploy IT di akhir milestone (migration=FALSE).
 
 ## Tag Git
 
@@ -75,12 +76,13 @@ Scope terkunci (brainstorm + visual-companion):
 |------|--------|
 | Notify IT — 2 migration carry lama (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ PENDING (carry lama; v28-v32 = 0 migration baru) |
 | v31.0 deploy Dev + UAT full-lifecycle | ✅ DONE 2026-06-16 (IT deploy + browser UAT PASS; PXF-01 gambar sub-path CLOSED) |
-| **v32.1** — semua LBL/DSN = 0 migration, 0 backend; target 1 push → IT re-deploy Dev | ⏳ pending (milestone aktif, belum di-plan) |
+| **v32.1** — semua LBL/DSN = 0 migration, 0 backend; target 1 push → IT re-deploy Dev | ⏳ pending (roadmap dibuat, belum di-plan/execute) |
 
 ## Accumulated Context
 
 ### Decisions (persist across milestones)
 
+- [v32.1 roadmap / phases 388-390]: 3 phase derived by file-overlap + risk — 388 (LBL-03 Results + DSN-04/05 CoachWorkload polish, DISJOINT low-risk), 389 (DSN-01/02/03 CoachCoacheeMapping accordion card opsi "B", RISK TERTINGGI), 390 (DSN-06 Test & UAT parity penutup). 7/7 REQ mapped, 0 orphan/duplicate, 0 migration. Arah desain terkunci: accordion card per coach (header avatar inisial+nama+section+badge beban warna-ikut-threshold existing >=8 merah / >=5 kuning / else info) + CoachWorkload polish-only. Risiko utama = behavior regression modal/AJAX/collapse.
 - [v31.0 Hotfix Pra-Ujian Lisensor / phases 385-387]: 14/14 PXF closed, 0 migration. Pattern kunci: shared display helper `AssessmentScoreAggregator.IsQuestionCorrect` + `BuildAnswerCell` (MA all-or-nothing SetEquals, essay Benar=`>0`) dipakai 1× lintas web Results + PDF + Excel (kill-drift); essay PathBase-aware sub-path `/KPB-PortalHC`; predikat pending essay TUNGGAL `!IsNullOrWhiteSpace(TextAnswer) && EssayScore==null` byte-identik 4 surface; aria opsi huruf A/B/C/D (lesson: a11y Razor dinamis WAJIB Playwright runtime assert, grep+build INSUFFICIENT — Phase 354). MERGED→main 7ea6c81e, UAT Dev full-lifecycle PASS 2026-06-16.
 - [v30.0 / ECG]: helper terpusat `AssessmentScoreAggregator.IsQuestionCorrect` (essay `>0`=Benar, `=0`=Salah, `null`=pending) di `CMPController.Results` 4 site + PDF export (kill-drift). MA non-empty guard display-path beda dari scoring `Compute`.
 - [v29.0 / 382]: SAVE-01 dedupe last-write-wins in-memory, NO migration.
@@ -88,25 +90,26 @@ Scope terkunci (brainstorm + visual-companion):
 - [v25.0 / A-4]: Penanda kelulusan Proton lewat 1 helper bersama `ProtonCompletionService` (Origin).
 - [v24.0 / spec §9]: Hapus file gambar pola Phase 333/335 — kumpul path SEBELUM tx, File.Delete SETELAH commit, warn-only.
 - [v22.0 cross-milestone]: `AssessmentConstants.AssessmentStatus.PendingGrading` = single source of truth label lintas 11+ surface.
-- [v21.0 / org labels]: tier label org (Bagian/Unit/Sub-unit) configurable via `IOrgLabelService` + global `@inject OrgLabels` (110 calls / 26 views) — **relevan v32.1** (CoachCoacheeMapping pakai `@OrgLabels.GetLabel(0/1)`).
+- [v21.0 / org labels]: tier label org (Bagian/Unit/Sub-unit) configurable via `IOrgLabelService` + global `@inject OrgLabels` (110 calls / 26 views) — **relevan v32.1** (CoachCoacheeMapping pakai `@OrgLabels.GetLabel(0/1)` di header kolom coachee).
 - [v12.0]: AdminController dipecah jadi 8 controller per domain; URL tetap via [Route]. (CoachCoacheeMapping/CoachWorkload actions di `CoachMapping`/`Admin` controller — view-only edit v32.1.)
 
 ### UI/Design baseline (relevan v32.1)
 
 - Design language app = Bootstrap 5 + Bootstrap Icons (`bi-*`); card idiom `card border-0 shadow-sm`; badge warna status; modal Bootstrap; AJAX fetch + `RequestVerificationToken`.
-- `CoachWorkload.cshtml` sudah pakai card idiom dgn benar (summary cards + chart card + table card) → polish-only baseline.
-- `CoachCoacheeMapping.cshtml` = tabel grouped telanjang (thead `table-dark` + baris coach `table-primary`) → target redesign accordion card.
-- Helper JS app: `appUrl(path)` / `window.basePath` untuk PathBase-aware URL (WAJIB pakai di fetch, jangan hardcode `/Admin/...`).
+- `CoachWorkload.cshtml` sudah pakai card idiom dgn benar (summary cards + chart card + table card) → polish-only baseline. Yang BELUM ber-card: filter bar (`<form>` telanjang L114) + heading "Saran Penyeimbangan" (`<h5>` telanjang L229). Inline magic-number: `style="font-size:11px"` (L93), `style="font-size:12px"` (L104), + style inline lain (legend chart, chevron transition).
+- `CoachCoacheeMapping.cshtml` = tabel grouped telanjang (thead `table-dark` + baris coach `table-primary` collapse) → target redesign accordion card. Badge beban existing: `ActiveCount>=8 bg-danger / >=5 bg-warning / else bg-info` (L262). Dead-code `onclick` di tombol "Tambah Mapping" (L58). Kolom coachee existing 10: Nama/NIP/@OrgLabels.GetLabel(0)/@OrgLabels.GetLabel(1)/Jabatan/ProtonTrack/Status/Mulai/Coachee Aktif/Aksi.
+- Aksi/JS existing CoachCoacheeMapping (WAJIB parity): `openEditModal`, `confirmDeactivate`, `reactivateMapping`, `confirmDelete`, form `MarkMappingCompleted` (Graduated), modal `#assignModal`/`#editModal`/`#importMappingModal`, filter `resetPageAndSubmit`, pagination.
+- Helper JS app: `appUrl(path)` / `window.basePath` untuk PathBase-aware URL (WAJIB pakai di fetch, jangan hardcode `/Admin/...` / `/CoachMapping/...`).
 
 ### Open Blockers/Concerns
 
 - [push] Carry migration lama (Origin, PendingProtonBypass+index/360, ShuffleToggles/372) — notify IT flag. v28-v32 = 0 migration baru.
-- v32.1 = pure view/JS edit → risiko utama = **behavior regression** (modal/AJAX/collapse wiring CoachCoacheeMapping). Verifikasi: build + Playwright + UAT browser semua aksi existing (assign/edit/nonaktif/graduated/hapus/reactivate/import/export + threshold/saran).
+- v32.1 = pure view/JS edit → risiko utama = **behavior regression** (modal/AJAX/collapse wiring CoachCoacheeMapping — Phase 389 RISK TERTINGGI). Verifikasi: build + Playwright + UAT browser semua aksi existing (assign/edit/nonaktif/graduated/hapus/reactivate/import/export + threshold/saran). DSN-06 = phase Test & UAT parity penutup (Phase 390).
 
 ## Session Continuity
 
 Last activity: 2026-06-17
 
-Stopped at: Milestone v32.1 started — PROJECT.md updated (Current Milestone v32.1, v31.0 demoted ke Previous), STATE.md reset. Defining requirements (LBL-03 + DSN-01..05).
+Stopped at: Roadmap v32.1 created — ROADMAP.md (Phases 388-390 APPEND-ONLY, history preserved), REQUIREMENTS.md traceability filled (7/7 mapped), STATE.md updated. 0 migration, 0 backend, behavior parity wajib.
 
-Next action: Tulis REQUIREMENTS.md → spawn roadmapper (Phase 388 dst) → approve roadmap → `/gsd-plan-phase 388`.
+Next action: `/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish). Lalu 389 (CoachCoacheeMapping redesign), 390 (Test & UAT parity). Approve roadmap dulu bila perlu review user.

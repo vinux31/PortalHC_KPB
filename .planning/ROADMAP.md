@@ -30,6 +30,7 @@
 - ✅ **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (shipped local + audited PASSED 2026-06-15, 11/11 REQ WSE-01..11; 0 migration; NOT PUSHED) — [archive](milestones/v29.0-ROADMAP.md) — [audit](v29.0-MILESTONE-AUDIT.md)
 - ✅ **v30.0 Essay Grading Correctness + Monitoring UI Refactor** — Phases 383-384 (shipped local + audited PASSED 2026-06-15, 10/10 REQ ECG-01..06 + UIG-01..04; **0 migration**; menutup backlog RES-02 + GRD-02; NOT PUSHED) — [archive](milestones/v30.0-ROADMAP.md) — [audit](milestones/v30.0-MILESTONE-AUDIT.md)
 - ✅ **v31.0 Hotfix Pra-Ujian Lisensor** — Phases 385-387 (shipped local + audited PASSED 2026-06-16, 14/14 REQ PXF-01..14; **0 migration**; 385-386 = bundle urgent pra-acara [deploy IT #1], 387 = polish pasca-acara [deploy IT #2]; NOT PUSHED) — [archive](milestones/v31.0-ROADMAP.md) — [audit](milestones/v31.0-MILESTONE-AUDIT.md)
+- 🚧 **v32.1 Perbaikan Teks & Desain** — Phases 388-390 (roadmap created 2026-06-17, 7 REQ LBL-03 + DSN-01..06; **0 migration, 0 backend** — pure UI/teks 3 surface view; branch ITHandoff, main pegang v32.0)
 
 ## Phases
 
@@ -37,6 +38,94 @@
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
 
 See .planning/MILESTONES.md for full history.
+
+</details>
+
+<details open>
+<summary>🚧 v32.1 Perbaikan Teks & Desain (Phases 388-390) — ROADMAP CREATED 2026-06-17 — NOT YET PLANNED</summary>
+
+**Status:** Roadmap created 2026-06-17 (skip domain-research — pure UI/teks polish, arah desain sudah terkunci via brainstorm + visual-companion). NOT YET PLANNED.
+**Goal:** Rapikan teks & tampilan 3 surface (hasil assessment + 2 halaman Admin coach) — murni UI/teks, tanpa ubah backend/perilaku/migration. (main pegang v32.0 di branch terpisah; branch ITHandoff ini = v32.1)
+**Granularity:** standard (config). 3 fase — diturunkan dari pengelompokan **file-overlap + tingkat risiko**: file `Results.cshtml` + `CoachWorkload.cshtml` (low-risk, DISJOINT) digabung 1 fase; `CoachCoacheeMapping.cshtml` (redesign besar, risk tertinggi) berdiri sendiri; 1 fase Test & UAT parity penutup (DSN-06 lintas-cutting).
+**Migration:** **false (ketiga phase)** — semua edit murni view `.cshtml` (+ `@section Scripts` JS inline). Tidak ada controller/service/skema/backfill/write DB.
+**Konteks kunci:** Arah desain terkunci — CoachCoacheeMapping → **accordion card per coach** (opsi "B": header avatar inisial + nama + section + badge beban warna-ikut-threshold; klik buka/tutup tabel coachee mini di dalam card). CoachWorkload → **polish-only** (filter bar + heading "Saran Penyeimbangan" dibungkus card; bersihkan inline magic-number font-size; selaraskan spacing). Arah "C" (master-detail/kanban penuh) DITOLAK.
+**Design language (WAJIB ikuti, jangan reinvent):** Bootstrap 5 + Bootstrap Icons (`bi-*`); card idiom `card border-0 shadow-sm`; modal Bootstrap; AJAX `fetch` + header `RequestVerificationToken`; helper `appUrl()`/`window.basePath` untuk PathBase-aware URL (jangan hardcode `/Admin/...` atau `/CoachMapping/...`); label org via `@OrgLabels.GetLabel(0/1)`.
+**Risiko utama = behavior regression** (modal/AJAX/collapse wiring CoachCoacheeMapping kompleks: assign/edit/deactivate/delete/reactivate/import/export + graduated). Verifikasi WAJIB tiap fase: `dotnet build` + `dotnet run` (localhost:5277) + Playwright + UAT browser semua aksi existing. **Lesson proyek (Phase 354): a11y/Razor dinamis WAJIB Playwright runtime assert — grep + build TAK cukup.**
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap fase wajib gate `dotnet build` + `dotnet run` + cek lokal sebelum commit. Semua → 1 push → notify IT re-deploy Dev (migration=FALSE). ❌ tidak ada edit di Dev/Prod.
+**File-overlap (hindari konflik write paralel):** 388 = `Views/CMP/Results.cshtml` + `Views/Admin/CoachWorkload.cshtml` (DISJOINT). 389 = `Views/Admin/CoachCoacheeMapping.cshtml` (terisolasi). 390 = test/UAT (tak menulis view produksi baru selain perbaikan defect parity bila ditemukan). 388 & 389 file berbeda → boleh paralel; 390 sequential (depends 388 + 389 selesai).
+
+### Phases
+
+- [ ] **Phase 388: Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04 + DSN-05)** — Label kartu ringkasan hasil assessment jadi "Batas Nilai Kelulusan" (nilai persen tak berubah) + CoachWorkload: filter bar & heading "Saran Penyeimbangan" dibungkus card konsisten + inline magic-number font-size dipindah ke kelas/util + spacing diselaraskan. File `Results.cshtml` + `CoachWorkload.cshtml` (DISJOINT, low-risk, 0 backend, 0 migration).
+- [ ] **Phase 389: CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)** — Ganti tabel grouped telanjang jadi accordion card per coach (header: avatar inisial + nama + section + badge beban warna-ikut-threshold) yang bisa diklik buka/tutup daftar coachee (tabel/list mini di dalam card, semua kolom existing tetap) + toolbar header diseragamkan + dead-code `onclick` sampah dihapus pada tombol "Tambah Mapping" tanpa ubah fungsi. Semua modal/AJAX/collapse wiring existing TETAP jalan. File `CoachCoacheeMapping.cshtml` (terisolasi, RISK TERTINGGI, 0 backend, 0 migration).
+- [ ] **Phase 390: Test & UAT Behavior Parity (DSN-06)** — Verifikasi seluruh aksi existing tetap berfungsi pasca-redesign: CoachCoacheeMapping (tambah/edit/nonaktif/graduated/hapus/aktifkan-kembali + import & export Excel + modal assign/edit/deactivate/delete) + CoachWorkload (filter section, export Excel, set threshold [Admin], setujui & lewati saran). Playwright + UAT browser lintas semua aksi; perbaiki defect parity bila ditemukan. Penutup milestone, depends 388 + 389. 0 backend, 0 migration.
+
+### Phase Details
+
+### Phase 388: Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04 + DSN-05)
+**Goal:** Teks label hasil assessment lebih jelas + halaman CoachWorkload tampil konsisten (semua section dibungkus card seragam, tanpa inline magic-number style) — murni kosmetik, tanpa ubah angka/perilaku/data.
+**Depends on:** Tidak ada (milestone start; file DISJOINT dari Phase 389 → boleh paralel).
+**Migration:** false (murni view edit; tak ada controller/skema/data).
+**Requirements:** LBL-03, DSN-04, DSN-05
+**Success Criteria** (what must be TRUE):
+  1. Di halaman hasil assessment (`/CMP/Results/{id}`), kartu tengah menampilkan label **"Batas Nilai Kelulusan"** (bukan "Nilai Kelulusan"); nilai persen `@Model.PassPercentage%` di bawahnya tetap sama (tak berubah angka/format).
+  2. Di `/Admin/CoachWorkload`, **filter bar** (dropdown Section + tombol Filter/Reset) terbungkus dalam card `card border-0 shadow-sm` yang konsisten dengan summary cards / chart card / table card di halaman yang sama.
+  3. Di `/Admin/CoachWorkload`, heading **"Saran Penyeimbangan"** + isinya (alert "seimbang" atau daftar suggestion-card) terbungkus dalam card konsisten (bukan `<h5>` telanjang menempel di body).
+  4. Tidak ada lagi inline `style="font-size:11px/12px/..."` magic-number di `CoachWorkload.cshtml` (dipindah ke kelas/util Bootstrap mis. `.small`/`.fs-*` atau kelas `@section Styles` lokal); spacing antar section diselaraskan (gunakan util margin Bootstrap konsisten `mb-4`).
+  5. `dotnet build` 0 error + `dotnet run` (localhost:5277): halaman Results + CoachWorkload render benar, angka summary/chart/threshold + warna badge status (Normal/Mendekati/Overloaded) IDENTIK dengan sebelum perubahan.
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 389: CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)
+**Goal:** Daftar mapping coach-coachee tampil sebagai accordion card per coach yang rapi & dapat dibuka/tutup, dengan toolbar header seragam dan tanpa dead-code — semua aksi/modal/AJAX/threshold existing tetap berfungsi byte-for-byte (behavior parity).
+**Depends on:** Tidak ada (file `CoachCoacheeMapping.cshtml` terisolasi dari Phase 388 → boleh paralel). RISK TERTINGGI milestone.
+**Migration:** false (murni view + JS inline; controller/endpoint/JS-contract TIDAK disentuh).
+**Requirements:** DSN-01, DSN-02, DSN-03
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC melihat daftar mapping sebagai **accordion card per coach** — tiap card menampilkan avatar inisial coach + nama coach + section + badge jumlah coachee aktif yang warnanya **mengikuti ambang beban existing** (info/normal `<5`, kuning/mendekati `>=5`, merah/overload `>=8` — konsisten dengan logika badge `ActiveCount` saat ini).
+  2. Admin/HC dapat **mengklik header card** untuk buka/tutup daftar coachee (tabel/list mini di dalam card); semua kolom data coachee existing tetap tampil: Nama, NIP, @OrgLabels.GetLabel(0) Penugasan, @OrgLabels.GetLabel(1) Penugasan, Jabatan, Proton Track, Status, Mulai, Aksi.
+  3. Toolbar header (Download Template / Import Excel / Export Excel / Tambah Mapping) tampil **rapi & seragam** (gaya/ukuran tombol konsisten) dan dead-code `onclick="document.getElementById('assignModal')..."` pada tombol "Tambah Mapping" **dihapus** tanpa mengubah fungsi tombol (modal `#assignModal` tetap terbuka via `data-bs-toggle`).
+  4. Behavior parity terjaga (verifikasi runtime): tombol Edit (modal `openEditModal`), Nonaktifkan (`confirmDeactivate`), Graduated (`MarkMappingCompleted` form), Aktifkan (`reactivateMapping`), Hapus (`confirmDelete`), badge "Graduated", filter Seksi + Cari + "Tampilkan Semua", pagination — semuanya berfungsi sama seperti sebelum redesign.
+  5. `dotnet build` 0 error + `dotnet run` (localhost:5277) + **Playwright runtime** (lesson Phase 354: grep+build tak cukup): card collapse buka/tutup OK, modal assign/edit muncul, AJAX reactivate/deactivate/delete pakai `appUrl()`+RequestVerificationToken (tak hardcode path, tak 404 di sub-path).
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 390: Test & UAT Behavior Parity (DSN-06)
+**Goal:** Membuktikan redesign v32.1 tidak meregresi satu pun aksi existing pada kedua halaman Admin coach — semua alur fungsional lewat UAT browser + Playwright, defect parity (bila ada) diperbaiki.
+**Depends on:** Phase 388 + Phase 389 (keduanya harus selesai — DSN-06 lintas-cutting).
+**Migration:** false (test/UAT + perbaikan defect view bila ditemukan; tak ada controller/skema).
+**Requirements:** DSN-06
+**Success Criteria** (what must be TRUE):
+  1. CoachCoacheeMapping — semua aksi lewat UAT browser: **tambah** (assign modal → simpan), **edit** (edit modal → simpan), **nonaktifkan**, **graduated**, **hapus**, **aktifkan-kembali** mapping; **import** & **export** Excel; semua sukses tanpa error/500 dan data ter-update benar.
+  2. CoachWorkload — semua aksi lewat UAT browser: **filter section**, **export Excel**, **set threshold** (sebagai Admin), **setujui** & **lewati** saran penyeimbangan; semua berfungsi + warna/badge status benar.
+  3. Tidak ada perubahan endpoint atau JS-contract di luar yang dibutuhkan untuk render baru (verifikasi: tak ada controller/service file ter-modifikasi di milestone; grep AJAX URL pakai `appUrl()`/`window.basePath`, bukan hardcode).
+  4. `dotnet build` 0 error + `dotnet test` hijau (suite existing tak regresi) + Playwright spec parity lintas kedua halaman PASS di localhost:5277 (CLAUDE.md Develop Workflow); milestone siap 1 push → notify IT re-deploy Dev (migration=FALSE).
+**Plans:** TBD
+**UI hint:** yes
+
+**Active mapped: 7/7 ✓ (LBL-03, DSN-01..06) — Orphans: 0 — Duplicates: 0 — 0 migration (semua 3 phase). DSN-06 = phase Test & UAT parity penutup (lintas-cutting).**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 388. Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04/05) | 0/? | Not started | - |
+| 389. CoachCoacheeMapping Redesign — Accordion Card (DSN-01/02/03) | 0/? | Not started | - |
+| 390. Test & UAT Behavior Parity (DSN-06) | 0/? | Not started | - |
+
+### Coverage Validation
+
+| REQ | Phase | Surface / Touchpoint | Status |
+|-----|-------|----------------------|--------|
+| LBL-03 | 388 | `Views/CMP/Results.cshtml:60` label "Batas Nilai Kelulusan" | Pending |
+| DSN-04 | 388 | `Views/Admin/CoachWorkload.cshtml` filter bar + "Saran Penyeimbangan" → card | Pending |
+| DSN-05 | 388 | `Views/Admin/CoachWorkload.cshtml` hapus inline font-size magic-number + spacing | Pending |
+| DSN-01 | 389 | `Views/Admin/CoachCoacheeMapping.cshtml` accordion card per coach (avatar+nama+section+badge beban) | Pending |
+| DSN-02 | 389 | `Views/Admin/CoachCoacheeMapping.cshtml` klik card buka/tutup tabel coachee mini (kolom existing utuh) | Pending |
+| DSN-03 | 389 | `Views/Admin/CoachCoacheeMapping.cshtml` toolbar seragam + hapus dead `onclick` "Tambah Mapping" | Pending |
+| DSN-06 | 390 | Test & UAT parity semua aksi CoachCoacheeMapping + CoachWorkload | Pending |
+
+**Active mapped: 7/7 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration (ketiga phase). DSN-06 lintas-cutting → phase Test & UAT penutup.**
 
 </details>
 
@@ -55,9 +144,12 @@ See .planning/MILESTONES.md for full history.
 
 ### Phases
 
-- [x] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration. (completed 2026-06-15)
-- [x] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration. (completed 2026-06-15)
-- [x] **Phase 387: Post-Lisensor Assessment Polish (7 REQ)** — Batch sisa pasca-acara (1 MED + 6 LOW): guard `SubmitEssayScore` status (PXF-06), cert nomor retry+log (PXF-08), Excel BulkExport "Detail Jawaban" essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). **PXF-07 + PXF-14 dipindah ke Phase 386** (386-05 sudah rewrite `ExcelExportHelper.cs:83-128`). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration. (completed 2026-06-15)
+- [x] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration.
+ (completed 2026-06-15)
+- [x] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration.
+ (completed 2026-06-15)
+- [x] **Phase 387: Post-Lisensor Assessment Polish (7 REQ)** — Batch sisa pasca-acara (1 MED + 6 LOW): guard `SubmitEssayScore` status (PXF-06), cert nomor retry+log (PXF-08), Excel BulkExport "Detail Jawaban" essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). **PXF-07 + PXF-14 dipindah ke Phase 386** (386-05 sudah rewrite `ExcelExportHelper.cs:83-128`). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration.
+ (completed 2026-06-15)
 
 ### Phase Details
 
@@ -1500,3 +1592,5 @@ Plans:
 *Prev: 2026-05-27 (Phase 328 added — Cascade Audit Sweep Delete* endpoints, audit-only, spec commit 02f620be).*
 *Prev: 2026-05-27 (backlog Phase 999.1 Realtime Assessment SignalR added).*
 *Prev: 2026-05-26 (v19.0 planned — 6 bug Portal HC actionable dari sertifikat-ecosystem audit, 3 phase sequential, IT promo batch akhir).*
+
+*Roadmap updated: 2026-06-17 (v32.1 Perbaikan Teks & Desain added APPEND-ONLY — Phases 388-390, 7 REQ LBL-03 + DSN-01..06. Penomoran LANJUT dari 387 [v31.0], BUKAN reset. Pure UI/teks 3 surface view: 388 LBL-03 [Results.cshtml] + DSN-04/05 [CoachWorkload polish] [file DISJOINT, low-risk, digabung]; 389 DSN-01/02/03 [CoachCoacheeMapping redesign accordion card + toolbar + dead-onclick, phase terbesar = behavior-regression risk tertinggi]; 390 DSN-06 [Test & UAT parity penutup, lintas-cutting semua aksi existing]. 0 backend, 0 migration, 0 controller. Behavior parity WAJIB — verifikasi tiap phase: dotnet build + dotnet run [localhost:5277] + Playwright + UAT browser. Arah desain terkunci [brainstorm + visual-companion]: CoachCoacheeMapping = accordion card opsi B; CoachWorkload = polish-only. 1 deploy IT di akhir milestone [migration=FALSE].)*

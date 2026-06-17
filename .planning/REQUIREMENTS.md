@@ -50,19 +50,21 @@ Diisi saat pembuatan roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LBL-03 | TBD | Pending |
-| DSN-01 | TBD | Pending |
-| DSN-02 | TBD | Pending |
-| DSN-03 | TBD | Pending |
-| DSN-04 | TBD | Pending |
-| DSN-05 | TBD | Pending |
-| DSN-06 | TBD | Pending |
+| LBL-03 | Phase 388 | Pending |
+| DSN-04 | Phase 388 | Pending |
+| DSN-05 | Phase 388 | Pending |
+| DSN-01 | Phase 389 | Pending |
+| DSN-02 | Phase 389 | Pending |
+| DSN-03 | Phase 389 | Pending |
+| DSN-06 | Phase 390 | Pending |
 
 **Coverage:**
 - v1 requirements: 7 total
-- Mapped to phases: 0 (roadmap belum dibuat)
-- Unmapped: 7 ⚠️ (akan diselesaikan roadmapper)
+- Mapped to phases: 7 ✅ (Phase 388: LBL-03 + DSN-04/05 · Phase 389: DSN-01/02/03 · Phase 390: DSN-06)
+- Unmapped: 0 ✅
+- Duplicates: 0 ✅
+- Migration: 0 (ketiga phase pure view/JS)
 
 ---
 *Requirements defined: 2026-06-17*
-*Last updated: 2026-06-17 after initial definition (milestone v32.1)*
+*Last updated: 2026-06-17 — roadmap created, traceability filled (Phases 388-390, 7/7 mapped, 0 orphan, 0 duplicate, 0 migration)*
