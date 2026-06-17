@@ -52,7 +52,18 @@ namespace HcPortal.Services
                 result.Success = false;
                 result.PerRowErrors = errors;
                 result.Message = "Batch ditolak: ada baris tidak valid. Tidak ada data ditulis.";
-                // TODO Task 3: audit ManualInjectRejected (D-11c) sebelum return
+                // Audit reject (D-11c) — reject terjadi SEBELUM tx (no tulisan sesi), jadi commit terpisah.
+                // ActionType khusus-reject terpisah agar count sesi-sukses (SC4) tetap bersih.
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    ActorUserId = actorUserId,
+                    ActorName = actorDisplay,
+                    ActionType = "ManualInjectRejected",
+                    Description = $"Inject ditolak (pre-flight): {errors.Count} baris invalid. Judul={req.Title}.",
+                    TargetType = "AssessmentSession",
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
                 return result;
             }
 
@@ -271,7 +282,38 @@ namespace HcPortal.Services
                     result.SuccessSessionIds.Add(session.Id);
                 }
 
-                // TODO Task 3: audit in-tx (ManualInject sukses per sesi + ManualInjectSkipped per dup) sebelum SaveChanges/Commit
+                // Audit in-tx (D-11) — _context.AuditLogs.Add LANGSUNG (BUKAN AuditLogService.LogAsync yang
+                // SaveChanges sendiri → commit parsial). 3 ActionType TERPISAH agar count "ManualInject" = jumlah sesi sukses (SC4).
+                foreach (var (sessionId, nip) in successSessions)
+                {
+                    var sState = await _context.AssessmentSessions.AsNoTracking()
+                        .Where(s => s.Id == sessionId)
+                        .Select(s => new { s.Score, s.CompletedAt })
+                        .FirstAsync();
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        ActorUserId = actorUserId,
+                        ActorName = actorDisplay,
+                        ActionType = "ManualInject",   // ⚠ string TEPAT — count entri ini = jumlah sesi sukses (SC4)
+                        Description = $"Inject hasil assessment manual: NIP={nip}, SessionId={sessionId}, Skor={sState.Score}, Tanggal={sState.CompletedAt:yyyy-MM-dd}.",
+                        TargetId = sessionId,
+                        TargetType = "AssessmentSession",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                foreach (var nip in skippedNips)
+                {
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        ActorUserId = actorUserId,
+                        ActorName = actorDisplay,
+                        ActionType = "ManualInjectSkipped",   // ⚠ TERPISAH — tak menggembungkan count "ManualInject" (SC4)
+                        Description = $"Inject dilewati (duplikat): NIP={nip}, Judul={req.Title}, Tanggal={req.CompletedAt:yyyy-MM-dd}.",
+                        TargetType = "AssessmentSession",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
