@@ -10,8 +10,10 @@
 // EF Core 8 ExecuteUpdateAsync (dipakai GradeAndCompleteAsync) butuh real-SQL, BUKAN InMemory provider.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HcPortal.Data;
+using HcPortal.Helpers;
 using HcPortal.Models;
 using HcPortal.Services;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -157,12 +159,127 @@ public class InjectAssessmentServiceTests : IClassFixture<InjectAssessmentFixtur
     // ---- 5 STUB fact (nama WAJIB match filter VALIDATION.md FullyQualifiedName~). ----
     // Plan 03 mengganti body dengan assertion nyata SC1..SC5.
 
-    // SC1 — byte-identik online (MC + MA + Essay) vs AssessmentScoreAggregator.Compute.
+    // ---- Helper: load questions(+options) + responses persisted untuk satu sesi (scope sessionId — caveat shared-DB) ----
+    private static async Task<(List<PackageQuestion> questions, List<PackageUserResponse> responses)>
+        LoadGradedAsync(ApplicationDbContext ctx, int sessionId)
+    {
+        var pkg = await ctx.AssessmentPackages.FirstAsync(p => p.AssessmentSessionId == sessionId);
+        var questions = await ctx.PackageQuestions.Include(q => q.Options)
+            .Where(q => q.AssessmentPackageId == pkg.Id).ToListAsync();
+        var responses = await ctx.PackageUserResponses
+            .Where(r => r.AssessmentSessionId == sessionId).ToListAsync();
+        return (questions, responses);
+    }
+
+    // SC1 — byte-identik online (MC + MA + Essay) vs AssessmentScoreAggregator.Compute + ET + cert D-12.
     [Fact]
     public async Task InjectAssessment_ByteIdentikOnline_MC_MA_Essay()
     {
-        await Task.CompletedTask;
-        Assert.True(true, "STUB — diisi Plan 03");
+        var nip = "INJ-SC1-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, nip); }
+
+        var completedAt = new DateTime(2026, 5, 15);   // Mei → ROMAN "V", tahun 2026 (uji D-12 backdate)
+        var req = new InjectRequest
+        {
+            Title = "Inject SC1 " + Guid.NewGuid().ToString("N")[..6],
+            Category = "IHT",
+            AssessmentType = "Standard",
+            CompletedAt = completedAt,
+            PassPercentage = 70,
+            CertMode = InjectCertMode.Auto,
+            Questions = new List<InjectQuestionSpec>
+            {
+                new() { TempId = 1, Order = 1, QuestionType = "MultipleChoice", ScoreValue = 10, ElemenTeknis = "ET-A", QuestionText = "MC",
+                    Options = new() { new() { TempId = 1, OptionText = "benar", IsCorrect = true }, new() { TempId = 2, OptionText = "salah", IsCorrect = false } } },
+                new() { TempId = 2, Order = 2, QuestionType = "MultipleAnswer", ScoreValue = 10, ElemenTeknis = "ET-B", QuestionText = "MA",
+                    Options = new() { new() { TempId = 3, OptionText = "b1", IsCorrect = true }, new() { TempId = 4, OptionText = "b2", IsCorrect = true }, new() { TempId = 5, OptionText = "s", IsCorrect = false } } },
+                new() { TempId = 3, Order = 3, QuestionType = "Essay", ScoreValue = 10, ElemenTeknis = "ET-C", QuestionText = "Essay", Rubrik = "r" },
+            },
+            Workers = new List<InjectWorkerSpec>
+            {
+                new() { Nip = nip, Answers = new()
+                {
+                    new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } },        // MC benar (10)
+                    new() { QuestionTempId = 2, SelectedOptionTempIds = new() { 3, 4 } },     // MA all-or-nothing benar (10)
+                    new() { QuestionTempId = 3, TextAnswer = "jawaban", EssayScore = 8 },     // Essay 8/10
+                } }
+            }
+        };
+
+        var result = await NewInjectService(NewCtx()).InjectBatchAsync(req, "test-actor-id", "Test Actor");
+        Assert.True(result.Success, result.Message);
+        Assert.Single(result.SuccessSessionIds);
+        var sessionId = result.SuccessSessionIds[0];
+
+        // Read-after-commit (context BARU)
+        await using var verify = NewCtx();
+        var s = await verify.AssessmentSessions.FindAsync(sessionId);
+        Assert.NotNull(s);
+        Assert.True(s!.IsManualEntry);
+        Assert.Equal(AssessmentConstants.AssessmentStatus.Completed, s.Status);
+
+        // Byte-identik: skor inject == AssessmentScoreAggregator.Compute (mesin yang SAMA dipakai online)
+        var (questions, responses) = await LoadGradedAsync(verify, sessionId);
+        var agg = AssessmentScoreAggregator.Compute(questions, responses, req.PassPercentage);
+        Assert.Equal(agg.Percentage, s.Score);     // 28/30 = 93
+        Assert.Equal(agg.IsPassed, s.IsPassed);     // true
+        Assert.True(s.IsPassed);
+
+        // ElemenTeknis: MC benar 1/1, MA all-or-nothing benar 1/1, Essay di-skip ET scoring → 0/1 (etTotal tetap hitung)
+        var ets = await verify.SessionElemenTeknisScores.Where(e => e.AssessmentSessionId == sessionId).ToListAsync();
+        Assert.Equal(3, ets.Count);
+        var etA = ets.First(e => e.ElemenTeknis == "ET-A"); Assert.Equal(1, etA.CorrectCount); Assert.Equal(1, etA.QuestionCount);
+        var etB = ets.First(e => e.ElemenTeknis == "ET-B"); Assert.Equal(1, etB.CorrectCount); Assert.Equal(1, etB.QuestionCount);
+        var etC = ets.First(e => e.ElemenTeknis == "ET-C"); Assert.Equal(0, etC.CorrectCount); Assert.Equal(1, etC.QuestionCount);
+
+        // Cert auto: D-12 ROMAN/tahun = tanggal backdate (Mei 2026 = "V/2026"), BUKAN bulan test dijalankan
+        Assert.Matches(@"^KPB/\d{3}/V/2026$", s.NomorSertifikat);
+    }
+
+    // SC1 negatif — MA partial-select (1 dari 2 benar) → all-or-nothing 0; MC salah → 0. Skor == Compute.
+    [Fact]
+    public async Task InjectAssessment_PartialMA_WrongMC_ScoreMatchesCompute()
+    {
+        var nip = "INJ-SC1N-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, nip); }
+
+        var req = new InjectRequest
+        {
+            Title = "Inject SC1neg " + Guid.NewGuid().ToString("N")[..6],
+            Category = "IHT",
+            AssessmentType = "Standard",
+            CompletedAt = new DateTime(2026, 5, 15),
+            PassPercentage = 70,
+            CertMode = InjectCertMode.None,
+            Questions = new List<InjectQuestionSpec>
+            {
+                new() { TempId = 1, Order = 1, QuestionType = "MultipleChoice", ScoreValue = 10, ElemenTeknis = "ET-A", QuestionText = "MC",
+                    Options = new() { new() { TempId = 1, OptionText = "benar", IsCorrect = true }, new() { TempId = 2, OptionText = "salah", IsCorrect = false } } },
+                new() { TempId = 2, Order = 2, QuestionType = "MultipleAnswer", ScoreValue = 10, ElemenTeknis = "ET-B", QuestionText = "MA",
+                    Options = new() { new() { TempId = 3, OptionText = "b1", IsCorrect = true }, new() { TempId = 4, OptionText = "b2", IsCorrect = true }, new() { TempId = 5, OptionText = "s", IsCorrect = false } } },
+            },
+            Workers = new List<InjectWorkerSpec>
+            {
+                new() { Nip = nip, Answers = new()
+                {
+                    new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 2 } },     // MC salah → 0
+                    new() { QuestionTempId = 2, SelectedOptionTempIds = new() { 3 } },     // MA partial (1 dari 2) → 0
+                } }
+            }
+        };
+
+        var result = await NewInjectService(NewCtx()).InjectBatchAsync(req, "test-actor-id", "Test Actor");
+        Assert.True(result.Success, result.Message);
+        var sessionId = result.SuccessSessionIds[0];
+
+        await using var verify = NewCtx();
+        var s = await verify.AssessmentSessions.FindAsync(sessionId);
+        var (questions, responses) = await LoadGradedAsync(verify, sessionId);
+        var agg = AssessmentScoreAggregator.Compute(questions, responses, req.PassPercentage);
+        Assert.Equal(agg.Percentage, s!.Score);    // 0/20 = 0
+        Assert.Equal(0, s.Score);
+        Assert.False(s.IsPassed);
+        Assert.Null(s.NomorSertifikat);            // CertMode=None → tak ada cert
     }
 
     // SC2 — transaksi atomic: error di tengah → rollback total (D-04).
@@ -173,12 +290,49 @@ public class InjectAssessmentServiceTests : IClassFixture<InjectAssessmentFixtur
         Assert.True(true, "STUB — diisi Plan 03");
     }
 
-    // SC3 — essay finalize-block data-level → sesi Completed setelah finalize (D-05).
+    // SC3 — essay finalize-block (D-05) → Status=Completed (BUKAN PendingGrading) + backdate preserve (Pitfall 1).
     [Fact]
     public async Task InjectEssayCompleted_AfterFinalize()
     {
-        await Task.CompletedTask;
-        Assert.True(true, "STUB — diisi Plan 03");
+        var nip = "INJ-SC3-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, nip); }
+
+        var backdate = new DateTime(2026, 5, 15);
+        var req = new InjectRequest
+        {
+            Title = "Inject SC3 " + Guid.NewGuid().ToString("N")[..6],
+            Category = "IHT",
+            AssessmentType = "Standard",
+            CompletedAt = backdate,
+            PassPercentage = 70,
+            CertMode = InjectCertMode.None,
+            Questions = new List<InjectQuestionSpec>
+            {
+                new() { TempId = 1, Order = 1, QuestionType = "Essay", ScoreValue = 10, ElemenTeknis = "ET-C", QuestionText = "Essay", Rubrik = "r" },
+            },
+            Workers = new List<InjectWorkerSpec>
+            {
+                new() { Nip = nip, Answers = new()
+                {
+                    new() { QuestionTempId = 1, TextAnswer = "jawaban essay", EssayScore = 8 },   // 8/10 = 80% ≥ 70 lulus
+                } }
+            }
+        };
+
+        var result = await NewInjectService(NewCtx()).InjectBatchAsync(req, "test-actor-id", "Test Actor");
+        Assert.True(result.Success, result.Message);
+        var sessionId = result.SuccessSessionIds[0];
+
+        await using var verify = NewCtx();
+        var s = await verify.AssessmentSessions.FindAsync(sessionId);
+        Assert.NotNull(s);
+        Assert.Equal(AssessmentConstants.AssessmentStatus.Completed, s!.Status);   // ⚠ BUKAN PendingGrading (D-05, Pitfall 5)
+        Assert.Equal(80, s.Score);
+        Assert.True(s.IsPassed);
+
+        // Backdate ter-preserve pasca finalize/grade (re-apply [G], Pitfall 1) — BUKAN ≈ today
+        Assert.NotNull(s.CompletedAt);
+        Assert.Equal(backdate.Date, s.CompletedAt!.Value.Date);
     }
 
     // SC4 — audit ActionType ManualInject terhitung benar per-session (D-11).
