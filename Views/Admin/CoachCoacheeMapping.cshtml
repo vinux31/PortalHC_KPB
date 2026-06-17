@@ -1021,16 +1021,11 @@ else
         .then(data => {
             if (data.success) {
                 if (data.showAssignPrompt) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        html: 'Mapping diaktifkan. <a href="' + data.assignUrl + '" class="fw-bold">Assign ProtonTrack untuk ' + data.coacheeName + '?</a>',
-                        showConfirmButton: false,
-                        timer: 8000,
-                        timerProgressBar: true
-                    });
-                    setTimeout(function() { location.reload(); }, 1500);
+                    // SweetAlert2 (Swal) tidak di-load di halaman ini (tak ada di _Layout maupun bundle) —
+                    // pakai alert native supaya tak nambah dependency CDN (aman env internal/air-gapped).
+                    // Info assign-track tetap tersampaikan; admin assign ProtonTrack via menu CDP.
+                    alert('Mapping diaktifkan. Coachee ' + data.coacheeName + ' belum punya ProtonTrack aktif — silakan assign via menu CDP bila diperlukan.');
+                    location.reload();
                 } else {
                     location.reload();
                 }
