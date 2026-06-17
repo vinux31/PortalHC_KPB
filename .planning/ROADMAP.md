@@ -68,7 +68,7 @@
   4. Automated regression test mengunci perilaku: (a) penambahan saat ada `InProgress` berhasil, (b) peserta baru ber-status siap-mulai (Open/Upcoming, BUKAN InProgress / warisi induk per D-01), (c) jawaban/sesi peserta existing tidak ter-overwrite oleh proses BULK ASSIGN; `dotnet build` 0 error + `dotnet test` hijau (+ Playwright bila notice UX di-cover). *(PART-04)*
 **Plans:** 2 plans
 - [x] 391-01-PLAN.md — Controller logic D-01..D-05: helper DeriveReadyStatus + guard Completed berbasis penambahan + skip sesi berjalan + notice Info (PART-01/02/03)
-- [ ] 391-02-PLAN.md — Regression test xUnit integration real-SQL 4 facts a/b/c/d (PART-04), depends 391-01
+- [x] 391-02-PLAN.md — Regression test xUnit integration real-SQL 4 facts a/b/c/d (PART-04), depends 391-01
 **UI hint:** yes
 
 ### Phase 392: Perbaikan CreateWorker + Audit Field
@@ -91,7 +91,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 1/2 | In Progress|  |
+| 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 2/2 | Complete   | 2026-06-17 |
 | 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 0/? | Not started | - |
 
 ### Coverage Validation
