@@ -11,7 +11,7 @@ Requirements untuk milestone v32.1. Tiap REQ map ke satu phase.
 
 ### Label / Teks (LBL)
 
-- [ ] **LBL-03**: Pengguna melihat label **"Batas Nilai Kelulusan"** (bukan "Nilai Kelulusan") pada kartu ringkasan di halaman hasil assessment (`Views/CMP/Results.cshtml`). Nilai persen (`@Model.PassPercentage%`) di bawahnya tidak berubah.
+- [x] **LBL-03**: Pengguna melihat label **"Batas Nilai Kelulusan"** (bukan "Nilai Kelulusan") pada kartu ringkasan di halaman hasil assessment (`Views/CMP/Results.cshtml`). Nilai persen (`@Model.PassPercentage%`) di bawahnya tidak berubah.
 
 ### Desain — Coach-Coachee Mapping (DSN)
 
@@ -21,8 +21,8 @@ Requirements untuk milestone v32.1. Tiap REQ map ke satu phase.
 
 ### Desain — Coach Workload (DSN)
 
-- [ ] **DSN-04**: Admin/HC melihat **filter bar** dan section **"Saran Penyeimbangan"** di halaman CoachWorkload terbungkus dalam **card** yang konsisten dengan section lain di halaman tersebut (summary cards / chart / tabel).
-- [ ] **DSN-05**: Halaman CoachWorkload **bebas dari inline magic-number font-size** (11px/12px dst dipindah ke kelas/util konsisten) dan spacing antar elemen diselaraskan.
+- [x] **DSN-04**: Admin/HC melihat **filter bar** dan section **"Saran Penyeimbangan"** di halaman CoachWorkload terbungkus dalam **card** yang konsisten dengan section lain di halaman tersebut (summary cards / chart / tabel).
+- [x] **DSN-05**: Halaman CoachWorkload **bebas dari inline magic-number font-size** (11px/12px dst dipindah ke kelas/util konsisten) dan spacing antar elemen diselaraskan.
 
 ### Regresi / Parity (DSN)
 
@@ -50,9 +50,9 @@ Diisi saat pembuatan roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LBL-03 | Phase 388 | Pending |
-| DSN-04 | Phase 388 | Pending |
-| DSN-05 | Phase 388 | Pending |
+| LBL-03 | Phase 388 | Complete |
+| DSN-04 | Phase 388 | Complete |
+| DSN-05 | Phase 388 | Complete |
 | DSN-01 | Phase 389 | Complete |
 | DSN-02 | Phase 389 | Complete |
 | DSN-03 | Phase 389 | Complete |
