@@ -121,4 +121,43 @@ test.describe('Phase 388 — CoachWorkload polish parity (DSN-04/05)', () => {
     expect(page.url()).not.toContain('section=');
   });
 
+  // W-EXP (390-01, DSN-06 export parity): "Export Excel" → download event → nama file kontrak.
+  test('W-EXP export excel download', async ({ page }) => {
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('link', { name: 'Export Excel' }).click(),
+    ]);
+    expect(download.suggestedFilename()).toBe('coach_workload.xlsx');
+  });
+
+  // W-THR (390-01, threshold modal Admin, non-destructive): role-gate admin tampil → modal
+  // terisi nilai threshold existing → tutup via "Batal" TANPA simpan (mutasi nyata = Plan 02 UAT).
+  test('W-THR threshold modal fields filled (non-destructive)', async ({ page }) => {
+    const setBtn = page.getByRole('button', { name: 'Set Threshold' });
+    await expect(setBtn).toBeVisible();          // role-gate Admin holds
+    await setBtn.click();
+    await expect(page.locator('#thresholdModal')).toBeVisible();
+    await expect(page.locator('#maxCoachees')).not.toHaveValue('');
+    await expect(page.locator('#warningThreshold')).not.toHaveValue('');
+    // batal — JANGAN simpan (mutasi nyata = Plan 02 UAT live)
+    await page.locator('#thresholdModal .btn-secondary[data-bs-dismiss="modal"]').first().click();
+    await expect(page.locator('#thresholdModal')).not.toBeVisible();
+  });
+
+  // W-ERR (390-01, console-error gate): 0 error saat buka/tutup threshold modal + expand "Lihat".
+  test('W-ERR zero console error on interactions', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+    page.on('pageerror', e => errors.push(e.message));
+    const setBtn = page.getByRole('button', { name: 'Set Threshold' });
+    if (await setBtn.count() > 0) {
+      await setBtn.click();
+      await expect(page.locator('#thresholdModal')).toBeVisible();
+      await page.locator('#thresholdModal .btn-secondary[data-bs-dismiss="modal"]').first().click();
+    }
+    const expand = page.locator('button[data-bs-toggle="collapse"] .expand-chevron').first();
+    if (await expand.count() > 0) await expand.locator('xpath=ancestor::button').first().click();
+    expect(errors, errors.join('\n')).toHaveLength(0);
+  });
+
 });
