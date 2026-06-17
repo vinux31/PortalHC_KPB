@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v32.0
 milestone_name: Manajemen Peserta
-status: Roadmap created — ready to plan Phase 391
-stopped_at: "v32.0 Manajemen Peserta roadmap created 2026-06-17 — 2 phases (391 Penambahan Peserta Fleksibel PART-01..04, 392 Perbaikan CreateWorker + audit field WRKR-01..03); 7/7 REQ mapped, 0 orphans, 0 migration. Next: /gsd-plan-phase 391"
-last_updated: "2026-06-17T00:00:00.000Z"
-last_activity: 2026-06-17
+status: planning
+stopped_at: Phase 391 context gathered
+last_updated: "2026-06-17T03:36:26.649Z"
+last_activity: 2026-06-17 — Roadmap v32.0 dibuat (2 fase, 7/7 REQ mapped, 0 migration)
 progress:
-  total_phases: 2
+  total_phases: 23
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -31,6 +30,7 @@ Status: Roadmap created — ready to plan Phase 391
 Last activity: 2026-06-17 — Roadmap v32.0 dibuat (2 fase, 7/7 REQ mapped, 0 migration)
 
 **Milestone v32.0 Manajemen Peserta** — Phases 391-392 (LANJUT dari v31.0 phase terakhir 387; tidak reset ke 1). 0 migration. Branch main. 7/7 REQ mapped (0 orphan, 0 duplikat).
+
 - **Phase 391 — Penambahan Peserta Fleksibel saat Ujian Berjalan** (PART-01..04): tambah peserta saat ada `InProgress` tetap jalan + tutup edge guard `Completed` sesi representatif (tak salah-blokir selama window terbuka) + ganti warning kosmetik jadi notice informatif + regression test (warisi status induk + tak overwrite sesi existing). File: `Controllers/AssessmentAdminController.cs` (EditAssessment BULK ASSIGN ~L2114-2226, guard `Completed` ~L1992, notice TempData ~L2077-2085) + view/monitoring + xUnit. **UI hint: yes.**
 - **Phase 392 — Perbaikan CreateWorker + Audit Field** (WRKR-01..03): buka kunci Nama/Email (`readonly` krn AD mode) + `type="email"` + `<span asp-validation-for>` inline (Position/Directorate/Section/Unit); audit + Playwright-verify SEMUA field berfungsi + create submission sukses. File: `Views/Admin/CreateWorker.cshtml` (VIEW-ONLY; controller `WorkerController.CreateWorker` + model `ManageUserViewModel` tak diubah). **UI hint: yes.**
 
@@ -137,6 +137,6 @@ Roadmap v32.0 approved → mulai planning. **Next: `/gsd-plan-phase 391`** (atau
 
 Last activity: 2026-06-17
 
-Stopped at: Roadmap v32.0 Manajemen Peserta dibuat (`/gsd-new-milestone`) — 2 fase (391 Penambahan Peserta Fleksibel PART-01..04 + 392 Perbaikan CreateWorker + audit field WRKR-01..03); 7/7 REQ mapped, 0 orphan, 0 duplikat, 0 migration. Files written: `.planning/ROADMAP.md` (append v32.0 detail block + milestone-list entry), `.planning/REQUIREMENTS.md` (traceability filled), `.planning/STATE.md` (Current Position + Next Action).
+Stopped at: Phase 391 context gathered
 
 Next action: **`/gsd-plan-phase 391`** (Penambahan Peserta Fleksibel saat Ujian Berjalan) — atau `/gsd-discuss-phase 391`. Phase 392 (Perbaikan CreateWorker) bisa di-plan paralel (file-disjoint). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
