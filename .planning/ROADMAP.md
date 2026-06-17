@@ -50,23 +50,25 @@
 
 ### Phases
 
-- [ ] **Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04)** — HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir penambahan selama window ujian masih terbuka; ganti warning kosmetik jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test (penambahan-saat-InProgress berhasil, peserta baru warisi status induk, sesi/jawaban existing tidak ter-overwrite). 0 migration.
+- [ ] **Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04)** — HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir penambahan selama window ujian masih terbuka; ganti warning kosmetik jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test (penambahan-saat-InProgress berhasil, peserta baru ber-status siap-mulai [Open/Upcoming per jadwal] BUKAN warisi induk [D-01], sesi/jawaban existing tidak ter-overwrite). 0 migration.
 - [ ] **Phase 392: Perbaikan CreateWorker + Audit Field (WRKR-01..03)** — Buka kunci field Nama Lengkap & Email (`readonly` saat `Authentication:UseActiveDirectory=true`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline untuk field organisasi (Jabatan/Directorate/Bagian/Unit); lalu audit + Playwright-verify SEMUA field berfungsi end-to-end termasuk submission create pekerja baru sukses (record tersimpan, redirect ke daftar pekerja). View-only — controller/model tak diubah. 0 migration.
 
 ### Phase Details
 
 ### Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan
-**Goal:** HC tetap dapat menambah peserta baru ke sebuah assessment yang **sedang berjalan** (ada peserta lain `InProgress`) tanpa friksi — penambahan membuat `AssessmentSession` baru per peserta yang mewarisi status induk sehingga peserta baru bisa langsung mengerjakan selama window ujian (`ExamWindowCloseDate`) belum lewat; guard status `Completed` pada sesi representatif tidak lagi salah-memblokir penambahan saat grup masih aktif; warning kosmetik ambigu diganti notice informatif; dan seluruh perilaku ini dikunci automated regression test agar tak regresi.
+**Goal:** HC tetap dapat menambah peserta baru ke sebuah assessment yang **sedang berjalan** (ada peserta lain `InProgress`) tanpa friksi — penambahan membuat `AssessmentSession` baru per peserta yang ber-status siap-mulai (Open/Upcoming per jadwal via `DeriveReadyStatus`, BUKAN mewarisi status induk per D-01) sehingga peserta baru bisa langsung mengerjakan selama window ujian (`ExamWindowCloseDate`) belum lewat; guard status `Completed` pada sesi representatif tidak lagi salah-memblokir penambahan saat grup masih aktif; warning kosmetik ambigu diganti notice informatif; dan seluruh perilaku ini dikunci automated regression test agar tak regresi.
 **Depends on:** Tidak ada secara logika (melanjutkan dari Phase 387 v31.0; file-disjoint dari Phase 392 → boleh dikerjakan paralel).
 **Migration:** false (murni logic controller + view/monitoring + regression test; tidak ada schema/write DB)
 **Requirements:** PART-01, PART-02, PART-03, PART-04
 **Files:** `Controllers/AssessmentAdminController.cs` — blok BULK ASSIGN `EditAssessment` (~L2114-2226, INSERT sesi baru per peserta), guard `Completed` sesi representatif (~L1992, agar tak salah-blokir penambahan saat grup masih aktif/window terbuka), notice TempData (~L2077-2085, ganti `TempData["Warning"]` kosmetik jadi notice informatif) · view/partial penambahan peserta + monitoring (surface notice ke HC) · regression test (xUnit — penambahan saat `InProgress` berhasil, peserta baru warisi status induk, sesi/jawaban existing tidak ter-overwrite; pertimbangkan Playwright untuk UX notice).
 **Success Criteria** (what must be TRUE):
-  1. HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) dan penambahan **berhasil** — membuat `AssessmentSession` baru per peserta; peserta baru mewarisi status induk sehingga bisa langsung mengerjakan selama window ujian belum ditutup. *(PART-01)*
+  1. HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) dan penambahan **berhasil** — membuat `AssessmentSession` baru per peserta; peserta baru ber-status siap-mulai (`Open` jika jadwal sudah tiba, `Upcoming` jika belum; derive via `DeriveReadyStatus`, BUKAN mewarisi status induk per D-01) sehingga bisa langsung mengerjakan selama window ujian belum ditutup. *(PART-01)*
   2. Guard status `Completed` pada sesi representatif **tidak salah-memblokir** penambahan ketika sebagian peserta sudah selesai tetapi grup assessment masih aktif — HC tetap dapat menambah peserta selama `ExamWindowCloseDate` belum lewat. *(PART-02)*
   3. Saat HC menambah peserta ke assessment yang ada peserta `InProgress`, sistem menampilkan **notice informatif** (bernuansa informasi, bukan peringatan kesan-error) yang menjelaskan bahwa peserta baru tetap bisa ditambah walau ujian sedang berjalan — menggantikan warning kosmetik yang ambigu. *(PART-03)*
-  4. Automated regression test mengunci perilaku: (a) penambahan saat ada `InProgress` berhasil, (b) peserta baru mewarisi status induk, (c) jawaban/sesi peserta existing tidak ter-overwrite oleh proses BULK ASSIGN; `dotnet build` 0 error + `dotnet test` hijau (+ Playwright bila notice UX di-cover). *(PART-04)*
-**Plans:** TBD
+  4. Automated regression test mengunci perilaku: (a) penambahan saat ada `InProgress` berhasil, (b) peserta baru ber-status siap-mulai (Open/Upcoming, BUKAN InProgress / warisi induk per D-01), (c) jawaban/sesi peserta existing tidak ter-overwrite oleh proses BULK ASSIGN; `dotnet build` 0 error + `dotnet test` hijau (+ Playwright bila notice UX di-cover). *(PART-04)*
+**Plans:** 2 plans
+- [ ] 391-01-PLAN.md — Controller logic D-01..D-05: helper DeriveReadyStatus + guard Completed berbasis penambahan + skip sesi berjalan + notice Info (PART-01/02/03)
+- [ ] 391-02-PLAN.md — Regression test xUnit integration real-SQL 4 facts a/b/c/d (PART-04), depends 391-01
 **UI hint:** yes
 
 ### Phase 392: Perbaikan CreateWorker + Audit Field
@@ -89,7 +91,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 0/? | Not started | - |
+| 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 0/2 | Not started | - |
 | 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 0/? | Not started | - |
 
 ### Coverage Validation
