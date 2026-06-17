@@ -80,7 +80,7 @@
   5. `dotnet build` 0 error + `dotnet test` hijau (xUnit di atas); `dotnet ef migrations add _verify` → 0 model diff (konfirmasi 0 migration). *(INJ-01, INJ-02)*
 **Plans:** 3 plans (3 waves — sequential, single service+test file shared)
 - [x] 393-01-PLAN.md — Wave 0: DTO kontrak + service skeleton + DI + xUnit Integration fixture/stub (interface-first)
-- [ ] 393-02-PLAN.md — InjectAssessmentService penuh: pre-flight reject-all + dedup cert-aware + tx atomic + reuse grading + essay finalize + cert backdate + audit
+- [x] 393-02-PLAN.md — InjectAssessmentService penuh: pre-flight reject-all + dedup cert-aware + tx atomic + reuse grading + essay finalize + cert backdate + audit
 - [ ] 393-03-PLAN.md — 5 fact SC1..SC5 (byte-identik / atomic / essay-Completed / audit count / cert policy) + 0-migration gate
 
 ### Phase 394: Page + Setup Room + authoring soal
@@ -163,7 +163,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 393. Backend core inject (INJ-01, INJ-02) | 1/3 | In Progress|  |
+| 393. Backend core inject (INJ-01, INJ-02) | 2/3 | In Progress|  |
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 0/? | Not started | - |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 0/? | Not started | - |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 0/? | Not started | - |
