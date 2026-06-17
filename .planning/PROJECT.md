@@ -56,7 +56,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v32.0 Manajemen Peserta STARTED 2026-06-17 (phases 388-389) — fix `/Admin/CreateWorker` field terkunci + audit field, dan penambahan peserta fleksibel saat ujian berjalan (notice + lock test). **0 migration.** v31.0 CLOSED + merged origin/main 2026-06-16 (`7ea6c81e`). Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
+**Current focus:** v32.0 Manajemen Peserta STARTED 2026-06-17 (phases 391-392) — fix `/Admin/CreateWorker` field terkunci + audit field, dan penambahan peserta fleksibel saat ujian berjalan (notice + lock test). **0 migration.** v31.0 CLOSED + merged origin/main 2026-06-16 (`7ea6c81e`). Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
 
 ## Current Milestone: v32.0 Manajemen Peserta — 🚧 STARTED 2026-06-17
 
@@ -66,7 +66,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - **1.1 Penambahan peserta fleksibel saat ujian berjalan** — pastikan HC tetap bisa menambah peserta walau ada peserta lain `InProgress` (blok BULK ASSIGN `EditAssessment` `AssessmentAdminController.cs:2114-2226`); tutup edge guard `Completed` pada sesi representatif (`L1992`) agar tak salah-blokir penambahan; ganti warning kosmetik (`L2077-2085`) jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test.
 - **1.2 Perbaiki `/Admin/CreateWorker` + audit semua field** — buka kunci field Nama Lengkap & Email (ter-`readonly` karena `Authentication:UseActiveDirectory=true`, `CreateWorker.cshtml:62-75`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline (Position/Directorate/Section/Unit); periksa & verifikasi runtime SEMUA field lain (NIP/JoinDate/Position/Directorate/cascade Section→Unit/Role/Password) berfungsi end-to-end termasuk create submission sukses.
 
-**Konteks kunci:** `AssessmentSession` per-peserta ("tambah peserta" = INSERT sesi baru, bukan tabel join). `/Admin/CreateWorker` = buat akun pegawai (bukan peserta assessment) → fix view-only, controller/model tak diubah. **0 migration.** Branch ITHandoff; verifikasi lokal `dotnet build` + Playwright; notify IT migration=FALSE saat handoff.
+**Konteks kunci:** `AssessmentSession` per-peserta ("tambah peserta" = INSERT sesi baru, bukan tabel join). `/Admin/CreateWorker` = buat akun pegawai (bukan peserta assessment) → fix view-only, controller/model tak diubah. **0 migration.** Branch main; verifikasi lokal `dotnet build` + Playwright; notify IT migration=FALSE saat handoff.
 
 ## Previous Milestone: v31.0 Hotfix Pra-Ujian Lisensor — ✅ SHIPPED + CLOSED + merged origin/main 2026-06-16
 
@@ -941,4 +941,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-06-17 — v32.0 Manajemen Peserta started (phases 388-389: CreateWorker field fix + audit, penambahan peserta fleksibel saat ujian berjalan; 0 migration). v31.0 closed + merged origin/main 2026-06-16.*
+*Last updated: 2026-06-17 — v32.0 Manajemen Peserta started (phases 391-392: CreateWorker field fix + audit, penambahan peserta fleksibel saat ujian berjalan; 0 migration). v31.0 closed + merged origin/main 2026-06-16.*

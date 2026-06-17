@@ -30,8 +30,86 @@
 - ✅ **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (shipped local + audited PASSED 2026-06-15, 11/11 REQ WSE-01..11; 0 migration; NOT PUSHED) — [archive](milestones/v29.0-ROADMAP.md) — [audit](v29.0-MILESTONE-AUDIT.md)
 - ✅ **v30.0 Essay Grading Correctness + Monitoring UI Refactor** — Phases 383-384 (shipped local + audited PASSED 2026-06-15, 10/10 REQ ECG-01..06 + UIG-01..04; **0 migration**; menutup backlog RES-02 + GRD-02; NOT PUSHED) — [archive](milestones/v30.0-ROADMAP.md) — [audit](milestones/v30.0-MILESTONE-AUDIT.md)
 - ✅ **v31.0 Hotfix Pra-Ujian Lisensor** — Phases 385-387 (shipped local + audited PASSED 2026-06-16, 14/14 REQ PXF-01..14; **0 migration**; 385-386 = bundle urgent pra-acara [deploy IT #1], 387 = polish pasca-acara [deploy IT #2]; NOT PUSHED) — [archive](milestones/v31.0-ROADMAP.md) — [audit](milestones/v31.0-MILESTONE-AUDIT.md)
+- 🚧 **v32.0 Manajemen Peserta** — Phases 391-392 (STARTED 2026-06-17, ACTIVE; 7/7 REQ PART-01..04 + WRKR-01..03; **0 migration**; 391 = penambahan peserta fleksibel saat ujian berjalan, 392 = perbaikan CreateWorker view + audit field; branch main, NOT PUSHED)
 
 ## Phases
+
+<details open>
+<summary>🚧 v32.0 Manajemen Peserta (Phases 391-392) — STARTED 2026-06-17 — ACTIVE</summary>
+
+**Status:** Roadmap created 2026-06-17 (investigasi-driven, skip domain-research). NOT YET PLANNED.
+**Source:** Investigasi multi-agent 2026-06-17 (workflow `manajemen-peserta-investigasi`) — root cause & file ter-peta, adversarial-verified. Detail REQ → `.planning/REQUIREMENTS.md`.
+**Goal:** HC dapat mengelola peserta assessment dengan lancar — penambahan peserta tetap fleksibel saat ujian berjalan (dengan pemberitahuan jelas, dikunci regression test), dan halaman `/Admin/CreateWorker` kembali bisa dipakai (field Nama Lengkap & Email tidak lagi terkunci) dengan semua field terverifikasi berfungsi.
+**Granularity:** standard (2 fase — pengelompokan by file-overlap: dua fitur file-disjoint & independen → split alami 1 fase per fitur).
+**Migration:** **false (kedua phase)** — semua fix murni view / controller-logic / test. Tidak ada schema / backfill / write DB.
+**Penomoran phase:** LANJUT dari v31.0 phase terakhir (387) → mulai **Phase 391**. Tidak reset ke 1.
+**Konteks kunci:** `AssessmentSession` = per-peserta ("tambah peserta" = INSERT sesi baru via blok BULK ASSIGN `EditAssessment`, BUKAN tabel join). `/Admin/CreateWorker` = buat akun pegawai (`ApplicationUser`), BUKAN peserta assessment → fix view-only, controller/model tak diubah.
+**File-overlap (split alami):** Fitur 1.1 menyentuh `Controllers/AssessmentAdminController.cs` (+ view/monitoring + test) → Phase 391. Fitur 1.2 menyentuh `Views/Admin/CreateWorker.cshtml` (view-only) → Phase 392. Dua fitur file-disjoint & independen → boleh dikerjakan paralel.
+**Out of scope (tak ada fase untuk ini):** hard-block penambahan peserta saat `InProgress` (bertentangan dgn keputusan user fleksibel); perubahan controller/model `CreateWorker` (POST handler sudah benar); AD-sync otomatis; migration/skema DB.
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap fase wajib `dotnet build` + `dotnet run` (localhost:5277) + Playwright sebelum commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ tidak ada edit di Dev/Prod.
+
+### Phases
+
+- [ ] **Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04)** — HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir penambahan selama window ujian masih terbuka; ganti warning kosmetik jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test (penambahan-saat-InProgress berhasil, peserta baru warisi status induk, sesi/jawaban existing tidak ter-overwrite). 0 migration.
+- [ ] **Phase 392: Perbaikan CreateWorker + Audit Field (WRKR-01..03)** — Buka kunci field Nama Lengkap & Email (`readonly` saat `Authentication:UseActiveDirectory=true`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline untuk field organisasi (Jabatan/Directorate/Bagian/Unit); lalu audit + Playwright-verify SEMUA field berfungsi end-to-end termasuk submission create pekerja baru sukses (record tersimpan, redirect ke daftar pekerja). View-only — controller/model tak diubah. 0 migration.
+
+### Phase Details
+
+### Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan
+**Goal:** HC tetap dapat menambah peserta baru ke sebuah assessment yang **sedang berjalan** (ada peserta lain `InProgress`) tanpa friksi — penambahan membuat `AssessmentSession` baru per peserta yang mewarisi status induk sehingga peserta baru bisa langsung mengerjakan selama window ujian (`ExamWindowCloseDate`) belum lewat; guard status `Completed` pada sesi representatif tidak lagi salah-memblokir penambahan saat grup masih aktif; warning kosmetik ambigu diganti notice informatif; dan seluruh perilaku ini dikunci automated regression test agar tak regresi.
+**Depends on:** Tidak ada secara logika (melanjutkan dari Phase 387 v31.0; file-disjoint dari Phase 392 → boleh dikerjakan paralel).
+**Migration:** false (murni logic controller + view/monitoring + regression test; tidak ada schema/write DB)
+**Requirements:** PART-01, PART-02, PART-03, PART-04
+**Files:** `Controllers/AssessmentAdminController.cs` — blok BULK ASSIGN `EditAssessment` (~L2114-2226, INSERT sesi baru per peserta), guard `Completed` sesi representatif (~L1992, agar tak salah-blokir penambahan saat grup masih aktif/window terbuka), notice TempData (~L2077-2085, ganti `TempData["Warning"]` kosmetik jadi notice informatif) · view/partial penambahan peserta + monitoring (surface notice ke HC) · regression test (xUnit — penambahan saat `InProgress` berhasil, peserta baru warisi status induk, sesi/jawaban existing tidak ter-overwrite; pertimbangkan Playwright untuk UX notice).
+**Success Criteria** (what must be TRUE):
+  1. HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) dan penambahan **berhasil** — membuat `AssessmentSession` baru per peserta; peserta baru mewarisi status induk sehingga bisa langsung mengerjakan selama window ujian belum ditutup. *(PART-01)*
+  2. Guard status `Completed` pada sesi representatif **tidak salah-memblokir** penambahan ketika sebagian peserta sudah selesai tetapi grup assessment masih aktif — HC tetap dapat menambah peserta selama `ExamWindowCloseDate` belum lewat. *(PART-02)*
+  3. Saat HC menambah peserta ke assessment yang ada peserta `InProgress`, sistem menampilkan **notice informatif** (bernuansa informasi, bukan peringatan kesan-error) yang menjelaskan bahwa peserta baru tetap bisa ditambah walau ujian sedang berjalan — menggantikan warning kosmetik yang ambigu. *(PART-03)*
+  4. Automated regression test mengunci perilaku: (a) penambahan saat ada `InProgress` berhasil, (b) peserta baru mewarisi status induk, (c) jawaban/sesi peserta existing tidak ter-overwrite oleh proses BULK ASSIGN; `dotnet build` 0 error + `dotnet test` hijau (+ Playwright bila notice UX di-cover). *(PART-04)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 392: Perbaikan CreateWorker + Audit Field
+**Goal:** Halaman `/Admin/CreateWorker` kembali dapat dipakai membuat pekerja baru di semua environment — field "Nama Lengkap" & "Email" tidak lagi `readonly` (yang sebelumnya muncul saat `Authentication:UseActiveDirectory=true`) sehingga HC/Admin dapat mengetik walau AD auth tetap aktif; field Email memvalidasi format (`type="email"`) dan setiap field menampilkan pesan validasi inline per-field (bukan hanya di ringkasan error atas); lalu SEMUA field lain (NIP, Tanggal Bergabung, Jabatan, Directorate, cascade Bagian→Unit, Role, Password/Konfirmasi vs info auto-generate AD) diaudit + diverifikasi runtime berfungsi end-to-end hingga submission membuat pekerja baru berhasil. **View-only** — controller (`WorkerController.CreateWorker`) & model (`ManageUserViewModel`) TIDAK diubah.
+**Depends on:** Tidak ada (file-disjoint dari Phase 391 → boleh dikerjakan paralel).
+**Migration:** false (murni view; tidak ada schema/controller/model/write DB)
+**Requirements:** WRKR-01, WRKR-02, WRKR-03
+**Files:** `Views/Admin/CreateWorker.cshtml` (VIEW-ONLY) — hapus `readonly="@(isAdMode ? "readonly" : null)"` pada input FullName (~L62-64) & Email (~L73-75) sehingga bisa diketik di semua environment (AD auth tetap aktif); tambah `type="email"` pada input Email; tambah `<span asp-validation-for>` inline untuk field organisasi Position (~L106-108)/Directorate (~L110-112)/Section (~L113-118)/Unit (~L119-124) · Playwright e2e (audit SEMUA field + create submission sukses end-to-end). **TIDAK menyentuh `Controllers/WorkerController.cs` / `ManageUserViewModel`.**
+**Success Criteria** (what must be TRUE):
+  1. HC/Admin dapat **mengetik** field "Nama Lengkap" dan "Email" di `/Admin/CreateWorker` di semua environment (termasuk saat `Authentication:UseActiveDirectory=true` di Dev/Prod) — field tidak lagi `readonly`, AD auth tetap aktif, sehingga halaman dapat dipakai membuat pekerja baru. *(WRKR-01)*
+  2. Field Email memvalidasi format email (`type="email"`) dan setiap field menampilkan **pesan validasi inline per-field** (Nama Lengkap, Email, Jabatan, Directorate, Bagian, Unit) — bukan hanya di ringkasan error atas halaman. *(WRKR-02)*
+  3. SEMUA field di `/Admin/CreateWorker` terverifikasi runtime berfungsi end-to-end — NIP, Tanggal Bergabung, Jabatan, Directorate, cascade Bagian→Unit, Role (default + level), Password/Konfirmasi (mode lokal) / info auto-generate (mode AD) — dan HC dapat menyelesaikan **submission membuat pekerja baru dengan sukses** (record tersimpan, redirect ke daftar pekerja). *(WRKR-03)*
+  4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright e2e: field Nama/Email bisa diketik (mode AD), validasi inline muncul per-field, cascade Bagian→Unit berfungsi, dan create submission sukses (record tersimpan + redirect). Controller/model 0 diff (git-verified, view-only). *(WRKR-01, WRKR-02, WRKR-03 — Razor + cascade JS runtime → Playwright wajib, pelajaran Phase 354)*
+**Plans:** TBD
+**UI hint:** yes
+
+**Active mapped: 7/7 ✓ (PART-01 + PART-02 + PART-03 + PART-04 → 391; WRKR-01 + WRKR-02 + WRKR-03 → 392) — Orphans: 0 — Duplicates: 0 — 0 migration (kedua phase) — file-disjoint (391 ↔ 392 boleh paralel).**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 0/? | Not started | - |
+| 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 0/? | Not started | - |
+
+### Coverage Validation
+
+| REQ | Phase | Surface / Touchpoint | Status |
+|-----|-------|----------------------|--------|
+| PART-01 | 391 | `AssessmentAdminController.cs` BULK ASSIGN EditAssessment (~L2114-2226) — INSERT sesi baru saat ada peserta `InProgress` | Pending |
+| PART-02 | 391 | `AssessmentAdminController.cs` guard `Completed` sesi representatif (~L1992) — tak salah-blokir penambahan selama window terbuka | Pending |
+| PART-03 | 391 | `AssessmentAdminController.cs` notice TempData (~L2077-2085) + view/monitoring — notice informatif ganti warning kosmetik | Pending |
+| PART-04 | 391 | regression test (xUnit) — penambahan-saat-InProgress berhasil + warisi status induk + tak overwrite sesi existing | Pending |
+| WRKR-01 | 392 | `Views/Admin/CreateWorker.cshtml` (~L62-75) — hapus `readonly` FullName/Email (mode AD), bisa diketik | Pending |
+| WRKR-02 | 392 | `Views/Admin/CreateWorker.cshtml` — `type="email"` + `<span asp-validation-for>` inline (Position/Directorate/Section/Unit) | Pending |
+| WRKR-03 | 392 | `Views/Admin/CreateWorker.cshtml` + Playwright — audit SEMUA field + create submission sukses (view-only) | Pending |
+
+**Active mapped: 7/7 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration — 391 = Penambahan Peserta Fleksibel (PART-01..04); 392 = Perbaikan CreateWorker view-only + audit field (WRKR-01..03)**
+
+</details>
+
+---
+
 
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
@@ -55,9 +133,12 @@ See .planning/MILESTONES.md for full history.
 
 ### Phases
 
-- [x] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration. (completed 2026-06-15)
-- [x] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration. (completed 2026-06-15)
-- [x] **Phase 387: Post-Lisensor Assessment Polish (7 REQ)** — Batch sisa pasca-acara (1 MED + 6 LOW): guard `SubmitEssayScore` status (PXF-06), cert nomor retry+log (PXF-08), Excel BulkExport "Detail Jawaban" essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). **PXF-07 + PXF-14 dipindah ke Phase 386** (386-05 sudah rewrite `ExcelExportHelper.cs:83-128`). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration. (completed 2026-06-15)
+- [x] **Phase 385: Exam-Taking & Image Render Hotfix (PXF-01 + PXF-03)** — Gambar soal/opsi tampil benar di sub-path Dev `/KPB-PortalHC` (img src PathBase-aware, tak 404) + jawaban essay di-flush saat submit/blur/timeout (tidak menunggu debounce 2s) sehingga keystroke terakhir tak hilang & peserta yang sudah mengisi essay tak ditolak submit. File view berbeda dari Phase 386. 0 migration.
+ (completed 2026-06-15)
+- [x] **Phase 386: AssessmentAdminController Hardening (PXF-02 + PXF-04 + PXF-05)** — Validasi soal Single/Multiple wajib ≥1 opsi berisi (blokir simpan soal cacat) + essay kosong tidak dead-end finalize (hitungan pending konsisten, tombol Selesaikan muncul, essay kosong=0 poin) + PDF bukti per-peserta nilai Multiple Answer akurat (SetEquals all-or-nothing, bukan FirstOrDefault). Semua di `AssessmentAdminController.cs` (satu fase = nol konflik write). 0 migration.
+ (completed 2026-06-15)
+- [x] **Phase 387: Post-Lisensor Assessment Polish (7 REQ)** — Batch sisa pasca-acara (1 MED + 6 LOW): guard `SubmitEssayScore` status (PXF-06), cert nomor retry+log (PXF-08), Excel BulkExport "Detail Jawaban" essay tampil skor/teks (PXF-09), `FinalizeEssayGrading` broadcast monitor (PXF-10), a11y aria opsi huruf (PXF-11), `SubmitExam` MC no null-overwrite (PXF-12), `Hub.SaveTextAnswer` guard timer (PXF-13). **PXF-07 + PXF-14 dipindah ke Phase 386** (386-05 sudah rewrite `ExcelExportHelper.cs:83-128`). Dikerjakan SETELAH Phase 386 (depends — file-overlap `AssessmentAdminController.cs`); deploy IT kedua. 0 migration.
+ (completed 2026-06-15)
 
 ### Phase Details
 

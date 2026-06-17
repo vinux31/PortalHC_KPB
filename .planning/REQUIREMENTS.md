@@ -4,7 +4,7 @@
 **Created:** 2026-06-17
 **Goal:** HC dapat mengelola peserta assessment dengan lancar — penambahan peserta tetap fleksibel saat ujian berjalan (dengan pemberitahuan jelas, dikunci regression test), dan halaman `/Admin/CreateWorker` kembali bisa dipakai (field Nama Lengkap & Email tidak lagi terkunci) dengan semua field terverifikasi berfungsi.
 **Sumber:** Investigasi multi-agent 2026-06-17 (workflow `manajemen-peserta-investigasi`) — root cause & file ter-peta, adversarial-verified.
-**Konteks:** `AssessmentSession` = per-peserta ("tambah peserta" = INSERT sesi baru via blok BULK ASSIGN `EditAssessment`). `/Admin/CreateWorker` = buat akun pegawai (bukan peserta assessment) → fix view-only. **0 migration.** Branch ITHandoff; verifikasi lokal `dotnet build` + Playwright.
+**Konteks:** `AssessmentSession` = per-peserta ("tambah peserta" = INSERT sesi baru via blok BULK ASSIGN `EditAssessment`). `/Admin/CreateWorker` = buat akun pegawai (bukan peserta assessment) → fix view-only. **0 migration.** Branch main; verifikasi lokal `dotnet build` + Playwright.
 
 ---
 
@@ -45,12 +45,15 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| PART-01 | TBD | pending |
-| PART-02 | TBD | pending |
-| PART-03 | TBD | pending |
-| PART-04 | TBD | pending |
-| WRKR-01 | TBD | pending |
-| WRKR-02 | TBD | pending |
-| WRKR-03 | TBD | pending |
+| PART-01 | Phase 391 | pending |
+| PART-02 | Phase 391 | pending |
+| PART-03 | Phase 391 | pending |
+| PART-04 | Phase 391 | pending |
+| WRKR-01 | Phase 392 | pending |
+| WRKR-02 | Phase 392 | pending |
+| WRKR-03 | Phase 392 | pending |
 
-_(Phase mapping diisi oleh roadmapper.)_
+**Coverage: 7/7 v1 requirements mapped ✓ — Orphans: 0 — Duplicates: 0**
+
+- **Phase 391 — Penambahan Peserta Fleksibel saat Ujian Berjalan:** PART-01, PART-02, PART-03, PART-04
+- **Phase 392 — Perbaikan CreateWorker + Audit Field:** WRKR-01, WRKR-02, WRKR-03
