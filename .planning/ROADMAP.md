@@ -51,7 +51,7 @@
 ### Phases
 
 - [x] **Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04)** — HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir penambahan selama window ujian masih terbuka; ganti warning kosmetik jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test (penambahan-saat-InProgress berhasil, peserta baru ber-status siap-mulai [Open/Upcoming per jadwal] BUKAN warisi induk [D-01], sesi/jawaban existing tidak ter-overwrite). 0 migration. (completed 2026-06-17)
-- [ ] **Phase 392: Perbaikan CreateWorker + Audit Field (WRKR-01..03)** — Buka kunci field Nama Lengkap & Email (`readonly` saat `Authentication:UseActiveDirectory=true`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline untuk field organisasi (Jabatan/Directorate/Bagian/Unit); lalu audit + Playwright-verify SEMUA field berfungsi end-to-end termasuk submission create pekerja baru sukses (record tersimpan, redirect ke daftar pekerja). View-only — controller/model tak diubah. 0 migration.
+- [x] **Phase 392: Perbaikan CreateWorker + Audit Field (WRKR-01..03)** — Buka kunci field Nama Lengkap & Email (`readonly` saat `Authentication:UseActiveDirectory=true`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline untuk field organisasi (Jabatan/Directorate/Bagian/Unit); lalu audit + Playwright-verify SEMUA field berfungsi end-to-end termasuk submission create pekerja baru sukses (record tersimpan, redirect ke daftar pekerja). View-only — controller/model tak diubah. 0 migration. (completed 2026-06-17)
 
 ### Phase Details
 
@@ -82,7 +82,7 @@
   2. Field Email memvalidasi format email (`type="email"`) dan setiap field menampilkan **pesan validasi inline per-field** (Nama Lengkap, Email, Jabatan, Directorate, Bagian, Unit) — bukan hanya di ringkasan error atas halaman. *(WRKR-02)*
   3. SEMUA field di `/Admin/CreateWorker` terverifikasi runtime berfungsi end-to-end — NIP, Tanggal Bergabung, Jabatan, Directorate, cascade Bagian→Unit, Role (default + level), Password/Konfirmasi (mode lokal) / info auto-generate (mode AD) — dan HC dapat menyelesaikan **submission membuat pekerja baru dengan sukses** (record tersimpan, redirect ke daftar pekerja). *(WRKR-03)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright e2e: field Nama/Email bisa diketik (mode AD), validasi inline muncul per-field, cascade Bagian→Unit berfungsi, dan create submission sukses (record tersimpan + redirect). Controller/model 0 diff (git-verified, view-only). *(WRKR-01, WRKR-02, WRKR-03 — Razor + cascade JS runtime → Playwright wajib, pelajaran Phase 354)*
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 - [x] 392-01-PLAN.md — Edit view CreateWorker.cshtml: buka kunci Nama/Email (hapus readonly+bg-light) + reword teks info AD + type=email + 4 span validasi org + @section Scripts _ValidationScriptsPartial (WRKR-01, WRKR-02)
 - [x] 392-02-PLAN.md — Playwright e2e AD-off (editable+type=email+cascade+create sukses) + source-grep guard readonly/bg-light + git-diff 0-diff controller/model + SEED_JOURNAL (WRKR-03), depends 392-01
 **UI hint:** yes
@@ -94,7 +94,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 391. Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04) | 2/2 | Complete    | 2026-06-17 |
-| 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 2/2 | Complete   | 2026-06-17 |
+| 392. Perbaikan CreateWorker + Audit Field (WRKR-01..03) | 2/2 | Complete    | 2026-06-17 |
 
 ### Coverage Validation
 

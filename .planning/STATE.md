@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v32.0
 milestone_name: Manajemen Peserta
-status: executing
+status: verifying
 stopped_at: Completed 392-02-PLAN.md
-last_updated: "2026-06-17T07:17:56.702Z"
+last_updated: "2026-06-17T07:29:24.281Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 23
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 392 (Perbaikan CreateWorker + Audit Field) — ✅ COMPLETE (2/2 plans)
-Plan: 2 of 2 (done)
+Phase: 999.7
+Plan: Not started
 Status: Phase 392 complete — WRKR-01/02/03 closed; ready for `/gsd-verify-work` + notify IT (migration=FALSE)
-Last activity: 2026-06-17 — Phase 392 Plan 02 e2e verification GREEN (3/3), worker self-cleaned
+Last activity: 2026-06-17
 
 **Milestone v32.0 Manajemen Peserta** — Phases 391-392 (LANJUT dari v31.0 phase terakhir 387; tidak reset ke 1). 0 migration. Branch main. 7/7 REQ mapped (0 orphan, 0 duplikat).
 
