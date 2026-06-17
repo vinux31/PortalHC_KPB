@@ -51,7 +51,7 @@ Expressed as **Bootstrap 5 spacing utilities** (Bootstrap base = `$spacer` 1rem/
 | xl | `py-5` | 48px | Empty-state vertical padding (`text-center py-5` L219 preserved) |
 
 Exceptions:
-- **Avatar circle = 36px** fixed (`style="width:36px;height:36px"`) — reused verbatim from `ManageWorkers.cshtml:251-254` (D-03). Not a 4-multiple (36 = 9×4 actually holds), kept identical to the established app idiom; do NOT re-derive.
+- **Avatar circle = 36px** fixed (`style="width:36px;height:36px"`) — reused verbatim from `ManageWorkers.cshtml:251-254` (D-03). 36px is a 4-multiple (9×4) and is kept identical to the established app idiom; do NOT re-derive.
 - **Avatar font-size = 0.8rem** (12.8px) — part of the reused idiom (D-03), kept verbatim.
 - Card-header & card-body inherit Bootstrap default padding (`var(--bs-card-spacer-y/x)` = 1rem = 16px). No override.
 
