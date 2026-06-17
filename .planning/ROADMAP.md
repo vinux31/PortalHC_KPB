@@ -1374,7 +1374,9 @@ Plans:
 
 </details>
 
-### Phase 391: Fix Import Excel button auto-enable on CoachCoacheeMapping (view-only)
+### Phase 390.1: Fix Import Excel button auto-enable on CoachCoacheeMapping (view-only)
+
+> Decimal follow-up of Phase 390 (defect found during 390 live UAT C7). Numbered 390.1 to stay in the v32.1 family and avoid integer collision with main's reserved phases 391 (v32.0) + 392 (v32.0) + 393–398 (v32.2) on merge.
 
 **Goal:** The "Upload & Proses" button (`#btnImportMapping`) in the Import Excel modal on `/Admin/CoachCoacheeMapping` becomes enabled as soon as a file is selected, so admins can import via the normal UI. Today it never enables (import unusable via UI).
 
@@ -1390,7 +1392,7 @@ Plans:
 **Plans:** 0 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 391 to break down)
+- [ ] TBD (run /gsd-plan-phase 390.1 to break down)
 
 ---
 
