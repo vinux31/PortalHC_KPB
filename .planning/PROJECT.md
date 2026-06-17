@@ -56,34 +56,29 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v31.0 Hotfix Pra-Ujian Lisensor STARTED 2026-06-15 (urgent, acara ~2026-06-17). 5 temuan must-fix dari readiness audit. v30.0 CLOSED + PUSHED origin/ITHandoff. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
+**Current focus:** v32.1 Perbaikan Teks & Desain STARTED 2026-06-17 (branch ITHandoff; main pegang v32.0 di branch terpisah). Pure UI/teks polish 3 surface admin/hasil — 0 backend, 0 migration. v31.0 CLOSED + MERGED→main + PUSHED origin/main 2026-06-16. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
 
-## Current Milestone: v31.0 Hotfix Pra-Ujian Lisensor — 🚧 STARTED 2026-06-15
+## Current Milestone: v32.1 Perbaikan Teks & Desain — 🚧 STARTED 2026-06-17
 
-**Goal:** Perbaiki 5 temuan readiness yang menghambat ujian lisensor real (~2026-06-17) dalam 1 bundle deploy — sebelum hari-H.
-
-**Target fixes** (must-fix dari readiness audit; register final di `.planning/notes/2026-06-15-readiness-ujian-lisensor.md`):
-- **F-09** — gambar soal/pilihan tak tampil di Dev (path leading-slash bypass PathBase `/KPB-PortalHC`); fix `_QuestionImage` src jadi PathBase-aware.
-- **F-DEV-01** — `CreateQuestion`/`EditQuestion` bisa simpan soal Single/Multiple **tanpa opsi** → blokir submit; tambah validasi wajib ≥1 opsi berisi.
-- **F-21** — jawaban essay debounce 2s **tanpa flush saat submit** → bisa hilang + reject submit menit akhir; flush essay saat submit/blur.
-- **F-04** — essay dikosongkan → **dead-end finalize** (pending-count divergen); samakan hitung.
-- **F-17** — `BulkExportPdf` nilai Multiple Answer pakai `FirstOrDefault` bukan `SetEquals` → PDF bukti resmi salah label.
-
-**Konteks kunci:** ujian SA+MA+Essay+gambar, PDF per-peserta = bukti resmi, ≤30 peserta. **0 migration.** Target: 1 push → IT re-deploy sebelum hari-H. Pendekatan: hotfix langsung (skip domain-research).
-
-**Scope note:** FUTURE (OUT milestone ini): F-02, F-03, F-01, F-06, F-11, F-13, F-19, F-20, F-22 (report/kosmetik/jarang/mitigatable). F-18 kondisional (hanya jika >1 paket; mitigasi: pakai 1 paket).
-
-## Previous Milestone: v30.0 Essay Grading Correctness + Monitoring UI Refactor — ✅ SHIPPED + CLOSED 2026-06-15
-
-**Goal:** Hasil assessment menampilkan soal essay yang sudah dinilai HC secara benar (count "X/Y benar", Elemen Teknis, Tinjauan Jawaban, PDF) lewat satu helper correctness terpusat — menutup bug user 2026-06-15 + backlog RES-02/GRD-02 — lalu rapikan UI penilaian essay di Monitoring jadi tabel list worker + page "Tinjau Essay" per-worker.
+**Goal:** Rapikan teks & tampilan 3 surface (hasil assessment + 2 halaman Admin coach) — murni UI/teks, tanpa ubah backend/perilaku/migration. (main pegang v32.0 di branch terpisah; branch ITHandoff ini = v32.1)
 
 **Target features:**
-- **Essay Correctness Fix (Fase 1, phase 383)** — helper `AssessmentScoreAggregator.IsQuestionCorrect` (bool?, essay Benar=`EssayScore>0`, null=pending) dipakai di 3 titik `CMPController.Results` (count/ET/Tinjauan) + PDF export (unify threshold ke `>0`). Plus regression test Simpan Skor + Selesaikan Penilaian (poin 2, sudah benar — dikunci test). Read-path only.
-- **Monitoring Essay UI Refactor (Fase 2, phase 384)** — ganti blok essay inline panjang di `AssessmentMonitoringDetail` jadi tabel list worker (status + jumlah belum dinilai) + tombol "Tinjau Essay" → page penilaian per-worker (reuse endpoint `SubmitEssayScore`/`FinalizeEssayGrading`, backend tak diubah).
+- **LBL-03** — Label hasil assessment "Nilai Kelulusan" → "Batas Nilai Kelulusan" (`Views/CMP/Results.cshtml:60`).
+- **DSN-01** — `Views/Admin/CoachCoacheeMapping.cshtml` redesign jadi accordion card per coach (header: avatar inisial + nama + section + badge beban warna-ikut-threshold).
+- **DSN-02** — Klik card coach buka/tutup daftar coachee (tabel mini di dalam card).
+- **DSN-03** — Rapikan toolbar header CoachCoacheeMapping (gaya tombol konsisten) + hapus dead-code `onclick` sampah.
+- **DSN-04** — `Views/Admin/CoachWorkload.cshtml` polish: filter bar + heading "Saran Penyeimbangan" dibungkus card konsisten.
+- **DSN-05** — CoachWorkload bersihkan inline magic-number font-size + selaraskan spacing.
 
-**Pendekatan:** Spec-driven. Sumber: `docs/superpowers/specs/2026-06-15-essay-grading-correctness-design.md` (root cause workflow-verified multi-agent + 5 keputusan brainstorm). Skip domain-research (bug fix + UI refactor codebase existing, reuse pola `AssessmentScoreAggregator` Phase 376).
+**Konteks kunci:** Arah desain di-brainstorm + visual-companion (accordion card "B" dipilih untuk CoachCoacheeMapping; CoachWorkload polish-only). **Behavior parity** wajib (semua aksi existing: edit/nonaktif/graduated/hapus/reactivate/assign/import/export + threshold/saran tetap jalan). **0 migration, 0 backend.** Pendekatan: edit view + JS in-place (skip domain-research).
 
-**Scope note:** Rubric editor / partial-credit weighting + bulk essay grading + migration = OUT. **0 migration** (read/display-path only; `EssayScore` sudah ada + terisi). Pass/Fail tak disentuh (derive dari Score% yg sudah benar).
+**Scope note:** OUT milestone ini — perubahan backend/controller, struktur data, migration, redesign penuh master-detail (arah "C" ditolak), serta halaman admin lain di luar 3 surface ini.
+
+## Previous Milestone: v31.0 Hotfix Pra-Ujian Lisensor — ✅ SHIPPED + CLOSED + MERGED→main 2026-06-16
+
+**Goal:** Perbaiki temuan readiness ujian lisensor (~2026-06-17) — hardening alur assessment SA+MA+Essay+soal-bergambar dalam 1 milestone, 0 migration.
+
+**What shipped (phases 385-387, 14/14 REQ PXF-01..14):** (385) gambar PathBase-aware sub-path + essay flush pra-submit/blur/timeout; (386) validasi opsi soal + essay-kosong finalizable + PDF/Excel MA all-or-nothing via shared `IsQuestionCorrect`+`BuildAnswerCell`; (387 pasca-acara) SubmitEssayScore guards + cert retry/log/surface + Excel essay cell + monitor broadcast + aria opsi huruf + SubmitExam MC no-null + SaveTextAnswer timer guard. Audit PASSED 14/14 (integration 11/11; GAP-1 PXF-08 fix `3005733d`). 347/347 fast + 8/8 Integration + Playwright 3/3 + UAT. **0 migration.** HEAD 64456bd5 (ITHandoff) merged→main 7ea6c81e. Browser UAT Dev full-lifecycle PASS 2026-06-16.
 
 ## Backlog Lainnya (deferred ke milestone berikutnya)
 
@@ -940,6 +935,23 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 - Tech stack: `.planning/codebase/STACK.md`
 - Milestone history: `.planning/MILESTONES.md`
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
 
-*Last updated: 2026-06-15 after v30.0 milestone close (Essay Grading Correctness + Monitoring UI Refactor, phases 383-384, 10/10 REQ, 0 migration, audit PASSED)*
+*Last updated: 2026-06-17 — v32.1 Perbaikan Teks & Desain STARTED (branch ITHandoff; main pegang v32.0). Pure UI/teks: LBL-03 + DSN-01..05, 0 migration, 0 backend. v31.0 CLOSED+MERGED→main 2026-06-16.*
