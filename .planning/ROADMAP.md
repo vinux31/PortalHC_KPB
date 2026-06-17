@@ -30,12 +30,181 @@
 - ✅ **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (shipped local + audited PASSED 2026-06-15, 11/11 REQ WSE-01..11; 0 migration; NOT PUSHED) — [archive](milestones/v29.0-ROADMAP.md) — [audit](v29.0-MILESTONE-AUDIT.md)
 - ✅ **v30.0 Essay Grading Correctness + Monitoring UI Refactor** — Phases 383-384 (shipped local + audited PASSED 2026-06-15, 10/10 REQ ECG-01..06 + UIG-01..04; **0 migration**; menutup backlog RES-02 + GRD-02; NOT PUSHED) — [archive](milestones/v30.0-ROADMAP.md) — [audit](milestones/v30.0-MILESTONE-AUDIT.md)
 - ✅ **v31.0 Hotfix Pra-Ujian Lisensor** — Phases 385-387 (shipped local + audited PASSED 2026-06-16, 14/14 REQ PXF-01..14; **0 migration**; 385-386 = bundle urgent pra-acara [deploy IT #1], 387 = polish pasca-acara [deploy IT #2]; NOT PUSHED) — [archive](milestones/v31.0-ROADMAP.md) — [audit](milestones/v31.0-MILESTONE-AUDIT.md)
-- 🚧 **v32.0 Manajemen Peserta** — Phases 391-392 (STARTED 2026-06-17, ACTIVE; 7/7 REQ PART-01..04 + WRKR-01..03; **0 migration**; 391 = penambahan peserta fleksibel saat ujian berjalan, 392 = perbaikan CreateWorker view + audit field; branch main, NOT PUSHED)
+- ✅ **v32.0 Manajemen Peserta** — Phases 391-392 (COMPLETE local 2026-06-17; 7/7 REQ PART-01..04 + WRKR-01..03; **0 migration**; 391 = penambahan peserta fleksibel saat ujian berjalan, 392 = perbaikan CreateWorker view + audit field; branch main, NOT PUSHED)
+- 🚧 **v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — Phases 393-398 (STARTED 2026-06-17, ACTIVE; 13/13 REQ INJ-01..13; **0 migration**; page baru `/Admin/InjectAssessment` Section C [Admin+HC] meng-inject hasil assessment identik online via reuse GradingService/authoring/CertNumberHelper; branch main, NOT PUSHED) — [spec](../docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md)
 
 ## Phases
 
 <details open>
-<summary>🚧 v32.0 Manajemen Peserta (Phases 391-392) — STARTED 2026-06-17 — ACTIVE</summary>
+<summary>🚧 v32.2 Inject Hasil Assessment Manual ("Seakan Online") (Phases 393-398) — STARTED 2026-06-17 — ACTIVE</summary>
+
+**Status:** Roadmap created 2026-06-17 (spec-driven; fase decomposition sudah final dari design spec + keputusan user). NOT YET PLANNED.
+**Source:** Design spec `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md` (research codebase: BulkBackfill, GradingService, room model, /CMP/Results, anchor sentinel). Detail REQ → `.planning/REQUIREMENTS.md`.
+**Goal:** HC/Admin dapat meng-inject hasil assessment manual (ujian offline/kertas, data migrasi, acara lisensor luring) yang **identik dengan hasil online** — muncul di riwayat pekerja (`/CMP/Records`), rincian jawaban per-soal + breakdown elemen teknis (`/CMP/Results`), sertifikat opsional — via page baru `/Admin/InjectAssessment` (Kelola Data Section C, Admin+HC). Mesin existing (authoring soal + `GradingService`/`FinalizeEssayGrading` + `CertNumberHelper`) di-**reuse** (nol duplikasi logic) → skor/lulus/cert dihitung identik online.
+**Granularity:** standard (6 fase — decomposition FINAL dari spec §11 + keputusan user; tidak di-redecompose).
+**Migration:** **false (semua phase)** — semua tabel sudah ada (`AssessmentSession`/`UserPackageAssignment`/`PackageUserResponses`/`SessionElemenTeknisScore`/`AssessmentPackage`/`AuditLog`). Tidak ada schema/backfill baru.
+**Penomoran phase:** LANJUT dari v32.0 phase terakhir (392) → mulai **Phase 393**. Tidak reset ke 1.
+**Konteks kunci arsitektur:**
+- **Anchor paket = pola sentinel** (`CMPController.cs:1034-1090`): paket di-anchor ke sesi representatif room; tiap pekerja `UserPackageAssignment(AssessmentPackageId=sentinel + ShuffledQuestionIds)`. Grading & Results baca soal **by question ID** via `ShuffledQuestionIds`, bukan by session.
+- **Visibility gratis:** `GetUnifiedRecords` (`WorkerDataService.cs:28`) **tidak** filter `IsManualEntry` → sesi inject muncul otomatis di `/CMP/Records` sebagai "Assessment Online".
+- **Detail per-soal butuh 4 data** (`CMPController.cs:2184` Results): `UserPackageAssignment` + `PackageUserResponses` + paket soal + `AllowAnswerReview=true`.
+- **Transparansi wajib:** `IsManualEntry=true` + AuditLog `ActionType="ManualInject"` (actor, NIP, sessionId, skor).
+- **Reuse, nol duplikasi:** `GradingService.GradeAndCompleteAsync` / `FinalizeEssayGrading` + authoring `ManagePackages` + `CertNumberHelper` (`KPB/xxx/ROMAN/year`).
+- **RBAC:** `Admin,HC`.
+**Konkurensi (file-overlap):** Phase 393 = fondasi. 394 depends 393. 395/396/397 depends 394 dan **menyentuh `InjectAssessmentController.cs` + `Views/Admin/InjectAssessment.cshtml` + `InjectAssessmentService.cs` yang sama** → dijalankan **sequential** setelah 394 (bukan paralel) untuk hindari merge-clobber. 398 depends 393-397.
+**Out of scope v1 (tak ada fase):** multi-paket variasi per room; import gambar soal via Excel; edit massal sesi inject pasca-buat; notifikasi/broadcast SignalR; membuat akun pekerja baru; duplikasi logic grading/authoring.
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap fase wajib `dotnet build` + `dotnet run` (localhost:5277) + Playwright bila ada UI sebelum commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ tidak ada edit di Dev/Prod.
+
+### Phases
+
+- [ ] **Phase 393: Backend core inject (INJ-01, INJ-02)** — `InjectAssessmentService` membangun session set lengkap (`AssessmentSession` + `UserPackageAssignment` ber-`ShuffledQuestionIds` + `PackageUserResponses` + `SessionElemenTeknisScore` + sertifikat opsional) lewat reuse `GradingService.GradeAndCompleteAsync`/`FinalizeEssayGrading` (skor/lulus/elemen-teknis/cert **dihitung**, bukan ditulis tangan), atomic per-batch (rollback semua bila NIP invalid/error), `IsManualEntry=true` + AuditLog `"ManualInject"`; dikunci xUnit. 0 migration.
+- [ ] **Phase 394: Page + Setup Room + authoring soal (INJ-03..07)** — Page `/Admin/InjectAssessment` (kartu Section C, RBAC Admin+HC) + setup room mirror `CreateAssessment` (judul/kategori/jadwal-backdate/durasi/PassPercentage/AllowAnswerReview/tipe Standard-Pre-Post) + authoring soal MC/MA/Essay (opsi+IsCorrect+ScoreValue+ElemenTeknis+Rubrik) reuse `ManagePackages` + worker picker + toggle sertifikat (auto/manual/tanpa). 0 migration.
+- [ ] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration.
+- [ ] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration.
+- [ ] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration.
+- [ ] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration.
+
+### Phase Details
+
+### Phase 393: Backend core inject
+**Goal:** Sistem dapat membangun sesi assessment manual lengkap per pekerja yang dihitung identik online (skor/lulus/elemen-teknis/cert via pipeline grading existing), atomic per-batch, dan tercatat penuh untuk compliance — tanpa membuat engine grading/authoring baru.
+**Depends on:** Tidak ada (fondasi milestone; melanjutkan dari Phase 392 v32.0).
+**Migration:** false (reuse pipeline grading existing; semua tabel sudah ada)
+**Requirements:** INJ-01, INJ-02
+**Files:** `Services/InjectAssessmentService.cs` (BARU — inti orchestrator: terima `(packageSpec, settings, List<workerAnswers>)` → buat session set via reuse) · reuse apa-adanya `Services/GradingService.cs` (`GradeAndCompleteAsync`) + `AssessmentAdminController.FinalizeEssayGrading` jalur essay + `Helpers/AssessmentScoreAggregator.cs` + `Helpers/CertNumberHelper.cs` (`GetNextSeqAsync`/`Build`) · anchor paket pola sentinel (`CMPController.cs:1034-1090`) · `AuditLog` `ActionType="ManualInject"` · transaction atomic per-batch (pola `BulkBackfillAssessment`) · xUnit (build full session set, atomic rollback, essay finalize → Completed, AuditLog count).
+**Success Criteria** (what must be TRUE):
+  1. Diberikan paket soal + jawaban per pekerja, `InjectAssessmentService` menghasilkan set lengkap `AssessmentSession` + `UserPackageAssignment` (ber-`ShuffledQuestionIds`, anchor paket sentinel) + `PackageUserResponses` + `SessionElemenTeknisScore` + sertifikat opsional, dengan skor/kelulusan/elemen-teknis/nomor-sertifikat **dihitung** lewat `GradingService.GradeAndCompleteAsync`/`FinalizeEssayGrading` (bukan ditulis tangan) — diverifikasi xUnit hasil byte-identik dengan jalur online untuk MC/MA/Essay. *(INJ-01)*
+  2. Bila satu NIP invalid atau terjadi error di tengah batch, **seluruh batch di-rollback** (tidak ada sesi parsial tertulis) — diverifikasi xUnit transaksi atomic. *(INJ-01)*
+  3. Sesi essay yang di-inject berakhir `Status=Completed` (bukan tertinggal "Menunggu Penilaian") setelah `EssayScore` di-set + `FinalizeEssayGrading` dipanggil — diverifikasi xUnit. *(INJ-01 — risiko spec §13)*
+  4. Setiap sesi inject ditulis `IsManualEntry=true` dan menghasilkan satu entri AuditLog `ActionType="ManualInject"` berisi actor, NIP, sessionId, dan skor — diverifikasi xUnit (count entri = jumlah sesi). *(INJ-02)*
+  5. `dotnet build` 0 error + `dotnet test` hijau (xUnit di atas); `dotnet ef migrations add _verify` → 0 model diff (konfirmasi 0 migration). *(INJ-01, INJ-02)*
+**Plans:** TBD
+
+### Phase 394: Page + Setup Room + authoring soal
+**Goal:** HC/Admin dapat membuka page inject baru dari Kelola Data, mengatur room inject seperti membuat assessment online, menulis soal lengkap, memilih pekerja penerima, dan memilih mode sertifikat — semua dalam satu alur berlangkah tanpa akses DB.
+**Depends on:** **Phase 393** (orchestrator memanggil `InjectAssessmentService`).
+**Migration:** false (controller + view + reuse authoring; tidak ada schema/write DB baru)
+**Requirements:** INJ-03, INJ-04, INJ-05, INJ-06, INJ-07
+**Files:** `Controllers/InjectAssessmentController.cs` (BARU, route `/Admin/InjectAssessment`, `[Authorize(Roles="Admin,HC")]`) · `Views/Admin/InjectAssessment.cshtml` (BARU, alur berlangkah) + `ViewModels/InjectAssessmentViewModel.cs` (BARU) · reuse partial authoring soal `ManagePackages` (`AssessmentAdminController.cs:~5641+` + `Models/AssessmentPackage.cs`) · reuse worker picker · setting room mirror `CreateAssessment` · toggle sertifikat (auto/manual/tanpa) wiring ke `InjectAssessmentService` (Phase 393) · kartu baru `Views/Admin/Index.cshtml` Section C · Playwright (buka page RBAC + isi setup + authoring soal + pilih pekerja + toggle cert).
+**Success Criteria** (what must be TRUE):
+  1. Admin dan HC melihat kartu baru di Kelola Data Section C (Assessment & Training), klik → membuka `/Admin/InjectAssessment`; role di luar Admin/HC mendapat 403/AccessDenied (RBAC `Admin,HC`). *(INJ-03)*
+  2. HC dapat mengisi setting room (judul, kategori, jadwal/`CompletedAt` di-backdate, durasi, `PassPercentage`, `AllowAnswerReview`, tipe Standard/Pre/Post) dengan tata letak mirror `CreateAssessment`, dan setting tersimpan untuk dipakai inject. *(INJ-04)*
+  3. HC dapat menulis soal MultipleChoice/MultipleAnswer/Essay beserta opsi + kunci (`IsCorrect`) + `ScoreValue` + `ElemenTeknis` + `Rubrik` di dalam alur page inject menggunakan komponen authoring yang sama dengan `ManagePackages`. *(INJ-05)*
+  4. HC dapat memilih satu atau banyak pekerja penerima via worker picker; NIP yang tidak ada di sistem (`AspNetUsers`) ditolak/tidak dapat dipilih. *(INJ-06)*
+  5. HC dapat memilih mode sertifikat per-room via toggle: auto-generate nomor resmi (`CertNumberHelper`), input nomor manual (+`ValidUntil`), atau tanpa sertifikat — pilihan terbawa ke proses inject. *(INJ-07)*
+  6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright: kartu Section C → page terbuka (Admin/HC), role lain 403; setup room tersimpan; authoring soal MC/MA/Essay berfungsi; worker picker tolak NIP tak dikenal; toggle sertifikat 3 mode. *(INJ-03..07 — Razor + JS runtime → Playwright wajib, pelajaran Phase 354)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 395: Mode jawaban (input asli + auto-generate)
+**Goal:** HC dapat menentukan jawaban tiap pekerja dengan dua cara — menginput jawaban asli per soal, atau auto-generate pola jawaban dari skor target — dan melihat skor final aktual (memperhitungkan pembulatan) sebelum commit.
+**Depends on:** **Phase 394** (alur authoring + worker picker tersedia). **Sequential setelah 394** — menyentuh `InjectAssessmentController.cs`/`InjectAssessment.cshtml`/`InjectAssessmentService.cs` yang sama dengan 396/397 (no paralel).
+**Migration:** false
+**Requirements:** INJ-08, INJ-09
+**Files:** `Views/Admin/InjectAssessment.cshtml` (form jawaban per pekerja: render soal authored, MC/MA pilih opsi, Essay teks+skor) · `Controllers/InjectAssessmentController.cs` (mode input asli + mode auto-generate dari skor target + preview skor final pra-commit) · `Services/InjectAssessmentService.cs` (auto-gen: pilih subset soal "benar" agar Σ(ScoreValue benar)/Σ(ScoreValue) ≈ target; MC pilih opsi benar/salah, MA set persis kunci / tak-cocok; Essay set EssayScore; lapor skor terdekat bila target tak persis) · Playwright e2e (input asli → skor dihitung; auto-gen → preview skor final → commit).
+**Success Criteria** (what must be TRUE):
+  1. HC dapat membuka form jawaban per pekerja, memilih opsi untuk MC (1 opsi) / MA (≥1 opsi) dan mengisi teks + skor untuk Essay; saat di-inject, skor dihitung lewat pipeline grading (bukan diketik sebagai persen final). *(INJ-08)*
+  2. HC dapat memilih mode auto-generate dengan memberi skor target (per pekerja atau seragam satu batch); sistem membentuk pola benar/salah MC/MA konsisten dengan target dan men-set `EssayScore` untuk essay. *(INJ-09)*
+  3. Sebelum commit, sistem menampilkan **skor final aktual** hasil pipeline grading untuk auto-generate (memperhitungkan pembulatan) sehingga HC tahu jika target tidak tercapai persis dan diambil yang terdekat. *(INJ-09 — risiko spec §13 auto-gen tak persis)*
+  4. Jawaban hasil auto-generate tetap menghasilkan sesi ber-`IsManualEntry=true` + AuditLog (sintetis namun terlacak); diverifikasi end-to-end skor yang tampil di hasil = skor preview. *(INJ-08, INJ-09)*
+  5. `dotnet build` 0 error + `dotnet test` + `dotnet run` (localhost:5277) + Playwright e2e: input asli per pekerja → skor dihitung benar; auto-gen skor target → preview skor final aktual tampil → commit → hasil match. *(INJ-08, INJ-09 — Razor + JS runtime → Playwright wajib)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 396: Import Excel + retire BulkBackfill
+**Goal:** HC dapat meng-inject jawaban/skor batch via Excel matrix dengan template yang ter-generate dari paket soal, validasi atomic, dan tool lama BulkBackfill dipensiunkan/diarahkan sehingga tidak ada dua tool duplikat.
+**Depends on:** **Phase 394** (paket soal sudah di-authored untuk men-generate template). **Sequential setelah 394** — file-overlap controller/view/service dengan 395/397.
+**Migration:** false
+**Requirements:** INJ-10, INJ-11
+**Files:** `Controllers/InjectAssessmentController.cs` (endpoint download template + upload import) · `Services/InjectAssessmentService.cs` / helper Excel (template generator dari paket soal + matrix parser baris=NIP/kolom=soal via ClosedXML — lib sama BulkBackfill; sel MC/MA = huruf opsi `A`/`A,C`, kolom essay = skor/skor+teks; validasi NIP valid + huruf opsi valid + atomic rollback) · `Views/Admin/InjectAssessment.cshtml` (UI import) · retire `Controllers/TrainingAdminController.cs:787/836` `BulkBackfillAssessment` + `Views/Admin/BulkBackfill.cshtml` + kartu Section D (pensiun/redirect ke page inject) · Playwright e2e (download template → isi → upload → hasil; baris invalid → rollback) + xUnit parser.
+**Success Criteria** (what must be TRUE):
+  1. HC dapat men-download template Excel yang ter-generate dari paket soal inject (baris = NIP, kolom = nomor soal), mengisi jawaban (huruf opsi `A`/`A,C` untuk MC/MA, skor untuk Essay), dan meng-upload kembali untuk inject batch. *(INJ-10)*
+  2. Parser memvalidasi NIP wajib ada di sistem dan huruf opsi valid; bila ada baris invalid, **seluruh import di-rollback** (tidak ada sesi parsial) dan HC mendapat pesan error yang jelas. *(INJ-10)*
+  3. Import Excel menghasilkan sesi yang identik dengan jalur form (lewat `InjectAssessmentService` yang sama) — diverifikasi hasil muncul di `/CMP/Records` + `/CMP/Results`. *(INJ-10)*
+  4. Tool lama "Bulk Import Nilai (Excel)" / `BulkBackfill` (`TrainingAdminController.cs:787/836`) dipensiunkan atau diarahkan ke page inject baru — tidak ada lagi dua entry-point yang melakukan inject hasil assessment. *(INJ-11)*
+  5. `dotnet build` 0 error + `dotnet test` (parser/validasi/rollback) + `dotnet run` (localhost:5277) + Playwright e2e: download template → isi → upload sukses (hasil di Records/Results) + baris invalid → rollback total; BulkBackfill lama tak lagi dapat dipakai inject (redirect/pensiun). *(INJ-10, INJ-11)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 397: Link Pre/Post ke room existing
+**Goal:** HC dapat menautkan sesi inject Pre/Post ke assessment room existing lewat search picker, mendukung skenario silang di mana satu sisi (Pre atau Post) di-inject dan sisi lainnya adalah assessment online asli, tanpa merusak grouping Pre/Post.
+**Depends on:** **Phase 394** (setup room tipe Pre/Post tersedia). **Sequential setelah 394** — file-overlap controller/view/service dengan 395/396.
+**Migration:** false
+**Requirements:** INJ-12
+**Files:** `Controllers/InjectAssessmentController.cs` (search picker room existing endpoint + wiring `LinkedGroupId`/`LinkedSessionId`) · reuse query `AssessmentAdminController.ManageAssessmentTab_Assessment:112` (cari by Title/Category/jadwal → daftar room ber-`RepresentativeId`+`LinkedGroupId`) · `Services/InjectAssessmentService.cs` (set `LinkedGroupId` sesi inject = room target / buat group bila standalone; `LinkedSessionId` ke sesi pasangan per pekerja; reuse logika PrePost existing) · `Views/Admin/InjectAssessment.cshtml` (UI picker, tampil saat tipe Pre/Post) · Playwright/xUnit (silang inject↔online grouping utuh).
+**Success Criteria** (what must be TRUE):
+  1. Saat tipe room inject = Pre atau Post, HC dapat mencari & memilih assessment room existing via search picker (reuse query `ManageAssessmentTab_Assessment`, cari by Title/Category/jadwal, tampil sebagai daftar room). *(INJ-12)*
+  2. Memilih room target men-set `LinkedGroupId` + `LinkedSessionId` sesi inject dengan benar sehingga pasangan Pre↔Post saling tertaut per pekerja (reuse logika PrePost existing, tanpa grouping baru). *(INJ-12)*
+  3. Skenario silang berfungsi: Pre di-inject + Post = assessment online asli (atau sebaliknya) tampil sebagai satu pasangan Pre/Post utuh di Records/Monitoring — diverifikasi grouping `LinkedGroupId` tidak rusak saat satu sisi inject & satu sisi online. *(INJ-12 — risiko spec §13 link silang)*
+  4. `dotnet build` 0 error + `dotnet test`/Playwright + `dotnet run` (localhost:5277): picker tampil saat Pre/Post → pilih room online asli → sesi inject tertaut → pasangan Pre/Post utuh (silang inject↔online). *(INJ-12)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 398: Test + UAT "seakan online"
+**Goal:** Hasil inject terbukti tak bisa dibedakan dari assessment online end-to-end — muncul di riwayat pekerja, rincian jawaban per-soal + elemen teknis benar, sertifikat dapat di-download — dan keseluruhan milestone lulus regression + audit.
+**Depends on:** **Phase 393, 394, 395, 396, 397** (verifikasi lifecycle penuh).
+**Migration:** false
+**Requirements:** INJ-13
+**Files:** `tests/e2e/` (spec E2E full lifecycle inject → Records → Results per-soal → sertifikat; form + auto-gen + Excel) · xUnit regression (jalur online existing tak regresi) · reuse `WorkerDataService.GetUnifiedRecords` + `CMPController.Results` + sertifikat PDF (assert tak ubah) · audit milestone v32.2.
+**Success Criteria** (what must be TRUE):
+  1. E2E full lifecycle PASS: HC inject hasil (form + auto-generate + Excel) → baris muncul di `/CMP/Records` pekerja dengan label "Assessment Online" (tidak dapat dibedakan dari online). *(INJ-13)*
+  2. `/CMP/Results` sesi inject menampilkan rincian jawaban per-soal benar/salah yang benar (MC/MA all-or-nothing, essay graded) + breakdown elemen teknis + tombol/unduh sertifikat — diverifikasi identik dengan jalur online. *(INJ-13)*
+  3. Regression suite (xUnit + Playwright) hijau dan tidak ada regresi pada jalur assessment online existing; audit milestone v32.2 menyatakan 13/13 REQ INJ-01..13 satisfied + integration wired (0 orphan/0 broken). *(INJ-13)*
+  4. `dotnet build` 0 error + `dotnet test` (full suite) hijau + Playwright E2E hijau + `dotnet run` (localhost:5277) UAT browser "seakan online" → notify IT (commit hash + migration=FALSE). *(INJ-13)*
+**Plans:** TBD
+**UI hint:** yes
+
+**Active mapped: 13/13 ✓ (INJ-01 + INJ-02 → 393; INJ-03..07 → 394; INJ-08 + INJ-09 → 395; INJ-10 + INJ-11 → 396; INJ-12 → 397; INJ-13 → 398) — Orphans: 0 — Duplicates: 0 — 0 migration (semua phase).**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 393. Backend core inject (INJ-01, INJ-02) | 0/? | Not started | - |
+| 394. Page + Setup Room + authoring soal (INJ-03..07) | 0/? | Not started | - |
+| 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 0/? | Not started | - |
+| 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 0/? | Not started | - |
+| 397. Link Pre/Post ke room existing (INJ-12) | 0/? | Not started | - |
+| 398. Test + UAT "seakan online" (INJ-13) | 0/? | Not started | - |
+
+### Dependency Graph
+
+```
+393 (Backend core inject — fondasi)
+ └─> 394 (Page + Setup Room + authoring)
+      ├─> 395 (Mode jawaban)          ┐
+      ├─> 396 (Import Excel + retire)  ┤  (395/396/397 share InjectAssessmentController
+      └─> 397 (Link Pre/Post)          ┘   + view + InjectAssessmentService → SEQUENTIAL,
+                                            file-overlap; bukan paralel)
+ 395 + 396 + 397 ──> 398 (Test + UAT "seakan online")
+```
+
+### Coverage Validation
+
+| REQ | Phase | Surface / Touchpoint | Status |
+|-----|-------|----------------------|--------|
+| INJ-01 | 393 | `Services/InjectAssessmentService.cs` (BARU) build session set full via reuse `GradingService`/`FinalizeEssayGrading`, anchor sentinel, atomic per-batch | Pending |
+| INJ-02 | 393 | `IsManualEntry=true` + AuditLog `ActionType="ManualInject"` (actor/NIP/sessionId/skor) | Pending |
+| INJ-03 | 394 | `Controllers/InjectAssessmentController.cs` (BARU) `/Admin/InjectAssessment` RBAC Admin,HC + kartu `Views/Admin/Index.cshtml` Section C | Pending |
+| INJ-04 | 394 | `Views/Admin/InjectAssessment.cshtml` setup room mirror `CreateAssessment` (backdate CompletedAt, tipe Standard/Pre/Post) | Pending |
+| INJ-05 | 394 | reuse authoring soal `ManagePackages` (MC/MA/Essay + opsi + IsCorrect + ScoreValue + ElemenTeknis + Rubrik) | Pending |
+| INJ-06 | 394 | reuse worker picker (NIP wajib ada di `AspNetUsers`) | Pending |
+| INJ-07 | 394 | toggle sertifikat per-room (auto `CertNumberHelper` / manual / tanpa) | Pending |
+| INJ-08 | 395 | form input jawaban asli per pekerja (MC/MA opsi, Essay teks+skor) → skor via pipeline grading | Pending |
+| INJ-09 | 395 | auto-generate pola jawaban dari skor target + skor final aktual ditampilkan pra-commit | Pending |
+| INJ-10 | 396 | template Excel ter-generate + matrix parser (baris=NIP, kolom=soal) atomic via `InjectAssessmentService` | Pending |
+| INJ-11 | 396 | retire/redirect `TrainingAdminController.cs:787/836` BulkBackfill (no duplikat) | Pending |
+| INJ-12 | 397 | search picker room existing (reuse `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` (silang inject↔online) | Pending |
+| INJ-13 | 398 | E2E full lifecycle (Records + Results per-soal + sertifikat) + regression + audit milestone | Pending |
+
+**Active mapped: 13/13 ✓ — Orphans: 0 — Duplicates: 0 — 0 migration — 393 = backend core; 394 = page+setup+authoring; 395 = mode jawaban; 396 = import Excel + retire BulkBackfill; 397 = link Pre/Post; 398 = test + UAT "seakan online".**
+
+</details>
+
+---
+
+<details>
+<summary>✅ v32.0 Manajemen Peserta (Phases 391-392) — COMPLETE local 2026-06-17 — 7/7 REQ — 0 migration</summary>
 
 **Status:** Roadmap created 2026-06-17 (investigasi-driven, skip domain-research). NOT YET PLANNED.
 **Source:** Investigasi multi-agent 2026-06-17 (workflow `manajemen-peserta-investigasi`) — root cause & file ter-peta, adversarial-verified. Detail REQ → `.planning/REQUIREMENTS.md`.
@@ -50,8 +219,10 @@
 
 ### Phases
 
-- [x] **Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04)** — HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir penambahan selama window ujian masih terbuka; ganti warning kosmetik jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test (penambahan-saat-InProgress berhasil, peserta baru ber-status siap-mulai [Open/Upcoming per jadwal] BUKAN warisi induk [D-01], sesi/jawaban existing tidak ter-overwrite). 0 migration. (completed 2026-06-17)
-- [x] **Phase 392: Perbaikan CreateWorker + Audit Field (WRKR-01..03)** — Buka kunci field Nama Lengkap & Email (`readonly` saat `Authentication:UseActiveDirectory=true`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline untuk field organisasi (Jabatan/Directorate/Bagian/Unit); lalu audit + Playwright-verify SEMUA field berfungsi end-to-end termasuk submission create pekerja baru sukses (record tersimpan, redirect ke daftar pekerja). View-only — controller/model tak diubah. 0 migration. (completed 2026-06-17)
+- [x] **Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04)** — HC dapat menambah peserta baru ke assessment yang sedang berjalan (ada peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir penambahan selama window ujian masih terbuka; ganti warning kosmetik jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test (penambahan-saat-InProgress berhasil, peserta baru ber-status siap-mulai [Open/Upcoming per jadwal] BUKAN warisi induk [D-01], sesi/jawaban existing tidak ter-overwrite). 0 migration.
+ (completed 2026-06-17)
+- [x] **Phase 392: Perbaikan CreateWorker + Audit Field (WRKR-01..03)** — Buka kunci field Nama Lengkap & Email (`readonly` saat `Authentication:UseActiveDirectory=true`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline untuk field organisasi (Jabatan/Directorate/Bagian/Unit); lalu audit + Playwright-verify SEMUA field berfungsi end-to-end termasuk submission create pekerja baru sukses (record tersimpan, redirect ke daftar pekerja). View-only — controller/model tak diubah. 0 migration.
+ (completed 2026-06-17)
 
 ### Phase Details
 

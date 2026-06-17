@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual
-status: defining_requirements
-stopped_at: Milestone v32.2 started — defining requirements
-last_updated: "2026-06-17T08:00:00.000Z"
+status: ready_to_plan
+stopped_at: Roadmap v32.2 created (393-398) — ready to plan Phase 393
+last_updated: "2026-06-17T08:05:00.000Z"
 last_activity: 2026-06-17
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 393 (ready to plan)
 Plan: —
-Status: Defining requirements — milestone v32.2 started
-Last activity: 2026-06-17 — Milestone v32.2 started
+Status: Roadmap v32.2 created (393-398, 13/13 REQ INJ-01..13, 100% coverage) — ready `/gsd-plan-phase 393`
+Last activity: 2026-06-17 — Milestone v32.2 roadmap created
 
-**Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements + roadmap belum dibuat (in-progress).
+**Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
 **v32.0 (Phases 391+392) COMPLETE local 2026-06-17 — belum diarsip** (dir phases 391/392 masih live; `/gsd-complete-milestone` belum dijalankan, atas keputusan user). Sisa v32.0: secure/validate 392 + audit-milestone + notify IT (migration=FALSE) — non-blocking untuk v32.2.
 
