@@ -282,12 +282,75 @@ public class InjectAssessmentServiceTests : IClassFixture<InjectAssessmentFixtur
         Assert.Null(s.NomorSertifikat);            // CertMode=None → tak ada cert
     }
 
-    // SC2 — transaksi atomic: error di tengah → rollback total (D-04).
+    // Helper: 1 soal MC sederhana (opsi benar=TempId 1).
+    private static List<InjectQuestionSpec> OneMcQuestion() => new()
+    {
+        new() { TempId = 1, Order = 1, QuestionType = "MultipleChoice", ScoreValue = 10, ElemenTeknis = "ET-A", QuestionText = "MC",
+            Options = new() { new() { TempId = 1, OptionText = "benar", IsCorrect = true }, new() { TempId = 2, OptionText = "salah", IsCorrect = false } } }
+    };
+
+    // SC2 — atomic: reject-all (D-03) + 0 parsial saat collision lintas batch (D-04/D-09).
     [Fact]
     public async Task InjectAtomic_RollbackOnError()
     {
-        await Task.CompletedTask;
-        Assert.True(true, "STUB — diisi Plan 03");
+        InjectResult result;
+
+        // ---- SC2a: 1 NIP invalid → reject-all, 0 tulisan (D-03) ----
+        var validNip = "INJ-SC2-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, validNip); }
+
+        var titleA = "Inject SC2a " + Guid.NewGuid().ToString("N")[..6];
+        var reqA = new InjectRequest
+        {
+            Title = titleA, Category = "IHT", AssessmentType = "Standard",
+            CompletedAt = new DateTime(2026, 5, 15), PassPercentage = 70, CertMode = InjectCertMode.None,
+            Questions = OneMcQuestion(),
+            Workers = new()
+            {
+                new() { Nip = validNip, Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } },
+                new() { Nip = "NIP-TIDAK-ADA", Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } },
+            }
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqA, "test-actor-id", "Test Actor");
+        Assert.True(result.Rejected);
+        Assert.False(result.Success);
+        await using (var verify = NewCtx())
+        {
+            Assert.Equal(0, await verify.AssessmentSessions.CountAsync(s => s.Title == titleA));   // 0 tulisan
+            Assert.Equal(0, await verify.AuditLogs.CountAsync(a => a.ActionType == "ManualInject" && a.Description.Contains(titleA)));
+        }
+
+        // ---- SC2b: cert manual collision lintas batch → reject batch B, 0 parsial ----
+        var nipB1 = "INJ-SC2b1-" + Guid.NewGuid().ToString("N")[..6];
+        var nipB2 = "INJ-SC2b2-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, nipB1); await SeedUserAsync(seed, nipB2); }
+
+        const string sharedCert = "KPB/999/X/2099";
+        var titleB1 = "Inject SC2b-A " + Guid.NewGuid().ToString("N")[..6];
+        var reqB1 = new InjectRequest
+        {
+            Title = titleB1, Category = "IHT", AssessmentType = "Standard",
+            CompletedAt = new DateTime(2025, 10, 1), PassPercentage = 70, CertMode = InjectCertMode.Manual,
+            Questions = OneMcQuestion(),
+            Workers = new() { new() { Nip = nipB1, ManualCertNumber = sharedCert, Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } } }
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqB1, "test-actor-id", "Test Actor");
+        Assert.True(result.Success, result.Message);   // batch A commit dgn cert manual sharedCert
+
+        var titleB2 = "Inject SC2b-B " + Guid.NewGuid().ToString("N")[..6];
+        var reqB2 = new InjectRequest
+        {
+            Title = titleB2, Category = "IHT", AssessmentType = "Standard",
+            CompletedAt = new DateTime(2025, 10, 2), PassPercentage = 70, CertMode = InjectCertMode.Manual,
+            Questions = OneMcQuestion(),
+            Workers = new() { new() { Nip = nipB2, ManualCertNumber = sharedCert, Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } } }
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqB2, "test-actor-id", "Test Actor");
+        Assert.True(result.Rejected);   // pre-flight D-09 menangkap collision DB
+        await using (var verify = NewCtx())
+        {
+            Assert.Equal(0, await verify.AssessmentSessions.CountAsync(s => s.Title == titleB2));   // 0 parsial
+        }
     }
 
     // SC3 — essay finalize-block (D-05) → Status=Completed (BUKAN PendingGrading) + backdate preserve (Pitfall 1).
@@ -343,11 +406,110 @@ public class InjectAssessmentServiceTests : IClassFixture<InjectAssessmentFixtur
         Assert.True(true, "STUB — diisi Plan 03");
     }
 
-    // SC5 — kebijakan cert: backdate (D-12) / suppress (D-08) / manual range (D-09).
+    // SC5 — kebijakan cert/validasi: backdate (D-12) / suppress (D-08) / manual collision (D-09) /
+    //        EssayScore range (D-07) / tanggal masa depan (D-06).
     [Fact]
     public async Task InjectCertPolicy_BackdateSuppressManualRange()
     {
-        await Task.CompletedTask;
-        Assert.True(true, "STUB — diisi Plan 03");
+        InjectResult result;
+
+        // (i) D-12 cert auto ROMAN/tahun = tanggal backdate (Maret 2024 → "III/2024")
+        var nip1 = "INJ-SC5a-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var s1 = NewCtx()) { await SeedUserAsync(s1, nip1); }
+        var reqPass = new InjectRequest
+        {
+            Title = "Inject SC5 D12 " + Guid.NewGuid().ToString("N")[..6], Category = "IHT", AssessmentType = "Standard",
+            CompletedAt = new DateTime(2024, 3, 10), PassPercentage = 70, CertMode = InjectCertMode.Auto,
+            Questions = OneMcQuestion(),
+            Workers = new() { new() { Nip = nip1, Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } } }
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqPass, "a", "A");
+        Assert.True(result.Success, result.Message);
+        await using (var verify = NewCtx())
+        {
+            var s = await verify.AssessmentSessions.FindAsync(result.SuccessSessionIds[0]);
+            Assert.Matches(@"^KPB/\d{3}/III/2024$", s!.NomorSertifikat);   // D-12: ROMAN III, tahun 2024 (backdate)
+        }
+
+        // (ii) D-08 suppress: !lulus (MC salah) + CertMode=Auto → NomorSertifikat null
+        var nip2 = "INJ-SC5b-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var s2 = NewCtx()) { await SeedUserAsync(s2, nip2); }
+        var reqFail = new InjectRequest
+        {
+            Title = "Inject SC5 supp " + Guid.NewGuid().ToString("N")[..6], Category = "IHT", AssessmentType = "Standard",
+            CompletedAt = new DateTime(2024, 3, 10), PassPercentage = 70, CertMode = InjectCertMode.Auto,
+            Questions = OneMcQuestion(),
+            Workers = new() { new() { Nip = nip2, Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 2 } } } } }   // salah
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqFail, "a", "A");
+        Assert.True(result.Success, result.Message);
+        await using (var verify = NewCtx())
+        {
+            var s = await verify.AssessmentSessions.FindAsync(result.SuccessSessionIds[0]);
+            Assert.False(s!.IsPassed);
+            Assert.Null(s.NomorSertifikat);   // D-08: cert di-suppress walau toggle Auto
+        }
+
+        // (iii) D-09 cert manual collision intra-batch → reject + 0 tulisan
+        var nip3a = "INJ-SC5c1-" + Guid.NewGuid().ToString("N")[..6];
+        var nip3b = "INJ-SC5c2-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var s3 = NewCtx()) { await SeedUserAsync(s3, nip3a); await SeedUserAsync(s3, nip3b); }
+        var titleC = "Inject SC5 dup " + Guid.NewGuid().ToString("N")[..6];
+        var reqDup = new InjectRequest
+        {
+            Title = titleC, Category = "IHT", AssessmentType = "Standard", CompletedAt = new DateTime(2025, 1, 5),
+            PassPercentage = 70, CertMode = InjectCertMode.Manual,
+            Questions = OneMcQuestion(),
+            Workers = new()
+            {
+                new() { Nip = nip3a, ManualCertNumber = "KPB/777/I/2025", Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } },
+                new() { Nip = nip3b, ManualCertNumber = "KPB/777/I/2025", Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } },
+            }
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqDup, "a", "A");
+        Assert.True(result.Rejected);
+        Assert.Contains(result.PerRowErrors, e => e.Message.Contains("sertifikat"));
+        await using (var verify = NewCtx())
+        {
+            Assert.Equal(0, await verify.AssessmentSessions.CountAsync(s => s.Title == titleC));
+        }
+
+        // (iv) D-07 EssayScore > ScoreValue → reject + 0 tulisan
+        var nip4 = "INJ-SC5d-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var s4 = NewCtx()) { await SeedUserAsync(s4, nip4); }
+        var titleD = "Inject SC5 range " + Guid.NewGuid().ToString("N")[..6];
+        var reqRange = new InjectRequest
+        {
+            Title = titleD, Category = "IHT", AssessmentType = "Standard", CompletedAt = new DateTime(2025, 1, 5),
+            PassPercentage = 70, CertMode = InjectCertMode.None,
+            Questions = new() { new() { TempId = 1, Order = 1, QuestionType = "Essay", ScoreValue = 10, ElemenTeknis = "ET-C", QuestionText = "Essay" } },
+            Workers = new() { new() { Nip = nip4, Answers = new() { new() { QuestionTempId = 1, TextAnswer = "x", EssayScore = 15 } } } }   // > ScoreValue
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqRange, "a", "A");
+        Assert.True(result.Rejected);
+        Assert.Contains(result.PerRowErrors, e => e.Message.Contains("rentang") || e.Message.Contains("essay"));
+        await using (var verify = NewCtx())
+        {
+            Assert.Equal(0, await verify.AssessmentSessions.CountAsync(s => s.Title == titleD));
+        }
+
+        // (v) D-06 tanggal masa depan → reject + 0 tulisan
+        var nip5 = "INJ-SC5e-" + Guid.NewGuid().ToString("N")[..6];
+        await using (var s5 = NewCtx()) { await SeedUserAsync(s5, nip5); }
+        var titleE = "Inject SC5 future " + Guid.NewGuid().ToString("N")[..6];
+        var reqFuture = new InjectRequest
+        {
+            Title = titleE, Category = "IHT", AssessmentType = "Standard", CompletedAt = DateTime.Today.AddDays(5),
+            PassPercentage = 70, CertMode = InjectCertMode.None,
+            Questions = OneMcQuestion(),
+            Workers = new() { new() { Nip = nip5, Answers = new() { new() { QuestionTempId = 1, SelectedOptionTempIds = new() { 1 } } } } }
+        };
+        result = await NewInjectService(NewCtx()).InjectBatchAsync(reqFuture, "a", "A");
+        Assert.True(result.Rejected);
+        Assert.Contains(result.PerRowErrors, e => e.Message.Contains("masa depan") || e.Message.Contains("Tanggal"));
+        await using (var verify = NewCtx())
+        {
+            Assert.Equal(0, await verify.AssessmentSessions.CountAsync(s => s.Title == titleE));
+        }
     }
 }
