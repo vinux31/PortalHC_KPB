@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
-status: Roadmap created
-stopped_at: "Roadmap created — Phases 388-390 (7/7 REQ mapped, 0 migration). Ready to plan Phase 388."
-last_updated: "2026-06-17T00:00:00.000Z"
-last_activity: 2026-06-17
+status: planning
+stopped_at: Phase 388 context gathered
+last_updated: "2026-06-17T02:58:59.358Z"
+last_activity: 2026-06-17 — Roadmap v32.1 created (7/7 REQ mapped, 0 orphan, 0 duplicate, 0 migration)
 progress:
-  total_phases: 3
+  total_phases: 24
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -35,6 +34,7 @@ Last activity: 2026-06-17 — Roadmap v32.1 created (7/7 REQ mapped, 0 orphan, 0
 `/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish — LBL-03 + DSN-04 + DSN-05).
 
 Urutan fase v32.1:
+
 - **Phase 388** — LBL-03 (`Results.cshtml` label "Batas Nilai Kelulusan") + DSN-04/05 (CoachWorkload polish: filter+heading→card, hapus inline font-size, spacing). File DISJOINT, low-risk.
 - **Phase 389** — DSN-01/02/03 (CoachCoacheeMapping → accordion card per coach + toolbar seragam + hapus dead-onclick). RISK TERTINGGI (behavior regression modal/AJAX/collapse). File terisolasi → boleh paralel dgn 388.
 - **Phase 390** — DSN-06 (Test & UAT behavior parity penutup; depends 388 + 389).
@@ -110,6 +110,6 @@ Constraint global: behavior parity WAJIB, 0 backend, 0 migration, 0 controller. 
 
 Last activity: 2026-06-17
 
-Stopped at: Roadmap v32.1 created — ROADMAP.md (Phases 388-390 APPEND-ONLY, history preserved), REQUIREMENTS.md traceability filled (7/7 mapped), STATE.md updated. 0 migration, 0 backend, behavior parity wajib.
+Stopped at: Phase 388 context gathered
 
 Next action: `/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish). Lalu 389 (CoachCoacheeMapping redesign), 390 (Test & UAT parity). Approve roadmap dulu bila perlu review user.
