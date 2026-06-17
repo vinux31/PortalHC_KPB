@@ -59,23 +59,21 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label asp-for="FullName" class="form-label fw-semibold"></label>
-                        <input asp-for="FullName" class="form-control @(isAdMode ? "bg-light" : "")"
-                               placeholder="Masukkan nama lengkap"
-                               readonly="@(isAdMode ? "readonly" : null)" />
+                        <input asp-for="FullName" class="form-control"
+                               placeholder="Masukkan nama lengkap" />
                         @if (isAdMode)
                         {
-                            <div class="form-text text-info"><i class="bi bi-info-circle me-1"></i>Dikelola oleh AD — akan disinkronkan saat login</div>
+                            <div class="form-text text-info"><i class="bi bi-info-circle me-1"></i>Isi sesuai akun AD Pertamina pekerja. Nama &amp; Email akan diselaraskan otomatis dari Active Directory saat pekerja login pertama kali.</div>
                         }
                         <span asp-validation-for="FullName" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Email" class="form-label fw-semibold"></label>
-                        <input asp-for="Email" class="form-control @(isAdMode ? "bg-light" : "")"
-                               placeholder="contoh@pertamina.com"
-                               readonly="@(isAdMode ? "readonly" : null)" />
+                        <input asp-for="Email" type="email" class="form-control"
+                               placeholder="contoh@pertamina.com" />
                         @if (isAdMode)
                         {
-                            <div class="form-text text-info"><i class="bi bi-info-circle me-1"></i>Dikelola oleh AD — akan disinkronkan saat login</div>
+                            <div class="form-text text-info"><i class="bi bi-info-circle me-1"></i>Isi sesuai akun AD Pertamina pekerja. Nama &amp; Email akan diselaraskan otomatis dari Active Directory saat pekerja login pertama kali.</div>
                         }
                         <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
@@ -105,22 +103,26 @@
                     <div class="col-md-6">
                         <label asp-for="Position" class="form-label fw-semibold"></label>
                         <input asp-for="Position" class="form-control" placeholder="Contoh: Operator, Supervisor, dll" />
+                        <span asp-validation-for="Position" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Directorate" class="form-label fw-semibold"></label>
                         <input asp-for="Directorate" class="form-control" placeholder="Contoh: CSU Process" />
+                        <span asp-validation-for="Directorate" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Section" class="form-label fw-semibold"></label>
                         <select asp-for="Section" class="form-select" id="sectionSelect">
                             <option value="">-- Pilih @OrgLabels.GetLabel(0) --</option>
                         </select>
+                        <span asp-validation-for="Section" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Unit" class="form-label fw-semibold"></label>
                         <select asp-for="Unit" class="form-select" id="unitSelect">
                             <option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>
                         </select>
+                        <span asp-validation-for="Unit" class="text-danger small"></span>
                     </div>
                 </div>
             </div>
@@ -144,6 +146,7 @@
                             }
                         </select>
                         <div class="form-text">Role menentukan hak akses dan tampilan default user</div>
+                        <span asp-validation-for="Role" class="text-danger small"></span>
                     </div>
                     @if (!isAdMode)
                     {
@@ -191,15 +194,18 @@
     </form>
 </div>
 
-<script src="~/js/shared-cascade.js"></script>
-<script src="~/js/shared-loading.js"></script>
-<script>
-    initSectionUnitCascade({
-        sectionUnits: @Html.Raw(ViewBag.SectionUnitsJson ?? "{}"),
-        sectionId: 'sectionSelect',
-        unitId: 'unitSelect',
-        currentSection: "@(Model.Section ?? "")",
-        currentUnit: "@(Model.Unit ?? "")"
-    });
-    initFormLoading('createWorkerForm', 'Menyimpan...');
-</script>
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/shared-cascade.js"></script>
+    <script src="~/js/shared-loading.js"></script>
+    <script>
+        initSectionUnitCascade({
+            sectionUnits: @Html.Raw(ViewBag.SectionUnitsJson ?? "{}"),
+            sectionId: 'sectionSelect',
+            unitId: 'unitSelect',
+            currentSection: "@(Model.Section ?? "")",
+            currentUnit: "@(Model.Unit ?? "")"
+        });
+        initFormLoading('createWorkerForm', 'Menyimpan...');
+    </script>
+}
