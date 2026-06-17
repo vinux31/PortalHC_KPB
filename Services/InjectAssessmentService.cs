@@ -218,8 +218,12 @@ namespace HcPortal.Services
                     }
                     await _context.SaveChangesAsync();
 
-                    // e. Delegasi grade (D-08 cert gate, ET, status) — mesin existing, NOL duplikasi skor/lulus
-                    await _gradingService.GradeAndCompleteAsync(session);
+                    // e. Delegasi grade (D-08 cert gate, ET, status) — mesin existing, NOL duplikasi skor/lulus.
+                    //    Tangkap bool return: false (race/terminal-status) → throw → rollback batch (defensive atomicity).
+                    //    Sesi fresh Status="Open" normalnya selalu true; throw menjaga 0-parsial bila grading menolak.
+                    var graded = await _gradingService.GradeAndCompleteAsync(session);
+                    if (!graded)
+                        throw new InvalidOperationException($"Grading menolak sesi inject {session.Id} (NIP={spec.Nip}).");
 
                     // f. Essay finalize-block (D-05) — recompute + PendingGrading→Completed.
                     //    Cert ditunda ke step h (unified D-12) agar basis tanggal backdate konsisten.
@@ -454,6 +458,8 @@ namespace HcPortal.Services
                 bool titleDateMatch = HcPortal.Controllers.AdminBaseController.NormalizeTitleForDup(c.Title) == norm
                     && c.CompletedAt?.Date == dateOnly;
                 bool sameKey = titleDateMatch && c.Category == req.Category;
+                // certDup SENGAJA abaikan Category (D-02 anti double-cert): satu sertifikat per judul+tanggal,
+                // lintas kategori. JANGAN tambah cek Category di sini — itu mengizinkan double-cert beda-kategori.
                 bool certDup = titleDateMatch && (certAware || c.NomorSertifikat != null);
                 if (sameKey || certDup)
                     dupUserIds.Add(c.UserId);
