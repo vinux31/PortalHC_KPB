@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.0
 milestone_name: Manajemen Peserta
-status: planning
+status: executing
 stopped_at: Phase 391 context gathered
-last_updated: "2026-06-17T03:36:26.649Z"
-last_activity: 2026-06-17 — Roadmap v32.0 dibuat (2 fase, 7/7 REQ mapped, 0 migration)
+last_updated: "2026-06-17T04:07:57.206Z"
+last_activity: 2026-06-17 -- Phase 391 planning complete
 progress:
   total_phases: 23
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -26,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 391 (next to plan) — roadmap created, not started
 Plan: —
-Status: Roadmap created — ready to plan Phase 391
-Last activity: 2026-06-17 — Roadmap v32.0 dibuat (2 fase, 7/7 REQ mapped, 0 migration)
+Status: Ready to execute
+Last activity: 2026-06-17 -- Phase 391 planning complete
 
 **Milestone v32.0 Manajemen Peserta** — Phases 391-392 (LANJUT dari v31.0 phase terakhir 387; tidak reset ke 1). 0 migration. Branch main. 7/7 REQ mapped (0 orphan, 0 duplikat).
 
