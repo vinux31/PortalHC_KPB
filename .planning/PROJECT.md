@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State: v32.0 Manajemen Peserta — 🚧 STARTED 2026-06-17 (v31.0 CLOSED + merged origin/main 2026-06-16)
+## Current State: v32.2 Inject Hasil Assessment Manual — 🚧 STARTED 2026-06-17 (v32.0 phases 391+392 COMPLETE local belum-diarsip; v31.0 CLOSED + merged origin/main 2026-06-16)
 
 **v31.0 shipped (local) + audit passed + closed (2026-06-16)** — Hotfix Pra-Ujian Lisensor (phases 385-387, 14/14 REQ PXF-01..14, **0 migration**): pra-ujian-lisensor hardening alur assessment SA+MA+Essay+soal-bergambar — (385) gambar PathBase-aware sub-path `/KPB-PortalHC` + essay flush pra-submit/blur/timeout; (386) validasi opsi soal + essay-kosong finalizable + PDF/Excel MA all-or-nothing (SetEquals) via shared `IsQuestionCorrect`+`BuildAnswerCell`; (387 pasca-acara) SubmitEssayScore guards + cert retry/log/surface + Excel essay cell + monitor broadcast + aria opsi huruf + SubmitExam MC no-null + SaveTextAnswer timer guard. Audit PASSED (integration 11/11 wired, SA+essay licensure flow coherent; GAP-1 PXF-08 certError-surface ditemukan+fix inline `3005733d`). Tests: 347/347 fast + 8/8 Integration + Playwright 3/3 + UAT (385:2/2, 386:4/4, 387:3/3). Secure 387 SECURED 10/10; nyquist 385 compliant / 386·387 partial. Archive: `milestones/v31.0-*` + `milestones/v31.0-phases/`. **NOT PUSHED** (branch ITHandoff) — bundle 385+386 = deploy IT #1 (pra-acara ~2026-06-17), 387 = deploy IT #2 (pasca-acara). Notify IT: migration=FALSE.
 
@@ -56,23 +56,31 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v32.0 Manajemen Peserta — **KEDUA PHASE ✅ COMPLETE 2026-06-17** (391 + 392, 7/7 REQ, **0 migration**, branch main). **Phase 391** Penambahan Peserta Fleksibel (PART-01..04): DeriveReadyStatus siap-mulai + guard by-window + lindungi sesi berjalan + notice Info; verifier 8/8 + 486/486 test + code-review WR-02 fix + UAT browser 2/2 + secure 8/8 + nyquist-compliant; bonus fix blocker AssessmentType NOT NULL. **Phase 392** Perbaikan CreateWorker + Audit Field (WRKR-01..03, VIEW-ONLY): unlock Nama/Email + reword AD + type=email + validasi inline+live; verifier 10/10 + e2e 3/3 + code-review WR-01 fix; sisa: secure-phase 392 + validate-phase 392 + UAT AD-on Dev. Sisa milestone: `/gsd-audit-milestone` + notify IT (migration=FALSE). v31.0 CLOSED + merged origin/main 2026-06-16. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
+**Current focus:** v32.2 Inject Hasil Assessment Manual ("Seakan Online") — 🚧 mendefinisikan requirements + roadmap (fase 393-398), design spec `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Sebelumnya v32.0 (391+392) **KEDUA PHASE ✅ COMPLETE 2026-06-17** (391 + 392, 7/7 REQ, **0 migration**, branch main). **Phase 391** Penambahan Peserta Fleksibel (PART-01..04): DeriveReadyStatus siap-mulai + guard by-window + lindungi sesi berjalan + notice Info; verifier 8/8 + 486/486 test + code-review WR-02 fix + UAT browser 2/2 + secure 8/8 + nyquist-compliant; bonus fix blocker AssessmentType NOT NULL. **Phase 392** Perbaikan CreateWorker + Audit Field (WRKR-01..03, VIEW-ONLY): unlock Nama/Email + reword AD + type=email + validasi inline+live; verifier 10/10 + e2e 3/3 + code-review WR-01 fix; sisa: secure-phase 392 + validate-phase 392 + UAT AD-on Dev. Sisa milestone: `/gsd-audit-milestone` + notify IT (migration=FALSE). v31.0 CLOSED + merged origin/main 2026-06-16. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
 
-## Current Milestone: v32.0 Manajemen Peserta — 🚧 STARTED 2026-06-17
+## Current Milestone: v32.2 Inject Hasil Assessment Manual ("Seakan Online") — 🚧 STARTED 2026-06-17
 
-**Goal:** HC dapat mengelola peserta assessment dengan lancar — penambahan peserta tetap fleksibel saat ujian berjalan (dengan pemberitahuan jelas, dikunci regression test), dan halaman `/Admin/CreateWorker` kembali bisa dipakai (field Nama Lengkap & Email tidak lagi terkunci) dengan semua field terverifikasi berfungsi.
+**Goal:** HC/Admin dapat meng-inject hasil assessment manual (ujian offline/kertas, data migrasi, acara lisensor luring) yang **identik dengan hasil online** — muncul di riwayat pekerja, rincian jawaban per-soal, breakdown elemen teknis, sertifikat opsional — via page baru `/Admin/InjectAssessment` (Kelola Data Section C, Admin+HC). Mesin existing (authoring soal + `GradingService` + `CertNumberHelper`) di-**reuse** (nol duplikasi logic) → skor/lulus/cert dihitung identik online. **0 migration** (semua tabel sudah ada). Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`.
 
-**Target features:**
-- **1.1 Penambahan peserta fleksibel saat ujian berjalan** — pastikan HC tetap bisa menambah peserta walau ada peserta lain `InProgress` (blok BULK ASSIGN `EditAssessment` `AssessmentAdminController.cs:2114-2226`); tutup edge guard `Completed` pada sesi representatif (`L1992`) agar tak salah-blokir penambahan; ganti warning kosmetik (`L2077-2085`) jadi notice informatif ("peserta baru tetap bisa ditambah walau ujian berjalan"); kunci perilaku dengan regression test.
-- **1.2 Perbaiki `/Admin/CreateWorker` + audit semua field** — buka kunci field Nama Lengkap & Email (ter-`readonly` karena `Authentication:UseActiveDirectory=true`, `CreateWorker.cshtml:62-75`) agar bisa diketik di semua environment (AD auth tetap aktif) + `type="email"` + `<span asp-validation-for>` inline (Position/Directorate/Section/Unit); periksa & verifikasi runtime SEMUA field lain (NIP/JoinDate/Position/Directorate/cascade Section→Unit/Role/Password) berfungsi end-to-end termasuk create submission sukses.
+**Target features (6 fase, 393-398):**
+- **393 Backend core inject** — `InjectAssessmentService` membangun session set lengkap (`AssessmentSession`+`UserPackageAssignment`+`PackageUserResponses`+`SessionElemenTeknisScore`+cert) lewat reuse `GradingService`/`FinalizeEssayGrading`, atomic per-batch, AuditLog "ManualInject"; xUnit.
+- **394 Page + Setup Room + authoring soal** — controller+view berlangkah, form setting mirror `CreateAssessment` (+ cert toggle: auto/manual/tanpa), reuse partial authoring soal MC/MA/Essay, worker picker, card menu Section C, RBAC Admin+HC.
+- **395 Mode jawaban** — input jawaban asli per pekerja (form) + auto-generate pola jawaban dari skor target (MC/MA; essay set skor langsung).
+- **396 Import Excel + retire BulkBackfill** — template generator + matrix parser (baris=NIP, kolom=soal) atomic; pensiun/redirect tool lama `BulkBackfill`.
+- **397 Link Pre/Post ke room existing** — search picker room (reuse `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId`, dukung silang inject↔online (Pre inject ↔ Post real).
+- **398 Test + UAT "seakan online"** — E2E full lifecycle (inject → /CMP/Records + /CMP/Results per-soal + sertifikat), regression, audit milestone.
 
-**Konteks kunci:** `AssessmentSession` per-peserta ("tambah peserta" = INSERT sesi baru, bukan tabel join). `/Admin/CreateWorker` = buat akun pegawai (bukan peserta assessment) → fix view-only, controller/model tak diubah. **0 migration.** Branch main; verifikasi lokal `dotnet build` + Playwright; notify IT migration=FALSE saat handoff.
+**Konteks kunci:** Anchor paket = pola sentinel (`CMPController.cs:1034-1090`): paket di-anchor ke sesi representatif room, tiap pekerja `UserPackageAssignment(AssessmentPackageId=sentinel + ShuffledQuestionIds)`; grading & Results baca soal **by question ID** via `ShuffledQuestionIds`. `GetUnifiedRecords` (`WorkerDataService.cs:28`) **tak** filter `IsManualEntry` → visibility /CMP/Records gratis. Transparansi: `IsManualEntry=true` + AuditLog wajib. Branch main; 0 migration; lanjut nomor fase dari 392 (tak reset).
 
-## Previous Milestone: v31.0 Hotfix Pra-Ujian Lisensor — ✅ SHIPPED + CLOSED + merged origin/main 2026-06-16
+## Previous Milestone: v32.0 Manajemen Peserta — ✅ Phases 391+392 COMPLETE (local, belum diarsip) 2026-06-17
+
+**Goal:** HC mengelola peserta assessment lancar — penambahan peserta fleksibel saat ujian berjalan (391, PART-01..04) + `/Admin/CreateWorker` bisa dipakai lagi + audit field view-only (392, WRKR-01..03). 7/7 REQ, **0 migration**, branch main. Belum `/gsd-complete-milestone` (dir phases 391/392 masih live). Sisa: secure/validate 392 + audit-milestone + notify IT (migration=FALSE).
+
+## Earlier Milestone: v31.0 Hotfix Pra-Ujian Lisensor — ✅ SHIPPED + CLOSED + merged origin/main 2026-06-16
 
 **Goal:** Perbaiki temuan readiness penghambat ujian lisensor real dalam 1 bundle deploy (phases 385-387, 14 REQ PXF-01..14, **0 migration**). Gambar PathBase-aware sub-path + essay flush pra-submit/blur/timeout + validasi opsi soal + essay-kosong finalizable + PDF/Excel MA all-or-nothing (`SetEquals`) + cert retry/surface + broadcast monitor + aria opsi. Audit PASSED 14/14 (integration 11/11). Merged `7ea6c81e` → origin/main. Archive: `milestones/v31.0-*`.
 
-## Earlier Milestone: v30.0 Essay Grading Correctness + Monitoring UI Refactor — ✅ SHIPPED + CLOSED 2026-06-15
+## Older Milestone: v30.0 Essay Grading Correctness + Monitoring UI Refactor — ✅ SHIPPED + CLOSED 2026-06-15
 
 **Goal:** Hasil assessment menampilkan soal essay yang sudah dinilai HC secara benar (count "X/Y benar", Elemen Teknis, Tinjauan Jawaban, PDF) lewat satu helper correctness terpusat — menutup bug user 2026-06-15 + backlog RES-02/GRD-02 — lalu rapikan UI penilaian essay di Monitoring jadi tabel list worker + page "Tinjau Essay" per-worker.
 
@@ -939,6 +947,23 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 - Tech stack: `.planning/codebase/STACK.md`
 - Milestone history: `.planning/MILESTONES.md`
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
 
-*Last updated: 2026-06-17 — v32.0 Manajemen Peserta started (phases 391-392: CreateWorker field fix + audit, penambahan peserta fleksibel saat ujian berjalan; 0 migration). v31.0 closed + merged origin/main 2026-06-16.*
+*Last updated: 2026-06-17 — v32.2 Inject Hasil Assessment Manual ("Seakan Online") started (fase 393-398: page /Admin/InjectAssessment, inject hasil assessment manual identik online via reuse GradingService; 0 migration). v32.0 (391+392) complete local belum-diarsip. v31.0 closed + merged origin/main 2026-06-16.*

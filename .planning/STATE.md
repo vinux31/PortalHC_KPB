@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.0
-milestone_name: Manajemen Peserta
-status: verifying
-stopped_at: Completed 392-02-PLAN.md
-last_updated: "2026-06-17T07:29:24.281Z"
+milestone: v32.2
+milestone_name: Inject Hasil Assessment Manual
+status: defining_requirements
+stopped_at: Milestone v32.2 started — defining requirements
+last_updated: "2026-06-17T08:00:00.000Z"
 last_activity: 2026-06-17
 progress:
-  total_phases: 23
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,25 +21,22 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 392 — Perbaikan CreateWorker + Audit Field
+**Current focus:** v32.2 — mendefinisikan requirements + roadmap (Inject Hasil Assessment Manual "Seakan Online", fase 393-398)
 
 ## Current Position
 
-Phase: 999.7
-Plan: Not started
-Status: Phase 392 complete — WRKR-01/02/03 closed; ready for `/gsd-verify-work` + notify IT (migration=FALSE)
-Last activity: 2026-06-17
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements — milestone v32.2 started
+Last activity: 2026-06-17 — Milestone v32.2 started
 
-**Milestone v32.0 Manajemen Peserta** — Phases 391-392 (LANJUT dari v31.0 phase terakhir 387; tidak reset ke 1). 0 migration. Branch main. 7/7 REQ mapped (0 orphan, 0 duplikat).
+**Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements + roadmap belum dibuat (in-progress).
 
-- **Phase 391 — Penambahan Peserta Fleksibel saat Ujian Berjalan** (PART-01..04): tambah peserta saat ada `InProgress` tetap jalan + tutup edge guard `Completed` sesi representatif (tak salah-blokir selama window terbuka) + ganti warning kosmetik jadi notice informatif + regression test (warisi status induk + tak overwrite sesi existing). File: `Controllers/AssessmentAdminController.cs` (EditAssessment BULK ASSIGN ~L2114-2226, guard `Completed` ~L1992, notice TempData ~L2077-2085) + view/monitoring + xUnit. **UI hint: yes.**
-- **Phase 392 — Perbaikan CreateWorker + Audit Field** (WRKR-01..03): buka kunci Nama/Email (`readonly` krn AD mode) + `type="email"` + `<span asp-validation-for>` inline (Position/Directorate/Section/Unit); audit + Playwright-verify SEMUA field berfungsi + create submission sukses. File: `Views/Admin/CreateWorker.cshtml` (VIEW-ONLY; controller `WorkerController.CreateWorker` + model `ManageUserViewModel` tak diubah). **UI hint: yes.**
-
-Dua fase file-disjoint & independen → boleh dikerjakan paralel.
+**v32.0 (Phases 391+392) COMPLETE local 2026-06-17 — belum diarsip** (dir phases 391/392 masih live; `/gsd-complete-milestone` belum dijalankan, atas keputusan user). Sisa v32.0: secure/validate 392 + audit-milestone + notify IT (migration=FALSE) — non-blocking untuk v32.2.
 
 ## Next Action
 
-Phase 392 SELESAI (WRKR-01/02/03 closed; Plan 01 `0d788e8a` view fix + Plan 02 `840fab21` e2e verify). **Next: `/gsd-verify-work` Phase 392** lalu notify IT (commit hash + flag migration=FALSE). Phase 391 (Penambahan Peserta Fleksibel) masih bisa di-plan/execute paralel (file-disjoint). Tiap fase: `dotnet build` + `dotnet run` (localhost:5277) + Playwright lokal sebelum commit → branch main → notify IT. ❌ tidak ada edit di Dev/Prod (CLAUDE.md Develop Workflow).
+Milestone v32.2 baru dibuat — define requirements → roadmap. **Next: tulis REQUIREMENTS.md (INJ-*) → spawn roadmapper (fase 393-398) → approve → commit.** Setelah roadmap: `/gsd-discuss-phase 393` atau `/gsd-plan-phase 393`. Tiap fase: `dotnet build` + `dotnet run` (localhost:5277) + Playwright lokal sebelum commit → branch main → notify IT (migration=FALSE). ❌ tidak ada edit di Dev/Prod (CLAUDE.md Develop Workflow). v32.0 sisa (verify/secure/validate 392 + audit-milestone) non-blocking untuk v32.2.
 
 ⚠️ **Catatan env e2e (Plan 02):** app TIDAK pakai runtime Razor compilation (`AddControllersWithViews` tanpa `AddRazorRuntimeCompilation`) → view embedded saat build. Untuk verifikasi e2e perubahan view, WAJIB jalankan build/app dari **main working tree** (bukan worktree sibling `PortalHC_KPB-ITHandoff` yang pre-Plan-01). Carry DEF-392-01 (shared `initFormLoading` disable tombol pada submit-divalidasi-gagal — infra bersama, future phase).
 
@@ -49,7 +46,8 @@ Phase 392 SELESAI (WRKR-01/02/03 closed; Plan 01 `0d788e8a` view fix + Plan 02 `
 - `v29.0` — ✅ PUSHED `origin/ITHandoff` 2026-06-15.
 - `v30.0` — ✅ PUSHED `origin/ITHandoff` 2026-06-15 (HEAD `fe8c5ffe`).
 - `v31.0` — ✅ shipped local + MERGED origin/main 2026-06-16 (merge `7ea6c81e`; branch ITHandoff HEAD `64456bd5`).
-- `v32.0` — belum dibuat (milestone aktif, roadmap baru, belum di-plan).
+- `v32.0` — phases 391+392 COMPLETE local (belum diarsip; tag belum dibuat).
+- `v32.2` — milestone aktif (Inject Hasil Assessment Manual); requirements + roadmap in-progress; belum di-plan.
 
 ## Deferred Items
 
@@ -111,6 +109,7 @@ Phase 392 SELESAI (WRKR-01/02/03 closed; Plan 01 `0d788e8a` view fix + Plan 02 `
 
 ### Roadmap Evolution
 
+- **v32.2 milestone dimulai 2026-06-17** — Inject Hasil Assessment Manual ("Seakan Online"), 6 fase (393-398, LANJUT dari 392; tidak reset). Sumber: brainstorm + design spec `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Skip research (sudah research codebase saat brainstorm). Keputusan kunci: reuse mesin existing (authoring + GradingService + CertNumberHelper, nol duplikasi); standalone-alur tapi reuse-kode; sertifikat toggle per-room (auto/manual/tanpa); link Pre/Post silang inject↔online; retire/absorb BulkBackfill; 0 migration. v32.0 (391/392) TIDAK dihapus dir-nya (lanjut tanpa `phases clear`, atas keputusan user). Requirements + roadmap menyusul.
 - **v32.0 roadmap dibuat 2026-06-17** — Phases 391-392, 7 REQ (PART-01..04 + WRKR-01..03). Penomoran LANJUT dari v31.0 phase terakhir (387) → mulai 391 (tidak reset). Phasing by file-overlap (split alami 2 fase, fitur file-disjoint & independen): PART-01..04 (`AssessmentAdminController.cs` + view/monitoring + test) → 391; WRKR-01..03 (`Views/Admin/CreateWorker.cshtml` view-only) → 392. 0 migration (kedua fase). Out of scope: hard-block penambahan saat InProgress, perubahan controller/model CreateWorker, AD-sync, migration.
 - **v31.0 roadmap dibuat 2026-06-15** — Phases 385-386, 5 PXF (PXF-01..05). Penomoran LANJUT dari v30.0 (384). Phasing by file-overlap: PXF-01+PXF-03 (file view) → 385; PXF-02+PXF-04+PXF-05 (semua `AssessmentAdminController.cs`) → 386 (gabung hindari konflik write paralel). 0 migration. (Phase 387 ditambah pasca-acara: 7 REQ polish PXF-06..13.)
 - Phase 385 sempat DIBATALKAN konteks-lama (2026-06-15): readiness ujian = verifikasi browser/UAT. **Catatan:** angka "385" kini DIPAKAI ULANG sebagai phase v31.0 Exam-Taking & Image Render Hotfix (build kode nyata, bukan verifikasi-only). Scope readiness asli tetap hidup di `.planning/notes/2026-06-15-readiness-ujian-lisensor.md`; 5 must-fix-nya jadi PXF-01..05.
@@ -143,4 +142,4 @@ Last activity: 2026-06-17
 
 Stopped at: Completed 392-02-PLAN.md
 
-Next action: **`/gsd-plan-phase 391`** (Penambahan Peserta Fleksibel saat Ujian Berjalan) — atau `/gsd-discuss-phase 391`. Phase 392 (Perbaikan CreateWorker) bisa di-plan paralel (file-disjoint). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
+Next action: milestone v32.2 — selesaikan REQUIREMENTS.md (INJ-*) + roadmap (393-398), lalu **`/gsd-discuss-phase 393`** atau **`/gsd-plan-phase 393`** (Backend core inject). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
