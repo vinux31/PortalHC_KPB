@@ -1,10 +1,11 @@
 ---
 phase: 390
 slug: test-uat-behavior-parity-dsn-06
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-17
+reviewed_at: 2026-06-17
 ---
 
 # Phase 390 — UI Design Contract (Parity Baseline)
