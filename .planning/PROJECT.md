@@ -56,7 +56,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v32.0 Manajemen Peserta STARTED 2026-06-17 (phases 391-392) — fix `/Admin/CreateWorker` field terkunci + audit field, dan penambahan peserta fleksibel saat ujian berjalan (notice + lock test). **0 migration.** v31.0 CLOSED + merged origin/main 2026-06-16 (`7ea6c81e`). Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
+**Current focus:** v32.0 Manajemen Peserta — **Phase 391 ✅ COMPLETE 2026-06-17** (PART-01..04 validated: penambahan peserta fleksibel saat ujian berjalan — DeriveReadyStatus siap-mulai + guard by-window + lindungi sesi berjalan + notice Info; 8/8 verifier + 486/486 test + code-review WR-02 fix + UAT browser lokal 2/2 PASS; bonus fix blocker pre-existing AssessmentType NOT NULL). **0 migration.** Next: Phase 392 (CreateWorker fix + audit field). v31.0 CLOSED + merged origin/main 2026-06-16. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
 
 ## Current Milestone: v32.0 Manajemen Peserta — 🚧 STARTED 2026-06-17
 
