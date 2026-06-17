@@ -208,6 +208,10 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
     // #editCoacheeName = <p class="form-control-plaintext"> (bukan input); openEditModal set .textContent.
     // Bukti openEditModal 7-arg jalan: nama coachee ter-isi (text non-kosong).
     await expect(page.locator('#editCoacheeName')).not.toHaveText('');
+    // 390-01 promote: bukti openEditModal mengisi SEMUA field (coach select + tanggal mulai),
+    // bukan cuma nama → parity-strength (bukan sekadar modal-visible).
+    await expect(page.locator('#editCoachSelect')).not.toHaveValue('');
+    await expect(page.locator('#editStartDate')).toHaveValue(/\d{4}-\d{2}-\d{2}/);
   });
 
   // V-11 (DSN-06* smoke — full parity Phase 390): Hapus → #deleteModal terbuka + tombol submit "Hapus".
@@ -220,10 +224,19 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
 
     const hapusBtn = page.locator('#collapse-0 button:has-text("Hapus")').first();
     test.skip((await hapusBtn.count()) === 0, 'no deletable row — mutasi penuh = Phase 390');
+    // 390-01 promote: daftarkan route SEBELUM klik supaya fetch preview (confirmDelete) tertangkap.
+    let previewHit = false;
+    await page.route('**/Admin/CoachCoacheeMappingDeletePreview*', r => { previewHit = true; r.continue(); });
     await hapusBtn.click();
     await expect(page.locator('#deleteModal')).toBeVisible();
     // tombol submit "Hapus" dalam modal ada
     await expect(page.locator('#deleteModal button:has-text("Hapus")')).toHaveCount(1);
+    // preview preload jalan (appUrl fetch) + nama coachee ter-render (bukan placeholder "Memuat...").
+    await expect.poll(() => previewHit, { timeout: 10_000 }).toBe(true);
+    const delName = ((await page.locator('#deleteCoacheeName').textContent()) ?? '').trim();
+    expect(delName.length).toBeGreaterThan(0);
+    expect(delName).not.toBe('Memuat...');
+    // NON-DESTRUCTIVE: JANGAN klik submit "Hapus" — delete nyata = Plan 02 UAT live.
   });
 
   // V-12 (DSN-06* smoke — full parity Phase 390): aksi branch — baris IsCompleted (badge Graduated) TIDAK
@@ -292,6 +305,44 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
       page.getByRole('button', { name: 'Cari' }).click(),
     ]);
     expect(page.url()).toContain('section=');
+  });
+
+  // V-15 (390-01, DSN-06 export parity): "Export Excel" → download event → nama file kontrak.
+  // Tak butuh data — export jalan walau kosong. Bukti tombol export tak rusak pasca-accordion.
+  test('V-15 export excel download', async ({ page }) => {
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('link', { name: 'Export Excel' }).click(),
+    ]);
+    expect(download.suggestedFilename()).toBe('CoachCoacheeMapping.xlsx');
+  });
+
+  // V-16 (390-01): "Download Template" → download event → nama file template import.
+  test('V-16 download template', async ({ page }) => {
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('link', { name: 'Download Template' }).click(),
+    ]);
+    expect(download.suggestedFilename()).toBe('coach_coachee_import_template.xlsx');
+  });
+
+  // V-17 (390-01, console-error gate): 0 error console/pageerror saat buka collapse + modal Edit.
+  // Bukti JS-contract (openEditModal/appUrl/bootstrap) selamat dari rewrite accordion. Data-guard.
+  test('V-17 zero console error on interactions', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+    page.on('pageerror', e => errors.push(e.message));
+    const header0 = page.locator('.card.shadow-sm .card-header').first();
+    test.skip((await header0.count()) === 0, 'no coach group data — no card to interact');
+    await header0.click();
+    await expect(page.locator('#collapse-0')).toBeVisible();
+    const editBtn = page.locator('#collapse-0 button:has-text("Edit")').first();
+    if (await editBtn.count() > 0) {
+      await editBtn.click();
+      await expect(page.locator('#editModal')).toBeVisible();
+      await page.locator('#editModal [data-bs-dismiss="modal"]').first().click();
+    }
+    expect(errors, errors.join('\n')).toHaveLength(0);
   });
 
 });
