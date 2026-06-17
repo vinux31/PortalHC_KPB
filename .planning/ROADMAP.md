@@ -58,7 +58,8 @@ See .planning/MILESTONES.md for full history.
 
 - [x] **Phase 388: Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04 + DSN-05)** — Label kartu ringkasan hasil assessment jadi "Batas Nilai Kelulusan" (nilai persen tak berubah) + CoachWorkload: filter bar & heading "Saran Penyeimbangan" dibungkus card konsisten + inline magic-number font-size dipindah ke kelas/util + spacing diselaraskan. File `Results.cshtml` + `CoachWorkload.cshtml` (DISJOINT, low-risk, 0 backend, 0 migration).
 - [x] **Phase 389: CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)** — Ganti tabel grouped telanjang jadi accordion card per coach (header: avatar inisial + nama + section + badge beban warna-ikut-threshold) yang bisa diklik buka/tutup daftar coachee (tabel/list mini di dalam card, semua kolom existing tetap) + toolbar header diseragamkan + dead-code `onclick` sampah dihapus pada tombol "Tambah Mapping" tanpa ubah fungsi. Semua modal/AJAX/collapse wiring existing TETAP jalan. File `CoachCoacheeMapping.cshtml` (terisolasi, RISK TERTINGGI, 0 backend, 0 migration).
-- [x] **Phase 390: Test & UAT Behavior Parity (DSN-06)** — Verifikasi seluruh aksi existing tetap berfungsi pasca-redesign: CoachCoacheeMapping (tambah/edit/nonaktif/graduated/hapus/aktifkan-kembali + import & export Excel + modal assign/edit/deactivate/delete) + CoachWorkload (filter section, export Excel, set threshold [Admin], setujui & lewati saran). Playwright + UAT browser lintas semua aksi; perbaiki defect parity bila ditemukan. Penutup milestone, depends 388 + 389. 0 backend, 0 migration. (completed 2026-06-17)
+- [x] **Phase 390: Test & UAT Behavior Parity (DSN-06)** — Verifikasi seluruh aksi existing tetap berfungsi pasca-redesign: CoachCoacheeMapping (tambah/edit/nonaktif/graduated/hapus/aktifkan-kembali + import & export Excel + modal assign/edit/deactivate/delete) + CoachWorkload (filter section, export Excel, set threshold [Admin], setujui & lewati saran). Playwright + UAT browser lintas semua aksi; perbaiki defect parity bila ditemukan. Penutup milestone, depends 388 + 389. 0 backend, 0 migration.
+ (completed 2026-06-17)
 
 ### Phase Details
 
@@ -1382,17 +1383,17 @@ Plans:
 
 **Root cause (found Phase 390 live UAT C7, deferred per user):** in `Views/Admin/CoachCoacheeMapping.cshtml` (`@section Scripts`, ~line 1038) the change listener `document.getElementById('importMappingFile')?.addEventListener('change', …)` is registered BEFORE `#importMappingFile` (~line 1059, in the import modal lower in the same section) exists in the DOM → optional-chaining `?.` no-ops → listener never attaches → `#btnImportMapping` stays `disabled` forever. **Pre-existing** (identical at `7548c6d0~1`, before phase 389; not a 389 regression).
 
-**Fix (view-only):** convert to event delegation on `document` (`document.addEventListener('change', e => { if (e.target.id==='importMappingFile') document.getElementById('btnImportMapping').disabled = !e.target.files.length; })`) OR wrap the listener registration in `DOMContentLoaded`. Single file: `Views/Admin/CoachCoacheeMapping.cshtml`.
+**Fix (view-only, LOCKED D-01/D-02):** wrap the change-listener registration (lines 1038-1040) inside `document.addEventListener('DOMContentLoaded', ...)`; handler body IDENTIK (`disabled = !this.files.length;`). Event delegation REJECTED (input `#importMappingFile` is static server-rendered markup). Single file: `Views/Admin/CoachCoacheeMapping.cshtml`.
 
 **Verify:** Playwright @ localhost (`Authentication__UseActiveDirectory=false`, `--workers=1`) — open Import Excel modal → choose `tests/fixtures/import-mapping-390.xlsx` → assert `#btnImportMapping` becomes enabled. Plus the existing 389 spec stays green.
 
 **Requirements**: DSN-07 (new — import-button enable parity fix)
 **Depends on:** Phase 390
 **Migration:** false (pure view/JS edit; 0 backend, 0 controller, 0 migration — LOCKED)
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 390.1 to break down)
+- [ ] 390.1-01-PLAN.md — Wrap import-file change listener in DOMContentLoaded (DSN-07) + extend 389 spec (V-18 enable-on-select/deselect) + runtime verify (Wave 1)
 
 ---
 
