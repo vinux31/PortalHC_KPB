@@ -2169,6 +2169,9 @@ namespace HcPortal.Controllers
                             {
                                 Title = model.Title,
                                 Category = model.Category,
+                                // Phase 391 (UAT fix): AssessmentType wajib non-null (kolom NOT NULL default 'Standard' di Dev/Prod;
+                                // model = string? → EF kirim NULL bila tak diset → insert gagal). Warisi tipe grup dari sesi representatif.
+                                AssessmentType = assessment.AssessmentType ?? "Standard",
                                 Schedule = model.Schedule,
                                 DurationMinutes = model.DurationMinutes,
                                 Status = DeriveReadyStatus(model.Schedule, model.ExamWindowCloseDate),
