@@ -20,6 +20,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { accounts, AccountKey } from '../helpers/accounts';
+import path from 'path';
 
 async function loginAny(page: Page, accountKey: AccountKey) {
   const { email, password } = accounts[accountKey];
@@ -343,6 +344,28 @@ test.describe('Phase 389 — CoachCoacheeMapping accordion parity (DSN-01/02/03)
       await page.locator('#editModal [data-bs-dismiss="modal"]').first().click();
     }
     expect(errors, errors.join('\n')).toHaveLength(0);
+  });
+
+  // V-18 (DSN-07): Import Excel — tombol "Upload & Proses" enable saat file dipilih,
+  // disable lagi saat di-deselect (parity D-02). Bukti listener change nempel pasca
+  // fix DOMContentLoaded. Tak butuh data DB (modal & input statis) -> selalu jalan.
+  // NON-DESTRUCTIVE: tidak menekan submit (#btnImportMapping) -> tak ada import nyata.
+  test('V-18 import button enable on file select', async ({ page }) => {
+    // buka modal via tombol Bootstrap data-bs-toggle (pola V-09)
+    await page.locator('button:has-text("Import Excel")').click();
+    await expect(page.locator('#importMappingModal')).toBeVisible();
+
+    // baseline: tombol submit disabled (atribut markup)
+    await expect(page.locator('#btnImportMapping')).toBeDisabled();
+
+    // pilih fixture xlsx -> event change -> listener set disabled=false
+    const fixture = path.join(__dirname, '../fixtures/import-mapping-390.xlsx');
+    await page.locator('#importMappingFile').setInputFiles(fixture);
+    await expect(page.locator('#btnImportMapping')).toBeEnabled();
+
+    // deselect (parity D-02): kosongkan file -> tombol disable lagi
+    await page.locator('#importMappingFile').setInputFiles([]);
+    await expect(page.locator('#btnImportMapping')).toBeDisabled();
   });
 
 });
