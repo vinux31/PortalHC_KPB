@@ -9,7 +9,9 @@ export default defineConfig({
   retries: 0,
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
-    baseURL: 'http://localhost:5277',
+    // Default localhost:5277; override via E2E_BASE_URL env (e.g. run app on a free port
+    // when 5277 is occupied by a stale dotnet process — set E2E_BASE_URL=http://localhost:5270).
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:5277',
     // Phase 316 Plan 06 (GAP-316-2 defense-in-depth): bound retry untuk page.{check,click,fill}
     // actions ke 10s. Tanpa setting ini, default = test-level timeout (60s) → 1 hung action
     // bisa akumulate seluruh budget. Plus Plan 04 cascade catch sebagai 1st defense.
