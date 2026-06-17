@@ -1,7 +1,7 @@
 ---
 phase: 389-coachcoacheemapping-redesign-accordion-card-per-coach-dsn-01-dsn-02-dsn-03
 plan: 02
-status: checkpoint-pending
+status: complete
 completed: 2026-06-17
 requirements: [DSN-01, DSN-02, DSN-03]
 ---
@@ -35,5 +35,21 @@ data-mapping-id ✓ · openEditModal 7-arg ✓ · MarkMappingCompleted form ✓ 
 - **Executor drift + crash:** The first 389-02 executor finished Tasks 1-2 (committed) but then went OUT OF SCOPE — it pre-created a full phase-390 discuss+research+ui-spec+plan cycle and triggered the Playwright assessment-matrix seed fixture, then died on an API 529. The orchestrator recovered via filesystem/git spot-check: verified Tasks 1-2 markup correct, kept the high-quality 390 docs (user decision; flagged as needing plan-check before 390 exec), corrected STATE.md, and completed Task 3 inline.
 - SEED_JOURNAL "matrix" rows are the normal `global.setup.ts` test fixture (BACKUP→seed→RESTORE→cleaned per run), not pollution — DB restored clean.
 
-## Task 4 — PENDING (checkpoint:human-verify, blocking)
-Visual/animation/action UAT at http://localhost:5277/Admin/CoachCoacheeMapping (app running). Awaiting human "approved" before phase verification. See plan 389-02 Task 4 for the verify checklist.
+## Task 4 — APPROVED (checkpoint:human-verify, blocking) — browser UAT 2026-06-17
+Browser UAT driven via Playwright MCP @ http://localhost:5277/Admin/CoachCoacheeMapping (admin@pertamina.com, app run AD-off + lpc:Lenovo shared-mem). DB lokal = 1 coach group ("Rustam Santiko — GAST", 1 coachee aktif "Rino").
+
+Results — ALL PASS:
+- Card per coach: avatar inisial "R" bulat biru + nama + section "— GAST" muted + badge beban "1" warna **bg-info (biru)** (activeCount=1 <5 ✓ threshold), chevron-down. Default **TERTUTUP** saat load (V-01/02/03).
+- Klik header → mini-table muncul, chevron berputar ke atas, aria-expanded=true (V-04/V-07). Kolom = **9** (Nama/NIP/Bagian Penugasan/Unit Penugasan/Jabatan/Proton Track/Status/Mulai/Aksi), **TANPA "Coachee Aktif"** (V-06 ✓). Badge Status "Aktif" hijau + Proton Track "Operator - Tahun 1" biru render benar.
+- Aksi branch parity: row aktif → Edit / Nonaktifkan / Graduated (urutan H-7 ✓).
+- Modal **Edit** (openEditModal) terisi benar: Coachee=Rino, Coach=Rustam Santiko(GAST), Bagian=GAST, Unit=Alkylation Unit (065), Tanggal Mulai=2026-04-10 (V-10 ✓).
+- Modal **Tambah Mapping** (#assignModal) buka via data-bs-toggle, form lengkap + coachee checkbox (V-09 ✓). Dead onclick hilang.
+- Modal **Import Excel** (#importMappingModal) buka, file input + Upload disabled-until-file (H-10 ✓).
+- Toolbar: 3 tombol Excel dalam btn-group outline rapi + "Tambah Mapping" btn-primary biru solo (V-08 ✓).
+- Console error level=error: **0** (V-13, no 404/500).
+- Spacing antar-card + legibilitas avatar + animasi chevron: rapi/subjektif-OK.
+
+Data-guard (TIDAK bisa diuji, DB lokal 1 coach saja → Phase 390 full mutation parity):
+- V-05 independent multi-open (butuh ≥2 coach), branch inaktif "Aktifkan/Hapus" (butuh mapping non-aktif), mutasi nyata assign/import/export/row-removal.
+
+Verdict: tampilan & semua aksi existing **PARITY OK** → checkpoint approved. Phase 389 siap verifikasi.
