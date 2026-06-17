@@ -12,8 +12,8 @@
 
 ### Backend & Integritas Inject (INJ) — fase 393
 
-- [ ] **INJ-01**: Sistem membangun sesi assessment manual **lengkap** per pekerja (`AssessmentSession` + `UserPackageAssignment` ber-`ShuffledQuestionIds` + `PackageUserResponses` + `SessionElemenTeknisScore` + sertifikat opsional) dengan melewatkan jawaban ke **pipeline grading yang sama** dengan online (`GradingService.GradeAndCompleteAsync` / `FinalizeEssayGrading`) — skor, kelulusan, elemen teknis, nomor sertifikat **dihitung** (bukan ditulis tangan). Operasi atomic per-batch (rollback semua bila ada NIP invalid / error).
-- [ ] **INJ-02**: Setiap sesi inject ditandai `IsManualEntry=true` dan tercatat di **AuditLog** (`ActionType="ManualInject"`, actor, NIP, sessionId, skor) — terlihat sebagai "Assessment Online" ke pekerja, tetapi terlacak penuh & dapat dibedakan oleh Admin (transparansi/compliance).
+- [x] **INJ-01**: Sistem membangun sesi assessment manual **lengkap** per pekerja (`AssessmentSession` + `UserPackageAssignment` ber-`ShuffledQuestionIds` + `PackageUserResponses` + `SessionElemenTeknisScore` + sertifikat opsional) dengan melewatkan jawaban ke **pipeline grading yang sama** dengan online (`GradingService.GradeAndCompleteAsync` / `FinalizeEssayGrading`) — skor, kelulusan, elemen teknis, nomor sertifikat **dihitung** (bukan ditulis tangan). Operasi atomic per-batch (rollback semua bila ada NIP invalid / error).
+- [x] **INJ-02**: Setiap sesi inject ditandai `IsManualEntry=true` dan tercatat di **AuditLog** (`ActionType="ManualInject"`, actor, NIP, sessionId, skor) — terlihat sebagai "Assessment Online" ke pekerja, tetapi terlacak penuh & dapat dibedakan oleh Admin (transparansi/compliance).
 
 ### Page, Setup Room & Authoring (INJ) — fase 394
 
@@ -64,8 +64,8 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| INJ-01 | Phase 393 | Pending |
-| INJ-02 | Phase 393 | Pending |
+| INJ-01 | Phase 393 | Complete |
+| INJ-02 | Phase 393 | Complete |
 | INJ-03 | Phase 394 | Pending |
 | INJ-04 | Phase 394 | Pending |
 | INJ-05 | Phase 394 | Pending |

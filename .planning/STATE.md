@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: Roadmap v32.2 created (393-398, 13/13 REQ INJ-01..13, 100% coverage) — ready `/gsd-plan-phase 393`
+status: executing
 stopped_at: Phase 393 context gathered
-last_updated: "2026-06-17T08:44:59.885Z"
-last_activity: 2026-06-17 — Milestone v32.2 roadmap created
+last_updated: "2026-06-17T11:24:15.557Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 29
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State: Portal HC KPB
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.2 — mendefinisikan requirements + roadmap (Inject Hasil Assessment Manual "Seakan Online", fase 393-398)
+**Current focus:** Phase 393 — backend-core-inject
 
 ## Current Position
 
-Phase: 393 (ready to plan)
-Plan: —
-Status: Roadmap v32.2 created (393-398, 13/13 REQ INJ-01..13, 100% coverage) — ready `/gsd-plan-phase 393`
-Last activity: 2026-06-17 — Milestone v32.2 roadmap created
+Phase: 393 (backend-core-inject) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-17
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
