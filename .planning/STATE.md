@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
-stopped_at: Phase 393 context gathered
-last_updated: "2026-06-17T11:24:15.557Z"
+stopped_at: Phase 394 context gathered
+last_updated: "2026-06-17T11:34:13.669Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 29
@@ -140,6 +140,6 @@ Milestone v32.2 baru dibuat — define requirements → roadmap. **Next: tulis R
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 393 context gathered
+Stopped at: Phase 394 context gathered
 
 Next action: milestone v32.2 — selesaikan REQUIREMENTS.md (INJ-*) + roadmap (393-398), lalu **`/gsd-discuss-phase 393`** atau **`/gsd-plan-phase 393`** (Backend core inject). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
