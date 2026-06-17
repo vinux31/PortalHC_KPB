@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v32.0
 milestone_name: Manajemen Peserta
 status: executing
-stopped_at: Phase 391 context gathered
-last_updated: "2026-06-17T04:07:57.206Z"
-last_activity: 2026-06-17 -- Phase 391 planning complete
+stopped_at: Phase 392 context gathered
+last_updated: "2026-06-17T04:17:07.078Z"
+last_activity: 2026-06-17 -- Phase 391 execution started
 progress:
   total_phases: 23
   completed_phases: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.0 Manajemen Peserta — roadmap created (phases 391-392: penambahan peserta fleksibel saat ujian berjalan, perbaikan CreateWorker view + audit field). Ready to plan Phase 391.
+**Current focus:** Phase 391 — Penambahan Peserta Fleksibel saat Ujian Berjalan
 
 ## Current Position
 
-Phase: 391 (next to plan) — roadmap created, not started
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 391 planning complete
+Phase: 391 (Penambahan Peserta Fleksibel saat Ujian Berjalan) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 391
+Last activity: 2026-06-17 -- Phase 391 execution started
 
 **Milestone v32.0 Manajemen Peserta** — Phases 391-392 (LANJUT dari v31.0 phase terakhir 387; tidak reset ke 1). 0 migration. Branch main. 7/7 REQ mapped (0 orphan, 0 duplikat).
 
@@ -138,6 +138,6 @@ Roadmap v32.0 approved → mulai planning. **Next: `/gsd-plan-phase 391`** (atau
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 391 context gathered
+Stopped at: Phase 392 context gathered
 
 Next action: **`/gsd-plan-phase 391`** (Penambahan Peserta Fleksibel saat Ujian Berjalan) — atau `/gsd-discuss-phase 391`. Phase 392 (Perbaikan CreateWorker) bisa di-plan paralel (file-disjoint). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
