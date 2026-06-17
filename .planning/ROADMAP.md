@@ -75,7 +75,7 @@ See .planning/MILESTONES.md for full history.
   5. `dotnet build` 0 error + `dotnet run` (localhost:5277): halaman Results + CoachWorkload render benar, angka summary/chart/threshold + warna badge status (Normal/Mendekati/Overloaded) IDENTIK dengan sebelum perubahan.
 **Plans:** 2 plans
 - [x] 388-01-PLAN.md — LBL-03 label "Batas Nilai Kelulusan" di Results.cshtml + UAT (Wave 1)
-- [ ] 388-02-PLAN.md — DSN-04 card framing (filter + Saran->list-group) + DSN-05 cleanup inline font-size/legend-dot di CoachWorkload.cshtml + Playwright parity + UAT (Wave 1)
+- [x] 388-02-PLAN.md — DSN-04 card framing (filter + Saran->list-group) + DSN-05 cleanup inline font-size/legend-dot di CoachWorkload.cshtml + Playwright parity + UAT (Wave 1)
 **UI hint:** yes
 
 ### Phase 389: CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)
@@ -111,7 +111,7 @@ See .planning/MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 388. Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04/05) | 1/2 | In Progress|  |
+| 388. Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04/05) | 2/2 | Complete   | 2026-06-17 |
 | 389. CoachCoacheeMapping Redesign — Accordion Card (DSN-01/02/03) | 0/? | Not started | - |
 | 390. Test & UAT Behavior Parity (DSN-06) | 0/? | Not started | - |
 
