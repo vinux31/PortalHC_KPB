@@ -4,14 +4,14 @@ milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
 status: executing
 stopped_at: Phase 390.1 context gathered
-last_updated: "2026-06-17T10:54:53.305Z"
-last_activity: 2026-06-17
+last_updated: "2026-06-17T11:20:49.765Z"
+last_activity: 2026-06-17 -- Phase 390.1 execution started
 progress:
   total_phases: 25
   completed_phases: 3
-  total_plans: 6
+  total_plans: 7
   completed_plans: 6
-  percent: 100
+  percent: 86
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 390 — test-uat-behavior-parity-dsn-06
+**Current focus:** Phase 390.1 — fix-import-excel-button-auto-enable-on-coachcoacheemapping-v
 
 ## Current Position
 
-Phase: 999.7
-Plan: Not started
-Status: Executing Phase 390
-Last activity: 2026-06-17
+Phase: 390.1 (fix-import-excel-button-auto-enable-on-coachcoacheemapping-v) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 390.1
+Last activity: 2026-06-17 -- Phase 390.1 execution started
 
 ## Next Action
 

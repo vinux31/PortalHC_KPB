@@ -1393,7 +1393,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 390.1-01-PLAN.md — Wrap import-file change listener in DOMContentLoaded (DSN-07) + extend 389 spec (V-18 enable-on-select/deselect) + runtime verify (Wave 1)
+- [x] 390.1-01-PLAN.md — Wrap import-file change listener in DOMContentLoaded (DSN-07) + extend 389 spec (V-18 enable-on-select/deselect) + runtime verify (Wave 1)
 
 ---
 
