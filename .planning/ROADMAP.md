@@ -57,7 +57,7 @@
 
 ### Phases
 
-- [ ] **Phase 393: Backend core inject (INJ-01, INJ-02)** — `InjectAssessmentService` membangun session set lengkap (`AssessmentSession` + `UserPackageAssignment` ber-`ShuffledQuestionIds` + `PackageUserResponses` + `SessionElemenTeknisScore` + sertifikat opsional) lewat reuse `GradingService.GradeAndCompleteAsync`/`FinalizeEssayGrading` (skor/lulus/elemen-teknis/cert **dihitung**, bukan ditulis tangan), atomic per-batch (rollback semua bila NIP invalid/error), `IsManualEntry=true` + AuditLog `"ManualInject"`; dikunci xUnit. 0 migration.
+- [x] **Phase 393: Backend core inject (INJ-01, INJ-02)** — `InjectAssessmentService` membangun session set lengkap (`AssessmentSession` + `UserPackageAssignment` ber-`ShuffledQuestionIds` + `PackageUserResponses` + `SessionElemenTeknisScore` + sertifikat opsional) lewat reuse `GradingService.GradeAndCompleteAsync`/`FinalizeEssayGrading` (skor/lulus/elemen-teknis/cert **dihitung**, bukan ditulis tangan), atomic per-batch (rollback semua bila NIP invalid/error), `IsManualEntry=true` + AuditLog `"ManualInject"`; dikunci xUnit. 0 migration. (completed 2026-06-17)
 - [ ] **Phase 394: Page + Setup Room + authoring soal (INJ-03..07)** — Page `/Admin/InjectAssessment` (kartu Section C, RBAC Admin+HC) + setup room mirror `CreateAssessment` (judul/kategori/jadwal-backdate/durasi/PassPercentage/AllowAnswerReview/tipe Standard-Pre-Post) + authoring soal MC/MA/Essay (opsi+IsCorrect+ScoreValue+ElemenTeknis+Rubrik) reuse `ManagePackages` + worker picker + toggle sertifikat (auto/manual/tanpa). 0 migration.
 - [ ] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration.
 - [ ] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration.
@@ -78,7 +78,7 @@
   3. Sesi essay yang di-inject berakhir `Status=Completed` (bukan tertinggal "Menunggu Penilaian") setelah `EssayScore` di-set + `FinalizeEssayGrading` dipanggil — diverifikasi xUnit. *(INJ-01 — risiko spec §13)*
   4. Setiap sesi inject ditulis `IsManualEntry=true` dan menghasilkan satu entri AuditLog `ActionType="ManualInject"` berisi actor, NIP, sessionId, dan skor — diverifikasi xUnit (count entri = jumlah sesi). *(INJ-02)*
   5. `dotnet build` 0 error + `dotnet test` hijau (xUnit di atas); `dotnet ef migrations add _verify` → 0 model diff (konfirmasi 0 migration). *(INJ-01, INJ-02)*
-**Plans:** 3 plans (3 waves — sequential, single service+test file shared)
+**Plans:** 3/3 plans complete
 - [x] 393-01-PLAN.md — Wave 0: DTO kontrak + service skeleton + DI + xUnit Integration fixture/stub (interface-first)
 - [x] 393-02-PLAN.md — InjectAssessmentService penuh: pre-flight reject-all + dedup cert-aware + tx atomic + reuse grading + essay finalize + cert backdate + audit
 - [x] 393-03-PLAN.md — 5 fact SC1..SC5 (byte-identik / atomic / essay-Completed / audit count / cert policy) + 0-migration gate
@@ -163,7 +163,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete   | 2026-06-17 |
+| 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete    | 2026-06-17 |
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 0/? | Not started | - |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 0/? | Not started | - |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 0/? | Not started | - |

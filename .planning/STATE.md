@@ -4,7 +4,7 @@ milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: verifying
 stopped_at: Phase 394 context gathered
-last_updated: "2026-06-17T11:58:23.833Z"
+last_updated: "2026-06-17T12:11:09.143Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 29
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 393 (backend-core-inject) — EXECUTING
-Plan: 3 of 3
+Phase: 394
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-06-17
 
