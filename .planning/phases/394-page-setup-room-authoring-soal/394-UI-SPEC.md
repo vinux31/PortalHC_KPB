@@ -58,11 +58,13 @@ Inherited from Bootstrap 5 root (`font-size: 1rem = 16px`, body line-height `1.5
 | Role | Size | Weight | Line Height | Source / utility |
 |------|------|--------|-------------|------------------|
 | Body | 16px (1rem) | 400 (regular) | 1.5 | Bootstrap body default; field values, `<p>`, option text |
-| Label / small | ~13–14px (`.small` 0.875rem / `form-label`) | 600 (`fw-semibold` / `fw-bold` on field labels) | 1.5 | `form-label fw-bold`, `.form-text text-muted`, `.small`, helper text |
+| Label / small | ~13–14px (`.small` 0.875rem / `form-label`) | bold-emphasis tier (`fw-bold` 700) | 1.5 | `form-label fw-bold`, `.form-text text-muted`, `.small`, helper text |
 | Heading (step) | 20px (`h5`, ~1.25rem) | 700 (`fw-bold`) | 1.2 | Step-panel headings `<h5 class="fw-bold mb-4">` (e.g. "Langkah 1: Setup Room") |
 | Display (page) | ~28px (`h2`, ~1.75rem) | 700 (`fw-bold`) | 1.2 | Page title `<h2 class="fw-bold mb-1">Inject Assessment Manual</h2>` |
 
-Weights used: **regular 400** (body) + **bold 700** (`fw-bold` headings/labels). `fw-semibold` (600) and `fw-medium` (500) appear in mirrored authoring sub-labels (`form-label fw-medium small`) — keep as-is when mirroring `ManagePackageQuestions`; treat 500/600 as the same "emphasis" tier as 700 for the 2-weight contract (regular vs. bold-emphasis). Do not introduce new weights or sizes beyond these.
+**2-weight contract (design):** **regular 400** (body) + **bold-emphasis 700** (`fw-bold` headings/labels). These are the only two weights this phase designs.
+
+> **Brownfield carry-over (NOT new design weights):** `fw-semibold` (600) / `fw-medium` (500) appear ONLY inside authoring sub-labels (`form-label fw-medium small`) inherited verbatim when mirroring `ManagePackageQuestions`. Keep them as-is for mirror fidelity; collapse them mentally into the bold-emphasis tier. Do NOT introduce any new weight or size beyond regular-400 / bold-700 for net-new markup.
 
 ---
 
