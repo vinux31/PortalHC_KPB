@@ -12,10 +12,10 @@
 
 ### Penambahan Peserta Fleksibel (PART) — fitur 1.1
 
-- [ ] **PART-01**: HC dapat menambah peserta baru ke sebuah assessment yang **sedang berjalan** (ada peserta lain berstatus `InProgress` / sudah masuk ujian) tanpa diblokir — penambahan tetap berhasil membuat `AssessmentSession` baru per peserta dan peserta baru mewarisi status induk sehingga bisa langsung mengerjakan (selama window ujian belum ditutup).
-- [ ] **PART-02**: Guard status `Completed` pada sesi representatif di `EditAssessment` **tidak salah-memblokir penambahan peserta** ketika sebagian peserta sudah selesai sementara grup assessment masih aktif — HC tetap dapat menambah peserta selama window ujian (`ExamWindowCloseDate`) belum lewat.
-- [ ] **PART-03**: Saat HC menambah peserta ke assessment yang ada peserta `InProgress`, sistem menampilkan **notice informatif** (bernuansa informasi, bukan peringatan kesan-error) yang menjelaskan bahwa peserta baru tetap bisa ditambah walau ujian sedang berjalan — menggantikan warning kosmetik yang ambigu.
-- [ ] **PART-04**: Perilaku penambahan-peserta-saat-berjalan **dikunci oleh automated regression test** — memverifikasi: (a) penambahan saat ada `InProgress` berhasil, (b) peserta baru mewarisi status induk, (c) jawaban/sesi peserta existing tidak ter-overwrite oleh proses BULK ASSIGN.
+- [x] **PART-01**: HC dapat menambah peserta baru ke sebuah assessment yang **sedang berjalan** (ada peserta lain berstatus `InProgress` / sudah masuk ujian) tanpa diblokir — penambahan tetap berhasil membuat `AssessmentSession` baru per peserta dan peserta baru mewarisi status induk sehingga bisa langsung mengerjakan (selama window ujian belum ditutup).
+- [x] **PART-02**: Guard status `Completed` pada sesi representatif di `EditAssessment` **tidak salah-memblokir penambahan peserta** ketika sebagian peserta sudah selesai sementara grup assessment masih aktif — HC tetap dapat menambah peserta selama window ujian (`ExamWindowCloseDate`) belum lewat.
+- [x] **PART-03**: Saat HC menambah peserta ke assessment yang ada peserta `InProgress`, sistem menampilkan **notice informatif** (bernuansa informasi, bukan peringatan kesan-error) yang menjelaskan bahwa peserta baru tetap bisa ditambah walau ujian sedang berjalan — menggantikan warning kosmetik yang ambigu.
+- [x] **PART-04**: Perilaku penambahan-peserta-saat-berjalan **dikunci oleh automated regression test** — memverifikasi: (a) penambahan saat ada `InProgress` berhasil, (b) peserta baru mewarisi status induk, (c) jawaban/sesi peserta existing tidak ter-overwrite oleh proses BULK ASSIGN.
 
 ### Perbaikan Halaman CreateWorker (WRKR) — fitur 1.2
 
@@ -45,10 +45,10 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| PART-01 | Phase 391 | pending |
-| PART-02 | Phase 391 | pending |
-| PART-03 | Phase 391 | pending |
-| PART-04 | Phase 391 | pending |
+| PART-01 | Phase 391 | Complete |
+| PART-02 | Phase 391 | Complete |
+| PART-03 | Phase 391 | Complete |
+| PART-04 | Phase 391 | Complete |
 | WRKR-01 | Phase 392 | pending |
 | WRKR-02 | Phase 392 | pending |
 | WRKR-03 | Phase 392 | pending |

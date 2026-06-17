@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.0
 milestone_name: Manajemen Peserta
 status: executing
-stopped_at: Phase 392 context gathered
-last_updated: "2026-06-17T04:17:07.078Z"
-last_activity: 2026-06-17 -- Phase 391 execution started
+stopped_at: Phase 392 UI-SPEC approved
+last_updated: "2026-06-17T05:17:11.380Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 23
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 391 (Penambahan Peserta Fleksibel saat Ujian Berjalan) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 391
-Last activity: 2026-06-17 -- Phase 391 execution started
+Phase: 392
+Plan: Not started
+Status: Ready to execute
+Last activity: 2026-06-17
 
 **Milestone v32.0 Manajemen Peserta** — Phases 391-392 (LANJUT dari v31.0 phase terakhir 387; tidak reset ke 1). 0 migration. Branch main. 7/7 REQ mapped (0 orphan, 0 duplikat).
 
@@ -138,6 +138,6 @@ Roadmap v32.0 approved → mulai planning. **Next: `/gsd-plan-phase 391`** (atau
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 392 context gathered
+Stopped at: Phase 392 UI-SPEC approved
 
 Next action: **`/gsd-plan-phase 391`** (Penambahan Peserta Fleksibel saat Ujian Berjalan) — atau `/gsd-discuss-phase 391`. Phase 392 (Perbaikan CreateWorker) bisa di-plan paralel (file-disjoint). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
