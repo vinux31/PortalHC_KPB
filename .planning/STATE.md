@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
 status: executing
-stopped_at: Phase 389 context gathered
-last_updated: "2026-06-17T03:59:46.791Z"
+stopped_at: Phase 389 UI-SPEC approved
+last_updated: "2026-06-17T04:09:08.514Z"
 last_activity: 2026-06-17 -- Phase 388 execution started
 progress:
   total_phases: 24
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -111,6 +111,6 @@ Constraint global: behavior parity WAJIB, 0 backend, 0 migration, 0 controller. 
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 389 context gathered
+Stopped at: Phase 389 UI-SPEC approved
 
 Next action: `/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish). Lalu 389 (CoachCoacheeMapping redesign), 390 (Test & UAT parity). Approve roadmap dulu bila perlu review user.
