@@ -58,7 +58,7 @@ See .planning/MILESTONES.md for full history.
 
 - [x] **Phase 388: Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04 + DSN-05)** — Label kartu ringkasan hasil assessment jadi "Batas Nilai Kelulusan" (nilai persen tak berubah) + CoachWorkload: filter bar & heading "Saran Penyeimbangan" dibungkus card konsisten + inline magic-number font-size dipindah ke kelas/util + spacing diselaraskan. File `Results.cshtml` + `CoachWorkload.cshtml` (DISJOINT, low-risk, 0 backend, 0 migration).
 - [x] **Phase 389: CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)** — Ganti tabel grouped telanjang jadi accordion card per coach (header: avatar inisial + nama + section + badge beban warna-ikut-threshold) yang bisa diklik buka/tutup daftar coachee (tabel/list mini di dalam card, semua kolom existing tetap) + toolbar header diseragamkan + dead-code `onclick` sampah dihapus pada tombol "Tambah Mapping" tanpa ubah fungsi. Semua modal/AJAX/collapse wiring existing TETAP jalan. File `CoachCoacheeMapping.cshtml` (terisolasi, RISK TERTINGGI, 0 backend, 0 migration).
-- [ ] **Phase 390: Test & UAT Behavior Parity (DSN-06)** — Verifikasi seluruh aksi existing tetap berfungsi pasca-redesign: CoachCoacheeMapping (tambah/edit/nonaktif/graduated/hapus/aktifkan-kembali + import & export Excel + modal assign/edit/deactivate/delete) + CoachWorkload (filter section, export Excel, set threshold [Admin], setujui & lewati saran). Playwright + UAT browser lintas semua aksi; perbaiki defect parity bila ditemukan. Penutup milestone, depends 388 + 389. 0 backend, 0 migration.
+- [x] **Phase 390: Test & UAT Behavior Parity (DSN-06)** — Verifikasi seluruh aksi existing tetap berfungsi pasca-redesign: CoachCoacheeMapping (tambah/edit/nonaktif/graduated/hapus/aktifkan-kembali + import & export Excel + modal assign/edit/deactivate/delete) + CoachWorkload (filter section, export Excel, set threshold [Admin], setujui & lewati saran). Playwright + UAT browser lintas semua aksi; perbaiki defect parity bila ditemukan. Penutup milestone, depends 388 + 389. 0 backend, 0 migration. (completed 2026-06-17)
 
 ### Phase Details
 
@@ -104,7 +104,7 @@ See .planning/MILESTONES.md for full history.
   2. CoachWorkload — semua aksi lewat UAT browser: **filter section**, **export Excel**, **set threshold** (sebagai Admin), **setujui** & **lewati** saran penyeimbangan; semua berfungsi + warna/badge status benar.
   3. Tidak ada perubahan endpoint atau JS-contract di luar yang dibutuhkan untuk render baru (verifikasi: tak ada controller/service file ter-modifikasi di milestone; grep AJAX URL pakai `appUrl()`/`window.basePath`, bukan hardcode).
   4. `dotnet build` 0 error + `dotnet test` hijau (suite existing tak regresi) + Playwright spec parity lintas kedua halaman PASS di localhost:5277 (CLAUDE.md Develop Workflow); milestone siap 1 push → notify IT re-deploy Dev (migration=FALSE).
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 - [x] 390-01-PLAN.md — Build gate + import fixture + escalate 2 parity specs (V-10..V-17 + W-EXP/W-THR/W-ERR) [autonomous] (Wave 1)
 - [x] 390-02-PLAN.md — Live-mutation UAT roundtrip (snapshot/restore) + manual Excel import + regression sign-off [checkpoints] (Wave 2)
 **UI hint:** yes
@@ -117,7 +117,7 @@ See .planning/MILESTONES.md for full history.
 |-------|----------------|--------|-----------|
 | 388. Label Hasil + CoachWorkload Polish (LBL-03 + DSN-04/05) | 2/2 | Complete   | 2026-06-17 |
 | 389. CoachCoacheeMapping Redesign — Accordion Card (DSN-01/02/03) | 1/2 | In Progress|  |
-| 390. Test & UAT Behavior Parity (DSN-06) | 2/2 | Complete   | 2026-06-17 |
+| 390. Test & UAT Behavior Parity (DSN-06) | 2/2 | Complete    | 2026-06-17 |
 
 ### Coverage Validation
 

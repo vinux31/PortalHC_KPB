@@ -26,7 +26,7 @@ Requirements untuk milestone v32.1. Tiap REQ map ke satu phase.
 
 ### Regresi / Parity (DSN)
 
-- [ ] **DSN-06**: Setelah redesign, **semua aksi existing tetap berfungsi** — CoachCoacheeMapping: tambah/edit/nonaktifkan/graduated/hapus/aktifkan-kembali mapping + import & export Excel + modal assign/edit/deactivate/delete; CoachWorkload: filter section, export Excel, set threshold (Admin), setujui & lewati saran. Tidak ada perubahan endpoint/JS-contract di luar yang dibutuhkan untuk render baru.
+- [x] **DSN-06**: Setelah redesign, **semua aksi existing tetap berfungsi** — CoachCoacheeMapping: tambah/edit/nonaktifkan/graduated/hapus/aktifkan-kembali mapping + import & export Excel + modal assign/edit/deactivate/delete; CoachWorkload: filter section, export Excel, set threshold (Admin), setujui & lewati saran. Tidak ada perubahan endpoint/JS-contract di luar yang dibutuhkan untuk render baru.
 
 ## v2 Requirements
 
@@ -56,7 +56,7 @@ Diisi saat pembuatan roadmap.
 | DSN-01 | Phase 389 | Complete |
 | DSN-02 | Phase 389 | Complete |
 | DSN-03 | Phase 389 | Complete |
-| DSN-06 | Phase 390 | Pending |
+| DSN-06 | Phase 390 | Complete |
 
 **Coverage:**
 - v1 requirements: 7 total
