@@ -29,6 +29,14 @@
 
 @Html.AntiForgeryToken()
 
+@section Styles {
+    <style>
+        /* DSN-02: rotasi chevron saat card-header collapse terbuka (scoped, no shared CSS) */
+        [data-bs-toggle="collapse"] .chevron-toggle { transition: transform .2s ease; }
+        [data-bs-toggle="collapse"]:not(.collapsed) .chevron-toggle { transform: rotate(180deg); }
+    </style>
+}
+
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
@@ -229,49 +237,54 @@
 }
 else
 {
-    <table class="table table-bordered align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Nama</th>
-                <th>NIP</th>
-                <th>@OrgLabels.GetLabel(0) Penugasan</th>
-                <th>@OrgLabels.GetLabel(1) Penugasan</th>
-                <th>Jabatan</th>
-                <th>Proton Track</th>
-                <th>Status</th>
-                <th>Mulai</th>
-                <th class="text-center">Coachee Aktif</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        @{ var idx = 0; }
-        @foreach (var group in groupedCoaches)
-        {
-            <!-- Coach header row -->
-            <tbody>
-                <tr class="table-primary" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-@idx">
-                    <td colspan="8" class="fw-semibold">
-                        <i class="bi bi-chevron-down me-2 small"></i>
-                        @group.CoachName
-                        @if (!string.IsNullOrEmpty((string)group.CoachSection))
-                        {
-                            <span class="text-muted fw-normal ms-1">— @group.CoachSection</span>
-                        }
-                    </td>
-                    <td class="text-center">
-                        @{
-                            int activeCount = (int)group.ActiveCount;
-                            string badgeClass = activeCount >= 8 ? "bg-danger" : activeCount >= 5 ? "bg-warning text-dark" : "bg-info text-dark";
-                        }
-                        <span class="badge @badgeClass">@activeCount</span>
-                    </td>
-                    <td></td>
-                </tr>
-            </tbody>
-            <!-- Coachee rows -->
-            <tbody class="collapse show" id="collapse-@idx">
-                @foreach (var coachee in group.Coachees)
+    // DSN-01/02: tiap coach group = 1 accordion card (Collapse-in-Card). Default tertutup; card independen (tanpa parent-toggle, multi-open).
+    var idx = 0;
+    foreach (var group in groupedCoaches)
+    {
+        <div class="card border-0 shadow-sm mb-3">
+            <button type="button"
+                    class="card-header bg-white w-100 text-start border-0 d-flex align-items-center gap-2 collapsed"
+                    style="cursor:pointer"
+                    data-bs-toggle="collapse" data-bs-target="#collapse-@idx"
+                    aria-expanded="false" aria-controls="collapse-@idx">
+                <div class="avatar-initial rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+                     style="width:36px;height:36px;font-size:0.8rem" aria-hidden="true">
+                    @( ((string)group.CoachName).Length > 0 ? ((string)group.CoachName).Substring(0, 1).ToUpper() : "?" )
+                </div>
+                <span class="fw-semibold">@group.CoachName</span>
+                @if (!string.IsNullOrEmpty((string)group.CoachSection))
                 {
+                    <span class="text-muted small">— @group.CoachSection</span>
+                }
+                <span class="ms-auto">
+                    @{
+                        int activeCount = (int)group.ActiveCount;
+                        string badgeClass = activeCount >= 8 ? "bg-danger" : activeCount >= 5 ? "bg-warning text-dark" : "bg-info text-dark";
+                    }
+                    <span class="badge @badgeClass" title="@activeCount coachee aktif">@activeCount</span>
+                </span>
+                <i class="bi bi-chevron-down chevron-toggle"></i>
+            </button>
+            <div class="collapse" id="collapse-@idx">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>NIP</th>
+                                    <th>@OrgLabels.GetLabel(0) Penugasan</th>
+                                    <th>@OrgLabels.GetLabel(1) Penugasan</th>
+                                    <th>Jabatan</th>
+                                    <th>Proton Track</th>
+                                    <th>Status</th>
+                                    <th>Mulai</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var coachee in group.Coachees)
+                                {
                     <tr class="@(coachee.IsActive ? "" : "table-light text-muted")" data-mapping-id="@coachee.Id">
                         <td>@coachee.CoacheeName</td>
                         <td>@coachee.CoacheeNIP</td>
@@ -299,7 +312,6 @@ else
                             }
                         </td>
                         <td>@coachee.StartDate.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
-                        <td></td>
                         <td>
                             <div class="d-flex gap-1">
                                 <button class="btn btn-sm btn-outline-secondary"
@@ -339,14 +351,18 @@ else
                                         <i class="bi bi-trash me-1"></i> Hapus
                                     </button>
                                 }
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-            idx++;
-        }
-    </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        idx++;
+    }
 
     <!-- Pagination -->
     @if (totalPages > 1)
