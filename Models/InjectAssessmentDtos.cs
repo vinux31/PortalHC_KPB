@@ -1,0 +1,81 @@
+namespace HcPortal.Models
+{
+    /// <summary>Mode sertifikat per-room inject (D-07/D-08/D-09/D-10).</summary>
+    public enum InjectCertMode { None = 0, Auto = 1, Manual = 2 }
+
+    /// <summary>Spesifikasi opsi soal authored (POCO — belum ter-persist).</summary>
+    public class InjectOptionSpec
+    {
+        public string OptionText { get; set; } = "";
+        public bool IsCorrect { get; set; }
+        public int TempId { get; set; }   // id sementara untuk peta jawaban worker → opsi (pre-persist)
+    }
+
+    /// <summary>Spesifikasi soal authored (POCO — belum ter-persist).</summary>
+    public class InjectQuestionSpec
+    {
+        public string QuestionText { get; set; } = "";
+        public string QuestionType { get; set; } = "MultipleChoice";   // "MultipleChoice"/"MultipleAnswer"/"Essay"
+        public int ScoreValue { get; set; } = 10;
+        public int Order { get; set; }
+        public string? ElemenTeknis { get; set; }
+        public string? Rubrik { get; set; }
+        public int TempId { get; set; }   // id sementara untuk peta jawaban worker → soal (pre-persist)
+        public List<InjectOptionSpec> Options { get; set; } = new();
+    }
+
+    /// <summary>Jawaban satu worker untuk satu soal (model "input asli", D-08/INJ-08).</summary>
+    public class InjectAnswerSpec
+    {
+        public int QuestionTempId { get; set; }
+        public List<int> SelectedOptionTempIds { get; set; } = new();   // MC: 1 elemen; MA: ≥1; Essay: kosong
+        public string? TextAnswer { get; set; }   // Essay
+        public int? EssayScore { get; set; }       // Essay — wajib (D-05), divalidasi 0..ScoreValue (D-07)
+    }
+
+    /// <summary>Satu worker penerima inject + jawabannya + optional nomor cert manual.</summary>
+    public class InjectWorkerSpec
+    {
+        public string Nip { get; set; } = "";
+        public List<InjectAnswerSpec> Answers { get; set; } = new();
+        public string? ManualCertNumber { get; set; }   // dipakai hanya bila CertMode==Manual (D-09)
+        public DateOnly? CertValidUntil { get; set; }    // null = permanent (D-10)
+    }
+
+    /// <summary>Request inject batch (1 room, 1 paket, banyak worker).</summary>
+    public class InjectRequest
+    {
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string AssessmentType { get; set; } = "Standard";   // BUKAN "Manual" — D-deviation
+        public DateTime CompletedAt { get; set; }   // backdate (D-06: ≤ today)
+        public DateTime? StartedAt { get; set; }     // backdate; null → pakai CompletedAt
+        public DateTime? Schedule { get; set; }      // backdate; null → pakai CompletedAt
+        public int DurationMinutes { get; set; } = 60;
+        public int PassPercentage { get; set; } = 70;
+        public bool AllowAnswerReview { get; set; } = true;
+        public InjectCertMode CertMode { get; set; } = InjectCertMode.None;
+        public int? LinkedGroupId { get; set; }
+        public int? LinkedSessionId { get; set; }
+        public List<InjectQuestionSpec> Questions { get; set; } = new();
+        public List<InjectWorkerSpec> Workers { get; set; } = new();
+    }
+
+    /// <summary>Satu error per-baris (NIP) untuk D-03 reject-all.</summary>
+    public class InjectRowError
+    {
+        public string Nip { get; set; } = "";
+        public string Message { get; set; } = "";   // Bahasa Indonesia
+    }
+
+    /// <summary>Hasil inject batch.</summary>
+    public class InjectResult
+    {
+        public bool Success { get; set; }            // true bila ter-commit (boleh ada skip)
+        public bool Rejected { get; set; }            // true bila pre-flight tolak-semua (D-03)
+        public List<int> SuccessSessionIds { get; set; } = new();
+        public List<string> SkippedNips { get; set; } = new();   // duplikat di-skip (D-01)
+        public List<InjectRowError> PerRowErrors { get; set; } = new();
+        public string? Message { get; set; }          // ringkasan Bahasa Indonesia (mis. pesan rollback)
+    }
+}
