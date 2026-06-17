@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
 status: executing
-stopped_at: Phase 389-02 markup committed; finishing Task 3 (Playwright) + Task 4 (UAT checkpoint)
-last_updated: "2026-06-17T05:30:08.247Z"
+stopped_at: Phase 390 planned (2 plans, 2 waves)
+last_updated: "2026-06-17T06:30:00.000Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 24
@@ -25,14 +25,14 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 389 (CoachCoacheeMapping Redesign — Accordion Card per Coach (DSN-01 + DSN-02 + DSN-03)) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
+Phase: 390 (Test & UAT Behavior Parity (DSN-06)) — PLANNED (2 plans, 2 waves)
+Plan: 0 of 2
+Status: Ready to execute (gate: 389-02 shipped aa377982 + dotnet build green = Plan 01 Task 1)
 Last activity: 2026-06-17
 
 ## Next Action
 
-Finish Phase 389-02: Task 3 (run Playwright spec 389 @ localhost:5277 → 0 FAIL) + Task 4 (human UAT checkpoint) → 389-02-SUMMARY → verify phase. NOTE: phase 390 docs (CONTEXT/RESEARCH/UI-SPEC/VALIDATION) were pre-created out-of-flow by a drifting 389-02 executor — content reviewed as high-quality + self-gated on 389-02; KEPT, but still needs a human review pass + proper `/gsd-plan-phase 390` when 388+389 ship.
+`/gsd-execute-phase 390` (Test & UAT Behavior Parity — DSN-06). 2 plans, 2 waves: Wave 1 = 390-01 [autonomous] (dotnet build gate D-07 + import fixture + escalate 2 parity specs: 389 spec V-10..V-17, 388 spec W-EXP/W-THR/W-ERR); Wave 2 = 390-02 [checkpoints, non-autonomous] (live-mutation UAT roundtrip via Playwright MCP snapshot/restore C1-C6 + W1/W3/W4/W5 + manual Excel import C7 + regression sign-off dotnet test + 0-backend confirm). `/clear` dulu (fresh context). Gate eksekusi: dotnet build hijau (389-02 sudah ship aa377982).
 
 Urutan fase v32.1:
 

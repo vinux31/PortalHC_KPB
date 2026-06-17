@@ -1,7 +1,7 @@
 ---
 phase: 390
 slug: test-uat-behavior-parity-dsn-06
-status: draft
+status: planned
 nyquist_compliant: false
 wave_0_complete: false
 created: 2026-06-17
@@ -38,7 +38,12 @@ created: 2026-06-17
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 390-01-01 | 01 | 1 | DSN-06 | — | N/A (test/UAT, 0 backend) | e2e | `npx playwright test coachcoacheemapping-389 --workers=1` | ✅ | ⬜ pending |
+| 390-01-01 | 01 | 1 | DSN-06 | T-390-01 | N/A (build gate + fixture) | build | `dotnet build` | ✅ | ⬜ pending |
+| 390-01-02 | 01 | 1 | DSN-06 | T-390-02 | preserved CSRF/appUrl control re-asserted | e2e | `npx playwright test coachcoacheemapping-389 --list` | ✅ | ⬜ pending |
+| 390-01-03 | 01 | 1 | DSN-06 | T-390-02 | preserved controls re-asserted | e2e | `npx playwright test coachcoacheemapping-389 coachworkload-388 --workers=1` | ✅ | ⬜ pending |
+| 390-02-01 | 02 | 2 | DSN-06 | T-390-03/04 | snapshot/restore + role-gate | manual-UAT (Playwright MCP) | (live MCP, snapshot→restore) | ✅ | ⬜ pending |
+| 390-02-02 | 02 | 2 | DSN-06 | T-390-03 | snapshot/restore | manual-UAT (import) | (fixture upload + restore) | ✅ | ⬜ pending |
+| 390-02-03 | 02 | 2 | DSN-06 | T-390-05 | preserved controls confirmed | regression | `dotnet test` + `npx playwright test coachcoacheemapping-389 coachworkload-388 --workers=1` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky · Filled during planning.*
 
@@ -46,7 +51,7 @@ created: 2026-06-17
 
 ## Wave 0 Requirements
 
-- [ ] Existing infrastructure covers all phase requirements (extend `coachcoacheemapping-389.spec.ts` + `coachworkload-388.spec.ts`; no new framework).
+- [x] Existing infrastructure covers all phase requirements (extend `coachcoacheemapping-389.spec.ts` + `coachworkload-388.spec.ts`; no new framework).
 
 ---
 
