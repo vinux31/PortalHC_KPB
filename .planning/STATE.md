@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
 status: executing
-stopped_at: Phase 390 context gathered
-last_updated: "2026-06-17T05:05:52.857Z"
+stopped_at: Phase 389-02 markup committed; finishing Task 3 (Playwright) + Task 4 (UAT checkpoint)
+last_updated: "2026-06-17T05:30:08.247Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 24
@@ -32,7 +32,7 @@ Last activity: 2026-06-17
 
 ## Next Action
 
-`/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish — LBL-03 + DSN-04 + DSN-05).
+Finish Phase 389-02: Task 3 (run Playwright spec 389 @ localhost:5277 → 0 FAIL) + Task 4 (human UAT checkpoint) → 389-02-SUMMARY → verify phase. NOTE: phase 390 docs (CONTEXT/RESEARCH/UI-SPEC/VALIDATION) were pre-created out-of-flow by a drifting 389-02 executor — content reviewed as high-quality + self-gated on 389-02; KEPT, but still needs a human review pass + proper `/gsd-plan-phase 390` when 388+389 ship.
 
 Urutan fase v32.1:
 
@@ -112,6 +112,6 @@ Constraint global: behavior parity WAJIB, 0 backend, 0 migration, 0 controller. 
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 390 context gathered
+Stopped at: Phase 390 UI-SPEC approved
 
 Next action: `/gsd-plan-phase 388` (Label Hasil + CoachWorkload Polish). Lalu 389 (CoachCoacheeMapping redesign), 390 (Test & UAT parity). Approve roadmap dulu bila perlu review user.
