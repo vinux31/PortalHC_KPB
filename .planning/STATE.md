@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: executing
+status: verifying
 stopped_at: Phase 394 UI-SPEC approved
-last_updated: "2026-06-18T01:16:24.229Z"
+last_updated: "2026-06-18T01:38:22.681Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 29
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md
 
 Phase: 394 (page-setup-room-authoring-soal) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-18
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
