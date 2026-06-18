@@ -507,6 +507,13 @@ namespace HcPortal.Controllers
                 Role = roles.FirstOrDefault() ?? "Coachee"
             };
 
+            // Phase 399 (MU-01/02) — pre-fill multi-unit dari junction supaya widget pre-check boxes + primary radio (round-trip).
+            var userUnits = await _context.UserUnits
+                .Where(uu => uu.UserId == user.Id)
+                .ToListAsync();
+            model.Units = userUnits.Select(uu => uu.Unit).ToList();
+            model.PrimaryUnit = userUnits.FirstOrDefault(uu => uu.IsPrimary)?.Unit;
+
             var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
             ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
             return View(model);

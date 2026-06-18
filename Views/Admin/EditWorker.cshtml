@@ -122,10 +122,15 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label asp-for="Unit" class="form-label fw-semibold"></label>
-                        <select asp-for="Unit" class="form-select" id="unitSelect">
-                            <option value="">-- Pilih @OrgLabels.GetLabel(1) --</option>
-                        </select>
+                        <label class="form-label fw-semibold">@OrgLabels.GetLabel(1) Penugasan</label>
+                        <div id="unitMultiContainer" class="border rounded p-2" style="max-height:220px;overflow-y:auto;"
+                             role="group" aria-label="Daftar @OrgLabels.GetLabel(1) penugasan"
+                             data-placeholder="Pilih @OrgLabels.GetLabel(0) dahulu untuk menampilkan daftar @OrgLabels.GetLabel(1).">
+                            <span class="text-muted small">Pilih @OrgLabels.GetLabel(0) dahulu untuk menampilkan daftar @OrgLabels.GetLabel(1).</span>
+                        </div>
+                        <div class="form-text">Centang setiap @OrgLabels.GetLabel(1) tempat pekerja ini menjadi anggota. Pilih satu sebagai @OrgLabels.GetLabel(1) Utama.</div>
+                        <span asp-validation-for="Units" class="text-danger small"></span>
+                        <span asp-validation-for="PrimaryUnit" class="text-danger small"></span>
                     </div>
                 </div>
             </div>
@@ -200,18 +205,48 @@
                 <i class="bi bi-check-lg me-2"></i>Simpan Perubahan
             </button>
         </div>
+
+        @* MU-07 (D-10) — coach-mapping aktif terdampak hapus unit: modal konfirmasi → resubmit ConfirmedDeactivate=true. *@
+        @if (ViewBag.NeedConfirm == true)
+        {
+            <div class="modal fade show" id="mu07ConfirmModal" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Konfirmasi Penghapusan @OrgLabels.GetLabel(1)</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p>@OrgLabels.GetLabel(1) masih dipakai pada mapping coach aktif berikut:</p>
+                            <ul>
+                                @foreach (var m in Model.ImpactedMappings)
+                                {
+                                    <li>@m</li>
+                                }
+                            </ul>
+                            <p>Menghapus @OrgLabels.GetLabel(1) ini akan <strong>menonaktifkan</strong> mapping tersebut. Lanjutkan?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" onclick="document.getElementById('mu07ConfirmModal').remove()">Batal</button>
+                            <button type="submit" form="editWorkerForm" name="ConfirmedDeactivate" value="true" class="btn btn-danger">Ya, Hapus &amp; Nonaktifkan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show"></div>
+        }
     </form>
 </div>
 
 <script src="~/js/shared-cascade.js"></script>
 <script src="~/js/shared-loading.js"></script>
 <script>
-    initSectionUnitCascade({
+    initSectionUnitMultiCascade({
         sectionUnits: @Html.Raw(ViewBag.SectionUnitsJson ?? "{}"),
         sectionId: 'sectionSelect',
-        unitId: 'unitSelect',
+        containerId: 'unitMultiContainer',
         currentSection: "@(Model.Section ?? "")",
-        currentUnit: "@(Model.Unit ?? "")"
+        selectedUnits: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Units ?? new())),
+        primaryUnit: "@(Model.PrimaryUnit ?? "")"
     });
     initFormLoading('editWorkerForm', 'Menyimpan...');
 
