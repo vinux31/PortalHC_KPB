@@ -39,13 +39,37 @@ public class ProtonUnitResolveTests
         Assert.False(resolvedFromPrimary);
     }
 
-    // TODO 401-02: GetEligibleCoachees / AutoCreateProgressForAssignment resolve dari AssignmentUnit saja.
-    [Fact(Skip = "RED until 401-02/04/05 drop the `?? User.Unit` resolver fallback")]
-    public Task Resolver_skips_coachee_with_empty_AssignmentUnit_does_not_use_primary()
+    // GREEN (401-02): whitespace AssignmentUnit juga tak resolve ke primary.
+    [Fact]
+    public async Task WhitespaceAssignmentUnit_NotResolvedFromPrimary()
     {
-        // Seed: coachee User.Unit="X" (primary) + active mapping AssignmentUnit=null.
-        // Expect post-401: resolver returns no unit (skip) — coachee NOT resolved against "X".
-        // Wired & asserted in 401-02 (GetEligibleCoachees gate + AutoCreateProgressForAssignment read-path).
+        await using var ctx = InMemoryContext();
+        var coacheeId = Guid.NewGuid().ToString();
+        ctx.UserUnits.Add(new UserUnit { UserId = coacheeId, Unit = "X", IsPrimary = true, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        Assert.False(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, coacheeId, "   "));
+    }
+
+    // GREEN (401-02): AssignmentUnit eksplisit yg valid (∈ active UserUnits) resolve true.
+    [Fact]
+    public async Task ValidAssignmentUnit_in_active_userunits_resolves_true()
+    {
+        await using var ctx = InMemoryContext();
+        var coacheeId = Guid.NewGuid().ToString();
+        ctx.UserUnits.Add(new UserUnit { UserId = coacheeId, Unit = "X", IsPrimary = true, IsActive = true });
+        ctx.UserUnits.Add(new UserUnit { UserId = coacheeId, Unit = "UnitB", IsPrimary = false, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        Assert.True(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, coacheeId, "UnitB"));
+    }
+
+    // Deep HTTP-integration assertion (GetEligibleCoachees action end-to-end via real DB) deferred to
+    // Phase 404 QA-01 (SQLEXPRESS) — needs HTTP context + filtered-unique index. Resolver-skip + gate-block
+    // channel are unit-proven above (helper-level) + grep guard `0 Select(u => u.Unit)` in 401-02 acceptance.
+    [Fact(Skip = "Integration smoke deferred to Phase 404 QA-01 (HTTP context + SQLEXPRESS)")]
+    public Task GetEligibleCoachees_excludes_empty_AssignmentUnit_coachee_endtoend()
+    {
         return Task.CompletedTask;
     }
 }
