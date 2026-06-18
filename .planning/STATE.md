@@ -4,7 +4,7 @@ milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: verifying
 stopped_at: Completed 399-04-PLAN.md (phase 399 ready_for_verification)
-last_updated: "2026-06-18T06:07:00.999Z"
+last_updated: "2026-06-18T06:22:24.199Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 30
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 399 (Foundation — Junction UserUnits + Primary-Mirror + Multi-Select UI + Display) — COMPLETE (ready_for_verification)
-Plan: 4 of 4 SHIPPED
+Phase: 400
+Plan: Not started
 Status: Phase 399 LENGKAP (01 junction+migration / 02 write-through / 03 widget / 04 display 7 surface) — ready `/gsd-verify-work`
-Last activity: 2026-06-18 -- 399-04 complete (display SEMUA unit 7 surface primary-first; _PSign D-07 all-units comma-join; AccountController inject _context; Playwright 8/8 hijau; build 0err; suite 366/366; DB baseline restored)
+Last activity: 2026-06-18
 
 ## Next Action
 
