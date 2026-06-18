@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: completed
-stopped_at: "Phase 400 Plan 01 COMPLETE — RED `24a71b7f` + GREEN `520058b8`, Task 3 checkpoint:human-verify UAT lokal **APPROVED** (Playwright+SQL snapshot→seed→RESTORE; set-aware filter primary+non-primary + kolom kontekstual + dedup + no-drift D1=b terverifikasi runtime). SUMMARY `400-01-SUMMARY.md` ditulis; STATE/ROADMAP advanced; phase status=ready_for_verification. suite 507/0/3. migration=FALSE."
-last_updated: "2026-06-18T10:52:58.124Z"
+stopped_at: Phase 403 context gathered
+last_updated: "2026-06-18T11:01:32.441Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 30
@@ -130,6 +130,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 400 Plan 01 COMPLETE — RED `24a71b7f` + GREEN `520058b8`, Task 3 checkpoint:human-verify UAT lokal **APPROVED** (Playwright+SQL snapshot→seed→RESTORE; set-aware filter primary+non-primary + kolom kontekstual + dedup + no-drift D1=b terverifikasi runtime). SUMMARY `400-01-SUMMARY.md` ditulis; STATE/ROADMAP advanced; phase status=ready_for_verification. suite 507/0/3. migration=FALSE.
+Stopped at: Phase 403 context gathered
 
 Next action: **`/gsd-verify-work 400`** (Phase 400 = 1/1 plan complete). Lalu lanjut Wave-1 paralel {401 (sudah PLANNED, 6 plan), 403 (TBD)} (depends 399 done; cluster file disjoint, git worktree). Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context). **migration=FALSE Phase 400** — notify IT saat milestone push (satu-satunya migration v32.3 = 399 `AddUserUnitsTable` `fc015f4d`).
