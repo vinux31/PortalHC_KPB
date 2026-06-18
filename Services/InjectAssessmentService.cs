@@ -407,6 +407,7 @@ namespace HcPortal.Services
                 await transaction.CommitAsync();
 
                 result.Success = true;
+                result.LinkedGroupId = resolvedGroupId;   // 397 N5: surface group id bila commit tertaut (host unlink pasca-commit)
                 result.Message = $"Inject selesai: {successSessions.Count} sesi dibuat, {skippedNips.Count} dilewati.";
                 return result;
             }

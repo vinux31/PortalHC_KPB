@@ -99,6 +99,7 @@ namespace HcPortal.Models
         public List<string> SkippedNips { get; set; } = new();   // duplikat di-skip (D-01)
         public List<InjectRowError> PerRowErrors { get; set; } = new();
         public string? Message { get; set; }          // ringkasan Bahasa Indonesia (mis. pesan rollback)
+        public int? LinkedGroupId { get; set; }        // 397 N5: resolvedGroupId bila commit tertaut Pre/Post (null = standalone) — host unlink pasca-commit
     }
 
     /// <summary>

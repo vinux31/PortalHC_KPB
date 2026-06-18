@@ -92,6 +92,10 @@ namespace HcPortal.Controllers
             {
                 var skipNote = injResult.SkippedNips.Count > 0 ? $" Dilewati (duplikat): {injResult.SkippedNips.Count}." : "";
                 TempData["Success"] = $"Inject berhasil: {injResult.SuccessSessionIds.Count} sesi ter-commit.{skipNote}";
+                // 397 N5 (D-12): bila commit tertaut Pre/Post, surface resolvedGroupId agar permukaan sukses
+                // memunculkan kontrol "Lepaskan Tautan" (host unlink HANYA di wizard, bukan monitoring).
+                if (injResult.LinkedGroupId.HasValue)
+                    TempData["InjectedGroupId"] = injResult.LinkedGroupId.Value;
             }
             else
             {
