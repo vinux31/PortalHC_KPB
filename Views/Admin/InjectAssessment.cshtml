@@ -310,6 +310,8 @@
                     </div>
 
                     <input type="hidden" asp-for="QuestionsJson" id="QuestionsJson" />
+                    @* Phase 395 — hidden per-worker answers payload, serialized di submit-listener yang SAMA dgn #QuestionsJson *@
+                    <input type="hidden" asp-for="AnswersJson" id="AnswersJson" />
 
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev3">
@@ -400,9 +402,123 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-4"><i class="bi bi-pencil-square text-primary me-2"></i>Langkah 5: Jawaban</h5>
-                    @* Seam Phase 395: tabel jawaban per-pekerja menggantikan #step5Placeholder tanpa menyentuh pills/nav *@
-                    <div id="step5Placeholder" class="alert alert-info">
-                        <i class="bi bi-hourglass-split me-2"></i>Pengisian jawaban per-pekerja tersedia pada tahap berikutnya. Selesaikan Setup, Pekerja, dan Soal terlebih dahulu.
+                    @* Seam Phase 395: sub-komponen jawaban per-pekerja (1-pekerja-per-layar) menggantikan #step5Placeholder tanpa menyentuh pills/nav (btnPrev5/btnNext5) *@
+                    <div id="step5Root">
+
+                        @* Empty state — tak ada pekerja / tak ada soal (di-toggle JS) *@
+                        <div id="step5EmptyNoWorkers" class="alert alert-info d-none">
+                            <i class="bi bi-people me-2"></i><strong>Belum ada pekerja dipilih</strong>
+                            <div class="small mt-1">Kembali ke Langkah 2 untuk memilih pekerja sebelum mengisi jawaban.</div>
+                        </div>
+                        <div id="step5EmptyNoQuestions" class="alert alert-info d-none">
+                            <i class="bi bi-card-list me-2"></i>Belum ada soal. Tambahkan soal di Langkah 3 terlebih dahulu.
+                        </div>
+
+                        @* Konten utama (di-toggle JS bila ada pekerja + soal) *@
+                        <div id="step5Body" class="d-none">
+
+                            @* Toggle mode default room (K2) *@
+                            <div class="mb-3">
+                                <label class="form-label fw-bold mb-1">Mode default room</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="step5DefaultMode" id="step5DefaultManual" value="manual" checked />
+                                        <label class="form-check-label" for="step5DefaultManual">Input jawaban asli</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="step5DefaultMode" id="step5DefaultAuto" value="auto" />
+                                        <label class="form-check-label" for="step5DefaultAuto">Auto-generate dari skor target</label>
+                                    </div>
+                                </div>
+                                <div class="form-text text-muted">Mode awal tiap pekerja; dapat ditimpa per-pekerja di bawah.</div>
+                            </div>
+
+                            <div class="row g-4">
+                                @* Roster ringkas (K1) *@
+                                <div class="col-lg-5">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0 fw-semibold">Ringkasan Pekerja</h6>
+                                        </div>
+                                        <div class="card-body p-0" style="max-height:280px;overflow-y:auto;">
+                                            <table class="table table-hover table-sm mb-0 align-middle" role="status" aria-live="polite">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width:40px">#</th>
+                                                        <th>NIP / Nama</th>
+                                                        <th style="width:90px">Mode</th>
+                                                        <th style="width:110px">Skor Pratinjau</th>
+                                                        <th style="width:60px">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="step5RosterBody"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @* Form pekerja aktif (K2/K3/K4/K5/K6) *@
+                                <div class="col-lg-7">
+                                    @* Indikator pekerja aktif *@
+                                    <div class="h6 fw-bold mb-2" id="step5WorkerHeading"></div>
+
+                                    @* Kontrol antar-pekerja *@
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="step5PrevWorker">
+                                            <i class="bi bi-chevron-left me-1"></i>« Pekerja Sebelumnya
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="step5NextWorker">
+                                            Pekerja Berikutnya »<i class="bi bi-chevron-right ms-1"></i>
+                                        </button>
+                                    </div>
+
+                                    @* Toggle mode per-pekerja (K2) *@
+                                    <div class="mb-3">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="step5WorkerMode" id="step5ModeManual" value="manual" />
+                                            <label class="form-check-label" for="step5ModeManual">Input jawaban asli</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="step5WorkerMode" id="step5ModeAuto" value="auto" />
+                                            <label class="form-check-label" for="step5ModeAuto">Auto-generate dari skor target</label>
+                                        </div>
+                                    </div>
+
+                                    @* Body auto-gen (K4) — target + banner HYBRID (di-toggle JS) *@
+                                    <div id="step5AutoBody" class="d-none">
+                                        <div class="mb-3" style="max-width:220px;">
+                                            <label class="form-label fw-bold" for="step5TargetScore">Skor target (%)</label>
+                                            <input type="number" class="form-control" id="step5TargetScore" min="0" max="100" />
+                                            <div class="form-text text-muted">Sistem memilih pola jawaban benar/salah agar capaian ≥ target.</div>
+                                        </div>
+                                        <div id="step5HybridBanner" class="alert alert-info py-2 d-none">
+                                            <i class="bi bi-info-circle me-1"></i>Room ini memuat soal essay — skor essay diisi manual (auto-generate hanya menyentuh soal pilihan).
+                                        </div>
+                                    </div>
+
+                                    @* Body form jawaban (input-asli K3 + essay HYBRID auto K4) — di-render JS *@
+                                    <div id="step5AnswerForm"></div>
+
+                                    @* Permukaan Pratinjau (K5) *@
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-outline-primary" id="step5PreviewBtn"
+                                                data-preview-url="@Url.Action("PreviewInjectScore", "InjectAssessment")">
+                                            <i class="bi bi-eye me-1"></i>Pratinjau Skor
+                                        </button>
+                                        <div id="step5PreviewResult" class="mt-3" style="display:none;"></div>
+                                    </div>
+
+                                    @* State BLOCKING (K6) — di-toggle JS *@
+                                    <div id="step5Blocking" class="alert alert-warning mt-3 d-none">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        <span id="step5BlockingMsg"></span>
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="step5SwitchToManual">Beralih ke input asli</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev5">
@@ -513,6 +629,7 @@
 
         updatePills();
 
+        if (n === 5) step5Rebuild();
         if (n === TOTAL_STEPS) populateSummary();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -733,8 +850,8 @@
     }
 
     function injTypeLabel(t) {
-        if (t === 'MultipleChoice') return 'Pilihan Ganda';
-        if (t === 'MultipleAnswer') return 'Pilihan Majemuk';
+        if (t === 'MultipleChoice') return 'Single Answer';
+        if (t === 'MultipleAnswer') return 'Multiple Answer';
         if (t === 'Essay') return 'Essay';
         return t;
     }
@@ -829,8 +946,8 @@
                     if (txt) { options.push({ text: txt, isCorrect: isC }); if (isC) correctCount++; }
                 });
                 if (options.length < 2) problems.push('Minimal 2 opsi ber-teks.');
-                if (qType === 'MultipleChoice' && correctCount !== 1) problems.push('Pilihan Ganda harus tepat 1 jawaban benar.');
-                if (qType === 'MultipleAnswer' && correctCount < 2) problems.push('Pilihan Majemuk butuh minimal 2 jawaban benar.');
+                if (qType === 'MultipleChoice' && correctCount !== 1) problems.push('Single Answer harus tepat 1 jawaban benar.');
+                if (qType === 'MultipleAnswer' && correctCount < 2) problems.push('Multiple Answer butuh minimal 2 jawaban benar.');
             } else if (qType === 'Essay') {
                 if (!rubrik) { rbEl.classList.add('is-invalid'); problems.push('Rubrik wajib diisi untuk Essay.'); }
             }
@@ -871,6 +988,10 @@
         injForm.addEventListener('submit', function () {
             var hidden = document.getElementById('QuestionsJson');
             if (hidden) hidden.value = JSON.stringify(injQuestions);
+            // Phase 395 (Pitfall 4 — KRITIS): serialize answers di listener yang SAMA dgn #QuestionsJson.
+            // Lupa = POST answers kosong → semua worker grade 0 (silent).
+            var answersHidden = document.getElementById('AnswersJson');
+            if (answersHidden) answersHidden.value = JSON.stringify(buildWorkerAnswersPayload());
         });
     }
     window.injGetQuestions = function () { return injQuestions; };
@@ -952,6 +1073,450 @@
                 .finally(function () { btnCheckTitle.disabled = false; });
         });
     }
+
+    // ============================================================================
+    // Phase 395 — Step-5 sub-komponen ber-state (1-pekerja-per-layar, D-03)
+    // IIFE-scoped state independen goToStep luar; render via .textContent (XSS-safe).
+    // ============================================================================
+    // workerState: { [userId]: { mode:'manual'|'auto', targetScore:int,
+    //                            answers:{ [qTempId]:{ selected:[], text, score, skipped } },
+    //                            preview:{ percentage, isPassed, blocked, overshoot } | null } }
+    var step5State = {};
+    var step5Idx = 0;
+
+    function step5SelectedWorkers() {
+        return Array.from(document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked'));
+    }
+    function step5WorkerName(cb) {
+        var l = document.querySelector('label[for="' + cb.id + '"]');
+        var s = l && l.querySelector('strong');
+        return s ? s.textContent : (l ? l.textContent.trim() : cb.value);
+    }
+    // NIP tak tersedia di client (picker pakai user.Id); tampilkan nama saja. Server resolve NIP.
+    function step5DefaultMode() {
+        var r = document.querySelector('input[name="step5DefaultMode"]:checked');
+        return r ? r.value : 'manual';
+    }
+    function step5HasEssay() {
+        return injQuestions.some(function (q) { return q.QuestionType === 'Essay'; });
+    }
+
+    // Rebuild state saat masuk Step-5: prune worker unchecked + prune answer ber-qTempId dangling.
+    function step5Rebuild() {
+        var workers = step5SelectedWorkers();
+        var noWorkers = document.getElementById('step5EmptyNoWorkers');
+        var noQuestions = document.getElementById('step5EmptyNoQuestions');
+        var body = document.getElementById('step5Body');
+        if (!body) return;
+
+        var hasWorkers = workers.length > 0;
+        var hasQuestions = injQuestions.length > 0;
+        // Empty no-workers diutamakan; no-questions hanya tampil bila ada pekerja tapi belum ada soal.
+        if (noWorkers) noWorkers.classList.toggle('d-none', hasWorkers);
+        if (noQuestions) noQuestions.classList.toggle('d-none', !(hasWorkers && !hasQuestions));
+        if (body) body.classList.toggle('d-none', !(hasWorkers && hasQuestions));
+        if (!hasWorkers || !hasQuestions) { return; }
+
+        var validQTempIds = {};
+        injQuestions.forEach(function (q) { validQTempIds[q.TempId] = true; });
+        var defMode = step5DefaultMode();
+
+        // Bangun ulang state per worker tercentang (pertahankan jawaban existing yang valid).
+        var nextState = {};
+        workers.forEach(function (cb) {
+            var prev = step5State[cb.value];
+            var ws = prev || { mode: defMode, targetScore: 80, answers: {}, preview: null };
+            // prune answers dgn qTempId yang tak ada lagi
+            var prunedAnswers = {};
+            Object.keys(ws.answers || {}).forEach(function (k) {
+                if (validQTempIds[k]) prunedAnswers[k] = ws.answers[k];
+            });
+            ws.answers = prunedAnswers;
+            if (!ws.mode) ws.mode = defMode;
+            nextState[cb.value] = ws;
+        });
+        step5State = nextState;
+
+        if (step5Idx >= workers.length) step5Idx = 0;
+        step5RenderWorker();
+        step5RenderRoster();
+    }
+
+    function step5CurrentWorker() {
+        var workers = step5SelectedWorkers();
+        if (workers.length === 0) return null;
+        if (step5Idx >= workers.length) step5Idx = workers.length - 1;
+        if (step5Idx < 0) step5Idx = 0;
+        return workers[step5Idx];
+    }
+
+    // Render indikator + toggle mode + form jawaban untuk pekerja aktif.
+    function step5RenderWorker() {
+        var workers = step5SelectedWorkers();
+        var cb = step5CurrentWorker();
+        if (!cb) return;
+        var ws = step5State[cb.value];
+
+        // Indikator pekerja (textContent XSS-safe)
+        var headingEl = document.getElementById('step5WorkerHeading');
+        if (headingEl) headingEl.textContent = 'Pekerja ' + (step5Idx + 1) + ' dari ' + workers.length + ' — ' + step5WorkerName(cb);
+
+        // Disable kontrol di ujung
+        var prevBtn = document.getElementById('step5PrevWorker');
+        var nextBtn = document.getElementById('step5NextWorker');
+        if (prevBtn) prevBtn.disabled = (step5Idx <= 0);
+        if (nextBtn) nextBtn.disabled = (step5Idx >= workers.length - 1);
+
+        // Toggle mode per-pekerja
+        var modeManual = document.getElementById('step5ModeManual');
+        var modeAuto = document.getElementById('step5ModeAuto');
+        if (modeManual) modeManual.checked = (ws.mode !== 'auto');
+        if (modeAuto) modeAuto.checked = (ws.mode === 'auto');
+
+        // Body auto-gen (target + HYBRID banner)
+        var autoBody = document.getElementById('step5AutoBody');
+        if (autoBody) autoBody.classList.toggle('d-none', ws.mode !== 'auto');
+        var targetInput = document.getElementById('step5TargetScore');
+        if (targetInput) targetInput.value = (ws.targetScore != null ? ws.targetScore : 80);
+        var hybridBanner = document.getElementById('step5HybridBanner');
+        if (hybridBanner) hybridBanner.classList.toggle('d-none', !(ws.mode === 'auto' && step5HasEssay()));
+
+        // Form jawaban
+        step5RenderAnswerForm(cb);
+
+        // Reset permukaan pratinjau + blocking saat pindah/ubah mode
+        step5RenderPreviewSurface(ws.preview);
+        step5RenderBlocking(ws.preview);
+    }
+
+    // Render soal: input-asli (MC/MA/Essay) penuh; auto-gen hanya essay (HYBRID D-08.1).
+    function step5RenderAnswerForm(cb) {
+        var container = document.getElementById('step5AnswerForm');
+        if (!container) return;
+        container.innerHTML = '';
+        var ws = step5State[cb.value];
+        var auto = (ws.mode === 'auto');
+
+        injQuestions.forEach(function (q, qi) {
+            var isEssay = (q.QuestionType === 'Essay');
+            // Auto-gen: MC/MA tidak dirender (server hitung); hanya essay (HYBRID).
+            if (auto && !isEssay) return;
+
+            var ans = ws.answers[q.TempId] || (ws.answers[q.TempId] = { selected: [], text: '', score: null, skipped: false });
+
+            var block = document.createElement('div');
+            block.className = 'mb-3 pb-3 border-bottom';
+
+            var head = document.createElement('div');
+            head.className = 'd-flex justify-content-between align-items-start mb-2';
+            var qLabel = document.createElement('div');
+            var num = document.createElement('span'); num.className = 'fw-bold me-1'; num.textContent = (qi + 1) + '.';
+            var qText = document.createElement('span'); qText.textContent = q.QuestionText;   // XSS-safe
+            qLabel.appendChild(num); qLabel.appendChild(qText);
+            var badge = document.createElement('span'); badge.className = 'badge bg-secondary small ms-2'; badge.textContent = injTypeLabel(q.QuestionType);
+            head.appendChild(qLabel); head.appendChild(badge);
+            block.appendChild(head);
+
+            // Skip checkbox (input-asli saja; auto essay tetap wajib)
+            if (!auto) {
+                var skipWrap = document.createElement('div');
+                skipWrap.className = 'form-check form-check-inline mb-2';
+                var skipInput = document.createElement('input');
+                skipInput.className = 'form-check-input'; skipInput.type = 'checkbox';
+                skipInput.id = 'step5Skip_' + q.TempId; skipInput.checked = !!ans.skipped;
+                var skipLabel = document.createElement('label');
+                skipLabel.className = 'form-check-label small text-muted'; skipLabel.setAttribute('for', skipInput.id);
+                skipLabel.textContent = 'Lewati soal ini (dihitung 0)';
+                skipInput.addEventListener('change', function () {
+                    ans.skipped = skipInput.checked;
+                    step5RenderAnswerForm(cb);
+                });
+                skipWrap.appendChild(skipInput); skipWrap.appendChild(skipLabel);
+                block.appendChild(skipWrap);
+            }
+
+            var letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            if ((q.QuestionType === 'MultipleChoice' || q.QuestionType === 'MultipleAnswer') && !auto) {
+                (q.Options || []).forEach(function (opt, oi) {
+                    var row = document.createElement('div'); row.className = 'form-check';
+                    var input = document.createElement('input');
+                    input.className = 'form-check-input';
+                    input.type = (q.QuestionType === 'MultipleAnswer') ? 'checkbox' : 'radio';
+                    input.name = 'step5q_' + q.TempId;
+                    input.value = opt.TempId;
+                    input.disabled = !!ans.skipped;
+                    input.setAttribute('aria-label', 'opsi ' + (letters[oi] || (oi + 1)));
+                    input.checked = ans.selected.indexOf(opt.TempId) !== -1;
+                    input.addEventListener('change', function () {
+                        if (q.QuestionType === 'MultipleAnswer') {
+                            if (input.checked) { if (ans.selected.indexOf(opt.TempId) === -1) ans.selected.push(opt.TempId); }
+                            else { ans.selected = ans.selected.filter(function (x) { return x !== opt.TempId; }); }
+                        } else {
+                            ans.selected = input.checked ? [opt.TempId] : [];
+                        }
+                    });
+                    var lbl = document.createElement('label'); lbl.className = 'form-check-label';
+                    var ltr = document.createElement('span'); ltr.className = 'fw-bold me-1'; ltr.textContent = (letters[oi] || (oi + 1)) + '.';
+                    var otxt = document.createElement('span'); otxt.textContent = opt.OptionText;   // XSS-safe
+                    lbl.appendChild(ltr); lbl.appendChild(otxt);
+                    row.appendChild(input); row.appendChild(lbl);
+                    block.appendChild(row);
+                });
+                if (q.QuestionType === 'MultipleAnswer') {
+                    var hint = document.createElement('div');
+                    hint.className = 'alert alert-info py-1 px-2 small mb-0 mt-1';
+                    hint.textContent = 'Centang semua opsi yang dipilih pekerja.';
+                    block.appendChild(hint);
+                }
+            } else if (isEssay) {
+                // Essay: textarea teks + input skor (input-asli & auto HYBRID).
+                var ta = document.createElement('textarea');
+                ta.className = 'form-control mb-2'; ta.rows = 3; ta.value = ans.text || '';
+                ta.placeholder = 'Teks jawaban essay';
+                ta.disabled = !!ans.skipped;
+                ta.addEventListener('input', function () { ans.text = ta.value; });
+                block.appendChild(ta);
+
+                var scoreWrap = document.createElement('div'); scoreWrap.style.maxWidth = '220px';
+                var scoreLbl = document.createElement('label'); scoreLbl.className = 'form-label fw-bold';
+                scoreLbl.textContent = 'Skor Essay (0–' + q.ScoreValue + ')';
+                var scoreInput = document.createElement('input');
+                scoreInput.className = 'form-control'; scoreInput.type = 'number'; scoreInput.min = 0; scoreInput.max = q.ScoreValue;
+                scoreInput.value = (ans.score != null ? ans.score : '');
+                scoreInput.disabled = !!ans.skipped;
+                scoreInput.addEventListener('input', function () {
+                    var v = parseInt(scoreInput.value, 10);
+                    ans.score = isNaN(v) ? null : v;
+                });
+                scoreWrap.appendChild(scoreLbl); scoreWrap.appendChild(scoreInput);
+                block.appendChild(scoreWrap);
+            }
+
+            container.appendChild(block);
+        });
+    }
+
+    // Roster ringkas (K1) — render via .textContent.
+    function step5RenderRoster() {
+        var body = document.getElementById('step5RosterBody');
+        if (!body) return;
+        body.innerHTML = '';
+        var workers = step5SelectedWorkers();
+        workers.forEach(function (cb, i) {
+            var ws = step5State[cb.value] || {};
+            var tr = document.createElement('tr');
+            if (i === step5Idx) tr.className = 'table-active';
+            tr.style.cursor = 'pointer';
+            tr.addEventListener('click', function () { step5Idx = i; step5RenderWorker(); step5RenderRoster(); });
+
+            var tdNum = document.createElement('td'); tdNum.className = 'text-muted'; tdNum.textContent = (i + 1);
+            var tdName = document.createElement('td'); tdName.textContent = step5WorkerName(cb);   // XSS-safe
+            var tdMode = document.createElement('td');
+            var modeBadge = document.createElement('span');
+            modeBadge.className = 'badge ' + (ws.mode === 'auto' ? 'bg-primary' : 'bg-secondary');
+            modeBadge.textContent = (ws.mode === 'auto' ? 'Auto' : 'Input asli');
+            tdMode.appendChild(modeBadge);
+
+            var tdScore = document.createElement('td');
+            if (ws.preview && !ws.preview.blocked) {
+                var sBadge = document.createElement('span');
+                sBadge.className = 'badge ' + (ws.preview.isPassed ? 'bg-success' : 'bg-danger');
+                sBadge.textContent = ws.preview.percentage + '% ' + (ws.preview.isPassed ? 'Lulus' : 'Tidak Lulus');
+                tdScore.appendChild(sBadge);
+            } else {
+                tdScore.textContent = '—';
+            }
+
+            var tdStatus = document.createElement('td'); tdStatus.className = 'text-center';
+            var icon = document.createElement('i');
+            if (ws.preview && ws.preview.blocked) icon.className = 'bi bi-x-circle-fill text-danger';
+            else if (ws.preview) icon.className = 'bi bi-check-circle-fill text-success';
+            else icon.className = 'bi bi-exclamation-triangle-fill text-warning';
+            tdStatus.appendChild(icon);
+
+            tr.appendChild(tdNum); tr.appendChild(tdName); tr.appendChild(tdMode); tr.appendChild(tdScore); tr.appendChild(tdStatus);
+            body.appendChild(tr);
+        });
+    }
+
+    // Bangun answers array 1 worker (non-skipped → spec; auto MC/MA TIDAK dikirim, server hitung).
+    function step5WorkerAnswers(ws) {
+        var auto = (ws.mode === 'auto');
+        var out = [];
+        injQuestions.forEach(function (q) {
+            var ans = ws.answers[q.TempId];
+            if (!ans) return;
+            var isEssay = (q.QuestionType === 'Essay');
+            // Auto: hanya essay manual (HYBRID); MC/MA dihitung server.
+            if (auto && !isEssay) return;
+            if (!auto && ans.skipped) return;   // skip=OMIT (D-05) — JANGAN push answer
+            if (isEssay) {
+                out.push({ questionTempId: q.TempId, selectedOptionTempIds: [], textAnswer: (ans.text || null), essayScore: (ans.score != null ? ans.score : null) });
+            } else {
+                out.push({ questionTempId: q.TempId, selectedOptionTempIds: (ans.selected || []).slice(), textAnswer: null, essayScore: null });
+            }
+        });
+        return out;
+    }
+
+    // Payload #AnswersJson (semua worker terpilih) — bentuk InjectWorkerAnswersVM.
+    function buildWorkerAnswersPayload() {
+        return step5SelectedWorkers().map(function (cb) {
+            var ws = step5State[cb.value] || { mode: step5DefaultMode(), targetScore: 80, answers: {} };
+            return {
+                userId: cb.value,
+                mode: ws.mode || 'manual',
+                targetScore: (ws.targetScore != null ? ws.targetScore : 0),
+                answers: step5WorkerAnswers(ws)
+            };
+        });
+    }
+    window.injBuildWorkerAnswers = buildWorkerAnswersPayload;
+
+    // Bentuk soal yang dikirim ke endpoint preview (InjectQuestionSpec subset).
+    function step5QuestionSpecs() {
+        return injQuestions.map(function (q, i) {
+            return {
+                questionText: q.QuestionText, questionType: q.QuestionType, scoreValue: q.ScoreValue,
+                order: i, tempId: q.TempId,
+                options: (q.Options || []).map(function (o) { return { optionText: o.OptionText, isCorrect: o.IsCorrect, tempId: o.TempId }; })
+            };
+        });
+    }
+
+    function step5PassPercentage() {
+        var el = document.getElementById('PassPercentage');
+        var v = el ? parseInt(el.value, 10) : 70;
+        return isNaN(v) ? 70 : v;
+    }
+    function step5CompletedAt() {
+        var el = document.getElementById('CompletedAt');
+        return el && el.value ? el.value : INJ_TODAY;
+    }
+
+    function step5RenderPreviewSurface(preview) {
+        var box = document.getElementById('step5PreviewResult');
+        if (!box) return;
+        if (!preview || preview.blocked) { box.style.display = 'none'; box.innerHTML = ''; return; }
+        box.style.display = 'block';
+        box.innerHTML = '';
+        var alert = document.createElement('div');
+        alert.className = 'alert ' + (preview.isPassed ? 'alert-success' : 'alert-warning') + ' mb-0';
+        var scoreSpan = document.createElement('span');
+        scoreSpan.className = 'fs-4 fw-bold me-2'; scoreSpan.textContent = preview.percentage + '%';
+        var badge = document.createElement('span');
+        badge.className = 'badge ' + (preview.isPassed ? 'bg-success' : 'bg-danger');
+        badge.textContent = preview.isPassed ? 'Lulus' : 'Tidak Lulus';
+        alert.appendChild(scoreSpan); alert.appendChild(badge);
+        box.appendChild(alert);
+        if (preview.overshoot && preview.overshoot > 0 && preview.targetScore != null) {
+            var note = document.createElement('div');
+            note.className = 'form-text text-muted';
+            note.textContent = 'Target ' + preview.targetScore + '% → capaian aktual ' + preview.percentage + '% (+' + preview.overshoot + ') karena pembulatan.';
+            box.appendChild(note);
+        }
+    }
+
+    function step5RenderBlocking(preview) {
+        var blockEl = document.getElementById('step5Blocking');
+        if (!blockEl) return;
+        if (preview && preview.blocked) {
+            blockEl.classList.remove('d-none');
+            var msgEl = document.getElementById('step5BlockingMsg');
+            if (msgEl) msgEl.textContent = preview.blockingMessage || 'Target tidak tercapai. Beralih ke input asli.';
+        } else {
+            blockEl.classList.add('d-none');
+        }
+    }
+
+    // ---- Wiring Step-5 ----
+    (function wireStep5() {
+        var prevBtn = document.getElementById('step5PrevWorker');
+        var nextBtn = document.getElementById('step5NextWorker');
+        if (prevBtn) prevBtn.addEventListener('click', function () { if (step5Idx > 0) { step5Idx--; step5RenderWorker(); step5RenderRoster(); } });
+        if (nextBtn) nextBtn.addEventListener('click', function () {
+            if (step5Idx < step5SelectedWorkers().length - 1) { step5Idx++; step5RenderWorker(); step5RenderRoster(); }
+        });
+
+        // Toggle mode per-pekerja
+        document.querySelectorAll('input[name="step5WorkerMode"]').forEach(function (r) {
+            r.addEventListener('change', function () {
+                var cb = step5CurrentWorker(); if (!cb) return;
+                step5State[cb.value].mode = r.value;
+                step5State[cb.value].preview = null;   // mode berubah → pratinjau lama tak valid
+                step5RenderWorker(); step5RenderRoster();
+            });
+        });
+
+        // Target score input
+        var targetInput = document.getElementById('step5TargetScore');
+        if (targetInput) targetInput.addEventListener('input', function () {
+            var cb = step5CurrentWorker(); if (!cb) return;
+            var v = parseInt(targetInput.value, 10);
+            step5State[cb.value].targetScore = isNaN(v) ? 0 : v;
+            step5State[cb.value].preview = null;
+        });
+
+        // Switch BLOCKING → input asli (D-10): set mode manual, pre-fill grid (pola auto-gen terakhir tak tersedia di klien → biarkan HC isi)
+        var switchBtn = document.getElementById('step5SwitchToManual');
+        if (switchBtn) switchBtn.addEventListener('click', function () {
+            var cb = step5CurrentWorker(); if (!cb) return;
+            step5State[cb.value].mode = 'manual';
+            step5State[cb.value].preview = null;
+            step5RenderWorker(); step5RenderRoster();
+        });
+
+        // Pratinjau Skor (K5) — POST PreviewInjectScore (D-09 server-otoritas).
+        var previewBtn = document.getElementById('step5PreviewBtn');
+        if (previewBtn) previewBtn.addEventListener('click', function () {
+            var cb = step5CurrentWorker(); if (!cb) return;
+            var ws = step5State[cb.value];
+            var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+            var token = tokenEl ? tokenEl.value : '';
+            var url = previewBtn.getAttribute('data-preview-url');
+
+            var reqBody = {
+                passPercentage: step5PassPercentage(),
+                title: (document.getElementById('Title').value || ''),
+                category: (function () { var c = document.getElementById('Category'); return c ? c.value : ''; })(),
+                completedAt: step5CompletedAt(),
+                nip: cb.value,   // server resolve sebenarnya pakai NIP; di preview seed pakai field ini (advisory)
+                mode: ws.mode || 'manual',
+                targetScore: (ws.targetScore != null ? ws.targetScore : 0),
+                questions: step5QuestionSpecs(),
+                answers: step5WorkerAnswers(ws)
+            };
+
+            var origHtml = previewBtn.innerHTML;
+            previewBtn.disabled = true;
+            previewBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghitung skor…';
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(reqBody)
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    ws.preview = {
+                        percentage: data.percentage,
+                        isPassed: data.isPassed,
+                        blocked: data.blocked,
+                        overshoot: data.overshoot,
+                        blockingMessage: data.blockingMessage,
+                        targetScore: (ws.mode === 'auto' ? ws.targetScore : null)
+                    };
+                    step5RenderPreviewSurface(ws.preview);
+                    step5RenderBlocking(ws.preview);
+                    step5RenderRoster();
+                })
+                .catch(function () {
+                    var box = document.getElementById('step5PreviewResult');
+                    if (box) { box.style.display = 'block'; box.innerHTML = '<div class="alert alert-danger mb-0">Gagal menghitung pratinjau. Coba lagi.</div>'; }
+                })
+                .finally(function () { previewBtn.disabled = false; previewBtn.innerHTML = origHtml; });
+        });
+    })();
 
     // expose for later-plan hooks
     window.injWizard = { goToStep: goToStep, validateStep: validateStep };
