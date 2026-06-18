@@ -71,7 +71,11 @@
   4. Setiap pekerja existing memiliki **1 baris `UserUnits` primary** (= `Unit` lama) pasca-migration/backfill; setiap junction-write memvalidasi `Unit ∈ unit-Bagian pekerja` (Name dipasangkan dgn Bagian); audit-log mencatat **set-diff** (unit ditambah/dihapus/primary berubah), bukan sekadar `if user.Unit != model.Unit`. *(MU-05, MU-02)*
   5. Saat Edit/Import **menghapus** sebuah Unit (atau memindah primary), sistem **memblok** (atau wajib deactivate dulu) bila Unit itu masih dirujuk `CoachCoacheeMapping.AssignmentUnit` aktif atau `ProtonTrackAssignment` aktif pekerja — mencegah orphan `AssignmentUnit ∉ UserUnits` (jaga Invariant #4). *(MU-07)*
   6. `dotnet build` 0 error + `dotnet ef database update` (migration applied DB lokal) + `dotnet run` (localhost:5277): assign 2-unit round-trip tersimpan & tampil benar; backfill verifikasi DB lokal (tiap user lama 1 primary-row); ~30+ baca scalar `user.Unit` existing tetap jalan (mirror). *(semua REQ)*
-**Plans:** TBD
+**Plans:** 4 plans (3 waves: 0→1→2)
+- [ ] 399-01-PLAN.md — Wave 0 SOLO: model UserUnit + DbSet + filtered-unique config + migration AddUserUnitsTable + backfill 1 primary-row/pekerja + 7 test scaffold (MU-05) [migration=TRUE]
+- [ ] 399-02-PLAN.md — Wave 1: SyncUserUnitsAsync write-through + Create/Edit/Import/Export wiring + validasi Unit∈Bagian + MU-07 guard asimetris + audit set-diff (MU-01/02/04/05/07)
+- [ ] 399-03-PLAN.md — Wave 2: widget multi-select (checkbox-list + primary radio) di Create/Edit + MU-07 modal + Playwright (MU-01/02)
+- [ ] 399-04-PLAN.md — Wave 2: display semua unit 7 surface (badge primary + _PSign all-units + Excel) + AccountController/HomeController populate + Playwright (MU-03)
 **UI hint:** yes
 
 ### Phase 400: Membership Listing Set-Aware + Rollup Dedup
@@ -149,7 +153,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 0/0 | Not started | - |
+| 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 0/4 | Planned | - |
 | 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 0/0 | Not started | - |
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 0/0 | Not started | - |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
