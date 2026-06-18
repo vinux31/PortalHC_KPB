@@ -138,7 +138,7 @@
 **Plans:** 5 plans (5 wave, sequential — file-overlap controller/view/service intra-phase + TDD Wave 0)
 - [x] 396-01-PLAN.md — Wave 1 (TDD lock): FAILING unit suite InjectExcelHelperTests (round-trip stable order, blank=omit, validation-reject) + DTO InjectExcelUploadResult/EssayTextRequired + VM Step5Method (INJ-10)
 - [x] 396-02-PLAN.md — Wave 2: InjectExcelHelper (GenerateTemplate 2-sheet + ParseMatrix, EF-free) + scope essay text-required D-05 (EssayTextRequired) → Wave 0 GREEN (INJ-10)
-- [ ] 396-03-PLAN.md — Wave 3: controller endpoints (DownloadInjectTemplate GET + UploadInjectExcel POST, RBAC+CSRF+10MB+whitelist, reuse Aggregator preview==commit) + integration test Excel==form/atomic-rollback (INJ-10)
+- [x] 396-03-PLAN.md — Wave 3: controller endpoints (DownloadInjectTemplate GET + UploadInjectExcel POST, RBAC+CSRF+10MB+whitelist, reuse Aggregator preview==commit) + integration test Excel==form/atomic-rollback (INJ-10)
 - [ ] 396-04-PLAN.md — Wave 4: view Step-5 toggle Form/Excel + panel + preview table + error list (UI-SPEC N1-N4) + commit EssayTextRequired=false + Playwright e2e + checkpoint human-verify (INJ-10)
 - [ ] 396-05-PLAN.md — Wave 5: hard-remove BulkBackfill (2 non-contiguous blocks + view + 2 UI links, keep CleanupAttemptHistory/ClosedXML/ManualDuplicatePredicate) + route-404 e2e + 0-diff migration gate (INJ-11)
 **UI hint:** yes
@@ -180,7 +180,7 @@
 | 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete    | 2026-06-17 |
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete    | 2026-06-18 |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
-| 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 2/5 | In Progress|  |
+| 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 3/5 | In Progress|  |
 | 397. Link Pre/Post ke room existing (INJ-12) | 0/? | Not started | - |
 | 398. Test + UAT "seakan online" (INJ-13) | 0/? | Not started | - |
 
