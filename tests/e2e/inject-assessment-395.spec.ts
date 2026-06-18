@@ -66,6 +66,31 @@ async function fillToStep5(page: Page, title: string, workerCount: number) {
   await expect(page.locator('#step5Body')).toBeVisible();
 }
 
+// Author 1 soal Essay (rubrik) untuk uji validasi D-04 teks-wajib.
+async function authorEssayQuestion(page: Page, text: string) {
+  await page.selectOption('#QuestionType', 'Essay');
+  await page.fill('#questionText', text);
+  await page.fill('#rubrik', 'Rubrik: poin kunci jawaban essay.');
+  await page.click('#injAddQuestionBtn');
+}
+
+// Drive Setup → 1 pekerja ber-NIP → 1 soal Essay → Sertifikat → Langkah 5.
+async function fillToStep5Essay(page: Page, title: string) {
+  await page.fill('#Title', title);
+  await page.selectOption('#Category', { index: 1 });
+  await page.click('#btnNext1');
+  await expect(page.locator('#step-2')).toBeVisible();
+  await page.locator(`#userCheckboxContainer .user-check-item[data-email="${WORKER_EMAILS[0]}"] .user-checkbox`).check();
+  await page.click('#btnNext2');
+  await expect(page.locator('#step-3')).toBeVisible();
+  await authorEssayQuestion(page, 'Soal Essay — ' + title);
+  await page.click('#btnNext3');
+  await expect(page.locator('#step-4')).toBeVisible();
+  await page.click('#btnNext4');
+  await expect(page.locator('#step-5')).toBeVisible();
+  await expect(page.locator('#step5Body')).toBeVisible();
+}
+
 test.beforeAll(async () => {
   // CLAUDE.md Seed Workflow: BACKUP sebelum commit-test. Pakai SQL default backup dir
   // (C:\Temp\ diblokir service account — pola Phase 315/355).
@@ -222,5 +247,34 @@ test.describe('LBL-02 label tipe soal', () => {
     const badge = page.locator('#step5AnswerForm .badge').first();
     await expect(badge).toContainText('Single Answer');
     await expect(badge).not.toContainText('Pilihan Ganda');
+  });
+});
+
+// ── D-04 (UI-SPEC K3): teks essay WAJIB bila skor diisi — validasi inline saat Pratinjau ──
+//    Regresi FINDING-1 UAT: dulu Pratinjau menghitung skor (mis. 90% Lulus) walau teks essay kosong
+//    (D-04 hanya di-guard server pada commit → preview != commit, menyesatkan). Fix: validasi client-side
+//    di handler Pratinjau memblokir + tampilkan error inline + TIDAK memanggil endpoint preview.
+test.describe('D-04 inline essay-text validation (Pratinjau)', () => {
+  test('skor essay diisi + teks kosong → Pratinjau blokir inline (tak hitung skor); isi teks → hitung', async ({ page }) => {
+    await loginAdmin(page);
+    await page.goto('/Admin/InjectAssessment');
+    await fillToStep5Essay(page, 'ZZ Inject D04 ' + TS);
+
+    // input-asli default — isi SKOR essay, BIARKAN teks kosong.
+    await expect(page.locator('#step5ModeManual')).toBeChecked();
+    await page.locator('#step5AnswerForm input[type="number"]').fill('8');
+
+    // Pratinjau → diblok inline (D-04), preview TIDAK dirender (tak ada skor menyesatkan).
+    await page.click('#step5PreviewBtn');
+    await expect(
+      page.locator('#step5AnswerForm').getByText('Teks jawaban essay wajib diisi karena skornya diisi.')
+    ).toBeVisible();
+    await expect(page.locator('#step5PreviewResult')).toBeHidden();
+
+    // Isi teks → error hilang + Pratinjau menghitung skor (preview == commit dipulihkan).
+    await page.locator('#step5AnswerForm textarea').fill('Jawaban essay lengkap dengan poin kunci.');
+    await page.click('#step5PreviewBtn');
+    await expect(page.locator('#step5PreviewResult')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#step5PreviewResult')).toContainText('%');
   });
 });

@@ -1271,11 +1271,25 @@
             } else if (isEssay) {
                 // Essay: textarea teks + input skor (input-asli & auto HYBRID).
                 var ta = document.createElement('textarea');
-                ta.className = 'form-control mb-2'; ta.rows = 3; ta.value = ans.text || '';
+                ta.className = 'form-control mb-1'; ta.rows = 3; ta.value = ans.text || '';
+                ta.id = 'step5EssayText_' + q.TempId;
                 ta.placeholder = 'Teks jawaban essay';
                 ta.disabled = !!ans.skipped;
-                ta.addEventListener('input', function () { ans.text = ta.value; });
+                ta.addEventListener('input', function () {
+                    ans.text = ta.value;
+                    ta.classList.remove('is-invalid');
+                    var fb = document.getElementById('step5EssayErr_' + q.TempId);
+                    if (fb) fb.style.display = 'none';
+                });
                 block.appendChild(ta);
+
+                // D-04 inline error slot (UI-SPEC K3) — teks essay wajib bila skor diisi.
+                var essayErr = document.createElement('div');
+                essayErr.id = 'step5EssayErr_' + q.TempId;
+                essayErr.className = 'text-danger small mb-2';
+                essayErr.style.display = 'none';
+                essayErr.textContent = 'Teks jawaban essay wajib diisi karena skornya diisi.';
+                block.appendChild(essayErr);
 
                 var scoreWrap = document.createElement('div'); scoreWrap.style.maxWidth = '220px';
                 var scoreLbl = document.createElement('label'); scoreLbl.className = 'form-label fw-bold';
@@ -1429,6 +1443,30 @@
         }
     }
 
+    // D-04 (UI-SPEC K3): validasi inline teks-essay WAJIB bila skor diisi — saat Pratinjau.
+    // Hanya worker saat ini (form yang ter-render di DOM). Essay di-skip (input-asli, D-05) = omit → tak divalidasi.
+    // Auto-gen HYBRID: essay selalu engaged (manual). Selaras guard server PreflightValidateAsync (commit) → preview == commit.
+    function step5ValidateCurrentEssays(ws) {
+        var invalidCount = 0;
+        injQuestions.forEach(function (q) {
+            if (q.QuestionType !== 'Essay') return;
+            var taEl = document.getElementById('step5EssayText_' + q.TempId);
+            var errEl = document.getElementById('step5EssayErr_' + q.TempId);
+            if (taEl) taEl.classList.remove('is-invalid');
+            if (errEl) errEl.style.display = 'none';
+            var ans = ws.answers[q.TempId];
+            if (!ans) return;
+            var engaged = (ws.mode === 'auto') ? true : !ans.skipped;
+            if (!engaged) return;
+            if (ans.score != null && (!ans.text || !ans.text.trim())) {
+                if (taEl) taEl.classList.add('is-invalid');
+                if (errEl) errEl.style.display = 'block';
+                invalidCount++;
+            }
+        });
+        return invalidCount;
+    }
+
     // ---- Wiring Step-5 ----
     (function wireStep5() {
         var prevBtn = document.getElementById('step5PrevWorker');
@@ -1471,6 +1509,8 @@
         if (previewBtn) previewBtn.addEventListener('click', function () {
             var cb = step5CurrentWorker(); if (!cb) return;
             var ws = step5State[cb.value];
+            // D-04 inline (UI-SPEC K3): teks essay wajib bila skor diisi — cegah preview menyesatkan (preview == commit).
+            if (step5ValidateCurrentEssays(ws) > 0) return;
             var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
             var token = tokenEl ? tokenEl.value : '';
             var url = previewBtn.getAttribute('data-preview-url');
