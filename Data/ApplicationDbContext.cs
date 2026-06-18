@@ -31,6 +31,9 @@ namespace HcPortal.Data
         public DbSet<ActionItem> ActionItems { get; set; }
         public DbSet<CoachCoacheeMapping> CoachCoacheeMappings { get; set; }
 
+        // Multi-Unit pekerja (v32.3 Phase 399 — MU-05; junction + primary-mirror)
+        public DbSet<UserUnit> UserUnits { get; set; }
+
         // Proton Deliverable Tracking (Phase 5)
         public DbSet<ProtonKompetensi> ProtonKompetensiList { get; set; }
         public DbSet<ProtonSubKompetensi> ProtonSubKompetensiList { get; set; }
@@ -332,6 +335,28 @@ namespace HcPortal.Data
                     .IsUnique()
                     .HasDatabaseName("IX_CoachCoacheeMappings_CoacheeId_ActiveUnique");
                 entity.HasIndex(m => new { m.CoachId, m.CoacheeId });
+            });
+
+            // UserUnit configuration (v32.3 Phase 399 — junction multi-unit + primary-mirror)
+            builder.Entity<UserUnit>(entity =>
+            {
+                entity.HasOne(uu => uu.User)
+                      .WithMany()
+                      .HasForeignKey(uu => uu.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(uu => uu.UserId);
+
+                // Tepat 1 primary per user (invariant #3) — idiom identik IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
+                entity.HasIndex(uu => uu.UserId)
+                      .IsUnique()
+                      .HasFilter("[IsPrimary] = 1")
+                      .HasDatabaseName("IX_UserUnits_UserId_PrimaryUnique");
+
+                // Cegah duplikat unit/user (rekomendasi low-cost)
+                entity.HasIndex(uu => new { uu.UserId, uu.Unit })
+                      .IsUnique()
+                      .HasDatabaseName("IX_UserUnits_UserId_Unit_Unique");
             });
 
             // Proton Deliverable Tracking configuration (Phase 5)
