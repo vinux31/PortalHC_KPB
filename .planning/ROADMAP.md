@@ -116,7 +116,10 @@
   3. Sebelum commit, sistem menampilkan **skor final aktual** hasil pipeline grading untuk auto-generate (memperhitungkan pembulatan) sehingga HC tahu jika target tidak tercapai persis dan diambil yang terdekat. *(INJ-09 — risiko spec §13 auto-gen tak persis)*
   4. Jawaban hasil auto-generate tetap menghasilkan sesi ber-`IsManualEntry=true` + AuditLog (sintetis namun terlacak); diverifikasi end-to-end skor yang tampil di hasil = skor preview. *(INJ-08, INJ-09)*
   5. `dotnet build` 0 error + `dotnet test` + `dotnet run` (localhost:5277) + Playwright e2e: input asli per pekerja → skor dihitung benar; auto-gen skor target → preview skor final aktual tampil → commit → hasil match. *(INJ-08, INJ-09 — Razor + JS runtime → Playwright wajib)*
-**Plans:** TBD
+**Plans:** 3 plans (3 wave, sequential - file-overlap intra-phase)
+- [ ] 395-01-PLAN.md - Wave 1: fondasi server-side (BuildAutoGenAnswers subset-sum + ComputeAutoGenSeed SHA-256 + rule TextAnswer-wajib D-04) + unit test pure (INJ-08, INJ-09)
+- [ ] 395-02-PLAN.md - Wave 2: controller (PreviewInjectScore dry-run + ParseAnswerVms + MapToRequest isi Answers + wire #btnInject to InjectBatchAsync commit) + DTO/VM + integration test preview==commit (INJ-08, INJ-09)
+- [ ] 395-03-PLAN.md - Wave 3: view Step-5 sub-komponen 1-pekerja-per-layar + #AnswersJson serialize + preview JS + LBL-02 carry-in + e2e + checkpoint human-verify (INJ-08, INJ-09)
 **UI hint:** yes
 
 ### Phase 396: Import Excel + retire BulkBackfill
