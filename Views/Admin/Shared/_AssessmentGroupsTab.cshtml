@@ -314,12 +314,6 @@ else
                                                 <i class="bi bi-file-zip me-2"></i>Bulk Export PDF (ZIP)@((bool)group.IsPrePostGroup ? " (Pre & Post)" : "")
                                             </a>
                                         </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <a class="dropdown-item" href="@Url.Action("BulkBackfill", "TrainingAdmin")">
-                                                <i class="bi bi-arrow-counterclockwise me-2"></i>Bulk Import Nilai (Excel)
-                                            </a>
-                                        </li>
                                         @if ((bool)group.IsTokenRequired)
                                         {
                                         <li>
