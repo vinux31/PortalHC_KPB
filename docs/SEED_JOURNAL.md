@@ -285,3 +285,10 @@ Audit trail untuk seed `temporary + local-only`. Lihat [`docs/SEED_WORKFLOW.md`]
 | 2026-06-18 | 315 | temporary + local-only | Assessment matrix discovery test sweep — 7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup/HcPortalDB_Dev-matrix-2026-06-18T07-11-09-516Z.bak | cleaned |
 | 2026-06-18 | 315 | temporary + local-only | Assessment matrix discovery test sweep — 7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup/HcPortalDB_Dev-matrix-2026-06-18T07-13-28-066Z.bak | cleaned |
 | 2026-06-18 | 315 | temporary + local-only | Assessment matrix discovery test sweep — 7 discovery + 3 sentinel scenario (matrix-test, MATRIX_TEST_2026_05_11) | AssessmentSessions(18), Packages(18), Questions(54), Options(144) prefix [MATRIX_TEST_2026_05_11] | C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup/HcPortalDB_Dev-matrix-2026-06-18T07-15-55-898Z.bak | cleaned |
+
+## 2026-06-18 — Phase 396 manual browser UAT (Import Excel)
+- **Tujuan:** verifikasi manusia (via Claude browser) jalur Import Excel Langkah 5 inject + commit aktual ke Records/Results.
+- **Klasifikasi:** temporary + local-only (sesi inject "ZZ UAT396 ...").
+- **Snapshot:** `C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\Backup\HcPortalDB_Dev-pre396uat.bak` (2002 pages, 2026-06-18).
+- **Entitas tersentuh:** AssessmentSessions, UserPackageAssignment, PackageUserResponses, SessionElemenTeknisScore, NomorSertifikat (KPB/005/VI/2026 sesi #173), AuditLog (ManualInject).
+- **Status:** cleaned (2026-06-18) — DB di-restore dari snapshot (2002 pages OK), 0 sesi `ZZ UAT396%` tersisa, file .bak + xlsx temp dihapus, server dev dihentikan. UAT 5/5 PASS (N1 toggle, N2 download+template, N3 commit seakan-online, D-09 error atomic, D-06 blank warn).
