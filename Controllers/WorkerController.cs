@@ -199,9 +199,12 @@ namespace HcPortal.Controllers
             }
 
             // Filter by unit
+            // Phase 400 (MU-06 D-01/D-03/D-06): predikat SET-AWARE active-only (display badge TIDAK diubah).
+            // Correlated subquery → SQL EXISTS; PITFALL #1: _context.UserUnits (bukan u.UserUnits nav prop).
             if (!string.IsNullOrEmpty(unitFilter))
             {
-                query = query.Where(u => u.Unit == unitFilter);
+                query = query.Where(u =>
+                    _context.UserUnits.Any(uu => uu.UserId == u.Id && uu.Unit == unitFilter && uu.IsActive));
             }
 
             // Filter by role level
@@ -297,8 +300,11 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(sectionFilter))
                 query = query.Where(u => u.Section == sectionFilter);
 
+            // Phase 400 (MU-06 D-01/D-03): predikat unit SET-AWARE active-only (correlated subquery → SQL EXISTS).
+            // PITFALL #1: _context.UserUnits (bukan u.UserUnits nav prop).
             if (!string.IsNullOrEmpty(unitFilter))
-                query = query.Where(u => u.Unit == unitFilter);
+                query = query.Where(u =>
+                    _context.UserUnits.Any(uu => uu.UserId == u.Id && uu.Unit == unitFilter && uu.IsActive));
 
             if (!string.IsNullOrEmpty(roleFilter))
             {
