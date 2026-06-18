@@ -37,7 +37,13 @@
         <div class="psign-label">@Model.Position</div>
     }
 
-    @if (!string.IsNullOrEmpty(Model.Unit))
+    @* MU-03 / D-07 LOCKED: kartu cetak tampil SEMUA unit (primary-first comma-join), BUKAN primary-only.
+       Badge tak cocok cetak → teks polos. Fallback scalar Model.Unit untuk pemanggil belum-isi Units. *@
+    @if (Model.Units != null && Model.Units.Any())
+    {
+        <div class="psign-label">@string.Join(", ", Model.Units.OrderByDescending(u => u == Model.PrimaryUnit).ThenBy(u => u))</div>
+    }
+    else if (!string.IsNullOrEmpty(Model.Unit))
     {
         <div class="psign-label">@Model.Unit</div>
     }
