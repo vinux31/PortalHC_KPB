@@ -1424,21 +1424,30 @@ namespace HcPortal.Controllers
             // semua-unit track. Coachee di track multi-unit (mis. track id=4) hanya punya progress
             // untuk deliverable unit-nya — membandingkan dengan total semua unit membuatnya tak pernah
             // eligible. expectedCount per-unit MIRROR PERSIS filter AutoCreateProgressForAssignment.
+            // Phase 401 (D-03): actor untuk gate-block AuditLog (resolve sekali sebelum loop).
+            var actor = await _userManager.GetUserAsync(User);
+            var actorId = actor?.Id ?? "system";
+            var actorName = actor?.FullName ?? actor?.UserName ?? User.Identity?.Name ?? "system";
+
             var eligibleCoacheeIds = new List<string>();
             foreach (var coacheeId in assignedCoacheeIds)
             {
-                // Resolve unit per-coachee — MIRROR PERSIS AutoCreateProgressForAssignment L1342-1355
-                var assignmentUnit = await _context.CoachCoacheeMappings
+                // Phase 401 (PSU-01): resolusi unit PROTON HANYA dari AssignmentUnit eksplisit (fallback User.Unit DIBUANG — ambigu multi-unit).
+                var resolvedUnit = await _context.CoachCoacheeMappings
                     .Where(m => m.CoacheeId == coacheeId && m.IsActive)
                     .Select(m => m.AssignmentUnit)
                     .FirstOrDefaultAsync();
-                var resolvedUnit = assignmentUnit;
                 if (string.IsNullOrWhiteSpace(resolvedUnit))
-                    resolvedUnit = await _context.Users
-                        .Where(u => u.Id == coacheeId)
-                        .Select(u => u.Unit)
-                        .FirstOrDefaultAsync();
-                if (string.IsNullOrWhiteSpace(resolvedUnit)) continue; // unit tak terselesaikan → tidak eligible
+                {
+                    // PSU-05 / D-02 GATE-ELIGIBILITY = BLOCK (tak boleh eligible dgn unit ter-resolve dari primary).
+                    // D-03 channel = AuditLog persisted (event langka & signifikan, queryable compliance) + LogWarning.
+                    await _auditLog.LogAsync(actorId, actorName,
+                        "ProtonUnitUnresolved",
+                        $"Coachee {coacheeId} di-skip dari eligibility coaching: AssignmentUnit kosong (tak boleh resolve dari Unit primary).",
+                        targetType: "CoachCoacheeMapping");
+                    _logger.LogWarning("Eligibility skip: coachee {CoacheeId} AssignmentUnit kosong (gate-block).", coacheeId);
+                    continue;
+                }
 
                 // WR-01: expectedCount + myStatuses keduanya PER-UNIT (sumbu perbandingan identik).
                 // Ambil deliverable-id unit coachee (filter PERSIS .Trim() dua sisi seperti
@@ -1479,7 +1488,7 @@ namespace HcPortal.Controllers
         {
             var warnings = new List<string>();
 
-            // Resolve unit: AssignmentUnit from active mapping, fallback to User.Unit
+            // Phase 401 (PSU-01): resolusi unit HANYA dari AssignmentUnit active mapping (fallback User.Unit DIBUANG).
             var assignmentUnit = await _context.CoachCoacheeMappings
                 .Where(m => m.CoacheeId == coacheeId && m.IsActive)
                 .Select(m => m.AssignmentUnit)
@@ -1488,20 +1497,14 @@ namespace HcPortal.Controllers
             var resolvedUnit = assignmentUnit;
             if (string.IsNullOrWhiteSpace(resolvedUnit))
             {
-                resolvedUnit = await _context.Users
-                    .Where(u => u.Id == coacheeId)
-                    .Select(u => u.Unit)
-                    .FirstOrDefaultAsync();
-            }
-
-            if (string.IsNullOrWhiteSpace(resolvedUnit))
-            {
-                warnings.Add($"Coachee {coacheeId} tidak memiliki AssignmentUnit maupun Unit — progress tidak dibuat.");
+                // PSU-05 read-path (D-03): channel = LogWarning / warnings.Add SAJA — JANGAN _auditLog persisted (volume).
+                _logger.LogWarning("AutoCreateProgress skip: coachee {CoacheeId} AssignmentUnit kosong (read-path).", coacheeId);
+                warnings.Add($"Coachee {coacheeId} tidak memiliki AssignmentUnit — progress tidak dibuat (unit tak boleh diturunkan dari primary).");
                 return warnings;
             }
 
             // Phase 360 (PBYP-05): filter + insert diekstrak ke helper parametrik (unit eksplisit,
-            // guard anti-dobel B-06). Resolve unit (mapping → fallback User.Unit) tetap di sini.
+            // guard anti-dobel B-06). Resolve unit (Phase 401: AssignmentUnit-only, NO fallback) tetap di sini.
             return await ProtonDeliverableBootstrap.CreateProgressAsync(
                 _context, assignmentId, protonTrackId, coacheeId, resolvedUnit);
         }
