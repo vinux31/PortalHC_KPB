@@ -1,0 +1,318 @@
+@model HcPortal.ViewModels.InjectAssessmentViewModel
+@{
+    ViewData["Title"] = "Inject Assessment Manual";
+    ViewData["ContainerClass"] = "container-fluid";
+}
+
+@*
+    Phase 394 — Wizard Inject Assessment Manual (scaffold, Plan 01).
+    6 pills + 6 step-panel + single <form> + WizardController IIFE (port CreateAssessment.cshtml:877-937 → loop 1..6).
+    Step bodies = placeholder; diisi Plan 02 (Setup+Picker) / 03 (Authoring+Sertifikat) / 04 (Jawaban placeholder + Konfirmasi + POST map).
+    Razor di-embed saat build → verifikasi runtime WAJIB Playwright (lesson Phase 354).
+*@
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Inject Assessment Manual</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <h2 class="fw-bold mb-1">Inject Assessment Manual</h2>
+    <p class="text-muted mb-4">Catat hasil assessment luring (offline) agar tampil identik dengan assessment online di riwayat pekerja.</p>
+
+    <!-- Mode banner -->
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Mode Inject</strong> — data yang Anda isi dicatat sebagai assessment historis (luring). Skor, kelulusan, dan sertifikat dihitung otomatis oleh sistem, identik dengan jalur online.
+    </div>
+
+    <!-- Server-side alerts (re-render on validation failure) -->
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle me-2"></i>@TempData["Info"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>@TempData["Warning"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong><i class="bi bi-exclamation-triangle-fill me-2"></i>Mohon perbaiki kesalahan berikut:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Step Indicator Nav-Pills -->
+    <nav class="mb-4">
+        <ul class="nav nav-pills nav-fill gap-2" id="wizardStepNav">
+            <li class="nav-item">
+                <button type="button" class="nav-link bg-primary text-white active" id="pill-1">
+                    <i class="bi bi-circle-fill me-1"></i>1. Setup Room
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link text-muted border" id="pill-2" disabled>
+                    <i class="bi bi-circle me-1"></i>2. Pilih Pekerja
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link text-muted border" id="pill-3" disabled>
+                    <i class="bi bi-circle me-1"></i>3. Authoring Soal
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link text-muted border" id="pill-4" disabled>
+                    <i class="bi bi-circle me-1"></i>4. Sertifikat
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link text-muted border" id="pill-5" disabled>
+                    <i class="bi bi-circle me-1"></i>5. Jawaban
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link text-muted border" id="pill-6" disabled>
+                    <i class="bi bi-circle me-1"></i>6. Konfirmasi
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Single form wrapping all 6 step panels -->
+    <form asp-action="InjectAssessment" asp-controller="InjectAssessment" method="post" id="injectAssessmentForm" novalidate>
+        @Html.AntiForgeryToken()
+
+        <!-- ===================== STEP 1: SETUP ROOM ===================== -->
+        <div id="step-1" class="step-panel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-gear text-primary me-2"></i>Langkah 1: Setup Room</h5>
+                    <p class="text-muted">Field setup room (judul, kategori, tipe, tanggal backdate, durasi, nilai lulus) diisi pada tahap berikut.</p>
+                    <div class="d-flex justify-content-between mt-4">
+                        <div></div>
+                        <button type="button" class="btn btn-primary btn-next" id="btnNext1">
+                            Selanjutnya <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== STEP 2: PILIH PEKERJA ===================== -->
+        <div id="step-2" class="step-panel d-none">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-people text-primary me-2"></i>Langkah 2: Pilih Pekerja</h5>
+                    <p class="text-muted">Picker pekerja (search/filter Section/checkbox) diisi pada tahap berikut.</p>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev2">
+                            <i class="bi bi-arrow-left me-1"></i>Sebelumnya
+                        </button>
+                        <button type="button" class="btn btn-primary btn-next" id="btnNext2">
+                            Selanjutnya <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== STEP 3: AUTHORING SOAL ===================== -->
+        <div id="step-3" class="step-panel d-none">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-card-list text-primary me-2"></i>Langkah 3: Authoring Soal</h5>
+                    <p class="text-muted">Form tulis soal (MC/MA/Essay) + daftar soal diisi pada tahap berikut.</p>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev3">
+                            <i class="bi bi-arrow-left me-1"></i>Sebelumnya
+                        </button>
+                        <button type="button" class="btn btn-primary btn-next" id="btnNext3">
+                            Selanjutnya <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== STEP 4: SERTIFIKAT ===================== -->
+        <div id="step-4" class="step-panel d-none">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-award text-primary me-2"></i>Langkah 4: Sertifikat</h5>
+                    <p class="text-muted">Pilihan mode sertifikat (Auto/Manual/Tanpa) diisi pada tahap berikut.</p>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev4">
+                            <i class="bi bi-arrow-left me-1"></i>Sebelumnya
+                        </button>
+                        <button type="button" class="btn btn-primary btn-next" id="btnNext4">
+                            Selanjutnya <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== STEP 5: JAWABAN (placeholder — Phase 395) ===================== -->
+        <div id="step-5" class="step-panel d-none">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-pencil-square text-primary me-2"></i>Langkah 5: Jawaban</h5>
+                    <p class="text-muted">Pengisian jawaban per-pekerja diisi pada tahap berikut (Phase 395).</p>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev5">
+                            <i class="bi bi-arrow-left me-1"></i>Sebelumnya
+                        </button>
+                        <button type="button" class="btn btn-primary btn-next" id="btnNext5">
+                            Selanjutnya <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== STEP 6: KONFIRMASI ===================== -->
+        <div id="step-6" class="step-panel d-none">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-check2-circle text-primary me-2"></i>Langkah 6: Konfirmasi</h5>
+                    <p class="text-muted">Ringkasan Setup/Pekerja/Soal/Sertifikat diisi pada tahap berikut.</p>
+                    <div class="d-flex justify-content-between mt-4 mb-3">
+                        <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev6">
+                            <i class="bi bi-arrow-left me-1"></i>Sebelumnya
+                        </button>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100" id="btnInject">
+                        <i class="bi bi-cloud-arrow-up-fill me-2"></i>Inject Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+<script>
+// ===== Wizard Controller (port CreateAssessment.cshtml:877-937 → 6 steps) =====
+(function WizardController() {
+    var currentStep = 1;
+    var visitedSteps = new Set([1]);
+    var returnToConfirm = false;
+    var TOTAL_STEPS = 6;
+
+    // ---- goToStep ----
+    function goToStep(n) {
+        if (n < 1 || n > TOTAL_STEPS) return;
+        currentStep = n;
+        visitedSteps.add(n);
+
+        document.querySelectorAll('.step-panel').forEach(function (panel) {
+            panel.classList.add('d-none');
+        });
+        var target = document.getElementById('step-' + n);
+        if (target) target.classList.remove('d-none');
+
+        updatePills();
+
+        if (n === TOTAL_STEPS) populateSummary();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---- updatePills ----
+    function updatePills() {
+        for (var i = 1; i <= 6; i++) {
+            var pill = document.getElementById('pill-' + i);
+            if (!pill) continue;
+
+            pill.className = 'nav-link';
+            pill.disabled = true;
+            var icon = pill.querySelector('i');
+
+            if (i === currentStep) {
+                pill.classList.add('bg-primary', 'text-white', 'active');
+                pill.disabled = false;
+                if (icon) { icon.className = 'bi bi-circle-fill me-1'; }
+            } else if (visitedSteps.has(i) && i < currentStep) {
+                pill.classList.add('bg-success', 'text-white');
+                pill.disabled = false;
+                if (icon) { icon.className = 'bi bi-check-circle-fill me-1'; }
+            } else if (visitedSteps.has(i)) {
+                pill.classList.add('text-primary', 'border', 'border-primary');
+                pill.disabled = false;
+                if (icon) { icon.className = 'bi bi-circle me-1'; }
+            } else {
+                pill.classList.add('text-muted', 'border');
+                pill.disabled = true;
+                if (icon) { icon.className = 'bi bi-circle me-1'; }
+            }
+        }
+    }
+
+    // ---- validateStep (scaffold: always true; Plan 02/03 add per-step rules) ----
+    function validateStep(n) {
+        return true;
+    }
+
+    // ---- populateSummary (stub — Plan 04 fills confirm summary via .textContent) ----
+    function populateSummary() { }
+
+    // ---- wiring ----
+    document.querySelectorAll('.btn-next').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (validateStep(currentStep)) goToStep(currentStep + 1);
+        });
+    });
+    document.querySelectorAll('.btn-prev').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            goToStep(currentStep - 1);
+        });
+    });
+    for (var i = 1; i <= TOTAL_STEPS; i++) {
+        (function (n) {
+            var pill = document.getElementById('pill-' + n);
+            if (pill) pill.addEventListener('click', function () {
+                if (visitedSteps.has(n)) goToStep(n);
+            });
+        })(i);
+    }
+
+    // expose for later-plan hooks
+    window.injWizard = { goToStep: goToStep, validateStep: validateStep };
+
+    updatePills();
+})();
+</script>
+}
