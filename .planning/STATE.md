@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: verifying
-stopped_at: Phase 400 context gathered
-last_updated: "2026-06-18T07:37:09.966Z"
+stopped_at: Phase 400 UI-SPEC approved
+last_updated: "2026-06-18T07:52:39.083Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 30
@@ -129,6 +129,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 400 context gathered
+Stopped at: Phase 400 UI-SPEC approved
 
 Next action: `/gsd-plan-phase 399` (Foundation — Wave 0 solo, migration=TRUE). Lalu Wave 1 {400, 401, 403} paralel, Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
