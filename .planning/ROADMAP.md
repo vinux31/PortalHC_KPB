@@ -64,7 +64,7 @@
 - [x] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration.
  (completed 2026-06-18)
 - [x] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration. (completed 2026-06-18)
-- [ ] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration.
+- [x] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration. (completed 2026-06-18)
 - [ ] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration.
 
 ### Phase Details
@@ -155,7 +155,7 @@
   2. Memilih room target men-set `LinkedGroupId` + `LinkedSessionId` sesi inject dengan benar sehingga pasangan Pre↔Post saling tertaut per pekerja (reuse logika PrePost existing, tanpa grouping baru). *(INJ-12)*
   3. Skenario silang berfungsi: Pre di-inject + Post = assessment online asli (atau sebaliknya) tampil sebagai satu pasangan Pre/Post utuh di Records/Monitoring — diverifikasi grouping `LinkedGroupId` tidak rusak saat satu sisi inject & satu sisi online. *(INJ-12 — risiko spec §13 link silang)*
   4. `dotnet build` 0 error + `dotnet test`/Playwright + `dotnet run` (localhost:5277): picker tampil saat Pre/Post → pilih room online asli → sesi inject tertaut → pasangan Pre/Post utuh (silang inject↔online). *(INJ-12)*
-**Plans:** 4 plans (4 wave, sequential — file-overlap controller/service/view intra-phase + TDD Wave 0; SEQUENTIAL setelah 395 & 396 ter-commit)
+**Plans:** 4/4 plans complete
 - [x] 397-01-PLAN.md — Wave 1 (TDD lock): FAILING xUnit suite (per-pekerja bidirectional, Kasus A/B, atomic rollback, anti-double, preview==commit pairing, cross-grouping §13, unlink revert) + DTO LinkTargetRepId/InjectPairingPreview + VM LinkedTargetRepId (INJ-12)
 - [x] 397-02-PLAN.md — Wave 2: service — per-pekerja LinkedSessionId (ganti broadcast :120) + Kasus A/B resolution + Kasus B write-to-online atomic + audit "LinkPrePost" + anti-double preflight (D-08) + PreviewPairingAsync (D-07) + UnlinkInjectGroupAsync (D-12) → Wave 0 GREEN (INJ-12)
 - [x] 397-03-PLAN.md — Wave 3: controller — SearchLinkTargets JSON picker (tipe-lawan, inject+online, D-06/D-10) + MapToRequest isi LinkTargetRepId + PreviewPairing endpoint (D-07) + UnlinkInjectGroup POST RBAC+CSRF (D-12) (INJ-12)
@@ -186,7 +186,7 @@
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete    | 2026-06-18 |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 5/5 | Complete    | 2026-06-18 |
-| 397. Link Pre/Post ke room existing (INJ-12) | 4/4 | Complete   | 2026-06-18 |
+| 397. Link Pre/Post ke room existing (INJ-12) | 4/4 | Complete    | 2026-06-18 |
 | 398. Test + UAT "seakan online" (INJ-13) | 0/? | Not started | - |
 
 ### Dependency Graph
