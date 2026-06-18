@@ -9,6 +9,7 @@
 //   394-03 unskip authoring/cert-radio; 394-04 unskip step5/confirm/no-DB-write.
 import { test, expect, type Page } from '@playwright/test';
 import { accounts, AccountKey } from '../helpers/accounts';
+import * as db from '../helpers/dbSnapshot';
 
 async function loginAny(page: Page, accountKey: AccountKey) {
   const { email, password } = accounts[accountKey];
@@ -269,5 +270,21 @@ test.describe('D-07 step5 placeholder + confirm', () => {
     await expect(page.locator('#step-1')).toBeVisible();
     await page.click('#btnNext1');
     await expect(page.locator('#step-6')).toBeVisible();
+  });
+
+  // D-07: page writes NOTHING to DB (commit lands Phase 395). Verify session count unchanged
+  // after full navigation AND after submitting the POST (which maps but does not commit).
+  test('no DB write (GET + POST)', async ({ page }) => {
+    const before = await db.queryScalar('SELECT COUNT(*) FROM AssessmentSessions');
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    await fillWizardToConfirm(page, 'ZZ NoDB ' + Date.now());
+    const afterNav = await db.queryScalar('SELECT COUNT(*) FROM AssessmentSessions');
+    expect(afterNav).toBe(before);
+    // submit POST (VM→InjectRequest mapping only — no commit in 394)
+    await page.click('#btnInject');
+    await page.waitForLoadState('load');
+    const afterPost = await db.queryScalar('SELECT COUNT(*) FROM AssessmentSessions');
+    expect(afterPost).toBe(before);
   });
 });
